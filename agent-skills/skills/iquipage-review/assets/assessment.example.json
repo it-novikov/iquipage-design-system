@@ -1,0 +1,96 @@
+{
+  "schema_version": "1.0",
+  "kind": "integration-review",
+  "baseline": {
+    "ds_archive_sha256": "0eb12439404cfff3e87118d447e133252fcae01a2a8e4329f264a3c79e33be2c",
+    "app_fingerprint": "0000000000000000000000000000000000000000000000000000000000000000",
+    "note": "TEMPLATE: replace with actual current source/build identity"
+  },
+  "scope": {
+    "approval_ref": null,
+    "surface_ids": [
+      "workspace/tasks"
+    ],
+    "required_check_ids": [
+      "TASK-REAL-SAVE"
+    ],
+    "required_dimensions": [
+      "visual",
+      "ux",
+      "code",
+      "accessibility",
+      "human-agent",
+      "performance"
+    ]
+  },
+  "coverage": [
+    {
+      "surface_id": "workspace/tasks",
+      "status": "NOT_RUN",
+      "check_ids": [
+        "TASK-REAL-SAVE"
+      ],
+      "evidence": []
+    }
+  ],
+  "checks": [
+    {
+      "id": "TASK-REAL-SAVE",
+      "surface_id": "workspace/tasks",
+      "status": "NOT_RUN",
+      "app_fingerprint": "0000000000000000000000000000000000000000000000000000000000000000",
+      "expected": "Изменение задачи сохраняется по API и остаётся после reload",
+      "actual": "Не выполнялось; шаблон",
+      "reason": "Шаблон необходимо заполнить реальным прогоном",
+      "environment": {
+        "browser": "not-run",
+        "theme": "not-run",
+        "viewport": "not-run"
+      },
+      "evidence": []
+    }
+  ],
+  "dimensions": [
+    {
+      "name": "visual",
+      "status": "NOT_RUN",
+      "summary": "Не проверено; шаблон",
+      "evidence": []
+    },
+    {
+      "name": "ux",
+      "status": "NOT_RUN",
+      "summary": "Не проверено; шаблон",
+      "evidence": []
+    },
+    {
+      "name": "code",
+      "status": "NOT_RUN",
+      "summary": "Не проверено; шаблон",
+      "evidence": []
+    },
+    {
+      "name": "accessibility",
+      "status": "NOT_RUN",
+      "summary": "Не проверено; шаблон",
+      "evidence": []
+    },
+    {
+      "name": "human-agent",
+      "status": "NOT_RUN",
+      "summary": "Не проверено; шаблон",
+      "evidence": []
+    },
+    {
+      "name": "performance",
+      "status": "NOT_RUN",
+      "summary": "Не проверено; шаблон",
+      "evidence": []
+    }
+  ],
+  "findings": [],
+  "verdict": {
+    "release_ready": false,
+    "summary": "TEMPLATE_NOT_EXECUTED"
+  }
+}

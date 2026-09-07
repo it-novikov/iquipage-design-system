@@ -1,0 +1,6 @@
+interface:
+  display_name: "IQUIPAGE · Приёмка внедрения"
+  short_description: "Код, UI, состояния и доказательства готовности"
+  default_prompt: "Используй $iquipage-review для текущей задачи. Прочитай фактическую поставку, соблюдай scope и фиксируй доказательства."
+policy:
+  allow_implicit_invocation: true

@@ -1,0 +1,171 @@
+{
+  "version": "0.5.7",
+  "sharedModules": {
+    "components.js": [
+      "interaction.js",
+      "media.js",
+      "icons.js"
+    ],
+    "interaction.js": [],
+    "media.js": [
+      "icons.js"
+    ],
+    "icons.js": [],
+    "date-field.js": [
+      "components.js",
+      "interaction.js"
+    ],
+    "editor.js": [
+      "markdown.js",
+      "time.js",
+      "components.js",
+      "interaction.js"
+    ],
+    "time.js": [
+      "components.js"
+    ],
+    "pagination.js": [
+      "components.js",
+      "interaction.js"
+    ],
+    "structured.js": [
+      "priority.js",
+      "components.js"
+    ],
+    "priority.js": [
+      "icons.js"
+    ],
+    "side-navigation.js": [
+      "components.js"
+    ],
+    "board-motion.js": [],
+    "task-kind.js": [
+      "priority.js"
+    ],
+    "validation.js": [
+      "components.js"
+    ],
+    "ui.js": [
+      "components.js"
+    ],
+    "advanced-core.js": [],
+    "advanced-base.js": [
+      "advanced-core.js",
+      "components.js"
+    ],
+    "roadmap.js": [
+      "advanced-core.js",
+      "advanced-base.js",
+      "components.js",
+      "ui.js",
+      "capabilities.js"
+    ],
+    "graph.js": [
+      "advanced-core.js",
+      "advanced-base.js",
+      "components.js",
+      "ui.js",
+      "capabilities.js"
+    ],
+    "remote-inputs.js": [
+      "advanced-core.js",
+      "components.js"
+    ],
+    "data-chart.js": [
+      "advanced-core.js",
+      "components.js"
+    ],
+    "image-crop.js": [
+      "components.js",
+      "advanced-core.js"
+    ],
+    "whiteboard-core.js": [
+      "whiteboard-shapes.js",
+      "whiteboard-routing.js"
+    ],
+    "whiteboard.js": [
+      "whiteboard-core.js",
+      "whiteboard-experience-core.js",
+      "components.js",
+      "whiteboard-experience.js",
+      "whiteboard-studio.js",
+      "whiteboard-workshop.js"
+    ],
+    "whiteboard-experience-core.js": [
+      "whiteboard-core.js"
+    ],
+    "whiteboard-experience.js": [
+      "whiteboard-core.js",
+      "whiteboard-experience-core.js",
+      "components.js"
+    ],
+    "whiteboard-routing.js": [
+      "whiteboard-shapes.js"
+    ],
+    "whiteboard-studio.js": [
+      "whiteboard-core.js",
+      "whiteboard-experience-core.js",
+      "whiteboard-routing.js",
+      "components.js",
+      "editor.js",
+      "whiteboard-shapes.js"
+    ],
+    "capabilities.js": [
+      "advanced-core.js",
+      "advanced-base.js",
+      "components.js",
+      "editor.js"
+    ],
+    "work-header.js": [
+      "components.js"
+    ],
+    "markdown.js": [],
+    "markdown-viewer.js": [
+      "markdown.js"
+    ],
+    "work-layout.js": [],
+    "whiteboard-shapes.js": [],
+    "whiteboard-workshop.js": [
+      "whiteboard-core.js",
+      "whiteboard-experience-core.js",
+      "whiteboard-shapes.js",
+      "whiteboard-routing.js",
+      "components.js",
+      "icons.js"
+    ]
+  },
+  "entries": {
+    "core": [
+      "components.js",
+      "date-field.js",
+      "editor.js",
+      "pagination.js",
+      "time.js",
+      "board-motion.js",
+      "media.js",
+      "interaction.js",
+      "structured.js",
+      "side-navigation.js",
+      "priority.js",
+      "task-kind.js",
+      "validation.js",
+      "ui.js",
+      "work-header.js",
+      "markdown.js",
+      "markdown-viewer.js",
+      "work-layout.js"
+    ],
+    "advanced": [
+      "roadmap.js",
+      "graph.js",
+      "remote-inputs.js",
+      "data-chart.js",
+      "advanced-core.js",
+      "image-crop.js"
+    ],
+    "whiteboard": [
+      "whiteboard.js",
+      "whiteboard-core.js"
+    ]
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "provider": "lucide-icons/lucide",
+  "license": "See LICENSE",
+  "retrieved": "2026-09-07",
+  "files": [
+    {
+      "name": "text-align-start",
+      "blobSha": "703d4551076da3c431529883d568828090c971d5",
+      "source": "https://github.com/lucide-icons/lucide/blob/main/icons/text-align-start.svg"
+    },
+    {
+      "name": "text-align-center",
+      "blobSha": "a7b6d5395bffcd6358307a028da18dba086ad51d",
+      "source": "https://github.com/lucide-icons/lucide/blob/main/icons/text-align-center.svg"
+    },
+    {
+      "name": "text-align-end",
+      "blobSha": "fba40f367ed3db3fc7a9c60bd7d7f67d7e98c91d",
+      "source": "https://github.com/lucide-icons/lucide/blob/main/icons/text-align-end.svg"
+    }
+  ]
+}

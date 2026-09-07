@@ -1,0 +1,33 @@
+{
+  "schema_version": "1.0",
+  "purpose": "Synthetic helper tests. No production UI, DS conformance, real app behaviour or model invocations.",
+  "url_navigation": {
+    "status": "BLOCKED",
+    "error": "Error: Page.goto: net::ERR_BLOCKED_BY_ADMINISTRATOR at http://127.0.0.1:34675/capture.html\nCall log:\n  - navigating to \"http://127.0.0.1:34675/capture.html\", waiting until \"domcontentloaded\"\n",
+    "note": "Preserved as blocked; fixture checks below do not close URL navigation."
+  },
+  "offline_fixture_cases": [
+    {
+      "case": "fixture-light-1280",
+      "status": "PASS",
+      "assertions": 7,
+      "engine": "144.0.7559.96",
+      "expected_error_detected": false
+    },
+    {
+      "case": "fixture-dark-390",
+      "status": "PASS",
+      "assertions": 7,
+      "engine": "144.0.7559.96",
+      "expected_error_detected": false
+    },
+    {
+      "case": "fixture-dark-1280-intentional-error",
+      "status": "PASS",
+      "assertions": 7,
+      "engine": "144.0.7559.96",
+      "expected_error_detected": true
+    }
+  ],
+  "fixture_status": "PASS"
+}

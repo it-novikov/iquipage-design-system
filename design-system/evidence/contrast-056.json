@@ -1,0 +1,5802 @@
+{
+  "version": "0.5.7",
+  "htmlSha256": "0a70d4c05ffd20182699bd054f800f373bff3f51ae4fef117cdac2630e4e275c",
+  "cssSha256": "caf76a0d8b3f937c0db7443c7b6f9d622bd530c63e9957524ce408d86c127825",
+  "total": 362,
+  "passed": 362,
+  "javascriptErrors": [],
+  "checks": [
+    {
+      "name": "light/work/normal/P/Sprintique / Команда продукта",
+      "passed": true,
+      "ratio": 5.908,
+      "minimum": 4.5,
+      "fg": [
+        98.0,
+        100.0,
+        107.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/H1/Выпуск 2.5",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 3,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/P/Всё, что нужно довести до следующего выпуска.",
+      "passed": true,
+      "ratio": 5.908,
+      "minimum": 4.5,
+      "fg": [
+        98.0,
+        100.0,
+        107.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/BUTTON/Задачи",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/BUTTON/Идеи",
+      "passed": true,
+      "ratio": 5.908,
+      "minimum": 4.5,
+      "fg": [
+        98.0,
+        100.0,
+        107.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/BUTTON/План",
+      "passed": true,
+      "ratio": 5.908,
+      "minimum": 4.5,
+      "fg": [
+        98.0,
+        100.0,
+        107.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/BUTTON/Релизы",
+      "passed": true,
+      "ratio": 5.908,
+      "minimum": 4.5,
+      "fg": [
+        98.0,
+        100.0,
+        107.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/BUTTON/Участники",
+      "passed": true,
+      "ratio": 5.908,
+      "minimum": 4.5,
+      "fg": [
+        98.0,
+        100.0,
+        107.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/B/12",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/BUTTON/Только в работе",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/BUTTON/По названию ",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/TH/Название",
+      "passed": true,
+      "ratio": 5.426,
+      "minimum": 4.5,
+      "fg": [
+        98.0,
+        100.0,
+        107.0
+      ],
+      "bg": [
+        245.0,
+        245.0,
+        247.0
+      ]
+    },
+    {
+      "name": "light/work/normal/TH/Статус",
+      "passed": true,
+      "ratio": 5.426,
+      "minimum": 4.5,
+      "fg": [
+        98.0,
+        100.0,
+        107.0
+      ],
+      "bg": [
+        245.0,
+        245.0,
+        247.0
+      ]
+    },
+    {
+      "name": "light/work/normal/TH/Ответственный",
+      "passed": true,
+      "ratio": 5.426,
+      "minimum": 4.5,
+      "fg": [
+        98.0,
+        100.0,
+        107.0
+      ],
+      "bg": [
+        245.0,
+        245.0,
+        247.0
+      ]
+    },
+    {
+      "name": "light/work/normal/TH/Срок",
+      "passed": true,
+      "ratio": 5.426,
+      "minimum": 4.5,
+      "fg": [
+        98.0,
+        100.0,
+        107.0
+      ],
+      "bg": [
+        245.0,
+        245.0,
+        247.0
+      ]
+    },
+    {
+      "name": "light/work/normal/TD/Подготовить страницу нового релизаSPR-128",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/BUTTON/Подготовить страницу нового релиза",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/SMALL/SPR-128",
+      "passed": true,
+      "ratio": 5.908,
+      "minimum": 4.5,
+      "fg": [
+        98.0,
+        100.0,
+        107.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/TD/В работе",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/SPAN/В работе",
+      "passed": true,
+      "ratio": 6.15,
+      "minimum": 4.5,
+      "fg": [
+        255.0,
+        255.0,
+        255.0
+      ],
+      "bg": [
+        23.0,
+        91.0,
+        205.0
+      ]
+    },
+    {
+      "name": "light/work/normal/TD/Мария Лебедева",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/TD/18 сент",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/TD/Проверить сценарий приглашения в командуSPR-129",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/BUTTON/Проверить сценарий приглашения в команду",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/SMALL/SPR-129",
+      "passed": true,
+      "ratio": 5.908,
+      "minimum": 4.5,
+      "fg": [
+        98.0,
+        100.0,
+        107.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/TD/На проверке",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/SPAN/На проверке",
+      "passed": true,
+      "ratio": 8.659,
+      "minimum": 4.5,
+      "fg": [
+        53.0,
+        32.0,
+        6.0
+      ],
+      "bg": [
+        255.0,
+        179.0,
+        67.0
+      ]
+    },
+    {
+      "name": "light/work/normal/TD/Александр Ким",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/TD/12 сент",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/TD/Уточнить состояния загрузки документовSPR-130",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/BUTTON/Уточнить состояния загрузки документов",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/SMALL/SPR-130",
+      "passed": true,
+      "ratio": 5.908,
+      "minimum": 4.5,
+      "fg": [
+        98.0,
+        100.0,
+        107.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/TD/Запланировано",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/SPAN/Запланировано",
+      "passed": true,
+      "ratio": 5.925,
+      "minimum": 4.5,
+      "fg": [
+        255.0,
+        255.0,
+        255.0
+      ],
+      "bg": [
+        139.0,
+        66.0,
+        181.0
+      ]
+    },
+    {
+      "name": "light/work/normal/TD/Дмитрий Соколов",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/TD/20 сент",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/TD/Подготовить цифровой паспорт изделияSPR-131",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/BUTTON/Подготовить цифровой паспорт изделия",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/SMALL/SPR-131",
+      "passed": true,
+      "ratio": 5.908,
+      "minimum": 4.5,
+      "fg": [
+        98.0,
+        100.0,
+        107.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/TD/Запланировано",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/SPAN/Запланировано",
+      "passed": true,
+      "ratio": 5.925,
+      "minimum": 4.5,
+      "fg": [
+        255.0,
+        255.0,
+        255.0
+      ],
+      "bg": [
+        139.0,
+        66.0,
+        181.0
+      ]
+    },
+    {
+      "name": "light/work/normal/TD/Анна Волкова",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/TD/25 сент",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/TD/Настроить семантические цвета двух темSPR-132",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/BUTTON/Настроить семантические цвета двух тем",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/SMALL/SPR-132",
+      "passed": true,
+      "ratio": 5.908,
+      "minimum": 4.5,
+      "fg": [
+        98.0,
+        100.0,
+        107.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/TD/Готово",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/SPAN/Готово",
+      "passed": true,
+      "ratio": 5.373,
+      "minimum": 4.5,
+      "fg": [
+        7.0,
+        53.0,
+        41.0
+      ],
+      "bg": [
+        44.0,
+        184.0,
+        138.0
+      ]
+    },
+    {
+      "name": "light/work/normal/TD/Мария Лебедева",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/TD/6 сент",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/TD/Согласовать структуру продуктовой библиотекиSPR-133",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/BUTTON/Согласовать структуру продуктовой библиотеки",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/SMALL/SPR-133",
+      "passed": true,
+      "ratio": 5.908,
+      "minimum": 4.5,
+      "fg": [
+        98.0,
+        100.0,
+        107.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/TD/Готово",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/SPAN/Готово",
+      "passed": true,
+      "ratio": 5.373,
+      "minimum": 4.5,
+      "fg": [
+        7.0,
+        53.0,
+        41.0
+      ],
+      "bg": [
+        44.0,
+        184.0,
+        138.0
+      ]
+    },
+    {
+      "name": "light/work/normal/TD/Александр Ким",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/TD/8 сент",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/TD/Проверить форму на мобильной ширинеSPR-134",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/BUTTON/Проверить форму на мобильной ширине",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/SMALL/SPR-134",
+      "passed": true,
+      "ratio": 5.908,
+      "minimum": 4.5,
+      "fg": [
+        98.0,
+        100.0,
+        107.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/TD/В работе",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/SPAN/В работе",
+      "passed": true,
+      "ratio": 6.15,
+      "minimum": 4.5,
+      "fg": [
+        255.0,
+        255.0,
+        255.0
+      ],
+      "bg": [
+        23.0,
+        91.0,
+        205.0
+      ]
+    },
+    {
+      "name": "light/work/normal/TD/Анна Волкова",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/TD/19 сент",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/TD/Подготовить описание следующего выпускаSPR-135",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/BUTTON/Подготовить описание следующего выпуска",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/SMALL/SPR-135",
+      "passed": true,
+      "ratio": 5.908,
+      "minimum": 4.5,
+      "fg": [
+        98.0,
+        100.0,
+        107.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/TD/Запланировано",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/SPAN/Запланировано",
+      "passed": true,
+      "ratio": 5.925,
+      "minimum": 4.5,
+      "fg": [
+        255.0,
+        255.0,
+        255.0
+      ],
+      "bg": [
+        139.0,
+        66.0,
+        181.0
+      ]
+    },
+    {
+      "name": "light/work/normal/TD/Дмитрий Соколов",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/TD/24 сент",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/TD/Уточнить критерии принятия результата агентаSPR-136",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/BUTTON/Уточнить критерии принятия результата агента",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/SMALL/SPR-136",
+      "passed": true,
+      "ratio": 5.908,
+      "minimum": 4.5,
+      "fg": [
+        98.0,
+        100.0,
+        107.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/TD/На проверке",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/SPAN/На проверке",
+      "passed": true,
+      "ratio": 8.659,
+      "minimum": 4.5,
+      "fg": [
+        53.0,
+        32.0,
+        6.0
+      ],
+      "bg": [
+        255.0,
+        179.0,
+        67.0
+      ]
+    },
+    {
+      "name": "light/work/normal/TD/Мария Лебедева",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/TD/22 сент",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/TD/Проверить возвращение из карточки к спискуSPR-137",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/BUTTON/Проверить возвращение из карточки к списку",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/SMALL/SPR-137",
+      "passed": true,
+      "ratio": 5.908,
+      "minimum": 4.5,
+      "fg": [
+        98.0,
+        100.0,
+        107.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/TD/В работе",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/SPAN/В работе",
+      "passed": true,
+      "ratio": 6.15,
+      "minimum": 4.5,
+      "fg": [
+        255.0,
+        255.0,
+        255.0
+      ],
+      "bg": [
+        23.0,
+        91.0,
+        205.0
+      ]
+    },
+    {
+      "name": "light/work/normal/TD/Александр Ким",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/TD/23 сент",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/TD/Обновить примеры интеграцииSPR-138",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/BUTTON/Обновить примеры интеграции",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/SMALL/SPR-138",
+      "passed": true,
+      "ratio": 5.908,
+      "minimum": 4.5,
+      "fg": [
+        98.0,
+        100.0,
+        107.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/TD/Запланировано",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/SPAN/Запланировано",
+      "passed": true,
+      "ratio": 5.925,
+      "minimum": 4.5,
+      "fg": [
+        255.0,
+        255.0,
+        255.0
+      ],
+      "bg": [
+        139.0,
+        66.0,
+        181.0
+      ]
+    },
+    {
+      "name": "light/work/normal/TD/Дмитрий Соколов",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/TD/26 сент",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/TD/Проверить клавиатурную навигациюSPR-139",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/BUTTON/Проверить клавиатурную навигацию",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/SMALL/SPR-139",
+      "passed": true,
+      "ratio": 5.908,
+      "minimum": 4.5,
+      "fg": [
+        98.0,
+        100.0,
+        107.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/TD/В работе",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/SPAN/В работе",
+      "passed": true,
+      "ratio": 6.15,
+      "minimum": 4.5,
+      "fg": [
+        255.0,
+        255.0,
+        255.0
+      ],
+      "bg": [
+        23.0,
+        91.0,
+        205.0
+      ]
+    },
+    {
+      "name": "light/work/normal/TD/Анна Волкова",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/work/normal/TD/27 сент",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/read/normal/H2/Проверка сценария приглашения",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/read/normal/P/Проверен первый рабочий путь: открыть проект, найти задачу и",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/read/normal/H3/Что проверено",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/read/normal/LI/Название проекта видно до начала прокрутки.",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/read/normal/LI/Основное действие остаётся рядом с заголовком.",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/read/normal/LI/Ссылки доступны с клавиатуры.Широкая таблица прокручивается ",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/read/normal/LI/Широкая таблица прокручивается внутри документа.",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/read/normal/LI/Длинная строка кода не расширяет страницу.",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/read/normal/H3/Результаты",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/read/normal/TH/Область",
+      "passed": true,
+      "ratio": 15.457,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        245.0,
+        245.0,
+        247.0
+      ]
+    },
+    {
+      "name": "light/read/normal/TH/Светлая тема",
+      "passed": true,
+      "ratio": 15.457,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        245.0,
+        245.0,
+        247.0
+      ]
+    },
+    {
+      "name": "light/read/normal/TH/Тёмная тема",
+      "passed": true,
+      "ratio": 15.457,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        245.0,
+        245.0,
+        247.0
+      ]
+    },
+    {
+      "name": "light/read/normal/TH/Примечание",
+      "passed": true,
+      "ratio": 15.457,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        245.0,
+        245.0,
+        247.0
+      ]
+    },
+    {
+      "name": "light/read/normal/TD/Название и действие",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/read/normal/TD/Проверено",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/read/normal/TD/Проверено",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/read/normal/TD/Без обрезки текста",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/read/normal/TD/Чтение отчёта",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/read/normal/TD/Проверено",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/read/normal/TD/Проверено",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/read/normal/TD/Без панели редактирования",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/read/normal/TD/Отправка приглашения",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/read/normal/TD/Не проверено",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/read/normal/TD/Не проверено",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/read/normal/TD/Сервер не подключён",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/read/normal/H3/Пример данных",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/read/normal/PRE/{\n  \"project\": \"Sprintique\",\n  \"status\": \"review_required\",\n",
+      "passed": true,
+      "ratio": 15.457,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        245.0,
+        245.0,
+        247.0
+      ]
+    },
+    {
+      "name": "light/read/normal/P/Прочитать отчёт — не значит принять результат. Решение остаё",
+      "passed": true,
+      "ratio": 5.908,
+      "minimum": 4.5,
+      "fg": [
+        98.0,
+        100.0,
+        107.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/read/normal/H4/Следующий шаг",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/read/normal/LI/Сопоставить выводы с критериями задачи.",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/read/normal/LI/Проверить серверный сценарий отдельно.",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/read/normal/LI/Зафиксировать решение в приложении.",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/read/normal/LI/✓Собраны наблюдения",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/read/normal/SPAN/✓",
+      "passed": true,
+      "ratio": 5.373,
+      "minimum": 4.5,
+      "fg": [
+        7.0,
+        53.0,
+        41.0
+      ],
+      "bg": [
+        44.0,
+        184.0,
+        138.0
+      ]
+    },
+    {
+      "name": "light/read/normal/LI/Выполнена серверная проверка",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/read/normal/P/Документация проекта открывается только по нажатию.",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/read/normal/A/Документация проекта",
+      "passed": true,
+      "ratio": 6.595,
+      "minimum": 4.5,
+      "fg": [
+        36.0,
+        83.0,
+        204.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/read/normal/P/Приложенный снимок (изображение по ссылке)",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/read/normal/A/Приложенный снимок",
+      "passed": true,
+      "ratio": 6.595,
+      "minimum": 4.5,
+      "fg": [
+        36.0,
+        83.0,
+        204.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/read/normal/SPAN/ (изображение по ссылке)",
+      "passed": true,
+      "ratio": 5.908,
+      "minimum": 4.5,
+      "fg": [
+        98.0,
+        100.0,
+        107.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/read/normal/P/HTML не выполняется: <script>alert('example')</script>.",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/read/focus/H2/Проверка сценария приглашения",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/read/focus/P/Проверен первый рабочий путь: открыть проект, найти задачу и",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/read/focus/H3/Что проверено",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/read/focus/LI/Название проекта видно до начала прокрутки.",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/read/focus/LI/Основное действие остаётся рядом с заголовком.",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/read/focus/LI/Ссылки доступны с клавиатуры.Широкая таблица прокручивается ",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/read/focus/LI/Широкая таблица прокручивается внутри документа.",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/read/focus/LI/Длинная строка кода не расширяет страницу.",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/read/focus/H3/Результаты",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/read/focus/TH/Область",
+      "passed": true,
+      "ratio": 15.457,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        245.0,
+        245.0,
+        247.0
+      ]
+    },
+    {
+      "name": "light/read/focus/TH/Светлая тема",
+      "passed": true,
+      "ratio": 15.457,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        245.0,
+        245.0,
+        247.0
+      ]
+    },
+    {
+      "name": "light/read/focus/TH/Тёмная тема",
+      "passed": true,
+      "ratio": 15.457,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        245.0,
+        245.0,
+        247.0
+      ]
+    },
+    {
+      "name": "light/read/focus/TH/Примечание",
+      "passed": true,
+      "ratio": 15.457,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        245.0,
+        245.0,
+        247.0
+      ]
+    },
+    {
+      "name": "light/read/focus/TD/Название и действие",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/read/focus/TD/Проверено",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/read/focus/TD/Проверено",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/read/focus/TD/Без обрезки текста",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/read/focus/TD/Чтение отчёта",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/read/focus/TD/Проверено",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/read/focus/TD/Проверено",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/read/focus/TD/Без панели редактирования",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/read/focus/TD/Отправка приглашения",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/read/focus/TD/Не проверено",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/read/focus/TD/Не проверено",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/read/focus/TD/Сервер не подключён",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/read/focus/H3/Пример данных",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/read/focus/PRE/{\n  \"project\": \"Sprintique\",\n  \"status\": \"review_required\",\n",
+      "passed": true,
+      "ratio": 15.457,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        245.0,
+        245.0,
+        247.0
+      ]
+    },
+    {
+      "name": "light/read/focus/P/Прочитать отчёт — не значит принять результат. Решение остаё",
+      "passed": true,
+      "ratio": 5.908,
+      "minimum": 4.5,
+      "fg": [
+        98.0,
+        100.0,
+        107.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/read/focus/H4/Следующий шаг",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/read/focus/LI/Сопоставить выводы с критериями задачи.",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/read/focus/LI/Проверить серверный сценарий отдельно.",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/read/focus/LI/Зафиксировать решение в приложении.",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/read/focus/LI/✓Собраны наблюдения",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/read/focus/SPAN/✓",
+      "passed": true,
+      "ratio": 5.373,
+      "minimum": 4.5,
+      "fg": [
+        7.0,
+        53.0,
+        41.0
+      ],
+      "bg": [
+        44.0,
+        184.0,
+        138.0
+      ]
+    },
+    {
+      "name": "light/read/focus/LI/Выполнена серверная проверка",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/read/focus/P/Документация проекта открывается только по нажатию.",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/read/focus/A/Документация проекта",
+      "passed": true,
+      "ratio": 6.595,
+      "minimum": 4.5,
+      "fg": [
+        36.0,
+        83.0,
+        204.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/read/focus/P/Приложенный снимок (изображение по ссылке)",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/read/focus/A/Приложенный снимок",
+      "passed": true,
+      "ratio": 6.595,
+      "minimum": 4.5,
+      "fg": [
+        36.0,
+        83.0,
+        204.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/read/focus/SPAN/ (изображение по ссылке)",
+      "passed": true,
+      "ratio": 5.908,
+      "minimum": 4.5,
+      "fg": [
+        98.0,
+        100.0,
+        107.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/read/focus/P/HTML не выполняется: <script>alert('example')</script>.",
+      "passed": true,
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "fg": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "bg": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/P/Sprintique / Команда продукта",
+      "passed": true,
+      "ratio": 9.115,
+      "minimum": 4.5,
+      "fg": [
+        177.0,
+        177.0,
+        185.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/H1/Выпуск 2.5",
+      "passed": true,
+      "ratio": 17.832,
+      "minimum": 3,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/P/Всё, что нужно довести до следующего выпуска.",
+      "passed": true,
+      "ratio": 9.115,
+      "minimum": 4.5,
+      "fg": [
+        177.0,
+        177.0,
+        185.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/BUTTON/Задачи",
+      "passed": true,
+      "ratio": 17.832,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/BUTTON/Идеи",
+      "passed": true,
+      "ratio": 9.115,
+      "minimum": 4.5,
+      "fg": [
+        177.0,
+        177.0,
+        185.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/BUTTON/План",
+      "passed": true,
+      "ratio": 9.115,
+      "minimum": 4.5,
+      "fg": [
+        177.0,
+        177.0,
+        185.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/BUTTON/Релизы",
+      "passed": true,
+      "ratio": 9.115,
+      "minimum": 4.5,
+      "fg": [
+        177.0,
+        177.0,
+        185.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/BUTTON/Участники",
+      "passed": true,
+      "ratio": 9.115,
+      "minimum": 4.5,
+      "fg": [
+        177.0,
+        177.0,
+        185.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/B/12",
+      "passed": true,
+      "ratio": 17.832,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/BUTTON/Только в работе",
+      "passed": true,
+      "ratio": 17.832,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/BUTTON/По названию ",
+      "passed": true,
+      "ratio": 14.037,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        37.0,
+        37.0,
+        40.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/TH/Название",
+      "passed": true,
+      "ratio": 8.484,
+      "minimum": 4.5,
+      "fg": [
+        177.0,
+        177.0,
+        185.0
+      ],
+      "bg": [
+        22.0,
+        22.0,
+        24.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/TH/Статус",
+      "passed": true,
+      "ratio": 8.484,
+      "minimum": 4.5,
+      "fg": [
+        177.0,
+        177.0,
+        185.0
+      ],
+      "bg": [
+        22.0,
+        22.0,
+        24.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/TH/Ответственный",
+      "passed": true,
+      "ratio": 8.484,
+      "minimum": 4.5,
+      "fg": [
+        177.0,
+        177.0,
+        185.0
+      ],
+      "bg": [
+        22.0,
+        22.0,
+        24.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/TH/Срок",
+      "passed": true,
+      "ratio": 8.484,
+      "minimum": 4.5,
+      "fg": [
+        177.0,
+        177.0,
+        185.0
+      ],
+      "bg": [
+        22.0,
+        22.0,
+        24.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/TD/Подготовить страницу нового релизаSPR-128",
+      "passed": true,
+      "ratio": 17.832,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/BUTTON/Подготовить страницу нового релиза",
+      "passed": true,
+      "ratio": 17.832,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/SMALL/SPR-128",
+      "passed": true,
+      "ratio": 9.115,
+      "minimum": 4.5,
+      "fg": [
+        177.0,
+        177.0,
+        185.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/TD/В работе",
+      "passed": true,
+      "ratio": 17.832,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/SPAN/В работе",
+      "passed": true,
+      "ratio": 7.357,
+      "minimum": 4.5,
+      "fg": [
+        8.0,
+        43.0,
+        83.0
+      ],
+      "bg": [
+        133.0,
+        191.0,
+        255.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/TD/Мария Лебедева",
+      "passed": true,
+      "ratio": 17.832,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/TD/18 сент",
+      "passed": true,
+      "ratio": 17.832,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/TD/Проверить сценарий приглашения в командуSPR-129",
+      "passed": true,
+      "ratio": 17.832,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/BUTTON/Проверить сценарий приглашения в команду",
+      "passed": true,
+      "ratio": 17.832,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/SMALL/SPR-129",
+      "passed": true,
+      "ratio": 9.115,
+      "minimum": 4.5,
+      "fg": [
+        177.0,
+        177.0,
+        185.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/TD/На проверке",
+      "passed": true,
+      "ratio": 17.832,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/SPAN/На проверке",
+      "passed": true,
+      "ratio": 8.659,
+      "minimum": 4.5,
+      "fg": [
+        53.0,
+        32.0,
+        6.0
+      ],
+      "bg": [
+        255.0,
+        179.0,
+        67.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/TD/Александр Ким",
+      "passed": true,
+      "ratio": 17.832,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/TD/12 сент",
+      "passed": true,
+      "ratio": 17.832,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/TD/Уточнить состояния загрузки документовSPR-130",
+      "passed": true,
+      "ratio": 17.832,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/BUTTON/Уточнить состояния загрузки документов",
+      "passed": true,
+      "ratio": 17.832,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/SMALL/SPR-130",
+      "passed": true,
+      "ratio": 9.115,
+      "minimum": 4.5,
+      "fg": [
+        177.0,
+        177.0,
+        185.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/TD/Запланировано",
+      "passed": true,
+      "ratio": 17.832,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/SPAN/Запланировано",
+      "passed": true,
+      "ratio": 6.839,
+      "minimum": 4.5,
+      "fg": [
+        64.0,
+        33.0,
+        81.0
+      ],
+      "bg": [
+        213.0,
+        168.0,
+        235.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/TD/Дмитрий Соколов",
+      "passed": true,
+      "ratio": 17.832,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/TD/20 сент",
+      "passed": true,
+      "ratio": 17.832,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/TD/Подготовить цифровой паспорт изделияSPR-131",
+      "passed": true,
+      "ratio": 17.832,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/BUTTON/Подготовить цифровой паспорт изделия",
+      "passed": true,
+      "ratio": 17.832,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/SMALL/SPR-131",
+      "passed": true,
+      "ratio": 9.115,
+      "minimum": 4.5,
+      "fg": [
+        177.0,
+        177.0,
+        185.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/TD/Запланировано",
+      "passed": true,
+      "ratio": 17.832,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/SPAN/Запланировано",
+      "passed": true,
+      "ratio": 6.839,
+      "minimum": 4.5,
+      "fg": [
+        64.0,
+        33.0,
+        81.0
+      ],
+      "bg": [
+        213.0,
+        168.0,
+        235.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/TD/Анна Волкова",
+      "passed": true,
+      "ratio": 17.832,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/TD/25 сент",
+      "passed": true,
+      "ratio": 17.832,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/TD/Настроить семантические цвета двух темSPR-132",
+      "passed": true,
+      "ratio": 17.832,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/BUTTON/Настроить семантические цвета двух тем",
+      "passed": true,
+      "ratio": 17.832,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/SMALL/SPR-132",
+      "passed": true,
+      "ratio": 9.115,
+      "minimum": 4.5,
+      "fg": [
+        177.0,
+        177.0,
+        185.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/TD/Готово",
+      "passed": true,
+      "ratio": 17.832,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/SPAN/Готово",
+      "passed": true,
+      "ratio": 5.373,
+      "minimum": 4.5,
+      "fg": [
+        7.0,
+        53.0,
+        41.0
+      ],
+      "bg": [
+        44.0,
+        184.0,
+        138.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/TD/Мария Лебедева",
+      "passed": true,
+      "ratio": 17.832,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/TD/6 сент",
+      "passed": true,
+      "ratio": 17.832,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/TD/Согласовать структуру продуктовой библиотекиSPR-133",
+      "passed": true,
+      "ratio": 17.832,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/BUTTON/Согласовать структуру продуктовой библиотеки",
+      "passed": true,
+      "ratio": 17.832,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/SMALL/SPR-133",
+      "passed": true,
+      "ratio": 9.115,
+      "minimum": 4.5,
+      "fg": [
+        177.0,
+        177.0,
+        185.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/TD/Готово",
+      "passed": true,
+      "ratio": 17.832,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/SPAN/Готово",
+      "passed": true,
+      "ratio": 5.373,
+      "minimum": 4.5,
+      "fg": [
+        7.0,
+        53.0,
+        41.0
+      ],
+      "bg": [
+        44.0,
+        184.0,
+        138.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/TD/Александр Ким",
+      "passed": true,
+      "ratio": 17.832,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/TD/8 сент",
+      "passed": true,
+      "ratio": 17.832,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/TD/Проверить форму на мобильной ширинеSPR-134",
+      "passed": true,
+      "ratio": 17.832,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/BUTTON/Проверить форму на мобильной ширине",
+      "passed": true,
+      "ratio": 17.832,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/SMALL/SPR-134",
+      "passed": true,
+      "ratio": 9.115,
+      "minimum": 4.5,
+      "fg": [
+        177.0,
+        177.0,
+        185.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/TD/В работе",
+      "passed": true,
+      "ratio": 17.832,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/SPAN/В работе",
+      "passed": true,
+      "ratio": 7.357,
+      "minimum": 4.5,
+      "fg": [
+        8.0,
+        43.0,
+        83.0
+      ],
+      "bg": [
+        133.0,
+        191.0,
+        255.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/TD/Анна Волкова",
+      "passed": true,
+      "ratio": 17.832,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/TD/19 сент",
+      "passed": true,
+      "ratio": 17.832,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/TD/Подготовить описание следующего выпускаSPR-135",
+      "passed": true,
+      "ratio": 17.832,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/BUTTON/Подготовить описание следующего выпуска",
+      "passed": true,
+      "ratio": 17.832,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/SMALL/SPR-135",
+      "passed": true,
+      "ratio": 9.115,
+      "minimum": 4.5,
+      "fg": [
+        177.0,
+        177.0,
+        185.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/TD/Запланировано",
+      "passed": true,
+      "ratio": 17.832,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/SPAN/Запланировано",
+      "passed": true,
+      "ratio": 6.839,
+      "minimum": 4.5,
+      "fg": [
+        64.0,
+        33.0,
+        81.0
+      ],
+      "bg": [
+        213.0,
+        168.0,
+        235.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/TD/Дмитрий Соколов",
+      "passed": true,
+      "ratio": 17.832,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/TD/24 сент",
+      "passed": true,
+      "ratio": 17.832,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/TD/Уточнить критерии принятия результата агентаSPR-136",
+      "passed": true,
+      "ratio": 17.832,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/BUTTON/Уточнить критерии принятия результата агента",
+      "passed": true,
+      "ratio": 17.832,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/SMALL/SPR-136",
+      "passed": true,
+      "ratio": 9.115,
+      "minimum": 4.5,
+      "fg": [
+        177.0,
+        177.0,
+        185.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/TD/На проверке",
+      "passed": true,
+      "ratio": 17.832,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/SPAN/На проверке",
+      "passed": true,
+      "ratio": 8.659,
+      "minimum": 4.5,
+      "fg": [
+        53.0,
+        32.0,
+        6.0
+      ],
+      "bg": [
+        255.0,
+        179.0,
+        67.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/TD/Мария Лебедева",
+      "passed": true,
+      "ratio": 17.832,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/TD/22 сент",
+      "passed": true,
+      "ratio": 17.832,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/TD/Проверить возвращение из карточки к спискуSPR-137",
+      "passed": true,
+      "ratio": 17.832,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/BUTTON/Проверить возвращение из карточки к списку",
+      "passed": true,
+      "ratio": 17.832,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/SMALL/SPR-137",
+      "passed": true,
+      "ratio": 9.115,
+      "minimum": 4.5,
+      "fg": [
+        177.0,
+        177.0,
+        185.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/TD/В работе",
+      "passed": true,
+      "ratio": 17.832,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/SPAN/В работе",
+      "passed": true,
+      "ratio": 7.357,
+      "minimum": 4.5,
+      "fg": [
+        8.0,
+        43.0,
+        83.0
+      ],
+      "bg": [
+        133.0,
+        191.0,
+        255.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/TD/Александр Ким",
+      "passed": true,
+      "ratio": 17.832,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/TD/23 сент",
+      "passed": true,
+      "ratio": 17.832,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/TD/Обновить примеры интеграцииSPR-138",
+      "passed": true,
+      "ratio": 17.832,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/BUTTON/Обновить примеры интеграции",
+      "passed": true,
+      "ratio": 17.832,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/SMALL/SPR-138",
+      "passed": true,
+      "ratio": 9.115,
+      "minimum": 4.5,
+      "fg": [
+        177.0,
+        177.0,
+        185.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/TD/Запланировано",
+      "passed": true,
+      "ratio": 17.832,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/SPAN/Запланировано",
+      "passed": true,
+      "ratio": 6.839,
+      "minimum": 4.5,
+      "fg": [
+        64.0,
+        33.0,
+        81.0
+      ],
+      "bg": [
+        213.0,
+        168.0,
+        235.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/TD/Дмитрий Соколов",
+      "passed": true,
+      "ratio": 17.832,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/TD/26 сент",
+      "passed": true,
+      "ratio": 17.832,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/TD/Проверить клавиатурную навигациюSPR-139",
+      "passed": true,
+      "ratio": 17.832,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/BUTTON/Проверить клавиатурную навигацию",
+      "passed": true,
+      "ratio": 17.832,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/SMALL/SPR-139",
+      "passed": true,
+      "ratio": 9.115,
+      "minimum": 4.5,
+      "fg": [
+        177.0,
+        177.0,
+        185.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/TD/В работе",
+      "passed": true,
+      "ratio": 17.832,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/SPAN/В работе",
+      "passed": true,
+      "ratio": 7.357,
+      "minimum": 4.5,
+      "fg": [
+        8.0,
+        43.0,
+        83.0
+      ],
+      "bg": [
+        133.0,
+        191.0,
+        255.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/TD/Анна Волкова",
+      "passed": true,
+      "ratio": 17.832,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/work/normal/TD/27 сент",
+      "passed": true,
+      "ratio": 17.832,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        13.0,
+        13.0,
+        15.0
+      ]
+    },
+    {
+      "name": "dark/read/normal/H2/Проверка сценария приглашения",
+      "passed": true,
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/read/normal/P/Проверен первый рабочий путь: открыть проект, найти задачу и",
+      "passed": true,
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/read/normal/H3/Что проверено",
+      "passed": true,
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/read/normal/LI/Название проекта видно до начала прокрутки.",
+      "passed": true,
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/read/normal/LI/Основное действие остаётся рядом с заголовком.",
+      "passed": true,
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/read/normal/LI/Ссылки доступны с клавиатуры.Широкая таблица прокручивается ",
+      "passed": true,
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/read/normal/LI/Широкая таблица прокручивается внутри документа.",
+      "passed": true,
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/read/normal/LI/Длинная строка кода не расширяет страницу.",
+      "passed": true,
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/read/normal/H3/Результаты",
+      "passed": true,
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/read/normal/TH/Область",
+      "passed": true,
+      "ratio": 16.597,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        22.0,
+        22.0,
+        24.0
+      ]
+    },
+    {
+      "name": "dark/read/normal/TH/Светлая тема",
+      "passed": true,
+      "ratio": 16.597,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        22.0,
+        22.0,
+        24.0
+      ]
+    },
+    {
+      "name": "dark/read/normal/TH/Тёмная тема",
+      "passed": true,
+      "ratio": 16.597,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        22.0,
+        22.0,
+        24.0
+      ]
+    },
+    {
+      "name": "dark/read/normal/TH/Примечание",
+      "passed": true,
+      "ratio": 16.597,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        22.0,
+        22.0,
+        24.0
+      ]
+    },
+    {
+      "name": "dark/read/normal/TD/Название и действие",
+      "passed": true,
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/read/normal/TD/Проверено",
+      "passed": true,
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/read/normal/TD/Проверено",
+      "passed": true,
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/read/normal/TD/Без обрезки текста",
+      "passed": true,
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/read/normal/TD/Чтение отчёта",
+      "passed": true,
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/read/normal/TD/Проверено",
+      "passed": true,
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/read/normal/TD/Проверено",
+      "passed": true,
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/read/normal/TD/Без панели редактирования",
+      "passed": true,
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/read/normal/TD/Отправка приглашения",
+      "passed": true,
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/read/normal/TD/Не проверено",
+      "passed": true,
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/read/normal/TD/Не проверено",
+      "passed": true,
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/read/normal/TD/Сервер не подключён",
+      "passed": true,
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/read/normal/H3/Пример данных",
+      "passed": true,
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/read/normal/PRE/{\n  \"project\": \"Sprintique\",\n  \"status\": \"review_required\",\n",
+      "passed": true,
+      "ratio": 16.597,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        22.0,
+        22.0,
+        24.0
+      ]
+    },
+    {
+      "name": "dark/read/normal/P/Прочитать отчёт — не значит принять результат. Решение остаё",
+      "passed": true,
+      "ratio": 7.629,
+      "minimum": 4.5,
+      "fg": [
+        177.0,
+        177.0,
+        185.0
+      ],
+      "bg": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/read/normal/H4/Следующий шаг",
+      "passed": true,
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/read/normal/LI/Сопоставить выводы с критериями задачи.",
+      "passed": true,
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/read/normal/LI/Проверить серверный сценарий отдельно.",
+      "passed": true,
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/read/normal/LI/Зафиксировать решение в приложении.",
+      "passed": true,
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/read/normal/LI/✓Собраны наблюдения",
+      "passed": true,
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/read/normal/SPAN/✓",
+      "passed": true,
+      "ratio": 5.373,
+      "minimum": 4.5,
+      "fg": [
+        7.0,
+        53.0,
+        41.0
+      ],
+      "bg": [
+        44.0,
+        184.0,
+        138.0
+      ]
+    },
+    {
+      "name": "dark/read/normal/LI/Выполнена серверная проверка",
+      "passed": true,
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/read/normal/P/Документация проекта открывается только по нажатию.",
+      "passed": true,
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/read/normal/A/Документация проекта",
+      "passed": true,
+      "ratio": 9.099,
+      "minimum": 4.5,
+      "fg": [
+        169.0,
+        193.0,
+        255.0
+      ],
+      "bg": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/read/normal/P/Приложенный снимок (изображение по ссылке)",
+      "passed": true,
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/read/normal/A/Приложенный снимок",
+      "passed": true,
+      "ratio": 9.099,
+      "minimum": 4.5,
+      "fg": [
+        169.0,
+        193.0,
+        255.0
+      ],
+      "bg": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/read/normal/SPAN/ (изображение по ссылке)",
+      "passed": true,
+      "ratio": 7.629,
+      "minimum": 4.5,
+      "fg": [
+        177.0,
+        177.0,
+        185.0
+      ],
+      "bg": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/read/normal/P/HTML не выполняется: <script>alert('example')</script>.",
+      "passed": true,
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/read/focus/H2/Проверка сценария приглашения",
+      "passed": true,
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/read/focus/P/Проверен первый рабочий путь: открыть проект, найти задачу и",
+      "passed": true,
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/read/focus/H3/Что проверено",
+      "passed": true,
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/read/focus/LI/Название проекта видно до начала прокрутки.",
+      "passed": true,
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/read/focus/LI/Основное действие остаётся рядом с заголовком.",
+      "passed": true,
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/read/focus/LI/Ссылки доступны с клавиатуры.Широкая таблица прокручивается ",
+      "passed": true,
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/read/focus/LI/Широкая таблица прокручивается внутри документа.",
+      "passed": true,
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/read/focus/LI/Длинная строка кода не расширяет страницу.",
+      "passed": true,
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/read/focus/H3/Результаты",
+      "passed": true,
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/read/focus/TH/Область",
+      "passed": true,
+      "ratio": 16.597,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        22.0,
+        22.0,
+        24.0
+      ]
+    },
+    {
+      "name": "dark/read/focus/TH/Светлая тема",
+      "passed": true,
+      "ratio": 16.597,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        22.0,
+        22.0,
+        24.0
+      ]
+    },
+    {
+      "name": "dark/read/focus/TH/Тёмная тема",
+      "passed": true,
+      "ratio": 16.597,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        22.0,
+        22.0,
+        24.0
+      ]
+    },
+    {
+      "name": "dark/read/focus/TH/Примечание",
+      "passed": true,
+      "ratio": 16.597,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        22.0,
+        22.0,
+        24.0
+      ]
+    },
+    {
+      "name": "dark/read/focus/TD/Название и действие",
+      "passed": true,
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/read/focus/TD/Проверено",
+      "passed": true,
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/read/focus/TD/Проверено",
+      "passed": true,
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/read/focus/TD/Без обрезки текста",
+      "passed": true,
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/read/focus/TD/Чтение отчёта",
+      "passed": true,
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/read/focus/TD/Проверено",
+      "passed": true,
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/read/focus/TD/Проверено",
+      "passed": true,
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/read/focus/TD/Без панели редактирования",
+      "passed": true,
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/read/focus/TD/Отправка приглашения",
+      "passed": true,
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/read/focus/TD/Не проверено",
+      "passed": true,
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/read/focus/TD/Не проверено",
+      "passed": true,
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/read/focus/TD/Сервер не подключён",
+      "passed": true,
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/read/focus/H3/Пример данных",
+      "passed": true,
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/read/focus/PRE/{\n  \"project\": \"Sprintique\",\n  \"status\": \"review_required\",\n",
+      "passed": true,
+      "ratio": 16.597,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        22.0,
+        22.0,
+        24.0
+      ]
+    },
+    {
+      "name": "dark/read/focus/P/Прочитать отчёт — не значит принять результат. Решение остаё",
+      "passed": true,
+      "ratio": 7.629,
+      "minimum": 4.5,
+      "fg": [
+        177.0,
+        177.0,
+        185.0
+      ],
+      "bg": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/read/focus/H4/Следующий шаг",
+      "passed": true,
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/read/focus/LI/Сопоставить выводы с критериями задачи.",
+      "passed": true,
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/read/focus/LI/Проверить серверный сценарий отдельно.",
+      "passed": true,
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/read/focus/LI/Зафиксировать решение в приложении.",
+      "passed": true,
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/read/focus/LI/✓Собраны наблюдения",
+      "passed": true,
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/read/focus/SPAN/✓",
+      "passed": true,
+      "ratio": 5.373,
+      "minimum": 4.5,
+      "fg": [
+        7.0,
+        53.0,
+        41.0
+      ],
+      "bg": [
+        44.0,
+        184.0,
+        138.0
+      ]
+    },
+    {
+      "name": "dark/read/focus/LI/Выполнена серверная проверка",
+      "passed": true,
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/read/focus/P/Документация проекта открывается только по нажатию.",
+      "passed": true,
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/read/focus/A/Документация проекта",
+      "passed": true,
+      "ratio": 9.099,
+      "minimum": 4.5,
+      "fg": [
+        169.0,
+        193.0,
+        255.0
+      ],
+      "bg": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/read/focus/P/Приложенный снимок (изображение по ссылке)",
+      "passed": true,
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/read/focus/A/Приложенный снимок",
+      "passed": true,
+      "ratio": 9.099,
+      "minimum": 4.5,
+      "fg": [
+        169.0,
+        193.0,
+        255.0
+      ],
+      "bg": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/read/focus/SPAN/ (изображение по ссылке)",
+      "passed": true,
+      "ratio": 7.629,
+      "minimum": 4.5,
+      "fg": [
+        177.0,
+        177.0,
+        185.0
+      ],
+      "bg": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/read/focus/P/HTML не выполняется: <script>alert('example')</script>.",
+      "passed": true,
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "fg": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "bg": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    }
+  ]
+}

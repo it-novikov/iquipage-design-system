@@ -1,0 +1,10 @@
+{
+  "node": "v22.16.0",
+  "typescript": "Version 5.8.3",
+  "browser": "Chromium 144.0.7559.96 built on Debian GNU/Linux 13 (trixie)",
+  "python": "3.13.5 (main, Jul 15 2026, 20:25:40) [GCC 14.2.0]",
+  "playwright": "1.57.0",
+  "load": "set_content and ESM request routing; external network blocked",
+  "fonts": "system fallback; fonts not packaged",
+  "date": "2026-09-07"
+}

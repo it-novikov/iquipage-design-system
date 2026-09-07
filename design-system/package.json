@@ -1,0 +1,43 @@
+{
+  "name": "@iquipage/web",
+  "version": "0.5.7",
+  "private": true,
+  "type": "module",
+  "description": "IQUIPAGE 05.7: whiteboard workshop, shapes, connections and capture",
+  "exports": {
+    ".": {
+      "types": "./types/index.d.ts",
+      "import": "./dist/iquipage.js"
+    },
+    "./core": {
+      "types": "./types/core.d.ts",
+      "import": "./dist/core.js"
+    },
+    "./advanced": {
+      "types": "./types/extensions.d.ts",
+      "import": "./dist/advanced.js"
+    },
+    "./whiteboard": {
+      "types": "./types/whiteboard.d.ts",
+      "import": "./dist/whiteboard.js"
+    },
+    "./styles.css": "./dist/iquipage.css",
+    "./tokens": "./tokens/semantic.json"
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "node --test tests/*.test.cjs",
+    "test:ui": "python tests/workshop057.py",
+    "test:matrix": "python tests/workshop057.py --phase layout",
+    "test:regression": "python tests/ui.py --phase behavior",
+    "package": "python scripts/package057.py",
+    "test:public": "python tests/everyday056.py --phase behavior",
+    "test:contrast": "python tests/contrast057.py",
+    "verify": "python scripts/package057.py --verify",
+    "test:daily": "python tests/everyday056.py --phase behavior",
+    "test:whiteboard": "python tests/acceptance055.py"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

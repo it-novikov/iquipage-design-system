@@ -1,0 +1,6 @@
+interface:
+  display_name: "IQUIPAGE · Полное внедрение"
+  short_description: "Пересборка UI на IQUIPAGE с сохранением функций"
+  default_prompt: "Используй $iquipage-implement для текущей задачи. Прочитай фактическую поставку, соблюдай scope и фиксируй доказательства."
+policy:
+  allow_implicit_invocation: true

@@ -1,0 +1,283 @@
+{
+  "version": "0.5.7",
+  "htmlSha256": "0a70d4c05ffd20182699bd054f800f373bff3f51ae4fef117cdac2630e4e275c",
+  "catalogSha256": "04ad9440a4ea5c737b5691d62061f0f06cfe00e26144afc6fa9973d4e0046e69",
+  "cssSha256": "caf76a0d8b3f937c0db7443c7b6f9d622bd530c63e9957524ce408d86c127825",
+  "phase": "behavior",
+  "total": 26,
+  "passed": 26,
+  "javascriptErrors": [],
+  "checks": [
+    {
+      "name": "Core imports new public components without advanced/demo/whiteboard; registration idempotent",
+      "passed": true,
+      "detail": {
+        "version": "0.5.7",
+        "layout": true,
+        "viewer": true,
+        "graph": false,
+        "whiteboard": false
+      }
+    },
+    {
+      "name": "light: editor preview and viewer use identical safe markup with no viewer editor chrome",
+      "passed": true,
+      "detail": {
+        "equal": true,
+        "chrome": 0,
+        "h2": 1,
+        "table": 1,
+        "lists": 2
+      }
+    },
+    {
+      "name": "light: rendered typography identical",
+      "passed": true,
+      "detail": [
+        {
+          "sel": "h2",
+          "equal": true
+        },
+        {
+          "sel": "p",
+          "equal": true
+        },
+        {
+          "sel": "li",
+          "equal": true
+        },
+        {
+          "sel": "code",
+          "equal": true
+        },
+        {
+          "sel": "th",
+          "equal": true
+        },
+        {
+          "sel": "td",
+          "equal": true
+        }
+      ]
+    },
+    {
+      "name": "light: reading has no accept/submit/change side effects",
+      "passed": true,
+      "detail": {
+        "n": 0,
+        "text": "Новый отчёт",
+        "article": "Отчёт агента"
+      }
+    },
+    {
+      "name": "light: empty value, custom message, reactive heading level",
+      "passed": true,
+      "detail": {
+        "a": "Пока нет содержимого.",
+        "b": "Нет отчёта",
+        "h": true
+      }
+    },
+    {
+      "name": "light: oversized document fails explicitly and can recover",
+      "passed": true,
+      "detail": {
+        "alerted": "Markdown превышает 1 000 000 знаков. Разделите документ.",
+        "recovered": "Возврат"
+      }
+    },
+    {
+      "name": "dark: editor preview and viewer use identical safe markup with no viewer editor chrome",
+      "passed": true,
+      "detail": {
+        "equal": true,
+        "chrome": 0,
+        "h2": 1,
+        "table": 1,
+        "lists": 2
+      }
+    },
+    {
+      "name": "dark: rendered typography identical",
+      "passed": true,
+      "detail": [
+        {
+          "sel": "h2",
+          "equal": true
+        },
+        {
+          "sel": "p",
+          "equal": true
+        },
+        {
+          "sel": "li",
+          "equal": true
+        },
+        {
+          "sel": "code",
+          "equal": true
+        },
+        {
+          "sel": "th",
+          "equal": true
+        },
+        {
+          "sel": "td",
+          "equal": true
+        }
+      ]
+    },
+    {
+      "name": "dark: reading has no accept/submit/change side effects",
+      "passed": true,
+      "detail": {
+        "n": 0,
+        "text": "Новый отчёт",
+        "article": "Отчёт агента"
+      }
+    },
+    {
+      "name": "dark: empty value, custom message, reactive heading level",
+      "passed": true,
+      "detail": {
+        "a": "Пока нет содержимого.",
+        "b": "Нет отчёта",
+        "h": true
+      }
+    },
+    {
+      "name": "dark: oversized document fails explicitly and can recover",
+      "passed": true,
+      "detail": {
+        "alerted": "Markdown превышает 1 000 000 знаков. Разделите документ.",
+        "recovered": "Возврат"
+      }
+    },
+    {
+      "name": "Injection, dangerous schemes and automatic image requests blocked in viewer AND preview",
+      "passed": true,
+      "detail": {
+        "attack": false,
+        "bad": 0,
+        "links": [
+          {
+            "href": "https://example.com/",
+            "rel": "noopener noreferrer"
+          },
+          {
+            "href": "https://private.test/avatar.png",
+            "rel": "noopener noreferrer"
+          }
+        ],
+        "automaticRequests": 0
+      }
+    },
+    {
+      "name": "Wide code/table contained; actual keyboard scroll and link focus",
+      "passed": true,
+      "detail": {
+        "wide": true,
+        "overflow": false,
+        "table": 0,
+        "pre": 0,
+        "keyboardScroll": 40
+      }
+    },
+    {
+      "name": "Optional code-wrap reflows without removing data",
+      "passed": true,
+      "detail": {
+        "white": "pre-wrap",
+        "width": 340,
+        "box": 340
+      }
+    },
+    {
+      "name": "light: density changes rhythm but preserves node identity, focus and input value",
+      "passed": true,
+      "detail": {
+        "focus": true,
+        "input": true,
+        "value": "проверить",
+        "action": true,
+        "larger": 38.390625,
+        "smaller": 30.71875
+      }
+    },
+    {
+      "name": "light: data controls functional, including empty search",
+      "passed": true,
+      "detail": "filter and reset retain full list"
+    },
+    {
+      "name": "light: main action opens supplied dialog and adds real local record",
+      "passed": true,
+      "detail": 13
+    },
+    {
+      "name": "light: row opens reader without editing or acceptance action",
+      "passed": true,
+      "detail": "read-only supplied dialog"
+    },
+    {
+      "name": "light: current project and primary action stay visible on desktop scroll",
+      "passed": true,
+      "detail": {
+        "headerTop": 8,
+        "actionTop": 28
+      }
+    },
+    {
+      "name": "dark: density changes rhythm but preserves node identity, focus and input value",
+      "passed": true,
+      "detail": {
+        "focus": true,
+        "input": true,
+        "value": "проверить",
+        "action": true,
+        "larger": 38.390625,
+        "smaller": 30.71875
+      }
+    },
+    {
+      "name": "dark: data controls functional, including empty search",
+      "passed": true,
+      "detail": "filter and reset retain full list"
+    },
+    {
+      "name": "dark: main action opens supplied dialog and adds real local record",
+      "passed": true,
+      "detail": 14
+    },
+    {
+      "name": "dark: row opens reader without editing or acceptance action",
+      "passed": true,
+      "detail": "read-only supplied dialog"
+    },
+    {
+      "name": "dark: current project and primary action stay visible on desktop scroll",
+      "passed": true,
+      "detail": {
+        "headerTop": 8,
+        "actionTop": 28
+      }
+    },
+    {
+      "name": "Missing optional slots do not reserve blank bands",
+      "passed": true,
+      "detail": [
+        "header",
+        "content"
+      ]
+    },
+    {
+      "name": "Dynamic toolbar slot adds/removes without leaving a blank separator",
+      "passed": true,
+      "detail": {
+        "shown": true,
+        "hidden": true
+      }
+    }
+  ],
+  "method": "Chromium / injected local HTML / no external network; CSS zoom and equivalent viewport reflow, not native browser-toolbar zoom"
+}

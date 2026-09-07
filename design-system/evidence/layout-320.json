@@ -1,0 +1,1718 @@
+{
+  "version": "0.5.7",
+  "htmlSha256": "04ad9440a4ea5c737b5691d62061f0f06cfe00e26144afc6fa9973d4e0046e69",
+  "browser": "Chromium 144.0.7559.96",
+  "deliveryLoad": "set_content, network blocked, system fallback font",
+  "phase": "layout",
+  "width": 320,
+  "total": 171,
+  "passed": 171,
+  "checks": [
+    {
+      "name": "overview / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "overview / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "examples / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "examples / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "landing / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "landing / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "objects / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "objects / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "workspace/tasks / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "workspace/tasks / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "workspace/board / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "workspace/board / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "workspace/plan / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "workspace/plan / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "rules/principles / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "rules/principles / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "rules/typography / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "rules/typography / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "rules/color / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "rules/color / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "rules/motion / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "rules/motion / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "rules/media / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "rules/media / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "rules/voice / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "rules/voice / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "rules/implementation / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "rules/implementation / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/application-header / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/application-header / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/button / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/button / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/icon-button / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/icon-button / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/split-button / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/split-button / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/button-group / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/button-group / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/toggle-button / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/toggle-button / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/async-button / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/async-button / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/link-action / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/link-action / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/copy-button / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/copy-button / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/text-field / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/text-field / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/field-states / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/field-states / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/search-field / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/search-field / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/text-area / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/text-area / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/number-field / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/number-field / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/password-field / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/password-field / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/input-group / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/input-group / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/validated-form / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/validated-form / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/select / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/select / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/combobox / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/combobox / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/multi-select / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/multi-select / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/checkbox / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/checkbox / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/radio-group / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/radio-group / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/switch / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/switch / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/segmented-control / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/segmented-control / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/slider / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/slider / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/date-picker / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/date-picker / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/tabs / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/tabs / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/breadcrumb / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/breadcrumb / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/pagination / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/pagination / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/stepper / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/stepper / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/sidebar / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/sidebar / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/command / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/command / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/appbar / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/appbar / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/table / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/table / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/list / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/list / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/avatar / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/avatar / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/badge / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/badge / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/metric / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/metric / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/chart / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/chart / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/timeline / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/timeline / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/tree / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/tree / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/alert / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/alert / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/toast / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/toast / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/progress / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/progress / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/skeleton / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/skeleton / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/empty-state / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/empty-state / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/inline-message / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/inline-message / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/banner / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/banner / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/dialog / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/dialog / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/drawer / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/drawer / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/dropdown-menu / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/dropdown-menu / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/popover / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/popover / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/tooltip / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/tooltip / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/accordion / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/accordion / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/dropzone / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/dropzone / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/file-item / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/file-item / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/upload-feedback / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/upload-feedback / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/card / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/card / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/signature-surface / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/signature-surface / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/frost-surface / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/frost-surface / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/layout-primitives / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/layout-primitives / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/priority / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/priority / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/markdown-editor / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/markdown-editor / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/roadmap / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/roadmap / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/idea-map / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/idea-map / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/workflow-graph / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/workflow-graph / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/remote-combobox / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/remote-combobox / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/tag-input / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/tag-input / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/image-crop / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/image-crop / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/work-layout / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/work-layout / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/markdown-viewer / 320px / light",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "components/markdown-viewer / 320px / dark",
+      "passed": true,
+      "details": {
+        "overflow": false,
+        "title": true,
+        "main": true,
+        "unrendered": []
+      }
+    },
+    {
+      "name": "No JavaScript page errors",
+      "passed": true,
+      "details": []
+    }
+  ],
+  "pageErrors": []
+}

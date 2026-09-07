@@ -1,0 +1,600 @@
+{
+  "version": "0.5.7",
+  "htmlSha256": "8c9863c8c3dbfd0c6b953b052114c49c1cb46931b762d1e04c57100372876a83",
+  "cssSha256": "caf76a0d8b3f937c0db7443c7b6f9d622bd530c63e9957524ce408d86c127825",
+  "phase": "layout",
+  "passed": 84,
+  "total": 84,
+  "checks": [
+    {
+      "name": "ready 320 light",
+      "passed": true,
+      "width": 320,
+      "theme": "light",
+      "milliseconds": 1802
+    },
+    {
+      "name": "shapes 320 light",
+      "passed": true,
+      "width": 320,
+      "theme": "light",
+      "milliseconds": 1907
+    },
+    {
+      "name": "batch 320 light",
+      "passed": true,
+      "width": 320,
+      "theme": "light",
+      "milliseconds": 1840
+    },
+    {
+      "name": "diagram 320 light",
+      "passed": true,
+      "width": 320,
+      "theme": "light",
+      "milliseconds": 1700
+    },
+    {
+      "name": "chain 320 light",
+      "passed": true,
+      "width": 320,
+      "theme": "light",
+      "milliseconds": 1665
+    },
+    {
+      "name": "editor 320 light",
+      "passed": true,
+      "width": 320,
+      "theme": "light",
+      "milliseconds": 1710
+    },
+    {
+      "name": "readonly 320 light",
+      "passed": true,
+      "width": 320,
+      "theme": "light",
+      "milliseconds": 1429
+    },
+    {
+      "name": "ready 320 dark",
+      "passed": true,
+      "width": 320,
+      "theme": "dark",
+      "milliseconds": 1551
+    },
+    {
+      "name": "shapes 320 dark",
+      "passed": true,
+      "width": 320,
+      "theme": "dark",
+      "milliseconds": 1861
+    },
+    {
+      "name": "batch 320 dark",
+      "passed": true,
+      "width": 320,
+      "theme": "dark",
+      "milliseconds": 1809
+    },
+    {
+      "name": "diagram 320 dark",
+      "passed": true,
+      "width": 320,
+      "theme": "dark",
+      "milliseconds": 1907
+    },
+    {
+      "name": "chain 320 dark",
+      "passed": true,
+      "width": 320,
+      "theme": "dark",
+      "milliseconds": 1831
+    },
+    {
+      "name": "editor 320 dark",
+      "passed": true,
+      "width": 320,
+      "theme": "dark",
+      "milliseconds": 1919
+    },
+    {
+      "name": "readonly 320 dark",
+      "passed": true,
+      "width": 320,
+      "theme": "dark",
+      "milliseconds": 1621
+    },
+    {
+      "name": "ready 390 light",
+      "passed": true,
+      "width": 390,
+      "theme": "light",
+      "milliseconds": 1677
+    },
+    {
+      "name": "shapes 390 light",
+      "passed": true,
+      "width": 390,
+      "theme": "light",
+      "milliseconds": 1632
+    },
+    {
+      "name": "batch 390 light",
+      "passed": true,
+      "width": 390,
+      "theme": "light",
+      "milliseconds": 2041
+    },
+    {
+      "name": "diagram 390 light",
+      "passed": true,
+      "width": 390,
+      "theme": "light",
+      "milliseconds": 1597
+    },
+    {
+      "name": "chain 390 light",
+      "passed": true,
+      "width": 390,
+      "theme": "light",
+      "milliseconds": 1587
+    },
+    {
+      "name": "editor 390 light",
+      "passed": true,
+      "width": 390,
+      "theme": "light",
+      "milliseconds": 1662
+    },
+    {
+      "name": "readonly 390 light",
+      "passed": true,
+      "width": 390,
+      "theme": "light",
+      "milliseconds": 1689
+    },
+    {
+      "name": "ready 390 dark",
+      "passed": true,
+      "width": 390,
+      "theme": "dark",
+      "milliseconds": 1486
+    },
+    {
+      "name": "shapes 390 dark",
+      "passed": true,
+      "width": 390,
+      "theme": "dark",
+      "milliseconds": 2043
+    },
+    {
+      "name": "batch 390 dark",
+      "passed": true,
+      "width": 390,
+      "theme": "dark",
+      "milliseconds": 1874
+    },
+    {
+      "name": "diagram 390 dark",
+      "passed": true,
+      "width": 390,
+      "theme": "dark",
+      "milliseconds": 1781
+    },
+    {
+      "name": "chain 390 dark",
+      "passed": true,
+      "width": 390,
+      "theme": "dark",
+      "milliseconds": 1600
+    },
+    {
+      "name": "editor 390 dark",
+      "passed": true,
+      "width": 390,
+      "theme": "dark",
+      "milliseconds": 1903
+    },
+    {
+      "name": "readonly 390 dark",
+      "passed": true,
+      "width": 390,
+      "theme": "dark",
+      "milliseconds": 1541
+    },
+    {
+      "name": "ready 768 light",
+      "passed": true,
+      "width": 768,
+      "theme": "light",
+      "milliseconds": 1646
+    },
+    {
+      "name": "shapes 768 light",
+      "passed": true,
+      "width": 768,
+      "theme": "light",
+      "milliseconds": 1579
+    },
+    {
+      "name": "batch 768 light",
+      "passed": true,
+      "width": 768,
+      "theme": "light",
+      "milliseconds": 1817
+    },
+    {
+      "name": "diagram 768 light",
+      "passed": true,
+      "width": 768,
+      "theme": "light",
+      "milliseconds": 1616
+    },
+    {
+      "name": "chain 768 light",
+      "passed": true,
+      "width": 768,
+      "theme": "light",
+      "milliseconds": 1627
+    },
+    {
+      "name": "editor 768 light",
+      "passed": true,
+      "width": 768,
+      "theme": "light",
+      "milliseconds": 1664
+    },
+    {
+      "name": "readonly 768 light",
+      "passed": true,
+      "width": 768,
+      "theme": "light",
+      "milliseconds": 1539
+    },
+    {
+      "name": "ready 768 dark",
+      "passed": true,
+      "width": 768,
+      "theme": "dark",
+      "milliseconds": 1583
+    },
+    {
+      "name": "shapes 768 dark",
+      "passed": true,
+      "width": 768,
+      "theme": "dark",
+      "milliseconds": 1807
+    },
+    {
+      "name": "batch 768 dark",
+      "passed": true,
+      "width": 768,
+      "theme": "dark",
+      "milliseconds": 2090
+    },
+    {
+      "name": "diagram 768 dark",
+      "passed": true,
+      "width": 768,
+      "theme": "dark",
+      "milliseconds": 1766
+    },
+    {
+      "name": "chain 768 dark",
+      "passed": true,
+      "width": 768,
+      "theme": "dark",
+      "milliseconds": 2012
+    },
+    {
+      "name": "editor 768 dark",
+      "passed": true,
+      "width": 768,
+      "theme": "dark",
+      "milliseconds": 1855
+    },
+    {
+      "name": "readonly 768 dark",
+      "passed": true,
+      "width": 768,
+      "theme": "dark",
+      "milliseconds": 1722
+    },
+    {
+      "name": "ready 1024 light",
+      "passed": true,
+      "width": 1024,
+      "theme": "light",
+      "milliseconds": 1666
+    },
+    {
+      "name": "shapes 1024 light",
+      "passed": true,
+      "width": 1024,
+      "theme": "light",
+      "milliseconds": 1773
+    },
+    {
+      "name": "batch 1024 light",
+      "passed": true,
+      "width": 1024,
+      "theme": "light",
+      "milliseconds": 1686
+    },
+    {
+      "name": "diagram 1024 light",
+      "passed": true,
+      "width": 1024,
+      "theme": "light",
+      "milliseconds": 1766
+    },
+    {
+      "name": "chain 1024 light",
+      "passed": true,
+      "width": 1024,
+      "theme": "light",
+      "milliseconds": 1768
+    },
+    {
+      "name": "editor 1024 light",
+      "passed": true,
+      "width": 1024,
+      "theme": "light",
+      "milliseconds": 1858
+    },
+    {
+      "name": "readonly 1024 light",
+      "passed": true,
+      "width": 1024,
+      "theme": "light",
+      "milliseconds": 1653
+    },
+    {
+      "name": "ready 1024 dark",
+      "passed": true,
+      "width": 1024,
+      "theme": "dark",
+      "milliseconds": 1539
+    },
+    {
+      "name": "shapes 1024 dark",
+      "passed": true,
+      "width": 1024,
+      "theme": "dark",
+      "milliseconds": 1824
+    },
+    {
+      "name": "batch 1024 dark",
+      "passed": true,
+      "width": 1024,
+      "theme": "dark",
+      "milliseconds": 2056
+    },
+    {
+      "name": "diagram 1024 dark",
+      "passed": true,
+      "width": 1024,
+      "theme": "dark",
+      "milliseconds": 1906
+    },
+    {
+      "name": "chain 1024 dark",
+      "passed": true,
+      "width": 1024,
+      "theme": "dark",
+      "milliseconds": 1991
+    },
+    {
+      "name": "editor 1024 dark",
+      "passed": true,
+      "width": 1024,
+      "theme": "dark",
+      "milliseconds": 1744
+    },
+    {
+      "name": "readonly 1024 dark",
+      "passed": true,
+      "width": 1024,
+      "theme": "dark",
+      "milliseconds": 1506
+    },
+    {
+      "name": "ready 1280 light",
+      "passed": true,
+      "width": 1280,
+      "theme": "light",
+      "milliseconds": 1464
+    },
+    {
+      "name": "shapes 1280 light",
+      "passed": true,
+      "width": 1280,
+      "theme": "light",
+      "milliseconds": 1510
+    },
+    {
+      "name": "batch 1280 light",
+      "passed": true,
+      "width": 1280,
+      "theme": "light",
+      "milliseconds": 1529
+    },
+    {
+      "name": "diagram 1280 light",
+      "passed": true,
+      "width": 1280,
+      "theme": "light",
+      "milliseconds": 1577
+    },
+    {
+      "name": "chain 1280 light",
+      "passed": true,
+      "width": 1280,
+      "theme": "light",
+      "milliseconds": 1643
+    },
+    {
+      "name": "editor 1280 light",
+      "passed": true,
+      "width": 1280,
+      "theme": "light",
+      "milliseconds": 1555
+    },
+    {
+      "name": "readonly 1280 light",
+      "passed": true,
+      "width": 1280,
+      "theme": "light",
+      "milliseconds": 1506
+    },
+    {
+      "name": "ready 1280 dark",
+      "passed": true,
+      "width": 1280,
+      "theme": "dark",
+      "milliseconds": 1509
+    },
+    {
+      "name": "shapes 1280 dark",
+      "passed": true,
+      "width": 1280,
+      "theme": "dark",
+      "milliseconds": 1708
+    },
+    {
+      "name": "batch 1280 dark",
+      "passed": true,
+      "width": 1280,
+      "theme": "dark",
+      "milliseconds": 1639
+    },
+    {
+      "name": "diagram 1280 dark",
+      "passed": true,
+      "width": 1280,
+      "theme": "dark",
+      "milliseconds": 1704
+    },
+    {
+      "name": "chain 1280 dark",
+      "passed": true,
+      "width": 1280,
+      "theme": "dark",
+      "milliseconds": 1672
+    },
+    {
+      "name": "editor 1280 dark",
+      "passed": true,
+      "width": 1280,
+      "theme": "dark",
+      "milliseconds": 1707
+    },
+    {
+      "name": "readonly 1280 dark",
+      "passed": true,
+      "width": 1280,
+      "theme": "dark",
+      "milliseconds": 1592
+    },
+    {
+      "name": "ready 1440 light",
+      "passed": true,
+      "width": 1440,
+      "theme": "light",
+      "milliseconds": 1553
+    },
+    {
+      "name": "shapes 1440 light",
+      "passed": true,
+      "width": 1440,
+      "theme": "light",
+      "milliseconds": 1406
+    },
+    {
+      "name": "batch 1440 light",
+      "passed": true,
+      "width": 1440,
+      "theme": "light",
+      "milliseconds": 1717
+    },
+    {
+      "name": "diagram 1440 light",
+      "passed": true,
+      "width": 1440,
+      "theme": "light",
+      "milliseconds": 1797
+    },
+    {
+      "name": "chain 1440 light",
+      "passed": true,
+      "width": 1440,
+      "theme": "light",
+      "milliseconds": 1544
+    },
+    {
+      "name": "editor 1440 light",
+      "passed": true,
+      "width": 1440,
+      "theme": "light",
+      "milliseconds": 1655
+    },
+    {
+      "name": "readonly 1440 light",
+      "passed": true,
+      "width": 1440,
+      "theme": "light",
+      "milliseconds": 1430
+    },
+    {
+      "name": "ready 1440 dark",
+      "passed": true,
+      "width": 1440,
+      "theme": "dark",
+      "milliseconds": 1572
+    },
+    {
+      "name": "shapes 1440 dark",
+      "passed": true,
+      "width": 1440,
+      "theme": "dark",
+      "milliseconds": 1588
+    },
+    {
+      "name": "batch 1440 dark",
+      "passed": true,
+      "width": 1440,
+      "theme": "dark",
+      "milliseconds": 1677
+    },
+    {
+      "name": "diagram 1440 dark",
+      "passed": true,
+      "width": 1440,
+      "theme": "dark",
+      "milliseconds": 1661
+    },
+    {
+      "name": "chain 1440 dark",
+      "passed": true,
+      "width": 1440,
+      "theme": "dark",
+      "milliseconds": 1699
+    },
+    {
+      "name": "editor 1440 dark",
+      "passed": true,
+      "width": 1440,
+      "theme": "dark",
+      "milliseconds": 1792
+    },
+    {
+      "name": "readonly 1440 dark",
+      "passed": true,
+      "width": 1440,
+      "theme": "dark",
+      "milliseconds": 1647
+    }
+  ],
+  "javascriptErrors": [],
+  "environment": "Chromium, set_content exact HTML, external requests blocked; not physical devices or server operations"
+}

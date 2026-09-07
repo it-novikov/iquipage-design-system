@@ -1,0 +1,24 @@
+{
+  "name": "IQUIPAGE Agent Skills",
+  "version": "1.0.0",
+  "language": "ru",
+  "ds_baseline": {
+    "name": "@iquipage/web",
+    "version": "0.5.7",
+    "archive_sha256": "0eb12439404cfff3e87118d447e133252fcae01a2a8e4329f264a3c79e33be2c"
+  },
+  "skills": [
+    "iquipage-discovery",
+    "iquipage-experience-audit",
+    "iquipage-implement",
+    "iquipage-review"
+  ],
+  "does_not_include": [
+    "DS runtime",
+    "font files",
+    "credentials",
+    "model access",
+    "automatic plugin installation",
+    "production deployment permissions"
+  ]
+}

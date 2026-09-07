@@ -1,0 +1,30 @@
+{
+  "version": "0.5.7",
+  "baseline": "05.6",
+  "total": 4,
+  "passed": 4,
+  "checks": [
+    {
+      "name": "base",
+      "passed": true
+    },
+    {
+      "name": "light",
+      "passed": true
+    },
+    {
+      "name": "dark",
+      "passed": true
+    },
+    {
+      "name": "primitives",
+      "passed": true
+    }
+  ],
+  "groupHashes": {
+    "base": "cf88f304c91af3d4a052578c3f314bdc1990560794e22a5cb2b004970e752a6f",
+    "light": "55c6a5077efeadb3e8337c5a4810f6aaa505168a8028e9f456c5f1487a2b2a75",
+    "dark": "cdc0cab218f7a2543085a2a6f84216a9e8ece041e31c70ead2c205b17b692407",
+    "primitives": "f242b56058651ade458ff4b85e745209e28dbd4aa102b2a42f0f24ca0b1eb994"
+  }
+}

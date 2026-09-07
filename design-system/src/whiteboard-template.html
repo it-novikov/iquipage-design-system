@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="ru" data-theme="light">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light dark"><title>IQUIPAGE — Визуальная доска 05.7</title><style>__IQ_CSS__</style>
+<style>
+html,body{margin:0;min-height:100%;background:var(--iq-bg);color:var(--iq-ink);font-family:var(--iq-font)}
+.wb-standalone-header{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:20px 32px;max-width:1720px;margin:auto}
+.wb-standalone-header>a{font:600 14px var(--iq-font);letter-spacing:.06em;color:var(--iq-ink);text-decoration:none;display:flex;gap:16px;align-items:center}.wb-standalone-header>a>span{font-weight:400;font-size:12px;letter-spacing:0;color:var(--iq-muted);padding-left:16px;border-left:1px solid var(--iq-line)}
+.wb-standalone-actions{display:flex;gap:8px}.wb-standalone-content{padding:4px 32px 28px;max-width:1720px;margin:auto}
+@media(max-width:900px){.wb-standalone-header{padding:14px 16px}.wb-standalone-content{padding:0 16px 20px}.wb-standalone-content .wb-shell.has-panel .wb-workspace{padding-right:0}.wb-standalone-content .wb-panel{width:280px}.wb-standalone-header>a>span{display:none}.wb-standalone-content .wb-fullscreen .wb-panel{position:absolute;width:280px}.wb-standalone-content .wb-fullscreen .wb-shell.has-panel .wb-workspace{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:640px){.wb-standalone-content{padding:0 10px 18px}.wb-standalone-header{padding:12px}.wb-standalone-content .wb-shell.has-panel .wb-workspace,.wb-standalone-content .wb-fullscreen .wb-shell.has-panel .wb-workspace{grid-template-columns:minmax(0,1fr)}.wb-standalone-content .wb-shell[data-view=list].has-panel .wb-workspace{grid-template-columns:minmax(0,1fr)}.wb-standalone-header .wb-button{font-size:11px}.wb-standalone-content .wb-stage{height:530px}}
+</style></head>
+<body><header class="wb-standalone-header"><a href="index.html">IQUIPAGE<span>Визуальная доска / 05.7</span></a><div class="wb-standalone-actions"><button class="wb-button" id="board-help" type="button">Как начать</button><button class="wb-button" id="board-theme" type="button" aria-label="Переключить цветовую тему">Тёмная тема</button></div></header><main class="wb-standalone-content"><iq-whiteboard-demo></iq-whiteboard-demo></main><script>__IQ_SCRIPT__</script>
+<script>document.querySelector('#board-theme').onclick=function(){const dark=document.documentElement.dataset.theme!=='dark';document.documentElement.dataset.theme=dark?'dark':'light';this.textContent=dark?'Светлая тема':'Тёмная тема';};document.querySelector('#board-help').onclick=()=>{const b=document.querySelector('iq-whiteboard');b.panel='help';b.renderPanel();b.panelEl.querySelector('button')?.focus();};</script>
+</body></html>

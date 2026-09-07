@@ -1,0 +1,192 @@
+{
+  "version": "0.5.7",
+  "htmlSha256": "8c9863c8c3dbfd0c6b953b052114c49c1cb46931b762d1e04c57100372876a83",
+  "runtimeFingerprint": "810862e3138bb7b59775aeb7ed2e8b3e30265d7fb719589b67fc989b850fd6b7",
+  "cssSha256": "caf76a0d8b3f937c0db7443c7b6f9d622bd530c63e9957524ce408d86c127825",
+  "checks": [
+    {
+      "name": "Lower dock and object categories",
+      "passed": true,
+      "milliseconds": 2781
+    },
+    {
+      "name": "Frame note inherits width axis colour",
+      "passed": true,
+      "milliseconds": 3148
+    },
+    {
+      "name": "Long text and following notes",
+      "passed": true,
+      "milliseconds": 2645
+    },
+    {
+      "name": "Text size independent of zoom",
+      "passed": true,
+      "milliseconds": 3287
+    },
+    {
+      "name": "Markdown tools",
+      "passed": true,
+      "milliseconds": 1999
+    },
+    {
+      "name": "Rendered Markdown fits",
+      "passed": true,
+      "milliseconds": 2250
+    },
+    {
+      "name": "Cancel restores exact scene",
+      "passed": true,
+      "milliseconds": 1990
+    },
+    {
+      "name": "4 shapes x 9 alignments",
+      "passed": true,
+      "milliseconds": 15916
+    },
+    {
+      "name": "Shape geometry",
+      "passed": true,
+      "milliseconds": 1694
+    },
+    {
+      "name": "Two-click connections and settings",
+      "passed": true,
+      "milliseconds": 2957
+    },
+    {
+      "name": "Pointer connection",
+      "passed": true,
+      "milliseconds": 2377
+    },
+    {
+      "name": "Reconnect endpoint and undo",
+      "passed": true,
+      "milliseconds": 2837
+    },
+    {
+      "name": "Escape during connection",
+      "passed": true,
+      "milliseconds": 1792
+    },
+    {
+      "name": "SVG nodes reused in motion",
+      "passed": true,
+      "milliseconds": 2424
+    },
+    {
+      "name": "Connection roundtrip",
+      "passed": true,
+      "milliseconds": 1998
+    },
+    {
+      "name": "Locked ports and connection",
+      "passed": true,
+      "milliseconds": 1750
+    },
+    {
+      "name": "Pending cancel and stale accept",
+      "passed": true,
+      "milliseconds": 1760
+    },
+    {
+      "name": "External data and text draft",
+      "passed": true,
+      "milliseconds": 1676
+    },
+    {
+      "name": "Alignment SVGs",
+      "passed": true,
+      "milliseconds": 1745
+    },
+    {
+      "name": "Text frames and actions editing",
+      "passed": true,
+      "milliseconds": 2333
+    },
+    {
+      "name": "Read-only actions",
+      "passed": true,
+      "milliseconds": 1556
+    },
+    {
+      "name": "Frame title grows without overlap",
+      "passed": true,
+      "milliseconds": 1934
+    },
+    {
+      "name": "Image caption Markdown grows at fixed width",
+      "passed": true,
+      "milliseconds": 1981
+    },
+    {
+      "name": "Alignment-only draft survives external update",
+      "passed": true,
+      "milliseconds": 1730
+    },
+    {
+      "name": "Dock roving keyboard navigation",
+      "passed": true,
+      "milliseconds": 1573
+    },
+    {
+      "name": "Reconnect source and keyboard exact selection",
+      "passed": true,
+      "milliseconds": 2857
+    },
+    {
+      "name": "Mobile library and rich editor",
+      "passed": true,
+      "milliseconds": 2028
+    },
+    {
+      "name": "Split ESM imports and shared registry",
+      "passed": true,
+      "milliseconds": 539
+    },
+    {
+      "name": "Graph selection canvas-list-null",
+      "passed": true,
+      "milliseconds": 1066
+    },
+    {
+      "name": "Graph independent rights",
+      "passed": true,
+      "milliseconds": 1184
+    },
+    {
+      "name": "Domain opening and pointer coordinates",
+      "passed": true,
+      "milliseconds": 933
+    },
+    {
+      "name": "Authorised Blob and permission release",
+      "passed": true,
+      "milliseconds": 963
+    },
+    {
+      "name": "Forbidden mutation blocked",
+      "passed": true,
+      "milliseconds": 649
+    },
+    {
+      "name": "Roadmap nesting and capabilities",
+      "passed": true,
+      "milliseconds": 1032
+    },
+    {
+      "name": "Compact h1 header",
+      "passed": true,
+      "milliseconds": 685
+    },
+    {
+      "name": "Crop context",
+      "passed": true,
+      "milliseconds": 850
+    }
+  ],
+  "passed": 36,
+  "total": 36,
+  "javascriptErrors": [],
+  "environment": "Chromium set_content, actual packaged ESM modules via routing; no server API or physical devices"
+}

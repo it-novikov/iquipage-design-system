@@ -1,0 +1,103 @@
+{
+  "version": "0.5.7",
+  "htmlSha256": "8c9863c8c3dbfd0c6b953b052114c49c1cb46931b762d1e04c57100372876a83",
+  "cssSha256": "caf76a0d8b3f937c0db7443c7b6f9d622bd530c63e9957524ce408d86c127825",
+  "phase": "screens",
+  "passed": 13,
+  "total": 13,
+  "checks": [
+    {
+      "name": "ready 1440 light",
+      "passed": true,
+      "width": 1440,
+      "theme": "light",
+      "milliseconds": 2397
+    },
+    {
+      "name": "ready 1440 dark",
+      "passed": true,
+      "width": 1440,
+      "theme": "dark",
+      "milliseconds": 1912
+    },
+    {
+      "name": "shapes 1440 light",
+      "passed": true,
+      "width": 1440,
+      "theme": "light",
+      "milliseconds": 1850
+    },
+    {
+      "name": "shapes 390 dark",
+      "passed": true,
+      "width": 390,
+      "theme": "dark",
+      "milliseconds": 2062
+    },
+    {
+      "name": "batch 1440 light",
+      "passed": true,
+      "width": 1440,
+      "theme": "light",
+      "milliseconds": 2073
+    },
+    {
+      "name": "batch 390 dark",
+      "passed": true,
+      "width": 390,
+      "theme": "dark",
+      "milliseconds": 1910
+    },
+    {
+      "name": "diagram 1440 dark",
+      "passed": true,
+      "width": 1440,
+      "theme": "dark",
+      "milliseconds": 1923
+    },
+    {
+      "name": "chain 1440 light",
+      "passed": true,
+      "width": 1440,
+      "theme": "light",
+      "milliseconds": 1765
+    },
+    {
+      "name": "chain 390 dark",
+      "passed": true,
+      "width": 390,
+      "theme": "dark",
+      "milliseconds": 1784
+    },
+    {
+      "name": "editor 1440 dark",
+      "passed": true,
+      "width": 1440,
+      "theme": "dark",
+      "milliseconds": 1929
+    },
+    {
+      "name": "editor 390 light",
+      "passed": true,
+      "width": 390,
+      "theme": "light",
+      "milliseconds": 1804
+    },
+    {
+      "name": "edge 1440 dark",
+      "passed": true,
+      "width": 1440,
+      "theme": "dark",
+      "milliseconds": 2392
+    },
+    {
+      "name": "ready 320 light",
+      "passed": true,
+      "width": 320,
+      "theme": "light",
+      "milliseconds": 1500
+    }
+  ],
+  "javascriptErrors": [],
+  "environment": "Chromium, set_content exact HTML, external requests blocked; not physical devices or server operations"
+}

@@ -1,0 +1,20 @@
+{
+  "version": "0.5.7",
+  "htmlSha256": "8c9863c8c3dbfd0c6b953b052114c49c1cb46931b762d1e04c57100372876a83",
+  "captures": [
+    {
+      "file": "evidence/screenshots/tooltip-light-1440.png",
+      "sha256": "7827c2967e678fd54896c56cf9595a5d17c1587510829896ce3f003679e469c8",
+      "mode": "tooltip",
+      "width": 1440,
+      "theme": "light"
+    },
+    {
+      "file": "evidence/screenshots/tooltip-dark-1440.png",
+      "sha256": "b8da7186707a0af226c0a032f3f4e57867123b9a12fe8ab28e0c7cbf0598cacf",
+      "mode": "tooltip",
+      "width": 1440,
+      "theme": "dark"
+    }
+  ]
+}

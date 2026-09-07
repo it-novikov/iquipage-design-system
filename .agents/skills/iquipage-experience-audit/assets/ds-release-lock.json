@@ -1,0 +1,30 @@
+{
+  "schema_version": "1.0",
+  "package": "@iquipage/web",
+  "version": "0.5.7",
+  "archive_name": "IQUIPAGE-05.7.zip",
+  "archive_sha256": "0eb12439404cfff3e87118d447e133252fcae01a2a8e4329f264a3c79e33be2c",
+  "manifest_sha256": "f252a499e00d7bab6088640126a406075a86bf109e673a257a002d8e90e9195c",
+  "manifest_entries": 297,
+  "trust": "Pinned to the conversation delivery, not a publisher signature. New versions require explicit review and a new pin.",
+  "known_metadata_discrepancies": [
+    {
+      "path": "types/core.d.ts",
+      "observation": "version is declared as literal '0.5.6'; runtime/package report '0.5.7'",
+      "action": "Report as upstream metadata/type discrepancy; do not patch vendor silently or infer that APIs are absent."
+    }
+  ],
+  "important_files": {
+    "package.json": "4fc4111c0b3ddb650b2e9141dbd593855d7d1100dc8a3701713f258322a061be",
+    "dist/core.js": "a3ebf00fe516d59836f4718d4301184bac60acc39eb229d7da7ed3da394f6ea8",
+    "dist/advanced.js": "867f7d9254ba1a5be50a94383b6c89ba54adbb693c76ec355cb24c3e046a0ceb",
+    "dist/whiteboard.js": "7fb98b065eac582b2f245e396aa7401226e287ba4e6697e2619962c5531e6933",
+    "dist/iquipage.js": "7976c0e3826a6c24a89e6a8d5d39241bca73b85b9caa629ee081e35342533ba8",
+    "dist/iquipage.css": "caf76a0d8b3f937c0db7443c7b6f9d622bd530c63e9957524ce408d86c127825",
+    "dist/entry-manifest.json": "e961535b9254674c0dac0c24cfba0438f72a8660b3359b5a3a7b4a560f9e0c24",
+    "types/core.d.ts": "fd44bf1bb9b5f0b83cd09c1766422762737fac7ec9176aa204e3b8ec208ca79c",
+    "types/extensions.d.ts": "a49be02574710d4a98c32b20c7e7e8de43d40fcea50d43dcd8d729258e5926b6",
+    "types/whiteboard.d.ts": "3d0ee1a672b3f58d678b6927c85a7f69c01d461157a83cef04a70023570e7533",
+    "tokens/semantic.json": "0c5e6dff443d060ed1a22c57cf679615d2316629e7e3fd3b71fd26c518232deb"
+  }
+}

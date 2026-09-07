@@ -1,0 +1,16 @@
+{
+  "source_roots": [
+    "src"
+  ],
+  "vendor_roots": [
+    "vendor/iquipage"
+  ],
+  "adapter_roots": [
+    "src/integrations/iquipage"
+  ],
+  "excluded_paths": [
+    "src/generated"
+  ],
+  "max_file_bytes": 1000000,
+  "exceptions": []
+}

@@ -1,0 +1,17 @@
+{
+  "schema_version": "1.0",
+  "verification": "PASS",
+  "package": "@iquipage/web",
+  "version": "0.5.7",
+  "manifest_sha256": "f252a499e00d7bab6088640126a406075a86bf109e673a257a002d8e90e9195c",
+  "expected_archive_sha256": "0eb12439404cfff3e87118d447e133252fcae01a2a8e4329f264a3c79e33be2c",
+  "observed_archive_sha256": "0eb12439404cfff3e87118d447e133252fcae01a2a8e4329f264a3c79e33be2c",
+  "manifest_files": 297,
+  "matched_files": 297,
+  "extra_files": [],
+  "errors": [],
+  "warnings": [
+    "Known upstream discrepancy: types/core.d.ts: version is declared as literal '0.5.6'; runtime/package report '0.5.7'"
+  ],
+  "scope": "Integrity only. Not a runtime, accessibility, UX or application acceptance test."
+}

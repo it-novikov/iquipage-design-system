@@ -1,0 +1,6 @@
+interface:
+  display_name: "IQUIPAGE · Проблема и бриф"
+  short_description: "От опроса пользователя до согласованного решения"
+  default_prompt: "Используй $iquipage-discovery для текущей задачи. Прочитай фактическую поставку, соблюдай scope и фиксируй доказательства."
+policy:
+  allow_implicit_invocation: true

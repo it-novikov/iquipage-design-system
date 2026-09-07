@@ -1,0 +1,118 @@
+{
+  "version": "0.5.7",
+  "htmlSha256": {
+    "index.html": "04ad9440a4ea5c737b5691d62061f0f06cfe00e26144afc6fa9973d4e0046e69",
+    "whiteboard.html": "8c9863c8c3dbfd0c6b953b052114c49c1cb46931b762d1e04c57100372876a83",
+    "workbench.html": "0a70d4c05ffd20182699bd054f800f373bff3f51ae4fef117cdac2630e4e275c"
+  },
+  "cssSha256": "caf76a0d8b3f937c0db7443c7b6f9d622bd530c63e9957524ce408d86c127825",
+  "reports": [
+    {
+      "file": "evidence/unit-057.json",
+      "passed": 209,
+      "total": 209,
+      "sha256": "faef5d414a51b11b64832a0f50abe40999651aa5d07c04ca16b18b212c4216ba"
+    },
+    {
+      "file": "evidence/types-057.json",
+      "passed": 5,
+      "total": 5,
+      "sha256": "eaa962feb80be7fc8a50ecb52a1e44ea0d2e597c8c678bd14200911933bf41b3"
+    },
+    {
+      "file": "evidence/workshop-behavior.json",
+      "passed": 33,
+      "total": 33,
+      "sha256": "532f7fd9653a0b329a5fc37da50d77db01c6bbcfb0400b73e9e833273238bea1"
+    },
+    {
+      "file": "evidence/acceptance-055.json",
+      "passed": 36,
+      "total": 36,
+      "sha256": "21b1f160cb607a0459c05901924f682db9f2f72c9893212c3b08e0570141156c"
+    },
+    {
+      "file": "evidence/behavior.json",
+      "passed": 28,
+      "total": 28,
+      "sha256": "8fafe563bfac00a5fc50b9905b0ce5c62c47b4f2fa7281c0195b92ad3d85d23e"
+    },
+    {
+      "file": "evidence/everyday-behavior.json",
+      "passed": 26,
+      "total": 26,
+      "sha256": "3933e368da83b0a1f906a16a1ad91e1058800cea3e12d4fa70af1bc508281762"
+    },
+    {
+      "file": "evidence/workshop-layout.json",
+      "passed": 84,
+      "total": 84,
+      "sha256": "54e931ab355adf9e0cdccf1fc54ffe040c280a5068579d1c7efeeef3b75f44a4"
+    },
+    {
+      "file": "evidence/layout-320.json",
+      "passed": 171,
+      "total": 171,
+      "sha256": "82c3e4739a512ccff6c2d7b58ee6346e81dc05990d54451d75c48ed86c26ed51"
+    },
+    {
+      "file": "evidence/layout-390.json",
+      "passed": 171,
+      "total": 171,
+      "sha256": "e9cce6c24ccdb9fddbcedbd8b0bffa1438c208f3f38fbdf4ed903d14e2c8eed3"
+    },
+    {
+      "file": "evidence/layout-1280.json",
+      "passed": 171,
+      "total": 171,
+      "sha256": "cd19eaf6ed7210ec5770efe466a58379a2b89f51bffb150ef4cb28b4fdb8aadd"
+    },
+    {
+      "file": "evidence/layout-1440.json",
+      "passed": 171,
+      "total": 171,
+      "sha256": "ea16f6f1a567e5b5c38db05d4440982ba197748c67379281d25da7a30386746f"
+    },
+    {
+      "file": "evidence/contrast-057.json",
+      "passed": 98,
+      "total": 98,
+      "sha256": "36ac98a87bb6b1bfb8a81634b843eef92fa33ac5f1d5a4db16e575849f4c5cb6"
+    },
+    {
+      "file": "evidence/contrast-056.json",
+      "passed": 362,
+      "total": 362,
+      "sha256": "f5500d19a1e5c2043871900f119229b65945bdb1d5f8c0bbeec60c11cfe27d92"
+    },
+    {
+      "file": "evidence/performance-057.json",
+      "passed": 3,
+      "total": 3,
+      "sha256": "9df379c160798e1df664b9af8e40508bf91fb60962d5861d16c60330dc61482c"
+    },
+    {
+      "file": "evidence/workshop-screens.json",
+      "passed": 13,
+      "total": 13,
+      "sha256": "9caf015c63ae2994f53f56748c60b76e9e71700b244e591c9765a91ef0caefdb"
+    }
+  ],
+  "totals": {
+    "unit": 209,
+    "browserBehavior": 123,
+    "layout": 768,
+    "contrast": 460,
+    "typeFixtures": 5,
+    "screenshotFiles": 15
+  },
+  "javascriptErrors": [],
+  "sourceRebuildIdentical": true,
+  "allRequiredGatesPassed": true,
+  "limits": [
+    "Chromium only; no native Safari/Firefox/physical touch devices",
+    "Local HTML and real ESM request routing, no Sprintique server acceptance",
+    "Bounded routing, no arbitrary-scale virtualization or full multi-user editing",
+    "No independent human usability study"
+  ]
+}

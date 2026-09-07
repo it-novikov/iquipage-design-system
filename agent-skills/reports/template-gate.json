@@ -1,0 +1,24 @@
+{
+  "schema_version": "1.0",
+  "structure_valid": true,
+  "gate_ready": false,
+  "errors": [],
+  "blocking_reasons": [
+    "Scope has no approval reference",
+    "Required check TASK-REAL-SAVE is NOT_RUN",
+    "Surface workspace/tasks is not fully checked",
+    "Dimension visual is not accepted",
+    "Dimension ux is not accepted",
+    "Dimension code is not accepted",
+    "Dimension accessibility is not accepted",
+    "Dimension human-agent is not accepted",
+    "Dimension performance is not accepted"
+  ],
+  "counts": {
+    "surfaces": 1,
+    "checks": 1,
+    "findings": 0,
+    "verified_evidence_files": 0
+  },
+  "limitation": "Valid structure is not proof of truthful execution or UI/UX quality. Read raw evidence and test assertions."
+}

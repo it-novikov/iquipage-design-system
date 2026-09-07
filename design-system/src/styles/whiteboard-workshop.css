@@ -1,0 +1,137 @@
+/* 05.7 — workshop surface. Scope prevents application button rules from leaking
+   into the object library, tool dock, connection controls and tooltips. */
+.wb-shell[data-workshop]{--wb-library-width:272px;position:relative}
+.wb-shell[data-workshop] .wb-workspace{grid-template-columns:var(--wb-library-width) minmax(0,1fr)}
+.wb-shell[data-workshop].library-closed .wb-workspace{grid-template-columns:minmax(0,1fr)}
+.wb-shell[data-workshop].has-panel .wb-workspace{grid-template-columns:var(--wb-library-width) minmax(0,1fr) 280px}
+.wb-shell[data-workshop].library-closed.has-panel .wb-workspace{grid-template-columns:minmax(0,1fr) 280px}
+.wb-shell[data-workshop] .wb-library{padding:18px 14px;display:flex;flex-direction:column;gap:14px;overflow:hidden;max-height:none;min-width:0;background:var(--iq-raised)}
+.wb-shell[data-workshop] .wb-library[hidden]{display:none}
+.wb-shell[data-workshop] .wb-library>header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin:0}
+.wb-shell[data-workshop] .wb-library>header h3{font:600 15px/1.4 var(--iq-font);letter-spacing:-.02em;margin:0;color:var(--iq-ink)}
+.wb-shell[data-workshop] .wb-library>header p{font:400 11px/1.5 var(--iq-font);color:var(--iq-muted);margin:4px 0 0}
+.wb-shell[data-workshop] .wb-library>header .wb-button{width:28px;height:28px;min-width:28px;min-height:28px;padding:4px;flex:none}
+.wb-shell[data-workshop] .wb-library-search{display:flex;align-items:center;gap:8px;border:1px solid var(--iq-line);background:var(--iq-surface);border-radius:8px;padding:0 10px;color:var(--iq-muted);min-height:36px}
+.wb-shell[data-workshop] .wb-library-search input{width:100%;min-width:0;border:0;padding:8px 0;background:transparent;color:var(--iq-ink);font:400 12px/1.5 var(--iq-font);outline:none}
+.wb-shell[data-workshop] .wb-library-search:focus-within{border-color:var(--iq-focus)}
+.wb-shell[data-workshop] .wb-library-categories{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:3px;padding:3px;border-radius:8px;background:var(--iq-surface);margin:0;flex:none}
+.wb-shell[data-workshop] .wb-library-categories button{width:100%;min-width:0;min-height:32px;height:32px;padding:4px 2px;font:500 12px/1.4 var(--iq-font);white-space:nowrap;letter-spacing:0;color:var(--iq-muted);border-radius:6px;border:0;background:transparent;cursor:pointer;transition:background-color 120ms,color 120ms}
+.wb-shell[data-workshop] .wb-library-categories button[aria-pressed=true]{background:var(--iq-raised);color:var(--iq-ink);box-shadow:0 1px 4px #0000000b}
+.wb-shell[data-workshop] .wb-library-items{overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;min-height:0;flex:1;margin:0;padding:0 2px 2px 0}
+.wb-shell[data-workshop] .wb-library-item{display:flex;width:100%;align-items:center;gap:12px;margin:0 0 4px;padding:11px 8px;min-height:66px;border:1px solid transparent;border-radius:10px;background:transparent;color:var(--iq-ink);text-align:left;cursor:grab;transition:background-color 120ms,border-color 120ms}
+.wb-shell[data-workshop] .wb-library-item:hover:not(:disabled):not([aria-pressed=true]):not(:focus-visible){background:var(--iq-hover);border-color:var(--iq-line)}
+.wb-shell[data-workshop] .wb-library-item:is([aria-pressed=true],:focus-visible){background:var(--iq-focus-fill);color:var(--iq-focus-text);border-color:transparent}
+.wb-shell[data-workshop] .wb-library-item b{font:600 13px/1.4 var(--iq-font);letter-spacing:-.01em;display:block}
+.wb-shell[data-workshop] .wb-library-item small{font:400 11px/1.45 var(--iq-font);color:var(--iq-muted);display:block;margin-top:3px;max-width:174px}
+.wb-shell[data-workshop] .wb-library-item:is([aria-pressed=true],:focus-visible) small{color:inherit}
+.wb-shell[data-workshop] .wb-library-preview{flex:0 0 38px;width:38px;height:38px;border-radius:9px;background:var(--iq-surface);color:var(--iq-ink);display:grid;place-items:center}
+.wb-shell[data-workshop] .wb-library-preview[data-tone=sand]{background:var(--iq-wb-sand);color:var(--iq-wb-note-ink)}
+.wb-shell[data-workshop] .wb-library-preview[data-tone=mint]{background:var(--iq-wb-mint);color:var(--iq-wb-note-ink)}
+.wb-shell[data-workshop] .wb-library-preview[data-tone=sky]{background:var(--iq-wb-sky);color:var(--iq-wb-note-ink)}
+.wb-shell[data-workshop] .wb-library-batch{display:flex;align-items:center;gap:10px;width:100%;padding:14px 8px;margin-top:14px;border:0;border-top:1px solid var(--iq-line);border-radius:0;background:transparent;color:var(--iq-ink);text-align:left;cursor:pointer}
+.wb-shell[data-workshop] .wb-library-batch b{font:500 12px/1.4 var(--iq-font)}
+.wb-shell[data-workshop] .wb-library-batch small{display:block;font:400 11px/1.5 var(--iq-font);color:var(--iq-muted);margin-top:3px}
+.wb-shell[data-workshop] .wb-library-tip{font:400 11px/1.5 var(--iq-font);color:var(--iq-muted);margin:0;padding-top:12px;border-top:1px solid var(--iq-line);flex:none}
+.wb-shell[data-workshop] .wb-library-family{margin:0 0 16px}
+.wb-shell[data-workshop] .wb-library-family h4{font:500 11px/1.5 var(--iq-font);color:var(--iq-muted);margin:0 0 8px;letter-spacing:0}
+.wb-shell[data-workshop] .wb-shape-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.wb-shell[data-workshop] .wb-shape-choice{margin:0;min-height:83px;padding:9px 4px;gap:5px;background:var(--iq-surface);display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;min-width:0}
+.wb-shell[data-workshop] .wb-shape-choice b{font:500 11px/1.35 var(--iq-font);white-space:normal;overflow-wrap:normal}
+.wb-library-shape{display:block;flex:none;fill:var(--iq-raised);stroke:currentColor;stroke-width:1.3;overflow:visible}
+.wb-library-shape *{vector-effect:non-scaling-stroke;stroke-linejoin:round}
+.wb-shape-detail{fill:none}
+.wb-library-format-note,.wb-library-no-results{font:400 12px/1.6 var(--iq-font);color:var(--iq-muted);padding:12px 6px;margin:0}
+.wb-shell[data-workshop] .wb-command-row{padding:9px 18px;min-height:45px}
+.wb-shell[data-workshop] .wb-mode-description{font-size:12px;line-height:1.5;white-space:normal;color:var(--iq-muted)}
+.wb-shell[data-workshop] .wb-stage{height:640px;min-height:640px}
+.wb-shell[data-workshop] .wb-footer{inset:auto 14px 14px;gap:12px;z-index:16;flex-wrap:nowrap}
+.wb-shell[data-workshop] .wb-dock{border-radius:14px;padding:5px;gap:3px;border:1px solid var(--iq-line);background:var(--iq-raised);box-shadow:0 4px 16px #0000000c}
+.wb-shell[data-workshop] .wb-dock :is(.wb-tool,.wb-button){width:42px;min-width:42px;height:42px;min-height:42px;padding:10px;border-radius:9px;color:var(--iq-muted);background:transparent;display:flex;align-items:center;justify-content:center}
+.wb-shell[data-workshop] .wb-dock button[aria-pressed=true]{background:var(--iq-primary);color:var(--iq-on-primary)}
+.wb-shell[data-workshop] .wb-dock button:hover:not(:disabled):not([aria-pressed=true]){background:var(--iq-hover);color:var(--iq-ink)}
+.wb-shell[data-workshop] .wb-dock button:disabled{opacity:.35;cursor:default}
+.wb-shell[data-workshop] :is(.wb-dock,.wb-zoom) button::after{content:none!important;display:none!important}
+.wb-shell[data-workshop] .wb-dock-icon{width:20px;height:20px;flex:0 0 20px;display:block;overflow:visible;stroke-width:1.75;transform:none}
+.wb-shell[data-workshop] .wb-dock-icon g{stroke-width:1.75}
+.wb-shell[data-workshop] .wb-dock button:focus-visible{outline:0;background:var(--iq-focus-fill);color:var(--iq-focus-text);box-shadow:inset 0 -2px currentColor}
+.wb-shell[data-workshop] .wb-zoom{padding:6px;border-radius:12px;gap:2px;box-shadow:0 4px 16px #0000000c}
+.wb-shell[data-workshop] .wb-zoom .wb-button{font-size:12px;min-height:34px;height:34px;min-width:30px;padding:5px}
+.wb-shell[data-workshop] .wb-overlay-tip{position:absolute;z-index:100;max-width:calc(100% - 16px);display:flex;align-items:center;gap:12px;padding:7px 10px;background:var(--iq-primary);color:var(--iq-on-primary);border:0;border-radius:7px;box-shadow:0 3px 10px #00000012;white-space:normal;overflow-wrap:anywhere;font:500 12px/1.4 var(--iq-font);pointer-events:auto;letter-spacing:0;transform:none;min-height:0}
+.wb-shell[data-workshop] .wb-overlay-tip[hidden]{display:none}
+.wb-shell[data-workshop] .wb-overlay-tip kbd{color:inherit;opacity:.7;font:400 11px/1.4 var(--iq-font);border:0;background:transparent;padding:0}
+/* The same shape definition determines silhouette, content inset and connector anchors. */
+.wb-shell[data-workshop] .wb-object[data-type=shape]{padding:0!important;overflow:visible}
+.wb-shell[data-workshop] .wb-object[data-type=shape] .wb-object-text{position:absolute;left:var(--shape-left,12%);right:var(--shape-right,12%);top:var(--shape-top,14%);bottom:var(--shape-bottom,14%);width:auto;height:auto;min-width:0;margin:0;overflow:auto}
+.wb-shell[data-workshop] .wb-shape-face>*{stroke-width:1.35;stroke-linejoin:round}
+.wb-shell[data-workshop] .wb-shape-face .wb-shape-detail{fill:none}
+.wb-shell[data-workshop] .wb-object[data-type=shape].is-selected .wb-shape-face{stroke:var(--iq-focus);stroke-width:1.7}
+.wb-shell[data-workshop] .wb-object[data-type=shape].is-selected{box-shadow:none!important}
+.wb-shell[data-workshop] .wb-port{width:28px;height:28px;min-width:28px;min-height:28px;z-index:14}
+.wb-shell[data-workshop] .wb-port[data-port=left]{left:-14px;top:calc(50% - 14px)}
+.wb-shell[data-workshop] .wb-port[data-port=right]{right:-14px;top:calc(50% - 14px)}
+.wb-shell[data-workshop] .wb-port[data-port=top]{top:-14px;left:calc(50% - 14px)}
+.wb-shell[data-workshop] .wb-port[data-port=bottom]{bottom:-14px;left:calc(50% - 14px)}
+.wb-shell[data-workshop] .wb-port::after{width:7px;height:7px;border-width:1.5px;box-shadow:0 0 0 3px var(--iq-raised)}
+.wb-shell[data-workshop] .wb-edge-line{stroke-width:1.7;stroke:var(--edge-color,var(--iq-muted))}
+.wb-shell[data-workshop] .wb-connection.is-selected .wb-edge-line{stroke:var(--iq-focus);stroke-width:2}
+.wb-shell[data-workshop] .wb-connection:focus-visible{outline:none}
+.wb-shell[data-workshop] .wb-connection:focus-visible .wb-edge-line{stroke:var(--iq-focus);stroke-width:2.5}
+.wb-shell[data-workshop] .wb-connection-label rect{stroke:none;fill:var(--iq-wb-canvas,var(--iq-surface))}
+.wb-shell[data-workshop] .wb-connection-label text{fill:var(--iq-muted);font:500 12px/1.5 var(--iq-font)}
+.wb-shell[data-workshop] .wb-connection.is-selected .wb-connection-label text{fill:var(--iq-focus)}
+.wb-edge-style-group{display:flex;align-items:center;background:var(--iq-surface);padding:3px;gap:2px;border-radius:7px}
+.wb-edge-style-group .wb-button{min-height:28px;height:28px;padding:4px 8px;font-size:11px}
+.wb-edge-style-group .wb-button[aria-pressed=true]{background:var(--iq-raised);color:var(--iq-ink);box-shadow:0 1px 3px #00000014}
+/* Batch capture uses individually editable note cards, never an implicit wall of text. */
+.wb-capture-sheet{width:min(680px,calc(100vw - 24px));padding:24px;max-height:calc(100dvh - 24px)}
+.wb-capture-sheet .wb-sheet-content{gap:16px}
+.wb-capture-rows{display:grid;gap:10px}
+.wb-capture-row{display:grid;grid-template-columns:minmax(0,1fr) 28px;gap:8px;border:1px solid var(--iq-line);border-radius:10px;padding:10px 12px;background:var(--iq-surface)}
+.wb-capture-row label{display:grid;gap:4px;min-width:0}
+.wb-capture-row label>span{font:500 11px/1.5 var(--iq-font);color:var(--iq-muted)}
+.wb-capture-sheet .wb-capture-row textarea{border:0;background:transparent;min-height:52px;padding:2px 0;font:400 14px/1.6 var(--iq-font);color:var(--iq-ink);outline:none;resize:none}
+.wb-capture-row:focus-within{border-color:var(--iq-focus);background:var(--iq-raised)}
+.wb-capture-row-actions{display:flex;flex-direction:column;align-items:center;gap:2px}
+.wb-capture-row-actions .wb-button{min-height:26px;min-width:26px;height:26px;width:26px;padding:4px}
+.wb-capture-add{justify-self:start;background:var(--iq-surface);border-radius:8px}
+.wb-capture-import{border-top:1px solid var(--iq-line);padding-top:14px}
+.wb-capture-import summary{font:500 12px/1.5 var(--iq-font);cursor:pointer;color:var(--iq-muted);margin-bottom:12px}
+.wb-capture-import label{margin:10px 0}
+.wb-capture-summary{font:400 12px/1.6 var(--iq-font);color:var(--iq-muted)}
+.wb-capture-sheet footer{margin-top:18px;padding-top:16px;border-top:1px solid var(--iq-line);position:sticky;bottom:-24px;background:var(--iq-raised);padding-bottom:8px;z-index:2}
+@media(max-width:1200px){.wb-shell[data-workshop]{--wb-library-width:252px}.wb-shell[data-workshop].has-panel .wb-workspace{grid-template-columns:var(--wb-library-width) minmax(0,1fr)}.wb-shell[data-workshop].library-closed.has-panel .wb-workspace{grid-template-columns:minmax(0,1fr)}.wb-shell[data-workshop] .wb-panel{position:absolute;right:0;top:0;width:280px;bottom:0;height:auto;z-index:22}}
+@media(max-width:760px){
+ .wb-shell[data-workshop] .wb-workspace,.wb-shell[data-workshop].has-panel .wb-workspace{grid-template-columns:minmax(0,1fr)}
+ .wb-shell[data-workshop] .wb-library{position:absolute;inset:0 auto 0 0;width:min(280px,calc(100% - 24px));max-width:none;height:100%;box-shadow:6px 0 24px #00000016;z-index:24;padding:16px 12px}
+ .wb-shell[data-workshop] .wb-stage{height:600px;min-height:600px}
+ .wb-shell[data-workshop] .wb-footer{inset:auto 6px 8px;gap:6px;justify-content:center;flex-wrap:wrap}
+ .wb-shell[data-workshop] .wb-dock{gap:2px;padding:4px}
+ .wb-shell[data-workshop] .wb-dock :is(.wb-tool,.wb-button){width:38px;min-width:38px;height:40px;min-height:40px;padding:8px}
+ .wb-shell[data-workshop] .wb-zoom{padding:2px 5px}
+ .wb-shell[data-workshop] .wb-zoom .wb-button{min-height:30px;height:30px}
+ .wb-shell[data-workshop] .wb-command-row{padding:8px 12px}
+ .wb-capture-sheet{padding:18px}
+ .wb-capture-sheet footer{bottom:-18px;flex-wrap:wrap}
+ .wb-capture-row label>span{font-size:12px}
+ .wb-capture-sheet .wb-capture-row textarea{font-size:16px}
+}
+@media(prefers-reduced-motion:reduce){.wb-shell[data-workshop] :is(.wb-library-item,.wb-library-categories button){transition:none}}
+@media(forced-colors:active){.wb-shell[data-workshop] .wb-port::after,.wb-shell[data-workshop] .wb-edge-end{border:1px solid ButtonText;fill:Canvas;stroke:ButtonText}.wb-shell[data-workshop] .wb-edge-line{stroke:CanvasText}.wb-shell[data-workshop] .wb-overlay-tip{background:Canvas;color:CanvasText;border:1px solid CanvasText}.wb-shell[data-workshop] .wb-shape-face{fill:Canvas;stroke:CanvasText}}
+.wb-shell[data-workshop] .wb-library{height:640px;max-height:640px}
+.wb-fullscreen .wb-shell[data-workshop] .wb-library{height:100%;max-height:100%}
+@media(max-width:760px){.wb-shell[data-workshop] .wb-library{height:100%;max-height:100%}}
+
+.wb-shell[data-workshop] .wb-library>header{padding:0}
+.wb-shell[data-workshop] .wb-library-item{min-height:62px;padding:10px 6px}
+
+.wb-shell[data-workshop] .wb-port,.wb-shell[data-workshop] .wb-resize{transform:scale(var(--wb-inv-zoom,1));transform-origin:center}
+.wb-capture-sheet iq-select{display:block;min-width:0}
+.wb-capture-sheet .iq-select-trigger{height:42px;min-height:42px;background:var(--iq-field-bg);font-size:13px;border-radius:8px}
+.wb-capture-sheet .iq-control-label{font-size:13px;margin-bottom:8px}
+
+/* Only the DOM tooltip is painted; no pseudo tooltip on inherited formatting controls. */
+.wb-shell[data-workshop] :is(.wb-md-tools,.wb-alignment) button::after{content:none!important;display:none!important}
+.wb-shell[data-workshop] .wb-overlay-tip kbd{flex:none;white-space:nowrap}
+.wb-shell[data-workshop] .wb-library-search,.wb-shell[data-workshop] .wb-library>header{flex-shrink:0}
+.wb-capture-summary{min-height:20px}
+.wb-capture-import:not([open]) summary{margin-bottom:0}

@@ -1,0 +1,1264 @@
+TAP version 13
+# Subtest: valid calendar days, leap day and DST-independent arithmetic
+ok 1 - valid calendar days, leap day and DST-independent arithmetic
+  ---
+  duration_ms: 3.703503
+  type: 'test'
+  ...
+# Subtest: invalid calendar dates and formats rejected
+ok 2 - invalid calendar dates and formats rejected
+  ---
+  duration_ms: 0.377975
+  type: 'test'
+  ...
+# Subtest: plan input immutable and defaults explicit
+ok 3 - plan input immutable and defaults explicit
+  ---
+  duration_ms: 2.468798
+  type: 'test'
+  ...
+# Subtest: end precedes start
+ok 4 - end precedes start
+  ---
+  duration_ms: 0.608286
+  type: 'test'
+  ...
+# Subtest: milestone has one inclusive date
+ok 5 - milestone has one inclusive date
+  ---
+  duration_ms: 3.830107
+  type: 'test'
+  ...
+# Subtest: duplicate row and dependency IDs
+ok 6 - duplicate row and dependency IDs
+  ---
+  duration_ms: 0.929658
+  type: 'test'
+  ...
+# Subtest: duplicate same-type relationship refused
+ok 7 - duplicate same-type relationship refused
+  ---
+  duration_ms: 3.59065
+  type: 'test'
+  ...
+# Subtest: relationship cycle refused
+ok 8 - relationship cycle refused
+  ---
+  duration_ms: 3.980724
+  type: 'test'
+  ...
+# Subtest: missing endpoint refused
+ok 9 - missing endpoint refused
+  ---
+  duration_ms: 2.132775
+  type: 'test'
+  ...
+# Subtest: NaN lag is not silently normalized
+ok 10 - NaN lag is not silently normalized
+  ---
+  duration_ms: 1.626685
+  type: 'test'
+  ...
+# Subtest: fractional lag refused; negative integer accepted
+ok 11 - fractional lag refused; negative integer accepted
+  ---
+  duration_ms: 1.829645
+  type: 'test'
+  ...
+# Subtest: progress bound checks
+ok 12 - progress bound checks
+  ---
+  duration_ms: 0.89061
+  type: 'test'
+  ...
+# Subtest: dependency contract FS
+ok 13 - dependency contract FS
+  ---
+  duration_ms: 4.105699
+  type: 'test'
+  ...
+# Subtest: dependency contract SS
+ok 14 - dependency contract SS
+  ---
+  duration_ms: 0.198421
+  type: 'test'
+  ...
+# Subtest: dependency contract FF
+ok 15 - dependency contract FF
+  ---
+  duration_ms: 0.139249
+  type: 'test'
+  ...
+# Subtest: dependency contract SF
+ok 16 - dependency contract SF
+  ---
+  duration_ms: 0.126224
+  type: 'test'
+  ...
+# Subtest: FS inclusive boundary starts on next calendar day
+ok 17 - FS inclusive boundary starts on next calendar day
+  ---
+  duration_ms: 0.212741
+  type: 'test'
+  ...
+# Subtest: no automatic dependency rescheduling
+ok 18 - no automatic dependency rescheduling
+  ---
+  duration_ms: 0.442976
+  type: 'test'
+  ...
+# Subtest: draft cancel restores model
+ok 19 - draft cancel restores model
+  ---
+  duration_ms: 0.698279
+  type: 'test'
+  ...
+# Subtest: no-op preview does not create dirty state
+ok 20 - no-op preview does not create dirty state
+  ---
+  duration_ms: 0.179919
+  type: 'test'
+  ...
+# Subtest: commit increments revision and stages undo
+ok 21 - commit increments revision and stages undo
+  ---
+  duration_ms: 0.341442
+  type: 'test'
+  ...
+# Subtest: external update is not overwritten while dirty
+ok 22 - external update is not overwritten while dirty
+  ---
+  duration_ms: 0.483827
+  type: 'test'
+  ...
+# Subtest: three-way rebase preserves unrelated remote field
+ok 23 - three-way rebase preserves unrelated remote field
+  ---
+  duration_ms: 1.814959
+  type: 'test'
+  ...
+# Subtest: explicit local conflict wins only after reapply
+ok 24 - explicit local conflict wins only after reapply
+  ---
+  duration_ms: 0.675213
+  type: 'test'
+  ...
+# Subtest: deleted remote edited object is not resurrected
+ok 25 - deleted remote edited object is not resurrected
+  ---
+  duration_ms: 0.307492
+  type: 'test'
+  ...
+# Subtest: rebase refuses editing newly protected object
+ok 26 - rebase refuses editing newly protected object
+  ---
+  duration_ms: 0.370644
+  type: 'test'
+  ...
+# Subtest: remote addition survives local edit
+ok 27 - remote addition survives local edit
+  ---
+  duration_ms: 0.516269
+  type: 'test'
+  ...
+# Subtest: new revision invalidates obsolete undo history
+ok 28 - new revision invalidates obsolete undo history
+  ---
+  duration_ms: 0.487674
+  type: 'test'
+  ...
+# Subtest: reject unknown graph kind
+ok 29 - reject unknown graph kind
+  ---
+  duration_ms: 0.64555
+  type: 'test'
+  ...
+# Subtest: reject nonfinite graph geometry
+ok 30 - reject nonfinite graph geometry
+  ---
+  duration_ms: 0.436614
+  type: 'test'
+  ...
+# Subtest: reject invalid graph extent
+ok 31 - reject invalid graph extent
+  ---
+  duration_ms: 0.295888
+  type: 'test'
+  ...
+# Subtest: reject orphan group membership
+ok 32 - reject orphan group membership
+  ---
+  duration_ms: 0.271644
+  type: 'test'
+  ...
+# Subtest: reject group containment cycle
+ok 33 - reject group containment cycle
+  ---
+  duration_ms: 0.365713
+  type: 'test'
+  ...
+# Subtest: checklist items have actual labels
+ok 34 - checklist items have actual labels
+  ---
+  duration_ms: 16.071611
+  type: 'test'
+  ...
+# Subtest: map cycles allowed but auto layout refuses
+ok 35 - map cycles allowed but auto layout refuses
+  ---
+  duration_ms: 0.964358
+  type: 'test'
+  ...
+# Subtest: auto layout respects actual dimensions
+ok 36 - auto layout respects actual dimensions
+  ---
+  duration_ms: 0.770437
+  type: 'test'
+  ...
+# Subtest: auto layout does not move readonly objects
+ok 37 - auto layout does not move readonly objects
+  ---
+  duration_ms: 0.869282
+  type: 'test'
+  ...
+# Subtest: nested group descendants collected recursively
+ok 38 - nested group descendants collected recursively
+  ---
+  duration_ms: 0.424246
+  type: 'test'
+  ...
+# Subtest: edge geometry contains finite coordinates for forward and reverse links
+ok 39 - edge geometry contains finite coordinates for forward and reverse links
+  ---
+  duration_ms: 1.160805
+  type: 'test'
+  ...
+# Subtest: unsafe media URLs never emitted
+ok 40 - unsafe media URLs never emitted
+  ---
+  duration_ms: 1.671505
+  type: 'test'
+  ...
+# Subtest: normalization retains zeros and negatives; gaps not zero
+ok 41 - normalization retains zeros and negatives; gaps not zero
+  ---
+  duration_ms: 0.823915
+  type: 'test'
+  ...
+# Subtest: chart labels and values length must match
+ok 42 - chart labels and values length must match
+  ---
+  duration_ms: 0.504403
+  type: 'test'
+  ...
+# Subtest: chart series IDs unique
+ok 43 - chart series IDs unique
+  ---
+  duration_ms: 0.379532
+  type: 'test'
+  ...
+# Subtest: nice axis at ordinary scale
+ok 44 - nice axis at ordinary scale
+  ---
+  duration_ms: 1.07237
+  type: 'test'
+  ...
+# Subtest: finite chart domain 0,0
+ok 45 - finite chart domain 0,0
+  ---
+  duration_ms: 0.353729
+  type: 'test'
+  ...
+# Subtest: finite chart domain -10,-20
+ok 46 - finite chart domain -10,-20
+  ---
+  duration_ms: 0.178755
+  type: 'test'
+  ...
+# Subtest: finite chart domain 1e+308,-1e+308
+ok 47 - finite chart domain 1e+308,-1e+308
+  ---
+  duration_ms: 2.766683
+  type: 'test'
+  ...
+# Subtest: finite chart domain 1e-310,2e-310
+ok 48 - finite chart domain 1e-310,2e-310
+  ---
+  duration_ms: 0.271542
+  type: 'test'
+  ...
+# Subtest: finite chart domain -2,3
+ok 49 - finite chart domain -2,3
+  ---
+  duration_ms: 0.486131
+  type: 'test'
+  ...
+# Subtest: empty label and duplicate option refused
+ok 50 - empty label and duplicate option refused
+  ---
+  duration_ms: 0.656871
+  type: 'test'
+  ...
+# Subtest: option normalization retains disabled and description
+ok 51 - option normalization retains disabled and description
+  ---
+  duration_ms: 0.363451
+  type: 'test'
+  ...
+# Subtest: generated IDs are nonempty, distinct and prefix-scoped
+ok 52 - generated IDs are nonempty, distinct and prefix-scoped
+  ---
+  duration_ms: 22.442993
+  type: 'test'
+  ...
+# Subtest: task/critical/backlog: emphasis only follows priority and type
+ok 53 - task/critical/backlog: emphasis only follows priority and type
+  ---
+  duration_ms: 2.950713
+  type: 'test'
+  ...
+# Subtest: task/critical/active: emphasis only follows priority and type
+ok 54 - task/critical/active: emphasis only follows priority and type
+  ---
+  duration_ms: 0.354448
+  type: 'test'
+  ...
+# Subtest: task/critical/review: emphasis only follows priority and type
+ok 55 - task/critical/review: emphasis only follows priority and type
+  ---
+  duration_ms: 0.192507
+  type: 'test'
+  ...
+# Subtest: task/critical/done: emphasis only follows priority and type
+ok 56 - task/critical/done: emphasis only follows priority and type
+  ---
+  duration_ms: 0.299034
+  type: 'test'
+  ...
+# Subtest: task/high/backlog: emphasis only follows priority and type
+ok 57 - task/high/backlog: emphasis only follows priority and type
+  ---
+  duration_ms: 0.359647
+  type: 'test'
+  ...
+# Subtest: task/high/active: emphasis only follows priority and type
+ok 58 - task/high/active: emphasis only follows priority and type
+  ---
+  duration_ms: 0.176002
+  type: 'test'
+  ...
+# Subtest: task/high/review: emphasis only follows priority and type
+ok 59 - task/high/review: emphasis only follows priority and type
+  ---
+  duration_ms: 0.333757
+  type: 'test'
+  ...
+# Subtest: task/high/done: emphasis only follows priority and type
+ok 60 - task/high/done: emphasis only follows priority and type
+  ---
+  duration_ms: 0.161416
+  type: 'test'
+  ...
+# Subtest: task/normal/backlog: emphasis only follows priority and type
+ok 61 - task/normal/backlog: emphasis only follows priority and type
+  ---
+  duration_ms: 0.691784
+  type: 'test'
+  ...
+# Subtest: task/normal/active: emphasis only follows priority and type
+ok 62 - task/normal/active: emphasis only follows priority and type
+  ---
+  duration_ms: 0.613316
+  type: 'test'
+  ...
+# Subtest: task/normal/review: emphasis only follows priority and type
+ok 63 - task/normal/review: emphasis only follows priority and type
+  ---
+  duration_ms: 0.280494
+  type: 'test'
+  ...
+# Subtest: task/normal/done: emphasis only follows priority and type
+ok 64 - task/normal/done: emphasis only follows priority and type
+  ---
+  duration_ms: 0.178028
+  type: 'test'
+  ...
+# Subtest: task/low/backlog: emphasis only follows priority and type
+ok 65 - task/low/backlog: emphasis only follows priority and type
+  ---
+  duration_ms: 0.136762
+  type: 'test'
+  ...
+# Subtest: task/low/active: emphasis only follows priority and type
+ok 66 - task/low/active: emphasis only follows priority and type
+  ---
+  duration_ms: 0.111015
+  type: 'test'
+  ...
+# Subtest: task/low/review: emphasis only follows priority and type
+ok 67 - task/low/review: emphasis only follows priority and type
+  ---
+  duration_ms: 0.155649
+  type: 'test'
+  ...
+# Subtest: task/low/done: emphasis only follows priority and type
+ok 68 - task/low/done: emphasis only follows priority and type
+  ---
+  duration_ms: 0.136817
+  type: 'test'
+  ...
+# Subtest: epic/critical/backlog: emphasis only follows priority and type
+ok 69 - epic/critical/backlog: emphasis only follows priority and type
+  ---
+  duration_ms: 0.125489
+  type: 'test'
+  ...
+# Subtest: epic/critical/active: emphasis only follows priority and type
+ok 70 - epic/critical/active: emphasis only follows priority and type
+  ---
+  duration_ms: 0.165281
+  type: 'test'
+  ...
+# Subtest: epic/critical/review: emphasis only follows priority and type
+ok 71 - epic/critical/review: emphasis only follows priority and type
+  ---
+  duration_ms: 3.061328
+  type: 'test'
+  ...
+# Subtest: epic/critical/done: emphasis only follows priority and type
+ok 72 - epic/critical/done: emphasis only follows priority and type
+  ---
+  duration_ms: 0.123817
+  type: 'test'
+  ...
+# Subtest: epic/high/backlog: emphasis only follows priority and type
+ok 73 - epic/high/backlog: emphasis only follows priority and type
+  ---
+  duration_ms: 0.089419
+  type: 'test'
+  ...
+# Subtest: epic/high/active: emphasis only follows priority and type
+ok 74 - epic/high/active: emphasis only follows priority and type
+  ---
+  duration_ms: 0.065891
+  type: 'test'
+  ...
+# Subtest: epic/high/review: emphasis only follows priority and type
+ok 75 - epic/high/review: emphasis only follows priority and type
+  ---
+  duration_ms: 0.053259
+  type: 'test'
+  ...
+# Subtest: epic/high/done: emphasis only follows priority and type
+ok 76 - epic/high/done: emphasis only follows priority and type
+  ---
+  duration_ms: 0.050122
+  type: 'test'
+  ...
+# Subtest: epic/normal/backlog: emphasis only follows priority and type
+ok 77 - epic/normal/backlog: emphasis only follows priority and type
+  ---
+  duration_ms: 0.056909
+  type: 'test'
+  ...
+# Subtest: epic/normal/active: emphasis only follows priority and type
+ok 78 - epic/normal/active: emphasis only follows priority and type
+  ---
+  duration_ms: 0.056794
+  type: 'test'
+  ...
+# Subtest: epic/normal/review: emphasis only follows priority and type
+ok 79 - epic/normal/review: emphasis only follows priority and type
+  ---
+  duration_ms: 0.050592
+  type: 'test'
+  ...
+# Subtest: epic/normal/done: emphasis only follows priority and type
+ok 80 - epic/normal/done: emphasis only follows priority and type
+  ---
+  duration_ms: 0.049321
+  type: 'test'
+  ...
+# Subtest: epic/low/backlog: emphasis only follows priority and type
+ok 81 - epic/low/backlog: emphasis only follows priority and type
+  ---
+  duration_ms: 0.05646
+  type: 'test'
+  ...
+# Subtest: epic/low/active: emphasis only follows priority and type
+ok 82 - epic/low/active: emphasis only follows priority and type
+  ---
+  duration_ms: 0.176271
+  type: 'test'
+  ...
+# Subtest: epic/low/review: emphasis only follows priority and type
+ok 83 - epic/low/review: emphasis only follows priority and type
+  ---
+  duration_ms: 0.071375
+  type: 'test'
+  ...
+# Subtest: epic/low/done: emphasis only follows priority and type
+ok 84 - epic/low/done: emphasis only follows priority and type
+  ---
+  duration_ms: 0.053694
+  type: 'test'
+  ...
+# Subtest: Missing or invalid input is neutral
+ok 85 - Missing or invalid input is neutral
+  ---
+  duration_ms: 0.137269
+  type: 'test'
+  ...
+# Subtest: Textual critical and epic meaning is retained without dependence on colour
+ok 86 - Textual critical and epic meaning is retained without dependence on colour
+  ---
+  duration_ms: 0.474839
+  type: 'test'
+  ...
+# Subtest: Normal and low tasks have no gratuitous signal label
+ok 87 - Normal and low tasks have no gratuitous signal label
+  ---
+  duration_ms: 0.445119
+  type: 'test'
+  ...
+# Subtest: hierarchy accepts unsorted undated rows without synthesizing dates
+ok 88 - hierarchy accepts unsorted undated rows without synthesizing dates
+  ---
+  duration_ms: 2.512542
+  type: 'test'
+  ...
+# Subtest: hierarchy rejects orphan, self-reference, non-group parent and cycles
+ok 89 - hierarchy rejects orphan, self-reference, non-group parent and cycles
+  ---
+  duration_ms: 22.302303
+  type: 'test'
+  ...
+# Subtest: dependency with an undated endpoint is an explicit scheduling conflict
+ok 90 - dependency with an undated endpoint is an explicit scheduling conflict
+  ---
+  duration_ms: 1.020293
+  type: 'test'
+  ...
+# Subtest: crop stays within 400x200 at zoom 1
+ok 91 - crop stays within 400x200 at zoom 1
+  ---
+  duration_ms: 2.385385
+  type: 'test'
+  ...
+# Subtest: crop stays within 400x200 at zoom 2
+ok 92 - crop stays within 400x200 at zoom 2
+  ---
+  duration_ms: 1.054629
+  type: 'test'
+  ...
+# Subtest: crop stays within 400x200 at zoom 4
+ok 93 - crop stays within 400x200 at zoom 4
+  ---
+  duration_ms: 0.142587
+  type: 'test'
+  ...
+# Subtest: crop stays within 200x400 at zoom 1
+ok 94 - crop stays within 200x400 at zoom 1
+  ---
+  duration_ms: 0.315992
+  type: 'test'
+  ...
+# Subtest: crop stays within 200x400 at zoom 2
+ok 95 - crop stays within 200x400 at zoom 2
+  ---
+  duration_ms: 0.137245
+  type: 'test'
+  ...
+# Subtest: crop stays within 200x400 at zoom 4
+ok 96 - crop stays within 200x400 at zoom 4
+  ---
+  duration_ms: 0.926673
+  type: 'test'
+  ...
+# Subtest: crop stays within 200x200 at zoom 1
+ok 97 - crop stays within 200x200 at zoom 1
+  ---
+  duration_ms: 1.004761
+  type: 'test'
+  ...
+# Subtest: crop stays within 200x200 at zoom 2
+ok 98 - crop stays within 200x200 at zoom 2
+  ---
+  duration_ms: 0.251822
+  type: 'test'
+  ...
+# Subtest: crop stays within 200x200 at zoom 4
+ok 99 - crop stays within 200x200 at zoom 4
+  ---
+  duration_ms: 0.106772
+  type: 'test'
+  ...
+# Subtest: crop rejects nonfinite geometry and empty image
+ok 100 - crop rejects nonfinite geometry and empty image
+  ---
+  duration_ms: 3.226621
+  type: 'test'
+  ...
+# Subtest: edge routing follows horizontal and vertical object placement
+ok 101 - edge routing follows horizontal and vertical object placement
+  ---
+  duration_ms: 0.40853
+  type: 'test'
+  ...
+# Subtest: renderer: heading
+ok 102 - renderer: heading
+  ---
+  duration_ms: 5.345095
+  type: 'test'
+  ...
+# Subtest: renderer: all levels
+ok 103 - renderer: all levels
+  ---
+  duration_ms: 0.635882
+  type: 'test'
+  ...
+# Subtest: renderer: bold
+ok 104 - renderer: bold
+  ---
+  duration_ms: 0.713648
+  type: 'test'
+  ...
+# Subtest: renderer: italic
+ok 105 - renderer: italic
+  ---
+  duration_ms: 0.478003
+  type: 'test'
+  ...
+# Subtest: renderer: strike
+ok 106 - renderer: strike
+  ---
+  duration_ms: 0.528383
+  type: 'test'
+  ...
+# Subtest: renderer: inline code
+ok 107 - renderer: inline code
+  ---
+  duration_ms: 0.251899
+  type: 'test'
+  ...
+# Subtest: renderer: code block
+ok 108 - renderer: code block
+  ---
+  duration_ms: 0.584693
+  type: 'test'
+  ...
+# Subtest: renderer: tilde fence
+ok 109 - renderer: tilde fence
+  ---
+  duration_ms: 18.822782
+  type: 'test'
+  ...
+# Subtest: renderer: unclosed fence
+ok 110 - renderer: unclosed fence
+  ---
+  duration_ms: 0.79122
+  type: 'test'
+  ...
+# Subtest: renderer: quote
+ok 111 - renderer: quote
+  ---
+  duration_ms: 0.862403
+  type: 'test'
+  ...
+# Subtest: renderer: ordered
+ok 112 - renderer: ordered
+  ---
+  duration_ms: 0.536876
+  type: 'test'
+  ...
+# Subtest: renderer: list
+ok 113 - renderer: list
+  ---
+  duration_ms: 3.732278
+  type: 'test'
+  ...
+# Subtest: renderer: nested list
+ok 114 - renderer: nested list
+  ---
+  duration_ms: 0.179947
+  type: 'test'
+  ...
+# Subtest: renderer: checklist
+ok 115 - renderer: checklist
+  ---
+  duration_ms: 0.094444
+  type: 'test'
+  ...
+# Subtest: renderer: table
+ok 116 - renderer: table
+  ---
+  duration_ms: 0.482736
+  type: 'test'
+  ...
+# Subtest: renderer: escaped pipe
+ok 117 - renderer: escaped pipe
+  ---
+  duration_ms: 1.037537
+  type: 'test'
+  ...
+# Subtest: renderer: table code
+ok 118 - renderer: table code
+  ---
+  duration_ms: 0.228234
+  type: 'test'
+  ...
+# Subtest: renderer: escaped markdown
+ok 119 - renderer: escaped markdown
+  ---
+  duration_ms: 0.109706
+  type: 'test'
+  ...
+# Subtest: renderer: balanced URL
+ok 120 - renderer: balanced URL
+  ---
+  duration_ms: 1.708374
+  type: 'test'
+  ...
+# Subtest: renderer: title attribute
+ok 121 - renderer: title attribute
+  ---
+  duration_ms: 0.359585
+  type: 'test'
+  ...
+# Subtest: renderer: raw HTML
+ok 122 - renderer: raw HTML
+  ---
+  duration_ms: 0.104267
+  type: 'test'
+  ...
+# Subtest: renderer: breaks
+ok 123 - renderer: breaks
+  ---
+  duration_ms: 0.126474
+  type: 'test'
+  ...
+# Subtest: renderer: rule
+ok 124 - renderer: rule
+  ---
+  duration_ms: 0.087319
+  type: 'test'
+  ...
+# Subtest: renderer: CRLF
+ok 125 - renderer: CRLF
+  ---
+  duration_ms: 0.085615
+  type: 'test'
+  ...
+# Subtest: empty, null and whitespace do not manufacture a document
+ok 126 - empty, null and whitespace do not manufacture a document
+  ---
+  duration_ms: 0.240906
+  type: 'test'
+  ...
+# Subtest: no double parsing inside code / URL / title
+ok 127 - no double parsing inside code / URL / title
+  ---
+  duration_ms: 0.273468
+  type: 'test'
+  ...
+# Subtest: URL rejected: "javascript:alert(1)"
+ok 128 - URL rejected: "javascript:alert(1)"
+  ---
+  duration_ms: 0.166857
+  type: 'test'
+  ...
+# Subtest: URL rejected: "java\\nscript:alert(1)"
+ok 129 - URL rejected: "java\\nscript:alert(1)"
+  ---
+  duration_ms: 0.093374
+  type: 'test'
+  ...
+# Subtest: URL rejected: "data:text/html,x"
+ok 130 - URL rejected: "data:text/html,x"
+  ---
+  duration_ms: 0.07621
+  type: 'test'
+  ...
+# Subtest: URL rejected: "vbscript:a"
+ok 131 - URL rejected: "vbscript:a"
+  ---
+  duration_ms: 0.272695
+  type: 'test'
+  ...
+# Subtest: URL rejected: "http://example.com"
+ok 132 - URL rejected: "http://example.com"
+  ---
+  duration_ms: 0.178366
+  type: 'test'
+  ...
+# Subtest: URL rejected: "//example.com"
+ok 133 - URL rejected: "//example.com"
+  ---
+  duration_ms: 0.107351
+  type: 'test'
+  ...
+# Subtest: URL rejected: "file:///tmp/file"
+ok 134 - URL rejected: "file:///tmp/file"
+  ---
+  duration_ms: 0.086261
+  type: 'test'
+  ...
+# Subtest: URL rejected: "blob:https://example.com/x"
+ok 135 - URL rejected: "blob:https://example.com/x"
+  ---
+  duration_ms: 0.072306
+  type: 'test'
+  ...
+# Subtest: URL rejected: "https://user:pass@example.com"
+ok 136 - URL rejected: "https://user:pass@example.com"
+  ---
+  duration_ms: 0.256866
+  type: 'test'
+  ...
+# Subtest: URL rejected: "https:\\\\evil"
+ok 137 - URL rejected: "https:\\\\evil"
+  ---
+  duration_ms: 0.082085
+  type: 'test'
+  ...
+# Subtest: URL rejected: "https://x.com/\\u0000"
+ok 138 - URL rejected: "https://x.com/\\u0000"
+  ---
+  duration_ms: 0.07249
+  type: 'test'
+  ...
+# Subtest: URL rejected: "https://x.com/ x"
+ok 139 - URL rejected: "https://x.com/ x"
+  ---
+  duration_ms: 0.140434
+  type: 'test'
+  ...
+# Subtest: URL rejected: "javascript&\#58;alert(1)"
+ok 140 - URL rejected: "javascript&\#58;alert(1)"
+  ---
+  duration_ms: 0.070302
+  type: 'test'
+  ...
+# Subtest: allowed URL scheme normalized and escaped
+ok 141 - allowed URL scheme normalized and escaped
+  ---
+  duration_ms: 0.282017
+  type: 'test'
+  ...
+# Subtest: images never emit auto-loading resource tags
+ok 142 - images never emit auto-loading resource tags
+  ---
+  duration_ms: 0.534188
+  type: 'test'
+  ...
+# Subtest: all headings can start at specified level
+ok 143 - all headings can start at specified level
+  ---
+  duration_ms: 0.130965
+  type: 'test'
+  ...
+# Subtest: bounded source and heading arguments fail explicitly
+ok 144 - bounded source and heading arguments fail explicitly
+  ---
+  duration_ms: 1.153321
+  type: 'test'
+  ...
+# Subtest: markup source never supplies DOM IDs or styles
+ok 145 - markup source never supplies DOM IDs or styles
+  ---
+  duration_ms: 0.14801
+  type: 'test'
+  ...
+# Subtest: curve: all explicit side pairs remain finite with exact anchors
+ok 146 - curve: all explicit side pairs remain finite with exact anchors
+  ---
+  duration_ms: 15.741754
+  type: 'test'
+  ...
+# Subtest: elbow: all explicit side pairs remain finite with exact anchors
+ok 147 - elbow: all explicit side pairs remain finite with exact anchors
+  ---
+  duration_ms: 6.40049
+  type: 'test'
+  ...
+# Subtest: straight: all explicit side pairs remain finite with exact anchors
+ok 148 - straight: all explicit side pairs remain finite with exact anchors
+  ---
+  duration_ms: 1.115338
+  type: 'test'
+  ...
+# Subtest: Auto anchors follow relative direction
+ok 149 - Auto anchors follow relative direction
+  ---
+  duration_ms: 0.510082
+  type: 'test'
+  ...
+# Subtest: Reverse elbow uses facing anchors and a finite nonzero route (05.7 router)
+ok 150 - Reverse elbow uses facing anchors and a finite nonzero route (05.7 router)
+  ---
+  duration_ms: 0.679041
+  type: 'test'
+  ...
+# Subtest: Connections preserve all public routing options through serialization
+ok 151 - Connections preserve all public routing options through serialization
+  ---
+  duration_ms: 22.885894
+  type: 'test'
+  ...
+# Subtest: Shapes preserve all nine alignments and pill kind
+ok 152 - Shapes preserve all nine alignments and pill kind
+  ---
+  duration_ms: 2.515748
+  type: 'test'
+  ...
+# Subtest: Note width is inherited, including non-standard column widths
+ok 153 - Note width is inherited, including non-standard column widths
+  ---
+  duration_ms: 8.650321
+  type: 'test'
+  ...
+# Subtest: Measured text expansion preserves width and shifts following column items
+ok 154 - Measured text expansion preserves width and shifts following column items
+  ---
+  duration_ms: 7.58285
+  type: 'test'
+  ...
+# Subtest: Frame title height and image caption height survive round-trip
+ok 155 - Frame title height and image caption height survive round-trip
+  ---
+  duration_ms: 1.396022
+  type: 'test'
+  ...
+# Subtest: New notes respect expanded frame header
+ok 156 - New notes respect expanded frame header
+  ---
+  duration_ms: 0.642473
+  type: 'test'
+  ...
+# Subtest: Existing freehand is preserved but unknown kinds are rejected
+ok 157 - Existing freehand is preserved but unknown kinds are rejected
+  ---
+  duration_ms: 0.912737
+  type: 'test'
+  ...
+# Subtest: Roadmap accepts unsorted nested tasks and rejects cycles/missing parents
+ok 158 - Roadmap accepts unsorted nested tasks and rejects cycles/missing parents
+  ---
+  duration_ms: 1.150819
+  type: 'test'
+  ...
+# Subtest: Graph validation retains domain metadata on existing nodes
+ok 159 - Graph validation retains domain metadata on existing nodes
+  ---
+  duration_ms: 0.474257
+  type: 'test'
+  ...
+# Subtest: Bulk ignores blank rows and preserves Cyrillic
+ok 160 - Bulk ignores blank rows and preserves Cyrillic
+  ---
+  duration_ms: 10.17807
+  type: 'test'
+  ...
+# Subtest: Bulk rejects excessive amount before mutation
+ok 161 - Bulk rejects excessive amount before mutation
+  ---
+  duration_ms: 4.017913
+  type: 'test'
+  ...
+# Subtest: Bulk rejects excessive per-note text
+ok 162 - Bulk rejects excessive per-note text
+  ---
+  duration_ms: 0.582363
+  type: 'test'
+  ...
+# Subtest: One-click note does not overlap existing content
+ok 163 - One-click note does not overlap existing content
+  ---
+  duration_ms: 83.104396
+  type: 'test'
+  ...
+# Subtest: Adding to area grows container, never crops text
+ok 164 - Adding to area grows container, never crops text
+  ---
+  duration_ms: 1.936241
+  type: 'test'
+  ...
+# Subtest: All 30 bulk notes have unique IDs and non-overlapping rectangles
+ok 165 - All 30 bulk notes have unique IDs and non-overlapping rectangles
+  ---
+  duration_ms: 43.393606
+  type: 'test'
+  ...
+# Subtest: No-data source is never mutated by append
+ok 166 - No-data source is never mutated by append
+  ---
+  duration_ms: 1.163235
+  type: 'test'
+  ...
+# Subtest: Small frame expands horizontally for readable note
+ok 167 - Small frame expands horizontally for readable note
+  ---
+  duration_ms: 0.716355
+  type: 'test'
+  ...
+# Subtest: Nested area growth includes outer area
+ok 168 - Nested area growth includes outer area
+  ---
+  duration_ms: 2.069275
+  type: 'test'
+  ...
+# Subtest: Locked areas are never modified by creation
+ok 169 - Locked areas are never modified by creation
+  ---
+  duration_ms: 0.962939
+  type: 'test'
+  ...
+# Subtest: Common selected area works for frame, notes, mixed selection
+ok 170 - Common selected area works for frame, notes, mixed selection
+  ---
+  duration_ms: 0.524701
+  type: 'test'
+  ...
+# Subtest: Move without dragging preserves connections and identity
+ok 171 - Move without dragging preserves connections and identity
+  ---
+  duration_ms: 5.268827
+  type: 'test'
+  ...
+# Subtest: Moving locked content is rejected
+ok 172 - Moving locked content is rejected
+  ---
+  duration_ms: 0.357803
+  type: 'test'
+  ...
+# Subtest: No-drag movement rejects missing target
+ok 173 - No-drag movement rejects missing target
+  ---
+  duration_ms: 0.271723
+  type: 'test'
+  ...
+# Subtest: Grid layout retains membership and grows area
+ok 174 - Grid layout retains membership and grows area
+  ---
+  duration_ms: 2.720219
+  type: 'test'
+  ...
+# Subtest: Column arrangement shares left axis
+ok 175 - Column arrangement shares left axis
+  ---
+  duration_ms: 0.388115
+  type: 'test'
+  ...
+# Subtest: Action summary includes responsible person and completion
+ok 176 - Action summary includes responsible person and completion
+  ---
+  duration_ms: 0.66478
+  type: 'test'
+  ...
+# Subtest: Summary keeps directional relation and label
+ok 177 - Summary keeps directional relation and label
+  ---
+  duration_ms: 2.206438
+  type: 'test'
+  ...
+# Subtest: JSON roundtrip retains ownership, task state and relationships
+ok 178 - JSON roundtrip retains ownership, task state and relationships
+  ---
+  duration_ms: 1.109537
+  type: 'test'
+  ...
+# Subtest: Insertion of templates does not overwrite the existing board
+ok 179 - Insertion of templates does not overwrite the existing board
+  ---
+  duration_ms: 1.512969
+  type: 'test'
+  ...
+# Subtest: Text height is bounded and never below readable base
+ok 180 - Text height is bounded and never below readable base
+  ---
+  duration_ms: 0.394834
+  type: 'test'
+  ...
+# Subtest: Empty creation request rejected
+ok 181 - Empty creation request rejected
+  ---
+  duration_ms: 0.199893
+  type: 'test'
+  ...
+# Subtest: shape rectangle: silhouette, safe text region, four anchors and serialized identity
+ok 182 - shape rectangle: silhouette, safe text region, four anchors and serialized identity
+  ---
+  duration_ms: 4.730561
+  type: 'test'
+  ...
+# Subtest: shape diamond: silhouette, safe text region, four anchors and serialized identity
+ok 183 - shape diamond: silhouette, safe text region, four anchors and serialized identity
+  ---
+  duration_ms: 0.711275
+  type: 'test'
+  ...
+# Subtest: shape pill: silhouette, safe text region, four anchors and serialized identity
+ok 184 - shape pill: silhouette, safe text region, four anchors and serialized identity
+  ---
+  duration_ms: 0.867718
+  type: 'test'
+  ...
+# Subtest: shape ellipse: silhouette, safe text region, four anchors and serialized identity
+ok 185 - shape ellipse: silhouette, safe text region, four anchors and serialized identity
+  ---
+  duration_ms: 0.509184
+  type: 'test'
+  ...
+# Subtest: shape parallelogram: silhouette, safe text region, four anchors and serialized identity
+ok 186 - shape parallelogram: silhouette, safe text region, four anchors and serialized identity
+  ---
+  duration_ms: 0.331132
+  type: 'test'
+  ...
+# Subtest: shape database: silhouette, safe text region, four anchors and serialized identity
+ok 187 - shape database: silhouette, safe text region, four anchors and serialized identity
+  ---
+  duration_ms: 0.242795
+  type: 'test'
+  ...
+# Subtest: shape document: silhouette, safe text region, four anchors and serialized identity
+ok 188 - shape document: silhouette, safe text region, four anchors and serialized identity
+  ---
+  duration_ms: 0.539028
+  type: 'test'
+  ...
+# Subtest: shape predefined: silhouette, safe text region, four anchors and serialized identity
+ok 189 - shape predefined: silhouette, safe text region, four anchors and serialized identity
+  ---
+  duration_ms: 0.258701
+  type: 'test'
+  ...
+# Subtest: shape manual: silhouette, safe text region, four anchors and serialized identity
+ok 190 - shape manual: silhouette, safe text region, four anchors and serialized identity
+  ---
+  duration_ms: 0.743423
+  type: 'test'
+  ...
+# Subtest: shape trapezoid: silhouette, safe text region, four anchors and serialized identity
+ok 191 - shape trapezoid: silhouette, safe text region, four anchors and serialized identity
+  ---
+  duration_ms: 0.969062
+  type: 'test'
+  ...
+# Subtest: shape hexagon: silhouette, safe text region, four anchors and serialized identity
+ok 192 - shape hexagon: silhouette, safe text region, four anchors and serialized identity
+  ---
+  duration_ms: 0.383724
+  type: 'test'
+  ...
+# Subtest: shape delay: silhouette, safe text region, four anchors and serialized identity
+ok 193 - shape delay: silhouette, safe text region, four anchors and serialized identity
+  ---
+  duration_ms: 3.96903
+  type: 'test'
+  ...
+# Subtest: shape connector: silhouette, safe text region, four anchors and serialized identity
+ok 194 - shape connector: silhouette, safe text region, four anchors and serialized identity
+  ---
+  duration_ms: 0.092196
+  type: 'test'
+  ...
+# Subtest: shape offpage: silhouette, safe text region, four anchors and serialized identity
+ok 195 - shape offpage: silhouette, safe text region, four anchors and serialized identity
+  ---
+  duration_ms: 0.069635
+  type: 'test'
+  ...
+# Subtest: rectangle: orthogonal route around a blocking object
+ok 196 - rectangle: orthogonal route around a blocking object
+  ---
+  duration_ms: 7.178868
+  type: 'test'
+  ...
+# Subtest: diamond: orthogonal route around a blocking object
+ok 197 - diamond: orthogonal route around a blocking object
+  ---
+  duration_ms: 3.254896
+  type: 'test'
+  ...
+# Subtest: parallelogram: orthogonal route around a blocking object
+ok 198 - parallelogram: orthogonal route around a blocking object
+  ---
+  duration_ms: 7.446676
+  type: 'test'
+  ...
+# Subtest: trapezoid: orthogonal route around a blocking object
+ok 199 - trapezoid: orthogonal route around a blocking object
+  ---
+  duration_ms: 4.092517
+  type: 'test'
+  ...
+# Subtest: manual: orthogonal route around a blocking object
+ok 200 - manual: orthogonal route around a blocking object
+  ---
+  duration_ms: 8.151654
+  type: 'test'
+  ...
+# Subtest: 14 shapes x 3 styles x 16 pairs of sides remain finite
+ok 201 - 14 shapes x 3 styles x 16 pairs of sides remain finite
+  ---
+  duration_ms: 87.572939
+  type: 'test'
+  ...
+# Subtest: route is deterministic and does not mutate document or ports
+ok 202 - route is deterministic and does not mutate document or ports
+  ---
+  duration_ms: 5.698022
+  type: 'test'
+  ...
+# Subtest: route updates when a remote obstruction changes
+ok 203 - route updates when a remote obstruction changes
+  ---
+  duration_ms: 1.588458
+  type: 'test'
+  ...
+# Subtest: all connection options and new shape kinds survive JSON roundtrip
+ok 204 - all connection options and new shape kinds survive JSON roundtrip
+  ---
+  duration_ms: 1.394764
+  type: 'test'
+  ...
+# Subtest: limits, invalid geometry and missing endpoints are rejected
+ok 205 - limits, invalid geometry and missing endpoints are rejected
+  ---
+  duration_ms: 0.741118
+  type: 'test'
+  ...
+# Subtest: batch preserves multiline ideas, peer width and semantic area
+ok 206 - batch preserves multiline ideas, peer width and semantic area
+  ---
+  duration_ms: 6.658721
+  type: 'test'
+  ...
+# Subtest: locked target area rejects batch atomically
+ok 207 - locked target area rejects batch atomically
+  ---
+  duration_ms: 0.312211
+  type: 'test'
+  ...
+# Subtest: group batch enforces 100 object cap
+ok 208 - group batch enforces 100 object cap
+  ---
+  duration_ms: 0.230938
+  type: 'test'
+  ...
+# Subtest: roundtrip preserves legacy drawings without enabling a drawing tool
+ok 209 - roundtrip preserves legacy drawings without enabling a drawing tool
+  ---
+  duration_ms: 0.324669
+  type: 'test'
+  ...
+1..209
+# tests 209
+# suites 0
+# pass 209
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1620.712051

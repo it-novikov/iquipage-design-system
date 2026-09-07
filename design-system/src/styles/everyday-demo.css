@@ -1,0 +1,16 @@
+/* Catalog/standalone demonstration chrome; excluded from runtime styles. */
+.daily-demo-controls{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0;padding:12px 24px;background:var(--iq-surface);color:var(--iq-muted);font:400 12px/1.5 var(--iq-font);border-bottom:1px solid var(--iq-line);flex-wrap:wrap}
+.daily-demo-controls .iq-btn{font-size:12px}
+.daily-demo{width:100%;min-width:0;border:1px solid var(--iq-line);border-radius:var(--iq-radius-md);background:var(--iq-canvas)}
+.daily-demo-disclaimer{margin-left:auto}.daily-dialog-slot{position:relative}
+.iq-work-open{display:block;border:0;background:transparent;padding:0;margin:0;font:500 13px/1.5 var(--iq-font);text-align:left;color:var(--iq-ink);min-height:24px;cursor:pointer;overflow-wrap:anywhere}
+.iq-work-open:hover{text-decoration:underline;text-underline-offset:3px}.iq-work-open:focus-visible{outline:none;background:var(--iq-focus-fill);color:var(--iq-focus-text);text-decoration:underline;text-underline-offset:3px}
+.daily-empty{padding:40px 16px}.daily-empty h2{font-size:20px;margin:0 0 8px}.daily-empty p{color:var(--iq-muted);font-size:13px;margin:0}
+iq-reading-demo{display:block;min-width:0}
+.reading-demo{max-width:920px;margin:auto;min-width:0}.reading-demo-head{padding:0 0 20px}.reading-demo-head :is(h1,h2){font:600 28px/1.3 var(--iq-display);letter-spacing:-.035em;margin:10px 0}.reading-demo-head p{font:400 14px/1.65 var(--iq-font);color:var(--iq-muted);margin:0}
+.reading-controls{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+.reading-paper{padding:32px;background:var(--iq-raised);border:1px solid var(--iq-line);border-radius:var(--iq-radius-md);min-width:0}
+.reading-note{font:400 12px/1.6 var(--iq-font);color:var(--iq-muted);margin:16px 0 0}
+.daily-demo iq-dialog iq-markdown-viewer{margin:24px 0}
+.daily-demo .iq-work-summary{min-height:20px}
+@media(max-width:640px){.daily-demo-controls{padding:10px 16px;gap:4px}.daily-demo-controls>span{font-size:11px}.daily-demo-controls .iq-btn{min-height:34px;padding:6px 8px}.daily-demo-disclaimer{margin-left:0}.reading-paper{padding:20px 16px}.reading-controls{gap:8px}.reading-controls .iq-segmented button{font-size:12px}.reading-demo-head :is(h1,h2){font-size:24px}.iq-work-open{font-size:14px}}

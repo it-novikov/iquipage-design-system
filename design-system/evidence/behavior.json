@@ -1,0 +1,389 @@
+{
+  "version": "0.5.7",
+  "htmlSha256": "04ad9440a4ea5c737b5691d62061f0f06cfe00e26144afc6fa9973d4e0046e69",
+  "browser": "Chromium 144.0.7559.96",
+  "deliveryLoad": "set_content, network blocked, system fallback font",
+  "phase": "behavior",
+  "width": 1440,
+  "total": 28,
+  "passed": 28,
+  "checks": [
+    {
+      "name": "ESM import, version, shared signal helper and idempotent registration",
+      "passed": true,
+      "details": {
+        "v": "0.5.7",
+        "e": "critical",
+        "date": true
+      }
+    },
+    {
+      "name": "light: cards use exclusive critical/high/epic light, with no left stripe",
+      "passed": true,
+      "details": [
+        {
+          "id": "SPR-131",
+          "p": "normal",
+          "k": "epic",
+          "em": "epic",
+          "bg": "radial-gradient(95% 130% at -14% -20%, rgba(148, 88, 216, 0.267) 0%, rgba(148, 88, 216, 0.267) 13%, rgba(139, 66, 181, 0.082) 50%, rgba(0, 0, 0, 0) 82%), radial-gradient(90% 82% at 35% -56%, rgba(204, 163, 246, 0.2) 0%, rgba(0, 0, 0, 0) 88%)",
+          "edge": "0px",
+          "before": "none",
+          "hit": "none"
+        },
+        {
+          "id": "SPR-128",
+          "p": "critical",
+          "k": "task",
+          "em": "critical",
+          "bg": "radial-gradient(95% 130% at -14% -20%, rgba(213, 28, 56, 0.28) 0%, rgba(213, 28, 56, 0.28) 13%, rgba(213, 28, 56, 0.09) 50%, rgba(0, 0, 0, 0) 82%), radial-gradient(90% 82% at 35% -56%, rgba(255, 137, 153, 0.2) 0%, rgba(0, 0, 0, 0) 88%)",
+          "edge": "0px",
+          "before": "none",
+          "hit": "none"
+        },
+        {
+          "id": "SPR-130",
+          "p": "normal",
+          "k": "task",
+          "em": "none",
+          "bg": "none",
+          "edge": "0px",
+          "before": "none",
+          "hit": "none"
+        },
+        {
+          "id": "SPR-129",
+          "p": "high",
+          "k": "task",
+          "em": "high",
+          "bg": "radial-gradient(95% 130% at -14% -20%, rgba(245, 162, 35, 0.25) 0%, rgba(245, 162, 35, 0.25) 13%, rgba(255, 179, 67, 0.094) 50%, rgba(0, 0, 0, 0) 82%), radial-gradient(90% 82% at 35% -56%, rgba(255, 200, 118, 0.19) 0%, rgba(0, 0, 0, 0) 88%)",
+          "edge": "0px",
+          "before": "none",
+          "hit": "none"
+        },
+        {
+          "id": "SPR-132",
+          "p": "normal",
+          "k": "task",
+          "em": "none",
+          "bg": "none",
+          "edge": "0px",
+          "before": "none",
+          "hit": "none"
+        },
+        {
+          "id": "SPR-133",
+          "p": "normal",
+          "k": "task",
+          "em": "none",
+          "bg": "none",
+          "edge": "0px",
+          "before": "none",
+          "hit": "none"
+        }
+      ]
+    },
+    {
+      "name": "light: free card surface opens the task",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "light: card menu stays independent of full-surface hit area",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "light: only three exceptional rows are illuminated; normal rows are neutral",
+      "passed": true,
+      "details": [
+        {
+          "p": "critical",
+          "k": "task",
+          "em": "critical",
+          "bg": "radial-gradient(60% 200% at 0% 0%, color(srgb 0.835294 0.109804 0.219608 / 0.150353) 0%, color(srgb 0.835294 0.109804 0.219608 / 0.0667451) 46%, rgba(0, 0, 0, 0) 82%), radial-gradient(45% 120% at 18% -70%, rgba(255, 137, 153, 0.2), rgba(0, 0, 0, 0) 80%)",
+          "fill": "rgba(245, 245, 247, 0.92)",
+          "status": "В работе"
+        },
+        {
+          "p": "high",
+          "k": "task",
+          "em": "high",
+          "bg": "radial-gradient(60% 200% at 0% 0%, color(srgb 0.960784 0.635294 0.137255 / 0.135529) 0%, color(srgb 1 0.701961 0.262745 / 0.0696471) 46%, rgba(0, 0, 0, 0) 82%), radial-gradient(45% 120% at 18% -70%, rgba(255, 200, 118, 0.19), rgba(0, 0, 0, 0) 80%)",
+          "fill": "rgba(0, 0, 0, 0)",
+          "status": "На проверке"
+        },
+        {
+          "p": "normal",
+          "k": "task",
+          "em": "none",
+          "bg": "none",
+          "fill": "rgba(0, 0, 0, 0)",
+          "status": "В работе"
+        },
+        {
+          "p": "normal",
+          "k": "epic",
+          "em": "epic",
+          "bg": "radial-gradient(60% 200% at 0% 0%, color(srgb 0.580392 0.345098 0.847059 / 0.144) 0%, color(srgb 0.545098 0.258824 0.709804 / 0.0609412) 46%, rgba(0, 0, 0, 0) 82%), radial-gradient(45% 120% at 18% -70%, rgba(204, 163, 246, 0.2), rgba(0, 0, 0, 0) 80%)",
+          "fill": "rgba(0, 0, 0, 0)",
+          "status": "Запланировано"
+        },
+        {
+          "p": "normal",
+          "k": "task",
+          "em": "none",
+          "bg": "none",
+          "fill": "rgba(0, 0, 0, 0)",
+          "status": "Готово"
+        },
+        {
+          "p": "normal",
+          "k": "task",
+          "em": "none",
+          "bg": "none",
+          "fill": "rgba(0, 0, 0, 0)",
+          "status": "Готово"
+        }
+      ]
+    },
+    {
+      "name": "light: row date/surface opens the task",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "light: selection does not colour ordinary rows or open the task",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "light: sorting works and preserves emphasis",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "light: changing high → low removes the glow without losing the task",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "dark: cards use exclusive critical/high/epic light, with no left stripe",
+      "passed": true,
+      "details": [
+        {
+          "id": "SPR-131",
+          "p": "normal",
+          "k": "epic",
+          "em": "epic",
+          "bg": "radial-gradient(95% 130% at -14% -20%, rgba(182, 137, 242, 0.39) 0%, rgba(182, 137, 242, 0.39) 13%, rgba(136, 89, 202, 0.14) 50%, rgba(0, 0, 0, 0) 82%), radial-gradient(90% 82% at 35% -56%, rgba(232, 207, 255, 0.16) 0%, rgba(0, 0, 0, 0) 88%)",
+          "edge": "0px",
+          "before": "none",
+          "hit": "none"
+        },
+        {
+          "id": "SPR-128",
+          "p": "critical",
+          "k": "task",
+          "em": "critical",
+          "bg": "radial-gradient(95% 130% at -14% -20%, rgba(255, 65, 92, 0.39) 0%, rgba(255, 65, 92, 0.39) 13%, rgba(226, 45, 71, 0.133) 50%, rgba(0, 0, 0, 0) 82%), radial-gradient(90% 82% at 35% -56%, rgba(255, 175, 186, 0.14) 0%, rgba(0, 0, 0, 0) 88%)",
+          "edge": "0px",
+          "before": "none",
+          "hit": "none"
+        },
+        {
+          "id": "SPR-130",
+          "p": "normal",
+          "k": "task",
+          "em": "none",
+          "bg": "none",
+          "edge": "0px",
+          "before": "none",
+          "hit": "none"
+        },
+        {
+          "id": "SPR-129",
+          "p": "high",
+          "k": "task",
+          "em": "high",
+          "bg": "radial-gradient(95% 130% at -14% -20%, rgba(255, 179, 67, 0.27) 0%, rgba(255, 179, 67, 0.27) 13%, rgba(228, 155, 52, 0.125) 50%, rgba(0, 0, 0, 0) 82%), radial-gradient(90% 82% at 35% -56%, rgba(255, 219, 152, 0.15) 0%, rgba(0, 0, 0, 0) 88%)",
+          "edge": "0px",
+          "before": "none",
+          "hit": "none"
+        },
+        {
+          "id": "SPR-132",
+          "p": "normal",
+          "k": "task",
+          "em": "none",
+          "bg": "none",
+          "edge": "0px",
+          "before": "none",
+          "hit": "none"
+        },
+        {
+          "id": "SPR-133",
+          "p": "normal",
+          "k": "task",
+          "em": "none",
+          "bg": "none",
+          "edge": "0px",
+          "before": "none",
+          "hit": "none"
+        }
+      ]
+    },
+    {
+      "name": "dark: free card surface opens the task",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "dark: card menu stays independent of full-surface hit area",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "dark: only three exceptional rows are illuminated; normal rows are neutral",
+      "passed": true,
+      "details": [
+        {
+          "p": "critical",
+          "k": "task",
+          "em": "critical",
+          "bg": "radial-gradient(60% 200% at 0% 0%, color(srgb 1 0.254902 0.360784 / 0.248471) 0%, color(srgb 0.886275 0.176471 0.278431 / 0.0986667) 46%, rgba(0, 0, 0, 0) 82%), radial-gradient(45% 120% at 18% -70%, rgba(255, 175, 186, 0.14), rgba(0, 0, 0, 0) 80%)",
+          "fill": "rgba(22, 22, 24, 0.92)",
+          "status": "В работе"
+        },
+        {
+          "p": "high",
+          "k": "task",
+          "em": "high",
+          "bg": "radial-gradient(60% 200% at 0% 0%, color(srgb 1 0.701961 0.262745 / 0.173176) 0%, color(srgb 0.894118 0.607843 0.203922 / 0.0928628) 46%, rgba(0, 0, 0, 0) 82%), radial-gradient(45% 120% at 18% -70%, rgba(255, 219, 152, 0.15), rgba(0, 0, 0, 0) 80%)",
+          "fill": "rgba(0, 0, 0, 0)",
+          "status": "На проверке"
+        },
+        {
+          "p": "normal",
+          "k": "task",
+          "em": "none",
+          "bg": "none",
+          "fill": "rgba(0, 0, 0, 0)",
+          "status": "В работе"
+        },
+        {
+          "p": "normal",
+          "k": "epic",
+          "em": "epic",
+          "bg": "radial-gradient(60% 200% at 0% 0%, color(srgb 0.713726 0.537255 0.94902 / 0.248471) 0%, color(srgb 0.533333 0.34902 0.792157 / 0.104471) 46%, rgba(0, 0, 0, 0) 82%), radial-gradient(45% 120% at 18% -70%, rgba(232, 207, 255, 0.16), rgba(0, 0, 0, 0) 80%)",
+          "fill": "rgba(0, 0, 0, 0)",
+          "status": "Запланировано"
+        },
+        {
+          "p": "normal",
+          "k": "task",
+          "em": "none",
+          "bg": "none",
+          "fill": "rgba(0, 0, 0, 0)",
+          "status": "Готово"
+        },
+        {
+          "p": "normal",
+          "k": "task",
+          "em": "none",
+          "bg": "none",
+          "fill": "rgba(0, 0, 0, 0)",
+          "status": "Готово"
+        }
+      ]
+    },
+    {
+      "name": "dark: row date/surface opens the task",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "dark: selection does not colour ordinary rows or open the task",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "dark: sorting works and preserves emphasis",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "dark: changing high → low removes the glow without losing the task",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "Mobile list preserves status/person/date vertical spacing",
+      "passed": true,
+      "details": [
+        "12px",
+        "10px",
+        "8px"
+      ]
+    },
+    {
+      "name": "32 combinations × card/list: status cannot create a glow",
+      "passed": true,
+      "details": {
+        "combinations": 32,
+        "surfaces": 64
+      }
+    },
+    {
+      "name": "Pointer drag keeps light and cleans the overlay/placeholder",
+      "passed": true,
+      "details": "critical light retained on the moving copy; placement completed"
+    },
+    {
+      "name": "Undo restores the original placement",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "Keyboard drag works with the same emphasis",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "Escape cancels movement without changing the epic",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "No running task animation at rest",
+      "passed": true,
+      "details": {
+        "runningAnimations": 0
+      }
+    },
+    {
+      "name": "Reduced motion removes light transitions",
+      "passed": true,
+      "details": "0s"
+    },
+    {
+      "name": "Forced colours removes decorative light but keeps the meaning",
+      "passed": true,
+      "details": {
+        "gradient": "none",
+        "textPresent": true
+      }
+    },
+    {
+      "name": "Task full-screen and return remain functional",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "No JavaScript page errors",
+      "passed": true,
+      "details": []
+    }
+  ],
+  "pageErrors": []
+}

@@ -1,0 +1,24 @@
+{
+  "version": "0.5.7",
+  "archive": "design-system.zip",
+  "bytes": 5645584,
+  "sha256": "5677750005b26f9340d351b2e96fc8ad3656e40be1d053efdfa538901ddc8537",
+  "files": 298,
+  "checks": {
+    "crc": true,
+    "exactFileSet": true,
+    "allContentHashes": true,
+    "currentTreeMatches": true,
+    "noFontsOrNestedZips": true,
+    "freshEvidence": true,
+    "index.htmlMatches": true,
+    "whiteboard.htmlMatches": true,
+    "workbench.htmlMatches": true
+  },
+  "htmlSha256": {
+    "index.html": "04ad9440a4ea5c737b5691d62061f0f06cfe00e26144afc6fa9973d4e0046e69",
+    "whiteboard.html": "8c9863c8c3dbfd0c6b953b052114c49c1cb46931b762d1e04c57100372876a83",
+    "workbench.html": "0a70d4c05ffd20182699bd054f800f373bff3f51ae4fef117cdac2630e4e275c"
+  },
+  "handoff": "docs/HANDOFF-05.7.md"
+}

@@ -1,0 +1,11 @@
+.DS_Store
+__pycache__/
+*.py[cod]
+.pytest_cache/
+node_modules/
+coverage/
+
+# Локальные результаты браузерных прогонов и временные файлы
+artifacts/
+tmp/
+

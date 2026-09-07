@@ -1,0 +1,1677 @@
+{
+  "version": "0.5.7",
+  "htmlSha256": "8c9863c8c3dbfd0c6b953b052114c49c1cb46931b762d1e04c57100372876a83",
+  "cssSha256": "caf76a0d8b3f937c0db7443c7b6f9d622bd530c63e9957524ce408d86c127825",
+  "passed": 98,
+  "total": 98,
+  "javascriptErrors": [],
+  "checks": [
+    {
+      "name": "light/library/.wb-library>header h3/0",
+      "text": "Добавить на доску",
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "background": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/library/.wb-library>header p/0",
+      "text": "Выберите объект и место для него",
+      "ratio": 5.908,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        98.0,
+        100.0,
+        107.0
+      ],
+      "background": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/library/.wb-library-categories button/0",
+      "text": "Записи",
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "background": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/library/.wb-library-categories button/1",
+      "text": "Фигуры",
+      "ratio": 5.426,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        98.0,
+        100.0,
+        107.0
+      ],
+      "background": [
+        245.0,
+        245.0,
+        247.0
+      ]
+    },
+    {
+      "name": "light/library/.wb-library-categories button/2",
+      "text": "Файлы",
+      "ratio": 5.426,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        98.0,
+        100.0,
+        107.0
+      ],
+      "background": [
+        245.0,
+        245.0,
+        247.0
+      ]
+    },
+    {
+      "name": "light/library/.wb-library-item b/0",
+      "text": "Заметка",
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "background": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/library/.wb-library-item b/1",
+      "text": "Текст",
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "background": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/library/.wb-library-item b/2",
+      "text": "Действие",
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "background": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/library/.wb-library-item b/3",
+      "text": "Область",
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "background": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/library/.wb-library-item small/0",
+      "text": "Идея, вопрос, наблюдение",
+      "ratio": 5.908,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        98.0,
+        100.0,
+        107.0
+      ],
+      "background": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/library/.wb-library-item small/1",
+      "text": "Заголовок или пояснение",
+      "ratio": 5.908,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        98.0,
+        100.0,
+        107.0
+      ],
+      "background": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/library/.wb-library-item small/2",
+      "text": "Договорённость и ответственный",
+      "ratio": 5.908,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        98.0,
+        100.0,
+        107.0
+      ],
+      "background": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/library/.wb-library-item small/3",
+      "text": "Объединить несколько объектов",
+      "ratio": 5.908,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        98.0,
+        100.0,
+        107.0
+      ],
+      "background": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/library/.wb-library-batch b/0",
+      "text": "Несколько заметок",
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "background": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/library/.wb-library-batch small/0",
+      "text": "Каждая мысль — отдельная карточка",
+      "ratio": 5.908,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        98.0,
+        100.0,
+        107.0
+      ],
+      "background": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/library/.wb-library-tip/0",
+      "text": "Нажмите на объект и разместите его на доске. Escap",
+      "ratio": 5.908,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        98.0,
+        100.0,
+        107.0
+      ],
+      "background": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/library/.wb-mode-description/0",
+      "text": "Нажмите на объект. Потяните по фону, чтобы выбрать",
+      "ratio": 5.908,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        98.0,
+        100.0,
+        107.0
+      ],
+      "background": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/dock/.wb-dock [data-tool=select]/0",
+      "text": "Выбрать (V)",
+      "ratio": 16.83,
+      "minimum": 3,
+      "passed": true,
+      "foreground": [
+        255.0,
+        255.0,
+        255.0
+      ],
+      "background": [
+        29.0,
+        29.0,
+        31.0
+      ]
+    },
+    {
+      "name": "light/dock/.wb-dock [data-tool=hand]/0",
+      "text": "Двигать (H)",
+      "ratio": 5.908,
+      "minimum": 3,
+      "passed": true,
+      "foreground": [
+        98.0,
+        100.0,
+        107.0
+      ],
+      "background": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/dock/.wb-zoom [data-wb-action=fit]/0",
+      "text": "Всё",
+      "ratio": 16.83,
+      "minimum": 3,
+      "passed": true,
+      "foreground": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "background": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/hover/[data-library-item=sticky] b/0",
+      "text": "Заметка",
+      "ratio": 14.11,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "background": [
+        233.0,
+        235.0,
+        240.0
+      ]
+    },
+    {
+      "name": "light/hover/[data-library-item=sticky] small/0",
+      "text": "Идея, вопрос, наблюдение",
+      "ratio": 4.953,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        98.0,
+        100.0,
+        107.0
+      ],
+      "background": [
+        233.0,
+        235.0,
+        240.0
+      ]
+    },
+    {
+      "name": "light/keyboard focus/[data-library-item=sticky] b/0",
+      "text": "Заметка",
+      "ratio": 11.439,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        23.0,
+        43.0,
+        101.0
+      ],
+      "background": [
+        233.0,
+        237.0,
+        250.0
+      ]
+    },
+    {
+      "name": "light/keyboard focus/[data-library-item=sticky] small/0",
+      "text": "Идея, вопрос, наблюдение",
+      "ratio": 11.439,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        23.0,
+        43.0,
+        101.0
+      ],
+      "background": [
+        233.0,
+        237.0,
+        250.0
+      ]
+    },
+    {
+      "name": "light/selected/[data-library-item=sticky] b/0",
+      "text": "Заметка",
+      "ratio": 11.439,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        23.0,
+        43.0,
+        101.0
+      ],
+      "background": [
+        233.0,
+        237.0,
+        250.0
+      ]
+    },
+    {
+      "name": "light/selected/[data-library-item=sticky] small/0",
+      "text": "Идея, вопрос, наблюдение",
+      "ratio": 11.439,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        23.0,
+        43.0,
+        101.0
+      ],
+      "background": [
+        233.0,
+        237.0,
+        250.0
+      ]
+    },
+    {
+      "name": "light/shapes/.wb-library-family h4/0",
+      "text": "Основные",
+      "ratio": 5.908,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        98.0,
+        100.0,
+        107.0
+      ],
+      "background": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/shapes/.wb-library-family h4/1",
+      "text": "Данные",
+      "ratio": 5.908,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        98.0,
+        100.0,
+        107.0
+      ],
+      "background": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/shapes/.wb-library-family h4/2",
+      "text": "Действия",
+      "ratio": 5.908,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        98.0,
+        100.0,
+        107.0
+      ],
+      "background": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/shapes/.wb-library-family h4/3",
+      "text": "Переходы",
+      "ratio": 5.908,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        98.0,
+        100.0,
+        107.0
+      ],
+      "background": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/shapes/.wb-shape-choice b/0",
+      "text": "Процесс",
+      "ratio": 15.457,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "background": [
+        245.0,
+        245.0,
+        247.0
+      ]
+    },
+    {
+      "name": "light/shapes/.wb-shape-choice b/1",
+      "text": "Решение",
+      "ratio": 15.457,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "background": [
+        245.0,
+        245.0,
+        247.0
+      ]
+    },
+    {
+      "name": "light/shapes/.wb-shape-choice b/2",
+      "text": "Начало / конец",
+      "ratio": 15.457,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "background": [
+        245.0,
+        245.0,
+        247.0
+      ]
+    },
+    {
+      "name": "light/shapes/.wb-shape-choice b/3",
+      "text": "Событие",
+      "ratio": 15.457,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "background": [
+        245.0,
+        245.0,
+        247.0
+      ]
+    },
+    {
+      "name": "light/shapes/.wb-shape-choice b/4",
+      "text": "Ввод / вывод",
+      "ratio": 15.457,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "background": [
+        245.0,
+        245.0,
+        247.0
+      ]
+    },
+    {
+      "name": "light/selected shape/[data-shape=diamond] b/0",
+      "text": "Решение",
+      "ratio": 11.439,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        23.0,
+        43.0,
+        101.0
+      ],
+      "background": [
+        233.0,
+        237.0,
+        250.0
+      ]
+    },
+    {
+      "name": "light/tooltip/.wb-overlay-tip span/0",
+      "text": "Выбрать",
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        255.0,
+        255.0,
+        255.0
+      ],
+      "background": [
+        29.0,
+        29.0,
+        31.0
+      ]
+    },
+    {
+      "name": "light/capture empty/.wb-capture-sheet h3/0",
+      "text": "Несколько заметок",
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "background": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/capture empty/.wb-capture-sheet p/0",
+      "text": "Одна карточка — одна мысль. Enter — следующая карт",
+      "ratio": 5.908,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        98.0,
+        100.0,
+        107.0
+      ],
+      "background": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/capture empty/.wb-capture-row label>span/0",
+      "text": "Мысль 01",
+      "ratio": 5.426,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        98.0,
+        100.0,
+        107.0
+      ],
+      "background": [
+        245.0,
+        245.0,
+        247.0
+      ]
+    },
+    {
+      "name": "light/capture empty/.wb-capture-row label>span/1",
+      "text": "Мысль 02",
+      "ratio": 5.426,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        98.0,
+        100.0,
+        107.0
+      ],
+      "background": [
+        245.0,
+        245.0,
+        247.0
+      ]
+    },
+    {
+      "name": "light/capture empty/.wb-capture-row label>span/2",
+      "text": "Мысль 03",
+      "ratio": 5.426,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        98.0,
+        100.0,
+        107.0
+      ],
+      "background": [
+        245.0,
+        245.0,
+        247.0
+      ]
+    },
+    {
+      "name": "light/capture empty/.wb-capture-summary/0",
+      "text": "Заполните одну или несколько карточек.",
+      "ratio": 5.908,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        98.0,
+        100.0,
+        107.0
+      ],
+      "background": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/capture empty/.wb-capture-import summary/0",
+      "text": "Есть готовый список? Вставить текст",
+      "ratio": 5.908,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        98.0,
+        100.0,
+        107.0
+      ],
+      "background": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/capture text/.wb-capture-row textarea/0",
+      "text": "Мысль 1",
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "background": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/capture text/.wb-capture-row textarea/1",
+      "text": "Мысль 2",
+      "ratio": 15.457,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "background": [
+        245.0,
+        245.0,
+        247.0
+      ]
+    },
+    {
+      "name": "light/capture text/.wb-capture-row textarea/2",
+      "text": "Мысль 3",
+      "ratio": 15.457,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        29.0,
+        29.0,
+        31.0
+      ],
+      "background": [
+        245.0,
+        245.0,
+        247.0
+      ]
+    },
+    {
+      "name": "light/capture text/.wb-capture-summary/0",
+      "text": "1 карточка. На свободное место доски. Пустые карто",
+      "ratio": 5.908,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        98.0,
+        100.0,
+        107.0
+      ],
+      "background": [
+        255.0,
+        255.0,
+        255.0
+      ]
+    },
+    {
+      "name": "light/capture text/.wb-capture-sheet [type=submit]/0",
+      "text": "Добавить 1 заметку",
+      "ratio": 16.83,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        255.0,
+        255.0,
+        255.0
+      ],
+      "background": [
+        29.0,
+        29.0,
+        31.0
+      ]
+    },
+    {
+      "name": "dark/library/.wb-library>header h3/0",
+      "text": "Добавить на доску",
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "background": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/library/.wb-library>header p/0",
+      "text": "Выберите объект и место для него",
+      "ratio": 7.629,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        177.0,
+        177.0,
+        185.0
+      ],
+      "background": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/library/.wb-library-categories button/0",
+      "text": "Записи",
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "background": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/library/.wb-library-categories button/1",
+      "text": "Фигуры",
+      "ratio": 8.484,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        177.0,
+        177.0,
+        185.0
+      ],
+      "background": [
+        22.0,
+        22.0,
+        24.0
+      ]
+    },
+    {
+      "name": "dark/library/.wb-library-categories button/2",
+      "text": "Файлы",
+      "ratio": 8.484,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        177.0,
+        177.0,
+        185.0
+      ],
+      "background": [
+        22.0,
+        22.0,
+        24.0
+      ]
+    },
+    {
+      "name": "dark/library/.wb-library-item b/0",
+      "text": "Заметка",
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "background": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/library/.wb-library-item b/1",
+      "text": "Текст",
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "background": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/library/.wb-library-item b/2",
+      "text": "Действие",
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "background": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/library/.wb-library-item b/3",
+      "text": "Область",
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "background": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/library/.wb-library-item small/0",
+      "text": "Идея, вопрос, наблюдение",
+      "ratio": 7.629,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        177.0,
+        177.0,
+        185.0
+      ],
+      "background": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/library/.wb-library-item small/1",
+      "text": "Заголовок или пояснение",
+      "ratio": 7.629,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        177.0,
+        177.0,
+        185.0
+      ],
+      "background": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/library/.wb-library-item small/2",
+      "text": "Договорённость и ответственный",
+      "ratio": 7.629,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        177.0,
+        177.0,
+        185.0
+      ],
+      "background": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/library/.wb-library-item small/3",
+      "text": "Объединить несколько объектов",
+      "ratio": 7.629,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        177.0,
+        177.0,
+        185.0
+      ],
+      "background": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/library/.wb-library-batch b/0",
+      "text": "Несколько заметок",
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "background": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/library/.wb-library-batch small/0",
+      "text": "Каждая мысль — отдельная карточка",
+      "ratio": 7.629,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        177.0,
+        177.0,
+        185.0
+      ],
+      "background": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/library/.wb-library-tip/0",
+      "text": "Нажмите на объект и разместите его на доске. Escap",
+      "ratio": 7.629,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        177.0,
+        177.0,
+        185.0
+      ],
+      "background": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/library/.wb-mode-description/0",
+      "text": "Нажмите на объект. Потяните по фону, чтобы выбрать",
+      "ratio": 7.629,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        177.0,
+        177.0,
+        185.0
+      ],
+      "background": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/dock/.wb-dock [data-tool=select]/0",
+      "text": "Выбрать (V)",
+      "ratio": 16.59,
+      "minimum": 3,
+      "passed": true,
+      "foreground": [
+        21.0,
+        21.0,
+        24.0
+      ],
+      "background": [
+        244.0,
+        244.0,
+        246.0
+      ]
+    },
+    {
+      "name": "dark/dock/.wb-dock [data-tool=hand]/0",
+      "text": "Двигать (H)",
+      "ratio": 7.629,
+      "minimum": 3,
+      "passed": true,
+      "foreground": [
+        177.0,
+        177.0,
+        185.0
+      ],
+      "background": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/dock/.wb-zoom [data-wb-action=fit]/0",
+      "text": "Всё",
+      "ratio": 14.924,
+      "minimum": 3,
+      "passed": true,
+      "foreground": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "background": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/hover/[data-library-item=sticky] b/0",
+      "text": "Заметка",
+      "ratio": 12.936,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "background": [
+        43.0,
+        43.0,
+        48.0
+      ]
+    },
+    {
+      "name": "dark/hover/[data-library-item=sticky] small/0",
+      "text": "Идея, вопрос, наблюдение",
+      "ratio": 6.612,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        177.0,
+        177.0,
+        185.0
+      ],
+      "background": [
+        43.0,
+        43.0,
+        48.0
+      ]
+    },
+    {
+      "name": "dark/keyboard focus/[data-library-item=sticky] b/0",
+      "text": "Заметка",
+      "ratio": 11.314,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        23.0,
+        32.0,
+        57.0
+      ],
+      "background": [
+        204.0,
+        215.0,
+        255.0
+      ]
+    },
+    {
+      "name": "dark/keyboard focus/[data-library-item=sticky] small/0",
+      "text": "Идея, вопрос, наблюдение",
+      "ratio": 11.314,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        23.0,
+        32.0,
+        57.0
+      ],
+      "background": [
+        204.0,
+        215.0,
+        255.0
+      ]
+    },
+    {
+      "name": "dark/selected/[data-library-item=sticky] b/0",
+      "text": "Заметка",
+      "ratio": 11.314,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        23.0,
+        32.0,
+        57.0
+      ],
+      "background": [
+        204.0,
+        215.0,
+        255.0
+      ]
+    },
+    {
+      "name": "dark/selected/[data-library-item=sticky] small/0",
+      "text": "Идея, вопрос, наблюдение",
+      "ratio": 11.314,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        23.0,
+        32.0,
+        57.0
+      ],
+      "background": [
+        204.0,
+        215.0,
+        255.0
+      ]
+    },
+    {
+      "name": "dark/shapes/.wb-library-family h4/0",
+      "text": "Основные",
+      "ratio": 7.629,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        177.0,
+        177.0,
+        185.0
+      ],
+      "background": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/shapes/.wb-library-family h4/1",
+      "text": "Данные",
+      "ratio": 7.629,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        177.0,
+        177.0,
+        185.0
+      ],
+      "background": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/shapes/.wb-library-family h4/2",
+      "text": "Действия",
+      "ratio": 7.629,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        177.0,
+        177.0,
+        185.0
+      ],
+      "background": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/shapes/.wb-library-family h4/3",
+      "text": "Переходы",
+      "ratio": 7.629,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        177.0,
+        177.0,
+        185.0
+      ],
+      "background": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/shapes/.wb-shape-choice b/0",
+      "text": "Процесс",
+      "ratio": 16.597,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "background": [
+        22.0,
+        22.0,
+        24.0
+      ]
+    },
+    {
+      "name": "dark/shapes/.wb-shape-choice b/1",
+      "text": "Решение",
+      "ratio": 16.597,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "background": [
+        22.0,
+        22.0,
+        24.0
+      ]
+    },
+    {
+      "name": "dark/shapes/.wb-shape-choice b/2",
+      "text": "Начало / конец",
+      "ratio": 16.597,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "background": [
+        22.0,
+        22.0,
+        24.0
+      ]
+    },
+    {
+      "name": "dark/shapes/.wb-shape-choice b/3",
+      "text": "Событие",
+      "ratio": 16.597,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "background": [
+        22.0,
+        22.0,
+        24.0
+      ]
+    },
+    {
+      "name": "dark/shapes/.wb-shape-choice b/4",
+      "text": "Ввод / вывод",
+      "ratio": 16.597,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "background": [
+        22.0,
+        22.0,
+        24.0
+      ]
+    },
+    {
+      "name": "dark/selected shape/[data-shape=diamond] b/0",
+      "text": "Решение",
+      "ratio": 11.314,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        23.0,
+        32.0,
+        57.0
+      ],
+      "background": [
+        204.0,
+        215.0,
+        255.0
+      ]
+    },
+    {
+      "name": "dark/tooltip/.wb-overlay-tip span/0",
+      "text": "Выбрать",
+      "ratio": 16.59,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        21.0,
+        21.0,
+        24.0
+      ],
+      "background": [
+        244.0,
+        244.0,
+        246.0
+      ]
+    },
+    {
+      "name": "dark/capture empty/.wb-capture-sheet h3/0",
+      "text": "Несколько заметок",
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "background": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/capture empty/.wb-capture-sheet p/0",
+      "text": "Одна карточка — одна мысль. Enter — следующая карт",
+      "ratio": 7.629,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        177.0,
+        177.0,
+        185.0
+      ],
+      "background": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/capture empty/.wb-capture-row label>span/0",
+      "text": "Мысль 01",
+      "ratio": 8.484,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        177.0,
+        177.0,
+        185.0
+      ],
+      "background": [
+        22.0,
+        22.0,
+        24.0
+      ]
+    },
+    {
+      "name": "dark/capture empty/.wb-capture-row label>span/1",
+      "text": "Мысль 02",
+      "ratio": 8.484,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        177.0,
+        177.0,
+        185.0
+      ],
+      "background": [
+        22.0,
+        22.0,
+        24.0
+      ]
+    },
+    {
+      "name": "dark/capture empty/.wb-capture-row label>span/2",
+      "text": "Мысль 03",
+      "ratio": 8.484,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        177.0,
+        177.0,
+        185.0
+      ],
+      "background": [
+        22.0,
+        22.0,
+        24.0
+      ]
+    },
+    {
+      "name": "dark/capture empty/.wb-capture-summary/0",
+      "text": "Заполните одну или несколько карточек.",
+      "ratio": 7.629,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        177.0,
+        177.0,
+        185.0
+      ],
+      "background": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/capture empty/.wb-capture-import summary/0",
+      "text": "Есть готовый список? Вставить текст",
+      "ratio": 7.629,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        177.0,
+        177.0,
+        185.0
+      ],
+      "background": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/capture text/.wb-capture-row textarea/0",
+      "text": "Мысль 1",
+      "ratio": 14.924,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "background": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/capture text/.wb-capture-row textarea/1",
+      "text": "Мысль 2",
+      "ratio": 16.597,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "background": [
+        22.0,
+        22.0,
+        24.0
+      ]
+    },
+    {
+      "name": "dark/capture text/.wb-capture-row textarea/2",
+      "text": "Мысль 3",
+      "ratio": 16.597,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        245.0,
+        245.0,
+        247.0
+      ],
+      "background": [
+        22.0,
+        22.0,
+        24.0
+      ]
+    },
+    {
+      "name": "dark/capture text/.wb-capture-summary/0",
+      "text": "1 карточка. На свободное место доски. Пустые карто",
+      "ratio": 7.629,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        177.0,
+        177.0,
+        185.0
+      ],
+      "background": [
+        32.0,
+        32.0,
+        35.0
+      ]
+    },
+    {
+      "name": "dark/capture text/.wb-capture-sheet [type=submit]/0",
+      "text": "Добавить 1 заметку",
+      "ratio": 16.59,
+      "minimum": 4.5,
+      "passed": true,
+      "foreground": [
+        21.0,
+        21.0,
+        24.0
+      ],
+      "background": [
+        244.0,
+        244.0,
+        246.0
+      ]
+    }
+  ],
+  "method": "Computed text/currentColor over ancestor alpha backgrounds; new chrome only, disabled excluded. No full WCAG conformance claim."
+}

@@ -1,0 +1,52 @@
+{
+  "version": "0.5.7",
+  "htmlSha256": "8c9863c8c3dbfd0c6b953b052114c49c1cb46931b762d1e04c57100372876a83",
+  "reviewed": [
+    {
+      "file": "evidence/screenshots/chain-light-1440.png",
+      "sha256": "01e00cac0dfbf7497fc4c919f722866115364ffa169a2f87e54f28ab0d617f55",
+      "observation": "Цепочка без внешней рамки, различимые фигуры, подписи и возвратная ветка; инструменты отдельно от содержания."
+    },
+    {
+      "file": "evidence/screenshots/shapes-light-1440.png",
+      "sha256": "4e207ab61bef8d8d8ef57d1e69088634170dcfa54cf8a8974d387e22c412bbc0",
+      "observation": "Три категории помещаются, названия фигур читаемы; список фигур прокручивается в библиотеке."
+    },
+    {
+      "file": "evidence/screenshots/batch-light-1440.png",
+      "sha256": "b994471b61e7ac94ab6387509d198eb1df0eb69f31d9adba055b1579dfd87dad",
+      "observation": "Длинная мысль показывается без начальной обрезки; интервалы карточек и footer согласованы."
+    },
+    {
+      "file": "evidence/screenshots/edge-dark-1440.png",
+      "sha256": "c3a61c714e359c67d170b57cfe669f0709fd5792bd56c1d050294840931d69f9",
+      "observation": "Выбранная связь, подпись и точки переподключения различимы; действия находятся над холстом."
+    },
+    {
+      "file": "evidence/screenshots/batch-dark-390.png",
+      "sha256": "11db7c83271434f36646006bc70005244bd872fe7696a7684bdc365ee8fa85a3",
+      "observation": "Диалог ограничен экраном; footer закреплён, оставшееся содержимое доступно прокруткой."
+    },
+    {
+      "file": "evidence/screenshots/shapes-dark-390.png",
+      "sha256": "7f31b2ac315b803f672a1b3c7c277884b6d55e7a2991844909c60b4adac4a179",
+      "observation": "Открытая библиотека не раздвигает viewport; категории и две колонки фигур укладываются по ширине."
+    },
+    {
+      "file": "evidence/screenshots/editor-light-390.png",
+      "sha256": "ce01895dd9a63a935cf609e4eb04f0775a6595496654e9ca99370ce7d88d11ee",
+      "observation": "Редактор, выравнивание и действия помещаются в мобильной панели."
+    },
+    {
+      "file": "evidence/screenshots/diagram-dark-1440.png",
+      "sha256": "ec2c39aebb83fa44d5d716a7d34a528478e9a53803a35e457dd677bd0e906be4",
+      "observation": "Ромб и ветки расположены последовательно; подсказка соответствует текущей панели свойств связи."
+    },
+    {
+      "file": "evidence/screenshots/tooltip-dark-1440.png",
+      "sha256": "b8da7186707a0af226c0a032f3f4e57867123b9a12fe8ab28e0c7cbf0598cacf",
+      "observation": "Подпись и shortcut читаемы на явном светлом фоне, подсказка расположена над кнопкой."
+    }
+  ],
+  "scope": "Просмотр перечисленных снимков средствами vision. Не независимое пользовательское исследование, не pixel-diff всех состояний."
+}

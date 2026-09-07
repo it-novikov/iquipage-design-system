@@ -1,0 +1,243 @@
+{
+  "version": "0.5.7",
+  "htmlSha256": "8c9863c8c3dbfd0c6b953b052114c49c1cb46931b762d1e04c57100372876a83",
+  "cssSha256": "caf76a0d8b3f937c0db7443c7b6f9d622bd530c63e9957524ce408d86c127825",
+  "phase": "behavior",
+  "passed": 33,
+  "total": 33,
+  "checks": [
+    {
+      "name": "Light tooltip: readable, described, Escape",
+      "passed": true,
+      "width": 1440,
+      "theme": "light",
+      "milliseconds": 3370
+    },
+    {
+      "name": "Dark tooltip: readable, described, Escape",
+      "passed": true,
+      "width": 1440,
+      "theme": "dark",
+      "milliseconds": 3297
+    },
+    {
+      "name": "Tooltip remains hoverable",
+      "passed": true,
+      "width": 1440,
+      "theme": "light",
+      "milliseconds": 3083
+    },
+    {
+      "name": "Keyboard tooltip does not steal focus",
+      "passed": true,
+      "width": 1440,
+      "theme": "dark",
+      "milliseconds": 2175
+    },
+    {
+      "name": "Editor uses one tooltip, removed after action",
+      "passed": true,
+      "width": 1440,
+      "theme": "dark",
+      "milliseconds": 2569
+    },
+    {
+      "name": "Full-screen tooltip and Escape layers",
+      "passed": true,
+      "width": 1440,
+      "theme": "dark",
+      "milliseconds": 2966
+    },
+    {
+      "name": "Library categories, 14 shapes and search",
+      "passed": true,
+      "width": 1440,
+      "theme": "light",
+      "milliseconds": 1934
+    },
+    {
+      "name": "Library empty result and category reset",
+      "passed": true,
+      "width": 1440,
+      "theme": "dark",
+      "milliseconds": 2065
+    },
+    {
+      "name": "Shape creation by choosing and clicking",
+      "passed": true,
+      "width": 1440,
+      "theme": "light",
+      "milliseconds": 2291
+    },
+    {
+      "name": "Shape creation by library drag",
+      "passed": true,
+      "width": 1440,
+      "theme": "dark",
+      "milliseconds": 2246
+    },
+    {
+      "name": "Dock SVG centred; no pencil or List",
+      "passed": true,
+      "width": 1440,
+      "theme": "light",
+      "milliseconds": 1778
+    },
+    {
+      "name": "Batch target area, multiline text and atomic undo",
+      "passed": true,
+      "width": 1440,
+      "theme": "light",
+      "milliseconds": 2763
+    },
+    {
+      "name": "Batch keyboard, reorder, delete and draft restore",
+      "passed": true,
+      "width": 1440,
+      "theme": "dark",
+      "milliseconds": 2893
+    },
+    {
+      "name": "Explicit text import preserves paragraphs",
+      "passed": true,
+      "width": 1440,
+      "theme": "light",
+      "milliseconds": 2293
+    },
+    {
+      "name": "Batch empty and limit validation",
+      "passed": true,
+      "width": 1440,
+      "theme": "dark",
+      "milliseconds": 2810
+    },
+    {
+      "name": "Capture paragraphs grow, then scroll at a bounded height",
+      "passed": true,
+      "width": 1440,
+      "theme": "light",
+      "milliseconds": 2591
+    },
+    {
+      "name": "Batch denial, cancel and stale response",
+      "passed": true,
+      "width": 1440,
+      "theme": "light",
+      "milliseconds": 2256
+    },
+    {
+      "name": "Batch Markdown measured before placement",
+      "passed": true,
+      "width": 1440,
+      "theme": "light",
+      "milliseconds": 1994
+    },
+    {
+      "name": "Batch mobile target and submit",
+      "passed": true,
+      "width": 390,
+      "theme": "dark",
+      "milliseconds": 2307
+    },
+    {
+      "name": "Connection label, style and directions",
+      "passed": true,
+      "width": 1440,
+      "theme": "dark",
+      "milliseconds": 2566
+    },
+    {
+      "name": "Reconnect target and undo",
+      "passed": true,
+      "width": 1440,
+      "theme": "light",
+      "milliseconds": 2427
+    },
+    {
+      "name": "Reconnect source and undo",
+      "passed": true,
+      "width": 1440,
+      "theme": "dark",
+      "milliseconds": 2629
+    },
+    {
+      "name": "Connect by dragging",
+      "passed": true,
+      "width": 1440,
+      "theme": "light",
+      "milliseconds": 2199
+    },
+    {
+      "name": "Connect by keyboard",
+      "passed": true,
+      "width": 1440,
+      "theme": "dark",
+      "milliseconds": 1855
+    },
+    {
+      "name": "Reconnect by exact keyboard form",
+      "passed": true,
+      "width": 1440,
+      "theme": "light",
+      "milliseconds": 1893
+    },
+    {
+      "name": "Cancel connector with Escape",
+      "passed": true,
+      "width": 1440,
+      "theme": "dark",
+      "milliseconds": 1999
+    },
+    {
+      "name": "Connections survive document roundtrip",
+      "passed": true,
+      "width": 1440,
+      "theme": "light",
+      "milliseconds": 2690
+    },
+    {
+      "name": "Stable SVG nodes during movement",
+      "passed": true,
+      "width": 1440,
+      "theme": "dark",
+      "milliseconds": 1870
+    },
+    {
+      "name": "Handle dimensions independent of zoom",
+      "passed": true,
+      "width": 1440,
+      "theme": "light",
+      "milliseconds": 1940
+    },
+    {
+      "name": "Connections respect lock and readonly",
+      "passed": true,
+      "width": 1440,
+      "theme": "dark",
+      "milliseconds": 1734
+    },
+    {
+      "name": "All 14 shapes: Markdown and centred content",
+      "passed": true,
+      "width": 1440,
+      "theme": "light",
+      "milliseconds": 5675
+    },
+    {
+      "name": "Functional chain without enclosing frame",
+      "passed": true,
+      "width": 1440,
+      "theme": "dark",
+      "milliseconds": 2040
+    },
+    {
+      "name": "New note inherits width; content does not narrow it",
+      "passed": true,
+      "width": 1440,
+      "theme": "light",
+      "milliseconds": 2517
+    }
+  ],
+  "javascriptErrors": [],
+  "environment": "Chromium, set_content exact HTML, external requests blocked; not physical devices or server operations"
+}
