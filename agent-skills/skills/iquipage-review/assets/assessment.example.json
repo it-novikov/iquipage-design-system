@@ -1,96 +1,274 @@
 {
-  "schema_version": "1.0",
+  "schema_version": "2.0",
   "kind": "integration-review",
   "baseline": {
     "ds_archive_sha256": "0eb12439404cfff3e87118d447e133252fcae01a2a8e4329f264a3c79e33be2c",
     "app_fingerprint": "0000000000000000000000000000000000000000000000000000000000000000",
-    "note": "TEMPLATE: replace with actual current source/build identity"
+    "plan_sha256": "752e02d1972e258ce6d61b5bff6ed721846e96b67c47b28a39d456c542319f23"
   },
   "scope": {
-    "approval_ref": null,
+    "plan_id": "PLAN-001",
+    "plan_revision": 1,
     "surface_ids": [
       "workspace/tasks"
-    ],
-    "required_check_ids": [
-      "TASK-REAL-SAVE"
-    ],
-    "required_dimensions": [
-      "visual",
-      "ux",
-      "code",
-      "accessibility",
-      "human-agent",
-      "performance"
     ]
   },
+  "evidence": [],
+  "checks": [
+    {
+      "id": "VISUAL-001",
+      "surface_id": "workspace/tasks",
+      "dimensions": [
+        "visual"
+      ],
+      "status": "NOT_RUN",
+      "app_fingerprint": "0000000000000000000000000000000000000000000000000000000000000000",
+      "ds_archive_sha256": "0eb12439404cfff3e87118d447e133252fcae01a2a8e4329f264a3c79e33be2c",
+      "method": "manual-inspection",
+      "environment": {
+        "engine": "PENDING",
+        "role": "member",
+        "theme": "dark",
+        "viewport": [
+          1440,
+          900
+        ],
+        "input": "keyboard",
+        "load_mode": "application",
+        "data_profile": "synthetic-confirmed"
+      },
+      "expected": "Заменить конкретным ожидаемым результатом до утверждения",
+      "actual": "Шаблон: проверка не запускалась",
+      "reason": "Требуется реальный прогон",
+      "approval_ref": null,
+      "executed_at": null,
+      "evidence_ids": [],
+      "finding_ids": []
+    },
+    {
+      "id": "UX-001",
+      "surface_id": "workspace/tasks",
+      "dimensions": [
+        "ux"
+      ],
+      "status": "NOT_RUN",
+      "app_fingerprint": "0000000000000000000000000000000000000000000000000000000000000000",
+      "ds_archive_sha256": "0eb12439404cfff3e87118d447e133252fcae01a2a8e4329f264a3c79e33be2c",
+      "method": "manual-inspection",
+      "environment": {
+        "engine": "PENDING",
+        "role": "member",
+        "theme": "dark",
+        "viewport": [
+          1440,
+          900
+        ],
+        "input": "keyboard",
+        "load_mode": "application",
+        "data_profile": "synthetic-confirmed"
+      },
+      "expected": "Заменить конкретным ожидаемым результатом до утверждения",
+      "actual": "Шаблон: проверка не запускалась",
+      "reason": "Требуется реальный прогон",
+      "approval_ref": null,
+      "executed_at": null,
+      "evidence_ids": [],
+      "finding_ids": []
+    },
+    {
+      "id": "CODE-001",
+      "surface_id": "workspace/tasks",
+      "dimensions": [
+        "code"
+      ],
+      "status": "NOT_RUN",
+      "app_fingerprint": "0000000000000000000000000000000000000000000000000000000000000000",
+      "ds_archive_sha256": "0eb12439404cfff3e87118d447e133252fcae01a2a8e4329f264a3c79e33be2c",
+      "method": "manual-inspection",
+      "environment": {
+        "engine": "PENDING",
+        "role": "member",
+        "theme": "dark",
+        "viewport": [
+          1440,
+          900
+        ],
+        "input": "keyboard",
+        "load_mode": "application",
+        "data_profile": "synthetic-confirmed"
+      },
+      "expected": "Заменить конкретным ожидаемым результатом до утверждения",
+      "actual": "Шаблон: проверка не запускалась",
+      "reason": "Требуется реальный прогон",
+      "approval_ref": null,
+      "executed_at": null,
+      "evidence_ids": [],
+      "finding_ids": []
+    },
+    {
+      "id": "ACCESSIBILITY-001",
+      "surface_id": "workspace/tasks",
+      "dimensions": [
+        "accessibility"
+      ],
+      "status": "NOT_RUN",
+      "app_fingerprint": "0000000000000000000000000000000000000000000000000000000000000000",
+      "ds_archive_sha256": "0eb12439404cfff3e87118d447e133252fcae01a2a8e4329f264a3c79e33be2c",
+      "method": "automated",
+      "environment": {
+        "engine": "PENDING",
+        "role": "member",
+        "theme": "dark",
+        "viewport": [
+          1440,
+          900
+        ],
+        "input": "keyboard",
+        "load_mode": "application",
+        "data_profile": "synthetic-confirmed"
+      },
+      "expected": "Заменить конкретным ожидаемым результатом до утверждения",
+      "actual": "Шаблон: проверка не запускалась",
+      "reason": "Требуется реальный прогон",
+      "approval_ref": null,
+      "executed_at": null,
+      "evidence_ids": [],
+      "finding_ids": []
+    },
+    {
+      "id": "HUMAN_AGENT-001",
+      "surface_id": "workspace/tasks",
+      "dimensions": [
+        "human-agent"
+      ],
+      "status": "NOT_RUN",
+      "app_fingerprint": "0000000000000000000000000000000000000000000000000000000000000000",
+      "ds_archive_sha256": "0eb12439404cfff3e87118d447e133252fcae01a2a8e4329f264a3c79e33be2c",
+      "method": "automated",
+      "environment": {
+        "engine": "PENDING",
+        "role": "member",
+        "theme": "dark",
+        "viewport": [
+          1440,
+          900
+        ],
+        "input": "keyboard",
+        "load_mode": "application",
+        "data_profile": "synthetic-confirmed"
+      },
+      "expected": "Заменить конкретным ожидаемым результатом до утверждения",
+      "actual": "Шаблон: проверка не запускалась",
+      "reason": "Требуется реальный прогон",
+      "approval_ref": null,
+      "executed_at": null,
+      "evidence_ids": [],
+      "finding_ids": []
+    },
+    {
+      "id": "PERFORMANCE-001",
+      "surface_id": "workspace/tasks",
+      "dimensions": [
+        "performance"
+      ],
+      "status": "NOT_RUN",
+      "app_fingerprint": "0000000000000000000000000000000000000000000000000000000000000000",
+      "ds_archive_sha256": "0eb12439404cfff3e87118d447e133252fcae01a2a8e4329f264a3c79e33be2c",
+      "method": "automated",
+      "environment": {
+        "engine": "PENDING",
+        "role": "member",
+        "theme": "dark",
+        "viewport": [
+          1440,
+          900
+        ],
+        "input": "keyboard",
+        "load_mode": "application",
+        "data_profile": "synthetic-confirmed"
+      },
+      "expected": "Заменить конкретным ожидаемым результатом до утверждения",
+      "actual": "Шаблон: проверка не запускалась",
+      "reason": "Требуется реальный прогон",
+      "approval_ref": null,
+      "executed_at": null,
+      "evidence_ids": [],
+      "finding_ids": []
+    }
+  ],
   "coverage": [
     {
       "surface_id": "workspace/tasks",
       "status": "NOT_RUN",
       "check_ids": [
-        "TASK-REAL-SAVE"
-      ],
-      "evidence": []
-    }
-  ],
-  "checks": [
-    {
-      "id": "TASK-REAL-SAVE",
-      "surface_id": "workspace/tasks",
-      "status": "NOT_RUN",
-      "app_fingerprint": "0000000000000000000000000000000000000000000000000000000000000000",
-      "expected": "Изменение задачи сохраняется по API и остаётся после reload",
-      "actual": "Не выполнялось; шаблон",
-      "reason": "Шаблон необходимо заполнить реальным прогоном",
-      "environment": {
-        "browser": "not-run",
-        "theme": "not-run",
-        "viewport": "not-run"
-      },
-      "evidence": []
+        "VISUAL-001",
+        "UX-001",
+        "CODE-001",
+        "ACCESSIBILITY-001",
+        "HUMAN_AGENT-001",
+        "PERFORMANCE-001"
+      ]
     }
   ],
   "dimensions": [
     {
       "name": "visual",
       "status": "NOT_RUN",
-      "summary": "Не проверено; шаблон",
-      "evidence": []
+      "summary": "Шаблон: не проверено",
+      "check_ids": [
+        "VISUAL-001"
+      ],
+      "approval_ref": null
     },
     {
       "name": "ux",
       "status": "NOT_RUN",
-      "summary": "Не проверено; шаблон",
-      "evidence": []
+      "summary": "Шаблон: не проверено",
+      "check_ids": [
+        "UX-001"
+      ],
+      "approval_ref": null
     },
     {
       "name": "code",
       "status": "NOT_RUN",
-      "summary": "Не проверено; шаблон",
-      "evidence": []
+      "summary": "Шаблон: не проверено",
+      "check_ids": [
+        "CODE-001"
+      ],
+      "approval_ref": null
     },
     {
       "name": "accessibility",
       "status": "NOT_RUN",
-      "summary": "Не проверено; шаблон",
-      "evidence": []
+      "summary": "Шаблон: не проверено",
+      "check_ids": [
+        "ACCESSIBILITY-001"
+      ],
+      "approval_ref": null
     },
     {
       "name": "human-agent",
       "status": "NOT_RUN",
-      "summary": "Не проверено; шаблон",
-      "evidence": []
+      "summary": "Шаблон: не проверено",
+      "check_ids": [
+        "HUMAN_AGENT-001"
+      ],
+      "approval_ref": null
     },
     {
       "name": "performance",
       "status": "NOT_RUN",
-      "summary": "Не проверено; шаблон",
-      "evidence": []
+      "summary": "Шаблон: не проверено",
+      "check_ids": [
+        "PERFORMANCE-001"
+      ],
+      "approval_ref": null
     }
   ],
   "findings": [],
   "verdict": {
-    "release_ready": false,
+    "scope_ready": false,
     "summary": "TEMPLATE_NOT_EXECUTED"
   }
 }

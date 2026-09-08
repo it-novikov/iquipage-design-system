@@ -12,5 +12,7 @@
     "src/generated"
   ],
   "max_file_bytes": 1000000,
-  "exceptions": []
+  "exceptions": [],
+  "include_snippets": false,
+  "exclusion_decisions": []
 }

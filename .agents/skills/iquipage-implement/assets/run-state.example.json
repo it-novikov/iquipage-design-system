@@ -1,0 +1,18 @@
+{
+  "schema_version": "1.1",
+  "run_id": "REPLACE",
+  "skill": "REPLACE",
+  "mode": "diagnostic",
+  "scope_ref": null,
+  "approval_ref": null,
+  "ds_sha256": null,
+  "app_fingerprint": null,
+  "plan_sha256": null,
+  "completed": [],
+  "open_findings": [],
+  "blockers": [],
+  "evidence_paths": [],
+  "next_action": "Прочитать фактические входные материалы",
+  "do_not_repeat": [],
+  "external_side_effects_authorized": false
+}

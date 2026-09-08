@@ -1,0 +1,425 @@
+{
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "2.0"
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "scope_type": {
+      "enum": [
+        "targeted",
+        "full-integration"
+      ]
+    },
+    "approval": {
+      "type": "object",
+      "properties": {
+        "ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "owner": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "ref",
+        "owner"
+      ],
+      "additionalProperties": false
+    },
+    "ds_archive_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "surfaces": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1
+          },
+          "source_ref": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "id",
+          "description",
+          "source_ref"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 1
+    },
+    "dimension_applicability": {
+      "type": "object",
+      "properties": {
+        "visual": {
+          "type": "object",
+          "properties": {
+            "applicable": {
+              "type": "boolean"
+            },
+            "reason": {
+              "type": "string",
+              "minLength": 1
+            },
+            "approval_ref": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "applicable",
+            "reason",
+            "approval_ref"
+          ],
+          "additionalProperties": false
+        },
+        "ux": {
+          "type": "object",
+          "properties": {
+            "applicable": {
+              "type": "boolean"
+            },
+            "reason": {
+              "type": "string",
+              "minLength": 1
+            },
+            "approval_ref": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "applicable",
+            "reason",
+            "approval_ref"
+          ],
+          "additionalProperties": false
+        },
+        "code": {
+          "type": "object",
+          "properties": {
+            "applicable": {
+              "type": "boolean"
+            },
+            "reason": {
+              "type": "string",
+              "minLength": 1
+            },
+            "approval_ref": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "applicable",
+            "reason",
+            "approval_ref"
+          ],
+          "additionalProperties": false
+        },
+        "accessibility": {
+          "type": "object",
+          "properties": {
+            "applicable": {
+              "type": "boolean"
+            },
+            "reason": {
+              "type": "string",
+              "minLength": 1
+            },
+            "approval_ref": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "applicable",
+            "reason",
+            "approval_ref"
+          ],
+          "additionalProperties": false
+        },
+        "human-agent": {
+          "type": "object",
+          "properties": {
+            "applicable": {
+              "type": "boolean"
+            },
+            "reason": {
+              "type": "string",
+              "minLength": 1
+            },
+            "approval_ref": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "applicable",
+            "reason",
+            "approval_ref"
+          ],
+          "additionalProperties": false
+        },
+        "performance": {
+          "type": "object",
+          "properties": {
+            "applicable": {
+              "type": "boolean"
+            },
+            "reason": {
+              "type": "string",
+              "minLength": 1
+            },
+            "approval_ref": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "applicable",
+            "reason",
+            "approval_ref"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "visual",
+        "ux",
+        "code",
+        "accessibility",
+        "human-agent",
+        "performance"
+      ],
+      "additionalProperties": false
+    },
+    "checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "surface_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "dimensions": {
+            "type": "array",
+            "items": {
+              "enum": [
+                "visual",
+                "ux",
+                "code",
+                "accessibility",
+                "human-agent",
+                "performance"
+              ]
+            },
+            "minItems": 1,
+            "uniqueItems": true
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "method": {
+            "enum": [
+              "automated",
+              "manual-inspection",
+              "manual-interaction"
+            ]
+          },
+          "environment": {
+            "type": "object",
+            "properties": {
+              "engine": {
+                "type": "string",
+                "minLength": 1
+              },
+              "role": {
+                "type": "string",
+                "minLength": 1
+              },
+              "theme": {
+                "enum": [
+                  "light",
+                  "dark",
+                  "not-applicable"
+                ]
+              },
+              "viewport": {
+                "anyOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "array",
+                    "minItems": 2,
+                    "maxItems": 2,
+                    "items": {
+                      "type": "integer",
+                      "minimum": 1
+                    }
+                  }
+                ]
+              },
+              "input": {
+                "type": "string",
+                "minLength": 1
+              },
+              "load_mode": {
+                "enum": [
+                  "application",
+                  "fixture",
+                  "static"
+                ]
+              },
+              "data_profile": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "engine",
+              "role",
+              "theme",
+              "viewport",
+              "input",
+              "load_mode",
+              "data_profile"
+            ],
+            "additionalProperties": false
+          },
+          "evidence_kinds": {
+            "type": "array",
+            "items": {
+              "enum": [
+                "screenshot",
+                "trace",
+                "log",
+                "source-review",
+                "api-observation",
+                "measurement"
+              ]
+            },
+            "minItems": 1,
+            "uniqueItems": true
+          },
+          "acceptance": {
+            "type": "string",
+            "minLength": 3
+          },
+          "na_approval_ref": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "surface_id",
+          "dimensions",
+          "required",
+          "method",
+          "environment",
+          "evidence_kinds",
+          "acceptance",
+          "na_approval_ref"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 1
+    },
+    "risk_acceptances": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "finding_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "owner": {
+            "type": "string",
+            "minLength": 1
+          },
+          "approval_ref": {
+            "type": "string",
+            "minLength": 1
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 3
+          }
+        },
+        "required": [
+          "finding_id",
+          "owner",
+          "approval_ref",
+          "reason"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 0
+    },
+    "known_finding_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    }
+  },
+  "required": [
+    "schema_version",
+    "id",
+    "revision",
+    "scope_type",
+    "approval",
+    "ds_archive_sha256",
+    "surfaces",
+    "dimension_applicability",
+    "checks",
+    "risk_acceptances",
+    "known_finding_ids"
+  ],
+  "additionalProperties": false,
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "IQUIPAGE independently pinned acceptance plan 2.0"
+}

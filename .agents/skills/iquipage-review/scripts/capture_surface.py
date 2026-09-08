@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Passive screenshot + geometry capture. Does not operate the UI or certify it.
 Requires Python Playwright and the chosen browser installed separately.
-Default network policy permits loopback only. Never installs dependencies.
+URL mode permits only the requested loopback origin by default; fixtures have no network by default. Never installs dependencies.
 """
 from __future__ import annotations
 import argparse, asyncio, hashlib, ipaddress, json, re, sys
@@ -37,20 +37,48 @@ def loopback(url:str)->bool:
         return ipaddress.ip_address(p.hostname or '').is_loopback
     except ValueError:return False
 
-def check_url(url:str,allow_remote:bool)->None:
-    parsed=urlsplit(url)
-    if parsed.scheme not in {'http','https'} or parsed.username or parsed.password:
-        raise ValueError('Use HTTP(S) without URL credentials')
-    if not allow_remote and not loopback(url):raise ValueError('Remote host refused without --allow-remote; use approved test environment')
+def origin(url:str)->str:
+    p=urlsplit(url)
+    if p.scheme not in {'http','https'} or not p.hostname or p.username or p.password:
+        raise ValueError('Use HTTP(S) origins without credentials')
+    port=p.port or (443 if p.scheme=='https' else 80)
+    host=p.hostname.lower()
+    if ':' in host:host='['+host+']'
+    return f'{p.scheme}://{host}:{port}'
+
+def allowed_origins(url:str|None, additions:list[str], fixture:bool=False)->set[str]:
+    out=set()
+    for entry in additions:
+        p=urlsplit(entry)
+        if p.path not in {'','/'} or p.query or p.fragment:raise ValueError('Allow an exact origin, not a URL path')
+        out.add(origin(entry))
+    if not fixture and url:
+        value=origin(url)
+        if loopback(url):out.add(value)
+        elif value not in out:raise ValueError('Remote navigation needs an explicit --allow-origin')
+    return out
+
+def request_allowed(url:str,method:str,allowed:set[str])->bool:
+    if method not in {'GET','HEAD','OPTIONS'}:return False
+    # Local embedded content carries no external request.
+    if url.startswith(('data:','blob:')):return True
+    try:return origin(url) in allowed
+    except ValueError:return False
+
+def check_url(url:str,allow_remote:bool=False)->None:
+    origin(url)
+    if allow_remote:raise ValueError('--allow-remote is removed: use explicit --allow-origin entries')
+    if not loopback(url):raise ValueError('Remote host requires an origin allowlist')
 
 async def capture(args):
     from playwright.async_api import async_playwright
     fixture=getattr(args,'html_fixture',None)
-    if fixture is None:
-        check_url(args.url,args.allow_remote)
-    elif not fixture.is_file() or fixture.stat().st_size>10_000_000:
+    if getattr(args,'allow_remote',False):
+        raise ValueError('--allow-remote is no longer accepted; use exact --allow-origin')
+    allowed=allowed_origins(args.url,getattr(args,'allow_origin',[]),fixture is not None)
+    if fixture is not None and (not fixture.is_file() or fixture.stat().st_size>10_000_000):
         raise ValueError('Fixture is missing or exceeds 10 MB')
-    elif args.storage_state:
+    elif fixture is not None and args.storage_state:
         raise ValueError('Storage state is not used with an offline fixture')
     if not re.fullmatch('[0-9a-f]{64}',args.app_fingerprint):raise ValueError('app-fingerprint must be a SHA256')
     if not 240<=args.width<=4000 or not 320<=args.height<=4000:raise ValueError('Invalid viewport')
@@ -68,9 +96,9 @@ async def capture(args):
         context=await browser.new_context(**opts)
         async def route(r):
             u=r.request.url
-            if args.allow_remote or loopback(u) or u.startswith(('data:','blob:')):await r.continue_()
+            if request_allowed(u,r.request.method,allowed):await r.continue_()
             else:
-                blocked.append(urlsplit(u).hostname or '[non-http]');await r.abort()
+                blocked.append((urlsplit(u).hostname or '[non-http]')+' '+r.request.method);await r.abort()
         await context.route('**/*',route)
         if not hasattr(context, 'route_web_socket'):
             await browser.close()
@@ -78,7 +106,7 @@ async def capture(args):
         async def block_socket(ws):
             await ws.close()
         await context.route_web_socket('**/*', block_socket)
-        page=await context.new_page();page.on('pageerror',lambda e:events.append(str(e)[:500]))
+        page=await context.new_page();page.on('pageerror',lambda e:events.append('[redacted error message; inspect approved local trace]'))
         if fixture is None:
             await page.goto(args.url,wait_until='domcontentloaded',timeout=args.timeout)
         else:
@@ -90,12 +118,14 @@ async def capture(args):
         await page.screenshot(path=str(screenshot),full_page=True,animations='allow')
         result={'schema_version':'1.0','kind':'passive-surface-capture','app_fingerprint':args.app_fingerprint,
                 'state_label':args.state_label,'timestamp':datetime.now(timezone.utc).isoformat(),
-                'environment':{'engine':args.engine,'browser_version':browser.version,'viewport':[args.width,args.height],'storage_state_used':bool(args.storage_state),'remote_network_allowed':args.allow_remote,'websockets':'blocked','load_mode':'offline-fixture' if fixture else 'url-navigation'},
+                'environment':{'engine':args.engine,'browser_version':browser.version,'viewport':[args.width,args.height],'storage_state_used':bool(args.storage_state),'allowed_origins':sorted(allowed),'mutating_http_methods':'blocked','websockets':'blocked','load_mode':'offline-fixture' if fixture else 'url-navigation'},
                 'screenshot':{'path':'surface.png','sha256':hashlib.sha256(screenshot.read_bytes()).hexdigest()},
                 'measurements':data,'javascript_errors':events,'blocked_hosts':sorted(set(blocked)),
                 'verdict':'NOT_ASSESSED','limitations':['Passive current URL/state only; no application actions, role checks or persistence tests.',
                     'Auth/sensitive data can appear in screenshots; use approved synthetic data. Storage-state content is never copied into this report.',
                     'No colour or aesthetic pass is inferred from computed styles. Theme is observed, not forced.',
+                    'Exact origin allowlist is a request filter, not OS network isolation; GET can still have server effects.',
+                    'POST/PUT/PATCH/DELETE, WebSockets and service workers are blocked; GraphQL/realtime paths need a separate authorized test.',
                     'WebSockets and service workers are blocked in this passive capture; realtime must be tested separately.',
                     'Offline-fixture mode, when used, does not test serving, origin, routing, authenticated persistence or deployed application behaviour.']}
         report_path.write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
@@ -104,7 +134,7 @@ async def capture(args):
 
 def main()->int:
     p=argparse.ArgumentParser(description=__doc__);source=p.add_mutually_exclusive_group(required=True);source.add_argument('--url');source.add_argument('--html-fixture',type=Path);p.add_argument('--ready-selector',required=True);p.add_argument('--output',required=True,type=Path);p.add_argument('--app-fingerprint',required=True);p.add_argument('--state-label',required=True)
-    p.add_argument('--width',type=int,default=1440);p.add_argument('--height',type=int,default=900);p.add_argument('--engine',choices=['chromium','firefox','webkit'],default='chromium');p.add_argument('--executable',type=Path);p.add_argument('--storage-state',type=Path);p.add_argument('--allow-remote',action='store_true');p.add_argument('--timeout',type=int,default=15000);p.add_argument('--settle-ms',type=int,default=400)
+    p.add_argument('--width',type=int,default=1440);p.add_argument('--height',type=int,default=900);p.add_argument('--engine',choices=['chromium','firefox','webkit'],default='chromium');p.add_argument('--executable',type=Path);p.add_argument('--storage-state',type=Path);p.add_argument('--allow-remote',action='store_true',help='Removed; fails closed');p.add_argument('--allow-origin',action='append',default=[],help='Explicit approved HTTP(S) origin; repeat as needed');p.add_argument('--timeout',type=int,default=15000);p.add_argument('--settle-ms',type=int,default=400)
     a=p.parse_args()
     try:
         r=asyncio.run(capture(a));print(json.dumps({'capture':'recorded','verdict':r['verdict'],'javascript_errors':len(r['javascript_errors'])}));return 0

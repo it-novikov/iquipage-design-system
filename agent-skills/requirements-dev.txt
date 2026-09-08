@@ -1,0 +1,4 @@
+# Optional development checks, NOT runtime dependencies of the skills/helpers.
+jsonschema==4.26.0
+PyYAML==6.0.3
+playwright==1.57.0

@@ -1,0 +1,52 @@
+{
+  "basis": "Original 1.0 bytes; all files/data synthetic. No product acceptance.",
+  "cases": [
+    {
+      "id": "R01",
+      "description": "One synthetic check and one file declared as evidence for every dimension receives gate_ready",
+      "observed_gate_ready": true,
+      "errors": []
+    },
+    {
+      "id": "R02",
+      "description": "Author explicitly says not ready but computed gate_ready still true",
+      "observed_gate_ready": true,
+      "errors": []
+    },
+    {
+      "id": "R03",
+      "description": "Required top-level findings field omitted, runtime validator accepts",
+      "observed_gate_ready": true,
+      "errors": []
+    },
+    {
+      "id": "R04",
+      "description": "Finding can be resolved with generic existing test without repair, timestamp or cross-link",
+      "observed_gate_ready": true,
+      "errors": []
+    },
+    {
+      "id": "R05",
+      "description": "No actual browser, input, theme, role or viewport are required by gate",
+      "observed_gate_ready": true,
+      "errors": []
+    },
+    {
+      "id": "R06",
+      "description": "Empty verdict summary accepted although schema requires field",
+      "observed_gate_ready": true,
+      "errors": []
+    },
+    {
+      "id": "R07",
+      "description": "Quoted credential key bypasses redaction and is copied to candidate snippet",
+      "observed_leak": true
+    },
+    {
+      "id": "R08",
+      "description": "Excluded application file absent from per-file coverage and skip ledger",
+      "status": "SCANNED",
+      "skipped": []
+    }
+  ]
+}

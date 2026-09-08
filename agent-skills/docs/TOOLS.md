@@ -1,53 +1,45 @@
-# Помощники: что они проверяют и чего не проверяют
+# Инструменты 1.1
 
-Все пути ниже относительны папке установленного скилла. Замените `SKILL_ROOT`, `PROJECT`, `WORK_DIR`, `DS_ROOT` на существующие абсолютные пути. Инструменты не копируют компоненты и не исправляют проект автоматически.
+Пути ниже относительны установленному скиллу. Скрипты используют Python 3.10+ standard library; capture отдельно требует Playwright и установленный движок. Ничего не устанавливается и не запускает модель автоматически.
 
-## verify_release.py · implement / review
+## Целостность DS
+`verify_release.py --ds-root DS_ROOT --archive DS.zip --out NEW_REPORT.json`
+Сравнивает package, pinned manifest, файлы и архив с принятой 05.7. Нет исполнения кода поставки. По-прежнему известна несовпадающая строка version в types/core.d.ts — warning, не исправление. Проход доказывает bytes, не UI. Output не помещать в DS и не перезаписывать старый отчёт.
+
+## Кандидаты на обходы
+`integration_scan.py --root PROJECT --config CONFIG.json --out NEW_SCAN.json`
+Regex-разведка: private imports, local controls/UI kits, native date, CSS/DOM overrides и прочее. Соблюдающие exact markup native elements допустимы; сигналы проверять вручную. `source_roots` обязательны. `adapter_roots` не suppressions.
+
+Нормализованные relative paths, без `..` и symlink parents. Snippets выключены по умолчанию; file/line/hash остаются. При явном include_snippets=true применяется дополнительная эвристическая редактировка credential-like строк, НЕ универсальный secret scanner. Sensitive outputs не публиковать.
+
+`exclusion_ledger` перечисляет исключённые файлы/поддеревья. `explicit-exclusion` без точной записи reason/owner/approval делает scan INCOMPLETE. Vendor и built-in pruning видны отдельно; это не доказательство целостности vendor или отсутствия UI в generated code. Exit 0 означает сканирование, не соответствие DS.
+
+## Fingerprint приложения
+`fingerprint_inputs.py --root PROJECT --inputs INPUT_FILES.json --out NEW_SNAPSHOT.json`
+INPUT_FILES.json — явный массив путей к source/build/lock/config файлам. Читает только bytes; не запускает команды проекта и не сохраняет содержание. Не включает `.env`, secrets и symlinks. Полноту перечня определяет ревью. Нельзя исключить изменённый build input ради сохранения прежнего hash.
+
+## Приёмка
+См. [полный формат schema 2.0](../skills/iquipage-review/references/assessment-v2.md). Нужны отчёт, независимый acceptance plan, его принятый canonical digest, текущий app fingerprint и DS archive hash. Набор проверок нельзя сократить внутри assessment. Schema 1.0 больше не выдаёт ready. `--require-ready` — gate текущего scope, не разрешение deploy.
+
+## Пассивный browser capture
 ```sh
-python3 SKILL_ROOT/scripts/verify_release.py --ds-root DS_ROOT --archive IQUIPAGE-05.7.zip --out WORK_DIR/ds-verification.json
+python3 SKILL_ROOT/scripts/capture_surface.py \
+  --url http://127.0.0.1:4173/tasks --ready-selector main \
+  --state-label tasks-dark --app-fingerprint APP_SHA \
+  --output NEW_CAPTURE_DIR --width 1440 --height 900 --engine chromium
 ```
-Проверяет pinned archive SHA, pinned MANIFEST SHA, каждую запись manifest, отсутствие лишних/пропавших/изменённых файлов и identity package. Не исполняет скрипты архива, не распаковывает его, не меняет vendor. Без `--archive` подтверждает только распакованные bytes по pinned manifest. Используйте чистую копию; не папку с новыми build-артефактами.
+URL mode по умолчанию разрешает только origin указанного loopback URL, не любые localhost-порты. Для авторизованного staging явно добавить `--allow-origin https://staging.example` и нужные origins ресурсов по отдельности. `--allow-remote` теперь отклоняется, а не разрешает весь Интернет. Credentials в URL не принимаются.
 
-Exit: 0 integrity PASS (возможны явно перечисленные known warnings), 1 mismatch, 2 не удалось проверить. Уже обнаруженное несовпадение literal version в `types/core.d.ts` сохраняется warning; оно не скрыто и не исправляется скиллом.
+`--html-fixture FILE` по умолчанию не имеет сети. GET/HEAD/OPTIONS разрешены только по allowlist; mutating methods, WebSockets и service workers блокируются. Это пассивная фиксация, не тестирование GraphQL/realtime. Для этих путей нужен отдельный разрешённый сценарий. Перехват запросов не OS sandbox; даже GET может менять состояние плохого сервера.
 
-## integration_scan.py · implement / review
+Capture фиксирует screenshot, прямую DOM-геометрию и computed styles, но всегда выдаёт NOT_ASSESSED. Не выполняет сценарий, не меряет составной contrast и не traverses shadow roots. Pageerror сообщения редактируются; их наличие фиксируется, подробности изучаются в разрешённой локальной среде. Снимок может содержать приватные данные — использовать synthetic fixtures. Смена темы не форсируется.
+
+## Повторяемая самопроверка
 ```sh
-python3 SKILL_ROOT/scripts/integration_scan.py --root PROJECT --config WORK_DIR/scan-config.json --out WORK_DIR/scan.json
-```
-Сначала заполните `assets/scan-config.example.json`: source roots, vendor boundary, adapters и исключённые generated paths. Не указывайте production secrets. Скрипт возвращает файлы и SHA, пропуски/отсутствующие roots и кандидаты с file:line.
-
-Ищет internal imports, признаки DOM/monkeypatch, local UI primitives, параллельные UI-kit, native date, !important, literals, focus suppression, demo imports и опасные HTML sinks. Это **heuristic scan**, не AST/proof. Правильный supplied markup с native button допустим; `adapter_roots` только отмечает место, не скрывает нарушение.
-
-Narrow exception: rule_id + path + line + точный source_sha256 + reason + owner + approval_ref. Даже совпавшее исключение остаётся видимым для рецензента. Широкие wildcard и устаревшие записи не принимаются.
-
-Exit: 0 сканирование закончено (не «код принят»), 2 неполный scan/invalid config. Не использовать exit 0 как release gate. Source fingerprint охватывает только перечисленные файлы; для app acceptance дополнительно нужны build/dependency/environment fingerprints.
-
-## validate_assessment.py · review
-```sh
-python3 SKILL_ROOT/scripts/validate_assessment.py WORK_DIR/assessment.json --evidence-root WORK_DIR --current-fingerprint CURRENT_SHA --out WORK_DIR/validation.json --require-ready
-```
-Проверяет unique IDs, весь объявленный scope, required cases, шесть review dimensions, актуальность fingerprint, существование и SHA evidence, resolved findings с проверками. NOT_RUN/BLOCKED не превращаются в PASS. Подробная структура — `assets/assessment.schema.json`; example намеренно не является готовым отчётом.
-
-Exit: 0 valid (и ready при --require-ready), 1 invalid structure/evidence/contradictory claim, 2 valid но не ready в строгом режиме, 3 ошибка чтения/формата. Без --require-ready прочитайте gate_ready; exit 0 означает только структурную допустимость.
-
-**Ограничение:** человек/агент может написать неправду в самом логе. Валидатор не распознаёт ложное тестирование и не заменяет просмотр assertions/trace/screenshots. Не «лечить» отказ созданием фиктивного evidence-файла.
-
-## capture_surface.py · review / experience-audit
-```sh
-python3 SKILL_ROOT/scripts/capture_surface.py --url http://127.0.0.1:4173/tasks --ready-selector main --state-label tasks-populated-dark --app-fingerprint CURRENT_SHA --output WORK_DIR/capture-001 --width 1440 --height 900 --engine chromium
-```
-Требует Python Playwright и установленный engine. При необходимости задайте `--executable /path/to/chromium`. `--storage-state` — собственная разрешённая тестовая сессия; файл не копируется в отчёт. Скриншот может содержать конфиденциальный UI: использовать обезличенные fixtures.
-
-По умолчанию разрешены loopback HTTP(S) resources; для явно разрешённой удалённой тестовой среды есть --allow-remote. WebSockets и service workers блокируются в этом пассивном capture; real-time проверять отдельным сценарием. Скрипт открывает URL, ждёт ready selector и шрифты, фиксирует кадр, прямую DOM-геометрию и computed styles. Тему не форсирует и не меняет состояния приложения. Auth/выбор роли/interaction states достигаются отдельными разрешёнными действиями агента.
-
-Для изолированных тестов можно вместо --url передать `--html-fixture PATH`: HTML загружается через `set_content`, что явно отмечается как offline-fixture. Это не тест HTTP origin, маршрутизации, авторизованного приложения или persistence. Не подменять им blocked реальный сценарий.
-
-Он не управляет UI, не измеряет композитный контраст, не обходит shadow roots и не сертифицирует accessibility. Всегда `verdict: NOT_ASSESSED`. Не считать видимый h1 или scrollWidth полным UX-аудитом. Capture не проверяет сохранение и backend; результаты скрипта должны дополняться journey tests.
-
-## Самопроверка пакета
-Из корня комплекта:
-```sh
-python3 tests/test_tools.py
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p 'test_*.py' -v
 python3 tests/validate_skills.py
+python3 tests/verify_package.py
 ```
-Browser smoke выполнен отдельно на синтетической fixture; документы с результатами находятся в `reports/`. Prompt evaluation cases в `examples/evaluation-cases.json` — задания для реального агента; автоматическое выполнение этими скриптами не производится.
+Browser smoke не заменяет навигацию реального приложения; новый каталог вывода обязателен. Evaluation cases — задания реальному клиенту/модели, не результаты этих Python-тестов.
+
+Для полного developer-прогона дополнительно установленные jsonschema/PyYAML обязательны (версии в requirements-dev.txt). Их отсутствие может дать SKIP и не считается полными проверками. Runtime validator не зависит от этих пакетов.

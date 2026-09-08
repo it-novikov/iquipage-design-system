@@ -1,24 +1,40 @@
 {
-  "schema_version": "1.0",
-  "structure_valid": true,
-  "gate_ready": false,
-  "errors": [],
-  "blocking_reasons": [
-    "Scope has no approval reference",
-    "Required check TASK-REAL-SAVE is NOT_RUN",
-    "Surface workspace/tasks is not fully checked",
-    "Dimension visual is not accepted",
-    "Dimension ux is not accepted",
-    "Dimension code is not accepted",
-    "Dimension accessibility is not accepted",
-    "Dimension human-agent is not accepted",
-    "Dimension performance is not accepted"
-  ],
-  "counts": {
-    "surfaces": 1,
-    "checks": 1,
-    "findings": 0,
-    "verified_evidence_files": 0
+  "command": "validate_assessment.py assessment.example.json --evidence-root assets --plan acceptance-plan.example.json --require-ready",
+  "exit_code": 2,
+  "result": {
+    "schema_version": "2.0",
+    "structure_valid": true,
+    "gate_ready": false,
+    "scope_type": "targeted",
+    "errors": [],
+    "blocking_reasons": [
+      "Independently supplied app_fingerprint is required",
+      "Independently supplied ds_archive_sha256 is required",
+      "Independently supplied plan_sha256 is required",
+      "Plan is not approved",
+      "VISUAL-001: required check is NOT_RUN",
+      "UX-001: required check is NOT_RUN",
+      "CODE-001: required check is NOT_RUN",
+      "ACCESSIBILITY-001: required check is NOT_RUN",
+      "HUMAN_AGENT-001: required check is NOT_RUN",
+      "PERFORMANCE-001: required check is NOT_RUN",
+      "workspace/tasks: no required case actually passed",
+      "workspace/tasks: surface not accepted",
+      "visual: applicable dimension has no actual PASS",
+      "visual: dimension not accepted",
+      "ux: applicable dimension has no actual PASS",
+      "ux: dimension not accepted",
+      "code: applicable dimension has no actual PASS",
+      "code: dimension not accepted",
+      "accessibility: applicable dimension has no actual PASS",
+      "accessibility: dimension not accepted",
+      "human-agent: applicable dimension has no actual PASS",
+      "human-agent: dimension not accepted",
+      "performance: applicable dimension has no actual PASS",
+      "performance: dimension not accepted",
+      "Reviewer explicitly withholds scope readiness"
+    ],
+    "limitation": "Structural readiness for the independently scoped review only. Does not authenticate approvals, prove execution, evaluate aesthetics, certify the entire product or authorize deployment."
   },
-  "limitation": "Valid structure is not proof of truthful execution or UI/UX quality. Read raw evidence and test assertions."
+  "purpose": "Incomplete sample must never pass readiness; no production acceptance"
 }

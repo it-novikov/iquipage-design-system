@@ -1,6 +1,6 @@
 {
   "name": "IQUIPAGE Agent Skills",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "language": "ru",
   "ds_baseline": {
     "name": "@iquipage/web",
@@ -20,5 +20,6 @@
     "model access",
     "automatic plugin installation",
     "production deployment permissions"
-  ]
+  ],
+  "assessment_schema": "2.0"
 }

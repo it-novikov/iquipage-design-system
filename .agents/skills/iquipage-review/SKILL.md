@@ -1,70 +1,52 @@
 ---
 name: iquipage-review
 description: "Проверяет реализацию и код внедрения IQUIPAGE: публичные компоненты, отсутствие локальных UI-замен, визуальное соответствие, сетка, отступы, контраст, состояния, доступность, производительность и сохранение функций. Использовать для приёмки, code review и цикла исправлений после внедрения. Выдаёт конкретные finding IDs и проверяемые способы исправления. По умолчанию read-only; не заменяет discovery или самостоятельное проектирование продукта."
-compatibility: "Агент с чтением файлов и кода. Python 3.10+ для помощников; браузер/Playwright для runtime-приёмки. IQUIPAGE предоставляется отдельно. Без автоматического сетевого доступа или deploy."
+compatibility: "Чтение проекта и принятой DS. Помощники: Python 3.10+; browser capture отдельно требует Playwright и установленный движок. Ограниченный аудит возможен без runtime, но без его приёмки."
 metadata:
-  suite-version: "1.0.0"
+  suite-version: "1.1.0"
   ds-baseline: "0.5.7"
   language: "ru"
 ---
 
-
-# Приёмка и исправления внедрения
+# Приёмка внедрения: код, реальный интерфейс и честные границы
 
 ## Режим
-По умолчанию исследуй без правок приложения. Если пользователь разрешил «исправь» или работа идёт внутри разрешённого implement/review-цикла, после фиксации отчёта исправляй root causes и перепроверяй. Не превращай review в необъявленный redesign.
+По умолчанию read-only для приложения; отчёты разрешены. В «проверь и исправь» или разрешённом implement-цикле сначала сохрани finding, затем выполняй правки в прежних границах. Не превращай review в незаказанный redesign.
 
-Обязательно прочитай [конституцию](references/constitution.md), [метод проверки](references/quality-method.md), [release map](references/release-map.md), [gap protocol](references/gap-protocol.md). Для агентных процессов — [human-agent](references/human-agent.md). Используй `assets/assessment.example.json` и `assets/findings-report.md`.
+Прочитай [конституцию](references/constitution.md), [рабочий контракт](references/execution-contract.md) и [метод качества](references/quality-method.md). Выбери: targeted audit или full-integration. Недоступный browser даёт ограниченный отчёт, не готовность runtime.
 
-## 1. Зафиксируй, что именно проверяешь
-Прочитай согласованный scope, текущий DS archive и hash, app revision/dirty diff, migration ledger, surface inventory, реальные test commands и ограничения среды. Проверить только изменённые файлы недостаточно: оценить все затронутые surfaces и shared components. Для полной приёмки нужен полный реестр маршрутов/overlays/ролей, не случайная выборка.
+## 1. Зафиксируй независимую основу
+Прочитай approved scope, inventories, DS archive/hash, app revision/dirty diff и план приёмки. Для всей миграции сверить все маршруты, overlays, auth/admin/flags/роли; не доверять списку только от исполнителя.
 
-Запусти read-only `scripts/verify_release.py`. Расхождение vendor — finding с точными файлами и хешами; не приводи поставку к baseline автоматически. Предыдущие успешные тесты — supplier evidence, а не результат этой приёмки.
+`verify_release.py` проверяет pinned DS. `fingerprint_inputs.py` может хешировать явно перечисленные app/build/lock/config inputs; полнота списка требует ревью. Прежние DS-отчёты — свидетельства поставщика, не новое тестирование продукта.
 
-## 2. Статическая разведка — только кандидаты
-```sh
-python3 SKILL_ROOT/scripts/integration_scan.py --root PROJECT --config WORK_DIR/scan-config.json --out WORK_DIR/scan.json
-```
-Конфигурация из `assets/scan-config.example.json`; пути source/vendor/adapters определить по реальному проекту. Скрипт ничего не меняет и не запускает код проекта. Не называй regex scan полноценным code review.
+До прогона сформируй `assets/acceptance-plan.example.json`: surfaces, required checks, dimensions, expected environment, метод и типы evidence. Подтверждённый digest хранится вне редактируемого assessment. Нельзя сократить план задним числом ради PASS.
 
-Разбери каждый сигнал вручную: native control в exact markup DS; правильная composition; bounded adapter; application integration; confirmed local bypass; unknown. Нет false-positive waiver «весь файл разрешён». Исключение с rule_id/file/line/source SHA/причиной/owner/approval — проверяемая заявка, не доказательство качества.
+## 2. Найди обходы и ошибки кода
+`scripts/integration_scan.py` — только кандидаты. Определи реальные roots/vendor/adapters, рассмотри исключения и пропущенные файлы. Ноль сигналов или exit 0 не доказывает соответствие DS. Каждое исключение должно иметь точную причину, owner, approval и SHA; адаптерная папка не разрешение на новый визуальный язык.
 
-Проверь не только новые компоненты, но и CSS modules, inline CSS, utility classes, CSS-in-JS, local SVG, portal content, auth forms, native date popup, внутренний DOM DS, старые UI-packages. Простые semantic HTML elements допустимы. Применение DS-токенов к самодельной кнопке не делает её supplied компонентом.
+Проследи import → rendering → event → state → API → confirmation → reload. Проверяй public props/types/events, slots, SSR при наличии, deep links, отмену, восстановление, race/conflict, permissions, безопасные URL/Markdown, cleanup/listeners/Blob. Разделяй supplied native HTML, правильную composition, interop, локальный bypass и unknown.
 
-## 3. Code review и публичные контракты
-Проследи импорт → rendering → input/event → state → API → подтверждение → reload. Проверить сохранность полей, типы данных, XSS/Markdown, unsafe URLs, утечки приватных media, listeners, AbortController, Blob cleanup, повторное/устаревшее подтверждение и revision conflict. Сопоставить event names с декларациями, не читать internal fields как контракт.
+Для подозреваемого DS-дефекта — минимальная fixture с неизменённым vendor без app styles. Не устраняй дефект private DOM-патчем: используй [GAP protocol](references/gap-protocol.md). Обязательную missing capability нельзя скрыть заменой функции.
 
-Разделить source of truth приложения и UI draft; не терять ввод при rerender, переключении темы/плотности/панели, смене permissions. Не заменять backend permission disabled-кнопкой. Проверить scopes людей и агентов, идентичность автора/исполнителя и принятие результата.
+## 3. Пройди интерфейс и профессионально оцени композицию
+Используй [рубрику](references/design-review.md). Проверяй главный объект, сетку, иерархию, density, icon boxes, отступы и переносы, orphan-разделители, визуальный шум, доступность actions. Сохрани и ПРОСМОТРИ before/after одинакового содержимого в обеих темах и согласованных размерах. Автоматический overflow не заменяет это действие.
 
-Проверить routes/deep links, semantic h1, slots, lazy entry graph, отсутствующие wrappers и demo state. Нативная адаптация только с доказанной необходимостью и bounded record. Для suspected DS-defect создать чистую fixture без app styles; если баг подтверждён в vendor, не патчить локально.
+Проверь meaningful data, happy/empty/loading/error/retry/denied/readonly/pending/conflict/cancel/undo/reload, selected+hover+focus-visible, вложенные dialog/menu/date, IME. Сравнивай фактическую составную поверхность после стабилизации анимаций. Genuine WebKit touch не заменяется Chromium mouse; CSS zoom не переименовывается в browser zoom.
 
-## 4. Реальная UI-приёмка
-Открой продукт в браузере, дойди до meaningful data, не только splash. Выполни ключевые сценарии в нужных ролях и обоих оформлениях. Составь матрицу по `assets/test-matrix.csv`, добавь риски проекта. Вращать галерею библиотечных образцов вместо продукта недостаточно.
+Пассивный `capture_surface.py` фиксирует кадр и измерения; не тестирует сценарий и не ставит PASS. Его сеть ограничивается точными разрешёнными origins. Используй обезличенные данные; URL-навигация исполняет JS и не является режимом sandbox.
 
-Сначала pointer и keyboard happy path, затем empty/loading/error/retry/denied/pending/conflict/cancel/undo/reload; selected+hover+focus; nested dialog/menu/calendar; mobile and zoom. Контраст меряй после стабилизации анимаций по составным фактическим поверхностям. Ошибка и warning, planned и in-progress различимы по смыслу и цвету.
+## 4. UX, агенты, производительность
+Новичок понимает действие и результат; эксперт сохраняет контекст. Для agent-сценариев [контракт](references/human-agent.md) отделяет инициатора, мандат, выполнение, принятие и сохранение. Там, где агентной функции нет, документировать применимость, а не выдумывать PASS.
 
-Скриншоты: минимум крупный/малый размер и обе темы для каждой изменённой композиции; реально просмотреть, не только сгенерировать. Оценить оси, группировку, иерархию, рабочую площадь, масштаб подписи, ритм, icon box, sticky headers, overflow, tooltip, focus, checkbox hit area и название целиком. Не заменять visual review вычислением scrollWidth.
+Измерь реальные bundle/network, lazy requests, idle, long tasks, большие рабочие модели и reduced motion в требуемой среде. Обозначь метод и данные. Размер gzip библиотеки не равен initial JS приложения, а JS-duration — не FPS.
 
-Пассивный `scripts/capture_surface.py` может сохранить кадр/геометрию достигнутой страницы. Он не выполняет сценарий и не даёт автоматический вердикт о всей доступности. При недоступном browser tool отметить NOT_RUN, а не подставлять screenshot макета.
+## 5. Finding и закрытие
+Находка: стабильный ID; severity; confirmed/hypothesis; поверхность; reproduction; evidence; нарушенное правило; вред; причина/гипотеза; точная переделка; acceptance. Вкусовое несогласие не объявлять нормативным дефектом. Непроверенную гипотезу не закрывать как исправленный баг.
 
-## 5. Качество опыта и производительность
-Проверь новичка без специальных знаний и повторную работу эксперта. Есть ли ясный следующий шаг, место для результата, обратимость, предсказуемая навигация, отсутствие лишнего chrome? Соответствует ли композиция качеству DS, а не просто правильным imports? Назови точную переделку, не «сделать красивее».
+Resolved требует repair record, affected files, новой проверки именно этого finding на текущем build и evidence позднее обнаружения. Ссылка на старый общий PASS не принимается. Не удалять провал из истории. Два безуспешных исправления одного root cause — повод пересмотреть причину, не снять тест.
 
-Отдельно проверь agent path: что поручено, границы, статус выполнения против статуса принятия, конкретный артефакт, журнал действий, безопасный повтор, ручной контроль. Читаемый viewer не должен вызывать acceptance.
+## Проверяемый отчёт
+`assets/assessment.example.json` — schema 2.0. Команда приведена в [формате приёмки](references/assessment-v2.md). Передай plan и независимо известные plan/app/DS hashes. `--require-ready` проверяет полноту ДАННОГО scope; не выдаёт разрешение на релиз/deploy и не доказывает правдивость автора evidence. Читай raw logs/assertions и кадры.
 
-Проверить initial JS реального приложения, lazy requests, idle animation/CPU, долгие операции, bounded loading и большие правдоподобные модели. Записать устройство/engine/data/method. Не сравнивать gzip библиотеки с whole-app budget и не выдавать одну JS-duration за FPS.
-
-## 6. Отчёт, гейты, исправления
-Каждое finding — доказательство, воспроизведение, принцип DS, причина или честная гипотеза, вред, направление исправления, acceptance и regression. Упорядочить P0→P3. В findings различать confirmed/hypothesis. Отметить положительные границы и отсутствующие проверки, не обобщать «идеально».
-
-Оформить `assessment.json`; поля структуры и состояний описаны в `assets/assessment.schema.json`. Сравнить coverage с утверждённым scope. Нельзя закрыть finding только комментариями, убрать тест или исключить сложный маршрут.
-
-```sh
-python3 SKILL_ROOT/scripts/validate_assessment.py WORK_DIR/assessment.json --evidence-root WORK_DIR --current-fingerprint CURRENT_SHA --out WORK_DIR/assessment-validation.json
-```
-Добавь `--require-ready` для CI-гейта. Валидатор требует доказательства, но не доказывает, что тест честно выполнен: проверь raw logs и код assertions. NOT_RUN/BLOCKED по required checks запрещают ready.
-
-В разрешённом fix-cycle: закрепить finding ID → исправить минимальный общий источник → добавить тест → повторить соседние варианты и обе темы → рецензировать итоговый build → закрыть с evidence. При отсутствии component/capability немедленно DS-GAP пользователю. Не подменять исправления полного UI новым дизайн-направлением.
-
-## Доставка
-Человеку: verdict для конкретного scope, главные проблемы и решения, изменения, точные limits. Следующему агенту: assessment.json, findings-report.md, fix-ledger.csv, evidence index, актуальные fingerprints, gap register и reproduction commands. Разрешение на review не даёт разрешения на deploy.
+Schema 1.0 читается только как исторический диагностический формат: он больше не выдаёт готовность. Общие dimensions обязаны быть явно applicable либо approved N/A; PASS без связанных checks недопустим. Выход — assessment, findings-report, fix-ledger, gaps, run-state и handoff, с ограничениями и следующим конкретным шагом.

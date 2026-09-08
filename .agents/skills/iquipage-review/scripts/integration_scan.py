@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Read-only heuristic source scan. Candidates require human/agent code review."""
 from __future__ import annotations
-import argparse, hashlib, json, re, sys
+import argparse, bisect, hashlib, json, re, sys
 from pathlib import Path
 
 EXTENSIONS={'.js','.jsx','.ts','.tsx','.mjs','.cjs','.css','.scss','.sass','.less','.html','.vue','.svelte','.kt','.kts','.swift','.xml'}
@@ -24,8 +24,11 @@ COMPILED=[(a,b,re.compile(c),d) for a,b,c,d in RULES]
 
 def digest(b:bytes)->str:return hashlib.sha256(b).hexdigest()
 def safe_rel(root:Path,s:str)->Path:
-    p=(root/s)
+    if not isinstance(s,str) or not s or Path(s).is_absolute() or '..' in Path(s).parts or '\\' in s or ':' in s:
+        raise ValueError('Paths must be normalized project-relative paths')
+    p=root/s
     if not p.resolve().is_relative_to(root):raise ValueError(f'Path escapes project root: {s}')
+    if any(x.is_symlink() for x in p.parents if root in x.parents):raise ValueError('Source path crosses a symlink parent')
     return p
 
 def scan(root:Path,config:dict)->dict:
@@ -38,7 +41,9 @@ def scan(root:Path,config:dict)->dict:
     adapters=[safe_rel(root,s) for s in config.get('adapter_roots',[])]
     limit=int(config.get('max_file_bytes',1_000_000))
     if not 1<=limit<=10_000_000:raise ValueError('max_file_bytes must be 1..10000000')
-    paths=set();skipped=[];missing=[]
+    paths=set();skipped=[];missing=[];exclusion_ledger=[]
+    snippets=config.get('include_snippets',False)
+    if not isinstance(snippets,bool):raise ValueError('include_snippets must be boolean')
     for value in sources:
         start=safe_rel(root,value)
         if not start.exists():missing.append(value);continue
@@ -48,9 +53,16 @@ def scan(root:Path,config:dict)->dict:
             p=stack.pop()
             rel=p.relative_to(root).as_posix()
             if p.is_symlink():skipped.append({'path':rel,'reason':'symlink'});continue
-            if any(p==e or e in p.parents for e in excluded):continue
+            if any(p==e or e in p.parents for e in excluded):
+                category='vendor' if any(p==safe_rel(root,v) or safe_rel(root,v) in p.parents for v in config.get('vendor_roots',[])) else 'explicit-exclusion'
+                decisions=config.get('exclusion_decisions',[])
+                decision=next((d for d in decisions if d.get('path')==rel),None)
+                approved=bool(decision and all(decision.get(k) for k in ['reason','owner','approval_ref']))
+                exclusion_ledger.append({'path':rel,'category':category,'scope':'subtree' if p.is_dir() else 'file','decision':decision,'reviewed':approved})
+                continue
             if p.is_dir():
-                if p.name in PRUNE:continue
+                if p.name in PRUNE:
+                    exclusion_ledger.append({'path':rel,'category':'built-in-prune','scope':'subtree','reviewed':False});continue
                 stack.extend(sorted(p.iterdir(),reverse=True));continue
             if not p.is_file() or p.suffix.lower() not in EXTENSIONS:continue
             if p.name.startswith('.env') or any(x in p.parts for x in ['secrets','credentials']):
@@ -64,13 +76,14 @@ def scan(root:Path,config:dict)->dict:
         except UnicodeDecodeError:skipped.append({'path':rel,'reason':'non-utf8'});continue
         if '\x00' in text:skipped.append({'path':rel,'reason':'binary'});continue
         records.append({'path':rel,'sha256':h})
+        lines=text.splitlines();line_starts=[0]+[m.end() for m in re.finditer('\n',text)]
         is_adapter=any(p==a or a in p.parents for a in adapters)
         for rule,severity,regex,message in COMPILED:
             for m in regex.finditer(text):
-                line=text.count('\n',0,m.start())+1
-                snippet=text.splitlines()[line-1].strip()[:200]
+                line=bisect.bisect_right(line_starts,m.start())
+                snippet=lines[line-1].strip()[:200] if snippets else '[redacted: source snippets disabled; open file:line locally]'
                 # Avoid leaking obvious values from source-level credentials in snippets.
-                if re.search(r'(password|secret|token|api[_-]?key)\s*[:=]',snippet,re.I):snippet='[redacted credential-like source line]'
+                if re.search(r"(?i)(password|secret|token|api[_-]?key)[\"']?\s*[:=]|bearer\s|(?:https?://)[^/\s]+:[^/\s]+@",snippet,re.I):snippet='[redacted credential-like source line]'
                 fid='IQ-'+digest(f'{rule}\0{rel}\0{line}\0{m.group(0)}'.encode())[:12]
                 findings.append({'id':fid,'rule_id':rule,'suggested_severity':severity,'path':rel,'line':line,'source_sha256':h,
                                  'message':message,'snippet':snippet,'adapter_candidate':is_adapter,'disposition':'needs-review'})
@@ -78,7 +91,7 @@ def scan(root:Path,config:dict)->dict:
         for m in re.finditer(r'<(button|input|select|textarea)\b[^>]*>',text,re.S):
             tag=m.group(0)
             if re.search(r'\biq-[\w-]+',tag):continue
-            line=text.count('\n',0,m.start())+1
+            line=bisect.bisect_right(line_starts,m.start())
             findings.append({'id':'IQ-'+digest(f'native\0{rel}\0{line}\0{tag}'.encode())[:12], 'rule_id':'IQ013','suggested_severity':'P2','path':rel,'line':line,'source_sha256':h,
                              'message':'Native control without an inline iq- class; may be valid supplied markup with parent styling. Trace before confirming.',
                              'snippet':f'<{m.group(1)}>','adapter_candidate':is_adapter,'disposition':'needs-review'})
@@ -96,10 +109,10 @@ def scan(root:Path,config:dict)->dict:
     records.sort(key=lambda x:x['path'])
     snapshot=digest(json.dumps(records,ensure_ascii=False,sort_keys=True,separators=(',',':')).encode())
     return {'schema_version':'1.0','kind':'heuristic-candidates','source_snapshot_sha256':snapshot,
-            'source_roots':sources,'excluded_paths':exclude,'files':records,'files_scanned':len(records),
+            'source_roots':sources,'excluded_paths':exclude,'exclusion_ledger':exclusion_ledger,'snippets_included':snippets,'files':records,'files_scanned':len(records),
             'missing_source_roots':missing,'skipped':skipped,'exception_errors':exception_errors,
             'findings':findings,'candidate_count':len(findings),
-            'status':'INCOMPLETE' if missing or skipped or not records else 'SCANNED',
+            'status':'INCOMPLETE' if missing or skipped or not records or any(x['category']=='explicit-exclusion' and not x['reviewed'] for x in exclusion_ledger) else 'SCANNED',
             'limitations':['Regex scan, not AST, architecture proof, UX review or release approval.',
                            'Vendor is excluded here and must be verified independently.',
                            'Snapshots include only reported source files; include build/env inputs separately.',
@@ -111,6 +124,7 @@ def main()->int:
     try:
         result=scan(a.root,json.loads(a.config.read_text(encoding='utf-8')))
         if a.out.resolve() in [(a.root/f['path']).resolve() for f in result['files']]:raise ValueError('Refusing to overwrite a scanned source file')
+        if a.out.exists():raise ValueError('Output exists; do not overwrite prior evidence or config')
         a.out.parent.mkdir(parents=True,exist_ok=True);a.out.write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
         print(json.dumps({k:result[k] for k in ['status','files_scanned','candidate_count','source_snapshot_sha256']},ensure_ascii=False))
         return 2 if result['status']=='INCOMPLETE' or result['exception_errors'] else 0

@@ -3,7 +3,7 @@
   "kind": "passive-surface-capture",
   "app_fingerprint": "c83cfb812fb74441028448c9d286f372fb58c0900096e54645892603180b7f8b",
   "state_label": "fixture-dark-390",
-  "timestamp": "2026-09-07T18:59:56.127655+00:00",
+  "timestamp": "2026-09-07T19:44:10.341035+00:00",
   "environment": {
     "engine": "chromium",
     "browser_version": "144.0.7559.96",
@@ -12,7 +12,8 @@
       800
     ],
     "storage_state_used": false,
-    "remote_network_allowed": false,
+    "allowed_origins": [],
+    "mutating_http_methods": "blocked",
     "websockets": "blocked",
     "load_mode": "offline-fixture"
   },
@@ -180,6 +181,8 @@
     "Passive current URL/state only; no application actions, role checks or persistence tests.",
     "Auth/sensitive data can appear in screenshots; use approved synthetic data. Storage-state content is never copied into this report.",
     "No colour or aesthetic pass is inferred from computed styles. Theme is observed, not forced.",
+    "Exact origin allowlist is a request filter, not OS network isolation; GET can still have server effects.",
+    "POST/PUT/PATCH/DELETE, WebSockets and service workers are blocked; GraphQL/realtime paths need a separate authorized test.",
     "WebSockets and service workers are blocked in this passive capture; realtime must be tested separately.",
     "Offline-fixture mode, when used, does not test serving, origin, routing, authenticated persistence or deployed application behaviour."
   ]

@@ -13,7 +13,7 @@ for line in manifest.read_text().splitlines():
     if pp.is_absolute() or '..' in pp.parts or '\\' in name or name in expected:
         errors.append('Unsafe/duplicate manifest path');continue
     expected[name]=h;p=root/name
-    if p.is_symlink() or not p.is_file() or not p.resolve().is_relative_to(root):
+    if p.is_symlink() or any(parent.is_symlink() for parent in p.parents if root in parent.parents) or not p.is_file() or not p.resolve().is_relative_to(root):
         errors.append(f'Missing/unsafe file {name}');continue
     if hashlib.sha256(p.read_bytes()).hexdigest()!=h:errors.append(f'Hash mismatch {name}')
 actual={p.relative_to(root).as_posix() for p in root.rglob('*') if p.is_file() and p!=manifest and '__pycache__' not in p.parts}

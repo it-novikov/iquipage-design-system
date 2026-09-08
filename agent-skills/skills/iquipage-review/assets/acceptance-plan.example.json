@@ -1,0 +1,210 @@
+{
+  "schema_version": "2.0",
+  "id": "PLAN-001",
+  "revision": 1,
+  "scope_type": "targeted",
+  "approval": {
+    "ref": "PENDING",
+    "owner": "PENDING"
+  },
+  "ds_archive_sha256": "0eb12439404cfff3e87118d447e133252fcae01a2a8e4329f264a3c79e33be2c",
+  "surfaces": [
+    {
+      "id": "workspace/tasks",
+      "description": "Объект и изменения задачи",
+      "source_ref": "PENDING_INVENTORY"
+    }
+  ],
+  "dimension_applicability": {
+    "visual": {
+      "applicable": true,
+      "reason": "Проверить применимость перед утверждением",
+      "approval_ref": null
+    },
+    "ux": {
+      "applicable": true,
+      "reason": "Проверить применимость перед утверждением",
+      "approval_ref": null
+    },
+    "code": {
+      "applicable": true,
+      "reason": "Проверить применимость перед утверждением",
+      "approval_ref": null
+    },
+    "accessibility": {
+      "applicable": true,
+      "reason": "Проверить применимость перед утверждением",
+      "approval_ref": null
+    },
+    "human-agent": {
+      "applicable": true,
+      "reason": "Проверить применимость перед утверждением",
+      "approval_ref": null
+    },
+    "performance": {
+      "applicable": true,
+      "reason": "Проверить применимость перед утверждением",
+      "approval_ref": null
+    }
+  },
+  "checks": [
+    {
+      "id": "VISUAL-001",
+      "surface_id": "workspace/tasks",
+      "dimensions": [
+        "visual"
+      ],
+      "required": true,
+      "method": "manual-inspection",
+      "environment": {
+        "engine": "PENDING",
+        "role": "member",
+        "theme": "dark",
+        "viewport": [
+          1440,
+          900
+        ],
+        "input": "keyboard",
+        "load_mode": "application",
+        "data_profile": "synthetic-confirmed"
+      },
+      "evidence_kinds": [
+        "screenshot"
+      ],
+      "acceptance": "Заменить конкретным ожидаемым результатом до утверждения",
+      "na_approval_ref": null
+    },
+    {
+      "id": "UX-001",
+      "surface_id": "workspace/tasks",
+      "dimensions": [
+        "ux"
+      ],
+      "required": true,
+      "method": "manual-inspection",
+      "environment": {
+        "engine": "PENDING",
+        "role": "member",
+        "theme": "dark",
+        "viewport": [
+          1440,
+          900
+        ],
+        "input": "keyboard",
+        "load_mode": "application",
+        "data_profile": "synthetic-confirmed"
+      },
+      "evidence_kinds": [
+        "log"
+      ],
+      "acceptance": "Заменить конкретным ожидаемым результатом до утверждения",
+      "na_approval_ref": null
+    },
+    {
+      "id": "CODE-001",
+      "surface_id": "workspace/tasks",
+      "dimensions": [
+        "code"
+      ],
+      "required": true,
+      "method": "manual-inspection",
+      "environment": {
+        "engine": "PENDING",
+        "role": "member",
+        "theme": "dark",
+        "viewport": [
+          1440,
+          900
+        ],
+        "input": "keyboard",
+        "load_mode": "application",
+        "data_profile": "synthetic-confirmed"
+      },
+      "evidence_kinds": [
+        "source-review"
+      ],
+      "acceptance": "Заменить конкретным ожидаемым результатом до утверждения",
+      "na_approval_ref": null
+    },
+    {
+      "id": "ACCESSIBILITY-001",
+      "surface_id": "workspace/tasks",
+      "dimensions": [
+        "accessibility"
+      ],
+      "required": true,
+      "method": "automated",
+      "environment": {
+        "engine": "PENDING",
+        "role": "member",
+        "theme": "dark",
+        "viewport": [
+          1440,
+          900
+        ],
+        "input": "keyboard",
+        "load_mode": "application",
+        "data_profile": "synthetic-confirmed"
+      },
+      "evidence_kinds": [
+        "log"
+      ],
+      "acceptance": "Заменить конкретным ожидаемым результатом до утверждения",
+      "na_approval_ref": null
+    },
+    {
+      "id": "HUMAN_AGENT-001",
+      "surface_id": "workspace/tasks",
+      "dimensions": [
+        "human-agent"
+      ],
+      "required": true,
+      "method": "automated",
+      "environment": {
+        "engine": "PENDING",
+        "role": "member",
+        "theme": "dark",
+        "viewport": [
+          1440,
+          900
+        ],
+        "input": "keyboard",
+        "load_mode": "application",
+        "data_profile": "synthetic-confirmed"
+      },
+      "evidence_kinds": [
+        "log"
+      ],
+      "acceptance": "Заменить конкретным ожидаемым результатом до утверждения",
+      "na_approval_ref": null
+    },
+    {
+      "id": "PERFORMANCE-001",
+      "surface_id": "workspace/tasks",
+      "dimensions": [
+        "performance"
+      ],
+      "required": true,
+      "method": "automated",
+      "environment": {
+        "engine": "PENDING",
+        "role": "member",
+        "theme": "dark",
+        "viewport": [
+          1440,
+          900
+        ],
+        "input": "keyboard",
+        "load_mode": "application",
+        "data_profile": "synthetic-confirmed"
+      },
+      "evidence_kinds": [
+        "measurement"
+      ],
+      "acceptance": "Заменить конкретным ожидаемым результатом до утверждения",
+      "na_approval_ref": null
+    }
+  ],
+  "risk_acceptances": [],
+  "known_finding_ids": []
+}

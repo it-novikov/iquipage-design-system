@@ -1,6 +1,6 @@
 interface:
   display_name: "IQUIPAGE · Аудит опыта"
   short_description: "Понятность UI для людей и команд с AI-агентами"
-  default_prompt: "Используй $iquipage-experience-audit для текущей задачи. Прочитай фактическую поставку, соблюдай scope и фиксируй доказательства."
+  default_prompt: "Используй $iquipage-experience-audit. Проведи аудит доступного UI/UX без правок приложения. Раздели наблюдения и гипотезы, предложи конкретную целевую композицию IQUIPAGE."
 policy:
   allow_implicit_invocation: true

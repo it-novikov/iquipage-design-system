@@ -1,28 +1,22 @@
-# Handoff комплекта скиллов
+# Handoff комплекта Agent Skills 1.1
 
-## Что поставлено
-Четыре скилла версии 1.0.0. Это процедурный слой над IQUIPAGE, не версия 05.8 и не модификация 05.7. DS-база зафиксирована по SHA в каждом skills/*/assets/ds-release-lock.json. Скиллы должны работать с предоставленным проектом, не с памятью о старом Sprintique.
+## Текущая точка
+Четыре скилла под pinned @iquipage/web 0.5.7. DS archive hash и assets/ds-release-lock.json НЕ менялись. IQUIPAGE runtime и шрифты в пакет не входят. Этот комплект не результат нового внедрения Sprintique.
 
-## Где менять
-- `skills/*/SKILL.md`: triggers, границы, workflow, выходные артефакты.
-- `skills/*/references/constitution.md`: неизменные принципы (общие копии должны совпадать).
-- `release-map.md`, `capability-index.json`, `ds-release-lock.json`: exact release context; обновлять только после чтения новой одобренной выдачи.
-- `quality-method.md`, `human-agent.md`, `gap-protocol.md`: общие требования и evidence model.
-- `skills/*/assets`: шаблоны рабочих документов; assessment schema и example находятся в review.
-- `skills/iquipage-review/scripts`: canonical помощники; копии в implement/audit должны совпадать.
-- `examples/evaluation-cases.json`: позитивные/негативные промпты и ожидаемые гейты. Их ещё нужно выполнить в настоящих клиентах/моделях.
+## Что проверить перед изменением
+Прочитать REVIEW-1.0.md, MIGRATION-1.1.md и quality report. Главные механизмы: review/scripts/validate_assessment.py и assessment/acceptance-plan schemas. Нельзя возвращать self-declared scope, переиспользовать прежний generic PASS для закрытия finding или убирать независимые hashes.
 
-## Почему так
-В старых миграциях главный риск — выглядящее похожим приложение без исходных функций, состояния/сохранение только в demo, внутренние CSS/DOM-патчи, преждевременное «всё проверено» и очередное локальное изобретение компонентов. Гейты направлены на эти конкретные ошибки.
+## Источники
+Установочные skills/ — самостоятельные папки. Копии общих references/scripts intentional для автономной установки; tests/validate_skills.py и test_contracts.py проверяют отсутствие дрейфа. После изменения общего ресурса синхронизировать копии. Tests/reproduce_v1.py запускает диагностику ОРИГИНАЛЬНОГО 1.0 на synthetic inputs, не меняет его.
 
-## Не заявлять лишнего
-Скиллы не устанавливались в аккаунт пользователя и не проверялись в реальных Codex/Claude model sessions. Структурная проверка SKILL.md не доказывает правильный автоматический trigger. Regex scan не доказывает отсутствие обходов; verifier не сертификат безопасности; evidence validator не детектор фальшивых логов. Нет новых полномочий и auto-deploy.
+## Команды
+`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p 'test_*.py' -v`
+`python3 tests/validate_skills.py`
+`python3 tests/verify_package.py`
+Browser smoke требует установленный Chromium; хранить новый output, не затирать reports. Runtime schema helper использует только собственный объявленный schema subset; при добавлении keyword расширить и проверить обработчик или явно добавить dependency.
 
-## Известная база
-Прочитанный DS package/runtime 0.5.7, но `types/core.d.ts` literal version 0.5.6. Сохранено как known discrepancy, не замазано правкой библиотеки. Исторический WebKit tap календаря требует собственной проверки. Native Android/iOS visual-library и готового production React-wrapper в этой выдаче нет; это нельзя выдумывать.
+## Не закрыто и не заявлено
+Реальные модельные сессии Codex/Claude, автоматическое включение skills и работа на настоящем пользовательском проекте НЕ запускались. Evaluation prompts имеют NOT_RUN. Пакет не является sandbox и не подтверждает подлинность approvals/evidence; независимый reviewer должен читать raw sources. HTTP navigation в этой среде запрещалась policy браузера, smoke через set_content не закрывает этот пункт.
 
-## Следующие проверки
-Установить в согласованном агенте, подтвердить discovery четырёх names, выполнить evaluation cases на sandbox-проекте с seeded defects и заданным scope; проверить, что агент действительно остановится на DS-GAP, не изменит vendor и не выдаст screenshot-only audit за полное acceptance. Отдельно провести real UI migration и review, не используя результаты self-tests как доказательство продуктового качества.
-
-## Разрешения и изменение правил
-Новую DS, бизнесовые требования, agent autonomy или release target согласовывать. Не снижать gates ради зелёного pipeline. Увеличить версию skill suite, зафиксировать diff, обновить тесты и manifest после изменений.
+## Следующий содержательный шаг
+Установить в разрешённой тестовой клиентской среде и прогнать selected examples/evaluation-cases.json на исходной и улучшенной версии с одной моделью/настройками и read-only репликой проекта. Сохранить actual transcripts/tool calls и оценить routing, обходы, unnecessary questions, coverage, false ready и исправления. Keyword matching не считать модельным eval. Для публикации скиллов отдельно выбрать distribution policy; сама поставка не даёт разрешения.

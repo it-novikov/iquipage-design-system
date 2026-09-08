@@ -109,7 +109,7 @@ class GateTests(unittest.TestCase):
     def finding(self,**kw):
         f={'id':'F1','severity':'P1','classification':'confirmed','status':'open','title':'fixture','surface_ids':['screen'],'reproduction':'fixture steps','recommendation':'fixture correction','evidence':self.e}
         f.update(kw);return f
-    def test_valid_fixture(self):self.assertTrue(self.result()['gate_ready'])
+    def test_legacy_valid_fixture_is_diagnostic_only(self):self.assertFalse(self.result()['gate_ready'])
     def test_no_independent_fingerprint(self):self.assertFalse(gate.validate(self.r,self.root)['gate_ready'])
     def test_stale(self):self.assertFalse(gate.validate(self.r,self.root,'c'*64)['gate_ready'])
     def test_no_scope_approval(self):self.r['scope']['approval_ref']=None;self.notready()
@@ -126,10 +126,10 @@ class GateTests(unittest.TestCase):
     def test_open_critical(self):self.r['findings']=[self.finding()];self.notready()
     def test_critical_cannot_waive(self):self.r['findings']=[self.finding(status='accepted-risk',owner='x',approval_ref='x')];self.notready()
     def test_p2_without_acceptance(self):self.r['findings']=[self.finding(severity='P2')];self.notready()
-    def test_p2_explicit_risk(self):self.r['findings']=[self.finding(severity='P2',status='accepted-risk',owner='fixture',approval_ref='fixture')];self.assertTrue(self.result()['gate_ready'])
+    def test_p2_explicit_risk(self):self.r['findings']=[self.finding(severity='P2',status='accepted-risk',owner='fixture',approval_ref='fixture')];self.assertFalse(self.result()['gate_ready'])
     def test_bypass_cannot_waive(self):self.r['findings']=[self.finding(severity='P3',status='accepted-risk',owner='fixture',approval_ref='fixture',category='unapproved-ds-bypass')];self.notready()
     def test_resolved_needs_test(self):self.r['findings']=[self.finding(status='resolved')];self.notready()
-    def test_resolved_test(self):self.r['findings']=[self.finding(status='resolved',verification_check_ids=['C1'])];self.assertTrue(self.result()['gate_ready'])
+    def test_resolved_test(self):self.r['findings']=[self.finding(status='resolved',verification_check_ids=['C1'])];self.assertFalse(self.result()['gate_ready'])
     def test_n_a_needs_reason_and_approval(self):self.r['checks'][0].update(status='NOT_APPLICABLE',reason='fixture');self.notready()
     def test_fail_must_be_visible(self):self.r['checks'][0].update(status='FAIL');self.r['verdict']['release_ready']=False;self.assertTrue(any('no related finding' in e for e in self.result()['errors']))
     def test_false_ready_claim_rejected(self):self.r['coverage'][0]['status']='BLOCKED';self.assertTrue(any('contradicts' in e for e in self.result()['errors']))
@@ -142,7 +142,8 @@ class NetworkTests(unittest.TestCase):
     def test_localhost(self):capture.check_url('http://localhost:8000',False)
     def test_remote_denied(self):
         with self.assertRaises(ValueError):capture.check_url('https://example.com',False)
-    def test_remote_explicit(self):capture.check_url('https://example.com',True)
+    def test_remote_broad_flag_rejected(self):
+        with self.assertRaises(ValueError):capture.check_url('https://example.com',True)
     def test_credentials_denied(self):
         with self.assertRaises(ValueError):capture.check_url('https://user:pass@example.com',True)
     def test_non_http_denied(self):

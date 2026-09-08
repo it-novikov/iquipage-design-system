@@ -32,3 +32,8 @@
 
 ## Основание
 Проверено 2026-09-07 по Agent Skills specification, официальным страницам OpenAI Build skills и Anthropic Claude Code skills. Адреса и область проверенного — в `skills/*/references/sources.md`. Клиентские продукты могут менять discovery и installation behaviour; перед массовым rollout проверить в используемой версии клиента.
+
+## Обновление 1.1
+Имена сохранены; перед заменой прочитать MIGRATION-1.1.md. Не оставлять одновременно разные версии одной skill-папки в личном и проектном scope, не проверив правила discovery клиента. Четыре папки независимы; установка всех не принуждает запускать их все. Metadata allow_implicit_invocation не заменяет разрешение на действия. Реальные сессии Codex/Claude не тестировались.
+
+Внешняя сверка 2026-09-07: agentskills.io/specification; developers.openai.com/codex/skills (перенаправление на learn.chatgpt.com/docs/build-skills); code.claude.com/docs/en/skills. Эти источники подтверждают формат/discovery, а не качество нашего процесса или модели.

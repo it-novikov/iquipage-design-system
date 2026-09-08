@@ -54,10 +54,17 @@ def verify(root: Path, pin: dict, archive: Path | None = None) -> dict:
     if extras:
         errors.append('Unmanifested files are present; use a clean release copy, not a build workspace')
     for name, value in pin.get('important_files', {}).items():
-        p = root / name
-        if not p.is_file() or p.is_symlink() or digest(p) != value:
-            errors.append(f'Pinned public file differs: {name}')
-    package = json.loads((root / 'package.json').read_text(encoding='utf-8'))
+        pure=PurePosixPath(name)
+        p=root/name
+        if pure.is_absolute() or '..' in pure.parts or '\\' in name or ':' in name or not pure.parts:
+            errors.append('Unsafe pinned public path');continue
+        if not p.resolve().is_relative_to(root) or p.is_symlink() or any(x.is_symlink() for x in p.parents if root in x.parents):
+            errors.append('Unsafe pinned public file');continue
+        if not p.is_file() or digest(p)!=value:errors.append(f'Pinned public file differs: {name}')
+    package_path=root/'package.json'
+    if package_path.is_symlink() or not package_path.is_file():
+        errors.append('Missing/unsafe package.json');package={}
+    else:package=json.loads(package_path.read_text(encoding='utf-8'))
     if package.get('name') != pin['package'] or package.get('version') != pin['version']:
         errors.append('Package identity/version differs from pin')
     archive_sha = None
@@ -95,6 +102,8 @@ def main() -> int:
         out=args.out.resolve()
         if out.is_relative_to(args.ds_root.resolve()):
             print('Refusing to write a report inside the immutable DS root',file=sys.stderr);return 2
+        if out.exists():
+            print('Output exists; choose a new report path',file=sys.stderr);return 2
         out.parent.mkdir(parents=True,exist_ok=True);out.write_text(text,encoding='utf-8')
     print(text,end='')
     return 0 if result['verification']=='PASS' else 1

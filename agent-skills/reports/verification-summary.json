@@ -1,0 +1,92 @@
+{
+  "schema_version": "1.0",
+  "suite_version": "1.1.0",
+  "date": "2026-09-07",
+  "basis_zip_sha256": "7d9b28d6a894eb378e282b4bfb00301d7d594194b2a401abcf1caab9ebf12568",
+  "ds_changed": false,
+  "application_changed": false,
+  "review_mode": "Author self-review with reproducible negative tests, not independent model evaluation",
+  "checks": {
+    "unit_contract_cli": {
+      "status": "PASS",
+      "passed": 181,
+      "failed": 0,
+      "skipped": 0,
+      "evidence": "tool-tests.log"
+    },
+    "v1_baseline_tests": {
+      "status": "PASS",
+      "passed": 60,
+      "evidence": "baseline-tests.log"
+    },
+    "v1_defect_reproduction": {
+      "status": "REPRODUCED",
+      "cases": 8,
+      "evidence": "baseline-adversarial.json"
+    },
+    "skill_structure": {
+      "status": "PASS",
+      "skills": 4,
+      "evidence": "skill-validation.json"
+    },
+    "synthetic_offline_browser": {
+      "status": "PASS",
+      "cases": 3,
+      "engine": "Chromium 144.0.7559.96",
+      "evidence": "capture-smoke.json"
+    },
+    "http_navigation": {
+      "status": "BLOCKED",
+      "reason": "ERR_BLOCKED_BY_ADMINISTRATOR",
+      "evidence": "capture-smoke.json"
+    },
+    "ds_integrity": {
+      "status": "PASS",
+      "matched": 297,
+      "total": 297,
+      "evidence": "ds-baseline-verification.json"
+    },
+    "model_evaluation": {
+      "status": "NOT_RUN",
+      "cases_prepared": 40,
+      "reason": "No installed Codex or Claude CLI; not replaced by helper tests"
+    }
+  },
+  "main_instruction_size": [
+    {
+      "skill": "iquipage-discovery",
+      "before_chars": 6315,
+      "after_chars": 4696,
+      "reduction_percent": 25.6,
+      "scope": "Characters of main SKILL.md only; not tokens or measured model quality"
+    },
+    {
+      "skill": "iquipage-experience-audit",
+      "before_chars": 6229,
+      "after_chars": 4432,
+      "reduction_percent": 28.8,
+      "scope": "Characters of main SKILL.md only; not tokens or measured model quality"
+    },
+    {
+      "skill": "iquipage-implement",
+      "before_chars": 7704,
+      "after_chars": 5516,
+      "reduction_percent": 28.4,
+      "scope": "Characters of main SKILL.md only; not tokens or measured model quality"
+    },
+    {
+      "skill": "iquipage-review",
+      "before_chars": 7660,
+      "after_chars": 5827,
+      "reduction_percent": 23.9,
+      "scope": "Characters of main SKILL.md only; not tokens or measured model quality"
+    }
+  ],
+  "limitations": [
+    "Gate validates structure and pinned-scope consistency only; cannot prove truthful evidence or approvals",
+    "Capture is not scenario execution and not OS sandbox",
+    "Static scanner does not prove all bypasses absent",
+    "No new DS UI, Sprintique, real model client, user study or physical-device testing"
+  ],
+  "package_file_count": 156
+}

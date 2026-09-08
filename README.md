@@ -9,7 +9,7 @@
 ```text
 .
 ├── design-system/        # IQUIPAGE 05.7: HTML, ESM, CSS, tokens, API, tests
-├── agent-skills/         # Полный переносимый комплект скиллов 1.0.0
+├── agent-skills/         # Полный переносимый комплект скиллов 1.1.0
 ├── .agents/skills/       # Скиллы, доступные агенту прямо в этом репозитории
 ├── AGENTS.md             # Короткие правила работы для агента
 └── START-HERE.md         # Маршрутизация типовых задач
@@ -32,7 +32,7 @@
 
 ### Агентские скиллы
 
-В `agent-skills/` находится переносимый комплект `1.0.0`, включающий четыре скилла:
+В `agent-skills/` находится переносимый комплект `1.1.0`, включающий четыре скилла:
 
 | Скилл | Для чего нужен |
 | --- | --- |
@@ -42,6 +42,19 @@
 | `iquipage-review` | Проверить код, визуал, доступность, состояния, производительность и обходы DS |
 
 Каждый скилл самодостаточен: рядом с `SKILL.md` лежат нужные references, assets, templates и scripts.
+
+### Что изменилось в 1.1
+
+Дизайн-система 05.7 не менялась. Обновился только процесс работы с агентами:
+
+- добавлены acceptance plan, evidence registry, fingerprint и `scope_ready`;
+- assessment schema обновлена до 2.0, а формат 1.0 оставлен только для исторической диагностики;
+- capture теперь использует точные `--allow-origin`, работает offline и блокирует изменяющие HTTP-запросы;
+- scanner по умолчанию не печатает snippets, а исключения фиксирует в ledger;
+- отчёты не перезаписываются, добавлен resume state;
+- добавлена отдельная rubric для design review.
+
+При переходе с 1.0 прочитайте [MIGRATION-1.1.md](agent-skills/docs/MIGRATION-1.1.md). Старые scripts и assets не нужно смешивать с новыми.
 
 ## Быстро открыть систему
 
@@ -129,6 +142,13 @@ python3 tests/validate_skills.py
 python3 tests/test_tools.py
 ```
 
+В комплекте 1.1 также есть contract/hardening проверки:
+
+```sh
+python3 tests/test_contracts.py
+python3 tests/test_review_hardening.py
+```
+
 ## Важные границы
 
 - Дизайн-система не является приложением и не содержит production API, backend или серверное хранение.
@@ -146,6 +166,8 @@ python3 tests/test_tools.py
 - [Whiteboard API](design-system/docs/WHITEBOARD-API.md)
 - [QA](design-system/docs/QA.md)
 - [Скиллы: README](agent-skills/README.md)
+- [Изменения скиллов](agent-skills/CHANGELOG.md)
+- [Миграция 1.1](agent-skills/docs/MIGRATION-1.1.md)
 - [Workflow скиллов](agent-skills/docs/WORKFLOW.md)
 - [Качество скиллов](agent-skills/docs/QUALITY.md)
 
@@ -154,11 +176,10 @@ python3 tests/test_tools.py
 В репозиторий перенесены приложенные поставки:
 
 - `IQUIPAGE-05.7.zip` → `design-system/`;
-- `IQUIPAGE-Agent-Skills-1.0.zip` → `agent-skills/`.
+- `IQUIPAGE-Agent-Skills-1.1.zip` → `agent-skills/`.
 
-Содержимое архивов сохранено, включая манифесты и evidence. Инструкции из приложенного `START-HERE(1).md` перенесены в понятную навигацию этого репозитория, но не расширяют пользовательскую задачу и не дают разрешения на изменение backend, публикацию или deploy.
+Содержимое архивов сохранено, включая манифесты и evidence. Инструкции из приложенного `MIGRATION-1.1.md` отражены в документации репозитория, но не расширяют пользовательскую задачу и не дают разрешения на изменение backend, публикацию или deploy.
 
 ## Лицензия
 
 В исходных поставках отдельная лицензия не приложена. До публикации производных работ или передачи кода третьим лицам уточните права у владельца репозитория.
-

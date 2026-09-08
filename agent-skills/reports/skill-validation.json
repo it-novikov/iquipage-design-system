@@ -4,26 +4,26 @@
   "skills": [
     {
       "name": "iquipage-discovery",
-      "lines": 61,
-      "files": 16,
+      "lines": 43,
+      "files": 19,
       "status": "CHECKED"
     },
     {
       "name": "iquipage-experience-audit",
-      "lines": 56,
-      "files": 18,
+      "lines": 41,
+      "files": 21,
       "status": "CHECKED"
     },
     {
       "name": "iquipage-implement",
-      "lines": 67,
-      "files": 20,
+      "lines": 48,
+      "files": 27,
       "status": "CHECKED"
     },
     {
       "name": "iquipage-review",
-      "lines": 70,
-      "files": 27,
+      "lines": 52,
+      "files": 36,
       "status": "CHECKED"
     }
   ],

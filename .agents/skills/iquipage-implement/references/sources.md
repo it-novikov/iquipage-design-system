@@ -20,3 +20,9 @@
 
 ## Авторские процедуры этого комплекта
 Роли четырёх скиллов, гейты, форматы отчётов, severity, сценарии опроса и Human/Agent contract — новые рабочие инструкции по запросу владельца. Они не выданы за существующие функции библиотеки, результаты независимого UX-исследования или гарантию соблюдения скилла любой моделью. Каждый новый проект требует своих согласованных требований и тестов.
+
+## Сверка формата при ревью 1.1 (2026-09-07)
+- https://agentskills.io/specification — frontmatter, description, локальные ресурсы и progressive disclosure.
+- https://developers.openai.com/codex/skills → https://learn.chatgpt.com/docs/build-skills — местоположение .agents/skills, explicit invocation, optional openai.yaml.
+- https://code.claude.com/docs/en/skills — .claude/skills, invocation и ограничения metadata.
+Это внешняя проверка packaging/discovery, а не источник изменений принятого IQUIPAGE и не подтверждение работы навыков на модели. Улучшения скиллов основаны на ревью их исходных файлов и synthetic tests.

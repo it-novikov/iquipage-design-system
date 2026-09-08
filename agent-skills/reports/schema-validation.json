@@ -1,5 +1,0 @@
-{
-  "status": "PASS",
-  "scope": "Example assessment conforms to authored JSON schema. It remains NOT_RUN and release_ready=false.",
-  "python": "3.13.5"
-}
