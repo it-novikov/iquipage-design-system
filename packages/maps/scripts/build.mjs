@@ -1,4 +1,4 @@
-import {applyBoardPatches,applyBoardLifecyclePatches} from '../ds-extension/board-patches.mjs';
+import {applyBoardPatches,applyBoardLifecyclePatches,applyBoardSafetyPatches} from '../ds-extension/board-patches.mjs';
 import {readFile,writeFile,mkdir,cp,rm} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
@@ -24,6 +24,7 @@ const patch=async(name,old,next)=>{
 };
 await applyBoardPatches(patch);
 await applyBoardLifecyclePatches(patch);
+await applyBoardSafetyPatches(patch);
 const api=await readFile(path.join(root,'ds-extension/public-api.inc.js'),'utf8');
 await patch('src/modules/whiteboard.js',"static get observedAttributes(){return['readonly','state']}","static get observedAttributes(){return['readonly','state','surface-mode']}\n"+api);
 await patch('src/modules/whiteboard.js','<main class="wb-center">','<section class="wb-center" aria-label="Поверхность карты">');
@@ -35,10 +36,10 @@ await patch('src/modules/whiteboard-workshop.js','  action(id,el){',`  action(id
    }`);
 const cssPath=path.join(build,'src/styles/whiteboard-workshop.css');
 await writeFile(cssPath,(await readFile(cssPath,'utf8'))+'\n'+await readFile(path.join(root,'ds-extension/embedded.css'),'utf8'));
-const tokens=JSON.parse(await readFile(path.join(build,'tokens/semantic.json'),'utf8'));tokens.meta.version='0.6.0-maps.1';tokens.meta.status='maps-source-candidate';
+const tokens=JSON.parse(await readFile(path.join(build,'tokens/semantic.json'),'utf8'));tokens.meta.version='0.6.0-board.1';tokens.meta.status='maps-source-candidate';
 await writeFile(path.join(build,'tokens/semantic.json'),JSON.stringify(tokens,null,2));
 execFileSync(process.execPath,[path.join(build,'scripts/build.mjs')],{cwd:build,stdio:'inherit'});
 await mkdir(out,{recursive:true});await rm(path.join(out,'vendor'),{recursive:true,force:true});await cp(path.join(build,'dist'),path.join(out,'vendor'),{recursive:true});
 await cp(path.join(build,'assets/icons'),path.join(out,'icons'),{recursive:true});
-await writeFile(path.join(out,'candidate.json'),JSON.stringify({version:'0.6.0-maps.1',baseVersion:'0.5.7',baseManifest:expectedManifest,cssSha256:hash(await readFile(path.join(out,'vendor/iquipage.css'))),extensionSha256:hash(api),note:'Explicit DS source candidate; no production acceptance implied'},null,2)+'\n');
+await writeFile(path.join(out,'candidate.json'),JSON.stringify({version:'0.6.0-board.1',baseVersion:'0.5.7',baseManifest:expectedManifest,cssSha256:hash(await readFile(path.join(out,'vendor/iquipage.css'))),extensionSha256:hash(api),boardExtensionSha256:hash(await readFile(path.join(root,'ds-extension/board-patches.mjs'))),note:'Explicit DS source candidate; no production acceptance implied'},null,2)+'\n');
 console.log('Maps DS candidate ready. Original design-system/ remains unchanged.');

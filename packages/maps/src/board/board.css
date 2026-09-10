@@ -1,0 +1,35 @@
+/* Public Board composition. Load the matching IQUIPAGE CSS and shared Maps dialog styles. */
+.iq-task-board-root{width:100%;height:100%;min-height:0;min-width:0;overflow:hidden;display:flex}
+.host-task-page{display:flex;flex-direction:column;flex:1;min-height:0;min-width:0;padding:var(--iq-space-6)}
+.host-task-heading{display:flex;align-items:center;justify-content:space-between;gap:var(--iq-space-6);flex:none}
+.iq-task-board-root .host-task-heading h1{font-size:var(--iq-work-compact-title);margin:0;line-height:1.3}
+.host-task-tools{display:flex;align-items:center;gap:var(--iq-space-3);padding:var(--iq-space-4) 0;flex:none;flex-wrap:wrap}
+.host-task-tools .iq-search-small{width:min(320px,100%)}
+.host-board-mount{flex:1;min-width:0;min-height:0;display:flex;overflow:hidden}
+.host-task-board.kanban{display:grid;grid-template-columns:repeat(6,minmax(264px,1fr));grid-auto-rows:minmax(min-content,1fr);gap:var(--iq-space-4);flex:1;min-width:0;min-height:0;max-height:none;overflow:auto;align-items:stretch;padding:0 0 var(--iq-space-3);scroll-padding:76px var(--iq-space-4) var(--iq-space-4)}
+.host-task-board.kanban>.kanban-column{display:block;padding:0;min-height:100%;min-width:0;overflow:visible}
+.host-task-board .kanban-column-header{height:76px;min-height:76px;align-items:center;margin:0;top:0;z-index:4}
+.host-task-board .kanban-column-header h3{font:600 13px/1.4 var(--iq-font);flex:1;min-width:0;max-width:none;margin:0;white-space:normal}
+.host-task-board .kanban-count{flex:0 0 auto;min-width:25px;width:auto;height:25px;padding-inline:6px;margin:0;font-variant-numeric:tabular-nums}
+.host-task-board .column-cards{min-height:0;flex:none}
+.host-task-board .task-card{flex:none;height:auto;margin:0;min-width:0;margin-inline-start:calc(var(--task-depth,0)*var(--iq-space-3))}
+.host-task-board .task-card-title{width:100%;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.host-task-board .host-column-add{width:calc(100% - 24px);justify-content:flex-start;margin:0 12px 12px}
+.host-task-error{padding:var(--iq-space-3) 0;font-size:13px;color:var(--iq-danger);flex:none}
+.task-owner-empty{color:var(--iq-muted)}
+.host-task-tools .host-board-sort{margin-left:auto;min-width:176px}.host-board-sort .iq-control-label{position:absolute;width:1px;height:1px;clip-path:inset(50%);overflow:hidden}
+.host-board-sort .iq-select-trigger{min-height:36px;padding:7px 11px;font-size:12px;border-color:var(--iq-line)}
+.task-parent-context,.task-child-toggle,.task-child-jump{display:flex;align-items:center;gap:6px;background:transparent;padding:0;min-height:28px;font-size:11px;color:var(--iq-muted);text-align:left}
+.task-parent-context>span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.task-child-toggle{border-top:1px solid var(--iq-line);padding-top:var(--iq-space-2)}
+.host-task-board .task-card[aria-busy=true]{opacity:.65}.host-task-board .iq-avatars{flex-shrink:0}
+.host-task-board .board-empty-slot{border:0;padding:var(--iq-space-6) var(--iq-space-3);background:transparent}
+.host-task-board .empty-art{width:64px;height:58px;margin:0 auto var(--iq-space-3)}.host-task-board .empty-sheet{width:46px;height:46px;left:8px;top:4px;border-radius:var(--iq-radius-sm)}
+.task-edit-dialog[data-size=wide] .map-modal.iq-drawer{width:min(760px,100vw);height:100dvh;max-height:100dvh;margin:0 0 0 auto;border-radius:0}
+.task-edit-dialog .map-dialog-form{height:100dvh;max-height:100dvh}.task-edit-dialog .map-dialog-body{flex:1}
+.task-edit-properties{display:grid;grid-template-columns:1fr 1fr;gap:var(--iq-space-5)}.task-edit-section{display:grid;gap:var(--iq-space-3)}.task-edit-section h3{font-size:16px}
+@media(max-width:760px){.host-task-page{padding:var(--iq-space-4)}.host-task-tools .iq-search-small{flex:1}.host-task-tools>[data-refresh-tasks]{width:36px;padding:0}.task-edit-properties{grid-template-columns:1fr}.host-task-tools .host-board-sort{min-width:155px}}
+
+/* The compact toolbar wraps deliberately, never into a one-word search field. */
+@media(max-width:580px){.host-task-tools{display:grid;grid-template-columns:minmax(0,1fr) 36px 36px}.host-task-tools .iq-search-small{grid-column:1/-1;width:100%;min-width:0}.host-task-tools .host-board-sort{margin-left:0;min-width:0}.host-task-tools .host-board-sort .iq-select-trigger{width:100%}}
+.host-task-board .task-card>.task-nesting-guide{position:absolute;z-index:0;left:-8px;top:0;bottom:0;width:1px;background:var(--iq-line);pointer-events:none}
+.host-task-board .task-card>.task-nesting-guide::after{content:"";position:absolute;left:0;top:24px;width:6px;height:1px;background:var(--iq-line)}

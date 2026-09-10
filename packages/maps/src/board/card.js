@@ -13,11 +13,12 @@ export function renderTaskCard(row,{index,canEdit,pending=false,collapsed=false}
   const due=t.due&&/^\d{4}-\d{2}-\d{2}$/.test(t.due)?new Intl.DateTimeFormat('ru',{day:'numeric',month:'short',timeZone:'UTC'}).format(new Date(t.due+'T12:00:00Z')):'';
   const menu=ui.menu(ui.ib('more','Действия задачи: '+t.title,'ghost sm'),[{label:'Открыть задачу',glyph:'expand',action:'open:'+t.id},...(canEdit?[{label:'Переместить…',glyph:'arrow',action:'move-menu:'+t.id}]:[])]);
   return `<article class="task-card" data-task-surface="${id}" data-task-emphasis="${taskEmphasis(t)}" data-task-kind="${esc(t.type||'task')}" data-drag-id="${id}" data-priority="${normalizePriority(t.priority)}" style="--task-depth:${Math.min(row.depth,3)}" ${pending?'aria-busy="true"':''}>
+    ${row.depth?'<span class="task-nesting-guide" aria-hidden="true"></span>':''}
     ${row.depth===0&&row.parent?`<button type="button" class="task-parent-context" data-open-task="${esc(row.parent.id)}" title="${esc(row.parent.title)}"><span>${esc(row.parent.displayId||row.parent.title)}</span></button>`:''}
     <div class="task-card-top"><div class="task-identity">
     <button type="button" class="iq-drag-handle" data-drag-handle aria-label="Переместить задачу: ${esc(t.title)}" aria-pressed="false" aria-describedby="board-drag-help" ${!canEdit||pending?'disabled':''}>${icon('grip',16)}</button>
-    <span class="task-card-id">${esc(t.displayId||t.id.slice(-7).toUpperCase())}</span>${taskSignal(t)}</div>${menu}</div>
-    <span class="task-kind-label" data-kind="${esc(t.type||'task')}">${esc(label)}</span>
+    <span class="task-card-id">${esc(t.displayId||t.id.slice(-7).toUpperCase())}</span><span title="${esc(label)}" aria-label="${esc(label)}">${icon(t.type==='bug'?'bug':t.type==='epic'?'stack':'checklist',14)}</span>${taskSignal(t)}</div>${menu}</div>
+
     <button type="button" class="task-card-title" data-open-task="${id}" title="${esc(t.title)}">${esc(t.title)}</button>
     <div class="task-card-footer"><span class="task-due">${due?icon('calendar',15)+`<span>${esc(due)}</span>`:''}</span>${taskAvatars(t,index)}</div>
     ${row.children?`<button type="button" class="task-child-toggle" data-toggle-children="${id}" aria-expanded="${!collapsed}">${icon(collapsed?'chevron':'down',14)}<span>Подзадачи · ${row.children}</span></button>`:''}

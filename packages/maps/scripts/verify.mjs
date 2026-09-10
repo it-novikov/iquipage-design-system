@@ -23,7 +23,7 @@ try{
     }
     console.log('PASS '+name);
   }
-  for(const name of ['artifacts/r3/browser-report.json','artifacts/final/browser-events.json','artifacts/final/browser-recovery.json','artifacts/r3/preview-report.json']){
+  for(const name of ['artifacts/r3/browser-report.json','artifacts/final/browser-events.json','artifacts/final/browser-recovery.json','artifacts/r3/preview-report.json','artifacts/board-b1/layout.json','artifacts/board-b1/interactions.json','artifacts/board-b1/motion.json']){
     const report=JSON.parse(await readFile(path.join(root,name),'utf8'));
     if(report.status!=='PASS')throw Error('Required report did not pass: '+name);
     if(!name.includes('preview-report'))browserScenarios+=report.checks.length;
@@ -31,7 +31,7 @@ try{
   if((await fingerprint()).sha256!==before.sha256)throw Error('Source changed during acceptance');
 }catch(error){failure=error;console.error(error.message);}
 const git=spawnSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'});
-const report={release:'R4',status:failure?'FAIL':'PASS',startedAt,finishedAt:new Date().toISOString(),sourceCommit:git.status===0?git.stdout.trim():null,sourceFingerprint:before.sha256,node:process.version,nodeTests,browserScenarios,checks,error:failure?.message,scope:'reusable-module-and-local-reference',limitations:['No production Sprintique API/auth deployment','No live LLM credentials or provider calls','No multi-user collaboration','Real touch devices, screen readers and Safari not accepted']};
+const report={release:'Board-B1',status:failure?'FAIL':'PASS',startedAt,finishedAt:new Date().toISOString(),sourceCommit:git.status===0?git.stdout.trim():null,sourceFingerprint:before.sha256,node:process.version,nodeTests,browserScenarios,checks,error:failure?.message,scope:'reusable-module-and-local-reference',limitations:['No production Sprintique API/auth deployment','No live LLM credentials or provider calls','No multi-user collaboration','Real touch devices, screen readers and Safari not accepted','Board B2-B5 features are not complete','Headless motion sample is not a real-device FPS acceptance']};
 try{report.previewSha256=sha(await readFile(path.join(root,'preview.html')));report.dsCandidate=JSON.parse(await readFile(path.join(root,'dist/candidate.json'),'utf8'));}catch(error){report.artifactError=error.message;report.status='FAIL';}
 await writeFile(path.join(artifact,'verification.json'),JSON.stringify(report,null,2)+'\n');
 await writeFile(path.join(artifact,'fingerprint.json'),JSON.stringify(before,null,2)+'\n');

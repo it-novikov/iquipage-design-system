@@ -14,7 +14,8 @@ export async function applyBoardPatches(patch) {
     '        const ph = state.placeholder;',
     `        if (typeof options.resolvePlacement === 'function') {
             const placement = options.resolvePlacement({id: state.card.dataset.dragId, status: col.dataset.dropStatus, beforeId: before?.dataset.dragId || null, keyboard: state.keyboard});
-            if (placement === false) return;
+            state.denied = placement === false;
+            if (state.denied) return;
             before = placement?.beforeId ? [...list.children].find(node => node.dataset.dragId === placement.beforeId && node !== state.card) || null : null;
         }
         const ph = state.placeholder;`);
@@ -39,4 +40,14 @@ export async function applyBoardLifecyclePatches(patch){
   await patch('src/modules/board-motion.js',
     '        const r = card.getBoundingClientRect();',
     "        if(options.canDrag?.({id:card.dataset.dragId}) === false)return;\n        const r = card.getBoundingClientRect();");
+}
+
+export async function applyBoardSafetyPatches(patch){
+  await patch('src/modules/board-motion.js','        if (!col) {','        if (!col || s.denied) {');
+  await patch('src/modules/board-motion.js',
+    '        if (col && board.contains(col))\n            finish();',
+    '        if (col && board.contains(col) && col === state.placeholder.closest(\'[data-drop-status]\') && !state.denied)\n            finish();');
+  await patch('src/modules/board-motion.js',
+    "${card.querySelector('.task-card-id').textContent}",
+    "${card.querySelector('.task-card-id').textContent.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]))}");
 }

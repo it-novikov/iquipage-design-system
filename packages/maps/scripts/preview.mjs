@@ -33,7 +33,7 @@ async function visit(name){
 }
 await visit('/demo/app.js');
 const imports=Object.fromEntries([...modules].sort(([a],[b])=>a.localeCompare(b)).map(([name,source])=>[prefix+name,'data:text/javascript;base64,'+Buffer.from(source).toString('base64')]));
-const css=(await Promise.all(['dist/vendor/iquipage.css','src/maps.css','demo/shell.css'].map(p=>readFile(path.join(root,p),'utf8')))).join('\n');
+const css=(await Promise.all(['dist/vendor/iquipage.css','src/maps.css','demo/shell.css','src/board/board.css'].map(p=>readFile(path.join(root,p),'utf8')))).join('\n');
 let html=await readFile(path.join(root,'demo/index.html'),'utf8');
 html=html.replace(/<link\b[^>]*rel="stylesheet"[^>]*>/g,'');
 html=html.replace(/<script\b[^>]*src="\/demo\/app.js"[^>]*><\/script>/g,'');

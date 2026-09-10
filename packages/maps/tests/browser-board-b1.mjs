@@ -9,7 +9,7 @@ const {chromium}=await import(process.env.MAPS_PLAYWRIGHT_MODULE?pathToFileURL(p
 let browser,failure;
 await mkdir('artifacts/board-b1',{recursive:true});
 try{
-  for(let i=0;i<24;i++)await api.put('tasks',createTask({projectId:'board-b1',title:`Задача ${i+1}: проверить читаемость длинного названия и расположение содержимого карточки без наложения на соседнюю задачу`,owner:'Тестовый участник',priority:i===0?'critical':i===1?'high':'normal'}));
+  for(let i=0;i<200;i++)await api.put('tasks',createTask({projectId:'board-b1',title:`Задача ${i+1}: проверить читаемость длинного названия и расположение содержимого карточки без наложения на соседнюю задачу`,owner:'Тестовый участник',priority:i===0?'critical':i===1?'high':'normal'}));
   browser=await chromium.launch({headless:true,...(process.env.MAPS_CHROMIUM_PATH?{executablePath:process.env.MAPS_CHROMIUM_PATH}:{})});
   const context=await browser.newContext({viewport:{width:1440,height:900},reducedMotion:'reduce'});
   await context.route('**/*',r=>new URL(r.request().url()).origin===api.base?r.continue():r.abort());
@@ -28,7 +28,7 @@ try{
       assert.ok(r.footTop>=r.titleBottom&&r.footBottom<=r.bottom+1,`Footer outside card ${i}: ${JSON.stringify(r)}`);
       if(i)assert.ok(r.top>=geometry[i-1].bottom,`Cards overlap at ${i}`);
     }
-    checks.push({name:`24 long cards remain contained at ${width}×${height}`,status:'PASS'});
+    checks.push({name:`200 long cards remain contained at ${width}×${height}`,status:'PASS'});
   }
   const board=page.locator('.iq-board'),headers=page.locator('.kanban-column-header');
   const before=await headers.first().boundingBox();
@@ -36,7 +36,7 @@ try{
   const positions=await headers.evaluateAll(nodes=>nodes.map(n=>n.getBoundingClientRect().top));
   assert.ok(positions.every(y=>Math.abs(y-before.y)<2),'Headers must share a sticky row');
   assert.equal(await page.locator('.kanban-column').evaluateAll(nodes=>nodes.filter(n=>['auto','scroll'].includes(getComputedStyle(n).overflowY)).length),0);
-  assert.equal(await page.locator('[data-drop-status=ready] .kanban-count').textContent(),'24');
+  assert.equal(await page.locator('[data-drop-status=ready] .kanban-count').textContent(),'200');
   checks.push({name:'one vertical scroll root, sticky headers and exact column count',status:'PASS'});
   assert.deepEqual(errors,[]);
 }catch(e){failure=e;console.error(e);}
