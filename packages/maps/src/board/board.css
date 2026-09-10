@@ -33,3 +33,48 @@
 @media(max-width:580px){.host-task-tools{display:grid;grid-template-columns:minmax(0,1fr) 36px 36px}.host-task-tools .iq-search-small{grid-column:1/-1;width:100%;min-width:0}.host-task-tools .host-board-sort{margin-left:0;min-width:0}.host-task-tools .host-board-sort .iq-select-trigger{width:100%}}
 .host-task-board .task-card>.task-nesting-guide{position:absolute;z-index:0;left:-8px;top:0;bottom:0;width:1px;background:var(--iq-line);pointer-events:none}
 .host-task-board .task-card>.task-nesting-guide::after{content:"";position:absolute;left:0;top:24px;width:6px;height:1px;background:var(--iq-line)}
+
+/* Task content uses the supplied form, Markdown, accordion and checkbox compositions. */
+.task-selected-tags{display:flex;align-items:center;gap:var(--iq-space-2);flex-wrap:wrap;min-height:var(--iq-control-sm)}
+.task-checklist{padding:var(--iq-space-4) 0;border-bottom:1px solid var(--iq-line)}
+.task-checklist>header{margin-bottom:var(--iq-space-3);gap:var(--iq-space-2)}
+.task-checklist [data-progress]{font-size:12px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.task-checklist .iq-input-shell{min-height:var(--iq-control-sm);background:transparent;border-color:var(--iq-line)}
+.task-checklist .iq-input-shell input{padding-block:var(--iq-space-2);font-size:13px}
+.task-checklist [data-item]{gap:var(--iq-space-2);flex-wrap:nowrap}
+.task-checklist [data-item]>.iq-check{flex:none;min-width:20px}
+.task-checklist [data-add-item]{margin-top:var(--iq-space-2)}
+[data-checklists]>[data-add-list]{margin-top:var(--iq-space-3)}
+.task-thread>summary{align-items:center;gap:var(--iq-space-3)}
+.thread-state{font-size:11px;color:var(--iq-muted);font-weight:500}
+.thread-state.unresolved{color:var(--iq-warning)}
+.thread-excerpt{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:13px;line-height:1.6;margin:var(--iq-space-1) 0}
+.task-thread summary small{display:block;font-size:11px;color:var(--iq-muted);font-weight:400}
+.task-thread>.thread-body{max-width:none;color:var(--iq-ink);padding-bottom:var(--iq-space-5)}
+.thread-message{padding:var(--iq-space-3) 0;border-top:1px solid var(--iq-line)}
+.thread-message>header{display:flex;justify-content:space-between;gap:var(--iq-space-3);font-size:12px;margin-bottom:var(--iq-space-2)}
+.thread-message time{font-size:11px;color:var(--iq-muted)}
+.thread-compose{margin-top:var(--iq-space-5)}
+.thread-compose>.iq-check{font-size:12px;margin-top:var(--iq-space-2)}
+.thread-body>iq-markdown-editor{margin-top:var(--iq-space-3)}
+[data-task-threads]>.row{align-items:baseline}
+[data-task-threads] .map-form-error{padding:var(--iq-space-3) 0}
+
+.board-filter-bar{display:flex;align-items:center;gap:var(--iq-space-2);flex-wrap:wrap;padding-bottom:var(--iq-space-3);flex:none}
+.board-filter-condition{display:inline-flex;align-items:center;background:var(--iq-surface);border-radius:var(--iq-radius-sm);max-width:100%}
+.board-filter-condition>[data-filter]{max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.board-filter-condition>[data-clear-filter]{flex:none}
+.task-card-metadata{display:flex;align-items:center;gap:var(--iq-space-1);flex-wrap:wrap;min-width:0}
+.task-card-metadata .iq-tag{font-size:10px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border:0}
+.task-card-metadata .iq-helper{margin:0;font-size:10px}
+.task-release{display:inline-flex;gap:var(--iq-space-1);align-items:center;font-size:11px;color:var(--iq-muted);overflow-wrap:anywhere}
+.iq-task-board-root .task-due{flex-wrap:wrap}
+.task-due>span{display:inline-flex;gap:var(--iq-space-1);align-items:center}
+.task-settings-page{max-width:850px}
+.task-settings-page>.row{align-items:center}
+.task-settings-page .iq-list{margin-top:var(--iq-space-5)}
+.task-settings-page .iq-list-item{flex-wrap:wrap;gap:var(--iq-space-2)}
+.task-settings-page .iq-list-item>div{flex:1 1 200px}
+[data-effective-template]{max-width:none}
+[data-effective-template] h4{margin-top:var(--iq-space-3)}
+@media(max-width:600px){.board-filter-bar{gap:var(--iq-space-1)}.board-filter-condition>[data-filter]{max-width:220px}.task-thread .thread-message>header{flex-wrap:wrap}.task-edit-properties{gap:var(--iq-space-4)}}

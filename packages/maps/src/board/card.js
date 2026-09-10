@@ -1,3 +1,5 @@
+import {tagMarkup} from './catalog-ui.js';
+import {checklistProgress} from './task-content.js';
 import {taskEmphasis,taskSignal,normalizePriority,ui} from '../../dist/vendor/core.js';
 import {icon,esc} from '../ui.js';
 import {childOwners,taskKindLabel} from './model.js';
@@ -8,8 +10,10 @@ export function taskAvatars(task,index){
   if(!owners.length)return `<span class="task-owner-empty" title="Без ответственного">${icon('user',17)}</span>`;
   return `<span class="iq-avatars" aria-label="${children.length?'Исполнители подзадач':'Исполнитель'}">${owners.slice(0,3).map(avatar).join('')}${owners.length>3?`<span class="iq-avatar more" role="img" title="${esc(owners.slice(3).join(', '))}" aria-label="Ещё ${owners.length-3}">+${owners.length-3}</span>`:''}</span>`;
 }
-export function renderTaskCard(row,{index,canEdit,pending=false,collapsed=false}){
+export function renderTaskCard(row,{index,canEdit,pending=false,collapsed=false,catalogs={tags:[],releases:[]}}){
   const t=row.task,id=esc(t.id),label=taskKindLabel(t);
+  const tags=catalogs.tags.filter(tag=>(t.tagIds||[]).includes(tag.id)),release=catalogs.releases.find(item=>item.id===t.releaseId),progress=checklistProgress(t.checklists||[]);
+  const metadata=[...tags.slice(0,2).map(tagMarkup),tags.length>2?`<span class="iq-helper" title="${esc(tags.slice(2).map(tag=>tag.name).join(', '))}">+${tags.length-2}</span>`:'',release?`<span class="task-release" title="Релиз: ${esc(release.name)}">${icon('box',13)} ${esc(release.name)}</span>`:''].filter(Boolean).join('');
   const due=t.due&&/^\d{4}-\d{2}-\d{2}$/.test(t.due)?new Intl.DateTimeFormat('ru',{day:'numeric',month:'short',timeZone:'UTC'}).format(new Date(t.due+'T12:00:00Z')):'';
   const menu=ui.menu(ui.ib('more','Действия задачи: '+t.title,'ghost sm'),[{label:'Открыть задачу',glyph:'expand',action:'open:'+t.id},...(canEdit?[{label:'Переместить…',glyph:'arrow',action:'move-menu:'+t.id}]:[])]);
   return `<article class="task-card" data-task-surface="${id}" data-task-emphasis="${taskEmphasis(t)}" data-task-kind="${esc(t.type||'task')}" data-drag-id="${id}" data-priority="${normalizePriority(t.priority)}" style="--task-depth:${Math.min(row.depth,3)}" ${pending?'aria-busy="true"':''}>
@@ -20,7 +24,8 @@ export function renderTaskCard(row,{index,canEdit,pending=false,collapsed=false}
     <span class="task-card-id">${esc(t.displayId||t.id.slice(-7).toUpperCase())}</span><span title="${esc(label)}" aria-label="${esc(label)}">${icon(t.type==='bug'?'bug':t.type==='epic'?'stack':'checklist',14)}</span>${taskSignal(t)}</div>${menu}</div>
 
     <button type="button" class="task-card-title" data-open-task="${id}" title="${esc(t.title)}">${esc(t.title)}</button>
-    <div class="task-card-footer"><span class="task-due">${due?icon('calendar',15)+`<span>${esc(due)}</span>`:''}</span>${taskAvatars(t,index)}</div>
+    ${metadata?`<div class="task-card-metadata">${metadata}</div>`:''}
+    <div class="task-card-footer"><span class="task-due">${due?icon('calendar',15)+`<span>${esc(due)}</span>`:''}${progress.total?`<span title="Выполнено пунктов чек-листов">${icon('checklist',14)} ${progress.done}/${progress.total}</span>`:''}</span>${taskAvatars(t,index)}</div>
     ${row.children?`<button type="button" class="task-child-toggle" data-toggle-children="${id}" aria-expanded="${!collapsed}">${icon(collapsed?'chevron':'down',14)}<span>Подзадачи · ${row.children}</span></button>`:''}
     ${row.otherChildren?`<button type="button" class="task-child-jump" data-show-children="${id}">В других столбцах: ${row.otherChildren}</button>`:''}
   </article>`;

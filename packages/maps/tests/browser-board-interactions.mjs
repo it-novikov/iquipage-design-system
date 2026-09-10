@@ -33,12 +33,12 @@ try{
  mark('collapse preserves counts and a filtered child remains independently reachable');
  await page.locator('[data-drag-id=child-0] [data-open-task=child-0]').click();
  const taskDialog=()=>page.locator('.task-edit-dialog dialog[open]');
- await taskDialog().locator('iq-markdown-editor').waitFor();
- assert.equal(await taskDialog().locator('[data-md-preview]').getAttribute('aria-pressed'),'true');
- await taskDialog().locator('[data-md-preview]').click();
+ await taskDialog().locator('iq-markdown-editor[name=description]').waitFor();
+ assert.equal(await taskDialog().locator('iq-markdown-editor[name=description] [data-md-preview]').getAttribute('aria-pressed'),'true');
+ await taskDialog().locator('iq-markdown-editor[name=description] [data-md-preview]').click();
  const description='# Результат\n\n- [ ] Первый пункт\n- [ ] Второй пункт';
  await taskDialog().getByRole('textbox',{name:'Описание',exact:true}).fill(description);
- await taskDialog().locator('[data-md-preview]').click();await taskDialog().locator('[data-md-preview]').click();
+ await taskDialog().locator('iq-markdown-editor[name=description] [data-md-preview]').click();await taskDialog().locator('iq-markdown-editor[name=description] [data-md-preview]').click();
  assert.equal(await taskDialog().getByRole('textbox',{name:'Описание',exact:true}).inputValue(),description);
  const parentInput=taskDialog().locator('iq-combobox[name=parent] .iq-combo-input');
  await parentInput.fill('Другая группа');await page.getByRole('option',{name:/Другая группа/}).click();
