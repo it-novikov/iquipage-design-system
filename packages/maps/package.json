@@ -9,8 +9,10 @@
     "dev": "node server/app.mjs",
     "test:ui": "node scripts/test-browser.mjs",
     "preview": "node scripts/preview.mjs",
+    "test:offline": "node tests/preview-smoke.mjs",
     "verify": "node scripts/verify.mjs",
-    "package": "python3 scripts/package-final.py"
+    "package": "python3 scripts/package-final.py",
+    "test:browser": "node scripts/test-browser.mjs"
   },
   "engines": {
     "node": ">=20"
@@ -22,5 +24,8 @@
     "./agent": "./src/agent.js",
     "./styles.css": "./src/maps.css"
   },
-  "types": "./types/index.d.ts"
+  "types": "./types/index.d.ts",
+  "devDependencies": {
+    "playwright": "1.63.0"
+  }
 }

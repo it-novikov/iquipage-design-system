@@ -1,40 +1,39 @@
-// Final gate: fresh build, node tests, browser flows and the offline artifact.
-import {execFileSync} from 'node:child_process';
-import {readFile,readdir,mkdir,writeFile,copyFile} from 'node:fs/promises';
-import {createHash} from 'node:crypto';
-import {fileURLToPath} from 'node:url';
+// One repeatable acceptance entry, with synthetic data and no production integrations.
+import {spawnSync} from 'node:child_process';
+import {mkdir,readFile,writeFile,readdir} from 'node:fs/promises';
 import path from 'node:path';
-const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
-process.chdir(root);
-const hash=data=>createHash('sha256').update(data).digest('hex');
-const out=path.join(root,'evidence/final');await mkdir(out,{recursive:true});
-const exec=(args)=>execFileSync(process.execPath,args,{cwd:root,env:process.env,encoding:'utf8',maxBuffer:32*1024*1024});
-const sourceFiles=[];
-async function walk(dir){for(const d of await readdir(path.join(root,dir),{withFileTypes:true})){const file=dir+'/'+d.name;if(d.isDirectory())await walk(file);else sourceFiles.push(file);}}
-for(const dir of ['src','server','demo','ds-extension','scripts','types','tests'])await walk(dir);
-sourceFiles.push('package.json');sourceFiles.sort();
-const fingerprints={};for(const file of sourceFiles)fingerprints[file]=hash(await readFile(path.join(root,file)));
-const sourceFingerprint=hash(JSON.stringify(fingerprints));
-const report={status:'RUNNING',sourceFingerprint,sourceFiles:fingerprints,checks:[],node:process.version,startedAt:new Date().toISOString()};
+import {root,sha,fingerprint} from './fingerprint.mjs';
+const artifact=path.join(root,'artifacts/final');await mkdir(artifact,{recursive:true});
+const before=await fingerprint(),startedAt=new Date().toISOString(),checks=[];
+const execute=(name,args)=>{
+  const result=spawnSync(process.execPath,args,{cwd:root,encoding:'utf8',timeout:240000,maxBuffer:16*1024*1024});
+  const output=(result.stdout||'')+(result.stderr||'');
+  checks.push({name,exitCode:result.status,error:result.error?.message});
+  return {result,output};
+};
+let failure,nodeTests=0,browserScenarios=0;
 try{
-  console.log(exec(['scripts/build.mjs']));report.checks.push('build');
-  const tests=sourceFiles.filter(f=>f.startsWith('tests/')&&f.endsWith('.test.mjs'));
-  const log=exec(['--test','--test-reporter=tap',...tests]);await writeFile(path.join(out,'node-final.tap'),log);
-  const total=Number(log.match(/^# tests (\d+)$/m)?.[1]),failed=Number(log.match(/^# fail (\d+)$/m)?.[1]);
-  if(!total||failed!==0)throw Error('Incomplete node test report');
-  report.nodeTests=total;report.checks.push('node-tests');console.log(`PASS ${total} Node tests`);
-  const browserLog=exec(['scripts/test-browser.mjs']);await writeFile(path.join(out,'browser-final.txt'),browserLog);console.log(browserLog);
-  const reports=[['artifacts/r3/browser-report.json','browser-r3.json'],['artifacts/final/browser-events.json','browser-events.json']];
-  report.browserScenarios=0;
-  for(const [input,output] of reports){const value=JSON.parse(await readFile(input,'utf8'));if(value.status!=='PASS')throw Error('Browser check failed: '+input);report.browserScenarios+=value.checks.length;report.browser=value.browser;await copyFile(input,path.join(out,output));}
-  report.checks.push('browser-r3','browser-events');console.log(exec(['scripts/preview.mjs']));
-  console.log(exec(['tests/preview-smoke.mjs']));
-  const preview=JSON.parse(await readFile('artifacts/r3/preview-report.json','utf8'));
-  if(preview.status!=='PASS'||preview.network.length)throw Error('Offline preview verification failed');
-  await copyFile('artifacts/r3/preview-report.json',path.join(out,'offline-preview.json'));
-  report.previewSha256=hash(await readFile('preview.html'));report.checks.push('offline-preview');
-  for(const [file,expected] of Object.entries(fingerprints))if(hash(await readFile(file))!==expected)throw Error('Source changed during verification: '+file);
-  report.status='PASS';report.finishedAt=new Date().toISOString();
-  report.limitations=['Local reference runtime only','Production Sprintique and live LLM not connected','No multi-user editing','No real-device touch or screen-reader audit'];
-}catch(error){report.status='FAIL';report.error=error.message;throw error;}
-finally{await writeFile(path.join(out,'verification.json'),JSON.stringify(report,null,2)+'\n');}
+  const testFiles=(await readdir(path.join(root,'tests'))).filter(n=>n.endsWith('.test.mjs')).sort().map(n=>'tests/'+n);
+  for(const [name,args] of [['build',['scripts/build.mjs']],['preview',['scripts/preview.mjs']],['node',['--test','--test-reporter=tap',...testFiles]],['browser',['scripts/test-browser.mjs']],['offline',['tests/preview-smoke.mjs']]]){
+    const {result,output}=execute(name,args);await writeFile(path.join(artifact,name+'.log'),output);
+    if(result.status!==0)throw Error(name+' failed; see artifacts/final/'+name+'.log: '+(result.error?.message||result.status));
+    if(name==='node'){
+      nodeTests=Number(output.match(/^# tests (\d+)$/m)?.[1]);
+      if(!nodeTests||!/^# fail 0$/m.test(output))throw Error('Missing or failed Node test summary');
+    }
+    console.log('PASS '+name);
+  }
+  for(const name of ['artifacts/r3/browser-report.json','artifacts/final/browser-events.json','artifacts/r3/preview-report.json']){
+    const report=JSON.parse(await readFile(path.join(root,name),'utf8'));
+    if(report.status!=='PASS')throw Error('Required report did not pass: '+name);
+    if(!name.includes('preview-report'))browserScenarios+=report.checks.length;
+  }
+  if((await fingerprint()).sha256!==before.sha256)throw Error('Source changed during acceptance');
+}catch(error){failure=error;console.error(error.message);}
+const git=spawnSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'});
+const report={release:'R4',status:failure?'FAIL':'PASS',startedAt,finishedAt:new Date().toISOString(),sourceCommit:git.status===0?git.stdout.trim():null,sourceFingerprint:before.sha256,node:process.version,nodeTests,browserScenarios,checks,error:failure?.message,scope:'reusable-module-and-local-reference',limitations:['No production Sprintique API/auth deployment','No live LLM credentials or provider calls','No multi-user collaboration','Real touch devices, screen readers and Safari not accepted']};
+try{report.previewSha256=sha(await readFile(path.join(root,'preview.html')));report.dsCandidate=JSON.parse(await readFile(path.join(root,'dist/candidate.json'),'utf8'));}catch(error){report.artifactError=error.message;report.status='FAIL';}
+await writeFile(path.join(artifact,'verification.json'),JSON.stringify(report,null,2)+'\n');
+await writeFile(path.join(artifact,'fingerprint.json'),JSON.stringify(before,null,2)+'\n');
+console.log(JSON.stringify({status:report.status,nodeTests,browserScenarios,sourceFingerprint:before.sha256}));
+if(report.status!=='PASS')process.exitCode=1;

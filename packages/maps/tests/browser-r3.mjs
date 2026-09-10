@@ -31,6 +31,7 @@ try{
   await modal().getByLabel('Название',{exact:true}).fill('Проверить интерфейс R3');
   await modal().getByLabel('Ответственный',{exact:true}).fill('Тестовый участник');
   await modal().getByRole('button',{name:'Сохранить задачу',exact:true}).click();
+  await page.locator('iq-dialog.map-dialog').waitFor({state:'detached'}); // Native close restores focus before keyboard interaction.
   await page.getByRole('button',{name:'Проверить интерфейс R3',exact:true}).waitFor();
   const handle=page.getByRole('button',{name:'Переместить задачу: Проверить интерфейс R3',exact:true});
   await handle.focus();await page.keyboard.press('Enter');await page.keyboard.press('ArrowRight');await page.keyboard.press('Enter');
