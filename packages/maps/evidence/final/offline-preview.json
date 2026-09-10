@@ -1,0 +1,14 @@
+{
+  "status": "PASS",
+  "browser": "153.0.8010.12",
+  "checks": [
+    "file entry",
+    "six columns",
+    "browser storage",
+    "maps navigation",
+    "16 previews",
+    "no external requests"
+  ],
+  "errors": [],
+  "network": []
+}

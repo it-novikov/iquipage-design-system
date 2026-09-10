@@ -10,7 +10,9 @@
     "test:ui": "node scripts/test-browser.mjs",
     "preview": "node scripts/preview.mjs",
     "test:offline": "node tests/preview-smoke.mjs",
-    "verify": "node scripts/verify.mjs"
+    "verify": "node scripts/verify.mjs",
+    "package": "python3 scripts/package-final.py",
+    "test:browser": "node scripts/test-browser.mjs"
   },
   "engines": {
     "node": ">=20"
