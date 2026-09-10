@@ -34,7 +34,7 @@ export function remapDocument(document, { offsetX = 0, offsetY = 0, clearPersona
   next.objects = next.objects.map(o => {
     const result = { ...o, id: ids.get(o.id), x: o.x + offsetX, y: o.y + offsetY };
     if (o.parentId) result.parentId = ids.get(o.parentId);
-    if (clearPersonal) { delete result.author; delete result.owner; if (o.type === 'task') result.done = false; }
+    if (clearPersonal) { delete result.author; delete result.owner; delete result.externalTaskId; if (o.type === 'task') result.done = false; }
     return result;
   });
   next.connections = next.connections.map(e => ({ ...e, id: uid('edge'), from: ids.get(e.from), to: ids.get(e.to) }));
