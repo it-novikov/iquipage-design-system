@@ -8,3 +8,6 @@ iq-whiteboard[surface-mode=embedded] .wb-shell .wb-command-row{flex:none}
 iq-whiteboard[surface-mode=embedded] .wb-shell .wb-library{min-height:0;overflow:auto}
 iq-whiteboard[surface-mode=embedded] .wb-shell .wb-panel{min-height:0;overflow:auto}
 @media(max-height:500px){iq-whiteboard[surface-mode=embedded] .wb-shell .wb-stage{min-height:200px}}
+
+/* R3: no idle status strip. Contextual editing controls still have a surface. */
+iq-whiteboard[surface-mode=embedded] .wb-command-row:has(.wb-context[hidden]){display:none}

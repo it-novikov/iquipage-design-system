@@ -27,7 +27,7 @@ await patch('src/modules/whiteboard.js','<main class="wb-center">','<section cla
 await patch('src/modules/whiteboard.js','</main><aside class="wb-panel"','</section><aside class="wb-panel"');
 await patch('src/modules/whiteboard-studio.js','this.libraryOpen=innerWidth>760;',"this.libraryOpen=this.surfaceMode==='embedded'?false:innerWidth>760;");
 await patch('src/modules/whiteboard-workshop.js','  action(id,el){',`  action(id,el){
-   if(this.surfaceMode==='embedded'&&['help','guide','templates','session','fullscreen'].includes(id)){
+   if(this.surfaceMode==='embedded'&&['help','guide','templates','session','fullscreen','bulk'].includes(id)){
     this.emit('iq-host-command',{command:id});return;
    }`);
 const cssPath=path.join(build,'src/styles/whiteboard-workshop.css');

@@ -1,3 +1,4 @@
+import {mountTaskBoard} from './task-board.js';
 import {mountMaps} from '/src/maps.js';
 import {HttpRepository,BrowserRepository} from '/src/repository.js';
 import {WorkflowRuntime,HttpRuntime,localTasksAdapter} from '/src/runtime.js';
@@ -13,7 +14,7 @@ const runtime=browser?new WorkflowRuntime(repository,{createTasks:localTasksAdap
 const context={workspaceId:'local-workspace',actorId:repository.capabilities.actorId||'local-user'};
 const shell=document.querySelector('#app'),hostView=document.querySelector('#host-view'),featureRoot=document.querySelector('#feature');
 shell.dataset.standalone=String(standalone);
-if(standalone){document.querySelector('.platform-brand b').textContent='IQUIPAGE Maps';document.title='IQUIPAGE Maps';document.querySelector('.platform-project').textContent='Личное пространство';document.querySelector('.platform-navigation').innerHTML='<a href="#maps" aria-current="page">Карты</a><a href="#tasks">Действия</a><a href="#settings">Настройки</a>';}
+if(standalone){document.querySelector('.platform-brand').href='#maps';document.querySelector('.platform-brand b').textContent='IQUIPAGE Maps';document.title='IQUIPAGE Maps';document.querySelector('.platform-project').textContent='Личное пространство';document.querySelector('.platform-navigation').innerHTML='<a href="#maps" aria-current="page">Карты</a><a href="#tasks">Действия</a><a href="#settings">Настройки</a>';}
 const existing=await repository.list('maps',project.id);
 if(!existing.length){
   const template=BUILTIN_TEMPLATES.find(t=>t.id==='ideas');
@@ -23,23 +24,23 @@ if(!existing.length){
 const feature=await mountMaps(featureRoot,{project,repository,runtime,context,permissions:{read:true,edit:true,run:true,approve:true,manageAutomation:true},onOpenTasks:()=>navigate('tasks')});
 // Diagnostic access is restricted to this explicit example, never the reusable module.
 window.mapsDemo={feature,repository,runtime,project};
-let section='maps';
+let section=standalone?'maps':'tasks',taskBoard=null,navigationGeneration=0;
 async function navigate(next){
+  const generation=++navigationGeneration;
   if(!(await feature.readyToLeave())){history.replaceState(null,'','#'+section);return;}
-  section=['overview','tasks','maps','materials','settings'].includes(next)?next:'maps';
+  if(generation!==navigationGeneration)return;
+  taskBoard?.destroy();taskBoard=null;
+  section=['tasks','maps','materials','settings'].includes(next)?next:(standalone?'maps':'tasks');
+  hostView.dataset.section=section;
+  document.querySelector('.skip-link').href=section==='maps'?'#feature':'#host-view';
   featureRoot.hidden=section!=='maps';hostView.hidden=section==='maps';
   document.querySelectorAll('.platform-navigation a').forEach(a=>{if(a.hash==='#'+section)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});
   if(location.hash!=='#'+section)history.replaceState(null,'','#'+section);
   if(section==='maps')return;
   if(section==='tasks'){
-    const tasks=await repository.list('tasks',project.id);
-    hostView.innerHTML=`<h1>${standalone?'Следующие действия':'Доска задач'}</h1><p>Это самостоятельный экран оболочки, а не часть модуля карт. Здесь отображаются реальные задачи локального стенда, созданные после подтверждения запуска.</p><div class="host-grid">${[['planned','Запланировано'],['active','В работе'],['done','Готово']].map(([state,title])=>`<section class="host-column"><h2>${title} <span class="muted">${tasks.filter(t=>t.status===state).length}</span></h2>${tasks.filter(t=>t.status===state).map(t=>`<article class="host-task"><h3>${esc(t.title)}</h3><small>Из сценария карты</small><button type="button" class="iq-btn secondary sm" data-task="${t.id}" data-state="${state==='done'?'planned':'done'}">${state==='done'?'Вернуть':'Отметить готовым'}</button></article>`).join('')}${!tasks.some(t=>t.status===state)?'<p class="map-explanation">Пока нет задач</p>':''}</section>`).join('')}</div>`;
-    hostView.querySelectorAll('[data-task]').forEach(b=>b.addEventListener('click',async()=>{try{const task=tasks.find(t=>t.id===b.dataset.task);await repository.write('tasks',{...task,status:b.dataset.state},task.revision);await navigate('tasks');}catch(e){dialog({title:'Задача не изменена',body:`<p>${esc(e.message)}</p>`});}}));
+    taskBoard=await mountTaskBoard(hostView,{repository,project,onOpenMap:async id=>{await feature.openMap(id);await navigate('maps');}});
   }else if(section==='settings'){
     hostView.innerHTML=`<h1>Настройки</h1><p>Оболочка предоставляет проект, права и подключения. Модуль карт не забирает на себя эти обязанности.</p><div class="host-settings"><div class="iq-setting-row"><div><b>Режим хранения</b><p>${browser?'IndexedDB этого браузера':'Локальный сервер с сохранением на диск'}</p></div><span class="iq-badge outline">Reference</span></div><div class="iq-setting-row"><div><b>LLM-подключение</b><p>${repository.capabilities.llm?'Серверный gateway настроен. Секреты не передаются браузеру.':'Не подключено. Нужен серверный MAPS_LLM_GATEWAY и адаптер выбранного провайдера.'}</p></div></div><div class="iq-setting-row"><div><b>Совместная работа</b><p>Сервис присутствия, общие голоса и совместное редактирование не подключены.</p></div></div><details class="iq-accordion"><summary>Доступные серверные возможности ${icon('plus',16)}</summary><div>${pretty(repository.capabilities)}</div></details><p class="map-explanation">Эти настройки не меняют реальные настройки Sprintique. Интеграционная граница описана в пакете модуля.</p></div>`;
-  }else if(section==='overview'){
-    const maps=await repository.list('maps',project.id),tasks=await repository.list('tasks',project.id);
-    hostView.innerHTML=`<h1>Обзор проекта</h1><p>Навигация платформы остаётся на месте. Карта — одна из рабочих возможностей проекта, рядом с задачами и материалами.</p><div class="host-grid"><article class="iq-card"><h3>Карты</h3><p>${maps.filter(m=>m.status!=='archived').length} активных карт</p><a href="#maps" class="iq-link">Открыть карты</a></article><article class="iq-card"><h3>Действия</h3><p>${tasks.length} задач в локальном стенде</p><a href="#tasks" class="iq-link">Открыть задачи</a></article><article class="iq-card"><h3>Архив</h3><p>${maps.filter(m=>m.status==='archived').length} сохранённых итогов</p><a href="#maps" class="iq-link">Вернуться к картам</a></article></div>`;
   }else hostView.innerHTML='<h1>Материалы проекта</h1><p>Этот раздел предоставляет платформа. В тестовой оболочке файловое хранилище не подключено. Изображения и локальный импорт на самой карте доступны независимо.</p><a class="iq-link" href="#maps">Вернуться к картам</a>';
   hostView.focus({preventScroll:true});
 }
@@ -47,4 +48,4 @@ window.addEventListener('hashchange',()=>navigate(location.hash.slice(1)).catch(
 document.querySelector('#theme').innerHTML=icon('sun',18);
 document.querySelector('#theme').addEventListener('click',()=>{document.documentElement.dataset.theme=document.documentElement.dataset.theme==='dark'?'light':'dark';});
 document.querySelector('#project').addEventListener('click',()=>dialog({title:'Открыть другой проект',description:'Одни и те же компоненты работают с разными пространствами данных.',body:select('id','Проект',project.id,[['demo-product','Команда продукта'],['demo-research','Исследования']]),submitLabel:'Перейти',onSubmit:async values=>{if(!(await feature.readyToLeave()))throw Error('Сначала сохраните изменения.');const next=new URL(location.href);next.searchParams.set('project',values.get('id'));location.assign(next);}}));
-await navigate(location.hash.slice(1)||'maps');
+await navigate(location.hash.slice(1)||(standalone?'maps':'tasks'));

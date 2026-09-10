@@ -1,3 +1,4 @@
+import {validateTask} from './tasks.js';
 import { clone, uid, now, requireValue, validText, validId, assertSafeJSON } from './common.js';
 import { blankDocument, validateDocument, remapDocument, extractSelection } from './document.js';
 export * from './common.js';
@@ -86,6 +87,7 @@ export function prepareWrite(collection, value, previous, baseRevision) {
     requireValue(value.kind === 'session' || ['active', 'archived'].includes(value.status), 'INVALID_STATE', 'Постоянная карта не может быть сессией.');
     if (value.status === 'archived') requireValue(typeof value.archivedAt === 'string' && Number.isFinite(Date.parse(value.archivedAt)), 'INVALID_ARCHIVE', 'Не задан момент завершения.');
   }
+  if (collection === 'tasks') validateTask(value);
   if (collection === 'templates') { validateDocument(value.document); requireValue(validText(value.title, 160) && value.title.trim(), 'INVALID_TITLE', 'Введите название шаблона.'); }
   const next = clone(value); next.revision = baseRevision + 1; next.updatedAt = now();
   if (collection === 'maps') { next.document.title = next.title; next.document.revision = next.revision; }
