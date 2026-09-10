@@ -3,6 +3,7 @@ import {readFile,stat,mkdir,open,unlink,rename} from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {FileRepository} from './file-repository.mjs';
+import {OutboxWorker} from './outbox.mjs';
 import {WorkflowRuntime,localTasksAdapter} from '../src/runtime.js';
 import {EventService,verifyWebhook} from './event-service.mjs';
 import {validateRule} from '../src/events.js';
@@ -29,7 +30,8 @@ if(gateway){
 }
 const runtime=new WorkflowRuntime(repository,adapters),events=new EventService(repository,runtime);
 for(const run of [...repository.data.runs.values()])if(['running','queued'].includes(run.status)){run.status='interrupted';run.error={code:'RESTART',message:'Стенд перезапущен. Проверьте журнал перед повтором.'};await repository.write('runs',run,run.revision);}
-const capabilities={storage:'server',runtimeScope:'local-reference',collaboration:false,events:true,schedule:true,webhook:!!process.env.MAPS_WEBHOOK_SECRET,llm:!!gateway,tasks:true,identity:'reference-user',warning:'Локальный стенд. Это не production API Sprintique.'};
+const outbox=new OutboxWorker(repository,events);
+const capabilities={transactionalEvents:true,storage:'server',runtimeScope:'local-reference',collaboration:false,events:true,schedule:true,webhook:!!process.env.MAPS_WEBHOOK_SECRET,llm:!!gateway,tasks:true,identity:'reference-user',warning:'Локальный стенд. Это не production API Sprintique.'};
 const send=(res,status,value)=>{res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'});res.end(JSON.stringify(value));};
 async function readBody(req){
   let size=0,parts=[];for await(const part of req){size+=part.length;requireValue(size<=16*1024*1024,'BODY_LIMIT','Запрос превышает 16 МБ.');parts.push(part);}return Buffer.concat(parts).toString('utf8');
@@ -51,6 +53,11 @@ const server=http.createServer(async(req,res)=>{
     if(parts[0]==='api'){
       if(req.method==='OPTIONS')throw new DomainError('CSRF','Cross-origin запросы не поддерживаются.');
       if(parts[1]==='capabilities'&&req.method==='GET')return send(res,200,capabilities);
+      if(parts[1]==='event-deliveries'&&req.method==='GET'){
+        const projectId=url.searchParams.get('projectId');requireValue(validId(projectId),'INVALID_PROJECT','Не задан проект.');
+        const pending=(await repository.pendingEvents()).filter(e=>e.event.projectId===projectId);
+        return send(res,200,pending.map(e=>({id:e.id,type:e.event.type,recordId:e.event.data.recordId,revision:e.event.data.revision,attempts:e.attempts,nextAttemptAt:e.nextAttemptAt,lastError:e.lastError})));
+      }
       if(parts[1]==='hooks'&&parts.length===3&&req.method==='POST'){
         const raw=await readBody(req);verifyWebhook(raw,req.headers['x-maps-timestamp'],req.headers['x-maps-signature'],process.env.MAPS_WEBHOOK_SECRET);
         const rule=repository.data.rules.get(parts[2]);requireValue(rule?.trigger==='webhook'&&rule.status==='enabled','NOT_FOUND','Активное правило не найдено.');
@@ -106,9 +113,10 @@ const server=http.createServer(async(req,res)=>{
   }
 });
 let ticking=false;
+const deliveries=setInterval(()=>outbox.drain().catch(e=>console.error('Event delivery:',e.code||'FAILED')),1000);deliveries.unref();
 const scheduler=setInterval(async()=>{if(ticking)return;ticking=true;try{await events.tick();}catch(e){console.error('Scheduler:',e.code||e.message);}finally{ticking=false;}},10000);scheduler.unref();
 server.listen(port,'127.0.0.1',()=>console.log(`Maps reference: http://127.0.0.1:${port}/\nLocal-only runtime; no production account or deployment. PID ${process.pid}`));
 let stopping=false;
-async function stop(){if(stopping)return;stopping=true;clearInterval(scheduler);server.close();await repository.queue.catch(()=>{});await unlink(lockPath).catch(()=>{});process.exit(0);}
+async function stop(){if(stopping)return;stopping=true;clearInterval(scheduler);clearInterval(deliveries);server.close();if(outbox.active)await outbox.active.catch(()=>{});await repository.queue.catch(()=>{});await unlink(lockPath).catch(()=>{});process.exit(0);}
 process.on('SIGINT',stop);process.on('SIGTERM',stop);
-server.on('error',async e=>{await unlink(lockPath).catch(()=>{});console.error(e.message);process.exitCode=1;clearInterval(scheduler);});
+server.on('error',async e=>{await unlink(lockPath).catch(()=>{});console.error(e.message);process.exitCode=1;clearInterval(scheduler);clearInterval(deliveries);});

@@ -14,7 +14,7 @@ export function validateRule(rule){
     try{new Intl.DateTimeFormat('en',{timeZone:rule.schedule?.timeZone}).format();if(!rule.schedule?.timeZone)throw Error();}catch{add('timeZone','Укажите существующий часовой пояс, например Europe/Moscow.');}
     if(!Array.isArray(rule.schedule?.weekdays)||!rule.schedule.weekdays.length||rule.schedule.weekdays.some(x=>!Number.isInteger(x)||x<0||x>6))add('weekdays','Выберите дни недели.');
   }
-  if(rule.trigger==='project'&&!['session.archived','map.updated','task.completed'].includes(rule.eventType))add('eventType','Выберите поддерживаемое событие проекта.');
+  if(rule.trigger==='project'&&!['session.archived','map.updated','task.completed','task.status_changed'].includes(rule.eventType))add('eventType','Выберите поддерживаемое событие проекта.');
   if(rule.inputSource&&!['map-notes','event-notes'].includes(rule.inputSource))add('inputSource','Неизвестный источник данных.');
   if(rule.status==='enabled')for(const issue of validateFlow(rule.flowSnapshot))add('flowSnapshot',issue.message);
   return errors;
