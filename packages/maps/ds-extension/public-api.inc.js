@@ -1,4 +1,3 @@
- // Maps DS source candidate. These members are public only in this candidate.
  get surfaceMode(){return this.getAttribute('surface-mode')||'standard'}
  set surfaceMode(value){if(!['standard','embedded'].includes(value))throw new TypeError('surfaceMode');this.setAttribute('surface-mode',value)}
  get saving(){return !!this.pending}

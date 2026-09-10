@@ -1,0 +1,109 @@
+{
+  "schema": "iquipage.maps.evidence/1",
+  "createdAt": "2026-09-10T11:09:20.343484+00:00",
+  "scope": "Authored module and localhost reference implementation; no production acceptance",
+  "sourceRevision": "archive-R2-with-session-input-hardening",
+  "checks": [
+    {
+      "name": "Node unit/integration tests",
+      "status": "PASS",
+      "runtime": "Node 22.16.0",
+      "command": "npm test",
+      "passed": 45,
+      "failed": 0,
+      "skipped": 0,
+      "evidence": "tests-node22.txt"
+    },
+    {
+      "name": "Authored JavaScript syntax",
+      "status": "PASS",
+      "files": 26,
+      "command": "node --check <each file>",
+      "paths": [
+        "demo/app.js",
+        "scripts/build.mjs",
+        "server/app.mjs",
+        "server/event-service.mjs",
+        "server/file-repository.mjs",
+        "src/agent.js",
+        "src/automation-ui.js",
+        "src/common.js",
+        "src/document.js",
+        "src/events.js",
+        "src/maps.js",
+        "src/model.js",
+        "src/repository.js",
+        "src/runtime.js",
+        "src/template-shapes.js",
+        "src/templates-discussions.js",
+        "src/templates-systems.js",
+        "src/templates.js",
+        "src/ui.js",
+        "src/workflow-ui.js",
+        "src/workflow.js",
+        "tests/agent.test.mjs",
+        "tests/events.test.mjs",
+        "tests/http.test.mjs",
+        "tests/model.test.mjs",
+        "tests/runtime.test.mjs"
+      ]
+    },
+    {
+      "name": "Offline HTML bundle syntax",
+      "status": "PASS",
+      "command": "node --check maps-offline-bundle.js",
+      "scope": "Parsing only; no browser execution or rendering implied"
+    },
+    {
+      "name": "UI test Python syntax",
+      "status": "PASS",
+      "command": "python -m py_compile tests/ui.py",
+      "scope": "Syntax only"
+    },
+    {
+      "name": "Initial official DS source candidate build on authorized Mac",
+      "status": "PASS",
+      "runtime": "Node 26.0.0",
+      "baselineCommit": "1932c2464e695ac7d7e020f2551317943d78a73f",
+      "checkpointCommit": "da3f718ce4c97ae764cfc319812d7d63c9ed2e1e",
+      "result": "Built IQUIPAGE 0.6.0-maps.1: HTML, CSS, ESM, 48 source modules, 89 SVG icons.",
+      "scope": "Initial embedded API candidate only, not full module browser acceptance"
+    },
+    {
+      "name": "Browser UI scenarios / visual review",
+      "status": "BLOCKED",
+      "error": "net::ERR_BLOCKED_BY_ADMINISTRATOR",
+      "scenario": "Managed Chromium navigation to author-owned localhost",
+      "screenshotsCaptured": 0,
+      "suiteProvided": "tests/ui.py"
+    },
+    {
+      "name": "Live LLM/provider calls",
+      "status": "NOT_RUN",
+      "reason": "No configured provider gateway/credentials; test-mode output explicitly simulated"
+    },
+    {
+      "name": "Sprintique production integration",
+      "status": "NOT_DONE",
+      "reason": "Host adapter contracts and example shell provided; actual platform routes/auth/API not integrated"
+    },
+    {
+      "name": "Collaborative CRDT/shared voting",
+      "status": "NOT_IMPLEMENTED",
+      "reason": "Local session tools and repository change notifications are not a shared editing service"
+    },
+    {
+      "name": "Full implementation push / full Mac copy",
+      "status": "PARTIAL",
+      "reason": "Some connector writes blocked. Source archive contains complete authored implementation; branch contains confirmed foundations and lifecycle checkpoint only.",
+      "lastConfirmedBranchHead": "30abc415ffc81d8ba280148c169f1cd9ff41cf6d"
+    },
+    {
+      "name": "Original main and vendor retained",
+      "status": "PASS",
+      "method": "Remote git diff --name-only baseline -- design-system returned no paths; git ls-remote origin refs/heads/main returned baseline",
+      "main": "1932c2464e695ac7d7e020f2551317943d78a73f"
+    }
+  ],
+  "independence": "Self-review and automated tests. No separate team, agent review or user study was performed."
+}

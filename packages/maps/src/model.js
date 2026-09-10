@@ -20,6 +20,24 @@ export function validateMap(map) {
   requireValue(Number.isInteger(map.revision) && map.revision >= 0, 'INVALID_REVISION', 'Некорректная версия карты.');
   validateDocument(map.document);
   requireValue(validText(map.summary || '', 50000), 'SUMMARY_LIMIT', 'Итог слишком большой.');
+  if (map.kind === 'session') {
+    const session = map.session;
+    requireValue(session && ['collect', 'discuss', 'vote', 'outcomes'].includes(session.phase), 'INVALID_SESSION', 'Не задан этап сессии.');
+    requireValue(session.timer && Number.isInteger(session.timer.remaining) && session.timer.remaining >= 0 && session.timer.remaining <= 14400, 'INVALID_TIMER', 'Таймер должен содержать от 0 до 240 минут.');
+    requireValue(session.timer.endsAt === null || (typeof session.timer.endsAt === 'string' && Number.isFinite(Date.parse(session.timer.endsAt))), 'INVALID_TIMER', 'Некорректное время завершения таймера.');
+    requireValue(Number.isInteger(session.voteLimit) && session.voteLimit > 0 && session.voteLimit <= 100, 'INVALID_VOTES', 'Проверьте лимит голосов.');
+    requireValue(session.votes && !Array.isArray(session.votes) && typeof session.votes === 'object', 'INVALID_VOTES', 'Некорректные голоса.');
+    const votes = Object.values(session.votes);
+    requireValue(votes.every(n => Number.isInteger(n) && n >= 0) && votes.reduce((a, b) => a + b, 0) <= session.voteLimit, 'INVALID_VOTES', 'Превышен лимит голосов.');
+  }
+  if (map.flow !== null && map.flow !== undefined) {
+    const flow = map.flow;
+    requireValue(flow.schema === 'iquipage.flow/1' && Array.isArray(flow.nodes) && Array.isArray(flow.edges) && flow.nodes.length <= 100 && flow.edges.length <= 200, 'INVALID_FLOW', 'Неподдерживаемый формат сценария действий.');
+    requireValue(Number.isInteger(flow.version) && flow.version >= 1, 'INVALID_FLOW', 'Не задана версия сценария.');
+    for (const node of flow.nodes) requireValue(node && validId(node.id) && ['input', 'transform', 'condition', 'llm', 'approval', 'task', 'output'].includes(node.kind) && validText(node.title, 240) && Number.isFinite(node.x) && Number.isFinite(node.y) && node.config && typeof node.config === 'object', 'INVALID_FLOW', 'Не удалось прочитать один из шагов сценария.');
+    for (const edge of flow.edges) requireValue(edge && validId(edge.id) && validId(edge.source) && validId(edge.target), 'INVALID_FLOW', 'Не удалось прочитать связь сценария.');
+    if (flow.annotations) validateDocument(flow.annotations);
+  }
   return clone(map);
 }
 export function transitionMap(map, action, { summary = '' } = {}) {

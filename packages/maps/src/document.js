@@ -11,7 +11,7 @@ export function validateDocument(document) {
     requireValue(validId(object.id) && !ids.has(object.id), 'INVALID_ID', 'Идентификаторы объектов должны быть уникальными.'); ids.add(object.id);
     requireValue(['sticky', 'text', 'shape', 'frame', 'task', 'image', 'drawing'].includes(object.type), 'INVALID_OBJECT', 'Неизвестный тип объекта.');
     requireValue(validText(object.text), 'TEXT_LIMIT', 'Текст объекта: не более 10 000 символов.');
-    requireValue(['x', 'y', 'width', 'height'].every(k => Number.isFinite(object[k])) && object.width > 0 && object.height > 0, 'INVALID_GEOMETRY', 'Проверьте размеры и положение объекта.');
+    requireValue(['x', 'y', 'width', 'height'].every(k => Number.isFinite(object[k])) && Math.abs(object.x) <= 1000000 && Math.abs(object.y) <= 1000000 && object.width > 0 && object.width <= 10000 && object.height > 0 && object.height <= 10000, 'INVALID_GEOMETRY', 'Проверьте размеры и положение объекта.');
     if (object.type === 'image') requireValue(typeof object.src === 'string' && /^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(object.src) && object.src.length <= 7500000, 'INVALID_IMAGE', 'Допустимы встроенные PNG, JPEG и WebP до 5 МБ.');
   }
   const byId = new Map(document.objects.map(o => [o.id, o]));

@@ -3,3 +3,5 @@ dist/
 .dev-state/
 node_modules/
 artifacts/
+__pycache__/
+.venv/

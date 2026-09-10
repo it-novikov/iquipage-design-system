@@ -1,0 +1,17 @@
+{
+  "schema": "maps.acceptance/1",
+  "scope": "reusable-module-and-local-reference",
+  "source": "Approved conversation scope R2",
+  "requiredCases": [
+    "host_navigation_remains_available", "embedded_and_standalone", "canvas_fills_remaining_space",
+    "help_dialog_focus_return", "create_edit_reload_map", "document_undo_redo",
+    "revision_conflict_preserves_draft", "archive_only_after_successful_save", "archive_readonly",
+    "continue_session_preserves_original", "custom_template_roundtrip", "plain_language_template_preview",
+    "template_insert_preserves_content", "project_namespace_isolation", "workflow_validation_blocks_invalid_graph",
+    "test_mode_has_no_external_effects", "approval_persists_and_resumes", "duplicate_event_single_run",
+    "event_rule_validation", "unsupported_connector_explicitly_blocked", "mobile_navigation_and_dialog",
+    "light_dark_keyboard", "original_vendor_unchanged"
+  ],
+  "notClaimed": ["production authentication", "CRDT", "real provider calls", "production deployment", "independent UX study"],
+  "note": "This file records the scope, not passed acceptance. Per-test actual results are in evidence/verification.json."
+}
