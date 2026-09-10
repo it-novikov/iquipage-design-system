@@ -1,7 +1,8 @@
 import {createHash,createHmac,timingSafeEqual} from 'node:crypto';
-import {DomainError,requireValue} from '../src/common.js';
+import {requireValue,clone} from '../src/common.js';
 import {validateEvent,validateRule,matchesEvent,scheduleSlot} from '../src/events.js';
 const digest=value=>createHash('sha256').update(value).digest('hex');
+const canonical=value=>JSON.stringify(value,(_key,item)=>item&&typeof item==='object'&&!Array.isArray(item)?Object.fromEntries(Object.keys(item).sort().map(k=>[k,item[k]])):item);
 export function verifyWebhook(raw,timestamp,signature,secret,date=Date.now()){
   requireValue(!!secret,'HOOK_DISABLED','Подпись входящих запросов не настроена.');
   requireValue(/^\d{10}$/.test(timestamp||'')&&Math.abs(date/1000-Number(timestamp))<=300,'HOOK_EXPIRED','Запрос просрочен.');
@@ -11,17 +12,34 @@ export function verifyWebhook(raw,timestamp,signature,secret,date=Date.now()){
 }
 export class EventService {
   constructor(repository,runtime){this.repository=repository;this.runtime=runtime;}
-  async dispatch(rule,event){
+  /** External/manual events never receive the committed archive exception. */
+  dispatch(rule,event){return this.#dispatch(rule,event,null);}
+  async dispatchCommitted(entryId,ruleId){
+    requireValue(this.repository.pendingEvents,'SNAPSHOT_MISSING','Сохраняемая очередь недоступна.');
+    const entry=(await this.repository.pendingEvents()).find(e=>e.id===entryId);
+    if(!entry||entry.status==='dead')return {skipped:true,reason:'DELIVERY_NOT_PENDING'};
+    const rule=entry.targets.find(r=>r.id===ruleId);
+    requireValue(entry.schema===2&&rule?.inputSnapshot,'SNAPSHOT_MISSING','Нет сохранённого входа события. Создайте новое событие после проверки.');
+    const live=await this.repository.read('rules',ruleId,entry.event.projectId);
+    if(live?.status!=='enabled'||live.revision!==rule.revision)return {skipped:true,reason:'RULE_CHANGED'};
+    return this.#dispatch(rule,entry.event,{input:clone(rule.inputSnapshot),inputMapRevision:rule.inputMapRevision,entry});
+  }
+  async #dispatch(rule,event,committed){
     validateEvent(event);requireValue(!validateRule(rule).length,'INVALID_RULE','Правило не прошло проверку.');
-    if(rule.status!=='enabled'||event.projectId!==rule.projectId)return{skipped:true};
-    if(!matchesEvent(rule,event)&&rule.trigger!=='schedule')return{skipped:true};
-    const map=await this.repository.read('maps',rule.mapId,rule.projectId);
-    if(!map||map.status==='archived')return{skipped:true,reason:'Карта в архиве или недоступна.'};
-    const id='run-'+digest(`${rule.id}:${event.id}`).slice(0,40),payloadHash=digest(JSON.stringify(event.data||{}));
+    if(rule.status!=='enabled'||event.projectId!==rule.projectId)return {skipped:true,reason:'RULE_INACTIVE'};
+    if(!matchesEvent(rule,event)&&rule.trigger!=='schedule')return {skipped:true,reason:'EVENT_NOT_MATCHED'};
+    const id='run-'+digest(`${rule.id}:${event.id}`).slice(0,40);
+    const payloadHash=digest(canonical({type:event.type,data:event.data||{},depth:event.depth||0,originRuleId:event.originRuleId||null}));
     const previous=await this.repository.read('runs',id,rule.projectId);
-    if(previous){requireValue(previous.trigger?.payloadHash===payloadHash,'EVENT_CONFLICT','Этот идентификатор события уже использован с другими данными.');return previous;}
-    const input=rule.inputSource==='event-notes'?event.data:{notes:map.document.objects.filter(x=>['sticky','task'].includes(x.type)).map(x=>x.text)};
-    const run=await this.runtime.start({id,projectId:rule.projectId,mapId:rule.mapId,mapRevision:rule.mapRevision,flow:rule.flowSnapshot,input,mode:'execute',actorId:'reference-scheduler',trigger:{ruleId:rule.id,eventId:event.id,payloadHash}});
+    if(previous){
+      const expected=previous.trigger?.hashVersion===2?payloadHash:digest(JSON.stringify(event.data||{}));
+      requireValue(previous.trigger?.payloadHash===expected,'EVENT_CONFLICT','Этот идентификатор события уже использован с другими данными.');return previous;
+    }
+    const map=await this.repository.read('maps',rule.mapId,rule.projectId);
+    const closing=!!committed&&rule.trigger==='project'&&rule.eventType==='session.archived'&&event.type==='session.archived'&&map?.kind==='session'&&map.status==='archived'&&event.data?.recordId===map.id&&event.data.revision===map.revision&&['active','paused'].includes(event.data.previousStatus)&&event.data.status==='archived'&&committed.inputMapRevision===map.revision;
+    if(!map||(map.status==='archived'&&!closing))return {skipped:true,reason:'MAP_ARCHIVED_OR_MISSING'};
+    const input=committed?committed.input:rule.inputSource==='event-notes'?event.data:{notes:map.document.objects.filter(x=>['sticky','task'].includes(x.type)).slice(0,100).map(x=>x.text)};
+    const run=await this.runtime.start({id,projectId:rule.projectId,mapId:rule.mapId,mapRevision:rule.mapRevision,flow:rule.flowSnapshot,input,mode:'execute',actorId:'reference-scheduler',trigger:{ruleId:rule.id,eventId:event.id,eventType:event.type,payloadHash,hashVersion:2,committed:!!committed,inputMapRevision:committed?.inputMapRevision??map.revision}});
     requireValue(run.trigger?.payloadHash===payloadHash,'EVENT_CONFLICT','Этот идентификатор события уже использован с другими данными.');return run;
   }
   async projectEvent(event){
@@ -30,10 +48,10 @@ export class EventService {
   }
   async tick(date=new Date()){
     const results=[];
-    // Reference store is one workspace. Production must query authorized enabled rules.
     for(const rule of [...this.repository.data.rules.values()]){
       const slot=scheduleSlot(rule,date);if(!slot)continue;
-      results.push(await this.dispatch(rule,{id:'slot-'+digest(slot).slice(0,40),projectId:rule.projectId,type:'schedule',data:{},depth:0}));
+      try{results.push(await this.dispatch(rule,{id:'slot-'+digest(slot).slice(0,40),projectId:rule.projectId,type:'schedule',data:{},depth:0}));}
+      catch(error){results.push({ruleId:rule.id,error:error.code||'SCHEDULE_FAILED'});}
     }
     return results;
   }
