@@ -55,8 +55,9 @@ const server=http.createServer(async(req,res)=>{
       if(parts[1]==='capabilities'&&req.method==='GET')return send(res,200,capabilities);
       if(parts[1]==='event-deliveries'&&req.method==='GET'){
         const projectId=url.searchParams.get('projectId');requireValue(validId(projectId),'INVALID_PROJECT','Не задан проект.');
-        const pending=(await repository.pendingEvents()).filter(e=>e.event.projectId===projectId);
-        return send(res,200,pending.map(e=>({id:e.id,type:e.event.type,recordId:e.event.data.recordId,revision:e.event.data.revision,attempts:e.attempts,nextAttemptAt:e.nextAttemptAt,lastError:e.lastError})));
+        const mapId=url.searchParams.get('mapId');
+        requireValue(!mapId||validId(mapId),'INVALID_MAP','Некорректная карта.');
+        return send(res,200,await repository.listDeliveries(projectId,mapId));
       }
       if(parts[1]==='hooks'&&parts.length===3&&req.method==='POST'){
         const raw=await readBody(req);verifyWebhook(raw,req.headers['x-maps-timestamp'],req.headers['x-maps-signature'],process.env.MAPS_WEBHOOK_SECRET);
@@ -65,6 +66,10 @@ const server=http.createServer(async(req,res)=>{
       }
       let body;
       if(req.method!=='GET'){assertWrite(req);body=JSON.parse(await readBody(req));}
+      if(parts[1]==='event-deliveries'&&req.method==='POST'&&parts.length===4){
+        requireValue(validId(body.projectId),'INVALID_PROJECT','Не задан проект.');
+        return send(res,200,await repository.recoverEvent(parts[2],body.projectId,parts[3],body.baseRevision));
+      }
       if(parts[1]==='records'){
         const collection=parts[2],id=parts[3],projectId=url.searchParams.get('projectId');
         requireValue(COLLECTIONS.includes(collection),'NOT_FOUND','Коллекция не найдена.');

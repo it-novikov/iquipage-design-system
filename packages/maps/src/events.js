@@ -4,6 +4,7 @@ export const TRIGGER_LABELS={manual:'Вручную',schedule:'По распис
 export function validateRule(rule){
   const errors=[]; const add=(field,message)=>errors.push({field,message});
   try{assertSafeJSON(rule);}catch(e){return[{field:'rule',message:e.message}];}
+  if(!rule||typeof rule!=='object'||Array.isArray(rule))return [{field:'rule',message:'Правило должно быть объектом.'}];
   if(!validId(rule.id)||!validId(rule.projectId)||!validId(rule.mapId))add('id','Не заданы карта и проект.');
   if(!rule.name?.trim())add('name','Введите название автоматизации.');
   if(!TRIGGER_LABELS[rule.trigger])add('trigger','Выберите событие запуска.');
@@ -32,6 +33,8 @@ export function matchesEvent(rule,event){
   return rule.status==='enabled'&&rule.projectId===event.projectId&&(event.depth||0)<3&&event.originRuleId!==rule.id&&((rule.trigger==='project'&&rule.eventType===event.type)||rule.trigger==='webhook');
 }
 export function validateEvent(event){
-  assertSafeJSON(event);requireValue(validId(event.id)&&validId(event.projectId),'INVALID_EVENT','Нужны идентификатор события и проект.');
-  requireValue(typeof event.type==='string'&&event.type.length<=120,'INVALID_EVENT','Нужен тип события.');return event;
+  assertSafeJSON(event);requireValue(event&&typeof event==='object'&&!Array.isArray(event),'INVALID_EVENT','Событие должно быть объектом.');requireValue(validId(event.id)&&validId(event.projectId),'INVALID_EVENT','Нужны идентификатор события и проект.');
+  requireValue(typeof event.type==='string'&&event.type.trim()&&event.type.length<=120,'INVALID_EVENT','Нужен тип события.');
+  requireValue(event.depth===undefined||(Number.isInteger(event.depth)&&event.depth>=0&&event.depth<=3),'INVALID_EVENT','Некорректная глубина события.');
+  requireValue(!event.originRuleId||validId(event.originRuleId),'INVALID_EVENT','Некорректный источник события.');return event;
 }

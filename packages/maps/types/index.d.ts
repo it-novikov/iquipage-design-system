@@ -9,7 +9,7 @@ export interface Session{phase:'collect'|'discuss'|'vote'|'outcomes';timer:{rema
 export interface FlowNode{id:string;kind:'input'|'transform'|'condition'|'llm'|'approval'|'task'|'output';title:string;x:number;y:number;width:number;height:number;config:Record<string,unknown>}
 export interface Flow{schema:'iquipage.flow/1';version:number;nodes:FlowNode[];edges:{id:string;source:string;target:string;when:'always'|'true'|'false'}[];annotations?:BoardDocument}
 export interface VersionedRecord{id:string;projectId:string;revision:number;[field:string]:unknown}
-export interface Capabilities{storage:'server'|'browser'|'memory';storageLabel?:string;runtimeScope?:'local-reference'|'production';collaboration:boolean;events:boolean;llm:boolean;schedule?:boolean;webhook?:boolean;tasks?:boolean}
+export interface Capabilities{storage:'server'|'browser'|'memory';storageLabel?:string;runtimeScope?:'local-reference'|'production';collaboration:boolean;events:boolean;transactionalEvents?:boolean;llm:boolean;schedule?:boolean;webhook?:boolean;tasks?:boolean}
 export interface Repository{
  capabilities:Capabilities;
  list(collection:Collection,projectId:string):Promise<any[]>;
