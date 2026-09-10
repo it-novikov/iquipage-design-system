@@ -16,6 +16,7 @@ export function proposalDocument(map,proposal,{canEdit=false}={}) {
     requireValue(validText(op.text)&&op.text.trim(),'PROPOSAL_TEXT','Нужен текст не длиннее 10 000 символов.');
     if(op.type==='updateText'){
       const node=next.objects.find(o=>o.id===op.id);requireValue(node,'PROPOSAL_TARGET','Объект не найден.');
+      requireValue(!node.externalTaskId,'EXTERNAL_TASK','Содержимое внешней задачи изменяется в разделе задач.');
       let ancestor=node;const seen=new Set();
       while(ancestor){requireValue(!ancestor.locked,'LOCKED','Агент не может изменить заблокированный объект.');if(seen.has(ancestor.id))break;seen.add(ancestor.id);ancestor=next.objects.find(o=>o.id===ancestor.parentId);}
       changes.push({id:node.id,before:node.text,after:op.text});node.text=op.text;

@@ -32,7 +32,7 @@ for directory, target in [(REPO / 'design-system', 'design-system'), (ROOT, 'pac
         if target == 'packages/maps' and str(rel) == 'MANIFEST.sha256':
             continue
         files[target + '/' + rel.as_posix()] = p.read_bytes()
-files['README.md'] = (ROOT / 'docs/RELEASE-BOARD-B1.md').read_bytes()
+files['README.md'] = (ROOT / 'docs/RELEASE-BOARD-B2.md').read_bytes()
 files['Sprintique-Board-B2.html'] = (ROOT / 'preview.html').read_bytes()
 reports = {'artifacts/final/verification.json': 'verification.json',
            'artifacts/final/fingerprint.json': 'fingerprint.json',
