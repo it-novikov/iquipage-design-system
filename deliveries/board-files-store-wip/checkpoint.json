@@ -1,0 +1,12 @@
+{
+  "status": "BLOCKED_INTEGRATION",
+  "sourceCommit": "8c3022b46d3e6520f5f5999c647bed7220b02796",
+  "nodeTests": 148,
+  "browserScenarios": 49,
+  "isolatedStorageTests": 9,
+  "sourceFingerprint": "408cd239f07a853984f91987df4a9ed4c9d7bb22b165388e157a5f889f51edfa",
+  "attachmentUIReady": false,
+  "taskStorageIntegrationReady": false,
+  "archiveSha256": "520d4d924aa8d2694a05a51f271545ca595603c8fd477c1335b27cb12d41d525",
+  "lastReadyDelivery": "deliveries/board-b2"
+}
