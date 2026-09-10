@@ -37,6 +37,7 @@ reports = {'artifacts/final/verification.json': 'verification.json',
            'artifacts/final/fingerprint.json': 'fingerprint.json',
            'artifacts/r3/browser-report.json': 'browser-r3.json',
            'artifacts/final/browser-events.json': 'browser-events.json',
+           'artifacts/final/browser-recovery.json': 'browser-recovery.json',
            'artifacts/r3/preview-report.json': 'offline-preview.json'}
 for source, dest in reports.items():
     data = (ROOT / source).read_bytes()
