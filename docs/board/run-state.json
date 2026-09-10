@@ -14,5 +14,17 @@
     "provider integrations and map rules",
     "virtualization and production-host acceptance"
   ],
-  "productionReady": false
+  "productionReady": false,
+  "coverCheckpoint": {
+    "status": "BLOCKED_PARTIAL",
+    "sourceCommit": "e2ce8db6e82377e992d9a6c7f06dc5680f25fdd2",
+    "regressionStatus": "PASS",
+    "nodeTests": 139,
+    "browserScenarios": 49,
+    "coverUITested": false,
+    "attachmentStorageImplemented": false,
+    "archiveSha256": "be26bffa0ace2b36a5b35db4f2305a9b0204a4407aa002f1dc1878f0bbb5fa2d",
+    "files": 12,
+    "lastReadyDelivery": "deliveries/board-b2"
+  }
 }
