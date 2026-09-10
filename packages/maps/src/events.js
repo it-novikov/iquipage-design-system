@@ -6,8 +6,8 @@ export function validateRule(rule){
   try{assertSafeJSON(rule);}catch(e){return[{field:'rule',message:e.message}];}
   if(!rule||typeof rule!=='object'||Array.isArray(rule))return [{field:'rule',message:'Правило должно быть объектом.'}];
   if(!validId(rule.id)||!validId(rule.projectId)||!validId(rule.mapId))add('id','Не заданы карта и проект.');
-  if(!rule.name?.trim())add('name','Введите название автоматизации.');
-  if(!TRIGGER_LABELS[rule.trigger])add('trigger','Выберите событие запуска.');
+  if(typeof rule.name!=='string'||!rule.name.trim()||rule.name.length>240)add('name','Введите название автоматизации до 240 символов.');
+  if(typeof rule.trigger!=='string'||!Object.hasOwn(TRIGGER_LABELS,rule.trigger))add('trigger','Выберите событие запуска.');
   if(!['draft','enabled','paused'].includes(rule.status))add('status','Недопустимое состояние правила.');
   if(rule.trigger==='schedule'){
     if(rule.schedule?.missed!=='skip'||rule.schedule?.repeatedHour!=='once')add('schedule','Поддерживаются пропуск пропущенного времени и один запуск в повторяющийся час.');
