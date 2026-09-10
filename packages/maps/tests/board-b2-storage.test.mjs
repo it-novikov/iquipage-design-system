@@ -74,3 +74,9 @@ test('B2 HTTP catalog, task defaults and discussion are persisted through the ac
   assert.equal((await api.get(`/records/tasks/${item.id}?projectId=${item.projectId}`)).checklists.length,1);
   assert.equal((await api.get(`/records/threads/${thread.id}?projectId=${item.projectId}`)).messages.length,1);
 });
+test('B2 malformed catalog references and discussion messages have domain errors',async()=>{
+  const repo=new MemoryRepository(),item=await repo.write('tasks',task(),0);
+  await assert.rejects(repo.write('tasks',{...item,releaseId:false},item.revision),{code:'TASK_RELEASE'});
+  await assert.rejects(repo.write('tasks',{...item,tagIds:false},item.revision),{code:'TASK_TAGS'});
+  await assert.rejects(repo.write('threads',{id:'invalid-thread',projectId:item.projectId,revision:0,taskId:item.id,requiresResolution:false,resolved:false,messages:[null]},0),{code:'THREAD_MESSAGE'});
+});

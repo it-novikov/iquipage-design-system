@@ -34,6 +34,8 @@ function requireReference(records,id,projectId,alreadyAssigned) {
   if(item.archivedAt)requireValue(alreadyAssigned,'TASK_REFERENCE_ARCHIVED','Архивное значение нельзя назначить заново.');
 }
 function validateTaskReferences(task,previous,snapshot) {
+  requireValue(task.releaseId==null||validId(task.releaseId),'TASK_RELEASE','Некорректный релиз.');
+  requireValue(task.tagIds===undefined||Array.isArray(task.tagIds),'TASK_TAGS','Теги должны быть списком.');
   if(task.releaseId)requireReference(snapshot.releases||[],task.releaseId,task.projectId,previous?.releaseId===task.releaseId);
   const tags=task.tagIds||[];
   requireValue(Array.isArray(tags),'TASK_TAGS','Теги должны быть списком.');
@@ -46,6 +48,7 @@ function sameLink(a,b){
   return a.kind==='related'&&a.fromId===b.toId&&a.toId===b.fromId;
 }
 function validateTaskLink(link,previous,tasks,links){
+  requireValue(link.archivedAt==null||typeof link.archivedAt==='string'&&Number.isFinite(Date.parse(link.archivedAt)),'TASK_LINK_ARCHIVE','Некорректная дата удаления связи.');
   requireValue(['depends','related'].includes(link.kind),'TASK_LINK','Неизвестный тип связи.');
   requireValue(validId(link.fromId)&&validId(link.toId)&&link.fromId!==link.toId,'TASK_LINK','Выберите две разные задачи.');
   if(previous)for(const field of ['kind','fromId','toId'])requireValue(previous[field]===link[field],'TASK_LINK','Для смены связи создайте новую.');

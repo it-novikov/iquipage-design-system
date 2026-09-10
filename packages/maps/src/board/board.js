@@ -7,7 +7,7 @@ import {BOARD_SORTS,boardComparator,projectColumn} from './model.js';
 import {renderTaskCard} from './card.js';
 import {openTaskDialog} from './task-dialog.js';
 /** Host adapter: canonical records stay in the repository; this module projects the board. */
-export async function mountTaskBoard(root,{repository,project,canEdit=true,viewState={}}){
+export async function mountTaskBoard(root,{repository,project,canEdit=true,canManageCatalogs=false,viewState={}}){
   registerCore();root.classList.add('iq-task-board-root');let catalogs={tags:[],releases:[]};let items=[],disposeBoard,closed=false,loading=0,dragging=false,queued=false,activeDialog=null,openingTask=false,dragIntent=null;
   const pending=new Set(),abort=new AbortController(),signal=abort.signal;
   const key=`sprintique-board:${project.id}:${repository.context?.actorId||'local-user'}`;
@@ -87,7 +87,7 @@ export async function mountTaskBoard(root,{repository,project,canEdit=true,viewS
     if(openingTask||activeDialog||closed)return;
     openingTask=true;
     try{
-    activeDialog=await openTaskDialog(task,{repository,project,tasks:items,canEdit,status,onSaved:async saved=>{loading++;items=items.some(t=>t.id===saved.id)?items.map(t=>t.id===saved.id?saved:t):[...items,saved];render();await reload();}});
+    activeDialog=await openTaskDialog(task,{repository,project,tasks:items,canEdit,canManage:canManageCatalogs,status,onSaved:async saved=>{loading++;items=items.some(t=>t.id===saved.id)?items.map(t=>t.id===saved.id?saved:t):[...items,saved];render();await reload();}});
     if(closed){activeDialog.close(true);return;}
     const opened=activeDialog;opened.addEventListener('iq-close',()=>{if(activeDialog===opened)activeDialog=null;},{once:true});
     }catch(cause){if(!closed)fail(cause);}finally{openingTask=false;}

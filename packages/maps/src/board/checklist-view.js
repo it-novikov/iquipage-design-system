@@ -24,7 +24,7 @@ export function mountChecklists(root,initial=[],{readOnly=false,onChange=()=>{}}
     if(!list)return;
     if(event.target.matches('[data-list-title]'))list.title=event.target.value;
     const item=list.items.find(item=>item.id===event.target.closest('[data-item]')?.dataset.item);
-    if(item&&event.target.matches('[data-item-text]'))item.text=event.target.value;
+    if(item&&event.target.matches('[data-item-text]')){item.text=event.target.value;event.target.closest('[data-item]').querySelector('[data-done]').setAttribute('aria-label','Выполнено: '+item.text);}
     if(item&&event.target.matches('[data-done]')){
       item.done=event.target.checked;
       event.target.closest('[data-list]').querySelector('[data-progress]').textContent=`${list.items.filter(item=>item.done).length}/${list.items.length}`;

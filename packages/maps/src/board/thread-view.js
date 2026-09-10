@@ -10,7 +10,7 @@ export function mountThreads(root,{repository,task,readOnly=false}){
     <div data-thread-list></div>
     <button type="button" class="iq-btn ghost sm" data-more-threads hidden>Показать ещё</button>`;
   if(!readOnly)root.insertAdjacentHTML('beforeend',`<section class="thread-compose">
-    <iq-markdown-editor label="Новое обсуждение" variant="minimal" name="new-discussion" maxlength="20000" submit-label="Опубликовать"></iq-markdown-editor>
+    <iq-markdown-editor label="Новое обсуждение" variant="minimal" name="new-discussion" placeholder="Напишите сообщение или вопрос" maxlength="20000" submit-label="Опубликовать"></iq-markdown-editor>
     <label class="iq-check"><input type="checkbox" data-requires-resolution><span class="iq-check-box">${icon('check',14)}</span><span>Требует решения</span></label>
     <p class="iq-helper">Сообщения публикуются отдельно от изменений задачи.</p></section>`);
   const list=root.querySelector('[data-thread-list]'),error=root.querySelector('[data-thread-error]'),composer=root.querySelector('.thread-compose iq-markdown-editor');
@@ -24,7 +24,7 @@ export function mountThreads(root,{repository,task,readOnly=false}){
   }
   function markup(thread){
     const id=esc(thread.id),resolution=thread.requiresResolution&&!readOnly?`<button type="button" class="iq-btn ghost sm" data-resolve="${id}">${thread.resolved?'Открыть снова':'Отметить решённым'}</button>`:'';
-    const reply=readOnly?'':`<iq-markdown-editor data-reply-editor="${id}" label="Ответ" variant="minimal" name="reply-${id}" maxlength="20000" submit-label="Ответить"></iq-markdown-editor>`;
+    const reply=readOnly?'':`<div data-reply-mount="${id}"></div>`;
     return `<details class="iq-accordion task-thread" data-thread="${id}" ${expanded.has(thread.id)?'open':''}>
       <summary><span class="grow"><span class="thread-state ${thread.requiresResolution&&!thread.resolved?'unresolved':''}">${label(thread)}</span>
       <span class="thread-excerpt">${esc(thread.messages[0].body.slice(0,160))}</span>
@@ -40,6 +40,13 @@ export function mountThreads(root,{repository,task,readOnly=false}){
       messages.querySelectorAll('iq-markdown-viewer').forEach((viewer,index)=>{viewer.value=thread.messages[index].body;});
       messages.dataset.revision=String(thread.revision);
     }
+    const replyMount=element.querySelector('[data-reply-mount]');
+    if(replyMount&&!replyMount.firstElementChild){
+      const editor=document.createElement('iq-markdown-editor');
+      editor.dataset.replyEditor=thread.id;editor.setAttribute('label','Ответ');editor.setAttribute('variant','minimal');
+      editor.setAttribute('name','reply-'+thread.id);editor.setAttribute('placeholder','Напишите ответ в обсуждении');editor.setAttribute('maxlength','20000');editor.setAttribute('submit-label','Ответить');
+      replyMount.append(editor);
+    }
     const editor=element.querySelector('[data-reply-editor]');
     if(editor&&!editor.dataset.initialized){editor.value=drafts.get(thread.id)||'';editor.dataset.initialized='true';}
   }
@@ -47,7 +54,22 @@ export function mountThreads(root,{repository,task,readOnly=false}){
     if(closed)return;capture();items.sort(threadOrder);
     const unresolved=items.filter(thread=>thread.requiresResolution&&!thread.resolved).length;
     root.querySelector('[data-thread-count]').textContent=unresolved?`Требуют решения: ${unresolved}`:'';
-    list.innerHTML=items.slice(0,limit).map(markup).join('')||'<p class="iq-helper">Обсуждений пока нет.</p>';
+    const visible=items.slice(0,limit),keep=new Set(visible.map(thread=>thread.id));
+    const active=document.activeElement,selection=active?.tagName==='TEXTAREA'?{start:active.selectionStart,end:active.selectionEnd}:null;
+    for(const node of [...list.children])if(!keep.has(node.dataset.thread))node.remove();
+    let cursor=list.firstElementChild;
+    for(const thread of visible){
+      let node=list.querySelector(`[data-thread="${CSS.escape(thread.id)}"]`);
+      if(!node){const template=document.createElement('template');template.innerHTML=markup(thread);node=template.content.firstElementChild;}
+      if(node!==cursor)list.insertBefore(node,cursor);
+      cursor=node.nextElementSibling;
+      const state=node.querySelector('.thread-state');state.textContent=label(thread);state.classList.toggle('unresolved',thread.requiresResolution&&!thread.resolved);
+      node.querySelector('summary small').textContent=`${thread.messages.length} сообщ. · ${time(thread.lastActivityAt)}`;
+      const resolve=node.querySelector('[data-resolve]');if(resolve)resolve.textContent=thread.resolved?'Открыть снова':'Отметить решённым';
+      if(expanded.has(thread.id))node.open=true;
+    }
+    if(!visible.length)list.innerHTML='<p class="iq-helper">Обсуждений пока нет.</p>';
+    if(active?.isConnected&&document.activeElement!==active){active.focus({preventScroll:true});if(selection)active.setSelectionRange(selection.start,selection.end);}
     for(const thread of items.slice(0,limit))fill(thread);
     root.querySelector('[data-more-threads]').hidden=items.length<=limit;
   }

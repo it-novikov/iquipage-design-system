@@ -44,7 +44,7 @@ async function startWorkspace(){
     if(location.hash!=='#'+section)history.replaceState(null,'','#'+section);
     if(section==='maps')return;
     if(section==='tasks'){
-      const board=await mountTaskBoard(hostView,{repository,project,viewState:boardState,onOpenMap:async id=>{await feature.openMap(id);await go('maps');}});
+      const board=await mountTaskBoard(hostView,{repository,project,canManageCatalogs:true,viewState:boardState,onOpenMap:async id=>{await feature.openMap(id);await go('maps');}});
       if(generation!==navigationGeneration){board.destroy();return;}taskBoard=board;
     }else if(['settings/tags','settings/releases','settings/templates'].includes(section)){
       const mounted=await mountProjectTaskSettings(hostView,{repository,project,section:section.split('/')[1],onBack:()=>go('settings')});

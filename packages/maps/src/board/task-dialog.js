@@ -11,7 +11,7 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
   const support=await loadTaskSupport(repository,project.id);
   const settings=support.settings||emptyTaskSettings(project.id);
   const initial=task||{...instantiateTaskTemplate(settings,'task'),type:'task',status,owner:'',title:''};
-  let current=task,baseline='',saving=false,confirming=false,checklists,catalogs,threads,links;
+  let current=task,baseline='',saving=false,confirming=false,priorityTouched=false,checklists,catalogs,threads,links;
   let templateVersion=initial.templateVersion,lastTemplateContent=JSON.stringify({description:initial.description||'',checklists:initial.checklists||[]});
   const parents=[{value:'',label:'Без родительской задачи'},...tasks.filter(item=>item.id!==task?.id&&!item.archivedAt).map(item=>({value:item.id,label:item.title,description:item.displayId||item.id.slice(-7)}))];
   const content=`${input('title','Название',initial.title,{required:true})}
@@ -26,7 +26,7 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
       <iq-markdown-editor label="Описание" name="description" variant="compact" maxlength="10000"></iq-markdown-editor></section>
     <section class="task-edit-section"><h3>Чек-листы</h3><div data-checklists></div></section>
     <section class="task-edit-section"><h3>Связи</h3><iq-combobox name="parent" label="В составе" value="${esc(initial.parentId||'')}" options="${esc(JSON.stringify(parents))}" placeholder="Найти родительскую задачу"></iq-combobox><div data-task-links></div></section>
-    <section class="task-edit-section" data-task-threads></section>`;
+    <section class="task-edit-section" data-task-threads></section><p role="status" class="iq-helper" data-task-save-state></p>`;
   const read=(form,values=new FormData(form))=>({
     title:String(values.get('title')||'').trim(),type:values.get('type')||'task',status:values.get('status'),
     owner:values.get('owner')||'',priority:values.get('priority')||'normal',
@@ -43,7 +43,7 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
         const next=reparentTask(value,changes.parentId,tasks);
         const saved=await repository.write('tasks',next,current?.revision||0);
         current=saved;baseline=JSON.stringify(read(form,values));await onSaved(saved);
-        if(threads?.dirty())return false;
+        if(threads?.dirty()){form.querySelector('[data-task-save-state]').textContent='Задача сохранена. Черновик сообщения ещё не опубликован.';return false;}
       }finally{saving=false;}
     }:undefined,
     mount:(el,form)=>{
@@ -63,10 +63,11 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
         editor.value=result.description;
         checklists.setValue(result.checklists);
         templateVersion=result.templateVersion;
-        if(changePriority)form.querySelector('iq-select[name=priority]').value=result.priority;
+        if(changePriority&&!priorityTouched)form.querySelector('iq-select[name=priority]').value=result.priority;
         lastTemplateContent=JSON.stringify({description:editor.value,checklists:checklists.value()});
       }
       form.addEventListener('iq-change',event=>{
+        if(event.target.getAttribute('name')==='priority')priorityTouched=true;
         if(event.target.getAttribute('name')!=='type'||current)return;
         const untouched=JSON.stringify({description:editor.value,checklists:checklists.value()})===lastTemplateContent;
         if(untouched)applyTemplate(true);

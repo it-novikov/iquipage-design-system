@@ -10,6 +10,7 @@ export function validateThreadShape(thread) {
   requireValue(thread.messages.length>0&&thread.messages.length<=2000,'THREAD_MESSAGES','Некорректный размер обсуждения.');
   const ids=new Set();
   for(const message of thread.messages){
+    requireValue(message&&typeof message==='object'&&!Array.isArray(message),'THREAD_MESSAGE','Некорректное сообщение.');
     requireValue(validId(message.id)&&!ids.has(message.id),'THREAD_MESSAGE_ID','ID сообщения должен быть уникальным.');
     requireValue(validText(message.body,20000)&&message.body.trim(),'THREAD_TEXT','Введите сообщение до 20 000 символов.');
     ids.add(message.id);

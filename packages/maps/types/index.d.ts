@@ -1,5 +1,5 @@
 /** Host integration contract. These types do not grant server permissions. */
-export type Collection='maps'|'templates'|'runs'|'tasks'|'rules';
+export type Collection='maps'|'templates'|'runs'|'tasks'|'rules'|'tags'|'releases'|'threads'|'taskLinks'|'taskSettings';
 export type MapKind='permanent'|'session';
 export type MapStatus='draft'|'active'|'paused'|'archived';
 export type BoardObject={id:string;type:'sticky'|'text'|'shape'|'frame'|'task'|'image'|'drawing';text:string;x:number;y:number;width:number;height:number;parentId?:string;locked?:boolean;[field:string]:unknown};
