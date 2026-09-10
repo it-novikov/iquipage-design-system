@@ -73,7 +73,7 @@ export class MapsFeature {
     board.addEventListener('iq-selection',()=>{if(this.view==='workflow'&&!this.inspector.hidden&&this.panel==='properties')this.renderProperties();});
     board.addEventListener('iq-change',()=>this.renderChrome());
     const position=this.positions.get(`${this.current.id}:${this.view}`);
-    requestAnimationFrame(()=>{if(board!==this.board)return;if(position)board.viewport=position;else board.fit();});
+    requestAnimationFrame(()=>{if(board!==this.board||!board.isConnected)return;if(position)board.viewport=position;else board.fit();});
   }
   get storageLabel(){return this.config.storageLabel||this.repository.capabilities?.storageLabel||(this.repository.capabilities?.runtimeScope==='local-reference'&&this.repository.capabilities?.storage==='server'?'Сохранено на локальном сервере':this.repository.capabilities?.storage==='server'?'Изменения сохранены':this.repository.capabilities?.storage==='browser'?'Сохранено в этом браузере':'Только в памяти');}
   async saveBoard(request) {

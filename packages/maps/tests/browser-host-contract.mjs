@@ -8,6 +8,9 @@ const browser=await chromium.launch({headless:true,...(process.env.MAPS_CHROMIUM
 try{
   const page=await browser.newPage();await page.goto(origin);await page.locator('iq-whiteboard').first().waitFor({state:'attached'});
   const result=await page.evaluate(async()=>{
+    const detached=document.createElement('iq-whiteboard');
+    const fitBeforeConnect=detached.fit(),holder=document.createElement('div');holder.append(detached);document.body.append(holder);holder.remove();
+    const fitAfterDisconnect=detached.fit();
     const board=document.createElement('iq-whiteboard');board.style.cssText='display:block;width:900px;height:600px';document.body.append(board);
     board.allowedCreateTypes=['sticky'];
     board.data={schema:'iquipage.whiteboard/1',revision:1,title:'Contract',objects:[],connections:[]};
@@ -20,8 +23,9 @@ try{
     const opened=new Promise(resolve=>board.addEventListener('iq-open-task',event=>resolve(event.detail),{once:true}));
     board.querySelector('[data-object="map-task"] [data-wb-action="task-toggle"]').click();
     const detail=await opened;
-    return{blocked,sticky,countAfterAllowed,movedX:board.data.objects[0].x,text:board.data.objects[0].text,contentBlocked,detail};
+    return{fitBeforeConnect,fitAfterDisconnect,blocked,sticky,countAfterAllowed,movedX:board.data.objects[0].x,text:board.data.objects[0].text,contentBlocked,detail};
   });
+  if(result.fitBeforeConnect!==false||result.fitAfterDisconnect!==false)throw Error('Detached fit guard failed: '+JSON.stringify(result));
   if(result.blocked!==undefined||!result.sticky||result.countAfterAllowed!==1||result.movedX!==80||result.text!=='Server title'||!result.contentBlocked)throw Error('Host capability or external task immutability failed: '+JSON.stringify(result));
   if(result.detail.objectId!=='map-task'||result.detail.taskId!=='task-42')throw Error('Open task event failed: '+JSON.stringify(result.detail));
   console.log('Host capability and external task contract: PASS');
