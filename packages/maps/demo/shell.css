@@ -30,3 +30,14 @@ html,body{height:100%;min-height:0}.demo-shell{height:100dvh;display:flex;flex-d
 .host-task-board .kanban-column-header h3{min-width:0;flex:1;white-space:normal;line-height:1.4}
 .host-task-board .kanban-column-header .kanban-count{flex:none;margin-left:0}
 #host-view:focus{outline:none}
+
+/* B1: natural-height cards and one shared scroll root. */
+.host-task-board.kanban{display:grid;grid-template-columns:repeat(6,minmax(264px,1fr));grid-auto-rows:minmax(min-content,1fr);max-height:none;align-items:stretch;scroll-padding:76px 16px 16px}
+.host-task-board.kanban>.kanban-column{display:block;padding:0;min-height:100%;min-width:0;overflow:visible}
+.host-task-board .kanban-column-header{height:76px;min-height:76px;margin:0;top:0;align-items:center}
+.host-task-board .kanban-column-header h3{min-width:0;max-width:none;white-space:normal}
+.host-task-board .kanban-count{flex:0 0 auto;min-width:25px;width:auto;padding-inline:6px;font-variant-numeric:tabular-nums}
+.host-task-board .column-cards{min-height:0;flex:none}
+.host-task-board .task-card{flex:none;height:auto;min-width:0;margin:0}
+.host-task-board .host-column-add{width:calc(100% - 24px);margin:0 12px 12px;justify-content:flex-start}
+.host-task-page>.board-drag-help{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
