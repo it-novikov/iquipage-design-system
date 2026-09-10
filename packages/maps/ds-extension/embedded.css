@@ -1,0 +1,13 @@
+iq-whiteboard[surface-mode=embedded]{height:100%;min-height:0;min-width:0;display:block}
+iq-whiteboard[surface-mode=embedded]>.wb-shell{height:100%;border:0;border-radius:0;min-height:0}
+iq-whiteboard[surface-mode=embedded]>.wb-shell>.wb-header{display:none}
+iq-whiteboard[surface-mode=embedded] .wb-shell .wb-workspace{flex:1;min-height:0}
+iq-whiteboard[surface-mode=embedded] .wb-shell .wb-center{min-height:0}
+iq-whiteboard[surface-mode=embedded] .wb-shell .wb-stage{height:auto;min-height:0;flex:1}
+iq-whiteboard[surface-mode=embedded] .wb-shell .wb-command-row{flex:none}
+iq-whiteboard[surface-mode=embedded] .wb-shell .wb-library{min-height:0;overflow:auto}
+iq-whiteboard[surface-mode=embedded] .wb-shell .wb-panel{min-height:0;overflow:auto}
+@media(max-height:500px){iq-whiteboard[surface-mode=embedded] .wb-shell .wb-stage{min-height:200px}}
+
+/* R3: no idle status strip. Contextual editing controls still have a surface. */
+iq-whiteboard[surface-mode=embedded] .wb-command-row:has(.wb-context[hidden]){display:none}

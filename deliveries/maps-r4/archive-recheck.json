@@ -1,0 +1,32 @@
+{
+  "status": "PASS",
+  "archiveSha256": "9b510185e4b3961d0caf5e8f381d58b8cb1e8d0c4076605c5e5924d045b1850e",
+  "manifestEntries": 530,
+  "nodeTests": 87,
+  "browserScenarios": 20,
+  "sourceFingerprint": "14a1c34db0807fc14c5fc075941b326f5f2d48f64beedaaca0ddd328fe52ad88",
+  "identicalRebuiltPreview": true,
+  "recheckDirectory": "/tmp/maps-r4-recheck-4kpy11hl/IQUIPAGE-Maps-R4",
+  "checks": [
+    {
+      "name": "build",
+      "exitCode": 0
+    },
+    {
+      "name": "preview",
+      "exitCode": 0
+    },
+    {
+      "name": "node",
+      "exitCode": 0
+    },
+    {
+      "name": "browser",
+      "exitCode": 0
+    },
+    {
+      "name": "offline",
+      "exitCode": 0
+    }
+  ]
+}

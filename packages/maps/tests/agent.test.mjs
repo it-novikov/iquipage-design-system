@@ -1,0 +1,8 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import {createMap} from '../src/model.js';import {agentContext,proposalDocument} from '../src/agent.js';import {BUILTIN_TEMPLATES} from '../src/templates.js';
+const map=()=>createMap({projectId:'test-project',document:BUILTIN_TEMPLATES[0].document});
+const proposal=m=>({schema:'iquipage.map-proposal/1',mapId:m.id,projectId:m.projectId,baseRevision:m.revision,operations:[{type:'updateText',id:m.document.objects[1].id,text:'Проверенное предложение'}]});
+test('agent context excludes arbitrary metadata and image bytes',()=>{const m=map();m.secret='not-for-agent';m.document.objects[1].src='not-for-agent';const c=agentContext(m);assert.equal(c.secret,undefined);assert.equal(c.objects[1].src,undefined);});
+test('agent edits require explicit permission and revision match',()=>{const m=map(),p=proposal(m);assert.throws(()=>proposalDocument(m,p),{code:'READ_ONLY'});assert.throws(()=>proposalDocument(m,{...p,baseRevision:100},{canEdit:true}),{code:'CONFLICT'});});
+test('proposal is a pure draft, original remains intact',()=>{const m=map(),before=structuredClone(m);const next=proposalDocument(m,proposal(m),{canEdit:true});assert.deepEqual(m,before);assert.equal(next.changes.length,1);assert.equal(next.document.objects[1].text,'Проверенное предложение');});
+test('agent cannot unlock, invoke tools or mutate locked descendants',()=>{const m=map(),p=proposal(m);m.document.objects[0].locked=true;assert.throws(()=>proposalDocument(m,p,{canEdit:true}),{code:'LOCKED'});assert.throws(()=>proposalDocument(map(),{...p,operations:[{type:'execute',text:'run'}]},{canEdit:true}));});

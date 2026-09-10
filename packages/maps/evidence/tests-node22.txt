@@ -1,0 +1,284 @@
+
+> @iquipage/maps@0.1.0 test
+> node --test tests/*.test.mjs
+
+TAP version 13
+# Subtest: agent context excludes arbitrary metadata and image bytes
+ok 1 - agent context excludes arbitrary metadata and image bytes
+  ---
+  duration_ms: 3.513503
+  type: 'test'
+  ...
+# Subtest: agent edits require explicit permission and revision match
+ok 2 - agent edits require explicit permission and revision match
+  ---
+  duration_ms: 0.882642
+  type: 'test'
+  ...
+# Subtest: proposal is a pure draft, original remains intact
+ok 3 - proposal is a pure draft, original remains intact
+  ---
+  duration_ms: 0.719666
+  type: 'test'
+  ...
+# Subtest: agent cannot unlock, invoke tools or mutate locked descendants
+ok 4 - agent cannot unlock, invoke tools or mutate locked descendants
+  ---
+  duration_ms: 0.361255
+  type: 'test'
+  ...
+# Subtest: schedule validates time zone, days and supported policies
+ok 5 - schedule validates time zone, days and supported policies
+  ---
+  duration_ms: 16.193657
+  type: 'test'
+  ...
+# Subtest: DST repeated hour generates a single stable slot
+ok 6 - DST repeated hour generates a single stable slot
+  ---
+  duration_ms: 2.470468
+  type: 'test'
+  ...
+# Subtest: DST skipped hour is not shifted or replayed
+ok 7 - DST skipped hour is not shifted or replayed
+  ---
+  duration_ms: 0.961942
+  type: 'test'
+  ...
+# Subtest: project events require same project and reject self-origin loops
+ok 8 - project events require same project and reject self-origin loops
+  ---
+  duration_ms: 0.33124
+  type: 'test'
+  ...
+# Subtest: webhook requires signature and recent timestamp
+ok 9 - webhook requires signature and recent timestamp
+  ---
+  duration_ms: 1.296237
+  type: 'test'
+  ...
+# Subtest: repeat event does not duplicate run and changed payload conflicts
+ok 10 - repeat event does not duplicate run and changed payload conflicts
+  ---
+  duration_ms: 6.654271
+  type: 'test'
+  ...
+# Subtest: archived maps and paused schedules cannot execute
+ok 11 - archived maps and paused schedules cannot execute
+  ---
+  duration_ms: 6.377655
+  type: 'test'
+  ...
+# Subtest: local HTTP reference: static entry, CAS, CSRF, canonical flow and approval
+ok 12 - local HTTP reference: static entry, CAS, CSRF, canonical flow and approval
+  ---
+  duration_ms: 179.375126
+  type: 'test'
+  ...
+# Subtest: all 16 templates have human purpose, timing and valid documents
+ok 13 - all 16 templates have human purpose, timing and valid documents
+  ---
+  duration_ms: 3.502816
+  type: 'test'
+  ...
+# Subtest: template search matches description and when
+ok 14 - template search matches description and when
+  ---
+  duration_ms: 0.286673
+  type: 'test'
+  ...
+# Subtest: session begins as persistent draft, not temporary memory
+ok 15 - session begins as persistent draft, not temporary memory
+  ---
+  duration_ms: 3.453471
+  type: 'test'
+  ...
+# Subtest: archive is only permitted after starting session
+ok 16 - archive is only permitted after starting session
+  ---
+  duration_ms: 0.894279
+  type: 'test'
+  ...
+# Subtest: session lifecycle start pause resume archive
+ok 17 - session lifecycle start pause resume archive
+  ---
+  duration_ms: 0.702911
+  type: 'test'
+  ...
+# Subtest: immutable archive at repository boundary
+ok 18 - immutable archive at repository boundary
+  ---
+  duration_ms: 1.331589
+  type: 'test'
+  ...
+# Subtest: direct invalid lifecycle transitions rejected
+ok 19 - direct invalid lifecycle transitions rejected
+  ---
+  duration_ms: 0.471071
+  type: 'test'
+  ...
+# Subtest: failed write leaves canonical revision intact
+ok 20 - failed write leaves canonical revision intact
+  ---
+  duration_ms: 0.572403
+  type: 'test'
+  ...
+# Subtest: simultaneous compare-and-set permits only one writer
+ok 21 - simultaneous compare-and-set permits only one writer
+  ---
+  duration_ms: 0.857565
+  type: 'test'
+  ...
+# Subtest: abort before write has no effect
+ok 22 - abort before write has no effect
+  ---
+  duration_ms: 0.558904
+  type: 'test'
+  ...
+# Subtest: continuation preserves original and clears votes/owners
+ok 23 - continuation preserves original and clears votes/owners
+  ---
+  duration_ms: 2.769329
+  type: 'test'
+  ...
+# Subtest: insert keeps current objects and remaps all appended identities
+ok 24 - insert keeps current objects and remaps all appended identities
+  ---
+  duration_ms: 0.749411
+  type: 'test'
+  ...
+# Subtest: selected frame includes children, single note clears external parent
+ok 25 - selected frame includes children, single note clears external parent
+  ---
+  duration_ms: 0.310458
+  type: 'test'
+  ...
+# Subtest: template strips personal data, votes and runtime state
+ok 26 - template strips personal data, votes and runtime state
+  ---
+  duration_ms: 0.471943
+  type: 'test'
+  ...
+# Subtest: workspace and private template scopes differ from project
+ok 27 - workspace and private template scopes differ from project
+  ---
+  duration_ms: 0.61007
+  type: 'test'
+  ...
+# Subtest: project isolation for maps and cross-project update denial
+ok 28 - project isolation for maps and cross-project update denial
+  ---
+  duration_ms: 0.445061
+  type: 'test'
+  ...
+# Subtest: unsafe keys and executable image sources rejected
+ok 29 - unsafe keys and executable image sources rejected
+  ---
+  duration_ms: 0.971776
+  type: 'test'
+  ...
+# Subtest: parent cycles and missing edge endpoint rejected
+ok 30 - parent cycles and missing edge endpoint rejected
+  ---
+  duration_ms: 0.900089
+  type: 'test'
+  ...
+# Subtest: malformed session state is rejected before reaching the UI
+ok 31 - malformed session state is rejected before reaching the UI
+  ---
+  duration_ms: 0.566284
+  type: 'test'
+  ...
+# Subtest: default flow valid and execution does not depend on geometry
+ok 32 - default flow valid and execution does not depend on geometry
+  ---
+  duration_ms: 6.548732
+  type: 'test'
+  ...
+# Subtest: invalid cycle, ambiguous branch and wrong port types block execution
+ok 33 - invalid cycle, ambiguous branch and wrong port types block execution
+  ---
+  duration_ms: 0.91425
+  type: 'test'
+  ...
+# Subtest: write actions cannot bypass approval
+ok 34 - write actions cannot bypass approval
+  ---
+  duration_ms: 0.315045
+  type: 'test'
+  ...
+# Subtest: decorative new objects are not interpreted as actions
+ok 35 - decorative new objects are not interpreted as actions
+  ---
+  duration_ms: 0.688549
+  type: 'test'
+  ...
+# Subtest: test run pauses durably and creates no tasks even on approval
+ok 36 - test run pauses durably and creates no tasks even on approval
+  ---
+  duration_ms: 7.107506
+  type: 'test'
+  ...
+# Subtest: execute creates reviewed local tasks once and retains source
+ok 37 - execute creates reviewed local tasks once and retains source
+  ---
+  duration_ms: 10.451983
+  type: 'test'
+  ...
+# Subtest: approval rejection and stale approval do not create effects
+ok 38 - approval rejection and stale approval do not create effects
+  ---
+  duration_ms: 2.152878
+  type: 'test'
+  ...
+# Subtest: LLM absence blocks honestly, test data is explicitly simulated
+ok 39 - LLM absence blocks honestly, test data is explicitly simulated
+  ---
+  duration_ms: 2.111026
+  type: 'test'
+  ...
+# Subtest: invalid provider output is not accepted as success
+ok 40 - invalid provider output is not accepted as success
+  ---
+  duration_ms: 1.31882
+  type: 'test'
+  ...
+# Subtest: workflow snapshot survives subsequent edits
+ok 41 - workflow snapshot survives subsequent edits
+  ---
+  duration_ms: 1.722249
+  type: 'test'
+  ...
+# Subtest: repeated start identity returns the same run
+ok 42 - repeated start identity returns the same run
+  ---
+  duration_ms: 1.068452
+  type: 'test'
+  ...
+# Subtest: cancelled approval cannot be resumed
+ok 43 - cancelled approval cannot be resumed
+  ---
+  duration_ms: 1.321324
+  type: 'test'
+  ...
+# Subtest: persistent reference store survives a new repository instance
+ok 44 - persistent reference store survives a new repository instance
+  ---
+  duration_ms: 36.646811
+  type: 'test'
+  ...
+# Subtest: malformed flow records return structured validation issues
+ok 45 - malformed flow records return structured validation issues
+  ---
+  duration_ms: 0.23243
+  type: 'test'
+  ...
+1..45
+# tests 45
+# suites 0
+# pass 45
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 235.764419

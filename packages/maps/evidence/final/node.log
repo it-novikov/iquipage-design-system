@@ -1,0 +1,533 @@
+TAP version 13
+# Subtest: agent context excludes arbitrary metadata and image bytes
+ok 1 - agent context excludes arbitrary metadata and image bytes
+  ---
+  duration_ms: 4.742875
+  type: 'test'
+  ...
+# Subtest: agent edits require explicit permission and revision match
+ok 2 - agent edits require explicit permission and revision match
+  ---
+  duration_ms: 0.936917
+  type: 'test'
+  ...
+# Subtest: proposal is a pure draft, original remains intact
+ok 3 - proposal is a pure draft, original remains intact
+  ---
+  duration_ms: 0.430125
+  type: 'test'
+  ...
+# Subtest: agent cannot unlock, invoke tools or mutate locked descendants
+ok 4 - agent cannot unlock, invoke tools or mutate locked descendants
+  ---
+  duration_ms: 0.186541
+  type: 'test'
+  ...
+# Subtest: dead-letter recovery is bounded and stale acknowledgement cannot erase recovery
+ok 5 - dead-letter recovery is bounded and stale acknowledgement cannot erase recovery
+  ---
+  duration_ms: 95.336375
+  type: 'test'
+  ...
+# Subtest: delivery history enforces the actual 500-record retention bound
+ok 6 - delivery history enforces the actual 500-record retention bound
+  ---
+  duration_ms: 133.294209
+  type: 'test'
+  ...
+# Subtest: aborted changes create neither a new revision nor an event
+ok 7 - aborted changes create neither a new revision nor an event
+  ---
+  duration_ms: 32.306042
+  type: 'test'
+  ...
+# Subtest: rule validation rejects inherited trigger names and malformed names without throwing
+ok 8 - rule validation rejects inherited trigger names and malformed names without throwing
+  ---
+  duration_ms: 4.125625
+  type: 'test'
+  ...
+# Subtest: HTTP committed edit -> frozen input -> approval -> single task and journal isolation
+ok 9 - HTTP committed edit -> frozen input -> approval -> single task and journal isolation
+  ---
+  duration_ms: 1289.537083
+  type: 'test'
+  ...
+# Subtest: HTTP archive completion is trusted only from commit; external events and hooks cannot reopen it
+ok 10 - HTTP archive completion is trusted only from commit; external events and hooks cannot reopen it
+  ---
+  duration_ms: 1214.557
+  type: 'test'
+  ...
+# Subtest: HTTP completion event, immutable archive, journal and human-approved task
+ok 11 - HTTP completion event, immutable archive, journal and human-approved task
+  ---
+  duration_ms: 1244.826167
+  type: 'test'
+  ...
+# Subtest: HTTP signed webhooks deduplicate and reject changed payloads and invalid signatures
+ok 12 - HTTP signed webhooks deduplicate and reject changed payloads and invalid signatures
+  ---
+  duration_ms: 195.091375
+  type: 'test'
+  ...
+# Subtest: HTTP dead-letter retry is project-scoped, version-checked and uses frozen input
+ok 13 - HTTP dead-letter retry is project-scoped, version-checked and uses frozen input
+  ---
+  duration_ms: 1176.914125
+  type: 'test'
+  ...
+# Subtest: HTTP task column change emits one committed event without auto-creating tasks
+ok 14 - HTTP task column change emits one committed event without auto-creating tasks
+  ---
+  duration_ms: 1170.046292
+  type: 'test'
+  ...
+# Subtest: schedule validates time zone, days and supported policies
+ok 15 - schedule validates time zone, days and supported policies
+  ---
+  duration_ms: 12.545333
+  type: 'test'
+  ...
+# Subtest: DST repeated hour generates a single stable slot
+ok 16 - DST repeated hour generates a single stable slot
+  ---
+  duration_ms: 1.911416
+  type: 'test'
+  ...
+# Subtest: DST skipped hour is not shifted or replayed
+ok 17 - DST skipped hour is not shifted or replayed
+  ---
+  duration_ms: 0.283208
+  type: 'test'
+  ...
+# Subtest: project events require same project and reject self-origin loops
+ok 18 - project events require same project and reject self-origin loops
+  ---
+  duration_ms: 0.115875
+  type: 'test'
+  ...
+# Subtest: webhook requires signature and recent timestamp
+ok 19 - webhook requires signature and recent timestamp
+  ---
+  duration_ms: 0.880709
+  type: 'test'
+  ...
+# Subtest: repeat event does not duplicate run and changed payload conflicts
+ok 20 - repeat event does not duplicate run and changed payload conflicts
+  ---
+  duration_ms: 3.714459
+  type: 'test'
+  ...
+# Subtest: archived maps and paused schedules cannot execute
+ok 21 - archived maps and paused schedules cannot execute
+  ---
+  duration_ms: 0.600708
+  type: 'test'
+  ...
+# Subtest: local HTTP reference: static entry, CAS, CSRF, canonical flow and approval
+ok 22 - local HTTP reference: static entry, CAS, CSRF, canonical flow and approval
+  ---
+  duration_ms: 275.229208
+  type: 'test'
+  ...
+# Subtest: all 16 templates have human purpose, timing and valid documents
+ok 23 - all 16 templates have human purpose, timing and valid documents
+  ---
+  duration_ms: 1.54425
+  type: 'test'
+  ...
+# Subtest: template search matches description and when
+ok 24 - template search matches description and when
+  ---
+  duration_ms: 0.121417
+  type: 'test'
+  ...
+# Subtest: session begins as persistent draft, not temporary memory
+ok 25 - session begins as persistent draft, not temporary memory
+  ---
+  duration_ms: 3.560666
+  type: 'test'
+  ...
+# Subtest: archive is only permitted after starting session
+ok 26 - archive is only permitted after starting session
+  ---
+  duration_ms: 0.69175
+  type: 'test'
+  ...
+# Subtest: session lifecycle start pause resume archive
+ok 27 - session lifecycle start pause resume archive
+  ---
+  duration_ms: 0.26325
+  type: 'test'
+  ...
+# Subtest: immutable archive at repository boundary
+ok 28 - immutable archive at repository boundary
+  ---
+  duration_ms: 0.389917
+  type: 'test'
+  ...
+# Subtest: direct invalid lifecycle transitions rejected
+ok 29 - direct invalid lifecycle transitions rejected
+  ---
+  duration_ms: 0.212667
+  type: 'test'
+  ...
+# Subtest: failed write leaves canonical revision intact
+ok 30 - failed write leaves canonical revision intact
+  ---
+  duration_ms: 0.400375
+  type: 'test'
+  ...
+# Subtest: simultaneous compare-and-set permits only one writer
+ok 31 - simultaneous compare-and-set permits only one writer
+  ---
+  duration_ms: 0.2395
+  type: 'test'
+  ...
+# Subtest: abort before write has no effect
+ok 32 - abort before write has no effect
+  ---
+  duration_ms: 0.146625
+  type: 'test'
+  ...
+# Subtest: continuation preserves original and clears votes/owners
+ok 33 - continuation preserves original and clears votes/owners
+  ---
+  duration_ms: 0.594375
+  type: 'test'
+  ...
+# Subtest: insert keeps current objects and remaps all appended identities
+ok 34 - insert keeps current objects and remaps all appended identities
+  ---
+  duration_ms: 0.168917
+  type: 'test'
+  ...
+# Subtest: selected frame includes children, single note clears external parent
+ok 35 - selected frame includes children, single note clears external parent
+  ---
+  duration_ms: 0.138458
+  type: 'test'
+  ...
+# Subtest: template strips personal data, votes and runtime state
+ok 36 - template strips personal data, votes and runtime state
+  ---
+  duration_ms: 0.189875
+  type: 'test'
+  ...
+# Subtest: workspace and private template scopes differ from project
+ok 37 - workspace and private template scopes differ from project
+  ---
+  duration_ms: 0.382
+  type: 'test'
+  ...
+# Subtest: project isolation for maps and cross-project update denial
+ok 38 - project isolation for maps and cross-project update denial
+  ---
+  duration_ms: 0.218708
+  type: 'test'
+  ...
+# Subtest: unsafe keys and executable image sources rejected
+ok 39 - unsafe keys and executable image sources rejected
+  ---
+  duration_ms: 0.288708
+  type: 'test'
+  ...
+# Subtest: parent cycles and missing edge endpoint rejected
+ok 40 - parent cycles and missing edge endpoint rejected
+  ---
+  duration_ms: 0.399292
+  type: 'test'
+  ...
+# Subtest: malformed session state is rejected before reaching the UI
+ok 41 - malformed session state is rejected before reaching the UI
+  ---
+  duration_ms: 0.422333
+  type: 'test'
+  ...
+# Subtest: OUTBOX-01 committed record and queued event survive repository restart
+ok 42 - OUTBOX-01 committed record and queued event survive repository restart
+  ---
+  duration_ms: 30.288209
+  type: 'test'
+  ...
+# Subtest: OUTBOX-02 stale revision does not publish an event
+ok 43 - OUTBOX-02 stale revision does not publish an event
+  ---
+  duration_ms: 31.268542
+  type: 'test'
+  ...
+# Subtest: OUTBOX-03 failed disk write changes neither document nor event queue
+ok 44 - OUTBOX-03 failed disk write changes neither document nor event queue
+  ---
+  duration_ms: 26.328083
+  type: 'test'
+  ...
+# Subtest: OUTBOX-04 pausing a rule before delivery prevents execution
+ok 45 - OUTBOX-04 pausing a rule before delivery prevents execution
+  ---
+  duration_ms: 79.609459
+  type: 'test'
+  ...
+# Subtest: OUTBOX-05 concurrent deliveries serialize and do not duplicate a run
+ok 46 - OUTBOX-05 concurrent deliveries serialize and do not duplicate a run
+  ---
+  duration_ms: 99.486541
+  type: 'test'
+  ...
+# Subtest: OUTBOX-06 replay after acknowledgement failure does not duplicate a task
+ok 47 - OUTBOX-06 replay after acknowledgement failure does not duplicate a task
+  ---
+  duration_ms: 72.742167
+  type: 'test'
+  ...
+# Subtest: OUTBOX-07 delivery consumes the committed input, not a later document revision
+ok 48 - OUTBOX-07 delivery consumes the committed input, not a later document revision
+  ---
+  duration_ms: 83.540875
+  type: 'test'
+  ...
+# Subtest: OUTBOX-08 session completion invokes its previously enabled closing rule once
+ok 49 - OUTBOX-08 session completion invokes its previously enabled closing rule once
+  ---
+  duration_ms: 51.000292
+  type: 'test'
+  ...
+# Subtest: OUTBOX-09 a forged external completion event cannot start an archived map
+ok 50 - OUTBOX-09 a forged external completion event cannot start an archived map
+  ---
+  duration_ms: 62.925792
+  type: 'test'
+  ...
+# Subtest: OUTBOX-10 another target map also uses its input at event commit
+ok 51 - OUTBOX-10 another target map also uses its input at event commit
+  ---
+  duration_ms: 220.915833
+  type: 'test'
+  ...
+# Subtest: OUTBOX-11 delivery stops after five failures and recovery retains its snapshot
+ok 52 - OUTBOX-11 delivery stops after five failures and recovery retains its snapshot
+  ---
+  duration_ms: 100.43025
+  type: 'test'
+  ...
+# Subtest: OUTBOX-12 history is scoped, bounded, and contains no note contents
+ok 53 - OUTBOX-12 history is scoped, bounded, and contains no note contents
+  ---
+  duration_ms: 64.31625
+  type: 'test'
+  ...
+# Subtest: OUTBOX-13 a failed target does not starve subsequent valid rules
+ok 54 - OUTBOX-13 a failed target does not starve subsequent valid rules
+  ---
+  duration_ms: 71.623291
+  type: 'test'
+  ...
+# Subtest: OUTBOX-14 legacy pending events cannot silently consume current input
+ok 55 - OUTBOX-14 legacy pending events cannot silently consume current input
+  ---
+  duration_ms: 26.857875
+  type: 'test'
+  ...
+# Repository listener failed after commit
+# Subtest: OUTBOX-15 repository listener failure does not reject an already committed write
+ok 56 - OUTBOX-15 repository listener failure does not reject an already committed write
+  ---
+  duration_ms: 24.387792
+  type: 'test'
+  ...
+# Subtest: default flow valid and execution does not depend on geometry
+ok 57 - default flow valid and execution does not depend on geometry
+  ---
+  duration_ms: 2.011875
+  type: 'test'
+  ...
+# Subtest: invalid cycle, ambiguous branch and wrong port types block execution
+ok 58 - invalid cycle, ambiguous branch and wrong port types block execution
+  ---
+  duration_ms: 0.337542
+  type: 'test'
+  ...
+# Subtest: write actions cannot bypass approval
+ok 59 - write actions cannot bypass approval
+  ---
+  duration_ms: 0.113541
+  type: 'test'
+  ...
+# Subtest: decorative new objects are not interpreted as actions
+ok 60 - decorative new objects are not interpreted as actions
+  ---
+  duration_ms: 0.3175
+  type: 'test'
+  ...
+# Subtest: test run pauses durably and creates no tasks even on approval
+ok 61 - test run pauses durably and creates no tasks even on approval
+  ---
+  duration_ms: 4.170917
+  type: 'test'
+  ...
+# Subtest: execute creates reviewed local tasks once and retains source
+ok 62 - execute creates reviewed local tasks once and retains source
+  ---
+  duration_ms: 2.1495
+  type: 'test'
+  ...
+# Subtest: approval rejection and stale approval do not create effects
+ok 63 - approval rejection and stale approval do not create effects
+  ---
+  duration_ms: 0.85025
+  type: 'test'
+  ...
+# Subtest: LLM absence blocks honestly, test data is explicitly simulated
+ok 64 - LLM absence blocks honestly, test data is explicitly simulated
+  ---
+  duration_ms: 1.328167
+  type: 'test'
+  ...
+# Subtest: invalid provider output is not accepted as success
+ok 65 - invalid provider output is not accepted as success
+  ---
+  duration_ms: 0.738542
+  type: 'test'
+  ...
+# Subtest: workflow snapshot survives subsequent edits
+ok 66 - workflow snapshot survives subsequent edits
+  ---
+  duration_ms: 0.744834
+  type: 'test'
+  ...
+# Subtest: repeated start identity returns the same run
+ok 67 - repeated start identity returns the same run
+  ---
+  duration_ms: 0.820375
+  type: 'test'
+  ...
+# Subtest: cancelled approval cannot be resumed
+ok 68 - cancelled approval cannot be resumed
+  ---
+  duration_ms: 0.909916
+  type: 'test'
+  ...
+# Subtest: persistent reference store survives a new repository instance
+ok 69 - persistent reference store survives a new repository instance
+  ---
+  duration_ms: 150.458917
+  type: 'test'
+  ...
+# Subtest: malformed flow records return structured validation issues
+ok 70 - malformed flow records return structured validation issues
+  ---
+  duration_ms: 0.12825
+  type: 'test'
+  ...
+# Subtest: executed tasks retain immutable map and run provenance
+ok 71 - executed tasks retain immutable map and run provenance
+  ---
+  duration_ms: 1.066625
+  type: 'test'
+  ...
+# Subtest: task effect replay is idempotent and rejects changed original payload
+ok 72 - task effect replay is idempotent and rejects changed original payload
+  ---
+  duration_ms: 0.200708
+  type: 'test'
+  ...
+# Subtest: batch creates all six document types atomically without mutating input
+ok 73 - batch creates all six document types atomically without mutating input
+  ---
+  duration_ms: 5.065917
+  type: 'test'
+  ...
+# Subtest: batch supports all 14 shapes
+ok 74 - batch supports all 14 shapes
+  ---
+  duration_ms: 0.33525
+  type: 'test'
+  ...
+# Subtest: empty rows are omitted; image without a caption remains valid
+ok 75 - empty rows are omitted; image without a caption remains valid
+  ---
+  duration_ms: 0.133459
+  type: 'test'
+  ...
+# Subtest: empty, excessive and malformed batches fail before a mutation
+ok 76 - empty, excessive and malformed batches fail before a mutation
+  ---
+  duration_ms: 0.426792
+  type: 'test'
+  ...
+# Subtest: batch cannot target a deleted or locked ancestor area
+ok 77 - batch cannot target a deleted or locked ancestor area
+  ---
+  duration_ms: 0.140125
+  type: 'test'
+  ...
+# Subtest: measured mixed-card layout does not overlap rows and grows its area
+ok 78 - measured mixed-card layout does not overlap rows and grows its area
+  ---
+  duration_ms: 0.27225
+  type: 'test'
+  ...
+# Subtest: six task columns have exactly the requested order and names
+ok 79 - six task columns have exactly the requested order and names
+  ---
+  duration_ms: 0.04
+  type: 'test'
+  ...
+# Subtest: task status and rank validated at storage boundary
+ok 80 - task status and rank validated at storage boundary
+  ---
+  duration_ms: 0.879417
+  type: 'test'
+  ...
+# Subtest: task moves preserve content and provenance and support deterministic order
+ok 81 - task moves preserve content and provenance and support deterministic order
+  ---
+  duration_ms: 0.201084
+  type: 'test'
+  ...
+# Subtest: legacy task statuses map for display but are not silently rewritten
+ok 82 - legacy task statuses map for display but are not silently rewritten
+  ---
+  duration_ms: 0.137792
+  type: 'test'
+  ...
+# Subtest: task compare-and-set rejects stale second edit
+ok 83 - task compare-and-set rejects stale second edit
+  ---
+  duration_ms: 0.943333
+  type: 'test'
+  ...
+# Subtest: all 16 template previews reflect distinct actual document geometry
+ok 84 - all 16 template previews reflect distinct actual document geometry
+  ---
+  duration_ms: 0.964291
+  type: 'test'
+  ...
+# Subtest: template projection escapes markup and does not fetch embedded images
+ok 85 - template projection escapes markup and does not fetch embedded images
+  ---
+  duration_ms: 0.208042
+  type: 'test'
+  ...
+# Subtest: built-in layout updates are versioned and do not rewrite existing maps
+ok 86 - built-in layout updates are versioned and do not rewrite existing maps
+  ---
+  duration_ms: 0.174542
+  type: 'test'
+  ...
+# Subtest: a measured batch uses free space without covering existing objects
+ok 87 - a measured batch uses free space without covering existing objects
+  ---
+  duration_ms: 0.257
+  type: 'test'
+  ...
+1..87
+# tests 87
+# suites 0
+# pass 87
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 7582.738709

@@ -1,0 +1,27 @@
+{
+  "status": "PASS",
+  "browser": "153.0.8010.12",
+  "checks": [
+    {
+      "name": "configure enabled closing rule using visible controls",
+      "status": "PASS"
+    },
+    {
+      "name": "committed session completion appears in persisted delivery journal",
+      "status": "PASS"
+    },
+    {
+      "name": "approval creates one local task with committed-event provenance",
+      "status": "PASS"
+    },
+    {
+      "name": "delivery journal remains available in dark theme and narrow viewport",
+      "status": "PASS"
+    },
+    {
+      "name": "no browser JavaScript errors",
+      "status": "PASS"
+    }
+  ],
+  "errors": []
+}

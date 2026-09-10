@@ -1,0 +1,22 @@
+{
+  "status": "PASS",
+  "archiveSha256": "f9f026054911109ba2ef88327945c5f4cef208b26ed224dac5792c8ce4d0cc7f",
+  "manifestEntries": 502,
+  "unpackedChecks": [
+    {
+      "command": "npm test",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run build",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/preview.mjs",
+      "exitCode": 0
+    }
+  ],
+  "identicalRebuiltPreview": true,
+  "offlineBrowserCheck": "PASS",
+  "recheckDirectory": "/Users/nvkv71/iquipage-work/maps-r3-recheck-di3112jb/IQUIPAGE-Maps-R3"
+}

@@ -1,0 +1,31 @@
+{
+  "name": "@iquipage/maps",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "build": "node scripts/build.mjs",
+    "dev": "node server/app.mjs",
+    "test:ui": "node scripts/test-browser.mjs",
+    "preview": "node scripts/preview.mjs",
+    "test:offline": "node tests/preview-smoke.mjs",
+    "verify": "node scripts/verify.mjs",
+    "package": "python3 scripts/package-final.py",
+    "test:browser": "node scripts/test-browser.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "exports": {
+    ".": "./src/maps.js",
+    "./model": "./src/model.js",
+    "./runtime": "./src/runtime.js",
+    "./agent": "./src/agent.js",
+    "./styles.css": "./src/maps.css"
+  },
+  "types": "./types/index.d.ts",
+  "devDependencies": {
+    "playwright": "1.63.0"
+  }
+}

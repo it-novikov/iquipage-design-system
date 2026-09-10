@@ -1,0 +1,15 @@
+{
+  "status": "PASS",
+  "checks": [
+    {
+      "name": "dead-letter retry through UI keeps its committed input and requires approval",
+      "status": "PASS"
+    },
+    {
+      "name": "dismissal is persisted without deleting the map or creating another run",
+      "status": "PASS"
+    }
+  ],
+  "errors": [],
+  "browser": "153.0.8010.12"
+}
