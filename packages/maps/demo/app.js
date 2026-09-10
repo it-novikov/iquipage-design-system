@@ -18,7 +18,7 @@ if(standalone){document.querySelector('.platform-brand').href='#maps';document.q
 const existing=await repository.list('maps',project.id);
 if(!existing.length){
   const template=BUILTIN_TEMPLATES.find(t=>t.id==='ideas');
-  const map=createMap({projectId:project.id,title:'Как сделать первый шаг понятнее?',kind:'session',document:remapDocument(template.document),templateOrigin:{id:template.id,version:1}});
+  const map=createMap({projectId:project.id,title:'Как сделать первый шаг понятнее?',kind:'session',document:remapDocument(template.document),templateOrigin:{id:template.id,version:template.version}});
   map.demoSeed=true;await repository.write('maps',map,0);
 }
 const feature=await mountMaps(featureRoot,{project,repository,runtime,context,permissions:{read:true,edit:true,run:true,approve:true,manageAutomation:true},onOpenTasks:()=>navigate('tasks')});

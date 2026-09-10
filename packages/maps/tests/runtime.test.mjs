@@ -22,3 +22,19 @@ test('cancelled approval cannot be resumed',async()=>{const repo=new MemoryRepos
 test('persistent reference store survives a new repository instance',async()=>{const dir=await mkdtemp(path.join(os.tmpdir(),'maps-test-'));try{let repo=await new FileRepository(dir).init();const map=await repo.write('maps',createMap({projectId}),0);const runtime=new WorkflowRuntime(repo);const run=await runtime.start({...payload(),mapId:map.id});repo=await new FileRepository(dir).init();assert.equal((await repo.read('maps',map.id,projectId)).id,map.id);const pending=await repo.read('runs',run.id,projectId);assert.equal(pending.status,'awaiting_approval');const resumed=await new WorkflowRuntime(repo).approve(run.id,projectId,{accepted:true,actions:pending.data.actions,baseRevision:pending.revision});assert.equal(resumed.status,'succeeded');}finally{await rm(dir,{recursive:true,force:true});}});
 
 test('malformed flow records return structured validation issues',()=>{const flow=createMeetingFlow();flow.nodes=[null];assert.ok(validateFlow(flow).some(x=>x.code==='SCHEMA'));});
+
+test('executed tasks retain immutable map and run provenance',async()=>{
+  const repo=new MemoryRepository(),runtime=new WorkflowRuntime(repo,{createTasks:localTasksAdapter(repo)});
+  let run=await runtime.start(payload(undefined,'execute'));
+  run=await runtime.approve(run.id,projectId,{accepted:true,actions:[{title:'Проверить источник'}],baseRevision:run.revision});
+  const task=(await repo.list('tasks',projectId))[0];
+  assert.equal(task.status,'ready');assert.equal(task.sourceMapId,'test-map');assert.equal(task.sourceMapRevision,1);assert.equal(task.sourceRunId,run.id);
+});
+test('task effect replay is idempotent and rejects changed original payload',async()=>{
+  const repo=new MemoryRepository(),adapter=localTasksAdapter(repo);
+  const input={projectId,mapId:'test-map',mapRevision:1,runId:'stable-run',nodeId:'task-step',actions:[{title:'Действие'}]};
+  const first=await adapter(input);assert.deepEqual(await adapter(input),first);
+  const task=(await repo.list('tasks',projectId))[0];await repo.write('tasks',{...task,title:'Правка пользователем'},task.revision);
+  assert.deepEqual(await adapter(input),first);assert.equal((await repo.list('tasks',projectId)).length,1);
+  await assert.rejects(adapter({...input,actions:[{title:'Другое действие'}]}),{code:'IDEMPOTENCY_CONFLICT'});
+});

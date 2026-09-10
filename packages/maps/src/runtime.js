@@ -73,7 +73,7 @@ export class WorkflowRuntime {
           if(run.mode==='test'){payload={wouldCreate:actionsOnly(payload.actions),taskIds:[]};current.simulated=true;}
           else{
             requireValue(this.adapters.createTasks,'TASKS_NOT_CONNECTED','Адаптер задач не подключён. Никаких задач не создано.');
-            payload=await withTimeout(signal=>this.adapters.createTasks({actions:actionsOnly(payload.actions),projectId,runId:id,nodeId:node.id,idempotencyKey:`${id}:${node.id}`,signal}),controller.signal);
+            payload=await withTimeout(signal=>this.adapters.createTasks({actions:actionsOnly(payload.actions),projectId,mapId:run.mapId,mapRevision:run.mapRevision,runId:id,nodeId:node.id,idempotencyKey:`${id}:${node.id}`,signal}),controller.signal);
           }
         }
         controller.signal.throwIfAborted();payload=assertPayload(definition.output==='none'?'json':definition.output,payload);
@@ -117,12 +117,13 @@ export class WorkflowRuntime {
     requireValue(run.retries<3,'RETRY_LIMIT','Лимит повторов исчерпан. Создайте новый запуск после проверки.');run.retries++;run.status='queued';delete run.error;return this.save(run);
   });return this.advance(id,projectId);}
 }
-export function localTasksAdapter(repository){return async({actions,projectId,runId,nodeId,signal})=>{
+export function localTasksAdapter(repository){return async({actions,projectId,mapId,mapRevision,runId,nodeId,signal})=>{
   const taskIds=[];
   for(const [index,action]of actions.entries()){
     signal?.throwIfAborted();const id=`task-${runId}-${nodeId}-${index}`;
     let task=await repository.read('tasks',id,projectId);
-    if(!task)task=await repository.write('tasks',{id,projectId,revision:0,title:action.title,owner:action.owner||'',status:'planned',source:{runId,nodeId},createdAt:now()},0,{signal});taskIds.push(task.id);
+    if(task?.source?.action)requireValue(JSON.stringify(task.source.action)===JSON.stringify(action),'IDEMPOTENCY_CONFLICT','Идентификатор действия уже использован с другими данными.');
+    if(!task)task=await repository.write('tasks',{id,projectId,revision:0,title:action.title,owner:action.owner||'',status:'ready',...(mapId?{sourceMapId:mapId,sourceMapRevision:mapRevision}:{}),sourceRunId:runId,source:{runId,nodeId,...(mapId?{mapId,mapRevision}:{}),action:clone(action)},createdAt:now()},0,{signal});taskIds.push(task.id);
   }
   return{taskIds,count:taskIds.length,scope:'local-reference'};
 };}

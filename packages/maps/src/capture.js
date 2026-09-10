@@ -67,6 +67,18 @@ export function layoutCaptured(document,ids,{areaId='',origin={x:80,y:80}}={}) {
     row.forEach((o,j)=>{o.x=parent?parent.x+24:origin.x+j*340;o.y=y;});
     y+=Math.max(...row.map(o=>o.height))+28;i+=row.length;
   }
+  if(!parent&&objects.length){
+    // Keep existing work intact: move the whole measured batch to a free band.
+    const obstacles=next.objects.filter(o=>!selected.has(o.id));
+    const left=Math.min(...objects.map(o=>o.x)),right=Math.max(...objects.map(o=>o.x+o.width));
+    for(let pass=0;pass<=obstacles.length;pass++){
+      const top=Math.min(...objects.map(o=>o.y)),bottom=Math.max(...objects.map(o=>o.y+o.height));
+      const hits=obstacles.filter(o=>left<o.x+o.width+24&&right+24>o.x&&top<o.y+o.height+24&&bottom+24>o.y);
+      if(!hits.length)break;
+      const shift=Math.max(...hits.map(o=>o.y+o.height))+48-top;
+      objects.forEach(o=>o.y+=shift);
+    }
+  }
   if(parent){parent.height=Math.max(parent.height,y-parent.y+24);let child=parent;const seen=new Set();
     while(child.parentId&&!seen.has(child.id)){seen.add(child.id);const ancestor=next.objects.find(o=>o.id===child.parentId);if(!ancestor)break;ancestor.height=Math.max(ancestor.height,child.y+child.height-ancestor.y+24);child=ancestor;}
   }
