@@ -1,0 +1,21 @@
+{
+  "release": "R3",
+  "sourceCommit": "28900f3a60ee42f3dbeadb7d9d5211a4fd2dfda5",
+  "nodeTests": 62,
+  "browserScenarios": 13,
+  "offlinePreview": "PASS",
+  "scope": "local-reference",
+  "previewSha256": "cae72f506e5e7ae1996e9d2a88a3ebef7079a98bc21c32ceadb8c0a879363062",
+  "baseManifestSha256": "f252a499e00d7bab6088640126a406075a86bf109e673a257a002d8e90e9195c",
+  "notIncluded": [
+    "unverified transactional outbox",
+    "production Sprintique adapter",
+    "live LLM",
+    "multi-user editing"
+  ],
+  "notTested": [
+    "real touch devices",
+    "screen readers",
+    "Safari/WebKit"
+  ]
+}
