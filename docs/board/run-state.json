@@ -1,0 +1,20 @@
+{
+  "phase": "Board-B1 checkpoint",
+  "status": "PASS for reported cases, B1-B5 overall not complete",
+  "sourceFingerprint": "63355f0a599588fd5688e8401c744d519223fe3583fac9407da26808e1457ca8",
+  "nodeTests": 101,
+  "browserScenarios": 34,
+  "branch": "feature/board-production",
+  "pullRequest": 2,
+  "evidence": "packages/maps/evidence/board-b1",
+  "delivery": "deliveries/board-b1",
+  "remaining": [
+    "named checklists and files",
+    "threads with resolutions",
+    "project releases, tags and task templates",
+    "depends/related and map-task references",
+    "release/tag/assignee filters and virtualization",
+    "GitHub/GitLab automation integration",
+    "production authorization and performance/a11y acceptance"
+  ]
+}

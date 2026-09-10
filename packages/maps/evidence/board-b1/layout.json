@@ -1,0 +1,19 @@
+{
+  "status": "PASS",
+  "checks": [
+    {
+      "name": "200 long cards remain contained at 1440×900",
+      "status": "PASS"
+    },
+    {
+      "name": "200 long cards remain contained at 1280×720",
+      "status": "PASS"
+    },
+    {
+      "name": "one vertical scroll root, sticky headers and exact column count",
+      "status": "PASS"
+    }
+  ],
+  "errors": [],
+  "browser": "153.0.8010.12"
+}
