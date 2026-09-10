@@ -21,6 +21,7 @@
     ".": "./src/maps.js",
     "./model": "./src/model.js",
     "./runtime": "./src/runtime.js",
+    "./capabilities": {"types":"./types/capabilities.d.ts","default":"./src/capabilities.js"},
     "./agent": "./src/agent.js",
     "./styles.css": "./src/maps.css"
   },

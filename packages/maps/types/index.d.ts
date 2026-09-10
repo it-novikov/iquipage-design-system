@@ -2,7 +2,11 @@
 export type Collection='maps'|'templates'|'runs'|'tasks'|'rules';
 export type MapKind='permanent'|'session';
 export type MapStatus='draft'|'active'|'paused'|'archived';
-export type BoardObject={id:string;type:'sticky'|'text'|'shape'|'frame'|'task'|'image'|'drawing';text:string;x:number;y:number;width:number;height:number;parentId?:string;locked?:boolean;[field:string]:unknown};
+export type BoardObjectType='sticky'|'text'|'shape'|'frame'|'task'|'image'|'drawing';
+export type CreatableBoardObjectType=Exclude<BoardObjectType,'drawing'>;
+export interface BoardObjectBase{id:string;text:string;x:number;y:number;width:number;height:number;parentId?:string;locked?:boolean;[field:string]:unknown}
+export interface BoardTaskObject extends BoardObjectBase{type:'task';owner?:string;done?:boolean;externalTaskId?:string}
+export type BoardObject=BoardTaskObject|(BoardObjectBase&{type:Exclude<BoardObjectType,'task'>;externalTaskId?:never});
 export interface BoardDocument{schema?:string;title:string;revision:number;objects:BoardObject[];connections:{id:string;from:string;to:string;label?:string;[field:string]:unknown}[]}
 export interface MapRecord{schema:'iquipage.maps/1';id:string;projectId:string;title:string;kind:MapKind;status:MapStatus;revision:number;document:BoardDocument;flow:Flow|null;summary:string;createdAt:string;updatedAt:string;sourceMapId?:string;sourceRevision?:number;session:Session|null}
 export interface Session{phase:'collect'|'discuss'|'vote'|'outcomes';timer:{remaining:number;endsAt:string|null};votes:Record<string,number>;voteLimit:number}
@@ -15,6 +19,7 @@ export interface Repository{
  list(collection:Collection,projectId:string):Promise<any[]>;
  read(collection:Collection,id:string,projectId:string):Promise<any|null>;
  write(collection:Collection,value:any,baseRevision:number,options?:{signal?:AbortSignal}):Promise<any>;
+ request?<T=unknown>(path:string,options?:{method?:'GET'|'POST';body?:unknown;signal?:AbortSignal}):Promise<T>;
  subscribe?(listener:(change:{collection:Collection;id:string;projectId:string;revision:number})=>void):()=>void;
  close?():void|Promise<void>;
 }
@@ -30,12 +35,34 @@ export interface MapsConfig{
  project:{id:string;name?:string};repository:Repository;runtime?:Runtime;mapId?:string;storageLabel?:string;
  context?:{workspaceId:string;actorId:string};
  permissions:{read:boolean;edit?:boolean;run?:boolean;approve?:boolean;manageAutomation?:boolean};
+ uiCapabilities?:Partial<Omit<MapsUiCapabilities,'allowedCreateTypes'>> & {allowedCreateTypes?:CreatableBoardObjectType[]};
  onOpenMap?:(target:{id:string;projectId:string})=>void;
  onOpenTasks?:(target:{ids:string[];projectId:string})=>void|Promise<void>;
 }
+export interface MapsUiCapabilities{mapSwitcher:boolean;templates:boolean;sessions:boolean;workflow:boolean;automation:boolean;agentProposals:boolean;allowedCreateTypes:readonly CreatableBoardObjectType[]}
+export interface OpenTaskDetail{objectId:string;taskId:string}
+export interface OpenTasksDetail{ids:string[];projectId:string}
+export interface WhiteboardChangeRequestDetail{requestId:string;baseRevision:number;reason:string;value:BoardDocument;accept(value:BoardDocument):boolean;reject(message?:string):boolean}
+export interface WhiteboardHostCommandDetail{command:string}
+export interface WhiteboardSelectionDetail{ids:string[]}
+export interface WhiteboardElementEventMap{
+ 'iq-open-task':CustomEvent<OpenTaskDetail>;
+ 'iq-host-command':CustomEvent<WhiteboardHostCommandDetail>;
+ 'iq-selection':CustomEvent<WhiteboardSelectionDetail>;
+ 'iq-change-request':CustomEvent<WhiteboardChangeRequestDetail>;
+}
+export interface MapsElementEventMap{'iq-open-tasks':CustomEvent<OpenTasksDetail>}
+export interface IqWhiteboardElement extends HTMLElement{
+ data:BoardDocument;readonly draftData:BoardDocument;allowedCreateTypes:CreatableBoardObjectType[];
+ controlled:boolean;readOnly:boolean;readonly dirty:boolean;readonly saving:boolean;
+ applyDocument(value:BoardDocument,baseRevision:number,reason?:string):boolean;
+ addEventListener<K extends keyof WhiteboardElementEventMap>(type:K,listener:(this:IqWhiteboardElement,event:WhiteboardElementEventMap[K])=>void,options?:boolean|AddEventListenerOptions):void;
+}
+declare global{interface HTMLElementTagNameMap{'iq-whiteboard':IqWhiteboardElement}}
 export interface AgentProposal{schema:'iquipage.map-proposal/1';mapId:string;projectId:string;baseRevision:number;operations:({type:'updateText';id:string;text:string}|{type:'addSticky';text:string})[]}
 export declare class MapsFeature{
  readonly current:MapRecord|null;
+ readonly uiCapabilities:MapsUiCapabilities;
  readyToLeave():Promise<boolean>;
  openMap(id:string):Promise<boolean>;
  getAgentContext(ids?:string[]):Record<string,unknown>;

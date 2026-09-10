@@ -18,7 +18,7 @@ try{
     server.once('error',e=>{clearTimeout(timer);reject(e);});
     server.once('exit',code=>{clearTimeout(timer);reject(Error('Local server exited before readiness: '+code));});
   });
-  for(const suite of ['tests/browser-r3.mjs','tests/browser-events-final.mjs','tests/browser-delivery-recovery.mjs'])await new Promise((resolve,reject)=>{
+  for(const suite of ['tests/browser-r3.mjs','tests/browser-host-contract.mjs','tests/browser-events-final.mjs','tests/browser-delivery-recovery.mjs'])await new Promise((resolve,reject)=>{
     const test=spawn(process.execPath,[suite],{cwd:root,env,stdio:'inherit'});
     test.once('error',reject);test.once('exit',code=>code===0?resolve():reject(Error('Browser suite failed: '+code)));
   });
