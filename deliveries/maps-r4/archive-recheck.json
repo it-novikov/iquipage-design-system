@@ -1,32 +1,12 @@
 {
   "status": "PASS",
-  "archiveSha256": "08eaaa3a030bafaa3ac7f86d7243dc12b31b123d584cca010fd3f9779a437ea0",
-  "manifestEntries": 530,
+  "archiveSha256": "47483d6de97215e4acb88ae91d1dc4861a75ac5c79d76114e16bdfc5af9da9e4",
+  "manifestEntries": 531,
   "nodeTests": 87,
   "browserScenarios": 20,
-  "sourceFingerprint": "e5fb04a95b78b41f027b45c0b292fe32cd3c3c50646b70fc60af479f6c5a3d45",
+  "freshInstall": "PASS",
+  "fullVerificationAfterUnpack": "PASS",
   "identicalRebuiltPreview": true,
-  "recheckDirectory": "/Users/nvkv71/iquipage-work/maps-r4-recheck-sauzdiil/IQUIPAGE-Maps-R4",
-  "checks": [
-    {
-      "name": "build",
-      "exitCode": 0
-    },
-    {
-      "name": "preview",
-      "exitCode": 0
-    },
-    {
-      "name": "node",
-      "exitCode": 0
-    },
-    {
-      "name": "browser",
-      "exitCode": 0
-    },
-    {
-      "name": "offline",
-      "exitCode": 0
-    }
-  ]
+  "sourceFingerprint": "14a1c34db0807fc14c5fc075941b326f5f2d48f64beedaaca0ddd328fe52ad88",
+  "directory": "/Users/nvkv71/iquipage-work/maps-r4-recheck-2qghm559/IQUIPAGE-Maps-R4"
 }
