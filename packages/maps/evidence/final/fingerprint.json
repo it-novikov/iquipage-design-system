@@ -1,5 +1,5 @@
 {
-  "sha256": "e5fb04a95b78b41f027b45c0b292fe32cd3c3c50646b70fc60af479f6c5a3d45",
+  "sha256": "14a1c34db0807fc14c5fc075941b326f5f2d48f64beedaaca0ddd328fe52ad88",
   "files": {
     "src/agent.js": "d42b69b21d180cbd91b0703a1b6725f934a2bc6907cbffb4c9caa6823663ed48",
     "src/automation-ui.js": "859b0a175f16be51c70c119c83cfbe8698fbbb2cb7a90ba6e83503644d377014",
@@ -57,7 +57,7 @@
     "tests/server-fixture.mjs": "52195ecb54312ca567f129c8dd6b8d09f533770fb578dba2252ed7f8daaf2c06",
     "tests/ui.py": "f8952d273ef8fb21f90a9d3b526766602f2a3288658754d93de2b30d37a06a53",
     "tests/usability.test.mjs": "8fb636dc531f15515dda51c2fd15e89f1dda4c9ead39f31852573a57b1974c40",
-    "types/index.d.ts": "6fe5b23ba520b5978cc10d897a3af929b91cff80e7e233fe9cf43d38af9c06d5",
+    "types/index.d.ts": "b27cedd2ee4ff389089304499f10f3152e127bb7f9e40d2c98c45b7999ee12eb",
     "ds-extension/embedded.css": "5d0a62ed6468dba616d88e2c79cb8ace11a663cd3e2bf850e4909a1555b49aae",
     "ds-extension/public-api.inc.js": "936bc90be1134d1cd016948be74b42f0fad00f3f725c974c189a5957fca77565",
     "package.json": "4dd22db9e9a343a896adc91256c46b85467afc3ba80aaccb79742d7e1fe1f78b",

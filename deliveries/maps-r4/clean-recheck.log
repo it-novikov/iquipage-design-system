@@ -7,4 +7,4 @@ PASS preview
 PASS node
 PASS browser
 PASS offline
-{"status":"PASS","nodeTests":87,"browserScenarios":20,"sourceFingerprint":"e5fb04a95b78b41f027b45c0b292fe32cd3c3c50646b70fc60af479f6c5a3d45"}
+{"status":"PASS","nodeTests":87,"browserScenarios":20,"sourceFingerprint":"14a1c34db0807fc14c5fc075941b326f5f2d48f64beedaaca0ddd328fe52ad88"}
