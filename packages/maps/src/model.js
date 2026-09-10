@@ -1,3 +1,5 @@
+import {WORK_COLLECTIONS,prepareWorkspaceRecord} from './board/workspace-model.js';
+import {applyCreationTemplate} from './board/task-templates.js';
 import {validateTask,taskColumn} from './tasks.js';
 import {reparentTask} from './board/model.js';
 import { clone, uid, now, requireValue, validText, validId, assertSafeJSON } from './common.js';
@@ -5,7 +7,7 @@ import { blankDocument, validateDocument, remapDocument, extractSelection } from
 export * from './common.js';
 export * from './document.js';
 export const MAP_SCHEMA = 'iquipage.maps/1';
-export const COLLECTIONS = ['maps', 'templates', 'runs', 'tasks', 'rules'];
+export const COLLECTIONS = ['maps', 'templates', 'runs', 'tasks', 'rules', ...WORK_COLLECTIONS];
 export function createMap({ projectId, title = 'Новая карта', kind = 'permanent', document = blankDocument(title), flow = null, templateOrigin = null }) {
   requireValue(validId(projectId), 'INVALID_PROJECT', 'Не задан проект.');
   requireValue(['permanent', 'session'].includes(kind), 'INVALID_KIND', 'Выберите постоянную или сессионную карту.');
@@ -75,7 +77,7 @@ export function templateFromMap(map, { title, description = '', when = '', scope
   return { schema: 'iquipage.template/1', id: uid('template'), projectId: map.projectId, revision: 0, version: 1, title: title.trim(), description, when, scope,
     kind: map.kind, category: 'Мои шаблоны', createdAt: now(), document, flow: null, sourceMapId: map.id, sourceRevision: map.revision };
 }
-export function prepareWrite(collection, value, previous, baseRevision, taskRecords = []) {
+export function prepareWrite(collection, value, previous, baseRevision, taskRecords = [], snapshot = {}, actorId = 'local-user') {
   requireValue(COLLECTIONS.includes(collection), 'INVALID_COLLECTION', 'Неизвестная коллекция.'); assertSafeJSON(value);
   requireValue(validId(value.id) && validId(value.projectId), 'INVALID_ID', 'Не заданы идентификаторы.');
   requireValue((previous?.revision ?? 0) === baseRevision, 'CONFLICT', 'Документ изменился в другой вкладке. Ваша копия сохранена.');
@@ -88,6 +90,8 @@ export function prepareWrite(collection, value, previous, baseRevision, taskReco
     requireValue(value.kind === 'session' || ['active', 'archived'].includes(value.status), 'INVALID_STATE', 'Постоянная карта не может быть сессией.');
     if (value.status === 'archived') requireValue(typeof value.archivedAt === 'string' && Number.isFinite(Date.parse(value.archivedAt)), 'INVALID_ARCHIVE', 'Не задан момент завершения.');
   }
+  if (collection === 'tasks' && !previous) value = applyCreationTemplate(value, (snapshot.taskSettings || []).find(item => item.projectId === value.projectId));
+  if (collection === 'tasks' || WORK_COLLECTIONS.includes(collection)) value = prepareWorkspaceRecord(collection, value, previous, {...snapshot, tasks: taskRecords}, actorId);
   if (collection === 'tasks') { validateTask(value); reparentTask(value, value.parentId ?? null, taskRecords); }
   if (collection === 'templates') { validateDocument(value.document); requireValue(validText(value.title, 160) && value.title.trim(), 'INVALID_TITLE', 'Введите название шаблона.'); }
   const next = clone(value); next.revision = baseRevision + 1; next.updatedAt = now();

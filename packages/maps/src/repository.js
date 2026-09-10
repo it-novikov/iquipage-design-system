@@ -1,3 +1,4 @@
+import {writeScopes} from './board/workspace-model.js';
 import { clone, DomainError, COLLECTIONS, prepareWrite } from './model.js';
 
 function visible(collection, value, projectId, context) {
@@ -15,7 +16,7 @@ export class MemoryRepository {
   async read(collection, id, projectId) { const value = this.data[collection].get(id); return value && visible(collection, value, projectId, this.context) ? clone(value) : null; }
   async write(collection, value, baseRevision = 0, { signal } = {}) {
     signal?.throwIfAborted();
-    const next = prepareWrite(collection, value, this.data[collection].get(value.id), baseRevision, [...this.data.tasks.values()]); this.data[collection].set(value.id, clone(next));
+    const next = prepareWrite(collection, value, this.data[collection].get(value.id), baseRevision, [...this.data.tasks.values()], Object.fromEntries(COLLECTIONS.map(name => [name, [...this.data[name].values()]])), this.context.actorId); this.data[collection].set(value.id, clone(next));
     this.listeners.forEach(fn => fn({ collection, id: next.id, projectId: next.projectId, revision: next.revision })); return clone(next);
   }
   subscribe(fn) { this.listeners.add(fn); return () => this.listeners.delete(fn); }
@@ -28,8 +29,8 @@ export class BrowserRepository {
     this.channel = typeof BroadcastChannel === 'function' ? new BroadcastChannel(namespace) : null;
     this.channel?.addEventListener('message', e => this.listeners.forEach(fn => fn(e.data)));
     this.ready = new Promise((resolve, reject) => {
-      const request = indexedDB.open(namespace, 1);
-      request.onupgradeneeded = () => { for (const name of COLLECTIONS) request.result.createObjectStore(name, { keyPath: 'id' }); };
+      const request = indexedDB.open(namespace, 2);
+      request.onupgradeneeded = () => { for (const name of COLLECTIONS) if (!request.result.objectStoreNames.contains(name)) request.result.createObjectStore(name, { keyPath: 'id' }); };
       request.onsuccess = () => { request.result.onversionchange = () => request.result.close(); resolve(request.result); };
       request.onerror = () => reject(new DomainError('STORAGE_UNAVAILABLE', 'Хранилище браузера недоступно. Экспортируйте копию.'));
       request.onblocked = () => reject(new DomainError('STORAGE_BLOCKED', 'Закройте старые вкладки этого приложения.'));
@@ -53,11 +54,23 @@ export class BrowserRepository {
   async write(collection, value, baseRevision = 0, { signal } = {}) {
     signal?.throwIfAborted(); const db = await this.ready; signal?.throwIfAborted();
     return new Promise((resolve, reject) => {
-      const tx = db.transaction(collection, 'readwrite'), store = tx.objectStore(collection); let next, error;
+      const scopes = writeScopes(collection), tx = db.transaction(scopes, 'readwrite'), store = tx.objectStore(collection); let next, error;
       const abort = () => { try { tx.abort(); } catch {} }; signal?.addEventListener('abort', abort, { once: true });
       const cleanup = () => signal?.removeEventListener('abort', abort);
-      const request = collection === 'tasks' ? store.getAll() : store.get(value.id);
-      request.onsuccess = () => { try { signal?.throwIfAborted(); next = prepareWrite(collection, value, collection === 'tasks' ? request.result.find(t => t.id === value.id) : request.result, baseRevision, collection === 'tasks' ? request.result : []); store.put(next); } catch (e) { error = e; tx.abort(); } };
+      const snapshot = {}; let remaining = scopes.length;
+      for (const name of scopes) {
+        const request = tx.objectStore(name).getAll();
+        request.onsuccess = () => {
+          snapshot[name] = request.result;
+          if (--remaining) return;
+          try {
+            signal?.throwIfAborted();
+            const previous = snapshot[collection].find(item => item.id === value.id);
+            next = prepareWrite(collection, value, previous, baseRevision, snapshot.tasks || [], snapshot, this.context.actorId);
+            store.put(next);
+          } catch (cause) { error = cause; tx.abort(); }
+        };
+      }
       tx.oncomplete = () => {
         cleanup(); const event = { collection, id: next.id, projectId: next.projectId, revision: next.revision };
         this.channel?.postMessage(event); this.listeners.forEach(fn => fn(event)); resolve(clone(next));

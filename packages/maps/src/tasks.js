@@ -1,3 +1,4 @@
+import {validateChecklists} from './board/task-content.js';
 import {uid,now,requireValue,validText,clone} from './common.js';
 /** Host-owned workflow. Maps uses only the TaskAdapter, never these UI columns. */
 export const TASK_COLUMNS=[
@@ -11,6 +12,7 @@ export const TASK_COLUMNS=[
 const legacy={planned:'ready',active:'in_progress',done:'ready_for_release'};
 export function taskColumn(task){return legacy[task.status]||task.status;}
 export function validateTask(task){
+  validateChecklists(task.checklists || []);
   requireValue(validText(task.title,240)&&task.title.trim(),'TASK_TITLE','Название задачи: от 1 до 240 символов.');
   requireValue(TASK_COLUMNS.some(c=>c.id===taskColumn(task)),'TASK_STATUS','Неизвестный статус задачи.');
   requireValue(!task.description||validText(task.description,10000),'TASK_DESCRIPTION','Описание задачи: до 10 000 символов.');
