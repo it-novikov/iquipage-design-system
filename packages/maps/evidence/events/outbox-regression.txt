@@ -1,0 +1,56 @@
+✔ OUTBOX-01 committed record and queued event survive repository restart (17.886542ms)
+✔ OUTBOX-02 stale revision does not publish an event (13.167625ms)
+✔ OUTBOX-03 failed disk write changes neither document nor event queue (8.476541ms)
+✔ OUTBOX-04 pausing a rule before delivery prevents execution (20.745625ms)
+✔ OUTBOX-05 concurrent deliveries serialize and do not duplicate a run (45.107375ms)
+✔ OUTBOX-06 replay after acknowledgement failure does not duplicate a task (75.8925ms)
+✖ OUTBOX-07 delivery consumes the committed input, not a later document revision (90.25625ms)
+✖ OUTBOX-08 session completion invokes its previously enabled closing rule once (27.234333ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 6
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 394.905167
+
+✖ failing tests:
+
+test at tests/outbox-regression.mjs:73:1
+✖ OUTBOX-07 delivery consumes the committed input, not a later document revision (90.25625ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+  +   'Later document input'
+  -   'First committed input'
+    ]
+  
+      at TestContext.<anonymous> (file:///Users/nvkv71/iquipage-work/maps-r3-20260910/packages/maps/tests/outbox-regression.mjs:78:10)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 'Later document input' ],
+    expected: [ 'First committed input' ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at tests/outbox-regression.mjs:80:1
+✖ OUTBOX-08 session completion invokes its previously enabled closing rule once (27.234333ms)
+  AssertionError [ERR_ASSERTION]: A committed session.archived event must not be discarded by the archive guard
+  
+  0 !== 1
+  
+      at TestContext.<anonymous> (file:///Users/nvkv71/iquipage-work/maps-r3-20260910/packages/maps/tests/outbox-regression.mjs:85:10)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
