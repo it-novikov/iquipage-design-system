@@ -75,6 +75,11 @@ root.addEventListener('iq-open-tasks', event => {
 
 Методы `list(collection,projectId)`, `read(collection,id,projectId)`, `write(collection,record,baseRevision,{signal})`. Коллекции: maps, templates, runs, tasks, rules. `write` возвращает полный канонический документ с увеличенной revision или ошибку. Конфликт — `DomainError('CONFLICT',...)`. Повторить текстом ошибки недостаточно: хранение должно атомарно сравнить версию.
 
+Если `transactionalEvents` включён, Repository также предоставляет типизированный
+`request(path,{method,body,signal})` для `/events`, `/event-deliveries` и операций
+восстановления доставки. Host обязан ограничить этот метод известными относительными
+маршрутами текущего проекта; модуль не должен получать универсальный HTTP-клиент.
+
 Документ карты имеет собственный envelope, а `document` сохраняет whiteboard/1 с objects/connections. Настройки сценария — `flow` с nodes/edges. На сервере нельзя пересобрать документ только из старого поднабора полей и потерять связи, фигуры или геометрию. Нельзя принимать операции изменения архива. Продолжение создаёт новый mapId и sourceMapId/sourceRevision.
 
 Универсальный `subscribe` сообщает только о внешней версии. BrowserRepository использует IndexedDB и BroadcastChannel, это не multi-user realtime. HTTP reference не поставляет поток совместных изменений. Для Sprintique адаптер должен подписываться на серверные изменения и применять ACL на сервере. Cursor/presence не равны сохранённой версии документа.

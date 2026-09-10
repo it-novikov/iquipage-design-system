@@ -19,6 +19,7 @@ export interface Repository{
  list(collection:Collection,projectId:string):Promise<any[]>;
  read(collection:Collection,id:string,projectId:string):Promise<any|null>;
  write(collection:Collection,value:any,baseRevision:number,options?:{signal?:AbortSignal}):Promise<any>;
+ request?<T=unknown>(path:string,options?:{method?:'GET'|'POST';body?:unknown;signal?:AbortSignal}):Promise<T>;
  subscribe?(listener:(change:{collection:Collection;id:string;projectId:string;revision:number})=>void):()=>void;
  close?():void|Promise<void>;
 }
