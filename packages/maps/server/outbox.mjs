@@ -36,20 +36,23 @@ export class OutboxWorker {
   async deliver(date){
     const result=[];
     for(const entry of (await this.repository.pendingEvents()).filter(e=>e.status!=='dead'&&e.nextAttemptAt<=date).slice(0,32)){
+      const outcomes=[],failures=[];
       try{
-        const outcomes=[];
         for(const snapshot of entry.targets){
+          try{
           const live=await this.repository.read('rules',snapshot.id,snapshot.projectId);
           if(live?.status==='enabled'&&live.revision===snapshot.revision){
             const run=await this.events.dispatchCommitted(entry.id,snapshot.id);
             outcomes.push({ruleId:snapshot.id,mapId:snapshot.mapId,...(run?.id?{runId:run.id}:{reason:run?.reason||'SKIPPED'})});
           }else outcomes.push({ruleId:snapshot.id,mapId:snapshot.mapId,reason:'RULE_CHANGED'});
+          }catch(error){failures.push(error);outcomes.push({ruleId:snapshot.id,mapId:snapshot.mapId,reason:error.code||'DELIVERY_FAILED'});}
         }
+        if(failures.length)throw failures.find(e=>permanentError(e.code))||failures[0];
         await this.repository.settleEvent(entry.id,null,{baseRevision:entry.revision,outcomes});
         result.push({id:entry.id,status:'delivered'});
       }catch(error){
         const code=error.code||'DELIVERY_FAILED';
-        await this.repository.settleEvent(entry.id,{error:code,date,permanent:permanentError(code)},{baseRevision:entry.revision});
+        await this.repository.settleEvent(entry.id,{error:code,date,permanent:permanentError(code)},{baseRevision:entry.revision,outcomes});
         result.push({id:entry.id,status:'retry',error:code});
       }
     }

@@ -57,6 +57,7 @@ export class FileRepository extends MemoryRepository {
       if(!entry||(baseRevision!==undefined&&entry.revision!==baseRevision))return false;
       entry.revision++;entry.attempts++;entry.totalAttempts=(entry.totalAttempts||entry.attempts-1)+1;entry.updatedAt=new Date().toISOString();
       if(failure){
+        if(outcomes.length)entry.outcomes=outcomes;
         entry.lastError=String(failure.error).slice(0,80);entry.status=failure.permanent||entry.attempts>=MAX_DELIVERY_ATTEMPTS?'dead':'retry';
         entry.nextAttemptAt=entry.status==='dead'?null:failure.date+Math.min(300000,1000*2**Math.min(entry.attempts,8));
       }else{
