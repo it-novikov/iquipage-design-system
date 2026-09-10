@@ -1,0 +1,85 @@
+{
+  "status": "PASS",
+  "browser": "153.0.8010.12",
+  "project": "r3-ui-1789057915005",
+  "checks": [
+    {
+      "name": "default task route, six ordered columns, full-width 24px inset",
+      "status": "PASS"
+    },
+    {
+      "name": "task form, keyboard move and persisted reload",
+      "status": "PASS"
+    },
+    {
+      "name": "edge-to-edge canvas; idle strip hidden; selected actions retained",
+      "status": "PASS"
+    },
+    {
+      "name": "readable shortcuts and symmetrical navigation-note spacing",
+      "status": "PASS"
+    },
+    {
+      "name": "16 distinct data-driven previews; searchable library and visible header",
+      "status": "PASS"
+    },
+    {
+      "name": "mixed card types, actual shape selection, atomic undo/redo and reload",
+      "status": "PASS"
+    },
+    {
+      "name": "custom template persists and is searchable",
+      "status": "PASS"
+    },
+    {
+      "name": "test execution and approval do not create tasks",
+      "status": "PASS"
+    },
+    {
+      "name": "execution creates one real local task with map provenance",
+      "status": "PASS"
+    },
+    {
+      "name": "session archive readonly, persisted summary and independent continuation",
+      "status": "PASS"
+    },
+    {
+      "name": "dark theme, short desktop and mobile: bounded dialog and available project navigation",
+      "status": "PASS"
+    },
+    {
+      "name": "standalone starts with maps rather than the host task board",
+      "status": "PASS"
+    },
+    {
+      "name": "no browser JavaScript errors",
+      "status": "PASS"
+    }
+  ],
+  "measurements": {
+    "tasks": {
+      "x": 24,
+      "y": 270.1875,
+      "width": 1392,
+      "height": 579.125
+    },
+    "canvas": {
+      "x": 0,
+      "y": 221.796875,
+      "width": 1440,
+      "height": 678.203125
+    },
+    "help": {
+      "above": 24,
+      "below": 24.453125
+    },
+    "workflowTab": {
+      "gap": 8,
+      "centerDelta": 0
+    }
+  },
+  "errors": [],
+  "limitations": [
+    "Real device touch, screen reader and production integration not tested"
+  ]
+}

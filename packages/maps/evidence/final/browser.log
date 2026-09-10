@@ -1,0 +1,20 @@
+PASS default task route, six ordered columns, full-width 24px inset
+PASS task form, keyboard move and persisted reload
+PASS edge-to-edge canvas; idle strip hidden; selected actions retained
+PASS readable shortcuts and symmetrical navigation-note spacing
+PASS 16 distinct data-driven previews; searchable library and visible header
+PASS mixed card types, actual shape selection, atomic undo/redo and reload
+PASS custom template persists and is searchable
+PASS test execution and approval do not create tasks
+PASS execution creates one real local task with map provenance
+PASS session archive readonly, persisted summary and independent continuation
+PASS dark theme, short desktop and mobile: bounded dialog and available project navigation
+PASS standalone starts with maps rather than the host task board
+PASS no browser JavaScript errors
+PASS configure enabled closing rule using visible controls
+PASS committed session completion appears in persisted delivery journal
+PASS approval creates one local task with committed-event provenance
+PASS delivery journal remains available in dark theme and narrow viewport
+PASS no browser JavaScript errors
+PASS dead-letter retry through UI keeps its committed input and requires approval
+PASS dismissal is persisted without deleting the map or creating another run

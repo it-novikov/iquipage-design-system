@@ -1,0 +1,49 @@
+{
+  "release": "R4",
+  "status": "PASS",
+  "startedAt": "2026-09-10T16:31:45.891Z",
+  "finishedAt": "2026-09-10T16:32:09.476Z",
+  "sourceCommit": "b2312db0a324a2c70a9ece1ed69e805d76330d96",
+  "sourceFingerprint": "e5fb04a95b78b41f027b45c0b292fe32cd3c3c50646b70fc60af479f6c5a3d45",
+  "node": "v26.0.0",
+  "nodeTests": 87,
+  "browserScenarios": 20,
+  "checks": [
+    {
+      "name": "build",
+      "exitCode": 0
+    },
+    {
+      "name": "preview",
+      "exitCode": 0
+    },
+    {
+      "name": "node",
+      "exitCode": 0
+    },
+    {
+      "name": "browser",
+      "exitCode": 0
+    },
+    {
+      "name": "offline",
+      "exitCode": 0
+    }
+  ],
+  "scope": "reusable-module-and-local-reference",
+  "limitations": [
+    "No production Sprintique API/auth deployment",
+    "No live LLM credentials or provider calls",
+    "No multi-user collaboration",
+    "Real touch devices, screen readers and Safari not accepted"
+  ],
+  "previewSha256": "7340fb4cb6fd09c449c8b6136f13cfb8831f2a1aa2d8f48bf925348adc75eb6b",
+  "dsCandidate": {
+    "version": "0.6.0-maps.1",
+    "baseVersion": "0.5.7",
+    "baseManifest": "f252a499e00d7bab6088640126a406075a86bf109e673a257a002d8e90e9195c",
+    "cssSha256": "a458401a68872b6360410dbaefdd6c0cf1df90bd9acb178e818d628025c99da3",
+    "extensionSha256": "936bc90be1134d1cd016948be74b42f0fad00f3f725c974c189a5957fca77565",
+    "note": "Explicit DS source candidate; no production acceptance implied"
+  }
+}
