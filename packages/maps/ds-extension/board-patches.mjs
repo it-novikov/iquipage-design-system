@@ -25,3 +25,18 @@ export async function applyBoardPatches(patch) {
     "{ duration: 240, easing: 'cubic-bezier(.16,1,.3,1)', fill: 'forwards' }",
     "{ duration: motion.enter, easing: motion.spring, fill: 'forwards' }");
 }
+
+export async function applyBoardLifecyclePatches(patch){
+  await patch('src/modules/board-motion.js',
+    '        board.classList.add(\'is-dragging\');',
+    "        options.onDragStateChange?.(true);\n        board.classList.add('is-dragging');");
+  await patch('src/modules/board-motion.js',
+    '        state = null;\n    }\n    function cancel()',
+    '        state = null;\n        options.onDragStateChange?.(false);\n    }\n    function cancel()');
+  await patch('src/modules/board-motion.js',
+    '        if (!card)\n            return;',
+    "        if (!card || options.canDrag?.({id:card.dataset.dragId}) === false)\n            return;");
+  await patch('src/modules/board-motion.js',
+    '        const r = card.getBoundingClientRect();',
+    "        if(options.canDrag?.({id:card.dataset.dragId}) === false)return;\n        const r = card.getBoundingClientRect();");
+}

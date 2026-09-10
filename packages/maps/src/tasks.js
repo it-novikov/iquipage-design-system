@@ -15,6 +15,10 @@ export function validateTask(task){
   requireValue(TASK_COLUMNS.some(c=>c.id===taskColumn(task)),'TASK_STATUS','Неизвестный статус задачи.');
   requireValue(!task.description||validText(task.description,10000),'TASK_DESCRIPTION','Описание задачи: до 10 000 символов.');
   requireValue(task.rank===undefined||Number.isFinite(task.rank),'TASK_RANK','Некорректная позиция задачи.');
+  requireValue(task.type === undefined || ['task','bug','epic'].includes(task.type),'TASK_TYPE','Выберите задачу, баг или эпик.');
+  requireValue(task.priority === undefined || ['low','normal','high','critical'].includes(task.priority),'TASK_PRIORITY','Неизвестный приоритет.');
+  requireValue(task.owner === undefined || validText(task.owner,120),'TASK_OWNER','Слишком длинное имя исполнителя.');
+  if(task.due !== undefined && task.due !== null) requireValue(typeof task.due === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(task.due) && Number.isFinite(Date.parse(task.due)) && new Date(task.due).toISOString().slice(0,10) === task.due,'TASK_DUE','Некорректный срок.');
   return clone(task);
 }
 export function createTask({projectId,title,description='',status='ready',owner='',priority='normal',type='task'}){

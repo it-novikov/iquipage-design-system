@@ -39,7 +39,7 @@ export class FileRepository extends MemoryRepository {
   async write(collection,value,baseRevision=0,{signal}={}){
     const operation=this.queue.catch(()=>{}).then(async()=>{
       signal?.throwIfAborted();
-      const previous=this.data[collection]?.get(value.id),next=prepareWrite(collection,value,previous,baseRevision);
+      const previous=this.data[collection]?.get(value.id),next=prepareWrite(collection,value,previous,baseRevision,[...this.data.tasks.values()]);
       const payload=this.snapshot();
       payload[collection]=payload[collection].filter(x=>x.id!==next.id);payload[collection].push(next);
       payload._events.push(...writeEvents(collection,previous,next,[...this.data.rules.values()],this.data.maps));

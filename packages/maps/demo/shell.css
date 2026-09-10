@@ -41,3 +41,22 @@ html,body{height:100%;min-height:0}.demo-shell{height:100dvh;display:flex;flex-d
 .host-task-board .task-card{flex:none;height:auto;min-width:0;margin:0}
 .host-task-board .host-column-add{width:calc(100% - 24px);margin:0 12px 12px;justify-content:flex-start}
 .host-task-page>.board-drag-help{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+
+/* Task documents and hierarchy use the existing DS controls and semantic colors. */
+.host-task-tools .host-board-sort{margin-left:auto;min-width:176px}.host-board-sort .iq-control-label{position:absolute;width:1px;height:1px;clip-path:inset(50%);overflow:hidden}
+.host-board-sort .iq-select-trigger{min-height:36px;padding:7px 11px;font-size:12px;border-color:var(--iq-line)}
+.host-task-board .task-card{margin-inline-start:calc(var(--task-depth,0)*var(--iq-space-3))}
+.host-task-board .task-kind-label{font-size:11px;color:var(--iq-muted)}.host-task-board .task-kind-label[data-kind=epic]{color:var(--iq-epic);font-weight:600}
+.host-task-board .task-card-title{display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.task-parent-context,.task-child-toggle,.task-child-jump{display:flex;align-items:center;gap:6px;background:transparent;padding:0;min-height:28px;font-size:11px;color:var(--iq-muted);text-align:left}
+.task-parent-context>span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.task-child-toggle{border-top:1px solid var(--iq-line);padding-top:var(--iq-space-2)}
+.host-task-board .task-card[aria-busy=true]{opacity:.65}.host-task-board .iq-avatars{flex-shrink:0}
+.host-task-board .board-empty-slot{border:0;padding:var(--iq-space-6) var(--iq-space-3);background:transparent}
+.host-task-board .empty-art{width:64px;height:58px;margin:0 auto var(--iq-space-3)}.host-task-board .empty-sheet{width:46px;height:46px;left:8px;top:4px;border-radius:var(--iq-radius-sm)}
+.task-edit-dialog[data-size=wide] .map-modal.iq-drawer{width:min(760px,100vw);height:100dvh;max-height:100dvh;margin:0 0 0 auto;border-radius:0}
+.task-edit-dialog .map-dialog-form{height:100dvh;max-height:100dvh}.task-edit-dialog .map-dialog-body{flex:1}
+.task-edit-properties{display:grid;grid-template-columns:1fr 1fr;gap:var(--iq-space-5)}.task-edit-section{display:grid;gap:var(--iq-space-3)}.task-edit-section h3{font-size:16px}
+.host-automation-map{width:100%;text-align:left;background:transparent}
+.host-landing{max-width:760px;margin:8vh auto;padding:var(--iq-space-8);display:grid;gap:var(--iq-space-6)}.host-landing .iq-badge,.host-landing .iq-btn{justify-self:start}
+.platform-global #profile{padding:0}.platform-global #settings-link[aria-current]{background:var(--iq-surface)}
+@media(max-width:760px){.platform-global #settings-link>span{display:none}.platform-global #environment{display:none}.platform-global{gap:4px}.platform-global #project{font-size:11px}.task-edit-properties{grid-template-columns:1fr}.host-task-tools .host-board-sort{min-width:155px}}

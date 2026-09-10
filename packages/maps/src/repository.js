@@ -15,7 +15,7 @@ export class MemoryRepository {
   async read(collection, id, projectId) { const value = this.data[collection].get(id); return value && visible(collection, value, projectId, this.context) ? clone(value) : null; }
   async write(collection, value, baseRevision = 0, { signal } = {}) {
     signal?.throwIfAborted();
-    const next = prepareWrite(collection, value, this.data[collection].get(value.id), baseRevision); this.data[collection].set(value.id, clone(next));
+    const next = prepareWrite(collection, value, this.data[collection].get(value.id), baseRevision, [...this.data.tasks.values()]); this.data[collection].set(value.id, clone(next));
     this.listeners.forEach(fn => fn({ collection, id: next.id, projectId: next.projectId, revision: next.revision })); return clone(next);
   }
   subscribe(fn) { this.listeners.add(fn); return () => this.listeners.delete(fn); }
@@ -56,8 +56,8 @@ export class BrowserRepository {
       const tx = db.transaction(collection, 'readwrite'), store = tx.objectStore(collection); let next, error;
       const abort = () => { try { tx.abort(); } catch {} }; signal?.addEventListener('abort', abort, { once: true });
       const cleanup = () => signal?.removeEventListener('abort', abort);
-      const request = store.get(value.id);
-      request.onsuccess = () => { try { signal?.throwIfAborted(); next = prepareWrite(collection, value, request.result, baseRevision); store.put(next); } catch (e) { error = e; tx.abort(); } };
+      const request = collection === 'tasks' ? store.getAll() : store.get(value.id);
+      request.onsuccess = () => { try { signal?.throwIfAborted(); next = prepareWrite(collection, value, collection === 'tasks' ? request.result.find(t => t.id === value.id) : request.result, baseRevision, collection === 'tasks' ? request.result : []); store.put(next); } catch (e) { error = e; tx.abort(); } };
       tx.oncomplete = () => {
         cleanup(); const event = { collection, id: next.id, projectId: next.projectId, revision: next.revision };
         this.channel?.postMessage(event); this.listeners.forEach(fn => fn(event)); resolve(clone(next));

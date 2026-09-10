@@ -1,4 +1,5 @@
-import {validateTask} from './tasks.js';
+import {validateTask,taskColumn} from './tasks.js';
+import {reparentTask} from './board/model.js';
 import { clone, uid, now, requireValue, validText, validId, assertSafeJSON } from './common.js';
 import { blankDocument, validateDocument, remapDocument, extractSelection } from './document.js';
 export * from './common.js';
@@ -74,7 +75,7 @@ export function templateFromMap(map, { title, description = '', when = '', scope
   return { schema: 'iquipage.template/1', id: uid('template'), projectId: map.projectId, revision: 0, version: 1, title: title.trim(), description, when, scope,
     kind: map.kind, category: 'Мои шаблоны', createdAt: now(), document, flow: null, sourceMapId: map.id, sourceRevision: map.revision };
 }
-export function prepareWrite(collection, value, previous, baseRevision) {
+export function prepareWrite(collection, value, previous, baseRevision, taskRecords = []) {
   requireValue(COLLECTIONS.includes(collection), 'INVALID_COLLECTION', 'Неизвестная коллекция.'); assertSafeJSON(value);
   requireValue(validId(value.id) && validId(value.projectId), 'INVALID_ID', 'Не заданы идентификаторы.');
   requireValue((previous?.revision ?? 0) === baseRevision, 'CONFLICT', 'Документ изменился в другой вкладке. Ваша копия сохранена.');
@@ -87,9 +88,10 @@ export function prepareWrite(collection, value, previous, baseRevision) {
     requireValue(value.kind === 'session' || ['active', 'archived'].includes(value.status), 'INVALID_STATE', 'Постоянная карта не может быть сессией.');
     if (value.status === 'archived') requireValue(typeof value.archivedAt === 'string' && Number.isFinite(Date.parse(value.archivedAt)), 'INVALID_ARCHIVE', 'Не задан момент завершения.');
   }
-  if (collection === 'tasks') validateTask(value);
+  if (collection === 'tasks') { validateTask(value); reparentTask(value, value.parentId ?? null, taskRecords); }
   if (collection === 'templates') { validateDocument(value.document); requireValue(validText(value.title, 160) && value.title.trim(), 'INVALID_TITLE', 'Введите название шаблона.'); }
   const next = clone(value); next.revision = baseRevision + 1; next.updatedAt = now();
+  if (collection === 'tasks') next.statusEnteredAt = previous && taskColumn(previous) === taskColumn(next) ? (previous.statusEnteredAt || previous.createdAt || next.updatedAt) : next.updatedAt;
   if (collection === 'maps') { next.document.title = next.title; next.document.revision = next.revision; }
   return next;
 }

@@ -1,3 +1,4 @@
+import {applyBoardPatches,applyBoardLifecyclePatches} from '../ds-extension/board-patches.mjs';
 import {readFile,writeFile,mkdir,cp,rm} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
@@ -21,6 +22,8 @@ const patch=async(name,old,next)=>{
  if(!s.includes(old)||s.indexOf(old)!==s.lastIndexOf(old))throw new Error('Ambiguous source patch: '+name+' / '+old.slice(0,50));
  await writeFile(p,s.replace(old,next));
 };
+await applyBoardPatches(patch);
+await applyBoardLifecyclePatches(patch);
 const api=await readFile(path.join(root,'ds-extension/public-api.inc.js'),'utf8');
 await patch('src/modules/whiteboard.js',"static get observedAttributes(){return['readonly','state']}","static get observedAttributes(){return['readonly','state','surface-mode']}\n"+api);
 await patch('src/modules/whiteboard.js','<main class="wb-center">','<section class="wb-center" aria-label="Поверхность карты">');
