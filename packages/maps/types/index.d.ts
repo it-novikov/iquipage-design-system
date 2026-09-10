@@ -43,3 +43,6 @@ export declare class MapsFeature{
  destroy():Promise<boolean>;
 }
 export declare function mountMaps(root:HTMLElement,config:MapsConfig):Promise<MapsFeature>;
+
+/** Delivery metadata excludes note contents and connection credentials. */
+export interface DeliveryRecord {id:string;projectId:string;revision:number;type:string;recordId:string;recordRevision:number;status:"pending"|"retry"|"dead"|"delivered"|"dismissed";createdAt:string;attempts:number;totalAttempts:number;manualRetries:number;nextAttemptAt:number|null;lastError:string|null;outcomes:{ruleId:string;mapId:string;runId?:string;reason?:string}[]}

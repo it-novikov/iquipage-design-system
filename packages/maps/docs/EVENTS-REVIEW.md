@@ -1,3 +1,11 @@
+# R4 status: RESOLVED
+
+OUTBOX-07 and OUTBOX-08 are fixed. The original assertions remain in tests/outbox.test.mjs and run in npm test. New regressions cover committed snapshots, trusted archive completion, bounded recovery, target isolation, HTTP and the browser journal. Fresh evidence is in evidence/final/verification.json.
+
+The report below is the preserved original discovery record, not the current release status.
+
+---
+
 # Проверка черновика событий — 10 сентября 2026
 
 Статус: NOT READY. Не включать этот черновик в поставку R3.
