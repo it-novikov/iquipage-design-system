@@ -13,8 +13,8 @@ concurrency:
   cancel-in-progress: true
 jobs:
   verify:
-    runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    runs-on: [self-hosted, linux, x64, codex-server]
+    timeout-minutes: 30
     defaults:
       run:
         working-directory: packages/maps
@@ -27,7 +27,7 @@ jobs:
           node-version: '22'
           package-manager-cache: false
       - run: npm ci --ignore-scripts --no-fund --no-audit
-      - run: npx --no-install playwright install --with-deps chromium
+      - run: npx --no-install playwright install chromium
       - run: npm run verify
         env:
           MAPS_LLM_GATEWAY: ''
