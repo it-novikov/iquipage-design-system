@@ -11,3 +11,16 @@ iq-whiteboard[surface-mode=embedded] .wb-shell .wb-panel{min-height:0;overflow:a
 
 /* R3: no idle status strip. Contextual editing controls still have a surface. */
 iq-whiteboard[surface-mode=embedded] .wb-command-row:has(.wb-context[hidden]){display:none}
+
+/* v3 approved host editor mode: chrome overlays never resize the canvas. */
+iq-whiteboard[surface-mode=embedded][editor-mode=host] .wb-shell{position:relative}
+iq-whiteboard[surface-mode=embedded][editor-mode=host] .wb-workspace{position:relative}
+iq-whiteboard[surface-mode=embedded][editor-mode=host] .wb-library{position:absolute;left:16px;bottom:84px;top:16px;width:min(300px,calc(100% - 32px));z-index:12;border:1px solid var(--iq-line);border-radius:var(--iq-radius-md);box-shadow:var(--iq-shadow-2)}
+iq-whiteboard[surface-mode=embedded][editor-mode=host] .wb-command-row{position:absolute;top:12px;left:50%;transform:translateX(-50%);max-width:calc(100% - 380px);z-index:7;border-radius:var(--iq-radius-md);box-shadow:var(--iq-shadow-1)}
+iq-whiteboard[surface-mode=embedded][editor-mode=host] .wb-footer{position:absolute;bottom:16px;left:16px;right:16px;z-index:8;pointer-events:none;background:transparent;border:0}
+iq-whiteboard[surface-mode=embedded][editor-mode=host] .wb-footer>*{pointer-events:auto}
+iq-whiteboard[surface-mode=embedded][editor-mode=host] .wb-stage{overscroll-behavior:contain;touch-action:none}
+iq-whiteboard[surface-mode=embedded][editor-mode=host] .wb-formatting{position:absolute;top:16px;right:16px;z-index:10;width:320px}
+@media(max-width:760px){iq-whiteboard[surface-mode=embedded][editor-mode=host] .wb-command-row{max-width:calc(100% - 32px)}iq-whiteboard[surface-mode=embedded][editor-mode=host] .wb-footer{bottom:8px;left:8px;right:8px}}
+/* v3.2 owner-requested neutral confirmation; failure feedback remains unchanged. */
+.iq-btn[data-copy-tone=neutral][data-copy-state=success]{background:var(--iq-recessed);color:var(--iq-ink);border-color:transparent}

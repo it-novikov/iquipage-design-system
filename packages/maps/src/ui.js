@@ -28,13 +28,14 @@ export function dialog({title,description='',body='',submitLabel='',wide=false,o
   let busy=false;
   form.addEventListener('submit',async event=>{
     event.preventDefault();if(busy||!onSubmit)return;error.hidden=true;
+    const wasPersistent=el.hasAttribute('persistent');
     try{busy=true;el.setAttribute('persistent','');form.querySelectorAll('button[type=submit],[data-close]').forEach(b=>b.disabled=true);
       const values=new FormData(form);
       const fields=[...form.querySelectorAll('input,textarea,iq-select,button:not([type=submit]):not([data-close])')].filter(x=>!x.hasAttribute('disabled'));
       fields.forEach(x=>x.setAttribute('disabled',''));
       let keep;try{keep=await onSubmit(values,form,el);}finally{fields.forEach(x=>x.removeAttribute('disabled'));}if(keep!==false)el.close(true);
     }catch(e){error.textContent=e.message||'Не удалось выполнить действие.';error.hidden=false;}
-    finally{busy=false;el.removeAttribute('persistent');form.querySelectorAll('button[type=submit],[data-close]').forEach(b=>b.disabled=false);}
+    finally{busy=false;if(!wasPersistent)el.removeAttribute('persistent');form.querySelectorAll('button[type=submit],[data-close]').forEach(b=>b.disabled=false);}
   });
   el.addEventListener('iq-close',()=>el.remove(),{once:true});mount?.(el,form);el.show();
   // Focus the header close button, not a field deep inside a scrollable catalogue.

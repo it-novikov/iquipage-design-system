@@ -1,0 +1,52 @@
+{
+  "release": "Board-B1",
+  "status": "PASS",
+  "startedAt": "2026-09-10T20:42:10.520Z",
+  "finishedAt": "2026-09-10T20:42:39.496Z",
+  "sourceCommit": "f7e05cce22ed47f633c953a390935db8b1988f83",
+  "sourceFingerprint": "63355f0a599588fd5688e8401c744d519223fe3583fac9407da26808e1457ca8",
+  "node": "v26.0.0",
+  "nodeTests": 101,
+  "browserScenarios": 34,
+  "checks": [
+    {
+      "name": "build",
+      "exitCode": 0
+    },
+    {
+      "name": "preview",
+      "exitCode": 0
+    },
+    {
+      "name": "node",
+      "exitCode": 0
+    },
+    {
+      "name": "browser",
+      "exitCode": 0
+    },
+    {
+      "name": "offline",
+      "exitCode": 0
+    }
+  ],
+  "scope": "reusable-module-and-local-reference",
+  "limitations": [
+    "No production Sprintique API/auth deployment",
+    "No live LLM credentials or provider calls",
+    "No multi-user collaboration",
+    "Real touch devices, screen readers and Safari not accepted",
+    "Board B2-B5 features are not complete",
+    "Headless motion sample is not a real-device FPS acceptance"
+  ],
+  "previewSha256": "26654183801f90998090e22b8d14f48be1b3bfd21a08a79fdcdd1d34e9597d28",
+  "dsCandidate": {
+    "version": "0.6.0-board.1",
+    "baseVersion": "0.5.7",
+    "baseManifest": "f252a499e00d7bab6088640126a406075a86bf109e673a257a002d8e90e9195c",
+    "cssSha256": "a458401a68872b6360410dbaefdd6c0cf1df90bd9acb178e818d628025c99da3",
+    "extensionSha256": "936bc90be1134d1cd016948be74b42f0fad00f3f725c974c189a5957fca77565",
+    "boardExtensionSha256": "4e1adf9a22c7d8d10272d798a67353dd7e5a4df6ee2d4cd9bef116557510e326",
+    "note": "Explicit DS source candidate; no production acceptance implied"
+  }
+}

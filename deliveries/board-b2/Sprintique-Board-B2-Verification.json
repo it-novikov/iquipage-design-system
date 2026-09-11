@@ -1,0 +1,54 @@
+{
+  "release": "Board-B2",
+  "status": "PASS",
+  "startedAt": "2026-09-10T22:22:53.386Z",
+  "finishedAt": "2026-09-10T22:23:27.365Z",
+  "sourceCommit": "4ea950033c42e4d9793c2ee4474ab231cb10f8cc",
+  "sourceFingerprint": "393bfdf8bf27743665794d2c328d35542bf76905e42c695e8d94a5714734a5ca",
+  "node": "v26.0.0",
+  "nodeTests": 133,
+  "browserScenarios": 49,
+  "checks": [
+    {
+      "name": "build",
+      "exitCode": 0
+    },
+    {
+      "name": "preview",
+      "exitCode": 0
+    },
+    {
+      "name": "node",
+      "exitCode": 0
+    },
+    {
+      "name": "browser",
+      "exitCode": 0
+    },
+    {
+      "name": "offline",
+      "exitCode": 0
+    }
+  ],
+  "scope": "reusable-module-and-local-reference",
+  "limitations": [
+    "No production Sprintique API/auth deployment",
+    "No live LLM credentials or provider calls",
+    "No multi-user collaboration",
+    "Real touch devices, screen readers and Safari not accepted",
+    "Task file storage is not implemented in this checkpoint",
+    "Virtualization, provider integrations and production host delivery remain pending",
+    "Thread API loads project records; server cursor pagination remains pending",
+    "Headless motion sample is not a real-device FPS acceptance"
+  ],
+  "previewSha256": "255cbb7ed04f19be1ac81c74599c7f1f6584a42397c532fa143a34e4c4d893b8",
+  "dsCandidate": {
+    "version": "0.6.0-board.1",
+    "baseVersion": "0.5.7",
+    "baseManifest": "f252a499e00d7bab6088640126a406075a86bf109e673a257a002d8e90e9195c",
+    "cssSha256": "a458401a68872b6360410dbaefdd6c0cf1df90bd9acb178e818d628025c99da3",
+    "extensionSha256": "528da6998e3de2fca84dfc29f4eb9ab822e946562a3104d58a1a3300fa877159",
+    "boardExtensionSha256": "4e1adf9a22c7d8d10272d798a67353dd7e5a4df6ee2d4cd9bef116557510e326",
+    "note": "Explicit DS source candidate; no production acceptance implied"
+  }
+}

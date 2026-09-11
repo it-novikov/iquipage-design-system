@@ -1,0 +1,6 @@
+{
+  "status": "FAIL",
+  "checks": [],
+  "errors": [],
+  "error": "Removing a cover must clear the attachment pressed state\n\n1 !== 0\n"
+}

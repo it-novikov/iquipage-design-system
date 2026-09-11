@@ -1,0 +1,64 @@
+{
+  "milestone": "Board B2.1.1: cover intent ordering and failure-state completion",
+  "branch": "feature/board-production",
+  "pullRequest": 2,
+  "verifiedSourceCommit": "b6220507717f8308346b2ff6f0f9376a5052adb5",
+  "sourceFingerprint": "657b89ca96f7e55ae88477129e4684a889cea9f6e4f3e2279da1c629f5be50a4",
+  "node": "v22.23.2",
+  "nodeTests": 167,
+  "browserScenarios": 129,
+  "coverFinishScenarios": 16,
+  "verification": "PASS",
+  "archiveRecheck": "PASS",
+  "archiveRecheckReport": "deliveries/board-b2-1-1/archive-recheck.json",
+  "manifestEntries": 698,
+  "archiveSha256": "68aacec1d156f75be991e6a98048d0a210727b0fb0fe670dbb578c9fed6ca082",
+  "delivery": "deliveries/board-b2-1-1",
+  "macDelivery": "/Users/nvkv71/Downloads/Sprintique-Board-B2.1.1",
+  "productionReady": false,
+  "next": [
+    "GitHub/GitLab integration and configurable map rules",
+    "board virtualization and large-data performance acceptance",
+    "production API, authentication, ACL and file-scanning/blob-service integration",
+    "live LLM, collaboration and real-device accessibility acceptance"
+  ],
+  "historicalCheckpoints": {
+    "coverCheckpoint": {
+      "status": "BLOCKED_PARTIAL",
+      "sourceCommit": "e2ce8db6e82377e992d9a6c7f06dc5680f25fdd2",
+      "regressionStatus": "PASS",
+      "nodeTests": 139,
+      "browserScenarios": 49,
+      "coverUITested": false,
+      "attachmentStorageImplemented": false,
+      "archiveSha256": "be26bffa0ace2b36a5b35db4f2305a9b0204a4407aa002f1dc1878f0bbb5fa2d",
+      "files": 12,
+      "lastReadyDelivery": "deliveries/board-b2"
+    },
+    "attachmentStoreCheckpoint": {
+      "status": "BLOCKED_INTEGRATION",
+      "sourceCommit": "8c3022b46d3e6520f5f5999c647bed7220b02796",
+      "nodeTests": 148,
+      "browserScenarios": 49,
+      "isolatedStorageTests": 9,
+      "sourceFingerprint": "408cd239f07a853984f91987df4a9ed4c9d7bb22b165388e157a5f889f51edfa",
+      "attachmentUIReady": false,
+      "taskStorageIntegrationReady": false,
+      "archiveSha256": "520d4d924aa8d2694a05a51f271545ca595603c8fd477c1335b27cb12d41d525",
+      "lastReadyDelivery": "deliveries/board-b2",
+      "path": "docs/board/FILES-STORAGE-CHECKPOINT.md"
+    }
+  },
+  "latestCoverReview": {
+    "status": "PASS",
+    "implementationCommit": "696bb5f2a50b8dd7c1e2ec6c6f77b0fa38d8bc17",
+    "verifiedSourceCommit": "b6220507717f8308346b2ff6f0f9376a5052adb5",
+    "sourceFingerprint": "657b89ca96f7e55ae88477129e4684a889cea9f6e4f3e2279da1c629f5be50a4",
+    "coverFinalChecksPassed": 16,
+    "coverFinalChecksFailed": 0,
+    "offlineRegression": "PASS",
+    "resolved": ["COV-01", "COV-02"],
+    "releaseReady": true,
+    "historicalFailureEvidence": "packages/maps/evidence/cover-final/checkpoint.json"
+  }
+}

@@ -1,4 +1,6 @@
 import {captureDialog} from './capture-ui.js';
+import {showCanvasInspector,leaveCanvasInspector} from './canvas-inspector.js';
+import {motionReduced} from '../dist/vendor/core.js';
 import {registerWhiteboard,validateWhiteboard} from '../dist/vendor/whiteboard.js';
 import {createMap,transitionMap,forkMap,templateFromMap,remapDocument,insertDocument,clone,uid,now,requireValue,validateMap,extractSelection} from './model.js';
 import {BUILTIN_TEMPLATES,filterTemplates} from './templates.js';
@@ -32,7 +34,7 @@ export class MapsFeature {
       const control=event.target.closest('[data-map-action]');if(!control||control.disabled)return;
       event.preventDefault();this.handle(control.dataset.mapAction,control).catch(e=>this.message(e.message,true));
     },{signal:this.abort.signal});
-    window.addEventListener('beforeunload',event=>{if(this.board?.dirty||this.savingPromise){event.preventDefault();event.returnValue='';}},{signal:this.abort.signal});
+    window.addEventListener('beforeunload',event=>{if(this.board?.dirty||this.savingPromise||this.canvasInspector?.dirty()){event.preventDefault();event.returnValue='';}},{signal:this.abort.signal});
     this.unsubscribe=this.repository.subscribe?.(event=>{
       if(event.collection==='maps'&&event.id===this.current?.id&&event.revision>this.current.revision)
         setTimeout(()=>this.externalUpdate(event).catch(e=>this.message(e.message,true)),0);
@@ -46,6 +48,7 @@ export class MapsFeature {
   async reloadList(){this.maps=(await this.repository.list('maps',this.project.id)).sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt));}
   empty(){this.current=null;this.surface.innerHTML=`<div class="map-empty"><span class="map-empty-symbol">${icon('board',32)}</span><h2>Место для идей и решений</h2><p>${this.uiCapabilities.sessions?'Создайте постоянную карту для схем или сессию для совместного обсуждения.':'Создайте карту и начните с одной мысли.'}</p><div class="row">${this.uiCapabilities.templates?button('templates','Выбрать основу','grid','primary'):''}${button('new','Чистая карта','plus',this.uiCapabilities.templates?'secondary':'primary')}</div></div>`;this.renderChrome();}
   async readyToLeave() {
+    if(!(await leaveCanvasInspector(this)))return false;
     if(!this.board)return true;this.board.flush();if(this.savingPromise)await this.savingPromise;
     if(this.board.dirty){this.message('Сначала сохраните изменение или экспортируйте свою копию. Исходная карта не закрыта.',true);return false;}
     return true;
@@ -61,6 +64,7 @@ export class MapsFeature {
   buildBoard() {
     if(this.board){this.board.cancelPending();this.board.remove();}
     const board=document.createElement('iq-whiteboard');board.surfaceMode='embedded';board.controlled=true;board.allowedCreateTypes=this.view==='canvas'?this.uiCapabilities.allowedCreateTypes:CREATABLE_BOARD_OBJECT_TYPES;
+    if(this.view==='canvas')board.editorMode='host';
     board.data=this.view==='workflow'?flowScene(this.current.flow,this.current.title,this.current.revision):this.current.document;
     board.readOnly=!this.permissions.edit||this.current.status==='archived';board.saveStatus=this.storageLabel;
     this.surface.replaceChildren(board);this.board=board;
@@ -69,8 +73,9 @@ export class MapsFeature {
     });
     board.addEventListener('iq-change-cancel',event=>this.pending.get(event.detail.requestId)?.abort());
     board.addEventListener('iq-host-command',event=>this.handle(event.detail.command==='guide'?'help':event.detail.command).catch(e=>this.message(e.message,true)));
-    board.addEventListener('iq-open-task',event=>{const target={ids:[event.detail.taskId],projectId:this.project.id};this.root.dispatchEvent(new CustomEvent('iq-open-tasks',{detail:target,bubbles:true,composed:true}));Promise.resolve().then(()=>this.config.onOpenTasks?.(target)).catch(error=>this.message(error.message,true));});
-    board.addEventListener('iq-selection',()=>{if(this.view==='workflow'&&!this.inspector.hidden&&this.panel==='properties')this.renderProperties();});
+    board.addEventListener('iq-open-task',event=>{const target={ids:[event.detail.taskId],projectId:this.project.id,focusTaskId:event.detail.taskId};this.root.dispatchEvent(new CustomEvent('iq-open-tasks',{detail:target,bubbles:true,composed:true}));Promise.resolve().then(()=>this.config.onOpenTasks?.(target)).catch(error=>this.message(error.message,true));});
+    board.addEventListener('iq-selection',()=>{if(this.view==='workflow'&&!this.inspector.hidden&&this.panel==='properties')this.renderProperties();if(this.view==='canvas'){this.inspectorQueue=(this.inspectorQueue||Promise.resolve()).then(()=>showCanvasInspector(this,board.selection)).catch(error=>this.message(error.message,true));}});
+    board.addEventListener('iq-edit-object',event=>{if(this.view!=='canvas')return;board.select([event.detail.id],false);this.inspectorQueue=(this.inspectorQueue||Promise.resolve()).then(()=>showCanvasInspector(this,[event.detail.id],{focusText:true})).catch(error=>this.message(error.message,true));});
     board.addEventListener('iq-change',()=>this.renderChrome());
     const position=this.positions.get(`${this.current.id}:${this.view}`);
     requestAnimationFrame(()=>{if(board!==this.board||!board.isConnected)return;if(position)board.viewport=position;else board.fit();});
@@ -112,10 +117,11 @@ export class MapsFeature {
     const title=m?.title||'Карты проекта';
     const save=override||(this.board?.saving?'Сохраняем…':this.board?.dirty?'Есть несохранённые изменения':m?this.storageLabel:'Выберите или создайте карту');
     const heading=this.uiCapabilities.mapSwitcher?`<button type="button" class="map-switch" data-map-action="maps" aria-label="Выбрать карту: ${esc(title)}" title="${esc(title)}"><span>${esc(title)}</span>${icon('down',16)}</button>`:`<span class="map-switch map-switch-static"><span>${esc(title)}</span></span>`;
-    const canAdd=this.view==='workflow'||this.uiCapabilities.allowedCreateTypes.length>0;
+    const canAdd=this.view==='workflow';
     this.toolbar.innerHTML=`<div class="map-heading"><div class="map-title-wrap"><h1>${heading}</h1><span class="map-save-label" role="status">${m?`${m.kind==='session'?'Сессия':'Постоянная карта'} · `:''}${esc(save)}</span></div></div>${m&&this.uiCapabilities.workflow?`<div class="iq-segmented map-view-tabs" aria-label="Рабочая поверхность"><button type="button" data-map-action="canvas" aria-pressed="${this.view==='canvas'}">${icon('board',16)}<span>Карта</span></button><button type="button" data-map-action="workflow" aria-pressed="${this.view==='workflow'}">${icon('link',16)}<span>Сценарий действий</span></button></div>`:''}<div class="map-toolbar-actions">${this.uiCapabilities.templates?button('templates','Шаблоны','grid'):''}${m&&!disabled&&canAdd?button(this.view==='workflow'?'add-step':'add',this.view==='workflow'?'Добавить шаг':'Добавить объекты','plus','primary'):!m&&this.permissions.edit?button('new','Создать карту','plus','primary'):''}<button type="button" class="iq-btn ghost icon sm" data-map-action="more" aria-label="Меню карты">${icon('more',18)}</button></div>`;
     const session=this.uiCapabilities.sessions&&m?.kind==='session'&&m.status!=='archived';
-    this.subbar.hidden=!m||(!session&&this.view==='canvas'&&m.status!=='archived');
+    this.subbar.hidden=!m||(this.view==='canvas'&&m.status!=='archived');
+    this.renderSessionCard();
     if(!m)return;
     const state=statusNames[m.status]||m.status;
     this.subbar.innerHTML=`<div class="map-view-group"><span class="map-state">${esc(state)}</span>${session?'<button type="button" class="map-timer-label" data-map-action="session" aria-label="Этап и таймер сессии"></button>':''}</div><div class="map-context-actions">${this.view==='workflow'?button('properties','Свойства','sliders')+button('validate','Проверить','check')+button('runs','Запуски','clock')+(this.uiCapabilities.automation?button('automations','Автоматизация','bolt'):'')+(this.permissions.run&&m.status!=='archived'?button('run','Тест и запуск','play','secondary'):''):''}${session&&!disabled?button(m.status==='draft'?'start':m.status==='paused'?'resume':'finish',m.status==='draft'?'Начать сессию':m.status==='paused'?'Продолжить':'Завершить сессию',m.status==='active'?'check':'play','secondary'):''}${m.status==='archived'&&this.uiCapabilities.mapSwitcher?button('continue','Создать продолжение','plus','secondary'):''}</div>`;
@@ -126,7 +132,16 @@ export class MapsFeature {
     const notice=this.root.querySelector('.map-notice');notice.hidden=!text;notice.classList.toggle('is-error',error);
     notice.innerHTML=text?`<span>${esc(text)}</span>${error&&this.current?button('export-draft','Сохранить копию','download'):''}${button('dismiss','Закрыть','x')}`:'';
   }
+  renderSessionCard(){
+    let card=this.root.querySelector('[data-session-card]');if(!card){card=document.createElement('aside');card.dataset.sessionCard='';card.className='map-session-card';card.setAttribute('aria-label','Сессия');this.root.querySelector('.map-content').append(card);}
+    const m=this.current,visible=this.uiCapabilities.sessions&&m?.kind==='session'&&this.view==='canvas'&&m.status!=='archived';card.hidden=!visible;if(!visible)return;
+    const changed=card.dataset.expanded!==String(!!this.sessionOpen),leaving=changed&&!this.sessionOpen&&!motionReduced()?card.querySelector('.map-session-content')?.cloneNode(true):null;card.dataset.expanded=String(!!this.sessionOpen);
+    card.innerHTML=`<button type="button" class="iq-btn secondary sm map-session-toggle" data-map-action="toggle-session" aria-expanded="${!!this.sessionOpen}">${icon('users',16)}<span class="map-session-summary">Сессия</span>${icon(this.sessionOpen?'down':'chevron',14)}</button>${this.sessionOpen?`<div class="map-session-content"><div class="row between"><b>${statusNames[m.status]}</b><button type="button" class="iq-btn ghost icon sm" data-map-action="toggle-session" aria-label="Скрыть сессию">${icon('x',16)}</button></div><p class="map-session-timer"></p><button type="button" class="iq-btn secondary sm" data-map-action="session">Этап, таймер и голоса</button>${this.permissions.edit?button(m.status==='draft'?'start':m.status==='paused'?'resume':'finish',m.status==='draft'?'Начать сессию':m.status==='paused'?'Продолжить':'Завершить сессию',m.status==='active'?'check':'play','primary'):''}${m.status==='active'&&this.permissions.edit?button('pause','Пауза','pause'):''}<small class="iq-helper">Таймер и голоса сохраняются в этом макете.</small></div>`:''}`;
+    if(leaving){leaving.inert=true;leaving.setAttribute('aria-hidden','true');Object.assign(leaving.style,{position:'absolute',right:'0',top:'36px',pointerEvents:'none'});card.append(leaving);leaving.animate([{opacity:1,transform:'translateY(0)'},{opacity:0,transform:'translateY(-8px)'}],{duration:180,easing:'ease-out'}).finished.catch(()=>{}).finally(()=>leaving.remove());}
+    else if(changed&&!motionReduced())card.animate([{opacity:.35,transform:'translateY(-8px)'},{opacity:1,transform:'translateY(0)'}],{duration:280,easing:'cubic-bezier(.2,.7,.2,1)'});this.updateTimer();
+  }
   async handle(action,control) {
+    if(action==='toggle-session'){if(!(await leaveCanvasInspector(this)))return;this.sessionOpen=!this.sessionOpen;this.renderSessionCard();return;}
     requireValue(this.permissions.read||action==='help','READ_ONLY','Просмотр карт недоступен.');
     if(['maps','archive','continue'].includes(action))requireValue(this.uiCapabilities.mapSwitcher,'FEATURE_DISABLED','Выбор нескольких карт отключён приложением.');
     if(['templates','save-template','template-new','template-insert'].includes(action))requireValue(this.uiCapabilities.templates,'FEATURE_DISABLED','Шаблоны отключены приложением.');
@@ -222,10 +237,12 @@ export class MapsFeature {
     return this.dialog({title:'Продолжить отдельной картой',body:`${input('title','Название',`${this.current.title} — продолжение`,{required:true})}${select('kind','Формат',this.current.kind,[['permanent','Постоянная карта'],['session','Новая сессия']])}<p class="map-explanation">Исходная версия и её итоги не изменятся. Голоса, таймер, история запусков и ответственные не переносятся.</p>`,submitLabel:'Создать продолжение',onSubmit:async values=>{const next=forkMap(this.current,{title:values.get('title'),kind:values.get('kind')});const saved=await this.repository.write('maps',next,0);await this.reloadList();await this.openMap(saved.id);}});
   }
   updateTimer() {
-    const target=this.subbar?.querySelector('.map-timer-label'),session=this.current?.session;if(!target||!session)return;
+    const target=this.subbar?.querySelector('.map-timer-label'),session=this.current?.session;if(!session)return;
     const remaining=session.timer.endsAt?Math.max(0,Math.ceil((Date.parse(session.timer.endsAt)-Date.now())/1000)):session.timer.remaining;
     const phase={collect:'Собираем мысли',discuss:'Обсуждаем',vote:'Выбираем',outcomes:'Подводим итоги'}[session.phase]||'Сессия';
-    target.textContent=`${phase} · ${Math.floor(remaining/60).toString().padStart(2,'0')}:${(remaining%60).toString().padStart(2,'0')}`;
+    const time=`${Math.floor(remaining/60).toString().padStart(2,'0')}:${(remaining%60).toString().padStart(2,'0')}`;
+    if(target)target.textContent=`${phase} · ${time}`;
+    const summary=this.root.querySelector('.map-session-summary'),timer=this.root.querySelector('.map-session-timer');if(summary)summary.textContent=this.current.status==='active'?`${phase} · ${time}`:'Сессия';if(timer)timer.textContent=`${phase} · ${time}`;
   }
   sessionDialog() {
     if(!this.current?.session)return;const session=this.current.session,readonly=!this.permissions.edit||this.current.status==='archived';

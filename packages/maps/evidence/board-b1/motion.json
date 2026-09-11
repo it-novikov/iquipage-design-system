@@ -1,0 +1,24 @@
+{
+  "status": "PASS",
+  "checks": [
+    {
+      "name": "normal-motion pointer drop matches sorted preview and commits one status without changing priority",
+      "status": "PASS"
+    },
+    {
+      "name": "manual pointer reorder persists an explicit queue independently of priority",
+      "status": "PASS"
+    },
+    {
+      "name": "shared vertical autoscroll keeps all headers aligned and Escape restores the uncommitted gesture",
+      "status": "PASS"
+    }
+  ],
+  "errors": [],
+  "measurements": {
+    "observedFrames": 42,
+    "frameIntervalP95": 16.700000000000045,
+    "note": "Headless sample only; not a real-device FPS acceptance."
+  },
+  "browser": "153.0.8010.12"
+}

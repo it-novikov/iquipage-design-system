@@ -1,0 +1,32 @@
+{
+  "status": "PASS",
+  "archiveSha256": "ebf735d247cbecbf773cef48d4720e44b09545de8c53b8f5526fdf69b9e2ab47",
+  "manifestEntries": 558,
+  "nodeTests": 101,
+  "browserScenarios": 34,
+  "sourceFingerprint": "63355f0a599588fd5688e8401c744d519223fe3583fac9407da26808e1457ca8",
+  "identicalRebuiltPreview": true,
+  "recheckDirectory": "/tmp/board-b1-recheck-xwec3abo/Sprintique-Board-B1",
+  "checks": [
+    {
+      "name": "build",
+      "exitCode": 0
+    },
+    {
+      "name": "preview",
+      "exitCode": 0
+    },
+    {
+      "name": "node",
+      "exitCode": 0
+    },
+    {
+      "name": "browser",
+      "exitCode": 0
+    },
+    {
+      "name": "offline",
+      "exitCode": 0
+    }
+  ]
+}

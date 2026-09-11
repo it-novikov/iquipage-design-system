@@ -1,0 +1,15 @@
+{
+  "status": "FAIL_PENDING_COV_02",
+  "sourceCommit": "bea345e0093a4b594dbc396143cb014898a133f7",
+  "sourceFingerprint": "da212b5cc11edbe953fbacc697dee83277f9497d5d029950455b48e835e44198",
+  "nodeTestsPassed": 167,
+  "previousBrowserChecksPassed": 113,
+  "coverFinalChecksPassed": 1,
+  "coverFinalChecksFailed": 1,
+  "coverFinalChecksNotReached": 6,
+  "offlineRegression": "PASS",
+  "appliedFix": "COV-01",
+  "unresolved": "COV-02",
+  "repairOperation": "blocked by tool; not applied",
+  "releaseReady": false
+}

@@ -1,0 +1,47 @@
+PASS default task route, six ordered columns, full-width 24px inset
+PASS task form, keyboard move and persisted reload
+PASS edge-to-edge canvas; idle strip hidden; selected actions retained
+PASS readable shortcuts and symmetrical navigation-note spacing
+PASS 16 distinct data-driven previews; searchable library and visible header
+PASS mixed card types, actual shape selection, atomic undo/redo and reload
+PASS custom template persists and is searchable
+PASS test execution and approval do not create tasks
+PASS execution creates one real local task with map provenance
+PASS session archive readonly, persisted summary and independent continuation
+PASS dark theme, short desktop and mobile: bounded dialog and available project navigation
+PASS standalone starts with maps rather than the host task board
+PASS no browser JavaScript errors
+Host capability and external task contract: PASS
+PASS configure enabled closing rule using visible controls
+PASS committed session completion appears in persisted delivery journal
+PASS approval creates one local task with committed-event provenance
+PASS delivery journal remains available in dark theme and narrow viewport
+PASS no browser JavaScript errors
+PASS dead-letter retry through UI keeps its committed input and requires approval
+PASS dismissal is persisted without deleting the map or creating another run
+PASS navigation, canonical nested cards, column counts and three avatars plus overflow
+PASS collapse preserves counts and a filtered child remains independently reachable
+PASS Markdown preview/editor roundtrip and reparenting survive save and reload
+PASS dirty close requires a decision and cancellation retains the draft
+PASS keyboard cancel has no write and a committed move preserves parent identity
+PASS pointer drag cancellation does not commit a transition
+PASS settings, logo route and narrow dark layout remain usable
+PASS guest landing performs no workspace API requests and demo entry returns to board
+PASS normal-motion pointer drop matches sorted preview and commits one status without changing priority
+PASS manual pointer reorder persists an explicit queue independently of priority
+PASS shared vertical autoscroll keeps all headers aligned and Escape restores the uncommitted gesture
+PASS project tag and release creation persists; normalized duplicate names show a recoverable error
+PASS base and type templates compose deterministic Markdown and checklists with effective preview
+PASS task creation applies its template once, preserves authored edits and independently persists two checklists
+PASS inline release creation selects its stable ID without losing the open task draft
+PASS plain comments and resolvable threads persist independently of discarded task edits; replies and reopen work
+PASS task links use one canonical edge with inverse wording; removing a link retains both tasks
+PASS visible tag and release conditions combine with AND and keep exact per-column counts
+PASS project tag rename updates board chips without rewriting task IDs
+PASS task document remains bounded and operable on narrow dark layout
+PASS no browser JavaScript errors during B2 workflows
+PASS lost HTTP response retains the draft and a visible retry does not duplicate a published message
+PASS publishing another thread preserves a reply draft in the existing editor
+PASS IndexedDB v1 upgrade preserves existing task content and supports transactional catalogs and discussions
+PASS a stale task save retains the user draft and never overwrites a concurrent change
+PASS no browser JavaScript errors in recovery and migration scenarios

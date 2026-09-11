@@ -1,3 +1,6 @@
+import {memoryThreadPage,browserThreadPage} from './board/thread-repository.js';
+import {commitTaskAttachments} from './board/attachment-model.js';
+import {writeScopes} from './board/workspace-model.js';
 import { clone, DomainError, COLLECTIONS, prepareWrite } from './model.js';
 
 function visible(collection, value, projectId, context) {
@@ -15,9 +18,11 @@ export class MemoryRepository {
   async read(collection, id, projectId) { const value = this.data[collection].get(id); return value && visible(collection, value, projectId, this.context) ? clone(value) : null; }
   async write(collection, value, baseRevision = 0, { signal } = {}) {
     signal?.throwIfAborted();
-    const next = prepareWrite(collection, value, this.data[collection].get(value.id), baseRevision); this.data[collection].set(value.id, clone(next));
+    const next = prepareWrite(collection, value, this.data[collection].get(value.id), baseRevision, [...this.data.tasks.values()], Object.fromEntries(COLLECTIONS.map(name => [name, [...this.data[name].values()]])), this.context.actorId); if (collection === 'tasks') for (const asset of commitTaskAttachments(next, this.data.tasks.get(value.id), [...this.data.attachments.values()])) this.data.attachments.set(asset.id, asset);
+    this.data[collection].set(value.id, clone(next));
     this.listeners.forEach(fn => fn({ collection, id: next.id, projectId: next.projectId, revision: next.revision })); return clone(next);
   }
+  pageThreads(projectId,taskId,options={}) { return memoryThreadPage(this,projectId,taskId,options); }
   subscribe(fn) { this.listeners.add(fn); return () => this.listeners.delete(fn); }
   close() { this.listeners.clear(); }
 }
@@ -28,14 +33,21 @@ export class BrowserRepository {
     this.channel = typeof BroadcastChannel === 'function' ? new BroadcastChannel(namespace) : null;
     this.channel?.addEventListener('message', e => this.listeners.forEach(fn => fn(e.data)));
     this.ready = new Promise((resolve, reject) => {
-      const request = indexedDB.open(namespace, 1);
-      request.onupgradeneeded = () => { for (const name of COLLECTIONS) request.result.createObjectStore(name, { keyPath: 'id' }); };
+      const request = indexedDB.open(namespace, 4);
+      request.onupgradeneeded = () => {
+        for (const name of [...COLLECTIONS, '_attachmentBlobs']) {
+          if (!request.result.objectStoreNames.contains(name)) request.result.createObjectStore(name, { keyPath: 'id' });
+        }
+        const threads = request.transaction.objectStore('threads');
+        if (!threads.indexNames.contains('byTask')) threads.createIndex('byTask', ['projectId','taskId']);
+      };
       request.onsuccess = () => { request.result.onversionchange = () => request.result.close(); resolve(request.result); };
       request.onerror = () => reject(new DomainError('STORAGE_UNAVAILABLE', 'Хранилище браузера недоступно. Экспортируйте копию.'));
       request.onblocked = () => reject(new DomainError('STORAGE_BLOCKED', 'Закройте старые вкладки этого приложения.'));
     });
     this.capabilities = { storage: 'browser', collaboration: false, events: false, llm: false };
   }
+  pageThreads(projectId,taskId,options={}) { return browserThreadPage(this,projectId,taskId,options); }
   async list(collection, projectId) {
     const db = await this.ready;
     return new Promise((resolve, reject) => {
@@ -53,11 +65,24 @@ export class BrowserRepository {
   async write(collection, value, baseRevision = 0, { signal } = {}) {
     signal?.throwIfAborted(); const db = await this.ready; signal?.throwIfAborted();
     return new Promise((resolve, reject) => {
-      const tx = db.transaction(collection, 'readwrite'), store = tx.objectStore(collection); let next, error;
+      const scopes = writeScopes(collection), tx = db.transaction(scopes, 'readwrite'), store = tx.objectStore(collection); let next, error;
       const abort = () => { try { tx.abort(); } catch {} }; signal?.addEventListener('abort', abort, { once: true });
       const cleanup = () => signal?.removeEventListener('abort', abort);
-      const request = store.get(value.id);
-      request.onsuccess = () => { try { signal?.throwIfAborted(); next = prepareWrite(collection, value, request.result, baseRevision); store.put(next); } catch (e) { error = e; tx.abort(); } };
+      const snapshot = {}; let remaining = scopes.length;
+      for (const name of scopes) {
+        const request = tx.objectStore(name).getAll();
+        request.onsuccess = () => {
+          snapshot[name] = request.result;
+          if (--remaining) return;
+          try {
+            signal?.throwIfAborted();
+            const previous = snapshot[collection].find(item => item.id === value.id);
+            next = prepareWrite(collection, value, previous, baseRevision, snapshot.tasks || [], snapshot, this.context.actorId);
+            if (collection === 'tasks') for (const asset of commitTaskAttachments(next, previous, snapshot.attachments || [])) tx.objectStore('attachments').put(asset);
+            store.put(next);
+          } catch (cause) { error = cause; tx.abort(); }
+        };
+      }
       tx.oncomplete = () => {
         cleanup(); const event = { collection, id: next.id, projectId: next.projectId, revision: next.revision };
         this.channel?.postMessage(event); this.listeners.forEach(fn => fn(event)); resolve(clone(next));
@@ -77,8 +102,12 @@ export class HttpRepository {
     const data = await response.json(); if (!response.ok) throw new DomainError(data.code || 'HTTP_ERROR', data.message || 'Не удалось выполнить запрос.', data.details); return data;
   }
   list(collection, projectId) { return this.request(`/records/${collection}?projectId=${encodeURIComponent(projectId)}`); }
-  read(collection, id, projectId) { return this.request(`/records/${collection}/${encodeURIComponent(id)}?projectId=${encodeURIComponent(projectId)}`); }
+  read(collection, id, projectId, options={}) { return this.request(`/records/${collection}/${encodeURIComponent(id)}?projectId=${encodeURIComponent(projectId)}`,options); }
   write(collection, record, baseRevision = 0, { signal } = {}) { return this.request(`/records/${collection}/${encodeURIComponent(record.id)}`, { method: 'PUT', body: { record, baseRevision }, signal }); }
+  pageThreads(projectId,taskId,{cursor,limit=20,signal}={}) {
+    const query=new URLSearchParams({projectId,limit:String(limit),...(cursor?{cursor}:{})});
+    return this.request(`/tasks/${encodeURIComponent(taskId)}/threads?${query}`,{signal});
+  }
   async refreshCapabilities() { this.capabilities = await this.request('/capabilities'); return this.capabilities; }
   subscribe() { return () => {}; }
   close() {}

@@ -1,0 +1,8 @@
+{
+  "status": "FAIL",
+  "checks": [
+    "removing a cover synchronizes the attachment label and pressed state immediately"
+  ],
+  "errors": [],
+  "error": "An older upload response must not overwrite a later cover selection\n+ actual - expected\n\n+ 'file-225696e1-db4b-4d14-b6df-972f7a154f26'\n- 'file-26a8aa3b-3887-4bee-a34e-fd4500263044'\n"
+}

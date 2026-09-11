@@ -1,0 +1,7 @@
+{
+  "status": "PASS",
+  "checks": [
+    "map task reference opens the current canonical task document, not a copied source snapshot",
+    "editing the linked task creates no duplicate task and does not rewrite the map snapshot"
+  ]
+}

@@ -1,0 +1,10 @@
+
+> @iquipage/maps@0.4.0-board.b2 verify
+> node scripts/verify.mjs
+
+PASS build
+PASS preview
+PASS node
+PASS browser
+PASS offline
+{"status":"PASS","nodeTests":133,"browserScenarios":49,"sourceFingerprint":"393bfdf8bf27743665794d2c328d35542bf76905e42c695e8d94a5714734a5ca"}

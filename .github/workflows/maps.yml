@@ -40,5 +40,6 @@ jobs:
           path: |
             packages/maps/artifacts/final/
             packages/maps/artifacts/r3/*report.json
+            packages/maps/artifacts/board-b1/
           retention-days: 14
           if-no-files-found: error

@@ -1,0 +1,27 @@
+{
+  "status": "PASS",
+  "checks": [
+    {
+      "name": "lost HTTP response retains the draft and a visible retry does not duplicate a published message",
+      "status": "PASS"
+    },
+    {
+      "name": "publishing another thread preserves a reply draft in the existing editor",
+      "status": "PASS"
+    },
+    {
+      "name": "IndexedDB v1 upgrade preserves existing task content and supports transactional catalogs and discussions",
+      "status": "PASS"
+    },
+    {
+      "name": "a stale task save retains the user draft and never overwrites a concurrent change",
+      "status": "PASS"
+    },
+    {
+      "name": "no browser JavaScript errors in recovery and migration scenarios",
+      "status": "PASS"
+    }
+  ],
+  "errors": [],
+  "browser": "153.0.8010.12"
+}

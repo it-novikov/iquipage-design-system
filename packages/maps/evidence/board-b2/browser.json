@@ -1,0 +1,47 @@
+{
+  "status": "PASS",
+  "checks": [
+    {
+      "name": "project tag and release creation persists; normalized duplicate names show a recoverable error",
+      "status": "PASS"
+    },
+    {
+      "name": "base and type templates compose deterministic Markdown and checklists with effective preview",
+      "status": "PASS"
+    },
+    {
+      "name": "task creation applies its template once, preserves authored edits and independently persists two checklists",
+      "status": "PASS"
+    },
+    {
+      "name": "inline release creation selects its stable ID without losing the open task draft",
+      "status": "PASS"
+    },
+    {
+      "name": "plain comments and resolvable threads persist independently of discarded task edits; replies and reopen work",
+      "status": "PASS"
+    },
+    {
+      "name": "task links use one canonical edge with inverse wording; removing a link retains both tasks",
+      "status": "PASS"
+    },
+    {
+      "name": "visible tag and release conditions combine with AND and keep exact per-column counts",
+      "status": "PASS"
+    },
+    {
+      "name": "project tag rename updates board chips without rewriting task IDs",
+      "status": "PASS"
+    },
+    {
+      "name": "task document remains bounded and operable on narrow dark layout",
+      "status": "PASS"
+    },
+    {
+      "name": "no browser JavaScript errors during B2 workflows",
+      "status": "PASS"
+    }
+  ],
+  "errors": [],
+  "browser": "153.0.8010.12"
+}

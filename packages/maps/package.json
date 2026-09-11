@@ -1,6 +1,6 @@
 {
   "name": "@iquipage/maps",
-  "version": "0.2.0",
+  "version": "0.4.1-board.b2.1.1",
   "private": true,
   "type": "module",
   "scripts": {
@@ -11,22 +11,38 @@
     "preview": "node scripts/preview.mjs",
     "test:offline": "node tests/preview-smoke.mjs",
     "verify": "node scripts/verify.mjs",
-    "package": "python3 scripts/package-final.py",
-    "test:browser": "node scripts/test-browser.mjs"
+    "package": "python3 scripts/package-board.py",
+    "test:browser": "node scripts/test-browser.mjs",
+    "package:board": "python3 scripts/package-board.py"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=20.9.0"
   },
   "exports": {
     ".": "./src/maps.js",
     "./model": "./src/model.js",
     "./runtime": "./src/runtime.js",
-    "./capabilities": {"types":"./types/capabilities.d.ts","default":"./src/capabilities.js"},
+    "./capabilities": {
+      "types": "./types/capabilities.d.ts",
+      "default": "./src/capabilities.js"
+    },
     "./agent": "./src/agent.js",
-    "./styles.css": "./src/maps.css"
+    "./styles.css": "./src/maps.css",
+    "./board": {
+      "types": "./types/board.d.ts",
+      "default": "./src/board/board.js"
+    },
+    "./board/styles.css": "./src/board/board.css",
+    "./board/attachments": {
+      "types": "./types/attachments.d.ts",
+      "default": "./src/board/attachments.js"
+    }
   },
   "types": "./types/index.d.ts",
   "devDependencies": {
     "playwright": "1.63.0"
+  },
+  "dependencies": {
+    "sharp": "0.35.4"
   }
 }

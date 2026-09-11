@@ -1,0 +1,111 @@
+PASS default task route, six ordered columns, full-width 24px inset
+PASS task form, keyboard move and persisted reload
+PASS edge-to-edge canvas; idle strip hidden; selected actions retained
+PASS readable shortcuts and symmetrical navigation-note spacing
+PASS 16 distinct data-driven previews; searchable library and visible header
+PASS mixed card types, actual shape selection, atomic undo/redo and reload
+PASS custom template persists and is searchable
+PASS test execution and approval do not create tasks
+PASS execution creates one real local task with map provenance
+PASS session archive readonly, persisted summary and independent continuation
+PASS dark theme, short desktop and mobile: bounded dialog and available project navigation
+PASS standalone starts with maps rather than the host task board
+PASS no browser JavaScript errors
+Host capability and external task contract: PASS
+PASS configure enabled closing rule using visible controls
+PASS committed session completion appears in persisted delivery journal
+PASS approval creates one local task with committed-event provenance
+PASS delivery journal remains available in dark theme and narrow viewport
+PASS no browser JavaScript errors
+PASS dead-letter retry through UI keeps its committed input and requires approval
+PASS dismissal is persisted without deleting the map or creating another run
+PASS navigation, canonical nested cards, column counts and three avatars plus overflow
+PASS collapse preserves counts and a filtered child remains independently reachable
+PASS Markdown preview/editor roundtrip and reparenting survive save and reload
+PASS dirty close requires a decision and cancellation retains the draft
+PASS keyboard cancel has no write and a committed move preserves parent identity
+PASS pointer drag cancellation does not commit a transition
+PASS settings, logo route and narrow dark layout remain usable
+PASS guest landing performs no workspace API requests and demo entry returns to board
+PASS normal-motion pointer drop matches sorted preview and commits one status without changing priority
+PASS manual pointer reorder persists an explicit queue independently of priority
+PASS shared vertical autoscroll keeps all headers aligned and Escape restores the uncommitted gesture
+PASS project tag and release creation persists; normalized duplicate names show a recoverable error
+PASS base and type templates compose deterministic Markdown and checklists with effective preview
+PASS task creation applies its template once, preserves authored edits and independently persists two checklists
+PASS inline release creation selects its stable ID without losing the open task draft
+PASS plain comments and resolvable threads persist independently of discarded task edits; replies and reopen work
+PASS task links use one canonical edge with inverse wording; removing a link retains both tasks
+PASS visible tag and release conditions combine with AND and keep exact per-column counts
+PASS project tag rename updates board chips without rewriting task IDs
+PASS task document remains bounded and operable on narrow dark layout
+PASS no browser JavaScript errors during B2 workflows
+PASS lost HTTP response retains the draft and a visible retry does not duplicate a published message
+PASS publishing another thread preserves a reply draft in the existing editor
+PASS IndexedDB v1 upgrade preserves existing task content and supports transactional catalogs and discussions
+PASS a stale task save retains the user draft and never overwrites a concurrent change
+PASS no browser JavaScript errors in recovery and migration scenarios
+PASS IndexedDB 2→4 preserves existing tasks and adds separate binary stores
+PASS browser staging and identical retries create neither a task nor duplicate metadata
+PASS browser attachment and cover commit survive database reopen with original bytes
+PASS cover removal preserves attachment; file removal and foreign project reads are denied
+PASS aborted browser upload does not commit and expired detached blobs are reclaimed
+PASS server: optional cover adds no empty media slot
+PASS server: staged image and document commit once and the board cover survives reload
+PASS server: task cover preview and original-file download use real saved bytes
+PASS server: removing the cover retains both attachments
+PASS server: replacement preserves original attachment and authored task text
+PASS server: removing the selected cover attachment clears both references
+PASS server: invalid upload keeps the prior cover and cannot silently disappear during save
+PASS server: lost upload response can be retried without duplicating the attachment
+PASS server: a concurrent task change rejects the cover save without losing canonical data or the user draft
+PASS server: cancelling an in-flight upload leaves the task and previous cover unchanged
+PASS server: discarding an uploaded replacement retains the committed cover
+PASS server: moving a covered card preserves file references and mixed-height layout
+PASS server: cover and attachment actions remain bounded in narrow dark task view
+PASS server: leaving the board releases every owned object URL
+PASS browser: optional cover adds no empty media slot
+PASS browser: staged image and document commit once and the board cover survives reload
+PASS browser: task cover preview and original-file download use real saved bytes
+PASS browser: removing the cover retains both attachments
+PASS browser: replacement preserves original attachment and authored task text
+PASS browser: removing the selected cover attachment clears both references
+PASS browser: invalid upload keeps the prior cover and cannot silently disappear during save
+PASS browser: discarding an uploaded replacement retains the committed cover
+PASS browser: moving a covered card preserves file references and mixed-height layout
+PASS browser: cover and attachment actions remain bounded in narrow dark task view
+PASS browser: leaving the board releases every owned object URL
+PASS offline: optional cover adds no empty media slot
+PASS offline: staged image and document commit once and the board cover survives reload
+PASS offline: task cover preview and original-file download use real saved bytes
+PASS offline: removing the cover retains both attachments
+PASS offline: replacement preserves original attachment and authored task text
+PASS offline: removing the selected cover attachment clears both references
+PASS offline: invalid upload keeps the prior cover and cannot silently disappear during save
+PASS offline: discarding an uploaded replacement retains the committed cover
+PASS offline: moving a covered card preserves file references and mixed-height layout
+PASS offline: cover and attachment actions remain bounded in narrow dark task view
+PASS offline: leaving the board releases every owned object URL
+PASS offline: file-based HTML performs no HTTP requests
+PASS no JavaScript errors in cover or attachment workflows
+PASS server: the initial list loads twenty summaries without all project messages or reply editors
+PASS server: opening a discussion fetches its actual messages on demand
+PASS server: a changed page snapshot refreshes explicitly while preserving an off-page reply draft
+PASS server: continued paging reaches every discussion exactly once
+PASS server: a reply persists independently of the task document after pagination
+PASS browser: the initial list loads twenty summaries without all project messages or reply editors
+PASS browser: opening a discussion fetches its actual messages on demand
+PASS browser: a changed page snapshot refreshes explicitly while preserving an off-page reply draft
+PASS browser: continued paging reaches every discussion exactly once
+PASS browser: a reply persists independently of the task document after pagination
+PASS no JavaScript errors in paginated discussion workflows
+PASS atomic: moving the editor preserves input identity, selection and Undo/Redo
+PASS atomic: preview mode survives reordering
+PASS atomic: empty reply never becomes toolbar text
+PASS atomic: genuine removal cleans up submit listeners
+PASS fallback: moving the editor preserves input identity, selection and Undo/Redo
+PASS fallback: preview mode survives reordering
+PASS fallback: empty reply never becomes toolbar text
+PASS fallback: genuine removal cleans up submit listeners
+PASS map task reference opens the current canonical task document, not a copied source snapshot
+PASS editing the linked task creates no duplicate task and does not rewrite the map snapshot

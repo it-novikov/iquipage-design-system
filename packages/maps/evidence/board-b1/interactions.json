@@ -1,0 +1,39 @@
+{
+  "status": "PASS",
+  "checks": [
+    {
+      "name": "navigation, canonical nested cards, column counts and three avatars plus overflow",
+      "status": "PASS"
+    },
+    {
+      "name": "collapse preserves counts and a filtered child remains independently reachable",
+      "status": "PASS"
+    },
+    {
+      "name": "Markdown preview/editor roundtrip and reparenting survive save and reload",
+      "status": "PASS"
+    },
+    {
+      "name": "dirty close requires a decision and cancellation retains the draft",
+      "status": "PASS"
+    },
+    {
+      "name": "keyboard cancel has no write and a committed move preserves parent identity",
+      "status": "PASS"
+    },
+    {
+      "name": "pointer drag cancellation does not commit a transition",
+      "status": "PASS"
+    },
+    {
+      "name": "settings, logo route and narrow dark layout remain usable",
+      "status": "PASS"
+    },
+    {
+      "name": "guest landing performs no workspace API requests and demo entry returns to board",
+      "status": "PASS"
+    }
+  ],
+  "errors": [],
+  "browser": "153.0.8010.12"
+}

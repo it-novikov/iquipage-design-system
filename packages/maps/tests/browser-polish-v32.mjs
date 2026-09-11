@@ -1,0 +1,85 @@
+import assert from 'node:assert/strict';
+import {mkdir,writeFile,readFile} from 'node:fs/promises';
+import {chromium} from 'playwright';
+import {referenceServer} from './server-fixture.mjs';
+import {createTask} from '../src/tasks.js';
+const cleanup=[],checks=[],errors=[],api=await referenceServer({after:fn=>cleanup.push(fn)}),projectId='polish-v32',out='output/playwright/polish-v32';
+await mkdir(out,{recursive:true});
+for(const [i,tone] of ['blue','green','red','amber','purple','neutral'].entries())await api.put('tags',{id:'tag-'+i,projectId,name:['Дизайн','Разработка','Исследование интерфейса','Планирование','Доступность','Документация'][i],tone,revision:0});
+await api.put('tasks',{...createTask({projectId,title:'Проверить новый интерфейс',description:'## Результат\n\nЕдиные компоненты и спокойные акценты.'}),id:'base',displayId:'SPR-241',tagIds:[0,1,2,3,4,5].map(i=>'tag-'+i)});
+await api.put('tasks',{...createTask({projectId,title:'Без тегов'}),id:'minimal',displayId:'SPR-242'});
+const browser=await chromium.launch({headless:true}),context=await browser.newContext({viewport:{width:1440,height:1000},permissions:['clipboard-read','clipboard-write']}),page=await context.newPage();
+page.setDefaultTimeout(12000);page.on('pageerror',e=>errors.push(e.message));
+const panel=()=>page.locator('.task-edit-dialog dialog[open]'),modal=()=>page.locator('dialog[open]').last();
+const open=async()=>{await page.locator('[data-drag-id=base] .task-card-title').click();await panel().getByLabel('Название',{exact:true}).waitFor();};
+const close=async()=>{await panel().locator('.iq-dialog-head [data-close]').click();await page.locator('.task-edit-dialog').waitFor({state:'detached'});};
+const mark=s=>{checks.push(s);console.log('PASS',s);};
+const settled=()=>page.waitForFunction(()=>document.getAnimations().filter(a=>a.effect?.getTiming().iterations!==Infinity).every(a=>a.playState!=='running'));
+const shot=async name=>{await settled();await page.screenshot({path:out+'/'+name+'.png'});};
+let failure;
+try{
+ await page.goto(api.base+'/?project='+projectId+'#tasks');await page.locator('[data-drag-id=base]').waitFor();
+ const card=page.locator('[data-drag-id=base]');
+ const bg=await card.locator('[data-packed-tag] .iq-tag').evaluateAll(els=>els.map(el=>getComputedStyle(el).backgroundColor));
+ assert.equal(new Set(bg).size,6);assert.ok(bg.every(v=>v!=='rgba(0, 0, 0, 0)'));
+ const overflow=card.locator('[data-tags-overflow]');assert.ok(await overflow.isVisible());assert.match(await overflow.getAttribute('class'),/iq-tag/);
+ const tagBox=await card.locator('[data-packed-tag]:visible .iq-tag').first().boundingBox(),moreBox=await overflow.boundingBox();assert.ok(Math.abs(tagBox.height-moreBox.height)<1);
+ mark('Six persisted tag colors are non-transparent; +N uses the same chip height');
+ await open();await settled();
+ assert.equal(await panel().getByRole('heading',{name:'Свойства',exact:true}).count(),0);
+ assert.equal(await panel().locator('iq-combobox[name=parent]').evaluate(el=>el.options[0].label),'Отсутствует');
+ const geometry=await panel().evaluate(el=>{
+  const r=s=>el.querySelector(s).getBoundingClientRect().toJSON();return {cover:r('[data-add-cover]'),type:r('iq-select[name=type] .iq-control-label'),head:r('.iq-dialog-head'),full:r('[data-task-fullscreen]'),close:r('.iq-dialog-head [data-close]'),number:r('[data-copy-task-link]')};
+ });
+ assert.ok(Math.abs(geometry.cover.y-geometry.type.y)<1,JSON.stringify(geometry));
+ assert.ok(geometry.head.height<=62,JSON.stringify(geometry.head));assert.deepEqual([geometry.full.width,geometry.full.height],[geometry.close.width,geometry.close.height]);assert.ok(geometry.full.right<=geometry.close.x);
+ assert.equal(await panel().locator('[data-copy-task-link]').evaluate(el=>getComputedStyle(el).fontSize),'18px');
+ await panel().locator('[data-copy-task-link]').click();await page.waitForFunction(()=>document.querySelector('[data-copy-task-icon]')?.dataset.copyState==='success');
+ assert.equal(await page.evaluate(()=>navigator.clipboard.readText()),page.url());assert.equal(await panel().locator('[data-copy-task-link]').innerText(),'SPR-241');
+ await page.mouse.move(300,90);await settled();const copied=await panel().locator('[data-copy-task-icon]').evaluate(el=>({bg:getComputedStyle(el).backgroundColor,expected:getComputedStyle(el).getPropertyValue('--iq-recessed').trim()}));
+ assert.equal(copied.bg,await page.evaluate(value=>{const el=document.createElement('div');el.style.backgroundColor=value;document.body.append(el);const v=getComputedStyle(el).backgroundColor;el.remove();return v;},copied.expected));
+ const numberBox=await panel().locator('[data-copy-task-link]').boundingBox();for(const key of ['x','y','width','height'])assert.equal(numberBox[key],geometry.number[key],JSON.stringify({key,before:geometry,after:await panel().locator('.iq-dialog-head').evaluate(el=>({head:el.getBoundingClientRect().toJSON(),buttons:[...el.querySelectorAll('button')].map(b=>({text:b.innerText,rect:b.getBoundingClientRect().toJSON(),font:getComputedStyle(b).font,padding:getComputedStyle(b).padding,border:getComputedStyle(b).border}))}))}));
+ mark('Properties align with cover; compact 18px header, adjacent equal icons, real neutral copy without layout shift');
+ const tag=panel().locator('[data-inline-tag="tag-0"]');
+ assert.equal(await tag.locator('svg,[data-tag-check]').count(),0);
+ assert.equal(await tag.evaluate(el=>getComputedStyle(el).userSelect),'none');
+ const centers=await tag.evaluate(el=>{const a=el.getBoundingClientRect(),b=el.firstElementChild.getBoundingClientRect();return [a.x+a.width/2-b.x-b.width/2,a.y+a.height/2-b.y-b.height/2];});assert.ok(centers.every(v=>Math.abs(v)<1));
+ const motion=await tag.evaluate(el=>{el.click();return el.getAnimations({subtree:true}).map(a=>a.effect.getTiming().duration);});assert.ok(motion.includes(230));
+ await tag.dblclick();assert.equal(await page.evaluate(()=>getSelection().toString()),'');
+ await page.emulateMedia({reducedMotion:'reduce'});const reduced=await tag.evaluate(el=>{el.click();return el.getAnimations({subtree:true}).filter(a=>a.playState==='running').length;});assert.equal(reduced,0);await page.emulateMedia({reducedMotion:'no-preference'});
+ await shot('task-light');await panel().getByRole('button',{name:'Сохранить задачу',exact:true}).click();await page.locator('.task-edit-dialog').waitFor({state:'detached'});
+ assert.ok((await api.get('/records/tasks/base?projectId='+projectId)).tagIds.includes('tag-0'));
+ mark('Centered chips without check space, no selected text, exact 230ms shared transition, reduced motion and persistence');
+ await open();await panel().locator('[data-add-cover]').click();
+ const presets=modal().locator('[data-cover-preset] img');assert.equal(await presets.count(),6);await page.waitForFunction(()=>[...document.querySelectorAll('[data-cover-preset] img')].every(img=>img.complete&&img.naturalWidth>0));
+ const sources=await presets.evaluateAll(els=>els.map(el=>el.src));assert.equal(new Set(sources).size,6);assert.ok(sources.every(src=>src.startsWith('data:image/webp;')));await shot('six-covers');
+ await modal().getByRole('button',{name:'Дизайн',exact:true}).click();await page.waitForFunction(()=>document.querySelector('iq-image-crop')?.source);
+ const cropper=modal().locator('iq-image-crop');assert.equal(await cropper.evaluate(el=>el.aspectRatio),2.4);const cropSource=await cropper.evaluate(el=>({size:el.source.size,type:el.source.type}));assert.equal(cropSource.type,'image/webp');await shot('cover-editor');
+ await cropper.locator('[data-crop-action=apply]').click();await panel().locator('.task-detail-cover[data-state=ready]').waitFor();
+ assert.equal(await panel().locator('[data-pick-files]').count(),0);
+ await panel().locator('[data-file-input]').setInputFiles({name:'Заметки.md',mimeType:'text/markdown',buffer:Buffer.from('# Детали\n\nФайл для проверки.')});
+ await panel().locator('.task-file-row[data-state=ready]').nth(1).waitFor();assert.equal(await panel().locator('.task-file-row iq-file-preview').count(),2);
+ assert.ok(await panel().locator('.task-file-row iq-file-preview').last().evaluate(el=>el.file instanceof File));
+ await panel().locator('[data-task-files]').scrollIntoViewIfNeeded();await shot('files-native-rows');
+ await panel().getByRole('button',{name:'Сохранить задачу',exact:true}).click();await page.locator('.task-edit-dialog').waitFor({state:'detached'});
+ let saved=await api.get('/records/tasks/base?projectId='+projectId);assert.equal(saved.attachmentIds.length,2);assert.ok(saved.coverCrop);
+ await page.locator('[data-drag-id=base] .task-card-cover[data-state=ready]').waitFor();const boardCover=await page.locator('[data-drag-id=base] .task-card-cover').boundingBox();
+ await open();await panel().locator('.task-detail-cover[data-state=ready]').waitFor();const detailCover=await panel().locator('.task-detail-cover').boundingBox();
+ assert.ok(Math.abs(boardCover.width/boardCover.height-2.4)<.02);assert.ok(Math.abs(detailCover.width/detailCover.height-2.4)<.02);
+ await panel().locator('[data-recrop-cover]').click();await page.waitForFunction(()=>document.querySelector('iq-image-crop')?.source);assert.equal(await modal().locator('iq-image-crop').evaluate(el=>el.source.size),cropSource.size);await modal().locator('.iq-dialog-head [data-close]').click();
+ await page.waitForFunction(()=>[...document.querySelectorAll('.task-file-row iq-file-preview')].every(el=>el.file));await close();
+ mark('Six generated assets, DS crop at 12:5, same board/detail ratio, original bytes and native file rows survive reload');
+ for(const width of [1440,768,390])for(const theme of ['light','dark']){
+  await page.setViewportSize({width,height:1000});await page.evaluate(theme=>document.documentElement.dataset.theme=theme,theme);await open();await panel().locator('.task-detail-cover[data-state=ready]').waitFor();
+  assert.ok(await panel().evaluate(el=>el.scrollWidth<=el.clientWidth));await shot('task-'+width+'-'+theme);await close();
+ }
+ mark('1440 / 768 / 390, light and dark, no drawer overflow');
+ // Existing project settings flow also verifies that a chosen background survives the repository boundary.
+ await page.setViewportSize({width:1440,height:1000});await page.goto(api.base+'/?project=polish-v32-new-tags#tasks');await page.getByRole('button',{name:'Новая задача',exact:true}).click();await panel().getByLabel('Название',{exact:true}).fill('Цветная метка');await panel().getByRole('button',{name:'Добавить в настройках проекта',exact:true}).click();await modal().getByRole('button',{name:'Новый тег',exact:true}).click();await modal().getByLabel('Название',{exact:true}).fill('Новый тег');
+ await modal().locator('iq-select[name=tone]').evaluate(el=>{el.value='purple';el.dispatchEvent(new CustomEvent('iq-change',{bubbles:true}));});
+ assert.ok(await modal().locator('[data-tag-preview] .iq-tag').count());await shot('tag-background-picker');await modal().getByRole('button',{name:'Сохранить',exact:true}).click();await modal().getByRole('button',{name:'Вернуться к задаче',exact:true}).click();await panel().locator('[data-inline-tag]').click();await panel().getByRole('button',{name:'Сохранить задачу',exact:true}).click();await page.locator('.task-edit-dialog').waitFor({state:'detached'});
+ const tags=await api.get('/records/tags?projectId=polish-v32-new-tags');assert.ok(JSON.stringify(tags).includes('purple'));mark('Tag creation persists a selected background with live preview');
+ assert.deepEqual(errors,[]);
+}catch(error){failure=error;console.error(error);await page.screenshot({path:out+'/failure.png'});}
+finally{await writeFile(out+'/report.json',JSON.stringify({status:failure?'FAIL':'PASS',checks,errors,error:failure?.stack,pending:['P08/P10 compact native upload awaiting explicit DS approval']},null,2));await browser.close();for(const fn of cleanup.reverse())await fn();}
+if(failure)process.exitCode=1;

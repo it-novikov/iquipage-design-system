@@ -1,0 +1,37 @@
+{
+  "status": "PASS",
+  "checks": [
+    {
+      "name": "atomic: moving the editor preserves input identity, selection and Undo/Redo",
+      "status": "PASS"
+    },
+    {
+      "name": "atomic: preview mode survives reordering",
+      "status": "PASS"
+    },
+    {
+      "name": "atomic: empty reply never becomes toolbar text",
+      "status": "PASS"
+    },
+    {
+      "name": "atomic: genuine removal cleans up submit listeners",
+      "status": "PASS"
+    },
+    {
+      "name": "fallback: moving the editor preserves input identity, selection and Undo/Redo",
+      "status": "PASS"
+    },
+    {
+      "name": "fallback: preview mode survives reordering",
+      "status": "PASS"
+    },
+    {
+      "name": "fallback: empty reply never becomes toolbar text",
+      "status": "PASS"
+    },
+    {
+      "name": "fallback: genuine removal cleans up submit listeners",
+      "status": "PASS"
+    }
+  ]
+}

@@ -3,6 +3,8 @@ import {readFile,stat,mkdir,open,unlink,rename} from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {FileRepository} from './file-repository.mjs';
+import {FileAttachmentStore} from './attachment-store.mjs';
+import {attachmentRoutes} from './attachment-http.mjs';
 import {OutboxWorker} from './outbox.mjs';
 import {WorkflowRuntime,localTasksAdapter} from '../src/runtime.js';
 import {EventService,verifyWebhook} from './event-service.mjs';
@@ -19,6 +21,9 @@ try{const prior=JSON.parse(await readFile(lockPath,'utf8'));try{process.kill(pri
 catch(e){if(e.code!=='ENOENT')throw e;}
 const lock=await open(lockPath,'wx',0o600);await lock.writeFile(JSON.stringify({pid:process.pid,startedAt:new Date().toISOString()}));await lock.close();
 const repository=await new FileRepository(directory).init();
+const attachmentStore=await new FileAttachmentStore(repository).init();
+await attachmentStore.collect();
+const routeAttachments=attachmentRoutes(attachmentStore);
 const adapters={createTasks:localTasksAdapter(repository)};
 const gateway=process.env.MAPS_LLM_GATEWAY;
 if(gateway){
@@ -31,7 +36,7 @@ if(gateway){
 const runtime=new WorkflowRuntime(repository,adapters),events=new EventService(repository,runtime);
 for(const run of [...repository.data.runs.values()])if(['running','queued'].includes(run.status)){run.status='interrupted';run.error={code:'RESTART',message:'Стенд перезапущен. Проверьте журнал перед повтором.'};await repository.write('runs',run,run.revision);}
 const outbox=new OutboxWorker(repository,events);
-const capabilities={transactionalEvents:true,storage:'server',runtimeScope:'local-reference',collaboration:false,events:true,schedule:true,webhook:!!process.env.MAPS_WEBHOOK_SECRET,llm:!!gateway,tasks:true,identity:'reference-user',warning:'Локальный стенд. Это не production API Sprintique.'};
+const capabilities={attachments:true,transactionalEvents:true,storage:'server',runtimeScope:'local-reference',collaboration:false,events:true,schedule:true,webhook:!!process.env.MAPS_WEBHOOK_SECRET,llm:!!gateway,tasks:true,identity:'reference-user',warning:'Локальный стенд. Это не production API Sprintique.'};
 const send=(res,status,value)=>{res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'});res.end(JSON.stringify(value));};
 async function readBody(req){
   let size=0,parts=[];for await(const part of req){size+=part.length;requireValue(size<=16*1024*1024,'BODY_LIMIT','Запрос превышает 16 МБ.');parts.push(part);}return Buffer.concat(parts).toString('utf8');
@@ -53,6 +58,13 @@ const server=http.createServer(async(req,res)=>{
     if(parts[0]==='api'){
       if(req.method==='OPTIONS')throw new DomainError('CSRF','Cross-origin запросы не поддерживаются.');
       if(parts[1]==='capabilities'&&req.method==='GET')return send(res,200,capabilities);
+      if(await routeAttachments(req,res,url,parts,send))return;
+      if(parts[1]==='tasks'&&parts[3]==='threads'&&parts.length===4&&req.method==='GET'){
+        const projectId=url.searchParams.get('projectId'),taskId=parts[2];
+        requireValue(validId(projectId)&&validId(taskId),'THREAD_TASK','Не задана задача.');
+        const result=await repository.pageThreads(projectId,taskId,{cursor:url.searchParams.get('cursor'),limit:Number(url.searchParams.get('limit')||20)});
+        return send(res,200,result);
+      }
       if(parts[1]==='event-deliveries'&&req.method==='GET'){
         const projectId=url.searchParams.get('projectId');requireValue(validId(projectId),'INVALID_PROJECT','Не задан проект.');
         const mapId=url.searchParams.get('mapId');
@@ -72,7 +84,7 @@ const server=http.createServer(async(req,res)=>{
       }
       if(parts[1]==='records'){
         const collection=parts[2],id=parts[3],projectId=url.searchParams.get('projectId');
-        requireValue(COLLECTIONS.includes(collection),'NOT_FOUND','Коллекция не найдена.');
+        requireValue(COLLECTIONS.includes(collection)&&collection!=='attachments','NOT_FOUND','Коллекция не найдена.');
         if(req.method==='GET'){
           requireValue(validId(projectId),'INVALID_PROJECT','Не задан проект.');
           return send(res,200,id?await repository.read(collection,id,projectId):await repository.list(collection,projectId));
@@ -113,15 +125,16 @@ const server=http.createServer(async(req,res)=>{
     requireValue(types[extension]&&(await stat(filename)).isFile(),'NOT_FOUND','Файл не найден.');
     res.writeHead(200,{'Content-Type':types[extension],'Cache-Control':'no-cache'});res.end(req.method==='HEAD'?undefined:await readFile(filename));
   }catch(error){
-    const status=['NOT_FOUND','ENOENT'].includes(error.code)?404:['CONFLICT','EVENT_CONFLICT','ARCHIVED'].includes(error.code)?409:['HOST','CSRF','PROJECT_MISMATCH','HOOK_SIGNATURE','HOOK_EXPIRED'].includes(error.code)?403:400;
+    const status=['NOT_FOUND','ENOENT'].includes(error.code)?404:['CONFLICT','EVENT_CONFLICT','ARCHIVED','FILE_CONFLICT'].includes(error.code)?409:['HOST','CSRF','PROJECT_MISMATCH','HOOK_SIGNATURE','HOOK_EXPIRED','FILE_ACCESS'].includes(error.code)?403:400;
     if(!res.headersSent)send(res,status,{code:error.code||'REQUEST_ERROR',message:error.message||'Не удалось обработать запрос.'});else res.end();
   }
 });
 let ticking=false;
+const attachmentCleanup=setInterval(()=>attachmentStore.collect().catch(()=>console.error('Attachment cleanup failed')),3600000);attachmentCleanup.unref();
 const deliveries=setInterval(()=>outbox.drain().catch(e=>console.error('Event delivery:',e.code||'FAILED')),1000);deliveries.unref();
 const scheduler=setInterval(async()=>{if(ticking)return;ticking=true;try{await events.tick();}catch(e){console.error('Scheduler:',e.code||e.message);}finally{ticking=false;}},10000);scheduler.unref();
 server.listen(port,'127.0.0.1',()=>console.log(`Maps reference: http://127.0.0.1:${port}/\nLocal-only runtime; no production account or deployment. PID ${process.pid}`));
 let stopping=false;
-async function stop(){if(stopping)return;stopping=true;clearInterval(scheduler);clearInterval(deliveries);server.close();if(outbox.active)await outbox.active.catch(()=>{});await repository.queue.catch(()=>{});await unlink(lockPath).catch(()=>{});process.exit(0);}
+async function stop(){if(stopping)return;stopping=true;clearInterval(scheduler);clearInterval(deliveries);clearInterval(attachmentCleanup);server.close();if(outbox.active)await outbox.active.catch(()=>{});await repository.queue.catch(()=>{});await unlink(lockPath).catch(()=>{});process.exit(0);}
 process.on('SIGINT',stop);process.on('SIGTERM',stop);
-server.on('error',async e=>{await unlink(lockPath).catch(()=>{});console.error(e.message);process.exitCode=1;clearInterval(scheduler);clearInterval(deliveries);});
+server.on('error',async e=>{await unlink(lockPath).catch(()=>{});console.error(e.message);process.exitCode=1;clearInterval(scheduler);clearInterval(deliveries);clearInterval(attachmentCleanup);});
