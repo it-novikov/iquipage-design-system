@@ -20,3 +20,11 @@ Scope: добавить, заменить, снять необязательну
 Production auth/ACL/AV, провайдеры и нагрузка остаются отдельным scope.
 Старые ZIP/HTML, исходный design-system/ и посторонние файлы не заменять.
 Новая поставка: Board B2.1.1, тот же PR #2 без merge/deploy.
+
+## Результат цикла исправления
+
+Все семь дополнительных обязательных случаев закрыты. Тест расширен без удаления
+старых assertions: 16 cover-finish проверок охватывают порядок intent, снятие,
+существующее вложение, chooser cancel, retry, pending cleanup, no-adapter,
+decode recovery, destroy и pointer DnD. Полная матрица после release metadata
+фиксируется в `artifacts/final/verification.json` и `docs/board/run-state.json`.

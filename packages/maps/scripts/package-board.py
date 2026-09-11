@@ -15,6 +15,7 @@ releases = {
     'Board-B2': ('board-b2', 'Sprintique-Board-B2', 'docs/RELEASE-BOARD-B2.md'),
     'Board-Attachment-Core-Review': ('board-review', 'Sprintique-Board-Review', 'docs/REVIEW-ATTACHMENT-CORE.md'),
     'Board-B2.1': ('board-b2-1', 'Sprintique-Board-B2.1', 'docs/RELEASE-BOARD-B2-1.md'),
+    'Board-B2.1.1': ('board-b2-1-1', 'Sprintique-Board-B2.1.1', 'docs/RELEASE-BOARD-B2-1-1.md'),
 }
 assert report['release'] in releases, 'Wrong acceptance scope'
 slug, label, readme = releases[report['release']]
@@ -54,15 +55,17 @@ reports = {'artifacts/final/verification.json': 'verification.json',
            'artifacts/board-b1/motion.json': 'board-motion.json',
            'artifacts/board-b2/browser.json': 'board-b2-browser.json',
            'artifacts/board-b2/recovery.json': 'board-b2-recovery.json'}
-if review or report['release'] == 'Board-B2.1':
+if review or report['release'] in {'Board-B2.1', 'Board-B2.1.1'}:
     reports['artifacts/attachment-core/browser-idb.json'] = 'attachment-idb.json'
-if report['release'] == 'Board-B2.1':
+if report['release'] in {'Board-B2.1', 'Board-B2.1.1'}:
     reports.update({
         'artifacts/board-covers/browser.json': 'covers.json',
         'artifacts/thread-pages/browser.json': 'thread-pages.json',
         'artifacts/editor-move/browser.json': 'editor-move.json',
         'artifacts/map-task-link/browser.json': 'map-task-link.json',
     })
+if report['release'] == 'Board-B2.1.1':
+    reports['artifacts/cover-finish/browser.json'] = 'cover-finish.json'
 for source, dest in reports.items():
     data = (ROOT / source).read_bytes()
     parsed = json.loads(data)
@@ -81,11 +84,12 @@ for p in sorted((ROOT / 'artifacts/board-b2').glob('*.png')):
     if 'failure' in p.name:
         continue
     files['packages/maps/evidence/board-b2/screenshots/' + p.name] = p.read_bytes()
-if report['release'] == 'Board-B2.1':
-    for folder in ['board-covers', 'thread-pages']:
+if report['release'] in {'Board-B2.1', 'Board-B2.1.1'}:
+    for folder in ['board-covers', 'thread-pages'] + (['cover-finish'] if report['release'] == 'Board-B2.1.1' else []):
         for p in sorted((ROOT / 'artifacts' / folder).glob('*.png')):
             if 'failure' not in p.name:
-                files['packages/maps/evidence/board-b2-1/' + folder + '/' + p.name] = p.read_bytes()
+                evidence = 'board-b2-1-1' if report['release'] == 'Board-B2.1.1' else 'board-b2-1'
+                files['packages/maps/evidence/' + evidence + '/' + folder + '/' + p.name] = p.read_bytes()
 manifest = ''.join(sha(data) + '  ' + name + '\n' for name, data in sorted(files.items()))
 files['MANIFEST.sha256'] = manifest.encode()
 OUT.mkdir(parents=True, exist_ok=True)
