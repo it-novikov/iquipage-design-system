@@ -1,0 +1,44 @@
+{
+  "name": "@iquipage/web",
+  "version": "0.6.0-vnext.1",
+  "private": true,
+  "type": "module",
+  "description": "IQUIPAGE standalone Web Components library",
+  "exports": {
+    ".": {
+      "types": "./types/index.d.ts",
+      "import": "./dist/iquipage.js"
+    },
+    "./core": {
+      "types": "./types/core.d.ts",
+      "import": "./dist/core.js"
+    },
+    "./advanced": {
+      "types": "./types/extensions.d.ts",
+      "import": "./dist/advanced.js"
+    },
+    "./whiteboard": {
+      "types": "./types/whiteboard.d.ts",
+      "import": "./dist/whiteboard.js"
+    },
+    "./styles.css": "./dist/iquipage.css",
+    "./tokens": "./tokens/semantic.json"
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "node --test tests/*.test.cjs",
+    "prepack": "node scripts/build.mjs"
+  },
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "files": [
+    "dist",
+    "types",
+    "tokens",
+    "assets/icons",
+    "LICENSE",
+    "README.md",
+    "PROVENANCE.json"
+  ]
+}

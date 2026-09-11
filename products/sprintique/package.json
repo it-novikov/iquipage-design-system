@@ -1,0 +1,31 @@
+{
+  "name": "@sprintique/product",
+  "version": "2.0.0-alpha.0",
+  "private": true,
+  "type": "module",
+  "engines": {"node": ">=24 <25"},
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "npm run typecheck && vite build && tsc -p tsconfig.server.json",
+    "start": "node build/backend/main.js",
+    "dev": "vite --host 127.0.0.1",
+    "migrate": "tsx backend/migrate.ts",
+    "test": "node scripts/test.mjs",
+    "preview:fixture": "node scripts/test.mjs --preview",
+    "check:boundaries": "node scripts/check-boundaries.mjs"
+  },
+  "dependencies": {
+    "@iquipage/web": "file:vendor/iquipage-web-0.6.0-vnext.1.tgz",
+    "fastify": "5.12.4",
+    "pg": "8.23.0",
+    "zod": "4.6.2",
+    "openid-client": "6.8.8"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "@types/pg": "^8.0.0",
+    "typescript": "7.0.2",
+    "tsx": "^4.20.0",
+    "vite": "8.3.0"
+  }
+}

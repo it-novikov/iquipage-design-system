@@ -1,0 +1,15 @@
+import {Database} from './infrastructure/database.js';
+import {createApp} from './http/app.js';
+import {serveWeb} from './http/static.js';
+import {z} from 'zod';
+const env=z.object({DATABASE_URL:z.string().min(1),PUBLIC_ORIGIN:z.url(),OIDC_ISSUER:z.url(),OIDC_CLIENT_ID:z.string().min(1),OIDC_CLIENT_SECRET:z.string().min(1),PORT:z.coerce.number().int().min(1).max(65535).default(4311),HOST:z.string().default('127.0.0.1')}).parse(process.env);
+const origin=new URL(env.PUBLIC_ORIGIN);
+if(origin.origin!==env.PUBLIC_ORIGIN)throw Error('PUBLIC_ORIGIN must have no path or trailing slash');
+if(origin.protocol!=='https:'&&!['localhost','127.0.0.1'].includes(origin.hostname))throw Error('HTTPS is required outside loopback');
+if(!env.OIDC_ISSUER.startsWith('https://'))throw Error('OIDC issuer must use HTTPS');
+const db=new Database(env.DATABASE_URL);await db.checkRuntimeRole();
+const app=await createApp({db,origin:env.PUBLIC_ORIGIN,oidc:{origin:env.PUBLIC_ORIGIN,issuer:env.OIDC_ISSUER,clientId:env.OIDC_CLIENT_ID,clientSecret:env.OIDC_CLIENT_SECRET},logger:true});
+serveWeb(app);
+const shutdown=async()=>{await app.close();await db.close();};
+process.once('SIGTERM',shutdown);process.once('SIGINT',shutdown);
+await app.listen({port:env.PORT,host:env.HOST});

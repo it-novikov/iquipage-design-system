@@ -1,0 +1,212 @@
+{
+  "schema_version": "2.0",
+  "id": "VNEXT-FULL-TASK-ACCEPTANCE",
+  "revision": 1,
+  "scope_type": "targeted",
+  "approval": {
+    "ref": "PENDING",
+    "owner": "PENDING"
+  },
+  "ds_archive_sha256": "6490056dd8900177d440431d71d95f5bc7cd4df080cdc99f7743184c704c29ba",
+  "surfaces": [
+    {
+      "id": "workspace/tasks",
+      "description": "Объект и изменения задачи",
+      "source_ref": "docs/vnext/STATUS.md"
+    }
+  ],
+  "dimension_applicability": {
+    "visual": {
+      "applicable": true,
+      "reason": "Complete task surface with media/tags/links/discussion in both themes and agreed viewport matrix.",
+      "approval_ref": null
+    },
+    "ux": {
+      "applicable": true,
+      "reason": "Complete task workflow, draft recovery, conflicts, links, media, navigation and permission changes.",
+      "approval_ref": null
+    },
+    "code": {
+      "applicable": true,
+      "reason": "Complete frontend/API parity with independently reviewed boundaries and contract/rollback tests.",
+      "approval_ref": null
+    },
+    "accessibility": {
+      "applicable": true,
+      "reason": "Full keyboard, screen reader and reduced-motion review; explicitly address the owner focus-style exception.",
+      "approval_ref": null
+    },
+    "human-agent": {
+      "applicable": true,
+      "reason": "Grant, proposal, approval, revision invalidation, execution, cancellation and result application tested independently.",
+      "approval_ref": null
+    },
+    "performance": {
+      "applicable": true,
+      "reason": "Agree and measure initial/lazy loads, large datasets, idle/long tasks and responsiveness; remaining illustration chunk reviewed.",
+      "approval_ref": null
+    }
+  },
+  "checks": [
+    {
+      "id": "VISUAL-001",
+      "surface_id": "workspace/tasks",
+      "dimensions": [
+        "visual"
+      ],
+      "required": true,
+      "method": "manual-inspection",
+      "environment": {
+        "engine": "Chromium",
+        "role": "admin",
+        "theme": "dark",
+        "viewport": [
+          1440,
+          900
+        ],
+        "input": "keyboard",
+        "load_mode": "application",
+        "data_profile": "synthetic-confirmed"
+      },
+      "evidence_kinds": [
+        "screenshot"
+      ],
+      "acceptance": "Complete task surface with media/tags/links/discussion in both themes and agreed viewport matrix.",
+      "na_approval_ref": null
+    },
+    {
+      "id": "UX-001",
+      "surface_id": "workspace/tasks",
+      "dimensions": [
+        "ux"
+      ],
+      "required": true,
+      "method": "manual-inspection",
+      "environment": {
+        "engine": "Chromium",
+        "role": "admin",
+        "theme": "dark",
+        "viewport": [
+          1440,
+          900
+        ],
+        "input": "keyboard",
+        "load_mode": "application",
+        "data_profile": "synthetic-confirmed"
+      },
+      "evidence_kinds": [
+        "log"
+      ],
+      "acceptance": "Complete task workflow, draft recovery, conflicts, links, media, navigation and permission changes.",
+      "na_approval_ref": null
+    },
+    {
+      "id": "CODE-001",
+      "surface_id": "workspace/tasks",
+      "dimensions": [
+        "code"
+      ],
+      "required": true,
+      "method": "manual-inspection",
+      "environment": {
+        "engine": "Chromium",
+        "role": "admin",
+        "theme": "dark",
+        "viewport": [
+          1440,
+          900
+        ],
+        "input": "keyboard",
+        "load_mode": "application",
+        "data_profile": "synthetic-confirmed"
+      },
+      "evidence_kinds": [
+        "source-review"
+      ],
+      "acceptance": "Complete frontend/API parity with independently reviewed boundaries and contract/rollback tests.",
+      "na_approval_ref": null
+    },
+    {
+      "id": "ACCESSIBILITY-001",
+      "surface_id": "workspace/tasks",
+      "dimensions": [
+        "accessibility"
+      ],
+      "required": true,
+      "method": "automated",
+      "environment": {
+        "engine": "Chromium",
+        "role": "admin",
+        "theme": "dark",
+        "viewport": [
+          1440,
+          900
+        ],
+        "input": "keyboard",
+        "load_mode": "application",
+        "data_profile": "synthetic-confirmed"
+      },
+      "evidence_kinds": [
+        "log"
+      ],
+      "acceptance": "Full keyboard, screen reader and reduced-motion review; explicitly address the owner focus-style exception.",
+      "na_approval_ref": null
+    },
+    {
+      "id": "HUMAN_AGENT-001",
+      "surface_id": "workspace/tasks",
+      "dimensions": [
+        "human-agent"
+      ],
+      "required": true,
+      "method": "automated",
+      "environment": {
+        "engine": "Chromium",
+        "role": "admin",
+        "theme": "dark",
+        "viewport": [
+          1440,
+          900
+        ],
+        "input": "keyboard",
+        "load_mode": "application",
+        "data_profile": "synthetic-confirmed"
+      },
+      "evidence_kinds": [
+        "log"
+      ],
+      "acceptance": "Grant, proposal, approval, revision invalidation, execution, cancellation and result application tested independently.",
+      "na_approval_ref": null
+    },
+    {
+      "id": "PERFORMANCE-001",
+      "surface_id": "workspace/tasks",
+      "dimensions": [
+        "performance"
+      ],
+      "required": true,
+      "method": "automated",
+      "environment": {
+        "engine": "Chromium",
+        "role": "admin",
+        "theme": "dark",
+        "viewport": [
+          1440,
+          900
+        ],
+        "input": "keyboard",
+        "load_mode": "application",
+        "data_profile": "synthetic-confirmed"
+      },
+      "evidence_kinds": [
+        "measurement"
+      ],
+      "acceptance": "Agree and measure initial/lazy loads, large datasets, idle/long tasks and responsiveness; remaining illustration chunk reviewed.",
+      "na_approval_ref": null
+    }
+  ],
+  "risk_acceptances": [],
+  "known_finding_ids": [
+    "F06"
+  ]
+}
