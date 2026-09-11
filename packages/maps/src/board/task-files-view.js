@@ -6,7 +6,7 @@ import {FILE_ACCEPT} from './attachment-model.js';
 export function mountTaskFiles(root,{coverRoot,adapter,task,readOnly=false}){
   let ids=[...(task.attachmentIds||[])],coverId=task.coverAttachmentId||null;
   let locked=false;
-  let closed=false,active=0,coverGeneration=0,coverURL=null;
+  let closed=false,active=0,coverGeneration=0,coverIntent=0,coverURL=null;
   const rows=new Map(),staged=new Set(),requests=new Set(),downloads=new Set();
   const events=new AbortController(),signal=events.signal;
   const target=id=>({id,projectId:task.projectId,taskId:task.id});
@@ -25,7 +25,7 @@ export function mountTaskFiles(root,{coverRoot,adapter,task,readOnly=false}){
   const discard=id=>{if(adapter)Promise.resolve(adapter.discard(target(id))).catch(()=>{});};
   const controller=()=>{const item=new AbortController();requests.add(item);return item;};
   const rowFor=id=>list.querySelector(`[data-file-row="${CSS.escape(id)}"]`);
-  const states={queued:'В очереди',uploading:'Загружается',preparing:'Подготовка',processing:'Обработка',saving:'Сохраняется',ready:'',failed:'Не загружен',loading:'Чтение'};
+  const states={queued:'В очереди',uploading:'Загружается',preparing:'Подготовка',processing:'Обработка',saving:'Сохраняется',ready:'',failed:'Не загружен',loading:'Чтение',unavailable:'Хранилище не подключено'};
   function controls(row){
     if(row.state==='ready')return `${editable&&row.meta.image?`<button type="button" class="iq-btn ghost icon sm" data-file-cover="${esc(row.id)}" aria-label="Сделать обложкой: ${esc(row.name)}" aria-pressed="${coverId===row.id}">${icon('image',16)}</button>`:''}<button type="button" class="iq-btn ghost icon sm" data-file-download="${esc(row.id)}" aria-label="Скачать ${esc(row.name)}">${icon('download',16)}</button>`;
     return row.state==='failed'?`<button type="button" class="iq-btn ghost sm" data-file-retry="${esc(row.id)}">Повторить</button>`:'';
@@ -49,7 +49,7 @@ export function mountTaskFiles(root,{coverRoot,adapter,task,readOnly=false}){
       }).catch(()=>{}).finally(()=>requests.delete(request));}
   }
   async function loadExisting(id){
-    const row=rows.get(id);if(!row||!adapter)return;row.state='loading';row.error='';drawRow(row);
+    const row=rows.get(id);if(!row)return;if(!adapter){row.state='unavailable';drawRow(row);return;}row.state='loading';row.error='';drawRow(row);
     const request=controller();try{row.meta=await adapter.describe(target(id),{signal:request.signal});
       if(closed||!rows.has(id))return;Object.assign(row,{name:row.meta.name,size:row.meta.size,state:'ready'});drawRow(row);
       if(coverId===id)renderCover();
@@ -63,17 +63,27 @@ export function mountTaskFiles(root,{coverRoot,adapter,task,readOnly=false}){
     const row=rows.get(coverId);
     coverRoot.innerHTML=`<div class="task-detail-cover" data-state="loading"><button type="button" data-preview-cover aria-label="Открыть обложку" disabled><img alt="" decoding="async" hidden></button><span data-cover-status>Загрузка обложки…</span></div>
       ${editable?'<div class="row task-cover-actions"><button type="button" class="iq-btn ghost sm" data-add-cover>Заменить</button><button type="button" class="iq-btn ghost sm" data-remove-cover>Снять обложку</button></div>':''}`;
-    if(!adapter)return;
-    const request=controller();
-    adapter.blob({...target(coverId),variant:'display'},{signal:request.signal}).then(blob=>{
+    if(!adapter){
+      coverRoot.querySelector('.task-detail-cover').dataset.state='unavailable';
+      coverRoot.querySelector('[data-cover-status]').textContent='Хранилище файлов не подключено.';
+      return;
+    }
+    const request=controller();let requestURL=null;
+    adapter.blob({...target(coverId),variant:'display'},{signal:request.signal}).then(async blob=>{
       if(closed||generation!==coverGeneration)return;
       requireValue(blob.type==='image/webp','FILE_PREVIEW','Изображение недоступно.');
-      coverURL=URL.createObjectURL(blob);const image=coverRoot.querySelector('img');image.src=coverURL;image.hidden=false;
+      requestURL=URL.createObjectURL(blob);const image=coverRoot.querySelector('img');
+      image.src=requestURL;await image.decode();
+      if(closed||generation!==coverGeneration||!image.isConnected)return;
+      coverURL=requestURL;requestURL=null;image.hidden=false;
       coverRoot.querySelector('[data-preview-cover]').disabled=false;coverRoot.querySelector('[data-cover-status]').hidden=true;
       coverRoot.querySelector('.task-detail-cover').dataset.state='ready';
-    }).catch(()=>{if(!closed&&generation===coverGeneration)coverRoot.querySelector('[data-cover-status]').textContent='Обложка недоступна. Файл остаётся в задаче.';}).finally(()=>requests.delete(request));
+    }).catch(()=>{if(!closed&&generation===coverGeneration){
+      const detail=coverRoot.querySelector('.task-detail-cover'),status=coverRoot.querySelector('[data-cover-status]');
+      if(detail)detail.dataset.state='unavailable';if(status){status.hidden=false;status.textContent='Обложка недоступна. Файл остаётся в задаче.';}
+    }}).finally(()=>{if(requestURL)URL.revokeObjectURL(requestURL);requests.delete(request);});
   }
-  function setCover(id){coverId=id;renderCover();emit();}
+  function setCover(id,{user=true}={}){if(user)coverIntent++;coverId=id;renderCover();emit();}
   async function upload(row){
     active++;row.state='preparing';row.error='';const request=controller();row.controller=request;drawRow(row);
     try{
@@ -84,7 +94,7 @@ export function mountTaskFiles(root,{coverRoot,adapter,task,readOnly=false}){
       if(closed||!rows.has(row.id)){discard(row.id);return;}
       staged.add(row.id);row.meta=meta;row.name=meta.name;row.size=meta.size;row.state='ready';row.file=null;
       if(!ids.includes(row.id))ids.push(row.id);drawRow(row);
-      if(row.asCover&&meta.image)setCover(row.id);emit();
+      if(row.asCover&&meta.image&&row.coverIntent===coverIntent)setCover(row.id,{user:false});emit();
     }catch(e){if(!closed&&rows.has(row.id)){row.state='failed';row.error=e.name==='AbortError'?'Загрузка отменена.':e.message;drawRow(row);}}
     finally{active--;requests.delete(request);row.controller=null;pump();}
   }
@@ -92,13 +102,15 @@ export function mountTaskFiles(root,{coverRoot,adapter,task,readOnly=false}){
   function add(files,asCover=false){
     if(!editable||closed||locked)return;error.hidden=true;
     if(files.length>50){report(Error('За один раз выберите не более 50 файлов.'));return;}
-    for(const file of Array.from(files).slice(0,asCover?1:50)){
-      const row={id:uid('file'),file,name:file.name,size:file.size,state:'queued',asCover};rows.set(row.id,row);drawRow(row);
+    const selected=Array.from(files).slice(0,asCover?1:50);if(!selected.length)return;
+    const intent=asCover?++coverIntent:null;
+    for(const file of selected){
+      const row={id:uid('file'),file,name:file.name,size:file.size,state:'queued',asCover,coverIntent:intent};rows.set(row.id,row);drawRow(row);
     }emit();pump();
   }
   function remove(id){
     const row=rows.get(id);if(!row)return;row.controller?.abort();rows.delete(id);rowFor(id)?.remove();ids=ids.filter(value=>value!==id);
-    if(staged.has(id)||row.file){discard(id);staged.delete(id);}if(coverId===id)setCover(null);
+    if(staged.has(id)||row.file){discard(id);staged.delete(id);}if(coverId===id)setCover(null);else if(row.asCover&&row.coverIntent===coverIntent)coverIntent++;
     root.querySelector('[data-files-empty]').hidden=rows.size>0;emit();
   }
   async function downloadFile(id){
@@ -142,7 +154,7 @@ export function mountTaskFiles(root,{coverRoot,adapter,task,readOnly=false}){
     assertReady(){requireValue(!active&&![...rows.values()].some(row=>row.file),'FILES_PENDING','Дождитесь загрузки файлов. Неудавшиеся загрузки можно повторить или убрать.');},
     accepted(saved){for(const id of saved.attachmentIds||[])staged.delete(id);},
     destroy(){
-      closed=true;coverGeneration++;events.abort();requests.forEach(request=>request.abort());
+      closed=true;coverGeneration++;coverIntent++;events.abort();requests.forEach(request=>request.abort());
       if(coverURL)URL.revokeObjectURL(coverURL);downloads.forEach(url=>URL.revokeObjectURL(url));
       for(const row of rows.values())if(staged.has(row.id)||row.file)discard(row.id);
       rows.clear();staged.clear();root.replaceChildren();coverRoot.replaceChildren();
