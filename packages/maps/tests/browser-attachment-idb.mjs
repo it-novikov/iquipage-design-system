@@ -41,7 +41,7 @@ try{
     return {version,legacyAfter,staged,repeat,before,saved,thumb:{type:thumb.type,size:thumb.size},originalSize:original.size,fileSize:file.size,crossProject,persisted,afterRestartSize:afterRestart.size,retained,deniedAfterRemoval,cancelled,removed,blobCount};
   });
   const mark=name=>{checks.push(name);console.log('PASS '+name);};
-  assert.equal(result.version,3);assert.equal(result.legacyAfter.description,'Сохранённый текст');assert.equal(result.legacyAfter.revision,2);mark('IndexedDB 2→3 preserves existing tasks and adds separate binary stores');
+  assert.equal(result.version,4);assert.equal(result.legacyAfter.description,'Сохранённый текст');assert.equal(result.legacyAfter.revision,2);mark('IndexedDB 2→4 preserves existing tasks and adds separate binary stores');
   assert.equal(result.before,null);assert.equal(result.repeat.id,result.staged.id);assert.equal(result.repeat.revision,1);mark('browser staging and identical retries create neither a task nor duplicate metadata');
   assert.equal(result.saved.coverAttachmentId,'file-idb');assert.equal(result.thumb.type,'image/webp');assert.ok(result.thumb.size>0);assert.equal(result.originalSize,result.fileSize);assert.equal(result.afterRestartSize,result.fileSize);assert.equal(result.persisted.coverAttachmentId,'file-idb');mark('browser attachment and cover commit survive database reopen with original bytes');
   assert.equal(result.retained.state,'attached');assert.equal(result.deniedAfterRemoval,true);assert.equal(result.crossProject,true);mark('cover removal preserves attachment; file removal and foreign project reads are denied');

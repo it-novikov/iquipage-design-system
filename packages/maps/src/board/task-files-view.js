@@ -42,7 +42,7 @@ export function mountTaskFiles(root,{coverRoot,adapter,task,readOnly=false}){
       adapter.blob({...target(row.id),variant:'thumb'},{signal:request.signal}).then(blob=>{
         if(closed||!rows.has(row.id)||!element.isConnected)return;
         requireValue(blob.type==='image/webp','FILE_PREVIEW','Миниатюра недоступна.');
-        const preview=document.createElement('iq-file-preview');preview.file=new File([blob],row.name+'.webp',{type:'image/webp'});
+        const preview=document.createElement('iq-file-preview');preview.file=new File([blob],row.name,{type:'image/webp'});
         element.querySelector('[data-file-preview]').replaceChildren(preview);
         element.querySelector('[data-file-preview]').className='task-file-preview';
       }).catch(()=>{}).finally(()=>requests.delete(request));}
@@ -90,13 +90,14 @@ export function mountTaskFiles(root,{coverRoot,adapter,task,readOnly=false}){
   function pump(){for(const row of rows.values()){if(active>=2||closed)break;if(row.state==='queued')void upload(row);}}
   function add(files,asCover=false){
     if(!editable||closed)return;error.hidden=true;
+    if(files.length>50){report(Error('За один раз выберите не более 50 файлов.'));return;}
     for(const file of Array.from(files).slice(0,asCover?1:50)){
       const row={id:uid('file'),file,name:file.name,size:file.size,state:'queued',asCover};rows.set(row.id,row);drawRow(row);
     }emit();pump();
   }
   function remove(id){
     const row=rows.get(id);if(!row)return;row.controller?.abort();rows.delete(id);rowFor(id)?.remove();ids=ids.filter(value=>value!==id);
-    if(staged.has(id)){discard(id);staged.delete(id);}if(coverId===id)setCover(null);
+    if(staged.has(id)||row.file){discard(id);staged.delete(id);}if(coverId===id)setCover(null);
     root.querySelector('[data-files-empty]').hidden=rows.size>0;emit();
   }
   async function downloadFile(id){

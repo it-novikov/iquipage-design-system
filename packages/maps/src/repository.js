@@ -1,3 +1,4 @@
+import {memoryThreadPage,browserThreadPage} from './board/thread-repository.js';
 import {commitTaskAttachments} from './board/attachment-model.js';
 import {writeScopes} from './board/workspace-model.js';
 import { clone, DomainError, COLLECTIONS, prepareWrite } from './model.js';
@@ -21,6 +22,7 @@ export class MemoryRepository {
     this.data[collection].set(value.id, clone(next));
     this.listeners.forEach(fn => fn({ collection, id: next.id, projectId: next.projectId, revision: next.revision })); return clone(next);
   }
+  pageThreads(projectId,taskId,options={}) { return memoryThreadPage(this,projectId,taskId,options); }
   subscribe(fn) { this.listeners.add(fn); return () => this.listeners.delete(fn); }
   close() { this.listeners.clear(); }
 }
@@ -31,14 +33,21 @@ export class BrowserRepository {
     this.channel = typeof BroadcastChannel === 'function' ? new BroadcastChannel(namespace) : null;
     this.channel?.addEventListener('message', e => this.listeners.forEach(fn => fn(e.data)));
     this.ready = new Promise((resolve, reject) => {
-      const request = indexedDB.open(namespace, 3);
-      request.onupgradeneeded = () => { for (const name of [...COLLECTIONS, '_attachmentBlobs']) if (!request.result.objectStoreNames.contains(name)) request.result.createObjectStore(name, { keyPath: 'id' }); };
+      const request = indexedDB.open(namespace, 4);
+      request.onupgradeneeded = () => {
+        for (const name of [...COLLECTIONS, '_attachmentBlobs']) {
+          if (!request.result.objectStoreNames.contains(name)) request.result.createObjectStore(name, { keyPath: 'id' });
+        }
+        const threads = request.transaction.objectStore('threads');
+        if (!threads.indexNames.contains('byTask')) threads.createIndex('byTask', ['projectId','taskId']);
+      };
       request.onsuccess = () => { request.result.onversionchange = () => request.result.close(); resolve(request.result); };
       request.onerror = () => reject(new DomainError('STORAGE_UNAVAILABLE', 'Хранилище браузера недоступно. Экспортируйте копию.'));
       request.onblocked = () => reject(new DomainError('STORAGE_BLOCKED', 'Закройте старые вкладки этого приложения.'));
     });
     this.capabilities = { storage: 'browser', collaboration: false, events: false, llm: false };
   }
+  pageThreads(projectId,taskId,options={}) { return browserThreadPage(this,projectId,taskId,options); }
   async list(collection, projectId) {
     const db = await this.ready;
     return new Promise((resolve, reject) => {
@@ -93,8 +102,12 @@ export class HttpRepository {
     const data = await response.json(); if (!response.ok) throw new DomainError(data.code || 'HTTP_ERROR', data.message || 'Не удалось выполнить запрос.', data.details); return data;
   }
   list(collection, projectId) { return this.request(`/records/${collection}?projectId=${encodeURIComponent(projectId)}`); }
-  read(collection, id, projectId) { return this.request(`/records/${collection}/${encodeURIComponent(id)}?projectId=${encodeURIComponent(projectId)}`); }
+  read(collection, id, projectId, options={}) { return this.request(`/records/${collection}/${encodeURIComponent(id)}?projectId=${encodeURIComponent(projectId)}`,options); }
   write(collection, record, baseRevision = 0, { signal } = {}) { return this.request(`/records/${collection}/${encodeURIComponent(record.id)}`, { method: 'PUT', body: { record, baseRevision }, signal }); }
+  pageThreads(projectId,taskId,{cursor,limit=20,signal}={}) {
+    const query=new URLSearchParams({projectId,limit:String(limit),...(cursor?{cursor}:{})});
+    return this.request(`/tasks/${encodeURIComponent(taskId)}/threads?${query}`,{signal});
+  }
   async refreshCapabilities() { this.capabilities = await this.request('/capabilities'); return this.capabilities; }
   subscribe() { return () => {}; }
   close() {}

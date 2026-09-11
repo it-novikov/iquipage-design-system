@@ -58,6 +58,12 @@ const server=http.createServer(async(req,res)=>{
       if(req.method==='OPTIONS')throw new DomainError('CSRF','Cross-origin запросы не поддерживаются.');
       if(parts[1]==='capabilities'&&req.method==='GET')return send(res,200,capabilities);
       if(await routeAttachments(req,res,url,parts,send))return;
+      if(parts[1]==='tasks'&&parts[3]==='threads'&&parts.length===4&&req.method==='GET'){
+        const projectId=url.searchParams.get('projectId'),taskId=parts[2];
+        requireValue(validId(projectId)&&validId(taskId),'THREAD_TASK','Не задана задача.');
+        const result=await repository.pageThreads(projectId,taskId,{cursor:url.searchParams.get('cursor'),limit:Number(url.searchParams.get('limit')||20)});
+        return send(res,200,result);
+      }
       if(parts[1]==='event-deliveries'&&req.method==='GET'){
         const projectId=url.searchParams.get('projectId');requireValue(validId(projectId),'INVALID_PROJECT','Не задан проект.');
         const mapId=url.searchParams.get('mapId');
@@ -118,7 +124,7 @@ const server=http.createServer(async(req,res)=>{
     requireValue(types[extension]&&(await stat(filename)).isFile(),'NOT_FOUND','Файл не найден.');
     res.writeHead(200,{'Content-Type':types[extension],'Cache-Control':'no-cache'});res.end(req.method==='HEAD'?undefined:await readFile(filename));
   }catch(error){
-    const status=['NOT_FOUND','ENOENT'].includes(error.code)?404:['CONFLICT','EVENT_CONFLICT','ARCHIVED'].includes(error.code)?409:['HOST','CSRF','PROJECT_MISMATCH','HOOK_SIGNATURE','HOOK_EXPIRED'].includes(error.code)?403:400;
+    const status=['NOT_FOUND','ENOENT'].includes(error.code)?404:['CONFLICT','EVENT_CONFLICT','ARCHIVED','FILE_CONFLICT'].includes(error.code)?409:['HOST','CSRF','PROJECT_MISMATCH','HOOK_SIGNATURE','HOOK_EXPIRED','FILE_ACCESS'].includes(error.code)?403:400;
     if(!res.headersSent)send(res,status,{code:error.code||'REQUEST_ERROR',message:error.message||'Не удалось обработать запрос.'});else res.end();
   }
 });
