@@ -1,4 +1,4 @@
-"""Package Board B2 only when current source and offline bytes match passing acceptance."""
+"""Package the verified board milestone without overwriting earlier deliveries."""
 from pathlib import Path
 import hashlib, json, subprocess, zipfile
 ROOT = Path(__file__).resolve().parents[1]
@@ -11,10 +11,15 @@ sha = lambda data: hashlib.sha256(data).hexdigest()
 ART = ROOT / 'artifacts/final'
 report = json.loads((ART / 'verification.json').read_text())
 assert report['status'] == 'PASS', 'Run npm run verify successfully first'
-assert report['release'] in {'Board-B2', 'Board-Attachment-Core-Review'}, 'Wrong acceptance scope'
+releases = {
+    'Board-B2': ('board-b2', 'Sprintique-Board-B2', 'docs/RELEASE-BOARD-B2.md'),
+    'Board-Attachment-Core-Review': ('board-review', 'Sprintique-Board-Review', 'docs/REVIEW-ATTACHMENT-CORE.md'),
+    'Board-B2.1': ('board-b2-1', 'Sprintique-Board-B2.1', 'docs/RELEASE-BOARD-B2-1.md'),
+}
+assert report['release'] in releases, 'Wrong acceptance scope'
+slug, label, readme = releases[report['release']]
 review = report['release'] == 'Board-Attachment-Core-Review'
-label = 'Sprintique-Board-Review' if review else 'Sprintique-Board-B2'
-OUT = REPO / ('deliveries/board-review' if review else 'deliveries/board-b2')
+OUT = REPO / 'deliveries' / slug
 PREFIX = label + '/'
 current = json.loads(subprocess.check_output(['node', '--input-type=module', '-e',
     "import {fingerprint} from './scripts/fingerprint.mjs'; console.log(JSON.stringify(await fingerprint()));"], cwd=ROOT, text=True))
@@ -36,7 +41,7 @@ for directory, target in [(REPO / 'design-system', 'design-system'), (ROOT, 'pac
         if target == 'packages/maps' and str(rel) == 'MANIFEST.sha256':
             continue
         files[target + '/' + rel.as_posix()] = p.read_bytes()
-files['README.md'] = (ROOT / ('docs/REVIEW-ATTACHMENT-CORE.md' if review else 'docs/RELEASE-BOARD-B2.md')).read_bytes()
+files['README.md'] = (ROOT / readme).read_bytes()
 files[(label + '.html')] = (ROOT / 'preview.html').read_bytes()
 reports = {'artifacts/final/verification.json': 'verification.json',
            'artifacts/final/fingerprint.json': 'fingerprint.json',
@@ -49,8 +54,15 @@ reports = {'artifacts/final/verification.json': 'verification.json',
            'artifacts/board-b1/motion.json': 'board-motion.json',
            'artifacts/board-b2/browser.json': 'board-b2-browser.json',
            'artifacts/board-b2/recovery.json': 'board-b2-recovery.json'}
-if review:
+if review or report['release'] == 'Board-B2.1':
     reports['artifacts/attachment-core/browser-idb.json'] = 'attachment-idb.json'
+if report['release'] == 'Board-B2.1':
+    reports.update({
+        'artifacts/board-covers/browser.json': 'covers.json',
+        'artifacts/thread-pages/browser.json': 'thread-pages.json',
+        'artifacts/editor-move/browser.json': 'editor-move.json',
+        'artifacts/map-task-link/browser.json': 'map-task-link.json',
+    })
 for source, dest in reports.items():
     data = (ROOT / source).read_bytes()
     parsed = json.loads(data)
@@ -69,6 +81,11 @@ for p in sorted((ROOT / 'artifacts/board-b2').glob('*.png')):
     if 'failure' in p.name:
         continue
     files['packages/maps/evidence/board-b2/screenshots/' + p.name] = p.read_bytes()
+if report['release'] == 'Board-B2.1':
+    for folder in ['board-covers', 'thread-pages']:
+        for p in sorted((ROOT / 'artifacts' / folder).glob('*.png')):
+            if 'failure' not in p.name:
+                files['packages/maps/evidence/board-b2-1/' + folder + '/' + p.name] = p.read_bytes()
 manifest = ''.join(sha(data) + '  ' + name + '\n' for name, data in sorted(files.items()))
 files['MANIFEST.sha256'] = manifest.encode()
 OUT.mkdir(parents=True, exist_ok=True)
