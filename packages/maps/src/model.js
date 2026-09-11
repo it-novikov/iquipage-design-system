@@ -1,3 +1,4 @@
+import {validateTaskAttachments} from './board/attachment-model.js';
 import {WORK_COLLECTIONS,prepareWorkspaceRecord} from './board/workspace-model.js';
 import {applyCreationTemplate} from './board/task-templates.js';
 import {validateTask,taskColumn} from './tasks.js';
@@ -7,7 +8,7 @@ import { blankDocument, validateDocument, remapDocument, extractSelection } from
 export * from './common.js';
 export * from './document.js';
 export const MAP_SCHEMA = 'iquipage.maps/1';
-export const COLLECTIONS = ['maps', 'templates', 'runs', 'tasks', 'rules', ...WORK_COLLECTIONS];
+export const COLLECTIONS = ['maps', 'templates', 'runs', 'tasks', 'rules', 'attachments', ...WORK_COLLECTIONS];
 export function createMap({ projectId, title = 'Новая карта', kind = 'permanent', document = blankDocument(title), flow = null, templateOrigin = null }) {
   requireValue(validId(projectId), 'INVALID_PROJECT', 'Не задан проект.');
   requireValue(['permanent', 'session'].includes(kind), 'INVALID_KIND', 'Выберите постоянную или сессионную карту.');
@@ -78,7 +79,8 @@ export function templateFromMap(map, { title, description = '', when = '', scope
     kind: map.kind, category: 'Мои шаблоны', createdAt: now(), document, flow: null, sourceMapId: map.id, sourceRevision: map.revision };
 }
 export function prepareWrite(collection, value, previous, baseRevision, taskRecords = [], snapshot = {}, actorId = 'local-user') {
-  requireValue(COLLECTIONS.includes(collection), 'INVALID_COLLECTION', 'Неизвестная коллекция.'); assertSafeJSON(value);
+  requireValue(COLLECTIONS.includes(collection), 'INVALID_COLLECTION', 'Неизвестная коллекция.');
+  requireValue(collection !== 'attachments', 'FILE_METHOD', 'Файлы записываются только через файловый адаптер.'); assertSafeJSON(value);
   requireValue(validId(value.id) && validId(value.projectId), 'INVALID_ID', 'Не заданы идентификаторы.');
   requireValue((previous?.revision ?? 0) === baseRevision, 'CONFLICT', 'Документ изменился в другой вкладке. Ваша копия сохранена.');
   requireValue(!previous || previous.projectId === value.projectId, 'PROJECT_MISMATCH', 'Проект записи нельзя менять через сохранение.');
@@ -92,7 +94,7 @@ export function prepareWrite(collection, value, previous, baseRevision, taskReco
   }
   if (collection === 'tasks' && !previous) value = applyCreationTemplate(value, (snapshot.taskSettings || []).find(item => item.projectId === value.projectId));
   if (collection === 'tasks' || WORK_COLLECTIONS.includes(collection)) value = prepareWorkspaceRecord(collection, value, previous, {...snapshot, tasks: taskRecords}, actorId);
-  if (collection === 'tasks') { validateTask(value); reparentTask(value, value.parentId ?? null, taskRecords); }
+  if (collection === 'tasks') { validateTaskAttachments(value, previous, snapshot.attachments || [], actorId); validateTask(value); reparentTask(value, value.parentId ?? null, taskRecords); }
   if (collection === 'templates') { validateDocument(value.document); requireValue(validText(value.title, 160) && value.title.trim(), 'INVALID_TITLE', 'Введите название шаблона.'); }
   const next = clone(value); next.revision = baseRevision + 1; next.updatedAt = now();
   if (collection === 'tasks') next.statusEnteredAt = previous && taskColumn(previous) === taskColumn(next) ? (previous.statusEnteredAt || previous.createdAt || next.updatedAt) : next.updatedAt;

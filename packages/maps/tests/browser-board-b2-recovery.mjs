@@ -58,7 +58,7 @@ try{
     await new Promise((resolve,reject)=>{const request=indexedDB.deleteDatabase(name);request.onsuccess=resolve;request.onerror=()=>reject(request.error);});
     return {version,preserved,savedTask,record,task};
   });
-  assert.equal(migration.version,2);assert.equal(migration.preserved.description,'Не потерять');assert.equal(migration.task.revision,2);
+  assert.equal(migration.version,3);assert.equal(migration.preserved.description,'Не потерять');assert.equal(migration.task.revision,2);
   assert.deepEqual(migration.task.tagIds,['migration-tag']);assert.equal(migration.record.messages[0].authorId,'migration-user');
   mark('IndexedDB v1 upgrade preserves existing task content and supports transactional catalogs and discussions');
   await page.getByRole('button',{name:task.title,exact:true}).click();

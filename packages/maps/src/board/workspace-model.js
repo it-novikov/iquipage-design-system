@@ -3,7 +3,7 @@ import {validateTaskSettings} from './task-templates.js';
 import {prepareThread} from './thread-model.js';
 export const WORK_COLLECTIONS=['releases','tags','taskSettings','threads','taskLinks'];
 export const TAG_TONES=Object.freeze({neutral:'Серый',blue:'Синий',purple:'Фиолетовый',green:'Зелёный',amber:'Янтарный',red:'Красный'});
-export const writeScopes=collection=>({tasks:['tasks','tags','releases','taskSettings'],threads:['threads','tasks'],taskLinks:['taskLinks','tasks']}[collection]||[collection]);
+export const writeScopes=collection=>({tasks:['tasks','tags','releases','taskSettings','attachments'],threads:['threads','tasks'],taskLinks:['taskLinks','tasks']}[collection]||[collection]);
 const key=text=>text.trim().normalize('NFC').toLocaleLowerCase('ru');
 const date=value=>typeof value==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(value)&&Number.isFinite(Date.parse(value))&&new Date(value).toISOString().slice(0,10)===value;
 export function prepareWorkspaceRecord(collection,record,previous,snapshot={},actorId='local-user') {

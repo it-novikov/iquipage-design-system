@@ -11,7 +11,11 @@ sha = lambda data: hashlib.sha256(data).hexdigest()
 ART = ROOT / 'artifacts/final'
 report = json.loads((ART / 'verification.json').read_text())
 assert report['status'] == 'PASS', 'Run npm run verify successfully first'
-assert report['release'] == 'Board-B2', 'Wrong acceptance scope'
+assert report['release'] in {'Board-B2', 'Board-Attachment-Core-Review'}, 'Wrong acceptance scope'
+review = report['release'] == 'Board-Attachment-Core-Review'
+label = 'Sprintique-Board-Review' if review else 'Sprintique-Board-B2'
+OUT = REPO / ('deliveries/board-review' if review else 'deliveries/board-b2')
+PREFIX = label + '/'
 current = json.loads(subprocess.check_output(['node', '--input-type=module', '-e',
     "import {fingerprint} from './scripts/fingerprint.mjs'; console.log(JSON.stringify(await fingerprint()));"], cwd=ROOT, text=True))
 assert current['sha256'] == report['sourceFingerprint'], 'Source changed after acceptance'
@@ -32,8 +36,8 @@ for directory, target in [(REPO / 'design-system', 'design-system'), (ROOT, 'pac
         if target == 'packages/maps' and str(rel) == 'MANIFEST.sha256':
             continue
         files[target + '/' + rel.as_posix()] = p.read_bytes()
-files['README.md'] = (ROOT / 'docs/RELEASE-BOARD-B2.md').read_bytes()
-files['Sprintique-Board-B2.html'] = (ROOT / 'preview.html').read_bytes()
+files['README.md'] = (ROOT / ('docs/REVIEW-ATTACHMENT-CORE.md' if review else 'docs/RELEASE-BOARD-B2.md')).read_bytes()
+files[(label + '.html')] = (ROOT / 'preview.html').read_bytes()
 reports = {'artifacts/final/verification.json': 'verification.json',
            'artifacts/final/fingerprint.json': 'fingerprint.json',
            'artifacts/r3/browser-report.json': 'browser-r3.json',
@@ -45,6 +49,8 @@ reports = {'artifacts/final/verification.json': 'verification.json',
            'artifacts/board-b1/motion.json': 'board-motion.json',
            'artifacts/board-b2/browser.json': 'board-b2-browser.json',
            'artifacts/board-b2/recovery.json': 'board-b2-recovery.json'}
+if review:
+    reports['artifacts/attachment-core/browser-idb.json'] = 'attachment-idb.json'
 for source, dest in reports.items():
     data = (ROOT / source).read_bytes()
     parsed = json.loads(data)
@@ -66,7 +72,7 @@ for p in sorted((ROOT / 'artifacts/board-b2').glob('*.png')):
 manifest = ''.join(sha(data) + '  ' + name + '\n' for name, data in sorted(files.items()))
 files['MANIFEST.sha256'] = manifest.encode()
 OUT.mkdir(parents=True, exist_ok=True)
-archive = OUT / 'Sprintique-Board-B2.zip'
+archive = OUT / (label + '.zip')
 with zipfile.ZipFile(archive, 'w', zipfile.ZIP_DEFLATED, compresslevel=9) as z:
     for name, data in sorted(files.items()):
         entry = zipfile.ZipInfo(PREFIX + name, (2026, 9, 10, 0, 0, 0))
@@ -77,8 +83,8 @@ with zipfile.ZipFile(archive) as z:
     assert z.testzip() is None
     for name, data in files.items():
         assert sha(z.read(PREFIX + name)) == sha(data), name
-(OUT / 'Sprintique-Board-B2.html').write_bytes(files['Sprintique-Board-B2.html'])
-(OUT / 'Sprintique-Board-B2-Verification.json').write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n')
+(OUT / (label + '.html')).write_bytes(files[(label + '.html')])
+(OUT / (label + '-Verification.json')).write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n')
 (OUT / 'SHA256SUMS').write_text(''.join(sha(p.read_bytes()) + '  ' + p.name + '\n' for p in sorted(OUT.iterdir()) if p.is_file() and p.name != 'SHA256SUMS'))
 print(json.dumps({'archive': str(archive), 'files': len(files), 'bytes': archive.stat().st_size,
                   'sha256': sha(archive.read_bytes()), 'nodeTests': report['nodeTests'],

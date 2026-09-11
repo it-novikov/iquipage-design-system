@@ -1,3 +1,4 @@
+import {commitTaskAttachments} from '../src/board/attachment-model.js';
 import {mkdir,readFile,writeFile,rename,open,unlink} from 'node:fs/promises';
 import path from 'node:path';
 import {MemoryRepository} from '../src/repository.js';
@@ -42,10 +43,12 @@ export class FileRepository extends MemoryRepository {
       const previous=this.data[collection]?.get(value.id),next=prepareWrite(collection,value,previous,baseRevision,[...this.data.tasks.values()],this.snapshot(),this.context.actorId);
       const payload=this.snapshot();
       payload[collection]=payload[collection].filter(x=>x.id!==next.id);payload[collection].push(next);
+      if(collection==='tasks')payload.attachments=commitTaskAttachments(next,previous,payload.attachments);
       payload._events.push(...writeEvents(collection,previous,next,[...this.data.rules.values()],this.data.maps));
       requireValue(payload._events.length<=10000,'OUTBOX_FULL','Очередь событий заполнена. Изменение не сохранено; восстановите обработчик событий.');
       await this.persist(payload,signal);
       this.data[collection].set(next.id,clone(next));this.outbox=payload._events;
+      if(collection==='tasks')this.data.attachments=new Map(payload.attachments.map(asset=>[asset.id,clone(asset)]));
       for(const fn of this.listeners){try{fn({collection,id:next.id,projectId:next.projectId,revision:next.revision});}catch{console.warn('Repository listener failed after commit');}}
       return clone(next);
     });
