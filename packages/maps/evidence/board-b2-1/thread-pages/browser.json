@@ -1,0 +1,51 @@
+{
+  "status": "PASS",
+  "checks": [
+    {
+      "name": "server: the initial list loads twenty summaries without all project messages or reply editors",
+      "status": "PASS"
+    },
+    {
+      "name": "server: opening a discussion fetches its actual messages on demand",
+      "status": "PASS"
+    },
+    {
+      "name": "server: a changed page snapshot refreshes explicitly while preserving an off-page reply draft",
+      "status": "PASS"
+    },
+    {
+      "name": "server: continued paging reaches every discussion exactly once",
+      "status": "PASS"
+    },
+    {
+      "name": "server: a reply persists independently of the task document after pagination",
+      "status": "PASS"
+    },
+    {
+      "name": "browser: the initial list loads twenty summaries without all project messages or reply editors",
+      "status": "PASS"
+    },
+    {
+      "name": "browser: opening a discussion fetches its actual messages on demand",
+      "status": "PASS"
+    },
+    {
+      "name": "browser: a changed page snapshot refreshes explicitly while preserving an off-page reply draft",
+      "status": "PASS"
+    },
+    {
+      "name": "browser: continued paging reaches every discussion exactly once",
+      "status": "PASS"
+    },
+    {
+      "name": "browser: a reply persists independently of the task document after pagination",
+      "status": "PASS"
+    },
+    {
+      "name": "no JavaScript errors in paginated discussion workflows",
+      "status": "PASS"
+    }
+  ],
+  "errors": [],
+  "browser": "153.0.8010.12"
+}

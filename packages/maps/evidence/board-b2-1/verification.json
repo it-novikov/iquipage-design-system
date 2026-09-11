@@ -1,0 +1,60 @@
+{
+  "release": "Board-B2.1",
+  "status": "PASS",
+  "startedAt": "2026-09-11T01:39:43.978Z",
+  "finishedAt": "2026-09-11T01:40:31.323Z",
+  "sourceCommit": "bc28b4bbba42c250dbe947c5a07032b53dab2ad1",
+  "sourceFingerprint": "080db7d6181ef382f042c2b44df8901bf101b7b6c4bc8e9a7d0100b9623c5433",
+  "node": "v26.0.0",
+  "nodeTests": 167,
+  "browserScenarios": 113,
+  "checks": [
+    {
+      "name": "build",
+      "exitCode": 0
+    },
+    {
+      "name": "preview",
+      "exitCode": 0
+    },
+    {
+      "name": "node",
+      "exitCode": 0
+    },
+    {
+      "name": "browser",
+      "exitCode": 0
+    },
+    {
+      "name": "offline",
+      "exitCode": 0
+    }
+  ],
+  "scope": "reusable-module-and-local-reference",
+  "attachmentCoreValidated": true,
+  "coverUiReady": true,
+  "httpAttachmentRoutesEnabled": true,
+  "threadPaginationValidated": true,
+  "productionReady": false,
+  "limitations": [
+    "No production Sprintique API/auth deployment",
+    "No live LLM credentials or provider calls",
+    "No multi-user collaboration",
+    "Real touch devices, screen readers and Safari not accepted",
+    "Uploads use a local reference store; production AV/CDR and host authorization require integration",
+    "Virtualization, provider integrations and production host delivery remain pending",
+    "Thread list is paginated; one opened discussion loads its complete message history, and reference queries are in-memory",
+    "Headless motion sample is not a real-device FPS acceptance"
+  ],
+  "previewSha256": "d662afb6cb50ffedb4155ccbdce1dffb000cfeef01c9bd10f78b7b7fbd0f0998",
+  "dsCandidate": {
+    "version": "0.6.0-board.2",
+    "baseVersion": "0.5.7",
+    "baseManifest": "f252a499e00d7bab6088640126a406075a86bf109e673a257a002d8e90e9195c",
+    "cssSha256": "a458401a68872b6360410dbaefdd6c0cf1df90bd9acb178e818d628025c99da3",
+    "extensionSha256": "528da6998e3de2fca84dfc29f4eb9ab822e946562a3104d58a1a3300fa877159",
+    "boardExtensionSha256": "4e1adf9a22c7d8d10272d798a67353dd7e5a4df6ee2d4cd9bef116557510e326",
+    "editorExtensionSha256": "da605aa618a569574fe954f9e2c719ae6cb9c112729c043099097cf8b66bec58",
+    "note": "Explicit DS source candidate; no production acceptance implied"
+  }
+}
