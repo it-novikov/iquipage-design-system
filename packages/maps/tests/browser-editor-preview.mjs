@@ -1,0 +1,90 @@
+import assert from 'node:assert/strict';
+import {mkdir,writeFile} from 'node:fs/promises';
+import {chromium} from 'playwright';
+import {referenceServer} from './server-fixture.mjs';
+const cleanup=[],checks=[],errors=[],api=await referenceServer({after:fn=>cleanup.push(fn)}),out='output/playwright/editor-preview';
+await mkdir(out,{recursive:true});
+const browser=await chromium.launch({headless:true}),page=await browser.newPage({viewport:{width:1100,height:900}});
+page.on('pageerror',error=>errors.push(error.message));
+const mark=message=>{checks.push(message);console.log('PASS',message);};
+const source='## Результат\r\n\r\nСделать ежедневную работу понятнее.\r\n\r\n- [ ] Проверить клавиатуру\r\n- [x] Сохранить контекст\r\n\r\n```md\r\n- [ ] Не задача\r\n```\r\n\r\n[Документ](#document)';
+const editor=page.locator('#description'),pane=editor.locator('.md-preview'),input=editor.getByRole('textbox'),outside=page.getByRole('button',{name:'За пределами редактора',exact:true});
+const settled=()=>page.waitForFunction(()=>document.getAnimations().every(a=>a.playState!=='running'));
+let failure;
+try{
+  await page.route('**/__editor-preview',route=>route.fulfill({contentType:'text/html',body:'<!doctype html><html lang="ru"><meta charset="utf-8"><link rel="stylesheet" href="/dist/vendor/iquipage.css"><style>main{max-width:680px;margin:24px auto;padding:16px}iq-markdown-editor{margin-block:16px}</style><main><button type="button" class="iq-btn" id="outside">За пределами редактора</button><iq-markdown-editor id="description" label="Описание" variant="compact" preview-on-blur></iq-markdown-editor><button type="button" class="iq-btn" id="next">Следующее поле</button><iq-markdown-editor id="ordinary" label="Обычный редактор" variant="minimal"></iq-markdown-editor></main></html>'}));
+  await page.goto(api.base+'/__editor-preview');
+  await page.evaluate(async source=>{
+    (await import('/dist/vendor/core.js')).registerCore();
+    const el=document.querySelector('#description');el.value=source;el.interactiveTasks=true;el.previewMode=true;
+    window.originalInput=el.querySelector('textarea');window.modeEvents=[];
+    el.addEventListener('iq-preview-change',e=>window.modeEvents.push(e.detail.preview));
+    document.querySelector('#outside').onclick=()=>{window.modeDuringAction=el.previewMode;};
+  },source);
+  assert.equal(await editor.locator('textarea').count(),1);assert.equal(await editor.locator('iq-markdown-viewer').count(),0);
+  await pane.getByText('Сделать ежедневную работу понятнее.',{exact:true}).click();
+  assert.equal(await editor.evaluate(el=>el.previewMode),false);assert.ok(await input.evaluate(el=>document.activeElement===el));
+  await input.fill(source+'\r\n\r\nЧерновик');const draft=await input.inputValue();
+  await outside.click();assert.equal(await page.evaluate(()=>window.modeDuringAction),false);assert.equal(await editor.evaluate(el=>el.previewMode),true);assert.equal(await editor.evaluate(el=>el.value),draft);
+  await pane.getByText('Черновик',{exact:true}).click();await editor.getByRole('button',{name:'Полужирный',exact:true}).click();assert.equal(await editor.evaluate(el=>el.previewMode),false);
+  await editor.getByRole('button',{name:'Отменить',exact:true}).click();assert.equal(await editor.evaluate(el=>el.value),draft);
+  await outside.click();await pane.getByRole('link',{name:'Документ',exact:true}).click();assert.equal(await editor.evaluate(el=>el.previewMode),true);
+  assert.ok(await editor.evaluate(el=>el.querySelector('textarea')===window.originalInput));
+  mark('One native editor; preview click and outside click preserve draft, node identity, toolbar and undo; links stay links');
+  await editor.evaluate((el,source)=>{el.value=source;el.previewMode=false;},source);
+  await settled();const inputBox=await input.boundingBox(),editorBox=await editor.boundingBox();
+  await page.mouse.move(inputBox.x+80,inputBox.y+20);await page.mouse.down();
+  await page.mouse.move(editorBox.x-20,inputBox.y+inputBox.height+12,{steps:12});
+  assert.equal(await editor.evaluate(el=>el.previewMode),false);
+  await page.mouse.up();await settled();
+  assert.equal(await editor.evaluate(el=>el.previewMode),false);
+  const selection=await input.evaluate(el=>({start:el.selectionStart,end:el.selectionEnd,value:el.value}));assert.ok(selection.end-selection.start>10);
+  await page.mouse.move(editorBox.x-40,inputBox.y+20);assert.equal(await editor.evaluate(el=>el.previewMode),false);assert.deepEqual(await input.evaluate(el=>({start:el.selectionStart,end:el.selectionEnd,value:el.value})),selection);
+  await outside.click();assert.equal(await editor.evaluate(el=>el.previewMode),true);assert.equal(await editor.evaluate(el=>el.value),selection.value);
+  mark('Real pointer selection can cross editor bounds and release outside without losing mode, selection or draft; a separate outside click still previews');
+  await editor.evaluate(el=>el.previewMode=false);await settled();
+  await input.dispatchEvent('pointerdown',{pointerId:42,clientX:100,clientY:100});await input.dispatchEvent('pointercancel',{pointerId:42});
+  assert.equal(await editor.evaluate(el=>el.previewMode),false);await outside.click();assert.equal(await editor.evaluate(el=>el.previewMode),true);
+  await editor.evaluate(el=>el.previewMode=false);await settled();await page.mouse.wheel(0,180);assert.equal(await editor.evaluate(el=>el.previewMode),false);
+  await page.evaluate(()=>window.scrollTo(0,0));await outside.click();assert.equal(await editor.evaluate(el=>el.previewMode),true);
+  mark('Pointer cancellation and scrolling do not switch modes; the next independent outside click remains available');
+  await editor.evaluate((el,source)=>el.value=source,source);
+  assert.equal(await pane.getByRole('checkbox').count(),2);
+  await pane.getByRole('checkbox',{name:'Проверить клавиатуру',exact:true}).click();
+  assert.equal(await editor.evaluate(el=>el.previewMode),true);assert.equal(await editor.evaluate(el=>el.value),source.replace('- [ ] Проверить','- [x] Проверить').replaceAll('\r\n','\n'));
+  assert.equal(await page.evaluate(()=>document.activeElement?.getAttribute('aria-checked')),'true');
+  await pane.getByText('Сделать ежедневную работу понятнее.',{exact:true}).click();await editor.getByRole('button',{name:'Отменить',exact:true}).click();assert.equal(await editor.evaluate(el=>el.value),source.replaceAll('\r\n','\n'));
+  mark('Interactive Markdown tasks preserve position, focus and undo; fenced code remains passive');
+  await input.dispatchEvent('compositionstart');await outside.click();assert.equal(await editor.evaluate(el=>el.previewMode),false);
+  await input.dispatchEvent('compositionend');await page.waitForFunction(()=>document.querySelector('#description').previewMode);
+  await pane.focus();await page.keyboard.press('Enter');assert.equal(await editor.evaluate(el=>el.previewMode),false);
+  await input.focus();await page.keyboard.press('Tab');await page.waitForFunction(()=>document.querySelector('#description').previewMode);
+  await editor.evaluate(el=>el.readOnly=true);await pane.click();assert.equal(await editor.evaluate(el=>el.previewMode),true);assert.equal(await pane.getByRole('checkbox').count(),0);
+  await editor.evaluate(el=>{el.readOnly=false;el.disabled=true;});await pane.click();assert.equal(await editor.evaluate(el=>el.previewMode),true);await editor.evaluate(el=>el.disabled=false);
+  mark('IME composition completes before preview; keyboard entry/exit works; read-only and disabled cannot edit');
+  const ordinary=page.locator('#ordinary');await ordinary.getByRole('textbox').fill('Обычный режим');await outside.click();assert.equal(await ordinary.evaluate(el=>el.previewMode),false);
+  await ordinary.locator('[data-md-preview]').click();assert.equal(await ordinary.evaluate(el=>el.previewMode),true);await ordinary.locator('.md-preview').click();assert.equal(await ordinary.evaluate(el=>el.previewMode),true);
+  await ordinary.locator('[data-md-preview]').click();assert.equal(await ordinary.evaluate(el=>el.previewMode),false);
+  mark('Editors without opt-in retain manual DS preview behavior');
+  await editor.evaluate(el=>{el.value='';el.previewMode=true;});await pane.getByText('Пока нет содержимого.',{exact:true}).click();assert.equal(await editor.evaluate(el=>el.previewMode),false);
+  await page.evaluate(()=>{const d=document.createElement('dialog');d.id='nested';d.innerHTML='<button type="button">Вложенное окно</button>';document.body.append(d);d.showModal();});
+  await page.getByRole('button',{name:'Вложенное окно',exact:true}).click();assert.equal(await editor.evaluate(el=>el.previewMode),false);
+  await page.evaluate(()=>document.querySelector('#nested').remove());await outside.click();assert.equal(await editor.evaluate(el=>el.previewMode),true);
+  const motion=await editor.evaluate((el,source)=>{el.value=source;el.previewMode=false;el.previewMode=true;return el.getAnimations({subtree:true}).map(a=>({state:a.playState,duration:a.effect.getTiming().duration}));},source);
+  assert.ok(motion.some(a=>a.state==='running'&&a.duration===220));
+  mark('Empty content activates the same editor; nested dialogs preserve edit mode; mode height transition is animated');
+  for(const width of [1100,390])for(const theme of ['light','dark']){
+    await page.setViewportSize({width,height:900});await page.evaluate(t=>document.documentElement.dataset.theme=t,theme);
+    for(const preview of [true,false]){
+      await editor.evaluate((el,v)=>el.previewMode=v,preview);await settled();
+      assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+      await editor.screenshot({path:out+'/'+width+'-'+theme+'-'+(preview?'preview':'edit')+'.png'});
+    }
+  }
+  await page.emulateMedia({reducedMotion:'reduce'});await editor.evaluate(el=>{el.previewMode=true;el.previewMode=false;el.previewMode=true;});
+  assert.equal(await editor.evaluate(el=>el.getAnimations({subtree:true}).filter(a=>a.playState==='running').length),0);
+  await editor.evaluate(el=>el.remove());await outside.click();assert.deepEqual(errors,[]);
+  mark('1100/390 light/dark views, reduced motion, rapid switches and disconnected cleanup');
+}catch(error){failure=error;console.error(error);await page.screenshot({path:out+'/failure.png'});}
+finally{await writeFile(out+'/report.json',JSON.stringify({status:failure?'FAIL':'PASS',checks,errors,error:failure?.stack},null,2));await browser.close();for(const fn of cleanup.reverse())await fn();}
+if(failure)process.exitCode=1;

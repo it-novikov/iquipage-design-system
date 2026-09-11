@@ -4,21 +4,27 @@ import {uid} from '../common.js';
 import {postMessage,resolveThread,threadOrder} from './thread-model.js';
 
 export function mountThreads(root,{repository,task,readOnly=false}){
-  let items=[],closed=false,limit=Infinity,sequence=0,pendingNew=null;
+  let items=[],closed=false,limit=Infinity,sequence=0,pendingNew=null,requiresResolution=false;
   let pager,unresolvedCount=0,pageLoading=false,canLoadMore=false;
   const fullThreads=new Map(),detailRequests=new Map();
   const drafts=new Map(),replyIds=new Map(),expanded=new Set(),busy=new Set(),abort=new AbortController();
   root.innerHTML=`<div class="row between"><h3>Обсуждения</h3><span class="iq-helper" data-thread-count></span></div>
     <p role="alert" class="map-form-error" data-thread-error hidden></p>
-    <button type="button" class="iq-btn ghost sm" data-reload-threads>Обновить обсуждения</button><span class="iq-helper" role="status" data-thread-page-state></span><div data-thread-list></div>
+    <span class="iq-helper" role="status" data-thread-page-state></span><div data-thread-list></div>
     <button type="button" class="iq-btn ghost sm" data-more-threads hidden>Показать ещё</button>`;
   if(!readOnly)root.insertAdjacentHTML('beforeend',`<section class="thread-compose">
-    <iq-markdown-editor label="Новое обсуждение" variant="minimal" name="new-discussion" placeholder="Напишите сообщение или вопрос" maxlength="20000" submit-label="Опубликовать"></iq-markdown-editor>
-    <label class="iq-check"><input type="checkbox" data-requires-resolution><span class="iq-check-box">${icon('check',14)}</span><span>Требует решения</span></label>
-    <p class="iq-helper">Сообщения публикуются отдельно от изменений задачи.</p></section>`);
+    <iq-markdown-editor label="Новое обсуждение" variant="minimal" density="compact" name="new-discussion" placeholder="Напишите сообщение или вопрос" maxlength="20000" submit-label="Опубликовать"></iq-markdown-editor>
+    </section>`);
   const list=root.querySelector('[data-thread-list]'),error=root.querySelector('[data-thread-error]'),composer=root.querySelector('.thread-compose iq-markdown-editor');
-  const fail=cause=>{if(closed)return;error.hidden=false;error.textContent=cause.message||'Сообщение не сохранено. Текст остаётся у вас.';};
+  const syncComposer=()=>{if(composer)composer.footerActions=[{id:'requires-resolution',label:'Требует решения',pressed:requiresResolution,tone:'warning'}];};
+  syncComposer();
+  composer?.addEventListener('iq-editor-action',event=>{
+    if(event.target!==composer||event.detail.id!=='requires-resolution'||readOnly||busy.has('new'))return;
+    event.stopPropagation();requiresResolution=event.detail.pressed;syncComposer();
+  },{signal:abort.signal});
+  const fail=cause=>{if(closed)return;error.hidden=false;error.textContent=cause.message||'Не удалось загрузить обсуждения.';const retry=document.createElement('button');retry.type='button';retry.className='iq-btn ghost sm';retry.dataset.retryThreads='';retry.textContent='Повторить';error.append(retry);};
   const label=thread=>thread.requiresResolution?(thread.resolved?'Решён':'Требует решения'):'Комментарий';
+  const stateClass=thread=>'iq-badge thread-state'+(thread.requiresResolution?(thread.resolved?' success':' warning unresolved'):'');
   const author=id=>id===(repository.context?.actorId||'local-user')?'Вы':id;
   const time=value=>new Intl.DateTimeFormat('ru',{dateStyle:'medium',timeStyle:'short'}).format(new Date(value));
   function capture(){
@@ -29,7 +35,7 @@ export function mountThreads(root,{repository,task,readOnly=false}){
     const id=esc(thread.id),resolution=thread.requiresResolution&&!readOnly?`<button type="button" class="iq-btn ghost sm" data-resolve="${id}">${thread.resolved?'Открыть снова':'Отметить решённым'}</button>`:'';
     const reply=readOnly?'':`<div data-reply-mount="${id}"></div>`;
     return `<details class="iq-accordion task-thread" data-thread="${id}" ${expanded.has(thread.id)?'open':''}>
-      <summary><span class="grow"><span class="thread-state ${thread.requiresResolution&&!thread.resolved?'unresolved':''}">${label(thread)}</span>
+      <summary><span class="grow"><span class="${stateClass(thread)}">${label(thread)}</span>
       <span class="thread-excerpt">${esc(thread.messages[0].body.slice(0,160))}</span>
       <small>${thread.messageCount??thread.messages.length} сообщ. · ${esc(time(thread.lastActivityAt))}</small></span>${icon('plus',16)}</summary>
       <div class="thread-body"><p class="iq-helper" role="status" data-thread-load-state></p><div data-thread-messages="${id}"></div>${resolution}${reply}</div></details>`;
@@ -62,7 +68,7 @@ export function mountThreads(root,{repository,task,readOnly=false}){
     const replyMount=element.querySelector('[data-reply-mount]');
     if(replyMount&&!replyMount.firstElementChild){
       const editor=document.createElement('iq-markdown-editor');
-      editor.dataset.replyEditor=thread.id;editor.setAttribute('label','Ответ');editor.setAttribute('variant','minimal');
+      editor.dataset.replyEditor=thread.id;editor.setAttribute('label','Ответ');editor.setAttribute('variant','minimal');editor.density='compact';
       editor.setAttribute('name','reply-'+thread.id);editor.setAttribute('placeholder','Напишите ответ в обсуждении');editor.setAttribute('maxlength','20000');editor.setAttribute('submit-label','Ответить');
       replyMount.append(editor);
     }
@@ -82,12 +88,12 @@ export function mountThreads(root,{repository,task,readOnly=false}){
       if(!node){const template=document.createElement('template');template.innerHTML=markup(thread);node=template.content.firstElementChild;}
       if(node!==cursor){if(node.isConnected&&typeof list.moveBefore==='function')list.moveBefore(node,cursor);else list.insertBefore(node,cursor);}
       cursor=node.nextElementSibling;
-      const state=node.querySelector('.thread-state');state.textContent=label(thread);state.classList.toggle('unresolved',thread.requiresResolution&&!thread.resolved);
+      const state=node.querySelector('.thread-state');state.textContent=label(thread);state.className=stateClass(thread);
       node.querySelector('summary small').textContent=`${thread.messageCount??thread.messages.length} сообщ. · ${time(thread.lastActivityAt)}`;
       const resolve=node.querySelector('[data-resolve]');if(resolve)resolve.textContent=thread.resolved?'Открыть снова':'Отметить решённым';
       if(expanded.has(thread.id))node.open=true;
     }
-    if(!visible.length)list.innerHTML='<p class="iq-helper">Обсуждений пока нет.</p>';
+    if(!visible.length)list.innerHTML=`<div class="thread-empty"><b>Начните обсуждение</b><p>${readOnly?'Здесь появятся вопросы, решения и комментарии команды.':'Задайте вопрос или поделитесь деталями задачи в сообщении ниже.'}</p></div>`;
     if(active?.isConnected&&document.activeElement!==active){active.focus({preventScroll:true});if(selection)active.setSelectionRange(selection.start,selection.end);}
     for(const thread of items.slice(0,limit))fill(thread);
     root.querySelector('[data-more-threads]').hidden=!canLoadMore;
@@ -113,8 +119,8 @@ export function mountThreads(root,{repository,task,readOnly=false}){
       const body=editor.value;
       if(id==='new'){
         pendingNew ||= {threadId:uid('thread'),messageId:uid('message')};
-        const saved=await postMessage(repository,task,{...pendingNew,body,requiresResolution:root.querySelector('[data-requires-resolution]').checked});
-        pendingNew=null;expanded.add(saved.id);fullThreads.set(saved.id,saved);pager.remember(saved);
+        const saved=await postMessage(repository,task,{...pendingNew,body,requiresResolution});
+        pendingNew=null;requiresResolution=false;syncComposer();expanded.add(saved.id);fullThreads.set(saved.id,saved);pager.remember(saved);
       }else{
         if(!replyIds.has(id))replyIds.set(id,uid('message'));
         const saved=await postMessage(repository,task,{threadId:id,messageId:replyIds.get(id),body});fullThreads.set(saved.id,saved);pager.remember(saved);replyIds.delete(id);drafts.delete(id);
@@ -124,7 +130,7 @@ export function mountThreads(root,{repository,task,readOnly=false}){
   },{signal:abort.signal});
   root.addEventListener('click',async event=>{
     if(event.target.closest('[data-more-threads]')){error.hidden=true;await pager.more();}
-    if(event.target.closest('[data-reload-threads]'))await reload();
+    if(event.target.closest('[data-retry-threads]'))await reload();
     const retry=event.target.closest('[data-retry-thread]');if(retry){const item=items.find(item=>item.id===retry.dataset.retryThread);if(item)fill(item);}
     const button=event.target.closest('[data-resolve]');if(!button||readOnly)return;
     const id=button.dataset.resolve,thread=items.find(thread=>thread.id===id);if(!thread||busy.has(id))return;
@@ -133,5 +139,5 @@ export function mountThreads(root,{repository,task,readOnly=false}){
     catch(cause){fail(cause);}finally{busy.delete(id);if(button.isConnected)button.disabled=false;}
   },{signal:abort.signal});
   reload();
-  return {reload,dirty(){capture();return !!composer?.value.trim()||[...drafts.values()].some(value=>value.trim());},isBusy:()=>busy.size>0,destroy(){closed=true;sequence++;abort.abort();pager.destroy();for(const value of detailRequests.values())value.controller.abort();detailRequests.clear();fullThreads.clear();}};
+  return {reload,dirty(){capture();return requiresResolution||!!composer?.value.trim()||[...drafts.values()].some(value=>value.trim());},isBusy:()=>busy.size>0,destroy(){closed=true;sequence++;abort.abort();pager.destroy();for(const value of detailRequests.values())value.controller.abort();detailRequests.clear();fullThreads.clear();}};
 }

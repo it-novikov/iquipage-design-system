@@ -26,7 +26,7 @@ export async function checkCoverRecovery({page,context,api,task,png,mark}){
     }else await route.fallback();
   };
   await context.route('**/api/files/**',handler);
-  await page.getByRole('button',{name:'Обновить задачи',exact:true}).click();
+  await page.reload();
   await page.getByRole('button',{name:task.title,exact:true}).click();
   await panel().locator('[data-file-input]').setInputFiles({name:'cancelled.md',mimeType:'text/plain',buffer:Buffer.from('Отмена загрузки')});
   for(let i=0;i<100&&!held;i++)await new Promise(resolve=>setTimeout(resolve,10));

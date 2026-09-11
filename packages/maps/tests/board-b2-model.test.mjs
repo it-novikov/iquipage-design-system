@@ -48,6 +48,8 @@ test('B2 duplicate message retry after response loss is idempotent',async()=>{
   await postMessage(repo,task,command);await postMessage(repo,task,command);
   assert.equal(repo.values.get('thread-one').messages.length,1);assert.equal(repo.values.get('thread-one').revision,1);
   await assert.rejects(postMessage(repo,task,{...command,body:'Другой текст'}),{code:'THREAD_MESSAGE_CONFLICT'});
+  await assert.rejects(postMessage(repo,task,{...command,requiresResolution:false}),{code:'THREAD_KIND_CONFLICT'});
+  assert.equal(repo.values.get('thread-one').requiresResolution,true);
 });
 test('B2 concurrent replies preserve every message',async()=>{
   const repo=threadRepository();await postMessage(repo,task,{threadId:'thread-one',messageId:'start',body:'Начало'});

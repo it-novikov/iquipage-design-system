@@ -1,5 +1,18 @@
 import {clone,uid,validId,validText,requireValue} from '../common.js';
 
+/** Compatibility projection. Old structured lists remain untouched until explicit save. */
+export function taskMarkdown(task={}) {
+  if(task.contentVersion===2)return task.description||'';
+  const literal=text=>String(text).replace(/[\\`*_{}\[\]<>#]/g,'\\$&').replace(/\r?\n/g,' ');
+  const lists=(task.checklists||[]).map(list=>`### ${literal(list.title)}\n\n${list.items.map(item=>`- [${item.done?'x':' '}] ${literal(item.text)}`).join('\n')}`);
+  return [task.description||'',...lists].filter(Boolean).join('\n\n');
+}
+
+export function markdownTaskChanges(task,description){
+  // An audit copy supports recovery; only description is canonical from v2 onward.
+  return {description,contentVersion:2,checklists:[],...(!task?.contentVersion&&task?.checklists?.length?{legacyChecklists:clone(task.checklists)}:{})};
+}
+
 export function validateChecklists(lists = []) {
   requireValue(Array.isArray(lists) && lists.length <= 100,'CHECKLIST_DATA','Некорректные чек-листы.');
   const ids = new Set();

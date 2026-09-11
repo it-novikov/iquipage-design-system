@@ -13,7 +13,9 @@ export interface BoardConfig {
 }
 export interface BoardHandle {
   reload():Promise<void>;
-  openTask(id:string):Promise<boolean>;
+  openTask(id:string,options?:{fromRoute?:boolean;fullscreen?:boolean}):Promise<boolean>;
+  closeTask():Promise<boolean>;
+  currentTask():string|null;
   readyToLeave():Promise<boolean>;
   destroy():void;
 }
@@ -33,10 +35,12 @@ export interface TaskThread {
 }
 export interface TaskLink {id:string;projectId:string;revision:number;kind:'depends'|'related';fromId:string;toId:string;archivedAt?:string|null}
 export type TemplateMode='inherit'|'append'|'replace'|'exclude';
-export interface TaskTemplateSpec {description?:string;checklists?:TaskChecklist[];priority?:'low'|'normal'|'high'|'critical'|null;descriptionMode?:TemplateMode;checklistsMode?:TemplateMode}
+export interface TaskTemplateSpec {description?:string;checklists?:TaskChecklist[];contentVersion?:2;legacyChecklists?:TaskChecklist[];priority?:'low'|'normal'|'high'|'critical'|null;descriptionMode?:TemplateMode;checklistsMode?:TemplateMode}
 export interface ProjectTaskSettings {id:string;projectId:string;revision:number;base:TaskTemplateSpec;types:Partial<Record<'task'|'bug'|'epic',TaskTemplateSpec>>}
 export interface TaskContentFields {
   attachmentIds?:string[];coverAttachmentId?:string|null;
+  displayId?:string;contentVersion?:2;legacyChecklists?:TaskChecklist[];
+  coverCrop?:{attachmentId:string;x:number;y:number;width:number;height:number}|null;
   checklists?:TaskChecklist[];tagIds?:string[];releaseId?:string|null;
   templateVersion?:{settingsId:string;revision:number;type:'task'|'bug'|'epic'};
 }

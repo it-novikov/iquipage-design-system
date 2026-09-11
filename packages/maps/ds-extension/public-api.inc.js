@@ -21,6 +21,8 @@
   return next;
  }
  get saving(){return !!this.pending}
+ get editorMode(){return this.getAttribute('editor-mode')||'inline'}
+ set editorMode(value){if(!['inline','host'].includes(value))throw new TypeError('editorMode: inline | host');this.setAttribute('editor-mode',value);}
  get dirty(){return !!(this.pending||this.retryValue||this.conflict||(this.editing&&this.editIsDirty()))}
  get draftData(){return B.clone(this.editing&&this.editIsDirty()?this.editDraft():this.conflict||this.retryValue||this.data)}
  flush(){this.finishEdit(true);return !this.dirty}

@@ -1,0 +1,56 @@
+[
+  {
+    "id": "focus",
+    "name": "Фокус",
+    "width": 1942,
+    "height": 809,
+    "bytes": 193242,
+    "sha256": "842aecfe32b2b709dea407d60b407a15456f9976c0e6fde50429b569b23e6ae4",
+    "sourceSha256": "4f04b9f744f440fc101496f38f4bee5d5f67d4a72c0a7b1f055c63da1f748858"
+  },
+  {
+    "id": "research",
+    "name": "Исследование",
+    "width": 1942,
+    "height": 809,
+    "bytes": 143092,
+    "sha256": "abd80b076ed6daa8cf6c5092fab98e1eb1ab639ddea31e5adae5b70f18479c7a",
+    "sourceSha256": "281329598d94fa237383d6aa97c5d2e3f28f650563f605608dd0facbb2237c4a"
+  },
+  {
+    "id": "launch",
+    "name": "Запуск",
+    "width": 1942,
+    "height": 809,
+    "bytes": 110030,
+    "sha256": "5c7debb537297c5b9c830d9835341d7e1e4ab8d42f234c07fda29fd5a9867bdc",
+    "sourceSha256": "23c251df4251c07284d6756111641236eabf4c5ead6fefd04e11a33252c22f4c"
+  },
+  {
+    "id": "design",
+    "name": "Дизайн",
+    "width": 1942,
+    "height": 809,
+    "bytes": 227722,
+    "sha256": "61331b6f549777c299b8ea15b6e056877c6f606b02a1232ca3f4e8cfdca6615f",
+    "sourceSha256": "c84bf1942193a9230a3e94eac6b1f080170d4623f30191184b9f7237fd42e09f"
+  },
+  {
+    "id": "development",
+    "name": "Разработка",
+    "width": 1942,
+    "height": 809,
+    "bytes": 97770,
+    "sha256": "58aaf7e9d320fda04a8b089bb12e2a0ecfb98057b6195199c89b22027cbca99c",
+    "sourceSha256": "bbea5be1b39141a880e876013be4ebe8273180547bc53cdce3500fbdc7d1d421"
+  },
+  {
+    "id": "planning",
+    "name": "Планирование",
+    "width": 1942,
+    "height": 809,
+    "bytes": 122600,
+    "sha256": "1c2c16d65949942d1936a7aa1310e5ed047b88d4888bf233c6550e45876e2d7f",
+    "sourceSha256": "4e6a85dca93c0c8a3e652c8eed632ba947d1d85f0b83c5c576a07ad964394ab1"
+  }
+]

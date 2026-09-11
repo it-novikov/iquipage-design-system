@@ -1,7 +1,7 @@
 import {dialog,select,icon,esc} from '../ui.js';
 import {editCatalogItem,tagMarkup} from './catalog-ui.js';
-import {emptyTaskSettings,compileTaskTemplate,TEMPLATE_MODES} from './task-templates.js';
-import {mountChecklists} from './checklist-view.js';
+import {starterTaskSettings,compileTaskTemplate,TEMPLATE_MODES,STARTER_TASK_TEMPLATES,upgradeLegacyTaskSettings} from './task-templates.js';
+import {taskMarkdown} from './task-content.js';
 export async function mountProjectTaskSettings(root,{repository,project,section,onBack=()=>{},canManage=true}){
   let closed=false,items=[],activeDialog=null,settings;
   const titles={tags:'Теги проекта',releases:'Релизы проекта',templates:'Шаблоны задач'};
@@ -16,7 +16,7 @@ export async function mountProjectTaskSettings(root,{repository,project,section,
   const track=element=>{activeDialog=element;element.addEventListener('iq-close',()=>{if(activeDialog===element)activeDialog=null;},{once:true});};
   async function reload(){
     try{
-      if(section==='templates'){settings=(await repository.list('taskSettings',project.id))[0]||emptyTaskSettings(project.id);renderTemplates();}
+      if(section==='templates'){settings=(await repository.list('taskSettings',project.id))[0]||starterTaskSettings(project.id);renderTemplates();}
       else {items=await repository.list(section,project.id);renderCatalog();}
     }catch(cause){fail(cause);}
   }
@@ -37,7 +37,7 @@ export async function mountProjectTaskSettings(root,{repository,project,section,
     const rows=Object.entries(names).map(([type,name])=>{
       const spec=type==='base'?settings.base:compileTaskTemplate(settings,type);
       const button=canManage?`<button type="button" class="iq-btn ghost sm" data-edit-template="${type}">Настроить</button>`:'';
-      return `<div class="iq-list-item"><div><b>${name}</b><small>${spec.checklists?.length||0} чек-листов${spec.description?' · есть описание':' · описание не задано'}</small></div>${button}</div>`;
+      return `<div class="iq-list-item"><div><b>${name}</b><small>${taskMarkdown(spec)?'Описание и критерии готовности':'Без заданного содержания'}</small></div>${button}</div>`;
     }).join('');
     content.innerHTML=`<p class="iq-helper">Базовый шаблон общий для всех задач. Шаблон типа наследует его или явно меняет нужные части. Существующие задачи не перезаписываются.</p><div class="iq-list">${rows}</div>`;
   }
@@ -56,35 +56,36 @@ export async function mountProjectTaskSettings(root,{repository,project,section,
       await repository.write(section,{...item,archivedAt:item.archivedAt?null:new Date().toISOString()},item.revision);await reload();
     }}));
   }
-  function editTemplate(type){
-    const base=type==='base',spec=structuredClone(base?settings.base:settings.types[type]||{});
+  function editTemplate(type,source=settings,confirmed=false){
+    if(!confirmed&&[source.base,...Object.values(source.types)].some(spec=>spec.checklists?.length)){
+      track(dialog({title:'Объединить содержание шаблонов?',description:'Чек-листы станут частью Markdown. Содержание всех типов сохранится, но каждый тип получит самостоятельное описание вместо отдельных правил наследования чек-листов. Изменения вступят в силу только после сохранения шаблона; исходные настройки останутся в резервной копии.',submitLabel:'Перейти к редактору',onSubmit:async()=>{queueMicrotask(()=>editTemplate(type,upgradeLegacyTaskSettings(source),true));}}));return;
+    }
+    const base=type==='base',spec=structuredClone(base?source.base:source.types[type]||{});
     const names={base:'Базовый шаблон',task:'Шаблон задачи',bug:'Шаблон бага',epic:'Шаблон эпика'};
-    let lists,baseline='',saving=false;
+    let baseline='',saving=false;
     const descriptionMode=base?'':select('descriptionMode','Описание',spec.descriptionMode||'inherit',Object.entries(TEMPLATE_MODES));
-    const checklistMode=base?'':select('checklistsMode','Чек-листы',spec.checklistsMode||'inherit',Object.entries(TEMPLATE_MODES));
     const priorities=base?[]:[['','Как в базовом']];priorities.push(['normal','Обычный'],['high','Высокий'],['critical','Критический'],['low','Низкий']);
     const body=`${select('templatePriority','Приоритет по умолчанию',spec.priority||(base?'normal':''),priorities)}${descriptionMode}
       <iq-markdown-editor name="template-description" label="Описание шаблона" variant="compact" maxlength="10000"></iq-markdown-editor>
-      ${checklistMode}<div data-template-checklists></div>
+      ${select('starter','Готовая основа','',[['','Выбрать основу'],...STARTER_TASK_TEMPLATES.map(t=>[t.id,t.name])])}<button type="button" class="iq-btn secondary sm" data-use-starter>Использовать основу</button>
       <details class="iq-accordion" open><summary>Итоговый шаблон ${icon('plus',16)}</summary><div data-effective-template></div></details>`;
     const readSpec=form=>({
-      description:form.querySelector('iq-markdown-editor').value,checklists:lists.value(),
+      description:form.querySelector('iq-markdown-editor').value,checklists:[],contentVersion:2,...(spec.checklists?.length?{legacyChecklists:spec.checklists}:{}),
       priority:form.querySelector('[name=templatePriority]').value||null,
-      ...(base?{}:{descriptionMode:form.querySelector('[name=descriptionMode]').value,checklistsMode:form.querySelector('[name=checklistsMode]').value})
+      ...(base?{}:{descriptionMode:form.querySelector('[name=descriptionMode]').value,checklistsMode:spec.checklistsMode||'inherit'})
     });
-    const candidate=form=>{const value=structuredClone(settings);if(base)value.base=readSpec(form);else value.types[type]=readSpec(form);return value;};
+    const candidate=form=>{const value=structuredClone(source);if(base)value.base=readSpec(form);else value.types[type]=readSpec(form);return value;};
     const element=dialog({title:names[type],body,wide:true,submitLabel:'Сохранить шаблон',onSubmit:async(values,form)=>{
       saving=true;try{await repository.write('taskSettings',candidate(form),settings.revision);baseline=JSON.stringify(readSpec(form));await reload();}finally{saving=false;}
     },mount:(element,form)=>{
-      const editor=form.querySelector('iq-markdown-editor');editor.value=spec.description||'';
-      lists=mountChecklists(form.querySelector('[data-template-checklists]'),spec.checklists||[],{onChange:()=>preview()});
+      const editor=form.querySelector('iq-markdown-editor');editor.value=taskMarkdown(spec);
+      form.querySelector('[data-use-starter]').addEventListener('click',()=>{const preset=STARTER_TASK_TEMPLATES.find(t=>t.id===form.querySelector('[name=starter]').value);if(!preset)return;dialog({title:'Заменить содержание шаблона?',description:'Название типа и другие шаблоны останутся без изменений.',submitLabel:'Использовать основу',onSubmit:async()=>{editor.value=preset.description;if(!base)form.querySelector('[name=descriptionMode]').value='replace';preview();}});});
       function preview(){
         const target=form.querySelector('[data-effective-template]');
         try{
           const effective=compileTaskTemplate(candidate(form),base?'task':type);
-          const checklists=effective.checklists.map(list=>`<h4>${esc(list.title)}</h4><ul>${list.items.map(item=>`<li>${esc(item.text)}</li>`).join('')}</ul>`).join('');
-          target.innerHTML='<iq-markdown-viewer></iq-markdown-viewer>'+checklists;
-          target.querySelector('iq-markdown-viewer').value=effective.description||'Описание не задано.';
+          target.innerHTML='<iq-markdown-viewer></iq-markdown-viewer>';
+          target.querySelector('iq-markdown-viewer').value=taskMarkdown(effective)||'Описание не задано.';
         }catch(cause){target.textContent=cause.message;}
       }
       form.addEventListener('iq-change',preview);baseline=JSON.stringify(readSpec(form));preview();
@@ -100,7 +101,7 @@ export async function mountProjectTaskSettings(root,{repository,project,section,
       element.querySelector('dialog').addEventListener('cancel',event=>{event.preventDefault();event.stopImmediatePropagation();close();},{capture:true});
       const unload=event=>{if(dirty()){event.preventDefault();event.returnValue='';}};
       window.addEventListener('beforeunload',unload);
-      element.addEventListener('iq-close',()=>{window.removeEventListener('beforeunload',unload);lists.destroy();},{once:true});
+      element.addEventListener('iq-close',()=>{window.removeEventListener('beforeunload',unload);},{once:true});
     }});
     track(element);
   }

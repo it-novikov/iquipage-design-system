@@ -12,32 +12,29 @@ export function mountBoardFilters(root,{initial={},onChange=()=>{}}={}){
     if(field==='releases')return [{id:'none',name:'Без релиза'},...data.releases];
     return data.tags;
   }
-  function condition(field){
-    const selected=value[field].map(id=>options(field).find(item=>item.id===id)?.name||'Недоступно');
-    const caption=selected.length?`${names[field]}: ${selected[0]}${selected.length>1?' +'+(selected.length-1):''}`:names[field];
-    const clear=selected.length?`<button type="button" class="iq-btn ghost icon sm" data-clear-filter="${field}" aria-label="Сбросить фильтр ${names[field]}">${icon('x',14)}</button>`:'';
-    return `<span class="board-filter-condition"><button type="button" class="iq-btn ghost sm" data-filter="${field}" aria-pressed="${!!selected.length}" title="${esc(selected.join(', '))}">${esc(caption)}</button>${clear}</span>`;
+  function draw(){
+    const count=Object.keys(names).reduce((n,key)=>n+value[key].length,0);
+    const summary=Object.keys(names).filter(key=>value[key].length).map(key=>`${names[key]}: ${value[key].map(id=>options(key).find(item=>item.id===id)?.name||'Недоступно').join(', ')}`).join('; ');
+    root.innerHTML=`<button type="button" class="iq-btn ghost sm" data-open-filters aria-haspopup="dialog" title="${esc(summary||'Фильтры доски')}">${icon('filter',17)}<span>Фильтры${count?' · '+count:''}</span></button>${count?`<button type="button" class="iq-btn ghost icon sm" data-reset-filters aria-label="Сбросить все фильтры">${icon('x',15)}</button>`:''}`;
   }
-  function draw(){root.innerHTML=Object.keys(names).map(condition).join('');}
   function commit(){draw();onChange(structuredClone(value));}
-  function choose(field){
-    const draft=new Set(value[field]);
-    const mode=field==='tags'?select('tagMode','Совпадение тегов',value.tagMode,[['any','Любой выбранный тег'],['all','Все выбранные теги']]):'';
-    dialog({title:'Фильтр: '+names[field],body:`<label class="iq-search-small">${icon('search',16)}<input type="search" aria-label="Найти значение фильтра" placeholder="Найти"></label>${mode}<div class="stack sm" data-filter-options></div>`,submitLabel:'Применить',
-      onSubmit:async values=>{value[field]=[...draft];if(field==='tags')value.tagMode=values.get('tagMode');commit();},
+  function choose(){
+    const draft=structuredClone(value);
+    dialog({title:'Фильтры доски',body:`<label class="iq-search-small">${icon('search',16)}<input type="search" aria-label="Найти значение фильтра" placeholder="Найти исполнителя, релиз или тег"></label><p class="iq-helper">Условия разных групп действуют вместе.</p><div class="board-filter-fields">${Object.keys(names).map(field=>`<section class="task-edit-section"><div class="row between"><h3>${names[field]}</h3><button type="button" class="iq-btn ghost sm" data-clear-filter="${field}">Сбросить</button></div><div class="stack sm" data-filter-options="${field}"></div></section>`).join('')}</div>${select('tagMode','Совпадение тегов',value.tagMode,[['any','Любой выбранный тег'],['all','Все выбранные теги']])}`,submitLabel:'Применить',
+      onSubmit:async values=>{value=normalizeBoardFilters({...draft,tagMode:values.get('tagMode')});commit();},
       mount:element=>{
-        const list=element.querySelector('[data-filter-options]'),search=element.querySelector('input[type=search]');
-        function render(){
-          const query=search.value.toLocaleLowerCase('ru');
-          list.innerHTML=options(field).filter(item=>item.name.toLocaleLowerCase('ru').includes(query)).map(item=>`<label class="iq-check"><input type="checkbox" value="${esc(item.id)}" ${draft.has(item.id)?'checked':''}><span class="iq-check-box">${icon('check',14)}</span><span>${esc(item.name)}${item.archivedAt?' · в архиве':''}</span></label>`).join('')||'<p class="iq-helper">Нет совпадений.</p>';
-        }
-        search.addEventListener('input',render);list.addEventListener('change',event=>{event.target.checked?draft.add(event.target.value):draft.delete(event.target.value);});render();
+        const search=element.querySelector('input[type=search]');
+        function render(field){element.querySelector(`[data-filter-options=${field}]`).innerHTML=options(field).filter(item=>item.name.toLocaleLowerCase('ru').includes(search.value.trim().toLocaleLowerCase('ru'))).map(item=>`<label class="iq-check"><input type="checkbox" data-filter-field="${field}" value="${esc(item.id)}" ${draft[field].includes(item.id)?'checked':''}><span class="iq-check-box">${icon('check',14)}</span><span>${esc(item.name)}${item.archivedAt?' · в архиве':''}</span></label>`).join('')||'<p class="iq-helper">Нет значений.</p>';}
+        search.addEventListener('input',()=>Object.keys(names).forEach(render));
+        element.addEventListener('change',event=>{const field=event.target.dataset.filterField;if(!field)return;const next=new Set(draft[field]);event.target.checked?next.add(event.target.value):next.delete(event.target.value);draft[field]=[...next];});
+        element.addEventListener('click',event=>{const clear=event.target.closest('[data-clear-filter]');if(clear){draft[clear.dataset.clearFilter]=[];render(clear.dataset.clearFilter);}});
+        Object.keys(names).forEach(render);
       }
     });
   }
   root.addEventListener('click',event=>{
-    const open=event.target.closest('[data-filter]');if(open)choose(open.dataset.filter);
-    const clear=event.target.closest('[data-clear-filter]');if(clear){value[clear.dataset.clearFilter]=[];commit();}
+    if(event.target.closest('[data-open-filters]'))choose();
+    if(event.target.closest('[data-reset-filters]')){value=normalizeBoardFilters({});commit();}
   },{signal:abort.signal});
   draw();
   return {value:()=>structuredClone(value),setData(next){data=next;draw();},destroy(){abort.abort();}};

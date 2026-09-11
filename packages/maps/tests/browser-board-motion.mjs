@@ -30,7 +30,7 @@ try{
  assert.equal((await api.get('/records/tasks/source?projectId='+projectId)).priority,'normal');
  measurements=await page.evaluate(()=>{const p=window.boardFrameProbe;p.running=false;const frames=p.frames.filter(x=>x>0).sort((a,b)=>a-b);return {observedFrames:frames.length,frameIntervalP95:frames[Math.floor(frames.length*.95)]||null,note:'Headless sample only; not a real-device FPS acceptance.'};});
  mark('normal-motion pointer drop matches sorted preview and commits one status without changing priority');
- await page.locator('iq-select[name=board-sort] .iq-select-trigger').click();await page.getByRole('option',{name:'Ручной порядок',exact:true}).click();
+ await page.getByRole('button',{name:'Порядок задач',exact:true}).click();await page.getByRole('menuitem',{name:'Ручной порядок',exact:true}).click();
  await page.locator('[data-drag-id=source]').waitFor();
  const a=center(await page.locator('[data-drag-id=source] [data-drag-handle]').boundingBox()),target=await page.locator('[data-drag-id=urgent]').boundingBox();
  await page.mouse.move(a.x,a.y);await page.mouse.down();await page.mouse.move(target.x+30,target.y+target.height-8,{steps:12});

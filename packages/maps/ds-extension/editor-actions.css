@@ -1,0 +1,16 @@
+/* Shared editor density and controlled footer controls. No product selectors. */
+.markdown-editor .md-footer-actions{display:flex;align-items:center;flex-wrap:wrap;gap:var(--iq-space-2);min-width:0}
+.markdown-editor footer:has(.md-footer-actions:not([hidden])){flex-wrap:wrap}
+.markdown-editor footer .md-footer-actions>.iq-btn{display:inline-flex;align-items:center;justify-content:center;min-height:var(--iq-control-sm);height:auto;padding:var(--iq-space-2) var(--iq-space-3);border:1px solid var(--iq-control);border-radius:var(--iq-radius-pill);background:transparent;color:var(--iq-muted);font-size:12px;line-height:18px;text-align:center;white-space:normal;user-select:none;-webkit-user-select:none}
+.markdown-editor footer .md-footer-actions>.iq-btn:hover:not(:disabled){background:var(--iq-hover);color:var(--iq-ink)}
+.markdown-editor footer .md-footer-actions>.iq-btn[aria-pressed=true]{background:var(--iq-primary);color:var(--iq-on-primary);border-color:var(--iq-primary)}
+.markdown-editor footer .md-footer-actions>.iq-btn[aria-pressed=true][data-tone=warning]{background:var(--iq-warning-fill);color:var(--iq-on-warning);border-color:var(--iq-warning-fill)}
+.markdown-editor footer .md-footer-actions>.iq-btn:disabled{opacity:.45;cursor:default}
+iq-markdown-editor[density=compact] .md-editor-head{padding:var(--iq-space-2) var(--iq-space-3)}
+iq-markdown-editor[density=compact] .md-toolbar{padding:var(--iq-space-1) var(--iq-space-2)}
+iq-markdown-editor[density=compact] .markdown-editor .md-input{min-height:96px;padding:var(--iq-space-3) var(--iq-space-4)}
+iq-markdown-editor[density=compact] .md-preview{min-height:56px;padding:var(--iq-space-3) var(--iq-space-4)}
+iq-markdown-editor[density=compact] .markdown-editor footer{min-height:44px;padding:var(--iq-space-1) var(--iq-space-2)}
+iq-markdown-editor[density=compact][preview-on-blur] .md-editor-head{display:none}
+iq-markdown-editor[density=compact][preview-on-blur]:not([submit-label]) .markdown-editor footer:not(:has(.md-footer-actions:not([hidden]))){display:none}
+@media(forced-colors:active){.markdown-editor footer .md-footer-actions>.iq-btn[aria-pressed=true]{border:2px solid Highlight;outline:1px solid Highlight}}

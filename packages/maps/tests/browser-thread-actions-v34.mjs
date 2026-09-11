@@ -1,0 +1,76 @@
+import assert from 'node:assert/strict';
+import {mkdir,writeFile} from 'node:fs/promises';
+import {chromium} from 'playwright';
+import {referenceServer,until} from './server-fixture.mjs';
+import {createTask} from '../src/tasks.js';
+const cleanup=[],checks=[],errors=[],api=await referenceServer({after:fn=>cleanup.push(fn)}),out='output/playwright/thread-actions-v34';
+await mkdir(out,{recursive:true});
+const browser=await chromium.launch({headless:true}),page=await browser.newPage({viewport:{width:1440,height:1000},reducedMotion:'reduce'});
+page.setDefaultTimeout(10000);page.on('pageerror',e=>errors.push(e.message));
+const mark=s=>{checks.push(s);console.log('PASS',s);},panel=()=>page.locator('.task-edit-dialog dialog[open]').last();
+const composer=()=>panel().locator('.thread-compose iq-markdown-editor'),action=()=>composer().getByRole('button',{name:'Требует решения',exact:true}),submit=()=>composer().getByRole('button',{name:'Опубликовать',exact:true});
+const projectId='thread-actions-v34-'+Date.now(),task=await api.put('tasks',createTask({projectId,title:'Компактный редактор и решение',description:'Существующее описание'}));
+const records=()=>api.get('/records/threads?projectId='+projectId),waitIdle=()=>page.waitForFunction(()=>!document.querySelector('.thread-compose iq-markdown-editor')?.disabled);
+let failure;
+try{
+ await page.goto(api.base+'/?project='+projectId+'#tasks');await page.getByRole('button',{name:task.title,exact:true}).click();
+ await composer().waitFor();assert.equal(await composer().evaluate(el=>el.density),'compact');assert.equal(await panel().locator('[data-requires-resolution]').count(),0);
+ await action().click();assert.equal(await action().getAttribute('aria-pressed'),'true');
+ await panel().locator('.iq-dialog-head [data-close]').click();
+ await page.getByRole('heading',{name:'Закрыть без сохранения?',exact:true}).waitFor();await page.locator('dialog[open]').last().getByRole('button',{name:'Отмена',exact:true}).click();assert.equal(await action().getAttribute('aria-pressed'),'true');
+ mark('Flag-only draft triggers the existing unsaved guard and Cancel retains its selected state');
+ await composer().getByRole('textbox').fill('Вопрос с чек-листом\n\n- [ ] Проверить результат');
+ let releaseRequest,firstRequest=true;const gate=new Promise(resolve=>releaseRequest=resolve);
+ await page.route('**/api/records/threads/*',async route=>{
+  if(route.request().method()==='PUT'&&firstRequest){firstRequest=false;await gate;await route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({code:'TEST_UNAVAILABLE',message:'Тестовая ошибка отправки'})});}else await route.continue();
+ });
+ await submit().click();await page.waitForFunction(()=>document.querySelector('.thread-compose iq-markdown-editor')?.disabled);
+ assert.ok(await action().isDisabled());assert.ok(await submit().isDisabled());await action().dispatchEvent('click');assert.equal(await action().getAttribute('aria-pressed'),'true');
+ releaseRequest();await panel().locator('[data-thread-error]').filter({hasText:'Тестовая ошибка отправки'}).waitFor();await waitIdle();
+ assert.equal((await records()).length,0);assert.match(await composer().getByRole('textbox').inputValue(),/Вопрос с чек-листом/);assert.equal(await action().getAttribute('aria-pressed'),'true');
+ await submit().click();await page.waitForFunction(()=>document.querySelector('.thread-compose iq-markdown-editor')?.value==='');await waitIdle();
+ const first=(await records())[0];assert.equal(first.requiresResolution,true);assert.equal(first.messages.length,1);assert.equal(await action().getAttribute('aria-pressed'),'false');
+ await page.unroute('**/api/records/threads/*');
+ mark('Busy state locks submission and decision action; failed send retains the Markdown draft and flag, successful retry resets both');
+ let dropped=false;
+ await page.route('**/api/records/threads/*',async route=>{if(route.request().method()==='PUT'&&!dropped){dropped=true;await route.fetch();await route.abort('failed');}else await route.continue();});
+ await composer().getByRole('textbox').fill('Ответ сервера потерялся');await action().click();await submit().click();await panel().locator('[data-thread-error]:not([hidden])').waitFor();await waitIdle();
+ assert.equal((await records()).length,2);assert.equal(await action().getAttribute('aria-pressed'),'true');assert.equal(await composer().getByRole('textbox').inputValue(),'Ответ сервера потерялся');
+ await action().click();await submit().click();await panel().locator('[data-thread-error]').filter({hasText:'другим признаком'}).waitFor();await waitIdle();
+ assert.equal((await records()).length,2);assert.equal((await records()).find(r=>r.messages[0].body==='Ответ сервера потерялся').requiresResolution,true);
+ await action().click();await submit().click();await page.waitForFunction(()=>document.querySelector('.thread-compose iq-markdown-editor')?.value==='');await waitIdle();
+ assert.equal((await records()).length,2);assert.equal((await records()).reduce((sum,r)=>sum+r.messages.length,0),2);
+ await page.unroute('**/api/records/threads/*');
+ mark('Lost response is idempotent; changing the already committed decision flag reports a conflict without overwriting or duplicating the discussion');
+ const discussion=()=>panel().locator(`[data-thread="${first.id}"]`);
+ if(!(await discussion().evaluate(el=>el.open)))await discussion().locator('summary').click();
+ assert.ok(await discussion().locator('.thread-state.iq-badge.warning').isVisible());
+ const reply=discussion().locator('[data-reply-editor]');await reply.waitFor();assert.equal(await reply.evaluate(el=>el.density),'compact');assert.deepEqual(await reply.evaluate(el=>el.footerActions),[]);
+ await reply.getByRole('textbox').fill('Ответ с деталями');await reply.getByRole('button',{name:'Ответить',exact:true}).click();
+ await until(records,items=>items.find(r=>r.id===first.id).messages.length===2);
+ await discussion().getByRole('button',{name:'Отметить решённым',exact:true}).click();await discussion().locator('.thread-state.iq-badge.success').waitFor();
+ await until(records,items=>items.find(r=>r.id===first.id).resolved);
+ if(!(await discussion().evaluate(el=>el.open)))await discussion().locator('summary').click();await discussion().getByRole('button',{name:'Открыть снова',exact:true}).click();await discussion().locator('.thread-state.iq-badge.warning').waitFor();
+ await composer().getByRole('textbox').fill('Обычный комментарий');await submit().click();await page.waitForFunction(()=>document.querySelector('.thread-compose iq-markdown-editor')?.value==='');await waitIdle();
+ const ordinary=(await records()).find(r=>r.messages[0].body==='Обычный комментарий');assert.equal(ordinary.requiresResolution,false);
+ assert.equal(await panel().locator(`[data-thread="${ordinary.id}"] .thread-state`).getAttribute('class'),'iq-badge thread-state');
+ mark('Comment, unresolved and resolved states use DS badges; compact replies keep the original discussion kind');
+ await panel().locator('.iq-dialog-head [data-close]').click();await page.locator('.task-edit-dialog').waitFor({state:'detached'});await page.reload();await page.getByRole('button',{name:task.title,exact:true}).click();
+ await discussion().waitFor();assert.equal(await panel().locator('.task-thread').count(),3);assert.equal(await action().getAttribute('aria-pressed'),'false');assert.match(await panel().locator('[data-thread-count]').textContent(),/2/);
+ assert.equal((await api.get(`/records/tasks/${task.id}?projectId=${projectId}`)).revision,task.revision);
+ mark('Reopening automatically loads persisted decision states without changing the task revision');
+ for(const width of [1440,768,390,320])for(const theme of ['light','dark']){
+  await page.setViewportSize({width,height:1000});await page.evaluate(t=>document.documentElement.dataset.theme=t,theme);await composer().scrollIntoViewIfNeeded();
+  assert.ok(await panel().evaluate(el=>el.scrollWidth<=el.clientWidth));assert.ok(await composer().evaluate(el=>el.scrollWidth<=el.clientWidth));
+  const boxes=await composer().locator('.md-footer-actions>button,[data-md-submit]').evaluateAll(nodes=>nodes.map(el=>el.getBoundingClientRect().toJSON()));
+  if(width>=390)assert.ok(Math.abs(boxes[0].y-boxes[1].y)<2,JSON.stringify({width,boxes}));
+  await page.screenshot({path:out+'/'+width+'-'+theme+'.png'});
+ }
+ mark('Task discussion layout checked at 320, 390, 768 and 1440 px in light and dark themes');
+ await panel().locator('.iq-dialog-head [data-close]').click();await page.locator('.task-edit-dialog').waitFor({state:'detached'});
+ await page.evaluate(async task=>{const {mountThreads}=await import('/src/board/thread-view.js');const root=document.createElement('section');root.id='readonly-threads';document.body.append(root);window.readonlyThreads=mountThreads(root,{repository:window.mapsDemo.repository,task,readOnly:true});},task);
+ const readonly=page.locator('#readonly-threads');await readonly.locator('.task-thread').first().waitFor();assert.equal(await readonly.locator('iq-markdown-editor,[data-resolve]').count(),0);assert.equal(await readonly.locator('.iq-badge.warning').count(),2);
+ await page.evaluate(()=>window.readonlyThreads.destroy());assert.deepEqual(errors,[]);mark('Read-only discussion list exposes state badges but no editing or resolution controls; no JavaScript errors');
+}catch(error){failure=error;console.error(error);await page.screenshot({path:out+'/failure.png'});}
+finally{await writeFile(out+'/report.json',JSON.stringify({status:failure?'FAIL':'PASS',checks,errors,error:failure?.stack},null,2));await browser.close();for(const fn of cleanup.reverse())await fn();}
+if(failure)process.exitCode=1;

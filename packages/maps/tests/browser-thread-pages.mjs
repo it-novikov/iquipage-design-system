@@ -24,7 +24,7 @@ try{
       for(let i=0;i<61;i++)await repository.write('threads',{id:'thread-page-'+i,projectId:project.id,taskId:task.id,revision:0,requiresResolution:i%4===0,resolved:false,messages:[{id:'first',body:`Вопрос ${i}: `+'Контекст '.repeat(300)},{id:'reply',body:`Подробный ответ ${i}`} ]},0);
       return task;
     });
-    await page.getByRole('button',{name:'Обновить задачи',exact:true}).click();
+    await page.reload();
     await page.getByRole('button',{name:task.title,exact:true}).click();
     await page.waitForFunction(()=>document.querySelectorAll('.task-thread').length===20);
     assert.equal(await panel().locator('[data-reply-editor]').count(),0);

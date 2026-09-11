@@ -3,14 +3,17 @@ import {validateTaskSettings} from './task-templates.js';
 import {prepareThread} from './thread-model.js';
 export const WORK_COLLECTIONS=['releases','tags','taskSettings','threads','taskLinks'];
 export const TAG_TONES=Object.freeze({neutral:'Серый',blue:'Синий',purple:'Фиолетовый',green:'Зелёный',amber:'Янтарный',red:'Красный'});
+export const TAG_NAME_LIMIT=32;
+export const tagNameLength=value=>[...new Intl.Segmenter('ru',{granularity:'grapheme'}).segment(value)].length;
 export const writeScopes=collection=>({tasks:['tasks','tags','releases','taskSettings','attachments'],threads:['threads','tasks'],taskLinks:['taskLinks','tasks']}[collection]||[collection]);
 const key=text=>text.trim().normalize('NFC').toLocaleLowerCase('ru');
 const date=value=>typeof value==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(value)&&Number.isFinite(Date.parse(value))&&new Date(value).toISOString().slice(0,10)===value;
 export function prepareWorkspaceRecord(collection,record,previous,snapshot={},actorId='local-user') {
   const value=clone(record),all=name=>snapshot[name]||[];
   if(['tags','releases'].includes(collection)) {
-    requireValue(validText(value.name,100)&&value.name.trim(),'CATALOG_NAME','Введите название до 100 символов.');
+    requireValue(validText(value.name,collection==='tags'?1000:100)&&value.name.trim(),'CATALOG_NAME','Введите корректное название.');
     value.name=value.name.trim();
+    if(collection==='tags'&&value.name!==previous?.name)requireValue(tagNameLength(value.name)<=TAG_NAME_LIMIT,'TAG_NAME_LENGTH',`Название тега — до ${TAG_NAME_LIMIT} символов.`);
     requireValue(!all(collection).some(item=>item.id!==value.id&&item.projectId===value.projectId&&key(item.name)===key(value.name)),'CATALOG_DUPLICATE','Такое название уже есть в проекте, в том числе в архиве.');
     requireValue(value.archivedAt==null||typeof value.archivedAt==='string'&&Number.isFinite(Date.parse(value.archivedAt)),'CATALOG_ARCHIVE','Некорректная дата архивации.');
     if(collection==='tags')requireValue(Object.hasOwn(TAG_TONES,value.tone),'TAG_TONE','Выберите цвет из палитры проекта.');

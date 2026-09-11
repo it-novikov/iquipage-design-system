@@ -39,6 +39,7 @@ export function validateTaskAttachments(task,previous,assets=[],actorId='local-u
   const ids=task.attachmentIds??[],cover=task.coverAttachmentId??null,byId=new Map(assets.map(asset=>[asset.id,asset]));
   requireValue(Array.isArray(ids)&&ids.every(validId)&&new Set(ids).size===ids.length,'TASK_FILES','Некорректный список вложений.');
   requireValue(cover===null||(validId(cover)&&ids.includes(cover)),'TASK_COVER','Обложка должна быть вложением этой задачи.');
+  if(task.coverCrop){const c=task.coverCrop;requireValue(c.attachmentId===cover&&[c.x,c.y,c.width,c.height].every(Number.isFinite)&&c.x>=0&&c.y>=0&&c.width>0&&c.height>0&&c.x+c.width<=1.000001&&c.y+c.height<=1.000001,'TASK_CROP','Кадр должен находиться внутри выбранного изображения.');}
   for(const id of ids){
     const asset=byId.get(id);
     requireValue(fileReadable(asset,previous,task.projectId,task.id,actorId),'TASK_FILE_ACCESS','Файл недоступен или загрузка истекла. Загрузите файл заново.');

@@ -1,4 +1,5 @@
 import {validateTaskAttachments} from './board/attachment-model.js';
+import {allocateTaskKey} from './board/task-route.js';
 import {WORK_COLLECTIONS,prepareWorkspaceRecord} from './board/workspace-model.js';
 import {applyCreationTemplate} from './board/task-templates.js';
 import {validateTask,taskColumn} from './tasks.js';
@@ -92,6 +93,7 @@ export function prepareWrite(collection, value, previous, baseRevision, taskReco
     requireValue(value.kind === 'session' || ['active', 'archived'].includes(value.status), 'INVALID_STATE', 'Постоянная карта не может быть сессией.');
     if (value.status === 'archived') requireValue(typeof value.archivedAt === 'string' && Number.isFinite(Date.parse(value.archivedAt)), 'INVALID_ARCHIVE', 'Не задан момент завершения.');
   }
+  if(collection==='tasks')value=allocateTaskKey(value,previous,taskRecords);
   if (collection === 'tasks' && !previous) value = applyCreationTemplate(value, (snapshot.taskSettings || []).find(item => item.projectId === value.projectId));
   if (collection === 'tasks' || WORK_COLLECTIONS.includes(collection)) value = prepareWorkspaceRecord(collection, value, previous, {...snapshot, tasks: taskRecords}, actorId);
   if (collection === 'tasks') { validateTaskAttachments(value, previous, snapshot.attachments || [], actorId); validateTask(value); reparentTask(value, value.parentId ?? null, taskRecords); }

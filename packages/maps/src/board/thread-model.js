@@ -52,7 +52,11 @@ export async function postMessage(repository,task,{threadId=uid('thread'),messag
     const previous=await repository.read('threads',threadId,task.projectId);
     requireValue(!previous || previous.taskId === task.id,'THREAD_TASK_MISMATCH','Обсуждение относится к другой задаче.');
     const existing=previous?.messages.find(message=>message.id===messageId);
-    if(existing){requireValue(existing.body===body,'THREAD_MESSAGE_CONFLICT','ID сообщения уже использован для другого текста.');return previous;}
+    if(existing){
+      requireValue(existing.body===body,'THREAD_MESSAGE_CONFLICT','ID сообщения уже использован для другого текста.');
+      requireValue(previous.messages[0].id!==messageId||previous.requiresResolution===requiresResolution,'THREAD_KIND_CONFLICT','Сообщение уже опубликовано с другим признаком «Требует решения». Верните прежний выбор для подтверждения отправки.');
+      return previous;
+    }
     const next=previous?{...previous,messages:[...previous.messages,{id:messageId,body}]}:newThread(task,{id:threadId,messageId,body,requiresResolution});
     try{return await repository.write('threads',next,previous?.revision||0);}
     catch(error){if(error.code!=='CONFLICT'||attempt===2)throw error;}

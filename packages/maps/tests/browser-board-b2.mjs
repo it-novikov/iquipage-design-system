@@ -47,9 +47,11 @@ try{
   await page.getByRole('link',{name:'Доска задач',exact:true}).click();await page.getByRole('button',{name:'Новая задача',exact:true}).click();
   await taskModal().getByLabel('Название',{exact:true}).fill('Исправить форму входа');await choose(taskModal(),'type','Баг');
   const description=taskModal().locator('iq-markdown-editor[name=description]');
+  await taskModal().locator('[data-edit-description]').click();
   assert.ok((await description.getByRole('textbox',{name:'Описание',exact:true}).inputValue()).includes('Шаги воспроизведения'));
   assert.equal(await taskModal().getByLabel('Название чек-листа',{exact:true}).inputValue(),'Приёмка');
   await description.getByRole('textbox',{name:'Описание',exact:true}).fill('Авторский текст задачи');await choose(taskModal(),'type','Задача');
+  await taskModal().locator('[data-edit-description]').click();
   assert.equal(await description.getByRole('textbox',{name:'Описание',exact:true}).inputValue(),'Авторский текст задачи');
   await taskModal().getByRole('button',{name:'Добавить чек-лист',exact:true}).click();
   await taskModal().getByLabel('Название чек-листа',{exact:true}).nth(1).fill('Приёмка');
@@ -57,7 +59,7 @@ try{
   await taskModal().getByLabel('Пункт чек-листа',{exact:true}).nth(1).fill('Проверить ошибки');
   await taskModal().locator('[data-done]').first().check();
   await taskModal().locator('iq-combobox[name=releaseId] .iq-combo-input').fill('2.4');await page.getByRole('option',{name:'2.4',exact:true}).click();
-  await taskModal().getByRole('button',{name:'Выбрать теги',exact:true}).click();await modal().getByRole('checkbox',{name:'Android',exact:true}).check();
+  await taskModal().getByRole('button',{name:'Выбрать теги',exact:true}).click();await modal().getByRole('button',{name:'Android',exact:true}).click();
   await modal().getByRole('button',{name:'Применить',exact:true}).click();
   await taskModal().getByRole('button',{name:'Сохранить задачу',exact:true}).click();await page.locator('.task-edit-dialog').waitFor({state:'detached'});
   const savedTasks=await api.get('/records/tasks?projectId='+projectId),task=savedTasks.find(item=>item.title==='Исправить форму входа');
@@ -67,7 +69,7 @@ try{
   assert.equal(await taskModal().getByLabel('Название чек-листа',{exact:true}).count(),2);assert.equal(await taskModal().locator('[data-done]').first().isChecked(),true);
   mark('task creation applies its template once, preserves authored edits and independently persists two checklists');
   await taskModal().getByLabel('Название',{exact:true}).fill('Название с черновиком');
-  await taskModal().getByRole('button',{name:'Новый релиз',exact:true}).click();await modal().getByLabel('Название',{exact:true}).fill('2.5');
+  await taskModal().locator('iq-combobox[name=releaseId] .iq-combo-input').fill('Новый релиз');await page.getByRole('option',{name:'Новый релиз',exact:true}).click();await modal().getByLabel('Название',{exact:true}).fill('2.5');
   await modal().getByRole('button',{name:'Сохранить',exact:true}).click();
   assert.equal(await taskModal().getByLabel('Название',{exact:true}).inputValue(),'Название с черновиком');
   const newRelease=(await until(()=>api.get('/records/releases?projectId='+projectId),items=>items.some(item=>item.name==='2.5'))).find(item=>item.name==='2.5');
@@ -80,7 +82,7 @@ try{
   await compose().getByRole('textbox').fill('Обычный комментарий');await compose().getByRole('button',{name:'Опубликовать',exact:true}).click();
   await until(()=>api.get('/records/threads?projectId='+projectId),items=>items.length===1);
   await taskModal().getByLabel('Название',{exact:true}).fill('Не сохранено вместе с обсуждением');
-  await compose().getByRole('textbox').fill('Нужно проверить граничный случай');await taskModal().locator('[data-requires-resolution]').check();
+  await compose().getByRole('textbox').fill('Нужно проверить граничный случай');await compose().getByRole('button',{name:'Требует решения',exact:true}).click();
   await compose().getByRole('button',{name:'Опубликовать',exact:true}).click();
   await until(()=>api.get('/records/threads?projectId='+projectId),items=>items.length===2);
   assert.equal((await api.get(`/records/tasks/${task.id}?projectId=${projectId}`)).title,'Название с черновиком');
@@ -103,7 +105,7 @@ try{
   assert.equal((await api.get('/records/threads?projectId='+projectId)).length,2);
   mark('plain comments and resolvable threads persist independently of discarded task edits; replies and reopen work');
   const dependency=await api.put('tasks',createTask({projectId,title:'Подготовить серверный контракт'}));
-  await page.getByRole('button',{name:'Обновить задачи',exact:true}).click();await page.getByRole('button',{name:dependency.title,exact:true}).waitFor();
+  await page.reload();await page.getByRole('button',{name:dependency.title,exact:true}).waitFor();
   await page.getByRole('button',{name:'Название с черновиком',exact:true}).click();await taskModal().getByRole('button',{name:'Связать с задачей',exact:true}).click();
   await modal().locator('iq-combobox[name=linkedTask] .iq-combo-input').fill(dependency.title);await page.getByRole('option',{name:dependency.title,exact:true}).click();
   await modal().getByRole('button',{name:'Связать',exact:true}).click();await taskModal().locator('[data-linked-task]').filter({hasText:dependency.title}).waitFor();
@@ -114,13 +116,13 @@ try{
   await taskModal().locator('.iq-dialog-head [data-close]').click();await page.locator('.task-edit-dialog').waitFor({state:'detached'});
   assert.equal((await api.get('/records/tasks?projectId='+projectId)).length,2);
   mark('task links use one canonical edge with inverse wording; removing a link retains both tasks');
-  await page.locator('[data-filter=tags]').click();await modal().getByRole('checkbox',{name:'Android',exact:true}).check();await modal().getByRole('button',{name:'Применить',exact:true}).click();
+  await page.locator('[data-open-filters]').click();await modal().getByRole('checkbox',{name:'Android',exact:true}).check();await modal().getByRole('button',{name:'Применить',exact:true}).click();
   await page.waitForFunction(()=>document.querySelector('[data-drop-status=ready] .kanban-count')?.textContent==='1/2');
   assert.equal(await page.locator('.task-card').count(),1);
-  await page.locator('[data-filter=releases]').click();await modal().getByRole('checkbox',{name:'2.4',exact:true}).check();await modal().getByRole('button',{name:'Применить',exact:true}).click();
+  await page.locator('[data-open-filters]').click();await modal().getByRole('checkbox',{name:'2.4',exact:true}).check();await modal().getByRole('button',{name:'Применить',exact:true}).click();
   await page.waitForFunction(()=>document.querySelector('[data-drop-status=ready] .kanban-count')?.textContent==='0/2');
-  await page.locator('[data-clear-filter=releases]').click();await page.waitForFunction(()=>document.querySelectorAll('.task-card').length===1);
-  await screenshot('board-filters-light');await page.locator('[data-clear-filter=tags]').click();
+  await page.locator('[data-open-filters]').click();await page.locator('[data-clear-filter=releases]').click();await modal().getByRole('button',{name:'Применить',exact:true}).click();await page.waitForFunction(()=>document.querySelectorAll('.task-card').length===1);
+  await screenshot('board-filters-light');await page.locator('[data-reset-filters]').click();
   mark('visible tag and release conditions combine with AND and keep exact per-column counts');
   await page.getByRole('link',{name:'Настройки проекта',exact:true}).click();await page.getByRole('link',{name:/Теги/}).click();
   await page.getByRole('button',{name:'Изменить',exact:true}).click();await modal().getByLabel('Название',{exact:true}).fill('Мобильное приложение');
