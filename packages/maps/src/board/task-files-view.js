@@ -58,6 +58,7 @@ export function mountTaskFiles(root,{coverRoot,adapter,task,readOnly=false}){
   function renderCover(){
     const generation=++coverGeneration;
     if(coverURL){URL.revokeObjectURL(coverURL);coverURL=null;}
+    for(const item of rows.values())drawRow(item);
     if(!coverId){coverRoot.innerHTML=editable?`<button type="button" class="iq-btn ghost sm" data-add-cover>${icon('image',16)}<span>Добавить обложку</span></button>`:'';return;}
     const row=rows.get(coverId);
     coverRoot.innerHTML=`<div class="task-detail-cover" data-state="loading"><button type="button" data-preview-cover aria-label="Открыть обложку" disabled><img alt="" decoding="async" hidden></button><span data-cover-status>Загрузка обложки…</span></div>
@@ -71,7 +72,6 @@ export function mountTaskFiles(root,{coverRoot,adapter,task,readOnly=false}){
       coverRoot.querySelector('[data-preview-cover]').disabled=false;coverRoot.querySelector('[data-cover-status]').hidden=true;
       coverRoot.querySelector('.task-detail-cover').dataset.state='ready';
     }).catch(()=>{if(!closed&&generation===coverGeneration)coverRoot.querySelector('[data-cover-status]').textContent='Обложка недоступна. Файл остаётся в задаче.';}).finally(()=>requests.delete(request));
-    for(const item of rows.values())drawRow(item);
   }
   function setCover(id){coverId=id;renderCover();emit();}
   async function upload(row){

@@ -23,7 +23,7 @@ try{
     }
     console.log('PASS '+name);
   }
-  for(const name of ['artifacts/r3/browser-report.json','artifacts/final/browser-events.json','artifacts/final/browser-recovery.json','artifacts/r3/preview-report.json','artifacts/board-b1/layout.json','artifacts/board-b1/interactions.json','artifacts/board-b1/motion.json','artifacts/board-b2/browser.json','artifacts/board-b2/recovery.json','artifacts/attachment-core/browser-idb.json','artifacts/board-covers/browser.json','artifacts/thread-pages/browser.json','artifacts/editor-move/browser.json','artifacts/map-task-link/browser.json']){
+  for(const name of ['artifacts/r3/browser-report.json','artifacts/final/browser-events.json','artifacts/final/browser-recovery.json','artifacts/r3/preview-report.json','artifacts/board-b1/layout.json','artifacts/board-b1/interactions.json','artifacts/board-b1/motion.json','artifacts/board-b2/browser.json','artifacts/board-b2/recovery.json','artifacts/attachment-core/browser-idb.json','artifacts/board-covers/browser.json','artifacts/thread-pages/browser.json','artifacts/editor-move/browser.json','artifacts/map-task-link/browser.json','artifacts/cover-finish/browser.json']){
     const report=JSON.parse(await readFile(path.join(root,name),'utf8'));
     if(report.status!=='PASS')throw Error('Required report did not pass: '+name);
     if(!name.includes('preview-report'))browserScenarios+=report.checks.length;
