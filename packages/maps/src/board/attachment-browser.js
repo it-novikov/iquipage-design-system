@@ -17,6 +17,7 @@ export async function prepareBrowserAttachment(file,{signal}={}){
         canvas.width=Math.max(1,Math.round(bitmap.width*scale));canvas.height=Math.max(1,Math.round(bitmap.height*scale));
         canvas.getContext('2d').drawImage(bitmap,0,0,canvas.width,canvas.height);
         blobs[variant]=await new Promise((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(blob):reject(Error('Не удалось подготовить изображение.')),'image/webp',0.82));
+        requireValue(blobs[variant].type==='image/webp','FILE_PREVIEW','Этот браузер не поддерживает подготовку WebP. Используйте серверный режим.');
         if(variant==='display')Object.assign(metadata,{width:canvas.width,height:canvas.height});
       }
       metadata.previewMime='image/webp';

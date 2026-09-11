@@ -1,6 +1,6 @@
 {
   "name": "@iquipage/maps",
-  "version": "0.4.0-board.b2",
+  "version": "0.4.1-board.b2.1",
   "private": true,
   "type": "module",
   "scripts": {
@@ -32,7 +32,11 @@
       "types": "./types/board.d.ts",
       "default": "./src/board/board.js"
     },
-    "./board/styles.css": "./src/board/board.css"
+    "./board/styles.css": "./src/board/board.css",
+    "./board/attachments": {
+      "types": "./types/attachments.d.ts",
+      "default": "./src/board/attachments.js"
+    }
   },
   "types": "./types/index.d.ts",
   "devDependencies": {

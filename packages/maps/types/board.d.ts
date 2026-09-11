@@ -1,3 +1,4 @@
+import type {AttachmentAdapter} from './attachments.js';
 import type {Repository} from './index.js';
 export type BoardSort = 'priority' | 'due' | 'created' | 'manual';
 export interface BoardFilters {owners:string[];releases:string[];tags:string[];tagMode:'any'|'all'}
@@ -7,10 +8,12 @@ export interface BoardConfig {
   project:{id:string;name?:string};
   canEdit?:boolean;
   canManageCatalogs?:boolean;
+  attachmentAdapter?:AttachmentAdapter|null;
   viewState?:BoardViewState;
 }
 export interface BoardHandle {
   reload():Promise<void>;
+  openTask(id:string):Promise<boolean>;
   readyToLeave():Promise<boolean>;
   destroy():void;
 }
@@ -33,6 +36,10 @@ export type TemplateMode='inherit'|'append'|'replace'|'exclude';
 export interface TaskTemplateSpec {description?:string;checklists?:TaskChecklist[];priority?:'low'|'normal'|'high'|'critical'|null;descriptionMode?:TemplateMode;checklistsMode?:TemplateMode}
 export interface ProjectTaskSettings {id:string;projectId:string;revision:number;base:TaskTemplateSpec;types:Partial<Record<'task'|'bug'|'epic',TaskTemplateSpec>>}
 export interface TaskContentFields {
+  attachmentIds?:string[];coverAttachmentId?:string|null;
   checklists?:TaskChecklist[];tagIds?:string[];releaseId?:string|null;
   templateVersion?:{settingsId:string;revision:number;type:'task'|'bug'|'epic'};
 }
+
+export interface ThreadSummary extends Omit<TaskThread,'messages'> {summary:true;messageCount:number;messages:{body:string}[]}
+export interface ThreadPage {items:ThreadSummary[];nextCursor:string|null;total:number;unresolved:number}

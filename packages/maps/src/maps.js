@@ -69,7 +69,7 @@ export class MapsFeature {
     });
     board.addEventListener('iq-change-cancel',event=>this.pending.get(event.detail.requestId)?.abort());
     board.addEventListener('iq-host-command',event=>this.handle(event.detail.command==='guide'?'help':event.detail.command).catch(e=>this.message(e.message,true)));
-    board.addEventListener('iq-open-task',event=>{const target={ids:[event.detail.taskId],projectId:this.project.id};this.root.dispatchEvent(new CustomEvent('iq-open-tasks',{detail:target,bubbles:true,composed:true}));Promise.resolve().then(()=>this.config.onOpenTasks?.(target)).catch(error=>this.message(error.message,true));});
+    board.addEventListener('iq-open-task',event=>{const target={ids:[event.detail.taskId],projectId:this.project.id,focusTaskId:event.detail.taskId};this.root.dispatchEvent(new CustomEvent('iq-open-tasks',{detail:target,bubbles:true,composed:true}));Promise.resolve().then(()=>this.config.onOpenTasks?.(target)).catch(error=>this.message(error.message,true));});
     board.addEventListener('iq-selection',()=>{if(this.view==='workflow'&&!this.inspector.hidden&&this.panel==='properties')this.renderProperties();});
     board.addEventListener('iq-change',()=>this.renderChrome());
     const position=this.positions.get(`${this.current.id}:${this.view}`);

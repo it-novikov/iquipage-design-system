@@ -80,7 +80,7 @@ export function mountThreads(root,{repository,task,readOnly=false}){
     for(const thread of visible){
       let node=list.querySelector(`[data-thread="${CSS.escape(thread.id)}"]`);
       if(!node){const template=document.createElement('template');template.innerHTML=markup(thread);node=template.content.firstElementChild;}
-      if(node!==cursor)list.insertBefore(node,cursor);
+      if(node!==cursor){if(node.isConnected&&typeof list.moveBefore==='function')list.moveBefore(node,cursor);else list.insertBefore(node,cursor);}
       cursor=node.nextElementSibling;
       const state=node.querySelector('.thread-state');state.textContent=label(thread);state.classList.toggle('unresolved',thread.requiresResolution&&!thread.resolved);
       node.querySelector('summary small').textContent=`${thread.messageCount??thread.messages.length} сообщ. · ${time(thread.lastActivityAt)}`;
@@ -123,7 +123,7 @@ export function mountThreads(root,{repository,task,readOnly=false}){
     }catch(cause){fail(cause);}finally{busy.delete(id);if(editor.isConnected)editor.disabled=false;}
   },{signal:abort.signal});
   root.addEventListener('click',async event=>{
-    if(event.target.closest('[data-more-threads]'))await pager.more();
+    if(event.target.closest('[data-more-threads]')){error.hidden=true;await pager.more();}
     if(event.target.closest('[data-reload-threads]'))await reload();
     const retry=event.target.closest('[data-retry-thread]');if(retry){const item=items.find(item=>item.id===retry.dataset.retryThread);if(item)fill(item);}
     const button=event.target.closest('[data-resolve]');if(!button||readOnly)return;

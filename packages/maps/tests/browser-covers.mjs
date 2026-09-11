@@ -1,3 +1,5 @@
+import {checkCoverRecovery} from './cover-recovery-helper.mjs';
+import path from 'node:path';
 import assert from 'node:assert/strict';
 import {mkdir,writeFile,readFile} from 'node:fs/promises';
 import {pathToFileURL} from 'node:url';
@@ -16,9 +18,9 @@ const records=()=>page.evaluate(async()=>window.mapsDemo.repository.list('tasks'
 await mkdir('artifacts/board-covers',{recursive:true});
 try{
   browser=await chromium.launch({headless:true,...(process.env.MAPS_CHROMIUM_PATH?{executablePath:process.env.MAPS_CHROMIUM_PATH}:{})});
-  for(const mode of ['server','browser']){
+  for(const mode of ['server','browser','offline']){
     const context=await browser.newContext({viewport:{width:1440,height:1000},reducedMotion:'reduce',acceptDownloads:true});
-    await context.route('**/*',route=>new URL(route.request().url()).origin===api.base?route.continue():route.abort());
+    await context.route('**/*',route=>{const url=new URL(route.request().url());return !['http:','https:'].includes(url.protocol)||mode!=='offline'&&url.origin===api.base?route.continue():route.abort();});
     await context.addInitScript(()=>{
       const active=new Set(),create=URL.createObjectURL.bind(URL),revoke=URL.revokeObjectURL.bind(URL);
       URL.createObjectURL=blob=>{const url=create(blob);active.add(url);return url;};
@@ -26,7 +28,9 @@ try{
       window.coverURLAudit=active;
     });
     page=await context.newPage();page.setDefaultTimeout(10000);page.on('pageerror',error=>errors.push(error.message));
-    await page.goto(`${api.base}/?project=covers-${mode}-${Date.now()}&storage=${mode}#tasks`);
+    const endpoint=mode==='offline'?pathToFileURL(path.resolve('preview.html')).href:api.base+'/';
+    let httpRequests=0;page.on('request',request=>{if(/^https?:/.test(request.url()))httpRequests++;});
+    await page.goto(`${endpoint}?project=covers-${mode}-${Date.now()}&storage=${mode}#tasks`);
     await page.getByRole('button',{name:'Новая задача',exact:true}).click();
     await panel().getByLabel('Название',{exact:true}).fill('Без обложки');await save();
     assert.equal(await page.locator('.task-card-cover').count(),0);mark(mode+': optional cover adds no empty media slot');
@@ -96,6 +100,7 @@ try{
       await panel().locator(`[data-file-row="${retryId}"][data-state=ready]`).waitFor();await save();
       task=(await records()).find(item=>item.id===task.id);assert.equal(task.attachmentIds.filter(id=>id===retryId).length,1);
       mark('server: lost upload response can be retried without duplicating the attachment');
+      task=await checkCoverRecovery({page,context,api,task,png,mark});
     }
     await page.getByRole('button',{name:task.title,exact:true}).click();
     await panel().locator('[data-cover-input]').setInputFiles({name:'discard.png',mimeType:'image/png',buffer:png});
@@ -123,6 +128,7 @@ try{
     await page.waitForFunction(()=>document.querySelector('#host-view').hidden);
     await page.waitForFunction(()=>window.coverURLAudit.size===0);
     mark(mode+': leaving the board releases every owned object URL');
+    if(mode==='offline'){assert.equal(httpRequests,0);mark('offline: file-based HTML performs no HTTP requests');}
     await context.close();
   }
   assert.deepEqual(errors,[]);mark('no JavaScript errors in cover or attachment workflows');

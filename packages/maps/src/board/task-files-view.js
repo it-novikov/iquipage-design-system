@@ -5,6 +5,7 @@ import {FILE_ACCEPT} from './attachment-model.js';
 /** Draft changes are committed by the task form, never by a preview. */
 export function mountTaskFiles(root,{coverRoot,adapter,task,readOnly=false}){
   let ids=[...(task.attachmentIds||[])],coverId=task.coverAttachmentId||null;
+  let locked=false;
   let closed=false,active=0,coverGeneration=0,coverURL=null;
   const rows=new Map(),staged=new Set(),requests=new Set(),downloads=new Set();
   const events=new AbortController(),signal=events.signal;
@@ -89,7 +90,7 @@ export function mountTaskFiles(root,{coverRoot,adapter,task,readOnly=false}){
   }
   function pump(){for(const row of rows.values()){if(active>=2||closed)break;if(row.state==='queued')void upload(row);}}
   function add(files,asCover=false){
-    if(!editable||closed)return;error.hidden=true;
+    if(!editable||closed||locked)return;error.hidden=true;
     if(files.length>50){report(Error('За один раз выберите не более 50 файлов.'));return;}
     for(const file of Array.from(files).slice(0,asCover?1:50)){
       const row={id:uid('file'),file,name:file.name,size:file.size,state:'queued',asCover};rows.set(row.id,row);drawRow(row);
@@ -109,6 +110,7 @@ export function mountTaskFiles(root,{coverRoot,adapter,task,readOnly=false}){
     }catch(e){if(e.name!=='AbortError')report(e);}finally{requests.delete(request);}
   }
   root.addEventListener('click',event=>{
+    if(locked)return;
     const button=event.target.closest('button');if(!button)return;
     if(button.matches('[data-pick-files],[data-file-drop]'))root.querySelector('[data-file-input]')?.click();
     if(button.dataset.fileRemove&&editable)remove(button.dataset.fileRemove);
@@ -117,6 +119,7 @@ export function mountTaskFiles(root,{coverRoot,adapter,task,readOnly=false}){
     if(button.dataset.fileRetry){const row=rows.get(button.dataset.fileRetry);if(row?.file){row.state='queued';pump();}else if(row)void loadExisting(row.id);}
   },{signal});
   coverRoot.addEventListener('click',event=>{
+    if(locked)return;
     if(event.target.closest('[data-add-cover]')&&editable)root.querySelector('[data-cover-input]').click();
     if(event.target.closest('[data-remove-cover]')&&editable)setCover(null);
     if(event.target.closest('[data-preview-cover]')&&coverURL){
@@ -135,6 +138,7 @@ export function mountTaskFiles(root,{coverRoot,adapter,task,readOnly=false}){
     value:()=>({attachmentIds:[...ids],coverAttachmentId:coverId}),
     dirty:()=>[...rows.values()].some(row=>!!row.file),
     isBusy:()=>active>0,
+    setLocked(value){locked=!!value;root.inert=locked;coverRoot.inert=locked;},
     assertReady(){requireValue(!active&&![...rows.values()].some(row=>row.file),'FILES_PENDING','Дождитесь загрузки файлов. Неудавшиеся загрузки можно повторить или убрать.');},
     accepted(saved){for(const id of saved.attachmentIds||[])staged.delete(id);},
     destroy(){

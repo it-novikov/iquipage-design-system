@@ -22,6 +22,7 @@ catch(e){if(e.code!=='ENOENT')throw e;}
 const lock=await open(lockPath,'wx',0o600);await lock.writeFile(JSON.stringify({pid:process.pid,startedAt:new Date().toISOString()}));await lock.close();
 const repository=await new FileRepository(directory).init();
 const attachmentStore=await new FileAttachmentStore(repository).init();
+await attachmentStore.collect();
 const routeAttachments=attachmentRoutes(attachmentStore);
 const adapters={createTasks:localTasksAdapter(repository)};
 const gateway=process.env.MAPS_LLM_GATEWAY;
@@ -129,10 +130,11 @@ const server=http.createServer(async(req,res)=>{
   }
 });
 let ticking=false;
+const attachmentCleanup=setInterval(()=>attachmentStore.collect().catch(()=>console.error('Attachment cleanup failed')),3600000);attachmentCleanup.unref();
 const deliveries=setInterval(()=>outbox.drain().catch(e=>console.error('Event delivery:',e.code||'FAILED')),1000);deliveries.unref();
 const scheduler=setInterval(async()=>{if(ticking)return;ticking=true;try{await events.tick();}catch(e){console.error('Scheduler:',e.code||e.message);}finally{ticking=false;}},10000);scheduler.unref();
 server.listen(port,'127.0.0.1',()=>console.log(`Maps reference: http://127.0.0.1:${port}/\nLocal-only runtime; no production account or deployment. PID ${process.pid}`));
 let stopping=false;
-async function stop(){if(stopping)return;stopping=true;clearInterval(scheduler);clearInterval(deliveries);server.close();if(outbox.active)await outbox.active.catch(()=>{});await repository.queue.catch(()=>{});await unlink(lockPath).catch(()=>{});process.exit(0);}
+async function stop(){if(stopping)return;stopping=true;clearInterval(scheduler);clearInterval(deliveries);clearInterval(attachmentCleanup);server.close();if(outbox.active)await outbox.active.catch(()=>{});await repository.queue.catch(()=>{});await unlink(lockPath).catch(()=>{});process.exit(0);}
 process.on('SIGINT',stop);process.on('SIGTERM',stop);
-server.on('error',async e=>{await unlink(lockPath).catch(()=>{});console.error(e.message);process.exitCode=1;clearInterval(scheduler);clearInterval(deliveries);});
+server.on('error',async e=>{await unlink(lockPath).catch(()=>{});console.error(e.message);process.exitCode=1;clearInterval(scheduler);clearInterval(deliveries);clearInterval(attachmentCleanup);});

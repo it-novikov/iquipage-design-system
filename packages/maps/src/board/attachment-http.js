@@ -14,7 +14,7 @@ export class HttpAttachmentAdapter {
   }
   describe(input,options={}){return this.request(input,options);}
   blob(input,options={}){return this.request(input,{...options,variant:input.variant,binary:true});}
-  discard(input){return this.request(input,{method:'DELETE'});}
+  async discard(input){const result=await this.request(input,{method:'DELETE'});return result.discarded;}
   upload(input,file,{signal,onProgress=()=>{}}={}){
     requireValue(file.size>0&&file.size<=FILE_LIMIT,'FILE_SIZE','Файл должен быть непустым и не больше 10 МБ.');
     signal?.throwIfAborted();

@@ -14,8 +14,8 @@ export function createCoverLoader(adapter,projectId){
   }
   function pump(){
     while(!closed&&active<4&&queue.length){const job=queue.shift();if(job.generation!==generation||!job.img.isConnected)continue;active++;
-      resource({id:job.img.dataset.coverId,taskId:job.img.dataset.coverTask,projectId}).then(url=>{
-        if(job.generation===generation&&job.img.isConnected&&visible.has(job.img.dataset.coverTask+':'+job.img.dataset.coverId)){job.img.src=url;job.img.parentElement.dataset.state='ready';}
+      resource({id:job.img.dataset.coverId,taskId:job.img.dataset.coverTask,projectId}).then(async url=>{
+        if(job.generation===generation&&job.img.isConnected&&visible.has(job.img.dataset.coverTask+':'+job.img.dataset.coverId)){job.img.src=url;job.img.hidden=false;await job.img.decode();if(job.generation===generation&&job.img.isConnected)job.img.parentElement.dataset.state='ready';}
       }).catch(()=>{if(job.img.isConnected&&job.generation===generation){job.img.parentElement.dataset.state='unavailable';job.img.hidden=true;}}).finally(()=>{delete job.img.dataset.coverQueued;active--;pump();});
     }
   }

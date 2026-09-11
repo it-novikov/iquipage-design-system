@@ -32,7 +32,8 @@ async function startWorkspace(){
     const map=createMap({projectId:project.id,title:'Как сделать первый шаг понятнее?',kind:'session',document:remapDocument(template.document),templateOrigin:{id:template.id,version:template.version}});
     map.demoSeed=true;await repository.write('maps',map,0);
   }
-  feature=await mountMaps(featureRoot,{project,repository,runtime,context,permissions:{read:true,edit:true,run:true,approve:true,manageAutomation:true},onOpenTasks:()=>go('tasks')});
+  let pendingTaskId=null;
+  feature=await mountMaps(featureRoot,{project,repository,runtime,context,permissions:{read:true,edit:true,run:true,approve:true,manageAutomation:true},onOpenTasks:async target=>{if(target.projectId!==project.id)throw Error('Задача относится к другому проекту.');pendingTaskId=target.focusTaskId||null;await go('tasks');}});
   window.mapsDemo={feature,repository,runtime,project}; // Explicit example diagnostics only.
   async function go(next){if(!(await canLeave())||!(await feature.readyToLeave()))return;location.hash=next;}
   async function navigate(next){
@@ -50,6 +51,7 @@ async function startWorkspace(){
     if(section==='tasks'){
       const board=await mountTaskBoard(hostView,{repository,project,attachmentAdapter,canManageCatalogs:true,viewState:boardState,onOpenMap:async id=>{await feature.openMap(id);await go('maps');}});
       if(generation!==navigationGeneration){board.destroy();return;}taskBoard=board;
+      if(pendingTaskId){const id=pendingTaskId;pendingTaskId=null;await board.openTask(id);}
     }else if(['settings/tags','settings/releases','settings/templates'].includes(section)){
       const mounted=await mountProjectTaskSettings(hostView,{repository,project,section:section.split('/')[1],onBack:()=>go('settings')});
       if(generation!==navigationGeneration){mounted.destroy();return;}

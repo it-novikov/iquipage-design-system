@@ -114,7 +114,12 @@ export async function mountTaskBoard(root,{repository,project,canEdit=true,canMa
   search.addEventListener('input',()=>{viewState.query=search.value;persist();cancelAnimationFrame(searchFrame);searchFrame=requestAnimationFrame(()=>render());},{signal});
   const unsubscribe=repository.subscribe?.(e=>{if(['tasks','tags','releases'].includes(e.collection)&&e.projectId===project.id)reload();});
   await reload();
-  return {reload,readyToLeave:async()=>!openingTask&&!activeDialog&&!pending.size,destroy(){
+  return {reload,openTask:async id=>{
+    if(closed||openingTask||activeDialog||pending.size)return false;
+    const task=await repository.read('tasks',id,project.id);
+    if(!task||task.projectId!==project.id){fail(Error('Задача недоступна в этом проекте.'));return false;}
+    await edit(task);return !!activeDialog;
+  },readyToLeave:async()=>!openingTask&&!activeDialog&&!pending.size,destroy(){
     const board=mount.querySelector('.iq-board');if(board){viewState.x=board.scrollLeft;viewState.y=board.scrollTop;}
     persist();if(root.firstElementChild===ownedPage)root.classList.remove('iq-task-board-root');closed=true;loading++;cancelAnimationFrame(searchFrame);abort.abort();covers.destroy();filters.destroy();unsubscribe?.();disposeBoard?.();
   }};

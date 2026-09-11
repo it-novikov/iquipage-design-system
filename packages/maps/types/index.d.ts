@@ -1,3 +1,4 @@
+import type {ThreadPage} from './board.js';
 /** Host integration contract. These types do not grant server permissions. */
 export type Collection='maps'|'templates'|'runs'|'tasks'|'rules'|'tags'|'releases'|'threads'|'taskLinks'|'taskSettings';
 export type MapKind='permanent'|'session';
@@ -13,14 +14,16 @@ export interface Session{phase:'collect'|'discuss'|'vote'|'outcomes';timer:{rema
 export interface FlowNode{id:string;kind:'input'|'transform'|'condition'|'llm'|'approval'|'task'|'output';title:string;x:number;y:number;width:number;height:number;config:Record<string,unknown>}
 export interface Flow{schema:'iquipage.flow/1';version:number;nodes:FlowNode[];edges:{id:string;source:string;target:string;when:'always'|'true'|'false'}[];annotations?:BoardDocument}
 export interface VersionedRecord{id:string;projectId:string;revision:number;[field:string]:unknown}
-export interface Capabilities{storage:'server'|'browser'|'memory';storageLabel?:string;runtimeScope?:'local-reference'|'production';collaboration:boolean;events:boolean;transactionalEvents?:boolean;llm:boolean;schedule?:boolean;webhook?:boolean;tasks?:boolean}
+export interface Capabilities{storage:'server'|'browser'|'memory';storageLabel?:string;runtimeScope?:'local-reference'|'production';collaboration:boolean;events:boolean;transactionalEvents?:boolean;llm:boolean;schedule?:boolean;webhook?:boolean;tasks?:boolean;attachments?:boolean}
 export interface Repository{
  capabilities:Capabilities;
+ context?:{workspaceId:string;actorId:string};
  list(collection:Collection,projectId:string):Promise<any[]>;
- read(collection:Collection,id:string,projectId:string):Promise<any|null>;
+ read(collection:Collection,id:string,projectId:string,options?:{signal?:AbortSignal}):Promise<any|null>;
  write(collection:Collection,value:any,baseRevision:number,options?:{signal?:AbortSignal}):Promise<any>;
- request?<T=unknown>(path:string,options?:{method?:'GET'|'POST';body?:unknown;signal?:AbortSignal}):Promise<T>;
+ request?<T=unknown>(path:string,options?:{method?:'GET'|'POST'|'PUT'|'DELETE';body?:unknown;signal?:AbortSignal}):Promise<T>;
  subscribe?(listener:(change:{collection:Collection;id:string;projectId:string;revision:number})=>void):()=>void;
+ pageThreads?(projectId:string,taskId:string,options?:{cursor?:string|null;limit?:number;signal?:AbortSignal}):Promise<ThreadPage>;
  close?():void|Promise<void>;
 }
 export interface ActionItem{title:string}
@@ -37,11 +40,11 @@ export interface MapsConfig{
  permissions:{read:boolean;edit?:boolean;run?:boolean;approve?:boolean;manageAutomation?:boolean};
  uiCapabilities?:Partial<Omit<MapsUiCapabilities,'allowedCreateTypes'>> & {allowedCreateTypes?:CreatableBoardObjectType[]};
  onOpenMap?:(target:{id:string;projectId:string})=>void;
- onOpenTasks?:(target:{ids:string[];projectId:string})=>void|Promise<void>;
+ onOpenTasks?:(target:{ids:string[];projectId:string;focusTaskId?:string})=>void|Promise<void>;
 }
 export interface MapsUiCapabilities{mapSwitcher:boolean;templates:boolean;sessions:boolean;workflow:boolean;automation:boolean;agentProposals:boolean;allowedCreateTypes:readonly CreatableBoardObjectType[]}
 export interface OpenTaskDetail{objectId:string;taskId:string}
-export interface OpenTasksDetail{ids:string[];projectId:string}
+export interface OpenTasksDetail{ids:string[];projectId:string;focusTaskId?:string}
 export interface WhiteboardChangeRequestDetail{requestId:string;baseRevision:number;reason:string;value:BoardDocument;accept(value:BoardDocument):boolean;reject(message?:string):boolean}
 export interface WhiteboardHostCommandDetail{command:string}
 export interface WhiteboardSelectionDetail{ids:string[]}

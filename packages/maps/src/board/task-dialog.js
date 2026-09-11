@@ -43,14 +43,14 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
   const el=dialog({title:task?'Задача':'Новая задача',body:content,wide:true,submitLabel:canEdit?'Сохранить задачу':'',
     onSubmit:canEdit?async(values,form)=>{
       files.assertReady();
-      if(threads?.isBusy())throw Error('Дождитесь публикации обсуждения.');saving=true;
+      if(threads?.isBusy())throw Error('Дождитесь публикации обсуждения.');saving=true;files.setLocked(true);
       try{
         const changes=read(form,values),value=current?{...current,...changes}:{...createTask({projectId:project.id,...changes}),...changes,id:taskId};
         const next=reparentTask(value,changes.parentId,tasks);
         const saved=await repository.write('tasks',next,current?.revision||0);
         current=saved;files.accepted(saved);baseline=JSON.stringify(read(form,values));await onSaved(saved);
         if(threads?.dirty()){form.querySelector('[data-task-save-state]').textContent='Задача сохранена. Черновик сообщения ещё не опубликован.';return false;}
-      }finally{saving=false;}
+      }finally{saving=false;files.setLocked(false);}
     }:undefined,
     mount:(el,form)=>{
       el.classList.add('task-edit-dialog');el.setAttribute('kind','drawer');el.setAttribute('persistent','');
