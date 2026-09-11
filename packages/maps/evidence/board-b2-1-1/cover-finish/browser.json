@@ -1,0 +1,22 @@
+{
+  "status": "PASS",
+  "checks": [
+    "removing a cover synchronizes the attachment label and pressed state immediately",
+    "two concurrent replacements respect selection order instead of response order",
+    "explicit removal wins over an earlier pending upload while preserving the attachment",
+    "choosing an existing attachment supersedes an earlier pending replacement",
+    "three rapid choices preserve the last intent when the first response arrives last",
+    "cancelling a later file chooser does not erase the accepted pending cover intent",
+    "retry keeps its stable file ID but cannot override a later explicit cover removal",
+    "removing a pending replacement prevents its late response from changing the draft or saved task",
+    "closing without saving prevents a late upload callback from changing the canonical cover",
+    "normal-motion pointer DnD preserves the selected cover and renders it in the new column",
+    "a host without an attachment adapter presents an explicit unavailable state, not endless loading",
+    "a board without an attachment adapter marks saved covers unavailable without breaking cards",
+    "a failed board thumbnail decode is recoverable after rerender and does not leave a queued marker",
+    "destroying a board prevents a late thumbnail response from mutating replacement DOM",
+    "undecodable display bytes show a recoverable state and preserve the saved cover",
+    "no JavaScript errors during cover final acceptance"
+  ],
+  "errors": []
+}

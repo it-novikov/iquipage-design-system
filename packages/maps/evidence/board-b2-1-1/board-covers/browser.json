@@ -1,0 +1,159 @@
+{
+  "status": "PASS",
+  "checks": [
+    {
+      "name": "server: optional cover adds no empty media slot",
+      "status": "PASS"
+    },
+    {
+      "name": "server: staged image and document commit once and the board cover survives reload",
+      "status": "PASS"
+    },
+    {
+      "name": "server: task cover preview and original-file download use real saved bytes",
+      "status": "PASS"
+    },
+    {
+      "name": "server: removing the cover retains both attachments",
+      "status": "PASS"
+    },
+    {
+      "name": "server: replacement preserves original attachment and authored task text",
+      "status": "PASS"
+    },
+    {
+      "name": "server: removing the selected cover attachment clears both references",
+      "status": "PASS"
+    },
+    {
+      "name": "server: invalid upload keeps the prior cover and cannot silently disappear during save",
+      "status": "PASS"
+    },
+    {
+      "name": "server: lost upload response can be retried without duplicating the attachment",
+      "status": "PASS"
+    },
+    {
+      "name": "server: a concurrent task change rejects the cover save without losing canonical data or the user draft",
+      "status": "PASS"
+    },
+    {
+      "name": "server: cancelling an in-flight upload leaves the task and previous cover unchanged",
+      "status": "PASS"
+    },
+    {
+      "name": "server: discarding an uploaded replacement retains the committed cover",
+      "status": "PASS"
+    },
+    {
+      "name": "server: moving a covered card preserves file references and mixed-height layout",
+      "status": "PASS"
+    },
+    {
+      "name": "server: cover and attachment actions remain bounded in narrow dark task view",
+      "status": "PASS"
+    },
+    {
+      "name": "server: leaving the board releases every owned object URL",
+      "status": "PASS"
+    },
+    {
+      "name": "browser: optional cover adds no empty media slot",
+      "status": "PASS"
+    },
+    {
+      "name": "browser: staged image and document commit once and the board cover survives reload",
+      "status": "PASS"
+    },
+    {
+      "name": "browser: task cover preview and original-file download use real saved bytes",
+      "status": "PASS"
+    },
+    {
+      "name": "browser: removing the cover retains both attachments",
+      "status": "PASS"
+    },
+    {
+      "name": "browser: replacement preserves original attachment and authored task text",
+      "status": "PASS"
+    },
+    {
+      "name": "browser: removing the selected cover attachment clears both references",
+      "status": "PASS"
+    },
+    {
+      "name": "browser: invalid upload keeps the prior cover and cannot silently disappear during save",
+      "status": "PASS"
+    },
+    {
+      "name": "browser: discarding an uploaded replacement retains the committed cover",
+      "status": "PASS"
+    },
+    {
+      "name": "browser: moving a covered card preserves file references and mixed-height layout",
+      "status": "PASS"
+    },
+    {
+      "name": "browser: cover and attachment actions remain bounded in narrow dark task view",
+      "status": "PASS"
+    },
+    {
+      "name": "browser: leaving the board releases every owned object URL",
+      "status": "PASS"
+    },
+    {
+      "name": "offline: optional cover adds no empty media slot",
+      "status": "PASS"
+    },
+    {
+      "name": "offline: staged image and document commit once and the board cover survives reload",
+      "status": "PASS"
+    },
+    {
+      "name": "offline: task cover preview and original-file download use real saved bytes",
+      "status": "PASS"
+    },
+    {
+      "name": "offline: removing the cover retains both attachments",
+      "status": "PASS"
+    },
+    {
+      "name": "offline: replacement preserves original attachment and authored task text",
+      "status": "PASS"
+    },
+    {
+      "name": "offline: removing the selected cover attachment clears both references",
+      "status": "PASS"
+    },
+    {
+      "name": "offline: invalid upload keeps the prior cover and cannot silently disappear during save",
+      "status": "PASS"
+    },
+    {
+      "name": "offline: discarding an uploaded replacement retains the committed cover",
+      "status": "PASS"
+    },
+    {
+      "name": "offline: moving a covered card preserves file references and mixed-height layout",
+      "status": "PASS"
+    },
+    {
+      "name": "offline: cover and attachment actions remain bounded in narrow dark task view",
+      "status": "PASS"
+    },
+    {
+      "name": "offline: leaving the board releases every owned object URL",
+      "status": "PASS"
+    },
+    {
+      "name": "offline: file-based HTML performs no HTTP requests",
+      "status": "PASS"
+    },
+    {
+      "name": "no JavaScript errors in cover or attachment workflows",
+      "status": "PASS"
+    }
+  ],
+  "errors": [],
+  "browser": "153.0.8010.12"
+}
