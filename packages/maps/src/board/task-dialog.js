@@ -1,3 +1,5 @@
+import {mountTaskFiles} from './task-files-view.js';
+import {uid} from '../common.js';
 import {mountTaskLinks} from './link-view.js';
 import {dialog,input,select,icon,esc} from '../ui.js';
 import {TASK_COLUMNS,taskColumn,createTask} from '../tasks.js';
@@ -7,14 +9,16 @@ import {mountThreads} from './thread-view.js';
 import {loadTaskSupport,mountTaskCatalogs} from './catalog-picker.js';
 import {emptyTaskSettings,instantiateTaskTemplate} from './task-templates.js';
 
-export async function openTaskDialog(task,{repository,project,tasks,canEdit=true,canManage=true,status='ready',onSaved=()=>{}}){
+export async function openTaskDialog(task,{repository,project,tasks,canEdit=true,canManage=true,attachmentAdapter=null,status='ready',onSaved=()=>{}}){
   const support=await loadTaskSupport(repository,project.id);
   const settings=support.settings||emptyTaskSettings(project.id);
   const initial=task||{...instantiateTaskTemplate(settings,'task'),type:'task',status,owner:'',title:''};
+  const taskId=task?.id||uid('task');
+  let files;
   let current=task,baseline='',saving=false,confirming=false,priorityTouched=false,checklists,catalogs,threads,links;
   let templateVersion=initial.templateVersion,lastTemplateContent=JSON.stringify({description:initial.description||'',checklists:initial.checklists||[]});
   const parents=[{value:'',label:'Без родительской задачи'},...tasks.filter(item=>item.id!==task?.id&&!item.archivedAt).map(item=>({value:item.id,label:item.title,description:item.displayId||item.id.slice(-7)}))];
-  const content=`${input('title','Название',initial.title,{required:true})}
+  const content=`<section data-task-cover></section>${input('title','Название',initial.title,{required:true})}
     <div class="task-edit-properties">
       ${select('type','Тип',initial.type||'task',Object.entries(TASK_KINDS))}
       ${select('status','Статус',task?taskColumn(task):status,TASK_COLUMNS.map(column=>[column.id,column.label]))}
@@ -25,6 +29,7 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
     <section class="task-edit-section"><div class="row between"><h3>Описание</h3>${canEdit?'<button type="button" class="iq-btn ghost sm" data-apply-template>Применить шаблон</button>':''}</div>
       <iq-markdown-editor label="Описание" name="description" variant="compact" maxlength="10000"></iq-markdown-editor></section>
     <section class="task-edit-section"><h3>Чек-листы</h3><div data-checklists></div></section>
+    <section class="task-edit-section" data-task-files></section>
     <section class="task-edit-section"><h3>Связи</h3><iq-combobox name="parent" label="В составе" value="${esc(initial.parentId||'')}" options="${esc(JSON.stringify(parents))}" placeholder="Найти родительскую задачу"></iq-combobox><div data-task-links></div></section>
     <section class="task-edit-section" data-task-threads></section><p role="status" class="iq-helper" data-task-save-state></p>`;
   const read=(form,values=new FormData(form))=>({
@@ -33,28 +38,30 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
     description:form.querySelector('iq-markdown-editor[name=description]').value,
     due:form.querySelector('iq-date-field[name=due]').value||null,
     parentId:form.querySelector('iq-combobox[name=parent]').value||null,
-    checklists:checklists.value(),...catalogs.value(),templateVersion
+    checklists:checklists.value(),...catalogs.value(),...files.value(),templateVersion
   });
   const el=dialog({title:task?'Задача':'Новая задача',body:content,wide:true,submitLabel:canEdit?'Сохранить задачу':'',
     onSubmit:canEdit?async(values,form)=>{
+      files.assertReady();
       if(threads?.isBusy())throw Error('Дождитесь публикации обсуждения.');saving=true;
       try{
-        const changes=read(form,values),value=current?{...current,...changes}:{...createTask({projectId:project.id,...changes}),...changes};
+        const changes=read(form,values),value=current?{...current,...changes}:{...createTask({projectId:project.id,...changes}),...changes,id:taskId};
         const next=reparentTask(value,changes.parentId,tasks);
         const saved=await repository.write('tasks',next,current?.revision||0);
-        current=saved;baseline=JSON.stringify(read(form,values));await onSaved(saved);
+        current=saved;files.accepted(saved);baseline=JSON.stringify(read(form,values));await onSaved(saved);
         if(threads?.dirty()){form.querySelector('[data-task-save-state]').textContent='Задача сохранена. Черновик сообщения ещё не опубликован.';return false;}
       }finally{saving=false;}
     }:undefined,
     mount:(el,form)=>{
       el.classList.add('task-edit-dialog');el.setAttribute('kind','drawer');el.setAttribute('persistent','');
       el.querySelector('dialog').classList.add('iq-drawer');
+      files=mountTaskFiles(form.querySelector('[data-task-files]'),{coverRoot:form.querySelector('[data-task-cover]'),adapter:attachmentAdapter,task:{...initial,id:taskId,projectId:project.id},readOnly:!canEdit});
       const editor=form.querySelector('iq-markdown-editor[name=description]');editor.value=initial.description||'';if(task)editor.preview();
       checklists=mountChecklists(form.querySelector('[data-checklists]'),initial.checklists||[],{readOnly:!canEdit});
       catalogs=mountTaskCatalogs(form.querySelector('[data-task-catalogs]'),{repository,project,task:initial,tags:support.tags,releases:support.releases,readOnly:!canEdit,canManage});
       if(task)links=mountTaskLinks(form.querySelector('[data-task-links]'),{repository,project,task,tasks,readOnly:!canEdit,onOpenTask:async id=>{
         const target=await repository.read('tasks',id,project.id);if(!target)throw Error('Задача недоступна.');
-        await openTaskDialog(target,{repository,project,tasks,canEdit,canManage,onSaved});
+        await openTaskDialog(target,{repository,project,tasks,canEdit,canManage,attachmentAdapter,onSaved});
       }});
       if(task)threads=mountThreads(form.querySelector('[data-task-threads]'),{repository,task,readOnly:!canEdit});
       else form.querySelector('[data-task-threads]').innerHTML='<p class="iq-helper">Обсуждения появятся после первого сохранения задачи.</p>';
@@ -76,7 +83,7 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
         title:'Применить шаблон типа?',description:'Описание и чек-листы будут заменены шаблоном. Остальные свойства останутся прежними.',
         submitLabel:'Применить',onSubmit:async()=>applyTemplate()
       }));
-      const dirty=()=>canEdit&&(JSON.stringify(read(form))!==baseline||threads?.dirty());
+      const dirty=()=>canEdit&&(JSON.stringify(read(form))!==baseline||files.dirty()||threads?.dirty());
       function close(){
         if(saving||confirming||threads?.isBusy())return;
         if(!dirty()){el.close();return;}
@@ -101,7 +108,7 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
       };
       window.addEventListener('beforeunload',unload);
       el.addEventListener('iq-close',()=>{
-        window.removeEventListener('beforeunload',unload);checklists.destroy();catalogs.destroy();threads?.destroy();links?.destroy();
+        window.removeEventListener('beforeunload',unload);files.destroy();checklists.destroy();catalogs.destroy();threads?.destroy();links?.destroy();
       },{once:true});
       baseline=JSON.stringify(read(form));
       if(!canEdit)form.querySelectorAll('input,iq-select,iq-combobox,iq-date-field,iq-markdown-editor').forEach(node=>node.setAttribute('disabled',''));

@@ -3,6 +3,8 @@ import {readFile,stat,mkdir,open,unlink,rename} from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {FileRepository} from './file-repository.mjs';
+import {FileAttachmentStore} from './attachment-store.mjs';
+import {attachmentRoutes} from './attachment-http.mjs';
 import {OutboxWorker} from './outbox.mjs';
 import {WorkflowRuntime,localTasksAdapter} from '../src/runtime.js';
 import {EventService,verifyWebhook} from './event-service.mjs';
@@ -19,6 +21,8 @@ try{const prior=JSON.parse(await readFile(lockPath,'utf8'));try{process.kill(pri
 catch(e){if(e.code!=='ENOENT')throw e;}
 const lock=await open(lockPath,'wx',0o600);await lock.writeFile(JSON.stringify({pid:process.pid,startedAt:new Date().toISOString()}));await lock.close();
 const repository=await new FileRepository(directory).init();
+const attachmentStore=await new FileAttachmentStore(repository).init();
+const routeAttachments=attachmentRoutes(attachmentStore);
 const adapters={createTasks:localTasksAdapter(repository)};
 const gateway=process.env.MAPS_LLM_GATEWAY;
 if(gateway){
@@ -31,7 +35,7 @@ if(gateway){
 const runtime=new WorkflowRuntime(repository,adapters),events=new EventService(repository,runtime);
 for(const run of [...repository.data.runs.values()])if(['running','queued'].includes(run.status)){run.status='interrupted';run.error={code:'RESTART',message:'Стенд перезапущен. Проверьте журнал перед повтором.'};await repository.write('runs',run,run.revision);}
 const outbox=new OutboxWorker(repository,events);
-const capabilities={transactionalEvents:true,storage:'server',runtimeScope:'local-reference',collaboration:false,events:true,schedule:true,webhook:!!process.env.MAPS_WEBHOOK_SECRET,llm:!!gateway,tasks:true,identity:'reference-user',warning:'Локальный стенд. Это не production API Sprintique.'};
+const capabilities={attachments:true,transactionalEvents:true,storage:'server',runtimeScope:'local-reference',collaboration:false,events:true,schedule:true,webhook:!!process.env.MAPS_WEBHOOK_SECRET,llm:!!gateway,tasks:true,identity:'reference-user',warning:'Локальный стенд. Это не production API Sprintique.'};
 const send=(res,status,value)=>{res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'});res.end(JSON.stringify(value));};
 async function readBody(req){
   let size=0,parts=[];for await(const part of req){size+=part.length;requireValue(size<=16*1024*1024,'BODY_LIMIT','Запрос превышает 16 МБ.');parts.push(part);}return Buffer.concat(parts).toString('utf8');
@@ -53,6 +57,7 @@ const server=http.createServer(async(req,res)=>{
     if(parts[0]==='api'){
       if(req.method==='OPTIONS')throw new DomainError('CSRF','Cross-origin запросы не поддерживаются.');
       if(parts[1]==='capabilities'&&req.method==='GET')return send(res,200,capabilities);
+      if(await routeAttachments(req,res,url,parts,send))return;
       if(parts[1]==='event-deliveries'&&req.method==='GET'){
         const projectId=url.searchParams.get('projectId');requireValue(validId(projectId),'INVALID_PROJECT','Не задан проект.');
         const mapId=url.searchParams.get('mapId');
@@ -72,7 +77,7 @@ const server=http.createServer(async(req,res)=>{
       }
       if(parts[1]==='records'){
         const collection=parts[2],id=parts[3],projectId=url.searchParams.get('projectId');
-        requireValue(COLLECTIONS.includes(collection),'NOT_FOUND','Коллекция не найдена.');
+        requireValue(COLLECTIONS.includes(collection)&&collection!=='attachments','NOT_FOUND','Коллекция не найдена.');
         if(req.method==='GET'){
           requireValue(validId(projectId),'INVALID_PROJECT','Не задан проект.');
           return send(res,200,id?await repository.read(collection,id,projectId):await repository.list(collection,projectId));

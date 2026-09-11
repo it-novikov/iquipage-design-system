@@ -1,3 +1,5 @@
+import {BrowserAttachmentAdapter} from '/src/board/attachment-idb.js';
+import {HttpAttachmentAdapter} from '/src/board/attachment-http.js';
 import {mountProjectTaskSettings} from '/src/board/project-settings.js';
 import {mountTaskBoard} from './task-board.js';
 import {installNavigation,renderLanding} from './navigation.js';
@@ -21,6 +23,8 @@ else await startWorkspace();
 async function startWorkspace(){
   const repository=browser?new BrowserRepository('iquipage-maps-local'):new HttpRepository('/api');
   if(!browser)await repository.refreshCapabilities();
+  const attachmentAdapter=browser?new BrowserAttachmentAdapter(repository):repository.capabilities.attachments?new HttpAttachmentAdapter(repository.baseURL):null;
+  if(browser)await attachmentAdapter.collect();
   const runtime=browser?new WorkflowRuntime(repository,{createTasks:localTasksAdapter(repository)}):new HttpRuntime(repository);
   const context={workspaceId:'local-workspace',actorId:repository.capabilities.actorId||'local-user'};
   if(!(await repository.list('maps',project.id)).length){
@@ -44,7 +48,7 @@ async function startWorkspace(){
     if(location.hash!=='#'+section)history.replaceState(null,'','#'+section);
     if(section==='maps')return;
     if(section==='tasks'){
-      const board=await mountTaskBoard(hostView,{repository,project,canManageCatalogs:true,viewState:boardState,onOpenMap:async id=>{await feature.openMap(id);await go('maps');}});
+      const board=await mountTaskBoard(hostView,{repository,project,attachmentAdapter,canManageCatalogs:true,viewState:boardState,onOpenMap:async id=>{await feature.openMap(id);await go('maps');}});
       if(generation!==navigationGeneration){board.destroy();return;}taskBoard=board;
     }else if(['settings/tags','settings/releases','settings/templates'].includes(section)){
       const mounted=await mountProjectTaskSettings(hostView,{repository,project,section:section.split('/')[1],onBack:()=>go('settings')});

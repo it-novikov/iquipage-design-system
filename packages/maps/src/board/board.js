@@ -1,3 +1,4 @@
+import {createCoverLoader} from './cover-loader.js';
 import {mountBoardFilters} from './filter-view.js';
 import {normalizeBoardFilters,hasBoardFilters,taskMatchesFilters} from './filters.js';
 import {bindBoard,registerCore} from '../../dist/vendor/core.js';
@@ -7,8 +8,9 @@ import {BOARD_SORTS,boardComparator,projectColumn} from './model.js';
 import {renderTaskCard} from './card.js';
 import {openTaskDialog} from './task-dialog.js';
 /** Host adapter: canonical records stay in the repository; this module projects the board. */
-export async function mountTaskBoard(root,{repository,project,canEdit=true,canManageCatalogs=false,viewState={}}){
+export async function mountTaskBoard(root,{repository,project,canEdit=true,canManageCatalogs=false,attachmentAdapter=null,viewState={}}){
   registerCore();root.classList.add('iq-task-board-root');let catalogs={tags:[],releases:[]};let items=[],disposeBoard,closed=false,loading=0,dragging=false,queued=false,activeDialog=null,openingTask=false,dragIntent=null;
+  const covers=createCoverLoader(attachmentAdapter,project.id);
   const pending=new Set(),abort=new AbortController(),signal=abort.signal;
   const key=`sprintique-board:${project.id}:${repository.context?.actorId||'local-user'}`;
   try{Object.assign(viewState,JSON.parse(localStorage.getItem(key)||'{}'),viewState);}catch{}
@@ -38,7 +40,7 @@ export async function mountTaskBoard(root,{repository,project,canEdit=true,canMa
       const p=projection(c.id),count=filtering()?`${p.matched}/${p.total}`:String(p.total);
       return `<section class="kanban-column" data-drop-status="${c.id}" aria-label="${c.label}"><div class="kanban-column-header">${icon(c.icon,18)}<h3>${c.label}</h3><span class="kanban-count" aria-label="${p.matched} задач из ${p.total}">${count}</span></div><div class="column-cards" data-column-cards>${p.rows.map(row=>renderTaskCard(row,{index:p.index,canEdit,pending:pending.has(row.task.id),collapsed:collapsed.has(row.task.id)&&!filtering(),catalogs})).join('')}${empty()}</div>${canEdit?`<button type="button" class="iq-btn ghost sm host-column-add" data-column-create="${c.id}">${icon('plus',16)}<span>Добавить задачу</span></button>`:''}</section>`;
     }).join('')}</div>`;
-    const board=mount.querySelector('.iq-board');board.scrollLeft=viewState.x||0;board.scrollTop=viewState.y||0;
+    const board=mount.querySelector('.iq-board');covers.mount(board);board.scrollLeft=viewState.x||0;board.scrollTop=viewState.y||0;
     if(canEdit)disposeBoard=bindBoard(board,({id,status,beforeId})=>move(id,status,beforeId),{resolvePlacement,canDrag:({id})=>!pending.has(id),onDragStateChange:active=>{dragging=active;if(!active&&queued)setTimeout(()=>reload(),0);}});
     if(focusId)board.querySelector(`[data-drag-id="${CSS.escape(focusId)}"] [data-drag-handle]`)?.focus({preventScroll:true});
   }
@@ -87,7 +89,7 @@ export async function mountTaskBoard(root,{repository,project,canEdit=true,canMa
     if(openingTask||activeDialog||closed)return;
     openingTask=true;
     try{
-    activeDialog=await openTaskDialog(task,{repository,project,tasks:items,canEdit,canManage:canManageCatalogs,status,onSaved:async saved=>{loading++;items=items.some(t=>t.id===saved.id)?items.map(t=>t.id===saved.id?saved:t):[...items,saved];render();await reload();}});
+    activeDialog=await openTaskDialog(task,{repository,project,tasks:items,canEdit,canManage:canManageCatalogs,attachmentAdapter,status,onSaved:async saved=>{loading++;items=items.some(t=>t.id===saved.id)?items.map(t=>t.id===saved.id?saved:t):[...items,saved];render();await reload();}});
     if(closed){activeDialog.close(true);return;}
     const opened=activeDialog;opened.addEventListener('iq-close',()=>{if(activeDialog===opened)activeDialog=null;},{once:true});
     }catch(cause){if(!closed)fail(cause);}finally{openingTask=false;}
@@ -114,6 +116,6 @@ export async function mountTaskBoard(root,{repository,project,canEdit=true,canMa
   await reload();
   return {reload,readyToLeave:async()=>!openingTask&&!activeDialog&&!pending.size,destroy(){
     const board=mount.querySelector('.iq-board');if(board){viewState.x=board.scrollLeft;viewState.y=board.scrollTop;}
-    persist();if(root.firstElementChild===ownedPage)root.classList.remove('iq-task-board-root');closed=true;loading++;cancelAnimationFrame(searchFrame);abort.abort();filters.destroy();unsubscribe?.();disposeBoard?.();
+    persist();if(root.firstElementChild===ownedPage)root.classList.remove('iq-task-board-root');closed=true;loading++;cancelAnimationFrame(searchFrame);abort.abort();covers.destroy();filters.destroy();unsubscribe?.();disposeBoard?.();
   }};
 }
