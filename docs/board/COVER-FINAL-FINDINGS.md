@@ -41,6 +41,10 @@ latest.png, затем earlier.png. Интерфейс оставляет earlie
 Targeted `browser-cover-finish.mjs`: 16/16 PASS. Полный `npm run verify` также
 прошёл до подготовки release metadata: 167 Node и 129 browser-сценариев.
 
+Финальный повтор на Node v22.23.2: build, preview, 167 Node-тестов,
+129 browser-сценариев и offline — PASS. Проверенный commit `b622050`,
+fingerprint `657b89ca96f7e55ae88477129e4684a889cea9f6e4f3e2279da1c629f5be50a4`.
+
 ## Историческое ограничение внесения исправления
 Два идентичных запроса исправления гонки и состояний отображения отклонены
 инструментом с неопределённым статусом безопасности. Они не применены.
