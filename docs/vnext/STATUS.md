@@ -8,7 +8,7 @@ The engineering audit identified 18 findings across domain consistency, hierarch
 
 Final local engineering gates: **209 DS + 135 product + 135 detached tests, zero failures/skips**, on both native and Docker PostgreSQL with real private S3. Source-stability, standalone library install/build, product typecheck/build, public boundaries and detached extraction pass. Fingerprint: `49b51558edd01bcdc99eaac9a863bfc6f8e8836ad8cf236644f1f2a47c27a2a6`. Consumed DS tar SHA is unchanged. The final non-root/read-only container and targeted real-API Chromium scenarios pass; coverage limits remain explicit.
 
-The single deep-security coordinator is still running at this checkpoint. No final security verdict or remote CI result is claimed. This checkpoint supersedes R3's test counts and authorization statement, not its historical evidence. Full-platform-ready remains false.
+The single deep-security coordinator is still running at this checkpoint. [PR #4](https://github.com/it-novikov/iquipage-design-system/pull/4) is a draft; [GitHub CI on Ubuntu 24.04](https://github.com/it-novikov/iquipage-design-system/actions/runs/34694446823) passed for engineering commit `d597bb7e17d8a0eded9f0b26eb21635875f50747`, with the same downloaded source fingerprint and DS hash. No final security verdict is claimed. This checkpoint supersedes R3's test counts and authorization statement, not its historical evidence. Full-platform-ready remains false.
 
 ## Historical R3 status — 2026-09-12
 

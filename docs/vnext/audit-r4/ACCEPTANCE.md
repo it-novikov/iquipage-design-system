@@ -16,6 +16,7 @@
 | Docker PostgreSQL + real private S3 |209 DS,135 product,135 detached,0failed/0skipped | `2026-09-12T12-30-32.505Z`, включая последнее исправление FE-R4-09 |
 | Strict build/public boundaries |PASS в обоих прогонах | Library build, product typecheck/Vite/server/OpenAPI, detached clean npm ci/build |
 | Source stability |PASS в обоих прогонах | Before=after fingerprint, включая HTML source и точные lockfiles |
+| GitHub CI / Ubuntu 24.04 |PASS: 209 DS, 135 product, 135 detached; runtime image build | [Run 34694446823](https://github.com/it-novikov/iquipage-design-system/actions/runs/34694446823), engineering commit `d597bb7e17d8a0eded9f0b26eb21635875f50747`; проверенные downloaded artifacts содержат тот же fingerprint и DS hash |
 | Harness regressions |PASS | Ошибка spawn, ненулевой exit, signal exit и graceful0 после forwarded SIGINT/SIGTERM не маскируются |
 
 Логи лежат в игнорируемом `products/sprintique/output/verification/<timestamp>/`; безопасные отчёты включаются в комплект поставки. Схема2 инвентаризации отделяет реальные входные шаблоны/модули от проверенных генерируемых HTML/иконок DS. Drift fence — защита от случайного изменения исходников во время проверки, не криптографическая аттестация недоверенной машины или изменяемого окружения.
@@ -50,6 +51,6 @@ Native Safari/Firefox/physical touch, все комбинации ролей/т�
 
 Глубокий security workflow: RUNNING. Его единственный coordinator запущен на неизменённом baseline; отсутствие доступного итогового отчёта не трактуется как чистая security-проверка. Окончательный статус должен быть обновлён перед передачей результата.
 
-Предварительный secret/delivery check 12:35 UTC: 470 новых/изменённых файлов относительно main, 142 DS archive members, 8 известных приватных QA-значений; совпадений, приватных ключей и запрещённых путей не найдено. Проверка не заменяет анализ неизвестных секретов или полноценный vulnerability scan. Приватные cookie/infra/backup файлы в Git не добавляются.
+Предварительный secret/delivery check 12:41 UTC: 471 новый/изменённый файл относительно main, 142 DS archive members, 8 известных приватных QA-значений; совпадений, приватных ключей и запрещённых путей не найдено. Проверка не заменяет анализ неизвестных секретов или полноценный vulnerability scan. Приватные cookie/infra/backup файлы в Git не добавляются.
 
-Remote PR/CI: ещё не выполнены на этом checkpoint. Merge, deployment, старые данные, публичная npm-публикация: не выполняются. Full-platform-ready=false.
+[PR #4](https://github.com/it-novikov/iquipage-design-system/pull/4) создан как Draft; GitHub CI успешно завершён 12:46:37 UTC. Его артефакты скачаны и сверены с локальным source fingerprint. Ветка PR #3 не изменена. До результата глубокого security workflow PR не отмечается готовым. Merge, deployment, старые данные, публичная npm-публикация: не выполняются. Full-platform-ready=false.

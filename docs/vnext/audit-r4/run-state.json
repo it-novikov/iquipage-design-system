@@ -17,10 +17,11 @@
     "targeted_chromium_real_api": "pass",
     "full_browser_accessibility_matrix": "not-run",
     "security_workflow": "running",
-    "remote_ci": "not-run"
+    "remote_ci": {"status": "pass", "url": "https://github.com/it-novikov/iquipage-design-system/actions/runs/34694446823", "head_sha": "d597bb7e17d8a0eded9f0b26eb21635875f50747", "downloaded_fingerprint_matches": true}
   },
   "report": "README.md",
   "acceptance": "ACCEPTANCE.md",
+  "pull_request": {"url": "https://github.com/it-novikov/iquipage-design-system/pull/4", "draft": true, "reason": "deep security workflow still running"},
   "authorization": {"audit_and_fixes": true, "new_github_pr": true, "merge": false, "deployment": false, "production_data_changes": false, "registry_publication": false},
   "full_platform_ready": false
 }
