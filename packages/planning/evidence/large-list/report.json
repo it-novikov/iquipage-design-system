@@ -10,9 +10,9 @@
   ],
   "metrics": {
     "loaded": 10000,
-    "rendered": 10,
+    "rendered": 18,
     "scroll": {
-      "p95FrameIntervalMs": 16.799999999999727,
+      "p95FrameIntervalMs": 16.799999999999272,
       "samples": 89,
       "environment": "headless Chromium; not a device FPS guarantee"
     }

@@ -1,0 +1,13 @@
+{
+  "status": "PASS",
+  "scope": "actual map component with isolated delayed adapters",
+  "checks": [
+    "Late external refresh cannot replace another open map, even when the adapter ignores abort",
+    "The last requested map wins when open-map responses arrive out of order",
+    "A completed metadata write returns its result without taking over a different map",
+    "Concurrent refreshes of the same map keep the highest confirmed revision",
+    "An obsolete open-map error does not fail or replace the newer successful navigation",
+    "A destroyed map cannot modify the next screen when a pending read resolves"
+  ],
+  "errors": []
+}

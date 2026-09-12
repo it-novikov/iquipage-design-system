@@ -1,0 +1,9 @@
+{
+  "status": "PASS_PACKAGE_INTEGRITY",
+  "scope": "local UX R3 fixture and sources",
+  "files": 1038,
+  "manifestEntries": 1037,
+  "archiveSha256": "60d52295c5a7dac13e49e33267736d6f04ed15953cef76a03d2b98b9b2eee7ff",
+  "backendIntegrated": false,
+  "productReady": false
+}

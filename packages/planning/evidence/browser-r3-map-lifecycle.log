@@ -1,0 +1,6 @@
+PASS Late external refresh cannot replace another open map, even when the adapter ignores abort
+PASS The last requested map wins when open-map responses arrive out of order
+PASS A completed metadata write returns its result without taking over a different map
+PASS Concurrent refreshes of the same map keep the highest confirmed revision
+PASS An obsolete open-map error does not fail or replace the newer successful navigation
+PASS A destroyed map cannot modify the next screen when a pending read resolves

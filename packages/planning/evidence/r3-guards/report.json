@@ -1,0 +1,13 @@
+{
+  "status": "PASS",
+  "scope": "public UI contracts with local fixtures",
+  "checks": [
+    "Public navigation theme button invokes the host callback once",
+    "Invalid context response keeps the original project and offers an explicit error",
+    "Pending context switch rejects teardown; host cancellation retains the original context",
+    "Disposed navigation ignores late context updates and has no retained UI",
+    "Committed field change survives a failed readback and does not block leaving the view",
+    "Definitive rejection during receipt recovery shows the server reason without changing data"
+  ],
+  "errors": []
+}

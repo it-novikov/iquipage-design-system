@@ -1,15 +1,15 @@
 {
-  "stage": "frontend-r1",
+  "stage": "ux-r3",
   "status": "PASS",
   "scope": "consumer-view-and-local-fixture",
-  "startedAt": "2026-09-12T08:54:42.479Z",
-  "finishedAt": "2026-09-12T08:55:26.587Z",
-  "sourceCommit": "7090d2a9bd23ecbcddfead1ec74b87cc511ed4fb",
-  "sourceFingerprint": "c2d57505f4ea095aff4aa1e8793b3cb22f16754c74e8c685e0828fdfc8a893c1",
-  "node": "v24.20.0",
-  "nodeTests": 39,
+  "startedAt": "2026-09-12T19:40:19.011Z",
+  "finishedAt": "2026-09-12T19:41:10.733Z",
+  "sourceCommit": "ea9db0837efbff3db01ab23b15dba0dfffbb920b",
+  "sourceFingerprint": "1c830a08daaba66cbd2333e8db986c820460eb2a61a72e54251887aeb83857c6",
+  "node": "v26.0.0",
+  "nodeTests": 43,
   "baseNodeTests": 173,
-  "browserScenarios": 40,
+  "browserScenarios": 63,
   "checks": [
     {
       "name": "pinned-ds-integrity",
@@ -87,6 +87,18 @@
     {
       "name": "browser-large-list",
       "exitCode": 0
+    },
+    {
+      "name": "browser-experience-r3",
+      "exitCode": 0
+    },
+    {
+      "name": "browser-r3-guards",
+      "exitCode": 0
+    },
+    {
+      "name": "browser-r3-map-lifecycle",
+      "exitCode": 0
     }
   ],
   "backendIntegrated": false,
@@ -102,9 +114,9 @@
   ],
   "offline": {
     "scope": "fixture-only",
-    "moduleCount": 118,
-    "htmlBytes": 3738436,
-    "sha256": "01a9fba9d10efdc733e02393cb51854ef9ada1e45a2e34181a026eca71094b14"
+    "moduleCount": 121,
+    "htmlBytes": 3775984,
+    "sha256": "dfc4147bdb04e381941d5c0a42f8fdea0df7b97752bb393d71b32c841a36bf72"
   },
   "dsCandidate": {
     "version": "0.6.0-board.7",
@@ -112,7 +124,7 @@
     "baseManifest": "f252a499e00d7bab6088640126a406075a86bf109e673a257a002d8e90e9195c",
     "focusPolicySha256": "f713e4733cf84e490bbe876da557b979776669828e19f1659c9e17fef96b9115",
     "cssSha256": "5bc527e4e069954f55df78c9aad179877d5bacca5df6527a1378127514bfd51c",
-    "extensionSha256": "55316745a0d2ef503621a5ed5d964fbf41fdc87fbaea4e556c59e866c714f644",
+    "extensionSha256": "98211cc6f2b5a62588bd5d8cdb1f167a86a905241834a9b3690769eaa7e47fda",
     "boardExtensionSha256": "4e1adf9a22c7d8d10272d798a67353dd7e5a4df6ee2d4cd9bef116557510e326",
     "editorExtensionSha256": "da605aa618a569574fe954f9e2c719ae6cb9c112729c043099097cf8b66bec58",
     "editorPreviewSha256": "dddbbd8f77f55e1911fad29da281417e1e312fd2457854608170712cf5053bf7",
