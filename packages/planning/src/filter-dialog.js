@@ -11,7 +11,7 @@ export function filterDialog({adapter,projectId,filters,onApply,onClose}) {
     +ui.select('Совпадение тегов',[{value:'any',label:'Хотя бы один выбранный'},{value:'all',label:'Все выбранные'}],`data-tag-mode value="${esc(filters.tagMode||'any')}"`)
     +'<p class="iq-helper">Между разными условиями действует «И». Пустое значение не ограничивает результат.</p>'
     +ui.btn('Сбросить эти условия','ghost sm','refresh','data-filter-reset');
-  return formDialog({title:'Условия списка',body,submitLabel:'Применить',
+  return formDialog({title:'Фильтры',body,submitLabel:'Применить',
     submit:async form=>{await onApply({owner:form.querySelector('[data-filter-owner]').value||'',releaseId:form.querySelector('[data-filter-release]').value||'',tagIds:[...tags.keys()],tagMode:form.querySelector('[data-tag-mode]').value||'any'});},
     onMount:form=>{
       const owner=form.querySelector('[data-filter-owner]'),release=form.querySelector('[data-filter-release]'),tag=form.querySelector('[data-filter-tag]');

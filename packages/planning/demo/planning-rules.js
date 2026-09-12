@@ -153,18 +153,18 @@ export function planChange(snapshot, intent, {projectId, now = new Date().toISOS
     const v=intent.values||{},dates=interval(v.start,v.end);date(v.deadline);
     if(intent.entityKind==='release'){const r=releaseById(intent.entityId);assert(['planned','active'].includes(phase(r)),'Исторический план неизменяем.');if(r.planningFormat==='timeboxed'&&phase(r)==='active')assert(dates.start&&dates.end,'Активному спринту нужны даты.');Object.assign(r,{planningStart:dates.start,targetDate:dates.end,...(Object.hasOwn(v,'deadline')?{deadline:v.deadline||null}:{})});updates.push({label:r.name,description:'Изменить интервал релиза, не меняя даты задач'});}
     else if(intent.entityKind==='task'){const t=taskById.get(intent.entityId);assert(t&&!terminal(t)&&!t.archivedAt,'Задача недоступна для изменения плана.');Object.assign(t,{planningStart:dates.start,planningEnd:dates.end,...(Object.hasOwn(v,'deadline')?{due:v.deadline||null}:{})});describe(t,'Изменить плановый интервал; дедлайн сохраняется, если не изменён явно');}
-    else {const m=snapshot._pnFixture.find(x=>x.id===intent.entityId&&x.kind==='milestone');assert(m,'Веха недоступна.');if(m.releaseId)assert(['planned','active'].includes(phase(releaseById(m.releaseId))),'Веха закрытого релиза неизменяема.');assert(dates.start,'Для вехи нужна дата.');meta.push({...m,date:dates.start,revision:m.revision+1});}
+    else {const m=snapshot._pnFixture.find(x=>x.id===intent.entityId&&x.kind==='milestone');assert(m,'Событие недоступно.');if(m.releaseId)assert(['planned','active'].includes(phase(releaseById(m.releaseId))),'Событие закрытого релиза неизменяемо.');assert(dates.start,'Для события нужна дата.');meta.push({...m,date:dates.start,revision:m.revision+1});}
     summary='Сохранить календарное изменение. Соседние задачи не перепланируются автоматически.';
   } else if(intent.kind==='shiftDates') {
     const r=releaseById(intent.groupId);assert(['planned','active'].includes(phase(r)),'Закрытый план неизменяем.');assert(Number.isSafeInteger(intent.days)&&Math.abs(intent.days)<=3660,'Некорректное смещение.');
     for(const task of tasks)if(before.get(task.id)===r.id&&!terminal(task)&&!task.archivedAt&&task.planningStart&&task.planningEnd){task.planningStart=addDays(task.planningStart,intent.days);task.planningEnd=addDays(task.planningEnd,intent.days);describe(task,'Сдвинуть план на '+intent.days+' дн. Дедлайн не изменится.');}
     summary='Сдвинуть только заданные интервалы открытых задач. Работа без дат и принятые результаты остаются как есть.';
   } else if(intent.kind==='milestone') {
-    const v=intent.values||{},title=String(v.title||'').trim();assert(title&&title.length<=240,'Введите название вехи.');assert(validDate(v.date),'Укажите дату вехи.');if(v.releaseId)target(v.releaseId);
-    const id=intent.entityId||'pn-milestone-'+newId(),old=snapshot._pnFixture.find(x=>x.id===id);assert(!intent.entityId||old?.kind==='milestone','Веха недоступна.');
-    meta.push({id,kind:'milestone',projectId,title,date:v.date,releaseId:v.releaseId||null,revision:(old?.revision||0)+1});summary='Сохранить веху. Она не создаёт новую задачу и не публикует продукт.';
+    const v=intent.values||{},title=String(v.title||'').trim();assert(title&&title.length<=240,'Введите название события.');assert(validDate(v.date),'Укажите дату события.');if(v.releaseId)target(v.releaseId);
+    const id=intent.entityId||'pn-milestone-'+newId(),old=snapshot._pnFixture.find(x=>x.id===id);assert(!intent.entityId||old?.kind==='milestone','Событие недоступно.');
+    meta.push({id,kind:'milestone',projectId,title,date:v.date,releaseId:v.releaseId||null,revision:(old?.revision||0)+1});summary='Сохранить событие. Оно не создаёт новую задачу и не публикует продукт.';
   } else if(intent.kind==='removeMilestone') {
-    const old=snapshot._pnFixture.find(x=>x.id===intent.entityId&&x.kind==='milestone');assert(old,'Веха недоступна.');if(old.releaseId)target(old.releaseId);meta.push({...old,removed:true,revision:old.revision+1});summary='Убрать веху из текущего плана; сохранить историю.';
+    const old=snapshot._pnFixture.find(x=>x.id===intent.entityId&&x.kind==='milestone');assert(old,'Событие недоступно.');if(old.releaseId)target(old.releaseId);meta.push({...old,removed:true,revision:old.revision+1});summary='Убрать событие из текущего плана; сохранить историю.';
   } else if(intent.kind==='temporal') {
     const v=intent.values||{},from=taskById.get(v.fromId),to=taskById.get(v.toId);
     assert(from&&to&&from.id!==to.id,'Выберите две разные задачи.');assert(!terminal(from)&&!terminal(to),'Принятые результаты защищены.');

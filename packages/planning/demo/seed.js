@@ -1,7 +1,7 @@
 import {createTask} from '../../maps/src/tasks.js';
 import {createMap} from '../../maps/src/model.js';
-import {project} from './fixture-projection.js';
-export async function seed(repository){
+import {project as defaultProject} from './fixture-projection.js';
+export async function seed(repository,project=defaultProject){
   const s=await repository.fixtureSnapshot();if(s._pnFixture.some(x=>x.id==='seeded'))return;
   const releases=[{id:'pn-release-current',name:'Первая публичная версия',planningPhase:'active',targetDate:'2026-09-30'},{id:'pn-release-next',name:'Командная работа',planningPhase:'planned',targetDate:'2026-10-16'},{id:'pn-release-later',name:'Что сделаем дальше',planningPhase:'planned',targetDate:null}];
   for(const r of releases)await repository.write('releases',{...r,projectId:project.id,status:'planned',planningFormat:'flexible',planningStart:r.targetDate?'2026-09-14':null,revision:0},0);

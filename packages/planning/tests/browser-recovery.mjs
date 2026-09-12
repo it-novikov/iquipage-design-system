@@ -10,7 +10,7 @@ page.on('pageerror',e=>errors.push(e.message));
 try {
   await page.goto(server.url+'/?fixture=recovery-'+crypto.randomUUID());
   await page.locator('[data-select]').first().waitFor();
-  await page.getByRole('button',{name:'По времени',exact:true}).click();
+  await page.getByRole('button',{name:'Сроки',exact:true}).click();
   const map=page.locator('iq-roadmap');await map.locator('[data-rm-select]').first().waitFor();
   await map.locator('[data-rm-select="release:pn-release-current"]').first().click();
   await map.getByRole('button',{name:'На день позже',exact:true}).click();

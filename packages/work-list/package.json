@@ -8,12 +8,14 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
-    "./styles.css": "./src/work-list.css"
+    "./styles.css": "./src/work-list.css",
+    "./compact.css": "./src/compact-work.css"
   },
   "files": [
     "dist",
     "src/work-list.css",
-    "README.md"
+    "README.md",
+    "src/compact-work.css"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",

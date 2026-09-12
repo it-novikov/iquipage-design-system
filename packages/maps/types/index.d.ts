@@ -35,6 +35,8 @@ export interface Runtime{
  retry(id:string,projectId:string):Promise<Run>;
 }
 export interface MapsConfig{
+ /** Direct inline content editing by default. Properties mode is explicit legacy opt-in. */
+ canvasEditing?:'direct'|'properties';
  project:{id:string;name?:string};repository:Repository;runtime?:Runtime;mapId?:string;storageLabel?:string;
  context?:{workspaceId:string;actorId:string};
  permissions:{read:boolean;edit?:boolean;run?:boolean;approve?:boolean;manageAutomation?:boolean};
@@ -58,6 +60,8 @@ export interface MapsElementEventMap{'iq-open-tasks':CustomEvent<OpenTasksDetail
 export interface IqWhiteboardElement extends HTMLElement{
  data:BoardDocument;readonly draftData:BoardDocument;allowedCreateTypes:CreatableBoardObjectType[];
  controlled:boolean;readOnly:boolean;readonly dirty:boolean;readonly saving:boolean;
+ editorMode:'inline'|'host';
+ command(id:'edit'|'quick-note'|'bulk'|'search'|'frames'|'menu'|'undo'|'redo'|'image'|'connect-form'|'export'|'export-summary'|'library-toggle'|'help'|'templates'|'session'):void;
  applyDocument(value:BoardDocument,baseRevision:number,reason?:string):boolean;
  addEventListener<K extends keyof WhiteboardElementEventMap>(type:K,listener:(this:IqWhiteboardElement,event:WhiteboardElementEventMap[K])=>void,options?:boolean|AddEventListenerOptions):void;
 }

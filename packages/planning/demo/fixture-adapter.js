@@ -1,7 +1,7 @@
 /** Isolated fixture implementing the consumer port. Never exported as a backend. */
-import {project,revision,revisionInput,memberships,summaries,rows,page,PROTOCOL} from './fixture-projection.js';
+import {project as defaultProject,revision,revisionInput,memberships,summaries,rows,page,PROTOCOL} from './fixture-projection.js';
 import {planChange, releaseOverview, descendants} from './planning-rules.js';
-export function createFixtureAdapter(repository){
+export function createFixtureAdapter(repository,{project=defaultProject}={}){
   const port={fixture:true,calls:[],loseNextAck:false,failNextRead:false,readDelay:0};
   const plans=new Map(),selections=new Map();
   const guard=async({projectId,signal})=>{if(projectId!==project.id)throw Error('Проект недоступен.');if(port.readDelay)await new Promise(r=>setTimeout(r,port.readDelay));signal?.throwIfAborted();};

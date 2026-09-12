@@ -2,9 +2,9 @@
  * This is not the vNext API, ACL or production repository. No connection to a server. */
 import {BrowserRepository} from '../../maps/src/repository.js';
 import {COLLECTIONS,prepareWrite} from '../../maps/src/model.js';
-export function fixtureRepository(namespace) {
+export function fixtureRepository(namespace,{workspaceId='pn2-fixture-space',projectId='pn-project'}={}) {
   const repository=Object.create(BrowserRepository.prototype);
-  repository.context={workspaceId:'pn2-fixture-space',actorId:'pn2-fixture-user'};
+  repository.context={workspaceId,actorId:'pn2-fixture-user'};
   repository.listeners=new Set();repository.channel=null;
   repository.capabilities={storage:'browser-fixture',collaboration:false,events:false,llm:false};
   repository.ready=new Promise((resolve,reject)=>{
@@ -39,7 +39,7 @@ export function fixtureRepository(namespace) {
           tx.objectStore(collection).put(next);snapshot[collection]=[...snapshot[collection].filter(item=>item.id!==next.id),next];return next;
         });}catch(error){cause=error;tx.abort();}
       };}
-      tx.oncomplete=()=>{repository.listeners.forEach(fn=>fn({collection:'tasks',projectId:'pn-project'}));resolve(result);};
+      tx.oncomplete=()=>{repository.listeners.forEach(fn=>fn({collection:'tasks',projectId}));resolve(result);};
       tx.onabort=()=>reject(cause||tx.error||Error('Тестовое сохранение не выполнено.'));
       tx.onerror=()=>{cause ||= tx.error;};
     });

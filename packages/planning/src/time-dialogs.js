@@ -19,14 +19,14 @@ export function scheduleDialog({adapter,projectId,row,onCommitted,onClose}) {
 
 export function milestoneDialog({adapter,projectId,row=null,onCommitted,onClose}) {
   registerAdvanced();
-  const body=ui.field('Результат вехи',row?.title||'',{name:'title',required:true,max:240})
-    +`<iq-date-field data-date label="Дата вехи" value="${esc(row?.start||'')}"></iq-date-field>`
-    +'<iq-remote-combobox data-release label="Релиз — необязательно" placeholder="Веха проекта"></iq-remote-combobox>'
-    +'<p class="iq-helper">Веха обозначает значимый результат, а не создаёт новую задачу.</p>';
-  return intentDialog({adapter,projectId,title:row?'Изменить веху':'Новая веха',body,
+  const body=ui.field('Название события',row?.title||'',{name:'title',required:true,max:240})
+    +`<iq-date-field data-date label="Дата события" value="${esc(row?.start||'')}"></iq-date-field>`
+    +'<iq-remote-combobox data-release label="Релиз — необязательно" placeholder="Общее событие проекта"></iq-remote-combobox>'
+    +'<p class="iq-helper">Событие отмечает результат на шкале. Оно не создаёт задачу и не меняет её дедлайн.</p>';
+  return intentDialog({adapter,projectId,title:row?'Изменить событие':'Отметить событие',body,
     mount:form=>{const picker=form.querySelector('[data-release]');picker.provider=q=>adapter.destinations({projectId,...q});picker.value=row?.releaseId||'';},
     readIntent:form=>{
-      const date=form.querySelector('[data-date]').value;if(!date)throw Error('Укажите дату вехи.');
+      const date=form.querySelector('[data-date]').value;if(!date)throw Error('Укажите дату события.');
       const target=form.querySelector('[data-release]').value;
       return {kind:'milestone',...(row?{entityId:row.entityId}:{}),values:{title:form.querySelector('[name=title]').value.trim(),date,releaseId:target&&target!=='backlog'?target:null}};
     },onCommitted,onClose});

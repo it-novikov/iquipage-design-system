@@ -1,0 +1,51 @@
+import assert from 'node:assert/strict';
+import {mkdir,writeFile} from 'node:fs/promises';
+import {chromium} from '../../maps/node_modules/playwright/index.mjs';
+import {startServer} from '../scripts/server.mjs';
+const server=await startServer(0),out=new URL('../evidence/experience-r3/',import.meta.url);await mkdir(out,{recursive:true});
+const browser=await chromium.launch({headless:true}),page=await browser.newPage({viewport:{width:1440,height:900}});
+page.setDefaultTimeout(12000);const checks=[],errors=[];let failure;page.on('pageerror',e=>errors.push(e.message));
+const pass=text=>{checks.push(text);console.log('PASS',text);};
+const idle=()=>page.waitForFunction(()=>{const c=window.planningFixture.view?.controller;return c&&!c.loading&&!c.error&&c.groups.every(g=>!g.busy);});
+try{
+ await page.goto(server.url+'/?fixture=ux-r3-'+crypto.randomUUID());await page.locator('[data-select]').first().waitFor();await idle();
+ await page.getByRole('button',{name:'Открыть профиль',exact:true}).click();await page.getByRole('menuitem',{name:'Демонстрационный участник',exact:true}).click();
+ const profile=page.getByRole('dialog',{name:'Профиль',exact:true});await profile.waitFor();await profile.getByRole('button',{name:'Отмена',exact:true}).click();await profile.waitFor({state:'hidden'});
+ pass('Profile avatar opens account context; signout is inside the menu, not permanent navigation');
+ await page.getByRole('button',{name:'Сменить пространство или проект',exact:true}).click();
+ const chooser=page.getByRole('dialog',{name:'Пространства и проекты',exact:true});await chooser.getByRole('combobox').fill('Мобильное');await chooser.getByRole('option',{name:/Мобильное приложение/}).click();await chooser.getByRole('button',{name:'Открыть проект',exact:true}).click();await chooser.waitFor({state:'hidden'});await idle();
+ assert.equal(await page.evaluate(()=>window.planningFixture.project.id),'pn-mobile');
+ assert.equal(await page.locator('[data-project-name]').textContent(),'Мобильное приложение');
+ await page.getByRole('button',{name:'Новая задача',exact:true}).click();const create=page.getByRole('dialog',{name:'Новая задача',exact:true});await create.getByRole('textbox',{name:/Название задачи/}).fill('Только в мобильном проекте');await create.getByRole('button',{name:'Создать задачу',exact:true}).click();await create.waitFor({state:'hidden'});await idle();
+ await page.getByRole('button',{name:'Сменить пространство или проект',exact:true}).click();await chooser.getByRole('combobox').fill('Новый продукт');await chooser.getByRole('option',{name:/Новый продукт/}).click();await chooser.getByRole('button',{name:'Открыть проект',exact:true}).click();await chooser.waitFor({state:'hidden'});await idle();
+ assert.equal(await page.evaluate(()=>window.planningFixture.project.id),'pn-project');assert.equal(await page.getByRole('button',{name:'Только в мобильном проекте',exact:true}).count(),0);
+ pass('Guarded context switch uses distinct stores and canonical project IDs; new data never leaks into the previous project');
+ await page.locator('[data-route=maps]').click();await page.locator('iq-whiteboard').waitFor();
+ await page.getByRole('button',{name:'Заметка',exact:true}).click();const text=page.getByRole('textbox',{name:'Текст: Заметка',exact:true});await text.waitFor();await text.fill('Прямая правка без свойств');await text.press('Control+Enter');
+ await page.waitForFunction(()=>!window.planningFixture.view.board.dirty&&!window.planningFixture.view.savingPromise);
+ assert.equal(await page.locator('.map-inspector').isVisible(),false);
+ const noteId=await page.evaluate(()=>window.planningFixture.view.current.document.objects.find(o=>o.text==='Прямая правка без свойств').id);
+ const note=page.locator('[data-object="'+noteId+'"]');await note.dblclick();await text.fill('Этот ввод отменяется');await text.press('Escape');
+ assert.equal(await page.evaluate(id=>window.planningFixture.view.current.document.objects.find(o=>o.id===id).text,noteId),'Прямая правка без свойств');
+ pass('One note action creates, saves and immediately opens inline editing; Ctrl+Enter saves and Escape preserves the prior text');
+ await page.evaluate(async()=>{const f=window.planningFixture.view,b=f.board,d=b.data;d.objects.push({id:'r3-shape',type:'shape',text:'Схема',x:400,y:80,width:260,height:170,color:'neutral',shape:'rectangle'},{id:'r3-linked',type:'task',externalTaskId:'pn-task-2',text:'Удобное создание проекта',x:750,y:80,width:280,height:170,color:'neutral',done:false});b.applyDocument(d,d.revision);if(f.savingPromise)await f.savingPromise;b.fit();});
+ await page.locator('[data-object=r3-shape]').focus();await page.keyboard.press('Enter');const shapeText=page.getByRole('textbox',{name:'Текст: Фигура',exact:true});await shapeText.fill('Схема с прямой правкой');await shapeText.press('Control+Enter');await page.waitForFunction(()=>!window.planningFixture.view.board.dirty&&!window.planningFixture.view.savingPromise);
+ assert.equal(await page.locator('.map-inspector').isVisible(),false);pass('Shape Enter edits its content directly without opening a properties panel');
+ await page.locator('[data-object=r3-linked]').getByRole('button',{name:'Открыть задачу',exact:true}).click();const task=page.locator('.task-edit-dialog');await task.waitFor();
+ assert.match(await task.getByRole('textbox',{name:/^Название/}).inputValue(),/Удобное создание/);await task.getByRole('button',{name:'Закрыть',exact:true}).first().click();await task.waitFor({state:'hidden'});assert.equal(await page.locator('iq-whiteboard').count(),1);
+ pass('Linked task opens the existing full document on the map, without a board detour or duplicate task');
+ await page.getByRole('button',{name:'Найти на карте',exact:true}).click();await page.getByRole('searchbox',{name:'Текст заметки или название',exact:true}).fill('Прямая правка');await page.locator('.wb-search-result').first().click();
+ assert.ok((await page.evaluate(()=>window.planningFixture.view.board.selection)).includes(noteId));pass('Visible map search finds text and selects the canonical map object');
+ await page.getByRole('button',{name:'Меню карты',exact:true}).click();const menu=page.getByRole('dialog',{name:'Меню карты',exact:true});await menu.getByRole('button',{name:'Настроить автоматизацию',exact:true}).click();const addFlow=page.getByRole('dialog',{name:'Добавить сценарий действий?',exact:true});await addFlow.getByRole('button',{name:'Добавить сценарий',exact:true}).click();await addFlow.waitFor({state:'hidden'});
+ const nodes=await page.evaluate(()=>window.planningFixture.view.current.flow.nodes.map(n=>({id:n.id,title:n.title})));await page.locator('[data-object="'+nodes[0].id+'"]').focus();await page.keyboard.press('Enter');const step=page.locator('.map-properties-form');await step.waitFor();
+ await step.locator('[name=title]').fill('Незавершённое изменение шага');await page.locator('[data-map-action=canvas]').click();const protect=page.getByRole('dialog',{name:'Оставить изменения шага?',exact:true});await protect.waitFor();await protect.getByRole('button',{name:'Отмена',exact:true}).click();await protect.waitFor({state:'hidden'});assert.equal(await step.locator('[name=title]').inputValue(),'Незавершённое изменение шага');
+ await step.getByRole('button',{name:'Сохранить шаг',exact:true}).click();await page.waitForFunction(()=>window.planningFixture.view.current.flow.nodes.some(n=>n.title==='Незавершённое изменение шага'));
+ assert.equal(await page.evaluate(async()=> (await window.planningFixture.repository.list('runs',window.planningFixture.project.id)).length),0);
+ pass('Functional step Enter opens its editor directly; navigation protects its draft, save persists, and configuration never runs automation');
+ await page.locator('[data-map-action=canvas]').click();await page.waitForFunction(()=>window.planningFixture.view.view==='canvas');await page.screenshot({path:new URL('map-direct-light.png',out).pathname});
+ for(const width of [1440,390,320]){await page.setViewportSize({width,height:900});await page.evaluate(()=>document.documentElement.dataset.theme='dark');assert.equal(await page.getByRole('button',{name:'Открыть профиль',exact:true}).isVisible(),true);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));await page.screenshot({path:new URL('map-dark-'+width+'.png',out).pathname});}
+ pass('Profile stays available on narrow screens; shared navigation and map fit dark responsive layouts');
+ assert.deepEqual(errors,[]);
+}catch(error){failure=error;console.error(error);await page.screenshot({path:new URL('failure.png',out).pathname});}
+finally{await writeFile(new URL('report.json',out),JSON.stringify({status:failure?'FAIL':'PASS',scope:'consumer UI and isolated fixtures, not backend or live LLM',checks,errors,error:failure?.stack},null,2)+'\n');await browser.close();await server.close();}
+if(failure)process.exitCode=1;

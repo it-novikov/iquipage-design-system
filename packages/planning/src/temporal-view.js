@@ -13,9 +13,9 @@ export async function mountTemporalView(root,options) {
   const events=new AbortController(),signal=events.signal;
   let request=new AbortController();
   const actions=[
-    ui.btn('Новая веха','secondary sm','flag','data-time-milestone'),
+    ui.btn('Отметить событие','secondary sm','flag','data-time-milestone'),
     ui.btn('Зависимость','ghost sm','link','data-time-dependency'),
-    ui.btn('Даты выбранного объекта','ghost sm','calendar','data-time-edit disabled'),
+    ui.btn('Сроки объекта','ghost sm','calendar','data-time-edit disabled'),
     ui.btn('Обновить план','ghost sm','refresh','data-time-refresh')
   ].join('');
   root.innerHTML=`<div class="pn-timebar row">${actions}<span class="iq-helper" data-time-count></span></div><div data-time-error role="alert" hidden></div><div data-time-surface></div><div data-time-tail></div>`;

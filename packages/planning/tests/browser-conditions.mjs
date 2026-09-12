@@ -11,7 +11,7 @@ try {
   await page.goto(server.url+'/?fixture=conditions-'+crypto.randomUUID());await page.locator('[data-select]').first().waitFor();
   await page.evaluate(async()=>{const {repository,project}=window.planningFixture;await repository.write('tags',{id:'condition-tag',projectId:project.id,name:'Проверка',tone:'blue'},0);const task=await repository.read('tasks','pn-task-2',project.id);await repository.write('tasks',{...task,tagIds:['condition-tag']},task.revision);});
   await loaded();await page.locator('[data-filter-conditions]').click();
-  const modal=page.getByRole('dialog',{name:'Условия списка',exact:true});
+  const modal=page.getByRole('dialog',{name:'Фильтры',exact:true});
   await modal.getByRole('combobox',{name:'Добавить тег',exact:true}).fill('Проверка');
   await modal.getByRole('option',{name:'Проверка',exact:true}).click();
   assert.equal(await modal.locator('[data-remove-tag]').innerText(),'×');

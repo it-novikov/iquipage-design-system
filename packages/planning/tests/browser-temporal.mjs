@@ -8,7 +8,7 @@ page.setDefaultTimeout(12000);const checks=[],errors=[];let failure;
 page.on('pageerror',e=>errors.push(e.message));const mark=label=>{checks.push(label);console.log('PASS',label);};
 try {
   await page.goto(server.url+'/?fixture=time-'+crypto.randomUUID());await page.locator('[data-select]').first().waitFor();
-  await page.getByRole('button',{name:'По времени',exact:true}).click();
+  await page.getByRole('button',{name:'Сроки',exact:true}).click();
   const roadmap=page.locator('iq-roadmap');await roadmap.locator('[data-rm-select]').first().waitFor();
   const initial=await page.evaluate(()=>document.querySelector('iq-roadmap').data);
   assert.ok(initial.rows.some(r=>r.id==='release:pn-release-current'));assert.ok(initial.rows.some(r=>r.entityKind==='task'&&!r.start));
@@ -22,8 +22,8 @@ try {
   assert.equal(after.releases.find(r=>r.id==='pn-release-current').planningStart,'2026-09-15');
   assert.equal(after.tasks.find(t=>t.id==='pn-task-1').planningStart,'2026-09-15');
   mark('Existing DS roadmap moves release interval through preview/commit without shifting task dates');
-  await page.getByRole('button',{name:'Новая веха',exact:true}).click();
-  const milestone=page.getByRole('dialog',{name:'Новая веха',exact:true});await milestone.locator('input[name=title]').fill('Демонстрация клиентам');
+  await page.getByRole('button',{name:'Отметить событие',exact:true}).click();
+  const milestone=page.getByRole('dialog',{name:'Отметить событие',exact:true});await milestone.locator('input[name=title]').fill('Демонстрация клиентам');
   await milestone.locator('iq-date-field').evaluate(el=>el.value='2026-09-28');
   await milestone.getByRole('button',{name:'Проверить изменения',exact:true}).click();
   await milestone.getByRole('button',{name:'Подтвердить',exact:true}).click();await milestone.waitFor({state:'hidden'});
@@ -38,10 +38,10 @@ try {
   const edges=await page.evaluate(async()=>{const s=await window.planningFixture.repository.fixtureSnapshot();return {links:s.taskLinks,temporal:s._pnFixture.filter(x=>x.kind==='constraint'&&!x.removed)};});
   assert.equal(edges.temporal.length,1);assert.equal(edges.temporal[0].relationId,edges.links[0].id);
   assert.equal(edges.links[0].fromId,'pn-task-3');mark('Calendar dependency references the same business task relation and persists through its command');
-  await page.getByRole('button',{name:'Даты',exact:true}).click();await page.locator('iq-plan').waitFor();
+  await page.getByRole('button',{name:'Календарь',exact:true}).click();await page.locator('iq-plan').waitFor();
   await page.locator('iq-plan').getByRole('button',{name:/Демонстрация клиентам/}).waitFor();
   await page.reload();await page.locator('iq-plan').waitFor();
-  await page.getByRole('button',{name:'По времени',exact:true}).click();await roadmap.locator('[data-rm-select]').first().waitFor();
+  await page.getByRole('button',{name:'Гант',exact:true}).click();await roadmap.locator('[data-rm-select]').first().waitFor();
   await roadmap.locator('[data-rm-select="task:pn-task-2"]').first().click();
   await roadmap.getByRole('button',{name:'На день позже',exact:true}).click();
   await roadmap.getByRole('button',{name:'Отменить',exact:true}).click();
