@@ -15,7 +15,9 @@ import {mountMaps} from '../../maps/src/maps.js';
 import {WorkflowRuntime,localTasksAdapter} from '../../maps/src/runtime.js';
 registerCore();
 const params=new URLSearchParams(location.search),namespace='sprintique-pn2-fixture-'+(params.get('fixture')||'local');
-const repository=fixtureRepository(namespace),adapter=createFixtureAdapter(repository),root=document.querySelector('#feature'),state={};
+let savedView={};try{savedView=JSON.parse(sessionStorage.getItem(namespace+'-view')||'{}');}catch{}
+const repository=fixtureRepository(namespace),adapter=createFixtureAdapter(repository),root=document.querySelector('#feature'),state={mode:savedView.mode,temporal:savedView.temporal};
+window.addEventListener('beforeunload',()=>{try{sessionStorage.setItem(namespace+'-view',JSON.stringify({mode:state.mode,temporal:state.temporal}));}catch{}});
 const attachments=new BrowserAttachmentAdapter(repository);
 let mounted=null,current='planning',routing=false,boardGroup=null,dialogOpen=false;
 document.querySelector('[data-theme-toggle]').innerHTML=icon('sun',18);

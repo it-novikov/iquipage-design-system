@@ -24,6 +24,7 @@ export function createFixtureAdapter(repository){
   };
   port.preview=async({projectId,intent,signal})=>{
     await guard({projectId,signal});const s=await repository.fixtureSnapshot(),input=revisionInput(s);intent=structuredClone(intent);
+    if(intent.expectedProjectionRevision&&intent.expectedProjectionRevision!==await revision(s))throw Error('План изменился. Обновите шкалу перед сохранением.');
     if(intent.selectionToken){const selection=selections.get(intent.selectionToken);if(!selection||selection.input!==input||Date.parse(selection.expiresAt)<=Date.now())throw Error('Выбранный набор устарел. Выберите задачи снова.');intent.taskIds=selection.ids;delete intent.selectionToken;}
     let plan;try{plan=planChange(s,intent,{projectId});}catch(error){plan={summary:'Изменение не может быть выполнено.',changes:[],blockers:[error.message],tasks:[],releases:[],meta:[],links:[]};}
     const token=crypto.randomUUID(),expiresAt=new Date(Date.now()+180000).toISOString();
@@ -52,7 +53,7 @@ export function createFixtureAdapter(repository){
     for(const g of groups){if(g.id!=='backlog'){const r=s.releases.find(x=>x.id===g.id);all.push({id:'release:'+r.id,entityId:r.id,entityKind:'release',title:r.name,kind:'goal',start:r.planningStart||null,end:r.targetDate||null,deadline:r.deadline||null,readonly:false});}
       for(const row of rows(s,{...options,groupId:g.id,collapsedTaskIds:[]})){if(row.contextOnly)continue;const t=s.tasks.find(t=>t.id===row.taskId);all.push({id:'task:'+t.id,entityId:t.id,entityKind:'task',title:(t.displayId||t.id)+' · '+t.title,kind:t.type==='epic'?'epic':'task',parentId:t.parentId&&member.get(t.parentId)===member.get(t.id)?'task:'+t.parentId:g.id!=='backlog'?'release:'+g.id:null,start:t.planningStart||null,end:t.planningEnd||null,deadline:t.due||null,readonly:['accepted','cancelled'].includes(t.planningOutcome),status:t.planningOutcome==='accepted'?'done':'ready'});}
     }
-    for(const m of s._pnFixture.filter(x=>x.kind==='milestone'&&!x.removed&&(!x.releaseId||included.has(x.releaseId))))all.push({id:'milestone:'+m.id,entityId:m.id,entityKind:'milestone',title:m.title,kind:'milestone',parentId:m.releaseId?'release:'+m.releaseId:null,start:m.date,end:m.date,deadline:null,readonly:false});
+    for(const m of s._pnFixture.filter(x=>x.kind==='milestone'&&!x.removed&&(!x.releaseId||included.has(x.releaseId))))all.push({id:'milestone:'+m.id,entityId:m.id,entityKind:'milestone',releaseId:m.releaseId,title:m.title,kind:'milestone',parentId:m.releaseId?'release:'+m.releaseId:null,start:m.date,end:m.date,deadline:null,readonly:false});
     const p=page(all,options.cursor,200),ids=new Set(all.map(r=>r.id));
     const dependencies=s._pnFixture.filter(x=>x.kind==='constraint'&&!x.removed&&ids.has('task:'+x.fromId)&&ids.has('task:'+x.toId)).map(x=>({id:x.id,from:'task:'+x.fromId,to:'task:'+x.toId,type:x.type,lagDays:x.lagDays}));
     return {projectId:project.id,revision:await revision(s),rows:p.items,nextCursor:p.nextCursor,total:all.length,dependencies};
