@@ -1,0 +1,112 @@
+{
+  "stage": "PN4-PN5-review",
+  "status": "FAIL",
+  "scope": "consumer-view-and-local-fixture",
+  "startedAt": "2026-09-12T07:31:33.638Z",
+  "finishedAt": "2026-09-12T07:32:08.142Z",
+  "sourceCommit": "ff505b3a10e232975abd49ee5c8dadff5cf9ea79",
+  "sourceFingerprint": "8f6a7a2e3da099c90b73f06f87b8655682b28e0d0845d5c9c318b69c5a9c16a2",
+  "node": "v24.20.0",
+  "nodeTests": 38,
+  "baseNodeTests": 173,
+  "browserScenarios": 28,
+  "checks": [
+    {
+      "name": "pinned-ds-integrity",
+      "exitCode": 0,
+      "files": 297
+    },
+    {
+      "name": "base-build",
+      "exitCode": 0
+    },
+    {
+      "name": "unit",
+      "exitCode": 0
+    },
+    {
+      "name": "consumer-types",
+      "exitCode": 0
+    },
+    {
+      "name": "base-unit",
+      "exitCode": 0
+    },
+    {
+      "name": "browser",
+      "exitCode": 0
+    },
+    {
+      "name": "offline-build",
+      "exitCode": 0
+    },
+    {
+      "name": "offline-smoke",
+      "exitCode": 0
+    },
+    {
+      "name": "base-browser-editor-actions-v34",
+      "exitCode": 0
+    },
+    {
+      "name": "base-browser-thread-actions-v34",
+      "exitCode": 0
+    },
+    {
+      "name": "base-browser-board-interactions",
+      "exitCode": 0
+    },
+    {
+      "name": "browser-completion",
+      "exitCode": 0
+    },
+    {
+      "name": "browser-temporal",
+      "exitCode": 0
+    },
+    {
+      "name": "browser-conditions",
+      "exitCode": 0
+    },
+    {
+      "name": "browser-recovery",
+      "exitCode": 1
+    }
+  ],
+  "error": "Required Planning recovery scenario failed. See recovery/report.json.",
+  "backendIntegrated": false,
+  "productionReady": false,
+  "limitations": [
+    "Fixture persistence and receipt simulation use isolated IndexedDB, not the new backend",
+    "No production authentication or tenant/agent authorization accepted",
+    "Consumer TypeScript declarations compiled; implementation is JavaScript, not a strict TypeScript codebase",
+    "Release lifecycle, conditions and temporal UI are fixture-tested; a confirmed calendar refresh-recovery defect remains open",
+    "Virtualization and list pointer DnD are not integrated; related source writes were rejected by the tool safety-status check",
+    "Optional legacy importer and new backend remain separate tracks",
+    "No measured real-device FPS or physical touch/screen-reader acceptance",
+    "Full historical upstream browser runner not claimed passing; three current v3.4 suites rerun"
+  ],
+  "offline": {
+    "scope": "fixture-only",
+    "moduleCount": 112,
+    "htmlBytes": 3688019,
+    "sha256": "e09c2f1429e7926d48855e49eb9b7b1fe6a1499c1f7aaf31783b4bc137df2fe3"
+  },
+  "dsCandidate": {
+    "version": "0.6.0-board.7",
+    "baseVersion": "0.5.7",
+    "baseManifest": "f252a499e00d7bab6088640126a406075a86bf109e673a257a002d8e90e9195c",
+    "focusPolicySha256": "f713e4733cf84e490bbe876da557b979776669828e19f1659c9e17fef96b9115",
+    "cssSha256": "5bc527e4e069954f55df78c9aad179877d5bacca5df6527a1378127514bfd51c",
+    "extensionSha256": "55316745a0d2ef503621a5ed5d964fbf41fdc87fbaea4e556c59e866c714f644",
+    "boardExtensionSha256": "4e1adf9a22c7d8d10272d798a67353dd7e5a4df6ee2d4cd9bef116557510e326",
+    "editorExtensionSha256": "da605aa618a569574fe954f9e2c719ae6cb9c112729c043099097cf8b66bec58",
+    "editorPreviewSha256": "dddbbd8f77f55e1911fad29da281417e1e312fd2457854608170712cf5053bf7",
+    "markdownTasksSha256": "d286e0fdbbf0a6dd25ce9a9fe9ec7e776dba6306e57527021469dca18463ad0e",
+    "uxV3Sha256": "8c5aeed62c70d69e92c69d3bb8e71a0d55fcad4f1086461f318dfd19f3647edd",
+    "uxV3TypesSha256": "a9ab5d8469827c4c195b74a4b97a22267b7786e7f33f346336e336ab240fdec0",
+    "note": "Explicit DS source candidate; no production acceptance implied",
+    "editorActionsSha256": "2ae6ef9e4a9a1b4ba11858e37820fab88a776e608281e26526804166e16b147f",
+    "editorActionsCSSSha256": "b6d18d8f90b1f5a369f364298e4c7d8a5189bd83782c1431dc70de8054e0649e"
+  }
+}

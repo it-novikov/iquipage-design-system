@@ -1,0 +1,268 @@
+TAP version 13
+# Subtest: projection rejects wrong project, protocol, counts and duplicate groups
+ok 1 - projection rejects wrong project, protocol, counts and duplicate groups
+  ---
+  duration_ms: 0.737167
+  type: 'test'
+  ...
+# Subtest: projection rejects stale/wrong group, malformed rows and overlapping pages
+ok 2 - projection rejects stale/wrong group, malformed rows and overlapping pages
+  ---
+  duration_ms: 0.174083
+  type: 'test'
+  ...
+# Subtest: selection never cascades parent to child; range and visible-only all
+ok 3 - selection never cascades parent to child; range and visible-only all
+  ---
+  duration_ms: 0.753792
+  type: 'test'
+  ...
+# Subtest: context rows cannot be selected through the controller
+ok 4 - context rows cannot be selected through the controller
+  ---
+  duration_ms: 0.342
+  type: 'test'
+  ...
+# Subtest: late filter answer cannot overwrite newer query even if adapter ignores AbortSignal
+ok 5 - late filter answer cannot overwrite newer query even if adapter ignores AbortSignal
+  ---
+  duration_ms: 0.646834
+  type: 'test'
+  ...
+# Subtest: row answer from previous dataset never installs after refresh
+ok 6 - row answer from previous dataset never installs after refresh
+  ---
+  duration_ms: 0.155875
+  type: 'test'
+  ...
+# Subtest: page failures preserve prior rows and retry uses the same cursor
+ok 7 - page failures preserve prior rows and retry uses the same cursor
+  ---
+  duration_ms: 0.264417
+  type: 'test'
+  ...
+# Subtest: repeat cursor becomes an error rather than infinite requests
+ok 8 - repeat cursor becomes an error rather than infinite requests
+  ---
+  duration_ms: 0.138875
+  type: 'test'
+  ...
+# Subtest: filter clears selection; collapse preserves canonical count and selection
+ok 9 - filter clears selection; collapse preserves canonical count and selection
+  ---
+  duration_ms: 0.1395
+  type: 'test'
+  ...
+# Subtest: destroy aborts requests and produces no late callbacks
+ok 10 - destroy aborts requests and produces no late callbacks
+  ---
+  duration_ms: 0.106375
+  type: 'test'
+  ...
+# Subtest: rejected adapter never grants edit capability
+ok 11 - rejected adapter never grants edit capability
+  ---
+  duration_ms: 0.076833
+  type: 'test'
+  ...
+# Subtest: Direct editor accepts canonical member ID separately from its display label
+ok 12 - Direct editor accepts canonical member ID separately from its display label
+  ---
+  duration_ms: 0.63225
+  type: 'test'
+  ...
+# Subtest: Direct date field rejects impossible dates and does not require legacy projections to include editable values
+ok 13 - Direct date field rejects impossible dates and does not require legacy projections to include editable values
+  ---
+  duration_ms: 0.916334
+  type: 'test'
+  ...
+# Subtest: Context projection rejects missing, boolean, malformed and unbounded confirmations
+ok 14 - Context projection rejects missing, boolean, malformed and unbounded confirmations
+  ---
+  duration_ms: 0.667083
+  type: 'test'
+  ...
+# Subtest: Confirmed context keeps identity separate from names and copies only public labels
+ok 15 - Confirmed context keeps identity separate from names and copies only public labels
+  ---
+  duration_ms: 0.583583
+  type: 'test'
+  ...
+# Subtest: no write before confirmation; duplicate submit has one effect
+ok 16 - no write before confirmation; duplicate submit has one effect
+  ---
+  duration_ms: 1.262208
+  type: 'test'
+  ...
+# Subtest: lost response becomes uncertain; recovery reads receipt without retrying effect
+ok 17 - lost response becomes uncertain; recovery reads receipt without retrying effect
+  ---
+  duration_ms: 2.701
+  type: 'test'
+  ...
+# Subtest: pending/not-found receipt does not silently mark success or allow replay
+ok 18 - pending/not-found receipt does not silently mark success or allow replay
+  ---
+  duration_ms: 0.103125
+  type: 'test'
+  ...
+# Subtest: explicit rejection allows a new inspection but never claims success
+ok 19 - explicit rejection allows a new inspection but never claims success
+  ---
+  duration_ms: 0.093459
+  type: 'test'
+  ...
+# Subtest: expired previews and blockers cannot commit
+ok 20 - expired previews and blockers cannot commit
+  ---
+  duration_ms: 0.109958
+  type: 'test'
+  ...
+# Subtest: last inspection wins and cancelled preview never commits
+ok 21 - last inspection wins and cancelled preview never commits
+  ---
+  duration_ms: 0.109708
+  type: 'test'
+  ...
+# Subtest: malformed and unbounded previews do not reach confirmation
+ok 22 - malformed and unbounded previews do not reach confirmation
+  ---
+  duration_ms: 0.172917
+  type: 'test'
+  ...
+# Subtest: preview is a defensive copy; malformed committed receipt stays uncertain
+ok 23 - preview is a defensive copy; malformed committed receipt stays uncertain
+  ---
+  duration_ms: 0.074375
+  type: 'test'
+  ...
+# Subtest: date-only helpers validate leap dates and cross DST without local conversion
+ok 24 - date-only helpers validate leap dates and cross DST without local conversion
+  ---
+  duration_ms: 1.167875
+  type: 'test'
+  ...
+# Subtest: none child does not follow moved parent; unrelated fields and source stay intact
+ok 25 - none child does not follow moved parent; unrelated fields and source stay intact
+  ---
+  duration_ms: 1.302458
+  type: 'test'
+  ...
+# Subtest: selecting parent and child does not double count effective changes
+ok 26 - selecting parent and child does not double count effective changes
+  ---
+  duration_ms: 0.090125
+  type: 'test'
+  ...
+# Subtest: launch preserves review state; default draft blocks; explicit defer pins ready children
+ok 27 - launch preserves review state; default draft blocks; explicit defer pins ready children
+  ---
+  duration_ms: 0.1475
+  type: 'test'
+  ...
+# Subtest: closed release retains accepted child when open epic carries forward
+ok 28 - closed release retains accepted child when open epic carries forward
+  ---
+  duration_ms: 0.15775
+  type: 'test'
+  ...
+# Subtest: acceptance is explicit and cannot accept testing or a parent with open external children
+ok 29 - acceptance is explicit and cannot accept testing or a parent with open external children
+  ---
+  duration_ms: 0.199709
+  type: 'test'
+  ...
+# Subtest: all eligible work can be accepted without a recipient; no archive or deployment
+ok 30 - all eligible work can be accepted without a recipient; no archive or deployment
+  ---
+  duration_ms: 0.096
+  type: 'test'
+  ...
+# Subtest: new recipient and incomplete disposition are one prepared plan; invalid recipient aborts
+ok 31 - new recipient and incomplete disposition are one prepared plan; invalid recipient aborts
+  ---
+  duration_ms: 0.140791
+  type: 'test'
+  ...
+# Subtest: split disposition stays explicit; cancel keeps open tasks and accepted results
+ok 32 - split disposition stays explicit; cancel keeps open tasks and accepted results
+  ---
+  duration_ms: 0.127959
+  type: 'test'
+  ...
+# Subtest: active destination rejects drafts, closed source rejects re-closing
+ok 33 - active destination rejects drafts, closed source rejects re-closing
+  ---
+  duration_ms: 0.293583
+  type: 'test'
+  ...
+# Subtest: release format validates active timebox and preserves hard deadline separately
+ok 34 - release format validates active timebox and preserves hard deadline separately
+  ---
+  duration_ms: 0.158125
+  type: 'test'
+  ...
+# Subtest: task interval shift leaves deadline, undated and accepted work alone
+ok 35 - task interval shift leaves deadline, undated and accepted work alone
+  ---
+  duration_ms: 0.097375
+  type: 'test'
+  ...
+# Subtest: defaults change settings only, not existing release dates or format
+ok 36 - defaults change settings only, not existing release dates or format
+  ---
+  duration_ms: 7.733667
+  type: 'test'
+  ...
+# Subtest: bulk preserves task document and validates tag scope
+ok 37 - bulk preserves task document and validates tag scope
+  ---
+  duration_ms: 0.16825
+  type: 'test'
+  ...
+# Subtest: manual reorder changes planning ranks only and rejects unrelated siblings
+ok 38 - manual reorder changes planning ranks only and rejects unrelated siblings
+  ---
+  duration_ms: 0.147042
+  type: 'test'
+  ...
+# Subtest: temporal dependency uses canonical business relation and rejects cycles
+ok 39 - temporal dependency uses canonical business relation and rejects cycles
+  ---
+  duration_ms: 0.165666
+  type: 'test'
+  ...
+# Subtest: milestone is not a task; invalid dates or closed release fail
+ok 40 - milestone is not a task; invalid dates or closed release fail
+  ---
+  duration_ms: 0.095083
+  type: 'test'
+  ...
+# Subtest: take without release preserves status; unprepare explicitly pauses work
+ok 41 - take without release preserves status; unprepare explicitly pauses work
+  ---
+  duration_ms: 0.055125
+  type: 'test'
+  ...
+# Subtest: fixture rejects cross-project datasets before calculating effects
+ok 42 - fixture rejects cross-project datasets before calculating effects
+  ---
+  duration_ms: 0.066709
+  type: 'test'
+  ...
+# Subtest: new sprint date follows the project timezone, not UTC or browser timezone
+ok 43 - new sprint date follows the project timezone, not UTC or browser timezone
+  ---
+  duration_ms: 0.393292
+  type: 'test'
+  ...
+1..43
+# tests 43
+# suites 0
+# pass 43
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 79.284916

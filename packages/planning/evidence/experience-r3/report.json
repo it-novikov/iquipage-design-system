@@ -1,0 +1,18 @@
+{
+  "status": "PASS",
+  "scope": "consumer UI and isolated fixtures, not backend or live LLM",
+  "checks": [
+    "Compact task list begins near navigation; Deadlines switches Gantt/calendar and remembers the view without writing task data",
+    "Executor edits directly from the row in one dialog, preserving task identity and workflow",
+    "Lost single-field ACK exposes receipt recovery; cancel cannot discard an unknown result and no duplicate effect is sent",
+    "Profile avatar opens account context; signout is inside the menu, not permanent navigation",
+    "Guarded context switch uses distinct stores and canonical project IDs; new data never leaks into the previous project",
+    "One note action creates, saves and immediately opens inline editing; Ctrl+Enter saves and Escape preserves the prior text",
+    "Shape Enter edits its content directly without opening a properties panel",
+    "Linked task opens the existing full document on the map, without a board detour or duplicate task",
+    "Visible map search finds text and selects the canonical map object",
+    "Functional step Enter opens its editor directly; navigation protects its draft, save persists, and configuration never runs automation",
+    "Profile stays available on narrow screens; shared navigation and map fit dark responsive layouts"
+  ],
+  "errors": []
+}

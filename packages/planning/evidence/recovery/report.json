@@ -1,0 +1,7 @@
+{
+  "status": "PASS",
+  "checks": [
+    "Committed calendar update survives failed refresh; close is not rollback, retry reads without another effect"
+  ],
+  "errors": []
+}

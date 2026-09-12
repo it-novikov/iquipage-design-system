@@ -1,0 +1,38 @@
+{
+  "name": "@sprintique/planning-ui",
+  "version": "0.3.0-ux.3",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./types/index.d.ts",
+      "default": "./src/index.js"
+    },
+    "./styles.css": "./src/planning.css",
+    "./navigation": {
+      "types": "./types/navigation.d.ts",
+      "default": "./src/project-navigation.js"
+    },
+    "./navigation.css": "./src/navigation.css"
+  },
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "test:browser": "node tests/browser.mjs",
+    "typecheck": "tsc -p tests/tsconfig.json",
+    "preview": "node scripts/server.mjs",
+    "package": "node scripts/package.mjs",
+    "build:offline": "node scripts/offline.mjs",
+    "test:offline": "node tests/offline.mjs",
+    "verify": "node scripts/verify.mjs",
+    "build:work-list": "npm --prefix ../work-list run build"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "devDependencies": {
+    "typescript": "5.9.2"
+  },
+  "dependencies": {
+    "@iquipage/work-list": "file:../work-list"
+  }
+}

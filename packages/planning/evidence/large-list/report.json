@@ -1,0 +1,21 @@
+{
+  "status": "PASS",
+  "scope": "frontend port with synthetic paginated projection",
+  "checks": [
+    "Planning accepts 10,000 rows through bounded pages while keeping fewer than 70 DOM rows",
+    "Focus is retained outside the viewport without retaining the complete list",
+    "Keyboard moves through offscreen rows without losing the current control",
+    "Viewport resize preserves bounded rendering and does not overflow the document",
+    "Large-list teardown leaves no late callback errors"
+  ],
+  "metrics": {
+    "loaded": 10000,
+    "rendered": 18,
+    "scroll": {
+      "p95FrameIntervalMs": 16.799999999999272,
+      "samples": 89,
+      "environment": "headless Chromium; not a device FPS guarantee"
+    }
+  },
+  "errors": []
+}

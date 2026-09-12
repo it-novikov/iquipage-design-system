@@ -1,0 +1,31 @@
+{
+  "archiveIntegrity": "PASS",
+  "acceptance": "PASS",
+  "rebuildIdentical": true,
+  "manifestEntries": 1037,
+  "nodeTests": 43,
+  "baseNodeTests": 173,
+  "browserScenarios": 63,
+  "sourceFingerprint": "1c830a08daaba66cbd2333e8db986c820460eb2a61a72e54251887aeb83857c6",
+  "steps": [
+    {
+      "name": "maps-install",
+      "exitCode": 0
+    },
+    {
+      "name": "work-list-install",
+      "exitCode": 0
+    },
+    {
+      "name": "planning-install",
+      "exitCode": 0
+    },
+    {
+      "name": "clean-verify",
+      "exitCode": 0
+    }
+  ],
+  "scope": "clean frontend consumer and local fixtures",
+  "backendIntegrated": false,
+  "productionReady": false
+}

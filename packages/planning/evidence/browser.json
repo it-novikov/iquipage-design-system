@@ -1,0 +1,22 @@
+{
+  "status": "PASS",
+  "checks": [
+    "Mounted actual DS, release groups and task rows",
+    "Group heading is sticky in shared scroll; keyboard disclosure and reduced-motion contract work",
+    "Parent selection does not cascade; collapse preserves count and selection; children expand by default",
+    "Filtered children retain parent context; filter change clears hidden selection",
+    "Failed read keeps context, disables mutations, retries without replacing user data",
+    "Draft work blocks launch; explicit preparation retains task identity and workflow status",
+    "Launch exposes the same tasks on the existing six-column board without changing workflow states",
+    "DS remote destination picker and transfer preview cancel have no write side effects",
+    "Lost response preserves committed data; receipt recovery closes once and creates no duplicate effect",
+    "Original v3.4 task document saves and reloads with unchanged ID, Markdown and release membership",
+    "Create flexible release without dates and shared task draft into backlog",
+    "Current DS themes and responsive 1440/768/390/320 layouts without document overflow",
+    "Navigation to the existing map and back cleans up without JavaScript errors",
+    "Changed scope invalidates preview; rejected confirm remains disabled and draft is untouched",
+    "Cursor paging keeps canonical counts; select-all affects loaded rows only, not the whole backlog",
+    "Missing host capabilities fail closed for creation and launch, without claiming backend authorization"
+  ],
+  "errors": []
+}

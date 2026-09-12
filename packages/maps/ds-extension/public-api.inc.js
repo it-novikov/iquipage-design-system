@@ -31,7 +31,7 @@
   return this.commit(B.validateBoard(value),String(reason).slice(0,80));
  }
  command(id){
-  const allowed=['quick-note','bulk','search','frames','menu','undo','redo','image','connect-form','export','export-summary','library-toggle','help','templates','session'];
+  const allowed=['edit','quick-note','bulk','search','frames','menu','undo','redo','image','connect-form','export','export-summary','library-toggle','help','templates','session'];
   if(!allowed.includes(id))throw new TypeError('Unsupported board command');
   this.finishEdit(true);this.action(id);
  }

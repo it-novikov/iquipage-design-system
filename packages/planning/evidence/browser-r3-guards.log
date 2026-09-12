@@ -1,0 +1,6 @@
+PASS Public navigation theme button invokes the host callback once
+PASS Invalid context response keeps the original project and offers an explicit error
+PASS Pending context switch rejects teardown; host cancellation retains the original context
+PASS Disposed navigation ignores late context updates and has no retained UI
+PASS Committed field change survives a failed readback and does not block leaving the view
+PASS Definitive rejection during receipt recovery shows the server reason without changing data

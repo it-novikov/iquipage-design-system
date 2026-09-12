@@ -1,0 +1,10 @@
+{
+  "status": "PASS",
+  "checks": [
+    "Close preview retains parameters, creates one recipient and pins accepted child while open parent moves",
+    "Closed release is in immutable history and no longer occupies active planning",
+    "Sprint defaults propose a custom period and do not rewrite existing releases",
+    "All matching work uses a fixed selection token instead of hidden mutable row IDs"
+  ],
+  "errors": []
+}

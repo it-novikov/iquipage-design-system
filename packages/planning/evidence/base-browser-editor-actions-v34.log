@@ -1,0 +1,4 @@
+PASS Pre-upgrade public properties, validated copied actions, controlled intent, keyboard activation and stable textarea/button identity
+PASS Readonly/disabled actions reject activation, labels are text-only and feedback honors reduced motion
+PASS All Markdown tools and undo retained; short/long content, both themes and 320/390/768/1440 layouts without overflow
+PASS Compact description has no duplicate header/footer; preview/edit/outside click and cleanup still work
