@@ -10,8 +10,8 @@ export class PlanningOperation {
     try {
       const preview=await this.adapter.preview({projectId:this.projectId,intent:this.intent,signal:this.abort.signal});
       if(this.disposed || generation!==this.generation)return;
-      if(!preview || typeof preview.token!=='string' || !Array.isArray(preview.changes) || !Array.isArray(preview.blockers) || !Number.isFinite(Date.parse(preview.expiresAt)))throw Error('Не удалось прочитать последствия операции.');
-      this.preview=preview;this.state='ready';
+      if(!validPreview(preview))throw Error('Не удалось прочитать последствия операции.');
+      this.preview=structuredClone(preview);this.state='ready';
     }catch(error){if(generation===this.generation&&!this.abort.signal.aborted){this.error=error.message;this.state='failed';}}
     this.emit();
   }
@@ -32,10 +32,20 @@ export class PlanningOperation {
   }
   async accept(result) {
     if(this.disposed)return;
-    if(result?.state==='committed'){this.result=result;this.state='committed';}
+    if(result?.state==='committed'&&text(result.operationId,1024)&&result.operationId.length){this.result=structuredClone(result);this.state='committed';}
     else if(result?.state==='rejected'){this.error=result.message||'Изменение не сохранено.';this.state='failed';}
     else {this.error='Результат ещё не подтверждён. Проверьте его перед следующим действием.';this.state='uncertain';}
   }
   canClose(){return !['submitting','checking','uncertain'].includes(this.state);}
   destroy(){this.disposed=true;this.generation++;this.abort?.abort();}
+}
+
+const text=(value,max)=>typeof value==='string'&&value.length<=max;
+function validPreview(value){
+  return value&&text(value.token,4096)&&value.token.length>0&&text(value.summary,4000)
+    &&text(value.expiresAt,64)&&Number.isFinite(Date.parse(value.expiresAt))
+    &&Array.isArray(value.changes)&&value.changes.length<=200
+    &&value.changes.every(change=>change&&text(change.label,1000)&&text(change.description,4000))
+    &&Array.isArray(value.blockers)&&value.blockers.length<=100&&value.blockers.every(item=>text(item,4000))
+    &&(value.moreChanges===undefined||Number.isSafeInteger(value.moreChanges)&&value.moreChanges>=0);
 }

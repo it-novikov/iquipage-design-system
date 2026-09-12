@@ -14,6 +14,16 @@ try{
  assert.deepEqual(errors,[]);mark('Mounted actual DS, release groups and task rows');
  await page.screenshot({path:new URL('initial-light.png',out).pathname});
  const loaded=()=>page.waitForFunction(()=>{const c=window.planningFixture.view?.controller;return c&&!c.loading&&!c.error&&c.groups.every(g=>!g.busy);});
+ const scroller=page.locator('.pn-scroll');const firstHeader=page.locator('.pn-group-header').first();
+ await scroller.evaluate(el=>el.scrollTop=200);await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+ const containerBox=await scroller.boundingBox(),headerBox=await firstHeader.boundingBox();assert.ok(Math.abs(containerBox.y-headerBox.y)<2);
+ await scroller.evaluate(el=>el.scrollTop=0);
+ const disclosure=page.getByRole('button',{name:'Скрыть подзадачи SPR-1',exact:true});await disclosure.focus();
+ assert.ok(await disclosure.evaluate(el=>el.matches(':focus-visible')));await page.keyboard.press('Enter');await loaded();
+ await page.getByRole('button',{name:'Показать подзадачи SPR-1',exact:true}).focus();await page.keyboard.press('Enter');await loaded();
+ await page.emulateMedia({reducedMotion:'reduce'});
+ assert.ok(await page.getByRole('button',{name:'Новая задача',exact:true}).evaluate(el=>getComputedStyle(el).transitionDuration.split(',').every(v=>parseFloat(v)<=0.001)));
+ await page.emulateMedia({reducedMotion:'no-preference'});mark('Group heading is sticky in shared scroll; keyboard disclosure and reduced-motion contract work');
  const task=n=>page.locator(`[data-select="pn-task-${n}"]`);
  await task(1).check();assert.equal(await page.locator('[data-select]:checked').count(),1);
  await page.getByRole('button',{name:'Скрыть подзадачи SPR-1',exact:true}).click();await loaded();
@@ -112,6 +122,14 @@ try{
  await page.locator('[data-route=maps]').click();await page.waitForFunction(()=>!!window.planningFixture.view&&!window.planningFixture.view.controller);await page.getByRole('link',{name:'Планирование',exact:true}).click();await loaded();
  assert.deepEqual(errors,[]);mark('Navigation to the existing map and back cleans up without JavaScript errors');
 
+ await page.locator('[data-select=pn-task-11]').check();await page.getByRole('button',{name:'Подготовить',exact:true}).click();
+ const stale=page.getByRole('dialog',{name:'Подготовить задачи',exact:true});await stale.getByRole('button',{name:'Подтвердить',exact:true}).waitFor();
+ await page.evaluate(async()=>{const repo=window.planningFixture.repository,item=await repo.read('tasks','pn-task-11','pn-project');await repo.write('tasks',{...item,title:item.title+' — обновлено другим клиентом'},item.revision);});
+ await stale.getByRole('button',{name:'Подтвердить',exact:true}).click();await stale.getByRole('button',{name:'Проверить снова',exact:true}).waitFor();
+ assert.equal(await stale.getByRole('button',{name:'Подтвердить',exact:true}).isDisabled(),true);
+ assert.equal(await page.evaluate(async()=> (await window.planningFixture.repository.read('tasks','pn-task-11','pn-project')).preparation),'draft');
+ await stale.getByRole('button',{name:'Отмена',exact:true}).click();await stale.waitFor({state:'hidden'});await loaded();
+ await page.getByRole('button',{name:'Снять выделение',exact:true}).click();mark('Changed scope invalidates preview; rejected confirm remains disabled and draft is untouched');
  await page.evaluate(async()=>{const repo=window.planningFixture.repository;const template=await repo.read('tasks','pn-task-12','pn-project');await repo.fixtureTransaction((_s,put)=>{for(let i=0;i<110;i++)put('tasks',{...template,id:'pn-big-'+i,displayId:undefined,number:undefined,revision:0,title:'Пакетная проверка '+i,parentId:null,releaseId:null,releaseAssignment:'none',planningAdmission:false,planningRank:100000+i},0);});});
  const backlog=page.locator('[data-group=backlog]');await backlog.scrollIntoViewIfNeeded();await backlog.locator('[data-select]').first().waitFor();await loaded();
  assert.equal(await backlog.locator('[data-row]').count(),50);

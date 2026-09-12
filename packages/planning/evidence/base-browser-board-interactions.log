@@ -1,0 +1,8 @@
+PASS navigation, canonical nested cards, column counts and three avatars plus overflow
+PASS collapse preserves counts, filters reveal matching children and global search opens a collapsed child
+PASS Markdown preview/editor roundtrip and reparenting survive save and reload
+PASS dirty close requires a decision and cancellation retains the draft
+PASS keyboard cancel has no write and a committed move preserves parent identity
+PASS pointer drag cancellation does not commit a transition
+PASS settings, board navigation and narrow dark layout remain usable
+PASS guest landing performs no workspace API requests and demo entry returns to board

@@ -1,12 +1,12 @@
 import {registerCore, ui, icon, escapeHTML as esc} from '@iquipage/web/core';
 import {PlanningOperation} from './operation.js';
 /** Native form inside the documented DS dialog composition; no private component access. */
-export function formDialog({title,body,submitLabel='',submit,onMount,onClose=()=>{},canClose=()=>true}) {
+export function formDialog({title,body,submitLabel='',submit,onMount,onClose=()=>{},canClose=()=>true,canSubmit=()=>true}) {
   registerCore(); const host=document.createElement('iq-dialog');host.setAttribute('persistent','');
   host.className='pn-dialog';host.innerHTML=`<dialog class="iq-dialog"><form class="pn-dialog-form"><header class="iq-dialog-head"><div><h2>${esc(title)}</h2></div>${ui.ib('x','Закрыть','ghost sm','data-pn-cancel')}</header><div class="pn-dialog-body">${body}</div><p class="iq-helper error" role="alert" data-error hidden></p><footer class="iq-dialog-footer">${ui.btn('Отмена','secondary sm','','data-pn-cancel')}${submitLabel?`<button type="submit" class="iq-btn primary sm" data-pn-submit>${esc(submitLabel)}</button>`:''}</footer></form></dialog>`;
   let busy=false,closing=false; const form=host.querySelector('form');
   const close=()=>{if(busy || closing || !canClose())return false;closing=true;host.close(true);return true;};
-  const setBusy=value=>{busy=value;form.querySelectorAll('button[data-pn-cancel],[data-pn-submit]').forEach(b=>b.disabled=value);form.setAttribute('aria-busy',String(value));};
+  const setBusy=value=>{busy=value;form.querySelectorAll('button[data-pn-cancel]').forEach(b=>b.disabled=value||!canClose());const submitButton=form.querySelector('[data-pn-submit]');if(submitButton)submitButton.disabled=value||!canSubmit();form.setAttribute('aria-busy',String(value));};
   const fail=message=>{const el=form.querySelector('[data-error]');el.hidden=!message;el.textContent=message||'';};
   form.addEventListener('click',e=>{if(e.target.closest('[data-pn-cancel]'))close();});
   host.addEventListener('keydown',e=>{if(e.key==='Escape'&&!e.target.closest('iq-select,iq-combobox,iq-remote-combobox,iq-date-field')){e.preventDefault();e.stopPropagation();close();}});
@@ -24,7 +24,7 @@ export function operationDialog({adapter,projectId,intent,title,onCommitted=()=>
   let modal,notified=false;
   const operation=new PlanningOperation(adapter,projectId,state=>render(state));
   modal=formDialog({title,body:'<div data-preview role="status">Проверяем последствия…</div>',submitLabel:'Подтвердить',
-    submit:async()=>{await operation.submit();return false;},canClose:()=>operation.canClose(),onClose:()=>{operation.destroy();onClose();}});
+    submit:async()=>{await operation.submit();return false;},canClose:()=>operation.canClose(),canSubmit:()=>operation.state==='ready'&&!operation.preview?.blockers.length,onClose:()=>{operation.destroy();onClose();}});
   const content=modal.form.querySelector('[data-preview]'),button=modal.form.querySelector('[data-pn-submit]');
   function render(state) {
     if(!modal)return;

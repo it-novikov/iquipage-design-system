@@ -1,0 +1,32 @@
+{
+  "stage": "PN2",
+  "scope": "approved Planning R2 frontend slice",
+  "approval": "User: забирай в работу",
+  "frontendBase": "f3dd146cc9c7c0544fd663d632704a210a5c13be",
+  "branch": "feature/vnext-planning-ui",
+  "targetRepository": "it-novikov/sprintique2",
+  "lastObservedRemoteBranches": [],
+  "observedAt": "2026-09-12T00:24:59.947156+00:00",
+  "backendOwner": "parallel backend agent",
+  "backendIntegrated": false,
+  "productionReady": false,
+  "completed": [
+    "Consumer projection/command port and type contract",
+    "Grouped native DS table with child disclosure, explicit selection and lazy pages",
+    "Shared task detail, board/map navigation and isolated fixture storage",
+    "Prepare/move/start with preview, cancellation, stale and lost-ACK UI",
+    "Reproducible local and file:// checks"
+  ],
+  "pending": [
+    "Backend contract alignment and SDK adapter PN3",
+    "Source-owned DS virtual hierarchical list and pointer DnD",
+    "Closure/carry-forward PN4",
+    "Roadmap/milestones/dependencies and full timeboxed settings PN5",
+    "New platform auth/ACL/PG E2E, performance/a11y PN6",
+    "Optional one-way importer as separate MIG track"
+  ],
+  "delivery": "Downloads/Sprintique-Planning-PN2",
+  "pushPerformed": false,
+  "legacyRepositoryModified": false,
+  "remainingIntegrationNotes": "Do not copy fixture adapter/repository into API or initialize new backend main with old repository history."
+}

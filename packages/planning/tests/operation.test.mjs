@@ -23,3 +23,16 @@ test('expired previews and blockers cannot commit',async()=>{
 test('last inspection wins and cancelled preview never commits',async()=>{
   let done;const op=new PlanningOperation({...adapter(),preview:({intent})=>intent.groupId==='a'?new Promise(r=>{done=r;}):Promise.resolve(preview('b'))},'p1');const a=op.inspect({kind:'start',groupId:'a'});await op.inspect({kind:'start',groupId:'b'});done(preview('a'));await a;assert.equal(op.preview.token,'b');op.destroy();await op.submit();assert.equal(op.state,'ready');
 });
+test('malformed and unbounded previews do not reach confirmation',async()=>{
+  for(const bad of [{token:''},{summary:undefined},{changes:[{label:'x'}]},{blockers:[{}]},{moreChanges:-1},{changes:Array(201).fill({label:'x',description:'y'})}]){
+    const op=new PlanningOperation({...adapter(),preview:async()=>({...preview(),...bad})},'p1');
+    await op.inspect({kind:'start',groupId:'r'});assert.equal(op.state,'failed');assert.equal(op.preview,null);
+  }
+});
+test('preview is a defensive copy; malformed committed receipt stays uncertain',async()=>{
+  const original=preview();let usedToken;
+  const op=new PlanningOperation({...adapter(),preview:async()=>original,commit:async({token})=>{usedToken=token;return {state:'committed'};}},'p1');
+  await op.inspect({kind:'start',groupId:'r'});original.token='changed';original.blockers.push('late');
+  await op.submit();assert.equal(usedToken,'one');assert.equal(op.state,'uncertain');assert.equal(op.result,null);
+  await op.recover();assert.equal(op.state,'committed');
+});
