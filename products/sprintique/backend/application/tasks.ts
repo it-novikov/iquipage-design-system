@@ -2,9 +2,12 @@ import type {Task,TaskData} from '../../contracts/index.js';
 import type {Actor,Transaction} from '../infrastructure/database.js';
 import {requireCondition} from '../domain/errors.js';
 import {recordEvent} from './commands.js';
+import {loadPlanningState,planningLock} from './planning.js';
+import {validateTemporal} from '../domain/planning.js';
 
 const projection=`t.id,t.project_id AS "projectId",p.key||'-'||t.number AS "displayId",t.revision,t.title,t.description,t.status,t.type,t.priority,
   t.owner_label AS owner,to_char(t.due,'YYYY-MM-DD') AS due,t.rank,t.parent_id AS "parentId",t.release_id AS "releaseId",
+  t.preparation,t.result,t.assignment_mode AS "assignmentMode",t.admitted,to_char(t.planned_start,'YYYY-MM-DD') AS "plannedStart",
   to_char(t.created_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS "createdAt",
   to_char(t.updated_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS "updatedAt",
   to_char(t.status_entered_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS "statusEnteredAt",
@@ -17,10 +20,10 @@ export async function listTasks(tx:Transaction,projectId:string,after:number){
   const rows=(await tx.query<Task & {number:number}>(`SELECT ${projection},t.number FROM app.tasks t JOIN app.projects p ON p.id=t.project_id WHERE t.project_id=$1 AND t.number>$2 ORDER BY t.number LIMIT 201`,[projectId,after])).rows;
   return {items:rows.slice(0,200).map(({number,...task})=>task),nextCursor:rows.length>200?String(rows[199]!.number):null};
 }
-export async function putTask(tx:Transaction,actor:Actor,projectId:string,id:string,baseRevision:number,value:TaskData){
+export async function putTask(tx:Transaction,actor:Actor,projectId:string,id:string,baseRevision:number,value:TaskData,createInBoard=false){
   // Serializes hierarchy changes and number allocation inside this project, not across tenants.
-  await tx.query('SELECT id FROM app.projects WHERE id=$1 FOR UPDATE',[projectId]);
-  const previous=(await tx.query<{revision:number;status:string}>('SELECT revision,status FROM app.tasks WHERE project_id=$1 AND id=$2',[projectId,id])).rows[0];
+  await planningLock(tx,actor,projectId,true);
+  const previous=(await tx.query<{revision:number;status:string;parentId:string|null;releaseId:string|null;result:string}>('SELECT revision,status,parent_id AS "parentId",release_id AS "releaseId",result FROM app.tasks WHERE project_id=$1 AND id=$2',[projectId,id])).rows[0];
   requireCondition((previous?.revision||0)===baseRevision,409,'CONFLICT','Задача уже изменена. Обновите её и повторите действие.');
   if(value.parentId){
     const ancestry=(await tx.query<{id:string}>(`WITH RECURSIVE ancestors AS (
@@ -38,6 +41,11 @@ export async function putTask(tx:Transaction,actor:Actor,projectId:string,id:str
     const release=await tx.query('SELECT id FROM app.releases WHERE project_id=$1 AND id=$2 AND (archived_at IS NULL OR id IN (SELECT release_id FROM app.tasks WHERE project_id=$1 AND id=$3))',[projectId,value.releaseId,id]);
     requireCondition(release.rowCount===1,422,'TASK_RELEASE','Релиз недоступен в проекте.');
   }
+  requireCondition(previous?previous.parentId===value.parentId&&previous.releaseId===value.releaseId:value.releaseId===null,
+    409,'PREVIEW_REQUIRED','Измените родителя или релиз через планирование: сначала проверьте последствия.');
+  requireCondition(!previous||!createInBoard,400,'CREATE_ONLY','Допуск при создании нельзя использовать для изменения задачи.');
+  requireCondition(!createInBoard||actor.kind==='human',403,'APPROVAL_REQUIRED','Агент сначала предлагает подготовку и допуск задачи.');
+  requireCondition(previous?.result!=='accepted'||previous.status===value.status,409,'RESULT_PINNED','Принятый рабочий результат закреплён.');
   const data=[projectId,id,value.title,value.description,value.status,value.type,value.priority,value.owner,value.due,value.rank,value.parentId,value.releaseId];
   if(previous){
     await tx.query(`UPDATE app.tasks SET title=$3,description=$4,status=$5,type=$6,priority=$7,owner_label=$8,due=$9,rank=$10,parent_id=$11,release_id=$12,
@@ -45,10 +53,12 @@ export async function putTask(tx:Transaction,actor:Actor,projectId:string,id:str
       WHERE project_id=$1 AND id=$2`,data);
   }else{
     const number=(await tx.query<{number:number}>('UPDATE app.projects SET next_task_number=next_task_number+1 WHERE id=$1 RETURNING next_task_number-1 AS number',[projectId])).rows[0]!.number;
-    await tx.query(`INSERT INTO app.tasks(project_id,id,title,description,status,type,priority,owner_label,due,rank,parent_id,release_id,number,revision) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,1)`,[...data,number]);
+    await tx.query(`INSERT INTO app.tasks(project_id,id,title,description,status,type,priority,owner_label,due,rank,parent_id,release_id,number,revision,preparation,admitted)
+      VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,1,$14,$15)`,[...data,number,createInBoard?'ready':'draft',createInBoard]);
   }
   await tx.query('DELETE FROM app.task_tags WHERE project_id=$1 AND task_id=$2',[projectId,id]);
   for(const tag of value.tagIds)await tx.query('INSERT INTO app.task_tags(project_id,task_id,tag_id) VALUES($1,$2,$3)',[projectId,id,tag]);
+  validateTemporal(await loadPlanningState(tx,projectId));
   const saved=await readTask(tx,projectId,id);
   await recordEvent(tx,actor,projectId,previous?'task.updated':'task.created',id,saved.revision);
   return saved;

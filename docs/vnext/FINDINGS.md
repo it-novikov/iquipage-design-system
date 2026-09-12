@@ -11,3 +11,18 @@
 - F09, package integrity: rewriting a tarball under the same version did not update the installed dependency. Public-type test caught stale declarations. Issue a new local package version and update the lockfile; do not mutate a consumed release in place.
 
 These are implementation findings, not a claim of full-integration or independent security acceptance. Verification status is recorded in STATUS.md and test output.
+
+## Planning R2 findings and verification
+
+- R2-01, deterministic comparison: PostgreSQL JSONB key ordering caused false PLAN_STALE. Canonical serialization is used for hash/recomputed effects. Happy path/restart/idempotency tests pass.
+- R2-02, scoped timezone: workspace RLS prevented an agent from resolving the project timezone. Migration 003 adds a project-authorized, fixed-search-path helper without granting workspace-wide access. Agent planning and inherited timezone tests pass.
+- R2-03, compact adapter: writing a compact board row as a full task could discard Markdown. Dedicated versioned position command and detail hydration preserve document content; API and browser checks pass.
+- R2-04, event confidentiality: task-only scopes initially included credential events. Scope-specific task/thread/approval filters were added; task-only and threads-only tests pass.
+- R2-05, reconnect ordering: a globally allocated cursor can skip a transaction committed late. Per-project transactional position allocation in migration 004 plus two-transaction test prevents that gap.
+- R2-06, revoke lifecycle: board destruction must close active dialogs and prevent late hydration opening new ones. isActive checks plus closed-board cleanup; browser delayed authorized response released after logout cannot reopen a protected task.
+- R2-07, shutdown: streams must close during preClose before Fastify waits on active connections. Real HTTP SSE delivery/revocation/close tests pass.
+- R2-08, approval/application: expose the applied receipt separately from human decision; wrong token, stale/expired/rejected proposal and self-approval remain denied. Tests pass.
+- R2-09, consumer types: added missing typed capabilities/release counts/roadmap/history/approval reads and static schemas. Live SDK-to-API test validates actual payloads; all 41 API tests pass.
+- R2-10, integration remains open: external Planning source and ACCEPTANCE-R2 appendix absent; parent/release changes in existing editor require the missing confirmation UI. Reported explicitly, not masked by direct writes.
+
+Early failed runs (JSONB order, timezone RLS, fixture payload/type errors) remain in local raw logs. Sandbox PostgreSQL shmget failure was environmental; reruns used isolated temporary clusters with the needed local permission. Browser CLI harness failures (unsupported setTimeout and an animation-in-progress screenshot) were corrected and the actual scenario rerun; they were not treated as application passes.

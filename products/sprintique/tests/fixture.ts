@@ -5,7 +5,7 @@ import {Database,hash,secret} from '../backend/infrastructure/database.js';
 import {createApp} from '../backend/http/app.js';
 import {serveWeb} from '../backend/http/static.js';
 export const origin='http://localhost:4311';
-export async function fixture({web=false}={}){
+export async function fixture({web=false,prefix=''}={}){
   await migrate(process.env['MIGRATION_DATABASE_URL']!,process.env['DATABASE_RUNTIME_ROLE']!);
   const admin=new pg.Client({connectionString:process.env['TEST_ADMIN_DATABASE_URL']!});await admin.connect();
   const db=new Database(process.env['DATABASE_URL']!);await db.checkRuntimeRole();
@@ -24,7 +24,7 @@ export async function fixture({web=false}={}){
     if(response.statusCode!==200)throw Error(response.body);
     return response.json<{id:string;workspaceId:string}>();
   }
-  const first=await project(alice,'Команда продукта','SPR'),second=await project(bob,'Другой проект','OTH');
+  const first=await project(alice,'Команда продукта',prefix+'SPR'),second=await project(bob,'Другой проект',prefix+'OTH');
   await admin.query("INSERT INTO app.workspace_members(workspace_id,principal_id,role) VALUES($1,$2,'member')",[first.workspaceId,reader.id]);
   await admin.query("INSERT INTO app.project_members(project_id,principal_id,role) VALUES($1,$2,'reader')",[first.id,reader.id]);
   return {db,admin,app,alice,bob,reader,first,second,async close(){await app.close();await db.close();await admin.end();}};

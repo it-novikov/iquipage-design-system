@@ -12,6 +12,10 @@ import * as identity from '../application/identity.js';
 import {registerOidc,cookie,cookieValue,sessionCookie} from './oidc.js';
 import type {OidcSettings} from './oidc.js';
 import {registerCatalogRoutes} from './catalogs.js';
+import {registerPlanningRoutes} from './planning.js';
+import {registerEventRoutes} from './events.js';
+import {PlanningCommand,CommitPlan,ReleaseWrite,MilestoneWrite,ConstraintWrite,ApprovalDecision,PLANNING_POLICY} from '../../contracts/planning.js';
+import {planningResponseSchemas} from '../../contracts/planning-responses.js';
 
 export interface AppOptions {db:Database;origin:string;oidc?:OidcSettings;logger?:boolean}
 export function getCredential(request:FastifyRequest):Credential{
@@ -30,7 +34,7 @@ export async function createApp({db,origin,oidc,logger=false}:AppOptions){
   });
   app.setErrorHandler((error,request,reply)=>{
     if(error instanceof z.ZodError)return reply.code(400).send({code:'VALIDATION',message:'Проверьте поля запроса.',requestId:request.id});
-    if(error instanceof Problem)return reply.code(error.status).send({code:error.code,message:error.message,requestId:request.id});
+    if(error instanceof Problem)return reply.code(error.status).send({code:error.code,message:error.message,requestId:request.id,...(error.code==='PREVIEW_REQUIRED'?{action:{kind:'planning-preview',contractVersion:2}}:{})});
     const pgCode=typeof error==='object'&&error!==null&&'code' in error?error.code:null;
     if(pgCode==='23505')return reply.code(409).send({code:'CONFLICT',message:'Такой объект уже существует.',requestId:request.id});
     if(pgCode==='23503'||pgCode==='23514')return reply.code(422).send({code:'REFERENCE_INVALID',message:'Связанные данные недоступны.',requestId:request.id});
@@ -52,7 +56,7 @@ export async function createApp({db,origin,oidc,logger=false}:AppOptions){
     await tx.query('UPDATE auth.credentials SET revoked_at=clock_timestamp() WHERE id=$1',[actor.credentialId]);
     reply.header('Set-Cookie',cookieValue(sessionCookie,'',0));return {ok:true};
   }));
-  app.post('/api/v1/workspaces',request=>authenticated(request,(tx,actor)=>identity.createWorkspace(tx,actor,contract.CreateWorkspace.parse(request.body).name)));
+  app.post('/api/v1/workspaces',request=>authenticated(request,(tx,actor)=>{const input=contract.CreateWorkspace.parse(request.body);return identity.createWorkspace(tx,actor,input.name,input.timezone);}));
   app.get('/api/v1/workspaces',request=>authenticated(request,async tx=>(await tx.query('SELECT id,name FROM app.workspaces ORDER BY name')).rows));
   app.post('/api/v1/projects',request=>authenticated(request,(tx,actor)=>identity.createProject(tx,actor,contract.CreateProject.parse(request.body))));
   app.get('/api/v1/projects/:projectId/tasks',request=>authenticated(request,async(tx,actor)=>{
@@ -65,7 +69,16 @@ export async function createApp({db,origin,oidc,logger=false}:AppOptions){
   }));
   app.put('/api/v1/projects/:projectId/tasks/:id',request=>authenticated(request,async(tx,actor)=>{
     const {projectId,id}=params(request),input=contract.PutTask.parse(request.body);await authorize(tx,actor,projectId,'tasks:write');
-    return idempotent(tx,actor,projectId,'task.put:'+id,mutationKey(request),input,()=>tasks.putTask(tx,actor,projectId,id!,input.baseRevision,input.task));
+    return idempotent(tx,actor,projectId,'task.put:'+id,mutationKey(request),input,()=>tasks.putTask(tx,actor,projectId,id!,input.baseRevision,input.task,input.createInBoard));
+  }));
+  app.patch('/api/v1/projects/:projectId/tasks/:id/position',request=>authenticated(request,async(tx,actor)=>{
+    const {projectId,id}=params(request);await authorize(tx,actor,projectId,'tasks:write');
+    const input=z.strictObject({baseRevision:contract.Revision,status:contract.TaskInput.shape.status,rank:contract.TaskInput.shape.rank}).parse(request.body);
+    return idempotent(tx,actor,projectId,'task.position:'+id,mutationKey(request),input,async()=>{
+      const current=await tasks.readTask(tx,projectId,id!);
+      const content=contract.TaskInput.parse(Object.fromEntries(Object.keys(contract.TaskInput.shape).map(key=>[key,current[key as keyof contract.Task]])));
+      return tasks.putTask(tx,actor,projectId,id!,input.baseRevision,{...content,status:input.status,rank:input.rank});
+    });
   }));
   app.get('/api/v1/projects/:projectId/tasks/:id/threads',request=>authenticated(request,async(tx,actor)=>{
     const {projectId,id}=params(request);await authorize(tx,actor,projectId,'threads:read');
@@ -93,8 +106,11 @@ export async function createApp({db,origin,oidc,logger=false}:AppOptions){
   app.delete('/api/v1/projects/:projectId/agents/:id',request=>authenticated(request,async(tx,actor)=>{
     const {projectId,id}=params(request);await authorize(tx,actor,projectId,'agents:manage');return identity.revokeAgent(tx,actor,projectId,id!);
   }));
-  app.get('/api/v1/contracts',request=>authenticated(request,async()=>({version:1,schemas:contract.jsonSchemas})));
+  app.get('/api/v1/contracts',request=>authenticated(request,async()=>({version:2,planningPolicy:PLANNING_POLICY,schemas:{...contract.jsonSchemas,
+    ...Object.fromEntries(Object.entries({PlanningCommand,CommitPlan,ReleaseWrite,MilestoneWrite,ConstraintWrite,ApprovalDecision,...planningResponseSchemas}).map(([key,schema])=>[key,z.toJSONSchema(schema)]))}})));
   registerCatalogRoutes(app,authenticated);
+  registerPlanningRoutes(app,authenticated);
+  registerEventRoutes(app,db);
   await registerOidc(app,db,oidc);
   return app;
 }

@@ -18,7 +18,7 @@ try{
   await admin.query('CREATE ROLE sprintique_app LOGIN NOSUPERUSER NOBYPASSRLS');
   await admin.query('CREATE DATABASE sprintique OWNER sprintique_migrator');await admin.end();
   const preview=process.argv.includes('--preview');
-  const child=spawn(process.execPath,['--import','tsx',...(preview?['tests/preview.ts']:['--test','tests/api.test.ts'])],{
+  const child=spawn(process.execPath,['--import','tsx',...(preview?['tests/preview.ts']:['--test','tests/api.test.ts','tests/planning.test.ts'])],{
     stdio:'inherit',env:{...process.env,TEST_FIXTURE_DIR:dir,TEST_ADMIN_DATABASE_URL:url('postgres'),MIGRATION_DATABASE_URL:url('sprintique_migrator'),DATABASE_RUNTIME_ROLE:'sprintique_app',DATABASE_URL:url('sprintique_app')}
   });
   const stop=()=>child.kill('SIGTERM');process.once('SIGTERM',stop);process.once('SIGINT',stop);

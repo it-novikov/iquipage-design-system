@@ -1,7 +1,7 @@
 import type {SessionInfo,Task,TaskData,Thread,ThreadPage} from '../contracts/index.js';
 
 export class ApiError extends Error {
-  constructor(public readonly code:string,message:string,public readonly status:number){super(message);}
+  constructor(public readonly code:string,message:string,public readonly status:number,public readonly action:unknown=null){super(message);}
 }
 export class SprintiqueClient {
   csrf:string|null=null;
@@ -13,8 +13,8 @@ export class SprintiqueClient {
     if(key)headers['Idempotency-Key']=key;
     const response=await this.fetcher(this.base+path,{method,credentials:'same-origin',headers,...(body===undefined?{}:{body:JSON.stringify(body)}),...(signal?{signal}:{})});
     if(!response.ok){
-      const error=await response.json().catch(()=>({code:'NETWORK',message:'Сервис недоступен.'})) as {code:string;message:string};
-      throw new ApiError(error.code,error.message,response.status);
+      const error=await response.json().catch(()=>({code:'NETWORK',message:'Сервис недоступен.'})) as {code:string;message:string;action?:unknown};
+      throw new ApiError(error.code,error.message,response.status,error.action);
     }
     return response.json() as Promise<T>;
   }

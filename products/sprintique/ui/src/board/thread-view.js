@@ -138,6 +138,7 @@ export function mountThreads(root,{repository,task,readOnly=false}){
     try{const current=await repository.read('threads',id,task.projectId);if(!current)throw Error('Обсуждение недоступно.');const saved=await resolveThread(repository,{...current,revision:thread.revision},!thread.resolved);fullThreads.set(saved.id,saved);pager.remember(saved);const details=button.closest('details');if(saved.resolved&&!details.querySelector('iq-markdown-editor')?.value)details.open=false;await reload();}
     catch(cause){fail(cause);}finally{busy.delete(id);if(button.isConnected)button.disabled=false;}
   },{signal:abort.signal});
+  const unsubscribe=repository.subscribe?.(event=>{if(event.collection==='threads'&&event.projectId===task.projectId&&!closed)reload();});
   reload();
-  return {reload,dirty(){capture();return requiresResolution||!!composer?.value.trim()||[...drafts.values()].some(value=>value.trim());},isBusy:()=>busy.size>0,destroy(){closed=true;sequence++;abort.abort();pager.destroy();for(const value of detailRequests.values())value.controller.abort();detailRequests.clear();fullThreads.clear();}};
+  return {reload,dirty(){capture();return requiresResolution||!!composer?.value.trim()||[...drafts.values()].some(value=>value.trim());},isBusy:()=>busy.size>0,destroy(){closed=true;sequence++;unsubscribe?.();abort.abort();pager.destroy();for(const value of detailRequests.values())value.controller.abort();detailRequests.clear();fullThreads.clear();}};
 }

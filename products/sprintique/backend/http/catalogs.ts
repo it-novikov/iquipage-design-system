@@ -21,13 +21,19 @@ export function registerCatalogRoutes(app:FastifyInstance,authenticated:Authenti
       const input=collection==='tags'?PutTag.parse(request.body):PutRelease.parse(request.body);
       return idempotent(tx,actor,projectId,collection+':'+id,mutationKey(request),input,async()=>{
         await tx.query('SELECT id FROM app.projects WHERE id=$1 FOR UPDATE',[projectId]);
+        await authorize(tx,actor,projectId,'catalog:write');
         const previous=(await tx.query<{revision:number}>(`SELECT revision FROM app.${collection} WHERE project_id=$1 AND id=$2`,[projectId,id])).rows[0];
         requireCondition((previous?.revision||0)===input.baseRevision,409,'CONFLICT','Каталог уже изменён.');
         const count=(await tx.query<{count:number}>(`SELECT count(*)::int AS count FROM app.${collection} WHERE project_id=$1`,[projectId])).rows[0]!.count;
         requireCondition(previous||count<500,409,'CATALOG_LIMIT','Каталог достиг лимита.');
         const value=input.value;
+        if(collection==='releases'){
+          requireCondition('status' in value&&value.status==='planned',409,'PREVIEW_REQUIRED','Запуск и закрытие релиза выполняются через планирование.');
+          const lifecycle=(await tx.query<{lifecycle:string;format:string;plannedStart:string|null}>('SELECT lifecycle,format,planned_start AS "plannedStart" FROM app.releases WHERE project_id=$1 AND id=$2',[projectId,id])).rows[0];
+          requireCondition(!lifecycle||(lifecycle.lifecycle==='planned'&&lifecycle.format==='flexible'&&lifecycle.plannedStart===null),409,'PREVIEW_REQUIRED','Используйте редактор планирования для этого релиза.');
+        }
         if('tone' in value)await tx.query(`INSERT INTO app.tags(project_id,id,name,tone,archived_at,revision) VALUES($1,$2,$3,$4,$5,1) ON CONFLICT(project_id,id) DO UPDATE SET name=$3,tone=$4,archived_at=$5,revision=app.tags.revision+1`,[projectId,id,value.name,value.tone,value.archivedAt]);
-        else await tx.query(`INSERT INTO app.releases(project_id,id,name,status,target_date,archived_at,revision) VALUES($1,$2,$3,$4,$5,$6,1) ON CONFLICT(project_id,id) DO UPDATE SET name=$3,status=$4,target_date=$5,archived_at=$6,revision=app.releases.revision+1`,[projectId,id,value.name,value.status,value.targetDate,value.archivedAt]);
+        else await tx.query(`INSERT INTO app.releases(project_id,id,name,status,target_date,deadline,archived_at,revision) VALUES($1,$2,$3,$4,$5,$5,$6,1) ON CONFLICT(project_id,id) DO UPDATE SET name=$3,target_date=$5,deadline=$5,archived_at=$6,revision=app.releases.revision+1`,[projectId,id,value.name,value.status,value.targetDate,value.archivedAt]);
         await recordEvent(tx,actor,projectId,collection+'.updated',id!,input.baseRevision+1);
         return (await tx.query(`SELECT ${projection} FROM app.${collection} WHERE project_id=$1 AND id=$2`,[projectId,id])).rows[0];
       });

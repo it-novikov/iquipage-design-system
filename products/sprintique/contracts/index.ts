@@ -16,18 +16,20 @@ export const TaskInput = z.strictObject({
   releaseId: Id.nullable().default(null),
   tagIds: z.array(Id).max(30).refine(v => new Set(v).size === v.length).default([])
 });
-export const PutTask = z.strictObject({baseRevision: Revision, task: TaskInput});
+export const PutTask = z.strictObject({baseRevision: Revision, task: TaskInput,createInBoard:z.boolean().default(false)});
 export type TaskData = z.infer<typeof TaskInput>;
 export const CreateThread = z.strictObject({
   id: Id, messageId: Id, body: z.string().trim().min(1).max(20000), requiresResolution: z.boolean()
 });
 export const AppendMessage = z.strictObject({id: Id, body: z.string().trim().min(1).max(20000), baseRevision: Revision});
 export const ResolveThread = z.strictObject({resolved: z.boolean(), baseRevision: Revision});
-export const CreateWorkspace = z.strictObject({name: z.string().trim().min(1).max(100)});
+export const Timezone=z.string().min(1).max(100).refine(value=>{try{new Intl.DateTimeFormat('en',{timeZone:value});return value==='UTC'||value.includes('/');}catch{return false;}});
+export const CreateWorkspace = z.strictObject({name: z.string().trim().min(1).max(100),timezone:Timezone.default('UTC')});
 export const CreateProject = z.strictObject({
   workspaceId: z.uuid(), name: z.string().trim().min(1).max(100),
   slug: z.string().min(2).max(48).regex(/^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/),
-  key: z.string().regex(/^[A-Z][A-Z0-9]{1,9}$/)
+  key: z.string().regex(/^[A-Z][A-Z0-9]{1,9}$/),
+  timezone:Timezone.nullable().default(null)
 });
 export const Capability = z.enum(['tasks:read','tasks:write','threads:read','threads:write']);
 export type Capability = z.infer<typeof Capability>;
@@ -48,6 +50,7 @@ export const jsonSchemas = Object.fromEntries(Object.entries(commandSchemas).map
 export interface Task extends TaskData {
   id: string; projectId: string; displayId: string; revision: number;
   createdAt: string; updatedAt: string; statusEnteredAt: string;
+  preparation:'draft'|'ready';result:'open'|'accepted';assignmentMode:'inherit'|'assigned'|'none';admitted:boolean;plannedStart:string|null;
 }
 export interface Message {id:string; body:string; authorId:string; createdAt:string}
 export interface Thread {

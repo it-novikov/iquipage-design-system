@@ -1,6 +1,6 @@
 # Sprintique vNext
 
-Self-contained product for a clean major launch. This is the first authenticated board/discussion vertical slice, **not complete platform parity or a production release**.
+Self-contained product for a clean major launch. Authenticated board/discussions plus the Planning R2 backend/SDK are implemented; **not complete platform parity or a production release**. Planning consumer integration is documented in [docs/planning-r2.md](docs/planning-r2.md).
 
 ## Independence
 
@@ -8,7 +8,7 @@ Copy this entire directory to another Git repository. No parent workspace, DS so
 
 ```
 backend/domain          Errors and domain invariants
-backend/application     Task, discussion, identity commands
+backend/application     Task, discussion, identity and Planning commands
 backend/infrastructure  PostgreSQL, principal and authorization context
 backend/http            HTTP and OIDC adapters
 contracts               Static command schemas and transport types
@@ -49,17 +49,20 @@ Build, then `npm start`. `/health` is liveness; `/ready` checks the runtime role
 
 Prefix `/api/v1`. Session/workspaces/projects, project-scoped tasks, tags, releases, task discussions, append-only messages, resolution state and restricted agent credentials. Mutations to tasks/discussions/catalogs require `Idempotency-Key`; retries with a different payload conflict. Task updates require `baseRevision`, return the canonical `displayId` and revision. Client-generated opaque resource IDs are distinct from human-readable server-allocated task keys.
 
-Human and agent identities are distinct. Agent grants last at most 24 hours, are project-bound, have explicit capabilities, record their human initiator and are checked for expiry/revocation on every request. Grant issuance returns its token once and does not log/store the plaintext token. The token is not an MCP OAuth token; MCP/OAuth transport and proposal approvals are not implemented yet.
+Human and agent identities are distinct. Agent grants last at most 24 hours, are project-bound, have explicit capabilities, record their human initiator and are checked for expiry/revocation on every request. Grant issuance returns its token once and does not log/store the plaintext token. Planning agent proposals use a generic action-bound human approval record; a decision is not execution. The token is not an MCP OAuth token; MCP/OAuth transport and general agent-run orchestration are not implemented yet.
+
+Planning adds separate task preparation/result/admission, inherited release membership, atomic preview/commit, close/cancel with explicit remainder, immutable history, milestones, temporal constraints and compact cursor-paged projections. Same Task records and Markdown documents serve Planning and the board. `/api/v1/contracts` exposes version 2 command/response JSON schemas; this is not complete platform OpenAPI.
 
 ## Explicit remaining scope
 
 - Maps and agent-session UI integration, versioned documents and concurrency.
 - S3/private uploads, processing/quarantine, avatars, covers and orphan cleanup.
 - Custom template persistence, non-parent task links, membership management, workspace-wide search.
-- Outbox dispatcher, authorized SSE, delivery retries/dead-letter handling.
-- Agent proposals, approval/revision binding, execution/cancellation and future MCP adapter.
-- Complete OpenAPI/response schemas, large-board server filtering, message-level pagination; current limits: 200 tasks per API page, 10,000 in board adapter, 500 catalog values, 2,000 messages per thread.
+- External outbox dispatcher, notification delivery retries/dead-letter handling. Authorized durable project SSE with reconnect/revocation is implemented.
+- General agent execution/cancellation and future MCP adapter; Planning approval/command application is implemented.
+- Complete platform OpenAPI, message-level pagination; current transport limits: Planning pages 100 and explicit selection 200 (server selectors have no release-size product cap), legacy task pages 200, legacy catalog values 500 and 2,000 messages per thread. The board now uses paged Planning projections and no longer imposes a 10,000-task adapter cap.
+- The external Planning frontend and its ACCEPTANCE-R2 appendix were not supplied. Its action confirmation flow still needs integration. The existing task editor cannot directly change release/parent via ordinary PUT; use Planning preview/commit as documented, not a client-side PATCH loop.
 - All identity/platform mutations need durable retry/audit policy before pilot. Project creation has uniqueness protection; workspace/credential creation are not safely replayable commands and SDK does not automatically retry them.
 - Full-browser regression, performance, security/load review, backups and CI release gates.
 
-The outbox is persisted transactionally but **not dispatched** yet. Notification absence is not delivery success. Existing approved UI is retained, with explicit disabled capabilities for unavailable services; the original platform remains separately runnable and unchanged.
+The outbox is persisted transactionally and feeds authorized project changes over SSE. It is **not delivered to external notification systems**; SSE does not mark external delivery success. Existing approved UI is retained, with explicit disabled capabilities for unavailable services; the original platform remains separately runnable and unchanged.

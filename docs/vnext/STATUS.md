@@ -28,7 +28,8 @@ Full approved roadmap remains M0–M7 in the architecture brief. Partial foundat
 - M0: repository and architecture approved; fresh main isolated; pinned DS integrity PASS (297 files).
 - M1: implemented. Standalone DS 0.6.0-vnext.1, public-type consumer check, separate product install/build. Detached clean install/build and PostgreSQL test suite PASS.
 - M2/M3: first authenticated task/discussion slice implemented and exercised. Real PostgreSQL 18, OIDC PKCE/state/nonce/signature tests, session CSRF, tenant RLS, actor/initiator policy, CAS, idempotency, atomic audit/outbox. This is not complete identity/platform or frontend parity.
-- M4–M7: remain open. Maps/files/custom templates/task links/search, memberships, outbox dispatcher/SSE, agent proposals/execution/approval, complete OpenAPI, quotas/rate limits, load/security/backup/CI and external pilot remain unimplemented or unaccepted.
+- Planning R2 backend/SDK: implemented on the same kernel; see PLANNING-R2.md and product docs/planning-r2.md. Static contracts, atomic prepared plans, hierarchy/close history, dates/constraints, generic agent approvals and authorized outbox-backed SSE are verified. External Planning UI integration is not accepted without its source revision and ACCEPTANCE-R2.md.
+- M4–M7: remain open. Maps/files/custom templates/task links/search, memberships, external outbox dispatcher, general agent execution, complete platform OpenAPI, quotas/rate limits, load/security/backup/CI and external pilot remain unimplemented or unaccepted.
 - Existing local artifacts and old platform data are preserved.
 
 ## Verified first-slice results
@@ -49,4 +50,14 @@ Full approved roadmap remains M0–M7 in the architecture brief. Partial foundat
 
 Targeted implementation self-review, not independent/full-integration acceptance. F01/F02/F03/F04/F05/F07/F08/F09 repaired and checked by the specific build/API/browser/public-type checks in FINDINGS.md. F06 initial load addressed; full runtime performance not accepted. No DS source redesign, old snapshot mutation or production operation.
 
-Next: complete M4 using the new API/application boundary—versioned maps first, then private media, template settings and explicit task-link commands. Preserve the current frontend and library boundary. After that implement outbox dispatcher/SSE and agent proposal lifecycle. Before external pilot, owner must supply the identity/hosting/storage choices (D3); no provider choice is silently inferred.
+## Planning R2 checkpoint — 2026-09-12
+
+- Original P01–P11 covered by 22 Planning tests alongside 19 foundation tests: **41 API tests PASS**. Additional P12 durable events/revocation/commit-order and P13 live SDK/response-schema coverage was added during implementation; it is not misrepresented as a separately approved full-platform test plan.
+- **209 library tests PASS**, strict product build, public boundary checks and detached clean install/build/41 PostgreSQL tests PASS. DS package bytes unchanged. Final verification `products/sprintique/output/verification/2026-09-12T01-01-03.146Z`; source fingerprint `3a8dbc3b97933b149917065739600b064c039f00d3e3fd3b0e56365f9b5db947`.
+- Tested whole-release operation on 206 tasks beyond the explicit request limit of 200; effects paginate 100/100/6. This is not production load acceptance.
+- Browser: full task hydration preserves Markdown; create/save/reopen/reload via SPR-2; publish discussion and observe another tab without manual refresh. Light/dark 1280×720 and narrow 390×844 inspected; document width remains 390. Final delayed-tags-response + session revocation scenario clears the board and does not reopen a protected dialog. Synthetic preview and its temporary PostgreSQL fixture were stopped cleanly.
+- Browser interaction checks used fingerprint `636e05cf860f9eadd49c40b467b991ac86487b8b8471a3ee2074e43cd2d100b9` before additive SDK/read-response schemas and event correlation/causation fields; board/dialog/watch implementation is unchanged. The additions were checked by the 41-test final API/detached run. Full-browser parity remains NOT_RUN.
+- Planning revision is a conservative project-wide fence. Project-level authorization is implemented; finer task-level ACL and distributed stream quotas are not claimed.
+- Existing editor direct parent/release assignment now returns PREVIEW_REQUIRED; the external Planning confirmation flow still needs to be wired into that UI. No silent bypass or replacement frontend was built.
+
+Next integration prerequisite: obtain the other agent's Planning branch/commit or source path plus ACCEPTANCE-R2.md, connect its UI to the versioned SDK and execute the consumer suite. Remaining independent roadmap is M4 versioned maps/private media/templates/links, followed by external worker/general agent execution and M7 release gates. Before external pilot, owner must supply identity/hosting/storage choices (D3); no provider choice is silently inferred.

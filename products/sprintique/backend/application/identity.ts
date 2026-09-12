@@ -9,19 +9,19 @@ export async function sessionInfo(tx:Transaction,actor:Actor){
   const projects=(await tx.query<Project>(`SELECT p.id,p.workspace_id AS "workspaceId",p.name,p.slug,p.key,m.role,w.name AS "workspaceName" FROM app.projects p JOIN app.project_members m ON m.project_id=p.id AND m.principal_id=$1 JOIN app.workspaces w ON w.id=p.workspace_id ORDER BY w.name,p.name`,[actor.id])).rows;
   return {principal:{id:actor.id,name:actor.name,kind:actor.kind},csrf:actor.csrf,projects};
 }
-export async function createWorkspace(tx:Transaction,actor:Actor,name:string){
+export async function createWorkspace(tx:Transaction,actor:Actor,name:string,timezone='UTC'){
   requireCondition(actor.kind==='human',403,'FORBIDDEN','Пространство создаёт человек.');
   const id=randomUUID();
-  await tx.query('INSERT INTO app.workspaces(id,name,created_by) VALUES($1,$2,$3)',[id,name,actor.id]);
+  await tx.query('INSERT INTO app.workspaces(id,name,created_by,timezone) VALUES($1,$2,$3,$4)',[id,name,actor.id,timezone]);
   await tx.query("INSERT INTO app.workspace_members(workspace_id,principal_id,role) VALUES($1,$2,'admin')",[id,actor.id]);
-  return {id,name};
+  return {id,name,timezone};
 }
-export async function createProject(tx:Transaction,actor:Actor,input:{workspaceId:string;name:string;slug:string;key:string}){
+export async function createProject(tx:Transaction,actor:Actor,input:{workspaceId:string;name:string;slug:string;key:string;timezone?:string|null}){
   requireCondition(actor.kind==='human',403,'FORBIDDEN','Проект создаёт человек.');
   const access=await tx.query("SELECT 1 FROM app.workspace_members WHERE workspace_id=$1 AND principal_id=$2 AND role='admin'",[input.workspaceId,actor.id]);
   requireCondition(access.rowCount===1,403,'FORBIDDEN','Нужны права администратора пространства.');
   const id=randomUUID();
-  await tx.query('INSERT INTO app.projects(id,workspace_id,name,slug,key) VALUES($1,$2,$3,$4,$5)',[id,input.workspaceId,input.name,input.slug,input.key]);
+  await tx.query('INSERT INTO app.projects(id,workspace_id,name,slug,key,timezone) VALUES($1,$2,$3,$4,$5,$6)',[id,input.workspaceId,input.name,input.slug,input.key,input.timezone||null]);
   await tx.query("INSERT INTO app.project_members(project_id,principal_id,role) VALUES($1,$2,'admin')",[id,actor.id]);
   await recordEvent(tx,actor,id,'project.created',id,1);
   return {id,...input};

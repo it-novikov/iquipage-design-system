@@ -94,7 +94,7 @@ export async function mountTaskBoard(root,{repository,project,canEdit=true,canMa
     if(openingTask||activeDialog||closed)return;
     openingTask=true;
     try{
-    activeDialog=await openTaskDialog(task,{repository,project,tasks:items,canEdit,canManage:canManageCatalogs,attachmentAdapter,status,fullscreen,onOpenTask:id=>openTask(id),onSaved:async saved=>{loading++;items=items.some(t=>t.id===saved.id)?items.map(t=>t.id===saved.id?saved:t):[...items,saved];render();await reload();}});
+    activeDialog=await openTaskDialog(task,{repository,project,tasks:items,canEdit,canManage:canManageCatalogs,attachmentAdapter,status,fullscreen,isActive:()=>!closed,onOpenTask:id=>openTask(id),onSaved:async saved=>{loading++;items=items.some(t=>t.id===saved.id)?items.map(t=>t.id===saved.id?saved:t):[...items,saved];render();await reload();}});
     if(task&&!fromRoute)history.pushState({taskDrawer:true,returnHash:location.hash||'#tasks'},'',taskURL(task));
     if(closed){activeDialog.close(true);return;}
     const opened=activeDialog;opened.addEventListener('iq-close',()=>{if(activeDialog===opened)activeDialog=null;if(!switchingTask&&task&&parseTaskRoute(location.hash)===taskKey(task)){if(history.state?.taskDrawer)history.back();else history.replaceState(null,'','#tasks');}},{once:true});
@@ -138,6 +138,7 @@ export async function mountTaskBoard(root,{repository,project,canEdit=true,canMa
   }
   await reload();
   return {reload,openTask,closeTask,currentTask:()=>activeDialog?.taskController.taskKey,readyToLeave:async()=>!openingTask&&!activeDialog&&!pending.size,destroy(){
+    activeDialog?.close(true);
     const board=mount.querySelector('.iq-board');if(board){viewState.x=board.scrollLeft;viewState.y=board.scrollTop;}
     persist();if(root.firstElementChild===ownedPage)root.classList.remove('iq-task-board-root');closed=true;loading++;abort.abort();covers.destroy();filters.destroy();unsubscribe?.();disposeBoard?.();disposeTags();
   }};

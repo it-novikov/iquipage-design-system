@@ -25,7 +25,7 @@ async function onboard(){
 }
 async function showProject(id){
   if(board&&!await board.closeTask())return;
-  board?.destroy();const project=session.projects.find(p=>p.id===id)||session.projects[0];
+  repository.stopWatch?.();board?.destroy();const project=session.projects.find(p=>p.id===id)||session.projects[0];
   if(!project){root.innerHTML='<main class="host-landing"><h1>Создадим первый проект</h1><p>Задачи, обсуждения и команда в одном месте.</p><button class="iq-btn primary" data-onboard>Создать проект</button></main>';root.querySelector('[data-onboard]').onclick=()=>onboard().catch(report);return;}
   const url=new URL(location.href);url.searchParams.set('project',project.slug);history.replaceState(null,'',url);
   root.innerHTML=`<div class="demo-shell"><header class="platform-header"><div class="platform-brand">
@@ -37,6 +37,10 @@ async function showProject(id){
   root.querySelector('[data-theme]').onclick=()=>{document.documentElement.dataset.theme=document.documentElement.dataset.theme==='dark'?'light':'dark';};
   root.querySelector('[data-logout]').onclick=async()=>{if(board&&!await board.closeTask())return;await repository.client.request('/logout','POST');location.reload();};
   board=await mountTaskBoard(root.querySelector('#host-view'),{repository,project,canEdit:project.role!=='reader',canManageCatalogs:project.role==='admin'});
+  repository.watch(project.id,()=>{
+    board?.destroy();board=null;session=null;
+    root.innerHTML='<main class="host-landing"><h1>Доступ изменился</h1><p>Обновите страницу, чтобы проверить доступные проекты.</p><a class="iq-btn primary" href="/">Обновить доступ</a></main>';
+  });
   const task=parseTaskRoute(location.hash);if(task)await board.openTask(task,{fromRoute:true});
 }
 root.addEventListener('iq-action',event=>{

@@ -1,19 +1,38 @@
 import {SprintiqueClient,ApiError} from '../client/api.ts';
 import {TaskInput} from '../contracts/index.ts';
+import {PlanningClient,watchProject} from '../client/planning.ts';
 
 /** Anti-corruption adapter: existing UI record intents become explicit v1 resource commands. */
 export class ProductRepository {
   constructor(client=new SprintiqueClient()){this.client=client;this.listeners=new Set();this.context={};this.capabilities={taskLinks:false,taskSettings:false,attachments:false,maps:false};}
   async initialize(){const session=await this.client.session();this.context.actorId=session.principal.id;return session;}
   subscribe(listener){this.listeners.add(listener);return ()=>this.listeners.delete(listener);}
+  watch(projectId,onAccessRevoked){
+    this.stopWatch?.();let timer;
+    const changed=new Set();
+    const stop=watchProject(projectId,event=>{
+      changed.add(event.topic.startsWith('thread.')?'threads':event.topic.startsWith('tags.')?'tags':'tasks');
+      clearTimeout(timer);timer=setTimeout(()=>{for(const collection of changed)this.listeners.forEach(fn=>fn({collection,projectId}));changed.clear();},80);
+    },()=>{clearTimeout(timer);changed.clear();this.context={};onAccessRevoked();});
+    this.stopWatch=()=>{clearTimeout(timer);stop();};return this.stopWatch;
+  }
+  async taskContext(projectId){
+    const planning=new PlanningClient(this.client,projectId);let cursor,result=[];
+    do{const page=await planning.tasks({cursor});result.push(...page.items.map(t=>({...t,projectId,summary:true})));cursor=page.nextCursor;}while(cursor);
+    return result;
+  }
   async list(collection,projectId){
     if(collection==='tasks'){
-      let cursor='',result=[];
-      do{const page=await this.client.tasks(projectId,cursor);result.push(...page.items);cursor=page.nextCursor;
-        if(result.length>10000)throw new ApiError('BOARD_LIMIT','Для большой доски требуется серверная фильтрация.',409);
+      let cursor,result=[];const planning=new PlanningClient(this.client,projectId);
+      do{const page=await planning.board({cursor});result.push(...page.items.map(t=>({...t,projectId,summary:true})));cursor=page.nextCursor;
       }while(cursor);return result;
     }
-    if(['tags','releases'].includes(collection))return this.client.request(`/projects/${encodeURIComponent(projectId)}/${collection}`);
+    if(collection==='releases'){
+      const planning=new PlanningClient(this.client,projectId);let cursor,result=[];
+      do{const page=await planning.releases(cursor);result.push(...page.items.map(r=>({...r,status:['closed','cancelled'].includes(r.lifecycle)?'released':'planned',targetDate:r.deadline})));cursor=page.nextCursor;}while(cursor);
+      return result;
+    }
+    if(collection==='tags')return this.client.request(`/projects/${encodeURIComponent(projectId)}/tags`);
     // Optional UI extensions are explicitly disabled, never projected as persisted server data.
     if(['taskSettings','taskLinks'].includes(collection))throw new ApiError('NOT_IMPLEMENTED','Этот раздел ещё не подключён к API vNext.',501);
     throw new ApiError('NOT_IMPLEMENTED','Этот раздел ещё не подключён к API vNext.',501);
@@ -35,10 +54,16 @@ export class ProductRepository {
     const base=`/projects/${encodeURIComponent(record.projectId)}`,id=encodeURIComponent(record.id);
     let path,body,method='PUT';
     if(collection==='tasks'){
+      if(record.summary){
+        const path=`${base}/tasks/${id}/position`,body={baseRevision,status:record.status,rank:record.rank};
+        const saved=await this.client.request(path,'PATCH',body,await this.key(path,body));
+        this.listeners.forEach(fn=>fn({collection,projectId:record.projectId,id:record.id}));return saved;
+      }
       if(record.attachmentIds?.length||record.coverAttachmentId)throw new ApiError('NOT_IMPLEMENTED','Файлы ещё не подключены к API vNext.',501);
       if(record.checklists?.length)throw new ApiError('CONTENT_VERSION','Сохраните чек-листы в Markdown-описании.',422);
       const {title,description,status,type,priority,owner,due,rank,parentId,releaseId,tagIds}=record;
-      body={baseRevision,task:TaskInput.parse({title,description,status,type,priority,owner,due,rank,parentId,releaseId,tagIds})};path=base+'/tasks/'+id;
+      // Explicit creation from the board means "create and take into work"; Planning creation stays draft.
+      body={baseRevision,createInBoard:baseRevision===0,task:TaskInput.parse({title,description,status,type,priority,owner,due,rank,parentId,releaseId,tagIds})};path=base+'/tasks/'+id;
     }else if(collection==='threads'){
       const last=record.messages.at(-1);
       if(baseRevision===0){path=`${base}/tasks/${encodeURIComponent(record.taskId)}/threads`;method='POST';body={id:record.id,messageId:last.id,body:last.body,requiresResolution:record.requiresResolution};}

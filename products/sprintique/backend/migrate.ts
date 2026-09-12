@@ -24,6 +24,7 @@ export async function migrate(url:string,runtimeRole:string){
       GRANT SELECT,INSERT,UPDATE ON ALL TABLES IN SCHEMA app TO "${runtimeRole}";
       GRANT DELETE ON app.task_tags TO "${runtimeRole}";
       REVOKE UPDATE ON app.audit_events,app.messages,app.idempotency FROM "${runtimeRole}";
+      REVOKE UPDATE ON app.planning_plans,app.planning_applied,app.release_snapshots FROM "${runtimeRole}";
       GRANT SELECT,INSERT,UPDATE ON auth.principals,auth.credentials TO "${runtimeRole}";
       GRANT SELECT,INSERT,DELETE ON auth.login_states TO "${runtimeRole}";
       GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA auth TO "${runtimeRole}"`);
