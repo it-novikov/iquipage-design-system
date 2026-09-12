@@ -20,7 +20,8 @@ for folder in roots:
         if not path.is_file() or path.is_symlink(): continue
         if path.suffix.lower() in font_types or path.name.startswith('.env') or path.suffix in {'.sqlite', '.db'}: continue
         if 'packages/maps/evidence' in str(relative) or 'packages/maps/preview.html' == str(relative): continue
-        if str(relative) == 'packages/planning/dist/Sprintique-Planning-PN2.html' or path.name == 'failure.png': continue
+        if str(relative).startswith('packages/planning/dist/') and path.name not in {'Sprintique-UX-R3.html', 'offline.json'}: continue
+        if path.name == 'failure.png': continue
         items[str(relative)] = path.read_bytes()
 for name in ['AGENTS.md', 'START-HERE.md']:
     if (root / name).is_file(): items[name] = (root / name).read_bytes()

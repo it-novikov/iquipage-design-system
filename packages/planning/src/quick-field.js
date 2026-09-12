@@ -18,6 +18,7 @@ export function quickFieldDialog({adapter,projectId,row,field,revision,onChanged
     modal.form.querySelector('[data-field-recover]').hidden=!uncertain;
     modal.form.querySelector('fieldset').disabled=busy||uncertain||state.state==='committed';
     if(uncertain)modal.fail('Ответ не получен. Изменение могло сохраниться. Проверяем результат без повторной записи.');
+    else if(['failed','stale'].includes(state.state))modal.fail(state.error||'Изменение не сохранено.');
   });
   const control=field==='owner'
     ? '<iq-remote-combobox label="Исполнитель" placeholder="Не назначен" data-value></iq-remote-combobox>'

@@ -28,11 +28,11 @@ let attachments=new BrowserAttachmentAdapter(repository);
 const shell=mountProjectNavigation(document.querySelector('.pn-platform-header'),{
  current:contextProjection(activeContext),profile:{name:'Демонстрационный участник',initials:'Д'},
  projects:async({query='',signal})=>{signal?.throwIfAborted();return {options:contexts.filter(c=>(c.workspaceName+' '+c.project.name).toLocaleLowerCase('ru').includes(query.toLocaleLowerCase('ru'))).map(c=>({value:c.id,label:c.project.name,description:c.workspaceName})),nextCursor:null};},
- onSwitch:switchContext,onSettings:()=>{location.hash='settings';},onAccount:()=>showProfile(),onSignOut:()=>leaveDemo(),onTeam:()=>showTeam(),onTheme:()=>document.querySelector('[data-theme-toggle]').click()
+ onSwitch:switchContext,onSettings:()=>{location.hash='settings';},onAccount:()=>showProfile(),onSignOut:()=>leaveDemo(),onTeam:()=>showTeam(),onTheme:()=>{document.documentElement.dataset.theme=document.documentElement.dataset.theme==='dark'?'light':'dark';}
 });
 let mounted=null,current='planning',routing=false,boardGroup=null,dialogOpen=false,guest=false;
 document.querySelector('[data-theme-toggle]').innerHTML=icon('sun',18);
-document.querySelector('[data-theme-toggle]').onclick=()=>{document.documentElement.dataset.theme=document.documentElement.dataset.theme==='dark'?'light':'dark';};
+
 await seed(repository,project);
 async function openTask(id,{onChanged=()=>{},onClose=()=>{}}={}) {
   if(dialogOpen)throw Error('Сначала закройте открытую задачу.');dialogOpen=true;

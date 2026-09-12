@@ -9,8 +9,8 @@ const sha=value=>createHash('sha256').update(value).digest('hex');
 async function fingerprint(){
  const files=[];
  async function walk(dir){for(const item of await readdir(path.join(root,dir),{withFileTypes:true})){const name=path.join(dir,item.name);if(item.isDirectory())await walk(name);else files.push(name);}}
- for(const dir of ['src','types','demo','tests','scripts','../work-list/src','../maps/src','../maps/types','../maps/ds-extension','../maps/scripts'])await walk(dir);
- files.push('package.json','package-lock.json','../work-list/package.json','../work-list/package-lock.json','../work-list/tsconfig.json');
+ for(const dir of ['src','types','demo','tests','scripts','../work-list/src','../maps/src','../maps/types','../maps/ds-extension','../maps/scripts','../maps/tests'])await walk(dir);
+ files.push('package.json','package-lock.json','../maps/package.json','../maps/package-lock.json','../work-list/package.json','../work-list/package-lock.json','../work-list/tsconfig.json');
  const entries=[];for(const name of files.sort())entries.push([name,sha(await readFile(path.join(root,name)))]);
  return {sha256:sha(JSON.stringify(entries)),files:entries};
 }
@@ -35,7 +35,7 @@ try{
  await run('offline-build',['scripts/offline.mjs']);await run('offline-smoke',['tests/offline.mjs']);
  for(const suite of ['browser-editor-actions-v34','browser-thread-actions-v34','browser-board-interactions'])await run('base-'+suite,['tests/'+suite+'.mjs'],maps);
  const additional=[];
- for(const suite of ['completion','temporal','conditions','recovery','list-interactions','large-list','experience-r3']){
+ for(const suite of ['completion','temporal','conditions','recovery','list-interactions','large-list','experience-r3','r3-guards']){
    const {result,log}=execute('browser-'+suite,['tests/browser-'+suite+'.mjs']);
    await writeFile(path.join(out,'browser-'+suite+'.log'),log);
    const record=JSON.parse(await readFile(path.join(out,suite,'report.json'),'utf8'));
