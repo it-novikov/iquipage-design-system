@@ -48,7 +48,7 @@ export interface PlanningAdapter {
   receipt(request:Omit<RequestContext,'signal'>&{idempotencyKey:string}):Promise<CommandReceipt>;
   describeRelease?(request:RequestContext&{groupId:string}):Promise<ReleaseDetail>;
   settings?(request:RequestContext):Promise<PlanningSettings>;
-  options?(request:PickerRequest&{kind:'owner'|'tags'|'tasks'}):Promise<PickerPage>;
+  options?(request:PickerRequest&{kind:'owner'|'tags'|'tasks'|'positions';taskId?:string}):Promise<PickerPage>;
   selectMatching?(request:RequestContext&Filters&{taskIds?:string[]}):Promise<SelectionSnapshot>;
   timeline?(request:RequestContext&Partial<Filters>&{cursor:string|null}):Promise<TemporalPage>;
   subscribe?(listener:()=>void):()=>void;

@@ -18,12 +18,16 @@
     "package": "node scripts/package.mjs",
     "build:offline": "node scripts/offline.mjs",
     "test:offline": "node tests/offline.mjs",
-    "verify": "node scripts/verify.mjs"
+    "verify": "node scripts/verify.mjs",
+    "build:work-list": "npm --prefix ../work-list run build"
   },
   "engines": {
     "node": ">=24"
   },
   "devDependencies": {
     "typescript": "5.9.2"
+  },
+  "dependencies": {
+    "@iquipage/work-list": "file:../work-list"
   }
 }

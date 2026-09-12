@@ -4,7 +4,7 @@ import {readFile,realpath} from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../../..');
-const allowed=['packages/planning/src/','packages/planning/demo/','packages/maps/src/','packages/maps/dist/vendor/'];
+const allowed=['packages/work-list/dist/','packages/work-list/src/work-list.css','packages/planning/src/','packages/planning/demo/','packages/maps/src/','packages/maps/dist/vendor/'];
 export function startServer(port=0){
   const server=http.createServer(async(req,res)=>{
     try{

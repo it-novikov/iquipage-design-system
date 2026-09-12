@@ -5,8 +5,9 @@ import {createHash} from 'node:crypto';
 import path from 'node:path';
 const root=fileURLToPath(new URL('../../../',import.meta.url));
 const prefix='@sprintique/pn2',modules=new Map();
-const allowed=['/packages/planning/src/','/packages/planning/demo/','/packages/maps/src/','/packages/maps/dist/vendor/'];
+const allowed=['/packages/work-list/dist/','/packages/planning/src/','/packages/planning/demo/','/packages/maps/src/','/packages/maps/dist/vendor/'];
 function normalize(from,target){
+ if(target==='@iquipage/work-list')return '/packages/work-list/dist/index.js';
  if(target==='@iquipage/web/core')return '/packages/maps/dist/vendor/core.js';
  if(target==='@iquipage/web/advanced')return '/packages/maps/dist/vendor/advanced.js';
  if(!target.startsWith('.')&&!target.startsWith('/'))throw Error('Unmapped dependency: '+target);

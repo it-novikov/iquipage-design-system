@@ -1,0 +1,25 @@
+{
+  "name": "@iquipage/work-list",
+  "version": "0.1.0-candidate.1",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./styles.css": "./src/work-list.css"
+  },
+  "files": [
+    "dist",
+    "src/work-list.css",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "node ../planning/tests/browser-list-interactions.mjs && node ../planning/tests/browser-large-list.mjs"
+  },
+  "devDependencies": {
+    "typescript": "5.9.2"
+  }
+}

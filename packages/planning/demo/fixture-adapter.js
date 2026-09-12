@@ -12,7 +12,11 @@ export function createFixtureAdapter(repository){
   port.describeRelease=async options=>{await guard(options);const o=releaseOverview(await repository.fixtureSnapshot(),options.groupId),r=o.release;return {id:r.id,title:r.name,state:r.planningPhase||'planned',format:r.planningFormat||'flexible',start:r.planningStart||null,end:r.targetDate||null,deadline:r.deadline||null,revision:r.revision,counts:o.counts,items:o.items,snapshot:o.snapshot};};
   port.settings=async options=>{await guard(options);const s=await repository.fixtureSnapshot();return s._pnFixture.find(x=>x.id==='planning-settings')||{format:'flexible',days:14,timeZone:'Europe/Moscow',revision:0};};
   port.options=async options=>{await guard(options);const s=await repository.fixtureSnapshot();let list;
-    if(options.kind==='owner')list=[{value:'__none__',label:'Не назначен'},...[...new Set(s.tasks.map(t=>t.owner).filter(Boolean))].map(x=>({value:x,label:x}))];
+    if(options.kind==='positions'){
+      const task=s.tasks.find(t=>t.id===options.taskId);if(!task)throw Error('Задача недоступна.');const member=memberships(s.tasks);
+      list=[{value:'__end__',label:'В конец задач этого уровня'},...s.tasks.filter(t=>t.id!==task.id&&!t.archivedAt&&(t.parentId||null)===(task.parentId||null)&&member.get(t.id)===member.get(task.id)).map(t=>({value:t.id,label:'Перед '+(t.displayId||t.id)+' · '+t.title}))];
+    }
+    else if(options.kind==='owner')list=[{value:'__none__',label:'Не назначен'},...[...new Set(s.tasks.map(t=>t.owner).filter(Boolean))].map(x=>({value:x,label:x}))];
     else if(options.kind==='tags')list=s.tags.filter(t=>!t.archivedAt).map(t=>({value:t.id,label:t.name}));
     else list=s.tasks.filter(t=>!t.archivedAt).map(t=>({value:t.id,label:(t.displayId||t.id)+' · '+t.title}));
     const p=page(list.filter(x=>x.label.toLocaleLowerCase('ru').includes((options.query||'').toLocaleLowerCase('ru'))),options.cursor,20);return {options:p.items,nextCursor:p.nextCursor};
