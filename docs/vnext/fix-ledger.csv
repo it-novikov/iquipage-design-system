@@ -1,0 +1,10 @@
+finding_id,root_cause,change_level,files,status,acceptance_check_ids,reviewer,evidence_ids,fingerprint
+F01,wrong stylesheet import,product,web/main.js,resolved,product-build,self-review,product-build.log,405fe7ffae6d02c1e0fd5f2e2cb8bfd72405d561d62030de366a121ce94149d4
+F02,grantor authorization not rechecked,backend,backend/infrastructure/database.ts,resolved,agent grant invalidated on initiator loss,self-review,product-tests.log,405fe7ffae6d02c1e0fd5f2e2cb8bfd72405d561d62030de366a121ce94149d4
+F03,archived assignment preservation,backend,backend/application/tasks.ts,resolved,archived catalog retention,self-review,product-tests.log,405fe7ffae6d02c1e0fd5f2e2cb8bfd72405d561d62030de366a121ce94149d4
+F04,optional service capability assumptions,adapter,ui/src/board/catalog-picker.js;ui/src/board/task-dialog.js,resolved,browser create and open task,self-review,browser snapshots,405fe7ffae6d02c1e0fd5f2e2cb8bfd72405d561d62030de366a121ce94149d4
+F05,runtime ledger privilege missing,backend,backend/migrate.ts,resolved,readiness restricted runtime role,self-review,product-tests.log,405fe7ffae6d02c1e0fd5f2e2cb8bfd72405d561d62030de366a121ce94149d4
+F06,eager illustration assets,product,ui/src/board/task-files-view.js,partial,product-build;full performance pending,self-review,product-build.log,405fe7ffae6d02c1e0fd5f2e2cb8bfd72405d561d62030de366a121ce94149d4
+F07,routes registered after boot,test,tests/fixture.ts;tests/preview.ts,resolved,browser fixture boot,self-review,browser task flow,405fe7ffae6d02c1e0fd5f2e2cb8bfd72405d561d62030de366a121ce94149d4
+F08,native fetch receiver binding,client,client/api.ts,resolved,browser create publish reload,self-review,browser task flow,405fe7ffae6d02c1e0fd5f2e2cb8bfd72405d561d62030de366a121ce94149d4
+F09,consumed tarball rewritten in place,package,libraries/iquipage/package.json;products/sprintique/package-lock.json,resolved,public type check;detached install,self-review,product-build.log;detached-product.log,405fe7ffae6d02c1e0fd5f2e2cb8bfd72405d561d62030de366a121ce94149d4

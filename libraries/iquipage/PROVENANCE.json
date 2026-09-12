@@ -1,0 +1,9 @@
+{
+  "sourceCommit": "f3dd146cc9c7c0544fd663d632704a210a5c13be",
+  "upstream": "IQUIPAGE 0.5.7",
+  "pinnedManifestSha256": "f252a499e00d7bab6088640126a406075a86bf109e673a257a002d8e90e9195c",
+  "approvedExtensions": "packages/maps/ds-extension, 0.6.0-board.7",
+  "materialization": "scripts/materialize-vnext.mjs",
+  "release": "0.6.0-vnext.1",
+  "distribution": "private local package; no public publication authorized"
+}
