@@ -1,5 +1,5 @@
 {
-  "sha256": "04cad1760d05acf6ae08e3324854d600eb6fc548ff08270f415ec6929c27c807",
+  "sha256": "19c50279fe66ba959b9680450734e94211bc754b3fef234f2d6fa6bc04a22227",
   "files": [
     [
       "demo/app.js",
@@ -47,7 +47,7 @@
     ],
     [
       "scripts/package.py",
-      "c0715fb0138b61b972a588aaf981682618ca5eff038807d95857ca496988c447"
+      "547faa9cc2315b09d57deda93ef7791424c9f8e904dc351519da79cdf9f91050"
     ],
     [
       "scripts/server.mjs",
