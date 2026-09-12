@@ -17,5 +17,7 @@ try{
     if(index.total!==172||index.indexAt(100)!==1||typeof TableWindow!=='function'||typeof bindRowDrag!=='function')throw Error('Broken public exports');`],temporary);
   const css=await readFile(path.join(temporary,'node_modules/@iquipage/work-list/src/work-list.css'),'utf8');
   if(!css.includes('--iq-motion-fast'))throw Error('Missing host-token stylesheet');
+  const compact=await readFile(path.join(temporary,'node_modules/@iquipage/work-list/src/compact-work.css'),'utf8');
+  if(!compact.includes('iq-workbar')||!compact.includes('--iq-work-compact-row'))throw Error('Missing public compact composition');
   console.log('PASS clean tarball install, public ESM exports, independent index and host stylesheet');
 }finally{await rm(temporary,{recursive:true,force:true});}

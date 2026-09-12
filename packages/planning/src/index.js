@@ -61,9 +61,10 @@ export async function mountPlanning(root,{adapter,project,onOpenTask,onCreateTas
         node.window?.destroy();node.window=null;node.rowRef=null;node.bodyKey=bk;node.body.innerHTML=groupBody(group,controller,true);
         const body=node.body.querySelector('[data-window-body]');
         if(body)node.window=new TableWindow({body,scrollRoot:scroll,columns:4,estimate:56,key:row=>row.id,
-          markup:row=>rowMarkup(row,group.id,controller.collapsed.has(row.taskId),!!(controller.capabilities.move||controller.capabilities.reorder)),
+          markup:row=>rowMarkup(row,group.id,controller.collapsed.has(row.taskId),!!(controller.capabilities.move||controller.capabilities.reorder),!!controller.capabilities.bulk),
           decorate:(element,row)=>{
             for(const control of element.querySelectorAll('[data-select],[data-disclose],[data-work-drag]'))control.disabled=node.locked||node.group.busy||control.matches('[data-select]')&&!!controller.selection.snapshot;
+            for(const control of element.querySelectorAll('[data-quick-edit]'))control.disabled=node.locked||node.group.busy||!controller.capabilities.bulk||row.contextOnly||!row.selectable||(control.dataset.quickEdit==='owner'?row.ownerId===undefined||!adapter.options:row.dueValue===undefined);
             const check=element.querySelector('[data-select]');if(check)check.checked=controller.selection.ids.has(row.taskId);
             element.dataset.selected=String(!!check?.checked);
           }});

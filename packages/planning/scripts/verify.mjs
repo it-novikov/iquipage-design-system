@@ -9,7 +9,7 @@ const sha=value=>createHash('sha256').update(value).digest('hex');
 async function fingerprint(){
  const files=[];
  async function walk(dir){for(const item of await readdir(path.join(root,dir),{withFileTypes:true})){const name=path.join(dir,item.name);if(item.isDirectory())await walk(name);else files.push(name);}}
- for(const dir of ['src','types','demo','tests','scripts','../work-list/src'])await walk(dir);
+ for(const dir of ['src','types','demo','tests','scripts','../work-list/src','../maps/src','../maps/types','../maps/ds-extension','../maps/scripts'])await walk(dir);
  files.push('package.json','package-lock.json','../work-list/package.json','../work-list/package-lock.json','../work-list/tsconfig.json');
  const entries=[];for(const name of files.sort())entries.push([name,sha(await readFile(path.join(root,name)))]);
  return {sha256:sha(JSON.stringify(entries)),files:entries};
@@ -35,7 +35,7 @@ try{
  await run('offline-build',['scripts/offline.mjs']);await run('offline-smoke',['tests/offline.mjs']);
  for(const suite of ['browser-editor-actions-v34','browser-thread-actions-v34','browser-board-interactions'])await run('base-'+suite,['tests/'+suite+'.mjs'],maps);
  const additional=[];
- for(const suite of ['completion','temporal','conditions','recovery','list-interactions','large-list']){
+ for(const suite of ['completion','temporal','conditions','recovery','list-interactions','large-list','experience-r3']){
    const {result,log}=execute('browser-'+suite,['tests/browser-'+suite+'.mjs']);
    await writeFile(path.join(out,'browser-'+suite+'.log'),log);
    const record=JSON.parse(await readFile(path.join(out,suite,'report.json'),'utf8'));
@@ -51,7 +51,7 @@ try{
  if((await fingerprint()).sha256!==baseline.sha256)throw Error('Source changed during acceptance');
 }catch(error){failure=error;console.error(error.message);}
 const git=spawnSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'});
-const report={stage:'frontend-r1',status:failure?'FAIL':'PASS',scope:'consumer-view-and-local-fixture',startedAt,finishedAt:new Date().toISOString(),sourceCommit:git.status===0?git.stdout.trim():null,sourceFingerprint:baseline.sha256,node:process.version,nodeTests,baseNodeTests,browserScenarios,checks,error:failure?.message,backendIntegrated:false,productionReady:false,limitations:['Fixture persistence and receipt simulation use isolated IndexedDB, not the new backend','No production authentication or tenant/agent authorization accepted','Consumer TypeScript declarations compiled; implementation is JavaScript, not a strict TypeScript codebase','The source-owned work-list candidate is consumer-tested; independent DS promotion remains a separate owner decision','Optional legacy importer and new backend remain separate tracks','No measured real-device FPS or physical touch/screen-reader acceptance','Full historical upstream browser runner not claimed passing; three current v3.4 suites rerun']};
+const report={stage:'ux-r3',status:failure?'FAIL':'PASS',scope:'consumer-view-and-local-fixture',startedAt,finishedAt:new Date().toISOString(),sourceCommit:git.status===0?git.stdout.trim():null,sourceFingerprint:baseline.sha256,node:process.version,nodeTests,baseNodeTests,browserScenarios,checks,error:failure?.message,backendIntegrated:false,productionReady:false,limitations:['Fixture persistence and receipt simulation use isolated IndexedDB, not the new backend','No production authentication or tenant/agent authorization accepted','Consumer TypeScript declarations compiled; implementation is JavaScript, not a strict TypeScript codebase','The source-owned work-list candidate is consumer-tested; independent DS promotion remains a separate owner decision','Optional legacy importer and new backend remain separate tracks','No measured real-device FPS or physical touch/screen-reader acceptance','Full historical upstream browser runner not claimed passing; three current v3.4 suites rerun']};
 try{report.offline=JSON.parse(await readFile(path.join(root,'dist/offline.json'),'utf8'));report.dsCandidate=JSON.parse(await readFile(path.join(maps,'dist/candidate.json'),'utf8'));}catch(error){report.artifactError=error.message;report.status='FAIL';}
 await writeFile(path.join(out,'source-fingerprint.json'),JSON.stringify(baseline,null,2)+'\n');
 await writeFile(path.join(out,'verification.json'),JSON.stringify(report,null,2)+'\n');

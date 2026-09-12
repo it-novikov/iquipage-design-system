@@ -1,3 +1,4 @@
+import {validDate} from './date-value.js';
 /** Validates the consumer projection, not the backend's Task/Release records. */
 export const PROTOCOL = 'sprintique.planning-view/1';
 export function invariant(condition, message) { if (!condition) throw new Error(message); }
@@ -33,6 +34,8 @@ export function validateRows(page, projectId, groupId, revision) {
     invariant(identifier(row.taskId) && text(row.key, 100) && text(row.title, 240), 'Некорректная задача.');
     invariant(count(row.depth) && row.depth <= 100 && count(row.childrenCount), 'Некорректная иерархия.');
     invariant(['task', 'bug', 'epic'].includes(row.type) && ['draft', 'ready'].includes(row.preparation), 'Некорректный тип задачи.');
+    invariant(row.ownerId===undefined||text(row.ownerId,240), 'Некорректная идентичность исполнителя.');
+    invariant(row.dueValue===undefined||row.dueValue===null||validDate(row.dueValue), 'Некорректный срок.');
     invariant(text(row.statusLabel, 120) && text(row.ownerLabel ?? '', 120) && text(row.dateLabel ?? '', 120), 'Некорректные свойства задачи.');
     invariant(typeof row.contextOnly === 'boolean' && typeof row.selectable === 'boolean', 'Не указаны возможности строки.');
     invariant(['normal','low','high','critical'].includes(row.priority), 'Некорректный приоритет.');

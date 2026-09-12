@@ -3,7 +3,7 @@ import {writeFile,mkdir} from 'node:fs/promises';
 import {chromium} from '../../maps/node_modules/playwright/index.mjs';
 const browser=await chromium.launch({headless:true}),page=await browser.newPage(),network=[],errors=[];
 page.on('request',r=>{if(/^https?:/.test(r.url()))network.push(r.url());});page.on('pageerror',e=>errors.push(e.message));
-const url=new URL('../dist/Sprintique-Planning-Frontend-R1.html',import.meta.url);url.searchParams.set('fixture',crypto.randomUUID());let failure;
+const url=new URL('../dist/Sprintique-UX-R3.html',import.meta.url);url.searchParams.set('fixture',crypto.randomUUID());let failure;
 try{
  await page.goto(url.href);await page.getByRole('heading',{name:'Планирование',exact:true}).waitFor();
  await page.locator('[data-select=pn-task-1]').waitFor();

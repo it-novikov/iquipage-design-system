@@ -5,7 +5,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('delivery', type=Path)
 args = parser.parse_args()
 delivery = args.delivery.resolve()
-archive = delivery / 'Sprintique-Planning-Frontend-R1.zip'
+archive = delivery / 'Sprintique-UX-R3.zip'
 sha = lambda path: hashlib.sha256(path.read_bytes()).hexdigest()
 steps = []; result = {'archiveIntegrity': 'NOT_RUN', 'acceptance': 'NOT_RUN', 'rebuildIdentical': False}
 def run(name, command, cwd):
@@ -22,7 +22,7 @@ try:
             for name in names:
                 if not (base / name).resolve().is_relative_to(base): raise ValueError('Unsafe archive path')
             zipped.extractall(base)
-        root = base / 'Sprintique-Planning-Frontend-R1'
+        root = base / 'Sprintique-UX-R3'
         lines = (root / 'MANIFEST.sha256').read_text().splitlines()
         for line in lines:
             digest, name = line.split('  ', 1)
@@ -34,8 +34,8 @@ try:
         run('clean-verify', ['npm', 'run', 'verify'], root / 'packages/planning')
         report = json.loads((root / 'packages/planning/evidence/verification.json').read_text())
         if report['status'] != 'PASS': raise RuntimeError('Clean verification did not pass')
-        generated = root / 'packages/planning/dist/Sprintique-Planning-Frontend-R1.html'
-        result['rebuildIdentical'] = sha(generated) == sha(delivery / 'Sprintique-Planning-Frontend-R1.html')
+        generated = root / 'packages/planning/dist/Sprintique-UX-R3.html'
+        result['rebuildIdentical'] = sha(generated) == sha(delivery / 'Sprintique-UX-R3.html')
         if not result['rebuildIdentical']: raise RuntimeError('Rebuilt HTML differs')
         original = json.loads((delivery / 'verification.json').read_text())
         if original['sourceFingerprint'] != report['sourceFingerprint']: raise RuntimeError('Source fingerprint differs')

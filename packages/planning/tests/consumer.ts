@@ -22,3 +22,15 @@ const ambiguous:PlanningIntent={kind:'prepare',selectionToken:'snapshot',taskIds
 const nested:PlanningIntent={kind:'batch',actions:[{kind:'close',groupId:'r'}]};void nested;
 // @ts-expect-error Merely closing a release does not expose a deployment command.
 const deployment:PlanningIntent={kind:'deploy',groupId:'r'};void deployment;
+
+import {mountProjectNavigation,type NavigationOptions} from '../types/navigation.js';
+const navigation:NavigationOptions={
+  current:{id:'project-choice',workspaceName:'Workspace',projectName:'Project'},
+  profile:{name:'Current participant'},
+  projects:async()=>({options:[],nextCursor:null}),
+  onSwitch:async():Promise<false>=>false
+};
+mountProjectNavigation(document.createElement('header'),navigation).readyToLeave();
+// @ts-expect-error A context switch must return a confirmed context or a cancellation.
+const unsafeNavigation:NavigationOptions={...navigation,onSwitch:async()=>({secret:'not-a-context'})};
+void unsafeNavigation;

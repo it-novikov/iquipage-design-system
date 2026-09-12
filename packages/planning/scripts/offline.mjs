@@ -33,6 +33,6 @@ html=html.replace(/<link\b[^>]*rel="stylesheet"[^>]*>/g,'').replace(/<script typ
 html=html.replace('</head>',`<style>${css}</style><script type="importmap">${JSON.stringify({imports}).replaceAll('<','\\u003c')}</script></head>`);
 html=html.replace('</body>',`<script type="module">import '${prefix}/packages/planning/demo/app.js';</script></body>`);
 const output=path.join(root,'packages/planning/dist');await mkdir(output,{recursive:true});
-await writeFile(path.join(output,'Sprintique-Planning-Frontend-R1.html'),html);
+await writeFile(path.join(output,'Sprintique-UX-R3.html'),html);
 await writeFile(path.join(output,'offline.json'),JSON.stringify({scope:'fixture-only',moduleCount:modules.size,htmlBytes:Buffer.byteLength(html),sha256:createHash('sha256').update(html).digest('hex')},null,2));
 console.log('Built offline Planning frontend fixture:',modules.size,'modules,',Buffer.byteLength(html),'bytes');

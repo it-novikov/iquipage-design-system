@@ -9,6 +9,7 @@ const pass=text=>{checks.push(text);console.log('PASS',text);};
 const idle=()=>page.waitForFunction(()=>{const c=window.planningFixture.view?.controller;return c&&!c.loading&&!c.error&&c.groups.every(g=>!g.busy);});
 try{
  await page.goto(server.url+'/?fixture=ux-r3-'+crypto.randomUUID());await page.locator('[data-select]').first().waitFor();await idle();
+ await planningChecks();
  await page.getByRole('button',{name:'Открыть профиль',exact:true}).click();await page.getByRole('menuitem',{name:'Демонстрационный участник',exact:true}).click();
  const profile=page.getByRole('dialog',{name:'Профиль',exact:true});await profile.waitFor();await profile.getByRole('button',{name:'Отмена',exact:true}).click();await profile.waitFor({state:'hidden'});
  pass('Profile avatar opens account context; signout is inside the menu, not permanent navigation');
@@ -49,3 +50,31 @@ try{
 }catch(error){failure=error;console.error(error);await page.screenshot({path:new URL('failure.png',out).pathname});}
 finally{await writeFile(new URL('report.json',out),JSON.stringify({status:failure?'FAIL':'PASS',scope:'consumer UI and isolated fixtures, not backend or live LLM',checks,errors,error:failure?.stack},null,2)+'\n');await browser.close();await server.close();}
 if(failure)process.exitCode=1;
+
+async function planningChecks(){
+ const row=await page.locator('[data-row]').first().boundingBox();
+ assert.ok(row.y<=260,'First task remains close to navigation');assert.ok(row.height<=64,'A short task uses compact row geometry');
+ const before=await page.evaluate(async()=> (await window.planningFixture.repository.fixtureSnapshot())._pnFixture.filter(x=>x.kind==='receipt').length);
+ await page.getByRole('button',{name:'Сроки',exact:true}).click();await page.locator('iq-roadmap').waitFor();
+ await page.getByRole('group',{name:'Отображение сроков',exact:true}).getByRole('button',{name:'Календарь',exact:true}).click();await page.locator('iq-plan').waitFor();
+ await page.getByRole('button',{name:'Задачи',exact:true}).click();await idle();
+ await page.getByRole('button',{name:'Сроки',exact:true}).click();await page.locator('iq-plan').waitFor();
+ assert.equal(await page.getByRole('group',{name:'Отображение сроков',exact:true}).getByRole('button',{name:'Календарь',exact:true}).getAttribute('aria-pressed'),'true');
+ assert.equal(await page.evaluate(async()=> (await window.planningFixture.repository.fixtureSnapshot())._pnFixture.filter(x=>x.kind==='receipt').length),before);
+ await page.getByRole('button',{name:'Задачи',exact:true}).click();await idle();
+ pass('Compact task list begins near navigation; Deadlines switches Gantt/calendar and remembers the view without writing task data');
+ await page.getByRole('button',{name:'Исполнитель SPR-1',exact:true}).click();
+ const editor=page.getByRole('dialog',{name:'Исполнитель задачи',exact:true});
+ await editor.getByRole('combobox',{name:'Исполнитель',exact:true}).fill('Марк');await editor.getByRole('option',{name:'Марк Ли',exact:true}).click();
+ await editor.getByRole('button',{name:'Сохранить',exact:true}).click();await editor.waitFor({state:'hidden'});await idle();
+ assert.equal(await page.evaluate(async()=> (await window.planningFixture.repository.read('tasks','pn-task-1','pn-project')).owner),'Марк Ли');
+ pass('Executor edits directly from the row in one dialog, preserving task identity and workflow');
+ await page.getByRole('button',{name:'Исполнитель SPR-1',exact:true}).click();await editor.getByRole('combobox').fill('Денис');await editor.getByRole('option',{name:'Денис Соколов',exact:true}).click();
+ await page.evaluate(()=>window.planningFixture.adapter.loseNextAck=true);
+ await editor.getByRole('button',{name:'Сохранить',exact:true}).click();await editor.getByRole('button',{name:'Проверить результат',exact:true}).waitFor();
+ const receipts=await page.evaluate(async()=> (await window.planningFixture.repository.fixtureSnapshot())._pnFixture.filter(x=>x.kind==='receipt').length);
+ assert.equal(await editor.getByRole('button',{name:'Отмена',exact:true}).isDisabled(),true);
+ await editor.getByRole('button',{name:'Проверить результат',exact:true}).click();await editor.waitFor({state:'hidden'});await idle();
+ assert.equal(await page.evaluate(async()=> (await window.planningFixture.repository.fixtureSnapshot())._pnFixture.filter(x=>x.kind==='receipt').length),receipts);
+ pass('Lost single-field ACK exposes receipt recovery; cancel cannot discard an unknown result and no duplicate effect is sent');
+}

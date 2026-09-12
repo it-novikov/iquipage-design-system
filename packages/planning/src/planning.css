@@ -37,3 +37,8 @@
 .pn-row-identity .iq-helper{margin-top:0}
 .pn-task-title{justify-content:flex-start;text-align:left;white-space:normal;overflow-wrap:anywhere;padding-inline:0;max-width:100%}
 .pn-group tr[data-selected=true]{background:var(--iq-accent-soft)}
+
+.pn-single-field{border:0;padding:0;margin:0;min-width:0}
+.pn-person,.pn-date{justify-content:flex-start;text-align:left;padding-inline:var(--iq-space-1);max-width:100%;white-space:normal}
+.pn-person .iq-avatar{flex:none}
+.pn-group-header{padding-block:var(--iq-space-2)}

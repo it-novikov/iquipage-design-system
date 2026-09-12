@@ -16,21 +16,21 @@ import {mountMaps} from '../../maps/src/maps.js';
 import {WorkflowRuntime,localTasksAdapter} from '../../maps/src/runtime.js';
 registerCore();
 const params=new URLSearchParams(location.search),namespace='sprintique-pn2-fixture-'+(params.get('fixture')||'local');
-let savedView={};try{savedView=JSON.parse(sessionStorage.getItem(namespace+'-view')||'{}');}catch{}
+let savedView={};try{savedView=JSON.parse(sessionStorage.getItem(namespace+'-'+(params.get('context')||'default')+'-view')||'{}');}catch{}
 const contexts=[{id:'default',workspaceId:'pn2-fixture-space',workspaceName:'Моя команда',project:{...defaultProject,name:'Новый продукт'}},{id:'mobile',workspaceId:'pn2-fixture-space',workspaceName:'Моя команда',project:{id:'pn-mobile',name:'Мобильное приложение',key:'MOB'}},{id:'studio',workspaceId:'pn2-fixture-studio',workspaceName:'Студия',project:{id:'pn-studio',name:'Клиентский проект',key:'STU'}}];
 const contextProjection=c=>({id:c.id,workspaceName:c.workspaceName,projectName:c.project.name});
 let activeContext=contexts.find(c=>c.id===params.get('context'))||contexts[0],project=activeContext.project;
 const contextNamespace=c=>c.id==='default'?namespace:namespace+'-context-'+c.id;
 let repository=fixtureRepository(contextNamespace(activeContext),{workspaceId:activeContext.workspaceId,projectId:project.id}),adapter=createFixtureAdapter(repository,{project});
-const root=document.querySelector('#feature'),state={mode:savedView.mode,temporal:savedView.temporal},contextViews=new Map();
-window.addEventListener('beforeunload',()=>{try{sessionStorage.setItem(namespace+'-view',JSON.stringify({mode:state.mode,temporal:state.temporal}));}catch{}});
+const root=document.querySelector('#feature'),state={mode:savedView.mode,deadlineMode:savedView.deadlineMode,temporal:savedView.temporal},contextViews=new Map();
+window.addEventListener('beforeunload',()=>{try{sessionStorage.setItem(namespace+'-'+activeContext.id+'-view',JSON.stringify({mode:state.mode,deadlineMode:state.deadlineMode,temporal:state.temporal}));}catch{}});
 let attachments=new BrowserAttachmentAdapter(repository);
 const shell=mountProjectNavigation(document.querySelector('.pn-platform-header'),{
  current:contextProjection(activeContext),profile:{name:'Демонстрационный участник',initials:'Д'},
  projects:async({query='',signal})=>{signal?.throwIfAborted();return {options:contexts.filter(c=>(c.workspaceName+' '+c.project.name).toLocaleLowerCase('ru').includes(query.toLocaleLowerCase('ru'))).map(c=>({value:c.id,label:c.project.name,description:c.workspaceName})),nextCursor:null};},
- onSwitch:switchContext,onSettings:()=>{location.hash='settings';},onAccount:()=>showProfile(),onSignOut:()=>leaveDemo(),onTeam:()=>showTeam()
+ onSwitch:switchContext,onSettings:()=>{location.hash='settings';},onAccount:()=>showProfile(),onSignOut:()=>leaveDemo(),onTeam:()=>showTeam(),onTheme:()=>document.querySelector('[data-theme-toggle]').click()
 });
-let mounted=null,current='planning',routing=false,boardGroup=null,dialogOpen=false;
+let mounted=null,current='planning',routing=false,boardGroup=null,dialogOpen=false,guest=false;
 document.querySelector('[data-theme-toggle]').innerHTML=icon('sun',18);
 document.querySelector('[data-theme-toggle]').onclick=()=>{document.documentElement.dataset.theme=document.documentElement.dataset.theme==='dark'?'light':'dark';};
 await seed(repository,project);
@@ -67,6 +67,7 @@ function createPlanningTask({groupId='backlog',onChanged,onClose}){
     },onClose});
 }
 async function navigate(section){
+  if(guest){history.replaceState(null,'','#welcome');return;}
   if(routing)return;routing=true;
   try{
     if(dialogOpen||mounted?.readyToLeave&&!(await mounted.readyToLeave())){history.replaceState(null,'','#'+current);return;}
@@ -121,9 +122,9 @@ async function leaveDemo(){
   if(dialogOpen||mounted?.readyToLeave&&!(await mounted.readyToLeave()))return;
   dialogOpen=true;let confirmed=false;
   formDialog({title:'Выйти из демонстрации?',body:'<p>Сохранённые тестовые данные останутся в этом браузере. Серверная сессия к этой сборке не подключена.</p>',submitLabel:'Выйти',submit:()=>{confirmed=true;},onClose:async()=>{
-    dialogOpen=false;if(!confirmed)return;if(await mounted?.destroy()===false)return;mounted=null;
+    dialogOpen=false;if(!confirmed)return;if(await mounted?.destroy()===false)return;mounted=null;guest=true;history.replaceState(null,'','#welcome');
     const header=document.querySelector('.pn-platform-header');header.hidden=true;
     root.innerHTML=`<section class="pn-settings"><h1>Sprintique</h1><p>Общее место для задач, идей и работы команды.</p><p class="iq-helper">Стартовый экран демонстрации. Авторизация подключается новой платформой.</p>${ui.btn('Продолжить демонстрацию','primary','','data-resume-demo')}</section>`;
-    root.querySelector('[data-resume-demo]').onclick=()=>{header.hidden=false;void navigate('tasks');};
+    root.querySelector('[data-resume-demo]').onclick=()=>{guest=false;header.hidden=false;void navigate('tasks');};
   }});
 }
