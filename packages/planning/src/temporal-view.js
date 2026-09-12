@@ -21,12 +21,23 @@ export async function mountTemporalView(root,options) {
   root.innerHTML=`<div class="pn-timebar row">${actions}<span class="iq-helper" data-time-count></span></div><div data-time-error role="alert" hidden></div><div data-time-surface></div><div data-time-tail></div>`;
   const container=root.querySelector('[data-time-surface]');
   const tail=root.querySelector('[data-time-tail]'),error=root.querySelector('[data-time-error]');
-  const surface=document.createElement(mode==='dates'?'iq-plan':'iq-roadmap');
-  container.append(surface);
-  if(mode!=='dates'){
-    surface.controlled=true;
-    surface.dependencyCapabilities=capabilities.temporal?{create:true,update:true,delete:true}:false;
-    surface.scale=viewState.scale||'fit';surface.collapsedIds=viewState.collapsedIds||[];
+  function createSurface(){
+    const element=document.createElement(mode==='dates'?'iq-plan':'iq-roadmap');
+    if(mode!=='dates'){
+      element.controlled=true;
+      element.dependencyCapabilities=capabilities.temporal?{create:true,update:true,delete:true}:false;
+      element.scale=viewState.scale||'fit';element.collapsedIds=viewState.collapsedIds||[];
+    }
+    container.append(element);return element;
+  }
+  let surface=createSurface();
+  function resetProjection(){
+    // data= preserves a dirty DS draft by design. A discarded preview needs a fresh surface.
+    if(mode!=='dates'){viewState.scale=surface.scale;viewState.collapsedIds=surface.collapsedIds;}
+    surface.remove();surface=createSurface();
+    if(mode==='dates')surface.items=calendarProjection(records);
+    else {surface.data=canonical();surface.state=ready?'ready':'error';}
+    dirty=false;
   }
   function message(text){error.hidden=!text;error.textContent=text||'';}
   const canonical=()=>roadmapProjection(records,dependencies,projectionRevision);
@@ -35,7 +46,7 @@ export async function mountTemporalView(root,options) {
       const items=calendarProjection(records);
       if(items.length>1000)message('В календаре показана первая страница дат. Уточните релиз или условия списка.');
       surface.items=items.slice(0,1000);if(viewState.month)surface.setAttribute('month',viewState.month);
-    }else{surface.data=canonical();surface.state='ready';}
+    }else{surface.data=canonical();surface.state='ready';if(selected)surface.selection={kind:'row',id:selected.id};}
   }
   function controls(){
     const states=[['[data-time-milestone]',capabilities.milestone],['[data-time-dependency]',capabilities.temporal],['[data-time-edit]',selected&&!selected.readonly&&capabilities.timeline]];
@@ -80,29 +91,39 @@ export async function mountTemporalView(root,options) {
     // data-open-task is the documented core calendar host action, not a private editor hook.
     if(mode==='dates'&&button.matches('[data-open-task]'))void open(records.find(r=>button.dataset.openTask===r.id+':end'||button.dataset.openTask===r.id+':deadline'));
   },{signal});
-  surface.addEventListener('iq-open',event=>{void open(records.find(r=>r.id===event.detail.id));},{signal});
-  surface.addEventListener('iq-selection',event=>{selected=records.find(r=>r.id===event.detail.id)||null;controls();},{signal});
-  surface.addEventListener('iq-collapse',event=>{viewState.collapsedIds=event.detail.ids;},{signal});
-  surface.addEventListener('iq-preview',()=>{dirty=true;controls();},{signal});
-  surface.addEventListener('iq-cancel',()=>{dirty=false;controls();},{signal});
-  surface.addEventListener('iq-change',event=>{
+  root.addEventListener('iq-open',event=>{if(event.target!==surface)return;void open(records.find(r=>r.id===event.detail.id));},{signal});
+  root.addEventListener('iq-selection',event=>{if(event.target!==surface)return;selected=records.find(r=>r.id===event.detail.id)||null;controls();},{signal});
+  root.addEventListener('iq-collapse',event=>{if(event.target!==surface)return;viewState.collapsedIds=event.detail.ids;},{signal});
+  root.addEventListener('iq-preview',event=>{if(event.target!==surface)return;dirty=true;controls();},{signal});
+  root.addEventListener('iq-cancel',event=>{if(event.target!==surface)return;dirty=false;controls();},{signal});
+  root.addEventListener('iq-change',event=>{if(event.target!==surface)return;
     if(mode==='dates')viewState.month=event.detail.month;
     else{dirty=false;controls();}
   },{signal});
-  surface.addEventListener('iq-retry',()=>void load(),{signal});
-  surface.addEventListener('iq-change-request',event=>{
+  root.addEventListener('iq-retry',()=>void load(),{signal});
+  root.addEventListener('iq-change-request',event=>{if(event.target!==surface)return;
     if(mode==='dates')return;
     event.preventDefault();const detail=event.detail;
     if(disposed||modal||!ready||!capabilities.timeline){detail.reject('Изменение сейчас недоступно.');return;}
     let intent;try{intent=timelineIntent(detail.previous,detail.value,revision);}catch(error){detail.reject(error.message);return;}
-    let accepted=false;modal={opening:true};controls();
+    let settled=false,committed=false;modal={opening:true};controls();
     modal=operationDialog({adapter,projectId,intent,title:'Изменение календарного плана',
       onCommitted:async()=>{
+        committed=true;
         if(await load({applyData:false})){
-          detail.accept(canonical());accepted=true;dirty=false;await onChanged();
-        }else throw Error('Изменение сохранено, но свежий план пока недоступен.');
+          detail.accept(canonical());settled=true;dirty=false;await onChanged();
+        }else {
+          // The command is committed. Reject only the local preview, never replay the effect.
+          detail.reject('Изменение сохранено. Нужно обновить отображение.');
+          settled=true;resetProjection();
+          message('Изменение сохранено, но свежий план недоступен. Обновите план; повторная запись не требуется.');
+          controls();
+          throw Error('Изменение сохранено, но свежий план пока недоступен.');
+        }
       },onClose:()=>{
-        if(!accepted){detail.reject('Применение отменено.');if(ready){surface.data=canonical();dirty=false;}}
+        if(!settled){detail.reject(committed?'Изменение сохранено; обновите план.':'Применение отменено.');resetProjection();}
+        dirty=false;
+        if(!ready)surface.state='error';
         released();
       }});
   },{signal});

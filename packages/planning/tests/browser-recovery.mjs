@@ -24,10 +24,13 @@ try {
   assert.equal(saved.date,'2026-09-15');assert.equal(saved.receipts,1);
   await confirm.getByRole('button',{name:'Закрыть',exact:true}).click();
   await confirm.waitFor({state:'hidden'});
+  // Native close queues the DS iq-close event; wait for the documented lifecycle, not a timer.
+  await page.waitForFunction(()=>document.querySelectorAll('iq-dialog').length===0);
   assert.equal(await page.evaluate(()=>window.planningFixture.view.readyToLeave()),true,'Committed read failure must not trap the user in a dirty preview');
   await page.getByRole('button',{name:'Обновить план',exact:true}).click();
   await page.waitForFunction(()=>document.querySelector('iq-roadmap').data.rows.find(r=>r.id==='release:pn-release-current')?.start==='2026-09-15');
   assert.equal(await page.evaluate(async()=> (await window.planningFixture.repository.fixtureSnapshot())._pnFixture.filter(x=>x.kind==='receipt').length),1);
+  assert.equal(await map.getByRole('button',{name:'На день позже',exact:true}).isEnabled(),true,'Refreshed DS has no stale conflict or draft');
   checks.push('Committed calendar update survives failed refresh; close is not rollback, retry reads without another effect');
   assert.deepEqual(errors,[]);
 }catch(error){failure=error;console.error(error);await page.screenshot({path:new URL('failure.png',out).pathname});}
