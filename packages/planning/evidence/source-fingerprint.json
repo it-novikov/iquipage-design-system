@@ -1,13 +1,45 @@
 {
-  "sha256": "8f6a7a2e3da099c90b73f06f87b8655682b28e0d0845d5c9c318b69c5a9c16a2",
+  "sha256": "c2d57505f4ea095aff4aa1e8793b3cb22f16754c74e8c685e0828fdfc8a893c1",
   "files": [
     [
+      "../work-list/package-lock.json",
+      "864635f4170c3e1534860fb91b4bf681b040f9afd4d4531c9a3b5ef7d32549bd"
+    ],
+    [
+      "../work-list/package.json",
+      "450580ad1becb487bf9005b74ec2e470640f787f584abadd85d70e17c1446186"
+    ],
+    [
+      "../work-list/src/index.ts",
+      "985703955a8dad1863c885bdbd878034a0ce21174f725d2fe2d852c8b43ce1d3"
+    ],
+    [
+      "../work-list/src/row-drag.ts",
+      "2816d735bf2c6e161eee3d1ebd574d40464d1ef195bc7180ddc596fe02091396"
+    ],
+    [
+      "../work-list/src/table-window.ts",
+      "3bac840fe94e37d2f1fd8822ba0dfc051e83e3f7df03058c17bad4f2f41ed3d7"
+    ],
+    [
+      "../work-list/src/window-index.ts",
+      "3dc4e9a5e551c7d7c97d0b957606dbd9e47ba879bbc774ba1ce5d6dd75fe3bd0"
+    ],
+    [
+      "../work-list/src/work-list.css",
+      "1e641a8ab764eaadbe6b29b1922873f93417095fb8577bb106634ad1d62aea5c"
+    ],
+    [
+      "../work-list/tsconfig.json",
+      "376c477dadf75cdbc5ad6785d827efa9b193552bb7be63a5444693dceeeb56e9"
+    ],
+    [
       "demo/app.js",
-      "623fcdff80ead35aacb50ebab51114e61a7b82b70618de49e8b858fff56d163d"
+      "64c0498243cdadb3671457ae5549c7da6b8c45901886f99f9ca8892ec53f9fd1"
     ],
     [
       "demo/fixture-adapter.js",
-      "e37940cc2e547eb5d235b6c418bcfa6e17fb11694a5cb5af09f8adcd3209157e"
+      "adb6ca894224d325b0c1cc8c5b43eeac5e2b3ceb8814de66a235ac3f426cd38e"
     ],
     [
       "demo/fixture-projection.js",
@@ -19,7 +51,7 @@
     ],
     [
       "demo/index.html",
-      "e8c1797bc50f6f3bb3f55bc51316853c51ab9f2b62a1bd1726a0e9458ee14117"
+      "bb559cf475a0e928b7a86facc312fa1fd8f8d32a0f7923c60451f735f818ea4a"
     ],
     [
       "demo/planning-rules.js",
@@ -35,15 +67,15 @@
     ],
     [
       "package-lock.json",
-      "e01e5475af2ed21e817372551aea86b60194106dd9ffb3a612a7e4bf7c1e4d0a"
+      "9ce897e039860fb8622cc3adbd73588f68262fcb26d1589c121e1be2d1425703"
     ],
     [
       "package.json",
-      "bf14825288bbd022eb6e5d8219edb3f9b4dce8ae9f93205288bc647fa709d1cb"
+      "2ee6a9224eced766487e966e620665271c288615bb677930a08aa4d1d92606db"
     ],
     [
       "scripts/offline.mjs",
-      "53875b0046a4f0aa0e166da0417cd5aa400031c352a13c5ec9e9a63a8acd96d7"
+      "22f78dc855a77d8483081a7791285fe9a0b3895122c47bece15967ce622e0916"
     ],
     [
       "scripts/package.mjs",
@@ -51,7 +83,11 @@
     ],
     [
       "scripts/package.py",
-      "547faa9cc2315b09d57deda93ef7791424c9f8e904dc351519da79cdf9f91050"
+      "070f8c025f81e68aba4d270a56f915f9187a04ed09f7be387b6f4ca1d01bf3bd"
+    ],
+    [
+      "scripts/recheck-package.py",
+      "876dfaace9e9c966739bf121869b89e22447db33d86dcd0af4589241b3506cd5"
     ],
     [
       "scripts/review-snapshot.py",
@@ -59,11 +95,15 @@
     ],
     [
       "scripts/server.mjs",
-      "72aab8e7c18713a5f66d503e176cc6d8da7ea18d2a42fb18ec38473f4bbfa98a"
+      "cb30850c90ecd1b3d86cd16bb14db679e7a7cb9f5f9930657a12fb529c2ba403"
     ],
     [
       "scripts/verify.mjs",
-      "ea1c4e49427aee6abdaee578ef4f9649c52b84bc18e34b70d81204b7a01a0624"
+      "d1ab13ce79d8c2f35a8b4ea002df437ff78a69b3914f3626ce943eb2ed49c407"
+    ],
+    [
+      "scripts/work-list-pack.mjs",
+      "184a28e0941a0d2746c43c633cbe533e487cdbace32251f0ee07ed161aa576c0"
     ],
     [
       "src/controller.js",
@@ -71,7 +111,7 @@
     ],
     [
       "src/date-value.js",
-      "99524db218b4a40b5bf7df24333632326342fa17218ce09a11ead9ee5319e247"
+      "6eb55d8710c7f331bbefbc7d0b7228569d43657d5e780a9b00c160561805ea32"
     ],
     [
       "src/dialog.js",
@@ -87,11 +127,11 @@
     ],
     [
       "src/index.js",
-      "b4f18e8503845db6602e7c3e12dc000e45691ccfffeedf27b94b54ef20e9d0ef"
+      "a98843fa2eb9eac68174e4c75df730a737520aafd366b113725d063301555528"
     ],
     [
       "src/markup.js",
-      "757972ab54a220868bc2e96e5a7e2b45fcfec7afef3dd35ec3bcd8472350bde1"
+      "ec8315ee1e1aa3f1b0e641fe2bcd6a23a8d97a38ce52164d54e469e208fafa63"
     ],
     [
       "src/model.js",
@@ -102,6 +142,10 @@
       "b19e730eec8a9e6569add77819193064195bc484ab038f5a97e7e7e9f1464b2d"
     ],
     [
+      "src/order-dialog.js",
+      "7878eecd44d41c0d7e2fa72d1a0fa82001941f51c163acb106686510f20c10e8"
+    ],
+    [
       "src/planning.css",
       "3730e76982eed36db0bce61abfbcbffa962e594bee9191b47b92dbd324c571d4"
     ],
@@ -110,12 +154,16 @@
       "db71c094e54c4877bf10f7d86780572565985003de347f18123d99abf5ff9e55"
     ],
     [
+      "src/row-interactions.js",
+      "a4f67c0675553bf8d3b19b55caec4f8efce1bc162d9608765caae06ddb268859"
+    ],
+    [
       "src/temporal-model.js",
       "433698a0776a42d096fbc9f12b7d3f3ee5b2a0d866d0f6139a1e1b99a0f5e715"
     ],
     [
       "src/temporal-view.js",
-      "8d86dbe5946fb512833bf3228fd788bf79a49dea9b278b81954d65d6fddfcd68"
+      "79a52b348ac5ff601157d5a53b63f0550ab6d36108b78b8c7065c1581efcad90"
     ],
     [
       "src/time-dialogs.js",
@@ -130,8 +178,16 @@
       "5a1507f097d9c00e3716b1c881ffa841b9019f61bf820d14e861793a8cc7f8dd"
     ],
     [
+      "tests/browser-large-list.mjs",
+      "e90a466e17e9c6af96ac4066a2130db39ad861b2cb75acf4e9ac5f04d6215e39"
+    ],
+    [
+      "tests/browser-list-interactions.mjs",
+      "205dd4a9547580a3959ed4b38e2e19e06cd007880d1b2e9b8c645d440385bf97"
+    ],
+    [
       "tests/browser-recovery.mjs",
-      "c2f85029cd06b8881f3f94a35a62c0f0056b0995f9fb0254c774738d263c0227"
+      "a28eb39384f2ace07da75b6b77555dbb423b2d0f851c275973ef983e19bd7a4a"
     ],
     [
       "tests/browser-temporal.mjs",
@@ -151,7 +207,7 @@
     ],
     [
       "tests/offline.mjs",
-      "b3572b1fe51c938441f09d1e91d449f6cc3ead1f1d3482845d087b7985f3d83c"
+      "6feb02ded8b8acbceab96edb3b598427b4c1ae8fac098784a842f521c3c9cf71"
     ],
     [
       "tests/operation.test.mjs",
@@ -159,7 +215,7 @@
     ],
     [
       "tests/planning-rules.test.mjs",
-      "938e4658cf0000415f93c31838ad72d1148c211904ce614747cd8c68ecfb84b9"
+      "6c4d4121845ca4f37165779f0af9eb6596377ada9adacd785ea6b4c3691bb518"
     ],
     [
       "tests/tsconfig.json",
@@ -167,7 +223,7 @@
     ],
     [
       "types/index.d.ts",
-      "f8e703ceb65265c9187df09ffa4f5e6cd8131664f6b6dc17923e1911365cb391"
+      "01bd5a6a9111f7013c9a258ea7f3fa0ef537ff87dd12f6e35fed0649347ecd39"
     ]
   ]
 }

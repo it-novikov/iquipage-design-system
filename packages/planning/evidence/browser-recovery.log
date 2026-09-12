@@ -1,12 +1,1 @@
-AssertionError [ERR_ASSERTION]: Committed read failure must not trap the user in a dirty preview
-
-false !== true
-
-    at file:///Users/nvkv71/iquipage-work/vnext-planning-ui-20260912/packages/planning/tests/browser-recovery.mjs:27:10 {
-  generatedMessage: false,
-  code: 'ERR_ASSERTION',
-  actual: false,
-  expected: true,
-  operator: 'strictEqual',
-  diff: 'simple'
-}
+PASS calendar committed-result recovery

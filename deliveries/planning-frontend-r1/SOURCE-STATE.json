@@ -1,0 +1,10 @@
+{
+  "repository": "it-novikov/iquipage-design-system",
+  "branch": "feature/vnext-planning-ui",
+  "pr": 3,
+  "sourceCommit": "7090d2a9bd23ecbcddfead1ec74b87cc511ed4fb",
+  "sourceFingerprint": "c2d57505f4ea095aff4aa1e8793b3cb22f16754c74e8c685e0828fdfc8a893c1",
+  "acceptance": "PASS_FRONTEND_CONSUMER",
+  "backendIntegrated": false,
+  "productionReady": false
+}

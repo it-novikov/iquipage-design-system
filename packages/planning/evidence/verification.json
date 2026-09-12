@@ -1,15 +1,15 @@
 {
-  "stage": "PN4-PN5-review",
-  "status": "FAIL",
+  "stage": "frontend-r1",
+  "status": "PASS",
   "scope": "consumer-view-and-local-fixture",
-  "startedAt": "2026-09-12T07:31:33.638Z",
-  "finishedAt": "2026-09-12T07:32:08.142Z",
-  "sourceCommit": "ff505b3a10e232975abd49ee5c8dadff5cf9ea79",
-  "sourceFingerprint": "8f6a7a2e3da099c90b73f06f87b8655682b28e0d0845d5c9c318b69c5a9c16a2",
+  "startedAt": "2026-09-12T08:54:42.479Z",
+  "finishedAt": "2026-09-12T08:55:26.587Z",
+  "sourceCommit": "7090d2a9bd23ecbcddfead1ec74b87cc511ed4fb",
+  "sourceFingerprint": "c2d57505f4ea095aff4aa1e8793b3cb22f16754c74e8c685e0828fdfc8a893c1",
   "node": "v24.20.0",
-  "nodeTests": 38,
+  "nodeTests": 39,
   "baseNodeTests": 173,
-  "browserScenarios": 28,
+  "browserScenarios": 40,
   "checks": [
     {
       "name": "pinned-ds-integrity",
@@ -18,6 +18,14 @@
     },
     {
       "name": "base-build",
+      "exitCode": 0
+    },
+    {
+      "name": "work-list-build",
+      "exitCode": 0
+    },
+    {
+      "name": "work-list-pack",
       "exitCode": 0
     },
     {
@@ -70,27 +78,33 @@
     },
     {
       "name": "browser-recovery",
-      "exitCode": 1
+      "exitCode": 0
+    },
+    {
+      "name": "browser-list-interactions",
+      "exitCode": 0
+    },
+    {
+      "name": "browser-large-list",
+      "exitCode": 0
     }
   ],
-  "error": "Required Planning recovery scenario failed. See recovery/report.json.",
   "backendIntegrated": false,
   "productionReady": false,
   "limitations": [
     "Fixture persistence and receipt simulation use isolated IndexedDB, not the new backend",
     "No production authentication or tenant/agent authorization accepted",
     "Consumer TypeScript declarations compiled; implementation is JavaScript, not a strict TypeScript codebase",
-    "Release lifecycle, conditions and temporal UI are fixture-tested; a confirmed calendar refresh-recovery defect remains open",
-    "Virtualization and list pointer DnD are not integrated; related source writes were rejected by the tool safety-status check",
+    "The source-owned work-list candidate is consumer-tested; independent DS promotion remains a separate owner decision",
     "Optional legacy importer and new backend remain separate tracks",
     "No measured real-device FPS or physical touch/screen-reader acceptance",
     "Full historical upstream browser runner not claimed passing; three current v3.4 suites rerun"
   ],
   "offline": {
     "scope": "fixture-only",
-    "moduleCount": 112,
-    "htmlBytes": 3688019,
-    "sha256": "e09c2f1429e7926d48855e49eb9b7b1fe6a1499c1f7aaf31783b4bc137df2fe3"
+    "moduleCount": 118,
+    "htmlBytes": 3738436,
+    "sha256": "01a9fba9d10efdc733e02393cb51854ef9ada1e45a2e34181a026eca71094b14"
   },
   "dsCandidate": {
     "version": "0.6.0-board.7",

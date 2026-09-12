@@ -1,6 +1,7 @@
 {
-  "status": "FAIL",
-  "checks": [],
-  "errors": [],
-  "error": "AssertionError [ERR_ASSERTION]: Committed read failure must not trap the user in a dirty preview\n\nfalse !== true\n\n    at file:///Users/nvkv71/iquipage-work/vnext-planning-ui-20260912/packages/planning/tests/browser-recovery.mjs:27:10"
+  "status": "PASS",
+  "checks": [
+    "Committed calendar update survives failed refresh; close is not rollback, retry reads without another effect"
+  ],
+  "errors": []
 }

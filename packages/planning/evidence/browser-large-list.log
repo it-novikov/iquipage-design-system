@@ -1,0 +1,5 @@
+PASS Planning accepts 10,000 rows through bounded pages while keeping fewer than 70 DOM rows
+PASS Focus is retained outside the viewport without retaining the complete list
+PASS Keyboard moves through offscreen rows without losing the current control
+PASS Viewport resize preserves bounded rendering and does not overflow the document
+PASS Large-list teardown leaves no late callback errors
