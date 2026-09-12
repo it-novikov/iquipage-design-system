@@ -16,6 +16,7 @@ export async function mountTaskBoard(root,{repository,project,canEdit=true,canMa
   const covers=createCoverLoader(attachmentAdapter,project.id);
   let disposeTags=()=>{},pointerStart=null,suppressClick=false,switchingTask=false;
   const pending=new Set(),abort=new AbortController(),signal=abort.signal;
+  let reloadPromise=null,reloadAgain=false,reloadTimer=null,openingController=null;
   const key=`sprintique-board:${project.id}:${repository.context?.actorId||'local-user'}`;
   try{Object.assign(viewState,JSON.parse(localStorage.getItem(key)||'{}'),viewState);}catch{}
   const collapsed=new Set(Array.isArray(viewState.collapsed)?viewState.collapsed:[]);
@@ -43,10 +44,10 @@ export async function mountTaskBoard(root,{repository,project,canEdit=true,canMa
     if(old){viewState.x=old.scrollLeft;viewState.y=old.scrollTop;}disposeBoard?.();disposeTags();
     mount.innerHTML=`<div class="kanban iq-board host-task-board" role="region" aria-label="Доска задач. Шесть столбцов." tabindex="0">${TASK_COLUMNS.map(c=>{
       const p=projection(c.id),count=filtering()?`${p.matched}/${p.total}`:String(p.total);
-      return `<section class="kanban-column" data-drop-status="${c.id}" aria-label="${c.label}"><div class="kanban-column-header">${icon(c.icon,18)}<h3>${c.label}</h3><span class="kanban-count" aria-label="${p.matched} задач из ${p.total}">${count}</span></div><div class="column-cards" data-column-cards>${p.rows.map(row=>renderTaskCard(row,{index:p.index,canEdit,pending:pending.has(row.task.id),collapsed:collapsed.has(row.task.id)&&!filtering(),catalogs})).join('')}${empty(c.id)}</div>${canEdit&&(p.rows.length||filtering())?`<button type="button" class="iq-btn ghost sm host-column-add" data-column-create="${c.id}">${icon('plus',16)}<span>Добавить задачу</span></button>`:''}</section>`;
+      return `<section class="kanban-column" data-drop-status="${c.id}" aria-label="${c.label}"><div class="kanban-column-header">${icon(c.icon,18)}<h3>${c.label}</h3><span class="kanban-count" aria-label="${p.matched} задач из ${p.total}">${count}</span></div><div class="column-cards" data-column-cards>${p.rows.map(row=>renderTaskCard(row,{index:p.index,canEdit,pending:pending.has(row.task.id),collapsed:collapsed.has(row.task.id)&&!filtering(),catalogs})).join('')}${p.rows.length?'':empty(c.id)}</div>${canEdit&&p.rows.length?`<button type="button" class="iq-btn ghost sm host-column-add" data-column-create="${c.id}">${icon('plus',16)}<span>Добавить задачу</span></button>`:''}</section>`;
     }).join('')}</div>`;
     const board=mount.querySelector('.iq-board');covers.mount(board);disposeTags=mountTagPacking(board);board.scrollLeft=viewState.x||0;board.scrollTop=viewState.y||0;
-    if(canEdit)disposeBoard=bindBoard(board,({id,status,beforeId})=>move(id,status,beforeId),{resolvePlacement,canDrag:({id})=>!pending.has(id),onDragStateChange:active=>{dragging=active;if(!active&&queued)setTimeout(()=>reload(),0);}});
+    if(canEdit)disposeBoard=bindBoard(board,({id,status,beforeId})=>move(id,status,beforeId),{resolvePlacement,canDrag:({id})=>!pending.has(id)&&items.find(task=>task.id===id)?.result!=='accepted',onDragStateChange:active=>{dragging=active;if(!active&&queued)setTimeout(()=>reload(),0);}});
     if(focusId)board.querySelector(`[data-drag-id="${CSS.escape(focusId)}"] [data-drag-handle]`)?.focus({preventScroll:true});
   }
   function resolvePlacement(detail){
@@ -65,16 +66,21 @@ export async function mountTaskBoard(root,{repository,project,canEdit=true,canMa
   }
   async function reload(){
     if(closed)return;if(dragging||pending.size){queued=true;return;}queued=false;
-    const token=++loading;
-    try{
-      const [all,tags,releases]=await Promise.all(['tasks','tags','releases'].map(name=>repository.list(name,project.id)));
-      if(closed||token!==loading)return;items=all;catalogs={tags,releases};filters.setData({tasks:items,...catalogs});render();
-    }
-    catch(e){if(!closed)fail(e);}
+    if(reloadPromise){reloadAgain=true;return reloadPromise;}
+    reloadPromise=(async()=>{do{
+      reloadAgain=false;const token=++loading;
+      try{
+        const [all,tags,releases]=await Promise.all(['tasks','tags','releases'].map(name=>repository.list(name,project.id,{signal})));
+        if(closed||token!==loading)continue;items=all;catalogs={tags,releases};filters.setData({tasks:items,...catalogs});render();
+      }catch(e){if(!closed&&e.name!=='AbortError')fail(e);}
+      if(dragging||pending.size){queued=reloadAgain;break;}
+    }while(reloadAgain&&!closed);})().finally(()=>{reloadPromise=null;});
+    return reloadPromise;
   }
+  function scheduleReload(){if(closed||reloadTimer!==null)return;reloadTimer=setTimeout(()=>{reloadTimer=null;void reload();},0);}
   async function move(id,status,beforeId=null){
     if(!canEdit||closed||pending.has(id))return;
-    const original=items.find(t=>t.id===id);if(!original)return;
+    const original=items.find(t=>t.id===id);if(!original||original.result==='accepted')return;
     if(sort!=='manual'&&taskColumn(original)===status)return;
     pending.add(id);loading++;error.hidden=true;
     try{
@@ -83,22 +89,25 @@ export async function mountTaskBoard(root,{repository,project,canEdit=true,canMa
       if(next.parentId)collapsed.delete(next.parentId);
       items=items.map(t=>t.id===id?next:t);render();
       const saved=await repository.write('tasks',next,original.revision);
+      if(closed)return;
       items=items.map(t=>t.id===id?saved:t);
       root.querySelector('[data-task-live]').textContent=`Задача перемещена: ${TASK_COLUMNS.find(c=>c.id===status).label}. Порядок: ${BOARD_SORTS[sort]}.`;
     }catch(e){
-      const current=await repository.read('tasks',id,project.id).catch(()=>null);
+      if(closed)return;const current=await repository.read('tasks',id,project.id,{signal}).catch(()=>null);
+      if(closed)return;
       items=items.map(t=>t.id===id?(current||original):t);fail(e);
     }finally{pending.delete(id);dragIntent=null;persist();render(id);if(queued)await reload();}
   }
   async function edit(task=null,status='ready',{fromRoute=false,fullscreen=false}={}){
     if(openingTask||activeDialog||closed)return;
-    openingTask=true;
+    openingTask=true;const controller=new AbortController();openingController=controller;
     try{
-    activeDialog=await openTaskDialog(task,{repository,project,tasks:items,canEdit,canManage:canManageCatalogs,attachmentAdapter,status,fullscreen,isActive:()=>!closed,onOpenTask:id=>openTask(id),onSaved:async saved=>{loading++;items=items.some(t=>t.id===saved.id)?items.map(t=>t.id===saved.id?saved:t):[...items,saved];render();await reload();}});
+    const created=await openTaskDialog(task,{repository,project,tasks:items,canEdit,canManage:canManageCatalogs,attachmentAdapter,status,fullscreen,signal:controller.signal,isActive:()=>!closed&&!controller.signal.aborted,onOpenTask:id=>openTask(id),onSaved:async saved=>{loading++;items=items.some(t=>t.id===saved.id)?items.map(t=>t.id===saved.id?saved:t):[...items,saved];render();await reload();}});
+    if(closed||controller.signal.aborted){created.close(true);return;}activeDialog=created;
     if(task&&!fromRoute)history.pushState({taskDrawer:true,returnHash:location.hash||'#tasks'},'',taskURL(task));
     if(closed){activeDialog.close(true);return;}
     const opened=activeDialog;opened.addEventListener('iq-close',()=>{if(activeDialog===opened)activeDialog=null;if(!switchingTask&&task&&parseTaskRoute(location.hash)===taskKey(task)){if(history.state?.taskDrawer)history.back();else history.replaceState(null,'','#tasks');}},{once:true});
-    }catch(cause){if(!closed)fail(cause);}finally{openingTask=false;}
+    }catch(cause){if(!closed&&cause.name!=='AbortError')fail(cause);}finally{if(openingController===controller){openingController=null;openingTask=false;}}
   }
   root.addEventListener('pointerdown',e=>{pointerStart={x:e.clientX,y:e.clientY};suppressClick=false;},{signal,capture:true});
   root.addEventListener('pointermove',e=>{if(pointerStart&&Math.hypot(e.clientX-pointerStart.x,e.clientY-pointerStart.y)>5)suppressClick=true;},{signal,capture:true});
@@ -122,9 +131,9 @@ export async function mountTaskBoard(root,{repository,project,canEdit=true,canMa
     if(action==='open')edit(task);
     if(action==='move-menu'&&canEdit)dialog({title:'Переместить задачу',body:select('status','Новый столбец',taskColumn(task),TASK_COLUMNS.map(c=>[c.id,c.label])),submitLabel:'Переместить',onSubmit:async values=>{await move(id,values.get('status'));}});
   },{signal});
-  const unsubscribe=repository.subscribe?.(e=>{if(['tasks','tags','releases'].includes(e.collection)&&e.projectId===project.id)reload();});
+  const unsubscribe=repository.subscribe?.(e=>{if(['tasks','tags','releases'].includes(e.collection)&&e.projectId===project.id)scheduleReload();});
   async function closeTask(){
-    if(openingTask)return false;if(!activeDialog)return true;const opened=activeDialog;switchingTask=true;
+    if(openingTask){openingController?.abort();openingController=null;openingTask=false;return true;}if(pending.size)return false;if(!activeDialog)return true;const opened=activeDialog;switchingTask=true;
     const accepted=await opened.taskController.close();
     if(accepted&&opened.isConnected)await new Promise(resolve=>opened.addEventListener('iq-close',resolve,{once:true}));
     switchingTask=false;return accepted;
@@ -132,14 +141,15 @@ export async function mountTaskBoard(root,{repository,project,canEdit=true,canMa
   async function openTask(id,options={}){
     if(closed||openingTask||pending.size)return false;
     if(activeDialog&&(activeDialog.taskController.taskKey===id||activeDialog.taskController.taskId===id))return true;
-    const task=items.find(item=>item.id===id||taskKey(item)===id)||await repository.read('tasks',id,project.id);
+    const task=items.find(item=>item.id===id||taskKey(item)===id)||await repository.read('tasks',id,project.id,{signal});
+    if(closed)return false;
     if(!task||task.projectId!==project.id){fail(Error('Задача недоступна в этом проекте.'));return false;}
-    if(!(await closeTask()))return false;await edit(task,'ready',options);return !!activeDialog;
+    if(!(await closeTask()))return false;await edit(task,'ready',options);return activeDialog?.taskController.taskId===task.id;
   }
   await reload();
-  return {reload,openTask,closeTask,currentTask:()=>activeDialog?.taskController.taskKey,readyToLeave:async()=>!openingTask&&!activeDialog&&!pending.size,destroy(){
+  return {reload,openTask,closeTask,currentTask:()=>activeDialog?.taskController.taskKey||null,readyToLeave:async()=>!openingTask&&!activeDialog&&!pending.size,destroy(){
     activeDialog?.close(true);
     const board=mount.querySelector('.iq-board');if(board){viewState.x=board.scrollLeft;viewState.y=board.scrollTop;}
-    persist();if(root.firstElementChild===ownedPage)root.classList.remove('iq-task-board-root');closed=true;loading++;abort.abort();covers.destroy();filters.destroy();unsubscribe?.();disposeBoard?.();disposeTags();
+    persist();if(root.firstElementChild===ownedPage)root.classList.remove('iq-task-board-root');closed=true;loading++;clearTimeout(reloadTimer);openingController?.abort();abort.abort();covers.destroy();filters.destroy();unsubscribe?.();disposeBoard?.();disposeTags();
   }};
 }

@@ -2,6 +2,7 @@ import type {Effect,Milestone,PlanningCommand,PlanningRow,Release,Selection,Temp
 import {ReleaseValue} from '../../contracts/planning.js';
 import {requireCondition} from './errors.js';
 import type {TaskData} from '../../contracts/index.js';
+import {requireOpenTask,validateTaskHierarchy} from './task-invariants.js';
 
 export interface TaskState extends Omit<PlanningRow,'effectiveReleaseId'|'assignmentSourceId'|'boardEligible'|'childCount'> {}
 export interface PlanningState {tasks:TaskState[];releases:Release[];milestones:Milestone[];constraints:TemporalConstraint[];dependencies?:{id:string;fromId:string;toId:string}[];defaults?:{format:'flexible'|'timeboxed';days:number;timezone:string};creation?:{projectId:string;key:string;number:number;createdAt:string}}
@@ -16,6 +17,7 @@ export interface PlanResult {
 
 /** One resolver for Planning, board, previews and history. No document/UI dependencies. */
 export function projectRows(state:PlanningState):PlanningRow[] {
+  validateTaskHierarchy(state.tasks);
   const tasks=new Map(state.tasks.map(t=>[t.id,t]));
   const releases=new Map(state.releases.map(r=>[r.id,r]));
   const resolved=new Map<string,{releaseId:string|null;sourceId:string|null}>();
@@ -37,17 +39,6 @@ export function projectRows(state:PlanningState):PlanningRow[] {
       requireCondition(current,422,'TASK_PARENT','Родительская задача недоступна.');
     }
     for(const item of chain)resolved.set(item.id,value);
-  }
-  // Cycle detection is also required where explicit assignment terminates inheritance early.
-  const complete=new Set<string>();
-  for(const task of tasks.values()){
-    const seen=new Set<string>();let current:TaskState|undefined=task;
-    while(current&&!complete.has(current.id)){
-      requireCondition(!seen.has(current.id),422,'TASK_CYCLE','Связь создаёт цикл задач.');seen.add(current.id);
-      if(!current.parentId)break;
-      current=tasks.get(current.parentId);requireCondition(current,422,'TASK_PARENT','Родительская задача недоступна.');
-    }
-    for(const id of seen)complete.add(id);
   }
   return state.tasks.map(t=>{
     const effective=resolved.get(t.id)!;
@@ -78,7 +69,7 @@ export function selected(selection:Selection,rows:PlanningRow[],releases:Release
   }
   return new Set(rows.filter(t=>selection.kind==='project'||(selection.kind==='unassigned'?t.effectiveReleaseId===null:t.effectiveReleaseId===selection.releaseId)).map(t=>t.id));
 }
-function open(task:TaskState){requireCondition(task.result==='open',409,'RESULT_PINNED','Принятый результат закреплён в истории.');}
+const open = requireOpenTask;
 function mutableRelease(release:Release|undefined):asserts release is Release{
   requireCondition(release&&!release.archivedAt,422,'RELEASE_UNAVAILABLE','Релиз недоступен.');
   requireCondition(['planned','active'].includes(release.lifecycle),409,'RELEASE_FINISHED','Релиз уже завершён.');

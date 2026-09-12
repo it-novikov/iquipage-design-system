@@ -1,6 +1,5 @@
 import type {Message,Thread,ThreadPage,ThreadSummary} from '../../contracts/index.js';
 import type {Actor,Transaction} from '../infrastructure/database.js';
-import {hash} from '../infrastructure/database.js';
 import {requireCondition} from '../domain/errors.js';
 import {recordEvent} from './commands.js';
 import {readTask} from './tasks.js';
@@ -19,23 +18,60 @@ export async function readThread(tx:Transaction,projectId:string,id:string):Prom
 }
 export async function pageThreads(tx:Transaction,projectId:string,taskId:string,cursor:string|null,limit:number):Promise<ThreadPage>{
   await readTask(tx,projectId,taskId);
-  const rows=(await tx.query<Omit<Thread,'messages'>>(`SELECT ${projection} FROM app.threads WHERE project_id=$1 AND task_id=$2 ORDER BY (requires_resolution AND NOT resolved) DESC,last_activity_at DESC,id`,[projectId,taskId])).rows;
-  const version=hash(JSON.stringify(rows.map(r=>[r.id,r.revision])));let offset=0;
-  if(cursor){
-    let parsed:unknown;try{parsed=JSON.parse(Buffer.from(cursor,'base64url').toString());}catch{parsed=null;}
-    requireCondition(parsed&&typeof parsed==='object'&&'projectId' in parsed&&'taskId' in parsed&&'version' in parsed&&'after' in parsed,400,'THREAD_CURSOR','Некорректная страница.');
-    requireCondition(parsed.projectId===projectId&&parsed.taskId===taskId,400,'THREAD_CURSOR_SCOPE','Страница относится к другой задаче.');
-    requireCondition(parsed.version===version,409,'THREAD_CURSOR_STALE','Обсуждения изменились. Обновите список.');
-    offset=rows.findIndex(r=>r.id===parsed.after)+1;
-    requireCondition(offset>0,400,'THREAD_CURSOR','Страница недоступна.');
+  requireCondition(Number.isInteger(limit) && limit >= 1 && limit <= 50, 400, 'THREAD_LIMIT', 'Некорректный размер страницы.');
+  let position: {version:string;after:string} | null = null;
+  if (cursor) {
+    let parsed: unknown;
+    try { parsed = JSON.parse(Buffer.from(cursor,'base64url').toString()); } catch { parsed = null; }
+    requireCondition(parsed && typeof parsed === 'object' && 'projectId' in parsed && 'taskId' in parsed && 'version' in parsed && 'after' in parsed,
+      400,'THREAD_CURSOR','Некорректная страница.');
+    requireCondition(parsed.projectId === projectId && parsed.taskId === taskId,400,'THREAD_CURSOR_SCOPE','Страница относится к другой задаче.');
+    requireCondition(typeof parsed.version === 'string' && parsed.version.length <= 200 && typeof parsed.after === 'string' && /^[A-Za-z0-9_-]{1,100}$/.test(parsed.after),
+      400,'THREAD_CURSOR','Некорректная страница.');
+    position = {version:parsed.version,after:parsed.after};
   }
-  const selected=rows.slice(offset,offset+limit),items:ThreadSummary[]=[];
-  for(const row of selected){
-    const meta=(await tx.query<{body:string;count:number}>(`SELECT left(body,160) AS body,(SELECT count(*)::int FROM app.messages WHERE project_id=$1 AND thread_id=$2) AS count FROM app.messages WHERE project_id=$1 AND thread_id=$2 ORDER BY created_at,id LIMIT 1`,[projectId,row.id])).rows[0]!;
-    items.push({...row,summary:true,messageCount:meta.count,messages:[{body:meta.body}]});
+  // One statement gives stats, cursor anchor and page the same MVCC snapshot.
+  // Threads are append-only; every message/resolution increments thread revision.
+  // Thus count + revision sum changes on every supported catalogue mutation, without
+  // materializing/hashing all thread bodies in Node or building an unbounded SQL string.
+  const result = (await tx.query<{total:number;unresolved:number;version:string;anchorFound:boolean;items:ThreadSummary[]}>(`
+    WITH stats AS (
+      SELECT count(*)::int AS total,
+        count(*) FILTER (WHERE requires_resolution AND NOT resolved)::int AS unresolved,
+        count(*)::text || ':' || coalesce(sum(revision),0)::text AS version
+      FROM app.threads WHERE project_id=$1 AND task_id=$2
+    ), anchor AS (
+      SELECT requires_resolution AND NOT resolved AS pending,last_activity_at,id
+      FROM app.threads WHERE project_id=$1 AND task_id=$2 AND id=$3
+    ), selected AS MATERIALIZED (
+      SELECT ${projection},row_number() OVER (ORDER BY (requires_resolution AND NOT resolved) DESC,last_activity_at DESC,id) AS "pageOrder" FROM app.threads t
+      WHERE project_id=$1 AND task_id=$2 AND ($3::text IS NULL OR EXISTS (
+        SELECT 1 FROM anchor a WHERE
+          (t.requires_resolution AND NOT t.resolved) < a.pending OR
+          (t.requires_resolution AND NOT t.resolved) = a.pending AND
+            (t.last_activity_at < a.last_activity_at OR t.last_activity_at = a.last_activity_at AND t.id > a.id)
+      ))
+      ORDER BY (requires_resolution AND NOT resolved) DESC,last_activity_at DESC,id LIMIT $4
+    ), message_counts AS (
+      SELECT m.thread_id,count(*)::int AS count FROM app.messages m JOIN selected s ON s.id=m.thread_id
+      WHERE m.project_id=$1 GROUP BY m.thread_id
+    )
+    SELECT stats.*,EXISTS(SELECT 1 FROM anchor) AS "anchorFound",
+      coalesce((SELECT jsonb_agg(value ORDER BY "pageOrder") FROM (
+        SELECT s."pageOrder",
+          (to_jsonb(s) - 'pageOrder') || jsonb_build_object('summary',true,'messageCount',coalesce(c.count,0),
+            'messages',jsonb_build_array(jsonb_build_object('body',coalesce(first.body,'')))) AS value
+        FROM selected s LEFT JOIN message_counts c ON c.thread_id=s.id
+        LEFT JOIN LATERAL (SELECT left(m.body,160) AS body FROM app.messages m
+          WHERE m.project_id=$1 AND m.thread_id=s.id ORDER BY m.created_at,m.id LIMIT 1) first ON true
+      ) summaries),'[]'::jsonb) AS items FROM stats`,[projectId,taskId,position?.after||null,limit+1])).rows[0]!;
+  if (position) {
+    requireCondition(position.version === result.version,409,'THREAD_CURSOR_STALE','Обсуждения изменились. Обновите список.');
+    requireCondition(result.anchorFound,400,'THREAD_CURSOR','Страница недоступна.');
   }
-  return {items,total:rows.length,unresolved:rows.filter(r=>r.requiresResolution&&!r.resolved).length,
-    nextCursor:offset+selected.length<rows.length?Buffer.from(JSON.stringify({projectId,taskId,version,after:selected.at(-1)!.id})).toString('base64url'):null};
+  const items = result.items.slice(0,limit);
+  return {items,total:result.total,unresolved:result.unresolved,
+    nextCursor:result.items.length > limit ? Buffer.from(JSON.stringify({projectId,taskId,version:result.version,after:items.at(-1)!.id})).toString('base64url') : null};
 }
 export async function createThread(tx:Transaction,actor:Actor,projectId:string,taskId:string,input:{id:string;messageId:string;body:string;requiresResolution:boolean}){
   await readTask(tx,projectId,taskId);

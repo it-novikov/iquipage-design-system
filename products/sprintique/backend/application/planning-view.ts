@@ -9,6 +9,7 @@ import type {Selection,PlanningRow,Release,Effect} from '../../contracts/plannin
 import {ViewFilters} from '../../contracts/planning-view.js';
 import type {ViewIntent,ViewQuery,ViewRowsQuery,ViewSelectQuery,ViewOptionsQuery} from '../../contracts/planning-view.js';
 import {planningLock,loadPlanningState,page,preview} from './planning.js';
+import {MAX_TASK_DEPTH} from '../domain/task-invariants.js';
 
 const finished=(r:Release)=>['closed','cancelled'].includes(r.lifecycle);
 const statusLabels:Record<string,string>={ready:'Готово к работе',in_progress:'В работе',review:'На проверке',ready_for_testing:'К тестированию',testing:'Тестирование',ready_for_release:'Готово к релизу'};
@@ -52,13 +53,19 @@ const dateLabel=(r:Release)=>[r.plannedStart,r.plannedEnd].filter(Boolean).join(
 export async function groups(tx:Transaction,actor:Actor,projectId:string,q:ViewQuery){
   const c=await context(tx,actor,projectId),filters=ViewFilters.strip().parse(q);
   const items:{id:string;title:string;state:string;total:number;matched:number;dateLabel:string;formatLabel:string}[]=[];
+  const byRelease = new Map<string,PlanningRow[]>();
+  for (const row of c.rows) {
+    const id = row.effectiveReleaseId || 'backlog';
+    const members = byRelease.get(id);
+    if (members) members.push(row); else byRelease.set(id,[row]);
+  }
   // Process one bounded release snapshot at a time. Never materialize the entire history catalogue.
   for(const r of c.state.releases.filter(r=>!r.archivedAt&&finished(r)===(q.history==='closed')&&(!q.releaseId||r.id===q.releaseId))){
-    const members=q.history==='closed'?((await finalSnapshots(tx,projectId,r.id)).get(r.id)||[]).map(i=>i.before):c.rows.filter(t=>t.effectiveReleaseId===r.id);
+    const members=q.history==='closed'?((await finalSnapshots(tx,projectId,r.id)).get(r.id)||[]).map(i=>i.before):byRelease.get(r.id)||[];
     items.push({id:r.id,title:r.name,state:r.lifecycle,total:members.length,matched:matches(filters,members,c.state.releases).size,dateLabel:dateLabel(r),formatLabel:r.format==='timeboxed'?'Спринт':'Релиз'});
   }
   items.sort((a,b)=>(a.state==='active'?0:1)-(b.state==='active'?0:1)||a.dateLabel.localeCompare(b.dateLabel)||a.title.localeCompare(b.title)||a.id.localeCompare(b.id));
-  if(q.history==='current'&&(!q.releaseId||q.releaseId==='backlog')){const members=c.rows.filter(t=>!t.effectiveReleaseId);items.push({id:'backlog',title:'Бэклог',state:'backlog' as typeof items[number]['state'],total:members.length,matched:matches(filters,members,c.state.releases).size,dateLabel:'',formatLabel:''});}
+  if(q.history==='current'&&(!q.releaseId||q.releaseId==='backlog')){const members=byRelease.get('backlog')||[];items.push({id:'backlog',title:'Бэклог',state:'backlog' as typeof items[number]['state'],total:members.length,matched:matches(filters,members,c.state.releases).size,dateLabel:'',formatLabel:''});}
   const p=page(items,binding(projectId,'groups',filters),c.revision,100,q.cursor||undefined);
   return {protocol:'sprintique.planning-view/1',projectId,revision:String(c.revision),items:p.items,nextCursor:p.nextCursor,matchedTotal:items.reduce((n,i)=>n+i.matched,0),
     capabilities:{createTask:c.write,createRelease:c.write,prepare:c.write,move:c.write,start:c.write,editRelease:c.write,close:c.write,cancel:c.write,bulk:c.write,selection:c.write,timeline:true,temporal:c.write,milestone:c.write,settings:c.admin}};
@@ -67,10 +74,15 @@ function orderedRows(rows:PlanningRow[],f:ViewFilters,matched:Set<string>,collap
   const byId=new Map(rows.map(r=>[r.id,r])),include=new Set(matched),priority=['critical','high','normal','low'];
   const compare=(a:PlanningRow,b:PlanningRow)=>(f.sort==='priority'?priority.indexOf(a.priority)-priority.indexOf(b.priority):f.sort==='date'?(a.due||'9999').localeCompare(b.due||'9999'):a.rank-b.rank)||a.displayId.localeCompare(b.displayId,undefined,{numeric:true})||a.id.localeCompare(b.id);
   for(const id of matched){let p=byId.get(id)?.parentId;const visited=new Set<string>();while(p&&byId.has(p)&&!visited.has(p)){visited.add(p);include.add(p);p=byId.get(p)!.parentId;}}
-  const children=new Map<string,PlanningRow[]>();for(const row of rows.filter(r=>include.has(r.id)).sort(compare)){const parent=row.parentId&&include.has(row.parentId)?row.parentId:'';children.set(parent,[...(children.get(parent)||[]),row]);}
+  const children=new Map<string,PlanningRow[]>();
+  for(const row of rows.filter(r=>include.has(r.id)).sort(compare)){
+    const parent=row.parentId&&include.has(row.parentId)?row.parentId:'';
+    const siblings=children.get(parent);
+    if(siblings)siblings.push(row);else children.set(parent,[row]);
+  }
   const filtering=!!(f.query||f.preparation!=='all'||f.owner||f.tagIds.length),folded=new Set(collapsed),result:{row:PlanningRow;depth:number}[]=[];
   const stack=(children.get('')||[]).toReversed().map(row=>({row,depth:0}));
-  while(stack.length){const item=stack.pop()!;requireCondition(item.depth<=100,422,'HIERARCHY_DEPTH','Иерархия глубже 100 уровней не поддерживается.');result.push(item);
+  while(stack.length){const item=stack.pop()!;requireCondition(item.depth<=MAX_TASK_DEPTH,422,'HIERARCHY_DEPTH','Иерархия глубже 100 уровней не поддерживается.');result.push(item);
     if(filtering||!folded.has(item.row.id))stack.push(...(children.get(item.row.id)||[]).toReversed().map(row=>({row,depth:item.depth+1})));}
   return result;
 }
@@ -80,12 +92,16 @@ export async function rows(tx:Transaction,actor:Actor,projectId:string,q:ViewRow
   requireCondition(q.groupId==='backlog'&&q.history==='current'||release&&!release.archivedAt&&historical===(q.history==='closed'),404,'NOT_FOUND','Группа недоступна.');
   const members=historical?((await finalSnapshots(tx,projectId,q.groupId)).get(q.groupId)||[]).map(i=>i.before):c.rows.filter(t=>(t.effectiveReleaseId||'backlog')===q.groupId);
   const f=ViewFilters.strip().parse(q),matched=matches(f,members,c.state.releases),memberIds=new Set(members.map(r=>r.id));
-  const result=orderedRows(members,f,matched,q.collapsedTaskIds).map(({row:r,depth})=>({id:q.groupId+'/'+r.id,taskId:r.id,key:r.displayId,title:r.title,type:r.type,priority:r.priority,preparation:r.preparation,
+  const childCounts=new Map<string,number>(),byId=new Map(c.rows.map(row=>[row.id,row]));
+  for(const row of members)if(row.parentId)childCounts.set(row.parentId,(childCounts.get(row.parentId)||0)+1);
+  const ordered=orderedRows(members,f,matched,q.collapsedTaskIds);
+  const p=page(ordered,binding(projectId,'rows',[f,q.groupId,q.collapsedTaskIds]),c.revision,200,q.cursor||undefined);
+  // Only the requested page becomes transport DTOs; hierarchy counts are indexed once.
+  const result=p.items.map(({row:r,depth})=>({id:q.groupId+'/'+r.id,taskId:r.id,key:r.displayId,title:r.title,type:r.type,priority:r.priority,preparation:r.preparation,
     statusLabel:r.result==='accepted'?'Принята':statusLabels[r.status]||r.status,ownerLabel:r.owner,dateLabel:r.due||'',parentId:r.parentId,admission:r.admitted,outcome:r.result,revision:r.revision,
-    depth,childrenCount:members.filter(t=>t.parentId===r.id).length,contextOnly:!matched.has(r.id),selectable:c.write&&!historical&&r.result==='open'&&matched.has(r.id),
-    parentContext:r.parentId&&!memberIds.has(r.parentId)?c.rows.find(t=>t.id===r.parentId)?.displayId||'Родитель в другой группе':''}));
-  const p=page(result,binding(projectId,'rows',[f,q.groupId,q.collapsedTaskIds]),c.revision,200,q.cursor||undefined);
-  return {projectId,groupId:q.groupId,revision:String(c.revision),rows:p.items,nextCursor:p.nextCursor};
+    depth,childrenCount:childCounts.get(r.id)||0,contextOnly:!matched.has(r.id),selectable:c.write&&!historical&&r.result==='open'&&matched.has(r.id),
+    parentContext:r.parentId&&!memberIds.has(r.parentId)?byId.get(r.parentId)?.displayId||'Родитель в другой группе':''}));
+  return {projectId,groupId:q.groupId,revision:String(c.revision),rows:result,nextCursor:p.nextCursor};
 }
 export async function selectMatching(tx:Transaction,actor:Actor,projectId:string,q:ViewSelectQuery){
   const c=await context(tx,actor,projectId);requireCondition(c.write&&q.history==='current',403,'READ_ONLY','Нельзя изменять историю.');
@@ -107,7 +123,9 @@ export async function options(tx:Transaction,actor:Actor,projectId:string,q:View
 export async function describeRelease(tx:Transaction,actor:Actor,projectId:string,groupId:string,cursor?:string){
   const c=await context(tx,actor,projectId),r=c.state.releases.find(r=>r.id===groupId);requireCondition(r,404,'NOT_FOUND','Релиз недоступен.');
   const snapshot=(await finalSnapshots(tx,projectId,groupId)).get(groupId),members=snapshot?snapshot.map(i=>i.before):c.rows.filter(t=>t.effectiveReleaseId===groupId);
-  const items=members.map(t=>({id:t.id,key:t.displayId,title:t.title,outcome:t.result==='accepted'?'accepted':t.preparation==='ready'&&t.status==='ready_for_release'?'candidate':'unfinished',openChildren:c.rows.filter(ch=>ch.parentId===t.id&&ch.result==='open').length}));
+  const openChildren=new Map<string,number>();
+  for(const task of c.rows)if(task.parentId&&task.result==='open')openChildren.set(task.parentId,(openChildren.get(task.parentId)||0)+1);
+  const items=members.map(t=>({id:t.id,key:t.displayId,title:t.title,outcome:t.result==='accepted'?'accepted':t.preparation==='ready'&&t.status==='ready_for_release'?'candidate':'unfinished',openChildren:openChildren.get(t.id)||0}));
   const p=page(items,binding(projectId,'release-items',groupId),c.revision,100,cursor),visible=new Set(p.items.map(t=>t.id));
   return {title:r.name,format:r.format,start:r.plannedStart,end:r.plannedEnd,deadline:r.deadline,nextCursor:p.nextCursor,revision:String(c.revision),
     counts:{total:items.length,accepted:items.filter(t=>t.outcome==='accepted').length,candidates:items.filter(t=>t.outcome==='candidate').length,unfinished:items.filter(t=>t.outcome==='unfinished').length},items:p.items,

@@ -12,10 +12,18 @@ import {mountTaskDescription} from './description-view.js';
 import {copyAtButton,motionReduced} from '@iquipage/web/core';
 import {taskKey,taskURL} from './task-route.js';
 
-export async function openTaskDialog(task,{repository,project,tasks,canEdit=true,canManage=true,attachmentAdapter=null,status='ready',initialValues={},fullscreen=false,onOpenTask,onSaved=()=>{},isActive=()=>true}){
-  if(task?.summary){task=await repository.read('tasks',task.id,project.id);if(!task)throw Error('Задача недоступна.');}
-  if(repository.taskContext)tasks=await repository.taskContext(project.id);
-  const support=await loadTaskSupport(repository,project.id);
+export async function openTaskDialog(task,{repository,project,tasks,canEdit=true,canManage=true,attachmentAdapter=null,status='ready',initialValues={},fullscreen=false,onOpenTask,onSaved=()=>{},isActive=()=>true,signal}){
+  signal?.throwIfAborted();const initialTask=task;
+  const [detail,context,support]=await Promise.all([
+    task?.summary?repository.read('tasks',task.id,project.id,{signal}):task,
+    repository.taskContext?repository.taskContext(project.id,{signal}):tasks,
+    loadTaskSupport(repository,project.id,{signal})
+  ]);
+  signal?.throwIfAborted();task=detail;tasks=context;
+  if(initialTask&&!task)throw Error('Задача недоступна.');
+  const canDiscuss=canEdit;
+  // Accepted release results are immutable; discussions have independent writes.
+  canEdit=canEdit&&task?.result!=='accepted';
   if(!isActive())throw Error('Открытие задачи отменено.');
   const settings=support.settings||starterTaskSettings(project.id);
   const initial=task||{...instantiateTaskTemplate(settings,'task'),type:'task',status,owner:'',title:'',...initialValues};
@@ -88,7 +96,7 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
         const target=await repository.read('tasks',id,project.id);if(!target)throw Error('Задача недоступна.');
         await openTaskDialog(target,{repository,project,tasks,canEdit,canManage,attachmentAdapter,onSaved});
       }});
-      if(task)threads=mountThreads(form.querySelector('[data-task-threads]'),{repository,task,readOnly:!canEdit});
+      if(task)threads=mountThreads(form.querySelector('[data-task-threads]'),{repository,task,readOnly:!canDiscuss});
       else form.querySelector('[data-task-threads]').hidden=true;
       function applyTemplate(changePriority=false){
         const result=instantiateTaskTemplate(settings,form.querySelector('iq-select[name=type]').value);
@@ -109,7 +117,7 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
         body:select('starter','Основа','project',[['project','Шаблон типа из настроек проекта'],...STARTER_TASK_TEMPLATES.map(t=>[t.id,t.name])]),
         submitLabel:'Применить',onSubmit:async values=>{const id=values.get('starter');if(id==='project')applyTemplate();else{editor.value=STARTER_TASK_TEMPLATES.find(t=>t.id===id).description;description.refresh();}}
       }));
-      const dirty=()=>canEdit&&(JSON.stringify(read(form))!==baseline||files.dirty()||threads?.dirty());
+      const dirty=()=>canEdit&&(JSON.stringify(read(form))!==baseline||files.dirty())||!!threads?.dirty();
       async function close(){
         if(saving||confirming||threads?.isBusy())return false;
         if(!dirty()){el.close();return true;}
@@ -143,7 +151,7 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
         window.removeEventListener('beforeunload',unload);description.destroy();files.destroy();catalogs.destroy();threads?.destroy();links?.destroy();
       },{once:true});
       baseline=JSON.stringify(read(form));
-      if(!canEdit)form.querySelectorAll('input,iq-select,iq-combobox,iq-date-field,iq-markdown-editor').forEach(node=>node.setAttribute('disabled',''));
+      if(!canEdit)form.querySelectorAll('input,iq-select,iq-combobox,iq-date-field,iq-markdown-editor').forEach(node=>{if(!canDiscuss||!node.closest('[data-task-threads]'))node.setAttribute('disabled','');});
     }
   });
   return el;

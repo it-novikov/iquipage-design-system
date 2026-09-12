@@ -39,7 +39,7 @@ export function mountTaskCatalogs(root,{tagsRoot=root,repository,project,task,ta
   renderRelease();renderTags();
   return {value:()=>({releaseId:releaseId||null,tagIds:[...selected]}),destroy(){abort.abort();}};
 }
-export async function loadTaskSupport(repository,projectId){
-  const [tags,releases,settings,links]=await Promise.all(['tags','releases','taskSettings','taskLinks'].map(name=>repository.capabilities?.[name]===false?[]:repository.list(name,projectId)));
-  return {tags:tags.sort((a,b)=>a.name.localeCompare(b.name,'ru')),releases:releases.sort((a,b)=>a.name.localeCompare(b.name,'ru')),settings:settings[0]||null,links};
+export async function loadTaskSupport(repository,projectId,{signal}={}){
+  const [tags,releases,settings]=await Promise.all(['tags','releases','taskSettings'].map(name=>repository.capabilities?.[name]===false?[]:repository.list(name,projectId,{signal})));
+  return {tags:tags.sort((a,b)=>a.name.localeCompare(b.name,'ru')),releases:releases.sort((a,b)=>a.name.localeCompare(b.name,'ru')),settings:settings[0]||null};
 }

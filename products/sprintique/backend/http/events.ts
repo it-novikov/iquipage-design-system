@@ -3,17 +3,22 @@ import {z} from 'zod';
 import type {Database} from '../infrastructure/database.js';
 import {hash} from '../infrastructure/database.js';
 import {getCredential,params} from './app.js';
-import {projectEvents} from '../application/events.js';
+import {projectEvents,projectEventHead} from '../application/events.js';
 import {Problem,requireCondition} from '../domain/errors.js';
 
 /** SSE publishes the committed outbox as a durable feed. It does not mark external delivery as complete. */
 export function registerEventRoutes(app:FastifyInstance,db:Database){
   const streams=new Map<()=>void,string>();
   app.addHook('preClose',async()=>{for(const close of streams.keys())close();});
+  app.get('/api/v1/projects/:projectId/events/head',request=>{
+    const {projectId}=params(request),credential=getCredential(request);
+    return db.authenticated(credential,(tx,actor)=>projectEventHead(tx,actor,projectId));
+  });
   app.get('/api/v1/projects/:projectId/events',async(request,reply)=>{
     const {projectId}=params(request),credential=getCredential(request);
     const q=z.strictObject({cursor:z.string().max(3000).optional(),stream:z.enum(['true']).optional()}).parse(request.query);
-    let cursor=q.cursor||z.string().max(3000).optional().parse(request.headers['last-event-id']);
+    // A reconnect's last delivered event advances beyond the initial bootstrap URL.
+    let cursor=z.string().max(3000).optional().parse(request.headers['last-event-id'])||q.cursor;
     const read=()=>db.authenticated(credential,(tx,actor)=>projectEvents(tx,actor,projectId,cursor));
     const first=await read();if(q.stream!=='true')return first;
     const identity=hash(credential.token);

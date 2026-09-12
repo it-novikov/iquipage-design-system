@@ -13,6 +13,7 @@ import {PlanningAdapter} from './planning-adapter.js';
 import {mountPlanningHost,confirmPlanningChange,recoverPlanningAttempt} from './planning-host.js';
 import {openSearch} from './search.js';
 import {acceptPendingInvitation,editProfile} from './members.js';
+import {sectionRouteHash} from './section-route.js';
 registerCore();
 const root=document.querySelector('#app'),repository=new ProductRepository();
 let board,session,currentProject,planningAdapter,viewMode='tasks',navigating=false,avatarUrl=null;
@@ -56,6 +57,10 @@ async function showProject(id,mode=location.hash.startsWith('#maps')?'maps':['pl
   currentProject=project;viewMode=mode;
   if(avatarUrl){URL.revokeObjectURL(avatarUrl);avatarUrl=null;}
   const spaces=await repository.client.request('/workspaces');
+  // Capture the durable watermark before loading any view snapshot. Writes during
+  // mount are replayed afterwards, while older membership events are not mistaken for new changes.
+  const eventHead=await repository.client.request(`/projects/${encodeURIComponent(project.id)}/events/head`);
+  repository.clearProjectCache(project.id);
   planningAdapter=new PlanningAdapter(repository,project.id);
   repository.confirmPlanningChange=intent=>confirmPlanningChange(planningAdapter,intent);
   const url=new URL(location.href);url.searchParams.set('project',project.slug);history.replaceState(null,'',url);
@@ -75,18 +80,26 @@ async function showProject(id,mode=location.hash.startsWith('#maps')?'maps':['pl
   else board=await mountTaskBoard(host,{repository,project,attachmentAdapter:repository.attachmentAdapter,canEdit:project.role!=='reader',canManageCatalogs:project.role==='admin',viewState:viewStates.get(stateKey)});
   root.querySelector('[data-search]').onclick=search;
   await renderAvatar(project);
-  repository.watch(project.id,()=>{
+  repository.watch(project.id,change=>{
+    if(change?.roleChanged){
+      if(root.querySelector('[data-access-change]'))return;
+      const banner=document.createElement('section');banner.dataset.accessChange='';
+      banner.innerHTML=ui.alert('Права изменились','Несохранённый текст остаётся в открытой форме. Обновите доступ, чтобы применить новую роль.','warning')+ui.btn('Обновить доступ','secondary sm');
+      host.before(banner);
+      banner.querySelector('button').onclick=()=>{void(async()=>{if(board&&!await board.closeTask())return;session=await repository.initialize();await showProject(project.id,viewMode);})().catch(report);};
+      return;
+    }
     board?.destroy();board=null;session=null;planningAdapter?.clear();
     for(const modal of document.querySelectorAll('iq-dialog'))modal.close(true);
     root.innerHTML='<main class="host-landing"><h1>Доступ изменился</h1><p>Обновите страницу, чтобы проверить доступные проекты.</p><a class="iq-btn primary" href="/">Обновить доступ</a></main>';
-  });
+  },{cursor:eventHead.cursor,role:project.role});
   const task=parseTaskRoute(location.hash);if(task&&board.openTask)await board.openTask(task,{fromRoute:true});
   return true;
   }finally{navigating=false;}
 }
 async function navigate(mode){
   if(navigating||!currentProject)return;
-  if(await showProject(currentProject.id,mode)&&mode!=='maps')history.replaceState(null,'','#'+viewMode);
+  if(await showProject(currentProject.id,mode))history.replaceState(null,'',sectionRouteHash(viewMode,location.hash));
 }
 root.addEventListener('click',event=>{const link=event.target.closest('[data-section-link]');if(!link)return;event.preventDefault();void navigate(link.dataset.sectionLink).catch(report);});
 function search(){if(!session||document.querySelector('dialog[open]'))return;openSearch({client:repository.client,onOpen:async item=>{

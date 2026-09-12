@@ -5,6 +5,7 @@ import {randomBytes} from 'node:crypto';
 import {execFileSync,spawn} from 'node:child_process';
 import {setTimeout} from 'node:timers/promises';
 import pg from 'pg';
+import {waitForChild} from './child-exit.mjs';
 const context=process.env.SPRINTIQUE_DOCKER_CONTEXT;if(!context)throw Error('Explicit SPRINTIQUE_DOCKER_CONTEXT is required for Docker tests');
 if(process.argv.includes('--preview'))throw Error('Docker test mode does not launch a fixture UI. Use local:start with real OIDC.');
 const name='sprintique-test-'+randomBytes(8).toString('hex'),dir=await mkdtemp(join(tmpdir(),'sprintique-test-'));
@@ -27,8 +28,7 @@ try{
   const tests=(await readdir('tests')).filter(name=>/\.test\.(ts|mjs)$/.test(name)).sort().map(name=>'tests/'+name);
   const child=spawn(process.execPath,['--import','tsx','--test','--test-concurrency=1',...tests],{stdio:'inherit',env:{...process.env,
     TEST_FIXTURE_DIR:dir,TEST_ADMIN_DATABASE_URL:url('postgres'),MIGRATION_DATABASE_URL:url('sprintique_migrator'),DATABASE_RUNTIME_ROLE:'sprintique_app',DATABASE_WORKER_ROLE:'sprintique_worker',DATABASE_URL:url('sprintique_app'),WORKER_DATABASE_URL:url('sprintique_worker')}});
-  const stop=()=>child.kill('SIGTERM');process.once('SIGINT',stop);process.once('SIGTERM',stop);
-  process.exitCode=await new Promise((resolve,reject)=>{child.once('error',reject);child.once('exit',code=>resolve(code??1));});
+  process.exitCode=await waitForChild(child,{forwardSignals:true});
 }finally{
   if(created){docker('stop','--time','10',name);docker('rm','--volumes',name);}
   await rm(dir,{recursive:true,force:true});

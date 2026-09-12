@@ -18,11 +18,12 @@ export interface Capabilities{storage:'server'|'browser'|'memory';storageLabel?:
 export interface Repository{
  capabilities:Capabilities;
  context?:{workspaceId:string;actorId:string};
- list(collection:Collection,projectId:string):Promise<any[]>;
+ list(collection:Collection,projectId:string,options?:{signal?:AbortSignal}):Promise<any[]>;
+ taskContext?(projectId:string,options?:{signal?:AbortSignal}):Promise<VersionedRecord[]>;
  read(collection:Collection,id:string,projectId:string,options?:{signal?:AbortSignal}):Promise<any|null>;
  write(collection:Collection,value:any,baseRevision:number,options?:{signal?:AbortSignal}):Promise<any>;
  request?<T=unknown>(path:string,options?:{method?:'GET'|'POST'|'PUT'|'DELETE';body?:unknown;signal?:AbortSignal}):Promise<T>;
- subscribe?(listener:(change:{collection:Collection;id:string;projectId:string;revision:number})=>void):()=>void;
+ subscribe?(listener:(change:{collection:Collection;id?:string;projectId:string;revision?:number;resync?:boolean})=>void):()=>void;
  pageThreads?(projectId:string,taskId:string,options?:{cursor?:string|null;limit?:number;signal?:AbortSignal}):Promise<ThreadPage>;
  close?():void|Promise<void>;
 }
@@ -70,7 +71,7 @@ export declare class MapsFeature{
  openMap(id:string):Promise<boolean>;
  getAgentContext(ids?:string[]):Record<string,unknown>;
  previewAgentProposal(proposal:AgentProposal):HTMLElement;
- destroy():Promise<boolean>;
+ destroy(options?:{force?:boolean}):Promise<boolean>;
 }
 export declare function mountMaps(root:HTMLElement,config:MapsConfig):Promise<MapsFeature>;
 

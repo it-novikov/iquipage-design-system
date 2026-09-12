@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "run_id": "sprintique-audit-r4-2026-09-12",
+  "status": "engineering-verified-security-running",
+  "baseline_sha": "8e189329b84649e20c8e02b70ba7f94f69af8c4d",
+  "branch": "feature/sprintique-vnext-audit",
+  "repository": "https://github.com/it-novikov/iquipage-design-system",
+  "source_fingerprint": "49b51558edd01bcdc99eaac9a863bfc6f8e8836ad8cf236644f1f2a47c27a2a6",
+  "ds_archive_sha256": "6490056dd8900177d440431d71d95f5bc7cd4df080cdc99f7743184c704c29ba",
+  "findings": {"total": 18, "implemented": 16, "partially_improved": ["FE-R4-07", "FE-R4-08"]},
+  "verification": {
+    "native": {"checkpoint": "2026-09-12T12-32-38.285Z", "ds_tests": 209, "product_tests": 135, "detached_tests": 135, "failed": 0, "skipped": 0},
+    "docker_postgresql": {"checkpoint": "2026-09-12T12-30-32.505Z", "ds_tests": 209, "product_tests": 135, "detached_tests": 135, "failed": 0, "skipped": 0},
+    "source_stable": true,
+    "build_and_boundaries": "pass",
+    "runtime_container": {"image_id": "sha256:174a9b8cb8615d39f352f04545bc4bb94d2a17b7a8a41e7eb6edd6db232cf72e", "verified_at": "2026-09-12T12:34:12.285Z", "result": "pass"},
+    "targeted_chromium_real_api": "pass",
+    "full_browser_accessibility_matrix": "not-run",
+    "security_workflow": "running",
+    "remote_ci": "not-run"
+  },
+  "report": "README.md",
+  "acceptance": "ACCEPTANCE.md",
+  "authorization": {"audit_and_fixes": true, "new_github_pr": true, "merge": false, "deployment": false, "production_data_changes": false, "registry_publication": false},
+  "full_platform_ready": false
+}

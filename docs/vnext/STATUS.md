@@ -1,6 +1,16 @@
 # Sprintique vNext — execution record
 
-## Current R3 status — 2026-09-12
+## Current R4 audit checkpoint — 2026-09-12
+
+The owner requested an independent backend/frontend/security team, implementation of confirmed improvements, and a new PR in this design-system repository. The R3 baseline `8e189329b84649e20c8e02b70ba7f94f69af8c4d` is preserved in a separate clean worktree; fixes are on `feature/sprintique-vnext-audit`. PR #3 is not overwritten. Existing data, production, registry publication and deployment remain out of scope.
+
+The engineering audit identified 18 findings across domain consistency, hierarchy bounds, SQL lock ordering and query cost, frontend lifetime/realtime/recovery, routing, caching and verification tooling. Sixteen have complete targeted fixes; two broader frontend directions have partial improvements with explicit remaining work. See [the research report](audit-r4/README.md), [acceptance and limitations](audit-r4/ACCEPTANCE.md), and [machine-readable state](audit-r4/run-state.json).
+
+Final local engineering gates: **209 DS + 135 product + 135 detached tests, zero failures/skips**, on both native and Docker PostgreSQL with real private S3. Source-stability, standalone library install/build, product typecheck/build, public boundaries and detached extraction pass. Fingerprint: `49b51558edd01bcdc99eaac9a863bfc6f8e8836ad8cf236644f1f2a47c27a2a6`. Consumed DS tar SHA is unchanged. The final non-root/read-only container and targeted real-API Chromium scenarios pass; coverage limits remain explicit.
+
+The single deep-security coordinator is still running at this checkpoint. No final security verdict or remote CI result is claimed. This checkpoint supersedes R3's test counts and authorization statement, not its historical evidence. Full-platform-ready remains false.
+
+## Historical R3 status — 2026-09-12
 
 The owner delegated stack decisions and asked to finish the locally implementable platform and partial Planning PR #3. R3 now integrates that consumer from immutable `d87c65767ef471c81bf84c10b9b19e225a956064` without touching its branch. Product/library remain independently extractable. Baseline for this change is `f69f1d209427433ae51fecfe3a19a3d5dc958172`.
 

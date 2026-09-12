@@ -40,13 +40,14 @@ export async function sendAttempt(client:PlanningClient,attempt:CommandAttempt,p
 }
 
 /** Authoritative cache invalidation; event payloads are not substitute task documents. */
-export function watchProject(projectId:string,onChange:(event:{topic:string;resourceId:string;revision:number})=>void,onAccessRevoked:()=>void){
-  const stream=new EventSource(`/api/v1/projects/${encodeURIComponent(projectId)}/events?stream=true`);
+export function watchProject(projectId:string,onChange:(event:{topic:string;resourceId:string;revision:number})=>void,onAccessRevoked:()=>void,{cursor}:{cursor?:string}={}){
+  const query=new URLSearchParams({stream:'true'});if(cursor)query.set('cursor',cursor);
+  const stream=new EventSource(`/api/v1/projects/${encodeURIComponent(projectId)}/events?${query}`);
   const controller=new AbortController();let checking=false,closed=false;
   const revoked=()=>{if(closed)return;closed=true;stream.close();controller.abort();onAccessRevoked();};
-  stream.addEventListener('change',event=>{onChange(JSON.parse((event as MessageEvent<string>).data));});
+  stream.addEventListener('change',event=>{if(!closed)onChange(JSON.parse((event as MessageEvent<string>).data));});
   stream.addEventListener('access-revoked',revoked);
-  stream.addEventListener('resync',()=>{onChange({topic:'resync',resourceId:'',revision:0});});
+  stream.addEventListener('resync',()=>{if(!closed)onChange({topic:'resync',resourceId:'',revision:0});});
   stream.addEventListener('error',async()=>{
     if(checking||closed)return;checking=true;
     try{const response=await fetch(`/api/v1/projects/${encodeURIComponent(projectId)}/planning/capabilities`,{credentials:'same-origin',signal:controller.signal});

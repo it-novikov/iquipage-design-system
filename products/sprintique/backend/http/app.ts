@@ -45,7 +45,8 @@ export async function createApp({db,origin,oidc,logger=false,storage,metricsToke
   registerLimits(app);
   registerOpenApi(app);
   app.addHook('onSend',async(_request,reply)=>{
-    reply.header('Cache-Control','no-store').header('X-Content-Type-Options','nosniff').header('Referrer-Policy','same-origin');
+    if(!reply.hasHeader('Cache-Control'))reply.header('Cache-Control','no-store');
+    reply.header('X-Content-Type-Options','nosniff').header('Referrer-Policy','same-origin');
   });
   app.setErrorHandler((error,request,reply)=>{
     if(error instanceof z.ZodError)return reply.code(400).send({code:'VALIDATION',message:'Проверьте поля запроса.',requestId:request.id});

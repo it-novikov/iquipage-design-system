@@ -11,6 +11,7 @@ export async function mountPlanning(root,{adapter,project,onOpenTask,onCreateTas
   root.classList.add('planning-root');
   let viewMode='list',temporal=null,switching=false;
   let disposed=false,modal=null,opening=false,searchTimer=null,selectionShift=false,queryInput,scroll;
+  let refreshTimer=null,refreshing=false,refreshAgain=false;
   const nodes=new Map(),abort=new AbortController(),signal=abort.signal;
   const controller=new PlanningController({adapter,projectId:project.id,onChange:render});
   if(viewState.filters)Object.assign(controller.filters,viewState.filters);
@@ -127,10 +128,17 @@ export async function mountPlanning(root,{adapter,project,onOpenTask,onCreateTas
     if(['take','unprepare'].includes(name)&&controller.capabilities.prepare)void action(()=>operation({kind:name,...controller.selectedIntent()},name==='take'?'Взять без релиза':'Вернуть на уточнение'));
   },{signal});
   root.addEventListener('keydown',e=>{selectionShift=e.shiftKey;},{signal});root.addEventListener('keyup',()=>{selectionShift=false;},{signal});
-  const unsubscribe=adapter.subscribe?.(()=>{if(!modal&&!opening)void controller.load();else controller.message='Данные изменились. Проверим актуальную версию при сохранении.';});
+  async function refreshFromEvent(){
+    refreshTimer=null;if(disposed)return;
+    if(modal||opening){controller.message='Данные изменились. Проверим актуальную версию при сохранении.';return;}
+    if(refreshing){refreshAgain=true;return;}refreshing=true;
+    try{do{refreshAgain=false;await Promise.all([controller.load(),temporal?.reload()]);}while(refreshAgain&&!disposed&&!modal&&!opening);}
+    finally{refreshing=false;}
+  }
+  const unsubscribe=adapter.subscribe?.(()=>{if(refreshTimer===null)refreshTimer=setTimeout(()=>void refreshFromEvent(),0);});
   await controller.load();
   if(viewState.mode&&viewState.mode!=='list')await setView(viewState.mode);
   if(viewState.scrollTop)scroll.scrollTop=viewState.scrollTop;
   return {reload:()=>controller.load(),controller,readyToLeave:()=>!opening&&!modal&&!switching&&(!temporal||temporal.readyToLeave()),
-    destroy({force=false}={}){if(disposed)return;if(temporal&&!temporal.destroy({force}))return false;if(force)modal?.element?.close(true);viewState.scrollTop=scroll.scrollTop;disposed=true;clearTimeout(searchTimer);observer?.disconnect();unsubscribe?.();abort.abort();controller.destroy();if(root.firstElementChild===page){root.classList.remove('planning-root');page.remove();}}};
+    destroy({force=false}={}){if(disposed)return;if(temporal&&!temporal.destroy({force}))return false;if(force)modal?.element?.close(true);viewState.scrollTop=scroll.scrollTop;disposed=true;clearTimeout(searchTimer);clearTimeout(refreshTimer);observer?.disconnect();unsubscribe?.();abort.abort();controller.destroy();if(root.firstElementChild===page){root.classList.remove('planning-root');page.remove();}}};
 }

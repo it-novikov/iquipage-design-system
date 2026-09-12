@@ -12,6 +12,7 @@ export function taskAvatars(task,index){
 }
 export function renderTaskCard(row,{index,canEdit,pending=false,collapsed=false,catalogs={tags:[],releases:[]}}){
   const t=row.task,id=esc(t.id),label=taskKindLabel(t);
+  canEdit=canEdit&&t.result!=='accepted';
   const tags=catalogs.tags.filter(tag=>(t.tagIds||[]).includes(tag.id)),release=catalogs.releases.find(item=>item.id===t.releaseId);
   const metadata=tags.length?`<div class="task-card-tags" data-card-tags>${tags.map(tag=>`<span data-packed-tag title="${esc(tag.name)}">${tagMarkup(tag)}</span>`).join('')}<button type="button" class="iq-tag task-tags-more" data-tags-overflow="${id}" hidden></button></div>`:'';
   const due=t.due&&/^\d{4}-\d{2}-\d{2}$/.test(t.due)?new Intl.DateTimeFormat('ru',{day:'numeric',month:'short',timeZone:'UTC'}).format(new Date(t.due+'T12:00:00Z')):'';

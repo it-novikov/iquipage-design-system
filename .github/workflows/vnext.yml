@@ -1,7 +1,7 @@
 name: Sprintique vNext
 on:
   pull_request:
-    paths: ['products/sprintique/**', 'libraries/iquipage/**', 'scripts/verify-vnext.mjs', 'scripts/verify-extraction.mjs', '.github/workflows/vnext.yml']
+    paths: ['products/sprintique/**', 'libraries/iquipage/**', 'scripts/verify-vnext.mjs', 'scripts/verify-extraction.mjs', 'scripts/vnext/**', '.github/workflows/vnext.yml']
   workflow_dispatch:
 permissions:
   contents: read

@@ -9,7 +9,7 @@ export function mountTaskLinks(root,{repository,project,task,tasks,readOnly=fals
   const fail=cause=>{if(!closed){error.hidden=false;error.textContent=cause.message;}};
   async function reload(){
     try{
-      const all=await repository.list('taskLinks',project.id);if(closed)return;
+      const all=await repository.list('taskLinks',project.id,{signal:abort.signal});if(closed)return;
       items=all.filter(link=>!link.archivedAt&&(link.fromId===task.id||link.toId===task.id));
       list.innerHTML=items.map(link=>{
         const id=link.fromId===task.id?link.toId:link.fromId,target=tasks.find(item=>item.id===id);
@@ -38,5 +38,6 @@ export function mountTaskLinks(root,{repository,project,task,tasks,readOnly=fals
       }});
     }
   },{signal:abort.signal});
-  reload();return {reload,destroy(){closed=true;abort.abort();}};
+  const unsubscribe=repository.subscribe?.(event=>{if(event.projectId===project.id&&event.collection==='taskLinks')void reload();});
+  reload();return {reload,destroy(){closed=true;abort.abort();unsubscribe?.();}};
 }

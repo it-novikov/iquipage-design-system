@@ -3,6 +3,7 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {spawnSync,spawn} from 'node:child_process';
 import pg from 'pg';
+import {waitForChild} from './child-exit.mjs';
 if(process.env.SPRINTIQUE_TEST_DOCKER==='1'){
   await import('./test-docker.mjs');
 }else{
@@ -26,8 +27,7 @@ try{
   const child=spawn(process.execPath,['--import','tsx',...(preview?['tests/preview.ts']:['--test','--test-concurrency=1',...tests])],{
     stdio:'inherit',env:{...process.env,TEST_FIXTURE_DIR:dir,TEST_ADMIN_DATABASE_URL:url('postgres'),MIGRATION_DATABASE_URL:url('sprintique_migrator'),DATABASE_RUNTIME_ROLE:'sprintique_app',DATABASE_WORKER_ROLE:'sprintique_worker',DATABASE_URL:url('sprintique_app'),WORKER_DATABASE_URL:url('sprintique_worker')}
   });
-  const stop=()=>child.kill('SIGTERM');process.once('SIGTERM',stop);process.once('SIGINT',stop);
-  const code=await new Promise((resolve,reject)=>{child.on('error',reject);child.on('exit',resolve);});process.exitCode=code||0;
+  process.exitCode=await waitForChild(child,{forwardSignals:true});
 }finally{
   if(started)command('pg_ctl',['-D',data,'-m','fast','-w','stop']);
   // Only the exact directory made above; never touch a user cluster.

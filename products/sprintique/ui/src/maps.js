@@ -25,6 +25,7 @@ export class MapsFeature {
     this.context={workspaceId:'local-workspace',actorId:'local-user',...config.context};
     this.dialogs=new Set();this.dialog=options=>{const el=baseDialog(options);this.dialogs.add(el);el.addEventListener('iq-close',()=>this.dialogs.delete(el),{once:true});return el;};
     this.view='canvas';this.maps=[];this.positions=new Map();this.abort=new AbortController();this.pending=new Map();this.savingPromise=null;this.alive=true;
+    this.mapGeneration=0;this.mapReads=new Set();
     installWorkflowUI(this);installAutomationUI(this);
   }
   async mount() {
@@ -36,7 +37,7 @@ export class MapsFeature {
     },{signal:this.abort.signal});
     window.addEventListener('beforeunload',event=>{if(this.board?.dirty||this.savingPromise||this.canvasInspector?.dirty()){event.preventDefault();event.returnValue='';}},{signal:this.abort.signal});
     this.unsubscribe=this.repository.subscribe?.(event=>{
-      if(event.collection==='maps'&&event.resync&&this.current){setTimeout(()=>this.externalUpdate({id:this.current.id,revision:Infinity}).catch(e=>this.message(e.message,true)),0);return;}
+      if(event.collection==='maps'&&event.resync&&this.current){const id=this.current.id;setTimeout(()=>this.externalUpdate({id,revision:Infinity}).catch(e=>this.message(e.message,true)),0);return;}
       if(event.collection==='maps'&&event.id===this.current?.id&&event.revision>this.current.revision)
         setTimeout(()=>this.externalUpdate(event).catch(e=>this.message(e.message,true)),0);
     });
@@ -46,7 +47,7 @@ export class MapsFeature {
     const initial=this.maps.find(m=>m.id===this.config.mapId)||this.maps.find(m=>m.status!=='archived');
     if(initial)await this.openMap(initial.id);else this.empty();
   }
-  async reloadList(){this.maps=(await this.repository.list('maps',this.project.id)).sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt));}
+  async reloadList(){const maps=await this.repository.list('maps',this.project.id,{signal:this.abort.signal});if(this.alive)this.maps=maps.sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt));}
   empty(){this.current=null;this.surface.innerHTML=`<div class="map-empty"><span class="map-empty-symbol">${icon('board',32)}</span><h2>Место для идей и решений</h2><p>${this.uiCapabilities.sessions?'Создайте постоянную карту для схем или сессию для совместного обсуждения.':'Создайте карту и начните с одной мысли.'}</p><div class="row">${this.uiCapabilities.templates?button('templates','Выбрать основу','grid','primary'):''}${button('new','Чистая карта','plus',this.uiCapabilities.templates?'secondary':'primary')}</div></div>`;this.renderChrome();}
   async readyToLeave() {
     if(!(await leaveCanvasInspector(this)))return false;
@@ -56,11 +57,19 @@ export class MapsFeature {
   }
   async openMap(id) {
     requireValue(this.permissions.read,'READ_ONLY','Просмотр карт недоступен.');
-    if(!(await this.readyToLeave()))return false;
-    const map=await this.repository.read('maps',id,this.project.id);requireValue(map,'NOT_FOUND','Карта не найдена в этом проекте.');
-    if(this.current&&this.board)this.positions.set(`${this.current.id}:${this.view}`,this.board.viewport);
-    this.current=map;this.view='canvas';this.inspector.hidden=true;this.buildBoard();this.renderChrome();this.message('');
-    this.config.onOpenMap?.({id:map.id,projectId:map.projectId});return true;
+    if(!this.alive)return false;const generation=++this.mapGeneration;
+    for(const read of this.mapReads)read.abort();this.mapReads.clear();
+    if(!(await this.readyToLeave())||!this.alive||generation!==this.mapGeneration)return false;
+    const request=new AbortController();this.mapReads.add(request);
+    try{
+      const map=await this.repository.read('maps',id,this.project.id,{signal:request.signal});
+      if(!this.alive||request.signal.aborted||generation!==this.mapGeneration)return false;
+      requireValue(map,'NOT_FOUND','Карта не найдена в этом проекте.');
+      if(this.current&&this.board)this.positions.set(`${this.current.id}:${this.view}`,this.board.viewport);
+      this.current=map;this.view='canvas';this.inspector.hidden=true;this.buildBoard();this.renderChrome();this.message('');
+      this.config.onOpenMap?.({id:map.id,projectId:map.projectId});return true;
+    }catch(error){if(request.signal.aborted||!this.alive||generation!==this.mapGeneration)return false;throw error;}
+    finally{this.mapReads.delete(request);}
   }
   buildBoard() {
     if(this.board){this.board.cancelPending();this.board.remove();}
@@ -98,21 +107,32 @@ export class MapsFeature {
     finally{this.pending.delete(request.requestId);}
   }
   async externalUpdate(event) {
+    if(!this.alive)return;
+    const generation=this.mapGeneration;
     if(this.savingPromise)await this.savingPromise;
-    if(!this.current||this.current.id!==event.id||event.revision<=this.current.revision)return;
-    const next=await this.repository.read('maps',event.id,this.project.id);if(!next||next.revision<=this.current.revision)return;
-    this.current=next;this.board.data=this.view==='workflow'&&next.flow?flowScene(next.flow,next.title,next.revision):next.document;
-    this.board.readOnly=!this.permissions.edit||next.status==='archived';this.renderChrome();this.message('Получена новая версия из другой вкладки.');
+    if(!this.alive||generation!==this.mapGeneration||!this.current||this.current.id!==event.id||event.revision<=this.current.revision)return;
+    const request=new AbortController();this.mapReads.add(request);
+    try{
+      const next=await this.repository.read('maps',event.id,this.project.id,{signal:request.signal});
+      if(!this.alive||request.signal.aborted||generation!==this.mapGeneration||this.current?.id!==event.id||!next||next.revision<=this.current.revision)return;
+      this.current=next;this.board.data=this.view==='workflow'&&next.flow?flowScene(next.flow,next.title,next.revision):next.document;
+      this.board.readOnly=!this.permissions.edit||next.status==='archived';this.renderChrome();this.message('Получена новая версия из другой вкладки.');
+    }catch(error){if(!request.signal.aborted&&this.alive&&generation===this.mapGeneration)throw error;}
+    finally{this.mapReads.delete(request);}
   }
   async saveMetadata(next) {
     requireValue(this.permissions.edit&&this.current.status!=='archived','READ_ONLY','Карта доступна только для просмотра.');
     if(!(await this.readyToLeave()))throw Error('Есть несохранённое изменение.');
     requireValue(next.revision===this.current.revision,'CONFLICT','Карта изменилась. Повторите действие.');
-    const saved=await this.repository.write('maps',next,this.current.revision);this.current=saved;
+    const generation=this.mapGeneration,id=this.current.id;
+    const saved=await this.repository.write('maps',next,this.current.revision);
+    if(!this.alive||generation!==this.mapGeneration||this.current?.id!==id)return saved;
+    this.current=saved;
     this.board.data=this.view==='workflow'?flowScene(saved.flow,saved.title,saved.revision):saved.document;
     this.board.readOnly=!this.permissions.edit||saved.status==='archived';this.renderChrome();return saved;
   }
   renderChrome(override='') {
+    if(!this.alive)return;
     const active=document.activeElement,focusAction=this.toolbar.contains(active)||this.subbar.contains(active)?active?.dataset.mapAction:null;
     const m=this.current,disabled=!this.permissions.edit||m?.status==='archived';
     const title=m?.title||'Карты проекта';
@@ -130,6 +150,7 @@ export class MapsFeature {
     if(focusAction&&!document.querySelector('dialog[open]'))this.root.querySelector(`[data-map-action="${focusAction}"]`)?.focus({preventScroll:true});
   }
   message(text,error=false) {
+    if(!this.alive)return;
     const notice=this.root.querySelector('.map-notice');notice.hidden=!text;notice.classList.toggle('is-error',error);
     notice.innerHTML=text?`<span>${esc(text)}</span>${error&&this.current?button('export-draft','Сохранить копию','download'):''}${button('dismiss','Закрыть','x')}`:'';
   }
@@ -287,5 +308,5 @@ export class MapsFeature {
     const context=this.getAgentContext();
     return this.dialog({title:'Предложение агента',description:'Агент работает со структурой карты, а изменения применяются только после вашего подтверждения.',body:`<p class="map-explanation">В контексте ${context.objects.length} объектов. Изображения, ключи и история запусков не передаются. Провайдер помощника в локальном стенде не подключён; можно проверить контракт готовым JSON-предложением.</p>${button('export-context','Экспортировать выбранный контекст','download','secondary')}${textarea('proposal','JSON-предложение','',8)}`,submitLabel:'Показать изменения',onSubmit:async(values,form,el)=>{const proposal=JSON.parse(values.get('proposal'));proposalDocument(this.current,proposal,{canEdit:this.permissions.edit});el.close(true);this.previewAgentProposal(proposal);return false;},mount:el=>el.querySelector('[data-map-action=export-context]').addEventListener('click',()=>download('agent-context.json',context))});
   }
-  async destroy({force=false}={}){if(!force&&!(await this.readyToLeave()))return false;this.alive=false;this.canvasInspector?.destroy?.();this.dialogs.forEach(el=>el.close(true));this.abort.abort();this.unsubscribe?.();clearInterval(this.timer);this.pending.forEach(c=>c.abort());this.root.replaceChildren();return true;}
+  async destroy({force=false}={}){if(!force&&!(await this.readyToLeave()))return false;this.alive=false;this.mapGeneration++;for(const request of this.mapReads)request.abort();this.mapReads.clear();this.canvasInspector?.destroy?.();this.dialogs.forEach(el=>el.close(true));this.abort.abort();this.unsubscribe?.();clearInterval(this.timer);this.pending.forEach(c=>c.abort());this.root.replaceChildren();return true;}
 }

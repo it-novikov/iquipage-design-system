@@ -5,6 +5,7 @@ import {recordEvent} from './commands.js';
 import {loadPlanningState,planningLock} from './planning.js';
 import {validateTemporal} from '../domain/planning.js';
 import {linkTaskAssets} from './media.js';
+import {requireOpenTask,validateTaskHierarchy} from '../domain/task-invariants.js';
 
 const projection=`t.id,t.project_id AS "projectId",p.key||'-'||t.number AS "displayId",t.revision,t.title,t.description,t.status,t.type,t.priority,
   t.attachment_ids AS "attachmentIds",t.cover_attachment_id AS "coverAttachmentId",t.cover_crop AS "coverCrop",
@@ -27,6 +28,7 @@ export async function putTask(tx:Transaction,actor:Actor,projectId:string,id:str
   await planningLock(tx,actor,projectId,true);
   const previous=(await tx.query<{revision:number;status:string;parentId:string|null;releaseId:string|null;result:string}>('SELECT revision,status,parent_id AS "parentId",release_id AS "releaseId",result FROM app.tasks WHERE project_id=$1 AND id=$2',[projectId,id])).rows[0];
   requireCondition((previous?.revision||0)===baseRevision,409,'CONFLICT','Задача уже изменена. Обновите её и повторите действие.');
+  if (previous) requireOpenTask(previous);
   if(value.parentId){
     const ancestry=(await tx.query<{id:string}>(`WITH RECURSIVE ancestors AS (
       SELECT id,parent_id FROM app.tasks WHERE project_id=$1 AND id=$2
@@ -47,7 +49,6 @@ export async function putTask(tx:Transaction,actor:Actor,projectId:string,id:str
     409,'PREVIEW_REQUIRED','Измените родителя или релиз через планирование: сначала проверьте последствия.');
   requireCondition(!previous||!createInBoard,400,'CREATE_ONLY','Допуск при создании нельзя использовать для изменения задачи.');
   requireCondition(!createInBoard||actor.kind==='human',403,'APPROVAL_REQUIRED','Агент сначала предлагает подготовку и допуск задачи.');
-  requireCondition(previous?.result!=='accepted'||previous.status===value.status,409,'RESULT_PINNED','Принятый рабочий результат закреплён.');
   const data=[projectId,id,value.title,value.description,value.status,value.type,value.priority,value.owner,value.due,value.rank,value.parentId,value.releaseId];
   if(previous){
     await tx.query(`UPDATE app.tasks SET title=$3,description=$4,status=$5,type=$6,priority=$7,owner_label=$8,due=$9,rank=$10,parent_id=$11,release_id=$12,
@@ -60,7 +61,9 @@ export async function putTask(tx:Transaction,actor:Actor,projectId:string,id:str
   }
   await tx.query('DELETE FROM app.task_tags WHERE project_id=$1 AND task_id=$2',[projectId,id]);
   for(const tag of value.tagIds)await tx.query('INSERT INTO app.task_tags(project_id,task_id,tag_id) VALUES($1,$2,$3)',[projectId,id,tag]);
-  validateTemporal(await loadPlanningState(tx,projectId));
+  const state = await loadPlanningState(tx,projectId);
+  validateTaskHierarchy(state.tasks);
+  validateTemporal(state);
   await linkTaskAssets(tx,actor,projectId,id,value);
   const saved=await readTask(tx,projectId,id);
   await recordEvent(tx,actor,projectId,previous?'task.updated':'task.created',id,saved.revision);

@@ -19,8 +19,23 @@ async function access(tx:Transaction,actor:Actor,projectId:string,target:Pick<Re
   await authorize(tx,actor,projectId,target.targetType==='map'?(write?'maps:write':'maps:read'):(write?'tasks:write':'tasks:read'));
   if(target.targetType==='project-avatar')await authorize(tx,actor,projectId,write?'catalog:write':'tasks:read');
 }
+/** Every media mutation follows project -> asset, also used by task/map/avatar saves.
+ * Outbox insertion locks the project, so taking an asset first would invert that order.
+ * Recheck credentials and policy after waiting; admission before the lock is not a grant.
+ */
+async function lockMediaProject(tx:Transaction,actor:Actor,projectId:string,target:Pick<Reservation,'targetType'|'targetId'>){
+  await access(tx,actor,projectId,target,true);
+  await tx.query('SELECT id FROM app.projects WHERE id=$1 FOR UPDATE',[projectId]);
+  await requireActiveCredential(tx,actor);
+  await access(tx,actor,projectId,target,true);
+}
+async function writableAsset(tx:Transaction,actor:Actor,projectId:string,id:string){
+  const initial=await assetRow(tx,projectId,id);
+  await lockMediaProject(tx,actor,projectId,initial);
+  return assetRow(tx,projectId,id,true);
+}
 export async function reserveAsset(tx:Transaction,actor:Actor,projectId:string,input:Reservation,key:string){
-  await access(tx,actor,projectId,input,true);await tx.query('SELECT id FROM app.projects WHERE id=$1 FOR UPDATE',[projectId]);await access(tx,actor,projectId,input,true);
+  await lockMediaProject(tx,actor,projectId,input);
   return idempotent(tx,actor,projectId,'asset.reserve:'+input.id,key,input,async()=>{
     const quota=(await tx.query<{bytes:number;pending:number}>(`SELECT coalesce(sum(size),0)::float8 AS bytes,count(*) FILTER(WHERE state IN ('uploading','ready') AND actor_id=$2)::int AS pending FROM app.assets WHERE project_id=$1 AND state<>'deleted'`,[projectId,actor.id])).rows[0]!;
     requireCondition(quota.bytes+input.size<=5*1024**3&&quota.pending<100,422,'STORAGE_QUOTA','Лимит хранения или незавершённых загрузок исчерпан.');
@@ -30,7 +45,7 @@ export async function reserveAsset(tx:Transaction,actor:Actor,projectId:string,i
   });
 }
 export async function uploadAsset(tx:Transaction,actor:Actor,projectId:string,id:string,bytes:Uint8Array,storage:ObjectStorage){
-  const asset=await assetRow(tx,projectId,id,true);await access(tx,actor,projectId,asset,true);
+  const asset=await writableAsset(tx,actor,projectId,id);
   requireCondition(asset.actorId===actor.id,403,'FILE_OWNER','Загрузку завершает её автор.');
   requireCondition(['uploading','ready','attached'].includes(asset.state),409,'FILE_STATE','Загрузка завершена или удалена. Выберите файл заново.');
   try{
@@ -64,7 +79,7 @@ export async function readableAsset(tx:Transaction,actor:Actor,projectId:string,
 }
 export async function describeAsset(tx:Transaction,actor:Actor,projectId:string,id:string){return publicMetadata(await readableAsset(tx,actor,projectId,id));}
 export async function discardAsset(tx:Transaction,actor:Actor,projectId:string,id:string){
-  const asset=await assetRow(tx,projectId,id,true);await access(tx,actor,projectId,asset,true);
+  const asset=await writableAsset(tx,actor,projectId,id);
   requireCondition(asset.actorId===actor.id,403,'FILE_OWNER','Удалить несохранённую загрузку может её автор.');
   requireCondition(asset.state!=='attached',409,'FILE_ATTACHED','Сначала уберите файл из объекта.');
   if(['uploading','ready'].includes(asset.state)){await tx.query("UPDATE app.assets SET state='detached',expires_at=clock_timestamp(),revision=revision+1 WHERE project_id=$1 AND id=$2",[projectId,id]);await recordEvent(tx,actor,projectId,'asset.discarded',id,asset.revision+1);await enqueueAssetCleanup(tx,projectId,id,asset.revision+1,new Date());}

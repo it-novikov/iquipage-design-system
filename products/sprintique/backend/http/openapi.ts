@@ -10,8 +10,9 @@ import {mapSchemas} from '../../contracts/maps.js';
 import {mediaSchemas} from '../../contracts/media.js';
 import {agentSchemas} from '../../contracts/agents.js';
 import {RetryJob} from '../../contracts/operations.js';
+import {EventHeadResponse} from '../../contracts/events.js';
 
-const extra={RetryJob,TaskPosition:z.strictObject({baseRevision:core.Revision,status:core.TaskInput.shape.status,rank:core.TaskInput.shape.rank}),
+const extra={RetryJob,EventHeadResponse,TaskPosition:z.strictObject({baseRevision:core.Revision,status:core.TaskInput.shape.status,rank:core.TaskInput.shape.rank}),
   ViewReleaseQuery:z.strictObject({groupId:core.Id,cursor:z.string().max(3000).optional()})};
 /** Only public, code-owned schemas. Custom refinements are still enforced by runtime parsers. */
 export const publicSchemas=Object.fromEntries(Object.entries({...core,...planning,...planningResponseSchemas,...view,...workspace,...membership,...mapSchemas,...mediaSchemas,...agentSchemas,...extra})
@@ -54,6 +55,7 @@ for(const path of ['/planning/releases','/planning/previews/:id/effects','/plann
 for(const path of ['/planning/tasks','/board/tasks'])queries[P+path]=Object.entries(z.toJSONSchema(planning.PlanningQuery).properties||{}).map(([name,schema])=>query(name,schema as object));
 queries[P+'/planning/roadmap']=[...pagination,query('from',{type:'string',format:'date'}),query('to',{type:'string',format:'date'}),query('undated',{type:'string',enum:['true','false']})];
 const responses:Record<string,string>={
+  ['GET '+P+'/events/head']:'EventHeadResponse',
   ['GET '+P+'/planning/tasks']:'PlanningPageResponse',['GET '+P+'/board/tasks']:'PlanningPageResponse',
   ['GET '+P+'/planning/releases']:'ReleasePageResponse',['PUT '+P+'/planning/releases/:id']:'ReleaseResponse',
   ['POST '+P+'/planning/previews']:'PreviewResponse',['POST '+P+'/planning/commands']:'ReceiptResponse',['GET '+P+'/planning/commands/:id']:'ReceiptResponse',
