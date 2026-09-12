@@ -57,8 +57,14 @@ export class MapsFeature {
   }
   async openMap(id) {
     requireValue(this.permissions.read,'READ_ONLY','Просмотр карт недоступен.');
-    if(!(await this.readyToLeave()))return false;
-    const map=await this.repository.read('maps',id,this.project.id);requireValue(map,'NOT_FOUND','Карта не найдена в этом проекте.');
+    if(!this.alive)return false;
+    const attempt=Symbol('map-open');this.openAttempt=attempt;
+    if(!(await this.readyToLeave())||!this.alive||this.openAttempt!==attempt)return false;
+    let map;
+    try { map=await this.repository.read('maps',id,this.project.id); }
+    catch(error){if(!this.alive||this.openAttempt!==attempt)return false;throw error;}
+    if(!this.alive||this.openAttempt!==attempt)return false;
+    requireValue(map,'NOT_FOUND','Карта не найдена в этом проекте.');
     if(this.current&&this.board)this.positions.set(`${this.current.id}:${this.view}`,this.board.viewport);
     this.current=map;this.view='canvas';this.inspector.hidden=true;this.buildBoard();this.renderChrome();this.message('');
     this.config.onOpenMap?.({id:map.id,projectId:map.projectId});return true;
@@ -99,9 +105,14 @@ export class MapsFeature {
     finally{this.pending.delete(request.requestId);}
   }
   async externalUpdate(event) {
+    if(!this.alive)return;
+    const attempt=this.openAttempt;
     if(this.savingPromise)await this.savingPromise;
-    if(!this.current||this.current.id!==event.id||event.revision<=this.current.revision)return;
-    const next=await this.repository.read('maps',event.id,this.project.id);if(!next||next.revision<=this.current.revision)return;
+    if(!this.alive||attempt!==this.openAttempt||!this.current||this.current.id!==event.id||event.revision<=this.current.revision)return;
+    let next;
+    try { next=await this.repository.read('maps',event.id,this.project.id); }
+    catch(error){if(!this.alive||attempt!==this.openAttempt)return;throw error;}
+    if(!this.alive||attempt!==this.openAttempt||this.current?.id!==event.id||!next||next.revision<=this.current.revision)return;
     this.current=next;this.board.data=this.view==='workflow'&&next.flow?flowScene(next.flow,next.title,next.revision):next.document;
     this.board.readOnly=!this.permissions.edit||next.status==='archived';this.renderChrome();this.message('Получена новая версия из другой вкладки.');
   }
@@ -109,11 +120,15 @@ export class MapsFeature {
     requireValue(this.permissions.edit&&this.current.status!=='archived','READ_ONLY','Карта доступна только для просмотра.');
     if(!(await this.readyToLeave({skipWorkflowDraft:fromWorkflowEditor})))throw Error('Есть несохранённое изменение.');
     requireValue(next.revision===this.current.revision,'CONFLICT','Карта изменилась. Повторите действие.');
-    const saved=await this.repository.write('maps',next,this.current.revision);this.current=saved;
+    const openedMapId=this.current.id,attempt=this.openAttempt;
+    const saved=await this.repository.write('maps',next,this.current.revision);
+    if(!this.alive||this.openAttempt!==attempt||this.current?.id!==openedMapId||saved.revision<=this.current.revision)return saved;
+    this.current=saved;
     this.board.data=this.view==='workflow'?flowScene(saved.flow,saved.title,saved.revision):saved.document;
     this.board.readOnly=!this.permissions.edit||saved.status==='archived';this.renderChrome();return saved;
   }
   renderChrome(override='') {
+    if(!this.alive)return;
     const active=document.activeElement,focusAction=this.toolbar.contains(active)||this.subbar.contains(active)?active?.dataset.mapAction:null;
     const m=this.current,disabled=!this.permissions.edit||m?.status==='archived';
     const title=m?.title||'Карты проекта';
@@ -131,6 +146,7 @@ export class MapsFeature {
     if(focusAction&&!document.querySelector('dialog[open]'))this.root.querySelector(`[data-map-action="${focusAction}"]`)?.focus({preventScroll:true});
   }
   message(text,error=false) {
+    if(!this.alive)return;
     const notice=this.root.querySelector('.map-notice');notice.hidden=!text;notice.classList.toggle('is-error',error);
     notice.innerHTML=text?`<span>${esc(text)}</span>${error&&this.current?button('export-draft','Сохранить копию','download'):''}${button('dismiss','Закрыть','x')}`:'';
   }

@@ -35,7 +35,7 @@ try{
  await run('offline-build',['scripts/offline.mjs']);await run('offline-smoke',['tests/offline.mjs']);
  for(const suite of ['browser-editor-actions-v34','browser-thread-actions-v34','browser-board-interactions'])await run('base-'+suite,['tests/'+suite+'.mjs'],maps);
  const additional=[];
- for(const suite of ['completion','temporal','conditions','recovery','list-interactions','large-list','experience-r3','r3-guards']){
+ for(const suite of ['completion','temporal','conditions','recovery','list-interactions','large-list','experience-r3','r3-guards','r3-map-lifecycle']){
    const {result,log}=execute('browser-'+suite,['tests/browser-'+suite+'.mjs']);
    await writeFile(path.join(out,'browser-'+suite+'.log'),log);
    const record=JSON.parse(await readFile(path.join(out,suite,'report.json'),'utf8'));
