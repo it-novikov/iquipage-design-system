@@ -30,7 +30,7 @@ export function fixtureRepository(namespace) {
   repository.fixtureTransaction=async update=>{
     const db=await repository.ready;
     return new Promise((resolve,reject)=>{
-      const names=['tasks','releases','tags','_pnFixture'],tx=db.transaction(names,'readwrite'),snapshot={};let left=names.length,result,cause;
+      const names=['tasks','releases','tags','taskLinks','_pnFixture'],tx=db.transaction(names,'readwrite'),snapshot={};let left=names.length,result,cause;
       for(const name of names){const request=tx.objectStore(name).getAll();request.onsuccess=()=>{
         snapshot[name]=request.result;if(--left)return;
         try{result=update(snapshot,(collection,value,baseRevision)=>{
@@ -46,7 +46,7 @@ export function fixtureRepository(namespace) {
   };
   repository.fixtureSnapshot=async()=>{
     const db=await repository.ready;
-    return new Promise((resolve,reject)=>{const names=['tasks','releases','tags','_pnFixture'],tx=db.transaction(names),data={};
+    return new Promise((resolve,reject)=>{const names=['tasks','releases','tags','taskLinks','_pnFixture'],tx=db.transaction(names),data={};
       for(const name of names){const req=tx.objectStore(name).getAll();req.onsuccess=()=>{data[name]=req.result;};}
       tx.oncomplete=()=>resolve(data);tx.onabort=()=>reject(tx.error);
     });

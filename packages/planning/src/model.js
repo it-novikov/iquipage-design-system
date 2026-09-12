@@ -14,10 +14,11 @@ export function validateGroups(page, projectId) {
   const ids = new Set();
   for (const group of page.items) {
     invariant(object(group) && identifier(group.id) && !ids.has(group.id), 'Повторяющаяся группа.'); ids.add(group.id);
-    invariant(text(group.title, 240) && ['active', 'planned', 'backlog', 'closed'].includes(group.state), 'Некорректная группа.');
+    invariant(text(group.title, 240) && ['active', 'planned', 'backlog', 'closed', 'cancelled'].includes(group.state), 'Некорректная группа.');
     invariant(count(group.total) && count(group.matched) && group.matched <= group.total, 'Некорректное количество задач.');
     invariant(text(group.dateLabel ?? '') && text(group.formatLabel ?? ''), 'Некорректная подпись релиза.');
   }
+  invariant(page.capabilities===undefined||object(page.capabilities)&&Object.values(page.capabilities).every(v=>typeof v==='boolean'), 'Invalid planning capabilities');
   return page;
 }
 export function validateRows(page, projectId, groupId, revision) {
@@ -46,8 +47,9 @@ export function mergeRows(previous, next) {
 }
 /** Selection is task identity. Disclosure and selection are independent. */
 export class Selection {
-  ids = new Set(); anchor = null;
+  ids = new Set(); anchor = null; snapshot = null;
   toggle(id, rows, range = false) {
+    if(this.snapshot)return;
     const available = rows.map(row => row.taskId);
     if (!available.includes(id)) return;
     const end = available.indexOf(id), start = available.indexOf(this.anchor);
@@ -58,9 +60,10 @@ export class Selection {
     this.anchor = id;
   }
   all(rows) {
+    if(this.snapshot)return;
     const ids = rows.map(r => r.taskId), remove = ids.length > 0 && ids.every(id => this.ids.has(id));
     for (const id of ids) remove ? this.ids.delete(id) : this.ids.add(id);
   }
-  clear() { this.ids.clear(); this.anchor = null; }
-  summary(rows) { const visible = new Set(rows.map(r => r.taskId)); return {total:this.ids.size, hidden:[...this.ids].filter(id=>!visible.has(id)).length}; }
+  clear() { this.ids.clear(); this.anchor = null; this.snapshot = null; }
+  summary(rows) { if(this.snapshot)return {total:this.snapshot.count,hidden:0,snapshot:true};const visible = new Set(rows.map(r => r.taskId)); return {total:this.ids.size, hidden:[...this.ids].filter(id=>!visible.has(id)).length}; }
 }
