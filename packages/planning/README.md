@@ -1,28 +1,38 @@
-# Sprintique Planning — release lifecycle and temporal review
+# Sprintique — Планирование, Frontend R1
 
-This is the reusable Planning consumer and its isolated browser fixture, in the owner-confirmed `it-novikov/iquipage-design-system` repository. The branch is `feature/vnext-planning-ui`; PR #3 collects this track. The legacy Sprintique repository is not a runtime dependency.
+Переиспользуемый интерфейс новой платформы: релизы и бэклог, подготовка задач, массовая работа, перенос, завершение с остатком, история, спринт-формат, временная шкала, вехи и календарь. Это фронтовая поставка для подключения к новому backend, не production-платформа.
 
-## Current boundary
-The fixture supports release/backlog groups, expanded children, explicit and snapshot selection, shared task documents, preparation, start, transfer, bulk fields, close/cancel with carry-forward, immutable outcome history, sprint defaults, timeline, milestones, temporal dependencies and condition filters.
+## Запуск
 
-**This is not a finished production feature.** `npm run verify` currently fails the required committed-calendar refresh-recovery scenario. The write of that repair was rejected by the tool safety-status check. List pointer DnD and virtualization are not integrated. New backend/SDK/authorization/PostgreSQL are owned by the parallel backend track and are not connected here. See `docs/FINAL-FINDINGS.md`.
+Откройте `Sprintique-Planning-Frontend-R1.html` из поставки. Данные тестового стенда сохраняются в отдельном IndexedDB; прежние пользовательские базы не используются. Файл работает без внешних HTTP-запросов.
 
-The fixture stores synthetic work separately in IndexedDB. It is not a production fallback. Paid LLM, deployment, email invitations and external automation are not invoked by Planning.
-
-## Run
-Use Node.js 24. From the repository root:
+Для исходников нужны Node.js 24 и Python 3. Из корня распакованного комплекта:
 
 ```sh
-cd packages/maps
-npm ci --ignore-scripts --no-fund --no-audit
-npx --no-install playwright install chromium
-npm run build
-cd ../planning
-npm ci --ignore-scripts --no-fund --no-audit
-npm run preview
+npm --prefix packages/maps ci --ignore-scripts --no-fund --no-audit
+npm --prefix packages/work-list ci --ignore-scripts --no-fund --no-audit
+npm --prefix packages/planning ci --ignore-scripts --no-fund --no-audit
+(cd packages/maps && npx --no-install playwright install chromium)
+npm --prefix packages/planning run verify
+npm --prefix packages/planning run preview
 ```
 
-Open `http://127.0.0.1:4328/`. `npm run verify` runs the required consumer tests, including the known failing recovery case; do not remove that test to obtain green CI.
+Стенд: `http://127.0.0.1:4328/`. После успешной проверки `npm --prefix packages/planning run package` создаёт полный ZIP и HTML в новой папке «Загрузки»; старые поставки остаются нетронутыми.
 
-## Integration
-Use `mountPlanning` with one host-supplied adapter and the existing task-document callbacks. `types/index.d.ts` describes the consumer projection, not an invented HTTP API. `src/` has no SQL, tenant policy or fixture imports. The generic DS extraction belongs to its designated owner; pinned `design-system/` remains unchanged.
+## Готовые взаимодействия
+
+Перетаскивание мышью и клавиатурой вызывает те же подтверждаемые команды, что меню. Свободная перестановка действует только в ручном порядке и среди задач одного родителя. В автоматической сортировке перенос не меняет приоритет. Для изменения порядка без drag выделите одну задачу и выберите «Порядок…».
+
+Большие списки подгружаются страницами; оконный рендер ограничивает DOM, сохраняя фокус и выбор по ID. Подзадачи раскрыты по умолчанию. Количество задач не ограничено клиентским лимитом колонки.
+
+Закрытие релиза не объявляет деплой. Открытая работа получает явного получателя, принятые дочерние результаты остаются в старом релизе. Если команда сохранена, но чтение свежего плана не удалось, можно закрыть подтверждение и обновить отображение без повторной записи.
+
+## Подключение и границы
+
+Публичный вход — `mountPlanning` из `@sprintique/planning-ui`. Контракт: `types/index.d.ts`; инструкции: `docs/INTEGRATION.md`. Подключение использует один экземпляр DS и отдельный source-owned пакет `@iquipage/work-list`. Ни один из этих пакетов не опубликован в npm.
+
+В `demo/` находятся изолированный репозиторий и исполняемые примеры правил. Не переносите их на сервер и не считайте альтернативой PostgreSQL, policy или SDK другого backend-агента. Его канонический API подключается через `PlanningAdapter`.
+
+Авторизация, права людей/агентов, реальная БД, события между клиентами, миграция старых данных и внешние интеграции остаются отдельным серверным треком. Виртуализация проверена на синтетической проекции из 10 000 строк; это не нагрузочная приёмка БД и не гарантия FPS на реальном устройстве. Физические сенсорные устройства и скринридеры не приняты.
+
+См. актуальный `evidence/verification.json`: PASS относится только к перечисленным проверкам текущих исходников. Старые отчёты и снимки FAIL сохранены как история, а не доказательство новой сборки. Полный исторический runner DS/maps не объявляется исправленным этим PR: повторяются базовые Node-тесты и три актуальных браузерных набора v3.4.

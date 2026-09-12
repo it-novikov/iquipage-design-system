@@ -4,7 +4,7 @@ import {fileURLToPath} from 'node:url';
 import {createHash} from 'node:crypto';
 import path from 'node:path';
 const root=fileURLToPath(new URL('../../../',import.meta.url));
-const prefix='@sprintique/pn2',modules=new Map();
+const prefix='@sprintique/planning-preview',modules=new Map();
 const allowed=['/packages/work-list/dist/','/packages/planning/src/','/packages/planning/demo/','/packages/maps/src/','/packages/maps/dist/vendor/'];
 function normalize(from,target){
  if(target==='@iquipage/work-list')return '/packages/work-list/dist/index.js';
@@ -33,6 +33,6 @@ html=html.replace(/<link\b[^>]*rel="stylesheet"[^>]*>/g,'').replace(/<script typ
 html=html.replace('</head>',`<style>${css}</style><script type="importmap">${JSON.stringify({imports}).replaceAll('<','\\u003c')}</script></head>`);
 html=html.replace('</body>',`<script type="module">import '${prefix}/packages/planning/demo/app.js';</script></body>`);
 const output=path.join(root,'packages/planning/dist');await mkdir(output,{recursive:true});
-await writeFile(path.join(output,'Sprintique-Planning-PN2.html'),html);
+await writeFile(path.join(output,'Sprintique-Planning-Frontend-R1.html'),html);
 await writeFile(path.join(output,'offline.json'),JSON.stringify({scope:'fixture-only',moduleCount:modules.size,htmlBytes:Buffer.byteLength(html),sha256:createHash('sha256').update(html).digest('hex')},null,2));
-console.log('Built offline PN2 fixture:',modules.size,'modules,',Buffer.byteLength(html),'bytes');
+console.log('Built offline Planning frontend fixture:',modules.size,'modules,',Buffer.byteLength(html),'bytes');

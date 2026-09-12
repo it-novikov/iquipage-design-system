@@ -52,3 +52,11 @@ test('temporal dependency uses canonical business relation and rejects cycles',(
 test('milestone is not a task; invalid dates or closed release fail',()=>{const s=data();const p=plan(s,{kind:'milestone',values:{title:'Первая демонстрация',date:'2026-10-10',releaseId:'r1'}});assert.equal(p.tasks.length,0);assert.equal(p.meta[0].kind,'milestone');assert.throws(()=>plan(s,{kind:'milestone',values:{title:'X',date:'2026-02-30'}}));});
 test('take without release preserves status; unprepare explicitly pauses work',()=>{const s=data([task('a',{status:'testing'})]);const p=plan(s,{kind:'take',taskIds:['a']});assert.equal(p.tasks[0].status,'testing');assert.equal(p.tasks[0].releaseAssignment,'none');assert.equal(p.tasks[0].planningAdmission,true);assert.equal(plan(s,{kind:'unprepare',taskIds:['a']}).tasks[0].planningAdmission,false);});
 test('fixture rejects cross-project datasets before calculating effects',()=>{const s=data([task('a',{projectId:'other'})]);assert.throws(()=>plan(s,{kind:'prepare',taskIds:['a']}),/область/);});
+
+import {todayInZone} from '../src/date-value.js';
+test('new sprint date follows the project timezone, not UTC or browser timezone',()=>{
+  const instant=new Date('2026-09-12T00:30:00Z');
+  assert.equal(todayInZone('America/Los_Angeles',instant),'2026-09-11');
+  assert.equal(todayInZone('Asia/Tokyo',instant),'2026-09-12');
+  assert.throws(()=>todayInZone('Invalid/Zone',instant));
+});

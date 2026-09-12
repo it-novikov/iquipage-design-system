@@ -3,7 +3,7 @@ export type Capability = 'createTask'|'createRelease'|'move'|'prepare'|'start'|'
 export interface Filters {query:string;preparation:'all'|'draft'|'ready';sort:'planned'|'priority'|'date';history?:'current'|'closed';owner?:string;releaseId?:string;tagIds?:string[];tagMode?:'any'|'all'}
 export interface RequestContext {projectId:string;signal?:AbortSignal}
 export interface PlanningGroup {id:string;title:string;state:'active'|'planned'|'backlog'|'closed'|'cancelled';total:number;matched:number;dateLabel?:string;formatLabel?:string}
-export interface PlanningRow {id:string;taskId:string;key:string;title:string;type:'task'|'bug'|'epic';priority:'normal'|'low'|'high'|'critical';preparation:'draft'|'ready';statusLabel:string;ownerLabel?:string;dateLabel?:string;depth:number;childrenCount:number;contextOnly:boolean;selectable:boolean;parentContext?:string|null}
+export interface PlanningRow {id:string;taskId:string;key:string;title:string;type:'task'|'bug'|'epic';priority:'normal'|'low'|'high'|'critical';preparation:'draft'|'ready';statusLabel:string;ownerLabel?:string;dateLabel?:string;depth:number;childrenCount:number;contextOnly:boolean;selectable:boolean;parentContext?:string|null;parentId?:string|null;outcome?:'open'|'accepted'|'cancelled';revision?:number}
 export interface GroupPage {protocol:'sprintique.planning-view/1';projectId:string;revision:string;items:PlanningGroup[];nextCursor:string|null;matchedTotal?:number;capabilities:Partial<Record<Capability,boolean>>}
 export interface RowPage {projectId:string;groupId:string;revision:string;rows:PlanningRow[];nextCursor:string|null}
 export type SelectionSpec = {taskIds:string[];selectionToken?:never}|{selectionToken:string;taskIds?:never};

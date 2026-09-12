@@ -1,7 +1,7 @@
 {
-  "stage": "PN4-PN5-review",
-  "scope": "approved Planning R2 consumer UI, with isolated fixture",
-  "approval": "User confirmed it-novikov/iquipage-design-system and completion in the same branch",
+  "stage": "frontend-r1",
+  "scope": "Planning consumer UI with isolated reference fixtures; not the production platform",
+  "approval": "User confirmed completion in the design-system repository, one branch and PR",
   "targetRepository": "it-novikov/iquipage-design-system",
   "branch": "feature/vnext-planning-ui",
   "pullRequest": 3,
@@ -9,22 +9,23 @@
   "backendOwner": "parallel backend agent",
   "backendIntegrated": false,
   "productionReady": false,
-  "currentAcceptance": "FAIL: PLN-RECOVERY-01",
+  "currentAcceptance": "Run npm run verify; authoritative result and source fingerprint: evidence/verification.json",
   "completed": [
-    "Grouped release/backlog list, hierarchy, explicit/snapshot selection and shared task document",
-    "Preparation, transfer, launch, guarded bulk changes and lost-ACK receipt checks",
-    "Close/cancel with carry-forward, atomic fixture recipient and accepted-child pinning",
-    "Immutable release history and timeboxed defaults",
-    "Actual DS roadmap/calendar, milestone and canonical task-dependency projection",
-    "Owner, release and project tag conditions with tested cancellation",
-    "Expanded consumer declarations and required CI workflow"
+    "Release/backlog groups, default-expanded hierarchy, explicit/snapshot selection, shared task document",
+    "Prepare/move/start, guarded bulk and receipt recovery without duplicate effects",
+    "Close/cancel with explicit carry-forward, accepted-child pinning and immutable result history",
+    "Flexible/timeboxed defaults, project timezone and separate plan/deadline dates",
+    "DS roadmap/calendar, milestones, canonical task-dependency projection and conditions",
+    "PLN-RECOVERY-01 repaired through public component lifecycle and verified regression",
+    "Pointer/keyboard transfer, non-drag order dialog and manual-only sibling reorder",
+    "Strict source-owned work-list package, variable-height windows, retained focus, 10000-row consumer test",
+    "Independent library build/tarball consumer, versioned complete package and required CI"
   ],
   "pending": [
-    "PLN-RECOVERY-01: acknowledged calendar commit followed by failed reload traps dirty state; repair write rejected",
-    "Generic DS list virtualization and pointer/keyboard drag candidate not completed or integrated",
-    "Backend contract/SDK, PostgreSQL, auth/ACL and multi-client integration",
-    "Full performance, physical-device and accessibility acceptance",
-    "Optional one-way migration in separate MIG scope"
+    "Backend-owned SDK/API, PostgreSQL, auth/ACL, agent policy and multi-client integration",
+    "Independent promotion of additive work-list source into extracted design-system release",
+    "Physical touch/screen-reader acceptance, broader real-device and multi-group performance profiles",
+    "Optional one-way migration as separate MIG track"
   ],
   "legacyRepositoryModified": false
 }

@@ -2,7 +2,7 @@ name: Planning acceptance
 on:
   pull_request:
     branches: [main]
-    paths: ['packages/planning/**', 'packages/maps/**', 'design-system/**', '.github/workflows/planning.yml']
+    paths: ['packages/work-list/**', 'packages/planning/**', 'packages/maps/**', 'design-system/**', '.github/workflows/planning.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -25,6 +25,8 @@ jobs:
         working-directory: packages/maps
       - run: npx --no-install playwright install chromium
         working-directory: packages/maps
+      - run: npm ci --ignore-scripts --no-fund --no-audit
+        working-directory: packages/work-list
       - run: npm ci --ignore-scripts --no-fund --no-audit
         working-directory: packages/planning
       - run: npm run verify

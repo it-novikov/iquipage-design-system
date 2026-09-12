@@ -1,5 +1,5 @@
 import {releaseFields,readReleaseFields,settingsDialog} from '../src/release-dialogs.js';
-import {addDays} from '../src/date-value.js';
+import {addDays,todayInZone} from '../src/date-value.js';
 import {registerCore,ui,icon,escapeHTML as esc} from '@iquipage/web/core';
 import {mountPlanning} from '../src/index.js';
 import {formDialog} from '../src/dialog.js';
@@ -35,7 +35,7 @@ async function openTask(id,{onChanged=()=>{},onClose=()=>{}}={}) {
 }
 async function createRelease({onChanged=()=>{},onClose=()=>{}}={}) {
   const settings=await adapter.settings({projectId:project.id});
-  const today=new Date().toISOString().slice(0,10),start=settings.format==='timeboxed'?today:null;
+  const today=todayInZone(settings.timeZone||'UTC'),start=settings.format==='timeboxed'?today:null;
   const initial={format:settings.format,start,end:start?addDays(start,settings.days-1):null};
   return formDialog({title:'Новый релиз',body:releaseFields(initial),submitLabel:'Создать релиз',
     submit:async form=>{

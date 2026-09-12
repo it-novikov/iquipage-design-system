@@ -17,10 +17,24 @@
 ## Подключение временных представлений
 Timeline DTO ссылается на канонические task/release/milestone IDs; продукт маппит его на публичный `iq-roadmap`. `iq-plan` читает те же даты. Date-only не преобразуется через локальную полночь. Обычная связь не становится временным ограничением автоматически. Отмена preview не выполняет запись.
 
-**Открытый дефект PLN-RECOVERY-01:** если команда календаря сохранена, а чтение свежей проекции падает, текущий consumer оставляет dirty state после закрытия подтверждения. Этот путь воспроизводится `tests/browser-recovery.mjs` и блокирует финальную приёмку. Не подключать как завершённую функцию до исправления.
+**PLN-RECOVERY-01 исправлен:** после подтверждённой записи и ошибки чтения закрытие не откатывает данные и не блокирует уход. `tests/browser-recovery.mjs` проверяет обновление без второго эффекта и отсутствие старого черновика DS.
 
 ## Что нельзя переносить в production
 `demo/fixture-*`, `demo/planning-rules.js`, собственная тестовая IndexedDB и synthetic identity не являются новым backend. Фикстура обрабатывает команды для UX-проверок; её история и receipt не дают гарантий PostgreSQL или полномочий пользователя.
 
 ## Внешние зависимости трека
-Новая auth/ACL/SDK/PG-интеграция и source-owned extraction DS принадлежат параллельному агенту. Generic list windowing и pointer DnD ещё не интегрированы. Приёмка должна проверить их отдельно; исторический PN2 PASS не отменяет текущий required FAIL.
+Новая auth/ACL/SDK/PG-интеграция и source-owned extraction DS принадлежат параллельному агенту. Оконный рендер и перенос строк интегрированы в Frontend R1; их приёмка выполняется текущими наборами list-interactions и large-list, не историческим PN2 отчётом.
+
+## Frontend R1 completion
+
+The calendar committed-result recovery defect is repaired. Pointer and keyboard dragging, a non-drag order dialog, and native table windowing are connected. Use the current public entry and declarations, not old PN2 screenshots or its standalone HTML.
+
+The host must resolve `@iquipage/work-list` to the workspace package and load its public stylesheet after the one IQUIPAGE stylesheet. Build that package before installing/bundling the Planning consumer. The package is additive, source-owned, private and not published in npm; do not copy its code into application components.
+
+`PlanningRow.parentId` supplies sibling identity for ordering; `outcome` protects accepted/cancelled results. A drop never changes hierarchy or workflow status. The same `preview`/`commit` protocol applies to `move` and `reorder`. An automatic sort rejects same-group manual reorder. `options({kind:'positions',taskId,...query})` returns allowed sibling anchors plus `__end__` for the pointer-only order dialog.
+
+All identifiers and capabilities are server/SDK projections, not authorization. The SDK must reject stale revisions and return the result of the original idempotency key after a lost response. A clean client projection is not evidence of a PostgreSQL commit. Do not expose fixture transaction helpers in the real API.
+
+Before replacing the isolated demo adapter, align release ownership, readiness/outcomes, inheritance/explicit no-release, closure disposition, immutable history, timezone/date semantics, selection tokens and bounded page sizes with the backend agent. Date intervals and deadlines are distinct. No literal HTTP route or schema is imposed by this package.
+
+Next integration gate: the new application's actual session/project → SDK adapter → task draft → preparation → release start → board → transfer/closure with conflict, revoked access and lost ACK. Run against real backend storage in addition to the consumer suite. The current branch does not implement that backend on the other agent's behalf.

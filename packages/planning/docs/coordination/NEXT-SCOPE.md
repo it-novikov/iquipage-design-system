@@ -16,3 +16,7 @@ Pinned design-system/ and maps/ source remain unchanged. Proposed additive sourc
 - Browser light/dark/responsive, current v3.4 task/board/maps, complete source archive and clean unpack recheck.
 
 Statuses distinguish UNIT_PASS, UI_FIXTURE_PASS and INTEGRATED_PASS. New backend/PG, independent DS extraction, production ACL and optional importer cannot be reported complete from a fixture. No merge/deploy is authorized by this scope.
+
+## Frontend R1 continuation
+
+PLN-RECOVERY-01 and the source-owned list interaction/windowing implementation are now repaired and integrated. The required final verifier includes the recovery, list-interactions and large-list suites, plus independent work-list compilation and tarball install. See the current repair ledger and `ACCEPTANCE-FRONTEND-R1.md`. Backend contract/SDK and real identity/storage tests remain with the parallel backend owner; this update does not claim integrated production readiness.

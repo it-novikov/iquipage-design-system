@@ -1,6 +1,6 @@
 {
   "name": "@sprintique/planning-ui",
-  "version": "0.1.0-pn2",
+  "version": "0.2.0-frontend.1",
   "private": true,
   "type": "module",
   "exports": {

@@ -1,15 +1,23 @@
-# Findings from the current Planning completion pass
+# Planning Frontend R1 — repair ledger
 
-## PLN-RECOVERY-01 — confirmed
-A calendar command commits, then reloading the canonical timeline fails. Closing the confirmation calls the controlled component's rejection as though the operation were cancelled and leaves `dirty=true`. `readyToLeave()` remains false: the user is trapped even though the change is saved.
+## PLN-RECOVERY-01 — resolved in source and browser regression
 
-Reproduction: `node tests/browser-recovery.mjs`. First current-run result: FAIL, assertion `Committed read failure must not trap the user in a dirty preview`. The fixture contains the new date and exactly one receipt. This is an application lifecycle defect, not a database failure.
+The original failure was an acknowledged calendar commit followed by a failed projection read. The host conflated a committed effect with a cancellable preview; additionally, assigning `data` intentionally preserves a dirty DS edit session.
 
-Required repair: distinguish acknowledged commit from cancel; keep an explicit refresh-required error; clear the unsaved preview state after explaining the committed result; retry reads canonical state without a second command. Acceptance must rerun this exact test.
+Repair `983de13`: distinguish committed effects, settle the pending request once, and replace a discarded/stale DS surface through its public lifecycle rather than touching its edit-session internals. Show the refresh-required state, release navigation after the documented `iq-close` event, and restore selection on a successful read. A rejected local preview is not described as a rollback of stored data.
 
-## Work-list implementation boundary
-The supplied `bindBoard` creates card/div placeholders and depends on board card markup; it is not a valid table-row drag controller. It was not forced onto `<tbody>`.
+`tests/browser-recovery.mjs` now verifies one stored receipt, preserved changed date, release of navigation, successful refresh and enabled editing without a stale DS conflict. The test waits for the actual close event, not an arbitrary delay. `browser-temporal.mjs` repeats normal acceptance/cancellation.
 
-A new generic `table-viewport.ts` write was rejected twice by the tool safety-status check; no file was applied. A separate row-drag candidate was partly saved, but its continuation was also rejected twice. Neither candidate is integrated, advertised or passed as working. Do not change tools or encodings to bypass these refusals. Preserve the partial source separately from the runnable package.
+## PL-DS-01 — additive source candidate integrated
 
-The independent release, calendar, filtering, typing, testing and delivery work continues. This file does not mark the full R2 or new backend as complete.
+`packages/work-list` contains strict TypeScript exports for a height index, native-table windowing and controlled row dragging. It has no product domain/network dependency and does not modify the pinned DS. `TableWindow` keeps focused rows by identity; `bindRowDrag` emits an intent, never writes or reparents caller records.
+
+Consumer acceptance: `browser-list-interactions.mjs` and `browser-large-list.mjs`. Mouse/keyboard/menu routes share the application command; sort rules are explicit; 10,000 paginated rows use a bounded DOM. Independent source compilation and tarball install are checked; promotion into the extracted primary DS is a separate owner decision.
+
+## PLN-CLICK-02 — resolved
+
+A drag click-suppression window could swallow a later deliberate filter click. Suppression now expires after the originating input turn; automatic-sort interaction is tested immediately after a completed reorder.
+
+## Remaining platform boundary
+
+No production backend, SDK binding, PostgreSQL, ACL, multi-client event stream, migration or external effect is accepted by a browser fixture. Physical touch/screen-reader testing and real-device FPS remain unverified. The complete report must be regenerated after the final source commit; historical FAIL snapshots are retained in earlier deliveries and Git history.
