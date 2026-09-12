@@ -1,6 +1,29 @@
 {
-  "name":"@sprintique/planning-ui", "version":"0.1.0-pn2", "private":true, "type":"module",
-  "exports":{".":{"types":"./types/index.d.ts","default":"./src/index.js"},"./styles.css":"./src/planning.css"},
-  "scripts":{"test":"node --test tests/*.test.mjs","test:browser":"node tests/browser.mjs","typecheck":"tsc -p tests/tsconfig.json","preview":"node scripts/server.mjs","package":"node scripts/package.mjs"},
-  "engines":{"node":">=24"}, "devDependencies":{"typescript":"5.9.2"}
+  "name": "@sprintique/planning-ui",
+  "version": "0.1.0-pn2",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./types/index.d.ts",
+      "default": "./src/index.js"
+    },
+    "./styles.css": "./src/planning.css"
+  },
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "test:browser": "node tests/browser.mjs",
+    "typecheck": "tsc -p tests/tsconfig.json",
+    "preview": "node scripts/server.mjs",
+    "package": "node scripts/package.mjs",
+    "build:offline": "node scripts/offline.mjs",
+    "test:offline": "node tests/offline.mjs",
+    "verify": "node scripts/verify.mjs"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "devDependencies": {
+    "typescript": "5.9.2"
+  }
 }

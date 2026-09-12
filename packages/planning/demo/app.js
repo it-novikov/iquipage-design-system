@@ -53,7 +53,7 @@ async function navigate(section){
   if(routing)return;routing=true;
   try{
     if(dialogOpen||mounted?.readyToLeave&&!(await mounted.readyToLeave())){history.replaceState(null,'','#'+current);return;}
-    mounted?.destroy();mounted=null;root.innerHTML='';current=['planning','tasks','maps','settings'].includes(section)?section:'planning';
+    const left=await mounted?.destroy();if(left===false){history.replaceState(null,'','#'+current);return;}mounted=null;root.innerHTML='';current=['planning','tasks','maps','settings'].includes(section)?section:'planning';
     document.querySelectorAll('[data-route]').forEach(a=>{if(a.dataset.route===current)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});
     if(current==='planning')mounted=await mountPlanning(root,{adapter,project,viewState:state,onOpenTask:openTask,onCreateTask:createPlanningTask,onCreateRelease:createRelease,onOpenBoard:async group=>{boardGroup=group;location.hash='tasks';}});
     else if(current==='tasks'){
@@ -69,7 +69,7 @@ async function navigate(section){
 }
 window.addEventListener('hashchange',()=>navigate(location.hash.slice(1)).catch(showError));
 document.querySelectorAll('[data-route=tasks]').forEach(a=>a.addEventListener('click',()=>{boardGroup=null;}));
-function showError(error){root.innerHTML=ui.alert('Не удалось открыть раздел',esc(error.message),'danger');}
+function showError(error){window.planningFixture.routeError=error.stack;root.innerHTML=ui.alert('Не удалось открыть раздел',esc(error.message),'danger');}
 // Fixture diagnostics are isolated to this entry and are never exported by @sprintique/planning-ui.
 window.planningFixture={repository,adapter,project,get view(){return mounted;}};
 await navigate(location.hash.slice(1)||'planning');
