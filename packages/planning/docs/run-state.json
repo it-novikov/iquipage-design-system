@@ -1,33 +1,30 @@
 {
-  "stage": "PN2",
-  "scope": "approved Planning R2 frontend slice",
-  "approval": "User: продолжай доделывать до конца, репозиторий тот же, где дизайн система",
-  "frontendBase": "f3dd146cc9c7c0544fd663d632704a210a5c13be",
-  "branch": "feature/vnext-planning-ui",
+  "stage": "PN4-PN5-review",
+  "scope": "approved Planning R2 consumer UI, with isolated fixture",
+  "approval": "User confirmed it-novikov/iquipage-design-system and completion in the same branch",
   "targetRepository": "it-novikov/iquipage-design-system",
-  "lastObservedRemoteBranches": null,
-  "observedAt": "2026-09-12T00:24:59.947156+00:00",
+  "branch": "feature/vnext-planning-ui",
+  "pullRequest": 3,
+  "frontendBase": "f3dd146cc9c7c0544fd663d632704a210a5c13be",
   "backendOwner": "parallel backend agent",
   "backendIntegrated": false,
   "productionReady": false,
+  "currentAcceptance": "FAIL: PLN-RECOVERY-01",
   "completed": [
-    "Consumer projection/command port and type contract",
-    "Grouped native DS table with child disclosure, explicit selection and lazy pages",
-    "Shared task detail, board/map navigation and isolated fixture storage",
-    "Prepare/move/start with preview, cancellation, stale and lost-ACK UI",
-    "Reproducible local and file:// checks"
+    "Grouped release/backlog list, hierarchy, explicit/snapshot selection and shared task document",
+    "Preparation, transfer, launch, guarded bulk changes and lost-ACK receipt checks",
+    "Close/cancel with carry-forward, atomic fixture recipient and accepted-child pinning",
+    "Immutable release history and timeboxed defaults",
+    "Actual DS roadmap/calendar, milestone and canonical task-dependency projection",
+    "Owner, release and project tag conditions with tested cancellation",
+    "Expanded consumer declarations and required CI workflow"
   ],
   "pending": [
-    "Backend contract alignment and SDK adapter PN3",
-    "Source-owned DS virtual hierarchical list and pointer DnD",
-    "Closure/carry-forward PN4",
-    "Roadmap/milestones/dependencies and full timeboxed settings PN5",
-    "New platform auth/ACL/PG E2E, performance/a11y PN6",
-    "Optional one-way importer as separate MIG track"
+    "PLN-RECOVERY-01: acknowledged calendar commit followed by failed reload traps dirty state; repair write rejected",
+    "Generic DS list virtualization and pointer/keyboard drag candidate not completed or integrated",
+    "Backend contract/SDK, PostgreSQL, auth/ACL and multi-client integration",
+    "Full performance, physical-device and accessibility acceptance",
+    "Optional one-way migration in separate MIG scope"
   ],
-  "delivery": "Downloads/Sprintique-Planning-PN2",
-  "pushPerformed": false,
-  "legacyRepositoryModified": false,
-  "remainingIntegrationNotes": "Do not copy fixture adapter/repository into API or initialize new backend main with old repository history.",
-  "repositoryDecision": "Confirmed by owner 2026-09-12; no legacy Sprintique support."
+  "legacyRepositoryModified": false
 }

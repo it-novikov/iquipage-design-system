@@ -1,26 +1,28 @@
-# Sprintique vNext — Planning PN2
+# Sprintique Planning — release lifecycle and temporal review
 
-Первый исполняемый frontend-срез принятого плана R2. Это не новая production-платформа и не отдельный backend. Данные примера хранятся только в собственной IndexedDB; в интерфейсе постоянно видна граница стенда.
+This is the reusable Planning consumer and its isolated browser fixture, in the owner-confirmed `it-novikov/iquipage-design-system` repository. The branch is `feature/vnext-planning-ui`; PR #3 collects this track. The legacy Sprintique repository is not a runtime dependency.
 
-## Что доступно
-Группы релизов и бэклог; дети раскрыты; независимый выбор родителя/детей; массовая подготовка и перенос; поиск; готовность; сортировка; страницы задач; DS-выбор получателя; предварительные последствия; отмена; проверка результата после потери ответа. Можно создать релиз без дат, записать черновик, подготовить его, запустить релиз и увидеть те же задачи на существующей доске. Из списка открывается полный документ задачи v3.4. Обложки, Markdown и обсуждения не дублируются в Planning.
+## Current boundary
+The fixture supports release/backlog groups, expanded children, explicit and snapshot selection, shared task documents, preparation, start, transfer, bulk fields, close/cancel with carry-forward, immutable outcome history, sprint defaults, timeline, milestones, temporal dependencies and condition filters.
 
-## Быстро открыть
-Откройте `Sprintique-Planning-PN2.html` рядом с архивом. Данные изолированы от старых поставок. Сброс данных браузера удалит именно локальные данные; они не синхронизируются с будущей платформой.
+**This is not a finished production feature.** `npm run verify` currently fails the required committed-calendar refresh-recovery scenario. The write of that repair was rejected by the tool safety-status check. List pointer DnD and virtualization are not integrated. New backend/SDK/authorization/PostgreSQL are owned by the parallel backend track and are not connected here. See `docs/FINAL-FINDINGS.md`.
 
-После распаковки полного ZIP:
-```bash
-cd Sprintique-Planning-PN2/packages/maps
+The fixture stores synthetic work separately in IndexedDB. It is not a production fallback. Paid LLM, deployment, email invitations and external automation are not invoked by Planning.
+
+## Run
+Use Node.js 24. From the repository root:
+
+```sh
+cd packages/maps
 npm ci --ignore-scripts --no-fund --no-audit
+npx --no-install playwright install chromium
 npm run build
 cd ../planning
 npm ci --ignore-scripts --no-fund --no-audit
 npm run preview
 ```
-Адрес: `http://127.0.0.1:4328/`. Нужен Node.js 24+; текущая приёмка выполняется на Node 24.20.0. Для тестов браузера: из `packages/maps` выполнить `npx --no-install playwright install chromium`.
 
-## Воспроизвести приёмку и упаковку
-Из `packages/planning`: `npm run verify`, затем `npm run package`. Упаковщик проверяет текущий source fingerprint и содержимое ZIP после распаковки. Он не выдаёт готовность backend. `npm run typecheck` проверяет публичный TS-контракт потребителя; JS-реализация не обозначена как strict TypeScript.
+Open `http://127.0.0.1:4328/`. `npm run verify` runs the required consumer tests, including the known failing recovery case; do not remove that test to obtain green CI.
 
-## Границы
-Нет production API, реальной авторизации, совместного редактирования, серверной пагинации или Postgres-операций. Fixture хранит всю тестовую модель; production adapter обязан читать ограниченные серверные проекции. Закрытие релиза с остатком, список DnD, виртуализация, временная шкала/вехи/зависимости и импорт legacy остаются следующими этапами. Рабочих имитаций этих функций в интерфейсе нет.
+## Integration
+Use `mountPlanning` with one host-supplied adapter and the existing task-document callbacks. `types/index.d.ts` describes the consumer projection, not an invented HTTP API. `src/` has no SQL, tenant policy or fixture imports. The generic DS extraction belongs to its designated owner; pinned `design-system/` remains unchanged.

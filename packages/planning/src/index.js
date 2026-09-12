@@ -1,3 +1,4 @@
+import {filterDialog} from './filter-dialog.js';
 import {mountTemporalView} from './temporal-view.js';
 import {groupHeader} from './group-header.js';
 import {closeReleaseDialog,editReleaseDialog,historyDialog,bulkDialog} from './release-dialogs.js';
@@ -16,7 +17,7 @@ export async function mountPlanning(root,{adapter,project,onOpenTask,onCreateTas
   if(viewState.filters)Object.assign(controller.filters,viewState.filters);
   if(Array.isArray(viewState.collapsed))controller.collapsed=new Set(viewState.collapsed);
   root.innerHTML=`<section class="planning-view"><iq-work-header title="Планирование" density="compact"><div slot="actions" class="row">${ui.btn('Новый релиз','secondary sm','plus','data-new-release')}${ui.btn('Новая задача','primary sm','plus','data-new-task')}</div></iq-work-header>
-    <div class="row pn-views" role="group" aria-label="Представление планирования">${ui.btn('Список','ghost sm','list','data-view="list" aria-pressed="true"')}${ui.btn('По времени','ghost sm','calendar','data-view="timeline"')}${ui.btn('Даты','ghost sm','calendar','data-view="dates"')}</div><div class="pn-toolbar"><div class="iq-search-small">${icon('search',16)}<input type="search" aria-label="Найти задачу или релиз" placeholder="Найти задачу или релиз" maxlength="240" data-query value="${esc(controller.filters.query)}"></div>${ui.select('Подготовленность',[{value:'all',label:'Все задачи'},{value:'draft',label:'Черновики'},{value:'ready',label:'Готовы к работе'}],`data-preparation class="compact-select" value="${esc(controller.filters.preparation)}"`)}${ui.select('Сортировка',[{value:'planned',label:'Порядок планирования'},{value:'priority',label:'По приоритету'},{value:'date',label:'По сроку'}],`data-sort class="compact-select" value="${esc(controller.filters.sort)}"`)}${ui.ib('refresh','Обновить список','ghost sm','data-refresh')} ${ui.btn('История','ghost sm','clock','data-history-view')}${ui.btn('Все по условию','ghost sm','','data-all-matching hidden')}</div>
+    <div class="row pn-views" role="group" aria-label="Представление планирования">${ui.btn('Список','ghost sm','list','data-view="list" aria-pressed="true"')}${ui.btn('По времени','ghost sm','calendar','data-view="timeline"')}${ui.btn('Даты','ghost sm','calendar','data-view="dates"')}</div><div class="pn-toolbar"><div class="iq-search-small">${icon('search',16)}<input type="search" aria-label="Найти задачу или релиз" placeholder="Найти задачу или релиз" maxlength="240" data-query value="${esc(controller.filters.query)}"></div>${ui.select('Подготовленность',[{value:'all',label:'Все задачи'},{value:'draft',label:'Черновики'},{value:'ready',label:'Готовы к работе'}],`data-preparation class="compact-select" value="${esc(controller.filters.preparation)}"`)}${ui.select('Сортировка',[{value:'planned',label:'Порядок планирования'},{value:'priority',label:'По приоритету'},{value:'date',label:'По сроку'}],`data-sort class="compact-select" value="${esc(controller.filters.sort)}"`)}${ui.btn('Условия','ghost sm','filter','data-filter-conditions')}${ui.btn('Сбросить условия','ghost sm','x','data-clear-conditions hidden')}${ui.ib('refresh','Обновить список','ghost sm','data-refresh')} ${ui.btn('История','ghost sm','clock','data-history-view')}${ui.btn('Все по условию','ghost sm','','data-all-matching hidden')}</div>
     <div class="pn-selection" data-bulk hidden>${ui.check('Все показанные',false,'data-select-all')}<span data-selection-summary></span><div class="row">${ui.btn('В релиз…','secondary sm','box','data-move')}${ui.btn('Подготовить','secondary sm','check','data-prepare')}${ui.menu(ui.btn('Ещё','ghost sm','down'),[{label:'Назначить исполнителя',action:'bulk-owner'},{label:'Изменить приоритет',action:'bulk-priority'},{label:'Изменить срок',action:'bulk-due'},{label:'Добавить тег',action:'bulk-tags'},{label:'Выбрать с подзадачами',action:'select-descendants'},{label:'Взять без релиза',action:'take'},{label:'Вернуть на уточнение',action:'unprepare'}])}${ui.btn('Снять выделение','ghost sm','','data-clear')}</div></div>
     <div data-error role="alert" hidden></div><p class="sr-only" role="status" data-live></p>
     <div class="pn-scroll" tabindex="-1" aria-label="Релизы и бэклог"><div data-groups></div><div data-tail></div></div><div class="pn-temporal" data-temporal hidden></div></section>`;
@@ -33,6 +34,11 @@ export async function mountPlanning(root,{adapter,project,onOpenTask,onCreateTas
     root.querySelector('[data-new-release]').disabled=locked||!controller.capabilities.createRelease;
     root.querySelector('[data-new-task]').disabled=locked||!controller.capabilities.createTask;
     root.querySelector('[data-refresh]').disabled=controller.loading;
+    const conditions=Number(!!controller.filters.owner)+Number(!!controller.filters.releaseId)+(controller.filters.tagIds?.length||0);
+    root.querySelector('[data-filter-conditions]').disabled=locked||!adapter.options;
+    root.querySelector('[data-filter-conditions]').setAttribute('aria-label','Условия списка'+(conditions?': '+conditions:''));
+    root.querySelector('[data-filter-conditions]').setAttribute('aria-pressed',String(conditions>0));
+    root.querySelector('[data-clear-conditions]').hidden=!conditions;
     const ids=new Set(controller.groups.map(g=>g.id));for(const [id,n] of nodes)if(!ids.has(id)){observer?.unobserve(n.element);n.element.remove();nodes.delete(id);}
     let previous=null;
     for(const group of controller.groups){
@@ -94,6 +100,8 @@ export async function mountPlanning(root,{adapter,project,onOpenTask,onCreateTas
     const b=event.target.closest('button,input');if(!b||b.disabled)return;
     const group=b.closest('[data-group]')?.dataset.group;
     if(b.matches('[data-view]'))return void setView(b.dataset.view);
+    if(b.matches('[data-filter-conditions]'))return void action(()=>filterDialog({adapter,projectId:project.id,filters:controller.filters,onApply:async values=>{await changeFilters(values);},onClose:()=>{released();if(viewMode!=='list')void setView(viewMode,true);}}));
+    if(b.matches('[data-clear-conditions]'))return void changeFilters({owner:'',releaseId:'',tagIds:[],tagMode:'any'});
     if(b.matches('[data-select]')){controller.toggle(b.dataset.select,event.shiftKey||selectionShift);selectionShift=false;return;}
     if(b.matches('[data-select-all]'))return controller.all();
     if(b.matches('[data-clear]'))return controller.clear();

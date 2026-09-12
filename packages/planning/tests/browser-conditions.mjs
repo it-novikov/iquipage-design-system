@@ -1,0 +1,44 @@
+import assert from 'node:assert/strict';
+import {mkdir,writeFile} from 'node:fs/promises';
+import {chromium} from '../../maps/node_modules/playwright/index.mjs';
+import {startServer} from '../scripts/server.mjs';
+const server=await startServer(0),out=new URL('../evidence/conditions/',import.meta.url);await mkdir(out,{recursive:true});
+const browser=await chromium.launch({headless:true}),page=await browser.newPage({viewport:{width:1440,height:1000}});
+page.setDefaultTimeout(12000);let failure;const checks=[],errors=[];
+page.on('pageerror',e=>errors.push(e.message));
+const loaded=()=>page.waitForFunction(()=>window.planningFixture?.view?.controller&&!window.planningFixture.view.controller.loading);
+try {
+  await page.goto(server.url+'/?fixture=conditions-'+crypto.randomUUID());await page.locator('[data-select]').first().waitFor();
+  await page.evaluate(async()=>{const {repository,project}=window.planningFixture;await repository.write('tags',{id:'condition-tag',projectId:project.id,name:'Проверка',tone:'blue'},0);const task=await repository.read('tasks','pn-task-2',project.id);await repository.write('tasks',{...task,tagIds:['condition-tag']},task.revision);});
+  await loaded();await page.locator('[data-filter-conditions]').click();
+  const modal=page.getByRole('dialog',{name:'Условия списка',exact:true});
+  await modal.getByRole('combobox',{name:'Добавить тег',exact:true}).fill('Проверка');
+  await modal.getByRole('option',{name:'Проверка',exact:true}).click();
+  assert.equal(await modal.locator('[data-remove-tag]').innerText(),'×');
+  assert.match(await modal.locator('[data-filter-tags]').innerText(),/Проверка/);
+  await modal.getByRole('button',{name:'Применить',exact:true}).click();await modal.waitFor({state:'hidden'});await loaded();
+  await page.locator('[data-select="pn-task-2"]').waitFor();
+  assert.equal(await page.evaluate(()=>window.planningFixture.view.controller.visibleRows().length),1);
+  assert.equal(await page.locator('[data-select="pn-task-1"]').count(),0,'Context parent is not selected by a tag filter');
+  checks.push('Project tag condition uses a human label and retains a nonselectable parent context');
+  await page.locator('[data-clear-conditions]').click();await loaded();
+  await page.locator('[data-filter-conditions]').click();
+  await modal.getByRole('combobox',{name:'Исполнитель',exact:true}).fill('Не назначен');
+  await modal.getByRole('option',{name:'Не назначен',exact:true}).click();
+  await modal.getByRole('button',{name:'Применить',exact:true}).click();await modal.waitFor({state:'hidden'});await loaded();
+  await page.locator('[data-select="pn-task-4"]').waitFor();
+  assert.ok(await page.evaluate(()=>window.planningFixture.view.controller.visibleRows().every(r=>!r.ownerLabel)));
+  checks.push('Unassigned owner is an explicit condition rather than matching an opaque sentinel');
+  await page.locator('[data-filter-conditions]').click();
+  await modal.getByRole('combobox',{name:'Релиз',exact:true}).fill('Командная');
+  await modal.getByRole('option',{name:/Командная работа/}).click();
+  await modal.getByRole('button',{name:'Отмена',exact:true}).click();await modal.waitFor({state:'hidden'});
+  assert.equal(await page.evaluate(()=>window.planningFixture.view.controller.filters.releaseId),'');
+  checks.push('Cancelling edited conditions leaves the applied filter unchanged');
+  await page.setViewportSize({width:390,height:900});await page.locator('[data-filter-conditions]').click();
+  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+  await page.screenshot({path:new URL('mobile.png',out).pathname});
+  await modal.getByRole('button',{name:'Отмена',exact:true}).click();assert.deepEqual(errors,[]);
+}catch(error){failure=error;console.error(error);await page.screenshot({path:new URL('failure.png',out).pathname});}
+finally{await writeFile(new URL('report.json',out),JSON.stringify({status:failure?'FAIL':'PASS',checks,errors,error:failure?.stack},null,2));await browser.close();await server.close();}
+if(failure)process.exitCode=1;else console.log('PASS',checks.length,'condition scenarios');

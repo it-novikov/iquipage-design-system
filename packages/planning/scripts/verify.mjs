@@ -1,4 +1,4 @@
-/** PN2 acceptance of the consumer/fixture slice, not a production-backend verdict. */
+/** Current Planning consumer acceptance. A failed required test is never a release PASS. */
 import {spawnSync} from 'node:child_process';
 import {readFile,writeFile,mkdir,readdir} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
@@ -25,14 +25,24 @@ try{
  await run('browser',['tests/browser.mjs']);
  await run('offline-build',['scripts/offline.mjs']);await run('offline-smoke',['tests/offline.mjs']);
  for(const suite of ['browser-editor-actions-v34','browser-thread-actions-v34','browser-board-interactions'])await run('base-'+suite,['tests/'+suite+'.mjs'],maps);
+ const additional=[];
+ for(const suite of ['completion','temporal','conditions','recovery']){
+   const {result,log}=execute('browser-'+suite,['tests/browser-'+suite+'.mjs']);
+   await writeFile(path.join(out,'browser-'+suite+'.log'),log);
+   const record=JSON.parse(await readFile(path.join(out,suite,'report.json'),'utf8'));
+   additional.push(record);console.log(result.status===0?'PASS':'FAIL','browser-'+suite);
+ }
+ browserScenarios=additional.reduce((sum,r)=>sum+r.checks.length,0);
+ const requiredFailure=additional.find(r=>r.status!=='PASS');
+ if(requiredFailure)failure=new Error('Required Planning recovery scenario failed. See recovery/report.json.');
  const browser=JSON.parse(await readFile(path.join(out,'browser.json'),'utf8'));
  const offline=JSON.parse(await readFile(path.join(out,'offline.json'),'utf8'));
  if(browser.status!=='PASS'||offline.status!=='PASS'||!nodeTests||!baseNodeTests)throw Error('Missing successful report');
- browserScenarios=browser.checks.length;
+ browserScenarios+=browser.checks.length;
  if((await fingerprint()).sha256!==baseline.sha256)throw Error('Source changed during acceptance');
 }catch(error){failure=error;console.error(error.message);}
 const git=spawnSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'});
-const report={stage:'PN2',status:failure?'FAIL':'PASS',scope:'consumer-view-and-local-fixture',startedAt,finishedAt:new Date().toISOString(),sourceCommit:git.status===0?git.stdout.trim():null,sourceFingerprint:baseline.sha256,node:process.version,nodeTests,baseNodeTests,browserScenarios,checks,error:failure?.message,backendIntegrated:false,productionReady:false,limitations:['Fixture persistence and receipt simulation use isolated IndexedDB, not the new backend','No production authentication or tenant/agent authorization accepted','Consumer TypeScript declarations compiled; implementation is JavaScript, not a strict TypeScript codebase','No virtualization, list DnD, release closure, roadmap or optional migration in PN2','No measured real-device FPS or physical touch/screen-reader acceptance','Full historical upstream browser runner not claimed passing; three current v3.4 suites rerun']};
+const report={stage:'PN4-PN5-review',status:failure?'FAIL':'PASS',scope:'consumer-view-and-local-fixture',startedAt,finishedAt:new Date().toISOString(),sourceCommit:git.status===0?git.stdout.trim():null,sourceFingerprint:baseline.sha256,node:process.version,nodeTests,baseNodeTests,browserScenarios,checks,error:failure?.message,backendIntegrated:false,productionReady:false,limitations:['Fixture persistence and receipt simulation use isolated IndexedDB, not the new backend','No production authentication or tenant/agent authorization accepted','Consumer TypeScript declarations compiled; implementation is JavaScript, not a strict TypeScript codebase','Release lifecycle, conditions and temporal UI are fixture-tested; a confirmed calendar refresh-recovery defect remains open','Virtualization and list pointer DnD are not integrated; related source writes were rejected by the tool safety-status check','Optional legacy importer and new backend remain separate tracks','No measured real-device FPS or physical touch/screen-reader acceptance','Full historical upstream browser runner not claimed passing; three current v3.4 suites rerun']};
 try{report.offline=JSON.parse(await readFile(path.join(root,'dist/offline.json'),'utf8'));report.dsCandidate=JSON.parse(await readFile(path.join(maps,'dist/candidate.json'),'utf8'));}catch(error){report.artifactError=error.message;report.status='FAIL';}
 await writeFile(path.join(out,'source-fingerprint.json'),JSON.stringify(baseline,null,2)+'\n');
 await writeFile(path.join(out,'verification.json'),JSON.stringify(report,null,2)+'\n');
