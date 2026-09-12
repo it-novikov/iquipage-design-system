@@ -1,0 +1,9 @@
+{
+  "status": "PASS",
+  "checks": [
+    "Project tag condition uses a human label and retains a nonselectable parent context",
+    "Unassigned owner is an explicit condition rather than matching an opaque sentinel",
+    "Cancelling edited conditions leaves the applied filter unchanged"
+  ],
+  "errors": []
+}

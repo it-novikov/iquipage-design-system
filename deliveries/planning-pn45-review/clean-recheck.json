@@ -1,0 +1,27 @@
+{
+  "archiveIntegrity": "PASS",
+  "productAcceptance": "FAIL",
+  "nodeTests": 38,
+  "baseNodeTests": 173,
+  "browserPassed": 28,
+  "failedChecks": [
+    "browser-recovery"
+  ],
+  "rebuildIdentical": true,
+  "steps": [
+    {
+      "name": "maps-install",
+      "exitCode": 0
+    },
+    {
+      "name": "planning-install",
+      "exitCode": 0
+    },
+    {
+      "name": "verify",
+      "exitCode": 1
+    }
+  ],
+  "error": null,
+  "releaseReady": false
+}

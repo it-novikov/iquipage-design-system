@@ -1,15 +1,15 @@
 {
-  "stage": "PN2",
-  "status": "PASS",
+  "stage": "PN4-PN5-review",
+  "status": "FAIL",
   "scope": "consumer-view-and-local-fixture",
-  "startedAt": "2026-09-12T00:25:00.180Z",
-  "finishedAt": "2026-09-12T00:25:26.492Z",
-  "sourceCommit": "491e1c41528622f356adcf9afdae5cf020ab65d4",
-  "sourceFingerprint": "19c50279fe66ba959b9680450734e94211bc754b3fef234f2d6fa6bc04a22227",
+  "startedAt": "2026-09-12T07:31:33.638Z",
+  "finishedAt": "2026-09-12T07:32:08.142Z",
+  "sourceCommit": "ff505b3a10e232975abd49ee5c8dadff5cf9ea79",
+  "sourceFingerprint": "8f6a7a2e3da099c90b73f06f87b8655682b28e0d0845d5c9c318b69c5a9c16a2",
   "node": "v24.20.0",
-  "nodeTests": 19,
+  "nodeTests": 38,
   "baseNodeTests": 173,
-  "browserScenarios": 16,
+  "browserScenarios": 28,
   "checks": [
     {
       "name": "pinned-ds-integrity",
@@ -55,23 +55,42 @@
     {
       "name": "base-browser-board-interactions",
       "exitCode": 0
+    },
+    {
+      "name": "browser-completion",
+      "exitCode": 0
+    },
+    {
+      "name": "browser-temporal",
+      "exitCode": 0
+    },
+    {
+      "name": "browser-conditions",
+      "exitCode": 0
+    },
+    {
+      "name": "browser-recovery",
+      "exitCode": 1
     }
   ],
+  "error": "Required Planning recovery scenario failed. See recovery/report.json.",
   "backendIntegrated": false,
   "productionReady": false,
   "limitations": [
     "Fixture persistence and receipt simulation use isolated IndexedDB, not the new backend",
     "No production authentication or tenant/agent authorization accepted",
     "Consumer TypeScript declarations compiled; implementation is JavaScript, not a strict TypeScript codebase",
-    "No virtualization, list DnD, release closure, roadmap or optional migration in PN2",
+    "Release lifecycle, conditions and temporal UI are fixture-tested; a confirmed calendar refresh-recovery defect remains open",
+    "Virtualization and list pointer DnD are not integrated; related source writes were rejected by the tool safety-status check",
+    "Optional legacy importer and new backend remain separate tracks",
     "No measured real-device FPS or physical touch/screen-reader acceptance",
     "Full historical upstream browser runner not claimed passing; three current v3.4 suites rerun"
   ],
   "offline": {
     "scope": "fixture-only",
-    "moduleCount": 104,
-    "htmlBytes": 3583716,
-    "sha256": "b7b55939c772ca10b86ab788964581912d8200c4da958924dadf184cab3675d3"
+    "moduleCount": 112,
+    "htmlBytes": 3688019,
+    "sha256": "e09c2f1429e7926d48855e49eb9b7b1fe6a1499c1f7aaf31783b4bc137df2fe3"
   },
   "dsCandidate": {
     "version": "0.6.0-board.7",
