@@ -4,10 +4,12 @@ import {requireCondition} from '../domain/errors.js';
 import {recordEvent} from './commands.js';
 import {loadPlanningState,planningLock} from './planning.js';
 import {validateTemporal} from '../domain/planning.js';
+import {linkTaskAssets} from './media.js';
 
 const projection=`t.id,t.project_id AS "projectId",p.key||'-'||t.number AS "displayId",t.revision,t.title,t.description,t.status,t.type,t.priority,
+  t.attachment_ids AS "attachmentIds",t.cover_attachment_id AS "coverAttachmentId",t.cover_crop AS "coverCrop",
   t.owner_label AS owner,to_char(t.due,'YYYY-MM-DD') AS due,t.rank,t.parent_id AS "parentId",t.release_id AS "releaseId",
-  t.preparation,t.result,t.assignment_mode AS "assignmentMode",t.admitted,to_char(t.planned_start,'YYYY-MM-DD') AS "plannedStart",
+  t.preparation,t.result,t.assignment_mode AS "assignmentMode",t.admitted,to_char(t.planned_start,'YYYY-MM-DD') AS "plannedStart",to_char(t.planned_end,'YYYY-MM-DD') AS "plannedEnd",
   to_char(t.created_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS "createdAt",
   to_char(t.updated_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS "updatedAt",
   to_char(t.status_entered_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS "statusEnteredAt",
@@ -59,6 +61,7 @@ export async function putTask(tx:Transaction,actor:Actor,projectId:string,id:str
   await tx.query('DELETE FROM app.task_tags WHERE project_id=$1 AND task_id=$2',[projectId,id]);
   for(const tag of value.tagIds)await tx.query('INSERT INTO app.task_tags(project_id,task_id,tag_id) VALUES($1,$2,$3)',[projectId,id,tag]);
   validateTemporal(await loadPlanningState(tx,projectId));
+  await linkTaskAssets(tx,actor,projectId,id,value);
   const saved=await readTask(tx,projectId,id);
   await recordEvent(tx,actor,projectId,previous?'task.updated':'task.created',id,saved.revision);
   return saved;

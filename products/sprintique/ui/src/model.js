@@ -21,7 +21,7 @@ export function createMap({ projectId, title = 'Новая карта', kind = '
 export function validateMap(map) {
   assertSafeJSON(map);
   requireValue(map?.schema === MAP_SCHEMA && validId(map.id) && validId(map.projectId), 'INVALID_MAP', 'Неподдерживаемый документ карты.');
-  requireValue(validText(map.title, 240) && map.title.trim(), 'INVALID_TITLE', 'Введите название до 240 символов.');
+  requireValue(validText(map.title, 160) && map.title.trim(), 'INVALID_TITLE', 'Введите название до 160 символов.');
   requireValue(['permanent', 'session'].includes(map.kind) && ['draft', 'active', 'paused', 'archived'].includes(map.status), 'INVALID_STATE', 'Неподдерживаемое состояние карты.');
   requireValue(Number.isInteger(map.revision) && map.revision >= 0, 'INVALID_REVISION', 'Некорректная версия карты.');
   validateDocument(map.document);
@@ -67,13 +67,14 @@ export function forkMap(source, { kind = source.kind, title = `${source.title} �
   const map = createMap({ projectId: source.projectId, title, kind, document: remapDocument(source.document, { clearPersonal: true }), flow: source.flow, templateOrigin: source.templateOrigin });
   map.sourceMapId = source.id; map.sourceRevision = source.revision; return map;
 }
-export function templateFromMap(map, { title, description = '', when = '', scope = 'project', selectedIds = null, includeContent = false } = {}) {
+export function templateFromMap(map, { title, description = '', when = '', scope = 'project', selectedIds = null, includeContent = false, includeImages = true } = {}) {
   requireValue(validText(title, 160) && title.trim(), 'INVALID_TITLE', 'Введите название шаблона.');
   requireValue(['personal', 'project', 'workspace'].includes(scope), 'INVALID_SCOPE', 'Неизвестная область видимости.');
   let document = selectedIds?.length ? extractSelection(map.document, selectedIds) : clone(map.document);
   requireValue(document.objects.length > 0, 'EMPTY_TEMPLATE', 'Выберите непустой фрагмент или добавьте объекты.');
   document = remapDocument(document, { clearPersonal: true });
-  if (!includeContent) document.objects = document.objects.filter(o => o.type !== 'image').map(o => ({ ...o,
+  if (!includeContent || !includeImages) document.objects = document.objects.filter(o => o.type !== 'image');
+  if (!includeContent) document.objects = document.objects.map(o => ({ ...o,
     text: ['frame', 'shape'].includes(o.type) ? o.text : o.type === 'task' ? 'Следующее действие' : o.type === 'text' ? 'Название темы' : 'Новая мысль' }));
   const ids = new Set(document.objects.map(o => o.id)); document.connections = document.connections.filter(e => ids.has(e.from) && ids.has(e.to));
   return { schema: 'iquipage.template/1', id: uid('template'), projectId: map.projectId, revision: 0, version: 1, title: title.trim(), description, when, scope,

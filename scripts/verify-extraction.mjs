@@ -5,9 +5,10 @@ import {spawnSync} from 'node:child_process';
 const temp=await mkdtemp(join(tmpdir(),'sprintique-extraction-'));
 try{
   const source=resolve('products/sprintique');
+  const env={...process.env,TEST_S3_CONFIG:resolve(process.env.TEST_S3_CONFIG||join(source,'output/infra/storage.json'))};
   await cp(source,temp,{recursive:true,filter:path=>!/(?:^|\/)(?:node_modules|dist|build|output|\.playwright-cli)(?:\/|$)/.test(path.slice(source.length))});
   for(const args of [['ci','--ignore-scripts'],['run','check:boundaries'],['run','build'],['test']]){
-    const result=spawnSync('npm',args,{cwd:temp,stdio:'inherit',env:process.env});
+    const result=spawnSync('npm',args,{cwd:temp,stdio:'inherit',env});
     if(result.status!==0)throw Error('Extraction verification failed: npm '+args.join(' '));
   }
   console.log('PASS: only products/sprintique copied; clean install, boundaries, strict build and PostgreSQL tests.');

@@ -1,0 +1,26 @@
+{
+  "schema": "sprintique.targeted-assessment/1",
+  "scope": "Local clean-start backend, detachable DS/product and PR3 Planning consumer integration",
+  "mode": "implementation-self-review",
+  "fullPlatformReady": false,
+  "independentAudit": false,
+  "sourceFingerprint": "5750cb964e7424fa61ec1f92bf3c508d1253010ee58cfc3119c996f3b92b64b0",
+  "sourceEvidence": "products/sprintique/output/verification/2026-09-12T11-15-56.934Z",
+  "checks": [
+    {"id":"DS","status":"PASS","tests":209,"skipped":0,"scope":"standalone library build/tests and unchanged consumed tar"},
+    {"id":"PRODUCT","status":"PASS","tests":107,"skipped":0,"scope":"88 backend/API cases against real PostgreSQL/S3 and 19 upstream consumer tests"},
+    {"id":"EXTRACTION","status":"PASS","tests":107,"skipped":0,"scope":"copy product only, fresh install, strict build, boundaries and tests"},
+    {"id":"CONTAINER","status":"PASS","scope":"UID 1000/read-only/cap-drop, real PG/S3 readiness, existing real session and anonymous denial"},
+    {"id":"OIDC","status":"PASS","scope":"host API with TLS-verified local Keycloak authorization code/PKCE/signed token; replay rejection"},
+    {"id":"AGENT","status":"PASS","scope":"bounded local run, human approval in UI, exact Planning receipt, completion and grant revocation; no external provider"},
+    {"id":"RESTORE","status":"PASS","scope":"37 canonical tables/71 rows, two database dumps and three private object variants in isolated restore; source unchanged"},
+    {"id":"LOAD","status":"PASS","scope":"2000 synthetic tasks, eight readers, bounded transport and one conflicting-write winner; not SLA"},
+    {"id":"BROWSER","status":"TARGETED_PASS","scope":"actual scenarios recorded in COMPLETION-R3.md; not every role/input/theme combination"},
+    {"id":"REMOTE_CI","status":"NOT_RUN","reason":"No authorized remote push in this change"},
+    {"id":"FULL_A11Y_SECURITY","status":"NOT_RUN","reason":"No independent/exhaustive certification implied by implementation tests"},
+    {"id":"IDENTITY_RESTORE_LOGIN","status":"NOT_RUN","reason":"Identity SQL restored; full provider login after restore not exercised"},
+    {"id":"PRODUCTION","status":"NOT_RUN","reason":"No deployment or old-platform data migration authorized"}
+  ],
+  "limitations": "GAPS.md",
+  "historicalScaffold": "assessment.json is the older unapproved full-platform assessment, not this targeted result"
+}

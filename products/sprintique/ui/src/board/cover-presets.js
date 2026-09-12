@@ -9,8 +9,8 @@ export function openCoverPresets(onSelect){
         if(busy)return;busy=true;
         element.querySelectorAll('[data-cover-preset],[data-upload-cover]').forEach(b=>{b.disabled=true;});
         try{
-          // Decode bundled bytes directly: a data: fetch is blocked by the app's strict connect-src CSP.
-          const bytes=Uint8Array.from(atob(presets[index].src.split(',')[1]),character=>character.charCodeAt(0));
+          const response=await fetch(presets[index].src);if(!response.ok)throw Error('Обложка недоступна');
+          const bytes=await response.arrayBuffer();
           if(closed)return;
           onSelect(new File([bytes],`cover-${presets[index].id}.webp`,{type:'image/webp'}));el.close();
         }catch{busy=false;element.querySelectorAll('[data-cover-preset],[data-upload-cover]').forEach(b=>{b.disabled=false;});}

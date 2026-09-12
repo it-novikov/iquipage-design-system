@@ -21,7 +21,7 @@ export class Database {
   async authenticated<T>(credential:Credential, fn:(tx:Transaction,actor:Actor)=>Promise<T>):Promise<T> {
     return this.transaction(async tx=>{
       const result=await tx.query<Actor>(`
-        SELECT p.id,p.name,p.kind,c.id AS "credentialId",c.csrf,c.project_id AS "projectId",
+        SELECT p.id,coalesce(p.profile_name,p.name) AS name,p.kind,c.id AS "credentialId",c.csrf,c.project_id AS "projectId",
                c.capabilities,c.initiator_id AS "initiatorId"
         FROM auth.credentials c JOIN auth.principals p ON p.id=c.principal_id
         WHERE c.token_hash=$1 AND c.kind=$2 AND c.revoked_at IS NULL AND c.expires_at>clock_timestamp()
@@ -50,4 +50,9 @@ export async function authorize(tx:Transaction,actor:Actor,projectId:string,capa
   requireCondition(!write||row.role==='editor'||row.role==='admin',403,'FORBIDDEN','Недостаточно прав.');
   if(capability==='agents:manage'||capability==='catalog:write') requireCondition(actor.kind==='human'&&row.role==='admin',403,'FORBIDDEN','Нужны права администратора проекта.');
   return row;
+}
+export async function requireActiveCredential(tx:Transaction,actor:Actor){
+  const found=await tx.query(`SELECT 1 FROM auth.credentials c JOIN auth.principals p ON p.id=c.principal_id
+    WHERE c.id=$1 AND c.revoked_at IS NULL AND c.expires_at>clock_timestamp() AND p.disabled_at IS NULL`,[actor.credentialId]);
+  requireCondition(found.rowCount===1,401,'UNAUTHENTICATED','Сессия завершена.');
 }

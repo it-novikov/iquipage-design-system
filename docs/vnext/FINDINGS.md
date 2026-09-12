@@ -1,5 +1,25 @@
 # vNext implementation review
 
+Current checkpoint: R3; earlier entries below remain historical. R2-10's missing-consumer blocker is resolved by importing PR #3 at `d87c65767ef471c81bf84c10b9b19e225a956064` and wiring shared task confirmation through canonical Planning.
+
+## R3 findings and verification
+
+- R3-01: test launcher enumerated only old files; now discovers all `*.test.ts` and `*.test.mjs`. Final 107 tests include new modules, real S3 and the 19 imported consumer cases; no skips.
+- R3-02: map inspector could flush a new document then save an old revision. Await the active save before reading the canonical scene/revision; browser text/width edit survives reload.
+- R3-03: historical image hydration could invalidate the active map's media cache. Historical versions use a separate hydrator; immutable references remain pinned and target-scoped (F05).
+- R3-04: uncertain Planning dialog disabled receipt recovery because non-dismissible was treated as busy. Separate dismissal policy from pending state. Real committed/lost-response browser checks recover both in-place and after reload without duplicate releases; upstream controller/operation cases also pass.
+- R3-05: provider/stack prerequisites were previously unresolved. Owner delegated choices; isolated PostgreSQL/Garage/Keycloak reference is implemented with pinned images and real TLS/OIDC verification. No cloud account or production deployment inferred.
+- R3-06: worker retry needed the same live policy boundary as ordinary commands. Only a live human project admin can inspect safe job metadata/retry; leased worker cannot bypass it. Atomic retry/replay/audit tests O04 pass.
+- R3-07: readiness formerly checked only ledger access. Exact file set/checksums and runtime role now fail closed; missing/changed/unknown migrations tested in O02.
+- R3-08: media/base64 bundle and quotas: separate six byte-identical WebP presets; bounded decode/file/context/map/page/stream limits, private S3 validation, fenced cleanup and real-storage tests. No antivirus or unlimited-scale claim.
+- R3-09: local volume-name collision could adopt unrelated data. Resource helper refuses unrelated containers/volumes; only labelled resources or volumes already exclusively used by owned containers qualify.
+- R3-10: logs/metrics risk leaking URLs and secrets. Bounded route-template aggregates, no body/query/header labels, separate metrics token; O05 verifies private values are absent.
+- R3-11: inherited mobile CSS hid section links without a replacement in the new host; profile label also crowded the action row. Added public DS section/profile menus and host-only layout rules. At 390 px document/header/drawer widths remain 390; section switching and profile/settings/theme/logout discovery pass with reduced motion. Full gate and container were rebuilt after this fix.
+
+Final automatic gate and container identities are in STATUS.md. Browser harness timing/filechooser/locator failures are not application passes; scenarios were rerun with fresh selectors and completed animation boundaries. Targeted self-review is not an independent security/accessibility audit.
+
+## Historical R1 findings
+
 - F01, build: new host referenced `styles.css`, but copied UI stylesheet is `maps.css`. Confirmed by Vite unresolved import. Repair import, rerun build and browser.
 - F02, security review: agent grant checked its own membership but not its human initiator's current membership. Recheck grantor access on every command/read; test removal of grantor.
 - F03, domain review: archived tags/releases already assigned to a task must survive unrelated edits. Permit retaining an existing reference, reject new assignment of archived values. Test both paths.

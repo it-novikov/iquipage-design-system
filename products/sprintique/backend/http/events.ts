@@ -17,6 +17,7 @@ export function registerEventRoutes(app:FastifyInstance,db:Database){
     const read=()=>db.authenticated(credential,(tx,actor)=>projectEvents(tx,actor,projectId,cursor));
     const first=await read();if(q.stream!=='true')return first;
     const identity=hash(credential.token);
+    requireCondition(streams.size<100,429,'STREAM_LIMIT','Лимит подключений сервера. Повторите позже.');
     requireCondition([...streams.values()].filter(value=>value===identity).length<3,429,'STREAM_LIMIT','Слишком много подключений. Закройте лишние вкладки.');
     reply.hijack();reply.raw.writeHead(200,{'Content-Type':'text/event-stream; charset=utf-8','Cache-Control':'no-store','X-Accel-Buffering':'no','Connection':'keep-alive'});
     let closed=false,timer:ReturnType<typeof setTimeout>|undefined;

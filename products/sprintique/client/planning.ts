@@ -24,7 +24,7 @@ export class PlanningClient {
   history(releaseId:string,cursor?:string){return this.api.request<HistoryPage>(this.path('/planning/releases/'+encodeURIComponent(releaseId)+'/history')+this.query({cursor}));}
   roadmap(query:RoadmapQuery={},signal?:AbortSignal){return this.api.request<RoadmapPage>(this.path('/planning/roadmap')+this.query({...query}),'GET',undefined,undefined,signal);}
   constraints(cursor?:string,signal?:AbortSignal){return this.api.request<Page<TemporalConstraint>>(this.path('/planning/constraints')+this.query({cursor}),'GET',undefined,undefined,signal);}
-  writeMilestone(id:string,baseRevision:number,value:Pick<Milestone,'title'|'date'>,key:string){return this.api.request<Milestone>(this.path('/planning/milestones/'+encodeURIComponent(id)),'PUT',{baseRevision,value},key);}
+  writeMilestone(id:string,baseRevision:number,value:Pick<Milestone,'title'|'date'|'releaseId'>,key:string){return this.api.request<Milestone>(this.path('/planning/milestones/'+encodeURIComponent(id)),'PUT',{baseRevision,value},key);}
   writeConstraint(id:string,baseRevision:number,value:Omit<TemporalConstraint,'id'|'revision'>,key:string){return this.api.request<TemporalConstraint>(this.path('/planning/constraints/'+encodeURIComponent(id)),'PUT',{baseRevision,value},key);}
 }
 

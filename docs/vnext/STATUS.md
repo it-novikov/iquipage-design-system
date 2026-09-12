@@ -1,5 +1,25 @@
 # Sprintique vNext — execution record
 
+## Current R3 status — 2026-09-12
+
+The owner delegated stack decisions and asked to finish the locally implementable platform and partial Planning PR #3. R3 now integrates that consumer from immutable `d87c65767ef471c81bf84c10b9b19e225a956064` without touching its branch. Product/library remain independently extractable. Baseline for this change is `f69f1d209427433ae51fecfe3a19a3d5dc958172`.
+
+Implemented: real Planning list/temporal/confirmation/recovery UI; canonical board/task document; versioned maps/sessions/templates/history; private S3 files/cover/avatar pipeline; settings/templates/tag colors/links/scoped search; memberships/invitations/workspace profiles; bounded agent runs/proposals/human approval/receipts; restricted cleanup worker/admin retry; real local Keycloak OIDC; schema/quotas/throttling/metrics/OpenAPI inventory/container/CI/restore tooling. No reference repository or mock identity in the production entry.
+
+Final code gate `products/sprintique/output/verification/2026-09-12T11-15-56.934Z` ended 11:16:40 UTC: **209 DS tests + 107 product tests (88 backend/API + 19 upstream consumer tests), no skips; strict build/boundary checks and detached clean install/build/107 tests PASS**. Source fingerprint `5750cb964e7424fa61ec1f92bf3c508d1253010ee58cfc3119c996f3b92b64b0`. DS tar SHA remains `6490056dd8900177d440431d71d95f5bc7cd4df080cdc99f7743184c704c29ba`.
+
+Final local container `sha256:98296dfcd70b54e40e6a077bdea809b849dc0e9958e92a2d85c3921798aa9dc3` passed non-root UID 1000/read-only/cap-drop/readiness/real-session/anonymous-denial tests at 11:17:27 UTC. No registry upload. Full OIDC login inside that probe is NOT_RUN; the host API has separate real Keycloak login evidence.
+
+Real local OIDC, exact human-approved agent receipt followed by grant revocation, 2,000-task concurrent regression and isolated restore passed. Restore checkpoint at 10:25 UTC covers 37 canonical tables/71 rows, both databases and 3 private object variants; subsequent browser-created QA tasks are newer than that backup. Source was unchanged and temporary restored resources removed. Local checkpoint is private but not encrypted.
+
+Illustrations are now six separate WebP assets, not a 1.19 MB base64 JS chunk. Largest JS chunk is lazy maps at 317.07 KB; main entry 205.39 KB, core 297.97 KB. No JS chunk exceeds Vite's 500 KB advisory. These are bundle measurements, not an FPS/SLA claim.
+
+See COMPLETION-R3.md and the product docs for exact browser checks and release limits. External deployment/pilot, full independent security/accessibility acceptance, notification providers, distributed tracing, MCP transport and general agent code/provider execution are not claimed. Full-platform-ready remains false; this does not erase completed local functionality. Old data and pinned historical DS are untouched. No push/deploy/publication in this change.
+
+## Historical R1/R2 record (superseded scope statements below)
+
+The rest of this file preserves earlier evidence at its original checkpoint. Statements below that a feature/provider/Planning source is missing describe R1/R2 only, not the current R3 status above.
+
 Approved 2026-09-12: use this repository for Sprintique, structurally independent from the design system so the complete product can later move to another repository. Architecture r1 otherwise approved. Base main: f3dd146cc9c7c0544fd663d632704a210a5c13be. Working branch: feature/sprintique-vnext.
 
 ## Boundaries

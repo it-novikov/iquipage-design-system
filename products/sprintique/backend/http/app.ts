@@ -13,11 +13,23 @@ import {registerOidc,cookie,cookieValue,sessionCookie} from './oidc.js';
 import type {OidcSettings} from './oidc.js';
 import {registerCatalogRoutes} from './catalogs.js';
 import {registerPlanningRoutes} from './planning.js';
+import {registerPlanningViewRoutes} from './planning-view.js';
+import {registerWorkspaceRoutes} from './workspace.js';
+import {registerMembershipRoutes} from './membership.js';
+import {registerLimits} from './limits.js';
+import {registerAgentRoutes} from './agents.js';
+import {registerOpenApi,publicSchemas} from './openapi.js';
+import {checkSchema} from '../infrastructure/schema.js';
+import {registerOperations} from './operations.js';
+import {registerObservability} from './observability.js';
+import {registerMapRoutes} from './maps.js';
+import {registerMediaRoutes} from './media.js';
+import type {ObjectStorage} from '../infrastructure/object-storage.js';
 import {registerEventRoutes} from './events.js';
 import {PlanningCommand,CommitPlan,ReleaseWrite,MilestoneWrite,ConstraintWrite,ApprovalDecision,PLANNING_POLICY} from '../../contracts/planning.js';
 import {planningResponseSchemas} from '../../contracts/planning-responses.js';
 
-export interface AppOptions {db:Database;origin:string;oidc?:OidcSettings;logger?:boolean}
+export interface AppOptions {db:Database;origin:string;oidc?:OidcSettings;logger?:boolean;storage?:ObjectStorage;metricsToken?:string}
 export function getCredential(request:FastifyRequest):Credential{
   const authorization=request.headers.authorization;
   if(authorization){requireCondition(/^Bearer spr_[A-Za-z0-9_-]{43}$/.test(authorization),401,'UNAUTHENTICATED','Некорректный токен.');return {token:authorization.slice(7),kind:'agent'};}
@@ -27,14 +39,17 @@ export function getCredential(request:FastifyRequest):Credential{
 export type Authenticated = <T>(request:FastifyRequest,fn:(tx:Transaction,actor:Actor)=>Promise<T>)=>Promise<T>;
 export const params=(request:FastifyRequest)=>z.object({projectId:contract.Id,id:contract.Id.optional()}).parse(request.params);
 export const mutationKey=(request:FastifyRequest)=>z.string().min(8).max(120).parse(request.headers['idempotency-key']);
-export async function createApp({db,origin,oidc,logger=false}:AppOptions){
+export async function createApp({db,origin,oidc,logger=false,storage,metricsToken}:AppOptions){
   const app=Fastify({bodyLimit:128*1024,requestTimeout:15000,logger:logger?{redact:['req.headers.authorization','req.headers.cookie','res.headers["set-cookie"]'],level:'info'}:false,logController:new Fastify.LogController({disableRequestLogging:true})});
+  registerObservability(app,metricsToken);
+  registerLimits(app);
+  registerOpenApi(app);
   app.addHook('onSend',async(_request,reply)=>{
     reply.header('Cache-Control','no-store').header('X-Content-Type-Options','nosniff').header('Referrer-Policy','same-origin');
   });
   app.setErrorHandler((error,request,reply)=>{
     if(error instanceof z.ZodError)return reply.code(400).send({code:'VALIDATION',message:'Проверьте поля запроса.',requestId:request.id});
-    if(error instanceof Problem)return reply.code(error.status).send({code:error.code,message:error.message,requestId:request.id,...(error.code==='PREVIEW_REQUIRED'?{action:{kind:'planning-preview',contractVersion:2}}:{})});
+    if(error instanceof Problem){if(error.status===429||error.code==='BUSY')reply.header('Retry-After',error.status===429?'60':'5');return reply.code(error.status).send({code:error.code,message:error.message,requestId:request.id,...(error.code==='PREVIEW_REQUIRED'?{action:{kind:'planning-preview',contractVersion:2}}:{})});}
     const pgCode=typeof error==='object'&&error!==null&&'code' in error?error.code:null;
     if(pgCode==='23505')return reply.code(409).send({code:'CONFLICT',message:'Такой объект уже существует.',requestId:request.id});
     if(pgCode==='23503'||pgCode==='23514')return reply.code(422).send({code:'REFERENCE_INVALID',message:'Связанные данные недоступны.',requestId:request.id});
@@ -50,14 +65,14 @@ export async function createApp({db,origin,oidc,logger=false}:AppOptions){
     return fn(tx,actor);
   });
   app.get('/health',async()=>({status:'ok',version:'2.0.0-alpha.0'}));
-  app.get('/ready',async()=>{await db.checkRuntimeRole();await db.pool.query('SELECT 1 FROM public.schema_migrations LIMIT 1');return {status:'ready'};});
+  app.get('/ready',async()=>{await db.checkRuntimeRole();await checkSchema(db);await storage?.ready();return {status:'ready'};});
   app.get('/api/v1/session',request=>authenticated(request,identity.sessionInfo));
   app.post('/api/v1/logout',(request,reply)=>authenticated(request,async(tx,actor)=>{
     await tx.query('UPDATE auth.credentials SET revoked_at=clock_timestamp() WHERE id=$1',[actor.credentialId]);
     reply.header('Set-Cookie',cookieValue(sessionCookie,'',0));return {ok:true};
   }));
   app.post('/api/v1/workspaces',request=>authenticated(request,(tx,actor)=>{const input=contract.CreateWorkspace.parse(request.body);return identity.createWorkspace(tx,actor,input.name,input.timezone);}));
-  app.get('/api/v1/workspaces',request=>authenticated(request,async tx=>(await tx.query('SELECT id,name FROM app.workspaces ORDER BY name')).rows));
+  app.get('/api/v1/workspaces',request=>authenticated(request,async(tx,actor)=>(await tx.query('SELECT w.id,w.name,m.role FROM app.workspaces w JOIN app.workspace_members m ON m.workspace_id=w.id AND m.principal_id=$1 ORDER BY w.name,w.id LIMIT 500',[actor.id])).rows));
   app.post('/api/v1/projects',request=>authenticated(request,(tx,actor)=>identity.createProject(tx,actor,contract.CreateProject.parse(request.body))));
   app.get('/api/v1/projects/:projectId/tasks',request=>authenticated(request,async(tx,actor)=>{
     const {projectId}=params(request);await authorize(tx,actor,projectId,'tasks:read');
@@ -106,10 +121,17 @@ export async function createApp({db,origin,oidc,logger=false}:AppOptions){
   app.delete('/api/v1/projects/:projectId/agents/:id',request=>authenticated(request,async(tx,actor)=>{
     const {projectId,id}=params(request);await authorize(tx,actor,projectId,'agents:manage');return identity.revokeAgent(tx,actor,projectId,id!);
   }));
-  app.get('/api/v1/contracts',request=>authenticated(request,async()=>({version:2,planningPolicy:PLANNING_POLICY,schemas:{...contract.jsonSchemas,
+  app.get('/api/v1/contracts',request=>authenticated(request,async()=>({version:2,planningPolicy:PLANNING_POLICY,schemas:{...publicSchemas,...contract.jsonSchemas,
     ...Object.fromEntries(Object.entries({PlanningCommand,CommitPlan,ReleaseWrite,MilestoneWrite,ConstraintWrite,ApprovalDecision,...planningResponseSchemas}).map(([key,schema])=>[key,z.toJSONSchema(schema)]))}})));
   registerCatalogRoutes(app,authenticated);
   registerPlanningRoutes(app,authenticated);
+  registerPlanningViewRoutes(app,authenticated);
+  registerWorkspaceRoutes(app,authenticated);
+  registerMembershipRoutes(app,authenticated);
+  registerAgentRoutes(app,authenticated);
+  registerOperations(app,authenticated);
+  registerMapRoutes(app,authenticated);
+  registerMediaRoutes(app,authenticated,storage);
   registerEventRoutes(app,db);
   await registerOidc(app,db,oidc);
   return app;

@@ -25,10 +25,11 @@ const source=[];
 for(const folder of ['libraries/iquipage','products/sprintique','scripts']){
   for(const name of (await readdir(folder,{recursive:true})).sort()){
     if(/(?:^|\/)(node_modules|dist|build|output|\.playwright-cli)(?:\/|$)/.test(name))continue;
-    if(!/\.(?:ts|js|mjs|cjs|css|sql|json|tgz)$/.test(name))continue;
+    if(!/\.(?:ts|js|mjs|cjs|css|sql|json|tgz|webp|png|svg|yml|yaml)$/.test(name)&&!['Dockerfile','.dockerignore'].includes(name))continue;
     const path=folder+'/'+name;source.push({path,sha256:sha(await readFile(path))});
   }
 }
+source.push({path:'.github/workflows/vnext.yml',sha256:sha(await readFile('.github/workflows/vnext.yml'))});
 const record={schema:1,date:new Date().toISOString(),node:process.version,sourceFingerprint:sha(JSON.stringify(source)),dsTarballSha256:sha(await readFile('products/sprintique/vendor/iquipage-web-0.6.0-vnext.1.tgz')),checks:results,fullPlatformReady:false,productionTouched:false};
 await writeFile(join(out,'sources.json'),JSON.stringify(source,null,2)+'\n');
 await writeFile(join(out,'verification.json'),JSON.stringify(record,null,2)+'\n');

@@ -12,13 +12,13 @@ import {mountTaskDescription} from './description-view.js';
 import {copyAtButton,motionReduced} from '@iquipage/web/core';
 import {taskKey,taskURL} from './task-route.js';
 
-export async function openTaskDialog(task,{repository,project,tasks,canEdit=true,canManage=true,attachmentAdapter=null,status='ready',fullscreen=false,onOpenTask,onSaved=()=>{},isActive=()=>true}){
+export async function openTaskDialog(task,{repository,project,tasks,canEdit=true,canManage=true,attachmentAdapter=null,status='ready',initialValues={},fullscreen=false,onOpenTask,onSaved=()=>{},isActive=()=>true}){
   if(task?.summary){task=await repository.read('tasks',task.id,project.id);if(!task)throw Error('Задача недоступна.');}
   if(repository.taskContext)tasks=await repository.taskContext(project.id);
   const support=await loadTaskSupport(repository,project.id);
   if(!isActive())throw Error('Открытие задачи отменено.');
   const settings=support.settings||starterTaskSettings(project.id);
-  const initial=task||{...instantiateTaskTemplate(settings,'task'),type:'task',status,owner:'',title:''};
+  const initial=task||{...instantiateTaskTemplate(settings,'task'),type:'task',status,owner:'',title:'',...initialValues};
   const taskId=task?.id||uid('task');
   let files,description;
   let current=task,baseline='',saving=false,confirming=false,priorityTouched=false,catalogs,threads,links;

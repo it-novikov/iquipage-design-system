@@ -7,6 +7,7 @@ export function serveWeb(app:FastifyInstance,dist=resolve('dist')){
     reply.header('Content-Security-Policy',"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'");
   });
   app.get('/',async(_request,reply)=>reply.type('text/html').send(await readFile(resolve(dist,'index.html'))));
+  app.get('/favicon.ico',async(_request,reply)=>reply.code(204).send());
   app.get<{Params:{file:string}}>('/assets/:file',async(request,reply)=>{
     const name=request.params.file;
     if(!/^[A-Za-z0-9_-]+\.(js|css|woff2|webp|png|svg)$/.test(name))throw new Problem(404,'NOT_FOUND','Файл недоступен.');

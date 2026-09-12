@@ -1,27 +1,33 @@
-# vNext Planning R2 checkpoint — 2026-09-12
+# Sprintique vNext R3 handoff — 2026-09-12
 
-Owner approved architecture r1 and the current repository with a detachable product subtree. Branch `feature/sprintique-vnext`, based on main `f3dd146cc9c7c0544fd663d632704a210a5c13be`. PR #2 is merged and must not be reused. No push/deploy/public package authorization for this new change.
+Owner approved same repository with detachable Sprintique and independent DS, then delegated stack choices and requested finishing the locally implementable work including partial Planning PR #3. No push/deploy/publication, production access, paid provider or legacy-data migration in this step. Do not reuse merged PR #2 or modify the Planning writer's branch.
 
-## Actual delivery
+## Source and boundaries
 
-Independent `libraries/iquipage` and `products/sprintique`; consumed DS 0.6.0-vnext.1. Foundation commit `a47c25fe9741f7c0e46661bd0fb31633ed6ef1c8`. Node 24 / Fastify / PostgreSQL 18 backend plus adapter for the approved board. Tasks, Markdown descriptions, hierarchy, tags/releases, discussions/resolution, principal/session/agent permissions, revision CAS, idempotency and transactionally persisted audit/outbox.
+Working branch `feature/sprintique-vnext`; R2 baseline `f69f1d209427433ae51fecfe3a19a3d5dc958172`. PR3 imported read-only from `feature/vnext-planning-ui`, immutable `d87c65767ef471c81bf84c10b9b19e225a956064`. Current implementation is this handoff's Git commit; resolve it with `git rev-parse HEAD`, not a mutable branch name.
 
-Planning R2 adds separate preparation/work/result/admission, Release lifecycle and inherited assignment, atomic preview/commit/receipts, close/cancel remainder and immutable history, milestones/date-only constraints, generic human approval for agent plans, static command/response schemas and typed SDK. The existing board consumes compact server-owned eligibility, hydrates detail safely, uses a dedicated position command and receives authorized project events; discussions refresh across tabs. Read PLANNING-R2.md for C-01…C-09 and `products/sprintique/docs/planning-r2.md` for the consumer contract.
+`libraries/iquipage` owns its build/types/package. `products/sprintique` owns everything needed to run/extract the product and consumes only vendored public `@iquipage/web` 0.6.0-vnext.1. Tar SHA `6490056dd8900177d440431d71d95f5bc7cd4df080cdc99f7743184c704c29ba`. No runtime import from the root pinned `design-system/`, historical maps package or parent library sources.
 
-41 PostgreSQL/API tests, 209 DS tests, strict build, public-type/boundary tests and detached clean install/build/41 tests passed. Tests cover real OIDC crypto/claims against an in-process provider transport, not a production provider account. Chromium synthetic task/discussion/reload, two-tab updates and delayed-response revocation flows passed. Light/dark 1280×720 and 390×844 screenshots inspected. UI/watch sources are unchanged after browser checks; additive SDK/read-schema changes have their own final live API test. This is partial self-review, not independent review or the full M0–M7 acceptance matrix.
+## Delivered
 
-## Artifacts and limits
+New Node 24/strict TypeScript/Fastify/PostgreSQL modular backend; canonical tasks/discussions/board; complete local Planning intent/preview/commit/recovery integration; versioned maps/sessions/history and templates; private S3 uploads/covers/avatars; profiles/membership/invitations/settings/tags/links/search; bounded agent run/proposal/human approval/receipt/cancel APIs; restricted fenced cleanup worker; live authorization/audit/outbox/SSE; quotas, schema readiness and private route-level metrics. Real local Keycloak and Garage, container/CI scripts, source extraction and two-database/private-object restore drill.
 
-`STATUS.md`, `FINDINGS.md`, `fix-ledger.csv`, `GAPS.md`, `run-state.json` contain current implementation evidence and remaining scope. `assessment.json` and `acceptance-plan.pending.json` are explicitly unapproved full-task acceptance scaffolds for later parity; their NOT_RUN states do not erase the actual partial checks listed in STATUS. They must not be presented as READY.
+Read product README, docs/planning-integration-r3.md and docs/operations.md before running it. Maps workflow/automation UI is explicitly disabled: no unrestricted executor, MCP or paid provider is hidden behind a toggle.
 
-Raw logs/source manifest: `products/sprintique/output/verification/2026-09-12T01-01-03.146Z`. Browser observations: `products/sprintique/.playwright-cli`. These local evidence folders are excluded from source control and included in the user-facing delivery separately without session tokens. Temporary browser/DB fixtures were stopped after QA; no persistent demo login was added.
+## Evidence
 
-DS tar SHA256 `6490056dd8900177d440431d71d95f5bc7cd4df080cdc99f7743184c704c29ba`. Source fingerprint (code/build inputs, manifest in raw evidence): `3a8dbc3b97933b149917065739600b064c039f00d3e3fd3b0e56365f9b5db947`.
+- Final automatic gate: `products/sprintique/output/verification/2026-09-12T11-15-56.934Z`, 209 DS + 107 product tests, no skips; strict/boundary/build and detached fresh install/build/107 tests PASS. Fingerprint `5750cb964e7424fa61ec1f92bf3c508d1253010ee58cfc3119c996f3b92b64b0`.
+- Final runtime image `sha256:98296dfcd70b54e40e6a077bdea809b849dc0e9958e92a2d85c3921798aa9dc3`: non-root/read-only/cap-drop, real PG/S3 readiness/session, anonymous denied. No registry publication.
+- Real TLS/OIDC login and callback replay rejection; UI human approval then exact agent commit and grant revocation.
+- Browser Planning/create/prepare/start/board/Markdown/cover/discussion/close/remainder/history/date and recovery checks: COMPLETION-R3.md. Full independent browser/security/accessibility acceptance is not inferred.
+- Local restore checkpoint at 10:25 UTC: 37 tables/71 rows, two databases, three private variants; source unchanged; temporary restore resources removed. Later synthetic UI records are newer than the checkpoint.
 
-## Next implementation point
+Raw verification/browser output is ignored, not source. Private `output/infra` contains credentials, local CA keys, session state and **unencrypted** backups; never archive or print that directory. Only explicitly selected `*-verification.json` summaries are non-secret. GitHub CI is defined but not remotely run because there was no push.
 
-The attached handoff did not include Planning frontend code, its branch/commit or ACCEPTANCE-R2.md. The backend scenario create → prepare → assign → start → board → second authorized client passes; the other frontend cannot be labelled INTEGRATED_PASS yet. Obtain those inputs, connect its preview/approval/receipt-recovery UI through the SDK and run its consumer acceptance suite. Existing editor parent/release changes deliberately require Planning; confirmation integration remains open, not a working direct PUT flow.
+## Local runtime
 
-M4–M7 remain separate: versioned maps, private media, custom templates/settings/links/search/membership, external outbox delivery, general agent-run lifecycle/MCP, full OpenAPI, performance/security/load/backups/CI and external pilot. Project-level ACL and a serialized in-memory Planning graph are current constraints; no task-level ACL or unlimited-scale claim. Optional import is deferred. Do not migrate or delete old-platform data, substitute mock persistence or rewrite the DS.
+API `http://localhost:4312`, private S3 `127.0.0.1:4900`, PostgreSQL `127.0.0.1:54329`, OIDC `https://localhost:9443/realms/sprintique`. Context `colima-sprintique-vnext-qa`, owned resource labels only. Do not alter the user's other Colima/Docker resources. `npm run local:start` applies 001–015 and starts the compiled API + restricted worker from private generated config. Node 24 is required.
 
-Use product README for build/test/migration setup. `scripts/verify-vnext.mjs` reruns all current checks and detached extraction. Keep concrete identity provider/hosting/storage choices open until owner supplies D3; do not block local feature development on those future deployment choices.
+## Remaining release boundary
+
+GAPS.md is the current explicit list. Independent audit/full UI matrix, external deployment/pilot, encrypted off-site backups/full identity restore, shared replica quotas/tracing, complete non-Planning response schemas, external notifications and future MCP/provider execution are not claimed. No known failing automated test is relabelled PASS. The old unapproved `assessment.json` and `acceptance-plan.pending.json` remain historical full-platform scaffolds; use the targeted `assessment-r3.json` for this checkpoint, not a fabricated 100% score.

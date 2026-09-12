@@ -1,11 +1,13 @@
 import {fixture} from './fixture.js';
-import {writeFile} from 'node:fs/promises';
+import {writeFile,readFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {randomUUID} from 'node:crypto';
-const f=await fixture({web:true});
+import {S3ObjectStorage} from '../backend/infrastructure/object-storage.js';
+const storage=new S3ObjectStorage(JSON.parse(await readFile(process.env['TEST_S3_CONFIG']||'output/infra/storage.json','utf8')));
+await storage.ready();const f=await fixture({web:true,storage});
 await f.app.inject({method:'PUT',url:`/api/v1/projects/${f.first.id}/tasks/demo-task`,headers:{...f.alice.headers,'idempotency-key':randomUUID()},payload:{baseRevision:0,createInBoard:true,task:{title:'Проверить новую платформу',description:'## Готовность\n\n- [ ] Создать задачу\n- [ ] Проверить обсуждения'}}});
 await f.app.listen({port:4311,host:'127.0.0.1'});
 const state=join(process.env['TEST_FIXTURE_DIR']!,'browser-state.json');
 await writeFile(state,JSON.stringify({cookies:[{name:'__Host-sprintique',value:f.alice.token,domain:'localhost',path:'/',expires:-1,httpOnly:true,secure:true,sameSite:'Lax'}],origins:[]}),{mode:0o600});
 console.log('Synthetic test fixture: http://localhost:4311');console.log('Browser storage state: '+state);
-await new Promise<void>(resolve=>{process.once('SIGTERM',resolve);process.once('SIGINT',resolve);});await f.close();
+await new Promise<void>(resolve=>{process.once('SIGTERM',resolve);process.once('SIGINT',resolve);});await f.close();storage.close();

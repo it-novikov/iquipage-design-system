@@ -2,7 +2,7 @@ import {cardEntry,CARD_TYPES,SHAPES,hasContent,appendCards,layoutCaptured} from 
 import {button,select,input,esc,icon} from './ui.js';
 import {requireValue,clone} from './common.js';
 
-async function readImage(file) {
+export async function readImage(file) {
   requireValue(file&&['image/png','image/jpeg','image/webp'].includes(file.type)&&file.size>0&&file.size<=5*1024*1024,'IMAGE','Выберите PNG, JPEG или WebP до 5 МБ.');
   const src=await new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=()=>reject(new Error('Не удалось прочитать изображение.'));r.readAsDataURL(file);});
   // Decode before commit. No URL fetching, SVG or arbitrary HTML is accepted.

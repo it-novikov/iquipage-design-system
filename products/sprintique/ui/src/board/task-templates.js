@@ -1,13 +1,8 @@
 import {clone,uid,validText,requireValue} from '../common.js';
 import {validateChecklists,taskMarkdown} from './task-content.js';
 export const TEMPLATE_MODES=Object.freeze({inherit:'Как в базовом',append:'Дополнить базовый',replace:'Заменить базовый',exclude:'Не добавлять'});
-export const STARTER_TASK_TEMPLATES=Object.freeze([
-  {id:'task',type:'task',name:'Обычная задача',description:'## Цель\n\nКакого результата нужно достичь?\n\n## Что сделать\n\n- [ ] Подготовить решение\n- [ ] Проверить результат\n\n## Критерии готовности\n\nКак поймём, что задача выполнена?'},
-  {id:'research',type:'task',name:'Исследование',description:'## Вопрос исследования\n\nЧто нужно выяснить?\n\n## Гипотезы\n\n- Основная гипотеза\n\n## План\n\n- [ ] Собрать данные\n- [ ] Проверить гипотезы\n- [ ] Сформулировать выводы\n\n## Результат\n\nВыводы и следующий шаг.'},
-  {id:'technical',type:'task',name:'Техническая задача',description:'## Контекст\n\nКакую техническую проблему решаем?\n\n## Изменения\n\nГраницы решения и ограничения.\n\n## Проверка\n\n- [ ] Реализация готова\n- [ ] Тесты пройдены\n- [ ] Документация актуальна'},
-  {id:'bug',type:'bug',name:'Баг-репорт',description:'## Проблема\n\nЧто работает неправильно?\n\n## Как повторить\n\n1. Открыть…\n2. Выполнить…\n\n## Ожидаемый результат\n\nКак должно работать.\n\n## Фактический результат\n\nЧто происходит сейчас.\n\n## Окружение\n\nВерсия, устройство, браузер.\n\n- [ ] Исправление проверено\n- [ ] Добавлен регрессионный тест'},
-  {id:'epic',type:'epic',name:'Фича / эпик',description:'## Проблема и ценность\n\nДля кого и зачем нужна возможность?\n\n## В рамках задачи\n\nЧто входит в первый результат.\n\n## За рамками\n\nЧто не делаем сейчас.\n\n## Критерии завершения\n\n- [ ] Основной сценарий работает\n- [ ] Ограничения и ошибки обработаны\n- [ ] Результат принят'}
-]);
+import {STARTER_TASK_TEMPLATES} from '../../../contracts/template-defaults.ts';
+export {STARTER_TASK_TEMPLATES};
 export function starterTaskSettings(projectId){const settings=emptyTaskSettings(projectId);settings.starterVersion=1;for(const type of ['task','bug','epic'])settings.types[type]={description:STARTER_TASK_TEMPLATES.find(t=>t.id===type).description,descriptionMode:'replace',checklists:[],contentVersion:2};return settings;}
 /** Explicit editor upgrade only. Keep a recovery copy and every effective type's content. */
 export function upgradeLegacyTaskSettings(settings){

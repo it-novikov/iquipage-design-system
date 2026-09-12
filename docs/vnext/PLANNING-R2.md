@@ -1,5 +1,7 @@
 # Planning R2 — implementation contract
 
+R3 update: PR #3 consumer source was obtained at `d87c65767ef471c81bf84c10b9b19e225a956064` and integrated locally. The missing-source blocker recorded at the end of this historical R2 document is resolved. See `products/sprintique/docs/planning-integration-r3.md` and `COMPLETION-R3.md` for current integration/recovery/browser evidence; canonical decisions below remain applicable. This is not a blanket acceptance of every upstream demo scenario.
+
 Status: implementation authorized by owner, 2026-09-12: «Продолжай делать, пока все не закончишь». Baseline a47c25f. This adds Planning to the existing vNext kernel, not another backend. No push, deployment, legacy import or changes to the design system are implied.
 
 ## Decisions

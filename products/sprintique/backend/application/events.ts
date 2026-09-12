@@ -12,15 +12,19 @@ function position(cursor:string|undefined,projectId:string){
 export async function projectEvents(tx:Transaction,actor:Actor,projectId:string,cursor?:string):Promise<{items:ProjectEvent[];cursor:string|null;hasMore:boolean}>{
   const canReadTasks=actor.kind==='human'||actor.capabilities.includes('tasks:read');
   const canReadThreads=actor.kind==='human'||actor.capabilities.includes('threads:read');
-  await authorize(tx,actor,projectId,canReadTasks?'tasks:read':'threads:read');const after=position(cursor,projectId);
+  const canReadMaps=actor.kind==='human'||actor.capabilities.includes('maps:read');
+  await authorize(tx,actor,projectId,canReadTasks?'tasks:read':canReadThreads?'threads:read':'maps:read');const after=position(cursor,projectId);
   const rows=(await tx.query<Omit<ProjectEvent,'cursor'>&{position:number}>(`SELECT o.id,o.topic,a.resource_id AS "resourceId",a.revision,
     a.actor_id AS "actorId",a.initiator_id AS "initiatorId",a.operation_id AS "operationId",a.correlation_id AS "correlationId",a.causation_id AS "causationId",o.project_sequence::float8 AS position
     FROM app.outbox o JOIN app.audit_events a ON a.id=o.id WHERE o.project_id=$1 AND o.project_sequence>$2
       AND ($3 OR o.topic NOT LIKE 'thread.%')
       AND ($4 OR o.topic NOT LIKE 'agent.%')
-      AND ($6 OR o.topic LIKE 'thread.%')
+      AND ((o.topic LIKE 'thread.%' AND $3)
+        OR ((o.topic LIKE 'map.%' OR o.topic LIKE 'map-template.%') AND $7)
+        OR (o.topic LIKE 'asset.%' AND EXISTS(SELECT 1 FROM app.assets f WHERE f.project_id=$1 AND f.id=a.resource_id AND CASE WHEN f.target_type='map' THEN $7 ELSE $6 END))
+        OR (o.topic NOT LIKE 'thread.%' AND o.topic NOT LIKE 'map.%' AND o.topic NOT LIKE 'map-template.%' AND o.topic NOT LIKE 'asset.%' AND $6))
       AND ($4 OR o.topic NOT LIKE 'approval.%' OR a.resource_id IN (SELECT id::text FROM app.approvals WHERE project_id=$1 AND requested_by=$5))
-    ORDER BY o.project_sequence LIMIT 101`,[projectId,after,canReadThreads,actor.kind==='human',actor.id,canReadTasks])).rows;
+    ORDER BY o.project_sequence LIMIT 101`,[projectId,after,canReadThreads,actor.kind==='human',actor.id,canReadTasks,canReadMaps])).rows;
   const items=rows.slice(0,100).map(({position,...row})=>({...row,cursor:Buffer.from(JSON.stringify({projectId,position})).toString('base64url')}));
   return {items,cursor:items.at(-1)?.cursor||cursor||null,hasMore:rows.length>100};
 }

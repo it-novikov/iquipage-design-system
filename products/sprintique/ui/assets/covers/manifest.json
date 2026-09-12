@@ -1,0 +1,38 @@
+[
+  {
+    "id": "focus",
+    "name": "Фокус",
+    "sha256": "842aecfe32b2b709dea407d60b407a15456f9976c0e6fde50429b569b23e6ae4",
+    "bytes": 193242
+  },
+  {
+    "id": "research",
+    "name": "Исследование",
+    "sha256": "abd80b076ed6daa8cf6c5092fab98e1eb1ab639ddea31e5adae5b70f18479c7a",
+    "bytes": 143092
+  },
+  {
+    "id": "launch",
+    "name": "Запуск",
+    "sha256": "5c7debb537297c5b9c830d9835341d7e1e4ab8d42f234c07fda29fd5a9867bdc",
+    "bytes": 110030
+  },
+  {
+    "id": "design",
+    "name": "Дизайн",
+    "sha256": "61331b6f549777c299b8ea15b6e056877c6f606b02a1232ca3f4e8cfdca6615f",
+    "bytes": 227722
+  },
+  {
+    "id": "development",
+    "name": "Разработка",
+    "sha256": "58aaf7e9d320fda04a8b089bb12e2a0ecfb98057b6195199c89b22027cbca99c",
+    "bytes": 97770
+  },
+  {
+    "id": "planning",
+    "name": "Планирование",
+    "sha256": "1c2c16d65949942d1936a7aa1310e5ed047b88d4888bf233c6550e45876e2d7f",
+    "bytes": 122600
+  }
+]

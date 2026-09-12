@@ -7,6 +7,7 @@ import type {PlanningState,PlanResult,TaskState,HistoryItem} from '../domain/pla
 import {PLANNING_POLICY,PAGE_SIZE} from '../../contracts/planning.js';
 import type {Page,PlanningQuery,PlanningRow,PlanningCommand,Preview,Receipt,Release,ReleaseData,Milestone,TemporalConstraint} from '../../contracts/planning.js';
 import {idempotent,canonical} from './commands.js';
+import {linkTaskAssets} from './media.js';
 
 export const releaseProjection=`id,project_id AS "projectId",name,revision,scope_revision::float8 AS "scopeRevision",lifecycle,format,
   to_char(planned_start,'YYYY-MM-DD') AS "plannedStart",to_char(planned_end,'YYYY-MM-DD') AS "plannedEnd",
@@ -24,17 +25,22 @@ export async function planningLock(tx:Transaction,actor:Actor,projectId:string,w
 }
 export async function loadPlanningState(tx:Transaction,projectId:string):Promise<PlanningState>{
   const tasks=(await tx.query<TaskState>(`SELECT t.id,p.key||'-'||t.number AS "displayId",t.revision,t.parent_id AS "parentId",t.title,t.type,t.status,
+    t.attachment_ids AS "attachmentIds",t.cover_attachment_id AS "coverAttachmentId",t.cover_crop AS "coverCrop",
     t.owner_label AS owner,t.priority,t.rank,to_char(t.status_entered_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS "statusEnteredAt",
     to_char(t.created_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS "createdAt",
     t.preparation,t.result,t.admitted,t.assignment_mode AS "assignmentMode",t.release_id AS "releaseId",
-    to_char(t.planned_start,'YYYY-MM-DD') AS "plannedStart",to_char(t.due,'YYYY-MM-DD') AS due,
+    to_char(t.planned_start,'YYYY-MM-DD') AS "plannedStart",to_char(t.planned_end,'YYYY-MM-DD') AS "plannedEnd",to_char(t.due,'YYYY-MM-DD') AS due,
     ARRAY(SELECT tag_id FROM app.task_tags WHERE project_id=t.project_id AND task_id=t.id ORDER BY tag_id) AS "tagIds"
-    FROM app.tasks t JOIN app.projects p ON p.id=t.project_id WHERE t.project_id=$1 ORDER BY t.number`,[projectId])).rows;
-  const releases=(await tx.query<Release>(`SELECT ${releaseProjection} FROM app.releases WHERE project_id=$1 ORDER BY id`,[projectId])).rows;
-  const milestones=(await tx.query<Milestone>(`SELECT id,title,to_char(date,'YYYY-MM-DD') AS date,revision FROM app.milestones WHERE project_id=$1 ORDER BY id`,[projectId])).rows;
+    FROM app.tasks t JOIN app.projects p ON p.id=t.project_id WHERE t.project_id=$1 ORDER BY t.number LIMIT 10001`,[projectId])).rows;
+  const releases=(await tx.query<Release>(`SELECT ${releaseProjection} FROM app.releases WHERE project_id=$1 ORDER BY id LIMIT 1001`,[projectId])).rows;
+  const milestones=(await tx.query<Milestone>(`SELECT id,title,to_char(date,'YYYY-MM-DD') AS date,revision,release_id AS "releaseId" FROM app.milestones WHERE project_id=$1 ORDER BY id LIMIT 10001`,[projectId])).rows;
   const constraints=(await tx.query<TemporalConstraint>(`SELECT id,revision,jsonb_build_object('kind',source_kind,'id',source_id) AS source,
-    jsonb_build_object('kind',target_kind,'id',target_id) AS target,relation,lag_days AS "lagDays" FROM app.temporal_constraints WHERE project_id=$1 ORDER BY id`,[projectId])).rows;
-  return {tasks,releases,milestones,constraints};
+    jsonb_build_object('kind',target_kind,'id',target_id) AS target,relation,lag_days AS "lagDays" FROM app.temporal_constraints WHERE project_id=$1 ORDER BY id LIMIT 10001`,[projectId])).rows;
+  const defaults=(await tx.query<{value:NonNullable<PlanningState['defaults']>}>(`SELECT planning_defaults||jsonb_build_object('timezone',auth.project_timezone(id)) AS value FROM app.projects WHERE id=$1`,[projectId])).rows[0]!.value;
+  const creation=(await tx.query<NonNullable<PlanningState['creation']>>(`SELECT id AS "projectId",key,next_task_number AS number,to_char(clock_timestamp() AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS "createdAt" FROM app.projects WHERE id=$1`,[projectId])).rows[0]!;
+  const dependencies=(await tx.query<{id:string;fromId:string;toId:string}>(`SELECT id,from_id AS "fromId",to_id AS "toId" FROM app.task_links WHERE project_id=$1 AND kind='depends' AND archived_at IS NULL LIMIT 10001`,[projectId])).rows;
+  requireCondition(tasks.length<=10000&&releases.length<=1000&&milestones.length<=10000&&constraints.length<=10000&&dependencies.length<=10000,422,'PROJECT_LIMIT','Лимит проекта: 10 000 задач, вех и связей, 1000 релизов.');
+  return {tasks,releases,milestones,constraints,defaults,creation,dependencies};
 }
 const encode=(data:unknown)=>Buffer.from(JSON.stringify(data)).toString('base64url');
 function offset(cursor:string|undefined,binding:string,revision:number){
@@ -103,14 +109,22 @@ async function readPlan(tx:Transaction,actor:Actor,projectId:string,id:string):P
   requireCondition(row,404,'PLAN_NOT_FOUND','План недоступен.');return row;
 }
 export async function preview(tx:Transaction,actor:Actor,projectId:string,command:PlanningCommand):Promise<Preview>{
-  const {revision}=await planningLock(tx,actor,projectId,true),state=await loadPlanningState(tx,projectId),effects=planChange(state,command);
+  const {revision}=await planningLock(tx,actor,projectId,true);
+  if(command.kind==='settings')await authorize(tx,actor,projectId,'catalog:write');
+  requireCondition(command.kind!=='release.create'||command.projectId===projectId,422,'PROJECT_SCOPE','Релиз другого проекта.');
+  const state=await loadPlanningState(tx,projectId),effects=planChange(state,command);
+  if((command.kind==='task.edit'||command.kind==='task.create')&&command.task.tagIds.length){
+    const tags=await tx.query('SELECT id FROM app.tags WHERE project_id=$1 AND id=ANY($2) AND (archived_at IS NULL OR id IN (SELECT tag_id FROM app.task_tags WHERE project_id=$1 AND task_id=$3))',[projectId,command.task.tagIds,command.taskId]);
+    requireCondition(tags.rowCount===command.task.tagIds.length,422,'TASK_TAG','Тег недоступен в проекте.');
+  }
+  if(command.kind==='bulk'&&command.fields.addTagIds?.length){const tags=await tx.query('SELECT id FROM app.tags WHERE project_id=$1 AND id=ANY($2) AND archived_at IS NULL',[projectId,command.fields.addTagIds]);requireCondition(tags.rowCount===new Set(command.fields.addTagIds).size,422,'TASK_TAG','Тег недоступен.');}
   const id=randomUUID(),token=secret(),expiresAt=new Date(Date.now()+10*60000),approvalId=actor.kind==='agent'?randomUUID():null;
   const actionHash=hash(canonical({projectId,actorId:actor.id,credentialId:actor.credentialId,initiatorId:actor.initiatorId,revision,policy:PLANNING_POLICY,command,effects}));
   const summary:StoredPlan['summary']={id,expiresAt:expiresAt.toISOString(),actionHash,policyVersion:PLANNING_POLICY,projectRevision:revision,
     affectedCount:effects.effects.length,selectedCount:effects.selectedCount,
     enteringBoard:effects.effects.filter(e=>!e.before?.boardEligible&&e.after.boardEligible).length,
     leavingBoard:effects.effects.filter(e=>e.before?.boardEligible&&!e.after.boardEligible).length,
-    requiresApproval:approvalId!==null,approvalId,releases:effects.releases};
+    requiresApproval:approvalId!==null,approvalId,releases:effects.releases,details:effects.details};
   await tx.query(`INSERT INTO app.planning_plans(project_id,id,actor_id,credential_id,initiator_id,token_hash,project_revision,policy_version,action_hash,command,effects,summary,expires_at)
     VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)`,[projectId,id,actor.id,actor.credentialId,actor.initiatorId,hash(token),revision,PLANNING_POLICY,actionHash,JSON.stringify(command),JSON.stringify(effects),JSON.stringify(summary),expiresAt]);
   if(approvalId){
@@ -127,11 +141,37 @@ export async function previewEffects(tx:Transaction,actor:Actor,projectId:string
 }
 async function applyPlan(tx:Transaction,actor:Actor,projectId:string,operationId:string,result:PlanResult){
   for(const release of result.releases)await saveRelease(tx,projectId,release);
+  if(result.createdTask){const c=result.createdTask,v=result.taskContent!.value;
+    const next=await tx.query('UPDATE app.projects SET next_task_number=next_task_number+1 WHERE id=$1 AND next_task_number=$2',[projectId,c.number]);requireCondition(next.rowCount===1,409,'PLAN_STALE','Номер задачи изменился.');
+    await tx.query(`INSERT INTO app.tasks(project_id,id,number,title,description,status,type,priority,owner_label,rank,revision,created_at,status_entered_at) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,1,$11,$11)`,[projectId,c.id,c.number,v.title,v.description,v.status,v.type,v.priority,v.owner,v.rank,c.createdAt]);
+  }
   if(result.tasks.length)await tx.query(`UPDATE app.tasks t SET revision=n.revision,parent_id=n."parentId",release_id=n."releaseId",
     assignment_mode=n."assignmentMode",preparation=n.preparation,result=n.result,admitted=n.admitted,owner_label=n.owner,priority=n.priority,
-    planned_start=n."plannedStart"::date,due=n.due::date,updated_at=clock_timestamp()
+    planned_start=n."plannedStart"::date,planned_end=n."plannedEnd"::date,due=n.due::date,updated_at=clock_timestamp()
     FROM jsonb_to_recordset($2::jsonb) AS n(id text,revision integer,"parentId" text,"releaseId" text,"assignmentMode" text,preparation text,result text,
-      admitted boolean,owner text,priority text,"plannedStart" text,due text) WHERE t.project_id=$1 AND t.id=n.id`,[projectId,JSON.stringify(result.tasks)]);
+      admitted boolean,owner text,priority text,"plannedStart" text,"plannedEnd" text,due text) WHERE t.project_id=$1 AND t.id=n.id`,[projectId,JSON.stringify(result.tasks)]);
+  for(const effect of result.effects)if(JSON.stringify(effect.before?.tagIds)!==JSON.stringify(effect.after.tagIds)){
+    await tx.query('DELETE FROM app.task_tags WHERE project_id=$1 AND task_id=$2',[projectId,effect.id]);
+    for(const tagId of effect.after.tagIds)await tx.query('INSERT INTO app.task_tags(project_id,task_id,tag_id) VALUES($1,$2,$3)',[projectId,effect.id,tagId]);
+  }
+  if(result.taskContent){const {id,value}=result.taskContent;
+    await linkTaskAssets(tx,actor,projectId,id,value);
+    await tx.query(`UPDATE app.tasks SET title=$3,description=$4,type=$5,rank=$6,status_entered_at=CASE WHEN status=$7 THEN status_entered_at ELSE clock_timestamp() END,status=$7 WHERE project_id=$1 AND id=$2`,[projectId,id,value.title,value.description,value.type,value.rank,value.status]);
+  }
+  for(const m of result.milestones){
+    await tx.query(`INSERT INTO app.milestones(project_id,id,title,date,revision,release_id) VALUES($1,$2,$3,$4,$5,$6) ON CONFLICT(project_id,id) DO UPDATE SET title=$3,date=$4,revision=$5,release_id=$6`,[projectId,m.id,m.title,m.date,m.revision,m.releaseId||null]);
+    await event(tx,actor,projectId,operationId,'milestone.changed',m.id,m.revision);
+  }
+  for(const id of result.removedConstraints){await tx.query('DELETE FROM app.temporal_constraints WHERE project_id=$1 AND id=$2',[projectId,id]);await event(tx,actor,projectId,operationId,'temporal.constraint.removed',id,0);}
+  for(const c of result.constraints){
+    await tx.query(`INSERT INTO app.temporal_constraints(project_id,id,source_kind,source_id,target_kind,target_id,relation,lag_days,revision) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)
+      ON CONFLICT(project_id,id) DO UPDATE SET source_kind=$3,source_id=$4,target_kind=$5,target_id=$6,relation=$7,lag_days=$8,revision=$9`,[projectId,c.id,c.source.kind,c.source.id,c.target.kind,c.target.id,c.relation,c.lagDays,c.revision]);
+    await event(tx,actor,projectId,operationId,'temporal.constraint.changed',c.id,c.revision);
+  }
+  if(result.defaults){const {timezone,...defaults}=result.defaults;
+    await tx.query('UPDATE app.projects SET planning_defaults=$2,timezone=$3,planning_revision=planning_revision+1 WHERE id=$1',[projectId,JSON.stringify(defaults),timezone]);
+    await event(tx,actor,projectId,operationId,'planning.settings.changed',projectId,0);
+  }
   if(result.history)await tx.query(`INSERT INTO app.release_snapshots(project_id,id,release_id,kind,operation_id,items) VALUES($1,$2,$3,$4,$5,$6)`,
     [projectId,randomUUID(),result.history.releaseId,result.history.kind,operationId,JSON.stringify(result.history.items)]);
   for(const e of result.effects)await event(tx,actor,projectId,operationId,'task.plan.changed',e.id,e.after.revision);
@@ -143,9 +183,14 @@ export async function commit(tx:Transaction,actor:Actor,projectId:string,input:{
     const operationId=randomUUID();await tx.query('SAVEPOINT planning_apply');
     try{
       const stored=await readPlan(tx,actor,projectId,input.planId);
+      if(stored.command.kind==='settings')await authorize(tx,actor,projectId,'catalog:write');
       requireCondition(stored.credentialId===actor.credentialId&&stored.initiatorId===actor.initiatorId&&stored.tokenHash===hash(input.token),403,'PLAN_FORBIDDEN','План недоступен для применения.');
       const applied=(await tx.query<{result:Receipt}>('SELECT result FROM app.planning_applied WHERE project_id=$1 AND plan_id=$2',[projectId,stored.id])).rows[0];
       if(applied){await tx.query('RELEASE SAVEPOINT planning_apply');return applied.result;}
+      // A run's stop/expiry/superseded proposal also fences the generic commit endpoint.
+      const run=(await tx.query<{active:boolean}>(`SELECT r.completed_at IS NULL AND r.expires_at>clock_timestamp() AND r.latest_plan_id=$2 AND r.credential_id=$3 AS active
+        FROM app.agent_run_plans p JOIN app.agent_runs r ON r.project_id=p.project_id AND r.id=p.run_id WHERE p.project_id=$1 AND p.plan_id=$2`,[projectId,stored.id,actor.credentialId])).rows[0];
+      requireCondition(!run||run.active,409,'RUN_INACTIVE','Запуск остановлен или предложение заменено.');
       requireCondition(stored.expiresAt.getTime()>Date.now(),409,'PLAN_EXPIRED','Срок подтверждения истёк.');
       requireCondition(stored.projectRevision===revision&&stored.policyVersion===PLANNING_POLICY,409,'PLAN_STALE','Условия изменились. Просмотрите новый план.');
       if(actor.kind==='agent'){
@@ -157,7 +202,10 @@ export async function commit(tx:Transaction,actor:Actor,projectId:string,input:{
         requireCondition(approver.rowCount===1,403,'APPROVAL_REVOKED','Полномочия подтвердившего участника изменились.');
       }
       // Recompute rather than trusting persisted client inputs or a partial prepared graph.
-      const current=planChange(await loadPlanningState(tx,projectId),stored.command);
+      const state=await loadPlanningState(tx,projectId);
+      // Server-issued creation time is sealed in the stored preview, not accepted from an HTTP caller.
+      if(stored.effects.createdTask&&state.creation)state.creation.createdAt=stored.effects.createdTask.createdAt;
+      const current=planChange(state,stored.command);
       requireCondition(canonical(current)===canonical(stored.effects),409,'PLAN_STALE','Последствия изменились. Просмотрите новый план.');
       await applyPlan(tx,actor,projectId,operationId,current);
       const final=(await tx.query<{revision:number}>('SELECT planning_revision::float8 AS revision FROM app.projects WHERE id=$1',[projectId])).rows[0]!;
@@ -209,14 +257,15 @@ export async function history(tx:Transaction,actor:Actor,projectId:string,releas
   const items=rows.flatMap(snapshot=>snapshot.items.map(item=>({snapshotId:snapshot.id,kind:snapshot.kind,operationId:snapshot.operationId,createdAt:snapshot.createdAt,...item})));
   return {...page(items,projectId+':history:'+releaseId,rows.length,limit,cursor),snapshots:rows.map(({items,...summary})=>({...summary,itemCount:items.length}))};
 }
-export async function writeMilestone(tx:Transaction,actor:Actor,projectId:string,id:string,input:{baseRevision:number;value:{title:string;date:string|null}},key:string){
+export async function writeMilestone(tx:Transaction,actor:Actor,projectId:string,id:string,input:{baseRevision:number;value:{title:string;date:string|null;releaseId?:string|null|undefined}},key:string){
   await planningLock(tx,actor,projectId,true);requireCondition(actor.kind==='human',403,'HUMAN_REQUIRED','Изменения календаря сейчас доступны человеку.');
   return idempotent(tx,actor,projectId,'milestone:'+id,key,input,async()=>{
     const state=await loadPlanningState(tx,projectId),previous=state.milestones.find(m=>m.id===id);
     requireCondition((previous?.revision||0)===input.baseRevision,409,'CONFLICT','Веха изменена.');
-    const value={id,...input.value,revision:input.baseRevision+1};state.milestones=state.milestones.filter(m=>m.id!==id).concat(value);validateTemporal(state);
-    await tx.query(`INSERT INTO app.milestones(project_id,id,title,date,revision) VALUES($1,$2,$3,$4,$5)
-      ON CONFLICT(project_id,id) DO UPDATE SET title=$3,date=$4,revision=$5`,[projectId,id,value.title,value.date,value.revision]);
+    for(const releaseId of [previous?.releaseId,input.value.releaseId])if(releaseId){const release=state.releases.find(r=>r.id===releaseId);requireCondition(release&&!['closed','cancelled'].includes(release.lifecycle)&&!release.archivedAt,409,'RELEASE_IMMUTABLE','Релиз завершён или недоступен.');}
+    const value={id,...input.value,releaseId:input.value.releaseId??null,revision:input.baseRevision+1};state.milestones=state.milestones.filter(m=>m.id!==id).concat(value);validateTemporal(state);
+    await tx.query(`INSERT INTO app.milestones(project_id,id,title,date,revision,release_id) VALUES($1,$2,$3,$4,$5,$6)
+      ON CONFLICT(project_id,id) DO UPDATE SET title=$3,date=$4,revision=$5,release_id=$6`,[projectId,id,value.title,value.date,value.revision,value.releaseId]);
     await event(tx,actor,projectId,randomUUID(),'milestone.changed',id,value.revision);return value;
   });
 }
@@ -234,7 +283,7 @@ export async function writeConstraint(tx:Transaction,actor:Actor,projectId:strin
 }
 export async function roadmap(tx:Transaction,actor:Actor,projectId:string,query:{limit:number;cursor?:string|undefined;from?:string|undefined;to?:string|undefined;undated?:boolean}){
   const {revision,timezone}=await planningLock(tx,actor,projectId),state=await loadPlanningState(tx,projectId);
-  const rows=[...projectRows(state).map(t=>({kind:'task',id:t.id,title:t.title,revision:t.revision,start:t.plannedStart,end:t.due})),
+  const rows=[...projectRows(state).map(t=>({kind:'task',id:t.id,title:t.title,revision:t.revision,start:t.plannedStart,end:t.plannedEnd||null})),
     ...state.releases.map(r=>({kind:'release',id:r.id,title:r.name,revision:r.revision,start:r.plannedStart,end:r.plannedEnd})),
     ...state.milestones.map(m=>({kind:'milestone',id:m.id,title:m.title,revision:m.revision,start:m.date,end:m.date}))]
     .filter(r=>(r.start||r.end)?(!query.from||(r.end||r.start)!>=query.from)&&(!query.to||(r.start||r.end)!<=query.to):query.undated!==false);

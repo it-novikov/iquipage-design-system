@@ -5,16 +5,17 @@ import {ReleaseValue,PlanningCommand,MilestoneWrite,ConstraintWrite} from './pla
 export const ReleaseResponse=ReleaseValue.safeExtend({id:Id,projectId:Id,revision:Revision,scopeRevision:Revision,
   lifecycle:z.enum(['planned','active','closed','cancelled']),archivedAt:z.iso.datetime().nullable()});
 export const PlanningRowResponse=z.strictObject({
+  attachmentIds:TaskInput.shape.attachmentIds.optional(),coverAttachmentId:TaskInput.shape.coverAttachmentId.optional(),coverCrop:TaskInput.shape.coverCrop.optional(),
   id:Id,displayId:z.string(),revision:Revision,parentId:Id.nullable(),title:z.string(),type:TaskInput.shape.type,status:TaskInput.shape.status,
   owner:z.string(),priority:TaskInput.shape.priority,rank:z.number(),statusEnteredAt:z.iso.datetime(),createdAt:z.iso.datetime(),tagIds:z.array(Id),
-  preparation:z.enum(['draft','ready']),result:z.enum(['open','accepted']),admitted:z.boolean(),plannedStart:DateOnly.nullable(),due:DateOnly.nullable(),
+  preparation:z.enum(['draft','ready']),result:z.enum(['open','accepted']),admitted:z.boolean(),plannedStart:DateOnly.nullable(),plannedEnd:DateOnly.nullable().optional(),due:DateOnly.nullable(),
   assignmentMode:z.enum(['inherit','assigned','none']),releaseId:Id.nullable(),effectiveReleaseId:Id.nullable(),assignmentSourceId:Id.nullable(),boardEligible:z.boolean(),childCount:z.number().int().nonnegative()
 });
 export const EffectResponse=z.strictObject({id:Id,before:PlanningRowResponse.nullable(),after:PlanningRowResponse});
 export const PreviewResponse=z.strictObject({
   id:z.uuid(),token:z.string(),expiresAt:z.iso.datetime(),actionHash:z.string(),policyVersion:z.string(),projectRevision:Revision,
   affectedCount:z.number().int().nonnegative(),selectedCount:z.number().int().nonnegative(),enteringBoard:z.number().int().nonnegative(),leavingBoard:z.number().int().nonnegative(),
-  effects:z.array(EffectResponse),nextCursor:z.string().nullable(),requiresApproval:z.boolean(),approvalId:z.uuid().nullable(),releases:z.array(ReleaseResponse)
+  effects:z.array(EffectResponse),nextCursor:z.string().nullable(),requiresApproval:z.boolean(),approvalId:z.uuid().nullable(),releases:z.array(ReleaseResponse),details:z.array(z.strictObject({label:z.string(),description:z.string()})).optional()
 });
 export const ReceiptResponse=z.discriminatedUnion('status',[
   z.strictObject({operationId:z.uuid(),status:z.literal('committed'),projectRevision:Revision,affectedCount:z.number().int().nonnegative(),releaseIds:z.array(Id)}),
