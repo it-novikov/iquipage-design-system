@@ -111,12 +111,14 @@ async function readPlan(tx:Transaction,actor:Actor,projectId:string,id:string):P
 /** Bounded collection of previews that can never be applied any more, then an explicit budget.
  *  Both run under the project aggregate lock already held by planningLock. */
 async function budgetPreviews(tx:Transaction,actor:Actor,projectId:string){
-  await tx.query(`DELETE FROM app.planning_plans p WHERE (p.project_id,p.id) IN (
-      SELECT project_id,id FROM app.planning_plans
-      WHERE project_id=$1 AND expires_at<clock_timestamp()-make_interval(mins=>$2::int) LIMIT 200)
-    AND NOT EXISTS(SELECT 1 FROM app.planning_applied a WHERE a.project_id=p.project_id AND a.plan_id=p.id)
-    AND NOT EXISTS(SELECT 1 FROM app.agent_run_plans r WHERE r.project_id=p.project_id AND r.plan_id=p.id)`,
-  [projectId,PREVIEW_BUDGET.retentionMinutes]);
+  // Select only collectable rows inside the bounded batch: applied and run-linked plans must never
+  // consume the limit, or a project with many committed plans would stop collecting anything.
+  await tx.query(`DELETE FROM app.planning_plans WHERE (project_id,id) IN (
+    SELECT p.project_id,p.id FROM app.planning_plans p
+    WHERE p.project_id=$1 AND p.expires_at<clock_timestamp()-make_interval(mins=>$2::int)
+      AND NOT EXISTS(SELECT 1 FROM app.planning_applied a WHERE a.project_id=p.project_id AND a.plan_id=p.id)
+      AND NOT EXISTS(SELECT 1 FROM app.agent_run_plans r WHERE r.project_id=p.project_id AND r.plan_id=p.id)
+    LIMIT 200)`,[projectId,PREVIEW_BUDGET.retentionMinutes]);
   // Only uncommitted previews are budgeted. An applied plan is committed evidence, not backlog.
   const usage=(await tx.query<{actorPlans:number;projectPlans:number;actorBytes:number;projectBytes:number}>(
     `SELECT count(*) FILTER(WHERE actor_id=$2)::int AS "actorPlans",count(*)::int AS "projectPlans",

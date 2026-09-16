@@ -4,7 +4,7 @@
 
 - Исследование: `8e189329b84649e20c8e02b70ba7f94f69af8c4d`, отдельный неизменённый worktree.
 - Исправления: ветка `feature/sprintique-vnext-audit`.
-- Fingerprint проверенных входов: `c4e016731b3e49c65dccf791437a9b9ea5f855f0c9066c2cff87de93c0dd1753` (checkpoint `2026-09-16T11-16-24.978Z`). Прежний инженерный fingerprint `49b51558edd01bcdc99eaac9a863bfc6f8e8836ad8cf236644f1f2a47c27a2a6` относится к состоянию до исправлений по security-находкам.
+- Fingerprint проверенных входов: `a8c70c58cb0fca8810a0fdc834ca41eb366328e9e56e336b4757f898c77f2e51` (checkpoint `2026-09-16T11-29-49.878Z`). Прежний инженерный fingerprint `49b51558edd01bcdc99eaac9a863bfc6f8e8836ad8cf236644f1f2a47c27a2a6` относится к состоянию до исправлений по security-находкам.
 - DS tar SHA-256: `4b642cf67e7fd2317c0318ca5fea5a57284e00d9122b8cbe1341c6e56c94317c`, выпуск `0.6.0-vnext.2`. Прежний `6490056dd8900177d440431d71d95f5bc7cd4df080cdc99f7743184c704c29ba` заменён: исправления SEC-R4-09…SEC-R4-13 находятся в исходниках библиотеки.
 - Исторический `design-system/` не менялся. Библиотека изменена по протоколу `docs/vnext/BOUNDARIES.md`: правка исходников, инкремент версии, build/test/pack, принятие точного tarball продуктом и обновление lockfile. Публичные декларации не расширялись; `mark()` приведён к уже объявленной сигнатуре без аргументов.
 
@@ -12,7 +12,7 @@
 
 | Gate | Результат | Доказательство |
 | --- | --- | --- |
-| Native PostgreSQL18 + real private S3, после security-исправлений |215 DS,142 product,142 detached,0failed/0skipped | `2026-09-16T11-16-24.978Z` |
+| Native PostgreSQL18 + real private S3, после security-исправлений |215 DS,142 product,142 detached,0failed/0skipped | `2026-09-16T11-29-49.878Z` |
 | Node24 native PostgreSQL18 + real private S3, инженерный этап |209 DS,135 product,135 detached,0failed/0skipped | `2026-09-12T12-32-38.285Z`, завершён12:33:13UTC |
 | Docker PostgreSQL + real private S3, инженерный этап |209 DS,135 product,135 detached,0failed/0skipped | `2026-09-12T12-30-32.505Z`. Повтор на обновлённой ветке: NOT_RUN |
 | Strict build/public boundaries |PASS в обоих прогонах | Library build, product typecheck/Vite/server/OpenAPI, detached clean npm ci/build |

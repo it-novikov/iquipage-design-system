@@ -5,7 +5,7 @@
   "baseline_sha": "8e189329b84649e20c8e02b70ba7f94f69af8c4d",
   "branch": "feature/sprintique-vnext-audit",
   "repository": "https://github.com/it-novikov/iquipage-design-system",
-  "source_fingerprint": "c4e016731b3e49c65dccf791437a9b9ea5f855f0c9066c2cff87de93c0dd1753",
+  "source_fingerprint": "a8c70c58cb0fca8810a0fdc834ca41eb366328e9e56e336b4757f898c77f2e51",
   "ds_archive_sha256": "4b642cf67e7fd2317c0318ca5fea5a57284e00d9122b8cbe1341c6e56c94317c",
   "findings": {
     "engineering": {
@@ -33,7 +33,7 @@
   },
   "verification": {
     "native": {
-      "checkpoint": "2026-09-16T11-16-24.978Z",
+      "checkpoint": "2026-09-16T11-29-49.878Z",
       "ds_tests": 215,
       "product_tests": 142,
       "detached_tests": 142,
