@@ -1,5 +1,6 @@
-import type {Task,TaskData} from '../../contracts/index.js';
+import type {Task,TaskData,TaskReceipt} from '../../contracts/index.js';
 import type {Actor,Transaction} from '../infrastructure/database.js';
+import {grantsRead} from '../infrastructure/database.js';
 import {requireCondition} from '../domain/errors.js';
 import {recordEvent} from './commands.js';
 import {loadPlanningState,planningLock} from './planning.js';
@@ -15,6 +16,10 @@ const projection=`t.id,t.project_id AS "projectId",p.key||'-'||t.number AS "disp
   to_char(t.updated_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS "updatedAt",
   to_char(t.status_entered_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS "statusEnteredAt",
   ARRAY(SELECT tag_id FROM app.task_tags WHERE project_id=t.project_id AND task_id=t.id ORDER BY tag_id) AS "tagIds"`;
+/** One policy for every caller of the canonical saved-task readback: ordinary PUT and the minimal
+ *  position PATCH both return preserved server fields only to a grant that may also read them. */
+export const savedTask=(actor:Actor,task:Task):Task|TaskReceipt=>grantsRead(actor,'tasks:read')?task
+  :{receipt:'task',id:task.id,projectId:task.projectId,displayId:task.displayId,revision:task.revision,updatedAt:task.updatedAt,statusEnteredAt:task.statusEnteredAt};
 export async function readTask(tx:Transaction,projectId:string,id:string):Promise<Task>{
   const value=(await tx.query<Task>(`SELECT ${projection} FROM app.tasks t JOIN app.projects p ON p.id=t.project_id WHERE t.project_id=$1 AND (t.id=$2 OR p.key||'-'||t.number=$2)`,[projectId,id])).rows[0];
   requireCondition(value,404,'NOT_FOUND','Задача недоступна.');return value;
@@ -67,5 +72,5 @@ export async function putTask(tx:Transaction,actor:Actor,projectId:string,id:str
   await linkTaskAssets(tx,actor,projectId,id,value);
   const saved=await readTask(tx,projectId,id);
   await recordEvent(tx,actor,projectId,previous?'task.updated':'task.created',id,saved.revision);
-  return saved;
+  return savedTask(actor,saved);
 }

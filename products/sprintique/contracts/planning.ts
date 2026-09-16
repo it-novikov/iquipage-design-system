@@ -4,6 +4,9 @@ import {Id,Revision,DateOnly,Timezone,TaskInput} from './index.js';
 export const PLANNING_POLICY = 'planning-r3.1';
 export const PAGE_SIZE = 100;
 export const MAX_EXPLICIT_SELECTION = 200;
+/** An uncommitted preview stores a project-sized graph. Outstanding previews are therefore budgeted
+ *  per principal and per project, and expired unapplied ones are collected. */
+export const PREVIEW_BUDGET = {actorPlans:20,projectPlans:200,actorBytes:16*1024*1024,projectBytes:128*1024*1024,retentionMinutes:60} as const;
 const uniqueIds = z.array(Id).max(MAX_EXPLICIT_SELECTION).refine(ids=>new Set(ids).size===ids.length);
 export const SelectionFilter=z.strictObject({q:z.string().max(240).default(''),matchReleaseNames:z.boolean().default(false),preparation:z.enum(['all','draft','ready']).default('all'),owner:z.string().max(120).default(''),releaseId:Id.nullable().optional(),tagIds:z.array(Id).max(30).default([]),tagMode:z.enum(['any','all']).default('any'),roots:uniqueIds.optional(),candidates:z.boolean().default(false),openOnly:z.boolean().default(false)});
 export const Selection = z.discriminatedUnion('kind',[

@@ -1,14 +1,18 @@
 # Sprintique vNext — execution record
 
-## Current R4 audit checkpoint — 2026-09-12
+## Current R4 audit checkpoint — 2026-09-16
 
 The owner requested an independent backend/frontend/security team, implementation of confirmed improvements, and a new PR in this design-system repository. The R3 baseline `8e189329b84649e20c8e02b70ba7f94f69af8c4d` is preserved in a separate clean worktree; fixes are on `feature/sprintique-vnext-audit`. PR #3 is not overwritten. Existing data, production, registry publication and deployment remain out of scope.
 
 The engineering audit identified 18 findings across domain consistency, hierarchy bounds, SQL lock ordering and query cost, frontend lifetime/realtime/recovery, routing, caching and verification tooling. Sixteen have complete targeted fixes; two broader frontend directions have partial improvements with explicit remaining work. See [the research report](audit-r4/README.md), [acceptance and limitations](audit-r4/ACCEPTANCE.md), and [machine-readable state](audit-r4/run-state.json).
 
-Final local engineering gates: **209 DS + 135 product + 135 detached tests, zero failures/skips**, on both native and Docker PostgreSQL with real private S3. Source-stability, standalone library install/build, product typecheck/build, public boundaries and detached extraction pass. Fingerprint: `49b51558edd01bcdc99eaac9a863bfc6f8e8836ad8cf236644f1f2a47c27a2a6`. Consumed DS tar SHA is unchanged. The final non-root/read-only container and targeted real-API Chromium scenarios pass; coverage limits remain explicit.
+The single deep-security coordinator ended with a terminal error on 2026-09-12 at 18:16:51 UTC, in its `discovery` phase, because the provider usage limit was reached. It produced no canonical report; validation, attack-path and reporting never ran. Its preserved partial output — 37 raw findings, 15 distinct after de-duplication — was validated by hand against the fix branch and remediated: twelve fixed, one partially, one fixed in code but not executed, one already closed by the engineering stage. The record, the exact error text and the remaining coverage gaps are in [SECURITY.md](audit-r4/SECURITY.md). No replacement scan was started and the absence of a completed report is not treated as a clean security verdict.
 
-The single deep-security coordinator is still running at this checkpoint. [PR #4](https://github.com/it-novikov/iquipage-design-system/pull/4) is a draft; [GitHub CI on Ubuntu 24.04](https://github.com/it-novikov/iquipage-design-system/actions/runs/34694446823) passed for engineering commit `d597bb7e17d8a0eded9f0b26eb21635875f50747`, with the same downloaded source fingerprint and DS hash. No final security verdict is claimed. This checkpoint supersedes R3's test counts and authorization statement, not its historical evidence. Full-platform-ready remains false.
+Five of those fixes are in the UI library. It follows the change protocol in [BOUNDARIES.md](BOUNDARIES.md): source fix, version increment to `0.6.0-vnext.2`, build/test/pack, and the product adopting the exact new tarball with an updated lockfile.
+
+Local gates after the security remediation: **215 DS + 142 product + 142 detached tests, zero failures/skips**, checkpoint `2026-09-16T11-16-24.978Z` on native PostgreSQL 18 with real private S3. Source-stability, standalone library install/build, product typecheck/build, public boundaries and detached extraction pass. Fingerprint: `c4e016731b3e49c65dccf791437a9b9ea5f855f0c9066c2cff87de93c0dd1753`; consumed DS tar SHA `4b642cf67e7fd2317c0318ca5fea5a57284e00d9122b8cbe1341c6e56c94317c`. The Docker PostgreSQL gate, the runtime container probe, the targeted real-API Chromium scenarios and remote CI were last run for the engineering commit `d597bb7e17d8a0eded9f0b26eb21635875f50747`; they have not been repeated on the updated branch.
+
+[PR #4](https://github.com/it-novikov/iquipage-design-system/pull/4) stays a draft while security coverage is incomplete. This checkpoint supersedes R3's test counts and authorization statement, not its historical evidence. Full-platform-ready remains false.
 
 ## Historical R3 status — 2026-09-12
 

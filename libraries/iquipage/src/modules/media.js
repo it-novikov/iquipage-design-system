@@ -358,7 +358,12 @@ class IqFilePreview extends HTMLElement {
                 body.innerHTML = `<div class="pdf-page-view"><span class="pdf-page-label">Первая страница документа</span><img src="${pageImage}" alt="Первая страница ${safe}"></div>`;
             else
                 body.innerHTML = '<div class="pdf-preview-fallback"><h3>Миниатюра пока недоступна</h3><p>Для нового PDF требуется модуль просмотра. Оригинал доступен независимо от миниатюры.</p></div>';
-            d.querySelector('footer').insertAdjacentHTML('beforeend', `<a class="iq-btn secondary sm" href="${this.url}" target="_blank" rel="noopener">Открыть полный PDF ${icons_js_1.icon('upRight', 17)}</a>`);
+            // A blob URL inherits this origin. The preview kind comes from the file name, so an
+            // HTML-typed original named .pdf must never become an in-origin navigation; re-type it.
+            const navigable = f.type === 'application/pdf' ? this.url : URL.createObjectURL(new Blob([f], { type: 'application/pdf' }));
+            if (navigable !== this.url)
+                d.addEventListener('close', () => URL.revokeObjectURL(navigable), { once: true });
+            d.querySelector('footer').insertAdjacentHTML('beforeend', `<a class="iq-btn secondary sm" href="${navigable}" target="_blank" rel="noopener">Открыть полный PDF ${icons_js_1.icon('upRight', 17)}</a>`);
         }
         else
             body.innerHTML = '<p>Для этого формата нет предпросмотра. Сохраните файл, чтобы открыть его в подходящем приложении.</p>';

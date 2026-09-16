@@ -5,6 +5,7 @@ import {createHash,randomUUID} from 'node:crypto';
 import {setTimeout as delay} from 'node:timers/promises';
 import {fixture} from './fixture.js';
 import {TaskInput} from '../contracts/index.js';
+import type {Task} from '../contracts/index.js';
 import {S3ObjectStorage} from '../backend/infrastructure/object-storage.js';
 import type {ObjectStorage} from '../backend/infrastructure/object-storage.js';
 import {reserveAsset,uploadAsset,discardAsset,objectKey} from '../backend/application/media.js';
@@ -60,7 +61,9 @@ test('R4-B03 upload and concurrent task attachment use one project -> asset lock
   const [uploaded,saved]=await Promise.all([uploadResult,saveResult]);
   assert.ok('value' in uploaded,JSON.stringify('error' in uploaded?{code:uploaded.error?.code}:{}));
   assert.ok('value' in saved,JSON.stringify('error' in saved?{code:saved.error?.code}:{}));
-  assert.deepEqual(saved.value.attachmentIds,['concurrent-file']);
+  // A human keeps the full saved task; only a write-only agent grant receives the compact receipt.
+  assert.ok(!('receipt' in saved.value));
+  assert.deepEqual((saved.value as Task).attachmentIds,['concurrent-file']);
 });
 
 test('R4-B03 queued reserve, upload and discard recheck credential revocation after the project lock',{timeout:10000},async()=>{

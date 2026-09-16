@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-s3": "3.1131.0",
-    "@iquipage/web": "file:vendor/iquipage-web-0.6.0-vnext.1.tgz",
+    "@iquipage/web": "file:vendor/iquipage-web-0.6.0-vnext.2.tgz",
     "fastify": "5.12.4",
     "openid-client": "6.8.8",
     "pg": "8.23.0",

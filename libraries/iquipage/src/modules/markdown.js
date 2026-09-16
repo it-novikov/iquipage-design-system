@@ -6,6 +6,11 @@
  */
 const LIMIT = 1000000;
 const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+/** Explicit total-scan budget. Delimiter and bracket searches are the only super-linear steps here:
+ * once the budget is spent the remaining source degrades to escaped text instead of rescanning suffixes. */
+let work = 0;
+const spend = amount => {work -= amount > 1 ? amount : 1; return work > 0;};
+const SPECIAL = /[\\`*_[!<~\n]/g;
 function safeMarkdownURL(value) {
  const source=String(value??'').trim();
  // Do not allow whitespace, controls, a schemeless origin, credentials or backslashes.
@@ -17,6 +22,7 @@ function safeMarkdownURL(value) {
 function findEnd(text, start, open, close) {
  let depth=1;
  for(let i=start;i<text.length;i++){
+  if(!spend(1))return -1;
   if(text[i]==='\\'){i++;continue;}
   if(text[i]===open){if(++depth>12)return -1;}
   if(text[i]===close&&!--depth)return i;
@@ -25,16 +31,19 @@ function findEnd(text, start, open, close) {
 }
 function inline(text,depth=0,allowLinks=true){
  if(depth>16)return esc(text);
+ // Slicing the whole suffix at every position made a long run of unmatched delimiters quadratic.
+ // Indexed scanning plus a per-delimiter "nothing left to close" memo keeps one pass linear.
+ const closed=new Map();
  let out='',i=0;
  while(i<text.length){
-  const rest=text.slice(i);
   if(text[i]==='\\' && i+1<text.length && /[\\`*_{}\[\]()#+\-.!|>~]/.test(text[i+1])){out+=esc(text[i+1]);i+=2;continue;}
   if(text[i]==='`'){
-   const delimiter=/^`+/.exec(rest)[0],end=text.indexOf(delimiter,i+delimiter.length);
-   if(end>=0){out+='<code>'+esc(text.slice(i+delimiter.length,end).replace(/\n/g,' '))+'</code>';i=end+delimiter.length;continue;}
+   let run=i;while(text[run]==='`')run++;
+   const delimiter=text.slice(i,run),end=text.indexOf(delimiter,run);
+   if(end>=0&&spend(end-i)){out+='<code>'+esc(text.slice(run,end).replace(/\n/g,' '))+'</code>';i=end+delimiter.length;continue;}
   }
   const image=text.startsWith('![',i),link=text[i]==='[';
-  if((image||link)&&allowLinks){
+  if((image||link)&&allowLinks&&work>0){
    const start=i+(image?2:1),end=findEnd(text,start,'[',']');
    if(end>=0&&text[end+1]==='('){
     const finish=findEnd(text,end+2,'(',')');
@@ -49,22 +58,27 @@ function inline(text,depth=0,allowLinks=true){
     }
    }
   }
-  if(allowLinks&&text[i]==='<'){
-   const end=text.indexOf('>',i+1),url=end<0?null:safeMarkdownURL(text.slice(i+1,end));
+  if(allowLinks&&text[i]==='<'&&work>0&&!(closed.get('>')<=i)){
+   const end=text.indexOf('>',i+1);if(end<0)closed.set('>',i);else spend(end-i);
+   const url=end<0?null:safeMarkdownURL(text.slice(i+1,end));
    if(url&&url[0]!=='#'){out+=`<a href="${esc(url)}" target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer">${esc(text.slice(i+1,end))}</a>`;i=end+1;continue;}
   }
   let matched=false;
-  for(const [mark,tag] of [['**','strong'],['__','strong'],['~~','del'],['*','em'],['_','em']]){
+  if(work>0)for(const [mark,tag] of [['**','strong'],['__','strong'],['~~','del'],['*','em'],['_','em']]){
    if(!text.startsWith(mark,i))continue;
    if(mark.includes('_')&&i>0&&/[\p{L}\p{N}]/u.test(text[i-1]))continue;
-   let end=text.indexOf(mark,i+mark.length);
-   while(end>=0&&text[end-1]==='\\')end=text.indexOf(mark,end+mark.length);
+   // An unmatched run is consumed once: a later start cannot find a closing delimiter either.
+   const none=closed.get(mark);if(none!==undefined&&i>=none)continue;
+   let from=i+mark.length,end=text.indexOf(mark,from);
+   while(end>=0&&text[end-1]==='\\'&&spend(end-from)){from=end+mark.length;end=text.indexOf(mark,from);}
+   if(end<0){closed.set(mark,i);continue;}
+   if(!spend(end-i))break;
    if(end>i+mark.length){out+=`<${tag}>${inline(text.slice(i+mark.length,end),depth+1,allowLinks)}</${tag}>`;i=end+mark.length;matched=true;break;}
   }
   if(matched)continue;
   if(text[i]==='\n'){out+='<br>';i++;continue;}
-  // Gather ordinary text so a long paragraph does not repeatedly slice its entire suffix.
-  const next=rest.slice(1).search(/[\\`*_[!<~\n]/),n=next<0?text.length:i+1+next;
+  // Gather ordinary text without slicing the suffix at every position.
+  SPECIAL.lastIndex=i+1;const found=SPECIAL.exec(text),n=found?found.index:text.length;
   out+=esc(text.slice(i,n));i=n;
  }
  return out;
@@ -138,6 +152,7 @@ function safeMarkdown(source,options={}) {
  if(value.length>LIMIT)throw new RangeError('Markdown превышает 1 000 000 знаков. Разделите документ.');
  const level=Number(options.headingLevel??2);
  if(!Number.isInteger(level)||level<1||level>6)throw new RangeError('headingLevel: целое число от 1 до 6');
+ work=8*value.length+100000;
  return renderBlocks(value.replace(/\r\n?/g,'\n').replace(/\t/g,'    ').split('\n'),level);
 }
 Object.assign(exports,{safeMarkdown,safeMarkdownURL,MARKDOWN_MAX_LENGTH:LIMIT});

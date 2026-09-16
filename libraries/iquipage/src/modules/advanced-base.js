@@ -14,6 +14,7 @@ function focusSignature(el) {
  if(el.id)return{id:el.id};
  return null;
 }
+const SURFACE_STATES=['ready','loading','error','empty','blocked'];
 class IqDataSurface extends HTMLElement {
  static get observedAttributes(){return ['readonly','state']}
  constructor(){
@@ -31,9 +32,10 @@ class IqDataSurface extends HTMLElement {
   if(this.selectedDependency&&!(current.dependencies||[]).some(x=>x.id===this.selectedDependency))this.selectedDependency='';
   this.schedule();
  }
- get state(){return this.getAttribute('state')||this._state}
+ // An attribute is caller input; the state enum is component-owned and reaches class/role markup.
+ get state(){const v=this.getAttribute('state');return SURFACE_STATES.includes(v)?v:this._state}
  set state(value){
-  if(!['ready','loading','error','empty','blocked'].includes(value))throw new TypeError('Неизвестное состояние');
+  if(!SURFACE_STATES.includes(value))throw new TypeError('Неизвестное состояние');
   this._state=value;this.setAttribute('state',value);this.schedule();
  }
  get readonly(){return this._readonly||this.hasAttribute('readonly')}

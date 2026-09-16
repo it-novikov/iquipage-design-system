@@ -1,7 +1,9 @@
-import type {Message,Thread,ThreadPage,ThreadSummary} from '../../contracts/index.js';
+import type {Message,Thread,ThreadPage,ThreadReceipt,ThreadSummary} from '../../contracts/index.js';
 import type {Actor,Transaction} from '../infrastructure/database.js';
+import {grantsRead,projectWriteFence} from '../infrastructure/database.js';
 import {requireCondition} from '../domain/errors.js';
-import {recordEvent} from './commands.js';
+import type {Ledger} from './commands.js';
+import {idempotent,recordEvent} from './commands.js';
 import {readTask} from './tasks.js';
 
 const projection=`id,project_id AS "projectId",task_id AS "taskId",revision,requires_resolution AS "requiresResolution",resolved,
@@ -73,31 +75,55 @@ export async function pageThreads(tx:Transaction,projectId:string,taskId:string,
   return {items,total:result.total,unresolved:result.unresolved,
     nextCursor:result.items.length > limit ? Buffer.from(JSON.stringify({projectId,taskId,version:result.version,after:items.at(-1)!.id})).toString('base64url') : null};
 }
-export async function createThread(tx:Transaction,actor:Actor,projectId:string,taskId:string,input:{id:string;messageId:string;body:string;requiresResolution:boolean}){
-  await readTask(tx,projectId,taskId);
-  await tx.query('INSERT INTO app.threads(project_id,id,task_id,requires_resolution) VALUES($1,$2,$3,$4)',[projectId,input.id,taskId,input.requiresResolution]);
-  await tx.query('INSERT INTO app.messages(project_id,id,thread_id,body,author_id) VALUES($1,$2,$3,$4,$5)',[projectId,input.messageId,input.id,input.body,actor.id]);
-  await recordEvent(tx,actor,projectId,'thread.created',input.id,1);
-  return readThread(tx,projectId,input.id);
+/** Append and resolution readback would otherwise hand a write-only grant the human replies
+ *  that were already in the thread. Without threads:read only the caller's own change comes back. */
+export const visibleThread=(actor:Actor,thread:Thread,ownMessageId:string|null):Thread|ThreadReceipt=>
+  grantsRead(actor,'threads:read')?thread:{...thread,receipt:'thread',messages:thread.messages.filter(m=>m.id===ownMessageId)};
+/** The retry receipt keeps identifiers only; the thread itself is read back from canonical state,
+ *  so N appends cost N bounded ledger rows instead of N copies of the whole growing transcript. */
+const threadLedger=(tx:Transaction,actor:Actor,projectId:string,ownMessageId:string|null):Ledger<Thread|ThreadReceipt>=>({
+  store:value=>({thread:value.id,message:ownMessageId}),
+  restore:async record=>{
+    const stored=record as {thread?:string;message?:string|null};
+    // Receipts written before this ledger existed hold the whole thread; still honour the read policy.
+    if(!stored||typeof stored!=='object'||typeof stored.thread!=='string')return visibleThread(actor,record as Thread,ownMessageId);
+    return visibleThread(actor,await readThread(tx,projectId,stored.thread),stored.message??null);
+  }
+});
+export async function createThread(tx:Transaction,actor:Actor,projectId:string,taskId:string,input:{id:string;messageId:string;body:string;requiresResolution:boolean},key:string){
+  await projectWriteFence(tx,actor,projectId,'threads:write');
+  return idempotent(tx,actor,projectId,'thread.create:'+taskId,key,input,async()=>{
+    await readTask(tx,projectId,taskId);
+    await tx.query('INSERT INTO app.threads(project_id,id,task_id,requires_resolution) VALUES($1,$2,$3,$4)',[projectId,input.id,taskId,input.requiresResolution]);
+    await tx.query('INSERT INTO app.messages(project_id,id,thread_id,body,author_id) VALUES($1,$2,$3,$4,$5)',[projectId,input.messageId,input.id,input.body,actor.id]);
+    await recordEvent(tx,actor,projectId,'thread.created',input.id,1);
+    return visibleThread(actor,await readThread(tx,projectId,input.id),input.messageId);
+  },threadLedger(tx,actor,projectId,input.messageId));
 }
 async function lockThread(tx:Transaction,projectId:string,id:string,revision:number){
   const previous=(await tx.query<{revision:number;requires_resolution:boolean}>('SELECT revision,requires_resolution FROM app.threads WHERE project_id=$1 AND id=$2 FOR UPDATE',[projectId,id])).rows[0];
   requireCondition(previous,404,'NOT_FOUND','Обсуждение недоступно.');
   requireCondition(previous.revision===revision,409,'CONFLICT','Обсуждение уже изменено.');return previous;
 }
-export async function appendMessage(tx:Transaction,actor:Actor,projectId:string,threadId:string,input:{id:string;body:string;baseRevision:number}){
-  await lockThread(tx,projectId,threadId,input.baseRevision);
-  const count=(await tx.query<{count:number}>('SELECT count(*)::int AS count FROM app.messages WHERE project_id=$1 AND thread_id=$2',[projectId,threadId])).rows[0]!.count;
-  requireCondition(count<2000,409,'THREAD_LIMIT','Создайте новое обсуждение.');
-  await tx.query('INSERT INTO app.messages(project_id,id,thread_id,body,author_id) VALUES($1,$2,$3,$4,$5)',[projectId,input.id,threadId,input.body,actor.id]);
-  await tx.query('UPDATE app.threads SET revision=revision+1,last_activity_at=clock_timestamp() WHERE project_id=$1 AND id=$2',[projectId,threadId]);
-  await recordEvent(tx,actor,projectId,'thread.message-added',threadId,input.baseRevision+1);
-  return readThread(tx,projectId,threadId);
+export async function appendMessage(tx:Transaction,actor:Actor,projectId:string,threadId:string,input:{id:string;body:string;baseRevision:number},key:string){
+  await projectWriteFence(tx,actor,projectId,'threads:write');
+  return idempotent(tx,actor,projectId,'thread.append:'+threadId,key,input,async()=>{
+    await lockThread(tx,projectId,threadId,input.baseRevision);
+    const count=(await tx.query<{count:number}>('SELECT count(*)::int AS count FROM app.messages WHERE project_id=$1 AND thread_id=$2',[projectId,threadId])).rows[0]!.count;
+    requireCondition(count<2000,409,'THREAD_LIMIT','Создайте новое обсуждение.');
+    await tx.query('INSERT INTO app.messages(project_id,id,thread_id,body,author_id) VALUES($1,$2,$3,$4,$5)',[projectId,input.id,threadId,input.body,actor.id]);
+    await tx.query('UPDATE app.threads SET revision=revision+1,last_activity_at=clock_timestamp() WHERE project_id=$1 AND id=$2',[projectId,threadId]);
+    await recordEvent(tx,actor,projectId,'thread.message-added',threadId,input.baseRevision+1);
+    return visibleThread(actor,await readThread(tx,projectId,threadId),input.id);
+  },threadLedger(tx,actor,projectId,input.id));
 }
-export async function resolveThread(tx:Transaction,actor:Actor,projectId:string,id:string,input:{resolved:boolean;baseRevision:number}){
-  const previous=await lockThread(tx,projectId,id,input.baseRevision);
-  requireCondition(previous.requires_resolution,422,'THREAD_RESOLUTION','Обычный комментарий не требует решения.');
-  await tx.query('UPDATE app.threads SET resolved=$3,resolved_by=CASE WHEN $3 THEN $4 ELSE null END,resolved_at=CASE WHEN $3 THEN clock_timestamp() ELSE null END,revision=revision+1,last_activity_at=clock_timestamp() WHERE project_id=$1 AND id=$2',[projectId,id,input.resolved,actor.id]);
-  await recordEvent(tx,actor,projectId,'thread.resolution-changed',id,input.baseRevision+1);
-  return readThread(tx,projectId,id);
+export async function resolveThread(tx:Transaction,actor:Actor,projectId:string,id:string,input:{resolved:boolean;baseRevision:number},key:string){
+  await projectWriteFence(tx,actor,projectId,'threads:write');
+  return idempotent(tx,actor,projectId,'thread.resolve:'+id,key,input,async()=>{
+    const previous=await lockThread(tx,projectId,id,input.baseRevision);
+    requireCondition(previous.requires_resolution,422,'THREAD_RESOLUTION','Обычный комментарий не требует решения.');
+    await tx.query('UPDATE app.threads SET resolved=$3,resolved_by=CASE WHEN $3 THEN $4 ELSE null END,resolved_at=CASE WHEN $3 THEN clock_timestamp() ELSE null END,revision=revision+1,last_activity_at=clock_timestamp() WHERE project_id=$1 AND id=$2',[projectId,id,input.resolved,actor.id]);
+    await recordEvent(tx,actor,projectId,'thread.resolution-changed',id,input.baseRevision+1);
+    return visibleThread(actor,await readThread(tx,projectId,id),null);
+  },threadLedger(tx,actor,projectId,null));
 }

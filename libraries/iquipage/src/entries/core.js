@@ -67,7 +67,7 @@ export const IqWorkLayout=m16.IqWorkLayout;
 export const registerWorkLayout=m16.registerWorkLayout;
 export const safeMarkdown=m17.safeMarkdown;
 export const safeMarkdownURL=m17.safeMarkdownURL;
-export const version='0.6.0-vnext.1';
+export const version='0.6.0-vnext.2';
 export function registerCore(){
  registerComponents();registerDateFields();registerEditors();registerPagination();registerStructured();registerSideNavigation();registerWorkHeader();registerMarkdownViewer();registerWorkLayout();
  if(!customElements.get('iq-file-preview'))customElements.define('iq-file-preview',IqFilePreview);

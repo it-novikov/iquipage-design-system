@@ -627,6 +627,9 @@ class IqRange extends IqElement {
     }
 }
 exports.IqRange = IqRange;
+/** One validator for mount, property assignment and form reset: a wall clock never reaches markup raw. */
+const isCanonicalTime = value => /^([01]\d|2[0-3]):[0-5]\d$/.test(String(value ?? ''));
+const canonicalTime = value => isCanonicalTime(value) ? String(value) : '14:30';
 class IqCalendar extends IqElement {
     current = new Date();
     chosen = '';
@@ -647,7 +650,7 @@ class IqCalendar extends IqElement {
     }
     get timeValue() { return this.time; }
     set timeValue(value) {
-        if (/^([01]\d|2[0-3]):[0-5]\d$/.test(value)) {
+        if (isCanonicalTime(value)) {
             this.time = value;
             if (this.isConnected)
                 this.render();
@@ -664,8 +667,7 @@ class IqCalendar extends IqElement {
         this.focused = this.chosen;
         this.current = new Date(this.chosen + 'T12:00:00');
         this.current.setDate(1);
-        const time = this.getAttribute('time') || '14:30';
-        this.time = /^([01]\d|2[0-3]):[0-5]\d$/.test(time) ? time : '14:30';
+        this.time = canonicalTime(this.getAttribute('time'));
         this.render();
         this.listen(this, 'click', ev => {
             const b = ev.target.closest('[data-month],[data-date]');
@@ -706,8 +708,9 @@ class IqCalendar extends IqElement {
         });
         const f = this.closest('form');
         if (f)
-            this.listen(f, 'reset', () => { this.value = this.initial; this.time = this.getAttribute('time') || '14:30'; this.render(); });
+            this.listen(f, 'reset', () => this.resetToInitial());
     }
+    resetToInitial() { this.value = this.initial; this.time = canonicalTime(this.getAttribute('time')); this.render(); }
     displayTime() { const [h, m] = this.time.split(':'); return this.cycle === 24 ? this.time : `${String(Number(h) % 12 || 12).padStart(2, '0')}:${m} ${Number(h) >= 12 ? 'PM' : 'AM'}`; }
     changed() { this.emit('iq-change', { value: this.chosen, ...(this.hasAttribute('with-time') ? { time: this.time, localDateTime: this.chosen + 'T' + this.time } : {}) }); }
     render() {
@@ -727,7 +730,7 @@ class IqCalendar extends IqElement {
             rows += '</div>';
         }
         const name = this.hasAttribute('data-field-calendar') ? '' : escapeHTML(this.getAttribute('name') || 'date'), [h, minute] = this.time.split(':');
-        this.innerHTML = `<div class="iq-calendar-heading"><b aria-live="polite">${label}</b><div class="calendar-arrows"><button type="button" class="iq-btn icon ghost sm" data-month="-1" aria-label="Предыдущий месяц">${icons_js_1.icon('left', 18)}</button><button type="button" class="iq-btn icon ghost sm" data-month="1" aria-label="Следующий месяц">${icons_js_1.icon('chevron', 18)}</button></div></div><div class="iq-calendar-grid" role="grid" aria-label="${label}"><div role="row" class="iq-calendar-week">${['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'].map(x => `<span role="columnheader">${x}</span>`).join('')}</div>${rows}</div>${this.hasAttribute('with-time') ? `<iq-time value="${this.time}" hour-cycle="${this.cycle}"></iq-time>` : ''}<div class="iq-calendar-foot"><span>${icons_js_1.icon('calendar', 17)}<span>${new Date(this.chosen + 'T12:00:00').toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}</span></span>${this.hasAttribute('with-time') ? `<output>${this.displayTime()}</output>` : '<span class="calendar-foot-hint">Выбрано</span>'}</div>${name ? `<input type="hidden" name="${name}" value="${this.chosen}">` : ''}${this.hasAttribute('with-time') && name ? `<input type="hidden" data-time-hidden name="${name}-time" value="${this.time}">` : ''}`;
+        this.innerHTML = `<div class="iq-calendar-heading"><b aria-live="polite">${label}</b><div class="calendar-arrows"><button type="button" class="iq-btn icon ghost sm" data-month="-1" aria-label="Предыдущий месяц">${icons_js_1.icon('left', 18)}</button><button type="button" class="iq-btn icon ghost sm" data-month="1" aria-label="Следующий месяц">${icons_js_1.icon('chevron', 18)}</button></div></div><div class="iq-calendar-grid" role="grid" aria-label="${label}"><div role="row" class="iq-calendar-week">${['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'].map(x => `<span role="columnheader">${x}</span>`).join('')}</div>${rows}</div>${this.hasAttribute('with-time') ? `<iq-time value="${escapeHTML(this.time)}" hour-cycle="${this.cycle}"></iq-time>` : ''}<div class="iq-calendar-foot"><span>${icons_js_1.icon('calendar', 17)}<span>${new Date(this.chosen + 'T12:00:00').toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}</span></span>${this.hasAttribute('with-time') ? `<output>${this.displayTime()}</output>` : '<span class="calendar-foot-hint">Выбрано</span>'}</div>${name ? `<input type="hidden" name="${name}" value="${this.chosen}">` : ''}${this.hasAttribute('with-time') && name ? `<input type="hidden" data-time-hidden name="${name}-time" value="${escapeHTML(this.time)}">` : ''}`;
     }
     focusActiveDate() { this.focusControl(`[data-date="${this.focused}"]`); }
     focusControl(selector) {

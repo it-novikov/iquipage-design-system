@@ -1,7 +1,7 @@
 import type {FastifyInstance} from 'fastify';
 import type {Authenticated} from './app.js';
 import {params,mutationKey} from './app.js';
-import {authorize} from '../infrastructure/database.js';
+import {authorize,projectWriteFence} from '../infrastructure/database.js';
 import {PutTag,PutRelease} from '../../contracts/index.js';
 import {idempotent,recordEvent} from '../application/commands.js';
 import {requireCondition} from '../domain/errors.js';
@@ -17,10 +17,9 @@ export function registerCatalogRoutes(app:FastifyInstance,authenticated:Authenti
       requireCondition(rows.length<=500,409,'CATALOG_LIMIT','Каталог достиг лимита.');return rows;
     }));
     app.put(`/api/v1/projects/:projectId/${collection}/:id`,request=>authenticated(request,async(tx,actor)=>{
-      const {projectId,id}=params(request);await authorize(tx,actor,projectId,'catalog:write');
+      const {projectId,id}=params(request);await projectWriteFence(tx,actor,projectId,'catalog:write');
       const input=collection==='tags'?PutTag.parse(request.body):PutRelease.parse(request.body);
       return idempotent(tx,actor,projectId,collection+':'+id,mutationKey(request),input,async()=>{
-        await tx.query('SELECT id FROM app.projects WHERE id=$1 FOR UPDATE',[projectId]);
         await authorize(tx,actor,projectId,'catalog:write');
         const previous=(await tx.query<{revision:number}>(`SELECT revision FROM app.${collection} WHERE project_id=$1 AND id=$2`,[projectId,id])).rows[0];
         requireCondition((previous?.revision||0)===input.baseRevision,409,'CONFLICT','Каталог уже изменён.');

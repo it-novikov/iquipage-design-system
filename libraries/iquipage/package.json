@@ -1,6 +1,6 @@
 {
   "name": "@iquipage/web",
-  "version": "0.6.0-vnext.1",
+  "version": "0.6.0-vnext.2",
   "private": true,
   "type": "module",
   "description": "IQUIPAGE standalone Web Components library",

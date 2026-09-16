@@ -13,11 +13,16 @@ export class MapMedia {
     // Retain only one open map; each image is a server-bounded, re-encoded display derivative.
     const keys=new Set(value.document.objects.filter(object=>object.type==='image').map(object=>prefix+object.id));
     for(const key of this.images.keys())if(!keys.has(key))this.images.delete(key);
+    // Several objects may reference one asset: fetch each display derivative once per hydration.
+    const byAsset=new Map();
+    for(const [,entry] of this.images)if(entry.display)byAsset.set(entry.assetId,entry.src);
     for(const object of value.document.objects){
       if(object.type!=='image')continue;
       const key=prefix+object.id,cached=this.images.get(key);let src;
       if(cached?.assetId===object.assetId&&cached.display)src=cached.src;
-      else {const blob=await this.repository.attachmentAdapter.blob({projectId:record.projectId,id:object.assetId,variant:'display'},{signal});signal?.throwIfAborted();src=await dataURL(blob);signal?.throwIfAborted();this.images.set(key,{assetId:object.assetId,src,display:true});}
+      else if(byAsset.has(object.assetId))src=byAsset.get(object.assetId);
+      else {const blob=await this.repository.attachmentAdapter.blob({projectId:record.projectId,id:object.assetId,variant:'display'},{signal});signal?.throwIfAborted();src=await dataURL(blob);signal?.throwIfAborted();}
+      byAsset.set(object.assetId,src);this.images.set(key,{assetId:object.assetId,src,display:true});
       object.src=src;delete object.assetId;
     }
     return value;
@@ -26,6 +31,7 @@ export class MapMedia {
     const document=structuredClone(record.document);let count=0;
     for(const object of document.objects){
       if(object.type!=='image')continue;
+      // The same bound as the canonical schema: image objects, not distinct asset ids.
       if(++count>40)throw new ApiError('MAP_IMAGE_LIMIT','На карте может быть до 40 изображений.',422);
       const key=record.projectId+':'+record.id+':'+object.id,cached=this.images.get(key);
       if(cached?.src===object.src)object.assetId=cached.assetId;

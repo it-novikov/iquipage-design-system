@@ -18,6 +18,7 @@ function chartScale(values){
  const low=Math.max(-1,Math.floor(min/step)*step),high=Math.min(1,Math.ceil((max===min?1:max)/step)*step);
  return{maximum,low,high,range:high-low||1,ticks:Array.from({length:5},(_,i)=>low+(high-low)*i/4)};
 }
+const CHART_STATES=['ready','loading','empty','error'];
 class IqDataChart extends HTMLElement {
  static get observedAttributes(){return ['type','state']}
  constructor(){
@@ -28,8 +29,9 @@ class IqDataChart extends HTMLElement {
  set data(v){const result=C.chartData(v);this._data=result.data;this.missing=result.missing;this.hiddenSeries=new Set([...this.hiddenSeries].filter(id=>v.series.some(s=>s.id===id)));this.active={index:0,series:0};this.render()}
  get type(){return this.getAttribute('type')==='bar'?'bar':'line'}
  set type(v){if(!['bar','line'].includes(v))throw new TypeError('Вид: line или bar');this.setAttribute('type',v)}
- get state(){return this.getAttribute('state')||'ready'}
- set state(v){if(!['ready','loading','empty','error'].includes(v))throw new TypeError('Неизвестное состояние диаграммы');this.setAttribute('state',v)}
+ // Independent of IqDataSurface: this getter feeds class and role markup and must normalize too.
+ get state(){const v=this.getAttribute('state');return CHART_STATES.includes(v)?v:'ready'}
+ set state(v){if(!CHART_STATES.includes(v))throw new TypeError('Неизвестное состояние диаграммы');this.setAttribute('state',v)}
  attributeChangedCallback(){if(this.isConnected)this.render()}
  connectedCallback(){
   this.events?.abort();this.events=new AbortController();const signal=this.events.signal;

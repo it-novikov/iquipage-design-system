@@ -1,6 +1,6 @@
 # Planning R2 consumer contract
 
-Contract catalog version **2**, policy **planning-r2.1**, product **2.0.0-alpha.0**, unchanged private DS **0.6.0-vnext.1**. `contracts/` has no backend or DS dependency; `client/planning.ts` is the typed consumer facade. Do not copy server resolvers into a frontend store. This is a clean-launch schema (migrations 001–004), not an old-platform database upgrade.
+Contract catalog version **2**, policy **planning-r2.1**, product **2.0.0-alpha.0**, private DS **0.6.0-vnext.2**. `contracts/` has no backend or DS dependency; `client/planning.ts` is the typed consumer facade. Do not copy server resolvers into a frontend store. This is a clean-launch schema (migrations 001–004), not an old-platform database upgrade.
 
 ## Model and compatibility
 

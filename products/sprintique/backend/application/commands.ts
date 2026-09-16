@@ -8,15 +8,19 @@ export function canonical(value:unknown):string {
   if(value!==null&&typeof value==='object')return '{'+Object.entries(value).sort(([a],[b])=>a.localeCompare(b)).map(([k,v])=>JSON.stringify(k)+':'+canonical(v)).join(',')+'}';
   return JSON.stringify(value);
 }
+/** A growing aggregate must not be copied into every retry receipt: store identifiers and rebuild
+ *  the response from canonical state, so the ledger stays constant-size per command. */
+export interface Ledger<T> {store(value:T):unknown;restore(record:unknown):Promise<T>}
 /** Same transaction as canonical state, audit and outbox. A retry never runs a second effect. */
-export async function idempotent<T>(tx:Transaction,actor:Actor,projectId:string,operation:string,key:string,input:unknown,execute:()=>Promise<T>):Promise<T>{
+export async function idempotent<T>(tx:Transaction,actor:Actor,projectId:string,operation:string,key:string,input:unknown,execute:()=>Promise<T>,ledger?:Ledger<T>):Promise<T>{
   requireCondition(/^[A-Za-z0-9_-]{8,120}$/.test(key),400,'IDEMPOTENCY_KEY','Передайте корректный Idempotency-Key.');
   const requestHash=hash(canonical(input));
   await tx.query('SELECT pg_advisory_xact_lock(hashtextextended($1,0))',[`${actor.id}:${projectId}:${operation}:${key}`]);
-  const previous=(await tx.query<{request_hash:string;result:T}>(`SELECT request_hash,result FROM app.idempotency WHERE actor_id=$1 AND project_id=$2 AND operation=$3 AND key=$4`,[actor.id,projectId,operation,key])).rows[0];
-  if(previous){requireCondition(previous.request_hash===requestHash,409,'IDEMPOTENCY_CONFLICT','Ключ повтора уже использован для другого запроса.');return previous.result;}
+  const previous=(await tx.query<{request_hash:string;result:unknown}>(`SELECT request_hash,result FROM app.idempotency WHERE actor_id=$1 AND project_id=$2 AND operation=$3 AND key=$4`,[actor.id,projectId,operation,key])).rows[0];
+  if(previous){requireCondition(previous.request_hash===requestHash,409,'IDEMPOTENCY_CONFLICT','Ключ повтора уже использован для другого запроса.');
+    return ledger?ledger.restore(previous.result):previous.result as T;}
   const result=await execute();
-  await tx.query('INSERT INTO app.idempotency(actor_id,project_id,operation,key,request_hash,result) VALUES($1,$2,$3,$4,$5,$6)',[actor.id,projectId,operation,key,requestHash,JSON.stringify(result)]);
+  await tx.query('INSERT INTO app.idempotency(actor_id,project_id,operation,key,request_hash,result) VALUES($1,$2,$3,$4,$5,$6)',[actor.id,projectId,operation,key,requestHash,JSON.stringify(ledger?ledger.store(result):result)]);
   return result;
 }
 export async function recordEvent(tx:Transaction,actor:Actor,projectId:string,action:string,resourceId:string,revision:number){

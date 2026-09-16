@@ -51,6 +51,18 @@ export async function authorize(tx:Transaction,actor:Actor,projectId:string,capa
   if(capability==='agents:manage'||capability==='catalog:write') requireCondition(actor.kind==='human'&&row.role==='admin',403,'FORBIDDEN','Нужны права администратора проекта.');
   return row;
 }
+/** A grant that carries write without the matching read must not receive existing content back.
+ *  Humans read through project membership; only agent grants can be write-only. */
+export const grantsRead=(actor:Actor,capability:Capability)=>actor.kind!=='agent'||actor.capabilities.includes(capability);
+/** Shared mutation fence. Take the project aggregate row first, then revalidate the live credential
+ *  and the exact capability, so a revocation committed while the request waited cannot be outrun.
+ *  Every mutation family uses project -> resource order; nothing takes a resource lock first. */
+export async function projectWriteFence(tx:Transaction,actor:Actor,projectId:string,capability:Capability|'catalog:write'|'agents:manage'){
+  await authorize(tx,actor,projectId,capability);
+  await tx.query('SELECT id FROM app.projects WHERE id=$1 FOR UPDATE',[projectId]);
+  await requireActiveCredential(tx,actor);
+  return authorize(tx,actor,projectId,capability);
+}
 export async function requireActiveCredential(tx:Transaction,actor:Actor){
   const found=await tx.query(`SELECT 1 FROM auth.credentials c JOIN auth.principals p ON p.id=c.principal_id
     WHERE c.id=$1 AND c.revoked_at IS NULL AND c.expires_at>clock_timestamp() AND p.disabled_at IS NULL`,[actor.credentialId]);

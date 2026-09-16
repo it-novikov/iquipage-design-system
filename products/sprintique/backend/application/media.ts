@@ -3,6 +3,7 @@ import {authorize,requireActiveCredential} from '../infrastructure/database.js';
 import {requireCondition,Problem} from '../domain/errors.js';
 import {idempotent,recordEvent} from './commands.js';
 import type {Reservation,TaskMediaData} from '../../contracts/media.js';
+import {MAP_IMAGE_LIMIT} from '../../contracts/maps.js';
 import type {ObjectStorage} from '../infrastructure/object-storage.js';
 import {objectKey} from '../infrastructure/object-storage.js';
 export {objectKey} from '../infrastructure/object-storage.js';
@@ -107,7 +108,9 @@ export async function linkTaskAssets(tx:Transaction,actor:Actor,projectId:string
 
 /** Map history pins referenced assets; deleting a note does not corrupt an immutable version. */
 export async function linkMapAssets(tx:Transaction,actor:Actor,projectId:string,mapId:string,ids:string[]){
-  const unique=[...new Set(ids)].sort();requireCondition(unique.length<=40,422,'MAP_IMAGE_LIMIT','На карте может быть до 40 изображений.');
+  // Count references before de-duplication: the canonical schema bounds image objects, not asset ids.
+  requireCondition(ids.length<=MAP_IMAGE_LIMIT,422,'MAP_IMAGE_LIMIT','На карте может быть до 40 изображений.');
+  const unique=[...new Set(ids)].sort();requireCondition(unique.length<=MAP_IMAGE_LIMIT,422,'MAP_IMAGE_LIMIT','На карте может быть до 40 изображений.');
   if(!unique.length)return;
   const rows=(await tx.query<Asset>(`SELECT ${projection} FROM app.assets WHERE project_id=$1 AND id=ANY($2) ORDER BY id FOR UPDATE`,[projectId,unique])).rows;
   requireCondition(rows.length===unique.length,422,'MAP_FILE_ACCESS','Изображение недоступно.');

@@ -24,16 +24,30 @@ export const MapConnection=z.strictObject({id:Id,from:Id,to:Id,label:z.string().
   dashed:z.boolean().optional(),color:z.enum(['neutral','accent','success','warning','error']).optional(),
   labelPosition:z.number().min(0).max(1).optional(),bend:coordinate.optional()
 });
+/** Images are counted as objects, before asset de-duplication: repeating one asset id still costs
+ *  every viewer a hydration. Parallel edges are bounded because routing is per connection. */
+export const MAP_IMAGE_LIMIT=40,MAP_PAIR_CONNECTIONS=16;
 export const MapDocument=z.strictObject({schema:z.literal('iquipage.whiteboard/1'),title:z.string().max(160),revision:Revision,
   objects:z.array(MapObject).max(600),connections:z.array(MapConnection).max(1600)
 }).superRefine((doc,ctx)=>{
   const byId=new Map(doc.objects.map(o=>[o.id,o])),ids=new Set(byId.keys());
   if(ids.size!==doc.objects.length)ctx.addIssue({code:'custom',message:'Duplicate object id.'});
+  if(doc.objects.filter(o=>o.type==='image').length>MAP_IMAGE_LIMIT)ctx.addIssue({code:'custom',message:'Too many image objects.'});
   for(const o of doc.objects){
     const seen=new Set([o.id]);let current=o;
     while(current.parentId){const parent=byId.get(current.parentId);if(!parent||parent.type!=='frame'||seen.has(parent.id)){ctx.addIssue({code:'custom',message:'Invalid frame hierarchy.'});break;}seen.add(parent.id);current=parent;}
   }
-  for(const edge of doc.connections){if(ids.has(edge.id)||!byId.has(edge.from)||!byId.has(edge.to)||edge.from===edge.to)ctx.addIssue({code:'custom',message:'Invalid connection.'});ids.add(edge.id);}
+  const geometry=new Set<string>(),pairs=new Map<string,number>();
+  for(const edge of doc.connections){
+    if(ids.has(edge.id)||!byId.has(edge.from)||!byId.has(edge.to)||edge.from===edge.to)ctx.addIssue({code:'custom',message:'Invalid connection.'});
+    ids.add(edge.id);
+    const shape=[edge.from,edge.to,edge.fromPort??'auto',edge.toPort??'auto',edge.style??'curve',edge.bend??0].join('|');
+    if(geometry.has(shape))ctx.addIssue({code:'custom',message:'Duplicate connection geometry.'});
+    geometry.add(shape);
+    const pair=edge.from<edge.to?edge.from+'|'+edge.to:edge.to+'|'+edge.from,count=(pairs.get(pair)||0)+1;
+    pairs.set(pair,count);
+    if(count>MAP_PAIR_CONNECTIONS)ctx.addIssue({code:'custom',message:'Too many connections between the same objects.'});
+  }
 });
 export const MapSession=z.strictObject({phase:z.enum(['collect','discuss','vote','outcomes']),voteLimit:z.number().int().min(1).max(100)});
 export const MapInput=z.strictObject({

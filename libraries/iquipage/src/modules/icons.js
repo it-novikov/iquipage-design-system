@@ -24,7 +24,7 @@ function icon(name, size = 20) {
     const dimension = Number.isFinite(Number(size)) ? Math.max(12, Math.min(96, Number(size))) : 20;
     return `<svg class="iq-icon" data-glyph="${key}" data-icon-source="lucide" data-lucide="${names[key]}" width="${dimension}" height="${dimension}" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true" focusable="false">${glyphs[key]}</svg>`;
 }
-function mark(cls = '') { return `<svg class="iq-mark ${cls}" width="33" height="30" viewBox="0 0 40 36" fill="currentColor" aria-hidden="true"><path d="M3 29 7.4 17h6.4L9.4 29H3Zm10.5 0L21 8h6.4l-7.5 21h-6.4ZM24 29 34.3 1H40L29.7 29H24Z"/></svg>`; }
+function mark() { return `<svg class="iq-mark" width="33" height="30" viewBox="0 0 40 36" fill="currentColor" aria-hidden="true"><path d="M3 29 7.4 17h6.4L9.4 29H3Zm10.5 0L21 8h6.4l-7.5 21h-6.4ZM24 29 34.3 1H40L29.7 29H24Z"/></svg>`; }
 
 
 // Official Lucide text-alignment SVG geometry, retrieved 2026-09-07.

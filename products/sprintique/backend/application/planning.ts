@@ -4,7 +4,7 @@ import {authorize,hash,secret} from '../infrastructure/database.js';
 import {Problem,requireCondition} from '../domain/errors.js';
 import {planChange,projectRows,validateTemporal} from '../domain/planning.js';
 import type {PlanningState,PlanResult,TaskState,HistoryItem} from '../domain/planning.js';
-import {PLANNING_POLICY,PAGE_SIZE} from '../../contracts/planning.js';
+import {PLANNING_POLICY,PAGE_SIZE,PREVIEW_BUDGET} from '../../contracts/planning.js';
 import type {Page,PlanningQuery,PlanningRow,PlanningCommand,Preview,Receipt,Release,ReleaseData,Milestone,TemporalConstraint} from '../../contracts/planning.js';
 import {idempotent,canonical} from './commands.js';
 import {linkTaskAssets} from './media.js';
@@ -108,9 +108,34 @@ async function readPlan(tx:Transaction,actor:Actor,projectId:string,id:string):P
     FROM app.planning_plans WHERE project_id=$1 AND id=$2 AND actor_id=$3`,[projectId,id,actor.id])).rows[0];
   requireCondition(row,404,'PLAN_NOT_FOUND','План недоступен.');return row;
 }
+/** Bounded collection of previews that can never be applied any more, then an explicit budget.
+ *  Both run under the project aggregate lock already held by planningLock. */
+async function budgetPreviews(tx:Transaction,actor:Actor,projectId:string){
+  await tx.query(`DELETE FROM app.planning_plans p WHERE (p.project_id,p.id) IN (
+      SELECT project_id,id FROM app.planning_plans
+      WHERE project_id=$1 AND expires_at<clock_timestamp()-make_interval(mins=>$2::int) LIMIT 200)
+    AND NOT EXISTS(SELECT 1 FROM app.planning_applied a WHERE a.project_id=p.project_id AND a.plan_id=p.id)
+    AND NOT EXISTS(SELECT 1 FROM app.agent_run_plans r WHERE r.project_id=p.project_id AND r.plan_id=p.id)`,
+  [projectId,PREVIEW_BUDGET.retentionMinutes]);
+  // Only uncommitted previews are budgeted. An applied plan is committed evidence, not backlog.
+  const usage=(await tx.query<{actorPlans:number;projectPlans:number;actorBytes:number;projectBytes:number}>(
+    `SELECT count(*) FILTER(WHERE actor_id=$2)::int AS "actorPlans",count(*)::int AS "projectPlans",
+       coalesce(sum(pg_column_size(command)+pg_column_size(effects)+pg_column_size(summary)) FILTER(WHERE actor_id=$2),0)::float8 AS "actorBytes",
+       coalesce(sum(pg_column_size(command)+pg_column_size(effects)+pg_column_size(summary)),0)::float8 AS "projectBytes"
+     FROM app.planning_plans p WHERE p.project_id=$1
+       AND NOT EXISTS(SELECT 1 FROM app.planning_applied a WHERE a.project_id=p.project_id AND a.plan_id=p.id)`,[projectId,actor.id])).rows[0]!;
+  requireCondition(usage.actorPlans<PREVIEW_BUDGET.actorPlans&&usage.actorBytes<PREVIEW_BUDGET.actorBytes,
+    429,'PREVIEW_QUOTA','Слишком много неприменённых предпросмотров. Примените или дождитесь истечения прежних.');
+  requireCondition(usage.projectPlans<PREVIEW_BUDGET.projectPlans&&usage.projectBytes<PREVIEW_BUDGET.projectBytes,
+    429,'PREVIEW_QUOTA','В проекте слишком много неприменённых предпросмотров.');
+}
 export async function preview(tx:Transaction,actor:Actor,projectId:string,command:PlanningCommand):Promise<Preview>{
   const {revision}=await planningLock(tx,actor,projectId,true);
+  // Effects carry before/after projections of tasks the caller never supplied: a write-only grant
+  // must not turn a preview into a project-wide read.
+  await authorize(tx,actor,projectId,'tasks:read');
   if(command.kind==='settings')await authorize(tx,actor,projectId,'catalog:write');
+  await budgetPreviews(tx,actor,projectId);
   requireCondition(command.kind!=='release.create'||command.projectId===projectId,422,'PROJECT_SCOPE','Релиз другого проекта.');
   const state=await loadPlanningState(tx,projectId),effects=planChange(state,command);
   if((command.kind==='task.edit'||command.kind==='task.create')&&command.task.tagIds.length){

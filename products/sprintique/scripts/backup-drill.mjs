@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {mkdir,readFile,writeFile} from 'node:fs/promises';
 import {resolve} from 'node:path';
-import {randomUUID,createHash} from 'node:crypto';
+import {randomUUID,createHash,randomBytes} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
 import {setTimeout} from 'node:timers/promises';
 import pg from 'pg';
@@ -18,6 +18,9 @@ assert.equal(docker('inspect','--format','{{index .Config.Labels "sprintique.own
 assert.equal(docker('inspect','--format','{{index .Config.Labels "sprintique.owner"}}','sprintique-vnext-qa-garage'),'vnext-qa');
 const sha=value=>createHash('sha256').update(value).digest('hex');
 const runId=randomUUID(),target='sprintique-restore-'+runId,objectPrefix='restore-drill/'+runId+'/',backup=root+'/backups/'+runId;
+// The restore holds real private data on a published loopback port: every TCP login is authenticated
+// with a fresh per-run secret instead of trust, so another local process cannot read the copy.
+const restoreSecret=randomBytes(24).toString('base64url');
 const sourceDb=new pg.Client({host:'127.0.0.1',port:54329,user:'postgres',password:identity.database.admin,database:'sprintique'});
 const objects=new S3ObjectStorage(storageConfig),written=[];
 let created=false,restoredDb,api,restoredAdmin;
@@ -53,15 +56,19 @@ try{
   assert.ok(manifest.objects.length>0,'The drill must include a real private file, not only empty storage.');
   await writeFile(backup+'/manifest.json',JSON.stringify(manifest,null,2),{mode:0o600,flag:'wx'});
   assert.deepEqual(await fingerprints(sourceDb,['app','auth','work']),manifest.tables,'Canonical data changed during backup; discard this checkpoint.');
-  docker('create','--name',target,'--label','sprintique.owner=restore-drill','--publish','127.0.0.1::5432','--memory','512m','--cpus','1','--env','POSTGRES_HOST_AUTH_METHOD=trust','postgres@sha256:1c59e2c3c818eaa0f0628f695b36e7c9e362d6b219b36a54a32df645cbd7e1af');created=true;docker('start',target);
+  docker('create','--name',target,'--label','sprintique.owner=restore-drill','--publish','127.0.0.1::5432','--memory','512m','--cpus','1',
+    '--env','POSTGRES_PASSWORD='+restoreSecret,'--env','POSTGRES_INITDB_ARGS=--auth-host=scram-sha-256',
+    'postgres@sha256:1c59e2c3c818eaa0f0628f695b36e7c9e362d6b219b36a54a32df645cbd7e1af');created=true;docker('start',target);
   const port=Number(docker('port',target,'5432/tcp').split(':').at(-1));assert.ok(port);
-  const url=(role,database='sprintique')=>`postgresql://${role}@127.0.0.1:${port}/${database}`;
+  const url=(role,database='sprintique')=>`postgresql://${role}:${encodeURIComponent(restoreSecret)}@127.0.0.1:${port}/${database}`;
   for(let attempt=0;attempt<60;attempt++){
     const client=new pg.Client({connectionString:url('postgres','postgres'),connectionTimeoutMillis:1000});
     try{await client.connect();restoredAdmin=client;break;}catch{await client.end().catch(()=>{});await setTimeout(500);}
   }
   assert.ok(restoredAdmin,'Isolated restore PostgreSQL did not start.');
-  for(const role of ['sprintique_migrator','sprintique_app','sprintique_worker','sprintique_identity'])await restoredAdmin.query(`CREATE ROLE ${role} LOGIN NOSUPERUSER NOBYPASSRLS`);
+  // Role names are code-owned constants; the secret is base64url and carries no quote characters.
+  for(const role of ['sprintique_migrator','sprintique_app','sprintique_worker','sprintique_identity'])
+    await restoredAdmin.query(`CREATE ROLE ${role} LOGIN NOSUPERUSER NOBYPASSRLS PASSWORD '${restoreSecret}'`);
   for(const [database,owner] of [['sprintique','sprintique_migrator'],['sprintique_identity','sprintique_identity']]){
     await restoredAdmin.query(`CREATE DATABASE ${database} OWNER ${owner}`);
     const file=manifest.files.find(f=>f.file===database+'.dump'),bytes=await readFile(backup+'/'+file.file);assert.equal(sha(bytes),file.sha256);
@@ -84,7 +91,12 @@ try{
   const evidence={date:new Date().toISOString(),backupId:runId,localOnly:true,canonicalTables:manifest.tables.length,canonicalRows:manifest.tables.reduce((n,t)=>n+t.count,0),dumpFiles:manifest.files.length,privateObjects:manifest.objects.length,authenticatedFiles,identityUsers,identityLoginAfterRestore:'NOT_RUN',sourceUnchanged:true,restoreIsolated:true,productionTouched:false};
   await writeFile(root+'/backup-verification.json',JSON.stringify(evidence,null,2));console.log(JSON.stringify(evidence));
 }finally{
-  await api?.close();await restoredDb?.close();await restoredAdmin?.end();await sourceDb.end();
-  for(const key of written)await objects.remove(key);objects.close();
+  // A failed client or object cleanup must never leave the restored private copy running.
+  const failures=[];
+  const step=async action=>{try{await action();}catch(error){failures.push(error);}};
+  await step(()=>api?.close());await step(()=>restoredDb?.close());await step(()=>restoredAdmin?.end());await step(()=>sourceDb.end());
+  for(const key of written)await step(()=>objects.remove(key));
+  await step(async()=>objects.close());
   if(created){assert.equal(docker('inspect','--format','{{index .Config.Labels "sprintique.owner"}}',target),'restore-drill');docker('stop','--time','10',target);docker('rm','--volumes',target);}
+  if(failures.length)throw failures[0];
 }

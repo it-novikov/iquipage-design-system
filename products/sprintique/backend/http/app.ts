@@ -66,7 +66,16 @@ export async function createApp({db,origin,oidc,logger=false,storage,metricsToke
     return fn(tx,actor);
   });
   app.get('/health',async()=>({status:'ok',version:'2.0.0-alpha.0'}));
-  app.get('/ready',async()=>{await db.checkRuntimeRole();await checkSchema(db);await storage?.ready();return {status:'ready'};});
+  // Readiness stays reachable for container probes, so anonymous traffic must not multiply into
+  // database and object-storage work: concurrent probes share one dependency check, and the
+  // per-address window in registerLimits also covers this route. Each new request still re-probes,
+  // so a dependency failure is reported immediately rather than hidden behind a cached result.
+  let readiness:Promise<void>|null=null;
+  app.get('/ready',async()=>{
+    const probe=readiness??=(async()=>{await db.checkRuntimeRole();await checkSchema(db);await storage?.ready();})()
+      .finally(()=>{readiness=null;});
+    await probe;return {status:'ready'};
+  });
   app.get('/api/v1/session',request=>authenticated(request,identity.sessionInfo));
   app.post('/api/v1/logout',(request,reply)=>authenticated(request,async(tx,actor)=>{
     await tx.query('UPDATE auth.credentials SET revoked_at=clock_timestamp() WHERE id=$1',[actor.credentialId]);
@@ -104,17 +113,18 @@ export async function createApp({db,origin,oidc,logger=false,storage,metricsToke
   app.get('/api/v1/projects/:projectId/threads/:id',request=>authenticated(request,async(tx,actor)=>{
     const {projectId,id}=params(request);await authorize(tx,actor,projectId,'threads:read');return discussions.readThread(tx,projectId,id!);
   }));
+  // The discussion use cases own the write fence and the retry ledger; the route only parses input.
   app.post('/api/v1/projects/:projectId/tasks/:id/threads',request=>authenticated(request,async(tx,actor)=>{
-    const {projectId,id}=params(request),input=contract.CreateThread.parse(request.body);await authorize(tx,actor,projectId,'threads:write');
-    return idempotent(tx,actor,projectId,'thread.create:'+id,mutationKey(request),input,()=>discussions.createThread(tx,actor,projectId,id!,input));
+    const {projectId,id}=params(request);
+    return discussions.createThread(tx,actor,projectId,id!,contract.CreateThread.parse(request.body),mutationKey(request));
   }));
   app.post('/api/v1/projects/:projectId/threads/:id/messages',request=>authenticated(request,async(tx,actor)=>{
-    const {projectId,id}=params(request),input=contract.AppendMessage.parse(request.body);await authorize(tx,actor,projectId,'threads:write');
-    return idempotent(tx,actor,projectId,'thread.append:'+id,mutationKey(request),input,()=>discussions.appendMessage(tx,actor,projectId,id!,input));
+    const {projectId,id}=params(request);
+    return discussions.appendMessage(tx,actor,projectId,id!,contract.AppendMessage.parse(request.body),mutationKey(request));
   }));
   app.patch('/api/v1/projects/:projectId/threads/:id/resolution',request=>authenticated(request,async(tx,actor)=>{
-    const {projectId,id}=params(request),input=contract.ResolveThread.parse(request.body);await authorize(tx,actor,projectId,'threads:write');
-    return idempotent(tx,actor,projectId,'thread.resolve:'+id,mutationKey(request),input,()=>discussions.resolveThread(tx,actor,projectId,id!,input));
+    const {projectId,id}=params(request);
+    return discussions.resolveThread(tx,actor,projectId,id!,contract.ResolveThread.parse(request.body),mutationKey(request));
   }));
   app.post('/api/v1/projects/:projectId/agents',request=>authenticated(request,async(tx,actor)=>{
     const {projectId}=params(request);await authorize(tx,actor,projectId,'agents:manage');return identity.issueAgent(tx,actor,projectId,contract.AgentGrant.parse(request.body));

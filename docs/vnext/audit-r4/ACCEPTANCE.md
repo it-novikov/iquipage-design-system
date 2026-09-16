@@ -4,19 +4,20 @@
 
 - Исследование: `8e189329b84649e20c8e02b70ba7f94f69af8c4d`, отдельный неизменённый worktree.
 - Исправления: ветка `feature/sprintique-vnext-audit`.
-- Fingerprint проверенных входов: `49b51558edd01bcdc99eaac9a863bfc6f8e8836ad8cf236644f1f2a47c27a2a6`.
-- DS tar SHA-256: `6490056dd8900177d440431d71d95f5bc7cd4df080cdc99f7743184c704c29ba`, не изменён.
-- Исходные DS `src/types`, consumed archive и исторический `design-system/` в R4 не менялись. Изменение библиотеки R4 — только отсутствовавший независимый package-lock.
+- Fingerprint проверенных входов: `c4e016731b3e49c65dccf791437a9b9ea5f855f0c9066c2cff87de93c0dd1753` (checkpoint `2026-09-16T11-16-24.978Z`). Прежний инженерный fingerprint `49b51558edd01bcdc99eaac9a863bfc6f8e8836ad8cf236644f1f2a47c27a2a6` относится к состоянию до исправлений по security-находкам.
+- DS tar SHA-256: `4b642cf67e7fd2317c0318ca5fea5a57284e00d9122b8cbe1341c6e56c94317c`, выпуск `0.6.0-vnext.2`. Прежний `6490056dd8900177d440431d71d95f5bc7cd4df080cdc99f7743184c704c29ba` заменён: исправления SEC-R4-09…SEC-R4-13 находятся в исходниках библиотеки.
+- Исторический `design-system/` не менялся. Библиотека изменена по протоколу `docs/vnext/BOUNDARIES.md`: правка исходников, инкремент версии, build/test/pack, принятие точного tarball продуктом и обновление lockfile. Публичные декларации не расширялись; `mark()` приведён к уже объявленной сигнатуре без аргументов.
 
 ## Автоматические прогоны
 
 | Gate | Результат | Доказательство |
 | --- | --- | --- |
-| Node24 native PostgreSQL18 + real private S3 |209 DS,135 product,135 detached,0failed/0skipped | `2026-09-12T12-32-38.285Z`, завершён12:33:13UTC |
-| Docker PostgreSQL + real private S3 |209 DS,135 product,135 detached,0failed/0skipped | `2026-09-12T12-30-32.505Z`, включая последнее исправление FE-R4-09 |
+| Native PostgreSQL18 + real private S3, после security-исправлений |215 DS,142 product,142 detached,0failed/0skipped | `2026-09-16T11-16-24.978Z` |
+| Node24 native PostgreSQL18 + real private S3, инженерный этап |209 DS,135 product,135 detached,0failed/0skipped | `2026-09-12T12-32-38.285Z`, завершён12:33:13UTC |
+| Docker PostgreSQL + real private S3, инженерный этап |209 DS,135 product,135 detached,0failed/0skipped | `2026-09-12T12-30-32.505Z`. Повтор на обновлённой ветке: NOT_RUN |
 | Strict build/public boundaries |PASS в обоих прогонах | Library build, product typecheck/Vite/server/OpenAPI, detached clean npm ci/build |
 | Source stability |PASS в обоих прогонах | Before=after fingerprint, включая HTML source и точные lockfiles |
-| GitHub CI / Ubuntu 24.04 |PASS: 209 DS, 135 product, 135 detached; runtime image build | [Run 34694446823](https://github.com/it-novikov/iquipage-design-system/actions/runs/34694446823), engineering commit `d597bb7e17d8a0eded9f0b26eb21635875f50747`; проверенные downloaded artifacts содержат тот же fingerprint и DS hash |
+| GitHub CI / Ubuntu 24.04, инженерный этап |PASS: 209 DS, 135 product, 135 detached; runtime image build | [Run 34694446823](https://github.com/it-novikov/iquipage-design-system/actions/runs/34694446823), engineering commit `d597bb7e17d8a0eded9f0b26eb21635875f50747`; проверенные downloaded artifacts содержат тот же fingerprint и DS hash |
 | Harness regressions |PASS | Ошибка spawn, ненулевой exit, signal exit и graceful0 после forwarded SIGINT/SIGTERM не маскируются |
 
 Логи лежат в игнорируемом `products/sprintique/output/verification/<timestamp>/`; безопасные отчёты включаются в комплект поставки. Схема2 инвентаризации отделяет реальные входные шаблоны/модули от проверенных генерируемых HTML/иконок DS. Drift fence — защита от случайного изменения исходников во время проверки, не криптографическая аттестация недоверенной машины или изменяемого окружения.
@@ -49,8 +50,10 @@ Native Safari/Firefox/physical touch, все комбинации ролей/т�
 
 ## Security и доставка
 
-Глубокий security workflow: RUNNING. Его единственный coordinator запущен на неизменённом baseline; отсутствие доступного итогового отчёта не трактуется как чистая security-проверка. Окончательный статус должен быть обновлён перед передачей результата.
+Глубокий security workflow: **TERMINAL ERROR**. Единственный coordinator, запущенный на неизменённом baseline 12 сентября в 11:35:56 UTC, остановился в 18:16:51 UTC на фазе `discovery`: «Deep Scan stopped after 3 consecutive unsuccessful discovery workers (limit: 3); last failure (transient_error): You've hit your usage limit… try again at Sep 19th, 2026 11:12 AM». Канонического отчёта нет; фазы валидации, цепочек атак и отчёта не выполнялись. Замена не запускалась.
+
+Сохранённое частичное покрытие — 216 файлов в scope, 13 проходов, 37 сырых находок (0 critical, 0 high, 8 medium, 29 low) — дедуплицировано до 15 проблем, проверено вручную по ветке исправлений и закрыто: 12 исправлено, 1 частично, 1 исправлена в коде без прогона, 1 уже была закрыта инженерным этапом. Подробности и точные границы: [SECURITY.md](SECURITY.md). Это не полная security-приёмка и не penetration test.
 
 Предварительный secret/delivery check 12:41 UTC: 471 новый/изменённый файл относительно main, 142 DS archive members, 8 известных приватных QA-значений; совпадений, приватных ключей и запрещённых путей не найдено. Проверка не заменяет анализ неизвестных секретов или полноценный vulnerability scan. Приватные cookie/infra/backup файлы в Git не добавляются.
 
-[PR #4](https://github.com/it-novikov/iquipage-design-system/pull/4) создан как Draft; GitHub CI успешно завершён 12:46:37 UTC. Его артефакты скачаны и сверены с локальным source fingerprint. Ветка PR #3 не изменена. До результата глубокого security workflow PR не отмечается готовым. Merge, deployment, старые данные, публичная npm-публикация: не выполняются. Full-platform-ready=false.
+[PR #4](https://github.com/it-novikov/iquipage-design-system/pull/4) остаётся Draft. Ветка PR #3 не изменена. PR не отмечается готовым, пока покрытие security неполное: прерванная discovery-проверка не заменяет завершённый прогон. Повторные Docker-gate, сборка runtime-образа и браузерные сценарии на обновлённой ветке: NOT_RUN. Merge, deployment, старые данные, публичная npm-публикация: не выполняются. Full-platform-ready=false.

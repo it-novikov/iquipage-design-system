@@ -1,27 +1,96 @@
 {
   "schema_version": 1,
   "run_id": "sprintique-audit-r4-2026-09-12",
-  "status": "engineering-verified-security-running",
+  "status": "engineering-and-partial-security-verified",
   "baseline_sha": "8e189329b84649e20c8e02b70ba7f94f69af8c4d",
   "branch": "feature/sprintique-vnext-audit",
   "repository": "https://github.com/it-novikov/iquipage-design-system",
-  "source_fingerprint": "49b51558edd01bcdc99eaac9a863bfc6f8e8836ad8cf236644f1f2a47c27a2a6",
-  "ds_archive_sha256": "6490056dd8900177d440431d71d95f5bc7cd4df080cdc99f7743184c704c29ba",
-  "findings": {"total": 18, "implemented": 16, "partially_improved": ["FE-R4-07", "FE-R4-08"]},
+  "source_fingerprint": "c4e016731b3e49c65dccf791437a9b9ea5f855f0c9066c2cff87de93c0dd1753",
+  "ds_archive_sha256": "4b642cf67e7fd2317c0318ca5fea5a57284e00d9122b8cbe1341c6e56c94317c",
+  "findings": {
+    "engineering": {
+      "total": 18,
+      "implemented": 16,
+      "partially_improved": [
+        "FE-R4-07",
+        "FE-R4-08"
+      ]
+    },
+    "security_partial_scan": {
+      "raw": 37,
+      "distinct": 15,
+      "fixed": 12,
+      "partially_fixed": [
+        "SEC-R4-08"
+      ],
+      "already_fixed_by_r4": [
+        "SEC-R4-15"
+      ],
+      "code_fixed_not_executed": [
+        "SEC-R4-14"
+      ]
+    }
+  },
   "verification": {
-    "native": {"checkpoint": "2026-09-12T12-32-38.285Z", "ds_tests": 209, "product_tests": 135, "detached_tests": 135, "failed": 0, "skipped": 0},
-    "docker_postgresql": {"checkpoint": "2026-09-12T12-30-32.505Z", "ds_tests": 209, "product_tests": 135, "detached_tests": 135, "failed": 0, "skipped": 0},
+    "native": {
+      "checkpoint": "2026-09-16T11-16-24.978Z",
+      "ds_tests": 215,
+      "product_tests": 142,
+      "detached_tests": 142,
+      "failed": 0,
+      "skipped": 0
+    },
+    "docker_postgresql": {
+      "checkpoint": "2026-09-12T12-30-32.505Z",
+      "ds_tests": 209,
+      "product_tests": 135,
+      "detached_tests": 135,
+      "failed": 0,
+      "skipped": 0,
+      "note": "Last run before the security remediation; rerun pending on the updated branch"
+    },
     "source_stable": true,
     "build_and_boundaries": "pass",
-    "runtime_container": {"image_id": "sha256:174a9b8cb8615d39f352f04545bc4bb94d2a17b7a8a41e7eb6edd6db232cf72e", "verified_at": "2026-09-12T12:34:12.285Z", "result": "pass"},
-    "targeted_chromium_real_api": "pass",
+    "runtime_container": {
+      "image_id": "sha256:174a9b8cb8615d39f352f04545bc4bb94d2a17b7a8a41e7eb6edd6db232cf72e",
+      "verified_at": "2026-09-12T12:34:12.285Z",
+      "result": "pass",
+      "note": "Verified for the pre-remediation image; rebuild pending on the updated branch"
+    },
+    "targeted_chromium_real_api": "pass-before-security-remediation",
     "full_browser_accessibility_matrix": "not-run",
-    "security_workflow": "running",
-    "remote_ci": {"status": "pass", "url": "https://github.com/it-novikov/iquipage-design-system/actions/runs/34694446823", "head_sha": "d597bb7e17d8a0eded9f0b26eb21635875f50747", "downloaded_fingerprint_matches": true}
+    "security_workflow": {
+      "status": "terminal-error",
+      "phase_reached": "discovery",
+      "started_at": "2026-09-12T11:35:56Z",
+      "failed_at": "2026-09-12T18:16:51Z",
+      "error": "Deep Scan stopped after 3 consecutive unsuccessful discovery workers (limit: 3); last failure (transient_error): You've hit your usage limit. Visit https://chatgpt.com/codex/settings/usage to purchase more credits or try again at Sep 19th, 2026 11:12 AM.",
+      "partial_findings": 37,
+      "canonical_report": false,
+      "replacement_scan_started": false,
+      "record": "SECURITY.md"
+    },
+    "remote_ci": {
+      "status": "pending",
+      "note": "Re-run required for the security remediation commit"
+    }
   },
   "report": "README.md",
   "acceptance": "ACCEPTANCE.md",
-  "pull_request": {"url": "https://github.com/it-novikov/iquipage-design-system/pull/4", "draft": true, "reason": "deep security workflow still running"},
-  "authorization": {"audit_and_fixes": true, "new_github_pr": true, "merge": false, "deployment": false, "production_data_changes": false, "registry_publication": false},
-  "full_platform_ready": false
+  "pull_request": {
+    "url": "https://github.com/it-novikov/iquipage-design-system/pull/4",
+    "draft": true,
+    "reason": "deep security workflow ended with a terminal error before its validation, attack-path and reporting phases; coverage is incomplete"
+  },
+  "authorization": {
+    "audit_and_fixes": true,
+    "new_github_pr": true,
+    "merge": false,
+    "deployment": false,
+    "production_data_changes": false,
+    "registry_publication": false
+  },
+  "full_platform_ready": false,
+  "ds_release": "0.6.0-vnext.2",
+  "security_record": "SECURITY.md"
 }
