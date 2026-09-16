@@ -55,7 +55,7 @@
       "image_id": "sha256:174a9b8cb8615d39f352f04545bc4bb94d2a17b7a8a41e7eb6edd6db232cf72e",
       "verified_at": "2026-09-12T12:34:12.285Z",
       "result": "pass",
-      "note": "Verified for the pre-remediation image; rebuild pending on the updated branch"
+      "note": "Local probe covers the engineering image; the updated branch rebuilds the portable runtime image in GitHub CI"
     },
     "targeted_chromium_real_api": "pass-before-security-remediation",
     "full_browser_accessibility_matrix": "not-run",
@@ -71,8 +71,15 @@
       "record": "SECURITY.md"
     },
     "remote_ci": {
-      "status": "pending",
-      "note": "Re-run required for the security remediation commit"
+      "status": "pass",
+      "url": "https://github.com/it-novikov/iquipage-design-system/actions/runs/35089910412",
+      "head_sha": "2a009e2d3c53e7efa979b186d61e1190f281161c",
+      "downloaded_fingerprint_matches": true,
+      "checkpoint": "2026-09-16T11-22-10.890Z",
+      "ds_tests": 215,
+      "product_tests": 142,
+      "detached_tests": 142,
+      "runtime_image_build": "pass"
     }
   },
   "report": "README.md",

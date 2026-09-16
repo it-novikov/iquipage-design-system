@@ -17,6 +17,7 @@
 | Docker PostgreSQL + real private S3, инженерный этап |209 DS,135 product,135 detached,0failed/0skipped | `2026-09-12T12-30-32.505Z`. Повтор на обновлённой ветке: NOT_RUN |
 | Strict build/public boundaries |PASS в обоих прогонах | Library build, product typecheck/Vite/server/OpenAPI, detached clean npm ci/build |
 | Source stability |PASS в обоих прогонах | Before=after fingerprint, включая HTML source и точные lockfiles |
+| GitHub CI / Ubuntu 24.04, после security-исправлений |PASS: 215 DS, 142 product, 142 detached; runtime image build | [Run 35089910412](https://github.com/it-novikov/iquipage-design-system/actions/runs/35089910412), commit `2a009e2d3c53e7efa979b186d61e1190f281161c`; скачанные артефакты (`2026-09-16T11-22-10.890Z`) содержат тот же fingerprint и DS hash |
 | GitHub CI / Ubuntu 24.04, инженерный этап |PASS: 209 DS, 135 product, 135 detached; runtime image build | [Run 34694446823](https://github.com/it-novikov/iquipage-design-system/actions/runs/34694446823), engineering commit `d597bb7e17d8a0eded9f0b26eb21635875f50747`; проверенные downloaded artifacts содержат тот же fingerprint и DS hash |
 | Harness regressions |PASS | Ошибка spawn, ненулевой exit, signal exit и graceful0 после forwarded SIGINT/SIGTERM не маскируются |
 
@@ -56,4 +57,4 @@ Native Safari/Firefox/physical touch, все комбинации ролей/т�
 
 Предварительный secret/delivery check 12:41 UTC: 471 новый/изменённый файл относительно main, 142 DS archive members, 8 известных приватных QA-значений; совпадений, приватных ключей и запрещённых путей не найдено. Проверка не заменяет анализ неизвестных секретов или полноценный vulnerability scan. Приватные cookie/infra/backup файлы в Git не добавляются.
 
-[PR #4](https://github.com/it-novikov/iquipage-design-system/pull/4) остаётся Draft. Ветка PR #3 не изменена. PR не отмечается готовым, пока покрытие security неполное: прерванная discovery-проверка не заменяет завершённый прогон. Повторные Docker-gate, сборка runtime-образа и браузерные сценарии на обновлённой ветке: NOT_RUN. Merge, deployment, старые данные, публичная npm-публикация: не выполняются. Full-platform-ready=false.
+[PR #4](https://github.com/it-novikov/iquipage-design-system/pull/4) остаётся Draft. Ветка PR #3 не изменена. PR не отмечается готовым, пока покрытие security неполное: прерванная discovery-проверка не заменяет завершённый прогон. GitHub CI на обновлённой ветке пересобрал portable runtime image и прогнал тесты с настоящими эфемерными сервисами. Локальный Docker-gate на этой машине, локальный probe контейнера и браузерные сценарии на обновлённой ветке: NOT_RUN. Merge, deployment, старые данные, публичная npm-публикация: не выполняются. Full-platform-ready=false.
