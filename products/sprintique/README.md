@@ -76,7 +76,7 @@ Prefix `/api/v1`. `/openapi.json` is an OpenAPI 3.1 route inventory with code-ow
 
 Task/Planning/map/media/catalog commands use `Idempotency-Key` and/or `baseRevision` as declared in OpenAPI. Changed bodies under the same key conflict. Planning has durable receipts and a browser write-ahead journal. Profile/member CAS changes reject stale revisions; once-only secret issuance and identity bootstrap calls are not automatically retried. Approval binds an exact prepared plan and is not execution itself.
 
-Live project-scoped authorization is enforced in use cases and PostgreSQL RLS. Workspace administration does not implicitly grant every project's content. Sessions enforce Origin/CSRF; agents enforce project capabilities and expiry. Startup rejects superuser, BYPASSRLS and business-table-owner runtime connections. Transactional outbox events feed authorized SSE/pull; **external notification delivery is not configured**.
+Live project-scoped authorization is enforced in use cases and PostgreSQL RLS. Workspace administration does not implicitly grant every project's content. Sessions enforce Origin/CSRF; agents enforce project capabilities and expiry. Read and write capabilities are independent: a grant that carries `tasks:write` or `threads:write` without the matching read receives a compact `{"receipt":"task"|"thread"}` acknowledgement instead of preserved content, and `POST /planning/previews` requires `tasks:read` because its effects project existing tasks. Startup rejects superuser, BYPASSRLS and business-table-owner runtime connections. Transactional outbox events feed authorized SSE/pull; **external notification delivery is not configured**.
 
 ## Explicit limits and release boundary
 
