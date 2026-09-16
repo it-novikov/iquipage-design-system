@@ -72,10 +72,10 @@
     },
     "remote_ci": {
       "status": "pass",
-      "url": "https://github.com/it-novikov/iquipage-design-system/actions/runs/35089910412",
-      "head_sha": "2a009e2d3c53e7efa979b186d61e1190f281161c",
+      "url": "https://github.com/it-novikov/iquipage-design-system/actions/runs/35091658291",
+      "head_sha": "474ee333a4c9977e321182cf3246d35db1d0f2c5",
       "downloaded_fingerprint_matches": true,
-      "checkpoint": "2026-09-16T11-22-10.890Z",
+      "checkpoint": "2026-09-16T11-41-42.668Z",
       "ds_tests": 215,
       "product_tests": 142,
       "detached_tests": 142,
