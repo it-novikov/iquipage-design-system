@@ -29,7 +29,12 @@ import {registerEventRoutes} from './events.js';
 import {PlanningCommand,CommitPlan,ReleaseWrite,MilestoneWrite,ConstraintWrite,ApprovalDecision,PLANNING_POLICY} from '../../contracts/planning.js';
 import {planningResponseSchemas} from '../../contracts/planning-responses.js';
 
-export interface AppOptions {db:Database;origin:string;oidc?:OidcSettings;logger?:boolean;storage?:ObjectStorage;metricsToken?:string}
+/** trustProxy: hop count or exact proxy addresses in front of the API. Without it every request behind a
+ *  TLS reverse proxy shares the proxy address, so per-address limits would throttle all users together. */
+export interface AppOptions {db:Database;origin:string;oidc?:OidcSettings;logger?:boolean;storage?:ObjectStorage;metricsToken?:string;trustProxy?:number|string[]}
+/** Normalized to one Fastify-accepted shape: hop count, or a comma-separated address list. */
+const trustProxyOption=(value:AppOptions['trustProxy'])=>(address:string,hop:number)=>
+  value===undefined?false:Array.isArray(value)?value.includes(address):hop<value;
 export function getCredential(request:FastifyRequest):Credential{
   const authorization=request.headers.authorization;
   if(authorization){requireCondition(/^Bearer spr_[A-Za-z0-9_-]{43}$/.test(authorization),401,'UNAUTHENTICATED','Некорректный токен.');return {token:authorization.slice(7),kind:'agent'};}
@@ -39,14 +44,17 @@ export function getCredential(request:FastifyRequest):Credential{
 export type Authenticated = <T>(request:FastifyRequest,fn:(tx:Transaction,actor:Actor)=>Promise<T>)=>Promise<T>;
 export const params=(request:FastifyRequest)=>z.object({projectId:contract.Id,id:contract.Id.optional()}).parse(request.params);
 export const mutationKey=(request:FastifyRequest)=>z.string().min(8).max(120).parse(request.headers['idempotency-key']);
-export async function createApp({db,origin,oidc,logger=false,storage,metricsToken}:AppOptions){
-  const app=Fastify({bodyLimit:128*1024,requestTimeout:15000,logger:logger?{redact:['req.headers.authorization','req.headers.cookie','res.headers["set-cookie"]'],level:'info'}:false,logController:new Fastify.LogController({disableRequestLogging:true})});
+export async function createApp({db,origin,oidc,logger=false,storage,metricsToken,trustProxy}:AppOptions){
+  const app=Fastify({bodyLimit:128*1024,requestTimeout:15000,trustProxy:trustProxyOption(trustProxy),logger:logger?{redact:['req.headers.authorization','req.headers.cookie','res.headers["set-cookie"]'],level:'info'}:false,logController:new Fastify.LogController({disableRequestLogging:true})});
+  const secureOrigin=new URL(origin).protocol==='https:';
   registerObservability(app,metricsToken);
   registerLimits(app);
   registerOpenApi(app);
   app.addHook('onSend',async(_request,reply)=>{
     if(!reply.hasHeader('Cache-Control'))reply.header('Cache-Control','no-store');
-    reply.header('X-Content-Type-Options','nosniff').header('Referrer-Policy','same-origin');
+    reply.header('X-Content-Type-Options','nosniff').header('Referrer-Policy','same-origin')
+      .header('Cross-Origin-Opener-Policy','same-origin').header('Permissions-Policy','camera=(), microphone=(), geolocation=(), payment=(), usb=()');
+    if(secureOrigin)reply.header('Strict-Transport-Security','max-age=31536000; includeSubDomains');
   });
   app.setErrorHandler((error,request,reply)=>{
     if(error instanceof z.ZodError)return reply.code(400).send({code:'VALIDATION',message:'Проверьте поля запроса.',requestId:request.id});
