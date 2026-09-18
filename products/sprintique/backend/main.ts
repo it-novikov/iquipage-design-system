@@ -4,7 +4,9 @@ import {serveWeb} from './http/static.js';
 import {z} from 'zod';
 import {S3ObjectStorage,S3Settings} from './infrastructure/object-storage.js';
 import {checkSchema} from './infrastructure/schema.js';
-const env=z.object({DATABASE_URL:z.string().min(1),PUBLIC_ORIGIN:z.url(),OIDC_ISSUER:z.url(),OIDC_CLIENT_ID:z.string().min(1),OIDC_CLIENT_SECRET:z.string().min(1),PORT:z.coerce.number().int().min(1).max(65535).default(4311),HOST:z.string().default('127.0.0.1')}).parse(process.env);
+const env=z.object({DATABASE_URL:z.string().min(1),PUBLIC_ORIGIN:z.url(),OIDC_ISSUER:z.url(),OIDC_CLIENT_ID:z.string().min(1),OIDC_CLIENT_SECRET:z.string().min(1),PORT:z.coerce.number().int().min(1).max(65535).default(4311),HOST:z.string().default('127.0.0.1'),
+  // Hop count (e.g. 1) or comma-separated proxy addresses. Unset means the socket peer is the client.
+  TRUST_PROXY:z.string().regex(/^(\d{1,2}|[0-9a-fA-F.:,]+)$/).optional()}).parse(process.env);
 const origin=new URL(env.PUBLIC_ORIGIN);
 if(origin.origin!==env.PUBLIC_ORIGIN)throw Error('PUBLIC_ORIGIN must have no path or trailing slash');
 if(origin.protocol!=='https:'&&!['localhost','127.0.0.1'].includes(origin.hostname))throw Error('HTTPS is required outside loopback');
@@ -13,7 +15,8 @@ const db=new Database(env.DATABASE_URL);await db.checkRuntimeRole();await checkS
 const storage=new S3ObjectStorage(S3Settings.parse({endpoint:process.env['S3_ENDPOINT'],region:process.env['S3_REGION'],bucket:process.env['S3_BUCKET'],accessKeyId:process.env['S3_ACCESS_KEY_ID'],secretAccessKey:process.env['S3_SECRET_ACCESS_KEY']}));
 await storage.ready();
 const metricsToken=process.env['METRICS_TOKEN'];
-const app=await createApp({db,storage,origin:env.PUBLIC_ORIGIN,oidc:{origin:env.PUBLIC_ORIGIN,issuer:env.OIDC_ISSUER,clientId:env.OIDC_CLIENT_ID,clientSecret:env.OIDC_CLIENT_SECRET},logger:true,...(metricsToken?{metricsToken}:{})});
+const trustProxy=env.TRUST_PROXY?(/^\d+$/.test(env.TRUST_PROXY)?Number(env.TRUST_PROXY):env.TRUST_PROXY.split(',')):undefined;
+const app=await createApp({db,storage,origin:env.PUBLIC_ORIGIN,...(trustProxy!==undefined?{trustProxy}:{}),oidc:{origin:env.PUBLIC_ORIGIN,issuer:env.OIDC_ISSUER,clientId:env.OIDC_CLIENT_ID,clientSecret:env.OIDC_CLIENT_SECRET},logger:true,...(metricsToken?{metricsToken}:{})});
 serveWeb(app);
 const shutdown=async()=>{await app.close();await db.close();storage.close();};
 process.once('SIGTERM',shutdown);process.once('SIGINT',shutdown);
