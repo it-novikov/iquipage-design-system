@@ -1,0 +1,40 @@
+/* Product composition only. All interactive controls retain the supplied IQUIPAGE templates. */
+.planning-root{height:100%;min-height:0;min-width:0}
+.planning-view{display:flex;flex-direction:column;height:100%;min-height:0;gap:var(--iq-space-3);padding:var(--iq-space-6)}
+.pn-toolbar{display:flex;align-items:center;flex-wrap:wrap;gap:var(--iq-space-3);flex:none}
+.pn-toolbar .iq-search-small{flex:1;min-width:180px;max-width:420px}
+.pn-toolbar iq-select{max-width:220px;min-width:160px}
+.pn-scroll{overflow:auto;min-height:0;flex:1;scrollbar-gutter:stable;overscroll-behavior:contain}
+.pn-group{margin-bottom:var(--iq-space-6)}
+.pn-group-header{position:sticky;top:0;z-index:2;display:flex;align-items:center;flex-wrap:wrap;gap:var(--iq-space-2);padding-block:var(--iq-space-3);background:var(--iq-canvas);border-bottom:1px solid var(--iq-line)}
+.pn-group-header h2{font-size:var(--iq-type-interface-size);font-weight:600;overflow-wrap:anywhere;min-width:0}
+.pn-group-date,.pn-count{color:var(--iq-muted);font-size:var(--iq-type-caption-size);font-variant-numeric:tabular-nums}
+.pn-count{padding-inline:var(--iq-space-1)}
+.pn-group-actions{margin-left:auto}
+.pn-group-body{padding-top:var(--iq-space-2)}
+.pn-row-identity,.pn-person{display:flex;align-items:center;gap:var(--iq-space-2);min-width:0}
+.pn-row-identity .iq-work-row-title{min-width:0;flex:1}
+.pn-row-identity .iq-helper{margin-top:0}
+.pn-task-title{justify-content:flex-start;text-align:left;white-space:normal;overflow-wrap:anywhere;padding-inline:0;max-width:100%}
+.pn-indent{width:calc(var(--pn-depth)*var(--iq-space-3));flex-shrink:0}
+.pn-disclosure-space,.pn-check-space{width:var(--iq-control-sm);flex-shrink:0}
+.pn-person{font-size:var(--iq-type-caption-size)}
+.pn-date{font-size:var(--iq-type-caption-size);color:var(--iq-muted)}
+.pn-group tr[data-context=true]{color:var(--iq-muted)}
+.pn-group tr[data-selected=true]{background:var(--iq-accent-soft)}
+.pn-empty{display:flex;justify-content:space-between;align-items:center;gap:var(--iq-space-4);padding:var(--iq-space-4);color:var(--iq-muted);font-size:var(--iq-type-label-size)}
+.pn-selection{display:flex;align-items:center;gap:var(--iq-space-4);flex-wrap:wrap;padding:var(--iq-space-2) var(--iq-space-3);background:var(--iq-surface);border-radius:var(--iq-radius-sm);font-size:var(--iq-type-label-size)}
+.pn-selection>.row{margin-left:auto}
+.pn-dialog-form{padding:var(--iq-space-6)}
+.pn-dialog-body{display:flex;flex-direction:column;gap:var(--iq-space-4)}
+.pn-dialog [data-preview]{display:flex;flex-direction:column;gap:var(--iq-space-3)}
+/* Stage PN2 is native table semantics, not an incomplete ARIA treegrid. Keyboard focus stays visible. */
+/* Button focus treatment belongs to the installed DS, not the consumer adapter. */
+@media(max-width:640px){.planning-view{padding:var(--iq-space-4)}.pn-toolbar .iq-search-small{flex-basis:100%;max-width:none}.pn-toolbar iq-select{flex:1;min-width:120px;max-width:none}.pn-group-header h2{max-width:calc(100% - 100px)}.pn-group-date{flex-basis:auto;padding-left:var(--iq-space-3)}.pn-selection>.row{margin-left:0}.pn-indent{width:calc(var(--pn-depth)*var(--iq-space-2))}.pn-person{flex-wrap:wrap}.pn-group-actions{gap:var(--iq-space-1)}.pn-row-identity{gap:var(--iq-space-1)}}
+
+.pn-dialog [data-plan-config],.pn-dialog [data-plan-preview],.pn-dialog [data-destination-new]{display:flex;flex-direction:column;gap:var(--iq-space-4)}
+.pn-dialog [data-plan-config][hidden],.pn-dialog [data-plan-preview][hidden],.pn-dialog [data-destination-new][hidden],.pn-dialog [data-destination-existing][hidden]{display:none}
+
+.pn-views{flex:none;gap:var(--iq-space-2)}
+.pn-temporal{overflow:auto;min-height:0;flex:1;overscroll-behavior:contain}
+.pn-timebar{position:sticky;top:0;z-index:3;background:var(--iq-canvas);padding-block:var(--iq-space-3)}

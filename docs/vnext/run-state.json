@@ -1,0 +1,29 @@
+{
+  "schema_version": "1.1",
+  "run_id": "sprintique-audit-r4-2026-09-12",
+  "mode": "independent-specialist-audit-and-implementation",
+  "status": "engineering-and-partial-security-verified",
+  "scope_ref": "audit-r4/README.md",
+  "state_ref": "audit-r4/run-state.json",
+  "previous_state_ref": "run-state-r3.json",
+  "approval_ref": "Owner requested a specialist team, immediate implementation and a new PR in the design-system repository",
+  "app_fingerprint": "a8c70c58cb0fca8810a0fdc834ca41eb366328e9e56e336b4757f898c77f2e51",
+  "ds_sha256": "4b642cf67e7fd2317c0318ca5fea5a57284e00d9122b8cbe1341c6e56c94317c",
+  "pull_request": "https://github.com/it-novikov/iquipage-design-system/pull/4",
+  "pull_request_draft": false,
+  "known_failing_automated_checks": [],
+  "next_action": "Merged by owner decision on 2026-09-18 with incomplete deep-scan coverage recorded in audit-r4/SECURITY.md; a complete rescan and a production deployment target remain separate decisions",
+  "do_not_repeat": [
+    "Do not alter the immutable R3 security baseline",
+    "Do not overwrite PR3",
+    "Do not publish private infra/session/backup files",
+    "Do not restart the terminated deep scan without the owner's decision",
+    "Do not deploy without an explicit target, secrets and a data plan"
+  ],
+  "external_side_effects_authorized": [
+    "push audit branch",
+    "create and update audit PR",
+    "merge audit PR"
+  ],
+  "full_platform_ready": false
+}

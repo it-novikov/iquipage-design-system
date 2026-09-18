@@ -1,0 +1,47 @@
+name: Sprintique vNext
+on:
+  pull_request:
+    paths: ['products/sprintique/**', 'libraries/iquipage/**', 'scripts/verify-vnext.mjs', 'scripts/verify-extraction.mjs', 'scripts/vnext/**', '.github/workflows/vnext.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: vnext-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      SPRINTIQUE_TEST_DOCKER: '1'
+      SPRINTIQUE_DOCKER_CONTEXT: default
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '24.20.0'
+          package-manager-cache: false
+      - name: Install independent packages
+        run: |
+          npm ci --ignore-scripts --no-fund --prefix libraries/iquipage
+          npm ci --ignore-scripts --no-fund --prefix products/sprintique
+      - name: Start private ephemeral storage
+        working-directory: products/sprintique
+        run: |
+          node scripts/local-storage.mjs
+          node --input-type=module -e 'import {readFile} from "node:fs/promises"; import {S3Client,HeadBucketCommand} from "@aws-sdk/client-s3"; const c=JSON.parse(await readFile("output/infra/storage.json")); const s=new S3Client({endpoint:c.endpoint,region:c.region,forcePathStyle:true,credentials:c}); for(let n=0;;n++){try{await s.send(new HeadBucketCommand({Bucket:c.bucket}));break;}catch(e){if(n===20)throw Error("Storage not ready");await new Promise(r=>setTimeout(r,1000));}}s.destroy();'
+      - name: Library, product, real services and detached extraction
+        run: node scripts/verify-vnext.mjs
+      - name: Portable runtime image
+        run: docker build -t sprintique-vnext:ci products/sprintique
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: ${{ !cancelled() }}
+        with:
+          name: vnext-verification
+          path: |
+            products/sprintique/output/verification/
+            products/sprintique/dist/openapi.json
+          retention-days: 14
+          if-no-files-found: error

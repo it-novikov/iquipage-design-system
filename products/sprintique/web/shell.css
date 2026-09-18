@@ -1,0 +1,23 @@
+/* Product composition only. All controls, typography, states and motion use DS. */
+.map-version-preview{height:min(60vh,560px);min-height:280px}.map-version-preview>iq-whiteboard{height:100%}
+#app{height:100%}
+.platform-header .platform-brand{flex:1;min-width:0}
+.platform-header .platform-navigation{margin-left:var(--iq-space-5);height:36px;align-self:center;overflow:visible}
+.platform-header .platform-brand>iq-menu{flex:none;display:flex;align-items:center}
+.platform-header .platform-brand>iq-menu>button{height:36px;white-space:nowrap}
+.host-workspace-icon{display:none}
+.platform-global>iq-menu{display:flex;align-items:center}
+@media(max-width:1000px){
+  .platform-header .platform-navigation{margin-left:0}
+  .platform-global>[data-section-link],.platform-global>[data-theme]{display:none}
+  .platform-header [data-workspace-label]{display:none}
+  .host-workspace-icon{display:flex;align-items:center}
+  .platform-header [data-project-label]{max-width:120px;overflow:hidden;text-overflow:ellipsis}
+}
+@media(max-width:600px){
+  .platform-header{gap:var(--iq-space-2)}
+  .platform-header .platform-brand{gap:var(--iq-space-1)}
+  .platform-header [data-project-label]{max-width:90px}
+  .platform-header .platform-brand>iq-menu:nth-of-type(2){flex:0 1 auto;min-width:0}
+  .platform-header .platform-brand>iq-menu:nth-of-type(2)>button{min-width:0;max-width:100%}
+}

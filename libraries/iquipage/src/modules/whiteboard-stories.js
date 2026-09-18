@@ -1,0 +1,59 @@
+'use strict';
+const B=require('./whiteboard-core.js'),{registerWhiteboard}=require('./whiteboard.js'),{icon}=require('./components.js');
+const frame=(id,text,x,y,width=316,height=454)=>({id,type:'frame',text,x,y,width,height,color:'neutral'});
+const note=(id,text,x,y,color='sand',parentId)=>({id,type:'sticky',text,x,y,width:244,height:156,color,parentId});
+const shape=(id,text,x,y,width=230,height=92,kind='rectangle')=>({id,type:'shape',text,x,y,width,height,color:'neutral',shape:kind});
+const edge=(id,from,to,label='',style='curve')=>({id,from,to,label,style,arrow:true});
+const text=(id,t,x,y,w=660,h=72)=>({id,type:'text',text:t,x,y,width:w,height:h,color:'neutral'});
+const pack=(title,objects,connections=[])=>B.validateBoard({revision:0,title,objects,connections});
+const templates=[
+ {id:'brainstorm',title:'Брейншторм',icon:'sticky',description:'Запишите мысли, соберите близкие в темы и выберите следующий шаг.',instruction:'Начните с «Добавить заметку». Кнопка + в области добавляет мысль именно туда. Связи необязательны.',data:pack('Как сделать первый опыт понятнее?',[
+ text('question','Сначала мысли. Потом — порядок.',40,-76,880,64),
+ frame('observations','Что замечаем',40,24),frame('ideas','Что попробуем',390,24),frame('decisions','Что берём в работу',740,24),
+ note('n1','Человек не понимает, с чего начать после регистрации.',76,108,'sand','observations'),note('n2','Пример результата помогает лучше длинной инструкции.',76,288,'sand','observations'),
+ note('n3','Дать попробовать основной сценарий без настройки проекта.',426,108,'lavender','ideas'),note('n4','Показать один следующий шаг, а не все возможности сразу.',426,288,'lavender','ideas'),
+ {...note('n5','Проверить две версии первого экрана на пяти участниках.',776,108,'mint','decisions')},
+ {id:'action1',type:'task',text:'Подготовить прототип к пятнице',x:776,y:288,width:244,height:156,color:'neutral',parentId:'decisions'},
+ ])},
+ {id:'retro',title:'Ретроспектива',icon:'refresh',description:'Обсудите опыт спринта и договоритесь о конкретных изменениях.',instruction:'Запишите наблюдения, соберите темы и сформулируйте следующий шаг. Таймер и личные голоса находятся в «Ещё».',data:pack('Ретро / Что изменим в следующем спринте',[
+ text('goal','Что помогает нам работать лучше?',40,-76,900,64),frame('keep','Продолжить',40,24),frame('change','Изменить',390,24),frame('try','Попробовать',740,24),
+ note('r1','Короткий созвон перед сложной задачей экономит время.',76,108,'mint','keep'),note('r2','Показывать промежуточный результат, не ждать конца спринта.',76,288,'mint','keep'),
+ note('r3','Критерии готовности уточняются слишком поздно.',426,108,'sand','change'),note('r4','Не начинать новое, пока не завершили важное.',426,288,'sand','change'),
+ note('r5','Разбирать один незавершённый сценарий на ретро.',776,108,'lavender','try'),note('r6','Оставлять время на проверку, а не только на реализацию.',776,288,'lavender','try')])},
+ {id:'mindmap',title:'Карта мыслей',icon:'link',description:'Развивайте тему свободными ветками, не настраивая технические порты.',instruction:'Выберите фигуру и нажмите «Продолжить цепочку». Связать уже созданные объекты можно инструментом «Связь».',data:pack('Первый опыт клиента',[
+ shape('root','Первый опыт\nклиента',390,180,252,114),shape('in','Вход',70,80),shape('act','Первое действие',770,70),shape('back','Возвращение',780,400),
+ note('m1','Какие ожидания есть до регистрации?',55,220,'sand'),note('m2','Что человек может сделать за две минуты?',820,200,'mint'),note('m3','Где он продолжит начатое?',410,420,'lavender')
+ ],[edge('m-e1','root','in','До начала'),edge('m-e2','root','act','В продукте'),edge('m-e3','root','back','На следующий день'),edge('m-e4','in','m1'),edge('m-e5','act','m2'),edge('m-e6','back','m3')])},
+ {id:'diagram',title:'Схема',icon:'grid',description:'Прямоугольники, решения и связи для понятной схемы без инженерной настройки.',instruction:'Двойной щелчок меняет подпись. Выберите связь: подпись и параметры перехода появятся над холстом.',data:pack('Как обрабатываем запрос',[
+ shape('start','Получили запрос',20,190,210,92),shape('decision','Данных\nдостаточно?',340,150,224,180,'diamond'),shape('answer','Подготовить ответ',694,80,234,94),shape('ask','Уточнить детали',694,346,234,94),shape('done','Ответ отправлен',1040,80,234,94),
+ text('d-text','Один вопрос — два понятных пути.',22,-32,900,62)
+ ],[edge('d1','start','decision'),edge('d2','decision','answer','Да'),edge('d3','decision','ask','Нет'),edge('d4','answer','done'),edge('d5','ask','start','Вернуться с деталями','elbow')])},
+ {id:'chain',title:'Функциональная цепочка',icon:'sliders',description:'Обсудите вход, преобразования и выход. Схема не исполняется как автоматизация.',instruction:'Изменяйте последовательность и связи на доске. Исполняемые процессы по-прежнему находятся в отдельном графе.',data:pack('От события к проверенному результату',[
+ text('c-title','От обращения к проверенному результату',50,-60,1060,64),
+ {...shape('c1','Обращение',50,150,190,94,'pill'),text:'Обращение'},
+ shape('c2','Проверить\nконтекст',342,138,236,118,'predefined'),
+ shape('c3','Данных\nдостаточно?',692,97,240,200,'diamond'),
+ shape('c4','Передать\nрешение',1050,127,234,140,'document'),
+ shape('c5','Уточнить детали',689,400,246,126,'manual'),
+ note('c-note','Для каждого перехода понятны вход и результат.',52,400,'sky')
+ ],[edge('c-e1','c1','c2','Обращение','elbow'),edge('c-e2','c2','c3','Контекст','elbow'),edge('c-e3','c3','c4','Да','elbow'),edge('c-e4','c3','c5','Нет','elbow'),{...edge('c-e5','c5','c2','Уточнение','elbow'),fromPort:'left',toPort:'bottom'}])},
+ {id:'blank',title:'Чистая доска',icon:'plus',description:'Свободное пространство для заметок, схем, материалов и собственных сценариев.',instruction:'Добавьте одну заметку или вставьте сразу список. Доска не требует структуры заранее.',data:pack('Новая доска',[])}
+];
+class IqWhiteboardDemo extends HTMLElement{
+ connectedCallback(){if(this.events)return;this.events=new AbortController();registerWhiteboard();this.scenario=null;this.cache={};this.positions={};try{const views=JSON.parse(localStorage.getItem('iq-whiteboard-054-views'));if(views&&typeof views==='object')this.positions=views;}catch{}this.innerHTML=`<div class="wb-demo-scenarios" role="group" aria-label="Сценарии визуальной доски">${templates.map(t=>`<button data-scenario="${t.id}" aria-pressed="false">${icon(t.icon,16)}${t.title}</button>`).join('')}</div><div class="wb-demo-intro"><div><h3></h3><p></p></div><span>СВОБОДНАЯ РАБОЧАЯ ПОВЕРХНОСТЬ</span></div><iq-whiteboard></iq-whiteboard><div class="wb-demo-actions"><small class="wb-demo-save" role="status"></small><button class="wb-button" data-restore>Вернуть пример${icon('refresh',15)}</button></div>`;
+ this.board=this.querySelector('iq-whiteboard');this.board.view='canvas';this.board.templates=templates.filter(t=>t.id!=='blank');this.selectScenario('brainstorm');
+ this.addEventListener('click',e=>{const b=e.target.closest('[data-scenario]');if(b)this.selectScenario(b.dataset.scenario);if(e.target.closest('[data-restore]'))this.board.openSheet('Вернуть исходный пример?',`<p>Текущая версия этого сценария будет заменена. Остальные сценарии не изменятся.</p>`,()=>{this.cache[this.scenario]=B.clone(templates.find(t=>t.id===this.scenario).data);try{localStorage.removeItem('iq-whiteboard-054-'+this.scenario)}catch{}this.board.data=this.cache[this.scenario];this.board.fit();this.saveMessage('Восстановлен исходный пример.');},'Вернуть пример')},{signal:this.events.signal});
+ this.board.addEventListener('iq-change',()=>{const value=this.board.data;this.cache[this.scenario]=value;try{localStorage.setItem('iq-whiteboard-054-'+this.scenario,JSON.stringify(value));this.saveMessage('Сохранено в этом браузере. Другие участники не подключены.')}catch{this.saveMessage('Работа остаётся в этой вкладке. Экспортируйте JSON: хранилище браузера недоступно.')}},{signal:this.events.signal});
+ this.board.addEventListener('iq-viewport',()=>{this.positions[this.scenario]=this.board.viewport;clearTimeout(this.viewportTimer);this.viewportTimer=setTimeout(()=>{try{localStorage.setItem('iq-whiteboard-054-views',JSON.stringify(this.positions))}catch{}},400)},{signal:this.events.signal});
+ window.addEventListener('beforeunload',()=>this.board.finishEdit(true),{signal:this.events.signal});
+ this.board.addEventListener('iq-retry',()=>{this.board.state='ready'},{signal:this.events.signal});
+ }
+ disconnectedCallback(){this.events?.abort();this.events=null;clearTimeout(this.viewportTimer)}
+ saveMessage(t){this.querySelector('.wb-demo-save').textContent=t;if(this.board){this.board.storageStatus=t.startsWith('Сохранено')?'Сохранено в этом браузере':t.startsWith('Работа')?'Только в этой вкладке / экспортируйте копию':'Локальная доска. Сервер не подключён';this.board.render();}}
+ selectScenario(id){if(this.board.editing)this.board.finishEdit(true);if(this.scenario){this.cache[this.scenario]=this.board.data;this.positions[this.scenario]=this.board.viewport;}const t=templates.find(t=>t.id===id);this.scenario=id;if(!this.cache[id]){try{this.cache[id]=B.validateBoard(JSON.parse(localStorage.getItem('iq-whiteboard-054-'+id)))}catch{this.cache[id]=B.clone(t.data)}}
+ this.querySelectorAll('[data-scenario]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.scenario===id)));this.querySelector('.wb-demo-intro h3').textContent=t.title;this.querySelector('.wb-demo-intro p').textContent=t.instruction;
+ this.board.data=B.clone(this.cache[id]);this.board.selection=[];this.board.panel='';this.board.vote={active:false,finished:false,limit:3,counts:{}};this.board.tool='select';this.board.linkFrom=null;this.board.render();this.board.listEl.scrollTop=0;requestAnimationFrame(()=>{try{if(this.positions[id])this.board.viewport=this.positions[id];else this.board.fit();}catch{delete this.positions[id];this.board.fit();}});this.saveMessage('Локальные примеры. При недоступности хранилища сохраните JSON через «Ещё».');
+ }
+}
+function installWhiteboardStories(){registerWhiteboard();if(!customElements.get('iq-whiteboard-demo'))customElements.define('iq-whiteboard-demo',IqWhiteboardDemo);const {stories}=require('./stories.js'),{originalNames}=require('./edition.js');const s=stories.find(s=>s.id==='idea-map');if(s)Object.assign(s,{title:'Визуальная доска',description:'Свободные заметки, ретро, схемы и работа с идеями — без обязательных связей и настройки каждого объекта.',usage:'iq-whiteboard — самостоятельная поверхность для совместного мышления. Связи необязательны. Старый iq-graph сохранён для формальных процессов. Данные: objects / connections, независимые selection / viewport; изменения атомарны и могут приниматься приложением. Поиск и панель областей дополняют холст.',keyboard:'S — заметка, T — текст, R — фигура, C — связь, F — рамка, Пробел — рука. Shift — множественный выбор. Ctrl/Cmd+D — дублирование, Ctrl/Cmd+Z — отмена. Enter — правка; Ctrl/Cmd+Enter — следующая заметка. Доступно точное редактирование без drag.',demo:()=>'<iq-whiteboard-demo></iq-whiteboard-demo>',code:`<iq-whiteboard id="board"></iq-whiteboard>\n<script type="module">\nimport { registerIquipage } from './dist/iquipage.js';\nregisterIquipage();\nconst board = document.querySelector('#board');\nboard.data = { title:'Обсуждение', revision:1, objects:[], connections:[] };\nboard.addEventListener('iq-change', ({detail}) => console.log(detail.value));\n// Для серверного сохранения: controlled=true и iq-change-request.accept/reject.\n</script>`,states:'Просмотр, редактирование на месте, одно/множественное выделение, заблокированные объекты, пустая доска, загрузка, ошибка, ожидание и конфликт внешней версии. Локальные таймер и голоса не имитируют совместный сервер.'});originalNames.set('idea-map','Visual whiteboard');}
+Object.assign(exports,{installWhiteboardStories,IqWhiteboardDemo,templates});

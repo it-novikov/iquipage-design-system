@@ -1,0 +1,13 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict');
+global.HTMLElement=class{};
+const C=require('../src/modules/advanced-core.js');
+const {cropRect}=require('../src/modules/image-crop.js');
+const {edgeGeometry}=require('../src/modules/graph.js');
+const hierarchy=()=>({revision:1,rows:[{id:'task',parentId:'epic',title:'Работа',start:null,end:null},{id:'goal',kind:'goal',title:'Цель'},{id:'epic',kind:'epic',parentId:'goal',title:'Выпуск'}]});
+test('hierarchy accepts unsorted undated rows without synthesizing dates',()=>{const d=C.validateRoadmap(hierarchy());assert.equal(d.rows[0].start,null);assert.equal(d.rows[1].start,undefined)});
+test('hierarchy rejects orphan, self-reference, non-group parent and cycles',()=>{for(const edit of [d=>d.rows[0].parentId='lost',d=>d.rows[1].parentId='goal',d=>d.rows[2].parentId='task',d=>d.rows[1].parentId='epic']){const d=hierarchy();edit(d);assert.throws(()=>C.validateRoadmap(d))}});
+test('dependency with an undated endpoint is an explicit scheduling conflict',()=>{const d=hierarchy();d.dependencies=[{id:'edge',from:'epic',to:'task'}];assert.equal(C.roadmapConflicts(C.validateRoadmap(d)).length,1)});
+for(const [w,h]of [[400,200],[200,400],[200,200]])for(const zoom of [1,2,4])test(`crop stays within ${w}x${h} at zoom ${zoom}`,()=>{for(const x of [-1,0,.5,1,2])for(const y of [-1,0,.5,1,2]){const r=cropRect(w,h,zoom,x,y);assert.equal(r.width,r.height);assert.ok(r.x>=0&&r.y>=0&&r.x+r.width<=w&&r.y+r.height<=h)}});
+test('crop rejects nonfinite geometry and empty image',()=>{for(const args of [[0,200],[400,-1],[NaN,2],[400,200,Infinity],[200,200,1,NaN]])assert.throws(()=>cropRect(...args))});
+test('edge routing follows horizontal and vertical object placement',()=>{const n={x:0,y:0,width:260,height:160};assert.equal(edgeGeometry(n,{...n,x:400}).sourceSide,'right');assert.equal(edgeGeometry(n,{...n,y:400}).sourceSide,'bottom');assert.equal(edgeGeometry(n,{...n,x:-400}).targetSide,'right');assert.equal(edgeGeometry(n,{...n,y:-400}).targetSide,'bottom')});

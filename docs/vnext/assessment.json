@@ -1,0 +1,311 @@
+{
+  "schema_version": "2.0",
+  "kind": "integration-review",
+  "baseline": {
+    "ds_archive_sha256": "6490056dd8900177d440431d71d95f5bc7cd4df080cdc99f7743184c704c29ba",
+    "app_fingerprint": "405fe7ffae6d02c1e0fd5f2e2cb8bfd72405d561d62030de366a121ce94149d4",
+    "plan_sha256": "522e7d923b099f7be7796edd9600ccc3a0188b8f2def72f5628b9462833936a3"
+  },
+  "scope": {
+    "plan_id": "VNEXT-FULL-TASK-ACCEPTANCE",
+    "plan_revision": 1,
+    "surface_ids": [
+      "workspace/tasks"
+    ]
+  },
+  "evidence": [{
+    "id": "BUILD-MEASUREMENT-001",
+    "path": "products/sprintique/output/verification/2026-09-11T23-38-36.463Z/product-build.log",
+    "sha256": "dfdf47c2f51e7109776d8c8136ef7840f86c9eb6d27bfbc9c35d70ec72536899",
+    "kind": "measurement",
+    "app_fingerprint": "405fe7ffae6d02c1e0fd5f2e2cb8bfd72405d561d62030de366a121ce94149d4",
+    "ds_archive_sha256": "6490056dd8900177d440431d71d95f5bc7cd4df080cdc99f7743184c704c29ba",
+    "captured_at": "2026-09-11T23:38:43.430Z"
+  }],
+  "checks": [
+    {
+      "id": "VISUAL-001",
+      "surface_id": "workspace/tasks",
+      "dimensions": [
+        "visual"
+      ],
+      "status": "NOT_RUN",
+      "app_fingerprint": "405fe7ffae6d02c1e0fd5f2e2cb8bfd72405d561d62030de366a121ce94149d4",
+      "ds_archive_sha256": "6490056dd8900177d440431d71d95f5bc7cd4df080cdc99f7743184c704c29ba",
+      "method": "manual-inspection",
+      "environment": {
+        "engine": "Chromium",
+        "role": "admin",
+        "theme": "dark",
+        "viewport": [
+          1440,
+          900
+        ],
+        "input": "keyboard",
+        "load_mode": "application",
+        "data_profile": "synthetic-confirmed"
+      },
+      "expected": "Complete task surface with media/tags/links/discussion in both themes and agreed viewport matrix.",
+      "actual": "Partial foundation checks are recorded in STATUS.md and raw verification logs. This complete acceptance case has not been executed.",
+      "reason": "Remaining M4–M7 work and full matrix approval are outstanding.",
+      "approval_ref": null,
+      "executed_at": null,
+      "evidence_ids": [],
+      "finding_ids": []
+    },
+    {
+      "id": "UX-001",
+      "surface_id": "workspace/tasks",
+      "dimensions": [
+        "ux"
+      ],
+      "status": "NOT_RUN",
+      "app_fingerprint": "405fe7ffae6d02c1e0fd5f2e2cb8bfd72405d561d62030de366a121ce94149d4",
+      "ds_archive_sha256": "6490056dd8900177d440431d71d95f5bc7cd4df080cdc99f7743184c704c29ba",
+      "method": "manual-inspection",
+      "environment": {
+        "engine": "Chromium",
+        "role": "admin",
+        "theme": "dark",
+        "viewport": [
+          1440,
+          900
+        ],
+        "input": "keyboard",
+        "load_mode": "application",
+        "data_profile": "synthetic-confirmed"
+      },
+      "expected": "Complete task workflow, draft recovery, conflicts, links, media, navigation and permission changes.",
+      "actual": "Partial foundation checks are recorded in STATUS.md and raw verification logs. This complete acceptance case has not been executed.",
+      "reason": "Remaining M4–M7 work and full matrix approval are outstanding.",
+      "approval_ref": null,
+      "executed_at": null,
+      "evidence_ids": [],
+      "finding_ids": []
+    },
+    {
+      "id": "CODE-001",
+      "surface_id": "workspace/tasks",
+      "dimensions": [
+        "code"
+      ],
+      "status": "NOT_RUN",
+      "app_fingerprint": "405fe7ffae6d02c1e0fd5f2e2cb8bfd72405d561d62030de366a121ce94149d4",
+      "ds_archive_sha256": "6490056dd8900177d440431d71d95f5bc7cd4df080cdc99f7743184c704c29ba",
+      "method": "manual-inspection",
+      "environment": {
+        "engine": "Chromium",
+        "role": "admin",
+        "theme": "dark",
+        "viewport": [
+          1440,
+          900
+        ],
+        "input": "keyboard",
+        "load_mode": "application",
+        "data_profile": "synthetic-confirmed"
+      },
+      "expected": "Complete frontend/API parity with independently reviewed boundaries and contract/rollback tests.",
+      "actual": "Partial foundation checks are recorded in STATUS.md and raw verification logs. This complete acceptance case has not been executed.",
+      "reason": "Remaining M4–M7 work and full matrix approval are outstanding.",
+      "approval_ref": null,
+      "executed_at": null,
+      "evidence_ids": [],
+      "finding_ids": []
+    },
+    {
+      "id": "ACCESSIBILITY-001",
+      "surface_id": "workspace/tasks",
+      "dimensions": [
+        "accessibility"
+      ],
+      "status": "NOT_RUN",
+      "app_fingerprint": "405fe7ffae6d02c1e0fd5f2e2cb8bfd72405d561d62030de366a121ce94149d4",
+      "ds_archive_sha256": "6490056dd8900177d440431d71d95f5bc7cd4df080cdc99f7743184c704c29ba",
+      "method": "automated",
+      "environment": {
+        "engine": "Chromium",
+        "role": "admin",
+        "theme": "dark",
+        "viewport": [
+          1440,
+          900
+        ],
+        "input": "keyboard",
+        "load_mode": "application",
+        "data_profile": "synthetic-confirmed"
+      },
+      "expected": "Full keyboard, screen reader and reduced-motion review; explicitly address the owner focus-style exception.",
+      "actual": "Partial foundation checks are recorded in STATUS.md and raw verification logs. This complete acceptance case has not been executed.",
+      "reason": "Remaining M4–M7 work and full matrix approval are outstanding.",
+      "approval_ref": null,
+      "executed_at": null,
+      "evidence_ids": [],
+      "finding_ids": []
+    },
+    {
+      "id": "HUMAN_AGENT-001",
+      "surface_id": "workspace/tasks",
+      "dimensions": [
+        "human-agent"
+      ],
+      "status": "NOT_RUN",
+      "app_fingerprint": "405fe7ffae6d02c1e0fd5f2e2cb8bfd72405d561d62030de366a121ce94149d4",
+      "ds_archive_sha256": "6490056dd8900177d440431d71d95f5bc7cd4df080cdc99f7743184c704c29ba",
+      "method": "automated",
+      "environment": {
+        "engine": "Chromium",
+        "role": "admin",
+        "theme": "dark",
+        "viewport": [
+          1440,
+          900
+        ],
+        "input": "keyboard",
+        "load_mode": "application",
+        "data_profile": "synthetic-confirmed"
+      },
+      "expected": "Grant, proposal, approval, revision invalidation, execution, cancellation and result application tested independently.",
+      "actual": "Partial foundation checks are recorded in STATUS.md and raw verification logs. This complete acceptance case has not been executed.",
+      "reason": "Remaining M4–M7 work and full matrix approval are outstanding.",
+      "approval_ref": null,
+      "executed_at": null,
+      "evidence_ids": [],
+      "finding_ids": []
+    },
+    {
+      "id": "PERFORMANCE-001",
+      "surface_id": "workspace/tasks",
+      "dimensions": [
+        "performance"
+      ],
+      "status": "NOT_RUN",
+      "app_fingerprint": "405fe7ffae6d02c1e0fd5f2e2cb8bfd72405d561d62030de366a121ce94149d4",
+      "ds_archive_sha256": "6490056dd8900177d440431d71d95f5bc7cd4df080cdc99f7743184c704c29ba",
+      "method": "automated",
+      "environment": {
+        "engine": "Chromium",
+        "role": "admin",
+        "theme": "dark",
+        "viewport": [
+          1440,
+          900
+        ],
+        "input": "keyboard",
+        "load_mode": "application",
+        "data_profile": "synthetic-confirmed"
+      },
+      "expected": "Agree and measure initial/lazy loads, large datasets, idle/long tasks and responsiveness; remaining illustration chunk reviewed.",
+      "actual": "Partial foundation checks are recorded in STATUS.md and raw verification logs. This complete acceptance case has not been executed.",
+      "reason": "Remaining M4–M7 work and full matrix approval are outstanding.",
+      "approval_ref": null,
+      "executed_at": null,
+      "evidence_ids": [],
+      "finding_ids": [
+        "F06"
+      ]
+    }
+  ],
+  "coverage": [
+    {
+      "surface_id": "workspace/tasks",
+      "status": "NOT_RUN",
+      "check_ids": [
+        "VISUAL-001",
+        "UX-001",
+        "CODE-001",
+        "ACCESSIBILITY-001",
+        "HUMAN_AGENT-001",
+        "PERFORMANCE-001"
+      ]
+    }
+  ],
+  "dimensions": [
+    {
+      "name": "visual",
+      "status": "NOT_RUN",
+      "summary": "Complete acceptance pending; see STATUS.md for actual partial test results.",
+      "check_ids": [
+        "VISUAL-001"
+      ],
+      "approval_ref": null
+    },
+    {
+      "name": "ux",
+      "status": "NOT_RUN",
+      "summary": "Complete acceptance pending; see STATUS.md for actual partial test results.",
+      "check_ids": [
+        "UX-001"
+      ],
+      "approval_ref": null
+    },
+    {
+      "name": "code",
+      "status": "NOT_RUN",
+      "summary": "Complete acceptance pending; see STATUS.md for actual partial test results.",
+      "check_ids": [
+        "CODE-001"
+      ],
+      "approval_ref": null
+    },
+    {
+      "name": "accessibility",
+      "status": "NOT_RUN",
+      "summary": "Complete acceptance pending; see STATUS.md for actual partial test results.",
+      "check_ids": [
+        "ACCESSIBILITY-001"
+      ],
+      "approval_ref": null
+    },
+    {
+      "name": "human-agent",
+      "status": "NOT_RUN",
+      "summary": "Complete acceptance pending; see STATUS.md for actual partial test results.",
+      "check_ids": [
+        "HUMAN_AGENT-001"
+      ],
+      "approval_ref": null
+    },
+    {
+      "name": "performance",
+      "status": "NOT_RUN",
+      "summary": "Complete acceptance pending; see STATUS.md for actual partial test results.",
+      "check_ids": [
+        "PERFORMANCE-001"
+      ],
+      "approval_ref": null
+    }
+  ],
+  "findings": [
+    {
+      "id": "F06",
+      "severity": "P2",
+      "classification": "confirmed",
+      "status": "open",
+      "category": "performance-acceptance-gap",
+      "title": "Full runtime performance and deferred illustration load remain unaccepted",
+      "surface_ids": [
+        "workspace/tasks"
+      ],
+      "dimensions": [
+        "performance"
+      ],
+      "detected_at": "2026-09-11T23:31:00Z",
+      "detected_fingerprint": "405fe7ffae6d02c1e0fd5f2e2cb8bfd72405d561d62030de366a121ce94149d4",
+      "reproduction": "Run product build: deferred cover picker is about 1.19 MB; full runtime/load measurements are not complete.",
+      "recommendation": "Keep picker lazy; measure and optimize media delivery with M4/M7 before release.",
+      "acceptance": "Agree and measure initial/lazy loads, large datasets, idle/long tasks and responsiveness; remaining illustration chunk reviewed.",
+      "evidence_ids": ["BUILD-MEASUREMENT-001"],
+      "related_check_ids": [
+        "PERFORMANCE-001"
+      ],
+      "repair": null,
+      "owner": "Sprintique maintainers",
+      "approval_ref": null
+    }
+  ],
+  "verdict": {
+    "scope_ready": false,
+    "summary": "PARTIAL_FOUNDATION_ONLY. Formal full task acceptance is pending; no production readiness or independent-review claim."
+  }
+}

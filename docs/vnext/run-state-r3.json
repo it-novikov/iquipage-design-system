@@ -1,0 +1,21 @@
+{
+  "schema_version": "1.1",
+  "run_id": "sprintique-vnext-r3-2026-09-12",
+  "historical": true,
+  "superseded_by": "audit-r4/run-state.json",
+  "skill": "iquipage-discovery + iquipage-implement + iquipage-review",
+  "mode": "targeted-self-review",
+  "scope_ref": "COMPLETION-R3.md",
+  "approval_ref": "Owner approved same repository, delegated stack choices and requested local completion including partial PR3",
+  "ds_sha256": "6490056dd8900177d440431d71d95f5bc7cd4df080cdc99f7743184c704c29ba",
+  "app_fingerprint": "5750cb964e7424fa61ec1f92bf3c508d1253010ee58cfc3119c996f3b92b64b0",
+  "planning_source": "d87c65767ef471c81bf84c10b9b19e225a956064",
+  "completed": ["independent DS release", "detachable product", "canonical board/task/discussion", "PR3 Planning integration and recovery", "versioned maps and templates", "private media and avatar", "settings/search/links/membership/workspaces", "bounded agent runs/proposals/approvals/receipts", "restricted cleanup worker and admin retry", "real local OIDC/S3/PostgreSQL", "runtime limits/metrics/schema/OpenAPI inventory", "209 DS tests", "107 product tests", "detached clean build/107 tests", "container probe", "isolated backup/restore", "targeted Chromium flows"],
+  "known_failing_automated_checks": [],
+  "release_limits_ref": "GAPS.md",
+  "evidence_paths": ["../../products/sprintique/output/verification/2026-09-12T11-15-56.934Z", "../../products/sprintique/output/playwright", "../../products/sprintique/output/infra/container-verification.json", "../../products/sprintique/output/infra/backup-verification.json"],
+  "next_action": "Review local delivery; authorize any separate remote push or deployment before external mutations",
+  "do_not_repeat": ["Do not reopen same-repository or stack decisions", "Do not reuse merged PR2", "Do not change the other Planning writer's branch", "Do not bypass Planning through direct task release/parent writes", "Do not publish private infra/session/backup files", "Do not claim full platform or production acceptance"],
+  "external_side_effects_authorized": false,
+  "full_platform_ready": false
+}
