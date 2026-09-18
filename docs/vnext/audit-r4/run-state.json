@@ -41,21 +41,22 @@
       "skipped": 0
     },
     "docker_postgresql": {
-      "checkpoint": "2026-09-12T12-30-32.505Z",
-      "ds_tests": 209,
-      "product_tests": 135,
-      "detached_tests": 135,
+      "checkpoint": "2026-09-18",
+      "ds_tests": null,
+      "product_tests": 142,
       "failed": 0,
       "skipped": 0,
-      "note": "Last run before the security remediation; rerun pending on the updated branch"
+      "note": "SPRINTIQUE_TEST_DOCKER=1 on the updated branch with real private S3"
     },
     "source_stable": true,
     "build_and_boundaries": "pass",
     "runtime_container": {
-      "image_id": "sha256:174a9b8cb8615d39f352f04545bc4bb94d2a17b7a8a41e7eb6edd6db232cf72e",
-      "verified_at": "2026-09-12T12:34:12.285Z",
-      "result": "pass",
-      "note": "Local probe covers the engineering image; the updated branch rebuilds the portable runtime image in GitHub CI"
+      "image_id": "sha256:e7f26d6588d087a8eef745226ca1a98f5e9666ae0bc4a4f0ec27d99c122b8c17",
+      "verified_at": "2026-09-18",
+      "ready_against_real_qa_services": true,
+      "non_root_read_only": true,
+      "session_check": "blocked: stored QA OIDC session from 2026-09-12 expired",
+      "result": "partial"
     },
     "targeted_chromium_real_api": "pass-before-security-remediation",
     "full_browser_accessibility_matrix": "not-run",
@@ -86,13 +87,13 @@
   "acceptance": "ACCEPTANCE.md",
   "pull_request": {
     "url": "https://github.com/it-novikov/iquipage-design-system/pull/4",
-    "draft": true,
-    "reason": "deep security workflow ended with a terminal error before its validation, attack-path and reporting phases; coverage is incomplete"
+    "draft": false,
+    "reason": "Owner approved merging with the documented incomplete deep-scan coverage on 2026-09-18"
   },
   "authorization": {
     "audit_and_fixes": true,
     "new_github_pr": true,
-    "merge": false,
+    "merge": true,
     "deployment": false,
     "production_data_changes": false,
     "registry_publication": false
