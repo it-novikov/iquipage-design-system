@@ -1,0 +1,10 @@
+{
+  "status": "PASS_DOCUMENT_INTEGRITY",
+  "scope": "Research and proposed redesign only",
+  "markdownDocuments": 5,
+  "manifestEntries": 6,
+  "acceptanceScenarios": 45,
+  "scenarioStatus": "NOT_RUN",
+  "runtimeChanged": false,
+  "archiveSha256": "e4a41ae82b3e465fe08ddaed053962d68e5202647394cef321ee3a84440c223d"
+}

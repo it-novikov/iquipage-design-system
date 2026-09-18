@@ -7,23 +7,39 @@ export function installWorkflowUI(feature) {
     feature.panel=name;feature.inspector.hidden=false;
     feature.inspector.innerHTML=`<header class="map-panel-head"><div><small>${name==='runs'?'ИСПОЛНЕНИЕ':'СЦЕНАРИЙ ДЕЙСТВИЙ'}</small><h2>${esc(title)}</h2></div>${button('close-panel','Закрыть','x','ghost','aria-label="Закрыть боковую панель"')}</header><div class="map-panel-body">${body}</div>`;
   };
-  feature.renderProperties=()=>renderProperties(feature);
+  feature.leaveWorkflowDraft=async()=>{
+    const draft=feature.workflowDraft;if(!draft)return true;if(draft.saving)return false;
+    if(!draft.form.isConnected){feature.workflowDraft=null;return true;}
+    if(draft.dirty()){
+      let discard=false;const question=feature.dialog({title:'Оставить изменения шага?',description:'Параметры ещё не сохранены. Можно вернуться к редактированию.',submitLabel:'Не сохранять',onSubmit:async()=>{discard=true;}});
+      await new Promise(resolve=>question.addEventListener('iq-close',resolve,{once:true}));if(!discard)return false;
+    }
+    if(feature.workflowDraft===draft)feature.workflowDraft=null;return true;
+  };
+  feature.renderProperties=()=>{
+    feature.workflowEditQueue=(feature.workflowEditQueue||Promise.resolve()).then(async()=>{
+      const selected=feature.board.selection,previous=feature.workflowDraft?.selection;
+      if(previous&&JSON.stringify(previous)===JSON.stringify(selected))return;
+      if(!(await feature.leaveWorkflowDraft())){if(previous)feature.board.select(previous,false);return;}
+      if(feature.alive&&feature.view==='workflow')renderProperties(feature);
+    }).catch(error=>feature.message(error.message,true));return feature.workflowEditQueue;
+  };
   feature.workflowActions={
-    'close-panel':()=>{feature.inspector.hidden=true;},
-    properties:()=>renderProperties(feature),
+    'close-panel':async()=>{if(await feature.leaveWorkflowDraft())feature.inspector.hidden=true;},
+    properties:()=>feature.renderProperties(),
     'add-step':()=>addStep(feature),
     'connect-step':()=>connectStep(feature),
     validate:()=>validate(feature),
     run:()=>runDialog(feature),
     runs:()=>showRuns(feature),
     'run-details':control=>runDetails(feature,control.dataset.runId),
-    'goto-step':control=>{feature.board.select([control.dataset.nodeId]);feature.board.fit([control.dataset.nodeId]);renderProperties(feature);}
+    'goto-step':control=>{feature.board.select([control.dataset.nodeId]);feature.board.fit([control.dataset.nodeId]);return feature.renderProperties();}
   };
 }
 function editable(feature){return feature.permissions.edit&&feature.current?.status!=='archived';}
 async function saveFlow(feature,flow){
-  if(!(await feature.readyToLeave()))throw Error('Сначала сохраните изменения карты.');
-  return feature.saveMetadata({...clone(feature.current),flow:{...flow,version:(feature.current.flow.version||0)+1}});
+  if(!(await feature.readyToLeave({skipWorkflowDraft:true})))throw Error('Сначала сохраните изменения карты.');
+  return feature.saveMetadata({...clone(feature.current),flow:{...flow,version:(feature.current.flow.version||0)+1}},{fromWorkflowEditor:true});
 }
 function renderProperties(feature) {
   const flow=feature.current?.flow;if(!flow)return;
@@ -47,10 +63,15 @@ function renderProperties(feature) {
   });
 }
 function wireForm(feature,action) {
-  const form=feature.inspector.querySelector('form');
-  form.addEventListener('submit',async event=>{event.preventDefault();const b=form.querySelector('[type=submit]'),error=form.querySelector('[role=alert]');if(b.disabled)return;b.disabled=true;error.hidden=true;
-    try{await action(new FormData(form));feature.message('Параметры сохранены. Перед запуском проверьте сценарий.');}catch(e){error.textContent=e.message;error.hidden=false;}finally{b.disabled=!editable(feature);}});
+  const form=feature.inspector.querySelector('form'),revision=feature.current.revision;
+  let baseline=JSON.stringify([...new FormData(form)]);
+  const draft={form,selection:[...feature.board.selection],saving:false,dirty:()=>JSON.stringify([...new FormData(form)])!==baseline};feature.workflowDraft=draft;
+  form.addEventListener('submit',async event=>{event.preventDefault();const b=form.querySelector('[type=submit]'),error=form.querySelector('[role=alert]');if(b.disabled||draft.saving)return;b.disabled=true;error.hidden=true;draft.saving=true;
+    try{if(feature.current.revision!==revision)throw Error('Сценарий изменился. Ваш ввод сохранён в форме; обновите параметры перед применением.');await action(new FormData(form));baseline=JSON.stringify([...new FormData(form)]);feature.message('Параметры сохранены. Перед запуском проверьте сценарий.');}
+    catch(e){if(form.isConnected){error.textContent=e.message;error.hidden=false;}}
+    finally{draft.saving=false;if(form.isConnected)b.disabled=!editable(feature);}});
 }
+
 function addStep(feature) {
   requireValue(editable(feature),'READ_ONLY','Карта доступна только для просмотра.');
   feature.dialog({title:'Добавить исполняемый шаг',description:'Тип определяет вход, результат и то, что произойдёт при запуске.',body:`${select('kind','Действие','transform',Object.entries(NODE_TYPES).map(([id,d])=>[id,d.label]))}${input('title','Название','',{placeholder:'Можно оставить пустым'})}`,submitLabel:'Добавить шаг',onSubmit:async values=>{

@@ -1,0 +1,4 @@
+PASS Close preview retains parameters, creates one recipient and pins accepted child while open parent moves
+PASS Closed release is in immutable history and no longer occupies active planning
+PASS Sprint defaults propose a custom period and do not rewrite existing releases
+PASS All matching work uses a fixed selection token instead of hidden mutable row IDs

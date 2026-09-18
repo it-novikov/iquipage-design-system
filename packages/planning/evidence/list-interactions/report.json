@@ -1,0 +1,12 @@
+{
+  "status": "PASS",
+  "checks": [
+    "Escape cancels pointer drag with no write and removes overlay",
+    "Pointer transfer previews active scope and preserves task identity, parent and workflow",
+    "Keyboard drag reaches the same guarded command; cancellation preserves scope",
+    "Manual reorder only changes planning ranks among siblings",
+    "Single-pointer order dialog changes the same rank without dragging",
+    "Automatic sorting rejects deceptive same-group reorder"
+  ],
+  "errors": []
+}

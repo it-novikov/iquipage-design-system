@@ -28,7 +28,7 @@ try{
   await context.route('**/*',r=>new URL(r.request().url()).origin===api.base?r.continue():r.abort());
   const page=await context.newPage();page.setDefaultTimeout(10000);page.on('pageerror',e=>errors.push(e.message));
   await page.goto(api.base+'/?project=browser-recovery#maps');await page.locator('iq-whiteboard').waitFor();
-  await page.locator('.map-toolbar [data-map-action=workflow]').click();
+  await page.locator('.map-toolbar [data-map-action=more]').click();await page.locator('dialog[open] [data-map-action=workflow]').click();
   await page.locator('.map-subbar [data-map-action=automations]').click();
   await page.getByRole('button',{name:'Доставка событий',exact:true}).click();
   const retry=page.locator('[data-map-action=retry-delivery]').first(),id=await retry.getAttribute('data-delivery-id');

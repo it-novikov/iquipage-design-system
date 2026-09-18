@@ -1,0 +1,31 @@
+{
+  "stage": "frontend-r1",
+  "scope": "Planning consumer UI with isolated reference fixtures; not the production platform",
+  "approval": "User confirmed completion in the design-system repository, one branch and PR",
+  "targetRepository": "it-novikov/iquipage-design-system",
+  "branch": "feature/vnext-planning-ui",
+  "pullRequest": 3,
+  "frontendBase": "f3dd146cc9c7c0544fd663d632704a210a5c13be",
+  "backendOwner": "parallel backend agent",
+  "backendIntegrated": false,
+  "productionReady": false,
+  "currentAcceptance": "Run npm run verify; authoritative result and source fingerprint: evidence/verification.json",
+  "completed": [
+    "Release/backlog groups, default-expanded hierarchy, explicit/snapshot selection, shared task document",
+    "Prepare/move/start, guarded bulk and receipt recovery without duplicate effects",
+    "Close/cancel with explicit carry-forward, accepted-child pinning and immutable result history",
+    "Flexible/timeboxed defaults, project timezone and separate plan/deadline dates",
+    "DS roadmap/calendar, milestones, canonical task-dependency projection and conditions",
+    "PLN-RECOVERY-01 repaired through public component lifecycle and verified regression",
+    "Pointer/keyboard transfer, non-drag order dialog and manual-only sibling reorder",
+    "Strict source-owned work-list package, variable-height windows, retained focus, 10000-row consumer test",
+    "Independent library build/tarball consumer, versioned complete package and required CI"
+  ],
+  "pending": [
+    "Backend-owned SDK/API, PostgreSQL, auth/ACL, agent policy and multi-client integration",
+    "Independent promotion of additive work-list source into extracted design-system release",
+    "Physical touch/screen-reader acceptance, broader real-device and multi-group performance profiles",
+    "Optional one-way migration as separate MIG track"
+  ],
+  "legacyRepositoryModified": false
+}

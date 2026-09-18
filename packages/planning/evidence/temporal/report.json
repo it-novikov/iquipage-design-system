@@ -1,0 +1,11 @@
+{
+  "status": "PASS",
+  "checks": [
+    "Existing DS roadmap moves release interval through preview/commit without shifting task dates",
+    "Milestone persists as a planning object, not another task",
+    "Calendar dependency references the same business task relation and persists through its command",
+    "Calendar shares stored milestones, remembers its view and cancelled interval preview never writes",
+    "DS timeline and agenda render in both themes and narrow layout without page errors"
+  ],
+  "errors": []
+}

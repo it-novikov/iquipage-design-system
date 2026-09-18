@@ -1,0 +1,24 @@
+{
+  "stage": "UX R3 frontend",
+  "status": "PASS_FRONTEND_FIXTURE",
+  "branch": "feature/vnext-planning-ui",
+  "pullRequest": 3,
+  "sourceCommit": "ea9db08",
+  "sourceFingerprint": "1c830a08daaba66cbd2333e8db986c820460eb2a61a72e54251887aeb83857c6",
+  "checks": {"planningNode": 43, "baseNode": 173, "planningBrowser": 63},
+  "implemented": [
+    "Compact Planning and direct owner/due editing",
+    "Deadlines with Gantt and calendar",
+    "Project/workspace switcher and profile",
+    "Direct map editing and shared task document",
+    "Map lifecycle guards for delayed reads and saves"
+  ],
+  "remaining": [
+    "Workspace-wide quarterly roadmap",
+    "Agent profiles, persistent memory and connected runner",
+    "Integration with the parallel backend track"
+  ],
+  "packageCheck": "See clean-recheck.json next to the delivery ZIP",
+  "backendIntegrated": false,
+  "productionReady": false
+}

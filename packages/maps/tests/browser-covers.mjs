@@ -12,6 +12,10 @@ const png=await sharp({create:{width:1200,height:600,channels:3,background:'#387
 const jpeg=await sharp({create:{width:600,height:900,channels:3,background:'#bf8670'}}).jpeg().toBuffer();
 const mark=name=>{checks.push({name,status:'PASS'});console.log('PASS',name);};
 const panel=()=>page.locator('.task-edit-dialog dialog[open]').last();
+// The cover input opens the DS crop dialog for decodable images; confirm the default frame.
+async function confirmCrop(){const use=page.getByRole('button',{name:'Использовать кадр',exact:true});
+  try{await use.waitFor({timeout:3000});await use.click();}catch{/* rejected files never reach the crop step */}}
+async function chooseCover(file){await panel().locator('[data-cover-input]').setInputFiles(file);await confirmCrop();}
 const last=()=>page.locator('dialog[open]').last();
 const save=async()=>{await panel().getByRole('button',{name:'Сохранить задачу',exact:true}).click();await page.locator('.task-edit-dialog').waitFor({state:'detached'});};
 const records=()=>page.evaluate(async()=>window.mapsDemo.repository.list('tasks',window.mapsDemo.project.id));
@@ -36,7 +40,7 @@ try{
     assert.equal(await page.locator('.task-card-cover').count(),0);mark(mode+': optional cover adds no empty media slot');
     await page.getByRole('button',{name:'Новая задача',exact:true}).click();
     await panel().getByLabel('Название',{exact:true}).fill('Обложка и документ');
-    await panel().locator('[data-cover-input]').setInputFiles({name:'landscape.png',mimeType:'image/png',buffer:png});
+    await chooseCover({name:'landscape.png',mimeType:'image/png',buffer:png});
     await panel().locator('[data-file-row][data-state=ready]').waitFor();
     await panel().locator('.task-detail-cover[data-state=ready]').waitFor();
     assert.equal((await records()).length,1,'Staging must not create a task');
@@ -61,10 +65,10 @@ try{
     task=(await records()).find(item=>item.id===task.id);assert.equal(task.coverAttachmentId,null);assert.equal(task.attachmentIds.length,2);
     assert.equal(await page.locator('.task-card-cover').count(),0);mark(mode+': removing the cover retains both attachments');
     await page.getByRole('button',{name:task.title,exact:true}).click();
-    await panel().locator(`[data-file-cover="${firstCover}"]`).click();
+    await panel().locator(`[data-file-cover="${firstCover}"]`).click();await confirmCrop();
     await panel().locator('.task-detail-cover[data-state=ready]').waitFor();
     await panel().getByLabel('Название',{exact:true}).fill('Черновик не теряется');
-    await panel().locator('[data-cover-input]').setInputFiles({name:'portrait.jpg',mimeType:'image/jpeg',buffer:jpeg});
+    await chooseCover({name:'portrait.jpg',mimeType:'image/jpeg',buffer:jpeg});
     await page.waitForFunction(()=>document.querySelectorAll('.task-edit-dialog [data-file-row][data-state=ready]').length===3);
     assert.equal(await panel().getByLabel('Название',{exact:true}).inputValue(),'Черновик не теряется');await save();
     task=(await records()).find(item=>item.id===task.id);assert.notEqual(task.coverAttachmentId,firstCover);assert.equal(task.attachmentIds.length,3);
@@ -77,15 +81,19 @@ try{
     task=(await records()).find(item=>item.id===task.id);assert.equal(task.coverAttachmentId,null);assert.equal(task.attachmentIds.length,2);
     mark(mode+': removing the selected cover attachment clears both references');
     await page.getByRole('button',{name:task.title,exact:true}).click();
-    await panel().locator(`[data-file-cover="${firstCover}"]`).click();await save();
+    await panel().locator(`[data-file-cover="${firstCover}"]`).click();await confirmCrop();await save();
     await page.getByRole('button',{name:task.title,exact:true}).click();
+    // R3 decodes in the DS crop step: an undecodable image is refused before it can be staged.
+    const attachmentsBefore=(await records()).find(item=>item.id===task.id).attachmentIds.length;
     await panel().locator('[data-cover-input]').setInputFiles({name:'spoof.png',mimeType:'image/png',buffer:Buffer.from('not an image')});
-    await panel().locator('[data-file-row][data-state=failed]').waitFor();
+    const crop=page.locator('dialog[open]').filter({hasText:'Выберите кадр обложки'}).last();
+    await crop.getByText('Не удалось прочитать изображение',{exact:false}).waitFor();
+    assert.equal(await crop.getByRole('button',{name:'Использовать кадр',exact:true}).isDisabled(),true);
+    await crop.getByRole('button',{name:'Закрыть',exact:true}).last().click();
+    assert.equal(await panel().locator('[data-file-row][data-state=failed]').count(),0);
     assert.ok(await panel().locator('.task-detail-cover').isVisible());
-    await panel().getByRole('button',{name:'Сохранить задачу',exact:true}).click();
-    await panel().locator('.map-dialog-form > .map-form-error:not([hidden])').waitFor();
-    await panel().locator('[data-file-row][data-state=failed] [data-file-remove]').click();
-    await panel().locator('.iq-dialog-head [data-close]').click();await page.locator('.task-edit-dialog').waitFor({state:'detached'});
+    await panel().getByRole('button',{name:'Сохранить задачу',exact:true}).click();await page.locator('.task-edit-dialog').waitFor({state:'detached'});
+    assert.equal((await records()).find(item=>item.id===task.id).attachmentIds.length,attachmentsBefore);
     assert.equal((await records()).find(item=>item.id===task.id).coverAttachmentId,firstCover);
     mark(mode+': invalid upload keeps the prior cover and cannot silently disappear during save');
     if(mode==='server'){
@@ -103,7 +111,7 @@ try{
       task=await checkCoverRecovery({page,context,api,task,png,mark});
     }
     await page.getByRole('button',{name:task.title,exact:true}).click();
-    await panel().locator('[data-cover-input]').setInputFiles({name:'discard.png',mimeType:'image/png',buffer:png});
+    await chooseCover({name:'discard.png',mimeType:'image/png',buffer:png});
     await page.waitForFunction(()=>[...document.querySelectorAll('.task-edit-dialog [data-file-row]')].some(row=>row.textContent.includes('discard.png')&&row.dataset.state==='ready'));
     await panel().locator('.iq-dialog-head [data-close]').click();
     await last().getByRole('button',{name:'Не сохранять',exact:true}).click();await page.locator('.task-edit-dialog').waitFor({state:'detached'});
@@ -115,7 +123,7 @@ try{
     await page.locator(`[data-drag-id="${task.id}"] .task-card-cover[data-state=ready]`).waitFor();
     assert.equal((await records()).find(item=>item.id===task.id).coverAttachmentId,firstCover);
     mark(mode+': moving a covered card preserves file references and mixed-height layout');
-    await page.setViewportSize({width:390,height:844});await page.getByRole('button',{name:'Переключить тему',exact:true}).click();
+    await page.setViewportSize({width:390,height:844});await page.getByRole('button',{name:'Разделы приложения',exact:true}).click();await page.getByRole('menuitem',{name:'Сменить тему',exact:true}).click();
     await page.getByRole('button',{name:task.title,exact:true}).click();await panel().locator('.task-detail-cover[data-state=ready]').waitFor();
     const rect=await panel().boundingBox();assert.ok(rect.x>=0&&rect.x+rect.width<=391);
     await page.screenshot({path:`artifacts/board-covers/task-${mode}-dark.png`});
@@ -124,7 +132,7 @@ try{
     await page.screenshot({path:`artifacts/board-covers/files-${mode}-dark.png`});
     await panel().locator('.iq-dialog-head [data-close]').click();await page.locator('.task-edit-dialog').waitFor({state:'detached'});
     mark(mode+': cover and attachment actions remain bounded in narrow dark task view');
-    await page.getByRole('link',{name:'Карты',exact:true}).click();
+    await page.getByRole('button',{name:'Разделы приложения',exact:true}).click();await page.getByRole('menuitem',{name:'Карты',exact:true}).click();
     await page.waitForFunction(()=>document.querySelector('#host-view').hidden);
     await page.waitForFunction(()=>window.coverURLAudit.size===0);
     mark(mode+': leaving the board releases every owned object URL');

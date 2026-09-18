@@ -1,0 +1,138 @@
+{
+  "stage": "ux-r3",
+  "status": "PASS",
+  "scope": "consumer-view-and-local-fixture",
+  "startedAt": "2026-09-12T19:40:19.011Z",
+  "finishedAt": "2026-09-12T19:41:10.733Z",
+  "sourceCommit": "ea9db0837efbff3db01ab23b15dba0dfffbb920b",
+  "sourceFingerprint": "1c830a08daaba66cbd2333e8db986c820460eb2a61a72e54251887aeb83857c6",
+  "node": "v26.0.0",
+  "nodeTests": 43,
+  "baseNodeTests": 173,
+  "browserScenarios": 63,
+  "checks": [
+    {
+      "name": "pinned-ds-integrity",
+      "exitCode": 0,
+      "files": 297
+    },
+    {
+      "name": "base-build",
+      "exitCode": 0
+    },
+    {
+      "name": "work-list-build",
+      "exitCode": 0
+    },
+    {
+      "name": "work-list-pack",
+      "exitCode": 0
+    },
+    {
+      "name": "unit",
+      "exitCode": 0
+    },
+    {
+      "name": "consumer-types",
+      "exitCode": 0
+    },
+    {
+      "name": "base-unit",
+      "exitCode": 0
+    },
+    {
+      "name": "browser",
+      "exitCode": 0
+    },
+    {
+      "name": "offline-build",
+      "exitCode": 0
+    },
+    {
+      "name": "offline-smoke",
+      "exitCode": 0
+    },
+    {
+      "name": "base-browser-editor-actions-v34",
+      "exitCode": 0
+    },
+    {
+      "name": "base-browser-thread-actions-v34",
+      "exitCode": 0
+    },
+    {
+      "name": "base-browser-board-interactions",
+      "exitCode": 0
+    },
+    {
+      "name": "browser-completion",
+      "exitCode": 0
+    },
+    {
+      "name": "browser-temporal",
+      "exitCode": 0
+    },
+    {
+      "name": "browser-conditions",
+      "exitCode": 0
+    },
+    {
+      "name": "browser-recovery",
+      "exitCode": 0
+    },
+    {
+      "name": "browser-list-interactions",
+      "exitCode": 0
+    },
+    {
+      "name": "browser-large-list",
+      "exitCode": 0
+    },
+    {
+      "name": "browser-experience-r3",
+      "exitCode": 0
+    },
+    {
+      "name": "browser-r3-guards",
+      "exitCode": 0
+    },
+    {
+      "name": "browser-r3-map-lifecycle",
+      "exitCode": 0
+    }
+  ],
+  "backendIntegrated": false,
+  "productionReady": false,
+  "limitations": [
+    "Fixture persistence and receipt simulation use isolated IndexedDB, not the new backend",
+    "No production authentication or tenant/agent authorization accepted",
+    "Consumer TypeScript declarations compiled; implementation is JavaScript, not a strict TypeScript codebase",
+    "The source-owned work-list candidate is consumer-tested; independent DS promotion remains a separate owner decision",
+    "Optional legacy importer and new backend remain separate tracks",
+    "No measured real-device FPS or physical touch/screen-reader acceptance",
+    "Full historical upstream browser runner not claimed passing; three current v3.4 suites rerun"
+  ],
+  "offline": {
+    "scope": "fixture-only",
+    "moduleCount": 121,
+    "htmlBytes": 3775984,
+    "sha256": "dfc4147bdb04e381941d5c0a42f8fdea0df7b97752bb393d71b32c841a36bf72"
+  },
+  "dsCandidate": {
+    "version": "0.6.0-board.7",
+    "baseVersion": "0.5.7",
+    "baseManifest": "f252a499e00d7bab6088640126a406075a86bf109e673a257a002d8e90e9195c",
+    "focusPolicySha256": "f713e4733cf84e490bbe876da557b979776669828e19f1659c9e17fef96b9115",
+    "cssSha256": "5bc527e4e069954f55df78c9aad179877d5bacca5df6527a1378127514bfd51c",
+    "extensionSha256": "98211cc6f2b5a62588bd5d8cdb1f167a86a905241834a9b3690769eaa7e47fda",
+    "boardExtensionSha256": "4e1adf9a22c7d8d10272d798a67353dd7e5a4df6ee2d4cd9bef116557510e326",
+    "editorExtensionSha256": "da605aa618a569574fe954f9e2c719ae6cb9c112729c043099097cf8b66bec58",
+    "editorPreviewSha256": "dddbbd8f77f55e1911fad29da281417e1e312fd2457854608170712cf5053bf7",
+    "markdownTasksSha256": "d286e0fdbbf0a6dd25ce9a9fe9ec7e776dba6306e57527021469dca18463ad0e",
+    "uxV3Sha256": "8c5aeed62c70d69e92c69d3bb8e71a0d55fcad4f1086461f318dfd19f3647edd",
+    "uxV3TypesSha256": "a9ab5d8469827c4c195b74a4b97a22267b7786e7f33f346336e336ab240fdec0",
+    "note": "Explicit DS source candidate; no production acceptance implied",
+    "editorActionsSha256": "2ae6ef9e4a9a1b4ba11858e37820fab88a776e608281e26526804166e16b147f",
+    "editorActionsCSSSha256": "b6d18d8f90b1f5a369f364298e4c7d8a5189bd83782c1431dc70de8054e0649e"
+  }
+}

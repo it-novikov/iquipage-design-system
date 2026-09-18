@@ -1,0 +1,5 @@
+PASS Existing DS roadmap moves release interval through preview/commit without shifting task dates
+PASS Milestone persists as a planning object, not another task
+PASS Calendar dependency references the same business task relation and persists through its command
+PASS Calendar shares stored milestones, remembers its view and cancelled interval preview never writes
+PASS DS timeline and agenda render in both themes and narrow layout without page errors

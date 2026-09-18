@@ -1,0 +1,13 @@
+{
+  "scope": "source review, not a release",
+  "sourceCommit": "ff505b3a10e232975abd49ee5c8dadff5cf9ea79",
+  "acceptance": "FAIL",
+  "backendIntegrated": false,
+  "releaseReady": false,
+  "requiredFailure": "PLN-RECOVERY-01",
+  "unintegrated": "List drag/windowing is not part of this runnable snapshot",
+  "archiveIntegrity": "PASS",
+  "files": 823,
+  "manifestEntries": 821,
+  "archiveSha256": "8ab19077cc6ad8f7324172a216d824e036c8c6577177f61ae9d15d3473828a34"
+}

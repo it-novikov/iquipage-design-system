@@ -1,0 +1,9 @@
+{
+  "status": "PASS_PACKAGE_INTEGRITY",
+  "scope": "local Frontend R1 fixture and sources",
+  "files": 1006,
+  "manifestEntries": 1005,
+  "archiveSha256": "5f678dcd974ace84cf0d6e251381f9a5871e0f1cc7f6a20cd29e292ec83d271d",
+  "backendIntegrated": false,
+  "productReady": false
+}

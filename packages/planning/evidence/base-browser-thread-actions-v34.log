@@ -1,0 +1,7 @@
+PASS Flag-only draft triggers the existing unsaved guard and Cancel retains its selected state
+PASS Busy state locks submission and decision action; failed send retains the Markdown draft and flag, successful retry resets both
+PASS Lost response is idempotent; changing the already committed decision flag reports a conflict without overwriting or duplicating the discussion
+PASS Comment, unresolved and resolved states use DS badges; compact replies keep the original discussion kind
+PASS Reopening automatically loads persisted decision states without changing the task revision
+PASS Task discussion layout checked at 320, 390, 768 and 1440 px in light and dark themes
+PASS Read-only discussion list exposes state badges but no editing or resolution controls; no JavaScript errors

@@ -7,6 +7,8 @@ export async function checkCoverRecovery({page,context,api,task,png,mark}){
   await page.getByRole('button',{name:task.title,exact:true}).click();
   await panel().getByLabel('Название',{exact:true}).fill('Черновик при конфликте обложки');
   await panel().locator('[data-cover-input]').setInputFiles({name:'conflict.png',mimeType:'image/png',buffer:png});
+  // R3 routes every cover through the DS crop dialog; accept the default frame.
+  await page.getByRole('button',{name:'Использовать кадр',exact:true}).click();
   await page.waitForFunction(()=>[...document.querySelectorAll('[data-file-row]')].some(row=>row.textContent.includes('conflict.png')&&row.dataset.state==='ready'));
   const latest=await get();await api.put('tasks',{...latest,description:'Параллельное изменение'});
   await panel().getByRole('button',{name:'Сохранить задачу',exact:true}).click();

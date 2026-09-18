@@ -1,0 +1,6 @@
+PASS Escape cancels pointer drag with no write and removes overlay
+PASS Pointer transfer previews active scope and preserves task identity, parent and workflow
+PASS Keyboard drag reaches the same guarded command; cancellation preserves scope
+PASS Manual reorder only changes planning ranks among siblings
+PASS Single-pointer order dialog changes the same rank without dragging
+PASS Automatic sorting rejects deceptive same-group reorder
