@@ -2,10 +2,10 @@
   "stage": "ux-r3",
   "status": "PASS",
   "scope": "consumer-view-and-local-fixture",
-  "startedAt": "2026-09-12T19:40:19.011Z",
-  "finishedAt": "2026-09-12T19:41:10.733Z",
-  "sourceCommit": "ea9db0837efbff3db01ab23b15dba0dfffbb920b",
-  "sourceFingerprint": "1c830a08daaba66cbd2333e8db986c820460eb2a61a72e54251887aeb83857c6",
+  "startedAt": "2026-09-18T08:02:48.617Z",
+  "finishedAt": "2026-09-18T08:03:40.708Z",
+  "sourceCommit": "c22f7d58a1719c959e9dc28b0fd3985d39e5a9cc",
+  "sourceFingerprint": "9a6faee2a30b8124d488fefa2fc39d8460ca3fc865bb0e51eb448103aec2fbb8",
   "node": "v26.0.0",
   "nodeTests": 43,
   "baseNodeTests": 173,
@@ -115,8 +115,8 @@
   "offline": {
     "scope": "fixture-only",
     "moduleCount": 121,
-    "htmlBytes": 3775984,
-    "sha256": "dfc4147bdb04e381941d5c0a42f8fdea0df7b97752bb393d71b32c841a36bf72"
+    "htmlBytes": 3776248,
+    "sha256": "dd07aa1c0aa70867808d40b2283835273cc337341f826a8e89fac3cb4f1cba7b"
   },
   "dsCandidate": {
     "version": "0.6.0-board.7",

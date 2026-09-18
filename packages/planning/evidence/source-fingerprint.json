@@ -1,5 +1,5 @@
 {
-  "sha256": "1c830a08daaba66cbd2333e8db986c820460eb2a61a72e54251887aeb83857c6",
+  "sha256": "9a6faee2a30b8124d488fefa2fc39d8460ca3fc865bb0e51eb448103aec2fbb8",
   "files": [
     [
       "../maps/ds-extension/board-patches.mjs",
@@ -271,7 +271,7 @@
     ],
     [
       "../maps/src/maps.js",
-      "e2db80f17866fde05c5c60255aff0e3927e469157a9d1bb94b22190e1e43130a"
+      "0a234ac8b31eebdb4046b0b922cb9d9dc835ca4e51bf1c199311bf7bcb89f2c3"
     ],
     [
       "../maps/src/model.js",
@@ -371,7 +371,7 @@
     ],
     [
       "../maps/tests/browser-board-b2.mjs",
-      "32b28b80a2921b9321977bdeced94014c0593a19c3cb86c813fa5723c87bb1f8"
+      "7468257dbec40c65130c56b2506d05478b863d138c7f717eb9aeaa70cbf60baf"
     ],
     [
       "../maps/tests/browser-board-interactions.mjs",
@@ -391,15 +391,15 @@
     ],
     [
       "../maps/tests/browser-cover-finish.mjs",
-      "067e2f322738af5c92698ebe779d3749e09d8033864788f42260bffd6ed17ba8"
+      "754434bb5ceab7d62725997e98d3ec5a41fdabfd82d0356b3512255e1efd257d"
     ],
     [
       "../maps/tests/browser-covers.mjs",
-      "2422870bf1e7db7bcc94a3faab1bc4dff0eb22a67a65df2db4c4b81b824a6aed"
+      "3472c96c492eeb817374b4de4a63649cb6d443cf8dd59d68e95a76323f39abdf"
     ],
     [
       "../maps/tests/browser-delivery-recovery.mjs",
-      "26a2fe9f41b728d1541c31df9d2d545ae6a9cd68ce879f046691755557c62ae4"
+      "17918b6620e52288bdeddf26ed43112c90ca93911b2e57c3db39d18113310920"
     ],
     [
       "../maps/tests/browser-ds-v3.mjs",
@@ -419,7 +419,7 @@
     ],
     [
       "../maps/tests/browser-events-final.mjs",
-      "530ff7c8cc3e17f3d71cf70c09925d1542170aedbbfb1890143285627daf7937"
+      "8337a47bcb0fe941df9e7a17575a7c36cb2a2340de4a7e5895f7f9588251e464"
     ],
     [
       "../maps/tests/browser-focus-navigation-v33.mjs",
@@ -439,7 +439,7 @@
     ],
     [
       "../maps/tests/browser-r3.mjs",
-      "5093788e7808730becf802e027e813c2cb5e013def029a055cdad3e78b9ccaa3"
+      "d7506ddbeba7aba3e86d873df93e2657fa9bf747472390a14d2c837b1e0e91cf"
     ],
     [
       "../maps/tests/browser-smoke.mjs",
@@ -467,7 +467,7 @@
     ],
     [
       "../maps/tests/cover-recovery-helper.mjs",
-      "b6b08475f4a7e0f9b1e35b116b529a6b87f094d37401d0ea95efe6c5127f18bd"
+      "b911d22f06c479cf7abe5dff6d50e665e66f533d0dde007923c7aafdb3ff8857"
     ],
     [
       "../maps/tests/delivery-limits.test.mjs",
@@ -499,7 +499,7 @@
     ],
     [
       "../maps/tests/preview-smoke.mjs",
-      "dc717dcc0d892d355200540ffb81ee3a7a0cc9be406187b371e8c3c6e67dafb9"
+      "1312e971ca1d274295d1d4f37eac412ee5ad3afeaf31c7dd291f57f25494259a"
     ],
     [
       "../maps/tests/requirements-ui.txt",
