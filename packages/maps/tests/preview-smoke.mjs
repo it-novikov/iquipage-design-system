@@ -31,7 +31,8 @@ try{
   await page.getByRole('link',{name:'Карты',exact:true}).click();
   await page.locator('iq-whiteboard .wb-stage').waitFor();
   assert.equal(await page.evaluate(()=>window.mapsDemo.feature.repository.capabilities.storage),'browser');
-  await page.getByRole('button',{name:'Шаблоны',exact:true}).click();
+  // R3: the template library lives in the map menu.
+  await page.getByRole('button',{name:'Меню карты',exact:true}).click();await page.locator('dialog[open] [data-map-action=templates]').click();
   await page.getByRole('heading',{name:'С чего начнём?'}).waitFor();
   assert.equal(await page.locator('.map-template-preview svg').count(),16);
   assert.deepEqual(errors,[]);assert.deepEqual(network,[]);

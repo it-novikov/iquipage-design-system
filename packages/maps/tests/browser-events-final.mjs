@@ -14,11 +14,13 @@ const errors=[],checks=[];page.on('pageerror',e=>errors.push(e.message));
 const project='events-ui-'+Date.now(),modal=()=>page.locator('dialog[open]').last();
 const choose=async(name,value)=>{await modal().locator(`iq-select[name="${name}"] .iq-select-trigger`).click();await page.getByRole('option',{name:value,exact:true}).click();};
 const mark=name=>{checks.push({name,status:'PASS'});console.log('PASS',name);};
+// R3 keeps session controls in a collapsible card; open it before using a lifecycle action.
+async function sessionAction(action){const bar=page.locator(`.map-subbar [data-map-action=${action}]`);if(await bar.first().isVisible())return bar.first().click();const toggle=page.locator('[data-map-action=toggle-session][aria-expanded=false]');if(await toggle.count())await toggle.first().click();await page.locator(`[data-session-card] [data-map-action=${action}]`).click();}
 await mkdir('artifacts/final',{recursive:true});let failure;
 try{
   await page.goto(origin+'/?project='+project+'#maps');await page.locator('iq-whiteboard').waitFor();
-  await page.locator('.map-subbar [data-map-action=start]').click();await page.waitForFunction(()=>window.mapsDemo.feature.current.status==='active');
-  await page.locator('.map-toolbar [data-map-action=workflow]').click();
+  await sessionAction('start');await page.waitForFunction(()=>window.mapsDemo.feature.current.status==='active');
+  await page.locator('.map-toolbar [data-map-action=more]').click();await page.locator('dialog[open] [data-map-action=workflow]').click();
   await modal().getByRole('button',{name:'Добавить сценарий',exact:true}).click();
   await page.locator('.map-subbar [data-map-action=automations]').click();
   await page.getByRole('button',{name:'Добавить правило',exact:true}).click();
@@ -30,7 +32,7 @@ try{
   await page.waitForFunction(()=>!document.querySelector('dialog[open]'));
   assert.ok(await page.locator('[data-map-action=edit-automation]').count());
   mark('configure enabled closing rule using visible controls');
-  await page.locator('.map-subbar [data-map-action=finish]').click();
+  await sessionAction('finish');
   await modal().getByLabel('Итоги и следующие шаги',{exact:true}).fill('Обсуждение завершено; действия требуют подтверждения.');
   await modal().getByRole('button',{name:'Сохранить итоги и завершить',exact:true}).click();
   await page.waitForFunction(()=>window.mapsDemo.feature.current.status==='archived');

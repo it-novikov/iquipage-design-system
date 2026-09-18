@@ -10,7 +10,9 @@ const images=await Promise.all(['#34758b','#b3795d','#5c6aab'].map(background=>s
 const mark=name=>{checks.push(name);console.log('PASS',name);};
 const panel=()=>page.locator('.task-edit-dialog dialog[open]').last();
 const records=()=>page.evaluate(()=>window.mapsDemo.repository.list('tasks',window.mapsDemo.project.id));
-const choose=async(name,index)=>panel().locator('[data-cover-input]').setInputFiles({name,mimeType:'image/png',buffer:images[index]});
+// R3 sends every new or promoted cover through the DS crop dialog; the intent is recorded on confirmation.
+const confirmCrop=async()=>{const use=page.getByRole('button',{name:'Использовать кадр',exact:true});await use.waitFor();await use.click();await use.waitFor({state:'detached'});};
+const choose=async(name,index)=>{await panel().locator('[data-cover-input]').setInputFiles({name,mimeType:'image/png',buffer:images[index]});await confirmCrop();};
 const ready=async name=>panel().locator('[data-file-row][data-state=ready]').filter({hasText:name}).waitFor();
 const selected=()=>panel().locator('[data-file-cover][aria-pressed=true]');
 const save=async()=>{await panel().getByRole('button',{name:'Сохранить задачу',exact:true}).click();await page.locator('.task-edit-dialog').waitFor({state:'detached'});};
@@ -32,7 +34,7 @@ try{
   assert.equal(await selected().count(),0,'Removing a cover must clear the attachment pressed state');
   assert.ok(!(await panel().locator('[data-file-status]').allTextContents()).some(text=>text.includes('Обложка')));
   mark('removing a cover synchronizes the attachment label and pressed state immediately');
-  await panel().locator(`[data-file-cover="${originalId}"]`).click();await save();
+  await panel().locator(`[data-file-cover="${originalId}"]`).click();await confirmCrop();await save();
   async function holdUpload(name){
     let received;const started=new Promise(resolve=>received=resolve);
     const gate=new Promise(resolve=>releaseHeld=resolve);
@@ -62,7 +64,7 @@ try{
   await context.unroute('**/api/files/**');
   await page.getByRole('button',{name:task.title,exact:true}).click();await ready('initial.png');
   const selecting=await holdUpload('late-after-select.png');await choose('late-after-select.png',2);await selecting.started;
-  await panel().locator(`[data-file-cover="${originalId}"]`).click();selecting.release();await ready('late-after-select.png');
+  await panel().locator(`[data-file-cover="${originalId}"]`).click();await confirmCrop();selecting.release();await ready('late-after-select.png');
   assert.equal(await selected().getAttribute('data-file-cover'),originalId);await save();
   mark('choosing an existing attachment supersedes an earlier pending replacement');
   await context.unroute('**/api/files/**');
@@ -101,7 +103,7 @@ try{
   await context.unroute('**/api/files/**',retryHandler);await save();task=(await records()).find(item=>item.id===task.id);
   assert.equal(task.coverAttachmentId,null);assert.equal(task.attachmentIds.filter(id=>id===retryId).length,1);
   mark('retry keeps its stable file ID but cannot override a later explicit cover removal');
-  await page.getByRole('button',{name:task.title,exact:true}).click();await panel().locator(`[data-file-cover="${originalId}"]`).click();await save();
+  await page.getByRole('button',{name:task.title,exact:true}).click();await panel().locator(`[data-file-cover="${originalId}"]`).click();await confirmCrop();await save();
   task=(await records()).find(item=>item.id===task.id);
   await page.getByRole('button',{name:task.title,exact:true}).click();const removedPending=await holdUpload('removed-pending.png');
   await choose('removed-pending.png',0);await removedPending.started;const pendingRow=panel().locator('[data-file-row]').filter({hasText:'removed-pending.png'});

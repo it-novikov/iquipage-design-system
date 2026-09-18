@@ -18,6 +18,8 @@ const close=async()=>{await modal().locator('.iq-dialog-head [data-close]').clic
 async function choose(scope,name,label){await scope.locator(`iq-select[name="${name}"] .iq-select-trigger`).click();await page.getByRole('option',{name:label,exact:true}).click();}
 async function menu(action){await page.locator('.map-toolbar [data-map-action=more]').click();await modal().locator(`[data-map-action="${action}"]`).click();}
 const count=()=>page.evaluate(()=>window.mapsDemo.feature.current.document.objects.length);
+// R3 keeps session controls in a collapsible card; open it before using a lifecycle action.
+async function sessionAction(action){const bar=page.locator(`.map-subbar [data-map-action=${action}]`);if(await bar.first().isVisible())return bar.first().click();const toggle=page.locator('[data-map-action=toggle-session][aria-expanded=false]');if(await toggle.count())await toggle.first().click();await page.locator(`[data-session-card] [data-map-action=${action}]`).click();}
 const settled=()=>page.waitForFunction(()=>!window.mapsDemo.feature.board.dirty&&!window.mapsDemo.feature.savingPromise);
 async function shot(name){await page.screenshot({path:`artifacts/r3/${name}.png`});}
 let failure;
@@ -49,12 +51,12 @@ try{
   measurements.help=await modal().evaluate(el=>{const note=el.querySelector('.map-help-navigation'),prev=note.previousElementSibling;const r=note.getBoundingClientRect(),p=prev.getBoundingClientRect(),body=note.parentElement.getBoundingClientRect();return {above:r.top-p.bottom,below:body.bottom-r.bottom};});
   assert.ok(Math.abs(measurements.help.above-measurements.help.below)<=1,JSON.stringify(measurements.help));
   await shot('help');await close();mark('readable shortcuts and symmetrical navigation-note spacing');
-  await page.locator('.map-toolbar [data-map-action=templates]').click();await modal().locator('.map-template-card').first().waitFor();
+  await menu('templates');await modal().locator('.map-template-card').first().waitFor();
   const previews=await modal().locator('.map-preview-svg').evaluateAll(nodes=>nodes.map(n=>n.outerHTML));assert.equal(previews.length,16);assert.equal(new Set(previews).size,16);
   const title=await modal().locator('.iq-dialog-head').boundingBox();assert.ok(title.y>=0&&title.y+title.height<900);
   await shot('templates');await modal().getByLabel('Поиск шаблонов',{exact:true}).fill('система');
   assert.ok((await modal().locator('.map-template-card').count())<16);await close();mark('16 distinct data-driven previews; searchable library and visible header');
-  const before=await count();await page.locator('.map-toolbar [data-map-action=add]').click();
+  const before=await count();await menu('add');
   await modal().getByLabel('Текст карточки 1',{exact:true}).fill('Пакетная заметка');
   const typeName=await modal().locator('.map-capture-card').nth(1).locator('iq-select').first().getAttribute('name');
   await choose(modal(),typeName,'Задача');await modal().getByLabel('Текст карточки 2',{exact:true}).fill('Пакетная задача');
@@ -73,10 +75,12 @@ try{
   await page.reload();await page.locator('iq-whiteboard').waitFor();await settled();assert.equal(await count(),before+6);mark('mixed card types, actual shape selection, atomic undo/redo and reload');
   await menu('save-template');await modal().getByLabel('Название шаблона',{exact:true}).fill('Проверка команды');
   await modal().getByRole('button',{name:'Сохранить шаблон',exact:true}).click();await page.waitForFunction(()=>!document.querySelector('dialog[open]'));
-  await page.locator('.map-toolbar [data-map-action=templates]').click();await modal().getByLabel('Поиск шаблонов',{exact:true}).fill('Проверка команды');await modal().locator('.map-template-card').first().waitFor();assert.equal(await modal().locator('.map-template-card').count(),1);await close();mark('custom template persists and is searchable');
-  measurements.workflowTab=await page.locator('.map-view-tabs [data-map-action=workflow]').evaluate(el=>{const icon=el.querySelector('svg').getBoundingClientRect(),text=el.querySelector('span').getBoundingClientRect();return {gap:text.left-icon.right,centerDelta:Math.abs((icon.top+icon.bottom-text.top-text.bottom)/2)};});
+  await menu('templates');await modal().getByLabel('Поиск шаблонов',{exact:true}).fill('Проверка команды');await modal().locator('.map-template-card').first().waitFor();assert.equal(await modal().locator('.map-template-card').count(),1);await close();mark('custom template persists and is searchable');
+  // R3 direct editing opens automation from the map menu; the view tabs belong to properties mode.
+  await page.locator('.map-toolbar [data-map-action=more]').click();
+  measurements.workflowTab=await modal().locator('[data-map-action=workflow]').evaluate(el=>{const icon=el.querySelector('svg').getBoundingClientRect(),text=el.querySelector('span').getBoundingClientRect();return {gap:text.left-icon.right,centerDelta:Math.abs((icon.top+icon.bottom-text.top-text.bottom)/2)};});
   assert.equal(measurements.workflowTab.gap,8);assert.ok(measurements.workflowTab.centerDelta<=1);
-  await page.locator('.map-toolbar [data-map-action=workflow]').click();await modal().locator('.map-flow-intro li').first().waitFor();assert.equal(await modal().locator('.map-flow-intro li').count(),5);await shot('workflow-intro');
+  await modal().locator('[data-map-action=workflow]').click();await modal().locator('.map-flow-intro li').first().waitFor();assert.equal(await modal().locator('.map-flow-intro li').count(),5);await shot('workflow-intro');
   await modal().getByRole('button',{name:'Добавить сценарий',exact:true}).click();await page.waitForFunction(()=>window.mapsDemo.feature.view==='workflow');
   await page.locator('.map-subbar [data-map-action=run]').click();await modal().getByLabel('Входные заметки — одна на строку',{exact:true}).fill('Проверить одну договорённость');
   await modal().getByRole('button',{name:'Начать',exact:true}).click();await page.getByRole('button',{name:'Подтвердить и продолжить',exact:true}).waitFor();
@@ -88,7 +92,7 @@ try{
   await shot('execution');await page.getByRole('button',{name:'Открыть созданные задачи',exact:true}).click();await page.getByRole('button',{name:'Создать подтверждённую задачу R3',exact:true}).waitFor();
   tasks=await page.evaluate(()=>window.mapsDemo.repository.list('tasks',window.mapsDemo.project.id));assert.equal(tasks.length,2);assert.ok(tasks.find(t=>t.sourceMapId));mark('execution creates one real local task with map provenance');
   await page.getByRole('link',{name:'Карты',exact:true}).click();await page.locator('.map-toolbar [data-map-action=canvas]').click();
-  await page.locator('.map-subbar [data-map-action=start]').click();await page.locator('.map-subbar [data-map-action=finish]').click();
+  await sessionAction('start');await sessionAction('finish');
   await modal().getByLabel('Итоги и следующие шаги',{exact:true}).fill('Решения проверены; задача создана.');await modal().getByRole('button',{name:'Сохранить итоги и завершить',exact:true}).click();
   await page.waitForFunction(()=>window.mapsDemo.feature.current.status==='archived');assert.ok(await page.locator('iq-whiteboard').evaluate(el=>el.readOnly));
   const archived=await page.evaluate(()=>window.mapsDemo.feature.current.id);await page.locator('.map-subbar [data-map-action=continue]').click();await modal().getByRole('button',{name:'Создать продолжение',exact:true}).click();
