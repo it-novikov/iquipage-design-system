@@ -111,7 +111,7 @@ export async function mountTaskBoard(root,{repository,project,canEdit=true,canMa
     if(openingTask||activeDialog||closed)return;
     openingTask=true;const controller=new AbortController();openingController=controller;
     try{
-    const created=await openTaskDialog(task,{repository,project,tasks:items,canEdit,canManage:canManageCatalogs,attachmentAdapter,status,fullscreen,signal:controller.signal,isActive:()=>!closed&&!controller.signal.aborted,onOpenTask:id=>openTask(id),onSaved:async saved=>{loading++;items=items.some(t=>t.id===saved.id)?items.map(t=>t.id===saved.id?saved:t):[...items,saved];render();await reload();}});
+    const created=await openTaskDialog(task,{repository,project,tasks:items,canEdit,canManage:canManageCatalogs,attachmentAdapter,status,fullscreen,signal:controller.signal,isActive:()=>!closed&&!controller.signal.aborted,onOpenTask:id=>openTask(id),onReload:async()=>{if(!(await closeTask()))return;const fresh=await repository.read('tasks',task.id,project.id);if(fresh)await edit(fresh,'ready',{fromRoute:true,fullscreen});},onSaved:async saved=>{loading++;items=items.some(t=>t.id===saved.id)?items.map(t=>t.id===saved.id?saved:t):[...items,saved];render();await reload();}});
     if(closed||controller.signal.aborted){created.close(true);return;}activeDialog=created;
     if(task&&!fromRoute)history.pushState({taskDrawer:true,returnHash:location.hash||'#tasks'},'',taskURL(task));
     if(closed){activeDialog.close(true);return;}

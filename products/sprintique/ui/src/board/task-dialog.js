@@ -12,7 +12,7 @@ import {mountTaskDescription} from './description-view.js';
 import {copyAtButton,motionReduced} from '@iquipage/web/core';
 import {taskKey,taskURL} from './task-route.js';
 
-export async function openTaskDialog(task,{repository,project,tasks,canEdit=true,canManage=true,attachmentAdapter=null,status='ready',initialValues={},fullscreen=false,onOpenTask,onSaved=()=>{},isActive=()=>true,signal}){
+export async function openTaskDialog(task,{repository,project,tasks,canEdit=true,canManage=true,attachmentAdapter=null,status='ready',initialValues={},fullscreen=false,onOpenTask,onReload=onOpenTask&&(()=>onOpenTask(task.id)),onSaved=()=>{},isActive=()=>true,signal}){
   signal?.throwIfAborted();const initialTask=task;
   const [detail,context,support,members]=await Promise.all([
     task?.summary?repository.read('tasks',task.id,project.id,{signal}):task,
@@ -168,7 +168,7 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
         saveState.addEventListener('click',event=>{
           const action=event.target.closest('[data-save-action]')?.dataset.saveAction;
           if(action==='retry')void flush();
-          if(action==='reload'){discarded=true;if(onOpenTask)void onOpenTask(taskId);else el.close();}
+          if(action==='reload'){discarded=true;if(onReload)void onReload();else el.close();}
         });
       }
       async function close(){
