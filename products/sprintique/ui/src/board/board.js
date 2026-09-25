@@ -156,7 +156,7 @@ export async function mountTaskBoard(root,{repository,project,canEdit=true,canMa
     if(!(await closeTask()))return false;await edit(task,'ready',options);return activeDialog?.taskController.taskId===task.id;
   }
   await reload();
-  return {reload,openTask,closeTask,currentTask:()=>activeDialog?.taskController.taskKey||null,readyToLeave:async()=>!openingTask&&!activeDialog&&!pending.size,destroy(){
+  return {reload,openTask,closeTask,createTask:()=>canEdit?edit(null,'ready'):undefined,currentTask:()=>activeDialog?.taskController.taskKey||null,readyToLeave:async()=>!openingTask&&!activeDialog&&!pending.size,destroy(){
     activeDialog?.close(true);
     const board=mount.querySelector('.iq-board');if(board){viewState.x=board.scrollLeft;viewState.y=board.scrollTop;}
     persist();if(root.firstElementChild===ownedPage)root.classList.remove('iq-task-board-root');closed=true;loading++;clearTimeout(reloadTimer);openingController?.abort();abort.abort();covers.destroy();filters.destroy();unsubscribe?.();disposeBoard?.();disposeTags();

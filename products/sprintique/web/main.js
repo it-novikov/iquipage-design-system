@@ -155,7 +155,24 @@ async function navigate(mode){
   if(await showProject(currentProject.id,mode))history.replaceState(null,'',sectionRouteHash(viewMode,location.hash));
 }
 root.addEventListener('click',event=>{const link=event.target.closest('[data-section-link]');if(!link)return;event.preventDefault();void navigate(link.dataset.sectionLink).catch(report);});
-function search(){if(!session||document.querySelector('dialog[open]'))return;openSearch({client:repository.client,onOpen:async item=>{
+/** Command palette entries for the current project and role. */
+function paletteCommands(){
+  const go=(mode,hash)=>async()=>{if(hash)history.replaceState(null,'',hash);await navigate(mode);};
+  const commands=[
+    {id:'go-tasks',label:'Доска задач',hint:'Перейти',icon:'grid',keywords:'доска канбан board',run:go('tasks')},
+    {id:'go-planning',label:'Планирование',hint:'Перейти',icon:'calendar',keywords:'релизы бэклог сроки planning',run:go('planning')},
+    {id:'go-maps',label:'Карты',hint:'Перейти',icon:'grid',keywords:'карты доска идей maps',run:go('maps')},
+    {id:'go-members',label:'Участники проекта',hint:'Настройки',icon:'user',keywords:'команда приглашения роли members',run:go('settings','#settings/members')},
+    {id:'go-tags',label:'Теги и цвета',hint:'Настройки',icon:'sliders',keywords:'теги метки tags',run:go('settings','#settings/tags')},
+    {id:'go-templates',label:'Шаблоны задач',hint:'Настройки',icon:'sliders',keywords:'шаблоны templates',run:go('settings','#settings/templates')},
+    {id:'switch',label:'Сменить проект или пространство',icon:'down',keywords:'проект пространство switch',run:()=>nav?.openSwitcher()},
+    {id:'theme',label:document.documentElement.dataset.theme==='dark'?'Светлая тема':'Тёмная тема',icon:document.documentElement.dataset.theme==='dark'?'sun':'moon',keywords:'тема theme dark light',run:()=>applyTheme(document.documentElement.dataset.theme==='dark'?'light':'dark')},
+    {id:'profile',label:'Профиль',icon:'user',keywords:'имя профиль profile',run:()=>void editProfile(repository.client).catch(report)}
+  ];
+  if(currentProject?.role!=='reader')commands.unshift({id:'new-task',label:'Новая задача',hint:'Создать на доске',icon:'plus',keywords:'создать задачу task new',run:async()=>{if(viewMode!=='tasks'){history.replaceState(null,'','#tasks');await navigate('tasks');}await board?.createTask?.();}});
+  return commands;
+}
+function search(){if(!session||document.querySelector('dialog[open]'))return;openSearch({client:repository.client,commands:paletteCommands(),onOpen:async item=>{
   try{if(board&&!await board.closeTask())return;history.replaceState(null,'',item.kind==='map'?'#maps/'+encodeURIComponent(item.id):'#tasks');await showProject(item.projectId,item.kind==='map'?'maps':'tasks');if(item.kind==='task')await board.openTask(item.key);}catch(error){report(error);}
 }});}
 window.addEventListener('keydown',event=>{if((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='k'){event.preventDefault();search();}});

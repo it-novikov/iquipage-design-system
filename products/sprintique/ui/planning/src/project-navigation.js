@@ -52,6 +52,6 @@ export function mountProjectNavigation(root,{current,profile,projects,onSwitch,o
     if(event.target.closest('[data-search]'))onSearch?.();
   },{signal:events.signal});
   root.addEventListener('iq-action',event=>{if(event.detail.action==='account')onAccount?.();if(event.detail.action==='signout')onSignOut?.();if(event.detail.action==='team')onTeam?.();},{signal:events.signal});
-  return {update,setRoute,setTheme,avatar:()=>root.querySelector('[data-project-avatar]'),readyToLeave:()=>!switching&&!dialog,
+  return {update,setRoute,setTheme,openSwitcher:()=>void switchProject(),avatar:()=>root.querySelector('[data-project-avatar]'),readyToLeave:()=>!switching&&!dialog,
     destroy(){if(disposed)return true;if(switching||dialog&&dialog.close()===false)return false;disposed=true;events.abort();root.replaceChildren();return true;}};
 }
