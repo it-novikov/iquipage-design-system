@@ -101,6 +101,7 @@ export async function mountTaskBoard(root,{repository,project,canEdit=true,canMa
       if(closed)return;
       items=items.map(t=>t.id===id?saved:t);
       root.querySelector('[data-task-live]').textContent=`Задача перемещена: ${TASK_COLUMNS.find(c=>c.id===status).label}. Порядок: ${BOARD_SORTS[sort]}.`;
+      return true;
     }catch(e){
       if(closed)return;const current=await repository.read('tasks',id,project.id,{signal}).catch(()=>null);
       if(closed)return;
@@ -134,11 +135,11 @@ export async function mountTaskBoard(root,{repository,project,canEdit=true,canMa
     if(children){const list=items.filter(t=>t.parentId===children.dataset.showChildren);dialog({title:'Подзадачи',body:`<div class="iq-list">${list.map(t=>`<button class="iq-list-item full" data-child-id="${esc(t.id)}"><div><b>${esc(t.title)}</b><small>${esc(TASK_COLUMNS.find(c=>c.id===taskColumn(t))?.label||t.status)}</small></div>${icon('chevron',16)}</button>`).join('')}</div>`,mount:el=>el.addEventListener('click',e=>{const b=e.target.closest('[data-child-id]');if(b){el.close(true);edit(items.find(t=>t.id===b.dataset.childId));}})});}
   },{signal});
   root.addEventListener('iq-action',e=>{
-    const [action,id]=String(e.detail.action||'').split(':');
+    const parts=String(e.detail.action||'').split(':'),action=parts[0],id=parts.at(-1);
     if(action==='board-sort'&&Object.hasOwn(BOARD_SORTS,id)){sort=id;persist();render();renderSort();root.querySelector('[data-board-sort] button')?.focus();return;}
     const task=items.find(t=>t.id===id);if(!task)return;
     if(action==='open')edit(task);
-    if(action==='move-menu'&&canEdit)dialog({title:'Переместить задачу',body:select('status','Новый столбец',taskColumn(task),TASK_COLUMNS.map(c=>[c.id,c.label])),submitLabel:'Переместить',onSubmit:async values=>{await move(id,values.get('status'));}});
+    if(action==='move-to'&&canEdit&&TASK_COLUMNS.some(c=>c.id===parts[1]))void move(id,parts[1]).then(moved=>{if(moved)notify({tone:'success',message:`${taskKey(task)} → ${TASK_COLUMNS.find(c=>c.id===parts[1]).label}`});});
   },{signal});
   const unsubscribe=repository.subscribe?.(e=>{if(['tasks','tags','releases'].includes(e.collection)&&e.projectId===project.id)scheduleReload();});
   async function closeTask(){
