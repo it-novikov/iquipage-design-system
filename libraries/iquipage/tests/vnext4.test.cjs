@@ -10,7 +10,7 @@ test('coarse pointers get 44px buttons, navigation links and checkboxes', () => 
   assert.match(touch, /@media \(pointer:coarse\)/);
   assert.match(touch, /\.iq-btn,\.iq-work-navigation a\{min-height:44px\}/);
   assert.match(touch, /\.iq-btn\.icon\{min-width:44px\}/);
-  assert.match(touch, /\.iq-select-trigger\{min-height:44px\}/);
+  assert.match(touch, /\.iq-select-trigger,iq-select\[density=compact\] \.iq-select-trigger\{min-height:44px\}/);
   assert.match(touch, /\.iq-check\{min-height:44px;min-width:44px/);
   // Loaded last, so no earlier density rule overrides it.
   assert.match(read('scripts/build.mjs'), /focus\.css'\)\+'\\n'\+await read\('src\/styles\/touch\.css'\);/);

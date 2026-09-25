@@ -1,6 +1,6 @@
 # UX and design-system alignment (September 2026)
 
-Private DS **0.6.0-vnext.4**. It covers the component audit of the whole Sprintique UI and the changes the owner approved.
+Private DS **0.6.0-vnext.5**. It covers the component audit of the whole Sprintique UI and the changes the owner approved.
 
 ## Owner decisions
 
