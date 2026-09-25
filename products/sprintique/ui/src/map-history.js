@@ -5,7 +5,7 @@ export async function showMapHistory(feature){
   if(!feature.current||!feature.repository.mapHistory||!await feature.readyToLeave())return;
   const {id,projectId}=feature.current,abort=new AbortController();
   let cursor,loading=false,closed=false,preview=null;
-  const el=feature.dialog({title:'История карты',description:'Каждая сохранённая версия остаётся доступна для просмотра.',body:'<div class="iq-list" data-history-list></div><button type="button" class="iq-btn secondary sm" data-history-more>Ещё версии</button><p role="status" data-history-status></p>'});
+  const el=feature.dialog({title:'История карты',description:'Каждая сохранённая версия остаётся доступна для просмотра.',body:'<div class="iq-list map-history-list" data-history-list></div><button type="button" class="iq-btn secondary sm" data-history-more>Ещё версии</button><p role="status" data-history-status></p>'});
   const more=el.querySelector('[data-history-more]'),list=el.querySelector('[data-history-list]'),status=el.querySelector('[data-history-status]');
   async function load(){
     if(closed||loading)return;loading=true;more.disabled=true;status.textContent='Загружаем историю…';
