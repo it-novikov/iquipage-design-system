@@ -44,6 +44,8 @@ export const PlanningCommand = z.discriminatedUnion('kind',[
   z.strictObject({kind:z.literal('admission'),selection:Selection,admitted:z.boolean()}),
   z.strictObject({kind:z.literal('assign'),selection:Selection,assignment:Assignment}),
   z.strictObject({kind:z.literal('reparent'),taskId:Id,parentId:Id.nullable()}),
+  // Manual order among siblings: only the task's rank changes.
+  z.strictObject({kind:z.literal('rank'),ranks:z.array(z.strictObject({taskId:Id,rank:z.number().finite()})).min(1).max(1000)}),
   z.strictObject({kind:z.literal('bulk'),selection:Selection,fields:z.strictObject({
     ownerId:Id.nullable().optional(),priority:z.enum(['low','normal','high','critical']).optional(),
     plannedStart:DateOnly.nullable().optional(),plannedEnd:DateOnly.nullable().optional(),due:DateOnly.nullable().optional(),addTagIds:z.array(Id).max(30).optional()

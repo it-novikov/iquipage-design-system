@@ -27,6 +27,7 @@ function taskChange(effect:Effect,releases:Release[],names:Map<string,string>){
   if(before?.plannedStart!==after.plannedStart||before?.plannedEnd!==after.plannedEnd)parts.push(`План: ${after.plannedStart||'без начала'} — ${after.plannedEnd||'без окончания'}`);
   if(before?.due!==after.due)parts.push('Дедлайн: '+(after.due||'не задан'));
   if(before?.ownerId!==after.ownerId)parts.push('Исполнитель: '+(ownerLabel(after,names)||'не назначен'));
+  if(before&&before.rank!==after.rank)parts.push('Изменить порядок');
   if(before?.priority!==after.priority)parts.push('Приоритет: '+({low:'Низкий',normal:'Обычный',high:'Высокий',critical:'Критичный'}[after.priority]||after.priority));
   if(before?.status!==after.status)parts.push('Состояние: '+(statusLabels[after.status]||after.status));
   if(JSON.stringify(before?.tagIds)!==JSON.stringify(after.tagIds))parts.push(`Теги: ${after.tagIds.length}`);
@@ -71,7 +72,7 @@ export async function groups(tx:Transaction,actor:Actor,projectId:string,q:ViewQ
   if(q.history==='current'&&(!q.releaseId||q.releaseId==='backlog')){const members=byRelease.get('backlog')||[];items.push({id:'backlog',title:'Бэклог',state:'backlog' as typeof items[number]['state'],total:members.length,matched:matches(filters,members,c.state.releases).size,dateLabel:'',formatLabel:''});}
   const p=page(items,binding(projectId,'groups',filters),c.revision,100,q.cursor||undefined);
   return {protocol:'sprintique.planning-view/1',projectId,revision:String(c.revision),items:p.items,nextCursor:p.nextCursor,matchedTotal:items.reduce((n,i)=>n+i.matched,0),
-    capabilities:{createTask:c.write,createRelease:c.write,prepare:c.write,move:c.write,start:c.write,editRelease:c.write,close:c.write,cancel:c.write,bulk:c.write,selection:c.write,timeline:true,temporal:c.write,milestone:c.write,settings:c.admin}};
+    capabilities:{createTask:c.write,createRelease:c.write,prepare:c.write,move:c.write,start:c.write,editRelease:c.write,close:c.write,cancel:c.write,bulk:c.write,reorder:c.write,selection:c.write,timeline:true,temporal:c.write,milestone:c.write,settings:c.admin}};
 }
 function orderedRows(rows:PlanningRow[],f:ViewFilters,matched:Set<string>,collapsed:string[]){
   const byId=new Map(rows.map(r=>[r.id,r])),include=new Set(matched),priority=['critical','high','normal','low'];
@@ -114,13 +115,39 @@ export async function selectMatching(tx:Transaction,actor:Actor,projectId:string
     VALUES($1,$2,$3,$4,$5,$6,clock_timestamp()+interval '10 minutes')`,[projectId,id,actor.id,actor.credentialId,c.revision,JSON.stringify(selection)]);
   return {token:id,count,revision:String(c.revision)};
 }
+/** Siblings share the task's group (release or backlog) and parent, in planned (rank) order. */
+function reorderSiblings(rows:PlanningRow[],taskId:string){
+  const task=rows.find(t=>t.id===taskId);requireCondition(task,404,'TASK_NOT_FOUND','Задача недоступна.');
+  requireCondition(task.result==='open',409,'RESULT_PINNED','Принятый результат нельзя переставить.');
+  const group=task.effectiveReleaseId||'backlog';
+  return rows.filter(t=>(t.effectiveReleaseId||'backlog')===group&&(t.parentId||null)===(task.parentId||null)&&t.result==='open')
+    .sort((a,b)=>a.rank-b.rank||a.displayId.localeCompare(b.displayId,undefined,{numeric:true}));
+}
+/** Usually one rank between the neighbours at the drop point (beforeId null = end of the siblings).
+ *  When neighbours tie or the gap is exhausted, the siblings are renumbered in the new order. */
+function reorderRanks(rows:PlanningRow[],taskId:string,beforeId:string|null){
+  const siblings=reorderSiblings(rows,taskId).filter(t=>t.id!==taskId);
+  const at=beforeId===null?siblings.length:siblings.findIndex(t=>t.id===beforeId);
+  requireCondition(at>=0,422,'REORDER_SCOPE','Переставлять можно только среди задач того же уровня в той же группе.');
+  const previous=at>0?siblings[at-1]!.rank:null,next=at<siblings.length?siblings[at]!.rank:null;
+  const rank=previous===null&&next===null?1024:previous===null?next!-1024:next===null?previous+1024:(previous+next)/2;
+  if((previous===null||rank>previous)&&(next===null||rank<next))return [{taskId,rank}];
+  const ordered=[...siblings.slice(0,at).map(t=>t.id),taskId,...siblings.slice(at).map(t=>t.id)];
+  return ordered.map((id,index)=>({taskId:id,rank:(index+1)*1024}));
+}
 export async function options(tx:Transaction,actor:Actor,projectId:string,q:ViewOptionsQuery){
   const c=await context(tx,actor,projectId);let items:{value:string;label:string;description?:string;disabled?:boolean}[]=[];
   if(q.kind==='destinations')items=[{value:'backlog',label:'Бэклог'},...c.state.releases.filter(r=>!finished(r)&&!r.archivedAt&&r.id!==q.excludeId).map(r=>({value:r.id,label:r.name,description:dateLabel(r)}))];
   else if(q.kind==='tasks')items=c.rows.filter(t=>t.result==='open').map(t=>({value:t.id,label:t.displayId+' · '+t.title}));
+  else if(q.kind==='positions'){
+    requireCondition(q.taskId,400,'TASK_REQUIRED','Укажите задачу.');const siblings=reorderSiblings(c.rows,q.taskId);
+    items=siblings.filter(t=>t.id!==q.taskId).map(t=>({value:t.id,label:'Перед '+t.displayId+' · '+t.title}));
+  }
   else if(q.kind==='owner')items=[{value:'__none__',label:'Не назначен'},...(c.state.members||[]).map(m=>({value:m.id,label:m.name}))];
   else items=(await tx.query<{value:string;label:string}>('SELECT id AS value,name AS label FROM app.tags WHERE project_id=$1 AND archived_at IS NULL ORDER BY name,id',[projectId])).rows;
   items=items.filter(i=>i.label.toLocaleLowerCase().includes(q.query.toLocaleLowerCase()));
+  // The end of the list stays reachable whatever the search.
+  if(q.kind==='positions')items.push({value:'__end__',label:'В конец списка'});
   const {cursor,...filters}=q,p=page(items,binding(projectId,'options',filters),c.revision,50,cursor||undefined);return {options:p.items,nextCursor:p.nextCursor};
 }
 export async function describeRelease(tx:Transaction,actor:Actor,projectId:string,groupId:string,cursor?:string){
@@ -170,6 +197,7 @@ export async function previewIntent(tx:Transaction,actor:Actor,projectId:string,
     case 'move':value={kind:'assign',selection,assignment:intent.groupId==='backlog'?{mode:'none'}:{mode:'assigned',releaseId:intent.groupId}};break;
     // The owner field carries a member id; an empty value unassigns.
     case 'bulk':value={kind:'bulk',selection,fields:intent.field==='owner'?{ownerId:intent.value||null}:{[intent.field==='tags'?'addTagIds':intent.field]:intent.value}};break;
+    case 'reorder':value={kind:'rank',ranks:reorderRanks(c.rows,intent.taskIds[0]!,intent.beforeId)};break;
     case 'start':value={kind:'start',releaseId:intent.groupId};break;
     case 'editRelease':value={kind:'release.edit',releaseId:intent.groupId,value:releaseValue(intent.values)};break;
     case 'createRelease':value={kind:'release.create',releaseId:randomUUID(),projectId,value:releaseValue(intent.values)};break;

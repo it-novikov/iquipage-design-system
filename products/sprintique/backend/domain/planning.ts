@@ -141,6 +141,9 @@ export function planChange(original:PlanningState,command:PlanningCommand):PlanR
       requireCondition(command.parentId===null||tasks.has(command.parentId),422,'TASK_PARENT','Родительская задача недоступна.');
       t.parentId=command.parentId;selection.add(t.id);break;
     }
+    case 'rank': {
+      for(const {taskId,rank} of command.ranks){const t=tasks.get(taskId);requireCondition(t,404,'TASK_NOT_FOUND','Задача недоступна.');open(t);t.rank=rank;selection.add(t.id);}break;
+    }
     case 'bulk':
       for(const id of selection){const t=tasks.get(id)!;open(t);const {addTagIds,...fields}=command.fields;Object.assign(t,fields);
         if(addTagIds)t.tagIds=[...new Set([...t.tagIds,...addTagIds])].sort();requireCondition(t.tagIds.length<=30,422,'TASK_TAG_LIMIT','У задачи может быть не более 30 тегов.');}break;

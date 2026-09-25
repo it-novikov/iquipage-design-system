@@ -127,3 +127,17 @@ test('V08 row quick edits and moves carry the projection revision; a stale one i
   const moved=await request('planning/view/preview',{kind:'move',taskIds:['quick-owner'],groupId:'backlog',expectedProjectionRevision:'0'});
   assert.equal(moved.statusCode,409,moved.body);
 });
+test('V09 manual reorder moves a task among its siblings and never across levels',async()=>{
+  for(const id of ['order-a','order-b','order-c'])await task(id);await task('order-child',{parentId:'order-a'});
+  const groups=await view('groups');assert.equal(groups.capabilities.reorder,true);
+  const order=async()=>(await view('rows',{groupId:'backlog',revision:(await view('groups')).revision,query:'order-'})).rows.map((r:{taskId:string})=>r.taskId).filter((id:string)=>id.startsWith('order-'));
+  await apply({kind:'reorder',taskIds:['order-c'],beforeId:'order-a'});
+  assert.deepEqual((await order()).filter((id:string)=>id!=='order-child'),['order-c','order-a','order-b']);
+  await apply({kind:'reorder',taskIds:['order-c'],beforeId:null});
+  assert.deepEqual((await order()).filter((id:string)=>id!=='order-child'),['order-a','order-b','order-c']);
+  const across=await request('planning/view/preview',{kind:'reorder',taskIds:['order-child'],beforeId:'order-b'});
+  assert.equal(across.statusCode,422,across.body);assert.equal(across.json().code,'REORDER_SCOPE');
+  const positions=await request('planning/view/options',{kind:'positions',taskId:'order-b',query:'order'});
+  assert.equal(positions.statusCode,200,positions.body);const labels=positions.json().options.map((o:{value:string})=>o.value);
+  assert.ok(labels.includes('order-a')&&labels.includes('__end__')&&!labels.includes('order-b')&&!labels.includes('order-child'));
+});

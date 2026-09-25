@@ -184,10 +184,10 @@ async function applyPlan(tx:Transaction,actor:Actor,projectId:string,operationId
     await tx.query(`INSERT INTO app.tasks(project_id,id,number,title,description,status,type,priority,owner_id,rank,revision,created_at,status_entered_at) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,1,$11,$11)`,[projectId,c.id,c.number,v.title,v.description,v.status,v.type,v.priority,v.ownerId,v.rank,c.createdAt]);
   }
   if(result.tasks.length)await tx.query(`UPDATE app.tasks t SET revision=n.revision,parent_id=n."parentId",release_id=n."releaseId",
-    assignment_mode=n."assignmentMode",preparation=n.preparation,result=n.result,admitted=n.admitted,owner_label=CASE WHEN t.owner_id IS DISTINCT FROM n."ownerId" THEN '' ELSE t.owner_label END,owner_id=n."ownerId",priority=n.priority,
+    assignment_mode=n."assignmentMode",preparation=n.preparation,result=n.result,admitted=n.admitted,owner_label=CASE WHEN t.owner_id IS DISTINCT FROM n."ownerId" THEN '' ELSE t.owner_label END,owner_id=n."ownerId",priority=n.priority,rank=n.rank,
     planned_start=n."plannedStart"::date,planned_end=n."plannedEnd"::date,due=n.due::date,updated_at=clock_timestamp()
     FROM jsonb_to_recordset($2::jsonb) AS n(id text,revision integer,"parentId" text,"releaseId" text,"assignmentMode" text,preparation text,result text,
-      admitted boolean,"ownerId" text,priority text,"plannedStart" text,"plannedEnd" text,due text) WHERE t.project_id=$1 AND t.id=n.id`,[projectId,JSON.stringify(result.tasks)]);
+      admitted boolean,"ownerId" text,priority text,rank double precision,"plannedStart" text,"plannedEnd" text,due text) WHERE t.project_id=$1 AND t.id=n.id`,[projectId,JSON.stringify(result.tasks)]);
   for(const effect of result.effects)if(JSON.stringify(effect.before?.tagIds)!==JSON.stringify(effect.after.tagIds)){
     await tx.query('DELETE FROM app.task_tags WHERE project_id=$1 AND task_id=$2',[projectId,effect.id]);
     for(const tagId of effect.after.tagIds)await tx.query('INSERT INTO app.task_tags(project_id,task_id,tag_id) VALUES($1,$2,$3)',[projectId,effect.id,tagId]);
