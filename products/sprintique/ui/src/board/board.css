@@ -168,3 +168,4 @@
 .tag-tone-choice{border:0;margin:0;padding:0;display:grid;gap:var(--iq-space-2)}
 .tag-tone-options{display:flex;flex-wrap:wrap;gap:var(--iq-space-2)}
 .tag-tone-options .iq-tag{cursor:pointer;min-height:32px;padding-inline:var(--iq-space-3)}
+@media(max-width:640px){[data-board-waiting] .iq-banner{flex-wrap:wrap}[data-board-waiting] .iq-banner p{flex:1 1 calc(100% - 40px)}}
