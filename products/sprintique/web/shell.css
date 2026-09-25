@@ -5,3 +5,6 @@
 .host-loading{display:grid;gap:var(--iq-space-3);padding:var(--iq-space-6) var(--iq-space-4);max-width:960px}
 .host-loading-title{height:28px;width:220px;margin-bottom:var(--iq-space-3)}
 .host-loading-row{height:40px}
+/* Local-stand sign-in: a narrow DS form under the landing copy. */
+.host-sign-in{display:grid;gap:var(--iq-space-4);max-width:360px}
+.host-sign-in .iq-badge,.host-sign-in .iq-btn{justify-self:start}

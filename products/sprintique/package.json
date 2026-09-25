@@ -18,6 +18,7 @@
     "migrate": "tsx backend/migrate.ts",
     "test": "node scripts/test.mjs",
     "preview:fixture": "node scripts/test.mjs --preview",
+    "dev:local": "node scripts/test.mjs --preview",
     "check:boundaries": "node scripts/check-boundaries.mjs && node scripts/check-styles.mjs",
     "check:styles": "node scripts/check-styles.mjs"
   },

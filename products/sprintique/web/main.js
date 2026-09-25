@@ -68,6 +68,29 @@ function createWorkspace(){
     const space=await repository.client.request('/workspaces','POST',{name:values.get('name')});await onboard(space.id);
   }});
 }
+/** Sign-in offers only the ways in the server actually has; an unconfigured provider is never a link. */
+async function renderSignIn(){
+  const methods=await fetch('/api/v1/auth/methods').then(r=>r.ok?r.json():{oidc:false,devLogin:false}).catch(()=>({oidc:false,devLogin:false}));
+  const keepInvitation=()=>{const match=location.hash.match(/^#invite\/(invite_[A-Za-z0-9_-]{43})$/);if(match)sessionStorage.setItem('sprintique.pending-invitation',match[1]);};
+  const dev=methods.devLogin?`<form class="host-sign-in" data-dev-login><p class="iq-badge">Локальный стенд</p>${input('username','Логин','admin',{required:true,maxlength:100})}${input('password','Пароль','',{type:'password',required:true,maxlength:100,placeholder:'admin'})}<p class="host-task-error" role="alert" hidden></p><button type="submit" class="iq-btn primary">Войти</button></form>`:'';
+  const oidc=methods.oidc?`<a class="iq-btn ${methods.devLogin?'secondary':'primary'}" href="/auth/login" data-oidc>Войти через учётную запись организации</a>`:'';
+  const none=!dev&&!oidc?'<p role="alert">Вход не настроен. Для отладки запустите локальный стенд: <code>npm run dev:local</code>.</p>':'';
+  root.innerHTML=`<main class="host-landing"><h1>Sprintique</h1><p>Войдите, чтобы открыть свои проекты.</p>${dev}${oidc}${none}</main>`;
+  root.querySelector('[data-oidc]')?.addEventListener('click',keepInvitation);
+  const form=root.querySelector('[data-dev-login]');if(!form)return;
+  form.querySelector('[name=password]').focus();
+  form.addEventListener('submit',async event=>{
+    event.preventDefault();const alert=form.querySelector('[role=alert]'),button=form.querySelector('[type=submit]');alert.hidden=true;button.disabled=true;
+    try{
+      const values=new FormData(form),response=await fetch('/auth/dev-login',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({username:values.get('username'),password:values.get('password')})});
+      if(!response.ok)throw Error((await response.json().catch(()=>null))?.message||'Не удалось войти.');
+      keepInvitation();location.reload();
+    }catch(cause){alert.textContent=cause.message;alert.hidden=false;button.disabled=false;}
+  });
+}
+// The last opened project reopens after sign-in; a project link in the URL still wins.
+const LAST_PROJECT_KEY='sprintique.last-project:';
+function lastProject(){try{return localStorage.getItem(LAST_PROJECT_KEY+session.principal.id)||undefined;}catch{return undefined;}}
 function report(error){dialog({title:'Не удалось выполнить действие',description:error.message});}
 async function onboard(selectedWorkspaceId){
   const workspaces=(await repository.client.request('/workspaces')).filter(w=>w.role==='admin');
@@ -89,6 +112,7 @@ async function showProject(id,mode=location.hash.startsWith('#maps')?'maps':['pl
   repository.stopWatch?.();await board?.destroy();board=null;const project=session.projects.find(p=>p.id===id)||session.projects[0];
   if(!project){root.innerHTML='<main class="host-landing"><h1>Создадим первый проект</h1><p>Задачи, обсуждения и команда в одном месте.</p><button class="iq-btn primary" data-onboard>Создать проект</button></main>';root.querySelector('[data-onboard]').onclick=()=>onboard().catch(report);return;}
   currentProject=project;viewMode=mode;
+  try{localStorage.setItem(LAST_PROJECT_KEY+session.principal.id,project.id);}catch{}
   if(avatarUrl){URL.revokeObjectURL(avatarUrl);avatarUrl=null;}
   // Capture the durable watermark before loading any view snapshot. Writes during
   // mount are replayed afterwards, while older membership events are not mistaken for new changes.
@@ -150,10 +174,8 @@ try{session=await repository.initialize();
   const pending=sessionStorage.getItem('sprintique.pending-invitation');sessionStorage.removeItem('sprintique.pending-invitation');
   if(pending&&/^invite_[A-Za-z0-9_-]{43}$/.test(pending)&&!location.hash.startsWith('#invite/'))history.replaceState(null,'','#invite/'+pending);
   if(await acceptPendingInvitation(repository.client))session=await repository.initialize();
-  const slug=new URL(location.href).searchParams.get('project');await showProject(session.projects.find(p=>p.slug===slug)?.id);}
+  const slug=new URL(location.href).searchParams.get('project');await showProject(session.projects.find(p=>p.slug===slug)?.id??lastProject());}
 catch(error){
-  if(error.status===401){root.innerHTML='<main class="host-landing"><h1>Sprintique</h1><p>Войдите, чтобы открыть свои проекты.</p><a class="iq-btn primary" href="/auth/login">Войти</a></main>';
-    root.querySelector('a').onclick=()=>{const match=location.hash.match(/^#invite\/(invite_[A-Za-z0-9_-]{43})$/);if(match)sessionStorage.setItem('sprintique.pending-invitation',match[1]);};
-  }
+  if(error.status===401)await renderSignIn();
   else {root.innerHTML='<main class="host-landing"><h1>Не удалось открыть Sprintique</h1><p role="alert"></p></main>';root.querySelector('[role=alert]').textContent=error.message;}
 }

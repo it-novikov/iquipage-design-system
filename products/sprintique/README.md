@@ -55,6 +55,12 @@ From the original repository root, `node scripts/verify-vnext.mjs` additionally 
 
 `npm run preview:fixture` is a disposable synthetic-auth test entry, not compiled into `npm start`. Do not expose it to a network.
 
+## Local debugging stand
+
+`LC_ALL=C npm run dev:local` starts an ephemeral PostgreSQL, applies migrations, seeds synthetic workspaces (five projects with boards, releases, members, tags and maps) and serves the built UI at http://localhost:4311. Sign in with **admin / admin**. Run `npm run build` (or `npx vite build`) first so `dist/` is current. Object storage is optional: without `output/infra/storage.json` or `TEST_S3_CONFIG`, attachments and covers are unavailable.
+
+The fixed login exists only in this stand (`createApp({devLogin:true})`). The app refuses to start with it when `NODE_ENV=production` or on a non-loopback origin, and `backend/main.ts` never enables it. The sign-in screen asks `/api/v1/auth/methods` and never links to an OIDC provider that isn't configured.
+
 ## Local reference stack
 
 PostgreSQL 18.6, Garage 2.3.0 and Keycloak 26.7.3 are pinned by image digests in local scripts. They use loopback ports, an explicitly selected Docker context, owned resource labels and private ignored `output/infra/` configuration. Scripts refuse unrelated containers/volumes and never start/restart the user's default Docker VM.
