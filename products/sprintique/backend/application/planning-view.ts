@@ -13,7 +13,10 @@ import {MAX_TASK_DEPTH} from '../domain/task-invariants.js';
 
 const finished=(r:Release)=>['closed','cancelled'].includes(r.lifecycle);
 const statusLabels:Record<string,string>={ready:'Готово к работе',in_progress:'В работе',review:'На проверке',ready_for_testing:'К тестированию',testing:'Тестирование',ready_for_release:'Готово к релизу'};
-function taskChange(effect:Effect,releases:Release[]){
+/** Owner label: the member's name, or legacy free text marked until someone reassigns it. */
+const ownerLabel=(row:{ownerId:string|null;legacyOwner?:string},names:Map<string,string>)=>row.ownerId?names.get(row.ownerId)||'Бывший участник':row.legacyOwner?row.legacyOwner+' · не участник':'';
+const memberNames=(state:{members?:{id:string;name:string}[]})=>new Map((state.members||[]).map(m=>[m.id,m.name]));
+function taskChange(effect:Effect,releases:Release[],names:Map<string,string>){
   const {before,after}=effect,parts:string[]=[];
   if(!before)parts.push('Создать задачу');
   if(before?.preparation!==after.preparation)parts.push(after.preparation==='ready'?'Подготовить к работе':'Сохранить черновиком');
@@ -23,7 +26,7 @@ function taskChange(effect:Effect,releases:Release[]){
   if(before?.result!==after.result)parts.push(after.result==='accepted'?'Результат принят':'Результат открыт');
   if(before?.plannedStart!==after.plannedStart||before?.plannedEnd!==after.plannedEnd)parts.push(`План: ${after.plannedStart||'без начала'} — ${after.plannedEnd||'без окончания'}`);
   if(before?.due!==after.due)parts.push('Дедлайн: '+(after.due||'не задан'));
-  if(before?.owner!==after.owner)parts.push('Ответственный: '+(after.owner||'не назначен'));
+  if(before?.ownerId!==after.ownerId)parts.push('Ответственный: '+(ownerLabel(after,names)||'не назначен'));
   if(before?.priority!==after.priority)parts.push('Приоритет: '+({low:'Низкий',normal:'Обычный',high:'Высокий',critical:'Критичный'}[after.priority]||after.priority));
   if(before?.status!==after.status)parts.push('Состояние: '+(statusLabels[after.status]||after.status));
   if(JSON.stringify(before?.tagIds)!==JSON.stringify(after.tagIds))parts.push(`Теги: ${after.tagIds.length}`);
@@ -92,13 +95,13 @@ export async function rows(tx:Transaction,actor:Actor,projectId:string,q:ViewRow
   requireCondition(q.groupId==='backlog'&&q.history==='current'||release&&!release.archivedAt&&historical===(q.history==='closed'),404,'NOT_FOUND','Группа недоступна.');
   const members=historical?((await finalSnapshots(tx,projectId,q.groupId)).get(q.groupId)||[]).map(i=>i.before):c.rows.filter(t=>(t.effectiveReleaseId||'backlog')===q.groupId);
   const f=ViewFilters.strip().parse(q),matched=matches(f,members,c.state.releases),memberIds=new Set(members.map(r=>r.id));
-  const childCounts=new Map<string,number>(),byId=new Map(c.rows.map(row=>[row.id,row]));
+  const childCounts=new Map<string,number>(),byId=new Map(c.rows.map(row=>[row.id,row])),names=memberNames(c.state);
   for(const row of members)if(row.parentId)childCounts.set(row.parentId,(childCounts.get(row.parentId)||0)+1);
   const ordered=orderedRows(members,f,matched,q.collapsedTaskIds);
   const p=page(ordered,binding(projectId,'rows',[f,q.groupId,q.collapsedTaskIds]),c.revision,200,q.cursor||undefined);
   // Only the requested page becomes transport DTOs; hierarchy counts are indexed once.
   const result=p.items.map(({row:r,depth})=>({id:q.groupId+'/'+r.id,taskId:r.id,key:r.displayId,title:r.title,type:r.type,priority:r.priority,preparation:r.preparation,
-    statusLabel:r.result==='accepted'?'Принята':statusLabels[r.status]||r.status,ownerLabel:r.owner,dateLabel:r.due||'',parentId:r.parentId,admission:r.admitted,outcome:r.result,revision:r.revision,
+    statusLabel:r.result==='accepted'?'Принята':statusLabels[r.status]||r.status,ownerLabel:ownerLabel(r,names),ownerId:r.ownerId||'',dueValue:r.due||null,dateLabel:r.due||'',parentId:r.parentId,admission:r.admitted,outcome:r.result,revision:r.revision,
     depth,childrenCount:childCounts.get(r.id)||0,contextOnly:!matched.has(r.id),selectable:c.write&&!historical&&r.result==='open'&&matched.has(r.id),
     parentContext:r.parentId&&!memberIds.has(r.parentId)?byId.get(r.parentId)?.displayId||'Родитель в другой группе':''}));
   return {projectId,groupId:q.groupId,revision:String(c.revision),rows:result,nextCursor:p.nextCursor};
@@ -115,7 +118,7 @@ export async function options(tx:Transaction,actor:Actor,projectId:string,q:View
   const c=await context(tx,actor,projectId);let items:{value:string;label:string;description?:string;disabled?:boolean}[]=[];
   if(q.kind==='destinations')items=[{value:'backlog',label:'Бэклог'},...c.state.releases.filter(r=>!finished(r)&&!r.archivedAt&&r.id!==q.excludeId).map(r=>({value:r.id,label:r.name,description:dateLabel(r)}))];
   else if(q.kind==='tasks')items=c.rows.filter(t=>t.result==='open').map(t=>({value:t.id,label:t.displayId+' · '+t.title}));
-  else if(q.kind==='owner')items=[{value:'__none__',label:'Не назначен'},...([...new Set(c.rows.map(t=>t.owner).filter(Boolean))].sort().map(name=>({value:name,label:name})))];
+  else if(q.kind==='owner')items=[{value:'__none__',label:'Не назначен'},...(c.state.members||[]).map(m=>({value:m.id,label:m.name}))];
   else items=(await tx.query<{value:string;label:string}>('SELECT id AS value,name AS label FROM app.tags WHERE project_id=$1 AND archived_at IS NULL ORDER BY name,id',[projectId])).rows;
   items=items.filter(i=>i.label.toLocaleLowerCase().includes(q.query.toLocaleLowerCase()));
   const {cursor,...filters}=q,p=page(items,binding(projectId,'options',filters),c.revision,50,cursor||undefined);return {options:p.items,nextCursor:p.nextCursor};
@@ -165,7 +168,8 @@ export async function previewIntent(tx:Transaction,actor:Actor,projectId:string,
     case 'prepare':case 'unprepare':value={kind:'prepare',selection,preparation:intent.kind==='prepare'?'ready':'draft'};break;
     case 'take':value={kind:'admission',selection,admitted:true};break;
     case 'move':value={kind:'assign',selection,assignment:intent.groupId==='backlog'?{mode:'none'}:{mode:'assigned',releaseId:intent.groupId}};break;
-    case 'bulk':value={kind:'bulk',selection,fields:{[intent.field==='tags'?'addTagIds':intent.field]:intent.value}};break;
+    // The owner field carries a member id; an empty value unassigns.
+    case 'bulk':value={kind:'bulk',selection,fields:intent.field==='owner'?{ownerId:intent.value||null}:{[intent.field==='tags'?'addTagIds':intent.field]:intent.value}};break;
     case 'start':value={kind:'start',releaseId:intent.groupId};break;
     case 'editRelease':value={kind:'release.edit',releaseId:intent.groupId,value:releaseValue(intent.values)};break;
     case 'createRelease':value={kind:'release.create',releaseId:randomUUID(),projectId,value:releaseValue(intent.values)};break;
@@ -183,6 +187,6 @@ export async function previewIntent(tx:Transaction,actor:Actor,projectId:string,
     default:throw new Problem(400,'INTENT_UNKNOWN','Операция не поддерживается.');
   }
   const result=await preview(tx,actor,projectId,PlanningCommand.parse(value));
-  const changes=[...(result.details||[]),...result.effects.map(e=>taskChange(e,[...result.releases,...c.state.releases]))];
+  const changes=[...(result.details||[]),...result.effects.map(e=>taskChange(e,[...result.releases,...c.state.releases],memberNames(c.state)))];
   return {token:result.id+'.'+result.token,expiresAt:result.expiresAt,summary:`Затронуто задач: ${result.affectedCount}. На доску: ${result.enteringBoard}, с доски: ${result.leavingBoard}.`,changes:changes.slice(0,200),moreChanges:Math.max(0,(result.details?.length||0)+result.affectedCount-Math.min(200,changes.length)),blockers:[]};
 }

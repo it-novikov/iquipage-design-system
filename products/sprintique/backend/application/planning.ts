@@ -8,6 +8,7 @@ import {PLANNING_POLICY,PAGE_SIZE,PREVIEW_BUDGET} from '../../contracts/planning
 import type {Page,PlanningQuery,PlanningRow,PlanningCommand,Preview,Receipt,Release,ReleaseData,Milestone,TemporalConstraint} from '../../contracts/planning.js';
 import {idempotent,canonical} from './commands.js';
 import {linkTaskAssets} from './media.js';
+import {requireTaskOwner} from './tasks.js';
 
 export const releaseProjection=`id,project_id AS "projectId",name,revision,scope_revision::float8 AS "scopeRevision",lifecycle,format,
   to_char(planned_start,'YYYY-MM-DD') AS "plannedStart",to_char(planned_end,'YYYY-MM-DD') AS "plannedEnd",
@@ -26,7 +27,7 @@ export async function planningLock(tx:Transaction,actor:Actor,projectId:string,w
 export async function loadPlanningState(tx:Transaction,projectId:string):Promise<PlanningState>{
   const tasks=(await tx.query<TaskState>(`SELECT t.id,p.key||'-'||t.number AS "displayId",t.revision,t.parent_id AS "parentId",t.title,t.type,t.status,
     t.attachment_ids AS "attachmentIds",t.cover_attachment_id AS "coverAttachmentId",t.cover_crop AS "coverCrop",
-    t.owner_label AS owner,t.priority,t.rank,to_char(t.status_entered_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS "statusEnteredAt",
+    t.owner_id AS "ownerId",t.owner_label AS "legacyOwner",t.priority,t.rank,to_char(t.status_entered_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS "statusEnteredAt",
     to_char(t.created_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS "createdAt",
     t.preparation,t.result,t.admitted,t.assignment_mode AS "assignmentMode",t.release_id AS "releaseId",
     to_char(t.planned_start,'YYYY-MM-DD') AS "plannedStart",to_char(t.planned_end,'YYYY-MM-DD') AS "plannedEnd",to_char(t.due,'YYYY-MM-DD') AS due,
@@ -39,8 +40,10 @@ export async function loadPlanningState(tx:Transaction,projectId:string):Promise
   const defaults=(await tx.query<{value:NonNullable<PlanningState['defaults']>}>(`SELECT planning_defaults||jsonb_build_object('timezone',auth.project_timezone(id)) AS value FROM app.projects WHERE id=$1`,[projectId])).rows[0]!.value;
   const creation=(await tx.query<NonNullable<PlanningState['creation']>>(`SELECT id AS "projectId",key,next_task_number AS number,to_char(clock_timestamp() AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS "createdAt" FROM app.projects WHERE id=$1`,[projectId])).rows[0]!;
   const dependencies=(await tx.query<{id:string;fromId:string;toId:string}>(`SELECT id,from_id AS "fromId",to_id AS "toId" FROM app.task_links WHERE project_id=$1 AND kind='depends' AND archived_at IS NULL LIMIT 10001`,[projectId])).rows;
+  const members=(await tx.query<{id:string;name:string}>(`SELECT p.id,coalesce(p.profile_name,p.name) AS name FROM app.project_members m JOIN auth.principals p ON p.id=m.principal_id
+    WHERE m.project_id=$1 AND p.kind='human' ORDER BY name,p.id LIMIT 501`,[projectId])).rows;
   requireCondition(tasks.length<=10000&&releases.length<=1000&&milestones.length<=10000&&constraints.length<=10000&&dependencies.length<=10000,422,'PROJECT_LIMIT','Лимит проекта: 10 000 задач, вех и связей, 1000 релизов.');
-  return {tasks,releases,milestones,constraints,defaults,creation,dependencies};
+  return {tasks,releases,milestones,constraints,defaults,creation,dependencies,members};
 }
 const encode=(data:unknown)=>Buffer.from(JSON.stringify(data)).toString('base64url');
 function offset(cursor:string|undefined,binding:string,revision:number){
@@ -60,7 +63,7 @@ export async function listPlanning(tx:Transaction,actor:Actor,projectId:string,q
   const rows=projectRows(state).filter(t=>(!query.q||(t.title+' '+t.displayId).toLocaleLowerCase().includes(query.q.toLocaleLowerCase()))
     &&(!query.releaseId||t.effectiveReleaseId===query.releaseId)&&(!query.unassigned||!t.effectiveReleaseId)
     &&(!query.parentId||t.parentId===query.parentId)&&(!query.preparation||t.preparation===query.preparation)
-    &&(!query.status||t.status===query.status)&&(!query.owner||t.owner===query.owner)
+    &&(!query.status||t.status===query.status)&&(!query.owner||t.ownerId===query.owner)
     &&(!query.tagId||t.tagIds.includes(query.tagId))&&(!query.board||t.boardEligible));
   return page(rows,hash(projectId+JSON.stringify(filters)),revision,query.limit,cursor);
 }
@@ -131,6 +134,13 @@ async function budgetPreviews(tx:Transaction,actor:Actor,projectId:string){
   requireCondition(usage.projectPlans<PREVIEW_BUDGET.projectPlans&&usage.projectBytes<PREVIEW_BUDGET.projectBytes,
     429,'PREVIEW_QUOTA','В проекте слишком много неприменённых предпросмотров.');
 }
+/** Owners a command would newly assign; an unchanged owner on an edited task is not re-validated. */
+function assignedOwners(command:PlanningCommand,state:PlanningState):string[]{
+  if(command.kind==='bulk')return command.fields.ownerId?[command.fields.ownerId]:[];
+  if(command.kind==='task.create')return command.task.ownerId?[command.task.ownerId]:[];
+  if(command.kind==='task.edit'){const current=state.tasks.find(t=>t.id===command.taskId);return command.task.ownerId&&command.task.ownerId!==current?.ownerId?[command.task.ownerId]:[];}
+  return [];
+}
 export async function preview(tx:Transaction,actor:Actor,projectId:string,command:PlanningCommand):Promise<Preview>{
   const {revision}=await planningLock(tx,actor,projectId,true);
   // Effects carry before/after projections of tasks the caller never supplied: a write-only grant
@@ -140,6 +150,7 @@ export async function preview(tx:Transaction,actor:Actor,projectId:string,comman
   await budgetPreviews(tx,actor,projectId);
   requireCondition(command.kind!=='release.create'||command.projectId===projectId,422,'PROJECT_SCOPE','Релиз другого проекта.');
   const state=await loadPlanningState(tx,projectId),effects=planChange(state,command);
+  for(const owner of assignedOwners(command,state))await requireTaskOwner(tx,projectId,owner);
   if((command.kind==='task.edit'||command.kind==='task.create')&&command.task.tagIds.length){
     const tags=await tx.query('SELECT id FROM app.tags WHERE project_id=$1 AND id=ANY($2) AND (archived_at IS NULL OR id IN (SELECT tag_id FROM app.task_tags WHERE project_id=$1 AND task_id=$3))',[projectId,command.task.tagIds,command.taskId]);
     requireCondition(tags.rowCount===command.task.tagIds.length,422,'TASK_TAG','Тег недоступен в проекте.');
@@ -170,13 +181,13 @@ async function applyPlan(tx:Transaction,actor:Actor,projectId:string,operationId
   for(const release of result.releases)await saveRelease(tx,projectId,release);
   if(result.createdTask){const c=result.createdTask,v=result.taskContent!.value;
     const next=await tx.query('UPDATE app.projects SET next_task_number=next_task_number+1 WHERE id=$1 AND next_task_number=$2',[projectId,c.number]);requireCondition(next.rowCount===1,409,'PLAN_STALE','Номер задачи изменился.');
-    await tx.query(`INSERT INTO app.tasks(project_id,id,number,title,description,status,type,priority,owner_label,rank,revision,created_at,status_entered_at) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,1,$11,$11)`,[projectId,c.id,c.number,v.title,v.description,v.status,v.type,v.priority,v.owner,v.rank,c.createdAt]);
+    await tx.query(`INSERT INTO app.tasks(project_id,id,number,title,description,status,type,priority,owner_id,rank,revision,created_at,status_entered_at) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,1,$11,$11)`,[projectId,c.id,c.number,v.title,v.description,v.status,v.type,v.priority,v.ownerId,v.rank,c.createdAt]);
   }
   if(result.tasks.length)await tx.query(`UPDATE app.tasks t SET revision=n.revision,parent_id=n."parentId",release_id=n."releaseId",
-    assignment_mode=n."assignmentMode",preparation=n.preparation,result=n.result,admitted=n.admitted,owner_label=n.owner,priority=n.priority,
+    assignment_mode=n."assignmentMode",preparation=n.preparation,result=n.result,admitted=n.admitted,owner_label=CASE WHEN t.owner_id IS DISTINCT FROM n."ownerId" THEN '' ELSE t.owner_label END,owner_id=n."ownerId",priority=n.priority,
     planned_start=n."plannedStart"::date,planned_end=n."plannedEnd"::date,due=n.due::date,updated_at=clock_timestamp()
     FROM jsonb_to_recordset($2::jsonb) AS n(id text,revision integer,"parentId" text,"releaseId" text,"assignmentMode" text,preparation text,result text,
-      admitted boolean,owner text,priority text,"plannedStart" text,"plannedEnd" text,due text) WHERE t.project_id=$1 AND t.id=n.id`,[projectId,JSON.stringify(result.tasks)]);
+      admitted boolean,"ownerId" text,priority text,"plannedStart" text,"plannedEnd" text,due text) WHERE t.project_id=$1 AND t.id=n.id`,[projectId,JSON.stringify(result.tasks)]);
   for(const effect of result.effects)if(JSON.stringify(effect.before?.tagIds)!==JSON.stringify(effect.after.tagIds)){
     await tx.query('DELETE FROM app.task_tags WHERE project_id=$1 AND task_id=$2',[projectId,effect.id]);
     for(const tagId of effect.after.tagIds)await tx.query('INSERT INTO app.task_tags(project_id,task_id,tag_id) VALUES($1,$2,$3)',[projectId,effect.id,tagId]);

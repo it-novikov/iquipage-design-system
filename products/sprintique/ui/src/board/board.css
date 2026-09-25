@@ -155,3 +155,8 @@
 .task-cover-upload{width:100%;margin-top:var(--iq-space-5)}
 @media(max-width:580px){.host-task-tools{justify-content:flex-end}.host-task-heading-title{width:100%}.host-task-heading-title h1{flex:none}.task-cover-presets{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:480px){.task-file-actions{margin-left:auto}.task-detail-cover{aspect-ratio:12/5}.task-file-row .file-item-copy{flex-basis:150px}}
+/* Autosave status lives in the drawer footer, left-aligned; the header close button is the single exit. */
+.task-edit-dialog [data-task-save-state]{display:flex;flex-wrap:wrap;align-items:center;gap:var(--iq-space-2);margin:0 auto 0 0;color:var(--iq-muted)}
+.task-edit-dialog [data-task-save-state][data-tone=danger]{color:var(--iq-danger)}
+[data-board-waiting]{flex:none}
+[data-board-waiting]:not(:empty){margin-bottom:var(--iq-space-3)}

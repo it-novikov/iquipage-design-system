@@ -95,7 +95,7 @@ test('resync reaches discussions and links; stop cancels queued invalidation',as
 test('task context uses 100-row pages, isolates cached copies, and invalidates across scoped adapters',async()=>{
   let calls=0;
   const repository=new ProductRepository({request:async path=>{
-    calls++;const url=new URL(path,'https://qa.invalid'),start=Number(url.searchParams.get('cursor')||0),limit=Number(url.searchParams.get('limit'));
+    if(path.endsWith("/members"))return [{id:"u1",name:"Алиса",kind:"human"}];calls++;const url=new URL(path,'https://qa.invalid'),start=Number(url.searchParams.get('cursor')||0),limit=Number(url.searchParams.get('limit'));
     assert.equal(limit,100);return {items:Array.from({length:Math.min(limit,2000-start)},(_,i)=>({id:String(start+i)})),nextCursor:start+limit<2000?String(start+limit):null};
   }});
   const all=await repository.taskContext('p');assert.equal(all.length,2000);assert.equal(calls,20);

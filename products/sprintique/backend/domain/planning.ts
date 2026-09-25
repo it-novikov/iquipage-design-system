@@ -5,7 +5,7 @@ import type {TaskData} from '../../contracts/index.js';
 import {requireOpenTask,validateTaskHierarchy} from './task-invariants.js';
 
 export interface TaskState extends Omit<PlanningRow,'effectiveReleaseId'|'assignmentSourceId'|'boardEligible'|'childCount'> {}
-export interface PlanningState {tasks:TaskState[];releases:Release[];milestones:Milestone[];constraints:TemporalConstraint[];dependencies?:{id:string;fromId:string;toId:string}[];defaults?:{format:'flexible'|'timeboxed';days:number;timezone:string};creation?:{projectId:string;key:string;number:number;createdAt:string}}
+export interface PlanningState {tasks:TaskState[];releases:Release[];milestones:Milestone[];constraints:TemporalConstraint[];dependencies?:{id:string;fromId:string;toId:string}[];defaults?:{format:'flexible'|'timeboxed';days:number;timezone:string};creation?:{projectId:string;key:string;number:number;createdAt:string};members?:{id:string;name:string}[]}
 export interface HistoryItem {before:PlanningRow;task:PlanningRow;outcome:'baseline'|'accepted'|'transferred'|'deferred'}
 export interface PlanResult {
   taskContent:{id:string;value:TaskData}|null;
@@ -61,7 +61,7 @@ export function selected(selection:Selection,rows:PlanningRow[],releases:Release
     return new Set(rows.filter(t=>{
       if(roots){let parent:PlanningRow|undefined=t,found=false;while(parent){if(roots.has(parent.id)){found=true;break;}parent=parent.parentId?byId.get(parent.parentId):undefined;}if(!found)return false;}
       return (!f.q||(t.title+' '+t.displayId).toLocaleLowerCase().includes(f.q.toLocaleLowerCase())||!!t.effectiveReleaseId&&matchingReleases.has(t.effectiveReleaseId))
-        &&(f.preparation==='all'||t.preparation===f.preparation)&&(!f.owner||(f.owner==='__none__'?!t.owner:t.owner===f.owner))
+        &&(f.preparation==='all'||t.preparation===f.preparation)&&(!f.owner||(f.owner==='__none__'?!t.ownerId:t.ownerId===f.owner))
         &&(f.releaseId===undefined||t.effectiveReleaseId===f.releaseId)
         &&(!f.tagIds.length||(f.tagMode==='all'?f.tagIds.every(id=>t.tagIds.includes(id)):f.tagIds.some(id=>t.tagIds.includes(id))))
         &&(!f.candidates||(t.preparation==='ready'&&t.status==='ready_for_release'&&t.result==='open'))&&(!f.openOnly||t.result==='open');

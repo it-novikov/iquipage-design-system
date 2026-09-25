@@ -10,6 +10,7 @@ import {openTaskDialog} from './task-dialog.js';
 import {mountTagPacking} from './tag-packing.js';
 import {tagMarkup} from './catalog-ui.js';
 import {taskURL,taskKey,parseTaskRoute} from './task-route.js';
+const plural=(n,one,few,many)=>{const d=n%10,h=n%100;return d===1&&h!==11?one:d>=2&&d<=4&&(h<12||h>14)?few:many;};
 /** Host adapter: canonical records stay in the repository; this module projects the board. */
 export async function mountTaskBoard(root,{repository,project,canEdit=true,canManageCatalogs=false,attachmentAdapter=null,viewState={}}){
   registerCore();root.classList.add('iq-task-board-root');let catalogs={tags:[],releases:[]};let items=[],disposeBoard,closed=false,loading=0,dragging=false,queued=false,activeDialog=null,openingTask=false,dragIntent=null;
@@ -26,7 +27,7 @@ export async function mountTaskBoard(root,{repository,project,canEdit=true,canMa
   root.innerHTML=`<div class="host-task-page"><header class="host-task-heading"><div class="host-task-heading-title"><h1>Доска задач</h1><div class="host-board-sort" data-board-sort></div></div>
   <div class="host-task-tools"><div class="board-filter-bar" data-board-filters></div>
   <button type="button" class="iq-btn primary" data-create-task ${canEdit?'':'disabled'}>${icon('plus',18)}<span>Новая задача</span></button></div>
-  </header><p class="host-task-error" role="alert" hidden></p><div class="host-board-mount"></div><p class="sr-only" id="board-drag-help">Enter или пробел — взять задачу. Стрелки — выбрать позицию, Enter — переместить, Escape — отменить. В меню задачи доступно перемещение без перетаскивания.</p><span class="sr-only" role="status" data-task-live></span></div>`;
+  </header><p class="host-task-error" role="alert" hidden></p><div data-board-waiting></div><div class="host-board-mount"></div><p class="sr-only" id="board-drag-help">Enter или пробел — взять задачу. Стрелки — выбрать позицию, Enter — переместить, Escape — отменить. В меню задачи доступно перемещение без перетаскивания.</p><span class="sr-only" role="status" data-task-live></span></div>`;
   const ownedPage=root.firstElementChild;
   function renderSort(){root.querySelector('[data-board-sort]').innerHTML=ui.menu(`<button type="button" class="iq-btn ghost sm iq-switcher" data-tone="muted" aria-label="Порядок задач: ${esc(BOARD_SORTS[sort])}"><span class="iq-switcher-label">${esc(BOARD_SORTS[sort])}</span>${icon('down',14)}</button>`,Object.entries(BOARD_SORTS).map(([id,label])=>({label:esc(label),glyph:id===sort?'check':null,action:'board-sort:'+id})));}
   renderSort();
@@ -38,6 +39,14 @@ export async function mountTaskBoard(root,{repository,project,canEdit=true,canMa
   const matches=t=>taskMatchesFilters(t,filterState);
   const projection=(status,tasks=items)=>projectColumn(tasks,status,{predicate:matches,compare:boardComparator(sort),collapsed,filtering:filtering()});
   const empty=status=>filtering()?'<div class="board-empty-slot"><span>Нет совпадений</span><small>Измените или сбросьте фильтры</small></div>':canEdit?`<button type="button" class="file-dropwell board-empty-slot" data-column-create="${status}"><span>Добавить задачу</span><small>или перетащите её сюда</small></button>`:'<div class="board-empty-slot"><span>Пока нет задач</span></div>';
+  /** The board shows started work only; say where tasks of planned releases are instead of hiding them silently. */
+  function renderWaiting(){
+    const waiting=catalogs.releases.filter(r=>r.lifecycle==='planned'&&!r.archivedAt&&r.counts?.total>0),total=waiting.reduce((n,r)=>n+r.counts.total,0);
+    const target=root.querySelector('[data-board-waiting]');
+    if(!total){target.replaceChildren();return;}
+    const tasks=plural(total,'задача ждёт','задачи ждут','задач ждут'),where=waiting.length===1?`релиза «${esc(waiting[0].name)}»`:`${waiting.length} ${plural(waiting.length,'релиза','релизов','релизов')}`;
+    target.innerHTML=`<div class="iq-banner" role="status">${icon('info',19)}<p>${total} ${tasks} старта ${where} и пока не видны на доске.</p><a class="iq-btn ghost sm" href="#planning">Открыть планирование</a></div>`;
+  }
   function render(focusId){
     if(closed||dragging){queued=true;return;}
     const old=mount.querySelector('.iq-board');
@@ -71,7 +80,7 @@ export async function mountTaskBoard(root,{repository,project,canEdit=true,canMa
       reloadAgain=false;const token=++loading;
       try{
         const [all,tags,releases]=await Promise.all(['tasks','tags','releases'].map(name=>repository.list(name,project.id,{signal})));
-        if(closed||token!==loading)continue;items=all;catalogs={tags,releases};filters.setData({tasks:items,...catalogs});render();
+        if(closed||token!==loading)continue;items=all;catalogs={tags,releases};filters.setData({tasks:items,...catalogs});renderWaiting();render();
       }catch(e){if(!closed&&e.name!=='AbortError')fail(e);}
       if(dragging||pending.size){queued=reloadAgain;break;}
     }while(reloadAgain&&!closed);})().finally(()=>{reloadPromise=null;});

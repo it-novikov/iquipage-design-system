@@ -16,12 +16,12 @@ async function apply(intent:unknown){const plan=await view('preview',intent);con
 async function release(name:string){const p=await apply({kind:'createRelease',values:{name,format:'flexible',start:null,end:null,deadline:null}});assert.ok(p.changes.length);return (await view('groups')).items.find((g:{title:string})=>g.title===name).id as string;}
 
 test('V01 live consumer protocol groups/rows: descendants, filtering context, collapse and stable revisions',async()=>{
-  await task('view-parent');await task('view-child',{parentId:'view-parent',owner:'Алиса'});await task('view-grandchild',{parentId:'view-child'});
+  await task('view-parent');await task('view-child',{parentId:'view-parent',ownerId:f.alice.id});await task('view-grandchild',{parentId:'view-child'});
   const groups=await view('groups',{query:'view-'});assert.equal(groups.protocol,'sprintique.planning-view/1');
   const page=await view('rows',{groupId:'backlog',revision:groups.revision,query:'view-'});
   assert.deepEqual(page.rows.map((r:{depth:number})=>r.depth),[0,1,2]);
   const filtered=await view('rows',{groupId:'backlog',revision:groups.revision,query:'view-child',collapsedTaskIds:['view-parent']});
-  assert.equal(filtered.rows.length,2);assert.equal(filtered.rows[0].contextOnly,true);assert.equal(filtered.rows[0].selectable,false);assert.equal(filtered.rows[1].taskId,'view-child');
+  assert.equal(filtered.rows.length,2);assert.equal(filtered.rows[0].contextOnly,true);assert.equal(filtered.rows[0].selectable,false);assert.equal(filtered.rows[1].taskId,'view-child');assert.equal(filtered.rows[1].ownerLabel,'Алиса');assert.equal(filtered.rows[1].ownerId,f.alice.id);
   const folded=await view('rows',{groupId:'backlog',revision:groups.revision,collapsedTaskIds:['view-parent']});
   assert.equal(folded.rows.some((r:{taskId:string})=>r.taskId==='view-child'),false);
   await task('view-later');assert.equal((await request('planning/view/rows',{groupId:'backlog',revision:groups.revision})).json().code,'CURSOR_STALE');
@@ -44,7 +44,7 @@ test('V03 PR3 lifecycle intents create, prepare, move, start, close and preserve
   const groups=await view('groups',{history:'closed'}),group=groups.items.find((g:{id:string})=>g.id===first);assert.equal(group.total,2);
   const rows=await view('rows',{groupId:first,history:'closed',revision:groups.revision});assert.equal(rows.rows.length,2);assert.ok(rows.rows.every((r:{selectable:boolean})=>!r.selectable));
   const snapshot=(await view('release',{groupId:first})).snapshot;assert.equal(snapshot.accepted,1);assert.equal(snapshot.carried,1);
-  await apply({kind:'bulk',taskIds:['closure-open'],field:'owner',value:'Новый исполнитель'});
+  await apply({kind:'bulk',taskIds:['closure-open'],field:'owner',value:f.alice.id});
   assert.deepEqual((await view('release',{groupId:first})).snapshot,snapshot);
 });
 test('V04 planned end is independent from deadline; roadmap batch is atomic and stale projection is rejected',async()=>{

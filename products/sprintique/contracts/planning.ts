@@ -45,7 +45,7 @@ export const PlanningCommand = z.discriminatedUnion('kind',[
   z.strictObject({kind:z.literal('assign'),selection:Selection,assignment:Assignment}),
   z.strictObject({kind:z.literal('reparent'),taskId:Id,parentId:Id.nullable()}),
   z.strictObject({kind:z.literal('bulk'),selection:Selection,fields:z.strictObject({
-    owner:z.string().max(120).optional(),priority:z.enum(['low','normal','high','critical']).optional(),
+    ownerId:Id.nullable().optional(),priority:z.enum(['low','normal','high','critical']).optional(),
     plannedStart:DateOnly.nullable().optional(),plannedEnd:DateOnly.nullable().optional(),due:DateOnly.nullable().optional(),addTagIds:z.array(Id).max(30).optional()
   }).refine(v=>Object.keys(v).length>0)}),
   z.strictObject({kind:z.literal('start'),releaseId:Id}),
@@ -77,7 +77,7 @@ export interface Release extends ReleaseData {
 export interface PlanningRow {
   attachmentIds?:string[];coverAttachmentId?:string|null;coverCrop?:import('./media.js').TaskMediaData['coverCrop'];
   id:string;displayId:string;revision:number;parentId:string|null;title:string;type:string;status:string;
-  owner:string;priority:string;rank:number;statusEnteredAt:string;createdAt:string;tagIds:string[];preparation:'draft'|'ready';result:'open'|'accepted';admitted:boolean;
+  ownerId:string|null;legacyOwner?:string;priority:string;rank:number;statusEnteredAt:string;createdAt:string;tagIds:string[];preparation:'draft'|'ready';result:'open'|'accepted';admitted:boolean;
   plannedStart:string|null;plannedEnd?:string|null;due:string|null;assignmentMode:'inherit'|'assigned'|'none';releaseId:string|null;
   effectiveReleaseId:string|null;assignmentSourceId:string|null;boardEligible:boolean;childCount:number;
 }
