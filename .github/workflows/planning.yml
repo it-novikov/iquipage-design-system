@@ -11,7 +11,9 @@ concurrency:
   cancel-in-progress: true
 jobs:
   verify:
-    runs-on: [self-hosted, linux, x64, codex-server]
+    # Public repository: pull requests from forks must never execute on a persistent self-hosted
+    # machine. GitHub-hosted runners are ephemeral and hold no access to local infrastructure.
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
@@ -23,7 +25,7 @@ jobs:
           package-manager-cache: false
       - run: npm ci --ignore-scripts --no-fund --no-audit
         working-directory: packages/maps
-      - run: npx --no-install playwright install chromium
+      - run: npx --no-install playwright install --with-deps chromium
         working-directory: packages/maps
       - run: npm ci --ignore-scripts --no-fund --no-audit
         working-directory: packages/work-list

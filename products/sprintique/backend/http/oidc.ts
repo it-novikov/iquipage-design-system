@@ -6,6 +6,7 @@ import {Problem,requireCondition} from '../domain/errors.js';
 
 export interface OidcSettings {issuer:string;clientId:string;clientSecret:string;origin:string;transport?:oidc.CustomFetch}
 export const sessionCookie='__Host-sprintique';
+export const LOGIN_STATE_LIMIT=10000;
 export function cookie(request:FastifyRequest,name:string){
   return request.headers.cookie?.split(';').map(s=>s.trim()).find(s=>s.startsWith(name+'='))?.slice(name.length+1);
 }
@@ -22,6 +23,11 @@ export async function registerOidc(app:FastifyInstance,db:Database,settings:Oidc
   };
   app.get('/auth/login',async(_request,reply)=>{
     const client=await config(),state=oidc.randomState(),nonce=oidc.randomNonce(),verifier=oidc.randomPKCECodeVerifier();
+    // Anonymous entry point: expired attempts are collected in bounded batches and pending ones are capped,
+    // so abandoned logins cannot grow the table without limit.
+    await db.pool.query('DELETE FROM auth.login_states WHERE state_hash IN (SELECT state_hash FROM auth.login_states WHERE expires_at<=clock_timestamp() LIMIT 500)');
+    const pending=(await db.pool.query<{n:number}>('SELECT count(*)::int AS n FROM auth.login_states')).rows[0]!.n;
+    requireCondition(pending<LOGIN_STATE_LIMIT,503,'BUSY','Слишком много незавершённых входов. Повторите через несколько минут.');
     await db.pool.query("INSERT INTO auth.login_states(state_hash,verifier,nonce,expires_at) VALUES($1,$2,$3,clock_timestamp()+interval '10 minutes')",[hash(state),verifier,nonce]);
     const url=oidc.buildAuthorizationUrl(client,{redirect_uri:settings!.origin+'/auth/callback',scope:'openid profile',state,nonce,code_challenge:await oidc.calculatePKCECodeChallenge(verifier),code_challenge_method:'S256'});
     reply.header('Set-Cookie',cookieValue('__Host-sprintique-login',state,600));
