@@ -10,7 +10,6 @@ import {openTaskDialog} from './task-dialog.js';
 import {mountTagPacking} from './tag-packing.js';
 import {tagMarkup} from './catalog-ui.js';
 import {taskURL,taskKey,parseTaskRoute} from './task-route.js';
-const plural=(n,one,few,many)=>{const d=n%10,h=n%100;return d===1&&h!==11?one:d>=2&&d<=4&&(h<12||h>14)?few:many;};
 /** Host adapter: canonical records stay in the repository; this module projects the board. */
 export async function mountTaskBoard(root,{repository,project,canEdit=true,canManageCatalogs=false,attachmentAdapter=null,viewState={}}){
   registerCore();root.classList.add('iq-task-board-root');let catalogs={tags:[],releases:[]};let items=[],disposeBoard,closed=false,loading=0,dragging=false,queued=false,activeDialog=null,openingTask=false,dragIntent=null;
@@ -20,14 +19,15 @@ export async function mountTaskBoard(root,{repository,project,canEdit=true,canMa
   let reloadPromise=null,reloadAgain=false,reloadTimer=null,openingController=null;
   const key=`sprintique-board:${project.id}:${repository.context?.actorId||'local-user'}`;
   try{Object.assign(viewState,JSON.parse(localStorage.getItem(key)||'{}'),viewState);}catch{}
-  const collapsed=new Set(Array.isArray(viewState.collapsed)?viewState.collapsed:[]);
+  // Subtask lists on parent cards are collapsed unless the person opened them.
+  const expanded=new Set(Array.isArray(viewState.expanded)?viewState.expanded:[]);delete viewState.collapsed;
   let sort=Object.hasOwn(BOARD_SORTS,viewState.sort)?viewState.sort:'priority';
-  const persist=()=>{viewState.sort=sort;viewState.collapsed=[...collapsed];try{localStorage.setItem(key,JSON.stringify(viewState));}catch{}};
+  const persist=()=>{viewState.sort=sort;viewState.expanded=[...expanded];try{localStorage.setItem(key,JSON.stringify(viewState));}catch{}};
   delete viewState.query;
-  root.innerHTML=`<div class="host-task-page"><header class="host-task-heading"><div class="host-task-heading-title"><h1>Доска задач</h1><div class="host-board-sort" data-board-sort></div></div>
+  root.innerHTML=`<div class="host-task-page"><header class="host-task-heading"><div class="host-task-heading-title"><h1 data-board-title>Доска задач</h1><span class="board-period" data-board-period hidden></span><div class="host-board-sort" data-board-sort></div></div>
   <div class="host-task-tools"><div class="board-filter-bar" data-board-filters></div>
   <button type="button" class="iq-btn primary" data-create-task ${canEdit?'':'disabled'}>${icon('plus',18)}<span>Новая задача</span></button></div>
-  </header><p class="host-task-error" role="alert" hidden></p><div data-board-waiting></div><div class="host-board-mount"></div><p class="sr-only" id="board-drag-help">Enter или пробел — взять задачу. Стрелки — выбрать позицию, Enter — переместить, Escape — отменить. В меню задачи доступно перемещение без перетаскивания.</p><span class="sr-only" role="status" data-task-live></span></div>`;
+  </header><p class="host-task-error" role="alert" hidden></p><div class="host-board-mount"></div><p class="sr-only" id="board-drag-help">Enter или пробел — взять задачу. Стрелки — выбрать позицию, Enter — переместить, Escape — отменить. В меню задачи доступно перемещение без перетаскивания.</p><span class="sr-only" role="status" data-task-live></span></div>`;
   const ownedPage=root.firstElementChild;
   function renderSort(){root.querySelector('[data-board-sort]').innerHTML=ui.menu(`<button type="button" class="iq-btn ghost sm iq-switcher" data-tone="muted" aria-label="Порядок задач: ${esc(BOARD_SORTS[sort])}"><span class="iq-switcher-label">${esc(BOARD_SORTS[sort])}</span>${icon('down',14)}</button>`,Object.entries(BOARD_SORTS).map(([id,label])=>({label:esc(label),glyph:id===sort?'check':null,action:'board-sort:'+id})));}
   renderSort();
@@ -37,15 +37,16 @@ export async function mountTaskBoard(root,{repository,project,canEdit=true,canMa
   const filters=mountBoardFilters(root.querySelector('[data-board-filters]'),{initial:viewState.filters,onChange:value=>{filterState=value;viewState.filters=value;persist();render();},countMatches:value=>items.filter(t=>taskMatchesFilters(t,value)).length});
   const filtering=()=>hasBoardFilters(filterState);
   const matches=t=>taskMatchesFilters(t,filterState);
-  const projection=(status,tasks=items)=>projectColumn(tasks,status,{predicate:matches,compare:boardComparator(sort),collapsed,filtering:filtering()});
+  const projection=(status,tasks=items)=>projectColumn(tasks,status,{predicate:matches,compare:boardComparator(sort)});
   const empty=status=>filtering()?'<div class="board-empty-slot"><span>Нет совпадений</span><small>Измените или сбросьте фильтры</small></div>':canEdit?`<button type="button" class="file-dropwell board-empty-slot" data-column-create="${status}"><span>Добавить задачу</span><small>или перетащите её сюда</small></button>`:'<div class="board-empty-slot"><span>Пока нет задач</span></div>';
-  /** The board shows started work only; say where tasks of planned releases are instead of hiding them silently. */
-  function renderWaiting(){
-    const waiting=catalogs.releases.filter(r=>r.lifecycle==='planned'&&!r.archivedAt&&r.counts?.total>0),total=waiting.reduce((n,r)=>n+r.counts.total,0);
-    const target=root.querySelector('[data-board-waiting]');
-    if(!total){target.replaceChildren();return;}
-    const tasks=plural(total,'задача ждёт','задачи ждут','задач ждут'),where=waiting.length===1?`релиза «${esc(waiting[0].name)}»`:`${waiting.length} ${plural(waiting.length,'релиза','релизов','релизов')}`;
-    target.innerHTML=`<div class="iq-banner" role="status">${icon('info',19)}<p>${total} ${tasks} старта ${where} и пока не видны на доске.</p><a class="iq-btn ghost sm" href="#planning">Открыть планирование</a></div>`;
+  /** The board shows started work, so its title is the running release or sprint (all of them if several). */
+  function renderTitle(){
+    const active=catalogs.releases.filter(r=>r.lifecycle==='active'&&!r.archivedAt);
+    const title=root.querySelector('[data-board-title]'),period=root.querySelector('[data-board-period]');
+    title.textContent=active.length?active.map(r=>r.name).join(', '):'Доска задач';
+    const day=value=>new Intl.DateTimeFormat('ru',{day:'numeric',month:'short',timeZone:'UTC'}).format(new Date(value+'T12:00:00Z'));
+    const only=active.length===1?active[0]:null,range=only&&(only.plannedStart||only.plannedEnd)?`${only.plannedStart?day(only.plannedStart):'…'} — ${only.plannedEnd?day(only.plannedEnd):'…'}`:'';
+    period.textContent=range;period.hidden=!range;
   }
   function render(focusId){
     if(closed||dragging){queued=true;return;}
@@ -53,7 +54,7 @@ export async function mountTaskBoard(root,{repository,project,canEdit=true,canMa
     if(old){viewState.x=old.scrollLeft;viewState.y=old.scrollTop;}disposeBoard?.();disposeTags();
     mount.innerHTML=`<div class="kanban iq-board host-task-board" role="region" aria-label="Доска задач. Шесть столбцов." tabindex="0">${TASK_COLUMNS.map(c=>{
       const p=projection(c.id),count=filtering()?`${p.matched}/${p.total}`:String(p.total);
-      return `<section class="kanban-column" data-drop-status="${c.id}" aria-label="${c.label}"><div class="kanban-column-header">${icon(c.icon,18)}<h3>${c.label}</h3><span class="kanban-count" aria-label="${p.matched} задач из ${p.total}">${count}</span></div><div class="column-cards" data-column-cards>${p.rows.map(row=>renderTaskCard(row,{index:p.index,canEdit,pending:pending.has(row.task.id),collapsed:collapsed.has(row.task.id)&&!filtering(),catalogs})).join('')}${p.rows.length?'':empty(c.id)}</div>${canEdit&&p.rows.length?`<button type="button" class="iq-btn ghost sm host-column-add" data-column-create="${c.id}">${icon('plus',16)}<span>Добавить задачу</span></button>`:''}</section>`;
+      return `<section class="kanban-column" data-drop-status="${c.id}" aria-label="${c.label}"><div class="kanban-column-header">${icon(c.icon,18)}<h3>${c.label}</h3><span class="kanban-count" aria-label="${p.matched} задач из ${p.total}">${count}</span></div><div class="column-cards" data-column-cards>${p.rows.map(row=>renderTaskCard(row,{index:p.index,canEdit,pending:pending.has(row.task.id),expanded:expanded.has(row.task.id),catalogs})).join('')}${p.rows.length?'':empty(c.id)}</div>${canEdit&&p.rows.length?`<button type="button" class="iq-btn ghost sm host-column-add" data-column-create="${c.id}">${icon('plus',16)}<span>Добавить задачу</span></button>`:''}</section>`;
     }).join('')}</div>`;
     const board=mount.querySelector('.iq-board');covers.mount(board);disposeTags=mountTagPacking(board);board.scrollLeft=viewState.x||0;board.scrollTop=viewState.y||0;
     if(canEdit)disposeBoard=bindBoard(board,({id,status,beforeId})=>move(id,status,beforeId),{resolvePlacement,canDrag:({id})=>!pending.has(id)&&items.find(task=>task.id===id)?.result!=='accepted',onDragStateChange:active=>{dragging=active;if(!active&&queued)setTimeout(()=>reload(),0);}});
@@ -80,7 +81,7 @@ export async function mountTaskBoard(root,{repository,project,canEdit=true,canMa
       reloadAgain=false;const token=++loading;
       try{
         const [all,tags,releases]=await Promise.all(['tasks','tags','releases'].map(name=>repository.list(name,project.id,{signal})));
-        if(closed||token!==loading)continue;items=all;catalogs={tags,releases};filters.setData({tasks:items,...catalogs});renderWaiting();render();
+        if(closed||token!==loading)continue;items=all;catalogs={tags,releases};filters.setData({tasks:items,...catalogs});renderTitle();render();
       }catch(e){if(!closed&&e.name!=='AbortError')fail(e);}
       if(dragging||pending.size){queued=reloadAgain;break;}
     }while(reloadAgain&&!closed);})().finally(()=>{reloadPromise=null;});
@@ -95,7 +96,6 @@ export async function mountTaskBoard(root,{repository,project,canEdit=true,canMa
     try{
       const next=sort==='manual'?placeTask(original,items,status,beforeId):{...original,status};
       if(taskColumn(original)!==status)next.statusEnteredAt=dragIntent?.id===id?dragIntent.at:new Date().toISOString();
-      if(next.parentId)collapsed.delete(next.parentId);
       items=items.map(t=>t.id===id?next:t);render();
       const saved=await repository.write('tasks',next,original.revision);
       if(closed)return;
@@ -128,11 +128,10 @@ export async function mountTaskBoard(root,{repository,project,canEdit=true,canMa
     const surface=e.target.closest('[data-task-surface]');
     if(surface&&(e.metaKey||e.ctrlKey)&&(!e.target.closest('button,a,iq-menu,input')||e.target.closest('[data-open-task],[data-drag-handle]'))){window.open(taskURL(items.find(t=>t.id===surface.dataset.taskSurface)),'_blank','noopener');return;}
     if(surface&&(!e.target.closest('button,a,iq-menu,input')||e.target.closest('[data-drag-handle]')))void edit(items.find(t=>t.id===surface.dataset.taskSurface));
-    const open=e.target.closest('[data-open-task]'),add=e.target.closest('[data-create-task],[data-column-create]'),toggle=e.target.closest('[data-toggle-children]'),children=e.target.closest('[data-show-children]');
+    const open=e.target.closest('[data-open-task]'),add=e.target.closest('[data-create-task],[data-column-create]'),toggle=e.target.closest('[data-toggle-children]');
     if(open)edit(items.find(t=>t.id===open.dataset.openTask));
     if(add&&canEdit)edit(null,add.dataset.columnCreate||'ready');
-    if(toggle){const id=toggle.dataset.toggleChildren;collapsed.has(id)?collapsed.delete(id):collapsed.add(id);persist();render();root.querySelector(`[data-toggle-children="${CSS.escape(id)}"]`)?.focus({preventScroll:true});}
-    if(children){const list=items.filter(t=>t.parentId===children.dataset.showChildren);dialog({title:'Подзадачи',body:`<div class="iq-list">${list.map(t=>`<button class="iq-list-item full" data-child-id="${esc(t.id)}"><div><b>${esc(t.title)}</b><small>${esc(TASK_COLUMNS.find(c=>c.id===taskColumn(t))?.label||t.status)}</small></div>${icon('chevron',16)}</button>`).join('')}</div>`,mount:el=>el.addEventListener('click',e=>{const b=e.target.closest('[data-child-id]');if(b){el.close(true);edit(items.find(t=>t.id===b.dataset.childId));}})});}
+    if(toggle){const id=toggle.dataset.toggleChildren;expanded.has(id)?expanded.delete(id):expanded.add(id);persist();render();root.querySelector(`[data-toggle-children="${CSS.escape(id)}"]`)?.focus({preventScroll:true});}
   },{signal});
   root.addEventListener('iq-action',e=>{
     const parts=String(e.detail.action||'').split(':'),action=parts[0],id=parts.at(-1);

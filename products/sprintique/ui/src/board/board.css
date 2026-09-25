@@ -12,7 +12,7 @@
 .host-task-board .kanban-column-header h3{font:600 13px/1.4 var(--iq-font);flex:1;min-width:0;max-width:none;margin:0;white-space:normal}
 .host-task-board .kanban-count{flex:0 0 auto;min-width:25px;width:auto;height:25px;padding-inline:6px;margin:0;font-variant-numeric:tabular-nums}
 .host-task-board .column-cards{min-height:0;flex:none}
-.host-task-board .task-card{flex:none;height:auto;margin:0;min-width:0;margin-inline-start:calc(var(--task-depth,0)*var(--iq-space-3))}
+.host-task-board .task-card{flex:none;height:auto;margin:0;min-width:0;}
 .host-task-board .task-card-title{width:100%;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
 .host-task-board .host-column-add{width:calc(100% - 24px);justify-content:flex-start;margin:0 12px 12px}
 .host-task-error{padding:var(--iq-space-3) 0;font-size:var(--iq-type-label-size);color:var(--iq-danger);flex:none}
@@ -21,8 +21,8 @@
 
 .task-id-drag{background:transparent;padding:0;min-height:28px;cursor:grab;text-align:left}
 .task-id-drag:active{cursor:grabbing}
-.task-parent-context,.task-child-toggle,.task-child-jump{display:flex;align-items:center;gap:6px;background:transparent;padding:0;min-height:28px;font-size:var(--iq-type-meta-size);color:var(--iq-muted);text-align:left}
-.task-parent-context>span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.task-child-toggle{border-top:1px solid var(--iq-line);padding-top:var(--iq-space-2)}
+
+
 .host-task-board .task-card[aria-busy=true]{opacity:.65}.host-task-board .iq-avatars{flex-shrink:0}
 .host-task-board .board-empty-slot{width:100%;min-height:112px;margin:0;padding:var(--iq-space-5) var(--iq-space-3);border:1px dashed var(--iq-line-strong);background:transparent;border-radius:var(--iq-radius-md);flex-direction:column;gap:var(--iq-space-2);font-size:var(--iq-type-label-size)}
 .host-task-board .board-empty-slot small{display:block;margin-top:var(--iq-space-2);font-size:var(--iq-type-caption-size);color:var(--iq-muted);font-weight:400}
@@ -34,8 +34,8 @@
 
 /* The compact toolbar wraps deliberately, never into a one-word search field. */
 @media(max-width:580px){.host-task-heading{gap:var(--iq-space-3)}.host-task-heading h1{flex:1}.host-task-tools{width:100%;margin-left:0}.host-task-tools .host-board-sort{margin-left:auto;min-width:0}}
-.host-task-board .task-card>.task-nesting-guide{position:absolute;z-index:0;left:-8px;top:0;bottom:0;width:1px;background:var(--iq-line);pointer-events:none}
-.host-task-board .task-card>.task-nesting-guide::after{content:"";position:absolute;left:0;top:24px;width:6px;height:1px;background:var(--iq-line)}
+
+
 
 /* Task content uses the supplied form, Markdown, accordion and checkbox compositions. */
 .task-selected-tags{display:flex;align-items:center;gap:var(--iq-space-2);flex-wrap:wrap;min-height:var(--iq-control-sm)}
@@ -158,8 +158,6 @@
 /* Autosave status lives in the drawer footer, left-aligned; the header close button is the single exit. */
 .task-edit-dialog [data-task-save-state]{display:flex;flex-wrap:wrap;align-items:center;gap:var(--iq-space-2);margin:0 auto 0 0;color:var(--iq-muted)}
 .task-edit-dialog [data-task-save-state][data-tone=danger]{color:var(--iq-danger)}
-[data-board-waiting]{flex:none}
-[data-board-waiting]:not(:empty){margin-bottom:var(--iq-space-3)}
 /* Active filters as removable chips beside the Filters button. */
 .board-filter-bar{display:flex;flex-wrap:wrap;align-items:center;gap:var(--iq-space-2);min-width:0}
 .board-filter-chips{display:flex;flex-wrap:wrap;gap:var(--iq-space-1);min-width:0}
@@ -168,4 +166,21 @@
 .tag-tone-choice{border:0;margin:0;padding:0;display:grid;gap:var(--iq-space-2)}
 .tag-tone-options{display:flex;flex-wrap:wrap;gap:var(--iq-space-2)}
 .tag-tone-options .iq-tag{cursor:pointer;min-height:32px;padding-inline:var(--iq-space-3)}
-@media(max-width:640px){[data-board-waiting] .iq-banner{flex-wrap:wrap}[data-board-waiting] .iq-banner p{flex:1 1 calc(100% - 40px)}}
+/* Hierarchy on cards: a child names its parent; a parent summarises and can list its subtasks. */
+.task-card-parent{display:flex;align-items:center;gap:var(--iq-space-1);max-width:100%;background:transparent;padding:0;min-height:24px;color:var(--iq-muted);font-size:var(--iq-type-meta-size);text-align:left}
+.task-card-parent>span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.task-card-parent:hover{color:var(--iq-ink)}
+.task-card-subtasks{border-top:1px solid var(--iq-line);padding-top:var(--iq-space-2);display:grid;gap:var(--iq-space-1)}
+.task-subtasks-summary{display:flex;align-items:center;gap:var(--iq-space-2);width:100%;background:transparent;padding:0;min-height:28px;color:var(--iq-muted);font-size:var(--iq-type-meta-size);text-align:left}
+.task-subtasks-summary:hover{color:var(--iq-ink)}
+.task-subtasks-count{font-variant-numeric:tabular-nums;color:var(--iq-ink)}
+.task-subtasks-summary .task-subtasks-progress{flex:1;width:auto;margin:0}
+.task-subtask-list{list-style:none;margin:0;padding:0;display:grid;gap:2px}
+.task-subtask{display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:var(--iq-space-2);align-items:center;width:100%;background:transparent;padding:var(--iq-space-1);border-radius:var(--iq-radius-sm);text-align:left;font-size:var(--iq-type-caption-size)}
+.task-subtask:hover{background:var(--iq-surface)}
+.task-subtask-state{display:inline-flex;color:var(--iq-muted)}
+.task-subtask-state[data-done=true]{color:var(--iq-success)}
+.task-subtask-title{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.task-subtask>small{grid-column:2;color:var(--iq-muted);font-size:var(--iq-type-meta-size)}
+/* The running release names the board; its dates sit beside the title. */
+.board-period{color:var(--iq-muted);font-size:var(--iq-type-caption-size);white-space:nowrap}

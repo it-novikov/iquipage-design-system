@@ -1,6 +1,6 @@
 # UX and design-system alignment (September 2026)
 
-Private DS **0.6.0-vnext.5**. It covers the component audit of the whole Sprintique UI and the changes the owner approved.
+Private DS **0.6.0-vnext.6**. It covers the component audit of the whole Sprintique UI and the changes the owner approved.
 
 ## Owner decisions
 
@@ -11,18 +11,22 @@ Private DS **0.6.0-vnext.5**. It covers the component audit of the whole Sprinti
 | Assignee | Only a current human project member can be the assignee. |
 | Board admission | The rule stays the same. The board explains tasks that are waiting for a planned release. |
 
-## Design system (vnext.3 → vnext.5)
+## Design system (vnext.3 → vnext.6)
 
 - **vnext.3:** the R3 work list is a public entry. Tag tones have light and dark tokens. The type scale is tokenised. Dense surfaces get public variants. The keyboard focus ring is visible. The map canvas no longer collapses when the object library is open.
 - **vnext.4:** on coarse pointers, buttons, section links, selects and checkboxes are 44px (`touch.css`, loaded last). Escape closes the map object library.
 - **vnext.5:** `ui.menu` takes `{section}` labels, which keyboard navigation skips. Long menus scroll. Compact selects are 44px on touch screens.
+- **vnext.6:** public command dialog `iq-dialog kind="command"`, no longer tied to the demo `#command-dialog` id. Adds command groups, an empty state and the active row (`aria-selected`).
 
 ## Product
 
 - **Assignee:** `app.tasks.owner_id` points to `auth.principals` (migration 016). Old free-text names that match exactly one member are mapped to that member. Names that don't match stay as `legacyOwner`, shown as "… · не участник", until someone reassigns the task. The API returns `422 TASK_OWNER` when an edit, a creation or a bulk planning change tries to assign a non-member.
 - **Task drawer:** fields autosave, with the save status in the footer, "Повторить" (retry), and "Загрузить актуальную версию" to reload in place after a conflict.
+- **Header:** "Workspace / Project" as two separate DS menus (switch workspace; switch, find or create a project). No logo and no project avatar.
 - **Board:**
-  - A banner counts tasks waiting for a planned release.
+  - The title is the running release or sprint, with its dates. It falls back to "Доска задач" when nothing is running.
+  - The waiting-release banner was removed at the owner's request.
+  - Hierarchy lives on the cards, with no indentation and no hidden cards. A child names its parent by title, not by a second task number. A parent shows subtasks as done/total with a DS progress bar and expands into a compact list with each subtask's column.
   - Filters apply live, show how many tasks match, and stay visible as removable chips. Tags keep their colours.
   - Each card is one Tab stop, plus its drag grip and menu.
   - Target columns are listed directly in the card menu.
@@ -32,7 +36,7 @@ Private DS **0.6.0-vnext.5**. It covers the component audit of the whole Sprinti
   - Labels are clearer, and on phones the whole page scrolls instead of an inner box.
 - **Settings:** one DS section navigation over pages you can link to (`#settings/general|tags|templates|members|agents|operations`). Release format is a radio choice. Time zones are searchable comboboxes. Tag colours are DS tag swatches.
 - **Maps:** the menu is a grouped `iq-menu` dropdown. Template categories use the DS segmented control. History rows span the full width. The canvas runs edge to edge.
-- **Feedback:** successes and failures show as DS `notify` toasts. ⌘K doubles as a command palette with destinations, settings pages, new task, project switcher, theme and profile. Every section shows a DS skeleton while it loads.
+- **Feedback:** successes and failures show as DS `notify` toasts. ⌘K is a DS command dialog: focus stays in the field, arrow keys move the active row (`aria-activedescendant`). It doubles as a command palette with destinations, settings pages, new task, project switcher, theme and profile. Every section shows a DS skeleton while it loads.
 - **Search:** case folding uses `pg_c_utf8`, so a Cyrillic query matches regardless of case.
 - **Local stand:** `npm run dev:local` signs in with admin / admin and seeds mock workspaces. See the README; it is refused in production and on any non-loopback origin.
 - **Style contract:** `npm run check:styles` fails on px font sizes, raw radii and colours, DS-internal selectors, and inline styles.

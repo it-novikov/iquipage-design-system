@@ -2063,3 +2063,13 @@ iq-select[label-hidden]>.iq-control-label{position:absolute;width:1px;height:1px
 .iq-menu-popup{max-height:min(72vh,560px);overflow:auto}
 .iq-menu-popup .iq-menu-section{margin:var(--iq-space-3) 10px var(--iq-space-1);font-size:var(--iq-type-meta-size);font-weight:600;color:var(--iq-muted)}
 .iq-menu-popup .iq-menu-section:first-child{margin-top:var(--iq-space-1)}
+/* ---------- Command dialog (0.6.0-vnext.6): public kind="command", not tied to a demo id ---------- */
+iq-dialog[kind=command] .iq-dialog-inner{padding:0}
+iq-dialog[kind=command] .iq-dialog{width:min(620px,calc(100vw - 32px));margin-top:min(18vh,160px);padding:0}
+iq-dialog[kind=command] .iq-command-input{padding:18px 20px}
+iq-dialog[kind=command] .iq-command-input input{font-size:var(--iq-type-body-size)}
+.iq-command-group{margin:var(--iq-space-2) 13px var(--iq-space-1);font-size:var(--iq-type-meta-size);font-weight:600;color:var(--iq-muted)}
+.iq-command-group:first-child{margin-top:var(--iq-space-1)}
+.iq-command-empty{margin:0;padding:var(--iq-space-4) 13px;color:var(--iq-muted);font-size:var(--iq-type-caption-size)}
+.iq-command-list>button[aria-selected=true]{background:var(--iq-surface)}
+.iq-command-list>button>kbd{font:11px var(--iq-mono);color:var(--iq-muted)}

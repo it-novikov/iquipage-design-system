@@ -1,37 +1,63 @@
-import {icon,escapeHTML as esc} from '@iquipage/web/core';
+import {icon,escapeHTML as esc,registerCore} from '@iquipage/web/core';
 
-/** IQUIPAGE command-search composition with cancellable authorized server queries. */
-/** Commands (actions and destinations) match locally and come first; server results follow. */
+/** DS command dialog (iq-dialog kind="command"): focus stays in the field, arrows move the active row,
+ *  Enter runs it. Commands match locally and come first; authorized server results follow. */
 export function openSearch({client,onOpen,commands=[]}){
-  const host=document.createElement('iq-dialog');let request=null,timer,generation=0,closed=false,items=[],cursor=null;
-  host.innerHTML=`<h2 class="sr-only">Поиск по платформе</h2><div class="iq-command-input">${icon('search',22)}<input type="search" maxlength="200" placeholder="Найти задачу, карту, проект или действие…" aria-label="Поиск и команды" autocomplete="off"><kbd>esc</kbd></div><div class="iq-command-list" data-search-results></div><div class="iq-command-foot" role="status">↑ ↓ — выбрать · Enter — открыть · Esc — закрыть</div>`;
-  document.body.append(host);host.show();const input=host.querySelector('input'),results=host.querySelector('[data-search-results]');
-  const matching=()=>{const q=input.value.trim().toLocaleLowerCase('ru');return commands.filter(c=>!q||(c.label+' '+(c.keywords||'')).toLocaleLowerCase('ru').includes(q));};
-  const commandList=()=>{const list=matching();return list.length?`<p class="iq-helper">Действия</p>${list.map(c=>`<button type="button" data-command="${esc(c.id)}">${icon(c.icon||'arrow',18)}<span>${esc(c.label)}${c.hint?`<small>${esc(c.hint)}</small>`:''}</span>${icon('arrow',15)}</button>`).join('')}`:'';};
-  const message=text=>{results.innerHTML=commandList()+'<p class="iq-helper" data-search-note></p>';results.querySelector('[data-search-note]').textContent=text;};
-  message('Введите название, номер задачи или слова из описания.');
-  async function load(append=false){
-    const q=input.value.trim();request?.abort();const epoch=++generation;if(!q){items=[];cursor=null;message('Введите название или номер задачи.');return;}
-    if(q.length<2){items=[];cursor=null;message('Продолжайте вводить, чтобы искать задачи и карты.');return;}
-    request=new AbortController();results.setAttribute('aria-busy','true');
-    try{const query=new URLSearchParams({q});if(append&&cursor)query.set('cursor',cursor);
-      const page=await client.request('/search?'+query,'GET',undefined,undefined,request.signal);if(closed||epoch!==generation)return;
-      items=append?[...items,...page.items]:page.items;cursor=page.nextCursor;
-      results.innerHTML=commandList()+(items.length?'<p class="iq-helper">Найдено</p>':'')+items.map((item,index)=>`<button type="button" data-result="${index}">${icon(item.kind==='task'?'file':'grid',18)}<span>${esc(item.title)}<small>${esc(item.key+' · '+item.projectName)}</small></span>${icon('arrow',15)}</button>`).join('');
-      if(!items.length)message('Ничего не найдено. Измените запрос.');if(cursor)results.insertAdjacentHTML('beforeend','<button type="button" data-search-more>Показать ещё</button>');
-    }catch(error){if(!closed&&epoch===generation&&error.name!=='AbortError')message(error.message);}
-    finally{if(!closed&&epoch===generation)results.removeAttribute('aria-busy');}
+  registerCore();
+  const host=document.createElement('iq-dialog'),listId='command-results-'+crypto.randomUUID();
+  let request=null,timer,generation=0,closed=false,items=[],cursor=null,active=0,note='',busy=false;
+  host.setAttribute('kind','command');
+  host.innerHTML=`<h2 class="sr-only">Поиск и команды</h2><div class="iq-command-input">${icon('search',22)}<input type="search" maxlength="200" placeholder="Найти задачу, карту, проект или действие…" aria-label="Поиск и команды" autocomplete="off" role="combobox" aria-expanded="true" aria-controls="${listId}" aria-autocomplete="list"><kbd>esc</kbd></div><div class="iq-command-list" id="${listId}" role="listbox" aria-label="Результаты"></div><div class="iq-command-foot" role="status" aria-live="polite">↑ ↓ — выбрать · Enter — открыть · Esc — закрыть</div>`;
+  document.body.append(host);host.show();
+  const input=host.querySelector('input'),list=host.querySelector('[role=listbox]'),foot=host.querySelector('.iq-command-foot');
+  const query=()=>input.value.trim();
+  const matching=()=>{const q=query().toLocaleLowerCase('ru');return commands.filter(c=>!q||(c.label+' '+(c.keywords||'')).toLocaleLowerCase('ru').includes(q));};
+  /** One flat option list keeps keyboard order identical to the visual order. */
+  function options(){
+    const found=matching().map(c=>({kind:'command',id:c.id,glyph:c.icon||'arrow',title:c.label,sub:c.hint||''}));
+    const results=items.map((item,index)=>({kind:'result',id:String(index),glyph:item.kind==='task'?'file':item.kind==='map'?'grid':'folder',title:item.title,sub:item.key+' · '+item.projectName}));
+    return {found,results,all:[...found,...results,...(cursor?[{kind:'more',id:'more',glyph:'down',title:'Показать ещё',sub:''}]:[])]};
   }
-  input.addEventListener('input',()=>{request?.abort();generation++;clearTimeout(timer);timer=setTimeout(()=>load(),200);});
-  host.addEventListener('keydown',event=>{
-    const buttons=[...results.querySelectorAll('button')],index=buttons.indexOf(document.activeElement);
-    if(event.key==='ArrowDown'||event.key==='ArrowUp'){event.preventDefault();buttons[Math.max(0,Math.min(buttons.length-1,index+(event.key==='ArrowDown'?1:-1)))]?.focus();}
-    if(event.key==='Enter'&&event.target===input){event.preventDefault();buttons[0]?.click();}
+  function render(){
+    const {found,results,all}=options();active=Math.min(active,Math.max(0,all.length-1));
+    let position=0;const row=o=>{const index=position++;return `<button type="button" role="option" id="${listId}-${index}" data-option="${index}" aria-selected="${index===active}" tabindex="-1">${icon(o.glyph,18)}<span>${esc(o.title)}${o.sub?`<small>${esc(o.sub)}</small>`:''}</span>${o.kind==='command'?'':icon('arrow',15)}</button>`;};
+    list.innerHTML=(found.length?`<p class="iq-command-group" role="presentation">Действия</p>${found.map(row).join('')}`:'')
+      +(results.length?`<p class="iq-command-group" role="presentation">Задачи, карты и проекты</p>${results.map(row).join('')}`:'')
+      +(cursor?row(all.at(-1)):'')
+      +(note?`<p class="iq-command-empty" role="presentation">${esc(note)}</p>`:'');
+    list.setAttribute('aria-busy',String(busy));
+    if(all.length)input.setAttribute('aria-activedescendant',`${listId}-${active}`);else input.removeAttribute('aria-activedescendant');
+    list.querySelector('[aria-selected=true]')?.scrollIntoView({block:'nearest'});
+    foot.textContent=all.length?'↑ ↓ — выбрать · Enter — открыть · Esc — закрыть':'Esc — закрыть';
+  }
+  async function load(append=false){
+    const q=query();request?.abort();const epoch=++generation;
+    if(q.length<2){items=[];cursor=null;busy=false;note=q?'Продолжайте вводить, чтобы искать задачи и карты.':'Введите название, номер задачи или слова из описания.';render();return;}
+    request=new AbortController();busy=true;note='Ищем…';render();
+    try{
+      const params=new URLSearchParams({q});if(append&&cursor)params.set('cursor',cursor);
+      const page=await client.request('/search?'+params,'GET',undefined,undefined,request.signal);if(closed||epoch!==generation)return;
+      items=append?[...items,...page.items]:page.items;cursor=page.nextCursor;note=items.length||matching().length?'':'Ничего не найдено. Измените запрос.';
+    }catch(error){if(closed||epoch!==generation||error.name==='AbortError')return;note=error.message||'Поиск недоступен.';}
+    busy=false;render();
+  }
+  async function run(index){
+    const option=options().all[index];if(!option)return;
+    if(option.kind==='more'){await load(true);return;}
+    host.close(true);
+    if(option.kind==='command')await commands.find(c=>c.id===option.id)?.run();
+    else await onOpen(items[Number(option.id)]);
+  }
+  input.addEventListener('input',()=>{active=0;request?.abort();generation++;clearTimeout(timer);render();timer=setTimeout(()=>load(),200);});
+  input.addEventListener('keydown',event=>{
+    const count=options().all.length;
+    if(event.key==='ArrowDown'||event.key==='ArrowUp'){event.preventDefault();if(!count)return;active=(active+(event.key==='ArrowDown'?1:-1)+count)%count;render();}
+    if(event.key==='Enter'){event.preventDefault();void run(active);}
   });
-  results.addEventListener('click',async event=>{
-    const button=event.target.closest('button');if(!button)return;if(button.hasAttribute('data-search-more')){await load(true);return;}
-    const command=commands.find(c=>c.id===button.dataset.command);if(command){host.close(true);await command.run();return;}
-    const item=items[Number(button.dataset.result)];if(!item)return;host.close(true);await onOpen(item);
-  });
-  host.addEventListener('iq-close',()=>{closed=true;generation++;clearTimeout(timer);request?.abort();items=[];host.remove();},{once:true});input.focus();return host;
+  // Hover moves the highlight in place; re-rendering under the pointer would fight the click.
+  list.addEventListener('pointermove',event=>{const option=event.target.closest('[data-option]');if(!option||Number(option.dataset.option)===active)return;active=Number(option.dataset.option);for(const row of list.querySelectorAll('[data-option]'))row.setAttribute('aria-selected',String(row===option));input.setAttribute('aria-activedescendant',option.id);});
+  list.addEventListener('click',event=>{const option=event.target.closest('[data-option]');if(option)void run(Number(option.dataset.option));});
+  host.addEventListener('iq-close',()=>{closed=true;generation++;clearTimeout(timer);request?.abort();items=[];host.remove();},{once:true});
+  note='Введите название, номер задачи или слова из описания.';render();input.focus();
+  return host;
 }

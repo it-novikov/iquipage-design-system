@@ -37,37 +37,12 @@ export function childOwners(parentId,index){
   }
   return [...unique.values()].sort((a,b)=>a.localeCompare(b,'ru'));
 }
-/** A task appears once, in its own status. Filtering never hides a matching child. */
-export function projectColumn(tasks,status,{predicate=()=>true,compare,collapsed=new Set(),filtering=false}={}){
+/** A task appears once, as its own card in its own status column; hierarchy is shown on the cards
+ *  (parent link on a child, subtask summary on a parent), never by indenting or hiding cards. */
+export function projectColumn(tasks,status,{predicate=()=>true,compare}={}){
   const index=buildTaskIndex(tasks),all=tasks.filter(t=>!t.archivedAt&&taskColumn(t)===status);
-  const matched=all.filter(predicate).sort(compare),byId=new Map(matched.map(t=>[t.id,t]));
-  const children=new Map(),roots=[];
-  for(const task of matched){
-    if(task.parentId&&byId.has(task.parentId)&&task.parentId!==task.id){
-      if(!children.has(task.parentId))children.set(task.parentId,[]);children.get(task.parentId).push(task);
-    }else roots.push(task);
-  }
-  const rows=[],seen=new Set(),suppressed=new Set();
-  const visit=(task,depth)=>{
-    if(seen.has(task.id))return;seen.add(task.id);
-    const nested=children.get(task.id)||[];
-    rows.push({task,depth,children:nested.length,parent:index.byId.get(task.parentId)||null,
-      otherChildren:(index.children.get(task.id)||[]).filter(t=>!t.archivedAt&&taskColumn(t)!==status).length});
-    const queue=nested.map(t=>({task:t,depth:depth+1,hidden:!filtering&&collapsed.has(task.id)}));
-    return queue;
-  };
-  const flush=queue=>{
-    while(queue.length){
-      const {task,depth,hidden=false}=queue.pop();
-      if(seen.has(task.id)||suppressed.has(task.id))continue;
-      if(hidden){
-        suppressed.add(task.id);
-        for(const child of children.get(task.id)||[])queue.push({task:child,depth:depth+1,hidden:true});
-      }else{const next=visit(task,depth);if(next)queue.push(...next.reverse());}
-    }
-  };
-  flush(roots.map(task=>({task,depth:0})).reverse());
-  // Corrupt legacy cycles remain visible; they are rejected on the next structural write.
-  for(const task of matched)if(!seen.has(task.id)&&!suppressed.has(task.id))flush([{task,depth:0}]);
+  const matched=all.filter(predicate).sort(compare);
+  const rows=matched.map(task=>({task,parent:task.parentId&&task.parentId!==task.id?index.byId.get(task.parentId)||null:null,
+    children:(index.children.get(task.id)||[]).filter(child=>!child.archivedAt&&child.id!==task.id)}));
   return {rows,total:all.length,matched:matched.length,index};
 }

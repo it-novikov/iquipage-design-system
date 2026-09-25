@@ -41,7 +41,7 @@ const THEME_KEY='sprintique.theme';
 function storedTheme(){try{return localStorage.getItem(THEME_KEY)==='dark'?'dark':'light';}catch{return 'light';}}
 function applyTheme(theme){document.documentElement.dataset.theme=theme;try{localStorage.setItem(THEME_KEY,theme);}catch{}nav?.setTheme(theme);}
 applyTheme(storedTheme());
-const context=project=>({id:project.id,workspaceName:project.workspaceName,projectName:project.name});
+const context=project=>({id:project.id,workspaceId:project.workspaceId,workspaceName:project.workspaceName,projectName:project.name});
 const initials=name=>String(name||'').trim().split(/\s+/).slice(0,2).map(part=>part[0]||'').join('').toUpperCase()||'Я';
 function ensureShell(project,mode){
   if(!nav||!root.querySelector('[data-product-nav]')?.isConnected){
@@ -49,6 +49,7 @@ function ensureShell(project,mode){
     root.innerHTML='<div class="demo-shell"><header data-product-nav></header><main class="platform-main"><section id="host-view" data-section="tasks"></section></main></div>';
     nav=mountProjectNavigation(root.querySelector('[data-product-nav]'),{
       current:context(project),profile:{name:session.principal.name,initials:initials(session.principal.name)},
+      catalog:()=>session.projects.map(p=>({id:p.id,name:p.name,workspaceId:p.workspaceId,workspaceName:p.workspaceName})),
       projects:async({query='',signal})=>{signal?.throwIfAborted();const q=String(query).toLocaleLowerCase('ru');
         return {options:session.projects.filter(p=>(p.workspaceName+' '+p.name).toLocaleLowerCase('ru').includes(q)).map(p=>({value:p.id,label:p.name,description:p.workspaceName})),nextCursor:null};},
       onSwitch:async id=>{const shown=await showProject(id,viewMode);return shown===false?false:context(currentProject);},
@@ -165,7 +166,7 @@ function paletteCommands(){
     {id:'go-members',label:'Участники проекта',hint:'Настройки',icon:'user',keywords:'команда приглашения роли members',run:go('settings','#settings/members')},
     {id:'go-tags',label:'Теги и цвета',hint:'Настройки',icon:'sliders',keywords:'теги метки tags',run:go('settings','#settings/tags')},
     {id:'go-templates',label:'Шаблоны задач',hint:'Настройки',icon:'sliders',keywords:'шаблоны templates',run:go('settings','#settings/templates')},
-    {id:'switch',label:'Сменить проект или пространство',icon:'down',keywords:'проект пространство switch',run:()=>nav?.openSwitcher()},
+    {id:'switch',label:'Найти проект',icon:'search',keywords:'проект пространство switch',run:()=>nav?.openSwitcher()},
     {id:'theme',label:document.documentElement.dataset.theme==='dark'?'Светлая тема':'Тёмная тема',icon:document.documentElement.dataset.theme==='dark'?'sun':'moon',keywords:'тема theme dark light',run:()=>applyTheme(document.documentElement.dataset.theme==='dark'?'light':'dark')},
     {id:'profile',label:'Профиль',icon:'user',keywords:'имя профиль profile',run:()=>void editProfile(repository.client).catch(report)}
   ];

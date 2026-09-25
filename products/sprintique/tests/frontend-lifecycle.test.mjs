@@ -130,5 +130,16 @@ test('timeline successful readback accepts canonical once; cancel only discards 
 });
 test('accepted result cards preserve open action but omit move affordance',()=>{
   const html=renderTaskCard({task:{id:'t',title:'Accepted',type:'task',priority:'normal',result:'accepted'},depth:0},{index:{children:new Map()},canEdit:true});
-  assert.equal(html.includes('move-menu:'),false);assert.ok(html.includes('open:t'));assert.match(html,/data-drag-handle[^>]*disabled/);
+  assert.equal(html.includes('move-to:'),false);assert.ok(html.includes('open:t'));assert.match(html,/data-drag-handle[^>]*disabled/);
+});
+test('board cards show hierarchy without repeating task numbers',()=>{
+  const parent={id:'p',displayId:'SPQ-1',title:'Эпик',type:'epic',status:'in_progress'};
+  const done={id:'c1',displayId:'SPQ-2',title:'Готовая',status:'ready_for_release',parentId:'p'},open={id:'c2',displayId:'SPQ-3',title:'Открытая',status:'review',parentId:'p'};
+  const index={children:new Map([['p',[done,open]]]),byId:new Map([[parent.id,parent]])};
+  const child=renderTaskCard({task:open,parent,children:[]},{index,canEdit:true});
+  assert.equal((child.match(/SPQ-1/g)||[]).length,0,'the parent is named by title, not by a second number');assert.match(child,/class="task-card-parent"[^>]*>.*Эпик/s);
+  const collapsed=renderTaskCard({task:parent,parent:null,children:[done,open]},{index,canEdit:true});
+  assert.match(collapsed,/data-toggle-children="p" aria-expanded="false"/);assert.match(collapsed,/task-subtasks-count">1\/2</);assert.equal(collapsed.includes('task-subtask-list'),false);
+  const expanded=renderTaskCard({task:parent,parent:null,children:[done,open]},{index,canEdit:true,expanded:true});
+  assert.match(expanded,/aria-expanded="true"/);assert.ok(expanded.includes('Готовая')&&expanded.includes('Открытая')&&expanded.includes('Ревью'));
 });
