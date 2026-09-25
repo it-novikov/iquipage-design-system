@@ -142,6 +142,8 @@ function installStudio(Klass){
  openEditSheet(o){this.openRichSheet(o);},
  key(e){const ed=this.editing;if(ed){if(e.isComposing)return;if((e.ctrlKey||e.metaKey)&&['b','i','k'].includes(e.key.toLowerCase())){e.preventDefault();this.markdownCommand({b:'bold',i:'italic',k:'link'}[e.key.toLowerCase()]);return;}if(e.key==='Escape'){e.preventDefault();this.finishEdit(false);return;}if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();this.finishEdit(true);return;}}
   const edgeEnd=e.target.closest('[data-edge-end]');if(edgeEnd&&['Enter',' '].includes(e.key)){e.preventDefault();this.editConnection(edgeEnd.dataset.edge);return;}const port=e.target.closest('[data-port]');if(port&&(e.key==='Enter'||e.key===' ')){e.preventDefault();if(this.linkFrom&&this.linkFrom!==port.dataset.portObject){this.connect(this.linkFrom,port.dataset.portObject,'',{fromPort:this.linkPort,toPort:port.dataset.port});this.linkFrom=null;this.tool='select';this.render();}else{this.linkFrom=port.dataset.portObject;this.linkPort=port.dataset.port;this.tool='connect';this.renderMode();}return;}
+  // Escape inside the object library closes it and returns focus to its toggle.
+  if(e.key==='Escape'&&this.libraryOpen&&this.tool==='select'&&e.target.closest?.('.wb-library')){e.preventDefault();e.stopPropagation();this.libraryOpen=false;this.render();this.shell.querySelector('[data-wb-action=library-toggle]')?.focus({preventScroll:true});return;}
   if(e.key==='Escape'&&(this._edgeDrag||this.linkFrom)){e.preventDefault();e.stopPropagation();this.cancelConnector();this.linkFrom=null;this.linkPort=null;this.tool='select';this.render();this.stage.focus({preventScroll:true});return;}
   base.key.call(this,e);
  },

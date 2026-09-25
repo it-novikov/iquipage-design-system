@@ -1,0 +1,8 @@
+/* Touch: coarse pointers get 44px hit areas (platform guidance, WCAG 2.5.5). Mouse density is unchanged. */
+@media (pointer:coarse){
+  .iq-btn,.iq-work-navigation a{min-height:44px}
+  .iq-btn.icon{min-width:44px}
+  .iq-select-trigger{min-height:44px}
+  .iq-check{min-height:44px;min-width:44px;justify-content:center}
+  button.iq-tag{min-height:32px}
+}
