@@ -2073,3 +2073,24 @@ iq-dialog[kind=command] .iq-command-input input{font-size:var(--iq-type-body-siz
 .iq-command-empty{margin:0;padding:var(--iq-space-4) 13px;color:var(--iq-muted);font-size:var(--iq-type-caption-size)}
 .iq-command-list>button[aria-selected=true]{background:var(--iq-surface)}
 .iq-command-list>button>kbd{font:11px var(--iq-mono);color:var(--iq-muted)}
+/* ---------- Tag picker (0.6.0-vnext.7): catalog tags with tone, search, creation and motion ---------- */
+iq-tag-picker{display:grid;gap:var(--iq-space-2);position:relative;min-width:0}
+.iq-tag-picker-field{display:flex;flex-wrap:wrap;align-items:center;gap:6px;min-height:44px;padding:6px 8px;border:1px solid var(--iq-control);border-radius:9px;background:var(--iq-raised);cursor:text}
+.iq-tag-picker-field:focus-within{border-color:var(--iq-focus);box-shadow:inset 0 0 0 1px var(--iq-focus)}
+.iq-tag-picker-values{display:contents}
+.iq-tag-picker-field>input{flex:1 1 120px;min-width:80px;height:30px;padding:0 4px;border:0;outline:0;background:none;color:var(--iq-ink);font:inherit;font-size:13px}
+.iq-tag-picker-field>input::placeholder{color:var(--iq-muted)}
+.iq-tag-picker-field .iq-tag{cursor:default}
+.iq-tag .iq-tag-remove{display:inline-grid;place-items:center;width:18px;height:18px;min-height:0;margin:-2px -5px -2px 0;padding:0;border:0;border-radius:4px;background:transparent;color:inherit;opacity:.7;cursor:pointer}
+.iq-tag .iq-tag-remove:hover{opacity:1;background:color-mix(in srgb,currentColor 14%,transparent)}
+.iq-tag .iq-tag-remove:focus-visible{outline:2px solid var(--iq-focus);outline-offset:-2px;opacity:1}
+.iq-tag-picker-list{position:absolute;z-index:30;left:0;right:0;top:100%;margin-top:4px;max-height:240px;overflow:auto;padding:6px;border:1px solid var(--iq-line);border-radius:10px;background:var(--iq-raised);box-shadow:0 8px 24px var(--iq-shadow-color)}
+.iq-tag-picker-list[hidden]{display:none}
+.iq-tag-picker-option{display:flex;align-items:center;gap:8px;width:100%;min-height:36px;padding:4px 6px;border:0;border-radius:6px;background:transparent;color:var(--iq-ink);font:inherit;font-size:13px;text-align:left;cursor:pointer}
+.iq-tag-picker-option[aria-selected=true],.iq-tag-picker-option:hover{background:var(--iq-surface)}
+.iq-tag-picker-empty{margin:0;padding:8px;color:var(--iq-muted);font-size:12px}
+@keyframes iq-tag-in{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:none}}
+@keyframes iq-tag-out{from{opacity:1;transform:none}to{opacity:0;transform:scale(.85)}}
+.iq-tag[data-entering]{animation:iq-tag-in var(--iq-motion-fast) var(--iq-ease) both}
+.iq-tag[data-leaving]{animation:iq-tag-out var(--iq-motion-fast) var(--iq-ease) both;pointer-events:none}
+@media (prefers-reduced-motion:reduce){.iq-tag[data-entering],.iq-tag[data-leaving]{animation:none}}

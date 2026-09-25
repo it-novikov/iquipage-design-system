@@ -21,7 +21,7 @@ export function openSearch({client,onOpen,commands=[]}){
   function render(){
     const {found,results,all}=options();active=Math.min(active,Math.max(0,all.length-1));
     let position=0;const row=o=>{const index=position++;return `<button type="button" role="option" id="${listId}-${index}" data-option="${index}" aria-selected="${index===active}" tabindex="-1">${icon(o.glyph,18)}<span>${esc(o.title)}${o.sub?`<small>${esc(o.sub)}</small>`:''}</span>${o.kind==='command'?'':icon('arrow',15)}</button>`;};
-    list.innerHTML=(found.length?`<p class="iq-command-group" role="presentation">Действия</p>${found.map(row).join('')}`:'')
+    list.innerHTML=found.map(row).join('')
       +(results.length?`<p class="iq-command-group" role="presentation">Задачи, карты и проекты</p>${results.map(row).join('')}`:'')
       +(cursor?row(all.at(-1)):'')
       +(note?`<p class="iq-command-empty" role="presentation">${esc(note)}</p>`:'');
@@ -32,7 +32,7 @@ export function openSearch({client,onOpen,commands=[]}){
   }
   async function load(append=false){
     const q=query();request?.abort();const epoch=++generation;
-    if(q.length<2){items=[];cursor=null;busy=false;note=q?'Продолжайте вводить, чтобы искать задачи и карты.':'Введите название, номер задачи или слова из описания.';render();return;}
+    if(q.length<2){items=[];cursor=null;busy=false;note=q?'Продолжайте вводить, чтобы искать задачи и карты.':'';render();return;}
     request=new AbortController();busy=true;note='Ищем…';render();
     try{
       const params=new URLSearchParams({q});if(append&&cursor)params.set('cursor',cursor);
@@ -58,6 +58,6 @@ export function openSearch({client,onOpen,commands=[]}){
   list.addEventListener('pointermove',event=>{const option=event.target.closest('[data-option]');if(!option||Number(option.dataset.option)===active)return;active=Number(option.dataset.option);for(const row of list.querySelectorAll('[data-option]'))row.setAttribute('aria-selected',String(row===option));input.setAttribute('aria-activedescendant',option.id);});
   list.addEventListener('click',event=>{const option=event.target.closest('[data-option]');if(option)void run(Number(option.dataset.option));});
   host.addEventListener('iq-close',()=>{closed=true;generation++;clearTimeout(timer);request?.abort();items=[];host.remove();},{once:true});
-  note='Введите название, номер задачи или слова из описания.';render();input.focus();
+  render();input.focus();
   return host;
 }

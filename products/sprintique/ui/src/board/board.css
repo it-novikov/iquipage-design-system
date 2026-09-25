@@ -8,7 +8,7 @@
 .host-board-mount{flex:1;min-width:0;min-height:0;display:flex;overflow:hidden}
 .host-task-board.kanban{display:grid;grid-template-columns:repeat(6,minmax(264px,1fr));grid-auto-rows:minmax(min-content,1fr);gap:var(--iq-space-4);flex:1;min-width:0;min-height:0;max-height:none;overflow:auto;align-items:stretch;padding:0 0 var(--iq-space-3);scroll-padding:76px var(--iq-space-4) var(--iq-space-4)}
 .host-task-board.kanban>.kanban-column{display:block;padding:0;min-height:100%;min-width:0;overflow:visible}
-.host-task-board .kanban-column-header{height:76px;min-height:76px;align-items:center;margin:0;top:0;z-index:4}
+.host-task-board .kanban-column-header{height:auto;min-height:52px;padding-block:var(--iq-space-3);align-items:center;margin:0;top:0;z-index:4}
 .host-task-board .kanban-column-header h3{font:600 13px/1.4 var(--iq-font);flex:1;min-width:0;max-width:none;margin:0;white-space:normal}
 .host-task-board .kanban-count{flex:0 0 auto;min-width:25px;width:auto;height:25px;padding-inline:6px;margin:0;font-variant-numeric:tabular-nums}
 .host-task-board .column-cards{min-height:0;flex:none}
@@ -17,7 +17,7 @@
 .host-task-board .host-column-add{width:calc(100% - 24px);justify-content:flex-start;margin:0 12px 12px}
 .host-task-error{padding:var(--iq-space-3) 0;font-size:var(--iq-type-label-size);color:var(--iq-danger);flex:none}
 .task-owner-empty{color:var(--iq-muted)}
-.host-task-heading-title{display:flex;align-items:center;gap:var(--iq-space-3);flex-wrap:wrap;min-width:0}
+.host-task-heading-title{display:flex;flex-direction:column;align-items:flex-start;gap:0;min-width:0}
 
 .task-id-drag{background:transparent;padding:0;min-height:28px;cursor:grab;text-align:left}
 .task-id-drag:active{cursor:grabbing}
@@ -38,7 +38,7 @@
 
 
 /* Task content uses the supplied form, Markdown, accordion and checkbox compositions. */
-.task-selected-tags{display:flex;align-items:center;gap:var(--iq-space-2);flex-wrap:wrap;min-height:var(--iq-control-sm)}
+.task-selected-tags{display:block;min-width:0}
 .task-checklist{padding:var(--iq-space-4) 0;border-bottom:1px solid var(--iq-line)}
 .task-checklist>header{margin-bottom:var(--iq-space-3);gap:var(--iq-space-2)}
 .task-checklist [data-progress]{font-size:var(--iq-type-caption-size);white-space:nowrap;font-variant-numeric:tabular-nums}
@@ -123,15 +123,11 @@
 .task-description-surface{min-width:0;position:relative}
 .task-tags-row{padding-top:var(--iq-space-2)}
 .task-tag-options{display:flex;flex-wrap:wrap;align-items:center;align-content:center;justify-content:flex-start;gap:var(--iq-space-2);min-height:112px;padding-block:var(--iq-space-5)}
-.task-tag-choice{max-width:100%;overflow-wrap:anywhere;user-select:none;-webkit-user-select:none}
-.task-tag-choice>svg{flex:none}
-.task-tag-choice>span{min-width:0;pointer-events:none}
 .task-edit-dialog .task-edit-section>h3,.task-edit-dialog .task-edit-section>.row>h3{margin:0}
 .task-edit-dialog [data-task-save-state]:empty,.task-edit-dialog [data-thread-page-state]:empty,.task-edit-dialog [data-thread-count]:empty,.task-edit-dialog [data-file-list]:empty,.task-edit-dialog [data-task-links]:empty{display:none}
 .thread-empty{padding:var(--iq-space-5);border:1px dashed var(--iq-line);border-radius:var(--iq-radius-md);text-align:center;display:grid;gap:var(--iq-space-2)}
 .thread-empty b{font-size:var(--iq-type-interface-size);font-weight:500}.thread-empty p{font-size:var(--iq-type-label-size);line-height:1.6;color:var(--iq-muted);margin:0}
 .thread-compose{margin-top:0;display:grid;gap:var(--iq-space-2)}
-.task-tags-empty{display:flex;align-items:center;gap:var(--iq-space-2);flex-wrap:wrap}.task-tags-empty p{margin:0}
 .task-edit-dialog[data-fullscreen=true] .map-modal.iq-drawer{width:100vw}.task-edit-dialog[data-fullscreen=true] .map-dialog-body{width:100%;max-width:1160px;align-self:center}
 .task-dialog-identity{display:flex;align-items:center;gap:var(--iq-space-1)}
 .task-dialog-identity .task-link-copy{font:inherit;padding-inline:0;user-select:none}
@@ -183,4 +179,4 @@
 .task-subtask-title{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .task-subtask>small{grid-column:2;color:var(--iq-muted);font-size:var(--iq-type-meta-size)}
 /* The running release names the board; its dates sit beside the title. */
-.board-period{color:var(--iq-muted);font-size:var(--iq-type-caption-size);white-space:nowrap}
+.board-period{margin:0 0 var(--iq-space-1);color:var(--iq-muted);font-size:var(--iq-type-caption-size)}

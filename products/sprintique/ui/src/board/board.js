@@ -24,12 +24,12 @@ export async function mountTaskBoard(root,{repository,project,canEdit=true,canMa
   let sort=Object.hasOwn(BOARD_SORTS,viewState.sort)?viewState.sort:'priority';
   const persist=()=>{viewState.sort=sort;viewState.expanded=[...expanded];try{localStorage.setItem(key,JSON.stringify(viewState));}catch{}};
   delete viewState.query;
-  root.innerHTML=`<div class="host-task-page"><header class="host-task-heading"><div class="host-task-heading-title"><h1 data-board-title>Доска задач</h1><span class="board-period" data-board-period hidden></span><div class="host-board-sort" data-board-sort></div></div>
-  <div class="host-task-tools"><div class="board-filter-bar" data-board-filters></div>
+  root.innerHTML=`<div class="host-task-page"><header class="host-task-heading"><div class="host-task-heading-title"><p class="board-period" data-board-period hidden></p><h1 data-board-title>Доска задач</h1></div>
+  <div class="host-task-tools"><div class="host-board-sort" data-board-sort></div><div class="board-filter-bar" data-board-filters></div>
   <button type="button" class="iq-btn primary" data-create-task ${canEdit?'':'disabled'}>${icon('plus',18)}<span>Новая задача</span></button></div>
   </header><p class="host-task-error" role="alert" hidden></p><div class="host-board-mount"></div><p class="sr-only" id="board-drag-help">Enter или пробел — взять задачу. Стрелки — выбрать позицию, Enter — переместить, Escape — отменить. В меню задачи доступно перемещение без перетаскивания.</p><span class="sr-only" role="status" data-task-live></span></div>`;
   const ownedPage=root.firstElementChild;
-  function renderSort(){root.querySelector('[data-board-sort]').innerHTML=ui.menu(`<button type="button" class="iq-btn ghost sm iq-switcher" data-tone="muted" aria-label="Порядок задач: ${esc(BOARD_SORTS[sort])}"><span class="iq-switcher-label">${esc(BOARD_SORTS[sort])}</span>${icon('down',14)}</button>`,Object.entries(BOARD_SORTS).map(([id,label])=>({label:esc(label),glyph:id===sort?'check':null,action:'board-sort:'+id})));}
+  function renderSort(){root.querySelector('[data-board-sort]').innerHTML=ui.menu(`<button type="button" class="iq-btn ghost sm" aria-label="Порядок задач: ${esc(BOARD_SORTS[sort])}">${icon('sort',17)}<span>${esc(BOARD_SORTS[sort])}</span></button>`,Object.entries(BOARD_SORTS).map(([id,label])=>({label:esc(label),glyph:id===sort?'check':null,action:'board-sort:'+id})));}
   renderSort();
   const mount=root.querySelector('.host-board-mount'),error=root.querySelector('.host-task-error');
   const fail=e=>{error.hidden=false;error.textContent=e.message||'Изменение не сохранено. Повторите действие.';};
@@ -44,8 +44,14 @@ export async function mountTaskBoard(root,{repository,project,canEdit=true,canMa
     const active=catalogs.releases.filter(r=>r.lifecycle==='active'&&!r.archivedAt);
     const title=root.querySelector('[data-board-title]'),period=root.querySelector('[data-board-period]');
     title.textContent=active.length?active.map(r=>r.name).join(', '):'Доска задач';
-    const day=value=>new Intl.DateTimeFormat('ru',{day:'numeric',month:'short',timeZone:'UTC'}).format(new Date(value+'T12:00:00Z'));
-    const only=active.length===1?active[0]:null,range=only&&(only.plannedStart||only.plannedEnd)?`${only.plannedStart?day(only.plannedStart):'…'} — ${only.plannedEnd?day(only.plannedEnd):'…'}`:'';
+    const day=value=>new Intl.DateTimeFormat('ru',{day:'numeric',month:'long',timeZone:'UTC'}).format(new Date(value+'T12:00:00Z'));
+    const only=active.length===1?active[0]:null,parts=[];
+    if(only){
+      parts.push(only.format==='timeboxed'?'Спринт':'Релиз');
+      if(only.plannedStart||only.plannedEnd)parts.push(`${only.plannedStart?day(only.plannedStart):'…'} — ${only.plannedEnd?day(only.plannedEnd):'…'}`);
+      if(only.plannedEnd){const left=Math.round((Date.parse(only.plannedEnd+'T23:59:59Z')-Date.now())/86400000);parts.push(left>0?`осталось ${left} ${left%10===1&&left%100!==11?'день':left%10>=2&&left%10<=4&&(left%100<12||left%100>14)?'дня':'дней'}`:left===0?'последний день':'срок прошёл');}
+    }else if(active.length>1)parts.push('Запущено релизов: '+active.length);
+    const range=parts.join(' · ');
     period.textContent=range;period.hidden=!range;
   }
   function render(focusId){

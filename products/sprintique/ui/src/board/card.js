@@ -18,7 +18,7 @@ function subtasks(t,children=[],expanded=false){
   if(!children.length)return '';
   const done=children.filter(subtaskDone).length,id=esc(t.id),percent=Math.round(done/children.length*100);
   const list=expanded?`<ul class="task-subtask-list" id="subtasks-${id}">${children.map(child=>`<li><button type="button" class="task-subtask" data-open-task="${esc(child.id)}"><span class="task-subtask-state" data-done="${subtaskDone(child)}" aria-hidden="true">${icon(subtaskDone(child)?'checkCircle':'circle',14)}</span><span class="task-subtask-title">${esc(child.title)}</span><small>${esc(TASK_COLUMNS.find(c=>c.id===taskColumn(child))?.label||'')}</small></button></li>`).join('')}</ul>`:'';
-  return `<div class="task-card-subtasks"><button type="button" class="task-subtasks-summary" data-toggle-children="${id}" aria-expanded="${expanded}" aria-controls="subtasks-${id}">${icon('checklist',15)}<span>Подзадачи</span><span class="task-subtasks-count">${done}/${children.length}</span>${ui.progress(percent,'Готово подзадач','task-subtasks-progress')}${icon(expanded?'down':'chevron',14)}</button>${list}</div>`;
+  return `<div class="task-card-subtasks"><button type="button" class="task-subtasks-summary" data-toggle-children="${id}" aria-expanded="${expanded}" aria-controls="subtasks-${id}"><span>Подзадачи</span><span class="task-subtasks-count">${done}/${children.length}</span>${ui.progress(percent,'Готово подзадач','task-subtasks-progress')}${icon(expanded?'down':'chevron',14)}</button>${list}</div>`;
 }
 export function renderTaskCard(row,{index,canEdit,pending=false,expanded=false,catalogs={tags:[],releases:[]}}){
   const t=row.task,id=esc(t.id),label=taskKindLabel(t);

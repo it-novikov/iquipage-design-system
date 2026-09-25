@@ -1074,8 +1074,102 @@ class IqUpload extends IqElement {
     }
 }
 exports.IqUpload = IqUpload;
+/** Catalog tag picker: chosen tags as toned DS tags with remove buttons, a search field that lists the
+ *  remaining catalog tags, optional creation, and short enter/leave motion. Value is a list of option values. */
+class IqTagPicker extends IqElement {
+    _options = [];
+    _value = [];
+    query = '';
+    active = 0;
+    opened = false;
+    entering = new Set();
+    get options() { return this._options.map(o => ({ ...o })); }
+    set options(list) { this._options = (Array.isArray(list) ? list : []).filter(o => o && typeof o.value === 'string' && typeof o.label === 'string').map(o => ({ value: o.value, label: o.label, tone: typeof o.tone === 'string' ? o.tone : 'neutral', archived: !!o.archived })); this.paint(); }
+    get value() { return [...this._value]; }
+    set value(list) { this._value = [...new Set((Array.isArray(list) ? list : []).filter(v => typeof v === 'string'))]; this.paint(); }
+    get locked() { return this.hasAttribute('disabled') || this.hasAttribute('readonly'); }
+    mount() {
+        this.uid ||= uid();
+        this.innerHTML = `<span class="iq-control-label" id="${this.uid}-label"></span><div class="iq-tag-picker-field" role="group" aria-labelledby="${this.uid}-label"><div class="iq-tag-picker-values"></div><input type="text" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="${this.uid}-list" aria-labelledby="${this.uid}-label" autocomplete="off" maxlength="100"></div><div class="iq-tag-picker-list" id="${this.uid}-list" role="listbox" hidden></div>`;
+        this.input = this.querySelector('input');
+        this.listen(this.input, 'focus', () => this.open());
+        this.listen(this.input, 'input', () => { this.query = this.input.value; this.active = 0; this.open(); });
+        this.listen(this.input, 'keydown', e => this.key(e));
+        this.listen(this, 'click', e => {
+            const remove = e.target.closest('[data-tag-remove]');
+            if (remove) { this.remove(remove.dataset.tagRemove); return; }
+            const option = e.target.closest('[data-option]');
+            if (option) { this.choose(Number(option.dataset.option)); return; }
+            if (e.target.closest('.iq-tag-picker-field') && !this.locked) this.input.focus();
+        });
+        this.listen(document, 'pointerdown', e => { if (!this.contains(e.target)) this.close(); });
+        this.listen(this, 'focusout', e => { if (!this.contains(e.relatedTarget)) this.close(); });
+        this.paint();
+    }
+    matches() {
+        const q = this.query.trim().toLocaleLowerCase('ru');
+        const list = this._options.filter(o => !this._value.includes(o.value) && !o.archived && (!q || o.label.toLocaleLowerCase('ru').includes(q))).map(o => ({ kind: 'option', option: o }));
+        const exact = this._options.some(o => o.label.toLocaleLowerCase('ru') === q);
+        if (q && !exact && this.hasAttribute('creatable')) list.push({ kind: 'create', label: this.query.trim() });
+        return list;
+    }
+    open() { if (this.locked) return; this.opened = true; this.paintList(); }
+    close() { if (!this.opened) return; this.opened = false; this.paintList(); }
+    key(e) {
+        if (e.isComposing) return;
+        const items = this.matches();
+        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); if (!this.opened) this.open(); if (items.length) { this.active = (this.active + (e.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length; this.paintList(); } }
+        else if (e.key === 'Enter') { if (this.opened && items.length) { e.preventDefault(); this.choose(this.active); } }
+        else if (e.key === 'Escape') { if (this.opened) { e.preventDefault(); e.stopPropagation(); this.close(); } }
+        else if (e.key === 'Backspace' && !this.input.value && this._value.length) { e.preventDefault(); this.remove(this._value.at(-1)); }
+    }
+    choose(index) {
+        const item = this.matches()[index]; if (!item || this.locked) return;
+        if (item.kind === 'option') { this.add(item.option.value); return; }
+        // Creation belongs to the host (it owns the catalog); accept() adds the created option and selects it.
+        let settled = false;
+        this.emit('iq-create', { label: item.label, accept: option => { if (settled || !option?.value) return; settled = true; this._options = [...this._options.filter(o => o.value !== option.value), { value: option.value, label: option.label || item.label, tone: option.tone || 'neutral', archived: false }]; this.add(option.value); } });
+    }
+    add(value) {
+        if (this._value.includes(value)) return;
+        this._value = [...this._value, value]; this.entering.add(value);
+        this.query = ''; this.input.value = ''; this.active = 0;
+        this.paint(); this.emit('iq-change', { value: this.value });
+    }
+    remove(value) {
+        if (this.locked || !this._value.includes(value)) return;
+        const chip = this.querySelector(`.iq-tag[data-value="${CSS.escape(value)}"]`);
+        const done = () => { if (!this._value.includes(value)) return; this._value = this._value.filter(v => v !== value); this.paint(); this.emit('iq-change', { value: this.value }); this.input?.focus({ preventScroll: true }); };
+        if (!chip || isReduced()) { done(); return; }
+        chip.setAttribute('data-leaving', ''); chip.addEventListener('animationend', done, { once: true }); setTimeout(done, 240);
+    }
+    paint() {
+        if (!this.input) return;
+        this.querySelector('.iq-control-label').textContent = this.getAttribute('label') || 'Теги';
+        const byValue = new Map(this._options.map(o => [o.value, o]));
+        this.querySelector('.iq-tag-picker-values').innerHTML = this._value.map(v => { const o = byValue.get(v) || { label: 'Недоступный тег', tone: 'neutral' };
+            return `<span class="iq-tag" data-tone="${escapeHTML(o.tone)}" data-value="${escapeHTML(v)}" ${this.entering.has(v) && !isReduced() ? 'data-entering' : ''}><span>${escapeHTML(o.label)}${o.archived ? ' · в архиве' : ''}</span>${this.locked ? '' : `<button type="button" class="iq-tag-remove" data-tag-remove="${escapeHTML(v)}" aria-label="Убрать тег ${escapeHTML(o.label)}">${icons_js_1.icon('x', 12)}</button>`}</span>`; }).join('');
+        this.querySelectorAll('[data-entering]').forEach(chip => chip.addEventListener('animationend', () => chip.removeAttribute('data-entering'), { once: true }));
+        this.entering.clear();
+        this.input.disabled = this.hasAttribute('disabled'); this.input.readOnly = this.hasAttribute('readonly');
+        this.input.placeholder = this.locked ? (this._value.length ? '' : 'Нет тегов') : (this.getAttribute('placeholder') || 'Добавить тег');
+        this.input.hidden = this.hasAttribute('readonly');
+        this.paintList();
+    }
+    paintList() {
+        const list = this.querySelector('.iq-tag-picker-list'); if (!list) return;
+        const items = this.opened ? this.matches() : [];
+        this.active = Math.min(this.active, Math.max(0, items.length - 1));
+        list.hidden = !this.opened; this.input.setAttribute('aria-expanded', String(this.opened));
+        list.innerHTML = items.length ? items.map((item, i) => `<button type="button" role="option" class="iq-tag-picker-option" id="${this.uid}-o${i}" data-option="${i}" tabindex="-1" aria-selected="${i === this.active}">${item.kind === 'option' ? `<span class="iq-tag" data-tone="${escapeHTML(item.option.tone)}">${escapeHTML(item.option.label)}</span>` : `${icons_js_1.icon('plus', 14)}<span>Создать тег «${escapeHTML(item.label)}»</span>`}</button>`).join('') : `<p class="iq-tag-picker-empty">${this.query.trim() ? 'Ничего не найдено.' : this._options.length ? 'Все теги уже выбраны.' : 'В проекте пока нет тегов.'}</p>`;
+        if (this.opened && items.length) this.input.setAttribute('aria-activedescendant', `${this.uid}-o${this.active}`); else this.input.removeAttribute('aria-activedescendant');
+    }
+    static get observedAttributes() { return ['label', 'disabled', 'readonly', 'placeholder']; }
+    attributeChangedCallback() { this.paint(); }
+}
+exports.IqTagPicker = IqTagPicker;
 function registerComponents() {
-    const definitions = { 'iq-file-preview': media_js_1.IqFilePreview, 'iq-select': IqSelect, 'iq-combobox': IqCombobox, 'iq-tabs': IqTabs, 'iq-dialog': IqDialog, 'iq-number': IqNumber, 'iq-range': IqRange, 'iq-calendar': IqCalendar, 'iq-menu': IqMenu, 'iq-tooltip': IqTooltip, 'iq-tags': IqTags, 'iq-upload': IqUpload };
+    const definitions = { 'iq-file-preview': media_js_1.IqFilePreview, 'iq-select': IqSelect, 'iq-combobox': IqCombobox, 'iq-tabs': IqTabs, 'iq-dialog': IqDialog, 'iq-number': IqNumber, 'iq-range': IqRange, 'iq-calendar': IqCalendar, 'iq-menu': IqMenu, 'iq-tooltip': IqTooltip, 'iq-tags': IqTags, 'iq-tag-picker': IqTagPicker, 'iq-upload': IqUpload };
     Object.entries(definitions).forEach(([name, type]) => {
         if (!customElements.get(name))
             customElements.define(name, type);

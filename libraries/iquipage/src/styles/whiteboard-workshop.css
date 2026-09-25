@@ -165,3 +165,8 @@ iq-whiteboard[surface-mode=embedded][editor-mode=host] .wb-formatting{position:a
 @media(max-width:760px){iq-whiteboard[surface-mode=embedded][editor-mode=host] .wb-command-row{max-width:calc(100% - 32px)}iq-whiteboard[surface-mode=embedded][editor-mode=host] .wb-footer{bottom:8px;left:8px;right:8px}}
 /* v3.2 owner-requested neutral confirmation; failure feedback remains unchanged. */
 .iq-btn[data-copy-tone=neutral][data-copy-state=success]{background:var(--iq-recessed);color:var(--iq-ink);border-color:transparent}
+
+/* ---------- Host embedding (0.6.0-vnext.7) ---------- */
+/* selection-bar="none": the host edits the selection in its own side panel, so the command row and inline formatting row stay hidden. */
+iq-whiteboard[selection-bar=none] :is(.wb-command-row,.wb-formatting){display:none!important}
+/* library-open keeps the host's floating object library visible at start; the dock toggle still collapses it. */

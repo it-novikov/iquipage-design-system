@@ -1,8 +1,7 @@
-import {dialog,icon,esc} from '../ui.js';
+import {dialog,esc} from '../ui.js';
 import {editCatalogItem,catalogLabel,tagTone} from './catalog-ui.js';
-import {mountProjectTaskSettings} from './project-settings.js';
-/** Selectable DS tag: the tone stays visible in both states; a check and ring mark the selection. */
-const tagChoice=(tag,pressed,readOnly)=>`<button type="button" class="iq-tag task-tag-choice" data-tone="${tagTone(tag)}" data-inline-tag="${esc(tag.id)}" aria-pressed="${pressed}" ${readOnly?'disabled':''}>${pressed?icon('check',12):''}<span>${esc(catalogLabel(tag))}</span></button>`;
+import {uid} from '../common.js';
+import {TAG_TONES} from './workspace-model.js';
 export function mountTaskCatalogs(root,{tagsRoot=root,repository,project,task,tags,releases,readOnly=false,canManage=true,onChange=()=>{}}){
   let selected=new Set(task?.tagIds||[]),releaseId=task?.releaseId||'',allReleases=[...releases];
   const abort=new AbortController();
@@ -14,29 +13,25 @@ export function mountTaskCatalogs(root,{tagsRoot=root,repository,project,task,ta
     if(!readOnly&&canManage)options.push({value:createReleaseValue,label:'Новый релиз',icon:'plus'});
     root.querySelector('[data-release-field]').innerHTML=`<iq-combobox name="releaseId" label="Релиз" value="${esc(releaseId)}" options="${esc(JSON.stringify(options))}" placeholder="Найти релиз" ${readOnly?'disabled':''}></iq-combobox>`;
   }
+  // Tags use the DS tag picker: chosen tags in their colours, search over the project catalog, creation for admins.
+  tagRow.innerHTML=`<iq-tag-picker label="Теги" ${canManage&&!readOnly?'creatable':''} ${readOnly?'readonly':''}></iq-tag-picker>`;
+  const picker=tagRow.querySelector('iq-tag-picker');
   function renderTags(){
-    const available=tags.filter(tag=>!tag.archivedAt||selected.has(tag.id));
-    tagRow.innerHTML=available.length?available.map(tag=>tagChoice(tag,selected.has(tag.id),readOnly)).join(''):`<div class="task-tags-empty"><p class="iq-helper">В проекте пока нет тегов.</p>${canManage&&!readOnly?'<button type="button" class="iq-btn ghost sm" data-tag-settings>Добавить в настройках проекта</button>':'<p class="iq-helper">Добавить их может администратор проекта.</p>'}</div>`;
+    picker.options=tags.map(tag=>({value:tag.id,label:tag.name,tone:tagTone(tag),archived:!!tag.archivedAt}));
+    picker.value=[...selected];
   }
+  picker.addEventListener('iq-change',event=>{event.stopPropagation();selected=new Set(event.detail.value);onChange();},{signal:abort.signal});
+  picker.addEventListener('iq-create',event=>{void(async()=>{
+    const tones=Object.keys(TAG_TONES).filter(tone=>tone!=='neutral'),tone=tones[tags.length%tones.length];
+    const saved=await repository.write('tags',{id:uid('tag'),projectId:project.id,revision:0,archivedAt:null,name:event.detail.label.slice(0,100),tone},0);
+    if(abort.signal.aborted)return;tags=[...tags,saved].sort((a,b)=>a.name.localeCompare(b.name,'ru'));event.detail.accept({value:saved.id,label:saved.name,tone:tagTone(saved)});
+  })().catch(error=>dialog({title:'Не удалось создать тег',description:error.message}));},{signal:abort.signal});
   root.addEventListener('iq-change',event=>{if(event.target.getAttribute('name')==='releaseId'){
     if(event.target.value===createReleaseValue){
       event.target.value=releaseId;
       if(!readOnly&&canManage)editCatalogItem('releases',{repository,project,onSaved:item=>{allReleases.push(item);releaseId=item.id;renderRelease();onChange();}});
     }else{releaseId=event.target.value||'';onChange();}
   }},{signal:abort.signal});
-  tagRow.addEventListener('click',event=>{
-    if(readOnly)return;
-    const button=event.target.closest('[data-inline-tag]');
-    if(button){const id=button.dataset.inlineTag;selected.has(id)?selected.delete(id):selected.add(id);const tag=tags.find(item=>item.id===id);if(tag){const next=document.createElement('template');next.innerHTML=tagChoice(tag,selected.has(id),readOnly);button.replaceWith(next.content.firstElementChild);tagRow.querySelector(`[data-inline-tag="${CSS.escape(id)}"]`)?.focus({preventScroll:true});}onChange();}
-    if(event.target.closest('[data-tag-settings]'))openTagSettings();
-  },{signal:abort.signal});
-  function openTagSettings(){
-    let settings;const modal=dialog({title:'Настройки проекта · Теги',body:'<div data-inline-tag-settings></div>',wide:true,mount:async el=>{
-      settings=await mountProjectTaskSettings(el.querySelector('[data-inline-tag-settings]'),{repository,project,section:'tags',canManage,onBack:()=>el.close()});
-      if(!el.isConnected){settings.destroy();return;}el.querySelector('[data-settings-back]').innerHTML=icon('left',16)+'<span>Вернуться к задаче</span>';
-    }});
-    modal.addEventListener('iq-close',async()=>{settings?.destroy();try{const next=await repository.list('tags',project.id);if(abort.signal.aborted)return;tags=next.sort((a,b)=>a.name.localeCompare(b.name,'ru'));renderTags();}catch(error){if(!abort.signal.aborted)dialog({title:'Не удалось обновить теги',description:error.message});}},{once:true});
-  }
   renderRelease();renderTags();
   return {value:()=>({releaseId:releaseId||null,tagIds:[...selected]}),destroy(){abort.abort();}};
 }
