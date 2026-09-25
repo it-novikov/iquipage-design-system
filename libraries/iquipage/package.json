@@ -1,6 +1,6 @@
 {
   "name": "@iquipage/web",
-  "version": "0.6.0-vnext.2",
+  "version": "0.6.0-vnext.3",
   "private": true,
   "type": "module",
   "description": "IQUIPAGE standalone Web Components library",
@@ -22,7 +22,11 @@
       "import": "./dist/whiteboard.js"
     },
     "./styles.css": "./dist/iquipage.css",
-    "./tokens": "./tokens/semantic.json"
+    "./tokens": "./tokens/semantic.json",
+    "./work-list": {
+      "types": "./types/work-list.d.ts",
+      "import": "./dist/work-list.js"
+    }
   },
   "scripts": {
     "build": "node scripts/build.mjs",

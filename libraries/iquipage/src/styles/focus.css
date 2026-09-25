@@ -1,0 +1,4 @@
+/* Keyboard focus for every button-like control. Pointer and touch interaction stays neutral because
+   :focus-visible only matches keyboard navigation; this rule is loaded last so no component can erase it. */
+:is(button,.iq-btn,[role="button"],input[type="button"],input[type="submit"],input[type="reset"]):focus-visible{outline:2px solid var(--iq-focus);outline-offset:2px}
+@media (forced-colors:active){:is(button,.iq-btn,[role="button"],input[type="button"],input[type="submit"],input[type="reset"]):focus-visible{outline-color:Highlight}}

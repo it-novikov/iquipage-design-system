@@ -1,7 +1,8 @@
 import {dialog,icon,esc} from '../ui.js';
-import {editCatalogItem,catalogLabel} from './catalog-ui.js';
+import {editCatalogItem,catalogLabel,tagTone} from './catalog-ui.js';
 import {mountProjectTaskSettings} from './project-settings.js';
-import {transition} from '@iquipage/web/core';
+/** Selectable DS tag: the tone stays visible in both states; a check and ring mark the selection. */
+const tagChoice=(tag,pressed,readOnly)=>`<button type="button" class="iq-tag task-tag-choice" data-tone="${tagTone(tag)}" data-inline-tag="${esc(tag.id)}" aria-pressed="${pressed}" ${readOnly?'disabled':''}>${pressed?icon('check',12):''}<span>${esc(catalogLabel(tag))}</span></button>`;
 export function mountTaskCatalogs(root,{tagsRoot=root,repository,project,task,tags,releases,readOnly=false,canManage=true,onChange=()=>{}}){
   let selected=new Set(task?.tagIds||[]),releaseId=task?.releaseId||'',allReleases=[...releases];
   const abort=new AbortController();
@@ -15,7 +16,7 @@ export function mountTaskCatalogs(root,{tagsRoot=root,repository,project,task,ta
   }
   function renderTags(){
     const available=tags.filter(tag=>!tag.archivedAt||selected.has(tag.id));
-    tagRow.innerHTML=available.length?available.map(tag=>`<button type="button" class="iq-btn ${selected.has(tag.id)?'primary':'secondary'} pill sm task-tag-choice" data-inline-tag="${esc(tag.id)}" aria-pressed="${selected.has(tag.id)}" ${readOnly?'disabled':''}><span>${esc(catalogLabel(tag))}</span></button>`).join(''):`<div class="task-tags-empty"><p class="iq-helper">В проекте пока нет тегов.</p>${canManage&&!readOnly?'<button type="button" class="iq-btn ghost sm" data-tag-settings>Добавить в настройках проекта</button>':'<p class="iq-helper">Добавить их может администратор проекта.</p>'}</div>`;
+    tagRow.innerHTML=available.length?available.map(tag=>tagChoice(tag,selected.has(tag.id),readOnly)).join(''):`<div class="task-tags-empty"><p class="iq-helper">В проекте пока нет тегов.</p>${canManage&&!readOnly?'<button type="button" class="iq-btn ghost sm" data-tag-settings>Добавить в настройках проекта</button>':'<p class="iq-helper">Добавить их может администратор проекта.</p>'}</div>`;
   }
   root.addEventListener('iq-change',event=>{if(event.target.getAttribute('name')==='releaseId'){
     if(event.target.value===createReleaseValue){
@@ -26,7 +27,7 @@ export function mountTaskCatalogs(root,{tagsRoot=root,repository,project,task,ta
   tagRow.addEventListener('click',event=>{
     if(readOnly)return;
     const button=event.target.closest('[data-inline-tag]');
-    if(button){const id=button.dataset.inlineTag;selected.has(id)?selected.delete(id):selected.add(id);button.setAttribute('aria-pressed',String(selected.has(id)));button.classList.toggle('primary',selected.has(id));button.classList.toggle('secondary',!selected.has(id));transition(button.querySelector('span'),[{opacity:0,transform:'translateY(4px)'},{opacity:1,transform:'translateY(0)'}],230);onChange();}
+    if(button){const id=button.dataset.inlineTag;selected.has(id)?selected.delete(id):selected.add(id);const tag=tags.find(item=>item.id===id);if(tag){const next=document.createElement('template');next.innerHTML=tagChoice(tag,selected.has(id),readOnly);button.replaceWith(next.content.firstElementChild);tagRow.querySelector(`[data-inline-tag="${CSS.escape(id)}"]`)?.focus({preventScroll:true});}onChange();}
     if(event.target.closest('[data-tag-settings]'))openTagSettings();
   },{signal:abort.signal});
   function openTagSettings(){

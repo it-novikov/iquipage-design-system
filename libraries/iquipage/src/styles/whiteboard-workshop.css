@@ -153,6 +153,9 @@ iq-whiteboard[surface-mode=embedded] .wb-command-row:has(.wb-context[hidden]){di
 /* v3 approved host editor mode: chrome overlays never resize the canvas. */
 iq-whiteboard[surface-mode=embedded][editor-mode=host] .wb-shell{position:relative}
 iq-whiteboard[surface-mode=embedded][editor-mode=host] .wb-workspace{position:relative}
+/* The host library floats over the canvas, so it must not also reserve a grid column (the canvas collapsed to 272px). */
+iq-whiteboard[surface-mode=embedded][editor-mode=host] .wb-shell[data-workshop] .wb-workspace{grid-template-columns:minmax(0,1fr)}
+iq-whiteboard[surface-mode=embedded][editor-mode=host] .wb-shell[data-workshop].has-panel .wb-workspace{grid-template-columns:minmax(0,1fr) 280px}
 iq-whiteboard[surface-mode=embedded][editor-mode=host] .wb-library{position:absolute;left:16px;bottom:84px;top:16px;width:min(300px,calc(100% - 32px));z-index:12;border:1px solid var(--iq-line);border-radius:var(--iq-radius-md);box-shadow:var(--iq-shadow-2)}
 iq-whiteboard[surface-mode=embedded][editor-mode=host] .wb-command-row{position:absolute;top:12px;left:50%;transform:translateX(-50%);max-width:calc(100% - 380px);z-index:7;border-radius:var(--iq-radius-md);box-shadow:var(--iq-shadow-1)}
 iq-whiteboard[surface-mode=embedded][editor-mode=host] .wb-footer{position:absolute;bottom:16px;left:16px;right:16px;z-index:8;pointer-events:none;background:transparent;border:0}

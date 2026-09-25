@@ -14,12 +14,14 @@ import {mountPlanningHost,confirmPlanningChange,recoverPlanningAttempt} from './
 import {openSearch} from './search.js';
 import {acceptPendingInvitation,editProfile} from './members.js';
 import {sectionRouteHash} from './section-route.js';
+import {mountProjectNavigation} from '../ui/planning/src/project-navigation.js';
+import '../ui/planning/src/navigation.css';
 registerCore();
 const root=document.querySelector('#app'),repository=new ProductRepository();
 let board,session,currentProject,planningAdapter,viewMode='tasks',navigating=false,avatarUrl=null;
 const viewStates=new Map();
 async function renderAvatar(project){
-  const el=root.querySelector('[data-project-avatar]');if(!el)return;
+  const el=nav?.avatar();if(!el)return;
   if(avatarUrl){URL.revokeObjectURL(avatarUrl);avatarUrl=null;}
   el.textContent=project.name.slice(0,1);if(!project.avatarAssetId||!repository.attachmentAdapter)return;
   try{const blob=await repository.attachmentAdapter.blob({projectId:project.id,id:project.avatarAssetId,variant:'thumb'});
@@ -30,9 +32,41 @@ async function renderAvatar(project){
 async function refreshHeader(){
   session=await repository.initialize();const updated=session.projects.find(p=>p.id===currentProject.id);if(!updated)return;
   Object.assign(currentProject,updated);
-  root.querySelector('[data-project-label]').textContent=updated.name;
-  root.querySelector('[data-workspace-label]').textContent=updated.workspaceName;
+  nav?.update(context(updated));
   await renderAvatar(updated);
+}
+// ---- Product shell (UX R3 navigation) ----
+let nav=null;
+const THEME_KEY='sprintique.theme';
+function storedTheme(){try{return localStorage.getItem(THEME_KEY)==='dark'?'dark':'light';}catch{return 'light';}}
+function applyTheme(theme){document.documentElement.dataset.theme=theme;try{localStorage.setItem(THEME_KEY,theme);}catch{}nav?.setTheme(theme);}
+applyTheme(storedTheme());
+const context=project=>({id:project.id,workspaceName:project.workspaceName,projectName:project.name});
+const initials=name=>String(name||'').trim().split(/\s+/).slice(0,2).map(part=>part[0]||'').join('').toUpperCase()||'Я';
+function ensureShell(project,mode){
+  if(!nav||!root.querySelector('[data-product-nav]')?.isConnected){
+    nav?.destroy();
+    root.innerHTML='<div class="demo-shell"><header data-product-nav></header><main class="platform-main"><section id="host-view" data-section="tasks"></section></main></div>';
+    nav=mountProjectNavigation(root.querySelector('[data-product-nav]'),{
+      current:context(project),profile:{name:session.principal.name,initials:initials(session.principal.name)},
+      projects:async({query='',signal})=>{signal?.throwIfAborted();const q=String(query).toLocaleLowerCase('ru');
+        return {options:session.projects.filter(p=>(p.workspaceName+' '+p.name).toLocaleLowerCase('ru').includes(q)).map(p=>({value:p.id,label:p.name,description:p.workspaceName})),nextCursor:null};},
+      onSwitch:async id=>{const shown=await showProject(id,viewMode);return shown===false?false:context(currentProject);},
+      onAccount:()=>void editProfile(repository.client).catch(report),
+      onTeam:()=>void navigate('settings').catch(report),
+      onSignOut:()=>void(async()=>{if(board&&!await board.closeTask())return;await repository.client.request('/logout','POST');location.reload();})().catch(report),
+      onTheme:()=>applyTheme(document.documentElement.dataset.theme==='dark'?'light':'dark'),
+      onSearch:search,onCreateProject:()=>void onboard(currentProject?.workspaceId).catch(report),onCreateWorkspace:createWorkspace
+    });
+    nav.setTheme(document.documentElement.dataset.theme);
+  }else nav.update(context(project));
+  nav.setRoute(mode);
+  root.querySelector('#host-view').replaceChildren();
+}
+function createWorkspace(){
+  dialog({title:'Создать пространство',body:input('name','Название','',{required:true,maxlength:100}),submitLabel:'Создать',onSubmit:async values=>{
+    const space=await repository.client.request('/workspaces','POST',{name:values.get('name')});await onboard(space.id);
+  }});
 }
 function report(error){dialog({title:'Не удалось выполнить действие',description:error.message});}
 async function onboard(selectedWorkspaceId){
@@ -56,7 +90,6 @@ async function showProject(id,mode=location.hash.startsWith('#maps')?'maps':['pl
   if(!project){root.innerHTML='<main class="host-landing"><h1>Создадим первый проект</h1><p>Задачи, обсуждения и команда в одном месте.</p><button class="iq-btn primary" data-onboard>Создать проект</button></main>';root.querySelector('[data-onboard]').onclick=()=>onboard().catch(report);return;}
   currentProject=project;viewMode=mode;
   if(avatarUrl){URL.revokeObjectURL(avatarUrl);avatarUrl=null;}
-  const spaces=await repository.client.request('/workspaces');
   // Capture the durable watermark before loading any view snapshot. Writes during
   // mount are replayed afterwards, while older membership events are not mistaken for new changes.
   const eventHead=await repository.client.request(`/projects/${encodeURIComponent(project.id)}/events/head`);
@@ -64,13 +97,7 @@ async function showProject(id,mode=location.hash.startsWith('#maps')?'maps':['pl
   planningAdapter=new PlanningAdapter(repository,project.id);
   repository.confirmPlanningChange=intent=>confirmPlanningChange(planningAdapter,intent);
   const url=new URL(location.href);url.searchParams.set('project',project.slug);history.replaceState(null,'',url);
-  root.innerHTML=`<div class="demo-shell"><header class="platform-header"><div class="platform-brand">
-    ${ui.menu(`<button class="iq-btn ghost sm" aria-label="Выбрать пространство"><span class="host-workspace-icon">${icon('folder',18)}</span><span data-workspace-label>${esc(project.workspaceName)}</span>${icon('down',14)}</button>`,spaces.map(w=>({label:esc(w.name),action:'workspace:'+w.id})).concat([{label:'Создать пространство',action:'create-workspace'}]))}
-    <span class="platform-divider">/</span>${ui.menu(`<button class="iq-btn ghost sm" aria-label="Выбрать проект"><span class="iq-avatar sm" data-project-avatar>${esc(project.name.slice(0,1))}</span><span data-project-label>${esc(project.name)}</span>${icon('down',14)}</button>`,session.projects.filter(p=>p.workspaceId===project.workspaceId).map(p=>({label:esc(p.name),action:'project:'+p.id})).concat([{label:'Создать проект',action:'create-project'}]))}
-    <nav class="platform-navigation" aria-label="Разделы проекта"><a href="#tasks" data-section-link="tasks" ${mode==='tasks'?'aria-current="page"':''}>Доска задач</a><a href="#planning" data-section-link="planning" ${mode==='planning'?'aria-current="page"':''}>Планирование</a><a href="#maps" data-section-link="maps" ${mode==='maps'?'aria-current="page"':''}>Карты</a>${ui.menu(ui.ib(mode==='maps'?'grid':mode==='planning'?'calendar':'board','Выбрать раздел проекта','ghost sm'),[{label:'Доска задач',action:'section:tasks'},{label:'Планирование',action:'section:planning'},{label:'Карты',action:'section:maps'}])}</nav></div>
-    <div class="platform-global"><button class="iq-btn ghost icon sm" data-search aria-label="Поиск по платформе">${icon('search',18)}</button><button class="iq-btn ghost icon sm" data-section-link="settings" aria-label="Настройки проекта">${icon('settings',18)}</button><button class="iq-btn ghost icon sm" data-theme aria-label="Изменить тему">${icon('moon',18)}</button>${ui.menu(ui.ib('user','Меню профиля','ghost sm'),[{label:'Профиль',action:'profile'},{label:'Настройки проекта',action:'section:settings'},{label:'Изменить тему',action:'theme'},{label:'Выйти',action:'logout'}])}</div></header>
-    <main class="platform-main"><section id="host-view" data-section="tasks"></section></main></div>`;
-  root.querySelector('[data-theme]').onclick=()=>{document.documentElement.dataset.theme=document.documentElement.dataset.theme==='dark'?'light':'dark';};
+  ensureShell(project,mode);
   await recoverPlanningAttempt(planningAdapter);
   const stateKey=project.id+':'+mode;if(!viewStates.has(stateKey))viewStates.set(stateKey,{});
   const host=root.querySelector('#host-view');host.dataset.section=mode;
@@ -78,7 +105,6 @@ async function showProject(id,mode=location.hash.startsWith('#maps')?'maps':['pl
   else if(mode==='planning')board=await mountPlanningHost(host,{repository,adapter:planningAdapter,project,viewState:viewStates.get(stateKey),onOpenBoard:()=>navigate('tasks')});
   else if(mode==='settings'){const {mountSettings}=await import('./settings.js');board=await mountSettings(host,{repository,adapter:planningAdapter,project,onChanged:refreshHeader});}
   else board=await mountTaskBoard(host,{repository,project,attachmentAdapter:repository.attachmentAdapter,canEdit:project.role!=='reader',canManageCatalogs:project.role==='admin',viewState:viewStates.get(stateKey)});
-  root.querySelector('[data-search]').onclick=search;
   await renderAvatar(project);
   repository.watch(project.id,change=>{
     if(change?.roleChanged){
@@ -110,7 +136,7 @@ root.addEventListener('iq-action',event=>{
   const action=String(event.detail.action||'');
   if(action.startsWith('section:'))void navigate(action.slice(8)).catch(report);
   if(action==='profile')void editProfile(repository.client).catch(report);
-  if(action==='theme')document.documentElement.dataset.theme=document.documentElement.dataset.theme==='dark'?'light':'dark';
+  if(action==='theme')applyTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');
   if(action==='logout')void(async()=>{if(board&&!await board.closeTask())return;await repository.client.request('/logout','POST');location.reload();})().catch(report);
   if(action.startsWith('project:')){void showProject(action.slice(8)).catch(report);}
   if(action==='create-project')void onboard(currentProject?.workspaceId).catch(report);

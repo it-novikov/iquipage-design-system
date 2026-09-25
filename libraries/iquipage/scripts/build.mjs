@@ -11,7 +11,7 @@ const manifest=JSON.parse(await read('src/manifest.json'));
 const variables=entries=>Object.entries(entries).map(([k,v])=>`  --iq-${k}: ${v};`).join('\n');
 const tokenCSS=`/* Generated from tokens/semantic.json. */\n:root{\n${variables({...tokens.base,...tokens.light})}\n}\n[data-theme="dark"]{\n${variables(tokens.dark)}\n}\n`;
 await save('tokens/tokens.css',tokenCSS);
-const css=tokenCSS+await read('src/styles/foundation.css')+'\n'+await read('src/styles/whiteboard.css')+'\n'+await read('src/styles/everyday.css')+'\n'+await read('src/styles/whiteboard-workshop.css');
+const css=tokenCSS+await read('src/styles/foundation.css')+'\n'+await read('src/styles/whiteboard.css')+'\n'+await read('src/styles/everyday.css')+'\n'+await read('src/styles/whiteboard-workshop.css')+'\n'+await read('src/styles/work-list.css')+'\n'+await read('src/styles/focus.css');
 await save('dist/iquipage.css',css);
 const sources={};
 for (const name of manifest.application){
@@ -34,7 +34,7 @@ for (const name of manifest.library) {
  const lookup=deps.map((d,i)=>`${JSON.stringify('./'+d)}:dep${i}`).join(',');
  await save('dist/modules/'+name,`${imports}\nconst exports={};\nconst deps={${lookup}};\n(function(exports,require){\n${sources[name]}\n})(exports,id=>{if(!(id in deps))throw new Error('Missing module '+id);return deps[id]});\nexport default exports;\n`);
 }
-for (const name of ['core','advanced','whiteboard','iquipage']) await save('dist/'+name+'.js',await read('src/entries/'+name+'.js'));
+for (const name of ['core','advanced','whiteboard','iquipage','work-list']) await save('dist/'+name+'.js',await read('src/entries/'+name+'.js'));
 await save('dist/entry-manifest.json',JSON.stringify({version:tokens.meta.version,sharedModules:moduleDeps,entries:manifest.entries},null,2)+'\n');
 const req=createRequire(import.meta.url), icons=req('../src/modules/icons.js');
 for(const [key,glyph] of Object.entries(icons.glyphs))await save(`assets/icons/${key}.svg`,icons.icon(key,24));

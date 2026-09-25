@@ -10,7 +10,8 @@ export const textarea=(name,label,value='',rows=4)=>{
   const id=`maps-field-${++fieldSequence}`;
   return `<div class="iq-field"><label class="iq-control-label" for="${id}">${esc(label)}</label><span class="iq-input-shell"><textarea id="${id}" name="${esc(name)}" rows="${rows}" maxlength="50000">${esc(value)}</textarea></span></div>`;
 };
-export const select=(name,label,value,options)=>`<iq-select name="${name}" label="${esc(label)}" value="${esc(value)}">${options.map(([id,text])=>`<option value="${esc(id)}" ${id===value?'selected':''}>${esc(text)}</option>`).join('')}</iq-select>`;
+/** attrs: public DS variants only, e.g. 'density="compact" label-hidden'. */
+export const select=(name,label,value,options,attrs='')=>`<iq-select name="${name}" label="${esc(label)}" value="${esc(value)}"${attrs?' '+attrs:''}>${options.map(([id,text])=>`<option value="${esc(id)}" ${id===value?'selected':''}>${esc(text)}</option>`).join('')}</iq-select>`;
 export const check=(name,label,checked=false)=>`<label class="iq-check"><input type="checkbox" name="${name}" ${checked?'checked':''}><span class="iq-check-box">${icon('check',14)}</span><span>${esc(label)}</span></label>`;
 export const pretty=value=>`<pre class="map-json">${esc(JSON.stringify(value,null,2))}</pre>`;
 export const date=value=>value?new Intl.DateTimeFormat('ru',{dateStyle:'medium',timeStyle:'short'}).format(new Date(value)):'—';
@@ -22,7 +23,7 @@ export function download(name,value,type='application/json') {
 /** Exact IQUIPAGE dialog composition, with host-owned form and asynchronous save. */
 export function dialog({title,description='',body='',submitLabel='',wide=false,onSubmit,mount}) {
   registerCore();const el=document.createElement('iq-dialog');el.className='map-dialog';
-  el.innerHTML=`<dialog class="iq-dialog map-modal"><form class="map-dialog-form"><header class="iq-dialog-head"><div><h2>${esc(title)}</h2>${description?`<p>${esc(description)}</p>`:''}</div><button type="button" class="iq-btn ghost icon sm" data-close aria-label="Закрыть">${icon('x',18)}</button></header><div class="map-dialog-body">${body}</div><p class="map-form-error" role="alert" hidden></p><footer class="iq-dialog-footer"><button type="button" class="iq-btn secondary sm" data-close>${submitLabel?'Отмена':'Закрыть'}</button>${submitLabel?`<button type="submit" class="iq-btn primary sm">${esc(submitLabel)}</button>`:''}</footer></form></dialog>`;
+  el.innerHTML=`<dialog class="iq-dialog map-modal" data-layout="form"><form class="iq-dialog-form map-dialog-form"><header class="iq-dialog-head"><div><h2>${esc(title)}</h2>${description?`<p>${esc(description)}</p>`:''}</div><button type="button" class="iq-btn ghost icon sm" data-close aria-label="Закрыть">${icon('x',18)}</button></header><div class="iq-dialog-body map-dialog-body">${body}</div><p class="map-form-error" role="alert" hidden></p><footer class="iq-dialog-footer"><button type="button" class="iq-btn secondary sm" data-close>${submitLabel?'Отмена':'Закрыть'}</button>${submitLabel?`<button type="submit" class="iq-btn primary sm">${esc(submitLabel)}</button>`:''}</footer></form></dialog>`;
   if(wide)el.setAttribute('data-size','wide');document.body.append(el);
   const form=el.querySelector('form'),error=el.querySelector('.map-dialog-form > .map-form-error');
   let busy=false;

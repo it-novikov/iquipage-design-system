@@ -28,7 +28,7 @@ export async function mountTaskBoard(root,{repository,project,canEdit=true,canMa
   <button type="button" class="iq-btn primary" data-create-task ${canEdit?'':'disabled'}>${icon('plus',18)}<span>Новая задача</span></button></div>
   </header><p class="host-task-error" role="alert" hidden></p><div class="host-board-mount"></div><p class="sr-only" id="board-drag-help">Enter или пробел — взять задачу. Стрелки — выбрать позицию, Enter — переместить, Escape — отменить. В меню задачи доступно перемещение без перетаскивания.</p><span class="sr-only" role="status" data-task-live></span></div>`;
   const ownedPage=root.firstElementChild;
-  function renderSort(){root.querySelector('[data-board-sort]').innerHTML=ui.menu(`<button type="button" class="iq-btn ghost sm" aria-label="Порядок задач">${esc(BOARD_SORTS[sort])}${icon('down',14)}</button>`,Object.entries(BOARD_SORTS).map(([id,label])=>({label:esc(label),glyph:id===sort?'check':null,action:'board-sort:'+id})));}
+  function renderSort(){root.querySelector('[data-board-sort]').innerHTML=ui.menu(`<button type="button" class="iq-btn ghost sm iq-switcher" data-tone="muted" aria-label="Порядок задач: ${esc(BOARD_SORTS[sort])}"><span class="iq-switcher-label">${esc(BOARD_SORTS[sort])}</span>${icon('down',14)}</button>`,Object.entries(BOARD_SORTS).map(([id,label])=>({label:esc(label),glyph:id===sort?'check':null,action:'board-sort:'+id})));}
   renderSort();
   const mount=root.querySelector('.host-board-mount'),error=root.querySelector('.host-task-error');
   const fail=e=>{error.hidden=false;error.textContent=e.message||'Изменение не сохранено. Повторите действие.';};
