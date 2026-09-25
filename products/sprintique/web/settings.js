@@ -1,4 +1,4 @@
-import {ui,escapeHTML as esc} from '@iquipage/web/core';
+import {ui,escapeHTML as esc,notify} from '@iquipage/web/core';
 import {mountProjectTaskSettings} from '../ui/src/board/project-settings.js';
 import {settingsDialog} from '../ui/planning/src/release-dialogs.js';
 import {mountMembers} from './members.js';
@@ -54,12 +54,12 @@ export async function mountSettings(root,{repository,project,adapter,onChanged=(
   const abort=new AbortController();
   root.addEventListener('click',async event=>{
     const link=event.target.closest('[data-settings-section]');
-    if(link&&!event.metaKey&&!event.ctrlKey&&!event.shiftKey){event.preventDefault();if(await showSection(link.dataset.settingsSection))history.replaceState(null,'','#settings/'+current);return;}
+    if(link&&!event.metaKey&&!event.ctrlKey&&!event.shiftKey){event.preventDefault();if(await showSection(link.dataset.settingsSection))history.replaceState(null,'','#settings/'+current);else notify({tone:'warning',message:'Сначала завершите изменения в текущем разделе.'});return;}
     const button=event.target.closest('[data-settings-open]');if(!button||button.disabled||closed||busy)return;
     busy=true;button.disabled=true;
     try{
       const kind=button.dataset.settingsOpen;
-      if(kind==='planning')modal=await settingsDialog({adapter,projectId:project.id,onClose:()=>{modal=null;}});
+      if(kind==='planning')modal=await settingsDialog({adapter,projectId:project.id,onCommitted:()=>notify({tone:'success',message:'Настройки планирования сохранены'}),onClose:()=>{modal=null;}});
       else track(kind==='profile'?await editProjectProfile({repository,project,onChanged}):await editWorkspace({client:repository.client,workspaceId:project.workspaceId,onChanged}));
     }catch(error){if(!closed)track(dialog({title:'Не удалось открыть настройки',description:error.message}));}
     finally{busy=false;button.disabled=false;}

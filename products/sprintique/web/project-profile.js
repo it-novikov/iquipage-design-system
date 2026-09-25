@@ -1,3 +1,4 @@
+import {timeZoneField} from '../ui/planning/src/release-dialogs.js';
 import {ui,escapeHTML as esc} from '@iquipage/web/core';
 import {registerAdvanced} from '@iquipage/web/advanced';
 import {dialog,input,select} from '../ui/src/ui.js';
@@ -38,10 +39,10 @@ export async function editWorkspace({client,workspaceId,onChanged}){
   const canManage=profile.role==='admin',members=canManage?await client.request(base+'/members'):[];
   let child=null;
   const el=dialog({title:'Пространство',description:'Пространство объединяет проекты. Его администратор управляет каталогом, но не получает автоматически доступ к задачам и картам.',
-    body:canManage?input('name','Название',profile.name,{required:true,maxlength:100})+input('timezone','Часовой пояс',profile.timezone,{required:true,maxlength:100})+
+    body:canManage?input('name','Название',profile.name,{required:true,maxlength:100})+timeZoneField('timezone','Часовой пояс',profile.timezone)+
       `<h3>Участники пространства</h3><div class="iq-list">${members.map(m=>`<div class="iq-list-item"><span>${esc(m.name)} · ${m.role==='admin'?'Администратор':'Участник'}</span>${ui.btn('Изменить','ghost sm','','data-workspace-member="'+esc(m.id)+'"')}</div>`).join('')}</div>`:`<p>${esc(profile.name)} · ${esc(profile.timezone)}</p><p>Настройки изменяет администратор пространства.</p>`,
-    submitLabel:canManage?'Сохранить':'',success:'Пространство сохранено',onSubmit:async values=>{
-      await client.request(base,'PATCH',{baseRevision:profile.revision,name:values.get('name'),timezone:values.get('timezone')});await onChanged();
+    submitLabel:canManage?'Сохранить':'',success:'Пространство сохранено',onSubmit:async(values,form)=>{
+      await client.request(base,'PATCH',{baseRevision:profile.revision,name:values.get('name'),timezone:String(form.querySelector('iq-combobox[name=timezone]')?.value||profile.timezone)});await onChanged();
     }});
   el.addEventListener('click',event=>{const id=event.target.closest('[data-workspace-member]')?.dataset.workspaceMember;if(!id||child)return;
     const member=members.find(m=>m.id===id);

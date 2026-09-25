@@ -164,3 +164,7 @@
 .board-filter-bar{display:flex;flex-wrap:wrap;align-items:center;gap:var(--iq-space-2);min-width:0}
 .board-filter-chips{display:flex;flex-wrap:wrap;gap:var(--iq-space-1);min-width:0}
 .board-filter-chips .iq-tag{display:inline-flex;align-items:center;gap:var(--iq-space-1);cursor:pointer}
+/* Tag colour swatches in the tag editor. */
+.tag-tone-choice{border:0;margin:0;padding:0;display:grid;gap:var(--iq-space-2)}
+.tag-tone-options{display:flex;flex-wrap:wrap;gap:var(--iq-space-2)}
+.tag-tone-options .iq-tag{cursor:pointer;min-height:32px;padding-inline:var(--iq-space-3)}
