@@ -51,3 +51,5 @@
 .pn-person .iq-avatar{flex:none}
 .pn-group-header{padding-block:var(--iq-space-2)}
 .pn-col-task{width:56%}.pn-col-state{width:16%}.pn-col-owner{width:14%}.pn-col-date{width:14%}
+/* Phones (set at mount): the page scrolls; a nested list scroller left only ~330px for tasks. */
+.planning-view[data-page-scroll]{height:auto}.planning-view[data-page-scroll] .pn-scroll{overflow:visible;flex:none}

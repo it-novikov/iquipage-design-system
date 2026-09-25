@@ -11,12 +11,16 @@ import {PlanningController} from './controller.js';
 import {groupBody,rowMarkup} from './markup.js';
 import {moveDialog,operationDialog} from './dialog.js';
 /** Reusable planning view. Production host supplies an approved SDK projection adapter. */
+function scrollParent(node){
+  for(let el=node.parentElement;el;el=el.parentElement){const y=getComputedStyle(el).overflowY;if(y==='auto'||y==='scroll')return el;}
+  return document.scrollingElement;
+}
 export async function mountPlanning(root,{adapter,project,onOpenTask,onCreateTask,onCreateRelease,onOpenBoard,viewState={}}) {
   if(!(root instanceof HTMLElement))throw Error('Нужен контейнер Планирования.');registerCore();
   root.classList.add('planning-root');
   let deadlineMode=['timeline','dates'].includes(viewState.deadlineMode)?viewState.deadlineMode:(['timeline','dates'].includes(viewState.mode)?viewState.mode:'timeline');
   let viewMode='list',temporal=null,switching=false,dragging=false,refreshAfterDrag=false;
-  let disposed=false,modal=null,opening=false,searchTimer=null,selectionShift=false,queryInput,scroll;
+  let disposed=false,modal=null,opening=false,searchTimer=null,selectionShift=false,queryInput,scroll,scrollRoot;
   let refreshTimer=null,refreshing=false,refreshAgain=false;
   const nodes=new Map(),abort=new AbortController(),signal=abort.signal;
   const controller=new PlanningController({adapter,projectId:project.id,onChange:render});
@@ -29,11 +33,15 @@ export async function mountPlanning(root,{adapter,project,onOpenTask,onCreateTas
     <div class="pn-scroll" tabindex="-1" aria-label="Релизы и бэклог"><div data-groups></div><div data-tail></div></div><div class="pn-temporal" data-temporal hidden></div></section>`;
   const page=root.firstElementChild,groupsRoot=root.querySelector('[data-groups]'),tail=root.querySelector('[data-tail]');
   queryInput=root.querySelector('[data-query]');scroll=root.querySelector('.pn-scroll');
-  const observer=typeof IntersectionObserver==='function'?new IntersectionObserver(entries=>{for(const entry of entries)if(entry.isIntersecting&&!controller.loading&&!controller.error){const id=entry.target.dataset.group;void controller.rows(id);}},{root:scroll,rootMargin:'240px'}):null;
+  // Phones scroll the page, not a nested list box; windowing and lazy loading follow whichever element scrolls.
+  const pageScroll=typeof matchMedia==='function'&&matchMedia('(max-width:640px)').matches;
+  root.querySelector('.planning-view').toggleAttribute('data-page-scroll',pageScroll);
+  scrollRoot=pageScroll?scrollParent(root)||scroll:scroll;
+  const observer=typeof IntersectionObserver==='function'?new IntersectionObserver(entries=>{for(const entry of entries)if(entry.isIntersecting&&!controller.loading&&!controller.error){const id=entry.target.dataset.group;void controller.rows(id);}},{root:scrollRoot===document.scrollingElement?null:scrollRoot,rootMargin:'240px'}):null;
   const focusKey=()=>document.activeElement?.closest('[data-focus]')?.dataset.focus;
   const restoreFocus=key=>{if(key&&!root.contains(document.activeElement))root.querySelector(`[data-focus="${CSS.escape(key)}"]`)?.focus({preventScroll:true});};
   function render() {
-    if(disposed)return;const oldFocus=focusKey(),top=scroll?.scrollTop||0;
+    if(disposed)return;const oldFocus=focusKey(),top=scrollRoot?.scrollTop||0;
     const error=root.querySelector('[data-error]');error.hidden=!controller.error;
     error.innerHTML=controller.error?ui.alert('Не удалось обновить Планирование',esc(controller.error),'danger')+ui.btn('Повторить загрузку','secondary sm','refresh','data-refresh'):'';
     const locked=controller.loading||!!controller.error||opening||!!modal;
@@ -61,7 +69,7 @@ export async function mountPlanning(root,{adapter,project,onOpenTask,onCreateTas
       if(bk!==node.bodyKey){
         node.window?.destroy();node.window=null;node.rowRef=null;node.bodyKey=bk;node.body.innerHTML=groupBody(group,controller,true);
         const body=node.body.querySelector('[data-window-body]');
-        if(body)node.window=new TableWindow({body,scrollRoot:scroll,columns:4,estimate:56,key:row=>row.id,
+        if(body)node.window=new TableWindow({body,scrollRoot,columns:4,estimate:56,key:row=>row.id,
           markup:row=>rowMarkup(row,group.id,controller.collapsed.has(row.taskId),!!(controller.capabilities.move||controller.capabilities.reorder),!!controller.capabilities.bulk),
           decorate:(element,row)=>{
             for(const control of element.querySelectorAll('[data-select],[data-disclose],[data-work-drag]'))control.disabled=node.locked||node.group.busy||control.matches('[data-select]')&&!!controller.selection.snapshot;
@@ -94,8 +102,8 @@ export async function mountPlanning(root,{adapter,project,onOpenTask,onCreateTas
     root.querySelector('[data-history-view]').setAttribute('aria-pressed',String(controller.filters.history==='closed'));
     root.querySelector('[data-live]').textContent=controller.message;
     tail.innerHTML=controller.loading?'<p role="status" class="iq-helper">Загружаем релизы…</p>':controller.nextCursor?ui.btn('Показать ещё релизы','secondary sm','down','data-more-groups'):!controller.groups.length&&!controller.error?ui.empty('Начните с ближайшего результата','Создайте задачу или релиз. Обязательных дат и оценок нет.',''):'';
-    if(scroll)scroll.scrollTop=top;restoreFocus(oldFocus);
-    if(viewMode==='list'&&!controller.loading&&!controller.error)queueMicrotask(()=>{if(disposed)return;const bounds=scroll.getBoundingClientRect();let budget=3;for(const group of controller.groups){const el=nodes.get(group.id)?.element;if(!el||group.folded||group.loaded||group.busy||group.error)continue;const rect=el.getBoundingClientRect();if(rect.bottom>=bounds.top-100&&rect.top<bounds.bottom+100&&budget-->0)void controller.rows(group.id);}});
+    if(scrollRoot)scrollRoot.scrollTop=top;restoreFocus(oldFocus);
+    if(viewMode==='list'&&!controller.loading&&!controller.error)queueMicrotask(()=>{if(disposed)return;const bounds=scrollRoot.getBoundingClientRect();let budget=3;for(const group of controller.groups){const el=nodes.get(group.id)?.element;if(!el||group.folded||group.loaded||group.busy||group.error)continue;const rect=el.getBoundingClientRect();if(rect.bottom>=bounds.top-100&&rect.top<bounds.bottom+100&&budget-->0)void controller.rows(group.id);}});
     viewState.filters={...controller.filters};viewState.collapsed=[...controller.collapsed];
   }
   async function setView(next,force=false) {
@@ -175,7 +183,7 @@ export async function mountPlanning(root,{adapter,project,onOpenTask,onCreateTas
     finally{refreshing=false;}
   }
   const unsubscribe=adapter.subscribe?.(()=>{if(refreshTimer===null)refreshTimer=setTimeout(()=>void refreshFromEvent(),0);});
-  const stopDrag=mountPlanningDrag(root,scroll,controller,{
+  const stopDrag=mountPlanningDrag(root,scrollRoot,controller,{
     locked:()=>disposed||viewMode!=='list'||opening||!!modal||controller.loading||!!controller.error,
     onState:active=>{dragging=active;if(!active&&refreshAfterDrag){refreshAfterDrag=false;void refreshFromEvent();}},
     onDrop:intent=>void action(()=>operation(intent,intent.kind==='reorder'?'Порядок задач':'Изменение состава'))
