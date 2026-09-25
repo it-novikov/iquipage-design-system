@@ -2,6 +2,7 @@ import {ui,escapeHTML as esc} from '@iquipage/web/core';
 import {dialog,select,input,date} from '../ui/src/ui.js';
 const roles=[['reader','Наблюдатель'],['editor','Участник'],['admin','Администратор']];
 const label=value=>roles.find(r=>r[0]===value)?.[1]||value;
+const initials=name=>String(name||'').trim().split(/\s+/).slice(0,2).map(part=>part[0]||'').join('').toUpperCase()||'?';
 /** Host composition of DS controls; all authority is checked again by the API. */
 export async function mountMembers(root,{repository,project,onBack}){
   const client=repository.client,base='/projects/'+encodeURIComponent(project.id),abort=new AbortController();
@@ -11,7 +12,7 @@ export async function mountMembers(root,{repository,project,onBack}){
     const sequence=++loading;
     const [people,links]=await Promise.all([client.request(base+'/members'),project.role==='admin'?client.request(base+'/invitations'):[]]);
     if(closed||sequence!==loading)return;members=people;invitations=links;
-    root.innerHTML=`<section class="host-settings task-settings-page">${ui.btn('Настройки проекта','ghost sm','left','data-members-back')}<h1>Участники проекта</h1><p>Наблюдатель читает. Участник работает с задачами и картами. Администратор управляет доступом и настройками.</p><div class="iq-list">${members.map(m=>`<div class="iq-list-item"><span>${esc(m.name)}${m.kind==='agent'?' · агент':''}</span><span>${esc(label(m.role))}</span>${project.role==='admin'&&m.kind==='human'?ui.btn('Изменить','ghost sm','','data-member="'+esc(m.id)+'"'):''}</div>`).join('')}</div>${project.role==='admin'?`<h2>Приглашения</h2>${ui.btn('Пригласить участника','primary sm','plus','data-invite')}<div class="iq-list">${invitations.length?invitations.map(i=>`<div class="iq-list-item"><span>${esc(label(i.role))} · ${i.acceptedAt?'Принято':i.revokedAt?'Отменено':new Date(i.expiresAt)<new Date()?'Истекло':'До '+esc(date(i.expiresAt))}</span>${!i.revokedAt&&!i.acceptedAt&&new Date(i.expiresAt)>new Date()?ui.btn('Отменить','ghost sm','','data-revoke="'+esc(i.id)+'"'):''}</div>`).join(''):'<p>Создайте одноразовую ссылку и передайте её будущему участнику.</p>'}</div>`:''}</section>`;
+    root.innerHTML=`<section class="host-settings task-settings-page">${onBack?ui.btn('Настройки проекта','ghost sm','left','data-members-back'):''}<h1>Участники проекта</h1><p>Наблюдатель читает. Участник работает с задачами и картами. Администратор управляет доступом и настройками.</p><div class="iq-list">${members.map(m=>`<div class="iq-list-item member-row">${ui.avatar(esc(initials(m.name)),1)}<div><b>${esc(m.name)}</b><p class="iq-helper">${esc(label(m.role))}${m.kind==='agent'?' · агент':''}</p></div>${project.role==='admin'&&m.kind==='human'?ui.btn('Изменить роль','ghost sm','','data-member="'+esc(m.id)+'"'):''}</div>`).join('')}</div>${project.role==='admin'?`<h2>Приглашения</h2>${ui.btn('Пригласить участника','primary sm','plus','data-invite')}<div class="iq-list">${invitations.length?invitations.map(i=>`<div class="iq-list-item"><span>${esc(label(i.role))} · ${i.acceptedAt?'Принято':i.revokedAt?'Отменено':new Date(i.expiresAt)<new Date()?'Истекло':'До '+esc(date(i.expiresAt))}</span>${!i.revokedAt&&!i.acceptedAt&&new Date(i.expiresAt)>new Date()?ui.btn('Отменить','ghost sm','','data-revoke="'+esc(i.id)+'"'):''}</div>`).join(''):'<p>Создайте одноразовую ссылку и передайте её будущему участнику.</p>'}</div>`:''}</section>`;
   }
   root.addEventListener('click',event=>{void(async()=>{
     if(event.target.closest('[data-members-back]'))return onBack();
@@ -36,7 +37,7 @@ export async function mountMembers(root,{repository,project,onBack}){
 }
 export async function editProfile(client){
   const profile=await client.request('/profile');
-  return dialog({title:'Профиль',body:input('name','Отображаемое имя',profile.name,{required:true,maxlength:100}),submitLabel:'Сохранить',onSubmit:values=>client.request('/profile','PATCH',{baseRevision:profile.revision,name:values.get('name')})});
+  return dialog({title:'Профиль',body:input('name','Отображаемое имя',profile.name,{required:true,maxlength:100}),submitLabel:'Сохранить',success:'Профиль сохранён',onSubmit:values=>client.request('/profile','PATCH',{baseRevision:profile.revision,name:values.get('name')})});
 }
 export async function acceptPendingInvitation(client){
   const match=location.hash.match(/^#invite\/(invite_[A-Za-z0-9_-]{43})$/);if(!match)return false;

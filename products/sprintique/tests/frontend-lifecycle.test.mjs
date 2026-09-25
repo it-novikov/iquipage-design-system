@@ -12,6 +12,9 @@ const deferred=()=>{let resolve;const promise=new Promise(done=>{resolve=done;})
 test('empty Maps navigation commits the section route without replacing an opened map URL',()=>{
   for(const hash of ['#planning','#tasks','#settings','#maps',''])assert.equal(sectionRouteHash('maps',hash),'#maps');
   assert.equal(sectionRouteHash('maps','#maps/map_123-abc'),'#maps/map_123-abc');
+  // Settings subsections are linkable and survive re-mounting the section.
+  assert.equal(sectionRouteHash('settings','#settings/members'),'#settings/members');
+  assert.equal(sectionRouteHash('settings','#settings/<x>'),'#settings');assert.equal(sectionRouteHash('tasks','#settings/members'),'#tasks');
   assert.equal(sectionRouteHash('planning','#maps/map_123-abc'),'#planning');
   assert.equal(sectionRouteHash('tasks','#task/QA-2'),'#tasks');
 });

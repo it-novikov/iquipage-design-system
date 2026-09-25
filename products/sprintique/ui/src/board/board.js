@@ -1,7 +1,7 @@
 import {createCoverLoader} from './cover-loader.js';
 import {mountBoardFilters} from './filter-view.js';
 import {normalizeBoardFilters,hasBoardFilters,taskMatchesFilters} from './filters.js';
-import {bindBoard,registerCore,ui} from '@iquipage/web/core';
+import {bindBoard,registerCore,ui,notify} from '@iquipage/web/core';
 import {TASK_COLUMNS,taskColumn,placeTask} from '../tasks.js';
 import {icon,esc,dialog,select} from '../ui.js';
 import {BOARD_SORTS,boardComparator,projectColumn} from './model.js';
@@ -34,7 +34,7 @@ export async function mountTaskBoard(root,{repository,project,canEdit=true,canMa
   const mount=root.querySelector('.host-board-mount'),error=root.querySelector('.host-task-error');
   const fail=e=>{error.hidden=false;error.textContent=e.message||'Изменение не сохранено. Повторите действие.';};
   let filterState=normalizeBoardFilters(viewState.filters);
-  const filters=mountBoardFilters(root.querySelector('[data-board-filters]'),{initial:viewState.filters,onChange:value=>{filterState=value;viewState.filters=value;persist();render();}});
+  const filters=mountBoardFilters(root.querySelector('[data-board-filters]'),{initial:viewState.filters,onChange:value=>{filterState=value;viewState.filters=value;persist();render();},countMatches:value=>items.filter(t=>taskMatchesFilters(t,value)).length});
   const filtering=()=>hasBoardFilters(filterState);
   const matches=t=>taskMatchesFilters(t,filterState);
   const projection=(status,tasks=items)=>projectColumn(tasks,status,{predicate:matches,compare:boardComparator(sort),collapsed,filtering:filtering()});
@@ -111,7 +111,7 @@ export async function mountTaskBoard(root,{repository,project,canEdit=true,canMa
     if(openingTask||activeDialog||closed)return;
     openingTask=true;const controller=new AbortController();openingController=controller;
     try{
-    const created=await openTaskDialog(task,{repository,project,tasks:items,canEdit,canManage:canManageCatalogs,attachmentAdapter,status,fullscreen,signal:controller.signal,isActive:()=>!closed&&!controller.signal.aborted,onOpenTask:id=>openTask(id),onReload:async()=>{if(!(await closeTask()))return;const fresh=await repository.read('tasks',task.id,project.id);if(fresh)await edit(fresh,'ready',{fromRoute:true,fullscreen});},onSaved:async saved=>{loading++;items=items.some(t=>t.id===saved.id)?items.map(t=>t.id===saved.id?saved:t):[...items,saved];render();await reload();}});
+    const created=await openTaskDialog(task,{repository,project,tasks:items,canEdit,canManage:canManageCatalogs,attachmentAdapter,status,fullscreen,signal:controller.signal,isActive:()=>!closed&&!controller.signal.aborted,onOpenTask:id=>openTask(id),onReload:async()=>{if(!(await closeTask()))return;const fresh=await repository.read('tasks',task.id,project.id);if(fresh)await edit(fresh,'ready',{fromRoute:true,fullscreen});},onSaved:async saved=>{if(!task&&!items.some(t=>t.id===saved.id))notify({tone:'success',message:`Задача ${taskKey(saved)} создана`,action:{label:'Открыть',run:()=>void openTask(saved.id)}});loading++;items=items.some(t=>t.id===saved.id)?items.map(t=>t.id===saved.id?saved:t):[...items,saved];render();await reload();}});
     if(closed||controller.signal.aborted){created.close(true);return;}activeDialog=created;
     if(task&&!fromRoute)history.pushState({taskDrawer:true,returnHash:location.hash||'#tasks'},'',taskURL(task));
     if(closed){activeDialog.close(true);return;}

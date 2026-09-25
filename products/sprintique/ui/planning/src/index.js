@@ -6,7 +6,7 @@ import {filterDialog} from './filter-dialog.js';
 import {mountTemporalView} from './temporal-view.js';
 import {groupHeader} from './group-header.js';
 import {closeReleaseDialog,editReleaseDialog,historyDialog,bulkDialog} from './release-dialogs.js';
-import {registerCore,ui,icon,escapeHTML as esc} from '@iquipage/web/core';
+import {registerCore,ui,icon,escapeHTML as esc,notify} from '@iquipage/web/core';
 import {PlanningController} from './controller.js';
 import {groupBody,rowMarkup} from './markup.js';
 import {moveDialog,operationDialog} from './dialog.js';
@@ -125,7 +125,8 @@ export async function mountPlanning(root,{adapter,project,onOpenTask,onCreateTas
     if(temporal&&!temporal.readyToLeave()){controller.message='Сначала примените или отмените изменение плана.';render();return;}
     await controller.filter(values);if(viewMode!=='list')await setView(viewMode,true);
   }
-  async function changed(result){controller.message=result?.message||'Изменение сохранено.';controller.clear();await controller.load();}
+  // Success is a DS toast (itself a status region); the sr-only live line stays for load and error states.
+  async function changed(result){notify({tone:'success',message:result?.message||'Изменение сохранено.'});controller.clear();await controller.load();}
   function released(){modal=null;opening=false;render();}
   async function action(fn){if(dragging||opening||modal||controller.loading||controller.error)return;opening=true;render();try{modal=await fn();if(disposed)modal?.close?.();}catch(error){controller.message=error.message;released();}finally{opening=false;render();}}
   function operation(intent,title){return operationDialog({adapter,projectId:project.id,intent,title,onCommitted:changed,onClose:released});}

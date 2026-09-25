@@ -4,7 +4,7 @@ import '../ui/src/board/board.css';
 import '../ui/shell.css';
 import './shell.css';
 import '../ui/planning/src/planning.css';
-import {registerCore,ui,icon,escapeHTML as esc} from '@iquipage/web/core';
+import {registerCore,ui,icon,escapeHTML as esc,notify} from '@iquipage/web/core';
 import {mountTaskBoard} from '../ui/src/board/board.js';
 import {parseTaskRoute} from '../ui/src/board/task-route.js';
 import {dialog,input} from '../ui/src/ui.js';
@@ -91,7 +91,8 @@ async function renderSignIn(){
 // The last opened project reopens after sign-in; a project link in the URL still wins.
 const LAST_PROJECT_KEY='sprintique.last-project:';
 function lastProject(){try{return localStorage.getItem(LAST_PROJECT_KEY+session.principal.id)||undefined;}catch{return undefined;}}
-function report(error){dialog({title:'Не удалось выполнить действие',description:error.message});}
+// Failures are toasts, not modal walls: the message stays until read (hover or focus pauses it).
+function report(error){notify({tone:'danger',message:'Не удалось выполнить действие',description:error.message||'Повторите попытку.',duration:10000});}
 async function onboard(selectedWorkspaceId){
   const workspaces=(await repository.client.request('/workspaces')).filter(w=>w.role==='admin');
   if(selectedWorkspaceId&&!workspaces.some(w=>w.id===selectedWorkspaceId))return dialog({title:'Нет доступных проектов',description:'Администратор пространства может создать проект и пригласить вас. Существующие проекты появятся после предоставления доступа.'});
@@ -105,7 +106,7 @@ async function onboard(selectedWorkspaceId){
     session=await repository.initialize();location.hash='#tasks';await showProject(project.id);
   }});
 }
-async function showProject(id,mode=location.hash.startsWith('#maps')?'maps':['planning','settings'].includes(location.hash.slice(1))?location.hash.slice(1):'tasks'){
+async function showProject(id,mode=location.hash.startsWith('#maps')?'maps':location.hash.startsWith('#settings')?'settings':location.hash==='#planning'?'planning':'tasks'){
   if(navigating)return false;navigating=true;
   try{
   if(board&&!await board.closeTask())return;
@@ -169,7 +170,8 @@ root.addEventListener('iq-action',event=>{
   if(action.startsWith('workspace:')){const id=action.slice(10),p=session.projects.find(p=>p.workspaceId===id);if(p)void showProject(p.id).catch(report);else void onboard(id).catch(report);}
   if(action==='create-workspace')dialog({title:'Создать пространство',body:input('name','Название','',{required:true,maxlength:100}),submitLabel:'Создать',onSubmit:async values=>{const space=await repository.client.request('/workspaces','POST',{name:values.get('name')});await onboard(space.id);}});
 });
-window.addEventListener('hashchange',()=>{void(async()=>{const task=parseTaskRoute(location.hash);if(task){if(!board?.openTask)await showProject(currentProject.id,'tasks');await board?.openTask?.(task,{fromRoute:true});}else if(location.hash.startsWith('#maps'))await navigate('maps');else if(['#tasks','#planning','#settings'].includes(location.hash))await navigate(location.hash.slice(1));else await board?.closeTask();})().catch(report);});
+window.addEventListener('hashchange',()=>{void(async()=>{const task=parseTaskRoute(location.hash);if(task){if(!board?.openTask)await showProject(currentProject.id,'tasks');await board?.openTask?.(task,{fromRoute:true});}else if(location.hash.startsWith('#maps'))await navigate('maps');else if(location.hash.startsWith('#settings')){if(viewMode==='settings'&&board?.showSection){const {settingsSectionFromHash}=await import('./settings.js');await board.showSection(settingsSectionFromHash(location.hash));}else await navigate('settings');}
+    else if(['#tasks','#planning'].includes(location.hash))await navigate(location.hash.slice(1));else await board?.closeTask();})().catch(report);});
 try{session=await repository.initialize();
   const pending=sessionStorage.getItem('sprintique.pending-invitation');sessionStorage.removeItem('sprintique.pending-invitation');
   if(pending&&/^invite_[A-Za-z0-9_-]{43}$/.test(pending)&&!location.hash.startsWith('#invite/'))history.replaceState(null,'','#invite/'+pending);

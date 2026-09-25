@@ -160,3 +160,7 @@
 .task-edit-dialog [data-task-save-state][data-tone=danger]{color:var(--iq-danger)}
 [data-board-waiting]{flex:none}
 [data-board-waiting]:not(:empty){margin-bottom:var(--iq-space-3)}
+/* Active filters as removable chips beside the Filters button. */
+.board-filter-bar{display:flex;flex-wrap:wrap;align-items:center;gap:var(--iq-space-2);min-width:0}
+.board-filter-chips{display:flex;flex-wrap:wrap;gap:var(--iq-space-1);min-width:0}
+.board-filter-chips .iq-tag{display:inline-flex;align-items:center;gap:var(--iq-space-1);cursor:pointer}

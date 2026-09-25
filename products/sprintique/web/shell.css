@@ -8,3 +8,12 @@
 /* Local-stand sign-in: a narrow DS form under the landing copy. */
 .host-sign-in{display:grid;gap:var(--iq-space-4);max-width:360px}
 .host-sign-in .iq-badge,.host-sign-in .iq-btn{justify-self:start}
+/* Settings: one DS section navigation above linkable pages. */
+.settings-shell{max-width:880px;gap:var(--iq-space-4)}
+.settings-eyebrow{margin:0;color:var(--iq-muted);font-size:var(--iq-type-caption-size)}
+.settings-page{min-width:0}
+.settings-shell .iq-work-navigation{overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none}
+.member-row{align-items:center;gap:var(--iq-space-3)}
+.member-row>div{flex:1;min-width:0}
+.member-row p{margin:0}
+.task-settings-page [data-invite]{align-self:flex-start}
