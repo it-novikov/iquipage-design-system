@@ -23,9 +23,9 @@ const remove=z.strictObject({kind:z.literal('removeTemporal'),entityId:Id,...rev
 export const ViewIntent=z.discriminatedUnion('kind',[
   z.strictObject({kind:z.literal('taskEdit'),taskId:Id,baseRevision:Revision,task:TaskInput}),
   z.strictObject({kind:z.literal('taskCreate'),taskId:Id,task:TaskInput,createInBoard:z.boolean().default(false)}),
-  z.strictObject({kind:z.enum(['prepare','unprepare','take']),...selection}),
-  z.strictObject({kind:z.literal('move'),groupId:Id,...selection}),
-  z.strictObject({kind:z.literal('bulk'),field:z.enum(['owner','priority','due','tags']),value:z.union([z.string().max(120),z.array(Id).max(30),z.null()]),...selection}),
+  z.strictObject({kind:z.enum(['prepare','unprepare','take']),...selection,...revision}),
+  z.strictObject({kind:z.literal('move'),groupId:Id,...selection,...revision}),
+  z.strictObject({kind:z.literal('bulk'),field:z.enum(['owner','priority','due','tags']),value:z.union([z.string().max(120),z.array(Id).max(30),z.null()]),...selection,...revision}),
   z.strictObject({kind:z.literal('start'),groupId:Id}),
   z.strictObject({kind:z.literal('editRelease'),groupId:Id,values:releaseValue}),
   z.strictObject({kind:z.literal('createRelease'),values:releaseValue}),

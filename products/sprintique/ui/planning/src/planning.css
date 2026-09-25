@@ -47,6 +47,7 @@
 
 .pn-single-field{border:0;padding:0;margin:0;min-width:0}
 .pn-person,.pn-date{justify-content:flex-start;text-align:left;padding-inline:var(--iq-space-1);max-width:100%;white-space:normal}
+.pn-date{white-space:nowrap}
 .pn-person .iq-avatar{flex:none}
 .pn-group-header{padding-block:var(--iq-space-2)}
-.pn-col-task{width:60%}.pn-col-state{width:16%}.pn-col-owner{width:14%}.pn-col-date{width:10%}
+.pn-col-task{width:56%}.pn-col-state{width:16%}.pn-col-owner{width:14%}.pn-col-date{width:14%}

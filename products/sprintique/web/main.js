@@ -101,6 +101,8 @@ async function showProject(id,mode=location.hash.startsWith('#maps')?'maps':['pl
   await recoverPlanningAttempt(planningAdapter);
   const stateKey=project.id+':'+mode;if(!viewStates.has(stateKey))viewStates.set(stateKey,{});
   const host=root.querySelector('#host-view');host.dataset.section=mode;
+  // Each section replaces this outline when it mounts, so a slow first load never shows a blank page.
+  host.innerHTML=`<div class="host-loading" role="status"><span class="sr-only">Загрузка раздела…</span><div class="iq-skeleton host-loading-title"></div>${'<div class="iq-skeleton host-loading-row"></div>'.repeat(6)}</div>`;
   if(mode==='maps'){const {mountMapsHost}=await import('./maps-host.js');board=await mountMapsHost(host,{repository,project,onOpenTasks:async({focusTaskId})=>{await navigate('tasks');if(viewMode==='tasks')await board.openTask(focusTaskId);}});}
   else if(mode==='planning')board=await mountPlanningHost(host,{repository,adapter:planningAdapter,project,viewState:viewStates.get(stateKey),onOpenBoard:()=>navigate('tasks')});
   else if(mode==='settings'){const {mountSettings}=await import('./settings.js');board=await mountSettings(host,{repository,adapter:planningAdapter,project,onChanged:refreshHeader});}

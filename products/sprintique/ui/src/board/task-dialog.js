@@ -53,7 +53,7 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
       ${select('type','Тип',initial.type||'task',Object.entries(TASK_KINDS))}
       ${select('status','Статус',task?taskColumn(task):status,TASK_COLUMNS.map(column=>[column.id,column.label]))}
       <iq-combobox name="ownerId" label="Исполнитель" value="${esc(initial.ownerId||'')}" options="${esc(JSON.stringify(owners))}" placeholder="Не назначен"></iq-combobox>${legacyOwner}
-      ${select('priority','Приоритет',initial.priority||'normal',[['normal','Обычный'],['high','Высокий'],['critical','Критический'],['low','Низкий']])}
+      ${select('priority','Приоритет',initial.priority||'normal',[['low','Низкий'],['normal','Обычный'],['high','Высокий'],['critical','Критический']])}
       <iq-date-field name="due" label="Срок" value="${esc(initial.due||'')}"></iq-date-field>
     </div><section data-task-catalogs></section></aside>
     <div class="task-editor-supplements">

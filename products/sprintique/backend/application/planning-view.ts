@@ -26,7 +26,7 @@ function taskChange(effect:Effect,releases:Release[],names:Map<string,string>){
   if(before?.result!==after.result)parts.push(after.result==='accepted'?'Результат принят':'Результат открыт');
   if(before?.plannedStart!==after.plannedStart||before?.plannedEnd!==after.plannedEnd)parts.push(`План: ${after.plannedStart||'без начала'} — ${after.plannedEnd||'без окончания'}`);
   if(before?.due!==after.due)parts.push('Дедлайн: '+(after.due||'не задан'));
-  if(before?.ownerId!==after.ownerId)parts.push('Ответственный: '+(ownerLabel(after,names)||'не назначен'));
+  if(before?.ownerId!==after.ownerId)parts.push('Исполнитель: '+(ownerLabel(after,names)||'не назначен'));
   if(before?.priority!==after.priority)parts.push('Приоритет: '+({low:'Низкий',normal:'Обычный',high:'Высокий',critical:'Критичный'}[after.priority]||after.priority));
   if(before?.status!==after.status)parts.push('Состояние: '+(statusLabels[after.status]||after.status));
   if(JSON.stringify(before?.tagIds)!==JSON.stringify(after.tagIds))parts.push(`Теги: ${after.tagIds.length}`);

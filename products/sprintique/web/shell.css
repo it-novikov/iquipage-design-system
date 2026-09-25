@@ -1,3 +1,7 @@
 /* Product composition only. All controls, typography, states and motion use DS. */
 .map-version-preview{height:min(60vh,560px);min-height:280px}.map-version-preview>iq-whiteboard{height:100%}
 #app{height:100%}
+/* Section loading outline (DS skeleton), replaced by the mounted section. */
+.host-loading{display:grid;gap:var(--iq-space-3);padding:var(--iq-space-6) var(--iq-space-4);max-width:960px}
+.host-loading-title{height:28px;width:220px;margin-bottom:var(--iq-space-3)}
+.host-loading-row{height:40px}

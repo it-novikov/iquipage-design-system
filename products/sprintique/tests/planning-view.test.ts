@@ -119,3 +119,11 @@ test('V09 large consumer rows and immutable release descriptions remain paged an
   assert.equal(ids.length,207);assert.equal(new Set(ids).size,207);
   const closed=await view('groups',{history:'closed',query:'Paged history'});assert.equal(closed.items.find((g:{id:string})=>g.id===groupId).matched,207);
 });
+test('V08 row quick edits and moves carry the projection revision; a stale one is rejected',async()=>{
+  await task('quick-owner');const revision=(await view('groups')).revision as string;
+  await apply({kind:'bulk',taskIds:['quick-owner'],field:'owner',value:f.alice.id,expectedProjectionRevision:revision});
+  const stale=await request('planning/view/preview',{kind:'bulk',taskIds:['quick-owner'],field:'priority',value:'high',expectedProjectionRevision:revision});
+  assert.equal(stale.statusCode,409,stale.body);assert.equal(stale.json().code,'PROJECTION_STALE');
+  const moved=await request('planning/view/preview',{kind:'move',taskIds:['quick-owner'],groupId:'backlog',expectedProjectionRevision:'0'});
+  assert.equal(moved.statusCode,409,moved.body);
+});
