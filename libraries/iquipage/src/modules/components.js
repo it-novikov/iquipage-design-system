@@ -920,7 +920,14 @@ class IqTooltip extends IqElement {
         tip.id = uid();
         tip.setAttribute('role', 'tooltip');
         tip.setAttribute('popover', 'manual');
-        tip.textContent = this.getAttribute('text') || '';
+        // heading + text: a short title and one line per "\n" in text, so longer explanations keep a structure.
+        const heading = this.getAttribute('heading');
+        if (heading) {
+            const title = document.createElement('b'); title.className = 'iq-tooltip-heading'; title.textContent = heading; tip.append(title);
+            for (const line of (this.getAttribute('text') || '').split('\n').filter(Boolean)) { const row = document.createElement('span'); row.className = 'iq-tooltip-line'; row.textContent = line; tip.append(row); }
+            tip.classList.add('iq-tooltip-rich');
+        }
+        else tip.textContent = this.getAttribute('text') || '';
         this.append(tip);
         child.setAttribute('aria-describedby', tip.id);
         let dismissed = false;
@@ -944,7 +951,8 @@ class IqTooltip extends IqElement {
             tip.style.top = Math.max(8, r.top > h + 10 ? r.top - h - 8 : r.bottom + 8) + 'px';
         };
         this.listen(child, 'pointerenter', () => { dismissed = false; open(); });
-        this.listen(child, 'focus', () => { dismissed = false; open(); });
+        // Focus opens the tooltip only for keyboard navigation, never after a click or a programmatic focus.
+        this.listen(child, 'focus', () => { if (!child.matches(':focus-visible')) return; dismissed = false; open(); });
         this.listen(child, 'blur', close);
         this.listen(this, 'pointerleave', close);
         this.listen(this, 'keydown', e => {
@@ -1098,6 +1106,7 @@ class IqTagPicker extends IqElement {
         this.listen(this, 'click', e => {
             const remove = e.target.closest('[data-tag-remove]');
             if (remove) { this.remove(remove.dataset.tagRemove); return; }
+            if (e.target.closest('[data-tag-create]')) { this.close(); this.requestCreate(this.query.trim()); return; }
             const option = e.target.closest('[data-option]');
             if (option) { this.choose(Number(option.dataset.option)); return; }
             if (e.target.closest('.iq-tag-picker-field') && !this.locked) this.input.focus();
@@ -1126,9 +1135,12 @@ class IqTagPicker extends IqElement {
     choose(index) {
         const item = this.matches()[index]; if (!item || this.locked) return;
         if (item.kind === 'option') { this.add(item.option.value); return; }
-        // Creation belongs to the host (it owns the catalog); accept() adds the created option and selects it.
+        this.close();this.requestCreate(item.label);
+    }
+    /** Creation belongs to the host (it owns the catalog, e.g. a dialog); accept() adds the created option and selects it. */
+    requestCreate(label) {
         let settled = false;
-        this.emit('iq-create', { label: item.label, accept: option => { if (settled || !option?.value) return; settled = true; this._options = [...this._options.filter(o => o.value !== option.value), { value: option.value, label: option.label || item.label, tone: option.tone || 'neutral', archived: false }]; this.add(option.value); } });
+        this.emit('iq-create', { label, accept: option => { if (settled || !option?.value) return; settled = true; this._options = [...this._options.filter(o => o.value !== option.value), { value: option.value, label: option.label || label, tone: option.tone || 'neutral', archived: false }]; this.add(option.value); } });
     }
     add(value) {
         if (this._value.includes(value)) return;
@@ -1148,7 +1160,8 @@ class IqTagPicker extends IqElement {
         this.querySelector('.iq-control-label').textContent = this.getAttribute('label') || 'Теги';
         const byValue = new Map(this._options.map(o => [o.value, o]));
         this.querySelector('.iq-tag-picker-values').innerHTML = this._value.map(v => { const o = byValue.get(v) || { label: 'Недоступный тег', tone: 'neutral' };
-            return `<span class="iq-tag" data-tone="${escapeHTML(o.tone)}" data-value="${escapeHTML(v)}" ${this.entering.has(v) && !isReduced() ? 'data-entering' : ''}><span>${escapeHTML(o.label)}${o.archived ? ' · в архиве' : ''}</span>${this.locked ? '' : `<button type="button" class="iq-tag-remove" data-tag-remove="${escapeHTML(v)}" aria-label="Убрать тег ${escapeHTML(o.label)}">${icons_js_1.icon('x', 12)}</button>`}</span>`; }).join('');
+            return `<span class="iq-tag" data-tone="${escapeHTML(o.tone)}" data-value="${escapeHTML(v)}" ${this.entering.has(v) && !isReduced() ? 'data-entering' : ''}><span>${escapeHTML(o.label)}${o.archived ? ' (в архиве)' : ''}</span>${this.locked ? '' : `<button type="button" class="iq-tag-remove" data-tag-remove="${escapeHTML(v)}" aria-label="Убрать тег ${escapeHTML(o.label)}">${icons_js_1.icon('x', 12)}</button>`}</span>`; }).join('')
+            + (this.hasAttribute('creatable') && !this.locked ? `<button type="button" class="iq-tag iq-tag-add" data-tag-create>${icons_js_1.icon('plus', 12)}<span>${escapeHTML(this.getAttribute('create-label') || 'Новый тег')}</span></button>` : '');
         this.querySelectorAll('[data-entering]').forEach(chip => chip.addEventListener('animationend', () => chip.removeAttribute('data-entering'), { once: true }));
         this.entering.clear();
         this.input.disabled = this.hasAttribute('disabled'); this.input.readOnly = this.hasAttribute('readonly');
@@ -1168,8 +1181,36 @@ class IqTagPicker extends IqElement {
     attributeChangedCallback() { this.paint(); }
 }
 exports.IqTagPicker = IqTagPicker;
+/** File picker for hosts that upload themselves: a drop target plus a picker button, no internal list.
+ *  variant="compact" is one dashed row; variant="zone" is the DS dropzone. Emits iq-files {files} on pick or drop. */
+class IqFilePicker extends IqElement {
+    static get observedAttributes() { return ['label', 'hint', 'disabled', 'accept', 'multiple']; }
+    attributeChangedCallback() { if (this.events) this.mount(); }
+    mount() {
+        const label = escapeHTML(this.getAttribute('label') || (this.hasAttribute('multiple') ? 'Выберите или перетащите файлы' : 'Выберите или перетащите файл'));
+        const hint = escapeHTML(this.getAttribute('hint') || ''), disabled = this.hasAttribute('disabled') ? 'disabled' : '';
+        const accept = escapeHTML(this.getAttribute('accept') || ''), multiple = this.hasAttribute('multiple') ? 'multiple' : '';
+        const zone = this.getAttribute('variant') === 'zone';
+        this.innerHTML = (zone
+            ? `<div class="iq-dropzone iq-file-picker-target"><div class="iq-upload-art" aria-hidden="true"><span class="upload-back-sheet"></span><span class="iq-upload-sheet">${icons_js_1.icon('file', 33)}</span><span class="iq-upload-circle">${icons_js_1.icon('plus', 18)}</span></div><div class="upload-copy"><b>${label}</b>${hint ? `<p>${hint}</p>` : ''}</div><button type="button" class="iq-btn secondary sm" data-pick-file ${disabled}>${icons_js_1.icon('upload', 18)}Выбрать на устройстве</button></div>`
+            : `<button type="button" class="file-dropwell iq-file-picker-target iq-file-picker-row" data-pick-file ${disabled}>${icons_js_1.icon('upload', 18)}<span class="iq-file-picker-copy"><span>${label}</span>${hint ? `<small>${hint}</small>` : ''}</span></button>`)
+            + `<input type="file" hidden ${multiple} ${accept ? `accept="${accept}"` : ''} ${disabled} aria-label="${label}">`;
+        const input = this.querySelector('input[type=file]'), target = this.querySelector('.iq-file-picker-target');
+        const deliver = files => { if (!files.length || this.hasAttribute('disabled')) return; this.emit('iq-files', { files: this.hasAttribute('multiple') ? files : files.slice(0, 1) }); };
+        this.listen(input, 'change', () => { deliver(Array.from(input.files || [])); input.value = ''; });
+        this.listen(this, 'click', ev => { if (ev.target.closest('[data-pick-file]') && !this.hasAttribute('disabled')) input.click(); });
+        let depth = 0;
+        this.listen(target, 'dragenter', ev => { ev.preventDefault(); depth++; target.classList.add('dragover'); });
+        this.listen(target, 'dragover', ev => { ev.preventDefault(); if (ev.dataTransfer) ev.dataTransfer.dropEffect = 'copy'; });
+        this.listen(target, 'dragleave', () => { depth = Math.max(0, depth - 1); if (!depth) target.classList.remove('dragover'); });
+        this.listen(target, 'drop', ev => { ev.preventDefault(); depth = 0; target.classList.remove('dragover'); deliver(Array.from(ev.dataTransfer?.files || [])); });
+    }
+    /** Opens the system picker (for hosts with their own trigger, e.g. a cover preset dialog). */
+    open() { this.querySelector('input[type=file]')?.click(); }
+}
+exports.IqFilePicker = IqFilePicker;
 function registerComponents() {
-    const definitions = { 'iq-file-preview': media_js_1.IqFilePreview, 'iq-select': IqSelect, 'iq-combobox': IqCombobox, 'iq-tabs': IqTabs, 'iq-dialog': IqDialog, 'iq-number': IqNumber, 'iq-range': IqRange, 'iq-calendar': IqCalendar, 'iq-menu': IqMenu, 'iq-tooltip': IqTooltip, 'iq-tags': IqTags, 'iq-tag-picker': IqTagPicker, 'iq-upload': IqUpload };
+    const definitions = { 'iq-file-preview': media_js_1.IqFilePreview, 'iq-select': IqSelect, 'iq-combobox': IqCombobox, 'iq-tabs': IqTabs, 'iq-dialog': IqDialog, 'iq-number': IqNumber, 'iq-range': IqRange, 'iq-calendar': IqCalendar, 'iq-menu': IqMenu, 'iq-tooltip': IqTooltip, 'iq-tags': IqTags, 'iq-tag-picker': IqTagPicker, 'iq-file-picker': IqFilePicker, 'iq-upload': IqUpload };
     Object.entries(definitions).forEach(([name, type]) => {
         if (!customElements.get(name))
             customElements.define(name, type);

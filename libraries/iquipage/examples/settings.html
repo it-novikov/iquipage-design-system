@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="ru" data-theme="light">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IQUIPAGE — Настройки</title>
+<link rel="stylesheet" href="../dist/iquipage.css">
+<iq-settings-layout>
+  <div slot="navigation"><p class="iq-settings-title">Настройки</p><div id="navigation"></div></div>
+  <header slot="heading" class="iq-settings-heading"><div><h1>Внешний вид</h1><p>Общая композиция для продуктов IQUIPAGE.</p></div></header>
+  <section class="iq-settings-section"><h2>Тема интерфейса</h2><p>Карточки — нативная группа радиокнопок. Используйте Tab и стрелки.</p><iq-visual-choice id="theme" label="Тема интерфейса" value="light"></iq-visual-choice></section>
+  <section class="iq-settings-section"><h2>Плотность информации</h2><p>Выбор остаётся под управлением приложения.</p><iq-visual-choice id="density" label="Плотность информации" value="comfortable"></iq-visual-choice></section>
+  <p class="iq-settings-status" role="status" id="status">Это интерактивный пример. Настройки не сохраняются.</p>
+</iq-settings-layout>
+<script type="module">
+import {registerCore,settingsNavigation} from '../dist/core.js';
+registerCore();
+document.querySelector('#navigation').innerHTML=settingsNavigation([{label:'Для меня',items:[{id:'appearance',label:'Внешний вид',icon:'sun'}]}],'appearance');
+const theme=document.querySelector('#theme'),density=document.querySelector('#density'),media=matchMedia('(prefers-color-scheme: dark)');
+theme.options=[{value:'light',label:'Светлая',preview:'light'},{value:'dark',label:'Тёмная',preview:'dark'},{value:'system',label:'Как на устройстве',preview:'system'}];
+density.options=[{value:'comfortable',label:'Свободная',preview:'comfortable'},{value:'compact',label:'Компактная',preview:'compact'}];
+function apply(){document.documentElement.dataset.theme=theme.value==='system'?(media.matches?'dark':'light'):theme.value;document.documentElement.dataset.density=density.value;}
+for(const control of [theme,density])control.addEventListener('iq-change',()=>{apply();document.querySelector('#status').textContent='Выбор применён к примеру. Данные в браузере не сохраняются.';});
+media.addEventListener('change',apply);
+</script>
+</html>

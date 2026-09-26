@@ -18,7 +18,8 @@ html,body{height:100%;min-height:0}.demo-shell{height:100dvh;display:flex;flex-d
 
 
 /* Planning owns its phone gutters; the host adds none on top. */
-@media(max-width:640px){#host-view[data-section=planning]{padding:0}}
+/* Planning owns its padding (same heading as the board), so the section frame adds none. */
+#host-view[data-section=planning]{padding:0}
 /* Maps own their toolbars' gutters: the canvas runs edge to edge under the product header. */
 #host-view[data-section=maps]{padding:0;overflow:hidden;display:flex;min-height:0}
 #host-view[data-section=maps]>*{flex:1;min-width:0;min-height:0}

@@ -4,6 +4,7 @@ exports.IqDateField = void 0;
 exports.registerDateFields = registerDateFields;
 const components_js_1 = require("./components.js");
 const interaction_js_1 = require("./interaction.js");
+const time_js_1 = require("./time.js");
 /** A date field composed with the same calendar used in the component library.
  * The visible control is a button, never a native date input. Values are local
  * ISO calendar dates, without a timezone conversion. */
@@ -185,7 +186,7 @@ class IqDateField extends components_js_1.IqElement {
             this.trigger.setAttribute('aria-describedby', described);
         else
             this.trigger.removeAttribute('aria-describedby');
-        this.querySelector('[data-date-caption]').textContent = this.chosen ? new Date(this.chosen + 'T12:00:00').toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' }) + (this.hasAttribute('with-time') ? ' — ' + this.time : '') : (this.getAttribute('placeholder') || 'Выбрать дату');
+        this.querySelector('[data-date-caption]').textContent = this.chosen ? time_js_1.formatDate(this.chosen) + (this.hasAttribute('with-time') ? ' ' + this.time : '') : (this.getAttribute('placeholder') || 'Выбрать дату');
         this.trigger.classList.toggle('is-empty', !this.chosen);
         const hidden = this.querySelector('[data-date-value]');
         hidden.value = this.chosen;

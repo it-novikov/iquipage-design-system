@@ -27,6 +27,9 @@ const noteEntries=[
 ];
 function installWorkshop(Klass){
  const prev={};for(const key of ['initDOM','listen','render','renderLibrary','renderSelection','click','action','setTool','moveConnector','updateViewport','disconnectedCallback'])prev[key]=Klass.prototype[key];
+ Object.defineProperty(Klass.prototype,'hostActions',{configurable:true,
+  get(){return [...(this._hostActions||[])];},
+  set(list){this._hostActions=(Array.isArray(list)?list:[]).filter(a=>a&&typeof a.id==='string'&&typeof a.label==='string').slice(0,6);this.renderHostActions?.();}});
  Object.assign(Klass.prototype,{
   initDOM(){
    prev.initDOM.call(this);if(this.shell.dataset.workshop)return;this.shell.dataset.workshop='057';
@@ -45,11 +48,45 @@ function installWorkshop(Klass){
    for(const [action,key]of [['zoom-in','plus'],['zoom-out','minus'],['fit','fit']]){const b=this.shell.querySelector('.wb-zoom [data-wb-action='+action+']');b.innerHTML=dockIcon(key);b.dataset.tip=b.getAttribute('aria-label');}
    for(const el of dock.querySelectorAll('button'))el.dataset.tip ||= el.getAttribute('aria-label');
    const tip=document.createElement('div');tip.className='wb-overlay-tip';tip.id=this.uid+'-tip';tip.setAttribute('role','tooltip');tip.hidden=true;this.shell.append(tip);this.tipEl=tip;
+   // Host embedding: host buttons sit in the dock after "+", and a host panel opens from the same edge as the library.
+   dock.querySelector('[data-wb-action=library-toggle]').insertAdjacentHTML('afterend','<span class="wb-host-actions" data-wb-host-actions></span>');
+   const panel=document.createElement('aside');panel.className='wb-host-panel';panel.hidden=true;panel.setAttribute('aria-labelledby',this.uid+'-host-title');
+   panel.innerHTML=`<header><h3 id="${this.uid}-host-title"></h3><button type="button" class="wb-button wb-icon-button" data-wb-host-close aria-label="Закрыть">${icon('x',18)}</button></header><div class="wb-host-body"></div>`;
+   this.libraryEl.after(panel);this.hostPanelEl=panel;
+   this.renderHostActions();
    this.renderLibrary();
+  },
+  /** Host commands shown in the dock: [{id,label,icon}]; a click emits iq-host-command {command:id}. */
+  renderHostActions(){
+   const slot=this.shell?.querySelector('[data-wb-host-actions]');if(!slot)return;
+   slot.innerHTML=(this._hostActions||[]).map(a=>`<button type="button" class="wb-button" data-wb-host="${esc(a.id)}" aria-label="${esc(a.label)}" data-tip="${esc(a.label)}" ${this.hostPanelId===a.id?'aria-expanded="true"':''}>${icon(a.icon||'more',20)}</button>`).join('');
+  },
+  /** Opens (or replaces) the host side panel; the object library closes so only one sheet shows at a time. */
+  openHostPanel({id='',title='',content=''}={}){
+   if(!this.hostPanelEl)return;
+   this.hostPanelId=id;this.hostPanelEl.querySelector('h3').textContent=title;
+   const body=this.hostPanelEl.querySelector('.wb-host-body');if(typeof content==='string')body.innerHTML=content;else body.replaceChildren(content);
+   if(this.libraryOpen){this.libraryOpen=false;this.render();}
+   this.hostPanelEl.hidden=false;this.shell.classList.add('has-host-panel');this.renderHostActions();
+   requestAnimationFrame(()=>this.hostPanelEl.querySelector('button:not([data-wb-host-close]),a,input')?.focus({preventScroll:true}));
+  },
+  closeHostPanel(restoreFocus=true){
+   if(!this.hostPanelEl||this.hostPanelEl.hidden)return;
+   const id=this.hostPanelId;this.hostPanelEl.hidden=true;this.hostPanelId='';this.shell.classList.remove('has-host-panel');this.renderHostActions();
+   if(restoreFocus)this.shell.querySelector(`[data-wb-host="${CSS.escape(id)}"]`)?.focus({preventScroll:true});
+   this.emit('iq-host-panel',{id,open:false});
   },
   listen(){
    prev.listen.call(this);const signal=this.events.signal;
    this.addEventListener('input',e=>{if(e.target.matches('.wb-library-search input')){this.libraryQuery=e.target.value;this.renderLibrary();}},{signal});
+   this.addEventListener('click',e=>{
+    if(e.target.closest('[data-wb-host-close]')){this.closeHostPanel();return;}
+    const host=e.target.closest('[data-wb-host]');if(!host)return;
+    // A second press on the button that owns the open panel closes it, like the "+" library toggle.
+    if(this.hostPanelId===host.dataset.wbHost){this.closeHostPanel();return;}
+    this.emit('iq-host-command',{command:host.dataset.wbHost});
+   },{signal});
+   this.addEventListener('keydown',e=>{if(e.key==='Escape'&&this.hostPanelEl&&!this.hostPanelEl.hidden&&e.target.closest?.('.wb-host-panel')){e.preventDefault();e.stopPropagation();this.closeHostPanel();}},{signal,capture:true});
    const tipTarget=e=>e.target.closest('.wb-dock button,.wb-zoom button,.wb-md-tools button,.wb-alignment button');
    this.addEventListener('pointerover',e=>{
     if(e.pointerType==='touch')return;
@@ -95,6 +132,13 @@ function installWorkshop(Klass){
    const t=this.tipEl.getBoundingClientRect(),w=t.width/scale,h=t.height/scale;
    const topLimit=Math.max(8,(8-originY)/scale),bottomLimit=Math.min(this.shell.clientHeight-8,(innerHeight-originY-8)/scale);
    const above=(r.top-originY)/scale-h-10,below=(r.bottom-originY)/scale+10;
+   // On the side rail the tooltip sits to the right of the button, vertically centred, clear of the neighbours.
+   if(this.getAttribute('dock')==='side'&&button.closest('.wb-footer')){
+    this.tipEl.style.left=Math.min(right-w,(r.right-originX)/scale+10)+'px';
+    this.tipEl.style.top=Math.max(topLimit,Math.min(bottomLimit-h,(r.top+r.height/2-originY)/scale-h/2))+'px';
+    this.tipEl.dataset.side='right';return;
+   }
+   delete this.tipEl.dataset.side;
    this.tipEl.style.left=Math.max(left,Math.min(right-w,(r.left+r.width/2-originX)/scale-w/2))+'px';
    this.tipEl.style.top=Math.max(topLimit,Math.min(bottomLimit-h,above>=topLimit?above:below))+'px';
   },
@@ -121,7 +165,7 @@ function installWorkshop(Klass){
      html+=`<section class="wb-library-family"><h4>${group}</h4><div class="wb-shape-grid">${options.map(d=>`<button type="button" draggable="true" class="wb-library-item wb-shape-choice" data-library-item="shape" data-shape="${d.id}" aria-pressed="${this.tool==='shape'&&this.shape===d.id}" ${this.locked?'disabled':''}>${shapePreview(d.id)}<b>${d.label}</b></button>`).join('')}</div></section>`;
     }
    }else{
-    if(this.allowedCreateTypes.includes('image')&&match('Изображение PNG JPEG WebP'))html=card(['image','Изображение','PNG, JPEG, WebP · с устройства','image','sky']);
+    if(this.allowedCreateTypes.includes('image')&&match('Изображение PNG JPEG WebP'))html=card(['image','Изображение','PNG, JPEG или WebP с устройства','image','sky']);
     html+='<p class="wb-library-format-note">Изображение остаётся в документе доски. Файлы из приватных систем подключает приложение.</p>';
    }
    this.libraryEl.querySelector('.wb-library-items').innerHTML=html||'<p class="wb-library-no-results">Ничего не найдено. Попробуйте другое название.</p>';

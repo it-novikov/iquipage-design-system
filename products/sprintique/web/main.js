@@ -1,3 +1,5 @@
+import {mountAuthScreen} from './auth-screen.js';
+import {appearance} from './appearance.js';
 import '@iquipage/web/styles.css';
 import '../ui/src/maps.css';
 import '../ui/src/board/board.css';
@@ -38,10 +40,9 @@ async function refreshHeader(){
 }
 // ---- Product shell (UX R3 navigation) ----
 let nav=null;
-const THEME_KEY='sprintique.theme';
-function storedTheme(){try{return localStorage.getItem(THEME_KEY)==='dark'?'dark':'light';}catch{return 'light';}}
-function applyTheme(theme){document.documentElement.dataset.theme=theme;try{localStorage.setItem(THEME_KEY,theme);}catch{}nav?.setTheme(theme);}
-applyTheme(storedTheme());
+function applyTheme(theme){appearance().update({theme});}
+appearance();
+window.addEventListener('sprintique-appearance-change',()=>nav?.setTheme(document.documentElement.dataset.theme));
 const context=project=>({id:project.id,workspaceId:project.workspaceId,workspaceName:project.workspaceName,projectName:project.name});
 const initials=name=>String(name||'').trim().split(/\s+/).slice(0,2).map(part=>part[0]||'').join('').toUpperCase()||'Я';
 function ensureShell(project,mode){
@@ -71,23 +72,24 @@ function createWorkspace(){
   }});
 }
 /** Sign-in offers only the ways in the server actually has; an unconfigured provider is never a link. */
+/** Sign-in: the DS credential dialog for the local stand; an organisation provider is opened directly
+ *  (its themed page shows the same dialog); nothing configured → a calm explanation, never a raw error. */
 async function renderSignIn(){
   const methods=await fetch('/api/v1/auth/methods').then(r=>r.ok?r.json():{oidc:false,devLogin:false}).catch(()=>({oidc:false,devLogin:false}));
   const keepInvitation=()=>{const match=location.hash.match(/^#invite\/(invite_[A-Za-z0-9_-]{43})$/);if(match)sessionStorage.setItem('sprintique.pending-invitation',match[1]);};
-  const dev=methods.devLogin?`<form class="host-sign-in" data-dev-login><p class="iq-badge">Локальный стенд</p>${input('username','Логин','admin',{required:true,maxlength:100})}${input('password','Пароль','',{type:'password',required:true,maxlength:100,placeholder:'admin'})}<p class="host-task-error" role="alert" hidden></p><button type="submit" class="iq-btn primary">Войти</button></form>`:'';
-  const oidc=methods.oidc?`<a class="iq-btn ${methods.devLogin?'secondary':'primary'}" href="/auth/login" data-oidc>Войти через учётную запись организации</a>`:'';
-  const none=!dev&&!oidc?'<p role="alert">Вход не настроен. Для отладки запустите локальный стенд: <code>npm run dev:local</code>.</p>':'';
-  root.innerHTML=`<main class="host-landing"><h1>Sprintique</h1><p>Войдите, чтобы открыть свои проекты.</p>${dev}${oidc}${none}</main>`;
+  if(methods.oidc&&!methods.devLogin){mountAuthScreen(root);return;}
+  if(!methods.devLogin){root.innerHTML='<main class="iq-auth-stage"><section class="iq-auth-dialog"><h1>Вход не настроен</h1><p class="iq-auth-dialog-description">Для отладки запустите локальный стенд: <code>npm run dev:local</code>.</p></section></main>';return;}
+  root.innerHTML=`<main class="iq-auth-stage"><div class="host-sign-in"><iq-auth-dialog product="Sprintique" heading="Вход в Sprintique" description="Локальный стенд: тестовая учётная запись admin / admin." username-label="Логин"></iq-auth-dialog>${methods.oidc?'<a class="iq-btn ghost" href="/auth/login" data-oidc>Войти через учётную запись организации</a>':''}</div></main>`;
   root.querySelector('[data-oidc]')?.addEventListener('click',keepInvitation);
-  const form=root.querySelector('[data-dev-login]');if(!form)return;
-  form.querySelector('[name=password]').focus();
-  form.addEventListener('submit',async event=>{
-    event.preventDefault();const alert=form.querySelector('[role=alert]'),button=form.querySelector('[type=submit]');alert.hidden=true;button.disabled=true;
+  const dialog=root.querySelector('iq-auth-dialog');
+  dialog.querySelector('[name=username]').value='admin';dialog.querySelector('[name=password]').focus();
+  dialog.addEventListener('iq-auth-submit',async event=>{
+    event.preventDefault();dialog.removeAttribute('error');dialog.setAttribute('pending','');
     try{
-      const values=new FormData(form),response=await fetch('/auth/dev-login',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({username:values.get('username'),password:values.get('password')})});
+      const response=await fetch('/auth/dev-login',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({username:event.detail.username,password:event.detail.password})});
       if(!response.ok)throw Error((await response.json().catch(()=>null))?.message||'Не удалось войти.');
       keepInvitation();location.reload();
-    }catch(cause){alert.textContent=cause.message;alert.hidden=false;button.disabled=false;}
+    }catch(cause){dialog.removeAttribute('pending');dialog.clearPassword();dialog.setAttribute('error',cause.message);dialog.querySelector('[name=password]').focus();}
   });
 }
 // The last opened project reopens after sign-in; a project link in the URL still wins.
@@ -111,7 +113,7 @@ async function onboard(selectedWorkspaceId){
 async function showProject(id,mode=location.hash.startsWith('#maps')?'maps':location.hash.startsWith('#settings')?'settings':location.hash==='#planning'?'planning':'tasks'){
   if(navigating)return false;navigating=true;
   try{
-  if(board&&!await board.closeTask())return;
+  if(board&&!await board.closeTask())return false;
   repository.stopWatch?.();await board?.destroy();board=null;const project=session.projects.find(p=>p.id===id)||session.projects[0];
   if(!project){root.innerHTML='<main class="host-landing"><h1>Создадим первый проект</h1><p>Задачи, обсуждения и команда в одном месте.</p><button class="iq-btn primary" data-onboard>Создать проект</button></main>';root.querySelector('[data-onboard]').onclick=()=>onboard().catch(report);return;}
   currentProject=project;viewMode=mode;
@@ -156,7 +158,9 @@ async function showProject(id,mode=location.hash.startsWith('#maps')?'maps':loca
 }
 async function navigate(mode){
   if(navigating||!currentProject)return;
+  const restoreHash=board?.routeHash||sectionRouteHash(viewMode,location.hash);
   if(await showProject(currentProject.id,mode))history.replaceState(null,'',sectionRouteHash(viewMode,location.hash));
+  else history.replaceState(null,'',restoreHash);
 }
 root.addEventListener('click',event=>{const link=event.target.closest('[data-section-link]');if(!link)return;event.preventDefault();void navigate(link.dataset.sectionLink).catch(report);});
 /** Command palette entries for the current project and role. */
@@ -180,18 +184,7 @@ function search(){if(!session||document.querySelector('dialog[open]'))return;ope
   try{if(board&&!await board.closeTask())return;history.replaceState(null,'',item.kind==='map'?'#maps/'+encodeURIComponent(item.id):'#tasks');await showProject(item.projectId,item.kind==='map'?'maps':'tasks');if(item.kind==='task')await board.openTask(item.key);}catch(error){report(error);}
 }});}
 window.addEventListener('keydown',event=>{if((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='k'){event.preventDefault();search();}});
-root.addEventListener('iq-action',event=>{
-  const action=String(event.detail.action||'');
-  if(action.startsWith('section:'))void navigate(action.slice(8)).catch(report);
-  if(action==='profile')void editProfile(repository.client).catch(report);
-  if(action==='theme')applyTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');
-  if(action==='logout')void(async()=>{if(board&&!await board.closeTask())return;await repository.client.request('/logout','POST');location.reload();})().catch(report);
-  if(action.startsWith('project:')){void showProject(action.slice(8)).catch(report);}
-  if(action==='create-project')void onboard(currentProject?.workspaceId).catch(report);
-  if(action.startsWith('workspace:')){const id=action.slice(10),p=session.projects.find(p=>p.workspaceId===id);if(p)void showProject(p.id).catch(report);else void onboard(id).catch(report);}
-  if(action==='create-workspace')dialog({title:'Создать пространство',body:input('name','Название','',{required:true,maxlength:100}),submitLabel:'Создать',onSubmit:async values=>{const space=await repository.client.request('/workspaces','POST',{name:values.get('name')});await onboard(space.id);}});
-});
-window.addEventListener('hashchange',()=>{void(async()=>{const task=parseTaskRoute(location.hash);if(task){if(!board?.openTask)await showProject(currentProject.id,'tasks');await board?.openTask?.(task,{fromRoute:true});}else if(location.hash.startsWith('#maps'))await navigate('maps');else if(location.hash.startsWith('#settings')){if(viewMode==='settings'&&board?.showSection){const {settingsSectionFromHash}=await import('./settings.js');await board.showSection(settingsSectionFromHash(location.hash));}else await navigate('settings');}
+window.addEventListener('hashchange',()=>{void(async()=>{const task=parseTaskRoute(location.hash);if(task){if(!board?.openTask)await showProject(currentProject.id,'tasks');await board?.openTask?.(task,{fromRoute:true});}else if(location.hash.startsWith('#maps'))await navigate('maps');else if(location.hash.startsWith('#settings')){if(viewMode==='settings'&&board?.navigateSettings){await board.navigateSettings();}else await navigate('settings');}
     else if(['#tasks','#planning'].includes(location.hash))await navigate(location.hash.slice(1));else await board?.closeTask();})().catch(report);});
 try{session=await repository.initialize();
   const pending=sessionStorage.getItem('sprintique.pending-invitation');sessionStorage.removeItem('sprintique.pending-invitation');

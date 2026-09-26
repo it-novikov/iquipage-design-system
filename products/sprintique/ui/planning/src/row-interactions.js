@@ -14,7 +14,7 @@ export function mountPlanningDrag(root,scroll,controller,{locked,onDrop,onState}
   let revision=null;
   return bindRowDrag({root,scrollRoot:scroll,
     source:id=>{if(locked())return null;const group=controller.groups.find(g=>g.rows.some(r=>r.taskId===id&&!r.contextOnly));const row=group?.rows.find(r=>r.taskId===id);
-      return row?.selectable&&!['accepted','cancelled'].includes(row.outcome)?{id,label:row.key+' · '+row.title}:null;},
+      return row?.selectable&&!['accepted','cancelled'].includes(row.outcome)?{id,label:row.key+' '+row.title}:null;},
     resolve:(source,groupId,beforeId)=>locked()?null:planningDrop(controller,source.id,groupId,beforeId),
     targets:source=>controller.groups.flatMap(g=>{const positions=g.rows.filter(r=>!r.contextOnly).map(r=>r.taskId);positions.push(null);return positions.map(id=>planningDrop(controller,source.id,g.id,id)).filter(Boolean);}).filter((t,i,a)=>a.findIndex(x=>x.groupId===t.groupId&&x.beforeId===t.beforeId)===i),
     commit:(source,target)=>{const original=controller.groups.find(g=>g.rows.some(r=>r.taskId===source.id));if(!original)return;

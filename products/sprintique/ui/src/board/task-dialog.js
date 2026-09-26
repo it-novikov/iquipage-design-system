@@ -41,24 +41,28 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
   const parents=[{value:'',label:'Отсутствует'},...tasks.filter(item=>{
     if(item.archivedAt||item.projectId!==project.id)return false;
     try{reparentTask({...initial,id:taskId,projectId:project.id},item.id,tasks);return true;}catch{return false;}
-  }).map(item=>({value:item.id,label:`${item.displayId||item.id.slice(-7).toUpperCase()} · ${item.title}`,description:`${TASK_KINDS[item.type]||'Задача'} · ${TASK_COLUMNS.find(c=>c.id===taskColumn(item))?.label||item.status}`}))];
-  const content=`<div class="task-editor-layout"><div class="task-editor-content"><section class="task-editor-cover" data-task-cover></section>
-    ${input('title','Название',initial.title,{required:true,placeholder:'Что нужно сделать?'})}
-    <section class="task-edit-section"><div class="row between"><h3>Описание</h3>${canEdit?'<button type="button" class="iq-btn ghost sm" data-apply-template>Применить шаблон</button>':''}</div>
-      <div class="task-description-surface" data-description>
-        <iq-markdown-editor label="Описание" name="description" variant="compact" density="compact" maxlength="10000" preview-on-blur ${task?'preview':''}></iq-markdown-editor>
-      </div><div class="task-tags-row" data-task-tags aria-label="Теги задачи"></div></section>
-    </div><aside class="task-editor-properties" aria-label="Свойства задачи">
-    <div class="task-edit-properties">
-      ${select('type','Тип',initial.type||'task',Object.entries(TASK_KINDS))}
+  }).map(item=>({value:item.id,label:`${item.displayId||item.id.slice(-7).toUpperCase()} ${item.title}`,description:`${TASK_KINDS[item.type]||'Задача'}, ${TASK_COLUMNS.find(c=>c.id===taskColumn(item))?.label||item.status}`}))];
+  // One column, like the DS reference task drawer: title, properties in a 2×N grid with labels on top, then the
+  // description at its natural height and the supplements. Fullscreen moves the properties into a sticky side column.
+  const content=`<section class="task-editor-cover" data-task-cover hidden></section><div class="task-editor-layout">
+    <div class="task-editor-title">${input('title','Название',initial.title,{required:true,placeholder:'Что нужно сделать?'})}</div>
+    <section class="task-editor-properties" aria-label="Свойства задачи"><div class="task-props">
       ${select('status','Статус',task?taskColumn(task):status,TASK_COLUMNS.map(column=>[column.id,column.label]))}
-      <iq-combobox name="ownerId" label="Исполнитель" value="${esc(initial.ownerId||'')}" options="${esc(JSON.stringify(owners))}" placeholder="Не назначен"></iq-combobox>${legacyOwner}
+      <div class="task-prop"><iq-combobox name="ownerId" label="Исполнитель" value="${esc(initial.ownerId||'')}" options="${esc(JSON.stringify(owners))}" placeholder="Не назначен"></iq-combobox>${legacyOwner}</div>
       ${select('priority','Приоритет',initial.priority||'normal',[['low','Низкий'],['normal','Обычный'],['high','Высокий'],['critical','Критический']])}
       <iq-date-field name="due" label="Срок" value="${esc(initial.due||'')}"></iq-date-field>
-    </div><section data-task-catalogs></section></aside>
+      <div class="task-prop" data-task-catalogs></div>
+      ${select('type','Тип',initial.type||'task',Object.entries(TASK_KINDS))}
+      <div class="task-prop task-prop-wide"><iq-combobox name="parent" label="Родительская задача" value="${esc(initial.parentId||'')}" options="${esc(JSON.stringify(parents))}" placeholder="Найти задачу по номеру или названию"></iq-combobox></div>
+    </div></section>
+    <section class="task-edit-section task-editor-description"><div class="row between"><h3>Описание</h3>${canEdit?'<button type="button" class="iq-btn ghost sm" data-apply-template>Применить шаблон</button>':''}</div>
+      <div class="task-description-surface" data-description>
+        <iq-markdown-editor label="Описание" name="description" variant="compact" density="compact" maxlength="10000" preview-on-blur ${task?'preview':''} empty-text="${canEdit?'Нажмите, чтобы добавить описание':'Описания нет'}"></iq-markdown-editor>
+      </div></section>
     <div class="task-editor-supplements">
+    <section class="task-edit-section task-tags-row" data-task-tags aria-label="Теги задачи"></section>
     <section class="task-edit-section" data-task-files></section>
-    <section class="task-edit-section"><h3>Связи</h3><iq-combobox name="parent" label="Родительская задача" value="${esc(initial.parentId||'')}" options="${esc(JSON.stringify(parents))}" placeholder="Найти задачу по номеру или названию"></iq-combobox><div data-task-links></div></section>
+    <section class="task-edit-section"><h3>Связи</h3><div data-task-links></div></section>
     <section class="task-edit-section" data-task-threads></section></div></div><p role="status" class="iq-helper" data-task-save-state></p>`;
   const read=(form,values=new FormData(form))=>({
     title:String(values.get('title')||'').trim(),type:values.get('type')||'task',status:values.get('status'),
@@ -94,7 +98,14 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
         actions.querySelector('[data-task-fullscreen]').addEventListener('click',event=>{const native=el.querySelector('dialog'),before=native.getBoundingClientRect();fullscreen=!fullscreen;el.dataset.fullscreen=String(fullscreen);event.currentTarget.setAttribute('aria-label',fullscreen?'Свернуть в боковое меню':'Открыть на весь экран');if(!motionReduced())native.animate([{width:before.width+'px'},{width:native.getBoundingClientRect().width+'px'}],{duration:280,easing:'cubic-bezier(.2,.7,.2,1)'});});
       }
       el.querySelector('dialog').classList.add('iq-drawer');
-      files=mountTaskFiles(form.querySelector('[data-task-files]'),{coverRoot:form.querySelector('[data-task-cover]'),adapter:attachmentAdapter,task:{...initial,id:taskId,projectId:project.id},readOnly:!canEdit});
+      if(canEdit){
+        // The cover is added from the header, so an empty cover never takes space in the drawer.
+        const close=form.querySelector('.iq-dialog-head [data-close]'),add=document.createElement('button');
+        add.type='button';add.className='iq-btn ghost sm task-cover-add';add.dataset.taskAddCover='';add.hidden=true;add.innerHTML=`${icon('image',16)}<span>Обложка</span>`;
+        (form.querySelector('.task-dialog-actions')||close.parentElement).insertBefore(add,form.querySelector('.task-dialog-actions [data-task-fullscreen]')||close);
+        add.addEventListener('click',()=>files?.addCover());
+      }
+      files=mountTaskFiles(form.querySelector('[data-task-files]'),{onCoverState:has=>{const add=el.querySelector('[data-task-add-cover]');if(add)add.hidden=has;},coverRoot:form.querySelector('[data-task-cover]'),adapter:attachmentAdapter,task:{...initial,id:taskId,projectId:project.id},readOnly:!canEdit});
       const editor=form.querySelector('iq-markdown-editor[name=description]');
       description=mountTaskDescription(form.querySelector('[data-description]'),{value:taskMarkdown(initial),editing:!task,readOnly:!canEdit});
       catalogs=mountTaskCatalogs(form.querySelector('[data-task-catalogs]'),{tagsRoot:form.querySelector('[data-task-tags]'),repository,project,task:initial,tags:support.tags,releases:support.releases,readOnly:!canEdit,canManage,onChange:()=>form.dispatchEvent(new Event('change'))});
@@ -205,6 +216,8 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
         clearTimeout(timer);window.removeEventListener('beforeunload',unload);description.destroy();files.destroy();catalogs.destroy();threads?.destroy();links?.destroy();
       },{once:true});
       baseline=JSON.stringify(read(form));
+      // A new task starts at its title: the description editor (edit mode) must not take the first focus.
+      if(!task&&canEdit)requestAnimationFrame(()=>requestAnimationFrame(()=>form.querySelector('input[name=title]')?.focus({preventScroll:true})));
       if(!canEdit)form.querySelectorAll('input,iq-select,iq-combobox,iq-date-field,iq-markdown-editor').forEach(node=>{if(!canDiscuss||!node.closest('[data-task-threads]'))node.setAttribute('disabled','');});
     }
   });

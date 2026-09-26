@@ -1,3 +1,4 @@
+import {formatDateTime} from '@iquipage/web/core';
 import {createThreadPager} from './thread-pager.js';
 import {icon,esc} from '../ui.js';
 import {uid} from '../common.js';
@@ -16,7 +17,7 @@ export function mountThreads(root,{repository,task,readOnly=false}){
     <iq-markdown-editor label="Новое обсуждение" variant="minimal" density="compact" name="new-discussion" placeholder="Напишите сообщение или вопрос" maxlength="20000" submit-label="Опубликовать"></iq-markdown-editor>
     </section>`);
   const list=root.querySelector('[data-thread-list]'),error=root.querySelector('[data-thread-error]'),composer=root.querySelector('.thread-compose iq-markdown-editor');
-  const syncComposer=()=>{if(composer)composer.footerActions=[{id:'requires-resolution',label:'Требует решения',pressed:requiresResolution,tone:'warning'}];};
+  const syncComposer=()=>{if(composer)composer.footerActions=[{id:'requires-resolution',label:'Требует решения',hint:requiresResolution?'Обсуждение останется открытым, пока его не отметят решённым':'Отметьте, если нужен ответ или решение',pressed:requiresResolution,tone:'warning'}];};
   syncComposer();
   composer?.addEventListener('iq-editor-action',event=>{
     if(event.target!==composer||event.detail.id!=='requires-resolution'||readOnly||busy.has('new'))return;
@@ -26,7 +27,7 @@ export function mountThreads(root,{repository,task,readOnly=false}){
   const label=thread=>thread.requiresResolution?(thread.resolved?'Решён':'Требует решения'):'Комментарий';
   const stateClass=thread=>'iq-badge thread-state'+(thread.requiresResolution?(thread.resolved?' success':' warning unresolved'):'');
   const author=id=>id===(repository.context?.actorId||'local-user')?'Вы':id;
-  const time=value=>new Intl.DateTimeFormat('ru',{dateStyle:'medium',timeStyle:'short'}).format(new Date(value));
+  const time=value=>formatDateTime(value);
   function capture(){
     list.querySelectorAll('[data-reply-editor]').forEach(editor=>drafts.set(editor.dataset.replyEditor,editor.value));
     list.querySelectorAll('[data-thread]').forEach(element=>element.open?expanded.add(element.dataset.thread):expanded.delete(element.dataset.thread));
@@ -37,7 +38,7 @@ export function mountThreads(root,{repository,task,readOnly=false}){
     return `<details class="iq-accordion task-thread" data-thread="${id}" ${expanded.has(thread.id)?'open':''}>
       <summary><span class="grow"><span class="${stateClass(thread)}">${label(thread)}</span>
       <span class="thread-excerpt">${esc(thread.messages[0].body.slice(0,160))}</span>
-      <small>${thread.messageCount??thread.messages.length} сообщ. · ${esc(time(thread.lastActivityAt))}</small></span>${icon('plus',16)}</summary>
+      <small>${thread.messageCount??thread.messages.length} сообщ., ${esc(time(thread.lastActivityAt))}</small></span>${icon('plus',16)}</summary>
       <div class="thread-body"><p class="iq-helper" role="status" data-thread-load-state></p><div data-thread-messages="${id}"></div>${resolution}${reply}</div></details>`;
   }
   function requestDetails(thread,element){
@@ -89,7 +90,7 @@ export function mountThreads(root,{repository,task,readOnly=false}){
       if(node!==cursor){if(node.isConnected&&typeof list.moveBefore==='function')list.moveBefore(node,cursor);else list.insertBefore(node,cursor);}
       cursor=node.nextElementSibling;
       const state=node.querySelector('.thread-state');state.textContent=label(thread);state.className=stateClass(thread);
-      node.querySelector('summary small').textContent=`${thread.messageCount??thread.messages.length} сообщ. · ${time(thread.lastActivityAt)}`;
+      node.querySelector('summary small').textContent=`${thread.messageCount??thread.messages.length} сообщ., ${time(thread.lastActivityAt)}`;
       const resolve=node.querySelector('[data-resolve]');if(resolve)resolve.textContent=thread.resolved?'Открыть снова':'Отметить решённым';
       if(expanded.has(thread.id))node.open=true;
     }

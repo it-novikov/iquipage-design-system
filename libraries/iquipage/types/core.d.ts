@@ -1,5 +1,5 @@
 /** Supported core browser entry. Does not register graph, roadmap, crop, or whiteboard. */
-export declare const version:'0.6.0-vnext.8';
+export declare const version:'0.6.0-vnext.14';
 export declare function registerCore():void;
 export declare function registerComponents():void;
 export declare function registerDateFields():void;
@@ -21,9 +21,12 @@ export declare function copyAtButton(button:HTMLButtonElement,text:string):Promi
 export declare function parseTime(value:string):string|null;
 export declare function formatTime(value:string,cycle:12|24):string;
 export declare function pageWindow(total:number,current:number,compact?:boolean):(number|string)[];
+export declare function formatDate(value:string|number|Date|null|undefined,options?:{timeZone?:string}):string;
+export declare function formatDateTime(value:string|number|Date|null|undefined,options?:{timeZone?:string}):string;
+export declare function formatDateRange(start:string|number|Date|null|undefined,end:string|number|Date|null|undefined,options?:{timeZone?:string}):string;
 export declare class IqDateField extends HTMLElement {value:string;readonly timeValue:string;disabled:boolean;open():void;close(restore?:boolean):void;}
 export declare class IqTime extends HTMLElement {value:string;hourCycle:12|24;}
-export interface MarkdownEditorAction {id:string;label:string;pressed:boolean;disabled?:boolean;tone?:'neutral'|'warning';}
+export interface MarkdownEditorAction {id:string;label:string;pressed:boolean;disabled?:boolean;tone?:'neutral'|'warning';hint?:string;}
 export interface MarkdownEditorActionIntent {id:string;pressed:boolean;previous:boolean;}
 export declare class IqMarkdownEditor extends HTMLElement {value:string;disabled:boolean;readOnly:boolean;previewOnBlur:boolean;previewMode:boolean;interactiveTasks:boolean;density:'compact'|'comfortable';footerActions:MarkdownEditorAction[];preview():void;focusEditor():void;}
 export declare class IqPagination extends HTMLElement {total:number;current:number;}
@@ -69,3 +72,31 @@ export type WorkDensity='compact'|'comfortable';
 export declare class IqWorkLayout extends HTMLElement {density:WorkDensity;}
 export declare function registerWorkLayout():void;
 declare global {interface HTMLElementTagNameMap {'iq-markdown-viewer':IqMarkdownViewer;'iq-work-layout':IqWorkLayout;}}
+
+/** Authentication shell. Named light-DOM slots: brand, tools, context, form, footer.
+ * Attributes: product, heading, description, context-title, context-description,
+ * action-href (root-relative or HTTPS), action-label, hint, error, pending, pending-label.
+ * Supply slot roots before connecting; add/remove controls inside those roots afterward.
+ * State updates preserve consumer subtree identity and focus.
+ * iq-auth-action bubbles and is cancelable. Host owns authentication and state.
+ */
+export declare class IqAuthScreen extends HTMLElement {}
+export declare function registerAuthScreen():void;
+declare global {interface HTMLElementTagNameMap {'iq-auth-screen':IqAuthScreen;}}
+
+/** Native username/password form. Never persists credentials. Configuration attributes
+ * are set before connection; error/pending are reactive. action is root-relative or HTTPS.
+ * Optional recovery-href, registration-href, remember-me; host owns their availability.
+ * iq-auth-submit is cancelable and carries transient credentials; never log its detail. */
+export declare class IqAuthDialog extends HTMLElement {clearPassword():void;}
+export declare function registerAuthDialog():void;
+declare global {interface HTMLElementTagNameMap {'iq-auth-dialog':IqAuthDialog;}}
+
+/** Persistent settings shell: navigation and heading named slots, content default slot. */
+export declare class IqSettingsLayout extends HTMLElement {}
+export interface VisualChoiceOption {value:string;label:string;description?:string;preview?:'light'|'dark'|'system'|'comfortable'|'compact';}
+/** Native keyboard-operable radios; iq-change detail.value. Label via label attribute. */
+export declare class IqVisualChoice extends HTMLElement {options:VisualChoiceOption[];value:string;}
+export declare function settingsNavigation(groups:{label:string;items:{id:string;label:string;icon?:string}[]}[],active:string):string;
+export declare function registerSettings():void;
+declare global {interface HTMLElementTagNameMap {'iq-settings-layout':IqSettingsLayout;'iq-visual-choice':IqVisualChoice;}}

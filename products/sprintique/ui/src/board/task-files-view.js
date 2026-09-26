@@ -4,7 +4,7 @@ import {FILE_ACCEPT} from './attachment-model.js';
 import {editCoverImage,coverImageStyle} from './cover-crop.js';
 
 /** Draft changes are committed by the task form, never by a preview. */
-export function mountTaskFiles(root,{coverRoot,adapter,task,readOnly=false}){
+export function mountTaskFiles(root,{coverRoot,adapter,task,readOnly=false,onCoverState=()=>{}}){
   let ids=[...(task.attachmentIds||[])],coverId=task.coverAttachmentId||null;
   let locked=false,presetPicker,presetLoading=false,cropDialog,coverCrop=task.coverCrop||null;
   let closed=false,active=0,coverGeneration=0,coverIntent=0,coverURL=null;
@@ -16,9 +16,8 @@ export function mountTaskFiles(root,{coverRoot,adapter,task,readOnly=false}){
   root.innerHTML=`<h3>Файлы</h3>
     <p class="map-form-error" role="alert" data-file-error hidden></p><div data-file-list></div>
     <div class="task-files-empty" data-files-empty ${editable?'hidden':''}><span>Файлов пока нет</span></div>
-    ${editable?`<button type="button" class="file-dropwell" data-file-drop>${icon('upload',18)}<span class="task-dropwell-copy"><span>Выберите или перетащите файлы</span><small>До 10 МБ на файл</small></span></button>
-    <input class="iq-file-native" type="file" data-file-input multiple accept="${FILE_ACCEPT}" aria-label="Добавить файлы задачи">
-    <input class="iq-file-native" type="file" data-cover-input accept=".png,.jpg,.jpeg,.webp" aria-label="Добавить изображение обложки">`:''}
+    ${editable?`<iq-file-picker variant="compact" multiple accept="${FILE_ACCEPT}" label="Выберите или перетащите файлы" hint="До 10 МБ на файл" data-file-picker></iq-file-picker>
+    <iq-file-picker hidden accept=".png,.jpg,.jpeg,.webp" label="Изображение обложки" data-cover-picker></iq-file-picker>`:''}
     ${adapter?'':'<p class="iq-helper">Хранилище файлов не подключено.</p>'}`;
   const list=root.querySelector('[data-file-list]'),error=root.querySelector('[data-file-error]');
   const report=e=>{if(!closed){error.hidden=false;error.textContent=e.message||'Не удалось загрузить файл. Повторите попытку.';}};
@@ -59,7 +58,9 @@ export function mountTaskFiles(root,{coverRoot,adapter,task,readOnly=false}){
     const generation=++coverGeneration;
     if(coverURL){URL.revokeObjectURL(coverURL);coverURL=null;}
     for(const item of rows.values())drawRow(item);
-    if(!coverId){coverRoot.innerHTML=editable?`<button type="button" class="file-dropwell task-cover-dropwell" data-add-cover><span class="task-dropwell-copy"><span>Добавить обложку</span><small>Выберите готовую или загрузите свою</small></span></button>`:'';return;}
+    // Without a cover nothing takes space in the drawer; the header's "Обложка" button (addCover) adds one.
+    if(!coverId){coverRoot.replaceChildren();coverRoot.hidden=true;onCoverState(false);return;}
+    coverRoot.hidden=false;onCoverState(true);
     const row=rows.get(coverId);
     coverRoot.innerHTML=`<div class="task-detail-cover" data-state="loading"><button type="button" data-preview-cover aria-label="Открыть обложку" disabled><img alt="" decoding="async" style="${coverImageStyle(coverCrop,coverId)}" hidden></button><span data-cover-status>Загрузка обложки…</span></div>
       ${editable?'<div class="row task-cover-actions"><button type="button" class="iq-btn ghost sm" data-recrop-cover>Кадрировать</button><button type="button" class="iq-btn ghost sm" data-add-cover>Заменить</button><button type="button" class="iq-btn ghost sm" data-remove-cover>Убрать</button></div>':''}`;
@@ -130,7 +131,6 @@ export function mountTaskFiles(root,{coverRoot,adapter,task,readOnly=false}){
   root.addEventListener('click',event=>{
     if(locked)return;
     const button=event.target.closest('button');if(!button)return;
-    if(button.matches('[data-file-drop]'))root.querySelector('[data-file-input]')?.click();
     if(button.dataset.fileRemove&&editable)remove(button.dataset.fileRemove);
     if(button.dataset.fileCover&&editable)void cropExisting(button.dataset.fileCover);
     if(button.dataset.fileDownload)void downloadFile(button.dataset.fileDownload);
@@ -141,7 +141,7 @@ export function mountTaskFiles(root,{coverRoot,adapter,task,readOnly=false}){
     try{
       const {openCoverPresets}=await import('./cover-presets.js');
       if(closed||locked)return;
-      presetPicker?.destroy();presetPicker=openCoverPresets(file=>{if(closed||locked)return;if(file)cropNew(file);else root.querySelector('[data-cover-input]').click();});
+      presetPicker?.destroy();presetPicker=openCoverPresets(file=>{if(closed||locked)return;if(file)cropNew(file);else root.querySelector('[data-cover-picker]').open();});
     }catch(error){report(error);}finally{presetLoading=false;}
   }
   coverRoot.addEventListener('click',event=>{
@@ -153,15 +153,13 @@ export function mountTaskFiles(root,{coverRoot,adapter,task,readOnly=false}){
       const url=coverURL;dialog({title:rows.get(coverId)?.name||'Обложка',body:`<div class="task-detail-cover"><img alt="Обложка задачи" data-cover-full style="${coverImageStyle(coverCrop,coverId)}"></div>`,wide:true,mount:element=>{element.querySelector('[data-cover-full]').src=url;}});
     }
   },{signal});
-  root.querySelector('[data-file-input]')?.addEventListener('change',event=>{add(event.target.files);event.target.value='';},{signal});
-  root.querySelector('[data-cover-input]')?.addEventListener('change',event=>{cropNew(event.target.files[0]);event.target.value='';},{signal});
-  const drop=root.querySelector('[data-file-drop]');
-  drop?.addEventListener('dragover',event=>{if(Array.from(event.dataTransfer.types).includes('Files')){event.preventDefault();drop.classList.add('dragover');}},{signal});
-  drop?.addEventListener('dragleave',()=>drop.classList.remove('dragover'),{signal});
-  drop?.addEventListener('drop',event=>{event.preventDefault();drop.classList.remove('dragover');add(event.dataTransfer.files);},{signal});
+  // DS iq-file-picker owns picking and drag & drop; this view owns validation, upload and the file list.
+  root.querySelector('[data-file-picker]')?.addEventListener('iq-files',event=>add(event.detail.files),{signal});
+  root.querySelector('[data-cover-picker]')?.addEventListener('iq-files',event=>cropNew(event.detail.files[0]),{signal});
   for(const id of ids){rows.set(id,{id,name:'Файл',size:0,state:'loading'});drawRow(rows.get(id));void loadExisting(id);}
   renderCover();
   return {
+    addCover(){if(editable&&!locked&&!closed)void openPresetPicker();},
     value:()=>({attachmentIds:[...ids],coverAttachmentId:coverId,coverCrop}),
     dirty:()=>[...rows.values()].some(row=>!!row.file),
     isBusy:()=>active>0,

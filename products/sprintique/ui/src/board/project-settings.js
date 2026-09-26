@@ -1,15 +1,17 @@
 import {dialog,select,icon,esc} from '../ui.js';
+import {formatDate} from '@iquipage/web/core';
 import {editCatalogItem,tagMarkup} from './catalog-ui.js';
 import {starterTaskSettings,compileTaskTemplate,TEMPLATE_MODES,STARTER_TASK_TEMPLATES,upgradeLegacyTaskSettings} from './task-templates.js';
 import {taskMarkdown} from './task-content.js';
-export async function mountProjectTaskSettings(root,{repository,project,section,onBack=null,canManage=true}){
+export async function mountProjectTaskSettings(root,{repository,project,section,onBack=null,canManage=true,embedded=false}){
   let closed=false,items=[],activeDialog=null,settings;
   const titles={tags:'Теги проекта',releases:'Релизы проекта',templates:'Шаблоны задач'};
   const createLabel=section==='tags'?'Новый тег':'Новый релиз';
-  const createButton=section!=='templates'&&canManage?`<button type="button" class="iq-btn primary sm" data-catalog-create>${createLabel}</button>`:'';
+  // Tags are created where they are used (the task card); settings keep renaming, colours and archiving.
+  const createButton=section==='releases'&&canManage?`<button type="button" class="iq-btn primary sm" data-catalog-create>${createLabel}</button>`:'';
   root.innerHTML=`<div class="host-settings task-settings-page">
-    ${onBack?`<button type="button" class="iq-btn ghost sm" data-settings-back>${icon('left',16)}<span>Настройки проекта</span></button>`:''}
-    <div class="row between"><h1>${titles[section]}</h1>${createButton}</div>
+    ${!embedded&&onBack?`<button type="button" class="iq-btn ghost sm" data-settings-back>${icon('left',16)}<span>Настройки проекта</span></button>`:''}
+    <div class="row between">${embedded?'':`<h1>${titles[section]}</h1>`}${createButton}</div>
     <p class="map-form-error" role="alert" hidden></p><div data-settings-content></div></div>`;
   const content=root.querySelector('[data-settings-content]'),error=root.querySelector('[role=alert]'),abort=new AbortController();
   const fail=cause=>{if(!closed){error.hidden=false;error.textContent=cause.message;}};
@@ -21,13 +23,13 @@ export async function mountProjectTaskSettings(root,{repository,project,section,
     }catch(cause){fail(cause);}
   }
   function catalogRow(item){
-    const releaseInfo=`<b>${esc(item.name)}</b><small>${item.status==='released'?'Выпущен':'Планируется'}${item.targetDate?' · '+esc(item.targetDate):''}${item.archivedAt?' · в архиве':''}</small>`;
+    const releaseInfo=`<b>${esc(item.name)}</b><small>${item.status==='released'?'Выпущен':'Планируется'}${item.targetDate?', выпуск '+esc(formatDate(item.targetDate)):''}${item.archivedAt?', в архиве':''}</small>`;
     const controls=canManage?`<button type="button" class="iq-btn ghost sm" data-edit-item="${esc(item.id)}">Изменить</button><button type="button" class="iq-btn ghost sm" data-archive-item="${esc(item.id)}">${item.archivedAt?'Восстановить':'В архив'}</button>`:'';
     return `<div class="iq-list-item"><div>${section==='tags'?tagMarkup(item):releaseInfo}</div>${controls}</div>`;
   }
   function renderCatalog(){
     if(closed)return;
-    const hint=section==='tags'?'Теги общие для проекта. Изменение имени и цвета отобразится во всех задачах.':'Выбранный релиз не меняет статус задачи автоматически.';
+    const hint=section==='tags'?'Теги общие для проекта: новые создаются прямо в карточке задачи. Изменение имени и цвета отобразится во всех задачах.':'Выбранный релиз не меняет статус задачи автоматически.';
     const rows=items.sort((a,b)=>Number(!!a.archivedAt)-Number(!!b.archivedAt)||a.name.localeCompare(b.name,'ru')).map(catalogRow).join('');
     content.innerHTML=`<p class="iq-helper">${hint}</p><div class="iq-list">${rows||'<p class="iq-helper">Пока ничего не добавлено.</p>'}</div>`;
   }

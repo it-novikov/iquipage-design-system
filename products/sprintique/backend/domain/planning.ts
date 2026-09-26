@@ -4,6 +4,8 @@ import {requireCondition} from './errors.js';
 import type {TaskData} from '../../contracts/index.js';
 import {requireOpenTask,validateTaskHierarchy} from './task-invariants.js';
 
+/** Calendar dates in user-facing text read as 04.10.2000. */
+const ruDate=(value:string|null|undefined)=>value?value.split('-').reverse().join('.'):'';
 export interface TaskState extends Omit<PlanningRow,'effectiveReleaseId'|'assignmentSourceId'|'boardEligible'|'childCount'> {}
 export interface PlanningState {tasks:TaskState[];releases:Release[];milestones:Milestone[];constraints:TemporalConstraint[];dependencies?:{id:string;fromId:string;toId:string}[];defaults?:{format:'flexible'|'timeboxed';days:number;timezone:string};creation?:{projectId:string;key:string;number:number;createdAt:string};members?:{id:string;name:string}[]}
 export interface HistoryItem {before:PlanningRow;task:PlanningRow;outcome:'baseline'|'accepted'|'transferred'|'deferred'}
@@ -241,10 +243,10 @@ export function planChange(original:PlanningState,command:PlanningCommand):PlanR
   const removedConstraints=original.constraints.filter(c=>!state.constraints.some(next=>next.id===c.id)).map(c=>c.id);
   const defaults=JSON.stringify(state.defaults)!==JSON.stringify(original.defaults)?state.defaults||null:null;
   const lifecycleLabels={planned:'Запланирован',active:'Начат',closed:'Завершён',cancelled:'Отменён'};
-  const details=[...changedReleases.map(r=>({label:r.name,description:`${lifecycleLabels[r.lifecycle]}: ${r.plannedStart||'без начала'} — ${r.plannedEnd||'без окончания'}; дедлайн ${r.deadline||'не задан'}`})),
+  const details=[...changedReleases.map(r=>({label:r.name,description:`${lifecycleLabels[r.lifecycle]}. Сроки: ${ruDate(r.plannedStart)||'без начала'} – ${ruDate(r.plannedEnd)||'без окончания'}. Дедлайн: ${ruDate(r.deadline)||'не задан'}`})),
     ...milestones.map(m=>({label:m.title,description:`Веха: ${m.date||'без даты'}`})),...constraints.map(c=>({label:'Зависимость',description:`${c.source.id} → ${c.target.id}: ${c.relation}, ${c.lagDays} дн.`})),
     ...removedConstraints.map(id=>({label:'Удалить зависимость',description:id})),...(defaults?[{label:'Настройки планирования',description:`${defaults.format==='timeboxed'?'Спринт':'Релиз'}, ${defaults.days} дн., ${defaults.timezone}`}]:[]),
-    ...effects.filter(e=>e.after.plannedEnd&&e.after.due&&e.after.plannedEnd>e.after.due).map(e=>({label:`Риск срока · ${e.after.displayId}`,description:`Плановое окончание ${e.after.plannedEnd} позже дедлайна ${e.after.due}. Дедлайн не сдвигается автоматически.`}))];
+    ...effects.filter(e=>e.after.plannedEnd&&e.after.due&&e.after.plannedEnd>e.after.due).map(e=>({label:`Риск срока: ${e.after.displayId}`,description:`Плановое окончание ${ruDate(e.after.plannedEnd)} позже дедлайна ${ruDate(e.after.due)}. Дедлайн не сдвигается автоматически.`}))];
   return {createdTask:command.kind==='task.create'?{id:command.taskId,projectId:state.creation!.projectId,number:state.creation!.number,createdAt:state.creation!.createdAt}:null,
     taskContent:command.kind==='task.edit'||command.kind==='task.create'?{id:command.taskId,value:command.task}:null,tasks:effects.map(e=>tasks.get(e.id)!),releases:changedReleases,effects,selectedCount:selection.size,history,milestones,constraints,removedConstraints,defaults,details};
 }

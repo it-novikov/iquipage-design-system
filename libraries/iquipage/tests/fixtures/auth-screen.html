@@ -1,0 +1,25 @@
+<!doctype html><html lang="ru"><meta charset="utf-8"><title>Auth component contract</title><link rel="stylesheet" href="../../dist/iquipage.css"><body><p id="result">Running</p><script type="module">
+import {registerCore} from '../../dist/core.js';registerCore();
+let connections=0,disconnections=0;
+customElements.define('test-auth-field',class extends HTMLElement{connectedCallback(){connections++}disconnectedCallback(){disconnections++}});
+const results=[];const check=(ok,name)=>{if(!ok)throw Error(name);results.push(name)};
+try{
+ const screen=document.createElement('iq-auth-screen');
+ screen.innerHTML='<span slot="brand">Custom brand</span><form slot="form"><test-auth-field><label>Account<input name="account"></label><button type="button" slot="tools">Nested action</button></test-auth-field></form>';
+ document.body.append(screen);const input=screen.querySelector('input'),nested=screen.querySelector('test-auth-field button');
+ input.value='Retained draft';input.focus();const initialConnections=connections,initialDisconnections=disconnections;
+ screen.setAttribute('error','Retry');screen.setAttribute('pending','');screen.removeAttribute('pending');
+ check(screen.querySelector('[slot=brand]').textContent==='Custom brand','custom brand retained');
+ check(document.activeElement===input,'focus retained on error/pending');check(input.value==='Retained draft','draft retained');
+ check(connections===initialConnections&&disconnections===initialDisconnections,'consumer lifecycle unchanged');
+ check(nested.closest('form')!==null,'nested consumer slot retained');check(!screen.querySelector('.iq-auth-action'),'custom form replaces built-in action');
+ const link=document.createElement('iq-auth-screen');link.setAttribute('action-href','/auth/login');document.body.append(link);
+ let canceled=false;link.addEventListener('iq-auth-action',e=>{canceled=true;e.preventDefault()});
+ const event=new MouseEvent('click',{bubbles:true,cancelable:true});link.querySelector('a').dispatchEvent(event);
+ check(canceled&&event.defaultPrevented,'host can cancel navigation');
+ link.setAttribute('pending','');check(!link.querySelector('a').hasAttribute('href'),'pending cannot navigate');
+ link.removeAttribute('pending');check(link.querySelector('a').getAttribute('href')==='/auth/login','retry restores destination');
+ link.setAttribute('action-href','javascript:alert(1)');check(!link.querySelector('a'),'unsafe URL rejected');
+ document.querySelector('#result').textContent='PASS: '+results.join('; ');
+}catch(error){document.querySelector('#result').textContent='FAIL: '+error.message;throw error}
+</script></body></html>

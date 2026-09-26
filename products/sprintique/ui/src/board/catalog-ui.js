@@ -3,7 +3,7 @@ import {uid} from '../common.js';
 import {TAG_TONES,TAG_NAME_LIMIT,tagNameLength} from './workspace-model.js';
 export const tagTone=tag=>TAG_TONES[tag?.tone]?tag.tone:'neutral';
 export function tagMarkup(tag){
-  return `<span class="iq-tag" data-tone="${tagTone(tag)}">${esc(tag.name)}${tag.archivedAt?' · в архиве':''}</span>`;
+  return `<span class="iq-tag" data-tone="${tagTone(tag)}">${esc(tag.name)}${tag.archivedAt?' (в архиве)':''}</span>`;
 }
 /** Tag colour as clickable DS tag swatches (button.iq-tag[aria-pressed]); the hidden input carries the value. */
 function toneChoice(current){
@@ -30,4 +30,4 @@ export function editCatalogItem(collection,{repository,project,item=null,name=''
     const saved=await repository.write(collection,record,item?.revision||0);await onSaved(saved);
   }});
 }
-export function catalogLabel(item){return item.name+(item.archivedAt?' · в архиве':'');}
+export function catalogLabel(item){return item.name+(item.archivedAt?' (в архиве)':'');}

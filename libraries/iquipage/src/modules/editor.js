@@ -144,9 +144,10 @@ class IqMarkdownEditor extends components_js_1.IqElement {
             if (!action || typeof action !== 'object' || typeof action.id !== 'string' || !/^[a-z][a-z0-9-]{0,63}$/.test(action.id) || ids.has(action.id) ||
                 typeof action.label !== 'string' || !action.label.trim() || action.label.length > 80 ||
                 typeof action.pressed !== 'boolean' || (action.disabled !== undefined && typeof action.disabled !== 'boolean') ||
-                (action.tone !== undefined && !['neutral','warning'].includes(action.tone))) throw new TypeError('Invalid editor action');
+                (action.tone !== undefined && !['neutral','warning'].includes(action.tone)) ||
+                (action.hint !== undefined && (typeof action.hint !== 'string' || action.hint.length > 120))) throw new TypeError('Invalid editor action');
             ids.add(action.id);
-            return {id:action.id,label:action.label.trim(),pressed:action.pressed,disabled:!!action.disabled,tone:action.tone || 'neutral'};
+            return {id:action.id,label:action.label.trim(),pressed:action.pressed,disabled:!!action.disabled,tone:action.tone || 'neutral',hint:(action.hint || '').trim()};
         });
         this._footerActions = next;
         this.syncFooterActions();
@@ -156,19 +157,17 @@ class IqMarkdownEditor extends components_js_1.IqElement {
         const actions = this.ownerDocument.createElement('div');
         actions.className = 'md-footer-actions';
         footer.insertBefore(actions,footer.querySelector('[data-md-submit]'));
-        this._actionAnimations = new Set();
-        this.listen(actions,'click',event => {
-            const button = event.target.closest('[data-editor-action]');
-            const action = this._footerActions?.find(item => item.id === button?.dataset.editorAction);
-            if (!action || action.disabled || this.disabled || this.readOnly) return;
+        // Footer actions are DS checkboxes: a labelled choice about the message, with an optional quiet hint.
+        this.listen(actions,'change',event => {
+            const input = event.target.closest('input[type=checkbox]'), node = input?.closest('[data-editor-action]');
+            const action = this._footerActions?.find(item => item.id === node?.dataset.editorAction);
+            if (!action) return;
+            if (action.disabled || this.disabled || this.readOnly) { input.checked = action.pressed; return; }
             const previous = action.pressed;
             this.emit('iq-editor-action',{id:action.id,pressed:!previous,previous});
-            if (this.isConnected && this._footerActions?.find(item => item.id === action.id)?.pressed !== previous) {
-                const animation = interaction_js_1.transition(button,[{transform:'scale(.94)'},{transform:'scale(1.04)'},{transform:'scale(1)'}],230);
-                if (animation) { this._actionAnimations.add(animation); animation.finished.catch(() => {}).finally(() => this._actionAnimations.delete(animation)); }
-            }
+            // The host owns the state: re-apply whatever it set (or kept).
+            this.syncFooterActions();
         });
-        this.addCleanup(() => { for (const animation of this._actionAnimations) animation.cancel(); this._actionAnimations.clear(); });
         this.syncFooterActions();
     }
     syncFooterActions() {
@@ -179,11 +178,16 @@ class IqMarkdownEditor extends components_js_1.IqElement {
         let cursor = root.firstElementChild;
         for (const action of actions) {
             let button = [...root.children].find(node => node.dataset.editorAction === action.id);
-            if (!button) { button = this.ownerDocument.createElement('button'); button.type = 'button'; button.dataset.editorAction = action.id; button.className = 'iq-btn secondary sm pill'; }
-            button.textContent = action.label;
-            button.setAttribute('aria-pressed',String(action.pressed));
-            button.dataset.tone = action.tone;
-            button.disabled = this.disabled || this.readOnly || action.disabled;
+            if (!button) {
+                button = this.ownerDocument.createElement('label'); button.dataset.editorAction = action.id; button.className = 'iq-check md-footer-toggle';
+                button.innerHTML = `<input type="checkbox"><span class="iq-check-box">${components_js_1.icon('check', 14)}</span><span class="md-footer-toggle-copy"><span class="md-footer-toggle-label"></span><small class="md-footer-toggle-hint"></small></span>`;
+            }
+            const input = button.querySelector('input');
+            button.querySelector('.md-footer-toggle-label').textContent = action.label;
+            const hint = button.querySelector('.md-footer-toggle-hint'); hint.textContent = action.hint; hint.hidden = !action.hint;
+            input.checked = action.pressed;
+            button.dataset.tone = action.tone; button.dataset.checked = String(action.pressed);
+            input.disabled = this.disabled || this.readOnly || action.disabled;
             if (button !== cursor) root.insertBefore(button,cursor);
             cursor = button.nextElementSibling;
         }
@@ -383,7 +387,7 @@ class IqMarkdownEditor extends components_js_1.IqElement {
     renderPreview(pane,value) {
         value = this.value; // The textarea normalizes CRLF; task positions must use that same draft.
         try {
-            pane.innerHTML=safeMarkdown(value)||'<p class="md-empty">Пока нет содержимого.</p>';
+            pane.innerHTML=safeMarkdown(value)||`<p class="md-empty">${components_js_1.escapeHTML(this.getAttribute('empty-text')||'Пока нет содержимого.')}</p>`;
             if (this.interactiveTasks && !this.disabled && !this.readOnly) require('./markdown-tasks.js').bindMarkdownTasks(pane, value, (detail, button) => {
                 if (this.disabled || this.readOnly || !this.interactiveTasks || this.value !== detail.source) return;
                 const restoreFocus = this.ownerDocument.activeElement === button;

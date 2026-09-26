@@ -1,4 +1,4 @@
-import {icon,escapeHTML as esc,registerCore,notify} from '@iquipage/web/core';
+import {icon,escapeHTML as esc,registerCore,notify,formatDateTime} from '@iquipage/web/core';
 export {icon,esc};
 export const button=(action,label,glyph,variant='ghost',extra='')=>`<button type="button" class="iq-btn ${variant} sm" data-map-action="${action}" ${extra.includes('aria-label=')?'':`aria-label="${esc(label)}"`} ${extra}>${glyph?icon(glyph,17):''}<span>${esc(label)}</span></button>`;
 let fieldSequence=0;
@@ -14,7 +14,7 @@ export const textarea=(name,label,value='',rows=4)=>{
 export const select=(name,label,value,options,attrs='')=>`<iq-select name="${name}" label="${esc(label)}" value="${esc(value)}"${attrs?' '+attrs:''}>${options.map(([id,text])=>`<option value="${esc(id)}" ${id===value?'selected':''}>${esc(text)}</option>`).join('')}</iq-select>`;
 export const check=(name,label,checked=false)=>`<label class="iq-check"><input type="checkbox" name="${name}" ${checked?'checked':''}><span class="iq-check-box">${icon('check',14)}</span><span>${esc(label)}</span></label>`;
 export const pretty=value=>`<pre class="map-json">${esc(JSON.stringify(value,null,2))}</pre>`;
-export const date=value=>value?new Intl.DateTimeFormat('ru',{dateStyle:'medium',timeStyle:'short'}).format(new Date(value)):'—';
+export const date=value=>value?formatDateTime(value):'—';
 export const statusNames={draft:'Не начата',active:'В работе',paused:'На паузе',archived:'В архиве',queued:'В очереди',running:'Выполняется',awaiting_approval:'Нужно подтверждение',succeeded:'Готово',failed:'Ошибка',blocked:'Не подключено',interrupted:'Прервано',rejected:'Отклонено',cancelled:'Остановлено',enabled:'Включено'};
 export function download(name,value,type='application/json') {
   const blob=new Blob([typeof value==='string'?value:JSON.stringify(value,null,2)],{type});

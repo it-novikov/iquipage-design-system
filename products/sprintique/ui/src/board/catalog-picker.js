@@ -1,7 +1,5 @@
 import {dialog,esc} from '../ui.js';
 import {editCatalogItem,catalogLabel,tagTone} from './catalog-ui.js';
-import {uid} from '../common.js';
-import {TAG_TONES} from './workspace-model.js';
 export function mountTaskCatalogs(root,{tagsRoot=root,repository,project,task,tags,releases,readOnly=false,canManage=true,onChange=()=>{}}){
   let selected=new Set(task?.tagIds||[]),releaseId=task?.releaseId||'',allReleases=[...releases];
   const abort=new AbortController();
@@ -21,11 +19,13 @@ export function mountTaskCatalogs(root,{tagsRoot=root,repository,project,task,ta
     picker.value=[...selected];
   }
   picker.addEventListener('iq-change',event=>{event.stopPropagation();selected=new Set(event.detail.value);onChange();},{signal:abort.signal});
-  picker.addEventListener('iq-create',event=>{void(async()=>{
-    const tones=Object.keys(TAG_TONES).filter(tone=>tone!=='neutral'),tone=tones[tags.length%tones.length];
-    const saved=await repository.write('tags',{id:uid('tag'),projectId:project.id,revision:0,archivedAt:null,name:event.detail.label.slice(0,100),tone},0);
-    if(abort.signal.aborted)return;tags=[...tags,saved].sort((a,b)=>a.name.localeCompare(b.name,'ru'));event.detail.accept({value:saved.id,label:saved.name,tone:tagTone(saved)});
-  })().catch(error=>dialog({title:'Не удалось создать тег',description:error.message}));},{signal:abort.signal});
+  // "+ Новый тег" (or an unmatched search) opens the tag dialog: name and colour swatches, prefilled with the search.
+  picker.addEventListener('iq-create',event=>{
+    const {label,accept}=event.detail;
+    editCatalogItem('tags',{repository,project,name:label.slice(0,100),onSaved:saved=>{
+      if(abort.signal.aborted)return;tags=[...tags,saved].sort((a,b)=>a.name.localeCompare(b.name,'ru'));accept({value:saved.id,label:saved.name,tone:tagTone(saved)});
+    }});
+  },{signal:abort.signal});
   root.addEventListener('iq-change',event=>{if(event.target.getAttribute('name')==='releaseId'){
     if(event.target.value===createReleaseValue){
       event.target.value=releaseId;

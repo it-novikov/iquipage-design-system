@@ -170,3 +170,30 @@ iq-whiteboard[surface-mode=embedded][editor-mode=host] .wb-formatting{position:a
 /* selection-bar="none": the host edits the selection in its own side panel, so the command row and inline formatting row stay hidden. */
 iq-whiteboard[selection-bar=none] :is(.wb-command-row,.wb-formatting){display:none!important}
 /* library-open keeps the host's floating object library visible at start; the dock toggle still collapses it. */
+/* ---------- Side dock (0.6.0-vnext.9): dock="side" ----------
+   The dock is a vertical rail on the left; the object library and the host panel slide out from it to the right
+   and back into it, with the same motion. Only one sheet is open at a time. */
+/* Same specificity as the host-embedding footer rule (minified to an inset shorthand that resets top), and later, so the rail starts at the top edge, level with the sheets. */
+iq-whiteboard[dock=side] .wb-footer,iq-whiteboard[surface-mode=embedded][editor-mode=host][dock=side] .wb-footer{top:16px;bottom:16px;left:16px;right:auto;display:flex;flex-direction:column;justify-content:space-between;align-items:flex-start;gap:var(--iq-space-3)}
+iq-whiteboard[dock=side] .wb-shell[data-workshop] .wb-dock{flex-direction:column;align-items:center}
+iq-whiteboard[dock=side] .wb-dock-divider{width:24px;height:1px;margin:4px auto;align-self:center}
+iq-whiteboard[dock=side] .wb-host-actions{display:flex;flex-direction:column;gap:3px}
+iq-whiteboard[dock=side] .wb-shell[data-workshop] .wb-zoom{flex-direction:column;align-items:center}
+.wb-host-actions{display:flex;gap:3px}
+.wb-host-actions:empty{display:none}
+.wb-shell[data-workshop] .wb-host-actions .wb-button{width:42px;min-width:42px;height:42px;min-height:42px;padding:10px;border-radius:9px;color:var(--iq-muted);background:transparent;display:grid;place-items:center}
+.wb-shell[data-workshop] .wb-host-actions .wb-button:hover,.wb-shell[data-workshop] .wb-host-actions .wb-button[aria-expanded=true]{background:var(--iq-hover);color:var(--iq-ink)}
+.wb-shell[data-workshop] .wb-host-actions .wb-button>span{display:none}
+iq-whiteboard[dock=side] .wb-shell :is(.wb-library,.wb-host-panel){position:absolute;left:84px;top:16px;bottom:16px;width:min(300px,calc(100% - 100px));height:auto;max-height:none;display:flex;flex-direction:column;z-index:12;border:1px solid var(--iq-line);border-radius:var(--iq-radius-lg);background:var(--iq-raised);box-shadow:0 12px 32px var(--iq-shadow-color);transform:none;opacity:1;visibility:visible;transition:transform var(--iq-motion-enter) var(--iq-ease),opacity var(--iq-motion-standard) var(--iq-ease),visibility 0s}
+iq-whiteboard[dock=side] .wb-shell :is(.wb-library,.wb-host-panel)[hidden]{display:flex!important;transform:translateX(-24px);opacity:0;visibility:hidden;pointer-events:none;transition:transform var(--iq-motion-standard) var(--iq-ease),opacity var(--iq-motion-fast) var(--iq-ease),visibility 0s linear var(--iq-motion-standard)}
+.wb-host-panel[hidden]{display:none}
+.wb-host-panel>header{display:flex;align-items:center;justify-content:space-between;gap:var(--iq-space-2);padding:16px 14px 8px}
+.wb-host-panel>header h3{font:600 15px/1.4 var(--iq-font);letter-spacing:-.02em;margin:0;color:var(--iq-ink)}
+.wb-host-body{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;padding:0 8px 12px}
+@media (prefers-reduced-motion:reduce){iq-whiteboard[dock=side] .wb-shell :is(.wb-library,.wb-host-panel),iq-whiteboard[dock=side] .wb-shell :is(.wb-library,.wb-host-panel)[hidden]{transition:none}}
+@media(max-width:760px){iq-whiteboard[dock=side] .wb-shell :is(.wb-library,.wb-host-panel){left:72px;width:calc(100% - 84px)}iq-whiteboard[surface-mode=embedded][editor-mode=host][dock=side] .wb-footer{top:8px;bottom:8px;left:8px;right:auto}}
+/* dock-tools (0.6.0-vnext.13): the host lists the canvas tools it wants in the dock ("select hand connect").
+   Hidden tools stay reachable in other ways: connections through object ports, panning by scroll or trackpad. */
+iq-whiteboard[dock-tools]:not([dock-tools~=select]) .wb-dock [data-tool=select],
+iq-whiteboard[dock-tools]:not([dock-tools~=hand]) .wb-dock [data-tool=hand],
+iq-whiteboard[dock-tools]:not([dock-tools~=connect]) .wb-dock [data-tool=connect]{display:none}

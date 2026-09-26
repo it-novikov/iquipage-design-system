@@ -5,12 +5,6 @@
 .pn-toolbar .iq-search-small{flex:1;min-width:180px;max-width:420px}
 .pn-toolbar iq-select{max-width:220px;min-width:160px}
 .pn-scroll{padding-inline:var(--iq-space-6);overflow:auto;min-height:0;flex:1;scrollbar-gutter:stable;overscroll-behavior:contain}
-.pn-group{margin-bottom:var(--iq-space-4)}
-.pn-group-header{position:sticky;top:0;z-index:2;display:flex;align-items:center;flex-wrap:wrap;gap:var(--iq-space-2);padding-block:var(--iq-space-3);background:var(--iq-canvas);border-bottom:1px solid var(--iq-line)}
-.pn-group-header h2{font-size:var(--iq-type-interface-size);font-weight:600;overflow-wrap:anywhere;min-width:0}
-.pn-group-date,.pn-count{color:var(--iq-muted);font-size:var(--iq-type-caption-size);font-variant-numeric:tabular-nums}
-.pn-count{padding-inline:var(--iq-space-1)}
-.pn-group-actions{margin-left:auto}
 .pn-group-body{padding-top:0}
 .pn-person{display:flex;align-items:center;gap:var(--iq-space-2);min-width:0;font-size:var(--iq-type-caption-size)}
 .pn-indent{width:calc(var(--pn-depth)*var(--iq-space-3));flex-shrink:0}
@@ -20,25 +14,20 @@
 .pn-empty{display:flex;justify-content:space-between;align-items:center;gap:var(--iq-space-4);padding:var(--iq-space-4);color:var(--iq-muted);font-size:var(--iq-type-label-size)}
 .pn-selection{display:flex;align-items:center;gap:var(--iq-space-4);flex-wrap:wrap;margin:var(--iq-space-2) var(--iq-space-6);padding:var(--iq-space-2) var(--iq-space-3);background:var(--iq-surface);border-radius:var(--iq-radius-sm);font-size:var(--iq-type-label-size)}
 .pn-selection>.row{margin-left:auto}
-.pn-priority-mark{color:var(--iq-warning);display:inline-flex;align-items:center}.pn-priority-mark[data-level=critical]{color:var(--iq-danger)}
 .pn-dialog-form{padding:var(--iq-space-6)}
 .pn-dialog-body{display:flex;flex-direction:column;gap:var(--iq-space-4)}
 .pn-dialog [data-preview]{display:flex;flex-direction:column;gap:var(--iq-space-3)}
 /* Stage PN2 is native table semantics, not an incomplete ARIA treegrid. Keyboard focus stays visible. */
 /* Button focus treatment belongs to the installed DS, not the consumer adapter. */
-@media(max-width:640px){.planning-view{padding:var(--iq-space-4)}.pn-toolbar .iq-search-small{flex-basis:100%;max-width:none}.pn-toolbar iq-select{flex:1;min-width:120px;max-width:none}.pn-group-header h2{max-width:calc(100% - 100px)}.pn-group-date{flex-basis:auto;padding-left:var(--iq-space-3)}.pn-selection>.row{margin-left:0}.pn-indent{width:calc(var(--pn-depth)*var(--iq-space-2))}.pn-person{flex-wrap:wrap}.pn-group-actions{gap:var(--iq-space-1)}.pn-row-identity{gap:var(--iq-space-1)}}
-
+@media(max-width:640px){.pn-toolbar .iq-search-small{flex-basis:100%;max-width:none}.pn-selection>.row{margin-left:0}.pn-indent{width:calc(var(--pn-depth)*var(--iq-space-2))}.pn-person{flex-wrap:wrap}.pn-row-identity{gap:var(--iq-space-1)}}
 .pn-dialog [data-plan-config],.pn-dialog [data-plan-preview],.pn-dialog [data-destination-new]{display:flex;flex-direction:column;gap:var(--iq-space-4)}
 .pn-dialog [data-plan-config][hidden],.pn-dialog [data-plan-preview][hidden],.pn-dialog [data-destination-new][hidden],.pn-dialog [data-destination-existing][hidden]{display:none}
 
-.pn-views{flex:none;gap:var(--iq-space-2)}
 .pn-temporal{overflow:auto;min-height:0;flex:1;overscroll-behavior:contain}
-.pn-deadline-modes{padding:var(--iq-space-2) var(--iq-space-6) 0;flex:none}
 .pn-temporal{padding-inline:var(--iq-space-6)}
 .pn-timebar{position:sticky;top:0;z-index:3;background:var(--iq-canvas);padding-block:var(--iq-space-3)}
 .pn-task-owner,.pn-task-date{max-width:100%;white-space:normal;text-align:left}
-@media(max-width:640px){.pn-toolbar,.pn-scroll,.pn-temporal{padding-inline:var(--iq-space-4)}.pn-toolbar .iq-search-small{flex-basis:100%;max-width:none}.pn-toolbar iq-select{flex:1;min-width:120px;max-width:none}.pn-group-header h2{max-width:calc(100% - 100px)}.pn-group-date{flex-basis:auto;padding-left:var(--iq-space-3)}.pn-selection{margin-inline:var(--iq-space-4)}.pn-selection>.row{margin-left:0}.pn-indent{width:calc(var(--pn-depth)*var(--iq-space-2))}.pn-person{flex-wrap:wrap}.pn-group-actions{gap:var(--iq-space-1)}.pn-deadline-modes{padding-inline:var(--iq-space-4)}}
-/* Existing native row composition remains supported while the shared compact variant evolves. */
+@media(max-width:640px){.pn-toolbar,.pn-scroll,.pn-temporal{padding-inline:var(--iq-space-4)}.pn-toolbar .iq-search-small{flex-basis:100%;max-width:none}.pn-selection{margin-inline:var(--iq-space-4)}.pn-selection>.row{margin-left:0}.pn-indent{width:calc(var(--pn-depth)*var(--iq-space-2))}.pn-person{flex-wrap:wrap}}
 .pn-row-identity{display:flex;align-items:center;gap:var(--iq-space-2);min-width:0}
 .pn-row-identity .iq-work-row-title{min-width:0;flex:1}
 .pn-row-identity .iq-helper{margin-top:0}
@@ -49,21 +38,13 @@
 .pn-person,.pn-date{justify-content:flex-start;text-align:left;padding-inline:var(--iq-space-1);max-width:100%;white-space:normal}
 .pn-date{white-space:nowrap}
 .pn-person .iq-avatar{flex:none}
-.pn-group-header{padding-block:var(--iq-space-2)}
 .pn-col-task{width:56%}.pn-col-state{width:16%}.pn-col-owner{width:14%}.pn-col-date{width:14%}
 /* Phones (set at mount): the page scrolls; a nested list scroller left only ~330px for tasks. */
 .planning-view[data-page-scroll]{height:auto}.planning-view[data-page-scroll] .pn-scroll{overflow:visible;flex:none}
-/* Gantt: one scroller. The toolbar and plan header stay put; only the roadmap grid scrolls (DS iq-roadmap[fill]). */
-.pn-temporal[data-time-mode=timeline]:not([hidden]){display:flex;flex-direction:column;overflow:hidden}
-.pn-temporal[data-time-mode=timeline] [data-time-surface]{flex:1;min-height:0;display:flex;flex-direction:column}
-.pn-temporal[data-time-mode=timeline] [data-time-surface]>iq-roadmap{flex:1;min-height:0}
+/* Gantt: one scroller. The planning page scrolls as a whole; the roadmap keeps its full height (DS iq-roadmap[flow])
+   and scrolls only sideways, so release groups are never cut off inside a nested box. */
 /* Releases and backlog are separate cards, so groups no longer merge into one sheet. */
-.pn-group{border:1px solid var(--iq-line);border-radius:var(--iq-radius-lg);background:var(--iq-raised);padding:0 var(--iq-space-4) var(--iq-space-2);margin-bottom:var(--iq-space-5);overflow:clip}
-.pn-group-header{background:var(--iq-raised);border-bottom:0;padding-block:var(--iq-space-3)}
-.pn-group[data-state=active]{border-color:color-mix(in srgb,var(--iq-accent) 45%,var(--iq-line))}
 .pn-group .iq-work-list tr:last-child>td{border-bottom:0}
-/* Header row placeholders keep the select-all checkbox in the same column as row checkboxes. */
-.pn-grip-space{width:var(--iq-control-sm);flex-shrink:0}
 /* Subtasks: a tree line runs down from the parent's disclosure arrow; each child gets an elbow, the last one ends there. */
 .pn-tree{position:relative;align-self:stretch;flex:none;width:var(--iq-control-sm);margin-block:calc(-1 * var(--iq-space-2))}
 .pn-tree[data-depth="2"]{width:calc(2 * var(--iq-control-sm))}
@@ -77,3 +58,46 @@
 .pn-group tr[data-depth]:not([data-depth="0"])[data-selected=true]>td{background:transparent}
 .pn-subtasks-count{margin-left:var(--iq-space-2);color:var(--iq-muted);font-size:var(--iq-type-meta-size);white-space:nowrap}
 .pn-task-title+.pn-subtasks-count{display:inline}
+
+/* ---- Planning rebuilt (council review): orientation, one toolbar, calm release containers ---- */
+.pn-views-row{display:flex;align-items:center;justify-content:space-between;gap:var(--iq-space-3);flex-wrap:wrap;padding:var(--iq-space-2) var(--iq-space-6) 0;flex:none}
+.pn-view-switch>button,.pn-archive-switch>button{display:inline-flex;align-items:center;gap:var(--iq-space-2)}
+.pn-archive-switch[hidden]{display:none}
+.pn-toolbar{padding-block:var(--iq-space-3)}
+.pn-toolbar-end{display:flex;align-items:center;gap:var(--iq-space-1);margin-left:auto}
+.pn-filter-count{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:var(--iq-ink);color:var(--iq-canvas);font-size:var(--iq-type-meta-size);font-weight:600;font-variant-numeric:tabular-nums}
+/* Release, sprint and backlog: one calm card each. Line 1 says what and in which state, line 2 gives the facts. */
+.pn-group{border:1px solid var(--iq-line);border-radius:var(--iq-radius-lg);background:var(--iq-raised);margin-bottom:var(--iq-space-4);overflow:clip}
+.pn-group[data-state=active]{border-color:color-mix(in srgb,var(--iq-info) 40%,var(--iq-line))}
+.pn-group[data-group=backlog]{background:var(--iq-surface)}
+.pn-group-header{display:grid;gap:var(--iq-space-2);padding:var(--iq-space-4) var(--iq-space-4) var(--iq-space-3);border-bottom:1px solid var(--iq-line)}
+.pn-group:has(.pn-group-body[hidden]) .pn-group-header{border-bottom:0}
+.pn-group-line{display:flex;align-items:center;gap:var(--iq-space-2);min-width:0}
+.pn-group-name{display:flex;align-items:center;flex-wrap:wrap;gap:var(--iq-space-2);min-width:0;flex:1}
+.pn-group-name h2{margin:0;font-size:var(--iq-type-title-size);font-weight:600;letter-spacing:-.01em;overflow-wrap:anywhere}
+.pn-kind,.pn-group-hint{color:var(--iq-muted);font-size:var(--iq-type-label-size)}
+.pn-group-actions{display:flex;align-items:center;gap:var(--iq-space-1);flex:none}
+.pn-group-facts{display:flex;align-items:center;flex-wrap:wrap;gap:var(--iq-space-2) var(--iq-space-6);padding-left:calc(var(--iq-control-sm) + var(--iq-space-2));font-size:var(--iq-type-caption-size);font-variant-numeric:tabular-nums}
+.pn-group-line:has([data-select-group])+.pn-group-facts{padding-left:calc(var(--iq-control-sm) + 20px + var(--iq-space-4))}
+.pn-fact{display:inline-flex;align-items:center;gap:var(--iq-space-2);white-space:nowrap}
+.pn-fact-label{color:var(--iq-muted)}
+.pn-fact-value{color:var(--iq-ink);font-weight:500}
+.pn-progress{width:120px;margin:0}
+.pn-timing{color:var(--iq-muted)}
+.pn-timing .pn-fact-value{color:inherit;font-weight:500}
+.pn-timing[data-tone=danger]{color:var(--iq-danger)}
+.pn-timing[data-tone=warning]{color:var(--iq-warning)}
+.pn-group-body{padding:0 var(--iq-space-4) var(--iq-space-2)}
+/* The column header is read once: later groups keep it for assistive technology only. */
+.pn-group:not(:first-child) .iq-work-list thead{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.pn-key-drag{border:0;background:transparent;padding:2px 4px;margin-inline:-4px;border-radius:var(--iq-radius-sm);cursor:grab;font:inherit;color:inherit}
+.pn-key-drag:hover{background:var(--iq-hover);color:var(--iq-ink)}
+.pn-key-drag:active{cursor:grabbing}
+.pn-empty-value{color:var(--iq-muted);font-weight:400}
+.iq-work-list-title .iq-badge{margin-left:var(--iq-space-2);vertical-align:middle}
+.pn-group-actions .iq-btn,.pn-readiness>button,.pn-view-switch>button{white-space:nowrap}
+@media(max-width:640px){.pn-group .pn-group-line:has([data-select-group])+.pn-group-facts,.pn-group .pn-group-facts{padding-left:0}.pn-group-actions{flex-wrap:wrap}.pn-readiness>button{padding-inline:var(--iq-space-2)}.pn-views-row{padding-inline:var(--iq-space-4)}.pn-group-line{flex-wrap:wrap}.pn-group-actions{order:3;flex-basis:100%;justify-content:flex-start}.pn-group-facts{padding-left:0;gap:var(--iq-space-2) var(--iq-space-4)}.pn-toolbar-end{margin-left:0}.pn-readiness{order:3;width:100%}.pn-readiness>button{flex:1}}
+/* Same heading as the board: page padding on top and sides, then the section's own rows. */
+.pn-head{padding:var(--iq-space-6) var(--iq-space-6) var(--iq-space-5)}
+.pn-views-row{padding-top:0}
+@media(max-width:760px){.pn-head{padding:var(--iq-space-4) var(--iq-space-4) var(--iq-space-5)}}

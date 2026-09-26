@@ -16,7 +16,8 @@ export function interval(start, end) {
   return {start: start || null, end: end || null};
 }
 export function dateLabel(value) {
-  return validDate(value) ? new Intl.DateTimeFormat('ru', {day:'numeric', month:'short', year:'numeric', timeZone:'UTC'}).format(new Date(value + 'T12:00:00Z')) : 'Без даты';
+  // Same format as the DS formatDate: 04.10.2000.
+  return validDate(value) ? value.split('-').reverse().join('.') : 'Без даты';
 }
 
 export function todayInZone(timeZone,instant=new Date()) {

@@ -1,0 +1,16 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {createAppearance,normalizeAppearance,appearanceDefaults,appearanceKey} from '../web/appearance.js';
+import {settingsSection,visibleSettingsGroups} from '../web/settings-sections.js';
+function fixture(raw=null){let saved=raw,listener;const root={dataset:{}},media={matches:false,addEventListener(_type,fn){listener=fn;},removeEventListener(){listener=null;}},storage={getItem(key){return key===appearanceKey?saved:null;},setItem(_key,value){saved=value;}};return {root,media,storage,change(){listener?.()},read:()=>saved};}
+test('unknown or stale preferences fall back to supported values',()=>{assert.deepEqual(normalizeAppearance({theme:'future',accent:'#evil',motion:false}),appearanceDefaults);});
+test('preference changes apply, persist and restore across sessions',()=>{const f=fixture(),first=createAppearance(f);first.update({theme:'dark',density:'compact',accent:'green'});assert.equal(f.root.dataset.theme,'dark');assert.equal(f.root.dataset.density,'compact');first.destroy();const second=createAppearance(f);assert.equal(second.value.accent,'green');assert.equal(second.value.theme,'dark');assert.equal(JSON.parse(f.read()).density,'compact');});
+test('system theme follows device changes; explicit themes remain stable',()=>{const f=fixture(),controller=createAppearance(f);f.media.matches=true;f.change();assert.equal(f.root.dataset.theme,'dark');controller.update({theme:'light'});f.change();assert.equal(f.root.dataset.theme,'light');controller.reset();assert.equal(f.root.dataset.theme,'dark');});
+test('blocked storage still applies preferences and reports non-persistence',()=>{const f=fixture();f.storage.setItem=()=>{throw Error('denied')};const c=createAppearance(f);assert.equal(c.update({motion:'reduced'}),false);assert.equal(c.persistent,false);assert.equal(f.root.dataset.motion,'reduced');});
+test('corrupt storage is recoverable on next successful save',()=>{const f=fixture('{bad'),c=createAppearance(f);assert.deepEqual(c.value,appearanceDefaults);assert.equal(c.update({accent:'violet'}),true);assert.equal(JSON.parse(f.read()).accent,'violet');assert.equal(appearanceKey,'sprintique.appearance.v1');});
+test('settings deep links validate role and unknown section',()=>{assert.equal(settingsSection('#settings/tags','reader'),'tags');assert.equal(settingsSection('#settings/operations','reader'),'appearance');assert.equal(settingsSection('#settings/operations','admin'),'operations');assert.equal(settingsSection('#settings/unknown','admin'),'appearance');assert.equal(visibleSettingsGroups('reader').flatMap(g=>g.items).some(i=>i.id==='operations'),false);});
+
+import {sectionRouteHash} from '../web/section-route.js';
+test('settings subsection survives host route normalization',()=>{assert.equal(sectionRouteHash('settings','#settings/tags'),'#settings/tags');assert.equal(sectionRouteHash('settings','#tasks'),'#settings');assert.equal(sectionRouteHash('tasks','#settings/tags'),'#tasks');});
+
+test('existing shell theme migrates without overwriting newer preferences',()=>{const f=fixture();f.storage.getItem=key=>key==='sprintique.theme'?'dark':null;assert.equal(createAppearance(f).value.theme,'dark');const newer=fixture(JSON.stringify({theme:'system'}));assert.equal(createAppearance(newer).value.theme,'system');});

@@ -11,7 +11,7 @@ const manifest=JSON.parse(await read('src/manifest.json'));
 const variables=entries=>Object.entries(entries).map(([k,v])=>`  --iq-${k}: ${v};`).join('\n');
 const tokenCSS=`/* Generated from tokens/semantic.json. */\n:root{\n${variables({...tokens.base,...tokens.light})}\n}\n[data-theme="dark"]{\n${variables(tokens.dark)}\n}\n`;
 await save('tokens/tokens.css',tokenCSS);
-const css=tokenCSS+await read('src/styles/foundation.css')+'\n'+await read('src/styles/whiteboard.css')+'\n'+await read('src/styles/everyday.css')+'\n'+await read('src/styles/whiteboard-workshop.css')+'\n'+await read('src/styles/work-list.css')+'\n'+await read('src/styles/focus.css')+'\n'+await read('src/styles/touch.css');
+const css=tokenCSS+await read('src/styles/foundation.css')+'\n'+await read('src/styles/whiteboard.css')+'\n'+await read('src/styles/everyday.css')+'\n'+await read('src/styles/whiteboard-workshop.css')+'\n'+await read('src/styles/work-list.css')+'\n'+await read('src/styles/auth-dialog.css')+'\n'+await read('src/styles/auth-screen.css')+'\n'+await read('src/styles/settings.css')+'\n'+await read('src/styles/focus.css')+'\n'+await read('src/styles/touch.css');
 await save('dist/iquipage.css',css);
 const sources={};
 for (const name of manifest.application){
@@ -48,3 +48,7 @@ await save('whiteboard.html',whiteboardHTML);
 
 const everydayBundle=bundle.replace("require('./app.js');","require('./everyday-stories.js').registerEverydayDemo();");
 await save('workbench.html',(await read('src/workbench-template.html')).replace('__IQ_CSS__',()=>demoCSS).replace('__IQ_SCRIPT__',()=>everydayBundle.replaceAll('</script','<\\/script')));
+
+// The native provider theme receives the exact same release CSS and mark.
+await save('keycloak/iquipage/login/resources/css/iquipage.css',css);
+await save('keycloak/iquipage/login/resources/img/mark.svg',icons.mark().replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" '));

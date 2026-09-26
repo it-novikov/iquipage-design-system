@@ -2,13 +2,7 @@
 .map-version-preview{height:min(60vh,560px);min-height:280px}.map-version-preview>iq-whiteboard{height:100%}
 #app{height:100%}
 /* Local-stand sign-in: a narrow DS form under the landing copy. */
-.host-sign-in{display:grid;gap:var(--iq-space-4);max-width:360px}
-.host-sign-in .iq-badge,.host-sign-in .iq-btn{justify-self:start}
-/* Settings: one DS section navigation above linkable pages. */
-.settings-shell{max-width:880px;gap:var(--iq-space-4)}
-.settings-eyebrow{margin:0;color:var(--iq-muted);font-size:var(--iq-type-caption-size)}
-.settings-page{min-width:0}
-.settings-shell .iq-work-navigation{overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none}
+.host-sign-in{display:grid;gap:var(--iq-space-3);justify-items:center;width:100%;max-width:440px}
 .member-row{align-items:center;gap:var(--iq-space-3)}
 .member-row>div{flex:1;min-width:0}
 .member-row p{margin:0}
@@ -18,3 +12,13 @@
 .product-loading-title{height:28px;width:min(220px,60%);margin-bottom:var(--iq-space-2)}
 .product-loading-row{height:40px}
 .host-loading{padding:var(--iq-space-6) var(--iq-space-4);max-width:960px}
+/* One page heading for every section: the title on the left, the section's tools on the right, same height and
+   spacing, so switching between the board and planning never moves the content. */
+.sq-page-heading{display:flex;align-items:center;gap:var(--iq-space-5);flex:none;flex-wrap:wrap;min-height:48px;padding-bottom:var(--iq-space-5)}
+.sq-page-heading h1{font-size:var(--iq-work-compact-title);font-weight:600;margin:0;line-height:1.3}
+.sq-page-tools{display:flex;align-items:center;gap:var(--iq-space-2);flex:none;flex-wrap:wrap;margin-left:auto}
+@media(max-width:580px){.sq-page-heading{gap:var(--iq-space-3)}.sq-page-heading h1{flex:1}.sq-page-tools{width:100%;margin-left:0;justify-content:flex-end}}
+
+/* Public settings composition owns its spacing. */
+#host-view[data-section=settings]{padding:0;display:flex;flex-direction:column}
+#host-view[data-section=settings]>iq-settings-layout{flex:1 0 auto}

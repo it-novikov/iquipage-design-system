@@ -25,7 +25,7 @@ export async function mountTemporalView(root,options) {
   function createSurface(){
     const element=document.createElement(mode==='dates'?'iq-plan':'iq-roadmap');
     if(mode!=='dates'){
-      element.setAttribute('fill','');element.controlled=true;
+      element.setAttribute('flow','');element.controlled=true;
       element.dependencyCapabilities=capabilities.temporal?{create:true,update:true,delete:true}:false;
       element.scale=viewState.scale||'fit';element.collapsedIds=viewState.collapsedIds||[];
     }

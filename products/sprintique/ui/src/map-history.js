@@ -13,7 +13,7 @@ export async function showMapHistory(feature){
     try{
       const page=await feature.repository.mapHistory(projectId,id,cursor,{signal:abort.signal});if(closed)return;
       list.querySelector('.product-loading')?.remove();
-      list.insertAdjacentHTML('beforeend',page.items.map(v=>`<button type="button" class="iq-list-item" data-map-version="${v.revision}"><span><strong>Версия ${v.revision}</strong><br><small>${esc(date(v.createdAt))} · ${esc(v.title)}</small></span>${icon('chevron',16)}</button>`).join(''));
+      list.insertAdjacentHTML('beforeend',page.items.map(v=>`<button type="button" class="iq-list-item" data-map-version="${v.revision}"><span><strong>Версия ${v.revision}</strong><br><small>${esc(date(v.createdAt))}, ${esc(v.title)}</small></span>${icon('chevron',16)}</button>`).join(''));
       cursor=page.nextCursor;more.hidden=!cursor;status.textContent=list.children.length?'':'История пока пуста.';
     }catch(error){if(!closed)status.textContent=error.message;}
     finally{loading=false;more.disabled=false;}
@@ -24,7 +24,7 @@ export async function showMapHistory(feature){
     button.disabled=true;loading=true;
     try{
       const version=await feature.repository.mapVersion(projectId,id,Number(button.dataset.mapVersion),{signal:abort.signal});if(closed)return;
-      preview=dialog({title:`Версия ${version.revision}`,description:`${version.title} · ${date(version.updatedAt)}. Только просмотр.`,wide:true,body:'<div class="map-version-preview"></div>',mount:element=>{
+      preview=dialog({title:`Версия ${version.revision}`,description:`${version.title}, ${date(version.updatedAt)}. Только просмотр.`,wide:true,body:'<div class="map-version-preview"></div>',mount:element=>{
         const board=document.createElement('iq-whiteboard');board.surfaceMode='embedded';board.readOnly=true;board.data=version.document;
         element.querySelector('.map-version-preview').append(board);requestAnimationFrame(()=>{if(board.isConnected)board.fit();});
       }});preview.addEventListener('iq-close',()=>{preview=null;},{once:true});
