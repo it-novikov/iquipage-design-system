@@ -51,7 +51,9 @@
     "markdown-tasks.js",
     "work-list-index.js",
     "work-list-table.js",
-    "work-list-drag.js"
+    "work-list-drag.js",
+    "auth-screen.js",
+    "auth-dialog.js"
   ],
   "library": [
     "components.js",
@@ -92,7 +94,9 @@
     "markdown-tasks.js",
     "work-list-index.js",
     "work-list-table.js",
-    "work-list-drag.js"
+    "work-list-drag.js",
+    "auth-screen.js",
+    "auth-dialog.js"
   ],
   "entries": {
     "core": [
@@ -113,7 +117,9 @@
       "work-header.js",
       "markdown.js",
       "markdown-viewer.js",
-      "work-layout.js"
+      "work-layout.js",
+      "auth-screen.js",
+      "auth-dialog.js"
     ],
     "advanced": [
       "roadmap.js",

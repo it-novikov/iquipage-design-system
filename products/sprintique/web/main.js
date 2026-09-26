@@ -1,3 +1,4 @@
+import {mountAuthScreen} from './auth-screen.js';
 import '@iquipage/web/styles.css';
 import '../ui/src/maps.css';
 import '../ui/src/board/board.css';
@@ -71,23 +72,24 @@ function createWorkspace(){
   }});
 }
 /** Sign-in offers only the ways in the server actually has; an unconfigured provider is never a link. */
+/** Sign-in: the DS credential dialog for the local stand; an organisation provider is opened directly
+ *  (its themed page shows the same dialog); nothing configured → a calm explanation, never a raw error. */
 async function renderSignIn(){
   const methods=await fetch('/api/v1/auth/methods').then(r=>r.ok?r.json():{oidc:false,devLogin:false}).catch(()=>({oidc:false,devLogin:false}));
   const keepInvitation=()=>{const match=location.hash.match(/^#invite\/(invite_[A-Za-z0-9_-]{43})$/);if(match)sessionStorage.setItem('sprintique.pending-invitation',match[1]);};
-  const dev=methods.devLogin?`<form class="host-sign-in" data-dev-login><p class="iq-badge">Локальный стенд</p>${input('username','Логин','admin',{required:true,maxlength:100})}${input('password','Пароль','',{type:'password',required:true,maxlength:100,placeholder:'admin'})}<p class="host-task-error" role="alert" hidden></p><button type="submit" class="iq-btn primary">Войти</button></form>`:'';
-  const oidc=methods.oidc?`<a class="iq-btn ${methods.devLogin?'secondary':'primary'}" href="/auth/login" data-oidc>Войти через учётную запись организации</a>`:'';
-  const none=!dev&&!oidc?'<p role="alert">Вход не настроен. Для отладки запустите локальный стенд: <code>npm run dev:local</code>.</p>':'';
-  root.innerHTML=`<main class="host-landing"><h1>Sprintique</h1><p>Войдите, чтобы открыть свои проекты.</p>${dev}${oidc}${none}</main>`;
+  if(methods.oidc&&!methods.devLogin){mountAuthScreen(root);return;}
+  if(!methods.devLogin){root.innerHTML='<main class="iq-auth-stage"><section class="iq-auth-dialog"><h1>Вход не настроен</h1><p class="iq-auth-dialog-description">Для отладки запустите локальный стенд: <code>npm run dev:local</code>.</p></section></main>';return;}
+  root.innerHTML=`<main class="iq-auth-stage"><div class="host-sign-in"><iq-auth-dialog product="Sprintique" heading="Вход в Sprintique" description="Локальный стенд: тестовая учётная запись admin / admin." username-label="Логин"></iq-auth-dialog>${methods.oidc?'<a class="iq-btn ghost" href="/auth/login" data-oidc>Войти через учётную запись организации</a>':''}</div></main>`;
   root.querySelector('[data-oidc]')?.addEventListener('click',keepInvitation);
-  const form=root.querySelector('[data-dev-login]');if(!form)return;
-  form.querySelector('[name=password]').focus();
-  form.addEventListener('submit',async event=>{
-    event.preventDefault();const alert=form.querySelector('[role=alert]'),button=form.querySelector('[type=submit]');alert.hidden=true;button.disabled=true;
+  const dialog=root.querySelector('iq-auth-dialog');
+  dialog.querySelector('[name=username]').value='admin';dialog.querySelector('[name=password]').focus();
+  dialog.addEventListener('iq-auth-submit',async event=>{
+    event.preventDefault();dialog.removeAttribute('error');dialog.setAttribute('pending','');
     try{
-      const values=new FormData(form),response=await fetch('/auth/dev-login',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({username:values.get('username'),password:values.get('password')})});
+      const response=await fetch('/auth/dev-login',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({username:event.detail.username,password:event.detail.password})});
       if(!response.ok)throw Error((await response.json().catch(()=>null))?.message||'Не удалось войти.');
       keepInvitation();location.reload();
-    }catch(cause){alert.textContent=cause.message;alert.hidden=false;button.disabled=false;}
+    }catch(cause){dialog.removeAttribute('pending');dialog.clearPassword();dialog.setAttribute('error',cause.message);dialog.querySelector('[name=password]').focus();}
   });
 }
 // The last opened project reopens after sign-in; a project link in the URL still wins.

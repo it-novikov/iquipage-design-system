@@ -1,0 +1,6 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Диалог входа — IQUIPAGE</title><link rel="stylesheet" href="../dist/iquipage.css"></head><body>
+<main class="iq-auth-stage"><iq-auth-dialog product="Sprintique" heading="Вход в Sprintique" description="Рады видеть вас снова. Войдите, чтобы вернуться к работе." remember-me></iq-auth-dialog></main>
+<script type="module">
+import {registerCore} from '../dist/core.js';registerCore();
+const form=document.querySelector('iq-auth-dialog');form.addEventListener('iq-auth-submit',event=>{event.preventDefault();form.setAttribute('pending','');setTimeout(()=>{form.removeAttribute('pending');form.setAttribute('error','Демонстрация: данные не отправлены. Подключите обработчик входа.');form.clearPassword();},600);});
+</script></body></html>

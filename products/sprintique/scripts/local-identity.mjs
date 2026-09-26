@@ -1,7 +1,8 @@
-import {mkdir,readFile,writeFile,chmod} from 'node:fs/promises';
+import {mkdir,readFile,writeFile,chmod,cp} from 'node:fs/promises';
 import {randomBytes} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
-import {resolve} from 'node:path';
+import {resolve,dirname} from 'node:path';
+import {fileURLToPath} from 'node:url';
 import {setTimeout} from 'node:timers/promises';
 import pg from 'pg';
 import {ensureOwnedVolume} from './local-resources.mjs';
@@ -54,7 +55,7 @@ try{
   for(const [name,owner] of [['sprintique','sprintique_migrator'],['sprintique_identity','sprintique_identity']])if(!(await admin.query('SELECT 1 FROM pg_database WHERE datname=$1',[name])).rowCount)await admin.query(`CREATE DATABASE ${name} OWNER ${owner}`);
 }finally{await admin.end();}
 if(!owned(keycloak)){
-  const realm={realm:'sprintique',enabled:true,registrationAllowed:false,resetPasswordAllowed:false,sslRequired:'all',bruteForceProtected:true,
+  const realm={realm:'sprintique',displayName:'Sprintique',loginTheme:'iquipage',internationalizationEnabled:false,defaultLocale:'ru',enabled:true,registrationAllowed:false,resetPasswordAllowed:false,sslRequired:'all',bruteForceProtected:true,
     clients:[{clientId:config.clientId,enabled:true,publicClient:false,secret:config.clientSecret,standardFlowEnabled:true,directAccessGrantsEnabled:false,serviceAccountsEnabled:false,
       redirectUris:[config.origin+'/auth/callback'],webOrigins:[config.origin],attributes:{'pkce.code.challenge.method':'S256'},defaultClientScopes:['profile']}],
     users:[{username:config.testUser.username,enabled:true,email:'sprintique-qa@example.invalid',firstName:'Sprintique',lastName:'QA',credentials:[{type:'password',value:config.testUser.password,temporary:false}]}]};
@@ -66,7 +67,9 @@ if(docker('inspect','--format','{{.State.Status}}',keycloak)==='created'){
   // Archive ownership is explicit before startup; no race or world-readable private key.
   const bundle=root+'/keycloak-bundle';await mkdir(bundle+'/conf',{recursive:true,mode:0o700});await mkdir(bundle+'/data/import',{recursive:true,mode:0o700});
   for(const [from,to] of [['localhost.crt','conf/localhost.crt'],['localhost.key','conf/localhost.key'],['sprintique-realm.json','data/import/sprintique-realm.json']])await writeFile(bundle+'/'+to,await readFile(root+'/'+from),{mode:0o600});
-  const archive=execFileSync('tar',['--no-xattrs','--no-acls','--no-fflags','--uid','1000','--gid','0','-cf','-','-C',bundle,'conf','data'],{env:{...process.env,COPYFILE_DISABLE:'1'},stdio:['ignore','pipe','pipe']});
+  const themeSource=dirname(dirname(fileURLToPath(import.meta.resolve('@iquipage/web/keycloak/theme.properties'))));
+  await cp(themeSource,bundle+'/themes/iquipage',{recursive:true});
+  const archive=execFileSync('tar',['--no-xattrs','--no-acls','--no-fflags','--uid','1000','--gid','0','-cf','-','-C',bundle,'conf','data','themes'],{env:{...process.env,COPYFILE_DISABLE:'1'},stdio:['ignore','pipe','pipe']});
   execFileSync('docker',['--context',context,'cp','-a','-',keycloak+':/opt/keycloak'],{input:archive,stdio:['pipe','pipe','pipe']});
 }
 docker('start',keycloak);

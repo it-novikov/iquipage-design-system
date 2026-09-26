@@ -1,6 +1,6 @@
 # UX and design-system alignment (September 2026)
 
-Private DS **0.6.0-vnext.9**. It covers the component audit of the whole Sprintique UI and the changes the owner approved.
+Private DS **0.6.0-vnext.10**. It covers the component audit of the whole Sprintique UI and the changes the owner approved.
 
 ## Owner decisions
 
@@ -11,12 +11,13 @@ Private DS **0.6.0-vnext.9**. It covers the component audit of the whole Sprinti
 | Assignee | Only a current human project member can be the assignee. |
 | Board admission | The rule stays the same. The board explains tasks that are waiting for a planned release. |
 
-## Design system (vnext.3 → vnext.9)
+## Design system (vnext.3 → vnext.10)
 
 - **vnext.3:** the R3 work list is a public entry. Tag tones have light and dark tokens. The type scale is tokenised. Dense surfaces get public variants. The keyboard focus ring is visible. The map canvas no longer collapses when the object library is open.
 - **vnext.4:** on coarse pointers, buttons, section links, selects and checkboxes are 44px (`touch.css`, loaded last). Escape closes the map object library.
 - **vnext.5:** `ui.menu` takes `{section}` labels, which keyboard navigation skips. Long menus scroll. Compact selects are 44px on touch screens.
-- **vnext.9:** whiteboard `dock="side"`: a vertical rail on the left, where host commands (`hostActions`) sit under "+". `openHostPanel`/`closeHostPanel` show a host side panel with the same slide motion as the object library, and only one of the two is open at a time. `iq-file-picker` is one picker (compact row or DS dropzone) that hands files to the host, which uploads them. The tag picker gets a "+ Новый тег" bubble that asks the host to create a tag.
+- **vnext.10:** whiteboard `dock="side"`: a vertical rail on the left, where host commands (`hostActions`) sit under "+". `openHostPanel`/`closeHostPanel` show a host side panel with the same slide motion as the object library, and only one of the two is open at a time. `iq-file-picker` is one picker (compact row or DS dropzone) that hands files to the host, which uploads them. The tag picker gets a "+ Новый тег" bubble that asks the host to create a tag.
+- **vnext.9:** `iq-auth-dialog` (built from DS fields, `iq-check` and `iq-alert`, with configurable labels) and `iq-auth-screen`, plus the IQUIPAGE Keycloak login theme. The theme has one language, no locale switcher, and a DS icon button for switching theme.
 - **vnext.8:** `iq-roadmap[fill]`: the Gantt grid is the only scroller. Work lists show a visible column header. `.iq-loading` holds skeletons and stays invisible for the first 180 ms, and `.iq-reveal` fades content in, so fast loads never flash. Calendar entries render as DS task cards with key, priority signal, entry kind and owner, never the raw id. `iq-markdown-editor[preview]` opens straight in preview.
 - **vnext.7:** `iq-tag-picker` for catalog tags: coloured chips with remove buttons, search over project tags, creation through `iq-create`, and enter/leave motion that respects reduced motion. Whiteboard hosts get `selection-bar="none"` and `library-open`. Ghost and icon buttons, tags, segments, menu and list rows draw keyboard focus inside their own bounds, so the ring never overlaps a neighbour or gets clipped.
 - **vnext.6:** public command dialog `iq-dialog kind="command"`, no longer tied to the demo `#command-dialog` id. Adds command groups, an empty state and the active row (`aria-selected`).
