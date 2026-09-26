@@ -1,6 +1,16 @@
 # Settings validation
 
-Final package: `@iquipage/web@0.6.0-vnext.10`, consumed through a versioned tarball and lockfile.
+Final package: `@iquipage/web@0.6.0-vnext.15`, consumed through a versioned tarball and lockfile.
+
+## Redesign (0.6.0-vnext.15)
+
+- Full gate `scripts/verify-vnext.mjs` passes: verification tools, library build and tests (260), product boundaries, build and tests with the private QA S3 service, detached product copy.
+- Browser (local stand, 1440, 1920 and 390 wide, light and dark): every section; the save bar appears after an edit and hides after "Отменить"; invitation dialog with roles and lifetime, the link shown once with a copy button; agent access with the permissions grid; the row menu; template preview; the phone index and back link. No console errors.
+- Read-only view checked by rewriting the project role in API responses in the browser (the stand's quick login is admin only); the server still enforces every permission.
+- Section switches between board, planning, maps and settings recorded frame by frame: no blank frame and no fade.
+
+## Earlier validation (0.6.0-vnext.10)
+
 
 - Node 24: clean `npm ci --ignore-scripts`, typecheck/build and `check:boundaries` pass.
 - IQUIPAGE: 235 tests pass.

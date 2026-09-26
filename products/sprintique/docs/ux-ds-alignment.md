@@ -1,6 +1,6 @@
 # UX and design-system alignment (September 2026)
 
-Private DS **0.6.0-vnext.14**. It covers the component audit of the whole Sprintique UI and the changes the owner approved.
+Private DS **0.6.0-vnext.15**. It covers the component audit of the whole Sprintique UI and the changes the owner approved.
 
 ## Owner decisions
 
@@ -11,11 +11,15 @@ Private DS **0.6.0-vnext.14**. It covers the component audit of the whole Sprint
 | Assignee | Only a current human project member can be the assignee. |
 | Board admission | The rule stays the same. The board explains tasks that are waiting for a planned release. |
 
-## Design system (vnext.3 → vnext.14)
+## Design system (vnext.3 → vnext.15)
 
 - **vnext.3:** the R3 work list is a public entry. Tag tones have light and dark tokens. The type scale is tokenised. Dense surfaces get public variants. The keyboard focus ring is visible. The map canvas no longer collapses when the object library is open.
 - **vnext.4:** on coarse pointers, buttons, section links, selects and checkboxes are 44px (`touch.css`, loaded last). Escape closes the map object library.
 - **vnext.5:** `ui.menu` takes `{section}` labels, which keyboard navigation skips. Long menus scroll. Compact selects are 44px on touch screens.
+- **vnext.15:** the settings workspace redesigned after a second council (art director, product designer, product manager with UX research, DS architect).
+  - `iq-settings-layout` fills the width: navigation flush left, one content column up to 1120px, `view="index|section"` for phones.
+  - `settingsNavigation()` draws the DS side navigation (neutral current item, quiet group labels, counts for things that need a decision).
+  - New shared compositions: page heading, group, row panel, field row, facts, lock notice, save bar, compact empty state, one-time secret, choice list and permissions grid.
 - **vnext.14:** the settings workspace from PR #8 (`iq-settings-layout`, `iq-visual-choice`, `settingsNavigation`, theme, accent, density and motion preferences), merged with vnext.9–13. Its styles load after the component styles and use the DS type scale, the page title matches other section headings, and navigation icons come from the DS set.
 - **vnext.13:**
   - A closed structured tooltip is never displayed, and focus opens tooltips only for keyboard navigation.
@@ -66,7 +70,13 @@ Private DS **0.6.0-vnext.14**. It covers the component audit of the whole Sprint
   - No refresh buttons. Live events keep the data current, events that arrive during a dialog are applied when it closes, and returning to the tab re-reads the plan.
   - The Gantt has one scroller, the planning page. The roadmap keeps its full height, so release groups are never cut off in a nested box; the grid scrolls only sideways.
   - Calendar cards look like board cards.
-- **Settings:** a settings workspace (PR #8). A persistent, searchable navigation groups the sections ("Для меня", "Проект", "Пространство"), and every section has a link (`#settings/<id>`). Names are edited in place with explicit saving and protection against losing changes. Theme, accent, density and reduced motion apply at once and are kept in the browser. Release format is a radio choice. Time zones are searchable comboboxes. Tag colours are DS tag swatches.
+- **Settings:** a full-width settings workspace on the DS side navigation.
+  - Every page has the same anatomy: the title and one sentence about the section, the main action on the right, then groups of panels. Changes are saved with a bar that appears only when something changed.
+  - People who cannot change a setting see values and a lock notice naming an administrator, not disabled fields.
+  - Sections were renamed after the jobs they serve: "Профиль", "Теги", "Спринты и релизы", "Агенты", "Очистка файлов", "О пространстве", and workspace members got their own page. Deep links stay the same.
+  - Members change roles in the row, removal sits in the row menu, invitations show their state and the link is shown once with a copy button. Agents put proposals that wait for a decision first and decide them with two buttons. File cleanup says "Всё в порядке" when nothing needs attention.
+  - On phones the list of sections comes first and a section opens as its own screen.
+- **Section switching:** the open section stays on screen while the next one mounts out of sight, then they swap in one frame; the page never blanks or fades between the board and planning. A load slower than 0.4 s shows an outline over the old view.
 - **Maps:** clicking an object opens the properties panel on the right (432px, without position and size fields: those are set on the canvas), with no selection bar above the canvas. The dock is a rail on the left. Under "+" (object library) it holds search, templates and the map menu. The library and the menu slide out from the rail and back into it. The rail is aligned to the top, level with the library; the object library starts closed; rail tooltips open to the right. The dock keeps only "Выбрать": connections are made from object ports, and the board is moved by scrolling. The toolbar row is gone: the map title floats as a chip in the top right corner. The properties panel covers it, and it fades out while a board panel such as search is open. The save state is a sync button. Its structured tooltip gives the state, the map kind, that saving is automatic and when it was last checked. A click saves, loads the newest revision and confirms with a toast. The "+ Заметка" button is gone. Template previews are miniature boards (titled areas, lined notes, arrowed links) that lift and draw on hover. The menu is a grouped `iq-menu` dropdown. Template categories use the DS segmented control. History rows span the full width. The canvas runs edge to edge.
 - **Feedback:** successes and failures show as DS `notify` toasts. ⌘K is a DS command dialog: focus stays in the field, arrow keys move the active row (`aria-activedescendant`). It doubles as a command palette with destinations, settings pages, new task, project switcher, theme and profile. Every section shows a DS skeleton while it loads.
 - **Search:** case folding uses `pg_c_utf8`, so a Cyrillic query matches regardless of case.

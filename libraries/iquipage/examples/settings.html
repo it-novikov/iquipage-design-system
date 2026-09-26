@@ -3,22 +3,34 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>IQUIPAGE — Настройки</title>
 <link rel="stylesheet" href="../dist/iquipage.css">
-<iq-settings-layout>
-  <div slot="navigation"><p class="iq-settings-title">Настройки</p><div id="navigation"></div></div>
-  <header slot="heading" class="iq-settings-heading"><div><h1>Внешний вид</h1><p>Общая композиция для продуктов IQUIPAGE.</p></div></header>
-  <section class="iq-settings-section"><h2>Тема интерфейса</h2><p>Карточки — нативная группа радиокнопок. Используйте Tab и стрелки.</p><iq-visual-choice id="theme" label="Тема интерфейса" value="light"></iq-visual-choice></section>
-  <section class="iq-settings-section"><h2>Плотность информации</h2><p>Выбор остаётся под управлением приложения.</p><iq-visual-choice id="density" label="Плотность информации" value="comfortable"></iq-visual-choice></section>
-  <p class="iq-settings-status" role="status" id="status">Это интерактивный пример. Настройки не сохраняются.</p>
+<style>html,body{height:100%;margin:0}body{background:var(--iq-canvas);--iq-app-header-height:0px}</style>
+<iq-settings-layout view="section">
+  <div slot="navigation"><p class="iq-settings-title">Настройки</p><label class="product-nav-search iq-settings-search"><svg width="17" height="17" aria-hidden="true"></svg><input type="search" placeholder="Найти настройку" aria-label="Найти раздел настроек"></label><div id="navigation"></div></div>
+  <header slot="heading" class="iq-page-heading iq-settings-heading"><a class="iq-btn ghost sm iq-page-heading-back" href="#settings">Настройки</a><div class="iq-page-heading-copy"><h1>Участники</h1><p class="iq-page-heading-lead">Кто работает в проекте и что может делать.</p></div><div class="iq-page-heading-tools"><button type="button" class="iq-btn primary sm">Пригласить</button></div></header>
+  <div class="iq-settings-stack">
+    <section class="iq-settings-group"><header class="iq-settings-group-head"><div><h2>Команда<span class="iq-settings-group-count">2</span></h2><p>Строка: медиа, имя и пояснение, значение справа, одно действие и меню.</p></div></header>
+      <ul class="iq-settings-panel" role="list">
+        <li class="iq-settings-row"><span class="iq-settings-row-media"><span class="iq-avatar v1" aria-hidden="true">АК</span></span><span class="iq-settings-row-copy"><span class="iq-settings-row-title">Анна Ким<span class="iq-badge soft">Вы</span></span><span class="iq-settings-row-meta"><span>Управляет доступом и настройками.</span></span></span><span class="iq-settings-row-aside">Администратор</span><span class="iq-settings-row-actions"></span></li>
+        <li class="iq-settings-row"><span class="iq-settings-row-media"><span class="iq-avatar v2" aria-hidden="true">ИП</span></span><span class="iq-settings-row-copy"><span class="iq-settings-row-title">Иван Петров</span><span class="iq-settings-row-meta"><span>Создаёт и меняет задачи.</span></span></span><span class="iq-settings-row-aside">Участник</span><span class="iq-settings-row-actions"><button type="button" class="iq-btn ghost sm">Изменить</button></span></li>
+      </ul></section>
+    <form class="iq-settings-stack" id="form"><section class="iq-settings-group"><header class="iq-settings-group-head"><div><h2>Основное</h2><p>Поле справа от подписи; панель сохранения появляется только после изменений.</p></div></header>
+      <div class="iq-settings-panel"><div class="iq-settings-field-row"><div class="iq-settings-field-label"><span>Название проекта</span><small>Видно в переключателе и ссылках.</small></div><div><div class="iq-field"><label class="iq-control-label" for="name">Название проекта</label><span class="iq-input-shell"><input id="name" name="name" value="Выпуск 2.4"></span></div></div></div></div></section>
+      <div class="iq-settings-savebar" role="region" aria-label="Несохранённые изменения" hidden><span class="iq-settings-savebar-status">Есть несохранённые изменения</span><span class="iq-settings-savebar-actions"><button type="button" class="iq-btn ghost sm" id="reset">Отменить</button><button type="submit" class="iq-btn primary sm">Сохранить</button></span></div></form>
+    <section class="iq-settings-group"><header class="iq-settings-group-head"><div><h2>Ссылки на задачи</h2><p>Факты: значения только для чтения.</p></div></header>
+      <div class="iq-settings-panel"><dl class="iq-settings-facts"><div><dt>Префикс задач</dt><dd><code>SPR</code><small>Например, SPR-128</small></dd></div><div><dt>Часовой пояс</dt><dd>Europe/Moscow</dd></div></dl></div></section>
+    <section class="iq-settings-group"><header class="iq-settings-group-head"><div><h2>Приглашения</h2></div></header>
+      <div class="iq-settings-panel"><div class="iq-empty compact"><span class="iq-settings-row-tile"></span><h3>Активных приглашений нет</h3><p>Компактное пустое состояние внутри панели.</p></div></div></section>
+  </div>
 </iq-settings-layout>
 <script type="module">
-import {registerCore,settingsNavigation} from '../dist/core.js';
+import {registerCore,settingsNavigation,icon} from '../dist/core.js';
 registerCore();
-document.querySelector('#navigation').innerHTML=settingsNavigation([{label:'Для меня',items:[{id:'appearance',label:'Внешний вид',icon:'sun'}]}],'appearance');
-const theme=document.querySelector('#theme'),density=document.querySelector('#density'),media=matchMedia('(prefers-color-scheme: dark)');
-theme.options=[{value:'light',label:'Светлая',preview:'light'},{value:'dark',label:'Тёмная',preview:'dark'},{value:'system',label:'Как на устройстве',preview:'system'}];
-density.options=[{value:'comfortable',label:'Свободная',preview:'comfortable'},{value:'compact',label:'Компактная',preview:'compact'}];
-function apply(){document.documentElement.dataset.theme=theme.value==='system'?(media.matches?'dark':'light'):theme.value;document.documentElement.dataset.density=density.value;}
-for(const control of [theme,density])control.addEventListener('iq-change',()=>{apply();document.querySelector('#status').textContent='Выбор применён к примеру. Данные в браузере не сохраняются.';});
-media.addEventListener('change',apply);
+document.querySelector('.iq-settings-search svg').outerHTML=icon('search',17);
+document.querySelector('.iq-settings-row-tile').innerHTML=icon('link',20);
+document.querySelector('#navigation').innerHTML=settingsNavigation([{label:'Для меня',items:[{id:'account',label:'Профиль',icon:'user'},{id:'appearance',label:'Внешний вид',icon:'sun'}]},{label:'Проект',items:[{id:'members',label:'Участники',icon:'users'},{id:'agents',label:'Агенты',icon:'spark',count:2,countLabel:'2 предложения ждут решения'}]}],'members');
+const form=document.querySelector('#form'),bar=form.querySelector('.iq-settings-savebar'),field=form.querySelector('#name'),saved=field.value;
+form.addEventListener('input',()=>{bar.hidden=field.value===saved;});
+document.querySelector('#reset').addEventListener('click',()=>{field.value=saved;bar.hidden=true;});
+form.addEventListener('submit',event=>{event.preventDefault();bar.hidden=true;});
 </script>
 </html>

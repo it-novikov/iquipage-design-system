@@ -1,18 +1,25 @@
-import {dialog,select,icon,esc} from '../ui.js';
-import {formatDate} from '@iquipage/web/core';
+import {dialog,icon,esc} from '../ui.js';
+import {ui,formatDate} from '@iquipage/web/core';
 import {editCatalogItem,tagMarkup} from './catalog-ui.js';
+import {TAG_TONES} from './workspace-model.js';
 import {starterTaskSettings,compileTaskTemplate,TEMPLATE_MODES,STARTER_TASK_TEMPLATES,upgradeLegacyTaskSettings} from './task-templates.js';
 import {taskMarkdown} from './task-content.js';
-export async function mountProjectTaskSettings(root,{repository,project,section,onBack=null,canManage=true,embedded=false}){
+import {select} from '../ui.js';
+const priorities={normal:'Обычный',high:'Высокий',critical:'Критический',low:'Низкий'};
+const modes={inherit:'Как в базовом',append:'Базовый плюс своё описание',replace:'Своё описание',exclude:'Без описания'};
+const kinds=[['task','Задача','checklist'],['bug','Баг','bug'],['epic','Эпик','stack']];
+const row=({media,title,meta=[],aside='',actions='',button='',muted=false})=>{
+  const inner=`<span class="iq-settings-row-media">${media}</span><span class="iq-settings-row-copy"><span class="iq-settings-row-title">${title}</span>${meta.filter(Boolean).length?`<span class="iq-settings-row-meta">${meta.filter(Boolean).map(m=>`<span>${m}</span>`).join('')}</span>`:''}</span>`;
+  return button?`<button type="button" class="iq-settings-row" ${button}>${inner}<span class="iq-settings-row-aside">${aside}</span><span class="iq-settings-row-chevron">${icon('chevron',17)}</span></button>`
+    :`<div class="iq-settings-row"${muted?' data-state="muted"':''}>${inner}<span class="iq-settings-row-aside">${aside}</span><span class="iq-settings-row-actions">${actions}</span></div>`;
+};
+const tile=glyph=>`<span class="iq-settings-row-tile">${icon(glyph,18)}</span>`;
+const group=(title,description,body,count=null)=>`<section class="iq-settings-group"><header class="iq-settings-group-head"><div><h2>${esc(title)}${count!==null?`<span class="iq-settings-group-count">${count}</span>`:''}</h2>${description?`<p>${esc(description)}</p>`:''}</div></header>${body}</section>`;
+const empty=(title,body,action='',glyph='palette')=>`<div class="iq-empty compact"><span class="iq-settings-row-tile">${icon(glyph,20)}</span><h3>${esc(title)}</h3><p>${esc(body)}</p>${action}</div>`;
+/** Project tags and task templates on the DS settings compositions. Readers see the same content without actions. */
+export async function mountProjectTaskSettings(root,{repository,project,section,canManage=true,notice=''}){
   let closed=false,items=[],activeDialog=null,settings;
-  const titles={tags:'Теги проекта',releases:'Релизы проекта',templates:'Шаблоны задач'};
-  const createLabel=section==='tags'?'Новый тег':'Новый релиз';
-  // Tags are created where they are used (the task card); settings keep renaming, colours and archiving.
-  const createButton=section==='releases'&&canManage?`<button type="button" class="iq-btn primary sm" data-catalog-create>${createLabel}</button>`:'';
-  root.innerHTML=`<div class="host-settings task-settings-page">
-    ${!embedded&&onBack?`<button type="button" class="iq-btn ghost sm" data-settings-back>${icon('left',16)}<span>Настройки проекта</span></button>`:''}
-    <div class="row between">${embedded?'':`<h1>${titles[section]}</h1>`}${createButton}</div>
-    <p class="map-form-error" role="alert" hidden></p><div data-settings-content></div></div>`;
+  root.innerHTML=`${notice}<div class="iq-settings-stack" data-settings-content></div><p class="iq-inline danger" role="alert" hidden></p>`;
   const content=root.querySelector('[data-settings-content]'),error=root.querySelector('[role=alert]'),abort=new AbortController();
   const fail=cause=>{if(!closed){error.hidden=false;error.textContent=cause.message;}};
   const track=element=>{activeDialog=element;element.addEventListener('iq-close',()=>{if(activeDialog===element)activeDialog=null;},{once:true});};
@@ -22,39 +29,39 @@ export async function mountProjectTaskSettings(root,{repository,project,section,
       else {items=await repository.list(section,project.id);renderCatalog();}
     }catch(cause){fail(cause);}
   }
-  function catalogRow(item){
-    const releaseInfo=`<b>${esc(item.name)}</b><small>${item.status==='released'?'Выпущен':'Планируется'}${item.targetDate?', выпуск '+esc(formatDate(item.targetDate)):''}${item.archivedAt?', в архиве':''}</small>`;
-    const controls=canManage?`<button type="button" class="iq-btn ghost sm" data-edit-item="${esc(item.id)}">Изменить</button><button type="button" class="iq-btn ghost sm" data-archive-item="${esc(item.id)}">${item.archivedAt?'Восстановить':'В архив'}</button>`:'';
-    return `<div class="iq-list-item"><div>${section==='tags'?tagMarkup(item):releaseInfo}</div>${controls}</div>`;
+  function tagRow(item){
+    const menu=canManage?ui.menu(`<button type="button" class="iq-btn ghost icon sm" aria-label="Действия: ${esc(item.name)}">${icon('more',17)}</button>`,[{label:'В архив',action:'archive-tag',glyph:'folder'}]):'';
+    const actions=!canManage?'':item.archivedAt?`<button type="button" class="iq-btn ghost sm" data-archive-item="${esc(item.id)}">Восстановить</button>`:`<button type="button" class="iq-btn ghost sm" data-edit-item="${esc(item.id)}">Изменить</button>${menu}`;
+    return `<div class="iq-settings-row"${item.archivedAt?' data-state="muted"':''} data-tag-id="${esc(item.id)}"><span class="iq-settings-row-copy"><span class="iq-settings-row-title">${tagMarkup({...item,archivedAt:null})}</span></span><span class="iq-settings-row-aside">${esc(TAG_TONES[item.tone]||TAG_TONES.neutral)}</span><span class="iq-settings-row-actions">${actions}</span></div>`;
   }
   function renderCatalog(){
     if(closed)return;
-    const hint=section==='tags'?'Теги общие для проекта: новые создаются прямо в карточке задачи. Изменение имени и цвета отобразится во всех задачах.':'Выбранный релиз не меняет статус задачи автоматически.';
-    const rows=items.sort((a,b)=>Number(!!a.archivedAt)-Number(!!b.archivedAt)||a.name.localeCompare(b.name,'ru')).map(catalogRow).join('');
-    content.innerHTML=`<p class="iq-helper">${hint}</p><div class="iq-list">${rows||'<p class="iq-helper">Пока ничего не добавлено.</p>'}</div>`;
+    const sorted=items.sort((a,b)=>a.name.localeCompare(b.name,'ru')),live=sorted.filter(i=>!i.archivedAt),archived=sorted.filter(i=>i.archivedAt);
+    if(section!=='tags'){content.innerHTML=group('Релизы','Выбранный релиз не меняет статус задачи автоматически.',`<div class="iq-settings-panel">${sorted.map(item=>row({media:tile('calendar'),title:esc(item.name),meta:[item.status==='released'?'Выпущен':'Планируется',item.targetDate?'Выпуск '+esc(formatDate(item.targetDate)):''],actions:canManage?`<button type="button" class="iq-btn ghost sm" data-edit-item="${esc(item.id)}">Изменить</button>`:'',muted:!!item.archivedAt})).join('')||empty('Релизов пока нет','Создайте первый релиз в планировании.','','calendar')}</div>`);return;}
+    const board='<a class="iq-btn secondary sm" href="#tasks" data-section-link="tasks">Открыть доску</a>';
+    content.innerHTML=group('Все теги','Новые теги создаются в карточке задачи. Здесь их переименовывают, перекрашивают и убирают в архив.',`<div class="iq-settings-panel">${live.map(tagRow).join('')||empty('Тегов пока нет','Откройте задачу и добавьте первый тег. Здесь можно будет переименовать его или сменить цвет.',board)}</div>${archived.length?`<details class="iq-accordion iq-settings-past"><summary>Архив (${archived.length}) ${icon('down',16)}</summary><div class="iq-settings-panel">${archived.map(tagRow).join('')}</div></details>`:''}`,live.length);
   }
   function renderTemplates(){
     if(closed)return;
-    const names={base:'Базовый шаблон',task:'Задача',bug:'Баг',epic:'Эпик'};
-    const rows=Object.entries(names).map(([type,name])=>{
-      const spec=type==='base'?settings.base:compileTaskTemplate(settings,type);
-      const button=canManage?`<button type="button" class="iq-btn ghost sm" data-edit-template="${type}">Настроить</button>`:'';
-      return `<div class="iq-list-item"><div><b>${name}</b><small>${taskMarkdown(spec)?'Описание и критерии готовности':'Без заданного содержания'}</small></div>${button}</div>`;
-    }).join('');
-    content.innerHTML=`<p class="iq-helper">Базовый шаблон общий для всех задач. Шаблон типа наследует его или явно меняет нужные части. Существующие задачи не перезаписываются.</p><div class="iq-list">${rows}</div>`;
+    const base=settings.base,baseText=taskMarkdown(base);
+    const baseRow=row({media:tile('file'),title:'Базовый шаблон',meta:['Общая основа для всех типов',baseText?'Описание задано':'Описание не задано',base.priority?'Приоритет '+(priorities[base.priority]||base.priority).toLocaleLowerCase('ru'):''],button:`data-edit-template="base"`});
+    const typeRows=kinds.map(([type,name,glyph])=>{const spec=settings.types[type]||{};return row({media:tile(glyph),title:name,meta:[modes[spec.descriptionMode||'inherit']||TEMPLATE_MODES[spec.descriptionMode],spec.priority?'Приоритет '+(priorities[spec.priority]||spec.priority).toLocaleLowerCase('ru'):''],button:`data-edit-template="${type}"`});}).join('');
+    content.innerHTML=group('Основа','Шаблоны меняют только новые задачи. Существующие задачи не перезаписываются.',`<div class="iq-settings-panel">${baseRow}</div>`)+group('Типы задач','Каждый тип наследует базовый шаблон или задаёт своё описание.',`<div class="iq-settings-panel">${typeRows}</div>`);
+  }
+  function previewTemplate(type){
+    const names={base:'Базовый шаблон',task:'Шаблон задачи',bug:'Шаблон бага',epic:'Шаблон эпика'};
+    track(dialog({title:names[type],description:'Так начинается описание новой задачи. Менять шаблоны может администратор проекта.',wide:true,body:'<iq-markdown-viewer></iq-markdown-viewer>',mount:element=>{element.querySelector('iq-markdown-viewer').value=taskMarkdown(compileTaskTemplate(settings,type==='base'?'task':type))||'Описание не задано.';}}));
   }
   root.addEventListener('click',event=>{
-    if(event.target.closest('[data-settings-back]'))onBack?.();
+    const template=event.target.closest('[data-edit-template]');if(template){canManage?editTemplate(template.dataset.editTemplate):previewTemplate(template.dataset.editTemplate);return;}
     if(!canManage)return;
-    if(event.target.closest('[data-catalog-create]'))track(editCatalogItem(section,{repository,project,onSaved:reload}));
     const edit=event.target.closest('[data-edit-item]');
     if(edit)track(editCatalogItem(section,{repository,project,item:items.find(item=>item.id===edit.dataset.editItem),onSaved:reload}));
-    const template=event.target.closest('[data-edit-template]');if(template)editTemplate(template.dataset.editTemplate);
-    const archive=event.target.closest('[data-archive-item]');if(archive)archiveItem(items.find(item=>item.id===archive.dataset.archiveItem));
+    const archive=event.target.closest('[data-archive-item],[data-action="archive-tag"]');if(archive)archiveItem(items.find(item=>item.id===(archive.dataset.archiveItem||archive.closest('[data-tag-id]')?.dataset.tagId)));
   },{signal:abort.signal});
   function archiveItem(item){
     if(!item)return;
-    track(dialog({title:item.archivedAt?'Восстановить значение?':'Переместить в архив?',description:'Существующие задачи сохранят эту связь. Архивное значение не предлагается при новом назначении.',submitLabel:item.archivedAt?'Восстановить':'В архив',onSubmit:async()=>{
+    track(dialog({title:item.archivedAt?`Вернуть тег «${item.name}»?`:`Убрать тег «${item.name}» в архив?`,description:item.archivedAt?'Тег снова можно будет выбирать в задачах.':'Задачи сохранят этот тег. Его просто не будут предлагать при новом назначении.',submitLabel:item.archivedAt?'Восстановить':'В архив',onSubmit:async()=>{
       await repository.write(section,{...item,archivedAt:item.archivedAt?null:new Date().toISOString()},item.revision);await reload();
     }}));
   }
