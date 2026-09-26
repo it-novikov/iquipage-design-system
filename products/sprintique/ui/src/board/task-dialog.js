@@ -46,7 +46,7 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
     ${input('title','Название',initial.title,{required:true,placeholder:'Что нужно сделать?'})}
     <section class="task-edit-section"><div class="row between"><h3>Описание</h3>${canEdit?'<button type="button" class="iq-btn ghost sm" data-apply-template>Применить шаблон</button>':''}</div>
       <div class="task-description-surface" data-description>
-        <iq-markdown-editor label="Описание" name="description" variant="compact" density="compact" maxlength="10000" preview-on-blur></iq-markdown-editor>
+        <iq-markdown-editor label="Описание" name="description" variant="compact" density="compact" maxlength="10000" preview-on-blur ${task?'preview':''}></iq-markdown-editor>
       </div><div class="task-tags-row" data-task-tags aria-label="Теги задачи"></div></section>
     </div><aside class="task-editor-properties" aria-label="Свойства задачи">
     <div class="task-edit-properties">

@@ -8,7 +8,8 @@ export function mountTaskDescription(root,{value='',editing=false,readOnly=false
   editor.previewOnBlur=true;
   const sync=()=>{root.dataset.mode=editor.previewMode?'preview':'edit';};
   editor.addEventListener('iq-preview-change',sync,{signal:abort.signal});
-  editor.previewMode=!editing||readOnly;
+  // The markup already opens existing tasks in preview; only a different starting mode is applied here.
+  if(editor.previewMode!==(!editing||readOnly))editor.previewMode=!editing||readOnly;
   sync();
   return {refresh(){sync();},destroy(){abort.abort();}};
 }

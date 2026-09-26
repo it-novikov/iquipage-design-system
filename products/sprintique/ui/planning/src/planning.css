@@ -53,3 +53,27 @@
 .pn-col-task{width:56%}.pn-col-state{width:16%}.pn-col-owner{width:14%}.pn-col-date{width:14%}
 /* Phones (set at mount): the page scrolls; a nested list scroller left only ~330px for tasks. */
 .planning-view[data-page-scroll]{height:auto}.planning-view[data-page-scroll] .pn-scroll{overflow:visible;flex:none}
+/* Gantt: one scroller. The toolbar and plan header stay put; only the roadmap grid scrolls (DS iq-roadmap[fill]). */
+.pn-temporal[data-time-mode=timeline]:not([hidden]){display:flex;flex-direction:column;overflow:hidden}
+.pn-temporal[data-time-mode=timeline] [data-time-surface]{flex:1;min-height:0;display:flex;flex-direction:column}
+.pn-temporal[data-time-mode=timeline] [data-time-surface]>iq-roadmap{flex:1;min-height:0}
+/* Releases and backlog are separate cards, so groups no longer merge into one sheet. */
+.pn-group{border:1px solid var(--iq-line);border-radius:var(--iq-radius-lg);background:var(--iq-raised);padding:0 var(--iq-space-4) var(--iq-space-2);margin-bottom:var(--iq-space-5);overflow:clip}
+.pn-group-header{background:var(--iq-raised);border-bottom:0;padding-block:var(--iq-space-3)}
+.pn-group[data-state=active]{border-color:color-mix(in srgb,var(--iq-accent) 45%,var(--iq-line))}
+.pn-group .iq-work-list tr:last-child>td{border-bottom:0}
+/* Header row placeholders keep the select-all checkbox in the same column as row checkboxes. */
+.pn-grip-space{width:var(--iq-control-sm);flex-shrink:0}
+/* Subtasks: a tree line runs down from the parent's disclosure arrow; each child gets an elbow, the last one ends there. */
+.pn-tree{position:relative;align-self:stretch;flex:none;width:var(--iq-control-sm);margin-block:calc(-1 * var(--iq-space-2))}
+.pn-tree[data-depth="2"]{width:calc(2 * var(--iq-control-sm))}
+.pn-tree[data-depth="3"]{width:calc(3 * var(--iq-control-sm))}
+.pn-tree[data-depth="4"]{width:calc(4 * var(--iq-control-sm))}
+.pn-tree::before{content:"";position:absolute;right:calc(var(--iq-control-sm) / 2);top:calc(-1 * var(--iq-space-4));bottom:calc(-1 * var(--iq-space-4));border-left:1.5px solid color-mix(in srgb,var(--iq-muted) 40%,transparent)}
+.pn-tree[data-last=true]::before{bottom:50%}
+.pn-group td:has(.pn-tree){overflow:visible}
+.pn-tree::after{content:"";position:absolute;left:calc(100% - var(--iq-control-sm) / 2);top:50%;width:calc(var(--iq-control-sm) / 2 + var(--iq-control-sm) + var(--iq-space-2));border-top:1.5px solid color-mix(in srgb,var(--iq-muted) 40%,transparent)}
+.pn-group tr[data-depth]:not([data-depth="0"])>td{background:color-mix(in srgb,var(--iq-surface) 60%,transparent)}
+.pn-group tr[data-depth]:not([data-depth="0"])[data-selected=true]>td{background:transparent}
+.pn-subtasks-count{margin-left:var(--iq-space-2);color:var(--iq-muted);font-size:var(--iq-type-meta-size);white-space:nowrap}
+.pn-task-title+.pn-subtasks-count{display:inline}

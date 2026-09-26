@@ -16,16 +16,16 @@ export async function mountTemporalView(root,options) {
   const actions=[
     ui.btn('Отметить событие','secondary sm','flag','data-time-milestone'),
     ui.btn('Зависимость','ghost sm','link','data-time-dependency'),
-    ui.btn('Сроки объекта','ghost sm','calendar','data-time-edit disabled'),
-    ui.btn('Обновить план','ghost sm','refresh','data-time-refresh')
+    ui.btn('Сроки объекта','ghost sm','calendar','data-time-edit disabled')
   ].join('');
+  root.dataset.timeMode=mode;
   root.innerHTML=`<div class="pn-timebar row">${actions}<span class="iq-helper" data-time-count></span></div><div data-time-error role="alert" hidden></div><div data-time-surface></div><div data-time-tail></div>`;
   const container=root.querySelector('[data-time-surface]');
   const tail=root.querySelector('[data-time-tail]'),error=root.querySelector('[data-time-error]');
   function createSurface(){
     const element=document.createElement(mode==='dates'?'iq-plan':'iq-roadmap');
     if(mode!=='dates'){
-      element.controlled=true;
+      element.setAttribute('fill','');element.controlled=true;
       element.dependencyCapabilities=capabilities.temporal?{create:true,update:true,delete:true}:false;
       element.scale=viewState.scale||'fit';element.collapsedIds=viewState.collapsedIds||[];
     }
@@ -53,7 +53,6 @@ export async function mountTemporalView(root,options) {
   function controls(){
     const states=[['[data-time-milestone]',capabilities.milestone],['[data-time-dependency]',capabilities.temporal],['[data-time-edit]',selected&&!selected.readonly&&capabilities.timeline]];
     for(const [selector,allowed] of states)root.querySelector(selector).disabled=loading||!!modal||!ready||!allowed;
-    root.querySelector('[data-time-refresh]').disabled=loading||!!modal||dirty;
     root.querySelector('[data-time-count]').textContent=records.length<total?`Показано объектов: ${records.length} из ${total}`:'';
     tail.innerHTML=cursor?ui.btn('Показать ещё объекты плана','secondary sm','down',`data-time-more ${loading||dirty||modal?'disabled':''}`):'';
   }
@@ -86,7 +85,6 @@ export async function mountTemporalView(root,options) {
   root.addEventListener('click',event=>{
     const button=event.target.closest('button');if(!button||button.disabled)return;
     if(button.matches('[data-time-more]'))void load({append:true});
-    if(button.matches('[data-time-refresh]'))void load();
     if(button.matches('[data-time-milestone]'))void action(()=>milestoneDialog(base()));
     if(button.matches('[data-time-dependency]'))void action(()=>dependencyDialog(base()));
     if(button.matches('[data-time-edit]')&&selected)void action(()=>selected.entityKind==='milestone'?milestoneDialog({...base(),row:selected}):scheduleDialog({...base(),row:selected}));

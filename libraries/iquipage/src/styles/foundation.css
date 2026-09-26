@@ -2094,3 +2094,23 @@ iq-tag-picker{display:grid;gap:var(--iq-space-2);position:relative;min-width:0}
 .iq-tag[data-entering]{animation:iq-tag-in var(--iq-motion-fast) var(--iq-ease) both}
 .iq-tag[data-leaving]{animation:iq-tag-out var(--iq-motion-fast) var(--iq-ease) both;pointer-events:none}
 @media (prefers-reduced-motion:reduce){.iq-tag[data-entering],.iq-tag[data-leaving]{animation:none}}
+/* ---------- Roadmap fill (0.6.0-vnext.8): the host gives a height, the grid is the only scroller ---------- */
+iq-roadmap[fill]{display:flex;flex-direction:column;min-height:0;height:100%}
+iq-roadmap[fill]>.iq-roadmap{flex:1;min-height:0;display:flex;flex-direction:column}
+iq-roadmap[fill] .rm-scroll{flex:1;min-height:0;max-height:none}
+/* ---------- Calendar entries as task cards (0.6.0-vnext.8) ---------- */
+.plan-day .task-card.plan-card{display:flex;flex-direction:column;gap:var(--iq-space-1);width:100%;margin:0 0 var(--iq-space-2);padding:10px 12px;border-radius:10px;text-align:left;color:var(--iq-ink);font:inherit;cursor:pointer}
+.plan-card .task-card-top{margin:0;gap:var(--iq-space-2)}
+.plan-card .task-identity{display:flex;align-items:center;gap:6px;min-width:0}
+.plan-card .task-identity>.task-card-id{background:none;padding:0;border-radius:0}
+.plan-card .task-card-title{min-height:0;font-size:12px;font-weight:600;line-height:1.35;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.plan-card .task-card-footer{margin:var(--iq-space-1) 0 0;gap:var(--iq-space-2);font-size:var(--iq-type-meta-size);color:var(--iq-muted)}
+.plan-card.done .task-card-title{color:var(--iq-muted);text-decoration:line-through}
+/* ---------- Loading without flicker (0.6.0-vnext.8) ----------
+   .iq-loading holds skeletons (iq-skeleton) and stays invisible for the first 180ms, so fast loads never flash.
+   .iq-reveal fades freshly mounted content in, so skeleton → content is one smooth step. */
+@keyframes iq-loading-appear{from{opacity:0}to{opacity:1}}
+@keyframes iq-reveal{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.iq-loading{display:grid;gap:var(--iq-space-3);animation:iq-loading-appear var(--iq-motion-standard) var(--iq-ease) 180ms both}
+.iq-reveal{animation:iq-reveal var(--iq-motion-standard) var(--iq-ease) both}
+@media (prefers-reduced-motion:reduce){.iq-loading{animation:iq-loading-appear 1ms linear 180ms both}.iq-reveal{animation:none}}

@@ -143,3 +143,19 @@ test('board cards show hierarchy without repeating task numbers',()=>{
   const expanded=renderTaskCard({task:parent,parent:null,children:[done,open]},{index,canEdit:true,expanded:true});
   assert.match(expanded,/aria-expanded="true"/);assert.ok(expanded.includes('Готовая')&&expanded.includes('Открытая')&&expanded.includes('Ревью'));
 });
+test('calendar entries carry card facts, never raw entity ids or title suffixes',async()=>{
+  const {calendarProjection}=await import('../ui/planning/src/temporal-model.js');
+  const [entry]=calendarProjection([{id:'task:spq-login-bug',entityId:'spq-login-bug',entityKind:'task',title:'SPQ-4 · Ошибка',deadline:'2026-09-28',status:'review',card:{key:'SPQ-4',name:'Ошибка',type:'bug',priority:'high',owner:'Борис Петров'}}]);
+  assert.equal(entry.title,'Ошибка');assert.equal(entry.key,'SPQ-4');assert.equal(entry.kind,'deadline');assert.equal(entry.owner,'Борис Петров');assert.equal(entry.priority,'high');
+});
+test('planning tree marks the last child of each sibling run',async()=>{
+  const {lastChildren}=await import('../ui/planning/src/markup.js');
+  const rows=[{id:'a',depth:0},{id:'b',depth:1},{id:'c',depth:2},{id:'d',depth:1},{id:'e',depth:0}];
+  assert.deepEqual([...lastChildren(rows)].sort(),['c','d']);
+});
+test('loading markup is one DS skeleton look that stays hidden while loads are fast',async()=>{
+  const {loadingMarkup}=await import('../ui/src/loading.js');
+  const html=loadingMarkup('Загружаем <задачи>',{rows:2,title:true});
+  assert.match(html,/class="iq-loading product-loading "/);assert.match(html,/aria-busy="true"/);assert.match(html,/Загружаем &lt;задачи&gt;/);
+  assert.equal((html.match(/iq-skeleton product-loading-row/g)||[]).length,2);
+});

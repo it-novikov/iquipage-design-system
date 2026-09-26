@@ -1,10 +1,6 @@
 /* Product composition only. All controls, typography, states and motion use DS. */
 .map-version-preview{height:min(60vh,560px);min-height:280px}.map-version-preview>iq-whiteboard{height:100%}
 #app{height:100%}
-/* Section loading outline (DS skeleton), replaced by the mounted section. */
-.host-loading{display:grid;gap:var(--iq-space-3);padding:var(--iq-space-6) var(--iq-space-4);max-width:960px}
-.host-loading-title{height:28px;width:220px;margin-bottom:var(--iq-space-3)}
-.host-loading-row{height:40px}
 /* Local-stand sign-in: a narrow DS form under the landing copy. */
 .host-sign-in{display:grid;gap:var(--iq-space-4);max-width:360px}
 .host-sign-in .iq-badge,.host-sign-in .iq-btn{justify-self:start}
@@ -17,3 +13,8 @@
 .member-row>div{flex:1;min-width:0}
 .member-row p{margin:0}
 .task-settings-page [data-invite]{align-self:flex-start}
+/* Product loading look (DS skeletons in .iq-loading): used by sections, Planning groups, map history and settings. */
+.product-loading{padding-block:var(--iq-space-2)}
+.product-loading-title{height:28px;width:min(220px,60%);margin-bottom:var(--iq-space-2)}
+.product-loading-row{height:40px}
+.host-loading{padding:var(--iq-space-6) var(--iq-space-4);max-width:960px}

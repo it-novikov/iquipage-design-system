@@ -6,6 +6,7 @@ import {mountAgents} from './agents.js';
 import {editProjectProfile,editWorkspace} from './project-profile.js';
 import {dialog} from '../ui/src/ui.js';
 import {mountOperations} from './operations.js';
+import {loadingMarkup} from '../ui/src/loading.js';
 
 /** Settings sections are linkable pages (#settings/<id>) under one DS section navigation. */
 export const SETTINGS_SECTIONS=[['general','Общие'],['tags','Теги'],['templates','Шаблоны задач'],['members','Участники'],['agents','Агенты'],['operations','Фоновые операции']];
@@ -43,9 +44,10 @@ export async function mountSettings(root,{repository,project,adapter,onChanged=(
     if(mounted&&!mounted.readyToLeave())return false;
     busy=true;
     try{
-      mounted?.destroy();mounted=null;page.replaceChildren();current=id;
+      mounted?.destroy();mounted=null;page.innerHTML=loadingMarkup('Загружаем раздел…',{rows:4,title:true});current=id;
       for(const link of root.querySelectorAll('[data-settings-section]')){if(link.dataset.settingsSection===id)link.setAttribute('aria-current','page');else link.removeAttribute('aria-current');}
       mounted=await mounts[id]();
+      page.firstElementChild?.classList.add('iq-reveal');
       if(closed)mounted?.destroy();
     }catch(error){if(!closed)page.innerHTML=`<div class="iq-alert danger" role="alert"><div class="message-copy"><b>Не удалось открыть раздел</b><p>${esc(error.message)}</p></div></div>`;}
     finally{busy=false;}

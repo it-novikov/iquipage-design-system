@@ -164,8 +164,11 @@ export async function describeRelease(tx:Transaction,actor:Actor,projectId:strin
 export async function settings(tx:Transaction,actor:Actor,projectId:string){const c=await context(tx,actor,projectId);return {...c.state.defaults,timeZone:c.state.defaults!.timezone};}
 export async function timeline(tx:Transaction,actor:Actor,projectId:string,q:ViewQuery){
   const c=await context(tx,actor,projectId),matched=matches(q,c.rows,c.state.releases),releases=c.state.releases.filter(r=>!finished(r)&&!r.archivedAt&&(!q.releaseId||r.id===q.releaseId));
+  const names=memberNames(c.state);
   const records=[...releases.map(r=>({id:'release:'+r.id,entityId:r.id,entityKind:'release',title:r.name,start:r.plannedStart,end:r.plannedEnd,deadline:r.deadline,readonly:!c.write})),
-    ...c.rows.filter(t=>matched.has(t.id)&&(!t.effectiveReleaseId||releases.some(r=>r.id===t.effectiveReleaseId))).map(t=>({id:'task:'+t.id,entityId:t.id,entityKind:'task',title:t.displayId+' · '+t.title,start:t.plannedStart,end:t.plannedEnd||null,deadline:t.due,readonly:!c.write||t.result==='accepted',parentId:t.parentId?'task:'+t.parentId:t.effectiveReleaseId?'release:'+t.effectiveReleaseId:undefined,status:t.result==='accepted'?'done':t.status})),
+    ...c.rows.filter(t=>matched.has(t.id)&&(!t.effectiveReleaseId||releases.some(r=>r.id===t.effectiveReleaseId))).map(t=>({id:'task:'+t.id,entityId:t.id,entityKind:'task',title:t.displayId+' · '+t.title,start:t.plannedStart,end:t.plannedEnd||null,deadline:t.due,readonly:!c.write||t.result==='accepted',parentId:t.parentId?'task:'+t.parentId:t.effectiveReleaseId?'release:'+t.effectiveReleaseId:undefined,status:t.result==='accepted'?'done':t.status,
+      // Calendar cards show the same facts as board cards.
+      card:{key:t.displayId,name:t.title,type:t.type,priority:t.priority,owner:ownerLabel(t,names)}})),
     ...c.state.milestones.filter(m=>(!m.releaseId||c.state.releases.some(r=>r.id===m.releaseId&&!finished(r)&&!r.archivedAt))&&(!q.releaseId||m.releaseId===q.releaseId)).map(m=>({id:'milestone:'+m.id,entityId:m.id,entityKind:'milestone',title:m.title,start:m.date,end:m.date,deadline:null,readonly:!c.write,releaseId:m.releaseId,parentId:m.releaseId?'release:'+m.releaseId:undefined}))];
   requireCondition(c.state.constraints.length<=10000,422,'PROJECTION_LIMIT','Уточните календарный план: превышен лимит зависимостей.');
   const p=page(records,binding(projectId,'timeline',ViewFilters.strip().parse(q)),c.revision,200,q.cursor||undefined);

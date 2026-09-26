@@ -18,11 +18,12 @@ export async function mountTaskBoard(root,{repository,project,canEdit=true,canMa
   const pending=new Set(),abort=new AbortController(),signal=abort.signal;
   let reloadPromise=null,reloadAgain=false,reloadTimer=null,openingController=null;
   const key=`sprintique-board:${project.id}:${repository.context?.actorId||'local-user'}`;
-  try{Object.assign(viewState,JSON.parse(localStorage.getItem(key)||'{}'),viewState);}catch{}
+  // Scroll position lives only for this page session (switching sections); a reload starts at the first column.
+  try{const {x:_x,y:_y,...stored}=JSON.parse(localStorage.getItem(key)||'{}');Object.assign(viewState,stored,viewState);}catch{}
   // Subtask lists on parent cards are collapsed unless the person opened them.
   const expanded=new Set(Array.isArray(viewState.expanded)?viewState.expanded:[]);delete viewState.collapsed;
   let sort=Object.hasOwn(BOARD_SORTS,viewState.sort)?viewState.sort:'priority';
-  const persist=()=>{viewState.sort=sort;viewState.expanded=[...expanded];try{localStorage.setItem(key,JSON.stringify(viewState));}catch{}};
+  const persist=()=>{viewState.sort=sort;viewState.expanded=[...expanded];try{const {x:_x,y:_y,...stored}=viewState;localStorage.setItem(key,JSON.stringify(stored));}catch{}};
   delete viewState.query;
   root.innerHTML=`<div class="host-task-page"><header class="host-task-heading"><div class="host-task-heading-title"><p class="board-period" data-board-period hidden></p><h1 data-board-title>Доска задач</h1></div>
   <div class="host-task-tools"><div class="host-board-sort" data-board-sort></div><div class="board-filter-bar" data-board-filters></div>

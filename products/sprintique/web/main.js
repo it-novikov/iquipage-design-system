@@ -14,6 +14,7 @@ import {mountPlanningHost,confirmPlanningChange,recoverPlanningAttempt} from './
 import {openSearch} from './search.js';
 import {acceptPendingInvitation,editProfile} from './members.js';
 import {sectionRouteHash} from './section-route.js';
+import {loadingMarkup} from '../ui/src/loading.js';
 import {mountProjectNavigation} from '../ui/planning/src/project-navigation.js';
 import '../ui/planning/src/navigation.css';
 registerCore();
@@ -128,11 +129,13 @@ async function showProject(id,mode=location.hash.startsWith('#maps')?'maps':loca
   const stateKey=project.id+':'+mode;if(!viewStates.has(stateKey))viewStates.set(stateKey,{});
   const host=root.querySelector('#host-view');host.dataset.section=mode;
   // Each section replaces this outline when it mounts, so a slow first load never shows a blank page.
-  host.innerHTML=`<div class="host-loading" role="status"><span class="sr-only">Загрузка раздела…</span><div class="iq-skeleton host-loading-title"></div>${'<div class="iq-skeleton host-loading-row"></div>'.repeat(6)}</div>`;
+  host.innerHTML=loadingMarkup('Загрузка раздела…',{rows:6,title:true,className:'host-loading'});
   if(mode==='maps'){const {mountMapsHost}=await import('./maps-host.js');board=await mountMapsHost(host,{repository,project,onOpenTasks:async({focusTaskId})=>{await navigate('tasks');if(viewMode==='tasks')await board.openTask(focusTaskId);}});}
   else if(mode==='planning')board=await mountPlanningHost(host,{repository,adapter:planningAdapter,project,viewState:viewStates.get(stateKey),onOpenBoard:()=>navigate('tasks')});
   else if(mode==='settings'){const {mountSettings}=await import('./settings.js');board=await mountSettings(host,{repository,adapter:planningAdapter,project,onChanged:refreshHeader});}
   else board=await mountTaskBoard(host,{repository,project,attachmentAdapter:repository.attachmentAdapter,canEdit:project.role!=='reader',canManageCatalogs:project.role==='admin',viewState:viewStates.get(stateKey)});
+  // The mounted section fades in over the (possibly never shown) skeleton instead of popping in.
+  host.firstElementChild?.classList.add('iq-reveal');
   await renderAvatar(project);
   repository.watch(project.id,change=>{
     if(change?.roleChanged){

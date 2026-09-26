@@ -96,7 +96,8 @@ class IqMarkdownEditor extends components_js_1.IqElement {
         this.listen(this, 'focusout', event => {
             if (this.previewOnBlur && keyboardExit && event.relatedTarget && !this.contains(event.relatedTarget) && event.relatedTarget.closest('dialog') === this.closest('dialog')) this.setPreviewMode(true);
         });
-        this.setPreviewMode(!!this._initialPreview, false, false);
+        // The preview attribute opens straight in preview, with no height animation on first paint.
+        this.setPreviewMode(!!this._initialPreview || this.hasAttribute('preview'), false, false);
         this.addCleanup(() => {
             this._previewAnimation?.cancel(); this._previewFade?.cancel();
             this._pendingPreview = false; this._composing = false;

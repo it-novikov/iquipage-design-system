@@ -42,3 +42,7 @@
 @media(hover:hover){.iq-work-list tr[data-work-row]:hover:not([data-selected=true]){background:var(--iq-surface)}}
 @media(max-width:700px){.iq-workbar{padding:var(--iq-space-2) var(--iq-space-4);gap:var(--iq-space-2)}.iq-workbar h1{font-size:var(--iq-type-interface-size)}.iq-workbar-actions .iq-btn{padding-inline:var(--iq-space-2)}.iq-work-list colgroup{display:none}.iq-work-list,.iq-work-list tbody{display:block}.iq-work-list tr[data-work-row]{display:grid;grid-template-columns:minmax(0,1fr) auto;height:auto;min-height:var(--iq-work-compact-row);padding-block:var(--iq-space-2);border-bottom:1px solid var(--iq-line)}.iq-work-list td{border:0;padding:var(--iq-space-1)}.iq-work-list td:first-child{grid-column:1/-1}.iq-work-list td[data-column=status]{grid-column:1}.iq-work-list td[data-column=person]{grid-column:2}.iq-work-list td[data-column=date]{grid-column:1/-1}.iq-work-list td[data-column=date]:has([data-empty=true]){display:none}.iq-work-list-id{display:none}.iq-work-list-identity{gap:var(--iq-space-1)}}
 @media(prefers-reduced-motion:reduce){.iq-work-list tr{scroll-behavior:auto}}
+/* ---------- Visible column header (0.6.0-vnext.8) ---------- */
+.iq-work-list thead th{padding:var(--iq-space-2);text-align:left;vertical-align:middle;font:500 var(--iq-type-meta-size)/1.4 var(--iq-font);color:var(--iq-muted);border-bottom:1px solid var(--iq-line);white-space:nowrap}
+.iq-work-list thead th:first-child{padding-left:var(--iq-space-1)}
+@media(max-width:640px){.iq-work-list thead{display:none}}
