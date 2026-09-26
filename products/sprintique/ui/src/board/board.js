@@ -25,8 +25,8 @@ export async function mountTaskBoard(root,{repository,project,canEdit=true,canMa
   let sort=Object.hasOwn(BOARD_SORTS,viewState.sort)?viewState.sort:'priority';
   const persist=()=>{viewState.sort=sort;viewState.expanded=[...expanded];try{const {x:_x,y:_y,...stored}=viewState;localStorage.setItem(key,JSON.stringify(stored));}catch{}};
   delete viewState.query;
-  root.innerHTML=`<div class="host-task-page"><header class="host-task-heading"><div class="host-task-heading-title"><h1 data-board-title>Доска задач</h1></div>
-  <div class="host-task-tools"><div class="host-board-sort" data-board-sort></div><div class="board-filter-bar" data-board-filters></div>
+  root.innerHTML=`<div class="host-task-page"><header class="host-task-heading sq-page-heading"><div class="host-task-heading-title"><h1 data-board-title>Доска задач</h1></div>
+  <div class="host-task-tools sq-page-tools"><div class="host-board-sort" data-board-sort></div><div class="board-filter-bar" data-board-filters></div>
   <button type="button" class="iq-btn primary" data-create-task ${canEdit?'':'disabled'}>${icon('plus',18)}<span>Новая задача</span></button></div>
   </header><p class="host-task-error" role="alert" hidden></p><div class="host-board-mount"></div><p class="sr-only" id="board-drag-help">Enter или пробел — взять задачу. Стрелки — выбрать позицию, Enter — переместить, Escape — отменить. В меню задачи доступно перемещение без перетаскивания.</p><span class="sr-only" role="status" data-task-live></span></div>`;
   const ownedPage=root.firstElementChild;

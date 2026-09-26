@@ -19,7 +19,7 @@
 .pn-dialog [data-preview]{display:flex;flex-direction:column;gap:var(--iq-space-3)}
 /* Stage PN2 is native table semantics, not an incomplete ARIA treegrid. Keyboard focus stays visible. */
 /* Button focus treatment belongs to the installed DS, not the consumer adapter. */
-@media(max-width:640px){.planning-view{padding:var(--iq-space-4)}.pn-toolbar .iq-search-small{flex-basis:100%;max-width:none}.pn-selection>.row{margin-left:0}.pn-indent{width:calc(var(--pn-depth)*var(--iq-space-2))}.pn-person{flex-wrap:wrap}.pn-row-identity{gap:var(--iq-space-1)}}
+@media(max-width:640px){.pn-toolbar .iq-search-small{flex-basis:100%;max-width:none}.pn-selection>.row{margin-left:0}.pn-indent{width:calc(var(--pn-depth)*var(--iq-space-2))}.pn-person{flex-wrap:wrap}.pn-row-identity{gap:var(--iq-space-1)}}
 .pn-dialog [data-plan-config],.pn-dialog [data-plan-preview],.pn-dialog [data-destination-new]{display:flex;flex-direction:column;gap:var(--iq-space-4)}
 .pn-dialog [data-plan-config][hidden],.pn-dialog [data-plan-preview][hidden],.pn-dialog [data-destination-new][hidden],.pn-dialog [data-destination-existing][hidden]{display:none}
 
@@ -60,9 +60,6 @@
 .pn-task-title+.pn-subtasks-count{display:inline}
 
 /* ---- Planning rebuilt (council review): orientation, one toolbar, calm release containers ---- */
-.pn-head{align-items:flex-start}
-.pn-title{display:grid;gap:var(--iq-space-1);min-width:0}
-.pn-lead{margin:0;color:var(--iq-muted);font-size:var(--iq-type-label-size)}
 .pn-views-row{display:flex;align-items:center;justify-content:space-between;gap:var(--iq-space-3);flex-wrap:wrap;padding:var(--iq-space-2) var(--iq-space-6) 0;flex:none}
 .pn-view-switch>button,.pn-archive-switch>button{display:inline-flex;align-items:center;gap:var(--iq-space-2)}
 .pn-archive-switch[hidden]{display:none}
@@ -99,4 +96,8 @@
 .pn-empty-value{color:var(--iq-muted);font-weight:400}
 .iq-work-list-title .iq-badge{margin-left:var(--iq-space-2);vertical-align:middle}
 .pn-group-actions .iq-btn,.pn-readiness>button,.pn-view-switch>button{white-space:nowrap}
-@media(max-width:640px){.pn-group .pn-group-line:has([data-select-group])+.pn-group-facts,.pn-group .pn-group-facts{padding-left:0}.pn-group-actions{flex-wrap:wrap}.pn-readiness>button{padding-inline:var(--iq-space-2)}.pn-views-row{padding-inline:var(--iq-space-4)}.pn-group-line{flex-wrap:wrap}.pn-group-actions{order:3;flex-basis:100%;justify-content:flex-start}.pn-group-facts{padding-left:0;gap:var(--iq-space-2) var(--iq-space-4)}.pn-toolbar-end{margin-left:0}.pn-readiness{order:3;width:100%}.pn-readiness>button{flex:1}.pn-lead{display:none}}
+@media(max-width:640px){.pn-group .pn-group-line:has([data-select-group])+.pn-group-facts,.pn-group .pn-group-facts{padding-left:0}.pn-group-actions{flex-wrap:wrap}.pn-readiness>button{padding-inline:var(--iq-space-2)}.pn-views-row{padding-inline:var(--iq-space-4)}.pn-group-line{flex-wrap:wrap}.pn-group-actions{order:3;flex-basis:100%;justify-content:flex-start}.pn-group-facts{padding-left:0;gap:var(--iq-space-2) var(--iq-space-4)}.pn-toolbar-end{margin-left:0}.pn-readiness{order:3;width:100%}.pn-readiness>button{flex:1}}
+/* Same heading as the board: page padding on top and sides, then the section's own rows. */
+.pn-head{padding:var(--iq-space-6) var(--iq-space-6) var(--iq-space-5)}
+.pn-views-row{padding-top:0}
+@media(max-width:760px){.pn-head{padding:var(--iq-space-4) var(--iq-space-4) var(--iq-space-5)}}

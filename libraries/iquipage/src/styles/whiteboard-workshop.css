@@ -192,3 +192,8 @@ iq-whiteboard[dock=side] .wb-shell :is(.wb-library,.wb-host-panel)[hidden]{displ
 .wb-host-body{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;padding:0 8px 12px}
 @media (prefers-reduced-motion:reduce){iq-whiteboard[dock=side] .wb-shell :is(.wb-library,.wb-host-panel),iq-whiteboard[dock=side] .wb-shell :is(.wb-library,.wb-host-panel)[hidden]{transition:none}}
 @media(max-width:760px){iq-whiteboard[dock=side] .wb-shell :is(.wb-library,.wb-host-panel){left:72px;width:calc(100% - 84px)}iq-whiteboard[surface-mode=embedded][editor-mode=host][dock=side] .wb-footer{top:8px;bottom:8px;left:8px;right:auto}}
+/* dock-tools (0.6.0-vnext.13): the host lists the canvas tools it wants in the dock ("select hand connect").
+   Hidden tools stay reachable in other ways: connections through object ports, panning by scroll or trackpad. */
+iq-whiteboard[dock-tools]:not([dock-tools~=select]) .wb-dock [data-tool=select],
+iq-whiteboard[dock-tools]:not([dock-tools~=hand]) .wb-dock [data-tool=hand],
+iq-whiteboard[dock-tools]:not([dock-tools~=connect]) .wb-dock [data-tool=connect]{display:none}

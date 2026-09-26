@@ -42,24 +42,27 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
     if(item.archivedAt||item.projectId!==project.id)return false;
     try{reparentTask({...initial,id:taskId,projectId:project.id},item.id,tasks);return true;}catch{return false;}
   }).map(item=>({value:item.id,label:`${item.displayId||item.id.slice(-7).toUpperCase()} ${item.title}`,description:`${TASK_KINDS[item.type]||'Задача'}, ${TASK_COLUMNS.find(c=>c.id===taskColumn(item))?.label||item.status}`}))];
-  const content=`<section class="task-editor-cover" data-task-cover hidden></section><div class="task-editor-layout"><div class="task-editor-content">
-    ${input('title','Название',initial.title,{required:true,placeholder:'Что нужно сделать?'})}
-    <section class="task-edit-section"><div class="row between"><h3>Описание</h3>${canEdit?'<button type="button" class="iq-btn ghost sm" data-apply-template>Применить шаблон</button>':''}</div>
+  // One column, like the DS reference task drawer: title, properties in a 2×N grid with labels on top, then the
+  // description at its natural height and the supplements. Fullscreen moves the properties into a sticky side column.
+  const content=`<section class="task-editor-cover" data-task-cover hidden></section><div class="task-editor-layout">
+    <div class="task-editor-title">${input('title','Название',initial.title,{required:true,placeholder:'Что нужно сделать?'})}</div>
+    <section class="task-editor-properties" aria-label="Свойства задачи"><div class="task-props">
+      ${select('status','Статус',task?taskColumn(task):status,TASK_COLUMNS.map(column=>[column.id,column.label]))}
+      <div class="task-prop"><iq-combobox name="ownerId" label="Исполнитель" value="${esc(initial.ownerId||'')}" options="${esc(JSON.stringify(owners))}" placeholder="Не назначен"></iq-combobox>${legacyOwner}</div>
+      ${select('priority','Приоритет',initial.priority||'normal',[['low','Низкий'],['normal','Обычный'],['high','Высокий'],['critical','Критический']])}
+      <iq-date-field name="due" label="Срок" value="${esc(initial.due||'')}"></iq-date-field>
+      <div class="task-prop" data-task-catalogs></div>
+      ${select('type','Тип',initial.type||'task',Object.entries(TASK_KINDS))}
+      <div class="task-prop task-prop-wide"><iq-combobox name="parent" label="Родительская задача" value="${esc(initial.parentId||'')}" options="${esc(JSON.stringify(parents))}" placeholder="Найти задачу по номеру или названию"></iq-combobox></div>
+    </div></section>
+    <section class="task-edit-section task-editor-description"><div class="row between"><h3>Описание</h3>${canEdit?'<button type="button" class="iq-btn ghost sm" data-apply-template>Применить шаблон</button>':''}</div>
       <div class="task-description-surface" data-description>
         <iq-markdown-editor label="Описание" name="description" variant="compact" density="compact" maxlength="10000" preview-on-blur ${task?'preview':''} empty-text="${canEdit?'Нажмите, чтобы добавить описание':'Описания нет'}"></iq-markdown-editor>
       </div></section>
-    </div><aside class="task-editor-properties iq-properties" aria-label="Свойства задачи">
-    <div class="task-edit-properties">
-      ${select('type','Тип',initial.type||'task',Object.entries(TASK_KINDS))}
-      ${select('status','Статус',task?taskColumn(task):status,TASK_COLUMNS.map(column=>[column.id,column.label]))}
-      <iq-combobox name="ownerId" label="Исполнитель" value="${esc(initial.ownerId||'')}" options="${esc(JSON.stringify(owners))}" placeholder="Не назначен"></iq-combobox>${legacyOwner}
-      ${select('priority','Приоритет',initial.priority||'normal',[['low','Низкий'],['normal','Обычный'],['high','Высокий'],['critical','Критический']])}
-      <iq-date-field name="due" label="Срок" value="${esc(initial.due||'')}"></iq-date-field>
-    </div><section data-task-catalogs></section></aside>
     <div class="task-editor-supplements">
     <section class="task-edit-section task-tags-row" data-task-tags aria-label="Теги задачи"></section>
     <section class="task-edit-section" data-task-files></section>
-    <section class="task-edit-section"><h3>Связи</h3><iq-combobox name="parent" label="Родительская задача" value="${esc(initial.parentId||'')}" options="${esc(JSON.stringify(parents))}" placeholder="Найти задачу по номеру или названию"></iq-combobox><div data-task-links></div></section>
+    <section class="task-edit-section"><h3>Связи</h3><div data-task-links></div></section>
     <section class="task-edit-section" data-task-threads></section></div></div><p role="status" class="iq-helper" data-task-save-state></p>`;
   const read=(form,values=new FormData(form))=>({
     title:String(values.get('title')||'').trim(),type:values.get('type')||'task',status:values.get('status'),

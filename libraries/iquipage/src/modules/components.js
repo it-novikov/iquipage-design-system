@@ -951,7 +951,8 @@ class IqTooltip extends IqElement {
             tip.style.top = Math.max(8, r.top > h + 10 ? r.top - h - 8 : r.bottom + 8) + 'px';
         };
         this.listen(child, 'pointerenter', () => { dismissed = false; open(); });
-        this.listen(child, 'focus', () => { dismissed = false; open(); });
+        // Focus opens the tooltip only for keyboard navigation, never after a click or a programmatic focus.
+        this.listen(child, 'focus', () => { if (!child.matches(':focus-visible')) return; dismissed = false; open(); });
         this.listen(child, 'blur', close);
         this.listen(this, 'pointerleave', close);
         this.listen(this, 'keydown', e => {

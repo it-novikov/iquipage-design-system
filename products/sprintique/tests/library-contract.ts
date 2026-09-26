@@ -2,7 +2,7 @@
 import {version,formatDate,formatDateTime,type IqMarkdownEditor,type IqMarkdownViewer} from '@iquipage/web/core';
 import type {IqImageCrop} from '@iquipage/web/advanced';
 import type {IqWhiteboard} from '@iquipage/web/whiteboard';
-const release:'0.6.0-vnext.12'=version;
+const release:'0.6.0-vnext.13'=version;
 export function libraryContract(editor:IqMarkdownEditor,viewer:IqMarkdownViewer,crop:IqImageCrop,board:IqWhiteboard){
   editor.density='compact';editor.previewOnBlur=true;editor.interactiveTasks=true;
   editor.footerActions=[{id:'decision',label:'Требует решения',hint:'Обсуждение останется открытым',pressed:false,tone:'warning'}];

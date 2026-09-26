@@ -83,7 +83,7 @@ export class MapsFeature {
     const board=document.createElement('iq-whiteboard');board.surfaceMode='embedded';board.controlled=true;board.allowedCreateTypes=this.view==='canvas'?this.uiCapabilities.allowedCreateTypes:CREATABLE_BOARD_OBJECT_TYPES;
     board.editorMode=this.view==='workflow'||!this.directEditing?'host':'inline';
     if(!this.directEditing){
-      board.setAttribute('selection-bar','none');board.setAttribute('dock','side');
+      board.setAttribute('selection-bar','none');board.setAttribute('dock','side');board.setAttribute('dock-tools','select');
       // Search, templates and the map menu live in the side dock under "+", instead of a toolbar row.
       board.hostActions=[{id:'find',label:'Найти на карте',icon:'search'},...(this.uiCapabilities.templates?[{id:'templates',label:'Шаблоны',icon:'grid'}]:[]),{id:'more',label:'Меню карты',icon:'more'}];
     }

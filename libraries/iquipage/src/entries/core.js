@@ -76,7 +76,7 @@ export const registerAuthDialog=dialog.registerAuthDialog;
 import auth from './modules/auth-screen.js';
 export const IqAuthScreen=auth.IqAuthScreen;
 export const registerAuthScreen=auth.registerAuthScreen;
-export const version='0.6.0-vnext.12';
+export const version='0.6.0-vnext.13';
 export function registerCore(){
  registerAuthDialog();registerAuthScreen();registerComponents();registerDateFields();registerEditors();registerPagination();registerStructured();registerSideNavigation();registerWorkHeader();registerMarkdownViewer();registerWorkLayout();
  if(!customElements.get('iq-file-preview'))customElements.define('iq-file-preview',IqFilePreview);

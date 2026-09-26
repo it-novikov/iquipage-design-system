@@ -20,7 +20,7 @@ test('iq-tooltip takes a heading and one line per newline', () => {
   const js = read('src/modules/components.js');
   assert.match(js, /const heading = this\.getAttribute\('heading'\)/);
   assert.match(js, /tip\.classList\.add\('iq-tooltip-rich'\)/);
-  assert.match(read('src/styles/foundation.css'), /\.iq-tooltip-rich\{display:grid/);
+  assert.match(read("src/styles/foundation.css"), /\.iq-tooltip-rich:popover-open\{display:grid\}/);
 });
 test('editor footer actions are DS checkboxes with an optional hint', () => {
   const js = read('src/modules/editor.js');
