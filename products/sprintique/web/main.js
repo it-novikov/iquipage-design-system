@@ -1,3 +1,4 @@
+import {mountAuthScreen} from './auth-screen.js';
 import '@iquipage/web/styles.css';
 import '../ui/src/maps.css';
 import '../ui/src/board/board.css';

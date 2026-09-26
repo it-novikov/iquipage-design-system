@@ -1,0 +1,22 @@
+/* The same credential dialog is used by the component and the identity-provider theme. */
+.iq-auth-stage{min-height:100svh;display:grid;place-items:center;padding:var(--iq-space-6);background:var(--iq-surface)}
+iq-auth-dialog{display:block;width:100%;max-width:440px}
+.iq-auth-dialog{width:100%;max-width:440px;margin:auto;background:var(--iq-raised);border:1px solid var(--iq-line);border-radius:var(--iq-radius-md);padding:var(--iq-space-10);color:var(--iq-ink)}
+.iq-auth-dialog-brand{display:flex;gap:var(--iq-space-3);align-items:center;font-size:18px;font-weight:500;margin-bottom:var(--iq-space-8)}
+.iq-auth-dialog h1{font-size:var(--iq-type-heading2-size);line-height:1.2;letter-spacing:-.028em;margin:0}
+.iq-auth-dialog-description{color:var(--iq-muted);margin:var(--iq-space-3) 0 var(--iq-space-8);line-height:1.6}
+.iq-auth-field{margin-bottom:var(--iq-space-5)}
+.iq-auth-input{display:block;width:100%;min-width:0;min-height:var(--iq-control-lg);padding:var(--iq-space-3);font:inherit;color:var(--iq-ink);background:var(--iq-raised);border:1px solid var(--iq-control);border-radius:var(--iq-radius-sm)}
+.iq-auth-input:focus{outline:2px solid var(--iq-focus);outline-offset:2px}
+.iq-auth-input[aria-invalid=true]{border-color:var(--iq-danger)}
+.iq-auth-label-row{display:flex;align-items:baseline;justify-content:space-between;gap:var(--iq-space-3)}
+.iq-auth-dialog a{color:var(--iq-accent);font-size:13px;text-underline-offset:3px}
+.iq-auth-password{position:relative}.iq-auth-password .iq-auth-input{padding-right:var(--iq-space-12)}
+.iq-auth-password button{position:absolute;right:var(--iq-space-1);top:var(--iq-space-1)}
+.iq-auth-remember{display:flex;align-items:center;gap:var(--iq-space-2);font-size:13px;margin:var(--iq-space-2) 0 var(--iq-space-6)}
+.iq-auth-remember input{width:18px;height:18px;accent-color:var(--iq-primary)}
+.iq-auth-submit{width:100%;margin-top:var(--iq-space-2)}
+.iq-auth-status{font-size:13px;color:var(--iq-muted)}.iq-auth-status:not(:empty){margin-top:var(--iq-space-3)}
+.iq-auth-dialog-footer{margin-top:var(--iq-space-6);font-size:13px;text-align:center;color:var(--iq-muted)}
+.iq-auth-dialog .iq-auth-error{margin:0 0 var(--iq-space-5)}
+@media(max-width:480px){.iq-auth-stage{padding:var(--iq-space-4)}.iq-auth-dialog{padding:var(--iq-space-6)}.iq-auth-dialog h1{font-size:28px}}

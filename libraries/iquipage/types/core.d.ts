@@ -1,5 +1,5 @@
 /** Supported core browser entry. Does not register graph, roadmap, crop, or whiteboard. */
-export declare const version:'0.6.0-vnext.8';
+export declare const version:'0.6.0-vnext.9';
 export declare function registerCore():void;
 export declare function registerComponents():void;
 export declare function registerDateFields():void;
@@ -69,3 +69,22 @@ export type WorkDensity='compact'|'comfortable';
 export declare class IqWorkLayout extends HTMLElement {density:WorkDensity;}
 export declare function registerWorkLayout():void;
 declare global {interface HTMLElementTagNameMap {'iq-markdown-viewer':IqMarkdownViewer;'iq-work-layout':IqWorkLayout;}}
+
+/** Authentication shell. Named light-DOM slots: brand, tools, context, form, footer.
+ * Attributes: product, heading, description, context-title, context-description,
+ * action-href (root-relative or HTTPS), action-label, hint, error, pending, pending-label.
+ * Supply slot roots before connecting; add/remove controls inside those roots afterward.
+ * State updates preserve consumer subtree identity and focus.
+ * iq-auth-action bubbles and is cancelable. Host owns authentication and state.
+ */
+export declare class IqAuthScreen extends HTMLElement {}
+export declare function registerAuthScreen():void;
+declare global {interface HTMLElementTagNameMap {'iq-auth-screen':IqAuthScreen;}}
+
+/** Native username/password form. Never persists credentials. Configuration attributes
+ * are set before connection; error/pending are reactive. action is root-relative or HTTPS.
+ * Optional recovery-href, registration-href, remember-me; host owns their availability.
+ * iq-auth-submit is cancelable and carries transient credentials; never log its detail. */
+export declare class IqAuthDialog extends HTMLElement {clearPassword():void;}
+export declare function registerAuthDialog():void;
+declare global {interface HTMLElementTagNameMap {'iq-auth-dialog':IqAuthDialog;}}

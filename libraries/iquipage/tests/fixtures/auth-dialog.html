@@ -1,0 +1,21 @@
+<!doctype html><html lang="ru"><meta charset="utf-8"><title>Credential dialog contract</title><link rel="stylesheet" href="../../dist/iquipage.css"><body><p id="result">Running</p><script type="module">
+import {registerCore} from '../../dist/core.js';registerCore();
+const results=[],check=(ok,name)=>{if(!ok)throw Error(name);results.push(name)};
+try{
+ const dialog=document.createElement('iq-auth-dialog');document.body.append(dialog);
+ const form=dialog.querySelector('form'),username=form.elements.username,password=form.elements.password;
+ check(!form.checkValidity(),'empty required fields rejected');
+ username.value='synthetic-user';password.value='synthetic-fixture-password';username.focus();
+ dialog.setAttribute('error','Test error');check(document.activeElement===username&&password.value==='synthetic-fixture-password','error retains focus and draft');
+ check(username.getAttribute('aria-describedby')===dialog.querySelector('[role=alert]').id,'error associated with fields');
+ dialog.querySelector('[data-password-toggle]').click();check(password.type==='text','password reveal');
+ dialog.querySelector('[data-password-toggle]').click();check(password.type==='password','password conceal');
+ let submissions=0;dialog.addEventListener('iq-auth-submit',e=>{e.preventDefault();check(e.detail.username==='synthetic-user'&&e.detail.password==='synthetic-fixture-password','transient submit data');submissions++});
+ form.requestSubmit();check(submissions===1,'valid submit delivered');
+ dialog.setAttribute('pending','');form.dispatchEvent(new Event('submit',{cancelable:true}));check(submissions===1&&dialog.querySelector('[type=submit]').disabled,'duplicate pending submission blocked');
+ dialog.removeAttribute('pending');dialog.removeAttribute('error');check(!dialog.querySelector('[type=submit]').disabled&&dialog.querySelector('[role=alert]').hidden,'retry enabled');
+ dialog.clearPassword();check(password.value===''&&password.type==='password','password cleared');
+ check(!dialog.querySelector('a'),'unconfigured recovery and registration absent');
+ document.querySelector('#result').textContent='PASS: '+results.join('; ');
+}catch(error){document.querySelector('#result').textContent='FAIL: '+error.message;throw error}
+</script></body></html>
