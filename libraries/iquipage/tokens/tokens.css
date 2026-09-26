@@ -90,6 +90,12 @@
   --iq-type-title-weight: 500;
   --iq-type-title-lineHeight: 1.3;
   --iq-type-title-letterSpacing: -0.012em;
+  --iq-choice-light-canvas: #FFFFFF;
+  --iq-choice-light-panel: #F0F1F4;
+  --iq-choice-light-line: #D6D9E0;
+  --iq-choice-dark-canvas: #1B1D22;
+  --iq-choice-dark-panel: #343842;
+  --iq-choice-dark-line: #656B78;
   --iq-canvas: #FFFFFF;
   --iq-surface: #F5F5F7;
   --iq-raised: #FFFFFF;
@@ -276,6 +282,13 @@
   --iq-tag-amber-text: #85500B;
   --iq-tag-red-fill: #FFF3F5;
   --iq-tag-red-text: #B11934;
+  --iq-preference-blue: #2453CC;
+  --iq-preference-violet: #6236B6;
+  --iq-preference-violet-fill: #6236B6;
+  --iq-preference-violet-soft: #F1EBFA;
+  --iq-preference-green: #087554;
+  --iq-preference-green-fill: #087554;
+  --iq-preference-green-soft: #E7F4EE;
 }
 [data-theme="dark"]{
   --iq-canvas: #0D0D0F;
@@ -464,4 +477,11 @@
   --iq-tag-amber-text: #FFCF83;
   --iq-tag-red-fill: #2B2026;
   --iq-tag-red-text: #FF9BAE;
+  --iq-preference-blue: #9CB9FF;
+  --iq-preference-violet: #BDA5F5;
+  --iq-preference-violet-fill: #6236B6;
+  --iq-preference-violet-soft: #291E3D;
+  --iq-preference-green: #78D9B5;
+  --iq-preference-green-fill: #087554;
+  --iq-preference-green-soft: #132E26;
 }

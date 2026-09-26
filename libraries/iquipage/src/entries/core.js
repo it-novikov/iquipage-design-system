@@ -76,8 +76,13 @@ export const registerAuthDialog=dialog.registerAuthDialog;
 import auth from './modules/auth-screen.js';
 export const IqAuthScreen=auth.IqAuthScreen;
 export const registerAuthScreen=auth.registerAuthScreen;
-export const version='0.6.0-vnext.13';
+import settings from './modules/settings.js';
+export const IqSettingsLayout=settings.IqSettingsLayout;
+export const IqVisualChoice=settings.IqVisualChoice;
+export const settingsNavigation=settings.settingsNavigation;
+export const registerSettings=settings.registerSettings;
+export const version='0.6.0-vnext.14';
 export function registerCore(){
- registerAuthDialog();registerAuthScreen();registerComponents();registerDateFields();registerEditors();registerPagination();registerStructured();registerSideNavigation();registerWorkHeader();registerMarkdownViewer();registerWorkLayout();
+ registerAuthDialog();registerAuthScreen();registerSettings();registerComponents();registerDateFields();registerEditors();registerPagination();registerStructured();registerSideNavigation();registerWorkHeader();registerMarkdownViewer();registerWorkLayout();
  if(!customElements.get('iq-file-preview'))customElements.define('iq-file-preview',IqFilePreview);
 }

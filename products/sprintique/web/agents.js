@@ -7,7 +7,7 @@ const active=r=>['running','awaiting_approval'].includes(r.state);
 const summary=s=>`Задач: ${s.affectedCount}, на доску: ${s.enteringBoard}, с доски: ${s.leavingBoard}`;
 
 /** External agents only. This screen grants scoped access, never starts a shell or LLM. */
-export async function mountAgents(root,{repository,project,onBack}){
+export async function mountAgents(root,{repository,project,onBack,embedded=false}){
   const client=repository.client,base='/projects/'+encodeURIComponent(project.id),abort=new AbortController();
   let closed=false,modal=null,sequence=0,runs=[],approvals=[],grants=[],runCursor=null,approvalCursor=null;
   function show(options){
@@ -19,7 +19,7 @@ export async function mountAgents(root,{repository,project,onBack}){
   function render(){
     if(closed)return;
     root.innerHTML=`<section class="host-settings task-settings-page">
-      ${onBack?ui.btn('Настройки проекта','ghost sm','left','data-agents-back'):''}<h1>Агенты и подтверждения</h1>
+      ${!embedded&&onBack?ui.btn('Настройки проекта','ghost sm','left','data-agents-back'):''}${embedded?'':`<h1>Агенты и подтверждения</h1>`}
       <p>Подключите своего агента по API. Доступ ограничен проектом, выбранными правами и сроком. Планы агента применяются только после решения человека.</p>
       <h2>Предложения</h2><div class="iq-list">${approvals.length?approvals.map(a=>`<div class="iq-list-item"><span>${esc(a.agentName)}, ${esc(states[a.status]).toLowerCase()}<br><small>${esc(summary(a.summary))}. Действует до ${esc(date(a.expiresAt))}</small></span>${ui.btn('Рассмотреть','secondary sm','','data-approval="'+esc(a.id)+'"')}</div>`).join(''):'<p>Предложений пока нет. Здесь появятся конкретные изменения для проверки перед применением.</p>'}</div>
       ${approvalCursor?ui.btn('Ещё предложения','ghost sm','','data-more-approvals'):''}

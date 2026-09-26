@@ -53,7 +53,8 @@
     "work-list-table.js",
     "work-list-drag.js",
     "auth-screen.js",
-    "auth-dialog.js"
+    "auth-dialog.js",
+    "settings.js"
   ],
   "library": [
     "components.js",
@@ -96,7 +97,8 @@
     "work-list-table.js",
     "work-list-drag.js",
     "auth-screen.js",
-    "auth-dialog.js"
+    "auth-dialog.js",
+    "settings.js"
   ],
   "entries": {
     "core": [
@@ -119,7 +121,8 @@
       "markdown-viewer.js",
       "work-layout.js",
       "auth-screen.js",
-      "auth-dialog.js"
+      "auth-dialog.js",
+      "settings.js"
     ],
     "advanced": [
       "roadmap.js",
