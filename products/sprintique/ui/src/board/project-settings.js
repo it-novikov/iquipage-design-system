@@ -6,7 +6,8 @@ export async function mountProjectTaskSettings(root,{repository,project,section,
   let closed=false,items=[],activeDialog=null,settings;
   const titles={tags:'Теги проекта',releases:'Релизы проекта',templates:'Шаблоны задач'};
   const createLabel=section==='tags'?'Новый тег':'Новый релиз';
-  const createButton=section!=='templates'&&canManage?`<button type="button" class="iq-btn primary sm" data-catalog-create>${createLabel}</button>`:'';
+  // Tags are created where they are used (the task card); settings keep renaming, colours and archiving.
+  const createButton=section==='releases'&&canManage?`<button type="button" class="iq-btn primary sm" data-catalog-create>${createLabel}</button>`:'';
   root.innerHTML=`<div class="host-settings task-settings-page">
     ${onBack?`<button type="button" class="iq-btn ghost sm" data-settings-back>${icon('left',16)}<span>Настройки проекта</span></button>`:''}
     <div class="row between"><h1>${titles[section]}</h1>${createButton}</div>
@@ -27,7 +28,7 @@ export async function mountProjectTaskSettings(root,{repository,project,section,
   }
   function renderCatalog(){
     if(closed)return;
-    const hint=section==='tags'?'Теги общие для проекта. Изменение имени и цвета отобразится во всех задачах.':'Выбранный релиз не меняет статус задачи автоматически.';
+    const hint=section==='tags'?'Теги общие для проекта: новые создаются прямо в карточке задачи. Изменение имени и цвета отобразится во всех задачах.':'Выбранный релиз не меняет статус задачи автоматически.';
     const rows=items.sort((a,b)=>Number(!!a.archivedAt)-Number(!!b.archivedAt)||a.name.localeCompare(b.name,'ru')).map(catalogRow).join('');
     content.innerHTML=`<p class="iq-helper">${hint}</p><div class="iq-list">${rows||'<p class="iq-helper">Пока ничего не добавлено.</p>'}</div>`;
   }

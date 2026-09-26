@@ -111,10 +111,7 @@
 .task-tags-trigger .task-selected-tags{flex:1;min-width:0;min-height:0}
 .task-selected-tags .iq-tag{max-width:100%;white-space:normal;overflow-wrap:anywhere}
 .task-tags-trigger>svg{flex:none}
-.task-dropwell-copy{display:grid;gap:var(--iq-space-1);text-align:left}
-.task-dropwell-copy>small{display:block;font-size:var(--iq-type-caption-size);color:var(--iq-muted);font-weight:400}
-.task-dropwell-copy>span{color:var(--iq-ink)}
-.task-cover-dropwell{width:100%;margin:0;min-height:88px;display:flex;align-items:center;justify-content:center}.task-cover-dropwell .task-dropwell-copy{text-align:center}
+.task-cover-dropwell{width:100%;margin:0;min-height:88px;display:flex;align-items:center;justify-content:center}
 .board-filter-fields{display:grid;gap:var(--iq-space-5)}
 .board-filter-fields [data-filter-options]{max-height:200px;overflow:auto}
 @media(max-width:700px){.task-editor-layout{grid-template-columns:minmax(0,1fr)}.task-editor-properties{grid-column:1;grid-row:2;border-left:0;border-top:1px solid var(--iq-line);padding-left:0;padding-top:var(--iq-space-5)}.task-editor-supplements{grid-row:3}.task-editor-properties .task-edit-properties{grid-template-columns:repeat(2,minmax(0,1fr))}}
@@ -148,7 +145,6 @@
 .task-cover-preset img{width:100%;height:auto;aspect-ratio:12/5;object-fit:cover;border-radius:var(--iq-radius-sm);border:1px solid var(--iq-line)}
 .task-cover-preset>span{font-size:var(--iq-type-caption-size);padding:0 var(--iq-space-1) var(--iq-space-2)}
 .task-cover-preset:hover img{outline:2px solid var(--iq-line-strong);outline-offset:2px}
-.task-cover-upload{width:100%;margin-top:var(--iq-space-5)}
 @media(max-width:580px){.host-task-tools{justify-content:flex-end}.host-task-heading-title{width:100%}.host-task-heading-title h1{flex:none}.task-cover-presets{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:480px){.task-file-actions{margin-left:auto}.task-detail-cover{aspect-ratio:12/5}.task-file-row .file-item-copy{flex-basis:150px}}
 /* Autosave status lives in the drawer footer, left-aligned; the header close button is the single exit. */
@@ -180,3 +176,4 @@
 .task-subtask>small{grid-column:2;color:var(--iq-muted);font-size:var(--iq-type-meta-size)}
 /* The running release names the board; its dates sit beside the title. */
 .board-period{margin:0 0 var(--iq-space-1);color:var(--iq-muted);font-size:var(--iq-type-caption-size)}
+.task-cover-dropwell{margin:0}

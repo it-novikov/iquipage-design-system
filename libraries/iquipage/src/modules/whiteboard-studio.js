@@ -81,7 +81,7 @@ function installStudio(Klass){
  },
  action(id,el){
   if(id==='list'){this.mode='canvas';this.panel='search';this.render();return;}
-  if(id==='library-toggle'){this.libraryOpen=!this.libraryOpen;this.render();return;}
+  if(id==='library-toggle'){this.libraryOpen=!this.libraryOpen;if(this.libraryOpen)this.closeHostPanel?.(false);this.render();return;}
   if(id==='edge-edit'){this.editConnection(this.selection[0]);return;}
   if(id==='edge-reverse'){if(this.locked)return;const next=this.data,e=next.connections.find(e=>this.selection.includes(e.id));if(e){[e.from,e.to]=[e.to,e.from];[e.fromPort,e.toPort]=[e.toPort,e.fromPort];this.commit(next,'reverse-connection');}return;}
   if(id==='edit'){this.edit(this.selection[0]);return;}

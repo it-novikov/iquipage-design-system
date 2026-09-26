@@ -205,6 +205,8 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
         clearTimeout(timer);window.removeEventListener('beforeunload',unload);description.destroy();files.destroy();catalogs.destroy();threads?.destroy();links?.destroy();
       },{once:true});
       baseline=JSON.stringify(read(form));
+      // A new task starts at its title: the description editor (edit mode) must not take the first focus.
+      if(!task&&canEdit)requestAnimationFrame(()=>requestAnimationFrame(()=>form.querySelector('input[name=title]')?.focus({preventScroll:true})));
       if(!canEdit)form.querySelectorAll('input,iq-select,iq-combobox,iq-date-field,iq-markdown-editor').forEach(node=>{if(!canDiscuss||!node.closest('[data-task-threads]'))node.setAttribute('disabled','');});
     }
   });

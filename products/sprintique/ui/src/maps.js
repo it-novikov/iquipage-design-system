@@ -30,11 +30,14 @@ export class MapsFeature {
     installWorkflowUI(this);installAutomationUI(this);
   }
   async mount() {
-    registerWhiteboard();this.root.innerHTML=`<section class="iq-maps" aria-label="Карты проекта"><header class="map-toolbar"></header><div class="map-subbar"></div><div class="map-notice" role="status" hidden></div><div class="map-content"><div class="map-surface"></div><aside class="map-inspector" aria-label="Свойства и результаты" hidden></aside></div><span class="sr-only" role="status" data-map-live></span></section>`;
-    this.toolbar=this.root.querySelector('.map-toolbar');this.subbar=this.root.querySelector('.map-subbar');this.surface=this.root.querySelector('.map-surface');this.inspector=this.root.querySelector('.map-inspector');
+    registerWhiteboard();this.root.innerHTML=`<section class="iq-maps" aria-label="Карты проекта"><header class="map-toolbar"></header><div class="map-subbar"></div><div class="map-notice" role="status" hidden></div><div class="map-content"><div class="map-title-chip" data-map-title hidden></div><div class="map-surface"></div><aside class="map-inspector" aria-label="Свойства и результаты" hidden></aside></div><span class="sr-only" role="status" data-map-live></span></section>`;
+    this.toolbar=this.root.querySelector('.map-toolbar');this.subbar=this.root.querySelector('.map-subbar');this.surface=this.root.querySelector('.map-surface');this.inspector=this.root.querySelector('.map-inspector');this.titleChip=this.root.querySelector('[data-map-title]');
     this.root.addEventListener('click',event=>{
       const control=event.target.closest('[data-map-action]');if(!control||control.disabled)return;
-      event.preventDefault();this.handle(control.dataset.mapAction,control).catch(e=>this.message(e.message,true));
+      event.preventDefault();
+      // Actions picked in the host side panel close it first, so the sheet and its result never overlap.
+      if(control.closest('.wb-host-panel'))this.board?.closeHostPanel?.(false);
+      this.handle(control.dataset.mapAction,control).catch(e=>this.message(e.message,true));
     },{signal:this.abort.signal});
     this.root.addEventListener('iq-action',event=>{if(!this.toolbar.contains(event.target))return;this.handle(event.detail.action).catch(e=>this.message(e.message,true));},{signal:this.abort.signal});
     window.addEventListener('beforeunload',event=>{if(this.board?.dirty||this.savingPromise||this.canvasInspector?.dirty()||this.workflowDraft?.dirty()){event.preventDefault();event.returnValue='';}},{signal:this.abort.signal});
@@ -78,7 +81,11 @@ export class MapsFeature {
     if(this.board){this.board.cancelPending();this.board.remove();}
     const board=document.createElement('iq-whiteboard');board.surfaceMode='embedded';board.controlled=true;board.allowedCreateTypes=this.view==='canvas'?this.uiCapabilities.allowedCreateTypes:CREATABLE_BOARD_OBJECT_TYPES;
     board.editorMode=this.view==='workflow'||!this.directEditing?'host':'inline';
-    if(!this.directEditing){board.setAttribute('selection-bar','none');board.setAttribute('library-open','');}
+    if(!this.directEditing){
+      board.setAttribute('selection-bar','none');board.setAttribute('library-open','');board.setAttribute('dock','side');
+      // Search, templates and the map menu live in the side dock under "+", instead of a toolbar row.
+      board.hostActions=[{id:'find',label:'Найти на карте',icon:'search'},...(this.uiCapabilities.templates?[{id:'templates',label:'Шаблоны',icon:'grid'}]:[]),{id:'more',label:'Меню карты',icon:'more'}];
+    }
     board.data=this.view==='workflow'?flowScene(this.current.flow,this.current.title,this.current.revision):this.current.document;
     board.readOnly=!this.permissions.edit||this.current.status==='archived';board.saveStatus=this.storageLabel;
     this.surface.replaceChildren(board);this.board=board;
@@ -144,6 +151,10 @@ export class MapsFeature {
     const heading=this.uiCapabilities.mapSwitcher?`<button type="button" class="map-switch" data-map-action="maps" aria-label="Выбрать карту: ${esc(title)}" title="${esc(title)}"><span>${esc(title)}</span>${icon('down',16)}</button>`:`<span class="map-switch map-switch-static"><span>${esc(title)}</span></span>`;
     const canAdd=this.view==='workflow';
     this.toolbar.innerHTML=`<div class="map-heading"><div class="map-title-wrap"><h1>${heading}</h1><span class="map-save-label" role="status">${m?`${m.kind==='session'?'Сессия':'Постоянная карта'} · `:''}${esc(save)}</span></div></div>${m&&this.uiCapabilities.workflow&&!this.directEditing?`<div class="iq-segmented map-view-tabs" aria-label="Рабочая поверхность"><button type="button" data-map-action="canvas" aria-pressed="${this.view==='canvas'}">${icon('board',16)}<span>Карта</span></button><button type="button" data-map-action="workflow" aria-pressed="${this.view==='workflow'}">${icon('link',16)}<span>Сценарий действий</span></button></div>`:''}<div class="map-toolbar-actions">${m&&this.view==='canvas'?button('find','Найти на карте','search'):m&&this.directEditing?button('canvas','К карте','left'):''}${this.uiCapabilities.templates&&!this.directEditing?button('templates','Шаблоны','grid'):''}${m&&!disabled&&canAdd?button(this.view==='workflow'?'add-step':'add',this.view==='workflow'?'Добавить шаг':'Добавить объекты','plus','primary'):!m&&this.permissions.edit?button('new','Создать карту','plus','primary'):''}${this.moreMenu()}</div>`;
+    // On the canvas the toolbar row goes away: the title and save state float as a chip beside the side dock.
+    const chip=!!m&&this.view==='canvas'&&!this.directEditing;
+    this.toolbar.hidden=chip;this.titleChip.hidden=!chip;
+    if(chip)this.titleChip.innerHTML=`${heading}<span class="map-save-label" role="status">${m.kind==='session'?'Сессия':'Постоянная карта'} · ${esc(save)}</span>`;
     const session=this.uiCapabilities.sessions&&m?.kind==='session'&&m.status!=='archived';
     this.subbar.hidden=!m||(this.view==='canvas'&&m.status!=='archived');
     this.renderSessionCard();
@@ -254,7 +265,8 @@ export class MapsFeature {
     if(!this.current)return;return this.dialog({title:'Название карты',body:input('title','Название',this.current.title,{required:true,maxlength:160}),submitLabel:'Сохранить',onSubmit:async values=>this.saveMetadata({...clone(this.current),title:values.get('title').trim()})});
   }
   /** Grouped map actions in one DS dropdown (iq-menu) instead of a modal. */
-  moreMenu() {
+  moreMenu() {return ui.menu(`<button type="button" class="iq-btn ghost icon sm" aria-label="Меню карты">${icon('more',18)}</button>`,this.menuItems());}
+  menuItems() {
     const m=this.current,edit=m&&m.status!=='archived'&&this.permissions.edit,canvas=m&&this.view==='canvas',items=[];
     const add=(ok,action,label,glyph)=>{if(ok)items.push({action,label,glyph});};
     if(this.uiCapabilities.mapSwitcher){items.push({section:'Карты проекта'});add(true,'maps','Все карты','board');add(true,'archive','Архив сессий и карт','folder');add(this.permissions.edit,'new','Новая карта','plus');}
@@ -262,7 +274,7 @@ export class MapsFeature {
       items.push({section:'Открытая карта'});
       add(edit,'rename','Переименовать','text');add(edit&&this.uiCapabilities.templates,'save-template','Сохранить как шаблон','grid');
       add(this.permissions.edit&&this.uiCapabilities.mapSwitcher,'continue','Создать отдельную копию','copy');add(!!this.repository.mapHistory,'history','История изменений','clock');
-      add(true,'find','Найти объект','search');add(true,'contents','Содержание карты','list');add(true,'export','Экспортировать карту','download');
+      add(this.directEditing,'find','Найти объект','search');add(true,'contents','Содержание карты','list');add(true,'export','Экспортировать карту','download');
       add(edit&&m.kind==='permanent'&&this.uiCapabilities.mapSwitcher,'finish','Убрать в архив','folder');
     }
     items.push({section:'Инструменты'});
@@ -271,10 +283,16 @@ export class MapsFeature {
     add(canvas,'object-properties','Положение и оформление','sliders');
     add(this.permissions.edit,'import','Импортировать карту или шаблон','upload');
     add(canvas&&this.uiCapabilities.agentProposals,'agent','Предложение агента','spark');
-    add(this.uiCapabilities.templates,'templates','Библиотека шаблонов','grid');add(true,'help','Как работать с картами','info');
-    return ui.menu(`<button type="button" class="iq-btn ghost icon sm" aria-label="Меню карты">${icon('more',18)}</button>`,items);
+    add(this.uiCapabilities.templates&&this.directEditing,'templates','Библиотека шаблонов','grid');add(true,'help','Как работать с картами','info');
+    return items;
   }
-  more() {this.toolbar.querySelector('iq-menu > button')?.click();}
+  /** The map menu opens as the host side panel (same edge and motion as the object library). */
+  more() {
+    if(!this.board?.openHostPanel){this.toolbar.querySelector('iq-menu > button')?.click();return;}
+    const items=this.menuItems();let html='';
+    for(const item of items)html+=item.section?`<p class="map-panel-section">${esc(item.section)}</p>`:`<button type="button" class="map-panel-action" data-map-action="${esc(item.action)}">${icon(item.glyph,18)}<span>${esc(item.label)}</span></button>`;
+    this.board.openHostPanel({id:'more',title:'Меню карты',content:`<nav class="map-panel-menu" aria-label="Меню карты">${html}</nav>`});
+  }
   async changeSession(action){if(!(await this.readyToLeave()))return;await this.saveMetadata(transitionMap(this.current,action));}
   finishDialog() {
     return this.dialog({title:this.current.kind==='session'?'Завершить сессию':'Переместить карту в архив',description:'Карта останется доступна для просмотра. Новые изменения можно сделать в отдельном продолжении.',body:textarea('summary','Итоги и следующие шаги',this.current.summary,6),submitLabel:'Сохранить итоги и завершить',onSubmit:async values=>{
@@ -311,8 +329,10 @@ export class MapsFeature {
   }
   importMap() {
     requireValue(this.permissions.edit,'READ_ONLY','Нет права импортировать карты.');
-    return this.dialog({title:'Импортировать файл',description:'Будет создана отдельная карта или новый шаблон. Открытая карта не заменяется.',body:'<label class="iq-field"><span class="iq-control-label">JSON-файл карты или шаблона</span><input type="file" name="file" accept=".json,application/json" required></label>',submitLabel:'Импортировать',onSubmit:async values=>{
-      const file=values.get('file');requireValue(file?.size>0&&file.size<12000000,'FILE_LIMIT','Выберите JSON до 12 МБ.');const data=JSON.parse(await file.text());
+    let picked=null;
+    return this.dialog({title:'Импортировать файл',description:'Будет создана отдельная карта или новый шаблон. Открытая карта не заменяется.',body:'<iq-file-picker variant="zone" accept=".json,application/json" label="Перетащите JSON-файл карты или шаблона" hint="Файл экспорта Sprintique · до 12 МБ" data-import-file></iq-file-picker><p class="iq-helper" data-import-name role="status"></p>',submitLabel:'Импортировать',
+      mount:el=>el.querySelector('[data-import-file]').addEventListener('iq-files',event=>{picked=event.detail.files[0];el.querySelector('[data-import-name]').textContent=picked?'Выбран файл: '+picked.name:'';}),onSubmit:async()=>{
+      const file=picked;requireValue(file,'FILE_REQUIRED','Выберите JSON-файл.');requireValue(file?.size>0&&file.size<12000000,'FILE_LIMIT','Выберите JSON до 12 МБ.');const data=JSON.parse(await file.text());
       if(data.schema==='iquipage.template/1'){const document=validateWhiteboard(data.document);assertDocumentTypesAllowed(document,this.uiCapabilities,'Шаблон содержит типы объектов, отключённые приложением.');const t={schema:data.schema,id:uid('template'),projectId:this.project.id,revision:0,version:1,title:String(data.title||'Импортированный шаблон').slice(0,160),description:String(data.description||'').slice(0,3000),when:String(data.when||'').slice(0,3000),scope:'personal',ownerId:this.context.actorId,workspaceId:this.context.workspaceId,category:'Мои шаблоны',kind:data.kind==='session'&&this.uiCapabilities.sessions?'session':'permanent',document:remapDocument(document,{clearPersonal:true}),flow:null,createdAt:now()};await this.repository.write('templates',t,0);this.message('Шаблон импортирован в личную библиотеку.');return;}
       const source=data.schema==='iquipage.maps/1'?validateMap(data):{title:data.title||'Импортированная карта',kind:'permanent',document:validateWhiteboard(data),flow:null};
       assertDocumentTypesAllowed(source.document,this.uiCapabilities,'Файл содержит типы объектов, отключённые приложением.');

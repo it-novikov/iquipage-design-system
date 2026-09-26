@@ -7,7 +7,7 @@ const root = path.join(__dirname, '..'), read = f => fs.readFileSync(path.join(r
 test('iq-tag-picker is registered and keeps value, creation and motion contracts', () => {
   const js = read('src/modules/components.js');
   assert.match(js, /'iq-tag-picker': IqTagPicker/);
-  assert.match(js, /this\.emit\('iq-create', \{ label: item\.label, accept:/);
+  assert.match(js, /this\.emit\('iq-create', \{ label, accept:/);
   assert.match(js, /this\.emit\('iq-change', \{ value: this\.value \}\)/);
   assert.match(js, /role="combobox" aria-autocomplete="list"/);
   assert.match(js, /chip\.setAttribute\('data-leaving', ''\)/);

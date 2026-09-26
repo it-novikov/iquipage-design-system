@@ -2114,3 +2114,16 @@ iq-roadmap[fill] .rm-scroll{flex:1;min-height:0;max-height:none}
 .iq-loading{display:grid;gap:var(--iq-space-3);animation:iq-loading-appear var(--iq-motion-standard) var(--iq-ease) 180ms both}
 .iq-reveal{animation:iq-reveal var(--iq-motion-standard) var(--iq-ease) both}
 @media (prefers-reduced-motion:reduce){.iq-loading{animation:iq-loading-appear 1ms linear 180ms both}.iq-reveal{animation:none}}
+/* ---------- File picker (0.6.0-vnext.9): one picker for every host upload ---------- */
+iq-file-picker{display:block;min-width:0}
+.iq-file-picker-row{display:flex;align-items:center;gap:var(--iq-space-3);width:100%;min-height:52px;padding:var(--iq-space-3) var(--iq-space-4);border:1px dashed var(--iq-control);border-radius:10px;background:var(--iq-raised);color:var(--iq-ink);font:inherit;text-align:left;cursor:pointer;transition:background-color var(--iq-motion-fast) var(--iq-ease),border-color var(--iq-motion-fast) var(--iq-ease)}
+.iq-file-picker-row>svg{flex:none;color:var(--iq-muted)}
+.iq-file-picker-row:hover:not(:disabled),.iq-file-picker-row.dragover{border-color:var(--iq-focus);background:var(--iq-accent-soft)}
+.iq-file-picker-row:disabled{cursor:default;opacity:.55}
+.iq-file-picker-copy{display:grid;gap:2px;min-width:0}
+.iq-file-picker-row .iq-file-picker-copy>span{font-size:var(--iq-type-label-size);font-weight:500;color:var(--iq-ink)}
+.iq-file-picker-row.file-dropwell{justify-content:flex-start;margin:0}
+.iq-file-picker-copy>small{font-size:var(--iq-type-meta-size);color:var(--iq-muted)}
+iq-file-picker .iq-dropzone{min-height:0}
+.iq-tag.iq-tag-add{display:inline-flex;align-items:center;gap:4px;background:transparent;border:1px dashed var(--iq-control);color:var(--iq-muted);cursor:pointer}
+.iq-tag.iq-tag-add:hover{border-style:solid;border-color:var(--iq-focus);color:var(--iq-ink);background:var(--iq-accent-soft)}
