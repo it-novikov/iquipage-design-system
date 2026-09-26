@@ -2,8 +2,7 @@
 .map-version-preview{height:min(60vh,560px);min-height:280px}.map-version-preview>iq-whiteboard{height:100%}
 #app{height:100%}
 /* Local-stand sign-in: a narrow DS form under the landing copy. */
-.host-sign-in{display:grid;gap:var(--iq-space-4);max-width:360px}
-.host-sign-in .iq-badge,.host-sign-in .iq-btn{justify-self:start}
+.host-sign-in{display:grid;gap:var(--iq-space-3);justify-items:center;width:100%;max-width:440px}
 /* Settings: one DS section navigation above linkable pages. */
 .settings-shell{max-width:880px;gap:var(--iq-space-4)}
 .settings-eyebrow{margin:0;color:var(--iq-muted);font-size:var(--iq-type-caption-size)}

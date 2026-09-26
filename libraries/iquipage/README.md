@@ -13,7 +13,7 @@ Consumers import `@iquipage/web/core`, `/advanced`, `/whiteboard` and `/styles.c
 type scale, mark and buttons. See [integration and design contract](docs/authentication.md)
 and [interactive example](examples/authentication.html) after `npm run build`.
 
-For actual credential entry use `iq-auth-dialog` (0.6.0-vnext.6). The same release includes
+For actual credential entry use `iq-auth-dialog` (0.6.0-vnext.9). The same release includes
 the native `keycloak/iquipage` theme so OIDC products can present the form at the identity
 provider without collecting passwords in the application. The interactive authentication
 example now demonstrates the form, not just a provider redirect.

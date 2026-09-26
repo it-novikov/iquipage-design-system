@@ -55,7 +55,7 @@ try{
   for(const [name,owner] of [['sprintique','sprintique_migrator'],['sprintique_identity','sprintique_identity']])if(!(await admin.query('SELECT 1 FROM pg_database WHERE datname=$1',[name])).rowCount)await admin.query(`CREATE DATABASE ${name} OWNER ${owner}`);
 }finally{await admin.end();}
 if(!owned(keycloak)){
-  const realm={realm:'sprintique',displayName:'Sprintique',loginTheme:'iquipage',internationalizationEnabled:true,supportedLocales:['ru','en'],defaultLocale:'ru',enabled:true,registrationAllowed:false,resetPasswordAllowed:false,sslRequired:'all',bruteForceProtected:true,
+  const realm={realm:'sprintique',displayName:'Sprintique',loginTheme:'iquipage',internationalizationEnabled:false,defaultLocale:'ru',enabled:true,registrationAllowed:false,resetPasswordAllowed:false,sslRequired:'all',bruteForceProtected:true,
     clients:[{clientId:config.clientId,enabled:true,publicClient:false,secret:config.clientSecret,standardFlowEnabled:true,directAccessGrantsEnabled:false,serviceAccountsEnabled:false,
       redirectUris:[config.origin+'/auth/callback'],webOrigins:[config.origin],attributes:{'pkce.code.challenge.method':'S256'},defaultClientScopes:['profile']}],
     users:[{username:config.testUser.username,enabled:true,email:'sprintique-qa@example.invalid',firstName:'Sprintique',lastName:'QA',credentials:[{type:'password',value:config.testUser.password,temporary:false}]}]};

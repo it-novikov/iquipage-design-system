@@ -8,7 +8,6 @@ html.login-pf body.iq-identity{background:var(--iq-surface);font:400 14px/1.5 va
 .iq-identity #kc-page-title{font:500 30px/1.2 var(--iq-display);letter-spacing:-.028em;margin:0 0 var(--iq-space-8);text-align:left}
 .iq-identity .login-pf-header{margin:0}
 .iq-identity #kc-content,.iq-identity #kc-content-wrapper{margin:0;padding:0}
-.iq-identity .iq-auth-input{height:52px;box-shadow:none}
 .iq-identity .iq-auth-password{display:block}
 .iq-identity #kc-form-options .checkbox{margin:0;font-size:13px}
 .iq-identity #kc-form-options label{display:flex;align-items:center;gap:8px;padding:0}
@@ -18,11 +17,8 @@ html.login-pf body.iq-identity{background:var(--iq-surface);font:400 14px/1.5 va
 .iq-identity #kc-info{margin:var(--iq-space-6) 0 0}.iq-identity #kc-info-wrapper{padding:0;background:none;font-size:13px}
 .iq-identity .iq-identity-field-error{display:block;color:var(--iq-danger);margin-top:var(--iq-space-2);font-size:13px}
 .iq-identity .alert-error{color:var(--iq-danger);background:var(--iq-danger-bg);padding:var(--iq-space-4);border-radius:var(--iq-radius-sm);margin-bottom:var(--iq-space-5)}
-.iq-identity-theme{position:fixed;right:var(--iq-space-6);top:var(--iq-space-6)}
+.iq-identity-theme{position:fixed;right:var(--iq-space-6);top:var(--iq-space-6);width:40px;height:40px;padding:0;display:grid;place-items:center}
+.iq-identity-theme svg{width:18px;height:18px}
 @media(max-width:480px){.iq-identity-page{padding:var(--iq-space-4);padding-top:var(--iq-space-20)}.iq-identity #kc-page-title{font-size:28px}.iq-identity-theme{right:var(--iq-space-3);top:var(--iq-space-3)}}
-.iq-identity #kc-locale{margin:0 0 var(--iq-space-5);text-align:right;position:relative}
-.iq-identity #kc-current-locale-link{background:var(--iq-raised);color:var(--iq-muted);padding:var(--iq-space-2);border-radius:var(--iq-radius-sm);font-size:13px}
-.iq-identity #kc-locale ul{display:none;position:absolute;right:0;top:100%;z-index:2;list-style:none;margin:0;padding:var(--iq-space-2);min-width:180px;background:var(--iq-raised);color:var(--iq-ink);border:1px solid var(--iq-line);border-radius:var(--iq-radius-sm);box-shadow:var(--iq-shadow-2)}
-.iq-identity #kc-locale button[aria-expanded=true]+ul{display:block}
-.iq-identity #kc-locale li a{display:block;padding:var(--iq-space-2);color:var(--iq-ink);text-decoration:none;border-radius:var(--iq-radius-xs)}
-.iq-identity #kc-locale li a:hover,.iq-identity #kc-locale li a:focus{background:var(--iq-surface)}
+/* The product has one interface language; Keycloak's locale switcher never shows even if a realm enables it. */
+.iq-identity #kc-locale,.iq-identity #kc-locale-wrapper{display:none!important}

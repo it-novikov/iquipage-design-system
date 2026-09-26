@@ -3,7 +3,7 @@ iq-auth-screen{display:block;min-height:100%;color:var(--iq-ink);background:var(
 .iq-auth-screen{min-height:100svh;display:flex;flex-direction:column;padding:0 var(--iq-grid-margin) var(--iq-space-8)}
 .iq-auth-header{width:100%;max-width:var(--iq-grid-max);margin-inline:auto;min-height:96px;display:flex;align-items:center;justify-content:space-between;gap:var(--iq-space-4)}
 .iq-auth-brand,.iq-auth-tools{display:flex;align-items:center;gap:var(--iq-space-3)}
-.iq-auth-brand{font-size:20px;font-weight:500;letter-spacing:-.02em}
+.iq-auth-brand{font-size:var(--iq-type-title-size);font-weight:500;letter-spacing:-.02em}
 .iq-auth-main{width:100%;max-width:var(--iq-grid-max);margin:auto;flex:1;display:grid;grid-template-columns:1fr 1fr;min-height:560px}
 .iq-auth-context{border-radius:var(--iq-radius-lg);background:var(--iq-surface);padding:var(--iq-space-16);display:flex;flex-direction:column;justify-content:center;gap:var(--iq-space-12);position:relative}
 .iq-auth-context h2{font-size:clamp(32px,3.5vw,52px);line-height:1.12;letter-spacing:-.032em;text-wrap:balance;max-width:12ch}

@@ -53,7 +53,7 @@ The example uses synthetic states, not real identity-provider calls.
 Sprintique uses OIDC: its adapter supplies product copy, theme control and invitation
 preservation. The password/provider page is owned by the configured identity provider.
 
-## Credential dialog (0.6.0-vnext.6)
+## Credential dialog (0.6.0-vnext.9)
 
 Use `iq-auth-dialog` when credentials must be entered, rather than `iq-auth-screen`
 (which is only an optional context/redirect composition). Wrap it in `iq-auth-stage`
