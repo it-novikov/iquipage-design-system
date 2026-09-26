@@ -1,4 +1,5 @@
 import {dialog,select,icon,esc} from '../ui.js';
+import {formatDate} from '@iquipage/web/core';
 import {editCatalogItem,tagMarkup} from './catalog-ui.js';
 import {starterTaskSettings,compileTaskTemplate,TEMPLATE_MODES,STARTER_TASK_TEMPLATES,upgradeLegacyTaskSettings} from './task-templates.js';
 import {taskMarkdown} from './task-content.js';
@@ -22,7 +23,7 @@ export async function mountProjectTaskSettings(root,{repository,project,section,
     }catch(cause){fail(cause);}
   }
   function catalogRow(item){
-    const releaseInfo=`<b>${esc(item.name)}</b><small>${item.status==='released'?'Выпущен':'Планируется'}${item.targetDate?' · '+esc(item.targetDate):''}${item.archivedAt?' · в архиве':''}</small>`;
+    const releaseInfo=`<b>${esc(item.name)}</b><small>${item.status==='released'?'Выпущен':'Планируется'}${item.targetDate?', выпуск '+esc(formatDate(item.targetDate)):''}${item.archivedAt?', в архиве':''}</small>`;
     const controls=canManage?`<button type="button" class="iq-btn ghost sm" data-edit-item="${esc(item.id)}">Изменить</button><button type="button" class="iq-btn ghost sm" data-archive-item="${esc(item.id)}">${item.archivedAt?'Восстановить':'В архив'}</button>`:'';
     return `<div class="iq-list-item"><div>${section==='tags'?tagMarkup(item):releaseInfo}</div>${controls}</div>`;
   }

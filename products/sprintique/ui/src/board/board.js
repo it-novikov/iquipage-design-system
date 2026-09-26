@@ -129,7 +129,9 @@ export async function mountTaskBoard(root,{repository,project,canEdit=true,canMa
     const open=e.target.closest('[data-open-task]'),add=e.target.closest('[data-create-task],[data-column-create]'),toggle=e.target.closest('[data-toggle-children]');
     if(open)edit(items.find(t=>t.id===open.dataset.openTask));
     if(add&&canEdit)edit(null,add.dataset.columnCreate||'ready');
-    if(toggle){const id=toggle.dataset.toggleChildren;expanded.has(id)?expanded.delete(id):expanded.add(id);persist();render();root.querySelector(`[data-toggle-children="${CSS.escape(id)}"]`)?.focus({preventScroll:true});}
+    if(toggle){const id=toggle.dataset.toggleChildren,open=!expanded.has(id);open?expanded.add(id):expanded.delete(id);persist();
+      // In place: re-rendering the board would restart every card's light and hover fade.
+      toggle.setAttribute('aria-expanded',String(open));const list=root.querySelector(`#subtasks-${CSS.escape(id)}`);if(list)list.hidden=!open;}
   },{signal});
   root.addEventListener('iq-action',e=>{
     const parts=String(e.detail.action||'').split(':'),action=parts[0],id=parts.at(-1);

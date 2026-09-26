@@ -21,7 +21,7 @@ export function mountBoardFilters(root,{initial={},onChange=()=>{},countMatches=
       const item=find(field,id),name=item?.name||'Недоступно',tone=field==='tags'&&item?tagTone(item):'neutral';
       return `<button type="button" class="iq-tag" data-tone="${tone}" data-remove-filter="${field}" data-filter-id="${esc(id)}" aria-label="Убрать фильтр: ${esc(names[field])} — ${esc(name)}">${field==='tags'?'':`${esc(names[field])}: `}${esc(name)}${icon('x',12)}</button>`;
     })).join('');
-    root.innerHTML=`<button type="button" class="iq-btn ghost sm" data-open-filters aria-haspopup="dialog">${icon('filter',17)}<span>Фильтры${count?' · '+count:''}</span></button>${chips?`<div class="board-filter-chips" aria-label="Активные фильтры">${chips}</div><button type="button" class="iq-btn ghost sm" data-reset-filters>Сбросить</button>`:''}`;
+    root.innerHTML=`<button type="button" class="iq-btn ghost sm" data-open-filters aria-haspopup="dialog">${icon('filter',17)}<span>Фильтры${count?` (${count})`:''}</span></button>${chips?`<div class="board-filter-chips" aria-label="Активные фильтры">${chips}</div><button type="button" class="iq-btn ghost sm" data-reset-filters>Сбросить</button>`:''}`;
   }
   function commit(){draw();onChange(structuredClone(value));panel?.refresh();}
   function choose(){
@@ -29,7 +29,7 @@ export function mountBoardFilters(root,{initial={},onChange=()=>{},countMatches=
     const element=dialog({title:'Фильтры доски',body:`<label class="iq-search-small">${icon('search',16)}<input type="search" aria-label="Найти значение фильтра" placeholder="Найти исполнителя, релиз или тег"></label><p class="iq-helper" role="status" data-filter-count></p><div class="board-filter-fields">${Object.keys(names).map(field=>`<section class="task-edit-section"><div class="row between"><h3>${names[field]}</h3><button type="button" class="iq-btn ghost sm" data-clear-filter="${field}">Сбросить</button></div><div class="stack sm" data-filter-options="${field}"></div></section>`).join('')}</div>${select('tagMode','Совпадение тегов',value.tagMode,[['any','Любой выбранный тег'],['all','Все выбранные теги']])}`,
       mount:element=>{
         const search=element.querySelector('input[type=search]');
-        const label=item=>item.tone!==undefined&&data.tags.includes(item)?tagMarkup(item):`<span>${esc(item.name)}${item.archivedAt?' · в архиве':''}</span>`;
+        const label=item=>item.tone!==undefined&&data.tags.includes(item)?tagMarkup(item):`<span>${esc(item.name)}${item.archivedAt?' (в архиве)':''}</span>`;
         function render(field){element.querySelector(`[data-filter-options=${field}]`).innerHTML=options(field).filter(item=>item.name.toLocaleLowerCase('ru').includes(search.value.trim().toLocaleLowerCase('ru'))).map(item=>`<label class="iq-check"><input type="checkbox" data-filter-field="${field}" value="${esc(item.id)}" ${value[field].includes(item.id)?'checked':''}><span class="iq-check-box">${icon('check',14)}</span>${label(item)}</label>`).join('')||'<p class="iq-helper">Нет значений.</p>';}
         const counter=()=>{const n=countMatches?.(value);element.querySelector('[data-filter-count]').textContent=n==null?'Условия разных групп действуют вместе.':`Показано задач: ${n}. Условия разных групп действуют вместе.`;};
         panel={refresh(){Object.keys(names).forEach(render);counter();}};

@@ -1,5 +1,5 @@
 /** Supported core browser entry. Does not register graph, roadmap, crop, or whiteboard. */
-export declare const version:'0.6.0-vnext.11';
+export declare const version:'0.6.0-vnext.12';
 export declare function registerCore():void;
 export declare function registerComponents():void;
 export declare function registerDateFields():void;
@@ -21,9 +21,12 @@ export declare function copyAtButton(button:HTMLButtonElement,text:string):Promi
 export declare function parseTime(value:string):string|null;
 export declare function formatTime(value:string,cycle:12|24):string;
 export declare function pageWindow(total:number,current:number,compact?:boolean):(number|string)[];
+export declare function formatDate(value:string|number|Date|null|undefined,options?:{timeZone?:string}):string;
+export declare function formatDateTime(value:string|number|Date|null|undefined,options?:{timeZone?:string}):string;
+export declare function formatDateRange(start:string|number|Date|null|undefined,end:string|number|Date|null|undefined,options?:{timeZone?:string}):string;
 export declare class IqDateField extends HTMLElement {value:string;readonly timeValue:string;disabled:boolean;open():void;close(restore?:boolean):void;}
 export declare class IqTime extends HTMLElement {value:string;hourCycle:12|24;}
-export interface MarkdownEditorAction {id:string;label:string;pressed:boolean;disabled?:boolean;tone?:'neutral'|'warning';}
+export interface MarkdownEditorAction {id:string;label:string;pressed:boolean;disabled?:boolean;tone?:'neutral'|'warning';hint?:string;}
 export interface MarkdownEditorActionIntent {id:string;pressed:boolean;previous:boolean;}
 export declare class IqMarkdownEditor extends HTMLElement {value:string;disabled:boolean;readOnly:boolean;previewOnBlur:boolean;previewMode:boolean;interactiveTasks:boolean;density:'compact'|'comfortable';footerActions:MarkdownEditorAction[];preview():void;focusEditor():void;}
 export declare class IqPagination extends HTMLElement {total:number;current:number;}

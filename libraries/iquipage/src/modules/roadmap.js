@@ -2,7 +2,8 @@
 const C=require('./advanced-core.js');
 const {IqDataSurface,button,ib}=require('./advanced-base.js');
 const {icon}=require('./components.js'),U=require('./ui.js');
-const fmt=(v)=>C.dateLabel(v,{day:'numeric',month:'short'});
+// Dates read as 04.10.2000 everywhere; month names stay only on the ruler axis.
+const fmt=(v)=>C.dateLabel(v,{day:'2-digit',month:'2-digit',year:'numeric'});
 const relationNames={FS:'Конец → начало',SS:'Начало → начало',FF:'Конец → конец',SF:'Начало → конец'};
 class IqRoadmap extends IqDataSurface {
  constructor(){
@@ -18,7 +19,7 @@ class IqRoadmap extends IqDataSurface {
  get selection(){return this.selectedDependency?{kind:'dependency',id:this.selectedDependency}:this.selectedId?{kind:'row',id:this.selectedId}:null}
  set selection(v){if(v===null){this.selectedId='';this.selectedDependency=''}else if(v.kind==='row'&&this.session.value.rows.some(r=>r.id===v.id)){this.selectedId=v.id;this.selectedDependency=''}else if(v.kind==='dependency'&&this.session.value.dependencies.some(r=>r.id===v.id)){this.selectedId='';this.selectedDependency=v.id}else throw new TypeError('Неизвестный выбор плана');this.schedule()}
  visibleRows(){const rows=this.session.value.rows,byParent=new Map();for(const r of rows){const p=r.parentId||'';if(!byParent.has(p))byParent.set(p,[]);byParent.get(p).push(r)}const out=[];const walk=(parent,depth)=>{for(const row of byParent.get(parent)||[]){out.push({...row,_depth:depth,_children:(byParent.get(row.id)||[]).length});if(!this._collapsed.has(row.id))walk(row.id,depth+1)}};walk('',0);return out}
- rowName(r){const children=r._children||0,selected=this.selectedId===r.id,kind={goal:'Цель',epic:'Эпик',task:'Задача',milestone:'Веха'}[r.kind];return `<div class="rm-label-cell" style="--rm-indent:${Math.min(r._depth||0,6)}">${children?`<button type="button" class="rm-collapse" data-pro-action="collapse-row" data-row="${C.escape(r.id)}" aria-label="${this._collapsed.has(r.id)?'Развернуть':'Свернуть'} ${C.escape(r.title)}" aria-expanded="${!this._collapsed.has(r.id)}">${icon(this._collapsed.has(r.id)?'chevron':'down',14)}</button>`:'<span class="rm-collapse-space"></span>'}<button type="button" class="rm-label" data-rm-select="${C.escape(r.id)}" data-focus-key="label-${C.escape(r.id)}" aria-pressed="${selected}"><span><b>${C.escape(r.title)}</b><small>${kind} / ${r.start?fmt(r.start)+(r.kind==='milestone'?'':' — '+fmt(r.end)):'Даты не заданы'}${r.blocked?' / Заблокировано':r.readonly?' / Только чтение':''}</small></span></button></div>`}
+ rowName(r){const children=r._children||0,selected=this.selectedId===r.id,kind={goal:'Цель',epic:'Эпик',task:'Задача',milestone:'Веха'}[r.kind];return `<div class="rm-label-cell" style="--rm-indent:${Math.min(r._depth||0,6)}">${children?`<button type="button" class="rm-collapse" data-pro-action="collapse-row" data-row="${C.escape(r.id)}" aria-label="${this._collapsed.has(r.id)?'Развернуть':'Свернуть'} ${C.escape(r.title)}" aria-expanded="${!this._collapsed.has(r.id)}">${icon(this._collapsed.has(r.id)?'chevron':'down',14)}</button>`:'<span class="rm-collapse-space"></span>'}<button type="button" class="rm-label" data-rm-select="${C.escape(r.id)}" data-focus-key="label-${C.escape(r.id)}" aria-pressed="${selected}"><span><b>${C.escape(r.title)}</b><small>${kind}, ${r.start?fmt(r.start)+(r.kind==='milestone'?'':' – '+fmt(r.end)):'даты не заданы'}${r.blocked?', заблокировано':r.readonly?', только чтение':''}</small></span></button></div>`}
  validate(value){return C.validateRoadmap(value)}
  conflicts(){return C.roadmapConflicts(this.session.value)}
  set range(v){
@@ -73,7 +74,7 @@ class IqRoadmap extends IqDataSurface {
   const d=this.session.value,b=this.bounds(),s=d.rows.find(r=>r.id===this.selectedId),disabled=this.locked?'disabled':'';
   this.classList.add('iq-pro-host');
   this.innerHTML=`<section class="iq-pro iq-roadmap" aria-label="План длительностей и зависимостей">
-   <header class="iq-pro-toolbar"><div class="iq-pro-heading"><span class="iq-pro-eyebrow">ПЛАН ВЫПУСКА</span><h3>${C.escape(d.title||'Длительности и зависимости')}</h3><span class="iq-pro-subtitle">${fmt(C.iso(b.start))} — ${C.dateLabel(C.iso(b.end),{day:'numeric',month:'long',year:'numeric'})}</span></div><div class="iq-pro-actions">
+   <header class="iq-pro-toolbar"><div class="iq-pro-heading"><span class="iq-pro-eyebrow">ПЛАН ВЫПУСКА</span><h3>${C.escape(d.title||'Длительности и зависимости')}</h3><span class="iq-pro-subtitle">${fmt(C.iso(b.start))} – ${fmt(C.iso(b.end))}</span></div><div class="iq-pro-actions">
     <div class="iq-pro-range">${ib('Предыдущий диапазон','prev-range','left')}${button('Сегодня','today')}${ib('Следующий диапазон','next-range','chevron')}</div>
     <div class="iq-pro-segment" role="group" aria-label="Масштаб плана">${[['fit','Обзор'],['day','Дни'],['week','Недели'],['month','Месяцы']].map(([id,label])=>button(label,'scale','',`data-scale="${id}" aria-pressed="${this.scale===id}"`)).join('')}</div>
    </div></header>

@@ -14,7 +14,7 @@ import {MAX_TASK_DEPTH} from '../domain/task-invariants.js';
 const finished=(r:Release)=>['closed','cancelled'].includes(r.lifecycle);
 const statusLabels:Record<string,string>={ready:'Готово к работе',in_progress:'В работе',review:'На проверке',ready_for_testing:'К тестированию',testing:'Тестирование',ready_for_release:'Готово к релизу'};
 /** Owner label: the member's name, or legacy free text marked until someone reassigns it. */
-const ownerLabel=(row:{ownerId:string|null;legacyOwner?:string},names:Map<string,string>)=>row.ownerId?names.get(row.ownerId)||'Бывший участник':row.legacyOwner?row.legacyOwner+' · не участник':'';
+const ownerLabel=(row:{ownerId:string|null;legacyOwner?:string},names:Map<string,string>)=>row.ownerId?names.get(row.ownerId)||'Бывший участник':row.legacyOwner?row.legacyOwner+' (не участник)':'';
 const memberNames=(state:{members?:{id:string;name:string}[]})=>new Map((state.members||[]).map(m=>[m.id,m.name]));
 function taskChange(effect:Effect,releases:Release[],names:Map<string,string>){
   const {before,after}=effect,parts:string[]=[];
@@ -29,10 +29,10 @@ function taskChange(effect:Effect,releases:Release[],names:Map<string,string>){
   if(before?.ownerId!==after.ownerId)parts.push('Исполнитель: '+(ownerLabel(after,names)||'не назначен'));
   if(before&&before.rank!==after.rank)parts.push('Изменить порядок');
   if(before?.priority!==after.priority)parts.push('Приоритет: '+({low:'Низкий',normal:'Обычный',high:'Высокий',critical:'Критичный'}[after.priority]||after.priority));
-  if(before?.status!==after.status)parts.push('Состояние: '+(statusLabels[after.status]||after.status));
+  if(before?.status!==after.status)parts.push('Статус: '+(statusLabels[after.status]||after.status));
   if(JSON.stringify(before?.tagIds)!==JSON.stringify(after.tagIds))parts.push(`Теги: ${after.tagIds.length}`);
   if(JSON.stringify(before?.attachmentIds)!==JSON.stringify(after.attachmentIds)||before?.coverAttachmentId!==after.coverAttachmentId)parts.push('Обновить файлы и обложку');
-  return {label:after.displayId+' · '+after.title,description:parts.join(' · ')||'Обновить содержимое задачи'};
+  return {label:after.displayId+' '+after.title,description:parts.join('. ')||'Обновить содержимое задачи'};
 }
 const filterSelection=(f:ViewFilters,roots?:string[]):Selection=>({kind:'filter',filter:SelectionFilter.parse({q:f.query,matchReleaseNames:true,preparation:f.preparation,owner:f.owner,tagIds:f.tagIds,tagMode:f.tagMode,...(f.releaseId?{releaseId:f.releaseId==='backlog'?null:f.releaseId}:{}),...(roots?{roots}:{}),openOnly:true})});
 async function context(tx:Transaction,actor:Actor,projectId:string){
@@ -53,10 +53,13 @@ function matches(f:ViewFilters,rows:PlanningRow[],releases:Release[]){
   return selected(selection,rows,releases);
 }
 const binding=(projectId:string,scope:string,value:unknown)=>hash(JSON.stringify([projectId,scope,value]));
-const dateLabel=(r:Release)=>[r.plannedStart,r.plannedEnd].filter(Boolean).join(' — ');
+// Dates travel raw (YYYY-MM-DD); the client formats them as 04.10.2000. dateLabel stays for older clients.
+const day=(value:string|null|undefined)=>value?value.split('-').reverse().join('.'):'';
+const dateLabel=(r:Release)=>[day(r.plannedStart),day(r.plannedEnd)].filter(Boolean).join(' – ');
+const isDone=(r:PlanningRow)=>r.result==='accepted'||r.status==='ready_for_release';
 export async function groups(tx:Transaction,actor:Actor,projectId:string,q:ViewQuery){
   const c=await context(tx,actor,projectId),filters=ViewFilters.strip().parse(q);
-  const items:{id:string;title:string;state:string;total:number;matched:number;dateLabel:string;formatLabel:string}[]=[];
+  const items:{id:string;title:string;state:string;total:number;matched:number;done:number;dateLabel:string;formatLabel:string;format:string;plannedStart:string|null;plannedEnd:string|null;deadline:string|null}[]=[];
   const byRelease = new Map<string,PlanningRow[]>();
   for (const row of c.rows) {
     const id = row.effectiveReleaseId || 'backlog';
@@ -66,10 +69,10 @@ export async function groups(tx:Transaction,actor:Actor,projectId:string,q:ViewQ
   // Process one bounded release snapshot at a time. Never materialize the entire history catalogue.
   for(const r of c.state.releases.filter(r=>!r.archivedAt&&finished(r)===(q.history==='closed')&&(!q.releaseId||r.id===q.releaseId))){
     const members=q.history==='closed'?((await finalSnapshots(tx,projectId,r.id)).get(r.id)||[]).map(i=>i.before):byRelease.get(r.id)||[];
-    items.push({id:r.id,title:r.name,state:r.lifecycle,total:members.length,matched:matches(filters,members,c.state.releases).size,dateLabel:dateLabel(r),formatLabel:r.format==='timeboxed'?'Спринт':'Релиз'});
+    items.push({id:r.id,title:r.name,state:r.lifecycle,total:members.length,matched:matches(filters,members,c.state.releases).size,done:members.filter(isDone).length,dateLabel:dateLabel(r),formatLabel:r.format==='timeboxed'?'Спринт':'Релиз',format:r.format,plannedStart:r.plannedStart||null,plannedEnd:r.plannedEnd||null,deadline:r.deadline||null});
   }
-  items.sort((a,b)=>(a.state==='active'?0:1)-(b.state==='active'?0:1)||a.dateLabel.localeCompare(b.dateLabel)||a.title.localeCompare(b.title)||a.id.localeCompare(b.id));
-  if(q.history==='current'&&(!q.releaseId||q.releaseId==='backlog')){const members=byRelease.get('backlog')||[];items.push({id:'backlog',title:'Бэклог',state:'backlog' as typeof items[number]['state'],total:members.length,matched:matches(filters,members,c.state.releases).size,dateLabel:'',formatLabel:''});}
+  items.sort((a,b)=>(a.state==='active'?0:1)-(b.state==='active'?0:1)||(a.plannedStart||'9999').localeCompare(b.plannedStart||'9999')||a.title.localeCompare(b.title)||a.id.localeCompare(b.id));
+  if(q.history==='current'&&(!q.releaseId||q.releaseId==='backlog')){const members=byRelease.get('backlog')||[];items.push({id:'backlog',title:'Бэклог',state:'backlog' as typeof items[number]['state'],total:members.length,matched:matches(filters,members,c.state.releases).size,done:members.filter(isDone).length,dateLabel:'',formatLabel:'',format:'',plannedStart:null,plannedEnd:null,deadline:null});}
   const p=page(items,binding(projectId,'groups',filters),c.revision,100,q.cursor||undefined);
   return {protocol:'sprintique.planning-view/1',projectId,revision:String(c.revision),items:p.items,nextCursor:p.nextCursor,matchedTotal:items.reduce((n,i)=>n+i.matched,0),
     capabilities:{createTask:c.write,createRelease:c.write,prepare:c.write,move:c.write,start:c.write,editRelease:c.write,close:c.write,cancel:c.write,bulk:c.write,reorder:c.write,selection:c.write,timeline:true,temporal:c.write,milestone:c.write,settings:c.admin}};
@@ -138,10 +141,10 @@ function reorderRanks(rows:PlanningRow[],taskId:string,beforeId:string|null){
 export async function options(tx:Transaction,actor:Actor,projectId:string,q:ViewOptionsQuery){
   const c=await context(tx,actor,projectId);let items:{value:string;label:string;description?:string;disabled?:boolean}[]=[];
   if(q.kind==='destinations')items=[{value:'backlog',label:'Бэклог'},...c.state.releases.filter(r=>!finished(r)&&!r.archivedAt&&r.id!==q.excludeId).map(r=>({value:r.id,label:r.name,description:dateLabel(r)}))];
-  else if(q.kind==='tasks')items=c.rows.filter(t=>t.result==='open').map(t=>({value:t.id,label:t.displayId+' · '+t.title}));
+  else if(q.kind==='tasks')items=c.rows.filter(t=>t.result==='open').map(t=>({value:t.id,label:t.displayId+' '+t.title}));
   else if(q.kind==='positions'){
     requireCondition(q.taskId,400,'TASK_REQUIRED','Укажите задачу.');const siblings=reorderSiblings(c.rows,q.taskId);
-    items=siblings.filter(t=>t.id!==q.taskId).map(t=>({value:t.id,label:'Перед '+t.displayId+' · '+t.title}));
+    items=siblings.filter(t=>t.id!==q.taskId).map(t=>({value:t.id,label:'Перед '+t.displayId+' '+t.title}));
   }
   else if(q.kind==='owner')items=[{value:'__none__',label:'Не назначен'},...(c.state.members||[]).map(m=>({value:m.id,label:m.name}))];
   else items=(await tx.query<{value:string;label:string}>('SELECT id AS value,name AS label FROM app.tags WHERE project_id=$1 AND archived_at IS NULL ORDER BY name,id',[projectId])).rows;
@@ -166,7 +169,7 @@ export async function timeline(tx:Transaction,actor:Actor,projectId:string,q:Vie
   const c=await context(tx,actor,projectId),matched=matches(q,c.rows,c.state.releases),releases=c.state.releases.filter(r=>!finished(r)&&!r.archivedAt&&(!q.releaseId||r.id===q.releaseId));
   const names=memberNames(c.state);
   const records=[...releases.map(r=>({id:'release:'+r.id,entityId:r.id,entityKind:'release',title:r.name,start:r.plannedStart,end:r.plannedEnd,deadline:r.deadline,readonly:!c.write})),
-    ...c.rows.filter(t=>matched.has(t.id)&&(!t.effectiveReleaseId||releases.some(r=>r.id===t.effectiveReleaseId))).map(t=>({id:'task:'+t.id,entityId:t.id,entityKind:'task',title:t.displayId+' · '+t.title,start:t.plannedStart,end:t.plannedEnd||null,deadline:t.due,readonly:!c.write||t.result==='accepted',parentId:t.parentId?'task:'+t.parentId:t.effectiveReleaseId?'release:'+t.effectiveReleaseId:undefined,status:t.result==='accepted'?'done':t.status,
+    ...c.rows.filter(t=>matched.has(t.id)&&(!t.effectiveReleaseId||releases.some(r=>r.id===t.effectiveReleaseId))).map(t=>({id:'task:'+t.id,entityId:t.id,entityKind:'task',title:t.displayId+' '+t.title,start:t.plannedStart,end:t.plannedEnd||null,deadline:t.due,readonly:!c.write||t.result==='accepted',parentId:t.parentId?'task:'+t.parentId:t.effectiveReleaseId?'release:'+t.effectiveReleaseId:undefined,status:t.result==='accepted'?'done':t.status,
       // Calendar cards show the same facts as board cards.
       card:{key:t.displayId,name:t.title,type:t.type,priority:t.priority,owner:ownerLabel(t,names)}})),
     ...c.state.milestones.filter(m=>(!m.releaseId||c.state.releases.some(r=>r.id===m.releaseId&&!finished(r)&&!r.archivedAt))&&(!q.releaseId||m.releaseId===q.releaseId)).map(m=>({id:'milestone:'+m.id,entityId:m.id,entityKind:'milestone',title:m.title,start:m.date,end:m.date,deadline:null,readonly:!c.write,releaseId:m.releaseId,parentId:m.releaseId?'release:'+m.releaseId:undefined}))];

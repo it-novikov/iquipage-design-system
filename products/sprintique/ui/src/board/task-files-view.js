@@ -4,7 +4,7 @@ import {FILE_ACCEPT} from './attachment-model.js';
 import {editCoverImage,coverImageStyle} from './cover-crop.js';
 
 /** Draft changes are committed by the task form, never by a preview. */
-export function mountTaskFiles(root,{coverRoot,adapter,task,readOnly=false}){
+export function mountTaskFiles(root,{coverRoot,adapter,task,readOnly=false,onCoverState=()=>{}}){
   let ids=[...(task.attachmentIds||[])],coverId=task.coverAttachmentId||null;
   let locked=false,presetPicker,presetLoading=false,cropDialog,coverCrop=task.coverCrop||null;
   let closed=false,active=0,coverGeneration=0,coverIntent=0,coverURL=null;
@@ -58,7 +58,9 @@ export function mountTaskFiles(root,{coverRoot,adapter,task,readOnly=false}){
     const generation=++coverGeneration;
     if(coverURL){URL.revokeObjectURL(coverURL);coverURL=null;}
     for(const item of rows.values())drawRow(item);
-    if(!coverId){coverRoot.innerHTML=editable?`<button type="button" class="file-dropwell iq-file-picker-row task-cover-dropwell" data-add-cover>${icon('image',18)}<span class="iq-file-picker-copy"><span>Добавить обложку</span><small>Выберите готовую или загрузите свою</small></span></button>`:'';return;}
+    // Without a cover nothing takes space in the drawer; the header's "Обложка" button (addCover) adds one.
+    if(!coverId){coverRoot.replaceChildren();coverRoot.hidden=true;onCoverState(false);return;}
+    coverRoot.hidden=false;onCoverState(true);
     const row=rows.get(coverId);
     coverRoot.innerHTML=`<div class="task-detail-cover" data-state="loading"><button type="button" data-preview-cover aria-label="Открыть обложку" disabled><img alt="" decoding="async" style="${coverImageStyle(coverCrop,coverId)}" hidden></button><span data-cover-status>Загрузка обложки…</span></div>
       ${editable?'<div class="row task-cover-actions"><button type="button" class="iq-btn ghost sm" data-recrop-cover>Кадрировать</button><button type="button" class="iq-btn ghost sm" data-add-cover>Заменить</button><button type="button" class="iq-btn ghost sm" data-remove-cover>Убрать</button></div>':''}`;
@@ -157,6 +159,7 @@ export function mountTaskFiles(root,{coverRoot,adapter,task,readOnly=false}){
   for(const id of ids){rows.set(id,{id,name:'Файл',size:0,state:'loading'});drawRow(rows.get(id));void loadExisting(id);}
   renderCover();
   return {
+    addCover(){if(editable&&!locked&&!closed)void openPresetPicker();},
     value:()=>({attachmentIds:[...ids],coverAttachmentId:coverId,coverCrop}),
     dirty:()=>[...rows.values()].some(row=>!!row.file),
     isBusy:()=>active>0,

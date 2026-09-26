@@ -139,9 +139,9 @@ test('board cards show hierarchy without repeating task numbers',()=>{
   const child=renderTaskCard({task:open,parent,children:[]},{index,canEdit:true});
   assert.equal((child.match(/SPQ-1/g)||[]).length,0,'the parent is named by title, not by a second number');assert.match(child,/class="task-card-parent"[^>]*>.*Эпик/s);
   const collapsed=renderTaskCard({task:parent,parent:null,children:[done,open]},{index,canEdit:true});
-  assert.match(collapsed,/data-toggle-children="p" aria-expanded="false"/);assert.match(collapsed,/task-subtasks-count">1\/2</);assert.equal(collapsed.includes('task-subtask-list'),false);
+  assert.match(collapsed,/data-toggle-children="p" aria-expanded="false"/);assert.match(collapsed,/task-subtasks-count">1\/2</);assert.match(collapsed,/class="task-subtask-list" id="subtasks-p" hidden/,'collapsed lists stay in the markup, hidden, so toggling never re-renders the board');
   const expanded=renderTaskCard({task:parent,parent:null,children:[done,open]},{index,canEdit:true,expanded:true});
-  assert.match(expanded,/aria-expanded="true"/);assert.ok(expanded.includes('Готовая')&&expanded.includes('Открытая')&&expanded.includes('Ревью'));
+  assert.match(expanded,/aria-expanded="true"/);assert.doesNotMatch(expanded,/id="subtasks-p" hidden/);assert.ok(expanded.includes('Готовая')&&expanded.includes('Открытая')&&expanded.includes('Ревью'));
 });
 test('calendar entries carry card facts, never raw entity ids or title suffixes',async()=>{
   const {calendarProjection}=await import('../ui/planning/src/temporal-model.js');

@@ -1,6 +1,6 @@
 import {captureDialog} from './capture-ui.js'; import {showMapHistory} from './map-history.js';
 import {showCanvasInspector,leaveCanvasInspector} from './canvas-inspector.js';
-import {motionReduced,ui} from '@iquipage/web/core';
+import {motionReduced,ui,notify} from '@iquipage/web/core';
 import {registerWhiteboard,validateWhiteboard} from '@iquipage/web/whiteboard';
 import {createMap,transitionMap,forkMap,templateFromMap,remapDocument,insertDocument,clone,uid,now,requireValue,validateMap,extractSelection} from './model.js';
 import {BUILTIN_TEMPLATES,filterTemplates} from './templates.js';
@@ -33,6 +33,7 @@ export class MapsFeature {
     registerWhiteboard();this.root.innerHTML=`<section class="iq-maps" aria-label="Карты проекта"><header class="map-toolbar"></header><div class="map-subbar"></div><div class="map-notice" role="status" hidden></div><div class="map-content"><div class="map-title-chip" data-map-title hidden><span class="map-title-chip-heading" data-chip-heading></span><span data-chip-sync></span><span class="sr-only" role="status" data-chip-live></span></div><div class="map-surface"></div><aside class="map-inspector" aria-label="Свойства и результаты" hidden></aside></div><span class="sr-only" role="status" data-map-live></span></section>`;
     this.toolbar=this.root.querySelector('.map-toolbar');this.subbar=this.root.querySelector('.map-subbar');this.surface=this.root.querySelector('.map-surface');this.inspector=this.root.querySelector('.map-inspector');this.titleChip=this.root.querySelector('[data-map-title]');
     this.root.addEventListener('click',event=>{
+      if(event.target.closest('[data-map-sync]')){void this.syncNow();return;}
       const control=event.target.closest('[data-map-action]');if(!control||control.disabled)return;
       event.preventDefault();
       // Actions picked in the host side panel close it first, so the sheet and its result never overlap.
@@ -82,7 +83,7 @@ export class MapsFeature {
     const board=document.createElement('iq-whiteboard');board.surfaceMode='embedded';board.controlled=true;board.allowedCreateTypes=this.view==='canvas'?this.uiCapabilities.allowedCreateTypes:CREATABLE_BOARD_OBJECT_TYPES;
     board.editorMode=this.view==='workflow'||!this.directEditing?'host':'inline';
     if(!this.directEditing){
-      board.setAttribute('selection-bar','none');board.setAttribute('library-open','');board.setAttribute('dock','side');
+      board.setAttribute('selection-bar','none');board.setAttribute('dock','side');
       // Search, templates and the map menu live in the side dock under "+", instead of a toolbar row.
       board.hostActions=[{id:'find',label:'Найти на карте',icon:'search'},...(this.uiCapabilities.templates?[{id:'templates',label:'Шаблоны',icon:'grid'}]:[]),{id:'more',label:'Меню карты',icon:'more'}];
     }
@@ -142,15 +143,40 @@ export class MapsFeature {
     this.board.data=this.view==='workflow'?flowScene(saved.flow,saved.title,saved.revision):saved.document;
     this.board.readOnly=!this.permissions.edit||saved.status==='archived';this.renderChrome();return saved;
   }
-  /** Rebuilds the chip parts only when they change, so an open tooltip is not torn down by every save. */
+  /** Rebuilds the chip parts only when they change, so an open tooltip is not torn down by every save.
+   *  The sync button explains its state in a structured tooltip and syncs on click, with visible feedback. */
   renderTitleChip(heading,m,save){
-    const state=this.board?.saving||save==='Сохраняем…'?'saving':this.board?.dirty?'dirty':'saved';
+    const state=this.syncing?'syncing':this.board?.saving||save==='Сохраняем…'?'saving':this.board?.dirty?'dirty':'saved';
     const kind=m.kind==='session'?'Сессия':'Постоянная карта';
-    const tip=state==='saving'?`${kind} · Синхронизация: сохраняем изменения…`:state==='dirty'?`${kind} · Есть несохранённые изменения. Они синхронизируются автоматически.`:`${kind} · ${save}. Карта сохраняется и синхронизируется автоматически.`;
+    const time=this.lastSync?new Intl.DateTimeFormat('ru',{hour:'2-digit',minute:'2-digit'}).format(this.lastSync):'';
+    const title={syncing:'Синхронизация',saving:'Сохраняем изменения',dirty:'Есть несохранённые изменения',saved:'Все изменения сохранены'}[state];
+    const lines=[kind,state==='dirty'?'Изменения сохранятся автоматически':'Карта сохраняется автоматически',time&&state==='saved'?`Проверено в ${time}`:'',state==='syncing'?'':'Нажмите, чтобы синхронизировать сейчас'].filter(Boolean).join('\n');
     if(this.titleChip.dataset.heading!==heading){this.titleChip.dataset.heading=heading;this.titleChip.querySelector('[data-chip-heading]').innerHTML=heading;}
-    const sync=this.titleChip.querySelector('[data-chip-sync]');
-    if(sync.dataset.tip!==tip){sync.dataset.tip=tip;sync.innerHTML=`<iq-tooltip text="${esc(tip)}"><span class="map-sync" data-state="${state}" tabindex="0" role="img" aria-label="${esc(tip)}">${icon(state==='dirty'?'warning':'refresh',16)}</span></iq-tooltip>`;}
-    const live=this.titleChip.querySelector('[data-chip-live]');if(live.textContent!==tip)live.textContent=tip;
+    const sync=this.titleChip.querySelector('[data-chip-sync]'),key=state+lines;
+    if(sync.dataset.key!==key){
+      const focused=sync.contains(document.activeElement);sync.dataset.key=key;
+      sync.innerHTML=`<iq-tooltip heading="${esc(title)}" text="${esc(lines)}"><button type="button" class="iq-btn ghost icon sm map-sync" data-state="${state}" data-map-sync aria-label="${esc(title)}. Синхронизировать сейчас" ${state==='syncing'?'aria-busy="true"':''}>${icon(state==='dirty'?'warning':'refresh',16)}</button></iq-tooltip>`;
+      if(focused)sync.querySelector('button').focus({preventScroll:true});
+    }
+    const live=this.titleChip.querySelector('[data-chip-live]'),said=`${title}. ${kind}`;if(live.textContent!==said)live.textContent=said;
+  }
+  /** Saves pending edits, then loads the newest revision. Always ends with a visible result. */
+  async syncNow(){
+    if(this.syncing||!this.current||!this.board)return;
+    const id=this.current.id,started=Date.now();this.syncing=true;this.renderChrome();
+    try{
+      this.board.flush();if(this.savingPromise)await this.savingPromise;
+      if(this.board.dirty)throw Error('Не удалось сохранить изменения. Проверьте соединение и попробуйте ещё раз.');
+      const next=await this.repository.read('maps',id,this.project.id);
+      if(!this.alive||this.current?.id!==id)return;
+      const updated=next&&next.revision>this.current.revision;
+      if(updated){this.current=next;this.board.data=this.view==='workflow'&&next.flow?flowScene(next.flow,next.title,next.revision):next.document;}
+      this.lastSync=new Date();
+      // Keep the turning icon visible long enough to be noticed, even on a fast network.
+      await new Promise(r=>setTimeout(r,Math.max(0,500-(Date.now()-started))));
+      notify({tone:'success',message:updated?'Карта синхронизирована: загружена новая версия':'Карта синхронизирована: у вас последняя версия'});
+    }catch(error){notify({tone:'danger',message:error.message||'Не удалось синхронизировать карту.'});}
+    finally{this.syncing=false;if(this.alive)this.renderChrome();}
   }
   renderChrome(override='') {
     if(!this.alive)return;
@@ -160,7 +186,7 @@ export class MapsFeature {
     const save=override||(this.board?.saving?'Сохраняем…':this.board?.dirty?'Есть несохранённые изменения':m?this.storageLabel:'Выберите или создайте карту');
     const heading=this.uiCapabilities.mapSwitcher?`<button type="button" class="map-switch" data-map-action="maps" aria-label="Выбрать карту: ${esc(title)}" title="${esc(title)}"><span>${esc(title)}</span>${icon('down',16)}</button>`:`<span class="map-switch map-switch-static"><span>${esc(title)}</span></span>`;
     const canAdd=this.view==='workflow';
-    this.toolbar.innerHTML=`<div class="map-heading"><div class="map-title-wrap"><h1>${heading}</h1><span class="map-save-label" role="status">${m?`${m.kind==='session'?'Сессия':'Постоянная карта'} · `:''}${esc(save)}</span></div></div>${m&&this.uiCapabilities.workflow&&!this.directEditing?`<div class="iq-segmented map-view-tabs" aria-label="Рабочая поверхность"><button type="button" data-map-action="canvas" aria-pressed="${this.view==='canvas'}">${icon('board',16)}<span>Карта</span></button><button type="button" data-map-action="workflow" aria-pressed="${this.view==='workflow'}">${icon('link',16)}<span>Сценарий действий</span></button></div>`:''}<div class="map-toolbar-actions">${m&&this.view==='canvas'?button('find','Найти на карте','search'):m&&this.directEditing?button('canvas','К карте','left'):''}${this.uiCapabilities.templates&&!this.directEditing?button('templates','Шаблоны','grid'):''}${m&&!disabled&&canAdd?button(this.view==='workflow'?'add-step':'add',this.view==='workflow'?'Добавить шаг':'Добавить объекты','plus','primary'):!m&&this.permissions.edit?button('new','Создать карту','plus','primary'):''}${this.moreMenu()}</div>`;
+    this.toolbar.innerHTML=`<div class="map-heading"><div class="map-title-wrap"><h1>${heading}</h1><span class="map-save-label" role="status">${m?`${m.kind==='session'?'Сессия':'Постоянная карта'}. `:''}${esc(save)}</span></div></div>${m&&this.uiCapabilities.workflow&&!this.directEditing?`<div class="iq-segmented map-view-tabs" aria-label="Рабочая поверхность"><button type="button" data-map-action="canvas" aria-pressed="${this.view==='canvas'}">${icon('board',16)}<span>Карта</span></button><button type="button" data-map-action="workflow" aria-pressed="${this.view==='workflow'}">${icon('link',16)}<span>Сценарий действий</span></button></div>`:''}<div class="map-toolbar-actions">${m&&this.view==='canvas'?button('find','Найти на карте','search'):m&&this.directEditing?button('canvas','К карте','left'):''}${this.uiCapabilities.templates&&!this.directEditing?button('templates','Шаблоны','grid'):''}${m&&!disabled&&canAdd?button(this.view==='workflow'?'add-step':'add',this.view==='workflow'?'Добавить шаг':'Добавить объекты','plus','primary'):!m&&this.permissions.edit?button('new','Создать карту','plus','primary'):''}${this.moreMenu()}</div>`;
     // On the canvas the toolbar row goes away: the title floats as a chip in the top right corner, and the save
     // state is a sync icon whose tooltip says what it means. The properties panel may cover the chip.
     const chip=!!m&&this.view==='canvas'&&!this.directEditing;
@@ -238,7 +264,7 @@ export class MapsFeature {
     await this.reloadList();const all=this.maps;
     const el=this.dialog({title:archived?'Архив карт':'Карты проекта',description:archived?'Итоги сохраняются неизменными. Любую карту можно открыть или продолжить новой копией.':'Постоянные карты и отдельные сессии одного проекта.',wide:true,body:`${input('query','Найти карту','',{placeholder:'Название или итог'})}<div class="map-library-results"></div>${!archived&&this.permissions.edit?button('new','Новая карта','plus','secondary'):''}`,mount:(el)=>{
       const draw=()=>{const q=el.querySelector('[name=query]').value.toLocaleLowerCase('ru');const rows=all.filter(m=>(m.status==='archived')===archived&&[m.title,m.summary].join(' ').toLocaleLowerCase('ru').includes(q));
-        el.querySelector('.map-library-results').innerHTML=rows.length?rows.map(m=>`<button type="button" class="map-list-row" data-open-map="${m.id}"><span class="map-list-icon">${icon(m.kind==='session'?'clock':'map',20)}</span><span><b>${esc(m.title)}</b><small>${m.kind==='session'?'Сессия':'Постоянная карта'} · ${esc(statusNames[m.status])} · ${date(m.updatedAt)}</small>${m.summary?`<p>${esc(m.summary.slice(0,180))}</p>`:''}</span>${icon('chevron',17)}</button>`).join(''):'<p class="map-empty-copy">Пока нет подходящих карт.</p>';};
+        el.querySelector('.map-library-results').innerHTML=rows.length?rows.map(m=>`<button type="button" class="map-list-row" data-open-map="${m.id}"><span class="map-list-icon">${icon(m.kind==='session'?'clock':'map',20)}</span><span><b>${esc(m.title)}</b><small>${m.kind==='session'?'Сессия':'Постоянная карта'}, ${esc(statusNames[m.status]).toLowerCase()}, изменена ${date(m.updatedAt)}</small>${m.summary?`<p>${esc(m.summary.slice(0,180))}</p>`:''}</span>${icon('chevron',17)}</button>`).join(''):'<p class="map-empty-copy">Пока нет подходящих карт.</p>';};
       el.querySelector('[name=query]').addEventListener('input',draw);draw();
       el.addEventListener('click',async e=>{const row=e.target.closest('[data-open-map]');if(row){el.close(true);await this.openMap(row.dataset.openMap);}if(e.target.closest('[data-map-action=new]')){el.close(true);this.newMapDialog();}});
     }});return el;
@@ -247,7 +273,7 @@ export class MapsFeature {
     const custom=await this.repository.list('templates',this.project.id),templates=[...BUILTIN_TEMPLATES,...custom].filter(template=>template.document.objects.every(object=>this.uiCapabilities.allowedCreateTypes.includes(object.type)));
     let category='Все',query='';const categories=['Все',...new Set(templates.map(t=>t.category))];
     return this.dialog({title:'С чего начнём?',description:'Выберите задачу, которую хотите решить. Все шаблоны можно изменить под себя.',wide:true,body:`${input('query','Поиск шаблонов','',{placeholder:'Например: итоги, архитектура, идеи'})}<div class="iq-segmented map-template-categories" role="group" aria-label="Категория шаблонов">${categories.map(c=>`<button type="button" data-category="${esc(c)}" aria-pressed="${c==='Все'}">${esc(c)}</button>`).join('')}</div><div class="map-template-grid"></div>`,mount:el=>{
-      const draw=()=>{const found=filterTemplates(templates,{category,query});el.querySelector('.map-template-grid').innerHTML=found.length?found.map(t=>`<button type="button" class="map-template-card" data-template="${t.id}">${previewDocument(t.document)}<span class="map-template-copy"><small>${esc(t.category)}${t.scope!=='built-in'?' · Свой шаблон':''}</small><b>${esc(t.title)}</b><span>${esc(t.description||'Сохранённая структура карты.')}</span><span class="map-template-when"><strong>Когда:</strong> ${esc(t.when||'Когда нужна похожая структура.')}</span></span></button>`).join(''):'<p class="map-empty-copy">Ничего не найдено. Попробуйте другое название.</p>';};draw();
+      const draw=()=>{const found=filterTemplates(templates,{category,query});el.querySelector('.map-template-grid').innerHTML=found.length?found.map(t=>`<button type="button" class="map-template-card" data-template="${t.id}">${previewDocument(t.document)}<span class="map-template-copy"><small>${esc(t.category)}${t.scope!=='built-in'?', свой шаблон':''}</small><b>${esc(t.title)}</b><span>${esc(t.description||'Сохранённая структура карты.')}</span><span class="map-template-when"><strong>Когда:</strong> ${esc(t.when||'Когда нужна похожая структура.')}</span></span></button>`).join(''):'<p class="map-empty-copy">Ничего не найдено. Попробуйте другое название.</p>';};draw();
       el.querySelector('[name=query]').addEventListener('input',e=>{query=e.target.value;draw();});
       el.addEventListener('click',e=>{const cat=e.target.closest('[data-category]');if(cat){category=cat.dataset.category;el.querySelectorAll('[data-category]').forEach(b=>b.setAttribute('aria-pressed',String(b===cat)));draw();}
         const card=e.target.closest('[data-template]');if(card){const t=templates.find(x=>x.id===card.dataset.template);el.close(true);this.templateDetails(t);}});
@@ -320,8 +346,8 @@ export class MapsFeature {
     const remaining=session.timer.endsAt?Math.max(0,Math.ceil((Date.parse(session.timer.endsAt)-Date.now())/1000)):session.timer.remaining;
     const phase={collect:'Собираем мысли',discuss:'Обсуждаем',vote:'Выбираем',outcomes:'Подводим итоги'}[session.phase]||'Сессия';
     const time=`${Math.floor(remaining/60).toString().padStart(2,'0')}:${(remaining%60).toString().padStart(2,'0')}`;
-    if(target)target.textContent=`${phase} · ${time}`;
-    const summary=this.root.querySelector('.map-session-summary'),timer=this.root.querySelector('.map-session-timer');if(summary)summary.textContent=this.current.status==='active'?`${phase} · ${time}`:'Сессия';if(timer)timer.textContent=`${phase} · ${time}`;
+    if(target)target.textContent=`${phase}, ${time}`;
+    const summary=this.root.querySelector('.map-session-summary'),timer=this.root.querySelector('.map-session-timer');if(summary)summary.textContent=this.current.status==='active'?`${phase}, ${time}`:'Сессия';if(timer)timer.textContent=`${phase}, ${time}`;
   }
   sessionDialog() {
     if(!this.current?.session)return;const session=this.current.session,readonly=!this.permissions.edit||this.current.status==='archived';
@@ -341,7 +367,7 @@ export class MapsFeature {
   importMap() {
     requireValue(this.permissions.edit,'READ_ONLY','Нет права импортировать карты.');
     let picked=null;
-    return this.dialog({title:'Импортировать файл',description:'Будет создана отдельная карта или новый шаблон. Открытая карта не заменяется.',body:'<iq-file-picker variant="zone" accept=".json,application/json" label="Перетащите JSON-файл карты или шаблона" hint="Файл экспорта Sprintique · до 12 МБ" data-import-file></iq-file-picker><p class="iq-helper" data-import-name role="status"></p>',submitLabel:'Импортировать',
+    return this.dialog({title:'Импортировать файл',description:'Будет создана отдельная карта или новый шаблон. Открытая карта не заменяется.',body:'<iq-file-picker variant="zone" accept=".json,application/json" label="Перетащите JSON-файл карты или шаблона" hint="Файл экспорта Sprintique, до 12 МБ" data-import-file></iq-file-picker><p class="iq-helper" data-import-name role="status"></p>',submitLabel:'Импортировать',
       mount:el=>el.querySelector('[data-import-file]').addEventListener('iq-files',event=>{picked=event.detail.files[0];el.querySelector('[data-import-name]').textContent=picked?'Выбран файл: '+picked.name:'';}),onSubmit:async()=>{
       const file=picked;requireValue(file,'FILE_REQUIRED','Выберите JSON-файл.');requireValue(file?.size>0&&file.size<12000000,'FILE_LIMIT','Выберите JSON до 12 МБ.');const data=JSON.parse(await file.text());
       if(data.schema==='iquipage.template/1'){const document=validateWhiteboard(data.document);assertDocumentTypesAllowed(document,this.uiCapabilities,'Шаблон содержит типы объектов, отключённые приложением.');const t={schema:data.schema,id:uid('template'),projectId:this.project.id,revision:0,version:1,title:String(data.title||'Импортированный шаблон').slice(0,160),description:String(data.description||'').slice(0,3000),when:String(data.when||'').slice(0,3000),scope:'personal',ownerId:this.context.actorId,workspaceId:this.context.workspaceId,category:'Мои шаблоны',kind:data.kind==='session'&&this.uiCapabilities.sessions?'session':'permanent',document:remapDocument(document,{clearPersonal:true}),flow:null,createdAt:now()};await this.repository.write('templates',t,0);this.message('Шаблон импортирован в личную библиотеку.');return;}

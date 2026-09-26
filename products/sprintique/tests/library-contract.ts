@@ -1,11 +1,12 @@
 // Compiled against the packed package, not the neighboring source tree.
-import {version,type IqMarkdownEditor,type IqMarkdownViewer} from '@iquipage/web/core';
+import {version,formatDate,formatDateTime,type IqMarkdownEditor,type IqMarkdownViewer} from '@iquipage/web/core';
 import type {IqImageCrop} from '@iquipage/web/advanced';
 import type {IqWhiteboard} from '@iquipage/web/whiteboard';
-const release:'0.6.0-vnext.11'=version;
+const release:'0.6.0-vnext.12'=version;
 export function libraryContract(editor:IqMarkdownEditor,viewer:IqMarkdownViewer,crop:IqImageCrop,board:IqWhiteboard){
   editor.density='compact';editor.previewOnBlur=true;editor.interactiveTasks=true;
-  editor.footerActions=[{id:'decision',label:'Требует решения',pressed:false,tone:'warning'}];
+  editor.footerActions=[{id:'decision',label:'Требует решения',hint:'Обсуждение останется открытым',pressed:false,tone:'warning'}];
   viewer.interactiveTasks=true;crop.aspectRatio=12/5;board.editorMode='host';
-  return {release,exportCover:()=>crop.export({size:1942,type:'image/webp'})};
+  const dates:[string,string]=[formatDate('2000-10-04'),formatDateTime(new Date(),{timeZone:'UTC'})];
+  return {release,dates,exportCover:()=>crop.export({size:1942,type:'image/webp'})};
 }

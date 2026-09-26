@@ -4,7 +4,7 @@ import {dialog,input,select,check,date,pretty} from '../ui/src/ui.js';
 const states={running:'В работе',awaiting_approval:'Ожидает решения',completed:'Завершён',failed:'Ошибка',cancelled:'Остановлен',expired:'Срок истёк',proposed:'Ожидает решения',approved:'Подтверждено',rejected:'Отклонено'};
 const permissions=[['tasks:read','Читать задачи'],['tasks:write','Изменять задачи'],['threads:read','Читать обсуждения'],['threads:write','Писать в обсуждения'],['maps:read','Читать карты'],['maps:write','Изменять карты']];
 const active=r=>['running','awaiting_approval'].includes(r.state);
-const summary=s=>`${s.affectedCount} задач · на доску: ${s.enteringBoard} · с доски: ${s.leavingBoard}`;
+const summary=s=>`Задач: ${s.affectedCount}, на доску: ${s.enteringBoard}, с доски: ${s.leavingBoard}`;
 
 /** External agents only. This screen grants scoped access, never starts a shell or LLM. */
 export async function mountAgents(root,{repository,project,onBack}){
@@ -21,11 +21,11 @@ export async function mountAgents(root,{repository,project,onBack}){
     root.innerHTML=`<section class="host-settings task-settings-page">
       ${onBack?ui.btn('Настройки проекта','ghost sm','left','data-agents-back'):''}<h1>Агенты и подтверждения</h1>
       <p>Подключите своего агента по API. Доступ ограничен проектом, выбранными правами и сроком. Планы агента применяются только после решения человека.</p>
-      <h2>Предложения</h2><div class="iq-list">${approvals.length?approvals.map(a=>`<div class="iq-list-item"><span>${esc(a.agentName)} · ${esc(states[a.status])}<br><small>${esc(summary(a.summary))} · до ${esc(date(a.expiresAt))}</small></span>${ui.btn('Рассмотреть','secondary sm','','data-approval="'+esc(a.id)+'"')}</div>`).join(''):'<p>Предложений пока нет. Здесь появятся конкретные изменения для проверки перед применением.</p>'}</div>
+      <h2>Предложения</h2><div class="iq-list">${approvals.length?approvals.map(a=>`<div class="iq-list-item"><span>${esc(a.agentName)}, ${esc(states[a.status]).toLowerCase()}<br><small>${esc(summary(a.summary))}. Действует до ${esc(date(a.expiresAt))}</small></span>${ui.btn('Рассмотреть','secondary sm','','data-approval="'+esc(a.id)+'"')}</div>`).join(''):'<p>Предложений пока нет. Здесь появятся конкретные изменения для проверки перед применением.</p>'}</div>
       ${approvalCursor?ui.btn('Ещё предложения','ghost sm','','data-more-approvals'):''}
-      <h2>Запуски</h2><div class="iq-list">${runs.length?runs.map(r=>`<div class="iq-list-item"><span>${esc(r.goal)}<br><small>${esc(states[r.state])} · предложений ${r.usedProposals} из ${r.maxProposals}</small></span>${ui.btn('Открыть','ghost sm','','data-run="'+esc(r.id)+'"')}</div>`).join(''):'<p>Агент ещё не зарегистрировал запуск.</p>'}</div>
+      <h2>Запуски</h2><div class="iq-list">${runs.length?runs.map(r=>`<div class="iq-list-item"><span>${esc(r.goal)}<br><small>${esc(states[r.state])}, предложений ${r.usedProposals} из ${r.maxProposals}</small></span>${ui.btn('Открыть','ghost sm','','data-run="'+esc(r.id)+'"')}</div>`).join(''):'<p>Агент ещё не зарегистрировал запуск.</p>'}</div>
       ${runCursor?ui.btn('Ещё запуски','ghost sm','','data-more-runs'):''}
-      ${project.role==='admin'?`<h2>Разрешения</h2>${ui.btn('Подключить агента','primary sm','plus','data-agent-grant')}<div class="iq-list">${grants.map(g=>`<div class="iq-list-item"><span>${esc(g.name)}<br><small>${esc(g.capabilities.map(c=>permissions.find(p=>p[0]===c)?.[1]||c).join(' · '))}<br>${g.revokedAt?'Отозвано':new Date(g.expiresAt)<=new Date()?'Срок истёк':'До '+esc(date(g.expiresAt))}</small></span>${!g.revokedAt&&new Date(g.expiresAt)>new Date()?ui.btn('Отозвать','ghost sm','','data-agent-revoke="'+esc(g.id)+'"'):''}</div>`).join('')}</div>`:''}
+      ${project.role==='admin'?`<h2>Разрешения</h2>${ui.btn('Подключить агента','primary sm','plus','data-agent-grant')}<div class="iq-list">${grants.map(g=>`<div class="iq-list-item"><span>${esc(g.name)}<br><small>${esc(g.capabilities.map(c=>permissions.find(p=>p[0]===c)?.[1]||c).join(', '))}<br>${g.revokedAt?'Отозвано':new Date(g.expiresAt)<=new Date()?'Срок истёк':'До '+esc(date(g.expiresAt))}</small></span>${!g.revokedAt&&new Date(g.expiresAt)>new Date()?ui.btn('Отозвать','ghost sm','','data-agent-revoke="'+esc(g.id)+'"'):''}</div>`).join('')}</div>`:''}
     </section>`;
   }
   async function refresh(){
@@ -43,7 +43,7 @@ export async function mountAgents(root,{repository,project,onBack}){
       body:`<p>${esc(summary(detail.preview))}</p>${(detail.preview.details||[]).map(d=>`<p><strong>${esc(d.label)}</strong> — ${esc(d.description)}</p>`).join('')}
         <div data-agent-effects aria-live="polite"></div>${ui.btn('Показать ещё изменения','secondary sm','','data-effects-more hidden')}
         <details class="iq-accordion"><summary>Точный состав плана</summary>${pretty({command:detail.command,releases:detail.preview.releases,actionHash:detail.actionHash,application:detail.application})}</details>
-        ${canDecide?select('decision','Решение','approved',[['approved','Подтвердить план'],['rejected','Отклонить план']]):`<p>${esc(states[detail.status])} · до ${esc(date(detail.expiresAt))}</p>`}`,
+        ${canDecide?select('decision','Решение','approved',[['approved','Подтвердить план'],['rejected','Отклонить план']]):`<p>${esc(states[detail.status])}. Действует до ${esc(date(detail.expiresAt))}</p>`}`,
       submitLabel:canDecide?'Сохранить решение':'',onSubmit:async values=>{
         if(loading||cursor)throw Error('Сначала просмотрите остальные изменения.');
         const body={baseRevision:detail.revision,status:values.get('decision')};
@@ -54,7 +54,7 @@ export async function mountAgents(root,{repository,project,onBack}){
       try{
         const page=await client.request(base+'/approvals/'+id+'/effects'+(cursor?'?cursor='+encodeURIComponent(cursor):''));
         if(!el.isConnected)return;items.push(...page.items);cursor=page.nextCursor;
-        el.querySelector('[data-agent-effects]').innerHTML=`<div class="iq-list">${items.map(e=>`<div class="iq-list-item"><div><strong>${esc(e.after.displayId)} · ${esc(e.after.title)}</strong><details class="iq-accordion"><summary>До и после</summary>${pretty({before:e.before,after:e.after})}</details></div></div>`).join('')}</div>`;
+        el.querySelector('[data-agent-effects]').innerHTML=`<div class="iq-list">${items.map(e=>`<div class="iq-list-item"><div><strong>${esc(e.after.displayId)} ${esc(e.after.title)}</strong><details class="iq-accordion"><summary>До и после</summary>${pretty({before:e.before,after:e.after})}</details></div></div>`).join('')}</div>`;
         el.querySelector('[data-effects-more]').hidden=!cursor;
       }finally{loading=false;if(submit)submit.disabled=!!cursor;}
     }
@@ -64,7 +64,7 @@ export async function mountAgents(root,{repository,project,onBack}){
   async function openRun(id){
     const run=await client.request(base+'/agent-runs/'+id),canStop=active(run)&&(run.initiatorId===repository.context.actorId||project.role==='admin');
     show({title:'Запуск агента',description:run.goal,
-      body:`<p>${esc(states[run.state])} · до ${esc(date(run.expiresAt))}</p><p>Предложений: ${run.usedProposals} из ${run.maxProposals}.</p>${run.errorCode?`<p>${esc(run.errorCode)}</p>`:''}${run.plans.map(p=>`<details class="iq-accordion"><summary>${esc(summary(p.summary))} · ${esc(states[p.approval]||'Без решения')}</summary>${pretty({planId:p.id,receipt:p.receipt})}</details>`).join('')}`,
+      body:`<p>${esc(states[run.state])}. Действует до ${esc(date(run.expiresAt))}</p><p>Предложений: ${run.usedProposals} из ${run.maxProposals}.</p>${run.errorCode?`<p>${esc(run.errorCode)}</p>`:''}${run.plans.map(p=>`<details class="iq-accordion"><summary>${esc(summary(p.summary))}. ${esc(states[p.approval]||'Без решения')}</summary>${pretty({planId:p.id,receipt:p.receipt})}</details>`).join('')}`,
       submitLabel:canStop?'Остановить запуск':'',onSubmit:async()=>{
         const body={baseRevision:run.revision,state:'cancelled'};
         await client.request(base+'/agent-runs/'+id+'/finish','POST',body,await repository.key('run-stop:'+id,body));

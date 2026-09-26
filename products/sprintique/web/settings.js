@@ -15,7 +15,7 @@ export function settingsSectionFromHash(hash){const id=hash.match(/^#settings\/(
 export async function mountSettings(root,{repository,project,adapter,onChanged=()=>{}}){
   let mounted=null,closed=false,modal=null,busy=false,current=null;
   const admin=project.role==='admin',sections=SETTINGS_SECTIONS.filter(([id])=>id!=='operations'||admin);
-  root.innerHTML=`<section class="host-settings settings-shell"><p class="settings-eyebrow">Настройки проекта · ${esc(project.name)}</p>
+  root.innerHTML=`<section class="host-settings settings-shell"><p class="settings-eyebrow">Настройки проекта ${esc(project.name)}</p>
     <nav class="iq-work-navigation" aria-label="Разделы настроек">${sections.map(([id,label])=>`<a href="#settings/${id}" data-settings-section="${id}">${label}</a>`).join('')}</nav>
     <div class="settings-page" data-settings-page></div></section>`;
   const page=root.querySelector('[data-settings-page]');

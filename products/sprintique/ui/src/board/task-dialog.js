@@ -41,14 +41,14 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
   const parents=[{value:'',label:'Отсутствует'},...tasks.filter(item=>{
     if(item.archivedAt||item.projectId!==project.id)return false;
     try{reparentTask({...initial,id:taskId,projectId:project.id},item.id,tasks);return true;}catch{return false;}
-  }).map(item=>({value:item.id,label:`${item.displayId||item.id.slice(-7).toUpperCase()} · ${item.title}`,description:`${TASK_KINDS[item.type]||'Задача'} · ${TASK_COLUMNS.find(c=>c.id===taskColumn(item))?.label||item.status}`}))];
-  const content=`<div class="task-editor-layout"><div class="task-editor-content"><section class="task-editor-cover" data-task-cover></section>
+  }).map(item=>({value:item.id,label:`${item.displayId||item.id.slice(-7).toUpperCase()} ${item.title}`,description:`${TASK_KINDS[item.type]||'Задача'}, ${TASK_COLUMNS.find(c=>c.id===taskColumn(item))?.label||item.status}`}))];
+  const content=`<section class="task-editor-cover" data-task-cover hidden></section><div class="task-editor-layout"><div class="task-editor-content">
     ${input('title','Название',initial.title,{required:true,placeholder:'Что нужно сделать?'})}
     <section class="task-edit-section"><div class="row between"><h3>Описание</h3>${canEdit?'<button type="button" class="iq-btn ghost sm" data-apply-template>Применить шаблон</button>':''}</div>
       <div class="task-description-surface" data-description>
         <iq-markdown-editor label="Описание" name="description" variant="compact" density="compact" maxlength="10000" preview-on-blur ${task?'preview':''} empty-text="${canEdit?'Нажмите, чтобы добавить описание':'Описания нет'}"></iq-markdown-editor>
       </div></section>
-    </div><aside class="task-editor-properties" aria-label="Свойства задачи">
+    </div><aside class="task-editor-properties iq-properties" aria-label="Свойства задачи">
     <div class="task-edit-properties">
       ${select('type','Тип',initial.type||'task',Object.entries(TASK_KINDS))}
       ${select('status','Статус',task?taskColumn(task):status,TASK_COLUMNS.map(column=>[column.id,column.label]))}
@@ -95,7 +95,14 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
         actions.querySelector('[data-task-fullscreen]').addEventListener('click',event=>{const native=el.querySelector('dialog'),before=native.getBoundingClientRect();fullscreen=!fullscreen;el.dataset.fullscreen=String(fullscreen);event.currentTarget.setAttribute('aria-label',fullscreen?'Свернуть в боковое меню':'Открыть на весь экран');if(!motionReduced())native.animate([{width:before.width+'px'},{width:native.getBoundingClientRect().width+'px'}],{duration:280,easing:'cubic-bezier(.2,.7,.2,1)'});});
       }
       el.querySelector('dialog').classList.add('iq-drawer');
-      files=mountTaskFiles(form.querySelector('[data-task-files]'),{coverRoot:form.querySelector('[data-task-cover]'),adapter:attachmentAdapter,task:{...initial,id:taskId,projectId:project.id},readOnly:!canEdit});
+      if(canEdit){
+        // The cover is added from the header, so an empty cover never takes space in the drawer.
+        const close=form.querySelector('.iq-dialog-head [data-close]'),add=document.createElement('button');
+        add.type='button';add.className='iq-btn ghost sm task-cover-add';add.dataset.taskAddCover='';add.hidden=true;add.innerHTML=`${icon('image',16)}<span>Обложка</span>`;
+        (form.querySelector('.task-dialog-actions')||close.parentElement).insertBefore(add,form.querySelector('.task-dialog-actions [data-task-fullscreen]')||close);
+        add.addEventListener('click',()=>files?.addCover());
+      }
+      files=mountTaskFiles(form.querySelector('[data-task-files]'),{onCoverState:has=>{const add=el.querySelector('[data-task-add-cover]');if(add)add.hidden=has;},coverRoot:form.querySelector('[data-task-cover]'),adapter:attachmentAdapter,task:{...initial,id:taskId,projectId:project.id},readOnly:!canEdit});
       const editor=form.querySelector('iq-markdown-editor[name=description]');
       description=mountTaskDescription(form.querySelector('[data-description]'),{value:taskMarkdown(initial),editing:!task,readOnly:!canEdit});
       catalogs=mountTaskCatalogs(form.querySelector('[data-task-catalogs]'),{tagsRoot:form.querySelector('[data-task-tags]'),repository,project,task:initial,tags:support.tags,releases:support.releases,readOnly:!canEdit,canManage,onChange:()=>form.dispatchEvent(new Event('change'))});

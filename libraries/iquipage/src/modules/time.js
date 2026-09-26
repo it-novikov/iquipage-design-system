@@ -3,6 +3,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.IqTime = void 0;
 exports.formatTime = formatTime;
 exports.parseTime = parseTime;
+exports.formatDate = formatDate;
+exports.formatDateTime = formatDateTime;
+exports.formatDateRange = formatDateRange;
 const components_js_1 = require("./components.js");
 const canonical = (value) => /^([01]\d|2[0-3]):[0-5]\d$/.test(value);
 const pad = (value) => String(value).padStart(2, '0');
@@ -211,3 +214,31 @@ class IqTime extends components_js_1.IqElement {
 }
 exports.IqTime = IqTime;
 
+
+/** Dates read the same everywhere: 04.10.2000, and 04.10.2000 14:00 with time.
+ *  A calendar date (YYYY-MM-DD) is shown as is, never shifted by a time zone. */
+const calendarDate = /^(\d{4})-(\d{2})-(\d{2})$/;
+function formatDate(value, { timeZone } = {}) {
+    if (value === null || value === undefined || value === '')
+        return '';
+    const match = typeof value === 'string' && calendarDate.exec(value);
+    if (match)
+        return `${match[3]}.${match[2]}.${match[1]}`;
+    const date = value instanceof Date ? value : new Date(value);
+    if (Number.isNaN(date.getTime()))
+        return '';
+    return new Intl.DateTimeFormat('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone }).format(date);
+}
+function formatDateTime(value, { timeZone } = {}) {
+    if (typeof value === 'string' && calendarDate.test(value))
+        return formatDate(value);
+    const date = value instanceof Date ? value : new Date(value);
+    if (value === null || value === undefined || value === '' || Number.isNaN(date.getTime()))
+        return '';
+    const time = new Intl.DateTimeFormat('ru-RU', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone }).format(date);
+    return `${formatDate(date, { timeZone })} ${time}`;
+}
+function formatDateRange(start, end, options = {}) {
+    const a = formatDate(start, options), b = formatDate(end, options);
+    return a && b ? `${a} – ${b}` : a ? `с ${a}` : b ? `до ${b}` : '';
+}

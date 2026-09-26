@@ -132,6 +132,13 @@ function installWorkshop(Klass){
    const t=this.tipEl.getBoundingClientRect(),w=t.width/scale,h=t.height/scale;
    const topLimit=Math.max(8,(8-originY)/scale),bottomLimit=Math.min(this.shell.clientHeight-8,(innerHeight-originY-8)/scale);
    const above=(r.top-originY)/scale-h-10,below=(r.bottom-originY)/scale+10;
+   // On the side rail the tooltip sits to the right of the button, vertically centred, clear of the neighbours.
+   if(this.getAttribute('dock')==='side'&&button.closest('.wb-footer')){
+    this.tipEl.style.left=Math.min(right-w,(r.right-originX)/scale+10)+'px';
+    this.tipEl.style.top=Math.max(topLimit,Math.min(bottomLimit-h,(r.top+r.height/2-originY)/scale-h/2))+'px';
+    this.tipEl.dataset.side='right';return;
+   }
+   delete this.tipEl.dataset.side;
    this.tipEl.style.left=Math.max(left,Math.min(right-w,(r.left+r.width/2-originX)/scale-w/2))+'px';
    this.tipEl.style.top=Math.max(topLimit,Math.min(bottomLimit-h,above>=topLimit?above:below))+'px';
   },
@@ -158,7 +165,7 @@ function installWorkshop(Klass){
      html+=`<section class="wb-library-family"><h4>${group}</h4><div class="wb-shape-grid">${options.map(d=>`<button type="button" draggable="true" class="wb-library-item wb-shape-choice" data-library-item="shape" data-shape="${d.id}" aria-pressed="${this.tool==='shape'&&this.shape===d.id}" ${this.locked?'disabled':''}>${shapePreview(d.id)}<b>${d.label}</b></button>`).join('')}</div></section>`;
     }
    }else{
-    if(this.allowedCreateTypes.includes('image')&&match('Изображение PNG JPEG WebP'))html=card(['image','Изображение','PNG, JPEG, WebP · с устройства','image','sky']);
+    if(this.allowedCreateTypes.includes('image')&&match('Изображение PNG JPEG WebP'))html=card(['image','Изображение','PNG, JPEG или WebP с устройства','image','sky']);
     html+='<p class="wb-library-format-note">Изображение остаётся в документе доски. Файлы из приватных систем подключает приложение.</p>';
    }
    this.libraryEl.querySelector('.wb-library-items').innerHTML=html||'<p class="wb-library-no-results">Ничего не найдено. Попробуйте другое название.</p>';

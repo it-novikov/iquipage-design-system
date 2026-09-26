@@ -14,7 +14,7 @@ export function mountProjectNavigation(root,{current,profile,projects,catalog=()
   root.innerHTML=`<div class="pn-context" data-context></div>`
     // Sections are the DS work navigation (text tabs, the current one underlined at the header's edge), centred.
     +`<nav class="pn-sections iq-work-navigation" aria-label="Разделы проекта">${ROUTES.map(([route,label])=>`<a href="#${route}" data-section-link="${route}">${label}</a>`).join('')}</nav>`
-    +`<div class="pn-personal-navigation">${onSearch?ui.ib('search','Поиск · ⌘K','ghost sm','data-search'):''}${ui.ib('sliders','Настройки проекта','ghost sm','data-section-link="settings"')}${ui.ib('moon','Тёмная тема','ghost sm','data-theme-toggle')}`
+    +`<div class="pn-personal-navigation">${onSearch?ui.ib('search','Поиск (⌘K)','ghost sm','data-search'):''}${ui.ib('sliders','Настройки проекта','ghost sm','data-section-link="settings"')}${ui.ib('moon','Тёмная тема','ghost sm','data-theme-toggle')}`
     +`${ui.menu(`<button type="button" class="iq-btn ghost icon sm" aria-label="Профиль: ${esc(profile.name)}">${ui.avatar(esc(profile.initials||'Я'),1)}</button>`,[{label:esc(profile.name),action:'account'},{label:'Команда проекта',action:'team'},{label:'Выйти',action:'signout',danger:true}])}</div>`;
   function renderContext(){
     const all=catalog()||[],spaces=[...new Map(all.map(p=>[p.workspaceId,{id:p.workspaceId,name:p.workspaceName}])).values()];

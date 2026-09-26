@@ -7,7 +7,7 @@ export function openSearch({client,onOpen,commands=[]}){
   const host=document.createElement('iq-dialog'),listId='command-results-'+crypto.randomUUID();
   let request=null,timer,generation=0,closed=false,items=[],cursor=null,active=0,note='',busy=false;
   host.setAttribute('kind','command');
-  host.innerHTML=`<h2 class="sr-only">Поиск и команды</h2><div class="iq-command-input">${icon('search',22)}<input type="search" maxlength="200" placeholder="Найти задачу, карту, проект или действие…" aria-label="Поиск и команды" autocomplete="off" role="combobox" aria-expanded="true" aria-controls="${listId}" aria-autocomplete="list"><kbd>esc</kbd></div><div class="iq-command-list" id="${listId}" role="listbox" aria-label="Результаты"></div><div class="iq-command-foot" role="status" aria-live="polite">↑ ↓ — выбрать · Enter — открыть · Esc — закрыть</div>`;
+  host.innerHTML=`<h2 class="sr-only">Поиск и команды</h2><div class="iq-command-input">${icon('search',22)}<input type="search" maxlength="200" placeholder="Найти задачу, карту, проект или действие…" aria-label="Поиск и команды" autocomplete="off" role="combobox" aria-expanded="true" aria-controls="${listId}" aria-autocomplete="list"><kbd>esc</kbd></div><div class="iq-command-list" id="${listId}" role="listbox" aria-label="Результаты"></div><div class="iq-command-foot" role="status" aria-live="polite">↑ ↓ — выбрать, Enter — открыть, Esc — закрыть</div>`;
   document.body.append(host);host.show();
   const input=host.querySelector('input'),list=host.querySelector('[role=listbox]'),foot=host.querySelector('.iq-command-foot');
   const query=()=>input.value.trim();
@@ -15,7 +15,7 @@ export function openSearch({client,onOpen,commands=[]}){
   /** One flat option list keeps keyboard order identical to the visual order. */
   function options(){
     const found=matching().map(c=>({kind:'command',id:c.id,glyph:c.icon||'arrow',title:c.label,sub:c.hint||''}));
-    const results=items.map((item,index)=>({kind:'result',id:String(index),glyph:item.kind==='task'?'file':item.kind==='map'?'grid':'folder',title:item.title,sub:item.key+' · '+item.projectName}));
+    const results=items.map((item,index)=>({kind:'result',id:String(index),glyph:item.kind==='task'?'file':item.kind==='map'?'grid':'folder',title:item.title,sub:item.key+', проект '+item.projectName}));
     return {found,results,all:[...found,...results,...(cursor?[{kind:'more',id:'more',glyph:'down',title:'Показать ещё',sub:''}]:[])]};
   }
   function render(){
@@ -28,7 +28,7 @@ export function openSearch({client,onOpen,commands=[]}){
     list.setAttribute('aria-busy',String(busy));
     if(all.length)input.setAttribute('aria-activedescendant',`${listId}-${active}`);else input.removeAttribute('aria-activedescendant');
     list.querySelector('[aria-selected=true]')?.scrollIntoView({block:'nearest'});
-    foot.textContent=all.length?'↑ ↓ — выбрать · Enter — открыть · Esc — закрыть':'Esc — закрыть';
+    foot.textContent=all.length?'↑ ↓ — выбрать, Enter — открыть, Esc — закрыть':'Esc — закрыть';
   }
   async function load(append=false){
     const q=query();request?.abort();const epoch=++generation;

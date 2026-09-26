@@ -920,7 +920,14 @@ class IqTooltip extends IqElement {
         tip.id = uid();
         tip.setAttribute('role', 'tooltip');
         tip.setAttribute('popover', 'manual');
-        tip.textContent = this.getAttribute('text') || '';
+        // heading + text: a short title and one line per "\n" in text, so longer explanations keep a structure.
+        const heading = this.getAttribute('heading');
+        if (heading) {
+            const title = document.createElement('b'); title.className = 'iq-tooltip-heading'; title.textContent = heading; tip.append(title);
+            for (const line of (this.getAttribute('text') || '').split('\n').filter(Boolean)) { const row = document.createElement('span'); row.className = 'iq-tooltip-line'; row.textContent = line; tip.append(row); }
+            tip.classList.add('iq-tooltip-rich');
+        }
+        else tip.textContent = this.getAttribute('text') || '';
         this.append(tip);
         child.setAttribute('aria-describedby', tip.id);
         let dismissed = false;
@@ -1152,7 +1159,7 @@ class IqTagPicker extends IqElement {
         this.querySelector('.iq-control-label').textContent = this.getAttribute('label') || 'Теги';
         const byValue = new Map(this._options.map(o => [o.value, o]));
         this.querySelector('.iq-tag-picker-values').innerHTML = this._value.map(v => { const o = byValue.get(v) || { label: 'Недоступный тег', tone: 'neutral' };
-            return `<span class="iq-tag" data-tone="${escapeHTML(o.tone)}" data-value="${escapeHTML(v)}" ${this.entering.has(v) && !isReduced() ? 'data-entering' : ''}><span>${escapeHTML(o.label)}${o.archived ? ' · в архиве' : ''}</span>${this.locked ? '' : `<button type="button" class="iq-tag-remove" data-tag-remove="${escapeHTML(v)}" aria-label="Убрать тег ${escapeHTML(o.label)}">${icons_js_1.icon('x', 12)}</button>`}</span>`; }).join('')
+            return `<span class="iq-tag" data-tone="${escapeHTML(o.tone)}" data-value="${escapeHTML(v)}" ${this.entering.has(v) && !isReduced() ? 'data-entering' : ''}><span>${escapeHTML(o.label)}${o.archived ? ' (в архиве)' : ''}</span>${this.locked ? '' : `<button type="button" class="iq-tag-remove" data-tag-remove="${escapeHTML(v)}" aria-label="Убрать тег ${escapeHTML(o.label)}">${icons_js_1.icon('x', 12)}</button>`}</span>`; }).join('')
             + (this.hasAttribute('creatable') && !this.locked ? `<button type="button" class="iq-tag iq-tag-add" data-tag-create>${icons_js_1.icon('plus', 12)}<span>${escapeHTML(this.getAttribute('create-label') || 'Новый тег')}</span></button>` : '');
         this.querySelectorAll('[data-entering]').forEach(chip => chip.addEventListener('animationend', () => chip.removeAttribute('data-entering'), { once: true }));
         this.entering.clear();

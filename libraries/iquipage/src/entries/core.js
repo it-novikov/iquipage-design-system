@@ -33,6 +33,9 @@ export const registerPagination=m3.registerPagination;
 export const IqTime=m4.IqTime;
 export const formatTime=m4.formatTime;
 export const parseTime=m4.parseTime;
+export const formatDate=m4.formatDate;
+export const formatDateTime=m4.formatDateTime;
+export const formatDateRange=m4.formatDateRange;
 export const bindBoard=m5.bindBoard;
 export const IqFilePreview=m6.IqFilePreview;
 export const configurePDFPreviews=m6.configurePDFPreviews;
@@ -73,7 +76,7 @@ export const registerAuthDialog=dialog.registerAuthDialog;
 import auth from './modules/auth-screen.js';
 export const IqAuthScreen=auth.IqAuthScreen;
 export const registerAuthScreen=auth.registerAuthScreen;
-export const version='0.6.0-vnext.11';
+export const version='0.6.0-vnext.12';
 export function registerCore(){
  registerAuthDialog();registerAuthScreen();registerComponents();registerDateFields();registerEditors();registerPagination();registerStructured();registerSideNavigation();registerWorkHeader();registerMarkdownViewer();registerWorkLayout();
  if(!customElements.get('iq-file-preview'))customElements.define('iq-file-preview',IqFilePreview);

@@ -94,14 +94,11 @@
 .map-title-chip[hidden]{display:none}
 .map-title-chip-heading{min-width:0;display:flex}
 .map-title-chip .map-switch{font-size:var(--iq-type-interface-size);font-weight:600;padding:0;min-height:0;min-width:0}
-/* Sync state: one icon; its tooltip explains it. Saving turns it, unsaved changes switch to a warning. */
-.map-sync{display:inline-grid;place-items:center;width:32px;height:32px;border-radius:var(--iq-radius-sm);color:var(--iq-muted);cursor:default}
-.map-sync:hover{color:var(--iq-ink);background:var(--iq-hover)}
-.map-sync:focus-visible{outline:none;background:var(--iq-focus-fill);color:var(--iq-focus-text)}
+/* Sync: a DS icon button; its tooltip explains the state. Saving and syncing turn the icon, unsaved changes switch to a warning. */
 .map-sync[data-state=dirty]{color:var(--iq-warning)}
-.map-sync[data-state=saving] .iq-icon{animation:map-sync-turn 1s linear infinite}
+.map-sync:is([data-state=saving],[data-state=syncing]) .iq-icon{animation:map-sync-turn 900ms linear infinite}
 @keyframes map-sync-turn{to{transform:rotate(360deg)}}
-@media (prefers-reduced-motion:reduce){.map-sync[data-state=saving] .iq-icon{animation:none}}
+@media (prefers-reduced-motion:reduce){.map-sync:is([data-state=saving],[data-state=syncing]) .iq-icon{animation:none}}
 /* Map menu inside the host side panel: grouped rows. */
 .map-panel-menu{display:grid;gap:2px}
 .map-panel-section{margin:var(--iq-space-3) var(--iq-space-2) var(--iq-space-1);font-size:var(--iq-type-meta-size);font-weight:600;color:var(--iq-muted)}

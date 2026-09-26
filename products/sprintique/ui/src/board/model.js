@@ -5,7 +5,7 @@ export {BOARD_SORTS, boardComparator} from './ordering.js';
 export const TASK_KINDS = Object.freeze({task:'Задача', bug:'Баг', epic:'Эпик'});
 export function taskKindLabel(task) {
   const kind=Object.hasOwn(TASK_KINDS,task.type)?TASK_KINDS[task.type]:TASK_KINDS.task;
-  return task.parentId&&task.type!=='epic'?(task.type==='bug'?'Баг · подзадача':'Подзадача'):kind;
+  return task.parentId&&task.type!=='epic'?(task.type==='bug'?'Баг, подзадача':'Подзадача'):kind;
 }
 /** The index is a view of canonical tasks, never a second source of truth. */
 export function buildTaskIndex(tasks) {
