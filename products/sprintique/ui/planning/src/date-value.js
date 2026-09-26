@@ -18,3 +18,9 @@ export function interval(start, end) {
 export function dateLabel(value) {
   return validDate(value) ? new Intl.DateTimeFormat('ru', {day:'numeric', month:'short', year:'numeric', timeZone:'UTC'}).format(new Date(value + 'T12:00:00Z')) : 'Без даты';
 }
+
+export function todayInZone(timeZone,instant=new Date()) {
+  const parts=new Intl.DateTimeFormat('en',{timeZone,year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(instant);
+  const value=Object.fromEntries(parts.map(part=>[part.type,part.value]));
+  return `${value.year}-${value.month}-${value.day}`;
+}

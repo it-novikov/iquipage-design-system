@@ -4,7 +4,7 @@ Clean-start, self-contained product: the approved board, Planning consumer from 
 
 ## Independence and architecture
 
-Copy this entire directory to another repository. No parent workspace, DS source checkout or root install is required. The explicit `vendor/iquipage-web-0.6.0-vnext.2.tgz` release can later be replaced by the same authorized registry package. Its SHA-256 is `4b642cf67e7fd2317c0318ca5fea5a57284e00d9122b8cbe1341c6e56c94317c`. Product and library versions are independent.
+Copy this entire directory to another repository. No parent workspace, DS source checkout or root install is required. The explicit `vendor/iquipage-web-0.6.0-vnext.8.tgz` release can later be replaced by the same authorized registry package. Its SHA-256 is `121e6d3f4029e3405d426f479200e64fae684d071fa13b9dcc0eddfc6d8c7366`. Product and library versions are independent.
 
 ```text
 backend/domain          Invariants, errors and media validation
@@ -54,6 +54,12 @@ SPRINTIQUE_TEST_DOCKER=1 SPRINTIQUE_DOCKER_CONTEXT=your-isolated-context TEST_S3
 From the original repository root, `node scripts/verify-vnext.mjs` additionally builds/packs/tests the DS, verifies the public boundary and copies **only** this product to a clean directory for a fresh install/build/test. The product remains independently testable without that root script.
 
 `npm run preview:fixture` is a disposable synthetic-auth test entry, not compiled into `npm start`. Do not expose it to a network.
+
+## Local debugging stand
+
+`LC_ALL=C npm run dev:local` starts an ephemeral PostgreSQL, applies migrations, seeds synthetic workspaces (five projects with boards, releases, members, tags and maps) and serves the built UI at http://localhost:4311. Sign in with **admin / admin**. Run `npm run build` (or `npx vite build`) first so `dist/` is current. Object storage is optional: without `output/infra/storage.json` or `TEST_S3_CONFIG`, attachments and covers are unavailable.
+
+The fixed login exists only in this stand (`createApp({devLogin:true})`). The app refuses to start with it when `NODE_ENV=production` or on a non-loopback origin, and `backend/main.ts` never enables it. The sign-in screen asks `/api/v1/auth/methods` and never links to an OIDC provider that isn't configured.
 
 ## Local reference stack
 

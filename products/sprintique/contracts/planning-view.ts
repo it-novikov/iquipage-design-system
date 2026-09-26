@@ -9,7 +9,7 @@ export type ViewFilters=z.infer<typeof ViewFilters>;
 export const ViewQuery=ViewFilters.extend({cursor:z.string().max(240).nullable().optional()});
 export const ViewRowsQuery=ViewQuery.extend({groupId:Id,revision:z.string().regex(/^\d+$/),collapsedTaskIds:z.array(Id).max(1000).default([])});
 export const ViewSelectQuery=ViewFilters.extend({taskIds:z.array(Id).min(1).max(200).optional()});
-export const ViewOptionsQuery=z.strictObject({kind:z.enum(['destinations','tasks','owner','tags']),query:z.string().max(240).default(''),cursor:z.string().max(240).nullable().optional(),excludeId:Id.optional()});
+export const ViewOptionsQuery=z.strictObject({kind:z.enum(['destinations','tasks','owner','tags','positions']),query:z.string().max(240).default(''),cursor:z.string().max(240).nullable().optional(),excludeId:Id.optional(),taskId:Id.optional()});
 export type ViewQuery=z.infer<typeof ViewQuery>;
 export type ViewRowsQuery=z.infer<typeof ViewRowsQuery>;
 export type ViewSelectQuery=z.infer<typeof ViewSelectQuery>;
@@ -23,9 +23,10 @@ const remove=z.strictObject({kind:z.literal('removeTemporal'),entityId:Id,...rev
 export const ViewIntent=z.discriminatedUnion('kind',[
   z.strictObject({kind:z.literal('taskEdit'),taskId:Id,baseRevision:Revision,task:TaskInput}),
   z.strictObject({kind:z.literal('taskCreate'),taskId:Id,task:TaskInput,createInBoard:z.boolean().default(false)}),
-  z.strictObject({kind:z.enum(['prepare','unprepare','take']),...selection}),
-  z.strictObject({kind:z.literal('move'),groupId:Id,...selection}),
-  z.strictObject({kind:z.literal('bulk'),field:z.enum(['owner','priority','due','tags']),value:z.union([z.string().max(120),z.array(Id).max(30),z.null()]),...selection}),
+  z.strictObject({kind:z.enum(['prepare','unprepare','take']),...selection,...revision}),
+  z.strictObject({kind:z.literal('move'),groupId:Id,...selection,...revision}),
+  z.strictObject({kind:z.literal('reorder'),taskIds:z.array(Id).length(1),selectionToken:z.never().optional(),beforeId:Id.nullable(),...revision}),
+  z.strictObject({kind:z.literal('bulk'),field:z.enum(['owner','priority','due','tags']),value:z.union([z.string().max(120),z.array(Id).max(30),z.null()]),...selection,...revision}),
   z.strictObject({kind:z.literal('start'),groupId:Id}),
   z.strictObject({kind:z.literal('editRelease'),groupId:Id,values:releaseValue}),
   z.strictObject({kind:z.literal('createRelease'),values:releaseValue}),

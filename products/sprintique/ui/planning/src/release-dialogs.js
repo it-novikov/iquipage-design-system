@@ -35,14 +35,23 @@ export function intentDialog({adapter, projectId, title, body, readIntent, mount
     },onClose:()=>{operation?.destroy();onClose();}});
   render();return modal;
 }
-const formats=[{value:'flexible',label:'Гибкий релиз'},{value:'timeboxed',label:'Спринт'}];
+const formats=[{value:'flexible',label:'Гибкий релиз',description:'Даты не обязательны: релиз закрывают, когда работа готова.'},{value:'timeboxed',label:'Спринт',description:'Фиксированный период с началом и окончанием.'}];
+/** Two mutually exclusive formats read best as a visible choice, not a hidden list. */
+const formatChoice=(label,value)=>ui.radioGroup(label,'format',formats,value==='timeboxed'?'timeboxed':'flexible');
+const readFormat=form=>form.querySelector('[name=format]:checked')?.value||'flexible';
+/** IANA time zones from the browser, searchable; the current value is always offered. */
+export function timeZoneField(name,label,value){
+  const zones=typeof Intl.supportedValuesOf==='function'?Intl.supportedValuesOf('timeZone'):[];
+  const all=[...new Set([value||'UTC','UTC',...zones])].map(zone=>({value:zone,label:zone.replaceAll('_',' ')}));
+  return `<iq-combobox name="${esc(name)}" label="${esc(label)}" value="${esc(value||'UTC')}" options="${esc(JSON.stringify(all))}" placeholder="Например, Europe/Moscow"></iq-combobox>`;
+}
 export function releaseFields(value={}){
-  return `${ui.field('Название релиза',value.title||value.name||'',{name:'name',required:true,max:100})}${ui.select('Формат',formats,`name="format" value="${esc(value.format||'flexible')}"`)}<p class="iq-helper">Гибкий релиз не требует дат. Спринт — тот же пакет работы с границами периода.</p><div class="grid-2"><iq-date-field name="start" label="Плановое начало" value="${esc(value.start||'')}"></iq-date-field><iq-date-field name="end" label="Плановое окончание" value="${esc(value.end||'')}"></iq-date-field></div><iq-date-field name="deadline" label="Обязательный дедлайн — необязательно" value="${esc(value.deadline||'')}"></iq-date-field>`;
+  return `${ui.field('Название релиза',value.title||value.name||'',{name:'name',required:true,max:100})}${formatChoice('Формат',value.format)}<div class="grid-2"><iq-date-field name="start" label="Плановое начало" value="${esc(value.start||'')}"></iq-date-field><iq-date-field name="end" label="Плановое окончание" value="${esc(value.end||'')}"></iq-date-field></div><iq-date-field name="deadline" label="Обязательный дедлайн — необязательно" value="${esc(value.deadline||'')}"></iq-date-field>`;
 }
 export function readReleaseFields(form){
   const name=form.querySelector('[name=name]').value.trim();if(!name)throw Error('Введите название релиза.');
   const {start,end}=interval(form.querySelector('[name=start]').value,form.querySelector('[name=end]').value);
-  return {name,format:form.querySelector('[name=format]').value,start,end,deadline:form.querySelector('[name=deadline]').value||null};
+  return {name,format:readFormat(form),start,end,deadline:form.querySelector('[name=deadline]').value||null};
 }
 export async function editReleaseDialog({adapter,projectId,groupId,onCommitted,onClose}){
   const value=await adapter.describeRelease({projectId,groupId});
@@ -99,13 +108,13 @@ export async function historyDialog({adapter,projectId,groupId,onClose,onOpenTas
 export async function settingsDialog({adapter,projectId,onCommitted,onClose}) {
   const settings=await adapter.settings({projectId});
   const body=[
-    ui.select('Формат новых релизов',formats,`name="format" value="${esc(settings.format)}"`),
+    formatChoice('Формат новых релизов',settings.format),
     ui.field('Предлагаемая длительность спринта, дней',String(settings.days||14),{name:'days',type:'number'}),
-    ui.field('Часовой пояс проекта',settings.timeZone||'UTC',{name:'timeZone',placeholder:'Например, Europe/Moscow'}),
+    timeZoneField('timeZone','Часовой пояс проекта',settings.timeZone||'UTC'),
     '<p class="iq-helper">Настройки предлагают начальные значения. Даты существующих релизов и их история не изменятся. Следующий период не создаётся автоматически.</p>'
   ].join('');
   return intentDialog({adapter,projectId,title:'Как планируем работу',body,
-    readIntent:form=>({kind:'settings',values:{format:form.querySelector('[name=format]').value,days:Number(form.querySelector('[name=days]').value),timeZone:form.querySelector('[name=timeZone]').value.trim()}}),
+    readIntent:form=>({kind:'settings',values:{format:readFormat(form),days:Number(form.querySelector('[name=days]').value),timeZone:String(form.querySelector('iq-combobox[name=timeZone]').value||'UTC').trim()}}),
     onCommitted,onClose});
 }
 

@@ -12,12 +12,13 @@ import {mountTaskDescription} from './description-view.js';
 import {copyAtButton,motionReduced} from '@iquipage/web/core';
 import {taskKey,taskURL} from './task-route.js';
 
-export async function openTaskDialog(task,{repository,project,tasks,canEdit=true,canManage=true,attachmentAdapter=null,status='ready',initialValues={},fullscreen=false,onOpenTask,onSaved=()=>{},isActive=()=>true,signal}){
+export async function openTaskDialog(task,{repository,project,tasks,canEdit=true,canManage=true,attachmentAdapter=null,status='ready',initialValues={},fullscreen=false,onOpenTask,onReload=onOpenTask&&(()=>onOpenTask(task.id)),onSaved=()=>{},isActive=()=>true,signal}){
   signal?.throwIfAborted();const initialTask=task;
-  const [detail,context,support]=await Promise.all([
+  const [detail,context,support,members]=await Promise.all([
     task?.summary?repository.read('tasks',task.id,project.id,{signal}):task,
     repository.taskContext?repository.taskContext(project.id,{signal}):tasks,
-    loadTaskSupport(repository,project.id,{signal})
+    loadTaskSupport(repository,project.id,{signal}),
+    repository.capabilities?.members===false?[]:repository.list('members',project.id,{signal})
   ]);
   signal?.throwIfAborted();task=detail;tasks=context;
   if(initialTask&&!task)throw Error('Задача недоступна.');
@@ -26,10 +27,16 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
   canEdit=canEdit&&task?.result!=='accepted';
   if(!isActive())throw Error('Открытие задачи отменено.');
   const settings=support.settings||starterTaskSettings(project.id);
-  const initial=task||{...instantiateTaskTemplate(settings,'task'),type:'task',status,owner:'',title:'',...initialValues};
+  const initial=task||{...instantiateTaskTemplate(settings,'task'),type:'task',status,ownerId:null,title:'',...initialValues};
   const taskId=task?.id||uid('task');
   let files,description;
+  // Existing tasks save each field as it changes; a new task is created deliberately with one button.
+  const autosave=!!task&&canEdit;
   let current=task,baseline='',saving=false,confirming=false,priorityTouched=false,catalogs,threads,links;
+  // Owners are current human project members. A former member or pre-membership text stays visible until reassigned.
+  const owners=[{value:'',label:'Не назначен'},...members.map(m=>({value:m.id,label:m.name}))];
+  if(initial.ownerId&&!members.some(m=>m.id===initial.ownerId))owners.push({value:initial.ownerId,label:initial.owner||'Бывший участник',description:'Больше не участник проекта'});
+  const legacyOwner=!initial.ownerId&&initial.legacyOwner?`<p class="iq-helper" data-legacy-owner>Было указано: «${esc(initial.legacyOwner)}». Выберите участника проекта.</p>`:'';
   let templateVersion=initial.templateVersion,lastTemplateContent=taskMarkdown(initial);
   const parents=[{value:'',label:'Отсутствует'},...tasks.filter(item=>{
     if(item.archivedAt||item.projectId!==project.id)return false;
@@ -39,14 +46,14 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
     ${input('title','Название',initial.title,{required:true,placeholder:'Что нужно сделать?'})}
     <section class="task-edit-section"><div class="row between"><h3>Описание</h3>${canEdit?'<button type="button" class="iq-btn ghost sm" data-apply-template>Применить шаблон</button>':''}</div>
       <div class="task-description-surface" data-description>
-        <iq-markdown-editor label="Описание" name="description" variant="compact" density="compact" maxlength="10000" preview-on-blur></iq-markdown-editor>
+        <iq-markdown-editor label="Описание" name="description" variant="compact" density="compact" maxlength="10000" preview-on-blur ${task?'preview':''}></iq-markdown-editor>
       </div><div class="task-tags-row" data-task-tags aria-label="Теги задачи"></div></section>
     </div><aside class="task-editor-properties" aria-label="Свойства задачи">
     <div class="task-edit-properties">
       ${select('type','Тип',initial.type||'task',Object.entries(TASK_KINDS))}
       ${select('status','Статус',task?taskColumn(task):status,TASK_COLUMNS.map(column=>[column.id,column.label]))}
-      ${input('owner','Ответственный',initial.owner||'',{maxlength:120,placeholder:'Можно назначить позже'})}
-      ${select('priority','Приоритет',initial.priority||'normal',[['normal','Обычный'],['high','Высокий'],['critical','Критический'],['low','Низкий']])}
+      <iq-combobox name="ownerId" label="Исполнитель" value="${esc(initial.ownerId||'')}" options="${esc(JSON.stringify(owners))}" placeholder="Не назначен"></iq-combobox>${legacyOwner}
+      ${select('priority','Приоритет',initial.priority||'normal',[['low','Низкий'],['normal','Обычный'],['high','Высокий'],['critical','Критический']])}
       <iq-date-field name="due" label="Срок" value="${esc(initial.due||'')}"></iq-date-field>
     </div><section data-task-catalogs></section></aside>
     <div class="task-editor-supplements">
@@ -55,14 +62,14 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
     <section class="task-edit-section" data-task-threads></section></div></div><p role="status" class="iq-helper" data-task-save-state></p>`;
   const read=(form,values=new FormData(form))=>({
     title:String(values.get('title')||'').trim(),type:values.get('type')||'task',status:values.get('status'),
-    owner:values.get('owner')||'',priority:values.get('priority')||'normal',
+    ownerId:form.querySelector('iq-combobox[name=ownerId]').value||null,priority:values.get('priority')||'normal',
     ...markdownTaskChanges(initial,form.querySelector('iq-markdown-editor[name=description]').value),
     due:form.querySelector('iq-date-field[name=due]').value||null,
     parentId:form.querySelector('iq-combobox[name=parent]').value||null,
     ...catalogs.value(),...files.value(),templateVersion
   });
-  const el=dialog({title:task?taskKey(task):'Новая задача',body:content,wide:true,submitLabel:canEdit?'Сохранить задачу':'',
-    onSubmit:canEdit?async(values,form)=>{
+  const el=dialog({title:task?taskKey(task):'Новая задача',body:content,wide:true,submitLabel:canEdit&&!task?'Создать задачу':'',
+    onSubmit:canEdit&&!task?async(values,form)=>{
       files.assertReady();
       if(threads?.isBusy())throw Error('Дождитесь публикации обсуждения.');saving=true;files.setLocked(true);
       try{
@@ -90,7 +97,7 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
       files=mountTaskFiles(form.querySelector('[data-task-files]'),{coverRoot:form.querySelector('[data-task-cover]'),adapter:attachmentAdapter,task:{...initial,id:taskId,projectId:project.id},readOnly:!canEdit});
       const editor=form.querySelector('iq-markdown-editor[name=description]');
       description=mountTaskDescription(form.querySelector('[data-description]'),{value:taskMarkdown(initial),editing:!task,readOnly:!canEdit});
-      catalogs=mountTaskCatalogs(form.querySelector('[data-task-catalogs]'),{tagsRoot:form.querySelector('[data-task-tags]'),repository,project,task:initial,tags:support.tags,releases:support.releases,readOnly:!canEdit,canManage});
+      catalogs=mountTaskCatalogs(form.querySelector('[data-task-catalogs]'),{tagsRoot:form.querySelector('[data-task-tags]'),repository,project,task:initial,tags:support.tags,releases:support.releases,readOnly:!canEdit,canManage,onChange:()=>form.dispatchEvent(new Event('change'))});
       if(task&&repository.capabilities?.taskLinks!==false)links=mountTaskLinks(form.querySelector('[data-task-links]'),{repository,project,task,tasks,readOnly:!canEdit,onOpenTask:async id=>{
         if(onOpenTask){await onOpenTask(id);return;}
         const target=await repository.read('tasks',id,project.id);if(!target)throw Error('Задача недоступна.');
@@ -115,17 +122,64 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
       form.querySelector('[data-apply-template]')?.addEventListener('click',()=>dialog({
         title:'Выбрать шаблон',description:'Шаблон заменит описание и чек-листы. Название и остальные свойства сохранятся.',
         body:select('starter','Основа','project',[['project','Шаблон типа из настроек проекта'],...STARTER_TASK_TEMPLATES.map(t=>[t.id,t.name])]),
-        submitLabel:'Применить',onSubmit:async values=>{const id=values.get('starter');if(id==='project')applyTemplate();else{editor.value=STARTER_TASK_TEMPLATES.find(t=>t.id===id).description;description.refresh();}}
+        submitLabel:'Применить',onSubmit:async values=>{const id=values.get('starter');if(id==='project')applyTemplate();else{editor.value=STARTER_TASK_TEMPLATES.find(t=>t.id===id).description;description.refresh();}form.dispatchEvent(new Event('change'));}
       }));
-      const dirty=()=>canEdit&&(JSON.stringify(read(form))!==baseline||files.dirty())||!!threads?.dirty();
+      let discarded=false;
+      const dirty=()=>!discarded&&(canEdit&&(JSON.stringify(read(form))!==baseline||files.dirty())||!!threads?.dirty());
+      const saveState=form.querySelector('[data-task-save-state]');
+      let timer=0,inflight=null,again=false,conflict=false;
+      function showState(text,{error=false,action=''}={}){
+        saveState.dataset.tone=error?'danger':'muted';
+        saveState.innerHTML=esc(text)+(action?` <button type="button" class="iq-btn ghost sm" data-save-action="${action}">${action==='reload'?'Загрузить актуальную версию':'Повторить'}</button>`:'');
+      }
+      function schedule(delay=700){if(!autosave||conflict)return;clearTimeout(timer);timer=setTimeout(()=>void flush(),delay);}
+      /** Saves the latest field values once; a change made during a save is saved right after it. */
+      async function flush(){
+        clearTimeout(timer);timer=0;
+        if(!autosave||conflict)return !conflict;
+        if(inflight){again=true;await inflight;return flush();}
+        const changes=read(form),snapshot=JSON.stringify(changes);
+        if(snapshot===baseline)return true;
+        if(!changes.title){showState('Нужно название — изменения пока не сохранены.',{error:true});return false;}
+        if(files.isBusy()||files.dirty()){showState('Изменения сохранятся после загрузки файлов.');return false;}
+        saving=true;showState('Сохраняется…');
+        inflight=(async()=>{
+          try{
+            const next=reparentTask({...current,...changes},changes.parentId,tasks);
+            const saved=await repository.write('tasks',next,current.revision);
+            current=saved;files.accepted(saved);baseline=snapshot;
+            showState(threads?.dirty()?'Задача сохранена. Черновик сообщения ещё не опубликован.':'Все изменения сохранены');
+            await onSaved(saved);return true;
+          }catch(error){
+            conflict=error.code==='CONFLICT';
+            showState(conflict?'Задачу изменили в другом месте. Ваши последние правки не сохранены.':'Не удалось сохранить: '+(error.message||'ошибка сети'),{error:true,action:conflict?'reload':'retry'});
+            return false;
+          }finally{saving=false;}
+        })();
+        const ok=await inflight;inflight=null;
+        if(again){again=false;return flush();}
+        return ok;
+      }
+      if(autosave){
+        // The footer becomes the save status; the header close button stays the single way out.
+        const footer=form.querySelector('.iq-dialog-footer');footer.querySelector('[data-close]').hidden=true;footer.prepend(saveState);showState('Изменения сохраняются автоматически');
+        const own=event=>!event.target.closest('[data-task-threads],[data-task-links]');
+        for(const type of ['input','change','iq-change','task-files-change'])form.addEventListener(type,event=>{if(own(event))schedule(type==='input'?900:300);});
+        saveState.addEventListener('click',event=>{
+          const action=event.target.closest('[data-save-action]')?.dataset.saveAction;
+          if(action==='retry')void flush();
+          if(action==='reload'){discarded=true;if(onReload)void onReload();else el.close();}
+        });
+      }
       async function close(){
-        if(saving||confirming||threads?.isBusy())return false;
+        if(confirming||threads?.isBusy())return false;
+        if(autosave&&!discarded)await flush();
+        else if(saving)return false;
         if(!dirty()){el.close();return true;}
         confirming=true;
-        let discarded=false;
         const confirm=dialog({
           title:'Закрыть без сохранения?',
-          description:'Изменения задачи и неопубликованные сообщения будут потеряны. Уже опубликованные сообщения сохранятся.',
+          description:autosave?'Последние правки не удалось сохранить, а неопубликованные сообщения будут потеряны. Уже сохранённое останется.':'Изменения задачи и неопубликованные сообщения будут потеряны. Уже опубликованные сообщения сохранятся.',
           submitLabel:'Не сохранять',onSubmit:async()=>{discarded=true;el.close();}
         });
         return new Promise(resolve=>confirm.addEventListener('iq-close',()=>{confirming=false;resolve(discarded);},{once:true}));
@@ -141,14 +195,14 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
       native.addEventListener('click',event=>{if(outsideDown&&outside(event)){event.preventDefault();event.stopImmediatePropagation();close();}outsideDown=false;},{capture:true});
       form.addEventListener('keydown',event=>{
         if(event.isComposing||!canEdit||event.target.closest('[data-task-threads]'))return;
-        if((event.ctrlKey||event.metaKey)&&event.key==='Enter'){event.preventDefault();event.stopPropagation();form.requestSubmit();}
+        if((event.ctrlKey||event.metaKey)&&event.key==='Enter'){event.preventDefault();event.stopPropagation();if(autosave)void flush();else form.requestSubmit();}
       });
       const unload=event=>{
         if(dirty()||saving||threads?.isBusy()){event.preventDefault();event.returnValue='';}
       };
       window.addEventListener('beforeunload',unload);
       el.addEventListener('iq-close',()=>{
-        window.removeEventListener('beforeunload',unload);description.destroy();files.destroy();catalogs.destroy();threads?.destroy();links?.destroy();
+        clearTimeout(timer);window.removeEventListener('beforeunload',unload);description.destroy();files.destroy();catalogs.destroy();threads?.destroy();links?.destroy();
       },{once:true});
       baseline=JSON.stringify(read(form));
       if(!canEdit)form.querySelectorAll('input,iq-select,iq-combobox,iq-date-field,iq-markdown-editor').forEach(node=>{if(!canDiscuss||!node.closest('[data-task-threads]'))node.setAttribute('disabled','');});

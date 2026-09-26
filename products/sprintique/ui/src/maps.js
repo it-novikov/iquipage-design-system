@@ -1,6 +1,6 @@
 import {captureDialog} from './capture-ui.js'; import {showMapHistory} from './map-history.js';
 import {showCanvasInspector,leaveCanvasInspector} from './canvas-inspector.js';
-import {motionReduced} from '@iquipage/web/core';
+import {motionReduced,ui} from '@iquipage/web/core';
 import {registerWhiteboard,validateWhiteboard} from '@iquipage/web/whiteboard';
 import {createMap,transitionMap,forkMap,templateFromMap,remapDocument,insertDocument,clone,uid,now,requireValue,validateMap,extractSelection} from './model.js';
 import {BUILTIN_TEMPLATES,filterTemplates} from './templates.js';
@@ -24,6 +24,7 @@ export class MapsFeature {
     this.uiCapabilities=normalizeUiCapabilities(config.uiCapabilities);
     this.context={workspaceId:'local-workspace',actorId:'local-user',...config.context};
     this.dialogs=new Set();this.dialog=options=>{const el=baseDialog(options);this.dialogs.add(el);el.addEventListener('iq-close',()=>this.dialogs.delete(el),{once:true});return el;};
+    this.directEditing=config.canvasEditing!=='properties';
     this.view='canvas';this.maps=[];this.positions=new Map();this.abort=new AbortController();this.pending=new Map();this.savingPromise=null;this.alive=true;
     this.mapGeneration=0;this.mapReads=new Set();
     installWorkflowUI(this);installAutomationUI(this);
@@ -35,7 +36,8 @@ export class MapsFeature {
       const control=event.target.closest('[data-map-action]');if(!control||control.disabled)return;
       event.preventDefault();this.handle(control.dataset.mapAction,control).catch(e=>this.message(e.message,true));
     },{signal:this.abort.signal});
-    window.addEventListener('beforeunload',event=>{if(this.board?.dirty||this.savingPromise||this.canvasInspector?.dirty()){event.preventDefault();event.returnValue='';}},{signal:this.abort.signal});
+    this.root.addEventListener('iq-action',event=>{if(!this.toolbar.contains(event.target))return;this.handle(event.detail.action).catch(e=>this.message(e.message,true));},{signal:this.abort.signal});
+    window.addEventListener('beforeunload',event=>{if(this.board?.dirty||this.savingPromise||this.canvasInspector?.dirty()||this.workflowDraft?.dirty()){event.preventDefault();event.returnValue='';}},{signal:this.abort.signal});
     this.unsubscribe=this.repository.subscribe?.(event=>{
       if(event.collection==='maps'&&event.resync&&this.current){const id=this.current.id;setTimeout(()=>this.externalUpdate({id,revision:Infinity}).catch(e=>this.message(e.message,true)),0);return;}
       if(event.collection==='maps'&&event.id===this.current?.id&&event.revision>this.current.revision)
@@ -49,7 +51,8 @@ export class MapsFeature {
   }
   async reloadList(){const maps=await this.repository.list('maps',this.project.id,{signal:this.abort.signal});if(this.alive)this.maps=maps.sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt));}
   empty(){this.current=null;this.surface.innerHTML=`<div class="map-empty"><span class="map-empty-symbol">${icon('board',32)}</span><h2>Место для идей и решений</h2><p>${this.uiCapabilities.sessions?'Создайте постоянную карту для схем или сессию для совместного обсуждения.':'Создайте карту и начните с одной мысли.'}</p><div class="row">${this.uiCapabilities.templates?button('templates','Выбрать основу','grid','primary'):''}${button('new','Чистая карта','plus',this.uiCapabilities.templates?'secondary':'primary')}</div></div>`;this.renderChrome();}
-  async readyToLeave() {
+  async readyToLeave({skipWorkflowDraft=false}={}) {
+    if(!skipWorkflowDraft&&this.leaveWorkflowDraft&&!(await this.leaveWorkflowDraft()))return false;
     if(!(await leaveCanvasInspector(this)))return false;
     if(!this.board)return true;this.board.flush();if(this.savingPromise)await this.savingPromise;
     if(this.board.dirty){this.message('Сначала сохраните изменение или экспортируйте свою копию. Исходная карта не закрыта.',true);return false;}
@@ -74,7 +77,8 @@ export class MapsFeature {
   buildBoard() {
     if(this.board){this.board.cancelPending();this.board.remove();}
     const board=document.createElement('iq-whiteboard');board.surfaceMode='embedded';board.controlled=true;board.allowedCreateTypes=this.view==='canvas'?this.uiCapabilities.allowedCreateTypes:CREATABLE_BOARD_OBJECT_TYPES;
-    if(this.view==='canvas')board.editorMode='host';
+    board.editorMode=this.view==='workflow'||!this.directEditing?'host':'inline';
+    if(!this.directEditing){board.setAttribute('selection-bar','none');board.setAttribute('library-open','');}
     board.data=this.view==='workflow'?flowScene(this.current.flow,this.current.title,this.current.revision):this.current.document;
     board.readOnly=!this.permissions.edit||this.current.status==='archived';board.saveStatus=this.storageLabel;
     this.surface.replaceChildren(board);this.board=board;
@@ -84,8 +88,8 @@ export class MapsFeature {
     board.addEventListener('iq-change-cancel',event=>this.pending.get(event.detail.requestId)?.abort());
     board.addEventListener('iq-host-command',event=>this.handle(event.detail.command==='guide'?'help':event.detail.command).catch(e=>this.message(e.message,true)));
     board.addEventListener('iq-open-task',event=>{const target={ids:[event.detail.taskId],projectId:this.project.id,focusTaskId:event.detail.taskId};this.root.dispatchEvent(new CustomEvent('iq-open-tasks',{detail:target,bubbles:true,composed:true}));Promise.resolve().then(()=>this.config.onOpenTasks?.(target)).catch(error=>this.message(error.message,true));});
-    board.addEventListener('iq-selection',()=>{if(this.view==='workflow'&&!this.inspector.hidden&&this.panel==='properties')this.renderProperties();if(this.view==='canvas'){this.inspectorQueue=(this.inspectorQueue||Promise.resolve()).then(()=>showCanvasInspector(this,board.selection)).catch(error=>this.message(error.message,true));}});
-    board.addEventListener('iq-edit-object',event=>{if(this.view!=='canvas')return;board.select([event.detail.id],false);this.inspectorQueue=(this.inspectorQueue||Promise.resolve()).then(()=>showCanvasInspector(this,[event.detail.id],{focusText:true})).catch(error=>this.message(error.message,true));});
+    board.addEventListener('iq-selection',()=>{if(this.view==='workflow'&&!this.inspector.hidden&&this.panel==='properties')this.renderProperties();if(this.view==='canvas'&&!this.directEditing){this.inspectorQueue=(this.inspectorQueue||Promise.resolve()).then(()=>showCanvasInspector(this,board.selection)).catch(error=>this.message(error.message,true));}});
+    board.addEventListener('iq-edit-object',event=>{if(this.view==='workflow'){board.select([event.detail.id],false);Promise.resolve(this.renderProperties()).catch(error=>this.message(error.message,true));return;}if(this.view!=='canvas')return;board.select([event.detail.id],false);this.inspectorQueue=(this.inspectorQueue||Promise.resolve()).then(()=>showCanvasInspector(this,[event.detail.id],{focusText:true})).catch(error=>this.message(error.message,true));});
     board.addEventListener('iq-change',()=>this.renderChrome());
     const position=this.positions.get(`${this.current.id}:${this.view}`);
     requestAnimationFrame(()=>{if(board!==this.board||!board.isConnected)return;if(position)board.viewport=position;else board.fit();});
@@ -120,13 +124,13 @@ export class MapsFeature {
     }catch(error){if(!request.signal.aborted&&this.alive&&generation===this.mapGeneration)throw error;}
     finally{this.mapReads.delete(request);}
   }
-  async saveMetadata(next) {
+  async saveMetadata(next,{fromWorkflowEditor=false}={}) {
     requireValue(this.permissions.edit&&this.current.status!=='archived','READ_ONLY','Карта доступна только для просмотра.');
-    if(!(await this.readyToLeave()))throw Error('Есть несохранённое изменение.');
+    if(!(await this.readyToLeave({skipWorkflowDraft:fromWorkflowEditor})))throw Error('Есть несохранённое изменение.');
     requireValue(next.revision===this.current.revision,'CONFLICT','Карта изменилась. Повторите действие.');
     const generation=this.mapGeneration,id=this.current.id;
     const saved=await this.repository.write('maps',next,this.current.revision);
-    if(!this.alive||generation!==this.mapGeneration||this.current?.id!==id)return saved;
+    if(!this.alive||generation!==this.mapGeneration||this.current?.id!==id||saved.revision<=this.current.revision)return saved;
     this.current=saved;
     this.board.data=this.view==='workflow'?flowScene(saved.flow,saved.title,saved.revision):saved.document;
     this.board.readOnly=!this.permissions.edit||saved.status==='archived';this.renderChrome();return saved;
@@ -139,7 +143,7 @@ export class MapsFeature {
     const save=override||(this.board?.saving?'Сохраняем…':this.board?.dirty?'Есть несохранённые изменения':m?this.storageLabel:'Выберите или создайте карту');
     const heading=this.uiCapabilities.mapSwitcher?`<button type="button" class="map-switch" data-map-action="maps" aria-label="Выбрать карту: ${esc(title)}" title="${esc(title)}"><span>${esc(title)}</span>${icon('down',16)}</button>`:`<span class="map-switch map-switch-static"><span>${esc(title)}</span></span>`;
     const canAdd=this.view==='workflow';
-    this.toolbar.innerHTML=`<div class="map-heading"><div class="map-title-wrap"><h1>${heading}</h1><span class="map-save-label" role="status">${m?`${m.kind==='session'?'Сессия':'Постоянная карта'} · `:''}${esc(save)}</span></div></div>${m&&this.uiCapabilities.workflow?`<div class="iq-segmented map-view-tabs" aria-label="Рабочая поверхность"><button type="button" data-map-action="canvas" aria-pressed="${this.view==='canvas'}">${icon('board',16)}<span>Карта</span></button><button type="button" data-map-action="workflow" aria-pressed="${this.view==='workflow'}">${icon('link',16)}<span>Сценарий действий</span></button></div>`:''}<div class="map-toolbar-actions">${this.uiCapabilities.templates?button('templates','Шаблоны','grid'):''}${m&&!disabled&&canAdd?button(this.view==='workflow'?'add-step':'add',this.view==='workflow'?'Добавить шаг':'Добавить объекты','plus','primary'):!m&&this.permissions.edit?button('new','Создать карту','plus','primary'):''}<button type="button" class="iq-btn ghost icon sm" data-map-action="more" aria-label="Меню карты">${icon('more',18)}</button></div>`;
+    this.toolbar.innerHTML=`<div class="map-heading"><div class="map-title-wrap"><h1>${heading}</h1><span class="map-save-label" role="status">${m?`${m.kind==='session'?'Сессия':'Постоянная карта'} · `:''}${esc(save)}</span></div></div>${m&&this.uiCapabilities.workflow&&!this.directEditing?`<div class="iq-segmented map-view-tabs" aria-label="Рабочая поверхность"><button type="button" data-map-action="canvas" aria-pressed="${this.view==='canvas'}">${icon('board',16)}<span>Карта</span></button><button type="button" data-map-action="workflow" aria-pressed="${this.view==='workflow'}">${icon('link',16)}<span>Сценарий действий</span></button></div>`:''}<div class="map-toolbar-actions">${m&&this.view==='canvas'?button('find','Найти на карте','search'):m&&this.directEditing?button('canvas','К карте','left'):''}${this.uiCapabilities.templates&&!this.directEditing?button('templates','Шаблоны','grid'):''}${m&&!disabled&&canAdd?button(this.view==='workflow'?'add-step':'add',this.view==='workflow'?'Добавить шаг':'Добавить объекты','plus','primary'):!m&&this.permissions.edit?button('new','Создать карту','plus','primary'):''}${this.moreMenu()}</div>`;
     const session=this.uiCapabilities.sessions&&m?.kind==='session'&&m.status!=='archived';
     this.subbar.hidden=!m||(this.view==='canvas'&&m.status!=='archived');
     this.renderSessionCard();
@@ -172,10 +176,20 @@ export class MapsFeature {
     if(action==='automations')requireValue(this.uiCapabilities.automation,'FEATURE_DISABLED','Автоматизация отключена приложением.');
     if(action==='agent')requireValue(this.uiCapabilities.agentProposals,'FEATURE_DISABLED','Предложения агента отключены приложением.');
     if(['add','bulk'].includes(action))requireValue(this.uiCapabilities.allowedCreateTypes.length>0,'CREATE_TYPE_DISABLED','Приложение не разрешило создание объектов.');
-    const actions={maps:()=>this.mapBrowser(false),archive:()=>this.mapBrowser(true),templates:()=>this.templateBrowser(),new:()=>this.newMapDialog(),help:()=>this.help(),add:()=>captureDialog(this),bulk:()=>captureDialog(this),find:()=>this.board.command('search'),more:()=>this.more(),rename:()=>this.rename(),dismiss:()=>this.message(''),canvas:()=>this.switchView('canvas'),workflow:()=>this.switchView('workflow'),session:()=>this.sessionDialog(),finish:()=>this.finishDialog(),start:()=>this.changeSession('start'),resume:()=>this.changeSession('resume'),pause:()=>this.changeSession('pause'),continue:()=>this.continueMap(),export:()=>this.exportMap(false),'export-draft':()=>this.exportMap(true),'save-template':()=>this.saveTemplateDialog(),agent:()=>this.agentDialog(),import:()=>this.importMap(),fullscreen:()=>this.message('Карта уже занимает доступную область. Навигация платформы остаётся доступной.')};
+    const actions={'quick-note':()=>this.quickNote(),'object-properties':()=>this.board.selection.length===1?showCanvasInspector(this,this.board.selection,{focusText:false}):this.message('Выберите один объект на карте.'),contents:()=>this.board.command('frames'),maps:()=>this.mapBrowser(false),archive:()=>this.mapBrowser(true),templates:()=>this.templateBrowser(),new:()=>this.newMapDialog(),help:()=>this.help(),add:()=>captureDialog(this),bulk:()=>captureDialog(this),find:()=>this.board.command('search'),more:()=>this.more(),rename:()=>this.rename(),dismiss:()=>this.message(''),canvas:()=>this.switchView('canvas'),workflow:()=>this.switchView('workflow'),session:()=>this.sessionDialog(),finish:()=>this.finishDialog(),start:()=>this.changeSession('start'),resume:()=>this.changeSession('resume'),pause:()=>this.changeSession('pause'),continue:()=>this.continueMap(),export:()=>this.exportMap(false),'export-draft':()=>this.exportMap(true),'save-template':()=>this.saveTemplateDialog(),agent:()=>this.agentDialog(),import:()=>this.importMap(),fullscreen:()=>this.message('Карта уже занимает доступную область. Навигация платформы остаётся доступной.')};
     if(actions[action])return actions[action]();
     if(this.workflowActions?.[action])return this.workflowActions[action](control);
     if(this.automationActions?.[action])return this.automationActions[action](control);
+  }
+  async quickNote() {
+    if(!this.current||this.view!=='canvas'||!this.permissions.edit||this.current.status==='archived'||this.board.saving||!this.uiCapabilities.allowedCreateTypes.includes('sticky'))return;
+    const board=this.board,mapId=this.current.id;
+    if(!(await this.readyToLeave()))return;
+    const previous=new Set(board.data.objects.map(o=>o.id));board.command('quick-note');
+    if(this.savingPromise)await this.savingPromise;
+    if(!this.alive||board!==this.board||this.current.id!==mapId||board.dirty)return;
+    const created=board.data.objects.filter(o=>!previous.has(o.id));
+    if(created.length===1){board.select([created[0].id],false);board.command('edit');}
   }
   async switchView(view) {
     if(view==='workflow')requireValue(this.uiCapabilities.workflow,'FEATURE_DISABLED','Сценарии действий отключены приложением.');
@@ -196,7 +210,7 @@ export class MapsFeature {
   }
   help() {
     const shortcuts=[['Пробел + перетаскивание','Переместить карту'],['Shift + щелчок','Выбрать несколько объектов'],['Enter','Редактировать выбранный объект'],['Ctrl / ⌘ + Enter','Завершить редактирование'],['Escape','Отменить ввод или текущий инструмент'],['Ctrl / ⌘ + Z','Отменить изменение'],['Стрелки / Shift + стрелки','Сдвинуть объект на 1 / 10 пикселей'],['0','Показать всю карту']];
-    return this.dialog({title:'Как работать с картами',description:'Начните с мысли. Структура и автоматизация подключаются, когда они нужны.',wide:true,body:`<div class="map-help-grid"><article><b>1. Добавьте объекты</b><p>Откройте «Добавить объекты». Для каждой карточки выберите заметку, задачу, текст, фигуру, область или изображение.</p></article><article><b>2. Соберите структуру</b><p>Объедините объекты в области и добавьте связи. Инструменты находятся внизу карты.</p></article><article><b>3. Договоритесь о действии</b><p>Превратите идею в задачу или откройте сценарий. Проверьте результат перед его выполнением.</p></article></div><div class="map-help-types"><p><b>Постоянная карта</b> — схемы, зависимости и решения. Она развивается вместе с проектом.</p><p><b>Сессия</b> — обсуждение с началом и завершением. Итоги остаются в архиве, продолжение создаётся отдельно.</p></div><details class="iq-accordion map-help-shortcuts"><summary>Клавиатура и перемещение ${icon('plus',16)}</summary><div><dl class="map-shortcuts">${shortcuts.map(([key,action])=>`<div><dt><kbd>${key}</kbd></dt><dd>${action}</dd></div>`).join('')}</dl><p class="map-explanation">Поиск и точный ввод положения позволяют работать без перетаскивания.</p></div></details><p class="map-explanation map-help-navigation">Навигация проекта находится над картой. Задачи, материалы и настройки не являются частью модуля и предоставляются платформой.</p>`});
+    return this.dialog({title:'Как работать с картами',description:'Начните с мысли. Структура и автоматизация подключаются, когда они нужны.',wide:true,body:`<div class="map-help-grid"><article><b>1. Добавьте объекты</b><p>Нажмите «Объекты» в нижней панели. Для каждой карточки выберите заметку, задачу, текст, фигуру, область или изображение.</p></article><article><b>2. Соберите структуру</b><p>Объедините объекты в области и добавьте связи. Инструменты находятся внизу карты.</p></article><article><b>3. Договоритесь о действии</b><p>Свяжите идею с задачей. Настройка автоматизации находится в меню карты. Проверьте результат перед его выполнением.</p></article></div><div class="map-help-types"><p><b>Постоянная карта</b> — схемы, зависимости и решения. Она развивается вместе с проектом.</p><p><b>Сессия</b> — обсуждение с началом и завершением. Итоги остаются в архиве, продолжение создаётся отдельно.</p></div><details class="iq-accordion map-help-shortcuts"><summary>Клавиатура и перемещение ${icon('plus',16)}</summary><div><dl class="map-shortcuts">${shortcuts.map(([key,action])=>`<div><dt><kbd>${key}</kbd></dt><dd>${action}</dd></div>`).join('')}</dl><p class="map-explanation">Поиск и точный ввод положения позволяют работать без перетаскивания.</p></div></details><p class="map-explanation map-help-navigation">Навигация проекта находится над картой. Задачи и настройки не являются частью модуля и предоставляются платформой.</p>`});
   }
   async mapBrowser(archived=false) {
     await this.reloadList();const all=this.maps;
@@ -210,7 +224,7 @@ export class MapsFeature {
   async templateBrowser() {
     const custom=await this.repository.list('templates',this.project.id),templates=[...BUILTIN_TEMPLATES,...custom].filter(template=>template.document.objects.every(object=>this.uiCapabilities.allowedCreateTypes.includes(object.type)));
     let category='Все',query='';const categories=['Все',...new Set(templates.map(t=>t.category))];
-    return this.dialog({title:'С чего начнём?',description:'Выберите задачу, которую хотите решить. Все шаблоны можно изменить под себя.',wide:true,body:`${input('query','Поиск шаблонов','',{placeholder:'Например: итоги, архитектура, идеи'})}<div class="map-template-categories">${categories.map(c=>`<button type="button" data-category="${esc(c)}" aria-pressed="${c==='Все'}">${esc(c)}</button>`).join('')}</div><div class="map-template-grid"></div>`,mount:el=>{
+    return this.dialog({title:'С чего начнём?',description:'Выберите задачу, которую хотите решить. Все шаблоны можно изменить под себя.',wide:true,body:`${input('query','Поиск шаблонов','',{placeholder:'Например: итоги, архитектура, идеи'})}<div class="iq-segmented map-template-categories" role="group" aria-label="Категория шаблонов">${categories.map(c=>`<button type="button" data-category="${esc(c)}" aria-pressed="${c==='Все'}">${esc(c)}</button>`).join('')}</div><div class="map-template-grid"></div>`,mount:el=>{
       const draw=()=>{const found=filterTemplates(templates,{category,query});el.querySelector('.map-template-grid').innerHTML=found.length?found.map(t=>`<button type="button" class="map-template-card" data-template="${t.id}">${previewDocument(t.document)}<span class="map-template-copy"><small>${esc(t.category)}${t.scope!=='built-in'?' · Свой шаблон':''}</small><b>${esc(t.title)}</b><span>${esc(t.description||'Сохранённая структура карты.')}</span><span class="map-template-when"><strong>Когда:</strong> ${esc(t.when||'Когда нужна похожая структура.')}</span></span></button>`).join(''):'<p class="map-empty-copy">Ничего не найдено. Попробуйте другое название.</p>';};draw();
       el.querySelector('[name=query]').addEventListener('input',e=>{query=e.target.value;draw();});
       el.addEventListener('click',e=>{const cat=e.target.closest('[data-category]');if(cat){category=cat.dataset.category;el.querySelectorAll('[data-category]').forEach(b=>b.setAttribute('aria-pressed',String(b===cat)));draw();}
@@ -239,14 +253,28 @@ export class MapsFeature {
   rename() {
     if(!this.current)return;return this.dialog({title:'Название карты',body:input('title','Название',this.current.title,{required:true,maxlength:160}),submitLabel:'Сохранить',onSubmit:async values=>this.saveMetadata({...clone(this.current),title:values.get('title').trim()})});
   }
-  more() {
-    const m=this.current,edit=m&&m.status!=='archived'&&this.permissions.edit;
-    const group=(title,content)=>`<section class="map-menu-section"><h3>${title}</h3><div class="map-action-menu">${content}</div></section>`;
-    const maps=this.uiCapabilities.mapSwitcher?group('Карты проекта',button('maps','Все карты','board')+button('archive','Архив сессий и карт','folder')+(this.permissions.edit?button('new','Новая карта','plus'):'')):'';
-    const opened=m?group('Открытая карта',(edit?button('rename','Переименовать','text')+(this.uiCapabilities.templates?button('save-template','Сохранить как шаблон','grid'):''):'')+(this.permissions.edit&&this.uiCapabilities.mapSwitcher?button('continue','Создать отдельную копию','copy'):'')+(this.repository.mapHistory?button('history','История изменений','clock'):'')+button('find','Найти объект','search')+button('export','Экспортировать карту','download')+(edit&&m.kind==='permanent'&&this.uiCapabilities.mapSwitcher?button('finish','Убрать в архив','folder'):'')):'';
-    const tools=(this.permissions.edit?button('import','Импортировать карту или шаблон','upload'):'')+(m&&this.view==='canvas'&&this.uiCapabilities.agentProposals?button('agent','Предложение агента','spark'):'')+(this.uiCapabilities.templates?button('templates','Библиотека шаблонов','grid'):'')+button('help','Как работать с картами','info');
-    return this.dialog({title:'Меню карты',body:maps+opened+group('Инструменты',tools),mount:el=>el.addEventListener('click',e=>{const action=e.target.closest('[data-map-action]')?.dataset.mapAction;if(action){el.close(true);this.handle(action).catch(error=>this.message(error.message,true));}})});
+  /** Grouped map actions in one DS dropdown (iq-menu) instead of a modal. */
+  moreMenu() {
+    const m=this.current,edit=m&&m.status!=='archived'&&this.permissions.edit,canvas=m&&this.view==='canvas',items=[];
+    const add=(ok,action,label,glyph)=>{if(ok)items.push({action,label,glyph});};
+    if(this.uiCapabilities.mapSwitcher){items.push({section:'Карты проекта'});add(true,'maps','Все карты','board');add(true,'archive','Архив сессий и карт','folder');add(this.permissions.edit,'new','Новая карта','plus');}
+    if(m){
+      items.push({section:'Открытая карта'});
+      add(edit,'rename','Переименовать','text');add(edit&&this.uiCapabilities.templates,'save-template','Сохранить как шаблон','grid');
+      add(this.permissions.edit&&this.uiCapabilities.mapSwitcher,'continue','Создать отдельную копию','copy');add(!!this.repository.mapHistory,'history','История изменений','clock');
+      add(true,'find','Найти объект','search');add(true,'contents','Содержание карты','list');add(true,'export','Экспортировать карту','download');
+      add(edit&&m.kind==='permanent'&&this.uiCapabilities.mapSwitcher,'finish','Убрать в архив','folder');
+    }
+    items.push({section:'Инструменты'});
+    add(m&&this.uiCapabilities.workflow,this.view==='workflow'?'canvas':'workflow',this.view==='workflow'?'Вернуться к карте':'Настроить автоматизацию','workflow');
+    add(canvas&&edit&&this.uiCapabilities.allowedCreateTypes.length,'add','Добавить несколько объектов','plus');
+    add(canvas,'object-properties','Положение и оформление','sliders');
+    add(this.permissions.edit,'import','Импортировать карту или шаблон','upload');
+    add(canvas&&this.uiCapabilities.agentProposals,'agent','Предложение агента','spark');
+    add(this.uiCapabilities.templates,'templates','Библиотека шаблонов','grid');add(true,'help','Как работать с картами','info');
+    return ui.menu(`<button type="button" class="iq-btn ghost icon sm" aria-label="Меню карты">${icon('more',18)}</button>`,items);
   }
+  more() {this.toolbar.querySelector('iq-menu > button')?.click();}
   async changeSession(action){if(!(await this.readyToLeave()))return;await this.saveMetadata(transitionMap(this.current,action));}
   finishDialog() {
     return this.dialog({title:this.current.kind==='session'?'Завершить сессию':'Переместить карту в архив',description:'Карта останется доступна для просмотра. Новые изменения можно сделать в отдельном продолжении.',body:textarea('summary','Итоги и следующие шаги',this.current.summary,6),submitLabel:'Сохранить итоги и завершить',onSubmit:async values=>{

@@ -12,7 +12,8 @@ export const TaskInput = z.strictObject({
   status: z.enum(['ready','in_progress','review','ready_for_testing','testing','ready_for_release']).default('ready'),
   type: z.enum(['task','bug','epic']).default('task'),
   priority: z.enum(['low','normal','high','critical']).default('normal'),
-  owner: z.string().max(120).default(''),
+  // The owner is a current human member of the project; null means unassigned.
+  ownerId: Id.nullable().default(null),
   due: DateOnly.nullable().default(null),
   rank: z.number().finite().default(1024),
   parentId: Id.nullable().default(null),
@@ -54,6 +55,8 @@ export interface Task extends TaskData {
   id: string; projectId: string; displayId: string; revision: number;
   createdAt: string; updatedAt: string; statusEnteredAt: string;
   preparation:'draft'|'ready';result:'open'|'accepted';assignmentMode:'inherit'|'assigned'|'none';admitted:boolean;plannedStart:string|null;plannedEnd?:string|null;
+  /** Display name of the owner member; legacyOwner keeps pre-membership free text until someone reassigns it. */
+  ownerName:string;legacyOwner:string;
 }
 export interface Message {id:string; body:string; authorId:string; createdAt:string}
 export interface Thread {

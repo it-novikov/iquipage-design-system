@@ -37,8 +37,11 @@ export function timelineIntent(previous,next,sourceRevision) {
 export function calendarProjection(rows) {
   const result=[];
   for(const row of rows){
-    if(row.end)result.push({id:row.id+':end',title:row.title+(row.entityKind==='milestone'?'':' — план'),due:row.end,status:row.status==='done'?'done':'backlog'});
-    if(row.deadline&&row.deadline!==row.end)result.push({id:row.id+':deadline',title:row.title+' — дедлайн',due:row.deadline,status:row.status==='done'?'done':'backlog'});
+    // Calendar entries mirror board cards: key, title, priority/epic signal and owner; the entry kind replaces a title suffix.
+    const card=row.card&&typeof row.card==='object'?row.card:{},base={status:row.status==='done'?'done':'backlog',key:typeof card.key==='string'?card.key:'',type:card.type,priority:card.priority,owner:typeof card.owner==='string'?card.owner:''};
+    const title=typeof card.name==='string'&&card.name?card.name:row.title;
+    if(row.end)result.push({...base,id:row.id+':end',title,due:row.end,kind:row.entityKind==='milestone'?'milestone':'plan'});
+    if(row.deadline&&row.deadline!==row.end)result.push({...base,id:row.id+':deadline',title,due:row.deadline,kind:'deadline'});
   }
   return result;
 }

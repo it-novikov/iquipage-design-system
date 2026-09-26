@@ -14,7 +14,7 @@ export function registerLimits(app:FastifyInstance){
     let window=windows.get(r.ip);
     if(!window){if(windows.size>=4096)throw new Problem(429,'REQUEST_LIMIT','Слишком много запросов. Повторите через минуту.');window={since:now,count:0,logins:0};windows.set(r.ip,window);}
     if(now-window.since>=60000){window.since=now;window.count=0;window.logins=0;}
-    if(++window.count>1000||(r.url.startsWith('/auth/login')&&++window.logins>20))throw new Problem(429,'REQUEST_LIMIT','Слишком много запросов. Повторите через минуту.');
+    if(++window.count>1000||((r.url.startsWith('/auth/login')||r.url.startsWith('/auth/dev-login'))&&++window.logins>20))throw new Problem(429,'REQUEST_LIMIT','Слишком много запросов. Повторите через минуту.');
     // A container healthcheck must never be shed by the concurrency admission below.
     if(readiness)return;
     // Streams have an independent cap and lifetime; do not leak this admission on hijack.

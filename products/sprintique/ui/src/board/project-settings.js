@@ -2,13 +2,13 @@ import {dialog,select,icon,esc} from '../ui.js';
 import {editCatalogItem,tagMarkup} from './catalog-ui.js';
 import {starterTaskSettings,compileTaskTemplate,TEMPLATE_MODES,STARTER_TASK_TEMPLATES,upgradeLegacyTaskSettings} from './task-templates.js';
 import {taskMarkdown} from './task-content.js';
-export async function mountProjectTaskSettings(root,{repository,project,section,onBack=()=>{},canManage=true}){
+export async function mountProjectTaskSettings(root,{repository,project,section,onBack=null,canManage=true}){
   let closed=false,items=[],activeDialog=null,settings;
   const titles={tags:'Теги проекта',releases:'Релизы проекта',templates:'Шаблоны задач'};
   const createLabel=section==='tags'?'Новый тег':'Новый релиз';
   const createButton=section!=='templates'&&canManage?`<button type="button" class="iq-btn primary sm" data-catalog-create>${createLabel}</button>`:'';
   root.innerHTML=`<div class="host-settings task-settings-page">
-    <button type="button" class="iq-btn ghost sm" data-settings-back>${icon('left',16)}<span>Настройки проекта</span></button>
+    ${onBack?`<button type="button" class="iq-btn ghost sm" data-settings-back>${icon('left',16)}<span>Настройки проекта</span></button>`:''}
     <div class="row between"><h1>${titles[section]}</h1>${createButton}</div>
     <p class="map-form-error" role="alert" hidden></p><div data-settings-content></div></div>`;
   const content=root.querySelector('[data-settings-content]'),error=root.querySelector('[role=alert]'),abort=new AbortController();
@@ -42,7 +42,7 @@ export async function mountProjectTaskSettings(root,{repository,project,section,
     content.innerHTML=`<p class="iq-helper">Базовый шаблон общий для всех задач. Шаблон типа наследует его или явно меняет нужные части. Существующие задачи не перезаписываются.</p><div class="iq-list">${rows}</div>`;
   }
   root.addEventListener('click',event=>{
-    if(event.target.closest('[data-settings-back]'))onBack();
+    if(event.target.closest('[data-settings-back]'))onBack?.();
     if(!canManage)return;
     if(event.target.closest('[data-catalog-create]'))track(editCatalogItem(section,{repository,project,onSaved:reload}));
     const edit=event.target.closest('[data-edit-item]');
@@ -75,7 +75,7 @@ export async function mountProjectTaskSettings(root,{repository,project,section,
       ...(base?{}:{descriptionMode:form.querySelector('[name=descriptionMode]').value,checklistsMode:spec.checklistsMode||'inherit'})
     });
     const candidate=form=>{const value=structuredClone(source);if(base)value.base=readSpec(form);else value.types[type]=readSpec(form);return value;};
-    const element=dialog({title:names[type],body,wide:true,submitLabel:'Сохранить шаблон',onSubmit:async(values,form)=>{
+    const element=dialog({title:names[type],body,wide:true,submitLabel:'Сохранить шаблон',success:'Шаблон сохранён',onSubmit:async(values,form)=>{
       saving=true;try{await repository.write('taskSettings',candidate(form),settings.revision);baseline=JSON.stringify(readSpec(form));await reload();}finally{saving=false;}
     },mount:(element,form)=>{
       const editor=form.querySelector('iq-markdown-editor');editor.value=taskMarkdown(spec);

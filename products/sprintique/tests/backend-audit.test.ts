@@ -45,7 +45,7 @@ test('B01 accepted result is immutable through canonical and legacy task writes;
   const content=TaskInput.strip().parse(current);
   const auditBefore=(await f.admin.query('SELECT count(*)::int AS n FROM app.audit_events WHERE project_id=$1',[f.first.id])).rows[0]!.n;
   const historyBefore=(await request('GET','planning/releases/audit-acceptance/history')).json();
-  for(const change of [{title:'Changed'},{description:'Changed'},{owner:'Changed'},{priority:'critical'},{type:'bug'},
+  for(const change of [{title:'Changed'},{description:'Changed'},{ownerId:f.bob.id},{priority:'critical'},{type:'bug'},
     {due:'2027-01-01'},{rank:7},{tagIds:['not-authorized']},{attachmentIds:['not-authorized']},{status:'ready'}]){
     const response=await request('PUT','tasks/audit-accepted',{baseRevision:current.revision,task:{...content,...change}});
     assert.equal(response.statusCode,409,response.body);assert.equal(response.json().code,'RESULT_PINNED');

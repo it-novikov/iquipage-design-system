@@ -19,7 +19,7 @@ export async function mountAgents(root,{repository,project,onBack}){
   function render(){
     if(closed)return;
     root.innerHTML=`<section class="host-settings task-settings-page">
-      ${ui.btn('Настройки проекта','ghost sm','left','data-agents-back')}<h1>Агенты и подтверждения</h1>
+      ${onBack?ui.btn('Настройки проекта','ghost sm','left','data-agents-back'):''}<h1>Агенты и подтверждения</h1>
       <p>Подключите своего агента по API. Доступ ограничен проектом, выбранными правами и сроком. Планы агента применяются только после решения человека.</p>
       <h2>Предложения</h2><div class="iq-list">${approvals.length?approvals.map(a=>`<div class="iq-list-item"><span>${esc(a.agentName)} · ${esc(states[a.status])}<br><small>${esc(summary(a.summary))} · до ${esc(date(a.expiresAt))}</small></span>${ui.btn('Рассмотреть','secondary sm','','data-approval="'+esc(a.id)+'"')}</div>`).join(''):'<p>Предложений пока нет. Здесь появятся конкретные изменения для проверки перед применением.</p>'}</div>
       ${approvalCursor?ui.btn('Ещё предложения','ghost sm','','data-more-approvals'):''}

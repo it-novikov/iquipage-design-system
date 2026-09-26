@@ -12,6 +12,9 @@ const deferred=()=>{let resolve;const promise=new Promise(done=>{resolve=done;})
 test('empty Maps navigation commits the section route without replacing an opened map URL',()=>{
   for(const hash of ['#planning','#tasks','#settings','#maps',''])assert.equal(sectionRouteHash('maps',hash),'#maps');
   assert.equal(sectionRouteHash('maps','#maps/map_123-abc'),'#maps/map_123-abc');
+  // Settings subsections are linkable and survive re-mounting the section.
+  assert.equal(sectionRouteHash('settings','#settings/members'),'#settings/members');
+  assert.equal(sectionRouteHash('settings','#settings/<x>'),'#settings');assert.equal(sectionRouteHash('tasks','#settings/members'),'#tasks');
   assert.equal(sectionRouteHash('planning','#maps/map_123-abc'),'#planning');
   assert.equal(sectionRouteHash('tasks','#task/QA-2'),'#tasks');
 });
@@ -95,7 +98,7 @@ test('resync reaches discussions and links; stop cancels queued invalidation',as
 test('task context uses 100-row pages, isolates cached copies, and invalidates across scoped adapters',async()=>{
   let calls=0;
   const repository=new ProductRepository({request:async path=>{
-    calls++;const url=new URL(path,'https://qa.invalid'),start=Number(url.searchParams.get('cursor')||0),limit=Number(url.searchParams.get('limit'));
+    if(path.endsWith("/members"))return [{id:"u1",name:"Алиса",kind:"human"}];calls++;const url=new URL(path,'https://qa.invalid'),start=Number(url.searchParams.get('cursor')||0),limit=Number(url.searchParams.get('limit'));
     assert.equal(limit,100);return {items:Array.from({length:Math.min(limit,2000-start)},(_,i)=>({id:String(start+i)})),nextCursor:start+limit<2000?String(start+limit):null};
   }});
   const all=await repository.taskContext('p');assert.equal(all.length,2000);assert.equal(calls,20);
@@ -127,5 +130,32 @@ test('timeline successful readback accepts canonical once; cancel only discards 
 });
 test('accepted result cards preserve open action but omit move affordance',()=>{
   const html=renderTaskCard({task:{id:'t',title:'Accepted',type:'task',priority:'normal',result:'accepted'},depth:0},{index:{children:new Map()},canEdit:true});
-  assert.equal(html.includes('move-menu:'),false);assert.ok(html.includes('open:t'));assert.match(html,/data-drag-handle[^>]*disabled/);
+  assert.equal(html.includes('move-to:'),false);assert.ok(html.includes('open:t'));assert.match(html,/data-drag-handle[^>]*disabled/);
+});
+test('board cards show hierarchy without repeating task numbers',()=>{
+  const parent={id:'p',displayId:'SPQ-1',title:'Эпик',type:'epic',status:'in_progress'};
+  const done={id:'c1',displayId:'SPQ-2',title:'Готовая',status:'ready_for_release',parentId:'p'},open={id:'c2',displayId:'SPQ-3',title:'Открытая',status:'review',parentId:'p'};
+  const index={children:new Map([['p',[done,open]]]),byId:new Map([[parent.id,parent]])};
+  const child=renderTaskCard({task:open,parent,children:[]},{index,canEdit:true});
+  assert.equal((child.match(/SPQ-1/g)||[]).length,0,'the parent is named by title, not by a second number');assert.match(child,/class="task-card-parent"[^>]*>.*Эпик/s);
+  const collapsed=renderTaskCard({task:parent,parent:null,children:[done,open]},{index,canEdit:true});
+  assert.match(collapsed,/data-toggle-children="p" aria-expanded="false"/);assert.match(collapsed,/task-subtasks-count">1\/2</);assert.equal(collapsed.includes('task-subtask-list'),false);
+  const expanded=renderTaskCard({task:parent,parent:null,children:[done,open]},{index,canEdit:true,expanded:true});
+  assert.match(expanded,/aria-expanded="true"/);assert.ok(expanded.includes('Готовая')&&expanded.includes('Открытая')&&expanded.includes('Ревью'));
+});
+test('calendar entries carry card facts, never raw entity ids or title suffixes',async()=>{
+  const {calendarProjection}=await import('../ui/planning/src/temporal-model.js');
+  const [entry]=calendarProjection([{id:'task:spq-login-bug',entityId:'spq-login-bug',entityKind:'task',title:'SPQ-4 · Ошибка',deadline:'2026-09-28',status:'review',card:{key:'SPQ-4',name:'Ошибка',type:'bug',priority:'high',owner:'Борис Петров'}}]);
+  assert.equal(entry.title,'Ошибка');assert.equal(entry.key,'SPQ-4');assert.equal(entry.kind,'deadline');assert.equal(entry.owner,'Борис Петров');assert.equal(entry.priority,'high');
+});
+test('planning tree marks the last child of each sibling run',async()=>{
+  const {lastChildren}=await import('../ui/planning/src/markup.js');
+  const rows=[{id:'a',depth:0},{id:'b',depth:1},{id:'c',depth:2},{id:'d',depth:1},{id:'e',depth:0}];
+  assert.deepEqual([...lastChildren(rows)].sort(),['c','d']);
+});
+test('loading markup is one DS skeleton look that stays hidden while loads are fast',async()=>{
+  const {loadingMarkup}=await import('../ui/src/loading.js');
+  const html=loadingMarkup('Загружаем <задачи>',{rows:2,title:true});
+  assert.match(html,/class="iq-loading product-loading "/);assert.match(html,/aria-busy="true"/);assert.match(html,/Загружаем &lt;задачи&gt;/);
+  assert.equal((html.match(/iq-skeleton product-loading-row/g)||[]).length,2);
 });

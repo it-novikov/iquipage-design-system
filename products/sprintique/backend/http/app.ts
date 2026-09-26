@@ -11,6 +11,7 @@ import * as discussions from '../application/discussions.js';
 import * as identity from '../application/identity.js';
 import {registerOidc,cookie,cookieValue,sessionCookie} from './oidc.js';
 import type {OidcSettings} from './oidc.js';
+import {registerDevLogin} from './dev-login.js';
 import {registerCatalogRoutes} from './catalogs.js';
 import {registerPlanningRoutes} from './planning.js';
 import {registerPlanningViewRoutes} from './planning-view.js';
@@ -31,7 +32,9 @@ import {planningResponseSchemas} from '../../contracts/planning-responses.js';
 
 /** trustProxy: hop count or exact proxy addresses in front of the API. Without it every request behind a
  *  TLS reverse proxy shares the proxy address, so per-address limits would throttle all users together. */
-export interface AppOptions {db:Database;origin:string;oidc?:OidcSettings;logger?:boolean;storage?:ObjectStorage;metricsToken?:string;trustProxy?:number|string[]}
+export interface AppOptions {db:Database;origin:string;oidc?:OidcSettings;logger?:boolean;storage?:ObjectStorage;metricsToken?:string;trustProxy?:number|string[];
+  /** Local debugging only: enables the fixed admin/admin login; refused in production and on public origins. */
+  devLogin?:boolean}
 /** Normalized to one Fastify-accepted shape: hop count, or a comma-separated address list. */
 const trustProxyOption=(value:AppOptions['trustProxy'])=>(address:string,hop:number)=>
   value===undefined?false:Array.isArray(value)?value.includes(address):hop<value;
@@ -44,7 +47,7 @@ export function getCredential(request:FastifyRequest):Credential{
 export type Authenticated = <T>(request:FastifyRequest,fn:(tx:Transaction,actor:Actor)=>Promise<T>)=>Promise<T>;
 export const params=(request:FastifyRequest)=>z.object({projectId:contract.Id,id:contract.Id.optional()}).parse(request.params);
 export const mutationKey=(request:FastifyRequest)=>z.string().min(8).max(120).parse(request.headers['idempotency-key']);
-export async function createApp({db,origin,oidc,logger=false,storage,metricsToken,trustProxy}:AppOptions){
+export async function createApp({db,origin,oidc,logger=false,storage,metricsToken,trustProxy,devLogin=false}:AppOptions){
   const app=Fastify({bodyLimit:128*1024,requestTimeout:15000,trustProxy:trustProxyOption(trustProxy),logger:logger?{redact:['req.headers.authorization','req.headers.cookie','res.headers["set-cookie"]'],level:'info'}:false,logController:new Fastify.LogController({disableRequestLogging:true})});
   const secureOrigin=new URL(origin).protocol==='https:';
   registerObservability(app,metricsToken);
@@ -84,6 +87,8 @@ export async function createApp({db,origin,oidc,logger=false,storage,metricsToke
       .finally(()=>{readiness=null;});
     await probe;return {status:'ready'};
   });
+  // Anonymous: tells the sign-in screen which ways in exist, so it never links to an unconfigured provider.
+  app.get('/api/v1/auth/methods',async()=>({oidc:!!oidc,devLogin}));
   app.get('/api/v1/session',request=>authenticated(request,identity.sessionInfo));
   app.post('/api/v1/logout',(request,reply)=>authenticated(request,async(tx,actor)=>{
     await tx.query('UPDATE auth.credentials SET revoked_at=clock_timestamp() WHERE id=$1',[actor.credentialId]);
@@ -153,5 +158,6 @@ export async function createApp({db,origin,oidc,logger=false,storage,metricsToke
   registerMediaRoutes(app,authenticated,storage);
   registerEventRoutes(app,db);
   await registerOidc(app,db,oidc);
+  if(devLogin)registerDevLogin(app,db,origin);
   return app;
 }

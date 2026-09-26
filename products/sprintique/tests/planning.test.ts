@@ -61,7 +61,7 @@ test('P13 SDK projections validate against live response schemas, including coun
 });
 
 test('P01 same task: draft -> prepare -> release -> start -> authorized board, without resetting work',async()=>{
-  await release('launch');const t=await task('flow',{description:'- [ ] Проверить',owner:'Алиса',status:'testing'});assert.equal(t.preparation,'draft');
+  await release('launch');const t=await task('flow',{description:'- [ ] Проверить',ownerId:f.alice.id,status:'testing'});assert.equal(t.preparation,'draft');
   assert.equal((await request('GET','board/tasks')).json().total,0);
   await apply({kind:'prepare',selection:select(t.id),preparation:'ready'});
   await apply({kind:'assign',selection:select(t.id),assignment:{mode:'assigned',releaseId:'launch'}});
@@ -69,7 +69,7 @@ test('P01 same task: draft -> prepare -> release -> start -> authorized board, w
   await apply({kind:'start',releaseId:'launch'});
   const board=(await request('GET','board/tasks',undefined,f.reader.headers)).json<{items:PlanningRow[]}>();assert.equal(board.items[0]!.id,t.id);
   assert.ok(!('description' in board.items[0]!));assert.equal(board.items[0]!.status,'testing');
-  const current=await row(t.id);assert.equal(current.description,t.description);assert.equal(current.owner,t.owner);assert.equal(current.id,t.id);
+  const current=await row(t.id);assert.equal(current.description,t.description);assert.equal(current.ownerId,t.ownerId);assert.equal(current.id,t.id);
   assert.equal((await request('GET','tasks/'+t.displayId,undefined,f.reader.headers)).json().id,t.id);
 });
 test('P02 independent admission preserves state; draft and accepted result are separate',async()=>{
@@ -221,11 +221,18 @@ test('P05 racing independently prepared commands have one winner, one stale rece
   assert.deepEqual(responses.map(r=>r.json().status).sort(),['committed','rejected']);
   assert.equal(responses.find(r=>r.json().status==='rejected')!.json().error.code,'PLAN_STALE');
 });
+test('P07b only a current human project member can become the owner',async()=>{
+  const outsider=await request('PUT','tasks/owner-outsider',{baseRevision:0,task:{title:'Outsider',ownerId:f.bob.id}});
+  assert.equal(outsider.statusCode,422,outsider.body);assert.equal(outsider.json().code,'TASK_OWNER');
+  const t=await task('owner-member',{ownerId:f.reader.id});assert.equal(t.ownerId,f.reader.id);assert.equal(t.ownerName,'Наблюдатель');
+  assert.equal((await request('POST','planning/previews',{kind:'bulk',selection:select(t.id),fields:{ownerId:f.bob.id}})).statusCode,422);
+  await apply({kind:'bulk',selection:select(t.id),fields:{ownerId:null}});assert.equal((await row(t.id)).ownerId,null);
+});
 test('P07 compact board position command never overwrites Markdown, tags, owner or hierarchy',async()=>{
-  const response=await request('PUT','tasks/from-board',{baseRevision:0,createInBoard:true,task:{title:'Board',description:'## Сохрани меня',owner:'Алиса',rank:4096}});
+  const response=await request('PUT','tasks/from-board',{baseRevision:0,createInBoard:true,task:{title:'Board',description:'## Сохрани меня',ownerId:f.alice.id,rank:4096}});
   assert.equal(response.statusCode,200,response.body);const original=response.json<Task>();
   const move=await f.app.inject({method:'PATCH',url:path('tasks/from-board/position'),headers:{...f.alice.headers,'idempotency-key':randomUUID()},payload:{baseRevision:1,status:'testing',rank:8192}});
-  assert.equal(move.statusCode,200,move.body);const saved=move.json<Task>();assert.equal(saved.description,original.description);assert.equal(saved.owner,original.owner);assert.equal(saved.rank,8192);assert.equal(saved.status,'testing');
+  assert.equal(move.statusCode,200,move.body);const saved=move.json<Task>();assert.equal(saved.description,original.description);assert.equal(saved.ownerId,original.ownerId);assert.equal(saved.rank,8192);assert.equal(saved.status,'testing');
   assert.equal((await request('GET','board/tasks?q=Board')).json().items[0].rank,8192);
 });
 test('P10 approval rejection, wrong plan token and stale approval never execute agent intent',async()=>{

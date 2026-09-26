@@ -6,6 +6,8 @@ import {MediaAdapter} from './media-adapter.js';
 import {MapMedia} from './map-media.js';
 
 /** Anti-corruption adapter: existing UI record intents become explicit v1 resource commands. */
+/** Board and dialogs read `owner` as a display name; the API owns ownerId, ownerName and legacy free text. */
+const displayOwner=(task,names)=>({...task,owner:task.ownerName||(task.ownerId?names?.get(task.ownerId)||'Бывший участник':task.legacyOwner||'')});
 export class ProductRepository {
   constructor(client=new SprintiqueClient()){this.client=client;this.listeners=new Set();this.context={};this.cache=new Map();this.cacheState={generation:0};this.createInBoard=true;this.capabilities={storage:'server',taskLinks:true,taskSettings:true,attachments:false,maps:true,templateImages:false};}
   async initialize(){const session=await this.client.session();this.context.actorId=session.principal.id;
@@ -51,6 +53,7 @@ export class ProductRepository {
   async taskContext(projectId,{signal}={}){return this.cached(projectId,'task-context',async()=>{
     const planning=new PlanningClient(this.client,projectId);let cursor,result=[];
     do{signal?.throwIfAborted();const page=await planning.tasks({cursor,limit:100},signal);result.push(...page.items.map(t=>({...t,projectId,summary:true})));cursor=page.nextCursor;}while(cursor);
+    const names=await this.memberNames(projectId,{signal});result=result.map(t=>displayOwner(t,names));
     return result;
   },{signal});
   }
@@ -62,13 +65,16 @@ export class ProductRepository {
     if(collection==='tasks'){
       let cursor,result=[];const planning=new PlanningClient(this.client,projectId);
       do{signal?.throwIfAborted();const page=await planning.board({cursor,limit:100},signal);result.push(...page.items.map(t=>({...t,projectId,summary:true})));cursor=page.nextCursor;
-      }while(cursor);return result;
+      }while(cursor);const names=await this.memberNames(projectId,{signal});return result.map(t=>displayOwner(t,names));
     }
     if(collection==='releases')return this.cached(projectId,collection,async()=>{
       const planning=new PlanningClient(this.client,projectId);let cursor,result=[];
       do{signal?.throwIfAborted();const page=await planning.releases(cursor,signal);result.push(...page.items.map(r=>({...r,status:['closed','cancelled'].includes(r.lifecycle)?'released':'planned',targetDate:r.deadline})));cursor=page.nextCursor;}while(cursor);
       return result;
     },{signal});
+    // Human project members are the only possible task owners.
+    if(collection==='members')return this.cached(projectId,collection,async()=>
+      (await this.client.request(`/projects/${encodeURIComponent(projectId)}/members`,'GET',undefined,undefined,signal)).filter(m=>m.kind==='human'),{signal});
     if(['tags','taskSettings','taskLinks'].includes(collection))return this.cached(projectId,collection,async()=>{
       const route={tags:'tags',taskSettings:'task-settings',taskLinks:'task-links'}[collection];
       const value=await this.client.request(`/projects/${encodeURIComponent(projectId)}/${route}`,'GET',undefined,undefined,signal);return collection==='taskSettings'?[value]:value;
@@ -76,9 +82,10 @@ export class ProductRepository {
     // Unknown collection names never fall back to browser-only persistence.
     throw new ApiError('NOT_IMPLEMENTED','Этот раздел ещё не подключён к API vNext.',501);
   }
+  async memberNames(projectId,{signal}={}){return new Map((await this.list('members',projectId,{signal})).map(m=>[m.id,m.name]));}
   async read(collection,id,projectId,{signal}={}){
     try{
-      if(collection==='tasks')return await this.client.task(projectId,id,signal);
+      if(collection==='tasks')return displayOwner(await this.client.task(projectId,id,signal));
       if(collection==='threads')return await this.client.thread(projectId,id,signal);
       if(collection==='maps')return this.mapMedia.hydrate(await this.client.request(`/projects/${encodeURIComponent(projectId)}/maps/${encodeURIComponent(id)}`,'GET',undefined,undefined,signal),{signal});
       return (await this.list(collection,projectId)).find(r=>r.id===id)||null;
@@ -106,7 +113,7 @@ export class ProductRepository {
       if(record.summary){
         const path=`${base}/tasks/${id}/position`,body={baseRevision,status:record.status,rank:record.rank};
         const saved=await this.client.request(path,'PATCH',body,await this.key(path,body));
-        this.clearProjectCache(record.projectId);this.listeners.forEach(fn=>fn({collection,projectId:record.projectId,id:record.id}));return saved;
+        this.clearProjectCache(record.projectId);this.listeners.forEach(fn=>fn({collection,projectId:record.projectId,id:record.id}));return displayOwner(saved);
       }
       if(record.checklists?.length)throw new ApiError('CONTENT_VERSION','Сохраните чек-листы в Markdown-описании.',422);
       const content=TaskInput.parse(Object.fromEntries(Object.keys(TaskInput.shape).map(key=>[key,record[key]])));
@@ -115,7 +122,7 @@ export class ProductRepository {
       if(this.confirmPlanningChange&&(!baseRevision&&releaseId||previous&&(previous.parentId!==parentId||previous.releaseId!==releaseId))){
         const intent=baseRevision?{kind:'taskEdit',taskId:record.id,baseRevision,task:content}:{kind:'taskCreate',taskId:record.id,task:content,createInBoard:this.createInBoard};
         await this.confirmPlanningChange(intent);
-        const saved=await this.client.task(record.projectId,record.id);this.clearProjectCache(record.projectId);this.listeners.forEach(fn=>fn({collection,projectId:record.projectId,id:record.id}));return saved;
+        const saved=await this.client.task(record.projectId,record.id);this.clearProjectCache(record.projectId);this.listeners.forEach(fn=>fn({collection,projectId:record.projectId,id:record.id}));return displayOwner(saved);
       }
       // Explicit creation from the board means "create and take into work"; Planning creation stays draft.
       body={baseRevision,createInBoard:baseRevision===0&&this.createInBoard,task:content};path=base+'/tasks/'+id;
@@ -143,6 +150,6 @@ export class ProductRepository {
     }else throw new ApiError('NOT_IMPLEMENTED','Этот раздел ещё не подключён к API vNext.',501);
     const saved=await this.client.request(path,method,body,await this.key(path,body),signal);
     this.clearProjectCache(record.projectId);
-    this.listeners.forEach(fn=>fn({collection,projectId:record.projectId,id:record.id,revision:saved.revision}));return collection==='maps'?this.mapMedia.hydrate(saved,{signal}):saved;
+    this.listeners.forEach(fn=>fn({collection,projectId:record.projectId,id:record.id,revision:saved.revision}));return collection==='maps'?this.mapMedia.hydrate(saved,{signal}):collection==='tasks'?displayOwner(saved):saved;
   }
 }

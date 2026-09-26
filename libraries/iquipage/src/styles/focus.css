@@ -1,0 +1,7 @@
+/* Keyboard focus for every button-like control. Pointer and touch interaction stays neutral because
+   :focus-visible only matches keyboard navigation; this rule is loaded last so no component can erase it. */
+:is(button,.iq-btn,[role="button"],input[type="button"],input[type="submit"],input[type="reset"]):focus-visible{outline:2px solid var(--iq-focus);outline-offset:2px}
+/* Transparent controls (ghost and icon buttons, tags, menu and list rows, segmented options) draw the ring inside
+   their own bounds: it never overlaps a neighbour or gets clipped by a scrolling container. */
+:is(.iq-btn.ghost,.iq-btn.icon,.iq-tag,.iq-segmented>button,.iq-command-list>button,.iq-menu-popup button,.iq-list-item):focus-visible{outline-offset:-2px}
+@media (forced-colors:active){:is(button,.iq-btn,[role="button"],input[type="button"],input[type="submit"],input[type="reset"]):focus-visible{outline-color:Highlight}}

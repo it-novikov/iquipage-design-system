@@ -57,6 +57,7 @@ export async function writeTaskLink(tx:Transaction,actor:Actor,projectId:string,
   });
 }
 export async function search(tx:Transaction,actor:Actor,q:string,cursor?:string){
+  // pg_c_utf8 folds Cyrillic and other non-ASCII case, which the C database collation does not.
   // Agent search must retain the grant's read capability as well as RLS scope.
   const tasksAllowed=actor.kind==='human'||actor.capabilities.includes('tasks:read'),mapsAllowed=actor.kind==='human'||actor.capabilities.includes('maps:read');
   if(actor.kind==='agent'){requireCondition(actor.projectId&&(tasksAllowed||mapsAllowed),403,'FORBIDDEN','Поиск требует разрешение на чтение.');await authorize(tx,actor,actor.projectId,tasksAllowed?'tasks:read':'maps:read');}
@@ -65,9 +66,9 @@ export async function search(tx:Transaction,actor:Actor,q:string,cursor?:string)
   const result=(await tx.query<{searchKey:string;kind:string;id:string;projectId:string;title:string;key:string;projectName:string;slug:string;excerpt:string}>(`WITH results AS (
     SELECT 'task:'||p.id||':'||t.id AS "searchKey",'task' AS kind,t.id,p.id AS "projectId",t.title,p.key||'-'||t.number AS key,p.name AS "projectName",p.slug,left(t.description,160) AS excerpt
       FROM app.tasks t JOIN app.projects p ON p.id=t.project_id
-      WHERE $4 AND (t.title ILIKE $1 OR p.key||'-'||t.number ILIKE $1 OR to_tsvector('simple',t.title||' '||t.description) @@ websearch_to_tsquery('simple',$2))
-    UNION ALL SELECT 'map:'||p.id||':'||m.id,'map',m.id,p.id,m.value->>'title','Карта',p.name,p.slug,left(m.value->>'summary',160) FROM app.maps m JOIN app.projects p ON p.id=m.project_id WHERE $5 AND (m.value->>'title' ILIKE $1 OR m.value->>'summary' ILIKE $1)
-    UNION ALL SELECT 'project:'||p.id,'project',p.id,p.id,p.name,p.key,p.name,p.slug,'' FROM app.projects p WHERE p.name ILIKE $1 OR p.key ILIKE $1
+      WHERE $4 AND ((t.title) COLLATE pg_c_utf8 ILIKE $1 OR (p.key||'-'||t.number) COLLATE pg_c_utf8 ILIKE $1 OR to_tsvector('simple',t.title||' '||t.description) @@ websearch_to_tsquery('simple',$2))
+    UNION ALL SELECT 'map:'||p.id||':'||m.id,'map',m.id,p.id,m.value->>'title','Карта',p.name,p.slug,left(m.value->>'summary',160) FROM app.maps m JOIN app.projects p ON p.id=m.project_id WHERE $5 AND ((m.value->>'title') COLLATE pg_c_utf8 ILIKE $1 OR (m.value->>'summary') COLLATE pg_c_utf8 ILIKE $1)
+    UNION ALL SELECT 'project:'||p.id,'project',p.id,p.id,p.name,p.key,p.name,p.slug,'' FROM app.projects p WHERE (p.name) COLLATE pg_c_utf8 ILIKE $1 OR (p.key) COLLATE pg_c_utf8 ILIKE $1
     ) SELECT * FROM results WHERE "searchKey">$3 ORDER BY "searchKey" LIMIT 51`,[pattern,q,after,tasksAllowed,mapsAllowed])).rows;
   const items=result.slice(0,50).map(({searchKey,...item})=>({...item,url:'/?project='+encodeURIComponent(item.slug)+(item.kind==='task'?'#/task/'+encodeURIComponent(item.key):item.kind==='map'?'#maps/'+encodeURIComponent(item.id):'#tasks')}));
   return {items,nextCursor:result.length>50?Buffer.from(JSON.stringify({hash:queryHash,after:result[49]!.searchKey})).toString('base64url'):null};

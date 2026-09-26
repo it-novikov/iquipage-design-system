@@ -48,7 +48,10 @@
     "markdown-viewer.js",
     "work-layout.js",
     "everyday-stories.js",
-    "markdown-tasks.js"
+    "markdown-tasks.js",
+    "work-list-index.js",
+    "work-list-table.js",
+    "work-list-drag.js"
   ],
   "library": [
     "components.js",
@@ -86,7 +89,10 @@
     "work-layout.js",
     "whiteboard-shapes.js",
     "whiteboard-workshop.js",
-    "markdown-tasks.js"
+    "markdown-tasks.js",
+    "work-list-index.js",
+    "work-list-table.js",
+    "work-list-drag.js"
   ],
   "entries": {
     "core": [
@@ -120,6 +126,11 @@
     "whiteboard": [
       "whiteboard.js",
       "whiteboard-core.js"
+    ],
+    "work-list": [
+      "work-list-index.js",
+      "work-list-table.js",
+      "work-list-drag.js"
     ]
   }
 }

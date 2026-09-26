@@ -1,0 +1,18 @@
+/* Product navigation: public composition of IQUIPAGE controls and tokens. */
+.pn-platform-header{display:flex;align-items:center;gap:var(--iq-space-3);flex:none;min-height:var(--iq-work-compact-row);padding:var(--iq-space-2) var(--iq-space-6);border-bottom:1px solid var(--iq-line)}
+.pn-personal-navigation{display:flex;align-items:center;gap:var(--iq-space-1);flex:none;margin-left:auto}
+@media(max-width:700px){.pn-platform-header{padding-inline:var(--iq-space-4)}.pn-fixture-notice{padding-inline:var(--iq-space-4)}.pn-space-trigger{--iq-switcher-max:96px}.pn-project-trigger{--iq-switcher-max:140px}.pn-personal-navigation [data-theme-toggle]{display:none}}
+/* Context: "Workspace / Project", two quiet menu triggers without logo or avatar. */
+.pn-context{display:flex;align-items:center;gap:0;min-width:0;flex:0 1 auto}
+.pn-context>iq-menu{min-width:0}
+.pn-space-trigger{--iq-switcher-max:200px}
+.pn-project-trigger{--iq-switcher-max:240px}
+.pn-context-separator{color:var(--iq-muted);padding-inline:var(--iq-space-1)}
+@media(max-width:700px){.pn-space-trigger{--iq-switcher-max:96px}.pn-project-trigger{--iq-switcher-max:140px}}
+/* Sections: DS segmented control centred between context and personal tools. */
+.pn-sections{display:flex;justify-content:center;flex:1 1 auto;min-width:0}
+.pn-sections .iq-segmented{max-width:100%}
+.pn-sections .iq-segmented>button{white-space:nowrap}
+/* Ghost trigger padding is pulled into the header gutter so "Workspace" lines up with page content. */
+.pn-context{margin-inline-start:calc(-1 * var(--iq-space-3))}
+@media(max-width:900px){.pn-platform-header{flex-wrap:wrap}.pn-context{flex:1 1 0}.pn-sections{order:3;flex-basis:100%}.pn-sections .iq-segmented{flex:1;display:flex}.pn-sections .iq-segmented>button{flex:1}}

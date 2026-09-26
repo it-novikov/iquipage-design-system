@@ -48,6 +48,8 @@ test('W04 search includes authorized project/task keys and Markdown, excludes ot
   assert.ok(response.json().items.every((r:{projectId:string;url:string})=>r.projectId===f.first.id&&r.url.startsWith('/?project=wspr#/task/WSPR-')));
   const other=await request('GET','/api/v1/search?q=workspace',undefined,f.bob.headers);assert.equal(other.statusCode,200);assert.equal(other.json().items.length,0);
   assert.ok((await request('GET','/api/v1/search?q='+encodeURIComponent('содержание'))).json().items.length>=4);
+  // Cyrillic case folding does not depend on the database collation.
+  assert.ok((await request('GET','/api/v1/search?q='+encodeURIComponent('КОМАНДА ПРОДУКТА'))).json().items.some((i:{kind:string})=>i.kind==='project'));
   assert.equal((await request('GET','/api/v1/search?q=workspace&cursor=invalid')).statusCode,400);
 });
 test('W05 logical and temporal dependency APIs cannot close each other\'s cycles',async()=>{
