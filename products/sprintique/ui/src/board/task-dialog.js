@@ -46,8 +46,8 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
     ${input('title','Название',initial.title,{required:true,placeholder:'Что нужно сделать?'})}
     <section class="task-edit-section"><div class="row between"><h3>Описание</h3>${canEdit?'<button type="button" class="iq-btn ghost sm" data-apply-template>Применить шаблон</button>':''}</div>
       <div class="task-description-surface" data-description>
-        <iq-markdown-editor label="Описание" name="description" variant="compact" density="compact" maxlength="10000" preview-on-blur ${task?'preview':''}></iq-markdown-editor>
-      </div><div class="task-tags-row" data-task-tags aria-label="Теги задачи"></div></section>
+        <iq-markdown-editor label="Описание" name="description" variant="compact" density="compact" maxlength="10000" preview-on-blur ${task?'preview':''} empty-text="${canEdit?'Нажмите, чтобы добавить описание':'Описания нет'}"></iq-markdown-editor>
+      </div></section>
     </div><aside class="task-editor-properties" aria-label="Свойства задачи">
     <div class="task-edit-properties">
       ${select('type','Тип',initial.type||'task',Object.entries(TASK_KINDS))}
@@ -57,6 +57,7 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
       <iq-date-field name="due" label="Срок" value="${esc(initial.due||'')}"></iq-date-field>
     </div><section data-task-catalogs></section></aside>
     <div class="task-editor-supplements">
+    <section class="task-edit-section task-tags-row" data-task-tags aria-label="Теги задачи"></section>
     <section class="task-edit-section" data-task-files></section>
     <section class="task-edit-section"><h3>Связи</h3><iq-combobox name="parent" label="Родительская задача" value="${esc(initial.parentId||'')}" options="${esc(JSON.stringify(parents))}" placeholder="Найти задачу по номеру или названию"></iq-combobox><div data-task-links></div></section>
     <section class="task-edit-section" data-task-threads></section></div></div><p role="status" class="iq-helper" data-task-save-state></p>`;

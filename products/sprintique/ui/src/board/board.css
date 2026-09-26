@@ -118,7 +118,6 @@
 @media(max-width:400px){.task-editor-properties .task-edit-properties{grid-template-columns:minmax(0,1fr)}}
 .task-editor-cover{margin:0}
 .task-description-surface{min-width:0;position:relative}
-.task-tags-row{padding-top:var(--iq-space-2)}
 .task-tag-options{display:flex;flex-wrap:wrap;align-items:center;align-content:center;justify-content:flex-start;gap:var(--iq-space-2);min-height:112px;padding-block:var(--iq-space-5)}
 .task-edit-dialog .task-edit-section>h3,.task-edit-dialog .task-edit-section>.row>h3{margin:0}
 .task-edit-dialog [data-task-save-state]:empty,.task-edit-dialog [data-thread-page-state]:empty,.task-edit-dialog [data-thread-count]:empty,.task-edit-dialog [data-file-list]:empty,.task-edit-dialog [data-task-links]:empty{display:none}
@@ -175,5 +174,4 @@
 .task-subtask-title{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .task-subtask>small{grid-column:2;color:var(--iq-muted);font-size:var(--iq-type-meta-size)}
 /* The running release names the board; its dates sit beside the title. */
-.board-period{margin:0 0 var(--iq-space-1);color:var(--iq-muted);font-size:var(--iq-type-caption-size)}
 .task-cover-dropwell{margin:0}

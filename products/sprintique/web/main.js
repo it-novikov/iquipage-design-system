@@ -182,17 +182,6 @@ function search(){if(!session||document.querySelector('dialog[open]'))return;ope
   try{if(board&&!await board.closeTask())return;history.replaceState(null,'',item.kind==='map'?'#maps/'+encodeURIComponent(item.id):'#tasks');await showProject(item.projectId,item.kind==='map'?'maps':'tasks');if(item.kind==='task')await board.openTask(item.key);}catch(error){report(error);}
 }});}
 window.addEventListener('keydown',event=>{if((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='k'){event.preventDefault();search();}});
-root.addEventListener('iq-action',event=>{
-  const action=String(event.detail.action||'');
-  if(action.startsWith('section:'))void navigate(action.slice(8)).catch(report);
-  if(action==='profile')void editProfile(repository.client).catch(report);
-  if(action==='theme')applyTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');
-  if(action==='logout')void(async()=>{if(board&&!await board.closeTask())return;await repository.client.request('/logout','POST');location.reload();})().catch(report);
-  if(action.startsWith('project:')){void showProject(action.slice(8)).catch(report);}
-  if(action==='create-project')void onboard(currentProject?.workspaceId).catch(report);
-  if(action.startsWith('workspace:')){const id=action.slice(10),p=session.projects.find(p=>p.workspaceId===id);if(p)void showProject(p.id).catch(report);else void onboard(id).catch(report);}
-  if(action==='create-workspace')dialog({title:'Создать пространство',body:input('name','Название','',{required:true,maxlength:100}),submitLabel:'Создать',onSubmit:async values=>{const space=await repository.client.request('/workspaces','POST',{name:values.get('name')});await onboard(space.id);}});
-});
 window.addEventListener('hashchange',()=>{void(async()=>{const task=parseTaskRoute(location.hash);if(task){if(!board?.openTask)await showProject(currentProject.id,'tasks');await board?.openTask?.(task,{fromRoute:true});}else if(location.hash.startsWith('#maps'))await navigate('maps');else if(location.hash.startsWith('#settings')){if(viewMode==='settings'&&board?.showSection){const {settingsSectionFromHash}=await import('./settings.js');await board.showSection(settingsSectionFromHash(location.hash));}else await navigate('settings');}
     else if(['#tasks','#planning'].includes(location.hash))await navigate(location.hash.slice(1));else await board?.closeTask();})().catch(report);});
 try{session=await repository.initialize();

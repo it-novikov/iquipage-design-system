@@ -30,7 +30,7 @@ export class MapsFeature {
     installWorkflowUI(this);installAutomationUI(this);
   }
   async mount() {
-    registerWhiteboard();this.root.innerHTML=`<section class="iq-maps" aria-label="Карты проекта"><header class="map-toolbar"></header><div class="map-subbar"></div><div class="map-notice" role="status" hidden></div><div class="map-content"><div class="map-title-chip" data-map-title hidden></div><div class="map-surface"></div><aside class="map-inspector" aria-label="Свойства и результаты" hidden></aside></div><span class="sr-only" role="status" data-map-live></span></section>`;
+    registerWhiteboard();this.root.innerHTML=`<section class="iq-maps" aria-label="Карты проекта"><header class="map-toolbar"></header><div class="map-subbar"></div><div class="map-notice" role="status" hidden></div><div class="map-content"><div class="map-title-chip" data-map-title hidden><span class="map-title-chip-heading" data-chip-heading></span><span data-chip-sync></span><span class="sr-only" role="status" data-chip-live></span></div><div class="map-surface"></div><aside class="map-inspector" aria-label="Свойства и результаты" hidden></aside></div><span class="sr-only" role="status" data-map-live></span></section>`;
     this.toolbar=this.root.querySelector('.map-toolbar');this.subbar=this.root.querySelector('.map-subbar');this.surface=this.root.querySelector('.map-surface');this.inspector=this.root.querySelector('.map-inspector');this.titleChip=this.root.querySelector('[data-map-title]');
     this.root.addEventListener('click',event=>{
       const control=event.target.closest('[data-map-action]');if(!control||control.disabled)return;
@@ -142,6 +142,16 @@ export class MapsFeature {
     this.board.data=this.view==='workflow'?flowScene(saved.flow,saved.title,saved.revision):saved.document;
     this.board.readOnly=!this.permissions.edit||saved.status==='archived';this.renderChrome();return saved;
   }
+  /** Rebuilds the chip parts only when they change, so an open tooltip is not torn down by every save. */
+  renderTitleChip(heading,m,save){
+    const state=this.board?.saving||save==='Сохраняем…'?'saving':this.board?.dirty?'dirty':'saved';
+    const kind=m.kind==='session'?'Сессия':'Постоянная карта';
+    const tip=state==='saving'?`${kind} · Синхронизация: сохраняем изменения…`:state==='dirty'?`${kind} · Есть несохранённые изменения. Они синхронизируются автоматически.`:`${kind} · ${save}. Карта сохраняется и синхронизируется автоматически.`;
+    if(this.titleChip.dataset.heading!==heading){this.titleChip.dataset.heading=heading;this.titleChip.querySelector('[data-chip-heading]').innerHTML=heading;}
+    const sync=this.titleChip.querySelector('[data-chip-sync]');
+    if(sync.dataset.tip!==tip){sync.dataset.tip=tip;sync.innerHTML=`<iq-tooltip text="${esc(tip)}"><span class="map-sync" data-state="${state}" tabindex="0" role="img" aria-label="${esc(tip)}">${icon(state==='dirty'?'warning':'refresh',16)}</span></iq-tooltip>`;}
+    const live=this.titleChip.querySelector('[data-chip-live]');if(live.textContent!==tip)live.textContent=tip;
+  }
   renderChrome(override='') {
     if(!this.alive)return;
     const active=document.activeElement,focusAction=this.toolbar.contains(active)||this.subbar.contains(active)?active?.dataset.mapAction:null;
@@ -151,10 +161,11 @@ export class MapsFeature {
     const heading=this.uiCapabilities.mapSwitcher?`<button type="button" class="map-switch" data-map-action="maps" aria-label="Выбрать карту: ${esc(title)}" title="${esc(title)}"><span>${esc(title)}</span>${icon('down',16)}</button>`:`<span class="map-switch map-switch-static"><span>${esc(title)}</span></span>`;
     const canAdd=this.view==='workflow';
     this.toolbar.innerHTML=`<div class="map-heading"><div class="map-title-wrap"><h1>${heading}</h1><span class="map-save-label" role="status">${m?`${m.kind==='session'?'Сессия':'Постоянная карта'} · `:''}${esc(save)}</span></div></div>${m&&this.uiCapabilities.workflow&&!this.directEditing?`<div class="iq-segmented map-view-tabs" aria-label="Рабочая поверхность"><button type="button" data-map-action="canvas" aria-pressed="${this.view==='canvas'}">${icon('board',16)}<span>Карта</span></button><button type="button" data-map-action="workflow" aria-pressed="${this.view==='workflow'}">${icon('link',16)}<span>Сценарий действий</span></button></div>`:''}<div class="map-toolbar-actions">${m&&this.view==='canvas'?button('find','Найти на карте','search'):m&&this.directEditing?button('canvas','К карте','left'):''}${this.uiCapabilities.templates&&!this.directEditing?button('templates','Шаблоны','grid'):''}${m&&!disabled&&canAdd?button(this.view==='workflow'?'add-step':'add',this.view==='workflow'?'Добавить шаг':'Добавить объекты','plus','primary'):!m&&this.permissions.edit?button('new','Создать карту','plus','primary'):''}${this.moreMenu()}</div>`;
-    // On the canvas the toolbar row goes away: the title and save state float as a chip beside the side dock.
+    // On the canvas the toolbar row goes away: the title floats as a chip in the top right corner, and the save
+    // state is a sync icon whose tooltip says what it means. The properties panel may cover the chip.
     const chip=!!m&&this.view==='canvas'&&!this.directEditing;
     this.toolbar.hidden=chip;this.titleChip.hidden=!chip;
-    if(chip)this.titleChip.innerHTML=`${heading}<span class="map-save-label" role="status">${m.kind==='session'?'Сессия':'Постоянная карта'} · ${esc(save)}</span>`;
+    if(chip)this.renderTitleChip(heading,m,save);
     const session=this.uiCapabilities.sessions&&m?.kind==='session'&&m.status!=='archived';
     this.subbar.hidden=!m||(this.view==='canvas'&&m.status!=='archived');
     this.renderSessionCard();

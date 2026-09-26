@@ -53,10 +53,8 @@
 .pn-col-task{width:56%}.pn-col-state{width:16%}.pn-col-owner{width:14%}.pn-col-date{width:14%}
 /* Phones (set at mount): the page scrolls; a nested list scroller left only ~330px for tasks. */
 .planning-view[data-page-scroll]{height:auto}.planning-view[data-page-scroll] .pn-scroll{overflow:visible;flex:none}
-/* Gantt: one scroller. The toolbar and plan header stay put; only the roadmap grid scrolls (DS iq-roadmap[fill]). */
-.pn-temporal[data-time-mode=timeline]:not([hidden]){display:flex;flex-direction:column;overflow:hidden}
-.pn-temporal[data-time-mode=timeline] [data-time-surface]{flex:1;min-height:0;display:flex;flex-direction:column}
-.pn-temporal[data-time-mode=timeline] [data-time-surface]>iq-roadmap{flex:1;min-height:0}
+/* Gantt: one scroller. The planning page scrolls as a whole; the roadmap keeps its full height (DS iq-roadmap[flow])
+   and scrolls only sideways, so release groups are never cut off inside a nested box. */
 /* Releases and backlog are separate cards, so groups no longer merge into one sheet. */
 .pn-group{border:1px solid var(--iq-line);border-radius:var(--iq-radius-lg);background:var(--iq-raised);padding:0 var(--iq-space-4) var(--iq-space-2);margin-bottom:var(--iq-space-5);overflow:clip}
 .pn-group-header{background:var(--iq-raised);border-bottom:0;padding-block:var(--iq-space-3)}

@@ -1325,17 +1325,19 @@ iq-side-navigation[collapsed] .product-nav-link[data-contains-current]{backgroun
   radial-gradient(ellipse 95% 130% at -14% -20%,var(--task-light-core) 0%,var(--task-light-core) 13%,var(--task-light-mid) 50%,transparent 82%),
   radial-gradient(ellipse 90% 82% at 35% -56%,var(--task-light-rim) 0%,transparent 88%);
 }
-/* Cards use the neutral opaque substrate; colour is a separate light field. */
+/* Cards use the neutral opaque substrate; colour is a separate light field. The field has a fixed height anchored
+   at the top, so it never grows with the card's content (expanded subtasks, long titles). */
+.task-card{--task-light-extent:160px}
 .iq-board .task-card,.priority-specimen .task-card,.priority-card-gallery .task-card,.task-card.iq-drag-overlay {
  position:relative;isolation:isolate;background-color:var(--task-surface);
- background-image:var(--task-light-image);background-repeat:no-repeat;background-size:100% 100%;
+ background-image:var(--task-light-image);background-repeat:no-repeat;background-size:100% var(--task-light-extent);
  border:0;border-radius:12px;box-shadow:none;padding:15px;gap:13px;
  transition:none;
 }
 .task-card::before {content:none;display:none}
 .task-card::after {
  content:"";display:block;position:absolute;inset:0;border-radius:inherit;
- background:var(--task-light-image);opacity:0;pointer-events:none;z-index:0;
+ background:var(--task-light-image) 0 0/100% var(--task-light-extent) no-repeat;opacity:0;pointer-events:none;z-index:0;
  transition:opacity 180ms var(--iq-ease);
 }
 .task-card>* {position:relative;z-index:1}
@@ -2098,6 +2100,8 @@ iq-tag-picker{display:grid;gap:var(--iq-space-2);position:relative;min-width:0}
 iq-roadmap[fill]{display:flex;flex-direction:column;min-height:0;height:100%}
 iq-roadmap[fill]>.iq-roadmap{flex:1;min-height:0;display:flex;flex-direction:column}
 iq-roadmap[fill] .rm-scroll{flex:1;min-height:0;max-height:none}
+/* flow: the roadmap grows to its content and the page is the only vertical scroller; the grid scrolls sideways only. */
+iq-roadmap[flow] .rm-scroll{max-height:none;overflow-y:hidden;overscroll-behavior:auto}
 /* ---------- Calendar entries as task cards (0.6.0-vnext.8) ---------- */
 .plan-day .task-card.plan-card{display:flex;flex-direction:column;gap:var(--iq-space-1);width:100%;margin:0 0 var(--iq-space-2);padding:10px 12px;border-radius:10px;text-align:left;color:var(--iq-ink);font:inherit;cursor:pointer}
 .plan-card .task-card-top{margin:0;gap:var(--iq-space-2)}

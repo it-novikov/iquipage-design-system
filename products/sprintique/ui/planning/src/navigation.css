@@ -9,10 +9,13 @@
 .pn-project-trigger{--iq-switcher-max:240px}
 .pn-context-separator{color:var(--iq-muted);padding-inline:var(--iq-space-1)}
 @media(max-width:700px){.pn-space-trigger{--iq-switcher-max:96px}.pn-project-trigger{--iq-switcher-max:140px}}
-/* Sections: DS segmented control centred between context and personal tools. */
-.pn-sections{display:flex;justify-content:center;flex:1 1 auto;min-width:0}
-.pn-sections .iq-segmented{max-width:100%}
-.pn-sections .iq-segmented>button{white-space:nowrap}
+/* Sections: DS work navigation centred between context and personal tools. The tabs fill the header height,
+   so the current tab's underline sits on the header's bottom border, as in the DS site header. */
+.pn-platform-header{padding-block:0;align-items:stretch}
+.pn-context,.pn-personal-navigation{align-self:center;padding-block:var(--iq-space-2)}
+.pn-sections{justify-content:center;flex:1 1 auto;min-width:0;flex-wrap:nowrap;border-bottom:0;margin-bottom:-1px}
+.pn-sections a{white-space:nowrap;min-height:100%}
+.pn-sections a:hover{color:var(--iq-ink)}
 /* Ghost trigger padding is pulled into the header gutter so "Workspace" lines up with page content. */
 .pn-context{margin-inline-start:calc(-1 * var(--iq-space-3))}
-@media(max-width:900px){.pn-platform-header{flex-wrap:wrap}.pn-context{flex:1 1 0}.pn-sections{order:3;flex-basis:100%}.pn-sections .iq-segmented{flex:1;display:flex}.pn-sections .iq-segmented>button{flex:1}}
+@media(max-width:900px){.pn-platform-header{flex-wrap:wrap}.pn-context{flex:1 1 0}.pn-sections{order:3;flex-basis:100%;overflow-x:auto;scrollbar-width:none}}

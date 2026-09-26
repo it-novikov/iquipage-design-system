@@ -383,7 +383,7 @@ class IqMarkdownEditor extends components_js_1.IqElement {
     renderPreview(pane,value) {
         value = this.value; // The textarea normalizes CRLF; task positions must use that same draft.
         try {
-            pane.innerHTML=safeMarkdown(value)||'<p class="md-empty">Пока нет содержимого.</p>';
+            pane.innerHTML=safeMarkdown(value)||`<p class="md-empty">${components_js_1.escapeHTML(this.getAttribute('empty-text')||'Пока нет содержимого.')}</p>`;
             if (this.interactiveTasks && !this.disabled && !this.readOnly) require('./markdown-tasks.js').bindMarkdownTasks(pane, value, (detail, button) => {
                 if (this.disabled || this.readOnly || !this.interactiveTasks || this.value !== detail.source) return;
                 const restoreFocus = this.ownerDocument.activeElement === button;

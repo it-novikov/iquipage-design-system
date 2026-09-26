@@ -173,7 +173,8 @@ iq-whiteboard[selection-bar=none] :is(.wb-command-row,.wb-formatting){display:no
 /* ---------- Side dock (0.6.0-vnext.9): dock="side" ----------
    The dock is a vertical rail on the left; the object library and the host panel slide out from it to the right
    and back into it, with the same motion. Only one sheet is open at a time. */
-iq-whiteboard[dock=side] .wb-footer{top:16px;bottom:16px;left:16px;right:auto;display:flex;flex-direction:column;justify-content:space-between;align-items:flex-start;gap:var(--iq-space-3)}
+/* Same specificity as the host-embedding footer rule (minified to an inset shorthand that resets top), and later, so the rail starts at the top edge, level with the sheets. */
+iq-whiteboard[dock=side] .wb-footer,iq-whiteboard[surface-mode=embedded][editor-mode=host][dock=side] .wb-footer{top:16px;bottom:16px;left:16px;right:auto;display:flex;flex-direction:column;justify-content:space-between;align-items:flex-start;gap:var(--iq-space-3)}
 iq-whiteboard[dock=side] .wb-shell[data-workshop] .wb-dock{flex-direction:column;align-items:center}
 iq-whiteboard[dock=side] .wb-dock-divider{width:24px;height:1px;margin:4px auto;align-self:center}
 iq-whiteboard[dock=side] .wb-host-actions{display:flex;flex-direction:column;gap:3px}
@@ -190,4 +191,4 @@ iq-whiteboard[dock=side] .wb-shell :is(.wb-library,.wb-host-panel)[hidden]{displ
 .wb-host-panel>header h3{font:600 15px/1.4 var(--iq-font);letter-spacing:-.02em;margin:0;color:var(--iq-ink)}
 .wb-host-body{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;padding:0 8px 12px}
 @media (prefers-reduced-motion:reduce){iq-whiteboard[dock=side] .wb-shell :is(.wb-library,.wb-host-panel),iq-whiteboard[dock=side] .wb-shell :is(.wb-library,.wb-host-panel)[hidden]{transition:none}}
-@media(max-width:760px){iq-whiteboard[dock=side] .wb-shell :is(.wb-library,.wb-host-panel){left:72px;width:calc(100% - 84px)}}
+@media(max-width:760px){iq-whiteboard[dock=side] .wb-shell :is(.wb-library,.wb-host-panel){left:72px;width:calc(100% - 84px)}iq-whiteboard[surface-mode=embedded][editor-mode=host][dock=side] .wb-footer{top:8px;bottom:8px;left:8px;right:auto}}

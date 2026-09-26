@@ -10,7 +10,7 @@ test('whiteboard hosts can put commands in the dock and open a side panel that s
   assert.match(js, /openHostPanel\(\{id='',title='',content=''\}=\{\}\)/);
   assert.match(js, /this\.emit\('iq-host-command',\{command:host\.dataset\.wbHost\}\)/);
   const css = read('src/styles/whiteboard-workshop.css');
-  assert.match(css, /iq-whiteboard\[dock=side\] \.wb-footer\{/);
+  assert.match(css, /iq-whiteboard\[dock=side\] \.wb-footer,/);
   assert.match(css, /iq-whiteboard\[dock=side\] \.wb-shell :is\(\.wb-library,\.wb-host-panel\)\[hidden\]\{display:flex!important;transform:translateX\(-24px\)/);
   assert.match(read('src/modules/whiteboard-studio.js'), /if\(this\.libraryOpen\)this\.closeHostPanel\?\.\(false\)/);
 });
