@@ -1,5 +1,5 @@
 /** Supported core browser entry. Does not register graph, roadmap, crop, or whiteboard. */
-export declare const version:'0.6.0-vnext.8';
+export declare const version:'0.6.0-vnext.10';
 export declare function registerCore():void;
 export declare function registerComponents():void;
 export declare function registerDateFields():void;
@@ -69,3 +69,12 @@ export type WorkDensity='compact'|'comfortable';
 export declare class IqWorkLayout extends HTMLElement {density:WorkDensity;}
 export declare function registerWorkLayout():void;
 declare global {interface HTMLElementTagNameMap {'iq-markdown-viewer':IqMarkdownViewer;'iq-work-layout':IqWorkLayout;}}
+
+/** Persistent settings shell: navigation and heading named slots, content default slot. */
+export declare class IqSettingsLayout extends HTMLElement {}
+export interface VisualChoiceOption {value:string;label:string;description?:string;preview?:'light'|'dark'|'system'|'comfortable'|'compact';}
+/** Native keyboard-operable radios; iq-change detail.value. Label via label attribute. */
+export declare class IqVisualChoice extends HTMLElement {options:VisualChoiceOption[];value:string;}
+export declare function settingsNavigation(groups:{label:string;items:{id:string;label:string;icon?:string}[]}[],active:string):string;
+export declare function registerSettings():void;
+declare global {interface HTMLElementTagNameMap {'iq-settings-layout':IqSettingsLayout;'iq-visual-choice':IqVisualChoice;}}

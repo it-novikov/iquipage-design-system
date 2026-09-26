@@ -1,11 +1,16 @@
 // Compiled against the packed package, not the neighboring source tree.
-import {version,type IqMarkdownEditor,type IqMarkdownViewer} from '@iquipage/web/core';
+import {version,type IqMarkdownEditor,type IqMarkdownViewer,type IqVisualChoice,settingsNavigation} from '@iquipage/web/core';
 import type {IqImageCrop} from '@iquipage/web/advanced';
 import type {IqWhiteboard} from '@iquipage/web/whiteboard';
-const release:'0.6.0-vnext.8'=version;
+const release:'0.6.0-vnext.10'=version;
 export function libraryContract(editor:IqMarkdownEditor,viewer:IqMarkdownViewer,crop:IqImageCrop,board:IqWhiteboard){
   editor.density='compact';editor.previewOnBlur=true;editor.interactiveTasks=true;
   editor.footerActions=[{id:'decision',label:'Требует решения',pressed:false,tone:'warning'}];
   viewer.interactiveTasks=true;crop.aspectRatio=12/5;board.editorMode='host';
   return {release,exportCover:()=>crop.export({size:1942,type:'image/webp'})};
+}
+
+export function settingsContract(choice:IqVisualChoice){
+ choice.options=[{value:"light",label:"Светлая",preview:"light"}];choice.value="light";
+ return settingsNavigation([{label:"Личные",items:[{id:"appearance",label:"Внешний вид"}]}],"appearance");
 }

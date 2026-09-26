@@ -22,9 +22,9 @@ try{
   await admin.query('CREATE ROLE sprintique_app LOGIN NOSUPERUSER NOBYPASSRLS');
   await admin.query('CREATE ROLE sprintique_worker LOGIN NOSUPERUSER NOBYPASSRLS');
   await admin.query('CREATE DATABASE sprintique OWNER sprintique_migrator');await admin.end();
-  const preview=process.argv.includes('--preview');
+  const settingsPreview=process.argv.includes('--settings-preview'),preview=settingsPreview||process.argv.includes('--preview');
   const tests=(await readdir('tests')).filter(name=>/\.test\.(ts|mjs)$/.test(name)).sort().map(name=>'tests/'+name);
-  const child=spawn(process.execPath,['--import','tsx',...(preview?['tests/preview.ts']:['--test','--test-concurrency=1',...tests])],{
+  const child=spawn(process.execPath,['--import','tsx',...(preview?[settingsPreview?'tests/settings-preview.ts':'tests/preview.ts']:['--test','--test-concurrency=1',...tests])],{
     stdio:'inherit',env:{...process.env,TEST_FIXTURE_DIR:dir,TEST_ADMIN_DATABASE_URL:url('postgres'),MIGRATION_DATABASE_URL:url('sprintique_migrator'),DATABASE_RUNTIME_ROLE:'sprintique_app',DATABASE_WORKER_ROLE:'sprintique_worker',DATABASE_URL:url('sprintique_app'),WORKER_DATABASE_URL:url('sprintique_worker')}
   });
   process.exitCode=await waitForChild(child,{forwardSignals:true});

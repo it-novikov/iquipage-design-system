@@ -2,14 +2,14 @@ import {dialog,select,icon,esc} from '../ui.js';
 import {editCatalogItem,tagMarkup} from './catalog-ui.js';
 import {starterTaskSettings,compileTaskTemplate,TEMPLATE_MODES,STARTER_TASK_TEMPLATES,upgradeLegacyTaskSettings} from './task-templates.js';
 import {taskMarkdown} from './task-content.js';
-export async function mountProjectTaskSettings(root,{repository,project,section,onBack=null,canManage=true}){
+export async function mountProjectTaskSettings(root,{repository,project,section,onBack=null,canManage=true,embedded=false}){
   let closed=false,items=[],activeDialog=null,settings;
   const titles={tags:'Теги проекта',releases:'Релизы проекта',templates:'Шаблоны задач'};
   const createLabel=section==='tags'?'Новый тег':'Новый релиз';
   const createButton=section!=='templates'&&canManage?`<button type="button" class="iq-btn primary sm" data-catalog-create>${createLabel}</button>`:'';
   root.innerHTML=`<div class="host-settings task-settings-page">
-    ${onBack?`<button type="button" class="iq-btn ghost sm" data-settings-back>${icon('left',16)}<span>Настройки проекта</span></button>`:''}
-    <div class="row between"><h1>${titles[section]}</h1>${createButton}</div>
+    ${!embedded&&onBack?`<button type="button" class="iq-btn ghost sm" data-settings-back>${icon('left',16)}<span>Настройки проекта</span></button>`:''}
+    <div class="row between">${embedded?'':`<h1>${titles[section]}</h1>`}${createButton}</div>
     <p class="map-form-error" role="alert" hidden></p><div data-settings-content></div></div>`;
   const content=root.querySelector('[data-settings-content]'),error=root.querySelector('[role=alert]'),abort=new AbortController();
   const fail=cause=>{if(!closed){error.hidden=false;error.textContent=cause.message;}};
