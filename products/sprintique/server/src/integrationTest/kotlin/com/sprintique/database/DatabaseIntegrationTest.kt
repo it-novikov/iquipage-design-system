@@ -1,9 +1,12 @@
 package com.sprintique.database
 
+import com.sprintique.configuration.SprintiqueProperties
+import com.sprintique.configuration.StartupChecks
 import com.sprintique.problem.ProblemException
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
+import org.springframework.boot.DefaultApplicationArguments
 import tools.jackson.databind.JsonNode
 import java.time.Instant
 import java.time.LocalDate
@@ -19,6 +22,16 @@ class DatabaseIntegrationTest {
             assertThatThrownBy { owner.requireSafeRuntimeRole() }
                 .isInstanceOf(ProblemException::class.java)
                 .extracting("code").isEqualTo("UNSAFE_DATABASE_ROLE")
+        }
+    }
+
+    @Test
+    fun `the API refuses to start with the owner role`() {
+        Database.connect(IntegrationDatabase.migrationUrl, 1, "test-owner-start").use { owner ->
+            val checks = StartupChecks(SprintiqueProperties(), owner)
+            assertThatThrownBy { checks.run(DefaultApplicationArguments()) }
+                .isInstanceOf(IllegalStateException::class.java)
+                .hasMessageContaining("NOBYPASSRLS")
         }
     }
 

@@ -10,6 +10,10 @@ complexity:
     allowedFunctionsPerClass: 25
     allowedFunctionsPerObject: 25
 style:
+  ReturnCount:
+    # Guard clauses read top to bottom; an early return is clearer than nesting.
+    max: 4
+    excludeGuardClauses: true
   MaxLineLength:
     # SQL keeps its own layout inside raw strings; wrapping it to 120 columns makes queries harder to read.
     excludeRawStrings: true
