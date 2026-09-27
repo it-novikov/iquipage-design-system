@@ -14,7 +14,7 @@ import {ProductRepository} from './repository.js';
 import {PlanningAdapter} from './planning-adapter.js';
 import {mountPlanningHost,confirmPlanningChange,recoverPlanningAttempt} from './planning-host.js';
 import {openSearch} from './search.js';
-import {acceptPendingInvitation,editProfile} from './members.js';
+import {acceptPendingInvitation} from './members.js';
 import {sectionRouteHash} from './section-route.js';
 import {loadingMarkup} from '../ui/src/loading.js';
 import {mountProjectNavigation} from '../ui/planning/src/project-navigation.js';
@@ -55,8 +55,8 @@ function ensureShell(project,mode){
       projects:async({query='',signal})=>{signal?.throwIfAborted();const q=String(query).toLocaleLowerCase('ru');
         return {options:session.projects.filter(p=>(p.workspaceName+' '+p.name).toLocaleLowerCase('ru').includes(q)).map(p=>({value:p.id,label:p.name,description:p.workspaceName})),nextCursor:null};},
       onSwitch:async id=>{const shown=await showProject(id,viewMode);return shown===false?false:context(currentProject);},
-      onAccount:()=>void editProfile(repository.client).catch(report),
-      onTeam:()=>void navigate('settings').catch(report),
+      onAccount:()=>{location.hash='#settings/account';},
+      onTeam:()=>{location.hash='#settings/members';},
       onSignOut:()=>void(async()=>{if(board&&!await board.closeTask())return;await repository.client.request('/logout','POST');location.reload();})().catch(report),
       onTheme:()=>applyTheme(document.documentElement.dataset.theme==='dark'?'light':'dark'),
       onSearch:search,onCreateProject:()=>void onboard(currentProject?.workspaceId).catch(report),onCreateWorkspace:createWorkspace
@@ -64,7 +64,6 @@ function ensureShell(project,mode){
     nav.setTheme(document.documentElement.dataset.theme);
   }else nav.update(context(project));
   nav.setRoute(mode);
-  root.querySelector('#host-view').replaceChildren();
 }
 function createWorkspace(){
   dialog({title:'Создать пространство',body:input('name','Название','',{required:true,maxlength:100}),submitLabel:'Создать',onSubmit:async values=>{
@@ -114,8 +113,8 @@ async function showProject(id,mode=location.hash.startsWith('#maps')?'maps':loca
   if(navigating)return false;navigating=true;
   try{
   if(board&&!await board.closeTask())return false;
-  repository.stopWatch?.();await board?.destroy();board=null;const project=session.projects.find(p=>p.id===id)||session.projects[0];
-  if(!project){root.innerHTML='<main class="host-landing"><h1>Создадим первый проект</h1><p>Задачи, обсуждения и команда в одном месте.</p><button class="iq-btn primary" data-onboard>Создать проект</button></main>';root.querySelector('[data-onboard]').onclick=()=>onboard().catch(report);return;}
+  repository.stopWatch?.();const previous=board;board=null;const project=session.projects.find(p=>p.id===id)||session.projects[0];
+  if(!project){await previous?.destroy();root.innerHTML='<main class="host-landing"><h1>Создадим первый проект</h1><p>Задачи, обсуждения и команда в одном месте.</p><button class="iq-btn primary" data-onboard>Создать проект</button></main>';root.querySelector('[data-onboard]').onclick=()=>onboard().catch(report);return;}
   currentProject=project;viewMode=mode;
   try{localStorage.setItem(LAST_PROJECT_KEY+session.principal.id,project.id);}catch{}
   if(avatarUrl){URL.revokeObjectURL(avatarUrl);avatarUrl=null;}
@@ -129,15 +128,25 @@ async function showProject(id,mode=location.hash.startsWith('#maps')?'maps':loca
   ensureShell(project,mode);
   await recoverPlanningAttempt(planningAdapter);
   const stateKey=project.id+':'+mode;if(!viewStates.has(stateKey))viewStates.set(stateKey,{});
-  const host=root.querySelector('#host-view');host.dataset.section=mode;
-  // Each section replaces this outline when it mounts, so a slow first load never shows a blank page.
-  host.innerHTML=loadingMarkup('Загрузка раздела…',{rows:6,title:true,className:'host-loading'});
+  // The open section stays on screen while the next one mounts out of sight, then they swap in one frame:
+  // switching sections never blanks or fades the page. Only a slow load covers the old view with an outline.
+  const current=root.querySelector('#host-view'),swap=!!previous&&current.childElementCount>0;
+  let host=current,cover=null,timer=0;
+  if(swap){host=document.createElement('section');host.id='host-view';host.className='host-view-incoming';current.inert=true;current.after(host);
+    timer=setTimeout(()=>{cover=document.createElement('div');cover.className='host-view-cover';cover.innerHTML=loadingMarkup('Загрузка раздела…',{rows:6,title:true,className:'host-loading'});host.before(cover);},400);}
+  else{await previous?.destroy();host.innerHTML=loadingMarkup('Загрузка раздела…',{rows:6,title:true,className:'host-loading'});}
+  host.dataset.section=mode;
+  try{
   if(mode==='maps'){const {mountMapsHost}=await import('./maps-host.js');board=await mountMapsHost(host,{repository,project,onOpenTasks:async({focusTaskId})=>{await navigate('tasks');if(viewMode==='tasks')await board.openTask(focusTaskId);}});}
   else if(mode==='planning')board=await mountPlanningHost(host,{repository,adapter:planningAdapter,project,viewState:viewStates.get(stateKey),onOpenBoard:()=>navigate('tasks')});
   else if(mode==='settings'){const {mountSettings}=await import('./settings.js');board=await mountSettings(host,{repository,adapter:planningAdapter,project,onChanged:refreshHeader});}
   else board=await mountTaskBoard(host,{repository,project,attachmentAdapter:repository.attachmentAdapter,canEdit:project.role!=='reader',canManageCatalogs:project.role==='admin',viewState:viewStates.get(stateKey)});
-  // The mounted section fades in over the (possibly never shown) skeleton instead of popping in.
-  host.firstElementChild?.classList.add('iq-reveal');
+  }finally{
+    clearTimeout(timer);
+    if(swap){await previous.destroy();current.remove();cover?.remove();host.classList.remove('host-view-incoming');}
+  }
+  // Content that replaces a visible outline fades in; a direct swap between sections does not animate.
+  if(!swap||cover)host.firstElementChild?.classList.add('iq-reveal');
   await renderAvatar(project);
   repository.watch(project.id,change=>{
     if(change?.roleChanged){
@@ -170,12 +179,13 @@ function paletteCommands(){
     {id:'go-tasks',label:'Доска задач',hint:'Перейти',icon:'grid',keywords:'доска канбан board',run:go('tasks')},
     {id:'go-planning',label:'Планирование',hint:'Перейти',icon:'calendar',keywords:'релизы бэклог сроки planning',run:go('planning')},
     {id:'go-maps',label:'Карты',hint:'Перейти',icon:'grid',keywords:'карты доска идей maps',run:go('maps')},
-    {id:'go-members',label:'Участники проекта',hint:'Настройки',icon:'user',keywords:'команда приглашения роли members',run:go('settings','#settings/members')},
-    {id:'go-tags',label:'Теги и цвета',hint:'Настройки',icon:'sliders',keywords:'теги метки tags',run:go('settings','#settings/tags')},
-    {id:'go-templates',label:'Шаблоны задач',hint:'Настройки',icon:'sliders',keywords:'шаблоны templates',run:go('settings','#settings/templates')},
+    {id:'go-members',label:'Участники проекта',hint:'Настройки',icon:'users',keywords:'команда приглашения роли members',run:go('settings','#settings/members')},
+    {id:'go-tags',label:'Теги',hint:'Настройки',icon:'palette',keywords:'теги метки цвета tags',run:go('settings','#settings/tags')},
+    {id:'go-templates',label:'Шаблоны задач',hint:'Настройки',icon:'file',keywords:'шаблоны templates',run:go('settings','#settings/templates')},
+    {id:'go-appearance',label:'Внешний вид',hint:'Настройки',icon:'sun',keywords:'тема акцент плотность appearance',run:go('settings','#settings/appearance')},
     {id:'switch',label:'Найти проект',icon:'search',keywords:'проект пространство switch',run:()=>nav?.openSwitcher()},
     {id:'theme',label:document.documentElement.dataset.theme==='dark'?'Светлая тема':'Тёмная тема',icon:document.documentElement.dataset.theme==='dark'?'sun':'moon',keywords:'тема theme dark light',run:()=>applyTheme(document.documentElement.dataset.theme==='dark'?'light':'dark')},
-    {id:'profile',label:'Профиль',icon:'user',keywords:'имя профиль profile',run:()=>void editProfile(repository.client).catch(report)}
+    {id:'profile',label:'Профиль',hint:'Настройки',icon:'user',keywords:'имя профиль profile',run:go('settings','#settings/account')}
   ];
   if(currentProject?.role!=='reader')commands.unshift({id:'new-task',label:'Новая задача',hint:'Создать на доске',icon:'plus',keywords:'создать задачу task new',run:async()=>{if(viewMode!=='tasks'){history.replaceState(null,'','#tasks');await navigate('tasks');}await board?.createTask?.();}});
   return commands;

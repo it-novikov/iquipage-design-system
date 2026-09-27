@@ -1,23 +1,32 @@
-import {ui,escapeHTML as esc} from '@iquipage/web/core';
-import {dialog,date} from '../ui/src/ui.js';
-const names={pending:'Запланировано',running:'Выполняется',failed:'Требует внимания',done:'Готово',cancelled:'Остановлено'};
-export async function mountOperations(root,{repository,project,onBack,embedded=false}){
+import {ui,escapeHTML as esc,formatDateTime} from '@iquipage/web/core';
+import {dialog} from '../ui/src/ui.js';
+import * as s from './settings-ui.js';
+const states={pending:['Запланировано','neutral'],running:['Выполняется','info'],failed:['Требует внимания','warning'],done:['Готово','success'],cancelled:['Остановлено','neutral']};
+const errors={storage_unavailable:'Хранилище файлов недоступно',not_found:'Файл уже удалён',timeout:'Хранилище не ответило вовремя'};
+/** File cleanup status (admins). A calm "all good" when nothing needs attention; failed jobs can be retried. */
+export async function mountOperations(root,{repository,project,tools,onCounts=()=>{}}){
   const base='/projects/'+encodeURIComponent(project.id)+'/operations',abort=new AbortController();
   let closed=false,modal=null,loading=false;
+  if(tools)tools.innerHTML=ui.btn('Обновить','ghost sm','refresh','data-ops-refresh');
   async function render(){
     if(closed||loading)return;loading=true;
     try{const data=await repository.client.request(base);if(closed)return;
-      root.innerHTML=`<section class="host-settings task-settings-page">${!embedded&&onBack?ui.btn('Настройки проекта','ghost sm','left','data-ops-back'):''}${embedded?'':`<h1>Фоновые операции</h1>`}<p>Очистка несохранённых и удалённых файлов. События проекта доступны через защищённый поток SSE и API с восстановлением позиции.</p>
-        <div class="iq-list">${data.counts.map(c=>`<div class="iq-list-item"><span>${esc(names[c.state]||c.state)}</span><strong>${c.count}</strong></div>`).join('')}</div><h2>Текущие операции</h2>
-        <div class="iq-list">${data.jobs.length?data.jobs.map(j=>`<div class="iq-list-item"><span>Очистка файла: ${esc(names[j.state]).toLowerCase()}<br><small>${esc(date(j.availableAt))}, попыток ${j.attempts}${j.errorCode?', ошибка '+esc(j.errorCode):''}</small></span>${j.state==='failed'?ui.btn('Повторить','secondary sm','refresh','data-retry-job="'+esc(j.id)+'"'):''}</div>`).join(''):'<p>Нет операций, требующих внимания.</p>'}</div><p class="iq-helper">Показано до ${data.limit} операций. Удалённые файлы хранятся ещё 24 часа; файлы в истории карт сохраняются вместе с историей.</p></section>`;
+      const count=state=>data.counts.find(c=>c.state===state)?.count||0,failed=count('failed');
+      const status=failed?s.empty({title:`Требуют внимания: ${failed}`,body:'Эти файлы не удалось очистить. Повторите попытку: используемые файлы не удаляются.',glyph:'warning',tone:'warning'}):s.empty({title:'Всё в порядке',body:'Удалённые файлы и незавершённые загрузки очищаются автоматически. Удалённый файл хранится ещё 24 часа.',glyph:'checkCircle',tone:'success'});
+      const job=j=>{const [label,tone]=states[j.state]||[j.state,'neutral'];return s.row({media:s.tile('file'),title:'Очистка файла',meta:[esc(formatDateTime(j.availableAt)),`Попыток ${j.attempts}`,j.errorCode?esc(errors[j.errorCode]||'Код ошибки '+j.errorCode):''],aside:s.badge(label,tone),actions:j.state==='failed'?ui.btn('Повторить','secondary sm','refresh',`data-retry-job="${esc(j.id)}"`):''});};
+      root.innerHTML=s.panel(status)
+        +(failed||count('running')||count('pending')?s.group({title:'Очередь',body:s.panel(s.facts([['Требуют внимания',String(failed)],['Выполняются',String(count('running'))],['Запланированы',String(count('pending'))]]))}):'')
+        +(data.jobs.length?s.group({title:'Операции',description:data.jobs.length>=data.limit?`Показаны последние ${data.limit}.`:'',body:s.panel(data.jobs.map(job).join(''))}):'');
+      onCounts();
     }finally{loading=false;}
   }
-  root.addEventListener('click',event=>{
-    if(event.target.closest('[data-ops-back]'))return onBack();
+  const onClick=event=>{
+    if(event.target.closest('[data-ops-refresh]')){void render();return;}
     const id=event.target.closest('[data-retry-job]')?.dataset.retryJob;if(!id||modal)return;
-    modal=dialog({title:'Повторить фоновую операцию?',description:'Сервер повторит безопасную очистку. Файлы, которые используются в задачах или картах, удалены не будут.',submitLabel:'Повторить',onSubmit:async()=>{
+    modal=dialog({title:'Повторить очистку?',description:'Сервер повторит безопасную очистку. Файлы, которые используются в задачах или картах, удалены не будут.',submitLabel:'Повторить',success:'Очистка запущена снова',onSubmit:async()=>{
       await repository.client.request(base+'/jobs/'+id+'/retry','POST',{},await repository.key('job-retry:'+id,{}));await render();
     }});modal.addEventListener('iq-close',()=>{modal=null;},{once:true});
-  },{signal:abort.signal});
+  };
+  root.addEventListener('click',onClick,{signal:abort.signal});tools?.addEventListener('click',onClick,{signal:abort.signal});
   await render();return {readyToLeave:()=>!modal,destroy(){closed=true;abort.abort();modal?.close(true);root.replaceChildren();}};
 }

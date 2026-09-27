@@ -3,10 +3,6 @@
 #app{height:100%}
 /* Local-stand sign-in: a narrow DS form under the landing copy. */
 .host-sign-in{display:grid;gap:var(--iq-space-3);justify-items:center;width:100%;max-width:440px}
-.member-row{align-items:center;gap:var(--iq-space-3)}
-.member-row>div{flex:1;min-width:0}
-.member-row p{margin:0}
-.task-settings-page [data-invite]{align-self:flex-start}
 /* Product loading look (DS skeletons in .iq-loading): used by sections, Planning groups, map history and settings. */
 .product-loading{padding-block:var(--iq-space-2)}
 .product-loading-title{height:28px;width:min(220px,60%);margin-bottom:var(--iq-space-2)}
@@ -22,3 +18,10 @@
 /* Public settings composition owns its spacing. */
 #host-view[data-section=settings]{padding:0;display:flex;flex-direction:column}
 #host-view[data-section=settings]>iq-settings-layout{flex:1 0 auto}
+/* Section switch: the next section mounts out of sight beside the open one and replaces it in one frame. */
+.platform-main{position:relative}
+.host-view-incoming{position:absolute;inset:0;visibility:hidden;pointer-events:none}
+.host-view-cover{position:absolute;inset:0;z-index:1;overflow:hidden;background:var(--iq-canvas)}
+/* Project avatar in settings rows: the same rounded square as in the project switcher. */
+.iq-settings-row-media .sq-project-avatar{width:40px;height:40px;border-radius:var(--iq-radius-sm);overflow:hidden;font-size:var(--iq-type-interface-size);font-weight:600}
+.sq-project-avatar img{width:100%;height:100%;object-fit:cover;display:block}

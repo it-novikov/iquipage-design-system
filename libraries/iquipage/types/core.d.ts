@@ -1,5 +1,5 @@
 /** Supported core browser entry. Does not register graph, roadmap, crop, or whiteboard. */
-export declare const version:'0.6.0-vnext.14';
+export declare const version:'0.6.0-vnext.15';
 export declare function registerCore():void;
 export declare function registerComponents():void;
 export declare function registerDateFields():void;
@@ -93,10 +93,14 @@ export declare function registerAuthDialog():void;
 declare global {interface HTMLElementTagNameMap {'iq-auth-dialog':IqAuthDialog;}}
 
 /** Persistent settings shell: navigation and heading named slots, content default slot. */
+/** Full-width settings workspace. `view` chooses the half a phone shows (760px and below). */
 export declare class IqSettingsLayout extends HTMLElement {}
+export type SettingsLayoutView='index'|'section';
 export interface VisualChoiceOption {value:string;label:string;description?:string;preview?:'light'|'dark'|'system'|'comfortable'|'compact';}
 /** Native keyboard-operable radios; iq-change detail.value. Label via label attribute. */
 export declare class IqVisualChoice extends HTMLElement {options:VisualChoiceOption[];value:string;}
-export declare function settingsNavigation(groups:{label:string;items:{id:string;label:string;icon?:string}[]}[],active:string):string;
+export interface SettingsNavigationItem {id:string;label:string;icon?:string;count?:number;countLabel?:string;}
+/** Settings navigation drawn with the DS side navigation (`.product-nav-*`). Returns the list only. */
+export declare function settingsNavigation(groups:{label:string;items:SettingsNavigationItem[]}[],active:string):string;
 export declare function registerSettings():void;
 declare global {interface HTMLElementTagNameMap {'iq-settings-layout':IqSettingsLayout;'iq-visual-choice':IqVisualChoice;}}

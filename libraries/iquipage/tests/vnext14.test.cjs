@@ -18,6 +18,6 @@ test('settings styles load after foundation so the base rules do not override th
 test('settings typography uses the DS type scale and navigation icons exist', () => {
   const css = read('src/styles/settings.css');
   assert.doesNotMatch(css, /font(-size)?:[^;}]*\b(1[2-9]|2\d|30)px/);
-  assert.match(css, /\.iq-settings-heading h1\{font:600 var\(--iq-work-compact-title\)/);
-  assert.match(read('src/modules/settings.js'), /icon\(item\.icon\|\|'sliders',18\)/);
+  assert.match(css, /\.iq-page-heading h1\{[^}]*font:600 var\(--iq-work-compact-title\)/);
+  assert.match(read('src/modules/settings.js'), /icon\(item\.icon\|\|'sliders',19\)/);
 });

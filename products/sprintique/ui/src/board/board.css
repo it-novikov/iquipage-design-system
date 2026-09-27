@@ -70,11 +70,6 @@
 .task-release{display:inline-flex;gap:var(--iq-space-1);align-items:center;font-size:var(--iq-type-meta-size);color:var(--iq-muted);overflow-wrap:anywhere}
 .iq-task-board-root .task-due{flex-wrap:wrap}
 .task-due>span{display:inline-flex;gap:var(--iq-space-1);align-items:center}
-.task-settings-page{max-width:850px}
-.task-settings-page>.row{align-items:center}
-.task-settings-page .iq-list{margin-top:var(--iq-space-5)}
-.task-settings-page .iq-list-item{flex-wrap:wrap;gap:var(--iq-space-2)}
-.task-settings-page .iq-list-item>div{flex:1 1 200px}
 [data-effective-template]{max-width:none}
 [data-effective-template] h4{margin-top:var(--iq-space-3)}
 @media(max-width:600px){.board-filter-bar{gap:var(--iq-space-1)}.board-filter-condition>[data-filter]{max-width:220px}.task-thread .thread-message>header{flex-wrap:wrap}.task-edit-properties{gap:var(--iq-space-4)}}

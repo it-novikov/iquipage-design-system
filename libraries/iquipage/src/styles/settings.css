@@ -1,20 +1,128 @@
-/* Settings navigation and visual choices are public reusable compositions. */
-.iq-settings-title{font:500 var(--iq-type-title-size)/1.3 var(--iq-display);letter-spacing:-.025em;margin-bottom:var(--iq-space-6)}
-.iq-settings-search{margin-bottom:var(--iq-space-6)}
-.iq-settings-navigation{display:grid;gap:var(--iq-space-6)}
-.iq-settings-navigation h2{font:500 var(--iq-type-caption-size)/1.5 var(--iq-font);color:var(--iq-muted);margin:0 0 var(--iq-space-2);padding-inline:var(--iq-space-3)}
-.iq-settings-navigation a{display:flex;align-items:center;gap:var(--iq-space-3);min-height:44px;padding:var(--iq-space-3);border-radius:var(--iq-radius-sm);text-decoration:none;color:var(--iq-muted);font-size:var(--iq-type-interface-size);line-height:1.4}
-.iq-settings-navigation a:hover{background:var(--iq-hover);color:var(--iq-ink)}
-.iq-settings-navigation a[aria-current=page]{background:var(--iq-accent-soft);color:var(--iq-accent);font-weight:500}
-.iq-settings-heading{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:flex-start;justify-content:space-between;gap:var(--iq-space-6)}
-.iq-settings-heading h1{font:600 var(--iq-work-compact-title)/1.3 var(--iq-font);margin:0 0 var(--iq-space-2)}
-.iq-settings-heading p{color:var(--iq-muted);max-width:60ch;font-size:var(--iq-type-interface-size);line-height:1.6}
-.iq-settings-section{padding-block:var(--iq-space-8);border-bottom:1px solid var(--iq-line)}
-.iq-settings-section:first-child{padding-top:0}.iq-settings-section h2{font:500 var(--iq-type-title-size)/1.4 var(--iq-display);margin:0 0 var(--iq-space-2)}
-.iq-settings-section>p{color:var(--iq-muted);font-size:var(--iq-type-label-size);line-height:1.6;margin-bottom:var(--iq-space-5)}
-.iq-visual-choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(170px,100%),1fr));gap:var(--iq-space-4)}
+/* Settings workspace compositions (public, reusable). Navigation reuses the DS side navigation (.product-nav-*). */
+
+/* Navigation head: the section name sits in a 48px row level with the page title; search is the DS nav search. */
+.iq-settings-title{display:flex;align-items:center;min-height:48px;margin:0 10px var(--iq-space-3);font:600 var(--iq-type-interface-size)/1.3 var(--iq-font);color:var(--iq-ink)}
+.iq-settings-nav .product-nav-section{margin:0 0 var(--iq-space-6)}
+.iq-settings-nav .product-nav-section:last-child{margin-bottom:0}
+.iq-settings-nav-empty{margin:0 10px;font-size:var(--iq-type-caption-size);color:var(--iq-muted)}
+.product-nav-search.iq-settings-search{margin:0 0 var(--iq-space-6)}
+
+/* Page heading: shared by every work section (board, planning, settings). The title row is 48px high, tools sit on its right. */
+.iq-page-heading{display:flex;align-items:flex-start;gap:var(--iq-space-2) var(--iq-space-5);flex-wrap:wrap}
+.iq-page-heading-copy{min-width:0;flex:1 1 320px}
+.iq-page-heading h1{display:flex;align-items:center;min-height:48px;margin:0;font:600 var(--iq-work-compact-title)/1.3 var(--iq-font);letter-spacing:-.01em}
+.iq-page-heading-lead{max-width:64ch;margin:0;font-size:var(--iq-type-interface-size);line-height:1.55;color:var(--iq-muted)}
+.iq-page-heading-tools{display:flex;align-items:center;gap:var(--iq-space-2);min-height:48px;margin-left:auto;flex-wrap:wrap}
+.iq-page-heading-back{display:none}
+.iq-settings-heading h1:focus{outline:none}
+.iq-settings-heading h1:focus-visible{outline:2px solid var(--iq-focus);outline-offset:4px;border-radius:4px}
+
+/* Group: an h2 with a one-line description and optional actions, then panels, facts or free content. */
+/* Stack: the content column puts 40px between groups, panels and forms; a lock notice sits closer to what it explains. */
+.iq-settings-stack>*+*,.iq-settings-group+.iq-settings-group{margin-top:var(--iq-space-10)}
+.iq-settings-stack>[hidden]:first-child+*{margin-top:0}
+.iq-settings-stack>.iq-settings-lock{margin-bottom:0}
+.iq-settings-stack>.iq-settings-lock+*{margin-top:var(--iq-space-6)}
+.iq-settings-group-head{display:flex;align-items:flex-end;justify-content:space-between;gap:var(--iq-space-4);margin-bottom:var(--iq-space-4)}
+.iq-settings-group-head h2{display:flex;align-items:center;gap:var(--iq-space-2);margin:0;font:500 var(--iq-type-title-size)/1.4 var(--iq-display);letter-spacing:-.01em}
+.iq-settings-group-head p{max-width:64ch;margin:var(--iq-space-1) 0 0;font-size:var(--iq-type-label-size);line-height:1.55;color:var(--iq-muted)}
+.iq-settings-group-actions{display:flex;align-items:center;gap:var(--iq-space-2);flex:none}
+.iq-settings-group-count{font:500 var(--iq-type-label-size)/1 var(--iq-font);font-variant-numeric:tabular-nums;color:var(--iq-muted)}
+
+/* Panel of rows: leading media, title and meta, a value or badge, then at most one visible action and a menu. */
+.iq-settings-panel{display:block;margin:0;padding:0;list-style:none;border:1px solid var(--iq-line);border-radius:var(--iq-radius-md);background:var(--iq-raised);overflow:hidden}
+.iq-settings-panel+.iq-settings-panel{margin-top:var(--iq-space-4)}
+.iq-settings-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;align-items:center;gap:var(--iq-space-4);min-height:64px;padding:var(--iq-space-3) var(--iq-space-5);color:inherit;text-decoration:none}
+.iq-settings-panel>*+*{border-top:1px solid var(--iq-line)}
+.iq-settings-row:not(:has(>.iq-settings-row-media)){grid-template-columns:minmax(0,1fr) auto auto}
+.iq-settings-row-media{display:grid;place-items:center;min-width:32px}
+.iq-settings-row-media .iq-avatar{width:32px;height:32px;margin:0;font-size:var(--iq-type-meta-size);border:0}
+.iq-settings-row-tile{display:grid;place-items:center;width:36px;height:36px;border-radius:var(--iq-radius-sm);background:var(--iq-surface);color:var(--iq-ink)}
+.iq-settings-row-copy{display:grid;gap:2px;min-width:0}
+.iq-settings-row-title{display:flex;align-items:center;gap:var(--iq-space-2);flex-wrap:wrap;font:500 var(--iq-type-interface-size)/1.45 var(--iq-font);overflow-wrap:anywhere}
+.iq-settings-row-meta{display:flex;flex-wrap:wrap;gap:0 var(--iq-space-3);font-size:var(--iq-type-caption-size);line-height:1.5;color:var(--iq-muted)}
+.iq-settings-row-aside{display:flex;align-items:center;gap:var(--iq-space-2);justify-content:flex-end;flex-wrap:wrap;font-size:var(--iq-type-label-size);color:var(--iq-muted)}
+.iq-settings-row-aside iq-select{width:192px}
+.iq-settings-row-actions{display:flex;align-items:center;gap:var(--iq-space-1);justify-content:flex-end}
+.iq-settings-row-actions:empty,.iq-settings-row-aside:empty{display:none}
+.iq-settings-row-spacer{display:inline-block;width:36px;height:1px}
+.iq-settings-row[data-state=muted] .iq-settings-row-title{color:var(--iq-muted)}
+.iq-settings-row[aria-busy=true]{opacity:.6;pointer-events:none}
+a.iq-settings-row,button.iq-settings-row{width:100%;border:0;border-radius:0;background:none;font:inherit;text-align:left;cursor:pointer}
+.iq-settings-row-chevron{color:var(--iq-muted);transition:transform var(--iq-motion-fast) var(--iq-ease)}
+@media(hover:hover){a.iq-settings-row:hover,button.iq-settings-row:hover{background:var(--iq-hover)}a.iq-settings-row:hover .iq-settings-row-chevron,button.iq-settings-row:hover .iq-settings-row-chevron{transform:translateX(2px);color:var(--iq-ink)}}
+a.iq-settings-row:focus-visible,button.iq-settings-row:focus-visible{outline:2px solid var(--iq-focus);outline-offset:-2px}
+.iq-settings-panel-foot{display:flex;align-items:center;justify-content:space-between;gap:var(--iq-space-3);padding:var(--iq-space-3) var(--iq-space-5);font-size:var(--iq-type-caption-size);color:var(--iq-muted);background:var(--iq-surface)}
+
+/* Field rows: the label and help on the left, the control on the right, so a field never stretches across the page. */
+.iq-settings-field-row{display:grid;grid-template-columns:minmax(180px,280px) minmax(0,var(--iq-settings-field-max,480px));align-items:start;gap:var(--iq-space-2) var(--iq-space-8);padding:var(--iq-space-5)}
+.iq-settings-field-label{display:grid;gap:2px;padding-top:10px;font:500 var(--iq-type-interface-size)/1.45 var(--iq-font)}
+.iq-settings-field-label small{font-weight:400;font-size:var(--iq-type-caption-size);line-height:1.5;color:var(--iq-muted)}
+.iq-settings-field-row .iq-field{margin:0}
+.iq-settings-field-row .iq-field>.iq-control-label,.iq-settings-field-row iq-combobox>.iq-control-label,.iq-settings-field-row iq-select>.iq-control-label{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.iq-settings-fields{border:0;padding:0;margin:0;min-width:0}
+
+/* Facts: read-only values. People who cannot change a setting see facts, never a disabled form. */
+.iq-settings-facts{display:block;margin:0}
+.iq-settings-facts>div{display:grid;grid-template-columns:minmax(160px,280px) minmax(0,1fr);align-items:center;gap:var(--iq-space-2) var(--iq-space-8);min-height:56px;padding:var(--iq-space-3) var(--iq-space-5)}
+.iq-settings-facts>div+div{border-top:1px solid var(--iq-line)}
+.iq-settings-facts dt{font:500 var(--iq-type-interface-size)/1.45 var(--iq-font)}
+.iq-settings-facts dt small{display:block;font-weight:400;font-size:var(--iq-type-caption-size);color:var(--iq-muted)}
+.iq-settings-facts dd{display:flex;align-items:center;gap:var(--iq-space-2);flex-wrap:wrap;margin:0;font-size:var(--iq-type-interface-size);line-height:1.5;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.iq-settings-facts dd code,.iq-settings-code{font:500 var(--iq-type-label-size)/1.4 var(--iq-mono);padding:2px 6px;border-radius:var(--iq-radius-xs);background:var(--iq-surface)}
+.iq-settings-facts dd .iq-btn.icon{--h:28px;min-width:28px;padding:4px}
+.iq-settings-facts dd small{font-size:var(--iq-type-caption-size);color:var(--iq-muted)}
+
+/* Lock notice under the heading for read-only visitors. */
+.iq-settings-lock{display:flex;align-items:flex-start;gap:var(--iq-space-3);margin:0 0 var(--iq-space-8);padding:var(--iq-space-3) var(--iq-space-4);border-radius:var(--iq-radius-md);background:var(--iq-surface);font-size:var(--iq-type-label-size);line-height:1.55;color:var(--iq-ink)}
+.iq-settings-lock>.iq-icon{flex:none;margin-top:1px;color:var(--iq-muted)}
+
+/* Save bar: hidden while the form matches what is saved, sticky at the bottom of the column once something changes. */
+.iq-settings-savebar{position:sticky;bottom:var(--iq-space-4);z-index:3;display:flex;align-items:center;justify-content:space-between;gap:var(--iq-space-4);margin-top:var(--iq-space-6);padding:var(--iq-space-3) var(--iq-space-3) var(--iq-space-3) var(--iq-space-5);border:1px solid var(--iq-line);border-radius:var(--iq-radius-md);background:var(--iq-raised);box-shadow:var(--iq-shadow-2)}
+.iq-settings-savebar[hidden]{display:none}
+.iq-settings-savebar-status{font-size:var(--iq-type-label-size);color:var(--iq-ink)}
+.iq-settings-savebar-actions{display:flex;gap:var(--iq-space-2)}
+@media(prefers-reduced-motion:no-preference){.iq-settings-savebar:not([hidden]){animation:iq-reveal var(--iq-motion-standard) var(--iq-ease) both}}
+
+/* Compact empty state inside a panel: left-aligned, a small tile instead of an illustration. */
+.iq-empty.compact{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:start;gap:var(--iq-space-1) var(--iq-space-4);padding:var(--iq-space-6) var(--iq-space-5);text-align:left}
+.iq-empty.compact>.iq-settings-row-tile{grid-row:span 3;width:40px;height:40px;color:var(--iq-muted)}
+.iq-empty.compact h3{margin:0;font:500 var(--iq-type-interface-size)/1.45 var(--iq-font)}
+.iq-empty.compact p{margin:0;max-width:56ch;font-size:var(--iq-type-label-size);line-height:1.55;color:var(--iq-muted)}
+.iq-empty.compact>.iq-btn{justify-self:start;margin-top:var(--iq-space-3)}
+.iq-empty.compact.success>.iq-settings-row-tile{background:var(--iq-success-bg);color:var(--iq-success)}
+.iq-empty.compact.warning>.iq-settings-row-tile{background:var(--iq-warning-bg);color:var(--iq-warning)}
+
+/* One-time secret: a read-only value with a copy button and a warning that it is shown once. */
+.iq-secret{display:grid;gap:var(--iq-space-3)}
+.iq-secret-value{display:flex;gap:var(--iq-space-2);align-items:center}
+.iq-secret-value .iq-input-shell{flex:1;min-width:0}
+.iq-secret-value input{font:500 var(--iq-type-label-size)/1.4 var(--iq-mono)}
+.iq-secret-note{display:flex;gap:var(--iq-space-2);align-items:flex-start;margin:0;font-size:var(--iq-type-label-size);line-height:1.55;color:var(--iq-muted)}
+.iq-secret-note>.iq-icon{flex:none;margin-top:1px;color:var(--iq-warning)}
+
+/* Choice list with descriptions (roles, formats). */
+.iq-choice-list{display:grid;gap:var(--iq-space-2);border:0;margin:0;padding:0;min-width:0}
+.iq-choice-list legend{margin-bottom:var(--iq-space-2);padding:0;font:500 var(--iq-type-label-size)/1.4 var(--iq-font)}
+.iq-choice-list label{display:grid;grid-template-columns:auto minmax(0,1fr);gap:2px var(--iq-space-3);align-items:start;padding:var(--iq-space-3) var(--iq-space-4);border:1px solid var(--iq-line);border-radius:var(--iq-radius-sm);cursor:pointer}
+.iq-choice-list input{grid-row:span 2;margin:3px 0 0;width:16px;height:16px;accent-color:var(--iq-accent-fill)}
+.iq-choice-list b{font:500 var(--iq-type-interface-size)/1.45 var(--iq-font)}
+.iq-choice-list small{font-size:var(--iq-type-caption-size);line-height:1.5;color:var(--iq-muted)}
+.iq-choice-list label:has(:checked){border-color:var(--iq-accent);box-shadow:inset 0 0 0 1px var(--iq-accent)}
+.iq-choice-list label:has(:focus-visible){outline:2px solid var(--iq-focus);outline-offset:2px}
+.iq-choice-grid{display:grid;grid-template-columns:auto repeat(2,minmax(0,1fr));gap:var(--iq-space-1) var(--iq-space-4);align-items:center;border:0;margin:0;padding:0}
+.iq-choice-grid legend{grid-column:1/-1;margin-bottom:var(--iq-space-2);padding:0;font:500 var(--iq-type-label-size)/1.4 var(--iq-font)}
+.iq-choice-grid>span{font-size:var(--iq-type-label-size);color:var(--iq-muted)}
+
+/* Loading outline shaped like a settings panel. */
+.iq-settings-skeleton{display:grid;gap:var(--iq-space-4)}
+.iq-settings-skeleton i{display:block;height:18px;width:180px;border-radius:4px;background:var(--iq-recessed)}
+.iq-settings-skeleton span{display:block;height:64px;border-radius:var(--iq-radius-md);background:var(--iq-surface)}
+
+/* Visual choices (theme, density): three per row; the selected one gets an accent ring on the same surface. */
+.iq-visual-choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--iq-space-4)}
 .iq-visual-choice{min-width:0;display:block;padding:var(--iq-space-3);border:1px solid var(--iq-line);border-radius:var(--iq-radius-md);cursor:pointer;background:var(--iq-raised)}
-.iq-visual-choice:has(:checked){border-color:var(--iq-accent);outline:1px solid var(--iq-accent);background:var(--iq-accent-soft)}
+.iq-visual-choice:has(:checked){border-color:var(--iq-accent);box-shadow:inset 0 0 0 1px var(--iq-accent)}
 .iq-visual-choice:has(:focus-visible){outline:2px solid var(--iq-focus);outline-offset:4px}
 .iq-visual-choice:has(:disabled){opacity:.55;cursor:not-allowed}
 .iq-choice-label{display:flex;gap:var(--iq-space-2);align-items:center;min-height:36px;font-weight:500;font-size:var(--iq-type-label-size)}
@@ -32,24 +140,43 @@
 .iq-choice-preview[data-preview=system] .iq-choice-preview-body{background:linear-gradient(90deg,transparent 34%,var(--iq-choice-dark-panel) 34%);margin:12px;padding:8px;border-radius:4px}
 .iq-choice-preview[data-preview=compact] .iq-choice-preview-body{grid-template-columns:1fr;grid-template-rows:8px repeat(3,12px);align-content:start;gap:5px}
 .iq-choice-preview[data-preview=comfortable] .iq-choice-preview-body{grid-template-columns:1fr;grid-template-rows:8px repeat(3,18px);gap:7px}
-.iq-settings-status{color:var(--iq-muted);font-size:var(--iq-type-caption-size);min-height:20px;margin-top:var(--iq-space-6)}
+
+/* Accent colour choice. */
 .iq-accent-options{display:flex;gap:var(--iq-space-3);flex-wrap:wrap;border:0;padding:0;margin:0}
-.iq-accent-option{display:flex;align-items:center;gap:var(--iq-space-2);padding:var(--iq-space-3);border:1px solid var(--iq-line);border-radius:var(--iq-radius-sm);font-size:var(--iq-type-label-size);cursor:pointer;min-height:44px}
-.iq-accent-option input{accent-color:var(--iq-accent-fill);margin:0}.iq-accent-option:has(:checked){background:var(--iq-accent-soft);border-color:var(--iq-accent)}
+.iq-accent-option{display:flex;align-items:center;gap:var(--iq-space-2);padding:var(--iq-space-3) var(--iq-space-4);border:1px solid var(--iq-line);border-radius:var(--iq-radius-sm);background:var(--iq-raised);font-size:var(--iq-type-label-size);cursor:pointer;min-height:44px}
+.iq-accent-option input{accent-color:var(--iq-accent-fill);margin:0}
+.iq-accent-option:has(:checked){border-color:var(--iq-accent);box-shadow:inset 0 0 0 1px var(--iq-accent)}
+.iq-accent-option:has(:focus-visible){outline:2px solid var(--iq-focus);outline-offset:2px}
 .iq-accent-dot{width:16px;height:16px;border-radius:50%;background:var(--iq-preference-blue)}
 .iq-accent-dot[data-accent=violet]{background:var(--iq-preference-violet)}.iq-accent-dot[data-accent=green]{background:var(--iq-preference-green)}
 :root[data-accent=violet]{--iq-accent:var(--iq-preference-violet);--iq-accent-fill:var(--iq-preference-violet-fill);--iq-accent-soft:var(--iq-preference-violet-soft);--iq-focus:var(--iq-preference-violet);--iq-accent-hover-fill:var(--iq-preference-violet-fill)}
 :root[data-accent=green]{--iq-accent:var(--iq-preference-green);--iq-accent-fill:var(--iq-preference-green-fill);--iq-accent-soft:var(--iq-preference-green-soft);--iq-focus:var(--iq-preference-green);--iq-accent-hover-fill:var(--iq-preference-green-fill)}
 :root[data-motion=reduced]{--iq-motion-fast:0ms;--iq-motion-standard:0ms;--iq-motion-enter:0ms;--iq-motion-layout:0ms;--iq-motion-scene:0ms;scroll-behavior:auto}
 :root[data-motion=reduced] *, :root[data-motion=reduced] *::before,:root[data-motion=reduced] *::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
-@media(max-width:760px){.iq-settings-title{margin-bottom:var(--iq-space-3)}.iq-settings-search{margin-bottom:var(--iq-space-3)}.iq-settings-navigation{display:flex;overflow-x:auto;gap:var(--iq-space-3);padding-bottom:var(--iq-space-2)}.iq-settings-navigation section{display:flex;gap:var(--iq-space-2)}.iq-settings-navigation h2{display:none}.iq-settings-navigation a{white-space:nowrap}.iq-settings-heading h1{font-size:var(--iq-type-title-size)}.iq-setting-row{align-items:flex-start}.iq-setting-row>div{min-width:0}.iq-setting-row .iq-switch{flex-shrink:0}.iq-choice-preview{height:96px}}
+
+/* Phones: the host switches the layout between the section index and one section; the heading gets a back link. */
+@media(max-width:760px){
+ .iq-page-heading-back{display:inline-flex;margin:0 0 var(--iq-space-1) calc(-1 * var(--iq-space-3))}
+ .iq-page-heading-copy{flex-basis:100%}
+ .iq-page-heading h1{font-size:var(--iq-type-heading3-size);min-height:40px}
+ .iq-page-heading-tools{min-height:0;margin-left:0}
+ .iq-settings-row{grid-template-columns:auto minmax(0,1fr) auto;gap:var(--iq-space-2) var(--iq-space-3);padding:var(--iq-space-3) var(--iq-space-4)}
+ .iq-settings-row:not(:has(>.iq-settings-row-media)){grid-template-columns:minmax(0,1fr) auto}
+ .iq-settings-row-aside{grid-column:2/-1;grid-row:2;justify-content:flex-start}
+ .iq-settings-row:not(:has(>.iq-settings-row-media)) .iq-settings-row-aside{grid-column:1/-1}
+ .iq-settings-field-row,.iq-settings-facts>div{grid-template-columns:minmax(0,1fr);padding:var(--iq-space-4)}
+ .iq-settings-field-label{padding-top:0}
+ .iq-settings-savebar{bottom:max(var(--iq-space-3),env(safe-area-inset-bottom))}
+ .iq-settings-group-head{align-items:flex-start;flex-direction:column}
+ .iq-visual-choices{grid-template-columns:minmax(0,1fr)}
+ .iq-choice-preview{height:96px}
+ .iq-choice-grid{grid-template-columns:minmax(0,1fr) repeat(2,auto)}
+}
+
 /* Density: "comfortable" is the approved default look (no overrides); "compact" tightens tables and cards. */
 :root[data-density=compact] .iq-table td{padding-block:var(--iq-space-2)}
 :root[data-density=compact] .task-card{padding:var(--iq-space-3)}
-
-.iq-settings-fields{border:0;padding:0;margin:0;min-width:0}.iq-settings-fields:disabled{opacity:.7}
-
 :root[data-density=compact] .iq-work-table{--iq-work-row-min:56px;--iq-preference-table-pad:var(--iq-space-2);--iq-preference-mobile-pad:var(--iq-space-2)}
-
 @media(min-width:701px){:root[data-density=compact] .iq-work-list tr[data-work-row]>td{padding-block:var(--iq-space-1)}}
 @media(max-width:700px){:root[data-density=compact] .iq-work-list tr[data-work-row]{padding-block:var(--iq-space-2)}}
+:root[data-density=compact] .iq-settings-row{min-height:52px;padding-block:var(--iq-space-2)}

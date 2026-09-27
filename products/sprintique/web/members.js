@@ -1,43 +1,74 @@
-import {ui,escapeHTML as esc} from '@iquipage/web/core';
-import {dialog,select,input,date} from '../ui/src/ui.js';
-const roles=[['reader','Наблюдатель'],['editor','Участник'],['admin','Администратор']];
-const label=value=>roles.find(r=>r[0]===value)?.[1]||value;
-const initials=name=>String(name||'').trim().split(/\s+/).slice(0,2).map(part=>part[0]||'').join('').toUpperCase()||'?';
-/** Host composition of DS controls; all authority is checked again by the API. */
-export async function mountMembers(root,{repository,project,onBack,embedded=false}){
-  const client=repository.client,base='/projects/'+encodeURIComponent(project.id),abort=new AbortController();
-  let closed=false,modal=null,members=[],invitations=[],loading=0;
+import {ui,icon,escapeHTML as esc,notify,enhance,formatDateTime} from '@iquipage/web/core';
+import {dialog,select} from '../ui/src/ui.js';
+import {projectRoles,roleName} from './settings-sections.js';
+import * as s from './settings-ui.js';
+const lifetimes=[['86400','24 часа'],['259200','3 дня'],['604800','7 дней']];
+const invitationState=i=>i.acceptedAt?['Принято','success']:i.revokedAt?['Отменено','neutral']:new Date(i.expiresAt)<=new Date()?['Истекло','neutral']:['Активно','info'];
+/** Project members: the role is changed in the row, removal lives in the row menu; the API checks every change again. */
+export async function mountMembers(root,{repository,project,tools,notice=''}){
+  const client=repository.client,base='/projects/'+encodeURIComponent(project.id),abort=new AbortController(),admin=project.role==='admin',self=repository.context.actorId;
+  let closed=false,modal=null,members=[],invitations=[],loading=0,query='';
   function show(options){modal=dialog(options);modal.addEventListener('iq-close',()=>{modal=null;},{once:true});return modal;}
-  async function render(){
-    const sequence=++loading;
-    const [people,links]=await Promise.all([client.request(base+'/members'),project.role==='admin'?client.request(base+'/invitations'):[]]);
-    if(closed||sequence!==loading)return;members=people;invitations=links;
-    root.innerHTML=`<section class="host-settings task-settings-page">${!embedded&&onBack?ui.btn('Настройки проекта','ghost sm','left','data-members-back'):''}${embedded?'':`<h1>Участники проекта</h1>`}<p>Наблюдатель читает. Участник работает с задачами и картами. Администратор управляет доступом и настройками.</p><div class="iq-list">${members.map(m=>`<div class="iq-list-item member-row">${ui.avatar(esc(initials(m.name)),1)}<div><b>${esc(m.name)}</b><p class="iq-helper">${esc(label(m.role))}${m.kind==='agent'?', агент':''}</p></div>${project.role==='admin'&&m.kind==='human'?ui.btn('Изменить роль','ghost sm','','data-member="'+esc(m.id)+'"'):''}</div>`).join('')}</div>${project.role==='admin'?`<h2>Приглашения</h2>${ui.btn('Пригласить участника','primary sm','plus','data-invite')}<div class="iq-list">${invitations.length?invitations.map(i=>`<div class="iq-list-item"><span>${esc(label(i.role))}, ${i.acceptedAt?'Принято':i.revokedAt?'Отменено':new Date(i.expiresAt)<new Date()?'Истекло':'До '+esc(date(i.expiresAt))}</span>${!i.revokedAt&&!i.acceptedAt&&new Date(i.expiresAt)>new Date()?ui.btn('Отменить','ghost sm','','data-revoke="'+esc(i.id)+'"'):''}</div>`).join(''):'<p>Создайте одноразовую ссылку и передайте её будущему участнику.</p>'}</div>`:''}</section>`;
+  if(tools&&admin)tools.innerHTML=ui.btn('Пригласить','primary sm','plus','data-invite');
+  function personRow(m){
+    const extra=`${m.id===self?s.badge('Вы'):''}${m.kind==='agent'?s.badge('Агент','planned'):''}`;
+    const editable=admin&&m.kind==='human';
+    const aside=editable?select('role','Роль '+m.name,m.role,projectRoles.map(([id,label])=>[id,label]),'label-hidden density="compact" data-member-role'):esc(roleName(m.role));
+    const actions=editable&&m.id!==self?ui.menu(`<button type="button" class="iq-btn ghost icon sm" aria-label="Действия: ${esc(m.name)}">${icon('more',17)}</button>`,[{label:'Удалить из проекта',action:'remove-member',danger:true,glyph:'trash'}]):editable?'<span class="iq-settings-row-spacer"></span>':'';
+    return s.row({media:s.avatar(m.name,m.id),title:m.name,titleExtra:extra,meta:[esc(projectRoles.find(r=>r[0]===m.role)?.[2]||'')],aside,actions,attrs:`data-member-id="${esc(m.id)}"`});
   }
-  root.addEventListener('click',event=>{void(async()=>{
-    if(event.target.closest('[data-members-back]'))return onBack();
-    const memberId=event.target.closest('[data-member]')?.dataset.member;
-    if(memberId){const member=members.find(m=>m.id===memberId);return show({title:member.name,body:select('role','Роль',member.role,roles.concat(member.id===repository.context.actorId?[]:[['remove','Удалить из проекта']])),submitLabel:'Сохранить',onSubmit:async values=>{
-      const role=values.get('role')==='remove'?null:values.get('role'),body={baseRevision:member.revision,role};
-      await client.request(base+'/members/'+encodeURIComponent(member.id),'PATCH',body,await repository.key('member:'+member.id,body));await render();
-    }});}
-    if(event.target.closest('[data-invite]'))return show({title:'Пригласить в проект',description:'Ссылка действует 24 часа и принимается только одним человеком после входа.',body:select('role','Роль','editor',roles),submitLabel:'Создать ссылку',onSubmit:async(values,_form,element)=>{
-      const invitation=await client.request(base+'/invitations','POST',{id:crypto.randomUUID(),role:values.get('role'),expiresInSeconds:86400});
+  function invitationRow(i){
+    const [label,tone]=invitationState(i),active=tone==='info';
+    return s.row({media:s.tile('link'),title:`Ссылка для роли ${roleName(i.role)}`,meta:[`Создана ${esc(formatDateTime(i.createdAt))}`,active?`Действует до ${esc(formatDateTime(i.expiresAt))}`:''],aside:s.badge(label,tone),actions:active?ui.btn('Отменить','ghost sm','',`data-revoke="${esc(i.id)}"`):'',state:active?'':'muted'});
+  }
+  function render(){
+    if(closed)return;
+    const q=query.toLocaleLowerCase('ru').trim(),people=members.filter(m=>m.kind!=='agent'),agents=members.filter(m=>m.kind==='agent');
+    const shown=people.filter(m=>!q||m.name.toLocaleLowerCase('ru').includes(q));
+    const active=invitations.filter(i=>invitationState(i)[1]==='info'),past=invitations.filter(i=>invitationState(i)[1]!=='info');
+    const filter=people.length>10?`<label class="product-nav-search iq-settings-search">${icon('search',17)}<input type="search" placeholder="Найти участника" aria-label="Найти участника" data-member-search value="${esc(query)}"></label>`:'';
+    root.innerHTML=`${notice}
+      ${s.group({title:'Команда',count:people.length,description:admin?'Роль меняется сразу. Последнего администратора убрать нельзя.':'',body:filter+s.panel(shown.map(personRow).join('')||s.empty({title:'Никого не нашли',body:'Проверьте написание имени.',glyph:'search'}),'ul')})}
+      ${agents.length?s.group({title:'Агенты',count:agents.length,description:'Доступ агентов выдаётся и отзывается в разделе «Агенты».',body:s.panel(agents.map(personRow).join(''),'ul')}):''}
+      ${admin?s.group({title:'Приглашения',description:'Одноразовая ссылка. Её принимает один человек после входа.',body:s.panel(active.map(invitationRow).join('')||s.empty({title:'Активных приглашений нет',body:people.length<2?'Вы пока один в проекте. Создайте ссылку и отправьте её коллеге.':'Создайте ссылку и отправьте её тому, кого хотите пригласить.',action:ui.btn('Пригласить','secondary sm','plus','data-invite'),glyph:'link'}))+(past.length?`<details class="iq-accordion iq-settings-past"><summary>Прошлые приглашения (${past.length}) ${icon('down',16)}</summary>${s.panel(past.map(invitationRow).join(''))}</details>`:'')}):''}
+      ${s.group({title:'Что могут роли',body:s.panel(s.facts(projectRoles.map(([,label,hint])=>[label,esc(hint)])))})}`;
+  }
+  async function load(){
+    const sequence=++loading;
+    const [people,links]=await Promise.all([client.request(base+'/members'),admin?client.request(base+'/invitations'):[]]);
+    if(closed||sequence!==loading)return;members=people;invitations=links.sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt)));render();
+  }
+  async function changeRole(member,role,control){
+    const save=async()=>{const body={baseRevision:member.revision,role};await client.request(base+'/members/'+encodeURIComponent(member.id),'PATCH',body,await repository.key('member:'+member.id,body));notify({message:`${member.name} теперь ${roleName(role).toLocaleLowerCase('ru')}`,tone:'success'});await load();};
+    if(member.id===self&&member.role==='admin'&&role!=='admin'){
+      let confirmed=false;const el=show({title:'Снять с себя права администратора?',description:'Вы больше не сможете менять участников и настройки проекта.',submitLabel:'Снять права',onSubmit:async()=>{confirmed=true;await save();}});
+      el.addEventListener('iq-close',()=>{if(!confirmed)control.value=member.role;},{once:true});return;
+    }
+    const row=control.closest('.iq-settings-row');row?.setAttribute('aria-busy','true');
+    try{await save();}catch(error){control.value=member.role;notify({message:error.message,tone:'danger'});}finally{row?.removeAttribute('aria-busy');}
+  }
+  function invite(){
+    show({title:'Пригласить в проект',description:'Отправьте ссылку человеку, которого хотите пригласить. Её примет один человек после входа.',
+      body:s.choiceList('role','Роль',projectRoles,'editor')+select('ttl','Срок действия ссылки','86400',lifetimes),submitLabel:'Создать ссылку',onSubmit:async(values,_form,element)=>{
+      const invitation=await client.request(base+'/invitations','POST',{id:crypto.randomUUID(),role:values.get('role'),expiresInSeconds:Number(values.get('ttl'))});
       const url=new URL('/',location.origin);url.hash='invite/'+invitation.token;
-      // Secret stays only in this dialog, never in URL logs or browser storage.
-      element.querySelector('.map-dialog-body').innerHTML=input('invitation','Одноразовая ссылка',url.href,{maxlength:400});
-      const field=element.querySelector('[name=invitation]');field.readOnly=true;field.select();
-      const submit=element.querySelector('[type=submit]');submit.remove();element.querySelector('.iq-dialog-footer [data-close]').textContent='Готово';
-      await render();return false;
+      // The secret stays only in this dialog, never in URL logs or browser storage.
+      const body=element.querySelector('.map-dialog-body');body.innerHTML=s.secret({label:'Ссылка-приглашение',value:url.href,note:'Ссылку покажем только сейчас. Если потеряете её, создайте новую.'});enhance(body);
+      body.querySelector('input').select();element.querySelector('[type=submit]').remove();element.querySelector('.iq-dialog-footer [data-close]').textContent='Готово';
+      await load();return false;
     }});
+  }
+  root.addEventListener('input',event=>{if(event.target.matches('[data-member-search]')){query=event.target.value;render();const field=root.querySelector('[data-member-search]');field.focus();field.setSelectionRange(query.length,query.length);}},{signal:abort.signal});
+  root.addEventListener('iq-change',event=>{const control=event.target.closest('[data-member-role]');if(!control)return;const member=members.find(m=>m.id===control.closest('[data-member-id]')?.dataset.memberId);if(member&&event.detail.value!==member.role)void changeRole(member,event.detail.value,control);},{signal:abort.signal});
+  const onClick=event=>{void(async()=>{
+    if(event.target.closest('[data-invite]'))return invite();
+    if(event.target.closest('[data-action="remove-member"]')){const member=members.find(m=>m.id===event.target.closest('[data-member-id]')?.dataset.memberId);if(!member)return;
+      return show({title:`Удалить ${member.name} из проекта?`,description:'Доступ к задачам и картам пропадёт сразу. Позже человека можно пригласить снова.',submitLabel:'Удалить',success:`${member.name} больше не в проекте`,onSubmit:async()=>{const body={baseRevision:member.revision,role:null};await client.request(base+'/members/'+encodeURIComponent(member.id),'PATCH',body,await repository.key('member:'+member.id,body));await load();}});}
     const id=event.target.closest('[data-revoke]')?.dataset.revoke;
-    if(id)return show({title:'Отменить приглашение?',description:'По этой ссылке больше нельзя будет присоединиться к проекту.',submitLabel:'Отменить приглашение',onSubmit:async()=>{await client.request(base+'/invitations/'+encodeURIComponent(id),'DELETE');await render();}});
-  })().catch(error=>show({title:'Не удалось изменить доступ',description:error.message}));},{signal:abort.signal});
-  await render();return {readyToLeave:()=>!modal,destroy(){closed=true;loading++;abort.abort();modal?.close(true);root.replaceChildren();}};
-}
-export async function editProfile(client){
-  const profile=await client.request('/profile');
-  return dialog({title:'Профиль',body:input('name','Отображаемое имя',profile.name,{required:true,maxlength:100}),submitLabel:'Сохранить',success:'Профиль сохранён',onSubmit:values=>client.request('/profile','PATCH',{baseRevision:profile.revision,name:values.get('name')})});
+    if(id)return show({title:'Отменить приглашение?',description:'По этой ссылке больше нельзя будет присоединиться к проекту.',submitLabel:'Отменить приглашение',success:'Приглашение отменено',onSubmit:async()=>{await client.request(base+'/invitations/'+encodeURIComponent(id),'DELETE');await load();}});
+  })().catch(error=>show({title:'Не удалось изменить доступ',description:error.message}));};
+  root.addEventListener('click',onClick,{signal:abort.signal});tools?.addEventListener('click',onClick,{signal:abort.signal});
+  await load();return {readyToLeave:()=>!modal,destroy(){closed=true;loading++;abort.abort();modal?.close(true);root.replaceChildren();}};
 }
 export async function acceptPendingInvitation(client){
   const match=location.hash.match(/^#invite\/(invite_[A-Za-z0-9_-]{43})$/);if(!match)return false;
