@@ -15,6 +15,7 @@ import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.Size
 import org.springframework.context.annotation.Profile
 import org.springframework.web.bind.annotation.DeleteMapping
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -62,6 +63,12 @@ class AgentGrantController(private val requests: AuthenticatedRequests, private 
             val capabilities = input.capabilities.map(GrantedCapability::capability)
             AgentGrants.issue(tx, actor, projectId, AgentGrants.Grant(input.name, capabilities, input.expiresInSeconds))
         }
+
+    /** The agent grants of a project, newest expiry first: administrators only. */
+    @GetMapping("/api/v1/projects/{projectId}/agents")
+    fun list(@PathVariable projectId: String, request: HttpServletRequest) = requests.run(request) { tx, actor ->
+        AgentGrants.list(tx, actor, RequestInputs.id(projectId))
+    }
 
     @DeleteMapping("/api/v1/projects/{projectId}/agents/{id}")
     fun revoke(

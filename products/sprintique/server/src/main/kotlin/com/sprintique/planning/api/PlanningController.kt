@@ -192,6 +192,13 @@ class PlanningController(
         queries.history(tx, actor, projectId, id, page.first, page.second)
     }
 
+    @GetMapping("/approvals")
+    fun approvals(@PathVariable projectId: String, request: HttpServletRequest) = requests.run(request) { tx, actor ->
+        RequestInputs.id(projectId)
+        val cursor = QueryParameters(request, setOf("cursor")).string("cursor", UUID_LENGTH)?.let(::uuid)
+        Approvals.list(tx, actor, projectId, cursor)
+    }
+
     @GetMapping("/approvals/{id}")
     fun approval(
         @PathVariable projectId: String,
@@ -290,6 +297,7 @@ class PlanningController(
 
     private companion object {
         const val TEXT_LIMIT = 240
+        const val UUID_LENGTH = 36
         const val STATUS_LIMIT = 30
         const val OWNER_LIMIT = 120
         val TRUE = setOf("true")

@@ -267,8 +267,8 @@ test('P12 durable event pages reconnect after a committed change and enforce pro
   const threadPage=(await request('GET','events?cursor='+fresh.cursor,undefined,threadHeaders)).json();assert.equal(threadPage.items.length,1);assert.ok(threadPage.items.every((e:{topic:string})=>e.topic.startsWith('thread.')));
 });
 test('P12 SSE transmits changes, then stops and requires cache eviction after credential revocation',async()=>{
-  const db=new Database(process.env['DATABASE_URL']!),app=await createApp({db,origin:'http://localhost:4311'});
-  const address=await app.listen({port:0,host:'127.0.0.1'}),controller=new AbortController();
+  const app=await startApp();
+  const address=kotlin?app.url:await app.listen({port:0,host:'127.0.0.1'}),controller=new AbortController();
   try{
     let cursor:string|undefined;for(;;){const p=(await request('GET','events'+(cursor?'?cursor='+cursor:''))).json();cursor=p.cursor;if(!p.hasMore)break;}
     const response=await fetch(address+path('events?stream=true&cursor='+cursor),{headers:f.alice.headers,signal:controller.signal});assert.equal(response.status,200);
@@ -281,7 +281,7 @@ test('P12 SSE transmits changes, then stops and requires cache eviction after cr
     await f.admin.query('UPDATE auth.credentials SET revoked_at=now() WHERE id=$1',[f.alice.credential]);
     await until('access-revoked');assert.ok(buffer.includes('"clearCache":true'));
     reader.releaseLock();
-  }finally{controller.abort();await f.admin.query('UPDATE auth.credentials SET revoked_at=NULL WHERE id=$1',[f.alice.credential]);await app.close();await db.close();}
+  }finally{controller.abort();await f.admin.query('UPDATE auth.credentials SET revoked_at=NULL WHERE id=$1',[f.alice.credential]);await app.close();}
 });
 test('P12 event cursor cannot skip a transaction that commits late',async()=>{
   let beforeCursor:string|undefined;for(;;){const p=(await request('GET','events'+(beforeCursor?'?cursor='+beforeCursor:''))).json();beforeCursor=p.cursor;if(!p.hasMore)break;}

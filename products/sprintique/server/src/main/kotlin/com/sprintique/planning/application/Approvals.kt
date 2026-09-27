@@ -3,7 +3,9 @@ package com.sprintique.planning.application
 import com.sprintique.command.AuditTrail
 import com.sprintique.command.CommandLedger
 import com.sprintique.database.Transaction
+import com.sprintique.identity.application.ProjectAccess
 import com.sprintique.identity.domain.Actor
+import com.sprintique.identity.domain.Capability
 import com.sprintique.problem.requireCondition
 import com.sprintique.problem.requirePresent
 import tools.jackson.databind.JsonNode
@@ -11,6 +13,41 @@ import java.util.UUID
 
 /** People's decisions on plans that agents propose. An approval binds to the exact action of one preview. */
 object Approvals {
+    /** Proposals visible to the caller, and how many of all of them still wait for a decision. */
+    fun list(tx: Transaction, actor: Actor, projectId: String, cursor: String?): Map<String, Any?> {
+        ProjectAccess.authorize(tx, actor, projectId, Capability.TASKS_READ)
+        val rows = tx.rows(
+            """
+            SELECT a.id, a.status, a.revision, a.requested_by AS "requestedBy", a.expires_at AS "expiresAt", p.name AS "agentName",
+                   s.summary
+            FROM app.approvals a JOIN auth.principals p ON p.id = a.requested_by
+            JOIN app.planning_plans s ON s.project_id = a.project_id AND s.id::text = a.subject_id
+            WHERE a.project_id = $1 AND ($2 OR a.requested_by = $3) AND ($4::uuid IS NULL OR a.id > $4::uuid)
+            ORDER BY a.id LIMIT $5
+            """.trimIndent(),
+            projectId,
+            actor.isHuman,
+            actor.id,
+            cursor,
+            PAGE + 1,
+        )
+        // The pending count covers every page, so navigation can show it without paging through the list.
+        val pending = tx.row(
+            """
+            SELECT count(*)::int AS n FROM app.approvals a WHERE a.project_id = $1 AND ($2 OR a.requested_by = $3)
+              AND a.status = 'proposed' AND a.expires_at > clock_timestamp()
+            """.trimIndent(),
+            projectId,
+            actor.isHuman,
+            actor.id,
+        )!!.int("n")
+        return linkedMapOf(
+            "items" to rows.take(PAGE),
+            "nextCursor" to if (rows.size > PAGE) rows[PAGE - 1].string("id") else null,
+            "pendingCount" to pending,
+        )
+    }
+
     fun detail(tx: Transaction, actor: Actor, projectId: String, id: String): Map<String, Any?> {
         PlanningStates.lock(tx, actor, projectId)
         val row = tx.row(
@@ -99,4 +136,6 @@ object Approvals {
         val effects: List<JsonNode> = stored.json("effects")!!.path("effects").values().toList()
         return PlanningJson.page(Pages.page(effects, "approval:$id", stored.long("revision"), limit, cursor))
     }
+
+    private const val PAGE = 50
 }

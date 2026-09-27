@@ -1,6 +1,7 @@
 package com.sprintique.identity.application
 
 import com.sprintique.command.AuditTrail
+import com.sprintique.database.Row
 import com.sprintique.database.Transaction
 import com.sprintique.identity.domain.Actor
 import com.sprintique.identity.domain.Capability
@@ -45,6 +46,19 @@ object AgentGrants {
         return linkedMapOf(
             "id" to id, "credentialId" to credentialId, "token" to token, "expiresAt" to expiresAt,
             "capabilities" to wire,
+        )
+    }
+
+    fun list(tx: Transaction, actor: Actor, projectId: String): List<Row> {
+        ProjectAccess.authorize(tx, actor, projectId, Capability.AGENTS_MANAGE)
+        return tx.rows(
+            """
+            SELECT c.id, p.name, c.principal_id AS "agentId", c.capabilities, c.initiator_id AS "initiatorId",
+                   c.expires_at AS "expiresAt", c.revoked_at AS "revokedAt"
+            FROM auth.credentials c JOIN auth.principals p ON p.id = c.principal_id
+            WHERE c.project_id = $1 AND c.kind = 'agent' ORDER BY c.expires_at DESC LIMIT 100
+            """.trimIndent(),
+            projectId,
         )
     }
 
