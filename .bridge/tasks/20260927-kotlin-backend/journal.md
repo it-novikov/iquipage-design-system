@@ -15,3 +15,5 @@
 - 2026-09-27T21:59:22Z · claude-opus-5-5 · step · S4 · done: коммит 1d3905a; integrationTest 7/7 (контекст не утекает, владелец не стартует); дымовой прогон: health, ready 503 без базы, статика 200/304, метрики, 413
 - 2026-09-27T21:59:22Z · claude-opus-5-5 · step · S5 · active
 - 2026-09-27T21:59:22Z · claude-opus-5-5 · checkpoint · S5 · дальше: ObjectStoragePort + S3-адаптер (AWS SDK v2), FileInspection (сигнатуры), ImageProcessing (TwelveMonkeys чтение, webp-imageio запись, EXIF, лимиты, таймаут 10 с)
+- 2026-09-27T22:04:36Z · claude-opus-5-5 · step · S5 · done: коммит 37c4b2f; ImageTranscoderTest 7 (EXIF 6 → поворот, бомба 100k×100k по заголовку, таймаут, битые данные), FileInspectionTest 3, S3ObjectStorageIntegrationTest 2 на Garage
+- 2026-09-27T22:04:36Z · claude-opus-5-5 · checkpoint · - · дальше: S6 — идентичность: учётные данные, CSRF, сессия, выход, dev-login в source set local, OIDC через Nimbus, агенты
