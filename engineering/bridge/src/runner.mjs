@@ -7,7 +7,7 @@ import {FIELD, fieldText, parseSteps} from './card.mjs';
 import {workFingerprint} from './git.mjs';
 import {appendJournal, readJournal} from './journal.mjs';
 import {liveLease} from './lease.mjs';
-import {claim, handoff} from './operations.mjs';
+import {claim, handoff, release} from './operations.mjs';
 import {authorPrompt} from './prompt.mjs';
 import {isoSeconds, loadCard, loadConfig, now, paths} from './store.mjs';
 
@@ -58,13 +58,16 @@ export function classifyOutcome({code, signal, timedOut, stderr = '', stdout = '
 }
 
 /**
- * Progress is a change in the work or in the card's content: commits, the diff, a checkpoint, a finished step.
- * Taking or releasing the lease is not progress.
+ * Progress is a change in the work or in what the card says: commits, the diff, a new checkpoint text, a finished
+ * step. Taking or releasing the lease, the mechanical working-copy snapshot and a repeated identical checkpoint are
+ * not progress.
  */
 function progressMarker(root, id) {
-  const card = readFileSync(paths(root).card(id), 'utf8').replace(/^updated:.*$/m, '');
-  const content = readJournal(root, id).filter(entry => CONTENT_KINDS.has(entry.kind)).length;
-  return JSON.stringify({card, content, work: workFingerprint(root)});
+  const card = readFileSync(paths(root).card(id), 'utf8')
+    .replace(/^updated:.*$/m, '')
+    .replace(/^- \*\*(Рабочая копия|Причина):\*\*.*$/gm, '');
+  const content = new Set(readJournal(root, id).filter(entry => CONTENT_KINDS.has(entry.kind)).map(entry => `${entry.kind} ${entry.ref} ${entry.text}`));
+  return JSON.stringify({card, content: [...content].sort(), work: workFingerprint(root)});
 }
 
 function runAgent(root, id, agentKey, agent, prompt, {timeoutMinutes, quiet, round}) {
@@ -142,10 +145,13 @@ export async function runRelay(root, id, options = {}) {
     }
   }
 
+  // The chain order is the preference; an agent that failed is skipped while it is unavailable. A step that asks for a
+  // model class goes to the first available agent of that class; any other step avoids agents marked `fast`.
   const pick = card => {
-    const order = chain.map((_, offset) => chain[(index + offset) % chain.length]).filter(key => !(unavailableUntil.get(key) > now()));
+    const available = chain.slice(index).concat(chain.slice(0, index)).filter(key => !(unavailableUntil.get(key) > now()));
     const model = wantedModel(card);
-    return (model && order.find(key => config.agents[key].model === model)) || order[0];
+    if (model) return available.find(key => config.agents[key].model === model) ?? available[0];
+    return available.find(key => config.agents[key].model !== 'fast') ?? available[0];
   };
 
   if (dryRun) {
@@ -162,6 +168,7 @@ export async function runRelay(root, id, options = {}) {
       return {outcome: card.meta.status};
     }
     const available = pick(card);
+    index = 0; // After a successful pick the chain's own order applies again.
     if (!available) {
       const earliest = [...unavailableUntil.values()].sort((a, b) => a - b)[0] ?? null;
       if (wait && earliest) {
@@ -174,11 +181,15 @@ export async function runRelay(root, id, options = {}) {
       report(`Все агенты недоступны.${earliest ? ` Повторите после ${isoSeconds(earliest)}: bridge run ${id}` : ''}`);
       return {outcome: 'exhausted', retryAt: earliest};
     }
-    index = chain.indexOf(available);
     const agent = config.agents[available];
     const agentName = nameOf(available);
     const lease = liveLease(root, id);
-    if (lease?.holder !== agentName) claim(root, id, {agent: agentName, ttlHours: Math.ceil(session.timeoutMinutes / 60) + 1});
+    // A lease the relay gave to another agent of its chain is the relay's to move; any other holder is respected.
+    if (lease && lease.holder !== agentName && !lease.session && chain.some(key => nameOf(key) === lease.holder)) {
+      release(root, id, {agent: lease.holder, note: `эстафета передаёт задачу ${agentName}`, force: true});
+    }
+    // The relay's lease belongs to no interactive session, even when `bridge run` is started from one.
+    if (liveLease(root, id)?.holder !== agentName) claim(root, id, {agent: agentName, ttlHours: Math.ceil(session.timeoutMinutes / 60) + 1, session: ''});
     const before = progressMarker(root, id);
     report(`Раунд ${round}: ${agentName}`);
     const result = await runAgent(root, id, available, agent, authorPrompt(root, id, {agent: agentName}), {timeoutMinutes: session.timeoutMinutes, quiet, round});
@@ -206,11 +217,12 @@ export async function runRelay(root, id, options = {}) {
     }
     overloadedAttempts = 0;
     if (outcome.kind === 'context') continue; // A fresh session of the same agent starts from the card.
-    const next = chain[(index + 1) % chain.length];
+    const next = chain[(chain.indexOf(available) + 1) % chain.length];
     handoff(root, id, {agent: agentName, reason: REASON[outcome.kind], to: next !== available ? nameOf(next) : '', force: true});
-    const cooldown = outcome.kind === 'limit' || outcome.kind === 'auth' ? outcome.retryAt ?? new Date(now().getTime() + 3600_000) : new Date(now().getTime() + 60_000);
+    // A reset time already in the past says nothing useful; wait an hour as when none is given.
+    const reset = outcome.retryAt && outcome.retryAt > now() ? outcome.retryAt : new Date(now().getTime() + 3600_000);
+    const cooldown = outcome.kind === 'limit' || outcome.kind === 'auth' ? reset : new Date(now().getTime() + 60_000);
     unavailableUntil.set(available, cooldown);
-    index = (index + 1) % chain.length;
   }
   report(`Достигнут предел раундов (${rounds}).`);
   return {outcome: 'max-rounds'};

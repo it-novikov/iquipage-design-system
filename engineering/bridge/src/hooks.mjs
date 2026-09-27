@@ -1,8 +1,8 @@
 import {spawn} from 'node:child_process';
-import {appendFileSync, mkdirSync, openSync} from 'node:fs';
+import {appendFileSync, existsSync, mkdirSync, openSync, readFileSync, rmSync, writeFileSync} from 'node:fs';
 import {join} from 'node:path';
 import {appendJournal, readJournal} from './journal.mjs';
-import {liveLease, readLease} from './lease.mjs';
+import {liveLease, readLease, withLeaseLock, writeLease} from './lease.mjs';
 import {BRIDGE_HOME, bridgeCommand, handoff, release} from './operations.mjs';
 import {briefFor} from './prompt.mjs';
 import {parseQuestions} from './card.mjs';
@@ -50,11 +50,13 @@ export function handleClaudeHook(root, input, {spawnRelay = spawnDetachedRelay} 
 
   if (event === 'SessionStart') {
     // Later Bash commands of this session identify themselves to the bridge through these variables.
-    if (process.env.CLAUDE_ENV_FILE && SESSION_ID.test(input.session_id ?? '')) {
+    // Inside the relay the session is anonymous: the relay owns the lease and names the agent itself.
+    if (!relay && process.env.CLAUDE_ENV_FILE && SESSION_ID.test(input.session_id ?? '')) {
       const lines = [`export BRIDGE_SESSION=${input.session_id}`];
       if (!process.env.BRIDGE_AGENT) lines.push(`export BRIDGE_AGENT=${DEFAULT_AGENT}`);
       appendFileSync(process.env.CLAUDE_ENV_FILE, `${lines.join('\n')}\n`);
     }
+    if (input.source === 'clear') adoptClearedLeases(root, input.session_id);
     const held = tasksOfSession(root, input);
     if (held.length === 1 && ['compact', 'clear'].includes(input.source)) {
       // After compaction the model lost the details; the card has them in a fraction of the tokens.
@@ -87,11 +89,36 @@ export function handleClaudeHook(root, input, {spawnRelay = spawnDetachedRelay} 
       }
     } else if (event === 'PreCompact') {
       withLock(root, task.id, () => appendJournal(root, task.id, {actor: agent, kind: 'note', text: `контекст сжимается (${input.trigger || 'auto'}); карточка — источник правды`}));
+    } else if (event === 'SessionEnd' && !relay && input.reason === 'clear') {
+      // /clear ends the session and starts a new one at once: keep the lease for the session that follows.
+      rememberClearedSession(root, input.session_id);
     } else if (event === 'SessionEnd' && !relay) {
       release(root, task.id, {agent: readLease(root, task.id)?.holder ?? agent, note: `сессия завершена (${input.reason || 'other'})`, force: true});
     }
   }
   return '';
+}
+
+const clearedFile = root => join(paths(root).runs, 'cleared-session.json');
+
+function rememberClearedSession(root, session) {
+  if (!SESSION_ID.test(session ?? '')) return;
+  mkdirSync(paths(root).runs, {recursive: true});
+  writeFileSync(clearedFile(root), JSON.stringify({session, at: isoSeconds(now())}));
+}
+
+/** The session that follows /clear takes over the leases of the session that /clear ended a moment ago. */
+function adoptClearedLeases(root, session) {
+  if (!SESSION_ID.test(session ?? '') || !existsSync(clearedFile(root))) return;
+  const cleared = JSON.parse(readFileSync(clearedFile(root), 'utf8'));
+  rmSync(clearedFile(root), {force: true});
+  if (now() - new Date(cleared.at) > 120_000) return;
+  for (const {id} of readCards(root, {warn: false})) {
+    withLeaseLock(root, id, () => {
+      const lease = liveLease(root, id);
+      if (lease?.session === cleared.session) writeLease(root, id, {...lease, session});
+    });
+  }
 }
 
 /** Continues the task with the next agent of the chain in a detached relay; its log goes to `.bridge/runs/<id>/`. */
