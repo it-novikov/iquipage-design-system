@@ -62,6 +62,7 @@ dependencies {
     implementation(libs.aws.sdk.s3)
     implementation(libs.aws.sdk.url.connection)
     implementation(libs.twelvemonkeys.jpeg)
+    implementation(libs.twelvemonkeys.webp)
     implementation(libs.webp.imageio)
     runtimeOnly(libs.postgresql)
     implementation(libs.junixsocket.core)

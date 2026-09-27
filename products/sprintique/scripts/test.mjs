@@ -62,7 +62,8 @@ try{
     }else if(!preview&&!process.argv.includes('--skip-integration')){
       server.integrationTests({SPRINTIQUE_TEST_ADMIN_DATABASE_URL:url('postgres'),SPRINTIQUE_TEST_MIGRATION_DATABASE_URL:url('sprintique_migrator'),
         SPRINTIQUE_TEST_DATABASE_URL:url('sprintique_app'),SPRINTIQUE_TEST_WORKER_DATABASE_URL:url('sprintique_worker'),
-        SPRINTIQUE_TEST_RUNTIME_ROLE:'sprintique_app',SPRINTIQUE_TEST_WORKER_ROLE:'sprintique_worker'});
+        SPRINTIQUE_TEST_RUNTIME_ROLE:'sprintique_app',SPRINTIQUE_TEST_WORKER_ROLE:'sprintique_worker',
+        ...(process.env.TEST_S3_CONFIG?{SPRINTIQUE_TEST_S3_CONFIG:process.env.TEST_S3_CONFIG}:{})});
       checkpoint();
     }
   }
