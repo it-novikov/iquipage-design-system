@@ -39,7 +39,7 @@ const HELP = `bridge — передача работы между агентам
 
 Агенты
   prompt [id]                           Промпт для агента: протокол + сводка
-  review [id] --reviewer A [--base B] [--round N] [--since R1]   Отчёт ревью и пакет ревьюера
+  review [id] --reviewer A [--base B] [--round N] [--since R1,R2]   Отчёт ревью и пакет ревьюера
   run [id] [--chain a,b] [--after A] [--rounds N] [--wait] [--quiet] [--dry-run]   Эстафета агентов
   hook claude                           Обработчик хуков Claude Code (JSON на stdin)`;
 

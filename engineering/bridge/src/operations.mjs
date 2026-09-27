@@ -287,8 +287,10 @@ export function startReview(root, id, {reviewer, base, round: requestedRound, si
     const reviewId = `R${number}`;
     const file = join(directory, `${reviewId}.md`);
     const baseSha = mergeBase(root, baseRef) ?? '';
-    const previous = since ? existing.find(item => item.name === `${since.toUpperCase()}.md`) : null;
-    if (since && !previous) throw new BridgeError('REVIEW_NOT_FOUND', `Ревью ${since} не найдено.`);
+    const wanted = since ? since.split(',').map(item => item.trim().toUpperCase()).filter(Boolean) : [];
+    const previous = wanted.map(name => existing.find(item => item.name === `${name}.md`) ?? name);
+    const missing = previous.filter(item => typeof item === 'string');
+    if (missing.length) throw new BridgeError('REVIEW_NOT_FOUND', `Ревью ${missing.join(', ')} не найдено.`);
     const handle = openSync(file, 'wx');
     try {
       writeFileSync(handle, reviewTemplate({
@@ -298,7 +300,7 @@ export function startReview(root, id, {reviewer, base, round: requestedRound, si
     } finally {
       closeSync(handle);
     }
-    appendJournal(root, id, {actor: reviewer, kind: 'review', ref: reviewId, text: `начато ревью, раунд ${round}${since ? `, после ${since.toUpperCase()}` : ''}`});
-    return {reviewId, file, baseRef, baseSha, round, previous: previous && {id: previous.name.slice(0, -3), head: previous.meta.head, file: join(directory, previous.name)}};
+    appendJournal(root, id, {actor: reviewer, kind: 'review', ref: reviewId, text: `начато ревью, раунд ${round}${wanted.length ? `, после ${wanted.join(', ')}` : ''}`});
+    return {reviewId, file, baseRef, baseSha, round, previous: previous.map(item => ({id: item.name.slice(0, -3), head: String(item.meta.head), file: join(directory, item.name)}))};
   });
 }

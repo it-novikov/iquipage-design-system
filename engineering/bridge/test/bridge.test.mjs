@@ -189,8 +189,9 @@ test('parallel reviewers get their own files in one round; a follow-up lists ear
   writeFileSync(first.file, readFileSync(first.file, 'utf8').replace('verdict: pending', 'verdict: changes-requested')
     .replace('## Замечания\n', '## Замечания\n- **F1** [P2] `x:1` — Имя.\n  Решение: [fixed abc]\n'));
   writeFileSync(second.file, readFileSync(second.file, 'utf8').replace('verdict: pending', 'verdict: approve'));
-  const third = operations.startReview(root, id, {reviewer: 'c', base: 'main', since: 'R1'});
+  const third = operations.startReview(root, id, {reviewer: 'c', base: 'main', since: 'R1,R2'});
   assert.equal(third.round, 2);
+  assert.deepEqual(third.previous.map(item => item.id), ['R1', 'R2']);
   assert.match(reviewerPrompt(root, id, {agent: 'c', reviewFile: third.file, baseRef: 'main', previous: third.previous}), /- F1 \[P2\] fixed — `x:1` — Имя\./);
 });
 

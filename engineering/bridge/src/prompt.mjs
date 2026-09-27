@@ -39,12 +39,15 @@ export function authorPrompt(root, id, {agent}) {
  * A review package: criteria from the card, the diff range and where to write findings. No author history.
  * With `previous`, the package is a follow-up round: the earlier findings and only the changes made since.
  */
-export function reviewerPrompt(root, id, {agent, reviewFile, baseRef, previous = null}) {
+export function reviewerPrompt(root, id, {agent, reviewFile, baseRef, previous = []}) {
   const card = loadCard(root, id);
   const base = mergeBase(root, baseRef) ?? baseRef;
   const command = bridgeCommand(root);
   const file = relative(root, reviewFile);
-  const followUp = previous ? parseReview(readFileSync(previous.file, 'utf8')) : null;
+  const followUp = previous.length ? previous.map(item => ({...item, review: parseReview(readFileSync(item.file, 'utf8'))})) : null;
+  const names = previous.map(item => item.id).join(', ');
+  // All reviews of one round share a head; the oldest one bounds the changes made since.
+  const since = previous[0]?.head;
   const lines = [
     `Вы — независимый ревьюер «${agent}» задачи ${id}. Вы не автор и не видели его сессию. Код не меняйте.`,
     '',
@@ -52,8 +55,8 @@ export function reviewerPrompt(root, id, {agent, reviewFile, baseRef, previous =
   ];
   if (followUp) {
     lines.push(
-      `2. Это повторное ревью после ${previous.id}. Полностью проверьте исправления: \`git diff ${previous.head}..HEAD\`. Остальной код — выборочно, в окрестности исправлений.`,
-      `3. Для каждого замечания ${previous.id} подтвердите решение автора или откройте его снова в своём файле с тем же текстом.`,
+      `2. Это повторное ревью после ${names}. Полностью проверьте исправления: \`git diff ${since}..HEAD\`. Остальной код — выборочно, в окрестности исправлений.`,
+      `3. Для каждого замечания ${names} подтвердите решение автора или откройте его снова в своём файле. Перенесённые (deferred) проверьте на обоснованность.`,
     );
   } else {
     lines.push(
@@ -68,8 +71,10 @@ export function reviewerPrompt(root, id, {agent, reviewFile, baseRef, previous =
     '',
   );
   if (followUp) {
-    lines.push(`## Замечания ${previous.id}`, ...followUp.findings.map(finding => `- ${finding.id} [${finding.priority}] ${finding.resolution ?? 'open'} — ${finding.text}`), '');
-    lines.push('## Изменено после прошлого ревью', '```', diffStat(root, previous.head, '..') ?? 'git недоступен', '```');
+    for (const item of followUp) {
+      lines.push(`## Замечания ${item.id}`, ...item.review.findings.map(finding => `- ${finding.id} [${finding.priority}] ${finding.resolution ?? 'open'} — ${finding.text}`), '');
+    }
+    lines.push('## Изменено после прошлого ревью', '```', diffStat(root, since, '..') ?? 'git недоступен', '```');
   } else {
     lines.push('## Изменённые файлы', '```', diffStat(root, base) ?? 'git недоступен', '```');
   }
