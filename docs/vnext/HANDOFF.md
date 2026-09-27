@@ -4,7 +4,7 @@
 
 - `libraries/iquipage` — DS source, now `0.6.0-vnext.17`. Changes per version: `libraries/iquipage/docs/CHANGES-0.6.md`; public API: its README; contracts: `tests/vnext*.test.cjs`.
 - `products/sprintique` — the product. It consumes only `vendor/iquipage-web-<version>.tgz` (checksum in its README and lockfile). UI decisions and their reasons: `docs/ux-ds-alignment.md`; settings: `docs/settings/DESIGN.md` and `VALIDATION.md`.
-- Branches: `main` holds everything up to PR #9. PR #10 (settings) and PR #11 (task drawer) are open and stacked; the relation-map/docs PR is stacked on #11. Merge them in that order; GitHub retargets the next one to `main` after each merge.
+- Branches: `main` holds everything up to PR #9. PR #10 (settings) and PR #11 (task drawer) are open and stacked; PR #12 (relation map, whiteboard showcase, docs) is stacked on #11. Merge them in that order; GitHub retargets the next one to `main` after each merge.
 
 ## Run it
 
@@ -32,7 +32,7 @@ The stand serves the built `dist/`: rebuild with `npx vite build` after UI chang
 
 ## Next
 
-Merge PR #10, #11 and the relation-map PR. Optional backend work proposed by the councils is listed in STATUS.md.
+Merge PR #10, #11 and #12 in that order. Optional backend work proposed by the councils is listed in STATUS.md.
 
 ---
 

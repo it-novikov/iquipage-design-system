@@ -12,9 +12,9 @@ Merged into `main`:
 Open, in merge order (each stacked on the previous one):
 1. PR #10 — settings redesign (vnext.15): full-width layout on the DS side navigation, one page anatomy, save bar only when dirty, read-only facts with a lock notice, members, agents and file cleanup rebuilt; section switching without a blink.
 2. PR #11 — task drawer hierarchy (vnext.16): heading title, key-value strip, quiet rows, description in preview with the template action inside the editor, parent in "Связи", cover menu, any RGB tag colour (migration 017).
-3. The next PR — relation map in "Связи" (vnext.17), the DS "Визуальная доска" showcase configured like Maps, and this documentation refresh.
+3. PR #12 — relation map in "Связи" (vnext.17), the DS "Визуальная доска" showcase configured like Maps, and this documentation refresh.
 
-Local gates: the full gate `scripts/verify-vnext.mjs` passed for PR #10 (DS 260 tests) and PR #11 (DS 264 tests, product tests with the private QA S3 service, boundaries, builds, detached product). The vnext.17 gate result is recorded in its PR. GitHub CI passed for PR #9 and PR #10.
+Local gates: the full gate `scripts/verify-vnext.mjs` passed for PR #10 (DS 260 tests) and PR #11 (DS 264 tests, product tests with the private QA S3 service, boundaries, builds, detached product). PR #12 passed it too (DS 268 tests). GitHub CI passed for PR #9 and PR #10.
 
 Known limits of this checkpoint: the read-only settings view was checked by rewriting the project role in API responses in the browser, because the local stand's quick login is admin only; the server enforces every permission regardless. Optional backend improvements proposed by the councils (inviter names on invitations, tag usage counts, an inherited time-zone flag, a pending-proposals count, member activity dates, profile email and photo, a workspace project list) are not implemented. The R4 security statement below is unchanged. Full-platform-ready remains false; no deployment or publication happened.
 
