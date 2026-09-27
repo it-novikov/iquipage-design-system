@@ -164,7 +164,11 @@ export async function describeRelease(tx:Transaction,actor:Actor,projectId:strin
     counts:{total:items.length,accepted:items.filter(t=>t.outcome==='accepted').length,candidates:items.filter(t=>t.outcome==='candidate').length,unfinished:items.filter(t=>t.outcome==='unfinished').length},items:p.items,
     ...(snapshot?{snapshot:{name:r.name,accepted:snapshot.filter(t=>t.outcome==='accepted').length,carried:snapshot.filter(t=>t.outcome!=='accepted').length,items:snapshot.filter(t=>visible.has(t.before.id)).map(t=>({id:t.before.id,key:t.before.displayId,title:t.before.title,outcome:t.outcome}))}}:{})};
 }
-export async function settings(tx:Transaction,actor:Actor,projectId:string){const c=await context(tx,actor,projectId);return {...c.state.defaults,timeZone:c.state.defaults!.timezone};}
+export async function settings(tx:Transaction,actor:Actor,projectId:string){
+  const c=await context(tx,actor,projectId);
+  const source=(await tx.query<{inherited:boolean;workspace_timezone:string}>('SELECT inherited,workspace_timezone FROM auth.project_timezone_source($1)',[projectId])).rows[0];
+  return {...c.state.defaults,timeZone:c.state.defaults!.timezone,timeZoneInherited:!!source?.inherited,workspaceTimeZone:source?.workspace_timezone||c.state.defaults!.timezone};
+}
 export async function timeline(tx:Transaction,actor:Actor,projectId:string,q:ViewQuery){
   const c=await context(tx,actor,projectId),matched=matches(q,c.rows,c.state.releases),releases=c.state.releases.filter(r=>!finished(r)&&!r.archivedAt&&(!q.releaseId||r.id===q.releaseId));
   const names=memberNames(c.state);
@@ -216,7 +220,7 @@ export async function previewIntent(tx:Transaction,actor:Actor,projectId:string,
     case 'schedule':case 'temporal':case 'removeTemporal':value=temporalCommand(intent);break;
     case 'batch':for(const action of intent.actions)if(action.expectedProjectionRevision)requireCondition(action.expectedProjectionRevision===String(c.revision),409,'PROJECTION_STALE','План изменился.');value={kind:'schedule.batch',actions:intent.actions.map(temporalCommand)};break;
     case 'milestone':value={kind:'milestone',id:intent.entityId||randomUUID(),value:intent.values};break;
-    case 'settings':value={kind:'settings',value:{format:intent.values.format,days:intent.values.days,timezone:intent.values.timeZone}};break;
+    case 'settings':value={kind:'settings',value:{format:intent.values.format,days:intent.values.days,timezone:intent.values.timeZone,timezoneInherited:!!intent.values.inheritTimeZone}};break;
     case 'shiftDates':value={kind:'shift',releaseId:intent.groupId,days:intent.days};break;
     default:throw new Problem(400,'INTENT_UNKNOWN','Операция не поддерживается.');
   }

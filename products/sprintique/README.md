@@ -15,7 +15,7 @@ contracts               Static Zod contracts; no dynamic user-supplied schemas
 client                  Typed Planning HTTP client
 web                     Product host and backend-to-UI adapters
 ui                      Existing board/maps and imported Planning consumer
-migrations              Immutable clean-start schema (001–017)
+migrations              Immutable clean-start schema (001–018)
 scripts                 Build, local infrastructure, verification and restore drill
 tests                   Real PostgreSQL/S3 and consumer unit tests
 vendor                  Explicit public DS package, not library source imports

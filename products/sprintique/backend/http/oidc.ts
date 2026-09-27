@@ -43,8 +43,10 @@ export async function registerOidc(app:FastifyInstance,db:Database,settings:Oidc
     const claims=tokens.claims();requireCondition(claims?.sub,401,'IDENTITY_INVALID','Не удалось подтвердить аккаунт.');
     const token=secret(),csrf=secret();
     await db.transaction(async tx=>{
-      const principal=(await tx.query<{id:string;disabled_at:Date|null}>(`INSERT INTO auth.principals(id,kind,name,issuer,subject) VALUES($1,'human',$2,$3,$4)
-        ON CONFLICT(issuer,subject) DO UPDATE SET name=EXCLUDED.name RETURNING id,disabled_at`,[randomUUID(),String(claims.name||'Участник').slice(0,100),settings!.issuer,claims.sub])).rows[0]!;
+      // Only a verified e-mail is stored, for its owner's profile; identities are matched by issuer and subject.
+      const email=claims.email_verified===true&&typeof claims.email==='string'&&/^[^\s@]{1,64}@[^\s@]{1,255}$/.test(claims.email)?claims.email.slice(0,320):null;
+      const principal=(await tx.query<{id:string;disabled_at:Date|null}>(`INSERT INTO auth.principals(id,kind,name,issuer,subject,email) VALUES($1,'human',$2,$3,$4,$5)
+        ON CONFLICT(issuer,subject) DO UPDATE SET name=EXCLUDED.name,email=EXCLUDED.email RETURNING id,disabled_at`,[randomUUID(),String(claims.name||'Участник').slice(0,100),settings!.issuer,claims.sub,email])).rows[0]!;
       requireCondition(!principal.disabled_at,403,'ACCOUNT_DISABLED','Аккаунт отключён.');
       await tx.query("INSERT INTO auth.credentials(id,principal_id,token_hash,kind,csrf,initiator_id,expires_at) VALUES($1,$2,$3,'session',$4,$2,clock_timestamp()+interval '8 hours')",[randomUUID(),principal.id,hash(token),csrf]);
     });

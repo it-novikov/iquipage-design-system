@@ -33,7 +33,7 @@ export async function mountSettings(root,{repository,project,adapter,onChanged=(
   const base='/projects/'+encodeURIComponent(project.id);
   const [approvals,operations]=await Promise.all([client.request(base+'/approvals').catch(()=>null),project.role==='admin'?client.request(base+'/operations').catch(()=>null):null]);
   if(closed)return;
-  const pending=(approvals?.items||[]).filter(a=>a.status==='proposed'&&new Date(a.expiresAt)>new Date()).length;
+  const pending=Number.isFinite(approvals?.pendingCount)?approvals.pendingCount:(approvals?.items||[]).filter(a=>a.status==='proposed'&&new Date(a.expiresAt)>new Date()).length;
   const failed=operations?.counts?.find(c=>c.state==='failed')?.count||0;
   counts.agents=pending?{count:pending,label:plural(pending,['предложение ждёт','предложения ждут','предложений ждут'])+' решения'}:null;
   counts.operations=failed?{count:failed,label:plural(failed,['операция требует','операции требуют','операций требуют'])+' внимания'}:null;
@@ -89,6 +89,7 @@ export async function mountSettings(root,{repository,project,adapter,onChanged=(
   const data=await client.request('/profile');if(closed)return;
   const role=`${roleName(project.role)} в проекте ${project.name}`;
   content.innerHTML=formShell(s.group({title:'Как вас видят',body:s.panel(s.row({media:s.avatar(data.name,data.id),title:data.name,meta:[esc(role)],attrs:'data-profile-preview'})+s.fieldRow('Отображаемое имя','Имя и фамилия, как к вам обращаются в команде.',input('name','Отображаемое имя',data.name,{required:true,maxlength:100})))}))
+   +(data.email?s.group({title:'Учётная запись',description:'Почта приходит из учётной записи организации и меняется там.',body:s.panel(s.facts([['Почта',esc(data.email)]]))}):'')
    +s.group({title:'Ваши роли',description:'Роли выдают администраторы проекта и пространства.',body:s.panel(s.facts([[`Проект ${project.name}`,esc(roleName(project.role))],...(workspace?[[`Пространство ${workspace.name}`,esc(workspaceRoleName(workspace.role))]]:[])]))});
   const form=content.querySelector('form'),field=form.querySelector('[name=name]'),preview=form.querySelector('[data-profile-preview] .iq-settings-row-title');
   field.addEventListener('input',()=>{preview.textContent=field.value.trim()||data.name;});
@@ -119,10 +120,17 @@ export async function mountSettings(root,{repository,project,adapter,onChanged=(
   await client.request(base,'PUT',body,await repository.key('project-profile:'+project.id,body));await onChanged();await renderProfile();
  }
 
+  /** Projects of the workspace: every project for its administrators, one's own projects for other members. */
+  async function workspaceProjects(data){
+   let list=[];try{list=await client.request('/workspaces/'+encodeURIComponent(project.workspaceId)+'/projects');}catch{return '';}
+   const rows=list.map(p=>s.row({media:s.tile('folder'),title:p.name,titleExtra:p.id===project.id?s.badge('Открыт'):'',meta:[`<code class="iq-settings-code">${esc(p.key)}</code>`,esc(plural(p.members,['участник','участника','участников']))],aside:p.role?esc(roleName(p.role)):s.badge('Нет доступа')})).join('');
+   return s.group({title:'Проекты',count:list.length,description:data.role==='admin'?'Все проекты пространства. Доступ к задачам выдаётся в настройках проекта.':'Проекты пространства, в которых вы участвуете.',body:s.panel(rows||s.empty({title:'Проектов пока нет',glyph:'folder'}))});
+  }
  async function renderWorkspace(){
   const base='/workspaces/'+encodeURIComponent(project.workspaceId),data=await client.request(base);if(closed)return;workspace=data;
-  if(data.role!=='admin'){content.innerHTML=s.lock('Вы можете только просматривать. Настройки пространства меняет его администратор.')+s.group({title:'Основное',body:s.panel(s.facts([['Название пространства',esc(data.name)],['Часовой пояс',esc(data.timezone)]]))});return;}
+  if(data.role!=='admin'){content.innerHTML=s.lock('Вы можете только просматривать. Настройки пространства меняет его администратор.')+s.group({title:'Основное',body:s.panel(s.facts([['Название пространства',esc(data.name)],['Часовой пояс',esc(data.timezone)]]))})+await workspaceProjects(data);return;}
   content.innerHTML=formShell(s.group({title:'Основное',body:s.panel(s.fieldRow('Название пространства','Видно в переключателе проектов.',input('name','Название пространства',data.name,{required:true,maxlength:100}))+s.fieldRow('Часовой пояс','По умолчанию для новых проектов и дат.',timeZoneField('timezone','Часовой пояс',data.timezone)))}))
+   +await workspaceProjects(data)
    +s.group({title:'Люди',body:s.panel(s.row({media:s.tile('users'),title:'Участники пространства',meta:['Роли в пространстве и его состав.'],href:'#settings/workspace-members',attrs:'data-settings-section="workspace-members"'}))});
   const form=content.querySelector('form'),name=form.querySelector('[name=name]'),zone=()=>String(form.querySelector('iq-combobox[name=timezone]')?.value||data.timezone).trim();
   bindForm(form,{read:()=>({name:name.value.trim(),timezone:zone()}),after:renderWorkspace,save:async({name,timezone})=>{if(!name)throw Error('Введите название пространства.');await client.request(base,'PATCH',{baseRevision:data.revision,name,timezone});}});
@@ -132,7 +140,7 @@ export async function mountSettings(root,{repository,project,adapter,onChanged=(
   const data=await adapter.settings({projectId:project.id});if(closed)return;
   const canEdit=project.role==='admin',[format,hint]=formats[data.format]||[data.format,''];
   tools.innerHTML=canEdit?ui.btn('Изменить','secondary sm','','data-settings-action="planning"'):'';
-  content.innerHTML=await projectLock()+s.group({title:'Новые релизы',description:'Эти значения предлагаются при создании релиза. Даты текущих релизов не изменятся.',body:s.panel(s.facts([['Формат',`${esc(format)}<small>${esc(hint)}</small>`],['Длительность спринта',esc(plural(data.days||14,['день','дня','дней']))],['Часовой пояс',esc(data.timeZone||'UTC')]]))});
+  content.innerHTML=await projectLock()+s.group({title:'Новые релизы',description:'Эти значения предлагаются при создании релиза. Даты текущих релизов не изменятся.',body:s.panel(s.facts([['Формат',`${esc(format)}<small>${esc(hint)}</small>`],['Длительность спринта',esc(plural(data.days||14,['день','дня','дней']))],['Часовой пояс',data.timeZoneInherited?`${esc(data.timeZone||'UTC')}<small>Как в пространстве</small>`:esc(data.timeZone||'UTC')]]))});
  }
 
  async function select(section,{historyMode='push',force=false}={}){

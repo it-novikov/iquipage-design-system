@@ -27,12 +27,12 @@ The stand serves the built `dist/`: rebuild with `npx vite build` after UI chang
 
 - No deployment without an explicit target, secrets and a data plan. Never publish cookies, credentials, private infrastructure config (`products/sprintique/output/infra`), user databases or backups.
 - Merges into `main` are done by the owner.
-- Migrations are append-only (017 is the latest). Product code imports only public `@iquipage/web` entries.
+- Migrations are append-only (018 is the latest). Product code imports only public `@iquipage/web` entries.
 - Russian UI copy; dates as 04.10.2026 or 04.10.2026 14:00; no middot separators.
 
 ## Next
 
-Merge PR #10, #11 and #12 in that order. Optional backend work proposed by the councils is listed in STATUS.md.
+Merge PR #10, #11 and #12 in that order. Backend work proposed by the councils is done except a personal profile photo (see STATUS.md).
 
 ---
 

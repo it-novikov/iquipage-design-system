@@ -41,6 +41,12 @@ export async function putWorkspaceProfile(tx:Transaction,actor:Actor,id:string,i
   await tx.query('UPDATE app.workspaces SET name=$2,timezone=$3,revision=revision+1 WHERE id=$1',[id,input.name,input.timezone]);
   await audit(tx,actor,id,'workspace.updated',id,input.baseRevision+1);return workspaceProfile(tx,actor,id);
 }
+/** Workspace catalog: all projects for workspace administrators, own projects for other members. Names only. */
+export async function workspaceProjects(tx:Transaction,actor:Actor,id:string){
+  await workspaceProfile(tx,actor,id);
+  const rows=(await tx.query('SELECT id,name,slug,key,members,role FROM auth.workspace_projects($1)',[id])).rows;
+  requireCondition(rows.length<=500,409,'CATALOG_LIMIT','Каталог достиг лимита.');return rows;
+}
 export async function workspaceMembers(tx:Transaction,actor:Actor,id:string){
   await workspaceLock(tx,actor,id);
   return (await tx.query('SELECT p.id,coalesce(p.profile_name,p.name) AS name,m.role,m.revision FROM app.workspace_members m JOIN auth.principals p ON p.id=m.principal_id WHERE m.workspace_id=$1 ORDER BY name,p.id LIMIT 501',[id])).rows;
