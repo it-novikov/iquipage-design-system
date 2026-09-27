@@ -175,7 +175,7 @@ verdict: changes-requested
 - **Не проверено:** …
 ```
 
-`round` — номер раунда: параллельные ревьюеры одного раунда получают один номер и разные файлы. `verdict`: `pending`, `approve`, `changes-requested`. Решение замечания: `[open]`, `[fixed <commit>]`, `[deferred <задача>: причина]`, `[rejected: причина]`.
+`round` — номер раунда: параллельные ревьюеры одного раунда получают один номер и разные файлы. `verdict`: `pending`, `approve`, `changes-requested`. Решение замечания: `[open]`, `[fixed <commit>]`, `[deferred <задача>: причина]`, `[rejected: причина]`, `[waived <кто>: причина]`. Правила для P0/P1 — в [ревью](../review.md#формат-замечания).
 
 ## Что проверяет `bridge check`
 

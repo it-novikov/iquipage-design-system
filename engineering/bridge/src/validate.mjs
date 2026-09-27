@@ -89,6 +89,9 @@ export function validateTask(root, id) {
     if (review.meta.verdict && !VERDICTS.includes(review.meta.verdict)) errors.push(`${name}: verdict «${review.meta.verdict}» не из списка.`);
     blocking += review.findings.filter(isBlocking).length;
     for (const finding of findSecrets(reviewText)) errors.push(`${name}:${finding.line}: похоже на ${finding.name}.`);
+    for (const finding of review.findings.filter(item => item.priority === 'P0' && item.resolution === 'deferred')) {
+      errors.push(`${name}/${finding.id}: P0 нельзя переносить в другую задачу.`);
+    }
   }
   if (meta.status === 'done') {
     const unfinished = steps.filter(step => !['done', 'dropped'].includes(step.status));

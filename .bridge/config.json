@@ -1,53 +1,143 @@
 {
   "bridge": 1,
-  "chain": ["claude", "codex"],
-  "session": {"timeoutMinutes": 120, "maxRounds": 8, "stallRounds": 2},
-  "retry": {"overloaded": {"attempts": 2, "backoffSeconds": [30, 120]}},
-  "relay": {"fromHooks": false},
+  "chain": [
+    "claude",
+    "codex"
+  ],
+  "session": {
+    "timeoutMinutes": 120,
+    "maxRounds": 8,
+    "stallRounds": 2
+  },
+  "retry": {
+    "overloaded": {
+      "attempts": 2,
+      "backoffSeconds": [
+        30,
+        120
+      ]
+    }
+  },
+  "relay": {
+    "fromHooks": false
+  },
   "riskFloor": [
-    {"pattern": "(^|/)(migrations|db/migration)/", "risk": "high"},
-    {"pattern": "(^|/)openapi[^/]*$", "risk": "high"},
-    {"pattern": "(^|/)(security|policy|auth)/", "risk": "high"}
+    {
+      "pattern": "(^|/)(migrations|db/migration)/",
+      "risk": "high"
+    },
+    {
+      "pattern": "(^|/)openapi[^/]*$",
+      "risk": "high"
+    },
+    {
+      "pattern": "(^|/)(security|policy|auth)/",
+      "risk": "high"
+    }
   ],
   "agents": {
     "claude": {
       "name": "claude-code",
       "model": "strong",
       "command": [
-        "claude", "-p", "--permission-mode", "acceptEdits",
-        "--allowedTools", "Bash(engineering/bridge/bin/bridge:*)", "Bash(git status:*)", "Bash(git diff:*)", "Bash(git log:*)",
-        "Bash(git add:*)", "Bash(git commit:*)"
+        "claude",
+        "-p",
+        "--permission-mode",
+        "acceptEdits",
+        "--allowedTools",
+        "Bash(engineering/bridge/bin/bridge:*)",
+        "Bash(git status:*)",
+        "Bash(git diff:*)",
+        "Bash(git log:*)",
+        "Bash(git add:*)",
+        "Bash(git commit:*)",
+        "Bash(npm test:*)",
+        "Bash(npm run:*)",
+        "Bash(npm ci:*)",
+        "Bash(node scripts/:*)",
+        "Bash(./gradlew:*)",
+        "Bash(LC_ALL=C LANG=C:*)"
       ],
       "input": "stdin",
       "signals": {
-        "limit": ["usage limit reached", "hit your limit", "rate_limit_error", "credit balance is too low"],
-        "auth": ["authentication_error", "invalid x-api-key", "please run /login"],
-        "context": ["prompt is too long", "context window"],
-        "overloaded": ["overloaded_error", "\\b529\\b", "api_error"]
+        "limit": [
+          "usage limit reached",
+          "hit your limit",
+          "rate_limit_error",
+          "credit balance is too low"
+        ],
+        "auth": [
+          "authentication_error",
+          "invalid x-api-key",
+          "please run /login"
+        ],
+        "context": [
+          "prompt is too long",
+          "context window"
+        ],
+        "overloaded": [
+          "overloaded_error",
+          "\\b529\\b",
+          "api_error"
+        ]
       }
     },
     "codex": {
       "name": "codex",
       "model": "strong",
-      "command": ["codex", "exec", "--full-auto", "-"],
+      "command": [
+        "codex",
+        "exec",
+        "--full-auto",
+        "-"
+      ],
       "input": "stdin",
       "signals": {
-        "limit": ["usage limit", "rate limit reached", "insufficient_quota"],
-        "auth": ["not logged in", "invalid_api_key"],
-        "context": ["context window", "maximum context length"],
-        "overloaded": ["server_error", "stream disconnected", "\\b50[023] "]
+        "limit": [
+          "usage limit",
+          "rate limit reached",
+          "insufficient_quota"
+        ],
+        "auth": [
+          "not logged in",
+          "invalid_api_key"
+        ],
+        "context": [
+          "context window",
+          "maximum context length"
+        ],
+        "overloaded": [
+          "server_error",
+          "stream disconnected",
+          "\\b50[023] "
+        ]
       }
     },
     "gemini": {
       "name": "gemini",
       "model": "strong",
-      "command": ["gemini", "--yolo", "-p"],
+      "command": [
+        "gemini",
+        "--yolo",
+        "-p"
+      ],
       "input": "argument",
       "signals": {
-        "limit": ["RESOURCE_EXHAUSTED", "quota exceeded"],
-        "auth": ["UNAUTHENTICATED"],
-        "context": ["token limit", "context window"],
-        "overloaded": ["UNAVAILABLE", "\\b503\\b"]
+        "limit": [
+          "RESOURCE_EXHAUSTED",
+          "quota exceeded"
+        ],
+        "auth": [
+          "UNAUTHENTICATED"
+        ],
+        "context": [
+          "token limit",
+          "context window"
+        ],
+        "overloaded": [
+          "UNAVAILABLE",
+          "\\b503\\b"
+        ]
       }
     }
   }

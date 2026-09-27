@@ -6,7 +6,7 @@ status: active
 risk: high
 owner: it-novikov
 branch: feature/engineering-system
-base: feat/finish-platform
+base: main
 created: 2026-09-27
 updated: 2026-09-27T21:36:47Z
 links:

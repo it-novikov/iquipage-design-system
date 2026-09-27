@@ -68,8 +68,9 @@ export function heldBy(root, agent) {
   return readCards(root, {warn: false}).map(entry => entry.id).filter(id => holds(liveLease(root, id), agent));
 }
 
-export function claim(root, id, {agent, ttlHours = 4, force = false, reason = ''}) {
+export function claim(root, id, {agent, ttlHours = 4, force = false, reason = '', session}) {
   if (!agent) throw new BridgeError('AGENT_REQUIRED', 'Укажите имя: --agent <имя> или переменная BRIDGE_AGENT.');
+  requireNoSecrets(reason);
   const card = loadCard(root, id);
   if (['review', 'done', 'cancelled'].includes(card.meta.status) && !force) {
     throw new BridgeError('TASK_CLOSED', `Задача в статусе ${card.meta.status}. Вернуть её в работу может владелец: bridge status ${id} ready.`);
@@ -80,7 +81,7 @@ export function claim(root, id, {agent, ttlHours = 4, force = false, reason = ''
     if (previous && !holds(previous, agent) && !force) {
       throw new BridgeError('TASK_HELD', `Задачу держит ${previous.holder} до ${previous.expires}. Не работайте над ней параллельно.`, 3);
     }
-    writeLease(root, id, newLease({agent, ttlHours}));
+    writeLease(root, id, newLease({agent, ttlHours, ...(session !== undefined ? {session} : {})}));
   });
   // Starting work is a content change once; renewals and handoffs never touch the tracked card.
   if (['draft', 'ready'].includes(card.meta.status)) mutateCard(root, id, edited => { edited.meta.status = 'active'; });
@@ -89,10 +90,12 @@ export function claim(root, id, {agent, ttlHours = 4, force = false, reason = ''
 }
 
 export function release(root, id, {agent, note = '', force = false}) {
+  requireNoSecrets(note);
   withLeaseLock(root, id, () => {
     const lease = readLease(root, id);
     if (lease && liveLease(root, id) && !holds(lease, agent) && !force) {
-      throw new BridgeError('NOT_HOLDER', `Задачу держит ${lease.holder}, а не ${agent}.`, 3);
+      const who = lease.holder === agent ? `${agent} в другой сессии (${String(lease.session).slice(0, 8)})` : lease.holder;
+      throw new BridgeError('NOT_HOLDER', `Задачу держит ${who}.`, 3);
     }
     clearLease(root, id);
   });
@@ -250,7 +253,7 @@ export const HANDOFF_REASONS = ['planned', 'limit', 'error', 'auth', 'context', 
 export function handoff(root, id, {agent, reason = 'planned', to = '', note: text = '', force = false}) {
   if (!HANDOFF_REASONS.includes(reason)) throw new BridgeError('REASON', `Причина передачи: ${HANDOFF_REASONS.join(', ')}.`);
   requireWriter(root, id, agent, {force});
-  requireNoSecrets(text);
+  requireNoSecrets(text, to);
   const git = gitState(root);
   const at = isoSeconds(now());
   mutateCard(root, id, card => {

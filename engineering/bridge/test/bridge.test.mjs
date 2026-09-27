@@ -34,7 +34,7 @@ function repository() {
 function plannedTask(root, {risk = 'standard', acceptance = true} = {}) {
   const id = operations.createTask(root, {slug: 'demo', title: 'Демо задача', risk, owner: 'owner', actor: 'tester'});
   const card = readFileSync(paths(root).card(id), 'utf8');
-  writeFileSync(paths(root).card(id), card.replace(/## Приёмка\n\n- \[ \] A1\. .*\n/, acceptance ? '## Приёмка\n\n- [ ] A1. Демо работает\n' : '## Приёмка\n\n'));
+  writeFileSync(paths(root).card(id), card.replace('## Приёмка\n\nПока нет.\n', acceptance ? '## Приёмка\n\n- [ ] A1. Демо работает\n' : '## Приёмка\n\n'));
   operations.addStep(root, id, {agent: 'tester', title: 'Первый шаг', what: 'Сделать A', how: 'Через B', why: 'Ради C', accept: ['A работает', 'Есть тест'], covers: acceptance ? 'A1' : ''});
   operations.addStep(root, id, {agent: 'tester', title: 'Второй шаг', what: 'Сделать D', how: 'Через E', why: 'Ради F', accept: ['D работает']});
   return id;
@@ -394,4 +394,85 @@ test('the CLI names a person as human and prints errors without a stack trace', 
   const held = spawnSync(process.execPath, [BIN, 'checkpoint', '--state', 's', '--next', 'n', '--agent', 'codex'], {cwd: root, env, encoding: 'utf8'});
   assert.equal(held.status, 3);
   assert.ok(existsSync(join(root, '.bridge', 'tasks', id, 'journal.md')));
+});
+
+// ---------------------------------------------------------------------------------------------------------------
+// Review round 2
+
+test('a relay started inside a Claude Code session keeps its leases free of that session', async () => {
+  const root = repository();
+  const id = plannedTask(root);
+  process.env.BRIDGE_SESSION = 'interactive-session';
+  configure(root, {chain: ['a'], agents: {a: {name: 'worker', command: fakeAgent(root, 'worker', `
+    import {spawnSync} from 'node:child_process';
+    const envFile = process.env.BRIDGE_ROOT + '/relay-env.sh';
+    spawnSync(process.execPath, [${JSON.stringify(BIN)}, 'hook', 'claude'], {input: JSON.stringify({hook_event_name: 'SessionStart', source: 'startup', session_id: 'relay-inner'}), env: {...process.env, CLAUDE_ENV_FILE: envFile}});
+    run('claim'); run('checkpoint', '--state', 'Работа идёт', '--next', 'Дальше'); run('status', 'review');
+  `), input: 'stdin'}}});
+  writeFileSync(join(root, 'relay-env.sh'), '');
+  const result = await runRelay(root, id, {quiet: true, report: () => {}});
+  assert.equal(result.outcome, 'review');
+  assert.equal(readFileSync(join(root, 'relay-env.sh'), 'utf8'), '');
+  assert.ok(readJournal(root, id).some(entry => entry.actor === 'worker' && entry.kind === 'checkpoint'));
+});
+
+test('an agent that repeats the same checkpoint every session is stalled', async () => {
+  const root = repository();
+  const id = plannedTask(root);
+  configure(root, {chain: ['a'], session: {stallRounds: 2}, agents: {a: {name: 'repeater', command: fakeAgent(root, 'repeater', `
+    run('checkpoint', '--state', 'То же самое', '--next', 'То же'); run('handoff', '--reason', 'planned');
+  `), input: 'stdin'}}});
+  const result = await runRelay(root, id, {quiet: true, report: () => {}});
+  assert.equal(result.outcome, 'stalled');
+});
+
+test('after a fast step the next ordinary step goes back to the strong agent', async () => {
+  const root = repository();
+  const id = plannedTask(root);
+  const file = paths(root).card(id);
+  writeFileSync(file, readFileSync(file, 'utf8').replace('- **Приёмка:**\n  - [ ] A работает', '- **Модель:** fast\n- **Приёмка:**\n  - [ ] A работает'));
+  const body = step => `run('step', '${step}', 'done', '--check', 'all', '--result', 'ok');`;
+  configure(root, {chain: ['strong', 'cheap'], agents: {
+    strong: {name: 'strong', model: 'strong', command: fakeAgent(root, 'strong', `${body('S2')} run('status', 'review');`), input: 'stdin'},
+    cheap: {name: 'cheap', model: 'fast', command: fakeAgent(root, 'cheap', body('S1')), input: 'stdin'},
+  }});
+  await runRelay(root, id, {quiet: true, report: () => {}});
+  const steps = readJournal(root, id).filter(entry => entry.kind === 'step' && entry.text.startsWith('done'));
+  assert.deepEqual(steps.map(entry => [entry.ref, entry.actor]), [['S1', 'cheap'], ['S2', 'strong']]);
+});
+
+test('every free text written by a command is checked for secrets', () => {
+  const root = repository();
+  const id = plannedTask(root);
+  operations.claim(root, id, {agent: 'a'});
+  assert.throws(() => operations.release(root, id, {agent: 'a', note: 'token ghp_0123456789abcdefghijklmnopqrstuvwxyzAB'}), {code: 'SECRET_LIKE_CONTENT'});
+  assert.throws(() => operations.handoff(root, id, {agent: 'a', to: 'sk-ant-api03-abcdefghijklmnopqrstuvwxyz0123'}), {code: 'SECRET_LIKE_CONTENT'});
+  assert.throws(() => operations.claim(root, id, {agent: 'b', force: true, reason: 'Bearer abcdefghijklmnopqrstuvwxyz0123'}), {code: 'SECRET_LIKE_CONTENT'});
+});
+
+test('a rejected P1 waits for the owner, a waived one does not, a P0 is never deferred', () => {
+  const root = repository();
+  const id = plannedTask(root);
+  for (const step of ['S1', 'S2']) operations.setStep(root, id, step, 'done', {agent: 'a', check: 'all', result: 'ok'});
+  operations.acceptCriterion(root, id, 'A1', {agent: 'a'});
+  const {file} = operations.startReview(root, id, {reviewer: 'r', base: 'main'});
+  const write = resolution => writeFileSync(file, readFileSync(file, 'utf8').replace(/## Замечания\n[\s\S]*?\n## Итог/, `## Замечания\n- **F1** [P1] \`a:1\` — Гонка.\n  Решение: ${resolution}\n\n## Итог`));
+  write('[rejected: не согласен]');
+  assert.throws(() => operations.setStatus(root, id, 'done', {agent: 'owner'}), /R1\/F1/);
+  write('[waived владелец: риск принят до выпуска 2.1]');
+  operations.setStatus(root, id, 'done', {agent: 'owner'});
+  writeFileSync(file, readFileSync(file, 'utf8').replace('[P1]', '[P0]').replace(/Решение: .*/, 'Решение: [deferred 20260101-later: потом]'));
+  assert.ok(validateTask(root, id).errors.some(error => /P0 нельзя переносить/.test(error)));
+});
+
+test('the session after /clear keeps the lease and receives the brief', () => {
+  const root = repository();
+  const id = plannedTask(root);
+  process.env.BRIDGE_SESSION = 'before-clear';
+  operations.claim(root, id, {agent: 'claude-code'});
+  handleClaudeHook(root, {hook_event_name: 'SessionEnd', session_id: 'before-clear', reason: 'clear'});
+  assert.equal(liveLease(root, id).session, 'before-clear');
+  const brief = handleClaudeHook(root, {hook_event_name: 'SessionStart', source: 'clear', session_id: 'after-clear'});
+  assert.match(brief, /Контекст восстановлен из моста/);
+  assert.equal(liveLease(root, id).session, 'after-clear');
 });
