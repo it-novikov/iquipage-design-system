@@ -1,5 +1,11 @@
 # Deviations from the default Detekt rule set. Each one names why (engineering/conventions/code-quality.md).
 complexity:
+  LongMethod:
+    # A use case is one transaction read top to bottom with its SQL inline; splitting it would scatter the lock order.
+    allowedLines: 100
+  CyclomaticComplexMethod:
+    # Validation of a write checks every rule of the contract in order; see LongMethod.
+    allowedComplexity: 20
   LongParameterList:
     # HTTP request and response classes mirror the public contract field by field.
     allowedConstructorParameters: 12
