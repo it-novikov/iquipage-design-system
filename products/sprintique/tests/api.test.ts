@@ -1,7 +1,8 @@
 import {before,after,test} from 'node:test';
 import assert from 'node:assert/strict';
 import {randomUUID,generateKeyPairSync,sign,createHash} from 'node:crypto';
-import {fixture} from './fixture.js';
+import {fixture,kotlin,startApp} from './fixture.js';
+import {startFakeOidcProvider} from './support/fake-oidc-provider.js';
 import type {Task,Thread} from '../contracts/index.js';
 import {TaskInput} from '../contracts/index.js';
 import {Database} from '../backend/infrastructure/database.js';
@@ -87,9 +88,11 @@ test('expired session is rejected; logout revokes the actual server credential',
   assert.equal((await f.app.inject({url:'/api/v1/session',headers:f.bob.headers})).statusCode,401);
 });
 test('records survive a new application and database-pool instance; no memory fallback',async()=>{
-  const db=new Database(process.env['DATABASE_URL']!);const app=await createApp({db,origin:'http://localhost:4311'});
-  try{assert.equal((await app.inject({url:path('tasks/task-basic'),headers:f.alice.headers})).json<Task>().displayId,'SPR-1');}finally{await app.close();await db.close();}
-  const owner=new Database(process.env['MIGRATION_DATABASE_URL']!);try{await assert.rejects(()=>owner.checkRuntimeRole());}finally{await owner.close();}
+  const app=await startApp();
+  try{assert.equal((await app.inject({url:path('tasks/task-basic'),headers:f.alice.headers})).json<Task>().displayId,'SPR-1');}finally{await app.close();}
+  // The owner role bypasses row security: the API refuses to run with it.
+  if(kotlin)await assert.rejects(()=>startApp({databaseUrl:process.env['MIGRATION_DATABASE_URL']!}));
+  else{const owner=new Database(process.env['MIGRATION_DATABASE_URL']!);try{await assert.rejects(()=>owner.checkRuntimeRole());}finally{await owner.close();}}
 });
 test('readiness checks schema access with the restricted runtime role',async()=>{
   const response=await f.app.inject({url:'/ready'});assert.equal(response.statusCode,200,response.body);
@@ -115,24 +118,28 @@ test('agent grant is invalidated when the human initiator loses project access',
   finally{await f.admin.query("INSERT INTO app.project_members(project_id,principal_id,role) VALUES($1,$2,'admin')",[f.first.id,f.alice.id]);}
 });
 test('OIDC authorization code flow validates PKCE, nonce, signature and one-use browser state',async()=>{
-  const issuer='https://identity.test',clientId='sprintique-test',origin='http://localhost:4311';
+  const clientId='sprintique-test',origin='http://localhost:4311';
   const {privateKey,publicKey}=generateKeyPairSync('rsa',{modulusLength:2048});
   const jwk={...publicKey.export({format:'jwk'}),kid:'test-key',alg:'RS256',use:'sig'};
   let nonce='',challenge='',invalidSignature=false;
-  const app=await createApp({db:f.db,origin,oidc:{issuer,clientId,clientSecret:'synthetic-secret',origin,transport:async(input,options)=>{
-    const url=String(input);
-    if(url.endsWith('/.well-known/openid-configuration'))return Response.json({issuer,authorization_endpoint:issuer+'/authorize',token_endpoint:issuer+'/token',jwks_uri:issuer+'/jwks',response_types_supported:['code'],subject_types_supported:['public'],id_token_signing_alg_values_supported:['RS256'],token_endpoint_auth_methods_supported:['client_secret_post']});
-    if(url.endsWith('/jwks'))return Response.json({keys:[jwk]});
-    assert.equal(url,issuer+'/token');const form=new URLSearchParams(String(options?.body));
+  // One synthetic provider for both backends: an in-process transport for TypeScript, loopback HTTPS for Kotlin.
+  const provider=(issuer:string)=>(url:string,body:string)=>{
+    if(url.endsWith('/.well-known/openid-configuration'))return {issuer,authorization_endpoint:issuer+'/authorize',token_endpoint:issuer+'/token',jwks_uri:issuer+'/jwks',response_types_supported:['code'],subject_types_supported:['public'],id_token_signing_alg_values_supported:['RS256'],token_endpoint_auth_methods_supported:['client_secret_post']};
+    if(url.endsWith('/jwks'))return {keys:[jwk]};
+    assert.equal(url,issuer+'/token');const form=new URLSearchParams(body);
     assert.equal(form.get('grant_type'),'authorization_code');assert.equal(form.get('redirect_uri'),origin+'/auth/callback');
     assert.equal(createHash('sha256').update(form.get('code_verifier')!).digest('base64url'),challenge);
     const now=Math.floor(Date.now()/1000),header=Buffer.from(JSON.stringify({alg:'RS256',kid:'test-key'})).toString('base64url');
     const payload=Buffer.from(JSON.stringify({iss:issuer,sub:'oidc-human',aud:clientId,iat:now,exp:now+60,nonce,name:'OIDC Test'})).toString('base64url');
     const signature=invalidSignature?'invalid':sign('RSA-SHA256',Buffer.from(header+'.'+payload),privateKey).toString('base64url');
-    return Response.json({access_token:'not-used-by-product',token_type:'Bearer',expires_in:60,id_token:header+'.'+payload+'.'+signature});
-  }}});
+    return {access_token:'not-used-by-product',token_type:'Bearer',expires_in:60,id_token:header+'.'+payload+'.'+signature};
+  };
+  const fake=kotlin?await startFakeOidcProvider(provider):null;
+  const issuer=fake?.issuer??'https://identity.test',oidc={issuer,clientId,clientSecret:'synthetic-secret'};
+  const app=fake?await startApp({origin,oidc:{...oidc,trustFile:fake.trustFile}})
+    :await createApp({db:f.db,origin,oidc:{...oidc,origin,transport:async(input,options)=>Response.json(provider(issuer)(String(input),String(options?.body)))}});
   try{
-    async function begin(){const response=await app.inject({url:'/auth/login'});assert.equal(response.statusCode,302,response.body);const location=new URL(response.headers.location!);nonce=location.searchParams.get('nonce')!;challenge=location.searchParams.get('code_challenge')!;return {state:location.searchParams.get('state')!,cookie:String(response.headers['set-cookie']).split(';')[0]!};}
+    async function begin(){const response=await app.inject({url:'/auth/login'});assert.equal(response.statusCode,302,response.body);const location=new URL(String(response.headers.location));nonce=location.searchParams.get('nonce')!;challenge=location.searchParams.get('code_challenge')!;return {state:location.searchParams.get('state')!,cookie:String(response.headers['set-cookie']).split(';')[0]!};}
     const first=await begin();
     assert.equal((await app.inject({url:'/auth/callback?code=good&state='+first.state,headers:{cookie:'__Host-sprintique-login=wrong'}})).statusCode,400);
     const callback=await app.inject({url:'/auth/callback?code=good&state='+first.state,headers:{cookie:first.cookie}});assert.equal(callback.statusCode,302,callback.body);
@@ -141,7 +148,8 @@ test('OIDC authorization code flow validates PKCE, nonce, signature and one-use 
     assert.equal((await app.inject({url:'/auth/callback?code=good&state='+first.state,headers:{cookie:first.cookie}})).statusCode,400);
     const second=await begin();nonce='wrong';assert.equal((await app.inject({url:'/auth/callback?code=good&state='+second.state,headers:{cookie:second.cookie}})).statusCode,401);
     const third=await begin();invalidSignature=true;assert.equal((await app.inject({url:'/auth/callback?code=good&state='+third.state,headers:{cookie:third.cookie}})).statusCode,401);
-  }finally{await app.close();}
+    assert.deepEqual(fake?.failures??[],[]);
+  }finally{await app.close();await fake?.close();}
 });
 test('outbox failure rolls back canonical state, number allocation, audit and idempotency',async()=>{
   await f.admin.query(`CREATE FUNCTION public.fail_test_outbox() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF NEW.payload->>'resourceId'='rollback-task' THEN RAISE EXCEPTION 'synthetic delivery persistence failure'; END IF; RETURN NEW; END $$;
@@ -164,7 +172,7 @@ test('discussion pagination rejects stale and cross-task cursors without losing 
   const stale=await f.app.inject({url:path('tasks/task-basic/threads?cursor='+first.nextCursor),headers:f.alice.headers});assert.equal(stale.statusCode,409);assert.equal(stale.json().code,'THREAD_CURSOR_STALE');
 });
 test('unavailable PostgreSQL returns a bounded failure, never a fallback user or memory store',async()=>{
-  const db=new Database('postgresql://unused@127.0.0.1:1/sprintique');const app=await createApp({db,origin:'http://localhost:4311'});
+  const app=await startApp({databaseUrl:'postgresql://unused@127.0.0.1:1/sprintique'});
   try{const response=await app.inject({url:'/api/v1/session',headers:f.alice.headers});assert.equal(response.statusCode,503);assert.equal(response.json().code,'TEMPORARILY_UNAVAILABLE');assert.ok(!response.body.includes('postgresql'));}
-  finally{await app.close();await db.close();}
+  finally{await app.close();}
 });

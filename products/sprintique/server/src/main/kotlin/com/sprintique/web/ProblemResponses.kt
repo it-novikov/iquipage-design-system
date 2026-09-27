@@ -90,7 +90,18 @@ class ProblemResponses {
             }
 
             else -> {
-                log.error("Request failed request_id={} code={}", RequestIds.of(request), sqlState ?: "INTERNAL")
+                // The class and the first frame of our own code outside the database layer locate the failure; the
+                // message may carry data and is not logged.
+                val site = error.stackTrace.firstOrNull {
+                    it.className.startsWith("com.sprintique.") && !it.className.startsWith("com.sprintique.database.")
+                }
+                log.error(
+                    "Request failed request_id={} code={} error={} at={}",
+                    RequestIds.of(request),
+                    sqlState ?: "INTERNAL",
+                    error.javaClass.name,
+                    site?.let { "${it.className}.${it.methodName}:${it.lineNumber}" },
+                )
                 body(
                     request,
                     HttpStatus.SERVICE_UNAVAILABLE,

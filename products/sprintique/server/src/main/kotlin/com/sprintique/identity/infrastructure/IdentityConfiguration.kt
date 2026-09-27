@@ -7,6 +7,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Profile
+import java.nio.file.Path
 
 /** The identity provider exists only when fully configured; without it sign-in answers IDENTITY_NOT_CONFIGURED. */
 @Configuration(proxyBeanMethods = false)
@@ -22,7 +23,11 @@ class IdentityConfiguration {
     @Bean
     fun identityProvider(
         properties: SprintiqueProperties,
-    ): IdentityProviderPort = OidcIdentityProviderAdapter(properties.oidc)
+    ): IdentityProviderPort {
+        val trustFile = properties.oidc.trustFile
+        val socketFactory = if (trustFile.isEmpty()) null else ProviderTrust.socketFactory(Path.of(trustFile))
+        return OidcIdentityProviderAdapter(properties.oidc, socketFactory)
+    }
 
     @Bean
     fun oidcSignIn() = SignInMethod { "oidc" }

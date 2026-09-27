@@ -4,8 +4,7 @@ import com.sprintique.database.Database
 import com.sprintique.database.SchemaMigrations
 import com.sprintique.problem.ProblemException
 import org.slf4j.LoggerFactory
-import org.springframework.boot.ApplicationArguments
-import org.springframework.boot.ApplicationRunner
+import org.springframework.beans.factory.SmartInitializingSingleton
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import java.net.URI
@@ -15,13 +14,19 @@ import java.sql.SQLException
  * Refuses to serve with unsafe configuration: an origin with a path, plain HTTP outside loopback, an issuer without
  * HTTPS, a malformed metrics token, a database role that could bypass row security, or a schema that differs from
  * the artifact. An unreachable database is not fatal: readiness reports it until it comes back.
+ *
+ * The checks run once every bean exists and before the web server starts, so no request is ever served by a process
+ * that is about to refuse its configuration.
  */
 @Component
 @Profile("api")
-class StartupChecks(private val properties: SprintiqueProperties, private val database: Database) : ApplicationRunner {
+class StartupChecks(
+    private val properties: SprintiqueProperties,
+    private val database: Database,
+) : SmartInitializingSingleton {
     private val log = LoggerFactory.getLogger(StartupChecks::class.java)
 
-    override fun run(arguments: ApplicationArguments) {
+    override fun afterSingletonsInstantiated() {
         requireSafeConfiguration(properties)
         try {
             database.requireSafeRuntimeRole()

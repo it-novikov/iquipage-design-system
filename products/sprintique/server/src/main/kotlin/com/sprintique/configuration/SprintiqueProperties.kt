@@ -43,6 +43,11 @@ data class OidcProperties(
     val issuer: String = "",
     val clientId: String = "",
     val clientSecret: String = "",
+    /**
+     * PEM certificates trusted for this provider in addition to the JVM's own, for a provider behind a private
+     * certificate authority. Nothing else in the process trusts them.
+     */
+    val trustFile: String = "",
 ) {
     val isConfigured: Boolean get() = issuer.isNotEmpty() && clientId.isNotEmpty() && clientSecret.isNotEmpty()
 }

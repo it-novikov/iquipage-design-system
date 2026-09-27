@@ -8,7 +8,10 @@ import com.nimbusds.oauth2.sdk.AuthorizationResponse
 import com.nimbusds.oauth2.sdk.ResponseType
 import com.nimbusds.oauth2.sdk.Scope
 import com.nimbusds.oauth2.sdk.TokenRequest
+import com.nimbusds.oauth2.sdk.auth.ClientAuthentication
+import com.nimbusds.oauth2.sdk.auth.ClientAuthenticationMethod
 import com.nimbusds.oauth2.sdk.auth.ClientSecretBasic
+import com.nimbusds.oauth2.sdk.auth.ClientSecretPost
 import com.nimbusds.oauth2.sdk.auth.Secret
 import com.nimbusds.oauth2.sdk.http.HTTPRequest
 import com.nimbusds.oauth2.sdk.id.ClientID
@@ -70,7 +73,7 @@ class OidcIdentityProviderAdapter(
             response.issuer?.let { check(it == provider.issuer) { "iss" } }
             val code: AuthorizationCode = response.authorizationCode ?: error("code")
             val grant = AuthorizationCodeGrant(code, redirect, CodeVerifier(verifier))
-            val authentication = ClientSecretBasic(ClientID(settings.clientId), Secret(settings.clientSecret))
+            val authentication = clientAuthentication(provider)
             val tokenRequest = TokenRequest.Builder(provider.tokenEndpointURI, authentication, grant).build()
             val http = tokenRequest.toHTTPRequest().withTimeouts()
             val success = OIDCTokenResponseParser.parse(http.send()).toSuccessResponse() as OIDCTokenResponse
@@ -88,6 +91,18 @@ class OidcIdentityProviderAdapter(
             return ExternalIdentity(settings.issuer, subject, name, email)
         } catch (@Suppress("TooGenericExceptionCaught") error: Exception) {
             throw SignInRejectedException(error)
+        }
+    }
+
+    /** HTTP Basic unless the provider lists only form-posted secrets; Basic is the default of the standard. */
+    private fun clientAuthentication(provider: OIDCProviderMetadata): ClientAuthentication {
+        val clientId = ClientID(settings.clientId)
+        val secret = Secret(settings.clientSecret)
+        val methods = provider.tokenEndpointAuthMethods
+        return if (methods.isNullOrEmpty() || ClientAuthenticationMethod.CLIENT_SECRET_BASIC in methods) {
+            ClientSecretBasic(clientId, secret)
+        } else {
+            ClientSecretPost(clientId, secret)
         }
     }
 

@@ -2,7 +2,8 @@ import {after,before,test} from 'node:test';
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
 import {setTimeout as delay} from 'node:timers/promises';
-import {fixture,origin} from './fixture.js';
+import {fixture,kotlin,origin,startApp} from './fixture.js';
+import {startFakeOidcProvider} from './support/fake-oidc-provider.js';
 import {createApp} from '../backend/http/app.js';
 import {MapDocument} from '../contracts/maps.js';
 import {PREVIEW_BUDGET} from '../contracts/planning.js';
@@ -35,6 +36,17 @@ async function waitForProjectLock(pid:number){
     await delay(10);
   }
   assert.fail('Expected the discussion write to queue behind the project aggregate lock');
+}
+/** The server's own connection that waits for the project row lock held by the test. */
+async function waitForQueuedProjectWrite(){
+  for(let attempt=0;attempt<200;attempt++){
+    await f.admin.query('SELECT pg_stat_clear_snapshot()');
+    const row=(await f.admin.query<{pid:number}>(`SELECT pid FROM pg_stat_activity WHERE pid<>pg_backend_pid() AND wait_event_type='Lock'
+      AND query LIKE '%app.projects%FOR UPDATE%'`)).rows[0];
+    if(row)return row.pid;
+    await delay(10);
+  }
+  return assert.fail('Expected the discussion write to queue behind the project aggregate lock');
 }
 
 test('SEC-01 a write-only grant never receives preserved content it may not read',async()=>{
@@ -119,14 +131,21 @@ test('SEC-03 a queued discussion write cannot commit after the credential is rev
   const messageId=randomUUID();
   await f.admin.query('BEGIN');
   await f.admin.query('SELECT id FROM app.projects WHERE id=$1 FOR UPDATE',[f.first.id]);
+  const message={id:messageId,body:'После отзыва',baseRevision:opened.json<Thread>().revision};
+  // TypeScript runs the use case in-process on a known connection; Kotlin gets the same write over HTTP.
   const started=deferred<number>();
-  const write=f.db.authenticated({token:f.alice.token,kind:'session'},async(tx,actor)=>{
-    started.resolve((await tx.query<{pid:number}>('SELECT pg_backend_pid() AS pid')).rows[0]!.pid);
-    return appendMessage(tx,actor,f.first.id,thread,{id:messageId,body:'После отзыва',baseRevision:opened.json<Thread>().revision},randomUUID());
-  });
-  const outcome=write.then(value=>({value}),error=>({error}));
+  const write:Promise<unknown>=kotlin
+    ?call('POST',`threads/${thread}/messages`,f.alice.headers,message).then(response=>{
+      if(response.statusCode===200)return response.json();
+      throw Object.assign(Error(response.body),{code:response.json<{code:string}>().code});
+    })
+    :f.db.authenticated({token:f.alice.token,kind:'session'},async(tx,actor)=>{
+      started.resolve((await tx.query<{pid:number}>('SELECT pg_backend_pid() AS pid')).rows[0]!.pid);
+      return appendMessage(tx,actor,f.first.id,thread,message,randomUUID());
+    });
+  const outcome=write.then(value=>({value}),(error:{code?:string})=>({error}));
   try{
-    await waitForProjectLock(await started.promise);
+    if(kotlin)await waitForQueuedProjectWrite();else await waitForProjectLock(await started.promise);
     await f.admin.query('UPDATE auth.credentials SET revoked_at=clock_timestamp() WHERE id=$1',[f.alice.credential]);
     await f.admin.query('COMMIT');
     const result=await outcome;
@@ -162,7 +181,8 @@ test('SEC-04 outstanding previews are budgeted and expired unapplied ones are co
   assert.equal(Number(left),0,'expired unapplied previews were retained');
 });
 
-test('SEC-05 anonymous readiness shares one dependency probe and still fails closed',async()=>{
+// The Kotlin server cannot take an in-process storage fake: the same scenario is Kotlin ReadinessControllerTest.
+test('SEC-05 anonymous readiness shares one dependency probe and still fails closed',{skip:kotlin&&'Kotlin ReadinessControllerTest'},async()=>{
   let probes=0;
   const counting:ObjectStorage={put:async()=>{},get:async()=>new Uint8Array(),remove:async()=>{},
     ready:async()=>{probes++;await delay(25);}};
@@ -202,7 +222,7 @@ test('SEC-06 the canonical map schema bounds image objects and parallel connecti
 
 test('SEC-07 per-address limits follow the configured proxy hop instead of throttling everyone together',async()=>{
   // Behind the required TLS proxy every socket peer is the proxy; the client address comes from one trusted hop.
-  const proxied=await createApp({db:f.db,origin,trustProxy:1});
+  const proxied=kotlin?await startApp({origin,trustProxy:'1'}):await createApp({db:f.db,origin,trustProxy:1});
   try{
     const login=(client:string)=>proxied.inject({url:'/auth/login',headers:{'x-forwarded-for':client}});
     for(let attempt=0;attempt<20;attempt++)assert.notEqual((await login('203.0.113.10')).statusCode,429);
@@ -210,7 +230,7 @@ test('SEC-07 per-address limits follow the configured proxy hop instead of throt
     assert.notEqual((await login('203.0.113.20')).statusCode,429,'another client behind the same proxy was throttled');
   }finally{await proxied.close();}
   // Without an explicit trust setting a spoofed header still cannot select a fresh window.
-  const direct=await createApp({db:f.db,origin});
+  const direct=kotlin?await startApp({origin}):await createApp({db:f.db,origin});
   try{
     for(let attempt=0;attempt<20;attempt++)await direct.inject({url:'/auth/login',headers:{'x-forwarded-for':'198.51.100.'+attempt}});
     assert.equal((await direct.inject({url:'/auth/login',headers:{'x-forwarded-for':'198.51.100.99'}})).statusCode,429);
@@ -218,12 +238,14 @@ test('SEC-07 per-address limits follow the configured proxy hop instead of throt
 });
 
 test('SEC-08 abandoned sign-ins are collected and responses carry the transport hardening headers',async()=>{
-  const issuer='https://identity.test',clientId='sprintique-test',secure='https://sprintique.example';
-  const app=await createApp({db:f.db,origin:secure,oidc:{issuer,clientId,clientSecret:'synthetic-secret',origin:secure,transport:async input=>{
-    const url=String(input);
-    if(url.endsWith('/.well-known/openid-configuration'))return Response.json({issuer,authorization_endpoint:issuer+'/authorize',token_endpoint:issuer+'/token',jwks_uri:issuer+'/jwks',response_types_supported:['code'],subject_types_supported:['public'],id_token_signing_alg_values_supported:['RS256'],token_endpoint_auth_methods_supported:['client_secret_post']});
-    return Response.json({keys:[]});
-  }}});
+  const clientId='sprintique-test',secure='https://sprintique.example';
+  const provider=(issuer:string)=>(url:string)=>url.endsWith('/.well-known/openid-configuration')
+    ?{issuer,authorization_endpoint:issuer+'/authorize',token_endpoint:issuer+'/token',jwks_uri:issuer+'/jwks',response_types_supported:['code'],subject_types_supported:['public'],id_token_signing_alg_values_supported:['RS256'],token_endpoint_auth_methods_supported:['client_secret_post']}
+    :{keys:[]};
+  const fake=kotlin?await startFakeOidcProvider(provider):null;
+  const issuer=fake?.issuer??'https://identity.test',oidc={issuer,clientId,clientSecret:'synthetic-secret'};
+  const app=fake?await startApp({origin:secure,oidc:{...oidc,trustFile:fake.trustFile}})
+    :await createApp({db:f.db,origin:secure,oidc:{...oidc,origin:secure,transport:async input=>Response.json(provider(issuer)(String(input)))}});
   try{
     await f.admin.query("INSERT INTO auth.login_states(state_hash,verifier,nonce,expires_at) SELECT 'sec08-'||n,'v','n',clock_timestamp()-interval '1 hour' FROM generate_series(1,50) n");
     const response=await app.inject({url:'/auth/login'});
@@ -233,8 +255,8 @@ test('SEC-08 abandoned sign-ins are collected and responses carry the transport 
     assert.equal(response.headers['strict-transport-security'],'max-age=31536000; includeSubDomains');
     assert.equal(response.headers['cross-origin-opener-policy'],'same-origin');
     assert.match(String(response.headers['permissions-policy']),/camera=\(\)/);
-  }finally{await app.close();}
-  const local=await createApp({db:f.db,origin});
+  }finally{await app.close();await fake?.close();}
+  const local=kotlin?await startApp({origin}):await createApp({db:f.db,origin});
   try{assert.equal((await local.inject('/health')).headers['strict-transport-security'],undefined,'HSTS must not be sent for a loopback HTTP origin');}
   finally{await local.close();}
 });

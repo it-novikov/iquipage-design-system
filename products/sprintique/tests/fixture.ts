@@ -21,7 +21,9 @@ export async function startApp(options:AppOptions&{db?:unknown;storage?:ObjectSt
   const db=(options.db as InstanceType<typeof Database>|undefined)??new Database(options.databaseUrl??process.env['DATABASE_URL']!);
   const app=await createApp({db,origin:options.origin??origin,devLogin:!!options.devLogin,...(options.metricsToken?{metricsToken:options.metricsToken}:{}),
     ...(options.storage&&typeof options.storage==='object'?{storage:options.storage}:{})});
-  return Object.assign(app,{url:''}) as unknown as TestApp&Record<string,any>;
+  // A pool opened here belongs to this app and closes with it.
+  const close=app.close.bind(app);
+  return Object.assign(app,{url:'',close:async()=>{await close();if(!options.db)await db.close();}}) as unknown as TestApp&Record<string,any>;
 }
 
 export async function fixture({web=false,prefix='',storage,appOrigin=origin,settingsPreview=false,devLogin=false}:{web?:boolean;prefix?:string;storage?:ObjectStorage;appOrigin?:string;settingsPreview?:boolean;devLogin?:boolean}={}){

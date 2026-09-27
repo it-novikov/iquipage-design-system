@@ -1,6 +1,6 @@
 import {before,after,test} from 'node:test';
 import assert from 'node:assert/strict';
-import {fixture,origin} from './fixture.js';
+import {fixture,kotlin,origin,startApp} from './fixture.js';
 import {createApp} from '../backend/http/app.js';
 import {seedDevData} from './dev-seed.js';
 let f:Awaited<ReturnType<typeof fixture>>;
@@ -8,7 +8,7 @@ before(async()=>{f=await fixture({prefix:'D',devLogin:true});});after(async()=>{
 const login=(payload:unknown,headers:Record<string,string>={origin})=>f.app.inject({method:'POST',url:'/auth/dev-login',headers,payload:payload as Record<string,unknown>});
 
 test('D01 dev login is absent unless explicitly enabled, and the sign-in screen is told so',async()=>{
-  const plain=await createApp({db:f.db,origin});
+  const plain=kotlin?await startApp({origin}):await createApp({db:f.db,origin});
   try{
     assert.equal((await plain.inject({method:'POST',url:'/auth/dev-login',headers:{origin},payload:{username:'admin',password:'admin'}})).statusCode,404);
     assert.deepEqual((await plain.inject({method:'GET',url:'/api/v1/auth/methods'})).json(),{oidc:false,devLogin:false});
@@ -16,6 +16,12 @@ test('D01 dev login is absent unless explicitly enabled, and the sign-in screen 
   assert.deepEqual((await f.app.inject({method:'GET',url:'/api/v1/auth/methods'})).json(),{oidc:false,devLogin:true});
 });
 test('D02 dev login is refused in production and on a public origin',async()=>{
+  if(kotlin){
+    // The Kotlin server refuses to start with such settings; the refusal is in its output.
+    await assert.rejects(startApp({origin,devLogin:true,environment:'production'}),/never available in production/);
+    await assert.rejects(startApp({origin:'https://sprintique.example',devLogin:true}),/loopback/);
+    return;
+  }
   const previous=process.env['NODE_ENV'];
   try{process.env['NODE_ENV']='production';await assert.rejects(createApp({db:f.db,origin,devLogin:true}),/never available in production/);}
   finally{if(previous===undefined)delete process.env['NODE_ENV'];else process.env['NODE_ENV']=previous;}

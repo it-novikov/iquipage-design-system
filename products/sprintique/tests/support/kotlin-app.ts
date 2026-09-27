@@ -1,6 +1,6 @@
 // The Kotlin backend behind the same `inject()` shape the tests used with Fastify: a real server process on a
 // loopback port, requests over HTTP. Options that were createApp arguments become SPRINTIQUE_* settings.
-import {readFileSync} from 'node:fs';
+import {appendFileSync,readFileSync} from 'node:fs';
 import {resolve} from 'node:path';
 // @ts-expect-error: plain ESM helper shared with the runner
 import {startServer} from '../../scripts/kotlin-server.mjs';
@@ -9,7 +9,7 @@ export interface InjectOptions {method?:string;url:string;headers?:Record<string
 export interface InjectResponse {statusCode:number;headers:Record<string,string|string[]|undefined>;body:string;rawPayload:Buffer;json<T=any>():T}
 export interface TestApp {url:string;inject(options:InjectOptions|string):Promise<InjectResponse>;close():Promise<void>}
 export interface AppOptions {origin?:string;devLogin?:boolean;web?:boolean|string;metricsToken?:string;storage?:boolean;databaseUrl?:string;
-  environment?:string;trustProxy?:string;oidc?:{issuer:string;clientId:string;clientSecret:string}}
+  environment?:string;trustProxy?:string;oidc?:{issuer:string;clientId:string;clientSecret:string;trustFile?:string}}
 
 export function storageSettings():Record<string,string>{
   const file=process.env['TEST_S3_CONFIG']||'output/infra/storage.json';
@@ -29,7 +29,8 @@ export async function startKotlinApp(options:AppOptions={}):Promise<TestApp>{
     ...(options.metricsToken?{SPRINTIQUE_METRICS_TOKEN:options.metricsToken}:{}),
     ...(options.trustProxy?{SPRINTIQUE_TRUST_PROXY:options.trustProxy}:{}),
     ...(options.storage?storageSettings():{}),
-    ...(options.oidc?{SPRINTIQUE_OIDC_ISSUER:options.oidc.issuer,SPRINTIQUE_OIDC_CLIENT_ID:options.oidc.clientId,SPRINTIQUE_OIDC_CLIENT_SECRET:options.oidc.clientSecret}:{}),
+    ...(options.oidc?{SPRINTIQUE_OIDC_ISSUER:options.oidc.issuer,SPRINTIQUE_OIDC_CLIENT_ID:options.oidc.clientId,SPRINTIQUE_OIDC_CLIENT_SECRET:options.oidc.clientSecret,
+      ...(options.oidc.trustFile?{SPRINTIQUE_OIDC_TRUST_FILE:options.oidc.trustFile}:{})}:{}),
   };
   const server=await startServer(env);
   return {
@@ -56,6 +57,11 @@ export async function startKotlinApp(options:AppOptions={}):Promise<TestApp>{
       const text=raw.toString('utf8');
       return {statusCode:response.status,headers:collected,body:text,rawPayload:raw,json:<T>()=>JSON.parse(text) as T};
     },
-    close:()=>server.stop(),
+    async close(){
+      await server.stop();
+      // SPRINTIQUE_TEST_SERVER_LOG=<file> keeps the server's own output of every run, for diagnosing a failed test.
+      const log=process.env['SPRINTIQUE_TEST_SERVER_LOG'];
+      if(log)appendFileSync(log,`\n=== ${server.url}\n${server.output()}`);
+    },
   };
 }

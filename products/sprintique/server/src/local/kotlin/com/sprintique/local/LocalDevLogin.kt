@@ -38,10 +38,6 @@ class LocalDevLoginConfiguration(properties: SprintiqueProperties) {
 
     @Bean
     fun devLoginMethod() = SignInMethod { "devLogin" }
-
-    @Bean
-    fun devLoginController(database: Database, properties: SprintiqueProperties, contracts: Contracts) =
-        DevLoginController(database, properties, contracts)
 }
 
 data class DevLoginRequest(
@@ -51,7 +47,10 @@ data class DevLoginRequest(
     val password: String,
 )
 
+/** Registered by component scanning, so it carries the same conditions as [LocalDevLoginConfiguration] itself. */
 @RestController
+@Profile("api")
+@ConditionalOnProperty("sprintique.dev-login", havingValue = "true")
 class DevLoginController(
     private val database: Database,
     private val properties: SprintiqueProperties,

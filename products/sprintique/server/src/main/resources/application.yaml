@@ -45,6 +45,7 @@ sprintique:
     issuer: ${SPRINTIQUE_OIDC_ISSUER:}
     client-id: ${SPRINTIQUE_OIDC_CLIENT_ID:}
     client-secret: ${SPRINTIQUE_OIDC_CLIENT_SECRET:}
+    trust-file: ${SPRINTIQUE_OIDC_TRUST_FILE:}
   storage:
     endpoint: ${SPRINTIQUE_STORAGE_ENDPOINT:}
     region: ${SPRINTIQUE_STORAGE_REGION:}
