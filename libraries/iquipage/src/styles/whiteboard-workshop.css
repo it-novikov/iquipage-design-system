@@ -200,3 +200,9 @@ iq-whiteboard[dock-tools]:not([dock-tools~=connect]) .wb-dock [data-tool=connect
 /* The side rail starts at the top for every embedded board, not only for host-edited ones (the workshop footer inset would win otherwise). */
 iq-whiteboard[dock=side] .wb-shell[data-workshop] .wb-footer{top:16px;bottom:16px;left:16px;right:auto;justify-content:space-between}
 @media(max-width:760px){iq-whiteboard[dock=side] .wb-shell[data-workshop] .wb-footer{top:8px;bottom:8px;left:8px}}
+/* 0.6.0-vnext.19: with the side dock, zoom sits directly under the tool rail (not at the bottom edge), as one column of the same width.
+   "Всё" (fit) leaves the zoom group: its corner glyph read as full screen. Fit stays on Shift+1 and in the host menu. */
+iq-whiteboard[dock=side] .wb-footer,iq-whiteboard[surface-mode=embedded][editor-mode=host][dock=side] .wb-footer{justify-content:flex-start;align-items:stretch;bottom:auto}
+iq-whiteboard[dock=side] .wb-shell[data-workshop] .wb-zoom{padding:5px;border-radius:14px;gap:2px}
+iq-whiteboard[dock=side] .wb-shell[data-workshop] .wb-zoom .wb-button{width:100%;min-width:0;height:36px;min-height:36px}
+iq-whiteboard[dock=side] .wb-zoom [data-wb-action=fit]{display:none}

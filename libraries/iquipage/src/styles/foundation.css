@@ -2354,3 +2354,178 @@ iq-markdown-editor[density=compact] .md-preview :is(h1,h2,h3,h4):first-child{mar
 .iq-color-custom .iq-input-shell{width:112px;min-height:32px}
 .iq-color-counter{display:block;text-align:right}
 .iq-color-counter[data-tone=danger]{color:var(--iq-danger)}
+/* 0.6.0-vnext.19 inline document editor: density="compact" with preview-on-blur reads as the text itself.
+   In preview the chrome disappears and the text gets an inset hover surface that bleeds 8px past the column,
+   so the words stay aligned with the headings around them. A click or Enter switches to the compact editor.
+   Task descriptions and map object text use the same editor. */
+iq-markdown-editor[density=compact][preview-on-blur][data-previewing] .markdown-editor{border-color:transparent;background:transparent;box-shadow:none;overflow:visible}
+iq-markdown-editor[density=compact][preview-on-blur][data-previewing] :is(.md-editor-head,.markdown-editor>footer){display:none}
+iq-markdown-editor[density=compact][preview-on-blur][data-previewing] .md-preview{box-sizing:border-box;width:calc(100% + 2 * var(--iq-space-2));max-width:none;margin:0 calc(-1 * var(--iq-space-2));padding:var(--iq-space-2);min-height:0;border-radius:var(--iq-radius-sm);transition:background-color var(--iq-motion-fast) var(--iq-ease)}
+iq-markdown-editor[density=compact][preview-on-blur][data-previewing]:not([readonly]):not([disabled]) .md-preview:hover{background:var(--iq-hover);cursor:text}
+iq-markdown-editor[density=compact][preview-on-blur][data-previewing] .md-preview:focus-visible{background:var(--iq-hover);box-shadow:0 0 0 2px var(--iq-focus);outline:none}
+/* ---------- Discussions (0.6.0-vnext.19) ----------
+   Open questions pinned on top as framed cards; below them a flat chat timeline of comment threads and resolved
+   questions (one quiet line each); a one-line composer at the bottom. Space separates items, never lines or fills. */
+.iq-discussion{display:grid;gap:var(--iq-space-6);min-width:0}
+.iq-discussion[aria-busy=true] .iq-discussion-timeline{opacity:.7}
+.iq-discussion-questions,.iq-discussion-timeline{display:grid;min-width:0}
+.iq-discussion-questions{gap:var(--iq-space-3)}
+.iq-discussion-timeline{gap:var(--iq-space-6)}
+.iq-discussion-questions:empty,.iq-discussion-timeline:empty,.iq-discussion-questions[hidden],.iq-discussion-timeline[hidden]{display:none}
+.iq-discussion-timeline>.iq-thread[data-state=resolved]+.iq-thread[data-state=resolved]{margin-top:calc(var(--iq-space-1) - var(--iq-space-6))}
+.iq-discussion-more{justify-self:start}
+.iq-discussion-open-count{display:inline-flex;align-items:center;gap:var(--iq-space-2);font:400 var(--iq-type-caption-size)/1.5 var(--iq-font);color:var(--iq-warning);white-space:nowrap}
+.iq-discussion-open-count::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--iq-warning-fill)}
+.iq-discussion-open-count[hidden]{display:none}
+.iq-discussion-empty{margin:0;font-size:var(--iq-type-caption-size);line-height:1.5;color:var(--iq-muted)}
+.iq-discussion-error{display:flex;align-items:center;flex-wrap:wrap;gap:var(--iq-space-2);margin:0;font-size:var(--iq-type-caption-size);line-height:1.5;color:var(--iq-danger)}
+.iq-discussion-error[hidden]{display:none}
+.iq-discussion-error>.iq-btn{margin-left:auto}
+.iq-thread{display:grid;gap:var(--iq-space-3);min-width:0}
+.iq-thread[data-kind=question][data-state=open]{padding:var(--iq-space-4);border:1px solid var(--iq-line);border-radius:var(--iq-radius-sm);background:transparent}
+.iq-thread-flag{display:flex;align-items:center;gap:var(--iq-space-2);margin:0;font:600 var(--iq-type-caption-size)/1.5 var(--iq-font);color:var(--iq-warning)}
+.iq-thread-actions{display:flex;align-items:center;flex-wrap:wrap;gap:var(--iq-space-2);padding-left:calc(24px + var(--iq-space-3))}
+.iq-thread-actions:empty{display:none}
+.iq-thread[data-state=open] .iq-thread-actions,.iq-thread-body>.iq-thread-actions{justify-content:space-between;padding-left:0}
+.iq-thread-toggle{display:inline-flex;align-items:center;gap:var(--iq-space-2);min-height:32px;padding:0 var(--iq-space-2);margin-inline:calc(-1 * var(--iq-space-2));border:0;border-radius:var(--iq-radius-sm);background:transparent;color:var(--iq-accent);font:500 var(--iq-type-label-size)/1.4 var(--iq-font);cursor:pointer;text-decoration:none}
+.iq-thread-toggle:hover{background:var(--iq-hover)}
+.iq-thread-toggle-meta{color:var(--iq-muted);font-weight:400;font-size:var(--iq-type-caption-size)}
+.iq-thread-toggle>.iq-avatars{margin-right:var(--iq-space-1)}
+.iq-thread-new{width:6px;height:6px;border-radius:50%;background:var(--iq-accent);flex:none}
+.iq-thread-new[hidden]{display:none}
+.iq-thread-replies,.iq-thread-reply{margin-left:calc(24px + var(--iq-space-3));min-width:0}
+.iq-thread-replies{display:grid;gap:var(--iq-space-4)}
+.iq-thread-replies>.iq-thread-toggle{justify-self:start}
+.iq-thread-replies[hidden],.iq-thread-reply[hidden],.iq-thread-body[hidden]{display:none}
+.iq-thread-line{display:grid;grid-template-columns:16px minmax(0,1fr) auto 16px;align-items:center;gap:var(--iq-space-2);box-sizing:border-box;width:calc(100% + 2 * var(--iq-space-2));min-height:var(--iq-control-sm);margin-inline:calc(-1 * var(--iq-space-2));padding:var(--iq-space-2);border:0;border-radius:var(--iq-radius-sm);background:transparent;text-align:left;color:var(--iq-muted);font:400 var(--iq-type-label-size)/1.4 var(--iq-font);cursor:pointer}
+.iq-thread-line:hover{background:var(--iq-hover)}
+.iq-thread-line>.iq-icon:first-child{color:var(--iq-success)}
+.iq-thread-line>.iq-icon:last-child{transition:transform var(--iq-motion-fast) var(--iq-ease)}
+.iq-thread-line[aria-expanded=true]>.iq-icon:last-child{transform:rotate(90deg)}
+.iq-thread-line-text{overflow:hidden;white-space:nowrap;text-overflow:ellipsis;color:var(--iq-ink)}
+.iq-thread-line-meta{font-size:var(--iq-type-caption-size);white-space:nowrap}
+.iq-thread-body{display:grid;gap:var(--iq-space-3);padding-top:var(--iq-space-2)}
+.iq-thread-resolution{font-size:var(--iq-type-caption-size);color:var(--iq-muted)}
+:is(.iq-thread-toggle,.iq-thread-line):focus-visible{outline:2px solid var(--iq-focus);outline-offset:-2px}
+.iq-message{display:grid;grid-template-columns:24px minmax(0,1fr);column-gap:var(--iq-space-3);align-items:start;min-width:0}
+.iq-message[data-size=reply]{grid-template-columns:20px minmax(0,1fr);column-gap:var(--iq-space-2)}
+.iq-message>.iq-avatar{margin-top:0}
+.iq-message-main{display:grid;gap:var(--iq-space-1);min-width:0}
+.iq-message-meta{display:flex;flex-wrap:wrap;align-items:baseline;gap:0 var(--iq-space-2);margin:0;min-height:24px}
+.iq-message-author{font:600 var(--iq-type-label-size)/24px var(--iq-font);color:var(--iq-ink)}
+.iq-message-time{font-size:var(--iq-type-caption-size);color:var(--iq-muted);font-variant-numeric:tabular-nums}
+.iq-message[data-new] .iq-message-time::after{content:"";display:inline-block;width:6px;height:6px;margin-left:var(--iq-space-2);border-radius:50%;background:var(--iq-accent);vertical-align:middle}
+.iq-message-text .md-document,.iq-message-text.md-document{font-size:var(--iq-type-interface-size);line-height:1.6}
+p.iq-message-text{margin:0;font-size:var(--iq-type-interface-size);line-height:1.6;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
+.iq-message[data-just-changed] .iq-message-main{border-radius:var(--iq-radius-xs);animation:iq-discussion-arrive var(--iq-motion-scene) var(--iq-ease)}
+@keyframes iq-discussion-arrive{from{background:var(--iq-accent-soft)}to{background:transparent}}
+.iq-message[data-state=loading] .iq-message-main{gap:var(--iq-space-2);padding-top:6px}
+.iq-skeleton-line{display:block;height:10px;width:100%;border-radius:var(--iq-radius-xs)}
+.iq-skeleton-line[data-width=short]{width:40%}
+.iq-composer{display:grid;grid-template-columns:24px minmax(0,1fr);column-gap:var(--iq-space-3);align-items:start;min-width:0}
+.iq-composer>.iq-avatar{margin-top:6px}
+@media(max-width:480px){.iq-thread[data-state=open] .iq-thread-actions [data-resolve]{flex:1 0 100%}.iq-thread-line{grid-template-columns:16px minmax(0,1fr) 16px}.iq-thread-line-meta{grid-column:2;grid-row:2}}
+@media(prefers-reduced-motion:reduce){.iq-message[data-just-changed] .iq-message-main{animation:none}.iq-thread-line>.iq-icon:last-child{transition:none}}
+:root[data-motion=reduced] .iq-message[data-just-changed] .iq-message-main{animation:none}
+@media(forced-colors:active){.iq-thread[data-kind=question][data-state=open]{border-color:CanvasText}.iq-thread-new,.iq-message[data-new] .iq-message-time::after{background:Highlight}}
+/* Chat composer: iq-markdown-editor variant="chat". The short toolbar lives in the footer; idle="line" rests as one field. */
+.markdown-editor.variant-chat{border-radius:var(--iq-radius-sm);background:var(--iq-field-bg,var(--iq-raised))}
+.markdown-editor.variant-chat:focus{outline:none}
+.markdown-editor.variant-chat>.md-editor-head,.markdown-editor.variant-chat>.md-preview{display:none}
+.markdown-editor.variant-chat .md-input{min-height:72px;max-height:320px;overflow-y:auto;padding:var(--iq-space-3);font-size:var(--iq-type-interface-size);line-height:1.6}
+.markdown-editor.variant-chat>footer{display:flex;align-items:center;flex-wrap:wrap;gap:var(--iq-space-2);min-height:0;padding:var(--iq-space-1) var(--iq-space-2);border-top:1px solid var(--iq-line)}
+.markdown-editor.variant-chat>footer>.md-toolbar{padding:0;border:0;background:transparent;gap:0;flex-wrap:nowrap}
+.markdown-editor.variant-chat>footer .md-tool{width:28px;height:28px}
+.markdown-editor.variant-chat>footer>.md-hint{display:none}
+.markdown-editor.variant-chat>footer>.md-cancel{margin-left:auto}
+.markdown-editor.variant-chat>footer>.md-cancel~.md-submit{margin-left:0}
+.markdown-editor.variant-chat>footer>.md-submit{margin-left:auto;height:32px;min-height:32px;--h:32px}
+.markdown-editor.variant-chat .md-footer-hint{display:block;padding:0 var(--iq-space-3) var(--iq-space-2);font-size:var(--iq-type-caption-size);color:var(--iq-muted)}
+.markdown-editor .md-footer-hint[hidden]{display:none}
+.md-footer-chip{display:inline-flex;align-items:center;gap:var(--iq-space-1);height:28px;padding:0 var(--iq-space-3);border:1px solid var(--iq-line);border-radius:var(--iq-radius-pill);background:transparent;color:var(--iq-muted);font:500 var(--iq-type-label-size)/1 var(--iq-font);cursor:pointer;white-space:nowrap}
+.md-footer-chip:hover:not(:disabled){background:var(--iq-hover);color:var(--iq-ink)}
+.md-footer-chip:focus-visible{outline:2px solid var(--iq-focus);outline-offset:1px}
+.md-footer-chip[aria-pressed=true]{background:var(--iq-accent-soft);border-color:transparent;color:var(--iq-accent)}
+.md-footer-chip[aria-pressed=true][data-tone=warning]{background:var(--iq-warning-fill);color:var(--iq-on-warning)}
+.md-footer-chip:disabled{opacity:.45;cursor:default}
+iq-markdown-editor[variant=chat][data-idle] .markdown-editor{border-color:var(--iq-line)}
+iq-markdown-editor[variant=chat][data-idle] .markdown-editor:hover{border-color:var(--iq-line-strong)}
+iq-markdown-editor[variant=chat][data-idle] .md-input{min-height:0;height:var(--iq-control-sm)!important;padding:0 var(--iq-space-3);line-height:calc(var(--iq-control-sm) - 2px);overflow:hidden;resize:none;white-space:nowrap}
+iq-markdown-editor[variant=chat][data-idle] .markdown-editor>footer,iq-markdown-editor[variant=chat][data-idle] .md-footer-hint{display:none}
+@media(max-width:480px){.markdown-editor.variant-chat>footer>.md-toolbar{flex:1 0 100%;overflow-x:auto}}
+@media(forced-colors:active){.md-footer-chip[aria-pressed=true]{border:2px solid Highlight}}
+/* ---------- Property grid (0.6.0-vnext.19): .iq-properties[data-columns="2|auto"] ----------
+   One grammar for an object's core facts: label and value rows in two columns (auto collapses to one below 300px
+   per column, with no media query). Values are ghost triggers aligned to the column edge; icons live in values. */
+.iq-properties[data-columns]{--iq-properties-label:96px;column-gap:var(--iq-space-6);row-gap:var(--iq-space-1)}
+.iq-properties[data-columns="2"]{grid-template-columns:repeat(2,minmax(0,1fr))}
+.iq-properties[data-columns=auto]{grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr))}
+.iq-properties[data-columns] :is(iq-select,iq-combobox,iq-date-field){min-height:36px;column-gap:var(--iq-space-2)}
+.iq-properties[data-columns] :is(iq-select,iq-combobox,iq-date-field)>.iq-control-label{font-size:var(--iq-type-label-size);font-weight:400;white-space:nowrap}
+.iq-properties[data-columns] :is(iq-select,iq-combobox,iq-date-field)>:not(.iq-control-label){justify-self:start;max-width:calc(100% + var(--iq-space-2));margin-left:calc(-1 * var(--iq-space-2))}
+.iq-properties[data-columns] iq-select[appearance=pill]>:not(.iq-control-label){margin-left:0}
+.iq-properties[data-columns] :is(.iq-select-trigger,.iq-date-trigger,.iq-combo-shell){width:auto;max-width:100%;min-height:32px;height:32px;gap:var(--iq-space-2);padding:0 var(--iq-space-2);margin-left:0;border:1px solid transparent;border-radius:var(--iq-radius-sm);background:transparent;font-size:var(--iq-type-interface-size)}
+.iq-properties[data-columns] :is(.iq-select-trigger,.iq-date-trigger,.iq-combo-shell):hover{border-color:transparent;background:var(--iq-hover)}
+.iq-properties[data-columns] :is(.iq-select-trigger,.iq-date-trigger)[aria-expanded=true],.iq-properties[data-columns] .iq-combo-shell:focus-within{border-color:var(--iq-control);background:var(--iq-raised)}
+.iq-properties[data-columns] .iq-select-value{display:inline-flex;align-items:center;gap:var(--iq-space-2);min-width:0}
+.iq-properties[data-columns] .iq-select-value>.iq-icon{flex:none;color:var(--iq-muted)}
+.iq-properties[data-columns] .iq-select-trigger>.iq-icon:last-child,.iq-properties[data-columns] .iq-combo-shell>.iq-icon:last-child{opacity:0;width:12px;flex:none;transition:opacity var(--iq-motion-fast) var(--iq-ease)}
+.iq-properties[data-columns] :is(.iq-select-trigger,.iq-combo-shell):is(:hover,:focus-within)>.iq-icon:last-child,.iq-properties[data-columns] .iq-select-trigger[aria-expanded=true]>.iq-icon:last-child{opacity:1}
+.iq-properties[data-columns] .iq-combo-shell input{field-sizing:content;min-width:7ch;max-width:24ch;padding:0;background:transparent;font:inherit}
+.iq-properties[data-columns] .iq-combo-shell:has(>.iq-select-avatar):not(:focus-within)>.iq-icon:first-of-type{display:none}
+.iq-properties[data-columns] .iq-combo-shell:focus-within>.iq-select-avatar{display:none}
+.iq-properties[data-columns] .iq-select-avatar{width:22px;height:22px;margin:0;border:0;font-size:9px}
+.iq-properties[data-columns] [data-empty=true] :is(.iq-select-label,.iq-combo-shell input,[data-date-caption]){color:var(--iq-muted)}
+.iq-properties[data-columns] .iq-select-trigger[data-tone=high]{color:var(--iq-task-high-text)}
+.iq-properties[data-columns] .iq-select-trigger[data-tone=critical]{color:var(--iq-task-critical-text)}
+.iq-properties[data-columns] :is(.iq-select-trigger[data-tone=high],.iq-select-trigger[data-tone=critical]) .iq-select-value>.iq-icon{color:inherit}
+.iq-properties[data-columns] iq-date-field[data-tone=danger] .iq-date-trigger{color:var(--iq-danger)}
+.iq-properties[data-columns] iq-date-field[data-tone=warning] .iq-date-trigger{color:var(--iq-task-high-text)}
+@media(hover:none){.iq-properties[data-columns] :is(.iq-select-trigger,.iq-combo-shell)>.iq-icon:last-child{opacity:1}}
+/* iq-select appearance="pill": the one filled value, with a dot in the option's tone. */
+iq-select[appearance=pill] .iq-select-trigger,.iq-properties[data-columns] iq-select[appearance=pill] .iq-select-trigger{height:28px;min-height:28px;margin-left:0;padding:0 var(--iq-space-3);border-radius:var(--iq-radius-pill);background:var(--iq-surface);font-size:var(--iq-type-label-size);font-weight:500}
+iq-select[appearance=pill] .iq-select-trigger:hover{background:var(--iq-hover)}
+.iq-select-dot{width:8px;height:8px;border-radius:50%;background:var(--iq-select-tone,var(--iq-muted));flex:none}
+iq-select[appearance=pill] .iq-select-trigger[data-tone=info]{--iq-select-tone:var(--iq-info)}
+iq-select[appearance=pill] .iq-select-trigger[data-tone=warning]{--iq-select-tone:var(--iq-warning-fill)}
+iq-select[appearance=pill] .iq-select-trigger[data-tone=success]{--iq-select-tone:var(--iq-success)}
+iq-select[appearance=pill] .iq-select-trigger[data-tone=danger]{--iq-select-tone:var(--iq-danger)}
+/* Option meta (a date, a count) and separators; the search field of a searchable select. */
+.iq-select-meta{color:var(--iq-muted);font-size:var(--iq-type-label-size);font-variant-numeric:tabular-nums;white-space:nowrap}
+.iq-option-meta{margin-left:auto;padding-left:var(--iq-space-3);color:var(--iq-muted);font-size:var(--iq-type-caption-size);font-variant-numeric:tabular-nums;white-space:nowrap}
+.iq-option.iq-option-separated{margin-top:var(--iq-space-1);border-top:1px solid var(--iq-line);border-top-left-radius:0;border-top-right-radius:0}
+.iq-select-search{display:flex;align-items:center;gap:var(--iq-space-2);height:36px;margin:0 0 var(--iq-space-1);padding:0 var(--iq-space-2);border-bottom:1px solid var(--iq-line);color:var(--iq-muted)}
+.iq-select-search input{flex:1;min-width:0;height:100%;border:0;background:transparent;color:var(--iq-ink);font:inherit;font-size:var(--iq-type-interface-size);outline:none}
+.iq-select-search input::-webkit-search-cancel-button{display:none}
+/* iq-tag-picker appearance="inline": tags as a quiet footnote line. No field chrome at rest; 24px chips whose ×
+   appears on hover or focus; the input is a borderless "Добавить тег" with an underline only while typing. */
+iq-tag-picker[appearance=inline]>.iq-control-label{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+iq-tag-picker[appearance=inline] .iq-tag-picker-field{display:flex;flex-wrap:wrap;align-items:center;gap:6px;min-height:28px;padding:0;border:0;background:transparent;box-shadow:none}
+iq-tag-picker[appearance=inline] .iq-tag-picker-field:focus-within{box-shadow:none}
+iq-tag-picker[appearance=inline] .iq-tag-picker-values{display:contents}
+iq-tag-picker[appearance=inline] .iq-tag{min-height:24px;padding:2px var(--iq-space-2);font-size:var(--iq-type-caption-size);border-radius:var(--iq-radius-xs)}
+iq-tag-picker[appearance=inline] .iq-tag .iq-tag-remove{width:0;opacity:0;overflow:hidden;margin-left:0;transition:opacity var(--iq-motion-fast) var(--iq-ease)}
+iq-tag-picker[appearance=inline] .iq-tag:is(:hover,:focus-within,[data-armed]) .iq-tag-remove{width:16px;opacity:1;margin-left:2px}
+iq-tag-picker[appearance=inline] input{flex:0 1 150px;min-width:96px;height:24px;padding:0 var(--iq-space-1);border:0;border-bottom:1px solid transparent;border-radius:0;background:transparent;font-size:var(--iq-type-caption-size);color:var(--iq-ink)}
+iq-tag-picker[appearance=inline] input::placeholder{color:var(--iq-muted)}
+iq-tag-picker[appearance=inline] input:focus{outline:none;border-bottom-color:var(--iq-focus)}
+iq-tag-picker[appearance=inline] .iq-tag-picker-add{width:24px;height:24px;min-width:24px;min-height:24px;padding:0;margin:0;border-radius:var(--iq-radius-xs)}
+@media(hover:none){iq-tag-picker[appearance=inline] .iq-tag .iq-tag-remove{width:16px;opacity:1;margin-left:2px}}
+@media(prefers-reduced-motion:reduce){iq-tag-picker[appearance=inline] .iq-tag .iq-tag-remove{transition:none}}
+
+.iq-properties[data-columns] .iq-date-trigger>.iq-icon{order:-1;flex:none;color:var(--iq-muted)}
+/* iq-image-crop appearance="bare" (0.6.0-vnext.19): one surface inside a host dialog. The whole image stays visible
+   under a scrim around a fixed frame; the stage takes the height the screen allows, so the dialog never scrolls. */
+.iq-image-crop[data-appearance=bare]{display:grid;gap:var(--iq-space-3);min-width:0}
+.iq-image-crop[data-appearance=bare] .iq-crop-stage{aspect-ratio:auto;width:100%;height:var(--iq-crop-stage-height,clamp(200px,calc(100dvh - 296px),440px));border-radius:var(--iq-radius-sm);background:var(--iq-recessed);cursor:default}
+.iq-image-crop[data-appearance=bare] .iq-crop-stage.has-image{cursor:grab}
+.iq-image-crop[data-appearance=bare] .iq-crop-stage.has-image:active{cursor:grabbing}
+.iq-image-crop[data-appearance=bare] .iq-crop-mask{display:none}
+.iq-crop-toolbar{display:flex;align-items:center;flex-wrap:wrap;gap:var(--iq-space-3);min-height:40px}
+.iq-crop-zoom{display:flex;align-items:center;gap:var(--iq-space-1)}
+.iq-crop-zoom input[type=range]{width:200px;accent-color:var(--iq-accent);margin:0;cursor:pointer}
+.iq-crop-spacer{flex:1}
+.iq-crop-status{margin:0;font-size:var(--iq-type-caption-size);color:var(--iq-muted)}
+.iq-crop-status.iq-pro-error{color:var(--iq-danger)}
+.iq-crop-status[hidden]{display:none}
+@media(max-width:560px){.iq-crop-zoom input[type=range]{width:120px}.iq-crop-spacer{display:none}}

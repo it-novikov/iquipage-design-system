@@ -1,18 +1,20 @@
 import {dialog,esc} from '../ui.js';
+import {formatDate} from '@iquipage/web/core';
 import {editCatalogItem,catalogLabel,tagTone} from './catalog-ui.js';
 export function mountTaskCatalogs(root,{tagsRoot=root,repository,project,task,tags,releases,readOnly=false,canManage=true,onChange=()=>{}}){
   let selected=new Set(task?.tagIds||[]),releaseId=task?.releaseId||'',allReleases=[...releases];
   const abort=new AbortController();
   const createReleaseValue='__create_release__';
-  root.innerHTML='<div class="task-edit-properties"><div data-release-field></div></div>';
+  const releaseMeta=item=>item.status==='released'?'выпущен':item.targetDate?`до ${formatDate(item.targetDate)}`:'';
   const tagRow=document.createElement('div');tagRow.className='task-selected-tags';tagsRoot.append(tagRow);
   function renderRelease(){
-    const options=[{value:'',label:'Без релиза'},...allReleases.filter(item=>!item.archivedAt||item.id===releaseId).map(item=>({value:item.id,label:catalogLabel(item)}))];
-    if(!readOnly&&canManage)options.push({value:createReleaseValue,label:'Новый релиз',icon:'plus'});
-    root.querySelector('[data-release-field]').innerHTML=`<iq-combobox name="releaseId" label="Релиз" value="${esc(releaseId)}" options="${esc(JSON.stringify(options))}" placeholder="Найти релиз" ${readOnly?'disabled':''}></iq-combobox>`;
+    // A release reads as a value (flag, name, date), not as a filled-in search box; search lives in the open list.
+    const options=[{value:'',label:'Без релиза',icon:'flag'},...allReleases.filter(item=>!item.archivedAt||item.id===releaseId).map(item=>({value:item.id,label:catalogLabel(item),icon:'flag',...(releaseMeta(item)?{meta:releaseMeta(item)}:{})}))];
+    if(!readOnly&&canManage)options.push({value:createReleaseValue,label:'Новый релиз',icon:'plus',separator:true});
+    root.innerHTML=`<iq-select name="releaseId" label="Релиз" searchable search-placeholder="Найти релиз" value="${esc(releaseId)}" options="${esc(JSON.stringify(options))}" ${readOnly?'disabled':''}></iq-select>`;
   }
   // Tags use the DS tag picker: chosen tags in their colours, search over the project catalog, creation for admins.
-  tagRow.innerHTML=`<iq-tag-picker label="Теги" ${canManage&&!readOnly?'creatable':''} ${readOnly?'readonly':''}></iq-tag-picker>`;
+  tagRow.innerHTML=`<iq-tag-picker label="Теги" appearance="inline" ${canManage&&!readOnly?'creatable':''} ${readOnly?'readonly':''}></iq-tag-picker>`;
   const picker=tagRow.querySelector('iq-tag-picker');
   function renderTags(){
     picker.options=tags.map(tag=>({value:tag.id,label:tag.name,tone:tagTone(tag),archived:!!tag.archivedAt}));

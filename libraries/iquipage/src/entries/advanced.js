@@ -18,6 +18,7 @@ export const layoutGraph=m4.layoutGraph;
 export const normalizeChartData=m4.chartData;
 export const IqImageCrop=m5.IqImageCrop;
 export const cropRect=m5.cropRect;
+export const fitZoom=m5.fitZoom;
 export function registerAdvanced(){
  registerCore();
  for(const [name,ctor]of Object.entries({'iq-roadmap':IqRoadmap,'iq-graph':IqGraph,'iq-remote-combobox':IqRemoteCombobox,'iq-tag-input':IqTagInput,'iq-data-chart':IqDataChart,'iq-image-crop':IqImageCrop}))if(!customElements.get(name))customElements.define(name,ctor);

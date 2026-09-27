@@ -106,15 +106,15 @@ export async function mountTaskBoard(root,{repository,project,canEdit=true,canMa
       items=items.map(t=>t.id===id?(current||original):t);fail(e);
     }finally{pending.delete(id);dragIntent=null;persist();render(id);if(queued)await reload();}
   }
-  async function edit(task=null,status='ready',{fromRoute=false,fullscreen=false,replaceRoute=false}={}){
-    if(openingTask||activeDialog||closed)return;
+  async function edit(task=null,status='ready',{fromRoute=false,fullscreen=false,replaceRoute=false,replace=null}={}){
+    if(openingTask||(activeDialog&&activeDialog!==replace)||closed)return;
     openingTask=true;const controller=new AbortController();openingController=controller;
     try{
-    const created=await openTaskDialog(task,{repository,project,tasks:items,canEdit,canManage:canManageCatalogs,attachmentAdapter,status,fullscreen,signal:controller.signal,isActive:()=>!closed&&!controller.signal.aborted,onOpenTask:id=>openTask(id,{via:'link',from:task}),backTo:task?trail.at(-1)||null:null,onBack:()=>{const previous=trail.at(-1);if(previous)void openTask(previous.id,{via:'back'});},onReload:async()=>{if(!(await closeTask()))return;const fresh=await repository.read('tasks',task.id,project.id);if(fresh)await edit(fresh,'ready',{fromRoute:true,fullscreen});},onSaved:async saved=>{if(!task&&!items.some(t=>t.id===saved.id))notify({tone:'success',message:`Задача ${taskKey(saved)} создана`,action:{label:'Открыть',run:()=>void openTask(saved.id)}});loading++;items=items.some(t=>t.id===saved.id)?items.map(t=>t.id===saved.id?saved:t):[...items,saved];render();await reload();}});
+    const created=await openTaskDialog(task,{repository,project,tasks:items,canEdit,canManage:canManageCatalogs,attachmentAdapter,status,fullscreen,replace,signal:controller.signal,isActive:()=>!closed&&!controller.signal.aborted,onOpenTask:id=>openTask(id,{via:'link',from:task}),backTo:task?trail.at(-1)||null:null,onBack:()=>{const previous=trail.at(-1);if(previous)void openTask(previous.id,{via:'back'});},onReload:async()=>{if(!(await closeTask()))return;const fresh=await repository.read('tasks',task.id,project.id);if(fresh)await edit(fresh,'ready',{fromRoute:true,fullscreen});},onSaved:async saved=>{if(!task&&!items.some(t=>t.id===saved.id))notify({tone:'success',message:`Задача ${taskKey(saved)} создана`,action:{label:'Открыть',run:()=>void openTask(saved.id)}});loading++;items=items.some(t=>t.id===saved.id)?items.map(t=>t.id===saved.id?saved:t):[...items,saved];render();await reload();}});
     if(closed||controller.signal.aborted){created.close(true);return;}activeDialog=created;
     // Following a link or going back inside the drawer replaces the drawer's history entry, so closing it
     // always returns to the board instead of walking back through every task that was visited.
-    if(task&&replaceRoute)history.replaceState({...(history.state||{}),taskDrawer:true},'',taskURL(task));
+    if(task&&replaceRoute)history.replaceState({...(history.state||{}),taskDrawer:history.state?.taskDrawer===true},'',taskURL(task));
     else if(task&&!fromRoute)history.pushState({taskDrawer:true,returnHash:location.hash||'#tasks'},'',taskURL(task));
     if(closed){activeDialog.close(true);return;}
     const opened=activeDialog;opened.addEventListener('iq-close',()=>{if(activeDialog===opened)activeDialog=null;if(!switchingTask)trail=[];if(!switchingTask&&task&&parseTaskRoute(location.hash)===taskKey(task)){if(history.state?.taskDrawer)history.back();else history.replaceState(null,'','#tasks');}},{once:true});
@@ -156,13 +156,22 @@ export async function mountTaskBoard(root,{repository,project,canEdit=true,canMa
     const task=items.find(item=>item.id===id||taskKey(item)===id)||await repository.read('tasks',id,project.id,{signal});
     if(closed)return false;
     if(!task||task.projectId!==project.id){fail(Error('Задача недоступна в этом проекте.'));return false;}
-    if(!(await closeTask()))return false;
+    // Moving between tasks inside the drawer hands over in one frame: the current drawer settles its edits but stays
+    // open until the next one is ready, then the next replaces it without motion, so nothing blinks.
+    const handoff=(options.via==='link'||options.via==='back')&&activeDialog?activeDialog:null;
+    if(handoff){if(pending.size||!(await handoff.taskController.close({keepOpen:true})))return false;}
+    else if(!(await closeTask()))return false;
     // The trail holds the tasks the drawer came from; a fresh open (board, search, URL) starts a new one.
     const current=options.from;
     if(options.via==='link'&&current&&current.id!==task.id)trail.push({id:current.id,key:taskKey(current),title:current.title});
     else if(options.via==='back')trail.pop();
     else trail=[];
-    await edit(task,'ready',{...options,replaceRoute:options.via==='link'||options.via==='back'});return activeDialog?.taskController.taskId===task.id;
+    const handedOver=handoff?new Promise(resolve=>{handoff.addEventListener('iq-close',resolve,{once:true});setTimeout(resolve,1000);}):null;
+    if(handoff)switchingTask=true;
+    try{await edit(task,'ready',{...options,replaceRoute:options.via==='link'||options.via==='back',...(handoff?{replace:handoff,fullscreen:handoff.dataset.fullscreen==='true'}:{})});}
+    // The native close event is queued, so the switch lasts until the old drawer has really closed.
+    finally{if(handoff){if(handoff.open)handoff.close(true);await handedOver;switchingTask=false;}}
+    return activeDialog?.taskController.taskId===task.id;
   }
   await reload();
   return {reload,openTask,closeTask,createTask:()=>canEdit?edit(null,'ready'):undefined,currentTask:()=>activeDialog?.taskController.taskKey||null,readyToLeave:async()=>!openingTask&&!activeDialog&&!pending.size,destroy(){

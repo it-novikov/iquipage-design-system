@@ -68,3 +68,13 @@ test('the profile carries the verified e-mail only for its owner',async()=>{
   const members=await ok('GET',path('members'),undefined,f.reader.headers);
   assert.ok(members.every((m:Record<string,unknown>)=>!('email' in m)),'members never expose e-mail');
 });
+test('thread summaries name the first author, the last author and the participants',async()=>{
+  await ok('PUT',path('tasks/talk-task'),{baseRevision:0,task:{title:'Обсуждаемая задача'}});
+  await ok('POST',path('tasks/talk-task/threads'),{id:'talk-one',messageId:'talk-one-m1',body:'Делаем сейчас или переносим?',requiresResolution:true});
+  await ok('POST',path('threads/talk-one/messages'),{id:'talk-one-m2',body:'Переносим',baseRevision:1});
+  const page=await ok('GET',path('tasks/talk-task/threads'));
+  const summary=page.items.find((t:{id:string})=>t.id==='talk-one');
+  assert.equal(summary.summary,true);assert.equal(summary.messageCount,2);
+  assert.equal(summary.messages[0].authorId,f.alice.id);assert.ok(Number.isFinite(Date.parse(summary.messages[0].createdAt)));
+  assert.equal(summary.lastAuthorId,f.alice.id);assert.deepEqual(summary.participants,[f.alice.id]);
+});

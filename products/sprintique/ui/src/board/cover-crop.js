@@ -1,25 +1,32 @@
 import {registerAdvanced} from '@iquipage/web/advanced';
-import {dialog} from '../ui.js';
+import {dialog,icon} from '../ui.js';
 export const COVER_RATIO=12/5;
+/** Per axis the frame lies inside the image, or contains it whole ("Вписать", a letterboxed cover). */
+const axis=(position,size)=>size<=1?position>=-1e-6&&position<=1-size+1e-6:position<=1e-6&&position>=1-size-1e-6;
+export const coverLetterboxed=crop=>!!crop&&(crop.width>1.001||crop.height>1.001);
 export function coverImageStyle(crop,id){
   if(!crop||crop.attachmentId!==id)return '';
   const {x,y,width,height}=crop;
-  if(![x,y,width,height].every(Number.isFinite)||x<0||y<0||width<=0||height<=0||x+width>1.001||y+height>1.001)return '';
+  if(![x,y,width,height].every(Number.isFinite)||width<=0||height<=0||width>20||height>20||!axis(x,width)||!axis(y,height))return '';
   return `position:absolute;width:${100/width}%;height:${100/height}%;max-width:none;left:${-100*x/width}%;top:${-100*y/height}%;object-fit:fill`;
 }
-/** Shared cropper public API; the original blob stays unchanged in attachment storage. */
+/** One surface: the DS cropper in its bare appearance fills the dialog body and the dialog owns the only footer.
+ *  The whole image stays visible around the 12:5 frame; "Вписать" keeps a screenshot or a logo whole. */
 export function editCoverImage(file,{crop:previous,onApply=()=>{}}={}){
-  registerAdvanced();let cropper,dimensions,closed=false;
-  const modal=dialog({title:'Обложка задачи',body:'<iq-image-crop></iq-image-crop>',wide:true,mount:async el=>{
-    cropper=el.querySelector('iq-image-crop');cropper.aspectRatio=COVER_RATIO;cropper.controlled=true;
-    cropper.content={title:'Выберите кадр обложки',subtitle:'Переместите изображение и настройте масштаб. На доске и в задаче будет один кадр.'};
-    cropper.addEventListener('iq-crop-load',e=>{dimensions=e.detail;});
-    cropper.addEventListener('iq-crop-request',async event=>{
-      const request=event.detail;if(closed||!dimensions){request.reject('Выберите изображение.');return;}
-      try{const {x,y,width,height}=request.crop;await onApply(cropper.source,{x:x/dimensions.width,y:y/dimensions.height,width:width/dimensions.width,height:height/dimensions.height});if(!closed&&request.accept())modal.close();}
-      catch(error){request.reject(error.message);}
-    });
-    if(await cropper.load(file)&&previous&&!closed){try{cropper.value={x:previous.x*dimensions.width,y:previous.y*dimensions.height,width:previous.width*dimensions.width,height:previous.height*dimensions.height};}catch{}}
-  }});
+  registerAdvanced();let cropper,closed=false;
+  const modal=dialog({title:'Обложка задачи',body:'<iq-image-crop appearance="bare" letterbox chooser></iq-image-crop>',wide:true,submitLabel:'Использовать кадр',
+    onSubmit:async()=>{
+      const crop=cropper?.normalizedValue;if(!crop)throw Error('Выберите изображение.');
+      await onApply(cropper.source,crop);
+    },
+    mount:async el=>{
+      el.classList.add('cover-crop-dialog');
+      const footer=el.querySelector('.iq-dialog-footer');footer.insertAdjacentHTML('afterbegin','<p class="cover-crop-note">Кадр 12 : 5, как на доске и в задаче</p>');
+      footer.querySelector('[type=submit]')?.insertAdjacentHTML('afterbegin',icon('check',16));
+      cropper=el.querySelector('iq-image-crop');cropper.aspectRatio=COVER_RATIO;
+      if(await cropper.load(file)&&!closed){
+        if(previous){try{cropper.normalizedValue=previous;}catch{cropper.fit('auto');}}else cropper.fit('auto');
+      }
+    }});
   modal.addEventListener('iq-close',()=>{closed=true;},{once:true});return modal;
 }

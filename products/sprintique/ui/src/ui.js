@@ -22,7 +22,7 @@ export function download(name,value,type='application/json') {
 }
 /** Exact IQUIPAGE dialog composition, with host-owned form and asynchronous save. */
 /** `success` is announced as a DS toast once the submit completes and the dialog closes. */
-export function dialog({title,description='',body='',submitLabel='',wide=false,onSubmit,mount,success=''}) {
+export function dialog({title,description='',body='',submitLabel='',wide=false,onSubmit,mount,success='',replace=null}) {
   registerCore();const el=document.createElement('iq-dialog');el.className='map-dialog';
   el.innerHTML=`<dialog class="iq-dialog map-modal" data-layout="form"><form class="iq-dialog-form map-dialog-form"><header class="iq-dialog-head"><div><h2>${esc(title)}</h2>${description?`<p>${esc(description)}</p>`:''}</div><button type="button" class="iq-btn ghost icon sm" data-close aria-label="Закрыть">${icon('x',18)}</button></header><div class="iq-dialog-body map-dialog-body">${body}</div><p class="map-form-error" role="alert" hidden></p><footer class="iq-dialog-footer"><button type="button" class="iq-btn secondary sm" data-close>${submitLabel?'Отмена':'Закрыть'}</button>${submitLabel?`<button type="submit" class="iq-btn primary sm">${esc(submitLabel)}</button>`:''}</footer></form></dialog>`;
   if(wide)el.setAttribute('data-size','wide');document.body.append(el);
@@ -39,7 +39,9 @@ export function dialog({title,description='',body='',submitLabel='',wide=false,o
     }catch(e){error.textContent=e.message||'Не удалось выполнить действие.';error.hidden=false;}
     finally{busy=false;if(!wasPersistent)el.removeAttribute('persistent');form.querySelectorAll('button[type=submit],[data-close]').forEach(b=>b.disabled=false);}
   });
-  el.addEventListener('iq-close',()=>el.remove(),{once:true});mount?.(el,form);el.show();
+  el.addEventListener('iq-close',()=>el.remove(),{once:true});mount?.(el,form);
+  // A replacing surface takes over in one frame: the old one closes without motion and the new one appears without it.
+  if(replace?.open){const previous=replace.previous;replace.close(true);el.show({instant:true});if(previous?.isConnected)el.previous=previous;}else el.show();
   // Focus the header close button, not a field deep inside a scrollable catalogue.
   el.querySelector('.iq-dialog-head [data-close]')?.focus({preventScroll:true});return el;
 }

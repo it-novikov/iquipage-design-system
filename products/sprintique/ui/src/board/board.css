@@ -48,17 +48,6 @@
 .task-checklist [data-item]>.iq-check{flex:none;min-width:20px}
 .task-checklist [data-add-item]{margin-top:var(--iq-space-2)}
 [data-checklists]>[data-add-list]{margin-top:var(--iq-space-3)}
-.task-thread>summary{align-items:center;gap:var(--iq-space-3)}
-.thread-excerpt{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:var(--iq-type-label-size);line-height:1.6;margin:var(--iq-space-1) 0}
-.task-thread summary small{display:block;font-size:var(--iq-type-meta-size);color:var(--iq-muted);font-weight:400}
-.task-thread>.thread-body{max-width:none;color:var(--iq-ink);padding-bottom:var(--iq-space-5)}
-.thread-message{padding:var(--iq-space-3) 0;border-top:1px solid var(--iq-line)}
-.thread-message>header{display:flex;justify-content:space-between;gap:var(--iq-space-3);font-size:var(--iq-type-caption-size);margin-bottom:var(--iq-space-2)}
-.thread-message time{font-size:var(--iq-type-meta-size);color:var(--iq-muted)}
-.thread-compose{margin-top:var(--iq-space-5)}
-.thread-body>iq-markdown-editor{margin-top:var(--iq-space-3)}
-[data-task-threads]>.row{align-items:baseline}
-[data-task-threads] .map-form-error{padding:var(--iq-space-3) 0}
 
 .board-filter-bar{display:flex;align-items:center;gap:var(--iq-space-1);flex:none}
 .board-filter-condition{display:inline-flex;align-items:center;background:var(--iq-surface);border-radius:var(--iq-radius-sm);max-width:100%}
@@ -72,7 +61,7 @@
 .task-due>span{display:inline-flex;gap:var(--iq-space-1);align-items:center}
 [data-effective-template]{max-width:none}
 [data-effective-template] h4{margin-top:var(--iq-space-3)}
-@media(max-width:600px){.board-filter-bar{gap:var(--iq-space-1)}.board-filter-condition>[data-filter]{max-width:220px}.task-thread .thread-message>header{flex-wrap:wrap}.task-edit-properties{gap:var(--iq-space-4)}}
+@media(max-width:600px){.board-filter-bar{gap:var(--iq-space-1)}.board-filter-condition>[data-filter]{max-width:220px}.task-edit-properties{gap:var(--iq-space-4)}}
 
 /* Optional media uses existing task surfaces and DS spacing/motion roles. */
 .task-card-cover{display:block;position:relative;width:100%;aspect-ratio:12/5;padding:0;overflow:hidden;border-radius:var(--iq-radius-sm);background:var(--iq-recessed);flex:none}
@@ -104,7 +93,6 @@
 .task-props{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--iq-space-4) var(--iq-space-5);align-items:start}
 .task-props>*{min-width:0}
 .task-prop-wide{grid-column:1 / -1}
-[data-task-catalogs] .task-edit-properties{display:block}
 .task-editor-description{grid-area:desc;min-width:0}
 .task-editor-supplements{grid-area:supp;display:grid;gap:var(--iq-space-6);min-width:0}
 /* A cover, when set, is a banner above everything; without one nothing takes space. */
@@ -127,13 +115,10 @@
 .task-description-surface{min-width:0;position:relative}
 .task-tag-options{display:flex;flex-wrap:wrap;align-items:center;align-content:center;justify-content:flex-start;gap:var(--iq-space-2);min-height:112px;padding-block:var(--iq-space-5)}
 .task-edit-dialog .task-edit-section>h3,.task-edit-dialog .task-edit-section>.row>h3{margin:0}
-.task-edit-dialog [data-task-save-state]:empty,.task-edit-dialog [data-thread-page-state]:empty,.task-edit-dialog [data-thread-count]:empty,.task-edit-dialog [data-file-list]:empty,.task-edit-dialog [data-task-links]:empty{display:none}
-.thread-empty{padding:var(--iq-space-5);border:1px dashed var(--iq-line);border-radius:var(--iq-radius-md);text-align:center;display:grid;gap:var(--iq-space-2)}
-.thread-empty b{font-size:var(--iq-type-interface-size);font-weight:500}.thread-empty p{font-size:var(--iq-type-label-size);line-height:1.6;color:var(--iq-muted);margin:0}
-.thread-compose{margin-top:0;display:grid;gap:var(--iq-space-2)}
+.task-edit-dialog [data-task-save-state]:empty,.task-edit-dialog [data-file-list]:empty,.task-edit-dialog [data-task-links]:empty{display:none}
 .task-edit-dialog[data-fullscreen=true] .map-modal.iq-drawer{width:100vw}.task-edit-dialog[data-fullscreen=true] .map-dialog-body{width:100%;max-width:1160px;align-self:center}
 .task-dialog-identity{display:flex;align-items:center;gap:var(--iq-space-1)}
-.task-dialog-identity .task-link-copy{font:inherit;padding-inline:0;user-select:none}
+.task-dialog-identity .task-link-copy{font:inherit;user-select:none}
 .task-dialog-actions{display:flex;align-items:center;gap:var(--iq-space-1)}
 .host-task-board{--task-card-min-height:112px}
 .host-task-board .task-card{min-height:var(--task-card-min-height);padding:var(--iq-space-3);gap:var(--iq-space-2);user-select:none;cursor:pointer}
@@ -189,19 +174,11 @@
 .task-editor-layout{gap:var(--iq-space-8)}
 .task-editor-title{margin-bottom:calc(-1 * var(--iq-space-5))}
 .task-editor-properties{display:grid;gap:var(--iq-space-4)}
-.task-more-props{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:var(--iq-space-5);row-gap:var(--iq-space-1)}
-.task-more-props>[data-task-catalogs] .task-edit-properties{display:block}
-.task-tags-row{grid-column:1 / -1;min-width:0}
-.task-tags-row .task-selected-tags{display:block}
 .task-edit-dialog .task-edit-section>h3{margin:0 0 var(--iq-space-3);font:600 var(--iq-type-interface-size)/1.4 var(--iq-font);color:var(--iq-ink)}
 .task-edit-dialog .task-editor-description>h3{font-size:var(--iq-type-interface-size)}
 /* The description reads as text until it is clicked: no frame in preview, a soft hover says it is editable. */
-.task-description-surface[data-mode=preview] .markdown-editor{border-color:transparent;background:transparent;box-shadow:none}
-.task-description-surface[data-mode=preview] .md-preview{padding:var(--iq-space-2) var(--iq-space-3);margin:0 calc(-1 * var(--iq-space-3));border-radius:var(--iq-radius-sm);transition:background-color var(--iq-motion-fast) var(--iq-ease)}
-.task-description-surface[data-mode=preview] .md-preview:hover{background:var(--iq-hover);cursor:text}
-.task-description-surface[data-mode=preview] .md-editor-head,.task-description-surface[data-mode=preview] .markdown-editor>footer{display:none}
 .task-relations .task-parent{margin-bottom:var(--iq-space-2)}
-.task-relations .task-parent iq-combobox{--iq-properties-label:136px}
+.task-relations .task-parent iq-select{--iq-properties-label:136px}
 /* Cover: one menu on the image, shown on hover or focus (always on touch screens). */
 .task-editor-cover:not([hidden]){margin:0 0 var(--iq-space-6);position:relative}
 .task-cover-menu{position:absolute;right:var(--iq-space-3);bottom:var(--iq-space-3);opacity:0;transition:opacity var(--iq-motion-fast) var(--iq-ease)}
@@ -209,12 +186,9 @@
 .task-editor-cover:is(:hover,:focus-within) .task-cover-menu,.task-cover-menu:has([aria-expanded=true]){opacity:1}
 @media(hover:none){.task-cover-menu{opacity:1}}
 .task-dialog-actions{display:flex;align-items:center;gap:var(--iq-space-1);margin-left:auto}
-@media(max-width:640px){.task-more-props{grid-template-columns:minmax(0,1fr)}.task-relations .task-parent iq-combobox{--iq-properties-label:88px}}
-.task-edit-dialog[data-fullscreen=true] .task-more-props{grid-template-columns:minmax(0,1fr)}
+@media(max-width:640px){.task-relations .task-parent iq-select{--iq-properties-label:88px}}
 .task-edit-dialog textarea.iq-inline-title{min-height:0;max-height:none;overflow:hidden}
 .task-edit-dialog .task-editor-description>h3{margin-bottom:var(--iq-space-1)}
-.task-edit-dialog [data-task-threads]>.row>h3{margin:0;font:600 var(--iq-type-interface-size)/1.4 var(--iq-font)}
-.task-edit-dialog [data-task-threads]>.row{margin-bottom:var(--iq-space-3)}
 .task-relations [data-task-links]{display:grid;gap:var(--iq-space-3);margin-bottom:var(--iq-space-3)}
 .task-relations [data-task-links]>.iq-btn{justify-self:start}
 /* Card footer (council 5): date and release on the left as quiet 12px facts, people fixed at the bottom right. */
@@ -239,20 +213,39 @@
 .task-edit-dialog .iq-section-head h3{margin:0}
 .task-dialog-identity .task-link-copy{font:500 var(--iq-type-interface-size)/1 var(--iq-mono)}
 /* Description preview: an 8px inset on both sides, so text never touches the hover fill and the fill spans the column. */
-.task-description-surface[data-mode=preview] .md-preview{box-sizing:border-box;width:calc(100% + 2 * var(--iq-space-2));max-width:none;margin:0 calc(-1 * var(--iq-space-2));padding:var(--iq-space-2);min-height:0}
-.task-description-surface[data-mode=preview] .md-preview:focus-visible{background:var(--iq-hover);box-shadow:0 0 0 2px var(--iq-focus);outline:none}
 /* Relations sit on an inset panel, a second visual stop after the description. */
 .task-relations iq-relation-map:not([data-empty]){padding:var(--iq-space-4);border-radius:var(--iq-radius-sm);background:var(--iq-surface)}
 .task-relations [data-task-links]{margin-bottom:var(--iq-space-4)}
 /* Discussion is a full-bleed band: the conversation is visibly separate from the task itself. */
-.task-edit-dialog .task-threads-section{margin-inline:calc(-1 * var(--iq-space-6));padding-inline:var(--iq-space-6);background:var(--iq-surface)}
-@media(max-width:640px){.task-edit-dialog .task-threads-section{margin-inline:calc(-1 * var(--iq-space-4));padding-inline:var(--iq-space-4)}}
 /* Cover: always the true 12:5 frame, at most 240px high (280px in fullscreen), on a band with a blurred ambient copy. */
-.task-editor-cover .task-detail-cover{position:relative;display:grid;place-items:center;height:auto;max-height:none;aspect-ratio:auto;border-radius:var(--iq-radius-sm);background:var(--iq-surface);overflow:hidden}
-.task-editor-cover .task-detail-cover>[data-preview-cover]{position:relative;z-index:1;width:min(100%,calc(240px * 2.4));height:auto;aspect-ratio:12/5}
-.task-cover-ambient{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:blur(32px) saturate(1.1);transform:scale(1.2);opacity:.5;pointer-events:none}
-[data-theme=dark] .task-cover-ambient{opacity:.35}
-@media(prefers-reduced-transparency:reduce),(forced-colors:active){.task-cover-ambient{display:none}}
-.task-edit-dialog[data-fullscreen=true] .task-editor-cover .task-detail-cover>[data-preview-cover]{width:min(100%,calc(280px * 2.4))}
-@media(max-width:640px){.task-editor-cover .task-detail-cover{height:auto}.task-editor-cover .task-detail-cover>[data-preview-cover]{width:100%}}
-.task-description-surface[data-mode=preview] .markdown-editor{overflow:visible}
+
+/* Discussions are DS (.iq-discussion); the section only keeps room above the drawer footer. */
+.task-edit-dialog .task-threads-section{padding-bottom:var(--iq-space-8)}
+/* Drawer identity: the back arrow sits on the content edge (its hit area bleeds left) and is centred on the header row,
+   the key is a DS switcher (underline on hover, like workspace and project) that copies the task link. */
+.task-edit-dialog .task-dialog-identity{align-self:stretch;align-items:center;margin:0;min-height:36px}
+.task-dialog-identity .task-back{width:32px;min-width:32px;height:32px;min-height:32px;padding:0;margin-left:calc(-1 * var(--iq-space-2));display:inline-grid;place-items:center}
+.task-dialog-identity .task-link-copy{flex:none;height:32px;padding-inline:var(--iq-space-1)}
+.task-dialog-identity .task-link-copy .iq-switcher-label{max-width:none}
+/* Core facts: title, 16px, the property grid, 16px, the tag line, 24px, then "Описание". */
+.task-editor-title{margin-bottom:var(--iq-space-4)}
+.task-editor-properties{display:grid;gap:var(--iq-space-4);padding-bottom:var(--iq-space-6)}
+.task-release-slot{display:contents}
+.task-tags-row{min-width:0}
+.task-tags-row:empty{display:none}
+/* Cover: the whole 12:5 frame, never a letterbox band, left-aligned with the title and never huge (480×200 in the
+   drawer, 576×240 in fullscreen). A letterboxed ("Вписать") cover shows a blurred copy of itself inside the frame. */
+.task-editor-cover:not([hidden]){position:relative;width:min(100%,480px);margin:0 0 var(--iq-space-5)}
+.task-edit-dialog[data-fullscreen=true] .task-editor-cover:not([hidden]){width:min(100%,576px)}
+@media(max-width:640px){.task-editor-cover:not([hidden]){width:100%}}
+.task-editor-cover .task-detail-cover{position:relative;width:100%;aspect-ratio:12/5;border-radius:var(--iq-radius-sm);background:var(--iq-recessed);overflow:hidden;isolation:isolate}
+.task-editor-cover .task-detail-cover>[data-preview-cover]{position:absolute;inset:0;width:100%;height:100%;overflow:hidden}
+:is(.task-detail-cover,.task-card-cover) img.task-cover-backdrop{position:absolute;inset:-8%;width:116%;height:116%;max-width:none;object-fit:cover;filter:blur(24px) saturate(1.1) brightness(.92);z-index:-1;pointer-events:none}
+[data-theme=dark] :is(.task-detail-cover,.task-card-cover) img.task-cover-backdrop{filter:blur(24px) saturate(1.05) brightness(.7)}
+@media(prefers-reduced-transparency:reduce),(forced-colors:active){.task-cover-backdrop{display:none}}
+.task-card-cover{isolation:isolate}
+.task-cover-lightbox{display:grid;place-items:center;max-height:calc(100dvh - 200px);border-radius:var(--iq-radius-sm);background:var(--iq-recessed);overflow:hidden}
+.task-cover-lightbox img{display:block;max-width:100%;max-height:calc(100dvh - 200px);object-fit:contain}
+.cover-crop-dialog .map-dialog-body{overflow:hidden}
+.cover-crop-note{margin:0 auto 0 0;font-size:var(--iq-type-caption-size);color:var(--iq-muted)}
+.cover-crop-dialog{--iq-crop-stage-height:clamp(200px,calc(100dvh - 320px),440px)}

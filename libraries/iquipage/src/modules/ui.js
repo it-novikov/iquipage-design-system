@@ -6,6 +6,7 @@ exports.avatar = avatar;
 exports.avatars = avatars;
 exports.avatarTone = avatarTone;
 exports.avatarGroup = avatarGroup;
+exports.personAvatar = personAvatar;
 exports.initials = initials;
 exports.badge = badge;
 exports.btn = btn;
@@ -56,6 +57,12 @@ function avatarTone(key) { let h = 0; for (const ch of String(key || '')) h = (h
 function initials(name) { return String(name || '').trim().split(/\s+/).slice(0, 2).map(part => part[0] || '').join('').toUpperCase() || '?'; }
 /** People as a DS avatar group: at most three discs (two and "+N" when there are more), one tooltip with every name,
     and one accessible label. people: [{name, id?}]; size: 'xs' | 'sm' | 'md'. */
+/** One person as one decorative DS avatar disc: the name is always rendered as text beside it. */
+function personAvatar(person, { size = 'sm' } = {}) {
+    if (!['xs', 'sm', 'lg'].includes(size)) throw new TypeError('Unsupported avatar size');
+    if (!person || !String(person.name || '').trim()) return `<span class="iq-avatar ${size} more" aria-hidden="true">?</span>`;
+    return `<span class="iq-avatar ${size} v${avatarTone(person.id || person.name)}" aria-hidden="true">${components_js_1.escapeHTML(initials(person.name))}</span>`;
+}
 function avatarGroup(people, { size = 'sm', max = 3, label = 'Участники' } = {}) {
     const list = (Array.isArray(people) ? people : []).filter(p => p && typeof p.name === 'string' && p.name.trim());
     if (!list.length) return '';

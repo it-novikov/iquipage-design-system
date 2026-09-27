@@ -14,7 +14,9 @@ async function signature(records){
 export function threadSummary(thread){
   const {id,projectId,taskId,revision,requiresResolution,resolved,resolution,createdAt,lastActivityAt}=thread;
   return {id,projectId,taskId,revision,requiresResolution,resolved,resolution,createdAt,lastActivityAt,
-    summary:true,messageCount:thread.messages.length,messages:[{body:thread.messages[0].body.slice(0,160)}]};
+    summary:true,messageCount:thread.messages.length,lastAuthorId:thread.messages.at(-1)?.authorId??null,
+    participants:[...new Set(thread.messages.map(message=>message.authorId).reverse())].slice(0,4),
+    messages:[{body:thread.messages[0].body.slice(0,160),authorId:thread.messages[0].authorId??null,createdAt:thread.messages[0].createdAt??null}]};
 }
 export async function selectThreadPage(records,projectId,taskId,{cursor=null,limit=20,signal}={}){
   requireValue(validId(projectId)&&validId(taskId),'THREAD_TASK','Не задана задача.');

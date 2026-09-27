@@ -68,7 +68,7 @@ export interface Thread {
 /** A write-only grant receives its own change back, never preserved content it may not read. */
 export interface TaskReceipt {receipt:'task';id:string;projectId:string;displayId:string;revision:number;updatedAt:string;statusEnteredAt:string}
 export interface ThreadReceipt extends Omit<Thread,'messages'> {receipt:'thread';messages:Message[]}
-export interface ThreadSummary extends Omit<Thread,'messages'> {summary:true;messageCount:number;messages:{body:string}[]}
+export interface ThreadSummary extends Omit<Thread,'messages'> {summary:true;messageCount:number;lastAuthorId:string|null;participants:string[];messages:{body:string;authorId:string|null;createdAt:string|null}[]}
 export interface ThreadPage {items:ThreadSummary[];total:number;unresolved:number;nextCursor:string|null}
 export interface Project {id:string;workspaceId:string;name:string;slug:string;key:string;role:'reader'|'editor'|'admin';workspaceName:string;avatarAssetId:string|null}
 export interface SessionInfo {principal:{id:string;kind:'human'|'agent';name:string};csrf:string|null;projects:Project[]}

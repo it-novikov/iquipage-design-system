@@ -116,7 +116,10 @@ export class ProductRepository {
         this.clearProjectCache(record.projectId);this.listeners.forEach(fn=>fn({collection,projectId:record.projectId,id:record.id}));return displayOwner(saved);
       }
       if(record.checklists?.length)throw new ApiError('CONTENT_VERSION','Сохраните чек-листы в Markdown-описании.',422);
-      const content=TaskInput.parse(Object.fromEntries(Object.keys(TaskInput.shape).map(key=>[key,record[key]])));
+      // A schema failure speaks the product's language: our own refinement texts are Russian, anything else is generic.
+      const parsed=TaskInput.safeParse(Object.fromEntries(Object.keys(TaskInput.shape).map(key=>[key,record[key]])));
+      if(!parsed.success){const text=parsed.error.issues.map(issue=>issue.message).find(message=>/[а-яё]/i.test(message));throw new ApiError('VALIDATION',text||'Проверьте поля задачи.',422);}
+      const content=parsed.data;
       const {parentId,releaseId}=content;
       const previous=baseRevision?await this.client.task(record.projectId,record.id):null;
       if(this.confirmPlanningChange&&(!baseRevision&&releaseId||previous&&(previous.parentId!==parentId||previous.releaseId!==releaseId))){

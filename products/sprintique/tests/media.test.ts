@@ -42,7 +42,9 @@ test('F02 full image decode, WebP variants and cover crop survive a new S3 clien
   assert.equal((await putTask('cover-task',0,value)).statusCode,200);
   const fresh=new S3ObjectStorage(JSON.parse(await readFile(process.env['TEST_S3_CONFIG']||'output/infra/storage.json','utf8')));
   try{const content=await fresh.get(objectKey({projectId:f.first.id,id:'cover-file',sha256:uploaded.json().sha256},'original'));assert.deepEqual(Buffer.from(content),bytes);}finally{fresh.close();}
-  assert.equal((await putTask('cover-task',1,{...value,coverCrop:{...value.coverCrop,width:2}})).statusCode,400);
+  assert.equal((await putTask('cover-task',1,{...value,coverCrop:{...value.coverCrop,x:.5,width:2}})).statusCode,400,'a wider frame must contain the image');
+  assert.equal((await putTask('cover-task',1,{...value,coverCrop:{...value.coverCrop,x:.5,width:.8}})).statusCode,400,'a narrower frame must stay inside');
+  const letterbox=await putTask('cover-task',1,{...value,coverCrop:{...value.coverCrop,x:-.5,width:2}});assert.equal(letterbox.statusCode,200,letterbox.body);
 });
 test('F03 spoofed type, malformed images, changed bytes and foreign completion are rejected and quarantined',async()=>{
   const bytes=Buffer.from('not an image');await reserve('bad-image','bad.png',bytes);const bad=await upload('bad-image',bytes);assert.equal(bad.statusCode,422);assert.equal(bad.json().code,'FILE_CONTENT');

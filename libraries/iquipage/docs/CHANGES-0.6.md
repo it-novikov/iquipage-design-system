@@ -1,4 +1,4 @@
-# IQUIPAGE 0.6 changes (0.6.0-vnext.1 → vnext.18)
+# IQUIPAGE 0.6 changes (0.6.0-vnext.1 → vnext.19)
 
 The 0.6 line is the source-owned library in `libraries/iquipage`. Each release is built, tested and packed here, and the Sprintique product adopts the exact tarball (`products/sprintique/vendor`). Releases are private; nothing is published to a registry. The pinned 05.7 snapshot in `design-system/` is historical and is not edited.
 
@@ -24,5 +24,6 @@ Release flow: change the source, raise the version in `package.json`, `package-l
 | vnext.16 | Task drawer blocks: editor `toolbarActions`, empty-state action and Escape back to preview; select and combobox show the chosen avatar and tone; `.iq-property-strip`, `.iq-inline-title`, `.iq-color-field`; any RGB tag colour through `tagToneAttributes()`. |
 | vnext.17 | `iq-relation-map`; `.iq-board-chip` and `.iq-board-sync` for embedded boards; side rail at the top of every embedded board; the "Визуальная доска" showcase configured like Sprintique Maps. |
 | vnext.18 | `ui.avatarGroup` and `ui.avatarTone`; `.iq-section` heads; relation map lanes named by role, centre "Эта задача" with a blocked flag; tag picker "+" inside the field and two-step Backspace; `.iq-color-swatch` radios with a custom RGB swatch. |
+| vnext.19 | `.iq-discussion` and the chat composer (`variant="chat"`, `idle="line"`, chip actions, alternate submit); `ui.personAvatar`, `help` icon; inline document editor; `.iq-properties[data-columns]`, `iq-select appearance="pill"`, `searchable`, option `meta`/`separator`; `iq-tag-picker appearance="inline"`; `iq-dialog.show({instant})`; `iq-image-crop appearance="bare"` with `letterbox`; side-dock zoom under the rail. |
 
 The README describes each public API in detail; `PROVENANCE.json` records where every approved extension came from; `tests/vnext*.test.cjs` hold the contracts.

@@ -106,9 +106,15 @@ export declare class IqDataChart extends HTMLElement {
 export interface CropRect {x:number;y:number;width:number;height:number}
 export interface CropExportOptions {size?:number;type?:'image/png'|'image/jpeg'|'image/webp';quality?:number}
 export interface CropRequest {blob:Blob;crop:CropRect;signal:AbortSignal;accept():boolean;reject(message?:string):boolean}
-export declare function cropRect(width:number,height:number,zoom?:number,x?:number,y?:number):CropRect;
+export declare function cropRect(width:number,height:number,zoom?:number,x?:number,y?:number,aspectRatio?:number,minZoom?:number):CropRect;
+export declare function fitZoom(width:number,height:number,aspectRatio:number):number;
 export declare class IqImageCrop extends HTMLElement {
-  content:Partial<{eyebrow:string;title:string;subtitle:string;placeholder:string}>;
+  /** heading/description (title/subtitle are accepted and mapped); the HTML title attribute is never set. */
+  content:Partial<{eyebrow:string;heading:string;description:string;title:string;subtitle:string;placeholder:string}>;
+  /** Fractions of the image; with letterbox a frame may contain the image (negative offset, size above 1). */
+  normalizedValue:{x:number;y:number;width:number;height:number}|null;
+  readonly fitZoom:number;readonly mode:'fill'|'contain'|null;
+  fit(mode?:'fill'|'contain'|'auto'):void;
   source:Blob|null;controlled:boolean;disabled:boolean;readonly:boolean;aspectRatio:number;
   readonly pending:boolean;readonly loading:boolean;readonly error:string;
   get value():CropRect|null;set value(value:CropRect);

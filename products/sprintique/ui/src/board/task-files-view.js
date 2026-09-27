@@ -1,7 +1,7 @@
 import {dialog,icon,esc} from '../ui.js';
 import {uid,requireValue} from '../common.js';
 import {FILE_ACCEPT} from './attachment-model.js';
-import {editCoverImage,coverImageStyle} from './cover-crop.js';
+import {editCoverImage,coverImageStyle,coverLetterboxed} from './cover-crop.js';
 
 /** Draft changes are committed by the task form, never by a preview. */
 export function mountTaskFiles(root,{coverRoot,adapter,task,readOnly=false,onCoverState=()=>{}}){
@@ -62,7 +62,7 @@ export function mountTaskFiles(root,{coverRoot,adapter,task,readOnly=false,onCov
     if(!coverId){coverRoot.replaceChildren();coverRoot.hidden=true;onCoverState(false);return;}
     coverRoot.hidden=false;onCoverState(true);
     const row=rows.get(coverId);
-    coverRoot.innerHTML=`<div class="task-detail-cover" data-state="loading"><img class="task-cover-ambient" alt="" aria-hidden="true" hidden><button type="button" data-preview-cover aria-label="Открыть обложку" disabled><img alt="" decoding="async" style="${coverImageStyle(coverCrop,coverId)}" hidden></button><span data-cover-status>Загрузка обложки…</span></div>
+    coverRoot.innerHTML=`<div class="task-detail-cover" data-state="loading"><button type="button" data-preview-cover aria-label="Открыть обложку" disabled>${coverLetterboxed(coverCrop)&&coverCrop.attachmentId===coverId?'<img class="task-cover-backdrop" alt="" aria-hidden="true" hidden>':''}<img class="task-cover-image" alt="" decoding="async" style="${coverImageStyle(coverCrop,coverId)}" hidden></button><span data-cover-status>Загрузка обложки…</span></div>
       ${editable?`<iq-menu class="task-cover-menu"><button type="button" class="iq-btn secondary sm">${icon('image',16)}<span>Обложка</span>${icon('down',14)}</button><div data-menu><button type="button" data-recrop-cover>${icon('expand',17)}<span>Изменить кадр</span></button><button type="button" data-add-cover>${icon('image',17)}<span>Заменить</span></button><button type="button" class="danger" data-remove-cover>${icon('trash',17)}<span>Убрать обложку</span></button></div></iq-menu>`:''}`;
     if(!adapter){
       coverRoot.querySelector('.task-detail-cover').dataset.state='unavailable';
@@ -73,12 +73,12 @@ export function mountTaskFiles(root,{coverRoot,adapter,task,readOnly=false,onCov
     adapter.blob({...target(coverId),variant:'display'},{signal:request.signal}).then(async blob=>{
       if(closed||generation!==coverGeneration)return;
       requireValue(blob.type==='image/webp','FILE_PREVIEW','Изображение недоступно.');
-      requestURL=URL.createObjectURL(blob);const image=coverRoot.querySelector('[data-preview-cover] img');
+      requestURL=URL.createObjectURL(blob);const image=coverRoot.querySelector('[data-preview-cover] .task-cover-image');
       image.src=requestURL;await image.decode();
       if(closed||generation!==coverGeneration||!image.isConnected)return;
       coverURL=requestURL;requestURL=null;image.hidden=false;
       // The letterbox around the true 12:5 frame is filled with a soft blurred copy, so the band never looks empty.
-      const ambient=coverRoot.querySelector('.task-cover-ambient');if(ambient){ambient.src=coverURL;ambient.hidden=false;}
+      const backdrop=coverRoot.querySelector('.task-cover-backdrop');if(backdrop){backdrop.src=coverURL;backdrop.hidden=false;}
       coverRoot.querySelector('[data-preview-cover]').disabled=false;coverRoot.querySelector('[data-cover-status]').hidden=true;
       coverRoot.querySelector('.task-detail-cover').dataset.state='ready';
     }).catch(()=>{if(!closed&&generation===coverGeneration){
@@ -152,7 +152,7 @@ export function mountTaskFiles(root,{coverRoot,adapter,task,readOnly=false,onCov
     if(event.target.closest('[data-remove-cover]')&&editable)setCover(null);
     if(event.target.closest('[data-recrop-cover]')&&editable&&coverId)void cropExisting(coverId);
     if(event.target.closest('[data-preview-cover]')&&coverURL){
-      const url=coverURL;dialog({title:rows.get(coverId)?.name||'Обложка',body:`<div class="task-detail-cover"><img alt="Обложка задачи" data-cover-full style="${coverImageStyle(coverCrop,coverId)}"></div>`,wide:true,mount:element=>{element.querySelector('[data-cover-full]').src=url;}});
+      const url=coverURL;dialog({title:rows.get(coverId)?.name||'Обложка',body:'<div class="task-cover-lightbox"><img alt="Обложка задачи целиком" data-cover-full></div>',wide:true,mount:element=>{element.querySelector('[data-cover-full]').src=url;}});
     }
   },{signal});
   // DS iq-file-picker owns picking and drag & drop; this view owns validation, upload and the file list.

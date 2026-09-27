@@ -1,5 +1,5 @@
 import {tagMarkup} from './catalog-ui.js';
-import {coverImageStyle} from './cover-crop.js';
+import {coverImageStyle,coverLetterboxed} from './cover-crop.js';
 import {taskEmphasis,taskSignal,normalizePriority,ui,formatDate} from '@iquipage/web/core';
 import {icon,esc} from '../ui.js';
 import {childOwners,taskKindLabel} from './model.js';
@@ -34,7 +34,7 @@ export function renderTaskCard(row,{index,canEdit,pending=false,expanded=false,c
   const moves=canEdit?[{section:'Переместить в'},...TASK_COLUMNS.filter(c=>c.id!==taskColumn(t)).map(c=>({label:c.label,glyph:c.icon,action:`move-to:${c.id}:${t.id}`}))]:[];
   const menu=ui.menu(ui.ib('more','Действия задачи: '+t.title,'ghost sm'),[{label:'Открыть задачу',glyph:'expand',action:'open:'+t.id},...moves]);
   return `<article class="task-card" tabindex="0" role="link" aria-label="Открыть задачу: ${esc(t.title)}" data-task-surface="${id}" data-task-emphasis="${taskEmphasis(t)}" data-task-kind="${esc(t.type||'task')}" data-drag-id="${id}" data-priority="${normalizePriority(t.priority)}" ${pending?'aria-busy="true"':''}>
-    ${t.coverAttachmentId?`<button type="button" class="task-card-cover" data-state="loading" data-open-task="${id}" aria-label="Открыть задачу: ${esc(t.title)}" tabindex="-1"><img data-cover-id="${esc(t.coverAttachmentId)}" data-cover-task="${id}" style="${coverImageStyle(t.coverCrop,t.coverAttachmentId)}" alt="" draggable="false" decoding="async"><span class="task-cover-fallback">${icon('image',20)}</span></button>`:''}
+    ${t.coverAttachmentId?`<button type="button" class="task-card-cover" data-state="loading" data-open-task="${id}" aria-label="Открыть задачу: ${esc(t.title)}" tabindex="-1">${coverLetterboxed(t.coverCrop)&&t.coverCrop.attachmentId===t.coverAttachmentId?'<img class="task-cover-backdrop" alt="" aria-hidden="true" hidden>':''}<img data-cover-id="${esc(t.coverAttachmentId)}" data-cover-task="${id}" style="${coverImageStyle(t.coverCrop,t.coverAttachmentId)}" alt="" draggable="false" decoding="async"><span class="task-cover-fallback">${icon('image',20)}</span></button>`:''}
     <div class="task-card-top"><div class="task-identity">
     <button type="button" class="task-card-id task-id-drag" data-drag-handle title="${esc(label)}. Перетащите за номер задачи" aria-label="Переместить задачу: ${esc(t.title)}" aria-pressed="false" aria-describedby="board-drag-help" ${!canEdit||pending?'disabled':''}>${esc(t.displayId||t.id.slice(-7).toUpperCase())}</button>${taskSignal(t)}</div>${menu}</div>
 

@@ -55,17 +55,24 @@ export async function pageThreads(tx:Transaction,projectId:string,taskId:string,
       ))
       ORDER BY (requires_resolution AND NOT resolved) DESC,last_activity_at DESC,id LIMIT $4
     ), message_counts AS (
-      SELECT m.thread_id,count(*)::int AS count FROM app.messages m JOIN selected s ON s.id=m.thread_id
+      SELECT m.thread_id,count(*)::int AS count,(array_agg(m.author_id ORDER BY m.created_at DESC,m.id DESC))[1] AS last_author
+      FROM app.messages m JOIN selected s ON s.id=m.thread_id
       WHERE m.project_id=$1 GROUP BY m.thread_id
     )
     SELECT stats.*,EXISTS(SELECT 1 FROM anchor) AS "anchorFound",
       coalesce((SELECT jsonb_agg(value ORDER BY "pageOrder") FROM (
         SELECT s."pageOrder",
           (to_jsonb(s) - 'pageOrder') || jsonb_build_object('summary',true,'messageCount',coalesce(c.count,0),
-            'messages',jsonb_build_array(jsonb_build_object('body',coalesce(first.body,'')))) AS value
+            'lastAuthorId',c.last_author,'participants',coalesce(people.ids,'[]'::jsonb),
+            'messages',jsonb_build_array(jsonb_build_object('body',coalesce(first.body,''),'authorId',first.author_id,
+              'createdAt',to_char(first.created_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')))) AS value
         FROM selected s LEFT JOIN message_counts c ON c.thread_id=s.id
-        LEFT JOIN LATERAL (SELECT left(m.body,160) AS body FROM app.messages m
+        LEFT JOIN LATERAL (SELECT left(m.body,160) AS body,m.author_id,m.created_at FROM app.messages m
           WHERE m.project_id=$1 AND m.thread_id=s.id ORDER BY m.created_at,m.id LIMIT 1) first ON true
+        -- Up to four distinct authors, most recent first: the replies toggle shows who answered.
+        LEFT JOIN LATERAL (SELECT jsonb_agg(p.author_id ORDER BY p.latest DESC) AS ids FROM (
+          SELECT m.author_id,max(m.created_at) AS latest FROM app.messages m
+          WHERE m.project_id=$1 AND m.thread_id=s.id GROUP BY m.author_id ORDER BY latest DESC LIMIT 4) p) people ON true
       ) summaries),'[]'::jsonb) AS items FROM stats`,[projectId,taskId,position?.after||null,limit+1])).rows[0]!;
   if (position) {
     requireCondition(position.version === result.version,409,'THREAD_CURSOR_STALE','Обсуждения изменились. Обновите список.');

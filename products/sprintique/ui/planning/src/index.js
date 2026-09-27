@@ -22,22 +22,22 @@ export async function mountPlanning(root,{adapter,project,onOpenTask,onCreateTas
   root.classList.add('planning-root');
   let deadlineMode=['timeline','dates'].includes(viewState.deadlineMode)?viewState.deadlineMode:(['timeline','dates'].includes(viewState.mode)?viewState.mode:'timeline');
   let viewMode='list',temporal=null,switching=false,dragging=false,refreshAfterDrag=false;
-  let disposed=false,modal=null,opening=false,searchTimer=null,selectionShift=false,queryInput,scroll,scrollRoot;
+  let disposed=false,modal=null,opening=false,selectionShift=false,scroll,scrollRoot;
   let refreshTimer=null,refreshing=false,refreshAgain=false;
   const nodes=new Map(),abort=new AbortController(),signal=abort.signal;
   const controller=new PlanningController({adapter,projectId:project.id,onChange:render});
-  if(viewState.filters)Object.assign(controller.filters,viewState.filters);
+  if(viewState.filters)Object.assign(controller.filters,viewState.filters,{query:''});
   if(Array.isArray(viewState.collapsed))controller.collapsed=new Set(viewState.collapsed);
   root.innerHTML=`<section class="planning-view"><header class="sq-page-heading pn-head"><h1>Планирование</h1><div class="sq-page-tools">${ui.btn('Новый релиз','secondary','plus','data-new-release')}${ui.btn('Новая задача','primary','plus','data-new-task')}</div></header>
     <div class="pn-views-row"><div class="iq-segmented pn-view-switch" role="group" aria-label="Вид планирования"><button type="button" data-view="list" aria-pressed="true">${icon('list',16)}<span>Список</span></button><button type="button" data-view="timeline" aria-pressed="false">${icon('chart',16)}<span>Гант</span></button><button type="button" data-view="dates" aria-pressed="false">${icon('calendar',16)}<span>Календарь</span></button></div>
-    <div class="iq-segmented pn-archive-switch" role="group" aria-label="Какие релизы показать" data-archive-switch><button type="button" data-history="current" aria-pressed="true">Текущие</button><button type="button" data-history="closed" aria-pressed="false">${icon('folder',16)}<span>Архив</span></button></div></div><div class="pn-toolbar"><div class="iq-search-small">${icon('search',16)}<input type="search" aria-label="Найти задачу или релиз" placeholder="Найти задачу или релиз" maxlength="240" data-query value="${esc(controller.filters.query)}"></div>
+    <div class="iq-segmented pn-archive-switch" role="group" aria-label="Какие релизы показать" data-archive-switch><button type="button" data-history="current" aria-pressed="true">Текущие</button><button type="button" data-history="closed" aria-pressed="false">${icon('folder',16)}<span>Архив</span></button></div></div><div class="pn-toolbar">
     <div class="iq-segmented pn-readiness" role="group" aria-label="Готовность задач" data-readiness>${[['all','Все'],['draft','Черновики'],['ready','Готовы к работе']].map(([v,l])=>`<button type="button" data-preparation-value="${v}" aria-pressed="${controller.filters.preparation===v}">${l}</button>`).join('')}</div>
     <div class="pn-toolbar-end"><span data-sort-menu></span>${ui.btn('Фильтры','ghost sm','filter','data-filter-conditions')}${ui.btn('Сбросить фильтры','ghost sm','x','data-clear-conditions hidden')}</div></div>
     <div class="pn-selection" data-bulk hidden><span data-selection-summary></span>${ui.btn('Выбрать все по условиям','ghost sm','','data-all-matching')}<div class="row">${ui.btn('В релиз…','secondary sm','box','data-move')}${ui.btn('Подготовить','secondary sm','check','data-prepare')}${ui.btn('Порядок…','ghost sm','list','data-order hidden')}${ui.menu(ui.btn('Ещё','ghost sm','down'),[{label:'Назначить исполнителя',action:'bulk-owner'},{label:'Изменить приоритет',action:'bulk-priority'},{label:'Изменить срок',action:'bulk-due'},{label:'Добавить тег',action:'bulk-tags'},{label:'Выбрать с подзадачами',action:'select-descendants'},{label:'Взять без релиза',action:'take'},{label:'Вернуть на уточнение',action:'unprepare'}])}${ui.btn('Снять выделение','ghost sm','','data-clear')}</div></div>
     <div data-error role="alert" hidden></div><p class="sr-only" role="status" data-live></p>
     <div class="pn-scroll" tabindex="-1" aria-label="Релизы и бэклог"><div data-groups></div><div data-tail></div></div><div class="pn-temporal" data-temporal hidden></div></section>`;
   const page=root.firstElementChild,groupsRoot=root.querySelector('[data-groups]'),tail=root.querySelector('[data-tail]');
-  queryInput=root.querySelector('[data-query]');scroll=root.querySelector('.pn-scroll');
+  scroll=root.querySelector('.pn-scroll');
   // Phones scroll the page, not a nested list box; windowing and lazy loading follow whichever element scrolls.
   const pageScroll=typeof matchMedia==='function'&&matchMedia('(max-width:640px)').matches;
   root.querySelector('.planning-view').toggleAttribute('data-page-scroll',pageScroll);
@@ -144,8 +144,6 @@ export async function mountPlanning(root,{adapter,project,onOpenTask,onCreateTas
   function released(){modal=null;opening=false;render();if(refreshAfterModal){refreshAfterModal=false;void refreshFromEvent();}}
   async function action(fn){if(dragging||opening||modal||controller.loading||controller.error)return;opening=true;render();try{modal=await fn();if(disposed)modal?.close?.();}catch(error){controller.message=error.message;released();}finally{opening=false;render();}}
   function operation(intent,title){return operationDialog({adapter,projectId:project.id,intent,title,onCommitted:changed,onClose:released});}
-  root.addEventListener('input',event=>{if(event.target===queryInput){clearTimeout(searchTimer);if(event.isComposing)return;searchTimer=setTimeout(()=>changeFilters({query:queryInput.value.trim()}),180);}},{signal});
-  queryInput.addEventListener('compositionend',()=>{clearTimeout(searchTimer);searchTimer=setTimeout(()=>changeFilters({query:queryInput.value.trim()}),180);},{signal});
   
   root.addEventListener('click',event=>{
     const b=event.target.closest('button,input');if(!b||b.disabled||dragging)return;
@@ -209,5 +207,5 @@ export async function mountPlanning(root,{adapter,project,onOpenTask,onCreateTas
   if(viewState.mode&&viewState.mode!=='list')await setView(viewState.mode);
   if(viewState.scrollTop)scroll.scrollTop=viewState.scrollTop;
   return {reload:()=>controller.load(),controller,readyToLeave:()=>!dragging&&!opening&&!modal&&!switching&&(!temporal||temporal.readyToLeave()),
-    destroy({force=false}={}){if(disposed)return;if(temporal&&!temporal.destroy({force}))return false;if(force)modal?.element?.close(true);viewState.scrollTop=scroll.scrollTop;disposed=true;clearTimeout(searchTimer);clearTimeout(refreshTimer);observer?.disconnect();unsubscribe?.();stopDrag();for(const node of nodes.values())node.window?.destroy();abort.abort();controller.destroy();if(root.firstElementChild===page){root.classList.remove('planning-root');page.remove();}}};
+    destroy({force=false}={}){if(disposed)return;if(temporal&&!temporal.destroy({force}))return false;if(force)modal?.element?.close(true);viewState.scrollTop=scroll.scrollTop;disposed=true;clearTimeout(refreshTimer);observer?.disconnect();unsubscribe?.();stopDrag();for(const node of nodes.values())node.window?.destroy();abort.abort();controller.destroy();if(root.firstElementChild===page){root.classList.remove('planning-root');page.remove();}}};
 }
