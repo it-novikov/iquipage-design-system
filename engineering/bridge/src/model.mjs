@@ -1,14 +1,21 @@
-import {FIELD, SECTION, field, fieldText, parseDecisions, parseQuestions, parseSteps, section} from './card.mjs';
+import {FIELD, SECTION, SECTION_ORDER, field, fieldText, parseAcceptance, parseDecisions, parseFields, parseQuestions, parseSteps, section, stepCovers} from './card.mjs';
 
 const bullets = text => text.split('\n').map(line => line.replace(/^- /, '').trim()).filter(Boolean);
+
+/** Lines of a step that belong to no field: free notes a person or agent wrote under it. */
+function notesOf(lines) {
+  const owned = new Set(parseFields(lines).flatMap(item => Array.from({length: item.end - item.start}, (_, offset) => item.start + offset)));
+  return lines.filter((line, index) => !owned.has(index) && line.trim()).join('\n');
+}
 
 function sectionText(card, name) {
   return (section(card, name)?.lines ?? []).join('\n').trim();
 }
 
 /**
- * The card as data: the interchange shape described by schema/task.v1.schema.json. Sprintique's task work plan API
- * uses the same shape, so a card can move between a repository and the platform without translation.
+ * The card as data, described by schema/task.v1.schema.json. It is a read-only projection: the Markdown card stays
+ * the source of truth until a two-way import exists. Text outside the known fields is kept in `notes` and
+ * `extraSections`, so nothing a person wrote disappears from the projection.
  */
 export function toModel(card) {
   const scope = section(card, SECTION.scope)?.lines ?? [];
@@ -21,8 +28,6 @@ export function toModel(card) {
     status: card.meta.status,
     risk: card.meta.risk,
     owner: card.meta.owner || null,
-    holder: card.meta.holder || null,
-    lease: card.meta.lease || null,
     branch: card.meta.branch || null,
     base: card.meta.base || null,
     created: card.meta.created,
@@ -30,15 +35,17 @@ export function toModel(card) {
     links: card.meta.links ?? [],
     goal: sectionText(card, SECTION.goal),
     scope: {included: text(scope, FIELD.included), excluded: text(scope, FIELD.excluded), constraints: text(scope, FIELD.constraints)},
+    acceptance: parseAcceptance(card).map(({id, text: criterion, done}) => ({id, text: criterion, done})),
     handoff: {
       state: text(handoff, FIELD.state), current: text(handoff, FIELD.now), next: text(handoff, FIELD.next),
-      uncommitted: text(handoff, FIELD.uncommitted), traps: bullets(text(handoff, FIELD.traps)), verify: text(handoff, FIELD.verify),
+      uncommitted: text(handoff, FIELD.uncommitted), workingCopy: text(handoff, FIELD.workingCopy), traps: bullets(text(handoff, FIELD.traps)), verify: text(handoff, FIELD.verify),
       reason: text(handoff, FIELD.reason),
     },
     steps: parseSteps(card).map(step => ({
       id: step.id, title: step.title, status: step.status,
       what: fieldText(step.fields[FIELD.what]), how: fieldText(step.fields[FIELD.how]), why: fieldText(step.fields[FIELD.why]),
-      criteria: step.criteria, result: fieldText(step.fields[FIELD.result]) || null,
+      criteria: step.criteria, covers: stepCovers(step), result: fieldText(step.fields[FIELD.result]) || null,
+      notes: notesOf(step.lines),
       dependsOn: fieldText(step.fields[FIELD.dependsOn]).split(/[,\s]+/).filter(Boolean), model: fieldText(step.fields[FIELD.model]) || null,
     })),
     decisions: parseDecisions(card).map(decision => {
@@ -54,5 +61,6 @@ export function toModel(card) {
       return {id: question.id, status: question.status, text: body, to, answer};
     }),
     context: bullets(sectionText(card, SECTION.context)),
+    extraSections: card.sections.filter(item => !SECTION_ORDER.includes(item.name)).map(item => ({name: item.name, text: item.lines.join('\n').trim()})),
   };
 }

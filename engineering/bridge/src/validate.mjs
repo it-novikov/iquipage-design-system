@@ -1,9 +1,10 @@
 import {existsSync, readdirSync, readFileSync} from 'node:fs';
 import {join} from 'node:path';
-import {FIELD, FORMAT_VERSION, RISKS, SECTION, SECTION_ORDER, STEP_STATUSES, TASK_STATUSES, field, fieldText, parseCard, parseQuestions, parseSteps, section} from './card.mjs';
+import {FIELD, FORMAT_VERSION, RISKS, SECTION, SECTION_ORDER, STEP_STATUSES, TASK_STATUSES, field, fieldText, parseAcceptance, parseCard, parseQuestions, parseSteps, section, stepCovers} from './card.mjs';
+import {changedFiles} from './git.mjs';
 import {findSecrets} from './secrets.mjs';
 import {isBlocking, parseReview, VERDICTS} from './review.mjs';
-import {now, paths} from './store.mjs';
+import {loadConfig, paths} from './store.mjs';
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 const ISO_TIME = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?Z$/;
@@ -27,15 +28,17 @@ export function validateTask(root, id) {
   if (meta.risk && !RISKS.includes(meta.risk)) errors.push(`risk «${meta.risk}» не из списка: ${RISKS.join(', ')}.`);
   if (meta.created && !ISO_DATE.test(String(meta.created))) errors.push('created — дата вида 2026-09-27.');
   if (meta.updated && !ISO_TIME.test(String(meta.updated))) errors.push('updated — время UTC вида 2026-09-27T10:00:00Z.');
-  if (meta.lease && !ISO_TIME.test(String(meta.lease))) errors.push('lease — время UTC вида 2026-09-27T10:00:00Z.');
   if (meta.links !== undefined && !Array.isArray(meta.links)) errors.push('links — список.');
-  if (meta.status === 'active' && !meta.holder) errors.push('У активной задачи должен быть holder.');
-  if (meta.holder && !meta.lease) errors.push('У задачи с holder должна быть аренда lease.');
-  if (meta.lease && ISO_TIME.test(String(meta.lease)) && new Date(meta.lease) < now()) warnings.push(`Аренда ${meta.holder || ''} истекла ${meta.lease}.`);
+  if (meta.holder !== undefined || meta.lease !== undefined) warnings.push('Поля holder и lease в карточке устарели: аренда хранится вне рабочего каталога. Удалите их.');
 
   if (card.title === null) errors.push('Нет заголовка «# …».');
+  if (card.title !== null && meta.title && card.title !== meta.title) errors.push('Название в title: и в заголовке «# …» различается.');
   const names = card.sections.map(item => item.name);
-  for (const name of SECTION_ORDER) if (!names.includes(name)) errors.push(`Нет раздела «## ${name}».`);
+  for (const name of SECTION_ORDER) {
+    // The task acceptance section is new in format 1; a card without it is valid but warned.
+    if (!names.includes(name)) (name === SECTION.acceptance ? warnings : errors).push(`Нет раздела «## ${name}».`);
+  }
+  for (const name of names) if (!SECTION_ORDER.includes(name)) warnings.push(`Неизвестный раздел «## ${name}»: проверьте, не начат ли он внутри блока кода.`);
   const known = names.filter(name => SECTION_ORDER.includes(name));
   if (known.some((name, index) => index > 0 && SECTION_ORDER.indexOf(name) < SECTION_ORDER.indexOf(known[index - 1]))) {
     errors.push(`Разделы идут не по порядку: ${SECTION_ORDER.join(' → ')}.`);
@@ -68,6 +71,13 @@ export function validateTask(root, id) {
     if (step.status === 'dropped' && !fieldText(step.fields[FIELD.result])) errors.push(`${label}: у отменённого шага нет «Итога» с причиной.`);
   }
   if (!['draft', 'cancelled'].includes(meta.status) && !steps.length) errors.push('В плане нет шагов.');
+  const acceptance = parseAcceptance(card);
+  const ids = new Set(acceptance.map(item => item.id));
+  const covered = new Set(steps.filter(step => step.status !== 'dropped').flatMap(stepCovers));
+  for (const step of steps) for (const reference of stepCovers(step)) if (!ids.has(reference)) errors.push(`${step.id}: покрывает несуществующий критерий ${reference}.`);
+  const uncovered = acceptance.filter(item => !covered.has(item.id)).map(item => item.id);
+  if (uncovered.length) (meta.status === 'draft' ? warnings : errors).push(`Критерии приёмки без шага: ${uncovered.join(', ')}.`);
+  if (!acceptance.length && !['draft', 'cancelled'].includes(meta.status) && names.includes(SECTION.acceptance)) warnings.push('У задачи нет критериев приёмки.');
   if (steps.filter(step => step.status === 'active').length > 1) warnings.push('Активно больше одного шага.');
 
   const reviewsDirectory = paths(root).reviews(id);
@@ -83,8 +93,12 @@ export function validateTask(root, id) {
   if (meta.status === 'done') {
     const unfinished = steps.filter(step => !['done', 'dropped'].includes(step.status));
     if (unfinished.length) errors.push(`Задача готова, но шаги не завершены: ${unfinished.map(step => step.id).join(', ')}.`);
+    const unmet = acceptance.filter(item => !item.done);
+    if (unmet.length) errors.push(`Задача готова, но не выполнены критерии: ${unmet.map(item => item.id).join(', ')}.`);
     if (blocking) errors.push(`Задача готова, но в ревью открыто P0/P1: ${blocking}.`);
   }
+  const floor = riskFloor(root, meta);
+  if (floor && RISKS.indexOf(floor.risk) > RISKS.indexOf(meta.risk)) errors.push(`Изменения ${floor.file} требуют уровня риска ${floor.risk}, в карточке ${meta.risk}. Понизить уровень может только владелец.`);
   if (meta.status === 'review' && blocking) warnings.push(`В ревью открыто P0/P1: ${blocking}.`);
   if (['review', 'done'].includes(meta.status) && parseQuestions(card).some(item => item.status === 'open')) warnings.push('Есть открытые вопросы.');
 
@@ -93,4 +107,20 @@ export function validateTask(root, id) {
   if (existsSync(journal)) for (const finding of findSecrets(readFileSync(journal, 'utf8'))) errors.push(`journal.md:${finding.line}: похоже на ${finding.name}.`);
   if (text.split('\n').length > 600) warnings.push('Карточка длиннее 600 строк: вынесите подробности в документы и оставьте ссылки.');
   return {errors, warnings};
+}
+
+/**
+ * The lowest risk level the changed files allow, from `riskFloor` in .bridge/config.json: a list of
+ * `{"pattern": "<regex over the path>", "risk": "high"}`. Only a card with a branch and a base is checked.
+ */
+export function riskFloor(root, meta) {
+  const rules = (loadConfig(root).riskFloor ?? []).map(rule => ({...rule, regex: new RegExp(rule.pattern)}));
+  if (!rules.length || !meta.base || !['active', 'ready', 'review', 'done'].includes(meta.status)) return null;
+  let strongest = null;
+  for (const file of changedFiles(root, meta.base)) {
+    for (const rule of rules) {
+      if (rule.regex.test(file) && (!strongest || RISKS.indexOf(rule.risk) > RISKS.indexOf(strongest.risk))) strongest = {risk: rule.risk, file};
+    }
+  }
+  return strongest;
 }

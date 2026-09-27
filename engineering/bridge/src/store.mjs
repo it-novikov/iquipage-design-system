@@ -108,10 +108,26 @@ export function mutateCard(root, id, edit) {
 }
 
 /**
- * Picks the task a command means when none is named: the one the current agent holds, else the only active one,
- * else the only task that is not finished.
+ * Every card that parses, plus the ids of those that do not. One broken card must not stop commands or hooks
+ * that concern other tasks; the broken ones are reported on stderr.
  */
-export function resolveTaskId(root, given, agent = process.env.BRIDGE_AGENT) {
+export function readCards(root, {warn = true} = {}) {
+  const cards = [];
+  for (const id of listTaskIds(root)) {
+    try {
+      cards.push({id, card: loadCard(root, id)});
+    } catch (error) {
+      if (warn) process.stderr.write(`bridge: карточка ${id} не читается: ${error.message}\n`);
+    }
+  }
+  return cards;
+}
+
+/**
+ * Picks the task a command means when none is named: BRIDGE_TASK, else the task this agent holds, else the only
+ * active one, else the only task that is not finished. `heldBy` returns the ids the agent holds (leases).
+ */
+export function resolveTaskId(root, given, {heldBy = () => []} = {}) {
   if (given) {
     if (!TASK_ID.test(given)) {
       const matches = listTaskIds(root).filter(id => id.endsWith(`-${given}`) || id.includes(given));
@@ -121,14 +137,14 @@ export function resolveTaskId(root, given, agent = process.env.BRIDGE_AGENT) {
     return given;
   }
   if (process.env.BRIDGE_TASK && TASK_ID.test(process.env.BRIDGE_TASK)) return process.env.BRIDGE_TASK;
-  const cards = listTaskIds(root).map(id => ({id, meta: loadCard(root, id).meta}));
-  const held = agent ? cards.filter(card => card.meta.holder === agent) : [];
-  if (held.length === 1) return held[0].id;
-  const active = cards.filter(card => card.meta.status === 'active');
+  const held = heldBy();
+  if (held.length === 1) return held[0];
+  const cards = readCards(root);
+  const active = cards.filter(entry => entry.card.meta.status === 'active');
   if (active.length === 1) return active[0].id;
-  const open = cards.filter(card => !['done', 'cancelled'].includes(card.meta.status));
+  const open = cards.filter(entry => !['done', 'cancelled'].includes(entry.card.meta.status));
   if (open.length === 1) return open[0].id;
-  throw new BridgeError('TASK_AMBIGUOUS', open.length ? `Укажите задачу: ${open.map(card => card.id).join(', ')}` : 'Открытых задач нет.');
+  throw new BridgeError('TASK_AMBIGUOUS', open.length ? `Укажите задачу: ${open.map(entry => entry.id).join(', ')}` : 'Открытых задач нет.');
 }
 
 export function loadConfig(root) {

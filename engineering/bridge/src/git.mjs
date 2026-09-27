@@ -18,8 +18,8 @@ export function gitState(root, base = '') {
   const head = git(root, ['log', '-1', '--format=%h%x09%s']);
   const [sha = '', subject = ''] = (head ?? '').split('\t');
   const dirty = (git(root, ['status', '--porcelain=v1', '--untracked-files=normal']) ?? '').split('\n').filter(Boolean)
-    // Bridge runtime files are not work in progress.
-    .filter(line => !line.slice(3).startsWith('.bridge/runs/'));
+    // The bridge's own files change with every command; they are not work in progress.
+    .filter(line => !line.slice(3).startsWith('.bridge/'));
   let ahead = null, behind = null;
   if (base && git(root, ['rev-parse', '--verify', '--quiet', base]) !== null) {
     const counts = git(root, ['rev-list', '--left-right', '--count', `${base}...HEAD`]);
@@ -44,6 +44,17 @@ export function shortSha(root, ref) {
   return git(root, ['rev-parse', '--short', ref]);
 }
 
-export function diffStat(root, from) {
-  return git(root, ['diff', '--stat', '--stat-width=100', `${from}...HEAD`]);
+export function diffStat(root, from, separator = '...') {
+  return git(root, ['diff', '--stat', '--stat-width=100', `${from}${separator}HEAD`]);
+}
+
+/** A fingerprint of the work itself: commits, the diff and the set of changed files. */
+export function workFingerprint(root) {
+  return [git(root, ['rev-parse', 'HEAD']) ?? '', git(root, ['diff', 'HEAD', '--stat']) ?? '', (git(root, ['status', '--porcelain=v1']) ?? '')
+    .split('\n').filter(line => line && !line.slice(3).startsWith('.bridge/')).join('\n')].join('\n');
+}
+
+export function changedFiles(root, base) {
+  const output = base ? git(root, ['diff', '--name-only', `${base}...HEAD`]) : null;
+  return output ? output.split('\n').filter(Boolean) : [];
 }

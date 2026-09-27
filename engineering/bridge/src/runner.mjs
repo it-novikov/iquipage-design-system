@@ -1,15 +1,18 @@
 import {spawn} from 'node:child_process';
-import {createWriteStream, mkdirSync} from 'node:fs';
+import {createWriteStream, mkdirSync, readFileSync} from 'node:fs';
 import {join} from 'node:path';
 import {setTimeout as delay} from 'node:timers/promises';
 import {BridgeError} from './errors.mjs';
-import {gitState} from './git.mjs';
+import {FIELD, fieldText, parseSteps} from './card.mjs';
+import {workFingerprint} from './git.mjs';
 import {appendJournal, readJournal} from './journal.mjs';
+import {liveLease} from './lease.mjs';
 import {claim, handoff} from './operations.mjs';
 import {authorPrompt} from './prompt.mjs';
 import {isoSeconds, loadCard, loadConfig, now, paths} from './store.mjs';
 
-const TAIL_BYTES = 64 * 1024;
+const TAIL_LINES = {stderr: 30, stdout: 10};
+const CONTENT_KINDS = new Set(['checkpoint', 'step', 'decision', 'question', 'answer', 'status', 'note']);
 
 /** When a provider says when the limit resets, the relay can come back to that agent instead of giving up on it. */
 export function parseRetryAt(text, reference = now()) {
@@ -37,47 +40,53 @@ export function parseRetryAt(text, reference = now()) {
   return null;
 }
 
+const lastLines = (text, count) => text.split('\n').filter(line => line.trim()).slice(-count).join('\n');
+
 /**
- * Error patterns are only trusted when the agent process failed: a successful session may well print "rate limit"
- * while working on rate limiting code.
+ * Error signals are read only when the agent process failed, and only in the last lines it printed: a working
+ * session may well print "401" or "rate limit" from tests of the product it is changing.
  */
-export function classifyOutcome({code, signal, timedOut, tail}, signals = {}) {
+export function classifyOutcome({code, signal, timedOut, stderr = '', stdout = '', tail}, signals = {}) {
   if (timedOut) return {kind: 'timeout', retryAt: null};
   if (code === 0 && !signal) return {kind: 'exited', retryAt: null};
-  for (const kind of ['auth', 'limit', 'context', 'overloaded']) {
+  const text = tail ?? `${lastLines(stderr, TAIL_LINES.stderr)}\n${lastLines(stdout, TAIL_LINES.stdout)}`;
+  for (const kind of ['limit', 'auth', 'context', 'overloaded']) {
     const patterns = signals[kind] ?? [];
-    if (patterns.some(pattern => new RegExp(pattern, 'i').test(tail))) return {kind, retryAt: kind === 'limit' ? parseRetryAt(tail) : null};
+    if (patterns.some(pattern => new RegExp(pattern, 'i').test(text))) return {kind, retryAt: kind === 'limit' ? parseRetryAt(text) : null};
   }
   return {kind: 'crash', retryAt: null};
 }
 
+/**
+ * Progress is a change in the work or in the card's content: commits, the diff, a checkpoint, a finished step.
+ * Taking or releasing the lease is not progress.
+ */
 function progressMarker(root, id) {
-  const card = loadCard(root, id);
-  const git = gitState(root);
-  return JSON.stringify({updated: card.meta.updated, journal: readJournal(root, id).length, sha: git?.sha ?? '', dirty: git?.dirty.length ?? 0});
+  const card = readFileSync(paths(root).card(id), 'utf8').replace(/^updated:.*$/m, '');
+  const content = readJournal(root, id).filter(entry => CONTENT_KINDS.has(entry.kind)).length;
+  return JSON.stringify({card, content, work: workFingerprint(root)});
 }
 
-function runAgent(root, id, agentKey, agent, prompt, {timeoutMinutes, quiet}) {
+function runAgent(root, id, agentKey, agent, prompt, {timeoutMinutes, quiet, round}) {
   const directory = paths(root).run(id);
   mkdirSync(directory, {recursive: true});
-  const logFile = join(directory, `${isoSeconds(now()).replace(/:/g, '')}-${agentKey}.log`);
+  const logFile = join(directory, `${isoSeconds(now()).replace(/:/g, '')}-r${round}-${agentKey}.log`);
   const log = createWriteStream(logFile);
   const [command, ...args] = agent.command;
   const child = spawn(command, agent.input === 'argument' ? [...args, prompt] : args, {
     cwd: root, stdio: ['pipe', 'pipe', 'pipe'],
-    env: {...process.env, ...(agent.env ?? {}), BRIDGE_AGENT: agent.name ?? agentKey, BRIDGE_TASK: id, BRIDGE_ROOT: root},
+    env: {...process.env, ...(agent.env ?? {}), BRIDGE_AGENT: agent.name ?? agentKey, BRIDGE_TASK: id, BRIDGE_ROOT: root, BRIDGE_RELAY: '1', BRIDGE_SESSION: ''},
   });
-  let tail = '';
-  const collect = (chunk, stream) => {
+  const output = {stdout: '', stderr: ''};
+  const collect = (chunk, name, stream) => {
     log.write(chunk);
     if (!quiet) stream.write(chunk);
-    tail = (tail + chunk.toString('utf8')).slice(-TAIL_BYTES);
+    output[name] = (output[name] + chunk.toString('utf8')).slice(-16384);
   };
-  child.stdout.on('data', chunk => collect(chunk, process.stdout));
-  child.stderr.on('data', chunk => collect(chunk, process.stderr));
+  child.stdout.on('data', chunk => collect(chunk, 'stdout', process.stdout));
+  child.stderr.on('data', chunk => collect(chunk, 'stderr', process.stderr));
   child.stdin.on('error', () => {});
-  if (agent.input !== 'argument') child.stdin.end(prompt);
-  else child.stdin.end();
+  child.stdin.end(agent.input === 'argument' ? undefined : prompt);
   let timedOut = false;
   const timer = setTimeout(() => {
     timedOut = true;
@@ -88,50 +97,73 @@ function runAgent(root, id, agentKey, agent, prompt, {timeoutMinutes, quiet}) {
     child.on('error', error => {
       clearTimeout(timer);
       log.end();
-      resolve({code: 127, signal: null, timedOut: false, tail: `${tail}\n${error.message}`, logFile});
+      resolve({code: 127, signal: null, timedOut: false, stdout: output.stdout, stderr: `${output.stderr}\n${error.message}`, logFile});
     });
     child.on('close', (code, signal) => {
       clearTimeout(timer);
       log.end();
-      resolve({code, signal, timedOut, tail, logFile});
+      resolve({code, signal, timedOut, ...output, logFile});
     });
   });
 }
 
 const REASON = {limit: 'limit', auth: 'auth', context: 'context', timeout: 'timeout', crash: 'error', overloaded: 'error'};
 
+/** The model class the current step asks for: the active step, else the first one still to do. */
+function wantedModel(card) {
+  const steps = parseSteps(card);
+  const step = steps.find(item => item.status === 'active') ?? steps.find(item => item.status === 'todo');
+  return step ? fieldText(step.fields[FIELD.model]).trim() : '';
+}
+
 /**
- * The relay: run the first available agent on the task; on a limit, auth failure, crash or timeout record a mechanical
- * handoff and pass the task to the next agent in the chain; retry transient overloads; stop when the task leaves
- * `active`, when every agent is unavailable, or when sessions stop making progress.
+ * The relay: run the first available agent on the task; on a limit, auth failure, crash or timeout record a
+ * mechanical handoff and pass the task to the next agent of the chain; retry transient overloads; stop when the task
+ * leaves `active`/`ready`, when every agent is unavailable, or when sessions stop making progress. A step marked
+ * `Модель: fast` goes to the first available agent configured with that model class.
  */
-export async function runRelay(root, id, {chain: chainOverride, maxRounds, wait = false, dryRun = false, quiet = false, report = text => process.stderr.write(`${text}\n`)}) {
+export async function runRelay(root, id, options = {}) {
+  const {chain: chainOverride, maxRounds, wait = false, dryRun = false, quiet = false, after = '', report = text => process.stderr.write(`${text}\n`)} = options;
   const config = loadConfig(root);
   const chain = chainOverride?.length ? chainOverride : config.chain ?? [];
   if (!chain.length) throw new BridgeError('CHAIN', 'Цепочка агентов пуста: задайте chain в .bridge/config.json или --chain.');
   for (const key of chain) if (!config.agents?.[key]?.command?.length) throw new BridgeError('AGENT_CONFIG', `Агент ${key} не описан в .bridge/config.json.`);
+  const nameOf = key => config.agents[key].name ?? key;
   const session = {timeoutMinutes: 120, maxRounds: 8, stallRounds: 2, ...(config.session ?? {})};
   const rounds = maxRounds ?? session.maxRounds;
   const overloadedRetry = {attempts: 2, backoffSeconds: [30, 120], ...(config.retry?.overloaded ?? {})};
   const unavailableUntil = new Map();
   let index = 0, stalled = 0, overloadedAttempts = 0;
+  if (after) {
+    const position = chain.findIndex(key => nameOf(key) === after || key === after);
+    if (position >= 0) {
+      unavailableUntil.set(chain[position], new Date(now().getTime() + 3600_000));
+      index = (position + 1) % chain.length;
+    }
+  }
+
+  const pick = card => {
+    const order = chain.map((_, offset) => chain[(index + offset) % chain.length]).filter(key => !(unavailableUntil.get(key) > now()));
+    const model = wantedModel(card);
+    return (model && order.find(key => config.agents[key].model === model)) || order[0];
+  };
 
   if (dryRun) {
-    const agent = config.agents[chain[0]];
-    report(`Первый агент: ${chain[0]} → ${agent.command.join(' ')} (${agent.input === 'argument' ? 'промпт аргументом' : 'промпт через stdin'})`);
-    return {outcome: 'dry-run', prompt: authorPrompt(root, id, {agent: agent.name ?? chain[0]})};
+    const key = pick(loadCard(root, id));
+    const agent = config.agents[key];
+    report(`Первый агент: ${key} → ${agent.command.join(' ')} (${agent.input === 'argument' ? 'промпт аргументом' : 'промпт через stdin'})`);
+    return {outcome: 'dry-run', prompt: authorPrompt(root, id, {agent: nameOf(key)})};
   }
 
   for (let round = 1; round <= rounds; round++) {
     const card = loadCard(root, id);
-    if (['review', 'done', 'cancelled', 'blocked'].includes(card.meta.status)) {
+    if (!['active', 'ready', 'draft'].includes(card.meta.status)) {
       report(`Задача в статусе ${card.meta.status}, эстафета остановлена.`);
       return {outcome: card.meta.status};
     }
-    const available = chain.map((key, offset) => chain[(index + offset) % chain.length])
-      .find(key => !(unavailableUntil.get(key) > now()));
+    const available = pick(card);
     if (!available) {
-      const earliest = [...unavailableUntil.values()].filter(Boolean).sort((a, b) => a - b)[0] ?? null;
+      const earliest = [...unavailableUntil.values()].sort((a, b) => a - b)[0] ?? null;
       if (wait && earliest) {
         report(`Все агенты недоступны. Ожидание до ${isoSeconds(earliest)}.`);
         await delay(Math.max(0, earliest - now()));
@@ -144,22 +176,22 @@ export async function runRelay(root, id, {chain: chainOverride, maxRounds, wait 
     }
     index = chain.indexOf(available);
     const agent = config.agents[available];
-    const agentName = agent.name ?? available;
-    if (card.meta.holder !== agentName) claim(root, id, {agent: agentName, force: Boolean(card.meta.holder && new Date(card.meta.lease) <= now()), reason: 'аренда истекла'});
+    const agentName = nameOf(available);
+    const lease = liveLease(root, id);
+    if (lease?.holder !== agentName) claim(root, id, {agent: agentName, ttlHours: Math.ceil(session.timeoutMinutes / 60) + 1});
     const before = progressMarker(root, id);
     report(`Раунд ${round}: ${agentName}`);
-    const result = await runAgent(root, id, available, agent, authorPrompt(root, id, {agent: agentName}), {timeoutMinutes: session.timeoutMinutes, quiet});
+    const result = await runAgent(root, id, available, agent, authorPrompt(root, id, {agent: agentName}), {timeoutMinutes: session.timeoutMinutes, quiet, round});
     const outcome = classifyOutcome(result, agent.signals);
     const after = loadCard(root, id);
     const progressed = progressMarker(root, id) !== before;
     appendJournal(root, id, {actor: 'bridge', kind: 'trigger', text: `${agentName}: ${outcome.kind}, код ${result.code ?? result.signal}${outcome.retryAt ? `, восстановление ${isoSeconds(outcome.retryAt)}` : ''}; лог ${result.logFile.slice(root.length + 1)}`});
 
     if (outcome.kind === 'exited') {
-      // A session end hook may have released the lease (`ready`); any other status is final and reported at the loop head.
-      if (!['active', 'ready'].includes(after.meta.status)) continue;
+      if (!['active', 'ready', 'draft'].includes(after.meta.status)) continue;
       stalled = progressed ? 0 : stalled + 1;
       if (stalled >= session.stallRounds) {
-        handoff(root, id, {agent: agentName, reason: 'planned', note: 'сессии перестали продвигать задачу'});
+        handoff(root, id, {agent: agentName, reason: 'blocked', note: `${stalled} сессии подряд без продвижения; нужен человек`});
         report(`Нет продвижения ${stalled} сессии подряд. Нужен человек.`);
         return {outcome: 'stalled'};
       }
@@ -175,8 +207,7 @@ export async function runRelay(root, id, {chain: chainOverride, maxRounds, wait 
     overloadedAttempts = 0;
     if (outcome.kind === 'context') continue; // A fresh session of the same agent starts from the card.
     const next = chain[(index + 1) % chain.length];
-    const nextName = config.agents[next].name ?? next;
-    handoff(root, id, {agent: agentName, reason: REASON[outcome.kind], to: next !== available ? nextName : ''});
+    handoff(root, id, {agent: agentName, reason: REASON[outcome.kind], to: next !== available ? nameOf(next) : '', force: true});
     const cooldown = outcome.kind === 'limit' || outcome.kind === 'auth' ? outcome.retryAt ?? new Date(now().getTime() + 3600_000) : new Date(now().getTime() + 60_000);
     unavailableUntil.set(available, cooldown);
     index = (index + 1) % chain.length;

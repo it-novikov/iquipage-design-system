@@ -12,13 +12,17 @@ export function splitFrontmatter(text) {
   return {raw: text.slice(4, end + 1), body: text.slice(end + 5)};
 }
 
-function parseScalar(value) {
+/** Keys whose value is a number; every other scalar stays text, so `title: 2026` remains a title. */
+const NUMBER_KEYS = new Set(['bridge', 'round']);
+
+function parseScalar(value, key = '') {
   const text = value.trim();
   if (text === '' || text === '~' || text === 'null') return '';
   if (text.startsWith('"')) {
     try { return JSON.parse(text); } catch { throw new BridgeError('FRONTMATTER', `Некорректная строка в кавычках: ${text}`); }
   }
-  if (/^-?\d+$/.test(text)) return Number(text);
+  if (text.length >= 2 && text.startsWith("'") && text.endsWith("'")) return text.slice(1, -1).replace(/''/g, "'");
+  if (NUMBER_KEYS.has(key) && /^-?\d+$/.test(text)) return Number(text);
   return text;
 }
 
@@ -39,7 +43,7 @@ export function parseFrontmatter(raw) {
     if (Object.hasOwn(data, key)) throw new BridgeError('FRONTMATTER', `Ключ ${key} повторяется.`);
     order.push(key);
     listKey = null;
-    if (value.trim().startsWith('[')) {
+    if (LIST_KEYS.has(key) && value.trim().startsWith('[')) {
       const inner = value.trim();
       if (!inner.endsWith(']')) throw new BridgeError('FRONTMATTER', `Ключ ${key}: список не закрыт.`);
       data[key] = inner.slice(1, -1).split(',').map(part => String(parseScalar(part))).filter(Boolean);
@@ -47,7 +51,7 @@ export function parseFrontmatter(raw) {
       data[key] = [];
       listKey = key;
     } else {
-      data[key] = parseScalar(value);
+      data[key] = parseScalar(value, key);
     }
   }
   // `key:` with no items is an empty scalar, not an empty list.

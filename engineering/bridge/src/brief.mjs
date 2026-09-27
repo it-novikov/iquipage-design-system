@@ -27,25 +27,26 @@ function stepLines(step, full) {
  * The compact context an incoming agent reads first. Level 0 shows the active step and the next two in full;
  * higher levels shed detail until the text fits the budget.
  */
-export function renderBrief(card, {git = null, journal = [], budget = 7000, cardPath = ''} = {}) {
+export function renderBrief(card, {git = null, journal = [], budget = 7000, cardPath = '', lease = null} = {}) {
   for (let level = 0; level <= 3; level++) {
-    const text = compose(card, {git, journal, level, cardPath});
+    const text = compose(card, {git, journal, level, cardPath, lease});
     if (text.length <= budget || level === 3) return text;
   }
   return '';
 }
 
-function compose(card, {git, journal, level, cardPath}) {
+function compose(card, {git, journal, level, cardPath, lease}) {
   const meta = card.meta;
   const out = [`# ${card.title ?? meta.title}`, `${meta.id} · ${meta.status} · риск ${meta.risk} · владелец ${meta.owner || '—'}`];
-  const holder = meta.holder ? `держит ${meta.holder} до ${meta.lease || '?'}` : 'свободна';
+  const holder = lease ? `держит ${lease.holder} до ${lease.expires}` : 'свободна';
   if (git) {
     const mismatch = meta.branch && git.branch !== meta.branch ? ` ⚠ карточка ведётся в ${meta.branch}` : '';
     out.push(`Ветка ${git.branch}${mismatch} · HEAD ${git.sha} «${clip(git.subject, 60)}» · незакоммичено: ${describeDirty(git, 6)} · ${holder}`);
   } else {
     out.push(`Задача ${holder}`);
   }
-  for (const name of [SECTION.goal, SECTION.scope, SECTION.handoff]) {
+  for (const name of [SECTION.goal, SECTION.scope, SECTION.acceptance, SECTION.handoff]) {
+    if (name === SECTION.acceptance && !section(card, name)) continue;
     const text = sectionText(card, name);
     out.push('', `## ${name}`, text || '—');
   }

@@ -5,23 +5,26 @@ export const FORMAT_VERSION = 1;
 export const TASK_STATUSES = ['draft', 'ready', 'active', 'blocked', 'review', 'done', 'cancelled'];
 export const STEP_STATUSES = ['todo', 'active', 'done', 'blocked', 'dropped'];
 export const RISKS = ['low', 'standard', 'high'];
-export const META_ORDER = ['bridge', 'id', 'title', 'status', 'risk', 'owner', 'holder', 'lease', 'branch', 'base', 'created', 'updated', 'links'];
+export const META_ORDER = ['bridge', 'id', 'title', 'status', 'risk', 'owner', 'branch', 'base', 'created', 'updated', 'links'];
 
 export const SECTION = {
-  goal: 'Цель', scope: 'Рамки', handoff: 'Передача', plan: 'План', decisions: 'Решения', questions: 'Вопросы', context: 'Контекст',
+  goal: 'Цель', scope: 'Рамки', acceptance: 'Приёмка', handoff: 'Передача', plan: 'План', decisions: 'Решения', questions: 'Вопросы', context: 'Контекст',
 };
-export const SECTION_ORDER = [SECTION.goal, SECTION.scope, SECTION.handoff, SECTION.plan, SECTION.decisions, SECTION.questions, SECTION.context];
+export const SECTION_ORDER = [SECTION.goal, SECTION.scope, SECTION.acceptance, SECTION.handoff, SECTION.plan, SECTION.decisions, SECTION.questions, SECTION.context];
 export const FIELD = {
   included: 'Входит', excluded: 'Не входит', constraints: 'Ограничения',
-  state: 'Состояние', now: 'Сейчас', next: 'Дальше', uncommitted: 'Незакоммичено', traps: 'Ловушки', verify: 'Проверка', reason: 'Причина',
-  what: 'Что', how: 'Как', why: 'Зачем', accept: 'Приёмка', result: 'Итог', dependsOn: 'Зависит от', model: 'Модель',
+  state: 'Состояние', now: 'Сейчас', next: 'Дальше', uncommitted: 'Незакоммичено', workingCopy: 'Рабочая копия', traps: 'Ловушки',
+  verify: 'Проверка', reason: 'Причина',
+  what: 'Что', how: 'Как', why: 'Зачем', accept: 'Приёмка', covers: 'Покрывает', result: 'Итог', dependsOn: 'Зависит от', model: 'Модель',
 };
-export const HANDOFF_FIELDS = [FIELD.state, FIELD.now, FIELD.next, FIELD.uncommitted, FIELD.traps, FIELD.verify, FIELD.reason];
-const STEP_FIELDS = [FIELD.what, FIELD.how, FIELD.why, FIELD.accept, FIELD.result, FIELD.dependsOn, FIELD.model];
+export const HANDOFF_FIELDS = [FIELD.state, FIELD.now, FIELD.next, FIELD.uncommitted, FIELD.workingCopy, FIELD.traps, FIELD.verify, FIELD.reason];
+const STEP_FIELDS = [FIELD.what, FIELD.how, FIELD.why, FIELD.accept, FIELD.covers, FIELD.result, FIELD.dependsOn, FIELD.model];
 
 const FIELD_LINE = /^- \*\*(.+?):\*\*(?: (.*))?$/;
 const STEP_HEADING = /^### S(\d+)\. (.+?) \[([a-z]+)\]\s*$/;
 const CRITERION = /^ {2}- \[( |x|X)\] (.*)$/;
+const ACCEPTANCE = /^- \[( |x|X)\] (A\d+)\. (.*)$/;
+const FENCE = /^\s*(```|~~~)/;
 
 // ---------------------------------------------------------------------------------------------------------------
 // Card: the body is kept as lines so an unchanged card renders byte for byte. Mutations touch only the lines they own.
@@ -33,8 +36,10 @@ export function parseCard(text) {
   const lines = body.split('\n');
   const card = {meta, metaOrder: order, pre: [], title: null, titlePre: [], sections: []};
   let current = null;
+  let fenced = false;
   for (const line of lines) {
-    if (line.startsWith('## ')) {
+    if (FENCE.test(line)) fenced = !fenced;
+    if (!fenced && line.startsWith('## ')) {
       current = {name: line.slice(3).trim(), lines: []};
       card.sections.push(current);
     } else if (current) {
@@ -149,7 +154,10 @@ export function parseSteps(card) {
   if (!plan) return [];
   const steps = [];
   let current = null;
+  let fenced = false;
   plan.lines.forEach((line, index) => {
+    if (FENCE.test(line)) fenced = !fenced;
+    if (fenced) return;
     const match = STEP_HEADING.exec(line);
     if (match) {
       current = {n: Number(match[1]), id: `S${match[1]}`, title: match[2], status: match[3], start: index, end: plan.lines.length};
@@ -202,9 +210,10 @@ export function checkCriteria(body, which) {
   setStepField(body, FIELD.accept, accept.value, extra);
 }
 
-export function renderStep({n, title, status = 'todo', what, how, why, accept = [], dependsOn = '', model = ''}) {
+export function renderStep({n, title, status = 'todo', what, how, why, accept = [], covers = '', dependsOn = '', model = ''}) {
   const lines = [`### S${n}. ${oneLine(title)} [${status}]`, `- **${FIELD.what}:** ${oneLine(what)}`, `- **${FIELD.how}:** ${oneLine(how)}`,
     `- **${FIELD.why}:** ${oneLine(why)}`, `- **${FIELD.accept}:**`, ...accept.map(text => `  - [ ] ${oneLine(text)}`)];
+  if (covers) lines.push(`- **${FIELD.covers}:** ${oneLine(covers)}`);
   if (dependsOn) lines.push(`- **${FIELD.dependsOn}:** ${oneLine(dependsOn)}`);
   if (model) lines.push(`- **${FIELD.model}:** ${oneLine(model)}`);
   return lines;
@@ -268,4 +277,29 @@ export function answerQuestion(card, id, text) {
   let end = question.index + 1;
   while (end < questions.lines.length && questions.lines[end].startsWith('  ')) end++;
   questions.lines.splice(end, 0, `  Ответ: ${oneLine(text)}`);
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// Task acceptance: `- [ ] A1. text` lines; steps name the criteria they cover (`- **Покрывает:** A1, A2`).
+
+export function parseAcceptance(card) {
+  return (section(card, SECTION.acceptance)?.lines ?? []).map((line, index) => {
+    const match = ACCEPTANCE.exec(line);
+    return match ? {id: match[2], done: match[1] !== ' ', text: match[3], index} : null;
+  }).filter(Boolean);
+}
+
+export const stepCovers = step => fieldText(step.fields[FIELD.covers]).split(/[,\s]+/).map(item => item.toUpperCase()).filter(item => /^A\d+$/.test(item));
+
+export function appendAcceptance(card, text) {
+  const n = Math.max(0, ...parseAcceptance(card).map(item => Number(item.id.slice(1)))) + 1;
+  appendEntry(card, SECTION.acceptance, `- [ ] A${n}. ${oneLine(text)}`);
+  return `A${n}`;
+}
+
+export function checkAcceptance(card, id) {
+  const target = section(card, SECTION.acceptance);
+  const item = parseAcceptance(card).find(entry => entry.id === id.toUpperCase());
+  if (!item) throw new BridgeError('ACCEPTANCE_NOT_FOUND', `Критерий ${id} не найден.`);
+  target.lines[item.index] = `- [x] ${item.id}. ${item.text}`;
 }
