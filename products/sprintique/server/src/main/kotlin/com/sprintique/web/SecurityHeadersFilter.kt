@@ -21,7 +21,12 @@ class SecurityHeadersFilter(private val properties: SprintiqueProperties) : Once
         response.setHeader("Referrer-Policy", "same-origin")
         response.setHeader("Cross-Origin-Opener-Policy", "same-origin")
         response.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=(), usb=()")
-        if (properties.isSecureOrigin) response.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+        if (properties.isSecureOrigin) {
+            response.setHeader(
+                "Strict-Transport-Security",
+                "max-age=31536000; includeSubDomains",
+            )
+        }
         if (properties.webRoot.isNotEmpty()) response.setHeader("Content-Security-Policy", CONTENT_SECURITY_POLICY)
         // Handlers that allow caching set Cache-Control themselves before the body is written.
         response.setHeader("Cache-Control", "no-store")

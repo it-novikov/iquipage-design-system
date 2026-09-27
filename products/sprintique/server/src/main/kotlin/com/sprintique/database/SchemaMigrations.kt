@@ -14,10 +14,11 @@ object SchemaMigrations {
 
     fun migrate(dataSource: DataSource, runtimeRole: String, workerRole: String) {
         require(ROLE_NAME.matches(runtimeRole)) { "Invalid runtime role name" }
-        require(workerRole.isEmpty() || ROLE_NAME.matches(workerRole) && workerRole != runtimeRole) {
+        require(workerRole.isEmpty() || (ROLE_NAME.matches(workerRole) && workerRole != runtimeRole)) {
             "Worker role must be a distinct valid role"
         }
-        Flyway.configure()
+        Flyway
+            .configure()
             .dataSource(dataSource)
             .locations(LOCATION)
             .defaultSchema("public")
@@ -28,18 +29,24 @@ object SchemaMigrations {
             .migrate()
     }
 
-    /** The applied history must equal the migrations shipped in this artifact: same versions, same checksums, none pending. */
+    /** The applied history must equal the shipped migrations: same versions and checksums, none pending. */
     fun requireCurrent(dataSource: DataSource) {
-        val result = Flyway.configure()
-            .dataSource(dataSource)
-            .locations(LOCATION)
-            .defaultSchema("public")
-            .createSchemas(false)
-            .placeholderReplacement(false)
-            .load()
-            .validateWithResult()
+        val result =
+            Flyway
+                .configure()
+                .dataSource(dataSource)
+                .locations(LOCATION)
+                .defaultSchema("public")
+                .createSchemas(false)
+                .placeholderReplacement(false)
+                .load()
+                .validateWithResult()
         if (!result.validationSuccessful) {
-            throw ProblemException(503, "SCHEMA_MISMATCH", "Версия схемы не соответствует серверу. Выполните миграции перед запуском.")
+            throw ProblemException(
+                503,
+                "SCHEMA_MISMATCH",
+                "Версия схемы не соответствует серверу. Выполните миграции перед запуском.",
+            )
         }
     }
 }

@@ -23,16 +23,19 @@ internal object PositionalParameters {
                     out.append(sql, index, end)
                     index = end
                 }
+
                 char == '-' && next == '-' -> {
                     val end = sql.indexOf('\n', index).let { if (it < 0) sql.length else it }
                     out.append(sql, index, end)
                     index = end
                 }
+
                 char == '/' && next == '*' -> {
                     val end = sql.indexOf("*/", index + 2).let { if (it < 0) sql.length else it + 2 }
                     out.append(sql, index, end)
                     index = end
                 }
+
                 char == '$' && next != null && next.isDigit() -> {
                     var end = index + 1
                     while (end < sql.length && sql[end].isDigit()) end++
@@ -40,6 +43,7 @@ internal object PositionalParameters {
                     out.append('?')
                     index = end
                 }
+
                 char == '$' -> {
                     val tagEnd = dollarTagEnd(sql, index)
                     if (tagEnd < 0) {
@@ -52,7 +56,11 @@ internal object PositionalParameters {
                         index = close
                     }
                 }
-                char == '?' -> error("A literal ? would be read as a JDBC placeholder; use positional parameters")
+
+                char == '?' -> {
+                    error("A literal ? would be read as a JDBC placeholder; use positional parameters")
+                }
+
                 else -> {
                     out.append(char)
                     index++

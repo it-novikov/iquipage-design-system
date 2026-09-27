@@ -17,16 +17,22 @@ class Application
  */
 fun main(arguments: Array<String>) {
     when (arguments.firstOrNull()) {
-        "migrate" -> migrate()
-        "worker" ->
+        "migrate" -> {
+            migrate()
+        }
+
+        "worker" -> {
             SpringApplicationBuilder(Application::class.java)
                 .web(WebApplicationType.NONE)
                 .profiles("worker")
                 .run(*arguments.drop(1).toTypedArray())
-        else ->
+        }
+
+        else -> {
             SpringApplicationBuilder(Application::class.java)
                 .profiles("api")
                 .run(*arguments.dropWhile { it == "api" }.toTypedArray())
+        }
     }
 }
 
@@ -38,6 +44,10 @@ private fun migrate() {
         "SPRINTIQUE_MIGRATION_DATABASE_URL and SPRINTIQUE_DATABASE_RUNTIME_ROLE are required"
     }
     Database.connect(url, maximumPoolSize = 1, poolName = "migration").use { database ->
-        SchemaMigrations.migrate(database.dataSource, runtimeRole, environment["SPRINTIQUE_DATABASE_WORKER_ROLE"].orEmpty())
+        SchemaMigrations.migrate(
+            database.dataSource,
+            runtimeRole,
+            environment["SPRINTIQUE_DATABASE_WORKER_ROLE"].orEmpty(),
+        )
     }
 }

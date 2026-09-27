@@ -14,15 +14,16 @@ import org.springframework.security.web.SecurityFilterChain
 @Configuration(proxyBeanMethods = false)
 class SecurityConfiguration {
     @Bean
-    fun securityFilterChain(http: HttpSecurity): SecurityFilterChain = http
-        .authorizeHttpRequests { requests -> requests.anyRequest().permitAll() }
-        .csrf { it.disable() }
-        .headers { it.disable() }
-        .formLogin { it.disable() }
-        .httpBasic { it.disable() }
-        .logout { it.disable() }
-        .requestCache { it.disable() }
-        .anonymous { it.disable() }
-        .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
-        .build()
+    fun securityFilterChain(http: HttpSecurity): SecurityFilterChain =
+        http
+            .authorizeHttpRequests { requests -> requests.anyRequest().permitAll() }
+            .csrf { it.disable() }
+            .headers { it.disable() }
+            .formLogin { it.disable() }
+            .httpBasic { it.disable() }
+            .logout { it.disable() }
+            .requestCache { it.disable() }
+            .anonymous { it.disable() }
+            .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
+            .build()
 }

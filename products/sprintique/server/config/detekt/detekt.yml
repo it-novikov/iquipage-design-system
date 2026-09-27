@@ -11,10 +11,15 @@ complexity:
     allowedFunctionsPerObject: 25
 style:
   MagicNumber:
-    excludes: ['**/test/**']
+    excludes: ['**/test/**', '**/integrationTest/**']
     ignorePropertyDeclaration: true
     ignoreCompanionObjectPropertyDeclaration: true
+    # HTTP status codes are the vocabulary of the API contract; naming each one would hide the status the client sees.
+    ignoreNumbers: ['-1', '0', '1', '2', '400', '401', '403', '404', '409', '410', '413', '415', '422', '429', '503']
 naming:
   FunctionNaming:
     # Test names are behaviour sentences in backticks.
-    excludes: ['**/test/**']
+    excludes: ['**/test/**', '**/integrationTest/**']
+  VariableNaming:
+    # ArchUnit rules are properties named as behaviour sentences, like test functions.
+    excludes: ['**/test/**', '**/integrationTest/**']

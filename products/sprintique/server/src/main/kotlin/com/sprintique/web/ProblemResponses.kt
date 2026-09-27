@@ -28,11 +28,20 @@ class ProblemResponses {
     private val log = LoggerFactory.getLogger(ProblemResponses::class.java)
 
     @ExceptionHandler(ProblemException::class)
-    fun problem(error: ProblemException, request: HttpServletRequest, response: HttpServletResponse): ResponseEntity<Map<String, Any?>> {
+    fun problem(
+        error: ProblemException,
+        request: HttpServletRequest,
+        response: HttpServletResponse,
+    ): ResponseEntity<Map<String, Any?>> {
         if (error.status == HttpStatus.TOO_MANY_REQUESTS.value() || error.code == "BUSY") {
             response.setHeader("Retry-After", if (error.status == HttpStatus.TOO_MANY_REQUESTS.value()) "60" else "5")
         }
-        val body = linkedMapOf<String, Any?>("code" to error.code, "message" to error.message, "requestId" to RequestIds.of(request))
+        val body =
+            linkedMapOf<String, Any?>(
+                "code" to error.code,
+                "message" to error.message,
+                "requestId" to RequestIds.of(request),
+            )
         error.action?.let { body["action"] = it }
         return ResponseEntity.status(error.status).body(body)
     }
@@ -49,7 +58,11 @@ class ProblemResponses {
     fun validation(request: HttpServletRequest): ResponseEntity<Map<String, Any?>> =
         body(request, HttpStatus.BAD_REQUEST, "VALIDATION", "Проверьте поля запроса.")
 
-    @ExceptionHandler(NoHandlerFoundException::class, NoResourceFoundException::class, HttpRequestMethodNotSupportedException::class)
+    @ExceptionHandler(
+        NoHandlerFoundException::class,
+        NoResourceFoundException::class,
+        HttpRequestMethodNotSupportedException::class,
+    )
     fun notFound(request: HttpServletRequest): ResponseEntity<Map<String, Any?>> =
         body(request, HttpStatus.NOT_FOUND, "NOT_FOUND", "Ресурс не найден.")
 
@@ -63,19 +76,44 @@ class ProblemResponses {
 
     @ExceptionHandler(Exception::class)
     fun unexpected(error: Exception, request: HttpServletRequest): ResponseEntity<Map<String, Any?>> {
-        val sqlState = generateSequence<Throwable>(error) { it.cause }.filterIsInstance<java.sql.SQLException>().firstOrNull()?.sqlState
+        val sqlState =
+            generateSequence<Throwable>(error) {
+                it.cause
+            }.filterIsInstance<java.sql.SQLException>().firstOrNull()?.sqlState
         return when (sqlState) {
-            "23505" -> body(request, HttpStatus.CONFLICT, "CONFLICT", "Такой объект уже существует.")
-            "23503", "23514" -> body(request, HttpStatus.UNPROCESSABLE_CONTENT, "REFERENCE_INVALID", "Связанные данные недоступны.")
+            "23505" -> {
+                body(request, HttpStatus.CONFLICT, "CONFLICT", "Такой объект уже существует.")
+            }
+
+            "23503", "23514" -> {
+                body(request, HttpStatus.UNPROCESSABLE_CONTENT, "REFERENCE_INVALID", "Связанные данные недоступны.")
+            }
+
             else -> {
                 log.error("Request failed request_id={} code={}", RequestIds.of(request), sqlState ?: "INTERNAL")
-                body(request, HttpStatus.SERVICE_UNAVAILABLE, "TEMPORARILY_UNAVAILABLE", "Сервис временно недоступен. Повторите позже.")
+                body(
+                    request,
+                    HttpStatus.SERVICE_UNAVAILABLE,
+                    "TEMPORARILY_UNAVAILABLE",
+                    "Сервис временно недоступен. Повторите позже.",
+                )
             }
         }
     }
 
-    private fun body(request: HttpServletRequest, status: HttpStatus, code: String, message: String): ResponseEntity<Map<String, Any?>> =
-        ResponseEntity.status(status).body(linkedMapOf("code" to code, "message" to message, "requestId" to RequestIds.of(request)))
+    private fun body(
+        request: HttpServletRequest,
+        status: HttpStatus,
+        code: String,
+        message: String,
+    ): ResponseEntity<Map<String, Any?>> =
+        ResponseEntity.status(status).body(
+            linkedMapOf(
+                "code" to code,
+                "message" to message,
+                "requestId" to RequestIds.of(request),
+            ),
+        )
 }
 
 /** Thrown by explicit request checks that bean validation cannot express. */

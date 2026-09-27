@@ -11,7 +11,7 @@ aws-sdk = "2.55.6"
 twelvemonkeys = "3.15.2"
 webp-imageio = "0.11.0"
 junixsocket = "2.11.1"
-konsist = "0.17.3"
+archunit = "1.5.1"
 
 [libraries]
 spring-boot-bom = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "spring-boot" }
@@ -34,9 +34,7 @@ aws-sdk-s3 = { module = "software.amazon.awssdk:s3" }
 aws-sdk-url-connection = { module = "software.amazon.awssdk:url-connection-client" }
 twelvemonkeys-jpeg = { module = "com.twelvemonkeys.imageio:imageio-jpeg", version.ref = "twelvemonkeys" }
 webp-imageio = { module = "com.github.usefulness:webp-imageio", version.ref = "webp-imageio" }
-testcontainers-postgresql = { module = "org.testcontainers:testcontainers-postgresql" }
-testcontainers-junit = { module = "org.testcontainers:testcontainers-junit-jupiter" }
-konsist = { module = "com.lemonappdev:konsist", version.ref = "konsist" }
+archunit = { module = "com.tngtech.archunit:archunit-junit5", version.ref = "archunit" }
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }

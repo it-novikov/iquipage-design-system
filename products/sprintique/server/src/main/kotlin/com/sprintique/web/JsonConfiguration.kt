@@ -22,16 +22,17 @@ import java.time.format.DateTimeFormatter
 @Configuration(proxyBeanMethods = false)
 class JsonConfiguration {
     @Bean
-    fun strictJsonMapper(): JsonMapperBuilderCustomizer = JsonMapperBuilderCustomizer { builder ->
-        builder
-            .enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-            .enable(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES)
-            .enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
-            .disable(DeserializationFeature.ACCEPT_FLOAT_AS_INT)
-            .disable(MapperFeature.ALLOW_COERCION_OF_SCALARS)
-            .addModule(KotlinModule.Builder().enable(KotlinFeature.StrictNullChecks).build())
-            .addModule(SimpleModule("sprintique-time").addSerializer(Instant::class.java, InstantSerializer))
-    }
+    fun strictJsonMapper(): JsonMapperBuilderCustomizer =
+        JsonMapperBuilderCustomizer { builder ->
+            builder
+                .enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                .enable(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES)
+                .enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
+                .disable(DeserializationFeature.ACCEPT_FLOAT_AS_INT)
+                .disable(MapperFeature.ALLOW_COERCION_OF_SCALARS)
+                .addModule(KotlinModule.Builder().enable(KotlinFeature.StrictNullChecks).build())
+                .addModule(SimpleModule("sprintique-time").addSerializer(Instant::class.java, InstantSerializer))
+        }
 
     /** Moments are written like the browser writes them: UTC, milliseconds, `Z`. */
     private object InstantSerializer : ValueSerializer<Instant>() {

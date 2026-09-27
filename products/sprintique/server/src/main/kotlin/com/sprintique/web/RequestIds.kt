@@ -9,5 +9,8 @@ object RequestIds {
     private val counter = AtomicLong()
 
     fun of(request: ServletRequest): String =
-        request.getAttribute(ATTRIBUTE) as? String ?: "req-${counter.incrementAndGet().toString(36)}".also { request.setAttribute(ATTRIBUTE, it) }
+        request.getAttribute(ATTRIBUTE) as? String
+            ?: "req-${counter.incrementAndGet().toString(Character.MAX_RADIX)}".also {
+                request.setAttribute(ATTRIBUTE, it)
+            }
 }

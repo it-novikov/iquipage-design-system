@@ -19,21 +19,26 @@ data class DatabaseUrl(val jdbcUrl: String, val properties: Properties, val user
             require(uri.scheme in SCHEMES) { "Database URL must start with postgresql://" }
             val query = parseQuery(uri.rawQuery)
             val (user, password) = parseUserInfo(uri.rawUserInfo)
-            val database = uri.rawPath.removePrefix("/").let(::decode).ifEmpty { user }
+            val database =
+                uri.rawPath
+                    .removePrefix("/")
+                    .let(::decode)
+                    .ifEmpty { user }
             val port = if (uri.port > 0) uri.port else query["port"]?.toInt() ?: DEFAULT_PORT
             val socketDirectory = query["host"]?.takeIf { it.startsWith("/") }
-            val properties = Properties().apply {
-                setProperty("user", user)
-                if (password != null) setProperty("password", password)
-                // Parameters travel untyped, so PostgreSQL infers each type from its use, as it does for libpq clients.
-                setProperty("stringtype", "unspecified")
-                setProperty("ApplicationName", "sprintique")
-                query["sslmode"]?.let { setProperty("sslmode", it) }
-                if (socketDirectory != null) {
-                    setProperty("socketFactory", "org.newsclub.net.unix.AFUNIXSocketFactory\$FactoryArg")
-                    setProperty("socketFactoryArg", "$socketDirectory/.s.PGSQL.$port")
+            val properties =
+                Properties().apply {
+                    setProperty("user", user)
+                    if (password != null) setProperty("password", password)
+                    // Parameters travel untyped: PostgreSQL infers each type from its use, as for libpq clients.
+                    setProperty("stringtype", "unspecified")
+                    setProperty("ApplicationName", "sprintique")
+                    query["sslmode"]?.let { setProperty("sslmode", it) }
+                    if (socketDirectory != null) {
+                        setProperty("socketFactory", "org.newsclub.net.unix.AFUNIXSocketFactory\$FactoryArg")
+                        setProperty("socketFactoryArg", "$socketDirectory/.s.PGSQL.$port")
+                    }
                 }
-            }
             val host = if (socketDirectory != null) "localhost" else uri.host ?: query["host"] ?: "localhost"
             return DatabaseUrl("jdbc:postgresql://$host:$port/$database", properties, user)
         }
@@ -51,7 +56,14 @@ data class DatabaseUrl(val jdbcUrl: String, val properties: Properties, val user
         private fun parseQuery(raw: String?): Map<String, String> =
             raw.orEmpty().split('&').filter { it.isNotEmpty() }.associate { pair ->
                 val separator = pair.indexOf('=')
-                if (separator < 0) decode(pair) to "" else decode(pair.substring(0, separator)) to decode(pair.substring(separator + 1))
+                if (separator <
+                    0
+                ) {
+                    decode(pair) to ""
+                } else {
+                    decode(pair.substring(0, separator)) to
+                        decode(pair.substring(separator + 1))
+                }
             }
 
         private fun decode(value: String) = URLDecoder.decode(value, Charsets.UTF_8)

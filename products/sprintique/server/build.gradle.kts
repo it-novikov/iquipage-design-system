@@ -1,4 +1,5 @@
 import dev.detekt.gradle.Detekt
+import org.springframework.boot.gradle.tasks.bundling.BootJar
 
 plugins {
     alias(libs.plugins.kotlin.jvm)
@@ -23,6 +24,22 @@ sourceSets {
     main {
         kotlin.srcDir("src/generated/jooq")
     }
+    // Local debugging only (the admin/admin sign-in, stand routes). Never part of the production artifact.
+    create("local") {
+        compileClasspath += main.get().output + main.get().compileClasspath
+        runtimeClasspath += main.get().output + main.get().runtimeClasspath
+    }
+    // Tests against a real PostgreSQL provided by scripts/test.mjs.
+    create("integrationTest") {
+        compileClasspath += main.get().output + test.get().compileClasspath
+        runtimeClasspath += main.get().output + test.get().runtimeClasspath
+    }
+}
+
+configurations {
+    named("localImplementation") { extendsFrom(configurations.implementation.get()) }
+    named("integrationTestImplementation") { extendsFrom(configurations.testImplementation.get()) }
+    named("integrationTestRuntimeOnly") { extendsFrom(configurations.testRuntimeOnly.get()) }
 }
 
 dependencyLocking {
@@ -51,24 +68,50 @@ dependencies {
 
     testImplementation(platform(libs.spring.boot.bom))
     testImplementation(libs.spring.boot.starter.test)
-    testImplementation(libs.testcontainers.postgresql)
-    testImplementation(libs.testcontainers.junit)
-    testImplementation(libs.konsist)
+    testImplementation(libs.archunit)
     testImplementation(libs.postgresql)
-    testImplementation(libs.jooq.codegen)
+    "integrationTestImplementation"(libs.jooq.codegen)
 }
 
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
-    // Integration tests reach Docker only through an explicitly chosen context (see README).
-    environment("TESTCONTAINERS_RYUK_DISABLED", System.getenv("TESTCONTAINERS_RYUK_DISABLED") ?: "false")
     systemProperty("file.encoding", "UTF-8")
-    testLogging { events("failed"); exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL }
+    testLogging {
+        events("failed")
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+    }
 }
 
 tasks.bootJar {
     archiveFileName.set("sprintique-server.jar")
 }
+
+val localBootJar =
+    tasks.register<BootJar>("localBootJar") {
+        group = "build"
+        description = "The artifact for tests and the local stand: production code plus the local source set."
+        archiveFileName.set("sprintique-server-local.jar")
+        mainClass.set("com.sprintique.ApplicationKt")
+        targetJavaVersion.set(JavaVersion.VERSION_25)
+        classpath(sourceSets["local"].runtimeClasspath)
+    }
+
+tasks.assemble { dependsOn(localBootJar) }
+
+// Integration tests need the isolated cluster of scripts/test.mjs; without it they fail instead of guessing a database.
+val integrationTest =
+    tasks.register<Test>("integrationTest") {
+        group = "verification"
+        description = "Tests against a real PostgreSQL provided by scripts/test.mjs."
+        testClassesDirs = sourceSets["integrationTest"].output.classesDirs
+        classpath = sourceSets["integrationTest"].runtimeClasspath
+        shouldRunAfter(tasks.test)
+        doFirst {
+            check(System.getenv("SPRINTIQUE_TEST_ADMIN_DATABASE_URL") != null) {
+                "Integration tests need the isolated database: run them through `npm test` in products/sprintique"
+            }
+        }
+    }
 
 tasks.jar {
     enabled = false
@@ -77,7 +120,7 @@ tasks.jar {
 detekt {
     buildUponDefaultConfig = true
     config.setFrom(files("config/detekt/detekt.yml"))
-    source.setFrom(files("src/main/kotlin", "src/test/kotlin"))
+    source.setFrom(files("src/main/kotlin", "src/local/kotlin", "src/test/kotlin", "src/integrationTest/kotlin"))
     parallel = true
 }
 
@@ -91,13 +134,17 @@ ktlint {
     filter { exclude { it.file.path.contains("/generated/") } }
 }
 
-val architectureTest = tasks.register<Test>("architectureTest") {
-    group = "verification"
-    description = "Module and layer boundaries."
-    testClassesDirs = sourceSets.test.get().output.classesDirs
-    classpath = sourceSets.test.get().runtimeClasspath
-    filter { includeTestsMatching("*ArchitectureTest") }
-}
+val architectureTest =
+    tasks.register<Test>("architectureTest") {
+        group = "verification"
+        description = "Module and layer boundaries."
+        testClassesDirs =
+            sourceSets.test
+                .get()
+                .output.classesDirs
+        classpath = sourceSets.test.get().runtimeClasspath
+        filter { includeTestsMatching("*ArchitectureTest") }
+    }
 
 tasks.register("qualityCheck") {
     group = "verification"
@@ -111,11 +158,29 @@ tasks.register("qualityFormat") {
     dependsOn("ktlintFormat")
 }
 
-// Regenerates src/generated/jooq from the Flyway migrations on a throwaway PostgreSQL (Docker through an explicit context).
+// Regenerates src/generated/jooq from the migrated schema of the isolated cluster (scripts/test.mjs --jooq).
 tasks.register<JavaExec>("generateJooq") {
     group = "build"
     description = "Regenerates jOOQ classes from the migrations."
-    classpath = sourceSets.test.get().runtimeClasspath
+    classpath = sourceSets["integrationTest"].runtimeClasspath
     mainClass.set("com.sprintique.database.JooqCodegen")
-    args(layout.projectDirectory.dir("src/generated/jooq").asFile.absolutePath)
+    args(
+        layout.projectDirectory
+            .dir("src/generated/jooq")
+            .asFile.absolutePath,
+    )
 }
+
+// The production artifact must not contain the local debugging code (admin/admin sign-in, stand routes).
+val verifyProductionArtifact = tasks.register("verifyProductionArtifact") {
+    group = "verification"
+    description = "Fails when the production jar contains classes of the local source set."
+    val jar = tasks.bootJar.flatMap { it.archiveFile }
+    inputs.file(jar)
+    doLast {
+        val leaked = zipTree(jar.get().asFile).matching { include("**/com/sprintique/local/**") }.files
+        check(leaked.isEmpty()) { "Production jar contains local classes: ${leaked.map { it.name }}" }
+    }
+}
+
+tasks.check { dependsOn(verifyProductionArtifact) }

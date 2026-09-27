@@ -23,30 +23,39 @@ import java.time.OffsetDateTime
 class Transaction internal constructor(val connection: Connection) {
     val dsl: DSLContext by lazy { DSL.using(connection, SQLDialect.POSTGRES) }
 
-    fun rows(sql: String, vararg parameters: Any?): List<Row> = prepare(sql, parameters).use { statement ->
-        statement.executeQuery().use(::readRows)
-    }
+    fun rows(sql: String, vararg parameters: Any?): List<Row> =
+        prepare(sql, parameters).use { statement ->
+            statement.executeQuery().use(::readRows)
+        }
 
     fun row(sql: String, vararg parameters: Any?): Row? = rows(sql, *parameters).firstOrNull()
 
     /** Runs a statement that returns no rows or whose rows are not needed; returns the affected row count. */
-    fun update(sql: String, vararg parameters: Any?): Int = prepare(sql, parameters).use { statement ->
-        if (statement.execute()) {
-            statement.resultSet.use { result -> var count = 0; while (result.next()) count++; count }
-        } else {
-            statement.updateCount
+    fun update(sql: String, vararg parameters: Any?): Int =
+        prepare(sql, parameters).use { statement ->
+            if (statement.execute()) {
+                statement.resultSet.use { result ->
+                    var count = 0
+                    while (result.next()) count++
+                    count
+                }
+            } else {
+                statement.updateCount
+            }
         }
-    }
 
     private fun prepare(sql: String, parameters: Array<out Any?>): PreparedStatement {
         val (text, order) = PositionalParameters.rewrite(sql)
         val statement = connection.prepareStatement(text)
         try {
             order.forEachIndexed { index, parameter ->
-                require(parameter <= parameters.size) { "SQL refers to \$$parameter but only ${parameters.size} values were given" }
+                require(parameter <= parameters.size) {
+                    "SQL refers to \$$parameter but only ${parameters.size} values were given"
+                }
                 bind(statement, index + 1, parameters[parameter - 1])
             }
-        } catch (error: Throwable) {
+        } catch (@Suppress("TooGenericExceptionCaught") error: Throwable) {
+            // The statement must not leak, whatever went wrong while binding.
             statement.close()
             throw error
         }
@@ -63,7 +72,11 @@ class Transaction internal constructor(val connection: Connection) {
 
     private fun readRows(result: ResultSet): List<Row> {
         val metadata = result.metaData
-        val columns = (1..metadata.columnCount).map { index -> metadata.getColumnLabel(index) to metadata.getColumnTypeName(index) }
+        val columns =
+            (1..metadata.columnCount).map { index ->
+                metadata.getColumnLabel(index) to
+                    metadata.getColumnTypeName(index)
+            }
         val rows = mutableListOf<Row>()
         while (result.next()) {
             val values = LinkedHashMap<String, Any?>(columns.size)
@@ -74,18 +87,27 @@ class Transaction internal constructor(val connection: Connection) {
     }
 
     private fun readValue(result: ResultSet, index: Int, type: String): Any? {
-        val value: Any? = when (type) {
-            "int2", "int4" -> result.getInt(index)
-            // Wider numbers keep their exact text, as libpq clients receive them.
-            "int8", "numeric" -> result.getString(index)
-            "float4", "float8" -> result.getDouble(index)
-            "bool" -> result.getBoolean(index)
-            "json", "jsonb" -> result.getString(index)?.let(JSON::readTree)
-            "timestamptz", "timestamp" -> result.getObject(index, OffsetDateTime::class.java)?.toInstant()
-            "date" -> result.getObject(index, LocalDate::class.java)
-            "bytea" -> result.getBytes(index)
-            else -> if (type.startsWith("_")) readArray(result, index, type) else result.getString(index)
-        }
+        val value: Any? =
+            when (type) {
+                "int2", "int4" -> result.getInt(index)
+
+                // Wider numbers keep their exact text, as libpq clients receive them.
+                "int8", "numeric" -> result.getString(index)
+
+                "float4", "float8" -> result.getDouble(index)
+
+                "bool" -> result.getBoolean(index)
+
+                "json", "jsonb" -> result.getString(index)?.let(JSON::readTree)
+
+                "timestamptz", "timestamp" -> result.getObject(index, OffsetDateTime::class.java)?.toInstant()
+
+                "date" -> result.getObject(index, LocalDate::class.java)
+
+                "bytea" -> result.getBytes(index)
+
+                else -> if (type.startsWith("_")) readArray(result, index, type) else result.getString(index)
+            }
         return if (result.wasNull()) null else value
     }
 
@@ -110,23 +132,26 @@ class Row(private val columns: Map<String, Any?>) : Map<String, Any?> by columns
 
     fun stringOrNull(name: String): String? = columns[name] as String?
 
-    fun int(name: String): Int = when (val value = columns[name]) {
-        is Int -> value
-        is String -> value.toInt()
-        else -> error("Column $name is not an integer")
-    }
+    fun int(name: String): Int =
+        when (val value = columns[name]) {
+            is Int -> value
+            is String -> value.toInt()
+            else -> error("Column $name is not an integer")
+        }
 
-    fun long(name: String): Long = when (val value = columns[name]) {
-        is Number -> value.toLong()
-        is String -> value.toLong()
-        else -> error("Column $name is not a number")
-    }
+    fun long(name: String): Long =
+        when (val value = columns[name]) {
+            is Number -> value.toLong()
+            is String -> value.toLong()
+            else -> error("Column $name is not a number")
+        }
 
-    fun double(name: String): Double = when (val value = columns[name]) {
-        is Number -> value.toDouble()
-        is String -> value.toDouble()
-        else -> error("Column $name is not a number")
-    }
+    fun double(name: String): Double =
+        when (val value = columns[name]) {
+            is Number -> value.toDouble()
+            is String -> value.toDouble()
+            else -> error("Column $name is not a number")
+        }
 
     fun boolean(name: String): Boolean = columns[name] as? Boolean ?: error("Column $name is not a boolean")
 
@@ -143,7 +168,9 @@ class Row(private val columns: Map<String, Any?>) : Map<String, Any?> by columns
     fun without(vararg names: String): Row = Row(columns.filterKeys { it !in names })
 
     /** A copy with extra or replaced columns. */
-    fun with(vararg pairs: Pair<String, Any?>): Row = Row(LinkedHashMap(columns).apply { pairs.forEach { (key, value) -> put(key, value) } })
+    fun with(
+        vararg pairs: Pair<String, Any?>,
+    ): Row = Row(LinkedHashMap(columns).apply { pairs.forEach { (key, value) -> put(key, value) } })
 
     override fun toString(): String = columns.toString()
 }
@@ -155,19 +182,25 @@ internal object TextValues {
 
     fun encode(value: Any): String = when (value) {
         is String -> value
-        is Boolean -> value.toString()
-        is Int, is Long, is Short -> value.toString()
-        is Double -> if (value % 1.0 == 0.0 && kotlin.math.abs(value) < LARGEST_EXACT_DOUBLE) value.toLong().toString() else value.toString()
-        is Float -> encode(value.toDouble())
+        is Boolean, is Int, is Long, is Short, is Enum<*> -> value.toString()
+        is Double -> encodeDouble(value)
+        is Float -> encodeDouble(value.toDouble())
         is BigDecimal -> value.toPlainString()
         is Instant -> value.toString()
-        is Enum<*> -> value.toString()
         is Collection<*> -> arrayLiteral(value)
         is Array<*> -> arrayLiteral(value.toList())
-        is JsonNode -> MAPPER.writeValueAsString(value)
-        is Map<*, *> -> MAPPER.writeValueAsString(value)
         else -> MAPPER.writeValueAsString(value)
     }
+
+    /** Whole numbers are written without a fraction, so an integer column accepts them. */
+    private fun encodeDouble(value: Double): String =
+        if (value % 1.0 == 0.0 &&
+            kotlin.math.abs(value) < LARGEST_EXACT_DOUBLE
+        ) {
+            value.toLong().toString()
+        } else {
+            value.toString()
+        }
 
     private fun arrayLiteral(items: Collection<*>): String = items.joinToString(",", "{", "}") { item ->
         when (item) {

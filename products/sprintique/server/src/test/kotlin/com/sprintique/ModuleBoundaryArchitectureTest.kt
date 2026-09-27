@@ -1,33 +1,54 @@
 package com.sprintique
 
-import com.lemonappdev.konsist.api.Konsist
-import com.lemonappdev.konsist.api.verify.assertTrue
-import org.junit.jupiter.api.Test
+import com.tngtech.archunit.core.importer.ImportOption
+import com.tngtech.archunit.junit.AnalyzeClasses
+import com.tngtech.archunit.junit.ArchTest
+import com.tngtech.archunit.lang.ArchRule
+import com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses
 
+@AnalyzeClasses(packages = ["com.sprintique"], importOptions = [ImportOption.DoNotIncludeTests::class])
 class ModuleBoundaryArchitectureTest {
-    private val production = Konsist.scopeFromProduction()
+    @ArchTest
+    val `domain code depends on no framework, database or HTTP library`: ArchRule =
+        noClasses()
+            .that()
+            .resideInAPackage("..domain..")
+            .should()
+            .dependOnClassesThat()
+            .resideInAnyPackage(
+                "org.springframework..",
+                "org.jooq..",
+                "java.sql..",
+                "jakarta.servlet..",
+                "tools.jackson..",
+            ).allowEmptyShould(true)
 
-    @Test
-    fun `domain code depends on no framework, database or HTTP library`() {
-        production.files
-            .filter { file -> file.packagee?.name?.contains(".domain") == true }
-            .assertTrue { file ->
-                file.imports.none { import ->
-                    FORBIDDEN_IN_DOMAIN.any { prefix -> import.name.startsWith(prefix) }
-                }
-            }
-    }
+    @ArchTest
+    val `application code does not reach into HTTP controllers`: ArchRule =
+        noClasses()
+            .that()
+            .resideInAPackage("..application..")
+            .should()
+            .dependOnClassesThat()
+            .resideInAPackage("..api..")
+            .allowEmptyShould(true)
 
-    @Test
-    fun `no package is named common, shared, utils or helpers`() {
-        production.packages.assertTrue { packagee ->
-            packagee.name.split('.').none { part -> part in FORBIDDEN_PACKAGE_NAMES }
-        }
-    }
+    @ArchTest
+    val `no package is named common, shared, utils or helpers`: ArchRule =
+        noClasses()
+            .should()
+            .resideInAnyPackage(
+                "..common..",
+                "..shared..",
+                "..util..",
+                "..utils..",
+                "..helper..",
+                "..helpers..",
+                "..misc..",
+                "..models..",
+            )
 
-    private companion object {
-        val FORBIDDEN_IN_DOMAIN =
-            listOf("org.springframework", "org.jooq", "java.sql", "jakarta.servlet", "tools.jackson")
-        val FORBIDDEN_PACKAGE_NAMES = setOf("common", "shared", "util", "utils", "helper", "helpers", "misc", "models")
-    }
+    @ArchTest
+    val `production code never depends on the local debugging source set`: ArchRule =
+        noClasses().should().dependOnClassesThat().resideInAPackage("com.sprintique.local..")
 }
