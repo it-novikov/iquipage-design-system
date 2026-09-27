@@ -10,3 +10,8 @@
 - 2026-09-27T21:44:33Z · claude-opus-5-5 · step · S3 · active
 - 2026-09-27T21:44:33Z · claude-opus-5-5 · checkpoint · S3 · дальше: scripts/test.mjs: режим SPRINTIQUE_BACKEND=kotlin — миграции командой migrate, integrationTest с SPRINTIQUE_TEST_*; сравнить права с migrate.ts
 - 2026-09-27T21:48:50Z · claude-opus-5-5 · checkpoint · S3 · дальше: Решить про jOOQ-кодогенерацию: JooqCodegen в integrationTest + режим --jooq в test.mjs; затем S4
+- 2026-09-27T21:55:22Z · claude-opus-5-5 · step · S3 · done: коммит b98e30d; Flyway = migrate.ts (418 операторов); JooqSchemaDriftIntegrationTest + 5 тестов базы зелёные
+- 2026-09-27T21:55:22Z · claude-opus-5-5 · step · S4 · active
+- 2026-09-27T21:59:22Z · claude-opus-5-5 · step · S4 · done: коммит 1d3905a; integrationTest 7/7 (контекст не утекает, владелец не стартует); дымовой прогон: health, ready 503 без базы, статика 200/304, метрики, 413
+- 2026-09-27T21:59:22Z · claude-opus-5-5 · step · S5 · active
+- 2026-09-27T21:59:22Z · claude-opus-5-5 · checkpoint · S5 · дальше: ObjectStoragePort + S3-адаптер (AWS SDK v2), FileInspection (сигнатуры), ImageProcessing (TwelveMonkeys чтение, webp-imageio запись, EXIF, лимиты, таймаут 10 с)

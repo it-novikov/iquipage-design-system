@@ -8,7 +8,7 @@ owner: it-novikov
 branch: feature/kotlin-backend
 base: feat/finish-platform
 created: 2026-09-27
-updated: 2026-09-27T21:48:50Z
+updated: 2026-09-27T21:59:22Z
 links:
 ---
 
@@ -58,15 +58,15 @@ links:
 
 ## Передача
 
-- **Состояние:** S3: раннер умеет SPRINTIQUE_BACKEND=kotlin: сборка, сверка схемы Flyway с migrate.ts (418 операторов совпадают), migrate, integrationTest (5 тестов) на Unix-сокетном кластере.
+- **Состояние:** S1–S4 готовы: каркас, схема (Flyway = migrate.ts), jOOQ, сквозные механизмы. Сервер стартует за ~2 с.
 
   Инвентаризация тестов — в docs/test-parity.md.
-- **Сейчас:** S3 — осталась генерация jOOQ
-- **Дальше:** Решить про jOOQ-кодогенерацию: JooqCodegen в integrationTest + режим --jooq в test.mjs; затем S4
+- **Сейчас:** S5 — файлы и изображения
+- **Дальше:** ObjectStoragePort + S3-адаптер (AWS SDK v2), FileInspection (сигнатуры), ImageProcessing (TwelveMonkeys чтение, webp-imageio запись, EXIF, лимиты, таймаут 10 с)
 
   Затем `./gradlew check`.
 - **Незакоммичено:** нет
-- **Рабочая копия:** 1 файл(ов): .impeccable/ (2 files changed, 15 insertions(+), 14 deletions(-)) · HEAD f947f1a
+- **Рабочая копия:** 1 файл(ов): .impeccable/ (2 files changed, 14 insertions(+), 8 deletions(-)) · HEAD 1d3905a
 - **Ловушки:**
   - pg_ctl и тесты падают без `LC_ALL=C LANG=C`.
   - Docker-контекст по умолчанию (colima default) сломан. Продукт запрещает трогать VM по умолчанию, поэтому тесты Kotlin берут базу из `scripts/test.mjs`.
@@ -79,6 +79,7 @@ links:
   - pg_dump 18 добавляет \restrict со случайным ключом — сравнение схем его вырезает
   - java_home -v 25 без JDK 25 молча отдаёт другую версию: JDK проверяется по файлу release
   - Flyway нужно ≥2 соединения в пуле
+  - Regex.matches в Kotlin требует совпадения всей строки; для суффикса — containsMatchIn
 - **Проверка:** `cd products/sprintique/server && ./gradlew check`, затем из `products/sprintique`: `LC_ALL=C LANG=C TEST_S3_CONFIG=$PWD/output/infra/storage.json npm test`
 
 ## План
@@ -110,25 +111,27 @@ links:
 - **Итог:** коммит 10979ad; ./gradlew check: ktlint, detekt, ArchUnit (4 правила), verifyProductionArtifact
 - **Модель:** strong
 
-### S3. Схема, jOOQ, тестовый кластер [active]
+### S3. Схема, jOOQ, тестовый кластер [done]
 - **Что:** Миграции Flyway с `afterMigrate.sql` (права ролей), проверка схемы при старте, генерация jOOQ, режимы `scripts/test.mjs` для Kotlin (`--kotlin`, `--jooq`).
 - **Как:** SQL без изменений. Генерация jOOQ из поднятой схемы в `src/generated`, тест расхождения. `integrationTest` получает `SPRINTIQUE_TEST_*` от раннера.
 - **Зачем:** Та же схема данных — условие паритета.
 - **Приёмка:**
-  - [ ] Миграции применяются к пустой базе, права совпадают с прежним migrate.ts (сравнение `information_schema.role_table_grants`)
-  - [ ] Тест расхождения jOOQ со схемой проходит
+  - [x] Миграции применяются к пустой базе, права совпадают с прежним migrate.ts (сравнение `information_schema.role_table_grants`)
+  - [x] Тест расхождения jOOQ со схемой проходит
 - **Покрывает:** A3
+- **Итог:** коммит b98e30d; Flyway = migrate.ts (418 операторов); JooqSchemaDriftIntegrationTest + 5 тестов базы зелёные
 
-### S4. Сквозные механизмы [todo]
+### S4. Сквозные механизмы [done]
 - **Что:** Транзакции с полным RLS-контекстом (`app.actor_id`, `app.project_limit`), проверка ролей, ошибки `{code,message,requestId}`, заголовки, лимиты запросов и загрузок, метрики и логи, статика.
 - **Как:** Явный `Database.transaction` поверх DataSource; `ProblemException` с кодом и обработчик; фильтры Spring.
 - **Зачем:** Всё остальное строится на этих механизмах.
 - **Приёмка:**
-  - [ ] Интеграционный тест: контекст RLS не утекает между соединениями пула
-  - [ ] Небезопасная роль базы не даёт запуститься
+  - [x] Интеграционный тест: контекст RLS не утекает между соединениями пула
+  - [x] Небезопасная роль базы не даёт запуститься
 - **Покрывает:** A1, A3
+- **Итог:** коммит 1d3905a; integrationTest 7/7 (контекст не утекает, владелец не стартует); дымовой прогон: health, ready 503 без базы, статика 200/304, метрики, 413
 
-### S5. Файлы и изображения [todo]
+### S5. Файлы и изображения [active]
 - **Что:** Порт `ObjectStoragePort` с S3-адаптером и фейком для тестов, проверка файлов по сигнатуре, перекодирование изображений и аватаров.
 - **Как:**
   - AWS SDK v2.
