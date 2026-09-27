@@ -30,7 +30,7 @@ export class MapsFeature {
     installWorkflowUI(this);installAutomationUI(this);
   }
   async mount() {
-    registerWhiteboard();this.root.innerHTML=`<section class="iq-maps" aria-label="Карты проекта"><header class="map-toolbar"></header><div class="map-subbar"></div><div class="map-notice" role="status" hidden></div><div class="map-content"><div class="map-title-chip" data-map-title hidden><span class="map-title-chip-heading" data-chip-heading></span><span data-chip-sync></span><span class="sr-only" role="status" data-chip-live></span></div><div class="map-surface"></div><aside class="map-inspector" aria-label="Свойства и результаты" hidden></aside></div><span class="sr-only" role="status" data-map-live></span></section>`;
+    registerWhiteboard();this.root.innerHTML=`<section class="iq-maps" aria-label="Карты проекта"><header class="map-toolbar"></header><div class="map-subbar"></div><div class="map-notice" role="status" hidden></div><div class="map-content"><div class="map-title-chip iq-board-chip" data-map-title hidden><span class="map-title-chip-heading" data-chip-heading></span><span data-chip-sync></span><span class="sr-only" role="status" data-chip-live></span></div><div class="map-surface"></div><aside class="map-inspector" aria-label="Свойства и результаты" hidden></aside></div><span class="sr-only" role="status" data-map-live></span></section>`;
     this.toolbar=this.root.querySelector('.map-toolbar');this.subbar=this.root.querySelector('.map-subbar');this.surface=this.root.querySelector('.map-surface');this.inspector=this.root.querySelector('.map-inspector');this.titleChip=this.root.querySelector('[data-map-title]');
     this.root.addEventListener('click',event=>{
       if(event.target.closest('[data-map-sync]')){void this.syncNow();return;}
@@ -155,7 +155,7 @@ export class MapsFeature {
     const sync=this.titleChip.querySelector('[data-chip-sync]'),key=state+lines;
     if(sync.dataset.key!==key){
       const focused=sync.contains(document.activeElement);sync.dataset.key=key;
-      sync.innerHTML=`<iq-tooltip heading="${esc(title)}" text="${esc(lines)}"><button type="button" class="iq-btn ghost icon sm map-sync" data-state="${state}" data-map-sync aria-label="${esc(title)}. Синхронизировать сейчас" ${state==='syncing'?'aria-busy="true"':''}>${icon(state==='dirty'?'warning':'refresh',16)}</button></iq-tooltip>`;
+      sync.innerHTML=`<iq-tooltip heading="${esc(title)}" text="${esc(lines)}"><button type="button" class="iq-btn ghost icon sm map-sync iq-board-sync" data-state="${state}" data-map-sync aria-label="${esc(title)}. Синхронизировать сейчас" ${state==='syncing'?'aria-busy="true"':''}>${icon(state==='dirty'?'warning':'refresh',16)}</button></iq-tooltip>`;
       if(focused)sync.querySelector('button').focus({preventScroll:true});
     }
     const live=this.titleChip.querySelector('[data-chip-live]'),said=`${title}. ${kind}`;if(live.textContent!==said)live.textContent=said;

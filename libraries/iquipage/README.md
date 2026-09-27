@@ -18,6 +18,13 @@ the native `keycloak/iquipage` theme so OIDC products can present the form at th
 provider without collecting passwords in the application. The interactive authentication
 example now demonstrates the form, not just a provider redirect.
 
+## Relation map and embedded boards (0.6.0-vnext.17)
+
+- `iq-relation-map` (registered by `registerCore()`) draws one object's relations in the visual language of the workflow graph, without an editor: the current object in the centre, its parent above, children below (up to six, then "Ещё N"), what it depends on to the left with arrows into it, what it blocks and what it relates to on the right (related links dashed). Set `value = {center, parent, dependsOn, blocks, related, children, childrenDone}`; nodes are `{id, title, key?, status?, tone?, icon?, linkId?}`. A node click emits `iq-open {id}`; unless `readonly`, a removable link emits `iq-remove {id, linkId}`. Hosts narrower than 560px get a grouped list with the same cards.
+- `.iq-board-chip` (with `.iq-board-chip-title`) is the title chip of an embedded board: top right, it steps away while a board panel is open. `.iq-board-sync[data-state=saved|saving|syncing|dirty]` is its save-state button (turning icon while saving, warning when unsaved); pair it with `iq-tooltip` for the explanation.
+- Every embedded board with `dock="side"` keeps its rail at the top left, whatever its `editor-mode`.
+- The "Визуальная доска" showcase now shows the board as Sprintique Maps uses it: `surface-mode="embedded"`, `dock="side"`, `dock-tools="select"`, `selection-bar="none"`, search, templates and the board menu as `hostActions`, and the title chip with the sync state.
+
 ## Task drawer building blocks (0.6.0-vnext.16)
 
 - `iq-markdown-editor.toolbarActions = [{id,label,icon?}]` adds up to three host actions at the end of the toolbar. They exist only while editing; a click emits `iq-editor-action` with `{id}`. `empty-action-label` and `empty-action` add a quiet button to the empty preview that emits the same event. With `preview-on-blur`, Escape leaves editing without closing the surrounding dialog.

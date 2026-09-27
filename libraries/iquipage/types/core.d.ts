@@ -1,5 +1,5 @@
 /** Supported core browser entry. Does not register graph, roadmap, crop, or whiteboard. */
-export declare const version:'0.6.0-vnext.16';
+export declare const version:'0.6.0-vnext.17';
 export declare function registerCore():void;
 export declare function registerComponents():void;
 export declare function registerDateFields():void;
@@ -106,4 +106,9 @@ export interface SettingsNavigationItem {id:string;label:string;icon?:string;cou
 /** Settings navigation drawn with the DS side navigation (`.product-nav-*`). Returns the list only. */
 export declare function settingsNavigation(groups:{label:string;items:SettingsNavigationItem[]}[],active:string):string;
 export declare function registerSettings():void;
-declare global {interface HTMLElementTagNameMap {'iq-settings-layout':IqSettingsLayout;'iq-visual-choice':IqVisualChoice;}}
+export interface RelationMapNode {id:string;title:string;key?:string;status?:string;tone?:'neutral'|'info'|'planned'|'success'|'warning'|'danger';icon?:string;linkId?:string;}
+export interface RelationMapValue {center:RelationMapNode;parent?:RelationMapNode|null;dependsOn?:RelationMapNode[];blocks?:RelationMapNode[];related?:RelationMapNode[];children?:RelationMapNode[];childrenDone?:number|null;}
+/** Read-only relation map of one object. Emits iq-open {id} and, unless readonly, iq-remove {id, linkId} for removable links. */
+export declare class IqRelationMap extends HTMLElement {value:RelationMapValue|null;}
+export declare function registerRelationMap():void;
+declare global {interface HTMLElementTagNameMap {'iq-settings-layout':IqSettingsLayout;'iq-relation-map':IqRelationMap;'iq-visual-choice':IqVisualChoice;}}

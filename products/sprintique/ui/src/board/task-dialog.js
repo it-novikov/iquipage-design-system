@@ -71,8 +71,9 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
       </div></section>
     <div class="task-editor-supplements">
     <section class="task-edit-section task-relations"><h3>Связи</h3>
+      ${task?'<div data-task-links></div>':''}
       <div class="iq-properties task-parent"><iq-combobox name="parent" label="Родительская задача" value="${esc(initial.parentId||'')}" options="${opts(parents)}" placeholder="Нет"></iq-combobox></div>
-      ${task?'<div data-task-links></div>':'<p class="iq-helper">Подзадачи и связи с другими задачами можно добавить после создания.</p>'}</section>
+      ${task?'':'<p class="iq-helper">Подзадачи и связи с другими задачами можно добавить после создания.</p>'}</section>
     <section class="task-edit-section" data-task-files></section>
     <section class="task-edit-section" data-task-threads></section></div></div><p role="status" class="iq-helper" data-task-save-state></p>`;
   const read=(form,values=new FormData(form))=>({
@@ -145,6 +146,7 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
         lastTemplateContent=editor.value;
       }
       form.addEventListener('iq-change',event=>{
+        if(event.target.getAttribute('name')==='parent')links?.setParent(event.target.value);
         if(event.target.getAttribute('name')==='priority')priorityTouched=true;
         if(event.target.getAttribute('name')!=='type'||current)return;
         const untouched=editor.value===lastTemplateContent;

@@ -90,20 +90,11 @@
 /* History versions are full-width rows, not shrink-wrapped buttons. */
 .map-history-list>.iq-list-item{width:100%;text-align:left;justify-content:space-between;gap:var(--iq-space-3);cursor:pointer}
 /* Title chip over the canvas, to the right of the side dock: replaces the toolbar row on the canvas. */
-.map-title-chip{position:absolute;z-index:9;top:var(--iq-space-4);right:var(--iq-space-4);max-width:min(420px,calc(100% - 120px));display:flex;align-items:center;gap:var(--iq-space-1);padding:var(--iq-space-1) var(--iq-space-1) var(--iq-space-1) var(--iq-space-3);border:1px solid var(--iq-line);border-radius:var(--iq-radius-md);background:color-mix(in srgb,var(--iq-raised) 92%,transparent);backdrop-filter:blur(8px);box-shadow:0 4px 16px var(--iq-shadow-color)}
-.map-title-chip[hidden]{display:none}
-/* The properties panel covers the chip; the whiteboard's own panels (search, frames) live in the board's stacking
-   context, so while one is open the chip steps away with a fade instead. */
-.map-title-chip{transition:opacity var(--iq-motion-fast) var(--iq-ease),visibility 0s linear 0s}
-.map-content:has(.wb-shell.has-panel) .map-title-chip{opacity:0;visibility:hidden;pointer-events:none;transition:opacity var(--iq-motion-fast) var(--iq-ease),visibility 0s linear var(--iq-motion-fast)}
-@media (prefers-reduced-motion:reduce){.map-title-chip{transition:none}}
+/* Title chip and sync state: the DS board chip (.iq-board-chip, .iq-board-sync). The properties panel covers the chip,
+   and it steps away while a board panel such as search is open. */
+.map-content:has(.wb-shell.has-panel) .map-title-chip{opacity:0;visibility:hidden;pointer-events:none}
 .map-title-chip-heading{min-width:0;display:flex}
 .map-title-chip .map-switch{font-size:var(--iq-type-interface-size);font-weight:600;padding:0;min-height:0;min-width:0}
-/* Sync: a DS icon button; its tooltip explains the state. Saving and syncing turn the icon, unsaved changes switch to a warning. */
-.map-sync[data-state=dirty]{color:var(--iq-warning)}
-.map-sync:is([data-state=saving],[data-state=syncing]) .iq-icon{animation:map-sync-turn 900ms linear infinite}
-@keyframes map-sync-turn{to{transform:rotate(360deg)}}
-@media (prefers-reduced-motion:reduce){.map-sync:is([data-state=saving],[data-state=syncing]) .iq-icon{animation:none}}
 /* Map menu inside the host side panel: grouped rows. */
 .map-panel-menu{display:grid;gap:2px}
 .map-panel-section{margin:var(--iq-space-3) var(--iq-space-2) var(--iq-space-1);font-size:var(--iq-type-meta-size);font-weight:600;color:var(--iq-muted)}

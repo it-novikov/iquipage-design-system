@@ -200,3 +200,16 @@ iq-work-header{display:block;min-width:0}.iq-work-header{display:grid;grid-templ
 .wb-shell[data-studio="055"] .wb-object[data-type=image]{padding-bottom:0}
 .wb-shell[data-studio="055"] .wb-object[data-type=image] img{height:calc(100% - var(--wb-caption-height,32px));border-radius:7px 7px 0 0}
 .wb-shell[data-studio="055"] .wb-image-caption{height:var(--wb-caption-height,32px);min-height:var(--wb-caption-height,32px);padding:10px 12px;display:flex;white-space:normal;overflow:auto;text-overflow:clip;font-size:13px}
+
+/* Board title chip: the board's name and its save state float in the top right corner of an embedded board.
+   A board panel (search, frames, templates) takes the chip's place while it is open. */
+.iq-board-chip{position:absolute;z-index:9;top:var(--iq-space-4);right:var(--iq-space-4);max-width:min(420px,calc(100% - 120px));display:flex;align-items:center;gap:var(--iq-space-1);padding:var(--iq-space-1) var(--iq-space-1) var(--iq-space-1) var(--iq-space-3);border:1px solid var(--iq-line);border-radius:var(--iq-radius-md);background:color-mix(in srgb,var(--iq-raised) 92%,transparent);backdrop-filter:blur(8px);box-shadow:0 4px 16px var(--iq-shadow-color);transition:opacity var(--iq-motion-fast) var(--iq-ease),visibility 0s linear 0s}
+.iq-board-chip[hidden]{display:none}
+.iq-board-chip-title{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font:600 var(--iq-type-interface-size)/1.4 var(--iq-font)}
+:has(>.wb-shell.has-panel)~.iq-board-chip,:has(.wb-shell.has-panel)>.iq-board-chip{opacity:0;visibility:hidden;pointer-events:none;transition:opacity var(--iq-motion-fast) var(--iq-ease),visibility 0s linear var(--iq-motion-fast)}
+.iq-board-sync[data-state=dirty]{color:var(--iq-warning)}
+.iq-board-sync:is([data-state=saving],[data-state=syncing]) .iq-icon{animation:iq-board-sync-turn 900ms linear infinite}
+@keyframes iq-board-sync-turn{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.iq-board-chip{transition:none}.iq-board-sync:is([data-state=saving],[data-state=syncing]) .iq-icon{animation:none}}
+.wb-demo-stage{position:relative;min-width:0;height:min(680px,78vh);border:1px solid var(--iq-line);border-radius:var(--iq-radius-md);overflow:hidden;background:var(--iq-canvas)}
+.wb-demo-stage>iq-whiteboard{display:block;height:100%}

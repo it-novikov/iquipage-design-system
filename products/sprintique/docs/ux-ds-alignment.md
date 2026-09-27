@@ -1,6 +1,6 @@
 # UX and design-system alignment (September 2026)
 
-Private DS **0.6.0-vnext.16**. It covers the component audit of the whole Sprintique UI and the changes the owner approved.
+Private DS **0.6.0-vnext.17**. It covers the component audit of the whole Sprintique UI and the changes the owner approved.
 
 ## Owner decisions
 
@@ -11,11 +11,12 @@ Private DS **0.6.0-vnext.16**. It covers the component audit of the whole Sprint
 | Assignee | Only a current human project member can be the assignee. |
 | Board admission | The rule stays the same. The board explains tasks that are waiting for a planned release. |
 
-## Design system (vnext.3 → vnext.16)
+## Design system (vnext.3 → vnext.17)
 
 - **vnext.3:** the R3 work list is a public entry. Tag tones have light and dark tokens. The type scale is tokenised. Dense surfaces get public variants. The keyboard focus ring is visible. The map canvas no longer collapses when the object library is open.
 - **vnext.4:** on coarse pointers, buttons, section links, selects and checkboxes are 44px (`touch.css`, loaded last). Escape closes the map object library.
 - **vnext.5:** `ui.menu` takes `{section}` labels, which keyboard navigation skips. Long menus scroll. Compact selects are 44px on touch screens.
+- **vnext.17:** `iq-relation-map` draws one object's relations in the workflow graph language without an editor (parent above, children below, dependencies left, blocked and related right; a grouped list on narrow hosts). `.iq-board-chip` and `.iq-board-sync` give embedded boards their title chip and save state. The side rail sits at the top of every embedded board. The "Визуальная доска" showcase is configured like Sprintique Maps.
 - **vnext.16:** task drawer building blocks: editor toolbar actions and an empty-state action, Escape back to preview; select and combobox show the chosen avatar and tone; `.iq-property-strip`, `.iq-inline-title`, `.iq-color-field`; any RGB tag colour through `tagToneAttributes()` with theme-derived fill and text (contrast checked across hues).
 - **vnext.15:** the settings workspace redesigned after a second council (art director, product designer, product manager with UX research, DS architect).
   - `iq-settings-layout` fills the width: navigation flush left, one content column up to 1120px, `view="index|section"` for phones.
@@ -77,6 +78,8 @@ Private DS **0.6.0-vnext.16**. It covers the component audit of the whole Sprint
   - Sections were renamed after the jobs they serve: "Профиль", "Теги", "Спринты и релизы", "Агенты", "Очистка файлов", "О пространстве", and workspace members got their own page. Deep links stay the same.
   - Members change roles in the row, removal sits in the row menu, invitations show their state and the link is shown once with a copy button. Agents put proposals that wait for a decision first and decide them with two buttons. File cleanup says "Всё в порядке" when nothing needs attention.
   - On phones the list of sections comes first and a section opens as its own screen.
+- **Relations:** "Связи" in the task drawer is a relation map (`iq-relation-map`): the task in the centre, its parent above, subtasks below with "N из M" done, what it depends on to the left with arrows into it, what it blocks and what it relates to on the right. A node opens that task; hovering a link shows a remove button. The link dialog offers "Эта задача зависит от", "Эта задача блокирует" and "Связана с". The parent is changed in the row under the map.
+- **Maps title chip:** the chip and sync state use the DS `.iq-board-chip` and `.iq-board-sync`.
 - **Section switching:** the open section stays on screen while the next one mounts out of sight, then they swap in one frame; the page never blanks or fades between the board and planning. A load slower than 0.4 s shows an outline over the old view.
 - **Maps:** clicking an object opens the properties panel on the right (432px, without position and size fields: those are set on the canvas), with no selection bar above the canvas. The dock is a rail on the left. Under "+" (object library) it holds search, templates and the map menu. The library and the menu slide out from the rail and back into it. The rail is aligned to the top, level with the library; the object library starts closed; rail tooltips open to the right. The dock keeps only "Выбрать": connections are made from object ports, and the board is moved by scrolling. The toolbar row is gone: the map title floats as a chip in the top right corner. The properties panel covers it, and it fades out while a board panel such as search is open. The save state is a sync button. Its structured tooltip gives the state, the map kind, that saving is automatic and when it was last checked. A click saves, loads the newest revision and confirms with a toast. The "+ Заметка" button is gone. Template previews are miniature boards (titled areas, lined notes, arrowed links) that lift and draw on hover. The menu is a grouped `iq-menu` dropdown. Template categories use the DS segmented control. History rows span the full width. The canvas runs edge to edge.
 - **Feedback:** successes and failures show as DS `notify` toasts. ⌘K is a DS command dialog: focus stays in the field, arrow keys move the active row (`aria-activedescendant`). It doubles as a command palette with destinations, settings pages, new task, project switcher, theme and profile. Every section shows a DS skeleton while it loads.

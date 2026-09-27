@@ -82,8 +82,11 @@ export const IqSettingsLayout=settings.IqSettingsLayout;
 export const IqVisualChoice=settings.IqVisualChoice;
 export const settingsNavigation=settings.settingsNavigation;
 export const registerSettings=settings.registerSettings;
-export const version='0.6.0-vnext.16';
+import relationMap from './modules/relation-map.js';
+export const IqRelationMap=relationMap.IqRelationMap;
+export const registerRelationMap=relationMap.registerRelationMap;
+export const version='0.6.0-vnext.17';
 export function registerCore(){
- registerAuthDialog();registerAuthScreen();registerSettings();registerComponents();registerDateFields();registerEditors();registerPagination();registerStructured();registerSideNavigation();registerWorkHeader();registerMarkdownViewer();registerWorkLayout();
+ registerAuthDialog();registerAuthScreen();registerSettings();registerRelationMap();registerComponents();registerDateFields();registerEditors();registerPagination();registerStructured();registerSideNavigation();registerWorkHeader();registerMarkdownViewer();registerWorkLayout();
  if(!customElements.get('iq-file-preview'))customElements.define('iq-file-preview',IqFilePreview);
 }

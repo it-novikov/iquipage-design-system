@@ -216,3 +216,5 @@
 .task-edit-dialog .task-editor-description>h3{margin-bottom:var(--iq-space-1)}
 .task-edit-dialog [data-task-threads]>.row>h3{margin:0;font:600 var(--iq-type-interface-size)/1.4 var(--iq-font)}
 .task-edit-dialog [data-task-threads]>.row{margin-bottom:var(--iq-space-3)}
+.task-relations [data-task-links]{display:grid;gap:var(--iq-space-3);margin-bottom:var(--iq-space-3)}
+.task-relations [data-task-links]>.iq-btn{justify-self:start}
