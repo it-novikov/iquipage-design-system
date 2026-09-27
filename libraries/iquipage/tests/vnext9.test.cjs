@@ -22,6 +22,6 @@ test('iq-file-picker picks or receives dropped files and leaves upload to the ho
 });
 test('tag picker offers a "new tag" bubble that asks the host to create', () => {
   const js = read('src/modules/components.js');
-  assert.match(js, /class="iq-tag iq-tag-add" data-tag-create/);
+  assert.match(js, /class="iq-btn ghost icon sm iq-tag-picker-add" data-tag-create/);
   assert.match(js, /requestCreate\(label\) \{/);
 });

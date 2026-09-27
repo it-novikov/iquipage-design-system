@@ -22,7 +22,7 @@ export function mountTaskCatalogs(root,{tagsRoot=root,repository,project,task,ta
   // "+ Новый тег" (or an unmatched search) opens the tag dialog: name and colour swatches, prefilled with the search.
   picker.addEventListener('iq-create',event=>{
     const {label,accept}=event.detail;
-    editCatalogItem('tags',{repository,project,name:label.slice(0,100),onSaved:saved=>{
+    editCatalogItem('tags',{repository,project,name:label.slice(0,100),tags,onSaved:saved=>{
       if(abort.signal.aborted)return;tags=[...tags,saved].sort((a,b)=>a.name.localeCompare(b.name,'ru'));accept({value:saved.id,label:saved.name,tone:tagTone(saved)});
     }});
   },{signal:abort.signal});

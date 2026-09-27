@@ -133,3 +133,6 @@
 .map-template-card{transition:border-color var(--iq-motion-fast) var(--iq-ease),box-shadow var(--iq-motion-standard) var(--iq-ease),transform var(--iq-motion-standard) var(--iq-ease)}
 .map-template-card:hover{border-color:var(--iq-control);box-shadow:0 8px 24px var(--iq-shadow-color);transform:translateY(-2px)}
 @media (prefers-reduced-motion:reduce){.map-preview-scene,.map-preview-node,.map-template-card{transition:none}.map-template-card:is(:hover,:focus-visible) :is(.map-preview-scene,.map-preview-node){transform:none}.map-template-card:is(:hover,:focus-visible) .map-preview-link{animation:none}.map-template-card:hover{transform:none}}
+/* Compact form dialog (a single short form such as a new tag). */
+.map-dialog[data-size=compact] .map-modal{width:min(420px,calc(100vw - 32px))}
+@media(max-width:480px){.map-dialog[data-size=compact] .map-modal{width:100vw;max-width:100vw;margin:auto 0 0;border-radius:var(--iq-radius-lg) var(--iq-radius-lg) 0 0}}

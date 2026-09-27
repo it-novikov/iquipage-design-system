@@ -4,6 +4,9 @@ exports.projectOptions = void 0;
 exports.alert = alert;
 exports.avatar = avatar;
 exports.avatars = avatars;
+exports.avatarTone = avatarTone;
+exports.avatarGroup = avatarGroup;
+exports.initials = initials;
 exports.badge = badge;
 exports.btn = btn;
 exports.chart = chart;
@@ -48,6 +51,19 @@ function segment(items, active = 0, attrs = '') { return `<div class="iq-segment
 function select(label, options, attrs = '') { const data = options.map((x, i) => typeof x === 'string' ? { value: String(i), label: x } : x); return `<iq-select label="${components_js_1.escapeHTML(label)}" options="${components_js_1.escapeHTML(JSON.stringify(data))}" ${attrs}></iq-select>`; }
 function combo(label, options, attrs = '') { return `<iq-combobox label="${components_js_1.escapeHTML(label)}" options="${components_js_1.escapeHTML(JSON.stringify(options.map(x => ({ value: x, label: x }))))}" ${attrs}></iq-combobox>`; }
 function avatar(text = 'АК', v = 0, cls = '') { return `<span class="iq-avatar v${v} ${cls}" role="img" aria-label="Участник ${text}">${text}</span>`; }
+/** One person keeps one avatar tone everywhere: a stable hash of their id (or name) picks v1–v4. */
+function avatarTone(key) { let h = 0; for (const ch of String(key || '')) h = (h * 31 + ch.codePointAt(0)) >>> 0; return 1 + h % 4; }
+function initials(name) { return String(name || '').trim().split(/\s+/).slice(0, 2).map(part => part[0] || '').join('').toUpperCase() || '?'; }
+/** People as a DS avatar group: at most three discs (two and "+N" when there are more), one tooltip with every name,
+    and one accessible label. people: [{name, id?}]; size: 'xs' | 'sm' | 'md'. */
+function avatarGroup(people, { size = 'sm', max = 3, label = 'Участники' } = {}) {
+    const list = (Array.isArray(people) ? people : []).filter(p => p && typeof p.name === 'string' && p.name.trim());
+    if (!list.length) return '';
+    const shown = list.length > max ? list.slice(0, max - 1) : list, rest = list.length - shown.length;
+    const names = list.map(p => p.name.trim());
+    const discs = shown.map(p => `<span class="iq-avatar v${avatarTone(p.id || p.name)}" aria-hidden="true">${components_js_1.escapeHTML(initials(p.name))}</span>`).join('') + (rest ? `<span class="iq-avatar more" aria-hidden="true">+${rest}</span>` : '');
+    return `<iq-tooltip heading="${components_js_1.escapeHTML(label)}" text="${components_js_1.escapeHTML(names.join('\n'))}"><span class="iq-avatars ${components_js_1.escapeHTML(size)}" role="img" aria-label="${components_js_1.escapeHTML(label + ': ' + names.join(', '))}">${discs}</span></iq-tooltip>`;
+}
 function avatars() { return `<div class="iq-avatars" aria-label="4 участника">${avatar('АК', 1)}${avatar('МЛ', 2)}${avatar('ДС', 3)}<span class="iq-avatar more" role="img" aria-label="Ещё один участник">+1</span></div>`; }
 function alert(title, body, tone = 'info') { const names = { info: 'info', success: 'checkCircle', warning: 'warning', danger: 'xCircle' }; return `<div class="iq-alert ${tone}"><span class="message-emblem">${components_js_1.icon(tone === 'danger' ? 'x' : tone === 'success' ? 'check' : names[tone], 25)}</span><div class="message-copy"><b>${title}</b><p>${body}</p></div></div>`; }
 function progress(value = 68, label = 'Прогресс', cls = '') { return `<div class="iq-progress ${cls}" role="progressbar" aria-label="${components_js_1.escapeHTML(label)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${value}" style="--progress:${value}%"><span></span></div>`; }

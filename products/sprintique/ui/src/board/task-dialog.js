@@ -12,7 +12,7 @@ import {mountTaskDescription} from './description-view.js';
 import {copyAtButton,motionReduced} from '@iquipage/web/core';
 import {taskKey,taskURL} from './task-route.js';
 
-export async function openTaskDialog(task,{repository,project,tasks,canEdit=true,canManage=true,attachmentAdapter=null,status='ready',initialValues={},fullscreen=false,onOpenTask,onReload=onOpenTask&&(()=>onOpenTask(task.id)),onSaved=()=>{},isActive=()=>true,signal}){
+export async function openTaskDialog(task,{repository,project,tasks,canEdit=true,canManage=true,attachmentAdapter=null,status='ready',initialValues={},fullscreen=false,backTo=null,onBack=()=>{},onOpenTask,onReload=onOpenTask&&(()=>onOpenTask(task.id)),onSaved=()=>{},isActive=()=>true,signal}){
   signal?.throwIfAborted();const initialTask=task;
   const [detail,context,support,members]=await Promise.all([
     task?.summary?repository.read('tasks',task.id,project.id,{signal}):task,
@@ -65,17 +65,17 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
         <div class="task-tags-row" data-task-tags></div>
       </div>
     </section>
-    <section class="task-edit-section task-editor-description"><h3>Описание</h3>
+    <section class="iq-section task-editor-description"><div class="iq-section-head">${icon('text',16)}<h3>Описание</h3></div>
       <div class="task-description-surface" data-description>
         <iq-markdown-editor label="Описание" name="description" variant="compact" density="compact" maxlength="10000" preview-on-blur preview empty-text="${canEdit?'Нажмите, чтобы добавить описание':'Описания нет'}" ${canEdit?'empty-action-label="Начать с шаблона" empty-action="template"':''}></iq-markdown-editor>
       </div></section>
     <div class="task-editor-supplements">
-    <section class="task-edit-section task-relations"><h3>Связи</h3>
+    <section class="iq-section task-relations"><div class="iq-section-head">${icon('link',16)}<h3>Связи</h3><span class="iq-section-count" data-relations-count></span><span class="iq-section-actions" data-relations-actions></span></div>
       ${task?'<div data-task-links></div>':''}
       <div class="iq-properties task-parent"><iq-combobox name="parent" label="Родительская задача" value="${esc(initial.parentId||'')}" options="${opts(parents)}" placeholder="Нет"></iq-combobox></div>
       ${task?'':'<p class="iq-helper">Подзадачи и связи с другими задачами можно добавить после создания.</p>'}</section>
-    <section class="task-edit-section" data-task-files></section>
-    <section class="task-edit-section" data-task-threads></section></div></div><p role="status" class="iq-helper" data-task-save-state></p>`;
+    <section class="iq-section task-files-section" data-task-files></section>
+    <section class="iq-section task-threads-section" data-task-threads></section></div></div><p role="status" class="iq-helper" data-task-save-state></p>`;
   const read=(form,values=new FormData(form))=>({
     title:String(values.get('title')||'').trim(),type:values.get('type')||'task',status:values.get('status'),
     ownerId:form.querySelector('iq-combobox[name=ownerId]').value||null,priority:values.get('priority')||'normal',
@@ -100,10 +100,11 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
       el.classList.add('task-edit-dialog');el.setAttribute('kind','drawer');el.setAttribute('persistent','');
       el.dataset.fullscreen=String(fullscreen);
       if(task){
-        const title=form.querySelector('.iq-dialog-head h2');title.className='task-dialog-identity';title.innerHTML=`<button type="button" class="iq-btn ghost sm task-link-copy" data-copy-task-link title="Скопировать ссылку">${esc(taskKey(task))}</button><button type="button" class="iq-btn ghost icon sm" data-copy-task-icon data-copy-tone="neutral" aria-label="Скопировать ссылку на задачу">${icon('copy',18)}</button>`;
+        const title=form.querySelector('.iq-dialog-head h2');title.className='task-dialog-identity';title.innerHTML=`${backTo?`<button type="button" class="iq-btn ghost icon sm task-back" data-task-back aria-label="Назад к ${esc(backTo.key)} ${esc(backTo.title)}" title="Назад к ${esc(backTo.key)}">${icon('left',18)}</button>`:''}<button type="button" class="iq-btn ghost sm task-link-copy" data-copy-task-link title="Скопировать ссылку">${esc(taskKey(task))}</button><button type="button" class="iq-btn ghost icon sm" data-copy-task-icon data-copy-tone="neutral" aria-label="Скопировать ссылку на задачу">${icon('copy',18)}</button>`;
         const actions=document.createElement('div');actions.className='task-dialog-actions';
         actions.innerHTML=`<button type="button" class="iq-btn ghost icon sm" data-task-fullscreen aria-label="${fullscreen?'Свернуть в боковое меню':'Открыть на весь экран'}">${icon('expand',18)}</button>`;
         const close=form.querySelector('.iq-dialog-head [data-close]');close.before(actions);actions.append(close);
+        title.querySelector('[data-task-back]')?.addEventListener('click',()=>onBack());
         const copyIcon=title.querySelector('[data-copy-task-icon]');
         title.querySelector('[data-copy-task-link]').addEventListener('click',()=>copyAtButton(copyIcon,taskURL(task)));
         copyIcon.addEventListener('click',()=>copyAtButton(copyIcon,taskURL(task)));
@@ -130,7 +131,7 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
       form.addEventListener('iq-change',dueTone);form.addEventListener('change',dueTone);requestAnimationFrame(dueTone);
       description=mountTaskDescription(form.querySelector('[data-description]'),{value:taskMarkdown(initial),editing:false,readOnly:!canEdit});
       catalogs=mountTaskCatalogs(form.querySelector('[data-task-catalogs]'),{tagsRoot:form.querySelector('[data-task-tags]'),repository,project,task:initial,tags:support.tags,releases:support.releases,readOnly:!canEdit,canManage,onChange:()=>form.dispatchEvent(new Event('change'))});
-      if(task&&repository.capabilities?.taskLinks!==false)links=mountTaskLinks(form.querySelector('[data-task-links]'),{repository,project,task,tasks,readOnly:!canEdit,onOpenTask:async id=>{
+      if(task&&repository.capabilities?.taskLinks!==false)links=mountTaskLinks(form.querySelector('[data-task-links]'),{repository,project,task,tasks,readOnly:!canEdit,actionsRoot:form.querySelector('[data-relations-actions]'),countRoot:form.querySelector('[data-relations-count]'),onOpenTask:async id=>{
         if(onOpenTask){await onOpenTask(id);return;}
         const target=await repository.read('tasks',id,project.id);if(!target)throw Error('Задача недоступна.');
         await openTaskDialog(target,{repository,project,tasks,canEdit,canManage,attachmentAdapter,onSaved});

@@ -13,7 +13,7 @@ export function mountTaskFiles(root,{coverRoot,adapter,task,readOnly=false,onCov
   const target=id=>({id,projectId:task.projectId,taskId:task.id});
   const editable=!readOnly&&!!adapter;
   const size=n=>n<1024*1024?`${Math.ceil(n/1024)} КБ`:`${(n/1024/1024).toFixed(1).replace('.',',')} МБ`;
-  root.innerHTML=`<h3>Файлы</h3>
+  root.innerHTML=`<div class="iq-section-head">${icon('file',16)}<h3>Файлы</h3></div>
     <p class="map-form-error" role="alert" data-file-error hidden></p><div data-file-list></div>
     <div class="task-files-empty" data-files-empty ${editable?'hidden':''}><span>Файлов пока нет</span></div>
     ${editable?`<iq-file-picker variant="compact" multiple accept="${FILE_ACCEPT}" label="Выберите или перетащите файлы" hint="До 10 МБ на файл" data-file-picker></iq-file-picker>
@@ -62,7 +62,7 @@ export function mountTaskFiles(root,{coverRoot,adapter,task,readOnly=false,onCov
     if(!coverId){coverRoot.replaceChildren();coverRoot.hidden=true;onCoverState(false);return;}
     coverRoot.hidden=false;onCoverState(true);
     const row=rows.get(coverId);
-    coverRoot.innerHTML=`<div class="task-detail-cover" data-state="loading"><button type="button" data-preview-cover aria-label="Открыть обложку" disabled><img alt="" decoding="async" style="${coverImageStyle(coverCrop,coverId)}" hidden></button><span data-cover-status>Загрузка обложки…</span></div>
+    coverRoot.innerHTML=`<div class="task-detail-cover" data-state="loading"><img class="task-cover-ambient" alt="" aria-hidden="true" hidden><button type="button" data-preview-cover aria-label="Открыть обложку" disabled><img alt="" decoding="async" style="${coverImageStyle(coverCrop,coverId)}" hidden></button><span data-cover-status>Загрузка обложки…</span></div>
       ${editable?`<iq-menu class="task-cover-menu"><button type="button" class="iq-btn secondary sm">${icon('image',16)}<span>Обложка</span>${icon('down',14)}</button><div data-menu><button type="button" data-recrop-cover>${icon('expand',17)}<span>Изменить кадр</span></button><button type="button" data-add-cover>${icon('image',17)}<span>Заменить</span></button><button type="button" class="danger" data-remove-cover>${icon('trash',17)}<span>Убрать обложку</span></button></div></iq-menu>`:''}`;
     if(!adapter){
       coverRoot.querySelector('.task-detail-cover').dataset.state='unavailable';
@@ -73,10 +73,12 @@ export function mountTaskFiles(root,{coverRoot,adapter,task,readOnly=false,onCov
     adapter.blob({...target(coverId),variant:'display'},{signal:request.signal}).then(async blob=>{
       if(closed||generation!==coverGeneration)return;
       requireValue(blob.type==='image/webp','FILE_PREVIEW','Изображение недоступно.');
-      requestURL=URL.createObjectURL(blob);const image=coverRoot.querySelector('img');
+      requestURL=URL.createObjectURL(blob);const image=coverRoot.querySelector('[data-preview-cover] img');
       image.src=requestURL;await image.decode();
       if(closed||generation!==coverGeneration||!image.isConnected)return;
       coverURL=requestURL;requestURL=null;image.hidden=false;
+      // The letterbox around the true 12:5 frame is filled with a soft blurred copy, so the band never looks empty.
+      const ambient=coverRoot.querySelector('.task-cover-ambient');if(ambient){ambient.src=coverURL;ambient.hidden=false;}
       coverRoot.querySelector('[data-preview-cover]').disabled=false;coverRoot.querySelector('[data-cover-status]').hidden=true;
       coverRoot.querySelector('.task-detail-cover').dataset.state='ready';
     }).catch(()=>{if(!closed&&generation===coverGeneration){

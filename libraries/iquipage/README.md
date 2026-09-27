@@ -18,6 +18,16 @@ the native `keycloak/iquipage` theme so OIDC products can present the form at th
 provider without collecting passwords in the application. The interactive authentication
 example now demonstrates the form, not just a provider redirect.
 
+## People, sections, relations and tags (0.6.0-vnext.18)
+
+- Avatars: `.iq-avatar.xs|sm|lg` (20, 24, 44px; 28px by default in groups), `.iq-avatars.xs|sm|lg` with a quarter-size overlap. `ui.avatarTone(key)` gives one person one tone everywhere (a stable hash of the id or name). `ui.avatarGroup(people, {size, max:3, label})` renders at most three discs (two and "+N" when there are more), one `iq-tooltip` with every name, and one accessible label.
+- `.iq-section` / `.iq-section-head` / `.iq-section-count` / `.iq-section-actions`: a zone of a long surface with a divider and a heading row (icon, 16px title, count, one action).
+- Compact editors cap content headings (h1 16px, h2 and h3 14px), so they never outgrow the surface's section headings.
+- `.iq-property-strip` chips are 32px without a chevron; `.iq-properties` uses one 136px label column (88px on phones) with 12px labels.
+- `iq-relation-map`: each group is a lane named by the role of its nodes towards the centre ("Блокируют эту задачу", "Ждут эту задачу", "Связанные", "Родительская задача", "Подзадачи N из M"); open blockers draw amber edges and mark the centre "Заблокирована"; nodes are 76px with two-line titles; nodes may carry `done`; `labels` overrides the texts.
+- `iq-tag-picker creatable` shows a trailing "+" inside the field (it asks the host to create a tag through `iq-create`) instead of a "+ Новый тег" chip; Backspace in an empty field first marks the last tag, a second Backspace removes it.
+- `.iq-color-field`: `.iq-color-legend` with a live preview, `.iq-color-swatch` circles filled with each tone's text colour (radios, arrow keys), `.iq-color-swatch-custom` last, `.iq-color-custom` for the native picker and hex.
+
 ## Relation map and embedded boards (0.6.0-vnext.17)
 
 - `iq-relation-map` (registered by `registerCore()`) draws one object's relations in the visual language of the workflow graph, without an editor: the current object in the centre, its parent above, children below (up to six, then "Ещё N"), what it depends on to the left with arrows into it, what it blocks and what it relates to on the right (related links dashed). Set `value = {center, parent, dependsOn, blocks, related, children, childrenDone}`; nodes are `{id, title, key?, status?, tone?, icon?, linkId?}`. A node click emits `iq-open {id}`; unless `readonly`, a removable link emits `iq-remove {id, linkId}`. Hosts narrower than 560px get a grouped list with the same cards.

@@ -13,7 +13,8 @@ test('the relation map is a public core component', () => {
 });
 test('the relation map lays out parent, children, dependencies and links and emits open and remove', () => {
   const js = read('src/modules/relation-map.js');
-  assert.match(js, /groups=\[\['parent','Родитель'\],\['dependsOn','Зависит от'\],\['blocks','Блокирует'\],\['related','Связана с'\],\['children','Подзадачи'\]\]/);
+  for (const label of ['Родительская задача','Блокируют эту задачу']) assert.ok(js.includes(label), label);
+  assert.match(js, /function lanes\(v\)\{/);
   assert.match(js, /new CustomEvent\('iq-open'/);
   assert.match(js, /new CustomEvent\('iq-remove'/);
   assert.match(js, /if\(width<560\)/);

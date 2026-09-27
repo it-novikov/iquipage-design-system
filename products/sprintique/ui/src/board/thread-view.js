@@ -9,7 +9,7 @@ export function mountThreads(root,{repository,task,readOnly=false}){
   let pager,unresolvedCount=0,pageLoading=false,canLoadMore=false;
   const fullThreads=new Map(),detailRequests=new Map();
   const drafts=new Map(),replyIds=new Map(),expanded=new Set(),busy=new Set(),abort=new AbortController();
-  root.innerHTML=`<div class="row between"><h3>Обсуждения</h3><span class="iq-helper" data-thread-count></span></div>
+  root.innerHTML=`<div class="iq-section-head">${icon('message',16)}<h3>Обсуждения</h3><span class="iq-helper iq-section-actions" data-thread-count></span></div>
     <p role="alert" class="map-form-error" data-thread-error hidden></p>
     <span class="iq-helper" role="status" data-thread-page-state></span><div data-thread-list></div>
     <button type="button" class="iq-btn ghost sm" data-more-threads hidden>Показать ещё</button>`;

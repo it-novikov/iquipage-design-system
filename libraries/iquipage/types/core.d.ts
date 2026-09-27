@@ -1,5 +1,5 @@
 /** Supported core browser entry. Does not register graph, roadmap, crop, or whiteboard. */
-export declare const version:'0.6.0-vnext.17';
+export declare const version:'0.6.0-vnext.18';
 export declare function registerCore():void;
 export declare function registerComponents():void;
 export declare function registerDateFields():void;
@@ -14,6 +14,7 @@ export declare function mark():string;
 export declare function escapeHTML(value:unknown):string;
 /** Tag colour attributes: a palette tone name, or any "#RRGGBB" (derived, theme-aware fill and text; no inline styles). */
 export declare function tagToneAttributes(tone:string):string;
+export interface AvatarPerson {name:string;id?:string;}
 export declare function notify(options:{message:string;description?:string;tone?:'info'|'success'|'warning'|'danger';duration?:number;action?:{label:string;run:()=>void}}):void;
 export declare function motionReduced():boolean;
 export declare function transition(el:HTMLElement,frames:Keyframe[],duration?:number,delay?:number):Animation|undefined;
