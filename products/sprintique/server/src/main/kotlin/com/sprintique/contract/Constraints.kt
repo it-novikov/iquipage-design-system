@@ -48,11 +48,17 @@ annotation class IsoDate(
 )
 
 class IsoDateValidator : ConstraintValidator<IsoDate, String?> {
-    private val format = DateTimeFormatter.ofPattern("uuuu-MM-dd").withResolverStyle(ResolverStyle.STRICT)
-
     override fun isValid(value: String?, context: ConstraintValidatorContext): Boolean =
-        value == null || runCatching { LocalDate.parse(value, format) }.isSuccess
+        value == null || isIsoDate(value)
 }
+
+private val ISO_DATE = DateTimeFormatter.ofPattern("uuuu-MM-dd").withResolverStyle(ResolverStyle.STRICT)
+
+/** Whether `value` is a calendar date written `YYYY-MM-DD` that exists. */
+fun isIsoDate(value: String): Boolean =
+    value.length == ISO_DATE_LENGTH && runCatching { LocalDate.parse(value, ISO_DATE) }.isSuccess
+
+private const val ISO_DATE_LENGTH = 10
 
 /** An IANA time zone: `UTC` or a `Region/City` name the runtime knows. */
 @Target(AnnotationTarget.FIELD, AnnotationTarget.VALUE_PARAMETER)

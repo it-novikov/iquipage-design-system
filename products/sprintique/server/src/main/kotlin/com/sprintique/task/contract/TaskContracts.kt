@@ -1,4 +1,4 @@
-package com.sprintique.task.api
+package com.sprintique.task.contract
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonValue
@@ -8,7 +8,7 @@ import com.sprintique.contract.RESOURCE_ID
 import com.sprintique.contract.ResourceIds
 import com.sprintique.contract.TrimmedString
 import com.sprintique.contract.UniqueItems
-import com.sprintique.task.application.TaskContent
+import com.sprintique.task.domain.TaskContent
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.Valid
 import jakarta.validation.constraints.AssertTrue

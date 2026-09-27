@@ -31,6 +31,19 @@ object PlanningStates {
 
     private const val MEMBER_LIMIT = 500
 
+    private val TASKS = """
+        SELECT t.id, p.key || '-' || t.number AS "displayId", t.revision, t.parent_id AS "parentId", t.title, t.type,
+               t.status, t.attachment_ids AS "attachmentIds", t.cover_attachment_id AS "coverAttachmentId",
+               t.cover_crop AS "coverCrop", t.owner_id AS "ownerId", t.owner_label AS "legacyOwner", t.priority, t.rank,
+               to_char(t.status_entered_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS "statusEnteredAt",
+               to_char(t.created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS "createdAt",
+               t.preparation, t.result, t.admitted, t.assignment_mode AS "assignmentMode", t.release_id AS "releaseId",
+               to_char(t.planned_start, 'YYYY-MM-DD') AS "plannedStart", to_char(t.planned_end, 'YYYY-MM-DD') AS "plannedEnd",
+               to_char(t.due, 'YYYY-MM-DD') AS due,
+               ARRAY(SELECT tag_id FROM app.task_tags WHERE project_id = t.project_id AND task_id = t.id ORDER BY tag_id) AS "tagIds"
+        FROM app.tasks t JOIN app.projects p ON p.id = t.project_id WHERE t.project_id = $1 ORDER BY t.number LIMIT 10001
+    """.trimIndent()
+
     /**
      * Takes the project row, then checks access and the live credential again: a command queued behind another
      * one must not run on rights that were revoked while it waited.
@@ -52,21 +65,7 @@ object PlanningStates {
     }
 
     fun load(tx: Transaction, projectId: String): PlanningState {
-        val tasks = tx.rows(
-            """
-            SELECT t.id, p.key || '-' || t.number AS "displayId", t.revision, t.parent_id AS "parentId", t.title, t.type,
-                   t.status, t.attachment_ids AS "attachmentIds", t.cover_attachment_id AS "coverAttachmentId",
-                   t.cover_crop AS "coverCrop", t.owner_id AS "ownerId", t.owner_label AS "legacyOwner", t.priority, t.rank,
-                   to_char(t.status_entered_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS "statusEnteredAt",
-                   to_char(t.created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS "createdAt",
-                   t.preparation, t.result, t.admitted, t.assignment_mode AS "assignmentMode", t.release_id AS "releaseId",
-                   to_char(t.planned_start, 'YYYY-MM-DD') AS "plannedStart", to_char(t.planned_end, 'YYYY-MM-DD') AS "plannedEnd",
-                   to_char(t.due, 'YYYY-MM-DD') AS due,
-                   ARRAY(SELECT tag_id FROM app.task_tags WHERE project_id = t.project_id AND task_id = t.id ORDER BY tag_id) AS "tagIds"
-            FROM app.tasks t JOIN app.projects p ON p.id = t.project_id WHERE t.project_id = $1 ORDER BY t.number LIMIT 10001
-            """.trimIndent(),
-            projectId,
-        ).map(::taskOf)
+        val tasks = tx.rows(TASKS, projectId).map(::taskOf)
         val releases = tx.rows(
             "SELECT $RELEASE_PROJECTION FROM app.releases WHERE project_id = $1 ORDER BY id LIMIT 1001",
             projectId,

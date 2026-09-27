@@ -10,6 +10,9 @@ import com.sprintique.identity.domain.Capability
 import com.sprintique.task.application.TaskLinkValue
 import com.sprintique.task.application.TaskLinks
 import com.sprintique.task.application.Tasks
+import com.sprintique.task.contract.MoveTaskRequest
+import com.sprintique.task.contract.PutTaskLinkRequest
+import com.sprintique.task.contract.PutTaskRequest
 import com.sprintique.web.RequestValidationException
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.context.annotation.Profile

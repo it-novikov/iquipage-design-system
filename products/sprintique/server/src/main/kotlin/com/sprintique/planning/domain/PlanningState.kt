@@ -30,6 +30,77 @@ data class TaskState(
     val plannedEnd: String?,
     val due: String?,
     val tagIds: List<String>,
+) {
+    /** The planning projection of this task once its effective release, board admission and children are known. */
+    fun toRow(effectiveReleaseId: String?, assignmentSourceId: String?, boardEligible: Boolean, childCount: Int) =
+        PlanningRow(
+            attachmentIds = attachmentIds,
+            coverAttachmentId = coverAttachmentId,
+            coverCrop = coverCrop,
+            id = id,
+            displayId = displayId,
+            revision = revision,
+            parentId = parentId,
+            title = title,
+            type = type,
+            status = status,
+            ownerId = ownerId,
+            legacyOwner = legacyOwner,
+            priority = priority,
+            rank = rank,
+            statusEnteredAt = statusEnteredAt,
+            createdAt = createdAt,
+            tagIds = tagIds,
+            preparation = preparation,
+            result = result,
+            admitted = admitted,
+            plannedStart = plannedStart,
+            plannedEnd = plannedEnd,
+            due = due,
+            assignmentMode = assignmentMode,
+            releaseId = releaseId,
+            effectiveReleaseId = effectiveReleaseId,
+            assignmentSourceId = assignmentSourceId,
+            boardEligible = boardEligible,
+            childCount = childCount,
+        )
+}
+
+/**
+ * A task with what planning derives for it: the release it effectively belongs to (its own or inherited), the task
+ * that decided it, whether it is on the board, and its number of children. The fields read back from stored previews
+ * and history, so the optional ones have defaults.
+ */
+data class PlanningRow(
+    val attachmentIds: List<String> = emptyList(),
+    val coverAttachmentId: String? = null,
+    val coverCrop: Any? = null,
+    val id: String,
+    val displayId: String,
+    val revision: Int,
+    val parentId: String?,
+    val title: String,
+    val type: String,
+    val status: String,
+    val ownerId: String?,
+    val legacyOwner: String = "",
+    val priority: String,
+    val rank: Double,
+    val statusEnteredAt: String,
+    val createdAt: String,
+    val tagIds: List<String>,
+    val preparation: String,
+    val result: String,
+    val admitted: Boolean,
+    val plannedStart: String?,
+    val plannedEnd: String? = null,
+    val due: String?,
+    val assignmentMode: String,
+    val releaseId: String?,
+    val effectiveReleaseId: String?,
+    val assignmentSourceId: String?,
+    val boardEligible: Boolean,
+    val childCount: Int,
 )
 
 data class Release(
@@ -46,7 +117,7 @@ data class Release(
     val archivedAt: Instant?,
 )
 
-data class Milestone(val id: String, val title: String, val date: String, val revision: Int, val releaseId: String?)
+data class Milestone(val id: String, val title: String, val date: String?, val revision: Int, val releaseId: String?)
 
 /** A task, release or milestone named by a temporal constraint. */
 data class PlanningEntity(val kind: String, val id: String)

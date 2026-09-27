@@ -77,8 +77,13 @@ class CommandLedger(private val json: JsonMapper) {
     companion object {
         private val KEY = Regex("^[A-Za-z0-9_-]{8,120}$")
 
-        /** Keys sorted at every level, so field order in the request does not change the hash. */
+        /**
+         * Keys sorted at every level, so field order does not change the hash. Numbers are written by value (`1024.0`,
+         * `1024` and `1.024E3` are one number), as the database returns a stored number in its own notation.
+         */
         fun canonical(node: JsonNode): String = when {
+            node.isNumber -> node.decimalValue().stripTrailingZeros().toPlainString()
+
             node.isArray -> node.values().joinToString(",", "[", "]") { canonical(it) }
 
             node.isObject -> (node as ObjectNode).properties().sortedBy { it.key }

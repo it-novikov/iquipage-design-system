@@ -1,7 +1,7 @@
 import {before,after,test} from 'node:test';
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
-import {fixture} from './fixture.js';
+import {fixture,kotlin,startApp} from './fixture.js';
 import {TaskInput} from '../contracts/index.js';
 import type {Task} from '../contracts/index.js';
 import type {PlanningCommand,Preview,Receipt,PlanningRow,Release,ReleaseData} from '../contracts/planning.js';
@@ -113,14 +113,14 @@ test('P04 close pins accepted children, creates and moves remainder atomically, 
 });
 test('P05 persisted preview and lost ACK receipt survive app restart, new key cannot apply plan twice',async()=>{
   const p=await preview({kind:'prepare',selection:select('excluded'),preparation:'ready'}),key=randomUUID(),body={planId:p.id,token:p.token};
-  const db=new Database(process.env['DATABASE_URL']!),app=await createApp({db,origin:'http://localhost:4311'});
+  const app=await startApp();
   try{
     const response=await app.inject({method:'POST',url:path('planning/commands'),headers:{...f.alice.headers,'idempotency-key':key},payload:body});assert.equal(response.json().status,'committed',response.body);
     assert.deepEqual((await request('GET','planning/commands/'+key)).json(),response.json());
     assert.deepEqual((await request('POST','planning/commands',body,f.alice.headers)).json(),response.json());
     assert.equal((await request('POST','planning/commands',{...body,token:'A'.repeat(43)},f.alice.headers,key)).statusCode,409);
     const count=await f.admin.query('SELECT count(*)::int AS count FROM app.audit_events WHERE operation_id=$1',[response.json().operationId]);assert.equal(count.rows[0]!.count,1);
-  }finally{await app.close();await db.close();}
+  }finally{await app.close();}
 });
 test('P06 stale preview is a durable rejection; no cross-tenant preview/receipt disclosure',async()=>{
   const p=await preview({kind:'prepare',selection:select('excluded'),preparation:'draft'});
@@ -306,7 +306,7 @@ test('P13 static response schemas are exposed and timezone input is validated',a
   const project=await f.app.inject({method:'POST',url:'/api/v1/projects',headers:f.alice.headers,payload:{workspaceId:created.json().id,name:'Timezone',slug:'timezone-r2',key:'TZ'}});assert.equal(project.statusCode,200,project.body);
   const caps=await f.app.inject({url:`/api/v1/projects/${project.json().id}/planning/capabilities`,headers:f.alice.headers});assert.equal(caps.json().timezone,'Europe/Moscow');
 });
-test('P09 temporal relations use the correct start/end endpoints and inclusive day boundaries',()=>{
+test('P09 temporal relations use the correct start/end endpoints and inclusive day boundaries',{skip:kotlin&&'Kotlin PlanningChangeTest'},()=>{
   const dates=(id:string,start:string,end:string):Release=>({id,projectId:'test',name:id,revision:1,scopeRevision:0,lifecycle:'planned',format:'flexible',plannedStart:start,plannedEnd:end,deadline:null,archivedAt:null});
   for(const [relation,boundary] of [['FS',-4],['SS',5],['FF',2],['SF',11]] as const){
     const state={tasks:[],releases:[dates('a','2026-09-01','2026-09-10'),dates('b','2026-09-06','2026-09-12')],milestones:[],

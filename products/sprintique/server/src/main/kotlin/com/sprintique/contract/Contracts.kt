@@ -27,6 +27,11 @@ class Contracts(private val json: JsonMapper, private val validator: Validator) 
     }
 
     final inline fun <reified T : Any> parse(node: JsonNode?): T = parse(node, T::class)
+
+    /** A request value built by the server from other input, held to the same contract as one from the network. */
+    fun <T : Any> tree(value: Any, type: KClass<T>): T = parse(json.valueToTree(value), type)
+
+    final inline fun <reified T : Any> tree(value: Any): T = tree(value, T::class)
 }
 
 /** Declares the request contract of a route whose body is validated inside the operation (see [Contracts]). */
