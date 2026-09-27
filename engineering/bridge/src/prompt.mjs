@@ -27,7 +27,7 @@ function protocol(root) {
 /** Everything an author agent needs to start: who it is, the protocol and the task brief. */
 export function authorPrompt(root, id, {agent}) {
   return [
-    `Вы — агент «${agent}». Задача ${id}. Имя агента для команд моста: \`export BRIDGE_AGENT=${agent}\`.`,
+    `Вы — агент «${agent}». Задача ${id}. Команды моста подписываются именем из BRIDGE_AGENT; если переменная не задана, выполните \`export BRIDGE_AGENT=${agent}\`.`,
     '',
     protocol(root),
     '',

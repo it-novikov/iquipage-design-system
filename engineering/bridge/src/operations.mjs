@@ -9,7 +9,7 @@ import {
 } from './card.mjs';
 import {appendJournal} from './journal.mjs';
 import {describeDirty, gitState, mergeBase, shortSha} from './git.mjs';
-import {clearLease, holds, liveLease, newLease, readLease, requireWriter, withLeaseLock, writeLease} from './lease.mjs';
+import {clearLease, describeHolder, holds, liveLease, newLease, readLease, requireWriter, withLeaseLock, writeLease} from './lease.mjs';
 import {isBlocking, parseReview, reviewTemplate} from './review.mjs';
 import {requireNoSecrets} from './secrets.mjs';
 import {TASK_ID, isoSeconds, loadCard, mutateCard, now, paths, readCards, requireInitialized, withLock, writeAtomic} from './store.mjs';
@@ -68,7 +68,7 @@ export function heldBy(root, agent) {
   return readCards(root, {warn: false}).map(entry => entry.id).filter(id => holds(liveLease(root, id), agent));
 }
 
-export function claim(root, id, {agent, ttlHours = 4, force = false, reason = '', session}) {
+export function claim(root, id, {agent, ttlHours = 4, force = false, reason = '', session, relay}) {
   if (!agent) throw new BridgeError('AGENT_REQUIRED', 'Укажите имя: --agent <имя> или переменная BRIDGE_AGENT.');
   requireNoSecrets(reason);
   const card = loadCard(root, id);
@@ -79,9 +79,11 @@ export function claim(root, id, {agent, ttlHours = 4, force = false, reason = ''
   withLeaseLock(root, id, () => {
     previous = liveLease(root, id);
     if (previous && !holds(previous, agent) && !force) {
-      throw new BridgeError('TASK_HELD', `Задачу держит ${previous.holder} до ${previous.expires}. Не работайте над ней параллельно.`, 3);
+      throw new BridgeError('TASK_HELD', `Задачу держит ${describeHolder(previous, agent)} до ${previous.expires}. Не работайте над ней параллельно.`, 3);
     }
-    writeLease(root, id, newLease({agent, ttlHours, ...(session !== undefined ? {session} : {})}));
+    // An agent re-claiming inside a relay keeps the relay's mark, so the relay can still move the task on.
+    const keptRelay = relay ?? (previous && holds(previous, agent) ? previous.relay ?? '' : '');
+    writeLease(root, id, newLease({agent, ttlHours, relay: keptRelay, ...(session !== undefined ? {session} : {})}));
   });
   // Starting work is a content change once; renewals and handoffs never touch the tracked card.
   if (['draft', 'ready'].includes(card.meta.status)) mutateCard(root, id, edited => { edited.meta.status = 'active'; });
@@ -94,8 +96,7 @@ export function release(root, id, {agent, note = '', force = false}) {
   withLeaseLock(root, id, () => {
     const lease = readLease(root, id);
     if (lease && liveLease(root, id) && !holds(lease, agent) && !force) {
-      const who = lease.holder === agent ? `${agent} в другой сессии (${String(lease.session).slice(0, 8)})` : lease.holder;
-      throw new BridgeError('NOT_HOLDER', `Задачу держит ${who}.`, 3);
+      throw new BridgeError('NOT_HOLDER', `Задачу держит ${describeHolder(lease, agent)}.`, 3);
     }
     clearLease(root, id);
   });

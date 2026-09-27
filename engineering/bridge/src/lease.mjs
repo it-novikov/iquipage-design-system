@@ -88,13 +88,19 @@ export function holds(lease, agent, session = process.env.BRIDGE_SESSION || '') 
 export function requireWriter(root, id, agent, {force = false} = {}) {
   const lease = liveLease(root, id);
   if (lease && !holds(lease, agent) && !force) {
-    const who = lease.session ? `${lease.holder} (сессия ${lease.session.slice(0, 8)})` : lease.holder;
+    const who = describeHolder(lease, agent);
     throw new BridgeError('TASK_HELD', `Задачу держит ${who} до ${lease.expires}. Не меняйте её параллельно; --force --because только с причиной.`, 3);
   }
   return lease;
 }
 
-export function newLease({agent, session = process.env.BRIDGE_SESSION || '', ttlHours}) {
+/** A lease; `relay` names the relay run that granted it, so only that relay may later move it to another agent. */
+export function newLease({agent, session = process.env.BRIDGE_SESSION || '', ttlHours, relay = ''}) {
   const at = now();
-  return {holder: agent, session, claimed: isoSeconds(at), ttlHours, expires: isoSeconds(new Date(at.getTime() + ttlHours * 3600_000))};
+  return {holder: agent, session, relay, claimed: isoSeconds(at), ttlHours, expires: isoSeconds(new Date(at.getTime() + ttlHours * 3600_000))};
+}
+
+export function describeHolder(lease, agent) {
+  if (lease.holder === agent && lease.session) return `${agent} в другой сессии (${String(lease.session).slice(0, 8)})`;
+  return lease.relay ? `${lease.holder} (эстафета ${lease.relay})` : lease.holder;
 }

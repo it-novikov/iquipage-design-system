@@ -12,12 +12,15 @@ export function parseReview(text) {
   for (const line of body.split('\n')) {
     const match = FINDING.exec(line);
     if (match) {
-      current = {id: `F${match[1]}`, priority: match[2], text: match[3], resolution: null};
+      current = {id: `F${match[1]}`, priority: match[2], text: match[3], resolution: null, resolutionText: ''};
       findings.push(current);
       continue;
     }
     const resolution = current && RESOLUTION.exec(line);
-    if (resolution) current.resolution = resolution[1];
+    if (resolution) {
+      current.resolution = resolution[1];
+      current.resolutionText = line.trim().replace(/^Решение: /, '');
+    }
     else if (!line.startsWith('  ')) current = null;
   }
   return {meta, findings};

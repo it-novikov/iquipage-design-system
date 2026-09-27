@@ -6,7 +6,7 @@ import {BridgeError} from './errors.mjs';
 import {FIELD, fieldText, parseSteps} from './card.mjs';
 import {workFingerprint} from './git.mjs';
 import {appendJournal, readJournal} from './journal.mjs';
-import {liveLease} from './lease.mjs';
+import {describeHolder, liveLease} from './lease.mjs';
 import {claim, handoff, release} from './operations.mjs';
 import {authorPrompt} from './prompt.mjs';
 import {isoSeconds, loadCard, loadConfig, now, paths} from './store.mjs';
@@ -125,6 +125,23 @@ function wantedModel(card) {
  * leaves `active`/`ready`, when every agent is unavailable, or when sessions stop making progress. A step marked
  * `Модель: fast` goes to the first available agent configured with that model class.
  */
+/**
+ * The relay holds the task under its own run id. It moves a lease between its agents, takes over the lease of the
+ * interactive session that started it, and respects every other holder: another relay, an agent in a terminal.
+ */
+function takeLease(root, id, agentName, {relayId, ttlHours}) {
+  const lease = liveLease(root, id);
+  const ownSession = Boolean(lease?.session) && lease.session === process.env.BRIDGE_SESSION;
+  if (lease && lease.relay !== relayId && !ownSession) {
+    throw new BridgeError('TASK_HELD', `Задачу держит ${describeHolder(lease, agentName)} до ${lease.expires}. Эстафета не отбирает чужую аренду.`, 3);
+  }
+  if (lease?.holder === agentName && lease.relay === relayId) return;
+  if (lease) {
+    release(root, id, {agent: lease.holder, note: ownSession ? 'аренду сессии приняла эстафета' : `эстафета передаёт задачу ${agentName}`, force: true});
+  }
+  claim(root, id, {agent: agentName, ttlHours, session: '', relay: relayId});
+}
+
 export async function runRelay(root, id, options = {}) {
   const {chain: chainOverride, maxRounds, wait = false, dryRun = false, quiet = false, after = '', report = text => process.stderr.write(`${text}\n`)} = options;
   const config = loadConfig(root);
@@ -136,6 +153,7 @@ export async function runRelay(root, id, options = {}) {
   const rounds = maxRounds ?? session.maxRounds;
   const overloadedRetry = {attempts: 2, backoffSeconds: [30, 120], ...(config.retry?.overloaded ?? {})};
   const unavailableUntil = new Map();
+  const relayId = `r${process.pid}-${Date.now().toString(36)}`;
   let index = 0, stalled = 0, overloadedAttempts = 0;
   if (after) {
     const position = chain.findIndex(key => nameOf(key) === after || key === after);
@@ -183,13 +201,7 @@ export async function runRelay(root, id, options = {}) {
     }
     const agent = config.agents[available];
     const agentName = nameOf(available);
-    const lease = liveLease(root, id);
-    // A lease the relay gave to another agent of its chain is the relay's to move; any other holder is respected.
-    if (lease && lease.holder !== agentName && !lease.session && chain.some(key => nameOf(key) === lease.holder)) {
-      release(root, id, {agent: lease.holder, note: `эстафета передаёт задачу ${agentName}`, force: true});
-    }
-    // The relay's lease belongs to no interactive session, even when `bridge run` is started from one.
-    if (liveLease(root, id)?.holder !== agentName) claim(root, id, {agent: agentName, ttlHours: Math.ceil(session.timeoutMinutes / 60) + 1, session: ''});
+    takeLease(root, id, agentName, {relayId, ttlHours: Math.ceil(session.timeoutMinutes / 60) + 1});
     const before = progressMarker(root, id);
     report(`Раунд ${round}: ${agentName}`);
     const result = await runAgent(root, id, available, agent, authorPrompt(root, id, {agent: agentName}), {timeoutMinutes: session.timeoutMinutes, quiet, round});
@@ -217,8 +229,10 @@ export async function runRelay(root, id, options = {}) {
     }
     overloadedAttempts = 0;
     if (outcome.kind === 'context') continue; // A fresh session of the same agent starts from the card.
-    const next = chain[(chain.indexOf(available) + 1) % chain.length];
-    handoff(root, id, {agent: agentName, reason: REASON[outcome.kind], to: next !== available ? nameOf(next) : '', force: true});
+    const cooling = new Map(unavailableUntil).set(available, new Date(now().getTime() + 60_000));
+    const next = chain.find(key => key !== available && !(cooling.get(key) > now()) && (!wantedModel(after) || config.agents[key].model === wantedModel(after)))
+      ?? chain.find(key => key !== available && !(cooling.get(key) > now()));
+    handoff(root, id, {agent: agentName, reason: REASON[outcome.kind], to: next ? nameOf(next) : '', force: true});
     // A reset time already in the past says nothing useful; wait an hour as when none is given.
     const reset = outcome.retryAt && outcome.retryAt > now() ? outcome.retryAt : new Date(now().getTime() + 3600_000);
     const cooldown = outcome.kind === 'limit' || outcome.kind === 'auth' ? reset : new Date(now().getTime() + 60_000);
