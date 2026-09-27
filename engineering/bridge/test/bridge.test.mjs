@@ -527,3 +527,55 @@ test('only the task owner can waive a blocking finding', () => {
   writeFileSync(file, readFileSync(file, 'utf8').replace('## Замечания\n', '## Замечания\n- **F1** [P1] `a:1` — Гонка.\n  Решение: [waived agent-x: сам решил]\n'));
   assert.ok(validateTask(root, id).errors.some(error => /\[waived\] ставит владелец задачи \(owner\)/.test(error)));
 });
+
+// ---------------------------------------------------------------------------------------------------------------
+// Confirmation review R5
+
+test('during a relay round a tab or terminal with the same name cannot take the task', async () => {
+  const root = repository();
+  const id = plannedTask(root);
+  configure(root, {chain: ['a'], agents: {a: {name: 'claude-code', command: fakeAgent(root, 'relayed', `
+    import {spawnSync} from 'node:child_process';
+    const other = session => spawnSync(process.execPath, [${JSON.stringify(BIN)}, 'claim', '--agent', 'claude-code'], {env: {...process.env, BRIDGE_RELAY: '', BRIDGE_SESSION: session}}).status;
+    run('checkpoint', '--state', 'tab=' + other('another-tab') + ' terminal=' + other(''), '--next', 'Ревью');
+    run('status', 'review');
+  `), input: 'stdin'}}});
+  const result = await runRelay(root, id, {quiet: true, report: () => {}});
+  assert.equal(result.outcome, 'review');
+  assert.match(readFileSync(paths(root).card(id), 'utf8'), /tab=3 terminal=3/);
+});
+
+test('the relay frees its lease however it ends', async () => {
+  const root = repository();
+  const id = plannedTask(root);
+  configure(root, {chain: ['a'], agents: {a: {name: 'busy', command: fakeAgent(root, 'busy', `run('checkpoint', '--state', String(Date.now()), '--next', 'x');`), input: 'stdin'}}});
+  const result = await runRelay(root, id, {quiet: true, maxRounds: 1, report: () => {}});
+  assert.equal(result.outcome, 'max-rounds');
+  assert.equal(liveLease(root, id), null);
+});
+
+test('the handoff names the agent the relay will pick next', async () => {
+  const root = repository();
+  const id = plannedTask(root);
+  configure(root, {chain: ['a', 'cheap', 'b'], agents: {
+    a: {name: 'strong-a', model: 'strong', command: fakeAgent(root, 'a', `process.stderr.write('usage limit reached'); process.exit(1);`), input: 'stdin', signals: {limit: ['usage limit reached']}},
+    cheap: {name: 'cheap', model: 'fast', command: fakeAgent(root, 'cheap', `run('status', 'review');`), input: 'stdin'},
+    b: {name: 'strong-b', model: 'strong', command: fakeAgent(root, 'b', `run('status', 'review');`), input: 'stdin'},
+  }});
+  await runRelay(root, id, {quiet: true, report: () => {}});
+  assert.ok(readJournal(root, id).some(entry => entry.kind === 'handoff' && /limit → strong-b/.test(entry.text)));
+  assert.ok(readJournal(root, id).some(entry => entry.actor === 'strong-b' && entry.kind === 'status'));
+});
+
+test('a waiver names the owner exactly and gives a reason', () => {
+  const root = repository();
+  const id = plannedTask(root);
+  const {file} = operations.startReview(root, id, {reviewer: 'r', base: 'main'});
+  const resolve = resolution => {
+    writeFileSync(file, readFileSync(file, 'utf8').replace(/## Замечания\n[\s\S]*?\n## Итог/, `## Замечания\n- **F1** [P2] \`a:1\` — Имя.\n  Решение: ${resolution}\n\n## Итог`));
+    return validateTask(root, id).errors.some(error => /\[waived\] ставит владелец/.test(error));
+  };
+  assert.equal(resolve('[waived owner-bot: сам]'), true);
+  assert.equal(resolve('[waived owner]'), true);
+  assert.equal(resolve('[waived owner: риск принят]'), false);
+});

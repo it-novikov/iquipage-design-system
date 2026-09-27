@@ -70,7 +70,7 @@ function progressMarker(root, id) {
   return JSON.stringify({card, content: [...content].sort(), work: workFingerprint(root)});
 }
 
-function runAgent(root, id, agentKey, agent, prompt, {timeoutMinutes, quiet, round}) {
+function runAgent(root, id, agentKey, agent, prompt, {timeoutMinutes, quiet, round, relayId}) {
   const directory = paths(root).run(id);
   mkdirSync(directory, {recursive: true});
   const logFile = join(directory, `${isoSeconds(now()).replace(/:/g, '')}-r${round}-${agentKey}.log`);
@@ -78,7 +78,7 @@ function runAgent(root, id, agentKey, agent, prompt, {timeoutMinutes, quiet, rou
   const [command, ...args] = agent.command;
   const child = spawn(command, agent.input === 'argument' ? [...args, prompt] : args, {
     cwd: root, stdio: ['pipe', 'pipe', 'pipe'],
-    env: {...process.env, ...(agent.env ?? {}), BRIDGE_AGENT: agent.name ?? agentKey, BRIDGE_TASK: id, BRIDGE_ROOT: root, BRIDGE_RELAY: '1', BRIDGE_SESSION: ''},
+    env: {...process.env, ...(agent.env ?? {}), BRIDGE_AGENT: agent.name ?? agentKey, BRIDGE_TASK: id, BRIDGE_ROOT: root, BRIDGE_RELAY: '1', BRIDGE_SESSION: relayId},
   });
   const output = {stdout: '', stderr: ''};
   const collect = (chunk, name, stream) => {
@@ -139,10 +139,34 @@ function takeLease(root, id, agentName, {relayId, ttlHours}) {
   if (lease) {
     release(root, id, {agent: lease.holder, note: ownSession ? 'аренду сессии приняла эстафета' : `эстафета передаёт задачу ${agentName}`, force: true});
   }
-  claim(root, id, {agent: agentName, ttlHours, session: '', relay: relayId});
+  // The relay run is the lease's session: its agents inherit it, anyone else with the same name does not hold it.
+  claim(root, id, {agent: agentName, ttlHours, session: relayId, relay: relayId});
+}
+
+/** Frees the lease this relay run holds, whatever made the run end. */
+function releaseOwnLease(root, id, relayId) {
+  const lease = liveLease(root, id);
+  if (lease?.relay === relayId) release(root, id, {agent: lease.holder, note: 'эстафета завершена', force: true});
 }
 
 export async function runRelay(root, id, options = {}) {
+  const relayId = `r${process.pid}-${Date.now().toString(36)}`;
+  const onSignal = signal => {
+    releaseOwnLease(root, id, relayId);
+    process.exit(signal === 'SIGINT' ? 130 : 143);
+  };
+  process.once('SIGINT', onSignal);
+  process.once('SIGTERM', onSignal);
+  try {
+    return await relay(root, id, options, relayId);
+  } finally {
+    process.off('SIGINT', onSignal);
+    process.off('SIGTERM', onSignal);
+    releaseOwnLease(root, id, relayId);
+  }
+}
+
+async function relay(root, id, options, relayId) {
   const {chain: chainOverride, maxRounds, wait = false, dryRun = false, quiet = false, after = '', report = text => process.stderr.write(`${text}\n`)} = options;
   const config = loadConfig(root);
   const chain = chainOverride?.length ? chainOverride : config.chain ?? [];
@@ -153,7 +177,6 @@ export async function runRelay(root, id, options = {}) {
   const rounds = maxRounds ?? session.maxRounds;
   const overloadedRetry = {attempts: 2, backoffSeconds: [30, 120], ...(config.retry?.overloaded ?? {})};
   const unavailableUntil = new Map();
-  const relayId = `r${process.pid}-${Date.now().toString(36)}`;
   let index = 0, stalled = 0, overloadedAttempts = 0;
   if (after) {
     const position = chain.findIndex(key => nameOf(key) === after || key === after);
@@ -204,7 +227,7 @@ export async function runRelay(root, id, options = {}) {
     takeLease(root, id, agentName, {relayId, ttlHours: Math.ceil(session.timeoutMinutes / 60) + 1});
     const before = progressMarker(root, id);
     report(`Раунд ${round}: ${agentName}`);
-    const result = await runAgent(root, id, available, agent, authorPrompt(root, id, {agent: agentName}), {timeoutMinutes: session.timeoutMinutes, quiet, round});
+    const result = await runAgent(root, id, available, agent, authorPrompt(root, id, {agent: agentName}), {timeoutMinutes: session.timeoutMinutes, quiet, round, relayId});
     const outcome = classifyOutcome(result, agent.signals);
     const after = loadCard(root, id);
     const progressed = progressMarker(root, id) !== before;
@@ -214,7 +237,7 @@ export async function runRelay(root, id, options = {}) {
       if (!['active', 'ready', 'draft'].includes(after.meta.status)) continue;
       stalled = progressed ? 0 : stalled + 1;
       if (stalled >= session.stallRounds) {
-        handoff(root, id, {agent: agentName, reason: 'blocked', note: `${stalled} сессии подряд без продвижения; нужен человек`});
+        handoff(root, id, {agent: agentName, reason: 'blocked', note: `${stalled} сессии подряд без продвижения; нужен человек`, force: true});
         report(`Нет продвижения ${stalled} сессии подряд. Нужен человек.`);
         return {outcome: 'stalled'};
       }
@@ -229,14 +252,13 @@ export async function runRelay(root, id, options = {}) {
     }
     overloadedAttempts = 0;
     if (outcome.kind === 'context') continue; // A fresh session of the same agent starts from the card.
-    const cooling = new Map(unavailableUntil).set(available, new Date(now().getTime() + 60_000));
-    const next = chain.find(key => key !== available && !(cooling.get(key) > now()) && (!wantedModel(after) || config.agents[key].model === wantedModel(after)))
-      ?? chain.find(key => key !== available && !(cooling.get(key) > now()));
-    handoff(root, id, {agent: agentName, reason: REASON[outcome.kind], to: next ? nameOf(next) : '', force: true});
     // A reset time already in the past says nothing useful; wait an hour as when none is given.
     const reset = outcome.retryAt && outcome.retryAt > now() ? outcome.retryAt : new Date(now().getTime() + 3600_000);
-    const cooldown = outcome.kind === 'limit' || outcome.kind === 'auth' ? reset : new Date(now().getTime() + 60_000);
-    unavailableUntil.set(available, cooldown);
+    unavailableUntil.set(available, outcome.kind === 'limit' || outcome.kind === 'auth' ? reset : new Date(now().getTime() + 60_000));
+    // The same rule that will pick the next agent names it in the handoff.
+    const next = pick(after);
+    handoff(root, id, {agent: agentName, reason: REASON[outcome.kind], to: next && next !== available ? nameOf(next) : '', force: true});
+
   }
   report(`Достигнут предел раундов (${rounds}).`);
   return {outcome: 'max-rounds'};
