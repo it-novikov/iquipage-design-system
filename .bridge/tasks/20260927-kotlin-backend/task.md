@@ -8,7 +8,7 @@ owner: it-novikov
 branch: feature/kotlin-backend
 base: feat/finish-platform
 created: 2026-09-27
-updated: 2026-09-27T22:54:37Z
+updated: 2026-09-27T23:20:49Z
 links:
 ---
 
@@ -58,15 +58,15 @@ links:
 
 ## Передача
 
-- **Состояние:** S6–S8 готовы и закоммичены (f44c8bd). Против Kotlin проходят: api, membership, project-profile, dev-login D01–D03, security-r4 кроме превью, backend-audit B04.
+- **Состояние:** S9 закоммичен (9a59efd). Против Kotlin проходят api, membership, project-profile, planning (кроме событий и схем), planning-view, security-r4 и backend-audit.
 
   Инвентаризация тестов — в docs/test-parity.md.
-- **Сейчас:** S9: перенос домена планирования (domain/planning.ts, application/planning.ts, planning-view) в модуль planning
-- **Дальше:** Порт planChange, превью и коммитов, затем planning-view; PlanningChangeTest из прямых сценариев planning.test.ts
+- **Сейчас:** S10: карты (backend/application/maps.ts, contracts/maps.ts, http maps)
+- **Дальше:** S11 worker и operations; S12 события, запуски агентов, одобрения-списки
 
   Затем `./gradlew check`.
 - **Незакоммичено:** нет
-- **Рабочая копия:** 1 файл(ов): .impeccable/ (2 files changed, 18 insertions(+), 9 deletions(-)) · HEAD f44c8bd
+- **Рабочая копия:** 1 файл(ов): .impeccable/ (2 files changed, 8 insertions(+), 5 deletions(-)) · HEAD 9a59efd
 - **Ловушки:**
   - pg_ctl и тесты падают без `LC_ALL=C LANG=C`.
   - Docker-контекст по умолчанию (colima default) сломан. Продукт запрещает трогать VM по умолчанию, поэтому тесты Kotlin берут базу из `scripts/test.mjs`.
@@ -82,7 +82,8 @@ links:
   - Regex.matches в Kotlin требует совпадения всей строки; для суффикса — containsMatchIn
   - PlanningStates.load уже общий с задачами: не дублировать загрузку состояния
   - Часовой пояс проекта может быть скрыт политикой строк от агента: timezone nullable
-- **Проверка:** SPRINTIQUE_BACKEND=kotlin node scripts/test.mjs --only=planning.test.ts,planning-view.test.ts
+  - Скрипт переноса строк не должен трогать SQL в тройных кавычках: проверять SQL после любой массовой правки
+- **Проверка:** SPRINTIQUE_BACKEND=kotlin node scripts/test.mjs --only=maps.test.ts
 
 ## План
 
@@ -173,17 +174,18 @@ links:
 - **Покрывает:** A1
 - **Итог:** Модули task, catalog, discussion, search; шаблоны и связи задач. api 20/20; B04 — DiscussionPageIntegrationTest; SEC-03 по HTTP вместо SecurityRaceIntegrationTest. Попутно исправлены: проверки запуска до открытия порта, условие dev-login на контроллере.
 
-### S9. Планирование [active]
+### S9. Планирование [done]
 - **Что:** Предметная модель планирования, превью, коммиты, одобрения, представления.
 - **Как:** Чистый Kotlin-домен; прямые сценарии planning.test.ts становятся `PlanningChangeTest`.
 - **Зачем:** Самая сложная предметная логика.
 - **Приёмка:**
-  - [ ] planning и planning-view тесты проходят против Kotlin
-  - [ ] `PlanningChangeTest` покрывает прямые сценарии домена
+  - [x] planning и planning-view тесты проходят против Kotlin
+  - [x] `PlanningChangeTest` покрывает прямые сценарии домена
 - **Покрывает:** A1
+- **Итог:** Модуль planning: чистый домен (PlanChange, PlanningRows, TemporalRules), контракт команд (он же формат хранения превью), превью с бюджетом, применение с пересчётом, одобрения, история, календарь, представления. planning 19/23 (P12 — S12, P13 — S13), planning-view 11/11; PlanningChangeTest 6.
 - **Модель:** strong
 
-### S10. Карты [todo]
+### S10. Карты [active]
 - **Что:** Карты, версии, шаблоны, сессии, голосования, таймер.
 - **Как:** Порт application/maps.
 - **Зачем:** Паритет раздела карт.

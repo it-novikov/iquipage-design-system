@@ -23,3 +23,6 @@
 - 2026-09-27T22:54:37Z · claude-opus-5-5 · step · S8 · done: Модули task, catalog, discussion, search; шаблоны и связи задач. api 20/20; B04 — DiscussionPageIntegrationTest; SEC-03 по HTTP вместо SecurityRaceIntegrationTest. Попутно исправлены: проверки запуска до открытия порта, условие dev-login на контроллере.
 - 2026-09-27T22:54:37Z · claude-opus-5-5 · step · S9 · active
 - 2026-09-27T22:54:37Z · claude-opus-5-5 · checkpoint · S9 · дальше: Порт planChange, превью и коммитов, затем planning-view; PlanningChangeTest из прямых сценариев planning.test.ts
+- 2026-09-27T23:20:49Z · claude-opus-5-5 · step · S9 · done: Модуль planning: чистый домен (PlanChange, PlanningRows, TemporalRules), контракт команд (он же формат хранения превью), превью с бюджетом, применение с пересчётом, одобрения, история, календарь, представления. planning 19/23 (P12 — S12, P13 — S13), planning-view 11/11; PlanningChangeTest 6.
+- 2026-09-27T23:20:49Z · claude-opus-5-5 · step · S10 · active
+- 2026-09-27T23:20:49Z · claude-opus-5-5 · checkpoint · S10 · дальше: S11 worker и operations; S12 события, запуски агентов, одобрения-списки
