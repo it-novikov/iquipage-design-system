@@ -1,0 +1,60 @@
+# Every setting comes from an environment variable with the SPRINTIQUE_ prefix; this file names them all.
+spring:
+  main:
+    banner-mode: off
+  threads:
+    virtual:
+      enabled: true
+  mvc:
+    throw-exception-if-no-handler-found: true
+  web:
+    resources:
+      add-mappings: false
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration
+      - org.springframework.boot.jooq.autoconfigure.JooqAutoConfiguration
+      - org.springframework.boot.flyway.autoconfigure.FlywayAutoConfiguration
+      - org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration
+
+server:
+  address: ${SPRINTIQUE_HOST:127.0.0.1}
+  port: ${SPRINTIQUE_PORT:4311}
+  shutdown: graceful
+  tomcat:
+    max-swallow-size: 1MB
+    connection-timeout: 15s
+  error:
+    whitelabel:
+      enabled: false
+
+sprintique:
+  environment: ${SPRINTIQUE_ENVIRONMENT:development}
+  public-origin: ${SPRINTIQUE_PUBLIC_ORIGIN:http://localhost:4311}
+  trust-proxy: ${SPRINTIQUE_TRUST_PROXY:}
+  metrics-token: ${SPRINTIQUE_METRICS_TOKEN:}
+  dev-login: ${SPRINTIQUE_DEV_LOGIN:false}
+  web-root: ${SPRINTIQUE_WEB_ROOT:}
+  database:
+    url: ${SPRINTIQUE_DATABASE_URL:}
+    worker-url: ${SPRINTIQUE_WORKER_DATABASE_URL:}
+    migration-url: ${SPRINTIQUE_MIGRATION_DATABASE_URL:}
+    runtime-role: ${SPRINTIQUE_DATABASE_RUNTIME_ROLE:}
+    worker-role: ${SPRINTIQUE_DATABASE_WORKER_ROLE:}
+  oidc:
+    issuer: ${SPRINTIQUE_OIDC_ISSUER:}
+    client-id: ${SPRINTIQUE_OIDC_CLIENT_ID:}
+    client-secret: ${SPRINTIQUE_OIDC_CLIENT_SECRET:}
+  storage:
+    endpoint: ${SPRINTIQUE_STORAGE_ENDPOINT:}
+    region: ${SPRINTIQUE_STORAGE_REGION:}
+    bucket: ${SPRINTIQUE_STORAGE_BUCKET:}
+    access-key-id: ${SPRINTIQUE_STORAGE_ACCESS_KEY_ID:}
+    secret-access-key: ${SPRINTIQUE_STORAGE_SECRET_ACCESS_KEY:}
+
+springdoc:
+  api-docs:
+    path: /openapi.json
+    version: openapi_3_1
+  swagger-ui:
+    path: /api/docs

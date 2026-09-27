@@ -1,0 +1,20 @@
+# Deviations from the default Detekt rule set. Each one names why (engineering/conventions/code-quality.md).
+complexity:
+  LongParameterList:
+    # HTTP request and response classes mirror the public contract field by field.
+    allowedConstructorParameters: 12
+    ignoreDataClasses: true
+  TooManyFunctions:
+    # A controller or a SQL adapter exposes one function per route or statement of its module.
+    allowedFunctionsPerFile: 25
+    allowedFunctionsPerClass: 25
+    allowedFunctionsPerObject: 25
+style:
+  MagicNumber:
+    excludes: ['**/test/**']
+    ignorePropertyDeclaration: true
+    ignoreCompanionObjectPropertyDeclaration: true
+naming:
+  FunctionNaming:
+    # Test names are behaviour sentences in backticks.
+    excludes: ['**/test/**']
