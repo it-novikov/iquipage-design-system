@@ -8,6 +8,8 @@ import {BRIDGE_HOME, bridgeCommand} from './operations.mjs';
 import {parseReview} from './review.mjs';
 import {loadCard, paths} from './store.mjs';
 
+const clip = (text, limit) => (text.length > limit ? `${text.slice(0, limit - 1)}…` : text);
+
 export function briefFor(root, id, {budget} = {}) {
   const card = loadCard(root, id);
   return renderBrief(card, {
@@ -77,7 +79,7 @@ export function reviewerPrompt(root, id, {agent, reviewFile, baseRef, previous =
   );
   if (followUp) {
     for (const item of followUp) {
-      lines.push(`## Замечания ${item.id}`, ...item.review.findings.map(finding => `- ${finding.id} [${finding.priority}] ${finding.resolution ?? 'open'} — ${finding.text}`), '');
+      lines.push(`## Замечания ${item.id}`, ...item.review.findings.map(finding => `- ${finding.id} [${finding.priority}] ${finding.resolution ?? 'open'} — ${clip(finding.text, 180)}`), '');
     }
     const stat = rewritten ? diffStatOfFiles(root, since, taskFiles) : diffStat(root, since, '..');
     lines.push('## Изменено после прошлого ревью', '```', stat ?? 'git недоступен', '```');
