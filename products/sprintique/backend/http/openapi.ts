@@ -25,7 +25,7 @@ const bodies:Record<string,string>={
   'PATCH /api/v1/profile':'ChangeProfile','POST /api/v1/invitations/accept':'AcceptInvitation',
   'PATCH /api/v1/workspaces/:workspaceId':'PutWorkspaceProfile','PATCH /api/v1/workspaces/:workspaceId/members/:id':'ChangeWorkspaceMember',
   ['PUT '+P+'/tasks/:id']:'PutTask',['PATCH '+P+'/tasks/:id/position']:'TaskPosition',
-  ['POST '+P+'/tasks/:id/threads']:'CreateThread',['POST '+P+'/threads/:id/messages']:'AppendMessage',['PATCH '+P+'/threads/:id/resolution']:'ResolveThread',
+  ['POST '+P+'/tasks/:id/threads']:'CreateThread',['POST '+P+'/threads/:id/messages']:'AppendMessage',['PATCH '+P+'/threads/:id/resolution']:'ResolveThread',['PATCH '+P+'/threads/:id/kind']:'ChangeThreadKind',['POST '+P+'/threads/:id/read']:'MarkThreadRead',
   ['POST '+P+'/agents']:'AgentGrant',['POST '+P+'/agent-runs']:'StartAgentRun',['POST '+P+'/agent-runs/:id/proposals']:'AgentRunProposal',
   ['POST '+P+'/agent-runs/:id/commit']:'AgentRunCommit',['POST '+P+'/agent-runs/:id/finish']:'FinishAgentRun',['POST '+P+'/agent-context']:'AgentContextQuery',
   ['PATCH '+P+'/members/:id']:'ChangeMember',['POST '+P+'/invitations']:'CreateInvitation',
@@ -39,7 +39,7 @@ const bodies:Record<string,string>={
 };
 const noKey=new Set(['POST /api/v1/logout','POST /api/v1/workspaces','POST /api/v1/projects','PATCH /api/v1/profile',
   'POST /api/v1/invitations/accept','PATCH /api/v1/workspaces/:workspaceId','PATCH /api/v1/workspaces/:workspaceId/members/:id',
-  'POST '+P+'/agents','POST '+P+'/invitations','POST '+P+'/agent-context','POST '+P+'/agent-runs/:id/proposals','POST '+P+'/planning/previews']);
+  'POST '+P+'/agents','POST '+P+'/invitations','POST '+P+'/threads/:id/read','POST '+P+'/agent-context','POST '+P+'/agent-runs/:id/proposals','POST '+P+'/planning/previews']);
 const query=(name:string,schema:object,required=false)=>({in:'query',name,required,schema});
 const cursor=query('cursor',{type:'string',maxLength:3000});
 const pagination=[cursor,query('limit',{type:'integer',minimum:1,maximum:planning.PAGE_SIZE,default:50})];
@@ -49,7 +49,8 @@ const queries:Record<string,object[]>={
   [P+'/maps']:[cursor],[P+'/agent-runs']:[cursor],[P+'/approvals']:[cursor],
   [P+'/maps/:id/history']:[query('before',{type:'integer',minimum:1,maximum:2147483647})],
   [P+'/tasks/:id/threads']:[cursor,query('limit',{type:'integer',minimum:1,maximum:50,default:20})],
-  [P+'/events']:[cursor,query('stream',{type:'string',enum:['true']})]
+  [P+'/events']:[cursor,query('stream',{type:'string',enum:['true']})],
+  '/api/v1/people/:id/avatar':[query('v',{type:'integer',minimum:1,description:'Photo revision; a matching URL may be cached for good.'})]
 };
 for(const path of ['/planning/releases','/planning/previews/:id/effects','/planning/releases/:id/history','/approvals/:id/effects','/planning/constraints'])queries[P+path]=pagination;
 for(const path of ['/planning/tasks','/board/tasks'])queries[P+path]=Object.entries(z.toJSONSchema(planning.PlanningQuery).properties||{}).map(([name,schema])=>query(name,schema as object));
@@ -73,7 +74,7 @@ export function registerOpenApi(app:FastifyInstance){
     if(!route.url.startsWith('/api/v1/'))return;
     for(const method of Array.isArray(route.method)?route.method:[route.method]){
       if(method==='HEAD'||method==='OPTIONS')continue;
-      const key=method+' '+route.url,write=!['GET','HEAD'].includes(method),binary=route.url===P+'/assets/:id/content';
+      const key=method+' '+route.url,write=!['GET','HEAD'].includes(method),binary=route.url===P+'/assets/:id/content'||route.url==='/api/v1/profile/avatar';
       const body=bodies[key],idempotency=write&&method!=='DELETE'&&!noKey.has(key)&&!route.url.startsWith(V+'/')&&!binary;
       if(write&&method!=='DELETE'&&route.url!=='/api/v1/logout'&&!binary&&!body)throw Error('Missing request contract: '+key);
       const path=route.url.replace(/:([A-Za-z]+)/g,'{$1}');

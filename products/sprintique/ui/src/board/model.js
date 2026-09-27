@@ -33,9 +33,9 @@ export function childOwners(parentId,index){
   const unique=new Map();
   for(const task of index.children.get(parentId)||[]){
     const name=String(task.owner||'').trim();
-    if(name)unique.set(task.ownerId||name.toLocaleLowerCase('ru'),name);
+    if(name)unique.set(task.ownerId||name.toLocaleLowerCase('ru'),{id:task.ownerId||undefined,name});
   }
-  return [...unique.values()].sort((a,b)=>a.localeCompare(b,'ru'));
+  return [...unique.values()].sort((a,b)=>a.name.localeCompare(b.name,'ru'));
 }
 /** A task appears once, as its own card in its own status column; hierarchy is shown on the cards
  *  (parent link on a child, subtask summary on a parent), never by indenting or hiding cards. */

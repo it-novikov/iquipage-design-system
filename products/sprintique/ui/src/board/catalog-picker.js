@@ -5,7 +5,9 @@ export function mountTaskCatalogs(root,{tagsRoot=root,repository,project,task,ta
   let selected=new Set(task?.tagIds||[]),releaseId=task?.releaseId||'',allReleases=[...releases];
   const abort=new AbortController();
   const createReleaseValue='__create_release__';
-  const releaseMeta=item=>item.status==='released'?'выпущен':item.targetDate?`до ${formatDate(item.targetDate)}`:'';
+  // "до 06.10" in the current year, "до 06.10.2027" otherwise: the value column is narrow.
+  const shortDate=value=>{const text=formatDate(value);return String(value).slice(0,4)===String(new Date().getFullYear())?text.slice(0,5):text;};
+  const releaseMeta=item=>item.status==='released'?'выпущен':item.targetDate?`до ${shortDate(item.targetDate)}`:'';
   const tagRow=document.createElement('div');tagRow.className='task-selected-tags';tagsRoot.append(tagRow);
   function renderRelease(){
     // A release reads as a value (flag, name, date), not as a filled-in search box; search lives in the open list.

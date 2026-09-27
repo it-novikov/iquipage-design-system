@@ -17,6 +17,24 @@ export function inspectFile(name:string,bytes:Uint8Array){
   return {name,mime,size:bytes.length,image:mime.startsWith('image/'),sha256:createHash('sha256').update(bytes).digest('hex')};
 }
 let decoders=0;
+const AVATAR_SIZE=256,AVATAR_LIMIT=262144;
+/** A person's photo: PNG, JPEG or WebP, fully decoded and re-encoded to a 256×256 WebP without metadata. */
+export async function processAvatar(bytes:Uint8Array){
+  requireCondition(bytes.length>0&&bytes.length<=FILE_LIMIT,422,'FILE_SIZE','Файл должен быть непустым и не больше 10 МБ.');
+  const starts=(signature:number[])=>signature.every((v,i)=>bytes[i]===v);
+  const known=starts([137,80,78,71,13,10,26,10])||starts([255,216,255])||starts([82,73,70,70])&&Buffer.from(bytes.subarray(8,12)).toString()==='WEBP';
+  requireCondition(known,422,'FILE_TYPE','Выберите изображение PNG, JPEG или WebP.');
+  requireCondition(decoders<2,429,'IMAGE_BUSY','Сервис обрабатывает изображения. Повторите через несколько секунд.');decoders++;
+  try{
+    const image=sharp(bytes,{limitInputPixels:IMAGE_PIXELS,failOn:'warning',animated:false}).timeout({seconds:10});
+    const info=await image.metadata();requireCondition(!info.pages||info.pages===1,422,'IMAGE_ANIMATION','Поддерживаются только неподвижные изображения.');
+    requireCondition(info.width&&info.height&&Math.min(info.width,info.height)>=32,422,'IMAGE_SIZE','Изображение должно быть не меньше 32 px.');
+    const output=await image.rotate().resize({width:AVATAR_SIZE,height:AVATAR_SIZE,fit:'cover',position:'attention'}).webp({quality:82}).toBuffer();
+    requireCondition(output.length<=AVATAR_LIMIT,422,'IMAGE_SIZE','Не удалось уменьшить изображение.');
+    return output;
+  }catch(error){if(error instanceof Problem)throw error;throw new Problem(422,'IMAGE_DECODE','Не удалось прочитать изображение. Выберите другой файл.');}
+  finally{decoders--;}
+}
 /** Bounded full decode + re-encode strips metadata and prevents compressed image bombs. */
 export async function processFile(name:string,bytes:Uint8Array){
   const metadata=inspectFile(name,bytes);if(!metadata.image)return {...metadata,width:null,height:null,display:null,thumb:null};

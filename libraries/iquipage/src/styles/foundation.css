@@ -2455,11 +2455,11 @@ iq-markdown-editor[variant=chat][data-idle] .markdown-editor>footer,iq-markdown-
 @media(max-width:480px){.markdown-editor.variant-chat>footer>.md-toolbar{flex:1 0 100%;overflow-x:auto}}
 @media(forced-colors:active){.md-footer-chip[aria-pressed=true]{border:2px solid Highlight}}
 /* ---------- Property grid (0.6.0-vnext.19): .iq-properties[data-columns="2|auto"] ----------
-   One grammar for an object's core facts: label and value rows in two columns (auto collapses to one below 300px
+   One grammar for an object's core facts: label and value rows in two columns (auto collapses to one below 272px
    per column, with no media query). Values are ghost triggers aligned to the column edge; icons live in values. */
 .iq-properties[data-columns]{--iq-properties-label:96px;column-gap:var(--iq-space-6);row-gap:var(--iq-space-1)}
 .iq-properties[data-columns="2"]{grid-template-columns:repeat(2,minmax(0,1fr))}
-.iq-properties[data-columns=auto]{grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr))}
+.iq-properties[data-columns=auto]{grid-template-columns:repeat(auto-fit,minmax(min(100%,272px),1fr))}
 .iq-properties[data-columns] :is(iq-select,iq-combobox,iq-date-field){min-height:36px;column-gap:var(--iq-space-2)}
 .iq-properties[data-columns] :is(iq-select,iq-combobox,iq-date-field)>.iq-control-label{font-size:var(--iq-type-label-size);font-weight:400;white-space:nowrap}
 .iq-properties[data-columns] :is(iq-select,iq-combobox,iq-date-field)>:not(.iq-control-label){justify-self:start;max-width:calc(100% + var(--iq-space-2));margin-left:calc(-1 * var(--iq-space-2))}
@@ -2529,3 +2529,16 @@ iq-tag-picker[appearance=inline] .iq-tag-picker-add{width:24px;height:24px;min-w
 .iq-crop-status.iq-pro-error{color:var(--iq-danger)}
 .iq-crop-status[hidden]{display:none}
 @media(max-width:560px){.iq-crop-zoom input[type=range]{width:120px}.iq-crop-spacer{display:none}}
+/* 0.6.0-vnext.20: unread count next to open questions, and the left group of a question card's actions. */
+.iq-discussion-new-count{display:inline-flex;align-items:center;gap:var(--iq-space-2);font:400 var(--iq-type-caption-size)/1.5 var(--iq-font);color:var(--iq-accent);white-space:nowrap}
+.iq-discussion-new-count::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--iq-accent)}
+.iq-discussion-new-count[hidden]{display:none}
+.iq-section-actions:has(>.iq-discussion-new-count:not([hidden])+.iq-discussion-open-count:not([hidden])){display:inline-flex;gap:var(--iq-space-4)}
+.iq-thread-actions-group{display:inline-flex;align-items:center;flex-wrap:wrap;gap:var(--iq-space-1)}
+/* Photos in avatars (0.6.0-vnext.20): the image covers the disc; the initials underneath are the fallback. */
+.iq-avatar.has-image{position:relative;overflow:hidden}
+.iq-avatar.has-image>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:inherit;background:inherit}
+.iq-image-crop[data-appearance=bare] .iq-crop-stage:not(.has-image){cursor:pointer}
+/* iq-file-picker drop-target (0.6.0-vnext.20): the whole region shows it takes the files while they are dragged over. */
+[data-file-drop]{outline:2px dashed var(--iq-accent);outline-offset:4px;border-radius:var(--iq-radius-sm);background:color-mix(in srgb,var(--iq-accent) 5%,transparent)}
+iq-file-picker[variant=button]{display:inline-flex}

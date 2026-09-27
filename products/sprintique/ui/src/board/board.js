@@ -78,8 +78,11 @@ export async function mountTaskBoard(root,{repository,project,canEdit=true,canMa
     reloadPromise=(async()=>{do{
       reloadAgain=false;const token=++loading;
       try{
-        const [all,tags,releases]=await Promise.all(['tasks','tags','releases'].map(name=>repository.list(name,project.id,{signal})));
-        if(closed||token!==loading)continue;items=all;catalogs={tags,releases};filters.setData({tasks:items,...catalogs});renderTitle();render();
+        const [all,tags,releases,members]=await Promise.all([...['tasks','tags','releases'].map(name=>repository.list(name,project.id,{signal})),
+          repository.capabilities?.members===false?[]:repository.list('members',project.id,{signal}).catch(()=>[])]);
+        if(closed||token!==loading)continue;items=all;
+        const people=new Map(members.map(m=>[m.id,{id:m.id,name:m.name,image:repository.client?.avatarUrl?.(m.id,m.avatarRevision)||undefined}]));
+        catalogs={tags,releases,people};filters.setData({tasks:items,...catalogs});renderTitle();render();
       }catch(e){if(!closed&&e.name!=='AbortError')fail(e);}
       if(dragging||pending.size){queued=reloadAgain;break;}
     }while(reloadAgain&&!closed);})().finally(()=>{reloadPromise=null;});

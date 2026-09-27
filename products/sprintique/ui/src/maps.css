@@ -110,7 +110,7 @@
 .map-preview-canvas{stroke:none}
 .map-preview-dot{fill:var(--iq-wb-dot)}
 .map-preview-frame{fill:var(--iq-wb-frame);stroke:var(--iq-wb-frame-line);stroke-width:1;stroke-dasharray:1 0}
-.map-preview-title{font:600 10px var(--iq-font);fill:var(--iq-ink);letter-spacing:-.01em}
+.map-preview-title{font-family:var(--iq-font);font-weight:600;fill:var(--iq-ink);letter-spacing:-.01em}
 .map-preview-note{fill:var(--iq-wb-sand)}
 .map-preview-node[data-tone=mint] .map-preview-note{fill:var(--iq-wb-mint)}
 .map-preview-node[data-tone=lavender] .map-preview-note{fill:var(--iq-wb-lavender)}

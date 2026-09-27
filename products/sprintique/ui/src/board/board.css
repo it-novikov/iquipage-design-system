@@ -27,7 +27,7 @@
 .host-task-board .board-empty-slot{width:100%;min-height:112px;margin:0;padding:var(--iq-space-5) var(--iq-space-3);border:1px dashed var(--iq-line-strong);background:transparent;border-radius:var(--iq-radius-md);flex-direction:column;gap:var(--iq-space-2);font-size:var(--iq-type-label-size)}
 .host-task-board .board-empty-slot small{display:block;margin-top:var(--iq-space-2);font-size:var(--iq-type-caption-size);color:var(--iq-muted);font-weight:400}
 .host-task-board .board-empty-slot>span{display:block;color:var(--iq-ink)}
-.task-edit-dialog[data-size=wide] .map-modal.iq-drawer{width:min(780px,100vw);height:100dvh;max-height:100dvh;margin:0 0 0 auto;border-radius:0}
+.task-edit-dialog[data-size=wide] .map-modal.iq-drawer{width:min(664px,100vw);height:100dvh;max-height:100dvh;margin:0 0 0 auto;border-radius:0}
 .task-edit-dialog .map-dialog-form{height:100dvh;max-height:100dvh}.task-edit-dialog .map-dialog-body{flex:1}
 .task-edit-properties{display:grid;grid-template-columns:1fr 1fr;gap:var(--iq-space-5)}.task-edit-section{display:grid;gap:var(--iq-space-3)}.task-edit-section h3{font-size:var(--iq-type-body-size)}
 @media(max-width:760px){.host-task-page{padding:var(--iq-space-4)}.host-task-tools .iq-search-small{flex:1}.host-task-tools>[data-refresh-tasks]{width:36px;padding:0}.task-edit-properties{grid-template-columns:1fr}.host-task-tools .host-board-sort{min-width:155px}}
@@ -80,7 +80,8 @@
 .task-file-row{flex-wrap:wrap}
 .task-file-row .file-item-copy{min-width:0}
 .task-file-actions{display:flex;align-items:center;gap:var(--iq-space-1);flex:none}
-.task-files-empty{padding:var(--iq-space-5) 0;text-align:center;font-size:var(--iq-type-caption-size);color:var(--iq-muted)}
+.task-files-empty{margin:0;font-size:var(--iq-type-caption-size);line-height:1.5;color:var(--iq-muted)}
+.task-files-empty[hidden]{display:none}
 .task-files-empty .empty-art{width:64px;height:58px;margin:0 auto var(--iq-space-3)}
 .task-files-empty .empty-sheet{width:46px;height:46px;left:8px;top:4px;border-radius:var(--iq-radius-sm)}
 [data-task-files] .map-form-error{padding:var(--iq-space-2) 0}
@@ -233,10 +234,9 @@
 .task-release-slot{display:contents}
 .task-tags-row{min-width:0}
 .task-tags-row:empty{display:none}
-/* Cover: the whole 12:5 frame, never a letterbox band, left-aligned with the title and never huge (480×200 in the
-   drawer, 576×240 in fullscreen). A letterboxed ("Вписать") cover shows a blurred copy of itself inside the frame. */
-.task-editor-cover:not([hidden]){position:relative;width:min(100%,480px);margin:0 0 var(--iq-space-5)}
-.task-edit-dialog[data-fullscreen=true] .task-editor-cover:not([hidden]){width:min(100%,576px)}
+/* Cover: the whole 12:5 frame across the drawer's content column (720px at most in fullscreen), never a letterbox band. A letterboxed ("Вписать") cover shows a blurred copy of itself inside the frame. */
+.task-editor-cover:not([hidden]){position:relative;width:100%;margin:0 0 var(--iq-space-5)}
+.task-edit-dialog[data-fullscreen=true] .task-editor-cover:not([hidden]){width:min(100%,720px)}
 @media(max-width:640px){.task-editor-cover:not([hidden]){width:100%}}
 .task-editor-cover .task-detail-cover{position:relative;width:100%;aspect-ratio:12/5;border-radius:var(--iq-radius-sm);background:var(--iq-recessed);overflow:hidden;isolation:isolate}
 .task-editor-cover .task-detail-cover>[data-preview-cover]{position:absolute;inset:0;width:100%;height:100%;overflow:hidden}
@@ -249,3 +249,4 @@
 .cover-crop-dialog .map-dialog-body{overflow:hidden}
 .cover-crop-note{margin:0 auto 0 0;font-size:var(--iq-type-caption-size);color:var(--iq-muted)}
 .cover-crop-dialog{--iq-crop-stage-height:clamp(200px,calc(100dvh - 320px),440px)}
+.square-crop-dialog{--iq-crop-stage-height:clamp(200px,calc(100dvh - 320px),400px)}

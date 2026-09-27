@@ -141,9 +141,18 @@ export function previewDocument(document,{variant='card',story}={}) {
   const outcome=outcomeOf(nodes,connections),archetype=story||storyOf(document);
   const lines=(x0,y0,w,count,cls='map-preview-line')=>Array.from({length:count},(_,i)=>`<rect class="${cls}" x="${num(x0)}" y="${num(y0+i*6)}" width="${num(Math.max(6,w*(i===count-1&&count>1?.55:.85)))}" height="3" rx="1.5"/>`).join('');
   const role=o=>o.type==='sticky'?'input':o.type==='shape'&&o.shape==='diamond'?'decision':'step';
+  // An area title lives in the band above the area's first object: its size follows that band, so a title never
+  // runs into a note however small the template is scaled; a band too thin for legible text gets a title bar instead.
   const frameMarkup=(o,k)=>{
-    const {x,y,w,h}=rect(o),label=String(o.text||'').replace(/[#*\n\r]/g,' ').trim(),limit=Math.max(4,Math.floor((w-14)/5.6));
-    return `<g class="map-preview-stage" data-role="stage" data-order="${k}"><rect class="map-preview-frame" pathLength="1" x="${x}" y="${y}" width="${w}" height="${h}" rx="7"/><text class="map-preview-title" x="${num(x+8)}" y="${num(y+14)}">${escape(label.length>limit?label.slice(0,limit-1)+'…':label)}</text></g>`;
+    const {x,y,w,h}=rect(o),label=String(o.text||'').replace(/[#*\n\r]/g,' ').trim();
+    const inner=nodes.filter(n=>inside(centre(box(n)),box(o))),top=inner.length?Math.min(...inner.map(n=>n.y)):o.y+TITLE_BAND;
+    const band=Math.max(0,(top-o.y)*s),size=Math.min(10,band*.56),padX=Math.min(8,Math.max(4,w*.04));
+    let title='';
+    if(label&&size>=5.5){
+      const limit=Math.max(3,Math.floor((w-2*padX)/(size*.62)));
+      title=`<text class="map-preview-title" x="${num(x+padX)}" y="${num(y+Math.max(size*1.05,(band+size*.7)/2))}" font-size="${num(size)}">${escape(label.length>limit?label.slice(0,limit-1)+'…':label)}</text>`;
+    }else if(label&&band>=5)title=`<rect class="map-preview-line strong" x="${num(x+padX)}" y="${num(y+band/2-1.2)}" width="${num(Math.min(w-2*padX,Math.max(10,label.length*2.2)))}" height="2.4" rx="1.2"/>`;
+    return `<g class="map-preview-stage" data-role="stage" data-order="${k}"><rect class="map-preview-frame" pathLength="1" x="${x}" y="${y}" width="${w}" height="${h}" rx="7"/>${title}</g>`;
   };
   const nodeMarkup=(o,k)=>{
     const {x,y,w,h}=rect(o),cx=x+w/2,cy=y+h/2,inner=Math.max(6,w-12);

@@ -18,7 +18,7 @@ export async function readThread(tx:Transaction,projectId:string,id:string):Prom
   requireCondition(messages.length<=2000,409,'THREAD_LIMIT','Обсуждение достигло лимита сообщений.');
   return {...thread,messages};
 }
-export async function pageThreads(tx:Transaction,projectId:string,taskId:string,cursor:string|null,limit:number):Promise<ThreadPage>{
+export async function pageThreads(tx:Transaction,actor:Actor,projectId:string,taskId:string,cursor:string|null,limit:number):Promise<ThreadPage>{
   await readTask(tx,projectId,taskId);
   requireCondition(Number.isInteger(limit) && limit >= 1 && limit <= 50, 400, 'THREAD_LIMIT', 'Некорректный размер страницы.');
   let position: {version:string;after:string} | null = null;
@@ -36,12 +36,16 @@ export async function pageThreads(tx:Transaction,projectId:string,taskId:string,
   // Threads are append-only; every message/resolution increments thread revision.
   // Thus count + revision sum changes on every supported catalogue mutation, without
   // materializing/hashing all thread bodies in Node or building an unbounded SQL string.
-  const result = (await tx.query<{total:number;unresolved:number;version:string;anchorFound:boolean;items:ThreadSummary[]}>(`
+  const result = (await tx.query<{total:number;unresolved:number;unread:number;version:string;anchorFound:boolean;items:ThreadSummary[]}>(`
     WITH stats AS (
       SELECT count(*)::int AS total,
         count(*) FILTER (WHERE requires_resolution AND NOT resolved)::int AS unresolved,
-        count(*)::text || ':' || coalesce(sum(revision),0)::text AS version
-      FROM app.threads WHERE project_id=$1 AND task_id=$2
+        count(*)::text || ':' || coalesce(sum(revision),0)::text AS version,
+        -- Unread: activity after the person's marker, unless the person wrote the latest message themselves.
+        count(*) FILTER (WHERE NOT resolved AND last_activity_at>coalesce((SELECT r.read_at FROM app.thread_reads r
+          WHERE r.project_id=$1 AND r.thread_id=t.id AND r.principal_id=$5),'-infinity') AND coalesce((SELECT m.author_id FROM app.messages m
+          WHERE m.project_id=$1 AND m.thread_id=t.id ORDER BY m.created_at DESC,m.id DESC LIMIT 1),'')<>$5)::int AS unread
+      FROM app.threads t WHERE project_id=$1 AND task_id=$2
     ), anchor AS (
       SELECT requires_resolution AND NOT resolved AS pending,last_activity_at,id
       FROM app.threads WHERE project_id=$1 AND task_id=$2 AND id=$3
@@ -64,6 +68,7 @@ export async function pageThreads(tx:Transaction,projectId:string,taskId:string,
         SELECT s."pageOrder",
           (to_jsonb(s) - 'pageOrder') || jsonb_build_object('summary',true,'messageCount',coalesce(c.count,0),
             'lastAuthorId',c.last_author,'participants',coalesce(people.ids,'[]'::jsonb),
+            'readAt',to_char(seen.read_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'),
             'messages',jsonb_build_array(jsonb_build_object('body',coalesce(first.body,''),'authorId',first.author_id,
               'createdAt',to_char(first.created_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')))) AS value
         FROM selected s LEFT JOIN message_counts c ON c.thread_id=s.id
@@ -73,13 +78,14 @@ export async function pageThreads(tx:Transaction,projectId:string,taskId:string,
         LEFT JOIN LATERAL (SELECT jsonb_agg(p.author_id ORDER BY p.latest DESC) AS ids FROM (
           SELECT m.author_id,max(m.created_at) AS latest FROM app.messages m
           WHERE m.project_id=$1 AND m.thread_id=s.id GROUP BY m.author_id ORDER BY latest DESC LIMIT 4) p) people ON true
-      ) summaries),'[]'::jsonb) AS items FROM stats`,[projectId,taskId,position?.after||null,limit+1])).rows[0]!;
+        LEFT JOIN app.thread_reads seen ON seen.project_id=$1 AND seen.thread_id=s.id AND seen.principal_id=$5
+      ) summaries),'[]'::jsonb) AS items FROM stats`,[projectId,taskId,position?.after||null,limit+1,actor.id])).rows[0]!;
   if (position) {
     requireCondition(position.version === result.version,409,'THREAD_CURSOR_STALE','Обсуждения изменились. Обновите список.');
     requireCondition(result.anchorFound,400,'THREAD_CURSOR','Страница недоступна.');
   }
   const items = result.items.slice(0,limit);
-  return {items,total:result.total,unresolved:result.unresolved,
+  return {items,total:result.total,unresolved:result.unresolved,unread:result.unread,
     nextCursor:result.items.length > limit ? Buffer.from(JSON.stringify({projectId,taskId,version:result.version,after:items.at(-1)!.id})).toString('base64url') : null};
 }
 /** Append and resolution readback would otherwise hand a write-only grant the human replies
@@ -123,6 +129,32 @@ export async function appendMessage(tx:Transaction,actor:Actor,projectId:string,
     await recordEvent(tx,actor,projectId,'thread.message-added',threadId,input.baseRevision+1);
     return visibleThread(actor,await readThread(tx,projectId,threadId),input.id);
   },threadLedger(tx,actor,projectId,input.id));
+}
+/** A comment can become a question (and an open question a comment) after posting; a resolved question keeps its kind. */
+export async function changeThreadKind(tx:Transaction,actor:Actor,projectId:string,id:string,input:{requiresResolution:boolean;baseRevision:number},key:string){
+  await projectWriteFence(tx,actor,projectId,'threads:write');
+  return idempotent(tx,actor,projectId,'thread.kind:'+id,key,input,async()=>{
+    await lockThread(tx,projectId,id,input.baseRevision);
+    const current=(await tx.query<{resolved:boolean;requires_resolution:boolean}>('SELECT resolved,requires_resolution FROM app.threads WHERE project_id=$1 AND id=$2',[projectId,id])).rows[0]!;
+    requireCondition(!current.resolved,422,'THREAD_KIND','Решённый вопрос нельзя превратить в комментарий. Сначала откройте его снова.');
+    if(current.requires_resolution!==input.requiresResolution){
+      await tx.query('UPDATE app.threads SET requires_resolution=$3,revision=revision+1 WHERE project_id=$1 AND id=$2',[projectId,id,input.requiresResolution]);
+      await recordEvent(tx,actor,projectId,'thread.kind-changed',id,input.baseRevision+1);
+    }
+    return visibleThread(actor,await readThread(tx,projectId,id),null);
+  },threadLedger(tx,actor,projectId,null));
+}
+/** Moves the person's read marker forward to the activity they have seen (never past the thread's own activity). */
+export async function markThreadRead(tx:Transaction,actor:Actor,projectId:string,id:string,input:{seenActivityAt:string}){
+  // Clients see activity to the millisecond while it is stored to the microsecond: having seen the millisecond
+  // means having seen the activity itself.
+  const result=(await tx.query<{readAt:string}>(`INSERT INTO app.thread_reads(project_id,thread_id,principal_id,read_at)
+      SELECT t.project_id,t.id,$3,CASE WHEN $4::timestamptz>=date_trunc('milliseconds',t.last_activity_at) THEN t.last_activity_at ELSE $4::timestamptz END
+      FROM app.threads t WHERE t.project_id=$1 AND t.id=$2
+      ON CONFLICT(project_id,thread_id,principal_id) DO UPDATE SET read_at=GREATEST(app.thread_reads.read_at,EXCLUDED.read_at)
+      RETURNING to_char(read_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS "readAt"`,[projectId,id,actor.id,input.seenActivityAt])).rows[0];
+  requireCondition(result,404,'NOT_FOUND','Обсуждение недоступно.');
+  return {threadId:id,readAt:result.readAt};
 }
 export async function resolveThread(tx:Transaction,actor:Actor,projectId:string,id:string,input:{resolved:boolean;baseRevision:number},key:string){
   await projectWriteFence(tx,actor,projectId,'threads:write');

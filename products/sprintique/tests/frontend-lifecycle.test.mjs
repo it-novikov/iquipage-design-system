@@ -186,3 +186,19 @@ test('template previews keep an inset, route links around objects and reach the 
     }
   }
 });
+test('a comment may become a question and back while open; a resolved question keeps its kind',async()=>{
+  const {prepareThread}=await import('../ui/src/board/thread-model.js');
+  const tasks=[{id:'t1',projectId:'p1'}],base={id:'th1',projectId:'p1',taskId:'t1',requiresResolution:false,resolved:false,messages:[{id:'m1',body:'Вопрос?',authorId:'a',createdAt:'2026-09-27T10:00:00.000Z'}]};
+  const question=prepareThread({...base,requiresResolution:true},base,tasks,'a');assert.equal(question.requiresResolution,true);
+  const resolved={...question,resolved:true};
+  assert.throws(()=>prepareThread({...resolved,requiresResolution:false,resolved:false},resolved,tasks,'a'),/Решённый вопрос/);
+});
+test('template area titles fit the band above their first object',async()=>{
+  const {previewDocument}=await import('../ui/src/template-preview.js');const {BUILTIN_TEMPLATES}=await import('../ui/src/templates.js');
+  const html=previewDocument(BUILTIN_TEMPLATES.find(t=>t.id==='start-stop').document);
+  const titles=[...html.matchAll(/<text class="map-preview-title" x="[\d.]+" y="([\d.]+)" font-size="([\d.]+)">/g)].map(m=>({y:+m[1],size:+m[2]}));
+  const frames=[...html.matchAll(/<rect class="map-preview-frame" pathLength="1" x="[\d.]+" y="([\d.]+)"/g)].map(m=>+m[1]);
+  const notes=[...html.matchAll(/<rect class="map-preview-note" x="[\d.]+" y="([\d.]+)"/g)].map(m=>+m[1]);
+  assert.equal(titles.length,3);
+  titles.forEach((title,i)=>{const firstNote=Math.min(...notes.filter(y=>y>frames[i]&&y<(frames[i+1]??Infinity)));assert.ok(title.y+title.size*.25<=firstNote,`title ${i} ends above its notes`);assert.ok(title.size>=5.5&&title.size<=10);});
+});

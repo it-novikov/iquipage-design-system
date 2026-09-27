@@ -1,6 +1,6 @@
 # UX and design-system alignment (September 2026)
 
-Private DS **0.6.0-vnext.19**. It covers the component audit of the whole Sprintique UI and the changes the owner approved.
+Private DS **0.6.0-vnext.20**. It covers the component audit of the whole Sprintique UI and the changes the owner approved.
 
 ## Owner decisions
 
@@ -11,11 +11,12 @@ Private DS **0.6.0-vnext.19**. It covers the component audit of the whole Sprint
 | Assignee | Only a current human project member can be the assignee. |
 | Board admission | The rule stays the same. The board explains tasks that are waiting for a planned release. |
 
-## Design system (vnext.3 → vnext.19)
+## Design system (vnext.3 → vnext.20)
 
 - **vnext.3:** the R3 work list is a public entry. Tag tones have light and dark tokens. The type scale is tokenised. Dense surfaces get public variants. The keyboard focus ring is visible. The map canvas no longer collapses when the object library is open.
 - **vnext.4:** on coarse pointers, buttons, section links, selects and checkboxes are 44px (`touch.css`, loaded last). Escape closes the map object library.
 - **vnext.5:** `ui.menu` takes `{section}` labels, which keyboard navigation skips. Long menus scroll. Compact selects are 44px on touch screens.
+- **vnext.20:** drawers slide in opaque while the backdrop fades (and slide out on close), so opening a task no longer blinks; the property grid keeps two columns from 272px; `.iq-discussion-new-count` and `.iq-thread-actions-group`; whiteboard connectors end in the filled notched arrowhead of the template previews.
 - **vnext.19:** after a sixth council (product designer, UX researcher and product manager on discussions; art director, product designer and motion designer on properties, covers and template previews):
   - `.iq-discussion`: open questions pinned as framed cards with one resolve action, a chat timeline of comment threads (avatar, name, time, text, one level of replies), resolved questions as one quiet line, space instead of dividers. `ui.personAvatar` and the `help` icon.
   - Chat composer: `iq-markdown-editor variant="chat" idle="line"` rests as one field, chip toggles ("Вопрос", "Решить вопрос этим ответом"), "Отмена", Ctrl/⌘+Alt+Enter as the alternate submit.
@@ -73,6 +74,13 @@ Private DS **0.6.0-vnext.19**. It covers the component audit of the whole Sprint
     - Cover: the whole 12:5 frame at 480×200 (576×240 in fullscreen), left-aligned; "Вписать" keeps a whole image inside the frame over a blurred copy of itself, on the board and in the drawer alike. The crop dialog is one screen with one footer. A click on the cover shows the whole original.
     - Header: the back arrow sits on the content edge, centred on the header row; the task key reacts like the workspace and project switchers and copies the link; the separate copy icon is gone.
     - Moving between tasks through relations or the back arrow hands the drawer over in one frame (no blink).
+  - Seventh round (vnext.20):
+    - The drawer is 664px (15% narrower); the cover spans its content column (720px at most in fullscreen).
+    - Opening slides the drawer in opaque with the backdrop fading in; closing no longer remounts the board (the route returns to the section already on screen), so board covers never reload or blink.
+    - Discussions: read markers live on the server (migration 019, `POST …/threads/:id/read`), so "new" follows a person across devices; the section head shows "Новые: N". A comment can become a question ("Сделать вопросом") and an open question a comment ("Это не вопрос") through `PATCH …/threads/:id/kind`; a resolved question keeps its kind.
+    - The release date reads "до 06.10" in the current year.
+    - Files stay collapsed: "Прикрепить" in the section head, a one-line hint while there are none, and the whole section takes dropped files (`iq-file-picker variant="button" drop-target`).
+    - Personal photos (migration 020): "Фото профиля" in the profile settings opens the one-screen crop with a round opening; the photo shows in the header, members, discussions, the assignee field and board cards (initials remain the fallback). Project avatars use the same crop dialog. `PUT/DELETE /api/v1/profile/avatar`, `GET /api/v1/people/:id/avatar?v=<revision>` (cacheable for good per revision; visible only to people who share a project or workspace).
   - Navigation between tasks: following a relation opens the linked task and shows a back arrow before the key. The arrow returns to the previous task; the close button, Escape or a click outside close the drawer and go back to the board, whatever the path.
   - Board cards show people as a DS avatar group at the right of the footer, with the due date (red overdue, amber soon), release and flags on the left. A parent card shows its subtasks' people in the subtasks row.
   - Every file field (task files and cover, image replacement, map import, quick capture) uses DS `iq-file-picker`. The description opens at its final height, with no shrinking animation.
@@ -100,7 +108,7 @@ Private DS **0.6.0-vnext.19**. It covers the component audit of the whole Sprint
   - Sections were renamed after the jobs they serve: "Профиль", "Теги", "Спринты и релизы", "Агенты", "Очистка файлов", "О пространстве", and workspace members got their own page. Deep links stay the same.
   - Members change roles in the row, removal sits in the row menu, invitations show their state and the link is shown once with a copy button. Agents put proposals that wait for a decision first and decide them with two buttons. File cleanup says "Всё в порядке" when nothing needs attention.
   - On phones the list of sections comes first and a section opens as its own screen.
-- **Maps:** the zoom sits under the tool rail; "Показать всю карту" is in the map menu (and Shift+1). Object text uses the inline document editor, the same as task descriptions. Template previews keep a safe inset (the viewBox matches the card), links are routed around objects with explicit heads above them, and hover replays how the template gets filled in (areas draw in, notes land, links draw, the outcome gets its ring and check, the camera pushes in); the template detail plays it twice with a replay button; reduced motion shows the answer state only.
+- **Maps:** the zoom sits under the tool rail; "Показать всю карту" is in the map menu (and Shift+1). Object text uses the inline document editor, the same as task descriptions. Template previews keep a safe inset (the viewBox matches the card), links are routed around objects with explicit heads above them, and hover replays how the template gets filled in (area titles are sized to the band above their notes, so they never run into them; resets happen only while an element is hidden, and leaving a card eases the current frame back to rest) (areas draw in, notes land, links draw, the outcome gets its ring and check, the camera pushes in); the template detail plays it twice with a replay button; reduced motion shows the answer state only.
 - **Planning:** its own search field is gone; the project search covers it.
 - **Relations:** "Связи" in the task drawer is a relation map (`iq-relation-map`): the task in the centre, its parent above, subtasks below with "N из M" done, what it depends on to the left with arrows into it, what it blocks and what it relates to on the right. A node opens that task; hovering a link shows a remove button. The link dialog offers "Эта задача зависит от", "Эта задача блокирует" and "Связана с". The parent is changed in the row under the map.
 - **Maps title chip:** the chip and sync state use the DS `.iq-board-chip` and `.iq-board-sync`.

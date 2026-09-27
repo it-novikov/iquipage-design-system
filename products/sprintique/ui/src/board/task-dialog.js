@@ -34,7 +34,7 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
   const autosave=!!task&&canEdit;
   let current=task,baseline='',saving=false,confirming=false,priorityTouched=false,catalogs,threads,links;
   // Owners are current human project members. A former member or pre-membership text stays visible until reassigned.
-  const owners=[{value:'',label:'Не назначен'},...members.map(m=>({value:m.id,label:m.name}))];
+  const owners=[{value:'',label:'Не назначен'},...members.map(m=>({value:m.id,label:m.name,image:repository.client?.avatarUrl?.(m.id,m.avatarRevision)||undefined}))];
   if(initial.ownerId&&!members.some(m=>m.id===initial.ownerId))owners.push({value:initial.ownerId,label:initial.owner||'Бывший участник',description:'Больше не участник проекта'});
   const legacyOwner=!initial.ownerId&&initial.legacyOwner?`<p class="iq-helper" data-legacy-owner>Было указано: «${esc(initial.legacyOwner)}». Выберите участника проекта.</p>`:'';
   let templateVersion=initial.templateVersion,lastTemplateContent=taskMarkdown(initial);
@@ -45,7 +45,7 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
   // Core facts form one label and value grid (state of the work on the left, people and time on the right);
   // tags follow as a quiet line. Relationships live in "Связи".
   const initials=name=>String(name||'').trim().split(/\s+/).slice(0,2).map(part=>part[0]||'').join('').toUpperCase()||'?';
-  const ownerOptions=owners.map(o=>o.value?{...o,avatar:{text:initials(o.label),tone:ui.avatarTone(o.value)}}:o);
+  const ownerOptions=owners.map(({image,...o})=>o.value?{...o,avatar:{text:initials(o.label),tone:ui.avatarTone(o.value),...(image?{image}:{})}}:o);
   const statusTones={in_progress:'info',review:'warning',ready_for_testing:'info',testing:'warning',ready_for_release:'success'};
   const statusOptions=TASK_COLUMNS.map(column=>({value:column.id,label:column.label,icon:column.icon,...(statusTones[column.id]?{tone:statusTones[column.id]}:{})}));
   const priorityOptions=[['critical','Критический','critical','critical'],['high','Высокий','priority','high'],['normal','Обычный','minus',''],['low','Низкий','low','']].map(([value,label,glyph,tone])=>({value,label,icon:glyph,...(tone?{tone}:{})}));

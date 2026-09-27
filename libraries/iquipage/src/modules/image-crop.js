@@ -14,7 +14,7 @@ function cropRect(width,height,zoom=1,x=.5,y=.5,aspectRatio=1,minZoom=1){
 /** The zoom at which the frame just contains the whole image ("Вписать"). */
 function fitZoom(width,height,aspectRatio){return Math.min(width,height*aspectRatio)/Math.max(width,height*aspectRatio);}
 class IqImageCrop extends HTMLElement{
- static get observedAttributes(){return ['disabled','readonly','eyebrow','heading','description','title','subtitle','placeholder','aspect-ratio','appearance','letterbox','chooser']}
+ static get observedAttributes(){return ['disabled','readonly','eyebrow','heading','description','title','subtitle','placeholder','aspect-ratio','appearance','letterbox','chooser','mask']}
  get aspectRatio(){const v=Number(this.getAttribute('aspect-ratio')||1);return Number.isFinite(v)&&v>=.1&&v<=10?v:1}
  set aspectRatio(v){if(!Number.isFinite(v)||v<.1||v>10)throw new RangeError('aspectRatio: 0.1–10');this.setAttribute('aspect-ratio',String(v));}
  constructor(){super();this.image=null;this._source=null;this.zoom=1;this.x=.5;this.y=.5;this.loading=false;this.pending=false;this.message='';this.error='';this.epoch=0;this.decodeEpoch=0;this.controlled=false;this.frame=0;this.interacting=false;this.pointers=new Map()}
@@ -74,6 +74,8 @@ class IqImageCrop extends HTMLElement{
    if(['+','=','-','0'].includes(e.key)){e.preventDefault();if(e.key==='0')this.fit('fill');else{this.zoomTo(this.zoom*(e.key==='-'?1/1.1:1.1));this.paint();this.emit('iq-crop-change',this.changeDetail())}return}
    const d={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]}[e.key];if(!d)return;e.preventDefault();const r=this.value,step=this.bare?r.width*(e.shiftKey?.1:.01):e.shiftKey?10:1;this.setPosition(r.x+d[0]*step,r.y+d[1]*step);this.paint();this.emit('iq-crop-change',this.changeDetail())},{signal});
   this.addEventListener('pointerdown',e=>this.startGesture(e),{signal});
+  // An empty bare stage is itself the way to pick a file.
+  this.addEventListener('click',e=>{if(this.bare&&!this.image&&!this.loading&&!this.disabled&&!this.readonly&&e.target.closest('.iq-crop-stage'))this.querySelector('[data-crop-file]')?.click();},{signal});
   this.addEventListener('wheel',e=>{if(!e.target.closest('.iq-crop-stage')||this.locked)return;e.preventDefault();const p=this.stagePoint(e);this.zoomTo(this.zoom*Math.exp(-e.deltaY*.0015),p);this.flash();this.paint();this.emit('iq-crop-change',this.changeDetail())},{signal,passive:false});
   this.addEventListener('dblclick',e=>{if(!e.target.closest('.iq-crop-stage')||this.locked||!this.letterbox)return;this.fit(this.mode==='fill'?'contain':'fill')},{signal});
   if(this._source&&!this.image)this.load(this._source);else this.paint();
@@ -157,7 +159,7 @@ class IqImageCrop extends HTMLElement{
    const range=this.querySelector('[data-crop-range=zoom]');if(range){range.min=String(this.minZoom);range.max='4';range.value=String(this.zoom);range.disabled=this.locked;range.setAttribute('aria-valuetext',`Масштаб ${Math.round(this.zoom*100)}%`);}
    for(const b of this.querySelectorAll('[data-crop-action]'))if(b.dataset.cropAction!=='choose')b.disabled=this.locked;
    for(const b of this.querySelectorAll('.iq-crop-mode [data-crop-action]'))b.setAttribute('aria-pressed',String(this.mode===b.dataset.cropAction));
-   const choose=this.querySelector('[data-crop-action=choose]');if(choose)choose.disabled=this.disabled||this.readonly||this.pending;
+   const choose=this.querySelector('[data-crop-action=choose]');if(choose){choose.disabled=this.disabled||this.readonly||this.pending;const label=choose.querySelector('span');if(label)label.textContent=this.image?'Другое изображение':'Выбрать изображение';}
    msg.textContent=this.error||(this.loading?'Читаем изображение…':this.pending?'Сохраняем кадр…':'');msg.classList.toggle('iq-pro-error',!!this.error);msg.setAttribute('role',this.error?'alert':'status');msg.hidden=!msg.textContent;
    this.draw();return;
   }
@@ -177,9 +179,12 @@ class IqImageCrop extends HTMLElement{
   if(this.letterboxed(r))this.paintBackdrop(ctx,frame);
   ctx.drawImage(this.image,ix,iy,iw,ih);
   // Everything outside the frame stays visible under a scrim, so the user sees what is cut away.
-  ctx.save();ctx.beginPath();ctx.rect(0,0,W,H);ctx.rect(frame.x,frame.y,frame.width,frame.height);ctx.fillStyle='rgba(0,0,0,.5)';ctx.fill('evenodd');ctx.restore();
-  ctx.strokeStyle='rgba(0,0,0,.35)';ctx.lineWidth=1;ctx.strokeRect(frame.x-1.5,frame.y-1.5,frame.width+3,frame.height+3);
-  ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.strokeRect(frame.x,frame.y,frame.width,frame.height);
+  // mask="circle" (a person's photo): the scrim leaves a circle open, since the photo is shown round.
+  const round=this.getAttribute('mask')==='circle',cx=frame.x+frame.width/2,cy=frame.y+frame.height/2,radius=Math.min(frame.width,frame.height)/2;
+  ctx.save();ctx.beginPath();ctx.rect(0,0,W,H);if(round)ctx.arc(cx,cy,radius,0,Math.PI*2);else ctx.rect(frame.x,frame.y,frame.width,frame.height);ctx.fillStyle='rgba(0,0,0,.5)';ctx.fill('evenodd');ctx.restore();
+  if(round){ctx.strokeStyle='rgba(0,0,0,.35)';ctx.lineWidth=1;ctx.beginPath();ctx.arc(cx,cy,radius+1.5,0,Math.PI*2);ctx.stroke();ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.beginPath();ctx.arc(cx,cy,radius,0,Math.PI*2);ctx.stroke();}
+  else{ctx.strokeStyle='rgba(0,0,0,.35)';ctx.lineWidth=1;ctx.strokeRect(frame.x-1.5,frame.y-1.5,frame.width+3,frame.height+3);
+  ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.strokeRect(frame.x,frame.y,frame.width,frame.height);}
   if(this.interacting){ctx.strokeStyle='rgba(255,255,255,.4)';ctx.lineWidth=1;ctx.beginPath();for(const k of [1,2]){ctx.moveTo(frame.x+frame.width*k/3,frame.y);ctx.lineTo(frame.x+frame.width*k/3,frame.y+frame.height);ctx.moveTo(frame.x,frame.y+frame.height*k/3);ctx.lineTo(frame.x+frame.width,frame.y+frame.height*k/3);}ctx.stroke();}
  })}
 }

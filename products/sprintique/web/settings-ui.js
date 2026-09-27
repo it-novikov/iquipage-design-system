@@ -23,4 +23,6 @@ export const choiceList=(name,legend,options,value)=>`<fieldset class="iq-choice
 export const badge=(text,tone='neutral')=>`<span class="iq-badge soft ${tone}">${esc(text)}</span>`;
 export const initials=name=>String(name||'').trim().split(/\s+/).slice(0,2).map(part=>part[0]||'').join('').toUpperCase()||'?';
 /** Stable avatar tone per person, so the same colleague keeps one colour everywhere. */
-export const avatar=(name,id='')=>{let h=0;for(const ch of String(id||name))h=(h*31+ch.charCodeAt(0))>>>0;return `<span class="iq-avatar v${1+h%4}" aria-hidden="true">${esc(initials(name))}</span>`;};
+export const avatar=(name,id='',image=null)=>{let h=0;for(const ch of String(id||name))h=(h*31+ch.charCodeAt(0))>>>0;
+  const photo=typeof image==='string'&&image.startsWith('/')?`<img src="${esc(image)}" alt="" loading="lazy" decoding="async">`:'';
+  return `<span class="iq-avatar v${1+h%4}${photo?' has-image':''}" aria-hidden="true">${esc(initials(name))}${photo}</span>`;};

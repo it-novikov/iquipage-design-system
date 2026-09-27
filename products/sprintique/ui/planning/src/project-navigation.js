@@ -5,6 +5,8 @@ import {readProjectContext} from './navigation-model.js';
 const ROUTES=[['tasks','Доска задач'],['planning','Планирование'],['maps','Карты']];
 /** Product-shell composition (UX R3). The host supplies identities, allowed destinations and routing.
  *  Sections stay visible as text at every width; the host marks the current one with setRoute. */
+/** The person's photo over their initials (DS personAvatar), in the one tone they keep everywhere. */
+const profileAvatar=profile=>ui.personAvatar({id:profile.id,name:profile.name||'Я',image:profile.image||undefined},{size:''});
 export function mountProjectNavigation(root,{current,profile,projects,catalog=()=>[],onSwitch,onAccount,onSignOut,onTeam,onTheme,onSearch,onCreateProject,onCreateWorkspace}){
   if(!(root instanceof HTMLElement))throw Error('Нужен контейнер навигации.');
   current=readProjectContext(current);
@@ -15,7 +17,7 @@ export function mountProjectNavigation(root,{current,profile,projects,catalog=()
     // Sections are the DS work navigation (text tabs, the current one underlined at the header's edge), centred.
     +`<nav class="pn-sections iq-work-navigation" aria-label="Разделы проекта">${ROUTES.map(([route,label])=>`<a href="#${route}" data-section-link="${route}">${label}</a>`).join('')}</nav>`
     +`<div class="pn-personal-navigation">${onSearch?ui.ib('search','Поиск (⌘K)','ghost sm','data-search'):''}${ui.ib('settings','Настройки','ghost sm','data-section-link="settings"')}${ui.ib('moon','Тёмная тема','ghost sm','data-theme-toggle')}`
-    +`${ui.menu(`<button type="button" class="iq-btn ghost icon sm" aria-label="Профиль: ${esc(profile.name)}">${ui.avatar(esc(profile.initials||'Я'),1)}</button>`,[{label:esc(profile.name),action:'account'},{label:'Команда проекта',action:'team'},{label:'Выйти',action:'signout',danger:true}])}</div>`;
+    +`${ui.menu(`<button type="button" class="iq-btn ghost icon sm" data-profile-avatar aria-label="Профиль: ${esc(profile.name)}">${profileAvatar(profile)}</button>`,[{label:esc(profile.name),action:'account'},{label:'Команда проекта',action:'team'},{label:'Выйти',action:'signout',danger:true}])}</div>`;
   function renderContext(){
     const all=catalog()||[],spaces=[...new Map(all.map(p=>[p.workspaceId,{id:p.workspaceId,name:p.workspaceName}])).values()];
     const inSpace=all.filter(p=>p.workspaceId===current.workspaceId);
@@ -73,6 +75,8 @@ export function mountProjectNavigation(root,{current,profile,projects,catalog=()
     if(kind==='create-project')onCreateProject?.();
     if(kind==='create-workspace')onCreateWorkspace?.();
     if(event.detail.action==='account')onAccount?.();if(event.detail.action==='signout')onSignOut?.();if(event.detail.action==='team')onTeam?.();},{signal:events.signal});
-  return {update,setRoute,setTheme,openSwitcher:()=>void switchProject(),avatar:()=>null,readyToLeave:()=>!switching&&!dialog,
+  /** A new photo or name reaches the header without rebuilding the navigation. */
+  function setProfile(next){profile={...profile,...next};const button=root.querySelector('[data-profile-avatar]');if(!button)return;button.innerHTML=profileAvatar(profile);button.setAttribute('aria-label','Профиль: '+profile.name);}
+  return {update,setRoute,setTheme,setProfile,openSwitcher:()=>void switchProject(),avatar:()=>null,readyToLeave:()=>!switching&&!dialog,
     destroy(){if(disposed)return true;if(switching||dialog&&dialog.close()===false)return false;disposed=true;events.abort();root.replaceChildren();return true;}};
 }

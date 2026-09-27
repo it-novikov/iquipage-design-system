@@ -13,11 +13,11 @@ export function mountTaskFiles(root,{coverRoot,adapter,task,readOnly=false,onCov
   const target=id=>({id,projectId:task.projectId,taskId:task.id});
   const editable=!readOnly&&!!adapter;
   const size=n=>n<1024*1024?`${Math.ceil(n/1024)} КБ`:`${(n/1024/1024).toFixed(1).replace('.',',')} МБ`;
-  root.innerHTML=`<div class="iq-section-head">${icon('file',16)}<h3>Файлы</h3></div>
+  // The files zone stays collapsed: one quiet action in the head, and the whole section takes dropped files.
+  root.innerHTML=`<div class="iq-section-head">${icon('file',16)}<h3>Файлы</h3><span class="iq-section-count" data-file-count></span><span class="iq-section-actions">${editable?`<iq-file-picker variant="button" multiple accept="${FILE_ACCEPT}" label="Прикрепить" drop-target="[data-task-files]" data-file-picker></iq-file-picker>`:''}</span></div>
     <p class="map-form-error" role="alert" data-file-error hidden></p><div data-file-list></div>
-    <div class="task-files-empty" data-files-empty ${editable?'hidden':''}><span>Файлов пока нет</span></div>
-    ${editable?`<iq-file-picker variant="compact" multiple accept="${FILE_ACCEPT}" label="Выберите или перетащите файлы" hint="До 10 МБ на файл" data-file-picker></iq-file-picker>
-    <iq-file-picker hidden accept=".png,.jpg,.jpeg,.webp" label="Изображение обложки" data-cover-picker></iq-file-picker>`:''}
+    <p class="task-files-empty" data-files-empty>${editable?'Перетащите файлы в этот раздел или нажмите «Прикрепить». До 10 МБ на файл.':'Файлов пока нет'}</p>
+    ${editable?`<iq-file-picker hidden accept=".png,.jpg,.jpeg,.webp" label="Изображение обложки" data-cover-picker></iq-file-picker>`:''}
     ${adapter?'':'<p class="iq-helper">Хранилище файлов не подключено.</p>'}`;
   const list=root.querySelector('[data-file-list]'),error=root.querySelector('[data-file-error]');
   const report=e=>{if(!closed){error.hidden=false;error.textContent=e.message||'Не удалось загрузить файл. Повторите попытку.';}};
@@ -38,7 +38,7 @@ export function mountTaskFiles(root,{coverRoot,adapter,task,readOnly=false,onCov
     element.querySelector('[data-file-status]').innerHTML=[size(row.size||0),states[row.state],row.id===coverId?'Обложка':''].filter(Boolean).map(text=>`<span>${esc(text)}</span>`).join('');
     const message=element.querySelector('[data-row-error]');message.hidden=!row.error;message.textContent=row.error||'';
     element.querySelector('.task-file-actions').innerHTML=controls(row)+(editable?`<button type="button" class="iq-btn ghost icon sm" data-file-remove="${esc(row.id)}" aria-label="${row.state==='ready'?'Убрать файл':'Отменить загрузку'}: ${esc(row.name)}">${icon('x',16)}</button>`:'');
-    root.querySelector('[data-files-empty]').hidden=editable||rows.size>0;
+    root.querySelector('[data-files-empty]').hidden=rows.size>0;const count=root.querySelector('[data-file-count]');if(count)count.textContent=rows.size?String(rows.size):'';
     if(row.file&&!row.previewStarted){element.querySelector('iq-file-preview').file=row.file;row.previewStarted=true;}
     if(row.meta&&!row.previewStarted){row.previewStarted=true;const request=controller();
       adapter.blob({...target(row.id),variant:row.meta.image?'display':'original'},{signal:request.signal}).then(blob=>{
@@ -114,7 +114,7 @@ export function mountTaskFiles(root,{coverRoot,adapter,task,readOnly=false,onCov
   function remove(id){
     const row=rows.get(id);if(!row)return;row.controller?.abort();rows.delete(id);rowFor(id)?.remove();ids=ids.filter(value=>value!==id);
     if(staged.has(id)||row.file){discard(id);staged.delete(id);}if(coverId===id)setCover(null);else if(row.asCover&&row.coverIntent===coverIntent)coverIntent++;
-    root.querySelector('[data-files-empty]').hidden=editable||rows.size>0;emit();
+    root.querySelector('[data-files-empty]').hidden=rows.size>0;const count=root.querySelector('[data-file-count]');if(count)count.textContent=rows.size?String(rows.size):'';emit();
   }
   function cropNew(file){if(!file||closed||locked)return;cropDialog=editCoverImage(file,{onApply:(source,crop)=>{if(closed||locked)throw Error('Задача уже закрыта.');const name=source.name||'Обложка.'+({'image/jpeg':'jpg','image/png':'png','image/webp':'webp'}[source.type]||'png');add([new File([source],name,{type:source.type})],true,crop);}});}
   async function cropExisting(id){

@@ -5,7 +5,7 @@ import {mountMembers} from './members.js';
 import {mountWorkspaceMembers} from './workspace-members.js';
 import {mountAgents} from './agents.js';
 import {mountOperations} from './operations.js';
-import {pickProjectAvatar} from './project-profile.js';
+import {pickProjectAvatar,pickPersonalPhoto} from './project-profile.js';
 import {dialog,input} from '../ui/src/ui.js';
 import {appearance,appearanceDefaults} from './appearance.js';
 import {visibleSettingsGroups,settingsSection,filterSettingsGroups,roleName,workspaceRoleName} from './settings-sections.js';
@@ -88,7 +88,10 @@ export async function mountSettings(root,{repository,project,adapter,onChanged=(
  async function renderAccount(){
   const data=await client.request('/profile');if(closed)return;
   const role=`${roleName(project.role)} в проекте ${project.name}`;
-  content.innerHTML=formShell(s.group({title:'Как вас видят',body:s.panel(s.row({media:s.avatar(data.name,data.id),title:data.name,meta:[esc(role)],attrs:'data-profile-preview'})+s.fieldRow('Отображаемое имя','Имя и фамилия, как к вам обращаются в команде.',input('name','Отображаемое имя',data.name,{required:true,maxlength:100})))}))
+  const photo=client.avatarUrl?.(data.id,data.avatarRevision)||null;
+  const photoRow=s.row({media:s.avatar(data.name,data.id,photo),title:'Фото профиля',meta:['Видно команде рядом с вашим именем: в задачах, обсуждениях и списке участников.'],
+    actions:ui.btn(photo?'Заменить':'Загрузить','secondary sm','image','data-settings-action="photo-upload"')+(photo?ui.btn('Убрать','ghost sm','','data-settings-action="photo-remove"'):'')});
+  content.innerHTML=formShell(s.group({title:'Как вас видят',body:s.panel(s.row({media:s.avatar(data.name,data.id,photo),title:data.name,meta:[esc(role)],attrs:'data-profile-preview'})+photoRow+s.fieldRow('Отображаемое имя','Имя и фамилия, как к вам обращаются в команде.',input('name','Отображаемое имя',data.name,{required:true,maxlength:100})))}))
    +(data.email?s.group({title:'Учётная запись',description:'Почта приходит из учётной записи организации и меняется там.',body:s.panel(s.facts([['Почта',esc(data.email)]]))}):'')
    +s.group({title:'Ваши роли',description:'Роли выдают администраторы проекта и пространства.',body:s.panel(s.facts([[`Проект ${project.name}`,esc(roleName(project.role))],...(workspace?[[`Пространство ${workspace.name}`,esc(workspaceRoleName(workspace.role))]]:[])]))});
   const form=content.querySelector('form'),field=form.querySelector('[name=name]'),preview=form.querySelector('[data-profile-preview] .iq-settings-row-title');
@@ -186,6 +189,8 @@ export async function mountSettings(root,{repository,project,adapter,onChanged=(
   const kind=action.dataset.settingsAction;
   if(kind==='planning'){busy=true;try{const result=await settingsDialog({adapter,projectId:project.id,onCommitted:async()=>{await renderPlanning(heading.querySelector('[data-heading-tools]'));notify({message:'Параметры планирования сохранены',tone:'success'});},onClose:()=>{modal=null;}});modal=result.element;}catch(error){track(dialog({title:'Не удалось открыть параметры',description:error.message}));}finally{busy=false;}return;}
   if(dirty){notify({message:'Сначала сохраните или отмените изменения названия.',tone:'warning'});return;}
+  if(kind==='photo-upload'){try{const revision=await pickPersonalPhoto({client,track});if(revision&&!closed){notify({message:'Фото обновлено',tone:'success'});await onChanged();await renderAccount();}}catch(error){notify({message:error.message,tone:'danger'});}return;}
+  if(kind==='photo-remove'){track(dialog({title:'Убрать фото профиля?',description:'Рядом с вашим именем останутся инициалы.',submitLabel:'Убрать',success:'Фото убрано',onSubmit:async()=>{await client.removeAvatar();await onChanged();await renderAccount();}}));return;}
   if(kind==='avatar-upload'){const assetId=await pickProjectAvatar({repository,project,track});if(assetId&&!closed){busy=true;try{await saveAvatar(assetId);notify({message:'Аватар обновлён',tone:'success'});}catch(error){notify({message:error.message,tone:'danger'});}finally{busy=false;}}return;}
   if(kind==='avatar-remove')track(dialog({title:'Убрать аватар проекта?',description:'В переключателе останется первая буква названия.',submitLabel:'Убрать',success:'Аватар убран',onSubmit:()=>saveAvatar(null)}));
  },{signal:abort.signal});

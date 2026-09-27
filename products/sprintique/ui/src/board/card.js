@@ -5,10 +5,12 @@ import {icon,esc} from '../ui.js';
 import {childOwners,taskKindLabel} from './model.js';
 import {TASK_COLUMNS,taskColumn} from '../tasks.js';
 /** People on a card are one DS avatar group: a stable tone per person, at most three discs, one tooltip with every name. */
-export function taskAvatars(task,index){
+export function taskAvatars(task,index,people=new Map()){
+  // A member's photo comes from the board's people (id → {name, image}); a former member keeps the initials.
+  const who=owner=>({...owner,...(owner.id&&people.get(owner.id)?.image?{image:people.get(owner.id).image}:{})});
   const children=index.children.get(task.id)||[];
-  if(children.length)return ui.avatarGroup(childOwners(task.id,index).map(name=>({name})),{size:'sm',label:'Исполнители подзадач'});
-  return task.owner?ui.avatarGroup([{name:task.owner}],{size:'sm',label:'Исполнитель'}):'';
+  if(children.length)return ui.avatarGroup(childOwners(task.id,index).map(who),{size:'sm',label:'Исполнители подзадач'});
+  return task.owner?ui.avatarGroup([who({id:task.ownerId||undefined,name:task.owner})],{size:'sm',label:'Исполнитель'}):'';
 }
 // A subtask counts as done once it is ready for release or its result is accepted.
 const subtaskDone=task=>task.result==='accepted'||taskColumn(task)==='ready_for_release';
@@ -20,7 +22,7 @@ function subtasks(t,children=[],expanded=false,people=''){
   const list=`<ul class="task-subtask-list" id="subtasks-${id}" ${expanded?'':'hidden'}>${children.map(child=>`<li><button type="button" class="task-subtask" data-open-task="${esc(child.id)}"><span class="task-subtask-state" data-done="${subtaskDone(child)}" aria-hidden="true">${icon(subtaskDone(child)?'checkCircle':'circle',14)}</span><span class="task-subtask-title">${esc(child.title)}</span><small>${esc(TASK_COLUMNS.find(c=>c.id===taskColumn(child))?.label||'')}</small></button></li>`).join('')}</ul>`;
   return `<div class="task-card-subtasks"><button type="button" class="task-subtasks-summary" data-toggle-children="${id}" aria-expanded="${expanded}" aria-controls="subtasks-${id}"><span>Подзадачи</span><span class="task-subtasks-count">${done}/${children.length}</span>${ui.progress(percent,'Готово подзадач','task-subtasks-progress')}${icon('down',14)}</button>${people?`<span class="task-subtasks-people">${people}</span>`:''}${list}</div>`;
 }
-export function renderTaskCard(row,{index,canEdit,pending=false,expanded=false,catalogs={tags:[],releases:[]}}){
+export function renderTaskCard(row,{index,canEdit,pending=false,expanded=false,catalogs={tags:[],releases:[],people:new Map()}}){
   const t=row.task,id=esc(t.id),label=taskKindLabel(t);
   canEdit=canEdit&&t.result!=='accepted';
   const tags=catalogs.tags.filter(tag=>(t.tagIds||[]).includes(tag.id)),release=catalogs.releases.find(item=>item.id===t.releaseId);
@@ -29,7 +31,7 @@ export function renderTaskCard(row,{index,canEdit,pending=false,expanded=false,c
   // Overdue is red, due today or tomorrow is amber; finished work carries no alarm.
   const day=offset=>{const d=new Date(Date.now()+offset*86400000);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;};
   const dueTone=!due||taskColumn(t)==='ready_for_release'||t.result==='accepted'?'':t.due<day(0)?'danger':t.due<=day(1)?'warning':'';
-  const people=taskAvatars(t,index),parent=(row.children||[]).length>0;
+  const people=taskAvatars(t,index,catalogs.people),parent=(row.children||[]).length>0;
   // Moving is one step: the columns are listed right in the card menu.
   const moves=canEdit?[{section:'Переместить в'},...TASK_COLUMNS.filter(c=>c.id!==taskColumn(t)).map(c=>({label:c.label,glyph:c.icon,action:`move-to:${c.id}:${t.id}`}))]:[];
   const menu=ui.menu(ui.ib('more','Действия задачи: '+t.title,'ghost sm'),[{label:'Открыть задачу',glyph:'expand',action:'open:'+t.id},...moves]);

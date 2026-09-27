@@ -35,7 +35,7 @@ async function renderAvatar(project){
 async function refreshHeader(){
   session=await repository.initialize();const updated=session.projects.find(p=>p.id===currentProject.id);if(!updated)return;
   Object.assign(currentProject,updated);
-  nav?.update(context(updated));
+  nav?.update(context(updated));nav?.setProfile?.(profileOf(session));
   await renderAvatar(updated);
 }
 // ---- Product shell (UX R3 navigation) ----
@@ -45,12 +45,13 @@ appearance();
 window.addEventListener('sprintique-appearance-change',()=>nav?.setTheme(document.documentElement.dataset.theme));
 const context=project=>({id:project.id,workspaceId:project.workspaceId,workspaceName:project.workspaceName,projectName:project.name});
 const initials=name=>String(name||'').trim().split(/\s+/).slice(0,2).map(part=>part[0]||'').join('').toUpperCase()||'Я';
+const profileOf=value=>({id:value.principal.id,name:value.principal.name,initials:initials(value.principal.name),image:repository.client.avatarUrl?.(value.principal.id,value.principal.avatarRevision)||null});
 function ensureShell(project,mode){
   if(!nav||!root.querySelector('[data-product-nav]')?.isConnected){
     nav?.destroy();
     root.innerHTML='<div class="demo-shell"><header data-product-nav></header><main class="platform-main"><section id="host-view" data-section="tasks"></section></main></div>';
     nav=mountProjectNavigation(root.querySelector('[data-product-nav]'),{
-      current:context(project),profile:{name:session.principal.name,initials:initials(session.principal.name)},
+      current:context(project),profile:profileOf(session),
       catalog:()=>session.projects.map(p=>({id:p.id,name:p.name,workspaceId:p.workspaceId,workspaceName:p.workspaceName})),
       projects:async({query='',signal})=>{signal?.throwIfAborted();const q=String(query).toLocaleLowerCase('ru');
         return {options:session.projects.filter(p=>(p.workspaceName+' '+p.name).toLocaleLowerCase('ru').includes(q)).map(p=>({value:p.id,label:p.name,description:p.workspaceName})),nextCursor:null};},
@@ -195,7 +196,10 @@ function search(){if(!session||document.querySelector('dialog[open]'))return;ope
 }});}
 window.addEventListener('keydown',event=>{if((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='k'){event.preventDefault();search();}});
 window.addEventListener('hashchange',()=>{void(async()=>{const task=parseTaskRoute(location.hash);if(task){if(!board?.openTask)await showProject(currentProject.id,'tasks');await board?.openTask?.(task,{fromRoute:true});}else if(location.hash.startsWith('#maps'))await navigate('maps');else if(location.hash.startsWith('#settings')){if(viewMode==='settings'&&board?.navigateSettings){await board.navigateSettings();}else await navigate('settings');}
-    else if(['#tasks','#planning'].includes(location.hash))await navigate(location.hash.slice(1));else await board?.closeTask();})().catch(report);});
+    else if(['#tasks','#planning'].includes(location.hash)){const mode=location.hash.slice(1);
+    // Closing the task drawer returns to the section already on screen: close the drawer, never remount the view
+    // (a remount reloads every card and its cover, which reads as a blink).
+    if(viewMode===mode&&board)await board.closeTask?.();else await navigate(mode);}else await board?.closeTask();})().catch(report);});
 try{session=await repository.initialize();
   const pending=sessionStorage.getItem('sprintique.pending-invitation');sessionStorage.removeItem('sprintique.pending-invitation');
   if(pending&&/^invite_[A-Za-z0-9_-]{43}$/.test(pending)&&!location.hash.startsWith('#invite/'))history.replaceState(null,'','#invite/'+pending);

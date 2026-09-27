@@ -16,7 +16,7 @@ export async function mountMembers(root,{repository,project,tools,notice=''}){
     const aside=editable?select('role','Роль '+m.name,m.role,projectRoles.map(([id,label])=>[id,label]),'label-hidden density="compact" data-member-role'):esc(roleName(m.role));
     const actions=editable&&m.id!==self?ui.menu(`<button type="button" class="iq-btn ghost icon sm" aria-label="Действия: ${esc(m.name)}">${icon('more',17)}</button>`,[{label:'Удалить из проекта',action:'remove-member',danger:true,glyph:'trash'}]):editable?'<span class="iq-settings-row-spacer"></span>':'';
     const since=m.joinedAt?`В проекте с ${esc(formatDate(m.joinedAt))}`:'',active=m.lastActiveAt?`Был активен ${esc(formatDateTime(m.lastActiveAt))}`:'';
-    return s.row({media:s.avatar(m.name,m.id),title:m.name,titleExtra:extra,meta:[esc(projectRoles.find(r=>r[0]===m.role)?.[2]||''),since,active],aside,actions,attrs:`data-member-id="${esc(m.id)}"`});
+    return s.row({media:s.avatar(m.name,m.id,client.avatarUrl?.(m.id,m.avatarRevision)),title:m.name,titleExtra:extra,meta:[esc(projectRoles.find(r=>r[0]===m.role)?.[2]||''),since,active],aside,actions,attrs:`data-member-id="${esc(m.id)}"`});
   }
   function invitationRow(i){
     const [label,tone]=invitationState(i),active=tone==='info';

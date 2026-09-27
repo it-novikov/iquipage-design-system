@@ -2,8 +2,8 @@ import {selectThreadPage} from './thread-page.js';
 
 /** Keeps draft-bearing rows while refreshing a changed server snapshot. */
 export function createThreadPager(repository,task,{pinned=()=>new Set(),onChange=()=>{},onError=()=>{}}={}){
-  let items=new Map(),nextCursor=null,total=0,unresolved=0,sequence=0,request=null,closed=false,loading=false;
-  const state=()=>({items:[...items.values()],nextCursor,total,unresolved,loading});
+  let items=new Map(),nextCursor=null,total=0,unresolved=0,unread=0,sequence=0,request=null,closed=false,loading=false;
+  const state=()=>({items:[...items.values()],nextCursor,total,unresolved,unread,loading});
   const notify=()=>{if(!closed)onChange(state());};
   async function load(reset){
     if(closed||!reset&&(loading||!nextCursor))return;
@@ -15,7 +15,7 @@ export function createThreadPager(repository,task,{pinned=()=>new Set(),onChange
       if(closed||token!==sequence)return;
       if(reset){const keep=pinned();items=new Map([...items].filter(([id])=>keep.has(id)));}
       for(const thread of page.items)items.set(thread.id,thread);
-      nextCursor=page.nextCursor;total=page.total;unresolved=page.unresolved;loading=false;notify();
+      nextCursor=page.nextCursor;total=page.total;unresolved=page.unresolved;unread=page.unread??0;loading=false;notify();
     }catch(error){
       if(closed||token!==sequence||error.name==='AbortError')return;
       loading=false;

@@ -28,7 +28,7 @@ test('chat composer rests as one line, cancels, toggles chips and submits altern
 });
 test('property grid, pill status, searchable select with meta, inline tags', () => {
   const css = read('src/styles/foundation.css'), js = read('src/modules/components.js');
-  for (const rule of ['.iq-properties[data-columns=auto]{grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr))}', '.iq-select-dot{', '.iq-select-search{', '.iq-option-meta{', 'iq-tag-picker[appearance=inline] .iq-tag-picker-field{'])
+  for (const rule of ['.iq-properties[data-columns=auto]{grid-template-columns:repeat(auto-fit,minmax(min(100%,272px),1fr))}', '.iq-select-dot{', '.iq-select-search{', '.iq-option-meta{', 'iq-tag-picker[appearance=inline] .iq-tag-picker-field{'])
     assert.ok(css.includes(rule), rule);
   assert.match(js, /this\.hasAttribute\('searchable'\)/);
   assert.match(js, /o\.meta \? `<span class="iq-option-meta">/);

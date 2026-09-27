@@ -58,17 +58,25 @@ function initials(name) { return String(name || '').trim().split(/\s+/).slice(0,
 /** People as a DS avatar group: at most three discs (two and "+N" when there are more), one tooltip with every name,
     and one accessible label. people: [{name, id?}]; size: 'xs' | 'sm' | 'md'. */
 /** One person as one decorative DS avatar disc: the name is always rendered as text beside it. */
+/** A person's photo over their initials: the initials stay underneath as the fallback while (or if) it loads.
+ *  Only same-origin paths, blob: and https: URLs are accepted. */
+function avatarPhoto(person) {
+    const src = typeof person?.image === 'string' ? person.image : '';
+    return /^(\/(?!\/)|blob:|https:\/\/)/.test(src) ? `<img src="${components_js_1.escapeHTML(src)}" alt="" loading="lazy" decoding="async">` : '';
+}
 function personAvatar(person, { size = 'sm' } = {}) {
-    if (!['xs', 'sm', 'lg'].includes(size)) throw new TypeError('Unsupported avatar size');
-    if (!person || !String(person.name || '').trim()) return `<span class="iq-avatar ${size} more" aria-hidden="true">?</span>`;
-    return `<span class="iq-avatar ${size} v${avatarTone(person.id || person.name)}" aria-hidden="true">${components_js_1.escapeHTML(initials(person.name))}</span>`;
+    if (!['', 'xs', 'sm', 'lg'].includes(size)) throw new TypeError('Unsupported avatar size');
+    const sized = size ? ` ${size}` : '';
+    if (!person || !String(person.name || '').trim()) return `<span class="iq-avatar${sized} more" aria-hidden="true">?</span>`;
+    const photo = avatarPhoto(person);
+    return `<span class="iq-avatar${sized} v${avatarTone(person.id || person.name)}${photo ? ' has-image' : ''}" aria-hidden="true">${components_js_1.escapeHTML(initials(person.name))}${photo}</span>`;
 }
 function avatarGroup(people, { size = 'sm', max = 3, label = 'Участники' } = {}) {
     const list = (Array.isArray(people) ? people : []).filter(p => p && typeof p.name === 'string' && p.name.trim());
     if (!list.length) return '';
     const shown = list.length > max ? list.slice(0, max - 1) : list, rest = list.length - shown.length;
     const names = list.map(p => p.name.trim());
-    const discs = shown.map(p => `<span class="iq-avatar v${avatarTone(p.id || p.name)}" aria-hidden="true">${components_js_1.escapeHTML(initials(p.name))}</span>`).join('') + (rest ? `<span class="iq-avatar more" aria-hidden="true">+${rest}</span>` : '');
+    const discs = shown.map(p => { const photo = avatarPhoto(p); return `<span class="iq-avatar v${avatarTone(p.id || p.name)}${photo ? ' has-image' : ''}" aria-hidden="true">${components_js_1.escapeHTML(initials(p.name))}${photo}</span>`; }).join('') + (rest ? `<span class="iq-avatar more" aria-hidden="true">+${rest}</span>` : '');
     return `<iq-tooltip heading="${components_js_1.escapeHTML(label)}" text="${components_js_1.escapeHTML(names.join('\n'))}"><span class="iq-avatars ${components_js_1.escapeHTML(size)}" role="img" aria-label="${components_js_1.escapeHTML(label + ': ' + names.join(', '))}">${discs}</span></iq-tooltip>`;
 }
 function avatars() { return `<div class="iq-avatars" aria-label="4 участника">${avatar('АК', 1)}${avatar('МЛ', 2)}${avatar('ДС', 3)}<span class="iq-avatar more" role="img" aria-label="Ещё один участник">+1</span></div>`; }

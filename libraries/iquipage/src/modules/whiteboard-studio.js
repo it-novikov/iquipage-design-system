@@ -150,7 +150,7 @@ function installStudio(Klass){
  },
  updateEdges(scene=this.data){
   if(!this.svg)return;if(!this.edgeHandleLayer?.isConnected){this.edgeHandleLayer=document.createElementNS('http://www.w3.org/2000/svg','svg');this.edgeHandleLayer.setAttribute('class','wb-link-handles');this.svg.parentElement.append(this.edgeHandleLayer);}const handleKeep=new Set();const by=new Map(scene.objects.map(o=>[o.id,o]));
-  if(!this.svg.querySelector('defs'))this.svg.innerHTML=`<defs><marker id="${this.uid}-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M2 1 8 5 2 9" fill="none" stroke="context-stroke" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>`;
+  if(!this.svg.querySelector('defs'))this.svg.innerHTML=`<defs><marker id="${this.uid}-arrow" viewBox="-13 -6 14 12" refX="0" refY="0" markerWidth="14" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 0 L-12 -5.4 L-9.3 0 L-12 5.4 Z" fill="context-stroke" stroke="none"/></marker></defs>`;
   const keep=new Set(scene.connections.map(e=>e.id));for(const e of this.svg.querySelectorAll('[data-connection]'))if(!keep.has(e.dataset.connection))e.remove();
   if(!this.edgeEls)this.edgeEls=new Map();
   const obstacleSignature=JSON.stringify(scene.objects.map(n=>[n.id,n.type,n.x,n.y,n.width,n.height]));

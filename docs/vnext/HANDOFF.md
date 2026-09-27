@@ -2,9 +2,9 @@
 
 ## Where things are
 
-- `libraries/iquipage` — DS source, now `0.6.0-vnext.19`. Changes per version: `libraries/iquipage/docs/CHANGES-0.6.md`; public API: its README; contracts: `tests/vnext*.test.cjs`.
+- `libraries/iquipage` — DS source, now `0.6.0-vnext.20`. Changes per version: `libraries/iquipage/docs/CHANGES-0.6.md`; public API: its README; contracts: `tests/vnext*.test.cjs`.
 - `products/sprintique` — the product. It consumes only `vendor/iquipage-web-<version>.tgz` (checksum in its README and lockfile). UI decisions and their reasons: `docs/ux-ds-alignment.md`; settings: `docs/settings/DESIGN.md` and `VALIDATION.md`.
-- Branches: `main` holds everything up to PR #9. PR #10 (settings) and PR #11 (task drawer) are open and stacked; PR #12 (relation map, whiteboard showcase, docs) is stacked on #11, PR #13 (backend completion with migration 018, fourth drawer round on vnext.18) is stacked on #12, and PR #14 (maps, drawer properties, discussions and covers on vnext.19) is stacked on #13. Merge them in that order; GitHub retargets the next one to `main` after each merge.
+- Branches: `main` holds everything up to PR #9. PR #10 (settings) and PR #11 (task drawer) are open and stacked; PR #12 (relation map, whiteboard showcase, docs) is stacked on #11, PR #13 (backend completion with migration 018, fourth drawer round on vnext.18) is stacked on #12, PR #14 (maps, drawer properties, discussions and covers on vnext.19) is stacked on #13, and PR #15 (read markers and thread kinds with migration 019, personal photos with migration 020, drawer motion and width, template preview fixes on vnext.20) is stacked on #14. Merge them in that order; GitHub retargets the next one to `main` after each merge.
 
 ## Run it
 
@@ -27,12 +27,12 @@ The stand serves the built `dist/`: rebuild with `npx vite build` after UI chang
 
 - No deployment without an explicit target, secrets and a data plan. Never publish cookies, credentials, private infrastructure config (`products/sprintique/output/infra`), user databases or backups.
 - Merges into `main` are done by the owner.
-- Migrations are append-only (018 is the latest). Product code imports only public `@iquipage/web` entries.
+- Migrations are append-only (020 is the latest). Product code imports only public `@iquipage/web` entries.
 - Russian UI copy; dates as 04.10.2026 or 04.10.2026 14:00; no middot separators.
 
 ## Next
 
-Merge PR #10, #11, #12, #13 and #14 in that order. Backend work proposed by the councils is done except a personal profile photo (see STATUS.md).
+Merge PR #10, #11, #12, #13, #14 and #15 in that order. Backend work proposed by the councils is done, including personal profile photos (see STATUS.md).
 
 ---
 

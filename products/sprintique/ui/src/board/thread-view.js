@@ -2,7 +2,7 @@ import {formatDateTime,ui} from '@iquipage/web/core';
 import {createThreadPager} from './thread-pager.js';
 import {icon,esc} from '../ui.js';
 import {uid} from '../common.js';
-import {postMessage,resolveThread} from './thread-model.js';
+import {postMessage,resolveThread,changeThreadKind} from './thread-model.js';
 
 /** Discussions read as a chat: open questions are pinned on top with one clear resolve action, comment threads and
  *  resolved questions follow in the order they happened, and the composer rests as one line. Space separates items;
@@ -21,10 +21,12 @@ export function mountThreads(root,{repository,task,readOnly=false,people=new Map
   const fullThreads=new Map(),detailRequests=new Map(),detailErrors=new Map();
   const drafts=new Map(),replyIds=new Map(),resolveAfter=new Map(),expanded=new Set(),olderShown=new Set(),openReplies=new Set(),busy=new Set(),justChanged=new Set();
   const abort=new AbortController(),section=++sections;
-  const person=id=>people.get(id)||(id&&id===actorId?{id,name:'Вы'}:{id,name:'Бывший участник'});
+  // A person carries their photo (when the repository serves one) over their initials.
+  const photo=p=>repository.client?.avatarUrl?.(p.id,p.avatarRevision)||undefined;
+  const person=id=>{const p=people.get(id)||(id&&id===actorId?{id,name:'Вы'}:{id,name:'Бывший участник'});return {...p,image:photo(p)};};
   const time=value=>value?formatDateTime(value):'';
   root.setAttribute('aria-labelledby',`threads-${section}-title`);
-  root.innerHTML=`<div class="iq-section-head">${icon('message',16)}<h3 id="threads-${section}-title">Обсуждения</h3><span class="iq-section-count" data-thread-count></span><span class="iq-section-actions"><span class="iq-discussion-open-count" data-thread-open-count hidden></span></span></div>
+  root.innerHTML=`<div class="iq-section-head">${icon('message',16)}<h3 id="threads-${section}-title">Обсуждения</h3><span class="iq-section-count" data-thread-count></span><span class="iq-section-actions"><span class="iq-discussion-new-count" data-thread-new-count hidden></span><span class="iq-discussion-open-count" data-thread-open-count hidden></span></span></div>
     <p class="sr-only" role="status" aria-live="polite" data-thread-live></p>
     <div class="iq-discussion" data-thread-root aria-busy="false">
       <p class="iq-discussion-empty" data-thread-empty hidden></p>
@@ -40,14 +42,24 @@ export function mountThreads(root,{repository,task,readOnly=false,people=new Map
   syncComposer();
   const announce=text=>{live.textContent='';requestAnimationFrame(()=>{if(!closed)live.textContent=text;});};
 
-  // "New" is per device until the server keeps read markers: the first visit marks everything seen.
+  // "New" follows the person: the server keeps a read marker per thread and person. A repository without markers
+  // (the local one) keeps them in this browser, where the first visit marks everything seen.
+  const server=typeof repository.markThreadRead==='function',readAts=new Map();
   const seenKey=`sprintique.threads.seen.${actorId}.${task.id}`;let seen=null;
-  try{seen=JSON.parse(localStorage.getItem(seenKey)||'null');}catch{seen=null;}
-  const firstVisit=!seen||typeof seen!=='object';if(firstVisit)seen={};
+  if(!server){try{seen=JSON.parse(localStorage.getItem(seenKey)||'null');}catch{seen=null;}}
+  const firstVisit=!server&&(!seen||typeof seen!=='object');if(!seen||typeof seen!=='object')seen={};
   const storeSeen=()=>{try{const entries=Object.entries(seen).sort((a,b)=>String(b[1]).localeCompare(String(a[1]))).slice(0,200);localStorage.setItem(seenKey,JSON.stringify(Object.fromEntries(entries)));}catch{}};
-  const markSeen=thread=>{if(!thread||seen[thread.id]===thread.lastActivityAt)return;seen[thread.id]=thread.lastActivityAt;storeSeen();};
-  const isNew=thread=>!thread.resolved&&thread.lastAuthorId!==actorId&&(seen[thread.id]===undefined?!firstVisit:String(thread.lastActivityAt)>String(seen[thread.id]));
-  const messageIsNew=(thread,message)=>message.authorId!==actorId&&seen[thread.id]!==undefined&&String(message.createdAt)>String(seen[thread.id]);
+  const summaryOf=thread=>items.find(item=>item.id===thread.id)||thread;
+  const seenAt=thread=>server?(readAts.has(thread.id)?readAts.get(thread.id):summaryOf(thread).readAt??null):(seen[thread.id]??(firstVisit?thread.lastActivityAt:null));
+  const markSeen=thread=>{
+    if(!thread)return;const at=summaryOf(thread).lastActivityAt||thread.lastActivityAt,previous=seenAt(thread);
+    if(previous&&String(previous)>=String(at))return;
+    if(!server){seen[thread.id]=at;storeSeen();return;}
+    readAts.set(thread.id,at);
+    repository.markThreadRead(task.projectId,thread.id,at).catch(()=>{if(readAts.get(thread.id)===at)readAts.delete(thread.id);});
+  };
+  const isNew=thread=>{const at=seenAt(thread);return !thread.resolved&&thread.lastAuthorId!==actorId&&(!at||String(thread.lastActivityAt)>String(at));};
+  const messageIsNew=(thread,message)=>{const at=seenAt(thread);return message.authorId!==actorId&&!!at&&String(message.createdAt)>String(at);};
 
   const detailed=thread=>{const full=fullThreads.get(thread.id);return full&&(!thread.summary||full.revision===thread.revision)?full:(thread.summary?null:thread);};
   function messageMarkup(thread,message,index,{reply=false,full=false}={}){
@@ -70,7 +82,7 @@ export function mountThreads(root,{repository,task,readOnly=false,people=new Map
     const firstMessage=messageMarkup(thread,first,0,{full:!!full});
     if(kind==='open'){
       const replies=count>1?`<div class="iq-thread-replies" id="threads-${section}-${id}-replies">${repliesMarkup(thread,full,{limitOlder:true})}</div>`:'';
-      const actions=readOnly?'':`<div class="iq-thread-actions"><button type="button" class="iq-btn ghost sm" data-reply="${id}" aria-controls="threads-${section}-${id}-reply">${icon('message',16)}<span>Ответить</span></button><button type="button" class="iq-btn secondary sm" data-resolve="${id}"${busy.has(thread.id)?' disabled aria-busy="true"':''}>${icon('check',16)}<span>Отметить решённым</span></button></div>`;
+      const actions=readOnly?'':`<div class="iq-thread-actions"><span class="iq-thread-actions-group"><button type="button" class="iq-btn ghost sm" data-reply="${id}" aria-controls="threads-${section}-${id}-reply">${icon('message',16)}<span>Ответить</span></button><button type="button" class="iq-btn ghost sm" data-thread-kind="${id}" data-thread-kind-value="comment"${busy.has(thread.id)?' disabled':''}>Это не вопрос</button></span><button type="button" class="iq-btn secondary sm" data-resolve="${id}"${busy.has(thread.id)?' disabled aria-busy="true"':''}>${icon('check',16)}<span>Отметить решённым</span></button></div>`;
       return `<p class="iq-thread-flag">${icon('help',16)}<span>Открытый вопрос</span></p>${firstMessage}${replies}${actions}`;
     }
     if(kind==='resolved'){
@@ -82,7 +94,7 @@ export function mountThreads(root,{repository,task,readOnly=false,people=new Map
     const open=expanded.has(thread.id),fresh=isNew(thread)&&!open;
     const repliers=(thread.participants||(full?[...new Set(full.messages.slice(1).map(m=>m.authorId).reverse())]:[])).filter(Boolean).slice(0,3).map(person);
     const toggle=count>1?`<button type="button" class="iq-thread-toggle" data-thread-toggle="${id}" aria-expanded="${open}" aria-controls="threads-${section}-${id}-replies">${repliers.length?ui.avatarGroup(repliers,{size:'xs',max:3,label:'Ответили'}):''}<span>${esc(repliesLabel(count-1))}</span><span class="iq-thread-toggle-meta">последний ${esc(time(thread.lastActivityAt))}</span><span class="iq-thread-new" aria-hidden="true"${fresh?'':' hidden'}></span>${fresh?'<span class="sr-only">есть новые</span>':''}</button>`:'';
-    const reply=readOnly?'':`<button type="button" class="iq-btn ghost sm" data-reply="${id}" aria-controls="threads-${section}-${id}-reply">Ответить</button>`;
+    const reply=readOnly?'':`<button type="button" class="iq-btn ghost sm" data-reply="${id}" aria-controls="threads-${section}-${id}-reply">Ответить</button><button type="button" class="iq-btn ghost sm" data-thread-kind="${id}" data-thread-kind-value="question"${busy.has(thread.id)?' disabled':''}>${icon('help',16)}<span>Сделать вопросом</span></button>`;
     return `${firstMessage}${toggle||reply?`<div class="iq-thread-actions">${toggle}${reply}</div>`:''}${count>1?`<div class="iq-thread-replies" id="threads-${section}-${id}-replies"${open?'':' hidden'}>${open?repliesMarkup(thread,full):''}</div>`:''}`;
   }
   function signature(thread){
@@ -142,6 +154,7 @@ export function mountThreads(root,{repository,task,readOnly=false,people=new Map
     place(questionsRoot,questions);place(timelineRoot,timeline);
     root.querySelector('[data-thread-count]').textContent=total?String(total):'';
     const openCount=root.querySelector('[data-thread-open-count]');openCount.hidden=!unresolved;openCount.textContent=unresolved?`Открытые вопросы: ${unresolved}`:'';
+    const fresh=items.filter(isNew).length,newCount=root.querySelector('[data-thread-new-count]');newCount.hidden=!fresh;newCount.textContent=fresh?`Новые: ${fresh}`:'';
     const empty=root.querySelector('[data-thread-empty]');empty.hidden=!!items.length||pageLoading;
     empty.textContent=readOnly?'Обсуждений пока нет.':'Задайте вопрос по задаче или оставьте комментарий. Открытые вопросы остаются вверху, пока их не решат.';
     const more=root.querySelector('[data-more-threads]'),rest=Math.max(0,total-items.length);
@@ -150,6 +163,7 @@ export function mountThreads(root,{repository,task,readOnly=false,people=new Map
     for(const thread of items)if(needsDetails(thread))requestDetails(thread);
     for(const thread of questions)markSeen(thread);
     if(firstVisit)for(const thread of items)if(seen[thread.id]===undefined){seen[thread.id]=thread.lastActivityAt;storeSeen();}
+    if(server)for(const thread of items)if(thread.readAt&&(!readAts.has(thread.id)||String(readAts.get(thread.id))<String(thread.readAt)))readAts.set(thread.id,thread.readAt);
     if(pendingFocus){const target=root.querySelector(pendingFocus);if(target){target.focus({preventScroll:true});target.scrollIntoView?.({block:'nearest'});pendingFocus=null;}}
   }
   function fail(cause,retry='data-retry-threads'){
@@ -203,6 +217,21 @@ export function mountThreads(root,{repository,task,readOnly=false,people=new Map
     }catch(cause){fail({message:next?'Не удалось отметить вопрос решённым.':'Не удалось открыть вопрос снова.'},null);}
     finally{busy.delete(id);await reload();}
   }
+  // A comment that turns out to need an answer becomes a question (it moves up and gets "Отметить решённым");
+  // a question that needs no decision becomes a comment. A resolved question keeps its kind.
+  async function changeKind(id,question){
+    const thread=items.find(item=>item.id===id);if(!thread||busy.has(id)||thread.resolved)return;
+    busy.add(id);draw();clearError();
+    try{
+      const cached=fullThreads.get(id),current=cached&&cached.revision===thread.revision?cached:await repository.read('threads',id,task.projectId);
+      if(!current)throw Error('Обсуждение недоступно.');
+      const saved=await changeThreadKind(repository,{...current,revision:thread.revision},question);
+      fullThreads.set(saved.id,saved);pager.remember(saved);
+      pendingFocus=`.iq-thread[data-thread="${CSS.escape(id)}"] ${question?'[data-resolve]':'[data-reply]'}`;
+      announce(question?'Комментарий стал вопросом':'Вопрос стал комментарием');
+    }catch(cause){fail({message:cause.message||'Не удалось изменить тип обсуждения.'},null);}
+    finally{busy.delete(id);await reload();}
+  }
   root.addEventListener('iq-editor-action',event=>{
     if(readOnly)return;const editor=event.target;
     if(editor===composer&&event.detail.id==='question'){event.stopPropagation();asQuestion=event.detail.pressed;syncComposer();return;}
@@ -250,6 +279,7 @@ export function mountThreads(root,{repository,task,readOnly=false,people=new Map
     if(toggle){const id=toggle.dataset.threadToggle;if(expanded.has(id))expanded.delete(id);else{expanded.add(id);markSeen(items.find(item=>item.id===id));}draw();return;}
     const older=target.closest('[data-older-replies]');if(older){olderShown.add(older.dataset.olderReplies);draw();return;}
     const reply=target.closest('[data-reply]');if(reply&&!readOnly){openReply(reply.dataset.reply);return;}
+    const kind=target.closest("[data-thread-kind]");if(kind&&!readOnly){await changeKind(kind.dataset.threadKind,kind.dataset.threadKindValue==="question");return;}
     const button=target.closest('[data-resolve]');if(!button||readOnly)return;
     const thread=items.find(item=>item.id===button.dataset.resolve);if(thread)await resolve(thread.id,!thread.resolved);
   },{signal:abort.signal});

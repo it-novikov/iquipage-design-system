@@ -70,10 +70,11 @@ function buildTracks(svg,plan,{flow}){
     {t:end,transform:`scale(${push})`,transformOrigin:svg.dataset.focus}]);
   for(const stage of stages){
     const start=times.frames.get(stage),frame=stage.querySelector('.map-preview-frame'),title=stage.querySelector('text');
-    track(list,stage,[{t:0,opacity:1,easing:EASE.clear},{t:CLEAR,opacity:0},{t:start,opacity:0},{t:start+1,opacity:1},{t:end,opacity:1}]);
-    track(list,frame,[{t:0,strokeDasharray:'1 1',strokeDashoffset:0},{t:start,strokeDasharray:'1 1',strokeDashoffset:1,easing:EASE.draw},{t:start+480,strokeDasharray:'1 1',strokeDashoffset:0},{t:end,strokeDasharray:'1 1',strokeDashoffset:0}]);
-    track(list,frame,[{t:0,fillOpacity:1},{t:start+200,fillOpacity:0,easing:EASE.out},{t:start+440,fillOpacity:1},{t:end,fillOpacity:1}]);
-    if(title)track(list,title,[{t:0,opacity:1,transform:'translate(0px, 0px)'},{t:start+160,opacity:0,transform:'translate(0px, 3px)',easing:EASE.out},{t:start+400,opacity:1,transform:'translate(0px, 0px)'},{t:end,opacity:1,transform:'translate(0px, 0px)'}]);
+    track(list,stage,[{t:0,opacity:1,easing:EASE.clear},{t:CLEAR,opacity:0},{t:start,opacity:0},{t:start,opacity:1},{t:end,opacity:1}]);
+    // Resets happen only while the element is hidden (after the clear), never while it is still on screen.
+    track(list,frame,[{t:0,strokeDasharray:'1 1',strokeDashoffset:0},{t:CLEAR,strokeDasharray:'1 1',strokeDashoffset:0},{t:CLEAR,strokeDasharray:'1 1',strokeDashoffset:1},{t:start,strokeDasharray:'1 1',strokeDashoffset:1,easing:EASE.draw},{t:start+480,strokeDasharray:'1 1',strokeDashoffset:0},{t:end,strokeDasharray:'1 1',strokeDashoffset:0}]);
+    track(list,frame,[{t:0,fillOpacity:1},{t:CLEAR,fillOpacity:1},{t:CLEAR,fillOpacity:0},{t:start+200,fillOpacity:0,easing:EASE.out},{t:start+440,fillOpacity:1},{t:end,fillOpacity:1}]);
+    if(title)track(list,title,[{t:0,opacity:1,transform:'translate(0px, 0px)'},{t:CLEAR,opacity:1,transform:'translate(0px, 0px)'},{t:CLEAR,opacity:0,transform:'translate(0px, 3px)'},{t:start+160,opacity:0,transform:'translate(0px, 3px)',easing:EASE.out},{t:start+400,opacity:1,transform:'translate(0px, 0px)'},{t:end,opacity:1,transform:'translate(0px, 0px)'}]);
   }
   nodes.forEach((node,k)=>{
     const start=times.nodes.get(node),role=node.dataset.role,type=node.dataset.type;
@@ -94,11 +95,11 @@ function buildTracks(svg,plan,{flow}){
     if(flow&&link.halo)pulse(list,svg,link.halo,start+560,end);
     if(link.halo)link.halo.setAttribute('pathLength','1');
     for(const path of [link.halo,link.line]){
-      track(list,path,[{t:0,opacity:1,easing:EASE.clear},{t:CLEAR,opacity:0},{t:start,opacity:0},{t:start+1,opacity:1},{t:dimAt,opacity:1,easing:EASE.push},{t:dimAt+700,opacity:dim},{t:end,opacity:dim}]);
-      track(list,path,[{t:0,strokeDasharray:'1 1',strokeDashoffset:0},{t:start,strokeDasharray:'1 1',strokeDashoffset:1,easing:EASE.draw},{t:start+560,strokeDasharray:'1 1',strokeDashoffset:0},{t:end,strokeDasharray:'1 1',strokeDashoffset:0}]);
+      track(list,path,[{t:0,opacity:1,easing:EASE.clear},{t:CLEAR,opacity:0},{t:start,opacity:0},{t:start,opacity:1},{t:dimAt,opacity:1,easing:EASE.push},{t:dimAt+700,opacity:dim},{t:end,opacity:dim}]);
+      track(list,path,[{t:0,strokeDasharray:'1 1',strokeDashoffset:0},{t:CLEAR,strokeDasharray:'1 1',strokeDashoffset:0},{t:CLEAR,strokeDasharray:'1 1',strokeDashoffset:1},{t:start,strokeDasharray:'1 1',strokeDashoffset:1,easing:EASE.draw},{t:start+560,strokeDasharray:'1 1',strokeDashoffset:0},{t:end,strokeDasharray:'1 1',strokeDashoffset:0}]);
     }
-    if(link.origin)track(list,link.origin,[{t:0,opacity:1,transform:'scale(1)',easing:EASE.clear},{t:CLEAR,opacity:0,transform:'scale(0)'},{t:start,opacity:0,transform:'scale(0)',easing:EASE.spring},{t:start+140,opacity:1,transform:'scale(1)'},{t:end,opacity:1,transform:'scale(1)'}]);
-    if(link.head)track(list,link.head,[{t:0,opacity:1,transform:'translate(0px, 0px)',easing:EASE.clear},{t:CLEAR,opacity:0,transform:'translate(-3px, 0px)'},{t:start+470,opacity:0,transform:'translate(-3px, 0px)',easing:EASE.spring},{t:start+670,opacity:1,transform:'translate(0px, 0px)'},{t:end,opacity:1,transform:'translate(0px, 0px)'}]);
+    if(link.origin)track(list,link.origin,[{t:0,opacity:1,transform:'scale(1)',easing:EASE.clear},{t:CLEAR,opacity:0,transform:'scale(1)'},{t:CLEAR,opacity:0,transform:'scale(0)'},{t:start,opacity:0,transform:'scale(0)',easing:EASE.spring},{t:start+140,opacity:1,transform:'scale(1)'},{t:end,opacity:1,transform:'scale(1)'}]);
+    if(link.head)track(list,link.head,[{t:0,opacity:1,transform:'translate(0px, 0px)',easing:EASE.clear},{t:CLEAR,opacity:0,transform:'translate(0px, 0px)'},{t:CLEAR,opacity:0,transform:'translate(-3px, 0px)'},{t:start+470,opacity:0,transform:'translate(-3px, 0px)',easing:EASE.spring},{t:start+670,opacity:1,transform:'translate(0px, 0px)'},{t:end,opacity:1,transform:'translate(0px, 0px)'}]);
   }
   const ring=svg.querySelector('.map-preview-ring'),done=svg.querySelector('.map-preview-done'),mark=svg.querySelector('.map-preview-done-mark');
   if(ring)track(list,ring,[{t:0,opacity:0,transform:'scale(1.08)'},{t:outcomeStart,opacity:0,transform:'scale(1.08)',easing:EASE.spring},{t:outcomeStart+240,opacity:1,transform:'scale(1)'},{t:end,opacity:1,transform:'scale(1)'}]);
@@ -120,7 +121,7 @@ function pulse(list,svg,path,start,end){
 /** Plays one story. Returns {finished, finish(), cancel()}: finish keeps the final frame, cancel returns to rest. */
 export function playTemplateStory(svg,{signal}={}){
   const preview=svg.closest('.map-template-preview');
-  if(motionReduced()){preview?.setAttribute('data-answer','');return {finished:Promise.resolve(),finish(){},cancel(){preview?.removeAttribute('data-answer');}};}
+  if(motionReduced()){preview?.setAttribute('data-answer','');const off=()=>preview?.removeAttribute('data-answer');return {finished:Promise.resolve(),finish(){},cancel:off,settle(){off();return Promise.resolve();}};}
   const plan=storyPlan(svg),{list,end}=buildTracks(svg,plan,{flow:plan.story==='flow'});
   svg.style.willChange='transform';
   const animations=list.map(({element,keyframes,end:duration})=>element.animate(keyframes,{duration,fill:'both'}));
@@ -128,7 +129,24 @@ export function playTemplateStory(svg,{signal}={}){
   const finished=Promise.all(animations.map(a=>a.finished)).then(()=>undefined,()=>undefined);
   const controls={finished,end,
     finish(){for(const a of animations)a.finish();},
-    cancel(){for(const a of animations)a.cancel();cleanup();}};
+    cancel(){for(const a of animations)a.cancel();cleanup();},
+    /** Leaves the story from whatever frame it is on: every changed property eases back to rest, no cut. */
+    settle(duration=280){
+      const props=['opacity','transform','transformOrigin','strokeDashoffset','fillOpacity'];
+      const snap=el=>{const c=getComputedStyle(el);return Object.fromEntries(props.map(p=>[p,c[p]]));};
+      const targets=[...new Set(animations.map(a=>a.effect?.target).filter(el=>el?.isConnected&&!el.hasAttribute('data-story-temp')))];
+      const before=new Map(targets.map(el=>[el,snap(el)]));
+      svg.querySelectorAll('[data-story-temp]').forEach(node=>node.remove());
+      for(const a of animations)a.cancel();cleanup();
+      const moves=[];
+      for(const el of targets){
+        const from=before.get(el),to=snap(el),changed=props.filter(p=>from[p]!==to[p]);if(!changed.length)continue;
+        const start={},stop={};for(const p of changed){start[p]=from[p];stop[p]=to[p];}
+        if(changed.includes('strokeDashoffset')){start.strokeDasharray='1 1';stop.strokeDasharray='1 1';}
+        moves.push(el.animate([start,stop],{duration,easing:EASE.out}));
+      }
+      return Promise.all(moves.map(m=>m.finished)).then(()=>undefined,()=>undefined);
+    }};
   signal?.addEventListener('abort',()=>controls.cancel(),{once:true});
   return controls;
 }
@@ -137,8 +155,7 @@ export function playTemplateStory(svg,{signal}={}){
  *  With autoplay (the template detail) the story plays twice, then stays on the finished frame with a replay button. */
 export function bindTemplateStories(root,{autoplay=false,loops=2,signal}={}){
   let current=null,timer=0;
-  const stop=()=>{clearTimeout(timer);if(!current)return;const {story,preview}=current;current=null;story.cancel();preview.removeAttribute('data-answer');
-    if(!motionReduced())preview.querySelector('.map-preview-svg')?.animate([{opacity:.72},{opacity:1}],{duration:240,easing:EASE.out});};
+  const stop=()=>{clearTimeout(timer);if(!current)return;const {story,preview}=current;current=null;preview.removeAttribute('data-answer');void story.settle();};
   const start=card=>{const svg=card.querySelector('.map-preview-svg');if(!svg||current?.card===card)return;stop();current={card,preview:svg.closest('.map-template-preview'),story:playTemplateStory(svg)};};
   const events={signal};
   if(autoplay){

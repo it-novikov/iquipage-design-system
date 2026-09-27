@@ -4,7 +4,7 @@ Clean-start, self-contained product: the approved board, Planning consumer from 
 
 ## Independence and architecture
 
-Copy this entire directory to another repository. No parent workspace, DS source checkout or root install is required. The explicit `vendor/iquipage-web-0.6.0-vnext.19.tgz` release can later be replaced by the same authorized registry package. Its SHA-256 is `c7b7351dd6d3d39c0e1fc9cc5fefbaf3e342ac57b5458d9e6cb09c6f3f23f8bc`. Product and library versions are independent.
+Copy this entire directory to another repository. No parent workspace, DS source checkout or root install is required. The explicit `vendor/iquipage-web-0.6.0-vnext.20.tgz` release can later be replaced by the same authorized registry package. Its SHA-256 is `a12e42f4cbe1a9957725d8956bf30188819ef65ca10452e9165ec0363ccc82a7`. Product and library versions are independent.
 
 ```text
 backend/domain          Invariants, errors and media validation

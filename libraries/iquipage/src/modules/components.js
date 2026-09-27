@@ -186,7 +186,8 @@ class IqSelect extends IqElement {
         const match = this.options.find(o => o.value === this.selected);
         if (this.editable && !this.opened)
             this.trigger.value = match?.label || '';
-        const avatar = match?.avatar && typeof match.avatar.text === 'string' ? `<span class="iq-avatar iq-select-avatar v${Number(match.avatar.tone) || 1}" aria-hidden="true">${escapeHTML(match.avatar.text.slice(0, 2))}</span>` : '';
+        const photo = typeof match?.avatar?.image === 'string' && /^(\/(?!\/)|blob:|https:\/\/)/.test(match.avatar.image) ? `<img src="${escapeHTML(match.avatar.image)}" alt="" decoding="async">` : '';
+        const avatar = match?.avatar && typeof match.avatar.text === 'string' ? `<span class="iq-avatar iq-select-avatar v${Number(match.avatar.tone) || 1}${photo ? ' has-image' : ''}" aria-hidden="true">${escapeHTML(match.avatar.text.slice(0, 2))}${photo}</span>` : '';
         const caption = this.querySelector('.iq-select-value');
         const lead = this.getAttribute('appearance') === 'pill' ? '<span class="iq-select-dot" aria-hidden="true"></span>' : avatar || (match?.icon ? icons_js_1.icon(match.icon, 17) : '');
         if (caption)
@@ -450,31 +451,45 @@ class IqDialog extends IqElement {
      *  handing over to the next), so the backdrop and panel never blink. */
     show({ instant = false } = {}) {
         this.generation++;
-        this.motion?.cancel();
+        this.motion?.cancel(); this.backdropAnimation?.cancel(); this.backdropAnimation = null;
         if (!this.native.open) {
             this.previous = document.activeElement;
             this.native.showModal();
             this.emit('iq-open', {});
         }
         if (!instant && !isReduced()) {
+            // A drawer slides in opaque (a translucent panel over a dimmed page reads as a blink); the backdrop fades
+            // in with it instead of darkening the page in one frame.
             const x = this.getAttribute('kind') === 'drawer';
-            this.motion = this.native.animate([{ opacity: 0, transform: x ? 'translateX(20px)' : 'translateY(8px)' }, { opacity: 1, transform: 'translate(0)' }], { duration: x ? 260 : 180, easing: 'cubic-bezier(.2,.7,.2,1)' });
+            this.motion = this.native.animate(x ? [{ transform: 'translateX(100%)' }, { transform: 'translateX(0)' }] : [{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'translate(0)' }], { duration: x ? 280 : 180, easing: 'cubic-bezier(.2,.7,.2,1)' });
             this.motion.finished.catch(() => { });
+            this.backdropMotion(true, x ? 280 : 180);
         }
+    }
+    /** Fades the ::backdrop where the engine can animate it; elsewhere it simply appears and disappears. */
+    backdropMotion(opening, duration) {
+        this.backdropAnimation?.cancel(); this.backdropAnimation = null;
+        try { this.backdropAnimation = this.native.animate(opening ? [{ opacity: 0 }, { opacity: 1 }] : [{ opacity: 1 }, { opacity: 0 }], { duration, easing: opening ? 'cubic-bezier(.2,.7,.2,1)' : 'ease-in', fill: opening ? 'none' : 'forwards', pseudoElement: '::backdrop' }); this.backdropAnimation.finished.catch(() => { }); }
+        catch { }
     }
     close(immediate = false) {
         if (!this.native?.open)
             return;
         const generation = ++this.generation;
-        this.motion?.cancel();
+        this.motion?.cancel(); this.backdropAnimation?.cancel(); this.backdropAnimation = null;
         if (immediate || isReduced()) {
             this.native.close();
             return;
         }
-        this.motion = this.native.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 120, easing: 'ease-out' });
+        const x = this.getAttribute('kind') === 'drawer';
+        this.motion = this.native.animate(x ? [{ transform: 'translateX(0)' }, { transform: 'translateX(100%)' }] : [{ opacity: 1 }, { opacity: 0 }], { duration: x ? 200 : 120, easing: x ? 'cubic-bezier(.4,0,1,1)' : 'ease-out', fill: 'forwards' });
+        this.backdropMotion(false, x ? 200 : 120);
         this.motion.finished.then(() => {
-            if (this.generation === generation && this.native.open)
+            if (this.generation === generation && this.native.open) {
                 this.native.close();
+                // The closing motion holds its last frame until the dialog is gone; drop it so the next open starts clean.
+                this.motion?.cancel(); this.backdropAnimation?.cancel(); this.backdropAnimation = null;
+            }
         }).catch(() => { });
     }
     get open() { return this.native?.open || false; }
@@ -1236,8 +1251,11 @@ class IqFilePicker extends IqElement {
         const label = escapeHTML(this.getAttribute('label') || (this.hasAttribute('multiple') ? 'Выберите или перетащите файлы' : 'Выберите или перетащите файл'));
         const hint = escapeHTML(this.getAttribute('hint') || ''), disabled = this.hasAttribute('disabled') ? 'disabled' : '';
         const accept = escapeHTML(this.getAttribute('accept') || ''), multiple = this.hasAttribute('multiple') ? 'multiple' : '';
-        const zone = this.getAttribute('variant') === 'zone';
-        this.innerHTML = (zone
+        const zone = this.getAttribute('variant') === 'zone', button = this.getAttribute('variant') === 'button';
+        this.innerHTML = (button
+            // variant="button": a quiet action (for a section head); drop-target makes a whole region accept files.
+            ? `<button type="button" class="iq-btn ghost sm iq-file-picker-target" data-pick-file ${disabled}>${icons_js_1.icon('upload', 16)}<span>${label}</span></button>`
+            : zone
             ? `<div class="iq-dropzone iq-file-picker-target"><div class="iq-upload-art" aria-hidden="true"><span class="upload-back-sheet"></span><span class="iq-upload-sheet">${icons_js_1.icon('file', 33)}</span><span class="iq-upload-circle">${icons_js_1.icon('plus', 18)}</span></div><div class="upload-copy"><b>${label}</b>${hint ? `<p>${hint}</p>` : ''}</div><button type="button" class="iq-btn secondary sm" data-pick-file ${disabled}>${icons_js_1.icon('upload', 18)}Выбрать на устройстве</button></div>`
             : `<button type="button" class="file-dropwell iq-file-picker-target iq-file-picker-row" data-pick-file ${disabled}>${icons_js_1.icon('upload', 18)}<span class="iq-file-picker-copy"><span>${label}</span>${hint ? `<small>${hint}</small>` : ''}</span></button>`)
             + `<input type="file" hidden ${multiple} ${accept ? `accept="${accept}"` : ''} ${disabled} aria-label="${label}">`;
@@ -1250,6 +1268,17 @@ class IqFilePicker extends IqElement {
         this.listen(target, 'dragover', ev => { ev.preventDefault(); if (ev.dataTransfer) ev.dataTransfer.dropEffect = 'copy'; });
         this.listen(target, 'dragleave', () => { depth = Math.max(0, depth - 1); if (!depth) target.classList.remove('dragover'); });
         this.listen(target, 'drop', ev => { ev.preventDefault(); depth = 0; target.classList.remove('dragover'); deliver(Array.from(ev.dataTransfer?.files || [])); });
+        // drop-target="<selector>": the closest matching ancestor (for example the whole files section) also takes
+        // dropped files and shows data-file-drop while files are dragged over it.
+        const region = this.getAttribute('drop-target') ? this.closest(this.getAttribute('drop-target')) : null;
+        if (region) {
+            let over = 0;
+            const files = ev => Array.from(ev.dataTransfer?.types || []).includes('Files');
+            this.listen(region, 'dragenter', ev => { if (!files(ev) || this.hasAttribute('disabled')) return; ev.preventDefault(); over++; region.setAttribute('data-file-drop', ''); });
+            this.listen(region, 'dragover', ev => { if (!files(ev) || this.hasAttribute('disabled')) return; ev.preventDefault(); if (ev.dataTransfer) ev.dataTransfer.dropEffect = 'copy'; });
+            this.listen(region, 'dragleave', () => { over = Math.max(0, over - 1); if (!over) region.removeAttribute('data-file-drop'); });
+            this.listen(region, 'drop', ev => { if (!files(ev)) return; ev.preventDefault(); over = 0; region.removeAttribute('data-file-drop'); if (!ev.defaultPrevented || !target.contains(ev.target)) deliver(Array.from(ev.dataTransfer?.files || [])); });
+        }
     }
     /** Opens the system picker (for hosts with their own trigger, e.g. a cover preset dialog). */
     open() { this.querySelector('input[type=file]')?.click(); }
