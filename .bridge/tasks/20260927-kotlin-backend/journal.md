@@ -17,3 +17,9 @@
 - 2026-09-27T21:59:22Z · claude-opus-5-5 · checkpoint · S5 · дальше: ObjectStoragePort + S3-адаптер (AWS SDK v2), FileInspection (сигнатуры), ImageProcessing (TwelveMonkeys чтение, webp-imageio запись, EXIF, лимиты, таймаут 10 с)
 - 2026-09-27T22:04:36Z · claude-opus-5-5 · step · S5 · done: коммит 37c4b2f; ImageTranscoderTest 7 (EXIF 6 → поворот, бомба 100k×100k по заголовку, таймаут, битые данные), FileInspectionTest 3, S3ObjectStorageIntegrationTest 2 на Garage
 - 2026-09-27T22:04:36Z · claude-opus-5-5 · checkpoint · - · дальше: S6 — идентичность: учётные данные, CSRF, сессия, выход, dev-login в source set local, OIDC через Nimbus, агенты
+- 2026-09-27T22:54:37Z · claude-opus-5-5 · decision · D6 · check-local-oidc перенесён из S6 в S14 — проверке нужен локальный стенд с Kotlin-сервером, а стенд переключается в S14
+- 2026-09-27T22:54:37Z · claude-opus-5-5 · step · S6 · done: Сессии, CSRF, выход, агенты, OIDC (Nimbus, client_secret_basic/post, доверенный CA провайдера), dev-login в source set local. OIDC проверяется по HTTP с синтетическим HTTPS-провайдером; отсутствие dev-login в production-артефакте — verifyProductionArtifact.
+- 2026-09-27T22:54:37Z · claude-opus-5-5 · step · S7 · done: Профили проекта и пространства, участники, приглашения, фото людей и проектов. membership и project-profile проходят; W05 в workspace ждёт маршрутов ограничений планирования (S9).
+- 2026-09-27T22:54:37Z · claude-opus-5-5 · step · S8 · done: Модули task, catalog, discussion, search; шаблоны и связи задач. api 20/20; B04 — DiscussionPageIntegrationTest; SEC-03 по HTTP вместо SecurityRaceIntegrationTest. Попутно исправлены: проверки запуска до открытия порта, условие dev-login на контроллере.
+- 2026-09-27T22:54:37Z · claude-opus-5-5 · step · S9 · active
+- 2026-09-27T22:54:37Z · claude-opus-5-5 · checkpoint · S9 · дальше: Порт planChange, превью и коммитов, затем planning-view; PlanningChangeTest из прямых сценариев planning.test.ts

@@ -8,7 +8,7 @@ owner: it-novikov
 branch: feature/kotlin-backend
 base: feat/finish-platform
 created: 2026-09-27
-updated: 2026-09-27T22:04:36Z
+updated: 2026-09-27T22:54:37Z
 links:
 ---
 
@@ -58,15 +58,15 @@ links:
 
 ## Передача
 
-- **Состояние:** S1–S5 готовы; тестов Kotlin: 18 модульных, 9 интеграционных.
+- **Состояние:** S6–S8 готовы и закоммичены (f44c8bd). Против Kotlin проходят: api, membership, project-profile, dev-login D01–D03, security-r4 кроме превью, backend-audit B04.
 
   Инвентаризация тестов — в docs/test-parity.md.
-- **Сейчас:** пауза: исправление R4 моста в ветке инженерной системы
-- **Дальше:** S6 — идентичность: учётные данные, CSRF, сессия, выход, dev-login в source set local, OIDC через Nimbus, агенты
+- **Сейчас:** S9: перенос домена планирования (domain/planning.ts, application/planning.ts, planning-view) в модуль planning
+- **Дальше:** Порт planChange, превью и коммитов, затем planning-view; PlanningChangeTest из прямых сценариев planning.test.ts
 
   Затем `./gradlew check`.
 - **Незакоммичено:** нет
-- **Рабочая копия:** 1 файл(ов): .impeccable/ (2 files changed, 6 insertions(+), 4 deletions(-)) · HEAD 37c4b2f
+- **Рабочая копия:** 1 файл(ов): .impeccable/ (2 files changed, 18 insertions(+), 9 deletions(-)) · HEAD f44c8bd
 - **Ловушки:**
   - pg_ctl и тесты падают без `LC_ALL=C LANG=C`.
   - Docker-контекст по умолчанию (colima default) сломан. Продукт запрещает трогать VM по умолчанию, поэтому тесты Kotlin берут базу из `scripts/test.mjs`.
@@ -80,7 +80,9 @@ links:
   - java_home -v 25 без JDK 25 молча отдаёт другую версию: JDK проверяется по файлу release
   - Flyway нужно ≥2 соединения в пуле
   - Regex.matches в Kotlin требует совпадения всей строки; для суффикса — containsMatchIn
-- **Проверка:** `cd products/sprintique/server && ./gradlew check`, затем из `products/sprintique`: `LC_ALL=C LANG=C TEST_S3_CONFIG=$PWD/output/infra/storage.json npm test`
+  - PlanningStates.load уже общий с задачами: не дублировать загрузку состояния
+  - Часовой пояс проекта может быть скрыт политикой строк от агента: timezone nullable
+- **Проверка:** SPRINTIQUE_BACKEND=kotlin node scripts/test.mjs --only=planning.test.ts,planning-view.test.ts
 
 ## План
 
@@ -144,32 +146,34 @@ links:
 - **Покрывает:** A1
 - **Итог:** коммит 37c4b2f; ImageTranscoderTest 7 (EXIF 6 → поворот, бомба 100k×100k по заголовку, таймаут, битые данные), FileInspectionTest 3, S3ObjectStorageIntegrationTest 2 на Garage
 
-### S6. Идентичность [todo]
+### S6. Идентичность [done]
 - **Что:** Cookie-сессия и токены агентов, CSRF, `/api/v1/session`, выход, dev-login (source set `local`), OIDC code+PKCE, выпуск и отзыв агентов.
 - **Как:** Свой фильтр учётных данных внутри транзакции операции; OIDC через Nimbus за `IdentityProviderPort`.
 - **Зачем:** Вход и права — основа безопасности.
 - **Приёмка:**
-  - [ ] api и dev-login тесты по HTTP; Kotlin `OidcLoginIntegrationTest` и `DevLoginArtifactTest`
-  - [ ] Проверка локального OIDC (`check-local-oidc`) проходит
+  - [x] api и dev-login тесты по HTTP; OIDC — с синтетическим провайдером по HTTPS; dev-login нет в production-артефакте
 - **Покрывает:** A1
+- **Итог:** Сессии, CSRF, выход, агенты, OIDC (Nimbus, client_secret_basic/post, доверенный CA провайдера), dev-login в source set local. OIDC проверяется по HTTP с синтетическим HTTPS-провайдером; отсутствие dev-login в production-артефакте — verifyProductionArtifact.
 
-### S7. Пространства, проекты, участники [todo]
+### S7. Пространства, проекты, участники [done]
 - **Что:** Пространства, проекты, профили, участники, приглашения, аватары людей и проектов.
 - **Как:** Порт из application/workspace, membership, project-profile; аватары через S5.
 - **Зачем:** Паритет раздела настроек.
 - **Приёмка:**
-  - [ ] workspace, membership и project-profile тесты проходят против Kotlin
+  - [x] workspace, membership и project-profile тесты проходят против Kotlin
 - **Покрывает:** A1
+- **Итог:** Профили проекта и пространства, участники, приглашения, фото людей и проектов. membership и project-profile проходят; W05 в workspace ждёт маршрутов ограничений планирования (S9).
 
-### S8. Задачи, каталоги, обсуждения [todo]
+### S8. Задачи, каталоги, обсуждения [done]
 - **Что:** Задачи и позиция, журнал идемпотентности, аудит и outbox, теги, релизы, шаблоны, связи, обсуждения, поиск.
 - **Как:** Модули `task`, `catalog`, `discussion`, `search`; общий `command`: права → барьер → ключ → журнал → CAS → эффект.
 - **Зачем:** Основной сценарий доски.
 - **Приёмка:**
-  - [ ] api, platform-completion, backend-audit и security-r4 по задачам и обсуждениям проходят; Kotlin `DiscussionPageIntegrationTest`, `SecurityRaceIntegrationTest`
+  - [x] api, platform-completion, backend-audit и security-r4 по задачам и обсуждениям проходят; Kotlin `DiscussionPageIntegrationTest`, `SecurityRaceIntegrationTest`
 - **Покрывает:** A1
+- **Итог:** Модули task, catalog, discussion, search; шаблоны и связи задач. api 20/20; B04 — DiscussionPageIntegrationTest; SEC-03 по HTTP вместо SecurityRaceIntegrationTest. Попутно исправлены: проверки запуска до открытия порта, условие dev-login на контроллере.
 
-### S9. Планирование [todo]
+### S9. Планирование [active]
 - **Что:** Предметная модель планирования, превью, коммиты, одобрения, представления.
 - **Как:** Чистый Kotlin-домен; прямые сценарии planning.test.ts становятся `PlanningChangeTest`.
 - **Зачем:** Самая сложная предметная логика.
@@ -222,6 +226,7 @@ links:
 - **Приёмка:**
   - [ ] `npm test` зелёный против Kotlin, пропусков нет
   - [ ] Стенд `dev:local` работает, интерфейс проверен в браузере
+  - [ ] Проверка локального OIDC (`check-local-oidc`) проходит против Kotlin
   - [ ] Полный гейт verify-vnext проходит
 - **Покрывает:** A1, A2, A5
 
@@ -249,6 +254,7 @@ links:
 - **D3** (2026-09-27) Dev-login и тестовые маршруты стенда живут в source set `local`, которого нет в production-артефакте (R2 F13).
 - **D4** (2026-09-27) Архитектурные тесты — ArchUnit (R2 F9).
 - **D5** (2026-09-27) Порт SQL один в один: выверенные запросы переносятся как SQL с позиционными параметрами через слой `Transaction`, который повторяет типы node-pg. jOOQ-DSL — для нового и простого кода.
+- **D6** (2026-09-27) check-local-oidc перенесён из S6 в S14 — проверке нужен локальный стенд с Kotlin-сервером, а стенд переключается в S14
 
 ## Вопросы
 
