@@ -94,3 +94,58 @@ class UniqueItemsValidator : ConstraintValidator<UniqueItems, Collection<*>?> {
 
 /** An RFC 9562 UUID of versions 1–8, as the contracts accept it. */
 const val UUID = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+
+/** A list of resource identifiers (see [RESOURCE_ID]). */
+@Target(AnnotationTarget.FIELD, AnnotationTarget.VALUE_PARAMETER)
+@Retention(AnnotationRetention.RUNTIME)
+@Constraint(validatedBy = [ResourceIdsValidator::class])
+annotation class ResourceIds(
+    val message: String = "must be resource identifiers",
+    val groups: Array<KClass<*>> = [],
+    val payload: Array<KClass<out Payload>> = [],
+)
+
+class ResourceIdsValidator : ConstraintValidator<ResourceIds, Collection<*>?> {
+    private val pattern = Regex(RESOURCE_ID)
+
+    override fun isValid(value: Collection<*>?, context: ConstraintValidatorContext): Boolean =
+        value == null || value.all { it is String && pattern.matches(it) }
+}
+
+/**
+ * A moment written in ISO 8601 as the contracts accept it: a real date, `HH:MM` with optional seconds and fraction,
+ * and `Z` — or, with [offset], also a `±HH:MM` offset.
+ */
+@Target(AnnotationTarget.FIELD, AnnotationTarget.VALUE_PARAMETER)
+@Retention(AnnotationRetention.RUNTIME)
+@Constraint(validatedBy = [IsoDateTimeValidator::class])
+annotation class IsoDateTime(
+    val offset: Boolean = false,
+    val message: String = "must be a moment",
+    val groups: Array<KClass<*>> = [],
+    val payload: Array<KClass<out Payload>> = [],
+)
+
+class IsoDateTimeValidator : ConstraintValidator<IsoDateTime, String?> {
+    private var pattern = shape(offset = false)
+
+    override fun initialize(annotation: IsoDateTime) {
+        pattern = shape(annotation.offset)
+    }
+
+    override fun isValid(value: String?, context: ConstraintValidatorContext): Boolean {
+        if (value == null) return true
+        if (!pattern.matches(value)) return false
+        return runCatching { LocalDate.parse(value.substring(0, DATE_LENGTH), DATE) }.isSuccess
+    }
+
+    private companion object {
+        const val DATE_LENGTH = 10
+        val DATE: DateTimeFormatter = DateTimeFormatter.ofPattern("uuuu-MM-dd").withResolverStyle(ResolverStyle.STRICT)
+
+        fun shape(offset: Boolean): Regex {
+            val zone = if (offset) "(?:Z|[+-](?:[01]\\d|2[0-3]):[0-5]\\d)" else "Z"
+            return Regex("^\\d{4}-\\d{2}-\\d{2}T(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?$zone$")
+        }
+    }
+}

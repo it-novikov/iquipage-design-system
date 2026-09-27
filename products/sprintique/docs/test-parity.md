@@ -33,16 +33,16 @@
 | platform-completion | 11 | HTTP | HTTP |
 | project-profile | 3 | HTTP | HTTP |
 | workspace | 5 | HTTP | HTTP |
-| api | 20 | HTTP; `Database` для RLS; `createApp` для вариантов без OIDC, с фейковым OIDC и с недоступной базой | HTTP. RLS — через помощник. Варианты сервера — отдельные процессы. OIDC с фейковым провайдером — Kotlin `OidcLoginIntegrationTest` (подменённый HTTP-клиент провайдера) |
-| dev-login | 4 | `createApp`, `NODE_ENV` | HTTP против серверов с `SPRINTIQUE_DEV_LOGIN` и без. Отказ в production и на не-loopback адресе — запуск сервера с этими настройками должен завершиться ошибкой. Отсутствие маршрута в production-артефакте — Kotlin `DevLoginArtifactTest` |
+| api | 20 | HTTP; `Database` для RLS; `createApp` для вариантов без OIDC, с фейковым OIDC и с недоступной базой | HTTP. RLS — через помощник. Варианты сервера — отдельные процессы (`startApp`). OIDC — синтетический провайдер по HTTPS на loopback (`tests/support/fake-oidc-provider.ts`): одноразовый CA, которому доверяет только сервер под тестом через `SPRINTIQUE_OIDC_TRUST_FILE`. Роль владельца базы — сервер с ней не запускается |
+| dev-login | 4 | `createApp`, `NODE_ENV` | HTTP против серверов с `SPRINTIQUE_DEV_LOGIN` и без. Отказ в production и на не-loopback адресе — запуск сервера с этими настройками завершается ошибкой. Отсутствие маршрута в production-артефакте — задача Gradle `verifyProductionArtifact` |
 | operations | 5 | `createApp` с токеном метрик; правка `public.schema_migrations` | HTTP против сервера с `SPRINTIQUE_METRICS_TOKEN`. Проверка несовпадения схемы правит `flyway_schema_history` |
 | planning | 23 | HTTP; `Database`; `createApp`; `canonical`; `planChange` напрямую | HTTP. Прямые вызовы домена планирования — Kotlin `PlanningChangeTest` с теми же сценариями. `canonical` — Kotlin `CanonicalJsonTest` |
-| security-r4 | 9 | HTTP; `createApp`; `discussions` напрямую; фейковое хранилище | HTTP. Отзыв прав во время ожидания блокировки и отказ хранилища — Kotlin `SecurityRaceIntegrationTest` с фейком `ObjectStoragePort` |
+| security-r4 | 9 | HTTP; `createApp`; `discussions` напрямую; фейковое хранилище | HTTP. SEC-03 (отзыв прав, пока запись ждёт блокировку проекта) — запрос по HTTP, ожидание видно в `pg_stat_activity`. SEC-07 и SEC-08 — отдельные серверы (`startApp`, синтетический OIDC по HTTPS). SEC-05 (общая проверка готовности) — Kotlin `ReadinessControllerTest` |
 | static-http | 1 | `createApp` + `serveWeb` | HTTP против сервера с `SPRINTIQUE_WEB_ROOT` |
 | media | 6 | HTTP; `application/media`; хранилище S3 | HTTP с настоящим S3. Прямые вызовы — Kotlin `MediaIntegrationTest` |
 | media-locks | 2 | use case напрямую, медленное хранилище | Kotlin `MediaLockIntegrationTest` с фейком хранилища, который задерживает запись |
 | jobs | 3 | `JobQueue` напрямую, S3 | Kotlin `AssetCleanupWorkerIntegrationTest` с настоящим S3 |
-| backend-audit | 4 | HTTP; прямые `pageThreads`, `rows`, `validateTaskHierarchy` | HTTP. Прямые вызовы — Kotlin `DiscussionPageIntegrationTest`, `PlanningRowsIntegrationTest`, `TaskHierarchyTest` |
+| backend-audit | 4 | HTTP; прямые `pageThreads`, `rows`, `validateTaskHierarchy` | HTTP. Прямые вызовы — Kotlin `DiscussionPageIntegrationTest` (число запросов страницы), `PlanningRowsIntegrationTest`, `TaskRulesTest` |
 | appearance, frontend-lifecycle, planning-controller, planning-operation, runner | 57 | фронтенд и скрипты | без изменений |
 
 ## Где берётся база

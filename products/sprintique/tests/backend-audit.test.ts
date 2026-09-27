@@ -2,7 +2,7 @@ import {after,before,test} from 'node:test';
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
 import {performance} from 'node:perf_hooks';
-import {fixture} from './fixture.js';
+import {fixture,kotlin} from './fixture.js';
 import {TaskInput} from '../contracts/index.js';
 import type {Task} from '../contracts/index.js';
 import {pageThreads} from '../backend/application/discussions.js';
@@ -83,8 +83,11 @@ test('B02 hierarchy write boundary includes moved descendants and preserves read
   const page=await request('POST','planning/view/rows',{groupId:'backlog',revision:group.revision,query:'depth-'});
   assert.equal(page.statusCode,200,page.body);assert.equal(page.json().rows.length,MAX_TASK_DEPTH+1);
   assert.equal(page.json().rows.at(-1).depth,MAX_TASK_DEPTH);
-  assert.throws(()=>validateTaskHierarchy([{id:'a',parentId:'b'},{id:'b',parentId:'a'}]),{code:'TASK_CYCLE'});
-  assert.throws(()=>validateTaskHierarchy([{id:'a',parentId:'missing'}]),{code:'TASK_PARENT'});
+  // The same rules of the Kotlin domain are TaskRulesTest.
+  if(!kotlin){
+    assert.throws(()=>validateTaskHierarchy([{id:'a',parentId:'b'},{id:'b',parentId:'a'}]),{code:'TASK_CYCLE'});
+    assert.throws(()=>validateTaskHierarchy([{id:'a',parentId:'missing'}]),{code:'TASK_PARENT'});
+  }
 });
 
 test('B04 thread pages have constant query count, bounded summaries, stable ordering and revision cursors',async()=>{
@@ -96,15 +99,16 @@ test('B04 thread pages have constant query count, bounded summaries, stable orde
     FROM generate_series(1,1000) n`,[f.first.id]);
   await f.admin.query(`INSERT INTO app.messages(project_id,id,thread_id,body,author_id)
     SELECT $1,'catalogue-message-'||n,'catalogue-'||lpad(n::text,4,'0'),repeat('x',200),$2 FROM generate_series(1,1000) n`,[f.first.id,f.alice.id]);
+  // The statement count is observed in-process for TypeScript; for Kotlin it is DiscussionPageIntegrationTest.
   let queryCount=0;
-  const first=await f.db.authenticated({token:f.alice.token,kind:'session'},async (tx,actor)=>{
+  const first=kotlin?(await request('GET','tasks/thread-catalogue/threads?limit=50')).json<Awaited<ReturnType<typeof pageThreads>>>():await f.db.authenticated({token:f.alice.token,kind:'session'},async (tx,actor)=>{
     const measured=new Proxy(tx,{get(target,property,receiver){
       if(property==='query')return (...args:unknown[])=>{queryCount++;return Reflect.apply(target.query,target,args);};
       return Reflect.get(target,property,receiver);
     }});
     return pageThreads(measured,actor,f.first.id,'thread-catalogue',null,50);
   });
-  assert.equal(queryCount,2);assert.equal(first.items.length,50);assert.equal(first.total,1000);assert.equal(first.unresolved,333);
+  if(!kotlin)assert.equal(queryCount,2);assert.equal(first.items.length,50);assert.equal(first.total,1000);assert.equal(first.unresolved,333);
   assert.ok(first.items.every(item=>item.messageCount===1&&item.messages[0]!.body.length===160));
   assert.ok(Buffer.byteLength(JSON.stringify(first))<50*1024);
   const expected=(await f.admin.query(`SELECT id FROM app.threads WHERE project_id=$1 AND task_id='thread-catalogue'
