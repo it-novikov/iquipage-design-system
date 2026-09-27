@@ -2,7 +2,8 @@ import {before,after,test} from 'node:test';
 import assert from 'node:assert/strict';
 import {createHash,randomUUID} from 'node:crypto';
 import {readFile} from 'node:fs/promises';
-import {fixture} from './fixture.js';
+import {fixture,kotlin} from './fixture.js';
+import {startKotlinWorker} from './support/kotlin-app.js';
 import {S3ObjectStorage,objectKey} from '../backend/infrastructure/object-storage.js';
 import {JobQueue} from '../backend/infrastructure/job-queue.js';
 let f:Awaited<ReturnType<typeof fixture>>,queue:JobQueue,storage:S3ObjectStorage;
@@ -48,4 +49,20 @@ test('J03 failed object storage reschedules the durable job; exhausted crash att
   assert.equal(row['state'],'pending');assert.equal(row['attempts'],1);assert.equal(row['last_error'],'ASSET_GC_FAILED');
   await f.admin.query("UPDATE work.jobs SET state='running',attempts=10,lease_until=clock_timestamp()-interval '1 second' WHERE id=$1",[row['id']]);
   await queue.claim();assert.equal((await f.admin.query('SELECT state FROM work.jobs WHERE id=$1',[row['id']])).rows[0]['state'],'failed');
+});
+
+test('J04 the worker command collects a discarded file and stops on request',{skip:!kotlin&&'the Kotlin worker command'},async()=>{
+  const reference=await asset('worker-collect');assert.equal((await discard('worker-collect')).statusCode,200);
+  await f.admin.query("UPDATE app.assets SET expires_at=clock_timestamp()-interval '1 second' WHERE project_id=$1 AND id='worker-collect'",[f.first.id]);
+  await f.admin.query("UPDATE work.jobs SET available_at=clock_timestamp() WHERE project_id=$1 AND payload->>'assetId'='worker-collect'",[f.first.id]);
+  const worker=await startKotlinWorker();
+  try{
+    let state='';
+    for(let attempt=0;attempt<100&&state!=='deleted';attempt++){
+      await new Promise(resolve=>setTimeout(resolve,100));
+      state=(await f.admin.query('SELECT state FROM app.assets WHERE project_id=$1 AND id=$2',[f.first.id,'worker-collect'])).rows[0]['state'];
+    }
+    assert.equal(state,'deleted',worker.output());
+    await assert.rejects(storage.get(objectKey(reference,'original')));
+  }finally{await worker.stop();}
 });

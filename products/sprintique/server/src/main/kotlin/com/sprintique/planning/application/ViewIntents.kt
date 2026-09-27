@@ -36,6 +36,7 @@ import com.sprintique.problem.requireCondition
 import com.sprintique.problem.requirePresent
 import com.sprintique.task.domain.TaskRules
 import com.sprintique.token.Tokens
+import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import tools.jackson.databind.DeserializationFeature
 import tools.jackson.databind.JsonNode
@@ -45,6 +46,7 @@ import java.util.UUID
 
 /** Turns the planning screen's intents into planning commands and previews them. */
 @Component
+@Profile("api")
 class ViewIntents(
     private val contracts: Contracts,
     private val planning: Planning,

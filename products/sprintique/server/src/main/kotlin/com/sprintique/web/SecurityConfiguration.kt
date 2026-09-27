@@ -2,6 +2,7 @@ package com.sprintique.web
 
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Profile
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.web.SecurityFilterChain
@@ -12,6 +13,7 @@ import org.springframework.security.web.SecurityFilterChain
  * authorizes, so a revocation committed while a request waits cannot be outrun.
  */
 @Configuration(proxyBeanMethods = false)
+@Profile("api")
 class SecurityConfiguration {
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain =

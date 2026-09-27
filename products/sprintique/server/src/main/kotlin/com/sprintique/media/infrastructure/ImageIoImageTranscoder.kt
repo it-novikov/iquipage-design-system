@@ -5,6 +5,7 @@ import com.sprintique.media.application.ProcessedImage
 import com.sprintique.media.domain.FileInspection
 import com.sprintique.problem.ProblemException
 import com.sprintique.problem.requireCondition
+import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import java.awt.RenderingHints
 import java.awt.geom.AffineTransform
@@ -33,6 +34,7 @@ import kotlin.math.roundToInt
  * warning fails the image, a decode past the time limit is aborted, and at most two images are processed at once.
  */
 @Component
+@Profile("api")
 class ImageIoImageTranscoder(private val timeout: Duration = DEFAULT_TIMEOUT) : ImageTranscoder {
     private val slots = Semaphore(CONCURRENT_DECODERS)
     private val executor = Executors.newVirtualThreadPerTaskExecutor()

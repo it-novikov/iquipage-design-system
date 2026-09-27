@@ -7,6 +7,9 @@ package com.sprintique.database
 object IntegrationDatabase {
     val runtime: Database by lazy { Database.connect(environment("SPRINTIQUE_TEST_DATABASE_URL"), 4, "test-runtime") }
     val admin: Database by lazy { Database.connect(adminUrl("sprintique"), 2, "test-admin") }
+    val worker: Database by lazy {
+        Database.connect(environment("SPRINTIQUE_TEST_WORKER_DATABASE_URL"), 2, "test-worker")
+    }
     val migrationUrl: String get() = environment("SPRINTIQUE_TEST_MIGRATION_DATABASE_URL")
 
     fun environment(name: String): String =

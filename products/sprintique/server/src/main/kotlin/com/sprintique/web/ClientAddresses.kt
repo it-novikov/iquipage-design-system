@@ -2,6 +2,7 @@ package com.sprintique.web
 
 import com.sprintique.configuration.SprintiqueProperties
 import jakarta.servlet.http.HttpServletRequest
+import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 
 /**
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Component
  * exact proxy addresses. Without configuration the socket peer is the client, so spoofed headers change nothing.
  */
 @Component
+@Profile("api")
 class ClientAddresses(properties: SprintiqueProperties) {
     private val hops: Int? = properties.trustProxy.toIntOrNull()
     private val proxies: Set<String> =

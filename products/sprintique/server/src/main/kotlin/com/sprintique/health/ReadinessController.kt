@@ -1,5 +1,6 @@
 package com.sprintique.health
 
+import org.springframework.context.annotation.Profile
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RestController
 import java.util.concurrent.CompletableFuture
@@ -15,6 +16,7 @@ fun interface ReadinessProbe {
  * check, so anonymous traffic cannot multiply database and storage work.
  */
 @RestController
+@Profile("api")
 class ReadinessController(private val probes: List<ReadinessProbe>) {
     private var running: CompletableFuture<Unit>? = null
 

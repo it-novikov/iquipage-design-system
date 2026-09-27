@@ -4,6 +4,7 @@ import com.sprintique.database.Transaction
 import com.sprintique.identity.domain.Actor
 import com.sprintique.problem.requireCondition
 import com.sprintique.token.Tokens
+import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import tools.jackson.databind.JsonNode
 import tools.jackson.databind.json.JsonMapper
@@ -24,6 +25,7 @@ interface Receipt<T> {
  * the same key with a different request is a conflict. Runs in the transaction of the effect itself.
  */
 @Component
+@Profile("api")
 class CommandLedger(private val json: JsonMapper) {
     fun <T : Any> idempotent(
         tx: Transaction,

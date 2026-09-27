@@ -3,6 +3,7 @@ package com.sprintique.web
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import org.springframework.context.annotation.Profile
 import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
@@ -13,6 +14,7 @@ import java.util.concurrent.atomic.AtomicInteger
  * at most 64 requests and 8 uploads in flight. Event streams have their own cap; readiness is never shed.
  */
 @Component
+@Profile("api")
 @Order(FilterOrder.LIMITS)
 class RequestLimitFilter(private val clientAddresses: ClientAddresses) : OncePerRequestFilter() {
     private class Window(var since: Long, var count: Int = 0, var logins: Int = 0)

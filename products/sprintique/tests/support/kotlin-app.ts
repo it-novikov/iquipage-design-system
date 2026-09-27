@@ -3,7 +3,7 @@
 import {appendFileSync,readFileSync} from 'node:fs';
 import {resolve} from 'node:path';
 // @ts-expect-error: plain ESM helper shared with the runner
-import {startServer} from '../../scripts/kotlin-server.mjs';
+import {startServer,startWorker} from '../../scripts/kotlin-server.mjs';
 
 export interface InjectOptions {method?:string;url:string;headers?:Record<string,string|undefined>;payload?:unknown;query?:Record<string,string>}
 export interface InjectResponse {statusCode:number;headers:Record<string,string|string[]|undefined>;body:string;rawPayload:Buffer;json<T=any>():T}
@@ -64,4 +64,9 @@ export async function startKotlinApp(options:AppOptions={}):Promise<TestApp>{
       if(log)appendFileSync(log,`\n=== ${server.url}\n${server.output()}`);
     },
   };
+}
+
+/** The `worker` command of the same artifact, on the worker role, with the test object storage. */
+export async function startKotlinWorker():Promise<{stop():Promise<void>;output():string}>{
+  return startWorker({SPRINTIQUE_WORKER_DATABASE_URL:process.env['WORKER_DATABASE_URL']!,...storageSettings()});
 }

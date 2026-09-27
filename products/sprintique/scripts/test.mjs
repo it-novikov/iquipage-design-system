@@ -1,10 +1,14 @@
+import {existsSync} from 'node:fs';
 import {mkdtemp,mkdir,readdir} from 'node:fs/promises';
 import {tmpdir,constants} from 'node:os';
-import {join} from 'node:path';
+import {join,resolve} from 'node:path';
 import {spawnSync,spawn} from 'node:child_process';
 import pg from 'pg';
 import {waitForChild,FORWARDED_SIGNALS} from './child-exit.mjs';
 import {startGuard,stopCluster,sweepOrphans,watchParent,writeOwner} from './cluster-guard.mjs';
+
+/** The local object storage the API tests use: TEST_S3_CONFIG, else the owned local stand's config when present. */
+const s3Config=()=>process.env.TEST_S3_CONFIG?resolve(process.env.TEST_S3_CONFIG):existsSync('output/infra/storage.json')?resolve('output/infra/storage.json'):'';
 if(process.env.SPRINTIQUE_TEST_DOCKER==='1'){
   await import('./test-docker.mjs');
 }else{
@@ -63,7 +67,7 @@ try{
       server.integrationTests({SPRINTIQUE_TEST_ADMIN_DATABASE_URL:url('postgres'),SPRINTIQUE_TEST_MIGRATION_DATABASE_URL:url('sprintique_migrator'),
         SPRINTIQUE_TEST_DATABASE_URL:url('sprintique_app'),SPRINTIQUE_TEST_WORKER_DATABASE_URL:url('sprintique_worker'),
         SPRINTIQUE_TEST_RUNTIME_ROLE:'sprintique_app',SPRINTIQUE_TEST_WORKER_ROLE:'sprintique_worker',
-        ...(process.env.TEST_S3_CONFIG?{SPRINTIQUE_TEST_S3_CONFIG:process.env.TEST_S3_CONFIG}:{})});
+        ...(s3Config()?{SPRINTIQUE_TEST_S3_CONFIG:s3Config()}:{})});
       checkpoint();
     }
   }

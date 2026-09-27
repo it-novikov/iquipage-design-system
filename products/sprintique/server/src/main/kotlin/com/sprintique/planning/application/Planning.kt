@@ -20,6 +20,7 @@ import com.sprintique.problem.requireCondition
 import com.sprintique.problem.requirePresent
 import com.sprintique.token.Tokens
 import com.sprintique.workspace.application.Membership
+import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import tools.jackson.databind.JsonNode
 import tools.jackson.databind.json.JsonMapper
@@ -32,6 +33,7 @@ import java.util.UUID
  * applies it only if recomputing gives exactly the same effects. Agents need a person's approval of the exact plan.
  */
 @Component
+@Profile("api")
 class Planning(private val json: JsonMapper, private val ledger: CommandLedger) {
     /** Outstanding previews store a project-sized graph, so they are budgeted and expired ones are collected. */
     object PreviewBudget {

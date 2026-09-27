@@ -5,6 +5,7 @@ import com.sprintique.database.Transaction
 import com.sprintique.identity.domain.Actor
 import com.sprintique.planning.domain.PlanningRows
 import com.sprintique.token.Tokens
+import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import tools.jackson.databind.JsonNode
 import tools.jackson.databind.json.JsonMapper
@@ -25,6 +26,7 @@ data class PlanningFilters(
 
 /** Read-only planning lists: tasks, constraints, the roadmap and release history. */
 @Component
+@Profile("api")
 class PlanningQueries(private val json: JsonMapper) {
     fun tasks(
         tx: Transaction,

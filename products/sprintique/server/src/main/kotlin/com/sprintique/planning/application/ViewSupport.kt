@@ -36,6 +36,7 @@ import com.sprintique.problem.requireCondition
 import com.sprintique.problem.requirePresent
 import com.sprintique.task.domain.TaskRules
 import com.sprintique.token.Tokens
+import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import tools.jackson.databind.DeserializationFeature
 import tools.jackson.databind.JsonNode
@@ -53,6 +54,7 @@ internal data class ViewContext(
 
 /** What the planning projection and the intents share: the read context, stored history, selections, cursors. */
 @Component
+@Profile("api")
 class ViewSupport(private val json: JsonMapper, private val contracts: Contracts) {
     /** Stored history rows are read leniently: older entries may carry fields this version no longer writes. */
     internal val stored: JsonMapper = json.rebuild().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build()

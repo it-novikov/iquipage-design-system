@@ -105,3 +105,40 @@ export async function startServer(env, {port: fixedPort, timeoutMs = 60000} = {}
     },
   };
 }
+
+/**
+ * Starts the `worker` command. It has no HTTP port: it counts as started once it logs that the application is up,
+ * and rejects with its output when it exits first.
+ */
+export async function startWorker(env, {timeoutMs = 60000} = {}) {
+  const child = spawn(java(), ['-XX:TieredStopAtLevel=1', '-Xshare:auto', '-jar', LOCAL_JAR, 'worker'], {
+    stdio: ['ignore', 'pipe', 'pipe'],
+    env: {...process.env, ...env},
+  });
+  let output = '';
+  const exited = new Promise(resolveExit => child.once('exit', code => resolveExit(code)));
+  const started = new Promise(resolveStart => {
+    const keep = chunk => {
+      output = (output + chunk.toString()).slice(-20000);
+      if (/Started \w+ in/.test(output)) resolveStart(true);
+    };
+    child.stdout.on('data', keep);
+    child.stderr.on('data', keep);
+  });
+  const timer = new Promise(resolveTimer => setTimeout(() => resolveTimer('timeout'), timeoutMs));
+  const outcome = await Promise.race([started, exited.then(code => ({code})), timer]);
+  if (outcome !== true) {
+    child.kill('SIGKILL');
+    throw Error(`Kotlin worker did not start (${JSON.stringify(outcome)}):\n${output}`);
+  }
+  return {
+    output: () => output,
+    async stop() {
+      if (child.exitCode !== null) return;
+      child.kill('SIGTERM');
+      const stopTimer = setTimeout(() => child.kill('SIGKILL'), 10000);
+      await exited;
+      clearTimeout(stopTimer);
+    },
+  };
+}

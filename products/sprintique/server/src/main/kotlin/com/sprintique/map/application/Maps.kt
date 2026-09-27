@@ -11,6 +11,7 @@ import com.sprintique.map.contract.PutMapRequest
 import com.sprintique.media.application.Assets
 import com.sprintique.problem.requireCondition
 import com.sprintique.problem.requirePresent
+import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import tools.jackson.databind.JsonNode
 import tools.jackson.databind.json.JsonMapper
@@ -23,6 +24,7 @@ import kotlin.math.ceil
  * archived map never changes again.
  */
 @Component
+@Profile("api")
 class Maps(private val json: JsonMapper, private val ledger: CommandLedger) {
     fun read(tx: Transaction, actor: Actor, projectId: String, id: String): ObjectNode {
         ProjectAccess.authorize(tx, actor, projectId, Capability.MAPS_READ)

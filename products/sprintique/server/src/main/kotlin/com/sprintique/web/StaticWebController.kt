@@ -2,6 +2,7 @@ package com.sprintique.web
 
 import com.sprintique.configuration.SprintiqueProperties
 import com.sprintique.problem.ProblemException
+import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -19,6 +20,7 @@ import java.util.Base64
  * media and missing files keep the no-store default.
  */
 @RestController
+@Profile("api")
 class StaticWebController(properties: SprintiqueProperties) {
     private val root: Path? = properties.webRoot.takeIf(String::isNotEmpty)?.let {
         Path.of(it).toAbsolutePath().normalize()

@@ -4,6 +4,7 @@ import com.sprintique.configuration.SprintiqueProperties
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import org.springframework.context.annotation.Profile
 import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
@@ -13,6 +14,7 @@ import org.springframework.web.filter.OncePerRequestFilter
  * build assets opt into long caching.
  */
 @Component
+@Profile("api")
 @Order(FilterOrder.HEADERS)
 class SecurityHeadersFilter(private val properties: SprintiqueProperties) : OncePerRequestFilter() {
     override fun doFilterInternal(request: HttpServletRequest, response: HttpServletResponse, chain: FilterChain) {

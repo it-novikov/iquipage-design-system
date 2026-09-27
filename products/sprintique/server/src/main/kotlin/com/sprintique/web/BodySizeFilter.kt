@@ -6,6 +6,7 @@ import jakarta.servlet.ServletInputStream
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletRequestWrapper
 import jakarta.servlet.http.HttpServletResponse
+import org.springframework.context.annotation.Profile
 import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
@@ -15,6 +16,7 @@ import org.springframework.web.filter.OncePerRequestFilter
  * length over the limit is refused at once; a streamed body is counted and cut off at the limit.
  */
 @Component
+@Profile("api")
 @Order(FilterOrder.BODY)
 class BodySizeFilter : OncePerRequestFilter() {
     override fun doFilterInternal(request: HttpServletRequest, response: HttpServletResponse, chain: FilterChain) {

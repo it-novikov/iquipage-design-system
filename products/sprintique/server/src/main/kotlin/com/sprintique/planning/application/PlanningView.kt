@@ -37,6 +37,7 @@ import com.sprintique.problem.requireCondition
 import com.sprintique.problem.requirePresent
 import com.sprintique.task.domain.TaskRules
 import com.sprintique.token.Tokens
+import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import tools.jackson.databind.DeserializationFeature
 import tools.jackson.databind.JsonNode
@@ -46,6 +47,7 @@ import java.util.UUID
 
 /** The projection the planning screen reads. Queries are bounded POSTs; they never change anything. */
 @Component
+@Profile("api")
 class PlanningView(private val json: JsonMapper, private val support: ViewSupport) {
     fun groups(tx: Transaction, actor: Actor, projectId: String, query: ViewQuery): Map<String, Any?> {
         val c = support.context(tx, actor, projectId)

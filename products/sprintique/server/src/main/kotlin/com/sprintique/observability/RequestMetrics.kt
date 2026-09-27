@@ -6,6 +6,7 @@ import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.slf4j.LoggerFactory
+import org.springframework.context.annotation.Profile
 import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
@@ -17,6 +18,7 @@ import java.util.concurrent.ConcurrentHashMap
  * principal identifiers, bodies, headers or tokens are recorded.
  */
 @Component
+@Profile("api")
 @Order(FilterOrder.METRICS)
 class RequestMetrics : OncePerRequestFilter() {
     private val log = LoggerFactory.getLogger("http")

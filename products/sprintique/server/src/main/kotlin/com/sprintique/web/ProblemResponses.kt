@@ -4,6 +4,7 @@ import com.sprintique.problem.ProblemException
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.slf4j.LoggerFactory
+import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.http.converter.HttpMessageNotReadableException
@@ -24,6 +25,7 @@ import org.springframework.web.servlet.resource.NoResourceFoundException
  * reach the client or the log.
  */
 @RestControllerAdvice
+@Profile("api")
 class ProblemResponses {
     private val log = LoggerFactory.getLogger(ProblemResponses::class.java)
 

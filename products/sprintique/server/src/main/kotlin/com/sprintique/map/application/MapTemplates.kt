@@ -8,12 +8,14 @@ import com.sprintique.identity.domain.Actor
 import com.sprintique.identity.domain.Capability
 import com.sprintique.map.contract.PutMapTemplateRequest
 import com.sprintique.problem.requireCondition
+import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import tools.jackson.databind.JsonNode
 import tools.jackson.databind.json.JsonMapper
 
 /** Map templates of a workspace: personal, project or workspace-wide. They never reference private files or tasks. */
 @Component
+@Profile("api")
 class MapTemplates(private val json: JsonMapper, private val ledger: CommandLedger) {
     fun list(tx: Transaction, actor: Actor, projectId: String): List<JsonNode> {
         val workspaceId = ProjectAccess.authorize(tx, actor, projectId, Capability.MAPS_READ).workspaceId
