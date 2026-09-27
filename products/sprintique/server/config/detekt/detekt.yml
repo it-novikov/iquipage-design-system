@@ -10,6 +10,9 @@ complexity:
     allowedFunctionsPerClass: 25
     allowedFunctionsPerObject: 25
 style:
+  ThrowsCount:
+    # Guard clauses that end in a problem for the client read top to bottom.
+    max: 4
   ReturnCount:
     # Guard clauses read top to bottom; an early return is clearer than nesting.
     max: 4
@@ -21,6 +24,8 @@ style:
     excludes: ['**/test/**', '**/integrationTest/**']
     ignorePropertyDeclaration: true
     ignoreCompanionObjectPropertyDeclaration: true
+    # Bounds in contract annotations are the contract itself (@Min(60), @Max(86_400)).
+    ignoreAnnotation: true
     # HTTP status codes are the vocabulary of the API contract; naming each one would hide the status the client sees.
     ignoreNumbers: ['-1', '0', '1', '2', '400', '401', '403', '404', '409', '410', '413', '415', '422', '429', '503']
 naming:

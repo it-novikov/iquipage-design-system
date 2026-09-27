@@ -17,6 +17,8 @@ ij_kotlin_name_count_to_use_star_import_for_members = 2147483647
 ktlint_code_style = intellij_idea
 ktlint_standard_function-signature = disabled
 ktlint_standard_class-signature = disabled
+# SQL calls pass a multi-line statement followed by its parameters; one parameter per line would triple their height.
+ktlint_standard_argument-list-wrapping = disabled
 
 [*.{yaml,yml,json,toml,md}]
 indent_size = 2

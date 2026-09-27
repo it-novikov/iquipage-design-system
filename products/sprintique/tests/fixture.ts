@@ -1,15 +1,46 @@
 import pg from 'pg';
-import {randomUUID} from 'node:crypto';
-import {migrate} from '../backend/migrate.js';
-import {Database,hash,secret} from '../backend/infrastructure/database.js';
-import {createApp} from '../backend/http/app.js';
-import {serveWeb} from '../backend/http/static.js';
+import {randomUUID,createHash,randomBytes} from 'node:crypto';
 import type {ObjectStorage} from '../backend/infrastructure/object-storage.js';
+import {RuntimeDatabase} from './support/runtime-database.js';
+import {startKotlinApp} from './support/kotlin-app.js';
+import type {AppOptions,TestApp} from './support/kotlin-app.js';
+import type {FastifyInstance} from 'fastify';
+import type {Database} from '../backend/infrastructure/database.js';
+
+// Types stay those of the TypeScript backend while both run: tests that reach into it are moved to Kotlin one by one
+// (docs/test-parity.md). In the Kotlin run the app is an HTTP client with the same inject() and the database a
+// runtime-role helper with the same authenticated() transaction.
 export const origin='http://localhost:4311';
+/** SPRINTIQUE_BACKEND=kotlin runs every test against the Kotlin server over HTTP; otherwise the TypeScript app. */
+export const kotlin=process.env['SPRINTIQUE_BACKEND']==='kotlin';
+const hash=(value:string)=>createHash('sha256').update(value).digest('hex');
+const secret=()=>randomBytes(32).toString('base64url');
+export async function startApp(options:AppOptions&{db?:unknown;storage?:ObjectStorage|boolean}={}):Promise<TestApp&Record<string,any>>{
+  if(kotlin)return startKotlinApp({...options,storage:!!options.storage});
+  const [{Database},{createApp}]=await Promise.all([import('../backend/infrastructure/database.js'),import('../backend/http/app.js')]);
+  const db=(options.db as InstanceType<typeof Database>|undefined)??new Database(options.databaseUrl??process.env['DATABASE_URL']!);
+  const app=await createApp({db,origin:options.origin??origin,devLogin:!!options.devLogin,...(options.metricsToken?{metricsToken:options.metricsToken}:{}),
+    ...(options.storage&&typeof options.storage==='object'?{storage:options.storage}:{})});
+  return Object.assign(app,{url:''}) as unknown as TestApp&Record<string,any>;
+}
+
 export async function fixture({web=false,prefix='',storage,appOrigin=origin,settingsPreview=false,devLogin=false}:{web?:boolean;prefix?:string;storage?:ObjectStorage;appOrigin?:string;settingsPreview?:boolean;devLogin?:boolean}={}){
-  await migrate(process.env['MIGRATION_DATABASE_URL']!,process.env['DATABASE_RUNTIME_ROLE']!,process.env['DATABASE_WORKER_ROLE']);
   const admin=new pg.Client({connectionString:process.env['TEST_ADMIN_DATABASE_URL']!});await admin.connect();
-  const db=new Database(process.env['DATABASE_URL']!);await db.checkRuntimeRole();
+  // The two backends expose the same inject() shape; tests treat the app as that shape.
+  let app:FastifyInstance,db:Database;
+  if(kotlin){
+    // The runner applied the Flyway ledger before any test; the TypeScript migrator must not run here.
+    if(settingsPreview)throw Error('settingsPreview is served by the Kotlin local stand, not by the test fixture');
+    db=new RuntimeDatabase(process.env['DATABASE_URL']!) as unknown as Database;
+    app=await startKotlinApp({origin:appOrigin,devLogin,web,storage:!!storage}) as unknown as FastifyInstance;
+  }else{
+    const [{migrate},{Database},{createApp},{serveWeb}]=await Promise.all([import('../backend/migrate.js'),import('../backend/infrastructure/database.js'),
+      import('../backend/http/app.js'),import('../backend/http/static.js')]);
+    await migrate(process.env['MIGRATION_DATABASE_URL']!,process.env['DATABASE_RUNTIME_ROLE']!,process.env['DATABASE_WORKER_ROLE']);
+    db=new Database(process.env['DATABASE_URL']!);await db.checkRuntimeRole();
+    app=await createApp({db,origin:appOrigin,devLogin,...(storage?{storage}:{})});
+    if(web)serveWeb(app);
+  }
   const human=async(name:string)=>{
     const id=randomUUID(),token=secret(),csrf=secret(),credential=randomUUID();
     await admin.query("INSERT INTO auth.principals(id,kind,name,issuer,subject) VALUES($1,'human',$2,'https://test.example',$1)",[id,name]);
@@ -17,8 +48,6 @@ export async function fixture({web=false,prefix='',storage,appOrigin=origin,sett
     return {id,token,csrf,credential,headers:{cookie:`__Host-sprintique=${token}`,origin:appOrigin,'x-csrf-token':csrf}};
   };
   const alice=await human('Алиса'),bob=await human('Борис'),reader=await human('Наблюдатель');
-  const app=await createApp({db,origin:appOrigin,devLogin,...(storage?{storage}:{})});
-  if(web)serveWeb(app);
   // Explicit synthetic preview only; this test helper is never compiled into the server.
   if(settingsPreview)app.get<{Params:{role:string}}>('/__preview/:role',async(request,reply)=>{
     const actor=request.params.role==='admin'?alice:request.params.role==='reader'?reader:null;

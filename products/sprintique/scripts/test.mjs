@@ -25,7 +25,7 @@ sweepOrphans({bin});
 const dir=await mkdtemp(join(tmpdir(),'sprintique-test-'));
 const socket=join(dir,'socket'),data=join(dir,'data');await mkdir(socket,{mode:0o700});
 writeOwner(dir);
-function command(name,args){const run=spawnSync(join(bin,name),args,{encoding:'utf8'});if(run.status!==0)throw Error(`${name} failed: ${run.stderr||run.error||run.stdout}`);}
+function command(name,args){const run=spawnSync(join(bin,name),args,{encoding:'utf8',env:{...process.env,LC_ALL:'C',LANG:'C'}});if(run.status!==0)throw Error(`${name} failed: ${run.stderr||run.error||run.stdout}`);}
 try{
   checkpoint();
   // Isolated synthetic cluster: Unix socket only, no TCP listener, no existing databases.
@@ -69,7 +69,9 @@ try{
   }
   // --kotlin-only stops after the Kotlin checks above, without the Node suites.
   if(process.argv.includes('--kotlin-only')||process.argv.includes('--jooq')){process.exitCode??=0;}else{
-  const tests=(await readdir('tests')).filter(name=>/\.test\.(ts|mjs)$/.test(name)).sort().map(name=>'tests/'+name);
+  // --only=a.test.ts,b.test.ts runs a subset while the Kotlin backend grows.
+  const only=process.argv.find(argument=>argument.startsWith('--only='))?.slice(7).split(',');
+  const tests=(await readdir('tests')).filter(name=>/\.test\.(ts|mjs)$/.test(name)&&(!only||only.includes(name))).sort().map(name=>'tests/'+name);
   checkpoint();
   const child=spawn(process.execPath,['--import','tsx',...(preview?[settingsPreview?'tests/settings-preview.ts':'tests/preview.ts']:['--test','--test-concurrency=1',...tests])],{
     stdio:'inherit',env:{...process.env,TEST_FIXTURE_DIR:dir,TEST_ADMIN_DATABASE_URL:url('postgres'),MIGRATION_DATABASE_URL:url('sprintique_migrator'),DATABASE_RUNTIME_ROLE:'sprintique_app',DATABASE_WORKER_ROLE:'sprintique_worker',DATABASE_URL:url('sprintique_app'),WORKER_DATABASE_URL:url('sprintique_worker')}
