@@ -94,6 +94,11 @@ test('records survive a new application and database-pool instance; no memory fa
 test('readiness checks schema access with the restricted runtime role',async()=>{
   const response=await f.app.inject({url:'/ready'});assert.equal(response.statusCode,200,response.body);
 });
+test('a tag colour is a palette tone or any RGB colour, stored upper case',async()=>{
+  const tag=(id:string,tone:string)=>f.app.inject({method:'PUT',url:path('tags/'+id),headers:{...f.alice.headers,'idempotency-key':randomUUID()},payload:{baseRevision:0,value:{name:'Цвет '+id,tone}}});
+  const custom=await tag('rgb','#3a7bd5');assert.equal(custom.statusCode,200,custom.body);assert.equal(custom.json().tone,'#3A7BD5');
+  for(const bad of ['#12345','red-ish','#GGGGGG','3A7BD5'])assert.equal((await tag('bad-'+bad.length,bad)).statusCode,400);
+});
 test('archived catalog references can be retained, but cannot be newly assigned',async()=>{
   const headers={...f.alice.headers,'idempotency-key':randomUUID()};
   assert.equal((await f.app.inject({method:'PUT',url:path('tags/design'),headers,payload:{baseRevision:0,value:{name:'Дизайн',tone:'purple'}}})).statusCode,200);

@@ -18,6 +18,15 @@ the native `keycloak/iquipage` theme so OIDC products can present the form at th
 provider without collecting passwords in the application. The interactive authentication
 example now demonstrates the form, not just a provider redirect.
 
+## Task drawer building blocks (0.6.0-vnext.16)
+
+- `iq-markdown-editor.toolbarActions = [{id,label,icon?}]` adds up to three host actions at the end of the toolbar. They exist only while editing; a click emits `iq-editor-action` with `{id}`. `empty-action-label` and `empty-action` add a quiet button to the empty preview that emits the same event. With `preview-on-blur`, Escape leaves editing without closing the surrounding dialog.
+- `iq-select` and `iq-combobox` options may carry `avatar: {text, tone}` and `tone`; the closed control shows the chosen option's avatar (or icon) and sets `data-tone` on the trigger, and `data-empty` on the element.
+- `.iq-property-strip` turns selects, comboboxes and date fields into value-first chips without visible labels (labels remain for assistive technology). Priority tones `high` and `critical`, and `iq-date-field[data-tone=danger|warning]`, use the task signal colours.
+- `.iq-inline-title` is a heading that is its own input: no frame at rest, a frame on hover and focus.
+- `.iq-color-field` composes palette swatches, a native colour input and a hex field.
+- `tagToneAttributes(tone)` returns the attributes for a tag colour: a palette tone name, or any `#RRGGBB`. Custom colours get `data-tone="custom"`; the fill and text are derived from the hue for light and dark themes (readable on any colour), and the colour is registered in a shared stylesheet, so pages need no inline styles. `iq-tag-picker` accepts hex tones.
+
 ## Settings (0.6.0-vnext.15)
 
 `registerCore()` registers `iq-settings-layout` and `iq-visual-choice`.

@@ -63,7 +63,7 @@ export function mountTaskFiles(root,{coverRoot,adapter,task,readOnly=false,onCov
     coverRoot.hidden=false;onCoverState(true);
     const row=rows.get(coverId);
     coverRoot.innerHTML=`<div class="task-detail-cover" data-state="loading"><button type="button" data-preview-cover aria-label="Открыть обложку" disabled><img alt="" decoding="async" style="${coverImageStyle(coverCrop,coverId)}" hidden></button><span data-cover-status>Загрузка обложки…</span></div>
-      ${editable?'<div class="row task-cover-actions"><button type="button" class="iq-btn ghost sm" data-recrop-cover>Кадрировать</button><button type="button" class="iq-btn ghost sm" data-add-cover>Заменить</button><button type="button" class="iq-btn ghost sm" data-remove-cover>Убрать</button></div>':''}`;
+      ${editable?`<iq-menu class="task-cover-menu"><button type="button" class="iq-btn secondary sm">${icon('image',16)}<span>Обложка</span>${icon('down',14)}</button><div data-menu><button type="button" data-recrop-cover>${icon('expand',17)}<span>Изменить кадр</span></button><button type="button" data-add-cover>${icon('image',17)}<span>Заменить</span></button><button type="button" class="danger" data-remove-cover>${icon('trash',17)}<span>Убрать обложку</span></button></div></iq-menu>`:''}`;
     if(!adapter){
       coverRoot.querySelector('.task-detail-cover').dataset.state='unavailable';
       coverRoot.querySelector('[data-cover-status]').textContent='Хранилище файлов не подключено.';

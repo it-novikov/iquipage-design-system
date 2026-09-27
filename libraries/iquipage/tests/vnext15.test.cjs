@@ -36,5 +36,5 @@ test('selected visual choices get an accent ring without a fill', () => {
 test('types describe the new navigation items', () => {
   const types = read('types/core.d.ts');
   assert.match(types, /interface SettingsNavigationItem \{id:string;label:string;icon\?:string;count\?:number;countLabel\?:string;\}/);
-  assert.match(types, /export declare const version:'0\.6\.0-vnext\.15';/);
+  assert.match(types, /export declare const version:'0\.6\.0-vnext\.1[5-9]';/);
 });

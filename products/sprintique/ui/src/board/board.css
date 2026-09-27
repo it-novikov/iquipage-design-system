@@ -185,3 +185,34 @@
 .task-subtask-title{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .task-subtask>small{grid-column:2;color:var(--iq-muted);font-size:var(--iq-type-meta-size)}
 /* The running release names the board; its dates sit beside the title. */
+/* Drawer hierarchy (council 4): the title as a heading, one strip of key values, quiet rows for the rest. */
+.task-editor-layout{gap:var(--iq-space-8)}
+.task-editor-title{margin-bottom:calc(-1 * var(--iq-space-5))}
+.task-editor-properties{display:grid;gap:var(--iq-space-4)}
+.task-more-props{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:var(--iq-space-5);row-gap:var(--iq-space-1)}
+.task-more-props>[data-task-catalogs] .task-edit-properties{display:block}
+.task-tags-row{grid-column:1 / -1;min-width:0}
+.task-tags-row .task-selected-tags{display:block}
+.task-edit-dialog .task-edit-section>h3{margin:0 0 var(--iq-space-3);font:600 var(--iq-type-interface-size)/1.4 var(--iq-font);color:var(--iq-ink)}
+.task-edit-dialog .task-editor-description>h3{font-size:var(--iq-type-interface-size)}
+/* The description reads as text until it is clicked: no frame in preview, a soft hover says it is editable. */
+.task-description-surface[data-mode=preview] .markdown-editor{border-color:transparent;background:transparent;box-shadow:none}
+.task-description-surface[data-mode=preview] .md-preview{padding:var(--iq-space-2) var(--iq-space-3);margin:0 calc(-1 * var(--iq-space-3));border-radius:var(--iq-radius-sm);transition:background-color var(--iq-motion-fast) var(--iq-ease)}
+.task-description-surface[data-mode=preview] .md-preview:hover{background:var(--iq-hover);cursor:text}
+.task-description-surface[data-mode=preview] .md-editor-head,.task-description-surface[data-mode=preview] .markdown-editor>footer{display:none}
+.task-relations .task-parent{margin-bottom:var(--iq-space-2)}
+.task-relations .task-parent iq-combobox{--iq-properties-label:156px}
+/* Cover: one menu on the image, shown on hover or focus (always on touch screens). */
+.task-editor-cover:not([hidden]){margin:0 0 var(--iq-space-6);position:relative}
+.task-editor-cover .task-detail-cover{max-height:200px;aspect-ratio:auto;height:200px}
+.task-cover-menu{position:absolute;right:var(--iq-space-3);bottom:var(--iq-space-3);opacity:0;transition:opacity var(--iq-motion-fast) var(--iq-ease)}
+.task-cover-menu>.iq-btn{background:var(--iq-raised);box-shadow:var(--iq-shadow-1)}
+.task-editor-cover:is(:hover,:focus-within) .task-cover-menu,.task-cover-menu:has([aria-expanded=true]){opacity:1}
+@media(hover:none){.task-cover-menu{opacity:1}}
+.task-dialog-actions{display:flex;align-items:center;gap:var(--iq-space-1);margin-left:auto}
+@media(max-width:640px){.task-more-props{grid-template-columns:minmax(0,1fr)}.task-relations .task-parent iq-combobox{--iq-properties-label:88px}.task-editor-cover .task-detail-cover{height:140px}}
+.task-edit-dialog[data-fullscreen=true] .task-more-props{grid-template-columns:minmax(0,1fr)}
+.task-edit-dialog textarea.iq-inline-title{min-height:0;max-height:none;overflow:hidden}
+.task-edit-dialog .task-editor-description>h3{margin-bottom:var(--iq-space-1)}
+.task-edit-dialog [data-task-threads]>.row>h3{margin:0;font:600 var(--iq-type-interface-size)/1.4 var(--iq-font)}
+.task-edit-dialog [data-task-threads]>.row{margin-bottom:var(--iq-space-3)}

@@ -32,7 +32,7 @@ export async function mountProjectTaskSettings(root,{repository,project,section,
   function tagRow(item){
     const menu=canManage?ui.menu(`<button type="button" class="iq-btn ghost icon sm" aria-label="Действия: ${esc(item.name)}">${icon('more',17)}</button>`,[{label:'В архив',action:'archive-tag',glyph:'folder'}]):'';
     const actions=!canManage?'':item.archivedAt?`<button type="button" class="iq-btn ghost sm" data-archive-item="${esc(item.id)}">Восстановить</button>`:`<button type="button" class="iq-btn ghost sm" data-edit-item="${esc(item.id)}">Изменить</button>${menu}`;
-    return `<div class="iq-settings-row"${item.archivedAt?' data-state="muted"':''} data-tag-id="${esc(item.id)}"><span class="iq-settings-row-copy"><span class="iq-settings-row-title">${tagMarkup({...item,archivedAt:null})}</span></span><span class="iq-settings-row-aside">${esc(TAG_TONES[item.tone]||TAG_TONES.neutral)}</span><span class="iq-settings-row-actions">${actions}</span></div>`;
+    return `<div class="iq-settings-row"${item.archivedAt?' data-state="muted"':''} data-tag-id="${esc(item.id)}"><span class="iq-settings-row-copy"><span class="iq-settings-row-title">${tagMarkup({...item,archivedAt:null})}</span></span><span class="iq-settings-row-aside">${esc(TAG_TONES[item.tone]||(/^#[0-9A-F]{6}$/i.test(item.tone)?'Свой цвет '+item.tone.toUpperCase():TAG_TONES.neutral))}</span><span class="iq-settings-row-actions">${actions}</span></div>`;
   }
   function renderCatalog(){
     if(closed)return;

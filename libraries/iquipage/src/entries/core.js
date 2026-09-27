@@ -23,6 +23,7 @@ export const icon=m0.icon;
 export const mark=m0.mark;
 export const notify=m0.notify;
 export const escapeHTML=m0.escapeHTML;
+export const tagToneAttributes=m0.tagToneAttributes;
 export const IqDateField=m1.IqDateField;
 export const registerDateFields=m1.registerDateFields;
 export const IqMarkdownEditor=m2.IqMarkdownEditor;
@@ -81,7 +82,7 @@ export const IqSettingsLayout=settings.IqSettingsLayout;
 export const IqVisualChoice=settings.IqVisualChoice;
 export const settingsNavigation=settings.settingsNavigation;
 export const registerSettings=settings.registerSettings;
-export const version='0.6.0-vnext.15';
+export const version='0.6.0-vnext.16';
 export function registerCore(){
  registerAuthDialog();registerAuthScreen();registerSettings();registerComponents();registerDateFields();registerEditors();registerPagination();registerStructured();registerSideNavigation();registerWorkHeader();registerMarkdownViewer();registerWorkLayout();
  if(!customElements.get('iq-file-preview'))customElements.define('iq-file-preview',IqFilePreview);

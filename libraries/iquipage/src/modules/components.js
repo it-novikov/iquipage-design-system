@@ -177,9 +177,18 @@ class IqSelect extends IqElement {
         const match = this.options.find(o => o.value === this.selected);
         if (this.editable && !this.opened)
             this.trigger.value = match?.label || '';
+        const avatar = match?.avatar && typeof match.avatar.text === 'string' ? `<span class="iq-avatar iq-select-avatar v${Number(match.avatar.tone) || 1}" aria-hidden="true">${escapeHTML(match.avatar.text.slice(0, 2))}</span>` : '';
         const caption = this.querySelector('.iq-select-value');
         if (caption)
-            caption.innerHTML = `${match?.icon ? icons_js_1.icon(match.icon, 17) : ''}${escapeHTML(match?.label || this.getAttribute('placeholder') || 'Выбрать…')}`;
+            caption.innerHTML = `${avatar || (match?.icon ? icons_js_1.icon(match.icon, 17) : '')}${escapeHTML(match?.label || this.getAttribute('placeholder') || 'Выбрать…')}`;
+        // The selected option's tone and avatar show on the closed control (value-first property chips).
+        this.trigger.dataset.tone = typeof match?.tone === 'string' ? match.tone : '';
+        this.dataset.empty = String(!match?.value);
+        if (this.editable) {
+            const shell = this.querySelector('.iq-combo-shell');
+            shell?.querySelector(':scope > .iq-select-avatar')?.remove();
+            if (shell && avatar) shell.insertAdjacentHTML('afterbegin', avatar);
+        }
         const hidden = this.querySelector('input[type=hidden]');
         if (hidden) {
             hidden.value = this.selected;
@@ -1082,6 +1091,24 @@ class IqUpload extends IqElement {
     }
 }
 exports.IqUpload = IqUpload;
+/** Any RGB tag colour without inline styles: one shared stylesheet rule per colour, added on first use.
+    A palette tone name passes through; "#RRGGBB" becomes data-tone="custom" with a derived, theme-aware fill and text. */
+let tagColorSheet = null;
+const tagColors = new Set();
+function ensureTagColor(hex) {
+    if (tagColors.has(hex) || typeof document === 'undefined' || typeof CSSStyleSheet === 'undefined') return;
+    tagColors.add(hex);
+    if (!tagColorSheet) { tagColorSheet = new CSSStyleSheet(); document.adoptedStyleSheets = [...document.adoptedStyleSheets, tagColorSheet]; }
+    tagColorSheet.insertRule(`[data-tag-color="${hex}"]{--iq-tag-color:#${hex}}`, tagColorSheet.cssRules.length);
+}
+function tagToneAttributes(tone) {
+    const value = String(tone || 'neutral'), match = /^#([0-9a-f]{6})$/i.exec(value);
+    if (!match) return `data-tone="${escapeHTML(value)}"`;
+    const hex = match[1].toUpperCase();
+    ensureTagColor(hex);
+    return `data-tone="custom" data-tag-color="${hex}"`;
+}
+exports.tagToneAttributes = tagToneAttributes;
 /** Catalog tag picker: chosen tags as toned DS tags with remove buttons, a search field that lists the
  *  remaining catalog tags, optional creation, and short enter/leave motion. Value is a list of option values. */
 class IqTagPicker extends IqElement {
@@ -1160,7 +1187,7 @@ class IqTagPicker extends IqElement {
         this.querySelector('.iq-control-label').textContent = this.getAttribute('label') || 'Теги';
         const byValue = new Map(this._options.map(o => [o.value, o]));
         this.querySelector('.iq-tag-picker-values').innerHTML = this._value.map(v => { const o = byValue.get(v) || { label: 'Недоступный тег', tone: 'neutral' };
-            return `<span class="iq-tag" data-tone="${escapeHTML(o.tone)}" data-value="${escapeHTML(v)}" ${this.entering.has(v) && !isReduced() ? 'data-entering' : ''}><span>${escapeHTML(o.label)}${o.archived ? ' (в архиве)' : ''}</span>${this.locked ? '' : `<button type="button" class="iq-tag-remove" data-tag-remove="${escapeHTML(v)}" aria-label="Убрать тег ${escapeHTML(o.label)}">${icons_js_1.icon('x', 12)}</button>`}</span>`; }).join('')
+            return `<span class="iq-tag" ${tagToneAttributes(o.tone)} data-value="${escapeHTML(v)}" ${this.entering.has(v) && !isReduced() ? 'data-entering' : ''}><span>${escapeHTML(o.label)}${o.archived ? ' (в архиве)' : ''}</span>${this.locked ? '' : `<button type="button" class="iq-tag-remove" data-tag-remove="${escapeHTML(v)}" aria-label="Убрать тег ${escapeHTML(o.label)}">${icons_js_1.icon('x', 12)}</button>`}</span>`; }).join('')
             + (this.hasAttribute('creatable') && !this.locked ? `<button type="button" class="iq-tag iq-tag-add" data-tag-create>${icons_js_1.icon('plus', 12)}<span>${escapeHTML(this.getAttribute('create-label') || 'Новый тег')}</span></button>` : '');
         this.querySelectorAll('[data-entering]').forEach(chip => chip.addEventListener('animationend', () => chip.removeAttribute('data-entering'), { once: true }));
         this.entering.clear();
@@ -1174,7 +1201,7 @@ class IqTagPicker extends IqElement {
         const items = this.opened ? this.matches() : [];
         this.active = Math.min(this.active, Math.max(0, items.length - 1));
         list.hidden = !this.opened; this.input.setAttribute('aria-expanded', String(this.opened));
-        list.innerHTML = items.length ? items.map((item, i) => `<button type="button" role="option" class="iq-tag-picker-option" id="${this.uid}-o${i}" data-option="${i}" tabindex="-1" aria-selected="${i === this.active}">${item.kind === 'option' ? `<span class="iq-tag" data-tone="${escapeHTML(item.option.tone)}">${escapeHTML(item.option.label)}</span>` : `${icons_js_1.icon('plus', 14)}<span>Создать тег «${escapeHTML(item.label)}»</span>`}</button>`).join('') : `<p class="iq-tag-picker-empty">${this.query.trim() ? 'Ничего не найдено.' : this._options.length ? 'Все теги уже выбраны.' : 'В проекте пока нет тегов.'}</p>`;
+        list.innerHTML = items.length ? items.map((item, i) => `<button type="button" role="option" class="iq-tag-picker-option" id="${this.uid}-o${i}" data-option="${i}" tabindex="-1" aria-selected="${i === this.active}">${item.kind === 'option' ? `<span class="iq-tag" ${tagToneAttributes(item.option.tone)}>${escapeHTML(item.option.label)}</span>` : `${icons_js_1.icon('plus', 14)}<span>Создать тег «${escapeHTML(item.label)}»</span>`}</button>`).join('') : `<p class="iq-tag-picker-empty">${this.query.trim() ? 'Ничего не найдено.' : this._options.length ? 'Все теги уже выбраны.' : 'В проекте пока нет тегов.'}</p>`;
         if (this.opened && items.length) this.input.setAttribute('aria-activedescendant', `${this.uid}-o${this.active}`); else this.input.removeAttribute('aria-activedescendant');
     }
     static get observedAttributes() { return ['label', 'disabled', 'readonly', 'placeholder']; }

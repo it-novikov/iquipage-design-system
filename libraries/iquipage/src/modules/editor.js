@@ -93,6 +93,13 @@ class IqMarkdownEditor extends components_js_1.IqElement {
         this.listen(this.ownerDocument, 'pointercancel', () => { pointerGesture = null; });
         this.listen(this.ownerDocument.defaultView, 'blur', () => { pointerGesture = null; keyboardExit = false; });
         this.listen(this, 'keydown', event => { keyboardExit = event.key === 'Tab'; });
+        this.listen(this, 'keydown', event => {
+            if (event.key !== 'Escape' || !this.previewOnBlur || this.previewMode || this._composing || event.defaultPrevented) return;
+            // First Escape leaves editing; the dialog closes only on the next one.
+            event.preventDefault(); event.stopPropagation();
+            this.setPreviewMode(true);
+            this.querySelector('.md-preview')?.focus({preventScroll: true});
+        });
         this.listen(this, 'focusout', event => {
             if (this.previewOnBlur && keyboardExit && event.relatedTarget && !this.contains(event.relatedTarget) && event.relatedTarget.closest('dialog') === this.closest('dialog')) this.setPreviewMode(true);
         });
@@ -135,6 +142,29 @@ class IqMarkdownEditor extends components_js_1.IqElement {
     set density(value) {
         if (!['compact','comfortable'].includes(value)) throw new TypeError('Unsupported editor density');
         this.setAttribute('density',value);
+    }
+    /** Contextual host actions at the end of the toolbar (for example "Шаблон"). They exist only while editing. */
+    get toolbarActions() { return (this._toolbarActions || []).map(action => ({...action})); }
+    set toolbarActions(value) {
+        if (!Array.isArray(value) || value.length > 3) throw new TypeError('Expected up to three toolbar actions');
+        const ids = new Set();
+        this._toolbarActions = value.map(action => {
+            if (!action || typeof action.id !== 'string' || !/^[a-z][a-z0-9-]{0,63}$/.test(action.id) || ids.has(action.id) || typeof action.label !== 'string' || !action.label.trim() || action.label.length > 40 || (action.icon !== undefined && typeof action.icon !== 'string')) throw new TypeError('Invalid toolbar action');
+            ids.add(action.id);
+            return {id:action.id,label:action.label.trim(),icon:action.icon || ''};
+        });
+        this.syncToolbarActions();
+    }
+    syncToolbarActions() {
+        const toolbar = this.querySelector('.md-toolbar');
+        if (!toolbar) return;
+        toolbar.querySelector('.md-toolbar-actions')?.remove();
+        const actions = this._toolbarActions || [];
+        if (!actions.length) return;
+        const group = this.ownerDocument.createElement('span');
+        group.className = 'md-toolbar-actions';
+        group.innerHTML = actions.map(action => `<button type="button" class="md-toolbar-action" data-toolbar-action="${components_js_1.escapeHTML(action.id)}" title="${components_js_1.escapeHTML(action.label)}">${action.icon ? components_js_1.icon(action.icon, 16) : ''}<span>${components_js_1.escapeHTML(action.label)}</span></button>`).join('');
+        toolbar.append(group);
     }
     get footerActions() { return (this._footerActions || []).map(action => ({...action})); }
     set footerActions(value) {
@@ -228,13 +258,14 @@ class IqMarkdownEditor extends components_js_1.IqElement {
             this.setAttribute('value', next);
     }
     mount() {
-        for (const name of ['density','footerActions']) if (Object.prototype.hasOwnProperty.call(this,name)) { const value = this[name]; delete this[name]; this[name] = value; }
+        for (const name of ['density','footerActions','toolbarActions']) if (Object.prototype.hasOwnProperty.call(this,name)) { const value = this[name]; delete this[name]; this[name] = value; }
         const initial = this.getAttribute('value') || this.textContent?.trim() || '', variant = this.getAttribute('variant') || 'full';
         const tools = markdownTools;
         const label = this.getAttribute('label') || 'Описание';
         this.innerHTML = `<div class="markdown-editor variant-${components_js_1.escapeHTML(variant)}"><div class="md-editor-head"><span>${components_js_1.escapeHTML(variant === 'minimal' ? 'Комментарий' : label)}</span><button type="button" class="md-view-toggle" data-md-preview aria-pressed="false">${components_js_1.icon('eye', 16)}<span>Предпросмотр</span></button></div><div class="md-toolbar" role="toolbar" aria-label="Форматирование текста">${tools.map((t, i) => `<button type="button" class="md-tool" data-md="${t.id}" title="${t.label}${t.shortcut ? ' (' + t.shortcut + ')' : ''}" aria-label="${t.label}" tabindex="${i === 0 ? '0' : '-1'}">${t.glyph ? components_js_1.icon(t.glyph, 18) : `<span>${t.text}</span>`}</button>`).join('')}</div><textarea class="md-input" aria-label="${components_js_1.escapeHTML(label)}" name="${components_js_1.escapeHTML(this.getAttribute('name') || 'description')}" placeholder="${components_js_1.escapeHTML(this.getAttribute('placeholder') || 'Опишите ожидаемый результат, требования и ограничения')}" ${this.hasAttribute('maxlength') ? `maxlength="${components_js_1.escapeHTML(this.getAttribute('maxlength'))}"` : ''}>${components_js_1.escapeHTML(initial)}</textarea><article class="md-preview md-document" hidden aria-label="Предпросмотр Markdown"></article><footer><span class="md-hint">Markdown <span class="md-count"></span></span>${this.hasAttribute('submit-label') ? `<button type="button" class="iq-btn primary sm md-submit" data-md-submit disabled>${components_js_1.escapeHTML(this.getAttribute('submit-label') || 'Отправить')}${components_js_1.icon('send', 16)}</button>` : ''}</footer></div>`;
         this.input = this.querySelector('textarea');
         this.mountFooterActions();
+        this.syncToolbarActions();
         this.history = [initial];
         this.cursor = 0;
         interaction_js_1.autosize(this.input);
@@ -255,6 +286,9 @@ class IqMarkdownEditor extends components_js_1.IqElement {
                 this.command(t.dataset.md);
             if (ev.target.closest('[data-md-preview]'))
                 this.preview();
+            const hostAction = ev.target.closest('[data-toolbar-action],[data-empty-action]');
+            if (hostAction && !this.disabled && !this.readOnly)
+                this.emit('iq-editor-action', {id: hostAction.dataset.toolbarAction || hostAction.dataset.emptyAction});
             if (ev.target.closest('[data-md-submit]'))
                 this.submit();
         });
@@ -387,7 +421,8 @@ class IqMarkdownEditor extends components_js_1.IqElement {
     renderPreview(pane,value) {
         value = this.value; // The textarea normalizes CRLF; task positions must use that same draft.
         try {
-            pane.innerHTML=safeMarkdown(value)||`<p class="md-empty">${components_js_1.escapeHTML(this.getAttribute('empty-text')||'Пока нет содержимого.')}</p>`;
+            const emptyAction=this.getAttribute('empty-action-label'),emptyId=this.getAttribute('empty-action')||'empty';
+            pane.innerHTML=safeMarkdown(value)||`<p class="md-empty">${components_js_1.escapeHTML(this.getAttribute('empty-text')||'Пока нет содержимого.')}</p>${emptyAction&&!this.readOnly&&!this.disabled?`<p class="md-empty-action"><button type="button" class="iq-btn ghost sm" data-empty-action="${components_js_1.escapeHTML(emptyId)}">${components_js_1.escapeHTML(emptyAction)}</button></p>`:''}`;
             if (this.interactiveTasks && !this.disabled && !this.readOnly) require('./markdown-tasks.js').bindMarkdownTasks(pane, value, (detail, button) => {
                 if (this.disabled || this.readOnly || !this.interactiveTasks || this.value !== detail.source) return;
                 const restoreFocus = this.ownerDocument.activeElement === button;

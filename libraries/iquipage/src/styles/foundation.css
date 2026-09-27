@@ -21,6 +21,9 @@ iq-select,iq-combobox,iq-number,iq-range,iq-calendar,iq-tags,iq-upload,iq-tabs{d
 .iq-number{display:flex;align-items:center;border:1px solid var(--iq-control);border-radius:9px;max-width:232px;background:var(--iq-raised);overflow:hidden}.iq-number button{display:grid;place-items:center;min-width:44px;height:44px;background:transparent}.iq-number button:disabled{opacity:.35}.iq-number input{width:100%;min-width:0;text-align:center;border:0;background:none;appearance:textfield;outline:0;font-variant-numeric:tabular-nums}.iq-number input::-webkit-inner-spin-button{appearance:none}.iq-range-heading{display:flex;justify-content:space-between;gap:16px}.iq-range-heading output{font-variant-numeric:tabular-nums;font-size:13px}.iq-range-scale{display:flex;justify-content:space-between;font-size:12px;color:var(--iq-muted);margin-top:4px}iq-range input[type=range]{appearance:none;width:100%;height:5px;border-radius:8px;background:linear-gradient(90deg,var(--iq-accent) var(--range-fill,50%),var(--iq-line) var(--range-fill,50%));margin:14px 0 10px}iq-range input[type=range]::-webkit-slider-thumb{appearance:none;width:20px;height:20px;border:1px solid var(--iq-control);border-radius:50%;background:var(--iq-raised);box-shadow:0 1px 3px var(--iq-fixed-00000022)}iq-range input[type=range]::-moz-range-thumb{width:18px;height:18px;border:1px solid var(--iq-control);border-radius:50%;background:var(--iq-raised)}.iq-calendar{max-width:340px;width:100%;border:1px solid var(--iq-line);border-radius:14px;background:var(--iq-raised);padding:18px}.iq-calendar-heading{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}.iq-calendar-heading strong,.iq-calendar-heading b{font-weight:500}.iq-calendar-heading button{background:none}.iq-calendar-week,.iq-calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}.iq-calendar-week span{text-align:center;font-size:11px;color:var(--iq-muted);padding:8px 0}.iq-calendar-grid button{height:36px;min-width:0;background:transparent;border-radius:7px;font-size:13px;font-variant-numeric:tabular-nums}.iq-calendar-grid button:hover{background:var(--iq-surface)}.iq-calendar-grid .selected,.iq-calendar-grid [aria-selected=true]{background:var(--iq-primary);color:var(--iq-on-primary)}.iq-calendar-grid .outside{color:var(--iq-muted);opacity:.6}.iq-calendar-grid .today{box-shadow:inset 0 0 0 1px var(--iq-control)}.iq-calendar-foot{border-top:1px solid var(--iq-line);margin-top:12px;padding-top:12px;font-size:12px;color:var(--iq-muted)}.iq-tags-input{display:flex;align-items:center;flex-wrap:wrap;gap:6px;border:1px solid var(--iq-control);border-radius:9px;background:var(--iq-raised);padding:7px;min-height:44px}.iq-tags-input input{flex:1;width:110px;min-width:80px;padding:4px;border:0;outline:0;background:none}.iq-tag{display:inline-flex;align-items:center;gap:6px;padding:4px 7px;background:var(--iq-surface);border:1px solid var(--iq-line);border-radius:5px;font-size:12px}
 /* Tag tones: a tag keeps its colour everywhere it appears — board, document, settings, picker. */
 .iq-tag[data-tone]{background:var(--iq-tag-tone-fill);color:var(--iq-tag-tone-text);border-color:transparent}.iq-tag[data-tone=neutral]{--iq-tag-tone-fill:var(--iq-tag-neutral-fill);--iq-tag-tone-text:var(--iq-tag-neutral-text)}.iq-tag[data-tone=blue]{--iq-tag-tone-fill:var(--iq-tag-blue-fill);--iq-tag-tone-text:var(--iq-tag-blue-text)}.iq-tag[data-tone=purple]{--iq-tag-tone-fill:var(--iq-tag-purple-fill);--iq-tag-tone-text:var(--iq-tag-purple-text)}.iq-tag[data-tone=green]{--iq-tag-tone-fill:var(--iq-tag-green-fill);--iq-tag-tone-text:var(--iq-tag-green-text)}.iq-tag[data-tone=amber]{--iq-tag-tone-fill:var(--iq-tag-amber-fill);--iq-tag-tone-text:var(--iq-tag-amber-text)}.iq-tag[data-tone=red]{--iq-tag-tone-fill:var(--iq-tag-red-fill);--iq-tag-tone-text:var(--iq-tag-red-text)}
+/* Custom RGB tags: the user picks the hue; fill and text keep the palette's quiet character and stay readable in both themes. */
+.iq-tag[data-tone=custom],iq-tag[data-tone=custom]{--iq-tag-tone-fill:var(--iq-tag-neutral-fill);--iq-tag-tone-text:var(--iq-tag-neutral-text)}
+@supports (color:oklch(from red l c h)){.iq-tag[data-tone=custom],iq-tag[data-tone=custom]{--iq-tag-tone-fill:oklch(from var(--iq-tag-color,#62646B) .945 min(c,.045) h);--iq-tag-tone-text:oklch(from var(--iq-tag-color,#62646B) .43 min(c,.13) h)}[data-theme=dark] .iq-tag[data-tone=custom],[data-theme=dark] iq-tag[data-tone=custom]{--iq-tag-tone-fill:oklch(from var(--iq-tag-color,#62646B) .28 min(c,.05) h);--iq-tag-tone-text:oklch(from var(--iq-tag-color,#62646B) .86 min(c,.1) h)}}
 /* Selectable tag: selection is shown by a check and a ring in the tone colour, never by dropping the colour. */
 button.iq-tag{font:inherit;font-size:12px;line-height:1.3;min-height:28px;padding:4px 9px;cursor:pointer;transition:box-shadow var(--iq-motion-fast) var(--iq-ease),transform var(--iq-motion-fast) var(--iq-ease)}button.iq-tag[data-tone]:hover:not(:disabled){box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--iq-tag-tone-text) 35%,transparent)}button.iq-tag[aria-pressed=true]{box-shadow:inset 0 0 0 1.5px var(--iq-tag-tone-text,var(--iq-ink))}button.iq-tag>svg{flex:none;margin-left:-2px}button.iq-tag:disabled{cursor:default;opacity:.6}button.iq-tag:active:not(:disabled){transform:scale(.97)}@media (prefers-reduced-motion:reduce){button.iq-tag{transition:none}button.iq-tag:active:not(:disabled){transform:none}}
 .iq-tag button{background:none;padding:1px;display:grid;place-items:center}
@@ -2164,3 +2167,62 @@ iq-file-picker .iq-dropzone{min-height:0}
 .iq-switcher .iq-switcher-label{padding-block:2px 4px;text-decoration:underline 2px transparent;text-underline-offset:4px;transition:text-decoration-color var(--iq-motion-fast) var(--iq-ease)}
 .iq-switcher:hover .iq-switcher-label,.iq-switcher[aria-expanded=true] .iq-switcher-label{text-decoration-color:currentColor}
 @media (prefers-reduced-motion:reduce){.iq-switcher .iq-switcher-label{transition:none}}
+
+/* Markdown editor: host actions at the end of the toolbar (only while editing) and a quiet action in the empty preview. */
+.md-toolbar-actions{display:flex;align-items:center;gap:2px;margin-left:auto;padding-left:var(--iq-space-2);border-left:1px solid var(--iq-line)}
+.md-toolbar-action{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 var(--iq-space-2);border:0;border-radius:6px;background:transparent;color:var(--iq-muted);font:500 var(--iq-type-caption-size)/1 var(--iq-font);cursor:pointer}
+.md-toolbar-action:hover{background:var(--iq-hover);color:var(--iq-ink)}
+.md-toolbar-action:focus-visible{outline:2px solid var(--iq-focus);outline-offset:1px}
+@media(max-width:560px){.md-toolbar-action>span{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}}
+.md-empty-action{margin:var(--iq-space-1) 0 0}
+.md-empty-action .iq-btn{margin-left:calc(-1 * var(--iq-space-3))}
+
+/* Inline title: a heading that is also its own input. No frame at rest; the frame appears on hover and focus. */
+.iq-inline-title{display:block;margin:0 calc(-1 * var(--iq-space-2));width:calc(100% + 2 * var(--iq-space-2));padding:var(--iq-space-1) var(--iq-space-2);border:1px solid transparent;border-radius:var(--iq-radius-sm);background:transparent;color:var(--iq-ink);font:600 var(--iq-work-compact-title)/1.3 var(--iq-font);letter-spacing:-.01em;resize:none;field-sizing:content;overflow:hidden;text-wrap:pretty}
+textarea.iq-inline-title{min-height:0;max-height:none}
+.iq-inline-title::placeholder{color:var(--iq-faint)}
+.iq-inline-title:hover:not(:focus):not([readonly]){background:var(--iq-hover)}
+.iq-inline-title:focus{outline:none;border-color:var(--iq-control);background:var(--iq-raised)}
+.iq-inline-title:focus-visible{box-shadow:0 0 0 1px var(--iq-focus)}
+.iq-inline-title[aria-invalid=true]{border-color:var(--iq-danger)}
+
+/* Property strip: the few values people look for first, value-first chips with no labels (labels stay for assistive tech). */
+.iq-property-strip{display:flex;flex-wrap:wrap;gap:var(--iq-space-2);align-items:center;min-width:0}
+.iq-property-strip>:is(iq-select,iq-combobox,iq-date-field){display:block;flex:0 1 auto;min-width:0;width:auto;margin:0}
+.iq-property-strip :is(iq-select,iq-combobox,iq-date-field)>.iq-control-label{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.iq-property-strip :is(.iq-select-trigger,.iq-date-trigger,.iq-combo-shell){width:auto;min-height:36px;gap:var(--iq-space-2);padding:0 var(--iq-space-3);border:1px solid transparent;border-radius:var(--iq-radius-sm);background:var(--iq-surface);color:var(--iq-ink);font:500 var(--iq-type-label-size)/1.45 var(--iq-font)}
+.iq-property-strip :is(.iq-select-trigger,.iq-date-trigger,.iq-combo-shell):hover{background:var(--iq-hover)}
+.iq-property-strip :is(.iq-select-trigger[aria-expanded=true],.iq-combo-shell:focus-within){border-color:var(--iq-control);background:var(--iq-raised)}
+.iq-property-strip .iq-select-value{display:inline-flex;align-items:center;gap:var(--iq-space-2);white-space:nowrap}
+.iq-property-strip .iq-select-trigger>.iq-icon:last-child,.iq-property-strip .iq-combo-shell>.iq-icon:last-child{opacity:0;width:12px;transition:opacity var(--iq-motion-fast) var(--iq-ease)}
+.iq-property-strip :is(.iq-select-trigger,.iq-combo-shell):is(:hover,:focus-within)>.iq-icon:last-child,.iq-property-strip .iq-select-trigger[aria-expanded=true]>.iq-icon:last-child{opacity:1}
+.iq-property-strip .iq-combo-shell input{field-sizing:content;min-width:7ch;max-width:24ch;padding:0;background:transparent;font:inherit}
+.iq-property-strip .iq-combo-shell:has(>.iq-select-avatar):not(:focus-within)>.iq-icon:first-of-type{display:none}
+.iq-property-strip .iq-combo-shell:focus-within>.iq-select-avatar{display:none}
+.iq-property-strip .iq-select-avatar{width:22px;height:22px;margin:0;border:0;font-size:9px}
+.iq-property-strip [data-empty=true] :is(.iq-select-value,.iq-combo-shell input,[data-date-caption]){color:var(--iq-muted)}
+.iq-property-strip .iq-select-trigger[data-tone=high]{background:var(--iq-task-high-surface);color:var(--iq-task-high-text)}
+.iq-property-strip .iq-select-trigger[data-tone=critical]{background:var(--iq-task-critical-surface);color:var(--iq-task-critical-text)}
+.iq-property-strip iq-date-field[data-tone=danger] .iq-date-trigger{background:var(--iq-danger-bg);color:var(--iq-danger)}
+.iq-property-strip iq-date-field[data-tone=warning] .iq-date-trigger{background:var(--iq-task-high-surface);color:var(--iq-task-high-text)}
+.iq-property-strip iq-date-field .iq-date-trigger{min-width:0}
+@media(hover:none){.iq-property-strip :is(.iq-select-trigger,.iq-combo-shell)>.iq-icon:last-child{opacity:1}}
+
+/* Colour field: palette swatches, "Свой цвет" with the native picker, and a hex value. */
+.iq-color-field{display:grid;gap:var(--iq-space-3);border:0;margin:0;padding:0;min-width:0}
+.iq-color-field legend{margin-bottom:var(--iq-space-2);padding:0}
+.iq-color-swatches{display:flex;flex-wrap:wrap;gap:var(--iq-space-2)}
+.iq-color-custom{display:flex;align-items:center;gap:var(--iq-space-3);flex-wrap:wrap}
+.iq-color-custom input[type=color]{width:36px;height:36px;padding:2px;border:1px solid var(--iq-control);border-radius:var(--iq-radius-sm);background:var(--iq-raised);cursor:pointer}
+.iq-color-custom input[type=color]:focus-visible{outline:2px solid var(--iq-focus);outline-offset:2px}
+.iq-color-custom .iq-input-shell{width:128px}
+.iq-color-custom input[type=text]{font:500 var(--iq-type-label-size)/1.4 var(--iq-mono);text-transform:uppercase}
+.iq-color-preview{display:flex;gap:var(--iq-space-2);align-items:center;font-size:var(--iq-type-caption-size);color:var(--iq-muted)}
+
+/* Property lists also take the tag picker: label on the left, a quiet field that shows its frame on hover and focus. */
+.iq-properties iq-tag-picker{display:grid;grid-template-columns:var(--iq-properties-label,88px) minmax(0,1fr);column-gap:var(--iq-space-2);align-items:start;min-width:0}
+.iq-properties iq-tag-picker>.iq-control-label{margin:0;padding-top:10px;font-size:var(--iq-type-meta-size);font-weight:500;color:var(--iq-muted)}
+.iq-properties .iq-tag-picker-field{min-height:36px;border-color:transparent;background:transparent}
+.iq-properties .iq-tag-picker-field:hover{border-color:var(--iq-line);background:var(--iq-raised)}
+.iq-properties .iq-tag-picker-field:focus-within{border-color:var(--iq-control);background:var(--iq-raised)}
+@media(hover:none){.iq-properties .iq-tag-picker-field{border-color:var(--iq-line)}}

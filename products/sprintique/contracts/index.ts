@@ -42,7 +42,7 @@ export const AgentGrant = z.strictObject({
   capabilities: z.array(Capability).min(1).max(6).refine(v=>new Set(v).size===v.length),
   expiresInSeconds: z.number().int().min(60).max(86400)
 });
-export const TagInput = z.strictObject({name: z.string().trim().min(1).max(256).refine(v => tagNameLength(v) <= TAG_NAME_LIMIT), tone: z.enum(['neutral','blue','purple','green','amber','red']), archivedAt: z.iso.datetime().nullable().default(null)});
+export const TagInput = z.strictObject({name: z.string().trim().min(1).max(256).refine(v => tagNameLength(v) <= TAG_NAME_LIMIT), tone: z.union([z.enum(['neutral','blue','purple','green','amber','red']), z.string().trim().toUpperCase().regex(/^#[0-9A-F]{6}$/)]), archivedAt: z.iso.datetime().nullable().default(null)});
 export const ReleaseInput = z.strictObject({name: z.string().trim().min(1).max(100), status: z.enum(['planned','released']), targetDate: DateOnly.nullable().default(null), archivedAt: z.iso.datetime().nullable().default(null)});
 export const PutTag = z.strictObject({baseRevision: Revision, value: TagInput});
 export const PutRelease = z.strictObject({baseRevision: Revision, value: ReleaseInput});

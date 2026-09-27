@@ -16,7 +16,7 @@ export function prepareWorkspaceRecord(collection,record,previous,snapshot={},ac
     if(collection==='tags'&&value.name!==previous?.name)requireValue(tagNameLength(value.name)<=TAG_NAME_LIMIT,'TAG_NAME_LENGTH',`Название тега — до ${TAG_NAME_LIMIT} символов.`);
     requireValue(!all(collection).some(item=>item.id!==value.id&&item.projectId===value.projectId&&key(item.name)===key(value.name)),'CATALOG_DUPLICATE','Такое название уже есть в проекте, в том числе в архиве.');
     requireValue(value.archivedAt==null||typeof value.archivedAt==='string'&&Number.isFinite(Date.parse(value.archivedAt)),'CATALOG_ARCHIVE','Некорректная дата архивации.');
-    if(collection==='tags')requireValue(Object.hasOwn(TAG_TONES,value.tone),'TAG_TONE','Выберите цвет из палитры проекта.');
+    if(collection==='tags'){if(typeof value.tone==='string'&&/^#[0-9a-f]{6}$/i.test(value.tone))value.tone=value.tone.toUpperCase();requireValue(Object.hasOwn(TAG_TONES,value.tone)||/^#[0-9A-F]{6}$/.test(value.tone),'TAG_TONE','Выберите цвет тега.');}
     else {
       requireValue(['planned','released'].includes(value.status),'RELEASE_STATE','Неизвестное состояние релиза.');
       requireValue(value.targetDate==null||date(value.targetDate),'RELEASE_DATE','Некорректная дата релиза.');

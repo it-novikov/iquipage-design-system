@@ -1,5 +1,5 @@
 /** Supported core browser entry. Does not register graph, roadmap, crop, or whiteboard. */
-export declare const version:'0.6.0-vnext.15';
+export declare const version:'0.6.0-vnext.16';
 export declare function registerCore():void;
 export declare function registerComponents():void;
 export declare function registerDateFields():void;
@@ -12,6 +12,8 @@ export declare function enhance(root?:ParentNode):void;
 export declare function icon(name:string,size?:number):string;
 export declare function mark():string;
 export declare function escapeHTML(value:unknown):string;
+/** Tag colour attributes: a palette tone name, or any "#RRGGBB" (derived, theme-aware fill and text; no inline styles). */
+export declare function tagToneAttributes(tone:string):string;
 export declare function notify(options:{message:string;description?:string;tone?:'info'|'success'|'warning'|'danger';duration?:number;action?:{label:string;run:()=>void}}):void;
 export declare function motionReduced():boolean;
 export declare function transition(el:HTMLElement,frames:Keyframe[],duration?:number,delay?:number):Animation|undefined;
@@ -28,7 +30,8 @@ export declare class IqDateField extends HTMLElement {value:string;readonly time
 export declare class IqTime extends HTMLElement {value:string;hourCycle:12|24;}
 export interface MarkdownEditorAction {id:string;label:string;pressed:boolean;disabled?:boolean;tone?:'neutral'|'warning';hint?:string;}
 export interface MarkdownEditorActionIntent {id:string;pressed:boolean;previous:boolean;}
-export declare class IqMarkdownEditor extends HTMLElement {value:string;disabled:boolean;readOnly:boolean;previewOnBlur:boolean;previewMode:boolean;interactiveTasks:boolean;density:'compact'|'comfortable';footerActions:MarkdownEditorAction[];preview():void;focusEditor():void;}
+export declare class IqMarkdownEditor extends HTMLElement {value:string;disabled:boolean;readOnly:boolean;previewOnBlur:boolean;previewMode:boolean;interactiveTasks:boolean;density:'compact'|'comfortable';footerActions:MarkdownEditorAction[];/** Host actions at the end of the toolbar, shown only while editing; a click emits iq-editor-action {id}. */toolbarActions:MarkdownToolbarAction[];preview():void;focusEditor():void;}
+export interface MarkdownToolbarAction {id:string;label:string;icon?:string;}
 export declare class IqPagination extends HTMLElement {total:number;current:number;}
 export interface TreeNode {id:string;label:string;children?:TreeNode[];count?:number;disabled?:boolean;}
 export declare class IqTree extends HTMLElement {items:TreeNode[];value:string[];readonly total:number;}

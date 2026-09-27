@@ -1,6 +1,6 @@
 # UX and design-system alignment (September 2026)
 
-Private DS **0.6.0-vnext.15**. It covers the component audit of the whole Sprintique UI and the changes the owner approved.
+Private DS **0.6.0-vnext.16**. It covers the component audit of the whole Sprintique UI and the changes the owner approved.
 
 ## Owner decisions
 
@@ -11,11 +11,12 @@ Private DS **0.6.0-vnext.15**. It covers the component audit of the whole Sprint
 | Assignee | Only a current human project member can be the assignee. |
 | Board admission | The rule stays the same. The board explains tasks that are waiting for a planned release. |
 
-## Design system (vnext.3 → vnext.15)
+## Design system (vnext.3 → vnext.16)
 
 - **vnext.3:** the R3 work list is a public entry. Tag tones have light and dark tokens. The type scale is tokenised. Dense surfaces get public variants. The keyboard focus ring is visible. The map canvas no longer collapses when the object library is open.
 - **vnext.4:** on coarse pointers, buttons, section links, selects and checkboxes are 44px (`touch.css`, loaded last). Escape closes the map object library.
 - **vnext.5:** `ui.menu` takes `{section}` labels, which keyboard navigation skips. Long menus scroll. Compact selects are 44px on touch screens.
+- **vnext.16:** task drawer building blocks: editor toolbar actions and an empty-state action, Escape back to preview; select and combobox show the chosen avatar and tone; `.iq-property-strip`, `.iq-inline-title`, `.iq-color-field`; any RGB tag colour through `tagToneAttributes()` with theme-derived fill and text (contrast checked across hues).
 - **vnext.15:** the settings workspace redesigned after a second council (art director, product designer, product manager with UX research, DS architect).
   - `iq-settings-layout` fills the width: navigation flush left, one content column up to 1120px, `view="index|section"` for phones.
   - `settingsNavigation()` draws the DS side navigation (neutral current item, quiet group labels, counts for things that need a decision).
@@ -50,7 +51,7 @@ Private DS **0.6.0-vnext.15**. It covers the component audit of the whole Sprint
   - The title is the running release or sprint, or "Доска задач" when nothing is running. Kind, dates and days left are shown only in planning.
   - Expanding subtasks toggles the list in place, without re-rendering the board, so card light never flickers.
   - Sorting is a ghost button with an icon, the same as Filters. Columns have a tighter header.
-  - Task drawer tags use `iq-tag-picker`. New tags are created from its "+ Новый тег" bubble through the tag dialog; settings no longer create tags. A new task opens with focus on its title. The tags row spans the full drawer width, like files. After a second design council, the drawer follows the DS reference task drawer. It is one 780px column: the title, then the properties in a 2×N grid with labels on top (Статус, Исполнитель, Приоритет, Срок, Релиз, Тип, and Родительская задача across the full width), a dividing line, then the description at its natural height, tags, files, links and discussion. In fullscreen the properties move into a sticky side column. A cover, when set, is a banner above everything; otherwise "Обложка" sits in the drawer header. "Требует решения" in the comment composer is a DS checkbox with a hint. An existing task opens its description as a preview; an empty one reads "Нажмите, чтобы добавить описание".
+  - Task drawer tags use `iq-tag-picker`. New tags are created from its "+ Новый тег" bubble through the tag dialog; settings no longer create tags. A new task opens with focus on its title. The tags row spans the full drawer width, like files. After a third council (art director, product designer with UX research), the drawer has three levels. The title is a heading that edits in place. Under it one strip shows the values people look for first: status with its column icon, the assignee with an avatar, priority (tinted only when high or critical) and the due date (red when overdue, amber when due today or tomorrow). Type, release and tags follow as quiet label-left rows. The description opens in preview for new and existing tasks and becomes an editor on click; "Шаблон" is an editor toolbar action, and an empty description offers "Начать с шаблона". The parent task lives in "Связи". Without a cover the header has an image button; with one, a single "Обложка" menu sits on the image. Tags can take any RGB colour. In fullscreen the properties move into a sticky side column. A cover, when set, is a banner above everything; otherwise "Обложка" sits in the drawer header. "Требует решения" in the comment composer is a DS checkbox with a hint. An existing task opens its description as a preview; an empty one reads "Нажмите, чтобы добавить описание".
   - Every file field (task files and cover, image replacement, map import, quick capture) uses DS `iq-file-picker`. The description opens at its final height, with no shrinking animation.
   - Horizontal scroll is remembered only while switching sections. A reload starts at the first column.
   - The waiting-release banner was removed at the owner's request.
