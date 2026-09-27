@@ -30,3 +30,5 @@
 - 2026-09-27T23:26:27Z · claude-opus-5-5 · step · S11 · active
 - 2026-09-27T23:40:32Z · claude-opus-5-5 · step · S11 · done: Команда worker (очистка файлов, аренды, не-демон поток), операции и повтор задания. Исправлена проверка схемы: Flyway не видел миграции в потоке готовности. operations 4/5 (O01 — S13), jobs 4/4, media 6/6, media-locks 2/2.
 - 2026-09-27T23:40:32Z · claude-opus-5-5 · step · S12 · active
+- 2026-09-27T23:47:06Z · claude-opus-5-5 · step · S12 · done: Модули event (страницы, голова, SSE в прежнем формате кадров) и agent (запуски, предложения, подтверждения, контекст), список разрешений агентов и одобрений. agent-runs 5/5, event-bootstrap 2/3 и planning 21/23 — остаток в S13 (схемы OpenAPI).
+- 2026-09-27T23:47:06Z · claude-opus-5-5 · step · S13 · active
