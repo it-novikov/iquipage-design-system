@@ -26,3 +26,5 @@
 - 2026-09-27T23:20:49Z · claude-opus-5-5 · step · S9 · done: Модуль planning: чистый домен (PlanChange, PlanningRows, TemporalRules), контракт команд (он же формат хранения превью), превью с бюджетом, применение с пересчётом, одобрения, история, календарь, представления. planning 19/23 (P12 — S12, P13 — S13), planning-view 11/11; PlanningChangeTest 6.
 - 2026-09-27T23:20:49Z · claude-opus-5-5 · step · S10 · active
 - 2026-09-27T23:20:49Z · claude-opus-5-5 · checkpoint · S10 · дальше: S11 worker и operations; S12 события, запуски агентов, одобрения-списки
+- 2026-09-27T23:26:27Z · claude-opus-5-5 · step · S10 · done: Модуль map: контракт документа доски с правилами целостности, сессии с таймером и голосами, версии, архив, шаблоны. maps 5/5, D04 проходит.
+- 2026-09-27T23:26:27Z · claude-opus-5-5 · step · S11 · active
