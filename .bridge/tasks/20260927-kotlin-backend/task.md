@@ -8,7 +8,7 @@ owner: it-novikov
 branch: feature/kotlin-backend
 base: feat/finish-platform
 created: 2026-09-27
-updated: 2026-09-27T21:23:26Z
+updated: 2026-09-27T21:48:50Z
 links:
 ---
 
@@ -58,20 +58,15 @@ links:
 
 ## Передача
 
-- **Состояние:** Каркас Gradle собирается (Kotlin 2.3.21, Boot 4.1.1, ktlint, Detekt). ADR продукта написан и дополнен по R2. Готовы:
-  - миграции во Flyway без изменений: контрольные суммы сверены;
-  - слой базы: транзакции, позиционные параметры, строки в форме node-pg;
-  - ошибки, JSON, заголовки.
+- **Состояние:** S3: раннер умеет SPRINTIQUE_BACKEND=kotlin: сборка, сверка схемы Flyway с migrate.ts (418 операторов совпадают), migrate, integrationTest (5 тестов) на Unix-сокетном кластере.
 
   Инвентаризация тестов — в docs/test-parity.md.
-- **Сейчас:** S2 — каркас; нужно заменить Konsist на ArchUnit и развести `test`, `integrationTest` и source set `local`.
-- **Дальше:** В build.gradle.kts:
-  1. ArchUnit вместо Konsist.
-  2. Задача `integrationTest`, которая требует `SPRINTIQUE_TEST_*`.
-  3. Source set `local` и `localBootJar`.
+- **Сейчас:** S3 — осталась генерация jOOQ
+- **Дальше:** Решить про jOOQ-кодогенерацию: JooqCodegen в integrationTest + режим --jooq в test.mjs; затем S4
 
   Затем `./gradlew check`.
 - **Незакоммичено:** нет
+- **Рабочая копия:** 1 файл(ов): .impeccable/ (2 files changed, 15 insertions(+), 14 deletions(-)) · HEAD f947f1a
 - **Ловушки:**
   - pg_ctl и тесты падают без `LC_ALL=C LANG=C`.
   - Docker-контекст по умолчанию (colima default) сломан. Продукт запрещает трогать VM по умолчанию, поэтому тесты Kotlin берут базу из `scripts/test.mjs`.
@@ -80,6 +75,10 @@ links:
   - Spring Boot 4: автоконфигурации лежат в пакетах `org.springframework.boot.<модуль>.autoconfigure`.
   - Имена переменных окружения задаются явно в application.yaml: relaxed binding даёт `SPRINTIQUE_DATABASE_RUNTIMEROLE`.
   - Старый драйвер `pg` отдаёт int8 и numeric строками, а timestamptz — Date. Row повторяет это, иначе ответы разойдутся.
+  - ktlint: профиль intellij_idea; ktlint_official ломает цепочки и when-ветки
+  - pg_dump 18 добавляет \restrict со случайным ключом — сравнение схем его вырезает
+  - java_home -v 25 без JDK 25 молча отдаёт другую версию: JDK проверяется по файлу release
+  - Flyway нужно ≥2 соединения в пуле
 - **Проверка:** `cd products/sprintique/server && ./gradlew check`, затем из `products/sprintique`: `LC_ALL=C LANG=C TEST_S3_CONFIG=$PWD/output/infra/storage.json npm test`
 
 ## План
@@ -95,7 +94,7 @@ links:
 - **Итог:** docs/decisions/0001-kotlin-backend.md, docs/test-parity.md
 - **Модель:** strong
 
-### S2. Каркас Gradle-проекта [active]
+### S2. Каркас Gradle-проекта [done]
 - **Что:** `server/`:
   - Gradle 9.6.1 wrapper, version catalog, lock-файлы;
   - ktlint, Detekt, ArchUnit;
@@ -105,12 +104,13 @@ links:
 - **Как:** Пакет `com.sprintique`, модули по возможностям. `qualityCheck` и pre-commit — по правилам code-quality.md.
 - **Зачем:** Основа, на которой проверяется каждый следующий шаг, и эталонная проверка линии стека.
 - **Приёмка:**
-  - [ ] `./gradlew check` проходит, архитектурный тест слоёв проходит
-  - [ ] Production-jar не содержит классов из `local`
+  - [x] `./gradlew check` проходит, архитектурный тест слоёв проходит
+  - [x] Production-jar не содержит классов из `local`
 - **Покрывает:** A3
+- **Итог:** коммит 10979ad; ./gradlew check: ktlint, detekt, ArchUnit (4 правила), verifyProductionArtifact
 - **Модель:** strong
 
-### S3. Схема, jOOQ, тестовый кластер [todo]
+### S3. Схема, jOOQ, тестовый кластер [active]
 - **Что:** Миграции Flyway с `afterMigrate.sql` (права ролей), проверка схемы при старте, генерация jOOQ, режимы `scripts/test.mjs` для Kotlin (`--kotlin`, `--jooq`).
 - **Как:** SQL без изменений. Генерация jOOQ из поднятой схемы в `src/generated`, тест расхождения. `integrationTest` получает `SPRINTIQUE_TEST_*` от раннера.
 - **Зачем:** Та же схема данных — условие паритета.
