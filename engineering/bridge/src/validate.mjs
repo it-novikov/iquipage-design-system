@@ -92,6 +92,9 @@ export function validateTask(root, id) {
     for (const finding of review.findings.filter(item => item.priority === 'P0' && item.resolution === 'deferred')) {
       errors.push(`${name}/${finding.id}: P0 нельзя переносить в другую задачу.`);
     }
+    for (const finding of review.findings.filter(item => item.resolution === 'waived' && !item.resolutionText.startsWith(`[waived ${meta.owner}`))) {
+      errors.push(`${name}/${finding.id}: [waived] ставит владелец задачи (${meta.owner}): «[waived ${meta.owner}: причина]».`);
+    }
   }
   if (meta.status === 'done') {
     const unfinished = steps.filter(step => !['done', 'dropped'].includes(step.status));

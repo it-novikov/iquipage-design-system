@@ -459,7 +459,7 @@ test('a rejected P1 waits for the owner, a waived one does not, a P0 is never de
   const write = resolution => writeFileSync(file, readFileSync(file, 'utf8').replace(/## Замечания\n[\s\S]*?\n## Итог/, `## Замечания\n- **F1** [P1] \`a:1\` — Гонка.\n  Решение: ${resolution}\n\n## Итог`));
   write('[rejected: не согласен]');
   assert.throws(() => operations.setStatus(root, id, 'done', {agent: 'owner'}), /R1\/F1/);
-  write('[waived владелец: риск принят до выпуска 2.1]');
+  write('[waived owner: риск принят до выпуска 2.1]');
   operations.setStatus(root, id, 'done', {agent: 'owner'});
   writeFileSync(file, readFileSync(file, 'utf8').replace('[P1]', '[P0]').replace(/Решение: .*/, 'Решение: [deferred 20260101-later: потом]'));
   assert.ok(validateTask(root, id).errors.some(error => /P0 нельзя переносить/.test(error)));
@@ -475,4 +475,55 @@ test('the session after /clear keeps the lease and receives the brief', () => {
   const brief = handleClaudeHook(root, {hook_event_name: 'SessionStart', source: 'clear', session_id: 'after-clear'});
   assert.match(brief, /Контекст восстановлен из моста/);
   assert.equal(liveLease(root, id).session, 'after-clear');
+});
+
+// ---------------------------------------------------------------------------------------------------------------
+// Confirmation review R4
+
+test('the relay respects a lease it did not grant: an agent in a terminal or another relay', async () => {
+  const root = repository();
+  const id = plannedTask(root);
+  configure(root, {chain: ['a'], agents: {a: {name: 'claude-code', command: fakeAgent(root, 'noop', `run('status', 'review');`), input: 'stdin'}}});
+  operations.claim(root, id, {agent: 'codex'});
+  await assert.rejects(runRelay(root, id, {quiet: true, report: () => {}}), {code: 'TASK_HELD'});
+  operations.release(root, id, {agent: 'codex'});
+  operations.claim(root, id, {agent: 'claude-code', session: '', relay: 'other-relay'});
+  await assert.rejects(runRelay(root, id, {quiet: true, report: () => {}}), {code: 'TASK_HELD'});
+});
+
+test('the relay takes over the lease of the session that started it, and that session ending leaves it alone', async () => {
+  const root = repository();
+  const id = plannedTask(root);
+  process.env.BRIDGE_SESSION = 'starter';
+  operations.claim(root, id, {agent: 'claude-code'});
+  configure(root, {chain: ['a'], agents: {a: {name: 'claude-code', command: fakeAgent(root, 'worker', `
+    import {spawnSync} from 'node:child_process';
+    run('checkpoint', '--state', 'Работаю', '--next', 'Дальше');
+    spawnSync(process.execPath, [${JSON.stringify(BIN)}, 'hook', 'claude'], {input: JSON.stringify({hook_event_name: 'SessionEnd', session_id: 'starter', reason: 'other'}), env: {...process.env, BRIDGE_RELAY: '', BRIDGE_SESSION: 'starter'}});
+    run('checkpoint', '--state', 'Всё ещё работаю', '--next', 'Ревью'); run('status', 'review');
+  `), input: 'stdin'}}});
+  const result = await runRelay(root, id, {quiet: true, report: () => {}});
+  assert.equal(result.outcome, 'review');
+  assert.ok(readJournal(root, id).some(entry => entry.kind === 'checkpoint' && /Ревью/.test(entry.text)));
+});
+
+test('an agent that only commits the same card every session is stalled', async () => {
+  const root = repository();
+  const id = plannedTask(root);
+  git(root, 'add', '.bridge');
+  git(root, 'commit', '-q', '-m', 'card');
+  configure(root, {chain: ['a'], session: {stallRounds: 2}, agents: {a: {name: 'committer', command: fakeAgent(root, 'committer', `
+    run('checkpoint', '--state', 'То же', '--next', 'То же');
+    execFileSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@example.com', 'commit', '-q', '-am', 'card', '--allow-empty']);
+  `), input: 'stdin'}}});
+  const result = await runRelay(root, id, {quiet: true, report: () => {}});
+  assert.equal(result.outcome, 'stalled');
+});
+
+test('only the task owner can waive a blocking finding', () => {
+  const root = repository();
+  const id = plannedTask(root);
+  const {file} = operations.startReview(root, id, {reviewer: 'r', base: 'main'});
+  writeFileSync(file, readFileSync(file, 'utf8').replace('## Замечания\n', '## Замечания\n- **F1** [P1] `a:1` — Гонка.\n  Решение: [waived agent-x: сам решил]\n'));
+  assert.ok(validateTask(root, id).errors.some(error => /\[waived\] ставит владелец задачи \(owner\)/.test(error)));
 });

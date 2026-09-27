@@ -50,7 +50,9 @@ export function diffStat(root, from, separator = '...') {
 
 /** A fingerprint of the work itself: commits, the diff and the set of changed files. */
 export function workFingerprint(root) {
-  return [git(root, ['rev-parse', 'HEAD']) ?? '', git(root, ['diff', 'HEAD', '--stat']) ?? '', (git(root, ['status', '--porcelain=v1']) ?? '')
+  // Commits and diffs of the bridge's own files are not work: an agent that only rewrites its card makes no progress.
+  const outside = ['--', '.', ':(exclude).bridge'];
+  return [git(root, ['log', '-1', '--format=%H', ...outside]) ?? '', git(root, ['diff', 'HEAD', '--stat', ...outside]) ?? '', (git(root, ['status', '--porcelain=v1']) ?? '')
     .split('\n').filter(line => line && !line.slice(3).startsWith('.bridge/')).join('\n')].join('\n');
 }
 
