@@ -1,0 +1,44 @@
+{
+  "bridge": 1,
+  "chain": ["claude", "codex"],
+  "session": {"timeoutMinutes": 120, "maxRounds": 8, "stallRounds": 2},
+  "retry": {"overloaded": {"attempts": 2, "backoffSeconds": [30, 120]}},
+  "agents": {
+    "claude": {
+      "name": "claude-code",
+      "command": ["claude", "-p", "--permission-mode", "acceptEdits"],
+      "input": "stdin",
+      "model": "strong",
+      "signals": {
+        "limit": ["usage limit", "hit your limit", "rate[ _-]?limit", "\\b429\\b", "quota", "credit balance", "billing"],
+        "auth": ["authentication[ _]failed", "invalid api key", "please run /login", "oauth"],
+        "context": ["prompt is too long", "context (length|window)", "max_output_tokens"],
+        "overloaded": ["overloaded", "\\b529\\b", "\\b50[23]\\b", "server[ _]error", "timed? ?out"]
+      }
+    },
+    "codex": {
+      "name": "codex",
+      "command": ["codex", "exec", "--full-auto", "-"],
+      "input": "stdin",
+      "model": "strong",
+      "signals": {
+        "limit": ["usage limit", "rate[ _-]?limit", "\\b429\\b", "quota", "insufficient_quota"],
+        "auth": ["unauthorized", "\\b401\\b", "not logged in"],
+        "context": ["context (length|window)", "maximum context"],
+        "overloaded": ["overloaded", "\\b50[023]\\b", "server[ _]error", "stream disconnected"]
+      }
+    },
+    "gemini": {
+      "name": "gemini",
+      "command": ["gemini", "--yolo", "-p"],
+      "input": "argument",
+      "model": "strong",
+      "signals": {
+        "limit": ["quota", "rate[ _-]?limit", "\\b429\\b", "RESOURCE_EXHAUSTED"],
+        "auth": ["UNAUTHENTICATED", "\\b401\\b"],
+        "context": ["context (length|window)", "token limit"],
+        "overloaded": ["\\b50[03]\\b", "UNAVAILABLE", "overloaded"]
+      }
+    }
+  }
+}
