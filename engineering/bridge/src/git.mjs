@@ -58,3 +58,18 @@ export function changedFiles(root, base) {
   const output = base ? git(root, ['diff', '--name-only', `${base}...HEAD`]) : null;
   return output ? output.split('\n').filter(Boolean) : [];
 }
+
+export function isAncestor(root, ancestor) {
+  try {
+    execFileSync('git', ['merge-base', '--is-ancestor', ancestor, 'HEAD'], {cwd: root, stdio: 'ignore', timeout: 10000});
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** Content changes of the task's own files since `from`, even when history was rewritten after `from`. */
+export function diffStatOfFiles(root, from, files) {
+  if (!files.length) return '';
+  return git(root, ['diff', '--stat', '--stat-width=100', from, 'HEAD', '--', ...files]);
+}

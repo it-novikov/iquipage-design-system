@@ -1,7 +1,7 @@
 import {readFileSync} from 'node:fs';
 import {join, relative} from 'node:path';
 import {renderBrief} from './brief.mjs';
-import {diffStat, gitState, mergeBase} from './git.mjs';
+import {changedFiles, diffStat, diffStatOfFiles, gitState, isAncestor, mergeBase} from './git.mjs';
 import {readJournal} from './journal.mjs';
 import {liveLease} from './lease.mjs';
 import {BRIDGE_HOME, bridgeCommand} from './operations.mjs';
@@ -48,6 +48,9 @@ export function reviewerPrompt(root, id, {agent, reviewFile, baseRef, previous =
   const names = previous.map(item => item.id).join(', ');
   // All reviews of one round share a head; the oldest one bounds the changes made since.
   const since = previous[0]?.head;
+  // After a rebase the reviewed commit is no longer an ancestor: compare content, limited to the task's own files.
+  const rewritten = Boolean(since) && !isAncestor(root, since);
+  const taskFiles = changedFiles(root, baseRef);
   const lines = [
     `Вы — независимый ревьюер «${agent}» задачи ${id}. Вы не автор и не видели его сессию. Код не меняйте.`,
     '',
@@ -55,7 +58,9 @@ export function reviewerPrompt(root, id, {agent, reviewFile, baseRef, previous =
   ];
   if (followUp) {
     lines.push(
-      `2. Это повторное ревью после ${names}. Полностью проверьте исправления: \`git diff ${since}..HEAD\`. Остальной код — выборочно, в окрестности исправлений.`,
+      rewritten
+        ? `2. Это повторное ревью после ${names}. История переписана после прошлого ревью (${since} не предок HEAD), поэтому сравнение идёт по содержимому файлов задачи: \`git diff ${since} HEAD -- <файлы ниже>\`. Исправления проверьте полностью, остальное — выборочно.`
+        : `2. Это повторное ревью после ${names}. Полностью проверьте исправления: \`git diff ${since}..HEAD\`. Остальной код — выборочно, в окрестности исправлений.`,
       `3. Для каждого замечания ${names} подтвердите решение автора или откройте его снова в своём файле. Перенесённые (deferred) проверьте на обоснованность.`,
     );
   } else {
@@ -74,7 +79,8 @@ export function reviewerPrompt(root, id, {agent, reviewFile, baseRef, previous =
     for (const item of followUp) {
       lines.push(`## Замечания ${item.id}`, ...item.review.findings.map(finding => `- ${finding.id} [${finding.priority}] ${finding.resolution ?? 'open'} — ${finding.text}`), '');
     }
-    lines.push('## Изменено после прошлого ревью', '```', diffStat(root, since, '..') ?? 'git недоступен', '```');
+    const stat = rewritten ? diffStatOfFiles(root, since, taskFiles) : diffStat(root, since, '..');
+    lines.push('## Изменено после прошлого ревью', '```', stat ?? 'git недоступен', '```');
   } else {
     lines.push('## Изменённые файлы', '```', diffStat(root, base) ?? 'git недоступен', '```');
   }
