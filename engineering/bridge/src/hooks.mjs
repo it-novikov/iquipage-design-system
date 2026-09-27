@@ -20,11 +20,12 @@ const DEFAULT_AGENT = 'claude-code';
  * relay is identified by the task and agent name the relay gave it.
  */
 function tasksOfSession(root, input) {
-  const session = SESSION_ID.test(input.session_id ?? '') ? input.session_id : '';
-  const pinned = process.env.BRIDGE_TASK && TASK_ID.test(process.env.BRIDGE_TASK) ? process.env.BRIDGE_TASK : null;
-  const agent = process.env.BRIDGE_AGENT || DEFAULT_AGENT;
+  // An interactive session is named by Claude Code; a relay run names its agents' session through BRIDGE_SESSION,
+  // which only the relay sets in the environment of hooks (in a person's session it lives in CLAUDE_ENV_FILE only).
+  const relaySession = process.env.BRIDGE_RELAY === '1' ? process.env.BRIDGE_SESSION : '';
+  const sessions = [input.session_id, relaySession].filter(value => SESSION_ID.test(value ?? ''));
   return readCards(root, {warn: false}).map(entry => ({id: entry.id, card: entry.card, lease: liveLease(root, entry.id)}))
-    .filter(({id, lease}) => lease && (session && lease.session === session || !lease.session && pinned === id && lease.holder === agent));
+    .filter(({lease}) => lease?.session && sessions.includes(lease.session));
 }
 
 /** Open questions older than a day: the owner is the bottleneck, so the next session names them. */
@@ -81,7 +82,8 @@ export function handleClaudeHook(root, input, {spawnRelay = spawnDetachedRelay} 
       const type = input.error_type || 'unknown';
       if (!relay && (LIMIT.has(type) || AUTH.has(type))) {
         const holder = readLease(root, task.id)?.holder ?? agent;
-        handoff(root, task.id, {agent: holder, reason: LIMIT.has(type) ? 'limit' : 'auth', note: `Claude Code: ${type}`});
+        // The session was matched above; the hook process itself may not carry BRIDGE_SESSION.
+        handoff(root, task.id, {agent: holder, reason: LIMIT.has(type) ? 'limit' : 'auth', note: `Claude Code: ${type}`, force: true});
         if (loadConfig(root).relay?.fromHooks) spawnRelay(root, task.id, holder);
       } else {
         // Transient errors, and every error inside the relay, which classifies the outcome itself.

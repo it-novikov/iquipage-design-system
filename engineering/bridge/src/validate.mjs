@@ -92,8 +92,9 @@ export function validateTask(root, id) {
     for (const finding of review.findings.filter(item => item.priority === 'P0' && item.resolution === 'deferred')) {
       errors.push(`${name}/${finding.id}: P0 нельзя переносить в другую задачу.`);
     }
-    for (const finding of review.findings.filter(item => item.resolution === 'waived' && !item.resolutionText.startsWith(`[waived ${meta.owner}`))) {
-      errors.push(`${name}/${finding.id}: [waived] ставит владелец задачи (${meta.owner}): «[waived ${meta.owner}: причина]».`);
+    const waivedByOwner = new RegExp(`^\\[waived ${String(meta.owner).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}: \\S`);
+    for (const finding of review.findings.filter(item => item.resolution === 'waived' && !waivedByOwner.test(item.resolutionText))) {
+      errors.push(`${name}/${finding.id}: [waived] ставит владелец задачи (${meta.owner}) с причиной: «[waived ${meta.owner}: причина]».`);
     }
   }
   if (meta.status === 'done') {

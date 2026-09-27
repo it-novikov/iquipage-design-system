@@ -75,10 +75,13 @@ export function clearLease(root, id) {
   rmSync(leaseFile(root, id), {force: true});
 }
 
-/** Whether `agent` in `session` is the one holding `lease`. A lease bound to a session belongs only to that session. */
+/**
+ * Whether `agent` in `session` holds `lease`. A lease bound to a session — a Claude Code session or a relay run —
+ * belongs only to callers of that session; a caller without a session holds only a lease without one.
+ */
 export function holds(lease, agent, session = process.env.BRIDGE_SESSION || '') {
   if (!lease || lease.holder !== agent) return false;
-  return !lease.session || !session || lease.session === session;
+  return lease.session ? lease.session === session : true;
 }
 
 /**
