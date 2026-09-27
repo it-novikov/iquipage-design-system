@@ -102,6 +102,8 @@ class ProblemResponses {
                     error.javaClass.name,
                     site?.let { "${it.className}.${it.methodName}:${it.lineNumber}" },
                 )
+                // The message only at debug level: a local diagnosis, never in a production log.
+                log.debug("Request failed request_id={}", RequestIds.of(request), error)
                 body(
                     request,
                     HttpStatus.SERVICE_UNAVAILABLE,

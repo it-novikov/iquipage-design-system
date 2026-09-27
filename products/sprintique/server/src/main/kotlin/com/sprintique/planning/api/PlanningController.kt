@@ -3,6 +3,7 @@ package com.sprintique.planning.api
 import com.sprintique.command.CommandLedger
 import com.sprintique.contract.Accepts
 import com.sprintique.contract.Contracts
+import com.sprintique.contract.QueryParameters
 import com.sprintique.contract.UUID
 import com.sprintique.identity.api.AuthenticatedRequests
 import com.sprintique.identity.api.RequestInputs

@@ -1,7 +1,5 @@
-package com.sprintique.planning.api
+package com.sprintique.contract
 
-import com.sprintique.contract.RESOURCE_ID
-import com.sprintique.contract.isIsoDate
 import com.sprintique.web.RequestValidationException
 import jakarta.servlet.http.HttpServletRequest
 
