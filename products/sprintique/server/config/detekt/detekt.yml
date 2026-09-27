@@ -10,6 +10,9 @@ complexity:
     allowedFunctionsPerClass: 25
     allowedFunctionsPerObject: 25
 style:
+  MaxLineLength:
+    # SQL keeps its own layout inside raw strings; wrapping it to 120 columns makes queries harder to read.
+    excludeRawStrings: true
   MagicNumber:
     excludes: ['**/test/**', '**/integrationTest/**']
     ignorePropertyDeclaration: true

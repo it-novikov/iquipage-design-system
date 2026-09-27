@@ -43,6 +43,27 @@ try{
   }finally{await admin.end();}
   checkpoint();
   const settingsPreview=process.argv.includes('--settings-preview'),preview=settingsPreview||process.argv.includes('--preview');
+  // Kotlin backend: build the local artifact, prove the Flyway ledger equals migrate.ts, apply it, run the
+  // Kotlin integration tests against this same isolated cluster. No Docker is involved.
+  const kotlin=process.env.SPRINTIQUE_BACKEND==='kotlin';
+  if(kotlin){
+    const server=await import('./kotlin-server.mjs');
+    server.buildServer();checkpoint();
+    if(!preview&&!process.argv.includes('--skip-ledger-check')){
+      const {compareMigrations}=await import('./compare-migrations.mjs');
+      const statements=await compareMigrations({bin,url:(user,db)=>`postgresql://${user}@localhost/${db}?host=${encodeURIComponent(socket)}`,roles:{migrator:'sprintique_migrator',runtime:'sprintique_app',worker:'sprintique_worker'}});
+      console.log(`Flyway ledger matches migrate.ts: ${statements} schema statements.`);checkpoint();
+    }
+    server.migrate({migrationUrl:url('sprintique_migrator'),runtimeRole:'sprintique_app',workerRole:'sprintique_worker'});checkpoint();
+    if(!preview&&!process.argv.includes('--skip-integration')){
+      server.integrationTests({SPRINTIQUE_TEST_ADMIN_DATABASE_URL:url('postgres'),SPRINTIQUE_TEST_MIGRATION_DATABASE_URL:url('sprintique_migrator'),
+        SPRINTIQUE_TEST_DATABASE_URL:url('sprintique_app'),SPRINTIQUE_TEST_WORKER_DATABASE_URL:url('sprintique_worker'),
+        SPRINTIQUE_TEST_RUNTIME_ROLE:'sprintique_app',SPRINTIQUE_TEST_WORKER_ROLE:'sprintique_worker'});
+      checkpoint();
+    }
+  }
+  // --kotlin-only stops after the Kotlin checks above, without the Node suites.
+  if(process.argv.includes('--kotlin-only')){process.exitCode=0;}else{
   const tests=(await readdir('tests')).filter(name=>/\.test\.(ts|mjs)$/.test(name)).sort().map(name=>'tests/'+name);
   checkpoint();
   const child=spawn(process.execPath,['--import','tsx',...(preview?[settingsPreview?'tests/settings-preview.ts':'tests/preview.ts']:['--test','--test-concurrency=1',...tests])],{
@@ -50,6 +71,7 @@ try{
   });
   const code=await waitForChild(child,{forwardSignals:true});
   process.exitCode=interrupted??code;
+  }
 }catch(error){
   if(!(error instanceof Interrupted))throw error;
   process.exitCode=interrupted;

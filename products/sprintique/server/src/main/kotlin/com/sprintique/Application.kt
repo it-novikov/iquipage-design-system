@@ -43,7 +43,7 @@ private fun migrate() {
     require(url.isNotEmpty() && runtimeRole.isNotEmpty()) {
         "SPRINTIQUE_MIGRATION_DATABASE_URL and SPRINTIQUE_DATABASE_RUNTIME_ROLE are required"
     }
-    Database.connect(url, maximumPoolSize = 1, poolName = "migration").use { database ->
+    Database.connect(url, maximumPoolSize = 3, poolName = "migration").use { database ->
         SchemaMigrations.migrate(
             database.dataSource,
             runtimeRole,
