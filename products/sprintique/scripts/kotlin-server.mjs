@@ -28,7 +28,7 @@ export function javaHome() {
 
 export const java = () => join(javaHome(), 'bin', 'java');
 
-function gradle(args, env = {}) {
+export function gradle(args, env = {}) {
   const run = spawnSync(join(SERVER_DIR, 'gradlew'), ['--quiet', '--console=plain', ...args], {
     cwd: SERVER_DIR, stdio: 'inherit', env: {...process.env, JAVA_HOME: javaHome(), ...env},
   });

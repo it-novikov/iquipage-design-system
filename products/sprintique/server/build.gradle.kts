@@ -163,7 +163,7 @@ tasks.register<JavaExec>("generateJooq") {
     group = "build"
     description = "Regenerates jOOQ classes from the migrations."
     classpath = sourceSets["integrationTest"].runtimeClasspath
-    mainClass.set("com.sprintique.database.JooqCodegen")
+    mainClass.set("com.sprintique.database.JooqCodegenKt")
     args(
         layout.projectDirectory
             .dir("src/generated/jooq")

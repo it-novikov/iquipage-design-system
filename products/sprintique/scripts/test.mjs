@@ -55,7 +55,11 @@ try{
       console.log(`Flyway ledger matches migrate.ts: ${statements} schema statements.`);checkpoint();
     }
     server.migrate({migrationUrl:url('sprintique_migrator'),runtimeRole:'sprintique_app',workerRole:'sprintique_worker'});checkpoint();
-    if(!preview&&!process.argv.includes('--skip-integration')){
+    // --jooq regenerates src/generated/jooq from this freshly migrated database and stops.
+    if(process.argv.includes('--jooq')){
+      server.gradle(['generateJooq'],{SPRINTIQUE_TEST_ADMIN_DATABASE_URL:url('postgres')});
+      process.exitCode=0;
+    }else if(!preview&&!process.argv.includes('--skip-integration')){
       server.integrationTests({SPRINTIQUE_TEST_ADMIN_DATABASE_URL:url('postgres'),SPRINTIQUE_TEST_MIGRATION_DATABASE_URL:url('sprintique_migrator'),
         SPRINTIQUE_TEST_DATABASE_URL:url('sprintique_app'),SPRINTIQUE_TEST_WORKER_DATABASE_URL:url('sprintique_worker'),
         SPRINTIQUE_TEST_RUNTIME_ROLE:'sprintique_app',SPRINTIQUE_TEST_WORKER_ROLE:'sprintique_worker'});
@@ -63,7 +67,7 @@ try{
     }
   }
   // --kotlin-only stops after the Kotlin checks above, without the Node suites.
-  if(process.argv.includes('--kotlin-only')){process.exitCode=0;}else{
+  if(process.argv.includes('--kotlin-only')||process.argv.includes('--jooq')){process.exitCode??=0;}else{
   const tests=(await readdir('tests')).filter(name=>/\.test\.(ts|mjs)$/.test(name)).sort().map(name=>'tests/'+name);
   checkpoint();
   const child=spawn(process.execPath,['--import','tsx',...(preview?[settingsPreview?'tests/settings-preview.ts':'tests/preview.ts']:['--test','--test-concurrency=1',...tests])],{
