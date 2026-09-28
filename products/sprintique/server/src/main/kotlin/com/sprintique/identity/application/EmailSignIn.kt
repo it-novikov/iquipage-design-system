@@ -74,8 +74,8 @@ class EmailSignIn(
             )
             tx.update(
                 """
-                DELETE FROM auth.known_devices WHERE token_hash IN (SELECT token_hash FROM auth.known_devices
-                    WHERE expires_at <= clock_timestamp() LIMIT 500)
+                DELETE FROM auth.known_devices WHERE (token_hash, email) IN (SELECT token_hash, email
+                    FROM auth.known_devices WHERE expires_at <= clock_timestamp() LIMIT 500)
                 """.trimIndent(),
             )
             val pending = tx.row(

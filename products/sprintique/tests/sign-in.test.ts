@@ -174,6 +174,12 @@ test('SI04 codes are asked for only from the app, for a real address, and not to
   assert.equal(cookieOf(again,'__Host-sprintique-device'),device,'one token for both addresses');
   await fill(second,hash('stranger'),false);
   assert.equal((await json('/auth/email/start',{email:second},{cookie:device})).statusCode,200);
+  // An expired address of the token goes alone: the token's other addresses stay remembered.
+  await f.admin.query("UPDATE auth.known_devices SET expires_at=clock_timestamp()-interval '1 second' WHERE email=$1",[owner]);
+  await json('/auth/email/start',{email:'cleanup-trigger@example.org'});
+  assert.equal((await f.admin.query('SELECT email FROM auth.known_devices WHERE email=ANY($1)',[[owner,second]])).rows.map(r=>r.email).join(),second);
+  await f.admin.query("UPDATE auth.known_devices SET expires_at=clock_timestamp()+interval '1 day' WHERE email=$1",[second]);
+  await f.admin.query("INSERT INTO auth.known_devices(token_hash,email,expires_at) SELECT token_hash,$1,clock_timestamp()+interval '1 day' FROM auth.known_devices WHERE email=$2",[owner,second]);
   // Its own daily limit: twenty codes from this browser (its last code moved back past the 30-second pause).
   await f.admin.query("UPDATE auth.email_challenges SET created_at=created_at-interval '1 minute' WHERE email=$1",[owner]);
   await fill(owner,createHash('sha256').update('device:'+device.split('=')[1]).digest('hex'),true);
