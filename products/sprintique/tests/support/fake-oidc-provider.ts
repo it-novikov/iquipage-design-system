@@ -1,6 +1,6 @@
 // A synthetic OpenID Connect provider for the Kotlin backend, which cannot take an in-process transport: HTTPS on
 // loopback with a throwaway certificate authority that only the server under test is told to trust (through
-// SPRINTIQUE_OIDC_TRUST_FILE). Nothing touches system or JVM-wide trust.
+// SPRINTIQUE_PROVIDER_TRUST_FILE). Nothing touches system or JVM-wide trust.
 import {execFileSync} from 'node:child_process';
 import {mkdtemp,readFile,rm,writeFile} from 'node:fs/promises';
 import {createServer} from 'node:https';

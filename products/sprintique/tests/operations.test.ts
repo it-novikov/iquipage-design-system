@@ -41,8 +41,8 @@ test('O04 only a live project admin can inspect or retry failed asset jobs, with
   const audit=(await f.admin.query("SELECT count(*)::int AS n FROM app.audit_events WHERE project_id=$1 AND action='job.retried'",[f.first.id])).rows[0];assert.equal(audit.n,1);
 });
 test('O03 login throttling ignores spoofed forwarding headers and returns Retry-After',async()=>{
-  for(let i=0;i<20;i++)assert.notEqual((await f.app.inject({url:'/auth/login',headers:{'x-forwarded-for':'203.0.113.'+i}})).statusCode,429);
-  const denied=await f.app.inject({url:'/auth/login',headers:{'x-forwarded-for':'198.51.100.9'}});assert.equal(denied.statusCode,429);assert.equal(denied.headers['retry-after'],'60');
+  for(let i=0;i<20;i++)assert.notEqual((await f.app.inject({url:'/auth/login/google',headers:{'x-forwarded-for':'203.0.113.'+i}})).statusCode,429);
+  const denied=await f.app.inject({url:'/auth/login/google',headers:{'x-forwarded-for':'198.51.100.9'}});assert.equal(denied.statusCode,429);assert.equal(denied.headers['retry-after'],'60');
   assert.equal((await f.app.inject('/health')).statusCode,200);
 });
 test('O05 private aggregate metrics do not reveal path values, bodies, credentials or arbitrary labels',async()=>{

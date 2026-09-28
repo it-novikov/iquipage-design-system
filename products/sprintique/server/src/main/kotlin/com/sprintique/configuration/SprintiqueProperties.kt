@@ -15,7 +15,8 @@ data class SprintiqueProperties(
     /** Hop count (for example `1`) or comma-separated proxy addresses; empty means the socket peer is the client. */
     val trustProxy: String = "",
     val database: DatabaseProperties = DatabaseProperties(),
-    val oidc: OidcProperties = OidcProperties(),
+    val signIn: SignInProperties = SignInProperties(),
+    val mail: MailProperties = MailProperties(),
     val storage: StorageProperties = StorageProperties(),
     val metricsToken: String = "",
     /** Local debugging only: the fixed admin/admin sign-in. Refused in production and on a non-loopback origin. */
@@ -39,17 +40,56 @@ data class DatabaseProperties(
     val maximumPoolSize: Int = 12,
 )
 
-data class OidcProperties(
-    val issuer: String = "",
-    val clientId: String = "",
-    val clientSecret: String = "",
+/** Ways into the product besides e-mail codes: each exists only when fully configured. */
+data class SignInProperties(
+    val google: GoogleProperties = GoogleProperties(),
+    val apple: AppleProperties = AppleProperties(),
     /**
-     * PEM certificates trusted for this provider in addition to the JVM's own, for a provider behind a private
-     * certificate authority. Nothing else in the process trusts them.
+     * PEM certificates trusted for the sign-in providers in addition to the JVM's own, for a provider behind a
+     * private certificate authority (a local or test stand). Nothing else in the process trusts them.
      */
     val trustFile: String = "",
+)
+
+data class GoogleProperties(
+    val issuer: String = "https://accounts.google.com",
+    val clientId: String = "",
+    val clientSecret: String = "",
 ) {
-    val isConfigured: Boolean get() = issuer.isNotEmpty() && clientId.isNotEmpty() && clientSecret.isNotEmpty()
+    val isConfigured: Boolean get() = clientId.isNotEmpty() && clientSecret.isNotEmpty()
+}
+
+/** Sign in with Apple: a Services ID, and the team's private key that signs the short-lived client secret. */
+data class AppleProperties(
+    val issuer: String = "https://appleid.apple.com",
+    val clientId: String = "",
+    val teamId: String = "",
+    val keyId: String = "",
+    /** PKCS#8 PEM file with the key downloaded from Apple (`AuthKey_<keyId>.p8`). */
+    val privateKeyFile: String = "",
+) {
+    val isConfigured: Boolean
+        get() = clientId.isNotEmpty() && teamId.isNotEmpty() && keyId.isNotEmpty() && privateKeyFile.isNotEmpty()
+}
+
+/** Outgoing mail: sign-in codes. SMTP in production; a local stand may drop messages into a directory instead. */
+data class MailProperties(
+    /** `Sprintique <no-reply@example.com>`. */
+    val from: String = "",
+    val smtp: SmtpProperties = SmtpProperties(),
+    /** Local stand only: write messages as files into this directory. Refused in production. */
+    val drop: String = "",
+)
+
+data class SmtpProperties(
+    val host: String = "",
+    val port: Int = 587,
+    val username: String = "",
+    val password: String = "",
+    /** `starttls` (required upgrade, port 587), `tls` (implicit TLS, port 465) or `none` (loopback relay only). */
+    val security: String = "starttls",
+) {
+    val isConfigured: Boolean get() = host.isNotEmpty()
 }
 
 data class StorageProperties(

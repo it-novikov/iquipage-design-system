@@ -1,9 +1,10 @@
 import {readFile,writeFile,chmod} from 'node:fs/promises';
+import {readStand} from './stand-config.mjs';
 import {randomUUID} from 'node:crypto';
-const root='output/infra',identity=JSON.parse(await readFile(root+'/identity.json','utf8'));
+const root='output/infra',identity=await readStand();
 if(identity.origin!=='http://localhost:4312')throw Error('This QA script only targets the isolated local reference');
-const state=JSON.parse(await readFile(root+'/oidc-browser-state.json','utf8'));
-const cookie=state.cookies.find(c=>c.name==='__Host-sprintique');if(!cookie)throw Error('Run local OIDC verification first');
+const state=JSON.parse(await readFile(root+'/browser-state.json','utf8'));
+const cookie=state.cookies.find(c=>c.name==='__Host-sprintique');if(!cookie)throw Error('Run scripts/check-local-sign-in.mjs first');
 let csrf;
 async function call(path,method='GET',body,token){
   const headers={Accept:'application/json',...(token?{Authorization:'Bearer '+token}:{Cookie:cookie.name+'='+cookie.value,Origin:identity.origin,...(csrf?{'X-CSRF-Token':csrf}:{})}),...(body?{'Content-Type':'application/json'}:{}),'Idempotency-Key':randomUUID()};
@@ -11,7 +12,7 @@ async function call(path,method='GET',body,token){
   const value=await r.json();if(!r.ok)throw Error('Local QA '+r.status+' '+value.code);return value;
 }
 const session=await call('/session');csrf=session.csrf;
-const project=session.projects.find(p=>p.slug==='oidc-qa');if(!project)throw Error('Create the isolated OIDC QA project first');
+const project=session.projects.find(p=>p.slug==='stand-qa');if(!project)throw Error('Run scripts/check-local-sign-in.mjs first: it creates the QA project');
 const base='/projects/'+project.id;
 if(process.argv.includes('--complete')){
   const pending=JSON.parse(await readFile(root+'/agent-qa.json','utf8'));
@@ -27,7 +28,7 @@ if(process.argv.includes('--complete')){
   try{const previous=JSON.parse(await readFile(root+'/agent-qa.json','utf8'));if(previous.token)throw Error('An existing QA proposal must be completed or explicitly cancelled first');}catch(error){if(error.code!=='ENOENT')throw error;}
   const grant=await call(base+'/agents','POST',{name:'Агент проверки интеграции',capabilities:['tasks:read','tasks:write'],expiresInSeconds:3600});
   const run=await call(base+'/agent-runs','POST',{id:randomUUID(),goal:'Проверить подтверждение человеком в интерфейсе',maxProposals:1,expiresInSeconds:3600},grant.token);
-  const task=await call(base+'/tasks/oidc-smoke');
+  const task=await call(base+'/tasks/stand-smoke');
   const proposal=await call(base+'/agent-runs/'+run.id+'/proposals','POST',{baseRevision:1,command:{kind:'bulk',selection:{kind:'tasks',ids:[task.id]},fields:{priority:task.priority==='high'?'normal':'high'}}},grant.token);
   await writeFile(root+'/agent-qa.json',JSON.stringify({runId:run.id,credentialId:grant.credentialId,token:grant.token,planId:proposal.preview.id,seal:proposal.preview.token,approvalId:proposal.preview.approvalId}),{mode:0o600,flag:'w'});await chmod(root+'/agent-qa.json',0o600);
   console.log('QA proposal prepared. Review it in project settings -> agents. Secrets are mode 0600; none were logged.');

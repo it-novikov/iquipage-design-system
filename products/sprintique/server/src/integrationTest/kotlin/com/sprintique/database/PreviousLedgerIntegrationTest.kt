@@ -26,11 +26,9 @@ class PreviousLedgerIntegrationTest {
                     .map { "${it["version"]}:${it["type"]}" }
             }
             assertThat(versions.first()).isEqualTo("20260927000018:BASELINE")
-            assertThat(
-                versions.drop(1).filter {
-                    it.endsWith(":SQL")
-                },
-            ).containsExactly("20260927000019:SQL", "20260927000020:SQL")
+            // The previous migrator's last two files, then whatever Flyway added after it.
+            assertThat(versions.drop(1).filter { it.endsWith(":SQL") })
+                .startsWith("20260927000019:SQL", "20260927000020:SQL")
         }
     }
 

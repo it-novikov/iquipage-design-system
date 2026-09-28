@@ -14,10 +14,10 @@ const secret=()=>randomBytes(32).toString('base64url');
 /** A server process of its own, for scenarios that need other settings than the fixture's. */
 export function startApp(options:AppOptions={}):Promise<TestApp>{return startKotlinApp(options);}
 
-export async function fixture({web=false,prefix='',storage=false,appOrigin=origin,devLogin=false,port}:{web?:boolean;prefix?:string;storage?:boolean;appOrigin?:string;devLogin?:boolean;port?:number}={}){
+export async function fixture({web=false,prefix='',storage=false,appOrigin=origin,devLogin=false,port,mailDrop}:{web?:boolean;prefix?:string;storage?:boolean;appOrigin?:string;devLogin?:boolean;port?:number;mailDrop?:string}={}){
   const admin=new pg.Client({connectionString:process.env['TEST_ADMIN_DATABASE_URL']!});await admin.connect();
   const db=new RuntimeDatabase(process.env['DATABASE_URL']!);
-  const app=await startKotlinApp({origin:appOrigin,devLogin,web,storage,...(port?{port}:{})});
+  const app=await startKotlinApp({origin:appOrigin,devLogin,web,storage,...(port?{port}:{}),...(mailDrop?{mailDrop}:{})});
   const human=async(name:string)=>{
     const id=randomUUID(),token=secret(),csrf=secret(),credential=randomUUID();
     await admin.query("INSERT INTO auth.principals(id,kind,name,issuer,subject) VALUES($1,'human',$2,'https://test.example',$1)",[id,name]);

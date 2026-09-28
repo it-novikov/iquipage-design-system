@@ -3,6 +3,7 @@
 - **Статус:** accepted
 - **Дата:** 2026-09-27
 - **Владелец:** it-novikov
+- **Изменено:** вход — [0002](0002-sign-in.md)
 - **Основание:** [ADR 0001 инженерной системы](../../../../engineering/decisions/0001-engineering-system.md), карточка `.bridge/tasks/20260927-kotlin-backend`
 
 ## Контекст

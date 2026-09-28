@@ -1,4 +1,4 @@
-import {mountAuthScreen} from './auth-screen.js';
+import {mountSignIn} from './sign-in.js';
 import {appearance} from './appearance.js';
 import '@iquipage/web/styles.css';
 import '../ui/src/maps.css';
@@ -71,26 +71,11 @@ function createWorkspace(){
     const space=await repository.client.request('/workspaces','POST',{name:values.get('name')});await onboard(space.id);
   }});
 }
-/** Sign-in offers only the ways in the server actually has; an unconfigured provider is never a link. */
-/** Sign-in: the DS credential dialog for the local stand; an organisation provider is opened directly
- *  (its themed page shows the same dialog); nothing configured → a calm explanation, never a raw error. */
+/** Sign-in offers only the ways in the server actually has; an unconfigured provider is never offered. */
 async function renderSignIn(){
-  const methods=await fetch('/api/v1/auth/methods').then(r=>r.ok?r.json():{oidc:false,devLogin:false}).catch(()=>({oidc:false,devLogin:false}));
-  const keepInvitation=()=>{const match=location.hash.match(/^#invite\/(invite_[A-Za-z0-9_-]{43})$/);if(match)sessionStorage.setItem('sprintique.pending-invitation',match[1]);};
-  if(methods.oidc&&!methods.devLogin){mountAuthScreen(root);return;}
-  if(!methods.devLogin){root.innerHTML='<main class="iq-auth-stage"><section class="iq-auth-dialog"><h1>Вход не настроен</h1><p class="iq-auth-dialog-description">Для отладки запустите локальный стенд: <code>npm run dev:local</code>.</p></section></main>';return;}
-  root.innerHTML=`<main class="iq-auth-stage"><div class="host-sign-in"><iq-auth-dialog product="Sprintique" heading="Вход в Sprintique" description="Локальный стенд: тестовая учётная запись admin / admin." username-label="Логин"></iq-auth-dialog>${methods.oidc?'<a class="iq-btn ghost" href="/auth/login" data-oidc>Войти через учётную запись организации</a>':''}</div></main>`;
-  root.querySelector('[data-oidc]')?.addEventListener('click',keepInvitation);
-  const dialog=root.querySelector('iq-auth-dialog');
-  dialog.querySelector('[name=username]').value='admin';dialog.querySelector('[name=password]').focus();
-  dialog.addEventListener('iq-auth-submit',async event=>{
-    event.preventDefault();dialog.removeAttribute('error');dialog.setAttribute('pending','');
-    try{
-      const response=await fetch('/auth/dev-login',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({username:event.detail.username,password:event.detail.password})});
-      if(!response.ok)throw Error((await response.json().catch(()=>null))?.message||'Не удалось войти.');
-      keepInvitation();location.reload();
-    }catch(cause){dialog.removeAttribute('pending');dialog.clearPassword();dialog.setAttribute('error',cause.message);dialog.querySelector('[name=password]').focus();}
-  });
+  const none={email:false,google:false,apple:false,devLogin:false};
+  const methods=await fetch('/api/v1/auth/methods').then(r=>r.ok?r.json():none).catch(()=>none);
+  mountSignIn(root,methods);
 }
 // The last opened project reopens after sign-in; a project link in the URL still wins.
 const LAST_PROJECT_KEY='sprintique.last-project:';

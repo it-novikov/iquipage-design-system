@@ -31,7 +31,7 @@ Kotlin 2.3 / Spring Boot 4 / PostgreSQL modular monolith on JDK 25 (see [the ser
 - Administration: a full-width settings workspace on the DS side navigation (Профиль, Внешний вид; О проекте, Участники, Теги, Шаблоны задач, Спринты и релизы, Агенты, Очистка файлов; О пространстве, Участники пространства). Workspace/project profiles and avatars, member roles changed in the row, expiring single-use invitation links (24 hours, 3 or 7 days) with state, revocation, task templates, tags in any RGB colour and scoped search. People who cannot change a setting see values and a lock notice naming an administrator. See [settings design](docs/settings/DESIGN.md).
 - Task drawer: the title as a heading, one strip of key values (status, assignee, priority, due date), quiet rows for type, release and tags; the description opens in preview and edits on click, with templates inside the editor; relations as a map (parent, subtasks, dependencies, blocked and related tasks); cover menu on the image. See [UX and DS alignment](docs/ux-ds-alignment.md).
 - Agents: scoped expiring credentials, bounded context, run/proposal budgets, action-bound human approval, exact commit receipt, cancellation/expiry fences and revocation. This executes approved **typed Planning commands**, not general code or a shipped MCP server.
-- Operations: real OIDC code+PKCE, private S3 validation/re-encoding, quotas/throttling, audit/outbox-backed authorized SSE, leased asset cleanup jobs and admin retry, exact schema readiness, redacted route-level metrics/logs, container/CI scripts and an isolated restore drill.
+- Operations: sign-in by an e-mail code, Google and Apple, private S3 validation/re-encoding, quotas/throttling, audit/outbox-backed authorized SSE, leased asset cleanup jobs and admin retry, exact schema readiness, redacted route-level metrics/logs, container/CI scripts and an isolated restore drill.
 
 ## Build and test
 
@@ -60,22 +60,23 @@ From the original repository root, `node scripts/verify-vnext.mjs` additionally 
 
 ## Local debugging stand
 
-`LC_ALL=C npm run dev:local` starts an ephemeral PostgreSQL, applies the migration ledger, starts the server's local artifact, seeds synthetic workspaces (five projects with boards, releases, members, tags and maps) and serves the built UI at http://localhost:4311. Sign in with **admin / admin**. Run `npm run build` (or `npx vite build`) first so `dist/` is current. Object storage is optional: without `output/infra/storage.json` or `TEST_S3_CONFIG`, attachments and covers are unavailable.
+`LC_ALL=C npm run dev:local` starts an ephemeral PostgreSQL, applies the migration ledger, starts the server's local artifact, seeds synthetic workspaces (five projects with boards, releases, members, tags and maps) and serves the built UI at http://localhost:4311. Sign in with **admin / admin**, or by e-mail: letters with codes land as files in `output/local-mail/`. Run `npm run build` (or `npx vite build`) first so `dist/` is current. Object storage is optional: without `output/infra/storage.json` or `TEST_S3_CONFIG`, attachments and covers are unavailable.
 
-The fixed login exists only in the local artifact (`server/src/local`, enabled with `SPRINTIQUE_DEV_LOGIN=true`); the production artifact does not contain it, which its build verifies. The server refuses to start with it when `SPRINTIQUE_ENVIRONMENT=production` or on a non-loopback origin. The sign-in screen asks `/api/v1/auth/methods` and never links to an OIDC provider that isn't configured.
+The fixed login exists only in the local artifact (`server/src/local`, enabled with `SPRINTIQUE_DEV_LOGIN=true`); the production artifact does not contain it, which its build verifies. The server refuses to start with it when `SPRINTIQUE_ENVIRONMENT=production` or on a non-loopback origin. The mail drop is local-only in the same way. The sign-in screen asks `/api/v1/auth/methods` and offers only the configured ways in.
 
 ## Local reference stack
 
-PostgreSQL 18.6, Garage 2.3.0 and Keycloak 26.7.3 are pinned by image digests in local scripts. They use loopback ports, an explicitly selected Docker context, owned resource labels and private ignored `output/infra/` configuration. Scripts refuse unrelated containers/volumes and never start/restart the user's default Docker VM.
+PostgreSQL 18.6, Garage 2.3.0 and Mailpit 1.31.3 are pinned by image digests in local scripts. They use loopback ports, an explicitly selected Docker context, owned resource labels and private ignored `output/infra/` configuration. Scripts refuse unrelated containers/volumes and never start/restart the user's default Docker VM.
 
 ```sh
-SPRINTIQUE_DOCKER_CONTEXT=your-isolated-context npm run local:storage
-SPRINTIQUE_DOCKER_CONTEXT=your-isolated-context npm run local:identity
+npm run local:storage
+npm run local:services
 npm run build
 npm run local:start
+npm run local:check-sign-in
 ```
 
-API: `http://localhost:4312`; issuer: `https://localhost:9443/realms/sprintique`. `local:start` builds the production artifact and runs its `migrate`, `api` and `worker` commands. The local CA is trusted by the server for the provider only (`SPRINTIQUE_OIDC_TRUST_FILE`), not installed in system trust. A browser may require explicit trust for the provider certificate. The provider check verifies TLS with that CA and performs a real authorization-code login; it does not bypass OIDC checks.
+API: `http://localhost:4312`. `local:start` builds the production artifact and runs its `migrate`, `api` and `worker` commands; sign-in codes go through the Mailpit SMTP relay (letters at http://127.0.0.1:54326), as they would through a real one. `local:check-sign-in` signs in by e-mail and leaves the session the container check, the agent check and the restore drill reuse. Google and Apple need their real services and an HTTPS origin: see [Sign-in](docs/operations.md#sign-in).
 
 See [operations](docs/operations.md) for runtime configuration, worker/container, private evidence and restore procedures. Credentials and backups must never enter a PR or source archive.
 

@@ -1,36 +1,27 @@
-# Credential entry
+# Sign-in screen
 
-Unauthenticated Sprintique preserves a pending invitation and redirects directly to
-`/auth/login`. OIDC sends the browser to the real identity-provider credential form.
-The old contextual landing page is no longer a required step.
+The sign-in screen is the IQUIPAGE `iq-auth-screen` with the product's form in its `form` slot, built from DS fields
+and buttons (`web/sign-in.js`, styles in `web/shell.css`). It offers only what `GET /api/v1/auth/methods` reports:
 
-`@iquipage/web` 0.6.0-vnext.10 supplies both the reusable `iq-auth-dialog` (username,
-password, reveal, validation, error/pending) and the `iquipage` native Keycloak theme.
-Sprintique does not receive or forward passwords. The OIDC code+PKCE/session flow is unchanged.
+1. **E-mail** — the address, then the six-digit code from the letter. Six digits typed or pasted sign in without an
+   extra press; a wrong code says how many attempts are left; a new code can be requested after 30 seconds; "Другая
+   почта" returns to the address.
+2. **Google** and **Apple** — below a divider, as secondary DS buttons with the providers' own marks (Google's
+   four-colour G, Apple's logo in the text colour), "Продолжить с Google/Apple".
+3. **Local stand only** — "Локальный стенд: войти как admin" when dev login is on.
 
-## Configure the provider
+A provider that sends the browser back with an error lands on `/?sign-in-error=<code>`; the screen shows the message
+once in the DS error region and removes the parameter from the address. A pending project invitation (`#invite/…`) is
+kept across every way in.
 
-`local-identity.mjs` installs the theme and selects it when creating a **new** isolated
-local identity stack. Existing containers/realms are deliberately not recreated or
-silently changed. For an existing provider, copy the installed package's
-`keycloak/iquipage` folder to `/opt/keycloak/themes/iquipage`, select Login theme
-`iquipage` in Realm settings → Themes, and use the normal provider rollout procedure.
-The package resource resolves via `@iquipage/web/keycloak/theme.properties`.
+With nothing configured the screen says so and points the administrator to [operations](operations.md#sign-in).
 
-If the theme has not been installed, the existing provider form still works with its
-current appearance. Deploying the product alone does not update the provider theme.
-Do not enable registration, password recovery, or remember-me solely for appearance;
-these controls follow the realm's actual capabilities. Local Sprintique retains its
-existing disabled registration/recovery policies.
+The package still ships `iq-auth-dialog` and the `iquipage` Keycloak theme for other products; Sprintique no longer
+uses an external identity provider's form.
 
 ## Verification
 
-A separate loopback-only Keycloak 26.7.3 with synthetic accounts verified native login,
-invalid-password errors, successful authorization code and PKCE token exchange. Browser
-checks covered both themes, mobile, password visibility and locale controls. This is
-local evidence, not production deployment or a full end-to-end Sprintique session test.
-
-## Language and local stand
-
-- The sign-in page has one interface language. The theme sets `locales=ru` and hides Keycloak's locale switcher even if a realm enables internationalization. The local realm is created with internationalization off.
-- On the local stand (`npm run dev:local`), Sprintique shows the same `iq-auth-dialog` for the test account. When only an organisation provider is configured, the app goes straight to it. Its short hand-off card appears only if the redirect is slow.
+Checked on the local stand (`npm run dev:local`) in the browser: the address step, a wrong code (the attempts left),
+the right code from `output/local-mail` opening a session, the provider error message, and the phone layout (375 px).
+The Google and Apple buttons were checked visually with their markup on the page; their flows are covered by
+`tests/sign-in.test.ts` against synthetic providers, not by a browser run against Google or Apple.

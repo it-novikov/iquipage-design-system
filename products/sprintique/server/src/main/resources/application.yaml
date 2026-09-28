@@ -43,11 +43,28 @@ sprintique:
     migration-url: ${SPRINTIQUE_MIGRATION_DATABASE_URL:}
     runtime-role: ${SPRINTIQUE_DATABASE_RUNTIME_ROLE:}
     worker-role: ${SPRINTIQUE_DATABASE_WORKER_ROLE:}
-  oidc:
-    issuer: ${SPRINTIQUE_OIDC_ISSUER:}
-    client-id: ${SPRINTIQUE_OIDC_CLIENT_ID:}
-    client-secret: ${SPRINTIQUE_OIDC_CLIENT_SECRET:}
-    trust-file: ${SPRINTIQUE_OIDC_TRUST_FILE:}
+  sign-in:
+    trust-file: ${SPRINTIQUE_PROVIDER_TRUST_FILE:}
+    google:
+      issuer: ${SPRINTIQUE_GOOGLE_ISSUER:https://accounts.google.com}
+      client-id: ${SPRINTIQUE_GOOGLE_CLIENT_ID:}
+      client-secret: ${SPRINTIQUE_GOOGLE_CLIENT_SECRET:}
+    apple:
+      issuer: ${SPRINTIQUE_APPLE_ISSUER:https://appleid.apple.com}
+      client-id: ${SPRINTIQUE_APPLE_CLIENT_ID:}
+      team-id: ${SPRINTIQUE_APPLE_TEAM_ID:}
+      key-id: ${SPRINTIQUE_APPLE_KEY_ID:}
+      private-key-file: ${SPRINTIQUE_APPLE_PRIVATE_KEY_FILE:}
+  mail:
+    from: ${SPRINTIQUE_MAIL_FROM:}
+    # Local stand only: write sign-in letters into this directory instead of sending them.
+    drop: ${SPRINTIQUE_MAIL_DROP:}
+    smtp:
+      host: ${SPRINTIQUE_SMTP_HOST:}
+      port: ${SPRINTIQUE_SMTP_PORT:587}
+      username: ${SPRINTIQUE_SMTP_USERNAME:}
+      password: ${SPRINTIQUE_SMTP_PASSWORD:}
+      security: ${SPRINTIQUE_SMTP_SECURITY:starttls}
   storage:
     endpoint: ${SPRINTIQUE_STORAGE_ENDPOINT:}
     region: ${SPRINTIQUE_STORAGE_REGION:}

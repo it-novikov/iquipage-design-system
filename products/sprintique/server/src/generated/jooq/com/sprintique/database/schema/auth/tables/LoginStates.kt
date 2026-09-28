@@ -11,7 +11,9 @@ import com.sprintique.database.schema.auth.tables.records.LoginStatesRecord
 import java.time.OffsetDateTime
 
 import kotlin.collections.Collection
+import kotlin.collections.List
 
+import org.jooq.Check
 import org.jooq.Condition
 import org.jooq.Field
 import org.jooq.ForeignKey
@@ -70,6 +72,8 @@ open class LoginStates(
 
     val EXPIRES_AT: TableField<LoginStatesRecord, OffsetDateTime?> = createField(DSL.name("expires_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6).nullable(false), this, "")
 
+    val PROVIDER: TableField<LoginStatesRecord, String?> = createField(DSL.name("provider"), SQLDataType.CLOB.nullable(false), this, "")
+
     private constructor(alias: Name, aliased: Table<LoginStatesRecord>?): this(alias, null, null, null, aliased, null, null)
     private constructor(alias: Name, aliased: Table<LoginStatesRecord>?, parameters: Array<Field<*>?>?): this(alias, null, null, null, aliased, parameters, null)
     private constructor(alias: Name, aliased: Table<LoginStatesRecord>?, where: Condition?): this(alias, null, null, null, aliased, null, where)
@@ -81,6 +85,9 @@ open class LoginStates(
     constructor(): this(DSL.name("login_states"), null)
     override fun getSchema(): Schema? = if (aliased()) null else Auth.AUTH
     override fun getPrimaryKey(): UniqueKey<LoginStatesRecord> = LOGIN_STATES_PKEY
+    override fun getChecks(): List<Check<LoginStatesRecord>> = listOf(
+        Internal.createCheck(this, DSL.name("login_states_provider_check"), "((provider = ANY (ARRAY['google'::text, 'apple'::text])))", true)
+    )
     override fun `as`(alias: String): LoginStates = LoginStates(DSL.name(alias), this)
     override fun `as`(alias: Name): LoginStates = LoginStates(alias, this)
     override fun `as`(alias: Table<*>): LoginStates = LoginStates(alias.qualifiedName, this)

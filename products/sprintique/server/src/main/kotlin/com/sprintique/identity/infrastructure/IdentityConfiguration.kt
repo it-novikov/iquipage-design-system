@@ -1,34 +1,74 @@
 package com.sprintique.identity.infrastructure
 
+import com.nimbusds.jwt.JWTClaimsSet
+import com.nimbusds.oauth2.sdk.Scope
+import com.nimbusds.openid.connect.sdk.Prompt
 import com.sprintique.configuration.SprintiqueProperties
-import com.sprintique.identity.application.IdentityProviderPort
-import com.sprintique.identity.application.SignInMethod
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
+import com.sprintique.identity.application.SignInProviders
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Profile
 import java.nio.file.Path
 
-/** The identity provider exists only when fully configured; without it sign-in answers IDENTITY_NOT_CONFIGURED. */
+/** Google and Apple, each only when fully configured; the sign-in screen offers exactly the configured ones. */
 @Configuration(proxyBeanMethods = false)
 @Profile("api")
-@ConditionalOnExpression(IdentityConfiguration.CONFIGURED)
 class IdentityConfiguration {
+    @Bean
+    fun signInProviders(properties: SprintiqueProperties): SignInProviders {
+        val settings = properties.signIn
+        val trust = settings.trustFile.takeIf(String::isNotEmpty)?.let { ProviderTrust.socketFactory(Path.of(it)) }
+        val google = settings.google.takeIf { it.isConfigured }?.let { google ->
+            OidcClient(
+                name = "google",
+                issuer = google.issuer,
+                clientId = google.clientId,
+                clientSecret = { google.clientSecret },
+                scope = Scope("openid", "email", "profile"),
+                prompt = Prompt(Prompt.Type.SELECT_ACCOUNT),
+                trustsEmail = ::googleVouches,
+            )
+        }
+        val apple = settings.apple.takeIf { it.isConfigured }?.let { apple ->
+            val secret = AppleClientSecret(
+                apple.teamId,
+                apple.clientId,
+                apple.keyId,
+                apple.issuer,
+                AppleClientSecret.readKey(Path.of(apple.privateKeyFile)),
+            )
+            OidcClient(
+                name = "apple",
+                issuer = apple.issuer,
+                clientId = apple.clientId,
+                clientSecret = secret::next,
+                scope = Scope("openid", "name", "email"),
+                formPost = true,
+                trustsEmail = ::appleVouches,
+            )
+        }
+        return SignInProviders(listOfNotNull(google, apple).map { OidcIdentityProviderAdapter(it, trust) })
+    }
+
     companion object {
-        const val CONFIGURED =
-            "'\${sprintique.oidc.issuer:}' != '' && '\${sprintique.oidc.client-id:}' != '' && " +
-                "'\${sprintique.oidc.client-secret:}' != ''"
-    }
+        /**
+         * Google's advice: an address is authoritative for account matching when verified and either a Gmail address
+         * or one of a Google Workspace domain (the `hd` claim). Other verified addresses were only verified once.
+         */
+        fun googleVouches(claims: JWTClaimsSet): Boolean {
+            val email = claims.getStringClaim("email") ?: return false
+            return verified(claims) && (email.lowercase().endsWith("@gmail.com") || claims.getStringClaim("hd") != null)
+        }
 
-    @Bean
-    fun identityProvider(
-        properties: SprintiqueProperties,
-    ): IdentityProviderPort {
-        val trustFile = properties.oidc.trustFile
-        val socketFactory = if (trustFile.isEmpty()) null else ProviderTrust.socketFactory(Path.of(trustFile))
-        return OidcIdentityProviderAdapter(properties.oidc, socketFactory)
-    }
+        /** Apple verifies every address it hands out, relay addresses included. */
+        fun appleVouches(claims: JWTClaimsSet): Boolean = verified(claims)
 
-    @Bean
-    fun oidcSignIn() = SignInMethod { "oidc" }
+        /** Apple has sent `email_verified` both as a boolean and as the string "true". */
+        private fun verified(claims: JWTClaimsSet): Boolean =
+            when (val value = claims.getClaim("email_verified")) {
+                is Boolean -> value
+                is String -> value == "true"
+                else -> false
+            }
+    }
 }

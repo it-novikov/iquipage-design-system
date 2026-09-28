@@ -6,6 +6,8 @@ package com.sprintique.database.schema.auth
 
 import com.sprintique.database.schema.DefaultCatalog
 import com.sprintique.database.schema.auth.tables.Credentials
+import com.sprintique.database.schema.auth.tables.EmailChallenges
+import com.sprintique.database.schema.auth.tables.Identities
 import com.sprintique.database.schema.auth.tables.LoginStates
 import com.sprintique.database.schema.auth.tables.Principals
 import com.sprintique.database.schema.auth.tables.ProjectInvitations
@@ -35,6 +37,10 @@ open class Auth : SchemaImpl(DSL.name("auth"), DefaultCatalog.DEFAULT_CATALOG, D
     }
 
     val CREDENTIALS: Credentials get() = Credentials.CREDENTIALS
+
+    val EMAIL_CHALLENGES: EmailChallenges get() = EmailChallenges.EMAIL_CHALLENGES
+
+    val IDENTITIES: Identities get() = Identities.IDENTITIES
 
     val LOGIN_STATES: LoginStates get() = LoginStates.LOGIN_STATES
 
@@ -88,6 +94,8 @@ open class Auth : SchemaImpl(DSL.name("auth"), DefaultCatalog.DEFAULT_CATALOG, D
 
     override fun getTables(): List<Table<*>> = listOf(
         Credentials.CREDENTIALS,
+        EmailChallenges.EMAIL_CHALLENGES,
+        Identities.IDENTITIES,
         LoginStates.LOGIN_STATES,
         Principals.PRINCIPALS,
         ProjectInvitations.PROJECT_INVITATIONS,

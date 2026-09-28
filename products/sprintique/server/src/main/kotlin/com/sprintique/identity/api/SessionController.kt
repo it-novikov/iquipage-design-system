@@ -1,6 +1,8 @@
 package com.sprintique.identity.api
 
+import com.sprintique.identity.application.EmailSignIn
 import com.sprintique.identity.application.SignInMethod
+import com.sprintique.identity.application.SignInProviders
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.context.annotation.Profile
@@ -10,13 +12,20 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @Profile("api")
-class SessionController(private val requests: AuthenticatedRequests, private val methods: List<SignInMethod>) {
-    /** Anonymous: which ways in exist, so the sign-in screen never links to an unconfigured provider. */
+class SessionController(
+    private val requests: AuthenticatedRequests,
+    private val methods: List<SignInMethod>,
+    private val providers: SignInProviders,
+    private val emailSignIn: EmailSignIn,
+) {
+    /** Anonymous: which ways in exist, so the sign-in screen never offers an unconfigured one. */
     @GetMapping("/api/v1/auth/methods")
-    fun methods(): Map<String, Boolean> {
-        val names = methods.map(SignInMethod::name).toSet()
-        return linkedMapOf("oidc" to ("oidc" in names), "devLogin" to ("devLogin" in names))
-    }
+    fun methods(): Map<String, Boolean> = linkedMapOf(
+        "email" to emailSignIn.isAvailable,
+        "google" to ("google" in providers.names),
+        "apple" to ("apple" in providers.names),
+        "devLogin" to methods.any { it.name() == "devLogin" },
+    )
 
     @GetMapping("/api/v1/session")
     fun session(request: HttpServletRequest): Map<String, Any?> = requests.run(request) { tx, actor ->

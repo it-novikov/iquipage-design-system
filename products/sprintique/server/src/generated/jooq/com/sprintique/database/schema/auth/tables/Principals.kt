@@ -56,11 +56,13 @@ import com.sprintique.database.schema.app.tables.Workspaces.WorkspacesPath
 import com.sprintique.database.schema.auth.Auth
 import com.sprintique.database.schema.auth.keys.CREDENTIALS__CREDENTIALS_INITIATOR_ID_FKEY
 import com.sprintique.database.schema.auth.keys.CREDENTIALS__CREDENTIALS_PRINCIPAL_ID_FKEY
+import com.sprintique.database.schema.auth.keys.IDENTITIES__IDENTITIES_PRINCIPAL_ID_FKEY
 import com.sprintique.database.schema.auth.keys.PRINCIPALS_ISSUER_SUBJECT_KEY
 import com.sprintique.database.schema.auth.keys.PRINCIPALS_PKEY
 import com.sprintique.database.schema.auth.keys.PROJECT_INVITATIONS__PROJECT_INVITATIONS_ACCEPTED_BY_FKEY
 import com.sprintique.database.schema.auth.keys.PROJECT_INVITATIONS__PROJECT_INVITATIONS_INVITER_ID_FKEY
 import com.sprintique.database.schema.auth.tables.Credentials.CredentialsPath
+import com.sprintique.database.schema.auth.tables.Identities.IdentitiesPath
 import com.sprintique.database.schema.auth.tables.ProjectInvitations.ProjectInvitationsPath
 import com.sprintique.database.schema.auth.tables.records.PrincipalsRecord
 
@@ -498,6 +500,18 @@ open class Principals(
     val credentialsPrincipalIdFkey: CredentialsPath
         get(): CredentialsPath = credentialsPrincipalIdFkey()
 
+    private lateinit var _identities: IdentitiesPath
+
+    fun identities(): IdentitiesPath {
+        if (!this::_identities.isInitialized)
+            _identities = IdentitiesPath(this, null, IDENTITIES__IDENTITIES_PRINCIPAL_ID_FKEY.inverseKey)
+
+        return _identities;
+    }
+
+    val identities: IdentitiesPath
+        get(): IdentitiesPath = identities()
+
     private lateinit var _projectInvitationsAcceptedByFkey: ProjectInvitationsPath
 
     fun projectInvitationsAcceptedByFkey(): ProjectInvitationsPath {
@@ -525,7 +539,7 @@ open class Principals(
     val projects: ProjectsPath
         get(): ProjectsPath = projectMembers().projects()
     override fun getChecks(): List<Check<PrincipalsRecord>> = listOf(
-        Internal.createCheck(this, DSL.name("principals_check"), "(((kind = 'human'::text) = ((issuer IS NOT NULL) AND (subject IS NOT NULL))))", true),
+        Internal.createCheck(this, DSL.name("principals_agent_has_no_identity"), "(((kind = 'human'::text) OR ((issuer IS NULL) AND (subject IS NULL))))", true),
         Internal.createCheck(this, DSL.name("principals_email_check"), "(((email IS NULL) OR (((length(email) >= 3) AND (length(email) <= 320)) AND (POSITION(('@'::text) IN (email)) > 1))))", true),
         Internal.createCheck(this, DSL.name("principals_kind_check"), "((kind = ANY (ARRAY['human'::text, 'agent'::text])))", true),
         Internal.createCheck(this, DSL.name("principals_profile_name_check"), "(((length(profile_name) >= 1) AND (length(profile_name) <= 100)))", true),

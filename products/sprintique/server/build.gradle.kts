@@ -60,6 +60,7 @@ dependencies {
     implementation(libs.flyway.postgresql)
     implementation(libs.swagger.annotations)
     implementation(libs.nimbus.oidc)
+    implementation(libs.angus.mail)
     implementation(libs.aws.sdk.s3)
     implementation(libs.aws.sdk.url.connection)
     implementation(libs.twelvemonkeys.jpeg)
@@ -73,6 +74,7 @@ dependencies {
     testImplementation(libs.archunit)
     testImplementation(libs.postgresql)
     "integrationTestImplementation"(libs.jooq.codegen)
+    "integrationTestImplementation"(libs.greenmail)
 }
 
 tasks.withType<Test>().configureEach {

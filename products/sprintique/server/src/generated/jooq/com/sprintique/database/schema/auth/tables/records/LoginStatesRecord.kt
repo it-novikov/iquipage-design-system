@@ -31,17 +31,22 @@ open class LoginStatesRecord() : UpdatableRecordImpl<LoginStatesRecord>(LoginSta
         set(value): Unit = set(3, value)
         get(): OffsetDateTime? = get(3) as OffsetDateTime?
 
+    open var provider: String?
+        set(value): Unit = set(4, value)
+        get(): String? = get(4) as String?
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
 
     override fun key(): Record1<String?> = super.key() as Record1<String?>
 
-    constructor(stateHash: String? = null, verifier: String? = null, nonce: String? = null, expiresAt: OffsetDateTime? = null): this() {
+    constructor(stateHash: String? = null, verifier: String? = null, nonce: String? = null, expiresAt: OffsetDateTime? = null, provider: String? = null): this() {
         this.stateHash = stateHash
         this.verifier = verifier
         this.nonce = nonce
         this.expiresAt = expiresAt
+        this.provider = provider
         resetTouchedOnNotNull()
     }
 }

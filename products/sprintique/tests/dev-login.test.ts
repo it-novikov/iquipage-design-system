@@ -10,9 +10,9 @@ test('D01 dev login is absent unless explicitly enabled, and the sign-in screen 
   const plain=await startApp({origin});
   try{
     assert.equal((await plain.inject({method:'POST',url:'/auth/dev-login',headers:{origin},payload:{username:'admin',password:'admin'}})).statusCode,404);
-    assert.deepEqual((await plain.inject({method:'GET',url:'/api/v1/auth/methods'})).json(),{oidc:false,devLogin:false});
+    assert.deepEqual((await plain.inject({method:'GET',url:'/api/v1/auth/methods'})).json(),{email:false,google:false,apple:false,devLogin:false});
   }finally{await plain.close();}
-  assert.deepEqual((await f.app.inject({method:'GET',url:'/api/v1/auth/methods'})).json(),{oidc:false,devLogin:true});
+  assert.deepEqual((await f.app.inject({method:'GET',url:'/api/v1/auth/methods'})).json(),{email:false,google:false,apple:false,devLogin:true});
 });
 test('D02 dev login is refused in production and on a public origin',async()=>{
   // The server refuses to start with such settings; the refusal is in its output.

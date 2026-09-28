@@ -11,7 +11,12 @@ export interface TestApp {url:string;inject(options:InjectOptions|string):Promis
 export interface AppOptions {origin?:string;devLogin?:boolean;web?:boolean|string;metricsToken?:string;storage?:boolean;databaseUrl?:string;
   environment?:string;trustProxy?:string;port?:number;
   /** Further SPRINTIQUE_* settings, for local stands. */
-  settings?:Record<string,string>;oidc?:{issuer:string;clientId:string;clientSecret:string;trustFile?:string}}
+  settings?:Record<string,string>;
+  /** Synthetic sign-in providers, trusted through `providerTrust` (the fake provider's certificate authority). */
+  google?:{issuer:string;clientId:string;clientSecret:string};apple?:{issuer:string;clientId:string;teamId:string;keyId:string;privateKeyFile:string};
+  providerTrust?:string;
+  /** Directory the local mail drop writes sign-in letters into (see support/mailbox.ts). */
+  mailDrop?:string}
 
 export function storageSettings():Record<string,string>{
   const file=process.env['TEST_S3_CONFIG']||'output/infra/storage.json';
@@ -32,8 +37,11 @@ export async function startKotlinApp(options:AppOptions={}):Promise<TestApp>{
     ...(options.trustProxy?{SPRINTIQUE_TRUST_PROXY:options.trustProxy}:{}),
     ...(options.storage?storageSettings():{}),
     ...options.settings,
-    ...(options.oidc?{SPRINTIQUE_OIDC_ISSUER:options.oidc.issuer,SPRINTIQUE_OIDC_CLIENT_ID:options.oidc.clientId,SPRINTIQUE_OIDC_CLIENT_SECRET:options.oidc.clientSecret,
-      ...(options.oidc.trustFile?{SPRINTIQUE_OIDC_TRUST_FILE:options.oidc.trustFile}:{})}:{}),
+    ...(options.google?{SPRINTIQUE_GOOGLE_ISSUER:options.google.issuer,SPRINTIQUE_GOOGLE_CLIENT_ID:options.google.clientId,SPRINTIQUE_GOOGLE_CLIENT_SECRET:options.google.clientSecret}:{}),
+    ...(options.apple?{SPRINTIQUE_APPLE_ISSUER:options.apple.issuer,SPRINTIQUE_APPLE_CLIENT_ID:options.apple.clientId,SPRINTIQUE_APPLE_TEAM_ID:options.apple.teamId,
+      SPRINTIQUE_APPLE_KEY_ID:options.apple.keyId,SPRINTIQUE_APPLE_PRIVATE_KEY_FILE:options.apple.privateKeyFile}:{}),
+    ...(options.providerTrust?{SPRINTIQUE_PROVIDER_TRUST_FILE:options.providerTrust}:{}),
+    ...(options.mailDrop?{SPRINTIQUE_MAIL_DROP:options.mailDrop,SPRINTIQUE_MAIL_FROM:'Sprintique <no-reply@sprintique.test>'}:{}),
   };
   const server=await startServer(env,options.port?{port:options.port}:{});
   return {

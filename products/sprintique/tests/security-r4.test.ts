@@ -199,7 +199,7 @@ test('SEC-07 per-address limits follow the configured proxy hop instead of throt
   // Behind the required TLS proxy every socket peer is the proxy; the client address comes from one trusted hop.
   const proxied=await startApp({origin,trustProxy:'1'});
   try{
-    const login=(client:string)=>proxied.inject({url:'/auth/login',headers:{'x-forwarded-for':client}});
+    const login=(client:string)=>proxied.inject({url:'/auth/login/google',headers:{'x-forwarded-for':client}});
     for(let attempt=0;attempt<20;attempt++)assert.notEqual((await login('203.0.113.10')).statusCode,429);
     assert.equal((await login('203.0.113.10')).statusCode,429,'one client exhausted its own login window');
     assert.notEqual((await login('203.0.113.20')).statusCode,429,'another client behind the same proxy was throttled');
@@ -207,8 +207,8 @@ test('SEC-07 per-address limits follow the configured proxy hop instead of throt
   // Without an explicit trust setting a spoofed header still cannot select a fresh window.
   const direct=await startApp({origin});
   try{
-    for(let attempt=0;attempt<20;attempt++)await direct.inject({url:'/auth/login',headers:{'x-forwarded-for':'198.51.100.'+attempt}});
-    assert.equal((await direct.inject({url:'/auth/login',headers:{'x-forwarded-for':'198.51.100.99'}})).statusCode,429);
+    for(let attempt=0;attempt<20;attempt++)await direct.inject({url:'/auth/login/google',headers:{'x-forwarded-for':'198.51.100.'+attempt}});
+    assert.equal((await direct.inject({url:'/auth/login/google',headers:{'x-forwarded-for':'198.51.100.99'}})).statusCode,429);
   }finally{await direct.close();}
 });
 
@@ -218,10 +218,10 @@ test('SEC-08 abandoned sign-ins are collected and responses carry the transport 
     ?{issuer,authorization_endpoint:issuer+'/authorize',token_endpoint:issuer+'/token',jwks_uri:issuer+'/jwks',response_types_supported:['code'],subject_types_supported:['public'],id_token_signing_alg_values_supported:['RS256'],token_endpoint_auth_methods_supported:['client_secret_post']}
     :{keys:[]};
   const fake=await startFakeOidcProvider(provider);
-  const app=await startApp({origin:secure,oidc:{issuer:fake.issuer,clientId,clientSecret:'synthetic-secret',trustFile:fake.trustFile}});
+  const app=await startApp({origin:secure,google:{issuer:fake.issuer,clientId,clientSecret:'synthetic-secret'},providerTrust:fake.trustFile});
   try{
-    await f.admin.query("INSERT INTO auth.login_states(state_hash,verifier,nonce,expires_at) SELECT 'sec08-'||n,'v','n',clock_timestamp()-interval '1 hour' FROM generate_series(1,50) n");
-    const response=await app.inject({url:'/auth/login'});
+    await f.admin.query("INSERT INTO auth.login_states(state_hash,verifier,nonce,provider,expires_at) SELECT 'sec08-'||n,'v','n','google',clock_timestamp()-interval '1 hour' FROM generate_series(1,50) n");
+    const response=await app.inject({url:'/auth/login/google'});
     assert.equal(response.statusCode,302,response.body);
     const left=(await f.admin.query("SELECT count(*)::int AS n FROM auth.login_states WHERE state_hash LIKE 'sec08-%'")).rows[0].n;
     assert.equal(left,0,'expired login attempts were retained');

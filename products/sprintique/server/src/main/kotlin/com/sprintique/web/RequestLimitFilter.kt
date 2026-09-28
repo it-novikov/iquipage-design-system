@@ -33,7 +33,7 @@ class RequestLimitFilter(private val clientAddresses: ClientAddresses) : OncePer
         }
         if (!admitWindow(
                 clientAddresses.of(request),
-                path.startsWith("/auth/login") || path.startsWith("/auth/dev-login"),
+                LOGINS.any(path::startsWith),
             )
         ) {
             return ProblemWriter.write(
@@ -89,6 +89,9 @@ class RequestLimitFilter(private val clientAddresses: ClientAddresses) : OncePer
         private const val MAX_LOGINS = 20
         private const val MAX_ACTIVE = 64
         private const val MAX_UPLOADS = 8
+
+        /** Entry points that start a sign-in or check a secret: they share the tighter per-address login budget. */
+        private val LOGINS = listOf("/auth/login", "/auth/dev-login", "/auth/email/")
         private val UPLOAD = Regex("^/api/v1/projects/[^/]+/assets/[^/]+/content$")
         private val STREAM = Regex("^/api/v1/projects/[^/]+/events$")
 

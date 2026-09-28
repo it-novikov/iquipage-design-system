@@ -1,8 +1,7 @@
 import {before,after,test} from 'node:test';
 import assert from 'node:assert/strict';
-import {randomUUID,generateKeyPairSync,sign,createHash} from 'node:crypto';
+import {randomUUID} from 'node:crypto';
 import {fixture,startApp} from './fixture.js';
-import {startFakeOidcProvider} from './support/fake-oidc-provider.js';
 import type {Task,Thread} from '../contracts/index.js';
 import {TaskInput} from '../contracts/index.js';
 let f:Awaited<ReturnType<typeof fixture>>;
@@ -11,9 +10,10 @@ const path=(resource:string)=>`/api/v1/projects/${f.first.id}/${resource}`;
 function put(id:string,title:string,revision=0,key=randomUUID(),extra:Record<string,unknown>={}){
   return f.app.inject({method:'PUT',url:path('tasks/'+id),headers:{...f.alice.headers,'idempotency-key':key},payload:{baseRevision:revision,task:{title,...extra}}});
 }
-test('requires real authentication and fails closed without OIDC configuration',async()=>{
+test('requires real authentication and fails closed without a configured sign-in provider',async()=>{
   assert.equal((await f.app.inject({url:path('tasks')})).statusCode,401);
-  assert.equal((await f.app.inject({url:'/auth/login'})).statusCode,503);
+  const unconfigured=await f.app.inject({url:'/auth/login/google'});assert.equal(unconfigured.statusCode,404);assert.equal(unconfigured.json().code,'SIGN_IN_NOT_CONFIGURED');
+  assert.equal((await f.app.inject({url:'/auth/login/keycloak'})).statusCode,404);
   assert.equal((await f.app.inject({url:path('tasks'),headers:{'X-Maps-Client':'reference'}})).statusCode,401);
 });
 test('rejects CSRF, actor spoofing, unknown fields, malformed dates',async()=>{
@@ -113,38 +113,6 @@ test('agent grant is invalidated when the human initiator loses project access',
   await f.admin.query('DELETE FROM app.project_members WHERE project_id=$1 AND principal_id=$2',[f.first.id,f.alice.id]);
   try{assert.equal((await f.app.inject({url:path('tasks'),headers:{authorization:'Bearer '+agent.token}})).statusCode,403);}
   finally{await f.admin.query("INSERT INTO app.project_members(project_id,principal_id,role) VALUES($1,$2,'admin')",[f.first.id,f.alice.id]);}
-});
-test('OIDC authorization code flow validates PKCE, nonce, signature and one-use browser state',async()=>{
-  const clientId='sprintique-test',origin='http://localhost:4311';
-  const {privateKey,publicKey}=generateKeyPairSync('rsa',{modulusLength:2048});
-  const jwk={...publicKey.export({format:'jwk'}),kid:'test-key',alg:'RS256',use:'sig'};
-  let nonce='',challenge='',invalidSignature=false;
-  // A synthetic provider over loopback HTTPS, trusted by the server under test only.
-  const provider=(issuer:string)=>(url:string,body:string)=>{
-    if(url.endsWith('/.well-known/openid-configuration'))return {issuer,authorization_endpoint:issuer+'/authorize',token_endpoint:issuer+'/token',jwks_uri:issuer+'/jwks',response_types_supported:['code'],subject_types_supported:['public'],id_token_signing_alg_values_supported:['RS256'],token_endpoint_auth_methods_supported:['client_secret_post']};
-    if(url.endsWith('/jwks'))return {keys:[jwk]};
-    assert.equal(url,issuer+'/token');const form=new URLSearchParams(body);
-    assert.equal(form.get('grant_type'),'authorization_code');assert.equal(form.get('redirect_uri'),origin+'/auth/callback');
-    assert.equal(createHash('sha256').update(form.get('code_verifier')!).digest('base64url'),challenge);
-    const now=Math.floor(Date.now()/1000),header=Buffer.from(JSON.stringify({alg:'RS256',kid:'test-key'})).toString('base64url');
-    const payload=Buffer.from(JSON.stringify({iss:issuer,sub:'oidc-human',aud:clientId,iat:now,exp:now+60,nonce,name:'OIDC Test'})).toString('base64url');
-    const signature=invalidSignature?'invalid':sign('RSA-SHA256',Buffer.from(header+'.'+payload),privateKey).toString('base64url');
-    return {access_token:'not-used-by-product',token_type:'Bearer',expires_in:60,id_token:header+'.'+payload+'.'+signature};
-  };
-  const fake=await startFakeOidcProvider(provider);
-  const app=await startApp({origin,oidc:{issuer:fake.issuer,clientId,clientSecret:'synthetic-secret',trustFile:fake.trustFile}});
-  try{
-    async function begin(){const response=await app.inject({url:'/auth/login'});assert.equal(response.statusCode,302,response.body);const location=new URL(String(response.headers.location));nonce=location.searchParams.get('nonce')!;challenge=location.searchParams.get('code_challenge')!;return {state:location.searchParams.get('state')!,cookie:String(response.headers['set-cookie']).split(';')[0]!};}
-    const first=await begin();
-    assert.equal((await app.inject({url:'/auth/callback?code=good&state='+first.state,headers:{cookie:'__Host-sprintique-login=wrong'}})).statusCode,400);
-    const callback=await app.inject({url:'/auth/callback?code=good&state='+first.state,headers:{cookie:first.cookie}});assert.equal(callback.statusCode,302,callback.body);
-    const cookies=callback.headers['set-cookie'] as string[];assert.match(cookies[0]!,/HttpOnly; Secure; SameSite=Lax/);
-    const session=await app.inject({url:'/api/v1/session',headers:{cookie:cookies[0]!.split(';')[0]!}});assert.equal(session.statusCode,200,session.body);assert.equal(session.json().principal.name,'OIDC Test');
-    assert.equal((await app.inject({url:'/auth/callback?code=good&state='+first.state,headers:{cookie:first.cookie}})).statusCode,400);
-    const second=await begin();nonce='wrong';assert.equal((await app.inject({url:'/auth/callback?code=good&state='+second.state,headers:{cookie:second.cookie}})).statusCode,401);
-    const third=await begin();invalidSignature=true;assert.equal((await app.inject({url:'/auth/callback?code=good&state='+third.state,headers:{cookie:third.cookie}})).statusCode,401);
-    assert.deepEqual(fake.failures,[]);
-  }finally{await app.close();await fake.close();}
 });
 test('outbox failure rolls back canonical state, number allocation, audit and idempotency',async()=>{
   await f.admin.query(`CREATE FUNCTION public.fail_test_outbox() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF NEW.payload->>'resourceId'='rollback-task' THEN RAISE EXCEPTION 'synthetic delivery persistence failure'; END IF; RETURN NEW; END $$;
