@@ -16,8 +16,7 @@ kept across every way in.
 
 With nothing configured the screen says so and points the administrator to [operations](operations.md#sign-in).
 
-The package still ships `iq-auth-dialog` and the `iquipage` Keycloak theme for other products; Sprintique no longer
-uses an external identity provider's form.
+Sprintique shows no external identity provider's form: every way in starts on this screen.
 
 ## Verification
 

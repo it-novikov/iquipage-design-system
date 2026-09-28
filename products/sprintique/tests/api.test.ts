@@ -13,7 +13,7 @@ function put(id:string,title:string,revision=0,key=randomUUID(),extra:Record<str
 test('requires real authentication and fails closed without a configured sign-in provider',async()=>{
   assert.equal((await f.app.inject({url:path('tasks')})).statusCode,401);
   const unconfigured=await f.app.inject({url:'/auth/login/google'});assert.equal(unconfigured.statusCode,404);assert.equal(unconfigured.json().code,'SIGN_IN_NOT_CONFIGURED');
-  assert.equal((await f.app.inject({url:'/auth/login/keycloak'})).statusCode,404);
+  assert.equal((await f.app.inject({url:'/auth/login/unknown'})).statusCode,404);
   assert.equal((await f.app.inject({url:path('tasks'),headers:{'X-Maps-Client':'reference'}})).statusCode,401);
 });
 test('rejects CSRF, actor spoofing, unknown fields, malformed dates',async()=>{

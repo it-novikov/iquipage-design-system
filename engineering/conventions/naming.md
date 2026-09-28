@@ -189,7 +189,7 @@ fun process(value: String)
 
 - Свойства Spring: префикс `<product>`, ключи kebab-case: `<product>.storage.bucket`.
 - Переменные окружения: `<PRODUCT>_` + `UPPER_SNAKE_CASE`: `SPRINTIQUE_STORAGE_BUCKET`.
-- Секреты называются по назначению: `SPRINTIQUE_OIDC_CLIENT_SECRET`, не `SECRET`.
+- Секреты называются по назначению: `SPRINTIQUE_GOOGLE_CLIENT_SECRET`, не `SECRET`.
 - Явное имя Spring bean задаётся только при конфликте.
 
 ## 14. Логи, метрики, трассировки

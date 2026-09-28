@@ -17,7 +17,7 @@ const random=()=>randomBytes(32).toString('hex');
 await mkdir(root,{recursive:true,mode:0o700});
 let config;try{config=await readStand();}catch(error){if(!/No local stand settings/.test(error.message))throw error;}
 config??={origin:'http://localhost:4312',database:{port:54329,admin:random(),migrator:random(),runtime:random(),worker:random()},mail:MAIL_DEFAULTS};
-// stand.json supersedes identity.json and keeps the same generated values on every run.
+// stand.json keeps the same generated values on every run.
 await writeFile(root+'/stand.json',JSON.stringify({...config,images}),{mode:0o600,flag:'w'});
 if(!docker('network','ls','--filter','name=^'+network+'$','--format','{{.Name}}'))docker('network','create','--label','sprintique.owner=vnext-qa',network);
 else if(docker('network','inspect','--format','{{index .Labels "sprintique.owner"}}',network)!=='vnext-qa')throw Error('Unrelated network');
