@@ -8,7 +8,7 @@ owner: it-novikov
 branch: feature/kotlin-backend
 base: feat/finish-platform
 created: 2026-09-27
-updated: 2026-09-28T00:25:56Z
+updated: 2026-09-28T00:35:13Z
 links:
 ---
 
@@ -58,35 +58,27 @@ links:
 
 ## Передача
 
-- **Состояние:** S1–S13 готовы; S14 выполнен, кроме проверки на локальном стенде OIDC (ждёт ответа владельца).
+- **Состояние:** S1–S13 готовы; S14 ждёт Q1 (стенд OIDC); приём старой базы готов; S15 ждёт ревьюеров
 
-  Инвентаризация тестов — в docs/test-parity.md.
-- **Сейчас:** Черновой PR и независимое ревью (S15–S16)
-- **Дальше:** После ответа: check-local-oidc, check-container, учения восстановления на Kotlin
+- **Сейчас:** Черновой PR на feat/finish-platform
+- **Дальше:** После ответа на Q1: check-local-oidc, check-container, учения восстановления; затем bridge review двумя ревьюерами
 
-  Затем `./gradlew check`.
 - **Незакоммичено:** нет
-- **Рабочая копия:** 1 файл(ов): .impeccable/ (2 files changed, 6 insertions(+), 3 deletions(-)) · HEAD 9e93e6a
+- **Рабочая копия:** 1 файл(ов): .impeccable/ (2 files changed, 7 insertions(+), 3 deletions(-)) · HEAD 49b319a
 - **Ловушки:**
   - pg_ctl и тесты падают без `LC_ALL=C LANG=C`.
-  - Docker-контекст по умолчанию (colima default) сломан. Продукт запрещает трогать VM по умолчанию, поэтому тесты Kotlin берут базу из `scripts/test.mjs`.
+  - Docker — только контекст colima-sprintique-vnext-qa; VM по умолчанию не трогать.
   - Кластеры PostgreSQL для тестов — только `sprintique-test-*` (есть guard). Homebrew postgresql@16 и кластер Codex на порту 4391 не трогать.
-  - Фронтенд импортирует zod-контракты из `contracts/`: их не удалять.
-  - Spring Boot 4: автоконфигурации лежат в пакетах `org.springframework.boot.<модуль>.autoconfigure`.
   - Имена переменных окружения задаются явно в application.yaml: relaxed binding даёт `SPRINTIQUE_DATABASE_RUNTIMEROLE`.
   - Старый драйвер `pg` отдаёт int8 и numeric строками, а timestamptz — Date. Row повторяет это, иначе ответы разойдутся.
   - ktlint: профиль intellij_idea; ktlint_official ломает цепочки и when-ветки
   - pg_dump 18 добавляет \restrict со случайным ключом — сравнение схем его вырезает
   - java_home -v 25 без JDK 25 молча отдаёт другую версию: JDK проверяется по файлу release
-  - Flyway нужно ≥2 соединения в пуле
-  - Regex.matches в Kotlin требует совпадения всей строки; для суффикса — containsMatchIn
-  - PlanningStates.load уже общий с задачами: не дублировать загрузку состояния
+  - Flyway с колбэком afterMigrate нужно 3 соединения в пуле
   - Часовой пояс проекта может быть скрыт политикой строк от агента: timezone nullable
   - Скрипт переноса строк не должен трогать SQL в тройных кавычках: проверять SQL после любой массовой правки
-  - Скрипты стенда (local-app, test --preview) и Dockerfile ещё запускают TS-бэкенд
-  - jobs.test.ts и media-locks.test.ts импортируют TS-код очереди и медиа: при удалении backend/ перенести в Kotlin или удалить с заменой
   - Стенд dev:local из этой копии уже работает на 4311 (старый TS-процесс) — не останавливать без владельца; свой стенд запускать с PREVIEW_PORT
-- **Проверка:** npm test
+- **Проверка:** SPRINTIQUE_SKIP_SERVER_BUILD=1 node scripts/test.mjs (после ./gradlew check localBootJar)
 
 ## План
 
@@ -240,15 +232,16 @@ links:
 - **Покрывает:** A1, A2, A5
 - **Итог:** npm test против Kotlin: 180 тестов и 16 интеграционных, без пропусков; стенд dev:local проверен в браузере (доска, планирование с применением превью, карты). TS-бэкенд удалён, образ собирает Jib. Не проверено: check-local-oidc, check-container и учения восстановления — нужна конфигурация стенда OIDC (вопрос владельцу).
 
-### S15. Ревью 1 и исправления [todo]
+### S15. Ревью 1 и исправления [blocked]
 - **Что:** Два параллельных ревью: безопасность и данные; корректность и простота.
 - **Как:** `bridge review`, ревьюеры с чистым контекстом.
 - **Зачем:** Процесс high.
 - **Приёмка:**
   - [ ] P0/P1 закрыты, P2 решены
 - **Покрывает:** A6
+- **Итог:** Самопроверка сделана. Независимые ревьюеры с чистым контекстом не запускались: агентов запускает владелец (bridge review / bridge run).
 
-### S16. Ревью 2 и PR [todo]
+### S16. Ревью 2 и PR [active]
 - **Что:** Повторное ревью исправлений, release gate, PR.
 - **Как:** `bridge review --since …` другим ревьюером; фокус на расхождениях кода, базы, OpenAPI и документов.
 - **Зачем:** Процесс high.
