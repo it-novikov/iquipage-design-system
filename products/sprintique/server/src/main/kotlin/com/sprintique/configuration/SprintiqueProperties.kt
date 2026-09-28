@@ -58,6 +58,8 @@ data class StorageProperties(
     val bucket: String = "",
     val accessKeyId: String = "",
     val secretAccessKey: String = "",
+    /** Keys under this prefix (`restore-drill/…/`): a verification can read a copy without touching live objects. */
+    val prefix: String = "",
 ) {
     val isConfigured: Boolean get() = endpoint.isNotEmpty()
 }

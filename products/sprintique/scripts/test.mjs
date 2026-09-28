@@ -47,36 +47,27 @@ try{
   }finally{await admin.end();}
   checkpoint();
   const settingsPreview=process.argv.includes('--settings-preview'),preview=settingsPreview||process.argv.includes('--preview');
-  // Kotlin backend: build the local artifact, prove the Flyway ledger equals migrate.ts, apply it, run the
+  // The server: check the published contract export, build the local artifact, apply the migration ledger, run the
   // Kotlin integration tests against this same isolated cluster. No Docker is involved.
-  const kotlin=process.env.SPRINTIQUE_BACKEND==='kotlin';
-  if(kotlin){
-    // The published contract of the Kotlin server is exported from the Zod contracts; a stale export fails here.
-    const exported=spawnSync(process.execPath,['--import','tsx','scripts/export-contracts.ts','--check'],{stdio:'inherit'});
-    if(exported.status!==0)throw Error('Public contract schemas are out of date');
-    const server=await import('./kotlin-server.mjs');
-    server.buildServer();checkpoint();
-    if(!preview&&!process.argv.includes('--skip-ledger-check')){
-      const {compareMigrations}=await import('./compare-migrations.mjs');
-      const statements=await compareMigrations({bin,url:(user,db)=>`postgresql://${user}@localhost/${db}?host=${encodeURIComponent(socket)}`,roles:{migrator:'sprintique_migrator',runtime:'sprintique_app',worker:'sprintique_worker'}});
-      console.log(`Flyway ledger matches migrate.ts: ${statements} schema statements.`);checkpoint();
-    }
-    server.migrate({migrationUrl:url('sprintique_migrator'),runtimeRole:'sprintique_app',workerRole:'sprintique_worker'});checkpoint();
-    // --jooq regenerates src/generated/jooq from this freshly migrated database and stops.
-    if(process.argv.includes('--jooq')){
-      server.gradle(['generateJooq'],{SPRINTIQUE_TEST_ADMIN_DATABASE_URL:url('postgres')});
-      process.exitCode=0;
-    }else if(!preview&&!process.argv.includes('--skip-integration')){
-      server.integrationTests({SPRINTIQUE_TEST_ADMIN_DATABASE_URL:url('postgres'),SPRINTIQUE_TEST_MIGRATION_DATABASE_URL:url('sprintique_migrator'),
-        SPRINTIQUE_TEST_DATABASE_URL:url('sprintique_app'),SPRINTIQUE_TEST_WORKER_DATABASE_URL:url('sprintique_worker'),
-        SPRINTIQUE_TEST_RUNTIME_ROLE:'sprintique_app',SPRINTIQUE_TEST_WORKER_ROLE:'sprintique_worker',
-        ...(s3Config()?{SPRINTIQUE_TEST_S3_CONFIG:s3Config()}:{})});
-      checkpoint();
-    }
+  const exported=spawnSync(process.execPath,['--import','tsx','scripts/export-contracts.ts','--check'],{stdio:'inherit'});
+  if(exported.status!==0)throw Error('Public contract schemas are out of date');
+  const server=await import('./kotlin-server.mjs');
+  server.buildServer();checkpoint();
+  server.migrate({migrationUrl:url('sprintique_migrator'),runtimeRole:'sprintique_app',workerRole:'sprintique_worker'});checkpoint();
+  // --jooq regenerates src/generated/jooq from this freshly migrated database and stops.
+  if(process.argv.includes('--jooq')){
+    server.gradle(['generateJooq'],{SPRINTIQUE_TEST_ADMIN_DATABASE_URL:url('postgres')});
+    process.exitCode=0;
+  }else if(!preview&&!process.argv.includes('--skip-integration')){
+    server.integrationTests({SPRINTIQUE_TEST_ADMIN_DATABASE_URL:url('postgres'),SPRINTIQUE_TEST_MIGRATION_DATABASE_URL:url('sprintique_migrator'),
+      SPRINTIQUE_TEST_DATABASE_URL:url('sprintique_app'),SPRINTIQUE_TEST_WORKER_DATABASE_URL:url('sprintique_worker'),
+      SPRINTIQUE_TEST_RUNTIME_ROLE:'sprintique_app',SPRINTIQUE_TEST_WORKER_ROLE:'sprintique_worker',
+      ...(s3Config()?{SPRINTIQUE_TEST_S3_CONFIG:s3Config()}:{})});
+    checkpoint();
   }
   // --kotlin-only stops after the Kotlin checks above, without the Node suites.
   if(process.argv.includes('--kotlin-only')||process.argv.includes('--jooq')){process.exitCode??=0;}else{
-  // --only=a.test.ts,b.test.ts runs a subset while the Kotlin backend grows.
+  // --only=a.test.ts,b.test.ts runs a subset.
   const only=process.argv.find(argument=>argument.startsWith('--only='))?.slice(7).split(',');
   const tests=(await readdir('tests')).filter(name=>/\.test\.(ts|mjs)$/.test(name)&&(!only||only.includes(name))).sort().map(name=>'tests/'+name);
   checkpoint();

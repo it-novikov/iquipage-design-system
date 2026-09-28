@@ -15,9 +15,9 @@ function isJdk25(home) {
   return Boolean(release) && /JAVA_VERSION="25[."]/.test(readFileSync(release, 'utf8'));
 }
 
-/** JDK 25: SPRINTIQUE_JAVA_HOME, then Homebrew and common Linux paths, then the macOS registry. */
+/** JDK 25: SPRINTIQUE_JAVA_HOME, JAVA_HOME, then Homebrew and common Linux paths, then the macOS registry. */
 export function javaHome() {
-  const candidates = [process.env.SPRINTIQUE_JAVA_HOME, '/opt/homebrew/opt/openjdk@25', '/usr/lib/jvm/temurin-25-jdk', '/usr/lib/jvm/java-25-openjdk'];
+  const candidates = [process.env.SPRINTIQUE_JAVA_HOME, process.env.JAVA_HOME, '/opt/homebrew/opt/openjdk@25', '/usr/lib/jvm/temurin-25-jdk', '/usr/lib/jvm/java-25-openjdk'];
   // java_home falls back to another version when 25 is absent, so its answer is verified like any other.
   const registry = spawnSync('/usr/libexec/java_home', ['-v', '25'], {encoding: 'utf8'});
   if (registry.status === 0) candidates.push(registry.stdout.trim());
@@ -35,10 +35,13 @@ export function gradle(args, env = {}) {
   if (run.status !== 0) throw Error(`gradle ${args.join(' ')} failed`);
 }
 
-/** Builds the local artifact unless SPRINTIQUE_SKIP_SERVER_BUILD asks to reuse an existing one. */
+/**
+ * Checks the server (style, static analysis, unit tests, the production artifact) and builds the local artifact,
+ * unless SPRINTIQUE_SKIP_SERVER_BUILD asks to reuse an existing one.
+ */
 export function buildServer() {
   if (process.env.SPRINTIQUE_SKIP_SERVER_BUILD === '1' && existsSync(LOCAL_JAR)) return;
-  gradle(['localBootJar']);
+  gradle(['check', 'localBootJar']);
 }
 
 /** Applies the migration ledger with the owner's credentials; returns only after the command exits. */

@@ -1,12 +1,10 @@
 import {before,after,test} from 'node:test';
 import assert from 'node:assert/strict';
 import {randomUUID,generateKeyPairSync,sign,createHash} from 'node:crypto';
-import {fixture,kotlin,startApp} from './fixture.js';
+import {fixture,startApp} from './fixture.js';
 import {startFakeOidcProvider} from './support/fake-oidc-provider.js';
 import type {Task,Thread} from '../contracts/index.js';
 import {TaskInput} from '../contracts/index.js';
-import {Database} from '../backend/infrastructure/database.js';
-import {createApp} from '../backend/http/app.js';
 let f:Awaited<ReturnType<typeof fixture>>;
 before(async()=>{f=await fixture();});after(async()=>{await f?.close();});
 const path=(resource:string)=>`/api/v1/projects/${f.first.id}/${resource}`;
@@ -91,8 +89,7 @@ test('records survive a new application and database-pool instance; no memory fa
   const app=await startApp();
   try{assert.equal((await app.inject({url:path('tasks/task-basic'),headers:f.alice.headers})).json<Task>().displayId,'SPR-1');}finally{await app.close();}
   // The owner role bypasses row security: the API refuses to run with it.
-  if(kotlin)await assert.rejects(()=>startApp({databaseUrl:process.env['MIGRATION_DATABASE_URL']!}));
-  else{const owner=new Database(process.env['MIGRATION_DATABASE_URL']!);try{await assert.rejects(()=>owner.checkRuntimeRole());}finally{await owner.close();}}
+  await assert.rejects(()=>startApp({databaseUrl:process.env['MIGRATION_DATABASE_URL']!}));
 });
 test('readiness checks schema access with the restricted runtime role',async()=>{
   const response=await f.app.inject({url:'/ready'});assert.equal(response.statusCode,200,response.body);
@@ -122,7 +119,7 @@ test('OIDC authorization code flow validates PKCE, nonce, signature and one-use 
   const {privateKey,publicKey}=generateKeyPairSync('rsa',{modulusLength:2048});
   const jwk={...publicKey.export({format:'jwk'}),kid:'test-key',alg:'RS256',use:'sig'};
   let nonce='',challenge='',invalidSignature=false;
-  // One synthetic provider for both backends: an in-process transport for TypeScript, loopback HTTPS for Kotlin.
+  // A synthetic provider over loopback HTTPS, trusted by the server under test only.
   const provider=(issuer:string)=>(url:string,body:string)=>{
     if(url.endsWith('/.well-known/openid-configuration'))return {issuer,authorization_endpoint:issuer+'/authorize',token_endpoint:issuer+'/token',jwks_uri:issuer+'/jwks',response_types_supported:['code'],subject_types_supported:['public'],id_token_signing_alg_values_supported:['RS256'],token_endpoint_auth_methods_supported:['client_secret_post']};
     if(url.endsWith('/jwks'))return {keys:[jwk]};
@@ -134,10 +131,8 @@ test('OIDC authorization code flow validates PKCE, nonce, signature and one-use 
     const signature=invalidSignature?'invalid':sign('RSA-SHA256',Buffer.from(header+'.'+payload),privateKey).toString('base64url');
     return {access_token:'not-used-by-product',token_type:'Bearer',expires_in:60,id_token:header+'.'+payload+'.'+signature};
   };
-  const fake=kotlin?await startFakeOidcProvider(provider):null;
-  const issuer=fake?.issuer??'https://identity.test',oidc={issuer,clientId,clientSecret:'synthetic-secret'};
-  const app=fake?await startApp({origin,oidc:{...oidc,trustFile:fake.trustFile}})
-    :await createApp({db:f.db,origin,oidc:{...oidc,origin,transport:async(input,options)=>Response.json(provider(issuer)(String(input),String(options?.body)))}});
+  const fake=await startFakeOidcProvider(provider);
+  const app=await startApp({origin,oidc:{issuer:fake.issuer,clientId,clientSecret:'synthetic-secret',trustFile:fake.trustFile}});
   try{
     async function begin(){const response=await app.inject({url:'/auth/login'});assert.equal(response.statusCode,302,response.body);const location=new URL(String(response.headers.location));nonce=location.searchParams.get('nonce')!;challenge=location.searchParams.get('code_challenge')!;return {state:location.searchParams.get('state')!,cookie:String(response.headers['set-cookie']).split(';')[0]!};}
     const first=await begin();
@@ -148,8 +143,8 @@ test('OIDC authorization code flow validates PKCE, nonce, signature and one-use 
     assert.equal((await app.inject({url:'/auth/callback?code=good&state='+first.state,headers:{cookie:first.cookie}})).statusCode,400);
     const second=await begin();nonce='wrong';assert.equal((await app.inject({url:'/auth/callback?code=good&state='+second.state,headers:{cookie:second.cookie}})).statusCode,401);
     const third=await begin();invalidSignature=true;assert.equal((await app.inject({url:'/auth/callback?code=good&state='+third.state,headers:{cookie:third.cookie}})).statusCode,401);
-    assert.deepEqual(fake?.failures??[],[]);
-  }finally{await app.close();await fake?.close();}
+    assert.deepEqual(fake.failures,[]);
+  }finally{await app.close();await fake.close();}
 });
 test('outbox failure rolls back canonical state, number allocation, audit and idempotency',async()=>{
   await f.admin.query(`CREATE FUNCTION public.fail_test_outbox() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF NEW.payload->>'resourceId'='rollback-task' THEN RAISE EXCEPTION 'synthetic delivery persistence failure'; END IF; RETURN NEW; END $$;

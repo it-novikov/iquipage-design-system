@@ -19,7 +19,7 @@ const extra={RetryJob,EventHeadResponse,
   TaskPosition:z.strictObject({baseRevision:core.Revision,status:core.TaskInput.shape.status,rank:core.TaskInput.shape.rank}),
   ViewReleaseQuery:z.strictObject({groupId:core.Id,cursor:z.string().max(3000).optional()})};
 const sources={...core,...planning,...planningResponseSchemas,...view,...workspace,...membership,...mapSchemas,...mediaSchemas,...agentSchemas,...extra};
-const schemas=Object.fromEntries(Object.entries(sources).sort(([a],[b])=>a.localeCompare(b))
+const schemas:Record<string,unknown>=Object.fromEntries(Object.entries(sources).sort(([a],[b])=>a.localeCompare(b))
   .flatMap(([name,schema])=>schema instanceof z.ZodType?[[name,z.toJSONSchema(schema)]]:[]));
 schemas['Problem']={type:'object',required:['code','message','requestId'],properties:{code:{type:'string'},message:{type:'string'},requestId:{type:'string'}}};
 const text=JSON.stringify({planningPolicy:planning.PLANNING_POLICY,schemas},null,2)+'\n';

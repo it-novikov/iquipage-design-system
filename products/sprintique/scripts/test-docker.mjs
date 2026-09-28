@@ -25,6 +25,10 @@ try{
   if(!admin)throw Error('Ephemeral PostgreSQL not ready');
   try{for(const role of ['sprintique_migrator','sprintique_app','sprintique_worker'])await admin.query(`CREATE ROLE ${role} LOGIN NOSUPERUSER NOBYPASSRLS`);
     await admin.query('CREATE DATABASE sprintique OWNER sprintique_migrator');}finally{await admin.end();}
+  // The server under test: the local artifact, migrated with the owner's role, as in the default runner.
+  const server=await import('./kotlin-server.mjs');
+  server.buildServer();
+  server.migrate({migrationUrl:url('sprintique_migrator'),runtimeRole:'sprintique_app',workerRole:'sprintique_worker'});
   const tests=(await readdir('tests')).filter(name=>/\.test\.(ts|mjs)$/.test(name)).sort().map(name=>'tests/'+name);
   const child=spawn(process.execPath,['--import','tsx','--test','--test-concurrency=1',...tests],{stdio:'inherit',env:{...process.env,
     TEST_FIXTURE_DIR:dir,TEST_ADMIN_DATABASE_URL:url('postgres'),MIGRATION_DATABASE_URL:url('sprintique_migrator'),DATABASE_RUNTIME_ROLE:'sprintique_app',DATABASE_WORKER_ROLE:'sprintique_worker',DATABASE_URL:url('sprintique_app'),WORKER_DATABASE_URL:url('sprintique_worker')}});

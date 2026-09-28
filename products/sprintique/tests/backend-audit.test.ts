@@ -1,16 +1,13 @@
 import {after,before,test} from 'node:test';
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
-import {performance} from 'node:perf_hooks';
-import {fixture,kotlin} from './fixture.js';
+import {fixture} from './fixture.js';
 import {TaskInput} from '../contracts/index.js';
 import type {Task} from '../contracts/index.js';
-import {pageThreads} from '../backend/application/discussions.js';
-import {rows as planningRows} from '../backend/application/planning-view.js';
-import {MAX_TASK_DEPTH,validateTaskHierarchy} from '../backend/domain/task-invariants.js';
-import {ViewRowsQuery} from '../contracts/planning-view.js';
-import type {Actor,Transaction} from '../backend/infrastructure/database.js';
-import type {TaskState} from '../backend/domain/planning.js';
+import type {ThreadPage} from '../contracts/index.js';
+
+/** Root depth is zero; the server refuses anything deeper. */
+const MAX_TASK_DEPTH=100;
 
 let f:Awaited<ReturnType<typeof fixture>>;
 before(async()=>{f=await fixture({prefix:'R4B'});});
@@ -83,11 +80,7 @@ test('B02 hierarchy write boundary includes moved descendants and preserves read
   const page=await request('POST','planning/view/rows',{groupId:'backlog',revision:group.revision,query:'depth-'});
   assert.equal(page.statusCode,200,page.body);assert.equal(page.json().rows.length,MAX_TASK_DEPTH+1);
   assert.equal(page.json().rows.at(-1).depth,MAX_TASK_DEPTH);
-  // The same rules of the Kotlin domain are TaskRulesTest.
-  if(!kotlin){
-    assert.throws(()=>validateTaskHierarchy([{id:'a',parentId:'b'},{id:'b',parentId:'a'}]),{code:'TASK_CYCLE'});
-    assert.throws(()=>validateTaskHierarchy([{id:'a',parentId:'missing'}]),{code:'TASK_PARENT'});
-  }
+  // The hierarchy rules themselves (cycle, missing parent) are Kotlin TaskRulesTest.
 });
 
 test('B04 thread pages have constant query count, bounded summaries, stable ordering and revision cursors',async()=>{
@@ -99,16 +92,9 @@ test('B04 thread pages have constant query count, bounded summaries, stable orde
     FROM generate_series(1,1000) n`,[f.first.id]);
   await f.admin.query(`INSERT INTO app.messages(project_id,id,thread_id,body,author_id)
     SELECT $1,'catalogue-message-'||n,'catalogue-'||lpad(n::text,4,'0'),repeat('x',200),$2 FROM generate_series(1,1000) n`,[f.first.id,f.alice.id]);
-  // The statement count is observed in-process for TypeScript; for Kotlin it is DiscussionPageIntegrationTest.
-  let queryCount=0;
-  const first=kotlin?(await request('GET','tasks/thread-catalogue/threads?limit=50')).json<Awaited<ReturnType<typeof pageThreads>>>():await f.db.authenticated({token:f.alice.token,kind:'session'},async (tx,actor)=>{
-    const measured=new Proxy(tx,{get(target,property,receiver){
-      if(property==='query')return (...args:unknown[])=>{queryCount++;return Reflect.apply(target.query,target,args);};
-      return Reflect.get(target,property,receiver);
-    }});
-    return pageThreads(measured,actor,f.first.id,'thread-catalogue',null,50);
-  });
-  if(!kotlin)assert.equal(queryCount,2);assert.equal(first.items.length,50);assert.equal(first.total,1000);assert.equal(first.unresolved,333);
+  // That a page costs a constant number of statements is Kotlin DiscussionPageIntegrationTest.
+  const first=(await request('GET','tasks/thread-catalogue/threads?limit=50')).json<ThreadPage>();
+  assert.equal(first.items.length,50);assert.equal(first.total,1000);assert.equal(first.unresolved,333);
   assert.ok(first.items.every(item=>item.messageCount===1&&item.messages[0]!.body.length===160));
   assert.ok(Buffer.byteLength(JSON.stringify(first))<50*1024);
   const expected=(await f.admin.query(`SELECT id FROM app.threads WHERE project_id=$1 AND task_id='thread-catalogue'
@@ -127,31 +113,4 @@ test('B04 thread pages have constant query count, bounded summaries, stable orde
   assert.deepEqual((await request('GET','tasks/outside-root/threads')).json(),{items:[],total:0,unresolved:0,unread:0,nextCursor:null});
 });
 
-test('B05 10000-row group projection does not rescan the group for each DTO',async t=>{
-  const count=10000;
-  const tasks:TaskState[]=Array.from({length:count},(_,i)=>({...TaskInput.parse({title:'Task '+i,rank:i}),id:'cpu-'+i,displayId:'CPU-'+(i+1),revision:1,
-    preparation:'draft',result:'open',admitted:false,assignmentMode:'none',plannedStart:null,plannedEnd:null,createdAt:'2026-01-01T00:00:00.000Z',statusEnteredAt:'2026-01-01T00:00:00.000Z'}));
-  const actor:Actor={id:'synthetic',kind:'human',credentialId:'synthetic',initiatorId:'synthetic',capabilities:[],name:'Synthetic',csrf:null,projectId:null};
-  const tx={async query(sql:string){
-    let data:unknown[]=[];
-    if(sql.includes('p.workspace_id AS'))data=[{workspaceId:'synthetic',role:'admin'}];
-    else if(sql.includes('planning_revision::float8 AS revision'))data=[{revision:1,timezone:'UTC'}];
-    else if(sql.includes('auth.credentials'))data=[{valid:1}];
-    else if(sql.includes('FROM app.tasks t JOIN'))data=tasks;
-    else if(sql.includes('planning_defaults||'))data=[{value:{format:'flexible',days:14,timezone:'UTC'}}];
-    else if(sql.includes('next_task_number'))data=[{projectId:'synthetic',key:'CPU',number:count+1,createdAt:'2026-01-01T00:00:00.000Z'}];
-    return {rows:data,rowCount:data.length};
-  }} as unknown as Transaction;
-  // A deterministic work counter catches the previous N member.filter calls without
-  // setting a hardware-dependent SLA. This test runs serially and restores in finally.
-  const original=Array.prototype.filter;let fullScans=0;
-  Array.prototype.filter=function(...args:Parameters<typeof original>){if(this.length===count)fullScans++;return Reflect.apply(original,this,args);};
-  const started=performance.now();
-  try{
-    const first=await planningRows(tx,actor,'synthetic',ViewRowsQuery.parse({groupId:'backlog',revision:'1'}));
-    assert.equal(first.rows.length,200);assert.equal(first.rows[0]!.key,'CPU-1');assert.equal(first.rows.at(-1)!.key,'CPU-200');
-    assert.ok(first.rows.every(row=>row.childrenCount===0));assert.ok(first.nextCursor);
-    assert.ok(fullScans<20,`Expected a constant number of whole-group scans, got ${fullScans}`);
-  }finally{Array.prototype.filter=original;}
-  t.diagnostic(JSON.stringify({profile:'CPU-only-not-SLA',tasks:count,pageSize:200,fullGroupFilterCalls:fullScans,elapsedMs:Math.round(performance.now()-started)}));
-});
+// B05 (a 10 000-task group renders a page without rescanning the group per row) is Kotlin PlanningRowsIntegrationTest.

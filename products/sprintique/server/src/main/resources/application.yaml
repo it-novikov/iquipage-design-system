@@ -34,6 +34,8 @@ sprintique:
   trust-proxy: ${SPRINTIQUE_TRUST_PROXY:}
   metrics-token: ${SPRINTIQUE_METRICS_TOKEN:}
   dev-login: ${SPRINTIQUE_DEV_LOGIN:false}
+  # Local stand only: synthetic sessions of the settings preview (role:token,...).
+  preview-sessions: ${SPRINTIQUE_PREVIEW_SESSIONS:}
   web-root: ${SPRINTIQUE_WEB_ROOT:}
   database:
     url: ${SPRINTIQUE_DATABASE_URL:}
@@ -52,4 +54,5 @@ sprintique:
     bucket: ${SPRINTIQUE_STORAGE_BUCKET:}
     access-key-id: ${SPRINTIQUE_STORAGE_ACCESS_KEY_ID:}
     secret-access-key: ${SPRINTIQUE_STORAGE_SECRET_ACCESS_KEY:}
+    prefix: ${SPRINTIQUE_STORAGE_PREFIX:}
 

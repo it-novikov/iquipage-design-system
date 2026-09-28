@@ -1,15 +1,11 @@
 import {before,after,test} from 'node:test';
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
-import {fixture,kotlin,startApp} from './fixture.js';
+import {fixture,startApp} from './fixture.js';
 import {TaskInput} from '../contracts/index.js';
 import type {Task} from '../contracts/index.js';
 import type {PlanningCommand,Preview,Receipt,PlanningRow,Release,ReleaseData} from '../contracts/planning.js';
-import {Database} from '../backend/infrastructure/database.js';
-import {createApp} from '../backend/http/app.js';
 import {PreviewResponse,ReceiptResponse,PlanningPageResponse,ReleaseResponse} from '../contracts/planning-responses.js';
-import {recordEvent} from '../backend/application/commands.js';
-import {validateTemporal} from '../backend/domain/planning.js';
 import {SprintiqueClient} from '../client/api.js';
 import {PlanningClient} from '../client/planning.js';
 import {ReleasePageResponse,EffectsPageResponse,ConstraintPageResponse,RoadmapPageResponse,HistoryPageResponse,ApprovalResponse,PlanningCapabilitiesResponse} from '../contracts/planning-responses.js';
@@ -268,7 +264,7 @@ test('P12 durable event pages reconnect after a committed change and enforce pro
 });
 test('P12 SSE transmits changes, then stops and requires cache eviction after credential revocation',async()=>{
   const app=await startApp();
-  const address=kotlin?app.url:await app.listen({port:0,host:'127.0.0.1'}),controller=new AbortController();
+  const address=app.url,controller=new AbortController();
   try{
     let cursor:string|undefined;for(;;){const p=(await request('GET','events'+(cursor?'?cursor='+cursor:''))).json();cursor=p.cursor;if(!p.hasMore)break;}
     const response=await fetch(address+path('events?stream=true&cursor='+cursor),{headers:f.alice.headers,signal:controller.signal});assert.equal(response.status,200);
@@ -287,8 +283,14 @@ test('P12 event cursor cannot skip a transaction that commits late',async()=>{
   let beforeCursor:string|undefined;for(;;){const p=(await request('GET','events'+(beforeCursor?'?cursor='+beforeCursor:''))).json();beforeCursor=p.cursor;if(!p.hasMore)break;}
   let entered!:()=>void,release!:()=>void;
   const ready=new Promise<void>(resolve=>{entered=resolve;}),barrier=new Promise<void>(resolve=>{release=resolve;});
+  // An event written in a transaction that commits after a later one: audit record and outbox row, as the server writes them.
   const first=f.db.authenticated({token:f.alice.token,kind:'session'},async(tx,actor)=>{
-    await recordEvent(tx,actor,f.first.id,'task.test','late-event',1);entered();await barrier;
+    const id=randomUUID();
+    await tx.query('INSERT INTO app.audit_events(id,project_id,actor_id,initiator_id,action,resource_id,revision) VALUES($1,$2,$3,$4,$5,$6,$7)',
+      [id,f.first.id,actor.id,actor.initiatorId,'task.test','late-event',1]);
+    await tx.query('INSERT INTO app.outbox(id,project_id,topic,payload) VALUES($1,$2,$3,$4)',
+      [id,f.first.id,'task.test',JSON.stringify({id,projectId:f.first.id,resourceId:'late-event',revision:1})]);
+    entered();await barrier;
   });
   await ready;
   const second=request('PUT','tasks/after-late-event',{baseRevision:0,task:{title:'After late commit'}});
@@ -306,12 +308,4 @@ test('P13 static response schemas are exposed and timezone input is validated',a
   const project=await f.app.inject({method:'POST',url:'/api/v1/projects',headers:f.alice.headers,payload:{workspaceId:created.json().id,name:'Timezone',slug:'timezone-r2',key:'TZ'}});assert.equal(project.statusCode,200,project.body);
   const caps=await f.app.inject({url:`/api/v1/projects/${project.json().id}/planning/capabilities`,headers:f.alice.headers});assert.equal(caps.json().timezone,'Europe/Moscow');
 });
-test('P09 temporal relations use the correct start/end endpoints and inclusive day boundaries',{skip:kotlin&&'Kotlin PlanningChangeTest'},()=>{
-  const dates=(id:string,start:string,end:string):Release=>({id,projectId:'test',name:id,revision:1,scopeRevision:0,lifecycle:'planned',format:'flexible',plannedStart:start,plannedEnd:end,deadline:null,archivedAt:null});
-  for(const [relation,boundary] of [['FS',-4],['SS',5],['FF',2],['SF',11]] as const){
-    const state={tasks:[],releases:[dates('a','2026-09-01','2026-09-10'),dates('b','2026-09-06','2026-09-12')],milestones:[],
-      constraints:[{id:'edge',revision:1,source:{kind:'release' as const,id:'a'},target:{kind:'release' as const,id:'b'},relation,lagDays:Number(boundary)}]};
-    assert.doesNotThrow(()=>validateTemporal(state));state.constraints[0]!.lagDays=boundary+1;
-    assert.throws(()=>validateTemporal(state),/Даты противоречат зависимости/);
-  }
-});
+// P09 (temporal relations use the correct ends and inclusive day boundaries) is Kotlin PlanningChangeTest.

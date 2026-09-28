@@ -9,7 +9,9 @@ export interface InjectOptions {method?:string;url:string;headers?:Record<string
 export interface InjectResponse {statusCode:number;headers:Record<string,string|string[]|undefined>;body:string;rawPayload:Buffer;json<T=any>():T}
 export interface TestApp {url:string;inject(options:InjectOptions|string):Promise<InjectResponse>;close():Promise<void>}
 export interface AppOptions {origin?:string;devLogin?:boolean;web?:boolean|string;metricsToken?:string;storage?:boolean;databaseUrl?:string;
-  environment?:string;trustProxy?:string;oidc?:{issuer:string;clientId:string;clientSecret:string;trustFile?:string}}
+  environment?:string;trustProxy?:string;port?:number;
+  /** Further SPRINTIQUE_* settings, for local stands. */
+  settings?:Record<string,string>;oidc?:{issuer:string;clientId:string;clientSecret:string;trustFile?:string}}
 
 export function storageSettings():Record<string,string>{
   const file=process.env['TEST_S3_CONFIG']||'output/infra/storage.json';
@@ -29,10 +31,11 @@ export async function startKotlinApp(options:AppOptions={}):Promise<TestApp>{
     ...(options.metricsToken?{SPRINTIQUE_METRICS_TOKEN:options.metricsToken}:{}),
     ...(options.trustProxy?{SPRINTIQUE_TRUST_PROXY:options.trustProxy}:{}),
     ...(options.storage?storageSettings():{}),
+    ...options.settings,
     ...(options.oidc?{SPRINTIQUE_OIDC_ISSUER:options.oidc.issuer,SPRINTIQUE_OIDC_CLIENT_ID:options.oidc.clientId,SPRINTIQUE_OIDC_CLIENT_SECRET:options.oidc.clientSecret,
       ...(options.oidc.trustFile?{SPRINTIQUE_OIDC_TRUST_FILE:options.oidc.trustFile}:{})}:{}),
   };
-  const server=await startServer(env);
+  const server=await startServer(env,options.port?{port:options.port}:{});
   return {
     url:server.url,
     async inject(input){

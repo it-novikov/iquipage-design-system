@@ -3,20 +3,18 @@ import assert from 'node:assert/strict';
 import {mkdtemp,mkdir,writeFile,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
-import {Database} from '../backend/infrastructure/database.js';
-import {createApp} from '../backend/http/app.js';
-import {serveWeb} from '../backend/http/static.js';
+import {startApp} from './fixture.js';
+import type {TestApp} from './support/kotlin-app.js';
 
 test('R4-PERF-01 only hashed public assets are immutable; HTML/auth/errors stay no-store',async()=>{
   const directory=await mkdtemp(join(tmpdir(),'sprintique-static-test-'));
-  const db=new Database('postgresql://unused@127.0.0.1:1/unused');
-  const app=await createApp({db,origin:'http://localhost'});
+  let app:TestApp|undefined;
   try{
     await mkdir(join(directory,'assets'));
     await writeFile(join(directory,'index.html'),'<!doctype html><title>Test</title>');
     await writeFile(join(directory,'assets/app-1234abcd.js'),'export const version=1;');
     await writeFile(join(directory,'assets/plain.js'),'export const unversioned=true;');
-    serveWeb(app,directory);
+    app=await startApp({web:directory});
     const first=await app.inject('/assets/app-1234abcd.js');
     assert.equal(first.statusCode,200);
     assert.equal(first.headers['cache-control'],'public, max-age=31536000, immutable');
@@ -38,6 +36,6 @@ test('R4-PERF-01 only hashed public assets are immutable; HTML/auth/errors stay 
       assert.equal(response.headers.etag,undefined,url);
     }
   }finally{
-    await app.close();await db.close();await rm(directory,{recursive:true,force:true});
+    await app?.close();await rm(directory,{recursive:true,force:true});
   }
 });

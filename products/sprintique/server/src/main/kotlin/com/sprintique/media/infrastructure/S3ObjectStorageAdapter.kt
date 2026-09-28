@@ -32,6 +32,7 @@ class S3ObjectStorageAdapter(private val settings: StorageProperties) : ObjectSt
             "Object storage requires HTTPS outside the local reference network"
         }
         require(BUCKET.matches(settings.bucket)) { "Invalid bucket name" }
+        require(settings.prefix.isEmpty() || PREFIX.matches(settings.prefix)) { "Invalid object key prefix" }
         require(
             settings.region.isNotEmpty() && settings.accessKeyId.isNotEmpty() && settings.secretAccessKey.isNotEmpty(),
         ) {
@@ -55,13 +56,13 @@ class S3ObjectStorageAdapter(private val settings: StorageProperties) : ObjectSt
 
     override fun put(key: String, bytes: ByteArray, mime: String) {
         client.putObject(
-            PutObjectRequest.builder().bucket(settings.bucket).key(key).contentType(mime).build(),
+            PutObjectRequest.builder().bucket(settings.bucket).key(stored(key)).contentType(mime).build(),
             RequestBody.fromBytes(bytes),
         )
     }
 
     override fun get(key: String): ByteArray = client.getObject(
-        GetObjectRequest.builder().bucket(settings.bucket).key(key).build(),
+        GetObjectRequest.builder().bucket(settings.bucket).key(stored(key)).build(),
     ).use { stream ->
         val declared = stream.response().contentLength()
         check(declared == null || declared <= FileInspection.FILE_LIMIT) { "Object exceeds canonical limit" }
@@ -71,7 +72,7 @@ class S3ObjectStorageAdapter(private val settings: StorageProperties) : ObjectSt
     }
 
     override fun remove(key: String) {
-        client.deleteObject(DeleteObjectRequest.builder().bucket(settings.bucket).key(key).build())
+        client.deleteObject(DeleteObjectRequest.builder().bucket(settings.bucket).key(stored(key)).build())
     }
 
     override fun requireReady() {
@@ -84,9 +85,15 @@ class S3ObjectStorageAdapter(private val settings: StorageProperties) : ObjectSt
 
     override fun close() = client.close()
 
+    /** The object's key in the bucket: under the configured prefix, if any. */
+    private fun stored(key: String) = settings.prefix + key
+
     private companion object {
         val TIMEOUT: Duration = Duration.ofSeconds(15)
         val LOCAL_HOSTS = setOf("localhost", "127.0.0.1", "garage")
         val BUCKET = Regex("^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$")
+
+        /** A key prefix: path segments of `a–z 0–9 . _ -`, ending with a slash. */
+        val PREFIX = Regex("^([a-z0-9._-]+/)+$")
     }
 }

@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.spring.boot)
     alias(libs.plugins.detekt)
     alias(libs.plugins.ktlint)
+    alias(libs.plugins.jib)
 }
 
 group = "com.sprintique"
@@ -185,3 +186,35 @@ val verifyProductionArtifact = tasks.register("verifyProductionArtifact") {
 }
 
 tasks.check { dependsOn(verifyProductionArtifact) }
+
+// The production image: the main artifact only (never the local source set), the built web interface, a non-root
+// user and a JRE pinned by digest. `npm run build` produces ../dist first; `jibBuildTar` or `jibDockerBuild` make it.
+jib {
+    from {
+        image = "eclipse-temurin:25-jre-noble@sha256:30772b161c319f9a10c82e30fd77b7b6702c6b051e44e0e9f3d7ab5dd389a5ab"
+    }
+    to {
+        image = "sprintique-server"
+        tags = setOf(project.version.toString())
+    }
+    container {
+        mainClass = "com.sprintique.ApplicationKt"
+        user = "10001:10001"
+        ports = listOf("4311")
+        workingDirectory = "/app"
+        environment = mapOf(
+            "SPRINTIQUE_HOST" to "0.0.0.0",
+            "SPRINTIQUE_PORT" to "4311",
+            "SPRINTIQUE_WEB_ROOT" to "/app/web",
+        )
+        jvmFlags = listOf("-XX:MaxRAMPercentage=75", "-XX:+ExitOnOutOfMemoryError")
+    }
+    extraDirectories {
+        paths {
+            path {
+                setFrom(file("../dist"))
+                into = "/app/web"
+            }
+        }
+    }
+}
