@@ -8,7 +8,7 @@ import com.sprintique.database.schema.auth.tables.KnownDevices
 
 import java.time.OffsetDateTime
 
-import org.jooq.Record1
+import org.jooq.Record2
 import org.jooq.impl.UpdatableRecordImpl
 
 
@@ -35,7 +35,7 @@ open class KnownDevicesRecord() : UpdatableRecordImpl<KnownDevicesRecord>(KnownD
     // Primary key information
     // -------------------------------------------------------------------------
 
-    override fun key(): Record1<String?> = super.key() as Record1<String?>
+    override fun key(): Record2<String?, String?> = super.key() as Record2<String?, String?>
 
     constructor(tokenHash: String? = null, email: String? = null, createdAt: OffsetDateTime? = null, expiresAt: OffsetDateTime? = null): this() {
         this.tokenHash = tokenHash

@@ -70,7 +70,8 @@ class EmailSignInController(
             "EMAIL_CODE_EXPIRED",
             "Код больше не действует. Запросите новый.",
         )
-        val signedIn = emailSignIn.verify(token, input.code)
+        val device = AuthenticatedRequests.cookie(request, DEVICE_COOKIE)?.takeIf { TOKEN.matches(it) }
+        val signedIn = emailSignIn.verify(token, input.code, device)
         val session = signedIn.session
         response.addHeader("Set-Cookie", AuthenticatedRequests.cookieValue(CHALLENGE_COOKIE, "", 0))
         response.addHeader(
@@ -92,12 +93,12 @@ class EmailSignInController(
             "Обновите страницу и попробуйте снова.",
         )
 
-    private companion object {
-        const val CHALLENGE_COOKIE = "__Host-sprintique-email"
+    companion object {
+        private const val CHALLENGE_COOKIE = "__Host-sprintique-email"
         const val DEVICE_COOKIE = "__Host-sprintique-device"
-        const val DAY_SECONDS = 86_400L
-        const val CHALLENGE_SECONDS = 600L
-        const val SESSION_SECONDS = 28_800L
+        private const val DAY_SECONDS = 86_400L
+        private const val CHALLENGE_SECONDS = 600L
+        private const val SESSION_SECONDS = 28_800L
         val TOKEN = Regex("^[A-Za-z0-9_-]{43}$")
     }
 }

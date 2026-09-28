@@ -84,6 +84,8 @@ open class EmailChallenges(
 
     val CLIENT_HASH: TableField<EmailChallengesRecord, String?> = createField(DSL.name("client_hash"), SQLDataType.CLOB, this, "")
 
+    val FROM_KNOWN_DEVICE: TableField<EmailChallengesRecord, Boolean?> = createField(DSL.name("from_known_device"), SQLDataType.BOOLEAN.nullable(false).defaultValue(DSL.field(DSL.raw("false"), SQLDataType.BOOLEAN)), this, "")
+
     private constructor(alias: Name, aliased: Table<EmailChallengesRecord>?): this(alias, null, null, null, aliased, null, null)
     private constructor(alias: Name, aliased: Table<EmailChallengesRecord>?, parameters: Array<Field<*>?>?): this(alias, null, null, null, aliased, parameters, null)
     private constructor(alias: Name, aliased: Table<EmailChallengesRecord>?, where: Condition?): this(alias, null, null, null, aliased, null, where)

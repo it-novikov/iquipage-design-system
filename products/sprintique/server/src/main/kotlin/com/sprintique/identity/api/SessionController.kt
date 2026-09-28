@@ -59,6 +59,12 @@ class SessionController(
     ): Map<String, Boolean> = requests.run(request) { tx, actor ->
         tx.update("UPDATE auth.credentials SET revoked_at = clock_timestamp() WHERE id = $1", actor.credentialId)
         response.addHeader("Set-Cookie", AuthenticatedRequests.cookieValue(AuthenticatedRequests.SESSION_COOKIE, "", 0))
+        // Signing out also forgets the browser, so a shared computer keeps no exemption from the code limits.
+        val device = EmailSignInController.DEVICE_COOKIE
+        AuthenticatedRequests.cookie(request, device)?.takeIf { EmailSignInController.TOKEN.matches(it) }?.let {
+            emailSignIn.forget(tx, it)
+            response.addHeader("Set-Cookie", AuthenticatedRequests.cookieValue(device, "", 0))
+        }
         mapOf("ok" to true)
     }
 }

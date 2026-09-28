@@ -17,17 +17,11 @@ async function request(path,init={}){
 const post=(path,body)=>request(path,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)});
 const methods=await (await request('/api/v1/auth/methods')).json();assert.equal(methods.email,true,'The stand must offer sign-in by e-mail');
 const previous=await newestLetterId(stand,email);
-let started=await post('/auth/email/start',{email});
-const refusal=started.status===429?(await started.clone().json()).code:null;
-if(refusal==='EMAIL_CODE_LIMIT'){
-  // Reruns of this check exhausted the synthetic address's hourly or daily codes: clear them on the owned stand.
-  const admin=new pg.Client({host:'127.0.0.1',port:stand.database.port,user:'postgres',password:stand.database.admin,database:'sprintique'});
-  await admin.connect();try{await admin.query('DELETE FROM auth.email_challenges WHERE email=$1',[email]);}finally{await admin.end();}
-  started=await post('/auth/email/start',{email});
-}else if(refusal==='EMAIL_CODE_WAIT'){
-  // A rerun within 30 seconds of the previous one: wait out the pause between codes once.
-  await new Promise(resolveWait=>setTimeout(resolveWait,31000));started=await post('/auth/email/start',{email});
-}
+// Reruns of this check are limited like any client: the synthetic address's earlier codes are cleared on the owned
+// stand first, so neither the 30-second pause nor the hourly or daily limit fails a repeated run.
+const admin=new pg.Client({host:'127.0.0.1',port:stand.database.port,user:'postgres',password:stand.database.admin,database:'sprintique'});
+await admin.connect();try{await admin.query('DELETE FROM auth.email_challenges WHERE email=$1',[email]);}finally{await admin.end();}
+const started=await post('/auth/email/start',{email});
 assert.equal(started.status,200,'A code is sent');
 const challenge=jar.get('__Host-sprintique-email');assert.ok(challenge,'The browser keeps the challenge');
 const letter=await latestLetter(stand,email,previous);
