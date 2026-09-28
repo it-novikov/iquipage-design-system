@@ -24,3 +24,11 @@
 - 2026-09-28T22:38:36Z · claude · status · - · review: Код и карточка готовы, push по подтверждению
 - 2026-09-28T22:50:24Z · claude · note · S5 · добавлен шаг: Адаптация релиза в Sprintique
 - 2026-09-28T22:50:24Z · claude · step · S5 · active
+- 2026-09-28T22:54:22Z · claude · step · S5 · done: npm ci и npm run build продукта чисто; dist/assets/InterVariable-CXsUriRB.woff2; check:boundaries PASS; node scripts/test.mjs 192/192 (JDK 25, S3 стенда ux-ds); стенд 4344: document.fonts Inter/Inter Display loaded, единственный запрос шрифта из бандла; доска и планирование в обеих темах в Inter
+- 2026-09-28T22:54:23Z · claude · note · A1 · критерий приёмки выполнен
+- 2026-09-28T22:54:23Z · claude · note · A2 · критерий приёмки выполнен
+- 2026-09-28T22:54:23Z · claude · note · A3 · критерий приёмки выполнен
+- 2026-09-28T22:54:23Z · claude · note · A4 · критерий приёмки выполнен
+- 2026-09-28T22:54:23Z · claude · note · A5 · критерий приёмки выполнен
+- 2026-09-28T22:54:23Z · claude · checkpoint · - · дальше: после слияния карточка в done; повторный визуальный QA каталога в Inter по плану волны 1
+- 2026-09-28T22:54:23Z · claude · handoff · - · review; HEAD 72c5960; незакоммичено 0; Готово к слиянию: PR #21

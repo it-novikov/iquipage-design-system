@@ -8,7 +8,7 @@ owner: it-novikov
 branch: feature/ds-self-hosted-fonts
 base: main
 created: 2026-09-28
-updated: 2026-09-28T22:50:24Z
+updated: 2026-09-28T22:54:23Z
 links:
 ---
 
@@ -26,22 +26,23 @@ links:
 
 ## Приёмка
 
-- [ ] A1. A1. Пакет содержит assets/fonts/InterVariable.woff2 (Inter 4.1, OFL 1.1, wght 400–700, opsz 14–32, latin+cyrillic) и tokens/fonts.css с @font-face для Inter и Inter Display; экспорт ./fonts.css
-- [ ] A2. A2. dist/iquipage.css начинается с @font-face и грузит шрифт относительным путём ../assets/fonts/; каталоги index/whiteboard/workbench не ходят в Google Fonts и делают preload шрифта
-- [ ] A3. A3. Метрический fallback Inter Fallback (Arial с size-adjust) в стеках --iq-font и --iq-display; swap не двигает вёрстку
-- [ ] A4. A4. Версия 0.6.0-vnext.22: package.json, semantic.json, README-changelog, PROVENANCE.json, INTEGRATION.md; npm run build и npm test зелёные; tests/vnext22.test.cjs фиксирует контракт
-- [ ] A5. A5. Проект claude.ai/design получает тот же woff2 и fonts.css вместо 18 статических TTF
+- [x] A1. A1. Пакет содержит assets/fonts/InterVariable.woff2 (Inter 4.1, OFL 1.1, wght 400–700, opsz 14–32, latin+cyrillic) и tokens/fonts.css с @font-face для Inter и Inter Display; экспорт ./fonts.css
+- [x] A2. A2. dist/iquipage.css начинается с @font-face и грузит шрифт относительным путём ../assets/fonts/; каталоги index/whiteboard/workbench не ходят в Google Fonts и делают preload шрифта
+- [x] A3. A3. Метрический fallback Inter Fallback (Arial с size-adjust) в стеках --iq-font и --iq-display; swap не двигает вёрстку
+- [x] A4. A4. Версия 0.6.0-vnext.22: package.json, semantic.json, README-changelog, PROVENANCE.json, INTEGRATION.md; npm run build и npm test зелёные; tests/vnext22.test.cjs фиксирует контракт
+- [x] A5. A5. Проект claude.ai/design получает тот же woff2 и fonts.css вместо 18 статических TTF
 
 ## Передача
 
-- **Состояние:** S1–S4 готовы; коммит e17ef29 на feature/ds-self-hosted-fonts, не запушен
-- **Сейчас:** ожидание подтверждения владельца на push и PR
-- **Дальше:** push, PR на main; затем адаптация продукта: npm pack, vendor/iquipage-web-0.6.0-vnext.22.tgz, lockfile, preload в products/sprintique/web/index.html, повторный визуальный QA
+- **Состояние:** S1–S5 готовы; PR #21 на main, оба коммита запушены, гейт продукта 192/192
+- **Сейчас:** ревью и слияние владельцем
+- **Дальше:** после слияния карточка в done; повторный визуальный QA каталога в Inter по плану волны 1
 - **Незакоммичено:** нет
-- **Рабочая копия:** нет · HEAD e17ef29
+- **Рабочая копия:** нет · HEAD 72c5960 · снято 2026-09-28T22:54:23Z
 - **Ловушки:**
   - engines node >=24 <25, локально node 26: build и test проходят, npm install предупредит
-- **Проверка:** cd libraries/iquipage && npm run build && npm test
+- **Проверка:** cd libraries/iquipage && npm run build && npm test; cd products/sprintique && npm ci && npm run build && JAVA_HOME=/opt/homebrew/opt/openjdk@25 TEST_S3_CONFIG=<storage.json> node scripts/test.mjs
+- **Причина:** review — claude, 2026-09-28T22:54:23Z: Готово к слиянию: PR #21
 
 ## План
 
@@ -81,13 +82,14 @@ links:
 - **Покрывает:** A5
 - **Итог:** DesignSync plan e2304bb3f3b6: записаны fonts/InterVariable.woff2, fonts/OFL.txt, tokens/fonts.css (путь ../fonts/); удалены 18 InterDisplay-*.ttf
 
-### S5. Адаптация релиза в Sprintique [active]
+### S5. Адаптация релиза в Sprintique [done]
 - **Что:** vendor/iquipage-web-0.6.0-vnext.22.tgz, package.json, lockfile с integrity, library-contract, README sha256, docs
 - **Как:** npm pack в библиотеке, git mv тарбола, npm ci; vite build кладёт InterVariable-*.woff2 в dist/assets
 - **Зачем:** Продукт впервые рендерится в Inter, а не в системном шрифте
 - **Приёмка:**
-  - [ ] npm ci и npm run build продукта чисто; dist содержит woff2; check:boundaries PASS; полный node scripts/test.mjs зелёный
+  - [x] npm ci и npm run build продукта чисто; dist содержит woff2; check:boundaries PASS; полный node scripts/test.mjs зелёный
 - **Покрывает:** A4
+- **Итог:** npm ci и npm run build продукта чисто; dist/assets/InterVariable-CXsUriRB.woff2; check:boundaries PASS; node scripts/test.mjs 192/192 (JDK 25, S3 стенда ux-ds); стенд 4344: document.fonts Inter/Inter Display loaded, единственный запрос шрифта из бандла; доска и планирование в обеих темах в Inter
 
 ## Решения
 
