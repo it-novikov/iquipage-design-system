@@ -55,6 +55,8 @@ Worker: the `worker` command with `SPRINTIQUE_WORKER_DATABASE_URL` plus the same
 
 Recommended runtime constraints already exercised locally: read-only root filesystem, writable bounded `/tmp` tmpfs with noexec/nosuid, all capabilities dropped, no-new-privileges, memory/CPU limits. The local API probe uses 512 MiB/1 CPU and loopback publishing. These are test defaults, not a sizing promise. `.dockerignore` excludes output/infra, browser state, test results and backups.
 
+The single-host production layout (PostgreSQL container, API and worker on the host network behind nginx, loopback Postfix with DKIM, S3 under a prefix, daily dumps) is in [deploy/vps](../deploy/vps/README.md).
+
 `scripts/check-container.mjs` loads the Jib image tarball into the owned Docker context and checks it against real PostgreSQL/S3, validates UID/readiness/authenticated session and anonymous rejection, then removes only its probe container. Its `PUBLIC_ORIGIN` remains the application origin; it is not a second public deployment. Sign-in from inside this probe is not exercised: the probe reuses the session that `check-local-sign-in.mjs` opened on the stand.
 
 ## Local reference services
