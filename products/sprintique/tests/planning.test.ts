@@ -155,6 +155,11 @@ test('P09 date ranges, timeboxes, temporal conflict and cycle detection, without
   const cyc=await request('PUT','planning/constraints/cycle',{baseRevision:0,value:{source:constraint.target,target:constraint.source,relation:'SS',lagDays:-100}});assert.equal(cyc.statusCode,422,cyc.body);
   const roadmap=(await request('GET','planning/roadmap?from=2026-09-01&to=2026-09-30&undated=false')).json();assert.equal(roadmap.timezone,'UTC');assert.equal(roadmap.items.find((i:{id:string})=>i.id==='gate').start,'2026-09-11');
 });
+test('P09b an undated milestone is ordinary data: planning keeps loading',async()=>{
+  const saved=await request('PUT','planning/milestones/someday',{baseRevision:0,value:{title:'Когда-нибудь',date:null}});assert.equal(saved.statusCode,200,saved.body);
+  const page=await request('GET','planning/tasks?limit=1');assert.equal(page.statusCode,200,page.body);
+  const roadmap=await request('GET','planning/roadmap?from=2026-09-01&to=2026-09-30&undated=true');assert.equal(roadmap.statusCode,200,roadmap.body);
+});
 test('P10 agent proposal requires a human action-bound approval, not execution or self-approval',async()=>{
   const issued=await request('POST','agents',{name:'Planning agent',capabilities:['tasks:read','tasks:write'],expiresInSeconds:600});assert.equal(issued.statusCode,200,issued.body);
   const headers={authorization:'Bearer '+issued.json().token} as unknown as typeof f.alice.headers;

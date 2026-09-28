@@ -19,6 +19,7 @@ import org.jooq.impl.Internal
 // INDEX definitions
 // -------------------------------------------------------------------------
 
+val EMAIL_CHALLENGES_CLIENT: Index = Internal.createIndex(DSL.name("email_challenges_client"), EmailChallenges.EMAIL_CHALLENGES, arrayOf(EmailChallenges.EMAIL_CHALLENGES.EMAIL, EmailChallenges.EMAIL_CHALLENGES.CLIENT_HASH, EmailChallenges.EMAIL_CHALLENGES.CREATED_AT), false)
 val EMAIL_CHALLENGES_EMAIL: Index = Internal.createIndex(DSL.name("email_challenges_email"), EmailChallenges.EMAIL_CHALLENGES, arrayOf(EmailChallenges.EMAIL_CHALLENGES.EMAIL, EmailChallenges.EMAIL_CHALLENGES.CREATED_AT), false)
 val EMAIL_CHALLENGES_EXPIRY: Index = Internal.createIndex(DSL.name("email_challenges_expiry"), EmailChallenges.EMAIL_CHALLENGES, arrayOf(EmailChallenges.EMAIL_CHALLENGES.EXPIRES_AT), false)
 val IDENTITIES_PRINCIPAL: Index = Internal.createIndex(DSL.name("identities_principal"), Identities.IDENTITIES, arrayOf(Identities.IDENTITIES.PRINCIPAL_ID), false)

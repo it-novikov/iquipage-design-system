@@ -7,6 +7,7 @@ import com.sprintique.identity.domain.EmailAddress
 import com.sprintique.problem.ProblemException
 import com.sprintique.problem.requireCondition
 import com.sprintique.problem.requirePresent
+import com.sprintique.web.ClientAddresses
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.constraints.Pattern
@@ -37,6 +38,7 @@ class EmailSignInController(
     private val emailSignIn: EmailSignIn,
     private val contracts: Contracts,
     private val properties: SprintiqueProperties,
+    private val clientAddresses: ClientAddresses,
 ) {
     @PostMapping("/auth/email/start")
     fun start(
@@ -48,7 +50,7 @@ class EmailSignInController(
         val input = contracts.parse<EmailCodeRequest>(body)
         val email = EmailAddress.parse(input.email)
             ?: throw ProblemException(422, "EMAIL_INVALID", "Проверьте адрес почты.")
-        val token = emailSignIn.start(email)
+        val token = emailSignIn.start(email, clientAddresses.of(request))
         response.addHeader("Set-Cookie", AuthenticatedRequests.cookieValue(CHALLENGE_COOKIE, token, CHALLENGE_SECONDS))
         return linkedMapOf("sent" to true, "codeLength" to EmailSignIn.CODE_LENGTH)
     }

@@ -43,13 +43,17 @@ open class EmailChallengesRecord() : UpdatableRecordImpl<EmailChallengesRecord>(
         set(value): Unit = set(6, value)
         get(): OffsetDateTime? = get(6) as OffsetDateTime?
 
+    open var clientHash: String?
+        set(value): Unit = set(7, value)
+        get(): String? = get(7) as String?
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
 
     override fun key(): Record1<String?> = super.key() as Record1<String?>
 
-    constructor(tokenHash: String? = null, email: String? = null, codeHash: String? = null, attempts: Int? = null, createdAt: OffsetDateTime? = null, expiresAt: OffsetDateTime? = null, consumedAt: OffsetDateTime? = null): this() {
+    constructor(tokenHash: String? = null, email: String? = null, codeHash: String? = null, attempts: Int? = null, createdAt: OffsetDateTime? = null, expiresAt: OffsetDateTime? = null, consumedAt: OffsetDateTime? = null, clientHash: String? = null): this() {
         this.tokenHash = tokenHash
         this.email = email
         this.codeHash = codeHash
@@ -57,6 +61,7 @@ open class EmailChallengesRecord() : UpdatableRecordImpl<EmailChallengesRecord>(
         this.createdAt = createdAt
         this.expiresAt = expiresAt
         this.consumedAt = consumedAt
+        this.clientHash = clientHash
         resetTouchedOnNotNull()
     }
 }

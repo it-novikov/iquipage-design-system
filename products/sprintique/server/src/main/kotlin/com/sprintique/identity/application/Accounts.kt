@@ -13,13 +13,16 @@ data class OpenedSession(val principalId: String, val token: String)
 /**
  * Turns a verified way in into a person and a session. One person, several ways in: a known identity leads to its
  * principal; a new identity with a verified e-mail joins the one person who holds that address; otherwise a new
- * person is created. Concurrent first sign-ins with one address are serialized, so they cannot create two people.
+ * person is created. Concurrent first sign-ins with one address or one identity are serialized, so they cannot
+ * create two people or collide on the identity key.
  */
 @Component
 @Profile("api")
 class Accounts {
     fun signIn(tx: Transaction, identity: ExternalIdentity): OpenedSession {
-        identity.verifiedEmail?.let { tx.row("SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", "sign-in:$it") }
+        // First sign-ins with one address, or with one identity, run one after another.
+        val key = identity.verifiedEmail?.let { "sign-in:$it" } ?: "sign-in:${identity.issuer}|${identity.subject}"
+        tx.row("SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", key)
         val principal = known(tx, identity) ?: joined(tx, identity) ?: created(tx, identity)
         val disabled = tx.row("SELECT disabled_at FROM auth.principals WHERE id = $1", principal)!!["disabled_at"]
         requireCondition(disabled == null, 403, "ACCOUNT_DISABLED", "Аккаунт отключён.")

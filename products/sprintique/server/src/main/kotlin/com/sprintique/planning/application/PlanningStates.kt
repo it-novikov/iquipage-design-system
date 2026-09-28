@@ -80,7 +80,7 @@ object PlanningStates {
             Milestone(
                 it.string("id"),
                 it.string("title"),
-                it.string("date"),
+                it.stringOrNull("date"),
                 it.int("revision"),
                 it.stringOrNull("releaseId"),
             )

@@ -16,7 +16,8 @@ import kotlin.reflect.full.primaryConstructor
 
 /**
  * Every request contract of the Kotlin server has exactly the fields of the Zod schema of the same name, which the
- * web client validates with. Polymorphic contracts are compared per discriminator value.
+ * web client validates with, and the same ones are required. Polymorphic contracts are compared per discriminator
+ * value.
  */
 class ContractParityTest {
     private val schemas: JsonNode = JsonMapper.builder().build()
@@ -72,6 +73,13 @@ class ContractParityTest {
             .map { it.key }
             .toSet() - setOfNotNull(discriminator)
         soft.assertThat(kotlin).`as`("fields of $path").containsExactlyInAnyOrderElementsOf(zodFields)
+        // Required means the same on both sides: a field without a Kotlin default must be sent, nullable or not.
+        val required = type.primaryConstructor?.parameters.orEmpty().filterNot { it.isOptional }.mapNotNull { it.name }
+        // The export describes Zod's output, where a field with a default counts as required; a request may omit it.
+        val properties = objectOf(zod)?.path("properties")
+        val zodRequired = objectOf(zod)?.path("required")?.values()?.map { it.asString() }.orEmpty()
+            .filter { it in zodFields && properties?.path(it)?.has("default") != true }
+        soft.assertThat(required).`as`("required fields of $path").containsExactlyInAnyOrderElementsOf(zodRequired)
     }
 
     /** The object schema of a node that may be wrapped as nullable (`anyOf` with `null`). */

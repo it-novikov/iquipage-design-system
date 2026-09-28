@@ -24,7 +24,7 @@ class RequestLimitFilter(private val clientAddresses: ClientAddresses) : OncePer
     private val uploads = AtomicInteger()
 
     override fun doFilterInternal(request: HttpServletRequest, response: HttpServletResponse, chain: FilterChain) {
-        val path = request.requestURI
+        val path = routedPath(request)
         val readiness = path == "/ready"
         if (!readiness && !path.startsWith("/api/") &&
             !path.startsWith("/auth/")
@@ -95,11 +95,17 @@ class RequestLimitFilter(private val clientAddresses: ClientAddresses) : OncePer
         private val UPLOAD = Regex("^/api/v1/projects/[^/]+/assets/[^/]+/content$")
         private val STREAM = Regex("^/api/v1/projects/[^/]+/events$")
 
+        /**
+         * The decoded, normalized path the router matches (`/%61uth/login` is `/auth/login`), never the raw URI:
+         * a spelling the router accepts must not escape the limits.
+         */
+        fun routedPath(request: HttpServletRequest): String = request.servletPath + (request.pathInfo ?: "")
+
         fun isUpload(request: HttpServletRequest) =
             request.method == "PUT" &&
-                (UPLOAD.matches(request.requestURI) || request.requestURI == "/api/v1/profile/avatar")
+                (UPLOAD.matches(routedPath(request)) || routedPath(request) == "/api/v1/profile/avatar")
 
         fun isStream(request: HttpServletRequest) =
-            STREAM.matches(request.requestURI) && request.getParameter("stream") == "true"
+            STREAM.matches(routedPath(request)) && request.getParameter("stream") == "true"
     }
 }

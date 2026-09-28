@@ -18,11 +18,17 @@ A database created by the previous TypeScript migrator (`public.schema_migration
 
 People sign in three ways; the sign-in screen offers only the configured ones (`GET /api/v1/auth/methods`).
 
-- **A code by e-mail** — the base method, required in production. `POST /auth/email/start` sends a six-digit code; `POST /auth/email/verify` checks it. The code lives ten minutes, allows five attempts, works only in the browser that asked (an HttpOnly challenge cookie; the database holds only hashes), and a new code replaces the previous one. An address gets at most one code per 30 seconds and five per hour; the per-address login budget applies too. Answers never reveal whether a person with the address exists: the first valid code creates them, named after the part before `@` until they change their name.
+- **A code by e-mail** — the base method, required in production. `POST /auth/email/start` sends a six-digit code; `POST /auth/email/verify` checks it. The code lives ten minutes, allows five attempts and works only in the browser that asked (an HttpOnly challenge cookie; the database holds only hashes); a new code from the same client replaces that client's previous one once its letter has left. Limits: one code per 30 seconds and five per hour for an address from one client, twenty per address a day from anywhere, plus the per-client sign-in budget. Someone asking for codes to another person's address from elsewhere neither cancels nor blocks theirs. The daily limit bounds guessing to a hundred attempts a day against one address; each attempt also sends that person a letter. Answers never reveal whether a person with the address exists: the first valid code creates them, named after the part before `@` until they change their name.
 - **Google** — OpenID Connect with PKCE, `prompt=select_account`.
 - **Apple** — Sign in with Apple: the callback is a form POST from Apple's site, the client secret is a five-minute ES256 token signed with the team key, the name arrives only on the first sign-in.
 
-One person, several ways in (`auth.identities`). A known way in leads to its person. A new one joins the person who already holds its **verified** address; otherwise a new person is created. Addresses count as verified when they come from a code by e-mail, from Apple, or from Google when Google vouches for them (Gmail addresses, or `hd` for Google Workspace); Google's other addresses never join an account. People who signed in through the previous OIDC provider kept their accounts: migration 021 made each issuer and subject an identity, and a code sent to their address leads to the same person. A failed provider sign-in returns to the sign-in screen with `?sign-in-error=<code>`; which check failed is never logged or told.
+One person, several ways in (`auth.identities`). A known way in leads to its person. A new one joins the person who already holds its **verified** address; otherwise a new person is created. Addresses count as verified when they come from a code by e-mail, from Apple, or from Google when Google vouches for them (Gmail addresses, or `hd` for Google Workspace); Google's other addresses never join an account. People who signed in through the previous OIDC provider kept their accounts: migration 021 made each issuer and subject an identity. A code by e-mail finds such a person only if the provider had vouched for their address (`auth.principals.email` is set). The previous sign-in asked for `openid profile` only, so for most of them it is empty, and their first code would create a new, empty account. Before they sign in, an administrator sets the address they will use (lower case) on the migration role:
+
+```sql
+UPDATE auth.principals SET email = 'person@example.com' WHERE id = '<principal id>' AND kind = 'human' AND email IS NULL;
+```
+
+Check first that no other person holds that address: with two holders, a code joins neither. A failed provider sign-in returns to the sign-in screen with `?sign-in-error=<code>`; which check failed is never logged or told.
 
 Settings:
 
@@ -45,7 +51,7 @@ Worker: the `worker` command with `SPRINTIQUE_WORKER_DATABASE_URL` plus the same
 
 ## Containers
 
-`npm run build:image` builds the web interface and then the image with Jib (`server/build/jib-image.tar`, image `sprintique-server:<version>`): the production artifact only, the interface in `/app/web`, a JRE 25 base pinned by digest, UID 10001. Probe `/ready` for traffic admission (the image carries no HEALTHCHECK). The default command is the API; pass `worker` for the worker. Run `migrate` as a separate pre-start job with migration credentials, never in the API container.
+`npm run build:image` builds the web interface and then the image with Jib (`server/build/jib-image.tar`, image `sprintique-server:<version>`): the production artifact only, the interface in `/app/web`, a JRE 25 base pinned by digest, UID 10001, `SPRINTIQUE_ENVIRONMENT=production` unless the deployment overrides it. The image is built for the architecture of the machine that builds it (CI: amd64); `./gradlew jibBuildTar -Pimage.architecture=amd64|arm64` chooses another. Probe `/ready` for traffic admission (the image carries no HEALTHCHECK). The default command is the API; pass `worker` for the worker. Run `migrate` as a separate pre-start job with migration credentials, never in the API container.
 
 Recommended runtime constraints already exercised locally: read-only root filesystem, writable bounded `/tmp` tmpfs with noexec/nosuid, all capabilities dropped, no-new-privileges, memory/CPU limits. The local API probe uses 512 MiB/1 CPU and loopback publishing. These are test defaults, not a sizing promise. `.dockerignore` excludes output/infra, browser state, test results and backups.
 

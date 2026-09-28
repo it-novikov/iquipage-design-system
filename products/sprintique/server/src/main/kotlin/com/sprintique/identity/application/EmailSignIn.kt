@@ -13,8 +13,13 @@ import org.springframework.stereotype.Component
 
 /**
  * Sign-in by a six-digit code sent to an address. The code is bound to the browser that asked for it (its challenge
- * token lives in a cookie), valid for ten minutes and five attempts, and a new code replaces the previous one. The
- * answers are the same whether or not a person with the address exists: the first valid code creates them.
+ * token lives in a cookie), valid for ten minutes and five attempts; a new code from the same client replaces that
+ * client's previous one. The answers are the same whether or not a person with the address exists: the first valid
+ * code creates them.
+ *
+ * Limits: one code per 30 seconds and five per hour for an address from one client, so someone asking for codes to
+ * another person's address from elsewhere neither cancels nor blocks theirs; twenty per address a day from anywhere,
+ * which bounds guessing to a hundred attempts a day.
  */
 @Component
 @Profile("api")
@@ -28,16 +33,19 @@ class EmailSignIn(
 
     val isAvailable: Boolean get() = mail.ifAvailable != null
 
-    /** Sends a code and returns the challenge token the browser keeps. */
-    fun start(email: EmailAddress): String {
+    /** Sends a code and returns the challenge token the browser keeps. `client` is the requester's address. */
+    fun start(email: EmailAddress, client: String): String {
         val transport = mail.ifAvailable ?: throw notConfigured()
         val token = Tokens.random()
         val code = Tokens.digits(CODE_LENGTH)
+        val clientHash = Tokens.sha256Hex(client)
         database.transaction { tx ->
+            // Parallel requests for one address are counted one after another, never against the same count.
+            tx.row("SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", "email-code:${email.value}")
             tx.update(
                 """
                 DELETE FROM auth.email_challenges WHERE token_hash IN (SELECT token_hash FROM auth.email_challenges
-                    WHERE expires_at <= clock_timestamp() - interval '1 hour' LIMIT 500)
+                    WHERE expires_at <= clock_timestamp() - interval '1 day' LIMIT 500)
                 """.trimIndent(),
             )
             val pending = tx.row(
@@ -46,11 +54,14 @@ class EmailSignIn(
             requireCondition(pending < PENDING_LIMIT, 503, "BUSY", "Слишком много запросов кода. Повторите позже.")
             val recent = tx.row(
                 """
-                SELECT count(*)::int AS n, coalesce(max(created_at) > clock_timestamp() - interval '30 seconds', false)
-                    AS "tooSoon"
-                FROM auth.email_challenges WHERE email = $1 AND created_at > clock_timestamp() - interval '1 hour'
+                SELECT count(*) FILTER (WHERE client_hash = $2 AND created_at > clock_timestamp() - interval '1 hour')::int
+                         AS "fromClient",
+                       coalesce(max(created_at) FILTER (WHERE client_hash = $3)
+                         > clock_timestamp() - interval '30 seconds', false) AS "tooSoon",
+                       count(*)::int AS "today"
+                FROM auth.email_challenges WHERE email = $1 AND created_at > clock_timestamp() - interval '1 day'
                 """.trimIndent(),
-                email.value,
+                email.value, clientHash, clientHash,
             )!!
             requireCondition(
                 !recent.boolean("tooSoon"),
@@ -59,24 +70,23 @@ class EmailSignIn(
                 "Новый код можно запросить через 30 секунд.",
             )
             requireCondition(
-                recent.int("n") < CODES_PER_HOUR,
+                recent.int("fromClient") < CODES_PER_HOUR,
                 429,
                 "EMAIL_CODE_LIMIT",
                 "Для этой почты запрошено слишком много кодов. Повторите через час.",
             )
-            tx.update(
-                """
-                UPDATE auth.email_challenges SET consumed_at = clock_timestamp()
-                WHERE email = $1 AND consumed_at IS NULL AND expires_at > clock_timestamp()
-                """.trimIndent(),
-                email.value,
+            requireCondition(
+                recent.int("today") < CODES_PER_DAY,
+                429,
+                "EMAIL_CODE_LIMIT",
+                "Для этой почты сегодня запрошено слишком много кодов. Повторите завтра.",
             )
             tx.update(
                 """
-                INSERT INTO auth.email_challenges(token_hash, email, code_hash, expires_at)
-                VALUES ($1, $2, $3, clock_timestamp() + interval '10 minutes')
+                INSERT INTO auth.email_challenges(token_hash, email, code_hash, client_hash, expires_at)
+                VALUES ($1, $2, $3, $4, clock_timestamp() + interval '10 minutes')
                 """.trimIndent(),
-                Tokens.sha256Hex(token), email.value, codeHash(token, code),
+                Tokens.sha256Hex(token), email.value, codeHash(token, code), clientHash,
             )
         }
         try {
@@ -88,6 +98,17 @@ class EmailSignIn(
             }
             log.warn("Sign-in letter could not be sent: {}", error.cause?.javaClass?.simpleName)
             throw ProblemException(503, "MAIL_UNAVAILABLE", "Не удалось отправить письмо. Повторите через минуту.")
+        }
+        // Only a letter that left replaces this client's earlier code: a failed send keeps the one already received.
+        database.transaction { tx ->
+            tx.update(
+                """
+                UPDATE auth.email_challenges SET consumed_at = clock_timestamp()
+                WHERE email = $1 AND client_hash = $2 AND token_hash <> $3 AND consumed_at IS NULL
+                  AND expires_at > clock_timestamp()
+                """.trimIndent(),
+                email.value, clientHash, Tokens.sha256Hex(token),
+            )
         }
         return token
     }
@@ -162,6 +183,7 @@ class EmailSignIn(
         const val CODE_LENGTH = 6
         private const val MAX_ATTEMPTS = 5
         private const val CODES_PER_HOUR = 5
+        private const val CODES_PER_DAY = 20
         private const val PENDING_LIMIT = 10_000
 
         private fun codeHash(token: String, code: String) = Tokens.sha256Hex("$token:$code")

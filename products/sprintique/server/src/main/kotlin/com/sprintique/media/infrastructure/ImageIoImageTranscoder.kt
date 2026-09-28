@@ -15,9 +15,11 @@ import java.io.ByteArrayOutputStream
 import java.time.Duration
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.Executors
+import java.util.concurrent.RejectedExecutionException
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
+import java.util.concurrent.atomic.AtomicReference
 import javax.imageio.IIOImage
 import javax.imageio.ImageIO
 import javax.imageio.ImageReader
@@ -31,7 +33,8 @@ import kotlin.math.roundToInt
 /**
  * Untrusted images are decoded only by pure-Java readers chosen explicitly (JDK PNG, TwelveMonkeys JPEG and WebP);
  * the native libwebp only encodes pixels that were already decoded. Size is checked before decoding, any reader
- * warning fails the image, a decode past the time limit is aborted, and at most two images are processed at once.
+ * warning fails the image, a decode past the time limit is aborted, and at most two images are decoded at once —
+ * counting decodes that outlived their caller.
  */
 @Component
 @Profile("api")
@@ -91,22 +94,31 @@ class ImageIoImageTranscoder(private val timeout: Duration = DEFAULT_TIMEOUT) : 
             "IMAGE_BUSY",
             "Сервис обрабатывает изображения. Повторите через несколько секунд.",
         )
-        val decoder = Decoder(bytes)
-        try {
-            val future = executor.submit<T> { work(decoder) }
-            return try {
-                future.get(timeout.toMillis(), TimeUnit.MILLISECONDS)
-            } catch (@Suppress("SwallowedException") _: TimeoutException) {
-                decoder.abort()
-                future.cancel(true)
-                throw decodeFailure()
-            } catch (@Suppress("SwallowedException") error: ExecutionException) {
-                // A reader failure is reported as an unreadable image; its cause says nothing useful to the client.
-                throw error.cause as? ProblemException ?: decodeFailure()
+        // The slot is held until the work itself ends, not until the caller stops waiting: a decode past the time
+        // limit still occupies a decoder, so it still counts against the bound.
+        val decoder = AtomicReference<Decoder?>()
+        val future = try {
+            executor.submit<T> {
+                try {
+                    work(Decoder(bytes).also(decoder::set))
+                } finally {
+                    decoder.get()?.let { runCatching { it.dispose() } }
+                    slots.release()
+                }
             }
-        } finally {
-            decoder.dispose()
+        } catch (error: RejectedExecutionException) {
             slots.release()
+            throw error
+        }
+        return try {
+            future.get(timeout.toMillis(), TimeUnit.MILLISECONDS)
+        } catch (@Suppress("SwallowedException") _: TimeoutException) {
+            // Asks the reader to stop; the work ends on its own thread and gives the slot back there.
+            decoder.get()?.let { runCatching { it.abort() } }
+            throw decodeFailure()
+        } catch (@Suppress("SwallowedException") error: ExecutionException) {
+            // A reader failure is reported as an unreadable image; its cause says nothing useful to the client.
+            throw error.cause as? ProblemException ?: decodeFailure()
         }
     }
 

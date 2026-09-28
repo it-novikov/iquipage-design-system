@@ -66,15 +66,23 @@ class EventController(
         val first = read(credential, projectId, cursor)
         if (!stream) return first
         val identity = Tokens.sha256Hex(credential.token)
-        requireCondition(streams.size < MAX_STREAMS, 429, "STREAM_LIMIT", "Лимит подключений сервера. Повторите позже.")
-        requireCondition(
-            streams.values.count { it == identity } < STREAMS_PER_CREDENTIAL,
-            429,
-            "STREAM_LIMIT",
-            "Слишком много подключений. Закройте лишние вкладки.",
-        )
         val emitter = ResponseBodyEmitter(0L)
-        streams[emitter] = identity
+        // Counting and registering are one step: a burst of parallel requests cannot all pass the same count.
+        synchronized(streams) {
+            requireCondition(
+                streams.size < MAX_STREAMS,
+                429,
+                "STREAM_LIMIT",
+                "Лимит подключений сервера. Повторите позже.",
+            )
+            requireCondition(
+                streams.values.count { it == identity } < STREAMS_PER_CREDENTIAL,
+                429,
+                "STREAM_LIMIT",
+                "Слишком много подключений. Закройте лишние вкладки.",
+            )
+            streams[emitter] = identity
+        }
         val close = { streams.remove(emitter) }
         emitter.onCompletion { close() }
         emitter.onTimeout { close() }

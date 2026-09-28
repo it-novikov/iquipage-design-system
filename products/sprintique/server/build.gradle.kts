@@ -191,9 +191,21 @@ tasks.check { dependsOn(verifyProductionArtifact) }
 
 // The production image: the main artifact only (never the local source set), the built web interface, a non-root
 // user and a JRE pinned by digest. `npm run build` produces ../dist first; `jibBuildTar` or `jibDockerBuild` make it.
+// The image is built for the machine that builds it (CI: amd64); `-Pimage.architecture=amd64|arm64` overrides.
+val imageArchitecture =
+    providers.gradleProperty("image.architecture").orElse(
+        if (System.getProperty("os.arch") in setOf("aarch64", "arm64")) "arm64" else "amd64",
+    )
+
 jib {
     from {
         image = "eclipse-temurin:25-jre-noble@sha256:30772b161c319f9a10c82e30fd77b7b6702c6b051e44e0e9f3d7ab5dd389a5ab"
+        platforms {
+            platform {
+                os = "linux"
+                architecture = imageArchitecture.get()
+            }
+        }
     }
     to {
         image = "sprintique-server"
@@ -205,6 +217,8 @@ jib {
         ports = listOf("4311")
         workingDirectory = "/app"
         environment = mapOf(
+            // Production unless a stand says otherwise: development conveniences stay refused by default.
+            "SPRINTIQUE_ENVIRONMENT" to "production",
             "SPRINTIQUE_HOST" to "0.0.0.0",
             "SPRINTIQUE_PORT" to "4311",
             "SPRINTIQUE_WEB_ROOT" to "/app/web",

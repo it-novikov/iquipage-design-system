@@ -17,13 +17,19 @@ export async function readStand(){
   throw Error('No local stand settings: run `npm run local:services` first');
 }
 
-/** The newest letter Mailpit holds for an address, waiting up to ten seconds for it to arrive. */
-export async function latestLetter(stand,to){
+/** The id of the newest letter Mailpit holds for an address, if any. */
+export async function newestLetterId(stand,to){
+  const api=`http://127.0.0.1:${stand.mail.apiPort}/api/v1`;
+  const found=await fetch(`${api}/search?limit=1&query=${encodeURIComponent('to:"'+to+'"')}`).then(r=>r.json());
+  return found.messages?.[0]?.ID;
+}
+
+/** The newest letter for an address other than `previous`, waiting up to ten seconds for it to arrive. */
+export async function latestLetter(stand,to,previous){
   const api=`http://127.0.0.1:${stand.mail.apiPort}/api/v1`;
   for(let attempt=0;attempt<40;attempt++){
-    const found=await fetch(`${api}/search?limit=1&query=${encodeURIComponent('to:"'+to+'"')}`).then(r=>r.json());
-    const id=found.messages?.[0]?.ID;
-    if(id)return fetch(`${api}/message/${encodeURIComponent(id)}`).then(r=>r.json());
+    const id=await newestLetterId(stand,to);
+    if(id&&id!==previous)return fetch(`${api}/message/${encodeURIComponent(id)}`).then(r=>r.json());
     await new Promise(resolveWait=>setTimeout(resolveWait,250));
   }
   throw Error('No letter reached the local mail relay for '+to);

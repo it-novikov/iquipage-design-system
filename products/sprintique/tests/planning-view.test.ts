@@ -94,6 +94,9 @@ test('V07 task form creation in a release and full edit commit content and plann
 });
 test('V08 failed task-plan audit rolls back task creation, number, tag and receipt together',async()=>{
   const preview=await view('preview',{kind:'taskCreate',taskId:'form-rollback',task:TaskInput.parse({title:'Нельзя создать частично'})});
+  // A new task lists every line of its placement and content, as the previous backend did.
+  const described=(preview.changes as {description:string}[]).find(change=>change.description.startsWith('Создать задачу'))!.description;
+  for(const line of ['Релиз: Бэклог','План: без начала — без окончания','Дедлайн: не задан','Исполнитель: не назначен','Теги: 0'])assert.ok(described.includes(line),described);
   const [planId,token]=preview.token.split('.'),before=(await f.admin.query('SELECT next_task_number FROM app.projects WHERE id=$1',[f.first.id])).rows[0];
   await f.admin.query(`CREATE FUNCTION public.view_test_fail() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF NEW.resource_id='form-rollback' THEN RAISE EXCEPTION 'synthetic'; END IF; RETURN NEW; END $$; CREATE TRIGGER view_test_fail BEFORE INSERT ON app.audit_events FOR EACH ROW EXECUTE FUNCTION public.view_test_fail()`);
   try{assert.equal((await request('planning/commands',{planId,token})).statusCode,503);}finally{await f.admin.query('DROP TRIGGER view_test_fail ON app.audit_events; DROP FUNCTION public.view_test_fail()');}
