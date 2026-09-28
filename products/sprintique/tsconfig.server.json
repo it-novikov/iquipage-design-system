@@ -1,6 +1,0 @@
-{
-  "extends": "./tsconfig.json",
-  "compilerOptions": {"noEmit": false, "outDir": "build", "rootDir": ".", "sourceMap": true},
-  "include": ["backend/**/*.ts", "contracts/**/*.ts"],
-  "exclude": ["tests", "web", "ui"]
-}
