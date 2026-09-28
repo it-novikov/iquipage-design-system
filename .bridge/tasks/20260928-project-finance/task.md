@@ -1,0 +1,140 @@
+---
+bridge: 1
+id: 20260928-project-finance
+title: "Финансы проекта: журнал операций"
+status: active
+risk: high
+owner: it-novikov
+branch: feature/project-finance
+base: main
+created: 2026-09-28
+updated: 2026-09-28T22:54:12Z
+links:
+---
+
+# Финансы проекта: журнал операций
+
+## Цель
+
+В Sprintique vNext нет учёта денег проекта, хотя в пилоте (sprintique.jarnee.com) им пользовались: у проекта были доходы и расходы, аннулирование с причиной и история версий, и эти данные нужно перенести. Нужен модуль «Финансы» — журнал операций проекта с планом и фактом, итогами по валютам и неизменяемой историей, на том же Kotlin-бэкенде, в тех же правилах прав, RLS, ревизий, идемпотентности и аудита, и раздел «Финансы» в интерфейсе на компонентах IQUIPAGE.
+
+Результат: миграция, API (OpenAPI и Zod-контракты), серверные и HTTP-тесты, раздел в интерфейсе (обе темы, 390px), документация схемы для импортёра пилотных данных (6 операций в 2 проектах) и PR в main.
+
+## Рамки
+
+- **Входит:**
+  - Журнал операций проекта: доход/расход; состояния planned → posted → voided (planned — ожидается к дате, проведение ставит фактическую дату и сумму, аннулирование требует причины и окончательно); сумма в минимальных единицах + ISO-валюта (валюта проекта по умолчанию RUB, у операции может быть своя), дата, категория, контрагент, описание, необязательное основание (reference).
+  - История версий каждой операции (неизменяемые версии), сводка проекта по валютам: проведённые доходы и расходы, баланс, запланированные доходы и расходы, разрезы по месяцам и категориям.
+  - Настройка «валюта проекта».
+  - Права: чтение — люди-участники проекта, изменение — администраторы проекта; агентам финансы недоступны.
+  - Раздел «Финансы» проекта в веб-интерфейсе на DS-компонентах.
+- **Не входит:** счета (accounts), переводы, гипотезы, сценарии, курсы валют и пересчёт, бюджеты по категориям (необязательная часть — по решению D-ниже), импорт пилотных данных (отдельный импортёр), экспорт, вложения к операциям, изменения DS.
+- **Ограничения:**
+  - Только новая миграция `V20260929000025__add_project_finance.sql`; применённые миграции не меняются. jOOQ перегенерировать `node scripts/test.mjs --jooq`.
+  - Runtime-роль без владения и BYPASSRLS; RLS на всех новых таблицах; версии — только INSERT.
+  - UI только на публичных классах и токенах DS (`npm run check:styles`); DS-пробелы записываются, а не закрываются продуктовым CSS.
+  - Не трогать данные стенда, `output/infra/*` и чужие Docker-ресурсы; Docker — только контекст `colima-sprintique-vnext-qa`.
+
+## Приёмка
+
+- [ ] A1. Схема: миграция 025 применяется с нуля; finance_settings, finance_entry, finance_entry_version с проверками и RLS (чтение — люди-участники, запись — администраторы проекта), версии только добавляются; откат миграции проверен
+- [ ] A2. API: список, чтение, создание/изменение, проведение, аннулирование, история, сводка, валюта проекта; baseRevision (CAS), Idempotency-Key, аудит и outbox в одной транзакции; OpenAPI и Zod-контракты совпадают
+- [ ] A3. Правила: аннулирование только с причиной и окончательно, аннулированная операция неизменяема, проведение ставит фактическую дату, возврата в план нет; нарушения отвечают 409/422 и данные не меняют
+- [ ] A4. Права: читатель и редактор видят финансы, но не меняют (403); администратор меняет; агент и чужой проект получают отказ; события финансов не уходят агентам
+- [ ] A5. Сводка: итоги по валютам без аннулированных, проведённое и запланированное раздельно, разрезы по месяцам и категориям, суммы точные (целые минимальные единицы)
+- [ ] A6. UI: раздел «Финансы» на DS: журнал, создание, проведение, аннулирование, история, валюта проекта, пустые состояния, режим «только просмотр»; обе темы и 390px проверены в браузере; check:styles PASS
+- [ ] A7. Гейты: npm test с S3, Kotlin unit и integration, корневой verify-vnext.mjs — зелёные
+- [ ] A8. Передача: docs/finance.md, ADR и описание PR называют точные таблицы, колонки, ограничения и API для импортёра пилота; PR в main открыт
+
+## Передача
+
+- **Состояние:** S1–S2 готовы; сервер S3 написан: ./gradlew check зелёный, HTTP finance.test.ts 9/9
+- **Сейчас:** S3/S4 — коммиты сервера
+- **Дальше:** Интерфейс «Финансы» (S5)
+- **Незакоммичено:** нет
+- **Рабочая копия:** 30 файл(ов): products/sprintique/scripts/export-contracts.ts, products/sprintique/server/src/generated/jooq/com/sprintique/database/schema/app/App.kt, products/sprintique/server/src/generated/jooq/com/sprintique/database/schema/app/indexes/Indexes.kt, products/sprintique/server/src/generated/jooq/com/sprintique/database/schema/app/keys/Keys.kt, products/sprintique/server/src/generated/jooq/com/sprintique/database/schema/app/tables/Projects.kt, products/sprintique/server/src/generated/jooq/com/sprintique/database/schema/app/tables/references/Tables.kt, products/sprintique/server/src/generated/jooq/com/sprintique/database/schema/auth/routines/references/Routines.kt, products/sprintique/server/src/generated/jooq/com/sprintique/database/schema/auth/tables/Principals.kt, products/sprintique/server/src/main/kotlin/com/sprintique/apidoc/ApiDocumentation.kt, products/sprintique/server/src/main/kotlin/com/sprintique/event/application/ProjectEvents.kt, products/sprintique/server/src/main/kotlin/com/sprintique/identity/application/ProjectAccess.kt, products/sprintique/server/src/main/kotlin/com/sprintique/identity/domain/Actor.kt и ещё 18 (14 files changed, 1379 insertions(+), 25 deletions(-)) · HEAD 0bdd515
+- **Ловушки:**
+  - TEST_S3_CONFIG лежит в /Users/nvkv71/iquipage-work/ux-ds-20260925/products/sprintique/output/infra/storage.json, а не в ux-ds-20260925/output/infra (там только vps.json и migration-*)
+  - Системный node — v26; engines требует 24: PATH=/opt/homebrew/opt/node@24/bin:$PATH
+
+## План
+
+### S1. Проработка и ADR [done]
+- **Что:** Ответы на чек-лист 4.2, ADR 0003 о модели данных, правах и истории
+- **Как:** docs/decisions/0003-project-finance.md; решения в карточке
+- **Зачем:** high-риск: решения о схеме и правах должны быть проверяемы
+- **Приёмка:**
+  - [x] ADR записан, проработка в карточке, открытых вопросов нет
+- **Покрывает:** A1,A2,A4
+- **Итог:** ADR products/sprintique/docs/decisions/0003-project-finance.md; проработка 4.2 в «Контексте»; решения D1–D7
+
+### S2. Миграция, RLS, jOOQ [done]
+- **Что:** V20260929000025__add_project_finance.sql, afterMigrate, функции auth.can_read_finance/can_manage_finance, триггеры версий и охраны, перегенерированный jOOQ
+- **Как:** SQL по образцу 007/009/019/020; node scripts/test.mjs --jooq
+- **Зачем:** Данные и права — основа модуля
+- **Приёмка:**
+  - [x] Миграция применяется с нуля, jOOQ drift-тест зелёный, откат проверен интеграционным тестом
+- **Покрывает:** A1
+- **Итог:** V20260929000025__add_project_finance.sql применена с нуля (--jooq и --kotlin-only); jOOQ drift зелёный; FinanceLedgerIntegrationTest 3/3 (триггеры для роли владельца, RLS по ролям, откат в транзакции); интеграционные 24/24
+
+### S3. Сервер: контракты и сценарии [todo]
+- **Что:** contracts/finance.ts, пакет com.sprintique.finance (domain/application/api), Capability, фильтр событий, OpenAPI
+- **Как:** Zod → npm run contracts; Kotlin-контракты @Schema; CommandLedger, AuditTrail, ProjectAccess
+- **Зачем:** API для UI и импортёра
+- **Приёмка:**
+  - [ ] ./gradlew check зелёный, ContractParityTest включает новые контракты
+- **Покрывает:** A2,A3,A4,A5
+
+### S4. Тесты [todo]
+- **Что:** Unit на правила, интеграционные на RLS/триггеры/откат, HTTP-сценарии finance.test.ts
+- **Как:** tests/finance.test.ts по образцу project-profile/membership; server/src/test, src/integrationTest
+- **Зачем:** Права, конкурентность и повторы должны быть доказаны
+- **Приёмка:**
+  - [ ] Новые тесты зелёные и покрывают права, CAS, идемпотентность, неизменяемость, сводку
+- **Покрывает:** A3,A4,A5,A7
+
+### S5. Интерфейс «Финансы» [todo]
+- **Что:** Раздел проекта: сводка, журнал, диалоги операции, проведения, аннулирования, истории, валюты
+- **Как:** ui/finance/src/*, навигация и main.js; DS-классы; проверка в браузере на локальном стенде
+- **Зачем:** Пользователь работает с финансами в продукте
+- **Приёмка:**
+  - [ ] Сценарии проходят в браузере в светлой и тёмной теме и на 390px; check:styles PASS
+- **Покрывает:** A6
+
+### S6. Документация, гейты, PR [todo]
+- **Что:** docs/finance.md, README, полный npm test, verify-vnext.mjs, PR в main
+- **Как:** gh pr create; описание на русском с таблицами и API
+- **Зачем:** Передача владельцу и импортёру
+- **Приёмка:**
+  - [ ] Все гейты зелёные, PR открыт, карточка в review
+- **Покрывает:** A7,A8
+
+## Решения
+
+- **D1** (2026-09-28) Права: читают люди-участники проекта (reader/editor/admin), меняют только администраторы проекта; агентам и администраторам пространства без участия финансы недоступны; то же в RLS (auth.can_read_finance/can_manage_finance) — финансы чувствительны, в модели ролей есть администратор проекта
+- **D2** (2026-09-28) История пишется триггером БД в finance_entry_version на каждый INSERT/UPDATE, второй триггер держит переходы и неизменяемость аннулированных — чтобы историю не обошёл ни один писатель, включая SQL-импорт пилота
+- **D3** (2026-09-28) Итоги не хранятся: сводка — SQL-агрегат при чтении; суммы в сводке — десятичные строки минимальных единиц (точны за 2^53), сумма операции — целое ≤ 10^15−1
+- **D4** (2026-09-28) Удаления нет: ошибки исправляются правкой или аннулированием с причиной; возврата posted → planned нет
+- **D5** (2026-09-28) Бюджеты по категориям не входят: необязательная часть не ложится чисто (нужны свои правила план/факт по валютам и отдельный UI) — отдельной задачей
+- **D6** (2026-09-28) Имена: новые таблицы в единственном числе (finance_entry, finance_entry_version) по engineering/conventions/naming.md §12, документ настроек finance_settings как task_settings; ограничения pk_/fk_/ck_/ix_
+- **D7** (2026-09-28) Валюта — только ^[A-Z]{3}$ с обеих сторон (Zod и Kotlin), без справочника и курсов; итоги по каждой валюте отдельно
+
+## Вопросы
+
+Пока нет.
+
+## Контекст
+
+- Продукт: `products/sprintique`; сервер `server/src/main/kotlin/com/sprintique/finance/`; миграция `server/src/main/resources/db/migration/V20260929000025__add_project_finance.sql`; контракты `contracts/finance.ts`; UI `ui/finance/src/`; документация `docs/finance.md`, ADR `docs/decisions/0003-project-finance.md`.
+- Образцы: `catalog/` (PUT с baseRevision + CommandLedger + AuditTrail), `workspace/application/TaskSettings.kt` (настройки на ревизии 0 по умолчанию), `map/application/Maps.kt` (история), `identity/application/ProjectAccess.kt` (права).
+- Node 24: `PATH=/opt/homebrew/opt/node@24/bin:$PATH` (в системе по умолчанию Node 26).
+- Полный гейт: `cd products/sprintique && LC_ALL=C TEST_S3_CONFIG=/Users/nvkv71/iquipage-work/ux-ds-20260925/products/sprintique/output/infra/storage.json npm test`; корень: `LC_ALL=C TEST_S3_CONFIG=… node scripts/verify-vnext.mjs`.
+- jOOQ: `cd products/sprintique && node scripts/test.mjs --jooq`.
+- Проработка (workflow 4.2), подробнее в ADR 0003:
+  1. **Сценарии и роли.** Администратор проекта добавляет доход или расход (сразу проведённый или запланированный), правит, проводит запланированный (фактическая дата и сумма), аннулирует с причиной, меняет валюту проекта. Участники читают журнал, сводку и историю. Пограничные: правка аннулированной, повторное проведение, смена состояния через правку, плановая без даты, дата вне 1900–2999, лимит 100 000 операций.
+  2. **Данные и доступ.** Суммы — целые минимальные единицы; валюта — ISO-код; тексты обрезаются и ограничены (категория 80, описание 500, контрагент и основание 160, причина 300). Чтение — люди-участники, запись — администраторы; RLS повторяет правило; агентам и их ленте событий финансы закрыты; история неизменяема.
+  3. **Ошибки, конкуренция, повторы.** Все команды с baseRevision (409 CONFLICT) и Idempotency-Key (повтор — тот же ответ, другое тело — 409 IDEMPOTENCY_CONFLICT); запись под блокировкой проекта; правила — 409 FINANCE_*, контракт — 400, даты — 422 FINANCE_DATE. Триггер — последняя линия для любого писателя.
+  4. **Лимиты и нагрузка.** Страница журнала до 100 (keyset по entry_date, id), история по 50, сводка — агрегат с индексом, разрезы ≤ 240 месяцев и ≤ 200 категорий с флагом truncated; 100 000 операций на проект.
+  5. **Зависимости.** Только PostgreSQL; S3, почта и внешние сервисы не нужны. Отказ БД — общий 5xx/readiness.
+  6. **Миграция и откат.** Одна аддитивная миграция 025 (новые таблицы, функции, триггеры, политики), старые не меняются. Откат — скрипт db/rollback/V20260929000025…, проверенный интеграционным тестом; теряет данные финансов.
+  7. **Альтернативы.** Версии из приложения, хранимые итоги, счета/переводы, numeric-суммы, запись редакторам, удаление — отклонены (ADR 0003).
