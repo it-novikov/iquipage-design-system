@@ -1452,7 +1452,7 @@ iq-remote-combobox,iq-tag-input{display:block;width:100%;min-width:0}
 .iq-pro-state>p{max-width:420px;color:var(--iq-muted);font-size:14px}
 .iq-pro-state>h3{font-size:20px}
 .iq-pro-state-icon{display:grid;place-items:center;width:48px;height:48px;border-radius:13px;background:var(--iq-surface);color:var(--iq-muted);margin-bottom:4px}
-.iq-pro-state.is-error .iq-pro-state-icon{background:var(--iq-warning-bg);color:var(--iq-on-warning)}
+.iq-pro-state.is-error .iq-pro-state-icon{background:var(--iq-warning-fill);color:var(--iq-on-warning)}
 .iq-pro-state.is-error>h3{color:var(--iq-danger)}
 .iq-pro-inspector{display:flex;flex-direction:column;gap:16px;min-width:0;padding:22px 24px;background:var(--iq-surface);border-top:1px solid var(--iq-line)}
 .iq-pro-inspector-title{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}

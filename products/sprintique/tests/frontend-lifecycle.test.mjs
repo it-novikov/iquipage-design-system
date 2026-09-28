@@ -148,10 +148,26 @@ test('calendar entries carry card facts, never raw entity ids or title suffixes'
   const [entry]=calendarProjection([{id:'task:spq-login-bug',entityId:'spq-login-bug',entityKind:'task',title:'SPQ-4 · Ошибка',deadline:'2026-09-28',status:'review',card:{key:'SPQ-4',name:'Ошибка',type:'bug',priority:'high',owner:'Борис Петров'}}]);
   assert.equal(entry.title,'Ошибка');assert.equal(entry.key,'SPQ-4');assert.equal(entry.kind,'deadline');assert.equal(entry.owner,'Борис Петров');assert.equal(entry.priority,'high');
 });
-test('planning tree marks the last child of each sibling run',async()=>{
-  const {lastChildren}=await import('../ui/planning/src/markup.js');
-  const rows=[{id:'a',depth:0},{id:'b',depth:1},{id:'c',depth:2},{id:'d',depth:1},{id:'e',depth:0}];
-  assert.deepEqual([...lastChildren(rows)].sort(),['c','d']);
+test('planning due dates read red when late, amber today or tomorrow, plain when done',async()=>{
+  const {dueTone}=await import('../ui/planning/src/markup.js');
+  assert.equal(dueTone('2026-09-27',false,'2026-09-28'),'danger');assert.equal(dueTone('2026-09-28',false,'2026-09-28'),'warning');assert.equal(dueTone('2026-09-29',false,'2026-09-28'),'warning');
+  assert.equal(dueTone('2026-09-30',false,'2026-09-28'),'');assert.equal(dueTone('2026-09-01',true,'2026-09-28'),'');assert.equal(dueTone(null,false,'2026-09-28'),'');
+});
+test('planning parent rows name subtasks as done out of total, and only the total for older servers',async()=>{
+  const {subtaskSummary}=await import('../ui/planning/src/markup.js');
+  assert.equal(subtaskSummary({childrenCount:0}),'');
+  assert.match(subtaskSummary({childrenCount:3,doneChildrenCount:1}),/готово 1 из 3/);assert.match(subtaskSummary({childrenCount:3,doneChildrenCount:1}),/<b>1<\/b> из 3/);
+  assert.match(subtaskSummary({childrenCount:2}),/2 подзадачи/);
+});
+test('planning row shows the one signal, the tinted due date and names a parent from another release',async()=>{
+  const {rowMarkup}=await import('../ui/planning/src/markup.js');
+  const base={id:'g/t',taskId:'t',key:'SPQ-1',title:'Задача',type:'task',priority:'normal',preparation:'ready',statusLabel:'В работе',ownerId:'',ownerLabel:'',dueValue:null,depth:0,childrenCount:0,contextOnly:false,selectable:true};
+  const plain=rowMarkup(base,'g',false,true,true);
+  assert.doesNotMatch(plain,/pn-signal/);assert.match(plain,/data-work-drag="t"/);assert.match(plain,/data-empty="true"/);
+  const late=rowMarkup({...base,priority:'critical',dueValue:'2000-01-01',parentContext:'SPQ-9',parentTitle:'Эпик'},'g',false,false,false);
+  assert.match(late,/task-signal-copy/);assert.match(late,/data-tone="danger"/);assert.match(late,/Часть: Эпик/);assert.doesNotMatch(late,/data-work-drag/);
+  assert.match(rowMarkup({...base,done:true,dueValue:'2000-01-01'},'g',false,false,false),/pn-done/);
+  assert.doesNotMatch(rowMarkup({...base,done:true,dueValue:'2000-01-01'},'g',false,false,false),/data-tone/);
 });
 test('loading markup is one DS skeleton look that stays hidden while loads are fast',async()=>{
   const {loadingMarkup}=await import('../ui/src/loading.js');

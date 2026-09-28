@@ -122,6 +122,8 @@ class PlanningView(private val json: JsonMapper, private val support: ViewSuppor
             "total" to members.size,
             "matched" to matched,
             "done" to members.count(::isDone),
+            "drafts" to members.count { it.preparation == "draft" },
+            "unassigned" to members.count { it.ownerId == null && it.legacyOwner.isEmpty() && !isDone(it) },
             "dateLabel" to (release?.let(::dateLabel) ?: ""),
             "formatLabel" to when (release?.format) {
                 null -> ""
@@ -160,12 +162,17 @@ class PlanningView(private val json: JsonMapper, private val support: ViewSuppor
         val filters = query.filters()
         val matched = support.matches(filters, members, c.state.releases)
         val childCounts = HashMap<String, Int>()
-        for (row in members) row.parentId?.let { childCounts.merge(it, 1, Int::plus) }
+        val doneChildCounts = HashMap<String, Int>()
+        for (row in members) {
+            row.parentId?.let { childCounts.merge(it, 1, Int::plus) }
+            if (isDone(row)) row.parentId?.let { doneChildCounts.merge(it, 1, Int::plus) }
+        }
         val scope = RowScope(
             groupId = query.groupId,
             matched = matched,
             memberIds = members.mapTo(HashSet(), PlanningRow::id),
             childCounts = childCounts,
+            doneChildCounts = doneChildCounts,
             byId = c.rows.associateBy(PlanningRow::id),
             names = memberNames(c.state),
             editable = c.write && !historical,
@@ -196,6 +203,7 @@ class PlanningView(private val json: JsonMapper, private val support: ViewSuppor
         val matched: Set<String>,
         val memberIds: Set<String>,
         val childCounts: Map<String, Int>,
+        val doneChildCounts: Map<String, Int>,
         val byId: Map<String, PlanningRow>,
         val names: Map<String, String>,
         val editable: Boolean,
@@ -220,6 +228,9 @@ class PlanningView(private val json: JsonMapper, private val support: ViewSuppor
         "revision" to row.revision,
         "depth" to depth,
         "childrenCount" to (scope.childCounts[row.id] ?: 0),
+        "doneChildrenCount" to (scope.doneChildCounts[row.id] ?: 0),
+        "done" to isDone(row),
+        "parentTitle" to (row.parentId?.let { scope.byId[it]?.title } ?: ""),
         "contextOnly" to (row.id !in scope.matched),
         "selectable" to (scope.editable && row.result == "open" && row.id in scope.matched),
         "parentContext" to parentContext(row, scope),

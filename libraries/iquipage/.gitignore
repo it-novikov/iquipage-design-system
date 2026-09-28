@@ -7,5 +7,3 @@ node_modules/
 output/
 
 # Generated provider assets are built from the source-owned library.
-keycloak/iquipage/login/resources/css/iquipage.css
-keycloak/iquipage/login/resources/img/mark.svg

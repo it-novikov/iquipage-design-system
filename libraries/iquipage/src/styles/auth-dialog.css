@@ -1,5 +1,4 @@
-/* Credential dialog: DS fields inside a DS surface. The Keycloak adapter maps its native inputs to .iq-auth-input,
-   which mirrors .iq-input-shell so both forms look and focus the same. */
+/* Credential dialog: DS fields inside a DS surface. */
 .iq-auth-stage{min-height:100svh;display:grid;place-items:center;padding:var(--iq-space-6);background:var(--iq-surface)}
 iq-auth-dialog{display:block;width:100%;max-width:440px}
 .iq-auth-dialog{width:100%;max-width:440px;margin:auto;background:var(--iq-raised);border:1px solid var(--iq-line);border-radius:var(--iq-radius-lg);padding:var(--iq-space-10);color:var(--iq-ink)}
@@ -17,8 +16,5 @@ iq-auth-dialog{display:block;width:100%;max-width:440px}
 .iq-auth-status{margin:0;font-size:var(--iq-type-label-size);color:var(--iq-muted)}.iq-auth-status:empty{display:none}
 .iq-auth-dialog-footer{margin-top:var(--iq-space-6);font-size:var(--iq-type-label-size);text-align:center;color:var(--iq-muted)}
 .iq-auth-dialog .iq-auth-error{margin:0 0 var(--iq-space-5);padding:0;background:none}
-.iq-auth-input{display:block;width:100%;min-width:0;min-height:44px;padding:11px 13px;font:inherit;color:var(--iq-ink);background:var(--iq-raised);border:1px solid var(--iq-control);border-radius:9px;outline:none;transition:border-color var(--iq-motion-fast) var(--iq-ease),box-shadow var(--iq-motion-fast) var(--iq-ease)}
-.iq-auth-input:focus{border-color:var(--iq-focus);box-shadow:0 0 0 3px var(--iq-accent-soft)}
-.iq-auth-input[aria-invalid=true]{border-color:var(--iq-danger)}
 @media(max-width:480px){.iq-auth-stage{padding:var(--iq-space-4)}.iq-auth-dialog{padding:var(--iq-space-6)}.iq-auth-dialog h1{font-size:var(--iq-type-heading3-size)}}
 .iq-auth-label-row .iq-control-label::after{content:" *";color:var(--iq-muted)}

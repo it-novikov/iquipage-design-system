@@ -1,7 +1,7 @@
 {
   "meta": {
     "name": "IQUIPAGE Design System",
-    "version": "0.6.0-vnext.20",
+    "version": "0.6.0-vnext.21",
     "status": "source-owned-library",
     "basis": "Approved 05.6 foundation; repaired workshop, capture, tooltips, shapes and connections",
     "palette": {
@@ -126,9 +126,9 @@
     "primary": "#1D1D1F",
     "on-primary": "#FFFFFF",
     "success": "#177B5B",
-    "success-bg": "#2CB88A",
+    "success-bg": "#E6F6EF",
     "warning": "#934900",
-    "warning-bg": "#FFB343",
+    "warning-bg": "#FFF3DF",
     "danger": "#D51C38",
     "danger-bg": "#FFF0F2",
     "info": "#175BCD",
@@ -321,9 +321,9 @@
     "primary": "#F4F4F6",
     "on-primary": "#151518",
     "success": "#54CDA0",
-    "success-bg": "#2CB88A",
+    "success-bg": "#10271F",
     "warning": "#FFB343",
-    "warning-bg": "#FFB343",
+    "warning-bg": "#302310",
     "danger": "#FF415C",
     "danger-bg": "#301018",
     "info": "#85BFFF",

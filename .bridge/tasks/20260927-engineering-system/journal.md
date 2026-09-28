@@ -13,3 +13,4 @@
 - 2026-09-27T22:21:35Z · claude-opus-5-5 · note · A4 · критерий приёмки выполнен
 - 2026-09-27T22:21:35Z · claude-opus-5-5 · checkpoint · S6 · дальше: Владелец: ревью PR и слияние в main
 - 2026-09-27T22:21:59Z · claude-opus-5-5 · status · - · review: PR в main
+- 2026-09-28T12:44:52Z · claude-opus-5-5 · status · - · done: PR слит владельцем; принудительно: PR слит в main владельцем

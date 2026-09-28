@@ -1,0 +1,54 @@
+# Журнал 20260928-planning-list-redesign
+
+- 2026-09-28T08:27:14Z · claude · create · - · Раздел «Планирование»: список релизов и задач заново
+- 2026-09-28T08:41:05Z · claude · note · A1 · критерий приёмки: A1. Паритет: все интенты списка доступны как раньше (prepare/unprepare/take, move drag+диалог, reorder, bulk, start, edit/close/cancel/history релиза, выбор по условиям, quick-edit owner/due/priority); V01–V09 planning-view зелёные
+- 2026-09-28T08:41:05Z · claude · note · A2 · критерий приёмки: A2. Клавиатура и семантика: каждый интент строки достижим Tab/Enter, Shift-диапазон, фокус восстанавливается по data-focus, :focus-visible виден, нативная <table>
+- 2026-09-28T08:41:05Z · claude · note · A3 · критерий приёмки: A3. Сигналы в строке видны без hover: приоритет high/critical, тип epic/bug, черновик, просрочка/сегодня, «готово N из M» у родителя; контраст ≥4.5:1 в обеих темах
+- 2026-09-28T08:41:05Z · claude · note · A4 · критерий приёмки: A4. 390px: ключевые поля строки без горизонтального скролла, цели ≥44px, страница скроллится целиком
+- 2026-09-28T08:41:05Z · claude · note · A5 · критерий приёмки: A5. Стиль: npm run check:styles PASS; только публичные классы/токены DS, без color-mix, raw px, inline-стилей
+- 2026-09-28T08:41:05Z · claude · note · A6 · критерий приёмки: A6. Тесты: консьюмерские unit-тесты и npm test зелёные; новые тесты на помощники разметки
+- 2026-09-28T08:41:05Z · claude · note · A7 · критерий приёмки: A7. Производительность: 250+ строк в группе — windowing включается, estimate соответствует высоте строки, скролл без скачков
+- 2026-09-28T08:41:05Z · claude · note · A8 · критерий приёмки: A8. Совместимость: UI работает с сервером без новых полей проекции
+- 2026-09-28T08:41:05Z · claude · note · S1 · добавлен шаг: Бриф и рамки
+- 2026-09-28T08:41:05Z · claude · note · S2 · добавлен шаг: Проекция: additive-поля
+- 2026-09-28T08:41:05Z · claude · note · S3 · добавлен шаг: Список заново
+- 2026-09-28T08:41:05Z · claude · note · S4 · добавлен шаг: Проверки
+- 2026-09-28T08:41:05Z · claude · decision · D1 · Контейнеры — секции на канве, не карточки — принцип DS «Ритм сильнее оболочки. Не каждому элементу нужна карточка» и мнение арт-директора; состояние передаёт бейдж, не рамка и не фон
+- 2026-09-28T08:41:05Z · claude · decision · D2 · Подзадачи — отступ без линий и заливок, родитель показывает «готово N из M» — язык доски и iq-relation-map; линии рвутся на страницах и windowing
+- 2026-09-28T08:41:06Z · claude · decision · D3 · DS-GAP: .iq-badge.soft.warning и .soft.success нечитаемы (--iq-warning-bg/--iq-success-bg равны fill), в тёмной теме текст исчезает — продукт временно переопределяет эти две пары токенами --iq-tag-amber/-green, DS нужно исправить в следующей версии
+- 2026-09-28T08:41:06Z · claude · decision · D4 · Быстрые правки остаются диалогами preview/commit (добавлен приоритет); поповеры — отдельная задача, чтобы не менять контракт операций
+- 2026-09-28T08:41:06Z · claude · claim · - · взял задачу
+- 2026-09-28T08:41:06Z · claude · step · S1 · active
+- 2026-09-28T08:42:01Z · claude · note · S5 · добавлен шаг: Документация и PR
+- 2026-09-28T08:56:25Z · claude · step · S1 · done: reviews/UX.md, AD.md, PM.md, DS.md и 4 снимка «до» в карточке; решения 1–4 записаны
+- 2026-09-28T08:56:25Z · claude · step · S2 · active
+- 2026-09-28T08:56:25Z · claude · step · S2 · done: PlanningView.kt: done, doneChildrenCount, parentTitle (строка), drafts, unassigned (группа); assert в V01; ktlint, detekt, compileKotlin зелёные
+- 2026-09-28T08:56:25Z · claude · step · S3 · active
+- 2026-09-28T08:56:25Z · claude · step · S3 · done: markup.js, group-header.js, planning.css, index.js, model.js переписаны; check:styles PASS; 44/44 unit; стенд 4341: выделение диапазоном, drag за ручку → диалог состава, раскрытие эпика, quick-edit срока; снимки после в reviews/
+- 2026-09-28T08:56:25Z · claude · step · S4 · active
+- 2026-09-28T08:56:25Z · claude · decision · D5 · Быстрая правка приоритета в строке не добавлена: в строке нет колонки приоритета, а для выделения уже есть «Изменить приоритет» в панели — иначе появилась бы третья точка входа без места
+- 2026-09-28T08:56:25Z · claude · checkpoint · S4 · дальше: Дождаться http-tests.log, закоммитить сервер/UI/доки тремя коммитами, открыть черновой PR на feature/kotlin-backend
+- 2026-09-28T08:57:52Z · claude · step · S4 · done: check:styles PASS; unit 44/44; HTTP planning-view + planning 77/77 против Kotlin; ktlint/detekt/compileKotlin зелёные; 254 строки: 18–19 в DOM, кадр 11 мс; снимки светлая/тёмная/390px в reviews/
+- 2026-09-28T08:57:52Z · claude · note · A1 · критерий приёмки выполнен
+- 2026-09-28T08:57:52Z · claude · note · A2 · критерий приёмки выполнен
+- 2026-09-28T08:57:52Z · claude · note · A3 · критерий приёмки выполнен
+- 2026-09-28T08:57:52Z · claude · note · A4 · критерий приёмки выполнен
+- 2026-09-28T08:57:52Z · claude · note · A5 · критерий приёмки выполнен
+- 2026-09-28T08:57:52Z · claude · note · A7 · критерий приёмки выполнен
+- 2026-09-28T08:57:52Z · claude · note · A8 · критерий приёмки выполнен
+- 2026-09-28T08:57:52Z · claude · note · - · A6 закрыт частично: unit и HTTP-наборы планирования зелёные, полный npm test (Kotlin integration, S3) в этой сессии не запускался
+- 2026-09-28T08:57:52Z · claude · step · S5 · active
+- 2026-09-28T08:58:40Z · claude · step · S5 · done: PR #19 (draft) на feature/kotlin-backend: https://github.com/it-novikov/iquipage-design-system/pull/19; ux-ds-alignment.md дополнен
+- 2026-09-28T08:58:40Z · claude · checkpoint · - · дальше: Владелец решает: запустить полный npm test и открыть DS-GAP по .iq-badge.soft.warning/.success в libraries/iquipage
+- 2026-09-28T08:58:40Z · claude · status · - · review: Все шаги готовы, A6 частично (полный npm test не запускался)
+- 2026-09-28T08:58:40Z · claude · handoff · - · planned; HEAD 5b8a797; незакоммичено 0; Полный гейт npm test и DS-GAP — на решение владельца
+- 2026-09-28T12:44:51Z · claude-opus-5-5 · claim · - · принудительно: Владелец поручил доделать PR #19 после слияния #17 (2026-09-28)
+- 2026-09-28T12:44:51Z · claude-opus-5-5 · status · - · active
+- 2026-09-28T12:44:51Z · claude-opus-5-5 · note · S6 · добавлен шаг: DS-GAP в DS и полный гейт
+- 2026-09-28T12:44:51Z · claude-opus-5-5 · step · S6 · active
+- 2026-09-28T12:44:51Z · claude-opus-5-5 · step · S6 · done: DS 0.6.0-vnext.21 (ed157a2): тинты success/warning ≥4.5:1 в обеих темах, контрактный тест vnext21, Keycloak-тема удалена; продукт на vnext.21 без переопределения (efd9d11), проверено в браузере на 4341 в светлой и тёмной теме. npm test 192/192, интеграционные 21/21 без пропусков (integrationTest больше не берёт устаревший результат).
+- 2026-09-28T12:44:51Z · claude-opus-5-5 · note · A6 · критерий приёмки выполнен
+- 2026-09-28T12:44:51Z · claude-opus-5-5 · decision · D6 · D3 закрыто: DS-GAP исправлен в DS vnext.21, переопределение в продукте удалено — продукт использует бейджи DS как есть
+- 2026-09-28T12:44:51Z · claude-opus-5-5 · checkpoint · - · дальше: После слияния: карточка в done
+- 2026-09-28T12:44:51Z · claude-opus-5-5 · status · - · review: PR #19 готов к слиянию
+- 2026-09-28T12:53:23Z · claude-opus-5-5 · note · - · verify-vnext на ветке #19: все этапы PASS, включая отделяемый продукт (output/verification/2026-09-28T12-45-20.399Z).

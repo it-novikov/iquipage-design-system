@@ -13,10 +13,18 @@ Consumers import `@iquipage/web/core`, `/advanced`, `/whiteboard` and `/styles.c
 type scale, mark and buttons. See [integration and design contract](docs/authentication.md)
 and [interactive example](examples/authentication.html) after `npm run build`.
 
-For actual credential entry use `iq-auth-dialog` (0.6.0-vnext.10). The same release includes
-the native `keycloak/iquipage` theme so OIDC products can present the form at the identity
-provider without collecting passwords in the application. The interactive authentication
-example now demonstrates the form, not just a provider redirect.
+For actual credential entry use `iq-auth-dialog` (0.6.0-vnext.10). The interactive authentication
+example demonstrates the form, not just a provider redirect. The Keycloak login theme that
+shipped from vnext.9 to vnext.20 was removed in vnext.21: no product uses an external
+identity provider's form any more.
+
+## Readable soft success and warning (0.6.0-vnext.21)
+
+`--iq-success-bg` and `--iq-warning-bg` are now pale tints like `--iq-danger-bg` and `--iq-info-bg`
+(they were the saturated fills, so `.iq-badge.soft.success/.warning`, alert emblems and toast
+icons lost their text, worst in the dark theme). The saturated colours stay available as
+`--iq-success-fill` and `--iq-warning-fill`; `.iq-pro-state.is-error` uses the fill. Text on the
+tints keeps at least 4.5:1 in both themes. The Keycloak theme is gone from the package.
 
 ## Drawer motion, unread counts and arrowheads (0.6.0-vnext.20)
 
