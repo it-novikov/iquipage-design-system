@@ -1,0 +1,63 @@
+import {parseFrontmatter, splitFrontmatter} from './frontmatter.mjs';
+
+export const VERDICTS = ['pending', 'approve', 'changes-requested'];
+const FINDING = /^- \*\*F(\d+)\*\* \[(P[0-3])\] (.*)$/;
+const RESOLUTION = /^ {2}Решение: \[(open|fixed|deferred|rejected|waived)\b[^\]]*\]/;
+
+export function parseReview(text) {
+  const {raw, body} = splitFrontmatter(text.replace(/\r\n/g, '\n'));
+  const meta = raw === null ? {} : parseFrontmatter(raw).data;
+  const findings = [];
+  let current = null;
+  for (const line of body.split('\n')) {
+    const match = FINDING.exec(line);
+    if (match) {
+      current = {id: `F${match[1]}`, priority: match[2], text: match[3], resolution: null, resolutionText: ''};
+      findings.push(current);
+      continue;
+    }
+    const resolution = current && RESOLUTION.exec(line);
+    if (resolution) {
+      current.resolution = resolution[1];
+      current.resolutionText = line.trim().replace(/^Решение: /, '');
+    }
+    else if (!line.startsWith('  ')) current = null;
+  }
+  return {meta, findings};
+}
+
+/** A finding without an explicit resolution counts as open. */
+export const isOpen = finding => finding.resolution === null || finding.resolution === 'open';
+
+/**
+ * What stops a task from closing. P0 and P1 must be fixed; the owner may waive one (`[waived …]`). A rejected P0/P1
+ * waits for the owner's decision. A P1 may be deferred to another task that blocks the same release; a P0 never.
+ */
+export function isBlocking(finding) {
+  if (finding.priority !== 'P0' && finding.priority !== 'P1') return false;
+  if (isOpen(finding) || finding.resolution === 'rejected') return true;
+  return finding.priority === 'P0' && finding.resolution === 'deferred';
+}
+
+export function reviewTemplate({id, task, reviewer, round, base, head, created}) {
+  return `---
+bridge-review: 1
+id: ${id}
+task: ${task}
+reviewer: ${reviewer}
+round: ${round}
+base: ${base}
+head: ${head}
+created: ${created}
+verdict: pending
+---
+# Ревью ${id}
+
+## Замечания
+
+## Итог
+- **Вердикт:** pending
+- **Проверено:**
+- **Не проверено:**
+`;
+}

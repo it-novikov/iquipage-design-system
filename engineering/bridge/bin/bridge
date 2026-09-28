@@ -1,0 +1,14 @@
+#!/usr/bin/env node
+import {main} from '../src/cli.mjs';
+import {BridgeError} from '../src/errors.mjs';
+
+try {
+  await main(process.argv.slice(2));
+} catch (error) {
+  if (error instanceof BridgeError || error?.code === 'ERR_PARSE_ARGS_UNKNOWN_OPTION' || error?.code === 'ERR_PARSE_ARGS_INVALID_OPTION_VALUE' || error?.code === 'ERR_PARSE_ARGS_UNEXPECTED_POSITIONAL') {
+    process.stderr.write(`bridge: ${error.message}\n`);
+    process.exitCode = error.exitCode ?? 1;
+  } else {
+    throw error;
+  }
+}
