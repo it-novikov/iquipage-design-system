@@ -2,13 +2,13 @@
 bridge: 1
 id: 20260928-repo-cleanup
 title: Репозиторий без исторического хлама
-status: active
+status: review
 risk: standard
 owner: it-novikov
 branch: chore/repo-cleanup
 base: main
 created: 2026-09-28
-updated: 2026-09-28T12:49:14Z
+updated: 2026-09-28T14:46:59Z
 links:
 ---
 
@@ -26,8 +26,8 @@ links:
 
 ## Приёмка
 
-- [ ] A1. В репозитории нет исторических поставок, модулей и отчётов, на которые не ссылается живой код; README, AGENTS.md и границы описывают текущее состояние
-- [ ] A2. Полный гейт verify-vnext и тесты продукта зелёные после удаления
+- [x] A1. В репозитории нет исторических поставок, модулей и отчётов, на которые не ссылается живой код; README, AGENTS.md и границы описывают текущее состояние
+- [x] A2. Полный гейт verify-vnext и тесты продукта зелёные после удаления
 
 ## Передача
 
@@ -46,13 +46,14 @@ links:
 - **Покрывает:** A1
 - **Итог:** Удалены design-system/ (поставка 05.7), design-system.zip, packages/ (maps, planning, work-list), deliveries/, docs/vnext (BOUNDARIES.md → docs/BOUNDARIES.md), docs/board, docs/experience-r2, docs/experience-r3, scripts/materialize-vnext.mjs, CI maps.yml и planning.yml, продуктовый frontend-audit-r4.md; README, AGENTS.md, BOUNDARIES — по текущему состоянию; stand-config без identity.json, упоминания Keycloak убраны. git grep ссылок не находит.
 
-### S2. Гейт [active]
+### S2. Гейт [done]
 - **Что:** verify-vnext и тесты продукта
 - **Как:** scripts/verify-vnext.mjs с TEST_S3_CONFIG
 - **Зачем:** Удаление не должно сломать сборку и проверки
 - **Приёмка:**
-  - [ ] verify-vnext PASS
+  - [x] verify-vnext PASS
 - **Покрывает:** A2
+- **Итог:** verify-vnext: все этапы PASS, включая отделяемый продукт; npm test 190/190. Наблюдение: в первом прогоне tests/membership.test.ts (I01) завис на 70 минут без серверного процесса; отдельный прогон набора и повтор всего гейта прошли — не воспроизводится.
 - **Зависит от:** S1
 
 ## Решения

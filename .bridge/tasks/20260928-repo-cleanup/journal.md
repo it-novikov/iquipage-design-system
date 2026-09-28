@@ -10,3 +10,8 @@
 - 2026-09-28T12:49:14Z · claude-opus-5-5 · step · S1 · active
 - 2026-09-28T12:49:14Z · claude-opus-5-5 · step · S1 · done: Удалены design-system/ (поставка 05.7), design-system.zip, packages/ (maps, planning, work-list), deliveries/, docs/vnext (BOUNDARIES.md → docs/BOUNDARIES.md), docs/board, docs/experience-r2, docs/experience-r3, scripts/materialize-vnext.mjs, CI maps.yml и planning.yml, продуктовый frontend-audit-r4.md; README, AGENTS.md, BOUNDARIES — по текущему состоянию; stand-config без identity.json, упоминания Keycloak убраны. git grep ссылок не находит.
 - 2026-09-28T12:49:14Z · claude-opus-5-5 · step · S2 · active
+- 2026-09-28T14:46:58Z · claude-opus-5-5 · step · S2 · done: verify-vnext: все этапы PASS, включая отделяемый продукт; npm test 190/190. Наблюдение: в первом прогоне tests/membership.test.ts (I01) завис на 70 минут без серверного процесса; отдельный прогон набора и повтор всего гейта прошли — не воспроизводится.
+- 2026-09-28T14:46:58Z · claude-opus-5-5 · note · A1 · критерий приёмки выполнен
+- 2026-09-28T14:46:58Z · claude-opus-5-5 · note · A2 · критерий приёмки выполнен
+- 2026-09-28T14:46:58Z · claude-opus-5-5 · note · - · Вне репозитория: контейнеры и образ Keycloak, база и роль sprintique_identity, старые образы, 12 устаревших worktree и 7 рабочих папок перенесены в ~/.Trash/iquipage-work-cleanup-20260928; главный клон переименован в iquipage-design-system; залипшие dev-серверы и тесты остановлены. Удаление слитых веток на GitHub не выполнено (запрет разрешений) — за владельцем.
+- 2026-09-28T14:46:59Z · claude-opus-5-5 · status · - · review: PR к слиянию владельцем
