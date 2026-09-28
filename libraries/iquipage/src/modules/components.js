@@ -511,13 +511,35 @@ function notify(options) {
         region.setAttribute('aria-label', 'Уведомления');
         document.body.append(region);
     }
+    // Two permanent, empty live nodes: screen readers announce text written into an existing region, while a region
+    // inserted together with its content is often skipped. Errors go to the alert node, everything else stays polite.
+    const liveNode = (role, live) => {
+        let node = region.querySelector(`.iq-toast-live[role="${role}"]`);
+        if (!node) {
+            node = document.createElement('div');
+            node.className = 'sr-only iq-toast-live';
+            node.setAttribute('role', role);
+            node.setAttribute('aria-live', live);
+            region.append(node);
+        }
+        return node;
+    };
+    const polite = liveNode('status', 'polite');
+    const alert = liveNode('alert', 'assertive');
+    const announcement = [options.message, options.description, options.action?.label].filter(Boolean).join('. ');
+    const live = options.tone === 'danger' ? alert : polite;
+    live.textContent = '';
+    setTimeout(() => { live.textContent = announcement; }, 30); // A cleared then refilled node announces repeated text too.
     const toast = document.createElement('div');
     toast.className = `iq-toast tone-${options.tone || 'info'} ${options.description ? 'has-description' : 'summary-only'}`;
     const glyph = { info: 'info', success: 'checkCircle', warning: 'warning', danger: 'xCircle' }[options.tone || 'info'];
-    toast.innerHTML = `<span class="iq-toast-icon">${icons_js_1.icon(glyph, 21)}</span><div class="iq-toast-copy" role="status"><b>${escapeHTML(options.message)}</b>${options.description ? `<p>${escapeHTML(options.description)}</p>` : ''}</div>${options.action ? `<button type="button" class="iq-toast-action">${escapeHTML(options.action.label)}</button>` : ''}<button type="button" class="iq-btn icon ghost sm" aria-label="Закрыть уведомление">${icons_js_1.icon('x', 16)}</button>`;
+    toast.innerHTML = `<span class="iq-toast-icon">${icons_js_1.icon(glyph, 21)}</span><div class="iq-toast-copy"><b>${escapeHTML(options.message)}</b>${options.description ? `<p>${escapeHTML(options.description)}</p>` : ''}</div>${options.action ? `<button type="button" class="iq-toast-action">${escapeHTML(options.action.label)}</button>` : ''}<button type="button" class="iq-btn icon ghost sm" aria-label="Закрыть уведомление">${icons_js_1.icon('x', 16)}</button>`;
     region.append(toast);
     let timer;
-    let remaining = options.duration ?? 6500;
+    // A toast with an action stays until dismissed (duration 0) unless the caller sets a duration: 6.5 s is not
+    // enough to reach "Undo" by keyboard or with a screen reader.
+    const duration = options.duration ?? (options.action ? 0 : 6500);
+    let remaining = duration;
     let start = Date.now();
     let removed = false;
     const remove = () => {
@@ -530,12 +552,12 @@ function notify(options) {
     };
     const resume = () => {
         clearTimeout(timer);
-        if (removed || toast.matches(':hover') || toast.contains(document.activeElement))
+        if (removed || !duration || toast.matches(':hover') || toast.contains(document.activeElement))
             return;
         start = Date.now();
         timer = setTimeout(remove, remaining);
     };
-    const pause = () => { clearTimeout(timer); remaining = Math.max(500, remaining - (Date.now() - start)); };
+    const pause = () => { clearTimeout(timer); if (duration) remaining = Math.max(500, remaining - (Date.now() - start)); };
     resume();
     toast.addEventListener('pointerenter', pause);
     toast.addEventListener('pointerleave', resume);
