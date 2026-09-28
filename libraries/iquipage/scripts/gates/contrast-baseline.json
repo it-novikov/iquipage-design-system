@@ -9,30 +9,18 @@
   },
   "pairs": 130,
   "evaluated": 320,
-  "failing": 32,
+  "failing": 28,
   "entries": {
-    "light/default/faint / canvas": {
-      "ratio": 2.86,
-      "threshold": 4.5,
-      "fg": "#9898A3",
-      "bg": "#FFFFFF"
-    },
     "light/default/faint / surface": {
-      "ratio": 2.62,
+      "ratio": 4.14,
       "threshold": 4.5,
-      "fg": "#9898A3",
+      "fg": "#75767F",
       "bg": "#F5F5F7"
     },
-    "light/default/faint / raised": {
-      "ratio": 2.86,
-      "threshold": 4.5,
-      "fg": "#9898A3",
-      "bg": "#FFFFFF"
-    },
     "light/default/faint / recessed": {
-      "ratio": 2.43,
+      "ratio": 3.85,
       "threshold": 4.5,
-      "fg": "#9898A3",
+      "fg": "#75767F",
       "bg": "#EBEDF0"
     },
     "light/default/success-fill / canvas (ui)": {
@@ -101,12 +89,6 @@
       "fg": "#DDDFE3",
       "bg": "#FFFFFF"
     },
-    "light/default/placeholder: faint / canvas (inline title)": {
-      "ratio": 2.86,
-      "threshold": 4.5,
-      "fg": "#9898A3",
-      "bg": "#FFFFFF"
-    },
     "light/default/disabled btn.primary: on-primary@45% / primary@45% over canvas": {
       "ratio": 2.84,
       "threshold": 3,
@@ -130,12 +112,6 @@
       "threshold": 3,
       "fg": "#BBBBBC",
       "bg": "#FFFFFF"
-    },
-    "light/default/wb-shape-line / wb-canvas (ui)": {
-      "ratio": 2.34,
-      "threshold": 3,
-      "fg": "#A1A5AE",
-      "bg": "#F8F9FB"
     },
     "light/default/graph-node-border / graph-node (ui)": {
       "ratio": 1.33,

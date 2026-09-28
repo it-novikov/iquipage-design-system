@@ -34,7 +34,7 @@ test('no contrast regression against scripts/gates/contrast-baseline.json', asyn
 test('the gate catches a new failure and a worsened baseline pair', async () => {
   const { computeMatrix, readBaseline, check } = await gate();
   const rows = computeMatrix(), baseline = readBaseline();
-  const passing = rows.find(r => r.pass), failing = rows.find(r => !r.pass && baseline.entries[r.key]);
+  const passing = rows.find(r => r.pass && !baseline.entries[r.key]), failing = rows.find(r => !r.pass && baseline.entries[r.key]);
   const tampered = rows.map(r => r === passing ? { ...r, ratio: 1.2, pass: false } : r === failing ? { ...r, ratio: r.ratio - 0.5 } : r);
   const result = check(tampered, baseline);
   assert.deepEqual(result.newFailures.map(r => r.key), [passing.key]);
