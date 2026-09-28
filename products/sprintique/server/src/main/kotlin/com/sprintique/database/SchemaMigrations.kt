@@ -22,7 +22,8 @@ object SchemaMigrations {
         require(workerRole.isEmpty() || (ROLE_NAME.matches(workerRole) && workerRole != runtimeRole)) {
             "Worker role must be a distinct valid role"
         }
-        Flyway
+        val adopted = PreviousLedger.baselineOf(dataSource)
+        val configuration = Flyway
             .configure(SchemaMigrations::class.java.classLoader)
             .dataSource(dataSource)
             .locations(LOCATION)
@@ -30,8 +31,11 @@ object SchemaMigrations {
             .createSchemas(false)
             .placeholders(mapOf("runtime_role" to runtimeRole, "worker_role" to workerRole))
             .validateMigrationNaming(true)
-            .load()
-            .migrate()
+        if (adopted != null) {
+            log.info("Adopting the previous migration ledger at version {}", adopted)
+            configuration.baselineOnMigrate(true).baselineVersion(adopted).baselineDescription("previous ledger")
+        }
+        configuration.load().migrate()
     }
 
     /** The applied history must equal the shipped migrations: same versions and checksums, none pending. */

@@ -15,6 +15,13 @@ object IntegrationDatabase {
     fun environment(name: String): String =
         System.getenv(name) ?: error("$name is not set: run integration tests through npm test in products/sprintique")
 
+    /** Runs one statement as the cluster superuser on another database of the cluster, outside a transaction. */
+    fun execute(database: String, statement: String) {
+        Database.connect(adminUrl(database), 1, "test-admin-$database").use { admin ->
+            admin.dataSource.connection.use { connection -> connection.createStatement().use { it.execute(statement) } }
+        }
+    }
+
     /** The superuser URL of the cluster pointed at `database`. */
     fun adminUrl(
         database: String,
