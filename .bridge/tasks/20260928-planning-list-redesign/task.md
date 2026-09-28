@@ -2,14 +2,16 @@
 bridge: 1
 id: 20260928-planning-list-redesign
 title: "Раздел «Планирование»: список релизов и задач заново"
-status: active
+status: review
 risk: standard
 owner: it-novikov
 branch: feature/planning-list-redesign
 base: feature/kotlin-backend
 created: 2026-09-28
-updated: 2026-09-28T08:57:52Z
+updated: 2026-09-28T08:58:40Z
 links:
+  - https://github.com/it-novikov/iquipage-design-system/pull/19
+  - https://claude.ai/artifact/LVmWeMMnjeY3p5XiTEkaj5
 ---
 
 # Раздел «Планирование»: список релизов и задач заново
@@ -46,14 +48,15 @@ links:
 
 ## Передача
 
-- **Состояние:** S1–S3 готовы, идут проверки S4
-- **Сейчас:** S4 — HTTP-тесты планирования и unit-тесты; 250 строк: в DOM 18–19 строк при 200 загруженных, кадр прокрутки 11 мс, выделение 200 строк 6 мс
-- **Дальше:** Дождаться http-tests.log, закоммитить сервер/UI/доки тремя коммитами, открыть черновой PR на feature/kotlin-backend
-- **Незакоммичено:** компилируется, unit-тесты зелёные
-- **Рабочая копия:** 9 файл(ов): products/sprintique/docs/ux-ds-alignment.md, products/sprintique/server/src/main/kotlin/com/sprintique/planning/application/PlanningView.kt, products/sprintique/tests/frontend-lifecycle.test.mjs, products/sprintique/tests/planning-view.test.ts, products/sprintique/ui/planning/src/group-header.js, products/sprintique/ui/planning/src/index.js, products/sprintique/ui/planning/src/markup.js, products/sprintique/ui/planning/src/model.js, products/sprintique/ui/planning/src/planning.css (9 files changed, 279 insertions(+), 165 deletions(-)) · HEAD 51f01e6
+- **Состояние:** S1–S5 готовы; PR #19 черновик
+- **Сейчас:** Ожидание ревью владельца
+- **Дальше:** Владелец решает: запустить полный npm test и открыть DS-GAP по .iq-badge.soft.warning/.success в libraries/iquipage
+- **Незакоммичено:** нет
+- **Рабочая копия:** нет · HEAD 5b8a797 · снято 2026-09-28T08:58:40Z
 - **Ловушки:**
   - Стенд после перезапуска сервера теряет сессию браузера: войти заново кнопкой «войти как admin»
   - Playwright для снимков берётся из /Users/nvkv71/Desktop/Skillotheque/Sprintique/node_modules (абсолютный import), скрипт scratchpad/capture.mjs
+- **Причина:** planned — claude, 2026-09-28T08:58:40Z: Полный гейт npm test и DS-GAP — на решение владельца
 
 ## План
 
@@ -93,13 +96,14 @@ links:
 - **Покрывает:** A6,A7
 - **Итог:** check:styles PASS; unit 44/44; HTTP planning-view + planning 77/77 против Kotlin; ktlint/detekt/compileKotlin зелёные; 254 строки: 18–19 в DOM, кадр 11 мс; снимки светлая/тёмная/390px в reviews/
 
-### S5. Документация и PR [active]
+### S5. Документация и PR [done]
 - **Что:** ux-ds-alignment.md, карточка, PR на feature/kotlin-backend
 - **Как:** gh pr create --draft
 - **Зачем:** Передача владельцу
 - **Приёмка:**
-  - [ ] PR открыт, карточка в review
+  - [x] PR открыт, карточка в review
 - **Покрывает:** A1
+- **Итог:** PR #19 (draft) на feature/kotlin-backend: https://github.com/it-novikov/iquipage-design-system/pull/19; ux-ds-alignment.md дополнен
 
 ## Решения
 

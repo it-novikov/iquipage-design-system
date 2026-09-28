@@ -38,3 +38,7 @@
 - 2026-09-28T08:57:52Z · claude · note · A8 · критерий приёмки выполнен
 - 2026-09-28T08:57:52Z · claude · note · - · A6 закрыт частично: unit и HTTP-наборы планирования зелёные, полный npm test (Kotlin integration, S3) в этой сессии не запускался
 - 2026-09-28T08:57:52Z · claude · step · S5 · active
+- 2026-09-28T08:58:40Z · claude · step · S5 · done: PR #19 (draft) на feature/kotlin-backend: https://github.com/it-novikov/iquipage-design-system/pull/19; ux-ds-alignment.md дополнен
+- 2026-09-28T08:58:40Z · claude · checkpoint · - · дальше: Владелец решает: запустить полный npm test и открыть DS-GAP по .iq-badge.soft.warning/.success в libraries/iquipage
+- 2026-09-28T08:58:40Z · claude · status · - · review: Все шаги готовы, A6 частично (полный npm test не запускался)
+- 2026-09-28T08:58:40Z · claude · handoff · - · planned; HEAD 5b8a797; незакоммичено 0; Полный гейт npm test и DS-GAP — на решение владельца
