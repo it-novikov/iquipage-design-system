@@ -68,7 +68,7 @@ Recommended runtime constraints already exercised locally: read-only root filesy
 | Mailpit (SMTP relay) | 127.0.0.1:54325 SMTP, 127.0.0.1:54326 letters API | none: keeps letters in memory, delivers nothing |
 | Garage S3 | 127.0.0.1:4900 | private bucket/owned data volume; no public/admin endpoint |
 
-`npm run local:services` creates and starts PostgreSQL and Mailpit and writes `output/infra/stand.json`. A stand created before sign-in by e-mail kept its settings in `identity.json`; its database credentials and origin are reused, and its Keycloak container and `sprintique_identity` database are no longer used — remove them by hand when nothing refers to them. `output/infra/` is mode 0700; configuration, keys and browser state are mode 0600. The stand signs in by e-mail through the SMTP relay, the way production does; it cannot show Google or Apple, which require their real services and an HTTPS origin.
+`npm run local:services` creates and starts PostgreSQL and Mailpit and writes `output/infra/stand.json`. `output/infra/` is mode 0700; configuration, keys and browser state are mode 0600. The stand signs in by e-mail through the SMTP relay, the way production does; it cannot show Google or Apple, which require their real services and an HTTPS origin.
 
 `npm run local:start` builds the production artifact, applies migrations with the migration role, then starts the API and the restricted worker. SIGINT/SIGTERM stops those children. `node scripts/local-app.mjs --migrate-only` performs only that explicit local migration. It reads generated private config without printing secrets.
 

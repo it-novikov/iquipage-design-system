@@ -1,6 +1,6 @@
 # IQUIPAGE 0.6 changes (0.6.0-vnext.1 → vnext.20)
 
-The 0.6 line is the source-owned library in `libraries/iquipage`. Each release is built, tested and packed here, and the Sprintique product adopts the exact tarball (`products/sprintique/vendor`). Releases are private; nothing is published to a registry. The pinned 05.7 snapshot in `design-system/` is historical and is not edited.
+The 0.6 line is the source-owned library in `libraries/iquipage`. Each release is built, tested and packed here, and the Sprintique product adopts the exact tarball (`products/sprintique/vendor`). Releases are private; nothing is published to a registry.
 
 Release flow: change the source, raise the version in `package.json`, `package-lock.json`, `src/entries/core.js`, `types/core.d.ts`, `tokens/semantic.json` and `PROVENANCE.json`, add a `tests/vnextN.test.cjs` contract, run `npm test` and `npm run build`, then `npm pack --pack-destination ../../products/sprintique/vendor`. The product updates its README checksum, `package.json`, the lockfile `resolved`/`integrity`, `tests/library-contract.ts` and its docs, then runs `npm ci`. A tarball that a merged commit consumes is never rewritten; the next change gets the next version.
 
