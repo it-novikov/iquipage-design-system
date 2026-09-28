@@ -1,5 +1,5 @@
 'use strict';
-const C=require('./advanced-core.js'),{IqDataSurface,button,ib}=require('./advanced-base.js'),{icon}=require('./components.js'),U=require('./ui.js');
+const C=require('./advanced-core.js'),{IqDataSurface,button,ib}=require('./advanced-base.js'),{icon}=require('./components.js'),U=require('./ui.js'),T=require('./time.js');
 const kinds={note:{label:'Заметка',icon:'text'},task:{label:'Задача',icon:'checkCircle'},checklist:{label:'Чек-лист',icon:'checklist'},media:{label:'Материал',icon:'image'},group:{label:'Группа',icon:'folder'}};
 const relations={relates:'Связано с',depends:'Предшествует',supports:'Подтверждает'};
 function descendants(nodes,id){const ids=new Set([id]);let changed=true;while(changed){changed=false;for(const n of nodes)if(n.parentId&&ids.has(n.parentId)&&!ids.has(n.id)){ids.add(n.id);changed=true}}return ids}
@@ -78,7 +78,7 @@ class IqGraph extends IqDataSurface{
      <div class="graph-canvas ${this.panMode?'is-panning':''} ${this.linkFrom?'is-linking':''}" tabindex="0" aria-label="${workflow?'Схема процесса':'Холст идей'}. Стрелки перемещают обзор. Выберите объект для редактирования.">
       <div class="graph-world">${this.edgeSVG(d)}${visible.slice().sort((a,b)=>(a.kind==='group'?-1:0)-(b.kind==='group'?-1:0)).map(n=>this.nodeMarkup(n)).join('')}${this._presence.filter(p=>p.cursor).map((p,i)=>`<span class="graph-cursor presence-${i%4}" style="left:${p.cursor.x}px;top:${p.cursor.y}px">${icon('upRight',18)}<b>${C.escape(p.label)}</b></span>`).join('')}</div>
       ${!visible.length?`<div class="graph-empty iq-pro-state">${icon(workflow?'link':'text',28)}<h3>${workflow?'Начните с первого этапа':'Какая идея требует решения?'}</h3><p>Кнопка «Добавить объект» открывает доступные типы. Все изменения можно отменить.</p></div>`:''}
-      <div class="graph-canvas-caption"><span>${visible.filter(n=>n.kind!=='group').length} объектов</span><span>${d.edges.filter(e=>visible.some(n=>n.id===e.source)&&visible.some(n=>n.id===e.target)).length} связей</span></div>
+      <div class="graph-canvas-caption"><span>${T.count(visible.filter(n=>n.kind!=='group').length,{one:'объект',few:'объекта',many:'объектов'})}</span><span>${T.count(d.edges.filter(e=>visible.some(n=>n.id===e.source)&&visible.some(n=>n.id===e.target)).length,{one:'связь',few:'связи',many:'связей'})}</span></div>
       <div class="graph-viewport-controls" aria-label="Масштаб и обзор">${ib('Уменьшить','zoom-out','minus')}<span data-zoom-value>${Math.round(this.viewport.zoom*100)}%</span>${ib('Увеличить','zoom-in','plus')}<span class="graph-control-divider"></span>${ib('Показать всю карту','fit','expand')}${ib('Показать выбранный объект','locate','expand',selected?'':'disabled')}</div>
       <button type="button" class="graph-minimap" aria-label="Миникарта. Нажмите, чтобы центрировать обзор" data-pro-action="minimap"></button>
       ${this.linkFrom?`<div class="graph-link-notice" role="status"><span>${icon('link',16)} Выберите вход другого объекта</span>${button('Отменить','cancel-link')}</div>`:''}
