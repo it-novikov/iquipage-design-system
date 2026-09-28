@@ -17,39 +17,48 @@ internal object ViewChanges {
         )
     }
 
+    /**
+     * A new task (no `before`) lists every line, an existing one only what differs — as the previous backend did,
+     * where `undefined !== value` held for every field of a new task.
+     */
+    private fun <T> PlanningRow?.differs(after: PlanningRow, field: (PlanningRow) -> T) =
+        this == null || field(this) != field(after)
+
     /** Where the task stands: creation, preparation, release, parent, board, result and dates. */
     private fun placement(before: PlanningRow?, after: PlanningRow, releases: List<Release>) = buildList {
         if (before == null) add("Создать задачу")
-        if (before?.preparation != after.preparation) {
+        if (before.differs(after) { it.preparation }) {
             add(if (after.preparation == "ready") "Подготовить к работе" else "Сохранить черновиком")
         }
-        if (before?.effectiveReleaseId != after.effectiveReleaseId) {
+        if (before.differs(after) { it.effectiveReleaseId }) {
             add("Релиз: " + (releases.firstOrNull { it.id == after.effectiveReleaseId }?.name ?: "Бэклог"))
         }
-        if (before?.parentId != after.parentId) {
+        if (before.differs(after) { it.parentId }) {
             add(if (after.parentId != null) "Изменить родительскую задачу" else "Убрать родительскую задачу")
         }
-        if (before?.boardEligible != after.boardEligible) {
+        if (before.differs(after) { it.boardEligible }) {
             add(if (after.boardEligible) "Появится на доске" else "Уйдёт с доски")
         }
-        if (before?.result !=
-            after.result
-        ) {
+        if (before.differs(after) { it.result }) {
             add(if (after.result == "accepted") "Результат принят" else "Результат открыт")
         }
-        if (before?.plannedStart != after.plannedStart || before?.plannedEnd != after.plannedEnd) {
+        if (before.differs(after) { it.plannedStart } || before.differs(after) { it.plannedEnd }) {
             add("План: ${after.plannedStart ?: "без начала"} — ${after.plannedEnd ?: "без окончания"}")
         }
-        if (before?.due != after.due) add("Дедлайн: " + (after.due ?: "не задан"))
+        if (before.differs(after) { it.due }) add("Дедлайн: " + (after.due ?: "не задан"))
     }
 
     /** What the task says: owner, order, priority, status, tags and files. */
     private fun content(before: PlanningRow?, after: PlanningRow, names: Map<String, String>) = buildList {
-        if (before?.ownerId != after.ownerId) add("Исполнитель: " + ownerLabel(after, names).ifEmpty { "не назначен" })
+        if (before.differs(after) { it.ownerId }) {
+            add("Исполнитель: " + ownerLabel(after, names).ifEmpty { "не назначен" })
+        }
         if (before != null && before.rank != after.rank) add("Изменить порядок")
-        if (before?.priority != after.priority) add("Приоритет: " + (PRIORITY_LABELS[after.priority] ?: after.priority))
-        if (before?.status != after.status) add("Статус: " + (STATUS_LABELS[after.status] ?: after.status))
-        if (before?.tagIds != after.tagIds) add("Теги: ${after.tagIds.size}")
+        if (before.differs(after) { it.priority }) {
+            add("Приоритет: " + (PRIORITY_LABELS[after.priority] ?: after.priority))
+        }
+        if (before.differs(after) { it.status }) add("Статус: " + (STATUS_LABELS[after.status] ?: after.status))
+        if (before.differs(after) { it.tagIds }) add("Теги: ${after.tagIds.size}")
         if (filesChanged(before, after)) add("Обновить файлы и обложку")
     }
 

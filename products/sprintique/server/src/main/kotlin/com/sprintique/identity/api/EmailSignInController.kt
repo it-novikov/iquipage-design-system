@@ -7,6 +7,7 @@ import com.sprintique.identity.domain.EmailAddress
 import com.sprintique.problem.ProblemException
 import com.sprintique.problem.requireCondition
 import com.sprintique.problem.requirePresent
+import com.sprintique.web.ClientAddresses
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.constraints.Pattern
@@ -37,6 +38,7 @@ class EmailSignInController(
     private val emailSignIn: EmailSignIn,
     private val contracts: Contracts,
     private val properties: SprintiqueProperties,
+    private val clientAddresses: ClientAddresses,
 ) {
     @PostMapping("/auth/email/start")
     fun start(
@@ -48,7 +50,8 @@ class EmailSignInController(
         val input = contracts.parse<EmailCodeRequest>(body)
         val email = EmailAddress.parse(input.email)
             ?: throw ProblemException(422, "EMAIL_INVALID", "Проверьте адрес почты.")
-        val token = emailSignIn.start(email)
+        val device = AuthenticatedRequests.cookie(request, DEVICE_COOKIE)?.takeIf { TOKEN.matches(it) }
+        val token = emailSignIn.start(email, clientAddresses.of(request), device)
         response.addHeader("Set-Cookie", AuthenticatedRequests.cookieValue(CHALLENGE_COOKIE, token, CHALLENGE_SECONDS))
         return linkedMapOf("sent" to true, "codeLength" to EmailSignIn.CODE_LENGTH)
     }
@@ -67,8 +70,14 @@ class EmailSignInController(
             "EMAIL_CODE_EXPIRED",
             "Код больше не действует. Запросите новый.",
         )
-        val session = emailSignIn.verify(token, input.code)
+        val device = AuthenticatedRequests.cookie(request, DEVICE_COOKIE)?.takeIf { TOKEN.matches(it) }
+        val signedIn = emailSignIn.verify(token, input.code, device)
+        val session = signedIn.session
         response.addHeader("Set-Cookie", AuthenticatedRequests.cookieValue(CHALLENGE_COOKIE, "", 0))
+        response.addHeader(
+            "Set-Cookie",
+            AuthenticatedRequests.cookieValue(DEVICE_COOKIE, signedIn.device, EmailSignIn.DEVICE_DAYS * DAY_SECONDS),
+        )
         response.addHeader(
             "Set-Cookie",
             AuthenticatedRequests.cookieValue(AuthenticatedRequests.SESSION_COOKIE, session.token, SESSION_SECONDS),
@@ -84,10 +93,12 @@ class EmailSignInController(
             "Обновите страницу и попробуйте снова.",
         )
 
-    private companion object {
-        const val CHALLENGE_COOKIE = "__Host-sprintique-email"
-        const val CHALLENGE_SECONDS = 600L
-        const val SESSION_SECONDS = 28_800L
+    companion object {
+        private const val CHALLENGE_COOKIE = "__Host-sprintique-email"
+        const val DEVICE_COOKIE = "__Host-sprintique-device"
+        private const val DAY_SECONDS = 86_400L
+        private const val CHALLENGE_SECONDS = 600L
+        private const val SESSION_SECONDS = 28_800L
         val TOKEN = Regex("^[A-Za-z0-9_-]{43}$")
     }
 }

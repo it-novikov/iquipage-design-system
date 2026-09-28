@@ -5,6 +5,7 @@ package com.sprintique.database.schema.auth.tables
 
 
 import com.sprintique.database.schema.auth.Auth
+import com.sprintique.database.schema.auth.indexes.EMAIL_CHALLENGES_CLIENT
 import com.sprintique.database.schema.auth.indexes.EMAIL_CHALLENGES_EMAIL
 import com.sprintique.database.schema.auth.indexes.EMAIL_CHALLENGES_EXPIRY
 import com.sprintique.database.schema.auth.keys.EMAIL_CHALLENGES_PKEY
@@ -81,6 +82,10 @@ open class EmailChallenges(
 
     val CONSUMED_AT: TableField<EmailChallengesRecord, OffsetDateTime?> = createField(DSL.name("consumed_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6), this, "")
 
+    val CLIENT_HASH: TableField<EmailChallengesRecord, String?> = createField(DSL.name("client_hash"), SQLDataType.CLOB, this, "")
+
+    val FROM_KNOWN_DEVICE: TableField<EmailChallengesRecord, Boolean?> = createField(DSL.name("from_known_device"), SQLDataType.BOOLEAN.nullable(false).defaultValue(DSL.field(DSL.raw("false"), SQLDataType.BOOLEAN)), this, "")
+
     private constructor(alias: Name, aliased: Table<EmailChallengesRecord>?): this(alias, null, null, null, aliased, null, null)
     private constructor(alias: Name, aliased: Table<EmailChallengesRecord>?, parameters: Array<Field<*>?>?): this(alias, null, null, null, aliased, parameters, null)
     private constructor(alias: Name, aliased: Table<EmailChallengesRecord>?, where: Condition?): this(alias, null, null, null, aliased, null, where)
@@ -91,10 +96,11 @@ open class EmailChallenges(
 
     constructor(): this(DSL.name("email_challenges"), null)
     override fun getSchema(): Schema? = if (aliased()) null else Auth.AUTH
-    override fun getIndexes(): List<Index> = listOf(EMAIL_CHALLENGES_EMAIL, EMAIL_CHALLENGES_EXPIRY)
+    override fun getIndexes(): List<Index> = listOf(EMAIL_CHALLENGES_CLIENT, EMAIL_CHALLENGES_EMAIL, EMAIL_CHALLENGES_EXPIRY)
     override fun getPrimaryKey(): UniqueKey<EmailChallengesRecord> = EMAIL_CHALLENGES_PKEY
     override fun getChecks(): List<Check<EmailChallengesRecord>> = listOf(
         Internal.createCheck(this, DSL.name("email_challenges_attempts_check"), "(((attempts >= 0) AND (attempts <= 5)))", true),
+        Internal.createCheck(this, DSL.name("email_challenges_client_hash_check"), "(((client_hash IS NULL) OR (length(client_hash) = 64)))", true),
         Internal.createCheck(this, DSL.name("email_challenges_code_hash_check"), "((length(code_hash) = 64))", true),
         Internal.createCheck(this, DSL.name("email_challenges_email_check"), "((((length(email) >= 3) AND (length(email) <= 320)) AND (POSITION(('@'::text) IN (email)) > 1)))", true),
         Internal.createCheck(this, DSL.name("email_challenges_token_hash_check"), "((length(token_hash) = 64))", true)

@@ -11,12 +11,14 @@ import com.sprintique.database.schema.app.tables.records.ProjectsRecord
 import com.sprintique.database.schema.auth.tables.Credentials
 import com.sprintique.database.schema.auth.tables.EmailChallenges
 import com.sprintique.database.schema.auth.tables.Identities
+import com.sprintique.database.schema.auth.tables.KnownDevices
 import com.sprintique.database.schema.auth.tables.LoginStates
 import com.sprintique.database.schema.auth.tables.Principals
 import com.sprintique.database.schema.auth.tables.ProjectInvitations
 import com.sprintique.database.schema.auth.tables.records.CredentialsRecord
 import com.sprintique.database.schema.auth.tables.records.EmailChallengesRecord
 import com.sprintique.database.schema.auth.tables.records.IdentitiesRecord
+import com.sprintique.database.schema.auth.tables.records.KnownDevicesRecord
 import com.sprintique.database.schema.auth.tables.records.LoginStatesRecord
 import com.sprintique.database.schema.auth.tables.records.PrincipalsRecord
 import com.sprintique.database.schema.auth.tables.records.ProjectInvitationsRecord
@@ -37,6 +39,7 @@ val CREDENTIALS_PKEY: UniqueKey<CredentialsRecord> = Internal.createUniqueKey(Cr
 val CREDENTIALS_TOKEN_HASH_KEY: UniqueKey<CredentialsRecord> = Internal.createUniqueKey(Credentials.CREDENTIALS, DSL.name("credentials_token_hash_key"), arrayOf(Credentials.CREDENTIALS.TOKEN_HASH), true)
 val EMAIL_CHALLENGES_PKEY: UniqueKey<EmailChallengesRecord> = Internal.createUniqueKey(EmailChallenges.EMAIL_CHALLENGES, DSL.name("email_challenges_pkey"), arrayOf(EmailChallenges.EMAIL_CHALLENGES.TOKEN_HASH), true)
 val IDENTITIES_PKEY: UniqueKey<IdentitiesRecord> = Internal.createUniqueKey(Identities.IDENTITIES, DSL.name("identities_pkey"), arrayOf(Identities.IDENTITIES.ISSUER, Identities.IDENTITIES.SUBJECT), true)
+val KNOWN_DEVICES_PKEY: UniqueKey<KnownDevicesRecord> = Internal.createUniqueKey(KnownDevices.KNOWN_DEVICES, DSL.name("known_devices_pkey"), arrayOf(KnownDevices.KNOWN_DEVICES.TOKEN_HASH, KnownDevices.KNOWN_DEVICES.EMAIL), true)
 val LOGIN_STATES_PKEY: UniqueKey<LoginStatesRecord> = Internal.createUniqueKey(LoginStates.LOGIN_STATES, DSL.name("login_states_pkey"), arrayOf(LoginStates.LOGIN_STATES.STATE_HASH), true)
 val PRINCIPALS_ISSUER_SUBJECT_KEY: UniqueKey<PrincipalsRecord> = Internal.createUniqueKey(Principals.PRINCIPALS, DSL.name("principals_issuer_subject_key"), arrayOf(Principals.PRINCIPALS.ISSUER, Principals.PRINCIPALS.SUBJECT), true)
 val PRINCIPALS_PKEY: UniqueKey<PrincipalsRecord> = Internal.createUniqueKey(Principals.PRINCIPALS, DSL.name("principals_pkey"), arrayOf(Principals.PRINCIPALS.ID), true)

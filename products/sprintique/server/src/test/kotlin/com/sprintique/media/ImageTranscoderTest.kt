@@ -65,6 +65,25 @@ class ImageTranscoderTest {
         assertThatThrownBy { impatient.variants(png(3000, 3000)) }.hasFieldOrPropertyWithValue("code", "IMAGE_DECODE")
     }
 
+    @Test
+    fun `decodes that outlive their caller hold their slots until they end, then give them back`() {
+        val impatient = ImageIoImageTranscoder(Duration.ofMillis(50))
+        repeat(2) {
+            assertThatThrownBy {
+                impatient.variants(png(3000, 3000))
+            }.hasFieldOrPropertyWithValue("code", "IMAGE_DECODE")
+        }
+        val small = png(64, 64)
+        val deadline = System.nanoTime() + Duration.ofSeconds(30).toNanos()
+        var outcome: Any
+        do {
+            outcome = runCatching { impatient.avatar(small) }.fold({ "done" }, { (it as ProblemException).code })
+            if (outcome == "IMAGE_BUSY") Thread.sleep(50)
+        } while (outcome == "IMAGE_BUSY" && System.nanoTime() < deadline)
+        // Any answer but IMAGE_BUSY means a slot was free again (a small image may still miss 50 ms on a cold JVM).
+        assertThat(outcome).isNotEqualTo("IMAGE_BUSY")
+    }
+
     private fun image(width: Int, height: Int): BufferedImage = BufferedImage(
         width,
         height,

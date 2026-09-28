@@ -101,7 +101,10 @@ class OidcIdentityProviderAdapter(
             val tokenRequest = TokenRequest.Builder(provider.tokenEndpointURI, clientAuthentication(provider), grant)
                 .build()
             val http = tokenRequest.toHTTPRequest().withTimeouts()
-            val success = OIDCTokenResponseParser.parse(http.send()).toSuccessResponse() as OIDCTokenResponse
+            val answer = OIDCTokenResponseParser.parse(http.send())
+            // The provider's error code (invalid_client, invalid_grant) is what an operator needs to fix settings.
+            check(answer.indicatesSuccess()) { "token endpoint: ${answer.toErrorResponse().errorObject?.code}" }
+            val success = answer.toSuccessResponse() as OIDCTokenResponse
             val algorithm = provider.idTokenJWSAlgs?.firstOrNull() ?: JWSAlgorithm.RS256
             val retriever =
                 DefaultResourceRetriever(TIMEOUT_MILLISECONDS, TIMEOUT_MILLISECONDS, KEY_SET_LIMIT, true, socketFactory)

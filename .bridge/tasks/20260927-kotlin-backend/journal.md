@@ -45,3 +45,20 @@
 - 2026-09-28T00:35:13Z · claude-opus-5-5 · checkpoint · - · дальше: После ответа на Q1: check-local-oidc, check-container, учения восстановления; затем bridge review двумя ревьюерами
 - 2026-09-28T08:05:56Z · claude-opus-5-5 · answer · Q1 · Владелец 2026-09-28: вместо проверки через Keycloak сразу делаем производственный вход — по почте, через Google и Apple (карточка 20260928-sprintique-production-auth). Keycloak со стенда убран; проверки стенда входят по коду из письма.
 - 2026-09-28T08:05:56Z · claude-opus-5-5 · note · - · S14: проверка check-local-oidc заменена на check-local-sign-in (вход по коду через SMTP-реле Mailpit). Запуск на эталонном стенде — за владельцем: его настройки в output/infra есть только в копии R3.
+- 2026-09-28T08:06:22Z · reviewer-security · review · R1 · начато ревью, раунд 1
+- 2026-09-28T08:06:45Z · reviewer-correctness · review · R2 · начато ревью, раунд 1
+- 2026-09-28T08:46:21Z · reviewer-confirmation · review · R3 · начато ревью, раунд 2, после R1, R2
+- 2026-09-28T08:47:05Z · claude-opus-5-5 · step · S16 · todo
+- 2026-09-28T08:47:05Z · claude-opus-5-5 · step · S14 · active
+- 2026-09-28T08:47:05Z · claude-opus-5-5 · step · S14 · done: npm test 190/190 против Kotlin, интеграционные 21/21; стенд dev:local и эталонный стенд проверены (вход по коду, контейнер, учения восстановления). check-local-oidc заменён на check-local-sign-in (решение владельца: производственный вход вместо Keycloak).
+- 2026-09-28T08:47:05Z · claude-opus-5-5 · step · S15 · active
+- 2026-09-28T08:47:06Z · claude-opus-5-5 · step · S15 · done: R1 (безопасность и данные) и R2 (корректность и паритет) — независимые агенты; P1 и все P2 исправлены в eaf1241, P3 исправлены, R1 F4 отложено (унаследовано из TS).
+- 2026-09-28T08:47:06Z · claude-opus-5-5 · step · S16 · active
+- 2026-09-28T08:47:06Z · claude-opus-5-5 · checkpoint · - · дальше: PR #17 к слиянию владельцем
+- 2026-09-28T09:06:24Z · claude-opus-5-5 · note · - · R3: F1–F3 исправлены в b369ea3; запущен подтверждающий раунд R4 на этот коммит.
+- 2026-09-28T09:06:24Z · reviewer-confirmation-2 · review · R4 · начато ревью, раунд 3, после R3
+- 2026-09-28T09:22:21Z · claude-opus-5-5 · note · - · R4: F1 (P2) и F2–F4 (P3) исправлены в 192f7ca. npm test 190/190, интеграционные 21/21; QA-база на 024; check-local-sign-in проходит повторно подряд.
+- 2026-09-28T09:22:32Z · reviewer-confirmation-3 · review · R5 · начато ревью, раунд 4, после R4
+- 2026-09-28T12:21:34Z · claude-opus-5-5 · step · S16 · done: Раунды R3–R5: R5 — approve; единственное новое замечание R5 F1 (P3) исправлено в 0787770. npm test 190/190, интеграционные 21/21. PR #17 открыт на main, MERGEABLE; слияние за владельцем.
+- 2026-09-28T12:21:34Z · claude-opus-5-5 · status · - · review: PR #17 ждёт слияния владельцем
+- 2026-09-28T12:21:35Z · claude-opus-5-5 · checkpoint · - · дальше: После слияния: перевести карточки в done

@@ -11,6 +11,7 @@ import com.sprintique.problem.requireCondition
 import com.sprintique.token.Tokens
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -34,10 +35,18 @@ class SignInController(
     private val providers: SignInProviders,
     private val accounts: Accounts,
 ) {
+    private val log = LoggerFactory.getLogger(SignInController::class.java)
+
     @GetMapping("/auth/login/{provider}")
     fun login(@PathVariable provider: String, response: HttpServletResponse): ResponseEntity<Void> {
         val identity = configured(provider)
-        val start = identity.start(redirectOf(identity))
+        val start = try {
+            identity.start(redirectOf(identity))
+        } catch (@Suppress("TooGenericExceptionCaught") error: Exception) {
+            // Discovery failed: the provider is unreachable or misconfigured. The person returns to the sign-in screen.
+            log.warn("Sign-in with {} unavailable: {}", identity.name, error.javaClass.simpleName)
+            return failed("PROVIDER_UNAVAILABLE")
+        }
         database.transaction { tx ->
             tx.update(
                 """
@@ -103,8 +112,9 @@ class SignInController(
                 attempt.string("nonce"),
                 attempt.string("verifier"),
             )
-        } catch (@Suppress("SwallowedException") error: SignInRejectedException) {
-            // Which check failed is logged by nobody and told to nobody: a probe learns nothing.
+        } catch (error: SignInRejectedException) {
+            // Which check failed goes to the server log for the operator, never to the browser: a probe learns nothing.
+            log.warn("Sign-in with {} rejected: {}", identity.name, reasonOf(error))
             return failed("LOGIN_INVALID")
         }
         val session = try {
@@ -117,6 +127,12 @@ class SignInController(
             AuthenticatedRequests.cookieValue(AuthenticatedRequests.SESSION_COOKIE, session.token, SESSION_SECONDS),
         )
         return ResponseEntity.status(HttpStatus.FOUND).location(URI("/")).build()
+    }
+
+    /** The failed check, briefly: our own tag, the provider's error code or the validator's complaint. */
+    private fun reasonOf(error: SignInRejectedException): String {
+        val cause = error.cause ?: return "unknown"
+        return "${cause.javaClass.simpleName}: ${cause.message.orEmpty().take(REASON_LIMIT)}"
     }
 
     private fun configured(name: String): IdentityProviderPort =
@@ -138,6 +154,7 @@ class SignInController(
         const val LOGIN_SECONDS = 600L
         const val SESSION_SECONDS = 28_800L
         const val PENDING_LIMIT = 10_000
+        const val REASON_LIMIT = 200
         const val TOO_MANY_PENDING = "Слишком много незавершённых входов. Повторите через несколько минут."
     }
 }

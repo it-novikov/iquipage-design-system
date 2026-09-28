@@ -89,7 +89,7 @@ try{
   const headers={cookie:cookie.name+'='+cookie.value};const session=await get('/api/v1/session',headers);assert.equal(session.status,200);
   const allowed=new Set((await session.json()).projects.map(p=>p.id));let authenticatedFiles=0;
   for(const file of manifest.objects.filter(f=>allowed.has(f.projectId))){const r=await get(`/api/v1/projects/${file.projectId}/assets/${file.id}/${file.variant}`,headers);assert.equal(r.status,200);assert.equal(sha(Buffer.from(await r.arrayBuffer())),file.sha256);authenticatedFiles++;}
-  assert.ok(authenticatedFiles>0);assert.equal((await get('/api/v1/session')).status,401);
+  assert.ok(authenticatedFiles>0,'The restored session must read at least one private file: run scripts/check-local-sign-in.mjs on the stand first');assert.equal((await get('/api/v1/session')).status,401);
   // Ways in live in the product database now: the restored people can sign in as before.
   const identities=Number((await restoredAdmin.query('SELECT count(*) AS n FROM auth.identities')).rows[0].n);assert.ok(identities>0);
   assert.deepEqual(await fingerprints(sourceDb,['app','auth','work']),manifest.tables,'Source changed during the isolated restore drill.');

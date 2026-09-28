@@ -10,7 +10,6 @@ import com.sprintique.contract.RESOURCE_ID
 import com.sprintique.contract.ResourceIds
 import com.sprintique.contract.TrimmedString
 import com.sprintique.contract.UUID
-import com.sprintique.contract.UniqueItems
 import com.sprintique.task.contract.TaskInputRequest
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.Valid
@@ -238,7 +237,7 @@ sealed interface ViewIntent {
     /** Sets one field of the selected tasks: owner (member id), priority, due date, or tags to add. */
     data class Bulk(
         val field: BulkField,
-        val value: JsonNode? = null,
+        val value: JsonNode?,
         @field:Size(max = SELECTION_LIMIT) @field:ResourceIds override val taskIds: List<String>? = null,
         @field:Pattern(regexp = UUID) override val selectionToken: String? = null,
         @field:Pattern(regexp = REVISION) override val expectedProjectionRevision: String? = null,

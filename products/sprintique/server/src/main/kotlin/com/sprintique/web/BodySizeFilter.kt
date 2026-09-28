@@ -71,7 +71,7 @@ class BodySizeFilter : OncePerRequestFilter() {
 
         fun limitFor(request: HttpServletRequest): Long = when {
             RequestLimitFilter.isUpload(request) -> FILE_LIMIT
-            request.method == "PUT" && DOCUMENT.matches(request.requestURI) -> DOCUMENT_LIMIT
+            request.method == "PUT" && DOCUMENT.matches(RequestLimitFilter.routedPath(request)) -> DOCUMENT_LIMIT
             else -> COMMAND_LIMIT
         }
     }

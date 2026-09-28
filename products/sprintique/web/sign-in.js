@@ -6,6 +6,7 @@ const ERRORS={
   LOGIN_STATE:'Страница входа устарела. Начните вход заново.',
   LOGIN_INVALID:'Не удалось подтвердить вход. Попробуйте ещё раз.',
   ACCOUNT_DISABLED:'Аккаунт отключён. Обратитесь к администратору пространства.',
+  PROVIDER_UNAVAILABLE:'Сервис входа сейчас недоступен. Попробуйте позже или войдите по почте.',
 };
 const RESEND_SECONDS=30;
 // Provider marks as their brand guidelines draw them: Google's four-colour G, Apple's logo in the text colour.

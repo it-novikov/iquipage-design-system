@@ -17,7 +17,8 @@ import java.time.format.DateTimeFormatter
 
 /**
  * One JSON configuration for the whole API. Request bodies are parsed strictly, as the contracts require: unknown
- * fields, wrong types, coerced scalars, fractions for integers and trailing content are all rejected.
+ * fields, wrong types, coerced scalars, fractions for integers and trailing content are all rejected. Missing fields
+ * are checked by [com.sprintique.contract.Contracts], which sees the parsed body.
  */
 @Configuration(proxyBeanMethods = false)
 class JsonConfiguration {

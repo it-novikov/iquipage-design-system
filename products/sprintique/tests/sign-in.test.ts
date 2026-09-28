@@ -68,10 +68,10 @@ const cookieOf=(response:{headers:Record<string,unknown>},name:string)=>{
   const all=([] as string[]).concat(response.headers['set-cookie'] as string|string[]??[]);
   return all.find(cookie=>cookie.startsWith(name+'='))?.split(';')[0];
 };
-async function requestCode(email:string){
+async function requestCode(email:string,from?:string){
   // The thirty-second wait between codes is SI04's subject; elsewhere earlier codes are moved back past it.
   await f.admin.query("UPDATE auth.email_challenges SET created_at=created_at-interval '1 minute' WHERE email=lower($1)",[email]);
-  const response=await json('/auth/email/start',{email});assert.equal(response.statusCode,200,response.body);
+  const response=await json('/auth/email/start',{email},from?{'x-forwarded-for':from}:{});assert.equal(response.statusCode,200,response.body);
   return cookieOf(response,'__Host-sprintique-email')!;
 }
 async function principalOf(session:string){
@@ -133,23 +133,62 @@ test('SI03 a code works only in the asking browser, for ten minutes and five att
   const late='late@example.org',lateChallenge=await requestCode(late);
   await f.admin.query("UPDATE auth.email_challenges SET expires_at=clock_timestamp()-interval '1 second' WHERE email=$1",[late]);
   assert.equal((await json('/auth/email/verify',{code:await mailbox.code(late)},{cookie:lateChallenge})).json().code,'EMAIL_CODE_EXPIRED');
-  // A new code replaces the previous one.
-  const replaced='replaced@example.org',old=await requestCode(replaced),oldCode=await mailbox.code(replaced);
-  await requestCode(replaced);
+  // A new code from the same client replaces that client's previous one.
+  const replaced='replaced@example.org',old=await requestCode(replaced,'10.202.0.1'),oldCode=await mailbox.code(replaced);
+  await requestCode(replaced,'10.202.0.1');
   assert.equal((await json('/auth/email/verify',{code:oldCode},{cookie:old})).json().code,'EMAIL_CODE_EXPIRED');
 });
 
-test('SI04 codes are asked for only from the app, for a real address, and not too often',async()=>{
+test('SI04 codes are asked for only from the app, for a real address, and not too often from one client',async()=>{
   assert.equal((await json('/auth/email/start',{email:'a@example.org'},{origin:'https://evil.example'})).statusCode,403);
   assert.equal((await json('/auth/email/verify',{code:'123456'},{origin:'https://evil.example'})).statusCode,403);
   assert.equal((await json('/auth/email/start',{email:'not an address'})).json().code,'EMAIL_INVALID');
   assert.equal((await json('/auth/email/start',{email:'a@example.org',extra:true})).statusCode,400);
-  await requestCode('often@example.org');
-  const soon=await json('/auth/email/start',{email:'often@example.org'});assert.equal(soon.statusCode,429);assert.equal(soon.json().code,'EMAIL_CODE_WAIT');
-  // Five codes an hour per address, whoever asks.
-  await f.admin.query("INSERT INTO auth.email_challenges(token_hash,email,code_hash,created_at,expires_at) SELECT md5(n::text)||md5(n::text),'busy@example.org',md5(n::text)||md5(n::text),clock_timestamp()-interval '10 minutes',clock_timestamp()-interval '1 minute' FROM generate_series(1,5) n");
-  const limited=await json('/auth/email/start',{email:'busy@example.org'});assert.equal(limited.statusCode,429);assert.equal(limited.json().code,'EMAIL_CODE_LIMIT');
-  assert.deepEqual(await mailbox.letters('busy@example.org'),[]);
+  // One code per 30 seconds and five an hour for an address from one client; someone else is neither blocked
+  // nor cancels that client's code.
+  const me='10.200.0.1',other='10.200.0.2',hash=(ip:string)=>createHash('sha256').update(ip).digest('hex');
+  const mine=await json('/auth/email/start',{email:'often@example.org'},{'x-forwarded-for':me});assert.equal(mine.statusCode,200);
+  const soon=await json('/auth/email/start',{email:'often@example.org'},{'x-forwarded-for':me});assert.equal(soon.statusCode,429);assert.equal(soon.json().code,'EMAIL_CODE_WAIT');
+  assert.equal((await json('/auth/email/start',{email:'often@example.org'},{'x-forwarded-for':other})).statusCode,200);
+  const firstCode=(await mailbox.letters('often@example.org'))[0]!.text.match(/код для входа в Sprintique: (\d{6})/)![1]!;
+  assert.equal((await json('/auth/email/verify',{code:firstCode},{cookie:cookieOf(mine,'__Host-sprintique-email')!})).statusCode,200,'the first code still works');
+  await f.admin.query("INSERT INTO auth.email_challenges(token_hash,email,code_hash,client_hash,created_at,expires_at) SELECT md5(n::text)||md5(n::text),'busy@example.org',md5(n::text)||md5(n::text),$1,clock_timestamp()-interval '10 minutes',clock_timestamp()-interval '1 minute' FROM generate_series(1,5) n",[hash(me)]);
+  const limited=await json('/auth/email/start',{email:'busy@example.org'},{'x-forwarded-for':me});assert.equal(limited.statusCode,429);assert.equal(limited.json().code,'EMAIL_CODE_LIMIT');
+  assert.equal((await json('/auth/email/start',{email:'busy@example.org'},{'x-forwarded-for':other})).statusCode,200,'another client is not locked out');
+  // Twenty codes a day for an address from anywhere bound the guessing.
+  await f.admin.query("INSERT INTO auth.email_challenges(token_hash,email,code_hash,client_hash,created_at,expires_at) SELECT md5('d'||n)||md5('d'||n),'daily@example.org',md5('d'||n)||md5('d'||n),md5('c'||n)||md5('c'||n),clock_timestamp()-interval '3 hours',clock_timestamp()-interval '2 hours' FROM generate_series(1,20) n");
+  const daily=await json('/auth/email/start',{email:'daily@example.org'});assert.equal(daily.statusCode,429);assert.equal(daily.json().code,'EMAIL_CODE_LIMIT');
+  assert.deepEqual(await mailbox.letters('daily@example.org'),[]);
+  // A browser that signed in to the address before is remembered: strangers who fill the shared daily limit do not
+  // block it, it has a daily limit of its own, one token covers every address it signed in to, and signing out forgets it.
+  const owner='owner@example.org',ownerChallenge=await requestCode(owner);
+  const opened=await json('/auth/email/verify',{code:await mailbox.code(owner)},{cookie:ownerChallenge});assert.equal(opened.statusCode,200,opened.body);
+  const device=cookieOf(opened,'__Host-sprintique-device')!;assert.match(String(opened.headers['set-cookie']),/__Host-sprintique-device=[^;]+; Path=\/; HttpOnly; Secure; SameSite=Lax; Max-Age=15552000/);
+  const fill=(email:string,client:string,known:boolean)=>f.admin.query("INSERT INTO auth.email_challenges(token_hash,email,code_hash,client_hash,from_known_device,created_at,expires_at) SELECT md5($1||$2||n)||md5($1||$2||n),$1,md5($1||$2||n)||md5($1||$2||n),$2,$3,clock_timestamp()-interval '3 hours',clock_timestamp()-interval '2 hours' FROM generate_series(1,20) n",[email,client,known]);
+  await fill(owner,hash('stranger'),false);
+  assert.equal((await json('/auth/email/start',{email:owner})).json().code,'EMAIL_CODE_LIMIT','a stranger is held back');
+  assert.equal((await json('/auth/email/start',{email:owner},{cookie:device})).statusCode,200,'the remembered browser is not');
+  // The same token now also remembers a second address.
+  const second='second@example.org',secondChallenge=await requestCode(second);
+  const again=await json('/auth/email/verify',{code:await mailbox.code(second)},{cookie:secondChallenge+'; '+device});assert.equal(again.statusCode,200,again.body);
+  assert.equal(cookieOf(again,'__Host-sprintique-device'),device,'one token for both addresses');
+  await fill(second,hash('stranger'),false);
+  assert.equal((await json('/auth/email/start',{email:second},{cookie:device})).statusCode,200);
+  // An expired address of the token goes alone: the token's other addresses stay remembered.
+  await f.admin.query("UPDATE auth.known_devices SET expires_at=clock_timestamp()-interval '1 second' WHERE email=$1",[owner]);
+  await json('/auth/email/start',{email:'cleanup-trigger@example.org'});
+  assert.equal((await f.admin.query('SELECT email FROM auth.known_devices WHERE email=ANY($1)',[[owner,second]])).rows.map(r=>r.email).join(),second);
+  await f.admin.query("UPDATE auth.known_devices SET expires_at=clock_timestamp()+interval '1 day' WHERE email=$1",[second]);
+  await f.admin.query("INSERT INTO auth.known_devices(token_hash,email,expires_at) SELECT token_hash,$1,clock_timestamp()+interval '1 day' FROM auth.known_devices WHERE email=$2",[owner,second]);
+  // Its own daily limit: twenty codes from this browser (its last code moved back past the 30-second pause).
+  await f.admin.query("UPDATE auth.email_challenges SET created_at=created_at-interval '1 minute' WHERE email=$1",[owner]);
+  await fill(owner,createHash('sha256').update('device:'+device.split('=')[1]).digest('hex'),true);
+  assert.equal((await json('/auth/email/start',{email:owner},{cookie:device})).json().code,'EMAIL_CODE_LIMIT','a remembered browser has its own limit');
+  // Signing out forgets the browser.
+  const session=cookieOf(again,'__Host-sprintique')!,csrf=(await app.inject({url:'/api/v1/session',headers:{cookie:session}})).json().csrf;
+  const out=await app.inject({method:'POST',url:'/api/v1/logout',headers:{cookie:session+'; '+device,origin,'x-csrf-token':csrf}});assert.equal(out.statusCode,200,out.body);
+  assert.match(String(out.headers['set-cookie']),/__Host-sprintique-device=; /);
+  assert.equal((await json('/auth/email/start',{email:second},{cookie:device})).json().code,'EMAIL_CODE_LIMIT','forgotten after signing out');
 });
 
 test('SI05 Google: PKCE, state and nonce are checked, and a Gmail address joins the account of the same address',async()=>{
@@ -221,4 +260,11 @@ test('SI09 the mail drop stays off production, and production needs SMTP',async(
   await assert.rejects(startApp({origin,environment:'production'}),/Production requires SMTP/);
   await assert.rejects(startApp({origin:'https://sprintique.example',mailDrop:mailbox.directory}),/loopback/);
   await assert.rejects(startApp({origin,settings:{SPRINTIQUE_SMTP_HOST:'smtp.example.org',SPRINTIQUE_SMTP_SECURITY:'none',SPRINTIQUE_MAIL_FROM:'no-reply@example.org'}}),/loopback relay/);
+});
+
+test('SI10 a percent-encoded path counts against the same sign-in budget',async()=>{
+  const ip='10.201.0.1';
+  for(let attempt=0;attempt<20;attempt++)await app.inject({url:'/auth/login/google',headers:{'x-forwarded-for':ip}});
+  const encoded=await app.inject({url:'/%61uth/login/google',headers:{'x-forwarded-for':ip}});
+  assert.equal(encoded.statusCode,429,encoded.body);
 });

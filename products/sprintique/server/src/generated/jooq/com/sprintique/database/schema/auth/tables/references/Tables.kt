@@ -8,6 +8,7 @@ package com.sprintique.database.schema.auth.tables.references
 import com.sprintique.database.schema.auth.tables.Credentials
 import com.sprintique.database.schema.auth.tables.EmailChallenges
 import com.sprintique.database.schema.auth.tables.Identities
+import com.sprintique.database.schema.auth.tables.KnownDevices
 import com.sprintique.database.schema.auth.tables.LoginStates
 import com.sprintique.database.schema.auth.tables.Principals
 import com.sprintique.database.schema.auth.tables.ProjectInvitations
@@ -29,6 +30,8 @@ val CREDENTIALS: Credentials = Credentials.CREDENTIALS
 val EMAIL_CHALLENGES: EmailChallenges = EmailChallenges.EMAIL_CHALLENGES
 
 val IDENTITIES: Identities = Identities.IDENTITIES
+
+val KNOWN_DEVICES: KnownDevices = KnownDevices.KNOWN_DEVICES
 
 val LOGIN_STATES: LoginStates = LoginStates.LOGIN_STATES
 

@@ -2,6 +2,7 @@ package com.sprintique.identity.application
 
 import com.sprintique.configuration.SprintiqueProperties
 import com.sprintique.database.Database
+import com.sprintique.database.Transaction
 import com.sprintique.identity.domain.EmailAddress
 import com.sprintique.problem.ProblemException
 import com.sprintique.problem.requireCondition
@@ -11,10 +12,21 @@ import org.springframework.beans.factory.ObjectProvider
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 
+/** A session opened by a code, and the token that remembers this browser for the address. */
+data class EmailSignedIn(val session: OpenedSession, val device: String)
+
 /**
  * Sign-in by a six-digit code sent to an address. The code is bound to the browser that asked for it (its challenge
- * token lives in a cookie), valid for ten minutes and five attempts, and a new code replaces the previous one. The
- * answers are the same whether or not a person with the address exists: the first valid code creates them.
+ * token lives in a cookie), valid for ten minutes and five attempts; a new code from the same client replaces that
+ * client's previous one. The answers are the same whether or not a person with the address exists: the first valid
+ * code creates them.
+ *
+ * A browser that once signed in to an address by a code is remembered for it (a device cookie; one token covers
+ * every address the browser signed in to). Limits for an address: from one client — a remembered browser, otherwise
+ * the network address — one code per 30 seconds, five per hour, and a new code replaces that client's previous one;
+ * a day — twenty from all unknown clients together, and twenty from each remembered browser. Strangers who fill the
+ * shared daily limit therefore neither cancel nor block the codes of a browser the person used before, and anyone
+ * guessing is held to a hundred attempts a day per address, or per stolen device cookie.
  */
 @Component
 @Profile("api")
@@ -28,16 +40,42 @@ class EmailSignIn(
 
     val isAvailable: Boolean get() = mail.ifAvailable != null
 
-    /** Sends a code and returns the challenge token the browser keeps. */
-    fun start(email: EmailAddress): String {
+    /** Forgets a browser for every address: signing out on a shared computer leaves no exemption behind. */
+    fun forget(tx: Transaction, device: String) {
+        tx.update("DELETE FROM auth.known_devices WHERE token_hash = $1", Tokens.sha256Hex(device))
+    }
+
+    /**
+     * Sends a code and returns the challenge token the browser keeps. `client` is the requester's address, `device`
+     * the browser's device cookie if it has one.
+     */
+    fun start(email: EmailAddress, client: String, device: String?): String {
         val transport = mail.ifAvailable ?: throw notConfigured()
         val token = Tokens.random()
         val code = Tokens.digits(CODE_LENGTH)
+        var clientHash = Tokens.sha256Hex(client)
         database.transaction { tx ->
+            // Parallel requests for one address are counted one after another, never against the same count.
+            tx.row("SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", "email-code:${email.value}")
+            val known = device != null && tx.row(
+                """
+                SELECT 1 FROM auth.known_devices
+                WHERE token_hash = $1 AND email = $2 AND expires_at > clock_timestamp()
+                """.trimIndent(),
+                Tokens.sha256Hex(device), email.value,
+            ) != null
+            // A remembered browser is its own client: others on the same network neither slow nor replace its codes.
+            if (known) clientHash = Tokens.sha256Hex("device:$device")
             tx.update(
                 """
                 DELETE FROM auth.email_challenges WHERE token_hash IN (SELECT token_hash FROM auth.email_challenges
-                    WHERE expires_at <= clock_timestamp() - interval '1 hour' LIMIT 500)
+                    WHERE expires_at <= clock_timestamp() - interval '1 day' LIMIT 500)
+                """.trimIndent(),
+            )
+            tx.update(
+                """
+                DELETE FROM auth.known_devices WHERE (token_hash, email) IN (SELECT token_hash, email
+                    FROM auth.known_devices WHERE expires_at <= clock_timestamp() LIMIT 500)
                 """.trimIndent(),
             )
             val pending = tx.row(
@@ -46,11 +84,15 @@ class EmailSignIn(
             requireCondition(pending < PENDING_LIMIT, 503, "BUSY", "Слишком много запросов кода. Повторите позже.")
             val recent = tx.row(
                 """
-                SELECT count(*)::int AS n, coalesce(max(created_at) > clock_timestamp() - interval '30 seconds', false)
-                    AS "tooSoon"
-                FROM auth.email_challenges WHERE email = $1 AND created_at > clock_timestamp() - interval '1 hour'
+                SELECT count(*) FILTER (WHERE client_hash = $2 AND created_at > clock_timestamp() - interval '1 hour')::int
+                         AS "fromClient",
+                       coalesce(max(created_at) FILTER (WHERE client_hash = $3)
+                         > clock_timestamp() - interval '30 seconds', false) AS "tooSoon",
+                       count(*) FILTER (WHERE client_hash = $4)::int AS "clientToday",
+                       count(*) FILTER (WHERE NOT from_known_device)::int AS "strangersToday"
+                FROM auth.email_challenges WHERE email = $1 AND created_at > clock_timestamp() - interval '1 day'
                 """.trimIndent(),
-                email.value,
+                email.value, clientHash, clientHash, clientHash,
             )!!
             requireCondition(
                 !recent.boolean("tooSoon"),
@@ -59,24 +101,23 @@ class EmailSignIn(
                 "Новый код можно запросить через 30 секунд.",
             )
             requireCondition(
-                recent.int("n") < CODES_PER_HOUR,
+                recent.int("fromClient") < CODES_PER_HOUR,
                 429,
                 "EMAIL_CODE_LIMIT",
                 "Для этой почты запрошено слишком много кодов. Повторите через час.",
             )
-            tx.update(
-                """
-                UPDATE auth.email_challenges SET consumed_at = clock_timestamp()
-                WHERE email = $1 AND consumed_at IS NULL AND expires_at > clock_timestamp()
-                """.trimIndent(),
-                email.value,
+            requireCondition(
+                recent.int(if (known) "clientToday" else "strangersToday") < CODES_PER_DAY,
+                429,
+                "EMAIL_CODE_LIMIT",
+                "Для этой почты сегодня запрошено слишком много кодов. Повторите завтра.",
             )
             tx.update(
                 """
-                INSERT INTO auth.email_challenges(token_hash, email, code_hash, expires_at)
-                VALUES ($1, $2, $3, clock_timestamp() + interval '10 minutes')
+                INSERT INTO auth.email_challenges(token_hash, email, code_hash, client_hash, from_known_device, expires_at)
+                VALUES ($1, $2, $3, $4, $5, clock_timestamp() + interval '10 minutes')
                 """.trimIndent(),
-                Tokens.sha256Hex(token), email.value, codeHash(token, code),
+                Tokens.sha256Hex(token), email.value, codeHash(token, code), clientHash, known,
             )
         }
         try {
@@ -89,11 +130,25 @@ class EmailSignIn(
             log.warn("Sign-in letter could not be sent: {}", error.cause?.javaClass?.simpleName)
             throw ProblemException(503, "MAIL_UNAVAILABLE", "Не удалось отправить письмо. Повторите через минуту.")
         }
+        // Only a letter that left replaces this client's earlier code: a failed send keeps the one already received.
+        database.transaction { tx ->
+            tx.update(
+                """
+                UPDATE auth.email_challenges SET consumed_at = clock_timestamp()
+                WHERE email = $1 AND client_hash = $2 AND token_hash <> $3 AND consumed_at IS NULL
+                  AND expires_at > clock_timestamp()
+                """.trimIndent(),
+                email.value, clientHash, Tokens.sha256Hex(token),
+            )
+        }
         return token
     }
 
-    /** Opens a session for the right code; a wrong one uses up an attempt, and the fifth ends the challenge. */
-    fun verify(token: String, code: String): OpenedSession {
+    /**
+     * Opens a session for the right code and remembers the browser for the address under its device token (`device`,
+     * or a new one); a wrong code uses up an attempt, and the fifth ends the challenge.
+     */
+    fun verify(token: String, code: String, device: String?): EmailSignedIn {
         val outcome = database.transaction { tx ->
             val challenge = tx.row(
                 """
@@ -120,10 +175,20 @@ class EmailSignIn(
             )
             val email = challenge.string("email")
             val address = EmailAddress.parse(email) ?: error("Stored address is not normalized")
-            Outcome.Opened(accounts.signIn(tx, ExternalIdentity(ISSUER, email, address.localPart, email)))
+            val session = accounts.signIn(tx, ExternalIdentity(ISSUER, email, address.localPart, email))
+            val remembered = device ?: Tokens.random()
+            tx.update(
+                """
+                INSERT INTO auth.known_devices(token_hash, email, expires_at)
+                VALUES ($1, $2, clock_timestamp() + interval '180 days')
+                ON CONFLICT (token_hash, email) DO UPDATE SET expires_at = EXCLUDED.expires_at
+                """.trimIndent(),
+                Tokens.sha256Hex(remembered), email,
+            )
+            Outcome.Opened(EmailSignedIn(session, remembered))
         }
         return when (outcome) {
-            is Outcome.Opened -> outcome.session
+            is Outcome.Opened -> outcome.signedIn
 
             is Outcome.Wrong ->
                 throw ProblemException(400, "EMAIL_CODE_INVALID", "Неверный код. Осталось попыток: ${outcome.left}.")
@@ -149,7 +214,7 @@ class EmailSignIn(
     )
 
     private sealed interface Outcome {
-        data class Opened(val session: OpenedSession) : Outcome
+        data class Opened(val signedIn: EmailSignedIn) : Outcome
 
         data class Wrong(val left: Int) : Outcome
 
@@ -160,8 +225,10 @@ class EmailSignIn(
         /** The issuer of e-mail identities; their subject is the normalized address. */
         const val ISSUER = "urn:sprintique:email"
         const val CODE_LENGTH = 6
+        const val DEVICE_DAYS = 180L
         private const val MAX_ATTEMPTS = 5
         private const val CODES_PER_HOUR = 5
+        private const val CODES_PER_DAY = 20
         private const val PENDING_LIMIT = 10_000
 
         private fun codeHash(token: String, code: String) = Tokens.sha256Hex("$token:$code")
