@@ -20,6 +20,8 @@ test('V01 live consumer protocol groups/rows: descendants, filtering context, co
   const groups=await view('groups',{query:'view-'});assert.equal(groups.protocol,'sprintique.planning-view/1');
   const page=await view('rows',{groupId:'backlog',revision:groups.revision,query:'view-'});
   assert.deepEqual(page.rows.map((r:{depth:number})=>r.depth),[0,1,2]);
+  assert.equal(page.rows[0].childrenCount,1);assert.equal(page.rows[0].doneChildrenCount,0);assert.equal(page.rows[0].done,false);assert.equal(page.rows[1].parentTitle,page.rows[0].title);
+  const backlog=groups.items.find((g:{id:string})=>g.id==='backlog');assert.equal(typeof backlog.drafts,'number');assert.equal(typeof backlog.unassigned,'number');
   const filtered=await view('rows',{groupId:'backlog',revision:groups.revision,query:'view-child',collapsedTaskIds:['view-parent']});
   assert.equal(filtered.rows.length,2);assert.equal(filtered.rows[0].contextOnly,true);assert.equal(filtered.rows[0].selectable,false);assert.equal(filtered.rows[1].taskId,'view-child');assert.equal(filtered.rows[1].ownerLabel,'Алиса');assert.equal(filtered.rows[1].ownerId,f.alice.id);
   const folded=await view('rows',{groupId:'backlog',revision:groups.revision,collapsedTaskIds:['view-parent']});
