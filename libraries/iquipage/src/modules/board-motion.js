@@ -15,7 +15,7 @@ function bindBoard(board, onDrop, options = {}) {
     };
     const motion = {standard: duration('--iq-motion-standard', 180), enter: duration('--iq-motion-enter', 280), ease: tokens.getPropertyValue('--iq-ease').trim() || 'ease-out', spring: tokens.getPropertyValue('--iq-ease-spring').trim() || 'ease-out'};
     const abort = new AbortController(), signal = abort.signal;
-    let state = null, frame = 0, suppressUntil = 0, animations = new Map(), disposed = false;
+    let state = null, landing = null, frame = 0, suppressUntil = 0, animations = new Map(), disposed = false;
     let live = document.createElement('span');
     live.className = 'sr-only';
     live.role = 'status';
@@ -138,7 +138,23 @@ function bindBoard(board, onDrop, options = {}) {
         state = null;
         options.onDragStateChange?.(false);
     }
-    function cancel() { if (!state)
+    /** Ends the purely visual landing of a committed drop: the overlay jumps to its end state and
+     * the landed card is revealed. Never touches the drop itself, which was reported at release. */
+    function settleLanding() {
+        const l = landing;
+        if (!l)
+            return;
+        landing = null;
+        try {
+            l.anim.finish();
+        }
+        catch { }
+        l.ghost.remove();
+        if (l.landed)
+            l.landed.style.visibility = l.visibility;
+    }
+    function cancel() { if (landing)
+        settleLanding(); if (!state)
         return; if (!state.active) {
         state = null;
         return;
@@ -149,8 +165,6 @@ function bindBoard(board, onDrop, options = {}) {
             return;
         }
         const s = state;
-        if (s.landing)
-            return;
         cancelAnimationFrame(frame);
         frame = 0;
         const col = s.placeholder.closest('[data-drop-status]');
@@ -160,16 +174,37 @@ function bindBoard(board, onDrop, options = {}) {
         }
         const before = [...s.placeholder.parentElement.children].slice([...s.placeholder.parentElement.children].indexOf(s.placeholder) + 1).find(n => n.matches('.task-card:not(.is-drag-source)'));
         const detail = { id: s.card.dataset.dragId, status: col.dataset.dropStatus, beforeId: before?.dataset.dragId || null, keyboard: s.keyboard };
-        const destination = s.placeholder.getBoundingClientRect(), from = s.ghost.getBoundingClientRect();
-        const done = () => { if (disposed || state !== s)
-            return; cleanupState(s); suppressUntil = performance.now() + 450; onDrop(detail); };
-        if (reduced())
-            done();
-        else {
-            const anim = s.ghost.animate([{ transform: `translate3d(${from.left}px,${from.top}px,0) rotate(-1deg)`, opacity: 1 }, { transform: `translate3d(${destination.left}px,${destination.top}px,0) rotate(0)`, opacity: 1 }], { duration: motion.enter, easing: motion.spring, fill: 'forwards' });
-            s.landing = anim;
-            anim.finished.then(done).catch(() => { });
+        let destination = s.placeholder.getBoundingClientRect();
+        const from = s.ghost.getBoundingClientRect(), ghost = s.ghost;
+        // Optimistic commit (MOT-02). The drop is reported synchronously at the moment of release, in the
+        // same order the host always saw it (drag state ends, then onDrop). Only the overlay outlives the
+        // drag state below, so an Escape, pointercancel, visibilitychange or dispose that arrives during
+        // the landing animation can no longer discard the drop: there is no drag left to cancel.
+        settleLanding();
+        s.ghost = null;
+        cleanupState(s);
+        // The browser synthesises a click right after the pointerup that released the card; swallow that
+        // one click only (bounded to 450 ms in case none arrives) so the drop never opens the card.
+        suppressUntil = performance.now() + 450;
+        onDrop(detail);
+        if (reduced()) {
+            ghost.remove();
+            return;
         }
+        // Purely visual landing: the overlay glides onto the card at its new place, which stays invisible
+        // until the overlay arrives. A host that re-renders synchronously in onDrop already has the card
+        // there, so its rect is the most accurate destination; otherwise the placeholder rect is used.
+        const landed = cards().find(n => n.dataset.dragId === detail.id && n.isConnected) || null;
+        const target = landed?.getBoundingClientRect();
+        if (target && target.width > 0 && target.height > 0)
+            destination = target;
+        const visibility = (landed && landed.style.visibility) || '';
+        if (landed)
+            landed.style.visibility = 'hidden';
+        const anim = ghost.animate([{ transform: `translate3d(${from.left}px,${from.top}px,0) rotate(-1deg)`, opacity: 1 }, { transform: `translate3d(${destination.left}px,${destination.top}px,0) rotate(0)`, opacity: 1 }], { duration: motion.enter, easing: motion.spring, fill: 'forwards' });
+        landing = { anim, ghost, landed, visibility };
+        anim.finished.catch(() => { }).then(() => { if (landing?.anim === anim)
+            settleLanding(); });
     }
     on(board, 'pointerdown', e => {
         if (e.button !== 0 || state)
@@ -209,6 +244,7 @@ function bindBoard(board, onDrop, options = {}) {
         state = null; });
     on(window, 'pointercancel', cancel);
     on(board, 'click', e => { if (performance.now() < suppressUntil) {
+        suppressUntil = 0;
         e.preventDefault();
         e.stopImmediatePropagation();
     } }, { capture: true });
@@ -247,14 +283,15 @@ function bindBoard(board, onDrop, options = {}) {
                 place(col, e.key === 'ArrowUp' ? next : next.nextElementSibling);
         }
     });
-    on(window, 'keydown', e => { if (e.key === 'Escape' && state) {
+    on(window, 'keydown', e => { if (e.key !== 'Escape')
+        return; if (landing)
+        settleLanding(); if (state) {
         e.preventDefault();
         cancel();
     } });
     on(document, 'visibilitychange', () => { if (document.hidden)
         cancel(); });
-    return () => { disposed = true; if (state?.active) {
-        state.landing?.cancel();
+    return () => { disposed = true; settleLanding(); if (state?.active) {
         cleanupState(state);
     } state = null; cancelAnimationFrame(frame); abort.abort(); animations.forEach(a => a.cancel()); animations.clear(); live.remove(); };
 }

@@ -856,6 +856,32 @@ class IqCalendar extends IqElement {
 }
 exports.IqCalendar = IqCalendar;
 /** Menu owns positioning, focus, typeahead and cleanup. */
+/** Popover API guard (ENG-05). Engines without showPopover() must not throw; the menu then falls back
+ * to a light-DOM .iq-popup (position:fixed, its own z-index) toggled with [hidden]. */
+const hasPopoverAPI = el => typeof el.showPopover === 'function' && typeof el.hidePopover === 'function';
+function showPopup(el) {
+    el.hidden = false;
+    if (hasPopoverAPI(el)) {
+        try {
+            if (!el.matches(':popover-open'))
+                el.showPopover();
+            return;
+        }
+        catch { }
+    }
+    el.hidden = false;
+}
+function hidePopup(el) {
+    if (hasPopoverAPI(el)) {
+        try {
+            if (el.matches(':popover-open'))
+                el.hidePopover();
+            return;
+        }
+        catch { }
+    }
+    el.hidden = true;
+}
 class IqMenu extends IqElement {
     popup;
     trigger;
@@ -870,6 +896,10 @@ class IqMenu extends IqElement {
             return;
         this.popup.classList.add('iq-popup', 'iq-menu-popup');
         this.popup.setAttribute('popover', 'manual');
+        // Without the Popover API (Safari <= 16, Firefox < 125) the UA does not hide [popover], so the
+        // menu is kept closed with [hidden] and shown as an ordinary fixed-position .iq-popup.
+        if (!hasPopoverAPI(this.popup))
+            this.popup.hidden = true;
         this.popup.setAttribute('role', 'menu');
         this.popup.id ||= uid();
         this.trigger.setAttribute('aria-haspopup', 'menu');
@@ -948,7 +978,7 @@ class IqMenu extends IqElement {
             return;
         this.opened = true;
         this.trigger.setAttribute('aria-expanded', 'true');
-        this.popup.showPopover();
+        showPopup(this.popup);
         this.position();
         const chosen = last ? this.items().at(-1) : this.popup.querySelector('[aria-checked=true]') || this.items()[0];
         chosen?.focus({ preventScroll: true });
@@ -962,10 +992,7 @@ class IqMenu extends IqElement {
             return;
         this.opened = false;
         this.trigger?.setAttribute('aria-expanded', 'false');
-        try {
-            this.popup.hidePopover();
-        }
-        catch { }
+        hidePopup(this.popup);
         if (focus && this.trigger?.isConnected)
             this.trigger.focus({ preventScroll: true });
     }
