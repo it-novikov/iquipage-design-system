@@ -45,3 +45,5 @@
 - 2026-09-28T00:35:13Z · claude-opus-5-5 · checkpoint · - · дальше: После ответа на Q1: check-local-oidc, check-container, учения восстановления; затем bridge review двумя ревьюерами
 - 2026-09-28T08:05:56Z · claude-opus-5-5 · answer · Q1 · Владелец 2026-09-28: вместо проверки через Keycloak сразу делаем производственный вход — по почте, через Google и Apple (карточка 20260928-sprintique-production-auth). Keycloak со стенда убран; проверки стенда входят по коду из письма.
 - 2026-09-28T08:05:56Z · claude-opus-5-5 · note · - · S14: проверка check-local-oidc заменена на check-local-sign-in (вход по коду через SMTP-реле Mailpit). Запуск на эталонном стенде — за владельцем: его настройки в output/infra есть только в копии R3.
+- 2026-09-28T08:06:22Z · reviewer-security · review · R1 · начато ревью, раунд 1
+- 2026-09-28T08:06:45Z · reviewer-correctness · review · R2 · начато ревью, раунд 1
