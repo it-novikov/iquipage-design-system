@@ -35,6 +35,12 @@ document.querySelector('#open-plan').addEventListener('click', async () => {
 
 `dist/entry-manifest.json` описывает входы/общие зависимости; `evidence/esm-requests.json` фиксирует размеры фактического транзитивного состава. Сеть в браузерной проверке обслуживала именно файлы dist, а не подставную реализацию.
 
+## Шрифт
+
+Библиотека поставляет Inter сама: `assets/fonts/InterVariable.woff2` (Inter 4.1, OFL 1.1, вес 400–700, оптический размер 14–32, латиница и кириллица, 109 KB) и `tokens/fonts.css` (`@iquipage/web/fonts.css`). `styles.css` уже начинается с этих `@font-face`, поэтому отдельный импорт нужен только тем, кто не подключает `styles.css`. Ось оптического размера заменяет «Inter Display»: `--iq-display` резолвится в тот же файл, браузер берёт дисплейные формы для крупных кеглей сам. Пока файл грузится, текст набирается «Inter Fallback» (Arial с метриками Inter), и подмена не сдвигает вёрстку.
+
+Приложение добавляет в `<head>` предзагрузку: `<link rel="preload" as="font" type="font/woff2" crossorigin href="…/InterVariable.woff2">`, где адрес тот, под которым сборщик раздаёт файл (Vite: `import fontUrl from '@iquipage/web/assets/fonts/InterVariable.woff2?url'`). Внешние шрифтовые CDN не нужны и не должны подключаться. Полный экран без шрифта (офлайн, блокировка) остаётся читаемым на резервном стеке.
+
 ## Состав runtime и размер
 
 `core` не импортирует roadmap, graph, crop, whiteboard. `advanced` не импортирует whiteboard. `whiteboard` не импортирует roadmap/graph/crop. Demo/stories/sample-data/ui-demo и состояние каталога не входят в runtime. Основные примитивы могут иметь нейтральный placeholder, но не демонстрационные модели пользователя.
