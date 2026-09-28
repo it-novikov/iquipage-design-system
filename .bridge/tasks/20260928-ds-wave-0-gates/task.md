@@ -1,0 +1,98 @@
+---
+bridge: 1
+id: 20260928-ds-wave-0-gates
+title: "DS волна 0 «Стоп-кран»: гейты в CI и дешёвые P1"
+status: active
+risk: standard
+owner: it-novikov
+branch: feature/ds-wave-0
+base: main
+created: 2026-09-28
+updated: 2026-09-28T23:14:14Z
+links:
+---
+
+# DS волна 0 «Стоп-кран»: гейты в CI и дешёвые P1
+
+## Цель
+
+Какая проблема, у кого и какой проверяемый результат нужен. 2–6 предложений.
+
+## Рамки
+
+- **Входит:** …
+- **Не входит:** …
+- **Ограничения:** …
+
+## Приёмка
+
+- [ ] A1. A1. npm test библиотеки содержит гейты-«храповики»: контрастная матрица по токенам (обе темы, три акцента) с базовой линией известных провалов, счётчики стилевого контракта (px-кегли, кегли <12px, сырые hex, радиусы, ms, z-index) не растут, размер dist не превышает бюджет; намеренная регрессия делает тест красным
+- [ ] A2. A2. A11Y-01…05 закрыты: постоянные live-регионы тостов (danger как alert, тосты с действием без автозакрытия), ручка перетаскивания и ручки roadmap ≥24px, крестики тегов 24px, видимый фокус у трёх полей поиска
+- [ ] A3. A3. COL-01, COL-02, COL-04, COL-17: граница полей и вторичная кнопка в dark ≥3:1, плейсхолдер заголовка ≥4.5:1, контур фигур доски ≥3:1 — подтверждено контрастным тестом
+- [ ] A4. A4. MOT-02: onDrop вызывается до анимации приземления, Escape/pointercancel/смена вкладки в окне 280 мс не теряют перемещение; тест на порядок вызовов
+- [ ] A5. A5. ENG-05/ENG-08: browserslist в пакете, guard showPopover с fallback, pdf.js без CDN по умолчанию; TXT-02/TXT-13: общий plural() на Intl.PluralRules, 9 мест исправлены, опечатка в stories.js
+- [ ] A6. A6. Версия 0.6.0-vnext.23, README-changelog, npm run build и npm test зелёные; продукт принял релиз, полный гейт продукта зелёный
+
+## Передача
+
+- **Состояние:** vnext.23 собран, продукт принял релиз, quick checks зелёные
+- **Сейчас:** PR на main
+- **Дальше:** полный гейт продукта node scripts/test.mjs не запускался из-за лимита сессии — запустить до слияния (JAVA_HOME=/opt/homebrew/opt/openjdk@25, TEST_S3_CONFIG стенда ux-ds); затем волна 1
+- **Незакоммичено:** нет
+- **Рабочая копия:** 20 файл(ов): libraries/iquipage/PROVENANCE.json, libraries/iquipage/README.md, libraries/iquipage/package.json, libraries/iquipage/scripts/gates/contrast-baseline.json, libraries/iquipage/scripts/gates/size-baseline.json, libraries/iquipage/src/entries/core.js, libraries/iquipage/tests/vnext22.test.cjs, libraries/iquipage/tokens/semantic.json, libraries/iquipage/types/core.d.ts, products/sprintique/README.md, products/sprintique/docs/planning-r2.md, products/sprintique/docs/ux-ds-alignment.md и ещё 8 (23 files changed, 47 insertions(+), 33 deletions(-)) · HEAD fb6b94d
+- **Проверка:** cd libraries/iquipage && npm run build && npm test; cd products/sprintique && npm ci && npm run build && npm run check:boundaries
+
+## План
+
+### S1. Гейты-храповики в npm test [done]
+- **Что:** contrast matrix, стилевые счётчики, размер dist с базовыми линиями; browserslist
+- **Как:** ветка feature/ds-wave-0-gates, scripts/gates/*, tests/gate-*.test.cjs
+- **Зачем:** Регрессия краснит CI, долг фиксируется и может только уменьшаться
+- **Приёмка:**
+  - [x] npm test зелёный на текущем дереве; намеренная регрессия красная
+- **Покрывает:** A1
+- **Итог:** четыре ветки слиты; библиотека 331/331; гейты обновлены
+
+### S2. Доступность и цвет: дешёвые P1 [todo]
+- **Что:** A11Y-01…05, COL-01/02/04/17, line-strong для outline-бейджа
+- **Как:** ветка feature/ds-wave-0-a11y: foundation.css, touch.css, semantic.json, notify()
+- **Зачем:** Скринридер слышит тосты, цели 24px, dark-границы 3:1
+- **Приёмка:**
+  - [ ] тест wave0-a11y зелёный, ratios в отчёте
+- **Покрывает:** A2,A3
+
+### S3. Движение и поставка [todo]
+- **Что:** MOT-02 дроп до анимации, guard showPopover, pdf.js без CDN
+- **Как:** ветка feature/ds-wave-0-motion: board-motion.js, components.js (меню), media.js
+- **Зачем:** Дроп не теряется, Safari 16 не падает, нет неподписанного CDN
+- **Приёмка:**
+  - [ ] тест wave0-motion зелёный
+- **Покрывает:** A4,A5
+
+### S4. Множественное число и опечатка [todo]
+- **Что:** plural()/count() на Intl.PluralRules, 9 мест, stories.js
+- **Как:** ветка feature/ds-wave-0-text
+- **Зачем:** «Удалить 5 задачи?» в проде
+- **Приёмка:**
+  - [ ] тест wave0-text зелёный
+- **Покрывает:** A5
+
+### S5. Интеграция, релиз vnext.23, адаптация продукта [todo]
+- **Что:** слить четыре ветки в feature/ds-wave-0, обновить базовые линии гейтов после фиксов, версия, changelog, тарбол, гейт продукта, PR
+- **Как:** git merge; npm run gates:update; npm pack; npm ci в продукте; node scripts/test.mjs
+- **Зачем:** Одна волна = один PR
+- **Приёмка:**
+  - [ ] оба npm test зелёные, PR открыт
+- **Покрывает:** A6
+
+## Решения
+
+Пока нет.
+
+## Вопросы
+
+Пока нет.
+
+## Контекст
+
+- Что читать и какие команды запускать, по одной строке.

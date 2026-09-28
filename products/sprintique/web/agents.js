@@ -1,11 +1,11 @@
-import {ui,icon,escapeHTML as esc,enhance,formatDateTime} from '@iquipage/web/core';
+import {ui,icon,escapeHTML as esc,enhance,formatDateTime,count} from '@iquipage/web/core';
 import {dialog,input,select,pretty} from '../ui/src/ui.js';
 import * as s from './settings-ui.js';
 
 const states={running:['В работе','info'],awaiting_approval:['Ждёт решения','warning'],completed:['Завершён','success'],failed:['Ошибка','danger'],cancelled:['Остановлен','neutral'],expired:['Срок истёк','neutral'],proposed:['Ждёт решения','warning'],approved:['Подтверждено','success'],rejected:['Отклонено','neutral']};
 const areas=[['tasks','Задачи'],['threads','Обсуждения'],['maps','Карты']];
 const permissionName=value=>{const [area,mode]=value.split(':');return `${mode==='write'?'Изменять':'Читать'} ${(areas.find(a=>a[0]===area)?.[1]||area).toLocaleLowerCase('ru')}`;};
-const plural=(n,[one,few,many])=>{const a=Math.abs(n)%100,b=a%10;return `${n} ${a>10&&a<20?many:b===1?one:b>1&&b<5?few:many}`;};
+const plural=(n,[one,few,many])=>count(n,{one,few,many});
 const summary=v=>[`Изменит ${plural(v.affectedCount||0,['задачу','задачи','задач'])}`,v.enteringBoard?`добавит на доску ${v.enteringBoard}`:'',v.leavingBoard?`уберёт с доски ${v.leavingBoard}`:''].filter(Boolean).join(', ');
 const when=value=>value?formatDateTime(value):'';
 const isActive=r=>['running','awaiting_approval'].includes(r.state);

@@ -87,7 +87,7 @@ export const registerSettings=settings.registerSettings;
 import relationMap from './modules/relation-map.js';
 export const IqRelationMap=relationMap.IqRelationMap;
 export const registerRelationMap=relationMap.registerRelationMap;
-export const version='0.6.0-vnext.22';
+export const version='0.6.0-vnext.23';
 export function registerCore(){
  registerAuthDialog();registerAuthScreen();registerSettings();registerRelationMap();registerComponents();registerDateFields();registerEditors();registerPagination();registerStructured();registerSideNavigation();registerWorkHeader();registerMarkdownViewer();registerWorkLayout();
  if(!customElements.get('iq-file-preview'))customElements.define('iq-file-preview',IqFilePreview);

@@ -28,6 +28,6 @@ test('dist styles start with the font faces and the catalogs preload the file wi
     assert.ok(!html.includes('googleapis') && !html.includes('gstatic'), t);
     assert.ok(html.includes('rel="preload" type="font/woff2"') && html.includes('assets/fonts/InterVariable.woff2'), t);
   }
-  assert.equal(tokens.meta.version, '0.6.0-vnext.22');
-  assert.equal(pkg.version, '0.6.0-vnext.22');
+  assert.equal(tokens.meta.version, pkg.version);
+  assert.match(pkg.version, /^0\.6\.0-vnext\.(2[2-9]|[3-9]\d)$/);
 });

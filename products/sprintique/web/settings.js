@@ -1,4 +1,4 @@
-import {ui,icon,escapeHTML as esc,settingsNavigation,notify,enhance} from '@iquipage/web/core';
+import {ui,icon,escapeHTML as esc,settingsNavigation,notify,enhance,count} from '@iquipage/web/core';
 import {mountProjectTaskSettings} from '../ui/src/board/project-settings.js';
 import {settingsDialog,timeZoneField} from '../ui/planning/src/release-dialogs.js';
 import {mountMembers} from './members.js';
@@ -11,7 +11,7 @@ import {appearance,appearanceDefaults} from './appearance.js';
 import {visibleSettingsGroups,settingsSection,filterSettingsGroups,roleName,workspaceRoleName} from './settings-sections.js';
 import * as s from './settings-ui.js';
 
-const plural=(n,[one,few,many])=>{const a=Math.abs(n)%100,b=a%10;return `${n} ${a>10&&a<20?many:b===1?one:b>1&&b<5?few:many}`;};
+const plural=(n,[one,few,many])=>count(n,{one,few,many});
 const formats={flexible:['Гибкие релизы','Релиз выходит, когда готов.'],timeboxed:['Спринты','Работа идёт периодами фиксированной длины.']};
 
 export async function mountSettings(root,{repository,project,adapter,onChanged=()=>{}}){
