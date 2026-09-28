@@ -74,18 +74,3 @@ password and rememberMe values: never log, persist, put into URLs or analytics. 
 Native validation, autocomplete, password visibility and error associations are included.
 `recovery-href` and `registration-href` opt into real host routes; omit unavailable features.
 Configuration attributes are initial; error and pending are reactive without remounting.
-
-## Keycloak theme
-
-The package includes `keycloak/iquipage`, a native Keycloak 26.7.3 login theme extending
-`keycloak`. It maps the unchanged upstream templates to shared IQUIPAGE form classes
-and packages the exact same CSS. Copy this folder to `/opt/keycloak/themes/iquipage`
-and select `iquipage` as the realm Login theme. Forms still POST to Keycloak's generated
-loginAction; field errors, recovery, optional registration, remember-me, locale selection,
-MFA and broker links remain owned by the upstream templates. No password grant or
-credential proxy is introduced. Recovery and registration follow realm policy.
-
-The source of the adapter contract is Keycloak 26.7.3's native theme properties and
-base login template: https://github.com/keycloak/keycloak/tree/26.7.3/themes/src/main/resources/theme.
-A real isolated provider smoke verified wrong/valid passwords and code+PKCE exchange;
-MFA, broker and recovery flows were inherited, not individually acceptance-tested.

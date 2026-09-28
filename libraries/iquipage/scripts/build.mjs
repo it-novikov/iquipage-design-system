@@ -50,5 +50,3 @@ const everydayBundle=bundle.replace("require('./app.js');","require('./everyday-
 await save('workbench.html',(await read('src/workbench-template.html')).replace('__IQ_CSS__',()=>demoCSS).replace('__IQ_SCRIPT__',()=>everydayBundle.replaceAll('</script','<\\/script')));
 
 // The native provider theme receives the exact same release CSS and mark.
-await save('keycloak/iquipage/login/resources/css/iquipage.css',css);
-await save('keycloak/iquipage/login/resources/img/mark.svg',icons.mark().replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" '));
