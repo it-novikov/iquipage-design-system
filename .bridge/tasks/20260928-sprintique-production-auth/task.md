@@ -8,7 +8,7 @@ owner: it-novikov
 branch: feature/kotlin-backend
 base: feat/finish-platform
 created: 2026-09-28
-updated: 2026-09-28T08:05:44Z
+updated: 2026-09-28T08:47:05Z
 links:
 ---
 
@@ -44,11 +44,11 @@ links:
 
 ## Передача
 
-- **Состояние:** S1–S4 готовы; S5 ждёт запуска на эталонном стенде владельцем; S6: документация готова, ревью идёт
-- **Сейчас:** Два независимых ревью всей ветки
-- **Дальше:** Исправить P0/P1, повторное ревью, обновить PR #17
+- **Состояние:** S1–S5 готовы; S6: документация и инструкция по Google/Apple готовы, ждёт подтверждающего ревью R3
+- **Сейчас:** Подтверждающее ревью R3
+- **Дальше:** Закрыть замечания R3, если будут; PR #17 — к слиянию владельцем
 - **Незакоммичено:** нет
-- **Рабочая копия:** 69 файл(ов): engineering/stack.md, products/sprintique/README.md, products/sprintique/docs/authentication-screen.md, products/sprintique/docs/decisions/0001-kotlin-backend.md, products/sprintique/docs/operations.md, products/sprintique/package.json, products/sprintique/scripts/backup-drill.mjs, products/sprintique/scripts/check-container.mjs, products/sprintique/scripts/check-local-agent.mjs, products/sprintique/scripts/check-local-oidc.mjs -> products/sprintique/scripts/check-local-sign-in.mjs, products/sprintique/scripts/local-app.mjs, products/sprintique/scripts/local-identity.mjs -> products/sprintique/scripts/local-services.mjs и ещё 57 (48 files changed, 581 insertions(+), 490 deletions(-)) · HEAD 25c122e
+- **Рабочая копия:** 1 файл(ов): .impeccable/ (3 files changed, 10 insertions(+), 4 deletions(-)) · HEAD 0af08db
 - **Проверка:** cd products/sprintique && node scripts/test.mjs
 
 ## План
@@ -94,14 +94,14 @@ links:
 - **Итог:** web/sign-in.js на iq-auth-screen и примитивах DS; проверено в браузере на стенде 4321: почта → неверный код (осталось 4) → верный код → онбординг; ошибка провайдера; телефон 375 px; кнопки Google/Apple визуально. check:boundaries и check:styles проходят.
 - **Зависит от:** S2,S3
 
-### S5. Стенд и проверки без Keycloak [blocked]
+### S5. Стенд и проверки без Keycloak [done]
 - **Что:** Локальный стенд, check-container, учения восстановления и проверка агента через вход по почте
 - **Как:** Почтовый ящик-файл стенда; удалить local-identity и check-local-oidc
 - **Зачем:** Снять Q1 и лишний сервис
 - **Приёмка:**
-  - [ ] Стенд и проверки проходят
+  - [x] Стенд и проверки проходят
 - **Покрывает:** A5
-- **Итог:** Скрипты переписаны: local-services (PostgreSQL + Mailpit), check-local-sign-in, check-container, check-local-agent, backup-drill без Keycloak; dev:local с почтовым ящиком. Не запущены: настройки эталонного стенда (output/infra) есть только в копии R3, доступ к ней отклонён — запускает владелец.
+- **Итог:** Эталонный стенд без Keycloak (доступ к output/infra дал владелец): QA-база принята после резервной копии (baseline 015, применены 016–022); local:check-sign-in — код через Mailpit, повтор кода отклонён, файл в задаче; check-container — образ отказывает в production без SMTP, проба проходит; учения восстановления — 41 таблица, 16 файлов, восстановленная сессия читает файл.
 - **Зависит от:** S2
 
 ### S6. Документация и ревью [active]

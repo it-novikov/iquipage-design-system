@@ -47,3 +47,11 @@
 - 2026-09-28T08:05:56Z · claude-opus-5-5 · note · - · S14: проверка check-local-oidc заменена на check-local-sign-in (вход по коду через SMTP-реле Mailpit). Запуск на эталонном стенде — за владельцем: его настройки в output/infra есть только в копии R3.
 - 2026-09-28T08:06:22Z · reviewer-security · review · R1 · начато ревью, раунд 1
 - 2026-09-28T08:06:45Z · reviewer-correctness · review · R2 · начато ревью, раунд 1
+- 2026-09-28T08:46:21Z · reviewer-confirmation · review · R3 · начато ревью, раунд 2, после R1, R2
+- 2026-09-28T08:47:05Z · claude-opus-5-5 · step · S16 · todo
+- 2026-09-28T08:47:05Z · claude-opus-5-5 · step · S14 · active
+- 2026-09-28T08:47:05Z · claude-opus-5-5 · step · S14 · done: npm test 190/190 против Kotlin, интеграционные 21/21; стенд dev:local и эталонный стенд проверены (вход по коду, контейнер, учения восстановления). check-local-oidc заменён на check-local-sign-in (решение владельца: производственный вход вместо Keycloak).
+- 2026-09-28T08:47:05Z · claude-opus-5-5 · step · S15 · active
+- 2026-09-28T08:47:06Z · claude-opus-5-5 · step · S15 · done: R1 (безопасность и данные) и R2 (корректность и паритет) — независимые агенты; P1 и все P2 исправлены в eaf1241, P3 исправлены, R1 F4 отложено (унаследовано из TS).
+- 2026-09-28T08:47:06Z · claude-opus-5-5 · step · S16 · active
+- 2026-09-28T08:47:06Z · claude-opus-5-5 · checkpoint · - · дальше: PR #17 к слиянию владельцем
