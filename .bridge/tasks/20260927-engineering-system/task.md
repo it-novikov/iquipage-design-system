@@ -2,13 +2,13 @@
 bridge: 1
 id: 20260927-engineering-system
 title: Инженерная система и мост для агентов
-status: review
+status: done
 risk: high
 owner: it-novikov
 branch: feature/engineering-system
 base: main
 created: 2026-09-27
-updated: 2026-09-27T22:21:59Z
+updated: 2026-09-28T12:44:52Z
 links:
 ---
 

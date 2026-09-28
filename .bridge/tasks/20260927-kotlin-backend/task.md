@@ -2,13 +2,13 @@
 bridge: 1
 id: 20260927-kotlin-backend
 title: Перенос бэкенда Sprintique на Kotlin и Spring Boot
-status: review
+status: done
 risk: high
 owner: it-novikov
 branch: feature/kotlin-backend
 base: feat/finish-platform
 created: 2026-09-27
-updated: 2026-09-28T12:21:35Z
+updated: 2026-09-28T12:53:23Z
 links:
 ---
 
@@ -49,12 +49,12 @@ links:
 
 ## Приёмка
 
-- [ ] A1. Каждый сценарий из docs/test-parity.md проходит против Kotlin-бэкенда (HTTP или тест Kotlin), пропусков нет, удалённых сценариев нет
-- [ ] A2. Стенд `dev:local` и интерфейс работают без изменений: проверено в браузере на основных сценариях
-- [ ] A3. `./gradlew check` (ktlint, Detekt, ArchUnit, модульные тесты) и `integrationTest` зелёные
-- [ ] A4. OpenAPI совпадает с зафиксированным документом; контрактный тест Kotlin ↔ Zod проходит
-- [ ] A5. `backend/` удалён, README и operations.md описывают Kotlin-запуск, полный гейт verify-vnext проходит
-- [ ] A6. Два раунда независимого ревью пройдены, P0/P1 закрыты
+- [x] A1. Каждый сценарий из docs/test-parity.md проходит против Kotlin-бэкенда (HTTP или тест Kotlin), пропусков нет, удалённых сценариев нет
+- [x] A2. Стенд `dev:local` и интерфейс работают без изменений: проверено в браузере на основных сценариях
+- [x] A3. `./gradlew check` (ktlint, Detekt, ArchUnit, модульные тесты) и `integrationTest` зелёные
+- [x] A4. OpenAPI совпадает с зафиксированным документом; контрактный тест Kotlin ↔ Zod проходит
+- [x] A5. `backend/` удалён, README и operations.md описывают Kotlin-запуск, полный гейт verify-vnext проходит
+- [x] A6. Два раунда независимого ревью пройдены, P0/P1 закрыты
 
 ## Передача
 

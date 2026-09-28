@@ -42,3 +42,13 @@
 - 2026-09-28T08:58:40Z · claude · checkpoint · - · дальше: Владелец решает: запустить полный npm test и открыть DS-GAP по .iq-badge.soft.warning/.success в libraries/iquipage
 - 2026-09-28T08:58:40Z · claude · status · - · review: Все шаги готовы, A6 частично (полный npm test не запускался)
 - 2026-09-28T08:58:40Z · claude · handoff · - · planned; HEAD 5b8a797; незакоммичено 0; Полный гейт npm test и DS-GAP — на решение владельца
+- 2026-09-28T12:44:51Z · claude-opus-5-5 · claim · - · принудительно: Владелец поручил доделать PR #19 после слияния #17 (2026-09-28)
+- 2026-09-28T12:44:51Z · claude-opus-5-5 · status · - · active
+- 2026-09-28T12:44:51Z · claude-opus-5-5 · note · S6 · добавлен шаг: DS-GAP в DS и полный гейт
+- 2026-09-28T12:44:51Z · claude-opus-5-5 · step · S6 · active
+- 2026-09-28T12:44:51Z · claude-opus-5-5 · step · S6 · done: DS 0.6.0-vnext.21 (ed157a2): тинты success/warning ≥4.5:1 в обеих темах, контрактный тест vnext21, Keycloak-тема удалена; продукт на vnext.21 без переопределения (efd9d11), проверено в браузере на 4341 в светлой и тёмной теме. npm test 192/192, интеграционные 21/21 без пропусков (integrationTest больше не берёт устаревший результат).
+- 2026-09-28T12:44:51Z · claude-opus-5-5 · note · A6 · критерий приёмки выполнен
+- 2026-09-28T12:44:51Z · claude-opus-5-5 · decision · D6 · D3 закрыто: DS-GAP исправлен в DS vnext.21, переопределение в продукте удалено — продукт использует бейджи DS как есть
+- 2026-09-28T12:44:51Z · claude-opus-5-5 · checkpoint · - · дальше: После слияния: карточка в done
+- 2026-09-28T12:44:51Z · claude-opus-5-5 · status · - · review: PR #19 готов к слиянию
+- 2026-09-28T12:53:23Z · claude-opus-5-5 · note · - · verify-vnext на ветке #19: все этапы PASS, включая отделяемый продукт (output/verification/2026-09-28T12-45-20.399Z).
