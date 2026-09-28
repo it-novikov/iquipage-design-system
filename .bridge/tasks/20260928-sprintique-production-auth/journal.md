@@ -1,0 +1,34 @@
+# Журнал 20260928-sprintique-production-auth
+
+- 2026-09-28T07:20:06Z · claude-opus-5-5 · create · - · Вход в Sprintique по почте, через Google и Apple
+- 2026-09-28T07:20:28Z · claude-opus-5-5 · note · A1 · критерий приёмки: Вход по коду на почту: письмо уходит, верный код открывает сессию, неверный и просроченный отклоняются, попытки и частота ограничены
+- 2026-09-28T07:20:28Z · claude-opus-5-5 · note · A2 · критерий приёмки: Вход через Google и Apple проходит против синтетических провайдеров; подделанный токен, чужой state и nonce отклоняются
+- 2026-09-28T07:20:28Z · claude-opus-5-5 · note · A3 · критерий приёмки: Способы входа с подтверждённой почтой ведут в один аккаунт; существующие аккаунты сохраняются после миграции
+- 2026-09-28T07:20:28Z · claude-opus-5-5 · note · A4 · критерий приёмки: Экран входа на компонентах IQUIPAGE проверен в браузере на компьютере и телефоне
+- 2026-09-28T07:20:28Z · claude-opus-5-5 · note · A5 · критерий приёмки: Локальный стенд, проверка контейнера и учения восстановления проходят без Keycloak
+- 2026-09-28T07:20:28Z · claude-opus-5-5 · note · A6 · критерий приёмки: Документация объясняет, как настроить Google, Apple и SMTP в production
+- 2026-09-28T07:20:45Z · claude-opus-5-5 · note · S1 · добавлен шаг: Схема аккаунтов и способов входа
+- 2026-09-28T07:20:45Z · claude-opus-5-5 · note · S2 · добавлен шаг: Вход по коду на почту
+- 2026-09-28T07:20:45Z · claude-opus-5-5 · note · S3 · добавлен шаг: Google и Apple
+- 2026-09-28T07:20:45Z · claude-opus-5-5 · note · S4 · добавлен шаг: Экран входа
+- 2026-09-28T07:20:46Z · claude-opus-5-5 · note · S5 · добавлен шаг: Стенд и проверки без Keycloak
+- 2026-09-28T07:20:46Z · claude-opus-5-5 · note · S6 · добавлен шаг: Документация и ревью
+- 2026-09-28T07:20:46Z · claude-opus-5-5 · decision · D1 · Вход без пароля по коду на почту, а не по ссылке — код работает, когда письмо открыто на телефоне, а вход идёт на компьютере, и его не «съедают» почтовые сканеры ссылок
+- 2026-09-28T07:20:46Z · claude-opus-5-5 · decision · D2 · Свой вход в Kotlin-сервере вместо Keycloak в production — меньше сервисов, а Apple в Keycloak требует стороннего расширения
+- 2026-09-28T07:20:46Z · claude-opus-5-5 · decision · D3 · Почта Google считается подтверждённой для привязки только при email_verified и адресе gmail.com или claim hd — так советует Google
+- 2026-09-28T07:20:46Z · claude-opus-5-5 · decision · D4 · Вход входит в PR #17 — он снимает блокер S14 (проверка через Keycloak) карточки kotlin-backend
+- 2026-09-28T07:20:46Z · claude-opus-5-5 · status · - · active
+- 2026-09-28T07:20:46Z · claude-opus-5-5 · claim · - · взял задачу
+- 2026-09-28T07:20:46Z · claude-opus-5-5 · step · S1 · active
+- 2026-09-28T08:05:43Z · claude-opus-5-5 · step · S1 · done: Миграция 021: auth.identities (перенос issuer/subject), auth.email_challenges, provider у login_states. Accounts: известный способ → присоединение по подтверждённой почте (одно совпадение, advisory lock) → новый человек. SignInMigrationIntegrationTest, SI05–SI06.
+- 2026-09-28T08:05:43Z · claude-opus-5-5 · step · S2 · active
+- 2026-09-28T08:05:43Z · claude-opus-5-5 · step · S2 · done: EmailSignIn (6 цифр, 10 минут, 5 попыток, cookie-привязка, 30 с и 5 в час на адрес), SMTP (angus-mail, STARTTLS обязателен, отправитель в заголовке и конверте), почтовый ящик-файл в local. SI02–SI04, SI08–SI09; SmtpMailIntegrationTest на GreenMail. Найдено и исправлено: письмо уходило без From с именем пользователя ОС в конверте.
+- 2026-09-28T08:05:44Z · claude-opus-5-5 · step · S3 · active
+- 2026-09-28T08:05:44Z · claude-opus-5-5 · step · S3 · done: OidcIdentityProviderAdapter параметризован: Google (PKCE, select_account, доверие к Gmail/hd), Apple (form_post, секрет ES256 на 5 минут, имя из user, cookie SameSite=None). /auth/login/{provider}, /auth/callback/{provider}; отказы — редирект с sign-in-error. SI05–SI07 против синтетических провайдеров.
+- 2026-09-28T08:05:44Z · claude-opus-5-5 · step · S4 · active
+- 2026-09-28T08:05:44Z · claude-opus-5-5 · step · S4 · done: web/sign-in.js на iq-auth-screen и примитивах DS; проверено в браузере на стенде 4321: почта → неверный код (осталось 4) → верный код → онбординг; ошибка провайдера; телефон 375 px; кнопки Google/Apple визуально. check:boundaries и check:styles проходят.
+- 2026-09-28T08:05:44Z · claude-opus-5-5 · step · S5 · active
+- 2026-09-28T08:05:44Z · claude-opus-5-5 · step · S5 · blocked: Скрипты переписаны: local-services (PostgreSQL + Mailpit), check-local-sign-in, check-container, check-local-agent, backup-drill без Keycloak; dev:local с почтовым ящиком. Не запущены: настройки эталонного стенда (output/infra) есть только в копии R3, доступ к ней отклонён — запускает владелец.
+- 2026-09-28T08:05:44Z · claude-opus-5-5 · step · S6 · active
+- 2026-09-28T08:05:44Z · claude-opus-5-5 · note · - · Полный прогон: npm test 188/188, интеграционные 21/21, ./gradlew check зелёный.
+- 2026-09-28T08:05:44Z · claude-opus-5-5 · checkpoint · - · дальше: Исправить P0/P1, повторное ревью, обновить PR #17

@@ -8,7 +8,7 @@ owner: it-novikov
 branch: feature/kotlin-backend
 base: feat/finish-platform
 created: 2026-09-27
-updated: 2026-09-28T00:35:13Z
+updated: 2026-09-28T08:05:56Z
 links:
 ---
 
@@ -262,7 +262,8 @@ links:
 
 ## Вопросы
 
-- **Q1** [open] Где конфигурация локального стенда OIDC (output/infra/identity.json)? Контейнеры Keycloak/Postgres/Garage в colima-sprintique-vnext-qa работают, но их конфигурации нет в этой рабочей копии. Скопировать её сюда или разрешить пересоздать стенд скриптом local-identity (это перенастроит работающий QA-стенд)? → owner
+- **Q1** [answered] Где конфигурация локального стенда OIDC (output/infra/identity.json)? Контейнеры Keycloak/Postgres/Garage в colima-sprintique-vnext-qa работают, но их конфигурации нет в этой рабочей копии. Скопировать её сюда или разрешить пересоздать стенд скриптом local-identity (это перенастроит работающий QA-стенд)? → owner
+  Ответ: Владелец 2026-09-28: вместо проверки через Keycloak сразу делаем производственный вход — по почте, через Google и Apple (карточка 20260928-sprintique-production-auth). Keycloak со стенда убран; проверки стенда входят по коду из письма.
 
 ## Контекст
 
