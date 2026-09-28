@@ -1,0 +1,5 @@
+/* Inter 4.1, SIL OFL 1.1 — assets/fonts/README.md. One variable file serves «Inter» and «Inter Display»: the opsz axis (14–32) picks the display forms for large sizes. */
+@font-face{font-family:"Inter";font-style:normal;font-weight:400 700;font-display:swap;src:url("../assets/fonts/InterVariable.woff2") format("woff2-variations"),url("../assets/fonts/InterVariable.woff2") format("woff2")}
+@font-face{font-family:"Inter Display";font-style:normal;font-weight:400 700;font-display:swap;src:url("../assets/fonts/InterVariable.woff2") format("woff2-variations"),url("../assets/fonts/InterVariable.woff2") format("woff2")}
+/* Metric-compatible stand-in while the file loads: Arial adjusted to Inter's metrics, so the swap moves nothing. */
+@font-face{font-family:"Inter Fallback";src:local("Arial");size-adjust:107.4%;ascent-override:90.2%;descent-override:22.48%;line-gap-override:0%}

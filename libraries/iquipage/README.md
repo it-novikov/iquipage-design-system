@@ -18,6 +18,10 @@ example demonstrates the form, not just a provider redirect. The Keycloak login 
 shipped from vnext.9 to vnext.20 was removed in vnext.21: no product uses an external
 identity provider's form any more.
 
+## Self-hosted Inter (0.6.0-vnext.22)
+
+The package now ships its font: `assets/fonts/InterVariable.woff2` (Inter 4.1, SIL OFL 1.1, weight axis 400–700, optical-size axis 14–32, Latin and Cyrillic; 109 KB) with `tokens/fonts.css`, exported as `@iquipage/web/fonts.css` and prepended to `styles.css`. The optical-size axis is what "Inter Display" was: `--iq-display` keeps its name and resolves to the same file. `--iq-font` and `--iq-display` gain an "Inter Fallback" face (Arial with Inter's metrics), so the swap moves nothing. The catalogs preload the file and no longer load Google Fonts. Consumers add `<link rel="preload" as="font" type="font/woff2" crossorigin href="<resolved url of assets/fonts/InterVariable.woff2>">` to their document head; Vite resolves the `url()` inside `styles.css` itself. See `assets/fonts/README.md` for provenance and the rebuild command.
+
 ## Readable soft success and warning (0.6.0-vnext.21)
 
 `--iq-success-bg` and `--iq-warning-bg` are now pale tints like `--iq-danger-bg` and `--iq-info-bg`

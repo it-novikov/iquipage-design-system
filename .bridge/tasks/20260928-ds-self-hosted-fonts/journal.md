@@ -1,0 +1,24 @@
+# Журнал 20260928-ds-self-hosted-fonts
+
+- 2026-09-28T22:32:05Z · claude · create · - · DS: самостоятельная поставка Inter (0.6.0-vnext.22)
+- 2026-09-28T22:32:05Z · claude · claim · - · взял задачу
+- 2026-09-28T22:32:05Z · claude · note · A1 · критерий приёмки: A1. Пакет содержит assets/fonts/InterVariable.woff2 (Inter 4.1, OFL 1.1, wght 400–700, opsz 14–32, latin+cyrillic) и tokens/fonts.css с @font-face для Inter и Inter Display; экспорт ./fonts.css
+- 2026-09-28T22:32:05Z · claude · note · A2 · критерий приёмки: A2. dist/iquipage.css начинается с @font-face и грузит шрифт относительным путём ../assets/fonts/; каталоги index/whiteboard/workbench не ходят в Google Fonts и делают preload шрифта
+- 2026-09-28T22:32:06Z · claude · note · A3 · критерий приёмки: A3. Метрический fallback Inter Fallback (Arial с size-adjust) в стеках --iq-font и --iq-display; swap не двигает вёрстку
+- 2026-09-28T22:32:06Z · claude · note · A4 · критерий приёмки: A4. Версия 0.6.0-vnext.22: package.json, semantic.json, README-changelog, PROVENANCE.json, INTEGRATION.md; npm run build и npm test зелёные; tests/vnext22.test.cjs фиксирует контракт
+- 2026-09-28T22:32:06Z · claude · note · A5 · критерий приёмки: A5. Проект claude.ai/design получает тот же woff2 и fonts.css вместо 18 статических TTF
+- 2026-09-28T22:32:06Z · claude · note · S1 · добавлен шаг: Подмножество Inter 4.1
+- 2026-09-28T22:32:06Z · claude · note · S2 · добавлен шаг: fonts.css, сборка, шаблоны, версия
+- 2026-09-28T22:32:06Z · claude · note · S3 · добавлен шаг: Документация и тест
+- 2026-09-28T22:32:06Z · claude · note · S4 · добавлен шаг: Синхронизация проекта claude.ai/design
+- 2026-09-28T22:32:38Z · claude · step · S1 · done: assets/fonts/InterVariable.woff2 109 172 B, sha256 c8126c77…, 668 глифов, кириллица 248, оси opsz 14–32, wght 400–700
+- 2026-09-28T22:32:38Z · claude · step · S2 · active
+- 2026-09-28T22:36:19Z · claude · step · S2 · done: build: dist/iquipage.css начинается с @font-face, три каталога с preload и без googleapis; в браузере document.fonts: Inter и Inter Display loaded, единственный запрос /assets/fonts/InterVariable.woff2
+- 2026-09-28T22:36:19Z · claude · step · S3 · done: npm test 289/289; README, INTEGRATION.md «Шрифт», PROVENANCE.json fonts
+- 2026-09-28T22:36:20Z · claude · step · S4 · active
+- 2026-09-28T22:36:20Z · claude · decision · D1 · Один вариативный InterVariable.woff2 вместо статических Inter Display — ось opsz даёт дисплейные формы сама; курсив не поставляется (4 правила font-style в DS), браузер синтезирует
+- 2026-09-28T22:36:20Z · claude · decision · D2 · Метрический fallback: Arial с size-adjust 107.4 %, ascent 90.2 %, descent 22.48 % (значения генератора next/font для Inter) — swap без сдвига вёрстки
+- 2026-09-28T22:36:20Z · claude · checkpoint · S4 · дальше: коммит, push и PR после подтверждения владельца; затем адаптация продукта: npm pack, vendor/*.tgz, preload в web/index.html
+- 2026-09-28T22:38:36Z · claude · step · S4 · done: DesignSync plan e2304bb3f3b6: записаны fonts/InterVariable.woff2, fonts/OFL.txt, tokens/fonts.css (путь ../fonts/); удалены 18 InterDisplay-*.ttf
+- 2026-09-28T22:38:36Z · claude · checkpoint · - · дальше: push, PR на main; затем адаптация продукта: npm pack, vendor/iquipage-web-0.6.0-vnext.22.tgz, lockfile, preload в products/sprintique/web/index.html, повторный визуальный QA
+- 2026-09-28T22:38:36Z · claude · status · - · review: Код и карточка готовы, push по подтверждению
