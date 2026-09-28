@@ -8,7 +8,7 @@ owner: it-novikov
 branch: feature/ds-self-hosted-fonts
 base: main
 created: 2026-09-28
-updated: 2026-09-28T22:38:36Z
+updated: 2026-09-28T22:50:24Z
 links:
 ---
 
@@ -80,6 +80,14 @@ links:
   - [x] list_files показывает один woff2, чекер проекта без предупреждения о шрифте
 - **Покрывает:** A5
 - **Итог:** DesignSync plan e2304bb3f3b6: записаны fonts/InterVariable.woff2, fonts/OFL.txt, tokens/fonts.css (путь ../fonts/); удалены 18 InterDisplay-*.ttf
+
+### S5. Адаптация релиза в Sprintique [active]
+- **Что:** vendor/iquipage-web-0.6.0-vnext.22.tgz, package.json, lockfile с integrity, library-contract, README sha256, docs
+- **Как:** npm pack в библиотеке, git mv тарбола, npm ci; vite build кладёт InterVariable-*.woff2 в dist/assets
+- **Зачем:** Продукт впервые рендерится в Inter, а не в системном шрифте
+- **Приёмка:**
+  - [ ] npm ci и npm run build продукта чисто; dist содержит woff2; check:boundaries PASS; полный node scripts/test.mjs зелёный
+- **Покрывает:** A4
 
 ## Решения
 

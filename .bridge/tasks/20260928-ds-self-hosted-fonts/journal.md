@@ -22,3 +22,5 @@
 - 2026-09-28T22:38:36Z · claude · step · S4 · done: DesignSync plan e2304bb3f3b6: записаны fonts/InterVariable.woff2, fonts/OFL.txt, tokens/fonts.css (путь ../fonts/); удалены 18 InterDisplay-*.ttf
 - 2026-09-28T22:38:36Z · claude · checkpoint · - · дальше: push, PR на main; затем адаптация продукта: npm pack, vendor/iquipage-web-0.6.0-vnext.22.tgz, lockfile, preload в products/sprintique/web/index.html, повторный визуальный QA
 - 2026-09-28T22:38:36Z · claude · status · - · review: Код и карточка готовы, push по подтверждению
+- 2026-09-28T22:50:24Z · claude · note · S5 · добавлен шаг: Адаптация релиза в Sprintique
+- 2026-09-28T22:50:24Z · claude · step · S5 · active
