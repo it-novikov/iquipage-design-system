@@ -32,3 +32,7 @@
 - 2026-09-27T23:40:32Z · claude-opus-5-5 · step · S12 · active
 - 2026-09-27T23:47:06Z · claude-opus-5-5 · step · S12 · done: Модули event (страницы, голова, SSE в прежнем формате кадров) и agent (запуски, предложения, подтверждения, контекст), список разрешений агентов и одобрений. agent-runs 5/5, event-bootstrap 2/3 и planning 21/23 — остаток в S13 (схемы OpenAPI).
 - 2026-09-27T23:47:06Z · claude-opus-5-5 · step · S13 · active
+- 2026-09-28T00:01:50Z · claude-opus-5-5 · decision · D7 · OpenAPI строит сервер из обработчиков, схемы — экспорт zod в public-schemas.json; springdoc и Swagger UI не используются — springdoc спотыкался о полиморфные контракты, а источником правды схем для фронтенда и так служит zod
+- 2026-09-28T00:01:50Z · claude-opus-5-5 · step · S13 · done: Экспорт zod-схем (npm run contracts, проверка устаревания в прогоне), /openapi.json из обработчиков с проверкой контрактов при старте, @Idempotent, /api/v1/contracts, ContractParityTest. Весь набор против Kotlin: 181 пройдено, 0 падений, 3 сценария — Kotlin-тесты.
+- 2026-09-28T00:01:50Z · claude-opus-5-5 · step · S14 · active
+- 2026-09-28T00:01:50Z · claude-opus-5-5 · checkpoint · S14 · дальше: S15–S16: два раунда ревью и PR

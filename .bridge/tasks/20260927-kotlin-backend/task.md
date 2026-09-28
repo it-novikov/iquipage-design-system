@@ -8,7 +8,7 @@ owner: it-novikov
 branch: feature/kotlin-backend
 base: feat/finish-platform
 created: 2026-09-27
-updated: 2026-09-27T23:47:06Z
+updated: 2026-09-28T00:01:50Z
 links:
 ---
 
@@ -58,15 +58,15 @@ links:
 
 ## Передача
 
-- **Состояние:** S9 закоммичен (9a59efd). Против Kotlin проходят api, membership, project-profile, planning (кроме событий и схем), planning-view, security-r4 и backend-audit.
+- **Состояние:** S1–S13 готовы. Весь набор тестов проходит против Kotlin (181/184, 3 — Kotlin-тесты) и против TS (183/184).
 
   Инвентаризация тестов — в docs/test-parity.md.
-- **Сейчас:** S10: карты (backend/application/maps.ts, contracts/maps.ts, http maps)
-- **Дальше:** S11 worker и operations; S12 события, запуски агентов, одобрения-списки
+- **Сейчас:** S14: переключение фикстуры, скриптов, стенда и образа на Kotlin, удаление backend/
+- **Дальше:** S15–S16: два раунда ревью и PR
 
   Затем `./gradlew check`.
 - **Незакоммичено:** нет
-- **Рабочая копия:** 1 файл(ов): .impeccable/ (2 files changed, 8 insertions(+), 5 deletions(-)) · HEAD 9a59efd
+- **Рабочая копия:** 1 файл(ов): .impeccable/ (2 files changed, 9 insertions(+), 4 deletions(-)) · HEAD fdb917f
 - **Ловушки:**
   - pg_ctl и тесты падают без `LC_ALL=C LANG=C`.
   - Docker-контекст по умолчанию (colima default) сломан. Продукт запрещает трогать VM по умолчанию, поэтому тесты Kotlin берут базу из `scripts/test.mjs`.
@@ -83,7 +83,9 @@ links:
   - PlanningStates.load уже общий с задачами: не дублировать загрузку состояния
   - Часовой пояс проекта может быть скрыт политикой строк от агента: timezone nullable
   - Скрипт переноса строк не должен трогать SQL в тройных кавычках: проверять SQL после любой массовой правки
-- **Проверка:** SPRINTIQUE_BACKEND=kotlin node scripts/test.mjs --only=maps.test.ts
+  - Скрипты стенда (local-app, test --preview) и Dockerfile ещё запускают TS-бэкенд
+  - jobs.test.ts и media-locks.test.ts импортируют TS-код очереди и медиа: при удалении backend/ перенести в Kotlin или удалить с заменой
+- **Проверка:** SPRINTIQUE_BACKEND=kotlin npm test
 
 ## План
 
@@ -212,15 +214,16 @@ links:
 - **Покрывает:** A1
 - **Итог:** Модули event (страницы, голова, SSE в прежнем формате кадров) и agent (запуски, предложения, подтверждения, контекст), список разрешений агентов и одобрений. agent-runs 5/5, event-bootstrap 2/3 и planning 21/23 — остаток в S13 (схемы OpenAPI).
 
-### S13. OpenAPI и контракт [active]
+### S13. OpenAPI и контракт [done]
 - **Что:** OpenAPI 3.1 из кода с прежними именами схем, Swagger UI, `/api/v1/contracts`, тест расхождения, контрактный тест Kotlin ↔ Zod.
 - **Как:** springdoc, `@Schema(name = …)`, зафиксированный документ в репозитории.
 - **Зачем:** Контракт виден и проверяется, фронтенд и сервер не расходятся.
 - **Приёмка:**
-  - [ ] Тест расхождения OpenAPI и контрактный тест проходят
+  - [x] Тест расхождения OpenAPI и контрактный тест проходят
 - **Покрывает:** A4
+- **Итог:** Экспорт zod-схем (npm run contracts, проверка устаревания в прогоне), /openapi.json из обработчиков с проверкой контрактов при старте, @Idempotent, /api/v1/contracts, ContractParityTest. Весь набор против Kotlin: 181 пройдено, 0 падений, 3 сценария — Kotlin-тесты.
 
-### S14. Переключение и удаление TypeScript-бэкенда [todo]
+### S14. Переключение и удаление TypeScript-бэкенда [active]
 - **Что:**
   - фикстура тестов без импорта бэкенда;
   - скрипты тестов, стенда и контейнера на Kotlin;
@@ -260,6 +263,7 @@ links:
 - **D4** (2026-09-27) Архитектурные тесты — ArchUnit (R2 F9).
 - **D5** (2026-09-27) Порт SQL один в один: выверенные запросы переносятся как SQL с позиционными параметрами через слой `Transaction`, который повторяет типы node-pg. jOOQ-DSL — для нового и простого кода.
 - **D6** (2026-09-27) check-local-oidc перенесён из S6 в S14 — проверке нужен локальный стенд с Kotlin-сервером, а стенд переключается в S14
+- **D7** (2026-09-28) OpenAPI строит сервер из обработчиков, схемы — экспорт zod в public-schemas.json; springdoc и Swagger UI не используются — springdoc спотыкался о полиморфные контракты, а источником правды схем для фронтенда и так служит zod
 
 ## Вопросы
 
