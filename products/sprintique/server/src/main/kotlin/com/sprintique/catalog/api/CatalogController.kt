@@ -7,6 +7,7 @@ import com.sprintique.catalog.application.TagValue
 import com.sprintique.command.CommandLedger
 import com.sprintique.contract.Accepts
 import com.sprintique.contract.Contracts
+import com.sprintique.contract.Idempotent
 import com.sprintique.database.Transaction
 import com.sprintique.identity.api.AuthenticatedRequests
 import com.sprintique.identity.api.RequestInputs
@@ -41,6 +42,7 @@ class CatalogController(
 
     @PutMapping("/api/v1/projects/{projectId}/tags/{id}")
     @Accepts(PutTagRequest::class)
+    @Idempotent
     fun putTag(
         @PathVariable projectId: String,
         @PathVariable id: String,
@@ -56,6 +58,7 @@ class CatalogController(
 
     @PutMapping("/api/v1/projects/{projectId}/releases/{id}")
     @Accepts(PutReleaseRequest::class)
+    @Idempotent
     fun putRelease(
         @PathVariable projectId: String,
         @PathVariable id: String,

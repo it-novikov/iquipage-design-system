@@ -142,7 +142,7 @@ data class PutTaskRequest(
 )
 
 /** A board move: the new column and order, nothing else. */
-@Schema(name = "MoveTask")
+@Schema(name = "TaskPosition")
 data class MoveTaskRequest(
     @field:Min(0) @field:Max(MAX_SAFE_INTEGER)
     val baseRevision: Long,

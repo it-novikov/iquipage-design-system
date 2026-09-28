@@ -3,6 +3,7 @@ package com.sprintique.task.api
 import com.sprintique.command.CommandLedger
 import com.sprintique.contract.Accepts
 import com.sprintique.contract.Contracts
+import com.sprintique.contract.Idempotent
 import com.sprintique.identity.api.AuthenticatedRequests
 import com.sprintique.identity.api.RequestInputs
 import com.sprintique.identity.application.ProjectAccess
@@ -54,6 +55,7 @@ class TaskController(
 
     @PutMapping("/api/v1/projects/{projectId}/tasks/{id}")
     @Accepts(PutTaskRequest::class)
+    @Idempotent
     fun put(
         @PathVariable projectId: String,
         @PathVariable id: String,
@@ -71,6 +73,7 @@ class TaskController(
 
     @PatchMapping("/api/v1/projects/{projectId}/tasks/{id}/position")
     @Accepts(MoveTaskRequest::class)
+    @Idempotent
     fun move(
         @PathVariable projectId: String,
         @PathVariable id: String,
@@ -101,6 +104,7 @@ class TaskController(
 
     @PutMapping("/api/v1/projects/{projectId}/task-links/{id}")
     @Accepts(PutTaskLinkRequest::class)
+    @Idempotent
     fun putLink(
         @PathVariable projectId: String,
         @PathVariable id: String,

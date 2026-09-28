@@ -3,6 +3,7 @@ package com.sprintique.workspace.api
 import com.sprintique.command.CommandLedger
 import com.sprintique.contract.Accepts
 import com.sprintique.contract.Contracts
+import com.sprintique.contract.Idempotent
 import com.sprintique.identity.api.AuthenticatedRequests
 import com.sprintique.identity.api.RequestInputs
 import com.sprintique.media.application.ImageTranscoder
@@ -45,6 +46,7 @@ class ProfileController(
 
     @PutMapping("/api/v1/projects/{projectId}/profile")
     @Accepts(PutProjectProfileRequest::class)
+    @Idempotent
     fun changeProjectProfile(
         @PathVariable projectId: String,
         @RequestBody(required = false) body: JsonNode?,
@@ -123,6 +125,7 @@ class ProfileController(
 
     @PatchMapping("/api/v1/projects/{projectId}/members/{id}")
     @Accepts(ChangeMemberRequest::class)
+    @Idempotent
     fun changeMember(
         @PathVariable projectId: String,
         @PathVariable id: String,

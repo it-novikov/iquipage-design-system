@@ -5,6 +5,7 @@ import com.sprintique.agent.application.NewRun
 import com.sprintique.agent.application.RunEnd
 import com.sprintique.contract.Accepts
 import com.sprintique.contract.Contracts
+import com.sprintique.contract.Idempotent
 import com.sprintique.contract.QueryParameters
 import com.sprintique.contract.UUID
 import com.sprintique.identity.api.AuthenticatedRequests
@@ -38,6 +39,7 @@ class AgentRunController(
 
     @PostMapping("/agent-runs")
     @Accepts(StartAgentRunRequest::class)
+    @Idempotent
     fun start(
         @PathVariable projectId: String,
         @RequestBody(required = false) body: JsonNode?,
@@ -70,6 +72,7 @@ class AgentRunController(
 
     @PostMapping("/agent-runs/{id}/commit")
     @Accepts(AgentRunCommitRequest::class)
+    @Idempotent
     fun commit(
         @PathVariable projectId: String,
         @PathVariable id: String,
@@ -85,6 +88,7 @@ class AgentRunController(
 
     @PostMapping("/agent-runs/{id}/finish")
     @Accepts(FinishAgentRunRequest::class)
+    @Idempotent
     fun finish(
         @PathVariable projectId: String,
         @PathVariable id: String,

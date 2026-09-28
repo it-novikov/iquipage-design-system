@@ -51,6 +51,9 @@ try{
   // Kotlin integration tests against this same isolated cluster. No Docker is involved.
   const kotlin=process.env.SPRINTIQUE_BACKEND==='kotlin';
   if(kotlin){
+    // The published contract of the Kotlin server is exported from the Zod contracts; a stale export fails here.
+    const exported=spawnSync(process.execPath,['--import','tsx','scripts/export-contracts.ts','--check'],{stdio:'inherit'});
+    if(exported.status!==0)throw Error('Public contract schemas are out of date');
     const server=await import('./kotlin-server.mjs');
     server.buildServer();checkpoint();
     if(!preview&&!process.argv.includes('--skip-ledger-check')){

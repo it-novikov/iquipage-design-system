@@ -2,6 +2,7 @@ package com.sprintique.map.api
 
 import com.sprintique.contract.Accepts
 import com.sprintique.contract.Contracts
+import com.sprintique.contract.Idempotent
 import com.sprintique.contract.QueryParameters
 import com.sprintique.identity.api.AuthenticatedRequests
 import com.sprintique.identity.api.RequestInputs
@@ -66,6 +67,7 @@ class MapController(
 
     @PutMapping("/maps/{id}")
     @Accepts(PutMapRequest::class)
+    @Idempotent
     fun write(
         @PathVariable projectId: String,
         @PathVariable id: String,
@@ -85,6 +87,7 @@ class MapController(
 
     @PutMapping("/map-templates/{id}")
     @Accepts(PutMapTemplateRequest::class)
+    @Idempotent
     fun writeTemplate(
         @PathVariable projectId: String,
         @PathVariable id: String,

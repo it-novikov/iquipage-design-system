@@ -57,7 +57,7 @@ dependencies {
     implementation(libs.kotlin.reflect)
     implementation(libs.flyway.core)
     implementation(libs.flyway.postgresql)
-    implementation(libs.springdoc.webmvc.ui)
+    implementation(libs.swagger.annotations)
     implementation(libs.nimbus.oidc)
     implementation(libs.aws.sdk.s3)
     implementation(libs.aws.sdk.url.connection)

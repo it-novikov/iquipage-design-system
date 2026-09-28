@@ -38,3 +38,8 @@ class Contracts(private val json: JsonMapper, private val validator: Validator) 
 @Target(AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.RUNTIME)
 annotation class Accepts(val value: KClass<*>)
+
+/** The route is a command with a retry ledger: callers send an `Idempotency-Key` and may repeat the request safely. */
+@Target(AnnotationTarget.FUNCTION)
+@Retention(AnnotationRetention.RUNTIME)
+annotation class Idempotent

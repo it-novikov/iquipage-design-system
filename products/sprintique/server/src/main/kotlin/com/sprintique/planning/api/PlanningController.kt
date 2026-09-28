@@ -3,6 +3,7 @@ package com.sprintique.planning.api
 import com.sprintique.command.CommandLedger
 import com.sprintique.contract.Accepts
 import com.sprintique.contract.Contracts
+import com.sprintique.contract.Idempotent
 import com.sprintique.contract.QueryParameters
 import com.sprintique.contract.UUID
 import com.sprintique.identity.api.AuthenticatedRequests
@@ -124,6 +125,7 @@ class PlanningController(
 
     @PutMapping("/planning/releases/{id}")
     @Accepts(ReleaseWriteRequest::class)
+    @Idempotent
     fun writeRelease(
         @PathVariable projectId: String,
         @PathVariable id: String,
@@ -161,6 +163,7 @@ class PlanningController(
 
     @PostMapping("/planning/commands")
     @Accepts(CommitPlanRequest::class)
+    @Idempotent
     fun commit(
         @PathVariable projectId: String,
         @RequestBody(required = false) body: JsonNode?,
@@ -222,6 +225,7 @@ class PlanningController(
 
     @PostMapping("/approvals/{id}/decision")
     @Accepts(ApprovalDecisionRequest::class)
+    @Idempotent
     fun decide(
         @PathVariable projectId: String,
         @PathVariable id: String,
@@ -237,6 +241,7 @@ class PlanningController(
 
     @PutMapping("/planning/milestones/{id}")
     @Accepts(MilestoneWriteRequest::class)
+    @Idempotent
     fun writeMilestone(
         @PathVariable projectId: String,
         @PathVariable id: String,
@@ -253,6 +258,7 @@ class PlanningController(
 
     @PutMapping("/planning/constraints/{id}")
     @Accepts(ConstraintWriteRequest::class)
+    @Idempotent
     fun writeConstraint(
         @PathVariable projectId: String,
         @PathVariable id: String,

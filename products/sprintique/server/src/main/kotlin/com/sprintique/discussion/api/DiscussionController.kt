@@ -3,6 +3,7 @@ package com.sprintique.discussion.api
 import com.sprintique.command.CommandLedger
 import com.sprintique.contract.Accepts
 import com.sprintique.contract.Contracts
+import com.sprintique.contract.Idempotent
 import com.sprintique.discussion.application.Discussions
 import com.sprintique.discussion.application.NewThread
 import com.sprintique.identity.api.AuthenticatedRequests
@@ -58,6 +59,7 @@ class DiscussionController(
 
     @PostMapping("/api/v1/projects/{projectId}/tasks/{id}/threads")
     @Accepts(CreateThreadRequest::class)
+    @Idempotent
     fun create(
         @PathVariable projectId: String,
         @PathVariable id: String,
@@ -73,6 +75,7 @@ class DiscussionController(
 
     @PostMapping("/api/v1/projects/{projectId}/threads/{id}/messages")
     @Accepts(AppendMessageRequest::class)
+    @Idempotent
     fun append(
         @PathVariable projectId: String,
         @PathVariable id: String,
@@ -88,6 +91,7 @@ class DiscussionController(
 
     @PatchMapping("/api/v1/projects/{projectId}/threads/{id}/kind")
     @Accepts(ChangeThreadKindRequest::class)
+    @Idempotent
     fun changeKind(
         @PathVariable projectId: String,
         @PathVariable id: String,
@@ -119,6 +123,7 @@ class DiscussionController(
 
     @PatchMapping("/api/v1/projects/{projectId}/threads/{id}/resolution")
     @Accepts(ResolveThreadRequest::class)
+    @Idempotent
     fun resolve(
         @PathVariable projectId: String,
         @PathVariable id: String,

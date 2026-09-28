@@ -16,6 +16,7 @@
     "local:start": "node scripts/local-app.mjs",
     "dev": "vite --host 127.0.0.1",
     "migrate": "tsx backend/migrate.ts",
+    "contracts": "tsx scripts/export-contracts.ts",
     "test": "node scripts/test.mjs",
     "preview:fixture": "node scripts/test.mjs --preview",
     "dev:local": "node scripts/test.mjs --preview",

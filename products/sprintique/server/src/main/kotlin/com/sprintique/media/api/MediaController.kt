@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonValue
 import com.sprintique.command.CommandLedger
 import com.sprintique.contract.Accepts
 import com.sprintique.contract.Contracts
+import com.sprintique.contract.Idempotent
 import com.sprintique.contract.RESOURCE_ID
 import com.sprintique.contract.TrimmedString
 import com.sprintique.identity.api.AuthenticatedRequests
@@ -81,6 +82,7 @@ class MediaController(
 
     @PostMapping("/api/v1/projects/{projectId}/assets")
     @Accepts(AssetReservationRequest::class)
+    @Idempotent
     fun reserve(
         @PathVariable projectId: String,
         @RequestBody(required = false) body: JsonNode?,

@@ -6,12 +6,27 @@ import com.sprintique.job.infrastructure.WorkerRole
 import com.sprintique.media.application.ObjectStoragePort
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
 /** J01–J03: the worker's narrow role, fenced cleanup of discarded files, retries after a storage outage. */
 class AssetCleanupIntegrationTest {
     private val admin = IntegrationDatabase.admin
+    private val projects = mutableListOf<String>()
+
+    /** The queue is shared with the API suites that run next: no job of this class may stay due. */
+    @AfterEach
+    fun cancelJobs() {
+        admin.transaction { tx ->
+            tx.update(
+                """
+                UPDATE work.jobs SET state = 'cancelled' WHERE project_id = ANY($1) AND state IN ('pending', 'running')
+                """.trimIndent(),
+                projects,
+            )
+        }
+    }
 
     private class RecordingStorage(private val failing: Boolean = false) : ObjectStoragePort {
         val removed = mutableListOf<String>()
@@ -76,6 +91,7 @@ class AssetCleanupIntegrationTest {
         val workspace = UUID.randomUUID().toString()
         val project = "project-$suffix"
         val asset = "asset-$suffix"
+        projects += project
         val sha = "a".repeat(64)
         admin.transaction { tx ->
             tx.update(

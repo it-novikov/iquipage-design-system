@@ -3,6 +3,7 @@ package com.sprintique.workspace.api
 import com.sprintique.command.CommandLedger
 import com.sprintique.contract.Accepts
 import com.sprintique.contract.Contracts
+import com.sprintique.contract.Idempotent
 import com.sprintique.identity.api.AuthenticatedRequests
 import com.sprintique.identity.api.RequestInputs
 import com.sprintique.workspace.application.TaskSettings
@@ -30,6 +31,7 @@ class TaskSettingsController(
 
     @PutMapping("/api/v1/projects/{projectId}/task-settings")
     @Accepts(PutTaskSettingsRequest::class)
+    @Idempotent
     fun write(
         @PathVariable projectId: String,
         @RequestBody(required = false) body: JsonNode?,

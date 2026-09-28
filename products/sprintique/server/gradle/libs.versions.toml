@@ -5,7 +5,7 @@ detekt = "2.0.0-alpha.3"
 ktlint-plugin = "14.2.0"
 ktlint-cli = "1.8.0"
 jib = "3.5.4"
-springdoc = "3.1.1"
+swagger-annotations = "2.2.55"
 nimbus-oidc = "11.38.2"
 aws-sdk = "2.55.6"
 twelvemonkeys = "3.15.2"
@@ -27,7 +27,7 @@ flyway-postgresql = { module = "org.flywaydb:flyway-database-postgresql" }
 postgresql = { module = "org.postgresql:postgresql" }
 jooq-codegen = { module = "org.jooq:jooq-codegen" }
 junixsocket-core = { module = "com.kohlschutter.junixsocket:junixsocket-core", version.ref = "junixsocket" }
-springdoc-webmvc-ui = { module = "org.springdoc:springdoc-openapi-starter-webmvc-ui", version.ref = "springdoc" }
+swagger-annotations = { module = "io.swagger.core.v3:swagger-annotations-jakarta", version.ref = "swagger-annotations" }
 nimbus-oidc = { module = "com.nimbusds:oauth2-oidc-sdk", version.ref = "nimbus-oidc" }
 aws-sdk-bom = { module = "software.amazon.awssdk:bom", version.ref = "aws-sdk" }
 aws-sdk-s3 = { module = "software.amazon.awssdk:s3" }

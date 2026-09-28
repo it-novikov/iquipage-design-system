@@ -1,6 +1,8 @@
 package com.sprintique.job.api
 
 import com.sprintique.command.CommandLedger
+import com.sprintique.contract.Accepts
+import com.sprintique.contract.Idempotent
 import com.sprintique.contract.UUID
 import com.sprintique.identity.api.AuthenticatedRequests
 import com.sprintique.identity.api.RequestInputs
@@ -28,6 +30,8 @@ class OperationController(private val requests: AuthenticatedRequests, private v
 
     /** Takes an empty object: the retry itself carries no options. */
     @PostMapping("/jobs/{id}/retry")
+    @Accepts(RetryJobRequest::class)
+    @Idempotent
     fun retry(
         @PathVariable projectId: String,
         @PathVariable id: String,
@@ -44,3 +48,7 @@ class OperationController(private val requests: AuthenticatedRequests, private v
         val UUID_PATTERN = Regex(UUID)
     }
 }
+
+/** A retry carries no options: the body is an empty object. */
+@io.swagger.v3.oas.annotations.media.Schema(name = "RetryJob")
+class RetryJobRequest
