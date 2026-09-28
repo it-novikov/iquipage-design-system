@@ -1,6 +1,6 @@
 # UX and design-system alignment (September 2026)
 
-Private DS **0.6.0-vnext.20**. It covers the component audit of the whole Sprintique UI and the changes the owner approved.
+Private DS **0.6.0-vnext.21**. It covers the component audit of the whole Sprintique UI and the changes the owner approved.
 
 ## Owner decisions
 
@@ -11,12 +11,13 @@ Private DS **0.6.0-vnext.20**. It covers the component audit of the whole Sprint
 | Assignee | Only a current human project member can be the assignee. |
 | Board admission | The rule stays the same. The board explains tasks that are waiting for a planned release. |
 
-## Design system (vnext.3 → vnext.20)
+## Design system (vnext.3 → vnext.21)
 
 - **vnext.3:** the R3 work list is a public entry. Tag tones have light and dark tokens. The type scale is tokenised. Dense surfaces get public variants. The keyboard focus ring is visible. The map canvas no longer collapses when the object library is open.
 - **vnext.4:** on coarse pointers, buttons, section links, selects and checkboxes are 44px (`touch.css`, loaded last). Escape closes the map object library.
 - **vnext.5:** `ui.menu` takes `{section}` labels, which keyboard navigation skips. Long menus scroll. Compact selects are 44px on touch screens.
 - **vnext.20:** drawers slide in opaque while the backdrop fades (and slide out on close), so opening a task no longer blinks; the property grid keeps two columns from 272px; `.iq-discussion-new-count` and `.iq-thread-actions-group`; whiteboard connectors end in the filled notched arrowhead of the template previews.
+- **vnext.21:** `--iq-success-bg` and `--iq-warning-bg` became tints, so soft success and warning badges, alert emblems and toast icons are readable in both themes (the planning list no longer overrides them); the Keycloak login theme left the package.
 - **vnext.19:** after a sixth council (product designer, UX researcher and product manager on discussions; art director, product designer and motion designer on properties, covers and template previews):
   - `.iq-discussion`: open questions pinned as framed cards with one resolve action, a chat timeline of comment threads (avatar, name, time, text, one level of replies), resolved questions as one quiet line, space instead of dividers. `ui.personAvatar` and the `help` icon.
   - Chat composer: `iq-markdown-editor variant="chat" idle="line"` rests as one field, chip toggles ("Вопрос", "Решить вопрос этим ответом"), "Отмена", Ctrl/⌘+Alt+Enter as the alternate submit.
@@ -110,7 +111,7 @@ Private DS **0.6.0-vnext.20**. It covers the component audit of the whole Sprint
     - The heading holds the view switch; the toolbar is one row (readiness, order, filters; current or archive on the right). The selection bar floats above the list at the bottom while something is selected. Empty states are `.iq-empty.compact` with the one action that fills them, including "Сбросить фильтры". Groups load as they come into view (a skeleton, no button).
     - Phones: the DS two-line row (title; status, person, date), the toolbar as one strip that scrolls sideways.
     - The projection carries `done`, `doneChildrenCount` and `parentTitle` per row and `drafts` and `unassigned` per group; the UI works without them.
-    - DS-GAP: `--iq-warning-bg` and `--iq-success-bg` equal the fill colours, so `.iq-badge.soft.warning` and `.soft.success` lose their text in the dark theme; the planning list overrides these two pairs with the tag tints until the DS ships tinted ones.
+    - The soft warning and success badges lost their text in the dark theme because `--iq-warning-bg` and `--iq-success-bg` equalled the fill colours; DS vnext.21 made them tints, so the list uses the DS badges as they are.
 - **Settings:** a full-width settings workspace on the DS side navigation.
   - Every page has the same anatomy: the title and one sentence about the section, the main action on the right, then groups of panels. Changes are saved with a bar that appears only when something changed.
   - People who cannot change a setting see values and a lock notice naming an administrator, not disabled fields.

@@ -110,6 +110,9 @@ val integrationTest =
         testClassesDirs = sourceSets["integrationTest"].output.classesDirs
         classpath = sourceSets["integrationTest"].runtimeClasspath
         shouldRunAfter(tasks.test)
+        // Their subject is a live database and storage handed in through the environment, which Gradle does not see
+        // as an input: a result from an earlier run (say, one without S3) must never stand in for this one.
+        outputs.upToDateWhen { false }
         doFirst {
             check(System.getenv("SPRINTIQUE_TEST_ADMIN_DATABASE_URL") != null) {
                 "Integration tests need the isolated database: run them through `npm test` in products/sprintique"

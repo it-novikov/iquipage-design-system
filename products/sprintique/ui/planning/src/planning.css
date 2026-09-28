@@ -86,10 +86,6 @@ tr[data-work-row]:hover .pn-grip,tr[data-work-row]:focus-within .pn-grip,.pn-gri
 .pn-cell[data-tone=danger]{color:var(--iq-danger);font-weight:500}
 .pn-cell[data-tone=warning]{color:var(--iq-warning);font-weight:500}
 .pn-col-state{width:168px}.pn-col-owner{width:216px}.pn-col-date{width:128px}
-/* DS-GAP (vnext.20): --iq-warning-bg and --iq-success-bg equal the fill colours, so the soft warning and success badges
-   lose their text in the dark theme. Until the DS ships tinted pairs, these two use the tag tints, which are readable in both themes. */
-.pn-group .iq-badge.soft.warning{background:var(--iq-tag-amber-fill);color:var(--iq-tag-amber-text)}
-.pn-group .iq-badge.soft.success{background:var(--iq-tag-green-fill);color:var(--iq-tag-green-text)}
 
 /* ---------- Selection bar: floats above the list while something is selected ---------- */
 .pn-selection{position:sticky;bottom:var(--iq-space-4);z-index:2;display:flex;align-items:center;flex-wrap:wrap;gap:var(--iq-space-3);margin-top:auto;margin-bottom:var(--iq-space-4);padding:var(--iq-space-2) var(--iq-space-3);background:var(--iq-raised);border:1px solid var(--iq-line);border-radius:var(--iq-radius-md);box-shadow:var(--iq-shadow-2);font-size:var(--iq-type-label-size)}
