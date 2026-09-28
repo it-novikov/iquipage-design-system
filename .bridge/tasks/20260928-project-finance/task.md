@@ -8,7 +8,7 @@ owner: it-novikov
 branch: feature/project-finance
 base: main
 created: 2026-09-28
-updated: 2026-09-28T22:54:12Z
+updated: 2026-09-28T23:09:34Z
 links:
 ---
 
@@ -48,11 +48,11 @@ links:
 
 ## Передача
 
-- **Состояние:** S1–S2 готовы; сервер S3 написан: ./gradlew check зелёный, HTTP finance.test.ts 9/9
-- **Сейчас:** S3/S4 — коммиты сервера
-- **Дальше:** Интерфейс «Финансы» (S5)
+- **Состояние:** S1–S5 готовы; UI проверен в браузере
+- **Сейчас:** S6 — документация, полный гейт, PR
+- **Дальше:** Полный npm test с TEST_S3_CONFIG, затем verify-vnext.mjs
 - **Незакоммичено:** нет
-- **Рабочая копия:** 30 файл(ов): products/sprintique/scripts/export-contracts.ts, products/sprintique/server/src/generated/jooq/com/sprintique/database/schema/app/App.kt, products/sprintique/server/src/generated/jooq/com/sprintique/database/schema/app/indexes/Indexes.kt, products/sprintique/server/src/generated/jooq/com/sprintique/database/schema/app/keys/Keys.kt, products/sprintique/server/src/generated/jooq/com/sprintique/database/schema/app/tables/Projects.kt, products/sprintique/server/src/generated/jooq/com/sprintique/database/schema/app/tables/references/Tables.kt, products/sprintique/server/src/generated/jooq/com/sprintique/database/schema/auth/routines/references/Routines.kt, products/sprintique/server/src/generated/jooq/com/sprintique/database/schema/auth/tables/Principals.kt, products/sprintique/server/src/main/kotlin/com/sprintique/apidoc/ApiDocumentation.kt, products/sprintique/server/src/main/kotlin/com/sprintique/event/application/ProjectEvents.kt, products/sprintique/server/src/main/kotlin/com/sprintique/identity/application/ProjectAccess.kt, products/sprintique/server/src/main/kotlin/com/sprintique/identity/domain/Actor.kt и ещё 18 (14 files changed, 1379 insertions(+), 25 deletions(-)) · HEAD 0bdd515
+- **Рабочая копия:** 11 файл(ов): products/sprintique/README.md, products/sprintique/docs/ux-ds-alignment.md, products/sprintique/tests/dev-seed.ts, products/sprintique/ui/planning/src/project-navigation.js, products/sprintique/web/main.js, products/sprintique/web/planning-adapter.js, products/sprintique/web/repository.js, products/sprintique/web/section-route.js, products/sprintique/docs/finance.md, products/sprintique/tests/finance-ui.test.mjs, products/sprintique/ui/finance/ (10 files changed, 53 insertions(+), 14 deletions(-)) · HEAD 6e73290
 - **Ловушки:**
   - TEST_S3_CONFIG лежит в /Users/nvkv71/iquipage-work/ux-ds-20260925/products/sprintique/output/infra/storage.json, а не в ux-ds-20260925/output/infra (там только vps.json и migration-*)
   - Системный node — v26; engines требует 24: PATH=/opt/homebrew/opt/node@24/bin:$PATH
@@ -77,29 +77,32 @@ links:
 - **Покрывает:** A1
 - **Итог:** V20260929000025__add_project_finance.sql применена с нуля (--jooq и --kotlin-only); jOOQ drift зелёный; FinanceLedgerIntegrationTest 3/3 (триггеры для роли владельца, RLS по ролям, откат в транзакции); интеграционные 24/24
 
-### S3. Сервер: контракты и сценарии [todo]
+### S3. Сервер: контракты и сценарии [done]
 - **Что:** contracts/finance.ts, пакет com.sprintique.finance (domain/application/api), Capability, фильтр событий, OpenAPI
 - **Как:** Zod → npm run contracts; Kotlin-контракты @Schema; CommandLedger, AuditTrail, ProjectAccess
 - **Зачем:** API для UI и импортёра
 - **Приёмка:**
-  - [ ] ./gradlew check зелёный, ContractParityTest включает новые контракты
+  - [x] ./gradlew check зелёный, ContractParityTest включает новые контракты
 - **Покрывает:** A2,A3,A4,A5
+- **Итог:** коммит 6e73290: contracts/finance.ts, пакет com.sprintique.finance, FINANCE_READ/WRITE, фильтр событий для агентов, OpenAPI; ./gradlew check зелёный (ContractParityTest включает 3 новых контракта)
 
-### S4. Тесты [todo]
+### S4. Тесты [done]
 - **Что:** Unit на правила, интеграционные на RLS/триггеры/откат, HTTP-сценарии finance.test.ts
 - **Как:** tests/finance.test.ts по образцу project-profile/membership; server/src/test, src/integrationTest
 - **Зачем:** Права, конкурентность и повторы должны быть доказаны
 - **Приёмка:**
-  - [ ] Новые тесты зелёные и покрывают права, CAS, идемпотентность, неизменяемость, сводку
+  - [x] Новые тесты зелёные и покрывают права, CAS, идемпотентность, неизменяемость, сводку
 - **Покрывает:** A3,A4,A5,A7
+- **Итог:** HTTP tests/finance.test.ts 9/9 (FN01–FN09), FinanceRulesTest 3/3, FinanceLedgerIntegrationTest 3/3, tests/finance-ui.test.mjs 3/3
 
-### S5. Интерфейс «Финансы» [todo]
+### S5. Интерфейс «Финансы» [done]
 - **Что:** Раздел проекта: сводка, журнал, диалоги операции, проведения, аннулирования, истории, валюты
 - **Как:** ui/finance/src/*, навигация и main.js; DS-классы; проверка в браузере на локальном стенде
 - **Зачем:** Пользователь работает с финансами в продукте
 - **Приёмка:**
-  - [ ] Сценарии проходят в браузере в светлой и тёмной теме и на 390px; check:styles PASS
+  - [x] Сценарии проходят в браузере в светлой и тёмной теме и на 390px; check:styles PASS
 - **Покрывает:** A6
+- **Итог:** ui/finance/src/*, навигация «Финансы», #finance/{id}; стенд 4351: создание ожидаемой, проведение, аннулирование с причиной и проверкой пустой причины, история, валюта EUR, фильтры, сводка, режим читателя с именем администратора, пустое состояние; светлая и тёмная тема, 1440/1280/390px; check:styles PASS; DS-GAP-FIN-1..3 записаны в docs/ux-ds-alignment.md
 
 ### S6. Документация, гейты, PR [todo]
 - **Что:** docs/finance.md, README, полный npm test, verify-vnext.mjs, PR в main
@@ -118,6 +121,7 @@ links:
 - **D5** (2026-09-28) Бюджеты по категориям не входят: необязательная часть не ложится чисто (нужны свои правила план/факт по валютам и отдельный UI) — отдельной задачей
 - **D6** (2026-09-28) Имена: новые таблицы в единственном числе (finance_entry, finance_entry_version) по engineering/conventions/naming.md §12, документ настроек finance_settings как task_settings; ограничения pk_/fk_/ck_/ix_
 - **D7** (2026-09-28) Валюта — только ^[A-Z]{3}$ с обеих сторон (Zod и Kotlin), без справочника и курсов; итоги по каждой валюте отдельно
+- **D8** (2026-09-28) UI: DS-GAP-FIN-1 (нет текстового поля с подсказками и своим значением — нативный datalist на DS-поле), DS-GAP-FIN-2 (счётчик ui.textarea обновляет только каталог DS — диалог обновляет сам), DS-GAP-FIN-3 (нет компактной плитки итога и поля суммы с валютой — dl на токенах DS и DS-поле с суффиксом); DS не менялась
 
 ## Вопросы
 
