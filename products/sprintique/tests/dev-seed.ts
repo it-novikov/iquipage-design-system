@@ -1,8 +1,10 @@
 import type pg from 'pg';
-import type {FastifyInstance} from 'fastify';
-import {randomUUID} from 'node:crypto';
-import {hash,secret} from '../backend/infrastructure/database.js';
-import {DEV_ISSUER,DEV_NAME,DEV_SUBJECT} from '../backend/http/dev-login.js';
+import {createHash,randomBytes,randomUUID} from 'node:crypto';
+import type {TestApp} from './support/kotlin-app.js';
+import {DEV_ISSUER,DEV_NAME,DEV_SUBJECT} from './support/dev-login.js';
+
+const hash=(value:string)=>createHash('sha256').update(value).digest('hex');
+const secret=()=>randomBytes(32).toString('base64url');
 
 /** Synthetic workspaces for local debugging. Every value is invented; nothing comes from real users. */
 type Tone='neutral'|'blue'|'purple'|'green'|'amber'|'red';
@@ -63,7 +65,7 @@ const WORKSPACES:{name:string;projects:ProjectSeed[]}[]=[
   ]}
 ];
 
-export async function seedDevData(app:FastifyInstance,admin:pg.Client,origin:string){
+export async function seedDevData(app:TestApp,admin:pg.Client,origin:string){
   const principal=async(name:string,issuer:string,subject:string)=>(await admin.query<{id:string}>(`INSERT INTO auth.principals(id,kind,name,issuer,subject) VALUES($1,'human',$2,$3,$4)
     ON CONFLICT(issuer,subject) DO UPDATE SET name=EXCLUDED.name RETURNING id`,[randomUUID(),name,issuer,subject])).rows[0]!.id;
   const adminId=await principal(DEV_NAME,DEV_ISSUER,DEV_SUBJECT);

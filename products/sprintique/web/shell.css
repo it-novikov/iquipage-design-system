@@ -1,8 +1,19 @@
 /* Product composition only. All controls, typography, states and motion use DS. */
 .map-version-preview{height:min(60vh,560px);min-height:280px}.map-version-preview>iq-whiteboard{height:100%}
 #app{height:100%}
-/* Local-stand sign-in: a narrow DS form under the landing copy. */
-.host-sign-in{display:grid;gap:var(--iq-space-3);justify-items:center;width:100%;max-width:440px}
+/* Sign-in inside the DS authentication screen: the e-mail step, then Google and Apple under a quiet divider. */
+.sign-in{display:grid;gap:var(--iq-space-5)}
+.sign-in-step{display:grid;gap:var(--iq-space-5)}
+.sign-in-step[hidden],.sign-in [hidden]{display:none}
+.sign-in-submit,.sign-in-provider{width:100%}
+.sign-in-provider{justify-content:center;gap:var(--iq-space-3)}
+.sign-in-mark{width:18px;height:18px;flex:none}
+.sign-in-providers{display:grid;gap:var(--iq-space-3)}
+.sign-in-actions{display:flex;justify-content:space-between;gap:var(--iq-space-3);flex-wrap:wrap;margin-top:calc(-1 * var(--iq-space-2))}
+.sign-in-divider{display:flex;align-items:center;gap:var(--iq-space-3);color:var(--iq-muted);font-size:var(--iq-type-caption-size)}
+.sign-in-divider::before,.sign-in-divider::after{content:"";flex:1;border-top:1px solid var(--iq-line)}
+.sign-in-dev{justify-self:center}
+#sign-in-code{letter-spacing:.3em;font-variant-numeric:tabular-nums}
 /* Product loading look (DS skeletons in .iq-loading): used by sections, Planning groups, map history and settings. */
 .product-loading{padding-block:var(--iq-space-2)}
 .product-loading-title{height:28px;width:min(220px,60%);margin-bottom:var(--iq-space-2)}

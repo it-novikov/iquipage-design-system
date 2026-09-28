@@ -4,13 +4,12 @@ import {randomUUID,createHash} from 'node:crypto';
 import {readFile} from 'node:fs/promises';
 import sharp from 'sharp';
 import {fixture} from './fixture.js';
-import {S3ObjectStorage} from '../backend/infrastructure/object-storage.js';
-import {objectKey} from '../backend/application/media.js';
+import {S3ObjectStorage,objectKey} from './support/object-storage.js';
 let f:Awaited<ReturnType<typeof fixture>>,storage:S3ObjectStorage;
 before(async()=>{
   // Real S3-compatible service is mandatory: no in-memory fallback or skipped integration test.
   storage=new S3ObjectStorage(JSON.parse(await readFile(process.env['TEST_S3_CONFIG']||'output/infra/storage.json','utf8')));
-  await storage.ready();f=await fixture({prefix:'F',storage});
+  await storage.ready();f=await fixture({prefix:'F',storage:true});
 });
 after(async()=>{
   if(f){const rows=(await f.admin.query('SELECT id,project_id AS "projectId",sha256 FROM app.assets WHERE project_id=$1',[f.first.id])).rows;

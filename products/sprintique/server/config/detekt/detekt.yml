@@ -1,0 +1,43 @@
+# Deviations from the default Detekt rule set. Each one names why (engineering/conventions/code-quality.md).
+complexity:
+  LongMethod:
+    # A use case is one transaction read top to bottom with its SQL inline; splitting it would scatter the lock order.
+    allowedLines: 100
+  CyclomaticComplexMethod:
+    # Validation of a write checks every rule of the contract in order; see LongMethod.
+    allowedComplexity: 20
+  LongParameterList:
+    # HTTP request and response classes mirror the public contract field by field.
+    allowedConstructorParameters: 12
+    ignoreDataClasses: true
+  TooManyFunctions:
+    # A controller or a SQL adapter exposes one function per route or statement of its module.
+    allowedFunctionsPerFile: 25
+    allowedFunctionsPerClass: 25
+    allowedFunctionsPerObject: 25
+style:
+  ThrowsCount:
+    # Guard clauses that end in a problem for the client read top to bottom.
+    max: 4
+  ReturnCount:
+    # Guard clauses read top to bottom; an early return is clearer than nesting.
+    max: 4
+    excludeGuardClauses: true
+  MaxLineLength:
+    # SQL keeps its own layout inside raw strings; wrapping it to 120 columns makes queries harder to read.
+    excludeRawStrings: true
+  MagicNumber:
+    excludes: ['**/test/**', '**/integrationTest/**']
+    ignorePropertyDeclaration: true
+    ignoreCompanionObjectPropertyDeclaration: true
+    # Bounds in contract annotations are the contract itself (@Min(60), @Max(86_400)).
+    ignoreAnnotation: true
+    # HTTP status codes are the vocabulary of the API contract; naming each one would hide the status the client sees.
+    ignoreNumbers: ['-1', '0', '1', '2', '400', '401', '403', '404', '409', '410', '413', '415', '422', '429', '503']
+naming:
+  FunctionNaming:
+    # Test names are behaviour sentences in backticks.
+    excludes: ['**/test/**', '**/integrationTest/**']
+  VariableNaming:
+    # ArchUnit rules are properties named as behaviour sentences, like test functions.
+    excludes: ['**/test/**', '**/integrationTest/**']

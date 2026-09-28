@@ -1,8 +1,7 @@
 import {test,before,after} from 'node:test';
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
-import {fixture} from './fixture.js';
-import {createApp} from '../backend/http/app.js';
+import {fixture,startApp} from './fixture.js';
 let f:Awaited<ReturnType<typeof fixture>>;
 before(async()=>{f=await fixture({prefix:'O'});});after(async()=>{await f?.close();});
 test('O01 live OpenAPI inventory exposes bounded request schemas and exact command idempotency headers',async()=>{
@@ -14,13 +13,16 @@ test('O01 live OpenAPI inventory exposes bounded request schemas and exact comma
 });
 test('O02 readiness fails closed on missing, changed and unknown migration checksums',async()=>{
   assert.equal((await f.app.inject('/ready')).statusCode,200);
-  const row=(await f.admin.query('SELECT name,sha256,applied_at FROM public.schema_migrations ORDER BY name LIMIT 1')).rows[0];
-  try{await f.admin.query('UPDATE public.schema_migrations SET sha256=$2 WHERE name=$1',[row.name,'wrong']);const bad=await f.app.inject('/ready');assert.equal(bad.statusCode,503);assert.equal(bad.json().code,'SCHEMA_MISMATCH');}
-  finally{await f.admin.query('UPDATE public.schema_migrations SET sha256=$2 WHERE name=$1',[row.name,row.sha256]);}
-  try{await f.admin.query('DELETE FROM public.schema_migrations WHERE name=$1',[row.name]);assert.equal((await f.app.inject('/ready')).statusCode,503);}
-  finally{await f.admin.query('INSERT INTO public.schema_migrations(name,sha256,applied_at) VALUES($1,$2,$3)',[row.name,row.sha256,row.applied_at]);}
-  try{await f.admin.query("INSERT INTO public.schema_migrations(name,sha256) VALUES('999_unknown.sql','unknown')");assert.equal((await f.app.inject('/ready')).statusCode,503);}
-  finally{await f.admin.query("DELETE FROM public.schema_migrations WHERE name='999_unknown.sql'");}
+  // The migration ledger is Flyway's history table.
+  const history='public.flyway_schema_history',row=(await f.admin.query(`SELECT * FROM ${history} WHERE version IS NOT NULL ORDER BY installed_rank LIMIT 1`)).rows[0];
+  try{await f.admin.query(`UPDATE ${history} SET checksum=checksum+1 WHERE installed_rank=$1`,[row.installed_rank]);const bad=await f.app.inject('/ready');assert.equal(bad.statusCode,503);assert.equal(bad.json().code,'SCHEMA_MISMATCH');}
+  finally{await f.admin.query(`UPDATE ${history} SET checksum=$2 WHERE installed_rank=$1`,[row.installed_rank,row.checksum]);}
+  const columns=Object.keys(row),values=columns.map(column=>row[column]);
+  try{await f.admin.query(`DELETE FROM ${history} WHERE installed_rank=$1`,[row.installed_rank]);assert.equal((await f.app.inject('/ready')).statusCode,503);}
+  finally{await f.admin.query(`INSERT INTO ${history}(${columns.join(',')}) VALUES(${columns.map((_,i)=>'$'+(i+1)).join(',')})`,values);}
+  const rank=(await f.admin.query(`SELECT max(installed_rank)+1 AS rank FROM ${history}`)).rows[0].rank;
+  try{await f.admin.query(`INSERT INTO ${history}(installed_rank,version,description,type,script,checksum,installed_by,execution_time,success) VALUES($1,'99999999999999','unknown','SQL','V99999999999999__unknown.sql',1,'test',0,true)`,[rank]);assert.equal((await f.app.inject('/ready')).statusCode,503);}
+  finally{await f.admin.query(`DELETE FROM ${history} WHERE installed_rank=$1`,[rank]);}
   assert.equal((await f.app.inject('/ready')).statusCode,200);
 });
 test('O04 only a live project admin can inspect or retry failed asset jobs, with atomic audit and replay',async()=>{
@@ -39,13 +41,13 @@ test('O04 only a live project admin can inspect or retry failed asset jobs, with
   const audit=(await f.admin.query("SELECT count(*)::int AS n FROM app.audit_events WHERE project_id=$1 AND action='job.retried'",[f.first.id])).rows[0];assert.equal(audit.n,1);
 });
 test('O03 login throttling ignores spoofed forwarding headers and returns Retry-After',async()=>{
-  for(let i=0;i<20;i++)assert.notEqual((await f.app.inject({url:'/auth/login',headers:{'x-forwarded-for':'203.0.113.'+i}})).statusCode,429);
-  const denied=await f.app.inject({url:'/auth/login',headers:{'x-forwarded-for':'198.51.100.9'}});assert.equal(denied.statusCode,429);assert.equal(denied.headers['retry-after'],'60');
+  for(let i=0;i<20;i++)assert.notEqual((await f.app.inject({url:'/auth/login/google',headers:{'x-forwarded-for':'203.0.113.'+i}})).statusCode,429);
+  const denied=await f.app.inject({url:'/auth/login/google',headers:{'x-forwarded-for':'198.51.100.9'}});assert.equal(denied.statusCode,429);assert.equal(denied.headers['retry-after'],'60');
   assert.equal((await f.app.inject('/health')).statusCode,200);
 });
 test('O05 private aggregate metrics do not reveal path values, bodies, credentials or arbitrary labels',async()=>{
   assert.equal((await f.app.inject('/internal/metrics')).statusCode,404);
-  const token='synthetic-metrics-token-not-a-credential',app=await createApp({db:f.db,origin:'http://localhost:4311',metricsToken:token});
+  const token='synthetic-metrics-token-not-a-credential',app=await startApp({metricsToken:token});
   try{
     await app.inject({url:'/api/v1/projects/private-project-value/tasks?secret=do-not-log',headers:f.alice.headers});
     await app.inject('/random-private-url');

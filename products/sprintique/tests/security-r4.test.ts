@@ -2,12 +2,10 @@ import {after,before,test} from 'node:test';
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
 import {setTimeout as delay} from 'node:timers/promises';
-import {fixture,origin} from './fixture.js';
-import {createApp} from '../backend/http/app.js';
+import {fixture,origin,startApp} from './fixture.js';
+import {startFakeOidcProvider} from './support/fake-oidc-provider.js';
 import {MapDocument} from '../contracts/maps.js';
 import {PREVIEW_BUDGET} from '../contracts/planning.js';
-import {appendMessage} from '../backend/application/discussions.js';
-import type {ObjectStorage} from '../backend/infrastructure/object-storage.js';
 import type {Capability,Message,Task,Thread} from '../contracts/index.js';
 
 /** Regressions for the security findings resolved after the R4 deep-scan handover.
@@ -35,6 +33,17 @@ async function waitForProjectLock(pid:number){
     await delay(10);
   }
   assert.fail('Expected the discussion write to queue behind the project aggregate lock');
+}
+/** The server's own connection that waits for the project row lock held by the test. */
+async function waitForQueuedProjectWrite(){
+  for(let attempt=0;attempt<200;attempt++){
+    await f.admin.query('SELECT pg_stat_clear_snapshot()');
+    const row=(await f.admin.query<{pid:number}>(`SELECT pid FROM pg_stat_activity WHERE pid<>pg_backend_pid() AND wait_event_type='Lock'
+      AND query LIKE '%app.projects%FOR UPDATE%'`)).rows[0];
+    if(row)return row.pid;
+    await delay(10);
+  }
+  return assert.fail('Expected the discussion write to queue behind the project aggregate lock');
 }
 
 test('SEC-01 a write-only grant never receives preserved content it may not read',async()=>{
@@ -119,14 +128,14 @@ test('SEC-03 a queued discussion write cannot commit after the credential is rev
   const messageId=randomUUID();
   await f.admin.query('BEGIN');
   await f.admin.query('SELECT id FROM app.projects WHERE id=$1 FOR UPDATE',[f.first.id]);
-  const started=deferred<number>();
-  const write=f.db.authenticated({token:f.alice.token,kind:'session'},async(tx,actor)=>{
-    started.resolve((await tx.query<{pid:number}>('SELECT pg_backend_pid() AS pid')).rows[0]!.pid);
-    return appendMessage(tx,actor,f.first.id,thread,{id:messageId,body:'После отзыва',baseRevision:opened.json<Thread>().revision},randomUUID());
+  const message={id:messageId,body:'После отзыва',baseRevision:opened.json<Thread>().revision};
+  const write=call('POST',`threads/${thread}/messages`,f.alice.headers,message).then(response=>{
+    if(response.statusCode===200)return response.json();
+    throw Object.assign(Error(response.body),{code:response.json<{code:string}>().code});
   });
-  const outcome=write.then(value=>({value}),error=>({error}));
+  const outcome=write.then(value=>({value}),(error:{code?:string})=>({error}));
   try{
-    await waitForProjectLock(await started.promise);
+    await waitForQueuedProjectWrite();
     await f.admin.query('UPDATE auth.credentials SET revoked_at=clock_timestamp() WHERE id=$1',[f.alice.credential]);
     await f.admin.query('COMMIT');
     const result=await outcome;
@@ -162,22 +171,8 @@ test('SEC-04 outstanding previews are budgeted and expired unapplied ones are co
   assert.equal(Number(left),0,'expired unapplied previews were retained');
 });
 
-test('SEC-05 anonymous readiness shares one dependency probe and still fails closed',async()=>{
-  let probes=0;
-  const counting:ObjectStorage={put:async()=>{},get:async()=>new Uint8Array(),remove:async()=>{},
-    ready:async()=>{probes++;await delay(25);}};
-  const app=await createApp({db:f.db,origin,storage:counting});
-  try{
-    const burst=await Promise.all(Array.from({length:24},()=>app.inject('/ready')));
-    assert.ok(burst.every(r=>r.statusCode===200),'readiness burst did not succeed');
-    assert.ok(probes<24,`each anonymous request still probed storage (${probes} probes)`);
-    const after=probes;
-    assert.equal((await app.inject('/ready')).statusCode,200);
-    assert.ok(probes>after,'a later request reused a cached result instead of re-probing');
-    const failing=await createApp({db:f.db,origin,storage:{...counting,ready:async()=>{throw Error('storage down');}}});
-    try{assert.equal((await failing.inject('/ready')).statusCode,503);}finally{await failing.close();}
-  }finally{await app.close();}
-});
+
+// SEC-05 (anonymous readiness shares one dependency probe and still fails closed) is Kotlin ReadinessControllerTest.
 
 test('SEC-06 the canonical map schema bounds image objects and parallel connections',()=>{
   const object=(id:string,extra:Record<string,unknown>={})=>({id,type:'sticky',text:'',x:0,y:0,width:100,height:100,...extra});
@@ -202,39 +197,39 @@ test('SEC-06 the canonical map schema bounds image objects and parallel connecti
 
 test('SEC-07 per-address limits follow the configured proxy hop instead of throttling everyone together',async()=>{
   // Behind the required TLS proxy every socket peer is the proxy; the client address comes from one trusted hop.
-  const proxied=await createApp({db:f.db,origin,trustProxy:1});
+  const proxied=await startApp({origin,trustProxy:'1'});
   try{
-    const login=(client:string)=>proxied.inject({url:'/auth/login',headers:{'x-forwarded-for':client}});
+    const login=(client:string)=>proxied.inject({url:'/auth/login/google',headers:{'x-forwarded-for':client}});
     for(let attempt=0;attempt<20;attempt++)assert.notEqual((await login('203.0.113.10')).statusCode,429);
     assert.equal((await login('203.0.113.10')).statusCode,429,'one client exhausted its own login window');
     assert.notEqual((await login('203.0.113.20')).statusCode,429,'another client behind the same proxy was throttled');
   }finally{await proxied.close();}
   // Without an explicit trust setting a spoofed header still cannot select a fresh window.
-  const direct=await createApp({db:f.db,origin});
+  const direct=await startApp({origin});
   try{
-    for(let attempt=0;attempt<20;attempt++)await direct.inject({url:'/auth/login',headers:{'x-forwarded-for':'198.51.100.'+attempt}});
-    assert.equal((await direct.inject({url:'/auth/login',headers:{'x-forwarded-for':'198.51.100.99'}})).statusCode,429);
+    for(let attempt=0;attempt<20;attempt++)await direct.inject({url:'/auth/login/google',headers:{'x-forwarded-for':'198.51.100.'+attempt}});
+    assert.equal((await direct.inject({url:'/auth/login/google',headers:{'x-forwarded-for':'198.51.100.99'}})).statusCode,429);
   }finally{await direct.close();}
 });
 
 test('SEC-08 abandoned sign-ins are collected and responses carry the transport hardening headers',async()=>{
-  const issuer='https://identity.test',clientId='sprintique-test',secure='https://sprintique.example';
-  const app=await createApp({db:f.db,origin:secure,oidc:{issuer,clientId,clientSecret:'synthetic-secret',origin:secure,transport:async input=>{
-    const url=String(input);
-    if(url.endsWith('/.well-known/openid-configuration'))return Response.json({issuer,authorization_endpoint:issuer+'/authorize',token_endpoint:issuer+'/token',jwks_uri:issuer+'/jwks',response_types_supported:['code'],subject_types_supported:['public'],id_token_signing_alg_values_supported:['RS256'],token_endpoint_auth_methods_supported:['client_secret_post']});
-    return Response.json({keys:[]});
-  }}});
+  const clientId='sprintique-test',secure='https://sprintique.example';
+  const provider=(issuer:string)=>(url:string)=>url.endsWith('/.well-known/openid-configuration')
+    ?{issuer,authorization_endpoint:issuer+'/authorize',token_endpoint:issuer+'/token',jwks_uri:issuer+'/jwks',response_types_supported:['code'],subject_types_supported:['public'],id_token_signing_alg_values_supported:['RS256'],token_endpoint_auth_methods_supported:['client_secret_post']}
+    :{keys:[]};
+  const fake=await startFakeOidcProvider(provider);
+  const app=await startApp({origin:secure,google:{issuer:fake.issuer,clientId,clientSecret:'synthetic-secret'},providerTrust:fake.trustFile});
   try{
-    await f.admin.query("INSERT INTO auth.login_states(state_hash,verifier,nonce,expires_at) SELECT 'sec08-'||n,'v','n',clock_timestamp()-interval '1 hour' FROM generate_series(1,50) n");
-    const response=await app.inject({url:'/auth/login'});
+    await f.admin.query("INSERT INTO auth.login_states(state_hash,verifier,nonce,provider,expires_at) SELECT 'sec08-'||n,'v','n','google',clock_timestamp()-interval '1 hour' FROM generate_series(1,50) n");
+    const response=await app.inject({url:'/auth/login/google'});
     assert.equal(response.statusCode,302,response.body);
     const left=(await f.admin.query("SELECT count(*)::int AS n FROM auth.login_states WHERE state_hash LIKE 'sec08-%'")).rows[0].n;
     assert.equal(left,0,'expired login attempts were retained');
     assert.equal(response.headers['strict-transport-security'],'max-age=31536000; includeSubDomains');
     assert.equal(response.headers['cross-origin-opener-policy'],'same-origin');
     assert.match(String(response.headers['permissions-policy']),/camera=\(\)/);
-  }finally{await app.close();}
-  const local=await createApp({db:f.db,origin});
+  }finally{await app.close();await fake.close();}
+  const local=await startApp({origin});
   try{assert.equal((await local.inject('/health')).headers['strict-transport-security'],undefined,'HSTS must not be sent for a loopback HTTP origin');}
   finally{await local.close();}
 });

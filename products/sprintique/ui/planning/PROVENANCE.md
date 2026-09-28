@@ -2,7 +2,7 @@
 
 Imported read-only from `it-novikov/iquipage-design-system` PR #3, branch `feature/vnext-planning-ui`, immutable commit `d87c65767ef471c81bf84c10b9b19e225a956064`.
 
-This directory contains the consumer `src/` and public declarations only, not the PR's demo repository, reference persistence, fixtures or mock server. It consumes the same pinned `@iquipage/web` package as the task board and maps. Canonical data and authority belong to `backend/`, `contracts/`, `client/` and host adapters in `web/`.
+This directory contains the consumer `src/` and public declarations only, not the PR's demo repository, reference persistence, fixtures or mock server. It consumes the same pinned `@iquipage/web` package as the task board and maps. Canonical data and authority belong to the server (`server/`), `contracts/`, `client/` and host adapters in `web/`.
 
 The upstream controller and operation unit tests are retained in the product `tests/planning-{controller,operation}.test.mjs`, with import paths adjusted only. Demo business-rule tests are not imported: canonical domain behavior is exercised against PostgreSQL instead.
 

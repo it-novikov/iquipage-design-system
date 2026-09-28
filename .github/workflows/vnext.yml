@@ -23,6 +23,10 @@ jobs:
         with:
           node-version: '24.20.0'
           package-manager-cache: false
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6
+        with:
+          distribution: temurin
+          java-version: '25'
       - name: Install independent packages
         run: |
           npm ci --ignore-scripts --no-fund --prefix libraries/iquipage
@@ -35,13 +39,15 @@ jobs:
       - name: Library, product, real services and detached extraction
         run: node scripts/verify-vnext.mjs
       - name: Portable runtime image
-        run: docker build -t sprintique-vnext:ci products/sprintique
+        working-directory: products/sprintique
+        run: |
+          npm run build:image
+          docker load --input server/build/jib-image.tar
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: ${{ !cancelled() }}
         with:
           name: vnext-verification
           path: |
             products/sprintique/output/verification/
-            products/sprintique/dist/openapi.json
           retention-days: 14
           if-no-files-found: error

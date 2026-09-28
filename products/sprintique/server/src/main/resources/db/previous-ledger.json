@@ -1,0 +1,105 @@
+{
+  "about": "The ledger of the previous TypeScript migrator (public.schema_migrations): each file, its SHA-256 as that migrator recorded it, and the Flyway version with the same schema.",
+  "migrations": [
+    {
+      "name": "001_foundation.sql",
+      "sha256": "355a9e629e55acc0e8ae1dee6f6143b2a4742ee08e1dd32ea69673ce988da433",
+      "version": "20260927000001"
+    },
+    {
+      "name": "002_planning.sql",
+      "sha256": "e306aa34761886a527209bebfedd8c3186936b8e0cd75222f2c3f0ab4f27f87e",
+      "version": "20260927000002"
+    },
+    {
+      "name": "003_project_timezone.sql",
+      "sha256": "5237048db0be625155c276b3d1fb92960d2545018dabbab31c237b6eb2d826fd",
+      "version": "20260927000003"
+    },
+    {
+      "name": "004_project_events.sql",
+      "sha256": "fa7ffdf8d307a28137e0dee3cdcb5ffd778b14b52052a42422fa33c8153ec9cf",
+      "version": "20260927000004"
+    },
+    {
+      "name": "005_planning_completion.sql",
+      "sha256": "2e186c7d77809bada6e13094f4e458917a0c8cb208f32b5ad295c9e429d1e0e1",
+      "version": "20260927000005"
+    },
+    {
+      "name": "006_independent_deadline.sql",
+      "sha256": "dbbafa2c10ae087793267f4cf40794365f000bf6ba6f6de87fd5d3a255d15f70",
+      "version": "20260927000006"
+    },
+    {
+      "name": "007_workspace_catalogs.sql",
+      "sha256": "cb0c489c6fd101bae2977c27345169f13ee5db78adbca89fd8cb630280f78c14",
+      "version": "20260927000007"
+    },
+    {
+      "name": "008_dependency_revision.sql",
+      "sha256": "4c435363b4bca6d17ba8513521eb64938dcfa48b87d9195c6122920ba15f7b39",
+      "version": "20260927000008"
+    },
+    {
+      "name": "009_maps.sql",
+      "sha256": "c27c0a1f7cf97dd1c53e267c51eb83c60f51f62f915af02644176cccc606ea5a",
+      "version": "20260927000009"
+    },
+    {
+      "name": "010_media.sql",
+      "sha256": "9f4d9dbf1309bd6424e64295c3ecba270a2cc5cbe3787ff85f168407ac7467af",
+      "version": "20260927000010"
+    },
+    {
+      "name": "011_jobs.sql",
+      "sha256": "654cedb6bf78bf29d57ad7cab65ac3b754e2553ad18ac78d037277663bbd971c",
+      "version": "20260927000011"
+    },
+    {
+      "name": "012_membership.sql",
+      "sha256": "7f2107a17807f254c4aedbd39c70f27a70481ef0961cf60de799acd1f5e90008",
+      "version": "20260927000012"
+    },
+    {
+      "name": "013_agent_runs.sql",
+      "sha256": "10911b105365f318207ad85629f4fdde8fe168cd9dfbdaad6572f4307792f929",
+      "version": "20260927000013"
+    },
+    {
+      "name": "014_project_profiles.sql",
+      "sha256": "56ec8661b1556407b48069690321d5be02e2bfbf92db9da10d4a8f43ac1acaf0",
+      "version": "20260927000014"
+    },
+    {
+      "name": "015_job_operations.sql",
+      "sha256": "fede3952e0beb7c2a7465db87ad08001177b6bec65ac48bcd9dd834fe5e55e21",
+      "version": "20260927000015"
+    },
+    {
+      "name": "016_task_owner_member.sql",
+      "sha256": "30cd51ed098895f8c7a523a3b5aa44424e4a915f25cd0621f5f7c008b63f2fbe",
+      "version": "20260927000016"
+    },
+    {
+      "name": "017_tag_colors.sql",
+      "sha256": "5c494daffb0dd23b782365eda43ae6b12f01c97139ddc4910f950ee191cf727f",
+      "version": "20260927000017"
+    },
+    {
+      "name": "018_platform_completion.sql",
+      "sha256": "52b322b3a3324f187555ebf9d0bd32bbb6e56cdd129e853ec38249b9629187b9",
+      "version": "20260927000018"
+    },
+    {
+      "name": "019_thread_reads.sql",
+      "sha256": "7c22ecc2a933ec3d0d7db06cb5df85c4f40ef65a2876c460710f5ef3be3a216c",
+      "version": "20260927000019"
+    },
+    {
+      "name": "020_person_avatars.sql",
+      "sha256": "433a9778eec28f51938ba5eb5cd0a9eb7a1cfebbea69e6ea49453fb272f801a3",
+      "version": "20260927000020"
+    }
+  ]
+}

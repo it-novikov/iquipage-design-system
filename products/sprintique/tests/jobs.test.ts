@@ -3,10 +3,11 @@ import assert from 'node:assert/strict';
 import {createHash,randomUUID} from 'node:crypto';
 import {readFile} from 'node:fs/promises';
 import {fixture} from './fixture.js';
-import {S3ObjectStorage,objectKey} from '../backend/infrastructure/object-storage.js';
-import {JobQueue} from '../backend/infrastructure/job-queue.js';
+import {startKotlinWorker} from './support/kotlin-app.js';
+import {S3ObjectStorage,objectKey} from './support/object-storage.js';
+import {JobQueue} from './support/job-queue.js';
 let f:Awaited<ReturnType<typeof fixture>>,queue:JobQueue,storage:S3ObjectStorage;
-before(async()=>{storage=new S3ObjectStorage(JSON.parse(await readFile(process.env['TEST_S3_CONFIG']||'output/infra/storage.json','utf8')));await storage.ready();f=await fixture({prefix:'J',storage});queue=new JobQueue(process.env['WORKER_DATABASE_URL']!);await queue.checkRole();});
+before(async()=>{storage=new S3ObjectStorage(JSON.parse(await readFile(process.env['TEST_S3_CONFIG']||'output/infra/storage.json','utf8')));await storage.ready();f=await fixture({prefix:'J',storage:true});queue=new JobQueue(process.env['WORKER_DATABASE_URL']!);});
 after(async()=>{if(f){const rows=(await f.admin.query('SELECT id,project_id AS "projectId",sha256 FROM app.assets WHERE project_id=$1',[f.first.id])).rows;for(const row of rows)for(const variant of ['original','display','thumb'])await storage.remove(objectKey(row as {id:string;projectId:string;sha256:string},variant));await f.close();}await queue?.close();storage?.close();});
 const path=(resource:string)=>`/api/v1/projects/${f.first.id}/${resource}`;
 const bytes=Buffer.from('Durable cleanup');
@@ -23,7 +24,7 @@ test('J01 worker can call only narrow functions, API cannot claim jobs, pending 
   await assert.rejects(queue.pool.query('SELECT * FROM work.jobs'),{code:'42501'});
   await assert.rejects(queue.pool.query('SELECT work.retry_asset_job($1,$2)',[f.first.id,randomUUID()]),{code:'42501'});
   await assert.rejects(f.db.authenticated({token:f.alice.token,kind:'session'},tx=>tx.query("SELECT * FROM work.claim('asset.gc')")),{code:'42501'});
-  await asset('not-expired');assert.equal(await queue.collectOne(storage),false);
+  await asset('not-expired');assert.equal(await queue.claim(),null);
 });
 test('J02 expired leases are fenced, recovered deletes are idempotent, attached files survive stale cleanup jobs',async()=>{
   const reference=await asset('collect');assert.equal((await discard('collect')).statusCode,200);
@@ -39,13 +40,34 @@ test('J02 expired leases are fenced, recovered deletes are idempotent, attached 
   const protectedAsset=await asset('protected');
   const saved=await f.app.inject({method:'PUT',url:path('tasks/cleanup-task'),headers:{...f.alice.headers,'idempotency-key':randomUUID()},payload:{baseRevision:0,task:{title:'Keep attached',attachmentIds:['protected']}}});assert.equal(saved.statusCode,200,saved.body);
   await f.admin.query("UPDATE work.jobs SET available_at=clock_timestamp() WHERE project_id=$1 AND payload->>'assetId'='protected'",[f.first.id]);
-  assert.equal(await queue.collectOne(storage),true);assert.deepEqual(Buffer.from(await storage.get(objectKey(protectedAsset,'original'))),bytes);
+  const stale=await queue.claim();assert.ok(stale);
+  assert.equal(await queue.prepare(stale),null,'an attached file is not prepared for deletion');assert.equal(await queue.settle(stale,true),true);
+  assert.deepEqual(Buffer.from(await storage.get(objectKey(protectedAsset,'original'))),bytes);
 });
-test('J03 failed object storage reschedules the durable job; exhausted crash attempts become terminal',async()=>{
+test('J03 a failed attempt reschedules the durable job; exhausted crash attempts become terminal',async()=>{
   await asset('retry');await discard('retry');
-  await queue.collectOne({put:async()=>{},get:async()=>new Uint8Array(),ready:async()=>{},remove:async()=>{throw Error('synthetic S3 outage');}});
-  const row=(await f.admin.query("SELECT id,state,attempts,last_error FROM work.jobs WHERE project_id=$1 AND payload->>'assetId'='retry' AND attempts>0",[f.first.id])).rows[0]!;
+  await f.admin.query("UPDATE work.jobs SET available_at=clock_timestamp() WHERE project_id=$1 AND payload->>'assetId'='retry'",[f.first.id]);
+  await f.admin.query("UPDATE app.assets SET expires_at=clock_timestamp()-interval '1 second' WHERE project_id=$1 AND id='retry'",[f.first.id]);
+  // The worker could not delete the objects: it settles the lease as failed with its error.
+  const job=await queue.claim();assert.ok(job);assert.ok(await queue.prepare(job));assert.equal(await queue.settle(job,false,'ASSET_GC_FAILED'),true);
+  const row=(await f.admin.query("SELECT id,state,attempts,last_error FROM work.jobs WHERE project_id=$1 AND payload->>'assetId'='retry'",[f.first.id])).rows[0]!;
   assert.equal(row['state'],'pending');assert.equal(row['attempts'],1);assert.equal(row['last_error'],'ASSET_GC_FAILED');
   await f.admin.query("UPDATE work.jobs SET state='running',attempts=10,lease_until=clock_timestamp()-interval '1 second' WHERE id=$1",[row['id']]);
   await queue.claim();assert.equal((await f.admin.query('SELECT state FROM work.jobs WHERE id=$1',[row['id']])).rows[0]['state'],'failed');
+});
+
+test('J04 the worker command collects a discarded file and stops on request',async()=>{
+  const reference=await asset('worker-collect');assert.equal((await discard('worker-collect')).statusCode,200);
+  await f.admin.query("UPDATE app.assets SET expires_at=clock_timestamp()-interval '1 second' WHERE project_id=$1 AND id='worker-collect'",[f.first.id]);
+  await f.admin.query("UPDATE work.jobs SET available_at=clock_timestamp() WHERE project_id=$1 AND payload->>'assetId'='worker-collect'",[f.first.id]);
+  const worker=await startKotlinWorker();
+  try{
+    let state='';
+    for(let attempt=0;attempt<100&&state!=='deleted';attempt++){
+      await new Promise(resolve=>setTimeout(resolve,100));
+      state=(await f.admin.query('SELECT state FROM app.assets WHERE project_id=$1 AND id=$2',[f.first.id,'worker-collect'])).rows[0]['state'];
+    }
+    assert.equal(state,'deleted',worker.output());
+    await assert.rejects(storage.get(objectKey(reference,'original')));
+  }finally{await worker.stop();}
 });

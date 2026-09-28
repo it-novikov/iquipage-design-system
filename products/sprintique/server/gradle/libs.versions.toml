@@ -1,0 +1,49 @@
+[versions]
+kotlin = "2.3.21"
+spring-boot = "4.1.1"
+detekt = "2.0.0-alpha.3"
+ktlint-plugin = "14.2.0"
+ktlint-cli = "1.8.0"
+jib = "3.5.4"
+swagger-annotations = "2.2.55"
+nimbus-oidc = "11.38.2"
+aws-sdk = "2.55.6"
+twelvemonkeys = "3.15.2"
+webp-imageio = "0.11.0"
+junixsocket = "2.11.1"
+archunit = "1.5.1"
+greenmail = "2.1.14"
+
+[libraries]
+spring-boot-bom = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "spring-boot" }
+spring-boot-starter-webmvc = { module = "org.springframework.boot:spring-boot-starter-webmvc" }
+spring-boot-starter-security = { module = "org.springframework.boot:spring-boot-starter-security" }
+spring-boot-starter-jooq = { module = "org.springframework.boot:spring-boot-starter-jooq" }
+spring-boot-starter-validation = { module = "org.springframework.boot:spring-boot-starter-validation" }
+spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test" }
+jackson-module-kotlin = { module = "tools.jackson.module:jackson-module-kotlin" }
+kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect" }
+flyway-core = { module = "org.flywaydb:flyway-core" }
+flyway-postgresql = { module = "org.flywaydb:flyway-database-postgresql" }
+postgresql = { module = "org.postgresql:postgresql" }
+jooq-codegen = { module = "org.jooq:jooq-codegen" }
+junixsocket-core = { module = "com.kohlschutter.junixsocket:junixsocket-core", version.ref = "junixsocket" }
+swagger-annotations = { module = "io.swagger.core.v3:swagger-annotations-jakarta", version.ref = "swagger-annotations" }
+nimbus-oidc = { module = "com.nimbusds:oauth2-oidc-sdk", version.ref = "nimbus-oidc" }
+aws-sdk-bom = { module = "software.amazon.awssdk:bom", version.ref = "aws-sdk" }
+aws-sdk-s3 = { module = "software.amazon.awssdk:s3" }
+aws-sdk-url-connection = { module = "software.amazon.awssdk:url-connection-client" }
+twelvemonkeys-jpeg = { module = "com.twelvemonkeys.imageio:imageio-jpeg", version.ref = "twelvemonkeys" }
+twelvemonkeys-webp = { module = "com.twelvemonkeys.imageio:imageio-webp", version.ref = "twelvemonkeys" }
+webp-imageio = { module = "com.github.usefulness:webp-imageio", version.ref = "webp-imageio" }
+archunit = { module = "com.tngtech.archunit:archunit-junit5", version.ref = "archunit" }
+angus-mail = { module = "org.eclipse.angus:angus-mail" }
+greenmail = { module = "com.icegreen:greenmail", version.ref = "greenmail" }
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-spring = { id = "org.jetbrains.kotlin.plugin.spring", version.ref = "kotlin" }
+spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot" }
+detekt = { id = "dev.detekt", version.ref = "detekt" }
+ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint-plugin" }
+jib = { id = "com.google.cloud.tools.jib", version.ref = "jib" }

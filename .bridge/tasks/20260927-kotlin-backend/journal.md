@@ -1,0 +1,64 @@
+# Журнал 20260927-kotlin-backend
+
+- 2026-09-27T21:08:20Z · claude-opus-5-5 · create · - · Перенос бэкенда Sprintique на Kotlin и Spring Boot
+- 2026-09-27T21:10:53Z · claude-opus-5-5 · claim · - · взял задачу
+- 2026-09-27T21:10:53Z · claude-opus-5-5 · step · S1 · active
+- 2026-09-27T21:10:53Z · claude-opus-5-5 · checkpoint · S1 · дальше: Дописать ADR переноса и таблицу соответствия маршрутов
+- 2026-09-27T21:23:26Z · claude-opus-5-5 · checkpoint · S2 · дальше: После исправлений инженерной системы по R1/R2: учесть R2 F2 (инвентаризация тестов), F3 (внешние имена сохраняются), F9 (Konsist), F12 (без Docker — тестовый стенд), F13 (dev-login вне production-артефакта)
+- 2026-09-27T21:42:05Z · claude-opus-5-5 · claim · - · взял задачу
+- 2026-09-27T21:44:33Z · claude-opus-5-5 · step · S2 · done: коммит 10979ad; ./gradlew check: ktlint, detekt, ArchUnit (4 правила), verifyProductionArtifact
+- 2026-09-27T21:44:33Z · claude-opus-5-5 · step · S3 · active
+- 2026-09-27T21:44:33Z · claude-opus-5-5 · checkpoint · S3 · дальше: scripts/test.mjs: режим SPRINTIQUE_BACKEND=kotlin — миграции командой migrate, integrationTest с SPRINTIQUE_TEST_*; сравнить права с migrate.ts
+- 2026-09-27T21:48:50Z · claude-opus-5-5 · checkpoint · S3 · дальше: Решить про jOOQ-кодогенерацию: JooqCodegen в integrationTest + режим --jooq в test.mjs; затем S4
+- 2026-09-27T21:55:22Z · claude-opus-5-5 · step · S3 · done: коммит b98e30d; Flyway = migrate.ts (418 операторов); JooqSchemaDriftIntegrationTest + 5 тестов базы зелёные
+- 2026-09-27T21:55:22Z · claude-opus-5-5 · step · S4 · active
+- 2026-09-27T21:59:22Z · claude-opus-5-5 · step · S4 · done: коммит 1d3905a; integrationTest 7/7 (контекст не утекает, владелец не стартует); дымовой прогон: health, ready 503 без базы, статика 200/304, метрики, 413
+- 2026-09-27T21:59:22Z · claude-opus-5-5 · step · S5 · active
+- 2026-09-27T21:59:22Z · claude-opus-5-5 · checkpoint · S5 · дальше: ObjectStoragePort + S3-адаптер (AWS SDK v2), FileInspection (сигнатуры), ImageProcessing (TwelveMonkeys чтение, webp-imageio запись, EXIF, лимиты, таймаут 10 с)
+- 2026-09-27T22:04:36Z · claude-opus-5-5 · step · S5 · done: коммит 37c4b2f; ImageTranscoderTest 7 (EXIF 6 → поворот, бомба 100k×100k по заголовку, таймаут, битые данные), FileInspectionTest 3, S3ObjectStorageIntegrationTest 2 на Garage
+- 2026-09-27T22:04:36Z · claude-opus-5-5 · checkpoint · - · дальше: S6 — идентичность: учётные данные, CSRF, сессия, выход, dev-login в source set local, OIDC через Nimbus, агенты
+- 2026-09-27T22:54:37Z · claude-opus-5-5 · decision · D6 · check-local-oidc перенесён из S6 в S14 — проверке нужен локальный стенд с Kotlin-сервером, а стенд переключается в S14
+- 2026-09-27T22:54:37Z · claude-opus-5-5 · step · S6 · done: Сессии, CSRF, выход, агенты, OIDC (Nimbus, client_secret_basic/post, доверенный CA провайдера), dev-login в source set local. OIDC проверяется по HTTP с синтетическим HTTPS-провайдером; отсутствие dev-login в production-артефакте — verifyProductionArtifact.
+- 2026-09-27T22:54:37Z · claude-opus-5-5 · step · S7 · done: Профили проекта и пространства, участники, приглашения, фото людей и проектов. membership и project-profile проходят; W05 в workspace ждёт маршрутов ограничений планирования (S9).
+- 2026-09-27T22:54:37Z · claude-opus-5-5 · step · S8 · done: Модули task, catalog, discussion, search; шаблоны и связи задач. api 20/20; B04 — DiscussionPageIntegrationTest; SEC-03 по HTTP вместо SecurityRaceIntegrationTest. Попутно исправлены: проверки запуска до открытия порта, условие dev-login на контроллере.
+- 2026-09-27T22:54:37Z · claude-opus-5-5 · step · S9 · active
+- 2026-09-27T22:54:37Z · claude-opus-5-5 · checkpoint · S9 · дальше: Порт planChange, превью и коммитов, затем planning-view; PlanningChangeTest из прямых сценариев planning.test.ts
+- 2026-09-27T23:20:49Z · claude-opus-5-5 · step · S9 · done: Модуль planning: чистый домен (PlanChange, PlanningRows, TemporalRules), контракт команд (он же формат хранения превью), превью с бюджетом, применение с пересчётом, одобрения, история, календарь, представления. planning 19/23 (P12 — S12, P13 — S13), planning-view 11/11; PlanningChangeTest 6.
+- 2026-09-27T23:20:49Z · claude-opus-5-5 · step · S10 · active
+- 2026-09-27T23:20:49Z · claude-opus-5-5 · checkpoint · S10 · дальше: S11 worker и operations; S12 события, запуски агентов, одобрения-списки
+- 2026-09-27T23:26:27Z · claude-opus-5-5 · step · S10 · done: Модуль map: контракт документа доски с правилами целостности, сессии с таймером и голосами, версии, архив, шаблоны. maps 5/5, D04 проходит.
+- 2026-09-27T23:26:27Z · claude-opus-5-5 · step · S11 · active
+- 2026-09-27T23:40:32Z · claude-opus-5-5 · step · S11 · done: Команда worker (очистка файлов, аренды, не-демон поток), операции и повтор задания. Исправлена проверка схемы: Flyway не видел миграции в потоке готовности. operations 4/5 (O01 — S13), jobs 4/4, media 6/6, media-locks 2/2.
+- 2026-09-27T23:40:32Z · claude-opus-5-5 · step · S12 · active
+- 2026-09-27T23:47:06Z · claude-opus-5-5 · step · S12 · done: Модули event (страницы, голова, SSE в прежнем формате кадров) и agent (запуски, предложения, подтверждения, контекст), список разрешений агентов и одобрений. agent-runs 5/5, event-bootstrap 2/3 и planning 21/23 — остаток в S13 (схемы OpenAPI).
+- 2026-09-27T23:47:06Z · claude-opus-5-5 · step · S13 · active
+- 2026-09-28T00:01:50Z · claude-opus-5-5 · decision · D7 · OpenAPI строит сервер из обработчиков, схемы — экспорт zod в public-schemas.json; springdoc и Swagger UI не используются — springdoc спотыкался о полиморфные контракты, а источником правды схем для фронтенда и так служит zod
+- 2026-09-28T00:01:50Z · claude-opus-5-5 · step · S13 · done: Экспорт zod-схем (npm run contracts, проверка устаревания в прогоне), /openapi.json из обработчиков с проверкой контрактов при старте, @Idempotent, /api/v1/contracts, ContractParityTest. Весь набор против Kotlin: 181 пройдено, 0 падений, 3 сценария — Kotlin-тесты.
+- 2026-09-28T00:01:50Z · claude-opus-5-5 · step · S14 · active
+- 2026-09-28T00:01:50Z · claude-opus-5-5 · checkpoint · S14 · дальше: S15–S16: два раунда ревью и PR
+- 2026-09-28T00:25:56Z · claude-opus-5-5 · question · Q1 · Где конфигурация локального стенда OIDC (output/infra/identity.json)? Контейнеры Keycloak/Postgres/Garage в colima-sprintique-vnext-qa работают, но их конфигурации нет в этой рабочей копии. Скопировать её сюда или разрешить пересоздать стенд скриптом local-identity (это перенастроит работающий QA-стенд)?
+- 2026-09-28T00:25:56Z · claude-opus-5-5 · step · S14 · blocked: npm test против Kotlin: 180 тестов и 16 интеграционных, без пропусков; стенд dev:local проверен в браузере (доска, планирование с применением превью, карты). TS-бэкенд удалён, образ собирает Jib. Не проверено: check-local-oidc, check-container и учения восстановления — нужна конфигурация стенда OIDC (вопрос владельцу).
+- 2026-09-28T00:25:56Z · claude-opus-5-5 · checkpoint · - · дальше: После ответа: check-local-oidc, check-container, учения восстановления на Kotlin
+- 2026-09-28T00:35:12Z · claude-opus-5-5 · note · - · Коммит 49b319a: migrate принимает базу прежнего TS-мигратора (журнал — точный префикс известных миграций по имени и SHA-256, иначе отказ до изменений). PreviousLedgerIntegrationTest 2/2; npm test 180/180, интеграционные 18/18.
+- 2026-09-28T00:35:12Z · claude-opus-5-5 · step · S15 · blocked: Самопроверка сделана. Независимые ревьюеры с чистым контекстом не запускались: агентов запускает владелец (bridge review / bridge run).
+- 2026-09-28T00:35:12Z · claude-opus-5-5 · step · S16 · active
+- 2026-09-28T00:35:13Z · claude-opus-5-5 · checkpoint · - · дальше: После ответа на Q1: check-local-oidc, check-container, учения восстановления; затем bridge review двумя ревьюерами
+- 2026-09-28T08:05:56Z · claude-opus-5-5 · answer · Q1 · Владелец 2026-09-28: вместо проверки через Keycloak сразу делаем производственный вход — по почте, через Google и Apple (карточка 20260928-sprintique-production-auth). Keycloak со стенда убран; проверки стенда входят по коду из письма.
+- 2026-09-28T08:05:56Z · claude-opus-5-5 · note · - · S14: проверка check-local-oidc заменена на check-local-sign-in (вход по коду через SMTP-реле Mailpit). Запуск на эталонном стенде — за владельцем: его настройки в output/infra есть только в копии R3.
+- 2026-09-28T08:06:22Z · reviewer-security · review · R1 · начато ревью, раунд 1
+- 2026-09-28T08:06:45Z · reviewer-correctness · review · R2 · начато ревью, раунд 1
+- 2026-09-28T08:46:21Z · reviewer-confirmation · review · R3 · начато ревью, раунд 2, после R1, R2
+- 2026-09-28T08:47:05Z · claude-opus-5-5 · step · S16 · todo
+- 2026-09-28T08:47:05Z · claude-opus-5-5 · step · S14 · active
+- 2026-09-28T08:47:05Z · claude-opus-5-5 · step · S14 · done: npm test 190/190 против Kotlin, интеграционные 21/21; стенд dev:local и эталонный стенд проверены (вход по коду, контейнер, учения восстановления). check-local-oidc заменён на check-local-sign-in (решение владельца: производственный вход вместо Keycloak).
+- 2026-09-28T08:47:05Z · claude-opus-5-5 · step · S15 · active
+- 2026-09-28T08:47:06Z · claude-opus-5-5 · step · S15 · done: R1 (безопасность и данные) и R2 (корректность и паритет) — независимые агенты; P1 и все P2 исправлены в eaf1241, P3 исправлены, R1 F4 отложено (унаследовано из TS).
+- 2026-09-28T08:47:06Z · claude-opus-5-5 · step · S16 · active
+- 2026-09-28T08:47:06Z · claude-opus-5-5 · checkpoint · - · дальше: PR #17 к слиянию владельцем
+- 2026-09-28T09:06:24Z · claude-opus-5-5 · note · - · R3: F1–F3 исправлены в b369ea3; запущен подтверждающий раунд R4 на этот коммит.
+- 2026-09-28T09:06:24Z · reviewer-confirmation-2 · review · R4 · начато ревью, раунд 3, после R3
+- 2026-09-28T09:22:21Z · claude-opus-5-5 · note · - · R4: F1 (P2) и F2–F4 (P3) исправлены в 192f7ca. npm test 190/190, интеграционные 21/21; QA-база на 024; check-local-sign-in проходит повторно подряд.
+- 2026-09-28T09:22:32Z · reviewer-confirmation-3 · review · R5 · начато ревью, раунд 4, после R4
+- 2026-09-28T12:21:34Z · claude-opus-5-5 · step · S16 · done: Раунды R3–R5: R5 — approve; единственное новое замечание R5 F1 (P3) исправлено в 0787770. npm test 190/190, интеграционные 21/21. PR #17 открыт на main, MERGEABLE; слияние за владельцем.
+- 2026-09-28T12:21:34Z · claude-opus-5-5 · status · - · review: PR #17 ждёт слияния владельцем
+- 2026-09-28T12:21:35Z · claude-opus-5-5 · checkpoint · - · дальше: После слияния: перевести карточки в done
