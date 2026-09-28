@@ -110,11 +110,15 @@ export async function settingsDialog({adapter,projectId,onCommitted,onClose}) {
   const body=[
     formatChoice('Формат новых релизов',settings.format),
     ui.field('Предлагаемая длительность спринта, дней',String(settings.days||14),{name:'days',type:'number'}),
+    ui.check(`Как в пространстве: ${esc(settings.workspaceTimeZone||settings.timeZone||'UTC')}`,!!settings.timeZoneInherited,'name="inheritTimeZone"'),
     timeZoneField('timeZone','Часовой пояс проекта',settings.timeZone||'UTC'),
     '<p class="iq-helper">Настройки предлагают начальные значения. Даты существующих релизов и их история не изменятся. Следующий период не создаётся автоматически.</p>'
   ].join('');
   return intentDialog({adapter,projectId,title:'Как планируем работу',body,
-    readIntent:form=>({kind:'settings',values:{format:readFormat(form),days:Number(form.querySelector('[name=days]').value),timeZone:String(form.querySelector('iq-combobox[name=timeZone]').value||'UTC').trim()}}),
+    readIntent:form=>{const inherit=form.querySelector('[name=inheritTimeZone]').checked;
+      return {kind:'settings',values:{format:readFormat(form),days:Number(form.querySelector('[name=days]').value),timeZone:inherit?String(settings.workspaceTimeZone||settings.timeZone||'UTC'):String(form.querySelector('iq-combobox[name=timeZone]').value||'UTC').trim(),inheritTimeZone:inherit}};},
+    // The project's own zone is chosen only when it does not follow the workspace.
+    mount:form=>{const inherit=form.querySelector('[name=inheritTimeZone]'),zone=form.querySelector('iq-combobox[name=timeZone]');const sync=()=>{zone.hidden=inherit.checked;};inherit.addEventListener('change',sync);sync();},
     onCommitted,onClose});
 }
 

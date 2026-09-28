@@ -1,7 +1,7 @@
 import {dialog,icon,esc} from '../ui.js';
 import {uid,requireValue} from '../common.js';
 import {FILE_ACCEPT} from './attachment-model.js';
-import {editCoverImage,coverImageStyle} from './cover-crop.js';
+import {editCoverImage,coverImageStyle,coverLetterboxed} from './cover-crop.js';
 
 /** Draft changes are committed by the task form, never by a preview. */
 export function mountTaskFiles(root,{coverRoot,adapter,task,readOnly=false,onCoverState=()=>{}}){
@@ -13,11 +13,11 @@ export function mountTaskFiles(root,{coverRoot,adapter,task,readOnly=false,onCov
   const target=id=>({id,projectId:task.projectId,taskId:task.id});
   const editable=!readOnly&&!!adapter;
   const size=n=>n<1024*1024?`${Math.ceil(n/1024)} КБ`:`${(n/1024/1024).toFixed(1).replace('.',',')} МБ`;
-  root.innerHTML=`<h3>Файлы</h3>
+  // The files zone stays collapsed: one quiet action in the head, and the whole section takes dropped files.
+  root.innerHTML=`<div class="iq-section-head">${icon('file',16)}<h3>Файлы</h3><span class="iq-section-count" data-file-count></span><span class="iq-section-actions">${editable?`<iq-file-picker variant="button" multiple accept="${FILE_ACCEPT}" label="Прикрепить" drop-target="[data-task-files]" data-file-picker></iq-file-picker>`:''}</span></div>
     <p class="map-form-error" role="alert" data-file-error hidden></p><div data-file-list></div>
-    <div class="task-files-empty" data-files-empty ${editable?'hidden':''}><span>Файлов пока нет</span></div>
-    ${editable?`<iq-file-picker variant="compact" multiple accept="${FILE_ACCEPT}" label="Выберите или перетащите файлы" hint="До 10 МБ на файл" data-file-picker></iq-file-picker>
-    <iq-file-picker hidden accept=".png,.jpg,.jpeg,.webp" label="Изображение обложки" data-cover-picker></iq-file-picker>`:''}
+    <p class="task-files-empty" data-files-empty>${editable?'Перетащите файлы в этот раздел или нажмите «Прикрепить». До 10 МБ на файл.':'Файлов пока нет'}</p>
+    ${editable?`<iq-file-picker hidden accept=".png,.jpg,.jpeg,.webp" label="Изображение обложки" data-cover-picker></iq-file-picker>`:''}
     ${adapter?'':'<p class="iq-helper">Хранилище файлов не подключено.</p>'}`;
   const list=root.querySelector('[data-file-list]'),error=root.querySelector('[data-file-error]');
   const report=e=>{if(!closed){error.hidden=false;error.textContent=e.message||'Не удалось загрузить файл. Повторите попытку.';}};
@@ -38,7 +38,7 @@ export function mountTaskFiles(root,{coverRoot,adapter,task,readOnly=false,onCov
     element.querySelector('[data-file-status]').innerHTML=[size(row.size||0),states[row.state],row.id===coverId?'Обложка':''].filter(Boolean).map(text=>`<span>${esc(text)}</span>`).join('');
     const message=element.querySelector('[data-row-error]');message.hidden=!row.error;message.textContent=row.error||'';
     element.querySelector('.task-file-actions').innerHTML=controls(row)+(editable?`<button type="button" class="iq-btn ghost icon sm" data-file-remove="${esc(row.id)}" aria-label="${row.state==='ready'?'Убрать файл':'Отменить загрузку'}: ${esc(row.name)}">${icon('x',16)}</button>`:'');
-    root.querySelector('[data-files-empty]').hidden=editable||rows.size>0;
+    root.querySelector('[data-files-empty]').hidden=rows.size>0;const count=root.querySelector('[data-file-count]');if(count)count.textContent=rows.size?String(rows.size):'';
     if(row.file&&!row.previewStarted){element.querySelector('iq-file-preview').file=row.file;row.previewStarted=true;}
     if(row.meta&&!row.previewStarted){row.previewStarted=true;const request=controller();
       adapter.blob({...target(row.id),variant:row.meta.image?'display':'original'},{signal:request.signal}).then(blob=>{
@@ -62,8 +62,8 @@ export function mountTaskFiles(root,{coverRoot,adapter,task,readOnly=false,onCov
     if(!coverId){coverRoot.replaceChildren();coverRoot.hidden=true;onCoverState(false);return;}
     coverRoot.hidden=false;onCoverState(true);
     const row=rows.get(coverId);
-    coverRoot.innerHTML=`<div class="task-detail-cover" data-state="loading"><button type="button" data-preview-cover aria-label="Открыть обложку" disabled><img alt="" decoding="async" style="${coverImageStyle(coverCrop,coverId)}" hidden></button><span data-cover-status>Загрузка обложки…</span></div>
-      ${editable?'<div class="row task-cover-actions"><button type="button" class="iq-btn ghost sm" data-recrop-cover>Кадрировать</button><button type="button" class="iq-btn ghost sm" data-add-cover>Заменить</button><button type="button" class="iq-btn ghost sm" data-remove-cover>Убрать</button></div>':''}`;
+    coverRoot.innerHTML=`<div class="task-detail-cover" data-state="loading"><button type="button" data-preview-cover aria-label="Открыть обложку" disabled>${coverLetterboxed(coverCrop)&&coverCrop.attachmentId===coverId?'<img class="task-cover-backdrop" alt="" aria-hidden="true" hidden>':''}<img class="task-cover-image" alt="" decoding="async" style="${coverImageStyle(coverCrop,coverId)}" hidden></button><span data-cover-status>Загрузка обложки…</span></div>
+      ${editable?`<iq-menu class="task-cover-menu"><button type="button" class="iq-btn secondary sm">${icon('image',16)}<span>Обложка</span>${icon('down',14)}</button><div data-menu><button type="button" data-recrop-cover>${icon('expand',17)}<span>Изменить кадр</span></button><button type="button" data-add-cover>${icon('image',17)}<span>Заменить</span></button><button type="button" class="danger" data-remove-cover>${icon('trash',17)}<span>Убрать обложку</span></button></div></iq-menu>`:''}`;
     if(!adapter){
       coverRoot.querySelector('.task-detail-cover').dataset.state='unavailable';
       coverRoot.querySelector('[data-cover-status]').textContent='Хранилище файлов не подключено.';
@@ -73,10 +73,12 @@ export function mountTaskFiles(root,{coverRoot,adapter,task,readOnly=false,onCov
     adapter.blob({...target(coverId),variant:'display'},{signal:request.signal}).then(async blob=>{
       if(closed||generation!==coverGeneration)return;
       requireValue(blob.type==='image/webp','FILE_PREVIEW','Изображение недоступно.');
-      requestURL=URL.createObjectURL(blob);const image=coverRoot.querySelector('img');
+      requestURL=URL.createObjectURL(blob);const image=coverRoot.querySelector('[data-preview-cover] .task-cover-image');
       image.src=requestURL;await image.decode();
       if(closed||generation!==coverGeneration||!image.isConnected)return;
       coverURL=requestURL;requestURL=null;image.hidden=false;
+      // The letterbox around the true 12:5 frame is filled with a soft blurred copy, so the band never looks empty.
+      const backdrop=coverRoot.querySelector('.task-cover-backdrop');if(backdrop){backdrop.src=coverURL;backdrop.hidden=false;}
       coverRoot.querySelector('[data-preview-cover]').disabled=false;coverRoot.querySelector('[data-cover-status]').hidden=true;
       coverRoot.querySelector('.task-detail-cover').dataset.state='ready';
     }).catch(()=>{if(!closed&&generation===coverGeneration){
@@ -112,7 +114,7 @@ export function mountTaskFiles(root,{coverRoot,adapter,task,readOnly=false,onCov
   function remove(id){
     const row=rows.get(id);if(!row)return;row.controller?.abort();rows.delete(id);rowFor(id)?.remove();ids=ids.filter(value=>value!==id);
     if(staged.has(id)||row.file){discard(id);staged.delete(id);}if(coverId===id)setCover(null);else if(row.asCover&&row.coverIntent===coverIntent)coverIntent++;
-    root.querySelector('[data-files-empty]').hidden=editable||rows.size>0;emit();
+    root.querySelector('[data-files-empty]').hidden=rows.size>0;const count=root.querySelector('[data-file-count]');if(count)count.textContent=rows.size?String(rows.size):'';emit();
   }
   function cropNew(file){if(!file||closed||locked)return;cropDialog=editCoverImage(file,{onApply:(source,crop)=>{if(closed||locked)throw Error('Задача уже закрыта.');const name=source.name||'Обложка.'+({'image/jpeg':'jpg','image/png':'png','image/webp':'webp'}[source.type]||'png');add([new File([source],name,{type:source.type})],true,crop);}});}
   async function cropExisting(id){
@@ -150,7 +152,7 @@ export function mountTaskFiles(root,{coverRoot,adapter,task,readOnly=false,onCov
     if(event.target.closest('[data-remove-cover]')&&editable)setCover(null);
     if(event.target.closest('[data-recrop-cover]')&&editable&&coverId)void cropExisting(coverId);
     if(event.target.closest('[data-preview-cover]')&&coverURL){
-      const url=coverURL;dialog({title:rows.get(coverId)?.name||'Обложка',body:`<div class="task-detail-cover"><img alt="Обложка задачи" data-cover-full style="${coverImageStyle(coverCrop,coverId)}"></div>`,wide:true,mount:element=>{element.querySelector('[data-cover-full]').src=url;}});
+      const url=coverURL;dialog({title:rows.get(coverId)?.name||'Обложка',body:'<div class="task-cover-lightbox"><img alt="Обложка задачи целиком" data-cover-full></div>',wide:true,mount:element=>{element.querySelector('[data-cover-full]').src=url;}});
     }
   },{signal});
   // DS iq-file-picker owns picking and drag & drop; this view owns validation, upload and the file list.

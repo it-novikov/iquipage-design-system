@@ -1,5 +1,26 @@
 # Sprintique vNext — execution record
 
+## Current checkpoint — 2026-09-27 (UX rounds, DS 0.6.0-vnext.9 → vnext.20)
+
+After R4 the owner ran a series of UX rounds on Sprintique against the IQUIPAGE DS, each reviewed on the local stand and delivered as a DS release adopted by the product. Design decisions came from design councils (art director, product designer, product manager with UX research, DS architect) where the owner asked for one.
+
+Merged into `main`:
+- PR #5 security fixes for CI runners, proxy-aware limits, sign-in state and headers.
+- PR #6 and #7: members as assignees, autosave in the task drawer, palette, settings, the local stand, the reusable sign-in dialog and the IQUIPAGE Keycloak theme (vnext.9).
+- PR #9 (closes #8): UX rounds vnext.10–13 (single-scroll Gantt, rebuilt planning containers, dates as 04.10.2000 14:00, no middot separators, shared page heading, task drawer on the DS reference, map rail and title chip) and the settings workspace from PR #8, combined as vnext.14.
+
+Open, in merge order (each stacked on the previous one):
+1. PR #10 — settings redesign (vnext.15): full-width layout on the DS side navigation, one page anatomy, save bar only when dirty, read-only facts with a lock notice, members, agents and file cleanup rebuilt; section switching without a blink.
+2. PR #11 — task drawer hierarchy (vnext.16): heading title, key-value strip, quiet rows, description in preview with the template action inside the editor, parent in "Связи", cover menu, any RGB tag colour (migration 017).
+3. PR #12 — relation map in "Связи" (vnext.17), the DS "Визуальная доска" showcase configured like Maps, and this documentation refresh.
+4. PR #13 — backend completion (migration 018, below) and the fourth drawer round (vnext.18): avatar groups on board cards, drawer zones and sections, a cover that never stretches, relation lanes named by role, back navigation between linked tasks, the tag field "+" and a compact tag dialog.
+5. PR #14 — sixth round (vnext.19): map zoom under the rail and the shared inline text editor; cinematic template previews with routed arrows and a safe inset; no planning search; the task properties grid, inline tags and release as a value; discussions as a chat with pinned open questions (the thread list carries authors and participants); covers shown whole in a 12:5 frame with a one-screen crop dialog and "Вписать"; the task key as a switcher, a centred back arrow and drawer handover without a blink.
+6. PR #15 — seventh round (vnext.20): server read markers for discussions and changing a thread's kind (migration 019), the drawer 15% narrower with a full-width cover, no blink on opening or closing a task, template titles that fit their band and story motion without flicker, the notched arrowhead on map connectors, personal profile photos (migration 020), and a collapsed files zone that takes drops anywhere in the section. The test runner never orphans its PostgreSQL cluster (in PR #14).
+
+Local gates: the full gate `scripts/verify-vnext.mjs` passed for PR #10 (DS 260 tests) and PR #11 (DS 264 tests, product tests with the private QA S3 service, boundaries, builds, detached product). PR #12 passed it too (DS 268 tests). PR #13: DS 273 tests, product 174 tests. PR #14: DS 278 tests, product 178 tests. PR #15: DS 284 tests, product 183 tests. GitHub CI passed for PR #9 and PR #10.
+
+Known limits of this checkpoint: the read-only settings view was checked by rewriting the project role in API responses in the browser, because the local stand's quick login is admin only; the server enforces every permission regardless. The backend improvements proposed by the councils are implemented (migration 018): inviter and accepter names on invitations, tag usage counts, a project time zone that can follow the workspace (stored as NULL, with the source reported), a pending-proposals count, member join dates (new memberships) and last activity from the audit trail, a verified e-mail from the identity provider shown only to its owner, and a workspace project catalog (all projects for workspace administrators, own projects for other members, names only). A personal profile photo is implemented (migration 020): a 256×256 WebP the server re-encodes itself, stored with the person and visible only to people who share a project or workspace with them; it shows in the header, settings, members, discussions, the assignee field and board cards. The R4 security statement below is unchanged. Full-platform-ready remains false; no deployment or publication happened.
+
 ## Current R4 audit checkpoint — 2026-09-16
 
 The owner requested an independent backend/frontend/security team, implementation of confirmed improvements, and a new PR in this design-system repository. The R3 baseline `8e189329b84649e20c8e02b70ba7f94f69af8c4d` is preserved in a separate clean worktree; fixes are on `feature/sprintique-vnext-audit`. PR #3 is not overwritten. Existing data, production, registry publication and deployment remain out of scope.

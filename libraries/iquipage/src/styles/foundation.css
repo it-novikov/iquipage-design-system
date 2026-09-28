@@ -21,6 +21,9 @@ iq-select,iq-combobox,iq-number,iq-range,iq-calendar,iq-tags,iq-upload,iq-tabs{d
 .iq-number{display:flex;align-items:center;border:1px solid var(--iq-control);border-radius:9px;max-width:232px;background:var(--iq-raised);overflow:hidden}.iq-number button{display:grid;place-items:center;min-width:44px;height:44px;background:transparent}.iq-number button:disabled{opacity:.35}.iq-number input{width:100%;min-width:0;text-align:center;border:0;background:none;appearance:textfield;outline:0;font-variant-numeric:tabular-nums}.iq-number input::-webkit-inner-spin-button{appearance:none}.iq-range-heading{display:flex;justify-content:space-between;gap:16px}.iq-range-heading output{font-variant-numeric:tabular-nums;font-size:13px}.iq-range-scale{display:flex;justify-content:space-between;font-size:12px;color:var(--iq-muted);margin-top:4px}iq-range input[type=range]{appearance:none;width:100%;height:5px;border-radius:8px;background:linear-gradient(90deg,var(--iq-accent) var(--range-fill,50%),var(--iq-line) var(--range-fill,50%));margin:14px 0 10px}iq-range input[type=range]::-webkit-slider-thumb{appearance:none;width:20px;height:20px;border:1px solid var(--iq-control);border-radius:50%;background:var(--iq-raised);box-shadow:0 1px 3px var(--iq-fixed-00000022)}iq-range input[type=range]::-moz-range-thumb{width:18px;height:18px;border:1px solid var(--iq-control);border-radius:50%;background:var(--iq-raised)}.iq-calendar{max-width:340px;width:100%;border:1px solid var(--iq-line);border-radius:14px;background:var(--iq-raised);padding:18px}.iq-calendar-heading{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}.iq-calendar-heading strong,.iq-calendar-heading b{font-weight:500}.iq-calendar-heading button{background:none}.iq-calendar-week,.iq-calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}.iq-calendar-week span{text-align:center;font-size:11px;color:var(--iq-muted);padding:8px 0}.iq-calendar-grid button{height:36px;min-width:0;background:transparent;border-radius:7px;font-size:13px;font-variant-numeric:tabular-nums}.iq-calendar-grid button:hover{background:var(--iq-surface)}.iq-calendar-grid .selected,.iq-calendar-grid [aria-selected=true]{background:var(--iq-primary);color:var(--iq-on-primary)}.iq-calendar-grid .outside{color:var(--iq-muted);opacity:.6}.iq-calendar-grid .today{box-shadow:inset 0 0 0 1px var(--iq-control)}.iq-calendar-foot{border-top:1px solid var(--iq-line);margin-top:12px;padding-top:12px;font-size:12px;color:var(--iq-muted)}.iq-tags-input{display:flex;align-items:center;flex-wrap:wrap;gap:6px;border:1px solid var(--iq-control);border-radius:9px;background:var(--iq-raised);padding:7px;min-height:44px}.iq-tags-input input{flex:1;width:110px;min-width:80px;padding:4px;border:0;outline:0;background:none}.iq-tag{display:inline-flex;align-items:center;gap:6px;padding:4px 7px;background:var(--iq-surface);border:1px solid var(--iq-line);border-radius:5px;font-size:12px}
 /* Tag tones: a tag keeps its colour everywhere it appears — board, document, settings, picker. */
 .iq-tag[data-tone]{background:var(--iq-tag-tone-fill);color:var(--iq-tag-tone-text);border-color:transparent}.iq-tag[data-tone=neutral]{--iq-tag-tone-fill:var(--iq-tag-neutral-fill);--iq-tag-tone-text:var(--iq-tag-neutral-text)}.iq-tag[data-tone=blue]{--iq-tag-tone-fill:var(--iq-tag-blue-fill);--iq-tag-tone-text:var(--iq-tag-blue-text)}.iq-tag[data-tone=purple]{--iq-tag-tone-fill:var(--iq-tag-purple-fill);--iq-tag-tone-text:var(--iq-tag-purple-text)}.iq-tag[data-tone=green]{--iq-tag-tone-fill:var(--iq-tag-green-fill);--iq-tag-tone-text:var(--iq-tag-green-text)}.iq-tag[data-tone=amber]{--iq-tag-tone-fill:var(--iq-tag-amber-fill);--iq-tag-tone-text:var(--iq-tag-amber-text)}.iq-tag[data-tone=red]{--iq-tag-tone-fill:var(--iq-tag-red-fill);--iq-tag-tone-text:var(--iq-tag-red-text)}
+/* Custom RGB tags: the user picks the hue; fill and text keep the palette's quiet character and stay readable in both themes. */
+.iq-tag[data-tone=custom],iq-tag[data-tone=custom]{--iq-tag-tone-fill:var(--iq-tag-neutral-fill);--iq-tag-tone-text:var(--iq-tag-neutral-text)}
+@supports (color:oklch(from red l c h)){.iq-tag[data-tone=custom],iq-tag[data-tone=custom]{--iq-tag-tone-fill:oklch(from var(--iq-tag-color,#62646B) .945 min(c,.045) h);--iq-tag-tone-text:oklch(from var(--iq-tag-color,#62646B) .43 min(c,.13) h)}[data-theme=dark] .iq-tag[data-tone=custom],[data-theme=dark] iq-tag[data-tone=custom]{--iq-tag-tone-fill:oklch(from var(--iq-tag-color,#62646B) .28 min(c,.05) h);--iq-tag-tone-text:oklch(from var(--iq-tag-color,#62646B) .86 min(c,.1) h)}}
 /* Selectable tag: selection is shown by a check and a ring in the tone colour, never by dropping the colour. */
 button.iq-tag{font:inherit;font-size:12px;line-height:1.3;min-height:28px;padding:4px 9px;cursor:pointer;transition:box-shadow var(--iq-motion-fast) var(--iq-ease),transform var(--iq-motion-fast) var(--iq-ease)}button.iq-tag[data-tone]:hover:not(:disabled){box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--iq-tag-tone-text) 35%,transparent)}button.iq-tag[aria-pressed=true]{box-shadow:inset 0 0 0 1.5px var(--iq-tag-tone-text,var(--iq-ink))}button.iq-tag>svg{flex:none;margin-left:-2px}button.iq-tag:disabled{cursor:default;opacity:.6}button.iq-tag:active:not(:disabled){transform:scale(.97)}@media (prefers-reduced-motion:reduce){button.iq-tag{transition:none}button.iq-tag:active:not(:disabled){transform:none}}
 .iq-tag button{background:none;padding:1px;display:grid;place-items:center}
@@ -2164,3 +2167,378 @@ iq-file-picker .iq-dropzone{min-height:0}
 .iq-switcher .iq-switcher-label{padding-block:2px 4px;text-decoration:underline 2px transparent;text-underline-offset:4px;transition:text-decoration-color var(--iq-motion-fast) var(--iq-ease)}
 .iq-switcher:hover .iq-switcher-label,.iq-switcher[aria-expanded=true] .iq-switcher-label{text-decoration-color:currentColor}
 @media (prefers-reduced-motion:reduce){.iq-switcher .iq-switcher-label{transition:none}}
+
+/* Markdown editor: host actions at the end of the toolbar (only while editing) and a quiet action in the empty preview. */
+.md-toolbar-actions{display:flex;align-items:center;gap:2px;margin-left:auto;padding-left:var(--iq-space-2);border-left:1px solid var(--iq-line)}
+.md-toolbar-action{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 var(--iq-space-2);border:0;border-radius:6px;background:transparent;color:var(--iq-muted);font:500 var(--iq-type-caption-size)/1 var(--iq-font);cursor:pointer}
+.md-toolbar-action:hover{background:var(--iq-hover);color:var(--iq-ink)}
+.md-toolbar-action:focus-visible{outline:2px solid var(--iq-focus);outline-offset:1px}
+@media(max-width:560px){.md-toolbar-action>span{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}}
+.md-empty-action{margin:var(--iq-space-1) 0 0}
+.md-empty-action .iq-btn{margin-left:calc(-1 * var(--iq-space-3))}
+
+/* Inline title: a heading that is also its own input. No frame at rest; the frame appears on hover and focus. */
+.iq-inline-title{display:block;margin:0 calc(-1 * var(--iq-space-2));width:calc(100% + 2 * var(--iq-space-2));padding:var(--iq-space-1) var(--iq-space-2);border:1px solid transparent;border-radius:var(--iq-radius-sm);background:transparent;color:var(--iq-ink);font:600 var(--iq-work-compact-title)/1.3 var(--iq-font);letter-spacing:-.01em;resize:none;field-sizing:content;overflow:hidden;text-wrap:pretty}
+textarea.iq-inline-title{min-height:0;max-height:none}
+.iq-inline-title::placeholder{color:var(--iq-faint)}
+.iq-inline-title:hover:not(:focus):not([readonly]){background:var(--iq-hover)}
+.iq-inline-title:focus{outline:none;border-color:var(--iq-control);background:var(--iq-raised)}
+.iq-inline-title:focus-visible{box-shadow:0 0 0 1px var(--iq-focus)}
+.iq-inline-title[aria-invalid=true]{border-color:var(--iq-danger)}
+
+/* Property strip: the few values people look for first, value-first chips with no labels (labels stay for assistive tech). */
+.iq-property-strip{display:flex;flex-wrap:wrap;gap:var(--iq-space-2);align-items:center;min-width:0}
+.iq-property-strip>:is(iq-select,iq-combobox,iq-date-field){display:block;flex:0 1 auto;min-width:0;width:auto;margin:0}
+.iq-property-strip :is(iq-select,iq-combobox,iq-date-field)>.iq-control-label{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.iq-property-strip :is(.iq-select-trigger,.iq-date-trigger,.iq-combo-shell){width:auto;min-height:36px;gap:var(--iq-space-2);padding:0 var(--iq-space-3);border:1px solid transparent;border-radius:var(--iq-radius-sm);background:var(--iq-surface);color:var(--iq-ink);font:500 var(--iq-type-label-size)/1.45 var(--iq-font)}
+.iq-property-strip :is(.iq-select-trigger,.iq-date-trigger,.iq-combo-shell):hover{background:var(--iq-hover)}
+.iq-property-strip :is(.iq-select-trigger[aria-expanded=true],.iq-combo-shell:focus-within){border-color:var(--iq-control);background:var(--iq-raised)}
+.iq-property-strip .iq-select-value{display:inline-flex;align-items:center;gap:var(--iq-space-2);white-space:nowrap}
+.iq-property-strip .iq-select-trigger>.iq-icon:last-child,.iq-property-strip .iq-combo-shell>.iq-icon:last-child{opacity:0;width:12px;transition:opacity var(--iq-motion-fast) var(--iq-ease)}
+.iq-property-strip :is(.iq-select-trigger,.iq-combo-shell):is(:hover,:focus-within)>.iq-icon:last-child,.iq-property-strip .iq-select-trigger[aria-expanded=true]>.iq-icon:last-child{opacity:1}
+.iq-property-strip .iq-combo-shell input{field-sizing:content;min-width:7ch;max-width:24ch;padding:0;background:transparent;font:inherit}
+.iq-property-strip .iq-combo-shell:has(>.iq-select-avatar):not(:focus-within)>.iq-icon:first-of-type{display:none}
+.iq-property-strip .iq-combo-shell:focus-within>.iq-select-avatar{display:none}
+.iq-property-strip .iq-select-avatar{width:22px;height:22px;margin:0;border:0;font-size:9px}
+.iq-property-strip [data-empty=true] :is(.iq-select-value,.iq-combo-shell input,[data-date-caption]){color:var(--iq-muted)}
+.iq-property-strip .iq-select-trigger[data-tone=high]{background:var(--iq-task-high-surface);color:var(--iq-task-high-text)}
+.iq-property-strip .iq-select-trigger[data-tone=critical]{background:var(--iq-task-critical-surface);color:var(--iq-task-critical-text)}
+.iq-property-strip iq-date-field[data-tone=danger] .iq-date-trigger{background:var(--iq-danger-bg);color:var(--iq-danger)}
+.iq-property-strip iq-date-field[data-tone=warning] .iq-date-trigger{background:var(--iq-task-high-surface);color:var(--iq-task-high-text)}
+.iq-property-strip iq-date-field .iq-date-trigger{min-width:0}
+@media(hover:none){.iq-property-strip :is(.iq-select-trigger,.iq-combo-shell)>.iq-icon:last-child{opacity:1}}
+
+/* Colour field: palette swatches, "Свой цвет" with the native picker, and a hex value. */
+.iq-color-field{display:grid;gap:var(--iq-space-3);border:0;margin:0;padding:0;min-width:0}
+.iq-color-field legend{margin-bottom:var(--iq-space-2);padding:0}
+.iq-color-swatches{display:flex;flex-wrap:wrap;gap:var(--iq-space-2)}
+.iq-color-custom{display:flex;align-items:center;gap:var(--iq-space-3);flex-wrap:wrap}
+.iq-color-custom input[type=color]{width:36px;height:36px;padding:2px;border:1px solid var(--iq-control);border-radius:var(--iq-radius-sm);background:var(--iq-raised);cursor:pointer}
+.iq-color-custom input[type=color]:focus-visible{outline:2px solid var(--iq-focus);outline-offset:2px}
+.iq-color-custom .iq-input-shell{width:128px}
+.iq-color-custom input[type=text]{font:500 var(--iq-type-label-size)/1.4 var(--iq-mono);text-transform:uppercase}
+.iq-color-preview{display:flex;gap:var(--iq-space-2);align-items:center;font-size:var(--iq-type-caption-size);color:var(--iq-muted)}
+
+/* Property lists also take the tag picker: label on the left, a quiet field that shows its frame on hover and focus. */
+.iq-properties iq-tag-picker{display:grid;grid-template-columns:var(--iq-properties-label,88px) minmax(0,1fr);column-gap:var(--iq-space-2);align-items:start;min-width:0}
+.iq-properties iq-tag-picker>.iq-control-label{margin:0;padding-top:10px;font-size:var(--iq-type-meta-size);font-weight:500;color:var(--iq-muted)}
+.iq-properties .iq-tag-picker-field{min-height:36px;border-color:var(--iq-line);background:transparent;border-radius:var(--iq-radius-sm)}
+.iq-properties .iq-tag-picker-field:hover{border-color:var(--iq-control);background:var(--iq-raised)}
+.iq-properties .iq-tag-picker-field:focus-within{border-color:var(--iq-control);background:var(--iq-raised)}
+@media(hover:none){.iq-properties .iq-tag-picker-field{border-color:var(--iq-line)}}
+
+/* Relation map: one object's parent, children and links in the workflow graph's visual language, without an editor. */
+iq-relation-map{display:block;min-width:0}
+iq-relation-map[data-empty]{display:none}
+.rm-canvas{position:relative;height:var(--h)}
+.rm-edges{position:absolute;inset:0;overflow:visible;pointer-events:none}
+.rm-edge{fill:none;stroke:var(--iq-line-strong);stroke-width:1.5}
+.rm-edge.rm-related{stroke-dasharray:4 4}
+.rm-edges marker path{fill:var(--iq-line-strong)}
+.rm-caption{margin:0;font:500 var(--iq-type-meta-size)/16px var(--iq-font);letter-spacing:.06em;text-transform:uppercase;color:var(--iq-muted)}
+.rm-canvas>.rm-caption{position:absolute;left:var(--x);top:var(--y)}
+.rm-caption span{letter-spacing:0;text-transform:none;font-variant-numeric:tabular-nums}
+.rm-node{position:relative}
+.rm-canvas>.rm-node{position:absolute;left:var(--x);top:var(--y);width:var(--w);height:64px}
+.rm-node-body{display:grid;gap:4px;align-content:center;width:100%;height:100%;min-height:64px;padding:var(--iq-space-2) var(--iq-space-3);border:1px solid var(--iq-line);border-radius:var(--iq-radius-sm);background:var(--iq-raised);color:var(--iq-ink);text-align:left;font:inherit;box-shadow:var(--iq-shadow-1)}
+button.rm-node-body{cursor:pointer;transition:border-color var(--iq-motion-fast) var(--iq-ease),transform var(--iq-motion-fast) var(--iq-ease)}
+button.rm-node-body:hover{border-color:var(--iq-line-strong);transform:translateY(-1px)}
+button.rm-node-body:focus-visible{outline:2px solid var(--iq-focus);outline-offset:2px}
+.rm-current .rm-node-body{border-color:var(--iq-ink);box-shadow:0 0 0 1px var(--iq-ink)}
+.rm-node-meta{display:flex;align-items:center;gap:6px;min-width:0;color:var(--iq-muted)}
+.rm-node-key{font:500 var(--iq-type-meta-size)/1 var(--iq-mono);color:var(--iq-muted)}
+.rm-node-status{display:inline-flex;align-items:center;gap:5px;margin-left:auto;flex:none;font:500 var(--iq-type-meta-size)/1 var(--iq-font);color:var(--iq-muted);white-space:nowrap}
+.rm-node-status::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--iq-line-strong)}
+.rm-node-status[data-tone=info]::before{background:var(--iq-info)}.rm-node-status[data-tone=warning]::before{background:var(--iq-warning)}.rm-node-status[data-tone=success]::before{background:var(--iq-success)}.rm-node-status[data-tone=planned]::before{background:var(--iq-planned)}.rm-node-status[data-tone=danger]::before{background:var(--iq-danger)}
+.rm-node-title{overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font:500 var(--iq-type-label-size)/1.35 var(--iq-font)}
+.rm-remove{position:absolute;top:-8px;right:-8px;display:grid;place-items:center;width:24px;height:24px;padding:0;border:1px solid var(--iq-line);border-radius:50%;background:var(--iq-raised);color:var(--iq-muted);opacity:0;cursor:pointer;transition:opacity var(--iq-motion-fast) var(--iq-ease)}
+.rm-node:is(:hover,:focus-within) .rm-remove{opacity:1}
+.rm-remove:hover{color:var(--iq-danger);border-color:var(--iq-danger)}
+.rm-remove:focus-visible{opacity:1;outline:2px solid var(--iq-focus);outline-offset:1px}
+@media(hover:none){.rm-remove{opacity:1}}
+.rm-more{display:grid;place-items:center;border:1px dashed var(--iq-line);border-radius:var(--iq-radius-sm);font-size:var(--iq-type-caption-size);color:var(--iq-muted)}
+.rm-list{display:grid;gap:var(--iq-space-4);padding-left:var(--iq-space-3);border-left:1px solid var(--iq-line)}
+.rm-list-group{display:grid;gap:var(--iq-space-2)}
+
+/* Avatar sizes: xs 20, sm 24, md 28 (default in groups), lg 44. The overlap in a group is a quarter of the size. */
+.iq-avatar.xs{width:20px;height:20px;min-width:20px;font-size:9px;font-weight:600}
+.iq-avatar.sm{width:24px;height:24px;min-width:24px;font-size:10px;font-weight:600}
+.iq-avatar.lg{width:44px;height:44px;min-width:44px;font-size:var(--iq-type-label-size)}
+.iq-avatars.xs{--avatar-size:20px}.iq-avatars.sm{--avatar-size:24px}.iq-avatars.lg{--avatar-size:44px}
+.iq-avatars.xs .iq-avatar,.iq-avatars.xs .iq-avatar.more{font-size:9px;font-weight:600}
+.iq-avatars.sm .iq-avatar,.iq-avatars.sm .iq-avatar.more{font-size:10px;font-weight:600}
+.iq-avatars:is(.xs,.sm,.lg) .iq-avatar+.iq-avatar{margin-left:calc(var(--avatar-size) * -.25)}
+.iq-avatars:is(.xs,.sm,.lg) .iq-avatar:first-child{margin-left:0}
+iq-tooltip:has(>.iq-avatars){display:inline-flex}
+
+/* Section: a zone of a long surface (a task drawer, a document): a divider, a heading row with icon, count and one action. */
+.iq-section{border-top:1px solid var(--iq-line);padding-block:var(--iq-space-6)}
+.iq-section-head{display:flex;align-items:center;gap:var(--iq-space-2);min-height:32px;margin-bottom:var(--iq-space-3)}
+.iq-section-head>.iq-icon{flex:none;color:var(--iq-muted)}
+.iq-section-head h3{margin:0;font:600 var(--iq-type-body-size)/24px var(--iq-font);letter-spacing:-.01em;color:var(--iq-ink)}
+.iq-section-count{font:500 var(--iq-type-caption-size)/1 var(--iq-font);font-variant-numeric:tabular-nums;color:var(--iq-muted)}
+.iq-section-count:empty{display:none}
+.iq-section-actions{display:flex;align-items:center;gap:var(--iq-space-1);margin-left:auto}
+
+/* Compact editors never let content headings outgrow the surface's own section headings. */
+iq-markdown-editor[density=compact] .md-preview :is(h1,h2,h3,h4){margin:var(--iq-space-3) 0 var(--iq-space-1);letter-spacing:0}
+iq-markdown-editor[density=compact] .md-preview h1{font:600 var(--iq-type-body-size)/1.4 var(--iq-font)}
+iq-markdown-editor[density=compact] .md-preview :is(h2,h3){font:600 var(--iq-type-interface-size)/1.45 var(--iq-font)}
+iq-markdown-editor[density=compact] .md-preview h4{font:600 var(--iq-type-label-size)/1.45 var(--iq-font);color:var(--iq-muted)}
+iq-markdown-editor[density=compact] .md-preview :is(h1,h2,h3,h4):first-child{margin-top:0}
+
+/* Property strip chips: 32px, no chevron (the fill reads as a button), 14px icons, 20px avatars. */
+.iq-property-strip :is(.iq-select-trigger,.iq-date-trigger,.iq-combo-shell){min-height:32px}
+.iq-property-strip .iq-select-trigger>.iq-icon:last-child,.iq-property-strip .iq-combo-shell>.iq-icon:last-child{display:none}
+.iq-property-strip .iq-select-value .iq-icon,.iq-property-strip .iq-date-trigger .iq-icon{width:14px;height:14px}
+.iq-property-strip .iq-select-avatar{width:20px;height:20px}
+.iq-properties{--iq-properties-label:136px}
+.iq-properties :is(iq-select,iq-combobox,iq-date-field,iq-tag-picker)>.iq-control-label{font-size:var(--iq-type-caption-size);font-weight:400}
+@media(max-width:640px){.iq-properties{--iq-properties-label:88px}}
+
+/* Relation map lanes (vnext.18): each group is a tinted lane with its label inside, naming the role of its nodes. */
+.iq-rel-lane{border-radius:var(--iq-radius-md);background:var(--iq-recessed);padding:0 var(--iq-space-2) var(--iq-space-2)}
+.rm-canvas>.iq-rel-lane{position:absolute;left:var(--x);top:var(--y);width:var(--w);height:var(--h);padding:0}
+.iq-rel-lane-head{display:flex;align-items:center;gap:6px;height:30px;margin:0;padding:0 var(--iq-space-2);font:500 var(--iq-type-caption-size)/1 var(--iq-font);color:var(--iq-ink)}
+.iq-rel-lane-head>.iq-icon{flex:none;color:var(--iq-muted)}
+.iq-rel-lane-head>span{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.iq-rel-lane-head small{margin-left:auto;font:500 var(--iq-type-caption-size)/1 var(--iq-font);font-variant-numeric:tabular-nums;color:var(--iq-muted)}
+.iq-rel-lane-head[data-tone=warning]>.iq-icon{color:var(--iq-warning)}
+.rm-canvas>.rm-slot{position:absolute;left:var(--x);top:var(--y);width:var(--w);height:76px}
+.rm-slot>.rm-node{height:100%}
+.rm-node-body{min-height:76px;gap:4px;align-content:center}
+.rm-node-title{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;white-space:normal;overflow:hidden;line-height:1.3}
+.rm-current .rm-node-body{border:2px solid var(--iq-accent);background:var(--iq-accent-soft);box-shadow:none;padding:calc(var(--iq-space-2) - 1px) calc(var(--iq-space-3) - 1px)}
+.rm-node-caption{font:500 var(--iq-type-meta-size)/1 var(--iq-font);color:var(--iq-accent)}
+.rm-node-flag{margin-left:auto;font-size:var(--iq-type-meta-size)}
+.rm-done .rm-node-title{color:var(--iq-muted)}
+.rm-node-status>.iq-icon{color:var(--iq-success)}
+.rm-edge.rm-edge-blocker{stroke:var(--iq-warning)}
+.rm-edge.rm-edge-done{stroke:var(--iq-line)}
+.rm-edges .rm-marker-warn path{fill:var(--iq-warning)}
+.rm-slot.rm-more{display:grid;place-items:center;border:1px dashed var(--iq-line-strong);border-radius:var(--iq-radius-sm);font-size:var(--iq-type-caption-size);color:var(--iq-muted)}
+.rm-list{display:grid;gap:var(--iq-space-3);padding-left:0;border-left:0}
+.rm-list>.iq-rel-lane{display:grid;gap:var(--iq-space-2)}
+.rm-list>.rm-node .rm-node-body,.rm-list .rm-node-body{min-height:64px}
+.rm-edges{z-index:1}.rm-canvas>.rm-slot{z-index:2}
+.rm-current .rm-node-meta{flex-wrap:nowrap;white-space:nowrap}
+.rm-node-flag{min-height:0;padding:2px 6px;line-height:14px}
+.rm-current .rm-node-body{padding-block:5px;gap:3px}
+
+/* Tag picker: the "+" that creates a tag sits at the right edge of the field (like the managed tags input). */
+.iq-tag-picker-field input{flex:1 1 96px;min-width:96px}
+.iq-tag-picker-add{flex:none;margin-left:auto;align-self:flex-start;--h:28px;min-width:28px;padding:4px;color:var(--iq-muted)}
+.iq-tag-picker-add:hover{color:var(--iq-ink)}
+.iq-tag-picker-add[hidden]{display:none}
+.iq-tag-picker-values>.iq-tag[data-armed]{box-shadow:0 0 0 2px var(--iq-focus)}
+
+/* Colour field (vnext.18): palette circles filled with each tone's text colour (distinct in both themes),
+   "Свой цвет" last, one live preview on the legend row. */
+.iq-color-legend{display:flex;align-items:center;justify-content:space-between;gap:var(--iq-space-3);width:100%;margin-bottom:var(--iq-space-3);padding:0}
+.iq-color-legend .iq-control-label{margin:0}
+.iq-color-swatches{gap:var(--iq-space-2)}
+.iq-color-swatch{position:relative;display:grid;place-items:center;width:36px;height:36px;border-radius:50%;cursor:pointer}
+.iq-color-swatch::before{content:'';position:absolute;inset:4px;border-radius:50%;background:var(--iq-tag-tone-text,var(--iq-muted))}
+.iq-color-swatch[data-tone=neutral]{--iq-tag-tone-text:var(--iq-tag-neutral-text)}.iq-color-swatch[data-tone=blue]{--iq-tag-tone-text:var(--iq-tag-blue-text)}.iq-color-swatch[data-tone=purple]{--iq-tag-tone-text:var(--iq-tag-purple-text)}.iq-color-swatch[data-tone=green]{--iq-tag-tone-text:var(--iq-tag-green-text)}.iq-color-swatch[data-tone=amber]{--iq-tag-tone-text:var(--iq-tag-amber-text)}.iq-color-swatch[data-tone=red]{--iq-tag-tone-text:var(--iq-tag-red-text)}
+.iq-color-swatch[data-tone=custom]::before{background:var(--iq-tag-color)}
+.iq-color-swatch-custom:not([data-tone=custom])::before{background:conic-gradient(#e5484d,#f5a524,#30a46c,#0090ff,#8e4ec6,#e5484d);inset:4px}
+.iq-color-swatch-custom:not([data-tone=custom])::after{content:'';position:absolute;inset:8px;border-radius:50%;background:var(--iq-raised)}
+.iq-color-swatch>.iq-icon{position:relative;z-index:1;color:#fff;opacity:0}
+.iq-color-swatch-custom:not([data-tone=custom])>.iq-icon{opacity:1;color:var(--iq-ink);width:12px;height:12px}
+.iq-color-swatch:has(:checked)>.iq-icon{opacity:1}
+.iq-color-swatch:has(:checked){box-shadow:0 0 0 2px var(--iq-focus)}
+.iq-color-swatch:has(:focus-visible){outline:2px solid var(--iq-focus);outline-offset:2px}
+.iq-color-custom{margin-top:var(--iq-space-3)}
+.iq-color-custom[hidden]{display:none}
+.iq-color-custom input[type=color]{width:32px;height:32px}
+.iq-color-custom .iq-input-shell{width:112px;min-height:32px}
+.iq-color-counter{display:block;text-align:right}
+.iq-color-counter[data-tone=danger]{color:var(--iq-danger)}
+/* 0.6.0-vnext.19 inline document editor: density="compact" with preview-on-blur reads as the text itself.
+   In preview the chrome disappears and the text gets an inset hover surface that bleeds 8px past the column,
+   so the words stay aligned with the headings around them. A click or Enter switches to the compact editor.
+   Task descriptions and map object text use the same editor. */
+iq-markdown-editor[density=compact][preview-on-blur][data-previewing] .markdown-editor{border-color:transparent;background:transparent;box-shadow:none;overflow:visible}
+iq-markdown-editor[density=compact][preview-on-blur][data-previewing] :is(.md-editor-head,.markdown-editor>footer){display:none}
+iq-markdown-editor[density=compact][preview-on-blur][data-previewing] .md-preview{box-sizing:border-box;width:calc(100% + 2 * var(--iq-space-2));max-width:none;margin:0 calc(-1 * var(--iq-space-2));padding:var(--iq-space-2);min-height:0;border-radius:var(--iq-radius-sm);transition:background-color var(--iq-motion-fast) var(--iq-ease)}
+iq-markdown-editor[density=compact][preview-on-blur][data-previewing]:not([readonly]):not([disabled]) .md-preview:hover{background:var(--iq-hover);cursor:text}
+iq-markdown-editor[density=compact][preview-on-blur][data-previewing] .md-preview:focus-visible{background:var(--iq-hover);box-shadow:0 0 0 2px var(--iq-focus);outline:none}
+/* ---------- Discussions (0.6.0-vnext.19) ----------
+   Open questions pinned on top as framed cards; below them a flat chat timeline of comment threads and resolved
+   questions (one quiet line each); a one-line composer at the bottom. Space separates items, never lines or fills. */
+.iq-discussion{display:grid;gap:var(--iq-space-6);min-width:0}
+.iq-discussion[aria-busy=true] .iq-discussion-timeline{opacity:.7}
+.iq-discussion-questions,.iq-discussion-timeline{display:grid;min-width:0}
+.iq-discussion-questions{gap:var(--iq-space-3)}
+.iq-discussion-timeline{gap:var(--iq-space-6)}
+.iq-discussion-questions:empty,.iq-discussion-timeline:empty,.iq-discussion-questions[hidden],.iq-discussion-timeline[hidden]{display:none}
+.iq-discussion-timeline>.iq-thread[data-state=resolved]+.iq-thread[data-state=resolved]{margin-top:calc(var(--iq-space-1) - var(--iq-space-6))}
+.iq-discussion-more{justify-self:start}
+.iq-discussion-open-count{display:inline-flex;align-items:center;gap:var(--iq-space-2);font:400 var(--iq-type-caption-size)/1.5 var(--iq-font);color:var(--iq-warning);white-space:nowrap}
+.iq-discussion-open-count::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--iq-warning-fill)}
+.iq-discussion-open-count[hidden]{display:none}
+.iq-discussion-empty{margin:0;font-size:var(--iq-type-caption-size);line-height:1.5;color:var(--iq-muted)}
+.iq-discussion-error{display:flex;align-items:center;flex-wrap:wrap;gap:var(--iq-space-2);margin:0;font-size:var(--iq-type-caption-size);line-height:1.5;color:var(--iq-danger)}
+.iq-discussion-error[hidden]{display:none}
+.iq-discussion-error>.iq-btn{margin-left:auto}
+.iq-thread{display:grid;gap:var(--iq-space-3);min-width:0}
+.iq-thread[data-kind=question][data-state=open]{padding:var(--iq-space-4);border:1px solid var(--iq-line);border-radius:var(--iq-radius-sm);background:transparent}
+.iq-thread-flag{display:flex;align-items:center;gap:var(--iq-space-2);margin:0;font:600 var(--iq-type-caption-size)/1.5 var(--iq-font);color:var(--iq-warning)}
+.iq-thread-actions{display:flex;align-items:center;flex-wrap:wrap;gap:var(--iq-space-2);padding-left:calc(24px + var(--iq-space-3))}
+.iq-thread-actions:empty{display:none}
+.iq-thread[data-state=open] .iq-thread-actions,.iq-thread-body>.iq-thread-actions{justify-content:space-between;padding-left:0}
+.iq-thread-toggle{display:inline-flex;align-items:center;gap:var(--iq-space-2);min-height:32px;padding:0 var(--iq-space-2);margin-inline:calc(-1 * var(--iq-space-2));border:0;border-radius:var(--iq-radius-sm);background:transparent;color:var(--iq-accent);font:500 var(--iq-type-label-size)/1.4 var(--iq-font);cursor:pointer;text-decoration:none}
+.iq-thread-toggle:hover{background:var(--iq-hover)}
+.iq-thread-toggle-meta{color:var(--iq-muted);font-weight:400;font-size:var(--iq-type-caption-size)}
+.iq-thread-toggle>.iq-avatars{margin-right:var(--iq-space-1)}
+.iq-thread-new{width:6px;height:6px;border-radius:50%;background:var(--iq-accent);flex:none}
+.iq-thread-new[hidden]{display:none}
+.iq-thread-replies,.iq-thread-reply{margin-left:calc(24px + var(--iq-space-3));min-width:0}
+.iq-thread-replies{display:grid;gap:var(--iq-space-4)}
+.iq-thread-replies>.iq-thread-toggle{justify-self:start}
+.iq-thread-replies[hidden],.iq-thread-reply[hidden],.iq-thread-body[hidden]{display:none}
+.iq-thread-line{display:grid;grid-template-columns:16px minmax(0,1fr) auto 16px;align-items:center;gap:var(--iq-space-2);box-sizing:border-box;width:calc(100% + 2 * var(--iq-space-2));min-height:var(--iq-control-sm);margin-inline:calc(-1 * var(--iq-space-2));padding:var(--iq-space-2);border:0;border-radius:var(--iq-radius-sm);background:transparent;text-align:left;color:var(--iq-muted);font:400 var(--iq-type-label-size)/1.4 var(--iq-font);cursor:pointer}
+.iq-thread-line:hover{background:var(--iq-hover)}
+.iq-thread-line>.iq-icon:first-child{color:var(--iq-success)}
+.iq-thread-line>.iq-icon:last-child{transition:transform var(--iq-motion-fast) var(--iq-ease)}
+.iq-thread-line[aria-expanded=true]>.iq-icon:last-child{transform:rotate(90deg)}
+.iq-thread-line-text{overflow:hidden;white-space:nowrap;text-overflow:ellipsis;color:var(--iq-ink)}
+.iq-thread-line-meta{font-size:var(--iq-type-caption-size);white-space:nowrap}
+.iq-thread-body{display:grid;gap:var(--iq-space-3);padding-top:var(--iq-space-2)}
+.iq-thread-resolution{font-size:var(--iq-type-caption-size);color:var(--iq-muted)}
+:is(.iq-thread-toggle,.iq-thread-line):focus-visible{outline:2px solid var(--iq-focus);outline-offset:-2px}
+.iq-message{display:grid;grid-template-columns:24px minmax(0,1fr);column-gap:var(--iq-space-3);align-items:start;min-width:0}
+.iq-message[data-size=reply]{grid-template-columns:20px minmax(0,1fr);column-gap:var(--iq-space-2)}
+.iq-message>.iq-avatar{margin-top:0}
+.iq-message-main{display:grid;gap:var(--iq-space-1);min-width:0}
+.iq-message-meta{display:flex;flex-wrap:wrap;align-items:baseline;gap:0 var(--iq-space-2);margin:0;min-height:24px}
+.iq-message-author{font:600 var(--iq-type-label-size)/24px var(--iq-font);color:var(--iq-ink)}
+.iq-message-time{font-size:var(--iq-type-caption-size);color:var(--iq-muted);font-variant-numeric:tabular-nums}
+.iq-message[data-new] .iq-message-time::after{content:"";display:inline-block;width:6px;height:6px;margin-left:var(--iq-space-2);border-radius:50%;background:var(--iq-accent);vertical-align:middle}
+.iq-message-text .md-document,.iq-message-text.md-document{font-size:var(--iq-type-interface-size);line-height:1.6}
+p.iq-message-text{margin:0;font-size:var(--iq-type-interface-size);line-height:1.6;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
+.iq-message[data-just-changed] .iq-message-main{border-radius:var(--iq-radius-xs);animation:iq-discussion-arrive var(--iq-motion-scene) var(--iq-ease)}
+@keyframes iq-discussion-arrive{from{background:var(--iq-accent-soft)}to{background:transparent}}
+.iq-message[data-state=loading] .iq-message-main{gap:var(--iq-space-2);padding-top:6px}
+.iq-skeleton-line{display:block;height:10px;width:100%;border-radius:var(--iq-radius-xs)}
+.iq-skeleton-line[data-width=short]{width:40%}
+.iq-composer{display:grid;grid-template-columns:24px minmax(0,1fr);column-gap:var(--iq-space-3);align-items:start;min-width:0}
+.iq-composer>.iq-avatar{margin-top:6px}
+@media(max-width:480px){.iq-thread[data-state=open] .iq-thread-actions [data-resolve]{flex:1 0 100%}.iq-thread-line{grid-template-columns:16px minmax(0,1fr) 16px}.iq-thread-line-meta{grid-column:2;grid-row:2}}
+@media(prefers-reduced-motion:reduce){.iq-message[data-just-changed] .iq-message-main{animation:none}.iq-thread-line>.iq-icon:last-child{transition:none}}
+:root[data-motion=reduced] .iq-message[data-just-changed] .iq-message-main{animation:none}
+@media(forced-colors:active){.iq-thread[data-kind=question][data-state=open]{border-color:CanvasText}.iq-thread-new,.iq-message[data-new] .iq-message-time::after{background:Highlight}}
+/* Chat composer: iq-markdown-editor variant="chat". The short toolbar lives in the footer; idle="line" rests as one field. */
+.markdown-editor.variant-chat{border-radius:var(--iq-radius-sm);background:var(--iq-field-bg,var(--iq-raised))}
+.markdown-editor.variant-chat:focus{outline:none}
+.markdown-editor.variant-chat>.md-editor-head,.markdown-editor.variant-chat>.md-preview{display:none}
+.markdown-editor.variant-chat .md-input{min-height:72px;max-height:320px;overflow-y:auto;padding:var(--iq-space-3);font-size:var(--iq-type-interface-size);line-height:1.6}
+.markdown-editor.variant-chat>footer{display:flex;align-items:center;flex-wrap:wrap;gap:var(--iq-space-2);min-height:0;padding:var(--iq-space-1) var(--iq-space-2);border-top:1px solid var(--iq-line)}
+.markdown-editor.variant-chat>footer>.md-toolbar{padding:0;border:0;background:transparent;gap:0;flex-wrap:nowrap}
+.markdown-editor.variant-chat>footer .md-tool{width:28px;height:28px}
+.markdown-editor.variant-chat>footer>.md-hint{display:none}
+.markdown-editor.variant-chat>footer>.md-cancel{margin-left:auto}
+.markdown-editor.variant-chat>footer>.md-cancel~.md-submit{margin-left:0}
+.markdown-editor.variant-chat>footer>.md-submit{margin-left:auto;height:32px;min-height:32px;--h:32px}
+.markdown-editor.variant-chat .md-footer-hint{display:block;padding:0 var(--iq-space-3) var(--iq-space-2);font-size:var(--iq-type-caption-size);color:var(--iq-muted)}
+.markdown-editor .md-footer-hint[hidden]{display:none}
+.md-footer-chip{display:inline-flex;align-items:center;gap:var(--iq-space-1);height:28px;padding:0 var(--iq-space-3);border:1px solid var(--iq-line);border-radius:var(--iq-radius-pill);background:transparent;color:var(--iq-muted);font:500 var(--iq-type-label-size)/1 var(--iq-font);cursor:pointer;white-space:nowrap}
+.md-footer-chip:hover:not(:disabled){background:var(--iq-hover);color:var(--iq-ink)}
+.md-footer-chip:focus-visible{outline:2px solid var(--iq-focus);outline-offset:1px}
+.md-footer-chip[aria-pressed=true]{background:var(--iq-accent-soft);border-color:transparent;color:var(--iq-accent)}
+.md-footer-chip[aria-pressed=true][data-tone=warning]{background:var(--iq-warning-fill);color:var(--iq-on-warning)}
+.md-footer-chip:disabled{opacity:.45;cursor:default}
+iq-markdown-editor[variant=chat][data-idle] .markdown-editor{border-color:var(--iq-line)}
+iq-markdown-editor[variant=chat][data-idle] .markdown-editor:hover{border-color:var(--iq-line-strong)}
+iq-markdown-editor[variant=chat][data-idle] .md-input{min-height:0;height:var(--iq-control-sm)!important;padding:0 var(--iq-space-3);line-height:calc(var(--iq-control-sm) - 2px);overflow:hidden;resize:none;white-space:nowrap}
+iq-markdown-editor[variant=chat][data-idle] .markdown-editor>footer,iq-markdown-editor[variant=chat][data-idle] .md-footer-hint{display:none}
+@media(max-width:480px){.markdown-editor.variant-chat>footer>.md-toolbar{flex:1 0 100%;overflow-x:auto}}
+@media(forced-colors:active){.md-footer-chip[aria-pressed=true]{border:2px solid Highlight}}
+/* ---------- Property grid (0.6.0-vnext.19): .iq-properties[data-columns="2|auto"] ----------
+   One grammar for an object's core facts: label and value rows in two columns (auto collapses to one below 272px
+   per column, with no media query). Values are ghost triggers aligned to the column edge; icons live in values. */
+.iq-properties[data-columns]{--iq-properties-label:96px;column-gap:var(--iq-space-6);row-gap:var(--iq-space-1)}
+.iq-properties[data-columns="2"]{grid-template-columns:repeat(2,minmax(0,1fr))}
+.iq-properties[data-columns=auto]{grid-template-columns:repeat(auto-fit,minmax(min(100%,272px),1fr))}
+.iq-properties[data-columns] :is(iq-select,iq-combobox,iq-date-field){min-height:36px;column-gap:var(--iq-space-2)}
+.iq-properties[data-columns] :is(iq-select,iq-combobox,iq-date-field)>.iq-control-label{font-size:var(--iq-type-label-size);font-weight:400;white-space:nowrap}
+.iq-properties[data-columns] :is(iq-select,iq-combobox,iq-date-field)>:not(.iq-control-label){justify-self:start;max-width:calc(100% + var(--iq-space-2));margin-left:calc(-1 * var(--iq-space-2))}
+.iq-properties[data-columns] iq-select[appearance=pill]>:not(.iq-control-label){margin-left:0}
+.iq-properties[data-columns] :is(.iq-select-trigger,.iq-date-trigger,.iq-combo-shell){width:auto;max-width:100%;min-height:32px;height:32px;gap:var(--iq-space-2);padding:0 var(--iq-space-2);margin-left:0;border:1px solid transparent;border-radius:var(--iq-radius-sm);background:transparent;font-size:var(--iq-type-interface-size)}
+.iq-properties[data-columns] :is(.iq-select-trigger,.iq-date-trigger,.iq-combo-shell):hover{border-color:transparent;background:var(--iq-hover)}
+.iq-properties[data-columns] :is(.iq-select-trigger,.iq-date-trigger)[aria-expanded=true],.iq-properties[data-columns] .iq-combo-shell:focus-within{border-color:var(--iq-control);background:var(--iq-raised)}
+.iq-properties[data-columns] .iq-select-value{display:inline-flex;align-items:center;gap:var(--iq-space-2);min-width:0}
+.iq-properties[data-columns] .iq-select-value>.iq-icon{flex:none;color:var(--iq-muted)}
+.iq-properties[data-columns] .iq-select-trigger>.iq-icon:last-child,.iq-properties[data-columns] .iq-combo-shell>.iq-icon:last-child{opacity:0;width:12px;flex:none;transition:opacity var(--iq-motion-fast) var(--iq-ease)}
+.iq-properties[data-columns] :is(.iq-select-trigger,.iq-combo-shell):is(:hover,:focus-within)>.iq-icon:last-child,.iq-properties[data-columns] .iq-select-trigger[aria-expanded=true]>.iq-icon:last-child{opacity:1}
+.iq-properties[data-columns] .iq-combo-shell input{field-sizing:content;min-width:7ch;max-width:24ch;padding:0;background:transparent;font:inherit}
+.iq-properties[data-columns] .iq-combo-shell:has(>.iq-select-avatar):not(:focus-within)>.iq-icon:first-of-type{display:none}
+.iq-properties[data-columns] .iq-combo-shell:focus-within>.iq-select-avatar{display:none}
+.iq-properties[data-columns] .iq-select-avatar{width:22px;height:22px;margin:0;border:0;font-size:9px}
+.iq-properties[data-columns] [data-empty=true] :is(.iq-select-label,.iq-combo-shell input,[data-date-caption]){color:var(--iq-muted)}
+.iq-properties[data-columns] .iq-select-trigger[data-tone=high]{color:var(--iq-task-high-text)}
+.iq-properties[data-columns] .iq-select-trigger[data-tone=critical]{color:var(--iq-task-critical-text)}
+.iq-properties[data-columns] :is(.iq-select-trigger[data-tone=high],.iq-select-trigger[data-tone=critical]) .iq-select-value>.iq-icon{color:inherit}
+.iq-properties[data-columns] iq-date-field[data-tone=danger] .iq-date-trigger{color:var(--iq-danger)}
+.iq-properties[data-columns] iq-date-field[data-tone=warning] .iq-date-trigger{color:var(--iq-task-high-text)}
+@media(hover:none){.iq-properties[data-columns] :is(.iq-select-trigger,.iq-combo-shell)>.iq-icon:last-child{opacity:1}}
+/* iq-select appearance="pill": the one filled value, with a dot in the option's tone. */
+iq-select[appearance=pill] .iq-select-trigger,.iq-properties[data-columns] iq-select[appearance=pill] .iq-select-trigger{height:28px;min-height:28px;margin-left:0;padding:0 var(--iq-space-3);border-radius:var(--iq-radius-pill);background:var(--iq-surface);font-size:var(--iq-type-label-size);font-weight:500}
+iq-select[appearance=pill] .iq-select-trigger:hover{background:var(--iq-hover)}
+.iq-select-dot{width:8px;height:8px;border-radius:50%;background:var(--iq-select-tone,var(--iq-muted));flex:none}
+iq-select[appearance=pill] .iq-select-trigger[data-tone=info]{--iq-select-tone:var(--iq-info)}
+iq-select[appearance=pill] .iq-select-trigger[data-tone=warning]{--iq-select-tone:var(--iq-warning-fill)}
+iq-select[appearance=pill] .iq-select-trigger[data-tone=success]{--iq-select-tone:var(--iq-success)}
+iq-select[appearance=pill] .iq-select-trigger[data-tone=danger]{--iq-select-tone:var(--iq-danger)}
+/* Option meta (a date, a count) and separators; the search field of a searchable select. */
+.iq-select-meta{color:var(--iq-muted);font-size:var(--iq-type-label-size);font-variant-numeric:tabular-nums;white-space:nowrap}
+.iq-option-meta{margin-left:auto;padding-left:var(--iq-space-3);color:var(--iq-muted);font-size:var(--iq-type-caption-size);font-variant-numeric:tabular-nums;white-space:nowrap}
+.iq-option.iq-option-separated{margin-top:var(--iq-space-1);border-top:1px solid var(--iq-line);border-top-left-radius:0;border-top-right-radius:0}
+.iq-select-search{display:flex;align-items:center;gap:var(--iq-space-2);height:36px;margin:0 0 var(--iq-space-1);padding:0 var(--iq-space-2);border-bottom:1px solid var(--iq-line);color:var(--iq-muted)}
+.iq-select-search input{flex:1;min-width:0;height:100%;border:0;background:transparent;color:var(--iq-ink);font:inherit;font-size:var(--iq-type-interface-size);outline:none}
+.iq-select-search input::-webkit-search-cancel-button{display:none}
+/* iq-tag-picker appearance="inline": tags as a quiet footnote line. No field chrome at rest; 24px chips whose ×
+   appears on hover or focus; the input is a borderless "Добавить тег" with an underline only while typing. */
+iq-tag-picker[appearance=inline]>.iq-control-label{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+iq-tag-picker[appearance=inline] .iq-tag-picker-field{display:flex;flex-wrap:wrap;align-items:center;gap:6px;min-height:28px;padding:0;border:0;background:transparent;box-shadow:none}
+iq-tag-picker[appearance=inline] .iq-tag-picker-field:focus-within{box-shadow:none}
+iq-tag-picker[appearance=inline] .iq-tag-picker-values{display:contents}
+iq-tag-picker[appearance=inline] .iq-tag{min-height:24px;padding:2px var(--iq-space-2);font-size:var(--iq-type-caption-size);border-radius:var(--iq-radius-xs)}
+iq-tag-picker[appearance=inline] .iq-tag .iq-tag-remove{width:0;opacity:0;overflow:hidden;margin-left:0;transition:opacity var(--iq-motion-fast) var(--iq-ease)}
+iq-tag-picker[appearance=inline] .iq-tag:is(:hover,:focus-within,[data-armed]) .iq-tag-remove{width:16px;opacity:1;margin-left:2px}
+iq-tag-picker[appearance=inline] input{flex:0 1 150px;min-width:96px;height:24px;padding:0 var(--iq-space-1);border:0;border-bottom:1px solid transparent;border-radius:0;background:transparent;font-size:var(--iq-type-caption-size);color:var(--iq-ink)}
+iq-tag-picker[appearance=inline] input::placeholder{color:var(--iq-muted)}
+iq-tag-picker[appearance=inline] input:focus{outline:none;border-bottom-color:var(--iq-focus)}
+iq-tag-picker[appearance=inline] .iq-tag-picker-add{width:24px;height:24px;min-width:24px;min-height:24px;padding:0;margin:0;border-radius:var(--iq-radius-xs)}
+@media(hover:none){iq-tag-picker[appearance=inline] .iq-tag .iq-tag-remove{width:16px;opacity:1;margin-left:2px}}
+@media(prefers-reduced-motion:reduce){iq-tag-picker[appearance=inline] .iq-tag .iq-tag-remove{transition:none}}
+
+.iq-properties[data-columns] .iq-date-trigger>.iq-icon{order:-1;flex:none;color:var(--iq-muted)}
+/* iq-image-crop appearance="bare" (0.6.0-vnext.19): one surface inside a host dialog. The whole image stays visible
+   under a scrim around a fixed frame; the stage takes the height the screen allows, so the dialog never scrolls. */
+.iq-image-crop[data-appearance=bare]{display:grid;gap:var(--iq-space-3);min-width:0}
+.iq-image-crop[data-appearance=bare] .iq-crop-stage{aspect-ratio:auto;width:100%;height:var(--iq-crop-stage-height,clamp(200px,calc(100dvh - 296px),440px));border-radius:var(--iq-radius-sm);background:var(--iq-recessed);cursor:default}
+.iq-image-crop[data-appearance=bare] .iq-crop-stage.has-image{cursor:grab}
+.iq-image-crop[data-appearance=bare] .iq-crop-stage.has-image:active{cursor:grabbing}
+.iq-image-crop[data-appearance=bare] .iq-crop-mask{display:none}
+.iq-crop-toolbar{display:flex;align-items:center;flex-wrap:wrap;gap:var(--iq-space-3);min-height:40px}
+.iq-crop-zoom{display:flex;align-items:center;gap:var(--iq-space-1)}
+.iq-crop-zoom input[type=range]{width:200px;accent-color:var(--iq-accent);margin:0;cursor:pointer}
+.iq-crop-spacer{flex:1}
+.iq-crop-status{margin:0;font-size:var(--iq-type-caption-size);color:var(--iq-muted)}
+.iq-crop-status.iq-pro-error{color:var(--iq-danger)}
+.iq-crop-status[hidden]{display:none}
+@media(max-width:560px){.iq-crop-zoom input[type=range]{width:120px}.iq-crop-spacer{display:none}}
+/* 0.6.0-vnext.20: unread count next to open questions, and the left group of a question card's actions. */
+.iq-discussion-new-count{display:inline-flex;align-items:center;gap:var(--iq-space-2);font:400 var(--iq-type-caption-size)/1.5 var(--iq-font);color:var(--iq-accent);white-space:nowrap}
+.iq-discussion-new-count::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--iq-accent)}
+.iq-discussion-new-count[hidden]{display:none}
+.iq-section-actions:has(>.iq-discussion-new-count:not([hidden])+.iq-discussion-open-count:not([hidden])){display:inline-flex;gap:var(--iq-space-4)}
+.iq-thread-actions-group{display:inline-flex;align-items:center;flex-wrap:wrap;gap:var(--iq-space-1)}
+/* Photos in avatars (0.6.0-vnext.20): the image covers the disc; the initials underneath are the fallback. */
+.iq-avatar.has-image{position:relative;overflow:hidden}
+.iq-avatar.has-image>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:inherit;background:inherit}
+.iq-image-crop[data-appearance=bare] .iq-crop-stage:not(.has-image){cursor:pointer}
+/* iq-file-picker drop-target (0.6.0-vnext.20): the whole region shows it takes the files while they are dragged over. */
+[data-file-drop]{outline:2px dashed var(--iq-accent);outline-offset:4px;border-radius:var(--iq-radius-sm);background:color-mix(in srgb,var(--iq-accent) 5%,transparent)}
+iq-file-picker[variant=button]{display:inline-flex}

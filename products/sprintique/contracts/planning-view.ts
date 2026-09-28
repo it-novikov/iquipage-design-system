@@ -34,7 +34,7 @@ export const ViewIntent=z.discriminatedUnion('kind',[
   schedule,temporal,remove,
   z.strictObject({kind:z.literal('batch'),actions:z.array(z.discriminatedUnion('kind',[schedule,temporal,remove])).min(1).max(100),...revision}),
   z.strictObject({kind:z.literal('milestone'),entityId:Id.optional(),values:z.strictObject({title:z.string().trim().min(1).max(240),date:DateOnly.nullable(),releaseId:Id.nullable()})}),
-  z.strictObject({kind:z.literal('settings'),values:z.strictObject({format:z.enum(['flexible','timeboxed']),days:z.number().int(),timeZone:z.string().max(100)})}),
+  z.strictObject({kind:z.literal('settings'),values:z.strictObject({format:z.enum(['flexible','timeboxed']),days:z.number().int(),timeZone:z.string().max(100),inheritTimeZone:z.boolean().optional()})}),
   z.strictObject({kind:z.literal('shiftDates'),groupId:Id,days:z.number().int().min(-36500).max(36500)})
 ]);
 export type ViewIntent=z.infer<typeof ViewIntent>;

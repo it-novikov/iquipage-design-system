@@ -21,6 +21,8 @@ export function registerAgentRoutes(app:FastifyInstance,authenticated:Authentica
     const rows=(await tx.query<{id:string}>(`SELECT a.id,a.status,a.revision,a.requested_by AS "requestedBy",a.expires_at AS "expiresAt",p.name AS "agentName",s.summary FROM app.approvals a
       JOIN auth.principals p ON p.id=a.requested_by JOIN app.planning_plans s ON s.project_id=a.project_id AND s.id::text=a.subject_id
       WHERE a.project_id=$1 AND ($2 OR a.requested_by=$3) AND ($4::uuid IS NULL OR a.id>$4) ORDER BY a.id LIMIT 51`,[projectId,a.kind==='human',a.id,q.cursor||null])).rows;
-    return {items:rows.slice(0,50),nextCursor:rows.length>50?rows[49]!.id:null};
+    // The pending count covers every page, so navigation can show it without paging through the list.
+    const pending=(await tx.query<{n:number}>(`SELECT count(*)::int n FROM app.approvals a WHERE a.project_id=$1 AND ($2 OR a.requested_by=$3) AND a.status='proposed' AND a.expires_at>clock_timestamp()`,[projectId,a.kind==='human',a.id])).rows[0]!.n;
+    return {items:rows.slice(0,50),nextCursor:rows.length>50?rows[49]!.id:null,pendingCount:pending};
   }));
 }

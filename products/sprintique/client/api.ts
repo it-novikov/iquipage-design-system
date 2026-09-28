@@ -19,6 +19,16 @@ export class SprintiqueClient {
     return response.json() as Promise<T>;
   }
   async session(){const session=await this.request<SessionInfo>('/session');this.csrf=session.csrf;return session;}
+  /** Uploads the person's own photo; the server re-encodes it to a 256×256 WebP. */
+  async setAvatar(image:Blob):Promise<{avatarRevision:number}>{
+    const headers:Record<string,string>={Accept:'application/json','Content-Type':'application/octet-stream'};if(this.csrf)headers['X-CSRF-Token']=this.csrf;
+    const response=await this.fetcher(this.base+'/profile/avatar',{method:'PUT',credentials:'same-origin',headers,body:image});
+    if(!response.ok){const error=await response.json().catch(()=>({code:'NETWORK',message:'Сервис недоступен.'})) as {code:string;message:string};throw new ApiError(error.code,error.message,response.status);}
+    return response.json() as Promise<{avatarRevision:number}>;
+  }
+  removeAvatar(){return this.request<{avatarRevision:null}>('/profile/avatar','DELETE');}
+  /** Same-origin URL of a person's photo at a revision (cacheable for good), or null without one. */
+  avatarUrl(principalId:string,revision:number|null|undefined){return revision?`${this.base}/people/${encodeURIComponent(principalId)}/avatar?v=${revision}`:null;}
   tasks(projectId:string,cursor=''){return this.request<{items:Task[];nextCursor:string|null}>(`/projects/${encodeURIComponent(projectId)}/tasks${cursor?'?cursor='+encodeURIComponent(cursor):''}`);}
   task(projectId:string,id:string,signal?:AbortSignal){return this.request<Task>(`/projects/${encodeURIComponent(projectId)}/tasks/${encodeURIComponent(id)}`,'GET',undefined,undefined,signal);}
   putTask(projectId:string,id:string,baseRevision:number,task:TaskData,key:string){return this.request<Task>(`/projects/${encodeURIComponent(projectId)}/tasks/${encodeURIComponent(id)}`,'PUT',{baseRevision,task},key);}

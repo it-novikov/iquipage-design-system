@@ -8,8 +8,10 @@ export const AssetReservation=z.strictObject({id:ResourceId,targetType:z.enum(['
   name:FileName,size:z.number().int().min(1).max(FILE_LIMIT),sha256:z.string().regex(/^[a-f0-9]{64}$/)});
 export const AssetParams=z.strictObject({projectId:ResourceId,id:ResourceId});
 export const AssetVariant=z.enum(['original','display','thumb']);
-export const CoverCrop=z.strictObject({attachmentId:ResourceId,x:z.number().min(0).max(1),y:z.number().min(0).max(1),width:z.number().positive().max(1),height:z.number().positive().max(1)})
-  .refine(v=>v.x+v.width<=1.000001&&v.y+v.height<=1.000001);
+/** Per axis the frame either lies inside the image (0 ≤ x ≤ 1−w) or contains it whole ("Вписать": 1−w ≤ x ≤ 0). */
+export const coverAxisValid=(position:number,size:number)=>size<=1?position>=-1e-6&&position<=1-size+1e-6:position<=1e-6&&position>=1-size-1e-6;
+export const CoverCrop=z.strictObject({attachmentId:ResourceId,x:z.number().min(-20).max(1),y:z.number().min(-20).max(1),width:z.number().positive().max(20),height:z.number().positive().max(20)})
+  .refine(c=>coverAxisValid(c.x,c.width)&&coverAxisValid(c.y,c.height),'Кадр должен лежать внутри изображения или целиком содержать его.');
 export const TaskMedia={attachmentIds:z.array(ResourceId).max(50).refine(v=>new Set(v).size===v.length).default([]),coverAttachmentId:ResourceId.nullable().default(null),coverCrop:CoverCrop.nullable().default(null)};
 export type Reservation=z.infer<typeof AssetReservation>;
 export type TaskMediaData={attachmentIds:string[];coverAttachmentId:string|null;coverCrop:z.infer<typeof CoverCrop>|null};

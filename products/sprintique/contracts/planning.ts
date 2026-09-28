@@ -36,7 +36,7 @@ export const ScheduleAction=z.strictObject({kind:z.literal('schedule'),entity:En
 export const TemporalValue=z.strictObject({source:EntityRef,target:EntityRef,relation:z.enum(['FS','SS','FF','SF']),lagDays:z.number().int().min(-36500).max(36500)});
 const ConstraintAction=z.strictObject({kind:z.literal('constraint'),id:Id,value:TemporalValue});
 const RemoveConstraint=z.strictObject({kind:z.literal('constraint.remove'),id:Id});
-export const PlanningDefaults=z.strictObject({format:z.enum(['flexible','timeboxed']),days:z.number().int().min(1).max(366),timezone:Timezone});
+export const PlanningDefaults=z.strictObject({format:z.enum(['flexible','timeboxed']),days:z.number().int().min(1).max(366),timezone:Timezone,timezoneInherited:z.boolean().optional()});
 export const PlanningCommand = z.discriminatedUnion('kind',[
   z.strictObject({kind:z.literal('task.edit'),taskId:Id,baseRevision:Revision,task:TaskInput}),
   z.strictObject({kind:z.literal('task.create'),taskId:Id,task:TaskInput,createInBoard:z.boolean().default(false)}),

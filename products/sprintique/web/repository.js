@@ -92,6 +92,8 @@ export class ProductRepository {
     }catch(error){if(error.status===404)return null;throw error;}
   }
   pageThreads(projectId,taskId,options){return this.client.threads(projectId,taskId,options);}
+  /** The caller's own read marker for a thread: "new" follows the person across devices. */
+  markThreadRead(projectId,threadId,seenActivityAt){return this.client.request(`/projects/${encodeURIComponent(projectId)}/threads/${encodeURIComponent(threadId)}/read`,'POST',{seenActivityAt});}
   mapHistory(projectId,id,before,{signal}={}){
     return this.client.request(`/projects/${encodeURIComponent(projectId)}/maps/${encodeURIComponent(id)}/history${before?'?before='+before:''}`,'GET',undefined,undefined,signal);
   }
@@ -116,7 +118,10 @@ export class ProductRepository {
         this.clearProjectCache(record.projectId);this.listeners.forEach(fn=>fn({collection,projectId:record.projectId,id:record.id}));return displayOwner(saved);
       }
       if(record.checklists?.length)throw new ApiError('CONTENT_VERSION','Сохраните чек-листы в Markdown-описании.',422);
-      const content=TaskInput.parse(Object.fromEntries(Object.keys(TaskInput.shape).map(key=>[key,record[key]])));
+      // A schema failure speaks the product's language: our own refinement texts are Russian, anything else is generic.
+      const parsed=TaskInput.safeParse(Object.fromEntries(Object.keys(TaskInput.shape).map(key=>[key,record[key]])));
+      if(!parsed.success){const text=parsed.error.issues.map(issue=>issue.message).find(message=>/[а-яё]/i.test(message));throw new ApiError('VALIDATION',text||'Проверьте поля задачи.',422);}
+      const content=parsed.data;
       const {parentId,releaseId}=content;
       const previous=baseRevision?await this.client.task(record.projectId,record.id):null;
       if(this.confirmPlanningChange&&(!baseRevision&&releaseId||previous&&(previous.parentId!==parentId||previous.releaseId!==releaseId))){
@@ -133,6 +138,7 @@ export class ProductRepository {
         const current=await this.client.thread(record.projectId,record.id);
         if(current.taskId!==record.taskId)throw new ApiError('THREAD_TASK','Обсуждение другой задачи.',422);
         if(record.messages.length>current.messages.length){path=`${base}/threads/${id}/messages`;method='POST';body={id:last.id,body:last.body,baseRevision};}
+        else if(current.requiresResolution!==record.requiresResolution&&current.messages.length===record.messages.length){path=`${base}/threads/${id}/kind`;method='PATCH';body={requiresResolution:record.requiresResolution,baseRevision};}
         else if(current.messages.some(m=>m.id===last.id)&&current.resolved===record.resolved)return current;
         else {path=`${base}/threads/${id}/resolution`;method='PATCH';body={resolved:record.resolved,baseRevision};}
       }

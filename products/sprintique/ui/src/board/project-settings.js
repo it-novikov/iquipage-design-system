@@ -13,6 +13,7 @@ const row=({media,title,meta=[],aside='',actions='',button='',muted=false})=>{
   return button?`<button type="button" class="iq-settings-row" ${button}>${inner}<span class="iq-settings-row-aside">${aside}</span><span class="iq-settings-row-chevron">${icon('chevron',17)}</span></button>`
     :`<div class="iq-settings-row"${muted?' data-state="muted"':''}>${inner}<span class="iq-settings-row-aside">${aside}</span><span class="iq-settings-row-actions">${actions}</span></div>`;
 };
+const taskCount=n=>{const a=n%100,b=n%10;return `В ${n} ${a>10&&a<20?'задачах':b===1?'задаче':'задачах'}`;};
 const tile=glyph=>`<span class="iq-settings-row-tile">${icon(glyph,18)}</span>`;
 const group=(title,description,body,count=null)=>`<section class="iq-settings-group"><header class="iq-settings-group-head"><div><h2>${esc(title)}${count!==null?`<span class="iq-settings-group-count">${count}</span>`:''}</h2>${description?`<p>${esc(description)}</p>`:''}</div></header>${body}</section>`;
 const empty=(title,body,action='',glyph='palette')=>`<div class="iq-empty compact"><span class="iq-settings-row-tile">${icon(glyph,20)}</span><h3>${esc(title)}</h3><p>${esc(body)}</p>${action}</div>`;
@@ -32,7 +33,7 @@ export async function mountProjectTaskSettings(root,{repository,project,section,
   function tagRow(item){
     const menu=canManage?ui.menu(`<button type="button" class="iq-btn ghost icon sm" aria-label="Действия: ${esc(item.name)}">${icon('more',17)}</button>`,[{label:'В архив',action:'archive-tag',glyph:'folder'}]):'';
     const actions=!canManage?'':item.archivedAt?`<button type="button" class="iq-btn ghost sm" data-archive-item="${esc(item.id)}">Восстановить</button>`:`<button type="button" class="iq-btn ghost sm" data-edit-item="${esc(item.id)}">Изменить</button>${menu}`;
-    return `<div class="iq-settings-row"${item.archivedAt?' data-state="muted"':''} data-tag-id="${esc(item.id)}"><span class="iq-settings-row-copy"><span class="iq-settings-row-title">${tagMarkup({...item,archivedAt:null})}</span></span><span class="iq-settings-row-aside">${esc(TAG_TONES[item.tone]||TAG_TONES.neutral)}</span><span class="iq-settings-row-actions">${actions}</span></div>`;
+    return `<div class="iq-settings-row"${item.archivedAt?' data-state="muted"':''} data-tag-id="${esc(item.id)}"><span class="iq-settings-row-copy"><span class="iq-settings-row-title">${tagMarkup({...item,archivedAt:null})}</span></span><span class="iq-settings-row-aside">${Number.isFinite(item.usageCount)?`<span>${item.usageCount?esc(taskCount(item.usageCount)):'Не используется'}</span>`:''}${esc(TAG_TONES[item.tone]||(/^#[0-9A-F]{6}$/i.test(item.tone)?'Свой цвет '+item.tone.toUpperCase():TAG_TONES.neutral))}</span><span class="iq-settings-row-actions">${actions}</span></div>`;
   }
   function renderCatalog(){
     if(closed)return;

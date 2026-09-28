@@ -4,7 +4,7 @@ Clean-start, self-contained product: the approved board, Planning consumer from 
 
 ## Independence and architecture
 
-Copy this entire directory to another repository. No parent workspace, DS source checkout or root install is required. The explicit `vendor/iquipage-web-0.6.0-vnext.15.tgz` release can later be replaced by the same authorized registry package. Its SHA-256 is `e09b23768fc67f1e1a03b523e23408969deab94b182f01b2a7c47b4ee4ccfe74`. Product and library versions are independent.
+Copy this entire directory to another repository. No parent workspace, DS source checkout or root install is required. The explicit `vendor/iquipage-web-0.6.0-vnext.20.tgz` release can later be replaced by the same authorized registry package. Its SHA-256 is `a12e42f4cbe1a9957725d8956bf30188819ef65ca10452e9165ec0363ccc82a7`. Product and library versions are independent.
 
 ```text
 backend/domain          Invariants, errors and media validation
@@ -15,7 +15,7 @@ contracts               Static Zod contracts; no dynamic user-supplied schemas
 client                  Typed Planning HTTP client
 web                     Product host and backend-to-UI adapters
 ui                      Existing board/maps and imported Planning consumer
-migrations              Immutable clean-start schema (001–015)
+migrations              Immutable clean-start schema (001–018)
 scripts                 Build, local infrastructure, verification and restore drill
 tests                   Real PostgreSQL/S3 and consumer unit tests
 vendor                  Explicit public DS package, not library source imports
@@ -28,7 +28,8 @@ Node 24 / TypeScript strict / Fastify / PostgreSQL modular monolith; a separatel
 - Tasks: canonical readable keys, Markdown/checklists, compact DS editor, tags, templates, files/covers, links, status movement, task URLs and discussions with resolution state.
 - Planning: release-first list/hierarchy, preparation and board admission, temporal views, milestones/dependencies, atomic previews and commits, explicit remainder on closing, immutable history, exact selection snapshots and lost-response recovery across reload. The same task document is used everywhere. See [consumer provenance](ui/planning/PROVENANCE.md) and [integration contract](docs/planning-integration-r3.md).
 - Maps: versioned documents, CAS/draft recovery, private image references, task references, sessions/votes/timer, reusable templates and read-only version history. The existing DS canvas is retained. Executable workflow/automation capabilities are explicitly disabled.
-- Administration: workspace/project selection and profiles, project avatars, member roles, expiring single-use invitation links, revocation, task settings/templates/tag colors and scoped search.
+- Administration: a full-width settings workspace on the DS side navigation (Профиль, Внешний вид; О проекте, Участники, Теги, Шаблоны задач, Спринты и релизы, Агенты, Очистка файлов; О пространстве, Участники пространства). Workspace/project profiles and avatars, member roles changed in the row, expiring single-use invitation links (24 hours, 3 or 7 days) with state, revocation, task templates, tags in any RGB colour and scoped search. People who cannot change a setting see values and a lock notice naming an administrator. See [settings design](docs/settings/DESIGN.md).
+- Task drawer: the title as a heading, one strip of key values (status, assignee, priority, due date), quiet rows for type, release and tags; the description opens in preview and edits on click, with templates inside the editor; relations as a map (parent, subtasks, dependencies, blocked and related tasks); cover menu on the image. See [UX and DS alignment](docs/ux-ds-alignment.md).
 - Agents: scoped expiring credentials, bounded context, run/proposal budgets, action-bound human approval, exact commit receipt, cancellation/expiry fences and revocation. This executes approved **typed Planning commands**, not general code or a shipped MCP server.
 - Operations: real OIDC code+PKCE, private S3 validation/re-encoding, quotas/throttling, audit/outbox-backed authorized SSE, leased asset cleanup jobs and admin retry, exact schema readiness, redacted route-level metrics/logs, container/CI scripts and an isolated restore drill.
 

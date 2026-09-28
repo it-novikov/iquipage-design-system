@@ -1,5 +1,5 @@
 /** Supported core browser entry. Does not register graph, roadmap, crop, or whiteboard. */
-export declare const version:'0.6.0-vnext.15';
+export declare const version:'0.6.0-vnext.20';
 export declare function registerCore():void;
 export declare function registerComponents():void;
 export declare function registerDateFields():void;
@@ -12,6 +12,9 @@ export declare function enhance(root?:ParentNode):void;
 export declare function icon(name:string,size?:number):string;
 export declare function mark():string;
 export declare function escapeHTML(value:unknown):string;
+/** Tag colour attributes: a palette tone name, or any "#RRGGBB" (derived, theme-aware fill and text; no inline styles). */
+export declare function tagToneAttributes(tone:string):string;
+export interface AvatarPerson {name:string;id?:string;}
 export declare function notify(options:{message:string;description?:string;tone?:'info'|'success'|'warning'|'danger';duration?:number;action?:{label:string;run:()=>void}}):void;
 export declare function motionReduced():boolean;
 export declare function transition(el:HTMLElement,frames:Keyframe[],duration?:number,delay?:number):Animation|undefined;
@@ -26,9 +29,11 @@ export declare function formatDateTime(value:string|number|Date|null|undefined,o
 export declare function formatDateRange(start:string|number|Date|null|undefined,end:string|number|Date|null|undefined,options?:{timeZone?:string}):string;
 export declare class IqDateField extends HTMLElement {value:string;readonly timeValue:string;disabled:boolean;open():void;close(restore?:boolean):void;}
 export declare class IqTime extends HTMLElement {value:string;hourCycle:12|24;}
-export interface MarkdownEditorAction {id:string;label:string;pressed:boolean;disabled?:boolean;tone?:'neutral'|'warning';hint?:string;}
-export interface MarkdownEditorActionIntent {id:string;pressed:boolean;previous:boolean;}
-export declare class IqMarkdownEditor extends HTMLElement {value:string;disabled:boolean;readOnly:boolean;previewOnBlur:boolean;previewMode:boolean;interactiveTasks:boolean;density:'compact'|'comfortable';footerActions:MarkdownEditorAction[];preview():void;focusEditor():void;}
+export interface MarkdownEditorAction {id:string;label:string;pressed:boolean;disabled?:boolean;tone?:'neutral'|'warning';hint?:string;/** 'chip' renders a compact pressed toggle (chat composers); 'check' a checkbox with a hint. */appearance?:'check'|'chip';icon?:string;}
+export interface MarkdownEditorActionIntent {id:string;pressed:boolean;previous:boolean;reason?:'reset';}
+export interface MarkdownEditorSubmit {value:string;/** true for Ctrl/⌘+Alt+Enter (for example: reply and resolve). */alternate:boolean;}
+export declare class IqMarkdownEditor extends HTMLElement {value:string;disabled:boolean;readOnly:boolean;previewOnBlur:boolean;previewMode:boolean;interactiveTasks:boolean;density:'compact'|'comfortable';footerActions:MarkdownEditorAction[];/** Host actions at the end of the toolbar, shown only while editing; a click emits iq-editor-action {id}. */toolbarActions:MarkdownToolbarAction[];preview():void;focusEditor():void;/** variant="chat" idle="line": false while the composer rests as one line. */readonly expanded:boolean;expand(options?:{focus?:boolean}):void;collapse():void;reset():void;}
+export interface MarkdownToolbarAction {id:string;label:string;icon?:string;}
 export declare class IqPagination extends HTMLElement {total:number;current:number;}
 export interface TreeNode {id:string;label:string;children?:TreeNode[];count?:number;disabled?:boolean;}
 export declare class IqTree extends HTMLElement {items:TreeNode[];value:string[];readonly total:number;}
@@ -103,4 +108,9 @@ export interface SettingsNavigationItem {id:string;label:string;icon?:string;cou
 /** Settings navigation drawn with the DS side navigation (`.product-nav-*`). Returns the list only. */
 export declare function settingsNavigation(groups:{label:string;items:SettingsNavigationItem[]}[],active:string):string;
 export declare function registerSettings():void;
-declare global {interface HTMLElementTagNameMap {'iq-settings-layout':IqSettingsLayout;'iq-visual-choice':IqVisualChoice;}}
+export interface RelationMapNode {id:string;title:string;key?:string;status?:string;tone?:'neutral'|'info'|'planned'|'success'|'warning'|'danger';icon?:string;linkId?:string;}
+export interface RelationMapValue {center:RelationMapNode;parent?:RelationMapNode|null;dependsOn?:RelationMapNode[];blocks?:RelationMapNode[];related?:RelationMapNode[];children?:RelationMapNode[];childrenDone?:number|null;}
+/** Read-only relation map of one object. Emits iq-open {id} and, unless readonly, iq-remove {id, linkId} for removable links. */
+export declare class IqRelationMap extends HTMLElement {value:RelationMapValue|null;}
+export declare function registerRelationMap():void;
+declare global {interface HTMLElementTagNameMap {'iq-settings-layout':IqSettingsLayout;'iq-relation-map':IqRelationMap;'iq-visual-choice':IqVisualChoice;}}

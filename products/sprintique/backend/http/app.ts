@@ -121,7 +121,7 @@ export async function createApp({db,origin,oidc,logger=false,storage,metricsToke
   app.get('/api/v1/projects/:projectId/tasks/:id/threads',request=>authenticated(request,async(tx,actor)=>{
     const {projectId,id}=params(request);await authorize(tx,actor,projectId,'threads:read');
     const {cursor,limit}=z.object({cursor:z.string().max(2048).nullable().default(null),limit:z.coerce.number().int().min(1).max(50).default(20)}).parse(request.query);
-    return discussions.pageThreads(tx,projectId,id!,cursor,limit);
+    return discussions.pageThreads(tx,actor,projectId,id!,cursor,limit);
   }));
   app.get('/api/v1/projects/:projectId/threads/:id',request=>authenticated(request,async(tx,actor)=>{
     const {projectId,id}=params(request);await authorize(tx,actor,projectId,'threads:read');return discussions.readThread(tx,projectId,id!);
@@ -134,6 +134,16 @@ export async function createApp({db,origin,oidc,logger=false,storage,metricsToke
   app.post('/api/v1/projects/:projectId/threads/:id/messages',request=>authenticated(request,async(tx,actor)=>{
     const {projectId,id}=params(request);
     return discussions.appendMessage(tx,actor,projectId,id!,contract.AppendMessage.parse(request.body),mutationKey(request));
+  }));
+  app.patch('/api/v1/projects/:projectId/threads/:id/kind',request=>authenticated(request,async(tx,actor)=>{
+    const {projectId,id}=params(request);
+    return discussions.changeThreadKind(tx,actor,projectId,id!,contract.ChangeThreadKind.parse(request.body),mutationKey(request));
+  }));
+  // A read marker is the caller's own view state: it needs read access, not write access, and no retry ledger
+  // (moving it forward twice is the same as once).
+  app.post('/api/v1/projects/:projectId/threads/:id/read',request=>authenticated(request,async(tx,actor)=>{
+    const {projectId,id}=params(request);await authorize(tx,actor,projectId,'threads:read');
+    return discussions.markThreadRead(tx,actor,projectId,id!,contract.MarkThreadRead.parse(request.body));
   }));
   app.patch('/api/v1/projects/:projectId/threads/:id/resolution',request=>authenticated(request,async(tx,actor)=>{
     const {projectId,id}=params(request);

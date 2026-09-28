@@ -13,7 +13,9 @@ export function registerCatalogRoutes(app:FastifyInstance,authenticated:Authenti
     const projection=`id,project_id AS "projectId",revision,archived_at AS "archivedAt",${fields}`;
     app.get(`/api/v1/projects/:projectId/${collection}`,request=>authenticated(request,async(tx,actor)=>{
       const {projectId}=params(request);await authorize(tx,actor,projectId,'tasks:read');
-      const rows=(await tx.query(`SELECT ${projection} FROM app.${collection} WHERE project_id=$1 ORDER BY name,id LIMIT 501`,[projectId])).rows;
+      // Tags also report how many tasks carry them, so an admin can tell what is safe to archive.
+      const usage=collection==='tags'?`,(SELECT count(*)::int FROM app.task_tags tt WHERE tt.project_id=tags.project_id AND tt.tag_id=tags.id) AS "usageCount"`:'';
+      const rows=(await tx.query(`SELECT ${projection}${usage} FROM app.${collection} WHERE project_id=$1 ORDER BY name,id LIMIT 501`,[projectId])).rows;
       requireCondition(rows.length<=500,409,'CATALOG_LIMIT','Каталог достиг лимита.');return rows;
     }));
     app.put(`/api/v1/projects/:projectId/${collection}/:id`,request=>authenticated(request,async(tx,actor)=>{

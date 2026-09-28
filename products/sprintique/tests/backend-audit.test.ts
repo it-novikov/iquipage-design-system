@@ -97,12 +97,12 @@ test('B04 thread pages have constant query count, bounded summaries, stable orde
   await f.admin.query(`INSERT INTO app.messages(project_id,id,thread_id,body,author_id)
     SELECT $1,'catalogue-message-'||n,'catalogue-'||lpad(n::text,4,'0'),repeat('x',200),$2 FROM generate_series(1,1000) n`,[f.first.id,f.alice.id]);
   let queryCount=0;
-  const first=await f.db.authenticated({token:f.alice.token,kind:'session'},async tx=>{
+  const first=await f.db.authenticated({token:f.alice.token,kind:'session'},async (tx,actor)=>{
     const measured=new Proxy(tx,{get(target,property,receiver){
       if(property==='query')return (...args:unknown[])=>{queryCount++;return Reflect.apply(target.query,target,args);};
       return Reflect.get(target,property,receiver);
     }});
-    return pageThreads(measured,f.first.id,'thread-catalogue',null,50);
+    return pageThreads(measured,actor,f.first.id,'thread-catalogue',null,50);
   });
   assert.equal(queryCount,2);assert.equal(first.items.length,50);assert.equal(first.total,1000);assert.equal(first.unresolved,333);
   assert.ok(first.items.every(item=>item.messageCount===1&&item.messages[0]!.body.length===160));
@@ -120,7 +120,7 @@ test('B04 thread pages have constant query count, bounded summaries, stable orde
   assert.equal((await request('GET','tasks/thread-catalogue/threads?cursor='+encodeURIComponent(fresh.nextCursor))).json().code,'THREAD_CURSOR_STALE');
   const malformed=Buffer.from(JSON.stringify({projectId:f.first.id,taskId:'thread-catalogue',version:[],after:'x'})).toString('base64url');
   assert.equal((await request('GET','tasks/thread-catalogue/threads?cursor='+malformed)).statusCode,400);
-  assert.deepEqual((await request('GET','tasks/outside-root/threads')).json(),{items:[],total:0,unresolved:0,nextCursor:null});
+  assert.deepEqual((await request('GET','tasks/outside-root/threads')).json(),{items:[],total:0,unresolved:0,unread:0,nextCursor:null});
 });
 
 test('B05 10000-row group projection does not rescan the group for each DTO',async t=>{

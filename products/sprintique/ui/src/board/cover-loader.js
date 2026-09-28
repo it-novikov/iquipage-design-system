@@ -17,7 +17,7 @@ export function createCoverLoader(adapter,projectId){
     while(!closed&&active<4&&queue.length){const job=queue.shift();if(job.generation!==generation||!job.img.isConnected)continue;active++;
       const key=job.img.dataset.coverTask+':'+job.img.dataset.coverId;let url;
       resource({id:job.img.dataset.coverId,taskId:job.img.dataset.coverTask,projectId}).then(async value=>{
-        url=value;if(job.generation===generation&&job.img.isConnected&&visible.has(key)){job.img.src=url;job.img.hidden=false;await job.img.decode();if(job.generation===generation&&job.img.isConnected)job.img.parentElement.dataset.state='ready';}
+        url=value;if(job.generation===generation&&job.img.isConnected&&visible.has(key)){job.img.src=url;job.img.hidden=false;const backdrop=job.img.parentElement.querySelector('.task-cover-backdrop');if(backdrop){backdrop.src=url;backdrop.hidden=false;}await job.img.decode();if(job.generation===generation&&job.img.isConnected)job.img.parentElement.dataset.state='ready';}
       }).catch(()=>{if(url)invalidate(key,url);if(job.img.isConnected&&job.generation===generation){job.img.parentElement.dataset.state='unavailable';job.img.hidden=true;job.img.nextElementSibling.textContent='Обложка недоступна';}}).finally(()=>{delete job.img.dataset.coverQueued;active--;pump();});
     }
   }

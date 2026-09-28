@@ -37,7 +37,7 @@ export async function loadPlanningState(tx:Transaction,projectId:string):Promise
   const milestones=(await tx.query<Milestone>(`SELECT id,title,to_char(date,'YYYY-MM-DD') AS date,revision,release_id AS "releaseId" FROM app.milestones WHERE project_id=$1 ORDER BY id LIMIT 10001`,[projectId])).rows;
   const constraints=(await tx.query<TemporalConstraint>(`SELECT id,revision,jsonb_build_object('kind',source_kind,'id',source_id) AS source,
     jsonb_build_object('kind',target_kind,'id',target_id) AS target,relation,lag_days AS "lagDays" FROM app.temporal_constraints WHERE project_id=$1 ORDER BY id LIMIT 10001`,[projectId])).rows;
-  const defaults=(await tx.query<{value:NonNullable<PlanningState['defaults']>}>(`SELECT planning_defaults||jsonb_build_object('timezone',auth.project_timezone(id)) AS value FROM app.projects WHERE id=$1`,[projectId])).rows[0]!.value;
+  const defaults=(await tx.query<{value:NonNullable<PlanningState['defaults']>}>(`SELECT planning_defaults||jsonb_build_object('timezone',auth.project_timezone(id),'timezoneInherited',timezone IS NULL) AS value FROM app.projects WHERE id=$1`,[projectId])).rows[0]!.value;
   const creation=(await tx.query<NonNullable<PlanningState['creation']>>(`SELECT id AS "projectId",key,next_task_number AS number,to_char(clock_timestamp() AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS "createdAt" FROM app.projects WHERE id=$1`,[projectId])).rows[0]!;
   const dependencies=(await tx.query<{id:string;fromId:string;toId:string}>(`SELECT id,from_id AS "fromId",to_id AS "toId" FROM app.task_links WHERE project_id=$1 AND kind='depends' AND archived_at IS NULL LIMIT 10001`,[projectId])).rows;
   const members=(await tx.query<{id:string;name:string}>(`SELECT p.id,coalesce(p.profile_name,p.name) AS name FROM app.project_members m JOIN auth.principals p ON p.id=m.principal_id
@@ -206,8 +206,9 @@ async function applyPlan(tx:Transaction,actor:Actor,projectId:string,operationId
       ON CONFLICT(project_id,id) DO UPDATE SET source_kind=$3,source_id=$4,target_kind=$5,target_id=$6,relation=$7,lag_days=$8,revision=$9`,[projectId,c.id,c.source.kind,c.source.id,c.target.kind,c.target.id,c.relation,c.lagDays,c.revision]);
     await event(tx,actor,projectId,operationId,'temporal.constraint.changed',c.id,c.revision);
   }
-  if(result.defaults){const {timezone,...defaults}=result.defaults;
-    await tx.query('UPDATE app.projects SET planning_defaults=$2,timezone=$3,planning_revision=planning_revision+1 WHERE id=$1',[projectId,JSON.stringify(defaults),timezone]);
+  if(result.defaults){const {timezone,timezoneInherited,...defaults}=result.defaults;
+    // An inherited time zone is stored as NULL, so the project follows later workspace changes.
+    await tx.query('UPDATE app.projects SET planning_defaults=$2,timezone=$3,planning_revision=planning_revision+1 WHERE id=$1',[projectId,JSON.stringify(defaults),timezoneInherited?null:timezone]);
     await event(tx,actor,projectId,operationId,'planning.settings.changed',projectId,0);
   }
   if(result.history)await tx.query(`INSERT INTO app.release_snapshots(project_id,id,release_id,kind,operation_id,items) VALUES($1,$2,$3,$4,$5,$6)`,

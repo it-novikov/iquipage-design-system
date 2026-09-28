@@ -1,21 +1,46 @@
-# IQUIPAGE Design System
+# IQUIPAGE Design System и Sprintique
 
-Полный рабочий репозиторий дизайн-системы IQUIPAGE 05.7 и набора агентских скиллов для discovery, UX-аудита, внедрения и code review.
+Рабочий репозиторий дизайн-системы IQUIPAGE, продукта Sprintique на ней и набора агентских скиллов для discovery, UX-аудита, внедрения и code review.
 
-Репозиторий рассчитан на людей и AI-агентов: здесь есть сама Web-дизайн-система, примеры, публичные API, токены, evidence, тесты, шаблоны и понятный рабочий процесс.
+## Текущее состояние (27.09.2026)
+
+- **Дизайн-система** развивается в `libraries/iquipage`: исходники `@iquipage/web` линии 0.6, сейчас **0.6.0-vnext.17**. Журнал версий — [CHANGES-0.6](libraries/iquipage/docs/CHANGES-0.6.md), API — [README библиотеки](libraries/iquipage/README.md).
+- **Sprintique** — самостоятельный продукт в `products/sprintique` (Node 24, Fastify, PostgreSQL с RLS, S3): доска задач, планирование, карты, настройки, агенты. Подключает только упакованный релиз DS из `products/sprintique/vendor`. Проверен локально, это не production. Начните с [README продукта](products/sprintique/README.md).
+- **Где мы сейчас:** [статус](docs/vnext/STATUS.md) и [handoff](docs/vnext/HANDOFF.md) описывают состояние, открытые PR, способ запустить стенд и следующие шаги. Решения по интерфейсу собраны в [UX и DS](products/sprintique/docs/ux-ds-alignment.md).
+- `design-system/` — закреплённая историческая поставка 05.7 (`0.5.7`), не редактируется. `packages/` и `deliveries/` — исторические модули и поставки прошлых этапов.
 
 ## Что находится внутри
 
 ```text
 .
-├── design-system/        # IQUIPAGE 05.7: HTML, ESM, CSS, tokens, API, tests
-├── agent-skills/         # Полный переносимый комплект скиллов 1.1.0
+├── libraries/iquipage/   # Исходники DS 0.6 (Web Components, ESM, CSS, токены, типы, тесты)
+├── products/sprintique/  # Продукт Sprintique: backend, web, ui, миграции, тесты, vendor DS
+├── scripts/              # verify-vnext.mjs — полный гейт: DS, продукт, границы, отделяемость
+├── docs/vnext/           # Статус, handoff, границы и аудиты vNext
+├── design-system/        # Историческая поставка IQUIPAGE 05.7 (только чтение)
+├── packages/             # Исторические модули maps / planning / work-list
+├── agent-skills/         # Переносимый комплект скиллов 1.1.0
 ├── .agents/skills/       # Скиллы, доступные агенту прямо в этом репозитории
 ├── AGENTS.md             # Короткие правила работы для агента
 └── START-HERE.md         # Маршрутизация типовых задач
 ```
 
-### Дизайн-система
+## Быстрый запуск
+
+Локальный стенд Sprintique (временная PostgreSQL, синтетические данные, вход **admin / admin**):
+
+```sh
+cd products/sprintique
+npm ci --ignore-scripts
+npm run build
+LC_ALL=C npm run dev:local   # http://localhost:4311
+```
+
+Витрина дизайн-системы: `cd libraries/iquipage && npm run build && python3 -m http.server 4330`, затем `http://localhost:4330/`.
+
+Полная проверка перед PR (из корня): `LC_ALL=C TEST_S3_CONFIG=/путь/к/private-storage.json node scripts/verify-vnext.mjs`.
+
+## Историческая поставка 05.7
 
 В `design-system/` лежит поставка `@iquipage/web` версии `0.5.7`:
 
@@ -28,7 +53,7 @@
 - тесты, результаты проверок и скриншоты в `tests/` и `evidence/`;
 - контрольные суммы в `MANIFEST.sha256`.
 
-Это Web Components и ESM-поставка, а не готовая React-библиотека. React, Vue или другой фреймворк можно использовать на границе адаптации, но такую адаптацию нужно явно описать и проверить.
+Это Web Components и ESM-поставка, а не готовая React-библиотека. Новые возможности добавляются только в `libraries/iquipage`.
 
 ### Агентские скиллы
 
@@ -160,7 +185,14 @@ python3 tests/test_review_hardening.py
 
 ## Документация
 
-- [Дизайн-система: README](design-system/README.md)
+- [Статус vNext](docs/vnext/STATUS.md)
+- [Handoff vNext](docs/vnext/HANDOFF.md)
+- [DS 0.6: README](libraries/iquipage/README.md)
+- [DS 0.6: изменения](libraries/iquipage/docs/CHANGES-0.6.md)
+- [Sprintique: README](products/sprintique/README.md)
+- [Sprintique: UX и DS](products/sprintique/docs/ux-ds-alignment.md)
+- [Sprintique: настройки](products/sprintique/docs/settings/DESIGN.md)
+- [Историческая поставка 05.7: README](design-system/README.md)
 - [Handoff 05.7](design-system/docs/HANDOFF-05.7.md)
 - [Интеграция](design-system/docs/INTEGRATION.md)
 - [Whiteboard API](design-system/docs/WHITEBOARD-API.md)

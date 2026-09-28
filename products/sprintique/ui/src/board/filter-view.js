@@ -1,6 +1,7 @@
 import {dialog,select,icon,esc} from '../ui.js';
 import {normalizeBoardFilters,ownerKey} from './filters.js';
 import {tagMarkup,tagTone} from './catalog-ui.js';
+import {tagToneAttributes} from '@iquipage/web/core';
 /** Board filters apply live. Active conditions stay visible as removable chips; tags keep their colour. */
 export function mountBoardFilters(root,{initial={},onChange=()=>{},countMatches=null}={}){
   let value=normalizeBoardFilters(initial),data={tasks:[],tags:[],releases:[]},panel=null;
@@ -19,7 +20,7 @@ export function mountBoardFilters(root,{initial={},onChange=()=>{},countMatches=
     const count=Object.keys(names).reduce((n,key)=>n+value[key].length,0);
     const chips=Object.keys(names).flatMap(field=>value[field].map(id=>{
       const item=find(field,id),name=item?.name||'Недоступно',tone=field==='tags'&&item?tagTone(item):'neutral';
-      return `<button type="button" class="iq-tag" data-tone="${tone}" data-remove-filter="${field}" data-filter-id="${esc(id)}" aria-label="Убрать фильтр: ${esc(names[field])} — ${esc(name)}">${field==='tags'?'':`${esc(names[field])}: `}${esc(name)}${icon('x',12)}</button>`;
+      return `<button type="button" class="iq-tag" ${tagToneAttributes(tone)} data-remove-filter="${field}" data-filter-id="${esc(id)}" aria-label="Убрать фильтр: ${esc(names[field])} — ${esc(name)}">${field==='tags'?'':`${esc(names[field])}: `}${esc(name)}${icon('x',12)}</button>`;
     })).join('');
     root.innerHTML=`<button type="button" class="iq-btn ghost sm" data-open-filters aria-haspopup="dialog">${icon('filter',17)}<span>Фильтры${count?` (${count})`:''}</span></button>${chips?`<div class="board-filter-chips" aria-label="Активные фильтры">${chips}</div><button type="button" class="iq-btn ghost sm" data-reset-filters>Сбросить</button>`:''}`;
   }

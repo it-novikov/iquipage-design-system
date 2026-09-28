@@ -11,7 +11,10 @@ export async function manageProject(tx:Transaction,actor:Actor,projectId:string)
 }
 export async function projectMembers(tx:Transaction,actor:Actor,projectId:string){
   await authorize(tx,actor,projectId,'tasks:read');
-  return (await tx.query(`SELECT p.id,coalesce(p.profile_name,p.name) AS name,p.kind,m.role,m.revision
+  // Last activity is the member's newest audit event in this project (indexed by project, actor and time).
+  return (await tx.query(`SELECT p.id,coalesce(p.profile_name,p.name) AS name,p.kind,m.role,m.revision,m.joined_at AS "joinedAt",
+      (SELECT a.created_at FROM app.audit_events a WHERE a.project_id=m.project_id AND a.actor_id=p.id ORDER BY a.created_at DESC LIMIT 1) AS "lastActiveAt",
+      (SELECT v.revision FROM app.person_avatars v WHERE v.principal_id=p.id) AS "avatarRevision"
     FROM app.project_members m JOIN auth.principals p ON p.id=m.principal_id WHERE m.project_id=$1 ORDER BY name,p.id LIMIT 501`,[projectId])).rows;
 }
 async function preserveAdmin(tx:Transaction,table:'project_members'|'workspace_members',column:'project_id'|'workspace_id',scope:string,role:string,next:string|null){
@@ -39,7 +42,10 @@ export async function changeMember(tx:Transaction,actor:Actor,projectId:string,i
 }
 export async function invitations(tx:Transaction,actor:Actor,projectId:string){
   await authorize(tx,actor,projectId,'agents:manage');
-  return (await tx.query(`SELECT id,role,created_at AS "createdAt",expires_at AS "expiresAt",revoked_at AS "revokedAt",accepted_at AS "acceptedAt" FROM auth.project_invitations WHERE project_id=$1 ORDER BY created_at DESC LIMIT 100`,[projectId])).rows;
+  return (await tx.query(`SELECT i.id,i.role,i.created_at AS "createdAt",i.expires_at AS "expiresAt",i.revoked_at AS "revokedAt",i.accepted_at AS "acceptedAt",
+      coalesce(inviter.profile_name,inviter.name) AS "inviterName",coalesce(accepter.profile_name,accepter.name) AS "acceptedByName"
+    FROM auth.project_invitations i LEFT JOIN auth.principals inviter ON inviter.id=i.inviter_id LEFT JOIN auth.principals accepter ON accepter.id=i.accepted_by
+    WHERE i.project_id=$1 ORDER BY i.created_at DESC LIMIT 100`,[projectId])).rows;
 }
 export async function createInvitation(tx:Transaction,actor:Actor,projectId:string,input:{id:string;role:'reader'|'editor'|'admin';expiresInSeconds:number}){
   await manageProject(tx,actor,projectId);
@@ -87,7 +93,23 @@ export async function acceptInvitation(tx:Transaction,actor:Actor,token:string){
   return {projectId:project.id,slug:project.slug};
 }
 export async function profile(tx:Transaction,actor:Actor){
-  return (await tx.query('SELECT id,coalesce(profile_name,name) AS name,revision FROM auth.principals WHERE id=$1',[actor.id])).rows[0];
+  return (await tx.query('SELECT p.id,coalesce(p.profile_name,p.name) AS name,p.email,p.revision,a.revision AS "avatarRevision" FROM auth.principals p LEFT JOIN app.person_avatars a ON a.principal_id=p.id WHERE p.id=$1',[actor.id])).rows[0];
+}
+/** Replaces the person's own photo with an already re-encoded image; returns the new revision for cache keys. */
+export async function setAvatar(tx:Transaction,actor:Actor,image:Buffer){
+  requireCondition(actor.kind==='human',403,'FORBIDDEN','Фото профиля доступно человеку.');await requireActiveCredential(tx,actor);
+  return (await tx.query(`INSERT INTO app.person_avatars(principal_id,image) VALUES($1,$2)
+    ON CONFLICT(principal_id) DO UPDATE SET image=EXCLUDED.image,revision=app.person_avatars.revision+1,updated_at=clock_timestamp()
+    RETURNING revision AS "avatarRevision"`,[actor.id,image])).rows[0];
+}
+export async function removeAvatar(tx:Transaction,actor:Actor){
+  requireCondition(actor.kind==='human',403,'FORBIDDEN','Фото профиля доступно человеку.');await requireActiveCredential(tx,actor);
+  await tx.query('DELETE FROM app.person_avatars WHERE principal_id=$1',[actor.id]);return {avatarRevision:null};
+}
+/** A photo is visible to the person and to anyone sharing a project or workspace with them (row policy). */
+export async function readAvatar(tx:Transaction,_actor:Actor,principalId:string){
+  const row=(await tx.query<{image:Buffer;revision:number}>('SELECT image,revision FROM app.person_avatars WHERE principal_id=$1',[principalId])).rows[0];
+  requireCondition(row,404,'NOT_FOUND','Фото недоступно.');return row;
 }
 export async function changeProfile(tx:Transaction,actor:Actor,input:{baseRevision:number;name:string}){
   requireCondition(actor.kind==='human',403,'FORBIDDEN','Профиль доступен человеку.');await requireActiveCredential(tx,actor);

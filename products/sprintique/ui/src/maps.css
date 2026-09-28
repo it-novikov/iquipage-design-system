@@ -21,7 +21,6 @@
 .map-switch-static{cursor:default}
 .map-template-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--iq-space-4)}.map-template-card{border:1px solid var(--iq-line);border-radius:var(--iq-radius-md);background:var(--iq-raised);padding:0;overflow:hidden;text-align:left;display:flex;flex-direction:column;color:var(--iq-ink);transition:border-color var(--iq-motion-fast)}.map-template-card:hover{border-color:var(--iq-control)}
 .map-template-copy{padding:16px;display:flex;flex-direction:column;gap:9px;flex:1}.map-template-copy small{font-size:var(--iq-type-meta-size);color:var(--iq-muted)}.map-template-copy b{font-size:var(--iq-type-interface-size);font-weight:600;line-height:1.35}.map-template-copy>span{font-size:var(--iq-type-caption-size);line-height:1.55;color:var(--iq-muted)}.map-template-copy .map-template-when{margin-top:auto;padding-top:7px;color:var(--iq-ink)}.map-template-when strong{font-weight:500}
-.map-template-preview{display:grid;place-items:center;min-height:168px;background:var(--iq-wb-canvas);overflow:hidden;padding:12px}.map-template-preview>div{position:relative;max-width:100%}.map-preview-object{position:absolute;display:block;background:var(--iq-raised);border:1px solid var(--iq-line);border-radius:var(--iq-radius-xs)}.map-preview-object[data-type=frame]{background:var(--iq-wb-frame);border-color:var(--iq-wb-frame-line)}.map-preview-object[data-tone=sand]{background:var(--iq-wb-sand)}.map-preview-object[data-tone=mint]{background:var(--iq-wb-mint)}.map-preview-object[data-tone=lavender]{background:var(--iq-wb-lavender)}.map-preview-object[data-tone=sky]{background:var(--iq-wb-sky)}.map-preview-object[data-tone=rose]{background:var(--iq-wb-rose)}
 .map-template-detail{display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:center}.map-template-detail>.map-template-preview{min-height:250px;border-radius:var(--iq-radius-md);border:1px solid var(--iq-line)}.map-template-detail h3{font-size:var(--iq-type-body-size);margin-bottom:10px}.map-template-detail p{color:var(--iq-muted);font-size:var(--iq-type-label-size);line-height:1.65;margin-bottom:20px}
 .map-list-row{display:flex;align-items:center;gap:14px;width:100%;background:transparent;border:0;border-bottom:1px solid var(--iq-line);padding:16px 8px;text-align:left;color:var(--iq-ink)}.map-list-row:hover{background:var(--iq-surface)}.map-list-row>span:not(.map-list-icon){flex:1;min-width:0}.map-list-row b{display:block;font-size:var(--iq-type-interface-size);font-weight:500;overflow-wrap:anywhere}.map-list-row small{display:block;margin-top:5px;color:var(--iq-muted);font-size:var(--iq-type-meta-size)}.map-list-row p{font-size:var(--iq-type-caption-size);color:var(--iq-muted);margin-top:8px;line-height:1.6}.map-list-icon{width:36px;height:36px;border-radius:var(--iq-radius-sm);background:var(--iq-surface);display:grid;place-items:center;color:var(--iq-muted);flex:none}
 .map-action-menu{display:flex;flex-direction:column;gap:10px;align-items:stretch}.map-action-menu>.iq-btn{justify-content:flex-start;min-height:40px}.map-help-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}.map-help-grid b{font-weight:600;font-size:var(--iq-type-interface-size)}.map-help-grid p,.map-help-types p{font-size:var(--iq-type-label-size);color:var(--iq-muted);line-height:1.7;margin-top:10px}.map-help-types{display:grid;grid-template-columns:1fr 1fr;gap:24px;border-top:1px solid var(--iq-line);padding-top:16px}
@@ -34,7 +33,7 @@
 @media(max-width:900px){.map-inspector{position:absolute;right:0;top:0;bottom:0;width:min(350px,100%);box-shadow:var(--iq-shadow-2)}.map-template-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.map-toolbar{align-items:flex-start;flex-wrap:wrap}.map-toolbar-actions{margin-left:auto}.map-heading{flex-basis:100%}.map-title-wrap{flex:1}.map-toolbar-actions>.iq-btn{min-height:36px}.map-help-grid{grid-template-columns:1fr}.map-help-types{grid-template-columns:1fr;gap:12px}.map-state{display:none}}
 @media(max-width:600px){.map-toolbar{padding:10px 12px;gap:8px}.map-heading>.iq-btn span{font-size:var(--iq-type-caption-size)}.map-toolbar-actions{width:100%;justify-content:space-between;gap:2px;flex-wrap:wrap}.map-toolbar-actions>.iq-btn{padding-inline:6px;font-size:var(--iq-type-meta-size)}.map-toolbar-actions>.iq-btn svg{width:15px;height:15px}.map-subbar{padding:7px 12px;gap:6px}.map-context-actions{gap:4px;width:100%;justify-content:flex-end}.map-context-actions>.iq-btn{min-height:32px}.map-view-group{gap:6px;width:100%;justify-content:space-between}.map-timer-label{font-size:var(--iq-type-meta-size)}.map-template-grid{grid-template-columns:1fr}.map-template-detail,.map-rule-editor{grid-template-columns:1fr;gap:20px}.map-panel-body{padding:16px}.map-notice{padding:8px 12px;flex-wrap:wrap}.map-notice>span{flex-basis:100%}.map-empty h2{font-size:var(--iq-type-heading3-size)}.map-empty p{font-size:var(--iq-type-interface-size)}}
 @media(prefers-reduced-motion:reduce){.map-template-card{transition:none}}
-@media(forced-colors:active){.map-template-card,.map-preview-object,.map-inspector{border-color:CanvasText}.map-step-indicator{border:1px solid currentColor}}
+@media(forced-colors:active){.map-template-card,.map-inspector{border-color:CanvasText}.map-step-indicator{border:1px solid currentColor}}
 
 .map-agent-changes{display:flex;flex-direction:column;gap:20px}.map-agent-changes article{padding-bottom:20px;border-bottom:1px solid var(--iq-line)}.map-agent-changes h3{font-size:var(--iq-type-body-size);margin-bottom:12px}.map-agent-changes p{font-size:var(--iq-type-label-size);line-height:1.7;white-space:pre-wrap;overflow-wrap:anywhere}
 
@@ -70,8 +69,7 @@
 .map-menu-section h3{font-size:var(--iq-type-meta-size);text-transform:uppercase;letter-spacing:.06em;color:var(--iq-muted);margin-bottom:8px}.map-menu-section+.map-menu-section{border-top:1px solid var(--iq-line);padding-top:20px}.map-action-menu{gap:2px}.map-action-menu>.iq-btn{justify-content:flex-start}
 
 /* Preview projections use the actual geometry, labels, shapes and connections. */
-.map-template-preview{width:100%;min-height:0;aspect-ratio:360/190;padding:0;display:grid;place-items:center}
-.map-template-detail>.map-template-preview{min-height:0;aspect-ratio:360/240}.map-template-copy .map-template-when{margin-top:8px;padding:0}.map-template-copy b{font-size:var(--iq-type-interface-size)}.map-template-copy{gap:8px}.map-template-grid{align-items:stretch}
+.map-template-copy .map-template-when{margin-top:8px;padding:0}.map-template-copy b{font-size:var(--iq-type-interface-size)}.map-template-copy{gap:8px}.map-template-grid{align-items:stretch}
 
 /* Batch capture is the same reusable document operation for all supported card types. */
 .map-capture-settings{display:grid;grid-template-columns:1fr 1fr;gap:20px}.map-capture-rows{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
@@ -90,20 +88,11 @@
 /* History versions are full-width rows, not shrink-wrapped buttons. */
 .map-history-list>.iq-list-item{width:100%;text-align:left;justify-content:space-between;gap:var(--iq-space-3);cursor:pointer}
 /* Title chip over the canvas, to the right of the side dock: replaces the toolbar row on the canvas. */
-.map-title-chip{position:absolute;z-index:9;top:var(--iq-space-4);right:var(--iq-space-4);max-width:min(420px,calc(100% - 120px));display:flex;align-items:center;gap:var(--iq-space-1);padding:var(--iq-space-1) var(--iq-space-1) var(--iq-space-1) var(--iq-space-3);border:1px solid var(--iq-line);border-radius:var(--iq-radius-md);background:color-mix(in srgb,var(--iq-raised) 92%,transparent);backdrop-filter:blur(8px);box-shadow:0 4px 16px var(--iq-shadow-color)}
-.map-title-chip[hidden]{display:none}
-/* The properties panel covers the chip; the whiteboard's own panels (search, frames) live in the board's stacking
-   context, so while one is open the chip steps away with a fade instead. */
-.map-title-chip{transition:opacity var(--iq-motion-fast) var(--iq-ease),visibility 0s linear 0s}
-.map-content:has(.wb-shell.has-panel) .map-title-chip{opacity:0;visibility:hidden;pointer-events:none;transition:opacity var(--iq-motion-fast) var(--iq-ease),visibility 0s linear var(--iq-motion-fast)}
-@media (prefers-reduced-motion:reduce){.map-title-chip{transition:none}}
+/* Title chip and sync state: the DS board chip (.iq-board-chip, .iq-board-sync). The properties panel covers the chip,
+   and it steps away while a board panel such as search is open. */
+.map-content:has(.wb-shell.has-panel) .map-title-chip{opacity:0;visibility:hidden;pointer-events:none}
 .map-title-chip-heading{min-width:0;display:flex}
 .map-title-chip .map-switch{font-size:var(--iq-type-interface-size);font-weight:600;padding:0;min-height:0;min-width:0}
-/* Sync: a DS icon button; its tooltip explains the state. Saving and syncing turn the icon, unsaved changes switch to a warning. */
-.map-sync[data-state=dirty]{color:var(--iq-warning)}
-.map-sync:is([data-state=saving],[data-state=syncing]) .iq-icon{animation:map-sync-turn 900ms linear infinite}
-@keyframes map-sync-turn{to{transform:rotate(360deg)}}
-@media (prefers-reduced-motion:reduce){.map-sync:is([data-state=saving],[data-state=syncing]) .iq-icon{animation:none}}
 /* Map menu inside the host side panel: grouped rows. */
 .map-panel-menu{display:grid;gap:2px}
 .map-panel-section{margin:var(--iq-space-3) var(--iq-space-2) var(--iq-space-1);font-size:var(--iq-type-meta-size);font-weight:600;color:var(--iq-muted)}
@@ -111,15 +100,17 @@
 .map-panel-action{display:flex;align-items:center;gap:var(--iq-space-3);width:100%;min-height:40px;padding:var(--iq-space-2);border:0;border-radius:var(--iq-radius-sm);background:transparent;color:var(--iq-ink);font:inherit;font-size:var(--iq-type-label-size);text-align:left;cursor:pointer}
 .map-panel-action:hover{background:var(--iq-surface)}
 .map-panel-action>svg{color:var(--iq-muted);flex:none}
-/* Template previews: a miniature board in whiteboard tokens. Hover lifts objects in sequence and draws links. */
-.map-template-preview{position:relative;background:var(--iq-wb-canvas);border-bottom:1px solid var(--iq-line)}
+/* Template previews: a miniature board in whiteboard tokens. The viewBox matches the container (9:5 cards, 3:2 detail),
+   so nothing is clipped; template-story.js replays how the template gets filled in (transform, opacity, stroke only). */
+.map-template-preview{position:relative;display:block;aspect-ratio:9/5;padding:0;background:var(--iq-wb-canvas);border-bottom:1px solid var(--iq-line);overflow:hidden;--map-preview-link:color-mix(in srgb,var(--iq-ink) 58%,var(--iq-wb-canvas));--iq-ease-camera:cubic-bezier(.22,.61,.12,1);--iq-ease-draw:cubic-bezier(.65,0,.35,1);--iq-ease-settle:cubic-bezier(.34,1.4,.64,1)}
+[data-theme=dark] .map-template-preview{--map-preview-link:color-mix(in srgb,var(--iq-ink) 70%,var(--iq-wb-canvas))}
+.map-template-detail>.map-template-preview{aspect-ratio:3/2;border-radius:var(--iq-radius-md);border:1px solid var(--iq-line)}
 .map-template-preview.empty{display:grid;place-items:center;color:var(--iq-muted);font-size:var(--iq-type-caption-size)}
-.map-preview-svg{width:100%;height:auto;display:block}
+.map-preview-svg{width:100%;height:100%;display:block;overflow:hidden;transform-origin:50% 50%}
 .map-preview-canvas{stroke:none}
 .map-preview-dot{fill:var(--iq-wb-dot)}
-.map-preview-scene{transform-origin:50% 50%;transition:transform var(--iq-motion-enter) var(--iq-ease)}
-.map-preview-frame{fill:var(--iq-wb-frame);stroke:var(--iq-wb-frame-line);stroke-width:1}
-.map-preview-title{font:600 9.5px var(--iq-font);fill:var(--iq-ink);letter-spacing:-.01em}
+.map-preview-frame{fill:var(--iq-wb-frame);stroke:var(--iq-wb-frame-line);stroke-width:1;stroke-dasharray:1 0}
+.map-preview-title{font-family:var(--iq-font);font-weight:600;fill:var(--iq-ink);letter-spacing:-.01em}
 .map-preview-note{fill:var(--iq-wb-sand)}
 .map-preview-node[data-tone=mint] .map-preview-note{fill:var(--iq-wb-mint)}
 .map-preview-node[data-tone=lavender] .map-preview-note{fill:var(--iq-wb-lavender)}
@@ -127,18 +118,32 @@
 .map-preview-node[data-tone=rose] .map-preview-note{fill:var(--iq-wb-rose)}
 .map-preview-shadow{fill:var(--iq-wb-object-shadow);opacity:.5}
 .map-preview-card,.map-preview-shape{fill:var(--iq-raised);stroke:var(--iq-wb-shape-line);stroke-width:1}
+.map-preview-shape-line{fill:none;stroke:var(--iq-wb-shape-line);stroke-width:1}
 .map-preview-check{fill:none;stroke:var(--iq-success);stroke-width:1.2}
 .map-preview-picture{fill:color-mix(in srgb,var(--iq-muted) 35%,transparent)}
 .map-preview-line{fill:color-mix(in srgb,var(--iq-wb-note-ink) 28%,transparent)}
 .map-preview-line.strong{fill:color-mix(in srgb,var(--iq-ink) 55%,transparent)}
 .map-preview-card .map-preview-line,.map-preview-node[data-type=task] .map-preview-line,.map-preview-node[data-type=shape] .map-preview-line{fill:color-mix(in srgb,var(--iq-ink) 22%,transparent)}
-.map-preview-link{fill:none;stroke:var(--iq-wb-edge);stroke-width:1.2;stroke-dasharray:1;stroke-dashoffset:0}
-.map-preview-arrow{fill:var(--iq-wb-edge)}
-.map-preview-node{transform-box:fill-box;transform-origin:center;transition:transform var(--iq-motion-standard) var(--iq-ease);transition-delay:calc(var(--i,0) * 35ms)}
-.map-template-card:is(:hover,:focus-visible) .map-preview-scene{transform:scale(1.03)}
-.map-template-card:is(:hover,:focus-visible) .map-preview-node:not([data-type=frame]){transform:translateY(-2px)}
-.map-template-card:is(:hover,:focus-visible) .map-preview-link{animation:map-preview-draw var(--iq-motion-layout) var(--iq-ease) both}
-@keyframes map-preview-draw{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}
+.map-preview-node,.map-preview-origin,.map-preview-stage>text{transform-box:fill-box;transform-origin:center}
+.map-preview-halo{fill:none;stroke:var(--iq-wb-canvas);stroke-width:4.6;stroke-linecap:round;stroke-linejoin:round}
+.map-preview-halo[data-in-frame]{stroke:var(--iq-wb-frame)}
+.map-preview-link{fill:none;stroke:var(--map-preview-link);stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1 0}
+.map-preview-origin,.map-preview-head>path{fill:var(--map-preview-link)}
+.map-preview-ring{fill:none;stroke:var(--iq-accent);stroke-width:1.6;opacity:0;transform-box:fill-box;transform-origin:center}
+.map-preview-done{opacity:0}
+.map-preview-done-box{fill:var(--iq-success)}
+.map-preview-done-mark{fill:none;stroke:var(--iq-on-success);stroke-width:1.3;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1 0}
+.map-preview-pulse{fill:var(--iq-accent)}
+.map-template-preview[data-answer] :is(.map-preview-ring,.map-preview-done){opacity:1;transition:opacity var(--iq-motion-fast) var(--iq-ease)}
+.map-template-preview[data-answer] .map-preview-node:not([data-role=outcome]){opacity:.75;transition:opacity var(--iq-motion-fast) var(--iq-ease)}
+.map-preview-replay{position:absolute;right:var(--iq-space-2);bottom:var(--iq-space-2);background:var(--iq-raised);box-shadow:var(--iq-shadow-1)}
+.map-preview-replay[hidden]{display:none}
+@media (prefers-reduced-motion:reduce){.map-template-preview *{animation:none!important}}
+@media (forced-colors:active){.map-preview-link,.map-preview-halo{stroke:CanvasText}.map-preview-head>path,.map-preview-origin{fill:CanvasText}}
 .map-template-card{transition:border-color var(--iq-motion-fast) var(--iq-ease),box-shadow var(--iq-motion-standard) var(--iq-ease),transform var(--iq-motion-standard) var(--iq-ease)}
 .map-template-card:hover{border-color:var(--iq-control);box-shadow:0 8px 24px var(--iq-shadow-color);transform:translateY(-2px)}
-@media (prefers-reduced-motion:reduce){.map-preview-scene,.map-preview-node,.map-template-card{transition:none}.map-template-card:is(:hover,:focus-visible) :is(.map-preview-scene,.map-preview-node){transform:none}.map-template-card:is(:hover,:focus-visible) .map-preview-link{animation:none}.map-template-card:hover{transform:none}}
+@media (prefers-reduced-motion:reduce){.map-template-card{transition:none}.map-template-card:hover{transform:none}}
+/* Compact form dialog (a single short form such as a new tag). */
+.map-dialog[data-size=compact] .map-modal{width:min(420px,calc(100vw - 32px))}
+@media(max-width:480px){.map-dialog[data-size=compact] .map-modal{width:100vw;max-width:100vw;margin:auto 0 0;border-radius:var(--iq-radius-lg) var(--iq-radius-lg) 0 0}}
+.canvas-text-field{display:grid;gap:var(--iq-space-1);min-width:0}

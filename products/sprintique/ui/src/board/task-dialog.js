@@ -9,10 +9,10 @@ import {mountThreads} from './thread-view.js';
 import {loadTaskSupport,mountTaskCatalogs} from './catalog-picker.js';
 import {starterTaskSettings,instantiateTaskTemplate,STARTER_TASK_TEMPLATES} from './task-templates.js';
 import {mountTaskDescription} from './description-view.js';
-import {copyAtButton,motionReduced} from '@iquipage/web/core';
+import {copyAtButton,motionReduced,ui} from '@iquipage/web/core';
 import {taskKey,taskURL} from './task-route.js';
 
-export async function openTaskDialog(task,{repository,project,tasks,canEdit=true,canManage=true,attachmentAdapter=null,status='ready',initialValues={},fullscreen=false,onOpenTask,onReload=onOpenTask&&(()=>onOpenTask(task.id)),onSaved=()=>{},isActive=()=>true,signal}){
+export async function openTaskDialog(task,{repository,project,tasks,canEdit=true,canManage=true,attachmentAdapter=null,status='ready',initialValues={},fullscreen=false,backTo=null,onBack=()=>{},onOpenTask,onReload=onOpenTask&&(()=>onOpenTask(task.id)),onSaved=()=>{},isActive=()=>true,signal,replace=null}){
   signal?.throwIfAborted();const initialTask=task;
   const [detail,context,support,members]=await Promise.all([
     task?.summary?repository.read('tasks',task.id,project.id,{signal}):task,
@@ -34,45 +34,56 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
   const autosave=!!task&&canEdit;
   let current=task,baseline='',saving=false,confirming=false,priorityTouched=false,catalogs,threads,links;
   // Owners are current human project members. A former member or pre-membership text stays visible until reassigned.
-  const owners=[{value:'',label:'Не назначен'},...members.map(m=>({value:m.id,label:m.name}))];
+  const owners=[{value:'',label:'Не назначен'},...members.map(m=>({value:m.id,label:m.name,image:repository.client?.avatarUrl?.(m.id,m.avatarRevision)||undefined}))];
   if(initial.ownerId&&!members.some(m=>m.id===initial.ownerId))owners.push({value:initial.ownerId,label:initial.owner||'Бывший участник',description:'Больше не участник проекта'});
   const legacyOwner=!initial.ownerId&&initial.legacyOwner?`<p class="iq-helper" data-legacy-owner>Было указано: «${esc(initial.legacyOwner)}». Выберите участника проекта.</p>`:'';
   let templateVersion=initial.templateVersion,lastTemplateContent=taskMarkdown(initial);
-  const parents=[{value:'',label:'Отсутствует'},...tasks.filter(item=>{
+  const parents=[{value:'',label:'Нет'},...tasks.filter(item=>{
     if(item.archivedAt||item.projectId!==project.id)return false;
     try{reparentTask({...initial,id:taskId,projectId:project.id},item.id,tasks);return true;}catch{return false;}
   }).map(item=>({value:item.id,label:`${item.displayId||item.id.slice(-7).toUpperCase()} ${item.title}`,description:`${TASK_KINDS[item.type]||'Задача'}, ${TASK_COLUMNS.find(c=>c.id===taskColumn(item))?.label||item.status}`}))];
-  // One column, like the DS reference task drawer: title, properties in a 2×N grid with labels on top, then the
-  // description at its natural height and the supplements. Fullscreen moves the properties into a sticky side column.
+  // Core facts form one label and value grid (state of the work on the left, people and time on the right);
+  // tags follow as a quiet line. Relationships live in "Связи".
+  const initials=name=>String(name||'').trim().split(/\s+/).slice(0,2).map(part=>part[0]||'').join('').toUpperCase()||'?';
+  const ownerOptions=owners.map(({image,...o})=>o.value?{...o,avatar:{text:initials(o.label),tone:ui.avatarTone(o.value),...(image?{image}:{})}}:o);
+  const statusTones={in_progress:'info',review:'warning',ready_for_testing:'info',testing:'warning',ready_for_release:'success'};
+  const statusOptions=TASK_COLUMNS.map(column=>({value:column.id,label:column.label,icon:column.icon,...(statusTones[column.id]?{tone:statusTones[column.id]}:{})}));
+  const priorityOptions=[['critical','Критический','critical','critical'],['high','Высокий','priority','high'],['normal','Обычный','minus',''],['low','Низкий','low','']].map(([value,label,glyph,tone])=>({value,label,icon:glyph,...(tone?{tone}:{})}));
+  const kindOptions=Object.entries(TASK_KINDS).map(([value,label])=>({value,label,icon:{task:'checklist',bug:'bug',epic:'stack'}[value]||'checklist'}));
+  const opts=list=>esc(JSON.stringify(list));
   const content=`<section class="task-editor-cover" data-task-cover hidden></section><div class="task-editor-layout">
-    <div class="task-editor-title">${input('title','Название',initial.title,{required:true,placeholder:'Что нужно сделать?'})}</div>
-    <section class="task-editor-properties" aria-label="Свойства задачи"><div class="task-props">
-      ${select('status','Статус',task?taskColumn(task):status,TASK_COLUMNS.map(column=>[column.id,column.label]))}
-      <div class="task-prop"><iq-combobox name="ownerId" label="Исполнитель" value="${esc(initial.ownerId||'')}" options="${esc(JSON.stringify(owners))}" placeholder="Не назначен"></iq-combobox>${legacyOwner}</div>
-      ${select('priority','Приоритет',initial.priority||'normal',[['low','Низкий'],['normal','Обычный'],['high','Высокий'],['critical','Критический']])}
-      <iq-date-field name="due" label="Срок" value="${esc(initial.due||'')}"></iq-date-field>
-      <div class="task-prop" data-task-catalogs></div>
-      ${select('type','Тип',initial.type||'task',Object.entries(TASK_KINDS))}
-      <div class="task-prop task-prop-wide"><iq-combobox name="parent" label="Родительская задача" value="${esc(initial.parentId||'')}" options="${esc(JSON.stringify(parents))}" placeholder="Найти задачу по номеру или названию"></iq-combobox></div>
-    </div></section>
-    <section class="task-edit-section task-editor-description"><div class="row between"><h3>Описание</h3>${canEdit?'<button type="button" class="iq-btn ghost sm" data-apply-template>Применить шаблон</button>':''}</div>
+    <div class="task-editor-title"><label class="sr-only" for="${taskId}-title">Название</label><textarea class="iq-inline-title" id="${taskId}-title" name="title" rows="1" required maxlength="240" placeholder="Что нужно сделать?">${esc(initial.title)}</textarea></div>
+    <section class="task-editor-properties" aria-label="Свойства задачи">
+      <div class="iq-properties task-props" data-columns="auto">
+        <iq-select name="status" label="Статус" appearance="pill" value="${esc(task?taskColumn(task):status)}" options="${opts(statusOptions)}"></iq-select>
+        <iq-combobox name="ownerId" label="Исполнитель" value="${esc(initial.ownerId||'')}" options="${opts(ownerOptions)}" placeholder="Не назначен"></iq-combobox>
+        <iq-select name="priority" label="Приоритет" value="${esc(initial.priority||'normal')}" options="${opts(priorityOptions)}"></iq-select>
+        <iq-date-field name="due" label="Срок" placeholder="Без срока" value="${esc(initial.due||'')}"></iq-date-field>
+        <iq-select name="type" label="Тип" value="${esc(initial.type||'task')}" options="${opts(kindOptions)}"></iq-select>
+        <div class="task-release-slot" data-task-catalogs></div>
+      </div>${legacyOwner}
+      <div class="task-tags-row" data-task-tags></div>
+    </section>
+    <section class="iq-section task-editor-description"><div class="iq-section-head">${icon('text',16)}<h3>Описание</h3></div>
       <div class="task-description-surface" data-description>
-        <iq-markdown-editor label="Описание" name="description" variant="compact" density="compact" maxlength="10000" preview-on-blur ${task?'preview':''} empty-text="${canEdit?'Нажмите, чтобы добавить описание':'Описания нет'}"></iq-markdown-editor>
+        <iq-markdown-editor label="Описание" name="description" variant="compact" density="compact" maxlength="10000" preview-on-blur preview empty-text="${canEdit?'Нажмите, чтобы добавить описание':'Описания нет'}" ${canEdit?'empty-action-label="Начать с шаблона" empty-action="template"':''}></iq-markdown-editor>
       </div></section>
     <div class="task-editor-supplements">
-    <section class="task-edit-section task-tags-row" data-task-tags aria-label="Теги задачи"></section>
-    <section class="task-edit-section" data-task-files></section>
-    <section class="task-edit-section"><h3>Связи</h3><div data-task-links></div></section>
-    <section class="task-edit-section" data-task-threads></section></div></div><p role="status" class="iq-helper" data-task-save-state></p>`;
+    <section class="iq-section task-relations"><div class="iq-section-head">${icon('link',16)}<h3>Связи</h3><span class="iq-section-count" data-relations-count></span><span class="iq-section-actions" data-relations-actions></span></div>
+      ${task?'<div data-task-links></div>':''}
+      <div class="iq-properties task-parent"><iq-select name="parent" label="Родительская задача" searchable search-placeholder="Найти задачу" value="${esc(initial.parentId||'')}" options="${opts(parents)}"></iq-select></div>
+      ${task?'':'<p class="iq-helper">Подзадачи и связи с другими задачами можно добавить после создания.</p>'}</section>
+    <section class="iq-section task-files-section" data-task-files></section>
+    <section class="iq-section task-threads-section" data-task-threads></section></div></div><p role="status" class="iq-helper" data-task-save-state></p>`;
   const read=(form,values=new FormData(form))=>({
     title:String(values.get('title')||'').trim(),type:values.get('type')||'task',status:values.get('status'),
     ownerId:form.querySelector('iq-combobox[name=ownerId]').value||null,priority:values.get('priority')||'normal',
     ...markdownTaskChanges(initial,form.querySelector('iq-markdown-editor[name=description]').value),
     due:form.querySelector('iq-date-field[name=due]').value||null,
-    parentId:form.querySelector('iq-combobox[name=parent]').value||null,
+    parentId:form.querySelector('iq-select[name=parent]').value||null,
     ...catalogs.value(),...files.value(),templateVersion
   });
-  const el=dialog({title:task?taskKey(task):'Новая задача',body:content,wide:true,submitLabel:canEdit&&!task?'Создать задачу':'',
+  const el=dialog({title:task?taskKey(task):'Новая задача',body:content,wide:true,replace,submitLabel:canEdit&&!task?'Создать задачу':'',
     onSubmit:canEdit&&!task?async(values,form)=>{
       files.assertReady();
       if(threads?.isBusy())throw Error('Дождитесь публикации обсуждения.');saving=true;files.setLocked(true);
@@ -88,33 +99,43 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
       el.classList.add('task-edit-dialog');el.setAttribute('kind','drawer');el.setAttribute('persistent','');
       el.dataset.fullscreen=String(fullscreen);
       if(task){
-        const title=form.querySelector('.iq-dialog-head h2');title.className='task-dialog-identity';title.innerHTML=`<button type="button" class="iq-btn ghost sm task-link-copy" data-copy-task-link title="Скопировать ссылку">${esc(taskKey(task))}</button><button type="button" class="iq-btn ghost icon sm" data-copy-task-icon data-copy-tone="neutral" aria-label="Скопировать ссылку на задачу">${icon('copy',18)}</button>`;
+        const title=form.querySelector('.iq-dialog-head h2');title.className='task-dialog-identity';title.innerHTML=`${backTo?`<button type="button" class="iq-btn ghost icon sm task-back" data-task-back aria-label="Назад к ${esc(backTo.key)} ${esc(backTo.title)}" title="Назад к ${esc(backTo.key)}">${icon('left',18)}</button>`:''}<button type="button" class="iq-btn ghost sm iq-switcher task-link-copy" data-copy-task-link data-copy-tone="neutral" title="Скопировать ссылку" aria-label="${esc(taskKey(task))}, скопировать ссылку на задачу"><span class="iq-switcher-label">${esc(taskKey(task))}</span></button>`;
         const actions=document.createElement('div');actions.className='task-dialog-actions';
         actions.innerHTML=`<button type="button" class="iq-btn ghost icon sm" data-task-fullscreen aria-label="${fullscreen?'Свернуть в боковое меню':'Открыть на весь экран'}">${icon('expand',18)}</button>`;
         const close=form.querySelector('.iq-dialog-head [data-close]');close.before(actions);actions.append(close);
-        const copyIcon=title.querySelector('[data-copy-task-icon]');
-        title.querySelector('[data-copy-task-link]').addEventListener('click',()=>copyAtButton(copyIcon,taskURL(task)));
-        copyIcon.addEventListener('click',()=>copyAtButton(copyIcon,taskURL(task)));
+        title.querySelector('[data-task-back]')?.addEventListener('click',()=>onBack());
+        // The key is the link: it reacts like the workspace and project switchers and copies the task URL.
+        const keyButton=title.querySelector('[data-copy-task-link]');
+        keyButton.addEventListener('click',()=>copyAtButton(keyButton,taskURL(task)));
         actions.querySelector('[data-task-fullscreen]').addEventListener('click',event=>{const native=el.querySelector('dialog'),before=native.getBoundingClientRect();fullscreen=!fullscreen;el.dataset.fullscreen=String(fullscreen);event.currentTarget.setAttribute('aria-label',fullscreen?'Свернуть в боковое меню':'Открыть на весь экран');if(!motionReduced())native.animate([{width:before.width+'px'},{width:native.getBoundingClientRect().width+'px'}],{duration:280,easing:'cubic-bezier(.2,.7,.2,1)'});});
       }
       el.querySelector('dialog').classList.add('iq-drawer');
       if(canEdit){
         // The cover is added from the header, so an empty cover never takes space in the drawer.
         const close=form.querySelector('.iq-dialog-head [data-close]'),add=document.createElement('button');
-        add.type='button';add.className='iq-btn ghost sm task-cover-add';add.dataset.taskAddCover='';add.hidden=true;add.innerHTML=`${icon('image',16)}<span>Обложка</span>`;
-        (form.querySelector('.task-dialog-actions')||close.parentElement).insertBefore(add,form.querySelector('.task-dialog-actions [data-task-fullscreen]')||close);
+        let actions=form.querySelector('.task-dialog-actions');
+        if(!actions){actions=document.createElement('div');actions.className='task-dialog-actions';close.before(actions);actions.append(close);}
+        add.type='button';add.className='iq-btn ghost icon sm task-cover-add';add.dataset.taskAddCover='';add.hidden=true;add.setAttribute('aria-label','Добавить обложку');add.title='Добавить обложку';add.innerHTML=icon('image',18);
+        actions.insertBefore(add,actions.firstElementChild);
         add.addEventListener('click',()=>files?.addCover());
       }
       files=mountTaskFiles(form.querySelector('[data-task-files]'),{onCoverState:has=>{const add=el.querySelector('[data-task-add-cover]');if(add)add.hidden=has;},coverRoot:form.querySelector('[data-task-cover]'),adapter:attachmentAdapter,task:{...initial,id:taskId,projectId:project.id},readOnly:!canEdit});
       const editor=form.querySelector('iq-markdown-editor[name=description]');
-      description=mountTaskDescription(form.querySelector('[data-description]'),{value:taskMarkdown(initial),editing:!task,readOnly:!canEdit});
+      const titleField=form.querySelector('[name=title]');
+      // The title is one line of intent: Enter moves on instead of adding a line break.
+      titleField.addEventListener('keydown',event=>{if(event.key==='Enter'&&!event.isComposing){event.preventDefault();titleField.blur();}});
+      const dueField=form.querySelector('iq-date-field[name=due]'),localDay=offset=>{const d=new Date(Date.now()+offset*86400000);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;};
+      // Overdue is red, due today or tomorrow is amber; finished work carries no alarm.
+      const dueTone=()=>{const value=dueField.value,done=form.querySelector('iq-select[name=status]')?.value==='ready_for_release';dueField.dataset.tone=!value||done?'':value<localDay(0)?'danger':value<=localDay(1)?'warning':'';};
+      form.addEventListener('iq-change',dueTone);form.addEventListener('change',dueTone);requestAnimationFrame(dueTone);
+      description=mountTaskDescription(form.querySelector('[data-description]'),{value:taskMarkdown(initial),editing:false,readOnly:!canEdit});
       catalogs=mountTaskCatalogs(form.querySelector('[data-task-catalogs]'),{tagsRoot:form.querySelector('[data-task-tags]'),repository,project,task:initial,tags:support.tags,releases:support.releases,readOnly:!canEdit,canManage,onChange:()=>form.dispatchEvent(new Event('change'))});
-      if(task&&repository.capabilities?.taskLinks!==false)links=mountTaskLinks(form.querySelector('[data-task-links]'),{repository,project,task,tasks,readOnly:!canEdit,onOpenTask:async id=>{
+      if(task&&repository.capabilities?.taskLinks!==false)links=mountTaskLinks(form.querySelector('[data-task-links]'),{repository,project,task,tasks,readOnly:!canEdit,actionsRoot:form.querySelector('[data-relations-actions]'),countRoot:form.querySelector('[data-relations-count]'),onOpenTask:async id=>{
         if(onOpenTask){await onOpenTask(id);return;}
         const target=await repository.read('tasks',id,project.id);if(!target)throw Error('Задача недоступна.');
         await openTaskDialog(target,{repository,project,tasks,canEdit,canManage,attachmentAdapter,onSaved});
       }});
-      if(task)threads=mountThreads(form.querySelector('[data-task-threads]'),{repository,task,readOnly:!canDiscuss});
+      if(task)threads=mountThreads(form.querySelector('[data-task-threads]'),{repository,task,readOnly:!canDiscuss,people:new Map(members.map(m=>[m.id,m])),actorId:repository.context?.actorId||'local-user'});
       else form.querySelector('[data-task-threads]').hidden=true;
       function applyTemplate(changePriority=false){
         const result=instantiateTaskTemplate(settings,form.querySelector('iq-select[name=type]').value);
@@ -125,16 +146,22 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
         lastTemplateContent=editor.value;
       }
       form.addEventListener('iq-change',event=>{
+        if(event.target.getAttribute('name')==='parent')links?.setParent(event.target.value);
         if(event.target.getAttribute('name')==='priority')priorityTouched=true;
         if(event.target.getAttribute('name')!=='type'||current)return;
         const untouched=editor.value===lastTemplateContent;
         if(untouched)applyTemplate(true);
       });
-      form.querySelector('[data-apply-template]')?.addEventListener('click',()=>dialog({
-        title:'Выбрать шаблон',description:'Шаблон заменит описание и чек-листы. Название и остальные свойства сохранятся.',
-        body:select('starter','Основа','project',[['project','Шаблон типа из настроек проекта'],...STARTER_TASK_TEMPLATES.map(t=>[t.id,t.name])]),
-        submitLabel:'Применить',onSubmit:async values=>{const id=values.get('starter');if(id==='project')applyTemplate();else{editor.value=STARTER_TASK_TEMPLATES.find(t=>t.id===id).description;description.refresh();}form.dispatchEvent(new Event('change'));}
-      }));
+      // "Шаблон" lives inside the editor: a toolbar action while editing, and a quiet link in an empty preview.
+      if(canEdit)editor.toolbarActions=[{id:'template',label:'Шаблон',icon:'file'}];
+      editor.addEventListener('iq-editor-action',event=>{
+        if(event.detail.id!=='template'||!canEdit)return;
+        const untouched=!editor.value.trim()||editor.value===lastTemplateContent;
+        const apply=id=>{if(id==='project')applyTemplate();else{editor.value=STARTER_TASK_TEMPLATES.find(t=>t.id===id).description;description.refresh();}form.dispatchEvent(new Event('change'));};
+        dialog({title:'Начать с шаблона',description:untouched?'Шаблон заполнит описание. Остальные поля не изменятся.':'Шаблон заменит текущее описание. Остальные поля не изменятся.',
+          body:select('starter','Шаблон','project',[['project','Шаблон типа из настроек проекта'],...STARTER_TASK_TEMPLATES.map(t=>[t.id,t.name])]),
+          submitLabel:untouched?'Применить':'Заменить описание',onSubmit:async values=>{apply(values.get('starter'));}});
+      });
       let discarded=false;
       const dirty=()=>!discarded&&(canEdit&&(JSON.stringify(read(form))!==baseline||files.dirty())||!!threads?.dirty());
       const saveState=form.querySelector('[data-task-save-state]');
@@ -182,16 +209,17 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
           if(action==='reload'){discarded=true;if(onReload)void onReload();else el.close();}
         });
       }
-      async function close(){
+      // keepOpen: only settle (flush or confirm) and leave the drawer open, so the next task can replace it in one frame.
+      async function close({keepOpen=false}={}){
         if(confirming||threads?.isBusy())return false;
         if(autosave&&!discarded)await flush();
         else if(saving)return false;
-        if(!dirty()){el.close();return true;}
+        if(!dirty()){if(!keepOpen)el.close();return true;}
         confirming=true;
         const confirm=dialog({
           title:'Закрыть без сохранения?',
           description:autosave?'Последние правки не удалось сохранить, а неопубликованные сообщения будут потеряны. Уже сохранённое останется.':'Изменения задачи и неопубликованные сообщения будут потеряны. Уже опубликованные сообщения сохранятся.',
-          submitLabel:'Не сохранять',onSubmit:async()=>{discarded=true;el.close();}
+          submitLabel:'Не сохранять',onSubmit:async()=>{discarded=true;if(!keepOpen)el.close();}
         });
         return new Promise(resolve=>confirm.addEventListener('iq-close',()=>{confirming=false;resolve(discarded);},{once:true}));
       }
@@ -216,9 +244,9 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
         clearTimeout(timer);window.removeEventListener('beforeunload',unload);description.destroy();files.destroy();catalogs.destroy();threads?.destroy();links?.destroy();
       },{once:true});
       baseline=JSON.stringify(read(form));
-      // A new task starts at its title: the description editor (edit mode) must not take the first focus.
-      if(!task&&canEdit)requestAnimationFrame(()=>requestAnimationFrame(()=>form.querySelector('input[name=title]')?.focus({preventScroll:true})));
-      if(!canEdit)form.querySelectorAll('input,iq-select,iq-combobox,iq-date-field,iq-markdown-editor').forEach(node=>{if(!canDiscuss||!node.closest('[data-task-threads]'))node.setAttribute('disabled','');});
+      // A new task starts at its title.
+      if(!task&&canEdit)requestAnimationFrame(()=>requestAnimationFrame(()=>form.querySelector('[name=title]')?.focus({preventScroll:true})));
+      if(!canEdit)form.querySelectorAll('input,textarea.iq-inline-title,iq-select,iq-combobox,iq-date-field,iq-markdown-editor').forEach(node=>{if(!canDiscuss||!node.closest('[data-task-threads]'))node.setAttribute('disabled','');});
     }
   });
   return el;

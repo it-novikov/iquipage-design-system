@@ -27,6 +27,8 @@ export const CreateThread = z.strictObject({
 });
 export const AppendMessage = z.strictObject({id: Id, body: z.string().trim().min(1).max(20000), baseRevision: Revision});
 export const ResolveThread = z.strictObject({resolved: z.boolean(), baseRevision: Revision});
+export const ChangeThreadKind = z.strictObject({requiresResolution: z.boolean(), baseRevision: Revision});
+export const MarkThreadRead = z.strictObject({seenActivityAt: z.string().datetime({offset:true})});
 export const Timezone=z.string().min(1).max(100).refine(value=>{try{new Intl.DateTimeFormat('en',{timeZone:value});return value==='UTC'||value.includes('/');}catch{return false;}});
 export const CreateWorkspace = z.strictObject({name: z.string().trim().min(1).max(100),timezone:Timezone.default('UTC')});
 export const CreateProject = z.strictObject({
@@ -42,13 +44,13 @@ export const AgentGrant = z.strictObject({
   capabilities: z.array(Capability).min(1).max(6).refine(v=>new Set(v).size===v.length),
   expiresInSeconds: z.number().int().min(60).max(86400)
 });
-export const TagInput = z.strictObject({name: z.string().trim().min(1).max(256).refine(v => tagNameLength(v) <= TAG_NAME_LIMIT), tone: z.enum(['neutral','blue','purple','green','amber','red']), archivedAt: z.iso.datetime().nullable().default(null)});
+export const TagInput = z.strictObject({name: z.string().trim().min(1).max(256).refine(v => tagNameLength(v) <= TAG_NAME_LIMIT), tone: z.union([z.enum(['neutral','blue','purple','green','amber','red']), z.string().trim().toUpperCase().regex(/^#[0-9A-F]{6}$/)]), archivedAt: z.iso.datetime().nullable().default(null)});
 export const ReleaseInput = z.strictObject({name: z.string().trim().min(1).max(100), status: z.enum(['planned','released']), targetDate: DateOnly.nullable().default(null), archivedAt: z.iso.datetime().nullable().default(null)});
 export const PutTag = z.strictObject({baseRevision: Revision, value: TagInput});
 export const PutRelease = z.strictObject({baseRevision: Revision, value: ReleaseInput});
 
 // These schemas are static, shipped code. Never compile agent/user supplied schemas.
-export const commandSchemas = {PutTask, CreateThread, AppendMessage, ResolveThread, CreateWorkspace, CreateProject, AgentGrant, PutTag, PutRelease};
+export const commandSchemas = {PutTask, CreateThread, AppendMessage, ResolveThread, ChangeThreadKind, MarkThreadRead, CreateWorkspace, CreateProject, AgentGrant, PutTag, PutRelease};
 export const jsonSchemas = Object.fromEntries(Object.entries(commandSchemas).map(([name, schema]) => [name, z.toJSONSchema(schema)]));
 
 export interface Task extends TaskData {
@@ -68,7 +70,7 @@ export interface Thread {
 /** A write-only grant receives its own change back, never preserved content it may not read. */
 export interface TaskReceipt {receipt:'task';id:string;projectId:string;displayId:string;revision:number;updatedAt:string;statusEnteredAt:string}
 export interface ThreadReceipt extends Omit<Thread,'messages'> {receipt:'thread';messages:Message[]}
-export interface ThreadSummary extends Omit<Thread,'messages'> {summary:true;messageCount:number;messages:{body:string}[]}
-export interface ThreadPage {items:ThreadSummary[];total:number;unresolved:number;nextCursor:string|null}
+export interface ThreadSummary extends Omit<Thread,'messages'> {summary:true;messageCount:number;lastAuthorId:string|null;participants:string[];/** When the caller last saw this thread's activity (their own read marker). */readAt:string|null;messages:{body:string;authorId:string|null;createdAt:string|null}[]}
+export interface ThreadPage {items:ThreadSummary[];total:number;unresolved:number;/** Open threads with activity the caller has not seen. */unread:number;nextCursor:string|null}
 export interface Project {id:string;workspaceId:string;name:string;slug:string;key:string;role:'reader'|'editor'|'admin';workspaceName:string;avatarAssetId:string|null}
-export interface SessionInfo {principal:{id:string;kind:'human'|'agent';name:string};csrf:string|null;projects:Project[]}
+export interface SessionInfo {principal:{id:string;kind:'human'|'agent';name:string;/** Revision of the person's photo, null without one. */avatarRevision:number|null};csrf:string|null;projects:Project[]}

@@ -10,7 +10,8 @@ import {workspaceLock} from './project-profile.js';
 
 export async function sessionInfo(tx:Transaction,actor:Actor){
   const projects=(await tx.query<Project>(`SELECT p.id,p.workspace_id AS "workspaceId",p.name,p.slug,p.key,p.avatar_asset_id AS "avatarAssetId",m.role,w.name AS "workspaceName" FROM app.projects p JOIN app.project_members m ON m.project_id=p.id AND m.principal_id=$1 JOIN app.workspaces w ON w.id=p.workspace_id ORDER BY w.name,p.name`,[actor.id])).rows;
-  return {principal:{id:actor.id,name:actor.name,kind:actor.kind},csrf:actor.csrf,projects};
+  const avatar=(await tx.query<{revision:number}>('SELECT revision FROM app.person_avatars WHERE principal_id=$1',[actor.id])).rows[0];
+  return {principal:{id:actor.id,name:actor.name,kind:actor.kind,avatarRevision:avatar?.revision??null},csrf:actor.csrf,projects};
 }
 export async function createWorkspace(tx:Transaction,actor:Actor,name:string,timezone='UTC'){
   requireCondition(actor.kind==='human',403,'FORBIDDEN','Пространство создаёт человек.');

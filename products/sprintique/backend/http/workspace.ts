@@ -13,6 +13,7 @@ export function registerWorkspaceRoutes(app:FastifyInstance,authenticated:Authen
   const workspaceParams=(value:unknown)=>z.object({workspaceId:z.uuid(),id:z.string().min(1).max(100).optional()}).parse(value);
   app.get('/api/v1/workspaces/:workspaceId',r=>authenticated(r,(tx,a)=>profiles.workspaceProfile(tx,a,workspaceParams(r.params).workspaceId)));
   app.patch('/api/v1/workspaces/:workspaceId',r=>authenticated(r,(tx,a)=>profiles.putWorkspaceProfile(tx,a,workspaceParams(r.params).workspaceId,PutWorkspaceProfile.parse(r.body))));
+  app.get('/api/v1/workspaces/:workspaceId/projects',r=>authenticated(r,(tx,a)=>profiles.workspaceProjects(tx,a,workspaceParams(r.params).workspaceId)));
   app.get('/api/v1/workspaces/:workspaceId/members',r=>authenticated(r,(tx,a)=>profiles.workspaceMembers(tx,a,workspaceParams(r.params).workspaceId)));
   app.patch('/api/v1/workspaces/:workspaceId/members/:id',r=>authenticated(r,(tx,a)=>{const p=workspaceParams(r.params);return profiles.changeWorkspaceMember(tx,a,p.workspaceId,p.id!,ChangeWorkspaceMember.parse(r.body));}));
   app.get(base+'/task-settings',r=>authenticated(r,(tx,a)=>workspace.taskSettings(tx,a,params(r).projectId)));

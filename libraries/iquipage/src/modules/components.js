@@ -81,7 +81,7 @@ class IqElement extends HTMLElement {
     connectedCallback() { this.cleanups.splice(0).forEach(fn => fn()); this.events?.abort(); this.events = new AbortController(); this.mount(); }
     disconnectedCallback() { this.cleanups.splice(0).forEach(fn => fn()); this.events?.abort(); }
     listen(target, type, fn) { target.addEventListener(type, fn, { signal: this.events?.signal }); }
-    emit(type, detail) { this.dispatchEvent(new CustomEvent(type, { bubbles: true, composed: true, detail })); }
+    emit(type, detail, {cancelable = false} = {}) { return this.dispatchEvent(new CustomEvent(type, { bubbles: true, composed: true, cancelable, detail })); }
 }
 exports.IqElement = IqElement;
 /** Select-only combobox. Native hidden input provides normal form submission. */
@@ -136,10 +136,19 @@ class IqSelect extends IqElement {
         this.selected = this.getAttribute('value') ?? this.options[0]?.value ?? '';
         this.initialValue = this.selected;
         const id = uid(), label = this.getAttribute('label') || 'Выбрать значение', name = this.getAttribute('name') || '', disabled = this.hasAttribute('disabled');
-        this.innerHTML = `<span class="iq-control-label" id="${id}-label">${escapeHTML(label)}</span><div class="iq-select-wrap">${this.editable ? `<div class="iq-combo-shell">${icons_js_1.icon('search', 17)}<input class="iq-combo-input" role="combobox" aria-autocomplete="list" autocomplete="off" ${disabled ? 'disabled' : ''} aria-expanded="false" aria-controls="${id}-list" aria-labelledby="${id}-label" placeholder="${escapeHTML(this.getAttribute('placeholder') || 'Найти…')}">${icons_js_1.icon('down', 16)}</div>` : `<button type="button" class="iq-select-trigger" role="combobox" ${disabled ? 'disabled' : ''} aria-haspopup="listbox" aria-expanded="false" aria-controls="${id}-list" aria-labelledby="${id}-label"><span class="iq-select-value"></span>${icons_js_1.icon('down', 16)}</button>`}<div class="iq-popup iq-select-popup" popover="manual"><div class="iq-popup-caption">${escapeHTML(label)}</div><div id="${id}-list" role="listbox" aria-labelledby="${id}-label"></div></div></div><input type="hidden" ${name ? `name="${escapeHTML(name)}"` : ''}>`;
+        this.innerHTML = `<span class="iq-control-label" id="${id}-label">${escapeHTML(label)}</span><div class="iq-select-wrap">${this.editable ? `<div class="iq-combo-shell">${icons_js_1.icon('search', 17)}<input class="iq-combo-input" role="combobox" aria-autocomplete="list" autocomplete="off" ${disabled ? 'disabled' : ''} aria-expanded="false" aria-controls="${id}-list" aria-labelledby="${id}-label" placeholder="${escapeHTML(this.getAttribute('placeholder') || 'Найти…')}">${icons_js_1.icon('down', 16)}</div>` : `<button type="button" class="iq-select-trigger" role="combobox" ${disabled ? 'disabled' : ''} aria-haspopup="listbox" aria-expanded="false" aria-controls="${id}-list" aria-labelledby="${id}-label"><span class="iq-select-value"></span>${icons_js_1.icon('down', 16)}</button>`}<div class="iq-popup iq-select-popup" popover="manual"><div class="iq-popup-caption">${escapeHTML(label)}</div>${!this.editable && this.hasAttribute('searchable') ? `<div class="iq-select-search">${icons_js_1.icon('search', 16)}<input type="search" autocomplete="off" aria-label="${escapeHTML(this.getAttribute('search-placeholder') || 'Найти')}" aria-controls="${id}-list" placeholder="${escapeHTML(this.getAttribute('search-placeholder') || 'Найти')}"></div>` : ''}<div id="${id}-list" role="listbox" aria-labelledby="${id}-label"></div></div></div><input type="hidden" ${name ? `name="${escapeHTML(name)}"` : ''}>`;
         this.trigger = this.querySelector('[role=combobox]');
         this.popup = this.querySelector('.iq-popup');
         this.list = this.querySelector('[role=listbox]');
+        // searchable: the closed control stays a value; the search lives inside the open list.
+        this.search = this.querySelector('.iq-select-search input');
+        if (this.search) {
+            this.listen(this.search, 'input', () => { this.query = this.search.value; this.active = 0; this.renderOptions(); });
+            this.listen(this.search, 'keydown', ev => {
+                if (['ArrowDown', 'ArrowUp', 'Home', 'End', 'Enter', 'Tab'].includes(ev.key)) this.onKey(ev);
+                else if (ev.key === 'Escape') { ev.preventDefault(); ev.stopPropagation(); this.close(); this.trigger.focus(); }
+            });
+        }
         this.sync();
         this.listen(this.trigger, 'click', () => this.editable ? this.open() : this.opened ? this.close() : this.open());
         this.listen(this.trigger, 'keydown', (ev) => this.onKey(ev));
@@ -177,9 +186,20 @@ class IqSelect extends IqElement {
         const match = this.options.find(o => o.value === this.selected);
         if (this.editable && !this.opened)
             this.trigger.value = match?.label || '';
+        const photo = typeof match?.avatar?.image === 'string' && /^(\/(?!\/)|blob:|https:\/\/)/.test(match.avatar.image) ? `<img src="${escapeHTML(match.avatar.image)}" alt="" decoding="async">` : '';
+        const avatar = match?.avatar && typeof match.avatar.text === 'string' ? `<span class="iq-avatar iq-select-avatar v${Number(match.avatar.tone) || 1}${photo ? ' has-image' : ''}" aria-hidden="true">${escapeHTML(match.avatar.text.slice(0, 2))}${photo}</span>` : '';
         const caption = this.querySelector('.iq-select-value');
+        const lead = this.getAttribute('appearance') === 'pill' ? '<span class="iq-select-dot" aria-hidden="true"></span>' : avatar || (match?.icon ? icons_js_1.icon(match.icon, 17) : '');
         if (caption)
-            caption.innerHTML = `${match?.icon ? icons_js_1.icon(match.icon, 17) : ''}${escapeHTML(match?.label || this.getAttribute('placeholder') || 'Выбрать…')}`;
+            caption.innerHTML = `${lead}<span class="iq-select-label">${escapeHTML(match?.label || this.getAttribute('placeholder') || 'Выбрать…')}</span>${match?.meta ? `<span class="iq-select-meta">${escapeHTML(match.meta)}</span>` : ''}`;
+        // The selected option's tone and avatar show on the closed control (value-first property chips).
+        this.trigger.dataset.tone = typeof match?.tone === 'string' ? match.tone : '';
+        this.dataset.empty = String(!match?.value);
+        if (this.editable) {
+            const shell = this.querySelector('.iq-combo-shell');
+            shell?.querySelector(':scope > .iq-select-avatar')?.remove();
+            if (shell && avatar) shell.insertAdjacentHTML('afterbegin', avatar);
+        }
         const hidden = this.querySelector('input[type=hidden]');
         if (hidden) {
             hidden.value = this.selected;
@@ -191,11 +211,13 @@ class IqSelect extends IqElement {
         this.filtered = this.options.filter(o => !this.query || o.label.toLocaleLowerCase().includes(this.query.toLocaleLowerCase()));
         if (this.active >= this.filtered.length)
             this.active = 0;
-        this.list.innerHTML = this.filtered.length ? this.filtered.map((o, i) => `<div id="${this.list.id}-${i}" class="iq-option ${i === this.active ? 'is-active' : ''}" role="option" aria-selected="${o.value === this.selected}" ${o.disabled ? 'aria-disabled="true"' : ''} data-value="${escapeHTML(o.value)}">${o.icon ? `<span class="iq-option-icon">${icons_js_1.icon(o.icon, 18)}</span>` : ''}<span class="iq-option-copy"><span class="iq-option-label">${escapeHTML(o.label)}</span>${o.description ? `<small>${escapeHTML(o.description)}</small>` : ''}</span>${o.value === this.selected ? icons_js_1.icon('check', 17) : ''}</div>`).join('') : '<div class="iq-no-results">Ничего не найдено</div>';
-        if (this.opened && this.filtered.length)
-            this.trigger.setAttribute('aria-activedescendant', `${this.list.id}-${this.active}`);
-        else
-            this.trigger.removeAttribute('aria-activedescendant');
+        this.list.innerHTML = this.filtered.length ? this.filtered.map((o, i) => `<div id="${this.list.id}-${i}" class="iq-option ${i === this.active ? 'is-active' : ''}${o.separator ? ' iq-option-separated' : ''}" role="option" aria-selected="${o.value === this.selected}" ${o.disabled ? 'aria-disabled="true"' : ''} data-value="${escapeHTML(o.value)}">${o.icon ? `<span class="iq-option-icon">${icons_js_1.icon(o.icon, 18)}</span>` : ''}<span class="iq-option-copy"><span class="iq-option-label">${escapeHTML(o.label)}</span>${o.description ? `<small>${escapeHTML(o.description)}</small>` : ''}</span>${o.meta ? `<span class="iq-option-meta">${escapeHTML(o.meta)}</span>` : ''}${o.value === this.selected ? icons_js_1.icon('check', 17) : ''}</div>`).join('') : '<div class="iq-no-results">Ничего не найдено</div>';
+        for (const owner of [this.trigger, this.search].filter(Boolean)) {
+            if (this.opened && this.filtered.length)
+                owner.setAttribute('aria-activedescendant', `${this.list.id}-${this.active}`);
+            else
+                owner.removeAttribute('aria-activedescendant');
+        }
     }
     position() {
         const r = this.trigger.getBoundingClientRect();
@@ -221,6 +243,7 @@ class IqSelect extends IqElement {
             this.popup.style.display = 'block';
         }
         this.position();
+        if (this.search && !wasOpen) requestAnimationFrame(() => { if (this.opened) this.search.focus({ preventScroll: true }); });
     }
     close() {
         if (!this.opened)
@@ -235,6 +258,7 @@ class IqSelect extends IqElement {
             this.popup.style.display = 'none';
         }
         this.query = '';
+        if (this.search) this.search.value = '';
         this.sync();
     }
     choose(v) { this.selected = v; this.close(); this.sync(); this.emit('iq-change', { value: v }); this.trigger.focus(); }
@@ -423,33 +447,49 @@ class IqDialog extends IqElement {
             }
         });
     }
-    show() {
+    /** instant: no entrance motion, for a surface that replaces another in the same frame (for example one task drawer
+     *  handing over to the next), so the backdrop and panel never blink. */
+    show({ instant = false } = {}) {
         this.generation++;
-        this.motion?.cancel();
+        this.motion?.cancel(); this.backdropAnimation?.cancel(); this.backdropAnimation = null;
         if (!this.native.open) {
             this.previous = document.activeElement;
             this.native.showModal();
             this.emit('iq-open', {});
         }
-        if (!isReduced()) {
+        if (!instant && !isReduced()) {
+            // A drawer slides in opaque (a translucent panel over a dimmed page reads as a blink); the backdrop fades
+            // in with it instead of darkening the page in one frame.
             const x = this.getAttribute('kind') === 'drawer';
-            this.motion = this.native.animate([{ opacity: 0, transform: x ? 'translateX(20px)' : 'translateY(8px)' }, { opacity: 1, transform: 'translate(0)' }], { duration: x ? 260 : 180, easing: 'cubic-bezier(.2,.7,.2,1)' });
+            this.motion = this.native.animate(x ? [{ transform: 'translateX(100%)' }, { transform: 'translateX(0)' }] : [{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'translate(0)' }], { duration: x ? 280 : 180, easing: 'cubic-bezier(.2,.7,.2,1)' });
             this.motion.finished.catch(() => { });
+            this.backdropMotion(true, x ? 280 : 180);
         }
+    }
+    /** Fades the ::backdrop where the engine can animate it; elsewhere it simply appears and disappears. */
+    backdropMotion(opening, duration) {
+        this.backdropAnimation?.cancel(); this.backdropAnimation = null;
+        try { this.backdropAnimation = this.native.animate(opening ? [{ opacity: 0 }, { opacity: 1 }] : [{ opacity: 1 }, { opacity: 0 }], { duration, easing: opening ? 'cubic-bezier(.2,.7,.2,1)' : 'ease-in', fill: opening ? 'none' : 'forwards', pseudoElement: '::backdrop' }); this.backdropAnimation.finished.catch(() => { }); }
+        catch { }
     }
     close(immediate = false) {
         if (!this.native?.open)
             return;
         const generation = ++this.generation;
-        this.motion?.cancel();
+        this.motion?.cancel(); this.backdropAnimation?.cancel(); this.backdropAnimation = null;
         if (immediate || isReduced()) {
             this.native.close();
             return;
         }
-        this.motion = this.native.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 120, easing: 'ease-out' });
+        const x = this.getAttribute('kind') === 'drawer';
+        this.motion = this.native.animate(x ? [{ transform: 'translateX(0)' }, { transform: 'translateX(100%)' }] : [{ opacity: 1 }, { opacity: 0 }], { duration: x ? 200 : 120, easing: x ? 'cubic-bezier(.4,0,1,1)' : 'ease-out', fill: 'forwards' });
+        this.backdropMotion(false, x ? 200 : 120);
         this.motion.finished.then(() => {
-            if (this.generation === generation && this.native.open)
+            if (this.generation === generation && this.native.open) {
                 this.native.close();
+                // The closing motion holds its last frame until the dialog is gone; drop it so the next open starts clean.
+                this.motion?.cancel(); this.backdropAnimation?.cancel(); this.backdropAnimation = null;
+            }
         }).catch(() => { });
     }
     get open() { return this.native?.open || false; }
@@ -1082,6 +1122,24 @@ class IqUpload extends IqElement {
     }
 }
 exports.IqUpload = IqUpload;
+/** Any RGB tag colour without inline styles: one shared stylesheet rule per colour, added on first use.
+    A palette tone name passes through; "#RRGGBB" becomes data-tone="custom" with a derived, theme-aware fill and text. */
+let tagColorSheet = null;
+const tagColors = new Set();
+function ensureTagColor(hex) {
+    if (tagColors.has(hex) || typeof document === 'undefined' || typeof CSSStyleSheet === 'undefined') return;
+    tagColors.add(hex);
+    if (!tagColorSheet) { tagColorSheet = new CSSStyleSheet(); document.adoptedStyleSheets = [...document.adoptedStyleSheets, tagColorSheet]; }
+    tagColorSheet.insertRule(`[data-tag-color="${hex}"]{--iq-tag-color:#${hex}}`, tagColorSheet.cssRules.length);
+}
+function tagToneAttributes(tone) {
+    const value = String(tone || 'neutral'), match = /^#([0-9a-f]{6})$/i.exec(value);
+    if (!match) return `data-tone="${escapeHTML(value)}"`;
+    const hex = match[1].toUpperCase();
+    ensureTagColor(hex);
+    return `data-tone="custom" data-tag-color="${hex}"`;
+}
+exports.tagToneAttributes = tagToneAttributes;
 /** Catalog tag picker: chosen tags as toned DS tags with remove buttons, a search field that lists the
  *  remaining catalog tags, optional creation, and short enter/leave motion. Value is a list of option values. */
 class IqTagPicker extends IqElement {
@@ -1098,11 +1156,11 @@ class IqTagPicker extends IqElement {
     get locked() { return this.hasAttribute('disabled') || this.hasAttribute('readonly'); }
     mount() {
         this.uid ||= uid();
-        this.innerHTML = `<span class="iq-control-label" id="${this.uid}-label"></span><div class="iq-tag-picker-field" role="group" aria-labelledby="${this.uid}-label"><div class="iq-tag-picker-values"></div><input type="text" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="${this.uid}-list" aria-labelledby="${this.uid}-label" autocomplete="off" maxlength="100"></div><div class="iq-tag-picker-list" id="${this.uid}-list" role="listbox" hidden></div>`;
+        this.innerHTML = `<span class="iq-control-label" id="${this.uid}-label"></span><div class="iq-tag-picker-field" role="group" aria-labelledby="${this.uid}-label"><div class="iq-tag-picker-values"></div><input type="text" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="${this.uid}-list" aria-labelledby="${this.uid}-label" autocomplete="off" maxlength="100"><button type="button" class="iq-btn ghost icon sm iq-tag-picker-add" data-tag-create aria-label="Создать тег" title="Новый тег" hidden>${icons_js_1.icon('plus', 16)}</button></div><div class="iq-tag-picker-list" id="${this.uid}-list" role="listbox" hidden></div>`;
         this.input = this.querySelector('input');
         this.listen(this.input, 'focus', () => this.open());
         this.listen(this.input, 'input', () => { this.query = this.input.value; this.active = 0; this.open(); });
-        this.listen(this.input, 'keydown', e => this.key(e));
+        this.listen(this.input, 'keydown', e => { if (!['Backspace', 'Delete'].includes(e.key) && this.armed) { this.armed = false; this.input.removeAttribute('aria-description'); this.paint(); } this.key(e); });
         this.listen(this, 'click', e => {
             const remove = e.target.closest('[data-tag-remove]');
             if (remove) { this.remove(remove.dataset.tagRemove); return; }
@@ -1130,7 +1188,8 @@ class IqTagPicker extends IqElement {
         if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); if (!this.opened) this.open(); if (items.length) { this.active = (this.active + (e.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length; this.paintList(); } }
         else if (e.key === 'Enter') { if (this.opened && items.length) { e.preventDefault(); this.choose(this.active); } }
         else if (e.key === 'Escape') { if (this.opened) { e.preventDefault(); e.stopPropagation(); this.close(); } }
-        else if (e.key === 'Backspace' && !this.input.value && this._value.length) { e.preventDefault(); this.remove(this._value.at(-1)); }
+        // Backspace in an empty field first marks the last tag, a second Backspace removes it.
+        else if ((e.key === 'Backspace' || e.key === 'Delete') && !this.input.value && this._value.length) { e.preventDefault(); if (this.armed) { this.armed = false; this.remove(this._value.at(-1)); } else { this.armed = true; this.paint(); this.input.setAttribute('aria-description', `Тег ${this._options.find(o => o.value === this._value.at(-1))?.label || ''}. Нажмите Backspace ещё раз, чтобы убрать.`); } }
     }
     choose(index) {
         const item = this.matches()[index]; if (!item || this.locked) return;
@@ -1160,12 +1219,14 @@ class IqTagPicker extends IqElement {
         this.querySelector('.iq-control-label').textContent = this.getAttribute('label') || 'Теги';
         const byValue = new Map(this._options.map(o => [o.value, o]));
         this.querySelector('.iq-tag-picker-values').innerHTML = this._value.map(v => { const o = byValue.get(v) || { label: 'Недоступный тег', tone: 'neutral' };
-            return `<span class="iq-tag" data-tone="${escapeHTML(o.tone)}" data-value="${escapeHTML(v)}" ${this.entering.has(v) && !isReduced() ? 'data-entering' : ''}><span>${escapeHTML(o.label)}${o.archived ? ' (в архиве)' : ''}</span>${this.locked ? '' : `<button type="button" class="iq-tag-remove" data-tag-remove="${escapeHTML(v)}" aria-label="Убрать тег ${escapeHTML(o.label)}">${icons_js_1.icon('x', 12)}</button>`}</span>`; }).join('')
-            + (this.hasAttribute('creatable') && !this.locked ? `<button type="button" class="iq-tag iq-tag-add" data-tag-create>${icons_js_1.icon('plus', 12)}<span>${escapeHTML(this.getAttribute('create-label') || 'Новый тег')}</span></button>` : '');
+            return `<span class="iq-tag" ${tagToneAttributes(o.tone)} data-value="${escapeHTML(v)}" ${this.entering.has(v) && !isReduced() ? 'data-entering' : ''}><span>${escapeHTML(o.label)}${o.archived ? ' (в архиве)' : ''}</span>${this.locked ? '' : `<button type="button" class="iq-tag-remove" data-tag-remove="${escapeHTML(v)}" aria-label="Убрать тег ${escapeHTML(o.label)}">${icons_js_1.icon('x', 12)}</button>`}</span>`; }).join('')
+            ;
+        const add = this.querySelector('.iq-tag-picker-add'); if (add) add.hidden = !(this.hasAttribute('creatable') && !this.locked);
+        const chips = this.querySelectorAll('.iq-tag-picker-values > .iq-tag'); chips.forEach((chip, i) => chip.toggleAttribute('data-armed', !!this.armed && i === chips.length - 1));
         this.querySelectorAll('[data-entering]').forEach(chip => chip.addEventListener('animationend', () => chip.removeAttribute('data-entering'), { once: true }));
         this.entering.clear();
         this.input.disabled = this.hasAttribute('disabled'); this.input.readOnly = this.hasAttribute('readonly');
-        this.input.placeholder = this.locked ? (this._value.length ? '' : 'Нет тегов') : (this.getAttribute('placeholder') || 'Добавить тег');
+        this.input.placeholder = this.locked ? (this._value.length ? '' : 'Нет тегов') : this._value.length ? 'Ещё тег' : (this.getAttribute('placeholder') || 'Добавить тег');
         this.input.hidden = this.hasAttribute('readonly');
         this.paintList();
     }
@@ -1174,7 +1235,7 @@ class IqTagPicker extends IqElement {
         const items = this.opened ? this.matches() : [];
         this.active = Math.min(this.active, Math.max(0, items.length - 1));
         list.hidden = !this.opened; this.input.setAttribute('aria-expanded', String(this.opened));
-        list.innerHTML = items.length ? items.map((item, i) => `<button type="button" role="option" class="iq-tag-picker-option" id="${this.uid}-o${i}" data-option="${i}" tabindex="-1" aria-selected="${i === this.active}">${item.kind === 'option' ? `<span class="iq-tag" data-tone="${escapeHTML(item.option.tone)}">${escapeHTML(item.option.label)}</span>` : `${icons_js_1.icon('plus', 14)}<span>Создать тег «${escapeHTML(item.label)}»</span>`}</button>`).join('') : `<p class="iq-tag-picker-empty">${this.query.trim() ? 'Ничего не найдено.' : this._options.length ? 'Все теги уже выбраны.' : 'В проекте пока нет тегов.'}</p>`;
+        list.innerHTML = items.length ? items.map((item, i) => `<button type="button" role="option" class="iq-tag-picker-option" id="${this.uid}-o${i}" data-option="${i}" tabindex="-1" aria-selected="${i === this.active}">${item.kind === 'option' ? `<span class="iq-tag" ${tagToneAttributes(item.option.tone)}>${escapeHTML(item.option.label)}</span>` : `${icons_js_1.icon('plus', 14)}<span>Создать тег «${escapeHTML(item.label)}»</span>`}</button>`).join('') : `<p class="iq-tag-picker-empty">${this.query.trim() ? 'Ничего не найдено.' : this._options.length ? 'Все теги уже выбраны.' : 'В проекте пока нет тегов.'}</p>`;
         if (this.opened && items.length) this.input.setAttribute('aria-activedescendant', `${this.uid}-o${this.active}`); else this.input.removeAttribute('aria-activedescendant');
     }
     static get observedAttributes() { return ['label', 'disabled', 'readonly', 'placeholder']; }
@@ -1190,8 +1251,11 @@ class IqFilePicker extends IqElement {
         const label = escapeHTML(this.getAttribute('label') || (this.hasAttribute('multiple') ? 'Выберите или перетащите файлы' : 'Выберите или перетащите файл'));
         const hint = escapeHTML(this.getAttribute('hint') || ''), disabled = this.hasAttribute('disabled') ? 'disabled' : '';
         const accept = escapeHTML(this.getAttribute('accept') || ''), multiple = this.hasAttribute('multiple') ? 'multiple' : '';
-        const zone = this.getAttribute('variant') === 'zone';
-        this.innerHTML = (zone
+        const zone = this.getAttribute('variant') === 'zone', button = this.getAttribute('variant') === 'button';
+        this.innerHTML = (button
+            // variant="button": a quiet action (for a section head); drop-target makes a whole region accept files.
+            ? `<button type="button" class="iq-btn ghost sm iq-file-picker-target" data-pick-file ${disabled}>${icons_js_1.icon('upload', 16)}<span>${label}</span></button>`
+            : zone
             ? `<div class="iq-dropzone iq-file-picker-target"><div class="iq-upload-art" aria-hidden="true"><span class="upload-back-sheet"></span><span class="iq-upload-sheet">${icons_js_1.icon('file', 33)}</span><span class="iq-upload-circle">${icons_js_1.icon('plus', 18)}</span></div><div class="upload-copy"><b>${label}</b>${hint ? `<p>${hint}</p>` : ''}</div><button type="button" class="iq-btn secondary sm" data-pick-file ${disabled}>${icons_js_1.icon('upload', 18)}Выбрать на устройстве</button></div>`
             : `<button type="button" class="file-dropwell iq-file-picker-target iq-file-picker-row" data-pick-file ${disabled}>${icons_js_1.icon('upload', 18)}<span class="iq-file-picker-copy"><span>${label}</span>${hint ? `<small>${hint}</small>` : ''}</span></button>`)
             + `<input type="file" hidden ${multiple} ${accept ? `accept="${accept}"` : ''} ${disabled} aria-label="${label}">`;
@@ -1204,6 +1268,17 @@ class IqFilePicker extends IqElement {
         this.listen(target, 'dragover', ev => { ev.preventDefault(); if (ev.dataTransfer) ev.dataTransfer.dropEffect = 'copy'; });
         this.listen(target, 'dragleave', () => { depth = Math.max(0, depth - 1); if (!depth) target.classList.remove('dragover'); });
         this.listen(target, 'drop', ev => { ev.preventDefault(); depth = 0; target.classList.remove('dragover'); deliver(Array.from(ev.dataTransfer?.files || [])); });
+        // drop-target="<selector>": the closest matching ancestor (for example the whole files section) also takes
+        // dropped files and shows data-file-drop while files are dragged over it.
+        const region = this.getAttribute('drop-target') ? this.closest(this.getAttribute('drop-target')) : null;
+        if (region) {
+            let over = 0;
+            const files = ev => Array.from(ev.dataTransfer?.types || []).includes('Files');
+            this.listen(region, 'dragenter', ev => { if (!files(ev) || this.hasAttribute('disabled')) return; ev.preventDefault(); over++; region.setAttribute('data-file-drop', ''); });
+            this.listen(region, 'dragover', ev => { if (!files(ev) || this.hasAttribute('disabled')) return; ev.preventDefault(); if (ev.dataTransfer) ev.dataTransfer.dropEffect = 'copy'; });
+            this.listen(region, 'dragleave', () => { over = Math.max(0, over - 1); if (!over) region.removeAttribute('data-file-drop'); });
+            this.listen(region, 'drop', ev => { if (!files(ev)) return; ev.preventDefault(); over = 0; region.removeAttribute('data-file-drop'); if (!ev.defaultPrevented || !target.contains(ev.target)) deliver(Array.from(ev.dataTransfer?.files || [])); });
+        }
     }
     /** Opens the system picker (for hosts with their own trigger, e.g. a cover preset dialog). */
     open() { this.querySelector('input[type=file]')?.click(); }

@@ -23,7 +23,7 @@ export async function migrate(url:string,runtimeRole:string,workerRole?:string){
     await db.query(`GRANT SELECT ON public.schema_migrations TO "${runtimeRole}";
       GRANT USAGE ON SCHEMA app,auth TO "${runtimeRole}";
       GRANT SELECT,INSERT,UPDATE ON ALL TABLES IN SCHEMA app TO "${runtimeRole}";
-      GRANT DELETE ON app.task_tags,app.temporal_constraints,app.project_members,app.workspace_members TO "${runtimeRole}";
+      GRANT DELETE ON app.task_tags,app.temporal_constraints,app.project_members,app.workspace_members,app.person_avatars TO "${runtimeRole}";
       -- Previews are transient: the ten-minute plan record is still append-only (UPDATE stays revoked),
       -- but an expired plan that was never applied and belongs to no run is collected, not retained forever.
       GRANT DELETE ON app.planning_plans TO "${runtimeRole}";

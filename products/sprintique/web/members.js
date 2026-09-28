@@ -1,4 +1,4 @@
-import {ui,icon,escapeHTML as esc,notify,enhance,formatDateTime} from '@iquipage/web/core';
+import {ui,icon,escapeHTML as esc,notify,enhance,formatDate,formatDateTime} from '@iquipage/web/core';
 import {dialog,select} from '../ui/src/ui.js';
 import {projectRoles,roleName} from './settings-sections.js';
 import * as s from './settings-ui.js';
@@ -15,11 +15,12 @@ export async function mountMembers(root,{repository,project,tools,notice=''}){
     const editable=admin&&m.kind==='human';
     const aside=editable?select('role','Роль '+m.name,m.role,projectRoles.map(([id,label])=>[id,label]),'label-hidden density="compact" data-member-role'):esc(roleName(m.role));
     const actions=editable&&m.id!==self?ui.menu(`<button type="button" class="iq-btn ghost icon sm" aria-label="Действия: ${esc(m.name)}">${icon('more',17)}</button>`,[{label:'Удалить из проекта',action:'remove-member',danger:true,glyph:'trash'}]):editable?'<span class="iq-settings-row-spacer"></span>':'';
-    return s.row({media:s.avatar(m.name,m.id),title:m.name,titleExtra:extra,meta:[esc(projectRoles.find(r=>r[0]===m.role)?.[2]||'')],aside,actions,attrs:`data-member-id="${esc(m.id)}"`});
+    const since=m.joinedAt?`В проекте с ${esc(formatDate(m.joinedAt))}`:'',active=m.lastActiveAt?`Был активен ${esc(formatDateTime(m.lastActiveAt))}`:'';
+    return s.row({media:s.avatar(m.name,m.id,client.avatarUrl?.(m.id,m.avatarRevision)),title:m.name,titleExtra:extra,meta:[esc(projectRoles.find(r=>r[0]===m.role)?.[2]||''),since,active],aside,actions,attrs:`data-member-id="${esc(m.id)}"`});
   }
   function invitationRow(i){
     const [label,tone]=invitationState(i),active=tone==='info';
-    return s.row({media:s.tile('link'),title:`Ссылка для роли ${roleName(i.role)}`,meta:[`Создана ${esc(formatDateTime(i.createdAt))}`,active?`Действует до ${esc(formatDateTime(i.expiresAt))}`:''],aside:s.badge(label,tone),actions:active?ui.btn('Отменить','ghost sm','',`data-revoke="${esc(i.id)}"`):'',state:active?'':'muted'});
+    return s.row({media:s.tile('link'),title:`Ссылка для роли ${roleName(i.role)}`,meta:[`Создана ${esc(formatDateTime(i.createdAt))}${i.inviterName?`, пригласил ${esc(i.inviterName)}`:''}`,active?`Действует до ${esc(formatDateTime(i.expiresAt))}`:'',i.acceptedByName?`Принял ${esc(i.acceptedByName)}`:''],aside:s.badge(label,tone),actions:active?ui.btn('Отменить','ghost sm','',`data-revoke="${esc(i.id)}"`):'',state:active?'':'muted'});
   }
   function render(){
     if(closed)return;

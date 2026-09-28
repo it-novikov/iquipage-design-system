@@ -23,7 +23,8 @@ export function prepareThread(record,previous,tasks,actorId='local-user') {
   requireValue(task&&!task.archivedAt,'THREAD_TASK','Задача недоступна для обсуждения.');
   if(previous){
     requireValue(previous.taskId===value.taskId,'THREAD_IDENTITY','Нельзя перенести обсуждение в другую задачу.');
-    requireValue(previous.requiresResolution===value.requiresResolution,'THREAD_IDENTITY','Тип опубликованного обсуждения неизменен.');
+    // A comment may become a question (and an open question a comment); a resolved question keeps its kind.
+    requireValue(previous.requiresResolution===value.requiresResolution||!previous.resolved&&!value.resolved,'THREAD_KIND','Решённый вопрос нельзя превратить в комментарий. Сначала откройте его снова.');
     requireValue(value.messages.length>=previous.messages.length,'THREAD_MESSAGE_IMMUTABLE','Нельзя удалить прежние сообщения при ответе.');
     previous.messages.forEach((message,index)=>{
       requireValue(JSON.stringify(message)===JSON.stringify(value.messages[index]),'THREAD_MESSAGE_IMMUTABLE','Прежние сообщения и их порядок должны сохраниться.');
@@ -61,6 +62,11 @@ export async function postMessage(repository,task,{threadId=uid('thread'),messag
     try{return await repository.write('threads',next,previous?.revision||0);}
     catch(error){if(error.code!=='CONFLICT'||attempt===2)throw error;}
   }
+}
+export async function changeThreadKind(repository,thread,requiresResolution){
+  requireValue(!thread.resolved,'THREAD_KIND','Решённый вопрос нельзя превратить в комментарий. Сначала откройте его снова.');
+  if(thread.requiresResolution===requiresResolution)return thread;
+  return repository.write('threads',{...thread,requiresResolution},thread.revision);
 }
 export async function resolveThread(repository,thread,resolved){
   requireValue(thread.requiresResolution,'THREAD_RESOLUTION','Обычный комментарий не требует решения.');

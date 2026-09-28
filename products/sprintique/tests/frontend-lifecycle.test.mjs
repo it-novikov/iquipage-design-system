@@ -163,5 +163,42 @@ test('template previews show structure: titled areas, lined notes, arrowed links
   const {previewDocument}=await import('../ui/src/template-preview.js');
   const html=previewDocument({objects:[{id:'f',type:'frame',text:'Что сработало',x:0,y:0,width:400,height:200},{id:'a',type:'sticky',text:'Длинный текст заметки',x:20,y:40,width:120,height:90,color:'mint',parentId:'f'},{id:'b',type:'task',text:'Шаг',x:200,y:40,width:120,height:60}],connections:[{id:'c',from:'a',to:'b'}]});
   assert.equal((html.match(/<text/g)||[]).length,1,'only the area title is text');assert.match(html,/Что сработало/);
-  assert.doesNotMatch(html,/Длинный текст/);assert.match(html,/marker-end="url\(#tp\d+-arrow\)"/);assert.match(html,/style="--i:2"/);
+  assert.doesNotMatch(html,/Длинный текст/);assert.match(html,/class="map-preview-head" data-link="0"/);assert.doesNotMatch(html,/marker-end|style="/);
+  assert.match(html,/data-role="outcome" data-order="1"/,'the action is the outcome of the story');
+});
+test('template previews keep an inset, route links around objects and reach the outcome in time',async()=>{
+  const {BUILTIN_TEMPLATES}=await import('../ui/src/templates.js');
+  const {previewDocument,routeLinks,PREVIEW_VARIANTS}=await import('../ui/src/template-preview.js');
+  const hits=(a,b,r)=>Math.max(a.x,b.x)>r.x&&Math.min(a.x,b.x)<r.x+r.w&&Math.max(a.y,b.y)>r.y&&Math.min(a.y,b.y)<r.y+r.h;
+  for(const template of BUILTIN_TEMPLATES){
+    const {objects,connections}=template.document;
+    for(const route of routeLinks(objects,connections))for(let i=1;i<route.points.length;i++)for(const o of objects){
+      if(o.type==='frame'||o.id===route.from||o.id===route.to)continue;
+      assert.ok(!hits(route.points[i-1],route.points[i],{x:o.x,y:o.y,w:o.width,h:o.height}),`${template.id}: ${route.id} passes under ${o.id}`);
+    }
+    for(const variant of ['card','detail']){
+      const {W,H,inset}=PREVIEW_VARIANTS[variant],html=previewDocument(template.document,{variant});
+      for(const m of html.matchAll(/<rect class="map-preview-(?:frame|note|card|shape)"(?: pathLength="1")? x="([\d.-]+)" y="([\d.-]+)" width="([\d.-]+)" height="([\d.-]+)"/g)){
+        const [x,y,w,h]=m.slice(1).map(Number);
+        assert.ok(x>=inset-.5&&y>=inset-.5&&x+w<=W-inset+.5&&y+h<=H-inset+.5,`${template.id} ${variant}: object outside the inset`);
+      }
+      assert.match(html,new RegExp(`viewBox="0 0 ${W} ${H}"`));
+    }
+  }
+});
+test('a comment may become a question and back while open; a resolved question keeps its kind',async()=>{
+  const {prepareThread}=await import('../ui/src/board/thread-model.js');
+  const tasks=[{id:'t1',projectId:'p1'}],base={id:'th1',projectId:'p1',taskId:'t1',requiresResolution:false,resolved:false,messages:[{id:'m1',body:'Вопрос?',authorId:'a',createdAt:'2026-09-27T10:00:00.000Z'}]};
+  const question=prepareThread({...base,requiresResolution:true},base,tasks,'a');assert.equal(question.requiresResolution,true);
+  const resolved={...question,resolved:true};
+  assert.throws(()=>prepareThread({...resolved,requiresResolution:false,resolved:false},resolved,tasks,'a'),/Решённый вопрос/);
+});
+test('template area titles fit the band above their first object',async()=>{
+  const {previewDocument}=await import('../ui/src/template-preview.js');const {BUILTIN_TEMPLATES}=await import('../ui/src/templates.js');
+  const html=previewDocument(BUILTIN_TEMPLATES.find(t=>t.id==='start-stop').document);
+  const titles=[...html.matchAll(/<text class="map-preview-title" x="[\d.]+" y="([\d.]+)" font-size="([\d.]+)">/g)].map(m=>({y:+m[1],size:+m[2]}));
+  const frames=[...html.matchAll(/<rect class="map-preview-frame" pathLength="1" x="[\d.]+" y="([\d.]+)"/g)].map(m=>+m[1]);
+  const notes=[...html.matchAll(/<rect class="map-preview-note" x="[\d.]+" y="([\d.]+)"/g)].map(m=>+m[1]);
+  assert.equal(titles.length,3);
+  titles.forEach((title,i)=>{const firstNote=Math.min(...notes.filter(y=>y>frames[i]&&y<(frames[i+1]??Infinity)));assert.ok(title.y+title.size*.25<=firstNote,`title ${i} ends above its notes`);assert.ok(title.size>=5.5&&title.size<=10);});
 });

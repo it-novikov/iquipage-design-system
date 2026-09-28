@@ -1,3 +1,41 @@
+# Sprintique vNext handoff — 2026-09-27
+
+## Where things are
+
+- `libraries/iquipage` — DS source, now `0.6.0-vnext.20`. Changes per version: `libraries/iquipage/docs/CHANGES-0.6.md`; public API: its README; contracts: `tests/vnext*.test.cjs`.
+- `products/sprintique` — the product. It consumes only `vendor/iquipage-web-<version>.tgz` (checksum in its README and lockfile). UI decisions and their reasons: `docs/ux-ds-alignment.md`; settings: `docs/settings/DESIGN.md` and `VALIDATION.md`.
+- Branches: `main` holds everything up to PR #9. PR #10 (settings) and PR #11 (task drawer) are open and stacked; PR #12 (relation map, whiteboard showcase, docs) is stacked on #11, PR #13 (backend completion with migration 018, fourth drawer round on vnext.18) is stacked on #12, PR #14 (maps, drawer properties, discussions and covers on vnext.19) is stacked on #13, and PR #15 (read markers and thread kinds with migration 019, personal photos with migration 020, drawer motion and width, template preview fixes on vnext.20) is stacked on #14. Merge them in that order; GitHub retargets the next one to `main` after each merge.
+
+## Run it
+
+```sh
+cd products/sprintique && npm ci --ignore-scripts && npm run build
+LC_ALL=C npm run dev:local        # http://localhost:4311, admin / admin, synthetic data, temporary database
+```
+
+The stand serves the built `dist/`: rebuild with `npx vite build` after UI changes, restart it after backend changes, `npm ci` or a new migration. `npm run preview:settings` serves a settings preview with admin and reader logins on port 4383.
+
+## Change the DS and adopt it
+
+1. Edit `libraries/iquipage/src`, raise the version everywhere it appears (see CHANGES-0.6), add a `tests/vnextN.test.cjs` contract.
+2. `npm test && npm run build`; for fast iteration copy `dist/` into `products/sprintique/node_modules/@iquipage/web/dist/` and run `npx vite build` in the product.
+3. `npm pack --pack-destination ../../products/sprintique/vendor`, remove the previous tarball, update the product README checksum, `package.json`, lockfile `resolved` and `integrity` (sha512), `tests/library-contract.ts` and docs, then `npm ci`.
+4. Product checks: `npm run check:boundaries` (includes the style contract: no inline styles, no reaching into DS internals), `npm run typecheck`, `node --import tsx --test tests/frontend-lifecycle.test.mjs tests/appearance.test.mjs`.
+5. Full gate from the repository root: `LC_ALL=C TEST_S3_CONFIG=<private storage json> node scripts/verify-vnext.mjs`. Do not edit sources while it runs: it checks source stability.
+
+## Rules that still hold
+
+- No deployment without an explicit target, secrets and a data plan. Never publish cookies, credentials, private infrastructure config (`products/sprintique/output/infra`), user databases or backups.
+- Merges into `main` are done by the owner.
+- Migrations are append-only (020 is the latest). Product code imports only public `@iquipage/web` entries.
+- Russian UI copy; dates as 04.10.2026 or 04.10.2026 14:00; no middot separators.
+
+## Next
+
+Merge PR #10, #11, #12, #13, #14 and #15 in that order. Backend work proposed by the councils is done, including personal profile photos (see STATUS.md).
+
+---
+
 # Sprintique vNext R3 handoff — 2026-09-12
 
 Owner approved same repository with detachable Sprintique and independent DS, then delegated stack choices and requested finishing the locally implementable work including partial Planning PR #3. No push/deploy/publication, production access, paid provider or legacy-data migration in this step. Do not reuse merged PR #2 or modify the Planning writer's branch.
