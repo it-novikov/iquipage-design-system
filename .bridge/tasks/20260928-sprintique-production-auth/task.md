@@ -2,13 +2,13 @@
 bridge: 1
 id: 20260928-sprintique-production-auth
 title: Вход в Sprintique по почте, через Google и Apple
-status: active
+status: review
 risk: high
 owner: it-novikov
 branch: feature/kotlin-backend
 base: feat/finish-platform
 created: 2026-09-28
-updated: 2026-09-28T09:06:24Z
+updated: 2026-09-28T12:21:34Z
 links:
 ---
 
