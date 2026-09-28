@@ -61,6 +61,10 @@ document.querySelector('#open-plan').addEventListener('click', async () => {
 
 Тестовые HTML содержат inline-стили/скрипт; рабочее приложение должно подключать dist как внешние ресурсы и согласовать CSP самостоятельно. Произвольный HTML из Markdown не исполняется. `mediaSources` графа может принимать Blob, но не выполняет авторизацию за приложение.
 
+## Браузеры
+
+Базовая линия — `.browserslistrc`: последние две версии Chrome, Edge и Firefox, Safari и iOS от 16.4; нативный `popover` появился только в Safari 17, поэтому для Safari 16 нужен guard (`HTMLElement.prototype.hasOwnProperty('popover')` и fallback на обычный слой).
+
 ## Перед обновлением приложения
 
 Проверить MANIFEST.sha256, текущие декларации и HANDOFF-05.7.md. Сначала обновить один vendor boundary и повторить API-операции, затем собственную browser-матрицу. Исходный WebKit touch-дефект календаря нельзя закрывать зелёным Chromium-прогоном. Автоматический push/deploy и изменение исходников Sprintique в эту работу не входят.

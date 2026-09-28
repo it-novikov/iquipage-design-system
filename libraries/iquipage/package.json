@@ -32,7 +32,8 @@
   "scripts": {
     "build": "node scripts/build.mjs",
     "test": "node --test tests/*.test.cjs",
-    "prepack": "node scripts/build.mjs"
+    "prepack": "node scripts/build.mjs",
+    "gates:update": "node scripts/gates/update.mjs"
   },
   "engines": {
     "node": ">=24 <25"
