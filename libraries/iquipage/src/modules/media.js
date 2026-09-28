@@ -19,34 +19,44 @@ function configureDemoFiles(samples, pdfPreview) {
 }
 function exampleFiles() { return demoFactory?.() ?? []; }
 let pdfRenderer;
-/** Product apps can provide a self-hosted PDF.js renderer. No document data is sent over the network. */
-function configurePDFPreviews(renderer) { pdfRenderer = renderer; }
-let pdfModule;
-async function defaultPDFRenderer(file, canvas, signal) {
-    // Optional, pinned parser. Only library code is requested; PDF bytes stay on the device.
-    // Self-host using configurePDFPreviews() for offline deployments or restrictive CSP.
-    const url = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@6.3.289/build/pdf.min.mjs';
-    pdfModule ??= import(url).catch(e => { pdfModule = undefined; throw e; });
-    const pdfjs = await pdfModule;
-    if (signal.aborted)
-        throw new DOMException('Aborted', 'AbortError');
-    pdfjs.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@6.3.289/build/pdf.worker.min.mjs';
-    const task = pdfjs.getDocument({ data: new Uint8Array(await file.arrayBuffer()), isEvalSupported: false, enableXfa: false, useSystemFonts: true });
-    const cancel = () => { void task.destroy(); };
-    signal.addEventListener('abort', cancel, { once: true });
-    try {
-        const doc = await task.promise;
-        const page = await doc.getPage(1);
-        const raw = page.getViewport({ scale: 1 });
-        const view = page.getViewport({ scale: Math.min(2, 640 / raw.width, 840 / raw.height) });
-        canvas.width = Math.ceil(view.width);
-        canvas.height = Math.ceil(view.height);
-        await page.render({ canvas, canvasContext: canvas.getContext('2d'), viewport: view }).promise;
-    }
-    finally {
-        signal.removeEventListener('abort', cancel);
-        void task.destroy();
-    }
+/** PDF thumbnails are opt-in (ENG-08): nothing is fetched from a CDN by default. A product app passes
+ * either its own renderer or `{pdfjsUrl, workerUrl}` pointing at a self-hosted (or integrity-checked)
+ * pdf.js build; `configurePDFPreviews(null)` returns to the placeholder tile. Document bytes never
+ * leave the device in either mode. */
+function configurePDFPreviews(renderer) {
+    if (typeof renderer === 'function')
+        pdfRenderer = renderer;
+    else if (renderer && typeof renderer.pdfjsUrl === 'string' && renderer.pdfjsUrl)
+        pdfRenderer = pdfjsRenderer(renderer.pdfjsUrl, renderer.workerUrl);
+    else
+        pdfRenderer = undefined;
+}
+/** Renderer over a host-supplied pdf.js module URL. Only the library code is requested from that URL. */
+function pdfjsRenderer(moduleUrl, workerUrl = moduleUrl.replace(/pdf(\.min)?\.mjs$/, 'pdf.worker$1.mjs')) {
+    let pdfModule;
+    return async function renderWithPdfjs(file, canvas, signal) {
+        pdfModule ??= import(moduleUrl).catch(e => { pdfModule = undefined; throw e; });
+        const pdfjs = await pdfModule;
+        if (signal.aborted)
+            throw new DOMException('Aborted', 'AbortError');
+        pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
+        const task = pdfjs.getDocument({ data: new Uint8Array(await file.arrayBuffer()), isEvalSupported: false, enableXfa: false, useSystemFonts: true });
+        const cancel = () => { void task.destroy(); };
+        signal.addEventListener('abort', cancel, { once: true });
+        try {
+            const doc = await task.promise;
+            const page = await doc.getPage(1);
+            const raw = page.getViewport({ scale: 1 });
+            const view = page.getViewport({ scale: Math.min(2, 640 / raw.width, 840 / raw.height) });
+            canvas.width = Math.ceil(view.width);
+            canvas.height = Math.ceil(view.height);
+            await page.render({ canvas, canvasContext: canvas.getContext('2d'), viewport: view }).promise;
+        }
+        finally {
+            signal.removeEventListener('abort', cancel);
+            void task.destroy();
+        }
+    };
 }
 function kind(file) {
     const n = file.name.toLowerCase();
@@ -217,7 +227,9 @@ class IqFilePreview extends HTMLElement {
         canvas.setAttribute('aria-hidden', 'true');
         if (k === 'pdf') {
             try {
-                await (pdfRenderer || defaultPDFRenderer)(f, canvas, signal);
+                if (!pdfRenderer)
+                    throw new Error('PDF renderer not configured');
+                await pdfRenderer(f, canvas, signal);
                 done(canvas);
             }
             catch (e) {

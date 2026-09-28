@@ -45,7 +45,9 @@ export declare class IqSideNavigation extends HTMLElement {active:string;collaps
 export declare class IqWorkHeader extends HTMLElement {}
 export declare class IqFilePreview extends HTMLElement {file:File|null;}
 export type PDFPreviewRenderer=(file:File,canvas:HTMLCanvasElement,signal:AbortSignal)=>Promise<void>;
-export declare function configurePDFPreviews(renderer:PDFPreviewRenderer):void;
+export interface PDFJSSource {pdfjsUrl:string;workerUrl?:string;}
+/** PDF thumbnails are opt-in: pass a renderer or a self-hosted pdf.js module URL; null restores the placeholder tile. */
+export declare function configurePDFPreviews(renderer:PDFPreviewRenderer|PDFJSSource|null):void;
 export declare function bindBoard(root:HTMLElement,onDrop:(detail:Record<string,unknown>)=>void):()=>void;
 export type Priority='critical'|'high'|'normal'|'low';
 export declare const priorities:Readonly<Record<Priority,unknown>>;
