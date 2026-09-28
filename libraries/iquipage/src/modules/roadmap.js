@@ -1,7 +1,7 @@
  'use strict';
 const C=require('./advanced-core.js');
 const {IqDataSurface,button,ib}=require('./advanced-base.js');
-const {icon}=require('./components.js'),U=require('./ui.js');
+const {icon}=require('./components.js'),U=require('./ui.js'),T=require('./time.js');
 // Dates read as 04.10.2000 everywhere; month names stay only on the ruler axis.
 const fmt=(v)=>C.dateLabel(v,{day:'2-digit',month:'2-digit',year:'numeric'});
 const relationNames={FS:'Конец → начало',SS:'Начало → начало',FF:'Конец → конец',SF:'Начало → конец'};
@@ -83,7 +83,7 @@ class IqRoadmap extends IqDataSurface {
    ${this.state==='ready'&&s?this.inspector(s,d,disabled):''}
    ${this.state==='ready'&&this.selectedDependency?this.edgeInspector(d,disabled):''}
    ${this.issue&&!this.session.dirty?`<p class="iq-pro-error iq-pro-inline-error" role="alert">${C.escape(this.issue)}</p>`:''}${this.dock()}
-   <footer class="iq-pro-foot"><span>${icon('link',16)}${d.dependencies.length} связей</span><span>${this.readonly?'Изменение дат недоступно':'Выберите интервал, чтобы изменить даты и связи.'}</span>${ib('Отменить последнее применение','undo','undo',this.session.history.length&&!this.locked&&!this.session.dirty?'':'disabled')}</footer>
+   <footer class="iq-pro-foot"><span>${icon('link',16)}${T.count(d.dependencies.length,{one:'связь',few:'связи',many:'связей'})}</span><span>${this.readonly?'Изменение дат недоступно':'Выберите интервал, чтобы изменить даты и связи.'}</span>${ib('Отменить последнее применение','undo','undo',this.session.history.length&&!this.locked&&!this.session.dirty?'':'disabled')}</footer>
   </section>`;
   const scroll=this.querySelector('.rm-scroll');if(scroll){scroll.scrollLeft=this._scroll;scroll.scrollTop=this._scrollTop}
  }

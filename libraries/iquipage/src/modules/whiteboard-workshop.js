@@ -7,6 +7,7 @@ const U=require('./whiteboard-experience-core.js');
 const Shapes=require('./whiteboard-shapes.js');
 const R=require('./whiteboard-routing.js');
 const {icon,escapeHTML:esc}=require('./components.js');
+const T=require('./time.js');
 const glyphs=require('./icons.js').glyphs;
 const SOURCED={
  minus:'<path d="M5 12h14"/>',
@@ -226,7 +227,7 @@ function installWorkshop(Klass){
    dialog.classList.add('wb-capture-sheet');const rows=dialog.querySelector('.wb-capture-rows'),select=dialog.querySelector('iq-select[name=area]'),summary=dialog.querySelector('.wb-capture-summary'),submit=dialog.querySelector('[type=submit]');
    select.value=draft.area;select.addEventListener('iq-change',()=>{draft.area=select.value;sync();});
    const save=()=>{draft.values=[...rows.querySelectorAll('textarea')].map(t=>t.value);this.sheetDrafts.cards=draft;};
-   const sync=()=>{const n=draft.values.filter(v=>v.trim()).length;submit.disabled=!n;submit.innerHTML=n?`Добавить ${n}${n%10===1&&n%100!==11?' заметку':n%10>=2&&n%10<=4&&!(n%100>=12&&n%100<=14)?' заметки':' заметок'} ${icon('check',16)}`:'Добавить заметки '+icon('check',16);summary.textContent=n?`${n} ${n%10===1&&n%100!==11?'карточка':n%10>=2&&n%10<=4&&!(n%100>=12&&n%100<=14)?'карточки':'карточек'}. ${draft.area?'В выбранную область.':'На свободное место доски.'} Пустые карточки не добавляются.`:'Заполните одну или несколько карточек.';dialog.querySelector('.wb-capture-add').disabled=draft.values.length>=100;};
+   const sync=()=>{const n=draft.values.filter(v=>v.trim()).length;submit.disabled=!n;submit.innerHTML=n?`Добавить ${T.count(n,{one:'заметку',few:'заметки',many:'заметок'})} ${icon('check',16)}`:'Добавить заметки '+icon('check',16);summary.textContent=n?`${T.count(n,{one:'карточка',few:'карточки',many:'карточек'})}. ${draft.area?'В выбранную область.':'На свободное место доски.'} Пустые карточки не добавляются.`:'Заполните одну или несколько карточек.';dialog.querySelector('.wb-capture-add').disabled=draft.values.length>=100;};
    // Preserve paragraphs in capture as well as in the eventual canvas note.
    const grow=field=>{field.style.height='auto';const h=Math.max(52,field.scrollHeight);field.style.height=Math.min(224,h)+'px';field.style.overflowY=h>224?'auto':'hidden';};
    const render=()=>{
