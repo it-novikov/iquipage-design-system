@@ -1,7 +1,7 @@
 import {quickFieldDialog} from './quick-field.js';
 import {orderDialog} from './order-dialog.js';
 import {TableWindow} from '@iquipage/web/work-list';
-import {lastChildren,plural} from './markup.js';
+import {plural} from './markup.js';
 import {loadingMarkup} from '../../src/loading.js';
 import {mountPlanningDrag} from './row-interactions.js';
 import {filterDialog} from './filter-dialog.js';
@@ -22,20 +22,19 @@ export async function mountPlanning(root,{adapter,project,onOpenTask,onCreateTas
   root.classList.add('planning-root');
   let deadlineMode=['timeline','dates'].includes(viewState.deadlineMode)?viewState.deadlineMode:(['timeline','dates'].includes(viewState.mode)?viewState.mode:'timeline');
   let viewMode='list',temporal=null,switching=false,dragging=false,refreshAfterDrag=false;
-  let disposed=false,modal=null,opening=false,selectionShift=false,scroll,scrollRoot;
+  let disposed=false,modal=null,opening=false,scroll,scrollRoot;
   let refreshTimer=null,refreshing=false,refreshAgain=false;
   const nodes=new Map(),abort=new AbortController(),signal=abort.signal;
   const controller=new PlanningController({adapter,projectId:project.id,onChange:render});
   if(viewState.filters)Object.assign(controller.filters,viewState.filters,{query:''});
   if(Array.isArray(viewState.collapsed))controller.collapsed=new Set(viewState.collapsed);
-  root.innerHTML=`<section class="planning-view"><header class="sq-page-heading pn-head"><h1>Планирование</h1><div class="sq-page-tools">${ui.btn('Новый релиз','secondary','plus','data-new-release')}${ui.btn('Новая задача','primary','plus','data-new-task')}</div></header>
-    <div class="pn-views-row"><div class="iq-segmented pn-view-switch" role="group" aria-label="Вид планирования"><button type="button" data-view="list" aria-pressed="true">${icon('list',16)}<span>Список</span></button><button type="button" data-view="timeline" aria-pressed="false">${icon('chart',16)}<span>Гант</span></button><button type="button" data-view="dates" aria-pressed="false">${icon('calendar',16)}<span>Календарь</span></button></div>
-    <div class="iq-segmented pn-archive-switch" role="group" aria-label="Какие релизы показать" data-archive-switch><button type="button" data-history="current" aria-pressed="true">Текущие</button><button type="button" data-history="closed" aria-pressed="false">${icon('folder',16)}<span>Архив</span></button></div></div><div class="pn-toolbar">
-    <div class="iq-segmented pn-readiness" role="group" aria-label="Готовность задач" data-readiness>${[['all','Все'],['draft','Черновики'],['ready','Готовы к работе']].map(([v,l])=>`<button type="button" data-preparation-value="${v}" aria-pressed="${controller.filters.preparation===v}">${l}</button>`).join('')}</div>
-    <div class="pn-toolbar-end"><span data-sort-menu></span>${ui.btn('Фильтры','ghost sm','filter','data-filter-conditions')}${ui.btn('Сбросить фильтры','ghost sm','x','data-clear-conditions hidden')}</div></div>
-    <div class="pn-selection" data-bulk hidden><span data-selection-summary></span>${ui.btn('Выбрать все по условиям','ghost sm','','data-all-matching')}<div class="row">${ui.btn('В релиз…','secondary sm','box','data-move')}${ui.btn('Подготовить','secondary sm','check','data-prepare')}${ui.btn('Порядок…','ghost sm','list','data-order hidden')}${ui.menu(ui.btn('Ещё','ghost sm','down'),[{label:'Назначить исполнителя',action:'bulk-owner'},{label:'Изменить приоритет',action:'bulk-priority'},{label:'Изменить срок',action:'bulk-due'},{label:'Добавить тег',action:'bulk-tags'},{label:'Выбрать с подзадачами',action:'select-descendants'},{label:'Взять без релиза',action:'take'},{label:'Вернуть на уточнение',action:'unprepare'}])}${ui.btn('Снять выделение','ghost sm','','data-clear')}</div></div>
+  root.innerHTML=`<section class="planning-view"><header class="sq-page-heading pn-head"><h1>Планирование</h1><div class="iq-segmented pn-view-switch" role="group" aria-label="Вид планирования"><button type="button" data-view="list" aria-pressed="true">${icon('list',16)}<span>Список</span></button><button type="button" data-view="timeline" aria-pressed="false">${icon('chart',16)}<span>Гант</span></button><button type="button" data-view="dates" aria-pressed="false">${icon('calendar',16)}<span>Календарь</span></button></div><div class="sq-page-tools">${ui.btn('Новый релиз','secondary','plus','data-new-release')}${ui.btn('Новая задача','primary','plus','data-new-task')}</div></header>
+    <div class="pn-toolbar"><div class="iq-segmented pn-readiness" role="group" aria-label="Готовность задач" data-readiness>${[['all','Все'],['draft','Черновики'],['ready','Готовы к работе']].map(([v,l])=>`<button type="button" data-preparation-value="${v}" aria-pressed="${controller.filters.preparation===v}">${l}</button>`).join('')}</div>
+    <span data-sort-menu></span>${ui.btn('Фильтры','ghost sm','filter','data-filter-conditions')}${ui.btn('Сбросить','ghost sm','x','data-clear-conditions hidden')}
+    <div class="pn-toolbar-end"><div class="iq-segmented pn-archive-switch" role="group" aria-label="Какие релизы показать" data-archive-switch><button type="button" data-history="current" aria-pressed="true">Текущие</button><button type="button" data-history="closed" aria-pressed="false">${icon('folder',16)}<span>Архив</span></button></div></div></div>
     <div data-error role="alert" hidden></div><p class="sr-only" role="status" data-live></p>
-    <div class="pn-scroll" tabindex="-1" aria-label="Релизы и бэклог"><div data-groups></div><div data-tail></div></div><div class="pn-temporal" data-temporal hidden></div></section>`;
+    <div class="pn-scroll" role="region" tabindex="-1" aria-label="Релизы и бэклог"><div data-groups></div><div data-tail></div>
+    <div class="pn-selection" data-bulk hidden><span data-selection-summary></span>${ui.btn('Выбрать все по условиям','ghost sm','','data-all-matching')}<div class="row">${ui.btn('В релиз…','secondary sm','box','data-move')}${ui.btn('Подготовить','secondary sm','check','data-prepare')}${ui.btn('Порядок…','ghost sm','list','data-order hidden')}${ui.menu(ui.btn('Ещё','ghost sm','down'),[{label:'Назначить исполнителя',action:'bulk-owner'},{label:'Изменить приоритет',action:'bulk-priority'},{label:'Изменить срок',action:'bulk-due'},{label:'Добавить тег',action:'bulk-tags'},{label:'Выбрать с подзадачами',action:'select-descendants'},{label:'Взять без релиза',action:'take'},{label:'Вернуть на уточнение',action:'unprepare'}])}${ui.btn('Снять выделение','ghost sm','','data-clear')}</div></div></div><div class="pn-temporal" data-temporal hidden></div></section>`;
   const page=root.firstElementChild,groupsRoot=root.querySelector('[data-groups]'),tail=root.querySelector('[data-tail]');
   scroll=root.querySelector('.pn-scroll');
   // Phones scroll the page, not a nested list box; windowing and lazy loading follow whichever element scrolls.
@@ -62,8 +61,7 @@ export async function mountPlanning(root,{adapter,project,onOpenTask,onCreateTas
     const conditions=Number(!!controller.filters.owner)+Number(!!controller.filters.releaseId)+(controller.filters.tagIds?.length||0);
     root.querySelector('[data-filter-conditions]').disabled=locked||!adapter.options;
     const filterButton=root.querySelector('[data-filter-conditions]');filterButton.setAttribute('aria-label','Фильтры'+(conditions?`, выбрано условий: ${conditions}`:''));
-    filterButton.querySelector('.pn-filter-count')?.remove();if(conditions)filterButton.insertAdjacentHTML('beforeend',`<span class="pn-filter-count" aria-hidden="true">${conditions}</span>`);
-    root.querySelector('[data-filter-conditions]').setAttribute('aria-pressed',String(conditions>0));
+    const filterLabel=filterButton.querySelector('span:last-of-type');if(filterLabel)filterLabel.textContent=conditions?`Фильтры (${conditions})`:'Фильтры';
     root.querySelector('[data-clear-conditions]').hidden=!conditions;
     const ids=new Set(controller.groups.map(g=>g.id));for(const [id,n] of nodes)if(!ids.has(id)){observer?.unobserve(n.element);n.window?.destroy();n.element.remove();nodes.delete(id);}
     let previous=null;
@@ -71,10 +69,11 @@ export async function mountPlanning(root,{adapter,project,onOpenTask,onCreateTas
       let node=nodes.get(group.id);
       if(!node){const element=document.createElement('section');element.className='pn-group iq-reveal';element.dataset.group=group.id;element.dataset.workGroup=group.id;element.setAttribute('aria-label',group.title);
         element.innerHTML='<header class="pn-group-header" data-work-dropzone></header><div class="pn-group-body"></div>';node={element,head:element.firstElementChild,body:element.lastElementChild,headerKey:'',bodyKey:''};nodes.set(group.id,node);observer?.observe(element);}
+      node.element.dataset.state=group.state;
       const before=previous?previous.nextElementSibling:groupsRoot.firstElementChild;
       if(before!==node.element)groupsRoot.insertBefore(node.element,before);previous=node.element;
       const canSelect=!!controller.capabilities.selection&&group.rows.some(r=>r.selectable&&!r.contextOnly)&&!group.folded;
-      const hk=JSON.stringify([group.title,group.total,group.matched,group.done,group.folded,group.state,group.plannedStart,group.plannedEnd,group.format,controller.capabilities,locked,canSelect]);
+      const hk=JSON.stringify([group.title,group.total,group.matched,group.done,group.drafts,group.unassigned,group.folded,group.state,group.plannedStart,group.plannedEnd,group.format,controller.capabilities,locked,canSelect]);
       if(hk!==node.headerKey){node.headerKey=hk;node.head.innerHTML=groupHeader(group,{capabilities:controller.capabilities,locked,onOpenBoard,canSelect});}
 
       const bk=JSON.stringify([!!group.rows.length,group.busy,group.error,group.loaded,group.nextCursor,controller.filters,controller.capabilities.createTask]);
@@ -82,8 +81,8 @@ export async function mountPlanning(root,{adapter,project,onOpenTask,onCreateTas
       if(bk!==node.bodyKey){
         node.window?.destroy();node.window=null;node.rowRef=null;node.bodyKey=bk;node.body.innerHTML=groupBody(group,controller,true);
         const body=node.body.querySelector('[data-window-body]');
-        if(body)node.window=new TableWindow({body,scrollRoot,columns:4,estimate:56,key:row=>row.id,
-          markup:row=>rowMarkup(row,group.id,controller.collapsed.has(row.taskId),!!(controller.capabilities.move||controller.capabilities.reorder),!!controller.capabilities.bulk,lastChildren(group.rows)),
+        if(body)node.window=new TableWindow({body,scrollRoot,columns:4,estimate:45,key:row=>row.id,
+          markup:row=>rowMarkup(row,group.id,controller.collapsed.has(row.taskId),!!(controller.capabilities.move||controller.capabilities.reorder),!!controller.capabilities.bulk),
           decorate:(element,row)=>{
             for(const control of element.querySelectorAll('[data-select],[data-disclose],[data-work-drag]'))control.disabled=node.locked||node.group.busy||control.matches('[data-select]')&&!!controller.selection.snapshot;
             for(const control of element.querySelectorAll('[data-quick-edit]'))control.disabled=node.locked||node.group.busy||!controller.capabilities.bulk||row.contextOnly||!row.selectable||(control.dataset.quickEdit==='owner'?row.ownerId===undefined||!adapter.options:row.dueValue===undefined);
@@ -151,7 +150,9 @@ export async function mountPlanning(root,{adapter,project,onOpenTask,onCreateTas
     if(b.matches('[data-view]'))return void setView(b.dataset.view);
     if(b.matches('[data-filter-conditions]'))return void action(()=>filterDialog({adapter,projectId:project.id,filters:controller.filters,onApply:async values=>{await changeFilters(values);},onClose:()=>{released();if(viewMode!=='list')void setView(viewMode,true);}}));
     if(b.matches('[data-clear-conditions]'))return void changeFilters({owner:'',releaseId:'',tagIds:[],tagMode:'any'});
-    if(b.matches('[data-select]')){controller.toggle(b.dataset.select,event.shiftKey||selectionShift);selectionShift=false;return;}
+    if(b.matches('[data-reset-filters]'))return void changeFilters({query:'',preparation:'all',owner:'',releaseId:'',tagIds:[],tagMode:'any'});
+    if(b.matches('[data-history]'))return void action(()=>historyDialog({adapter,projectId:project.id,groupId:group,onCommitted:changed,onClose:released}));
+    if(b.matches('[data-select]')){controller.toggle(b.dataset.select,event.shiftKey);return;}
     if(b.matches('[data-select-group]'))return controller.all(b.dataset.selectGroup);
     if(b.matches('[data-clear]'))return controller.clear();
     if(b.matches('[data-fold]'))return controller.fold(group);
@@ -181,12 +182,12 @@ export async function mountPlanning(root,{adapter,project,onOpenTask,onCreateTas
     if(name==='release-close'&&controller.capabilities.close)void action(()=>closeReleaseDialog(base));
     if(name==='release-cancel'&&controller.capabilities.cancel)void action(()=>closeReleaseDialog({...base,cancel:true}));
     if(name==='release-history')void action(()=>historyDialog(base));
+    if(name==='release-add'&&controller.capabilities.createTask)void action(()=>onCreateTask({groupId:groupId||'backlog',onChanged:changed,onClose:released}));
     if(name.startsWith('planning-sort:')){void changeFilters({sort:name.slice(14)});return;}
     if(name.startsWith('bulk-')&&controller.capabilities.bulk)void action(()=>bulkDialog({...base,selection:controller.selectedIntent(),field:name.slice(5)}));
     if(name==='select-descendants'&&controller.capabilities.selection&&!controller.selection.snapshot)void controller.selectSnapshot([...controller.selection.ids]);
     if(['take','unprepare'].includes(name)&&controller.capabilities.prepare)void action(()=>operation({kind:name,...controller.selectedIntent()},name==='take'?'Взять без релиза':'Вернуть на уточнение'));
   },{signal});
-  root.addEventListener('keydown',e=>{selectionShift=e.shiftKey;},{signal});root.addEventListener('keyup',()=>{selectionShift=false;},{signal});
   async function refreshFromEvent(){
     refreshTimer=null;if(disposed)return;
     if(dragging){refreshAfterDrag=true;return;}

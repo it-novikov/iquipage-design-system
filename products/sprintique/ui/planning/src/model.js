@@ -18,6 +18,7 @@ export function validateGroups(page, projectId) {
     invariant(text(group.title, 240) && ['active', 'planned', 'backlog', 'closed', 'cancelled'].includes(group.state), 'Некорректная группа.');
     invariant(count(group.total) && count(group.matched) && group.matched <= group.total, 'Некорректное количество задач.');
     invariant(text(group.dateLabel ?? '') && text(group.formatLabel ?? ''), 'Некорректная подпись релиза.');
+    invariant((group.drafts===undefined||count(group.drafts))&&(group.unassigned===undefined||count(group.unassigned)), 'Некорректные счётчики группы.');
   }
   invariant(page.capabilities===undefined||object(page.capabilities)&&Object.values(page.capabilities).every(v=>typeof v==='boolean'), 'Invalid planning capabilities');
   return page;
@@ -39,6 +40,9 @@ export function validateRows(page, projectId, groupId, revision) {
     invariant(text(row.statusLabel, 120) && text(row.ownerLabel ?? '', 120) && text(row.dateLabel ?? '', 120), 'Некорректные свойства задачи.');
     invariant(typeof row.contextOnly === 'boolean' && typeof row.selectable === 'boolean', 'Не указаны возможности строки.');
     invariant(['normal','low','high','critical'].includes(row.priority), 'Некорректный приоритет.');
+    invariant(row.done===undefined||typeof row.done==='boolean', 'Некорректный признак готовности.');
+    invariant(row.doneChildrenCount===undefined||count(row.doneChildrenCount)&&row.doneChildrenCount<=row.childrenCount, 'Некорректная готовность подзадач.');
+    invariant(text(row.parentTitle ?? '', 240), 'Некорректная родительская задача.');
   }
   return page;
 }
