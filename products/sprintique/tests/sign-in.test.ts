@@ -159,6 +159,14 @@ test('SI04 codes are asked for only from the app, for a real address, and not to
   await f.admin.query("INSERT INTO auth.email_challenges(token_hash,email,code_hash,client_hash,created_at,expires_at) SELECT md5('d'||n)||md5('d'||n),'daily@example.org',md5('d'||n)||md5('d'||n),md5('c'||n)||md5('c'||n),clock_timestamp()-interval '3 hours',clock_timestamp()-interval '2 hours' FROM generate_series(1,20) n");
   const daily=await json('/auth/email/start',{email:'daily@example.org'});assert.equal(daily.statusCode,429);assert.equal(daily.json().code,'EMAIL_CODE_LIMIT');
   assert.deepEqual(await mailbox.letters('daily@example.org'),[]);
+  // A browser that signed in to the address before is remembered and keeps getting codes, whoever fills the limit.
+  const owner='owner@example.org',ownerChallenge=await requestCode(owner);
+  const opened=await json('/auth/email/verify',{code:await mailbox.code(owner)},{cookie:ownerChallenge});assert.equal(opened.statusCode,200,opened.body);
+  const device=cookieOf(opened,'__Host-sprintique-device')!;assert.match(String(opened.headers['set-cookie']),/__Host-sprintique-device=[^;]+; Path=\/; HttpOnly; Secure; SameSite=Lax; Max-Age=15552000/);
+  await f.admin.query("INSERT INTO auth.email_challenges(token_hash,email,code_hash,client_hash,created_at,expires_at) SELECT md5('o'||n)||md5('o'||n),$1,md5('o'||n)||md5('o'||n),md5('x'||n)||md5('x'||n),clock_timestamp()-interval '3 hours',clock_timestamp()-interval '2 hours' FROM generate_series(1,20) n",[owner]);
+  assert.equal((await json('/auth/email/start',{email:owner})).json().code,'EMAIL_CODE_LIMIT','a stranger is held back');
+  assert.equal((await json('/auth/email/start',{email:owner},{cookie:device})).statusCode,200,'the remembered browser is not');
+  assert.equal((await json('/auth/email/start',{email:'someone-else@example.org'},{cookie:device})).statusCode,200);
 });
 
 test('SI05 Google: PKCE, state and nonce are checked, and a Gmail address joins the account of the same address',async()=>{

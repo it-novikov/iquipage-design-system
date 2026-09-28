@@ -18,7 +18,7 @@ A database created by the previous TypeScript migrator (`public.schema_migration
 
 People sign in three ways; the sign-in screen offers only the configured ones (`GET /api/v1/auth/methods`).
 
-- **A code by e-mail** — the base method, required in production. `POST /auth/email/start` sends a six-digit code; `POST /auth/email/verify` checks it. The code lives ten minutes, allows five attempts and works only in the browser that asked (an HttpOnly challenge cookie; the database holds only hashes); a new code from the same client replaces that client's previous one once its letter has left. Limits: one code per 30 seconds and five per hour for an address from one client, twenty per address a day from anywhere, plus the per-client sign-in budget. Someone asking for codes to another person's address from elsewhere neither cancels nor blocks theirs. The daily limit bounds guessing to a hundred attempts a day against one address; each attempt also sends that person a letter. Answers never reveal whether a person with the address exists: the first valid code creates them, named after the part before `@` until they change their name.
+- **A code by e-mail** — the base method, required in production. `POST /auth/email/start` sends a six-digit code; `POST /auth/email/verify` checks it. The code lives ten minutes, allows five attempts and works only in the browser that asked (an HttpOnly challenge cookie; the database holds only hashes); a new code from the same client replaces that client's previous one once its letter has left. Limits: one code per 30 seconds and five per hour for an address from one client, twenty per address a day, plus the per-client sign-in budget. The daily limit bounds guessing to a hundred attempts a day against one address; each attempt also sends that person a letter. A browser that once signed in to the address by a code keeps a device cookie (`__Host-sprintique-device`, 180 days; the database holds its hash) and is exempt from the daily limit, so strangers asking for codes to someone's address neither cancel nor block that person's codes on a browser they used before. A person on a new browser can still be held back for a day by such requests; they can sign in with Google or Apple meanwhile. Answers never reveal whether a person with the address exists: the first valid code creates them, named after the part before `@` until they change their name.
 - **Google** — OpenID Connect with PKCE, `prompt=select_account`.
 - **Apple** — Sign in with Apple: the callback is a form POST from Apple's site, the client secret is a five-minute ES256 token signed with the team key, the name arrives only on the first sign-in.
 
@@ -28,7 +28,7 @@ One person, several ways in (`auth.identities`). A known way in leads to its per
 UPDATE auth.principals SET email = 'person@example.com' WHERE id = '<principal id>' AND kind = 'human' AND email IS NULL;
 ```
 
-Check first that no other person holds that address: with two holders, a code joins neither. A failed provider sign-in returns to the sign-in screen with `?sign-in-error=<code>`; which check failed is never logged or told.
+Check first that no other person holds that address: with two holders, a code joins neither. A failed provider sign-in returns to the sign-in screen with `?sign-in-error=<code>`. The browser is never told which check failed; the server log records it (`Sign-in with <provider> rejected: …` — the exception class and a short message, never tokens, codes or secrets).
 
 Settings:
 

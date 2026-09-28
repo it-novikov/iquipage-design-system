@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import {writeFile} from 'node:fs/promises';
+import pg from 'pg';
 import {createHash,randomUUID} from 'node:crypto';
 import {STAND_ROOT as root,latestLetter,newestLetterId,readStand} from './stand-config.mjs';
 // Signs in to the running local reference stand the way a person does: a code by e-mail through the real SMTP relay,
@@ -17,7 +18,13 @@ const post=(path,body)=>request(path,{method:'POST',headers:{'content-type':'app
 const methods=await (await request('/api/v1/auth/methods')).json();assert.equal(methods.email,true,'The stand must offer sign-in by e-mail');
 const previous=await newestLetterId(stand,email);
 let started=await post('/auth/email/start',{email});
-if(started.status===429&&(await started.clone().json()).code==='EMAIL_CODE_WAIT'){
+const refusal=started.status===429?(await started.clone().json()).code:null;
+if(refusal==='EMAIL_CODE_LIMIT'){
+  // Reruns of this check exhausted the synthetic address's hourly or daily codes: clear them on the owned stand.
+  const admin=new pg.Client({host:'127.0.0.1',port:stand.database.port,user:'postgres',password:stand.database.admin,database:'sprintique'});
+  await admin.connect();try{await admin.query('DELETE FROM auth.email_challenges WHERE email=$1',[email]);}finally{await admin.end();}
+  started=await post('/auth/email/start',{email});
+}else if(refusal==='EMAIL_CODE_WAIT'){
   // A rerun within 30 seconds of the previous one: wait out the pause between codes once.
   await new Promise(resolveWait=>setTimeout(resolveWait,31000));started=await post('/auth/email/start',{email});
 }

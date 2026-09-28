@@ -19,6 +19,7 @@ GRANT SELECT,INSERT,UPDATE ON auth.project_invitations TO "${runtime_role}";
 GRANT SELECT,INSERT,DELETE ON auth.login_states TO "${runtime_role}";
 GRANT SELECT,INSERT,UPDATE ON auth.identities TO "${runtime_role}";
 GRANT SELECT,INSERT,UPDATE,DELETE ON auth.email_challenges TO "${runtime_role}";
+GRANT SELECT,INSERT,DELETE ON auth.known_devices TO "${runtime_role}";
 GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA auth TO "${runtime_role}";
 GRANT USAGE ON SCHEMA work TO "${runtime_role}";
 GRANT SELECT,INSERT ON work.jobs TO "${runtime_role}";

@@ -11,15 +11,19 @@ import org.springframework.beans.factory.ObjectProvider
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 
+/** A session opened by a code, and the token that remembers this browser for the address. */
+data class EmailSignedIn(val session: OpenedSession, val device: String)
+
 /**
  * Sign-in by a six-digit code sent to an address. The code is bound to the browser that asked for it (its challenge
  * token lives in a cookie), valid for ten minutes and five attempts; a new code from the same client replaces that
  * client's previous one. The answers are the same whether or not a person with the address exists: the first valid
  * code creates them.
  *
- * Limits: one code per 30 seconds and five per hour for an address from one client, so someone asking for codes to
- * another person's address from elsewhere neither cancels nor blocks theirs; twenty per address a day from anywhere,
- * which bounds guessing to a hundred attempts a day.
+ * Limits: one code per 30 seconds and five per hour for an address from one client; twenty per address a day,
+ * which bounds guessing to a hundred attempts a day. A browser that once signed in to the address by a code is
+ * remembered for it (a device cookie) and is exempt from the daily limit, so strangers who fill it up by asking for
+ * codes to someone's address neither cancel nor block that person's codes.
  */
 @Component
 @Profile("api")
@@ -33,8 +37,11 @@ class EmailSignIn(
 
     val isAvailable: Boolean get() = mail.ifAvailable != null
 
-    /** Sends a code and returns the challenge token the browser keeps. `client` is the requester's address. */
-    fun start(email: EmailAddress, client: String): String {
+    /**
+     * Sends a code and returns the challenge token the browser keeps. `client` is the requester's address, `device`
+     * the browser's device cookie if it has one.
+     */
+    fun start(email: EmailAddress, client: String, device: String?): String {
         val transport = mail.ifAvailable ?: throw notConfigured()
         val token = Tokens.random()
         val code = Tokens.digits(CODE_LENGTH)
@@ -46,6 +53,12 @@ class EmailSignIn(
                 """
                 DELETE FROM auth.email_challenges WHERE token_hash IN (SELECT token_hash FROM auth.email_challenges
                     WHERE expires_at <= clock_timestamp() - interval '1 day' LIMIT 500)
+                """.trimIndent(),
+            )
+            tx.update(
+                """
+                DELETE FROM auth.known_devices WHERE token_hash IN (SELECT token_hash FROM auth.known_devices
+                    WHERE expires_at <= clock_timestamp() LIMIT 500)
                 """.trimIndent(),
             )
             val pending = tx.row(
@@ -75,8 +88,15 @@ class EmailSignIn(
                 "EMAIL_CODE_LIMIT",
                 "Для этой почты запрошено слишком много кодов. Повторите через час.",
             )
+            val known = device != null && tx.row(
+                """
+                SELECT 1 FROM auth.known_devices
+                WHERE token_hash = $1 AND email = $2 AND expires_at > clock_timestamp()
+                """.trimIndent(),
+                Tokens.sha256Hex(device), email.value,
+            ) != null
             requireCondition(
-                recent.int("today") < CODES_PER_DAY,
+                known || recent.int("today") < CODES_PER_DAY,
                 429,
                 "EMAIL_CODE_LIMIT",
                 "Для этой почты сегодня запрошено слишком много кодов. Повторите завтра.",
@@ -113,8 +133,11 @@ class EmailSignIn(
         return token
     }
 
-    /** Opens a session for the right code; a wrong one uses up an attempt, and the fifth ends the challenge. */
-    fun verify(token: String, code: String): OpenedSession {
+    /**
+     * Opens a session for the right code and remembers the browser for the address (the returned device token); a
+     * wrong code uses up an attempt, and the fifth ends the challenge.
+     */
+    fun verify(token: String, code: String): EmailSignedIn {
         val outcome = database.transaction { tx ->
             val challenge = tx.row(
                 """
@@ -141,10 +164,19 @@ class EmailSignIn(
             )
             val email = challenge.string("email")
             val address = EmailAddress.parse(email) ?: error("Stored address is not normalized")
-            Outcome.Opened(accounts.signIn(tx, ExternalIdentity(ISSUER, email, address.localPart, email)))
+            val session = accounts.signIn(tx, ExternalIdentity(ISSUER, email, address.localPart, email))
+            val device = Tokens.random()
+            tx.update(
+                """
+                INSERT INTO auth.known_devices(token_hash, email, expires_at)
+                VALUES ($1, $2, clock_timestamp() + interval '180 days')
+                """.trimIndent(),
+                Tokens.sha256Hex(device), email,
+            )
+            Outcome.Opened(EmailSignedIn(session, device))
         }
         return when (outcome) {
-            is Outcome.Opened -> outcome.session
+            is Outcome.Opened -> outcome.signedIn
 
             is Outcome.Wrong ->
                 throw ProblemException(400, "EMAIL_CODE_INVALID", "Неверный код. Осталось попыток: ${outcome.left}.")
@@ -170,7 +202,7 @@ class EmailSignIn(
     )
 
     private sealed interface Outcome {
-        data class Opened(val session: OpenedSession) : Outcome
+        data class Opened(val signedIn: EmailSignedIn) : Outcome
 
         data class Wrong(val left: Int) : Outcome
 
@@ -181,6 +213,7 @@ class EmailSignIn(
         /** The issuer of e-mail identities; their subject is the normalized address. */
         const val ISSUER = "urn:sprintique:email"
         const val CODE_LENGTH = 6
+        const val DEVICE_DAYS = 180L
         private const val MAX_ATTEMPTS = 5
         private const val CODES_PER_HOUR = 5
         private const val CODES_PER_DAY = 20

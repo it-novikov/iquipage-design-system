@@ -7,6 +7,7 @@ package com.sprintique.database.schema.auth.indexes
 
 import com.sprintique.database.schema.auth.tables.EmailChallenges
 import com.sprintique.database.schema.auth.tables.Identities
+import com.sprintique.database.schema.auth.tables.KnownDevices
 import com.sprintique.database.schema.auth.tables.ProjectInvitations
 
 import org.jooq.Index
@@ -23,4 +24,5 @@ val EMAIL_CHALLENGES_CLIENT: Index = Internal.createIndex(DSL.name("email_challe
 val EMAIL_CHALLENGES_EMAIL: Index = Internal.createIndex(DSL.name("email_challenges_email"), EmailChallenges.EMAIL_CHALLENGES, arrayOf(EmailChallenges.EMAIL_CHALLENGES.EMAIL, EmailChallenges.EMAIL_CHALLENGES.CREATED_AT), false)
 val EMAIL_CHALLENGES_EXPIRY: Index = Internal.createIndex(DSL.name("email_challenges_expiry"), EmailChallenges.EMAIL_CHALLENGES, arrayOf(EmailChallenges.EMAIL_CHALLENGES.EXPIRES_AT), false)
 val IDENTITIES_PRINCIPAL: Index = Internal.createIndex(DSL.name("identities_principal"), Identities.IDENTITIES, arrayOf(Identities.IDENTITIES.PRINCIPAL_ID), false)
+val KNOWN_DEVICES_EXPIRY: Index = Internal.createIndex(DSL.name("known_devices_expiry"), KnownDevices.KNOWN_DEVICES, arrayOf(KnownDevices.KNOWN_DEVICES.EXPIRES_AT), false)
 val PROJECT_INVITATION_ACTIVE: Index = Internal.createIndex(DSL.name("project_invitation_active"), ProjectInvitations.PROJECT_INVITATIONS, arrayOf(ProjectInvitations.PROJECT_INVITATIONS.PROJECT_ID, ProjectInvitations.PROJECT_INVITATIONS.EXPIRES_AT), false)
