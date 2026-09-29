@@ -9,7 +9,7 @@ branch: feature/public-api-mcp
 base: main
 created: 2026-09-29
 updated: 2026-09-29T21:13:32Z
-links:
+links: https://github.com/it-novikov/iquipage-design-system/pull/27
 ---
 
 # Публичный API и удалённый MCP-сервер Sprintique (api.iqui.page)

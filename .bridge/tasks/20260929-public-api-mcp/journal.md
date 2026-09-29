@@ -47,3 +47,4 @@
 - 2026-09-29T21:13:32Z · claude-opus-5-5 · step · S7 · done: af83d0d R1, 23f2670 R2; npm test 202/202, Kotlin unit 46 + integration 24, verify-vnext PASS (2026-09-29T21-06-30Z); SDK 1.31.0 вручную на стенде с отдельным API-именем
 - 2026-09-29T21:13:32Z · claude-opus-5-5 · checkpoint · - · дальше: Владелец: слияние; перед слиянием — номер миграции 027 после 025/026; прод: SPRINTIQUE_API_ORIGIN и vhost api.iqui.page
 - 2026-09-29T21:13:32Z · claude-opus-5-5 · status · - · review: PR открыт, не слит
+- 2026-09-29T21:14:06Z · claude-opus-5-5 · note · - · PR #27 открыт в main: https://github.com/it-novikov/iquipage-design-system/pull/27 (не слит)
