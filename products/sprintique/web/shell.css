@@ -13,6 +13,19 @@
 .sign-in-divider{display:flex;align-items:center;gap:var(--iq-space-3);color:var(--iq-muted);font-size:var(--iq-type-caption-size)}
 .sign-in-divider::before,.sign-in-divider::after{content:"";flex:1;border-top:1px solid var(--iq-line)}
 .sign-in-dev{justify-self:center}
+/* The OAuth consent screen (consent.js) on the same authentication composition. */
+.consent,.consent-form{display:grid;gap:var(--iq-space-5)}
+.consent-facts{display:grid;gap:var(--iq-space-3);margin:0}
+.consent-facts div{display:grid;gap:var(--iq-space-1)}
+.consent-facts dt{color:var(--iq-muted);font-size:var(--iq-type-caption-size)}
+.consent-facts dd{margin:0;overflow-wrap:anywhere}
+.consent-scopes{display:grid;gap:var(--iq-space-3);margin:0;padding:0;border:0}
+.consent-scopes legend{margin-bottom:var(--iq-space-2);font-weight:600}
+.consent-scope{align-items:flex-start}
+.consent-scope b{display:block}
+.consent-scope small{display:block;color:var(--iq-muted);font-size:var(--iq-type-caption-size)}
+.consent-actions{display:grid;grid-template-columns:1fr 1fr;gap:var(--iq-space-3)}
+@media (max-width:480px){.consent-actions{grid-template-columns:1fr}}
 #sign-in-code{letter-spacing:.3em;font-variant-numeric:tabular-nums}
 /* Product loading look (DS skeletons in .iq-loading): used by sections, Planning groups, map history and settings. */
 .product-loading{padding-block:var(--iq-space-2)}

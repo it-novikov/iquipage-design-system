@@ -20,3 +20,9 @@
 - 2026-09-29T08:39:38Z · claude-opus-5-5 · decision · D3 · Делегированный токен = права человека ∩ скоуп; операции безопасности (агенты, участники, одобрения, токены, пространство) только в интерактивной сессии — иначе токен выпускает себе замену или обходит одобрение человека
 - 2026-09-29T08:39:38Z · claude-opus-5-5 · step · S1 · done: docs/decisions/0003-public-api-mcp.md: модель доступа, AS, MCP, проработка 7 пунктов, альтернативы
 - 2026-09-29T08:39:38Z · claude-opus-5-5 · step · S2 · active
+- 2026-09-29T15:31:16Z · claude-opus-5-5 · checkpoint · S2 · дальше: RequestMetrics.recordTool, ./gradlew compileKotlin, ktlintFormat, detekt
+- 2026-09-29T15:49:38Z · claude-opus-5-5 · step · S2 · done: 5c73db2 миграция+jOOQ; 344fd83 делегированные учётные данные; tests/mcp-oauth.test.ts P05-P07 (скоуп, аудитория, cookie на API-хосте, SESSION_REQUIRED)
+- 2026-09-29T15:49:38Z · claude-opus-5-5 · step · S3 · done: 344fd83; tests/mcp-oauth.test.ts P01-P04, P06 зелёные (7/7); OAuthRulesTest
+- 2026-09-29T15:49:38Z · claude-opus-5-5 · step · S4 · done: 344fd83; P01 полный поток, McpToolSchemaTest
+- 2026-09-29T15:49:38Z · claude-opus-5-5 · step · S5 · active
+- 2026-09-29T15:49:39Z · claude-opus-5-5 · checkpoint · S5 · дальше: web/api-access.js + settings-sections, сборка, проверка в браузере

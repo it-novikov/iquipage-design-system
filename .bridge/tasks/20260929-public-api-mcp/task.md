@@ -8,7 +8,7 @@ owner: it-novikov
 branch: feature/public-api-mcp
 base: main
 created: 2026-09-29
-updated: 2026-09-29T08:39:38Z
+updated: 2026-09-29T15:49:39Z
 links:
 ---
 
@@ -42,9 +42,14 @@ links:
 
 ## Передача
 
-- **Состояние:** Задача заведена, работа не начата.
-- **Дальше:** Уточнить рамки с владельцем и составить план.
-- **Незакоммичено:** нет
+- **Состояние:** Сервер и тесты закоммичены (344fd83), mcp-oauth.test.ts 7/7. Незакоммичено: web/consent.js, main.js (экран согласия)
+- **Сейчас:** S5 — интерфейс согласия и раздел настроек
+- **Дальше:** web/api-access.js + settings-sections, сборка, проверка в браузере
+- **Незакоммичено:** web/consent.js, web/main.js — не собраны
+- **Рабочая копия:** 2 файл(ов): products/sprintique/web/main.js, products/sprintique/web/consent.js (3 files changed, 32 insertions(+), 13 deletions(-)) · HEAD 344fd83
+- **Ловушки:**
+  - Узел по умолчанию v26: для гейтов PATH=/opt/homebrew/opt/node@24/bin:$PATH
+  - TEST_S3_CONFIG=/Users/nvkv71/iquipage-work/ux-ds-20260925/products/sprintique/output/infra/storage.json
 
 ## План
 
@@ -58,35 +63,38 @@ links:
 - **Итог:** docs/decisions/0003-public-api-mcp.md: модель доступа, AS, MCP, проработка 7 пунктов, альтернативы
 - **Модель:** strong
 
-### S2. Миграция и делегированные учётные данные [active]
+### S2. Миграция и делегированные учётные данные [done]
 - **Что:** V20260929000027: OAuth-клиенты, коды, гранты, refresh, события доступа; credentials kind oauth/personal со скоупами и аудиторией; Authentication и ProjectAccess понимают делегирование
 - **Как:** Flyway SQL + afterMigrate гранты + jOOQ regen; Actor.credentialKind/scopes/clientId; cookie на API-хосте не принимаются; SESSION_REQUIRED для операций безопасности
 - **Зачем:** Основа для REST и MCP
 - **Приёмка:**
-  - [ ] Миграция применяется с нуля, дрейф jOOQ нулевой
-  - [ ] Тесты: read-токен не меняет, cookie на API-хосте 401, агентские гранты и одобрения из токена 403
+  - [x] Миграция применяется с нуля, дрейф jOOQ нулевой
+  - [x] Тесты: read-токен не меняет, cookie на API-хосте 401, агентские гранты и одобрения из токена 403
 - **Покрывает:** A2
+- **Итог:** 5c73db2 миграция+jOOQ; 344fd83 делегированные учётные данные; tests/mcp-oauth.test.ts P05-P07 (скоуп, аудитория, cookie на API-хосте, SESSION_REQUIRED)
 - **Модель:** strong
 
-### S3. Сервер авторизации OAuth 2.1 и персональные токены [todo]
+### S3. Сервер авторизации OAuth 2.1 и персональные токены [done]
 - **Что:** Метаданные AS и PRM, DCR, authorize API для согласия, token (code, refresh с ротацией), revoke, подключённые приложения, персональные токены
 - **Как:** identity/application OAuthServer, PersonalTokens; identity/api контроллеры; /api/oauth/* протокольные, /api/v1/* для интерфейса с Zod-контрактами
 - **Зачем:** Claude и другие клиенты подключаются сами, люди управляют доступом
 - **Приёмка:**
-  - [ ] HTTP-тесты: PKCE, redirect exact match, повтор кода и refresh отзывает грант, отзыв
+  - [x] HTTP-тесты: PKCE, redirect exact match, повтор кода и refresh отзывает грант, отзыв
 - **Покрывает:** A3,A4
+- **Итог:** 344fd83; tests/mcp-oauth.test.ts P01-P04, P06 зелёные (7/7); OAuthRulesTest
 - **Модель:** strong
 
-### S4. MCP-сервер [todo]
+### S4. MCP-сервер [done]
 - **Что:** POST /mcp Streamable HTTP stateless: initialize, ping, tools/list, tools/call; инструменты по списку
 - **Как:** mcp/api транспорт JSON-RPC, mcp/application инструменты поверх application-слоёв задач, обсуждений, планирования, карт
 - **Зачем:** Удалённый MCP для Claude
 - **Приёмка:**
-  - [ ] HTTP-тесты инструментов, отказов по скоупу, Origin, версии протокола
+  - [x] HTTP-тесты инструментов, отказов по скоупу, Origin, версии протокола
 - **Покрывает:** A1,A2
+- **Итог:** 344fd83; P01 полный поток, McpToolSchemaTest
 - **Модель:** strong
 
-### S5. Интерфейс: согласие и настройки доступа [todo]
+### S5. Интерфейс: согласие и настройки доступа [active]
 - **Что:** Экран /oauth/authorize на iq-auth-screen, раздел настроек «Доступ приложений»: подключённые приложения и персональные токены
 - **Как:** web/consent.js, web/api-access.js, settings-sections; продолжение после входа через sessionStorage
 - **Зачем:** Человек видит, кому дал доступ, и отзывает его

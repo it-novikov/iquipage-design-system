@@ -2,7 +2,8 @@
 export const settingsGroups=[
  {id:'personal',label:'Для меня',items:[
   {id:'account',label:'Профиль',icon:'user',description:'Так вас видят в задачах, обсуждениях и списке участников.',keywords:'имя профиль роль мой'},
-  {id:'appearance',label:'Внешний вид',icon:'sun',description:'Только для вас и только в этом браузере. Изменения применяются сразу.',keywords:'тема тёмная светлая акцент цвет плотность анимация'}]},
+  {id:'appearance',label:'Внешний вид',icon:'sun',description:'Только для вас и только в этом браузере. Изменения применяются сразу.',keywords:'тема тёмная светлая акцент цвет плотность анимация'},
+  {id:'api-access',label:'Доступ приложений',icon:'bolt',description:'Приложения и скрипты, которые работают от вашего имени: Claude, MCP-клиенты, токены API.',keywords:'api mcp claude токен коннектор приложение oauth доступ'}]},
  {id:'project',label:'Проект',items:[
   {id:'profile',label:'О проекте',icon:'folder',description:'Название, аватар и ссылки на задачи. Видят все участники проекта.',keywords:'название аватар префикс адрес ссылка'},
   {id:'members',label:'Участники',icon:'users',description:'Кто работает в проекте и что может делать.',keywords:'команда роли приглашение ссылка доступ'},
