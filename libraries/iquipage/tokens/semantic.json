@@ -7,7 +7,7 @@
     "palette": {
       "colorSource": "tokens/semantic.json",
       "allCSSHexCentralized": true,
-      "fixedRoles": "Existing 04.8 roles preserved. Task lighting uses explicit per-theme alpha tokens and a neutral base."
+      "fixedRoles": "Wave 1: no fixed-* roles; every colour role has light and dark values, accents live in `accents`, prefers-contrast aliases in `contrast.more`. Task lighting uses explicit per-theme alpha tokens and a neutral base."
     }
   },
   "base": {
