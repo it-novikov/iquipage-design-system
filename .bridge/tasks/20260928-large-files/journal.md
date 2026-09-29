@@ -41,3 +41,8 @@
 - 2026-09-29T08:43:07Z · claude-opus-5-5 · note · A7 · критерий приёмки выполнен
 - 2026-09-29T08:49:46Z · claude-opus-5-5 · checkpoint · S5 · дальше: Разобрать R1, исправить P0/P1, повторить гейты, push и PR
 - 2026-09-29T08:50:11Z · claude-opus-5-5 · status · - · review: Гейты зелёные; ревью R1 (независимый субагент) ещё идёт
+- 2026-09-29T21:04:25Z · claude-opus-5-5 · step · S5 · done: b59c028: verify-vnext все этапы PASS (Node 24, TEST_S3_CONFIG Garage, source-stability PASS, отпечаток 46dad0b30b4a); продукт 198/198 и отделяемый 198/198 без пропусков; Kotlin 51 unit + 24 integration без пропусков; ревью R1–R3 закрыты, P0/P1 нет; откат 026 проверен
+- 2026-09-29T21:04:25Z · claude-opus-5-5 · note · A8 · критерий приёмки выполнен
+- 2026-09-29T21:04:32Z · claude-opus-5-5 · decision · D6 · Скачивание оригинала отдаётся с Connection: close — сбой после первых байтов закрывает соединение сразу, а не через keep-alive 15 с или proxy_read_timeout nginx; у nginx нет keepalive к API, поэтому в production это ничего не стоит
+- 2026-09-29T21:04:32Z · claude-opus-5-5 · checkpoint · S5 · дальше: Владелец: слить PR #25 (V…025), затем PR #26; после слияния поднять client_max_body_size и таймауты в deploy/vps/nginx.conf
+- 2026-09-29T21:04:44Z · claude-opus-5-5 · checkpoint · - · контрольная точка
