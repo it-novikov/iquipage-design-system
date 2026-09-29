@@ -203,7 +203,7 @@
     "white": "#FFFFFF",
     "task-critical-surface": "#FFF3F5",
     "task-high-surface": "#FFF6E8",
-    "task-critical-text": "#B11934",
+    "task-critical-text": "#9E1530",
     "task-high-text": "#85500B",
     "task-epic-text": "#773391",
     "task-neutral-surface": "#FFFFFF",
@@ -471,6 +471,20 @@
         "accent-soft": "#132E26",
         "focus": "#78D9B5"
       }
+    }
+  },
+  "contrast": {
+    "more": {
+      "line": "var(--iq-line-strong)",
+      "raised-edge": "var(--iq-line-strong)",
+      "graph-node-border": "var(--iq-line-strong)",
+      "field-line": "var(--iq-line-strong)",
+      "control": "var(--iq-line-strong)",
+      "muted": "var(--iq-ink)",
+      "subtle": "var(--iq-ink)",
+      "faint": "var(--iq-ink)",
+      "disabled-ink": "var(--iq-muted)",
+      "task-light-meta": "var(--iq-ink)"
     }
   },
   "primitives": {

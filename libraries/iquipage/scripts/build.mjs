@@ -16,7 +16,9 @@ const darkOnly=Object.fromEntries(Object.entries(tokens.dark).filter(([k,v])=>to
 const accentCSS=Object.entries(tokens.accents||{}).map(([name,themes])=>block(`:root[data-accent="${name}"]`,themes.light)+block(`[data-theme="dark"][data-accent="${name}"]`,themes.dark)+`@media (prefers-color-scheme: dark){\n${block(`:root:not([data-theme="light"])[data-accent="${name}"]`,themes.dark)}}\n`).join('');
 const tokenCSS=`/* Generated from tokens/semantic.json. */\n${block(':root',{...tokens.base,...tokens.light})}${block('[data-theme="dark"]',darkOnly)}`
  // COL-11 / ENG-14: a document without data-theme follows the system colour scheme.
- +`@media (prefers-color-scheme: dark){\n${block(':root:not([data-theme="light"])',{...darkOnly,'color-scheme':'dark'}).replace('  --iq-color-scheme: dark;','  color-scheme: dark;')}}\n`+accentCSS;
+ +`@media (prefers-color-scheme: dark){\n${block(':root:not([data-theme="light"])',{...darkOnly,'color-scheme':'dark'}).replace('  --iq-color-scheme: dark;','  color-scheme: dark;')}}\n`+accentCSS
+ // COL-12: prefers-contrast: more strengthens lines and secondary text through aliases that resolve per theme.
+ +(tokens.contrast&&tokens.contrast.more?`@media (prefers-contrast: more){\n${block(':root',tokens.contrast.more)}}\n`:'');
 await save('tokens/tokens.css',tokenCSS);
 // ENG-14: the theme boot ships as a plain script (dist/theme-boot.js) and is inlined into the catalogs' <head>.
 const themeBoot=(await read('src/theme-boot.js')).replace(/\/\*[\s\S]*?\*\/\s*/,'');
