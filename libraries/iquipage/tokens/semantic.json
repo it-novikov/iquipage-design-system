@@ -1,7 +1,7 @@
 {
   "meta": {
     "name": "IQUIPAGE Design System",
-    "version": "0.6.0-vnext.22",
+    "version": "0.6.0-vnext.23",
     "status": "source-owned-library",
     "basis": "Approved 05.6 foundation; repaired workshop, capture, tooltips, shapes and connections",
     "palette": {
@@ -118,6 +118,7 @@
     "subtle": "#676A72",
     "line": "#DDDFE3",
     "control": "#81858D",
+    "field-line": "#81858D",
     "accent": "#2453CC",
     "accent-fill": "#2453CC",
     "accent-soft": "#EDF2FF",
@@ -144,7 +145,7 @@
     "on-danger": "#FFFFFF",
     "focus-fill": "#E9EDFA",
     "focus-text": "#172B65",
-    "faint": "#9898A3",
+    "faint": "#75767F",
     "hover": "#E9EBF0",
     "primary-hover": "#FFFFFF",
     "line-strong": "#72727D",
@@ -278,7 +279,7 @@
     "wb-sky": "#DCEAF9",
     "wb-rose": "#F8DDE4",
     "wb-note-ink": "#29252D",
-    "wb-shape-line": "#A1A5AE",
+    "wb-shape-line": "#7D828C",
     "wb-edge": "#717782",
     "wb-object-shadow": "0 2px 3px #1118280A, 0 8px 18px #11182807",
     "wb-lasso": "#2453CC12",
@@ -313,6 +314,7 @@
     "subtle": "#A3A7AF",
     "line": "#343438",
     "control": "#737984",
+    "field-line": "#737984",
     "accent": "#A9C1FF",
     "accent-fill": "#2453CC",
     "accent-soft": "#202D47",

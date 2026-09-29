@@ -2,13 +2,13 @@
 bridge: 1
 id: 20260928-ds-self-hosted-fonts
 title: "DS: самостоятельная поставка Inter (0.6.0-vnext.22)"
-status: review
+status: done
 risk: standard
 owner: it-novikov
 branch: feature/ds-self-hosted-fonts
 base: main
 created: 2026-09-28
-updated: 2026-09-28T22:54:23Z
+updated: 2026-09-28T22:58:59Z
 links:
 ---
 

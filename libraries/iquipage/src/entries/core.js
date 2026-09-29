@@ -37,6 +37,8 @@ export const parseTime=m4.parseTime;
 export const formatDate=m4.formatDate;
 export const formatDateTime=m4.formatDateTime;
 export const formatDateRange=m4.formatDateRange;
+export const plural=m4.plural;
+export const count=m4.count;
 export const bindBoard=m5.bindBoard;
 export const IqFilePreview=m6.IqFilePreview;
 export const configurePDFPreviews=m6.configurePDFPreviews;
@@ -85,7 +87,7 @@ export const registerSettings=settings.registerSettings;
 import relationMap from './modules/relation-map.js';
 export const IqRelationMap=relationMap.IqRelationMap;
 export const registerRelationMap=relationMap.registerRelationMap;
-export const version='0.6.0-vnext.22';
+export const version='0.6.0-vnext.23';
 export function registerCore(){
  registerAuthDialog();registerAuthScreen();registerSettings();registerRelationMap();registerComponents();registerDateFields();registerEditors();registerPagination();registerStructured();registerSideNavigation();registerWorkHeader();registerMarkdownViewer();registerWorkLayout();
  if(!customElements.get('iq-file-preview'))customElements.define('iq-file-preview',IqFilePreview);

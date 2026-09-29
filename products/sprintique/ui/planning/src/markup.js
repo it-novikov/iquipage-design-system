@@ -1,7 +1,7 @@
-import {ui,icon,escapeHTML as esc,taskEmphasis,taskSignal,formatDate} from '@iquipage/web/core';
+import {ui,icon,escapeHTML as esc,taskEmphasis,taskSignal,formatDate,plural as pluralForms} from '@iquipage/web/core';
 export {ui,icon,esc};
 import {loadingMarkup} from '../../src/loading.js';
-export const plural=(n,one,few,many)=>{const d=n%10,h=n%100;return d===1&&h!==11?one:d>=2&&d<=4&&(h<12||h>14)?few:many;};
+export const plural=(n,one,few,many)=>pluralForms(n,{one,few,many});
 /** Status tones follow meaning: work in progress is info, waiting for someone is warning, done is success. */
 const STATUS_TONE={'Готово к работе':'neutral','В работе':'info','На проверке':'warning','К тестированию':'planned','Тестирование':'planned','Готово к релизу':'success','Принята':'success'};
 const pad=n=>String(n).padStart(2,'0');

@@ -18,6 +18,17 @@ example demonstrates the form, not just a provider redirect. The Keycloak login 
 shipped from vnext.9 to vnext.20 was removed in vnext.21: no product uses an external
 identity provider's form any more.
 
+## Wave 0: quality gates and cheap P1 fixes (0.6.0-vnext.23)
+
+- **Gates that only ratchet down.** `npm test` now runs three gates with baselines in `scripts/gates/*-baseline.json`: a WCAG contrast matrix over the tokens (both themes, the three accents; 130 pairs each), counters of raw CSS values (px font sizes, sizes below 12px, raw hex, radii, durations, z-index, `!important`, `transition: all`) and gzip sizes of the core closure, the CSS and the icon module. A regression turns the test red; after a deliberate cleanup `npm run gates:update` shrinks the baselines. `.browserslistrc` states the baseline: last two Chrome, Edge and Firefox, Safari and iOS 16.4+.
+- **Toasts are announced.** `notify()` keeps two permanent live regions in `#iq-toasts` (polite status and an alert for `danger`) and writes the message, description and action label into them; a toast with an `action` no longer auto-dismisses unless a `duration` is passed.
+- **Targets and focus.** The board drag handle is 24×26, tag remove buttons and the tag-picker × are 24×24 (visible on coarse pointers without hover), roadmap handles have a 24px hit area; `.iq-search-small`, `.iq-command-input` and `.iq-select-search` show the focus ring.
+- **Dark theme borders.** New `--iq-field-line` (3.2:1 light, 4.3:1 dark) for fields, selects and date triggers; `.iq-btn.secondary` keeps a visible border in the dark theme; `.iq-badge.outline` uses `--iq-line-strong`; light `--iq-faint` is 4.5:1 on the canvas and `--iq-wb-shape-line` 3.7:1 on the whiteboard.
+- **Drops are never lost.** `board-motion.js` calls `onDrop` at release and animates the landing afterwards; Escape, `pointercancel`, a tab switch or dispose during the 280 ms landing keep the drop. The click right after release is swallowed once.
+- **No Popover API, no crash.** `iq-menu` falls back to `[hidden]` toggling where `showPopover` is missing (Safari 16, Firefox < 125).
+- **No CDN by default.** PDF previews render only when the host configures `configurePDFPreviews(renderer | {pdfjsUrl, workerUrl})`; otherwise the placeholder tile with "open original".
+- **One plural.** `plural(n, forms, locale)` and `count(n, forms, locale)` on `Intl.PluralRules` are exported from core; the twelve hand-rolled sites («Удалить 5 задачи?») use them. The file-sample caption typo is fixed.
+
 ## Self-hosted Inter (0.6.0-vnext.22)
 
 The package now ships its font: `assets/fonts/InterVariable.woff2` (Inter 4.1, SIL OFL 1.1, weight axis 400–700, optical-size axis 14–32, Latin and Cyrillic; 109 KB) with `tokens/fonts.css`, exported as `@iquipage/web/fonts.css` and prepended to `styles.css`. The optical-size axis is what "Inter Display" was: `--iq-display` keeps its name and resolves to the same file. `--iq-font` and `--iq-display` gain an "Inter Fallback" face (Arial with Inter's metrics), so the swap moves nothing. The catalogs preload the file and no longer load Google Fonts. Consumers add `<link rel="preload" as="font" type="font/woff2" crossorigin href="<resolved url of assets/fonts/InterVariable.woff2>">` to their document head; Vite resolves the `url()` inside `styles.css` itself. See `assets/fonts/README.md` for provenance and the rebuild command.

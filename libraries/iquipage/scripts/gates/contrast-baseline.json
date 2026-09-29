@@ -1,0 +1,183 @@
+{
+  "note": "Pairs failing WCAG 2 today (COL-14 ratchet). Regenerate only after a deliberate cleanup: npm run gates:update.",
+  "source": "tokens/semantic.json 0.6.0-vnext.23",
+  "thresholds": {
+    "text": 4.5,
+    "large": 3,
+    "ui": 3,
+    "disabled": 3
+  },
+  "pairs": 130,
+  "evaluated": 320,
+  "failing": 28,
+  "entries": {
+    "light/default/faint / surface": {
+      "ratio": 4.14,
+      "threshold": 4.5,
+      "fg": "#75767F",
+      "bg": "#F5F5F7"
+    },
+    "light/default/faint / recessed": {
+      "ratio": 3.85,
+      "threshold": 4.5,
+      "fg": "#75767F",
+      "bg": "#EBEDF0"
+    },
+    "light/default/success-fill / canvas (ui)": {
+      "ratio": 2.52,
+      "threshold": 3,
+      "fg": "#2CB88A",
+      "bg": "#FFFFFF"
+    },
+    "light/default/warning-fill / canvas (ui)": {
+      "ratio": 1.78,
+      "threshold": 3,
+      "fg": "#FFB343",
+      "bg": "#FFFFFF"
+    },
+    "light/default/focus / accent-fill (ring on accent btn)": {
+      "ratio": 1,
+      "threshold": 3,
+      "fg": "#2453CC",
+      "bg": "#2453CC"
+    },
+    "light/violet/focus / accent-fill (ring on accent btn)": {
+      "ratio": 1,
+      "threshold": 3,
+      "fg": "#6236B6",
+      "bg": "#6236B6"
+    },
+    "light/green/focus / accent-fill (ring on accent btn)": {
+      "ratio": 1,
+      "threshold": 3,
+      "fg": "#087554",
+      "bg": "#087554"
+    },
+    "light/default/focus / primary (ring on primary btn)": {
+      "ratio": 2.55,
+      "threshold": 3,
+      "fg": "#2453CC",
+      "bg": "#1D1D1F"
+    },
+    "light/violet/focus / primary (ring on primary btn)": {
+      "ratio": 2.18,
+      "threshold": 3,
+      "fg": "#6236B6",
+      "bg": "#1D1D1F"
+    },
+    "light/green/focus / primary (ring on primary btn)": {
+      "ratio": 2.95,
+      "threshold": 3,
+      "fg": "#087554",
+      "bg": "#1D1D1F"
+    },
+    "light/default/line / canvas (ui)": {
+      "ratio": 1.33,
+      "threshold": 3,
+      "fg": "#DDDFE3",
+      "bg": "#FFFFFF"
+    },
+    "light/default/line / surface (ui)": {
+      "ratio": 1.23,
+      "threshold": 3,
+      "fg": "#DDDFE3",
+      "bg": "#F5F5F7"
+    },
+    "light/default/line / raised (ui)": {
+      "ratio": 1.33,
+      "threshold": 3,
+      "fg": "#DDDFE3",
+      "bg": "#FFFFFF"
+    },
+    "light/default/disabled btn.primary: on-primary@45% / primary@45% over canvas": {
+      "ratio": 2.84,
+      "threshold": 3,
+      "fg": "#FFFFFF",
+      "bg": "#99999A"
+    },
+    "light/default/disabled ghost/secondary: ink@45% / canvas": {
+      "ratio": 2.84,
+      "threshold": 3,
+      "fg": "#99999A",
+      "bg": "#FFFFFF"
+    },
+    "light/default/disabled option: ink@40% / raised": {
+      "ratio": 2.47,
+      "threshold": 3,
+      "fg": "#A5A5A5",
+      "bg": "#FFFFFF"
+    },
+    "light/default/disabled calendar day: ink@30% / raised": {
+      "ratio": 1.91,
+      "threshold": 3,
+      "fg": "#BBBBBC",
+      "bg": "#FFFFFF"
+    },
+    "light/default/graph-node-border / graph-node (ui)": {
+      "ratio": 1.33,
+      "threshold": 3,
+      "fg": "#DDDFE3",
+      "bg": "#FFFFFF"
+    },
+    "dark/default/accent-fill / canvas (ui)": {
+      "ratio": 2.94,
+      "threshold": 3,
+      "fg": "#2453CC",
+      "bg": "#0D0D0F"
+    },
+    "dark/violet/accent-fill / canvas (ui)": {
+      "ratio": 2.52,
+      "threshold": 3,
+      "fg": "#6236B6",
+      "bg": "#0D0D0F"
+    },
+    "dark/default/focus / primary (ring on primary btn)": {
+      "ratio": 1.63,
+      "threshold": 3,
+      "fg": "#A9C1FF",
+      "bg": "#F4F4F6"
+    },
+    "dark/violet/focus / primary (ring on primary btn)": {
+      "ratio": 1.94,
+      "threshold": 3,
+      "fg": "#BDA5F5",
+      "bg": "#F4F4F6"
+    },
+    "dark/green/focus / primary (ring on primary btn)": {
+      "ratio": 1.54,
+      "threshold": 3,
+      "fg": "#78D9B5",
+      "bg": "#F4F4F6"
+    },
+    "dark/default/line / canvas (ui)": {
+      "ratio": 1.57,
+      "threshold": 3,
+      "fg": "#343438",
+      "bg": "#0D0D0F"
+    },
+    "dark/default/line / surface (ui)": {
+      "ratio": 1.46,
+      "threshold": 3,
+      "fg": "#343438",
+      "bg": "#161618"
+    },
+    "dark/default/line / raised (ui)": {
+      "ratio": 1.31,
+      "threshold": 3,
+      "fg": "#343438",
+      "bg": "#202023"
+    },
+    "dark/default/disabled calendar day: ink@30% / raised": {
+      "ratio": 2.59,
+      "threshold": 3,
+      "fg": "#606063",
+      "bg": "#202023"
+    },
+    "dark/default/graph-node-border / graph-node (ui)": {
+      "ratio": 1.31,
+      "threshold": 3,
+      "fg": "#343438",
+      "bg": "#202023"
+    }
+  }
+}

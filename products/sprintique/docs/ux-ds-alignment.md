@@ -1,6 +1,6 @@
 # UX and design-system alignment (September 2026)
 
-Private DS **0.6.0-vnext.22**. It covers the component audit of the whole Sprintique UI and the changes the owner approved.
+Private DS **0.6.0-vnext.23**. It covers the component audit of the whole Sprintique UI and the changes the owner approved.
 
 ## Owner decisions
 
@@ -11,12 +11,13 @@ Private DS **0.6.0-vnext.22**. It covers the component audit of the whole Sprint
 | Assignee | Only a current human project member can be the assignee. |
 | Board admission | The rule stays the same. The board explains tasks that are waiting for a planned release. |
 
-## Design system (vnext.3 → vnext.22)
+## Design system (vnext.3 → vnext.23)
 
 - **vnext.3:** the R3 work list is a public entry. Tag tones have light and dark tokens. The type scale is tokenised. Dense surfaces get public variants. The keyboard focus ring is visible. The map canvas no longer collapses when the object library is open.
 - **vnext.4:** on coarse pointers, buttons, section links, selects and checkboxes are 44px (`touch.css`, loaded last). Escape closes the map object library.
 - **vnext.5:** `ui.menu` takes `{section}` labels, which keyboard navigation skips. Long menus scroll. Compact selects are 44px on touch screens.
 - **vnext.20:** drawers slide in opaque while the backdrop fades (and slide out on close), so opening a task no longer blinks; the property grid keeps two columns from 272px; `.iq-discussion-new-count` and `.iq-thread-actions-group`; whiteboard connectors end in the filled notched arrowhead of the template previews.
+- **vnext.23 (wave 0 of the production plan):** ratchet gates in the DS `npm test` (contrast matrix, raw CSS values, gzip sizes); toasts write into permanent live regions and toasts with an action stay until dismissed; drag handle, tag × and roadmap handles are 24px targets; search fields show focus; `--iq-field-line` and a visible dark secondary border; `plural()`/`count()` on `Intl.PluralRules` in core (the product's five local copies moved to it); the board drop is committed at release, so Escape during the landing no longer loses it; `iq-menu` works without the Popover API; PDF previews no longer load pdf.js from a CDN by default.
 - **vnext.22:** the package ships Inter itself (`assets/fonts/InterVariable.woff2`, Inter 4.1, OFL, weight 400–700, optical size 14–32, Latin and Cyrillic, 109 KB) and `styles.css` starts with its `@font-face`, so the product renders in Inter for the first time instead of the system font; «Inter Display» is the optical-size axis of the same file; an «Inter Fallback» face (Arial with Inter metrics) keeps the swap from moving the layout. Vite hashes the file and links it from the CSS chunk; no font CDN is used.
 - **vnext.21:** `--iq-success-bg` and `--iq-warning-bg` became tints, so soft success and warning badges, alert emblems and toast icons are readable in both themes (the planning list no longer overrides them); the Keycloak login theme left the package.
 - **vnext.19:** after a sixth council (product designer, UX researcher and product manager on discussions; art director, product designer and motion designer on properties, covers and template previews):

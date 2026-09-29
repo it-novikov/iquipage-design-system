@@ -242,3 +242,18 @@ function formatDateRange(start, end, options = {}) {
     const a = formatDate(start, options), b = formatDate(end, options);
     return a && b ? `${a} – ${b}` : a ? `с ${a}` : b ? `до ${b}` : '';
 }
+/** Counters agree with their number: 1 задача, 2 задачи, 5 задач, 21 задача, 11 задач.
+ *  The category comes from Intl.PluralRules, so a second language only brings its own forms
+ *  ({ one, other } is enough for English). A form that is missing falls back to `other`, then `many`. */
+const pluralRules = new Map(), numberFormats = new Map();
+const cached = (store, locale, make) => store.get(locale) || store.set(locale, make(locale)).get(locale);
+function plural(n, forms, locale = 'ru') {
+    const category = Number.isFinite(n) ? cached(pluralRules, locale, l => new Intl.PluralRules(l)).select(n) : 'other';
+    return forms[category] ?? forms.other ?? forms.many ?? forms.one ?? '';
+}
+/** "5 задач", "1 234 объекта": the number is formatted for the locale as well. */
+function count(n, forms, locale = 'ru') {
+    return `${cached(numberFormats, locale, l => new Intl.NumberFormat(l)).format(n)} ${plural(n, forms, locale)}`;
+}
+exports.plural = plural;
+exports.count = count;
