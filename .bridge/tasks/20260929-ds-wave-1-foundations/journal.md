@@ -1,0 +1,24 @@
+# Журнал 20260929-ds-wave-1-foundations
+
+- 2026-09-29T08:21:17Z · claude · create · - · DS волна 1 «Основания»: тема на ролях, движение, rem-шкала
+- 2026-09-29T08:21:17Z · claude · claim · - · взял задачу
+- 2026-09-29T08:21:17Z · claude · note · A1 · критерий приёмки: A1. Тёмная тема через роли: --iq-fixed-* заменены семантическими ролями с per-theme значениями, dark-патчи в компонентах убраны, акценты в semantic.json и генерируются, prefers-color-scheme fallback и theme-boot.js, prefers-contrast; контрастный гейт: 0 провалов в обеих темах и трёх акцентах кроме задокументированных disabled
+- 2026-09-29T08:21:17Z · claude · note · A2 · критерий приёмки: A2. Статусы без опоры на цвет: значки в бейджах success/danger, формы маркеров в графиках, planned отделён от info; disabled без opacity; двойное кольцо фокуса; dark-тени и кромки
+- 2026-09-29T08:21:17Z · claude · note · A3 · критерий приёмки: A3. Одна стратегия reduced motion (:root[data-motion=reduced] и media → токены 0ms), все длительности и кривые через токены, подавление переходов при смене темы, симметрия входа/выхода, политика skeleton; стилевой гейт: duration-raw 0
+- 2026-09-29T08:21:17Z · claude · note · A4 · критерий приёмки: A4. Шкала текста в rem, floor 12px в компонентных селекторах (гейт font-size-below-12px = 0 для компонентов), медиазапросы не уменьшают текст, кириллический интерлиньяж и трекинг токенами, hyphens для :lang(ru), text-size-adjust; codemod-скрипты в scripts/codemods
+- 2026-09-29T08:21:17Z · claude · note · A5 · критерий приёмки: A5. Версия 0.6.0-vnext.24, changelog, гейты обновлены, оба npm test и полный гейт продукта зелёные, продукт принял релиз; визуальный QA каталога в Inter в обеих темах
+- 2026-09-29T08:23:29Z · claude · note · S1 · добавлен шаг: Цвет и тема на ролях
+- 2026-09-29T08:23:29Z · claude · note · S2 · добавлен шаг: Типографика: rem-шкала codemod
+- 2026-09-29T08:23:29Z · claude · note · S3 · добавлен шаг: Движение: одна стратегия и токены
+- 2026-09-29T08:23:29Z · claude · note · S4 · добавлен шаг: Интеграция: слить цвет, переиграть codemods, релиз vnext.24, продукт, QA
+- 2026-09-29T08:23:29Z · claude · step · S1 · active
+- 2026-09-29T08:23:29Z · claude · checkpoint · - · дальше: S4 интеграция
+- 2026-09-29T08:47:14Z · claude · step · S1 · done: три потока слиты; codemods переиграны; библиотека 366/366; contrast gate: 14 остаточных пар (line декоративная, fills как глифы, disabled календаря)
+- 2026-09-29T08:47:14Z · claude · step · S2 · done: type-scale codemod: 1204 правок, font-size-px 0, below-12px 0, ≥24px адаптив сохранён
+- 2026-09-29T08:47:14Z · claude · step · S3 · done: motion-tokens codemod: duration-raw 0, одна стратегия reduced motion, motionReduced/motionMs/withoutTransitions/bindLoading
+- 2026-09-29T08:47:15Z · claude · step · S4 · active
+- 2026-09-29T08:47:15Z · claude · note · A1 · критерий приёмки выполнен
+- 2026-09-29T08:47:15Z · claude · note · A2 · критерий приёмки выполнен
+- 2026-09-29T08:47:15Z · claude · note · A3 · критерий приёмки выполнен
+- 2026-09-29T08:47:15Z · claude · note · A4 · критерий приёмки выполнен
+- 2026-09-29T08:47:15Z · claude · checkpoint · - · дальше: после гейта: A5, статус review
