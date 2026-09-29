@@ -3,7 +3,7 @@ import {loadingMarkup} from '../../src/loading.js';
 import {select} from '../../src/ui.js';
 import {entryDialog,postDialog,voidDialog,currencyDialog,entryDetails} from './dialogs.js';
 import {formatMoney,currencyName,currencySymbol,addMinor} from './money.js';
-import {PERIODS,STATE_FILTERS,DIRECTION_FILTERS,entryStatus,entryContext,formatDate,formatMonth,plural,ledgerQuery,periodRange} from './model.js';
+import {PERIODS,STATE_FILTERS,DIRECTION_FILTERS,entryStatus,entryContext,formatDate,formatMonth,plural,ledgerQuery,periodRange,projectToday} from './model.js';
 
 const PAGE=50;
 const ENTRY_ROUTE=/^#finance\/([A-Za-z0-9_-]{1,100})$/;
@@ -34,7 +34,7 @@ export async function mountFinance(root,{repository,project,viewState={}}){
     <section class="fin-totals" data-totals aria-label="Итоги за период"></section>
     <div data-ledger><div class="iq-work-toolbar fin-toolbar"><div class="iq-work-toolbar-group">
       ${segmented('Статус операций','data-state',STATE_FILTERS,view.state)}${segmented('Направление','data-direction',DIRECTION_FILTERS,view.direction)}</div></div>
-      <div class="iq-work-data fin-ledger" data-list aria-live="polite"></div><div class="iq-work-footer fin-footer" data-footer hidden></div></div>
+      <div class="iq-work-data fin-ledger" data-list></div><div class="iq-work-footer fin-footer" data-footer hidden></div></div>
     <div class="fin-summary" data-summary hidden></div><p class="sr-only" role="status" data-live></p></section>`;
   const q=selector=>root.querySelector(selector);
   const announce=text=>{const live=q('[data-live]');live.textContent='';requestAnimationFrame(()=>{live.textContent=text;});};
@@ -46,28 +46,41 @@ export async function mountFinance(root,{repository,project,viewState={}}){
     element.addEventListener('iq-close',()=>{if(modal===element){modal=null;modalHasForm=false;}},{once:true});
     return element;
   }
-  const categories=()=>[...new Set((summary?.categories||[]).map(c=>c.category))].sort((a,b)=>a.localeCompare(b,'ru'));
+  /** "Today" in the project's time zone, as planning reads it. */
+  const today=()=>projectToday(settings?.timeZone);
+  /** Suggestions are every category the project used, whatever period is on screen. */
+  let allCategories=null;
+  const categoryNames=list=>[...new Set((list||[]).map(c=>c.category))].sort((a,b)=>a.localeCompare(b,'ru'));
+  async function categories(){
+    if(view.period==='all')return categoryNames(summary?.categories);
+    allCategories??=api.request('/finance-summary','GET',undefined,undefined,abort.signal).then(all=>categoryNames(all.categories)).catch(()=>categoryNames(summary?.categories));
+    return allCategories;
+  }
   const currencies=()=>(summary?.currencies||[]).map(c=>c.currencyCode);
 
   /** Settings, totals and the first page, read together for the current filter and period. */
-  async function load(){
-    const ticket=++generation;error='';
+  async function load({announceResult=false}={}){
+    const ticket=++generation;error='';allCategories=null;
     if(!entries.length)q('[data-list]').innerHTML=loadingMarkup('Загружаем операции…',{rows:5});
     try{
-      const {from,to}=periodRange(view.period),range=new URLSearchParams();if(from)range.set('from',from);if(to)range.set('to',to);
-      const [nextSettings,nextSummary,page]=await Promise.all([
-        api.request('/finance-settings','GET',undefined,undefined,abort.signal),
+      // The settings carry the project's time zone, which the period is read in.
+      const nextSettings=await api.request('/finance-settings','GET',undefined,undefined,abort.signal);
+      const day=projectToday(nextSettings.timeZone),{from,to}=periodRange(view.period,day),range=new URLSearchParams();
+      if(from)range.set('from',from);if(to)range.set('to',to);
+      const [nextSummary,page]=await Promise.all([
         api.request('/finance-summary'+(range.size?'?'+range:''),'GET',undefined,undefined,abort.signal),
-        api.request('/finance-entries?'+ledgerQuery({...view,limit:PAGE}),'GET',undefined,undefined,abort.signal)
+        api.request('/finance-entries?'+ledgerQuery({...view,limit:PAGE},day),'GET',undefined,undefined,abort.signal)
       ]);
       if(disposed||ticket!==generation)return;
       settings=nextSettings;summary=nextSummary;entries=page.items;total=page.total;cursor=page.nextCursor;
     }catch(failure){if(disposed||abort.signal.aborted||ticket!==generation)return;error=failure.message||'Сервис недоступен.';}
     render();
+    // The list itself is not a live region: a person hears the outcome of what they asked for, not every refresh.
+    if(announceResult)announce(error?'Не удалось загрузить операции':total?`Найдено ${total} ${plural(total,['операция','операции','операций'])}`:'Операций нет');
   }
   async function loadMore(){
     if(!cursor||loadingMore)return;loadingMore=true;const ticket=generation;render();
-    try{const page=await api.request('/finance-entries?'+ledgerQuery({...view,limit:PAGE,cursor}),'GET',undefined,undefined,abort.signal);
+    try{const page=await api.request('/finance-entries?'+ledgerQuery({...view,limit:PAGE,cursor},today()),'GET',undefined,undefined,abort.signal);
       if(disposed||ticket!==generation)return;entries=[...entries,...page.items];total=page.total;cursor=page.nextCursor;announce(`Показано ${entries.length} из ${total}`);}
     catch(failure){if(!disposed&&ticket===generation)notify({tone:'danger',message:'Не удалось загрузить операции',description:failure.message});}
     finally{loadingMore=false;if(!disposed)render();}
@@ -100,7 +113,7 @@ export async function mountFinance(root,{repository,project,viewState={}}){
     }).join('');
   }
   function row(entry){
-    const status=entryStatus(entry),context=entryContext(entry);
+    const status=entryStatus(entry,today()),context=entryContext(entry);
     return `<tr data-entry="${esc(entry.id)}" data-state="${entry.state}"><td><div class="iq-work-row-title"><a href="#finance/${esc(entry.id)}" data-open-entry="${esc(entry.id)}">${esc(entry.description)}</a>${context?`<span class="fin-row-meta">${esc(context)}</span>`:''}</div></td>
       <td data-column="date"><time datetime="${esc(entry.entryDate)}">${esc(formatDate(entry.entryDate))}</time></td>
       <td data-column="status"><span class="iq-badge soft ${status.tone}">${esc(status.label)}</span></td>
@@ -127,14 +140,14 @@ export async function mountFinance(root,{repository,project,viewState={}}){
     const target=q('[data-summary]');
     if(!summary||error){target.innerHTML='';return;}
     if(!summary.currencies.length){target.innerHTML=`<div class="iq-empty compact"><h3>Сводка пуста</h3><p>За выбранный период нет операций.</p></div>`;return;}
-    const byCurrency=code=>summary.months.filter(m=>m.currencyCode===code);
+    const byCurrency=code=>summary.months.filter(m=>m.currencyCode===code),several=summary.currencies.length>1;
     const number=(value,code)=>`<td class="fin-num">${esc(formatMoney(value,code))}</td>`;
     const months=summary.currencies.map(({currencyCode:code})=>`<section class="iq-section fin-summary-section" aria-labelledby="fin-months-${esc(code)}"><header class="iq-section-head">${icon('calendar',17)}<h3 id="fin-months-${esc(code)}">По месяцам${summary.currencies.length>1?', '+esc(code):''}</h3></header>
       <div class="iq-table-wrap"><table class="iq-table fin-summary-table"><caption class="sr-only">Поступления и расходы по месяцам</caption><thead><tr><th scope="col">Месяц</th><th scope="col" class="fin-num">Поступило</th><th scope="col" class="fin-num">Потрачено</th><th scope="col" class="fin-num">Итог месяца</th><th scope="col" class="fin-num">Ожидается поступлений</th><th scope="col" class="fin-num">Ожидается расходов</th></tr></thead>
       <tbody>${byCurrency(code).map(m=>`<tr><th scope="row">${esc(formatMonth(m.month))}</th>${number(m.postedIncome,code)}${number(m.postedExpense,code)}${number(addMinor(m.postedIncome,'-'+m.postedExpense),code)}${number(m.plannedIncome,code)}${number(m.plannedExpense,code)}</tr>`).join('')}</tbody></table></div></section>`).join('');
     const categories=`<section class="iq-section fin-summary-section" aria-labelledby="fin-categories"><header class="iq-section-head">${icon('palette',17)}<h3 id="fin-categories">По категориям</h3><span class="iq-section-count">${summary.categories.length}</span></header>
-      <div class="iq-table-wrap"><table class="iq-table fin-summary-table"><caption class="sr-only">Суммы по категориям</caption><thead><tr><th scope="col">Категория</th><th scope="col">Направление</th><th scope="col" class="fin-num">Проведено</th><th scope="col" class="fin-num">Ожидается</th></tr></thead>
-      <tbody>${summary.categories.map(c=>`<tr><th scope="row">${esc(c.category)}</th><td>${c.direction==='income'?'Доход':'Расход'}</td>${number(c.posted,c.currencyCode)}${number(c.planned,c.currencyCode)}</tr>`).join('')}</tbody></table></div></section>`;
+      <div class="iq-table-wrap"><table class="iq-table fin-summary-table"><caption class="sr-only">Суммы по категориям</caption><thead><tr><th scope="col">Категория</th><th scope="col">Направление</th>${several?'<th scope="col">Валюта</th>':''}<th scope="col" class="fin-num">Проведено</th><th scope="col" class="fin-num">Ожидается</th></tr></thead>
+      <tbody>${summary.categories.map(c=>`<tr><th scope="row">${esc(c.category)}</th><td>${c.direction==='income'?'Доход':'Расход'}</td>${several?`<td>${esc(c.currencyCode)}</td>`:''}${number(c.posted,c.currencyCode)}${number(c.planned,c.currencyCode)}</tr>`).join('')}</tbody></table></div></section>`;
     target.innerHTML=months+categories+(summary.truncated?`<p class="iq-helper">Показаны последние 240 месяцев и по 200 крупнейших категорий в каждой валюте. Выберите период короче, чтобы увидеть остальное.</p>`:'');
   }
   function render(){
@@ -148,20 +161,24 @@ export async function mountFinance(root,{repository,project,viewState={}}){
     renderNotice();renderTotals();renderLedger();renderSummary();
   }
 
-  const reload=()=>{clearTimeout(refreshTimer);refreshTimer=0;return load();};
+  const reload=(options)=>{clearTimeout(refreshTimer);refreshTimer=0;return load(options);};
+  const reloadAsked=()=>reload({announceResult:true});
   const saved=async()=>{await reload();};
-  function openCreate(){if(!modal&&settings)track(entryDialog({api,settings,categories:categories(),currencies:currencies(),onSaved:saved}));}
+  async function openCreate(){
+    if(modal||!settings)return;const names=await categories();if(modal||disposed)return;
+    track(entryDialog({api,settings,today:today(),categories:names,currencies:currencies(),onSaved:saved}));
+  }
   async function openEntry(id){
-    if(modal||disposed)return false;
+    if(modal||disposed)return false;const names=await categories();
     let entry=entries.find(item=>item.id===id);
     try{entry=await api.request('/finance-entries/'+encodeURIComponent(id),'GET',undefined,undefined,abort.signal);}
     catch(failure){if(!disposed)notify({tone:'danger',message:'Операция недоступна',description:failure.message});history.replaceState(null,'','#finance');return false;}
     if(disposed||modal)return false;
     if(location.hash!=='#finance/'+id)history.pushState(null,'','#finance/'+encodeURIComponent(id));
     const leave=()=>{if(ENTRY_ROUTE.test(location.hash))history.replaceState(null,'','#finance');};
-    track(entryDetails({api,entry,canManage,
-      onEdit:replace=>track(entryDialog({api,entry,settings,categories:categories(),currencies:currencies(),onSaved:saved,replace})),
-      onPost:replace=>track(postDialog({api,entry,onSaved:saved,replace})),
+    track(entryDetails({api,entry,today:today(),canManage,
+      onEdit:replace=>track(entryDialog({api,entry,settings,today:today(),categories:names,currencies:currencies(),onSaved:saved,replace})),
+      onPost:replace=>track(postDialog({api,entry,today:today(),onSaved:saved,replace})),
       onVoid:replace=>track(voidDialog({api,entry,onSaved:saved,replace})),
       onClose:leave}),{form:false});
     return true;
@@ -170,16 +187,16 @@ export async function mountFinance(root,{repository,project,viewState={}}){
   root.addEventListener('click',event=>{
     const target=event.target.closest('button,a');if(!target||!root.contains(target))return;
     if(target.dataset.openEntry){event.preventDefault();void openEntry(target.dataset.openEntry);return;}
-    if(target.hasAttribute('data-new-entry'))openCreate();
+    if(target.hasAttribute('data-new-entry'))void openCreate();
     else if(target.hasAttribute('data-currency')&&settings&&!modal)track(currencyDialog({api,settings,currencies:currencies(),onSaved:saved}));
     else if(target.hasAttribute('data-more'))void loadMore();
     else if(target.hasAttribute('data-retry'))void reload();
     else if(target.dataset.view&&target.dataset.view!==view.mode){view.mode=target.dataset.view;saveState();render();}
-    else if(target.dataset.state!==undefined&&target.dataset.state!==view.state){view.state=target.dataset.state;saveState();entries=[];void reload();}
-    else if(target.dataset.direction!==undefined&&target.dataset.direction!==view.direction){view.direction=target.dataset.direction;saveState();entries=[];void reload();}
-    else if(target.hasAttribute('data-reset-filters')){Object.assign(view,{state:'',direction:'',period:'all'});q('iq-select[name=period]').value='all';saveState();entries=[];void reload();}
+    else if(target.dataset.state!==undefined&&target.dataset.state!==view.state){view.state=target.dataset.state;saveState();entries=[];void reloadAsked();}
+    else if(target.dataset.direction!==undefined&&target.dataset.direction!==view.direction){view.direction=target.dataset.direction;saveState();entries=[];void reloadAsked();}
+    else if(target.hasAttribute('data-reset-filters')){Object.assign(view,{state:'',direction:'',period:'all'});q('iq-select[name=period]').value='all';saveState();entries=[];void reloadAsked();}
   },{signal:abort.signal});
-  q('iq-select[name=period]').addEventListener('iq-change',event=>{view.period=event.detail.value;saveState();entries=[];void reload();},{signal:abort.signal});
+  q('iq-select[name=period]').addEventListener('iq-change',event=>{view.period=event.detail.value;saveState();entries=[];void reloadAsked();},{signal:abort.signal});
   // Changes by other people arrive as project events; a burst becomes one reload, and none while a dialog is open.
   const unsubscribe=repository.subscribe?.(change=>{
     if(disposed||change.projectId!==project.id||!(change.resync||String(change.collection).startsWith('finance')))return;

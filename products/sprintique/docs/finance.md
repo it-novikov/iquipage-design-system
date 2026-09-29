@@ -59,7 +59,7 @@
 
 - `finance_entry_guard` (BEFORE INSERT OR UPDATE, `app.guard_finance_entry()`): вставка — только ревизия 1 и состояние `planned` или `posted`; изменение — ревизия ровно +1, без возврата posted → planned, аннулирование меняет только `state` и `void_reason`, аннулированная строка не меняется, `project_id`, `id`, `created_by`, `created_at` неизменны.
 - `finance_entry_version` (AFTER INSERT OR UPDATE, `app.record_finance_entry_version()`): пишет версию с автором `updated_by` и временем `updated_at` строки. Вид изменения: вставка — `created`; переход в voided — `voided`; planned → posted — `posted`; иначе `updated`.
-- RLS (FORCE) на всех трёх таблицах: SELECT — `auth.can_read_finance(project_id)` (человек, участник проекта, не отключён), INSERT/UPDATE — `auth.can_manage_finance(project_id)` (то же и роль `admin`). Версия принимается, только если её `revision` равна текущей ревизии операции: руками историю не подделать и следующий номер не занять. У runtime-роли нет DELETE на таблицах финансов и UPDATE на версиях.
+- RLS (FORCE) на всех трёх таблицах: SELECT — `auth.can_read_finance(project_id)` (человек, участник проекта, не отключён), INSERT/UPDATE — `auth.can_manage_finance(project_id)` (то же и роль `admin`). Версия принимается, только если её `revision` равна текущей ревизии операции: номер ревизии и содержимое версии руками не подделать и следующий номер не занять. Автора и время версия берёт из строки (`updated_by`, `updated_at`). Для runtime-роли их связывают ограничительные политики из `afterMigrate.sql` (`finance_entry_runtime_insert/update`, `finance_settings_runtime_insert/update`): `created_by`/`updated_by` = `auth.actor_id()`, время — не раньше начала транзакции. Роль-владелец (импорт) задаёт авторов и время сама. У runtime-роли нет DELETE на таблицах финансов и UPDATE на версиях.
 - Итоги не хранятся: сводка считается запросом при каждом чтении.
 
 ## API
@@ -68,7 +68,7 @@
 
 | Метод и путь | Тело / параметры | Ответ | Кто |
 |---|---|---|---|
-| `GET /finance-settings` | — | `FinanceSettingsResponse` | участник |
+| `GET /finance-settings` | — | `FinanceSettingsResponse {projectId, currencyCode, revision, updatedAt, timeZone}`; `timeZone` — пояс проекта (или пространства), в нём считаются «сегодня», периоды и просрочка | участник |
 | `PUT /finance-settings` | `PutFinanceSettings {baseRevision, value:{currencyCode}}` | `FinanceSettingsResponse` | администратор |
 | `GET /finance-entries` | `limit` 1–100 (50), `cursor`, `state`, `direction`, `from`, `to` | `FinanceEntryPageResponse {items, total, nextCursor}` | участник |
 | `GET /finance-entries/{id}` | — | `FinanceEntryResponse` | участник |
@@ -79,7 +79,7 @@
 
 Ошибки: `409 CONFLICT` — ревизия устарела; `409 IDEMPOTENCY_CONFLICT` — ключ уже использован для другого тела; `409 FINANCE_ENTRY_VOIDED`, `FINANCE_ENTRY_POSTED`, `FINANCE_STATE_CHANGE`, `FINANCE_LIMIT`; `422 FINANCE_DATE`; `400` — тело или параметры не по контракту, `400 IDEMPOTENCY_KEY` — нет или неверный ключ повтора, `400 CURSOR_INVALID` — курсор другого списка; `401 UNAUTHENTICATED`; `403` — нет прав; `404` — нет проекта или операции.
 
-Квитанция повтора (`app.idempotency`) хранит только `{id, revision}`; повтор собирает ответ из версии этой ревизии, поэтому суммы и тексты остаются в таблицах финансов под их RLS.
+Квитанция повтора (`app.idempotency`) для операции хранит только `{id, revision}`: повтор собирает ответ из версии этой ревизии, даже если операцию успели изменить. Для валюты проекта квитанция хранит только `{revision}`, повтор отвечает текущими настройками. Суммы, тексты и валюта остаются в таблицах финансов под их RLS.
 
 Сводка: `currencies[]` (`postedIncome`, `postedExpense`, `balance`, `plannedIncome`, `plannedExpense`, `forecast` = баланс + ожидаемые поступления − ожидаемые расходы, `postedCount`, `plannedCount`, `voidedCount`), `months[]` (`month` `YYYY-MM`, суммы по валюте), `categories[]` (`category`, `direction`, `currencyCode`, `posted`, `planned`). Аннулированные операции в суммы не входят. Все суммы сводки — десятичные строки минимальных единиц: они точны и за пределами 2⁵³.
 
@@ -117,4 +117,4 @@
 
 ## Интерфейс
 
-Раздел «Финансы» проекта (`#finance`, операция — `#finance/{id}`): итоги периода по валютам (поступило, потрачено, баланс, с учётом ожидаемых), журнал с фильтрами по статусу и направлению и подгрузкой страниц, сводка по месяцам и категориям, диалоги операции, проведения, аннулирования, истории и валюты проекта. Участники без прав администратора видят данные и имя администратора вместо кнопок. Код: `ui/finance/src/`.
+Раздел «Финансы» проекта (`#finance`, операция — `#finance/{id}`): итоги периода по валютам (поступило, потрачено, баланс, с учётом ожидаемых), журнал с фильтрами по статусу и направлению и подгрузкой страниц, сводка по месяцам и категориям, диалоги операции, проведения, аннулирования, истории и валюты проекта. Участники без прав администратора видят данные и имя администратора вместо кнопок. «Сегодня», периоды, статус «Просрочена» и даты по умолчанию считаются в часовом поясе проекта, как в планировании. Валюту можно выбрать из всех кодов ISO 4217, которые знает браузер (сначала используемые и частые). Подсказки категорий — все категории проекта за всё время. Ошибка ввода привязана к полю (`aria-invalid`, `aria-describedby`, фокус). Код: `ui/finance/src/`.

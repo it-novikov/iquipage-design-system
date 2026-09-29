@@ -1,7 +1,7 @@
 import {ui,icon,escapeHTML as esc,formatDateTime} from '@iquipage/web/core';
 import {dialog} from '../../src/ui.js';
-import {parseAmount,amountInput,formatMoney,currencySymbol,currencyName,COMMON_CURRENCIES} from './money.js';
-import {entryStatus,directionLabel,changeLabel,formatDate,isoDate} from './model.js';
+import {parseAmount,amountInput,formatMoney,currencySymbol,currencyName,currencyCodes} from './money.js';
+import {entryStatus,directionLabel,changeLabel,formatDate} from './model.js';
 import {FINANCE_LIMITS} from '../../../contracts/finance.ts';
 
 let fieldSequence=0;
@@ -11,15 +11,33 @@ function textField({name,label,value='',max,required=false,inputmode='',list='',
   const id=nextId();
   return `<div class="iq-field"><label class="iq-control-label" for="${id}">${esc(label)}</label><div class="iq-input-shell"><input id="${id}" name="${name}" value="${esc(value)}" autocomplete="off" ${max?`maxlength="${max}"`:''} ${required?'required':''} ${inputmode?`inputmode="${inputmode}"`:''} ${list?`list="${list}"`:''} ${hint?`aria-describedby="${id}-hint"`:''}>${suffix?`<span class="iq-input-suffix" data-currency-sign>${esc(suffix)}</span>`:''}</div>${hint?`<small class="iq-helper" id="${id}-hint">${esc(hint)}</small>`:''}</div>`;
 }
-/** Currencies to offer: the common ones, the project's and any already in use, each with its Russian name. */
+/** Currencies to offer: those in use and the common ones first, then every ISO code, each with its Russian name. */
 function currencyOptions(...extra){
-  return [...new Set([...extra.filter(Boolean),...COMMON_CURRENCIES])].map(code=>({value:code,label:`${code} — ${currencyName(code)}`}));
+  return currencyCodes(...extra).map(code=>({value:code,label:`${code} — ${currencyName(code)}`}));
 }
 const currencySelect=(name,label,value,options)=>`<iq-select name="${name}" label="${esc(label)}" value="${esc(value)}" searchable search-placeholder="Код или название" options="${esc(JSON.stringify(options))}"></iq-select>`;
 /** Two exclusive options side by side: the DS choice list, laid out in a row. */
 const choices=(legend,name,options,value)=>`<fieldset class="iq-choice-list fin-choice"><legend>${esc(legend)}</legend>${options.map(([id,label,hint])=>`<label><input type="radio" name="${name}" value="${esc(id)}" ${id===value?'checked':''}><b>${esc(label)}</b><small>${esc(hint)}</small></label>`).join('')}</fieldset>`;
 const optional=value=>{const text=String(value??'').trim();return text||null;};
 const read=(form,name)=>form.querySelector(`[name="${name}"]`)?.value??'';
+/**
+ * A field-bound error: the field is marked invalid, described by the dialog's error line and focused; the message is
+ * thrown so the dialog shows it. The mark clears when the person edits the field.
+ */
+function invalid(form,name,message){
+  const field=form.querySelector(`iq-date-field[name="${name}"]`)||form.querySelector(`[name="${name}"]:not([type=hidden])`);
+  const error=form.querySelector(':scope > .map-form-error');
+  if(error&&!error.id)error.id=nextId();
+  if(field){
+    field.setAttribute('aria-invalid','true');if(error)field.setAttribute('aria-describedby',error.id);
+    const clear=()=>{field.removeAttribute('aria-invalid');field.removeAttribute('aria-describedby');};
+    field.addEventListener('input',clear,{once:true});field.addEventListener('iq-change',clear,{once:true});
+    // After the dialog re-enables its fields, which it does once the submit has failed.
+    setTimeout(()=>(field.querySelector?.('input,button')||field).focus?.(),0);
+  }
+  throw Error(message);
+}
+function amountOf(form,currency){try{return parseAmount(read(form,'amount'),currency);}catch(error){return invalid(form,'amount',error.message);}}
 
 /**
  * The DS text area declares its counter (`data-count`) but only the DS catalogue updates it (DS-GAP-FIN-2); the
@@ -35,7 +53,7 @@ function bindCounters(form){
 async function command(api,method,path,body){return api.request(path,method,body,await api.key(path,body));}
 
 /** Creating or editing an entry. An edit keeps the state: posting and voiding have their own dialogs. */
-export function entryDialog({api,entry=null,settings,categories=[],currencies=[],onSaved,replace}){
+export function entryDialog({api,entry=null,settings,today,categories=[],currencies=[],onSaved,replace}){
   const creating=!entry,value=entry||{direction:'expense',state:'posted',currencyCode:settings.currencyCode,amountMinor:null,category:'',description:'',counterparty:null,reference:null};
   const dateOf=state=>state==='planned'?value.dueDate:value.postedDate;
   const dateLabel=state=>state==='planned'?'Ожидаемая дата':'Дата оплаты';
@@ -46,7 +64,7 @@ export function entryDialog({api,entry=null,settings,categories=[],currencies=[]
     ${creating?choices('Статус','state',[['posted','Проведена','Оплата уже прошла'],['planned','Ожидается','Оплата будет к дате']],value.state):''}
     <div class="grid-2 fin-money-fields">${textField({name:'amount',label:'Сумма',value:value.amountMinor?amountInput(value.amountMinor,value.currencyCode):'',required:true,inputmode:'decimal',suffix:currencySymbol(value.currencyCode)})}
     ${currencySelect('currencyCode','Валюта',value.currencyCode,currencyOptions(value.currencyCode,settings.currencyCode,...currencies))}</div>
-    <iq-date-field name="date" label="${dateLabel(value.state)}" value="${esc(dateOf(value.state)||isoDate(new Date()))}" required></iq-date-field>
+    <iq-date-field name="date" label="${dateLabel(value.state)}" value="${esc(dateOf(value.state)||today)}" required></iq-date-field>
     ${textField({name:'category',label:'Категория',value:value.category,max:FINANCE_LIMITS.category,required:true,list:listId,hint:'Например, «Хостинг» или «Оплата заказчика»: по категориям строится сводка.'})}
     <datalist id="${listId}">${categories.map(c=>`<option value="${esc(c)}"></option>`).join('')}</datalist>
     ${ui.textarea('Описание',value.description,{name:'description',maxlength:FINANCE_LIMITS.description})}
@@ -69,10 +87,10 @@ export function entryDialog({api,entry=null,settings,categories=[],currencies=[]
       const state=creating?form.querySelector('[name=state]:checked')?.value||'posted':value.state;
       const currencyCode=read(form,'currencyCode'),date=form.querySelector('iq-date-field[name=date]').value;
       const category=read(form,'category').trim(),description=read(form,'description').trim();
-      const amountMinor=parseAmount(read(form,'amount'),currencyCode);
-      if(!date)throw Error(state==='planned'?'Укажите, когда ожидается оплата.':'Укажите дату оплаты.');
-      if(!category)throw Error('Укажите категорию.');
-      if(!description)throw Error('Опишите операцию.');
+      const amountMinor=amountOf(form,currencyCode);
+      if(!date)invalid(form,'date',state==='planned'?'Укажите, когда ожидается оплата.':'Укажите дату оплаты.');
+      if(!category)invalid(form,'category','Укажите категорию.');
+      if(!description)invalid(form,'description','Опишите операцию.');
       const next={direction:form.querySelector('[name=direction]:checked')?.value||value.direction,state,amountMinor,currencyCode,
         dueDate:state==='planned'?date:value.dueDate??null,postedDate:state==='planned'?null:date,category,description,
         counterparty:optional(read(form,'counterparty')),reference:optional(read(form,'reference'))};
@@ -82,14 +100,14 @@ export function entryDialog({api,entry=null,settings,categories=[],currencies=[]
 }
 
 /** Posting a planned entry: the day the money actually moved and the actual amount. */
-export function postDialog({api,entry,onSaved,replace}){
+export function postDialog({api,entry,today,onSaved,replace}){
   const body=`<p>Отметьте, что оплата прошла. Плановая дата ${esc(formatDate(entry.dueDate))} останется в истории.</p>
-    <div class="grid-2 fin-money-fields"><iq-date-field name="date" label="Дата оплаты" value="${isoDate(new Date())}" required></iq-date-field>
+    <div class="grid-2 fin-money-fields"><iq-date-field name="date" label="Дата оплаты" value="${esc(today)}" required></iq-date-field>
     ${textField({name:'amount',label:'Фактическая сумма',value:amountInput(entry.amountMinor,entry.currencyCode),required:true,inputmode:'decimal',suffix:currencySymbol(entry.currencyCode)})}</div>`;
   return dialog({title:'Провести операцию',description:entry.description,body,submitLabel:'Провести',success:'Операция проведена',replace,
     onSubmit:async(_values,form)=>{
-      const postedDate=form.querySelector('iq-date-field[name=date]').value;if(!postedDate)throw Error('Укажите дату оплаты.');
-      const amountMinor=parseAmount(read(form,'amount'),entry.currencyCode);
+      const postedDate=form.querySelector('iq-date-field[name=date]').value;if(!postedDate)invalid(form,'date','Укажите дату оплаты.');
+      const amountMinor=amountOf(form,entry.currencyCode);
       await onSaved?.(await command(api,'PATCH',`/finance-entries/${encodeURIComponent(entry.id)}/state`,{state:'posted',baseRevision:entry.revision,postedDate,amountMinor}));
     }});
 }
@@ -101,7 +119,7 @@ export function voidDialog({api,entry,onSaved,replace}){
   return dialog({title:'Аннулировать операцию',description:`${entry.description}, ${formatMoney(entry.amountMinor,entry.currencyCode)}`,body,submitLabel:'Аннулировать',success:'Операция аннулирована',replace,
     mount:(_el,form)=>bindCounters(form),
     onSubmit:async(_values,form)=>{
-      const voidReason=read(form,'voidReason').trim();if(!voidReason)throw Error('Укажите причину: она остаётся в журнале.');
+      const voidReason=read(form,'voidReason').trim();if(!voidReason)invalid(form,'voidReason','Укажите причину: она остаётся в журнале.');
       await onSaved?.(await command(api,'PATCH',`/finance-entries/${encodeURIComponent(entry.id)}/state`,{state:'voided',baseRevision:entry.revision,voidReason}));
     }});
 }
@@ -119,8 +137,8 @@ export function currencyDialog({api,settings,currencies=[],onSaved}){
 
 const fact=(term,value)=>`<div><dt>${esc(term)}</dt><dd>${value}</dd></div>`;
 /** An entry with its facts, the actions its state allows and its history. */
-export function entryDetails({api,entry,canManage,onEdit,onPost,onVoid,onClose}){
-  const status=entryStatus(entry);
+export function entryDetails({api,entry,today,canManage,onEdit,onPost,onVoid,onClose}){
+  const status=entryStatus(entry,today);
   const facts=[
     fact('Сумма',`<span class="fin-amount" data-direction="${entry.direction}" data-state="${entry.state}">${esc(formatMoney(entry.direction==='expense'?-entry.amountMinor:entry.amountMinor,entry.currencyCode,{sign:true}))}</span>`),
     fact('Статус',`<span class="iq-badge soft ${status.tone}">${esc(status.label)}</span>`),

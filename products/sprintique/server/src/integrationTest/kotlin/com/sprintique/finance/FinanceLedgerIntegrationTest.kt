@@ -1,5 +1,6 @@
 package com.sprintique.finance
 
+import com.sprintique.database.Database
 import com.sprintique.database.IntegrationDatabase
 import com.sprintique.database.Transaction
 import org.assertj.core.api.Assertions.assertThat
@@ -53,7 +54,11 @@ class FinanceLedgerIntegrationTest {
 
     @Test
     fun `every stored revision becomes a version and the transitions hold for the owner role too`() {
-        IntegrationDatabase.admin.transaction { tx ->
+        // The documented import path: the owner role (NOBYPASSRLS) under FORCE row security, with an administrator
+        // of the project as the actor of the transaction. Without an actor the owner sees and writes nothing.
+        assertThatThrownBy { owner.transaction { insert(it, "no-actor", state = "posted", revision = 1) } }
+            .hasMessageContaining("row-level security")
+        asOwner { tx ->
             insert(tx, "entry", state = "planned", revision = 1)
             tx.update(
                 """
@@ -75,9 +80,7 @@ class FinanceLedgerIntegrationTest {
             change(it, "state = 'voided', void_reason = 'Ошибка', amount_minor = 1, revision = revision + 1")
         }
         refused("creation is fixed") { change(it, "created_by = '$reader', revision = revision + 1") }
-        IntegrationDatabase.admin.transaction {
-            change(it, "state = 'voided', void_reason = 'Ошибка', revision = revision + 1")
-        }
+        asOwner { change(it, "state = 'voided', void_reason = 'Ошибка', revision = revision + 1") }
         refused("a voided entry never changes") { change(it, "description = 'Позже', revision = revision + 1") }
 
         val versions = IntegrationDatabase.admin.transaction { tx ->
@@ -122,6 +125,30 @@ class FinanceLedgerIntegrationTest {
                 it.update("UPDATE app.finance_entry_version SET amount_minor = 1 WHERE project_id = $1", project)
             }
         }.hasMessageContaining("permission denied")
+        // The runtime role writes as the person of the request and at the moment of the request.
+        assertThatThrownBy {
+            asActor(admin) {
+                it.update(
+                    """
+                    INSERT INTO app.finance_entry(project_id, id, direction, state, amount_minor, currency_code, posted_date,
+                      category, description, revision, created_by, updated_by)
+                    VALUES ($1, 'forged-author', 'income', 'posted', 1, 'RUB', '2026-09-01', 'x', 'y', 1, $2, $2)
+                    """.trimIndent(),
+                    project,
+                    reader,
+                )
+            }
+        }.hasMessageContaining("row-level security")
+        assertThatThrownBy {
+            asActor(admin) {
+                it.update(
+                    "UPDATE app.finance_entry SET description = 'x', revision = revision + 1, updated_by = $2, " +
+                        "updated_at = '2020-01-01' WHERE project_id = $1 AND id = 'by-admin'",
+                    project,
+                    admin,
+                )
+            }
+        }.hasMessageContaining("row-level security")
         // Only the version of the revision an entry holds is accepted: history cannot be forged or taken in advance.
         assertThatThrownBy {
             asActor(admin) {
@@ -140,13 +167,31 @@ class FinanceLedgerIntegrationTest {
     }
 
     @Test
-    fun `the rollback script removes the module and its ledger entry`() {
+    fun `the rollback script on the migration role removes the module, its events, receipts and ledger entry`() {
         val script = Path.of("src/main/resources/db/rollback/V20260929000025__add_project_finance.sql").readText()
             .lines().filterNot { it.trim() == "BEGIN;" || it.trim() == "COMMIT;" }.joinToString("\n")
-        IntegrationDatabase.admin.dataSource.connection.use { connection ->
+        owner.dataSource.connection.use { connection ->
             connection.autoCommit = false
             try {
+                // Finance events and a retry receipt that the rollback must take along, written under row security.
+                connection.createStatement().use { statement ->
+                    statement.execute("SELECT set_config('app.actor_id', '$admin', true)")
+                    val event = UUID.randomUUID()
+                    statement.execute(
+                        """
+                        INSERT INTO app.audit_events(id, project_id, actor_id, initiator_id, action, resource_id, revision)
+                        VALUES ('$event', '$project', '$admin', '$admin', 'finance-entry.created', 'gone', 1);
+                        INSERT INTO app.outbox(id, project_id, topic, payload)
+                        VALUES ('$event', '$project', 'finance-entry.created', '{}');
+                        INSERT INTO app.idempotency(actor_id, project_id, operation, key, request_hash, result)
+                        VALUES ('$admin', '$project', 'finance-entry.put:gone', 'rollback-key', 'hash', '{}')
+                        """.trimIndent(),
+                    )
+                    statement.execute("SELECT set_config('app.actor_id', '', true)")
+                }
                 connection.createStatement().use { it.execute(script) }
+                // Row security is back in force: the check reads as the project's administrator, who would see them.
+                connection.createStatement().use { it.execute("SELECT set_config('app.actor_id', '$admin', true)") }
                 val left = connection.createStatement().use { statement ->
                     statement.executeQuery(
                         """
@@ -154,7 +199,11 @@ class FinanceLedgerIntegrationTest {
                           AND to_regclass('app.finance_entry_version') IS NULL
                           AND to_regprocedure('auth.can_read_finance(text)') IS NULL
                           AND NOT EXISTS (SELECT 1 FROM public.flyway_schema_history WHERE version = '20260929000025')
-                          AND (SELECT relforcerowsecurity FROM pg_class WHERE oid = 'app.outbox'::regclass) AS removed
+                          AND (SELECT relforcerowsecurity FROM pg_class WHERE oid = 'app.outbox'::regclass)
+                          AND (SELECT relforcerowsecurity FROM pg_class WHERE oid = 'app.idempotency'::regclass)
+                          AND NOT EXISTS (SELECT 1 FROM app.outbox WHERE project_id = '$project')
+                          AND NOT EXISTS (SELECT 1 FROM app.audit_events WHERE project_id = '$project')
+                          AND NOT EXISTS (SELECT 1 FROM app.idempotency WHERE project_id = '$project') AS removed
                         """.trimIndent(),
                     ).use { result ->
                         result.next()
@@ -191,9 +240,17 @@ class FinanceLedgerIntegrationTest {
     }
 
     private fun refused(reason: String, block: (Transaction) -> Unit) {
-        assertThatThrownBy { IntegrationDatabase.admin.transaction(block) }
+        assertThatThrownBy { asOwner(block) }
             .`as`(reason)
             .isInstanceOf(SQLException::class.java)
+    }
+
+    /** The migration role, owner of the tables and subject to their FORCE row security, as a data import runs. */
+    private val owner get() = OWNER
+
+    private fun <T> asOwner(block: (Transaction) -> T): T = owner.transaction { tx ->
+        tx.row("SELECT set_config('app.actor_id', $1, true), set_config('app.project_limit', '', true)", admin)
+        block(tx)
     }
 
     /** Runs as the runtime role with the request context of [principal], the way the API opens a transaction. */
@@ -203,5 +260,9 @@ class FinanceLedgerIntegrationTest {
     ): T = IntegrationDatabase.runtime.transaction { tx ->
         tx.row("SELECT set_config('app.actor_id', $1, true), set_config('app.project_limit', '', true)", principal)
         block(tx)
+    }
+
+    private companion object {
+        val OWNER: Database by lazy { Database.connect(IntegrationDatabase.migrationUrl, 2, "test-owner-finance") }
     }
 }

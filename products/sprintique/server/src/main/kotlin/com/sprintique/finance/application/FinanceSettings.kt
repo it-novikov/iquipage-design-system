@@ -1,11 +1,13 @@
 package com.sprintique.finance.application
 
 import com.sprintique.command.AuditTrail
+import com.sprintique.command.Receipt
 import com.sprintique.database.Transaction
 import com.sprintique.identity.application.ProjectAccess
 import com.sprintique.identity.domain.Actor
 import com.sprintique.identity.domain.Capability
 import com.sprintique.problem.requireCondition
+import tools.jackson.databind.JsonNode
 
 /**
  * The project's finance settings: the currency new entries start in. A project that never saved them uses RUB at
@@ -49,6 +51,16 @@ object FinanceSettings {
         return stored(tx, projectId)
     }
 
+    /**
+     * The retry receipt keeps only the revision a change produced; a retry answers with the settings as they are now,
+     * so the currency never leaves the finance tables and their row security.
+     */
+    fun receipt(tx: Transaction, projectId: String): Receipt<Map<String, Any?>> = object : Receipt<Map<String, Any?>> {
+        override fun store(value: Map<String, Any?>): Any = mapOf("revision" to value["revision"])
+
+        override fun restore(record: JsonNode): Any = stored(tx, projectId)
+    }
+
     private fun stored(tx: Transaction, projectId: String): Map<String, Any?> {
         val row = tx.row(
             """
@@ -62,6 +74,16 @@ object FinanceSettings {
             "currencyCode" to (row?.string("currencyCode") ?: DEFAULT_CURRENCY),
             "revision" to (row?.int("revision") ?: 0),
             "updatedAt" to row?.instantOrNull("updatedAt"),
+            "timeZone" to timeZone(tx, projectId),
         )
     }
+
+    /** The project's time zone, its own or its workspace's: "today" and overdue entries are read in it. */
+    private fun timeZone(tx: Transaction, projectId: String): String = tx.row(
+        """
+        SELECT coalesce(p.timezone, s.workspace_timezone, 'UTC') AS zone
+        FROM app.projects p LEFT JOIN auth.project_timezone_source(p.id) s ON true WHERE p.id = $1
+        """.trimIndent(),
+        projectId,
+    )?.stringOrNull("zone") ?: "UTC"
 }

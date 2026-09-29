@@ -36,6 +36,8 @@ test('FN01 an administrator records entries; CAS, retries and history follow eve
   assert.equal((await call('PUT','finance-entries/fn01-hosting',body)).json().code,'CONFLICT');
   const edited=await call('PUT','finance-entries/fn01-hosting',{baseRevision:1,value:{...posted,amountMinor:1300000,counterparty:null,reference:null}});
   assert.equal(edited.statusCode,200,edited.body);assert.equal(edited.json().revision,2);assert.equal(edited.json().counterparty,null);
+  // A retry whose answer was lost after the entry changed again returns what that command produced, not the entry now.
+  assert.deepEqual((await call('PUT','finance-entries/fn01-hosting',body,f.alice,key)).json(),first.json());
   // Text is trimmed and optional text may be left out.
   const trimmed=await create('fn01-trimmed',{...planned,category:'  Аванс ',description:' Предоплата  '});
   assert.equal(trimmed.category,'Аванс');assert.equal(trimmed.description,'Предоплата');assert.equal(trimmed.counterparty,null);
@@ -46,7 +48,7 @@ test('FN01 an administrator records entries; CAS, retries and history follow eve
   assert.deepEqual(audit.map(r=>[r.action,r.revision]),[['finance-entry.created',1],['finance-entry.updated',2]]);
   assert.equal((await call('GET','finance-entries/missing')).statusCode,404);
   // Retry receipts name the entry and its revision; amounts and texts stay in the finance tables.
-  const receipts=(await f.admin.query("SELECT result FROM app.idempotency WHERE project_id=$1 AND operation LIKE 'finance-entry%'",[f.first.id])).rows;
+  const receipts=(await f.admin.query("SELECT result FROM app.idempotency WHERE project_id=$1 AND operation LIKE 'finance-%' AND operation<>'finance-settings.put'",[f.first.id])).rows;
   assert.ok(receipts.length>0);for(const {result} of receipts)assert.deepEqual(Object.keys(result).sort(),['id','revision']);
 });
 
@@ -195,6 +197,10 @@ test('FN06 the project currency starts as RUB and changes under CAS and retry',a
   assert.equal((await call('PUT','finance-settings',body)).json().code,'CONFLICT');
   assert.equal((await call('PUT','finance-settings',{baseRevision:1,value:{currencyCode:'eur'}})).statusCode,400);
   assert.equal((await call('GET','finance-settings',undefined,f.reader)).json().currencyCode,'EUR');
+  assert.equal(changed.json().timeZone,'UTC');
+  // The settings receipt keeps only the revision; a retry answers with the settings as they are.
+  const receipt=(await f.admin.query("SELECT result FROM app.idempotency WHERE project_id=$1 AND operation='finance-settings.put'",[f.first.id])).rows[0].result;
+  assert.deepEqual(receipt,{revision:1});
 });
 
 test('FN07 contracts refuse malformed entries before anything is written',async()=>{
@@ -238,4 +244,39 @@ test('FN09 the published contract names every finance route with its schemas',as
   assert.equal(route('finance-summary').get.responses['200'].content['application/json'].schema.$ref,'#/components/schemas/FinanceSummaryResponse');
   assert.deepEqual(route('finance-entries').get.parameters.filter((p:{in:string})=>p.in==='query').map((p:{name:string})=>p.name),['cursor','limit','state','direction','from','to']);
   assert.ok(doc.components.schemas.FinanceEntryHistoryResponse);assert.ok(route('finance-settings').put);
+});
+
+test('FN10 history pages by revision, the entry limit holds, and rights are checked again on every write',async()=>{
+  const entry=await create('fn10-history',planned);
+  for(let revision=entry.revision;revision<56;revision++){
+    const response=await call('PUT','finance-entries/fn10-history',{baseRevision:revision,value:{...planned,amountMinor:30000000+revision}});
+    assert.equal(response.statusCode,200,response.body);
+  }
+  const first=FinanceEntryHistoryResponse.parse((await call('GET','finance-entries/fn10-history/history')).json());
+  assert.equal(first.items.length,50);assert.equal(first.items[0]!.revision,56);assert.equal(first.nextCursor,7);
+  const rest=FinanceEntryHistoryResponse.parse((await call('GET','finance-entries/fn10-history/history?before='+first.nextCursor)).json());
+  assert.deepEqual(rest.items.map(v=>v.revision),[6,5,4,3,2,1]);assert.equal(rest.nextCursor,null);
+  // A project of its own: the limit is prepared in SQL, and the administrator is demoted and removed there.
+  const created=await f.app.inject({method:'POST',url:'/api/v1/projects',headers:f.alice.headers,payload:{workspaceId:f.first.workspaceId,name:'Лимит финансов',slug:'fn10-'+randomUUID().slice(0,8),key:'FNLIM'}});
+  assert.equal(created.statusCode,200,created.body);const project=created.json<{id:string}>().id;
+  const at=(method:'GET'|'PUT',resource:string,payload?:unknown,user:User=f.alice)=>call(method,resource,payload,user,randomUUID(),project);
+  assert.equal((await at('PUT','finance-entries/kept',{baseRevision:0,value:posted})).statusCode,200);
+  await f.admin.query('BEGIN');
+  try{
+    await f.admin.query("SET LOCAL session_replication_role = replica");
+    await f.admin.query(`INSERT INTO app.finance_entry(project_id,id,direction,state,amount_minor,currency_code,posted_date,category,description,revision,created_by,updated_by)
+      SELECT $1,'bulk-'||n,'expense','posted',1,'RUB','2026-01-01','Массовая','Подготовка лимита',1,$2,$2 FROM generate_series(1,99999) n`,[project,f.alice.id]);
+    await f.admin.query('COMMIT');
+  }catch(error){await f.admin.query('ROLLBACK');throw error;}
+  const full=await at('PUT','finance-entries/one-more',{baseRevision:0,value:posted});
+  assert.equal(full.statusCode,409,full.body);assert.equal(full.json().code,'FINANCE_LIMIT');
+  assert.equal((await at('PUT','finance-entries/kept',{baseRevision:1,value:{...posted,amountMinor:2}})).statusCode,200);
+  await f.admin.query("INSERT INTO app.project_members(project_id,principal_id,role) VALUES($1,$2,'admin')",[project,f.bob.id]);
+  await f.admin.query("UPDATE app.project_members SET role='reader' WHERE project_id=$1 AND principal_id=$2",[project,f.alice.id]);
+  const demoted=await at('PUT','finance-entries/kept',{baseRevision:2,value:posted});assert.equal(demoted.statusCode,403,demoted.body);
+  assert.equal((await at('GET','finance-entries/kept')).statusCode,200);
+  await f.admin.query('DELETE FROM app.project_members WHERE project_id=$1 AND principal_id=$2',[project,f.alice.id]);
+  assert.equal((await at('PUT','finance-entries/kept',{baseRevision:2,value:posted})).statusCode,404);
+  assert.equal((await at('GET','finance-entries/kept')).statusCode,404);
+  assert.equal((await at('PUT','finance-entries/kept',{baseRevision:2,value:posted},f.bob)).statusCode,200);
 });

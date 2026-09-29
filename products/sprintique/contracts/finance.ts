@@ -57,7 +57,8 @@ export const FinanceEntryVersionResponse=z.strictObject({
 });
 export type FinanceEntryVersion=z.infer<typeof FinanceEntryVersionResponse>;
 export const FinanceEntryHistoryResponse=z.strictObject({items:z.array(FinanceEntryVersionResponse),nextCursor:z.number().int().positive().nullable()});
-export const FinanceSettingsResponse=z.strictObject({projectId:Id,currencyCode:CurrencyCode,revision:Revision,updatedAt:moment.nullable()});
+/** `timeZone` is the project's (or its workspace's): "today", periods and overdue entries are read in it. */
+export const FinanceSettingsResponse=z.strictObject({projectId:Id,currencyCode:CurrencyCode,revision:Revision,updatedAt:moment.nullable(),timeZone:z.string()});
 const sums={postedIncome:MinorTotal,postedExpense:MinorTotal,plannedIncome:MinorTotal,plannedExpense:MinorTotal};
 const count=z.number().int().nonnegative();
 export const FinanceSummaryResponse=z.strictObject({

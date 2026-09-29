@@ -2,6 +2,11 @@
 export const MAX_AMOUNT_MINOR=999_999_999_999_999;
 /** Currencies offered first; any other ISO code an entry already uses is offered too. */
 export const COMMON_CURRENCIES=['RUB','USD','EUR','CNY','KZT','BYN','GBP','AED','TRY','GEL','AMD','UZS'];
+/** Every ISO 4217 code the browser knows, the common ones first; the common list alone where it knows none. */
+export function currencyCodes(...extra){
+  let all=[];try{all=typeof Intl.supportedValuesOf==='function'?Intl.supportedValuesOf('currency'):[];}catch{all=[];}
+  return [...new Set([...extra.filter(Boolean),...COMMON_CURRENCIES,...all.filter(code=>/^[A-Z]{3}$/.test(code)).sort()])];
+}
 
 /**
  * ISO 4217 minor-unit exponents that are not 2. The table is fixed, not taken from the browser: locale data (CLDR)

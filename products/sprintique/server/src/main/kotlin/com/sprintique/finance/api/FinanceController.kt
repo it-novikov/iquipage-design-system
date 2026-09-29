@@ -52,7 +52,8 @@ class FinanceController(
         fence(tx, actor, projectId)
         val input = contracts.parse<PutFinanceSettingsRequest>(body)
         val key = RequestInputs.idempotencyKey(request)
-        ledger.idempotent(tx, actor, projectId, "finance-settings.put", key, input) {
+        val receipt = FinanceSettings.receipt(tx, projectId)
+        ledger.idempotent(tx, actor, projectId, "finance-settings.put", key, input, receipt) {
             FinanceSettings.write(tx, actor, projectId, input.baseRevision, input.value.currencyCode)
         }
     }

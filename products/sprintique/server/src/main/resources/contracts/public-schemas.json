@@ -8824,13 +8824,17 @@
               "type": "null"
             }
           ]
+        },
+        "timeZone": {
+          "type": "string"
         }
       },
       "required": [
         "projectId",
         "currencyCode",
         "revision",
-        "updatedAt"
+        "updatedAt",
+        "timeZone"
       ],
       "additionalProperties": false
     },
