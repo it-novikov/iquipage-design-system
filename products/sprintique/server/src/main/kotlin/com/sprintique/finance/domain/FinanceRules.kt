@@ -62,6 +62,17 @@ object FinanceRules {
         requireCondition(state == PLANNED, 409, "FINANCE_ENTRY_POSTED", "Операция уже проведена.")
     }
 
+    /** A period of entry dates: both ends in range and the start not after the end. */
+    fun requirePeriod(from: String?, to: String?) {
+        requireDates(from, to)
+        requireCondition(
+            from == null || to == null || from <= to,
+            422,
+            "FINANCE_DATE",
+            "Начало периода позже его конца.",
+        )
+    }
+
     /** Dates stay within a range every client and the database read the same way. */
     fun requireDates(vararg dates: String?) = requireCondition(
         dates.filterNotNull().all { LocalDate.parse(it) in EARLIEST..LATEST },

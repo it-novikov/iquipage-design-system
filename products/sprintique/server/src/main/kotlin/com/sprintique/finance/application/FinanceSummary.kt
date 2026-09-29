@@ -27,7 +27,7 @@ object FinanceSummary {
 
     fun read(tx: Transaction, actor: Actor, projectId: String, from: String?, to: String?): Map<String, Any?> {
         ProjectAccess.authorize(tx, actor, projectId, Capability.FINANCE_READ)
-        FinanceRules.requireDates(from, to)
+        FinanceRules.requirePeriod(from, to)
         val currencies = tx.rows(
             """
             SELECT "currencyCode", "postedIncome"::text AS "postedIncome", "postedExpense"::text AS "postedExpense",
@@ -49,22 +49,31 @@ object FinanceSummary {
         )
         val months = tx.rows(
             """
+            WITH recent AS (
+              SELECT DISTINCT date_trunc('month', entry_date) AS first FROM app.finance_entry
+              WHERE $PERIOD AND state <> 'voided' ORDER BY 1 DESC LIMIT $4
+            )
             SELECT to_char(entry_date, 'YYYY-MM') AS month, currency_code AS "currencyCode", $SUMS
             FROM app.finance_entry WHERE $PERIOD AND state <> 'voided'
-            GROUP BY 1, 2 ORDER BY 1 DESC, 2 LIMIT $4
+              AND date_trunc('month', entry_date) IN (SELECT first FROM recent)
+            GROUP BY 1, 2 ORDER BY 1 DESC, 2
             """.trimIndent(),
             projectId,
             from,
             to,
             MONTH_LIMIT + 1,
         )
+        val shown = months.map { it.string("month") }.distinct()
         val categories = tx.rows(
             """
-            SELECT category, direction, currency_code AS "currencyCode",
-                   coalesce(sum(amount_minor) FILTER (WHERE state = 'posted'), 0)::text AS posted,
-                   coalesce(sum(amount_minor) FILTER (WHERE state = 'planned'), 0)::text AS planned
-            FROM app.finance_entry WHERE $PERIOD AND state <> 'voided'
-            GROUP BY 1, 2, 3 ORDER BY sum(amount_minor) DESC, 1, 2, 3 LIMIT $4
+            SELECT category, direction, "currencyCode", posted, planned, rank FROM (
+              SELECT category, direction, currency_code AS "currencyCode",
+                     coalesce(sum(amount_minor) FILTER (WHERE state = 'posted'), 0)::text AS posted,
+                     coalesce(sum(amount_minor) FILTER (WHERE state = 'planned'), 0)::text AS planned,
+                     row_number() OVER (PARTITION BY currency_code ORDER BY sum(amount_minor) DESC, category, direction) AS rank
+              FROM app.finance_entry WHERE $PERIOD AND state <> 'voided'
+              GROUP BY category, direction, currency_code
+            ) ranked WHERE rank <= $4 ORDER BY "currencyCode", rank
             """.trimIndent(),
             projectId,
             from,
@@ -76,9 +85,9 @@ object FinanceSummary {
             "to" to to,
             "currencies" to currencies,
             // Sums of bigint are numeric, which the database layer returns as exact text.
-            "months" to months.take(MONTH_LIMIT),
-            "categories" to categories.take(CATEGORY_LIMIT),
-            "truncated" to (months.size > MONTH_LIMIT || categories.size > CATEGORY_LIMIT),
+            "months" to months.filter { it.string("month") in shown.take(MONTH_LIMIT) },
+            "categories" to categories.filter { it.long("rank") <= CATEGORY_LIMIT }.map { it.without("rank") },
+            "truncated" to (shown.size > MONTH_LIMIT || categories.any { it.long("rank") > CATEGORY_LIMIT }),
         )
     }
 }

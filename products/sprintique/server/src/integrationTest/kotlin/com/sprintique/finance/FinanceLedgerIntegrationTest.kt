@@ -122,6 +122,21 @@ class FinanceLedgerIntegrationTest {
                 it.update("UPDATE app.finance_entry_version SET amount_minor = 1 WHERE project_id = $1", project)
             }
         }.hasMessageContaining("permission denied")
+        // Only the version of the revision an entry holds is accepted: history cannot be forged or taken in advance.
+        assertThatThrownBy {
+            asActor(admin) {
+                it.update(
+                    """
+                    INSERT INTO app.finance_entry_version(project_id, entry_id, revision, change, direction, state,
+                      amount_minor, currency_code, due_date, category, description, actor_id, created_at)
+                    VALUES ($1, 'by-admin', 2, 'updated', 'expense', 'planned', 1, 'RUB', '2026-09-10', 'x', 'y', $2,
+                      clock_timestamp())
+                    """.trimIndent(),
+                    project,
+                    admin,
+                )
+            }
+        }.hasMessageContaining("row-level security")
     }
 
     @Test

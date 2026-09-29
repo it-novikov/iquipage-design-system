@@ -11,7 +11,7 @@ DROP FUNCTION app.guard_finance_entry();
 DROP FUNCTION auth.can_manage_finance(text);
 DROP FUNCTION auth.can_read_finance(text);
 -- Finance events and retry receipts would outlive the module: the previous artifact shows every non-agent topic to
--- agents, and receipts keep amounts and descriptions. Row security hides them from the owner without an actor, so it
+-- agents, and receipts name entries and settings. Row security hides them from the owner without an actor, so it
 -- is lifted for this transaction only, as migration 016 did for its backfill.
 ALTER TABLE app.outbox NO FORCE ROW LEVEL SECURITY;
 ALTER TABLE app.audit_events NO FORCE ROW LEVEL SECURITY;

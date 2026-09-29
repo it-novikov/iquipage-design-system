@@ -40,6 +40,8 @@ export function entryDialog({api,entry=null,settings,categories=[],currencies=[]
   const dateOf=state=>state==='planned'?value.dueDate:value.postedDate;
   const dateLabel=state=>state==='planned'?'Ожидаемая дата':'Дата оплаты';
   const listId=nextId();
+  // One id per dialog: a retry after a lost answer repeats the same path and body, so the server recognises it.
+  const id=entry?.id||crypto.randomUUID();
   const body=`${choices('Тип операции','direction',[['expense','Расход','Деньги уходят из проекта'],['income','Доход','Деньги приходят в проект']],value.direction)}
     ${creating?choices('Статус','state',[['posted','Проведена','Оплата уже прошла'],['planned','Ожидается','Оплата будет к дате']],value.state):''}
     <div class="grid-2 fin-money-fields">${textField({name:'amount',label:'Сумма',value:value.amountMinor?amountInput(value.amountMinor,value.currencyCode):'',required:true,inputmode:'decimal',suffix:currencySymbol(value.currencyCode)})}
@@ -74,7 +76,6 @@ export function entryDialog({api,entry=null,settings,categories=[],currencies=[]
       const next={direction:form.querySelector('[name=direction]:checked')?.value||value.direction,state,amountMinor,currencyCode,
         dueDate:state==='planned'?date:value.dueDate??null,postedDate:state==='planned'?null:date,category,description,
         counterparty:optional(read(form,'counterparty')),reference:optional(read(form,'reference'))};
-      const id=entry?.id||crypto.randomUUID();
       const saved=await command(api,'PUT',`/finance-entries/${encodeURIComponent(id)}`,{baseRevision:entry?.revision??0,value:next});
       await onSaved?.(saved);
     }});

@@ -4,14 +4,14 @@
 
 ## Правила
 
-- **Суммы** — целые минимальные единицы (`amount_minor`, копейки для RUB), от 1 до 10¹⁵−1. Направление задаёт `direction` (`income` или `expense`), сумма всегда положительна.
+- **Суммы** — целые минимальные единицы (`amount_minor`, копейки для RUB), от 1 до 10¹⁵−1. Число знаков после запятой берётся из ISO 4217 (RUB 2, JPY 0, KWD и IQD 3), а не из локали браузера: одна и та же `amount_minor` означает одну сумму в любом клиенте и в импорте. Направление задаёт `direction` (`income` или `expense`), сумма всегда положительна.
 - **Валюта** — ISO-код из трёх заглавных латинских букв. Валюта проекта (по умолчанию RUB) подставляется в новые операции; у операции может быть своя. Итоги считаются по каждой валюте отдельно.
 - **Состояния.** `planned` — ожидается к `due_date`. `posted` — прошла `posted_date`. Проведение запланированной операции ставит фактическую дату и сумму, плановая дата остаётся. `voided` — аннулирована с причиной (`void_reason`), окончательно; даты и суммы остаются как были. Переходы: planned → posted, planned → voided, posted → voided. Возврата в план и удаления нет.
-- **Дата операции** (`entry_date`) — фактическая, иначе плановая. По ней сортируется журнал, строятся разрезы по месяцам и фильтры `from`/`to`. Допустимые даты — 1900–2999 годы.
+- **Дата операции** (`entry_date`) — фактическая, иначе плановая. По ней сортируется журнал, строятся разрезы по месяцам и фильтры `from`/`to`. Допустимые даты — 1900–2999 годы; это правило проверяет приложение, база его не держит. Период `from`/`to` с началом позже конца отклоняется (`422 FINANCE_DATE`).
 - **Правка** не меняет состояние: проводится и аннулируется операция своей командой. Аннулированная операция не меняется.
 - **История.** Каждое сохранённое состояние — версия с полным снимком, видом изменения, автором и временем. Версии не меняются и не удаляются.
 - **Права.** Читают люди-участники проекта в любой роли; меняют администраторы проекта. Агенты и администраторы пространства без участия в проекте финансов не видят; события `finance-*` агентам не отдаются.
-- **Лимиты.** 100 000 операций на проект; категория до 80 знаков, описание до 500, контрагент и документ до 160, причина аннулирования до 300; страница журнала до 100, история по 50; сводка — до 240 месяцев и 200 категорий (`truncated`).
+- **Лимиты.** 100 000 операций на проект; категория до 80 знаков, описание до 500, контрагент и документ до 160, причина аннулирования до 300; страница журнала до 100, история по 50; сводка — последние 240 месяцев (по всем валютам) и до 200 крупнейших категорий в каждой валюте (`truncated`).
 
 ## Схема (миграция `V20260929000025__add_project_finance.sql`)
 
@@ -59,12 +59,12 @@
 
 - `finance_entry_guard` (BEFORE INSERT OR UPDATE, `app.guard_finance_entry()`): вставка — только ревизия 1 и состояние `planned` или `posted`; изменение — ревизия ровно +1, без возврата posted → planned, аннулирование меняет только `state` и `void_reason`, аннулированная строка не меняется, `project_id`, `id`, `created_by`, `created_at` неизменны.
 - `finance_entry_version` (AFTER INSERT OR UPDATE, `app.record_finance_entry_version()`): пишет версию с автором `updated_by` и временем `updated_at` строки. Вид изменения: вставка — `created`; переход в voided — `voided`; planned → posted — `posted`; иначе `updated`.
-- RLS (FORCE) на всех трёх таблицах: SELECT — `auth.can_read_finance(project_id)` (человек, участник проекта, не отключён), INSERT/UPDATE — `auth.can_manage_finance(project_id)` (то же и роль `admin`). У runtime-роли нет DELETE на таблицах финансов и UPDATE на версиях.
+- RLS (FORCE) на всех трёх таблицах: SELECT — `auth.can_read_finance(project_id)` (человек, участник проекта, не отключён), INSERT/UPDATE — `auth.can_manage_finance(project_id)` (то же и роль `admin`). Версия принимается, только если её `revision` равна текущей ревизии операции: руками историю не подделать и следующий номер не занять. У runtime-роли нет DELETE на таблицах финансов и UPDATE на версиях.
 - Итоги не хранятся: сводка считается запросом при каждом чтении.
 
 ## API
 
-Префикс `/api/v1/projects/{projectId}`. Команды требуют `Idempotency-Key` и `baseRevision`; человеку нужны `Origin` и `X-CSRF-Token`, как для остальных команд. Схемы — в `/openapi.json` и `contracts/finance.ts`.
+Префикс `/api/v1/projects/{projectId}`. «Участник» ниже — человек, участник проекта в любой роли; агент получает 403 даже как участник. Команды требуют `Idempotency-Key` и `baseRevision`; человеку нужны `Origin` и `X-CSRF-Token`, как для остальных команд. Схемы — в `/openapi.json` и `contracts/finance.ts`.
 
 | Метод и путь | Тело / параметры | Ответ | Кто |
 |---|---|---|---|
@@ -74,10 +74,12 @@
 | `GET /finance-entries/{id}` | — | `FinanceEntryResponse` | участник |
 | `PUT /finance-entries/{id}` | `PutFinanceEntry {baseRevision, value:{direction, state: planned\|posted, amountMinor, currencyCode, dueDate, postedDate, category, description, counterparty, reference}}`; `baseRevision` 0 — создание | `FinanceEntryResponse` | администратор |
 | `PATCH /finance-entries/{id}/state` | `{state:'posted', baseRevision, postedDate, amountMinor}` или `{state:'voided', baseRevision, voidReason}` | `FinanceEntryResponse` | администратор |
-| `GET /finance-entries/{id}/history` | `before` (ревизия) | `FinanceEntryHistoryResponse {items, nextCursor}` | участник |
+| `GET /finance-entries/{id}/history` | `before` (ревизия) | `FinanceEntryHistoryResponse {items, nextCursor}`; `nextCursor` — номер ревизии для `before` | участник |
 | `GET /finance-summary` | `from`, `to` | `FinanceSummaryResponse` | участник |
 
-Ошибки: `409 CONFLICT` — ревизия устарела; `409 IDEMPOTENCY_CONFLICT` — ключ уже использован для другого тела; `409 FINANCE_ENTRY_VOIDED`, `FINANCE_ENTRY_POSTED`, `FINANCE_STATE_CHANGE`, `FINANCE_LIMIT`; `422 FINANCE_DATE`; `400` — тело не по контракту; `403` — нет прав; `404` — нет проекта или операции.
+Ошибки: `409 CONFLICT` — ревизия устарела; `409 IDEMPOTENCY_CONFLICT` — ключ уже использован для другого тела; `409 FINANCE_ENTRY_VOIDED`, `FINANCE_ENTRY_POSTED`, `FINANCE_STATE_CHANGE`, `FINANCE_LIMIT`; `422 FINANCE_DATE`; `400` — тело или параметры не по контракту, `400 IDEMPOTENCY_KEY` — нет или неверный ключ повтора, `400 CURSOR_INVALID` — курсор другого списка; `401 UNAUTHENTICATED`; `403` — нет прав; `404` — нет проекта или операции.
+
+Квитанция повтора (`app.idempotency`) хранит только `{id, revision}`; повтор собирает ответ из версии этой ревизии, поэтому суммы и тексты остаются в таблицах финансов под их RLS.
 
 Сводка: `currencies[]` (`postedIncome`, `postedExpense`, `balance`, `plannedIncome`, `plannedExpense`, `forecast` = баланс + ожидаемые поступления − ожидаемые расходы, `postedCount`, `plannedCount`, `voidedCount`), `months[]` (`month` `YYYY-MM`, суммы по валюте), `categories[]` (`category`, `direction`, `currencyCode`, `posted`, `planned`). Аннулированные операции в суммы не входят. Все суммы сводки — десятичные строки минимальных единиц: они точны и за пределами 2⁵³.
 

@@ -12,6 +12,9 @@ test('FUI01 amounts typed the Russian or the English way become exact minor unit
   assert.equal(parseAmount('007','RUB'),700);
   assert.equal(parseAmount('1500','JPY'),1500);
   assert.equal(fractionDigits('KWD'),3);assert.equal(parseAmount('1,234','KWD'),1234);
+  // ISO 4217, not the browser's locale data: IQD has three digits, RSD two, JPY none.
+  assert.deepEqual(['IQD','RSD','JPY','RUB','XYZ'].map(fractionDigits),[3,2,0,2,2]);
+  assert.equal(plain(formatMoney(1500,'IQD')).replace(/[^\d,]/g,''),'1,500');
   assert.equal(parseAmount('9999999999999,99','RUB'),MAX_AMOUNT_MINOR);
   for(const [text,message] of [['','Введите'],['12,345','После запятой'],['1,5','копейки',"JPY"],['-5','число'],['1e3','число'],['0,00','больше нуля'],['10000000000000','Слишком большая']]){
     assert.throws(()=>parseAmount(text,message==='копейки'?'JPY':'RUB'),new RegExp(message),text);

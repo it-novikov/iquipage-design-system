@@ -135,7 +135,7 @@ export async function mountFinance(root,{repository,project,viewState={}}){
     const categories=`<section class="iq-section fin-summary-section" aria-labelledby="fin-categories"><header class="iq-section-head">${icon('palette',17)}<h3 id="fin-categories">По категориям</h3><span class="iq-section-count">${summary.categories.length}</span></header>
       <div class="iq-table-wrap"><table class="iq-table fin-summary-table"><caption class="sr-only">Суммы по категориям</caption><thead><tr><th scope="col">Категория</th><th scope="col">Направление</th><th scope="col" class="fin-num">Проведено</th><th scope="col" class="fin-num">Ожидается</th></tr></thead>
       <tbody>${summary.categories.map(c=>`<tr><th scope="row">${esc(c.category)}</th><td>${c.direction==='income'?'Доход':'Расход'}</td>${number(c.posted,c.currencyCode)}${number(c.planned,c.currencyCode)}</tr>`).join('')}</tbody></table></div></section>`;
-    target.innerHTML=months+categories+(summary.truncated?`<p class="iq-helper">Показаны последние 240 месяцев и 200 крупнейших категорий. Выберите период короче, чтобы увидеть остальное.</p>`:'');
+    target.innerHTML=months+categories+(summary.truncated?`<p class="iq-helper">Показаны последние 240 месяцев и по 200 крупнейших категорий в каждой валюте. Выберите период короче, чтобы увидеть остальное.</p>`:'');
   }
   function render(){
     if(disposed)return;

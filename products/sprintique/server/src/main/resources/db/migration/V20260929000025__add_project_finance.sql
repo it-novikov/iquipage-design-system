@@ -167,4 +167,9 @@ CREATE POLICY finance_entry_update ON app.finance_entry FOR UPDATE
 ALTER TABLE app.finance_entry_version ENABLE ROW LEVEL SECURITY;
 ALTER TABLE app.finance_entry_version FORCE ROW LEVEL SECURITY;
 CREATE POLICY finance_entry_version_read ON app.finance_entry_version FOR SELECT USING(auth.can_read_finance(project_id));
-CREATE POLICY finance_entry_version_insert ON app.finance_entry_version FOR INSERT WITH CHECK(auth.can_manage_finance(project_id));
+-- A version is accepted only for the revision its entry holds right now: the trigger writes exactly that, while a row
+-- written by hand could forge history or take the number of the next real revision.
+CREATE POLICY finance_entry_version_insert ON app.finance_entry_version FOR INSERT WITH CHECK(
+  auth.can_manage_finance(project_id) AND EXISTS(SELECT 1 FROM app.finance_entry e
+    WHERE e.project_id=finance_entry_version.project_id AND e.id=finance_entry_version.entry_id
+      AND e.revision=finance_entry_version.revision));

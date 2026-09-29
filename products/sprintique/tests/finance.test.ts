@@ -45,6 +45,9 @@ test('FN01 an administrator records entries; CAS, retries and history follow eve
   const audit=(await f.admin.query("SELECT action,revision FROM app.audit_events WHERE project_id=$1 AND resource_id='fn01-hosting' ORDER BY created_at",[f.first.id])).rows;
   assert.deepEqual(audit.map(r=>[r.action,r.revision]),[['finance-entry.created',1],['finance-entry.updated',2]]);
   assert.equal((await call('GET','finance-entries/missing')).statusCode,404);
+  // Retry receipts name the entry and its revision; amounts and texts stay in the finance tables.
+  const receipts=(await f.admin.query("SELECT result FROM app.idempotency WHERE project_id=$1 AND operation LIKE 'finance-entry%'",[f.first.id])).rows;
+  assert.ok(receipts.length>0);for(const {result} of receipts)assert.deepEqual(Object.keys(result).sort(),['id','revision']);
 });
 
 test('FN02 posting records the actual date and amount; voiding needs a reason, is final and leaves the entry immutable',async()=>{
@@ -165,6 +168,8 @@ test('FN05 the summary totals each currency without voided entries, keeps plan a
   assert.deepEqual(period.currencies.map(c=>[c.currencyCode,c.postedIncome,c.plannedIncome,c.plannedExpense]),[['RUB','999999999999999','1000','0'],['USD','7000','0','0']]);
   assert.equal((await at('finance-summary?from=2026-13-01')).statusCode,400);
   assert.equal((await at('finance-summary?from=1800-01-01')).json().code,'FINANCE_DATE');
+  assert.equal((await at('finance-summary?from=2026-10-01&to=2026-09-01')).json().code,'FINANCE_DATE');
+  assert.equal((await at('finance-entries?from=2026-10-01&to=2026-09-01')).json().code,'FINANCE_DATE');
   assert.equal((await at('finance-summary?extra=1')).statusCode,400);
   // Lists follow the entry date, newest first, in stable keyset pages bound to their filter.
   const firstPage=FinanceEntryPageResponse.parse((await at('finance-entries?limit=3')).json());

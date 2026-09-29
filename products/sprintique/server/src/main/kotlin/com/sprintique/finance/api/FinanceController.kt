@@ -114,7 +114,8 @@ class FinanceController(
         fence(tx, actor, projectId)
         val input = contracts.parse<PutFinanceEntryRequest>(body)
         val key = RequestInputs.idempotencyKey(request)
-        ledger.idempotent(tx, actor, projectId, "finance-entry.put:$id", key, input) {
+        val receipt = FinanceEntries.receipt(tx, projectId)
+        ledger.idempotent(tx, actor, projectId, "finance-entry.put:$id", key, input, receipt) {
             FinanceEntries.put(tx, actor, projectId, id, input.baseRevision, input.value.toContent())
         }
     }
@@ -132,7 +133,8 @@ class FinanceController(
         fence(tx, actor, projectId)
         val input = contracts.parse<ChangeFinanceEntryStateRequest>(body)
         val key = RequestInputs.idempotencyKey(request)
-        ledger.idempotent(tx, actor, projectId, "finance-entry.state:$id", key, input) {
+        val receipt = FinanceEntries.receipt(tx, projectId)
+        ledger.idempotent(tx, actor, projectId, "finance-entry.state:$id", key, input, receipt) {
             FinanceEntries.changeState(tx, actor, projectId, id, input.baseRevision, input.toChange())
         }
     }

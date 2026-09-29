@@ -36,4 +36,12 @@ class FinanceRulesTest {
             FinanceRules.requireDates(null, "3000-01-01")
         }.extracting("code").isEqualTo("FINANCE_DATE")
     }
+
+    @Test
+    fun `a period starts no later than it ends`() {
+        assertThatCode { FinanceRules.requirePeriod("2026-09-01", "2026-09-01") }.doesNotThrowAnyException()
+        assertThatCode { FinanceRules.requirePeriod(null, "2026-09-01") }.doesNotThrowAnyException()
+        assertThatThrownBy { FinanceRules.requirePeriod("2026-09-02", "2026-09-01") }
+            .extracting("code").isEqualTo("FINANCE_DATE")
+    }
 }

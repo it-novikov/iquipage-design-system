@@ -110,7 +110,8 @@ export async function mountAgents(root,{repository,project,tools,onCounts=()=>{}
     if(isRuns||isApprovals){target.disabled=true;try{const page=await client.request(base+(isRuns?'/agent-runs':'/approvals')+'?cursor='+encodeURIComponent(isRuns?runCursor:approvalCursor));if(closed)return;if(isRuns){runs.push(...page.items);runCursor=page.nextCursor;}else{approvals.push(...page.items);approvalCursor=page.nextCursor;}render();}finally{target.disabled=false;}}
   })().catch(fail);};
   root.addEventListener('click',onClick,{signal:abort.signal});tools?.addEventListener('click',onClick,{signal:abort.signal});
-  const unsubscribe=repository.subscribe(()=>{void refresh().catch(fail);});
+  // Finance changes never touch agents or approvals.
+  const unsubscribe=repository.subscribe(change=>{if(!String(change?.collection).startsWith('finance'))void refresh().catch(fail);});
   await refresh();
   return {readyToLeave:()=>!modal,destroy(){closed=true;sequence++;abort.abort();unsubscribe();modal?.close(true);root.replaceChildren();}};
 }

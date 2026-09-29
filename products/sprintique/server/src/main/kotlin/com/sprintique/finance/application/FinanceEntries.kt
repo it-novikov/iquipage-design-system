@@ -1,6 +1,7 @@
 package com.sprintique.finance.application
 
 import com.sprintique.command.AuditTrail
+import com.sprintique.command.Receipt
 import com.sprintique.contract.RESOURCE_ID
 import com.sprintique.contract.isIsoDate
 import com.sprintique.database.Row
@@ -14,6 +15,7 @@ import com.sprintique.identity.domain.Capability
 import com.sprintique.problem.ProblemException
 import com.sprintique.problem.requireCondition
 import com.sprintique.problem.requirePresent
+import tools.jackson.databind.JsonNode
 import tools.jackson.databind.json.JsonMapper
 import java.util.Base64
 
@@ -49,7 +51,7 @@ object FinanceEntries {
         cursor: String?,
     ): Map<String, Any?> {
         ProjectAccess.authorize(tx, actor, projectId, Capability.FINANCE_READ)
-        FinanceRules.requireDates(filter.from, filter.to)
+        FinanceRules.requirePeriod(filter.from, filter.to)
         val binding = listOf(filter.state, filter.direction, filter.from, filter.to).joinToString("|") { it ?: "" }
         val after = positionOf(cursor, binding)
         val conditions = """
@@ -244,6 +246,41 @@ object FinanceEntries {
             "nextCursor" to if (rows.size > HISTORY_PAGE) items.last().int("revision") else null,
         )
     }
+
+    /**
+     * The retry receipt of an entry command keeps only the entry and the revision it produced; a retry rebuilds the
+     * answer from that version. Amounts and texts never leave the finance tables and their row security.
+     */
+    fun receipt(tx: Transaction, projectId: String): Receipt<Row> = object : Receipt<Row> {
+        override fun store(value: Row): Any = mapOf("id" to value["id"], "revision" to value["revision"])
+
+        override fun restore(record: JsonNode): Any = requirePresent(
+            atRevision(tx, projectId, record.path("id").asString(), record.path("revision").asInt()),
+            404,
+            "NOT_FOUND",
+            "Операция недоступна.",
+        )
+    }
+
+    /** An entry exactly as a command returned it at [revision]. */
+    private fun atRevision(tx: Transaction, projectId: String, id: String, revision: Int): Row? = tx.row(
+        """
+        SELECT e.id, e.project_id AS "projectId", v.direction, v.state, v.amount_minor AS "amountMinor",
+               v.currency_code AS "currencyCode", to_char(v.due_date, 'YYYY-MM-DD') AS "dueDate",
+               to_char(v.posted_date, 'YYYY-MM-DD') AS "postedDate",
+               to_char(coalesce(v.posted_date, v.due_date), 'YYYY-MM-DD') AS "entryDate",
+               v.category, v.description, v.counterparty, v.reference, v.void_reason AS "voidReason", v.revision,
+               e.created_at AS "createdAt", e.created_by AS "createdById", coalesce(c.profile_name, c.name) AS "createdByName",
+               v.created_at AS "updatedAt", v.actor_id AS "updatedById", coalesce(u.profile_name, u.name) AS "updatedByName"
+        FROM app.finance_entry_version v
+        JOIN app.finance_entry e ON e.project_id = v.project_id AND e.id = v.entry_id
+        JOIN auth.principals c ON c.id = e.created_by JOIN auth.principals u ON u.id = v.actor_id
+        WHERE v.project_id = $1 AND v.entry_id = $2 AND v.revision = $3
+        """.trimIndent(),
+        projectId,
+        id,
+        revision,
+    )?.let(::entryOf)
 
     private fun find(tx: Transaction, projectId: String, id: String): Row? =
         tx.row("SELECT $PROJECTION WHERE e.project_id = $1 AND e.id = $2", projectId, id)?.let(::entryOf)
