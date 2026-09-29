@@ -146,7 +146,7 @@ test('F08 a large body streams through S3 multipart and is read back in byte ran
   assert.equal((await f.app.inject({method:'GET',url:path(`assets/${id}/original`),headers:{...f.bob.headers,range:'bytes=0-9'}})).statusCode,404);
 });
 test('F09 a body that changes on the way, or runs long, never becomes the stored file',async()=>{
-  const bytes=randomBytes(9*1024*1024),changed=Buffer.from(bytes);changed[changed.length-1]^=1;
+  const bytes=randomBytes(9*1024*1024),changed=Buffer.from(bytes);changed[changed.length-1]=changed[changed.length-1]!^1;
   await reserve('changed-large','data.bin',bytes);const refused=await upload('changed-large',changed);
   assert.equal(refused.statusCode,422);assert.equal(refused.json().code,'FILE_HASH');
   const row=(await f.admin.query('SELECT state,sha256 FROM app.assets WHERE project_id=$1 AND id=$2',[f.first.id,'changed-large'])).rows[0];assert.equal(row!['state'],'quarantined');

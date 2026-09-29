@@ -61,7 +61,7 @@ export function mountTaskFiles(root,{coverRoot,adapter,task,readOnly=false,onCov
   function drawRow(row){
     if(closed)return;let element=rowFor(row.id);
     if(!element){element=document.createElement('div');element.className='iq-file-item task-file-row';element.dataset.fileRow=row.id;
-      element.innerHTML=`<iq-file-preview data-file-preview></iq-file-preview><div class="file-item-copy"><b></b><small data-file-status></small><span class="iq-progress task-file-progress" role="progressbar" aria-label="Ход загрузки" aria-valuemin="0" aria-valuemax="100" data-file-progress hidden><span></span></span><p class="iq-helper error" data-row-error hidden></p></div><span class="task-file-actions"></span>`;list.append(element);}
+      element.innerHTML=`<iq-file-preview data-file-preview></iq-file-preview><div class="file-item-copy"><b></b><small data-file-status></small><div class="iq-progress task-file-progress" role="progressbar" aria-label="Ход загрузки" aria-valuemin="0" aria-valuemax="100" data-file-progress hidden><span></span></div><p class="iq-helper error" data-row-error hidden></p></div><span class="task-file-actions"></span>`;list.append(element);}
     element.dataset.state=row.state;element.querySelector('b').textContent=row.name;
     element.querySelector('[data-file-status]').innerHTML=[size(row.size||0),states[row.state],row.id===coverId?'Обложка':''].filter(Boolean).map(text=>`<span>${esc(text)}</span>`).join('');
     const message=element.querySelector('[data-row-error]');message.hidden=!row.error;message.textContent=row.error||'';
