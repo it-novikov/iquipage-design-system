@@ -136,7 +136,7 @@ open class Assets(
     val projects: ProjectsPath by lazy { ProjectsPath(this, ASSETS__ASSETS_PROJECT_ID_FKEY, null) }
     override fun getChecks(): List<Check<AssetsRecord>> = listOf(
         Internal.createCheck(this, DSL.name("asset_size"), "(((size >= 1) AND (size <= '2147483648'::bigint)))", true),
-        Internal.createCheck(this, DSL.name("asset_state"), "((state = ANY (ARRAY['uploading'::text, 'ready'::text, 'attached'::text, 'detached'::text, 'quarantined'::text, 'deleting'::text, 'deleted'::text])))", true),
+        Internal.createCheck(this, DSL.name("asset_state"), "((state = ANY (ARRAY['uploading'::text, 'publishing'::text, 'ready'::text, 'attached'::text, 'detached'::text, 'quarantined'::text, 'deleting'::text, 'deleted'::text])))", true),
         Internal.createCheck(this, DSL.name("assets_target_type_check"), "((target_type = ANY (ARRAY['task'::text, 'map'::text, 'project-avatar'::text])))", true)
     )
     override fun `as`(alias: String): Assets = Assets(DSL.name(alias), this)

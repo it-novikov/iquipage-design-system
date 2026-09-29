@@ -44,9 +44,26 @@ export const WHOLE_DIGEST_LIMIT=64*1024*1024;
 const SLICE=8*1024*1024;
 const hex=buffer=>[...new Uint8Array(buffer)].map(n=>n.toString(16).padStart(2,'0')).join('');
 
+/** A large file is hashed in a Worker so the page stays responsive; without Worker support, here, slice by slice. */
+function digestInWorker(file,{signal,onProgress}){
+  return new Promise((resolve,reject)=>{
+    const worker=new Worker(new URL('./digest-worker.js',import.meta.url),{type:'module'});
+    const stop=()=>{worker.terminate();signal?.removeEventListener('abort',abort);};
+    const abort=()=>{stop();reject(signal.reason??new DOMException('Загрузка отменена','AbortError'));};
+    worker.onmessage=({data})=>{
+      if(data.loaded!==undefined)onProgress(data.loaded);
+      else if(data.digest){stop();resolve(data.digest);}
+      else{stop();reject(new Error(data.error||'Не удалось проверить файл.'));}
+    };
+    worker.onerror=event=>{event.preventDefault();stop();reject(new Error('Не удалось проверить файл.'));};
+    signal?.addEventListener('abort',abort,{once:true});worker.postMessage(file);
+  });
+}
+
 export async function digestFile(file,{signal,onProgress=()=>{}}={}){
   signal?.throwIfAborted();onProgress(0);
   if(file.size<=WHOLE_DIGEST_LIMIT){const digest=hex(await crypto.subtle.digest('SHA-256',await file.arrayBuffer()));signal?.throwIfAborted();onProgress(file.size);return digest;}
+  if(typeof Worker==='function')return digestInWorker(file,{signal,onProgress});
   const sha=new Sha256();
   for(let offset=0;offset<file.size;offset+=SLICE){
     sha.update(new Uint8Array(await file.slice(offset,offset+SLICE).arrayBuffer()));

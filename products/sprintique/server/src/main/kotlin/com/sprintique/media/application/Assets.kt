@@ -31,6 +31,14 @@ sealed interface UploadStart {
     data class Rejected(val problem: ProblemException) : UploadStart
 }
 
+/** The first step of finishing an upload: publish the objects now, or the upload is already settled. */
+sealed interface Publishing {
+    /** The objects go to storage with no transaction open; [revision] is the asset's while it is `publishing`. */
+    data class Go(val asset: Row, val revision: Long) : Publishing
+
+    data class Done(val result: UploadResult) : Publishing
+}
+
 /** The outcome of an upload: its metadata, or a rejection recorded as quarantine before the error is reported. */
 sealed interface UploadResult {
     data class Stored(val asset: Map<String, Any?>) : UploadResult
@@ -46,6 +54,7 @@ object Assets {
     private const val QUOTA_BYTES = 20L * 1024 * 1024 * 1024
     private const val PENDING_UPLOADS = 100
     const val MAP_IMAGE_LIMIT = 40
+    private const val BUSY = "Файл ещё сохраняется. Повторите через несколько секунд."
 
     private val PROJECTION = """
         id, project_id AS "projectId", target_type AS "targetType", target_id AS "targetId", actor_id AS "actorId", name, size, sha256,
@@ -132,7 +141,7 @@ object Assets {
             val quota = tx.row(
                 """
                 SELECT coalesce(sum(size), 0)::float8 AS bytes,
-                       count(*) FILTER (WHERE state IN ('uploading', 'ready') AND actor_id = $2)::int AS pending
+                       count(*) FILTER (WHERE state IN ('uploading', 'publishing', 'ready') AND actor_id = $2)::int AS pending
                 FROM app.assets WHERE project_id = $1 AND state <> 'deleted'
                 """.trimIndent(),
                 projectId, actor.id,
@@ -172,6 +181,7 @@ object Assets {
             asset.string("sha256"),
             asset.string("targetType"),
             store = asset.string("state") == "uploading",
+            deadline = asset.instant("expiresAt"),
         )
         if (!plan.store) return UploadStart.Accepted(plan)
         return try {
@@ -196,21 +206,22 @@ object Assets {
         quarantine(tx, actor, projectId, writable(tx, actor, projectId, id), problem)
 
     /**
-     * Publishes a received body under the project and asset locks and marks the upload ready. The lock orders this
-     * against discarding and cleanup, so no object appears under a key that cleanup has already passed. A body that
-     * arrives after another copy of the same content was stored is dropped.
+     * The first step of finishing an upload, under the project and asset locks: checks the reservation once more and
+     * marks the asset `publishing`. The objects are then written with no transaction or lock held; discarding waits
+     * for the outcome. If the process dies meanwhile, the reservation's own cleanup job removes what it left behind
+     * once the reservation expires, as for any unfinished upload.
      */
-    fun finishUpload(
+    fun startPublishing(
         tx: Transaction,
         actor: Actor,
         projectId: String,
         id: String,
         content: ReceivedContent,
-        storage: ObjectStoragePort,
-    ): UploadResult {
+    ): Publishing {
         val asset = writable(tx, actor, projectId, id)
         requireUploadable(asset, actor)
-        if (asset.string("state") != "uploading") return UploadResult.Stored(publicMetadata(asset))
+        requireCondition(asset.string("state") != "publishing", 409, "FILE_BUSY", BUSY)
+        if (asset.string("state") != "uploading") return Publishing.Done(UploadResult.Stored(publicMetadata(asset)))
         try {
             requireFresh(asset)
             requireCondition(
@@ -220,11 +231,36 @@ object Assets {
                 "Для обложки карты и аватара нужно изображение.",
             )
         } catch (problem: ProblemException) {
-            return UploadResult.Rejected(quarantine(tx, actor, projectId, asset, problem))
+            return Publishing.Done(UploadResult.Rejected(quarantine(tx, actor, projectId, asset, problem)))
         }
-        content.publish(storage) { variant -> key(asset, variant) }
         ProjectAccess.requireActiveCredential(tx, actor)
         access(tx, actor, projectId, asset.string("targetType"), true)
+        tx.update(
+            """
+            UPDATE app.assets SET state = 'publishing', revision = revision + 1, updated_at = clock_timestamp()
+            WHERE project_id = $1 AND id = $2
+            """.trimIndent(),
+            projectId, id,
+        )
+        return Publishing.Go(asset, asset.long("revision") + 1)
+    }
+
+    /** Marks a published upload ready. Only this publication may finish it. */
+    fun finishPublishing(
+        tx: Transaction,
+        actor: Actor,
+        projectId: String,
+        id: String,
+        publication: Publishing.Go,
+        content: ReceivedContent,
+    ): UploadResult {
+        val asset = row(tx, projectId, id, lock = true)
+        requireCondition(
+            asset.string("state") == "publishing" && asset.long("revision") == publication.revision,
+            409,
+            "FILE_STATE",
+            "Загрузка завершена или удалена. Выберите файл заново.",
+        )
         val preview = content.preview
         tx.update(
             """
@@ -234,14 +270,25 @@ object Assets {
             """.trimIndent(),
             projectId, id, content.file.mime, preview != null, preview?.width, preview?.height,
         )
-        AuditTrail.record(tx, actor, projectId, "asset.ready", id, asset.long("revision") + 1)
+        AuditTrail.record(tx, actor, projectId, "asset.ready", id, publication.revision + 1)
         return UploadResult.Stored(publicMetadata(row(tx, projectId, id)))
+    }
+
+    /** Storage refused the objects: the upload waits for its bytes again, so its author can resend them. */
+    fun failPublishing(tx: Transaction, projectId: String, id: String, publication: Publishing.Go) {
+        tx.update(
+            """
+            UPDATE app.assets SET state = 'uploading', revision = revision + 1, updated_at = clock_timestamp()
+            WHERE project_id = $1 AND id = $2 AND state = 'publishing' AND revision = $3
+            """.trimIndent(),
+            projectId, id, publication.revision,
+        )
     }
 
     private fun requireUploadable(asset: Row, actor: Actor) {
         requireCondition(asset.string("actorId") == actor.id, 403, "FILE_OWNER", "Загрузку завершает её автор.")
         requireCondition(
-            asset.string("state") in setOf("uploading", "ready", "attached"),
+            asset.string("state") in setOf("uploading", "publishing", "ready", "attached"),
             409,
             "FILE_STATE",
             "Загрузка завершена или удалена. Выберите файл заново.",
@@ -307,6 +354,7 @@ object Assets {
             "Удалить несохранённую загрузку может её автор.",
         )
         requireCondition(asset.string("state") != "attached", 409, "FILE_ATTACHED", "Сначала уберите файл из объекта.")
+        requireCondition(asset.string("state") != "publishing", 409, "FILE_BUSY", BUSY)
         if (asset.string("state") in setOf("uploading", "ready")) {
             val revision = asset.long("revision") + 1
             tx.update(

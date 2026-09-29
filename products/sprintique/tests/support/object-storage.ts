@@ -1,6 +1,11 @@
 // A private S3 client for tests and the local stand: they put, read and remove objects next to the server under test.
 import {S3Client,PutObjectCommand,GetObjectCommand,DeleteObjectCommand,HeadBucketCommand} from '@aws-sdk/client-s3';
 import {z} from 'zod';
+import {createHash} from 'node:crypto';
+import {createReadStream,createWriteStream} from 'node:fs';
+import {stat} from 'node:fs/promises';
+import {Readable,Transform} from 'node:stream';
+import {pipeline} from 'node:stream/promises';
 export interface ObjectStorage {
   put(key:string,bytes:Uint8Array,mime:string):Promise<void>;
   get(key:string):Promise<Uint8Array>;
@@ -29,6 +34,25 @@ export class S3ObjectStorage implements ObjectStorage {
     try{for await(const chunk of body){length+=chunk.byteLength;if(length>limit)throw Error('Object exceeds canonical limit');chunks.push(chunk);}}
     catch(error){body.destroy?.();throw error;}
     return Buffer.concat(chunks,length);}
+  /** Streams an object into a new private file and returns its SHA-256 and size; nothing is held whole. */
+  async download(key:string,path:string){
+    const response=await this.client.send(new GetObjectCommand({Bucket:this.settings.bucket,Key:key}),{abortSignal:AbortSignal.timeout(15000)});
+    if(!response.Body)throw Error('Object content missing');
+    const hash=createHash('sha256');let bytes=0;
+    const counter=new Transform({transform(chunk:Buffer,_encoding,done){hash.update(chunk);bytes+=chunk.length;done(null,chunk);}});
+    await pipeline(response.Body as Readable,counter,createWriteStream(path,{mode:0o600,flags:'wx'}));
+    return {sha256:hash.digest('hex'),bytes};
+  }
+  /** Streams a file into an object. */
+  async upload(key:string,path:string,mime:string){
+    const {size}=await stat(path);
+    await this.client.send(new PutObjectCommand({Bucket:this.settings.bucket,Key:key,Body:createReadStream(path),ContentLength:size,ContentType:mime}),{abortSignal:AbortSignal.timeout(600000)});
+  }
+  /** The SHA-256 of an object, read as a stream. */
+  async sha256(key:string){
+    const response=await this.client.send(new GetObjectCommand({Bucket:this.settings.bucket,Key:key}),{abortSignal:AbortSignal.timeout(15000)});
+    const hash=createHash('sha256');for await(const chunk of response.Body as AsyncIterable<Uint8Array>)hash.update(chunk);return hash.digest('hex');
+  }
   async remove(key:string){await this.client.send(new DeleteObjectCommand({Bucket:this.settings.bucket,Key:key}),{abortSignal:AbortSignal.timeout(15000)});}
   async ready(){await this.client.send(new HeadBucketCommand({Bucket:this.settings.bucket}),{abortSignal:AbortSignal.timeout(5000)});}
   close(){this.client.destroy();}

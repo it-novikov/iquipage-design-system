@@ -24,6 +24,7 @@ import software.amazon.awssdk.services.s3.model.HeadBucketRequest
 import software.amazon.awssdk.services.s3.model.ListMultipartUploadsRequest
 import software.amazon.awssdk.services.s3.model.PutObjectRequest
 import software.amazon.awssdk.services.s3.model.UploadPartRequest
+import java.io.ByteArrayInputStream
 import java.io.InputStream
 import java.net.URI
 import java.time.Duration
@@ -70,7 +71,7 @@ class S3ObjectStorageAdapter(private val settings: StorageProperties) : ObjectSt
         client.putObject(
             PutObjectRequest.builder().bucket(settings.bucket).key(stored(key)).contentType(mime)
                 .overrideConfiguration(LONG_CALL).build(),
-            RequestBody.fromBytes(bytes),
+            body(bytes, bytes.size, mime),
         )
     }
 
@@ -89,12 +90,22 @@ class S3ObjectStorageAdapter(private val settings: StorageProperties) : ObjectSt
 
     override fun remove(key: String) {
         client.deleteObject(DeleteObjectRequest.builder().bucket(settings.bucket).key(stored(key)).build())
-        // A process that died mid-upload leaves parts that no object points to; only a listing finds them.
-        val pending = client.listMultipartUploads(
-            ListMultipartUploadsRequest.builder().bucket(settings.bucket).prefix(stored(key)).build(),
-        )
-        for (upload in pending.uploads().filter { it.key() == stored(key) }) abort(upload.key(), upload.uploadId())
+        abandon(stored(key), except = null)
     }
+
+    /** A process that died mid-upload leaves parts no object points to, still billed; only a listing finds them. */
+    private fun abandon(key: String, except: String?) {
+        val pending = client.listMultipartUploads(
+            ListMultipartUploadsRequest.builder().bucket(settings.bucket).prefix(key).build(),
+        )
+        for (upload in pending.uploads().filter { it.key() == key && it.uploadId() != except }) {
+            abort(upload.key(), upload.uploadId())
+        }
+    }
+
+    /** The bytes as they are, read by the SDK as often as it retries; no copy of the array is made. */
+    private fun body(bytes: ByteArray, length: Int, mime: String) =
+        RequestBody.fromContentProvider({ ByteArrayInputStream(bytes, 0, length) }, length.toLong(), mime)
 
     override fun requireReady() {
         try {
@@ -126,7 +137,7 @@ class S3ObjectStorageAdapter(private val settings: StorageProperties) : ObjectSt
             val tag = client.uploadPart(
                 UploadPartRequest.builder().bucket(settings.bucket).key(key).uploadId(upload).partNumber(number)
                     .contentLength(length.toLong()).overrideConfiguration(LONG_CALL).build(),
-                RequestBody.fromBytes(if (length == bytes.size) bytes else bytes.copyOf(length)),
+                body(bytes, length, "application/octet-stream"),
             ).eTag()
             parts += CompletedPart.builder().partNumber(number).eTag(tag).build()
         }
@@ -139,6 +150,8 @@ class S3ObjectStorageAdapter(private val settings: StorageProperties) : ObjectSt
                     .overrideConfiguration(LONG_CALL).build(),
             )
             finished = true
+            // The same content is under the key now: earlier writes of it that a dead process left open can go.
+            runCatching { abandon(key, except = upload) }
         }
 
         override fun abort() {

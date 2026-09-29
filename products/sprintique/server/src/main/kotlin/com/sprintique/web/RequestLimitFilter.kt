@@ -11,9 +11,10 @@ import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * Per-process safeguards, not cluster-wide quotas: a per-address window (1000 requests and 20 sign-ins a minute),
- * at most 64 requests and 8 uploads in flight. File downloads have a cap of their own (32), apart from the other
- * requests, because a player may hold one open while it buffers; event streams have their own cap too; readiness is
- * never shed.
+ * at most 64 requests and 8 short uploads in flight. Long transfers have lanes of their own, so they never crowd out
+ * short requests, each with a cap per credential so that one person cannot hold a whole lane: uploads of more than
+ * 32 MiB (8, 2 each) and downloads of originals (32, 8 each), which a paused player may hold open. Event streams have
+ * their own cap too; readiness is never shed.
  */
 @Component
 @Profile("api")
@@ -24,7 +25,28 @@ class RequestLimitFilter(private val clientAddresses: ClientAddresses) : OncePer
     private val windows = LinkedHashMap<String, Window>()
     private val active = AtomicInteger()
     private val uploads = AtomicInteger()
-    private val downloads = AtomicInteger()
+    private val longUploads = Lane(MAX_LONG_UPLOADS, LONG_UPLOADS_EACH)
+    private val downloads = Lane(MAX_DOWNLOADS, DOWNLOADS_EACH)
+
+    /** Concurrent holders of one kind of long request: a cap in total and a cap per holder. */
+    private class Lane(private val total: Int, private val each: Int) {
+        private var count = 0
+        private val holders = HashMap<String, Int>()
+
+        @Synchronized
+        fun enter(holder: String): Boolean {
+            if (count >= total || (holders[holder] ?: 0) >= each) return false
+            count++
+            holders.merge(holder, 1, Int::plus)
+            return true
+        }
+
+        @Synchronized
+        fun leave(holder: String) {
+            count--
+            holders.compute(holder) { _, held -> if (held == null || held <= 1) null else held - 1 }
+        }
+    }
 
     override fun doFilterInternal(request: HttpServletRequest, response: HttpServletResponse, chain: FilterChain) {
         val path = routedPath(request)
@@ -52,7 +74,10 @@ class RequestLimitFilter(private val clientAddresses: ClientAddresses) : OncePer
     }
 
     private fun admitActive(request: HttpServletRequest, response: HttpServletResponse, chain: FilterChain) {
-        if (isDownload(request)) return admitDownload(request, response, chain)
+        if (isDownload(request)) return admitLane(downloads, request, response, chain)
+        if (isFileContent(request) && request.contentLengthLong !in 0..SHORT_BODY) {
+            return admitLane(longUploads, request, response, chain)
+        }
         val upload = isUpload(request)
         if (active.get() >= MAX_ACTIVE || (upload && uploads.get() >= MAX_UPLOADS)) {
             return ProblemWriter.write(
@@ -73,9 +98,9 @@ class RequestLimitFilter(private val clientAddresses: ClientAddresses) : OncePer
         }
     }
 
-    private fun admitDownload(request: HttpServletRequest, response: HttpServletResponse, chain: FilterChain) {
-        if (downloads.incrementAndGet() > MAX_DOWNLOADS) {
-            downloads.decrementAndGet()
+    private fun admitLane(lane: Lane, request: HttpServletRequest, response: HttpServletResponse, chain: FilterChain) {
+        val holder = holderOf(request)
+        if (!lane.enter(holder)) {
             return ProblemWriter.write(
                 request,
                 response,
@@ -87,9 +112,15 @@ class RequestLimitFilter(private val clientAddresses: ClientAddresses) : OncePer
         try {
             chain.doFilter(request, response)
         } finally {
-            downloads.decrementAndGet()
+            lane.leave(holder)
         }
     }
+
+    /** Whose transfer this is: the credential the request carries, or else its address. Kept in memory only. */
+    private fun holderOf(request: HttpServletRequest): String =
+        request.getHeader("Authorization")
+            ?: AUTH_COOKIE.find(request.getHeader("Cookie").orEmpty())?.groupValues?.get(1)
+            ?: ("address:" + clientAddresses.of(request))
 
     @Synchronized
     private fun admitWindow(address: String, login: Boolean): Boolean {
@@ -115,12 +146,19 @@ class RequestLimitFilter(private val clientAddresses: ClientAddresses) : OncePer
         private const val MAX_LOGINS = 20
         private const val MAX_ACTIVE = 64
         private const val MAX_UPLOADS = 8
+        private const val MAX_LONG_UPLOADS = 8
+        private const val LONG_UPLOADS_EACH = 2
         private const val MAX_DOWNLOADS = 32
+        private const val DOWNLOADS_EACH = 8
+
+        /** An upload body up to this size is a short request. */
+        private const val SHORT_BODY = 32L * 1024 * 1024
+        private val AUTH_COOKIE = Regex("(?:^|;\\s*)__Host-sprintique=([^;]+)")
 
         /** Entry points that start a sign-in or check a secret: they share the tighter per-address login budget. */
         private val LOGINS = listOf("/auth/login", "/auth/dev-login", "/auth/email/")
         private val UPLOAD = Regex("^/api/v1/projects/[^/]+/assets/[^/]+/content$")
-        private val DOWNLOAD = Regex("^/api/v1/projects/[^/]+/assets/[^/]+/(original|display|thumb)$")
+        private val DOWNLOAD = Regex("^/api/v1/projects/[^/]+/assets/[^/]+/original$")
         private val STREAM = Regex("^/api/v1/projects/[^/]+/events$")
 
         /**

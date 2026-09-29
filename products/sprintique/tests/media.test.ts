@@ -1,7 +1,9 @@
 import {before,after,test} from 'node:test';
 import assert from 'node:assert/strict';
 import {randomUUID,createHash,randomBytes} from 'node:crypto';
-import {readFile} from 'node:fs/promises';
+import {readFile,mkdtemp,rm} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
 import sharp from 'sharp';
 import {fixture} from './fixture.js';
 import {S3ObjectStorage,objectKey} from './support/object-storage.js';
@@ -135,14 +137,19 @@ test('F08 a large body streams through S3 multipart and is read back in byte ran
   const range=(value:string,extra:Record<string,string>={})=>f.app.inject({method:'GET',url:path(`assets/${id}/original`),headers:{...f.alice.headers,range:value,...extra}});
   const head=await range('bytes=0-99');assert.equal(head.statusCode,206);assert.equal(head.headers['content-range'],`bytes 0-99/${size}`);assert.ok(head.rawPayload.equals(bytes.subarray(0,100)));
   const tail=await range('bytes=-10');assert.equal(tail.statusCode,206);assert.ok(tail.rawPayload.equals(bytes.subarray(size-10)));
-  // An open range is answered with one window; a player asks again from where it ended.
-  const open=await range('bytes=1000-');const window=16*1024*1024;assert.equal(open.statusCode,206);
-  assert.equal(open.headers['content-range'],`bytes 1000-${1000+window-1}/${size}`);assert.ok(open.rawPayload.equals(bytes.subarray(1000,1000+window)));
+  // An open range is served to the end, window by window, so a download manager can resume.
+  const open=await range('bytes=1000-');assert.equal(open.statusCode,206);
+  assert.equal(open.headers['content-range'],`bytes 1000-${size-1}/${size}`);assert.ok(open.rawPayload.equals(bytes.subarray(1000)));
   const across=await range(`bytes=${8*1024*1024-5}-${8*1024*1024+4}`);assert.ok(across.rawPayload.equals(bytes.subarray(8*1024*1024-5,8*1024*1024+5)),'a range across two parts');
   const beyond=await range(`bytes=${size}-`);assert.equal(beyond.statusCode,416);assert.equal(beyond.headers['content-range'],`bytes */${size}`);
   assert.equal((await range('bytes=0-9',{'if-range':'"stale"'})).statusCode,200);
   assert.equal((await range('bytes=0-9',{'if-range':String(whole.headers['etag'])})).statusCode,206);
   assert.equal((await range('bytes=0-9',{cookie:'',origin:''})).statusCode,401);
+  // The restore drill's streaming copy: object to a private file and back, hashed on the way, never held whole.
+  const dir=await mkdtemp(join(tmpdir(),'sprintique-copy-')),copy=join(dir,'large.bin'),key=objectKey({projectId:f.first.id,id,sha256:result.json().sha256},'original');
+  try{const copied=await storage.download(key,copy);assert.deepEqual(copied,{sha256:result.json().sha256,bytes:size});
+    await storage.upload('drill-copy/'+key,copy,'video/mp4');assert.equal(await storage.sha256('drill-copy/'+key),copied.sha256);}
+  finally{await storage.remove('drill-copy/'+key);await rm(dir,{recursive:true,force:true});}
   assert.equal((await f.app.inject({method:'GET',url:path(`assets/${id}/original`),headers:{...f.bob.headers,range:'bytes=0-9'}})).statusCode,404);
 });
 test('F09 a body that changes on the way, or runs long, never becomes the stored file',async()=>{

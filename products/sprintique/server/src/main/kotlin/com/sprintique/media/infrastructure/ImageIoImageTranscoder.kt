@@ -116,7 +116,11 @@ class ImageIoImageTranscoder(private val timeout: Duration = DEFAULT_TIMEOUT) : 
         } catch (@Suppress("SwallowedException") _: TimeoutException) {
             // Asks the reader to stop; the work ends on its own thread and gives the slot back there.
             decoder.get()?.let { runCatching { it.abort() } }
-            throw decodeFailure()
+            throw ProblemException(
+                422,
+                "IMAGE_TIMEOUT",
+                "Изображение обрабатывается слишком долго. Выберите другой файл.",
+            )
         } catch (@Suppress("SwallowedException") error: ExecutionException) {
             // A reader failure is reported as an unreadable image; its cause says nothing useful to the client.
             throw error.cause as? ProblemException ?: decodeFailure()

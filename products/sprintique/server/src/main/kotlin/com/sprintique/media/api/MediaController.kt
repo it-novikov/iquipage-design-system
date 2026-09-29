@@ -13,6 +13,8 @@ import com.sprintique.identity.api.RequestInputs
 import com.sprintique.media.application.Assets
 import com.sprintique.media.application.ImageTranscoder
 import com.sprintique.media.application.ObjectStoragePort
+import com.sprintique.media.application.Publishing
+import com.sprintique.media.application.ReceivedContent
 import com.sprintique.media.application.Reservation
 import com.sprintique.media.application.UploadResult
 import com.sprintique.media.application.UploadStart
@@ -130,8 +132,9 @@ class MediaController(
 
     /**
      * The body streams: a short transaction opens the upload, the bytes go through inspection into storage with no
-     * transaction open, and a second short transaction publishes them. A rejected file is quarantined in its own
-     * transaction; the error reaches the client after that commit.
+     * transaction open, a short transaction marks the upload `publishing`, the objects are completed with no
+     * transaction or lock held, and a last short transaction marks it ready. A rejected file is quarantined in its
+     * own transaction; the error reaches the client after that commit.
      */
     @PutMapping(
         "/api/v1/projects/{projectId}/assets/{id}/content",
@@ -153,19 +156,41 @@ class MediaController(
         } catch (problem: ProblemException) {
             throw requests.run(request) { tx, actor -> Assets.rejectUpload(tx, actor, projectId, id, problem) }
         }
-        val result = content.use {
-            requests.run(request) { tx, actor -> Assets.finishUpload(tx, actor, projectId, id, it, storage) }
-        }
+        val result = content.use { publish(request, projectId, id, it, storage) }
         return when (result) {
             is UploadResult.Stored -> result.asset
             is UploadResult.Rejected -> throw result.problem
         }
     }
 
+    private fun publish(
+        request: HttpServletRequest,
+        projectId: String,
+        id: String,
+        content: ReceivedContent,
+        storage: ObjectStoragePort,
+    ): UploadResult {
+        val step = requests.run(request) { tx, actor -> Assets.startPublishing(tx, actor, projectId, id, content) }
+        if (step !is Publishing.Go) return (step as Publishing.Done).result
+        var published = false
+        try {
+            content.publish(storage) { variant -> Assets.key(step.asset, variant) }
+            published = true
+        } finally {
+            if (!published) {
+                runCatching {
+                    requests.run(request) { tx, _ -> Assets.failPublishing(tx, projectId, id, step) }
+                }
+            }
+        }
+        return requests.run(request) { tx, actor -> Assets.finishPublishing(tx, actor, projectId, id, step, content) }
+    }
+
     /**
-     * An original streams from storage in windows, with a single byte range when asked; access is checked again
-     * before every window after the first, so a revoked session loses a long download within one window. Raster
-     * images and video may be shown by the page; everything else is a download.
+     * A file streams from storage in windows, with a single byte range when asked; access is checked again before
+     * every window after the first, so a revoked session loses a long download within one window. Raster images and
+     * video may be shown by the page; everything else is a download. Storage is reached before any header is set,
+     * so a failure there is still an ordinary problem response.
      */
     @GetMapping("/api/v1/projects/{projectId}/assets/{id}/{variant}")
     fun download(
@@ -187,46 +212,50 @@ class MediaController(
             "Предпросмотр недоступен.",
         )
         val key = Assets.key(asset, variant)
-        response.setHeader("Content-Security-Policy", "default-src 'none'; sandbox")
+        val head = request.method == "HEAD"
         if (variant != "original") {
-            response.contentType = "image/webp"
-            response.setHeader("Content-Disposition", "inline")
-            if (request.method != "HEAD") storage.read(key).use { it.transferTo(response.outputStream) }
+            val stream = if (head) null else storage.read(key)
+            stream.use {
+                response.setHeader("Content-Security-Policy", FILE_POLICY)
+                response.contentType = "image/webp"
+                response.setHeader("Content-Disposition", "inline")
+                it?.transferTo(response.outputStream)
+            }
             return
         }
         val mime = asset.string("mime")
         val length = asset.long("size")
         val etag = "\"${asset.string("sha256")}\""
-        val selection =
-            ByteRanges.select(request.getHeader("Range"), request.getHeader("If-Range"), etag, length, WINDOW)
+        val selection = ByteRanges.select(request.getHeader("Range"), request.getHeader("If-Range"), etag, length)
+        if (selection == ByteSelection.Unsatisfiable) {
+            response.status = RANGE_NOT_SATISFIABLE
+            response.setHeader("Content-Range", "bytes */$length")
+            response.setContentLengthLong(0)
+            return
+        }
+        val (first, last) = if (selection is ByteSelection.Part) selection.first to selection.last else 0L to length - 1
+        var position = first
+        var window = if (head) null else storage.read(key, first..minOf(last, first + WINDOW - 1))
+        response.setHeader("Content-Security-Policy", FILE_POLICY)
         response.contentType = FileInspection.servedMime(mime)
         response.setHeader("Accept-Ranges", "bytes")
         response.setHeader("ETag", etag)
         response.setHeader("Content-Disposition", disposition(asset.string("name"), FileInspection.isInline(mime)))
-        val (first, last) = when (selection) {
-            ByteSelection.Unsatisfiable -> {
-                response.status = RANGE_NOT_SATISFIABLE
-                response.setHeader("Content-Range", "bytes */$length")
-                response.setContentLengthLong(0)
-                return
-            }
-
-            ByteSelection.Whole -> 0L to length - 1
-
-            is ByteSelection.Part -> {
-                response.status = PARTIAL_CONTENT
-                response.setHeader("Content-Range", "bytes ${selection.first}-${selection.last}/$length")
-                selection.first to selection.last
-            }
+        if (selection is ByteSelection.Part) {
+            response.status = PARTIAL_CONTENT
+            response.setHeader("Content-Range", "bytes $first-$last/$length")
         }
         response.setContentLengthLong(last - first + 1)
-        if (request.method == "HEAD") return
-        var position = first
-        while (position <= last) {
-            if (position != first) readable(request, projectId, id)
+        while (window != null) {
             val end = minOf(last, position + WINDOW - 1)
-            storage.read(key, position..end).use { it.transferTo(response.outputStream) }
+            window.use { it.transferTo(response.outputStream) }
             position = end + 1
+            window = if (position > last) {
+                null
+            } else {
+                readable(request, projectId, id)
+                storage.read(key, position..minOf(last, position + WINDOW - 1))
+            }
         }
     }
 
@@ -242,7 +271,9 @@ class MediaController(
     private companion object {
         val VARIANTS = setOf("original", "display", "thumb")
 
-        /** The longest stretch served between two access checks, and the longest partial response. */
+        const val FILE_POLICY = "default-src 'none'; sandbox; frame-ancestors 'none'"
+
+        /** The longest stretch served between two access checks. */
         const val WINDOW = 16L * 1024 * 1024
         const val PARTIAL_CONTENT = 206
         const val RANGE_NOT_SATISFIABLE = 416

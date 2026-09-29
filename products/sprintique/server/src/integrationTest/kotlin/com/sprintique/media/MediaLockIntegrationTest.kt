@@ -8,6 +8,7 @@ import com.sprintique.identity.domain.PrincipalKind
 import com.sprintique.media.application.Assets
 import com.sprintique.media.application.ObjectStoragePort
 import com.sprintique.media.application.ObjectWrite
+import com.sprintique.media.application.Publishing
 import com.sprintique.media.application.Reservation
 import com.sprintique.media.application.UploadStart
 import com.sprintique.media.application.Uploads
@@ -15,6 +16,7 @@ import com.sprintique.media.infrastructure.ImageIoImageTranscoder
 import com.sprintique.task.application.Tasks
 import com.sprintique.task.domain.TaskContent
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import tools.jackson.databind.json.JsonMapper
 import java.io.ByteArrayInputStream
@@ -27,9 +29,9 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 /**
- * R4-B03: an upload that is publishing its content holds the project lock first and the file second; a task save
- * attaching the same file waits on the project, never on the file, so the two cannot deadlock. The body itself
- * streams before, with no transaction open.
+ * R4-B03 and R1: an upload takes the project lock first and the file second, and only for short transactions. While its
+ * objects are written to storage it is `publishing` and holds no lock: task saves go on, the file cannot be attached
+ * or discarded until it is ready.
  */
 class MediaLockIntegrationTest {
     private val runtime = IntegrationDatabase.runtime
@@ -56,7 +58,7 @@ class MediaLockIntegrationTest {
     }
 
     @Test
-    fun `an upload and a task save attaching the file wait on the project, not on each other`() {
+    fun `a publishing upload holds no lock, and its file is attachable only once ready`() {
         val (actor, projectId) = seed()
         val sha = HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(bytes))
         asPerson(actor) { tx ->
@@ -78,43 +80,40 @@ class MediaLockIntegrationTest {
                 }
                 val plan = (start as UploadStart.Accepted).plan
                 Uploads(storage, ImageIoImageTranscoder()).receive(plan, ByteArrayInputStream(bytes)).use { content ->
+                    val step = asPerson(actor) { tx ->
+                        Assets.startPublishing(tx, actor, projectId, "concurrent-file", content)
+                    } as Publishing.Go
+                    content.publish(storage) { variant -> "k/$variant" }
                     asPerson(actor) { tx ->
-                        Assets.finishUpload(tx, actor, projectId, "concurrent-file", content, storage)
+                        Assets.finishPublishing(tx, actor, projectId, "concurrent-file", step, content)
                     }
                 }
             }
-            assertThat(storage.entered.await(WAIT, TimeUnit.SECONDS)).isTrue()
-            val save = executor.submit<Any> {
-                asPerson(actor) { tx ->
-                    Tasks.put(tx, actor, projectId, "lock-task", 1, content(listOf("concurrent-file")))
-                }
-            }
             try {
-                assertThat(waitsOnProjectLock()).isTrue()
+                assertThat(storage.entered.await(WAIT, TimeUnit.SECONDS)).isTrue()
+                // Nothing waits on the stalled storage write: another save of the task commits at once.
+                val other = executor.submit<Any> {
+                    asPerson(actor) { tx -> Tasks.put(tx, actor, projectId, "lock-task", 1, content(title = "Другое")) }
+                }
+                other.get(WAIT, TimeUnit.SECONDS)
+                assertThatThrownBy {
+                    asPerson(actor) { tx ->
+                        Tasks.put(tx, actor, projectId, "lock-task", 2, content(listOf("concurrent-file")))
+                    }
+                }.hasFieldOrPropertyWithValue("code", "TASK_FILE_ACCESS")
+                assertThatThrownBy {
+                    asPerson(actor) { tx -> Assets.discard(tx, actor, projectId, "concurrent-file") }
+                }.hasFieldOrPropertyWithValue("code", "FILE_BUSY")
             } finally {
                 storage.release.countDown()
             }
             upload.get(WAIT, TimeUnit.SECONDS)
-            @Suppress("UNCHECKED_CAST")
-            val saved = save.get(WAIT, TimeUnit.SECONDS) as Map<String, Any?>
-            assertThat(saved["attachmentIds"]).isEqualTo(listOf("concurrent-file"))
-        }
-    }
-
-    private fun waitsOnProjectLock(): Boolean {
-        repeat(ATTEMPTS) {
-            val waiting = IntegrationDatabase.admin.transaction { tx ->
-                tx.row(
-                    """
-                    SELECT 1 AS found FROM pg_stat_activity
-                    WHERE wait_event_type = 'Lock' AND query LIKE '%app.projects%FOR UPDATE%' AND pid <> pg_backend_pid()
-                    """.trimIndent(),
-                )
+            val saved = asPerson(actor) { tx ->
+                Tasks.put(tx, actor, projectId, "lock-task", 2, content(listOf("concurrent-file")))
             }
-            if (waiting != null) return true
-            Thread.sleep(POLL)
+            @Suppress("UNCHECKED_CAST")
+            assertThat((saved as Map<String, Any?>)["attachmentIds"]).isEqualTo(listOf("concurrent-file"))
         }
-        return false
     }
 
     private fun <T> asPerson(actor: Actor, block: (Transaction) -> T): T = runtime.transaction { tx ->
@@ -122,12 +121,12 @@ class MediaLockIntegrationTest {
         block(tx)
     }
 
-    private fun content(attachments: List<String> = emptyList()) = TaskContent(
+    private fun content(attachments: List<String> = emptyList(), title: String = "Lock task") = TaskContent(
         attachmentIds = attachments,
         coverAttachmentId = null,
         coverCrop = null,
         coverCropAttachmentId = null,
-        title = "Lock task",
+        title = title,
         description = "",
         status = "ready",
         type = "task",
@@ -187,7 +186,5 @@ class MediaLockIntegrationTest {
 
     private companion object {
         const val WAIT = 10L
-        const val ATTEMPTS = 200
-        const val POLL = 10L
     }
 }

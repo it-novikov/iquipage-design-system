@@ -1,6 +1,6 @@
 import {dialog,icon,esc} from '../ui.js';
 import {uid,requireValue} from '../common.js';
-import {fileTypeOf} from '../../../contracts/media.ts';
+import {fileTypeOf,IMAGE_BYTES} from '../../../contracts/media.ts';
 
 /** Originals up to this size are fetched to draw a PDF or text preview; larger files show a tile. */
 const PREVIEW_ORIGINAL_LIMIT=10*1024*1024;
@@ -8,8 +8,10 @@ const MB=1024*1024,GB=1024*MB;
 const formatSize=n=>n<MB?`${Math.ceil(n/1024)} КБ`:n<GB?`${(n/MB).toFixed(1).replace('.',',')} МБ`:`${(n/GB).toFixed(2).replace('.',',')} ГБ`;
 const extensionOf=name=>name.includes('.')?name.split('.').pop().slice(0,5).toUpperCase():'FILE';
 const isVideo=mime=>/^video\//.test(mime||'');
-/** Whether the DS preview can draw this file without reading all of it into memory. */
-const cheapPreview=(name,mime,size)=>{const type=fileTypeOf(name);return type.previewable||isVideo(mime||type.mime)||((type.mime==='application/pdf'||type.text)&&type.mime!=='image/svg+xml'&&size<=PREVIEW_ORIGINAL_LIMIT);};
+/** A PDF or text small enough that the DS preview may read the original to draw its first page. */
+const smallDocument=(mime,size)=>(mime==='application/pdf'||mime==='text/plain')&&size<=PREVIEW_ORIGINAL_LIMIT;
+/** A picked file the DS preview can draw without reading much of it: a bounded image, a video, a small document. */
+const localPreview=file=>{const type=fileTypeOf(file.name);return (type.previewable&&file.size<=IMAGE_BYTES)||type.mime.startsWith('video/')||smallDocument(type.mime,file.size);};
 import {editCoverImage,coverImageStyle,coverLetterboxed} from './cover-crop.js';
 
 /** Draft changes are committed by the task form, never by a preview. */
@@ -69,9 +71,10 @@ export function mountTaskFiles(root,{coverRoot,adapter,task,readOnly=false,onCov
     showProgress(row);
     root.querySelector('[data-files-empty]').hidden=rows.size>0;const count=root.querySelector('[data-file-count]');if(count)count.textContent=rows.size?String(rows.size):'';
     if(row.file&&!row.previewStarted){row.previewStarted=true;
-      if(cheapPreview(row.file.name,row.file.type,row.file.size))element.querySelector('iq-file-preview').file=row.file;else placeTile(element,row,'file');}
+      if(localPreview(row.file))element.querySelector('iq-file-preview').file=row.file;else placeTile(element,row,'file');}
+    // A stored file is fetched only for its WebP preview or a small document; anything else is a tile, never a download.
     if(row.meta&&!row.previewStarted&&!row.meta.image&&isVideo(row.meta.mime)&&adapter.url){row.previewStarted=true;placeTile(element,row,'video');}
-    if(row.meta&&!row.previewStarted&&!row.meta.image&&!cheapPreview(row.name,row.meta.mime,row.meta.size)){row.previewStarted=true;placeTile(element,row,'file');}
+    if(row.meta&&!row.previewStarted&&!row.meta.image&&!smallDocument(row.meta.mime,row.meta.size)){row.previewStarted=true;placeTile(element,row,'file');}
     if(row.meta&&!row.previewStarted){row.previewStarted=true;const request=controller();
       adapter.blob({...target(row.id),variant:row.meta.image?'display':'original'},{signal:request.signal}).then(blob=>{
         if(closed||!rows.has(row.id)||!element.isConnected)return;

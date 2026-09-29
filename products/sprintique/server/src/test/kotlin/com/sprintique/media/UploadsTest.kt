@@ -13,6 +13,7 @@ import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import java.io.ByteArrayInputStream
 import java.io.InputStream
+import java.time.Instant
 
 class UploadsTest {
     /** Records what reached storage, part by part. */
@@ -140,5 +141,31 @@ class UploadsTest {
         val preview = Uploads(storage, FakeImages()).receive(plan("ok.png", png), ByteArrayInputStream(png))
         preview.use { it.publish(storage) { variant -> "k/$variant" } }
         assertThat(storage.objects.keys).containsExactlyInAnyOrder("k/original", "k/display", "k/thumb")
+    }
+
+    @Test
+    fun `a held body one byte longer than reserved is refused without growing its buffer`() {
+        val bytes = "короткий".toByteArray()
+        assertThatThrownBy {
+            Uploads(RecordingStorage(), FakeImages()).receive(plan("a.txt", bytes), ByteArrayInputStream(bytes + 1))
+        }.hasFieldOrPropertyWithValue("code", "FILE_HASH")
+    }
+
+    @Test
+    fun `a body is cut off when its reservation expires or when it trickles in`() {
+        val bytes = ByteArray(Uploads.PART_SIZE * 2)
+        val expired = plan("a.bin", bytes).copy(deadline = Instant.parse("2020-01-01T00:00:00Z"))
+        assertThatThrownBy {
+            Uploads(RecordingStorage(), FakeImages()).receive(expired, ByteArrayInputStream(bytes))
+        }.hasFieldOrPropertyWithValue("code", "UPLOAD_EXPIRED")
+        var clock = 0L
+        val slow = Uploads(RecordingStorage(), FakeImages(), nanoTime = { clock.also { clock += 61_000_000_000L } })
+        val trickle = object : InputStream() {
+            override fun read() = 0
+
+            override fun read(b: ByteArray, off: Int, len: Int) = 1
+        }
+        assertThatThrownBy { slow.receive(plan("a.bin", bytes), trickle) }
+            .hasFieldOrPropertyWithValue("code", "UPLOAD_TOO_SLOW")
     }
 }

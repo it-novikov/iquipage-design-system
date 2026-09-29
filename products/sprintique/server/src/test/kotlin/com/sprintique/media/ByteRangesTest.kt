@@ -8,17 +8,17 @@ import org.junit.jupiter.api.Test
 class ByteRangesTest {
     private val etag = "\"abc\""
 
-    private fun select(range: String?, ifRange: String? = null, length: Long = 1000, window: Long = 100) =
-        ByteRanges.select(range, ifRange, etag, length, window)
+    private fun select(range: String?, ifRange: String? = null, length: Long = 1000) =
+        ByteRanges.select(range, ifRange, etag, length)
 
     @Test
-    fun `a single range is answered in part, never longer than the window`() {
+    fun `a single range is answered in part, clipped to the file`() {
         assertThat(select("bytes=0-9")).isEqualTo(ByteSelection.Part(0, 9))
-        assertThat(select("bytes=0-")).isEqualTo(ByteSelection.Part(0, 99))
+        assertThat(select("bytes=0-")).isEqualTo(ByteSelection.Part(0, 999))
         assertThat(select("bytes=950-")).isEqualTo(ByteSelection.Part(950, 999))
         assertThat(select("bytes=990-5000")).isEqualTo(ByteSelection.Part(990, 999))
         assertThat(select("bytes=-10")).isEqualTo(ByteSelection.Part(990, 999))
-        assertThat(select("bytes=-5000")).isEqualTo(ByteSelection.Part(0, 99))
+        assertThat(select("bytes=-5000")).isEqualTo(ByteSelection.Part(0, 999))
         assertThat(select("bytes=0-99999999999999999999")).isEqualTo(ByteSelection.Whole)
     }
 
