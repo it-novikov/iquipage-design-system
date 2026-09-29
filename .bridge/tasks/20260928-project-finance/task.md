@@ -8,7 +8,7 @@ owner: it-novikov
 branch: feature/project-finance
 base: main
 created: 2026-09-28
-updated: 2026-09-29T08:47:45Z
+updated: 2026-09-29T15:53:50Z
 links:
   - https://github.com/it-novikov/iquipage-design-system/pull/25
 ---
@@ -49,11 +49,11 @@ links:
 
 ## Передача
 
-- **Состояние:** S1–S6 готовы, гейты зелёные, R1 закрыто; нужен R2 (high)
-- **Сейчас:** PR в main
-- **Дальше:** Владелец: второе ревью R2 и слияние PR
+- **Состояние:** R2 (approve with fixes): F9–F17 исправлены в 6434f58; npm test 205/205, Kotlin unit 42/42, integration 24/24
+- **Сейчас:** S6 — verify-vnext после R2
+- **Дальше:** Запушить и обновить описание PR #25
 - **Незакоммичено:** нет
-- **Рабочая копия:** нет · HEAD 10e5510 · снято 2026-09-29T08:47:45Z
+- **Рабочая копия:** нет · HEAD 6434f58
 - **Ловушки:**
   - TEST_S3_CONFIG лежит в /Users/nvkv71/iquipage-work/ux-ds-20260925/products/sprintique/output/infra/storage.json, а не в ux-ds-20260925/output/infra (там только vps.json и migration-*)
   - Системный node — v26; engines требует 24: PATH=/opt/homebrew/opt/node@24/bin:$PATH
