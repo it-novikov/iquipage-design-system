@@ -40,13 +40,8 @@
       }
     },
     "duration-raw": {
-      "total": 60,
-      "files": {
-        "foundation.css": 51,
-        "settings.css": 2,
-        "whiteboard-workshop.css": 2,
-        "whiteboard.css": 5
-      }
+      "total": 0,
+      "files": {}
     },
     "z-index-raw": {
       "total": 81,
@@ -59,10 +54,10 @@
       }
     },
     "important": {
-      "total": 102,
+      "total": 86,
       "files": {
-        "foundation.css": 68,
-        "settings.css": 4,
+        "foundation.css": 55,
+        "motion.css": 1,
         "whiteboard-workshop.css": 8,
         "whiteboard.css": 22
       }

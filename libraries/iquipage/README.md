@@ -41,6 +41,14 @@ icons lost their text, worst in the dark theme). The saturated colours stay avai
 `--iq-success-fill` and `--iq-warning-fill`; `.iq-pro-state.is-error` uses the fill. Text on the
 tints keeps at least 4.5:1 in both themes. The Keycloak theme is gone from the package.
 
+## Motion tokens and one reduced-motion strategy (wave 1)
+
+- Every duration and easing in `src/styles` is a token (`--iq-motion-instant/fast/standard/enter/layout/scene`, `--iq-ease`, `--iq-ease-spring`, `--iq-ease-out`); the `duration-raw` ratchet is 0. `scripts/codemods/motion-tokens.mjs` is replayable and idempotent and also generates `src/styles/motion.css`.
+- Reduced motion: `@media (prefers-reduced-motion: reduce)` and `<html data-motion="reduced">` both zero the motion tokens; the blanket `*{animation:none!important}` resets are gone, so component overrides and the 180 ms `.iq-loading` anti-flicker delay (`--iq-loading-delay`) work again. `motionReduced()` is the only check in JS.
+- New core helpers: `motionMs(name)`, `motionEase(name)`, `scrollBehavior()`, `withoutTransitions(fn)` (theme switch without colour ripple, CSS `:root[data-theme-switching]`), `bindLoading(el)` (`.iq-loading-slow` + status note after 5 s).
+- Enter/exit pairs are symmetrical: dialog fade standard/standard, drawer slide enter/enter, menu fade fast/fast, toast standard/standard. `iq-dialog.close()` returns focus and emits `iq-close` immediately, keeps the dialog `inert` during the exit and ignores a second close.
+- `.iq-progress` animates `transform` (the `--progress` percentage API is unchanged); the editor no longer animates `height`; the hover lift applies only to `.iq-btn.primary/.secondary`; `.wb-world` gets `will-change` only while gesturing; `.iq-skeleton` breathes three times and rests faint. See docs/INTEGRATION.md «Движение» and «Загрузка».
+
 ## Drawer motion, unread counts and arrowheads (0.6.0-vnext.20)
 
 - `iq-dialog kind="drawer"` slides in opaque from the right while its backdrop fades in, and slides out while the backdrop fades out; the closing motion is dropped once the dialog is closed, so the next open starts clean. Other dialogs keep their short fade, now with the backdrop fading too.
