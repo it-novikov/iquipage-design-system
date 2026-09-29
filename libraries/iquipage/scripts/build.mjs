@@ -18,6 +18,9 @@ const tokenCSS=`/* Generated from tokens/semantic.json. */\n${block(':root',{...
  // COL-11 / ENG-14: a document without data-theme follows the system colour scheme.
  +`@media (prefers-color-scheme: dark){\n${block(':root:not([data-theme="light"])',{...darkOnly,'color-scheme':'dark'}).replace('  --iq-color-scheme: dark;','  color-scheme: dark;')}}\n`+accentCSS;
 await save('tokens/tokens.css',tokenCSS);
+// ENG-14: the theme boot ships as a plain script (dist/theme-boot.js) and is inlined into the catalogs' <head>.
+const themeBoot=(await read('src/theme-boot.js')).replace(/\/\*[\s\S]*?\*\/\s*/,'');
+await save('dist/theme-boot.js',themeBoot);
 const fontsCSS=await read('tokens/fonts.css');
 const css=fontsCSS+tokenCSS+await read('src/styles/foundation.css')+'\n'+await read('src/styles/whiteboard.css')+'\n'+await read('src/styles/everyday.css')+'\n'+await read('src/styles/whiteboard-workshop.css')+'\n'+await read('src/styles/work-list.css')+'\n'+await read('src/styles/auth-dialog.css')+'\n'+await read('src/styles/auth-screen.css')+'\n'+await read('src/styles/settings.css')+'\n'+await read('src/styles/focus.css')+'\n'+await read('src/styles/touch.css');
 await save('dist/iquipage.css',css);
@@ -30,7 +33,7 @@ const render=names=>names.map(n=>`"./${n}":function(exports,require){\n${sources
 const runtime=`};const cache={};function require(id){if(cache[id])return cache[id].exports;const m=cache[id]={exports:{}};if(!modules[id])throw Error('Unknown IQUIPAGE module '+id);modules[id](m.exports,require);return m.exports;}`;
 const bundle=`window.IQ_TOKENS=${JSON.stringify(tokens)};(()=>{const modules={\n${render(manifest.application)}\n${runtime}\nrequire('./app.js');})();`;
 const demoCSS=css.replaceAll('../assets/fonts/','assets/fonts/')+'\n'+await read('src/styles/everyday-demo.css'); // The catalogs sit at the repository root.
-const html=(await read('src/template.html')).replace('__IQ_CSS__',()=>demoCSS).replace('__IQ_SCRIPT__',()=>bundle.replaceAll('</script','<\\/script'));
+const html=(await read('src/template.html')).replace('__IQ_BOOT__',()=>themeBoot.trim()).replace('__IQ_CSS__',()=>demoCSS).replace('__IQ_SCRIPT__',()=>bundle.replaceAll('</script','<\\/script'));
 await save('index.html',html);
 // Standards-based ESM graph: one module URL owns each shared primitive/class.
 // core never imports roadmap, graph, crop, catalog, state or sample assets.
@@ -51,10 +54,10 @@ await save('dist/build.json',JSON.stringify({version:tokens.meta.version,htmlSha
 console.log(`Built IQUIPAGE ${tokens.meta.version}: HTML, CSS, ESM, ${manifest.application.length} source modules, ${Object.keys(icons.glyphs).length} SVG icons.`);
 
 const whiteboardBundle=bundle.replace("require('./app.js');",`const {registerWhiteboard}=require('./whiteboard.js');registerWhiteboard();const {IqWhiteboardDemo}=require('./whiteboard-stories.js');customElements.define('iq-whiteboard-demo',IqWhiteboardDemo);`);
-const whiteboardHTML=(await read('src/whiteboard-template.html')).replace('__IQ_CSS__',()=>demoCSS).replace('__IQ_SCRIPT__',()=>whiteboardBundle.replaceAll('</script','<\\/script'));
+const whiteboardHTML=(await read('src/whiteboard-template.html')).replace('__IQ_BOOT__',()=>themeBoot.trim()).replace('__IQ_CSS__',()=>demoCSS).replace('__IQ_SCRIPT__',()=>whiteboardBundle.replaceAll('</script','<\\/script'));
 await save('whiteboard.html',whiteboardHTML);
 
 const everydayBundle=bundle.replace("require('./app.js');","require('./everyday-stories.js').registerEverydayDemo();");
-await save('workbench.html',(await read('src/workbench-template.html')).replace('__IQ_CSS__',()=>demoCSS).replace('__IQ_SCRIPT__',()=>everydayBundle.replaceAll('</script','<\\/script')));
+await save('workbench.html',(await read('src/workbench-template.html')).replace('__IQ_BOOT__',()=>themeBoot.trim()).replace('__IQ_CSS__',()=>demoCSS).replace('__IQ_SCRIPT__',()=>everydayBundle.replaceAll('</script','<\\/script')));
 
 // The native provider theme receives the exact same release CSS and mark.

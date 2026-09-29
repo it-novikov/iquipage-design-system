@@ -65,10 +65,12 @@ function viewDelay(fn, ms) {
     return id;
 }
 function clearViewTimers() { pageTimers.forEach(id => clearTimeout(id)); pageTimers.clear(); }
-let theme = components_js_1.load('theme', 'light');
+// theme-boot.js (inline in <head>) already applied `iq-theme` or the system scheme before first paint; the legacy key is a fallback.
+let theme = document.documentElement.dataset.theme || components_js_1.load('theme', 'light');
 if (!['light', 'dark'].includes(theme))
     theme = 'light';
 document.documentElement.dataset.theme = theme;
+const saveTheme = value => { components_js_1.save('theme', value); try { localStorage.setItem('iq-theme', value); } catch { /* storage may be blocked */ } };
 let reduced = components_js_1.load('reduced-motion', false);
 document.documentElement.dataset.motion = reduced ? 'reduced' : 'standard';
 const root = document.getElementById('app');
@@ -462,7 +464,7 @@ document.body.addEventListener('click', async (ev) => {
     if (el.hasAttribute('data-theme-toggle')) {
         theme = theme === 'light' ? 'dark' : 'light';
         document.documentElement.dataset.theme = theme;
-        components_js_1.save('theme', theme);
+        saveTheme(theme);
         el.innerHTML = components_js_1.icon(theme === 'light' ? 'moon' : 'sun', 17);
         el.setAttribute('aria-label', theme === 'light' ? 'Включить тёмную тему' : 'Включить светлую тему');
         const caption = document.querySelector('.library-toolbar>.row>span:last-child');

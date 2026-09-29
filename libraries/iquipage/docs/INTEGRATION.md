@@ -41,6 +41,32 @@ document.querySelector('#open-plan').addEventListener('click', async () => {
 
 Приложение добавляет в `<head>` предзагрузку: `<link rel="preload" as="font" type="font/woff2" crossorigin href="…/InterVariable.woff2">`, где адрес тот, под которым сборщик раздаёт файл (Vite: `import fontUrl from '@iquipage/web/assets/fonts/InterVariable.woff2?url'`). Внешние шрифтовые CDN не нужны и не должны подключаться. Полный экран без шрифта (офлайн, блокировка) остаётся читаемым на резервном стеке.
 
+## Темизация
+
+Тема, акцент, плотность и движение — четыре атрибута на `<html>`; CSS реагирует только на них, JavaScript библиотеки их не выставляет:
+
+| Атрибут | Значения | Умолчание |
+|---|---|---|
+| `data-theme` | `light`, `dark` | без атрибута — системная схема (`prefers-color-scheme`) |
+| `data-accent` | `blue` (или без атрибута), `violet`, `green` | синий |
+| `data-density` | `comfortable`, `compact` | comfortable |
+| `data-motion` | `standard`, `reduced` | standard (+ `prefers-reduced-motion`) |
+
+Все значения цвета генерируются из `tokens/semantic.json`: блок `:root` (светлая тема), `[data-theme="dark"]`, системный фолбэк `@media (prefers-color-scheme: dark){:root:not([data-theme="light"])…}` и блоки акцентов `:root[data-accent="violet"]` / `[data-theme="dark"][data-accent="violet"]` (секция `accents`). Документ без `data-theme` следует за системой и без скрипта; явное `data-theme="light"` или `"dark"` побеждает систему.
+
+Чтобы тёмная тема не мигала светлой до загрузки модулей, вставьте `theme-boot.js` (`@iquipage/web/theme-boot.js`, ≈320 байт, обычный синхронный скрипт) inline в `<head>` **до** `<link rel="stylesheet">`:
+
+```html
+<head>
+ <script>/* содержимое node_modules/@iquipage/web/dist/theme-boot.js */</script>
+ <link rel="stylesheet" href="./dist/iquipage.css">
+</head>
+```
+
+Скрипт читает из `localStorage` ключи `iq-theme`, `iq-accent`, `iq-density`, `iq-motion` (простые строки со значениями из таблицы) и выставляет соответствующие `data-*` на `document.documentElement` до первого кадра. Если `iq-theme` не `light` и не `dark` (нет ключа, значение `system`), тема берётся из `matchMedia('(prefers-color-scheme: dark)')`. Остальные три атрибута ставятся только при наличии ключа. Ошибки доступа к хранилищу (приватный режим, запрет cookies) глотаются: страница получает системную тему.
+
+Приложение хранит выбор пользователя под теми же ключами и при переключении обновляет и атрибут, и ключ; для «следовать системе» удалите `iq-theme` или запишите `system` и подпишитесь на `matchMedia(...).addEventListener('change', …)`, чтобы менять `data-theme` в открытой вкладке. Каталог IQUIPAGE использует эти же ключи. Inline-скрипт требует разрешения в CSP (`script-src` с nonce или hash); хеш содержимого `dist/theme-boot.js` стабилен внутри версии.
+
 ## Состав runtime и размер
 
 `core` не импортирует roadmap, graph, crop, whiteboard. `advanced` не импортирует whiteboard. `whiteboard` не импортирует roadmap/graph/crop. Demo/stories/sample-data/ui-demo и состояние каталога не входят в runtime. Основные примитивы могут иметь нейтральный placeholder, но не демонстрационные модели пользователя.

@@ -24,6 +24,7 @@
     "./styles.css": "./dist/iquipage.css",
     "./fonts.css": "./tokens/fonts.css",
     "./tokens": "./tokens/semantic.json",
+    "./theme-boot.js": "./dist/theme-boot.js",
     "./work-list": {
       "types": "./types/work-list.d.ts",
       "import": "./dist/work-list.js"
