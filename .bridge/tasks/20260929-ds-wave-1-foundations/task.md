@@ -8,7 +8,7 @@ owner: it-novikov
 branch: feature/ds-wave-1
 base: feature/ds-wave-0
 created: 2026-09-29
-updated: 2026-09-29T08:47:15Z
+updated: 2026-09-29T08:50:42Z
 links:
 ---
 
@@ -30,7 +30,7 @@ links:
 - [x] A2. A2. Статусы без опоры на цвет: значки в бейджах success/danger, формы маркеров в графиках, planned отделён от info; disabled без opacity; двойное кольцо фокуса; dark-тени и кромки
 - [x] A3. A3. Одна стратегия reduced motion (:root[data-motion=reduced] и media → токены 0ms), все длительности и кривые через токены, подавление переходов при смене темы, симметрия входа/выхода, политика skeleton; стилевой гейт: duration-raw 0
 - [x] A4. A4. Шкала текста в rem, floor 12px в компонентных селекторах (гейт font-size-below-12px = 0 для компонентов), медиазапросы не уменьшают текст, кириллический интерлиньяж и трекинг токенами, hyphens для :lang(ru), text-size-adjust; codemod-скрипты в scripts/codemods
-- [ ] A5. A5. Версия 0.6.0-vnext.24, changelog, гейты обновлены, оба npm test и полный гейт продукта зелёные, продукт принял релиз; визуальный QA каталога в Inter в обеих темах
+- [x] A5. A5. Версия 0.6.0-vnext.24, changelog, гейты обновлены, оба npm test и полный гейт продукта зелёные, продукт принял релиз; визуальный QA каталога в Inter в обеих темах
 
 ## Передача
 
@@ -38,8 +38,9 @@ links:
 - **Сейчас:** визуальный QA светлой темы, PR
 - **Дальше:** после гейта: A5, статус review
 - **Незакоммичено:** нет
-- **Рабочая копия:** нет · HEAD dd20600
+- **Рабочая копия:** нет · HEAD 41b692d · снято 2026-09-29T08:50:42Z
 - **Проверка:** cd libraries/iquipage && npm run build && npm test; cd products/sprintique && npm ci && npm run build && npm run check:boundaries
+- **Причина:** review — claude, 2026-09-29T08:50:42Z: Готово к слиянию после PR #23: PR #24, гейт 192/192
 
 ## План
 
@@ -70,13 +71,14 @@ links:
 - **Покрывает:** A3
 - **Итог:** motion-tokens codemod: duration-raw 0, одна стратегия reduced motion, motionReduced/motionMs/withoutTransitions/bindLoading
 
-### S4. Интеграция: слить цвет, переиграть codemods, релиз vnext.24, продукт, QA [active]
+### S4. Интеграция: слить цвет, переиграть codemods, релиз vnext.24, продукт, QA [done]
 - **Что:** merge color; run type/motion codemods; gates:update; версия; changelog; тарбол; гейт продукта; визуальный QA каталога
 - **Как:** как в волне 0
 - **Зачем:** Одна волна = один PR
 - **Приёмка:**
-  - [ ] A5
+  - [x] A5
 - **Покрывает:** A5
+- **Итог:** vnext.24 принят продуктом; гейт продукта 192/192; каталог проверен в обеих темах в Inter; PR #24
 
 ## Решения
 
