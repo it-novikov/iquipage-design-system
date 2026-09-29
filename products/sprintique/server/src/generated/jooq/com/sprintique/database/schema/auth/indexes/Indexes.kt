@@ -28,6 +28,7 @@ import org.jooq.impl.Internal
 
 val ACCESS_EVENTS_PRINCIPAL: Index = Internal.createIndex(DSL.name("access_events_principal"), AccessEvents.ACCESS_EVENTS, arrayOf(AccessEvents.ACCESS_EVENTS.PRINCIPAL_ID, AccessEvents.ACCESS_EVENTS.CREATED_AT.desc()), false)
 val CREDENTIALS_GRANT: Index = Internal.createIndex(DSL.name("credentials_grant"), Credentials.CREDENTIALS, arrayOf(Credentials.CREDENTIALS.GRANT_ID), false)
+val CREDENTIALS_OAUTH_EXPIRY: Index = Internal.createIndex(DSL.name("credentials_oauth_expiry"), Credentials.CREDENTIALS, arrayOf(Credentials.CREDENTIALS.EXPIRES_AT), false)
 val CREDENTIALS_PERSONAL: Index = Internal.createIndex(DSL.name("credentials_personal"), Credentials.CREDENTIALS, arrayOf(Credentials.CREDENTIALS.PRINCIPAL_ID), false)
 val EMAIL_CHALLENGES_CLIENT: Index = Internal.createIndex(DSL.name("email_challenges_client"), EmailChallenges.EMAIL_CHALLENGES, arrayOf(EmailChallenges.EMAIL_CHALLENGES.EMAIL, EmailChallenges.EMAIL_CHALLENGES.CLIENT_HASH, EmailChallenges.EMAIL_CHALLENGES.CREATED_AT), false)
 val EMAIL_CHALLENGES_EMAIL: Index = Internal.createIndex(DSL.name("email_challenges_email"), EmailChallenges.EMAIL_CHALLENGES, arrayOf(EmailChallenges.EMAIL_CHALLENGES.EMAIL, EmailChallenges.EMAIL_CHALLENGES.CREATED_AT), false)
@@ -40,4 +41,5 @@ val OAUTH_CODES_EXPIRY: Index = Internal.createIndex(DSL.name("oauth_codes_expir
 val OAUTH_GRANTS_CLIENT: Index = Internal.createIndex(DSL.name("oauth_grants_client"), OauthGrants.OAUTH_GRANTS, arrayOf(OauthGrants.OAUTH_GRANTS.CLIENT_ID), false)
 val OAUTH_GRANTS_PRINCIPAL: Index = Internal.createIndex(DSL.name("oauth_grants_principal"), OauthGrants.OAUTH_GRANTS, arrayOf(OauthGrants.OAUTH_GRANTS.PRINCIPAL_ID, OauthGrants.OAUTH_GRANTS.CREATED_AT.desc()), false)
 val OAUTH_REFRESH_GRANT: Index = Internal.createIndex(DSL.name("oauth_refresh_grant"), OauthRefreshTokens.OAUTH_REFRESH_TOKENS, arrayOf(OauthRefreshTokens.OAUTH_REFRESH_TOKENS.GRANT_ID), false)
+val OAUTH_REFRESH_PARENT: Index = Internal.createIndex(DSL.name("oauth_refresh_parent"), OauthRefreshTokens.OAUTH_REFRESH_TOKENS, arrayOf(OauthRefreshTokens.OAUTH_REFRESH_TOKENS.PARENT_HASH), false)
 val PROJECT_INVITATION_ACTIVE: Index = Internal.createIndex(DSL.name("project_invitation_active"), ProjectInvitations.PROJECT_INVITATIONS, arrayOf(ProjectInvitations.PROJECT_INVITATIONS.PROJECT_ID, ProjectInvitations.PROJECT_INVITATIONS.EXPIRES_AT), false)

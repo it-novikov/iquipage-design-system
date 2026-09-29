@@ -16,6 +16,8 @@ import com.sprintique.problem.requirePresent
 import com.sprintique.token.Tokens
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
+import org.springframework.web.context.request.RequestAttributes
+import org.springframework.web.context.request.RequestContextHolder
 
 /**
  * What the transport knows about a request: whether it changes state, which origin and CSRF token it carries and
@@ -63,6 +65,9 @@ class Authentication(
         val found = requirePresent(row, 401, "UNAUTHENTICATED", "Войдите в аккаунт.")
         val actor = actorOf(found, credential.kind)
         if (credential.kind != CredentialKind.SESSION) {
+            // The request carried a live credential: its address owes nothing for it (RequestLimitFilter).
+            RequestContextHolder.getRequestAttributes()
+                ?.setAttribute(CredentialLimits.ADMITTED, true, RequestAttributes.SCOPE_REQUEST)
             requireCondition(
                 limits.admit(found.string("limitKey")),
                 429,

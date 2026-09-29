@@ -7,7 +7,7 @@
 CREATE TABLE auth.oauth_clients (
   id text PRIMARY KEY CHECK(id ~ '^cl_[A-Za-z0-9_-]{43}$'),
   name text NOT NULL CHECK(length(name) BETWEEN 1 AND 100),
-  redirect_uris text[] NOT NULL CHECK(cardinality(redirect_uris) BETWEEN 1 AND 10),
+  redirect_uris text[] NOT NULL CHECK(cardinality(redirect_uris) BETWEEN 1 AND 5),
   grant_types text[] NOT NULL CHECK(grant_types <@ ARRAY['authorization_code','refresh_token'] AND 'authorization_code'=ANY(grant_types)),
   auth_method text NOT NULL CHECK(auth_method IN ('none','client_secret_post','client_secret_basic')),
   secret_hash text CHECK(secret_hash IS NULL OR length(secret_hash)=64),
@@ -49,19 +49,24 @@ CREATE TABLE auth.oauth_codes (
 CREATE INDEX oauth_codes_expiry ON auth.oauth_codes(expires_at);
 CREATE INDEX oauth_codes_client ON auth.oauth_codes(client_id);
 
--- Refresh tokens rotate on every use. A rotated token remembers its successor, so a replay can be told from a lost
--- response (see OAuthTokens).
+-- Refresh tokens rotate on every use. Each remembers the token it was issued for (its parent) and the access token
+-- issued with it, so a replay can be told from a lost response or from two refreshes racing (see OAuthTokens).
+-- A superseded token lost such a race: its sibling was used first.
 CREATE TABLE auth.oauth_refresh_tokens (
   token_hash text PRIMARY KEY CHECK(length(token_hash)=64),
   grant_id uuid NOT NULL REFERENCES auth.oauth_grants,
+  parent_hash text CHECK(parent_hash IS NULL OR length(parent_hash)=64),
+  access_id text,
   created_at timestamptz NOT NULL DEFAULT clock_timestamp(),
   expires_at timestamptz NOT NULL,
   rotated_at timestamptz,
   replaced_by text CHECK(replaced_by IS NULL OR length(replaced_by)=64),
+  superseded_at timestamptz,
   revoked_at timestamptz,
   CHECK((rotated_at IS NULL)=(replaced_by IS NULL))
 );
 CREATE INDEX oauth_refresh_grant ON auth.oauth_refresh_tokens(grant_id);
+CREATE INDEX oauth_refresh_parent ON auth.oauth_refresh_tokens(parent_hash) WHERE parent_hash IS NOT NULL;
 
 -- Two more kinds of credential, both a person's own: `personal` tokens made in settings and `oauth` access tokens.
 DO $$ DECLARE constraint_name text; BEGIN
@@ -87,6 +92,29 @@ ALTER TABLE auth.credentials ADD CONSTRAINT credential_delegation CHECK(
   AND (kind='personal')=(name IS NOT NULL)
 );
 CREATE INDEX credentials_grant ON auth.credentials(grant_id) WHERE grant_id IS NOT NULL;
+CREATE INDEX credentials_oauth_expiry ON auth.credentials(expires_at) WHERE kind='oauth';
+
+-- Access tokens are issued on every refresh; once expired for a day they are dead weight. The runtime role may not
+-- delete credentials, so this narrow function collects a bounded batch of expired OAuth access tokens only.
+CREATE FUNCTION auth.collect_oauth_access_tokens(batch integer) RETURNS integer
+LANGUAGE plpgsql VOLATILE SECURITY DEFINER SET search_path=pg_catalog AS $$
+DECLARE candidate text; collected integer := 0;
+BEGIN
+  FOR candidate IN
+    SELECT id FROM auth.credentials WHERE kind='oauth' AND expires_at < clock_timestamp() - interval '1 day'
+    ORDER BY expires_at LIMIT least(greatest(batch,0),1000)
+  LOOP
+    BEGIN
+      DELETE FROM auth.credentials WHERE id=candidate;
+      collected := collected + 1;
+    EXCEPTION WHEN foreign_key_violation THEN
+      -- Still referenced (a planning selection made with it): kept as long as the reference.
+      NULL;
+    END;
+  END LOOP;
+  RETURN collected;
+END $$;
+REVOKE ALL ON FUNCTION auth.collect_oauth_access_tokens(integer) FROM PUBLIC;
 CREATE INDEX credentials_personal ON auth.credentials(principal_id) WHERE kind='personal';
 
 -- Account-level access history: tokens made and revoked, apps connected and disconnected, replays detected. Names and

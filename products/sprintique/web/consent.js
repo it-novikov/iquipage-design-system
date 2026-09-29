@@ -33,14 +33,15 @@ export async function mountConsent(root,{client,session}){
   const screen=root.querySelector('iq-auth-screen'),body=root.querySelector('[data-consent]');
   const fail=(message,back)=>{
     screen.setAttribute('description','Приложение не получит доступ.');screen.setAttribute('error',message);
-    body.innerHTML=back?`<a class="iq-btn secondary lg" href="${esc(back)}" rel="noreferrer">Вернуться в приложение</a>`:`<a class="iq-btn secondary lg" href="/">Открыть Sprintique</a>`;
+    let host='';try{host=new URL(back).host;}catch{back=null;}
+    body.innerHTML=back?`<a class="iq-btn secondary lg" href="${esc(back)}" rel="noreferrer">Вернуться на ${esc(host)}</a>`:`<a class="iq-btn secondary lg" href="/">Открыть Sprintique</a>`;
   };
   let described;
   try{described=await client.request('/oauth/authorization?request='+encodeURIComponent(request));}
   catch(error){fail(error.message||'Запрос приложения некорректен.',error.action?.redirectTo);return;}
   const app=described.client,requested=new Set(described.scopes);
-  screen.setAttribute('heading',`Разрешить доступ «${app.name}»?`);
-  screen.setAttribute('description',`Название приложение указало само. После ответа вы вернётесь на ${app.redirectHost}.`);
+  screen.setAttribute('heading',`Разрешить доступ «${app.name}» с ${app.redirectHost}?`);
+  screen.setAttribute('description',`Название указало само приложение. После ответа вы вернётесь на ${app.redirectHost}.`);
   body.innerHTML=`<form class="consent-form" novalidate>
     <dl class="consent-facts">
       <div><dt>Аккаунт</dt><dd>${esc(session.principal.name)}</dd></div>

@@ -51,11 +51,11 @@ class OAuthRulesTest {
 
     @Test
     fun `a token is only for this server's resources`() {
-        assertThat(OAuthRules.resource(null, api, mcp)).isEqualTo(mcp)
-        assertThat(OAuthRules.resource("$mcp/", api, mcp)).isEqualTo(mcp)
-        assertThat(OAuthRules.resource(api, api, mcp)).isEqualTo(api)
-        assertThat(OAuthRules.resource("https://evil.example/mcp", api, mcp)).isNull()
-        assertThat(OAuthRules.resource("https://api.iqui.page/api", api, mcp)).isNull()
+        assertThat(OAuthRules.resource(null, mcp)).isEqualTo(mcp)
+        assertThat(OAuthRules.resource("$mcp/", mcp)).isEqualTo(mcp)
+        assertThat(OAuthRules.resource(api, mcp)).describedAs("the whole API is for personal tokens").isNull()
+        assertThat(OAuthRules.resource("https://evil.example/mcp", mcp)).isNull()
+        assertThat(OAuthRules.resource("https://api.iqui.page/api", mcp)).isNull()
     }
 
     @Test

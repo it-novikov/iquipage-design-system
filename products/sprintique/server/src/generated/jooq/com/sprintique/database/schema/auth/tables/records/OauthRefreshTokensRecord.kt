@@ -24,25 +24,37 @@ open class OauthRefreshTokensRecord() : UpdatableRecordImpl<OauthRefreshTokensRe
         set(value): Unit = set(1, value)
         get(): UUID? = get(1) as UUID?
 
-    open var createdAt: OffsetDateTime?
+    open var parentHash: String?
         set(value): Unit = set(2, value)
-        get(): OffsetDateTime? = get(2) as OffsetDateTime?
+        get(): String? = get(2) as String?
 
-    open var expiresAt: OffsetDateTime?
+    open var accessId: String?
         set(value): Unit = set(3, value)
-        get(): OffsetDateTime? = get(3) as OffsetDateTime?
+        get(): String? = get(3) as String?
 
-    open var rotatedAt: OffsetDateTime?
+    open var createdAt: OffsetDateTime?
         set(value): Unit = set(4, value)
         get(): OffsetDateTime? = get(4) as OffsetDateTime?
 
-    open var replacedBy: String?
+    open var expiresAt: OffsetDateTime?
         set(value): Unit = set(5, value)
-        get(): String? = get(5) as String?
+        get(): OffsetDateTime? = get(5) as OffsetDateTime?
 
-    open var revokedAt: OffsetDateTime?
+    open var rotatedAt: OffsetDateTime?
         set(value): Unit = set(6, value)
         get(): OffsetDateTime? = get(6) as OffsetDateTime?
+
+    open var replacedBy: String?
+        set(value): Unit = set(7, value)
+        get(): String? = get(7) as String?
+
+    open var supersededAt: OffsetDateTime?
+        set(value): Unit = set(8, value)
+        get(): OffsetDateTime? = get(8) as OffsetDateTime?
+
+    open var revokedAt: OffsetDateTime?
+        set(value): Unit = set(9, value)
+        get(): OffsetDateTime? = get(9) as OffsetDateTime?
 
     // -------------------------------------------------------------------------
     // Primary key information
@@ -50,13 +62,16 @@ open class OauthRefreshTokensRecord() : UpdatableRecordImpl<OauthRefreshTokensRe
 
     override fun key(): Record1<String?> = super.key() as Record1<String?>
 
-    constructor(tokenHash: String? = null, grantId: UUID? = null, createdAt: OffsetDateTime? = null, expiresAt: OffsetDateTime? = null, rotatedAt: OffsetDateTime? = null, replacedBy: String? = null, revokedAt: OffsetDateTime? = null): this() {
+    constructor(tokenHash: String? = null, grantId: UUID? = null, parentHash: String? = null, accessId: String? = null, createdAt: OffsetDateTime? = null, expiresAt: OffsetDateTime? = null, rotatedAt: OffsetDateTime? = null, replacedBy: String? = null, supersededAt: OffsetDateTime? = null, revokedAt: OffsetDateTime? = null): this() {
         this.tokenHash = tokenHash
         this.grantId = grantId
+        this.parentHash = parentHash
+        this.accessId = accessId
         this.createdAt = createdAt
         this.expiresAt = expiresAt
         this.rotatedAt = rotatedAt
         this.replacedBy = replacedBy
+        this.supersededAt = supersededAt
         this.revokedAt = revokedAt
         resetTouchedOnNotNull()
     }

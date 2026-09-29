@@ -31,19 +31,25 @@ class OAuthMetadataController(private val properties: SprintiqueProperties) {
         "service_documentation" to "${properties.publicOrigin}/",
     )
 
-    /** The whole API as one resource: a token issued for it serves REST and MCP alike. */
+    /**
+     * The whole API as one resource. Its tokens are personal access tokens made in the interface, so it names no
+     * authorization server: OAuth issues tokens for the MCP server only.
+     */
     @GetMapping("/.well-known/oauth-protected-resource")
-    fun api(): Map<String, Any> = resource(properties.apiBase, "Sprintique API")
+    fun api(): Map<String, Any> = linkedMapOf(
+        "resource" to properties.apiBase,
+        "scopes_supported" to SCOPES,
+        "bearer_methods_supported" to listOf("header"),
+        "resource_name" to "Sprintique API",
+    )
 
     @GetMapping("/.well-known/oauth-protected-resource/mcp")
-    fun mcp(): Map<String, Any> = resource(properties.mcpResource, "Sprintique MCP")
-
-    private fun resource(identifier: String, name: String): Map<String, Any> = linkedMapOf(
-        "resource" to identifier,
+    fun mcp(): Map<String, Any> = linkedMapOf(
+        "resource" to properties.mcpResource,
         "authorization_servers" to listOf(properties.apiBase),
         "scopes_supported" to SCOPES,
         "bearer_methods_supported" to listOf("header"),
-        "resource_name" to name,
+        "resource_name" to "Sprintique MCP",
     )
 
     private companion object {

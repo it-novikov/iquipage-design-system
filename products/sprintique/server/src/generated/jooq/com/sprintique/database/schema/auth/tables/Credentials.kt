@@ -11,6 +11,7 @@ import com.sprintique.database.schema.app.tables.PlanningSelections.PlanningSele
 import com.sprintique.database.schema.app.tables.Projects.ProjectsPath
 import com.sprintique.database.schema.auth.Auth
 import com.sprintique.database.schema.auth.indexes.CREDENTIALS_GRANT
+import com.sprintique.database.schema.auth.indexes.CREDENTIALS_OAUTH_EXPIRY
 import com.sprintique.database.schema.auth.indexes.CREDENTIALS_PERSONAL
 import com.sprintique.database.schema.auth.keys.CREDENTIALS_PKEY
 import com.sprintique.database.schema.auth.keys.CREDENTIALS_TOKEN_HASH_KEY
@@ -133,7 +134,7 @@ open class Credentials(
         override fun `as`(alias: Table<*>): CredentialsPath = CredentialsPath(alias.qualifiedName, this)
     }
     override fun getSchema(): Schema? = if (aliased()) null else Auth.AUTH
-    override fun getIndexes(): List<Index> = listOf(CREDENTIALS_GRANT, CREDENTIALS_PERSONAL)
+    override fun getIndexes(): List<Index> = listOf(CREDENTIALS_GRANT, CREDENTIALS_OAUTH_EXPIRY, CREDENTIALS_PERSONAL)
     override fun getPrimaryKey(): UniqueKey<CredentialsRecord> = CREDENTIALS_PKEY
     override fun getUniqueKeys(): List<UniqueKey<CredentialsRecord>> = listOf(CREDENTIALS_TOKEN_HASH_KEY)
     override fun getReferences(): List<ForeignKey<CredentialsRecord, *>> = listOf(CREDENTIALS__CREDENTIALS_GRANT_ID_FKEY, CREDENTIALS__CREDENTIALS_INITIATOR_ID_FKEY, CREDENTIALS__CREDENTIALS_PRINCIPAL_ID_FKEY, CREDENTIALS__CREDENTIALS_PROJECT_ID_FKEY)

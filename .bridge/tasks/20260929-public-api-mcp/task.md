@@ -8,7 +8,7 @@ owner: it-novikov
 branch: feature/public-api-mcp
 base: main
 created: 2026-09-29
-updated: 2026-09-29T20:41:17Z
+updated: 2026-09-29T21:06:24Z
 links:
 ---
 
@@ -42,11 +42,11 @@ links:
 
 ## Передача
 
-- **Состояние:** R1 исправлено, mcp-oauth 10/10 зелёные
-- **Сейчас:** S7 — ручная проверка SDK, независимое ревью R2, гейты
-- **Дальше:** Ревью R2, verify-vnext, push, PR
+- **Состояние:** R1 и R2 исправлены; npm test 202/202, Kotlin unit 46 + integration 24 без пропусков; ручная проверка SDK 1.31.0 на стенде с отдельным API-именем пройдена
+- **Сейчас:** S7 — verify-vnext, push, PR
+- **Дальше:** verify-vnext, push, PR
 - **Незакоммичено:** DelegatedAccessIntegrationTest.kt (новый интеграционный тест, ещё не прогнан)
-- **Рабочая копия:** 19 файл(ов): products/sprintique/docs/decisions/0003-public-api-mcp.md, products/sprintique/docs/operations.md, products/sprintique/server/src/main/kotlin/com/sprintique/identity/api/AuthenticatedRequests.kt, products/sprintique/server/src/main/kotlin/com/sprintique/identity/application/Authentication.kt, products/sprintique/server/src/main/kotlin/com/sprintique/identity/application/ConnectedApps.kt, products/sprintique/server/src/main/kotlin/com/sprintique/identity/application/OAuthAuthorizations.kt, products/sprintique/server/src/main/kotlin/com/sprintique/identity/application/OAuthClients.kt, products/sprintique/server/src/main/kotlin/com/sprintique/identity/application/OAuthTokens.kt, products/sprintique/server/src/main/kotlin/com/sprintique/identity/domain/OAuthRules.kt, products/sprintique/server/src/main/kotlin/com/sprintique/mcp/api/McpController.kt, products/sprintique/server/src/main/kotlin/com/sprintique/mcp/application/McpTools.kt, products/sprintique/server/src/main/kotlin/com/sprintique/mcp/application/TaskTools.kt и ещё 7 (19 files changed, 324 insertions(+), 112 deletions(-)) · HEAD f3dbe90
+- **Рабочая копия:** 29 файл(ов): products/sprintique/deploy/vps/README.md, products/sprintique/deploy/vps/bootstrap.sh, products/sprintique/deploy/vps/nginx.conf, products/sprintique/docs/decisions/0003-public-api-mcp.md, products/sprintique/docs/operations.md, products/sprintique/server/src/generated/jooq/com/sprintique/database/schema/auth/indexes/Indexes.kt, products/sprintique/server/src/generated/jooq/com/sprintique/database/schema/auth/routines/references/Routines.kt, products/sprintique/server/src/generated/jooq/com/sprintique/database/schema/auth/tables/Credentials.kt, products/sprintique/server/src/generated/jooq/com/sprintique/database/schema/auth/tables/OauthClients.kt, products/sprintique/server/src/generated/jooq/com/sprintique/database/schema/auth/tables/OauthRefreshTokens.kt, products/sprintique/server/src/generated/jooq/com/sprintique/database/schema/auth/tables/records/OauthRefreshTokensRecord.kt, products/sprintique/server/src/integrationTest/kotlin/com/sprintique/identity/DelegatedAccessIntegrationTest.kt и ещё 17 (30 files changed, 462 insertions(+), 137 deletions(-)) · HEAD af83d0d
 - **Ловушки:**
   - Узел по умолчанию v26: для гейтов PATH=/opt/homebrew/opt/node@24/bin:$PATH
   - TEST_S3_CONFIG=/Users/nvkv71/iquipage-work/ux-ds-20260925/products/sprintique/output/infra/storage.json
@@ -128,6 +128,7 @@ links:
 - **D1** (2026-09-29) MCP-транспорт свой (stateless Streamable HTTP 2025-11-25), не Java SDK 2.0.1 — SDK отдаёт клиенту и пишет в лог e.getMessage(), тянет Reactor; совместимость проверяем официальным TS SDK
 - **D2** (2026-09-29) Протокольные эндпоинты OAuth в /api/oauth/* (форматы RFC, открытые метаданные DCR), интерфейсные — в /api/v1 с Zod-контрактами; authorize — страница интерфейса /oauth/authorize на sprintique.iqui.page
 - **D3** (2026-09-29) Делегированный токен = права человека ∩ скоуп; операции безопасности (агенты, участники, одобрения, токены, пространство) только в интерактивной сессии — иначе токен выпускает себе замену или обходит одобрение человека
+- **D4** (2026-09-29) OAuth выдаёт токены только для ресурса MCP; весь REST — персональным токеном из интерфейса — согласие должно описывать ровно то, что умеет приложение (ревью R2 P2-2)
 
 ## Вопросы
 

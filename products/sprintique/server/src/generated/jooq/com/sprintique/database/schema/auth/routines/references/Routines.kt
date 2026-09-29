@@ -9,6 +9,7 @@ import com.sprintique.database.schema.auth.routines.ActorId
 import com.sprintique.database.schema.auth.routines.CanProject
 import com.sprintique.database.schema.auth.routines.CanSeePerson
 import com.sprintique.database.schema.auth.routines.CanWorkspace
+import com.sprintique.database.schema.auth.routines.CollectOauthAccessTokens
 import com.sprintique.database.schema.auth.routines.ProjectTimezone
 import com.sprintique.database.schema.auth.tables.ProjectTimezoneSource
 import com.sprintique.database.schema.auth.tables.WorkspaceProjects
@@ -121,6 +122,35 @@ fun canWorkspace(
 ): Field<Boolean?> {
     val f = CanWorkspace()
     f.setTarget(target)
+
+    return f.asField()
+}
+
+fun collectOauthAccessTokens(
+      configuration: Configuration
+    , batch: Int?
+): Int? {
+    val f = CollectOauthAccessTokens()
+    f.setBatch(batch)
+
+    f.execute(configuration)
+    return f.returnValue
+}
+
+fun collectOauthAccessTokens(
+      batch: Int?
+): Field<Int?> {
+    val f = CollectOauthAccessTokens()
+    f.setBatch(batch)
+
+    return f.asField()
+}
+
+fun collectOauthAccessTokens(
+      batch: Field<Int?>
+): Field<Int?> {
+    val f = CollectOauthAccessTokens()
+    f.setBatch(batch)
 
     return f.asField()
 }

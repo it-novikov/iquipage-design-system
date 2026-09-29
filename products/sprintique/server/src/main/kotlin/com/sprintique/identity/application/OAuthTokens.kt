@@ -16,16 +16,17 @@ import java.util.UUID
  *
  * - An access token lives an hour and is bound to the resource the person approved.
  * - A refresh token rotates on every use and lives 30 days from its issue. A rotated token presented again within a
- *   minute, while its successor is still unused, is a lost response: the successor and the grant's access tokens are
- *   revoked and a new pair issued.
- *   Any other replay of a rotated or revoked token revokes the whole grant.
+ *   minute, while no token issued for it was used, is a lost answer or two requests of the client refreshing at once:
+ *   another pair is issued and the unused access tokens issued for it end. The first of those refresh tokens to be
+ *   used supersedes its siblings, which are then refused without harm to the connection.
+ *   Any other replay of a rotated or revoked token revokes the whole grant. At most ten refreshes a minute per grant.
  * - A replayed authorization code revokes the grant issued for it.
  *
  * A detected replay revokes in its own committed transaction before the client gets `invalid_grant`.
  */
 @Component
 @Profile("api")
-class OAuthTokens(private val database: Database) {
+class OAuthTokens(private val database: Database, private val limits: CredentialLimits) {
     /** A token request that failed after changing something that must stay changed (a revocation). */
     private class Refused(val error: OAuthException)
 
@@ -130,65 +131,45 @@ class OAuthTokens(private val database: Database) {
                 if (grant.string("clientId") != client.id || grant.boolean("revoked") || grant.boolean("disabled")) {
                     throw invalidGrant()
                 }
+                if (!limits.admit("refresh:$grantId", REFRESHES_PER_MINUTE)) {
+                    throw OAuthException("slow_down", "Too many refresh requests for this grant.", TOO_MANY_REQUESTS)
+                }
+                // Read again under the lock: a refresh that held it may have rotated or collected this token.
                 val current = tx.row(
                     """
-                    SELECT revoked_at IS NOT NULL AS revoked, expires_at <= clock_timestamp() AS expired,
-                           rotated_at IS NOT NULL AS rotated,
-                           rotated_at > clock_timestamp() - interval '60 seconds' AS recent, replaced_by AS successor
+                    SELECT revoked_at IS NOT NULL AS revoked, superseded_at IS NOT NULL AS superseded,
+                           expires_at <= clock_timestamp() AS expired, rotated_at IS NOT NULL AS rotated,
+                           rotated_at > clock_timestamp() - interval '60 seconds' AS recent, parent_hash AS parent
                     FROM auth.oauth_refresh_tokens WHERE token_hash = $1
                     """.trimIndent(),
                     hash,
-                )!!
-                if (current.boolean("expired")) throw invalidGrant()
+                ) ?: throw invalidGrant()
+                // A sibling issued by a racing refresh was used first: this one is void, the connection is not.
+                if (current.boolean("expired") || current.boolean("superseded")) throw invalidGrant()
                 val replay = current.boolean("revoked") ||
-                    (current.boolean("rotated") && !lostResponse(tx, current))
+                    (current.boolean("rotated") && !mayRetry(tx, hash, current.boolean("recent")))
                 if (replay) {
                     ConnectedApps.revokeGrant(tx, grantId)
                     AccessEvents.record(tx, grant.string("principalId"), "app.refresh-replayed", grantId, client.id)
                     return@transaction Refused(invalidGrant())
                 }
-                current.stringOrNull("successor")?.let { successor ->
-                    // A lost answer: the pair it carried is void. Its access token was issued after every other one
-                    // of the grant, so all of them end; the client gets a fresh pair in this answer.
-                    tx.update(
-                        "UPDATE auth.oauth_refresh_tokens SET revoked_at = clock_timestamp() WHERE token_hash = $1",
-                        successor,
-                    )
-                    tx.update(
-                        """
-                        UPDATE auth.credentials SET revoked_at = clock_timestamp()
-                        WHERE grant_id = $1::uuid AND kind = 'oauth' AND revoked_at IS NULL
-                        """.trimIndent(),
-                        grantId,
-                    )
-                }
+                settleSiblings(tx, hash, current)
                 val granted = grant.strings("scopes")
-                val scopes = scope?.let { requested ->
-                    val names = OAuthRules.scopes(requested)?.map(Scope::wire)
-                    if (names == null || !granted.containsAll(names)) {
-                        throw OAuthException("invalid_scope", "The scope exceeds the grant.")
-                    }
-                    Scope.entries.map(Scope::wire).filter { it in names }
-                } ?: granted
+                val scopes = narrowed(granted, scope)
                 if (resource != null && resource.removeSuffix("/") != grant.string("resource")) throw invalidTarget()
                 tx.update("UPDATE auth.oauth_grants SET last_used_at = clock_timestamp() WHERE id = $1::uuid", grantId)
-                tx.update(
-                    """
-                    DELETE FROM auth.oauth_refresh_tokens
-                    WHERE grant_id = $1::uuid AND expires_at < clock_timestamp() - interval '1 day'
-                    """.trimIndent(),
-                    grantId,
-                )
+                collect(tx, grantId)
                 val issued = issue(
                     tx,
                     Grant(grantId, grant.string("principalId"), granted, grant.string("resource")),
                     scopes,
                     true,
+                    parent = hash,
                 )
                 tx.update(
                     """
                     UPDATE auth.oauth_refresh_tokens
-                    SET rotated_at = coalesce(rotated_at, clock_timestamp()), replaced_by = $2
+                    SET rotated_at = coalesce(rotated_at, clock_timestamp()), replaced_by = coalesce(replaced_by, $2)
                     WHERE token_hash = $1
                     """.trimIndent(),
                     hash,
@@ -235,28 +216,97 @@ class OAuthTokens(private val database: Database) {
 
     private data class Grant(val id: String, val principalId: String, val scopes: List<String>, val resource: String)
 
-    /** A rotated token within a minute of rotation whose successor was never used: the client lost the answer. */
-    private fun lostResponse(tx: Transaction, current: Row): Boolean {
-        if (!current.boolean("recent")) return false
-        val successor = current.stringOrNull("successor") ?: return false
-        return tx.row(
-            """
-            SELECT 1 AS found FROM auth.oauth_refresh_tokens
-            WHERE token_hash = $1 AND rotated_at IS NULL AND revoked_at IS NULL
-            """.trimIndent(),
-            successor,
-        ) != null
+    /**
+     * A retried token: the unused access tokens issued for it end, and its refresh tokens stay until one of them is
+     * used. A token used for the first time supersedes its siblings, the other answers of the same retried token.
+     */
+    private fun settleSiblings(tx: Transaction, hash: String, current: Row) {
+        if (current.boolean("rotated")) {
+            // A lost answer or two refreshes racing: the unused access tokens issued for this token end; its
+            // refresh tokens stay until one of them is used, which supersedes the others.
+            tx.update(
+                """
+                UPDATE auth.credentials c SET revoked_at = clock_timestamp() FROM auth.oauth_refresh_tokens r
+                WHERE r.parent_hash = $1 AND c.id = r.access_id AND c.revoked_at IS NULL AND c.last_used_at IS NULL
+                """.trimIndent(),
+                hash,
+            )
+        } else {
+            current.stringOrNull("parent")?.let { parent ->
+                tx.update(
+                    """
+                    UPDATE auth.oauth_refresh_tokens SET superseded_at = clock_timestamp()
+                    WHERE parent_hash = $1 AND token_hash <> $2 AND rotated_at IS NULL AND revoked_at IS NULL
+                      AND superseded_at IS NULL
+                    """.trimIndent(),
+                    parent,
+                    hash,
+                )
+            }
+        }
     }
 
-    private fun issue(tx: Transaction, grant: Grant, scopes: List<String>, withRefresh: Boolean): Map<String, Any?> {
+    /** The scopes a refresh asks for: the grant's, or fewer; never more. */
+    private fun narrowed(granted: List<String>, scope: String?): List<String> {
+        if (scope == null) return granted
+        val names = OAuthRules.scopes(scope)?.map(Scope::wire)
+        if (names == null || !granted.containsAll(names)) {
+            throw OAuthException("invalid_scope", "The scope exceeds the grant.")
+        }
+        return Scope.entries.map(Scope::wire).filter { it in names }
+    }
+
+    /**
+     * Whether a rotated token may be presented again: within a minute of its rotation, while none of the tokens issued
+     * for it was used (the client lost the answer, or two of its requests refreshed at once), and a few times at most.
+     */
+    private fun mayRetry(tx: Transaction, hash: String, recent: Boolean): Boolean {
+        if (!recent) return false
+        val children = tx.row(
+            """
+            SELECT count(*)::int AS issued, count(*) FILTER (WHERE rotated_at IS NOT NULL OR revoked_at IS NOT NULL
+                                                              OR superseded_at IS NOT NULL)::int AS used
+            FROM auth.oauth_refresh_tokens WHERE parent_hash = $1
+            """.trimIndent(),
+            hash,
+        )!!
+        return children.int("used") == 0 && children.int("issued") < MAX_RETRIES
+    }
+
+    /**
+     * Dead weight of the grant and of the server, a bounded batch at a time: refresh tokens past their life, rotated
+     * ones a week after rotation (a replay that late is refused without revoking), expired access tokens.
+     */
+    private fun collect(tx: Transaction, grantId: String) {
+        tx.update(
+            """
+            DELETE FROM auth.oauth_refresh_tokens WHERE token_hash IN (
+              SELECT token_hash FROM auth.oauth_refresh_tokens
+              WHERE grant_id = $1::uuid AND (expires_at < clock_timestamp() - interval '1 day'
+                OR rotated_at < clock_timestamp() - interval '7 days') LIMIT $2)
+            """.trimIndent(),
+            grantId,
+            COLLECT_BATCH,
+        )
+        tx.row("SELECT auth.collect_oauth_access_tokens($1) AS n", COLLECT_BATCH)
+    }
+
+    private fun issue(
+        tx: Transaction,
+        grant: Grant,
+        scopes: List<String>,
+        withRefresh: Boolean,
+        parent: String? = null,
+    ): Map<String, Any?> {
         val access = Tokens.prefixed(requireNotNull(CredentialKind.OAUTH.prefix))
+        val accessId = UUID.randomUUID().toString()
         tx.update(
             """
             INSERT INTO auth.credentials(id, principal_id, token_hash, kind, initiator_id, expires_at, scopes, audience,
                                          grant_id)
             VALUES ($1, $2, $3, 'oauth', $2, clock_timestamp() + make_interval(secs => $4::int), $5, $6, $7::uuid)
             """.trimIndent(),
-            UUID.randomUUID().toString(),
+            accessId,
             grant.principalId,
             Tokens.sha256Hex(access),
             ACCESS_SECONDS,
@@ -274,11 +324,13 @@ class OAuthTokens(private val database: Database) {
             val refresh = Tokens.prefixed("spf_")
             tx.update(
                 """
-                INSERT INTO auth.oauth_refresh_tokens(token_hash, grant_id, expires_at)
-                VALUES ($1, $2::uuid, clock_timestamp() + make_interval(days => $3::int))
+                INSERT INTO auth.oauth_refresh_tokens(token_hash, grant_id, parent_hash, access_id, expires_at)
+                VALUES ($1, $2::uuid, $3, $4, clock_timestamp() + make_interval(days => $5::int))
                 """.trimIndent(),
                 Tokens.sha256Hex(refresh),
                 grant.id,
+                parent,
+                accessId,
                 REFRESH_DAYS,
             )
             result["refresh_token"] = refresh
@@ -299,5 +351,9 @@ class OAuthTokens(private val database: Database) {
     companion object {
         const val ACCESS_SECONDS = 3600
         const val REFRESH_DAYS = 30
+        private const val REFRESHES_PER_MINUTE = 10
+        private const val MAX_RETRIES = 4
+        private const val COLLECT_BATCH = 100
+        private const val TOO_MANY_REQUESTS = 429
     }
 }

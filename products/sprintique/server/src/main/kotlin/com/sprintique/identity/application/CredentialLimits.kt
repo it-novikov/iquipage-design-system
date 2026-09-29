@@ -16,9 +16,9 @@ class CredentialLimits {
 
     private val windows = LinkedHashMap<String, Window>()
 
-    /** Counts one request of the credential named by [key]; false once its window is spent. */
+    /** Counts one request of the credential named by [key]; false once [limit] requests were counted this minute. */
     @Synchronized
-    fun admit(key: String): Boolean {
+    fun admit(key: String, limit: Int = MAX_REQUESTS): Boolean {
         val now = System.currentTimeMillis()
         if (windows.size >= MAX_WINDOWS) windows.values.removeIf { now - it.since >= WINDOW_MILLISECONDS }
         // Every key is a live credential, so a full table means real load: the oldest window makes room.
@@ -29,11 +29,14 @@ class CredentialLimits {
             window.count = 0
         }
         window.count++
-        return window.count <= MAX_REQUESTS
+        return window.count <= limit
     }
 
     companion object {
         const val MAX_REQUESTS = 600
+
+        /** Request attribute set once a request's bearer credential was found live. */
+        const val ADMITTED = "com.sprintique.credential-admitted"
         private const val WINDOW_MILLISECONDS = 60_000L
         private const val MAX_WINDOWS = 4096
     }

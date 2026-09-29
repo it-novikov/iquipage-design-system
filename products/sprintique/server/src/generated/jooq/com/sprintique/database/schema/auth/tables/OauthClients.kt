@@ -137,7 +137,7 @@ open class OauthClients(
         Internal.createCheck(this, DSL.name("oauth_clients_grant_types_check"), "(((grant_types <@ ARRAY['authorization_code'::text, 'refresh_token'::text]) AND ('authorization_code'::text = ANY (grant_types))))", true),
         Internal.createCheck(this, DSL.name("oauth_clients_id_check"), "((id ~ '^cl_[A-Za-z0-9_-]{43}\$'::text))", true),
         Internal.createCheck(this, DSL.name("oauth_clients_name_check"), "(((length(name) >= 1) AND (length(name) <= 100)))", true),
-        Internal.createCheck(this, DSL.name("oauth_clients_redirect_uris_check"), "(((cardinality(redirect_uris) >= 1) AND (cardinality(redirect_uris) <= 10)))", true),
+        Internal.createCheck(this, DSL.name("oauth_clients_redirect_uris_check"), "(((cardinality(redirect_uris) >= 1) AND (cardinality(redirect_uris) <= 5)))", true),
         Internal.createCheck(this, DSL.name("oauth_clients_secret_hash_check"), "(((secret_hash IS NULL) OR (length(secret_hash) = 64)))", true)
     )
     override fun `as`(alias: String): OauthClients = OauthClients(DSL.name(alias), this)

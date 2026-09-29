@@ -6,6 +6,7 @@ package com.sprintique.database.schema.auth.tables
 
 import com.sprintique.database.schema.auth.Auth
 import com.sprintique.database.schema.auth.indexes.OAUTH_REFRESH_GRANT
+import com.sprintique.database.schema.auth.indexes.OAUTH_REFRESH_PARENT
 import com.sprintique.database.schema.auth.keys.OAUTH_REFRESH_TOKENS_PKEY
 import com.sprintique.database.schema.auth.keys.OAUTH_REFRESH_TOKENS__OAUTH_REFRESH_TOKENS_GRANT_ID_FKEY
 import com.sprintique.database.schema.auth.tables.OauthGrants.OauthGrantsPath
@@ -74,6 +75,10 @@ open class OauthRefreshTokens(
 
     val GRANT_ID: TableField<OauthRefreshTokensRecord, UUID?> = createField(DSL.name("grant_id"), SQLDataType.UUID.nullable(false), this, "")
 
+    val PARENT_HASH: TableField<OauthRefreshTokensRecord, String?> = createField(DSL.name("parent_hash"), SQLDataType.CLOB, this, "")
+
+    val ACCESS_ID: TableField<OauthRefreshTokensRecord, String?> = createField(DSL.name("access_id"), SQLDataType.CLOB, this, "")
+
     val CREATED_AT: TableField<OauthRefreshTokensRecord, OffsetDateTime?> = createField(DSL.name("created_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6).nullable(false).defaultValue(DSL.field(DSL.raw("clock_timestamp()"), SQLDataType.TIMESTAMPWITHTIMEZONE)), this, "")
 
     val EXPIRES_AT: TableField<OauthRefreshTokensRecord, OffsetDateTime?> = createField(DSL.name("expires_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6).nullable(false), this, "")
@@ -81,6 +86,8 @@ open class OauthRefreshTokens(
     val ROTATED_AT: TableField<OauthRefreshTokensRecord, OffsetDateTime?> = createField(DSL.name("rotated_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6), this, "")
 
     val REPLACED_BY: TableField<OauthRefreshTokensRecord, String?> = createField(DSL.name("replaced_by"), SQLDataType.CLOB, this, "")
+
+    val SUPERSEDED_AT: TableField<OauthRefreshTokensRecord, OffsetDateTime?> = createField(DSL.name("superseded_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6), this, "")
 
     val REVOKED_AT: TableField<OauthRefreshTokensRecord, OffsetDateTime?> = createField(DSL.name("revoked_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6), this, "")
 
@@ -104,7 +111,7 @@ open class OauthRefreshTokens(
         override fun `as`(alias: Table<*>): OauthRefreshTokensPath = OauthRefreshTokensPath(alias.qualifiedName, this)
     }
     override fun getSchema(): Schema? = if (aliased()) null else Auth.AUTH
-    override fun getIndexes(): List<Index> = listOf(OAUTH_REFRESH_GRANT)
+    override fun getIndexes(): List<Index> = listOf(OAUTH_REFRESH_GRANT, OAUTH_REFRESH_PARENT)
     override fun getPrimaryKey(): UniqueKey<OauthRefreshTokensRecord> = OAUTH_REFRESH_TOKENS_PKEY
     override fun getReferences(): List<ForeignKey<OauthRefreshTokensRecord, *>> = listOf(OAUTH_REFRESH_TOKENS__OAUTH_REFRESH_TOKENS_GRANT_ID_FKEY)
 
@@ -112,6 +119,7 @@ open class OauthRefreshTokens(
     val oauthGrants: OauthGrantsPath by lazy { OauthGrantsPath(this, OAUTH_REFRESH_TOKENS__OAUTH_REFRESH_TOKENS_GRANT_ID_FKEY, null) }
     override fun getChecks(): List<Check<OauthRefreshTokensRecord>> = listOf(
         Internal.createCheck(this, DSL.name("oauth_refresh_tokens_check"), "(((rotated_at IS NULL) = (replaced_by IS NULL)))", true),
+        Internal.createCheck(this, DSL.name("oauth_refresh_tokens_parent_hash_check"), "(((parent_hash IS NULL) OR (length(parent_hash) = 64)))", true),
         Internal.createCheck(this, DSL.name("oauth_refresh_tokens_replaced_by_check"), "(((replaced_by IS NULL) OR (length(replaced_by) = 64)))", true),
         Internal.createCheck(this, DSL.name("oauth_refresh_tokens_token_hash_check"), "((length(token_hash) = 64))", true)
     )

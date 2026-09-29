@@ -160,7 +160,7 @@ class OAuthAuthorizations(private val properties: SprintiqueProperties) {
             fail("invalid_request")
         }
         val scopes = OAuthRules.scopes(request.scope) ?: fail("invalid_scope")
-        val resource = OAuthRules.resource(request.resource, properties.apiBase, properties.mcpResource)
+        val resource = OAuthRules.resource(request.resource, properties.mcpResource)
             ?: fail("invalid_target")
         return Checked(client, redirectUri, challenge, scopes, resource, state)
     }

@@ -102,6 +102,7 @@ class OAuthController(private val database: Database, private val tokens: OAuthT
         if (error.status == HttpStatus.UNAUTHORIZED.value()) {
             builder.header("WWW-Authenticate", "Basic realm=\"sprintique\"")
         }
+        if (error.status == HttpStatus.TOO_MANY_REQUESTS.value()) builder.header("Retry-After", "60")
         return builder.contentType(MediaType.APPLICATION_JSON)
             .body(linkedMapOf("error" to error.error, "error_description" to error.message.orEmpty()))
     }

@@ -1,6 +1,7 @@
 package com.sprintique.web
 
 import com.sprintique.identity.api.AuthenticatedRequests
+import com.sprintique.identity.application.CredentialLimits
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -16,7 +17,7 @@ import java.util.concurrent.atomic.AtomicInteger
  *
  * A request with a well-formed bearer token is counted against its credential once that is found live
  * ([com.sprintique.identity.application.CredentialLimits]), not against its address: an assistant's servers carry
- * many people's tokens from a few shared addresses. Its address pays only when the token is refused (401), and an
+ * many people's tokens from a few shared addresses. Its address pays for it unless the token was found live, and an
  * address whose window is spent is refused whatever it carries.
  */
 @Component
@@ -48,7 +49,7 @@ class RequestLimitFilter(private val clientAddresses: ClientAddresses) : OncePer
         try {
             admitted(request, response, chain, readiness)
         } finally {
-            if (bearer && response.status == HttpServletResponse.SC_UNAUTHORIZED) charge(address)
+            if (bearer && request.getAttribute(CredentialLimits.ADMITTED) == null) charge(address)
         }
     }
 
@@ -98,7 +99,7 @@ class RequestLimitFilter(private val clientAddresses: ClientAddresses) : OncePer
         return window.count <= MAX_REQUESTS && (!login || window.logins <= MAX_LOGINS)
     }
 
-    /** A refused bearer token costs its address one request, as if it had carried no token. */
+    /** A bearer header that proved no live credential costs its address one request, as if it had carried none. */
     private fun charge(address: String) {
         admitWindow(address, login = false)
     }

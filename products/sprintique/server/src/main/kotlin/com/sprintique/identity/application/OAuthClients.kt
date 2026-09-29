@@ -4,6 +4,7 @@ import com.sprintique.database.Row
 import com.sprintique.database.Transaction
 import com.sprintique.identity.domain.OAuthRules
 import com.sprintique.token.Tokens
+import java.text.Normalizer
 import java.time.Instant
 
 /**
@@ -37,11 +38,18 @@ data class OAuthClient(
  * Dynamic client registration (RFC 7591), open so that a client such as Claude registers itself. Nothing the client
  * declares is fetched or trusted: its name is shown as the client's own claim, its addresses are compared by exact
  * string. Registration is limited per address (the sign-in budget), never globally, so a flood from some addresses
- * cannot close it for everyone; clients that were never connected are collected after a week, which bounds the table.
+ * cannot close it for everyone. The table stays bounded instead: a client is at most 5 addresses of 512 characters,
+ * clients never connected are collected after a day, and beyond the newest 10,000 of them the oldest (more than a
+ * quarter of an hour old, so no consent in progress) make room.
  */
 object OAuthClients {
     const val NAME_LIMIT = 100
     private const val COLLECT_BATCH = 500
+    private const val UNCONNECTED_LIMIT = 10_000
+    private val INVISIBLE = setOf(
+        '\u034F', '\u115F', '\u1160', '\u17B4', '\u17B5', '\u180B', '\u180C', '\u180D', '\u180E', '\u180F',
+        '\u2800', '\u3164', '\uFFA0',
+    ) + ('\uFE00'..'\uFE0F')
     private val AUTH_METHODS = setOf("none", "client_secret_post", "client_secret_basic")
     private val GRANT_TYPES = setOf("authorization_code", "refresh_token")
 
@@ -61,7 +69,8 @@ object OAuthClients {
         ) {
             throw OAuthException(
                 "invalid_redirect_uri",
-                "Redirect URIs must be 1-10 absolute https URIs or http loopback URIs without fragment or userinfo.",
+                "Redirect URIs must be 1-5 absolute https URIs or http loopback URIs of at most 512 characters, " +
+                    "without fragment or userinfo.",
             )
         }
         val grantTypes = (metadata.grantTypes ?: listOf("authorization_code")).distinct()
@@ -79,20 +88,23 @@ object OAuthClients {
                 "Supported token endpoint auth methods: none, client_secret_post, client_secret_basic.",
             )
         }
-        val name = metadata.clientName.orEmpty().filterNot(::isHidden).trim().take(NAME_LIMIT)
+        val name = Normalizer.normalize(metadata.clientName.orEmpty(), Normalizer.Form.NFKC)
+            .filterNot(::isHidden).trim().take(NAME_LIMIT)
         return ClientRegistration(name.ifEmpty { "Без названия" }, uris.distinct(), grantTypes, method)
     }
 
     /**
-     * Characters a name must not carry onto the consent screen: controls, and invisible formatting such as
-     * right-to-left overrides and zero-width joiners, which could make one name look like another.
+     * Characters a name must not carry onto the consent screen: controls, invisible formatting such as right-to-left
+     * overrides and zero-width joiners, and the other default-ignorable letters and marks that render as nothing
+     * (Hangul fillers, the braille blank, variation selectors), which could make one name look like another. The name
+     * is NFKC-normalized first; look-alike letters of other scripts remain, which is why the screen names the host.
      */
     private fun isHidden(char: Char): Boolean = when (Character.getType(char).toByte()) {
         Character.CONTROL, Character.FORMAT, Character.SURROGATE, Character.PRIVATE_USE, Character.UNASSIGNED,
         Character.LINE_SEPARATOR, Character.PARAGRAPH_SEPARATOR,
         -> true
 
-        else -> false
+        else -> char in INVISIBLE
     }
 
     /** Registers a client and returns the RFC 7591 response, with the secret of a confidential client shown once. */
@@ -157,7 +169,7 @@ object OAuthClients {
         return client
     }
 
-    /** Codes past their life and clients never connected within a week, a bounded batch at a time. */
+    /** Codes past their life and clients never connected, a bounded batch at a time. */
     private fun collect(tx: Transaction) {
         tx.update(
             """
@@ -169,11 +181,23 @@ object OAuthClients {
         tx.update(
             """
             DELETE FROM auth.oauth_clients WHERE id IN (
-              SELECT c.id FROM auth.oauth_clients c WHERE c.created_at < clock_timestamp() - interval '7 days'
+              SELECT c.id FROM auth.oauth_clients c WHERE c.created_at < clock_timestamp() - interval '1 day'
                 AND NOT EXISTS (SELECT 1 FROM auth.oauth_grants g WHERE g.client_id = c.id)
                 AND NOT EXISTS (SELECT 1 FROM auth.oauth_codes o WHERE o.client_id = c.id)
               LIMIT $1)
             """.trimIndent(),
+            COLLECT_BATCH,
+        )
+        tx.update(
+            """
+            DELETE FROM auth.oauth_clients WHERE id IN (
+              SELECT c.id FROM auth.oauth_clients c
+              WHERE NOT EXISTS (SELECT 1 FROM auth.oauth_grants g WHERE g.client_id = c.id)
+                AND NOT EXISTS (SELECT 1 FROM auth.oauth_codes o WHERE o.client_id = c.id)
+              ORDER BY c.created_at DESC OFFSET $1 LIMIT $2)
+              AND created_at < clock_timestamp() - interval '15 minutes'
+            """.trimIndent(),
+            UNCONNECTED_LIMIT,
             COLLECT_BATCH,
         )
     }

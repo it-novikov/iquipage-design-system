@@ -13,17 +13,48 @@ import java.net.URI
 /**
  * Which of the two public names a request was addressed to. The interface and the API share one process; the reverse
  * proxy passes the name the client used in `Host`. With no separate API origin configured there is only one name.
+ *
+ * With two names, only the interface name is the interface: any other `Host` (the API name, a raw address, a proxy
+ * that does not pass `Host`) is treated as the API name, so a misconfiguration closes the interface rather than
+ * opening the API name to cookies and pages. Names compare without case, a trailing dot or the scheme's default port.
  */
 @Component
 @Profile("api")
 class ApiHosts(properties: SprintiqueProperties) {
-    private val apiAuthority = URI(properties.apiBase).authority.lowercase()
+    private val interfaceScheme = URI(properties.publicOrigin).scheme
+    private val interfaceAuthority = normalize(URI(properties.publicOrigin).authority, interfaceScheme)
     private val separate = properties.apiOrigin.isNotEmpty() &&
-        apiAuthority != URI(properties.publicOrigin).authority.lowercase()
+        normalize(URI(properties.apiBase).authority, URI(properties.apiBase).scheme) != interfaceAuthority
 
     /** Whether the request came through the API name: session cookies are not credentials there. */
     fun isApiHost(request: HttpServletRequest): Boolean =
-        separate && request.getHeader("Host")?.trim()?.lowercase() == apiAuthority
+        separate && request.getHeader("Host")?.let { normalize(it, interfaceScheme) } != interfaceAuthority
+
+    private companion object {
+        fun normalize(authority: String, scheme: String): String {
+            val value = authority.trim().lowercase().removeSuffix(if (scheme == "https") ":443" else ":80")
+            val portAt = if (value.startsWith("[")) {
+                value.indexOf("]:").let {
+                    if (it <
+                        0
+                    ) {
+                        -1
+                    } else {
+                        it + 1
+                    }
+                }
+            } else {
+                value.lastIndexOf(':')
+            }
+            return if (portAt <
+                0
+            ) {
+                value.removeSuffix(".")
+            } else {
+                value.substring(0, portAt).removeSuffix(".") + value.substring(portAt)
+            }
+        }
+    }
 }
 
 /**

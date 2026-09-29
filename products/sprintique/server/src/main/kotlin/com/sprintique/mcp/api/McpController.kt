@@ -48,9 +48,19 @@ class McpController(
 ) {
     private val log = LoggerFactory.getLogger(McpController::class.java)
 
-    /** A refusal at the HTTP level: the status, the JSON-RPC error and, for 401 and 403, the challenge. */
-    private class Refusal(val status: Int, val code: Int, message: String, val challenge: String? = null) :
-        RuntimeException(message)
+    /**
+     * A refusal at the HTTP level: the status, the JSON-RPC error, for 401 and 403 the challenge, and the id of the
+     * request once it was read.
+     */
+    private class Refusal(
+        val status: Int,
+        val code: Int,
+        message: String,
+        val challenge: String? = null,
+        val id: JsonNode? = null,
+    ) : RuntimeException(message) {
+        fun answering(id: JsonNode): Refusal = Refusal(status, code, message.orEmpty(), challenge, id)
+    }
 
     @GetMapping("/mcp")
     fun stream(): ResponseEntity<Void> = notAllowed()
@@ -75,13 +85,17 @@ class McpController(
 
             !(id.isString || id.isIntegralNumber) -> answer(error(null, INVALID_REQUEST, "Invalid request id."))
 
-            else -> answer(dispatch(credential, request, id, message))
+            else -> try {
+                answer(dispatch(credential, request, id, message))
+            } catch (refusal: Refusal) {
+                throw refusal.answering(id)
+            }
         }
     } catch (refusal: Refusal) {
         val builder = ResponseEntity.status(refusal.status).contentType(MediaType.APPLICATION_JSON)
         refusal.challenge?.let { builder.header("WWW-Authenticate", it) }
         if (refusal.status == TOO_MANY_REQUESTS) builder.header("Retry-After", "60")
-        builder.body(error(null, refusal.code, refusal.message.orEmpty()))
+        builder.body(error(refusal.id, refusal.code, refusal.message.orEmpty()))
     }
 
     private fun dispatch(credential: Credential, request: HttpServletRequest, id: JsonNode, message: JsonNode): Any {

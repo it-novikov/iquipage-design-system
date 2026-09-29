@@ -10,8 +10,8 @@ import java.util.Base64
  * register, how a PKCE verifier proves its challenge, which scopes and resources a request may name.
  */
 object OAuthRules {
-    const val MAX_REDIRECT_URIS = 10
-    private const val MAX_URI_LENGTH = 2000
+    const val MAX_REDIRECT_URIS = 5
+    private const val MAX_URI_LENGTH = 512
     private const val MAX_STATE_LENGTH = 1000
     private val LOOPBACK = setOf("127.0.0.1", "[::1]", "localhost")
     private val VERIFIER = Regex("^[A-Za-z0-9._~-]{43,128}$")
@@ -77,13 +77,13 @@ object OAuthRules {
     fun wire(scopes: Set<Scope>): String = Scope.entries.filter { it in scopes }.joinToString(" ") { it.wire }
 
     /**
-     * RFC 8707: the resource a token is for. Absent means the MCP server; otherwise it must be one of this server's
-     * resources, compared without a single trailing slash. Null when it names anything else.
+     * RFC 8707: the resource an OAuth token is for. OAuth serves the MCP server only: its consent describes what the
+     * tools do, and the whole REST API is reached with personal tokens. Absent means the MCP server; a value is
+     * compared without a single trailing slash. Null when it names anything else.
      */
-    fun resource(value: String?, api: String, mcp: String): String? {
+    fun resource(value: String?, mcp: String): String? {
         if (value == null) return mcp
-        val trimmed = value.removeSuffix("/")
-        return trimmed.takeIf { it == api || it == mcp }
+        return value.removeSuffix("/").takeIf { it == mcp }
     }
 
     /** Appends parameters to a registered redirect address, keeping its own query. */
