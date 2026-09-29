@@ -16,5 +16,5 @@ iq-auth-dialog{display:block;width:100%;max-width:440px}
 .iq-auth-status{margin:0;font-size:var(--iq-type-label-size);color:var(--iq-muted)}.iq-auth-status:empty{display:none}
 .iq-auth-dialog-footer{margin-top:var(--iq-space-6);font-size:var(--iq-type-label-size);text-align:center;color:var(--iq-muted)}
 .iq-auth-dialog .iq-auth-error{margin:0 0 var(--iq-space-5);padding:0;background:none}
-@media(max-width:480px){.iq-auth-stage{padding:var(--iq-space-4)}.iq-auth-dialog{padding:var(--iq-space-6)}.iq-auth-dialog h1{}}
+@media(max-width:480px){.iq-auth-stage{padding:var(--iq-space-4)}.iq-auth-dialog{padding:var(--iq-space-6)}.iq-auth-dialog h1{font-size:var(--iq-type-heading3-size)}}
 .iq-auth-label-row .iq-control-label::after{content:" *";color:var(--iq-muted)}

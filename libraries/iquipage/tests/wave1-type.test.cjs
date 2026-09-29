@@ -61,8 +61,8 @@ test('the codemod is idempotent on the pre-wave-1 sheets: the second run changes
       '.iq-avatar{font-size:10px}.iq-avatar.xs{font-size:9px}.sample-overline{font-size:10px;letter-spacing:.13em}',
       '.landing-fine{font-size:8px}.iq-note{font-size:15px}.work-heading h1{font-size:46px;line-height:1.04;letter-spacing:-.045em}',
       '.md-tool[data-md=bold]{font-weight:750}.plan-card .title{display:-webkit-box;-webkit-line-clamp:3;overflow:hidden}',
-      '.md-document{overflow-wrap:anywhere}.iq-work-table td{overflow-wrap:anywhere}',
-      '@media(max-width:600px){.iq-avatar{font-size:9px}.iq-note{font-size:14px;padding:0}.sample-overline{font-size:8px}input{font-size:16px}}',
+      '.md-document{overflow-wrap:anywhere}.iq-work-table td{overflow-wrap:anywhere}.hero h1{font-size:64px}.passport-number{font:500 58px/1 var(--iq-display)}',
+      '@media(max-width:600px){.iq-avatar{font-size:9px}.iq-note{font-size:14px;padding:0}.sample-overline{font-size:8px}input{font-size:16px}.hero h1{font-size:34px}.passport-number{font:500 40px/1 var(--iq-display)}}',
     ].join('\n'));
     const first = run({ root: tmp });
     assert.ok(first.total > 0);
@@ -75,7 +75,9 @@ test('the codemod is idempotent on the pre-wave-1 sheets: the second run changes
     assert.ok(css.includes('.work-heading h1{font-size:2.875rem;line-height:var(--iq-type-heading1-lineHeight);letter-spacing:var(--iq-tracking-display)}'));
     assert.ok(css.includes('{font-weight:700}') && css.includes('-webkit-line-clamp:3;line-clamp:3;'));
     assert.ok(css.includes('.md-document{overflow-wrap:break-word}.iq-work-table td{overflow-wrap:anywhere}'));
-    assert.ok(css.includes('@media(max-width:600px){.iq-avatar{font-size:var(--iq-type-meta-size)}.iq-note{padding:0}.sample-overline{font-size:var(--iq-type-meta-size)}input{font-size:var(--iq-type-body-size)}}'), 'media may not shrink text: ' + css.split('@media')[1]);
+    assert.ok(css.includes('@media(max-width:600px){.iq-avatar{font-size:var(--iq-type-meta-size)}.iq-note{padding:0}.sample-overline{font-size:var(--iq-type-meta-size)}input{font-size:var(--iq-type-body-size)}.hero h1{font-size:2.125rem}.passport-number{font:500 2.5rem/1 var(--iq-display)}}'), 'media may not shrink small text, display sizes keep their media value: ' + css.split('@media')[1]);
+    assert.equal(first.counts['media shrink removed (<24px)'], 1);
+    assert.equal(first.counts['media shrink kept (≥24px)'], 2);
     const second = run({ root: tmp });
     assert.equal(second.total, 0, JSON.stringify(second.counts));
     assert.equal(fs.readFileSync(path.join(tmp, 'src/styles/foundation.css'), 'utf8'), css);

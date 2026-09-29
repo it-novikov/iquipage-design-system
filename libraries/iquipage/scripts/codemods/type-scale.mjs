@@ -12,8 +12,10 @@
  *                                     .catalog- .edition- .feature- .cover-) keep their size as a rem
  *                                     literal, except the eyebrow/kicker classes (TYP-16)
  *     any other px                  → rem literal at a 16px root (15px → .9375rem)
- *   @media (max-width…) (TYP-05)    a font-size smaller than the same selector's base size is removed;
- *                                   a font shorthand that shrinks gets the base size instead
+ *   @media (max-width…) (TYP-05)    protects small text: a font-size smaller than the same selector's base
+ *                                   size is removed when that base is below 24px (a font shorthand gets the
+ *                                   base size instead); display sizes (base ≥ 24px) keep their media value,
+ *                                   converted like any other size
  *   line-height (TYP-07)            below the Cyrillic minimum on display/h1/h2/h3 rules → the role's
  *                                   lineHeight token (1.1 / 1.15 / 1.2 / 1.3)
  *   letter-spacing (TYP-08)         literals → the nearest --iq-tracking-* token; kickers → tracking-caps
@@ -40,6 +42,8 @@ export const defaultRoot = path.resolve(path.dirname(fileURLToPath(import.meta.u
 const ORDER = ['foundation.css', 'whiteboard.css', 'everyday.css', 'whiteboard-workshop.css', 'work-list.css', 'auth-dialog.css', 'auth-screen.css', 'settings.css', 'text.css', 'focus.css', 'touch.css', 'everyday-demo.css'];
 export const FLOOR_PX = 12;
 export const FLOOR_TOKEN = 'meta';
+/** Bases at or above this are display sizes: their media-query values are kept (TYP-05 protects small text). */
+export const LARGE_PX = 24;
 /** Roles in the order that wins when two roles share a size (12px is caption, not meta). */
 const ROLE_PRIORITY = ['body', 'interface', 'label', 'caption', 'title', 'lead', 'heading3', 'heading2', 'heading1', 'display', 'meta'];
 export const CATALOG = /(^|[\s>+~(,])\.(home|landing|proof|narrative|sample|demo|story|catalog|edition|feature|cover)-/;
@@ -54,8 +58,9 @@ export const RULES = {
   'font-size → token': 'px equal to a scale step becomes var(--iq-type-*-size)',
   'font-size → rem': 'px off the scale becomes a rem literal',
   'font-size < 12px → meta floor': 'component text below 12px is raised to var(--iq-type-meta-size)',
-  'media shrink removed': 'font-size inside @media (max-width) smaller than the base size is dropped',
-  'media shrink → base size': 'font shorthand inside @media (max-width) keeps the base size',
+  'media shrink removed (<24px)': 'font-size inside @media (max-width) smaller than a base below 24px is dropped',
+  'media shrink → base size (<24px)': 'font shorthand inside @media (max-width) keeps a base below 24px',
+  'media shrink kept (≥24px)': 'display sizes (base ≥ 24px) keep their media value, converted to token or rem',
   'line-height → token': 'heading line-height below the Cyrillic minimum uses the role token',
   'letter-spacing → token': 'tracking literal replaced by the nearest --iq-tracking-* token',
   'font-weight 750 → 700': 'weight beyond the shipped axis',
@@ -203,7 +208,8 @@ function transform(css, scale, bases, collect, count) {
             let next = resolved;
             if (resolved.literal) next = mapPx(resolved.px, ctx, scale, collect ? () => {} : count);
             if (collect) { setBase(rule.selector, next, bases); }
-            else if (rule.narrow && base && !next.clamp && next.px < base.px) { count('media shrink removed'); changed = true; continue; }
+            else if (rule.narrow && base && !next.clamp && next.px < base.px && base.px < LARGE_PX) { count('media shrink removed (<24px)'); changed = true; continue; }
+            else if (rule.narrow && base && !next.clamp && next.px < base.px) { if (next.expr !== v) { count('media shrink kept (≥24px)'); text = withValue(chunk, next.expr + important); } }
             else if (next.expr !== v) text = withValue(chunk, next.expr + important);
           }
         } else if (p === 'font' && !/^(inherit|initial|unset|revert)$/.test(v)) {
@@ -215,7 +221,7 @@ function transform(css, scale, bases, collect, count) {
               let size = resolved;
               if (resolved.literal) size = mapPx(resolved.px, ctx, scale, collect ? () => {} : count);
               if (collect) setBase(rule.selector, size, bases);
-              else if (rule.narrow && base && !size.clamp && size.px < base.px) { count('media shrink → base size'); size = base; }
+              else if (rule.narrow && base && !size.clamp && size.px < base.px) { if (base.px < LARGE_PX) { count('media shrink → base size (<24px)'); size = base; } else if (size.expr !== sm[2]) count('media shrink kept (≥24px)'); }
               if (size.expr !== sm[2]) next = next.slice(0, sm.index + sm[1].length) + size.expr + next.slice(sm.index + sm[0].length);
             }
           }
