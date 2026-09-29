@@ -24,6 +24,13 @@ data class Reservation(
     val sha256: String,
 )
 
+/** The start of an upload: what to receive, or a rejection recorded as quarantine before the error is reported. */
+sealed interface UploadStart {
+    data class Accepted(val plan: UploadPlan) : UploadStart
+
+    data class Rejected(val problem: ProblemException) : UploadStart
+}
+
 /** The outcome of an upload: its metadata, or a rejection recorded as quarantine before the error is reported. */
 sealed interface UploadResult {
     data class Stored(val asset: Map<String, Any?>) : UploadResult
@@ -36,7 +43,7 @@ sealed interface UploadResult {
  * task, map and avatar saves — and rechecks credentials and policy after waiting: admission is not a grant.
  */
 object Assets {
-    private const val QUOTA_BYTES = 5L * 1024 * 1024 * 1024
+    private const val QUOTA_BYTES = 20L * 1024 * 1024 * 1024
     private const val PENDING_UPLOADS = 100
     const val MAP_IMAGE_LIMIT = 40
 
@@ -53,6 +60,8 @@ object Assets {
     /** What clients see: a ready upload is "staged", images always have a WebP preview. */
     fun publicMetadata(asset: Row): Map<String, Any?> {
         val values = LinkedHashMap<String, Any?>(asset)
+        // A bigint column reads as exact text; the size is a JSON number up to 2 GiB.
+        values["size"] = asset.long("size")
         if (asset.string("targetType") == "task") values["taskId"] = asset.string("targetId")
         if (asset.string("state") == "ready") values["state"] = "staged"
         values["previewMime"] = if (asset.boolean("image")) "image/webp" else null
@@ -112,6 +121,13 @@ object Assets {
         ledger: CommandLedger,
     ): Any {
         lockProject(tx, actor, projectId, input.targetType)
+        val type = FileInspection.typeOf(input.name)
+        requireCondition(
+            input.targetType == "task" || (type.previewable && input.size <= FileInspection.IMAGE_BYTES),
+            422,
+            "IMAGE_REQUIRED",
+            "Для карты и аватара нужно изображение PNG, JPEG или WebP до 32 МБ.",
+        )
         return ledger.idempotent(tx, actor, projectId, "asset.reserve:${input.id}", key, input) {
             val quota = tx.row(
                 """
@@ -142,19 +158,87 @@ object Assets {
     }
 
     /**
-     * Stores the bytes of a reservation. A rejected file (wrong hash, unreadable image, expired reservation) is
-     * quarantined in this transaction and reported after it commits, so the rejection itself is durable.
+     * Opens the upload of a reservation: only its author may send the bytes, and only while it is uploading or already
+     * stored (a repeated body is then only checked). A declared length other than the reserved size, or an expired
+     * reservation, is quarantined here, before a byte is read. No transaction stays open while the body streams.
      */
-    fun upload(
+    fun startUpload(tx: Transaction, actor: Actor, projectId: String, id: String, declaredLength: Long): UploadStart {
+        val asset = writable(tx, actor, projectId, id)
+        requireUploadable(asset, actor)
+        val plan = UploadPlan(
+            key(asset, "original"),
+            asset.string("name"),
+            asset.long("size"),
+            asset.string("sha256"),
+            asset.string("targetType"),
+            store = asset.string("state") == "uploading",
+        )
+        if (!plan.store) return UploadStart.Accepted(plan)
+        return try {
+            requireCondition(
+                declaredLength < 0 || declaredLength == plan.size,
+                422,
+                "FILE_HASH",
+                "Содержимое загрузки изменилось. Выберите файл заново.",
+            )
+            requireFresh(asset)
+            UploadStart.Accepted(plan)
+        } catch (problem: ProblemException) {
+            UploadStart.Rejected(quarantine(tx, actor, projectId, asset, problem))
+        }
+    }
+
+    /**
+     * Records that a streamed body was refused (wrong signature, size or hash, an unreadable image): an upload still in
+     * progress is quarantined in this transaction, so the rejection is durable before the client hears of it.
+     */
+    fun rejectUpload(tx: Transaction, actor: Actor, projectId: String, id: String, problem: ProblemException) =
+        quarantine(tx, actor, projectId, writable(tx, actor, projectId, id), problem)
+
+    /**
+     * Publishes a received body under the project and asset locks and marks the upload ready. The lock orders this
+     * against discarding and cleanup, so no object appears under a key that cleanup has already passed. A body that
+     * arrives after another copy of the same content was stored is dropped.
+     */
+    fun finishUpload(
         tx: Transaction,
         actor: Actor,
         projectId: String,
         id: String,
-        bytes: ByteArray,
+        content: ReceivedContent,
         storage: ObjectStoragePort,
-        images: ImageTranscoder,
     ): UploadResult {
         val asset = writable(tx, actor, projectId, id)
+        requireUploadable(asset, actor)
+        if (asset.string("state") != "uploading") return UploadResult.Stored(publicMetadata(asset))
+        try {
+            requireFresh(asset)
+            requireCondition(
+                asset.string("targetType") == "task" || content.preview != null,
+                422,
+                "IMAGE_REQUIRED",
+                "Для обложки карты и аватара нужно изображение.",
+            )
+        } catch (problem: ProblemException) {
+            return UploadResult.Rejected(quarantine(tx, actor, projectId, asset, problem))
+        }
+        content.publish(storage) { variant -> key(asset, variant) }
+        ProjectAccess.requireActiveCredential(tx, actor)
+        access(tx, actor, projectId, asset.string("targetType"), true)
+        val preview = content.preview
+        tx.update(
+            """
+            UPDATE app.assets SET state = 'ready', revision = revision + 1, mime = $3, image = $4, width = $5, height = $6,
+                   updated_at = clock_timestamp()
+            WHERE project_id = $1 AND id = $2
+            """.trimIndent(),
+            projectId, id, content.file.mime, preview != null, preview?.width, preview?.height,
+        )
+        AuditTrail.record(tx, actor, projectId, "asset.ready", id, asset.long("revision") + 1)
+        return UploadResult.Stored(publicMetadata(row(tx, projectId, id)))
+    }
+
+    private fun requireUploadable(asset: Row, actor: Actor) {
         requireCondition(asset.string("actorId") == actor.id, 403, "FILE_OWNER", "Загрузку завершает её автор.")
         requireCondition(
             asset.string("state") in setOf("uploading", "ready", "attached"),
@@ -162,60 +246,37 @@ object Assets {
             "FILE_STATE",
             "Загрузка завершена или удалена. Выберите файл заново.",
         )
-        try {
-            val content = FileInspection.inspect(asset.string("name"), bytes)
-            requireCondition(
-                content.size.toLong() == asset.long("size") && content.sha256 == asset.string("sha256"),
-                422,
-                "FILE_HASH",
-                "Содержимое загрузки изменилось. Выберите файл заново.",
-            )
-            if (asset.string("state") != "uploading") return UploadResult.Stored(publicMetadata(asset))
-            requireCondition(
-                asset.instant("expiresAt").isAfter(Instant.now()),
-                410,
-                "UPLOAD_EXPIRED",
-                "Срок загрузки истёк.",
-            )
-            val processed = if (content.isImage) images.variants(bytes) else null
-            requireCondition(
-                asset.string("targetType") == "task" || content.isImage,
-                422,
-                "IMAGE_REQUIRED",
-                "Для обложки карты и аватара нужно изображение.",
-            )
-            storage.put(key(asset, "original"), bytes, content.mime)
-            if (processed != null) {
-                storage.put(key(asset, "display"), processed.display, "image/webp")
-                storage.put(key(asset, "thumb"), processed.thumb, "image/webp")
-            }
-            ProjectAccess.requireActiveCredential(tx, actor)
-            access(tx, actor, projectId, asset.string("targetType"), true)
-            tx.update(
-                """
-                UPDATE app.assets SET state = 'ready', revision = revision + 1, mime = $3, image = $4, width = $5, height = $6,
-                       updated_at = clock_timestamp()
-                WHERE project_id = $1 AND id = $2
-                """.trimIndent(),
-                projectId, id, content.mime, content.isImage, processed?.width, processed?.height,
-            )
-            AuditTrail.record(tx, actor, projectId, "asset.ready", id, asset.long("revision") + 1)
-            return UploadResult.Stored(publicMetadata(row(tx, projectId, id)))
-        } catch (problem: ProblemException) {
-            if (problem.status !in setOf(410, 422) || asset.string("state") != "uploading") throw problem
-            val revision = asset.long("revision") + 1
-            tx.update(
-                """
-                UPDATE app.assets SET state = 'quarantined', revision = revision + 1, expires_at = clock_timestamp(),
-                       updated_at = clock_timestamp()
-                WHERE project_id = $1 AND id = $2
-                """.trimIndent(),
-                projectId, id,
-            )
-            AuditTrail.record(tx, actor, projectId, "asset.quarantined", id, revision)
-            CleanupJobs.enqueue(tx, projectId, id, revision, Instant.now())
-            return UploadResult.Rejected(problem)
-        }
+    }
+
+    private fun requireFresh(asset: Row) = requireCondition(
+        asset.instant("expiresAt").isAfter(Instant.now()),
+        410,
+        "UPLOAD_EXPIRED",
+        "Срок загрузки истёк.",
+    )
+
+    /** A content failure of an upload in progress becomes quarantine; any other failure is reported as it is. */
+    private fun quarantine(
+        tx: Transaction,
+        actor: Actor,
+        projectId: String,
+        asset: Row,
+        problem: ProblemException,
+    ): ProblemException {
+        if (problem.status !in setOf(410, 422) || asset.string("state") != "uploading") return problem
+        val id = asset.string("id")
+        val revision = asset.long("revision") + 1
+        tx.update(
+            """
+            UPDATE app.assets SET state = 'quarantined', revision = revision + 1, expires_at = clock_timestamp(),
+                   updated_at = clock_timestamp()
+            WHERE project_id = $1 AND id = $2
+            """.trimIndent(),
+            projectId, id,
+        )
+        AuditTrail.record(tx, actor, projectId, "asset.quarantined", id, revision)
+        CleanupJobs.enqueue(tx, projectId, id, revision, Instant.now())
+        return problem
     }
 
     fun readable(tx: Transaction, actor: Actor, projectId: String, id: String): Row {

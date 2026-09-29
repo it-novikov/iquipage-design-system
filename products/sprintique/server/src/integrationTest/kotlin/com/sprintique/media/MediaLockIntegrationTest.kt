@@ -7,13 +7,18 @@ import com.sprintique.identity.domain.Actor
 import com.sprintique.identity.domain.PrincipalKind
 import com.sprintique.media.application.Assets
 import com.sprintique.media.application.ObjectStoragePort
+import com.sprintique.media.application.ObjectWrite
 import com.sprintique.media.application.Reservation
+import com.sprintique.media.application.UploadStart
+import com.sprintique.media.application.Uploads
 import com.sprintique.media.infrastructure.ImageIoImageTranscoder
 import com.sprintique.task.application.Tasks
 import com.sprintique.task.domain.TaskContent
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import tools.jackson.databind.json.JsonMapper
+import java.io.ByteArrayInputStream
+import java.io.InputStream
 import java.security.MessageDigest
 import java.util.HexFormat
 import java.util.UUID
@@ -22,8 +27,9 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 /**
- * R4-B03: an upload that is still writing to storage holds the project lock first and the file second; a task save
- * attaching the same file waits on the project, never on the file, so the two cannot deadlock.
+ * R4-B03: an upload that is publishing its content holds the project lock first and the file second; a task save
+ * attaching the same file waits on the project, never on the file, so the two cannot deadlock. The body itself
+ * streams before, with no transaction open.
  */
 class MediaLockIntegrationTest {
     private val runtime = IntegrationDatabase.runtime
@@ -40,7 +46,9 @@ class MediaLockIntegrationTest {
             release.await(WAIT, TimeUnit.SECONDS)
         }
 
-        override fun get(key: String) = ByteArray(0)
+        override fun startWrite(key: String, mime: String): ObjectWrite = error("A small file is written whole")
+
+        override fun read(key: String, range: LongRange?): InputStream = ByteArrayInputStream(ByteArray(0))
 
         override fun remove(key: String) = Unit
 
@@ -65,8 +73,14 @@ class MediaLockIntegrationTest {
         val storage = StallingStorage()
         Executors.newVirtualThreadPerTaskExecutor().use { executor ->
             val upload = executor.submit<Any> {
-                asPerson(actor) { tx ->
-                    Assets.upload(tx, actor, projectId, "concurrent-file", bytes, storage, ImageIoImageTranscoder())
+                val start = asPerson(actor) { tx ->
+                    Assets.startUpload(tx, actor, projectId, "concurrent-file", bytes.size.toLong())
+                }
+                val plan = (start as UploadStart.Accepted).plan
+                Uploads(storage, ImageIoImageTranscoder()).receive(plan, ByteArrayInputStream(bytes)).use { content ->
+                    asPerson(actor) { tx ->
+                        Assets.finishUpload(tx, actor, projectId, "concurrent-file", content, storage)
+                    }
                 }
             }
             assertThat(storage.entered.await(WAIT, TimeUnit.SECONDS)).isTrue()

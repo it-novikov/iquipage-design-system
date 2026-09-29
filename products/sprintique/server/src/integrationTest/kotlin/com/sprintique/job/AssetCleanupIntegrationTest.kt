@@ -4,10 +4,12 @@ import com.sprintique.database.IntegrationDatabase
 import com.sprintique.job.application.AssetCleanup
 import com.sprintique.job.infrastructure.WorkerRole
 import com.sprintique.media.application.ObjectStoragePort
+import com.sprintique.media.application.ObjectWrite
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
+import java.io.InputStream
 import java.util.UUID
 
 /** J01–J03: the worker's narrow role, fenced cleanup of discarded files, retries after a storage outage. */
@@ -33,7 +35,9 @@ class AssetCleanupIntegrationTest {
 
         override fun put(key: String, bytes: ByteArray, mime: String) = Unit
 
-        override fun get(key: String) = ByteArray(0)
+        override fun startWrite(key: String, mime: String): ObjectWrite = error("Cleanup never writes")
+
+        override fun read(key: String, range: LongRange?): InputStream = InputStream.nullInputStream()
 
         override fun remove(key: String) {
             check(!failing) { "synthetic S3 outage" }

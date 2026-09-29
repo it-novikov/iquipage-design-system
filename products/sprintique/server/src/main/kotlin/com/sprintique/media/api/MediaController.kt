@@ -7,6 +7,7 @@ import com.sprintique.contract.Contracts
 import com.sprintique.contract.Idempotent
 import com.sprintique.contract.RESOURCE_ID
 import com.sprintique.contract.TrimmedString
+import com.sprintique.database.Row
 import com.sprintique.identity.api.AuthenticatedRequests
 import com.sprintique.identity.api.RequestInputs
 import com.sprintique.media.application.Assets
@@ -14,12 +15,15 @@ import com.sprintique.media.application.ImageTranscoder
 import com.sprintique.media.application.ObjectStoragePort
 import com.sprintique.media.application.Reservation
 import com.sprintique.media.application.UploadResult
+import com.sprintique.media.application.UploadStart
+import com.sprintique.media.application.Uploads
 import com.sprintique.media.domain.FileInspection
 import com.sprintique.problem.ProblemException
 import com.sprintique.problem.requireCondition
 import com.sprintique.web.RequestValidationException
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.Pattern
@@ -27,7 +31,6 @@ import jakarta.validation.constraints.Size
 import org.springframework.beans.factory.ObjectProvider
 import org.springframework.context.annotation.Profile
 import org.springframework.http.MediaType
-import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -52,13 +55,16 @@ data class AssetReservationRequest(
     @field:Size(min = 1, max = 180)
     @field:Pattern(regexp = "^[^\\x00-\\x1f\\x7f/\\\\]*$")
     val name: String,
-    @field:Min(1) @field:Max(FileInspection.FILE_LIMIT.toLong())
+    @field:Min(1) @field:Max(FileInspection.FILE_LIMIT)
     val size: Long,
     @field:Pattern(regexp = "^[a-f0-9]{64}$")
     val sha256: String,
 )
 
-/** Private files: reservations, uploads with full validation, previews and originals for people who may read them. */
+/**
+ * Private files: reservations, streamed uploads with full validation, and streamed downloads with byte ranges for the
+ * people who may read them. No database transaction is open while a body is on the wire.
+ */
 @RestController
 @Profile("api")
 class MediaController(
@@ -76,6 +82,7 @@ class MediaController(
         linkedMapOf(
             "available" to (storage.ifAvailable != null),
             "maxFileBytes" to FileInspection.FILE_LIMIT,
+            "maxPreviewBytes" to FileInspection.IMAGE_BYTES,
             "imagesOnlyForCover" to true,
         )
     }
@@ -121,60 +128,123 @@ class MediaController(
         Assets.discard(tx, actor, RequestInputs.id(projectId), RequestInputs.id(id))
     }
 
-    /** A rejected file is quarantined in the transaction; the error reaches the client after that commit. */
+    /**
+     * The body streams: a short transaction opens the upload, the bytes go through inspection into storage with no
+     * transaction open, and a second short transaction publishes them. A rejected file is quarantined in its own
+     * transaction; the error reaches the client after that commit.
+     */
     @PutMapping(
         "/api/v1/projects/{projectId}/assets/{id}/content",
         consumes = [MediaType.APPLICATION_OCTET_STREAM_VALUE],
     )
-    fun upload(
-        @PathVariable projectId: String,
-        @PathVariable id: String,
-        @RequestBody(required = false) body: ByteArray?,
-        request: HttpServletRequest,
-    ): Any {
+    fun upload(@PathVariable projectId: String, @PathVariable id: String, request: HttpServletRequest): Any {
         RequestInputs.id(projectId)
         RequestInputs.id(id)
-        requireCondition(body != null, 400, "FILE_BODY", "Передайте содержимое файла.")
-        val result = requests.run(
-            request,
-        ) { tx, actor -> Assets.upload(tx, actor, projectId, id, body, requireStorage(), images) }
+        val storage = requireStorage()
+        val start = requests.run(request) { tx, actor ->
+            Assets.startUpload(tx, actor, projectId, id, request.contentLengthLong)
+        }
+        val plan = when (start) {
+            is UploadStart.Accepted -> start.plan
+            is UploadStart.Rejected -> throw start.problem
+        }
+        val content = try {
+            Uploads(storage, images).receive(plan, request.inputStream)
+        } catch (problem: ProblemException) {
+            throw requests.run(request) { tx, actor -> Assets.rejectUpload(tx, actor, projectId, id, problem) }
+        }
+        val result = content.use {
+            requests.run(request) { tx, actor -> Assets.finishUpload(tx, actor, projectId, id, it, storage) }
+        }
         return when (result) {
             is UploadResult.Stored -> result.asset
             is UploadResult.Rejected -> throw result.problem
         }
     }
 
+    /**
+     * An original streams from storage in windows, with a single byte range when asked; access is checked again
+     * before every window after the first, so a revoked session loses a long download within one window. Raster
+     * images and video may be shown by the page; everything else is a download.
+     */
     @GetMapping("/api/v1/projects/{projectId}/assets/{id}/{variant}")
     fun download(
         @PathVariable projectId: String,
         @PathVariable id: String,
         @PathVariable variant: String,
         request: HttpServletRequest,
-    ): ResponseEntity<ByteArray> {
+        response: HttpServletResponse,
+    ) {
         if (variant !in VARIANTS) throw RequestValidationException()
-        val asset = requests.run(
-            request,
-        ) { tx, actor -> Assets.readable(tx, actor, RequestInputs.id(projectId), RequestInputs.id(id)) }
+        RequestInputs.id(projectId)
+        RequestInputs.id(id)
+        val storage = requireStorage()
+        val asset = readable(request, projectId, id)
         requireCondition(
             variant == "original" || asset.boolean("image"),
             404,
             "FILE_VARIANT",
             "Предпросмотр недоступен.",
         )
-        val bytes = requireStorage().get(Assets.key(asset, variant))
-        // Rechecked after storage I/O: a revoked session cannot finish a later download.
+        val key = Assets.key(asset, variant)
+        response.setHeader("Content-Security-Policy", "default-src 'none'; sandbox")
+        if (variant != "original") {
+            response.contentType = "image/webp"
+            response.setHeader("Content-Disposition", "inline")
+            if (request.method != "HEAD") storage.read(key).use { it.transferTo(response.outputStream) }
+            return
+        }
+        val mime = asset.string("mime")
+        val length = asset.long("size")
+        val etag = "\"${asset.string("sha256")}\""
+        val selection =
+            ByteRanges.select(request.getHeader("Range"), request.getHeader("If-Range"), etag, length, WINDOW)
+        response.contentType = FileInspection.servedMime(mime)
+        response.setHeader("Accept-Ranges", "bytes")
+        response.setHeader("ETag", etag)
+        response.setHeader("Content-Disposition", disposition(asset.string("name"), FileInspection.isInline(mime)))
+        val (first, last) = when (selection) {
+            ByteSelection.Unsatisfiable -> {
+                response.status = RANGE_NOT_SATISFIABLE
+                response.setHeader("Content-Range", "bytes */$length")
+                response.setContentLengthLong(0)
+                return
+            }
+
+            ByteSelection.Whole -> 0L to length - 1
+
+            is ByteSelection.Part -> {
+                response.status = PARTIAL_CONTENT
+                response.setHeader("Content-Range", "bytes ${selection.first}-${selection.last}/$length")
+                selection.first to selection.last
+            }
+        }
+        response.setContentLengthLong(last - first + 1)
+        if (request.method == "HEAD") return
+        var position = first
+        while (position <= last) {
+            if (position != first) readable(request, projectId, id)
+            val end = minOf(last, position + WINDOW - 1)
+            storage.read(key, position..end).use { it.transferTo(response.outputStream) }
+            position = end + 1
+        }
+    }
+
+    private fun readable(request: HttpServletRequest, projectId: String, id: String): Row =
         requests.run(request) { tx, actor -> Assets.readable(tx, actor, projectId, id) }
-        val type = if (variant == "original") asset.string("mime") else "image/webp"
-        val name = URLEncoder.encode(asset.string("name"), Charsets.UTF_8).replace("+", "%20")
+
+    private fun disposition(name: String, inline: Boolean): String {
+        val encoded = URLEncoder.encode(name, Charsets.UTF_8).replace("+", "%20")
             .replace("'", "%27").replace("(", "%28").replace(")", "%29").replace("*", "%2A")
-        return ResponseEntity.ok()
-            .contentType(MediaType.parseMediaType(type))
-            .header("Content-Security-Policy", "default-src 'none'; sandbox")
-            .header("Content-Disposition", "attachment; filename=\"download\"; filename*=UTF-8''$name")
-            .body(bytes)
+        return "${if (inline) "inline" else "attachment"}; filename=\"download\"; filename*=UTF-8''$encoded"
     }
 
     private companion object {
         val VARIANTS = setOf("original", "display", "thumb")
+
+        /** The longest stretch served between two access checks, and the longest partial response. */
+        const val WINDOW = 16L * 1024 * 1024
+        const val PARTIAL_CONTENT = 206
+        const val RANGE_NOT_SATISFIABLE = 416
     }
 }

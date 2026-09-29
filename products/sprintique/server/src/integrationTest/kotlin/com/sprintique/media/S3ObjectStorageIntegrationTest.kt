@@ -1,7 +1,7 @@
 package com.sprintique.media
 
 import com.sprintique.configuration.StorageProperties
-import com.sprintique.media.domain.FileInspection
+import com.sprintique.media.application.ObjectWrite
 import com.sprintique.media.infrastructure.S3ObjectStorageAdapter
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
@@ -33,29 +33,52 @@ class S3ObjectStorageIntegrationTest {
     }
     private val prefix = "integration-test/${UUID.randomUUID()}"
 
-    private companion object {
-        const val NOT_CONFIGURED = "SPRINTIQUE_TEST_S3_CONFIG is not set: object storage NOT verified"
-    }
-
     @Test
     fun `an object is stored, read back and removed idempotently`() {
         storage.requireReady()
         val key = "$prefix/original"
         storage.put(key, "содержимое".toByteArray(), "text/plain")
-        assertThat(storage.get(key).decodeToString()).isEqualTo("содержимое")
+        assertThat(storage.read(key).use { it.readAllBytes() }.decodeToString()).isEqualTo("содержимое")
         storage.remove(key)
         storage.remove(key)
-        assertThatThrownBy { storage.get(key) }.isNotNull()
+        assertThatThrownBy { storage.read(key).close() }.isNotNull()
     }
 
     @Test
-    fun `a read stops at the canonical file limit`() {
-        val key = "$prefix/oversized"
-        storage.put(key, ByteArray(FileInspection.FILE_LIMIT + 1), "application/octet-stream")
+    fun `a multipart write appears only when complete and is read back in ranges`() {
+        val key = "$prefix/large"
+        val part = ByteArray(ObjectWrite.MIN_PART) { (it % 251).toByte() }
+        val tail = ByteArray(1000) { 7 }
         try {
-            assertThatThrownBy { storage.get(key) }.hasMessageContaining("canonical limit")
+            storage.startWrite(key, "application/octet-stream").use { write ->
+                write.part(part, part.size)
+                write.part(tail, tail.size)
+                assertThatThrownBy { storage.read(key).close() }.isNotNull()
+                write.complete()
+            }
+            val length = part.size.toLong() + tail.size
+            assertThat(storage.read(key, 0L..9L).use { it.readAllBytes() }).isEqualTo(part.copyOf(10))
+            val across = storage.read(key, part.size - 5L..part.size + 4L).use { it.readAllBytes() }
+            assertThat(across).isEqualTo(part.copyOfRange(part.size - 5, part.size) + tail.copyOf(5))
+            assertThat(storage.read(key, length - 1..length - 1).use { it.readAllBytes() }).containsExactly(7)
+            assertThat(storage.read(key).use { it.readAllBytes() }.size.toLong()).isEqualTo(length)
         } finally {
             storage.remove(key)
         }
+    }
+
+    @Test
+    fun `an aborted or abandoned multipart write leaves nothing behind`() {
+        val aborted = "$prefix/aborted"
+        storage.startWrite(aborted, "application/octet-stream").use { it.part(ByteArray(16), 16) }
+        assertThatThrownBy { storage.read(aborted).close() }.isNotNull()
+
+        // A process that dies mid-upload never aborts: removing the key abandons its parts.
+        val abandoned = "$prefix/abandoned"
+        val write = storage.startWrite(abandoned, "application/octet-stream")
+        write.part(ByteArray(16), 16)
+        storage.remove(abandoned)
+        assertThatThrownBy { write.complete() }.isNotNull()
+        assertThatThrownBy { storage.read(abandoned).close() }.isNotNull()
     }
 }

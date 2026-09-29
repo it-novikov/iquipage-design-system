@@ -11,7 +11,9 @@ import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * Per-process safeguards, not cluster-wide quotas: a per-address window (1000 requests and 20 sign-ins a minute),
- * at most 64 requests and 8 uploads in flight. Event streams have their own cap; readiness is never shed.
+ * at most 64 requests and 8 uploads in flight. File downloads have a cap of their own (32), apart from the other
+ * requests, because a player may hold one open while it buffers; event streams have their own cap too; readiness is
+ * never shed.
  */
 @Component
 @Profile("api")
@@ -22,6 +24,7 @@ class RequestLimitFilter(private val clientAddresses: ClientAddresses) : OncePer
     private val windows = LinkedHashMap<String, Window>()
     private val active = AtomicInteger()
     private val uploads = AtomicInteger()
+    private val downloads = AtomicInteger()
 
     override fun doFilterInternal(request: HttpServletRequest, response: HttpServletResponse, chain: FilterChain) {
         val path = routedPath(request)
@@ -45,6 +48,11 @@ class RequestLimitFilter(private val clientAddresses: ClientAddresses) : OncePer
             )
         }
         if (readiness || isStream(request)) return chain.doFilter(request, response)
+        admitActive(request, response, chain)
+    }
+
+    private fun admitActive(request: HttpServletRequest, response: HttpServletResponse, chain: FilterChain) {
+        if (isDownload(request)) return admitDownload(request, response, chain)
         val upload = isUpload(request)
         if (active.get() >= MAX_ACTIVE || (upload && uploads.get() >= MAX_UPLOADS)) {
             return ProblemWriter.write(
@@ -62,6 +70,24 @@ class RequestLimitFilter(private val clientAddresses: ClientAddresses) : OncePer
         } finally {
             active.decrementAndGet()
             if (upload) uploads.decrementAndGet()
+        }
+    }
+
+    private fun admitDownload(request: HttpServletRequest, response: HttpServletResponse, chain: FilterChain) {
+        if (downloads.incrementAndGet() > MAX_DOWNLOADS) {
+            downloads.decrementAndGet()
+            return ProblemWriter.write(
+                request,
+                response,
+                503,
+                "BUSY",
+                "Сервис занят. Повторите через несколько секунд.",
+            )
+        }
+        try {
+            chain.doFilter(request, response)
+        } finally {
+            downloads.decrementAndGet()
         }
     }
 
@@ -89,10 +115,12 @@ class RequestLimitFilter(private val clientAddresses: ClientAddresses) : OncePer
         private const val MAX_LOGINS = 20
         private const val MAX_ACTIVE = 64
         private const val MAX_UPLOADS = 8
+        private const val MAX_DOWNLOADS = 32
 
         /** Entry points that start a sign-in or check a secret: they share the tighter per-address login budget. */
         private val LOGINS = listOf("/auth/login", "/auth/dev-login", "/auth/email/")
         private val UPLOAD = Regex("^/api/v1/projects/[^/]+/assets/[^/]+/content$")
+        private val DOWNLOAD = Regex("^/api/v1/projects/[^/]+/assets/[^/]+/(original|display|thumb)$")
         private val STREAM = Regex("^/api/v1/projects/[^/]+/events$")
 
         /**
@@ -101,9 +129,14 @@ class RequestLimitFilter(private val clientAddresses: ClientAddresses) : OncePer
          */
         fun routedPath(request: HttpServletRequest): String = request.servletPath + (request.pathInfo ?: "")
 
-        fun isUpload(request: HttpServletRequest) =
-            request.method == "PUT" &&
-                (UPLOAD.matches(routedPath(request)) || routedPath(request) == "/api/v1/profile/avatar")
+        fun isUpload(request: HttpServletRequest) = isFileContent(request) ||
+            (request.method == "PUT" && routedPath(request) == "/api/v1/profile/avatar")
+
+        /** The body of a stored file, up to the file limit rather than a photo's. */
+        fun isFileContent(request: HttpServletRequest) = request.method == "PUT" && UPLOAD.matches(routedPath(request))
+
+        fun isDownload(request: HttpServletRequest) =
+            request.method in setOf("GET", "HEAD") && DOWNLOAD.matches(routedPath(request))
 
         fun isStream(request: HttpServletRequest) =
             STREAM.matches(routedPath(request)) && request.getParameter("stream") == "true"
