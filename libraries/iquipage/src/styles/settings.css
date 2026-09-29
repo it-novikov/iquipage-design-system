@@ -149,8 +149,6 @@ a.iq-settings-row:focus-visible,button.iq-settings-row:focus-visible{outline:2px
 .iq-accent-option:has(:focus-visible){outline:2px solid var(--iq-focus);outline-offset:2px}
 .iq-accent-dot{width:16px;height:16px;border-radius:50%;background:var(--iq-preference-blue)}
 .iq-accent-dot[data-accent=violet]{background:var(--iq-preference-violet)}.iq-accent-dot[data-accent=green]{background:var(--iq-preference-green)}
-:root[data-motion=reduced]{--iq-motion-fast:0ms;--iq-motion-standard:0ms;--iq-motion-enter:0ms;--iq-motion-layout:0ms;--iq-motion-scene:0ms;scroll-behavior:auto}
-:root[data-motion=reduced] *, :root[data-motion=reduced] *::before,:root[data-motion=reduced] *::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
 
 /* Phones: the host switches the layout between the section index and one section; the heading gets a back link. */
 @media(max-width:760px){
