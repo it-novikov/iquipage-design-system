@@ -1,5 +1,5 @@
 import {DomainError,requireValue,validId} from '../common.js';
-import {FILE_LIMIT} from './attachment-model.js';
+import {LOCAL_FILE_LIMIT} from './attachment-model.js';
 /** Host-owned endpoint. The reference server is same-origin; no credentials live in tasks. */
 export class HttpAttachmentAdapter {
   constructor(baseURL='/api'){this.baseURL=baseURL.replace(/\/$/,'');}
@@ -16,7 +16,7 @@ export class HttpAttachmentAdapter {
   blob(input,options={}){return this.request(input,{...options,variant:input.variant,binary:true});}
   async discard(input){const result=await this.request(input,{method:'DELETE'});return result.discarded;}
   upload(input,file,{signal,onProgress=()=>{}}={}){
-    requireValue(file.size>0&&file.size<=FILE_LIMIT,'FILE_SIZE','Файл должен быть непустым и не больше 10 МБ.');
+    requireValue(file.size>0&&file.size<=LOCAL_FILE_LIMIT,'FILE_SIZE','Файл должен быть непустым и не больше 10 МБ.');
     signal?.throwIfAborted();
     return new Promise((resolve,reject)=>{
       const xhr=new XMLHttpRequest(),abort=()=>xhr.abort(),clean=()=>signal?.removeEventListener('abort',abort);
