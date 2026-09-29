@@ -8,9 +8,9 @@
     "disabled": 3,
     "edge": 1.5
   },
-  "pairs": 134,
-  "evaluated": 328,
-  "failing": 17,
+  "pairs": 135,
+  "evaluated": 330,
+  "failing": 14,
   "entries": {
     "light/default/faint / surface": {
       "ratio": 4.14,
@@ -52,24 +52,6 @@
       "ratio": 1.33,
       "threshold": 3,
       "fg": "#DDDFE3",
-      "bg": "#FFFFFF"
-    },
-    "light/default/disabled btn.primary: on-primary@45% / primary@45% over canvas": {
-      "ratio": 2.84,
-      "threshold": 3,
-      "fg": "#FFFFFF",
-      "bg": "#99999A"
-    },
-    "light/default/disabled ghost/secondary: ink@45% / canvas": {
-      "ratio": 2.84,
-      "threshold": 3,
-      "fg": "#99999A",
-      "bg": "#FFFFFF"
-    },
-    "light/default/disabled option: ink@40% / raised": {
-      "ratio": 2.47,
-      "threshold": 3,
-      "fg": "#A5A5A5",
       "bg": "#FFFFFF"
     },
     "light/default/disabled calendar day: ink@30% / raised": {

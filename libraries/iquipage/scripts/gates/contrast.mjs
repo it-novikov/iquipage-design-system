@@ -96,10 +96,9 @@ for (const bg of ['canvas', 'surface', 'raised', 'recessed']) add([`focus / ${bg
 add(['focus / focus-halo (ring on its halo)', 'focus', 'focus-halo', 'ui'], ['focus-halo / accent-fill (halo on accent btn)', 'focus-halo', 'accent-fill', 'ui'], ['focus-halo / primary (halo on primary btn)', 'focus-halo', 'primary', 'ui']);
 for (const line of ['line', 'line-strong', 'control']) for (const bg of ['canvas', 'surface', 'raised']) add([`${line} / ${bg} (ui)`, line, bg, 'ui']);
 add(['placeholder: subtle / raised (.iq-input-shell)', 'subtle', 'raised', 'text'], ['placeholder: subtle / field-bg', 'subtle', 'field-bg', 'text'], ['placeholder: muted / raised (.md-input)', 'muted', 'raised', 'text'], ['placeholder: faint / canvas (inline title)', 'faint', 'canvas', 'text'],
-  ['disabled btn.primary: on-primary@45% / primary@45% over canvas', alpha('on-primary', .45, 'canvas'), alpha('primary', .45, 'canvas'), 'disabled'],
-  ['disabled ghost/secondary: ink@45% / canvas', alpha('ink', .45, 'canvas'), 'canvas', 'disabled'],
+  ['disabled btn: disabled-ink / disabled-fill', 'disabled-ink', 'disabled-fill', 'text'],
+  ['disabled ghost/option: disabled-ink / canvas', 'disabled-ink', 'canvas', 'text'], ['disabled-ink / surface', 'disabled-ink', 'surface', 'text'], ['disabled-ink / raised', 'disabled-ink', 'raised', 'text'],
   ['disabled input: ink@65% / surface', alpha('ink', .65, 'surface'), 'surface', 'disabled'],
-  ['disabled option: ink@40% / raised', alpha('ink', .40, 'raised'), 'raised', 'disabled'],
   ['disabled calendar day: ink@30% / raised', alpha('ink', .30, 'raised'), 'raised', 'disabled']);
 for (const k of ['critical', 'high']) add([`task-${k}-text / task-${k}-surface`, `task-${k}-text`, `task-${k}-surface`, 'text']);
 add(['task-epic-text / canvas', 'task-epic-text', 'canvas', 'text']);

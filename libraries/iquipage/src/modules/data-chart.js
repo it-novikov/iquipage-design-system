@@ -19,6 +19,16 @@ function chartScale(values){
  return{maximum,low,high,range:high-low||1,ticks:Array.from({length:5},(_,i)=>low+(high-low)*i/4)};
 }
 const CHART_STATES=['ready','loading','empty','error'];
+/** Series markers differ in shape as well as colour (COL-06): circle, square, triangle, diamond, repeating. */
+function chartMarker(x,y,series){
+ const r=4,cls=`class="iq-chart-point series-${series}"`;
+ switch(series%4){
+  case 1:return `<rect ${cls} x="${x-r}" y="${y-r}" width="${r*2}" height="${r*2}"/>`;
+  case 2:return `<polygon ${cls} points="${x},${y-r-1} ${x+r+1},${y+r} ${x-r-1},${y+r}"/>`;
+  case 3:return `<polygon ${cls} points="${x},${y-r-1} ${x+r+1},${y} ${x},${y+r+1} ${x-r-1},${y}"/>`;
+  default:return `<circle ${cls} cx="${x}" cy="${y}" r="${r}"/>`;
+ }
+}
 class IqDataChart extends HTMLElement {
  static get observedAttributes(){return ['type','state']}
  constructor(){
@@ -69,7 +79,7 @@ class IqDataChart extends HTMLElement {
   const empty=!values.length||this.state==='empty',st=states[this.state]||states.empty;
   const stateMarkup=!ready||empty?`<div class="iq-pro-state is-${this.state}" role="${this.state==='error'?'alert':'status'}" ${this.state==='loading'?'aria-busy="true"':''}><span class="iq-pro-state-icon">${icon(this.state==='error'?'xCircle':'chart',24)}</span><h3>${allHidden&&ready?'Все ряды скрыты':st[0]}</h3><p>${allHidden&&ready?'Включите ряд в легенде или покажите все.':st[1]}</p>${this.state==='error'?'<button type="button" class="iq-btn secondary sm" data-chart-action="retry">Повторить</button>':allHidden&&ready?'<button type="button" class="iq-btn secondary sm" data-chart-action="restore">Показать все ряды</button>':''}</div>`:'';
   this.innerHTML=`<section class="iq-pro iq-data-chart" aria-label="${C.escape(d.title||'Диаграмма')}"><header class="iq-pro-toolbar"><div class="iq-pro-heading"><span class="iq-pro-eyebrow">АНАЛИТИКА</span><h3>${C.escape(d.title||'Диаграмма')}</h3>${d.description?`<span class="iq-pro-subtitle">${C.escape(d.description)}</span>`:''}</div><div class="iq-pro-actions"><div class="iq-pro-segment" role="group" aria-label="Вид диаграммы">${['line','bar'].map(t=>`<button type="button" class="iq-btn secondary sm" data-chart-action="type" data-type="${t}" aria-pressed="${t===this.type}">${t==='line'?'Линии':'Столбцы'}</button>`).join('')}</div></div></header>
-   ${ready?`<div class="iq-chart-legend" role="group" aria-label="Показать или скрыть ряды">${d.series.map((s,i)=>`<button type="button" data-chart-action="legend" data-series="${C.escape(s.id)}" aria-pressed="${!this.hiddenSeries.has(s.id)}"><span class="iq-series-swatch series-${i%6}" aria-hidden="true"></span><span>${C.escape(s.label)}</span>${this.hiddenSeries.has(s.id)?icon('eye',14):''}</button>`).join('')}</div>`:''}
+   ${ready?`<div class="iq-chart-legend" role="group" aria-label="Показать или скрыть ряды">${d.series.map((s,i)=>`<button type="button" data-chart-action="legend" data-series="${C.escape(s.id)}" aria-pressed="${!this.hiddenSeries.has(s.id)}"><span class="iq-series-swatch series-${i%6} shape-${i%4}" aria-hidden="true"></span><span>${C.escape(s.label)}</span>${this.hiddenSeries.has(s.id)?icon('eye',14):''}</button>`).join('')}</div>`:''}
    ${stateMarkup||this.svg(values)}
    <div class="iq-chart-bottom"><span class="iq-pro-subtitle">${C.escape(ready?(this.missing?`Пропущенных значений: ${this.missing}. Не заменяем нулями.`:d.unit||'Значения из входных данных'):'Числовые данные временно недоступны.')}</span><button type="button" class="iq-btn ghost sm" data-chart-action="table" aria-expanded="${this.tableOpen&&ready}" aria-controls="${this.uid}-table" ${!ready?'disabled':''}>${this.tableOpen&&ready?'Скрыть таблицу':'Таблица данных'}${icon('grid',16)}</button></div>
    <div class="iq-chart-table" id="${this.uid}-table" ${this.tableOpen&&ready?'':'hidden'}>${this.tableOpen&&ready?this.table():''}</div></section>`;
@@ -101,7 +111,7 @@ class IqDataChart extends HTMLElement {
     if(this.type==='bar'){
      const bw=Math.max(.25,slot*.72/series.length),left=px-slot*.36+j*bw,width=Math.max(.25,bw-2),height=Math.max(1.5,Math.abs(baseline-py));
      marks.push(`<g class="iq-chart-value" ${attrs}><rect class="iq-chart-mark series-${color}" x="${left}" y="${Math.min(baseline,py)}" width="${width}" height="${height}" rx="${Math.min(3,width/3)}"/><rect class="iq-chart-hit" x="${left-3}" y="${Math.min(baseline,py)-4}" width="${width+6}" height="${height+8}" fill="transparent"/></g>`);
-    }else marks.push(`<g class="iq-chart-value" ${attrs}><circle class="iq-chart-point series-${color}" cx="${px}" cy="${py}" r="4"/><circle class="iq-chart-hit" cx="${px}" cy="${py}" r="11" fill="transparent"/></g>`);
+    }else marks.push(`<g class="iq-chart-value" ${attrs}>${chartMarker(px,py,color)}<circle class="iq-chart-hit" cx="${px}" cy="${py}" r="11" fill="transparent"/></g>`);
    });
    if(this.type==='line')paths.push(`<path class="iq-chart-series series-${color}" d="${path}" ${j>=6?'stroke-dasharray="6 3"':''}/>`);
   });

@@ -1,8 +1,8 @@
 {
   "note": "gzip bytes of the built dist today (ENG-01/03 ratchet: +2% max). Regenerate after a deliberate change: npm run gates:update.",
   "tolerance": 0.02,
-  "core-closure-gzip": 145383,
-  "iquipage-css-gzip": 89871,
+  "core-closure-gzip": 145496,
+  "iquipage-css-gzip": 90132,
   "icons-gzip": 55980,
   "coreClosureFiles": 25,
   "files": {
@@ -20,7 +20,7 @@
     "dist/modules/priority.js": 740,
     "dist/modules/task-kind.js": 732,
     "dist/modules/validation.js": 1191,
-    "dist/modules/ui.js": 4618,
+    "dist/modules/ui.js": 4731,
     "dist/modules/work-header.js": 769,
     "dist/modules/markdown-viewer.js": 1774,
     "dist/modules/work-layout.js": 1662,
