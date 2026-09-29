@@ -39,6 +39,7 @@ export const formatDateTime=m4.formatDateTime;
 export const formatDateRange=m4.formatDateRange;
 export const plural=m4.plural;
 export const count=m4.count;
+export const typo=m4.typo;
 export const bindBoard=m5.bindBoard;
 export const IqFilePreview=m6.IqFilePreview;
 export const configurePDFPreviews=m6.configurePDFPreviews;

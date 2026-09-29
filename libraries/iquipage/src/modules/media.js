@@ -159,7 +159,7 @@ class IqFilePreview extends HTMLElement {
                     button.title = 'Миниатюра недоступна. Нажмите, чтобы открыть оригинал.';
                     const badge = this.querySelector('.preview-kind');
                     if (badge)
-                        badge.textContent = 'ОТКРЫТЬ';
+                        badge.textContent = 'Открыть';
                     const load = this.querySelector('.preview-loading');
                     if (load)
                         load.innerHTML = icons_js_1.icon('file', 25);
@@ -345,7 +345,7 @@ class IqFilePreview extends HTMLElement {
         this.dialog = d;
         const k = kind(f);
         const safe = esc(f.name);
-        d.innerHTML = `<header><div><span class="sample-overline">ЛОКАЛЬНЫЙ ФАЙЛ</span><h2>${safe}</h2></div><button class="iq-btn ghost icon" aria-label="Закрыть предпросмотр">${icons_js_1.icon('x', 20)}</button></header><div class="media-dialog-body"></div><footer><span>Оригинал остаётся на устройстве</span><a class="iq-btn secondary sm" href="${this.url}" download="${safe}">${icons_js_1.icon('download', 17)}Сохранить файл</a></footer>`;
+        d.innerHTML = `<header><div><span class="sample-overline">Локальный файл</span><h2>${safe}</h2></div><button class="iq-btn ghost icon" aria-label="Закрыть предпросмотр">${icons_js_1.icon('x', 20)}</button></header><div class="media-dialog-body"></div><footer><span>Оригинал остаётся на устройстве</span><a class="iq-btn secondary sm" href="${this.url}" download="${safe}">${icons_js_1.icon('download', 17)}Сохранить файл</a></footer>`;
         document.body.append(d);
         const body = d.querySelector('.media-dialog-body');
         if (k === 'video')

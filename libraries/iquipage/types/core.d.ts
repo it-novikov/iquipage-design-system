@@ -33,6 +33,8 @@ export interface PluralForms {one:string;few?:string;many?:string;other?:string;
 export declare function plural(n:number,forms:PluralForms,locale?:string):string;
 /** The formatted number and its form: count(5,{one:'задача',few:'задачи',many:'задач'}) === '5 задач'. */
 export declare function count(n:number,forms:PluralForms,locale?:string):string;
+/** Russian micro-typography: non-breaking spaces after one- and two-letter words, before «—», between a number and its unit and after «№». Idempotent. */
+export declare function typo(text:string):string;
 export declare class IqDateField extends HTMLElement {value:string;readonly timeValue:string;disabled:boolean;open():void;close(restore?:boolean):void;}
 export declare class IqTime extends HTMLElement {value:string;hourCycle:12|24;}
 export interface MarkdownEditorAction {id:string;label:string;pressed:boolean;disabled?:boolean;tone?:'neutral'|'warning';hint?:string;/** 'chip' renders a compact pressed toggle (chat composers); 'check' a checkbox with a hint. */appearance?:'check'|'chip';icon?:string;}
