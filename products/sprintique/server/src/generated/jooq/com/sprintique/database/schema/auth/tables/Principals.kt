@@ -10,6 +10,9 @@ import com.sprintique.database.schema.app.keys.APPROVALS__APPROVALS_DECIDED_BY_F
 import com.sprintique.database.schema.app.keys.APPROVALS__APPROVALS_INITIATOR_ID_FKEY
 import com.sprintique.database.schema.app.keys.APPROVALS__APPROVALS_REQUESTED_BY_FKEY
 import com.sprintique.database.schema.app.keys.ASSETS__ASSETS_ACTOR_ID_FKEY
+import com.sprintique.database.schema.app.keys.ATTENTION_REQUESTS__ATTENTION_REQUESTS_CLOSED_BY_FKEY
+import com.sprintique.database.schema.app.keys.ATTENTION_REQUESTS__ATTENTION_REQUESTS_RECIPIENT_ID_FKEY
+import com.sprintique.database.schema.app.keys.ATTENTION_REQUESTS__ATTENTION_REQUESTS_REQUESTED_BY_FKEY
 import com.sprintique.database.schema.app.keys.AUDIT_EVENTS__AUDIT_EVENTS_ACTOR_ID_FKEY
 import com.sprintique.database.schema.app.keys.AUDIT_EVENTS__AUDIT_EVENTS_INITIATOR_ID_FKEY
 import com.sprintique.database.schema.app.keys.IDEMPOTENCY__IDEMPOTENCY_ACTOR_ID_FKEY
@@ -22,17 +25,25 @@ import com.sprintique.database.schema.app.keys.MESSAGES__MESSAGES_AUTHOR_ID_FKEY
 import com.sprintique.database.schema.app.keys.PERSON_AVATARS__PERSON_AVATARS_PRINCIPAL_ID_FKEY
 import com.sprintique.database.schema.app.keys.PLANNING_PLANS__PLANNING_PLANS_ACTOR_ID_FKEY
 import com.sprintique.database.schema.app.keys.PLANNING_SELECTIONS__PLANNING_SELECTIONS_ACTOR_ID_FKEY
+import com.sprintique.database.schema.app.keys.PRIVATE_RECEIPTS__PRIVATE_RECEIPTS_PRINCIPAL_ID_FKEY
 import com.sprintique.database.schema.app.keys.PROJECT_MEMBERS__PROJECT_MEMBERS_PRINCIPAL_ID_FKEY
 import com.sprintique.database.schema.app.keys.TASKS__TASKS_OWNER_ID_FKEY
+import com.sprintique.database.schema.app.keys.TASK_ACTIVITY__TASK_ACTIVITY_ACTOR_ID_FKEY
+import com.sprintique.database.schema.app.keys.TASK_ACTIVITY__TASK_ACTIVITY_INITIATOR_ID_FKEY
+import com.sprintique.database.schema.app.keys.TASK_PERSONAL_STATE__TASK_PERSONAL_STATE_PRINCIPAL_ID_FKEY
 import com.sprintique.database.schema.app.keys.TASK_SETTINGS_VERSIONS__TASK_SETTINGS_VERSIONS_ACTOR_ID_FKEY
+import com.sprintique.database.schema.app.keys.TASK_WAIT_STATE__TASK_WAIT_STATE_EXPECTED_ASSIGNEE_ID_FKEY
+import com.sprintique.database.schema.app.keys.TASK_WAIT_STATE__TASK_WAIT_STATE_PRINCIPAL_ID_FKEY
 import com.sprintique.database.schema.app.keys.THREADS__THREADS_RESOLVED_BY_FKEY
 import com.sprintique.database.schema.app.keys.THREAD_READS__THREAD_READS_PRINCIPAL_ID_FKEY
+import com.sprintique.database.schema.app.keys.WORKBENCH_PREFERENCES__WORKBENCH_PREFERENCES_PRINCIPAL_ID_FKEY
 import com.sprintique.database.schema.app.keys.WORKSPACES__WORKSPACES_CREATED_BY_FKEY
 import com.sprintique.database.schema.app.keys.WORKSPACE_AUDIT__WORKSPACE_AUDIT_ACTOR_ID_FKEY
 import com.sprintique.database.schema.app.keys.WORKSPACE_MEMBERS__WORKSPACE_MEMBERS_PRINCIPAL_ID_FKEY
 import com.sprintique.database.schema.app.tables.AgentRuns.AgentRunsPath
 import com.sprintique.database.schema.app.tables.Approvals.ApprovalsPath
 import com.sprintique.database.schema.app.tables.Assets.AssetsPath
+import com.sprintique.database.schema.app.tables.AttentionRequests.AttentionRequestsPath
 import com.sprintique.database.schema.app.tables.AuditEvents.AuditEventsPath
 import com.sprintique.database.schema.app.tables.Idempotency.IdempotencyPath
 import com.sprintique.database.schema.app.tables.MapTemplateVersions.MapTemplateVersionsPath
@@ -44,12 +55,17 @@ import com.sprintique.database.schema.app.tables.Messages.MessagesPath
 import com.sprintique.database.schema.app.tables.PersonAvatars.PersonAvatarsPath
 import com.sprintique.database.schema.app.tables.PlanningPlans.PlanningPlansPath
 import com.sprintique.database.schema.app.tables.PlanningSelections.PlanningSelectionsPath
+import com.sprintique.database.schema.app.tables.PrivateReceipts.PrivateReceiptsPath
 import com.sprintique.database.schema.app.tables.ProjectMembers.ProjectMembersPath
 import com.sprintique.database.schema.app.tables.Projects.ProjectsPath
+import com.sprintique.database.schema.app.tables.TaskActivity.TaskActivityPath
+import com.sprintique.database.schema.app.tables.TaskPersonalState.TaskPersonalStatePath
 import com.sprintique.database.schema.app.tables.TaskSettingsVersions.TaskSettingsVersionsPath
+import com.sprintique.database.schema.app.tables.TaskWaitState.TaskWaitStatePath
 import com.sprintique.database.schema.app.tables.Tasks.TasksPath
 import com.sprintique.database.schema.app.tables.ThreadReads.ThreadReadsPath
 import com.sprintique.database.schema.app.tables.Threads.ThreadsPath
+import com.sprintique.database.schema.app.tables.WorkbenchPreferences.WorkbenchPreferencesPath
 import com.sprintique.database.schema.app.tables.WorkspaceAudit.WorkspaceAuditPath
 import com.sprintique.database.schema.app.tables.WorkspaceMembers.WorkspaceMembersPath
 import com.sprintique.database.schema.app.tables.Workspaces.WorkspacesPath
@@ -236,6 +252,42 @@ open class Principals(
     val assets: AssetsPath
         get(): AssetsPath = assets()
 
+    private lateinit var _attentionRequestsClosedByFkey: AttentionRequestsPath
+
+    fun attentionRequestsClosedByFkey(): AttentionRequestsPath {
+        if (!this::_attentionRequestsClosedByFkey.isInitialized)
+            _attentionRequestsClosedByFkey = AttentionRequestsPath(this, null, ATTENTION_REQUESTS__ATTENTION_REQUESTS_CLOSED_BY_FKEY.inverseKey)
+
+        return _attentionRequestsClosedByFkey;
+    }
+
+    val attentionRequestsClosedByFkey: AttentionRequestsPath
+        get(): AttentionRequestsPath = attentionRequestsClosedByFkey()
+
+    private lateinit var _attentionRequestsRecipientIdFkey: AttentionRequestsPath
+
+    fun attentionRequestsRecipientIdFkey(): AttentionRequestsPath {
+        if (!this::_attentionRequestsRecipientIdFkey.isInitialized)
+            _attentionRequestsRecipientIdFkey = AttentionRequestsPath(this, null, ATTENTION_REQUESTS__ATTENTION_REQUESTS_RECIPIENT_ID_FKEY.inverseKey)
+
+        return _attentionRequestsRecipientIdFkey;
+    }
+
+    val attentionRequestsRecipientIdFkey: AttentionRequestsPath
+        get(): AttentionRequestsPath = attentionRequestsRecipientIdFkey()
+
+    private lateinit var _attentionRequestsRequestedByFkey: AttentionRequestsPath
+
+    fun attentionRequestsRequestedByFkey(): AttentionRequestsPath {
+        if (!this::_attentionRequestsRequestedByFkey.isInitialized)
+            _attentionRequestsRequestedByFkey = AttentionRequestsPath(this, null, ATTENTION_REQUESTS__ATTENTION_REQUESTS_REQUESTED_BY_FKEY.inverseKey)
+
+        return _attentionRequestsRequestedByFkey;
+    }
+
+    val attentionRequestsRequestedByFkey: AttentionRequestsPath
+        get(): AttentionRequestsPath = attentionRequestsRequestedByFkey()
+
     private lateinit var _auditEventsActorIdFkey: AuditEventsPath
 
     fun auditEventsActorIdFkey(): AuditEventsPath {
@@ -380,6 +432,18 @@ open class Principals(
     val planningSelections: PlanningSelectionsPath
         get(): PlanningSelectionsPath = planningSelections()
 
+    private lateinit var _privateReceipts: PrivateReceiptsPath
+
+    fun privateReceipts(): PrivateReceiptsPath {
+        if (!this::_privateReceipts.isInitialized)
+            _privateReceipts = PrivateReceiptsPath(this, null, PRIVATE_RECEIPTS__PRIVATE_RECEIPTS_PRINCIPAL_ID_FKEY.inverseKey)
+
+        return _privateReceipts;
+    }
+
+    val privateReceipts: PrivateReceiptsPath
+        get(): PrivateReceiptsPath = privateReceipts()
+
     private lateinit var _projectMembers: ProjectMembersPath
 
     fun projectMembers(): ProjectMembersPath {
@@ -392,6 +456,42 @@ open class Principals(
     val projectMembers: ProjectMembersPath
         get(): ProjectMembersPath = projectMembers()
 
+    private lateinit var _taskActivityActorIdFkey: TaskActivityPath
+
+    fun taskActivityActorIdFkey(): TaskActivityPath {
+        if (!this::_taskActivityActorIdFkey.isInitialized)
+            _taskActivityActorIdFkey = TaskActivityPath(this, null, TASK_ACTIVITY__TASK_ACTIVITY_ACTOR_ID_FKEY.inverseKey)
+
+        return _taskActivityActorIdFkey;
+    }
+
+    val taskActivityActorIdFkey: TaskActivityPath
+        get(): TaskActivityPath = taskActivityActorIdFkey()
+
+    private lateinit var _taskActivityInitiatorIdFkey: TaskActivityPath
+
+    fun taskActivityInitiatorIdFkey(): TaskActivityPath {
+        if (!this::_taskActivityInitiatorIdFkey.isInitialized)
+            _taskActivityInitiatorIdFkey = TaskActivityPath(this, null, TASK_ACTIVITY__TASK_ACTIVITY_INITIATOR_ID_FKEY.inverseKey)
+
+        return _taskActivityInitiatorIdFkey;
+    }
+
+    val taskActivityInitiatorIdFkey: TaskActivityPath
+        get(): TaskActivityPath = taskActivityInitiatorIdFkey()
+
+    private lateinit var _taskPersonalState: TaskPersonalStatePath
+
+    fun taskPersonalState(): TaskPersonalStatePath {
+        if (!this::_taskPersonalState.isInitialized)
+            _taskPersonalState = TaskPersonalStatePath(this, null, TASK_PERSONAL_STATE__TASK_PERSONAL_STATE_PRINCIPAL_ID_FKEY.inverseKey)
+
+        return _taskPersonalState;
+    }
+
+    val taskPersonalState: TaskPersonalStatePath
+        get(): TaskPersonalStatePath = taskPersonalState()
+
     private lateinit var _taskSettingsVersions: TaskSettingsVersionsPath
 
     fun taskSettingsVersions(): TaskSettingsVersionsPath {
@@ -403,6 +503,30 @@ open class Principals(
 
     val taskSettingsVersions: TaskSettingsVersionsPath
         get(): TaskSettingsVersionsPath = taskSettingsVersions()
+
+    private lateinit var _taskWaitStateExpectedAssigneeIdFkey: TaskWaitStatePath
+
+    fun taskWaitStateExpectedAssigneeIdFkey(): TaskWaitStatePath {
+        if (!this::_taskWaitStateExpectedAssigneeIdFkey.isInitialized)
+            _taskWaitStateExpectedAssigneeIdFkey = TaskWaitStatePath(this, null, TASK_WAIT_STATE__TASK_WAIT_STATE_EXPECTED_ASSIGNEE_ID_FKEY.inverseKey)
+
+        return _taskWaitStateExpectedAssigneeIdFkey;
+    }
+
+    val taskWaitStateExpectedAssigneeIdFkey: TaskWaitStatePath
+        get(): TaskWaitStatePath = taskWaitStateExpectedAssigneeIdFkey()
+
+    private lateinit var _taskWaitStatePrincipalIdFkey: TaskWaitStatePath
+
+    fun taskWaitStatePrincipalIdFkey(): TaskWaitStatePath {
+        if (!this::_taskWaitStatePrincipalIdFkey.isInitialized)
+            _taskWaitStatePrincipalIdFkey = TaskWaitStatePath(this, null, TASK_WAIT_STATE__TASK_WAIT_STATE_PRINCIPAL_ID_FKEY.inverseKey)
+
+        return _taskWaitStatePrincipalIdFkey;
+    }
+
+    val taskWaitStatePrincipalIdFkey: TaskWaitStatePath
+        get(): TaskWaitStatePath = taskWaitStatePrincipalIdFkey()
 
     private lateinit var _tasks: TasksPath
 
@@ -439,6 +563,18 @@ open class Principals(
 
     val threads: ThreadsPath
         get(): ThreadsPath = threads()
+
+    private lateinit var _workbenchPreferences: WorkbenchPreferencesPath
+
+    fun workbenchPreferences(): WorkbenchPreferencesPath {
+        if (!this::_workbenchPreferences.isInitialized)
+            _workbenchPreferences = WorkbenchPreferencesPath(this, null, WORKBENCH_PREFERENCES__WORKBENCH_PREFERENCES_PRINCIPAL_ID_FKEY.inverseKey)
+
+        return _workbenchPreferences;
+    }
+
+    val workbenchPreferences: WorkbenchPreferencesPath
+        get(): WorkbenchPreferencesPath = workbenchPreferences()
 
     private lateinit var _workspaceAudit: WorkspaceAuditPath
 
@@ -538,6 +674,12 @@ open class Principals(
 
     val projects: ProjectsPath
         get(): ProjectsPath = projectMembers().projects()
+
+    val taskPersonalStateProjectIdTaskIdFkey: TasksPath
+        get(): TasksPath = taskPersonalState().tasks()
+
+    val taskWaitStateProjectIdTaskIdFkey: TasksPath
+        get(): TasksPath = taskWaitStatePrincipalIdFkey().tasks()
     override fun getChecks(): List<Check<PrincipalsRecord>> = listOf(
         Internal.createCheck(this, DSL.name("principals_agent_has_no_identity"), "(((kind = 'human'::text) OR ((issuer IS NULL) AND (subject IS NULL))))", true),
         Internal.createCheck(this, DSL.name("principals_email_check"), "(((email IS NULL) OR (((length(email) >= 3) AND (length(email) <= 320)) AND (POSITION(('@'::text) IN (email)) > 1))))", true),

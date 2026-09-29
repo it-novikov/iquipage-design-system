@@ -44,10 +44,15 @@ class Authentication(
             credential.kind.wire,
         )
         val actor = actorOf(requirePresent(row, 401, "UNAUTHENTICATED", "Войдите в аккаунт."))
+        // The initiator lets task activity tell a person's own agent from a colleague (docs/adr W3).
         tx.row(
-            "SELECT set_config('app.actor_id', $1, true), set_config('app.project_limit', $2, true)",
+            """
+            SELECT set_config('app.actor_id', $1, true), set_config('app.project_limit', $2, true),
+                   set_config('app.initiator_id', $3, true)
+            """.trimIndent(),
             actor.id,
             actor.projectId.orEmpty(),
+            actor.initiatorId,
         )
         if (intent.isMutation && actor.isHuman) {
             requireCondition(

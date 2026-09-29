@@ -14,6 +14,8 @@ REVOKE UPDATE ON app.task_settings_versions FROM "${runtime_role}";
 REVOKE UPDATE ON app.map_versions,app.map_template_versions FROM "${runtime_role}";
 REVOKE UPDATE ON app.agent_run_plans FROM "${runtime_role}";
 REVOKE UPDATE ON app.workspace_audit FROM "${runtime_role}";
+-- Workbench: meaningful task events and private receipts are append-only (docs/adr W2, W3).
+REVOKE UPDATE ON app.task_activity,app.private_receipts FROM "${runtime_role}";
 GRANT SELECT,INSERT,UPDATE ON auth.principals,auth.credentials TO "${runtime_role}";
 GRANT SELECT,INSERT,UPDATE ON auth.project_invitations TO "${runtime_role}";
 GRANT SELECT,INSERT,DELETE ON auth.login_states TO "${runtime_role}";

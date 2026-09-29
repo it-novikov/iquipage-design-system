@@ -7,13 +7,17 @@ package com.sprintique.database.schema.app.indexes
 
 import com.sprintique.database.schema.app.tables.AgentRuns
 import com.sprintique.database.schema.app.tables.Assets
+import com.sprintique.database.schema.app.tables.AttentionRequests
 import com.sprintique.database.schema.app.tables.AuditEvents
 import com.sprintique.database.schema.app.tables.MapTemplates
 import com.sprintique.database.schema.app.tables.Maps
 import com.sprintique.database.schema.app.tables.Messages
 import com.sprintique.database.schema.app.tables.Outbox
 import com.sprintique.database.schema.app.tables.PlanningPlans
+import com.sprintique.database.schema.app.tables.TaskActivity
 import com.sprintique.database.schema.app.tables.TaskLinks
+import com.sprintique.database.schema.app.tables.TaskPersonalState
+import com.sprintique.database.schema.app.tables.TaskWaitState
 import com.sprintique.database.schema.app.tables.Tasks
 import com.sprintique.database.schema.app.tables.Threads
 
@@ -29,16 +33,25 @@ import org.jooq.impl.Internal
 
 val AGENT_RUNS_PAGE: Index = Internal.createIndex(DSL.name("agent_runs_page"), AgentRuns.AGENT_RUNS, arrayOf(AgentRuns.AGENT_RUNS.PROJECT_ID, AgentRuns.AGENT_RUNS.ID), false)
 val ASSET_CLEANUP: Index = Internal.createIndex(DSL.name("asset_cleanup"), Assets.ASSETS, arrayOf(Assets.ASSETS.EXPIRES_AT), false)
+val ATTENTION_REQUEST_APPROVAL: Index = Internal.createIndex(DSL.name("attention_request_approval"), AttentionRequests.ATTENTION_REQUESTS, arrayOf(AttentionRequests.ATTENTION_REQUESTS.PROJECT_ID, AttentionRequests.ATTENTION_REQUESTS.APPROVAL_ID), false)
+val ATTENTION_REQUEST_RECIPIENT: Index = Internal.createIndex(DSL.name("attention_request_recipient"), AttentionRequests.ATTENTION_REQUESTS, arrayOf(AttentionRequests.ATTENTION_REQUESTS.RECIPIENT_ID, AttentionRequests.ATTENTION_REQUESTS.PROJECT_ID), false)
+val ATTENTION_REQUEST_REQUESTER: Index = Internal.createIndex(DSL.name("attention_request_requester"), AttentionRequests.ATTENTION_REQUESTS, arrayOf(AttentionRequests.ATTENTION_REQUESTS.REQUESTED_BY, AttentionRequests.ATTENTION_REQUESTS.PROJECT_ID, AttentionRequests.ATTENTION_REQUESTS.UPDATED_AT.desc()), false)
+val ATTENTION_REQUEST_TASK: Index = Internal.createIndex(DSL.name("attention_request_task"), AttentionRequests.ATTENTION_REQUESTS, arrayOf(AttentionRequests.ATTENTION_REQUESTS.PROJECT_ID, AttentionRequests.ATTENTION_REQUESTS.TASK_ID, AttentionRequests.ATTENTION_REQUESTS.CREATED_AT), false)
+val ATTENTION_REQUEST_THREAD: Index = Internal.createIndex(DSL.name("attention_request_thread"), AttentionRequests.ATTENTION_REQUESTS, arrayOf(AttentionRequests.ATTENTION_REQUESTS.PROJECT_ID, AttentionRequests.ATTENTION_REQUESTS.THREAD_ID), false)
 val AUDIT_ACTOR_RECENT: Index = Internal.createIndex(DSL.name("audit_actor_recent"), AuditEvents.AUDIT_EVENTS, arrayOf(AuditEvents.AUDIT_EVENTS.PROJECT_ID, AuditEvents.AUDIT_EVENTS.ACTOR_ID, AuditEvents.AUDIT_EVENTS.CREATED_AT.desc()), false)
 val MAP_TEMPLATE_WORKSPACE: Index = Internal.createIndex(DSL.name("map_template_workspace"), MapTemplates.MAP_TEMPLATES, arrayOf(MapTemplates.MAP_TEMPLATES.WORKSPACE_ID, MapTemplates.MAP_TEMPLATES.ID), false)
 val MAPS_PAGE: Index = Internal.createIndex(DSL.name("maps_page"), Maps.MAPS, arrayOf(Maps.MAPS.PROJECT_ID, Maps.MAPS.ID), false)
 val MESSAGE_THREAD_PAGE: Index = Internal.createIndex(DSL.name("message_thread_page"), Messages.MESSAGES, arrayOf(Messages.MESSAGES.PROJECT_ID, Messages.MESSAGES.THREAD_ID, Messages.MESSAGES.CREATED_AT, Messages.MESSAGES.ID), false)
 val OUTBOX_PENDING: Index = Internal.createIndex(DSL.name("outbox_pending"), Outbox.OUTBOX, arrayOf(Outbox.OUTBOX.AVAILABLE_AT), false)
 val OUTBOX_PROJECT_SEQUENCE: Index = Internal.createIndex(DSL.name("outbox_project_sequence"), Outbox.OUTBOX, arrayOf(Outbox.OUTBOX.PROJECT_ID, Outbox.OUTBOX.PROJECT_SEQUENCE), true)
+val PERSONAL_STATE_FOCUS: Index = Internal.createIndex(DSL.name("personal_state_focus"), TaskPersonalState.TASK_PERSONAL_STATE, arrayOf(TaskPersonalState.TASK_PERSONAL_STATE.PRINCIPAL_ID, TaskPersonalState.TASK_PERSONAL_STATE.FOCUS_RANK), false)
+val PERSONAL_STATE_PRINCIPAL: Index = Internal.createIndex(DSL.name("personal_state_principal"), TaskPersonalState.TASK_PERSONAL_STATE, arrayOf(TaskPersonalState.TASK_PERSONAL_STATE.PRINCIPAL_ID, TaskPersonalState.TASK_PERSONAL_STATE.PROJECT_ID, TaskPersonalState.TASK_PERSONAL_STATE.TASK_ID), false)
 val PLANNING_EXPIRY: Index = Internal.createIndex(DSL.name("planning_expiry"), PlanningPlans.PLANNING_PLANS, arrayOf(PlanningPlans.PLANNING_PLANS.EXPIRES_AT), false)
+val TASK_ACTIVITY_TASK: Index = Internal.createIndex(DSL.name("task_activity_task"), TaskActivity.TASK_ACTIVITY, arrayOf(TaskActivity.TASK_ACTIVITY.PROJECT_ID, TaskActivity.TASK_ACTIVITY.TASK_ID, TaskActivity.TASK_ACTIVITY.SEQUENCE.desc()), false)
 val TASK_LINK_FROM: Index = Internal.createIndex(DSL.name("task_link_from"), TaskLinks.TASK_LINKS, arrayOf(TaskLinks.TASK_LINKS.PROJECT_ID, TaskLinks.TASK_LINKS.FROM_ID), false)
 val TASK_LINK_TO: Index = Internal.createIndex(DSL.name("task_link_to"), TaskLinks.TASK_LINKS, arrayOf(TaskLinks.TASK_LINKS.PROJECT_ID, TaskLinks.TASK_LINKS.TO_ID), false)
 val TASK_OWNER: Index = Internal.createIndex(DSL.name("task_owner"), Tasks.TASKS, arrayOf(Tasks.TASKS.PROJECT_ID, Tasks.TASKS.OWNER_ID), false)
 val TASK_PARENT: Index = Internal.createIndex(DSL.name("task_parent"), Tasks.TASKS, arrayOf(Tasks.TASKS.PROJECT_ID, Tasks.TASKS.PARENT_ID), false)
 val TASK_RELEASE: Index = Internal.createIndex(DSL.name("task_release"), Tasks.TASKS, arrayOf(Tasks.TASKS.PROJECT_ID, Tasks.TASKS.RELEASE_ID), false)
 val THREAD_TASK_PAGE: Index = Internal.createIndex(DSL.name("thread_task_page"), Threads.THREADS, arrayOf(Threads.THREADS.PROJECT_ID, Threads.THREADS.TASK_ID, Threads.THREADS.LAST_ACTIVITY_AT.desc(), Threads.THREADS.ID), false)
+val WAIT_STATE_PRINCIPAL: Index = Internal.createIndex(DSL.name("wait_state_principal"), TaskWaitState.TASK_WAIT_STATE, arrayOf(TaskWaitState.TASK_WAIT_STATE.PRINCIPAL_ID, TaskWaitState.TASK_WAIT_STATE.PROJECT_ID), false)

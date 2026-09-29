@@ -11,6 +11,8 @@ import com.sprintique.database.schema.app.keys.APPROVALS__APPROVALS_DECIDED_BY_F
 import com.sprintique.database.schema.app.keys.APPROVALS__APPROVALS_INITIATOR_ID_FKEY
 import com.sprintique.database.schema.app.keys.APPROVALS__APPROVALS_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.APPROVALS__APPROVALS_REQUESTED_BY_FKEY
+import com.sprintique.database.schema.app.keys.ATTENTION_REQUESTS__ATTENTION_REQUESTS_PROJECT_ID_APPROVAL_ID_FKEY
+import com.sprintique.database.schema.app.tables.AttentionRequests.AttentionRequestsPath
 import com.sprintique.database.schema.app.tables.Projects.ProjectsPath
 import com.sprintique.database.schema.app.tables.records.ApprovalsRecord
 import com.sprintique.database.schema.auth.tables.Principals.PrincipalsPath
@@ -134,6 +136,18 @@ open class Approvals(
 
     fun approvalsRequestedByFkey(): PrincipalsPath = approvalsRequestedByFkey
     val approvalsRequestedByFkey: PrincipalsPath by lazy { PrincipalsPath(this, APPROVALS__APPROVALS_REQUESTED_BY_FKEY, null) }
+
+    private lateinit var _attentionRequests: AttentionRequestsPath
+
+    fun attentionRequests(): AttentionRequestsPath {
+        if (!this::_attentionRequests.isInitialized)
+            _attentionRequests = AttentionRequestsPath(this, null, ATTENTION_REQUESTS__ATTENTION_REQUESTS_PROJECT_ID_APPROVAL_ID_FKEY.inverseKey)
+
+        return _attentionRequests;
+    }
+
+    val attentionRequests: AttentionRequestsPath
+        get(): AttentionRequestsPath = attentionRequests()
     override fun getChecks(): List<Check<ApprovalsRecord>> = listOf(
         Internal.createCheck(this, DSL.name("approvals_check"), "(((status = 'proposed'::text) = ((decided_by IS NULL) AND (decided_at IS NULL))))", true),
         Internal.createCheck(this, DSL.name("approvals_status_check"), "((status = ANY (ARRAY['proposed'::text, 'approved'::text, 'rejected'::text])))", true)

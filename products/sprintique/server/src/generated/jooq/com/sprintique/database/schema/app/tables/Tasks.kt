@@ -8,20 +8,28 @@ import com.sprintique.database.schema.app.App
 import com.sprintique.database.schema.app.indexes.TASK_OWNER
 import com.sprintique.database.schema.app.indexes.TASK_PARENT
 import com.sprintique.database.schema.app.indexes.TASK_RELEASE
+import com.sprintique.database.schema.app.keys.ATTENTION_REQUESTS__ATTENTION_REQUESTS_PROJECT_ID_TASK_ID_FKEY
 import com.sprintique.database.schema.app.keys.TASKS_PKEY
 import com.sprintique.database.schema.app.keys.TASKS_PROJECT_ID_NUMBER_KEY
 import com.sprintique.database.schema.app.keys.TASKS__TASKS_OWNER_ID_FKEY
 import com.sprintique.database.schema.app.keys.TASKS__TASKS_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.TASKS__TASKS_PROJECT_ID_PARENT_ID_FKEY
 import com.sprintique.database.schema.app.keys.TASKS__TASKS_PROJECT_ID_RELEASE_ID_FKEY
+import com.sprintique.database.schema.app.keys.TASK_ACTIVITY__TASK_ACTIVITY_PROJECT_ID_TASK_ID_FKEY
 import com.sprintique.database.schema.app.keys.TASK_LINKS__TASK_LINKS_PROJECT_ID_FROM_ID_FKEY
 import com.sprintique.database.schema.app.keys.TASK_LINKS__TASK_LINKS_PROJECT_ID_TO_ID_FKEY
+import com.sprintique.database.schema.app.keys.TASK_PERSONAL_STATE__TASK_PERSONAL_STATE_PROJECT_ID_TASK_ID_FKEY
 import com.sprintique.database.schema.app.keys.TASK_TAGS__TASK_TAGS_PROJECT_ID_TASK_ID_FKEY
+import com.sprintique.database.schema.app.keys.TASK_WAIT_STATE__TASK_WAIT_STATE_PROJECT_ID_TASK_ID_FKEY
 import com.sprintique.database.schema.app.keys.THREADS__THREADS_PROJECT_ID_TASK_ID_FKEY
+import com.sprintique.database.schema.app.tables.AttentionRequests.AttentionRequestsPath
 import com.sprintique.database.schema.app.tables.Projects.ProjectsPath
 import com.sprintique.database.schema.app.tables.Releases.ReleasesPath
+import com.sprintique.database.schema.app.tables.TaskActivity.TaskActivityPath
 import com.sprintique.database.schema.app.tables.TaskLinks.TaskLinksPath
+import com.sprintique.database.schema.app.tables.TaskPersonalState.TaskPersonalStatePath
 import com.sprintique.database.schema.app.tables.TaskTags.TaskTagsPath
+import com.sprintique.database.schema.app.tables.TaskWaitState.TaskWaitStatePath
 import com.sprintique.database.schema.app.tables.Threads.ThreadsPath
 import com.sprintique.database.schema.app.tables.records.TasksRecord
 import com.sprintique.database.schema.auth.tables.Principals.PrincipalsPath
@@ -177,6 +185,30 @@ open class Tasks(
     fun releases(): ReleasesPath = releases
     val releases: ReleasesPath by lazy { ReleasesPath(this, TASKS__TASKS_PROJECT_ID_RELEASE_ID_FKEY, null) }
 
+    private lateinit var _attentionRequests: AttentionRequestsPath
+
+    fun attentionRequests(): AttentionRequestsPath {
+        if (!this::_attentionRequests.isInitialized)
+            _attentionRequests = AttentionRequestsPath(this, null, ATTENTION_REQUESTS__ATTENTION_REQUESTS_PROJECT_ID_TASK_ID_FKEY.inverseKey)
+
+        return _attentionRequests;
+    }
+
+    val attentionRequests: AttentionRequestsPath
+        get(): AttentionRequestsPath = attentionRequests()
+
+    private lateinit var _taskActivity: TaskActivityPath
+
+    fun taskActivity(): TaskActivityPath {
+        if (!this::_taskActivity.isInitialized)
+            _taskActivity = TaskActivityPath(this, null, TASK_ACTIVITY__TASK_ACTIVITY_PROJECT_ID_TASK_ID_FKEY.inverseKey)
+
+        return _taskActivity;
+    }
+
+    val taskActivity: TaskActivityPath
+        get(): TaskActivityPath = taskActivity()
+
     private lateinit var _taskLinksProjectIdFromIdFkey: TaskLinksPath
 
     fun taskLinksProjectIdFromIdFkey(): TaskLinksPath {
@@ -201,6 +233,18 @@ open class Tasks(
     val taskLinksProjectIdToIdFkey: TaskLinksPath
         get(): TaskLinksPath = taskLinksProjectIdToIdFkey()
 
+    private lateinit var _taskPersonalState: TaskPersonalStatePath
+
+    fun taskPersonalState(): TaskPersonalStatePath {
+        if (!this::_taskPersonalState.isInitialized)
+            _taskPersonalState = TaskPersonalStatePath(this, null, TASK_PERSONAL_STATE__TASK_PERSONAL_STATE_PROJECT_ID_TASK_ID_FKEY.inverseKey)
+
+        return _taskPersonalState;
+    }
+
+    val taskPersonalState: TaskPersonalStatePath
+        get(): TaskPersonalStatePath = taskPersonalState()
+
     private lateinit var _taskTags: TaskTagsPath
 
     fun taskTags(): TaskTagsPath {
@@ -213,6 +257,18 @@ open class Tasks(
     val taskTags: TaskTagsPath
         get(): TaskTagsPath = taskTags()
 
+    private lateinit var _taskWaitState: TaskWaitStatePath
+
+    fun taskWaitState(): TaskWaitStatePath {
+        if (!this::_taskWaitState.isInitialized)
+            _taskWaitState = TaskWaitStatePath(this, null, TASK_WAIT_STATE__TASK_WAIT_STATE_PROJECT_ID_TASK_ID_FKEY.inverseKey)
+
+        return _taskWaitState;
+    }
+
+    val taskWaitState: TaskWaitStatePath
+        get(): TaskWaitStatePath = taskWaitState()
+
     private lateinit var _threads: ThreadsPath
 
     fun threads(): ThreadsPath {
@@ -224,6 +280,12 @@ open class Tasks(
 
     val threads: ThreadsPath
         get(): ThreadsPath = threads()
+
+    val taskPersonalStatePrincipalIdFkey: PrincipalsPath
+        get(): PrincipalsPath = taskPersonalState().principals()
+
+    val taskWaitStatePrincipalIdFkey: PrincipalsPath
+        get(): PrincipalsPath = taskWaitState().taskWaitStatePrincipalIdFkey()
     override fun getChecks(): List<Check<TasksRecord>> = listOf(
         Internal.createCheck(this, DSL.name("task_cover_attachment"), "(((cover_attachment_id IS NULL) OR (cover_attachment_id = ANY (attachment_ids))))", true),
         Internal.createCheck(this, DSL.name("task_planned_interval"), "(((planned_start IS NULL) OR (planned_end IS NULL) OR (planned_start <= planned_end)))", true),
