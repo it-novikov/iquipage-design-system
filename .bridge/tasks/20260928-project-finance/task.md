@@ -8,7 +8,7 @@ owner: it-novikov
 branch: feature/project-finance
 base: main
 created: 2026-09-28
-updated: 2026-09-28T23:09:34Z
+updated: 2026-09-29T08:40:22Z
 links:
 ---
 
@@ -48,11 +48,11 @@ links:
 
 ## Передача
 
-- **Состояние:** S1–S5 готовы; UI проверен в браузере
-- **Сейчас:** S6 — документация, полный гейт, PR
-- **Дальше:** Полный npm test с TEST_S3_CONFIG, затем verify-vnext.mjs
+- **Состояние:** R1 (субагент): P1 F1 и P2/P3 F2–F8 исправлены в 8f972d4; npm test 204/204, Kotlin unit 42/42, integration 24/24
+- **Сейчас:** S6 — корневой verify-vnext.mjs
+- **Дальше:** PR в main после зелёного verify-vnext
 - **Незакоммичено:** нет
-- **Рабочая копия:** 11 файл(ов): products/sprintique/README.md, products/sprintique/docs/ux-ds-alignment.md, products/sprintique/tests/dev-seed.ts, products/sprintique/ui/planning/src/project-navigation.js, products/sprintique/web/main.js, products/sprintique/web/planning-adapter.js, products/sprintique/web/repository.js, products/sprintique/web/section-route.js, products/sprintique/docs/finance.md, products/sprintique/tests/finance-ui.test.mjs, products/sprintique/ui/finance/ (10 files changed, 53 insertions(+), 14 deletions(-)) · HEAD 6e73290
+- **Рабочая копия:** нет · HEAD 8f972d4
 - **Ловушки:**
   - TEST_S3_CONFIG лежит в /Users/nvkv71/iquipage-work/ux-ds-20260925/products/sprintique/output/infra/storage.json, а не в ux-ds-20260925/output/infra (там только vps.json и migration-*)
   - Системный node — v26; engines требует 24: PATH=/opt/homebrew/opt/node@24/bin:$PATH
