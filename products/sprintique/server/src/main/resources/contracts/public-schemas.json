@@ -10387,6 +10387,72 @@
       ],
       "additionalProperties": false
     },
+    "OAuthDecision": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "request": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        },
+        "approve": {
+          "type": "boolean"
+        },
+        "scopes": {
+          "minItems": 1,
+          "maxItems": 2,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "read",
+              "write"
+            ]
+          }
+        }
+      },
+      "required": [
+        "request",
+        "approve",
+        "scopes"
+      ],
+      "additionalProperties": false
+    },
+    "PersonalToken": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "scopes": {
+          "minItems": 1,
+          "maxItems": 2,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "read",
+              "write"
+            ]
+          }
+        },
+        "expiresInDays": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 365
+        }
+      },
+      "required": [
+        "name",
+        "scopes",
+        "expiresInDays"
+      ],
+      "additionalProperties": false
+    },
     "PlanningCapabilitiesResponse": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",

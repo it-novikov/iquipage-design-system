@@ -4,6 +4,7 @@ import com.sprintique.command.CommandLedger
 import com.sprintique.database.IntegrationDatabase
 import com.sprintique.database.Transaction
 import com.sprintique.identity.domain.Actor
+import com.sprintique.identity.domain.CredentialKind
 import com.sprintique.identity.domain.PrincipalKind
 import com.sprintique.media.application.Assets
 import com.sprintique.media.application.ObjectStoragePort
@@ -168,7 +169,11 @@ class MediaLockIntegrationTest {
                 person,
             )
         }
-        return Actor(person, "Алиса", PrincipalKind.HUMAN, credential, "csrf", null, emptySet(), person) to project
+        return Actor(
+            person, "Алиса", PrincipalKind.HUMAN, credential, "csrf", null, emptySet(), person,
+            CredentialKind.SESSION,
+        ) to
+            project
     }
 
     private companion object {

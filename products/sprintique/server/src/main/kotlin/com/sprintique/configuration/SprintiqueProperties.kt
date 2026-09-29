@@ -10,6 +10,11 @@ import java.net.URI
 @ConfigurationProperties("sprintique")
 data class SprintiqueProperties(
     val publicOrigin: String = "http://localhost:4311",
+    /**
+     * The origin of the programmatic API and the MCP server (`https://api.iqui.page`), served by the same process.
+     * Empty means the interface origin. Session cookies never authorize a request addressed to it.
+     */
+    val apiOrigin: String = "",
     val host: String = "127.0.0.1",
     val port: Int = 4311,
     /** Hop count (for example `1`) or comma-separated proxy addresses; empty means the socket peer is the client. */
@@ -28,6 +33,12 @@ data class SprintiqueProperties(
 ) {
     val isProduction: Boolean get() = environment == "production"
     val isSecureOrigin: Boolean get() = URI(publicOrigin).scheme == "https"
+
+    /** The API origin in effect: also the OAuth issuer and the resource identifier of the whole API (RFC 8707). */
+    val apiBase: String get() = apiOrigin.ifEmpty { publicOrigin }
+
+    /** The resource identifier of the MCP server. */
+    val mcpResource: String get() = "$apiBase/mcp"
 }
 
 data class DatabaseProperties(

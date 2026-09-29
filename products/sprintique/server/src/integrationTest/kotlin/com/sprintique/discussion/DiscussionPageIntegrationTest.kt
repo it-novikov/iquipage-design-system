@@ -4,6 +4,7 @@ import com.sprintique.database.Database
 import com.sprintique.database.IntegrationDatabase
 import com.sprintique.discussion.application.Discussions
 import com.sprintique.identity.domain.Actor
+import com.sprintique.identity.domain.CredentialKind
 import com.sprintique.identity.domain.PrincipalKind
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -100,7 +101,11 @@ class DiscussionPageIntegrationTest {
                 person,
             )
         }
-        val actor = Actor(person, "Алиса", PrincipalKind.HUMAN, "credential-$suffix", "csrf", null, emptySet(), person)
+        val actor =
+            Actor(
+                person, "Алиса", PrincipalKind.HUMAN, "credential-$suffix", "csrf", null, emptySet(), person,
+                CredentialKind.SESSION,
+            )
         return actor to project
     }
 

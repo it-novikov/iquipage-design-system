@@ -50,6 +50,12 @@ object ProjectAccess {
             )
         }
         requireCondition(!capability.isWrite || membership.role in WRITERS, 403, "FORBIDDEN", "Недостаточно прав.")
+        requireCondition(
+            !capability.isWrite || actor.mayChange,
+            403,
+            "INSUFFICIENT_SCOPE",
+            "Токену разрешено только чтение.",
+        )
         if (capability == Capability.AGENTS_MANAGE || capability == Capability.CATALOG_WRITE) {
             requireCondition(
                 actor.isHuman && membership.role == "admin",
@@ -58,7 +64,23 @@ object ProjectAccess {
                 "Нужны права администратора проекта.",
             )
         }
+        // Access itself (agents, members, invitations, jobs) is managed only by the person at the interface: a
+        // delegated token must never mint a credential that outlives it or let someone else in.
+        if (capability == Capability.AGENTS_MANAGE) requireInteractive(actor)
         return membership
+    }
+
+    /**
+     * Security decisions — who has access, approvals of agents' proposals, tokens and connected apps — need the
+     * person's own session. A delegated token acts as the person for their work, not for these.
+     */
+    fun requireInteractive(actor: Actor) {
+        requireCondition(
+            actor.isInteractive,
+            403,
+            "SESSION_REQUIRED",
+            "Это действие доступно только в интерфейсе Sprintique.",
+        )
     }
 
     /**
@@ -76,7 +98,9 @@ object ProjectAccess {
         val found = tx.row(
             """
             SELECT 1 AS found FROM auth.credentials c JOIN auth.principals p ON p.id = c.principal_id
+            LEFT JOIN auth.oauth_grants g ON g.id = c.grant_id
             WHERE c.id = $1 AND c.revoked_at IS NULL AND c.expires_at > clock_timestamp() AND p.disabled_at IS NULL
+              AND (c.grant_id IS NULL OR g.revoked_at IS NULL)
             """.trimIndent(),
             actor.credentialId,
         )

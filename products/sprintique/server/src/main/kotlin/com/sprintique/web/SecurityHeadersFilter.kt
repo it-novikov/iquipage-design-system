@@ -22,6 +22,8 @@ class SecurityHeadersFilter(private val properties: SprintiqueProperties) : Once
         response.setHeader("Referrer-Policy", "same-origin")
         response.setHeader("Cross-Origin-Opener-Policy", "same-origin")
         response.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=(), usb=()")
+        // No page of the product is ever framed, the consent screen above all (clickjacking); CSP says the same.
+        response.setHeader("X-Frame-Options", "DENY")
         if (properties.isSecureOrigin) {
             response.setHeader(
                 "Strict-Transport-Security",

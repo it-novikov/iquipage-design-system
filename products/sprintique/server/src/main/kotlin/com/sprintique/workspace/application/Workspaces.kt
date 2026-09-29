@@ -99,6 +99,7 @@ object Workspaces {
 
     /** Locks the workspace row, revalidates the credential and requires the administrator role after the wait. */
     fun lockAsAdministrator(tx: Transaction, actor: Actor, id: String): Row {
+        ProjectAccess.requireInteractive(actor)
         profile(tx, actor, id)
         tx.update("SELECT id FROM app.workspaces WHERE id = $1 FOR UPDATE", id)
         ProjectAccess.requireActiveCredential(tx, actor)

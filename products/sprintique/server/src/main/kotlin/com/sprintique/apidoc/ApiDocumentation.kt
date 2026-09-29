@@ -53,6 +53,13 @@ class ApiDocumentation(
             "securitySchemes" to linkedMapOf(
                 "humanSession" to linkedMapOf("type" to "apiKey", "in" to "cookie", "name" to "__Host-sprintique"),
                 "agentBearer" to linkedMapOf("type" to "http", "scheme" to "bearer"),
+                "personBearer" to linkedMapOf(
+                    "type" to "http",
+                    "scheme" to "bearer",
+                    "description" to "A person's personal access token (spp_) or OAuth access token (spo_), acting " +
+                        "with the person's rights narrowed by the read/write scopes. Security actions (agents, " +
+                        "members, approvals, tokens) need the session. See /.well-known/oauth-authorization-server.",
+                ),
             ),
             "schemas" to contracts.schemas,
         ),
@@ -81,7 +88,11 @@ class ApiDocumentation(
             "operationId" to key.replace(Regex("[^A-Za-z0-9]+"), "_"),
             "tags" to listOf(tagOf(route)),
             "security" to
-                listOf(mapOf("humanSession" to emptyList<String>()), mapOf("agentBearer" to emptyList<String>())),
+                listOf(
+                    mapOf("humanSession" to emptyList<String>()),
+                    mapOf("agentBearer" to emptyList<String>()),
+                    mapOf("personBearer" to emptyList<String>()),
+                ),
             "parameters" to parameters(method, path, route, idempotent),
         )
         requestBody(body, binary)?.let { operation["requestBody"] = it }
@@ -129,7 +140,7 @@ class ApiDocumentation(
                 "name" to "X-CSRF-Token",
                 "required" to false,
                 "description" to "Required for human session mutations together with same-origin Origin; " +
-                    "not used by bearer agents.",
+                    "not used by bearer tokens.",
                 "schema" to STRING,
             )
         }
@@ -209,6 +220,7 @@ internal object ApiQueries {
     private const val THREAD_PAGE = 50
     private const val THREAD_DEFAULT = 20
     private const val SEARCH_LIMIT = 200
+    private const val OAUTH_REQUEST = 4000
 
     private fun query(name: String, schema: Any?, required: Boolean = false) =
         linkedMapOf("in" to "query", "name" to name, "required" to required, "schema" to schema)
@@ -224,6 +236,9 @@ internal object ApiQueries {
             listOf(query("q", mapOf("type" to "string", "minLength" to 1, "maxLength" to SEARCH_LIMIT), true), cursor)
 
         "$P/tasks" -> listOf(query("cursor", mapOf("type" to "integer", "minimum" to 0, "default" to 0)))
+
+        "/api/v1/oauth/authorization" ->
+            listOf(query("request", mapOf("type" to "string", "minLength" to 1, "maxLength" to OAUTH_REQUEST), true))
 
         "$P/maps", "$P/agent-runs", "$P/approvals" -> listOf(cursor)
 

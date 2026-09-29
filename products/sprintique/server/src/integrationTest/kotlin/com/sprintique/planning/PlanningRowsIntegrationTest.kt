@@ -3,6 +3,7 @@ package com.sprintique.planning
 import com.sprintique.contract.Contracts
 import com.sprintique.database.IntegrationDatabase
 import com.sprintique.identity.domain.Actor
+import com.sprintique.identity.domain.CredentialKind
 import com.sprintique.identity.domain.PrincipalKind
 import com.sprintique.planning.application.PlanningView
 import com.sprintique.planning.application.ViewSupport
@@ -95,7 +96,11 @@ class PlanningRowsIntegrationTest {
             )
             tx.update("UPDATE app.projects SET next_task_number = $2 WHERE id = $1", project, TASKS + 1)
         }
-        return Actor(person, "Алиса", PrincipalKind.HUMAN, credential, "csrf", null, emptySet(), person) to project
+        return Actor(
+            person, "Алиса", PrincipalKind.HUMAN, credential, "csrf", null, emptySet(), person,
+            CredentialKind.SESSION,
+        ) to
+            project
     }
 
     private companion object {

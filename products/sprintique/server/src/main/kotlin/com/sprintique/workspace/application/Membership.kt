@@ -194,6 +194,7 @@ object Membership {
 
     fun acceptInvitation(tx: Transaction, actor: Actor, token: String): Map<String, Any> {
         requireCondition(actor.isHuman, 403, "FORBIDDEN", "Приглашение предназначено для человека.")
+        ProjectAccess.requireInteractive(actor)
         val hash = Tokens.sha256Hex(token)
         // Resolve the scope without exposing project data, then share the management lock order.
         val scope = tx.row("SELECT project_id FROM auth.project_invitations WHERE token_hash = $1", hash)
