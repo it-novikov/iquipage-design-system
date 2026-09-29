@@ -17,3 +17,6 @@
 - 2026-09-28T23:01:10Z · claude · checkpoint · - · дальше: S5 интеграция
 - 2026-09-28T23:14:14Z · claude · step · S1 · done: четыре ветки слиты; библиотека 331/331; гейты обновлены
 - 2026-09-28T23:14:14Z · claude · checkpoint · - · дальше: полный гейт продукта node scripts/test.mjs не запускался из-за лимита сессии — запустить до слияния (JAVA_HOME=/opt/homebrew/opt/openjdk@25, TEST_S3_CONFIG стенда ux-ds); затем волна 1
+- 2026-09-29T08:24:46Z · claude · step · S5 · done: полный гейт продукта node scripts/test.mjs 192/192, exit 0; PR #23
+- 2026-09-29T08:24:47Z · claude · checkpoint · - · дальше: после слияния статус done; волна 1 идёт на ветке feature/ds-wave-1 поверх этой
+- 2026-09-29T08:24:47Z · claude · handoff · - · review; HEAD 9df8a70; незакоммичено 0; Готово к слиянию: PR #23, гейт 192/192
