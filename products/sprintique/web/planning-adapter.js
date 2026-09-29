@@ -18,7 +18,8 @@ export class PlanningAdapter {
   describeRelease({groupId,cursor,signal}){return this.request('release',{groupId,...(cursor?{cursor}:{})},signal);}
   settings(){return this.request('settings');}
   preview({intent,signal}){if(this.pending())throw Error('Сначала проверьте результат предыдущего изменения.');return this.request('preview',ViewIntent.parse(intent),signal);}
-  subscribe(listener){return this.repository.subscribe(event=>{if(event.projectId===this.projectId)listener(event);});}
+  /** Finance changes never touch the plan, so they do not refresh it. */
+  subscribe(listener){return this.repository.subscribe(event=>{if(event.projectId===this.projectId&&!String(event.collection).startsWith('finance'))listener(event);});}
   pending(){
     const raw=sessionStorage.getItem(this.journalKey);if(!raw)return null;
     const value=JSON.parse(raw);

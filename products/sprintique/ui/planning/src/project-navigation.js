@@ -2,7 +2,7 @@ import {registerCore,ui,icon,escapeHTML as esc,notify} from '@iquipage/web/core'
 import {registerAdvanced} from '@iquipage/web/advanced';
 import {formDialog} from './dialog.js';
 import {readProjectContext} from './navigation-model.js';
-const ROUTES=[['tasks','Доска задач'],['planning','Планирование'],['maps','Карты']];
+const ROUTES=[['tasks','Доска задач'],['planning','Планирование'],['maps','Карты'],['finance','Финансы']];
 /** Product-shell composition (UX R3). The host supplies identities, allowed destinations and routing.
  *  Sections stay visible as text at every width; the host marks the current one with setRoute. */
 /** The person's photo over their initials (DS personAvatar), in the one tone they keep everywhere. */
