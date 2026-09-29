@@ -5,10 +5,11 @@
     "text": 4.5,
     "large": 3,
     "ui": 3,
-    "disabled": 3
+    "disabled": 3,
+    "edge": 1.5
   },
-  "pairs": 131,
-  "evaluated": 322,
+  "pairs": 134,
+  "evaluated": 328,
   "failing": 17,
   "entries": {
     "light/default/faint / surface": {

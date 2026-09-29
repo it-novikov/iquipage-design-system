@@ -18,7 +18,7 @@ import { fileURLToPath } from 'node:url';
 export const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 export const baselinePath = path.join(root, 'scripts/gates/contrast-baseline.json');
 
-export const THRESHOLDS = { text: 4.5, large: 3, ui: 3, disabled: 3 };
+export const THRESHOLDS = { text: 4.5, large: 3, ui: 3, disabled: 3, edge: 1.5 };
 /** Tokens that `[data-accent=…]` rewrites (the keys of every accent variant); pairs touching them are evaluated per accent. */
 const ACCENT_TOKENS = ['accent', 'accent-fill', 'accent-soft', 'focus', 'accent-hover-fill'];
 const ACCENTS = ['default', 'violet', 'green'];
@@ -78,7 +78,7 @@ export function themeTokens(tokens, theme, accent, overrides) {
 }
 
 // ---- the matrix ------------------------------------------------------------
-// [label, fg, bg, kind]; fg/bg are token names or (t) => rgba. kind: text | large | ui | disabled.
+// [label, fg, bg, kind]; fg/bg are token names or (t) => rgba. kind: text | large | ui | disabled | edge (1px inner edge of a raised layer).
 const alpha = (token, w, base) => t => mix(parseHex(t[token]), parseHex(t[base]), w);
 export const PAIRS = [];
 const add = (...rows) => PAIRS.push(...rows);
@@ -87,7 +87,7 @@ add(['ink / hover', 'ink', 'hover', 'text'], ['muted / hover', 'muted', 'hover',
 for (const tone of ['success', 'warning', 'danger', 'info', 'planned']) add(
   [`${tone} / canvas`, tone, 'canvas', 'text'], [`${tone} / surface`, tone, 'surface', 'text'], [`${tone} / raised`, tone, 'raised', 'text'],
   [`${tone} / ${tone}-bg (soft badge)`, tone, `${tone}-bg`, 'text'], [`on-${tone} / ${tone}-fill (filled badge)`, `on-${tone}`, `${tone}-fill`, 'text'], [`${tone}-fill / canvas (ui)`, `${tone}-fill`, 'canvas', 'ui']);
-add(['on-neutral / neutral-fill', 'on-neutral', 'neutral-fill', 'text'], ['epic / canvas', 'epic', 'canvas', 'text'], ['on-epic / epic-fill', 'on-epic', 'epic-fill', 'text']);
+add(['on-neutral / neutral-fill', 'on-neutral', 'neutral-fill', 'text'], ['epic / canvas', 'epic', 'canvas', 'text']);
 add(['link: accent / canvas', 'accent', 'canvas', 'text'], ['accent / surface', 'accent', 'surface', 'text'], ['accent / raised', 'accent', 'raised', 'text'], ['accent / accent-soft (pressed btn)', 'accent', 'accent-soft', 'text'],
   ['on-accent / accent-fill (btn.accent)', 'on-accent', 'accent-fill', 'text'], ['on-accent / accent-hover-fill', 'on-accent', 'accent-hover-fill', 'text'], ['accent-fill / canvas (ui)', 'accent-fill', 'canvas', 'ui'], ['accent / canvas (ui, pressed border)', 'accent', 'canvas', 'ui'],
   ['on-primary / primary (btn.primary)', 'on-primary', 'primary', 'text'], ['focus-text / focus-fill', 'focus-text', 'focus-fill', 'text']);
@@ -101,13 +101,17 @@ add(['placeholder: subtle / raised (.iq-input-shell)', 'subtle', 'raised', 'text
   ['disabled input: ink@65% / surface', alpha('ink', .65, 'surface'), 'surface', 'disabled'],
   ['disabled option: ink@40% / raised', alpha('ink', .40, 'raised'), 'raised', 'disabled'],
   ['disabled calendar day: ink@30% / raised', alpha('ink', .30, 'raised'), 'raised', 'disabled']);
-for (const k of ['critical', 'high', 'epic']) add([`task-${k}-text / task-${k}-surface`, `task-${k}-text`, `task-${k}-surface`, 'text'], [`card-accent-${k} / canvas (ui stripe)`, `card-accent-${k}`, 'canvas', 'ui']);
+for (const k of ['critical', 'high']) add([`task-${k}-text / task-${k}-surface`, `task-${k}-text`, `task-${k}-surface`, 'text']);
+add(['task-epic-text / canvas', 'task-epic-text', 'canvas', 'text']);
 add(['task-light-meta / canvas', 'task-light-meta', 'canvas', 'text']);
 for (const k of ['', 'neutral-', 'blue-', 'purple-', 'green-', 'amber-', 'red-']) add([`tag-${k}text / tag-${k}fill`, `tag-${k}text`, `tag-${k}fill`, 'text']);
 for (const k of ['blue', 'sand', 'lilac', 'sage']) add([`avatar-${k}-ink / avatar-${k}-bg`, `avatar-${k}-ink`, `avatar-${k}-bg`, 'text']);
 add(['on-avatar-more / avatar-more', 'on-avatar-more', 'avatar-more', 'text'], ['nav-current-ink / nav-current-bg', 'nav-current-ink', 'nav-current-bg', 'text'], ['calendar-complete-ink / calendar-complete-bg', 'calendar-complete-ink', 'calendar-complete-bg', 'text'],
   ['calendar-adjacent-text / canvas', 'calendar-adjacent-text', 'canvas', 'text'], ['sample-ink / sample-bg', 'sample-ink', 'sample-bg', 'text'], ['priority-neutral-ink / priority-neutral-bg', 'priority-neutral-ink', 'priority-neutral-bg', 'text'],
-  ['canvas / ink (tooltip)', 'canvas', 'ink', 'text'], ['fixed-1d1d1f / white (btn.white)', 'fixed-1d1d1f', 'white', 'text'], ['white / material-deep', 'white', 'material-deep', 'text']);
+  ['canvas / ink (tooltip)', 'canvas', 'ink', 'text'], ['on-white / white (btn.white)', 'on-white', 'white', 'text'], ['document-bed-ink / document-bed', 'document-bed-ink', 'document-bed', 'text'], ['white / media-chip', 'white', 'media-chip', 'text']);
+// COL-08 story roles (dark editorial sections in both themes) and COL-13 layering.
+for (const k of ['ink', 'muted', 'subtle']) add([`story-${k} / story-surface`, `story-${k}`, 'story-surface', 'text']);
+add(['story-line-strong / story-surface (ui)', 'story-line-strong', 'story-surface', 'ui'], ['control / secondary-fill (btn.secondary border)', 'control', 'secondary-fill', 'ui'], ['raised-edge / raised (1px edge)', 'raised-edge', 'raised', 'edge']);
 for (const k of ['sand', 'lavender', 'mint', 'sky', 'rose']) add([`wb-note-ink / wb-${k}`, 'wb-note-ink', `wb-${k}`, 'text']);
 add(['wb-shape-line / wb-canvas (ui)', 'wb-shape-line', 'wb-canvas', 'ui'], ['wb-edge / wb-canvas (ui)', 'wb-edge', 'wb-canvas', 'ui'], ['graph-edge / canvas (ui)', 'graph-edge', 'canvas', 'ui'], ['graph-node-border / graph-node (ui)', 'graph-node-border', 'graph-node', 'ui']);
 for (let i = 1; i <= 6; i++) add([`chart-series-${i} / canvas (ui)`, `chart-series-${i}`, 'canvas', 'ui']);
