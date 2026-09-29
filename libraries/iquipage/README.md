@@ -18,7 +18,25 @@ example demonstrates the form, not just a provider redirect. The Keycloak login 
 shipped from vnext.9 to vnext.20 was removed in vnext.21: no product uses an external
 identity provider's form any more.
 
-## Wave 1 «Основания»: typography (unreleased, on top of 0.6.0-vnext.23)
+## Wave 1 «Основания»: theme on roles, motion tokens, rem type scale (0.6.0-vnext.24)
+
+### Colour and theme on roles
+
+- **The dark theme is a token set, not a patch list.** The 45 `--iq-fixed-*` tokens are gone; their uses became per-theme roles (`scrim`, `story-surface/-ink/-muted/-subtle/-line`, `secondary-fill/-hover-fill`, `document-bed`, `media-chip`, `shadow-color-*`, `on-white`, …). Thirteen colour-only `[data-theme=dark]` patches and the empty dark block left `foundation.css`; twelve dead colour tokens were deleted. Cards, popups, task cards and calendars keep a 1px `--iq-raised-edge` in the dark theme, and `--iq-shadow-1/2/3` are heavier there (COL-08, COL-09, COL-13).
+- **Accents come from `semantic.json`.** `accents.violet` and `accents.green` generate `:root[data-accent=…]` and the dark variants into `tokens.css`; the dark accent fills are 3:1 on raised surfaces with white text 4.5:1, and every accent has a distinct hover fill (COL-03, COL-10).
+- **System theme and boot.** `tokens.css` carries `@media (prefers-color-scheme: dark)` for documents without `data-theme` and `@media (prefers-contrast: more)`; `dist/theme-boot.js` (exported as `./theme-boot.js`, inlined in the catalogs) applies the stored `iq-theme`, `iq-accent`, `iq-density` and `iq-motion` before first paint (COL-11, COL-12, ENG-14).
+- **Status without colour alone.** Success, danger and warning badges carry a glyph by default (`ui.badge(text, tone, withIcon)`), chart series have distinct marker shapes and the palette runs blue, orange, green, purple; `planned` moved toward magenta so it separates from `info` under protanopia (COL-06).
+- **Disabled and focus.** `--iq-disabled-ink` and `--iq-disabled-fill` replace opacity on buttons, selects, options and checks; the focus ring has a canvas-coloured 4px halo so it stays visible on accent and ink surfaces (COL-16, COL-22). The critical task label meets 5:1 on its lit field (COL-07).
+
+### Motion
+
+- Every duration and easing in `src/styles` is a token (`--iq-motion-instant/fast/standard/enter/layout/scene`, `--iq-ease`, `--iq-ease-spring`, `--iq-ease-out`); the `duration-raw` ratchet is 0. `scripts/codemods/motion-tokens.mjs` is replayable and idempotent and also generates `src/styles/motion.css`.
+- Reduced motion: `@media (prefers-reduced-motion: reduce)` and `<html data-motion="reduced">` both zero the motion tokens; the blanket `*{animation:none!important}` resets are gone, so component overrides and the 180 ms `.iq-loading` anti-flicker delay (`--iq-loading-delay`) work again. `motionReduced()` is the only check in JS.
+- New core helpers: `motionMs(name)`, `motionEase(name)`, `scrollBehavior()`, `withoutTransitions(fn)` (theme switch without colour ripple, CSS `:root[data-theme-switching]`), `bindLoading(el)` (`.iq-loading-slow` + status note after 5 s).
+- Enter/exit pairs are symmetrical: dialog fade standard/standard, drawer slide enter/enter, menu fade fast/fast, toast standard/standard. `iq-dialog.close()` returns focus and emits `iq-close` immediately, keeps the dialog `inert` during the exit and ignores a second close.
+- `.iq-progress` animates `transform` (the `--progress` percentage API is unchanged); the editor no longer animates `height`; the hover lift applies only to `.iq-btn.primary/.secondary`; `.wb-world` gets `will-change` only while gesturing; `.iq-skeleton` breathes three times and rests faint. See docs/INTEGRATION.md «Движение» and «Загрузка».
+
+### Typography
 
 - **Type scale in rem.** Every `--iq-type-*-size` is rem at a 16px root (`html{font-size:100%}` in the new `src/styles/text.css`): display 4rem, heading1 2.75rem, heading2 2rem, heading3 1.375rem, lead 1.25rem, title 1.125rem, body 1rem, interface .875rem (the body stays visually 14px), label .8125rem, caption .75rem. The browser's font-size preference now scales text; spacing, controls and radii stay in px. `--iq-type-meta-size` is `.75rem`: the 12px floor of the system (TYP-03, TYP-04).
 - **One replayable codemod.** `node scripts/codemods/type-scale.mjs` rewrites `src/styles/*.css` and is idempotent (a second run reports 0 changes; `tests/wave1-type.test.cjs` proves the tree is in normal form). px font sizes on a scale step become `var(--iq-type-*-size)`, off-scale sizes become rem literals (15px → .9375rem), component text below 12px is raised to the meta token, catalog selectors (`.home- .landing- .proof- .narrative- .sample- .demo- .story- .catalog- .edition- .feature- .cover-`) keep their size as rem. Inside `@media (max-width…)` a font size smaller than the selector's base size is removed when that base is below 24px: media queries change composition, never shrink small text; display sizes (base ≥ 24px, e.g. `.type-hero`, `.landing-intro h1`, `.task-drawer-title`) keep their responsive value, converted like any other size (TYP-05). Rerun it after merging other CSS changes.
@@ -51,14 +69,6 @@ The package now ships its font: `assets/fonts/InterVariable.woff2` (Inter 4.1, S
 icons lost their text, worst in the dark theme). The saturated colours stay available as
 `--iq-success-fill` and `--iq-warning-fill`; `.iq-pro-state.is-error` uses the fill. Text on the
 tints keeps at least 4.5:1 in both themes. The Keycloak theme is gone from the package.
-
-## Motion tokens and one reduced-motion strategy (wave 1)
-
-- Every duration and easing in `src/styles` is a token (`--iq-motion-instant/fast/standard/enter/layout/scene`, `--iq-ease`, `--iq-ease-spring`, `--iq-ease-out`); the `duration-raw` ratchet is 0. `scripts/codemods/motion-tokens.mjs` is replayable and idempotent and also generates `src/styles/motion.css`.
-- Reduced motion: `@media (prefers-reduced-motion: reduce)` and `<html data-motion="reduced">` both zero the motion tokens; the blanket `*{animation:none!important}` resets are gone, so component overrides and the 180 ms `.iq-loading` anti-flicker delay (`--iq-loading-delay`) work again. `motionReduced()` is the only check in JS.
-- New core helpers: `motionMs(name)`, `motionEase(name)`, `scrollBehavior()`, `withoutTransitions(fn)` (theme switch without colour ripple, CSS `:root[data-theme-switching]`), `bindLoading(el)` (`.iq-loading-slow` + status note after 5 s).
-- Enter/exit pairs are symmetrical: dialog fade standard/standard, drawer slide enter/enter, menu fade fast/fast, toast standard/standard. `iq-dialog.close()` returns focus and emits `iq-close` immediately, keeps the dialog `inert` during the exit and ignores a second close.
-- `.iq-progress` animates `transform` (the `--progress` percentage API is unchanged); the editor no longer animates `height`; the hover lift applies only to `.iq-btn.primary/.secondary`; `.wb-world` gets `will-change` only while gesturing; `.iq-skeleton` breathes three times and rests faint. See docs/INTEGRATION.md «Движение» and «Загрузка».
 
 ## Drawer motion, unread counts and arrowheads (0.6.0-vnext.20)
 

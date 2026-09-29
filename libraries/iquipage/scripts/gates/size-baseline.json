@@ -1,12 +1,12 @@
 {
   "note": "gzip bytes of the built dist today (ENG-01/03 ratchet: +2% max). Regenerate after a deliberate change: npm run gates:update.",
   "tolerance": 0.02,
-  "core-closure-gzip": 147893,
+  "core-closure-gzip": 147892,
   "iquipage-css-gzip": 92187,
   "icons-gzip": 55980,
   "coreClosureFiles": 25,
   "files": {
-    "dist/core.js": 1208,
+    "dist/core.js": 1207,
     "dist/modules/components.js": 20551,
     "dist/modules/date-field.js": 4207,
     "dist/modules/editor.js": 9067,
