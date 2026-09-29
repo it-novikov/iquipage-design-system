@@ -33,7 +33,11 @@ export function mountTaskFiles(root,{coverRoot,adapter,task,readOnly=false,onCov
   const list=root.querySelector('[data-file-list]'),error=root.querySelector('[data-file-error]');
   const report=e=>{if(!closed){error.hidden=false;error.textContent=e.message||'Не удалось загрузить файл. Повторите попытку.';}};
   const emit=()=>root.dispatchEvent(new CustomEvent('task-files-change',{bubbles:true}));
-  const discard=id=>{if(adapter)Promise.resolve(adapter.discard(target(id))).catch(()=>{});};
+  // A file still being published cannot be discarded yet (FILE_BUSY): try again for up to a minute.
+  const discard=(id,attempt=0)=>{if(adapter)Promise.resolve(adapter.discard(target(id))).catch(error=>{if(error?.code==='FILE_BUSY'&&attempt<6)setTimeout(()=>discard(id,attempt+1),2000*(attempt+1));});};
+  // Originals share the download lane (8 per sign-in): fetch at most three previews at once.
+  let previewSlots=3;const previewQueue=[];
+  const previewFetch=run=>new Promise((resolve,reject)=>{const start=()=>{previewSlots--;run().then(resolve,reject).finally(()=>{previewSlots++;previewQueue.shift()?.();});};if(previewSlots>0)start();else previewQueue.push(start);});
   const controller=()=>{const item=new AbortController();requests.add(item);return item;};
   const rowFor=id=>list.querySelector(`[data-file-row="${CSS.escape(id)}"]`);
   const states={queued:'В очереди',uploading:'Загружается',preparing:'Проверка файла',processing:'Сохраняется в хранилище',saving:'Сохраняется',ready:'',failed:'Не загружен',loading:'Чтение',unavailable:'Хранилище не подключено'};
@@ -76,7 +80,7 @@ export function mountTaskFiles(root,{coverRoot,adapter,task,readOnly=false,onCov
     if(row.meta&&!row.previewStarted&&!row.meta.image&&isVideo(row.meta.mime)&&adapter.url){row.previewStarted=true;placeTile(element,row,'video');}
     if(row.meta&&!row.previewStarted&&!row.meta.image&&!smallDocument(row.meta.mime,row.meta.size)){row.previewStarted=true;placeTile(element,row,'file');}
     if(row.meta&&!row.previewStarted){row.previewStarted=true;const request=controller();
-      adapter.blob({...target(row.id),variant:row.meta.image?'display':'original'},{signal:request.signal}).then(blob=>{
+      previewFetch(()=>adapter.blob({...target(row.id),variant:row.meta.image?'display':'original'},{signal:request.signal})).then(blob=>{
         if(closed||!rows.has(row.id)||!element.isConnected)return;
         if(row.meta.image)requireValue(blob.type==='image/webp','FILE_PREVIEW','Миниатюра недоступна.');
         element.querySelector('iq-file-preview').file=new File([blob],row.name,{type:row.meta.image?'image/webp':row.meta.mime});

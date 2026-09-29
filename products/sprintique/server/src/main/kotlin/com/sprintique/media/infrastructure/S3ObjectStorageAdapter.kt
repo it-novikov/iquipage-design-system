@@ -3,6 +3,7 @@ package com.sprintique.media.infrastructure
 import com.sprintique.configuration.StorageProperties
 import com.sprintique.media.application.ObjectStoragePort
 import com.sprintique.media.application.ObjectWrite
+import org.slf4j.LoggerFactory
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration
@@ -36,6 +37,7 @@ import java.time.Duration
  */
 class S3ObjectStorageAdapter(private val settings: StorageProperties) : ObjectStoragePort, AutoCloseable {
     private val client: S3Client
+    private val log = LoggerFactory.getLogger(S3ObjectStorageAdapter::class.java)
 
     init {
         val endpoint = URI(settings.endpoint)
@@ -90,7 +92,13 @@ class S3ObjectStorageAdapter(private val settings: StorageProperties) : ObjectSt
 
     override fun remove(key: String) {
         client.deleteObject(DeleteObjectRequest.builder().bucket(settings.bucket).key(stored(key)).build())
-        abandon(stored(key), except = null)
+        // Needs ListBucketMultipartUploads and AbortMultipartUpload; without them the object is still gone, and the
+        // bucket's lifecycle rule for incomplete uploads is the remaining line.
+        try {
+            abandon(stored(key), except = null)
+        } catch (error: SdkException) {
+            log.warn("Unfinished uploads of a removed object were not aborted: {}", error.javaClass.simpleName)
+        }
     }
 
     /** A process that died mid-upload leaves parts no object points to, still billed; only a listing finds them. */

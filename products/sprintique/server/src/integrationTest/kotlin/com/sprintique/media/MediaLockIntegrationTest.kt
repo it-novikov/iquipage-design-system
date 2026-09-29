@@ -116,6 +116,93 @@ class MediaLockIntegrationTest {
         }
     }
 
+    @Test
+    fun `finishing a publication takes the project lock before the file, and an abandoned one reopens`() {
+        val (actor, projectId) = seed()
+        val sha = HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(bytes))
+        asPerson(actor) { tx ->
+            Assets.reserve(
+                tx,
+                actor,
+                projectId,
+                Reservation("ordered-file", "task", "lock-task", "lock.txt", bytes.size.toLong(), sha),
+                UUID.randomUUID().toString(),
+                ledger,
+            )
+        }
+        val storage = StallingStorage().also { it.release.countDown() }
+        val plan = (
+            asPerson(actor) { tx ->
+                Assets.startUpload(tx, actor, projectId, "ordered-file", -1)
+            } as UploadStart.Accepted
+            ).plan
+        Uploads(storage, ImageIoImageTranscoder()).receive(plan, ByteArrayInputStream(bytes)).use { content ->
+            val step = asPerson(actor) { tx ->
+                Assets.startPublishing(tx, actor, projectId, "ordered-file", content)
+            } as Publishing.Go
+            // Storage refused: the upload waits for its bytes again.
+            asPerson(actor) { tx -> Assets.failPublishing(tx, projectId, "ordered-file", step) }
+            assertThat(stateOf(projectId, "ordered-file")).isEqualTo("uploading")
+            val again = asPerson(actor) { tx ->
+                Assets.startPublishing(tx, actor, projectId, "ordered-file", content)
+            } as Publishing.Go
+            Executors.newVirtualThreadPerTaskExecutor().use { executor ->
+                val finished = IntegrationDatabase.admin.transaction { tx ->
+                    tx.update("SELECT id FROM app.projects WHERE id = $1 FOR UPDATE", projectId)
+                    val finishing = executor.submit<Any> {
+                        asPerson(actor) { inner ->
+                            Assets.finishPublishing(inner, actor, projectId, "ordered-file", again, content)
+                        }
+                    }
+                    assertThat(waitsOnProjectLock()).isTrue()
+                    finishing
+                }
+                finished.get(WAIT, TimeUnit.SECONDS)
+            }
+        }
+        assertThat(stateOf(projectId, "ordered-file")).isEqualTo("ready")
+        // A publication whose process never came back is abandoned after its lease: discarding works again.
+        IntegrationDatabase.admin.transaction { tx ->
+            tx.update(
+                """
+                UPDATE app.assets SET state = 'publishing', updated_at = clock_timestamp() - interval '11 minutes'
+                WHERE project_id = $1 AND id = $2
+                """.trimIndent(),
+                projectId,
+                "ordered-file",
+            )
+        }
+        asPerson(actor) { tx -> Assets.discard(tx, actor, projectId, "ordered-file") }
+        assertThat(stateOf(projectId, "ordered-file")).isEqualTo("detached")
+        // The queue is shared with the suites that run next: this project's cleanup job must not stay due.
+        IntegrationDatabase.admin.transaction { tx ->
+            tx.update(
+                "UPDATE work.jobs SET state = 'cancelled' WHERE project_id = $1 AND state IN ('pending', 'running')",
+                projectId,
+            )
+        }
+    }
+
+    private fun stateOf(projectId: String, id: String) = IntegrationDatabase.admin.transaction { tx ->
+        tx.row("SELECT state FROM app.assets WHERE project_id = $1 AND id = $2", projectId, id)!!.string("state")
+    }
+
+    private fun waitsOnProjectLock(): Boolean {
+        repeat(ATTEMPTS) {
+            val waiting = IntegrationDatabase.admin.transaction { tx ->
+                tx.row(
+                    """
+                    SELECT 1 AS found FROM pg_stat_activity
+                    WHERE wait_event_type = 'Lock' AND query LIKE '%app.projects%FOR UPDATE%' AND pid <> pg_backend_pid()
+                    """.trimIndent(),
+                )
+            }
+            if (waiting != null) return true
+            Thread.sleep(POLL)
+        }
+        return false
+    }
+
     private fun <T> asPerson(actor: Actor, block: (Transaction) -> T): T = runtime.transaction { tx ->
         tx.row("SELECT set_config('app.actor_id', $1, true), set_config('app.project_limit', '', true)", actor.id)
         block(tx)
@@ -186,5 +273,7 @@ class MediaLockIntegrationTest {
 
     private companion object {
         const val WAIT = 10L
+        const val ATTEMPTS = 200
+        const val POLL = 10L
     }
 }

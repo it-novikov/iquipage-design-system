@@ -11,10 +11,10 @@ import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * Per-process safeguards, not cluster-wide quotas: a per-address window (1000 requests and 20 sign-ins a minute),
- * at most 64 requests and 8 short uploads in flight. Long transfers have lanes of their own, so they never crowd out
- * short requests, each with a cap per credential so that one person cannot hold a whole lane: uploads of more than
- * 32 MiB (8, 2 each) and downloads of originals (32, 8 each), which a paused player may hold open. Event streams have
- * their own cap too; readiness is never shed.
+ * at most 64 requests in flight. Transfers have lanes with a cap in total and a cap per credential (a session or an
+ * agent token), so that one sign-in cannot hold a whole lane: short uploads — up to 32 MiB, and a person's photo —
+ * (8, 2 each), long uploads (8, 2 each) and downloads of originals (32, 8 each), which a paused player may hold open.
+ * Long transfers do not count against the 64. Event streams have their own cap too; readiness is never shed.
  */
 @Component
 @Profile("api")
@@ -24,7 +24,7 @@ class RequestLimitFilter(private val clientAddresses: ClientAddresses) : OncePer
 
     private val windows = LinkedHashMap<String, Window>()
     private val active = AtomicInteger()
-    private val uploads = AtomicInteger()
+    private val uploads = Lane(MAX_UPLOADS, UPLOADS_EACH)
     private val longUploads = Lane(MAX_LONG_UPLOADS, LONG_UPLOADS_EACH)
     private val downloads = Lane(MAX_DOWNLOADS, DOWNLOADS_EACH)
 
@@ -78,37 +78,21 @@ class RequestLimitFilter(private val clientAddresses: ClientAddresses) : OncePer
         if (isFileContent(request) && request.contentLengthLong !in 0..SHORT_BODY) {
             return admitLane(longUploads, request, response, chain)
         }
-        val upload = isUpload(request)
-        if (active.get() >= MAX_ACTIVE || (upload && uploads.get() >= MAX_UPLOADS)) {
-            return ProblemWriter.write(
-                request,
-                response,
-                503,
-                "BUSY",
-                "Сервис занят. Повторите через несколько секунд.",
-            )
-        }
+        if (active.get() >= MAX_ACTIVE) return busy(request, response)
         active.incrementAndGet()
-        if (upload) uploads.incrementAndGet()
         try {
-            chain.doFilter(request, response)
+            if (isUpload(request)) admitLane(uploads, request, response, chain) else chain.doFilter(request, response)
         } finally {
             active.decrementAndGet()
-            if (upload) uploads.decrementAndGet()
         }
     }
 
+    private fun busy(request: HttpServletRequest, response: HttpServletResponse) =
+        ProblemWriter.write(request, response, 503, "BUSY", "Сервис занят. Повторите через несколько секунд.")
+
     private fun admitLane(lane: Lane, request: HttpServletRequest, response: HttpServletResponse, chain: FilterChain) {
         val holder = holderOf(request)
-        if (!lane.enter(holder)) {
-            return ProblemWriter.write(
-                request,
-                response,
-                503,
-                "BUSY",
-                "Сервис занят. Повторите через несколько секунд.",
-            )
-        }
+        if (!lane.enter(holder)) return busy(request, response)
         try {
             chain.doFilter(request, response)
         } finally {
@@ -116,10 +100,14 @@ class RequestLimitFilter(private val clientAddresses: ClientAddresses) : OncePer
         }
     }
 
-    /** Whose transfer this is: the credential the request carries, or else its address. Kept in memory only. */
+    /**
+     * Whose transfer this is: the credential the request carries, read the way authentication reads it (every Cookie
+     * header, trimmed), or else its address. Kept in memory only.
+     */
     private fun holderOf(request: HttpServletRequest): String =
-        request.getHeader("Authorization")
-            ?: AUTH_COOKIE.find(request.getHeader("Cookie").orEmpty())?.groupValues?.get(1)
+        request.getHeader("Authorization")?.trim()
+            ?: request.getHeaders("Cookie").toList().flatMap { it.split(';') }.map(String::trim)
+                .firstOrNull { it.startsWith("$SESSION_COOKIE=") }?.substringAfter('=')?.trim()
             ?: ("address:" + clientAddresses.of(request))
 
     @Synchronized
@@ -153,7 +141,8 @@ class RequestLimitFilter(private val clientAddresses: ClientAddresses) : OncePer
 
         /** An upload body up to this size is a short request. */
         private const val SHORT_BODY = 32L * 1024 * 1024
-        private val AUTH_COOKIE = Regex("(?:^|;\\s*)__Host-sprintique=([^;]+)")
+        private const val UPLOADS_EACH = 2
+        private const val SESSION_COOKIE = "__Host-sprintique"
 
         /** Entry points that start a sign-in or check a secret: they share the tighter per-address login budget. */
         private val LOGINS = listOf("/auth/login", "/auth/dev-login", "/auth/email/")

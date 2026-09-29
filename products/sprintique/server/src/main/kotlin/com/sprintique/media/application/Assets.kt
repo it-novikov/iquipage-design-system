@@ -12,6 +12,7 @@ import com.sprintique.media.domain.StoredObjects
 import com.sprintique.problem.ProblemException
 import com.sprintique.problem.requireCondition
 import com.sprintique.problem.requirePresent
+import java.time.Duration
 import java.time.Instant
 
 /** A reservation of an upload before its bytes arrive. */
@@ -46,6 +47,16 @@ sealed interface UploadResult {
     data class Rejected(val problem: ProblemException) : UploadResult
 }
 
+/** The longest a publication may take (two storage calls of two minutes, with room); past it, it is abandoned. */
+private val PUBLISH_LEASE: Duration = Duration.ofMinutes(10)
+
+/** The asset's state, reading a publication abandoned past its lease as an upload waiting for its bytes. */
+private fun stateOf(asset: Row): String {
+    val state = asset.string("state")
+    val stale = asset.instant("updatedAt").isBefore(Instant.now().minus(PUBLISH_LEASE))
+    return if (state == "publishing" && stale) "uploading" else state
+}
+
 /**
  * Private files of tasks, maps and project avatars. Every media mutation locks project, then asset — the same order as
  * task, map and avatar saves — and rechecks credentials and policy after waiting: admission is not a grant.
@@ -56,9 +67,12 @@ object Assets {
     const val MAP_IMAGE_LIMIT = 40
     private const val BUSY = "Файл ещё сохраняется. Повторите через несколько секунд."
 
+    /** A staged file just published gets at least this long to be linked before cleanup may take it. */
+    private val LINK_WINDOW: Duration = Duration.ofHours(1)
+
     private val PROJECTION = """
         id, project_id AS "projectId", target_type AS "targetType", target_id AS "targetId", actor_id AS "actorId", name, size, sha256,
-        state, mime, image, width, height, revision, created_at AS "createdAt", expires_at AS "expiresAt"
+        state, mime, image, width, height, revision, created_at AS "createdAt", updated_at AS "updatedAt", expires_at AS "expiresAt"
     """.trimIndent()
 
     fun key(
@@ -174,13 +188,15 @@ object Assets {
     fun startUpload(tx: Transaction, actor: Actor, projectId: String, id: String, declaredLength: Long): UploadStart {
         val asset = writable(tx, actor, projectId, id)
         requireUploadable(asset, actor)
+        // Refused before a byte is read: the body could not be published while another publication is under way.
+        requireCondition(stateOf(asset) != "publishing", 409, "FILE_BUSY", BUSY)
         val plan = UploadPlan(
             key(asset, "original"),
             asset.string("name"),
             asset.long("size"),
             asset.string("sha256"),
             asset.string("targetType"),
-            store = asset.string("state") == "uploading",
+            store = stateOf(asset) == "uploading",
             deadline = asset.instant("expiresAt"),
         )
         if (!plan.store) return UploadStart.Accepted(plan)
@@ -207,9 +223,9 @@ object Assets {
 
     /**
      * The first step of finishing an upload, under the project and asset locks: checks the reservation once more and
-     * marks the asset `publishing`. The objects are then written with no transaction or lock held; discarding waits
-     * for the outcome. If the process dies meanwhile, the reservation's own cleanup job removes what it left behind
-     * once the reservation expires, as for any unfinished upload.
+     * marks the asset `publishing`. The objects are then written with no transaction or lock held; discarding is
+     * refused meanwhile (FILE_BUSY) and cleanup postpones it. A publication that never finishes — its process died, its
+     * session ended — is abandoned after ten minutes: the upload is open again, and cleanup may take it once expired.
      */
     fun startPublishing(
         tx: Transaction,
@@ -220,8 +236,8 @@ object Assets {
     ): Publishing {
         val asset = writable(tx, actor, projectId, id)
         requireUploadable(asset, actor)
-        requireCondition(asset.string("state") != "publishing", 409, "FILE_BUSY", BUSY)
-        if (asset.string("state") != "uploading") return Publishing.Done(UploadResult.Stored(publicMetadata(asset)))
+        requireCondition(stateOf(asset) != "publishing", 409, "FILE_BUSY", BUSY)
+        if (stateOf(asset) != "uploading") return Publishing.Done(UploadResult.Stored(publicMetadata(asset)))
         try {
             requireFresh(asset)
             requireCondition(
@@ -233,8 +249,7 @@ object Assets {
         } catch (problem: ProblemException) {
             return Publishing.Done(UploadResult.Rejected(quarantine(tx, actor, projectId, asset, problem)))
         }
-        ProjectAccess.requireActiveCredential(tx, actor)
-        access(tx, actor, projectId, asset.string("targetType"), true)
+        // writable() has already rechecked the credential and access under the project lock.
         tx.update(
             """
             UPDATE app.assets SET state = 'publishing', revision = revision + 1, updated_at = clock_timestamp()
@@ -245,7 +260,10 @@ object Assets {
         return Publishing.Go(asset, asset.long("revision") + 1)
     }
 
-    /** Marks a published upload ready. Only this publication may finish it. */
+    /**
+     * Marks a published upload ready, taking the project lock before the asset like every media mutation. Only this
+     * publication may finish it. A file published close to its expiry gets [LINK_WINDOW] to be linked.
+     */
     fun finishPublishing(
         tx: Transaction,
         actor: Actor,
@@ -254,7 +272,7 @@ object Assets {
         publication: Publishing.Go,
         content: ReceivedContent,
     ): UploadResult {
-        val asset = row(tx, projectId, id, lock = true)
+        val asset = writable(tx, actor, projectId, id)
         requireCondition(
             asset.string("state") == "publishing" && asset.long("revision") == publication.revision,
             409,
@@ -270,7 +288,13 @@ object Assets {
             """.trimIndent(),
             projectId, id, content.file.mime, preview != null, preview?.width, preview?.height,
         )
-        AuditTrail.record(tx, actor, projectId, "asset.ready", id, publication.revision + 1)
+        val revision = publication.revision + 1
+        AuditTrail.record(tx, actor, projectId, "asset.ready", id, revision)
+        val window = Instant.now().plus(LINK_WINDOW)
+        if (asset.instant("expiresAt").isBefore(window)) {
+            tx.update("UPDATE app.assets SET expires_at = $3 WHERE project_id = $1 AND id = $2", projectId, id, window)
+            CleanupJobs.enqueue(tx, projectId, id, revision, window)
+        }
         return UploadResult.Stored(publicMetadata(row(tx, projectId, id)))
     }
 
@@ -310,7 +334,7 @@ object Assets {
         asset: Row,
         problem: ProblemException,
     ): ProblemException {
-        if (problem.status !in setOf(410, 422) || asset.string("state") != "uploading") return problem
+        if (problem.status !in setOf(410, 422) || stateOf(asset) != "uploading") return problem
         val id = asset.string("id")
         val revision = asset.long("revision") + 1
         tx.update(
@@ -354,8 +378,8 @@ object Assets {
             "Удалить несохранённую загрузку может её автор.",
         )
         requireCondition(asset.string("state") != "attached", 409, "FILE_ATTACHED", "Сначала уберите файл из объекта.")
-        requireCondition(asset.string("state") != "publishing", 409, "FILE_BUSY", BUSY)
-        if (asset.string("state") in setOf("uploading", "ready")) {
+        requireCondition(stateOf(asset) != "publishing", 409, "FILE_BUSY", BUSY)
+        if (stateOf(asset) in setOf("uploading", "ready")) {
             val revision = asset.long("revision") + 1
             tx.update(
                 """

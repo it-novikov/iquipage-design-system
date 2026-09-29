@@ -34,10 +34,15 @@ export class S3ObjectStorage implements ObjectStorage {
     try{for await(const chunk of body){length+=chunk.byteLength;if(length>limit)throw Error('Object exceeds canonical limit');chunks.push(chunk);}}
     catch(error){body.destroy?.();throw error;}
     return Buffer.concat(chunks,length);}
+  /** An object's response once its headers arrived: the 15-second deadline covers only that, not the body. */
+  private async opened(key:string){
+    const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),15000);
+    try{const response=await this.client.send(new GetObjectCommand({Bucket:this.settings.bucket,Key:key}),{abortSignal:controller.signal});
+      if(!response.Body)throw Error('Object content missing');return response;}finally{clearTimeout(timer);}
+  }
   /** Streams an object into a new private file and returns its SHA-256 and size; nothing is held whole. */
   async download(key:string,path:string){
-    const response=await this.client.send(new GetObjectCommand({Bucket:this.settings.bucket,Key:key}),{abortSignal:AbortSignal.timeout(15000)});
-    if(!response.Body)throw Error('Object content missing');
+    const response=await this.opened(key);
     const hash=createHash('sha256');let bytes=0;
     const counter=new Transform({transform(chunk:Buffer,_encoding,done){hash.update(chunk);bytes+=chunk.length;done(null,chunk);}});
     await pipeline(response.Body as Readable,counter,createWriteStream(path,{mode:0o600,flags:'wx'}));
@@ -50,7 +55,7 @@ export class S3ObjectStorage implements ObjectStorage {
   }
   /** The SHA-256 of an object, read as a stream. */
   async sha256(key:string){
-    const response=await this.client.send(new GetObjectCommand({Bucket:this.settings.bucket,Key:key}),{abortSignal:AbortSignal.timeout(15000)});
+    const response=await this.opened(key);
     const hash=createHash('sha256');for await(const chunk of response.Body as AsyncIterable<Uint8Array>)hash.update(chunk);return hash.digest('hex');
   }
   async remove(key:string){await this.client.send(new DeleteObjectCommand({Bucket:this.settings.bucket,Key:key}),{abortSignal:AbortSignal.timeout(15000)});}

@@ -42,6 +42,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import tools.jackson.databind.JsonNode
 import tools.jackson.databind.annotation.JsonDeserialize
+import java.io.IOException
 import java.net.URLEncoder
 
 enum class AssetTarget(@get:JsonValue val wire: String) { TASK("task"), MAP("map"), PROJECT_AVATAR("project-avatar") }
@@ -246,16 +247,24 @@ class MediaController(
             response.setHeader("Content-Range", "bytes $first-$last/$length")
         }
         response.setContentLengthLong(last - first + 1)
-        while (window != null) {
-            val end = minOf(last, position + WINDOW - 1)
-            window.use { it.transferTo(response.outputStream) }
-            position = end + 1
-            window = if (position > last) {
-                null
-            } else {
-                readable(request, projectId, id)
-                storage.read(key, position..minOf(last, position + WINDOW - 1))
+        try {
+            while (window != null) {
+                val end = minOf(last, position + WINDOW - 1)
+                window.use { it.transferTo(response.outputStream) }
+                position = end + 1
+                window = if (position > last) {
+                    null
+                } else {
+                    readable(request, projectId, id)
+                    storage.read(key, position..minOf(last, position + WINDOW - 1))
+                }
             }
+        } catch (error: IOException) {
+            // A player that seeks or a reader that leaves closes the connection: an ordinary end, not a failure.
+            if (!response.isCommitted) throw error
+        } catch (problem: ProblemException) {
+            // Access ended mid-download: the response is already under way, so it simply stops short.
+            if (!response.isCommitted) throw problem
         }
     }
 

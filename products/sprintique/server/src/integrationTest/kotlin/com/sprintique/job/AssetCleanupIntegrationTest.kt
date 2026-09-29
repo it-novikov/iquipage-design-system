@@ -88,6 +88,26 @@ class AssetCleanupIntegrationTest {
         assertThat(row["last_error"]).isEqualTo("ASSET_GC_FAILED")
     }
 
+    @Test
+    fun `cleanup waits for a publication under way and takes one abandoned past its lease`() {
+        val (projectId, assetId, sha) = discarded("publishing")
+        val storage = RecordingStorage()
+        AssetCleanup(IntegrationDatabase.worker, storage).collectOne()
+        assertThat(storage.removed).isEmpty()
+        assertThat(state(projectId, assetId)).isEqualTo("publishing")
+        assertThat(job(projectId, assetId)["state"]).isEqualTo("pending")
+        admin.transaction { tx ->
+            tx.update(
+                "UPDATE app.assets SET updated_at = clock_timestamp() - interval '11 minutes' WHERE project_id = $1",
+                projectId,
+            )
+            tx.update("UPDATE work.jobs SET available_at = clock_timestamp() WHERE project_id = $1", projectId)
+        }
+        assertThat(AssetCleanup(IntegrationDatabase.worker, storage).collectOne()).isTrue()
+        assertThat(storage.removed).contains("assets/$projectId/$assetId/$sha/original")
+        assertThat(state(projectId, assetId)).isEqualTo("deleted")
+    }
+
     /** A project with one file in `state`, expired, and its due cleanup job. */
     private fun discarded(state: String): Triple<String, String, String> {
         val suffix = UUID.randomUUID().toString().take(8)

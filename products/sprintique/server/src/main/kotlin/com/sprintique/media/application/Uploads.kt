@@ -60,8 +60,8 @@ class ReceivedContent(
  * [PART_SIZE] into a multipart write, and only after the size and SHA-256 match the reservation may the caller
  * publish it. Small files and previewable images up to [FileInspection.IMAGE_BYTES] are held whole — the images
  * because they are decoded into previews — within a process-wide budget of [HELD_BUDGET] bytes. No database
- * transaction is open while a body streams; a body that outlives its reservation, or trickles in slower than
- * [MIN_RATE] bytes a second once [GRACE_NANOS] have passed, is cut off.
+ * transaction is open while a body streams; a body that outlives its reservation, trickles in slower than
+ * [MIN_RATE] bytes a second once [GRACE_NANOS] have passed, or is held and takes longer than [HELD_NANOS], is cut off.
  */
 class Uploads(
     private val storage: ObjectStoragePort,
@@ -129,7 +129,7 @@ class Uploads(
                 parts?.part(buffer, filled)
                 filled = 0
             }
-            requirePace(plan, check.size, started)
+            requirePace(plan, check.size, started, kept)
         }
     }
 
@@ -140,10 +140,12 @@ class Uploads(
         return -1
     }
 
-    private fun requirePace(plan: UploadPlan, received: Long, started: Long) {
+    /** A held body occupies memory from its first byte, so it must also arrive within [HELD_NANOS]. */
+    private fun requirePace(plan: UploadPlan, received: Long, started: Long, kept: Boolean) {
         requireCondition(now().isBefore(plan.deadline), 410, "UPLOAD_EXPIRED", "Срок загрузки истёк.")
         val elapsed = nanoTime() - started
-        if (elapsed > GRACE_NANOS && received < MIN_RATE * (elapsed / NANOS)) {
+        val slow = elapsed > GRACE_NANOS && received < MIN_RATE * (elapsed / NANOS)
+        if (slow || (kept && elapsed > HELD_NANOS)) {
             throw ProblemException(
                 REQUEST_TIMEOUT,
                 "UPLOAD_TOO_SLOW",
@@ -175,7 +177,14 @@ class Uploads(
     private fun preview(bytes: ByteArray, targetType: String): ProcessedImage? = try {
         images.variants(bytes)
     } catch (problem: ProblemException) {
-        if (targetType == "task" && problem.code in KEPT_WITHOUT_PREVIEW) null else throw problem
+        when {
+            targetType == "task" && problem.code in KEPT_WITHOUT_PREVIEW -> null
+
+            // Out of time under load is not the image's fault: a map image or avatar may simply be sent again.
+            problem.code == "IMAGE_TIMEOUT" -> throw ProblemException(429, "IMAGE_BUSY", BUSY_IMAGES)
+
+            else -> throw problem
+        }
     }
 
     companion object {
@@ -188,6 +197,10 @@ class Uploads(
         /** The slowest sustained upload accepted once the first minute has passed: 16 KiB a second. */
         const val MIN_RATE = 16L * 1024
         const val GRACE_NANOS = 60_000_000_000L
+
+        /** How long a held body (at most 32 MiB) may take to arrive: five minutes. */
+        const val HELD_NANOS = 300_000_000_000L
+        private const val BUSY_IMAGES = "Сервис обрабатывает изображения. Повторите через несколько секунд."
         private const val NANOS = 1_000_000_000L
         private const val REQUEST_TIMEOUT = 408
         private const val WAIT_SECONDS = 20L
