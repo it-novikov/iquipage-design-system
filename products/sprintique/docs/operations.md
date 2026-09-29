@@ -94,7 +94,36 @@ Limits: 128 MiB per dump, 50,000 rows per fingerprinted table and 200 assets. Th
 
 `/health` is liveness. `/ready` verifies exact schema/runtime-role/S3 readiness; use it for traffic admission. Optional `SPRINTIQUE_METRICS_TOKEN` (32–256 characters) enables `/internal/metrics`, requiring its own Bearer token; otherwise the route is absent. Keep it private. Aggregate schema `runtime-metrics/1` is process-local and resets on restart. Labels are bounded route templates/method/status class, never user paths, query strings, principal IDs or tokens. Long-lived streams are counted when closed, not as active-connection telemetry. Request logs omit bodies, cookies, headers, SQL and provider responses.
 
-Default process limits: 1,000 requests/minute/IP; sign-in 20/minute/IP (starting a provider sign-in, both e-mail steps, dev login); 64 active requests and 8 upload requests; 100 SSE streams overall and 3 per credential. S3 I/O has a 15-second deadline. The image decoder allows two concurrent operations. These are explicit conservative defaults; distributed deployment needs shared admission control. Load regression tests exercise 2,000 tasks and concurrent reads/CAS writes; their thresholds are not an SLA.
+Default process limits: 1,000 requests/minute/IP; sign-in 20/minute/IP (starting a provider sign-in, both e-mail steps, dev login); 64 active requests and 8 upload requests; 32 file downloads, counted apart from the other requests; 100 SSE streams overall and 3 per credential. Request bodies: 128 KiB for commands, 2 MiB for map documents, 10 MiB for a person's photo, 2 GiB for a file's content. S3 calls have a 15-second deadline (two minutes for a part, a whole small object or assembling the parts; a minute of silence cuts a connection). The image decoder allows two concurrent operations. These are explicit conservative defaults; distributed deployment needs shared admission control. Load regression tests exercise 2,000 tasks and concurrent reads/CAS writes; their thresholds are not an SLA.
+
+## Files
+
+Uploads stream through the API, never directly from the browser to S3: the bucket stays private, needs no CORS and is never named to a browser; same-origin, CSRF, project policy, RLS and the limits above apply to the upload itself. The browser computes the file's SHA-256 slice by slice (WebCrypto up to 64 MiB, an incremental digest beyond), reserves the upload with name, size and hash, and sends the body with `PUT /api/v1/projects/{project}/assets/{id}/content`. The server:
+
+- opens the upload in a short transaction and closes it before reading the body — no transaction, row or project lock is held while bytes arrive;
+- checks the first 512 bytes against the signature of the declared extension, text as strict UTF-8 without NUL to the last byte, and the size and SHA-256 of every byte;
+- holds at most one 8 MiB part per upload in memory (files up to 8 MiB and previewable images up to 32 MiB are held whole) and writes larger bodies as an S3 multipart upload that it completes only after the size and hash matched the reservation, under the asset lock, so no unchecked byte is ever visible under a key;
+- quarantines a refused body (signature, size, hash, expiry, unreadable image) in its own transaction and aborts its parts.
+
+Accepted formats (the extension picks the type, the first bytes must agree): video `mp4 m4v mov webm`; audio `mp3 m4a wav ogg`; documents `pdf docx xlsx pptx odt ods odp doc xls ppt rtf`; images `png jpg jpeg webp gif heic heif svg`; archives `zip 7z rar tar gz`; text `txt md csv json log`. Any other name is stored as `application/octet-stream`. Up to 2 GiB per file; a project holds up to 20 GiB. Previews (WebP, 2048 and 720 px) are made only for PNG, JPEG and WebP up to 32 MiB and 40 megapixels; a larger or animated image in a task is kept as a file without a preview; a map image or project avatar must be such an image.
+
+Downloads stream from S3 in 16 MiB windows, and project access is checked again before every window. A single `Range: bytes=…` is honoured (`206`, `416`, `If-Range` against the SHA-256 `ETag`, `Accept-Ranges: bytes`); a partial answer is at most 16 MiB, so a paused player holds no long response. PNG, JPEG, WebP, GIF and video are served `inline`; everything else, SVG included, is `attachment`, and SVG, HTML and XML are never named as such (`application/octet-stream`). Every file carries `X-Content-Type-Options: nosniff`, `Content-Security-Policy: default-src 'none'; sandbox` and `Cache-Control: no-store`.
+
+Cleanup deletes the objects of discarded, quarantined and expired uploads and aborts any unfinished multipart upload under their keys. As a second line for a process that died mid-upload, give the bucket a lifecycle rule that aborts incomplete multipart uploads after one day.
+
+The reverse proxy in front of the API must let 2 GiB through without spooling it, and must not buffer long downloads. For nginx, in the server block of the API:
+
+```nginx
+client_max_body_size 2050m;          # 2 GiB body plus headroom; the API enforces the exact limits
+location ~ ^/api/v1/projects/[^/]+/assets/[^/]+/(content|original)$ {
+    proxy_pass http://sprintique_api;  # the same upstream and proxy headers as the other API locations
+    proxy_request_buffering off;       # stream the upload to the API as it arrives
+    proxy_buffering off;               # stream downloads and ranges without temporary files
+    proxy_read_timeout 300s;           # publishing a finished 2 GiB upload may take a while
+    proxy_send_timeout 300s;
+    client_body_timeout 120s;
+}
+```
 
 ## Before external release
 
