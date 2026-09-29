@@ -16,7 +16,8 @@ import java.util.UUID
  *
  * - An access token lives an hour and is bound to the resource the person approved.
  * - A refresh token rotates on every use and lives 30 days from its issue. A rotated token presented again within a
- *   minute, while its successor is still unused, is a lost response: the successor is revoked and a new pair issued.
+ *   minute, while its successor is still unused, is a lost response: the successor and the grant's access tokens are
+ *   revoked and a new pair issued.
  *   Any other replay of a rotated or revoked token revokes the whole grant.
  * - A replayed authorization code revokes the grant issued for it.
  *
@@ -82,6 +83,20 @@ class OAuthTokens(private val database: Database) {
                 grant,
             )
             AccessEvents.record(tx, row.string("principalId"), "app.connected", grant, client.id)
+            // Connecting the same app again replaces its earlier connection: one entry per app in the settings.
+            val earlier = tx.rows(
+                """
+                SELECT id FROM auth.oauth_grants
+                WHERE principal_id = $1 AND client_id = $2 AND id <> $3::uuid AND revoked_at IS NULL FOR UPDATE
+                """.trimIndent(),
+                row.string("principalId"),
+                client.id,
+                grant,
+            )
+            for (replaced in earlier) {
+                ConnectedApps.revokeGrant(tx, replaced.string("id"))
+                AccessEvents.record(tx, row.string("principalId"), "app.revoked", replaced.string("id"), client.id)
+            }
             issue(
                 tx,
                 Grant(grant, row.string("principalId"), row.strings("scopes"), row.string("resource")),
@@ -133,9 +148,18 @@ class OAuthTokens(private val database: Database) {
                     return@transaction Refused(invalidGrant())
                 }
                 current.stringOrNull("successor")?.let { successor ->
+                    // A lost answer: the pair it carried is void. Its access token was issued after every other one
+                    // of the grant, so all of them end; the client gets a fresh pair in this answer.
                     tx.update(
                         "UPDATE auth.oauth_refresh_tokens SET revoked_at = clock_timestamp() WHERE token_hash = $1",
                         successor,
+                    )
+                    tx.update(
+                        """
+                        UPDATE auth.credentials SET revoked_at = clock_timestamp()
+                        WHERE grant_id = $1::uuid AND kind = 'oauth' AND revoked_at IS NULL
+                        """.trimIndent(),
+                        grantId,
                     )
                 }
                 val granted = grant.strings("scopes")

@@ -13,6 +13,7 @@ import java.util.UUID
 object Workspaces {
     fun create(tx: Transaction, actor: Actor, name: String, timezone: String): Map<String, Any> {
         requireCondition(actor.isHuman, 403, "FORBIDDEN", "Пространство создаёт человек.")
+        ProjectAccess.requireInteractive(actor)
         val id = UUID.randomUUID().toString()
         tx.update(
             "INSERT INTO app.workspaces(id, name, created_by, timezone) VALUES ($1, $2, $3, $4)",

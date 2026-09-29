@@ -28,9 +28,9 @@ import tools.jackson.databind.JsonNode
 import tools.jackson.databind.json.JsonMapper
 
 /**
- * The remote MCP server: the Streamable HTTP transport of the MCP specification 2025-11-25 (2025-06-18 and 2025-03-26
- * are accepted) without sessions. Every POST carries one JSON-RPC message and gets one JSON answer; the server never
- * starts a stream, so GET and DELETE are 405.
+ * The remote MCP server: the Streamable HTTP transport of the MCP specification 2025-11-25 without sessions
+ * (2025-06-18 is accepted; 2025-03-26 is not, since it requires JSON-RPC batches). Every POST carries one JSON-RPC
+ * message and gets one JSON answer; the server never starts a stream, so GET and DELETE are 405.
  *
  * Authorization follows the specification: a bearer token issued for this resource (RFC 8707), 401 with the protected
  * resource metadata when it is missing or dead, 403 `insufficient_scope` when a tool needs `write`. Each request is
@@ -68,14 +68,19 @@ class McpController(
         val message = read(request)
         val id = message.get("id")
         when {
-            !message.has("method") -> ResponseEntity.accepted().build()
-            id == null -> ResponseEntity.accepted().build()
+            // A notification or a response: accepted, but only from a live token like everything else.
+            !message.has("method") || id == null -> authenticated(credential, false) { _, _ ->
+                ResponseEntity.accepted().build()
+            }
+
             !(id.isString || id.isIntegralNumber) -> answer(error(null, INVALID_REQUEST, "Invalid request id."))
+
             else -> answer(dispatch(credential, request, id, message))
         }
     } catch (refusal: Refusal) {
         val builder = ResponseEntity.status(refusal.status).contentType(MediaType.APPLICATION_JSON)
         refusal.challenge?.let { builder.header("WWW-Authenticate", it) }
+        if (refusal.status == TOO_MANY_REQUESTS) builder.header("Retry-After", "60")
         builder.body(error(null, refusal.code, refusal.message.orEmpty()))
     }
 
@@ -116,7 +121,11 @@ class McpController(
             outcome = "error"
             toolError(error.code, error.message.orEmpty())
         } catch (refusal: Refusal) {
-            outcome = if (refusal.status == HttpStatus.FORBIDDEN.value()) "denied" else "unauthenticated"
+            outcome = when (refusal.status) {
+                HttpStatus.FORBIDDEN.value() -> "denied"
+                TOO_MANY_REQUESTS -> "limited"
+                else -> "unauthenticated"
+            }
             throw refusal
         } catch (@Suppress("TooGenericExceptionCaught") error: RuntimeException) {
             outcome = "failed"
@@ -172,6 +181,8 @@ class McpController(
                     "Invalid or expired token.",
                     challenge("invalid_token"),
                 )
+
+                "REQUEST_LIMIT" -> throw Refusal(TOO_MANY_REQUESTS, UNAUTHORIZED, "Too many requests with this token.")
 
                 "INSUFFICIENT_SCOPE" -> throw Refusal(
                     403,
@@ -282,9 +293,10 @@ class McpController(
     }
 
     private companion object {
-        val VERSIONS = listOf("2025-11-25", "2025-06-18", "2025-03-26")
+        val VERSIONS = listOf("2025-11-25", "2025-06-18")
         val ACCEPTED = listOf("application/json", "application/*", "*/*")
         const val NOT_ACCEPTABLE = 406
+        const val TOO_MANY_REQUESTS = 429
         const val PARSE_ERROR = -32700
         const val INVALID_REQUEST = -32600
         const val METHOD_NOT_FOUND = -32601

@@ -8,7 +8,7 @@ owner: it-novikov
 branch: feature/public-api-mcp
 base: main
 created: 2026-09-29
-updated: 2026-09-29T15:49:39Z
+updated: 2026-09-29T20:41:17Z
 links:
 ---
 
@@ -42,11 +42,11 @@ links:
 
 ## Передача
 
-- **Состояние:** Сервер и тесты закоммичены (344fd83), mcp-oauth.test.ts 7/7. Незакоммичено: web/consent.js, main.js (экран согласия)
-- **Сейчас:** S5 — интерфейс согласия и раздел настроек
-- **Дальше:** web/api-access.js + settings-sections, сборка, проверка в браузере
-- **Незакоммичено:** web/consent.js, web/main.js — не собраны
-- **Рабочая копия:** 2 файл(ов): products/sprintique/web/main.js, products/sprintique/web/consent.js (3 files changed, 32 insertions(+), 13 deletions(-)) · HEAD 344fd83
+- **Состояние:** R1 исправлено, mcp-oauth 10/10 зелёные
+- **Сейчас:** S7 — ручная проверка SDK, независимое ревью R2, гейты
+- **Дальше:** Ревью R2, verify-vnext, push, PR
+- **Незакоммичено:** DelegatedAccessIntegrationTest.kt (новый интеграционный тест, ещё не прогнан)
+- **Рабочая копия:** 19 файл(ов): products/sprintique/docs/decisions/0003-public-api-mcp.md, products/sprintique/docs/operations.md, products/sprintique/server/src/main/kotlin/com/sprintique/identity/api/AuthenticatedRequests.kt, products/sprintique/server/src/main/kotlin/com/sprintique/identity/application/Authentication.kt, products/sprintique/server/src/main/kotlin/com/sprintique/identity/application/ConnectedApps.kt, products/sprintique/server/src/main/kotlin/com/sprintique/identity/application/OAuthAuthorizations.kt, products/sprintique/server/src/main/kotlin/com/sprintique/identity/application/OAuthClients.kt, products/sprintique/server/src/main/kotlin/com/sprintique/identity/application/OAuthTokens.kt, products/sprintique/server/src/main/kotlin/com/sprintique/identity/domain/OAuthRules.kt, products/sprintique/server/src/main/kotlin/com/sprintique/mcp/api/McpController.kt, products/sprintique/server/src/main/kotlin/com/sprintique/mcp/application/McpTools.kt, products/sprintique/server/src/main/kotlin/com/sprintique/mcp/application/TaskTools.kt и ещё 7 (19 files changed, 324 insertions(+), 112 deletions(-)) · HEAD f3dbe90
 - **Ловушки:**
   - Узел по умолчанию v26: для гейтов PATH=/opt/homebrew/opt/node@24/bin:$PATH
   - TEST_S3_CONFIG=/Users/nvkv71/iquipage-work/ux-ds-20260925/products/sprintique/output/infra/storage.json
@@ -94,25 +94,27 @@ links:
 - **Итог:** 344fd83; P01 полный поток, McpToolSchemaTest
 - **Модель:** strong
 
-### S5. Интерфейс: согласие и настройки доступа [active]
+### S5. Интерфейс: согласие и настройки доступа [done]
 - **Что:** Экран /oauth/authorize на iq-auth-screen, раздел настроек «Доступ приложений»: подключённые приложения и персональные токены
 - **Как:** web/consent.js, web/api-access.js, settings-sections; продолжение после входа через sessionStorage
 - **Зачем:** Человек видит, кому дал доступ, и отзывает его
 - **Приёмка:**
-  - [ ] Проверено в браузере на локальном сервере
+  - [x] Проверено в браузере на локальном сервере
 - **Покрывает:** A4
+- **Итог:** 1fe4631; проверено в браузере на локальном стенде: экран согласия (тёмная тема, 1280px), раздел «Доступ приложений», создание токена
 - **Модель:** strong
 
-### S6. Лимиты, аудит, метрики, документация [todo]
+### S6. Лимиты, аудит, метрики, документация [done]
 - **Что:** Окно запросов на учётные данные, аудит с client_id, метрики инструментов, operations.md, README
 - **Как:** RequestLimitFilter, AuditTrail, RequestMetrics
 - **Зачем:** Эксплуатация и расследование
 - **Приёмка:**
-  - [ ] Тесты лимита; operations.md описывает переменные и подключение Claude
+  - [x] Тесты лимита; operations.md описывает переменные и подключение Claude
 - **Покрывает:** A5
+- **Итог:** 344fd83 лимиты/аудит/метрики; 0582896 operations.md и README
 - **Модель:** fast
 
-### S7. E2E, ручная проверка, ревью, гейты, PR [todo]
+### S7. E2E, ручная проверка, ревью, гейты, PR [active]
 - **Что:** E2E полного потока, ручная проверка официальным MCP SDK, независимое ревью и исправления, гейты, PR
 - **Как:** tests/mcp-oauth.test.ts; scratch-скрипт на @modelcontextprotocol/sdk против локального сервера; subagent-ревью
 - **Зачем:** Доказательство готовности

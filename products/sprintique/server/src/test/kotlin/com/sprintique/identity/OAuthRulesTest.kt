@@ -67,4 +67,20 @@ class OAuthRulesTest {
         assertThat(OAuthRules.isState("abc-123_~")).isTrue()
         assertThat(OAuthRules.isState("line\nbreak")).isFalse()
     }
+
+    @Test
+    fun `a loopback redirect may name another port, and nothing else may differ`() {
+        val registered = "http://127.0.0.1:43111/callback"
+        assertThat(OAuthRules.matchesRegistered(registered, registered)).isTrue()
+        assertThat(OAuthRules.matchesRegistered("http://127.0.0.1:50123/callback", registered)).isTrue()
+        assertThat(OAuthRules.matchesRegistered("http://127.0.0.1/callback", registered)).isTrue()
+        assertThat(OAuthRules.matchesRegistered("http://localhost:50123/callback", registered)).isFalse()
+        assertThat(OAuthRules.matchesRegistered("http://127.0.0.1:50123/other", registered)).isFalse()
+        assertThat(OAuthRules.matchesRegistered("http://127.0.0.1:50123/callback?x=1", registered)).isFalse()
+        assertThat(OAuthRules.matchesRegistered("http://127.0.0.1:50123/callback#f", registered)).isFalse()
+        assertThat(OAuthRules.matchesRegistered("http://user@127.0.0.1:50123/callback", registered)).isFalse()
+        assertThat(OAuthRules.matchesRegistered("https://app.example:8443/cb", "https://app.example/cb")).isFalse()
+        assertThat(OAuthRules.matchesRegistered("http://evil.example:80/callback", "http://evil.example/callback"))
+            .isFalse()
+    }
 }

@@ -159,39 +159,49 @@ class TaskTools(private val ledger: CommandLedger, private val properties: Sprin
             content.copy(status = input.status.wire) to input.baseRevision
         }
 
-    /** A comment starts a new discussion, or answers an existing one of the same task. */
+    /**
+     * A comment starts a new discussion, or answers an existing one of the same task. A retry with the same key and
+     * arguments finds the first comment, even after the thread moved on.
+     */
     fun comment(tx: Transaction, actor: Actor, input: AddCommentArguments): Map<String, Any?> {
         ProjectAccess.authorize(tx, actor, input.projectId, Capability.THREADS_WRITE)
         val task = Tasks.read(tx, input.projectId, input.task)
         val taskId = task.string("id")
+        requireCondition(
+            input.threadId == null || !input.question,
+            422,
+            "THREAD_KIND",
+            "Вопрос начинается новым обсуждением, без threadId.",
+        )
         val key = input.idempotencyKey ?: newKey()
         val messageId = input.idempotencyKey?.let { derived(actor, input.projectId, "message", it) }
             ?: UUID.randomUUID().toString()
-        val threadId = if (input.threadId == null) {
-            val id = input.idempotencyKey?.let { derived(actor, input.projectId, "thread", it) }
-                ?: UUID.randomUUID().toString()
-            val thread = NewThread(id, messageId, input.body, input.question)
-            Discussions.create(tx, actor, input.projectId, taskId, thread, key, ledger)
-            id
-        } else {
-            requireCondition(!input.question, 422, "THREAD_KIND", "Вопрос начинается новым обсуждением, без threadId.")
-            val thread = tx.row(
-                "SELECT revision FROM app.threads WHERE project_id = $1 AND id = $2 AND task_id = $3",
-                input.projectId,
-                input.threadId,
-                taskId,
-            )
-            val revision = requirePresent(thread, 404, "NOT_FOUND", "Обсуждение недоступно.").long("revision")
-            Discussions.append(
-                tx,
-                actor,
-                input.projectId,
-                input.threadId,
-                Discussions.NewMessage(messageId, input.body, revision),
-                key,
-                ledger,
-            )
-            input.threadId
+        val threadId = input.threadId
+            ?: input.idempotencyKey?.let { derived(actor, input.projectId, "thread", it) }
+            ?: UUID.randomUUID().toString()
+        ledger.idempotent(tx, actor, input.projectId, "mcp.comment:$taskId", key, input) {
+            if (input.threadId == null) {
+                val thread = NewThread(threadId, messageId, input.body, input.question)
+                Discussions.create(tx, actor, input.projectId, taskId, thread, key, ledger)
+            } else {
+                val thread = tx.row(
+                    "SELECT revision FROM app.threads WHERE project_id = $1 AND id = $2 AND task_id = $3",
+                    input.projectId,
+                    threadId,
+                    taskId,
+                )
+                val revision = requirePresent(thread, 404, "NOT_FOUND", "Обсуждение недоступно.").long("revision")
+                Discussions.append(
+                    tx,
+                    actor,
+                    input.projectId,
+                    threadId,
+                    Discussions.NewMessage(messageId, input.body, revision),
+                    key,
+                    ledger,
+                )
+            }
+            mapOf("threadId" to threadId, "messageId" to messageId)
         }
         return linkedMapOf(
             "taskKey" to task.string("displayId"),

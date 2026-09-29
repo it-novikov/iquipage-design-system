@@ -34,6 +34,21 @@ object OAuthRules {
             (uri.scheme == "https" || (uri.scheme == "http" && host in LOOPBACK))
     }
 
+    /**
+     * Whether the redirect address of an authorization request matches a registered one: the exact string, or, for
+     * an `http` loopback address of a native app, the same address on another port (RFC 8252 §7.3), because the app
+     * listens on whichever port is free at the time. Scheme, host, path and query must still be identical.
+     */
+    fun matchesRegistered(requested: String, registered: String): Boolean {
+        if (requested == registered) return true
+        if (!isAllowedRedirect(requested) || !isAllowedRedirect(registered)) return false
+        val asked = URI(requested)
+        val known = URI(registered)
+        return known.scheme == "http" && asked.scheme == "http" && known.host.lowercase() in LOOPBACK &&
+            asked.host.lowercase() == known.host.lowercase() && asked.rawPath == known.rawPath &&
+            asked.rawQuery == known.rawQuery
+    }
+
     /** A code challenge of method S256: the base64url SHA-256 of a verifier, 43 characters. */
     fun isChallenge(value: String): Boolean = CHALLENGE.matches(value)
 

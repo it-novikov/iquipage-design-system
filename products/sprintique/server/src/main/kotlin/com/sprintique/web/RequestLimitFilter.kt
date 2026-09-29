@@ -1,6 +1,6 @@
 package com.sprintique.web
 
-import com.sprintique.token.Tokens
+import com.sprintique.identity.api.AuthenticatedRequests
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -11,9 +11,13 @@ import org.springframework.web.filter.OncePerRequestFilter
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
- * Per-process safeguards, not cluster-wide quotas: a per-address window (1000 requests and 20 sign-ins a minute),
- * a per-token window for bearer credentials (600 requests a minute, whichever address they come from), at most 64
- * requests and 8 uploads in flight. Event streams have their own cap; readiness is never shed.
+ * Per-process safeguards, not cluster-wide quotas: a per-address window (1000 requests and 20 sign-ins a minute), at
+ * most 64 requests and 8 uploads in flight. Event streams have their own cap; readiness is never shed.
+ *
+ * A request with a well-formed bearer token is counted against its credential once that is found live
+ * ([com.sprintique.identity.application.CredentialLimits]), not against its address: an assistant's servers carry
+ * many people's tokens from a few shared addresses. Its address pays only when the token is refused (401), and an
+ * address whose window is spent is refused whatever it carries.
  */
 @Component
 @Profile("api")
@@ -22,7 +26,6 @@ class RequestLimitFilter(private val clientAddresses: ClientAddresses) : OncePer
     private class Window(var since: Long, var count: Int = 0, var logins: Int = 0)
 
     private val windows = LinkedHashMap<String, Window>()
-    private val tokenWindows = LinkedHashMap<String, Window>()
     private val active = AtomicInteger()
     private val uploads = AtomicInteger()
 
@@ -30,17 +33,31 @@ class RequestLimitFilter(private val clientAddresses: ClientAddresses) : OncePer
         val path = routedPath(request)
         val readiness = path == "/ready"
         if (!readiness && LIMITED.none(path::startsWith)) return chain.doFilter(request, response)
-        val bearer = request.getHeader("Authorization")?.takeIf { it.length in 1..MAX_AUTHORIZATION }
-        val refusal = when {
-            !admitWindow(clientAddresses.of(request), LOGINS.any(path::startsWith)) ->
-                "Слишком много запросов. Повторите через минуту."
-
-            bearer != null && !admitToken(Tokens.sha256Hex(bearer)) ->
-                "Слишком много запросов с этим токеном. Повторите через минуту."
-
-            else -> null
+        val address = clientAddresses.of(request)
+        val login = LOGINS.any(path::startsWith)
+        val bearer = !login && AuthenticatedRequests.isBearer(request.getHeader("Authorization"))
+        if (!admitWindow(address, login, count = !bearer)) {
+            return ProblemWriter.write(
+                request,
+                response,
+                429,
+                "REQUEST_LIMIT",
+                "Слишком много запросов. Повторите через минуту.",
+            )
         }
-        if (refusal != null) return ProblemWriter.write(request, response, 429, "REQUEST_LIMIT", refusal)
+        try {
+            admitted(request, response, chain, readiness)
+        } finally {
+            if (bearer && response.status == HttpServletResponse.SC_UNAUTHORIZED) charge(address)
+        }
+    }
+
+    private fun admitted(
+        request: HttpServletRequest,
+        response: HttpServletResponse,
+        chain: FilterChain,
+        readiness: Boolean,
+    ) {
         if (readiness || isStream(request)) return chain.doFilter(request, response)
         val upload = isUpload(request)
         if (active.get() >= MAX_ACTIVE || (upload && uploads.get() >= MAX_UPLOADS)) {
@@ -62,43 +79,32 @@ class RequestLimitFilter(private val clientAddresses: ClientAddresses) : OncePer
         }
     }
 
+    /** Counts a request of the address (unless [count] is false, which only checks the window is not spent). */
     @Synchronized
-    private fun admitWindow(address: String, login: Boolean): Boolean {
+    private fun admitWindow(address: String, login: Boolean, count: Boolean = true): Boolean {
         val now = System.currentTimeMillis()
         if (windows.size >= MAX_WINDOWS) windows.values.removeIf { now - it.since >= WINDOW_MILLISECONDS }
+        val existing = windows[address]
+        if (!count && (existing == null || now - existing.since >= WINDOW_MILLISECONDS)) return true
         val window =
-            windows[address]
-                ?: if (windows.size >= MAX_WINDOWS) return false else Window(now).also { windows[address] = it }
+            existing ?: if (windows.size >= MAX_WINDOWS) return false else Window(now).also { windows[address] = it }
         if (now - window.since >= WINDOW_MILLISECONDS) {
             window.since = now
             window.count = 0
             window.logins = 0
         }
-        window.count++
+        if (count) window.count++
         if (login) window.logins++
         return window.count <= MAX_REQUESTS && (!login || window.logins <= MAX_LOGINS)
     }
 
-    /** The window of one bearer credential, keyed by the digest of the header: the token itself is never kept. */
-    @Synchronized
-    private fun admitToken(key: String): Boolean {
-        val now = System.currentTimeMillis()
-        if (tokenWindows.size >= MAX_WINDOWS) tokenWindows.values.removeIf { now - it.since >= WINDOW_MILLISECONDS }
-        val window =
-            tokenWindows[key]
-                ?: if (tokenWindows.size >= MAX_WINDOWS) return false else Window(now).also { tokenWindows[key] = it }
-        if (now - window.since >= WINDOW_MILLISECONDS) {
-            window.since = now
-            window.count = 0
-        }
-        window.count++
-        return window.count <= MAX_TOKEN_REQUESTS
+    /** A refused bearer token costs its address one request, as if it had carried no token. */
+    private fun charge(address: String) {
+        admitWindow(address, login = false)
     }
 
     companion object {
         private const val WINDOW_MILLISECONDS = 60_000L
-        private const val MAX_TOKEN_REQUESTS = 600
-        private const val MAX_AUTHORIZATION = 2048
 
         /** The routes under limits: the API, the MCP server, OAuth discovery and sign-in. */
         private val LIMITED = listOf("/api/", "/auth/", "/mcp", "/.well-known/")

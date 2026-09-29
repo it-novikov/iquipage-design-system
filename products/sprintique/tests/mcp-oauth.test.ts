@@ -94,6 +94,14 @@ test('P01 discovery, registration and the full OAuth + MCP flow: read, write, re
   assert.equal(comment.isError,false,JSON.stringify(comment));
   const discussion=(await tool(issued.access_token,'get_task',{projectId:f.first.id,task:task.id})).structuredContent.data.discussion;
   assert.equal(discussion[0].messages[0].body,'Готово к ревью.');
+  // A reply retried with its key acts once, although the thread's revision moved on after the first attempt.
+  const reply=()=>tool(issued.access_token,'add_task_comment',{projectId:f.first.id,task:task.key,body:'Ответ в обсуждении.',threadId:comment.structuredContent.threadId,idempotencyKey:'reply-key-0001'});
+  const firstReply=await reply(),retriedReply=await reply();
+  assert.equal(firstReply.isError,false,JSON.stringify(firstReply));assert.equal(retriedReply.isError,false,JSON.stringify(retriedReply));
+  assert.equal(retriedReply.structuredContent.messageId,firstReply.structuredContent.messageId);
+  const replies=(await f.admin.query('SELECT count(*)::int AS n FROM app.messages WHERE thread_id=$1',[comment.structuredContent.threadId])).rows[0].n;assert.equal(replies,2);
+  const changedReply=await tool(issued.access_token,'add_task_comment',{projectId:f.first.id,task:task.key,body:'Другой текст.',threadId:comment.structuredContent.threadId,idempotencyKey:'reply-key-0001'});
+  assert.equal(changedReply.structuredContent.error.code,'IDEMPOTENCY_CONFLICT');
   const foreign=await tool(issued.access_token,'get_task',{projectId:f.second.id,task:'anything'});
   assert.equal(foreign.isError,true);assert.equal(foreign.structuredContent.error.code,'NOT_FOUND');
   const invalid=await tool(issued.access_token,'create_task',{projectId:f.first.id,title:'x',unexpected:true});
@@ -183,12 +191,15 @@ test('P04 refresh tokens rotate; a lost answer is tolerated once, a replay revok
   const r2=(await refresh(c.refresh_token)).json();assert.ok(r2.refresh_token);
   // The client never saw r2 (lost response) and retries with the first token at once: a new pair, r2 is dead.
   const r3=(await refresh(c.refresh_token)).json();assert.ok(r3.refresh_token,JSON.stringify(r3));
+  assert.equal((await mcp(r2.access_token,'ping')).statusCode,401,'the access token of the lost answer is void too');
+  assert.equal((await mcp(r3.access_token,'ping')).statusCode,200);
   assert.equal((await refresh(r2.refresh_token)).json().error,'invalid_grant');
   // Presenting the dead successor was a replay: everything under the grant is revoked.
   assert.equal((await refresh(r3.refresh_token)).json().error,'invalid_grant');
   assert.equal((await mcp(r3.access_token,'ping')).statusCode,401);
   const events=(await f.admin.query('SELECT action FROM auth.access_events WHERE client_id=$1',[c.client.client_id])).rows.map(r=>r.action);
   assert.ok(events.includes('app.refresh-replayed'));
+  assert.equal((await mcp('spo_'+'x'.repeat(43),'notifications/initialized',undefined)).statusCode,401,'no message is accepted from a dead token');
   const narrowed=await connect();
   const readOnly=(await form('/api/oauth/token',{grant_type:'refresh_token',refresh_token:narrowed.refresh_token,client_id:narrowed.client.client_id,scope:'read'})).json();
   assert.equal(readOnly.scope,'read');
@@ -256,4 +267,78 @@ test('P07 the API name: no cookies, no interface, no CORS, no foreign Origin; re
   assert.equal((await mcp(reader.access_token,'ping')).statusCode,401);
   assert.equal((await form('/api/oauth/token',{grant_type:'refresh_token',refresh_token:reader.refresh_token,client_id:reader.client.client_id})).json().error,'invalid_grant');
   await f.admin.query('UPDATE auth.principals SET disabled_at=NULL WHERE id=$1',[f.reader.id]);
+});
+
+test('P08 losing the project ends access through every token at once; the MCP server offers no project data then',async()=>{
+  const c=await connect({user:f.reader,scopes:['read']});
+  const pat=(await f.app.inject({method:'POST',url:ui+'/api/v1/personal-tokens',headers:f.reader.headers,payload:{name:'Отчёт',scopes:['read'],expiresInDays:1}})).json();
+  const seen=await tool(c.access_token,'list_projects',{});
+  assert.ok(seen.structuredContent.data.workspaces.some((w:{projects:{id:string}[]})=>w.projects.some(p=>p.id===f.first.id)));
+  const created=await tool((await connect()).access_token,'create_task',{projectId:f.first.id,title:'Видна участникам'});
+  await f.admin.query('DELETE FROM app.project_members WHERE project_id=$1 AND principal_id=$2',[f.first.id,f.reader.id]);
+  try{
+    const projects=await tool(c.access_token,'list_projects',{});
+    assert.ok(!JSON.stringify(projects.structuredContent).includes(f.first.id),'the project is gone from the list');
+    const task=await tool(c.access_token,'get_task',{projectId:f.first.id,task:created.structuredContent.data.id});assert.equal(task.structuredContent.error.code,'NOT_FOUND');
+    const search=await tool(c.access_token,'search_tasks',{query:'Видна'});assert.deepEqual(search.structuredContent.data.tasks,[]);
+    for(const name of ['list_releases','list_milestones','list_maps']){
+      const r=await tool(c.access_token,name,{projectId:f.first.id});assert.equal(r.isError,true,name);assert.equal(r.structuredContent.error.code,'NOT_FOUND',name);
+    }
+    assert.equal((await f.app.inject({url:api+'/api/v1/projects/'+f.first.id+'/tasks',headers:{authorization:'Bearer '+pat.token}})).statusCode,404);
+  }finally{
+    await f.admin.query("INSERT INTO app.project_members(project_id,principal_id,role) VALUES($1,$2,'reader')",[f.first.id,f.reader.id]);
+  }
+});
+
+test('P09 loopback redirects may change port (RFC 8252), nothing else; the same app connected again replaces its grant',async()=>{
+  const registered='http://127.0.0.1:43111/callback';
+  const client=(await f.app.inject({method:'POST',url:api+'/api/oauth/register',payload:{redirect_uris:[registered,'https://app.example/cb'],client_name:'CLI\u202Egnp.exe',token_endpoint_auth_method:'none',grant_types:['authorization_code','refresh_token']}})).json();
+  assert.equal(client.client_name,'CLIgnp.exe','invisible formatting is dropped from the name');
+  const {verifier,challenge}=pkce();
+  const ask=(redirect:string)=>{const q=new URLSearchParams(authorizeQuery(client.client_id,challenge));q.set('redirect_uri',redirect);return q.toString();};
+  const describe=(query:string)=>f.app.inject({url:ui+'/api/v1/oauth/authorization?request='+encodeURIComponent(query),headers:f.alice.headers});
+  for(const other of ['http://127.0.0.1:43111/other','http://localhost:50123/callback','http://127.0.0.1:50123/callback?x=1','https://app.example:8443/cb','http://[::1]:50123/callback']){
+    assert.equal((await describe(ask(other))).json().code,'OAUTH_REDIRECT_INVALID',other);
+  }
+  const moved='http://127.0.0.1:50123/callback';
+  assert.equal((await describe(ask(moved))).statusCode,200);
+  const code=(await approve(ask(moved))).searchParams.get('code')!;
+  const exchange=(redirect:string)=>form('/api/oauth/token',{grant_type:'authorization_code',code,redirect_uri:redirect,client_id:client.client_id,code_verifier:verifier});
+  assert.equal((await exchange(registered)).json().error,'invalid_grant','the token request names the address the code was sent to');
+  const {verifier:v2,challenge:c2}=pkce(),q2=new URLSearchParams(authorizeQuery(client.client_id,c2));q2.set('redirect_uri',moved);
+  const code2=(await approve(q2.toString())).searchParams.get('code')!;
+  const first=await form('/api/oauth/token',{grant_type:'authorization_code',code:code2,redirect_uri:moved,client_id:client.client_id,code_verifier:v2});
+  assert.equal(first.statusCode,200,first.body);
+  // Connected again: the earlier grant ends, and the settings list the app once.
+  const connected=await describe(ask(moved));assert.equal(connected.json().connected,true);
+  const {verifier:v3,challenge:c3}=pkce(),q3=new URLSearchParams(authorizeQuery(client.client_id,c3));q3.set('redirect_uri',moved);
+  const code3=(await approve(q3.toString())).searchParams.get('code')!;
+  const second=await form('/api/oauth/token',{grant_type:'authorization_code',code:code3,redirect_uri:moved,client_id:client.client_id,code_verifier:v3});
+  assert.equal(second.statusCode,200,second.body);
+  assert.equal((await mcp(first.json().access_token,'ping')).statusCode,401);
+  assert.equal((await mcp(second.json().access_token,'ping')).statusCode,200);
+  const apps=(await f.app.inject({url:ui+'/api/v1/connected-apps',headers:f.alice.headers})).json().items.filter((a:{clientId:string})=>a.clientId===client.client_id);
+  assert.equal(apps.length,1);
+  // A grant whose tokens all ended is not a connection any more.
+  await f.admin.query("UPDATE auth.oauth_refresh_tokens r SET expires_at=now()-interval '1 second' FROM auth.oauth_grants g WHERE g.id=r.grant_id AND g.client_id=$1",[client.client_id]);
+  await f.admin.query("UPDATE auth.credentials c SET expires_at=now()-interval '1 second' FROM auth.oauth_grants g WHERE g.id=c.grant_id AND g.client_id=$1",[client.client_id]);
+  assert.equal((await f.app.inject({url:ui+'/api/v1/connected-apps',headers:f.alice.headers})).json().items.filter((a:{clientId:string})=>a.clientId===client.client_id).length,0);
+  // Other security rules of tokens: no workspace, no protocol version without batches.
+  const pat=(await f.app.inject({method:'POST',url:ui+'/api/v1/personal-tokens',headers:f.alice.headers,payload:{name:'Пространства',scopes:['read','write'],expiresInDays:1}})).json();
+  const workspace=await f.app.inject({method:'POST',url:api+'/api/v1/workspaces',headers:{authorization:'Bearer '+pat.token},payload:{name:'Из скрипта',timezone:'Europe/Moscow'}});
+  assert.equal(workspace.statusCode,403);assert.equal(workspace.json().code,'SESSION_REQUIRED');
+  assert.equal((await mcp(pat.token,'ping',undefined,{'mcp-protocol-version':'2025-03-26'})).statusCode,400);
+});
+
+test('P10 request windows: 600 a minute per credential from any address; refused tokens cost their address',async()=>{
+  const busy=await connect(),calm=(await f.app.inject({method:'POST',url:ui+'/api/v1/personal-tokens',headers:f.alice.headers,payload:{name:'Спокойный',scopes:['read'],expiresInDays:1}})).json();
+  for(let i=0;i<600;i++){const r=await mcp(busy.access_token,'ping');assert.equal(r.statusCode,200,`request ${i}: ${r.body}`);}
+  const limited=await mcp(busy.access_token,'ping');assert.equal(limited.statusCode,429);assert.equal(limited.headers['retry-after'],'60');
+  const rest=await f.app.inject({url:api+'/api/v1/session',headers:{authorization:'Bearer '+calm.token}});assert.notEqual(rest.statusCode,429,'another credential has its own window');
+  assert.equal((await mcp(calm.token,'ping')).statusCode,200,'bearer requests did not spend the shared address window');
+  // Made-up tokens are 401 and each costs the address; once its window is spent, the address is refused outright.
+  let refused;
+  for(let i=0;i<2500&&!refused;i++){const r=await mcp('spo_'+randomBytes(32).toString('base64url'),'ping');if(r.statusCode===429)refused=r;else assert.equal(r.statusCode,401);}
+  assert.ok(refused,'the address window ends a stream of refused tokens');
+  assert.equal((await mcp(calm.token,'ping')).statusCode,429);
 });

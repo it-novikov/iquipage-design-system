@@ -5,11 +5,19 @@ import com.sprintique.identity.domain.Actor
 import com.sprintique.problem.requireCondition
 
 /**
- * The apps a person connected by OAuth: one entry per approval, with the client's own name, the scopes and when it
- * was last used. Revoking an app ends its access and refresh tokens at once.
+ * The apps a person connected by OAuth: one entry per app, with the client's own name, the scopes and when it was
+ * last used. Connecting the same app again replaces its earlier grant; a grant whose tokens have all expired is no
+ * longer a connection. Revoking an app ends its access and refresh tokens at once.
  */
 object ConnectedApps {
     const val LIMIT = 50
+
+    /** SQL condition on a grant `g`: not revoked and still holding a live refresh or access token. */
+    const val LIVE = """g.revoked_at IS NULL AND (
+          EXISTS (SELECT 1 FROM auth.oauth_refresh_tokens r WHERE r.grant_id = g.id AND r.revoked_at IS NULL
+                    AND r.rotated_at IS NULL AND r.expires_at > clock_timestamp())
+          OR EXISTS (SELECT 1 FROM auth.credentials t WHERE t.grant_id = g.id AND t.revoked_at IS NULL
+                       AND t.expires_at > clock_timestamp()))"""
     private val UUID = Regex("^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")
 
     fun list(tx: Transaction, actor: Actor): List<Map<String, Any?>> {
@@ -21,7 +29,7 @@ object ConnectedApps {
                    greatest(g.last_used_at, (SELECT max(t.last_used_at) FROM auth.credentials t WHERE t.grant_id = g.id))
                      AS "lastUsedAt"
             FROM auth.oauth_grants g JOIN auth.oauth_clients c ON c.id = g.client_id
-            WHERE g.principal_id = $1 AND g.revoked_at IS NULL ORDER BY g.created_at DESC, g.id LIMIT $2
+            WHERE g.principal_id = $1 AND $LIVE ORDER BY g.created_at DESC, g.id LIMIT $2
             """.trimIndent(),
             actor.id,
             LIMIT,

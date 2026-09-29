@@ -45,7 +45,7 @@ export async function mountConsent(root,{client,session}){
     <dl class="consent-facts">
       <div><dt>Аккаунт</dt><dd>${esc(session.principal.name)}</dd></div>
       <div><dt>Адрес возврата</dt><dd><code>${esc(app.redirectUri)}</code></dd></div>
-      ${described.connected?'<div><dt>Уже подключено</dt><dd>Будет выдан ещё один доступ, прежний продолжит работать.</dd></div>':''}
+      ${described.connected?'<div><dt>Уже подключено</dt><dd>Новый доступ заменит прежний: старые токены приложения перестанут работать.</dd></div>':''}
     </dl>
     <fieldset class="consent-scopes"><legend>Что приложение сможет делать</legend>
       ${SCOPES.filter(([id])=>requested.has(id)).map(([id,label,hint,fixed])=>`<label class="iq-check consent-scope"><input type="checkbox" name="scope" value="${id}" checked ${fixed?'disabled':''}><span class="iq-check-box">${icon('check',14)}</span><span><b>${label}</b><small>${hint}</small></span></label>`).join('')}

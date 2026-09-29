@@ -26,8 +26,9 @@ data class AuthorizationRequest(
 
 /**
  * The consent step of the authorization code flow. The person is signed in to the interface with a session; the
- * interface shows who asks for what and sends the decision back. A code is issued only for an exact registered
- * address, a PKCE S256 challenge, known scopes and one of this server's resources.
+ * interface shows who asks for what and sends the decision back. A code is issued only for a registered address
+ * (exactly; a loopback address may differ in its port), a PKCE S256 challenge, known scopes and one of this server's
+ * resources.
  *
  * An unknown client or address is never redirected to. Other invalid requests are reported with the error redirect
  * the client expects, which the person follows by hand: the server never bounces a browser to a client's address on
@@ -51,8 +52,8 @@ class OAuthAuthorizations(private val properties: SprintiqueProperties) {
         val checked = check(tx, request)
         val connected = tx.row(
             """
-            SELECT 1 AS found FROM auth.oauth_grants
-            WHERE principal_id = $1 AND client_id = $2 AND revoked_at IS NULL LIMIT 1
+            SELECT 1 AS found FROM auth.oauth_grants g
+            WHERE g.principal_id = $1 AND g.client_id = $2 AND ${ConnectedApps.LIVE} LIMIT 1
             """.trimIndent(),
             actor.id,
             checked.client.id,
@@ -92,9 +93,14 @@ class OAuthAuthorizations(private val properties: SprintiqueProperties) {
             "OAUTH_SCOPE_INVALID",
             "Можно дать только те права, которые запросило приложение.",
         )
+        // The app's own earlier connection is replaced by this one, so it does not count.
         val active = tx.row(
-            "SELECT count(*)::int AS n FROM auth.oauth_grants WHERE principal_id = $1 AND revoked_at IS NULL",
+            """
+            SELECT count(*)::int AS n FROM auth.oauth_grants g
+            WHERE g.principal_id = $1 AND g.client_id <> $2 AND ${ConnectedApps.LIVE}
+            """.trimIndent(),
             actor.id,
+            checked.client.id,
         )!!.int("n")
         requireCondition(
             active < ConnectedApps.LIMIT,
@@ -130,7 +136,9 @@ class OAuthAuthorizations(private val properties: SprintiqueProperties) {
                 "OAUTH_CLIENT_INVALID",
                 "Приложение не зарегистрировано. Подключите его заново.",
             )
-        val redirectUri = request.redirectUri?.takeIf { it in client.redirectUris }
+        val redirectUri = request.redirectUri?.takeIf { asked ->
+            client.redirectUris.any { OAuthRules.matchesRegistered(asked, it) }
+        }
             ?: throw ProblemException(
                 400,
                 "OAUTH_REDIRECT_INVALID",

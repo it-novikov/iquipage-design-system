@@ -39,6 +39,7 @@ data class RequestIntent(
 class Authentication(
     private val database: Database,
     private val properties: SprintiqueProperties,
+    private val limits: CredentialLimits,
 ) {
     fun <T> run(
         credential: Credential,
@@ -49,7 +50,7 @@ class Authentication(
             """
             SELECT p.id, coalesce(p.profile_name, p.name) AS name, p.kind, c.id AS "credentialId", c.csrf,
                    c.project_id AS "projectId", c.capabilities, c.initiator_id AS "initiatorId", c.scopes, c.audience,
-                   g.client_id AS "clientId",
+                   g.client_id AS "clientId", coalesce(c.grant_id::text, c.id) AS "limitKey",
                    (c.last_used_at IS NULL OR c.last_used_at < clock_timestamp() - interval '5 minutes') AS stale
             FROM auth.credentials c JOIN auth.principals p ON p.id = c.principal_id
             LEFT JOIN auth.oauth_grants g ON g.id = c.grant_id
@@ -61,6 +62,14 @@ class Authentication(
         )
         val found = requirePresent(row, 401, "UNAUTHENTICATED", "Войдите в аккаунт.")
         val actor = actorOf(found, credential.kind)
+        if (credential.kind != CredentialKind.SESSION) {
+            requireCondition(
+                limits.admit(found.string("limitKey")),
+                429,
+                "REQUEST_LIMIT",
+                "Слишком много запросов с этим токеном. Повторите через минуту.",
+            )
+        }
         if (actor.isDelegated) {
             requireCondition(
                 found.string("audience") in audiences(intent.resource),

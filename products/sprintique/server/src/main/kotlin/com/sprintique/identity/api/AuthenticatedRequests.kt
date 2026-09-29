@@ -58,6 +58,9 @@ class AuthenticatedRequests(private val authentication: Authentication, private 
         private val BEARER = Regex("^[Bb]earer ((?:spr|spp|spo)_[A-Za-z0-9_-]{43})$")
         private val SESSION_TOKEN = Regex("^[A-Za-z0-9_-]{43}$")
 
+        /** Whether an Authorization header has the shape of this server's bearer tokens; nothing is looked up. */
+        fun isBearer(authorization: String?): Boolean = authorization != null && BEARER.matches(authorization)
+
         /** The bearer token of the request, told apart by its prefix; null without an Authorization header. */
         fun bearerOf(request: HttpServletRequest): Credential? {
             val authorization = request.getHeader("Authorization") ?: return null

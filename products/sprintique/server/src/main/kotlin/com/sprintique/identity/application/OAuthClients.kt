@@ -36,11 +36,11 @@ data class OAuthClient(
 /**
  * Dynamic client registration (RFC 7591), open so that a client such as Claude registers itself. Nothing the client
  * declares is fetched or trusted: its name is shown as the client's own claim, its addresses are compared by exact
- * string. Clients that never got a grant are collected after a week.
+ * string. Registration is limited per address (the sign-in budget), never globally, so a flood from some addresses
+ * cannot close it for everyone; clients that were never connected are collected after a week, which bounds the table.
  */
 object OAuthClients {
     const val NAME_LIMIT = 100
-    private const val DAILY_REGISTRATIONS = 5000
     private const val COLLECT_BATCH = 500
     private val AUTH_METHODS = setOf("none", "client_secret_post", "client_secret_basic")
     private val GRANT_TYPES = setOf("authorization_code", "refresh_token")
@@ -79,19 +79,25 @@ object OAuthClients {
                 "Supported token endpoint auth methods: none, client_secret_post, client_secret_basic.",
             )
         }
-        val name = metadata.clientName.orEmpty().filterNot { it.isISOControl() }.trim().take(NAME_LIMIT)
+        val name = metadata.clientName.orEmpty().filterNot(::isHidden).trim().take(NAME_LIMIT)
         return ClientRegistration(name.ifEmpty { "Без названия" }, uris.distinct(), grantTypes, method)
+    }
+
+    /**
+     * Characters a name must not carry onto the consent screen: controls, and invisible formatting such as
+     * right-to-left overrides and zero-width joiners, which could make one name look like another.
+     */
+    private fun isHidden(char: Char): Boolean = when (Character.getType(char).toByte()) {
+        Character.CONTROL, Character.FORMAT, Character.SURROGATE, Character.PRIVATE_USE, Character.UNASSIGNED,
+        Character.LINE_SEPARATOR, Character.PARAGRAPH_SEPARATOR,
+        -> true
+
+        else -> false
     }
 
     /** Registers a client and returns the RFC 7591 response, with the secret of a confidential client shown once. */
     fun register(tx: Transaction, registration: ClientRegistration): Map<String, Any?> {
         collect(tx)
-        val recent = tx.row(
-            "SELECT count(*)::int AS n FROM auth.oauth_clients WHERE created_at > clock_timestamp() - interval '1 day'",
-        )!!.int("n")
-        if (recent >= DAILY_REGISTRATIONS) {
-            throw OAuthException("temporarily_unavailable", "Registration is temporarily unavailable.", 503)
-        }
         val id = Tokens.prefixed("cl_")
         val secret = if (registration.authMethod == "none") null else Tokens.prefixed("sps_")
         val row = tx.row(

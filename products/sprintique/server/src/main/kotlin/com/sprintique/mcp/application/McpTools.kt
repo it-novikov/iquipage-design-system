@@ -143,7 +143,7 @@ class McpTools(
         tool(
             "add_task_comment", "Комментарий к задаче",
             "Add a message to a task's discussion: a new thread, or a reply in threadId. question=true starts a " +
-                "question that waits for a resolution.",
+                "question that waits for a resolution. Pass an idempotencyKey to retry safely.",
             AddCommentArguments::class,
             schema(
                 "projectId" to PROJECT,
