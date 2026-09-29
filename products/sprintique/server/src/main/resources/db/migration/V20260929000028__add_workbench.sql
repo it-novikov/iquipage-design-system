@@ -21,6 +21,8 @@ CREATE TABLE app.attention_requests (
   source_revision bigint,
   revision bigint NOT NULL DEFAULT 1 CHECK(revision>0),
   created_at timestamptz NOT NULL DEFAULT clock_timestamp(),
+  -- When the request reached its current recipient: a snooze hides only what reached the person before it.
+  addressed_at timestamptz NOT NULL DEFAULT clock_timestamp(),
   updated_at timestamptz NOT NULL DEFAULT clock_timestamp(),
   closed_at timestamptz,
   closed_by text REFERENCES auth.principals,
@@ -103,6 +105,15 @@ CREATE TABLE app.workbench_preferences (
   revision bigint NOT NULL DEFAULT 1 CHECK(revision>0),
   updated_at timestamptz NOT NULL DEFAULT clock_timestamp()
 );
+
+-- The per-recipient limit counts every project, not only those the requester can see; only the number leaves.
+CREATE FUNCTION auth.open_requests_for(recipient text) RETURNS integer LANGUAGE sql STABLE SECURITY DEFINER SET search_path=pg_catalog AS $$
+  SELECT count(*)::integer FROM app.attention_requests r
+  WHERE r.recipient_id=recipient AND r.status='open'
+    AND (r.approval_id IS NULL OR EXISTS(SELECT 1 FROM app.approvals a WHERE a.project_id=r.project_id AND a.id=r.approval_id
+         AND a.status='proposed' AND a.expires_at>clock_timestamp()))
+$$;
+REVOKE ALL ON FUNCTION auth.open_requests_for(text) FROM PUBLIC;
 
 ALTER TABLE app.attention_requests ENABLE ROW LEVEL SECURITY;
 ALTER TABLE app.attention_requests FORCE ROW LEVEL SECURITY;

@@ -85,6 +85,9 @@ object PersonalState {
             var revision = current.long("follow_revision")
             if (current.boolean("following") != following) {
                 if (following) {
+                    // Limits count under a per-person lock: two tabs cannot both take the last place.
+                    tx.row("SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", "follow:${actor.id}")
+                    startRelation(tx, actor, projectId, taskId)
                     val count = tx.row(
                         "SELECT count(*)::int AS n FROM app.task_personal_state WHERE principal_id = $1 AND following",
                         actor.id,
@@ -107,7 +110,6 @@ object PersonalState {
                     actor.id,
                     following,
                 )!!.long("follow_revision")
-                if (following) ensureWatermark(tx, actor, projectId, taskId)
             }
             PrivateEffect(taskId, revision, effect("follow", taskId, projectId, revision, "following" to following))
         }
@@ -130,10 +132,11 @@ object PersonalState {
             "projects" to scope,
         )
         return PrivateLedger.once(tx, actor, projectId, "personal.focus", key, input) {
+            // One person's focus order spans projects: moves are serialized per person, and this lock comes before
+            // any row lock, so a renumbering never waits on a row another focus command holds.
+            tx.row("SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", "focus:${actor.id}")
             val current = lock(tx, actor, projectId, taskId)
             requireRevision(current.long("focus_revision"), baseRevision)
-            // One person's focus order spans projects: moves are serialized per person, not per project.
-            tx.row("SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", "focus:${actor.id}")
             val focused = current["focus_rank"] != null
             val rank: Long? = when (action) {
                 FocusAction.ADD -> if (focused) current.long("focus_rank") else nextRank(tx, actor)
@@ -312,6 +315,8 @@ object PersonalState {
             SELECT count(*)::int AS open, clock_timestamp() AS now,
                    min(r.needed_by::timestamp AT TIME ZONE coalesce(auth.project_timezone($1), 'UTC')) AS limit_at
             FROM app.attention_requests r WHERE r.project_id = $1 AND r.task_id = $2 AND r.recipient_id = $3 AND r.status = 'open'
+              AND (r.approval_id IS NULL OR EXISTS (SELECT 1 FROM app.approvals ap WHERE ap.project_id = r.project_id
+                   AND ap.id = r.approval_id AND ap.status = 'proposed' AND ap.expires_at > clock_timestamp()))
             """.trimIndent(),
             projectId,
             taskId,
@@ -366,17 +371,25 @@ object PersonalState {
         linkedMapOf("command" to field, "projectId" to projectId, "taskId" to taskId, "revision" to revision, value)
 
     /**
-     * A new relation (a follow, a waiting control, an own request) starts at the task's current events: history
-     * before the relation is not news. A marker the person already has is kept.
+     * A relation that starts from nothing (a follow, a waiting control, an own request) starts at the task's current
+     * events: history before it is not news (docs/adr W3 §5). Called before the new relation is written; while
+     * another relation already holds, the person's marker and their unseen news are kept.
      */
-    fun ensureWatermark(tx: Transaction, actor: Actor, projectId: String, taskId: String) {
+    fun startRelation(tx: Transaction, actor: Actor, projectId: String, taskId: String) {
         tx.update(
             """
             INSERT INTO app.task_personal_state(project_id, task_id, principal_id, last_seen_sequence, seen_revision)
             SELECT $1, $2, $3, coalesce(max(sequence), 0), 1 FROM app.task_activity WHERE project_id = $1 AND task_id = $2
             ON CONFLICT (project_id, task_id, principal_id) DO UPDATE
-              SET last_seen_sequence = EXCLUDED.last_seen_sequence, seen_revision = app.task_personal_state.seen_revision + 1
-              WHERE app.task_personal_state.last_seen_sequence IS NULL
+              SET last_seen_sequence = greatest(coalesce(app.task_personal_state.last_seen_sequence, 0),
+                                                EXCLUDED.last_seen_sequence),
+                  seen_revision = app.task_personal_state.seen_revision + 1
+              WHERE NOT app.task_personal_state.following
+                AND NOT EXISTS (SELECT 1 FROM app.task_wait_state w WHERE w.project_id = $1 AND w.task_id = $2
+                                AND w.principal_id = $3 AND w.state = 'active')
+                AND NOT EXISTS (SELECT 1 FROM app.attention_requests r WHERE r.project_id = $1 AND r.task_id = $2
+                                AND r.requested_by = $3
+                                AND (r.status IN ('open', 'orphaned') OR r.updated_at > now() - interval '30 days'))
             """.trimIndent(),
             projectId,
             taskId,

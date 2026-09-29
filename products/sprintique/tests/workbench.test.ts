@@ -298,9 +298,15 @@ test('W06 keyset pagination: pages are disjoint, complete and ordered; counts ma
   const global=await call('PUT',`${base(p)}/tasks/k2/personal/focus`,{baseRevision:(await personal(p,'k2')).focusRevision,action:'up'});
   assert.equal(global.statusCode,200,global.body);
   assert.deepEqual(await order(),['k2','k0','k1'],'the visible order is unchanged by a move past an invisible row');
-  // Many moves exhaust the gaps and renumber without changing the order the person set.
-  for(let i=0;i<25;i++){await focus(p,'k1','up');await focus(p,'k1','down');}
-  assert.deepEqual(await order(),['k2','k0','k1']);
+  // Moving the last row up again and again halves the same gap until none is left; the ranks are then renumbered
+  // and the order stays exactly what the person set.
+  let expected=['k2','k0','k1'];
+  for(let i=0;i<24;i++){
+    const last=expected.at(-1)!;await focus(p,last,'up');expected=[...expected.slice(0,-2),last,expected.at(-2)!];
+    assert.deepEqual(await order(),expected,`move ${i}`);
+  }
+  const ranks=(await f.admin.query<{rank:string}>('SELECT focus_rank AS rank FROM app.task_personal_state WHERE principal_id=$1 AND focus_rank IS NOT NULL',[f.alice.id])).rows.map(r=>r.rank);
+  assert.equal(new Set(ranks).size,ranks.length,'ranks stay distinct after renumbering');
   // Focused tasks left the active group: one row each.
   assert.equal((await envelope(f.alice,p)).sections[1]!.groups!.find(g=>g.key==='active')!.count,20);
 });
@@ -316,12 +322,12 @@ test('W07 waiting: explicit opt-in on assignment, completion and reassignment ar
   const started=await ok<any>(call('POST',`${base(p)}/tasks/d/wait-state`,{baseRevision:0,checkBackAt:inDays(3),sourceSequence:state.ownerSequence}));
   assert.equal(started.state,'active');assert.equal(started.expectedAssigneeId,f.bob.id);
   let row=placed(await envelope(f.alice,p)).find(x=>x.row.taskId==='d')!;
-  assert.equal(row.place,'waiting');assert.equal(row.row.primaryReason.code,'delegated_by_you');assert.equal(row.row.primaryReason.text,'Вы поручили Борис');
+  assert.equal(row.place,'waiting');assert.equal(row.row.primaryReason.code,'delegated_by_you');assert.equal(row.row.primaryReason.text,'Поручено: Борис');
   assert.equal(row.row.waiting!.checkBackAt,inDays(3));
   assert.equal((await call('POST',`${base(p)}/tasks/d/wait-state`,{baseRevision:started.revision})).json().code,'WAIT_ACTIVE');
   await edit(p,'d',{ownerId:carol.id},f.bob);
   row=placed(await envelope(f.alice,p)).find(x=>x.row.taskId==='d')!;
-  assert.equal(row.row.primaryReason.code,'delegated_reassigned');assert.equal(row.row.primaryReason.text,'Вы поручили Борис: сейчас исполняет Карина');
+  assert.equal(row.row.primaryReason.code,'delegated_reassigned');assert.equal(row.row.primaryReason.text,'Поручено: Борис, сейчас исполняет Карина');
   await edit(p,'d',{status:'ready_for_release'},carol);
   row=placed(await envelope(f.alice,p)).find(x=>x.row.taskId==='d')!;
   assert.equal(row.place,'waiting',"completion is shown, the control is the person's to close");assert.equal(row.row.primaryReason.code,'delegated_completed');
@@ -428,4 +434,82 @@ test('W10 flags: off means not found and the session names what is on',async()=>
     assert.deepEqual((await off.inject({url:'/api/v1/session',headers:f.alice.headers})).json().features,['workbench_read_internal']);
   }finally{await off.close();}
   // The production default (nothing named = nothing on) is proven by FeatureFlagsTest: a production process needs HTTPS.
+});
+
+test('W11 blockers: my work blocked, delegated work blocked, events on both ends of a dependency',async()=>{
+  const p=await project([[f.bob,'editor']]);
+  await task(p,'mine',{status:'in_progress',ownerId:f.alice.id});await task(p,'blocker',{ownerId:f.bob.id});
+  await task(p,'deleg',{ownerId:f.bob.id});await ok(call('POST',`${base(p)}/tasks/deleg/wait-state`,{baseRevision:0}));
+  await ok(call('PUT',`${base(p)}/task-links/l1`,{baseRevision:0,value:{kind:'depends',fromId:'mine',toId:'blocker'}},f.bob));
+  await ok(call('PUT',`${base(p)}/task-links/l2`,{baseRevision:0,value:{kind:'depends',fromId:'deleg',toId:'blocker'}},f.bob));
+  const env=await envelope(f.alice,p);
+  const mine=placed(env).find(x=>x.row.taskId==='mine')!;
+  assert.equal(mine.place,'active');assert.equal(mine.row.primaryReason.code,'your_work_blocked');
+  const blockerKey=(await ok<any>(call('GET',`${base(p)}/tasks/blocker`))).displayId;
+  assert.equal(mine.row.primaryReason.text,`Назначено вам, заблокирована задачей ${blockerKey}`);assert.equal(mine.row.blockedBy?.displayId,blockerKey);
+  const deleg=placed(env).find(x=>x.row.taskId==='deleg')!;
+  assert.equal(deleg.place,'waiting');assert.equal(deleg.row.primaryReason.code,'delegated_blocked');
+  const events=(await f.admin.query<{task_id:string;role:string;other:string}>("SELECT task_id,detail->>'role' AS role,detail->>'other' AS other FROM app.task_activity WHERE project_id=$1 AND kind='dependency' ORDER BY sequence",[p])).rows;
+  assert.deepEqual(events.slice(0,2),[{task_id:'mine',role:'blocked_by',other:'blocker'},{task_id:'blocker',role:'blocks',other:'mine'}]);
+  assert.deepEqual(where(await envelope(f.bob,p),'blocker'),[],'blocking someone is not an action without a request');
+});
+
+test('W12 own noise: edits by my own agent are not news, a colleague\'s are',async()=>{
+  const p=await project([[f.bob,'editor']]);
+  await task(p,'watched');await follow(p,'watched');
+  const grant=await ok<{token:string}>(call('POST',`${base(p)}/agents`,{name:'Мой агент',capabilities:['tasks:read','tasks:write'],expiresInSeconds:600}));
+  const agent={headers:{authorization:'Bearer '+grant.token}} as unknown as User;
+  await edit(p,'watched',{status:'in_progress',due:inDays(4)},agent);
+  const own=(await f.admin.query<{actor_id:string;initiator_id:string}>("SELECT actor_id,initiator_id FROM app.task_activity WHERE project_id=$1 AND task_id='watched' AND kind='status'",[p])).rows[0]!;
+  assert.equal(own.initiator_id,f.alice.id,'the agent acts on the initiator\'s behalf');assert.notEqual(own.actor_id,f.alice.id);
+  assert.deepEqual(where(await envelope(f.alice,p),'watched'),[],'my agent\'s edits are my own noise');
+  await edit(p,'watched',{status:'review'},f.bob);
+  const row=placed(await envelope(f.alice,p)).find(x=>x.row.taskId==='watched')!;
+  assert.equal(row.place,'updates');assert.equal(row.row.updates!.count,1);assert.equal(row.row.primaryReason.actor?.id,f.bob.id);
+});
+
+test('W13 discussions reach followers: a new message, then the question resolved',async()=>{
+  const p=await project([[f.bob,'editor']]);
+  await task(p,'discussed');await follow(p,'discussed');
+  const thread=await ok<any>(call('POST',`${base(p)}/tasks/discussed/threads`,{id:'q1',messageId:'m1',body:'Кто берёт?',requiresResolution:true},f.bob));
+  let row=placed(await envelope(f.alice,p)).find(x=>x.row.taskId==='discussed')!;
+  assert.equal(row.row.primaryReason.code,'followed_thread_changed');assert.equal(row.row.primaryReason.text,'Вы следите: новое сообщение в обсуждении');
+  const state=await personal(p,'discussed');
+  await ok(call('PUT',`${base(p)}/tasks/discussed/personal/seen`,{baseRevision:state.seenRevision,sequence:state.latestSequence}));
+  assert.deepEqual(where(await envelope(f.alice,p),'discussed'),[]);
+  await ok(call('PATCH',`${base(p)}/threads/q1/resolution`,{resolved:true,baseRevision:thread.revision},f.bob));
+  row=placed(await envelope(f.alice,p)).find(x=>x.row.taskId==='discussed')!;
+  assert.equal(row.row.primaryReason.text,'Вы следите: вопрос в обсуждении решён');
+});
+
+test('W14 review R1: reassignment pierces a snooze, a new relation starts now, first waits race, off is 404 unauthenticated',async()=>{
+  const p=await project([[f.bob,'editor'],[carol,'editor'],[dan,'editor']]);
+  // F1: a request that reaches the person after the snooze is not hidden by it.
+  await task(p,'s');await ask(p,'s',f.bob,f.alice);
+  const state=await personal(p,'s');
+  await ok(call('PUT',`${base(p)}/tasks/s/personal/snooze`,{baseRevision:state.snoozeRevision,until:inDays(5)+'T09:00:00Z'}));
+  const toDan=await ask(p,'s',carol,dan);
+  assert.deepEqual(where(await envelope(f.alice,p),'s'),[]);
+  await ok(call('PATCH',`${base(p)}/requests/${toDan.id}`,{baseRevision:toDan.revision,recipientId:f.alice.id,neededBy:null},carol));
+  assert.deepEqual(where(await envelope(f.alice,p),'s'),['action'],'reassigned to me after my snooze');
+  // F3: following again does not replay the history from before the new relation.
+  await task(p,'h');await follow(p,'h');await follow(p,'h',false);
+  for(const status of ['in_progress','review','testing'])await edit(p,'h',{status},f.bob);
+  await follow(p,'h');assert.deepEqual(where(await envelope(f.alice,p),'h'),[]);
+  await edit(p,'h',{status:'in_progress'},f.bob);
+  assert.equal(placed(await envelope(f.alice,p)).find(x=>x.row.taskId==='h')!.row.updates!.count,1);
+  // F4: two first starts of "Жду" from two tabs: one wins, the other is told.
+  await task(p,'w',{ownerId:f.bob.id});
+  const starts=await Promise.all([inDays(1),inDays(2)].map(checkBackAt=>call('POST',`${base(p)}/tasks/w/wait-state`,{baseRevision:0,checkBackAt})));
+  assert.deepEqual(starts.map(r=>r.statusCode).sort(),[200,409]);
+  // F10: a switched-off feature is not found before authentication.
+  const off=await startApp({settings:{SPRINTIQUE_FEATURES:'workbench_read_internal'}});
+  try{
+    assert.equal((await off.inject({url:'/api/v1/workbench/plan'})).statusCode,404);
+    assert.equal((await off.inject({method:'POST',url:`${base(p)}/tasks/w/wait-state`,payload:{baseRevision:0}})).statusCode,404);
+    assert.equal((await off.inject({url:'/api/v1/workbench'})).statusCode,401,'an enabled feature still needs a session');
+  }finally{await off.close();}
+  const none=await startApp({settings:{SPRINTIQUE_FEATURES:'none'}});
+  try{for(const url of ['/workbench','/workbench/plan','/api/v1/workbench'])assert.equal((await none.inject({url})).statusCode,404,url);}
+  finally{await none.close();}
 });

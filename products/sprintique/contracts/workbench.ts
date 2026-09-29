@@ -43,7 +43,8 @@ export interface WorkbenchRow {
   owner:WorkbenchPerson|null;due:string|null;plannedStart:string|null;plannedEnd:string|null;
   section:'action'|'current'|'updates';group:'focus'|'active'|'waiting'|'snoozed'|'backlog'|null;
   primaryReason:WorkbenchReason;secondaryReasons:WorkbenchReason[];
-  request:{id:string;kind:string;revision:number;neededBy:string|null;note:string;requestedBy:WorkbenchPerson|null;createdAt:string;openCount:number}|null;
+  // No request note in a first-screen row (delivery-plan §4.2): the drawer reads it from `/personal`.
+  request:{id:string;kind:string;revision:number;neededBy:string|null;requestedBy:WorkbenchPerson|null;createdAt:string;openCount:number}|null;
   waiting:{revision:number;checkBackAt:string|null;expectedAssignee:WorkbenchPerson|null;expectedAssigneeLeft:boolean}|null;
   updates:{count:number;latestSequence:number;latestAt:string;kinds:string[]}|null;
   personal:{following:boolean;followRevision:number;focused:boolean;focusRevision:number;lastSeenSequence:number|null;seenRevision:number;

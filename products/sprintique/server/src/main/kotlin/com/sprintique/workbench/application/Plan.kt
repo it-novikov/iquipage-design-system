@@ -155,6 +155,9 @@ object Plan {
         ), requests AS MATERIALIZED (
           SELECT r.* FROM app.attention_requests r JOIN authorized a ON a.id = r.project_id
           WHERE $3::boolean AND r.recipient_id = $1 AND r.status = 'open' AND a.role IN ('editor', 'admin')
+            -- A request on an approval that expired can no longer be answered: it is not planned time.
+            AND (r.approval_id IS NULL OR EXISTS (SELECT 1 FROM app.approvals ap WHERE ap.project_id = r.project_id
+                 AND ap.id = r.approval_id AND ap.status = 'proposed' AND ap.expires_at > now()))
         ), waits AS MATERIALIZED (
           SELECT w.* FROM app.task_wait_state w JOIN authorized a ON a.id = w.project_id
           WHERE $5::boolean AND w.principal_id = $1 AND w.state = 'active'

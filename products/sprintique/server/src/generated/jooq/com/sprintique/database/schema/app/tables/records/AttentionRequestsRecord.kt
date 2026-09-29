@@ -73,17 +73,21 @@ open class AttentionRequestsRecord() : UpdatableRecordImpl<AttentionRequestsReco
         set(value): Unit = set(13, value)
         get(): OffsetDateTime? = get(13) as OffsetDateTime?
 
-    open var updatedAt: OffsetDateTime?
+    open var addressedAt: OffsetDateTime?
         set(value): Unit = set(14, value)
         get(): OffsetDateTime? = get(14) as OffsetDateTime?
 
-    open var closedAt: OffsetDateTime?
+    open var updatedAt: OffsetDateTime?
         set(value): Unit = set(15, value)
         get(): OffsetDateTime? = get(15) as OffsetDateTime?
 
-    open var closedBy: String?
+    open var closedAt: OffsetDateTime?
         set(value): Unit = set(16, value)
-        get(): String? = get(16) as String?
+        get(): OffsetDateTime? = get(16) as OffsetDateTime?
+
+    open var closedBy: String?
+        set(value): Unit = set(17, value)
+        get(): String? = get(17) as String?
 
     // -------------------------------------------------------------------------
     // Primary key information
@@ -91,7 +95,7 @@ open class AttentionRequestsRecord() : UpdatableRecordImpl<AttentionRequestsReco
 
     override fun key(): Record2<String?, UUID?> = super.key() as Record2<String?, UUID?>
 
-    constructor(projectId: String? = null, id: UUID? = null, taskId: String? = null, recipientId: String? = null, requestedBy: String? = null, kind: String? = null, threadId: String? = null, approvalId: UUID? = null, note: String? = null, status: String? = null, neededBy: LocalDate? = null, sourceRevision: Long? = null, revision: Long? = null, createdAt: OffsetDateTime? = null, updatedAt: OffsetDateTime? = null, closedAt: OffsetDateTime? = null, closedBy: String? = null): this() {
+    constructor(projectId: String? = null, id: UUID? = null, taskId: String? = null, recipientId: String? = null, requestedBy: String? = null, kind: String? = null, threadId: String? = null, approvalId: UUID? = null, note: String? = null, status: String? = null, neededBy: LocalDate? = null, sourceRevision: Long? = null, revision: Long? = null, createdAt: OffsetDateTime? = null, addressedAt: OffsetDateTime? = null, updatedAt: OffsetDateTime? = null, closedAt: OffsetDateTime? = null, closedBy: String? = null): this() {
         this.projectId = projectId
         this.id = id
         this.taskId = taskId
@@ -106,6 +110,7 @@ open class AttentionRequestsRecord() : UpdatableRecordImpl<AttentionRequestsReco
         this.sourceRevision = sourceRevision
         this.revision = revision
         this.createdAt = createdAt
+        this.addressedAt = addressedAt
         this.updatedAt = updatedAt
         this.closedAt = closedAt
         this.closedBy = closedBy

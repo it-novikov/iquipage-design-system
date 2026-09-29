@@ -9,6 +9,7 @@ import com.sprintique.database.schema.auth.routines.ActorId
 import com.sprintique.database.schema.auth.routines.CanProject
 import com.sprintique.database.schema.auth.routines.CanSeePerson
 import com.sprintique.database.schema.auth.routines.CanWorkspace
+import com.sprintique.database.schema.auth.routines.OpenRequestsFor
 import com.sprintique.database.schema.auth.routines.ProjectTimezone
 import com.sprintique.database.schema.auth.tables.ProjectTimezoneSource
 import com.sprintique.database.schema.auth.tables.WorkspaceProjects
@@ -121,6 +122,35 @@ fun canWorkspace(
 ): Field<Boolean?> {
     val f = CanWorkspace()
     f.setTarget(target)
+
+    return f.asField()
+}
+
+fun openRequestsFor(
+      configuration: Configuration
+    , recipient: String?
+): Int? {
+    val f = OpenRequestsFor()
+    f.setRecipient(recipient)
+
+    f.execute(configuration)
+    return f.returnValue
+}
+
+fun openRequestsFor(
+      recipient: String?
+): Field<Int?> {
+    val f = OpenRequestsFor()
+    f.setRecipient(recipient)
+
+    return f.asField()
+}
+
+fun openRequestsFor(
+      recipient: Field<String?>
+): Field<Int?> {
+    val f = OpenRequestsFor()
+    f.setRecipient(recipient)
 
     return f.asField()
 }

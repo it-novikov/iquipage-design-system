@@ -83,11 +83,12 @@ object Reasons {
         done: Boolean,
         latest: Activity?,
     ): Reason {
-        val who = if (expectedIsMember && expectedName != null) "Вы поручили $expectedName" else "Вы ждёте результат"
+        // Names are not declined in Russian here, so the person follows a colon: "Поручено: Анна, работа завершена".
+        val who = if (expectedIsMember && expectedName != null) "Поручено: $expectedName" else "Вы ждёте результат"
         return when {
             done -> Reason(
                 "delegated_completed",
-                "$who: работа завершена",
+                "$who, работа завершена",
                 latest?.actorId,
                 latest?.actorName,
                 latest?.at,
@@ -98,11 +99,11 @@ object Reasons {
 
             ownerId != expectedId -> Reason(
                 "delegated_reassigned",
-                if (ownerName != null) "$who: сейчас исполняет $ownerName" else "$who: исполнитель снят",
+                if (ownerName != null) "$who, сейчас исполняет $ownerName" else "$who, исполнитель снят",
             )
 
             latest?.isNewBlocker() == true ->
-                Reason("delegated_blocked", "$who: появилась блокировка", latest.actorId, latest.actorName, latest.at)
+                Reason("delegated_blocked", "$who, появилась блокировка", latest.actorId, latest.actorName, latest.at)
 
             else -> Reason("delegated_by_you", who)
         }

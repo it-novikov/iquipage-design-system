@@ -106,7 +106,6 @@ class PersonalTaskController(
         @RequestBody(required = false) body: JsonNode?,
         request: HttpServletRequest,
     ) = requests.run(request) { tx, actor ->
-        flags.require(Feature.WORKBENCH_PERSONAL_STATE)
         ids(projectId, taskId)
         val input = contracts.parse<PutSeenRequest>(body)
         PersonalState.seen(tx, actor, projectId, taskId, input.baseRevision, input.sequence, key(request))

@@ -41,7 +41,7 @@ class ReasonsTest {
     fun `delegated work names completion, reassignment and a departed assignee without their name`() {
         val done = Reasons.waiting("Анна", true, "anna", "anna", "Анна", done = true, latest = null)
         assertThat(done.code).isEqualTo("delegated_completed")
-        assertThat(done.text).isEqualTo("Вы поручили Анна: работа завершена")
+        assertThat(done.text).isEqualTo("Поручено: Анна, работа завершена")
         val moved = Reasons.waiting("Анна", true, "oleg", "anna", "Олег", done = false, latest = null)
         assertThat(moved.code).isEqualTo("delegated_reassigned")
         val gone = Reasons.waiting("Анна", false, "anna", "anna", "Анна", done = false, latest = null)

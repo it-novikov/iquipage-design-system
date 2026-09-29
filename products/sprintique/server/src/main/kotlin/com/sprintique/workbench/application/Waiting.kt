@@ -66,6 +66,8 @@ object Waiting {
                 )
                 requireCondition(source != null, 422, "WAIT_SOURCE", "Назначение, за которым вы следите, недоступно.")
             }
+            // The relation may not exist yet: the lock serializes two first starts, so one of them gets 409.
+            tx.row("SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", "wait:${actor.id}")
             val previous = tx.row(
                 """
                 SELECT state, revision FROM app.task_wait_state WHERE project_id = $1 AND task_id = $2 AND principal_id = $3
@@ -87,6 +89,7 @@ object Waiting {
                 actor.id,
             )!!.int("n")
             requireCondition(active < ACTIVE_LIMIT, 422, "WAIT_LIMIT", "Слишком много ожиданий. Завершите лишние.")
+            PersonalState.startRelation(tx, actor, projectId, taskId)
             val saved = tx.row(
                 """
                 INSERT INTO app.task_wait_state(project_id, task_id, principal_id, expected_assignee_id, source_sequence,
@@ -105,7 +108,6 @@ object Waiting {
                 sourceSequence,
                 checkBackAt,
             )!!
-            PersonalState.ensureWatermark(tx, actor, projectId, taskId)
             effect(taskId, projectId, saved.long("revision"), "active", checkBackAt, owner)
         }
     }

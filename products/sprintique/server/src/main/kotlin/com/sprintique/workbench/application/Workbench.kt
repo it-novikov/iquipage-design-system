@@ -52,7 +52,7 @@ object Workbench {
         val page = { bucket: String ->
             val bucketRows = items[bucket].orEmpty()
             val count = bucketRows.firstOrNull()?.long("bucket_count") ?: 0L
-            pageOf(bucketRows, limit, count, CursorScope(actor.id, epoch, bucket, filter), cursors)
+            pageOf(bucketRows, limit, count, CursorScope(actor.id, epoch, bucket, filter), cursors, parts)
         }
         val action = page("action")
         val focus = page("focus")
@@ -125,7 +125,8 @@ object Workbench {
         val epoch = epochOf(extras)
         if (opened != null) cursors.requireEpoch(opened, epoch)
         val scope = CursorScope(actor.id, epoch, section, filter)
-        val page = pageOf(rows.filter { it["project_id"] != null }, limit, extras.long("bucket_total"), scope, cursors)
+        val page =
+            pageOf(rows.filter { it["project_id"] != null }, limit, extras.long("bucket_total"), scope, cursors, parts)
         return linkedMapOf(
             "section" to section,
             "generatedAt" to extras["generated_at"],
@@ -137,10 +138,17 @@ object Workbench {
 
     private data class Page(val items: List<Map<String, Any?>>, val count: Long, val nextCursor: String?)
 
-    private fun pageOf(rows: List<Row>, limit: Int, count: Long, scope: CursorScope, cursors: WorkbenchCursors): Page {
+    private fun pageOf(
+        rows: List<Row>,
+        limit: Int,
+        count: Long,
+        scope: CursorScope,
+        cursors: WorkbenchCursors,
+        parts: WorkbenchParts,
+    ): Page {
         val shown = rows.take(limit)
         val next = if (rows.size > limit) cursors.encode(scope, shown.last().string("sort_key")) else null
-        return Page(shown.map(::item), count, next)
+        return Page(shown.map { item(it, parts) }, count, next)
     }
 
     private fun section(
@@ -237,7 +245,7 @@ object Workbench {
     }
 
     /** One task, one row: the primary reason of its placement and the others as secondary reasons. */
-    private fun item(row: Row): Map<String, Any?> {
+    private fun item(row: Row, parts: WorkbenchParts): Map<String, Any?> {
         val bucket = row.string("bucket")
         val (section, group) = SECTION_OF.getValue(bucket)
         val projectId = row.string("project_id")
@@ -313,7 +321,7 @@ object Workbench {
                 row.stringOrNull("blocker_id")?.let {
                     linkedMapOf("id" to it, "displayId" to row["blocker_display_id"])
                 },
-            "allowedActions" to allowedActions(row, bucket),
+            "allowedActions" to allowedActions(row, bucket, parts),
             "canonicalUrl" to "/workbench/tasks/$projectId/$taskId",
         ).apply { if (get("workspaceName") == null) remove("workspaceName") }
     }
@@ -401,17 +409,20 @@ object Workbench {
     )
 
     /** A hint for the interface only: the server checks every command again. */
-    private fun allowedActions(row: Row, bucket: String): List<String> = buildList {
+    private fun allowedActions(row: Row, bucket: String, parts: WorkbenchParts): List<String> = buildList {
         add("open")
         add("openProject")
-        add(if (row["focus_rank"] != null) "unfocus" else "focus")
-        if (row["focus_rank"] != null) addAll(listOf("rankUp", "rankDown"))
-        add(if (row["following"] == true) "unfollow" else "follow")
+        if (parts.personal) {
+            add(if (row["focus_rank"] != null) "unfocus" else "focus")
+            if (row["focus_rank"] != null) addAll(listOf("rankUp", "rankDown"))
+            add(if (row["following"] == true) "unfollow" else "follow")
+        }
         if (row.stringOrNull("request_id") != null) {
             add("resolveRequest")
-            add(if (bucket == "snoozed") "unsnooze" else "snooze")
+            if (parts.personal) add(if (bucket == "snoozed") "unsnooze" else "snooze")
         }
         if (row["wait_revision"] != null) addAll(listOf("resolveWaiting", "cancelWaiting", "changeCheckBack"))
+        // Seen moves the watermark that requests and waiting also count news from.
         if (row["unseen_count"] != null) add("markSeen")
     }
 
@@ -446,11 +457,12 @@ object Workbench {
           WHERE m.principal_id = $1 AND ($2::text[] IS NULL OR p.id = ANY($2::text[]))
           ORDER BY p.id LIMIT $PROJECT_LIMIT
         ), personal AS MATERIALIZED (
+          -- Watermarks are read whatever is switched on: requests and waiting count news from them too.
           SELECT s.* FROM app.task_personal_state s JOIN authorized a ON a.id = s.project_id
-          WHERE s.principal_id = $1 AND $4::boolean
+          WHERE s.principal_id = $1
         ), requests AS MATERIALIZED (
           SELECT r.project_id, r.task_id, r.id::text AS id, r.kind, r.needed_by, r.created_at, r.requested_by, r.revision, r.note,
-                 coalesce(s.snoozed_until > now() AND r.created_at <= s.snoozed_at
+                 coalesce($4::boolean AND s.snoozed_until > now() AND r.addressed_at <= s.snoozed_at
                    AND (r.needed_by IS NULL OR (r.needed_by::timestamp AT TIME ZONE a.timezone) > now()), false) AS snoozed
           FROM app.attention_requests r JOIN authorized a ON a.id = r.project_id
           LEFT JOIN personal s ON s.project_id = r.project_id AND s.task_id = r.task_id
@@ -474,7 +486,7 @@ object Workbench {
         ), related AS (
           -- A person's own request makes only its own events news; following and waiting make every event news.
           SELECT project_id, task_id, bool_and(request_only) AS request_only FROM (
-            SELECT project_id, task_id, false AS request_only FROM personal WHERE following
+            SELECT project_id, task_id, false AS request_only FROM personal WHERE following AND $4::boolean
             UNION ALL SELECT project_id, task_id, false FROM waits
             UNION ALL SELECT project_id, task_id, true FROM outgoing
           ) relation GROUP BY project_id, task_id
@@ -497,7 +509,7 @@ object Workbench {
           WHERE agg.n > 0
         ), candidates AS (
           SELECT project_id, task_id, 1 AS weight FROM lead_request
-          UNION ALL SELECT project_id, task_id, 2 FROM personal WHERE focus_rank IS NOT NULL
+          UNION ALL SELECT project_id, task_id, 2 FROM personal WHERE focus_rank IS NOT NULL AND $4::boolean
           UNION ALL SELECT project_id, task_id, 3 FROM assigned
           UNION ALL SELECT project_id, task_id, 4 FROM waits
           UNION ALL SELECT project_id, task_id, 5 FROM unseen

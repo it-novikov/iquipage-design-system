@@ -97,11 +97,12 @@ object AttentionRequests {
             requireRecipient(tx, projectId, request.recipientId)
             requireNeededBy(tx, projectId, request.neededBy)
             val sourceRevision = sourceRevision(tx, projectId, taskId, request)
-            val open = tx.row(
-                "SELECT count(*)::int AS n FROM app.attention_requests WHERE recipient_id = $1 AND status = 'open'",
-                request.recipientId,
-            )!!.int("n")
+            // Every project counts toward the recipient's limit, serialized per recipient (docs/adr W1).
+            tx.row("SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", "requests:${request.recipientId}")
+            val open = tx.row("SELECT auth.open_requests_for($1) AS n", request.recipientId)!!.int("n")
             requireCondition(open < OPEN_LIMIT, 422, "REQUEST_LIMIT", "У адресата слишком много открытых запросов.")
+            // The requester follows the answer from now on; the history before the request is not news.
+            PersonalState.startRelation(tx, actor, projectId, taskId)
             tx.update(
                 """
                 INSERT INTO app.attention_requests(project_id, id, task_id, recipient_id, requested_by, kind, thread_id,
@@ -120,8 +121,6 @@ object AttentionRequests {
                 request.neededBy,
                 sourceRevision,
             )
-            // The requester follows the answer from now on; the history before the request is not news.
-            PersonalState.ensureWatermark(tx, actor, projectId, taskId)
             AuditTrail.record(tx, actor, projectId, "request.created", request.id, 1)
             read(tx, projectId, request.id)
         }
@@ -165,10 +164,17 @@ object AttentionRequests {
                 "Запрос адресуется другому человеку.",
             )
             requireRecipient(tx, projectId, recipientId)
+            if (recipientId != current.string("recipient_id")) {
+                tx.row("SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", "requests:$recipientId")
+                val open = tx.row("SELECT auth.open_requests_for($1) AS n", recipientId)!!.int("n")
+                requireCondition(open < OPEN_LIMIT, 422, "REQUEST_LIMIT", "У адресата слишком много открытых запросов.")
+            }
             if (neededBy != current["needed_by"]?.toString()) requireNeededBy(tx, projectId, neededBy)
             val revision = tx.row(
                 """
                 UPDATE app.attention_requests SET recipient_id = $3, needed_by = $4::date, status = 'open',
+                       addressed_at = CASE WHEN recipient_id <> $3 OR status <> 'open' THEN clock_timestamp()
+                                           ELSE addressed_at END,
                        revision = revision + 1, updated_at = clock_timestamp()
                 WHERE project_id = $1 AND id::text = $2 RETURNING revision
                 """.trimIndent(),
