@@ -2,14 +2,15 @@
 bridge: 1
 id: 20260928-project-finance
 title: "Финансы проекта: журнал операций"
-status: active
+status: review
 risk: high
 owner: it-novikov
 branch: feature/project-finance
 base: main
 created: 2026-09-28
-updated: 2026-09-29T08:47:29Z
+updated: 2026-09-29T08:47:45Z
 links:
+  - https://github.com/it-novikov/iquipage-design-system/pull/25
 ---
 
 # Финансы проекта: журнал операций
@@ -52,10 +53,11 @@ links:
 - **Сейчас:** PR в main
 - **Дальше:** Владелец: второе ревью R2 и слияние PR
 - **Незакоммичено:** нет
-- **Рабочая копия:** нет · HEAD 25342ff
+- **Рабочая копия:** нет · HEAD 10e5510 · снято 2026-09-29T08:47:45Z
 - **Ловушки:**
   - TEST_S3_CONFIG лежит в /Users/nvkv71/iquipage-work/ux-ds-20260925/products/sprintique/output/infra/storage.json, а не в ux-ds-20260925/output/infra (там только vps.json и migration-*)
   - Системный node — v26; engines требует 24: PATH=/opt/homebrew/opt/node@24/bin:$PATH
+- **Причина:** planned — claude-opus-5-5, 2026-09-29T08:47:45Z: PR #25; гейты зелёные; R1 закрыто, R2 не проведено
 
 ## План
 
