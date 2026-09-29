@@ -10,7 +10,9 @@ const secret=()=>randomBytes(32).toString('base64url');
 type Tone='neutral'|'blue'|'purple'|'green'|'amber'|'red';
 type Status='ready'|'in_progress'|'review'|'ready_for_testing'|'testing'|'ready_for_release';
 interface TaskSeed {id:string;title:string;status?:Status;priority?:'low'|'normal'|'high'|'critical';type?:'task'|'bug'|'epic';tags?:string[];owner?:string;due?:string;parent?:string;description?:string;release?:'active'|'planned'|'draft'}
-interface ProjectSeed {name:string;key:string;members:[string,'editor'|'reader'][];tags:[string,string,Tone][];active?:string;planned?:string;tasks:TaskSeed[];map?:string}
+/** A ledger entry: amounts in kopecks (cents for USD); `voided` voids it after creation with that reason. */
+interface FinanceSeed {id:string;direction:'income'|'expense';state:'planned'|'posted';amount:number;date:number;category:string;description:string;counterparty?:string;reference?:string;currency?:string;voided?:string}
+interface ProjectSeed {name:string;key:string;members:[string,'editor'|'reader'][];tags:[string,string,Tone][];active?:string;planned?:string;tasks:TaskSeed[];map?:string;finance?:FinanceSeed[]}
 
 const TEAM=['Алиса Смирнова','Борис Петров','Вера Козлова','Григорий Орлов'];
 const day=(offset:number)=>new Date(Date.now()+offset*86400000).toISOString().slice(0,10);
@@ -36,6 +38,15 @@ const WORKSPACES:{name:string;projects:ProjectSeed[]}[]=[
         {id:'spq-audit',title:'Журнал действий в настройках',release:'planned',tags:['backend']},
         {id:'spq-cleanup',title:'Удалить устаревшие миграции',release:'draft',tags:['debt'],priority:'low'},
         {id:'spq-perf',title:'Ускорить загрузку планирования',release:'draft',tags:['backend','research'],owner:'Борис Петров'}
+      ],
+      finance:[
+        {id:'fin-advance',direction:'income',state:'posted',amount:45000000,date:-15,category:'Оплата заказчика',description:'Аванс по договору',counterparty:'АО «Заказчик»',reference:'Договор 17/2026'},
+        {id:'fin-hosting',direction:'expense',state:'posted',amount:1250000,date:-20,category:'Хостинг',description:'Серверы за месяц',counterparty:'ООО «Облако»',reference:'Счёт 1042'},
+        {id:'fin-hosting-copy',direction:'expense',state:'posted',amount:1250000,date:-19,category:'Хостинг',description:'Серверы за месяц',counterparty:'ООО «Облако»',voided:'Платёж внесён дважды'},
+        {id:'fin-design',direction:'expense',state:'posted',amount:9000000,date:-6,category:'Подрядчики',description:'Дизайн экранов онбординга',counterparty:'ИП Соколова'},
+        {id:'fin-conference',direction:'expense',state:'posted',amount:35000,currency:'USD',date:-10,category:'Конференции',description:'Билет на конференцию'},
+        {id:'fin-licenses',direction:'expense',state:'planned',amount:2400000,date:-2,category:'Лицензии',description:'Продление лицензий IDE'},
+        {id:'fin-stage-two',direction:'income',state:'planned',amount:60000000,date:12,category:'Оплата заказчика',description:'Второй этап',counterparty:'АО «Заказчик»'}
       ]},
     {name:'Мобильное приложение',key:'MOB',members:[['Григорий Орлов','editor'],['Алиса Смирнова','reader']],
       tags:[['ios','iOS','blue'],['android','Android','green'],['crash','Сбой','red']],
@@ -74,7 +85,7 @@ export async function seedDevData(app:TestApp,admin:pg.Client,origin:string){
   const token=secret(),csrf=secret();
   await admin.query("INSERT INTO auth.credentials(id,principal_id,token_hash,kind,csrf,initiator_id,expires_at) VALUES($1,$2,$3,'session',$4,$2,now()+interval '10 minutes')",[randomUUID(),adminId,hash(token),csrf]);
   const headers={cookie:`__Host-sprintique=${token}`,origin,'x-csrf-token':csrf};
-  const call=async<T=unknown>(method:'GET'|'POST'|'PUT',url:string,payload?:unknown):Promise<T>=>{
+  const call=async<T=unknown>(method:'GET'|'POST'|'PUT'|'PATCH',url:string,payload?:unknown):Promise<T>=>{
     const response=await app.inject({method,url:'/api/v1'+url,headers:{...headers,'idempotency-key':randomUUID()},...(payload===undefined?{}:{payload:payload as Record<string,unknown>})});
     if(response.statusCode>=300)throw Error(`${method} ${url} → ${response.statusCode} ${response.body.slice(0,300)}`);
     return response.json<T>();
@@ -112,6 +123,13 @@ export async function seedDevData(app:TestApp,admin:pg.Client,origin:string){
           objects:[obj('f1','frame','Что сработало',0,0),obj('s1','sticky','Быстрые ревью',30,60,{parentId:'f1'}),obj('s2','sticky','Понятный Гант',260,60,{parentId:'f1',color:'mint'}),
             obj('f2','frame','Что улучшить',600,0),obj('s3','sticky','Долгие сборки CI',630,60,{parentId:'f2',color:'rose'}),obj('k1','task','Ускорить CI',860,60,{parentId:'f2'})],
           connections:[{id:'c1',from:'s3',to:'k1',arrow:true}]}}});
+      }
+      for(const entry of spec.finance||[]){
+        const date=day(entry.date),value={direction:entry.direction,state:entry.state,amountMinor:entry.amount,currencyCode:entry.currency||'RUB',
+          dueDate:entry.state==='planned'?date:null,postedDate:entry.state==='posted'?date:null,category:entry.category,description:entry.description,
+          counterparty:entry.counterparty||null,reference:entry.reference||null};
+        const saved=await call<{revision:number}>('PUT',P+'finance-entries/'+entry.id,{baseRevision:0,value});
+        if(entry.voided)await call('PATCH',P+`finance-entries/${entry.id}/state`,{state:'voided',baseRevision:saved.revision,voidReason:entry.voided});
       }
       const first=spec.tasks.find(t=>!t.release);
       if(first)await call('POST',P+`tasks/${first.id}/threads`,{id:randomUUID(),messageId:randomUUID(),body:'Нужно решить до пятницы: делаем сейчас или переносим в следующий релиз?',requiresResolution:true});

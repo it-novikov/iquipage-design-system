@@ -1,4 +1,4 @@
-import {formatDateTime,ui} from '@iquipage/web/core';
+import {formatDateTime,ui,plural as pluralForms} from '@iquipage/web/core';
 import {createThreadPager} from './thread-pager.js';
 import {icon,esc} from '../ui.js';
 import {uid} from '../common.js';
@@ -7,7 +7,7 @@ import {postMessage,resolveThread,changeThreadKind} from './thread-model.js';
 /** Discussions read as a chat: open questions are pinned on top with one clear resolve action, comment threads and
  *  resolved questions follow in the order they happened, and the composer rests as one line. Space separates items;
  *  there are no dividers, fills or <summary> rows (their focus style was the "strange highlight"). */
-const plural=(n,one,few,many)=>{const a=Math.abs(n)%100,b=a%10;return a>10&&a<20?many:b===1?one:b>=2&&b<=4?few:many;};
+const plural=(n,one,few,many)=>pluralForms(n,{one,few,many});
 export const repliesLabel=n=>`${n} ${plural(n,'ответ','ответа','ответов')}`;
 export const messagesLabel=n=>`${n} ${plural(n,'сообщение','сообщения','сообщений')}`;
 const byCreated=(a,b)=>String(a.createdAt||'').localeCompare(String(b.createdAt||''))||String(a.id).localeCompare(String(b.id));

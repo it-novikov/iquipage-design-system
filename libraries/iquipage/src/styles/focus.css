@@ -4,4 +4,6 @@
 /* Transparent controls (ghost and icon buttons, tags, menu and list rows, segmented options) draw the ring inside
    their own bounds: it never overlaps a neighbour or gets clipped by a scrolling container. */
 :is(.iq-btn.ghost,.iq-btn.icon,.iq-tag,.iq-segmented>button,.iq-command-list>button,.iq-menu-popup button,.iq-list-item):focus-visible{outline-offset:-2px}
+/* Search and command fields live outside .iq-input-shell, so they draw the same inset ring as the field shell on focus. */
+.iq-search-small:focus-within,.iq-command-input:focus-within,.iq-select-search:focus-within{box-shadow:inset 0 0 0 1.5px var(--iq-focus)}
 @media (forced-colors:active){:is(button,.iq-btn,[role="button"],input[type="button"],input[type="submit"],input[type="reset"]):focus-visible{outline-color:Highlight}}

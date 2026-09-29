@@ -1,0 +1,75 @@
+{
+  "note": "Raw-value counts in src/styles today (SYS-03/04/05/07 ratchet). Counts may only shrink; regenerate after a deliberate cleanup: npm run gates:update.",
+  "metrics": {
+    "font-size-px": {
+      "total": 1106,
+      "files": {
+        "everyday-demo.css": 12,
+        "everyday.css": 27,
+        "foundation.css": 915,
+        "whiteboard-workshop.css": 27,
+        "whiteboard.css": 125
+      }
+    },
+    "font-size-below-12px": {
+      "total": 367,
+      "files": {
+        "everyday-demo.css": 1,
+        "everyday.css": 4,
+        "foundation.css": 303,
+        "whiteboard-workshop.css": 9,
+        "whiteboard.css": 50
+      }
+    },
+    "raw-hex": {
+      "total": 14,
+      "files": {
+        "foundation.css": 6,
+        "whiteboard-workshop.css": 6,
+        "whiteboard.css": 2
+      }
+    },
+    "radius-raw-px": {
+      "total": 307,
+      "files": {
+        "everyday.css": 1,
+        "foundation.css": 240,
+        "settings.css": 5,
+        "whiteboard-workshop.css": 15,
+        "whiteboard.css": 46
+      }
+    },
+    "duration-raw": {
+      "total": 60,
+      "files": {
+        "foundation.css": 51,
+        "settings.css": 2,
+        "whiteboard-workshop.css": 2,
+        "whiteboard.css": 5
+      }
+    },
+    "z-index-raw": {
+      "total": 81,
+      "files": {
+        "foundation.css": 45,
+        "settings.css": 1,
+        "whiteboard-workshop.css": 11,
+        "whiteboard.css": 22,
+        "work-list.css": 2
+      }
+    },
+    "important": {
+      "total": 102,
+      "files": {
+        "foundation.css": 68,
+        "settings.css": 4,
+        "whiteboard-workshop.css": 8,
+        "whiteboard.css": 22
+      }
+    },
+    "transition-all": {
+      "total": 0,
+      "files": {}
+    }
+  }
+}

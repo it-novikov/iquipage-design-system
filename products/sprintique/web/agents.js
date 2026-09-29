@@ -1,11 +1,11 @@
-import {ui,icon,escapeHTML as esc,enhance,formatDateTime} from '@iquipage/web/core';
+import {ui,icon,escapeHTML as esc,enhance,formatDateTime,count} from '@iquipage/web/core';
 import {dialog,input,select,pretty} from '../ui/src/ui.js';
 import * as s from './settings-ui.js';
 
 const states={running:['В работе','info'],awaiting_approval:['Ждёт решения','warning'],completed:['Завершён','success'],failed:['Ошибка','danger'],cancelled:['Остановлен','neutral'],expired:['Срок истёк','neutral'],proposed:['Ждёт решения','warning'],approved:['Подтверждено','success'],rejected:['Отклонено','neutral']};
 const areas=[['tasks','Задачи'],['threads','Обсуждения'],['maps','Карты']];
 const permissionName=value=>{const [area,mode]=value.split(':');return `${mode==='write'?'Изменять':'Читать'} ${(areas.find(a=>a[0]===area)?.[1]||area).toLocaleLowerCase('ru')}`;};
-const plural=(n,[one,few,many])=>{const a=Math.abs(n)%100,b=a%10;return `${n} ${a>10&&a<20?many:b===1?one:b>1&&b<5?few:many}`;};
+const plural=(n,[one,few,many])=>count(n,{one,few,many});
 const summary=v=>[`Изменит ${plural(v.affectedCount||0,['задачу','задачи','задач'])}`,v.enteringBoard?`добавит на доску ${v.enteringBoard}`:'',v.leavingBoard?`уберёт с доски ${v.leavingBoard}`:''].filter(Boolean).join(', ');
 const when=value=>value?formatDateTime(value):'';
 const isActive=r=>['running','awaiting_approval'].includes(r.state);
@@ -110,7 +110,8 @@ export async function mountAgents(root,{repository,project,tools,onCounts=()=>{}
     if(isRuns||isApprovals){target.disabled=true;try{const page=await client.request(base+(isRuns?'/agent-runs':'/approvals')+'?cursor='+encodeURIComponent(isRuns?runCursor:approvalCursor));if(closed)return;if(isRuns){runs.push(...page.items);runCursor=page.nextCursor;}else{approvals.push(...page.items);approvalCursor=page.nextCursor;}render();}finally{target.disabled=false;}}
   })().catch(fail);};
   root.addEventListener('click',onClick,{signal:abort.signal});tools?.addEventListener('click',onClick,{signal:abort.signal});
-  const unsubscribe=repository.subscribe(()=>{void refresh().catch(fail);});
+  // Finance changes never touch agents or approvals.
+  const unsubscribe=repository.subscribe(change=>{if(!String(change?.collection).startsWith('finance'))void refresh().catch(fail);});
   await refresh();
   return {readyToLeave:()=>!modal,destroy(){closed=true;sequence++;abort.abort();unsubscribe();modal?.close(true);root.replaceChildren();}};
 }

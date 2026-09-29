@@ -511,13 +511,35 @@ function notify(options) {
         region.setAttribute('aria-label', 'Уведомления');
         document.body.append(region);
     }
+    // Two permanent, empty live nodes: screen readers announce text written into an existing region, while a region
+    // inserted together with its content is often skipped. Errors go to the alert node, everything else stays polite.
+    const liveNode = (role, live) => {
+        let node = region.querySelector(`.iq-toast-live[role="${role}"]`);
+        if (!node) {
+            node = document.createElement('div');
+            node.className = 'sr-only iq-toast-live';
+            node.setAttribute('role', role);
+            node.setAttribute('aria-live', live);
+            region.append(node);
+        }
+        return node;
+    };
+    const polite = liveNode('status', 'polite');
+    const alert = liveNode('alert', 'assertive');
+    const announcement = [options.message, options.description, options.action?.label].filter(Boolean).join('. ');
+    const live = options.tone === 'danger' ? alert : polite;
+    live.textContent = '';
+    setTimeout(() => { live.textContent = announcement; }, 30); // A cleared then refilled node announces repeated text too.
     const toast = document.createElement('div');
     toast.className = `iq-toast tone-${options.tone || 'info'} ${options.description ? 'has-description' : 'summary-only'}`;
     const glyph = { info: 'info', success: 'checkCircle', warning: 'warning', danger: 'xCircle' }[options.tone || 'info'];
-    toast.innerHTML = `<span class="iq-toast-icon">${icons_js_1.icon(glyph, 21)}</span><div class="iq-toast-copy" role="status"><b>${escapeHTML(options.message)}</b>${options.description ? `<p>${escapeHTML(options.description)}</p>` : ''}</div>${options.action ? `<button type="button" class="iq-toast-action">${escapeHTML(options.action.label)}</button>` : ''}<button type="button" class="iq-btn icon ghost sm" aria-label="Закрыть уведомление">${icons_js_1.icon('x', 16)}</button>`;
+    toast.innerHTML = `<span class="iq-toast-icon">${icons_js_1.icon(glyph, 21)}</span><div class="iq-toast-copy"><b>${escapeHTML(options.message)}</b>${options.description ? `<p>${escapeHTML(options.description)}</p>` : ''}</div>${options.action ? `<button type="button" class="iq-toast-action">${escapeHTML(options.action.label)}</button>` : ''}<button type="button" class="iq-btn icon ghost sm" aria-label="Закрыть уведомление">${icons_js_1.icon('x', 16)}</button>`;
     region.append(toast);
     let timer;
-    let remaining = options.duration ?? 6500;
+    // A toast with an action stays until dismissed (duration 0) unless the caller sets a duration: 6.5 s is not
+    // enough to reach "Undo" by keyboard or with a screen reader.
+    const duration = options.duration ?? (options.action ? 0 : 6500);
+    let remaining = duration;
     let start = Date.now();
     let removed = false;
     const remove = () => {
@@ -530,12 +552,12 @@ function notify(options) {
     };
     const resume = () => {
         clearTimeout(timer);
-        if (removed || toast.matches(':hover') || toast.contains(document.activeElement))
+        if (removed || !duration || toast.matches(':hover') || toast.contains(document.activeElement))
             return;
         start = Date.now();
         timer = setTimeout(remove, remaining);
     };
-    const pause = () => { clearTimeout(timer); remaining = Math.max(500, remaining - (Date.now() - start)); };
+    const pause = () => { clearTimeout(timer); if (duration) remaining = Math.max(500, remaining - (Date.now() - start)); };
     resume();
     toast.addEventListener('pointerenter', pause);
     toast.addEventListener('pointerleave', resume);
@@ -834,6 +856,32 @@ class IqCalendar extends IqElement {
 }
 exports.IqCalendar = IqCalendar;
 /** Menu owns positioning, focus, typeahead and cleanup. */
+/** Popover API guard (ENG-05). Engines without showPopover() must not throw; the menu then falls back
+ * to a light-DOM .iq-popup (position:fixed, its own z-index) toggled with [hidden]. */
+const hasPopoverAPI = el => typeof el.showPopover === 'function' && typeof el.hidePopover === 'function';
+function showPopup(el) {
+    el.hidden = false;
+    if (hasPopoverAPI(el)) {
+        try {
+            if (!el.matches(':popover-open'))
+                el.showPopover();
+            return;
+        }
+        catch { }
+    }
+    el.hidden = false;
+}
+function hidePopup(el) {
+    if (hasPopoverAPI(el)) {
+        try {
+            if (el.matches(':popover-open'))
+                el.hidePopover();
+            return;
+        }
+        catch { }
+    }
+    el.hidden = true;
+}
 class IqMenu extends IqElement {
     popup;
     trigger;
@@ -848,6 +896,10 @@ class IqMenu extends IqElement {
             return;
         this.popup.classList.add('iq-popup', 'iq-menu-popup');
         this.popup.setAttribute('popover', 'manual');
+        // Without the Popover API (Safari <= 16, Firefox < 125) the UA does not hide [popover], so the
+        // menu is kept closed with [hidden] and shown as an ordinary fixed-position .iq-popup.
+        if (!hasPopoverAPI(this.popup))
+            this.popup.hidden = true;
         this.popup.setAttribute('role', 'menu');
         this.popup.id ||= uid();
         this.trigger.setAttribute('aria-haspopup', 'menu');
@@ -926,7 +978,7 @@ class IqMenu extends IqElement {
             return;
         this.opened = true;
         this.trigger.setAttribute('aria-expanded', 'true');
-        this.popup.showPopover();
+        showPopup(this.popup);
         this.position();
         const chosen = last ? this.items().at(-1) : this.popup.querySelector('[aria-checked=true]') || this.items()[0];
         chosen?.focus({ preventScroll: true });
@@ -940,10 +992,7 @@ class IqMenu extends IqElement {
             return;
         this.opened = false;
         this.trigger?.setAttribute('aria-expanded', 'false');
-        try {
-            this.popup.hidePopover();
-        }
-        catch { }
+        hidePopup(this.popup);
         if (focus && this.trigger?.isConnected)
             this.trigger.focus({ preventScroll: true });
     }

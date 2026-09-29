@@ -1,5 +1,5 @@
 /** Supported core browser entry. Does not register graph, roadmap, crop, or whiteboard. */
-export declare const version:'0.6.0-vnext.21';
+export declare const version:'0.6.0-vnext.23';
 export declare function registerCore():void;
 export declare function registerComponents():void;
 export declare function registerDateFields():void;
@@ -27,6 +27,12 @@ export declare function pageWindow(total:number,current:number,compact?:boolean)
 export declare function formatDate(value:string|number|Date|null|undefined,options?:{timeZone?:string}):string;
 export declare function formatDateTime(value:string|number|Date|null|undefined,options?:{timeZone?:string}):string;
 export declare function formatDateRange(start:string|number|Date|null|undefined,end:string|number|Date|null|undefined,options?:{timeZone?:string}):string;
+/** Grammatical forms for one count word; the category is chosen by Intl.PluralRules. Russian needs one/few/many, English one/other. */
+export interface PluralForms {one:string;few?:string;many?:string;other?:string;}
+/** The form that agrees with n: plural(5,{one:'задача',few:'задачи',many:'задач'}) === 'задач'. */
+export declare function plural(n:number,forms:PluralForms,locale?:string):string;
+/** The formatted number and its form: count(5,{one:'задача',few:'задачи',many:'задач'}) === '5 задач'. */
+export declare function count(n:number,forms:PluralForms,locale?:string):string;
 export declare class IqDateField extends HTMLElement {value:string;readonly timeValue:string;disabled:boolean;open():void;close(restore?:boolean):void;}
 export declare class IqTime extends HTMLElement {value:string;hourCycle:12|24;}
 export interface MarkdownEditorAction {id:string;label:string;pressed:boolean;disabled?:boolean;tone?:'neutral'|'warning';hint?:string;/** 'chip' renders a compact pressed toggle (chat composers); 'check' a checkbox with a hint. */appearance?:'check'|'chip';icon?:string;}
@@ -45,7 +51,9 @@ export declare class IqSideNavigation extends HTMLElement {active:string;collaps
 export declare class IqWorkHeader extends HTMLElement {}
 export declare class IqFilePreview extends HTMLElement {file:File|null;}
 export type PDFPreviewRenderer=(file:File,canvas:HTMLCanvasElement,signal:AbortSignal)=>Promise<void>;
-export declare function configurePDFPreviews(renderer:PDFPreviewRenderer):void;
+export interface PDFJSSource {pdfjsUrl:string;workerUrl?:string;}
+/** PDF thumbnails are opt-in: pass a renderer or a self-hosted pdf.js module URL; null restores the placeholder tile. */
+export declare function configurePDFPreviews(renderer:PDFPreviewRenderer|PDFJSSource|null):void;
 export declare function bindBoard(root:HTMLElement,onDrop:(detail:Record<string,unknown>)=>void):()=>void;
 export type Priority='critical'|'high'|'normal'|'low';
 export declare const priorities:Readonly<Record<Priority,unknown>>;

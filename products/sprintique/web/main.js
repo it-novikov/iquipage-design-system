@@ -6,6 +6,7 @@ import '../ui/src/board/board.css';
 import '../ui/shell.css';
 import './shell.css';
 import '../ui/planning/src/planning.css';
+import '../ui/finance/src/finance.css';
 import {registerCore,ui,icon,escapeHTML as esc,notify} from '@iquipage/web/core';
 import {mountTaskBoard} from '../ui/src/board/board.js';
 import {parseTaskRoute} from '../ui/src/board/task-route.js';
@@ -95,7 +96,7 @@ async function onboard(selectedWorkspaceId){
     session=await repository.initialize();location.hash='#tasks';await showProject(project.id);
   }});
 }
-async function showProject(id,mode=location.hash.startsWith('#maps')?'maps':location.hash.startsWith('#settings')?'settings':location.hash==='#planning'?'planning':'tasks'){
+async function showProject(id,mode=location.hash.startsWith('#maps')?'maps':location.hash.startsWith('#settings')?'settings':location.hash.startsWith('#finance')?'finance':location.hash==='#planning'?'planning':'tasks'){
   if(navigating)return false;navigating=true;
   try{
   if(board&&!await board.closeTask())return false;
@@ -125,6 +126,7 @@ async function showProject(id,mode=location.hash.startsWith('#maps')?'maps':loca
   try{
   if(mode==='maps'){const {mountMapsHost}=await import('./maps-host.js');board=await mountMapsHost(host,{repository,project,onOpenTasks:async({focusTaskId})=>{await navigate('tasks');if(viewMode==='tasks')await board.openTask(focusTaskId);}});}
   else if(mode==='planning')board=await mountPlanningHost(host,{repository,adapter:planningAdapter,project,viewState:viewStates.get(stateKey),onOpenBoard:()=>navigate('tasks')});
+  else if(mode==='finance'){const {mountFinance}=await import('../ui/finance/src/index.js');board=await mountFinance(host,{repository,project,viewState:viewStates.get(stateKey)});}
   else if(mode==='settings'){const {mountSettings}=await import('./settings.js');board=await mountSettings(host,{repository,adapter:planningAdapter,project,onChanged:refreshHeader});}
   else board=await mountTaskBoard(host,{repository,project,attachmentAdapter:repository.attachmentAdapter,canEdit:project.role!=='reader',canManageCatalogs:project.role==='admin',viewState:viewStates.get(stateKey)});
   }finally{
@@ -165,6 +167,7 @@ function paletteCommands(){
     {id:'go-tasks',label:'Доска задач',hint:'Перейти',icon:'grid',keywords:'доска канбан board',run:go('tasks')},
     {id:'go-planning',label:'Планирование',hint:'Перейти',icon:'calendar',keywords:'релизы бэклог сроки planning',run:go('planning')},
     {id:'go-maps',label:'Карты',hint:'Перейти',icon:'grid',keywords:'карты доска идей maps',run:go('maps')},
+    {id:'go-finance',label:'Финансы',hint:'Перейти',icon:'chart',keywords:'финансы деньги доходы расходы бюджет finance',run:go('finance')},
     {id:'go-members',label:'Участники проекта',hint:'Настройки',icon:'users',keywords:'команда приглашения роли members',run:go('settings','#settings/members')},
     {id:'go-tags',label:'Теги',hint:'Настройки',icon:'palette',keywords:'теги метки цвета tags',run:go('settings','#settings/tags')},
     {id:'go-templates',label:'Шаблоны задач',hint:'Настройки',icon:'file',keywords:'шаблоны templates',run:go('settings','#settings/templates')},
@@ -180,7 +183,8 @@ function search(){if(!session||document.querySelector('dialog[open]'))return;ope
   try{if(board&&!await board.closeTask())return;history.replaceState(null,'',item.kind==='map'?'#maps/'+encodeURIComponent(item.id):'#tasks');await showProject(item.projectId,item.kind==='map'?'maps':'tasks');if(item.kind==='task')await board.openTask(item.key);}catch(error){report(error);}
 }});}
 window.addEventListener('keydown',event=>{if((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='k'){event.preventDefault();search();}});
-window.addEventListener('hashchange',()=>{void(async()=>{const task=parseTaskRoute(location.hash);if(task){if(!board?.openTask)await showProject(currentProject.id,'tasks');await board?.openTask?.(task,{fromRoute:true});}else if(location.hash.startsWith('#maps'))await navigate('maps');else if(location.hash.startsWith('#settings')){if(viewMode==='settings'&&board?.navigateSettings){await board.navigateSettings();}else await navigate('settings');}
+window.addEventListener('hashchange',()=>{void(async()=>{const task=parseTaskRoute(location.hash);if(task){if(!board?.openTask)await showProject(currentProject.id,'tasks');await board?.openTask?.(task,{fromRoute:true});}else if(location.hash.startsWith('#maps'))await navigate('maps');
+    else if(location.hash.startsWith('#finance')){if(viewMode==='finance'&&board?.openRoute)await board.openRoute(location.hash);else await navigate('finance');}else if(location.hash.startsWith('#settings')){if(viewMode==='settings'&&board?.navigateSettings){await board.navigateSettings();}else await navigate('settings');}
     else if(['#tasks','#planning'].includes(location.hash)){const mode=location.hash.slice(1);
     // Closing the task drawer returns to the section already on screen: close the drawer, never remount the view
     // (a remount reloads every card and its cover, which reads as a blink).

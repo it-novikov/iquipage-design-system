@@ -1,6 +1,6 @@
 # UX and design-system alignment (September 2026)
 
-Private DS **0.6.0-vnext.21**. It covers the component audit of the whole Sprintique UI and the changes the owner approved.
+Private DS **0.6.0-vnext.23**. It covers the component audit of the whole Sprintique UI and the changes the owner approved.
 
 ## Owner decisions
 
@@ -11,12 +11,14 @@ Private DS **0.6.0-vnext.21**. It covers the component audit of the whole Sprint
 | Assignee | Only a current human project member can be the assignee. |
 | Board admission | The rule stays the same. The board explains tasks that are waiting for a planned release. |
 
-## Design system (vnext.3 → vnext.21)
+## Design system (vnext.3 → vnext.23)
 
 - **vnext.3:** the R3 work list is a public entry. Tag tones have light and dark tokens. The type scale is tokenised. Dense surfaces get public variants. The keyboard focus ring is visible. The map canvas no longer collapses when the object library is open.
 - **vnext.4:** on coarse pointers, buttons, section links, selects and checkboxes are 44px (`touch.css`, loaded last). Escape closes the map object library.
 - **vnext.5:** `ui.menu` takes `{section}` labels, which keyboard navigation skips. Long menus scroll. Compact selects are 44px on touch screens.
 - **vnext.20:** drawers slide in opaque while the backdrop fades (and slide out on close), so opening a task no longer blinks; the property grid keeps two columns from 272px; `.iq-discussion-new-count` and `.iq-thread-actions-group`; whiteboard connectors end in the filled notched arrowhead of the template previews.
+- **vnext.23 (wave 0 of the production plan):** ratchet gates in the DS `npm test` (contrast matrix, raw CSS values, gzip sizes); toasts write into permanent live regions and toasts with an action stay until dismissed; drag handle, tag × and roadmap handles are 24px targets; search fields show focus; `--iq-field-line` and a visible dark secondary border; `plural()`/`count()` on `Intl.PluralRules` in core (the product's five local copies moved to it); the board drop is committed at release, so Escape during the landing no longer loses it; `iq-menu` works without the Popover API; PDF previews no longer load pdf.js from a CDN by default.
+- **vnext.22:** the package ships Inter itself (`assets/fonts/InterVariable.woff2`, Inter 4.1, OFL, weight 400–700, optical size 14–32, Latin and Cyrillic, 109 KB) and `styles.css` starts with its `@font-face`, so the product renders in Inter for the first time instead of the system font; «Inter Display» is the optical-size axis of the same file; an «Inter Fallback» face (Arial with Inter metrics) keeps the swap from moving the layout. Vite hashes the file and links it from the CSS chunk; no font CDN is used.
 - **vnext.21:** `--iq-success-bg` and `--iq-warning-bg` became tints, so soft success and warning badges, alert emblems and toast icons are readable in both themes (the planning list no longer overrides them); the Keycloak login theme left the package.
 - **vnext.19:** after a sixth council (product designer, UX researcher and product manager on discussions; art director, product designer and motion designer on properties, covers and template previews):
   - `.iq-discussion`: open questions pinned as framed cards with one resolve action, a chat timeline of comment threads (avatar, name, time, text, one level of replies), resolved questions as one quiet line, space instead of dividers. `ui.personAvatar` and the `help` icon.
@@ -112,6 +114,7 @@ Private DS **0.6.0-vnext.21**. It covers the component audit of the whole Sprint
     - Phones: the DS two-line row (title; status, person, date), the toolbar as one strip that scrolls sideways.
     - The projection carries `done`, `doneChildrenCount` and `parentTitle` per row and `drafts` and `unassigned` per group; the UI works without them.
     - The soft warning and success badges lost their text in the dark theme because `--iq-warning-bg` and `--iq-success-bg` equalled the fill colours; DS vnext.21 made them tints, so the list uses the DS badges as they are.
+- **Finance** (`#finance`, see [finance](finance.md)): the section heading holds the view switch ("Журнал", "Сводка"), the period and, for administrators, "Валюта" and "Новая операция". Totals of the period are one row of labelled figures per currency: "Поступило", "Потрачено", "Баланс" (the one raised tile; a negative balance is red), "С учётом ожидаемых" with what is still expected in and out. The ledger is the DS work table: the operation with its category and counterparty, the date, a soft status badge ("Ожидается" info, "Просрочена" warning, "Проведена" quiet, "Аннулирована" danger) and the signed amount (income in the success tone, a voided amount struck through); on phones the DS two-line row with the amount beside the title. Status and direction filters are DS segmented controls; the footer counts entries and loads the next page. "Сводка" is DS tables by month and by category. An entry opens as a dialog with its facts, one action per state ("Провести", "Изменить", "Аннулировать") and its history; forms are DS fields, choice lists and the date field. People who may only read see the values and the administrator's name instead of buttons, as in settings. An empty ledger is `.iq-empty.compact` with the one action that fills it.
 - **Settings:** a full-width settings workspace on the DS side navigation.
   - Every page has the same anatomy: the title and one sentence about the section, the main action on the right, then groups of panels. Changes are saved with a bar that appears only when something changed.
   - People who cannot change a setting see values and a lock notice naming an administrator, not disabled fields.
@@ -130,6 +133,10 @@ Private DS **0.6.0-vnext.21**. It covers the component audit of the whole Sprint
 - **Style contract:** `npm run check:styles` fails on px font sizes, raw radii and colours, DS-internal selectors, and inline styles.
 
 ## Known gaps
+
+- DS-GAP-FIN-1 (missing capability): no text field with suggestions that also accepts a new value. `iq-combobox` only picks from its options. The finance category is a DS text field with a native `datalist` of the categories already in use; the browser draws the suggestion list.
+- DS-GAP-FIN-2 (DS defect): `ui.textarea` renders a character counter (`data-count`), but only the DS catalogue script updates it; `enhance()` does not. The finance dialogs update the counter themselves.
+- DS-GAP-FIN-3 (missing component): no compact figure tile for a row of totals. `.iq-metric` is a catalogue-scale card (36–64px figures, demo `metric-*` parts). Finance places `dl` facts on `--iq-surface` tiles with DS type and radius tokens. There is no currency-aware amount field either: the amount is a DS text field with `inputmode="decimal"` and the DS input suffix for the currency sign.
 
 - On the board, the drag handle inside a card is smaller than 44px on touch screens. The whole card surface is still a tap target.
 - In a hidden or background browser tab, DS dialogs finish closing only once their close animation runs, because Web Animations pause while the tab is hidden. Visible tabs are not affected.

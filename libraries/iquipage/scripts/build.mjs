@@ -11,7 +11,8 @@ const manifest=JSON.parse(await read('src/manifest.json'));
 const variables=entries=>Object.entries(entries).map(([k,v])=>`  --iq-${k}: ${v};`).join('\n');
 const tokenCSS=`/* Generated from tokens/semantic.json. */\n:root{\n${variables({...tokens.base,...tokens.light})}\n}\n[data-theme="dark"]{\n${variables(tokens.dark)}\n}\n`;
 await save('tokens/tokens.css',tokenCSS);
-const css=tokenCSS+await read('src/styles/foundation.css')+'\n'+await read('src/styles/whiteboard.css')+'\n'+await read('src/styles/everyday.css')+'\n'+await read('src/styles/whiteboard-workshop.css')+'\n'+await read('src/styles/work-list.css')+'\n'+await read('src/styles/auth-dialog.css')+'\n'+await read('src/styles/auth-screen.css')+'\n'+await read('src/styles/settings.css')+'\n'+await read('src/styles/focus.css')+'\n'+await read('src/styles/touch.css');
+const fontsCSS=await read('tokens/fonts.css');
+const css=fontsCSS+tokenCSS+await read('src/styles/foundation.css')+'\n'+await read('src/styles/whiteboard.css')+'\n'+await read('src/styles/everyday.css')+'\n'+await read('src/styles/whiteboard-workshop.css')+'\n'+await read('src/styles/work-list.css')+'\n'+await read('src/styles/auth-dialog.css')+'\n'+await read('src/styles/auth-screen.css')+'\n'+await read('src/styles/settings.css')+'\n'+await read('src/styles/focus.css')+'\n'+await read('src/styles/touch.css');
 await save('dist/iquipage.css',css);
 const sources={};
 for (const name of manifest.application){
@@ -21,7 +22,7 @@ for (const name of manifest.application){
 const render=names=>names.map(n=>`"./${n}":function(exports,require){\n${sources[n]}\n}`).join(',\n');
 const runtime=`};const cache={};function require(id){if(cache[id])return cache[id].exports;const m=cache[id]={exports:{}};if(!modules[id])throw Error('Unknown IQUIPAGE module '+id);modules[id](m.exports,require);return m.exports;}`;
 const bundle=`window.IQ_TOKENS=${JSON.stringify(tokens)};(()=>{const modules={\n${render(manifest.application)}\n${runtime}\nrequire('./app.js');})();`;
-const demoCSS=css+'\n'+await read('src/styles/everyday-demo.css');
+const demoCSS=css.replaceAll('../assets/fonts/','assets/fonts/')+'\n'+await read('src/styles/everyday-demo.css'); // The catalogs sit at the repository root.
 const html=(await read('src/template.html')).replace('__IQ_CSS__',()=>demoCSS).replace('__IQ_SCRIPT__',()=>bundle.replaceAll('</script','<\\/script'));
 await save('index.html',html);
 // Standards-based ESM graph: one module URL owns each shared primitive/class.
