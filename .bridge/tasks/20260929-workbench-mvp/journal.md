@@ -1,0 +1,23 @@
+# Журнал 20260929-workbench-mvp
+
+- 2026-09-29T15:49:42Z · claude-opus-5-5 · create · - · Sprintique: Рабочий стол MVP (WP0–WP3)
+- 2026-09-29T15:58:48Z · claude-opus-5-5 · claim · - · взял задачу
+- 2026-09-29T15:58:48Z · claude-opus-5-5 · note · A1 · критерий приёмки: A1. ADR W1–W6 и контракт маршрута/drawer записаны и решают вопросы §2 delivery-plan
+- 2026-09-29T15:58:48Z · claude-opus-5-5 · note · A2 · критерий приёмки: A2. Миграции 028–029 additive, RLS: личное состояние, ожидание и квитанции видит только владелец; запросы и активность — только участники проекта; jOOQ совпадает со схемой
+- 2026-09-29T15:58:48Z · claude-opus-5-5 · note · A3 · критерий приёмки: A3. GET /workbench: один snapshot, дедупликация до пагинации, точные счётчики action/current, updates ≤99+, подписанные курсоры (actor/filter/epoch/expiry), no-store, жёсткие лимиты; матрица включения §15 зелёная
+- 2026-09-29T15:58:48Z · claude-opus-5-5 · note · A4 · критерий приёмки: A4. Личные команды follow/focus/seen/snooze с независимыми ревизиями, ключом повтора и приватной квитанцией, без общих событий; запросы с точным адресатом, CAS, синхронизацией источника и потерей членства; «Жду» с явным opt-in и checkBackAt
+- 2026-09-29T15:58:48Z · claude-opus-5-5 · note · A5 · критерий приёмки: A5. UI «Сейчас» и «План» на композициях DS, все состояния секций, drawer по /workbench/tasks/:projectId/:taskId с восстановлением фокуса, 390/320, WCAG 2.2 AA
+- 2026-09-29T15:58:48Z · claude-opus-5-5 · note · A6 · критерий приёмки: A6. Флаги workbench_* в конфигурации сервера: выключены в production по умолчанию, включены в тестах и локально
+- 2026-09-29T15:58:48Z · claude-opus-5-5 · note · A7 · критерий приёмки: A7. Гейты: npm test продукта с S3, backend unit+integration, корневой verify-vnext — зелёные без пропусков; ревью R1 и R2 записаны; PR открыт
+- 2026-09-29T15:58:48Z · claude-opus-5-5 · note · S1 · добавлен шаг: WP0: ADR и контракт
+- 2026-09-29T15:58:48Z · claude-opus-5-5 · note · S2 · добавлен шаг: WP1: миграции и RLS
+- 2026-09-29T15:58:49Z · claude-opus-5-5 · note · S3 · добавлен шаг: WP1–WP2: сервер
+- 2026-09-29T15:58:49Z · claude-opus-5-5 · note · S4 · добавлен шаг: WP3: UI Сейчас и План
+- 2026-09-29T15:58:49Z · claude-opus-5-5 · note · S5 · добавлен шаг: Гейты, ревью R2, PR
+- 2026-09-29T15:58:49Z · claude-opus-5-5 · step · S1 · active
+- 2026-09-29T15:58:49Z · claude-opus-5-5 · status · - · active
+- 2026-09-29T16:01:00Z · claude-opus-5-5 · decision · D1 · ADR лежат в products/sprintique/docs/adr/ (W1–W6), как велено в задаче, а не в docs/decisions — отдельная серия решений Рабочего стола со ссылкой из README
+- 2026-09-29T16:01:00Z · claude-opus-5-5 · step · S1 · done: ADR W1–W6 + README в docs/adr; контракт маршрута — W6
+- 2026-09-29T16:01:00Z · claude-opus-5-5 · note · A1 · критерий приёмки выполнен
+- 2026-09-29T16:01:00Z · claude-opus-5-5 · step · S2 · active
+- 2026-09-29T16:01:00Z · claude-opus-5-5 · checkpoint · S2 · дальше: Написать V20260929000028__add_workbench.sql
