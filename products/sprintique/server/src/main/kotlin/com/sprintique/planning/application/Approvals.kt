@@ -8,6 +8,7 @@ import com.sprintique.identity.domain.Actor
 import com.sprintique.identity.domain.Capability
 import com.sprintique.problem.requireCondition
 import com.sprintique.problem.requirePresent
+import com.sprintique.workbench.application.AttentionRequests
 import tools.jackson.databind.JsonNode
 import java.util.UUID
 
@@ -115,6 +116,8 @@ object Approvals {
             AuditTrail.recordOperation(
                 tx, actor, projectId, UUID.randomUUID().toString(), "approval.$status", id, decided.long("revision"),
             )
+            // A decision resolves the directed requests made on this approval, in this transaction (docs/adr W1).
+            AttentionRequests.resolveForApproval(tx, actor, projectId, id)
             detail(tx, actor, projectId, id)
         }
     }

@@ -14,6 +14,21 @@ The `migrate` command uses a separate `SPRINTIQUE_MIGRATION_DATABASE_URL`, `SPRI
 
 A database created by the previous TypeScript migrator (`public.schema_migrations`, no `flyway_schema_history`) is adopted on the first `migrate`: its rows must be an exact prefix of the known ledger (`db/previous-ledger.json`, same names and SHA-256), Flyway then records that version as its baseline and applies only the later files. A ledger that differs anywhere refuses to migrate and names the first differing file; nothing is changed. The old table stays for audit. Take a backup before adopting a database that holds real data.
 
+## Features behind switches
+
+`SPRINTIQUE_FEATURES` names the features a process serves: a comma-separated list, `all` or `none`. Left empty it means `all` outside production and `none` when `SPRINTIQUE_ENVIRONMENT=production`, so a feature reaches production only when it is named there. An unknown name stops the process at start. A disabled feature's routes answer `404` as if they did not exist; `/api/v1/session` lists the enabled ones for the interface. Rollback is switching a feature off: the schema stays, project routes stay canonical.
+
+| Feature | What it serves |
+|---|---|
+| `workbench_read_internal` | `GET /api/v1/workbench`, `/workbench/list`, `/projects/:p/tasks/:t/personal` and the `/workbench` pages |
+| `workbench_personal_state` | Follow, focus, seen and snooze commands (private, own revisions and receipts) |
+| `workbench_requests` | Directed requests to an exact recipient ("Нужно действие") |
+| `workbench_waiting` | "Жду": private control of delegated work |
+| `workbench_plan_horizon` | `GET /api/v1/workbench/plan` (Сегодня / 7 дней) and the time-zone preference |
+| `workbench_mvp` | The "Рабочий стол" item in the global navigation for everyone |
+
+Production default: all off. A pilot names them explicitly, for example `SPRINTIQUE_FEATURES=workbench_read_internal,workbench_personal_state,workbench_requests,workbench_waiting,workbench_plan_horizon` (internal) plus `workbench_mvp` for the cohort. `SPRINTIQUE_WORKBENCH_CURSOR_SECRET` (32+ characters) signs the Workbench page cursors; without it each API process uses a random key, so cursors do not survive a restart and several API processes need one shared value. Workbench logs and metrics carry routes and status classes only, never titles, project names or cursors.
+
 ## Sign-in
 
 People sign in three ways; the sign-in screen offers only the configured ones (`GET /api/v1/auth/methods`).
