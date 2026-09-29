@@ -5,8 +5,8 @@
 # existing secrets and roles.
 set -euo pipefail
 cd "$(dirname "$0")"
-: "${SPRINTIQUE_ORIGIN:?e.g. https://tripper-dev.ru}"
-: "${SPRINTIQUE_MAIL_FROM:?e.g. Sprintique <no-reply@tripper-dev.ru>}"
+: "${SPRINTIQUE_ORIGIN:?e.g. https://sprintique.iqui.page}"
+: "${SPRINTIQUE_MAIL_FROM:?e.g. Sprintique <no-reply@iqui.page>}"
 umask 077
 mkdir -p secrets
 test -s secrets/storage.env || { echo "secrets/storage.env is missing" >&2; exit 1; }
