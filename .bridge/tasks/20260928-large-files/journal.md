@@ -46,3 +46,5 @@
 - 2026-09-29T21:04:32Z · claude-opus-5-5 · decision · D6 · Скачивание оригинала отдаётся с Connection: close — сбой после первых байтов закрывает соединение сразу, а не через keep-alive 15 с или proxy_read_timeout nginx; у nginx нет keepalive к API, поэтому в production это ничего не стоит
 - 2026-09-29T21:04:32Z · claude-opus-5-5 · checkpoint · S5 · дальше: Владелец: слить PR #25 (V…025), затем PR #26; после слияния поднять client_max_body_size и таймауты в deploy/vps/nginx.conf
 - 2026-09-29T21:04:44Z · claude-opus-5-5 · checkpoint · - · контрольная точка
+- 2026-09-29T21:13:54Z · claude-opus-5-5 · step · S5 · done: 39897f1 (слияние main с #25 V…025): verify-vnext все этапы PASS (Node 24, Garage, source-stability, отпечаток 272bc92217c8); продукт 211/211 и отделяемый 211/211 без пропусков; Kotlin 55 unit + 27 integration без пропусков; jOOQ из слитой истории без изменений; откат 026 проверен на слитой истории; ревью R1–R3 закрыты
+- 2026-09-29T21:13:54Z · claude-opus-5-5 · checkpoint · - · дальше: Владелец: слить PR #26; после слияния поднять client_max_body_size 2050m и proxy_send_timeout 300s в products/sprintique/deploy/vps/nginx.conf

@@ -8,7 +8,7 @@ owner: it-novikov
 branch: feature/large-files
 base: main
 created: 2026-09-28
-updated: 2026-09-29T21:04:44Z
+updated: 2026-09-29T21:13:54Z
 links:
 ---
 
@@ -43,14 +43,15 @@ links:
 
 ## Передача
 
-- **Состояние:** HEAD b59c028 запушен; гейты зелёные; ревью R1–R3 закрыты; PR #26 обновлён
+- **Состояние:** HEAD 39897f1 (слит main: #22, #23, #25) и карточка; гейты зелёные; ревью R1–R3 закрыты; PR #26 обновлён
 - **Сейчас:** S5 — готово, ждёт слияния владельцем
-- **Дальше:** Владелец: слить PR #25 (V…025), затем PR #26; после слияния поднять client_max_body_size и таймауты в deploy/vps/nginx.conf
+- **Дальше:** Владелец: слить PR #26; после слияния поднять client_max_body_size 2050m и proxy_send_timeout 300s в products/sprintique/deploy/vps/nginx.conf
 - **Незакоммичено:** нет
-- **Рабочая копия:** нет · HEAD b59c028
+- **Рабочая копия:** нет · HEAD 39897f1
 - **Ловушки:**
   - Путь TEST_S3_CONFIG: ux-ds-20260925/products/sprintique/output/infra/storage.json
-  - Прод-домен https://sprintique.iqui.page; nginx-файл на ветке feature/vps-deploy (PR #22) не трогать — изменения только в отчёте
+  - Прод-домен https://sprintique.iqui.page; nginx.conf (PR #22, уже в main) в этом PR не менялся — поднять лимиты отдельно после слияния
+  - После слияния main нужен npm ci --ignore-scripts в products/sprintique: иначе в node_modules старый DS и product-build падает на tests/library-contract.ts
   - Миграция 026 менялась в bb75ca8, 817964e, bc16fc0: базы стенда/QA этой ветки, применившие раннюю версию, пересоздать или flyway repair перед выкладкой
 
 ## План
@@ -105,7 +106,7 @@ links:
 - **Приёмка:**
   - [x] Все гейты зелёные, PR открыт
 - **Покрывает:** A7,A8
-- **Итог:** b59c028: verify-vnext все этапы PASS (Node 24, TEST_S3_CONFIG Garage, source-stability PASS, отпечаток 46dad0b30b4a); продукт 198/198 и отделяемый 198/198 без пропусков; Kotlin 51 unit + 24 integration без пропусков; ревью R1–R3 закрыты, P0/P1 нет; откат 026 проверен
+- **Итог:** 39897f1 (слияние main с #25 V…025): verify-vnext все этапы PASS (Node 24, Garage, source-stability, отпечаток 272bc92217c8); продукт 211/211 и отделяемый 211/211 без пропусков; Kotlin 55 unit + 27 integration без пропусков; jOOQ из слитой истории без изменений; откат 026 проверен на слитой истории; ревью R1–R3 закрыты
 - **Зависит от:** S4
 - **Модель:** strong
 
