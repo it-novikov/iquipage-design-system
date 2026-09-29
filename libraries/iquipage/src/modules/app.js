@@ -240,10 +240,10 @@ function toggleTaskView(button) {
     button.setAttribute('aria-pressed', String(expanded));
     button.setAttribute('aria-label', expanded ? 'Вернуть в боковую панель' : 'Открыть задачу на весь экран');
     // Keep existing editors/selection intact. Only reveal the new composition.
-    if (!matchMedia('(prefers-reduced-motion: reduce)').matches && document.documentElement.dataset.motion !== 'reduced') {
+    if (!interaction_js_1.motionReduced()) {
         const body = host.querySelector('.task-document');
         body.getAnimations().forEach(a => a.cancel());
-        body.animate([{ opacity: .65, transform: 'translateY(6px)' }, { opacity: 1, transform: 'none' }], { duration: 200, easing: 'cubic-bezier(.2,.7,.2,1)' });
+        body.animate([{ opacity: .65, transform: 'translateY(6px)' }, { opacity: 1, transform: 'none' }], { duration: interaction_js_1.motionMs('standard', 180), easing: interaction_js_1.motionEase('ease') });
     }
 }
 function setPriority(id, value) {
@@ -456,12 +456,13 @@ document.body.addEventListener('click', async (ev) => {
         document.getElementById('command-dialog').close();
         go(path);
         if (focus)
-            setTimeout(() => { document.getElementById('story-' + focus)?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 90);
+            setTimeout(() => { document.getElementById('story-' + focus)?.scrollIntoView({ behavior: interaction_js_1.scrollBehavior(), block: 'start' }); }, 90);
         return;
     }
     if (el.hasAttribute('data-theme-toggle')) {
         theme = theme === 'light' ? 'dark' : 'light';
-        document.documentElement.dataset.theme = theme;
+        // MOT-05: the whole page repaints in one frame instead of rippling through per-component colour transitions.
+        interaction_js_1.withoutTransitions(() => { document.documentElement.dataset.theme = theme; });
         components_js_1.save('theme', theme);
         el.innerHTML = components_js_1.icon(theme === 'light' ? 'moon' : 'sun', 17);
         el.setAttribute('aria-label', theme === 'light' ? 'Включить тёмную тему' : 'Включить светлую тему');

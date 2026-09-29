@@ -3,18 +3,82 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.motionReduced = void 0;
 exports.autosize = autosize;
 exports.bindAutosize = bindAutosize;
+exports.bindLoading = bindLoading;
 exports.copyAtButton = copyAtButton;
+exports.motionEase = motionEase;
+exports.motionMs = motionMs;
 exports.revealContent = revealContent;
+exports.scrollBehavior = scrollBehavior;
 exports.transition = transition;
+exports.withoutTransitions = withoutTransitions;
 /** IQUIPAGE interaction utilities. No global animation loop or runtime dependency. */
-const motionReduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches || document.documentElement.dataset.motion === 'reduced';
+/** The one reduced-motion check (MOT-10): the OS preference or the product setting `data-motion="reduced"` on <html>.
+ *  CSS follows the same two signals by zeroing the motion tokens (src/styles/motion.css). */
+const motionReduced = () => (typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches) || document.documentElement.dataset.motion === 'reduced';
 exports.motionReduced = motionReduced;
+const rootStyle = () => getComputedStyle(document.documentElement);
+/** A motion token as milliseconds: motionMs('enter') reads --iq-motion-enter; a full custom property name ('--iq-loading-delay')
+ *  is read as is. Under reduced motion the motion tokens are 0, so callers skip the animation when the result is 0. */
+function motionMs(name, fallback = 0) {
+    const prop = name.startsWith('--') ? name : `--iq-motion-${name}`;
+    let value = '';
+    try { value = rootStyle().getPropertyValue(prop).trim(); } catch { return fallback; }
+    const number = parseFloat(value);
+    if (!Number.isFinite(number) || number < 0) return fallback;
+    return value.endsWith('ms') ? number : number * 1000;
+}
+const EASE_FALLBACK = { ease: 'cubic-bezier(.2,.7,.2,1)', spring: 'cubic-bezier(.16,1,.3,1)', out: 'cubic-bezier(.4,0,1,1)' };
+/** An easing token for the Web Animations API: motionEase('spring') reads --iq-ease-spring; 'ease' reads --iq-ease. */
+function motionEase(name = 'ease') {
+    const prop = name === 'ease' ? '--iq-ease' : `--iq-ease-${name}`;
+    try { return rootStyle().getPropertyValue(prop).trim() || EASE_FALLBACK[name] || EASE_FALLBACK.ease; } catch { return EASE_FALLBACK[name] || EASE_FALLBACK.ease; }
+}
+/** scrollIntoView({behavior: scrollBehavior()}): smooth scrolling is one of the main vestibular triggers (MOT-15). */
+function scrollBehavior() { return motionReduced() ? 'auto' : 'smooth'; }
+let switching = 0;
+/** Runs fn (typically `root.dataset.theme = …`) with every transition suppressed for the frame in which the change lands (MOT-05),
+ *  so a theme switch repaints at once instead of rippling through 120–360 ms colour transitions. */
+function withoutTransitions(fn) {
+    const root = document.documentElement;
+    root.setAttribute('data-theme-switching', '');
+    switching++;
+    const release = () => { if (--switching <= 0) { switching = 0; root.removeAttribute('data-theme-switching'); } };
+    try {
+        return fn();
+    }
+    finally {
+        // Two frames: the first paints the new theme without transitions, the second lifts the guard.
+        if (typeof requestAnimationFrame === 'function') requestAnimationFrame(() => requestAnimationFrame(release)); else release();
+    }
+}
+/** Loading policy (MOT-07): the container gets .iq-loading (invisible for --iq-loading-delay, so fast answers never flash) and
+ *  aria-busy; after --iq-loading-slow it gets .iq-loading-slow and a status note. Returns a function that ends the state. */
+function bindLoading(el, { slowAfter, note = 'Загружаем дольше обычного…' } = {}) {
+    el.classList.add('iq-loading');
+    el.setAttribute('aria-busy', 'true');
+    const delay = slowAfter ?? motionMs('--iq-loading-slow', 5000);
+    let text = null;
+    const timer = setTimeout(() => {
+        el.classList.add('iq-loading-slow');
+        text = document.createElement('p');
+        text.className = 'iq-loading-note';
+        text.setAttribute('role', 'status');
+        text.textContent = note;
+        el.append(text);
+    }, delay);
+    return () => {
+        clearTimeout(timer);
+        text?.remove();
+        el.classList.remove('iq-loading', 'iq-loading-slow');
+        el.removeAttribute('aria-busy');
+    };
+}
 const effects = new WeakMap();
-function transition(el, frames, duration = 240, delay = 0) {
+function transition(el, frames, duration = motionMs('enter', 280), delay = 0) {
     effects.get(el)?.cancel();
-    if (motionReduced() || !el.isConnected)
+    if (motionReduced() || !duration || !el.isConnected)
         return;
-    const animation = el.animate(frames, { duration, delay, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'none' });
+    const animation = el.animate(frames, { duration, delay, easing: motionEase('spring'), fill: 'none' });
     effects.set(el, animation);
     animation.finished.catch(() => { }).finally(() => {
         if (effects.get(el) === animation)
