@@ -54,15 +54,21 @@ import com.sprintique.database.schema.app.tables.WorkspaceAudit.WorkspaceAuditPa
 import com.sprintique.database.schema.app.tables.WorkspaceMembers.WorkspaceMembersPath
 import com.sprintique.database.schema.app.tables.Workspaces.WorkspacesPath
 import com.sprintique.database.schema.auth.Auth
+import com.sprintique.database.schema.auth.keys.ACCESS_EVENTS__ACCESS_EVENTS_PRINCIPAL_ID_FKEY
 import com.sprintique.database.schema.auth.keys.CREDENTIALS__CREDENTIALS_INITIATOR_ID_FKEY
 import com.sprintique.database.schema.auth.keys.CREDENTIALS__CREDENTIALS_PRINCIPAL_ID_FKEY
 import com.sprintique.database.schema.auth.keys.IDENTITIES__IDENTITIES_PRINCIPAL_ID_FKEY
+import com.sprintique.database.schema.auth.keys.OAUTH_CODES__OAUTH_CODES_PRINCIPAL_ID_FKEY
+import com.sprintique.database.schema.auth.keys.OAUTH_GRANTS__OAUTH_GRANTS_PRINCIPAL_ID_FKEY
 import com.sprintique.database.schema.auth.keys.PRINCIPALS_ISSUER_SUBJECT_KEY
 import com.sprintique.database.schema.auth.keys.PRINCIPALS_PKEY
 import com.sprintique.database.schema.auth.keys.PROJECT_INVITATIONS__PROJECT_INVITATIONS_ACCEPTED_BY_FKEY
 import com.sprintique.database.schema.auth.keys.PROJECT_INVITATIONS__PROJECT_INVITATIONS_INVITER_ID_FKEY
+import com.sprintique.database.schema.auth.tables.AccessEvents.AccessEventsPath
 import com.sprintique.database.schema.auth.tables.Credentials.CredentialsPath
 import com.sprintique.database.schema.auth.tables.Identities.IdentitiesPath
+import com.sprintique.database.schema.auth.tables.OauthCodes.OauthCodesPath
+import com.sprintique.database.schema.auth.tables.OauthGrants.OauthGrantsPath
 import com.sprintique.database.schema.auth.tables.ProjectInvitations.ProjectInvitationsPath
 import com.sprintique.database.schema.auth.tables.records.PrincipalsRecord
 
@@ -476,6 +482,18 @@ open class Principals(
     val workspaces: WorkspacesPath
         get(): WorkspacesPath = workspaces()
 
+    private lateinit var _accessEvents: AccessEventsPath
+
+    fun accessEvents(): AccessEventsPath {
+        if (!this::_accessEvents.isInitialized)
+            _accessEvents = AccessEventsPath(this, null, ACCESS_EVENTS__ACCESS_EVENTS_PRINCIPAL_ID_FKEY.inverseKey)
+
+        return _accessEvents;
+    }
+
+    val accessEvents: AccessEventsPath
+        get(): AccessEventsPath = accessEvents()
+
     private lateinit var _credentialsInitiatorIdFkey: CredentialsPath
 
     fun credentialsInitiatorIdFkey(): CredentialsPath {
@@ -511,6 +529,30 @@ open class Principals(
 
     val identities: IdentitiesPath
         get(): IdentitiesPath = identities()
+
+    private lateinit var _oauthCodes: OauthCodesPath
+
+    fun oauthCodes(): OauthCodesPath {
+        if (!this::_oauthCodes.isInitialized)
+            _oauthCodes = OauthCodesPath(this, null, OAUTH_CODES__OAUTH_CODES_PRINCIPAL_ID_FKEY.inverseKey)
+
+        return _oauthCodes;
+    }
+
+    val oauthCodes: OauthCodesPath
+        get(): OauthCodesPath = oauthCodes()
+
+    private lateinit var _oauthGrants: OauthGrantsPath
+
+    fun oauthGrants(): OauthGrantsPath {
+        if (!this::_oauthGrants.isInitialized)
+            _oauthGrants = OauthGrantsPath(this, null, OAUTH_GRANTS__OAUTH_GRANTS_PRINCIPAL_ID_FKEY.inverseKey)
+
+        return _oauthGrants;
+    }
+
+    val oauthGrants: OauthGrantsPath
+        get(): OauthGrantsPath = oauthGrants()
 
     private lateinit var _projectInvitationsAcceptedByFkey: ProjectInvitationsPath
 

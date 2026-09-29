@@ -5,11 +5,16 @@
 package com.sprintique.database.schema.auth.tables.references
 
 
+import com.sprintique.database.schema.auth.tables.AccessEvents
 import com.sprintique.database.schema.auth.tables.Credentials
 import com.sprintique.database.schema.auth.tables.EmailChallenges
 import com.sprintique.database.schema.auth.tables.Identities
 import com.sprintique.database.schema.auth.tables.KnownDevices
 import com.sprintique.database.schema.auth.tables.LoginStates
+import com.sprintique.database.schema.auth.tables.OauthClients
+import com.sprintique.database.schema.auth.tables.OauthCodes
+import com.sprintique.database.schema.auth.tables.OauthGrants
+import com.sprintique.database.schema.auth.tables.OauthRefreshTokens
 import com.sprintique.database.schema.auth.tables.Principals
 import com.sprintique.database.schema.auth.tables.ProjectInvitations
 import com.sprintique.database.schema.auth.tables.ProjectTimezoneSource
@@ -25,6 +30,8 @@ import org.jooq.Result
 
 
 
+val ACCESS_EVENTS: AccessEvents = AccessEvents.ACCESS_EVENTS
+
 val CREDENTIALS: Credentials = Credentials.CREDENTIALS
 
 val EMAIL_CHALLENGES: EmailChallenges = EmailChallenges.EMAIL_CHALLENGES
@@ -34,6 +41,14 @@ val IDENTITIES: Identities = Identities.IDENTITIES
 val KNOWN_DEVICES: KnownDevices = KnownDevices.KNOWN_DEVICES
 
 val LOGIN_STATES: LoginStates = LoginStates.LOGIN_STATES
+
+val OAUTH_CLIENTS: OauthClients = OauthClients.OAUTH_CLIENTS
+
+val OAUTH_CODES: OauthCodes = OauthCodes.OAUTH_CODES
+
+val OAUTH_GRANTS: OauthGrants = OauthGrants.OAUTH_GRANTS
+
+val OAUTH_REFRESH_TOKENS: OauthRefreshTokens = OauthRefreshTokens.OAUTH_REFRESH_TOKENS
 
 val PRINCIPALS: Principals = Principals.PRINCIPALS
 

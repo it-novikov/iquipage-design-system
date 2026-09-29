@@ -20,6 +20,11 @@ GRANT SELECT,INSERT,DELETE ON auth.login_states TO "${runtime_role}";
 GRANT SELECT,INSERT,UPDATE ON auth.identities TO "${runtime_role}";
 GRANT SELECT,INSERT,UPDATE,DELETE ON auth.email_challenges TO "${runtime_role}";
 GRANT SELECT,INSERT,UPDATE,DELETE ON auth.known_devices TO "${runtime_role}";
+-- Delegated access (V20260929000027). Codes, refresh tokens and never-used clients are collected when they expire;
+-- grants are revoked, not deleted, so the history of connected apps stays.
+GRANT SELECT,INSERT,UPDATE,DELETE ON auth.oauth_clients,auth.oauth_codes,auth.oauth_refresh_tokens TO "${runtime_role}";
+GRANT SELECT,INSERT,UPDATE ON auth.oauth_grants TO "${runtime_role}";
+GRANT SELECT,INSERT ON auth.access_events TO "${runtime_role}";
 GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA auth TO "${runtime_role}";
 GRANT USAGE ON SCHEMA work TO "${runtime_role}";
 GRANT SELECT,INSERT ON work.jobs TO "${runtime_role}";

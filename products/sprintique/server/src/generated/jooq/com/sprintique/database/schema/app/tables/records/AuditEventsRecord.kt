@@ -60,13 +60,21 @@ open class AuditEventsRecord() : UpdatableRecordImpl<AuditEventsRecord>(AuditEve
         set(value): Unit = set(10, value)
         get(): UUID? = get(10) as UUID?
 
+    open var credentialKind: String?
+        set(value): Unit = set(11, value)
+        get(): String? = get(11) as String?
+
+    open var clientId: String?
+        set(value): Unit = set(12, value)
+        get(): String? = get(12) as String?
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
 
     override fun key(): Record1<UUID?> = super.key() as Record1<UUID?>
 
-    constructor(id: UUID? = null, projectId: String? = null, actorId: String? = null, initiatorId: String? = null, action: String? = null, resourceId: String? = null, revision: Int? = null, createdAt: OffsetDateTime? = null, operationId: UUID? = null, correlationId: UUID? = null, causationId: UUID? = null): this() {
+    constructor(id: UUID? = null, projectId: String? = null, actorId: String? = null, initiatorId: String? = null, action: String? = null, resourceId: String? = null, revision: Int? = null, createdAt: OffsetDateTime? = null, operationId: UUID? = null, correlationId: UUID? = null, causationId: UUID? = null, credentialKind: String? = null, clientId: String? = null): this() {
         this.id = id
         this.projectId = projectId
         this.actorId = actorId
@@ -78,6 +86,8 @@ open class AuditEventsRecord() : UpdatableRecordImpl<AuditEventsRecord>(AuditEve
         this.operationId = operationId
         this.correlationId = correlationId
         this.causationId = causationId
+        this.credentialKind = credentialKind
+        this.clientId = clientId
         resetTouchedOnNotNull()
     }
 }

@@ -22,6 +22,7 @@ import java.util.UUID
 import kotlin.collections.Collection
 import kotlin.collections.List
 
+import org.jooq.Check
 import org.jooq.Condition
 import org.jooq.Field
 import org.jooq.ForeignKey
@@ -96,6 +97,10 @@ open class AuditEvents(
 
     val CAUSATION_ID: TableField<AuditEventsRecord, UUID?> = createField(DSL.name("causation_id"), SQLDataType.UUID, this, "")
 
+    val CREDENTIAL_KIND: TableField<AuditEventsRecord, String?> = createField(DSL.name("credential_kind"), SQLDataType.CLOB, this, "")
+
+    val CLIENT_ID: TableField<AuditEventsRecord, String?> = createField(DSL.name("client_id"), SQLDataType.CLOB, this, "")
+
     private constructor(alias: Name, aliased: Table<AuditEventsRecord>?): this(alias, null, null, null, aliased, null, null)
     private constructor(alias: Name, aliased: Table<AuditEventsRecord>?, parameters: Array<Field<*>?>?): this(alias, null, null, null, aliased, parameters, null)
     private constructor(alias: Name, aliased: Table<AuditEventsRecord>?, where: Condition?): this(alias, null, null, null, aliased, null, where)
@@ -140,6 +145,10 @@ open class AuditEvents(
 
     val outbox: OutboxPath
         get(): OutboxPath = outbox()
+    override fun getChecks(): List<Check<AuditEventsRecord>> = listOf(
+        Internal.createCheck(this, DSL.name("audit_events_client_id_check"), "(((client_id IS NULL) OR (length(client_id) <= 100)))", true),
+        Internal.createCheck(this, DSL.name("audit_events_credential_kind_check"), "(((credential_kind IS NULL) OR (credential_kind = ANY (ARRAY['session'::text, 'agent'::text, 'personal'::text, 'oauth'::text]))))", true)
+    )
     override fun `as`(alias: String): AuditEvents = AuditEvents(DSL.name(alias), this)
     override fun `as`(alias: Name): AuditEvents = AuditEvents(alias, this)
     override fun `as`(alias: Table<*>): AuditEvents = AuditEvents(alias.qualifiedName, this)
