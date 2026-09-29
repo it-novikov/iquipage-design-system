@@ -35,3 +35,13 @@
 - 2026-09-28T23:09:34Z · claude-opus-5-5 · checkpoint · S6 · дальше: Полный npm test с TEST_S3_CONFIG, затем verify-vnext.mjs
 - 2026-09-28T23:13:22Z · claude-opus-5-5 · checkpoint · S6 · дальше: Разобрать замечания R1, прогнать verify-vnext.mjs на итоговом дереве
 - 2026-09-29T08:40:22Z · claude-opus-5-5 · checkpoint · S6 · дальше: PR в main после зелёного verify-vnext
+- 2026-09-29T08:47:28Z · claude-opus-5-5 · step · S6 · done: 8f972d4: npm test 204/204, Kotlin unit 42/42, integration 24/24; verify-vnext.mjs все 7 шагов PASS, исходники стабильны; R1 закрыто; docs/finance.md, ADR 0003
+- 2026-09-29T08:47:28Z · claude-opus-5-5 · note · A1 · критерий приёмки выполнен
+- 2026-09-29T08:47:28Z · claude-opus-5-5 · note · A2 · критерий приёмки выполнен
+- 2026-09-29T08:47:28Z · claude-opus-5-5 · note · A3 · критерий приёмки выполнен
+- 2026-09-29T08:47:28Z · claude-opus-5-5 · note · A4 · критерий приёмки выполнен
+- 2026-09-29T08:47:28Z · claude-opus-5-5 · note · A5 · критерий приёмки выполнен
+- 2026-09-29T08:47:28Z · claude-opus-5-5 · note · A6 · критерий приёмки выполнен
+- 2026-09-29T08:47:28Z · claude-opus-5-5 · note · A7 · критерий приёмки выполнен
+- 2026-09-29T08:47:28Z · claude-opus-5-5 · note · A8 · критерий приёмки выполнен
+- 2026-09-29T08:47:29Z · claude-opus-5-5 · checkpoint · - · дальше: Владелец: второе ревью R2 и слияние PR
