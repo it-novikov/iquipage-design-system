@@ -2,7 +2,7 @@
  * Contrast ratchet (COL-14). Computes WCAG 2 contrast (and APCA Lc, informational)
  * for a fixed matrix of token pairs from tokens/semantic.json, for both themes and
  * for the three accents (default blue, data-accent=violet, data-accent=green — the
- * overrides are read from src/styles/settings.css).
+ * variants are read from the `accents` section of tokens/semantic.json, COL-10).
  *
  *   node scripts/gates/contrast.mjs            print the full table
  *   node scripts/gates/contrast.mjs --write    rewrite scripts/gates/contrast-baseline.json
@@ -19,7 +19,7 @@ export const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '
 export const baselinePath = path.join(root, 'scripts/gates/contrast-baseline.json');
 
 export const THRESHOLDS = { text: 4.5, large: 3, ui: 3, disabled: 3 };
-/** Tokens that `:root[data-accent=…]` rewrites; pairs touching them are evaluated per accent. */
+/** Tokens that `[data-accent=…]` rewrites (the keys of every accent variant); pairs touching them are evaluated per accent. */
 const ACCENT_TOKENS = ['accent', 'accent-fill', 'accent-soft', 'focus', 'accent-hover-fill'];
 const ACCENTS = ['default', 'violet', 'green'];
 
@@ -60,23 +60,20 @@ export function apca(fg, bg) {
 // ---- token sets ------------------------------------------------------------
 export function loadTokens() { return JSON.parse(fs.readFileSync(path.join(root, 'tokens/semantic.json'), 'utf8')); }
 
-/** Reads `:root[data-accent=X]{--iq-a:var(--iq-b);…}` blocks from settings.css into {X:{a:b}}. */
-export function readAccentOverrides() {
-  const css = fs.readFileSync(path.join(root, 'src/styles/settings.css'), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
-  const map = {};
-  for (const m of css.matchAll(/:root\[data-accent=["']?(\w+)["']?\]\s*\{([^}]*)\}/g)) {
-    const entries = {};
-    for (const d of m[2].matchAll(/--iq-([\w-]+)\s*:\s*var\(--iq-([\w-]+)\)/g)) entries[d[1]] = d[2];
-    map[m[1]] = { ...(map[m[1]] || {}), ...entries };
+/** The accent variants of tokens/semantic.json: {violet: {light: {accent: '#…', …}, dark: {…}}, green: {…}}. */
+export function readAccentOverrides(tokens = loadTokens()) {
+  const map = tokens.accents || {};
+  for (const a of ACCENTS.slice(1)) {
+    for (const theme of ['light', 'dark']) if (!map[a] || !map[a][theme] || !map[a][theme].accent) throw new Error(`tokens/semantic.json has no accents.${a}.${theme}.accent`);
+    for (const k of Object.keys(map[a].light)) if (!ACCENT_TOKENS.includes(k)) throw new Error(`accents.${a} rewrites ${k}, which is not an accent token`);
   }
-  for (const a of ACCENTS.slice(1)) if (!map[a] || !map[a].accent) throw new Error(`settings.css has no :root[data-accent=${a}] override for --iq-accent`);
   return map;
 }
 
 /** Flat {token: value} for a theme + accent. */
 export function themeTokens(tokens, theme, accent, overrides) {
   const t = { ...tokens.base, ...tokens[theme] };
-  if (accent !== 'default') for (const [k, src] of Object.entries(overrides[accent])) { if (!(src in t)) throw new Error(`accent ${accent}: ${src} is not a token`); t[k] = t[src]; }
+  if (accent !== 'default') for (const [k, v] of Object.entries(overrides[accent][theme])) { if (!(k in t)) throw new Error(`accent ${accent}: ${k} is not a token`); t[k] = v; }
   return t;
 }
 
@@ -95,7 +92,8 @@ add(['link: accent / canvas', 'accent', 'canvas', 'text'], ['accent / surface', 
   ['on-accent / accent-fill (btn.accent)', 'on-accent', 'accent-fill', 'text'], ['on-accent / accent-hover-fill', 'on-accent', 'accent-hover-fill', 'text'], ['accent-fill / canvas (ui)', 'accent-fill', 'canvas', 'ui'], ['accent / canvas (ui, pressed border)', 'accent', 'canvas', 'ui'],
   ['on-primary / primary (btn.primary)', 'on-primary', 'primary', 'text'], ['focus-text / focus-fill', 'focus-text', 'focus-fill', 'text']);
 for (const bg of ['canvas', 'surface', 'raised', 'recessed']) add([`focus / ${bg} (ring)`, 'focus', bg, 'ui']);
-add(['focus / accent-fill (ring on accent btn)', 'focus', 'accent-fill', 'ui'], ['focus / primary (ring on primary btn)', 'focus', 'primary', 'ui']);
+// COL-22: the ring sits on a 2px halo of the canvas colour, so on coloured buttons the halo, not the button, is the ring's background.
+add(['focus / focus-halo (ring on its halo)', 'focus', 'focus-halo', 'ui'], ['focus-halo / accent-fill (halo on accent btn)', 'focus-halo', 'accent-fill', 'ui'], ['focus-halo / primary (halo on primary btn)', 'focus-halo', 'primary', 'ui']);
 for (const line of ['line', 'line-strong', 'control']) for (const bg of ['canvas', 'surface', 'raised']) add([`${line} / ${bg} (ui)`, line, bg, 'ui']);
 add(['placeholder: subtle / raised (.iq-input-shell)', 'subtle', 'raised', 'text'], ['placeholder: subtle / field-bg', 'subtle', 'field-bg', 'text'], ['placeholder: muted / raised (.md-input)', 'muted', 'raised', 'text'], ['placeholder: faint / canvas (inline title)', 'faint', 'canvas', 'text'],
   ['disabled btn.primary: on-primary@45% / primary@45% over canvas', alpha('on-primary', .45, 'canvas'), alpha('primary', .45, 'canvas'), 'disabled'],
@@ -124,7 +122,7 @@ function resolve(t, x, fallbackBg) {
 }
 
 /** @returns rows: {key, theme, accent, label, kind, fg, bg, ratio, apca, threshold, pass} */
-export function computeMatrix(tokens = loadTokens(), overrides = readAccentOverrides()) {
+export function computeMatrix(tokens = loadTokens(), overrides = readAccentOverrides(tokens)) {
   const rows = [];
   for (const theme of ['light', 'dark']) for (const pair of PAIRS) {
     const [label, fg, bg, kind] = pair;

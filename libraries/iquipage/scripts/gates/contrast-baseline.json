@@ -7,9 +7,9 @@
     "ui": 3,
     "disabled": 3
   },
-  "pairs": 130,
-  "evaluated": 320,
-  "failing": 28,
+  "pairs": 131,
+  "evaluated": 322,
+  "failing": 17,
   "entries": {
     "light/default/faint / surface": {
       "ratio": 4.14,
@@ -34,42 +34,6 @@
       "threshold": 3,
       "fg": "#FFB343",
       "bg": "#FFFFFF"
-    },
-    "light/default/focus / accent-fill (ring on accent btn)": {
-      "ratio": 1,
-      "threshold": 3,
-      "fg": "#2453CC",
-      "bg": "#2453CC"
-    },
-    "light/violet/focus / accent-fill (ring on accent btn)": {
-      "ratio": 1,
-      "threshold": 3,
-      "fg": "#6236B6",
-      "bg": "#6236B6"
-    },
-    "light/green/focus / accent-fill (ring on accent btn)": {
-      "ratio": 1,
-      "threshold": 3,
-      "fg": "#087554",
-      "bg": "#087554"
-    },
-    "light/default/focus / primary (ring on primary btn)": {
-      "ratio": 2.55,
-      "threshold": 3,
-      "fg": "#2453CC",
-      "bg": "#1D1D1F"
-    },
-    "light/violet/focus / primary (ring on primary btn)": {
-      "ratio": 2.18,
-      "threshold": 3,
-      "fg": "#6236B6",
-      "bg": "#1D1D1F"
-    },
-    "light/green/focus / primary (ring on primary btn)": {
-      "ratio": 2.95,
-      "threshold": 3,
-      "fg": "#087554",
-      "bg": "#1D1D1F"
     },
     "light/default/line / canvas (ui)": {
       "ratio": 1.33,
@@ -118,36 +82,6 @@
       "threshold": 3,
       "fg": "#DDDFE3",
       "bg": "#FFFFFF"
-    },
-    "dark/default/accent-fill / canvas (ui)": {
-      "ratio": 2.94,
-      "threshold": 3,
-      "fg": "#2453CC",
-      "bg": "#0D0D0F"
-    },
-    "dark/violet/accent-fill / canvas (ui)": {
-      "ratio": 2.52,
-      "threshold": 3,
-      "fg": "#6236B6",
-      "bg": "#0D0D0F"
-    },
-    "dark/default/focus / primary (ring on primary btn)": {
-      "ratio": 1.63,
-      "threshold": 3,
-      "fg": "#A9C1FF",
-      "bg": "#F4F4F6"
-    },
-    "dark/violet/focus / primary (ring on primary btn)": {
-      "ratio": 1.94,
-      "threshold": 3,
-      "fg": "#BDA5F5",
-      "bg": "#F4F4F6"
-    },
-    "dark/green/focus / primary (ring on primary btn)": {
-      "ratio": 1.54,
-      "threshold": 3,
-      "fg": "#78D9B5",
-      "bg": "#F4F4F6"
     },
     "dark/default/line / canvas (ui)": {
       "ratio": 1.57,

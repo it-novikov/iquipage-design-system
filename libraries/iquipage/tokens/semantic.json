@@ -124,6 +124,7 @@
     "accent-soft": "#EDF2FF",
     "on-accent": "#FFFFFF",
     "focus": "#2453CC",
+    "focus-halo": "#FFFFFF",
     "primary": "#1D1D1F",
     "on-primary": "#FFFFFF",
     "success": "#177B5B",
@@ -316,10 +317,11 @@
     "control": "#737984",
     "field-line": "#737984",
     "accent": "#A9C1FF",
-    "accent-fill": "#2453CC",
+    "accent-fill": "#3D6CEB",
     "accent-soft": "#202D47",
     "on-accent": "#FFFFFF",
     "focus": "#A9C1FF",
+    "focus-halo": "#0D0D0F",
     "primary": "#F4F4F6",
     "on-primary": "#151518",
     "success": "#54CDA0",
@@ -407,7 +409,7 @@
     "avatar-blue-ink": "#334760",
     "fixed-505057": "#505057",
     "fixed-cbdce9": "#CBDCE9",
-    "accent-hover-fill": "#1944B3",
+    "accent-hover-fill": "#3362E0",
     "fixed-1d1d1f": "#1D1D1F",
     "avatar-sand-bg": "#EDE4DA",
     "fixed-eceef1": "#ECEEF1",
@@ -494,11 +496,45 @@
     "tag-red-text": "#FF9BAE",
     "preference-blue": "#9CB9FF",
     "preference-violet": "#BDA5F5",
-    "preference-violet-fill": "#6236B6",
+    "preference-violet-fill": "#8459E3",
     "preference-violet-soft": "#291E3D",
     "preference-green": "#78D9B5",
-    "preference-green-fill": "#087554",
+    "preference-green-fill": "#108659",
     "preference-green-soft": "#132E26"
+  },
+  "accents": {
+    "violet": {
+      "light": {
+        "accent": "#6236B6",
+        "accent-fill": "#6236B6",
+        "accent-hover-fill": "#552CA3",
+        "accent-soft": "#F1EBFA",
+        "focus": "#6236B6"
+      },
+      "dark": {
+        "accent": "#BDA5F5",
+        "accent-fill": "#8459E3",
+        "accent-hover-fill": "#7549D6",
+        "accent-soft": "#291E3D",
+        "focus": "#BDA5F5"
+      }
+    },
+    "green": {
+      "light": {
+        "accent": "#087554",
+        "accent-fill": "#087554",
+        "accent-hover-fill": "#066347",
+        "accent-soft": "#E7F4EE",
+        "focus": "#087554"
+      },
+      "dark": {
+        "accent": "#78D9B5",
+        "accent-fill": "#108659",
+        "accent-hover-fill": "#0C8058",
+        "accent-soft": "#132E26",
+        "focus": "#78D9B5"
+      }
+    }
   },
   "primitives": {
     "red": "#D51C38",

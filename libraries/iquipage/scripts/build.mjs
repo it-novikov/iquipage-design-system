@@ -9,7 +9,14 @@ const save=async(p,s)=>{await mkdir(path.dirname(path.join(root,p)),{recursive:t
 const tokens=JSON.parse(await read('tokens/semantic.json'));
 const manifest=JSON.parse(await read('src/manifest.json'));
 const variables=entries=>Object.entries(entries).map(([k,v])=>`  --iq-${k}: ${v};`).join('\n');
-const tokenCSS=`/* Generated from tokens/semantic.json. */\n:root{\n${variables({...tokens.base,...tokens.light})}\n}\n[data-theme="dark"]{\n${variables(tokens.dark)}\n}\n`;
+const block=(selector,entries)=>`${selector}{\n${variables(entries)}\n}\n`;
+// Dark emits only the roles that differ from light (COL-08): the diff is the review surface.
+const darkOnly=Object.fromEntries(Object.entries(tokens.dark).filter(([k,v])=>tokens.light[k]!==v));
+// Accent variants (COL-10) live in semantic.json; each gets a light block, a dark block and the system-dark fallback.
+const accentCSS=Object.entries(tokens.accents||{}).map(([name,themes])=>block(`:root[data-accent="${name}"]`,themes.light)+block(`[data-theme="dark"][data-accent="${name}"]`,themes.dark)+`@media (prefers-color-scheme: dark){\n${block(`:root:not([data-theme="light"])[data-accent="${name}"]`,themes.dark)}}\n`).join('');
+const tokenCSS=`/* Generated from tokens/semantic.json. */\n${block(':root',{...tokens.base,...tokens.light})}${block('[data-theme="dark"]',darkOnly)}`
+ // COL-11 / ENG-14: a document without data-theme follows the system colour scheme.
+ +`@media (prefers-color-scheme: dark){\n${block(':root:not([data-theme="light"])',{...darkOnly,'color-scheme':'dark'}).replace('  --iq-color-scheme: dark;','  color-scheme: dark;')}}\n`+accentCSS;
 await save('tokens/tokens.css',tokenCSS);
 const fontsCSS=await read('tokens/fonts.css');
 const css=fontsCSS+tokenCSS+await read('src/styles/foundation.css')+'\n'+await read('src/styles/whiteboard.css')+'\n'+await read('src/styles/everyday.css')+'\n'+await read('src/styles/whiteboard-workshop.css')+'\n'+await read('src/styles/work-list.css')+'\n'+await read('src/styles/auth-dialog.css')+'\n'+await read('src/styles/auth-screen.css')+'\n'+await read('src/styles/settings.css')+'\n'+await read('src/styles/focus.css')+'\n'+await read('src/styles/touch.css');
