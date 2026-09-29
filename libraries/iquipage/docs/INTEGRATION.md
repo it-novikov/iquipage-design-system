@@ -41,6 +41,8 @@ document.querySelector('#open-plan').addEventListener('click', async () => {
 
 Приложение добавляет в `<head>` предзагрузку: `<link rel="preload" as="font" type="font/woff2" crossorigin href="…/InterVariable.woff2">`, где адрес тот, под которым сборщик раздаёт файл (Vite: `import fontUrl from '@iquipage/web/assets/fonts/InterVariable.woff2?url'`). Внешние шрифтовые CDN не нужны и не должны подключаться. Полный экран без шрифта (офлайн, блокировка) остаётся читаемым на резервном стеке.
 
+Шкала кеглей — в `rem` при `html{font-size:100%}` (тело интерфейса `.875rem` = 14px, документ `1rem`, минимум `--iq-type-meta-size` = `.75rem` = 12px): настройка размера шрифта в браузере масштабирует текст, а отступы, контролы и радиусы остаются в px. В стилях продукта задавайте кегли токенами `var(--iq-type-*-size)` или в `rem`; ниже 12px — нельзя; медиазапросы меняют композицию, а не уменьшают текст. Кикеры пишутся строчными, капитель делает CSS (`text-transform:uppercase`, `--iq-tracking-caps`). Для русских подписей есть `typo(text)` из `@iquipage/web/core` (неразрывные пробелы после коротких слов, перед «—», между числом и единицей, после «№»).
+
 ## Состав runtime и размер
 
 `core` не импортирует roadmap, graph, crop, whiteboard. `advanced` не импортирует whiteboard. `whiteboard` не импортирует roadmap/graph/crop. Demo/stories/sample-data/ui-demo и состояние каталога не входят в runtime. Основные примитивы могут иметь нейтральный placeholder, но не демонстрационные модели пользователя.
