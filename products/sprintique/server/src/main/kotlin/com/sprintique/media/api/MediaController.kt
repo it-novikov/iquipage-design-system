@@ -22,6 +22,7 @@ import com.sprintique.media.application.Uploads
 import com.sprintique.media.domain.FileInspection
 import com.sprintique.problem.ProblemException
 import com.sprintique.problem.requireCondition
+import com.sprintique.web.RequestIds
 import com.sprintique.web.RequestValidationException
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.servlet.http.HttpServletRequest
@@ -30,6 +31,7 @@ import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.Pattern
 import jakarta.validation.constraints.Size
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.ObjectProvider
 import org.springframework.context.annotation.Profile
 import org.springframework.http.MediaType
@@ -40,9 +42,9 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.util.DisconnectedClientHelper
 import tools.jackson.databind.JsonNode
 import tools.jackson.databind.annotation.JsonDeserialize
-import java.io.IOException
 import java.net.URLEncoder
 
 enum class AssetTarget(@get:JsonValue val wire: String) { TASK("task"), MAP("map"), PROJECT_AVATAR("project-avatar") }
@@ -220,7 +222,7 @@ class MediaController(
                 response.setHeader("Content-Security-Policy", FILE_POLICY)
                 response.contentType = "image/webp"
                 response.setHeader("Content-Disposition", "inline")
-                it?.transferTo(response.outputStream)
+                streaming(request, response) { it?.transferTo(response.outputStream) }
             }
             return
         }
@@ -240,6 +242,8 @@ class MediaController(
         response.setHeader("Content-Security-Policy", FILE_POLICY)
         response.contentType = FileInspection.servedMime(mime)
         response.setHeader("Accept-Ranges", "bytes")
+        // A body that fails midway must end with its connection, or the reader (nginx included) waits for the rest.
+        response.setHeader("Connection", "close")
         response.setHeader("ETag", etag)
         response.setHeader("Content-Disposition", disposition(asset.string("name"), FileInspection.isInline(mime)))
         if (selection is ByteSelection.Part) {
@@ -247,7 +251,7 @@ class MediaController(
             response.setHeader("Content-Range", "bytes $first-$last/$length")
         }
         response.setContentLengthLong(last - first + 1)
-        try {
+        streaming(request, response) {
             while (window != null) {
                 val end = minOf(last, position + WINDOW - 1)
                 window.use { it.transferTo(response.outputStream) }
@@ -259,12 +263,24 @@ class MediaController(
                     storage.read(key, position..minOf(last, position + WINDOW - 1))
                 }
             }
-        } catch (error: IOException) {
-            // A player that seeks or a reader that leaves closes the connection: an ordinary end, not a failure.
+        }
+    }
+
+    /**
+     * Writes a file body. Once its first bytes are sent nothing else may follow them — a problem body would land
+     * inside the declared length and a resumed download would keep it — so any later failure ends the response
+     * short, and the client sees fewer bytes than announced once the connection closes. A reader that leaves (a
+     * player that seeks) and access that ends mid-download are ordinary ends; a storage or database failure is
+     * logged without its message.
+     */
+    private inline fun streaming(request: HttpServletRequest, response: HttpServletResponse, body: () -> Unit) {
+        try {
+            body()
+        } catch (@Suppress("TooGenericExceptionCaught") error: Exception) {
             if (!response.isCommitted) throw error
-        } catch (problem: ProblemException) {
-            // Access ended mid-download: the response is already under way, so it simply stops short.
-            if (!response.isCommitted) throw problem
+            if (error !is ProblemException && !DisconnectedClientHelper.isClientDisconnectedException(error)) {
+                log.warn("File stream failed request_id={} error={}", RequestIds.of(request), error.javaClass.name)
+            }
         }
     }
 
@@ -278,6 +294,8 @@ class MediaController(
     }
 
     private companion object {
+        private val log = LoggerFactory.getLogger(MediaController::class.java)
+
         val VARIANTS = setOf("original", "display", "thumb")
 
         const val FILE_POLICY = "default-src 'none'; sandbox; frame-ancestors 'none'"

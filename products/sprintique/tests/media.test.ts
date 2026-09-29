@@ -152,6 +152,21 @@ test('F08 a large body streams through S3 multipart and is read back in byte ran
   finally{await storage.remove('drill-copy/'+key);await rm(dir,{recursive:true,force:true});}
   assert.equal((await f.app.inject({method:'GET',url:path(`assets/${id}/original`),headers:{...f.bob.headers,range:'bytes=0-9'}})).statusCode,404);
 });
+test('F10 a download that fails midway ends short with its connection, and nothing follows the file bytes',async()=>{
+  const size=36*1024*1024+11,bytes=randomBytes(size),id='vanishing-file';
+  const result=await stored(id,'data.bin',bytes);assert.equal(result.statusCode,200,result.body);
+  const started=Date.now(),response=await fetch(f.app.url+path(`assets/${id}/original`),{headers:f.alice.headers});
+  assert.equal(response.status,200);assert.equal(Number(response.headers.get('content-length')),size);
+  // The reader has not taken the first 16 MiB window yet; the object disappears before a later window is opened.
+  await storage.remove(objectKey({projectId:f.first.id,id,sha256:result.json().sha256},'original'));
+  const received:Buffer[]=[];let failed=false;
+  try{for await(const chunk of response.body!)received.push(Buffer.from(chunk));}catch{failed=true;}
+  const body=Buffer.concat(received);
+  assert.ok(failed,'fewer bytes than announced are an error for the reader');
+  assert.ok(body.length<size&&body.equals(bytes.subarray(0,body.length)),'only file bytes: no problem body inside the declared length');
+  assert.ok(Date.now()-started<10000,'the connection closes at once instead of idling until keep-alive ends');
+  assert.ok((await get(id,f.alice.headers,'original')).statusCode>=400,'a later download is an ordinary problem response');
+});
 test('F09 a body that changes on the way, or runs long, never becomes the stored file',async()=>{
   const bytes=randomBytes(9*1024*1024),changed=Buffer.from(bytes);changed[changed.length-1]=changed[changed.length-1]!^1;
   await reserve('changed-large','data.bin',bytes);const refused=await upload('changed-large',changed);

@@ -33,8 +33,9 @@ export function mountTaskFiles(root,{coverRoot,adapter,task,readOnly=false,onCov
   const list=root.querySelector('[data-file-list]'),error=root.querySelector('[data-file-error]');
   const report=e=>{if(!closed){error.hidden=false;error.textContent=e.message||'Не удалось загрузить файл. Повторите попытку.';}};
   const emit=()=>root.dispatchEvent(new CustomEvent('task-files-change',{bubbles:true}));
-  // A file still being published cannot be discarded yet (FILE_BUSY): try again for up to a minute.
-  const discard=(id,attempt=0)=>{if(adapter)Promise.resolve(adapter.discard(target(id))).catch(error=>{if(error?.code==='FILE_BUSY'&&attempt<6)setTimeout(()=>discard(id,attempt+1),2000*(attempt+1));});};
+  // A file still being published cannot be discarded yet (FILE_BUSY): try again, backing off to 15 s, until the
+  // server's ten-minute publication lease is surely over (some ten and a half minutes in all).
+  const discard=(id,attempt=0)=>{if(adapter)Promise.resolve(adapter.discard(target(id))).catch(error=>{if(error?.code==='FILE_BUSY'&&attempt<45)setTimeout(()=>discard(id,attempt+1),Math.min(2000*(attempt+1),15000));});};
   // Originals share the download lane (8 per sign-in): fetch at most three previews at once.
   let previewSlots=3;const previewQueue=[];
   const previewFetch=run=>new Promise((resolve,reject)=>{const start=()=>{previewSlots--;run().then(resolve,reject).finally(()=>{previewSlots++;previewQueue.shift()?.();});};if(previewSlots>0)start();else previewQueue.push(start);});

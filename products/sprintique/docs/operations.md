@@ -109,7 +109,7 @@ Uploads stream through the API, never directly from the browser to S3: the bucke
 
 Accepted formats (the extension picks the type, the first bytes must agree): video `mp4 m4v mov webm`; audio `mp3 m4a wav ogg`; documents `pdf docx xlsx pptx odt ods odp doc xls ppt rtf`; images `png jpg jpeg webp gif heic heif svg`; archives `zip 7z rar tar gz`; text `txt md csv json log`. Any other name is stored as `application/octet-stream`. Up to 2 GiB per file; a project holds up to 20 GiB. Previews (WebP, 2048 and 720 px) are made only for PNG, JPEG and WebP up to 32 MiB and 40 megapixels; a larger or animated image in a task is kept as a file without a preview; a map image or project avatar must be such an image.
 
-Downloads stream from S3 in 16 MiB windows, and project access is checked again before every window. A single `Range: bytes=…` is honoured to its end (`206`, `416`, `If-Range` against the SHA-256 `ETag`, `Accept-Ranges: bytes`), so players seek and download managers resume. PNG, JPEG, WebP, GIF and video are served `inline`; everything else, SVG included, is `attachment`, and SVG, HTML and XML are never named as such (`application/octet-stream`). Every file carries `X-Content-Type-Options: nosniff`, `Content-Security-Policy: default-src 'none'; sandbox; frame-ancestors 'none'` and `Cache-Control: no-store`.
+Downloads stream from S3 in 16 MiB windows, and project access is checked again before every window. A single `Range: bytes=…` is honoured to its end (`206`, `416`, `If-Range` against the SHA-256 `ETag`, `Accept-Ranges: bytes`), so players seek and download managers resume. A failure after the first bytes (storage, database, revoked access) ends the response short and closes its connection (`Connection: close` on every original), so a reader sees fewer bytes than announced and never a problem body inside the file. PNG, JPEG, WebP, GIF and video are served `inline`; everything else, SVG included, is `attachment`, and SVG, HTML and XML are never named as such (`application/octet-stream`). Every file carries `X-Content-Type-Options: nosniff`, `Content-Security-Policy: default-src 'none'; sandbox; frame-ancestors 'none'` and `Cache-Control: no-store`.
 
 Cleanup deletes the objects of discarded, quarantined and expired uploads and aborts any unfinished multipart upload under their keys; a completed upload also aborts every other unfinished upload of the same key (a concurrent duplicate of the same content then fails, which loses nothing). Cleanup needs `s3:ListBucketMultipartUploads` and `s3:AbortMultipartUpload` besides get, put and delete; without them objects are still deleted and the lifecycle rule remains the only line against leftover parts. As a second line for a process that died mid-upload, give the bucket a lifecycle rule that aborts incomplete multipart uploads after one day.
 
@@ -125,6 +125,36 @@ location ~ ^/api/v1/projects/[^/]+/assets/[^/]+/(content|original)$ {
     proxy_send_timeout 300s;
     client_body_timeout 120s;
 }
+```
+
+Migration `V20260929000026` (files up to 2 GiB) can be rolled back only while no file is larger than 10 MiB and none is being published; after that, only forward. Stop the API and worker, run this as the migration owner in one transaction, then start the previous artifact (it validates the shortened history). The script refuses when rollback would lose data. Checked on a fresh database: after it, `pg_dump --schema-only` equals a database migrated without 026, the previous artifact migrates cleanly, and 026 applies again.
+
+```sql
+BEGIN;
+LOCK TABLE app.assets IN ACCESS EXCLUSIVE MODE;
+DO $$ BEGIN
+  IF EXISTS(SELECT 1 FROM app.assets WHERE size>10485760 OR state='publishing') THEN
+    RAISE EXCEPTION 'ROLLBACK_REFUSED: files over 10 MiB or publications exist; roll forward instead';
+  END IF;
+END $$;
+ALTER TABLE app.assets DROP CONSTRAINT asset_size;
+ALTER TABLE app.assets ALTER COLUMN size TYPE integer;
+ALTER TABLE app.assets ADD CONSTRAINT assets_size_check CHECK(size BETWEEN 1 AND 10485760);
+ALTER TABLE app.assets DROP CONSTRAINT asset_state;
+ALTER TABLE app.assets ADD CONSTRAINT asset_state CHECK(state IN ('uploading','ready','attached','detached','quarantined','deleting','deleted'));
+CREATE OR REPLACE FUNCTION work.prepare_asset_gc(job_id uuid,token uuid) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog AS $$
+DECLARE job work.jobs;asset app.assets;
+BEGIN
+  SELECT * INTO job FROM work.jobs WHERE id=job_id AND lease_token=token AND kind='asset.gc' AND state='running' AND lease_until>clock_timestamp() FOR UPDATE;
+  IF job.id IS NULL THEN RAISE EXCEPTION 'LEASE_LOST' USING ERRCODE='55000'; END IF;
+  SELECT * INTO asset FROM app.assets WHERE project_id=job.project_id AND id=job.payload->>'assetId' FOR UPDATE;
+  IF asset.id IS NULL OR asset.state IN ('attached','deleted') OR asset.expires_at>clock_timestamp() THEN RETURN NULL; END IF;
+  UPDATE app.assets SET state='deleting',updated_at=clock_timestamp() WHERE project_id=asset.project_id AND id=asset.id;
+  RETURN jsonb_build_object('id',asset.id,'projectId',asset.project_id,'sha256',asset.sha256);
+END $$;
+REVOKE ALL ON FUNCTION work.prepare_asset_gc(uuid,uuid) FROM PUBLIC;
+DELETE FROM public.flyway_schema_history WHERE version='20260929000026';
+COMMIT;
 ```
 
 ## Before external release
