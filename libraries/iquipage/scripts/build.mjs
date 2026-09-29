@@ -12,7 +12,7 @@ const variables=entries=>Object.entries(entries).map(([k,v])=>`  --iq-${k}: ${v}
 const tokenCSS=`/* Generated from tokens/semantic.json. */\n:root{\n${variables({...tokens.base,...tokens.light})}\n}\n[data-theme="dark"]{\n${variables(tokens.dark)}\n}\n`;
 await save('tokens/tokens.css',tokenCSS);
 const fontsCSS=await read('tokens/fonts.css');
-const css=fontsCSS+tokenCSS+await read('src/styles/foundation.css')+'\n'+await read('src/styles/whiteboard.css')+'\n'+await read('src/styles/everyday.css')+'\n'+await read('src/styles/whiteboard-workshop.css')+'\n'+await read('src/styles/work-list.css')+'\n'+await read('src/styles/auth-dialog.css')+'\n'+await read('src/styles/auth-screen.css')+'\n'+await read('src/styles/settings.css')+'\n'+await read('src/styles/focus.css')+'\n'+await read('src/styles/touch.css');
+const css=fontsCSS+tokenCSS+await read('src/styles/foundation.css')+'\n'+await read('src/styles/whiteboard.css')+'\n'+await read('src/styles/everyday.css')+'\n'+await read('src/styles/whiteboard-workshop.css')+'\n'+await read('src/styles/work-list.css')+'\n'+await read('src/styles/auth-dialog.css')+'\n'+await read('src/styles/auth-screen.css')+'\n'+await read('src/styles/settings.css')+'\n'+await read('src/styles/text.css')+'\n'+await read('src/styles/focus.css')+'\n'+await read('src/styles/touch.css');
 await save('dist/iquipage.css',css);
 const sources={};
 for (const name of manifest.application){

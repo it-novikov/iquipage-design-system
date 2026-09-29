@@ -255,5 +255,20 @@ function plural(n, forms, locale = 'ru') {
 function count(n, forms, locale = 'ru') {
     return `${cached(numberFormats, locale, l => new Intl.NumberFormat(l)).format(n)} ${plural(n, forms, locale)}`;
 }
+/** Russian micro-typography for labels, kickers and hints (TYP-15): a non-breaking space after one- and
+ *  two-letter words («в работе», «и до»), before a dash, between a number and its unit («12 задач»,
+ *  «2,4 МБ») and after «№», so a narrow card never wraps «в\nработе» or «12\nзадач». Only ASCII spaces
+ *  are touched, so a second call changes nothing. */
+const NBSP = '\u00A0';
+function typo(text) {
+    if (typeof text !== 'string' || !text)
+        return text ?? '';
+    return text
+        .replace(/(^|[\s«(„"'])((?:\p{L}{1,2} )+)(?=\S)/gu, (m, before, words) => before + words.replace(/ /g, NBSP))
+        .replace(/ —/g, `${NBSP}—`)
+        .replace(/(\d) (?=[\p{L}%№])/gu, `$1${NBSP}`)
+        .replace(/№ (?=\d)/g, `№${NBSP}`);
+}
 exports.plural = plural;
 exports.count = count;
+exports.typo = typo;
