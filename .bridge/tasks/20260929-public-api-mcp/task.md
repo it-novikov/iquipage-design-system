@@ -2,13 +2,13 @@
 bridge: 1
 id: 20260929-public-api-mcp
 title: Публичный API и удалённый MCP-сервер Sprintique (api.iqui.page)
-status: active
+status: review
 risk: high
 owner: it-novikov
 branch: feature/public-api-mcp
 base: main
 created: 2026-09-29
-updated: 2026-09-29T21:06:24Z
+updated: 2026-09-29T21:13:32Z
 links:
 ---
 
@@ -33,20 +33,20 @@ links:
 
 ## Приёмка
 
-- [ ] A1. Полный поток OAuth + MCP проходит e2e-тестом против сервера на настоящем PostgreSQL: регистрация → authorize с PKCE → token → initialize → tools/list → чтение → запись → refresh → revoke → отказ
-- [ ] A2. Bearer-запросы действуют строго как человек (RLS, роль, скоуп read/write, аудитория RFC 8707); cookie не авторизуют на API-хосте; операции безопасности требуют интерактивной сессии; тесты безопасности на каждое правило
-- [ ] A3. Сервер авторизации соответствует спецификации MCP: метаданные, DCR без загрузки URL, redirect только точное совпадение https/loopback, только S256, без implicit/password, ротация refresh с обнаружением повтора, отзыв; токены только хэшами
-- [ ] A4. Человек видит и отзывает подключённые приложения и персональные токены в настройках; согласие на sprintique.iqui.page на компонентах DS, защищено от фрейминга и CSRF
-- [ ] A5. Лимиты по учётным данным, аудит «кто и каким клиентом» без содержимого в логах, метрики с ограниченными метками; operations.md и ADR описывают настройку и подключение Claude
-- [ ] A6. Гейты зелёные: npm test продукта, Kotlin unit+integration, корневой verify-vnext; ручная проверка на локальном сервере официальным MCP-клиентом; независимое ревью, P0/P1 закрыты; PR открыт, не слит
+- [x] A1. Полный поток OAuth + MCP проходит e2e-тестом против сервера на настоящем PostgreSQL: регистрация → authorize с PKCE → token → initialize → tools/list → чтение → запись → refresh → revoke → отказ
+- [x] A2. Bearer-запросы действуют строго как человек (RLS, роль, скоуп read/write, аудитория RFC 8707); cookie не авторизуют на API-хосте; операции безопасности требуют интерактивной сессии; тесты безопасности на каждое правило
+- [x] A3. Сервер авторизации соответствует спецификации MCP: метаданные, DCR без загрузки URL, redirect только точное совпадение https/loopback, только S256, без implicit/password, ротация refresh с обнаружением повтора, отзыв; токены только хэшами
+- [x] A4. Человек видит и отзывает подключённые приложения и персональные токены в настройках; согласие на sprintique.iqui.page на компонентах DS, защищено от фрейминга и CSRF
+- [x] A5. Лимиты по учётным данным, аудит «кто и каким клиентом» без содержимого в логах, метрики с ограниченными метками; operations.md и ADR описывают настройку и подключение Claude
+- [x] A6. Гейты зелёные: npm test продукта, Kotlin unit+integration, корневой verify-vnext; ручная проверка на локальном сервере официальным MCP-клиентом; независимое ревью, P0/P1 закрыты; PR открыт, не слит
 
 ## Передача
 
-- **Состояние:** R1 и R2 исправлены; npm test 202/202, Kotlin unit 46 + integration 24 без пропусков; ручная проверка SDK 1.31.0 на стенде с отдельным API-именем пройдена
-- **Сейчас:** S7 — verify-vnext, push, PR
-- **Дальше:** verify-vnext, push, PR
+- **Состояние:** Гейты зелёные, ревью R1/R2 закрыты (P0/P1 нет)
+- **Сейчас:** PR открыт, ждёт владельца
+- **Дальше:** Владелец: слияние; перед слиянием — номер миграции 027 после 025/026; прод: SPRINTIQUE_API_ORIGIN и vhost api.iqui.page
 - **Незакоммичено:** DelegatedAccessIntegrationTest.kt (новый интеграционный тест, ещё не прогнан)
-- **Рабочая копия:** 29 файл(ов): products/sprintique/deploy/vps/README.md, products/sprintique/deploy/vps/bootstrap.sh, products/sprintique/deploy/vps/nginx.conf, products/sprintique/docs/decisions/0003-public-api-mcp.md, products/sprintique/docs/operations.md, products/sprintique/server/src/generated/jooq/com/sprintique/database/schema/auth/indexes/Indexes.kt, products/sprintique/server/src/generated/jooq/com/sprintique/database/schema/auth/routines/references/Routines.kt, products/sprintique/server/src/generated/jooq/com/sprintique/database/schema/auth/tables/Credentials.kt, products/sprintique/server/src/generated/jooq/com/sprintique/database/schema/auth/tables/OauthClients.kt, products/sprintique/server/src/generated/jooq/com/sprintique/database/schema/auth/tables/OauthRefreshTokens.kt, products/sprintique/server/src/generated/jooq/com/sprintique/database/schema/auth/tables/records/OauthRefreshTokensRecord.kt, products/sprintique/server/src/integrationTest/kotlin/com/sprintique/identity/DelegatedAccessIntegrationTest.kt и ещё 17 (30 files changed, 462 insertions(+), 137 deletions(-)) · HEAD af83d0d
+- **Рабочая копия:** нет · HEAD 23f2670
 - **Ловушки:**
   - Узел по умолчанию v26: для гейтов PATH=/opt/homebrew/opt/node@24/bin:$PATH
   - TEST_S3_CONFIG=/Users/nvkv71/iquipage-work/ux-ds-20260925/products/sprintique/output/infra/storage.json
@@ -114,13 +114,14 @@ links:
 - **Итог:** 344fd83 лимиты/аудит/метрики; 0582896 operations.md и README
 - **Модель:** fast
 
-### S7. E2E, ручная проверка, ревью, гейты, PR [active]
+### S7. E2E, ручная проверка, ревью, гейты, PR [done]
 - **Что:** E2E полного потока, ручная проверка официальным MCP SDK, независимое ревью и исправления, гейты, PR
 - **Как:** tests/mcp-oauth.test.ts; scratch-скрипт на @modelcontextprotocol/sdk против локального сервера; subagent-ревью
 - **Зачем:** Доказательство готовности
 - **Приёмка:**
-  - [ ] npm test, integration, verify-vnext зелёные; PR открыт
+  - [x] npm test, integration, verify-vnext зелёные; PR открыт
 - **Покрывает:** A1,A6
+- **Итог:** af83d0d R1, 23f2670 R2; npm test 202/202, Kotlin unit 46 + integration 24, verify-vnext PASS (2026-09-29T21-06-30Z); SDK 1.31.0 вручную на стенде с отдельным API-именем
 - **Модель:** strong
 
 ## Решения
