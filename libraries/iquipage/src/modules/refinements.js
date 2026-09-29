@@ -5,6 +5,7 @@ exports.installRefinements = installRefinements;
 exports.toneOfVoice = toneOfVoice;
 exports.updateSteps = updateSteps;
 const stories_js_1 = require("./stories.js");
+const interaction_js_1 = require("./interaction.js");
 const components_js_1 = require("./components.js");
 const ui_js_1 = require("./ui.js");
 const structured_js_1 = require("./structured.js");
@@ -80,12 +81,12 @@ function toneOfVoice() {
 function bindRefinements(root) {
     const events = new AbortController(), signal = events.signal;
     const animations = new Set();
-    const reduce = () => matchMedia('(prefers-reduced-motion: reduce)').matches || document.documentElement.dataset.motion === 'reduced';
+    const reduce = interaction_js_1.motionReduced;
     const animate = (el) => {
         if (reduce())
             return;
         el.getAnimations().forEach(a => a.cancel());
-        const a = el.animate([{ opacity: .55, transform: 'translateY(5px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 240, easing: 'cubic-bezier(.16,1,.3,1)' });
+        const a = el.animate([{ opacity: .55, transform: 'translateY(5px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: interaction_js_1.motionMs('enter', 280), easing: interaction_js_1.motionEase('spring') });
         animations.add(a);
         a.finished.catch(() => { }).finally(() => animations.delete(a));
     };

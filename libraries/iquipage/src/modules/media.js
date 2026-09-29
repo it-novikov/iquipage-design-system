@@ -5,6 +5,7 @@ exports.configureDemoFiles = configureDemoFiles;
 exports.configurePDFPreviews = configurePDFPreviews;
 exports.exampleFiles = exampleFiles;
 const icons_js_1 = require("./icons.js");
+const interaction_js_1 = require("./interaction.js");
 const esc = (s) => s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const samplePDFs = new WeakMap();
 let demoFactory;
@@ -181,7 +182,7 @@ class IqFilePreview extends HTMLElement {
         }, { rootMargin: '80px' });
         this.observer.observe(this);
         button.addEventListener('pointermove', e => {
-            if (k !== 'video' || e.pointerType === 'touch' || matchMedia('(prefers-reduced-motion: reduce)').matches || document.documentElement.dataset.motion === 'reduced' || !this.video?.duration)
+            if (k !== 'video' || e.pointerType === 'touch' || interaction_js_1.motionReduced() || !this.video?.duration)
                 return;
             const r = button.getBoundingClientRect();
             this.desired = Math.max(0, Math.min(.995, (e.clientX - r.left) / r.width)) * this.video.duration;
