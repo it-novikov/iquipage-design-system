@@ -28,3 +28,4 @@
 - 2026-09-30T21:26:50Z · claude-opus-5-5 · note · A4 · критерий приёмки выполнен
 - 2026-09-30T21:26:50Z · claude-opus-5-5 · note · A5 · критерий приёмки выполнен
 - 2026-09-30T21:26:50Z · claude-opus-5-5 · status · - · review: PR открыт, не слит
+- 2026-09-30T21:27:05Z · claude-opus-5-5 · note · - · PR #35 открыт в main: https://github.com/it-novikov/iquipage-design-system/pull/35 (не слит)
