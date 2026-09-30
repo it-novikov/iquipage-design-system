@@ -8,7 +8,7 @@ owner: it-novikov
 branch: feature/workbench
 base: main
 created: 2026-09-29
-updated: 2026-09-30T13:22:15Z
+updated: 2026-09-30T14:12:14Z
 links:
   - https://claude.ai/artifact/RHgUPWLj3TsT7Rq1QRJNQm
 ---
@@ -37,11 +37,11 @@ links:
 
 ## Передача
 
-- **Состояние:** Бэкенд готов на модели «Участвую» (cd5b006); R1 закрыт; UI на паузе
-- **Сейчас:** S5 — полный npm test, verify-vnext, ревью R2, PR бэкенда
-- **Дальше:** Дождаться npm test, запустить verify-vnext и R2
+- **Состояние:** Бэкенд с данными дизайна v2 в PR #30 (ждёт ревью владельца); UI на паузе
+- **Сейчас:** Ожидание решения владельца по PR #30 и дизайну v2
+- **Дальше:** Ответы владельца: приоритет «Участвую»/«Изменилось», автоучастие адресата/исполнителя; затем S4 UI по design-v2
 - **Незакоммичено:** нет
-- **Рабочая копия:** 5 файл(ов): products/sprintique/contracts/workbench.ts, products/sprintique/server/src/main/kotlin/com/sprintique/workbench/application/Plan.kt, products/sprintique/tests/workbench.test.ts, products/sprintique/web/main.js, products/sprintique/docs/task-drawer/ (6 files changed, 45 insertions(+), 17 deletions(-)) · HEAD cd5b006
+- **Рабочая копия:** нет · HEAD 3fc0be8
 
 ## План
 

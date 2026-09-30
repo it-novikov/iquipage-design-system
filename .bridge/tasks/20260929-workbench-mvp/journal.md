@@ -45,3 +45,5 @@
 - 2026-09-30T14:03:26Z · r3-delta · review · R3 · начато ревью, раунд 3, после R1, R2
 - 2026-09-30T14:11:34Z · claude-opus-5-5 · note · - · R3 (r3-delta) approve, 3×P3 исправлены в 299931f; merge origin/main (d295616): финансы #25, большие файлы #26; найдена и исправлена коллизия префикса фикстуры W с workspace.test.ts (зависание npm test)
 - 2026-09-30T14:11:34Z · claude-opus-5-5 · note · - · Гейты на cba9a78: verify-vnext 7/7 PASS + source-stability; npm test 230/230, Kotlin unit 70, integration 30, пропусков 0 (S3 проверен)
+- 2026-09-30T14:12:15Z · claude-opus-5-5 · checkpoint · - · дальше: Ответы владельца: приоритет «Участвую»/«Изменилось», автоучастие адресата/исполнителя; затем S4 UI по design-v2
+- 2026-09-30T14:12:15Z · claude-opus-5-5 · note · - · PR https://github.com/it-novikov/iquipage-design-system/pull/30 открыт (не мержить)
