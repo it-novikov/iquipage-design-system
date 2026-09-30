@@ -3,6 +3,7 @@ import {coverImageStyle,coverLetterboxed} from './cover-crop.js';
 import {taskEmphasis,taskSignal,normalizePriority,ui,formatDate} from '@iquipage/web/core';
 import {icon,esc} from '../ui.js';
 import {childOwners,taskKindLabel} from './model.js';
+import {avatarName} from './assignees.js';
 import {TASK_COLUMNS,taskColumn} from '../tasks.js';
 /** People on a card are one DS avatar group: a stable tone per person, at most three discs, one tooltip with every name. */
 export function taskAvatars(task,index,people=new Map()){
@@ -10,7 +11,9 @@ export function taskAvatars(task,index,people=new Map()){
   const who=owner=>({...owner,...(owner.id&&people.get(owner.id)?.image?{image:people.get(owner.id).image}:{})});
   const children=index.children.get(task.id)||[];
   if(children.length)return ui.avatarGroup(childOwners(task.id,index).map(who),{size:'sm',label:'Исполнители подзадач'});
-  return task.owner?ui.avatarGroup([who({id:task.ownerId||undefined,name:task.owner})],{size:'sm',label:'Исполнитель'}):'';
+  // A service account's disc takes its initials from its own name; the tooltip heading says what it is (SPR-7).
+  const remark=task.ownerKind==='service'?/\(([^()]*)\)$/.exec(task.owner||'')?.[1]:'';
+  return task.owner?ui.avatarGroup([who({id:task.ownerId||undefined,name:avatarName(task.owner)})],{size:'sm',label:remark?`Исполнитель — ${remark}`:'Исполнитель'}):'';
 }
 // A subtask counts as done once it is ready for release or its result is accepted.
 const subtaskDone=task=>task.result==='accepted'||taskColumn(task)==='ready_for_release';

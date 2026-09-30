@@ -5,6 +5,7 @@ import com.sprintique.database.Transaction
 import com.sprintique.identity.domain.Actor
 import com.sprintique.problem.requireCondition
 import com.sprintique.token.Tokens
+import com.sprintique.workspace.application.Assignees
 import java.time.Instant
 
 /** Which parts of the Workbench this process serves (docs/adr W6); a disabled part contributes no candidates. */
@@ -420,8 +421,10 @@ object Workbench {
                  a.key || '-' || t.number AS display_id, a.name AS project_name,
                  CASE WHEN a.name IN (SELECT name FROM authorized GROUP BY name HAVING count(*) > 1) THEN a.workspace_name END
                    AS workspace_name,
-                 -- People are named only while they are members of the project (docs/adr W5 §6); ids stay.
-                 (SELECT coalesce(o.profile_name, o.name) FROM auth.principals o
+                 -- People are named only while they are members of the project (docs/adr W5 §6); ids stay. A service
+                 -- account owner says what it is, and when it cannot act (SPR-7).
+                 (SELECT coalesce(o.profile_name, o.name) || ${Assignees.remarkSql("o", "o.id", "pl.project_id")}
+                   FROM auth.principals o
                    JOIN app.project_members pm ON pm.principal_id = o.id AND pm.project_id = pl.project_id
                    WHERE o.id = t.owner_id) AS owner_name,
                  coalesce(s.participating, false) AS participating, s.participation_revision, s.rank, s.rank_revision,

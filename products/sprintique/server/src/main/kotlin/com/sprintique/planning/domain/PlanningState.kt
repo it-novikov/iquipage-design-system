@@ -141,7 +141,32 @@ data class PlanningDefaults(val format: String, val days: Int, val timezone: Str
 /** What a task created by a planning command receives: the next number of the project and the creation time. */
 data class CreationContext(val projectId: String, val key: String, val number: Int, val createdAt: String)
 
-data class ProjectPerson(val id: String, val name: String)
+/**
+ * Someone the plan names as a task owner: a member of the project (a person or a service account), or a service account
+ * that still owns tasks here after it left the project or was deleted. [state] is `active`, `suspended`, `deleted` or
+ * `former`; [assignable] is whether it may be given a task now (SPR-7).
+ */
+data class ProjectPerson(
+    val id: String,
+    val name: String,
+    val kind: String = "human",
+    val state: String = "active",
+    val assignable: Boolean = true,
+    val accountOwner: String? = null,
+) {
+    /** How the plan shows a task owner: a service account is marked as one, and so is one that can no longer act. */
+    val label: String
+        get() = if (kind != "service") {
+            name
+        } else {
+            when (state) {
+                "suspended" -> "$name (сервисный аккаунт, приостановлен)"
+                "deleted" -> "$name (сервисный аккаунт, удалён)"
+                "former" -> "$name (сервисный аккаунт, не в проекте)"
+                else -> "$name (сервисный аккаунт)"
+            }
+        }
+}
 
 data class PlanningState(
     val tasks: List<TaskState>,

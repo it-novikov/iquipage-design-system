@@ -16,6 +16,7 @@ import com.sprintique.task.application.Tasks
 import com.sprintique.task.contract.TaskInputRequest
 import com.sprintique.task.domain.TaskContent
 import com.sprintique.token.Tokens
+import com.sprintique.workspace.application.Assignees
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import tools.jackson.databind.JsonNode
@@ -46,6 +47,8 @@ class TaskTools(private val ledger: CommandLedger, private val properties: Sprin
                    t.priority, t.owner_id AS "assigneeId",
                    coalesce((SELECT coalesce(o.profile_name, o.name) FROM auth.principals o WHERE o.id = t.owner_id), '')
                      AS "assigneeName",
+                   (SELECT o.kind FROM auth.principals o WHERE o.id = t.owner_id) AS "assigneeKind",
+                   ${Assignees.stateSql("t.owner_id", "t.project_id")} AS "assigneeState",
                    to_char(t.due, 'YYYY-MM-DD') AS "dueDate", t.release_id AS "releaseId", t.revision,
                    t.updated_at AS "updatedAt", p.slug
             FROM app.tasks t JOIN app.projects p ON p.id = t.project_id
@@ -63,7 +66,7 @@ class TaskTools(private val ledger: CommandLedger, private val properties: Sprin
             query,
             pattern,
             input.status?.wire,
-            input.assigneeId,
+            assignee(actor, input.assigneeId),
             input.limit + 1,
             offset,
         )
@@ -125,7 +128,7 @@ class TaskTools(private val ledger: CommandLedger, private val properties: Sprin
                     status = "ready",
                     type = input.type.wire,
                     priority = input.priority.wire,
-                    ownerId = input.assigneeId,
+                    ownerId = assignee(actor, input.assigneeId),
                     due = input.dueDate,
                     rank = TaskInputRequest.DEFAULT_RANK,
                     parentId = parentId,
@@ -148,7 +151,7 @@ class TaskTools(private val ledger: CommandLedger, private val properties: Sprin
                 description = input.description ?: content.description,
                 type = input.type?.wire ?: content.type,
                 priority = input.priority?.wire ?: content.priority,
-                ownerId = if (raw.has("assigneeId")) input.assigneeId else content.ownerId,
+                ownerId = if (raw.has("assigneeId")) assignee(actor, input.assigneeId) else content.ownerId,
                 due = if (raw.has("dueDate")) input.dueDate else content.due,
             ) to input.baseRevision
         }
@@ -249,6 +252,8 @@ class TaskTools(private val ledger: CommandLedger, private val properties: Sprin
             "priority" to task["priority"],
             "assigneeId" to task["ownerId"],
             "assigneeName" to task["ownerName"],
+            "assigneeKind" to task["ownerKind"],
+            "assigneeState" to task["ownerState"],
             "dueDate" to task["due"],
             "releaseId" to task["releaseId"],
             "parentId" to task["parentId"],
@@ -298,6 +303,9 @@ class TaskTools(private val ledger: CommandLedger, private val properties: Sprin
             }
         }
 
+    /** `me` names the caller itself: an agent takes a task or finds the work handed to its service account. */
+    private fun assignee(actor: Actor, id: String?): String? = if (id == ME) actor.id else id
+
     private fun slugOf(tx: Transaction, projectId: String): String =
         tx.row("SELECT slug FROM app.projects WHERE id = $1", projectId)!!.string("slug")
 
@@ -315,6 +323,7 @@ class TaskTools(private val ledger: CommandLedger, private val properties: Sprin
 
     private companion object {
         const val MAX_OFFSET = 1000
+        const val ME = "me"
         const val SUBTASK_LIMIT = 50
         const val THREAD_LIMIT = 20
         const val MESSAGE_LIMIT = 50

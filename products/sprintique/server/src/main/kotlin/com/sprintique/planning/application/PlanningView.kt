@@ -19,6 +19,7 @@ import com.sprintique.planning.domain.HistoryItem
 import com.sprintique.planning.domain.Milestone
 import com.sprintique.planning.domain.PlanningRow
 import com.sprintique.planning.domain.PlanningRows
+import com.sprintique.planning.domain.ProjectPerson
 import com.sprintique.planning.domain.Release
 import com.sprintique.problem.requireCondition
 import com.sprintique.problem.requirePresent
@@ -276,7 +277,7 @@ class PlanningView(private val json: JsonMapper, private val support: ViewSuppor
                 }.map { option(it.id, "Перед ${it.displayId} ${it.title}") }
             }
 
-            "owner" -> listOf(option("__none__", "Не назначен")) + c.state.members.map { option(it.id, it.name) }
+            "owner" -> ownerOptions(c.state.members)
 
             else -> tx.rows(
                 """
@@ -287,7 +288,11 @@ class PlanningView(private val json: JsonMapper, private val support: ViewSuppor
             )
         }
         val search = query.query.lowercase(Locale.ROOT)
-        items = items.filter { search in (it["label"] as String).lowercase(Locale.ROOT) }
+        items = items.filter {
+            it["value"] == SERVICE_HEADING || search in (it["label"] as String).lowercase(Locale.ROOT)
+        }
+        // The heading stays only above the accounts that matched.
+        if (items.lastOrNull()?.get("value") == SERVICE_HEADING) items = items.dropLast(1)
         // The end of the list stays reachable whatever the search.
         if (kind == "positions") items = items + option("__end__", "В конец списка")
         val bindingValue = query.copy(cursor = null)
@@ -299,6 +304,27 @@ class PlanningView(private val json: JsonMapper, private val support: ViewSuppor
             query.cursor,
         )
         return linkedMapOf("options" to page.items, "nextCursor" to page.nextCursor)
+    }
+
+    /**
+     * People first, then the service accounts that may take tasks now under a heading of their own, each with its
+     * owner. A search that matches no account drops the heading too.
+     */
+    private fun ownerOptions(people: List<ProjectPerson>): List<Map<String, Any?>> {
+        val (humans, accounts) = people.filter { it.assignable && it.state == "active" }
+            .partition { it.kind == "human" }
+        return listOf(option("__none__", "Не назначен")) + humans.map { option(it.id, it.name) } +
+            if (accounts.isEmpty()) {
+                emptyList()
+            } else {
+                listOf(
+                    linkedMapOf<String, Any?>(
+                        "value" to SERVICE_HEADING,
+                        "label" to "Сервисные аккаунты",
+                        "disabled" to true,
+                    ),
+                ) + accounts.map { option(it.id, it.label, "Владелец — ${it.accountOwner ?: "не назначен"}") }
+            }
     }
 
     private fun option(value: String, label: String, description: String? = null): Map<String, Any?> =
@@ -546,5 +572,8 @@ class PlanningView(private val json: JsonMapper, private val support: ViewSuppor
         const val OPTION_PAGE = 50
         const val RELEASE_PAGE = 100
         const val CONSTRAINT_LIMIT = 10_000
+
+        /** The heading of the service accounts among the owner options; never a value. */
+        const val SERVICE_HEADING = "__service_accounts__"
     }
 }

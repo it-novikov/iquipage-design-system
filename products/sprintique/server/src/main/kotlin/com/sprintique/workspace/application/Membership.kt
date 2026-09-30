@@ -29,20 +29,6 @@ object Membership {
         return ProjectAccess.authorize(tx, actor, projectId, capability)
     }
 
-    /** Task owners are current human members of the project, so every assignee can see and act on the task. */
-    fun requireAssignable(tx: Transaction, projectId: String, ownerId: String?) {
-        if (ownerId == null) return
-        val member = tx.row(
-            """
-            SELECT 1 AS found FROM app.project_members m JOIN auth.principals p ON p.id = m.principal_id
-            WHERE m.project_id = $1 AND m.principal_id = $2 AND p.kind = 'human' AND p.disabled_at IS NULL
-            """.trimIndent(),
-            projectId,
-            ownerId,
-        )
-        requireCondition(member != null, 422, "TASK_OWNER", "Исполнителем может быть только участник проекта.")
-    }
-
     /** Last activity is the member's newest audit event in this project; presets and personal changes included. */
     fun members(tx: Transaction, actor: Actor, projectId: String): List<Map<String, Any?>> =
         MemberAccess.members(tx, actor, projectId)

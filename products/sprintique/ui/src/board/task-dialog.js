@@ -14,6 +14,7 @@ import {starterTaskSettings,instantiateTaskTemplate,withoutUntouchedTemplate,STA
 import {mountTaskDescription} from './description-view.js';
 import {copyAtButton,motionReduced,ui,notify,formatDate} from '@iquipage/web/core';
 import {taskKey,taskURL} from './task-route.js';
+import {avatarName,ownerOptions,ownerWarning} from './assignees.js';
 
 export async function openTaskDialog(task,{repository,project,tasks,canEdit=true,canManage=true,attachmentAdapter=null,status='ready',initialValues={},fullscreen=false,backTo=null,onBack=()=>{},onOpenTask,onReload=onOpenTask&&(()=>onOpenTask(task.id)),onSaved=()=>{},isActive=()=>true,signal,replace=null,supplement=null}){
   signal?.throwIfAborted();const initialTask=task;
@@ -36,10 +37,12 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
   // Existing tasks save each field as it changes; a new task is created deliberately with one button.
   const autosave=!!task&&canEdit;
   let current=task,baseline='',saving=false,confirming=false,priorityTouched=false,catalogs,threads,links,plan,pendingPlan=null,personal=null;
-  // Owners are current human project members. A former member or pre-membership text stays visible until reassigned.
-  const owners=[{value:'',label:'Не назначен'},...members.filter(m=>(m.kind??'human')==='human').map(m=>({value:m.id,label:m.name,image:repository.client?.avatarUrl?.(m.id,m.avatarRevision)||undefined}))];
-  if(initial.ownerId&&!owners.some(o=>o.value===initial.ownerId))owners.push({value:initial.ownerId,label:initial.owner||'Бывший участник',description:'Больше не участник проекта'});
-  const legacyOwner=!initial.ownerId&&initial.legacyOwner?`<p class="iq-helper" data-legacy-owner>Было указано: «${esc(initial.legacyOwner)}». Выберите участника проекта.</p>`:'';
+  // Owners are the people of the project and, in a group of their own, the service accounts that may take tasks
+  // (SPR-7). A former member, an account that can no longer act or pre-membership text stays visible until reassigned.
+  const owners=ownerOptions(members,initial,{image:m=>repository.client?.avatarUrl?.(m.id,m.avatarRevision)||undefined});
+  const warning=ownerWarning(initial);
+  const legacyOwner=!initial.ownerId&&initial.legacyOwner?`<p class="iq-helper" data-legacy-owner>Было указано: «${esc(initial.legacyOwner)}». Выберите участника проекта.</p>`
+    :warning?`<p class="iq-helper" data-owner-warning>${esc(warning)}</p>`:'';
   // The exact template text in the editor (SPR-12). A description the caller passed in is the person's, not a template.
   let templateVersion=initial.templateVersion,lastTemplateContent=(task||initialValues.description===undefined)?taskMarkdown(initial):null;
   const parents=[{value:'',label:'Нет'},...tasks.filter(item=>{
@@ -50,7 +53,8 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
   // "where is it, who does it, by when"; below it priority, type, release, plan, parent and tags. Every fact
   // is always on its place, an empty one reads quietly, and each value opens its editor in one click.
   const initials=name=>String(name||'').trim().split(/\s+/).slice(0,2).map(part=>part[0]||'').join('').toUpperCase()||'?';
-  const ownerOptions=owners.map(({image,...o})=>o.value?{...o,avatar:{text:initials(o.label),tone:ui.avatarTone(o.value),...(image?{image}:{})}}:o);
+  // People carry an avatar; a service account carries its glyph, the group heading neither.
+  const ownerChoices=owners.map(({image,...o})=>o.value&&!o.icon&&!o.disabled?{...o,avatar:{text:initials(o.label),tone:ui.avatarTone(o.value),...(image?{image}:{})}}:o);
   const statusTones={in_progress:'info',review:'warning',ready_for_testing:'info',testing:'warning',ready_for_release:'success'};
   const statusOptions=TASK_COLUMNS.map(column=>({value:column.id,label:column.label,icon:column.icon,...(statusTones[column.id]?{tone:statusTones[column.id]}:{})}));
   const priorityOptions=[['critical','Критический','critical','critical'],['high','Высокий','priority','high'],['normal','Обычный','minus',''],['low','Низкий','low','']].map(([value,label,glyph,tone])=>({value,label,icon:glyph,...(tone?{tone}:{})}));
@@ -61,7 +65,7 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
   const canPlan=canEdit&&typeof repository.applyPlanningChange==='function';
   const editableFacts=()=>`<div class="iq-properties tdr-facts hero" data-columns="3">
         <iq-select name="status" label="Статус" appearance="pill" value="${esc(statusValue)}" options="${opts(statusOptions)}"></iq-select>
-        <iq-select name="ownerId" label="Исполнитель" searchable search-placeholder="Найти участника" value="${esc(initial.ownerId||'')}" options="${opts(ownerOptions)}"></iq-select>
+        <iq-select name="ownerId" label="Исполнитель" searchable search-placeholder="Найти участника" value="${esc(initial.ownerId||'')}" options="${opts(ownerChoices)}"></iq-select>
         <iq-date-field name="due" label="Срок" placeholder="Без срока" value="${esc(initial.due||'')}"></iq-date-field>
       </div>${legacyOwner}
       <div class="iq-properties tdr-facts" data-columns="3">
@@ -87,7 +91,7 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
     return `<p class="tdr-lock">${icon('lock',14)}<span>${reason}</span></p>
       <dl class="tdr-facts hero">
         ${staticFact('Статус',`<span class="tdr-pill" data-tone="${esc(statusTones[statusValue]||'')}"><span class="tdr-dot" aria-hidden="true"></span>${esc(column?.label||statusValue)}</span>`)}
-        ${staticFact('Исполнитель',!owner?.value&&initial.legacyOwner?`<span class="tdr-text">${esc(initial.legacyOwner)}</span>`:owner?.value?`${ui.personAvatar({id:owner.value,name:owner.label,image:owners.find(o=>o.value===owner.value)?.image},{size:'xs'})}<span class="tdr-text">${esc(owner.label)}</span>`:'Не назначен',{empty:!owner?.value})}
+        ${staticFact('Исполнитель',!owner?.value&&initial.legacyOwner?`<span class="tdr-text">${esc(initial.legacyOwner)}</span>`:owner?.value?`${ui.personAvatar({id:owner.value,name:avatarName(owner.label),image:owners.find(o=>o.value===owner.value)?.image},{size:'xs'})}<span class="tdr-text">${esc(owner.label)}</span>`:'Не назначен',{empty:!owner?.value})}
         ${staticFact('Срок',initial.due?`<span class="tdr-text" ${dueTone?`data-tone="${dueTone}"`:''}>${esc(formatDate(initial.due))}</span>`:'Без срока',{empty:!initial.due})}
       </dl>
       <dl class="tdr-facts">
@@ -204,6 +208,8 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
       form.addEventListener('iq-change',event=>{
         if(event.target.getAttribute('name')==='parent')links?.setParent(event.target.value);
         if(event.target.getAttribute('name')==='priority')priorityTouched=true;
+        // The warning speaks of the owner the task had; another choice answers it.
+        if(event.target.getAttribute('name')==='ownerId')form.querySelector('[data-owner-warning]')?.remove();
         if(event.target.getAttribute('name')!=='type'||current)return;
         const untouched=editor.value===lastTemplateContent;
         if(untouched)applyTemplate(true);

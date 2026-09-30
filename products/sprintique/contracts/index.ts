@@ -12,7 +12,7 @@ export const TaskInput = z.strictObject({
   status: z.enum(['ready','in_progress','review','ready_for_testing','testing','ready_for_release']).default('ready'),
   type: z.enum(['task','bug','epic']).default('task'),
   priority: z.enum(['low','normal','high','critical']).default('normal'),
-  // The owner is a current human member of the project; null means unassigned.
+  // The owner is a member of the project: a person, or a service account that may edit tasks there; null unassigns.
   ownerId: Id.nullable().default(null),
   due: DateOnly.nullable().default(null),
   rank: z.number().finite().default(1024),
@@ -59,7 +59,11 @@ export interface Task extends TaskData {
   preparation:'draft'|'ready';result:'open'|'accepted';assignmentMode:'inherit'|'assigned'|'none';admitted:boolean;plannedStart:string|null;plannedEnd?:string|null;
   /** Display name of the owner member; legacyOwner keeps pre-membership free text until someone reassigns it. */
   ownerName:string;legacyOwner:string;
+  /** Who owns the task and whether they still can act on it: a suspended or deleted service account keeps it. */
+  ownerKind:'human'|'service'|'agent'|null;ownerState:AssigneeState|null;
 }
+/** active; suspended — a service account that cannot act now; deleted — a deleted service account; former — no longer a member. */
+export type AssigneeState='active'|'suspended'|'deleted'|'former';
 export interface Message {id:string; body:string; authorId:string; createdAt:string}
 export interface Thread {
   id:string; projectId:string; taskId:string; revision:number;
