@@ -2,13 +2,13 @@
 bridge: 1
 id: 20260930-assign-service-account
 title: "SPR-7: сервисный аккаунт как исполнитель задачи"
-status: active
+status: review
 risk: standard
 owner: nvkv71
 branch: feature/assign-service-account
 base: main
 created: 2026-09-30
-updated: 2026-09-30T19:06:08Z
+updated: 2026-09-30T21:26:50Z
 links:
 ---
 
@@ -16,35 +16,64 @@ links:
 
 ## Цель
 
-Какая проблема, у кого и какой проверяемый результат нужен. 2–6 предложений.
+Задачу из «Релиз 1.0» (SPR-7) нужно удобно отдавать в работу агенту: исполнителем должен быть сервисный (агентский) аккаунт проекта. Результат: аккаунт выбирается в поле исполнителя везде, где оно есть, агент через MCP находит свои задачи (`assigneeId: "me"`), а задачи приостановленного или удалённого аккаунта остаются за ним с пометкой и переназначаются.
 
 ## Рамки
 
-- **Входит:** …
-- **Не входит:** …
-- **Ограничения:** …
+- **Входит:** правило исполнителя на сервере (задачи, планирование, MCP), вид и состояние исполнителя в задаче и списках, выборы исполнителя в drawer, создании, фильтре доски и планировании, подписи на доске, в планировании и на Рабочем столе, документация.
+- **Не входит:** `agents/me/work` из плана моста; каталог прав (#31) — переход на `tasks.write` при его слиянии; живое обновление открытых страниц при удалении аккаунта.
+- **Ограничения:** без миграций; не ломать #31 и `feature/board-release-create`; DS без групп опций (DS-GAP).
 
 ## Приёмка
 
-- [ ] A1. Сервер: исполнителем может быть сервисный аккаунт-участник проекта с правом редактировать задачи (роль editor и владелец не ниже editor), не приостановленный и не удалённый; иначе 422 TASK_OWNER с понятным русским текстом; снять исполнителя можно всегда; прежний исполнитель остаётся при правке других полей
-- [ ] A2. Задача показывает вид и состояние исполнителя (ownerKind, ownerState: active/suspended/deleted/former); приостановленный или удалённый аккаунт остаётся исполнителем и помечен в drawer, в списке планирования и на доске
-- [ ] A3. Выборы исполнителя (drawer, создание, фильтр доски, список планирования) показывают сервисные аккаунты отдельной группой «Сервисные аккаунты» со значком и владельцем; подпись «Имя (сервисный аккаунт)»
-- [ ] A4. MCP: search_tasks и create/update_task принимают assigneeId "me"; get_task и search_tasks отдают assigneeKind и assigneeState; аудит и outbox подписаны действующим принципалом
-- [ ] A5. Тесты сервера и UI-логики; проверка в браузере на локальном запуске; независимое ревью; гейты npm test, Kotlin unit+integration, verify-vnext зелёные; PR в main открыт, не слит
+- [x] A1. Сервер: исполнителем может быть сервисный аккаунт-участник проекта с правом редактировать задачи (роль editor и владелец не ниже editor), не приостановленный и не удалённый; иначе 422 TASK_OWNER с понятным русским текстом; снять исполнителя можно всегда; прежний исполнитель остаётся при правке других полей
+- [x] A2. Задача показывает вид и состояние исполнителя (ownerKind, ownerState: active/suspended/deleted/former); приостановленный или удалённый аккаунт остаётся исполнителем и помечен в drawer, в списке планирования и на доске
+- [x] A3. Выборы исполнителя (drawer, создание, фильтр доски, список планирования) показывают сервисные аккаунты отдельной группой «Сервисные аккаунты» со значком и владельцем; подпись «Имя (сервисный аккаунт)»
+- [x] A4. MCP: search_tasks и create/update_task принимают assigneeId "me"; get_task и search_tasks отдают assigneeKind и assigneeState; аудит и outbox подписаны действующим принципалом
+- [x] A5. Тесты сервера и UI-логики; проверка в браузере на локальном запуске; независимое ревью; гейты npm test, Kotlin unit+integration, verify-vnext зелёные; PR в main открыт, не слит
 
 ## Передача
 
-- **Состояние:** Задача заведена, работа не начата.
-- **Сейчас:** Сервер (Assignees, проекция задачи, планирование, MCP) и UI (assignees.js, drawer, фильтр доски, карточки, планирование) сделаны; assignees.test.ts 4/4, assignee-options 6/6, mcp-oauth и planning зелёные
-- **Дальше:** Проверка в браузере на локальном запуске, затем ревью, гейты, PR
+- **Состояние:** Реализация и ревью R1 готовы, гейты идут.
+- **Сейчас:** Ревью R1 исправлено; идёт verify-vnext
+- **Дальше:** push, PR
 - **Незакоммичено:** нет
-- **Рабочая копия:** 22 файл(ов): products/sprintique/contracts/index.ts, products/sprintique/server/src/main/kotlin/com/sprintique/mcp/application/McpTools.kt, products/sprintique/server/src/main/kotlin/com/sprintique/mcp/application/TaskTools.kt, products/sprintique/server/src/main/kotlin/com/sprintique/planning/application/Planning.kt, products/sprintique/server/src/main/kotlin/com/sprintique/planning/application/PlanningStates.kt, products/sprintique/server/src/main/kotlin/com/sprintique/planning/application/PlanningView.kt, products/sprintique/server/src/main/kotlin/com/sprintique/planning/application/ViewText.kt, products/sprintique/server/src/main/kotlin/com/sprintique/planning/domain/PlanningState.kt, products/sprintique/server/src/main/kotlin/com/sprintique/task/application/Tasks.kt, products/sprintique/server/src/main/kotlin/com/sprintique/workspace/application/Membership.kt, products/sprintique/tests/planning.test.ts, products/sprintique/ui/planning/src/markup.js и ещё 10 (18 files changed, 165 insertions(+), 59 deletions(-)) · HEAD bdf04f9
+- **Рабочая копия:** нет · HEAD bf6a259
 
 ## План
 
+### S1. Сервер и MCP [done]
+- **Что:** Правило исполнителя, состояние исполнителя, планирование, MCP me
+- **Как:** Assignees.kt, проекция задач, PlanningStates/PlanningView/PlanningQueries, TaskTools
+- **Зачем:** Агенту нужно отдавать задачи и находить свои
+- **Приёмка:**
+  - [x] assignees.test.ts зелёный
+- **Покрывает:** A1,A2,A4
+- **Итог:** a89d9e0, bf6a259; assignees.test.ts 5/5
+
+### S2. Интерфейс [done]
+- **Что:** Выборы исполнителя, подписи, пометки
+- **Как:** ui/src/board/assignees.js, task-dialog, filter-view, card, planning markup, repository, Workbench
+- **Зачем:** Аккаунт должен выбираться и читаться везде
+- **Приёмка:**
+  - [x] assignee-options.test.mjs зелёный, проверка в браузере
+- **Покрывает:** A2,A3
+- **Итог:** a89d9e0, dfa68ae; assignee-options 6/6; браузер :4393
+
+### S3. Ревью, гейты, PR [done]
+- **Что:** Независимое ревью, verify-vnext, push, PR
+- **Как:** Субагент только на чтение; корневой verify-vnext
+- **Зачем:** Приёмка
+- **Приёмка:**
+  - [x] verify-vnext PASS, PR открыт
+- **Покрывает:** A5
+- **Итог:** verify-vnext PASS 2026-09-30T21-17-40Z: библиотека 366/366, продукт 269/269 (Kotlin check+integration внутри), detached 269/269; ревью R1 исправлено
+
 ## Решения
 
-Пока нет.
+- **D1** (2026-09-30) Правило исполнителя — отдельный объект workspace.application.Assignees (requireAssignable, stateSql, remarkSql) вместо Membership: #31 переписывает Membership; миграции не нужны — правило в приложении, как и прежнее для людей
+- **D2** (2026-09-30) Группа «Сервисные аккаунты» в iq-select и iq-remote-combobox — отключённая опция-заголовок (у DS нет групп опций, DS-GAP); значок — глиф bolt, как в настройках
+- **D3** (2026-09-30) Подпись «Имя (сервисный аккаунт[, приостановлен|удалён|не в проекте])»; инициалы аватара берутся из имени без ремарки (avatarName)
 
 ## Вопросы
 
