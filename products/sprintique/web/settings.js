@@ -93,6 +93,8 @@ export async function mountSettings(root,{repository,project,adapter,onChanged=(
   const photoRow=s.row({media:s.avatar(data.name,data.id,photo),title:'Фото профиля',meta:['Видно команде рядом с вашим именем: в задачах, обсуждениях и списке участников.'],
     actions:ui.btn(photo?'Заменить':'Загрузить','secondary sm','image','data-settings-action="photo-upload"')+(photo?ui.btn('Убрать','ghost sm','','data-settings-action="photo-remove"'):'')});
   content.innerHTML=formShell(s.group({title:'Как вас видят',body:s.panel(s.row({media:s.avatar(data.name,data.id,photo),title:data.name,meta:[esc(role)],attrs:'data-profile-preview'})+photoRow+s.fieldRow('Отображаемое имя','Имя и фамилия, как к вам обращаются в команде.',input('name','Отображаемое имя',data.name,{required:true,maxlength:100})))}))
+   // Personal preferences are kept on the server, so they follow the person to every device and browser.
+   +s.group({title:'Подтверждения',description:'Хранятся в вашей учётной записи и действуют на всех устройствах.',body:s.panel(s.row({title:'Спрашивать перед добавлением в идущий релиз',meta:['Новая задача на доске попадает в начатый релиз и меняет его состав. Мы уточняем это перед созданием.'],actions:ui.toggle('Спрашивать перед добавлением в идущий релиз',data.preferences?.confirmReleaseScope!==false,'data-preference="confirmReleaseScope"',false)}))})
    +(data.email?s.group({title:'Учётная запись',description:'Почта приходит из учётной записи организации и меняется там.',body:s.panel(s.facts([['Почта',esc(data.email)]]))}):'')
    +s.group({title:'Ваши роли',description:'Роли выдают администраторы проекта и пространства.',body:s.panel(s.facts([[`Проект ${project.name}`,esc(roleName(project.role))],...(workspace?[[`Пространство ${workspace.name}`,esc(workspaceRoleName(workspace.role))]]:[])]))});
   const form=content.querySelector('form'),field=form.querySelector('[name=name]'),preview=form.querySelector('[data-profile-preview] .iq-settings-row-title');
@@ -169,7 +171,10 @@ export async function mountSettings(root,{repository,project,adapter,onChanged=(
  root.addEventListener('input',event=>{if(event.target.matches('[data-settings-search]'))navigation();},{signal:abort.signal});
  root.addEventListener('keydown',event=>{if(event.key==='Escape'&&event.target.matches('[data-settings-search]')&&search.value){search.value='';navigation();event.preventDefault();}},{signal:abort.signal});
  root.addEventListener('iq-change',event=>{const key=event.target.dataset.appearance;if(key){preferences.update({[key]:event.detail.value});syncAppearance();}},{signal:abort.signal});
- root.addEventListener('change',event=>{if(event.target.matches('[name=accent]')){preferences.update({accent:event.target.value});syncAppearance();}if(event.target.matches('[data-appearance-motion]')){preferences.update({motion:event.target.checked?'reduced':'system'});syncAppearance();}},{signal:abort.signal});
+ root.addEventListener('change',async event=>{const preference=event.target.closest?.('[data-preference]');if(preference){const name=preference.dataset.preference,value=preference.checked;preference.disabled=true;
+   try{await client.request('/profile/preferences','PUT',{[name]:value});announce(value?'Будем спрашивать':'Больше не спрашиваем');}
+   catch(error){preference.checked=!value;notify({message:error.message||'Настройка не сохранена.',tone:'danger'});}finally{preference.disabled=false;}return;}
+  if(event.target.matches('[name=accent]')){preferences.update({accent:event.target.value});syncAppearance();}if(event.target.matches('[data-appearance-motion]')){preferences.update({motion:event.target.checked?'reduced':'system'});syncAppearance();}},{signal:abort.signal});
  root.addEventListener('click',async event=>{
   const link=event.target.closest('[data-settings-section]');if(link){if(event.ctrlKey||event.metaKey||event.shiftKey||event.altKey)return;event.preventDefault();await select(link.dataset.settingsSection);return;}
   if(event.target.closest('[data-settings-index]')){event.preventDefault();if(await canLeave()){dirty=false;history.pushState(null,'','#settings');showIndex();}return;}

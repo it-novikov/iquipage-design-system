@@ -15,3 +15,8 @@
 - 2026-09-30T18:13:32Z · claude-opus-5-5 · decision · D1 · Причина 422 фото: в проде /tmp смонтирован noexec, webp-imageio распаковывает libwebp в java.io.tmpdir, System.load падает (UnsatisfiedLinkError), bounded() превращает это в 422 IMAGE_DECODE. Воспроизведено в контейнере sprintique-probe:board-release: noexec → 422 IMAGE_DECODE на WebP из Chrome и PNG из Safari, exec → ok. Затрагивает и превью изображений задач/карт
 - 2026-09-30T18:13:32Z · claude-opus-5-5 · decision · D2 · Исправление фото: нативная библиотека кладётся в образ (/app/native) и находится через java.library.path; /tmp остаётся noexec — жёсткость контейнера не ослабляем
 - 2026-09-30T18:13:32Z · claude-opus-5-5 · checkpoint · S1 · дальше: Jib extraDirectories + jvmFlags, ImageIoImageTranscoder: отказ кодировщика 503, лог кода
+- 2026-09-30T18:32:57Z · claude-opus-5-5 · step · S1 · done: 9f312d4 сервер (native lib в образе, 503 IMAGE_UNAVAILABLE, лог кода), f8ace2f клиент (нормализация до кадрирования); ImageTranscoderTest 11/11, platform-completion фото, photo-prepare 5/5; контейнер noexec → ok
+- 2026-09-30T18:32:57Z · claude-opus-5-5 · step · S2 · done: db3fa5f миграция 033 + интеграционный тест, API/контракты/UI/доки
+- 2026-09-30T18:32:57Z · claude-opus-5-5 · step · S3 · done: bd84b1c миграция 035; mcp-oauth 12/12
+- 2026-09-30T18:32:57Z · claude-opus-5-5 · step · S4 · active
+- 2026-09-30T18:32:57Z · claude-opus-5-5 · checkpoint · S4 · дальше: repository.write → createInRunningRelease, alert-диалог, переключатель в Профиле

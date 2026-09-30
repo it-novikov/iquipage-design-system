@@ -46,3 +46,9 @@ export function projectColumn(tasks,status,{predicate=()=>true,compare}={}){
     children:(index.children.get(task.id)||[]).filter(child=>!child.archivedAt&&child.id!==task.id)}));
   return {rows,total:all.length,matched:matched.length,index};
 }
+/** The release a new task on the board joins: the running one, or the one that ends first when several run. */
+export function runningRelease(releases=[]){
+  const running=releases.filter(release=>release.lifecycle==='active'&&!release.archivedAt);
+  const end=release=>release.plannedEnd||'9999-12-31';
+  return running.sort((a,b)=>end(a).localeCompare(end(b))||String(a.name).localeCompare(String(b.name),'ru'))[0]||null;
+}

@@ -126,6 +126,17 @@ export class ProductRepository {
       if(!parsed.success){const text=parsed.error.issues.map(issue=>issue.message).find(message=>/[а-яё]/i.test(message));throw new ApiError('VALIDATION',text||'Проверьте поля задачи.',422);}
       const content=parsed.data;
       const {parentId,releaseId}=content;
+      // A task created on the board while its release runs joins that release: the host asks first (the scope of a
+      // running release changes) and commits through planning; without the right to change the scope it goes to the
+      // backlog, as before. A finished or archived release is not running and takes the ordinary path, which refuses it.
+      if(!baseRevision&&this.createInBoard&&releaseId&&this.createInRunningRelease){
+        const release=(await this.list('releases',record.projectId,{signal})).find(item=>item.id===releaseId&&item.lifecycle==='active'&&!item.archivedAt);
+        if(release){
+          await this.createInRunningRelease({kind:'taskCreate',taskId:record.id,task:content,createInBoard:true},release,
+            ()=>this.write('tasks',{...record,releaseId:null},0,{signal}));
+          const saved=await this.client.task(record.projectId,record.id);this.clearProjectCache(record.projectId);this.listeners.forEach(fn=>fn({collection,projectId:record.projectId,id:record.id}));return displayOwner(saved);
+        }
+      }
       const previous=baseRevision?await this.client.task(record.projectId,record.id):null;
       if(this.confirmPlanningChange&&(!baseRevision&&releaseId||previous&&(previous.parentId!==parentId||previous.releaseId!==releaseId))){
         const intent=baseRevision?{kind:'taskEdit',taskId:record.id,baseRevision,task:content}:{kind:'taskCreate',taskId:record.id,task:content,createInBoard:this.createInBoard};

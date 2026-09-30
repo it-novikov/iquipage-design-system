@@ -4,7 +4,7 @@ import {normalizeBoardFilters,hasBoardFilters,taskMatchesFilters} from './filter
 import {bindBoard,registerCore,ui,notify} from '@iquipage/web/core';
 import {TASK_COLUMNS,taskColumn,placeTask} from '../tasks.js';
 import {icon,esc,dialog,select} from '../ui.js';
-import {BOARD_SORTS,boardComparator,projectColumn} from './model.js';
+import {BOARD_SORTS,boardComparator,projectColumn,runningRelease} from './model.js';
 import {renderTaskCard} from './card.js';
 import {openTaskDialog} from './task-dialog.js';
 import {mountTagPacking} from './tag-packing.js';
@@ -113,7 +113,9 @@ export async function mountTaskBoard(root,{repository,project,canEdit=true,canMa
     if(openingTask||(activeDialog&&activeDialog!==replace)||closed)return;
     openingTask=true;const controller=new AbortController();openingController=controller;
     try{
-    const created=await openTaskDialog(task,{repository,project,tasks:items,canEdit,canManage:canManageCatalogs,attachmentAdapter,status,fullscreen,replace,signal:controller.signal,isActive:()=>!closed&&!controller.signal.aborted,onOpenTask:id=>openTask(id,{via:'link',from:task}),backTo:task?trail.at(-1)||null:null,onBack:()=>{const previous=trail.at(-1);if(previous)void openTask(previous.id,{via:'back'});},onReload:async()=>{if(!(await closeTask()))return;const fresh=await repository.read('tasks',task.id,project.id);if(fresh)await edit(fresh,'ready',{fromRoute:true,fullscreen});},onSaved:async saved=>{if(!task&&!items.some(t=>t.id===saved.id))notify({tone:'success',message:`Задача ${taskKey(saved)} создана`,action:{label:'Открыть',run:()=>void openTask(saved.id)}});loading++;items=items.some(t=>t.id===saved.id)?items.map(t=>t.id===saved.id?saved:t):[...items,saved];render();await reload();}});
+    // A new task starts in the release the board shows; the form lets the person pick another or none.
+    const initialValues=task?{}:{releaseId:runningRelease(catalogs.releases)?.id||null};
+    const created=await openTaskDialog(task,{repository,project,tasks:items,canEdit,canManage:canManageCatalogs,attachmentAdapter,status,initialValues,fullscreen,replace,signal:controller.signal,isActive:()=>!closed&&!controller.signal.aborted,onOpenTask:id=>openTask(id,{via:'link',from:task}),backTo:task?trail.at(-1)||null:null,onBack:()=>{const previous=trail.at(-1);if(previous)void openTask(previous.id,{via:'back'});},onReload:async()=>{if(!(await closeTask()))return;const fresh=await repository.read('tasks',task.id,project.id);if(fresh)await edit(fresh,'ready',{fromRoute:true,fullscreen});},onSaved:async saved=>{if(!task&&!items.some(t=>t.id===saved.id))notify({tone:'success',message:`Задача ${taskKey(saved)} создана`,action:{label:'Открыть',run:()=>void openTask(saved.id)}});loading++;items=items.some(t=>t.id===saved.id)?items.map(t=>t.id===saved.id?saved:t):[...items,saved];render();await reload();}});
     if(closed||controller.signal.aborted){created.close(true);return;}activeDialog=created;
     // Following a link or going back inside the drawer replaces the drawer's history entry, so closing it
     // always returns to the board instead of walking back through every task that was visited.

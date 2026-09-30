@@ -1,7 +1,7 @@
 /** Settings sections by scope. Ids are the deep links (#settings/<id>) and stay stable when labels change. */
 export const settingsGroups=[
  {id:'personal',label:'Для меня',items:[
-  {id:'account',label:'Профиль',icon:'user',description:'Так вас видят в задачах, обсуждениях и списке участников.',keywords:'имя профиль роль мой'},
+  {id:'account',label:'Профиль',icon:'user',description:'Так вас видят в задачах, обсуждениях и списке участников.',keywords:'имя профиль роль мой фото подтверждения релиз спрашивать'},
   {id:'appearance',label:'Внешний вид',icon:'sun',description:'Только для вас и только в этом браузере. Изменения применяются сразу.',keywords:'тема тёмная светлая акцент цвет плотность анимация'},
   {id:'service-accounts',label:'Сервисные аккаунты',icon:'bolt',description:'Приложения и скрипты работают как сервисный аккаунт, не от вашего имени: Claude, MCP-клиенты, токены API.',keywords:'api mcp claude токен коннектор приложение oauth доступ приложений сервисный аккаунт робот скрипт'}]},
  {id:'project',label:'Проект',items:[

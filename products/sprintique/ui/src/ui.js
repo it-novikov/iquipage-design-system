@@ -36,7 +36,8 @@ export function dialog({title,description='',body='',submitLabel='',wide=false,o
       const fields=[...form.querySelectorAll('input,textarea,iq-select,button:not([type=submit]):not([data-close])')].filter(x=>!x.hasAttribute('disabled'));
       fields.forEach(x=>x.setAttribute('disabled',''));
       let keep;try{keep=await onSubmit(values,form,el);}finally{fields.forEach(x=>x.removeAttribute('disabled'));}if(keep!==false){el.close(true);if(success)notify({tone:'success',message:success});}
-    }catch(e){error.textContent=e.message||'Не удалось выполнить действие.';error.hidden=false;}
+    // A cancelled confirmation inside the submit leaves the form as it was, without an error.
+    }catch(e){if(!e?.cancelled){error.textContent=e.message||'Не удалось выполнить действие.';error.hidden=false;}}
     finally{busy=false;if(!wasPersistent)el.removeAttribute('persistent');form.querySelectorAll('button[type=submit],[data-close]').forEach(b=>b.disabled=false);}
   });
   el.addEventListener('iq-close',()=>el.remove(),{once:true});mount?.(el,form);
