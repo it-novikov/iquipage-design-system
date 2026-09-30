@@ -60,3 +60,59 @@ export function source(index,preset,effective,id){
 }
 /** A preset is within someone's reach when everything it gives is theirs. */
 export const within=(index,preset,held)=>{const own=new Set(held);return [...closure(index,[...preset,TASKS_READ])].every(p=>own.has(p));};
+
+/**
+ * Service accounts (catalog `service`): 'preset' — may come with a service preset, 'explicit' — only as a personal
+ * addition (finance), 'never' — the decisions and access of people. The database compiles an account's permissions as
+ * (closure(preset without explicit ∪ granted) \ cascade(revoked)) ∩ its owner's permissions there, never the 'never'
+ * ones; the server refuses a change whose result is wider than the owner (SERVICE_RESTRICTED).
+ */
+export const serviceUse=(index,id)=>index.get(id)?.service||'preset';
+/** What a service preset brings by itself: explicit and never permissions do not come from a preset. */
+export const serviceBase=(index,preset)=>(preset||[]).filter(id=>serviceUse(index,id)==='preset');
+/** Permissions an account cannot hold here: never ones, and what its owner lacks (null: the owner is not in the project). */
+export const serviceForbidden=(index,owner)=>{const has=owner?new Set(owner):null;return [...index.keys()].filter(id=>serviceUse(index,id)==='never'||!has||!has.has(id)&&id!==TASKS_READ);};
+/** What an account holds with a preset and personal changes, under its owner, as the database compiles it. */
+export const serviceEffective=(index,{preset=[],granted=[],revoked=[],owner=null})=>compile(index,{base:serviceBase(index,preset),granted,revoked,forbidden:serviceForbidden(index,owner)});
+/** Personal additions that do not apply because the owner lacks them (the owner's rights were narrowed since). */
+export const inactiveGrants=(index,granted=[],owner=null)=>{const has=new Set(owner||[]);return ordered(index,granted.filter(id=>!has.has(id)));};
+
+/**
+ * Where each permission of a service account comes from, from its members row when GET …/effective is closed to the
+ * actor (it needs members.manage; the owner or someone with agents.manage sees the row): the preset, the additions and
+ * removals the server lists, the permissions service accounts never hold. Pure.
+ */
+export function serviceSources(index,member,presetPermissions=[]){
+  const held=new Set(member.permissions||[]),base=closure(index,[...serviceBase(index,presetPermissions),TASKS_READ]),added=new Set(closure(index,member.added||[]));
+  return Object.fromEntries([...index.keys()].map(id=>[id,serviceUse(index,id)==='never'?'forbidden':held.has(id)?(base.has(id)?'preset':added.has(id)?'added':'dependency'):base.has(id)?'removed':'absent']));
+}
+
+/**
+ * Who may change whom among the people of a workspace (the server's rules, WorkspaceAccess.change): the owner row only
+ * by transfer; only the owner changes or removes an administrator; appointing one needs all five workspace permissions;
+ * nobody changes someone holding workspace permissions they lack. Returns the roles one may pick and removal.
+ */
+export function workspaceRowRights({actorId,role,permissions=[]},member){
+  const own=new Set(permissions),owner=role==='owner',none={roles:[],remove:false,transfer:false};
+  if(!member||member.id===actorId||member.role==='owner')return none;
+  const transfer=owner&&['admin','member'].includes(member.role);
+  if(!own.has('workspace.people'))return {...none,transfer};
+  if(member.role==='admin'&&!owner)return {...none,transfer};
+  if(!owner&&(member.permissions||[]).some(p=>!own.has(p)))return {...none,transfer};
+  const appoint=WORKSPACE_PERMISSIONS.every(p=>own.has(p))||member.role==='admin';
+  const roles=member.role==='guest'?['guest','member']:[...(appoint?['admin']:[]),'member','guest'];
+  return {roles,remove:true,transfer};
+}
+/**
+ * Whether the person may create projects in a workspace. GET /workspaces lists the compiled `permissions` of one's
+ * membership: the owner and administrators hold projects.create there unless the owner took it away. A member creates
+ * by the workspace rule (projectsCreatedBy 'members') unless it was revoked for them personally; only GET
+ * /workspaces/{id}/access applies both (its `permissions` include projects.create exactly when the server allows), so a
+ * member's answer comes from there (`access`). Without it the rule alone decides and the server refuses the rare
+ * personal revocation.
+ */
+export function mayCreateProjects(workspace,access=null){
+  if((workspace?.permissions||[]).includes('projects.create'))return true;
+  if(workspace?.role!=='member')return false;
+  return access?Array.isArray(access.permissions)?access.permissions.includes('projects.create'):access.projectsCreatedBy==='members':false;
+}

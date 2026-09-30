@@ -8,8 +8,8 @@ export function loadCatalog(client){
   if(!catalogs.has(client))catalogs.set(client,client.request('/permissions/catalog').then(value=>({...value,index:catalogIndex(value.project),workspaceIndex:catalogIndex(value.workspace)})).catch(error=>{catalogs.delete(client);throw error;}));
   return catalogs.get(client);
 }
-/** Presets people can hold (service presets belong to service accounts). */
-export const loadPresets=async(client,workspaceId)=>(await client.request('/workspaces/'+encodeURIComponent(workspaceId)+'/presets')).filter(p=>p.subject!=='service');
+/** Presets people can hold, or with subject 'service' those of service accounts («Сервис: чтение», «Сервис: задачи», own). */
+export const loadPresets=async(client,workspaceId,subject='human')=>(await client.request('/workspaces/'+encodeURIComponent(workspaceId)+'/presets')).filter(p=>subject==='service'?p.subject==='service':p.subject!=='service');
 /** Every project of the session in one workspace: what the actor holds anywhere there. */
 export async function heldInWorkspace(client,workspaceId){
   const session=await client.request('/session');

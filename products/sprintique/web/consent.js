@@ -10,7 +10,7 @@ import * as s from './settings-ui.js';
 const PENDING_KEY='sprintique.pending-authorization';
 const SCOPES=[
   ['read','Читать','Задачи с обсуждениями, релизы, вехи и карты — только в проектах сервисного аккаунта.',true],
-  ['write','Изменять','Создавать и менять задачи, менять статус, писать комментарии — в пределах роли аккаунта.',false]
+  ['write','Изменять','Создавать и менять задачи, менять статус, писать комментарии — в пределах прав аккаунта.',false]
 ];
 
 /** Keeps the authorization request across the sign-in, whichever way it goes. */
@@ -63,6 +63,7 @@ export async function mountConsent(root,{client,session}){
     <fieldset class="consent-scopes"><legend>Что приложение сможет делать</legend>
       ${SCOPES.filter(([id])=>requested.has(id)).map(([id,label,hint,fixed])=>`<label class="iq-check consent-scope"><input type="checkbox" name="scope" value="${id}" checked ${fixed?'disabled':''}><span class="iq-check-box">${icon('check',14)}</span><span><b>${label}</b><small>${hint}</small></span></label>`).join('')}
     </fieldset>
+    <p class="iq-helper" data-new-preset hidden>Новый аккаунт получит в каждом проекте пресет «Сервис: задачи», если разрешено изменять и вы сами меняете задачи там, иначе — «Сервис: чтение». Уточнить права можно потом: Настройки → Сервисные аккаунты.</p>
     <p class="iq-helper">${icon('warning',16)} Сервисный аккаунт видит только выбранные проекты и никогда не получает больше прав, чем у вас. Разрешайте только приложениям, которым доверяете; текст задач приложение получает как данные.</p>
     <div class="consent-actions"><button class="iq-btn primary lg" type="submit" data-approve>Разрешить</button><button class="iq-btn secondary lg" type="button" data-deny>Отказать</button></div>
   </form>`;
@@ -73,7 +74,7 @@ export async function mountConsent(root,{client,session}){
     const workspace=workspaces.find(w=>w.id===(chosen||form.querySelector('[data-workspace]')?.value||workspaces[0]?.id));
     projectList.innerHTML='<legend>Проекты</legend>'+(workspace?.projects||[]).map(p=>`<label class="iq-check consent-scope"><input type="checkbox" name="project" value="${esc(p.id)}" checked><span class="iq-check-box">${icon('check',14)}</span><span><b>${esc(p.name)}</b><small>Ваша роль: ${esc(roleName[p.role]||p.role)} — аккаунт получит не больше</small></span></label>`).join('');
   }
-  function showNew(){fresh.hidden=form.querySelector('[name=account]:checked')?.value!=='new';}
+  function showNew(){fresh.hidden=form.querySelector('[name=account]:checked')?.value!=='new';form.querySelector('[data-new-preset]').hidden=fresh.hidden;}
   form.addEventListener('iq-change',event=>{if(event.target.closest('[data-workspace]'))showProjects(event.detail?.value);});
   form.addEventListener('change',event=>{if(event.target.name==='account')showNew();});
   showProjects();showNew();

@@ -16,7 +16,8 @@ import {PlanningAdapter} from './planning-adapter.js';
 import {mountPlanningHost,confirmPlanningChange,recoverPlanningAttempt} from './planning-host.js';
 import {openSearch} from './search.js';
 import {acceptPendingInvitation} from './members.js';
-import {can,accessSignature} from './permissions.js';
+import {invitationFlow} from './invitation-flow.js';
+import {can,accessSignature,mayCreateProjects} from './permissions.js';
 import {sectionRouteHash} from './section-route.js';
 import {keepAuthorization,resumeAuthorization,mountConsent} from './consent.js';
 import {loadingMarkup} from '../ui/src/loading.js';
@@ -65,7 +66,7 @@ function ensureShell(project,mode){
       onTeam:()=>{location.hash='#settings/members';},
       onSignOut:()=>void(async()=>{if(board&&!await board.closeTask())return;await repository.client.request('/logout','POST');location.reload();})().catch(report),
       onTheme:()=>applyTheme(document.documentElement.dataset.theme==='dark'?'light':'dark'),
-      onSearch:search,onCreateProject:()=>void onboard(currentProject?.workspaceId).catch(report),onCreateWorkspace:createWorkspace
+      onSearch:search,onCreateProject:creatable===null||creatable.length?()=>void onboard(currentProject?.workspaceId).catch(report):undefined,onCreateWorkspace:createWorkspace
     });
     nav.setTheme(document.documentElement.dataset.theme);
   }else nav.update(context(project));
@@ -87,12 +88,18 @@ const LAST_PROJECT_KEY='sprintique.last-project:';
 function lastProject(){try{return localStorage.getItem(LAST_PROJECT_KEY+session.principal.id)||undefined;}catch{return undefined;}}
 // Failures are toasts, not modal walls: the message stays until read (hover or focus pauses it).
 function report(error){notify({tone:'danger',message:'Не удалось выполнить действие',description:error.message||'Повторите попытку.',duration:10000});}
+/** Workspaces where the person may create a project now (mayCreateProjects); a member's answer needs their access. */
+async function creatableWorkspaces(){
+  const client=repository.client,all=await client.request('/workspaces');
+  const allowed=await Promise.all(all.map(async w=>mayCreateProjects(w,w.role==='member'?await client.request('/workspaces/'+encodeURIComponent(w.id)+'/access').catch(()=>null):null)));
+  return all.filter((_,i)=>allowed[i]);
+}
+/** «Новый проект» appears in the navigation only where it can succeed (unknown: shown, the server decides); once per load. */
+let creatable=null;
 async function onboard(selectedWorkspaceId){
   // Projects are created where the person may: projects.create, or a members' workspace whose rule lets members create.
-  const all=await repository.client.request('/workspaces'),rule=async w=>(await repository.client.request('/workspaces/'+encodeURIComponent(w.id)).catch(()=>null))?.projectsCreatedBy==='members';
-  const allowed=await Promise.all(all.map(async w=>(w.permissions||[]).includes('projects.create')||['owner','admin'].includes(w.role)||w.role==='member'&&await rule(w)));
-  const workspaces=all.filter((_,i)=>allowed[i]);
-  if(selectedWorkspaceId&&!workspaces.some(w=>w.id===selectedWorkspaceId))return dialog({title:'Нет доступных проектов',description:'Администратор пространства может создать проект и пригласить вас. Существующие проекты появятся после предоставления доступа.'});
+  const workspaces=await creatableWorkspaces();
+  if(selectedWorkspaceId&&!workspaces.length)return dialog({title:'Нет доступных проектов',description:'Администратор пространства может создать проект и пригласить вас. Существующие проекты появятся после предоставления доступа.'});
   if(selectedWorkspaceId)workspaces.sort((a,b)=>(b.id===selectedWorkspaceId)-(a.id===selectedWorkspaceId));
   const form=input('name','Название проекта','',{required:true,maxlength:100})+input('slug','Адрес проекта','',{required:true,maxlength:48,placeholder:'my-product'})+input('key','Префикс задач','',{required:true,maxlength:10,placeholder:'SPR'})+
     (workspaces.length?`<iq-select name="workspaceId" label="Пространство" value="${esc(workspaces[0].id)}">${workspaces.map(w=>`<option value="${esc(w.id)}">${esc(w.name)}</option>`).join('')}</iq-select>`:input('workspace','Название пространства',''));
@@ -199,9 +206,9 @@ window.addEventListener('hashchange',()=>{void(async()=>{const task=parseTaskRou
 try{session=await repository.initialize();
   if(location.pathname==='/oauth/authorize'){await mountConsent(root,{client:repository.client,session});throw STOP;}
   if(resumeAuthorization())throw STOP;
-  const pending=sessionStorage.getItem('sprintique.pending-invitation');sessionStorage.removeItem('sprintique.pending-invitation');
-  if(pending&&/^invite_[A-Za-z0-9_-]{43}$/.test(pending)&&!location.hash.startsWith('#invite/'))history.replaceState(null,'','#invite/'+pending);
+  invitationFlow().restore();
   if(await acceptPendingInvitation(repository.client))session=await repository.initialize();
+  creatable=await creatableWorkspaces().catch(()=>null);
   const slug=new URL(location.href).searchParams.get('project');await showProject(session.projects.find(p=>p.slug===slug)?.id??lastProject());}
 catch(error){
   if(error===STOP){/* The consent screen, or on the way back to it: nothing else to show. */}

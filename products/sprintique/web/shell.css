@@ -79,6 +79,10 @@
 .sq-address-field input{flex:1 1 160px;min-width:120px;font:inherit;color:var(--iq-ink)}
 .sq-invite-preset{display:grid;gap:var(--iq-space-3)}
 .sq-invite-preset-head{display:flex;align-items:center;justify-content:space-between;gap:var(--iq-space-3);flex-wrap:wrap}
+.sq-sa-projects{display:grid;gap:var(--iq-space-2);margin:0;padding:var(--iq-space-3) var(--iq-space-4);border:1px solid var(--iq-line);border-radius:var(--iq-radius-md)}
+.sq-sa-projects legend{padding:0 var(--iq-space-1);font-weight:600}
+.sq-sa-project{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:var(--iq-space-2) var(--iq-space-4);min-width:0}
+.sq-sa-project>.iq-check{flex:1 1 12rem;min-width:0}
 .sq-invite-projects{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--iq-space-2) var(--iq-space-4);margin:0;padding:var(--iq-space-3) var(--iq-space-4);border:1px solid var(--iq-line);border-radius:var(--iq-radius-md)}
 .sq-invite-controls{display:flex;align-items:center;justify-content:space-between;gap:var(--iq-space-3);flex-wrap:wrap}
 .sq-invite-search{flex:0 1 280px}

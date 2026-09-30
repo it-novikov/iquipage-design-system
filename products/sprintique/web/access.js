@@ -56,7 +56,7 @@ export async function mountAccess(root,{repository,project}){
   async function matrix(){
     const data=await client.request(base+'/access/matrix'),ids=data.permissions||[...index.keys()];
     const head=`<tr><th scope="col">Участник</th>${ids.map(id=>`<th scope="col">${esc(index.get(id)?.title||id)}</th>`).join('')}</tr>`;
-    const rows=data.members.map(m=>{const held=new Set(m.permissions);return `<tr><th scope="row">${esc(m.name)}<small>${esc(m.presetName||'')}${m.kind!=='human'?' · агент':''}</small></th>${ids.map(id=>`<td>${held.has(id)?`${icon('check',16)}<span class="sr-only">Есть</span>`:'<span aria-hidden="true">—</span><span class="sr-only">Нет</span>'}</td>`).join('')}</tr>`;}).join('');
+    const rows=data.members.map(m=>{const held=new Set(m.permissions);return `<tr><th scope="row">${esc(m.name)}<small>${esc(m.presetName||'')}${m.kind==='service'?' · сервисный аккаунт':m.kind!=='human'?' · агент':''}</small></th>${ids.map(id=>`<td>${held.has(id)?`${icon('check',16)}<span class="sr-only">Есть</span>`:'<span aria-hidden="true">—</span><span class="sr-only">Нет</span>'}</td>`).join('')}</tr>`;}).join('');
     track(dialog({title:'Матрица прав проекта',description:`Проект «${project.name}». Только просмотр: права меняются в строке участника.`,wide:true,
       body:`<div class="iq-table-wrap sq-matrix" tabindex="0" role="region" aria-label="Матрица прав, прокручивается по горизонтали"><table class="iq-table"><thead>${head}</thead><tbody>${rows}</tbody></table></div>`}));
   }

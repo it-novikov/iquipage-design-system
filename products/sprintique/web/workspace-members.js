@@ -3,6 +3,7 @@ import {dialog} from '../ui/src/ui.js';
 import {choose,rowMenu,plural,explain} from './access-ui.js';
 import {openInviteDialog} from './invite-dialog.js';
 import {workspaceRoleNames} from './invitation-model.js';
+import {workspaceRowRights} from './permissions.js';
 import * as s from './settings-ui.js';
 const hints={owner:'Единственный владелец: передаёт владение, удаляет пространство.',admin:'Управляет пространством, людьми и приглашениями.',member:'Видит пространство и свои проекты. В проекты его добавляют администраторы.',guest:'Видит только проекты, в которые его пригласили.'};
 const creators=[['admins','Только администраторы'],['members','Все участники']];
@@ -14,18 +15,21 @@ export async function mountWorkspaceMembers(root,{repository,project,workspace,t
   const client=repository.client,base='/workspaces/'+encodeURIComponent(workspace?.id||project.workspaceId),abort=new AbortController(),self=repository.context.actorId;
   let closed=false,modal=null,members=[],access=null,loading=0;
   function track(element){modal=element;element.addEventListener('iq-close',()=>{if(modal===element)modal=null;},{once:true});return element;}
-  const has=permission=>(access?.permissions||workspace?.permissions||[]).includes(permission),owner=()=>access?.role==='owner';
+  const has=permission=>(access?.permissions||workspace?.permissions||[]).includes(permission);
   if(tools&&(workspace?.permissions||project.workspacePermissions||[]).includes('workspace.invite'))tools.innerHTML=ui.btn('Пригласить','primary sm','plus','data-invite');
   function personRow(m){
     const mine=m.id===self,guest=m.role==='guest',names=m.projectNames||[];
     const extra=`${mine?' '+s.badge('Вы'):''}${guest?' '+s.badge('Гость','planned'):''}`;
     // DS-GAP: the DS icon set has no crown or shield; the owner is marked with «star» until it does.
+    // Rows above the actor are read-only: the owner row, administrators for anyone but the owner, wider permissions.
+    const rights=workspaceRowRights({actorId:self,role:access?.role,permissions:access?.permissions||workspace?.permissions||[]},m);
     const aside=m.role==='owner'?`<span class="sq-owner-mark">${icon('star',16)}<span>Владелец</span></span>`
-      :has('workspace.people')&&!mine?choose('role','Роль в пространстве: '+m.name,m.role,guest?[['guest','Гость'],['member','Участник']]:[['admin','Администратор'],['member','Участник'],['guest','Гость']],'label-hidden density="compact" data-workspace-role')
+      :rights.roles.length>1?choose('role','Роль в пространстве: '+m.name,m.role,rights.roles.map(r=>[r,workspaceRoleNames[r]])
+        .concat(rights.roles.includes(m.role)?[]:[[m.role,workspaceRoleNames[m.role]||m.role,true]]),'label-hidden density="compact" data-workspace-role')
       :esc(workspaceRoleNames[m.role]||m.role);
     const items=[];
-    if(owner()&&!mine&&['admin','member'].includes(m.role))items.push({label:'Передать владение',action:'transfer-owner',glyph:'star'});
-    if(has('workspace.people')&&!mine&&m.role!=='owner')items.push({label:'Убрать из пространства',action:'remove-workspace-member',danger:true,glyph:'trash'});
+    if(rights.transfer)items.push({label:'Передать владение',action:'transfer-owner',glyph:'star'});
+    if(rights.remove)items.push({label:'Убрать из пространства',action:'remove-workspace-member',danger:true,glyph:'trash'});
     const projects=guest?(names.length?esc(names.length>1?`Проекты: ${names.join(', ')}`:`Только проект «${names[0]}»`):'Ни одного проекта'):esc(m.projects?plural(m.projects,['проект','проекта','проектов']):'Ни одного проекта');
     return s.row({media:s.avatar(m.name,m.id,client.avatarUrl?.(m.id,m.avatarRevision)),title:m.name,titleExtra:extra,meta:[esc(hints[m.role]||''),projects,guest&&m.invitedByName?`Приглашение от ${esc(m.invitedByName)}`:''],
       aside,actions:items.length?rowMenu(m.name,items):'<span class="iq-settings-row-spacer"></span>',attrs:`data-member-id="${esc(m.id)}"`});

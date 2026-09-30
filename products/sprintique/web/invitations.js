@@ -2,11 +2,15 @@ import {ui,icon,escapeHTML as esc,notify,formatDate,formatDateTime,formatTime} f
 import {dialog} from '../ui/src/ui.js';
 import {openInviteDialog} from './invite-dialog.js';
 import {rowMenu,explain} from './access-ui.js';
-import {invitationBadge,isWaiting,resendableAt,workspaceRoleNames} from './invitation-model.js';
+import {invitationBadge,isWaiting,resendableAt,workspaceRoleNames,invitationRights} from './invitation-model.js';
+import {can} from './permissions.js';
 import * as s from './settings-ui.js';
 const clock=date=>formatTime(`${String(date.getHours()).padStart(2,'0')}:${String(date.getMinutes()).padStart(2,'0')}`,24);
-/** One invitation as a settings row: address or link, role, projects, who sent it, what happened to the letter. */
-export function invitationRow(i,{now=new Date()}={}){
+/**
+ * One invitation as a settings row: address or link, role, projects, who sent it, what happened to the letter. `rights`
+ * hides the resend and cancel the server would refuse (invitationRights).
+ */
+export function invitationRow(i,{now=new Date(),rights={resend:true,revoke:true}}={}){
   const [label,tone]=invitationBadge(i),waiting=isWaiting(i),link=i.kind==='link',names=i.projectNames||[];
   const title=link?`Ссылка для пресета «${i.presetName||'—'}»${names.length?` — ${names.length>1?'проекты':'проект'} ${names.map(n=>`«${n}»`).join(', ')}`:''}`:i.email;
   const at=resendableAt(i),wait=at&&at>now;
@@ -19,10 +23,10 @@ export function invitationRow(i,{now=new Date()}={}){
       :i.delivery==='failed'?`Письмо не ушло: ${esc(i.deliveryError||'почтовый сервер не ответил')}`:`Действует до ${esc(formatDateTime(i.expiresAt))}`,
     i.resendCount?esc(`Отправлено повторно: ${i.resendCount}`):'',wait?esc(`Отправить снова можно в ${clock(at)}`):''];
   let actions='<span class="iq-settings-row-spacer"></span>';
-  if(waiting&&link)actions=ui.btn('Отменить','ghost sm','',`data-revoke="${esc(i.id)}"`);
-  else if(waiting){
-    const resend=i.delivery==='failed'?ui.btn('Повторить','secondary sm','refresh',`data-resend="${esc(i.id)}"`):at?`<button type="button" class="iq-btn ghost sm" data-resend="${esc(i.id)}"${wait?' disabled':''}>Отправить снова</button>`:'';
-    actions=resend+rowMenu(i.email,[{label:'Отменить приглашение',action:'revoke-invitation',danger:true,glyph:'trash'}]);
+  if(waiting&&link&&rights.revoke)actions=ui.btn('Отменить','ghost sm','',`data-revoke="${esc(i.id)}"`);
+  else if(waiting&&!link&&(rights.resend||rights.revoke)){
+    const resend=!rights.resend?'':i.delivery==='failed'?ui.btn('Повторить','secondary sm','refresh',`data-resend="${esc(i.id)}"`):at?`<button type="button" class="iq-btn ghost sm" data-resend="${esc(i.id)}"${wait?' disabled':''}>Отправить снова</button>`:'';
+    actions=resend+(rights.revoke?rowMenu(i.email,[{label:'Отменить приглашение',action:'revoke-invitation',danger:true,glyph:'trash'}]):'<span class="iq-settings-row-spacer"></span>');
   }
   return s.row({media:s.tile(link?'link':'send'),title,meta,aside:s.badge(label,tone),actions,state:waiting&&label!=='Истекло'?'':'muted',attrs:`data-invitation-id="${esc(i.id)}"`});
 }
@@ -54,6 +58,8 @@ export async function mountInvitations(root,{repository,project,tools}){
   let closed=false,modal=null,list=[],filter='active',query='',timer=0,loading=0;
   function show(options){modal=dialog(options);modal.addEventListener('iq-close',()=>{modal=null;},{once:true});return modal;}
   if(tools)tools.innerHTML=ui.btn('Пригласить','primary sm','plus','data-invite');
+  // From the workspace: its own invitations with workspace.invite; one from a project needs members.invite there.
+  const rights=i=>invitationRights(i,{actorId:repository.context.actorId,workspacePermissions:project.workspacePermissions,projectInvite:id=>id===project.id&&can(project,'members.invite')});
   function render(){
     if(closed)return;clearTimeout(timer);
     const q=query.toLocaleLowerCase('ru').trim(),match=i=>!q||[i.email||'',i.presetName||'',...(i.projectNames||[])].join(' ').toLocaleLowerCase('ru').includes(q);
@@ -63,7 +69,7 @@ export async function mountInvitations(root,{repository,project,tools}){
     const empty=q?s.empty({title:'Ничего не нашли',body:'Проверьте адрес.',glyph:'search'}):s.empty({title:'Никто не ждёт ответа',body:'Пригласите людей по почте или создайте ссылку без письма.',action:ui.btn('Пригласить','secondary sm','plus','data-invite'),glyph:'send'});
     root.innerHTML=`${controls}
       ${s.group({title:'Ждут ответа',count:waiting.length,description:'Каждая ссылка одноразовая. «Отправить снова» создаёт новое письмо и новую ссылку, старая перестаёт работать.',
-        body:s.panel(shownWaiting.map(i=>invitationRow(i)).join('')||empty,'ul')+`<p class="iq-settings-lock">${icon('info',17)}<span>О недоставке мы не узнаём. Если письмо не пришло — проверьте адрес и папку «Спам», затем отправьте снова. Не чаще одного раза в 5 минут.</span></p>`})}
+        body:s.panel(shownWaiting.map(i=>invitationRow(i,{rights:rights(i)})).join('')||empty,'ul')+`<p class="iq-settings-lock">${icon('info',17)}<span>О недоставке мы не узнаём. Если письмо не пришло — проверьте адрес и папку «Спам», затем отправьте снова. Не чаще одного раза в 5 минут.</span></p>`})}
       ${filter==='all'&&done.length?`<details class="iq-accordion" open><summary>Завершённые (${shownDone.length}) ${icon('down',16)}</summary>${s.panel(shownDone.map(i=>invitationRow(i)).join('')||s.empty({title:'Ничего не нашли',glyph:'search'}),'ul')}</details>`:''}
       ${s.group({title:'Лимиты',description:'Защита от рассылок. Лимиты одинаковы для всех и не раскрывают, есть ли у адреса аккаунт.',body:s.panel(s.facts([
         ['За один раз','до 20 адресов'],['Один человек','до 50 писем в сутки'],['Пространство','до 200 писем в сутки, до 500 ожидающих приглашений'],

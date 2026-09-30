@@ -56,3 +56,15 @@ export function invitationState(state,i={}){
 /** Error codes of accept that mean the link no longer invites, as the state they describe. */
 export const goneState=code=>({INVITATION_EXPIRED:'expired',INVITATION_REVOKED:'revoked',INVITATION_REPLACED:'replaced',INVITATION_USED:'accepted',INVITATION_INVALID:'invalid'})[code]||'';
 export const INVITATION_TOKEN=/^#invite\/(invite_[A-Za-z0-9_-]{43})$/;
+/**
+ * Which invitation actions the server would allow (Invitations.resend/revoke). A resend is a new invitation from the
+ * same place: one from a project needs «Приглашать в проект» there, one from the workspace needs workspace.invite.
+ * A cancel: workspace.people, the author with workspace.invite, or anyone who may invite in the project it came from.
+ * `projectInvite(id)` tells whether the person holds members.invite in that project.
+ */
+export function invitationRights(i,{actorId,workspacePermissions=[],projectInvite=()=>false}){
+  const space=new Set(workspacePermissions),from=i.fromProjectId||null;
+  const resend=from?projectInvite(from):space.has('workspace.invite');
+  const revoke=space.has('workspace.people')||i.inviterId===actorId&&space.has('workspace.invite')||!!from&&projectInvite(from);
+  return {resend,revoke};
+}
