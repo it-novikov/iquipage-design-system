@@ -333,7 +333,7 @@ object Workbench {
           WHERE s.principal_id = $1
         ), requests AS MATERIALIZED (
           SELECT r.project_id, r.task_id, r.id::text AS id, r.kind, r.needed_by, r.created_at, r.requested_by, r.revision,
-                 r.approval_id::text AS approval_id, r.thread_id,
+                 r.approval_id::text AS approval_id, r.thread_id, r.source_revision,
                  coalesce($4::boolean AND s.snoozed_until > now() AND r.addressed_at <= s.snoozed_at
                    AND (r.needed_by IS NULL OR (r.needed_by::timestamp AT TIME ZONE a.timezone) > now()), false) AS snoozed
           FROM app.attention_requests r JOIN authorized a ON a.id = r.project_id
@@ -431,7 +431,7 @@ object Workbench {
                  to_char(s.check_back_at, 'YYYY-MM-DD') AS check_back_at, s.check_back_at AS check_back_date,
                  s.check_back_revision, s.accept_revision,
                  q.id AS request_id, q.kind AS request_kind, q.revision AS request_revision,
-                 q.approval_id AS request_approval_id, q.thread_id AS request_thread_id,
+                 q.approval_id AS request_approval_id, q.thread_id AS request_thread_id, q.source_revision AS request_source_revision,
                  q.requested_by, q.open_requests, q.needed_by AS needed_by_date,
                  to_char(q.needed_by, 'YYYY-MM-DD') AS needed_by, q.created_at AS requested_at_raw,
                  to_char(q.created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS requested_at,

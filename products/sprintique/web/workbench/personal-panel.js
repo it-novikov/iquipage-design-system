@@ -58,22 +58,46 @@ export function mountPersonalPanel(section,{api,projectId,taskId,actorId,actions
   section.addEventListener('click',event=>{
     const button=event.target.closest('button');if(!button)return;
     const card=button.closest('[data-request]'),request=state?.requests?.find(r=>r.id===card?.dataset.request);if(!request)return;
-    if(button.hasAttribute('data-card-verb'))void(async()=>{
-      button.disabled=true;
-      try{
-        if(request.kind==='approval'&&request.approvalId){const approval=await api.approval(projectId,request.approvalId);await api.decide(projectId,request.approvalId,approval.revision,'approved');}
-        else await api.resolveRequest(projectId,request.id,request.revision);
-        notify({tone:'success',message:'Запрос закрыт'});await load();onChanged?.();
-      }catch(error){button.disabled=false;notify({tone:'danger',message:'Не получилось',description:error.message});}
-    })();
+    if(button.hasAttribute('data-card-verb')){
+      if(request.kind==='approval'&&request.approvalId){approveLater(card,request);return;}
+      void(async()=>{
+        button.disabled=true;
+        try{
+          const resolved=await api.resolveRequest(projectId,request.id,request.revision);
+          notify({tone:'success',message:'Запрос закрыт',action:{label:'Отменить',run:()=>void api.reopenRequest(projectId,request.id,resolved.revision)
+            .then(()=>load()).then(()=>onChanged?.()).catch(error=>notify({tone:'danger',message:'Не удалось отменить',description:error.message}))},duration:8000});
+          await load();onChanged?.();
+        }catch(error){button.disabled=false;notify({tone:'danger',message:'Не получилось',description:error.message});}
+      })();
+    }
+    else if(button.hasAttribute('data-approve-undo')){clearTimeout(approving?.timer);approving=null;renderRequests();section.querySelector('[data-card-verb]')?.focus();announce('Отменено');}
     else if(button.hasAttribute('data-card-answer')){const form=card.querySelector('[data-answer]');form.hidden=!form.hidden;button.setAttribute('aria-expanded',String(!form.hidden));if(!form.hidden)form.querySelector('textarea').focus();}
     else if(button.hasAttribute('data-answer-send'))send(card);
     else if(button.hasAttribute('data-answer-cancel')){const form=card.querySelector('[data-answer]');form.hidden=true;card.querySelector('[data-card-answer]').setAttribute('aria-expanded','false');card.querySelector('[data-card-answer]').focus();}
   },{signal:events.signal});
+  /**
+   * «Утвердить» cannot be taken back on the server: the card says «Утверждено · Отменить» for 8 s and only then
+   * decides, against the approval revision the request was made on (review R4 F3). Closing the drawer decides now.
+   */
+  let approving=null;
+  const announce=text=>notify({tone:'info',message:text,duration:2500});
+  function approveLater(card,request){
+    if(approving)return;
+    const decide=()=>api.decide(projectId,request.approvalId,request.sourceRevision,'approved')
+      .then(()=>{notify({tone:'success',message:'Утверждено'});return load();}).then(()=>onChanged?.())
+      .catch(error=>{notify({tone:'danger',message:'Не удалось утвердить',description:error.message});return load();});
+    approving={decide,timer:setTimeout(()=>{approving=null;void decide();},8000)};
+    const actionsRow=card.querySelector('.dsk-request-card-actions');
+    actionsRow.innerHTML=`<p class="dsk-row-done" role="status">${icon('checkCircle',16)}<span><b>Утверждено</b> · решение уйдёт через 8 с</span><button type="button" class="iq-btn ghost sm" data-approve-undo>Отменить</button></p>`;
+    actionsRow.querySelector('[data-approve-undo]').focus();
+  }
   // The answer lives inside the drawer's own form, so it is a group with its own send button (never a nested form).
+  let sending=false;
   function send(card){
+    if(sending)return;
     const request=state?.requests?.find(r=>r.id===card?.dataset.request),area=card.querySelector('[data-answer] textarea');
     const text=area.value.trim();if(!request)return;if(!text){area.focus();return;}
+    sending=true;
     void(async()=>{
       const submit=card.querySelector('[data-answer-send]');submit.disabled=true;
       try{
@@ -84,6 +108,7 @@ export function mountPersonalPanel(section,{api,projectId,taskId,actorId,actions
         await api.resolveRequest(projectId,request.id,request.revision).catch(error=>{if(error.code!=='REQUEST_CLOSED')throw error;});
         notify({tone:'success',message:'Ответ отправлен, запрос закрыт'});await load();onChanged?.({discussion:true});
       }catch(error){submit.disabled=false;notify({tone:'danger',message:'Не удалось отправить ответ',description:error.message});}
+      finally{sending=false;}
     })();
   }
   // The card is not part of the task's fields: its typing never marks the drawer's form as changed.
@@ -102,5 +127,9 @@ export function mountPersonalPanel(section,{api,projectId,taskId,actorId,actions
       .catch(error=>notify({tone:'danger',message:'Не удалось отложить',description:error.message}));
   },{signal:events.signal});
   renderJoin();void load();
-  return {destroy(){destroyed=true;events.abort();join.remove();}};
+  return {
+    /** An answer typed and not sent is an unsaved change of the drawer: closing asks first (review R4 F5). */
+    dirty:()=>[...section.querySelectorAll('[data-answer]:not([hidden]) textarea')].some(area=>area.value.trim()!==''),
+    destroy(){destroyed=true;if(approving){clearTimeout(approving.timer);void approving.decide();approving=null;}events.abort();join.remove();},
+  };
 }

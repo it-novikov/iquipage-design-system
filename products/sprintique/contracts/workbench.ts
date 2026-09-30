@@ -64,7 +64,7 @@ export interface WorkbenchRow {
   primaryReason:WorkbenchReason;secondaryReasons:WorkbenchReason[];
   // No request note in a first-screen row (delivery-plan §4.2): the drawer reads it from `/personal`.
   request:{id:string;kind:'answer'|'review'|'decision'|'approval'|'do';revision:number;neededBy:string|null;requestedBy:WorkbenchPerson|null;
-    createdAt:string;openCount:number;approvalId:string|null;threadId:string|null}|null;
+    createdAt:string;openCount:number;approvalId:string|null;threadId:string|null;sourceRevision:number|null}|null;
   // The row's verb: review, approve and do resolve in the row; a question or a decision opens the drawer to answer.
   action:{kind:'review'|'approve'|'do'|'question'|'decision';inline:boolean}|null;
   // "Готово" from an "В работе" row: the next workflow stage and its verb, or why it cannot be moved from here.

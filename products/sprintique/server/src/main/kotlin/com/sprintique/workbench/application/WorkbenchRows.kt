@@ -118,6 +118,9 @@ internal object WorkbenchRows {
             "openCount" to row.long("open_requests"),
             "approvalId" to row["request_approval_id"],
             "threadId" to row["request_thread_id"],
+            // The revision of the source (the approval, the question) the request was made on: a decision from the row
+            // is taken against it, so a source prepared again meanwhile is never decided unseen.
+            "sourceRevision" to row["request_source_revision"]?.toString()?.toLong(),
         )
     }
 

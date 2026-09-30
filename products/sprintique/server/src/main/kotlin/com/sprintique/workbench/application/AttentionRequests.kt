@@ -40,7 +40,7 @@ object AttentionRequests {
         (SELECT coalesce(p.profile_name, p.name) FROM auth.principals p WHERE p.id = r.requested_by) AS "requestedByName",
         to_char(r.created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS "createdAt",
         to_char(r.closed_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS "closedAt",
-        r.closed_by AS "closedById""""
+        r.closed_by AS "closedById", r.source_revision AS "sourceRevision""""
 
     /** Requests on a task for its drawer: open and orphaned ones first, then the latest closed ones. */
     fun forTask(tx: Transaction, actor: Actor, projectId: String, taskId: String): List<Row> {

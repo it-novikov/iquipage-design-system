@@ -40,6 +40,7 @@
 .dsk-span-12{grid-column:span 12}.dsk-span-8{grid-column:span 8}.dsk-span-4{grid-column:span 4}
 .dsk-widget{display:flex;flex-direction:column;min-width:0;scroll-margin-top:72px}
 .dsk-widget>.iq-section-head{min-height:32px;margin-bottom:var(--iq-space-1);gap:var(--iq-space-2);align-items:center}
+.dsk-widget>.iq-section-head h2 .iq-section-count{margin-left:4px;font-weight:400}
 .dsk-widget>.iq-section-head h2{margin:0;font-weight:600;font-size:var(--iq-type-body-size);line-height:24px;letter-spacing:-.01em;outline:none}
 .dsk-widget>.iq-section-head>.iq-icon{color:var(--iq-muted)}
 .dsk-widget>.iq-section-head .iq-section-actions{margin-left:auto;display:flex;align-items:center;gap:var(--iq-space-1)}
@@ -189,13 +190,17 @@ button.dsk-when[data-tone] .dsk-chev{color:currentColor}
 /* ---------- Список: the same rows full width, with a project column ---------- */
 .dsk-cols{display:grid;gap:var(--iq-space-3);min-height:28px;padding:0 var(--iq-space-2);font-weight:500;font-size:var(--iq-type-meta-size);letter-spacing:.01em;color:var(--iq-muted);align-items:center}
 .dsk-cols span:last-child{text-align:right}
+/* The list's columns are fixed, so every row lines up under its header (review R4 F12). */
+.dsk-list2 .dsk-when,.dsk-list2 .dsk-item>iq-menu,.dsk-list2 .dsk-item>.dsk-verb{justify-self:start}
 .dsk-list2 .dsk-lane{background:transparent;padding:0}
 .dsk-list2 .dsk-lanes{grid-template-columns:1fr;gap:var(--iq-space-4)}
-.dsk-list2 .dsk-req,.dsk-cols-req{grid-template-columns:32px minmax(0,1fr) 200px minmax(150px,auto) auto}
-.dsk-list2 .dsk-item,.dsk-cols-active,.dsk-cols-waiting,.dsk-cols-joined{grid-template-columns:28px minmax(0,1fr) 200px minmax(150px,auto) auto}
+.dsk-list2 .dsk-req,.dsk-cols-req{grid-template-columns:32px minmax(0,1fr) 200px 200px 164px}
+.dsk-list2 .dsk-req-actions{justify-self:end}
+.dsk-list2 .dsk-item,.dsk-cols-active,.dsk-cols-waiting,.dsk-cols-joined{grid-template-columns:28px minmax(0,1fr) 200px 200px 164px}
 .dsk-list2 .dsk-item{background:transparent;box-shadow:none;border-radius:0;border-bottom:1px solid var(--iq-line);min-height:52px;padding:6px var(--iq-space-2)}
 .dsk-list2 .dsk-item .dsk-title{display:inline}
-.dsk-list2 .dsk-chg,.dsk-cols-chg{grid-template-columns:24px minmax(0,1fr) 200px auto 28px}
+.dsk-list2 .dsk-chg,.dsk-cols-chg{grid-template-columns:24px minmax(0,1fr) 200px 200px 28px}
+.dsk-list2 .dsk-chg>.dsk-age{justify-self:start}
 
 /* ---------- Неделя (read only; DS-GAP-5) ---------- */
 .dsk-week-head{display:flex;align-items:center;gap:var(--iq-space-3);flex-wrap:wrap;margin-bottom:var(--iq-space-3)}
@@ -237,7 +242,8 @@ button.dsk-when[data-tone] .dsk-chev{color:currentColor}
 /* The request card sits under the title, before the task's facts (design-v2 §5.4). */
 .task-personal-section{display:grid;gap:var(--iq-space-2);grid-area:personal}
 .task-editor-layout:has(>.task-personal-section:not([hidden])){grid-template-areas:"title" "personal" "props" "desc" "supp"}
-.task-edit-dialog[data-fullscreen=true] .task-editor-layout:has(>.task-personal-section:not([hidden])){grid-template-areas:"title props" "personal props" "desc props" "supp props"}
+/* Only where the drawer has its two columns (board.css): narrower, the card stays in the one column (review R4 F13). */
+@media(min-width:900px){.task-edit-dialog[data-fullscreen=true] .task-editor-layout:has(>.task-personal-section:not([hidden])){grid-template-areas:"title props" "personal props" "desc props" "supp props"}}
 .dsk-request-card{display:grid;gap:var(--iq-space-3);padding:var(--iq-space-4);border:1px solid var(--iq-line);border-radius:var(--iq-radius-sm);background:var(--iq-raised)}
 .dsk-request-card-head{display:flex;align-items:center;gap:var(--iq-space-2);flex-wrap:wrap}
 .dsk-request-card-head .dsk-req-ask{flex:1 1 auto}

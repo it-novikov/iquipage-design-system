@@ -15,13 +15,14 @@ const LANES=[
   {key:'joined',title:'Участвую',icon:'users',hint:'ваш порядок',list:'ol',empty:['Вы пока ни в чём не участвуете','«Участвую» в задаче — и она здесь, в вашем порядке.']},
 ];
 const section=(id,span,title,glyph,count,actions,body,{busy=false,note=''}={})=>`<section class="dsk-widget ${span}" id="${id}" aria-labelledby="${id}-h"${busy?' aria-busy="true"':''}>
-  <div class="iq-section-head">${icon(glyph,18)}<h2 id="${id}-h" tabindex="-1">${esc(title)}</h2>${count}${note}<div class="iq-section-actions">${actions}</div></div>${body}</section>`;
+  <div class="iq-section-head">${icon(glyph,18)}<h2 id="${id}-h" tabindex="-1">${esc(title)}${count?' '+count:''}</h2>${note}<div class="iq-section-actions">${actions}</div></div>${body}</section>`;
 const countBadge=(n,capped=false)=>n==null?'':`<span class="iq-section-count">${esc(countLabel(n,capped))}</span>`;
 
 export function mountDashboard(host,{mode,api,repository,projects,filter,prefs,savePrefs,openTask,openProject,onNavigate,announce,setSummary,setUpdated}){
   const events=new AbortController();
   let envelope=null,plan=null,envError=null,planError=null,loading=true,rows=new Map(),extra={},snoozed=null,showSnoozed=false,laneTab='active';
-  let token=null,poll=null,changed=false,destroyed=false,loadedAt=null,request=0;
+  let token=null,poll=null,changed=false,destroyed=false,loadedAt=null,request=0,firstLoad=true;
+  const browserZone=()=>{try{return Intl.DateTimeFormat().resolvedOptions().timeZone||undefined;}catch{return undefined;}};
   const wide=mode==='list';
   const parts=()=>({personal:!!envelope?.features?.participation,requests:!!envelope?.features?.requests,waiting:!!envelope?.features?.waiting});
   const view={
@@ -36,7 +37,7 @@ export function mountDashboard(host,{mode,api,repository,projects,filter,prefs,s
     const scroll=document.scrollingElement.scrollTop,active=document.activeElement;
     const activeKey=focusKey||active?.closest?.('[data-row]')?.dataset.key||null;
     if(!silent&&!envelope){loading=true;render();}
-    const [e,p]=await Promise.allSettled([api.envelope({projects:filter(),limit:10}),api.plan({horizon:'7d',projects:filter(),undated:'count'})]);
+    const [e,p]=await Promise.allSettled([api.envelope({projects:filter(),limit:10}),api.plan({horizon:'7d',projects:filter(),undated:'count',timezone:prefs().timezone||browserZone()})]);
     if(destroyed||mine!==request)return;
     loading=false;
     if(e.status==='fulfilled'){envelope=e.value;envError=null;token=envelope.snapshotToken;changed=false;extra={};}else envError=e.reason;
@@ -44,6 +45,8 @@ export function mountDashboard(host,{mode,api,repository,projects,filter,prefs,s
     if(showSnoozed)snoozed=await api.list('snoozed',{projects:filter()}).catch(()=>null);
     loadedAt=new Date();setUpdated(loadedAt);
     render();
+    if(firstLoad&&location.hash){firstLoad=false;const target=host.querySelector(location.hash.replace(/[^#\w-]/g,''));target?.scrollIntoView({block:'start'});return;}
+    firstLoad=false;
     document.scrollingElement.scrollTop=scroll;
     if(activeKey){const li=view.rowElement(activeKey);if(li){const control=focusControl&&li.querySelector(focusControl);(control&&!control.disabled?control.focus():focusRow(li));}}
   }
@@ -115,7 +118,7 @@ export function mountDashboard(host,{mode,api,repository,projects,filter,prefs,s
       :`<div class="dsk-lane-empty"><b>${esc(l.empty[0])}</b>${esc(l.empty[1])}</div>`;
     const cols=wide&&items.length?`<div class="dsk-cols dsk-cols-${l.key}" aria-hidden="true"><span></span><span>Задача</span><span>Проект</span><span>${l.key==='waiting'?'Проверить':'Срок'}</span><span>Действия</span></div>`:'';
     return `<section class="dsk-lane" id="dsk-lane-${l.key}" data-lane="${l.key}" aria-labelledby="dsk-lane-${l.key}-h" ${!wide&&laneTab!==l.key?'data-phone-hidden="true"':''}>
-      <div class="dsk-lane-head">${icon(l.icon,16)}<h3 id="dsk-lane-${l.key}-h" tabindex="-1">${esc(l.title)}</h3>${countBadge(g?.count??0)}<p>${esc(l.hint)}</p></div>
+      <div class="dsk-lane-head">${icon(l.icon,16)}<h3 id="dsk-lane-${l.key}-h" tabindex="-1">${esc(l.title)} ${countBadge(g?.count??0)}</h3><p>${esc(l.hint)}</p></div>
       ${disabled?'<p class="dsk-hint">Выключено на этом сервере.</p>':cols+list}${more(l.key)}</section>`;
   }
   function currentSection(){
@@ -197,10 +200,17 @@ export function mountDashboard(host,{mode,api,repository,projects,filter,prefs,s
     else if(button.hasAttribute('data-seen-all'))void actions.seenAll(button,envelope.generatedAt);
     else if(button.hasAttribute('data-reasons')){const list=li.querySelector('.dsk-reasons');const open=button.getAttribute('aria-expanded')!=='true';button.setAttribute('aria-expanded',String(open));list.hidden=!open;}
     else if(button.dataset.more)void loadMore(button.dataset.more,button);
-    else if(button.hasAttribute('data-backlog-load'))void api.list('backlog',{projects:filter(),limit:20}).then(page=>{extra.backlog=page;render();}).catch(()=>announce('Не удалось загрузить'));
-    else if(button.dataset.form){const form=button.dataset.form;if(form!==prefs().layout.currentForm)void savePrefs({layout:{currentForm:form}}).then(render);}
+    else if(button.hasAttribute('data-backlog-load'))void api.list('backlog',{projects:filter(),limit:20}).then(page=>{extra.backlog=page;render();
+      const first=host.querySelector('#dsk-backlog [data-row]');(first?focusRow(first):host.querySelector('#dsk-backlog-h')?.focus());}).catch(()=>announce('Не удалось загрузить'));
+    else if(button.dataset.form){
+      const form=button.dataset.form;if(form===prefs().layout.currentForm)return;
+      void savePrefs({layout:{currentForm:form}}).then(saved=>{if(!saved)return;render();host.querySelector(`[data-form="${form}"]`)?.focus();announce(form==='list'?'Текущая работа списком':'Текущая работа дорожками');});
+    }
     else if(button.dataset.laneTab){laneTab=button.dataset.laneTab;render();host.querySelector(`[data-lane-tab="${laneTab}"]`)?.focus();}
-    else if(button.hasAttribute('data-retry')||button.hasAttribute('data-refresh-plaque'))void load();
+    else if(button.hasAttribute('data-retry')||button.hasAttribute('data-refresh-plaque')){
+      const heading=button.closest('section')?.querySelector('h2')?.id;
+      void load().then(()=>{(heading&&host.querySelector(`#${CSS.escape(heading)}`)||host.querySelector('#dsk-action-h'))?.focus();});
+    }
     else if(button.hasAttribute('data-snoozed-toggle')){showSnoozed=!showSnoozed;snoozed=null;render();if(showSnoozed)void api.list('snoozed',{projects:filter()}).then(page=>{snoozed=page;render();host.querySelector('[data-snoozed-toggle]')?.focus();});}
     else if(button.hasAttribute('data-unsnooze')&&row)void api.snooze(row.projectId,row.taskId,row.personal.snoozeRevision,null).then(()=>{announce('Запрос вернулся в «Нужно действие»');return load();}).catch(()=>announce('Не удалось вернуть'));
   },{signal:events.signal});
@@ -216,7 +226,13 @@ export function mountDashboard(host,{mode,api,repository,projects,filter,prefs,s
   },{signal:events.signal});
   host.addEventListener('dsk-toggle-participation',event=>{const [li,row]=rowOf(event.target);if(row&&parts().personal)void actions.toggleParticipation(li,row);},{signal:events.signal});
   bindKeyboard(host,{signal:events.signal,onOpen:li=>{const row=rows.get(li.dataset.key);if(row)openTask(row);else li.querySelector('a[data-open]')?.click();},
-    sections:()=>['#dsk-action','#dsk-today','#dsk-lane-active','#dsk-lane-waiting','#dsk-lane-joined','#dsk-changes'].map(s=>host.querySelector(s))});
+    sections:()=>['#dsk-action','#dsk-today','#dsk-lane-active','#dsk-lane-waiting','#dsk-lane-joined','#dsk-changes'].map(s=>reveal(s.slice(1)))});
+  /** A lane hidden behind its phone segment is shown before anyone is taken to it (review R4 F7). */
+  function reveal(id){
+    const lane=/^dsk-lane-(active|waiting|joined)$/.exec(id)?.[1];
+    if(lane&&laneTab!==lane&&host.querySelector(`#${id}`)?.dataset.phoneHidden==='true'){laneTab=lane;render();}
+    return host.querySelector(`#${CSS.escape(id)}`);
+  }
 
   // Live: the envelope is polled while the page is visible; a new snapshot is offered, never applied under the reader.
   async function check(){
@@ -230,6 +246,7 @@ export function mountDashboard(host,{mode,api,repository,projects,filter,prefs,s
   return {
     reload:options=>load(options),
     focusRow:key=>{const li=view.rowElement(key);if(li)focusRow(li);return !!li;},
+    reveal,
     /** The row now at `index` of a section's list, else the one before it, else the section's heading. */
     focusAt(sectionId,index){
       const section=sectionId&&host.querySelector(`#${CSS.escape(sectionId)}`);if(!section)return;

@@ -166,7 +166,7 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
           submitLabel:untouched?'Применить':'Заменить описание',onSubmit:async values=>{apply(values.get('starter'));}});
       });
       let discarded=false;
-      const dirty=()=>!discarded&&(canEdit&&(JSON.stringify(read(form))!==baseline||files.dirty())||!!threads?.dirty());
+      const dirty=()=>!discarded&&(canEdit&&(JSON.stringify(read(form))!==baseline||files.dirty())||!!threads?.dirty()||!!personal?.dirty?.());
       const saveState=form.querySelector('[data-task-save-state]');
       let timer=0,inflight=null,again=false,conflict=false;
       function showState(text,{error=false,action=''}={}){

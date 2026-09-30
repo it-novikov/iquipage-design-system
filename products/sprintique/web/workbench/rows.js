@@ -8,8 +8,10 @@ import {ageLabel,changeLine,changeOf,checkWhen,countLabel,dueWhen,duePresets,mor
 const person=p=>p&&p.name?{id:p.id,name:p.name}:null;
 const key=row=>esc(row.displayId);
 const project=row=>esc(row.projectName)+(row.workspaceName?` <small>${esc(row.workspaceName)}</small>`:'');
-const title=row=>`<a class="dsk-title" href="${esc(row.canonicalUrl)}" data-open>${esc(row.title)}</a>`;
-const rowAttrs=(row,kind,extra='')=>`class="dsk-${kind}" data-row data-key="${esc(row.key)}" data-project="${esc(row.projectId)}" data-task="${esc(row.taskId)}" tabindex="-1" ${extra}`;
+/** The id of a row's title: the row is named by it (the title is its name for a screen reader, design-v2 §11.3). */
+const titleId=key=>'dsk-t-'+String(key).replace(/[^A-Za-z0-9_-]/g,'_');
+const title=row=>`<a class="dsk-title" id="${titleId(row.key)}" href="${esc(row.canonicalUrl)}" data-open>${esc(row.title)}</a>`;
+const rowAttrs=(row,kind,extra='')=>`class="dsk-${kind}" data-row data-key="${esc(row.key)}" data-project="${esc(row.projectId)}" data-task="${esc(row.taskId)}" tabindex="-1" aria-labelledby="${titleId(row.key)}" ${extra}`;
 
 /** The one "when" fact: a label and a value, a tone only when someone waits; a button when it can be changed here. */
 export function whenFact(w,{button='',label=''}={}){

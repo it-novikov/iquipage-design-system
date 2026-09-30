@@ -52,9 +52,15 @@ ${ui.btn('Задача','primary sm','plus','data-create-task aria-label="Соз
   }
   const setUpdated=at=>{root.querySelector('[data-updated]').textContent=at?`Обновлено в ${at.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})}`:'';};
   const prefs=()=>preferences;
+  /** Saves a setting; true when it is saved. A failure is said, never swallowed (review R4 F16). */
   async function savePrefs(fields){
-    try{preferences=await api.savePreferences(preferences.revision,fields);}
-    catch(error){if(error.code==='CONFLICT'){preferences=await api.preferences();preferences=await api.savePreferences(preferences.revision,fields);}else{notify({tone:'danger',message:'Настройку не сохранить',description:error.message});}}
+    try{preferences=await api.savePreferences(preferences.revision,fields);return true;}
+    catch(error){
+      if(error.code==='CONFLICT'){
+        try{preferences=await api.preferences();preferences=await api.savePreferences(preferences.revision,fields);return true;}catch(again){error=again;}
+      }
+      notify({tone:'danger',message:'Настройку не удалось сохранить',description:error.message||'Сервер не ответил.'});return false;
+    }
   }
   function mountContent(){
     content?.destroy();const host=root.querySelector('[data-content]');
@@ -153,7 +159,7 @@ ${ui.btn('Задача','primary sm','plus','data-create-task aria-label="Соз
     const go=event.target.closest('a[data-go]');
     if(go){event.preventDefault();setView(go.dataset.go,go.getAttribute('href'));return;}
     const anchor=event.target.closest('a[data-anchor]');
-    if(anchor){event.preventDefault();const target=root.querySelector(anchor.getAttribute('href'));if(target){target.scrollIntoView({block:'start'});const row=target.querySelector('[data-row]');(row||target.querySelector('h2,h3'))?.focus({preventScroll:true});}return;}
+    if(anchor){event.preventDefault();const target=content?.reveal?.(anchor.getAttribute('href').slice(1))||root.querySelector(anchor.getAttribute('href'));if(target){target.scrollIntoView({block:'start'});const row=target.querySelector('[data-row]');(row||target.querySelector('h2,h3'))?.focus({preventScroll:true});}return;}
     const button=event.target.closest('button');if(!button||button.disabled)return;
     if(button.dataset.view&&button.closest('.dsk-views'))setView(button.dataset.view);
     else if(button.hasAttribute('data-filter'))filterDialog();

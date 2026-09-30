@@ -410,7 +410,12 @@ test('W08 requests follow their source: thread and approval resolution, membersh
   const onApproval=await ask(p,'q',f.bob,f.alice,{kind:'approval',approvalId:approval});
   const mismatched=await call('POST',`${base(p)}/tasks/q/requests`,{id:randomUUID(),recipientId:f.alice.id,kind:'review',approvalId:approval},f.bob);
   assert.equal(mismatched.statusCode,422,'approval kind and source go together');assert.equal(mismatched.json().code,'REQUEST_SOURCE');
-  assert.equal(placed(await envelope(f.alice,p)).find(x=>x.row.taskId==='q')!.row.primaryReason.code,'approval_to_you');
+  const approvalRow=placed(await envelope(f.alice,p)).find(x=>x.row.taskId==='q')!.row;
+  assert.equal(approvalRow.primaryReason.code,'approval_to_you');assert.deepEqual(approvalRow.action,{kind:'approve',inline:true});
+  // The decision from the row is taken against the approval revision the request was made on (review R4 F3).
+  assert.equal(approvalRow.request!.sourceRevision,1);
+  const stale=await call('POST',`${base(p)}/approvals/${approval}/decision`,{baseRevision:approvalRow.request!.sourceRevision!+1,status:'approved'});
+  assert.equal(stale.statusCode,409,'a decision against another revision is refused');
   await ok(call('POST',`${base(p)}/approvals/${approval}/decision`,{baseRevision:1,status:'approved'}));
   assert.equal((await personal(p,'q')).requests.find((r:any)=>r.id===onApproval.id).status,'resolved');
   // Membership loss: open requests become orphaned, visible to the requester, then reassigned.

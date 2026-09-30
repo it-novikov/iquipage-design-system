@@ -14,7 +14,9 @@ export function mountWeek(host,{api,filter,horizon:initial='7d',openTask,announc
 
   async function load(){
     const mine=++request;
-    try{plan=await api.plan({horizon,projects:filter()});error=null;}catch(cause){error=cause;}
+    // The person's chosen zone, else the browser's: the week and the overview's «Сегодня» are the same days.
+    const zone=prefs().timezone||(()=>{try{return Intl.DateTimeFormat().resolvedOptions().timeZone;}catch{return undefined;}})();
+    try{plan=await api.plan({horizon,projects:filter(),timezone:zone});error=null;}catch(cause){error=cause;}
     if(destroyed||mine!==request)return;
     setUpdated(new Date());render();
     const anchor=decodeURIComponent(location.hash.slice(1));
@@ -36,7 +38,7 @@ export function mountWeek(host,{api,filter,horizon:initial='7d',openTask,announc
     const today=plan.today,range=plan.days.length>1?`${dayLabel(plan.from,today).replace(/^сегодня$/,shortDate(plan.from))} – ${shortDate(plan.to)}`:`сегодня, ${shortDate(today)}`;
     host.innerHTML=`<div class="dsk-week-head">
         <div class="iq-segmented" role="group" aria-label="Горизонт"><button type="button" data-horizon="today" aria-pressed="${horizon==='today'}">Сегодня</button><button type="button" data-horizon="7d" aria-pressed="${horizon==='7d'}">7 дней</button></div>
-        <p class="dsk-hint">${esc(range)} · просроченное показано на сегодня · ${esc(plan.timezone)}${plan.timezoneSource==='default'?` <button type="button" class="dsk-more" data-zone>выбрать пояс</button>`:''}</p></div>
+        <p class="dsk-hint">${esc(range)} · просроченное показано на сегодня · ${esc(plan.timezone)}${prefs().timezone?'':` <button type="button" class="dsk-more" data-zone>запомнить этот пояс</button>`}</p></div>
       <ul class="dsk-legend" aria-label="Виды времени">${LEGEND.map(([glyph,text])=>`<li>${icon(glyph,14)}${esc(text)}</li>`).join('')}</ul>
       <p class="dsk-hint">Только чтение: перенос — в задаче.</p>
       <div class="dsk-week${plan.days.length===1?' dsk-week-one':''}">${plan.days.map(day=>{
@@ -64,10 +66,9 @@ export function mountWeek(host,{api,filter,horizon:initial='7d',openTask,announc
     const button=event.target.closest('button');if(!button)return;
     if(button.dataset.horizon&&button.dataset.horizon!==horizon){horizon=button.dataset.horizon;const url=new URL(location.href);url.searchParams.set('horizon',horizon);url.hash='';history.replaceState(history.state,'',url);void load();announce(horizon==='today'?'Сегодня':'7 дней');}
     else if(button.hasAttribute('data-retry'))void load();
-    else if(button.hasAttribute('data-zone')){const zone=Intl.DateTimeFormat().resolvedOptions().timeZone;void savePrefs({timezone:zone}).then(()=>{announce(`Часовой пояс: ${zone}`);return load();});}
+    else if(button.hasAttribute('data-zone')){const zone=Intl.DateTimeFormat().resolvedOptions().timeZone;void savePrefs({timezone:zone}).then(saved=>{if(!saved)return;announce(`Часовой пояс: ${zone}`);return load();});}
   },{signal:events.signal});
   bindKeyboard(host,{signal:events.signal,onOpen:li=>li.querySelector('a[data-open]')?.click(),sections:()=>[...host.querySelectorAll('.dsk-day,#undated')]});
   render();void load();
-  void prefs;
   return {reload:load,focusRow:key=>{const li=host.querySelector(`[data-row][data-key="${CSS.escape(key)}"]`);if(li)focusRow(li);return !!li;},destroy(){destroyed=true;events.abort();host.replaceChildren();}};
 }

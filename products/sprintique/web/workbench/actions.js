@@ -11,13 +11,17 @@ const UNDO_MS=8000;
 export function createActions({api,repository,view,projects,filter,openTask,openProject,announce}){
   const pending=new Map();// row key → timer of its undo line
 
-  /** The whole task, read fresh, written with the fields changed: the same write the drawer makes. */
-  async function writeTask(projectId,taskId,changes){
+  /**
+   * The whole task written with the fields changed (the same write the drawer makes), against the revision the person
+   * saw: when the task changed meanwhile, nothing is written and the row says so (CAS, review R4 F2).
+   */
+  async function writeTask(projectId,taskId,changes,expected){
     const project=projects.get(projectId);if(!project)throw Error('Проект недоступен.');
     const task=await repository.read('tasks',taskId,projectId);
     if(!task)throw Error('Задача недоступна.');
+    if(task.revision!==expected)throw Object.assign(Error('Задачу уже изменили.'),{code:'CONFLICT'});
     const previous=Object.fromEntries(Object.keys(changes).map(k=>[k,task[k]]));
-    const saved=await repository.write('tasks',{...task,...changes},task.revision);
+    const saved=await repository.write('tasks',{...task,...changes},expected);
     return {saved,previous};
   }
   function next(li){
@@ -28,12 +32,20 @@ export function createActions({api,repository,view,projects,filter,openTask,open
    * The row says what happened and offers «Отменить» for 8 s; the focus moves on. `undo` puts it back. The view
    * reloads when the time is over or after an undo.
    */
-  function settle(li,{text,undo=null,tone='success'}){
+  /**
+   * `commit`: an action that is only sent when the undo time is over (an approval cannot be taken back on the server,
+   * so it waits here instead); leaving the view sends it at once.
+   */
+  function settle(li,{text,undo=null,commit=null,tone='success'}){
     const key=li.dataset.key,following=next(li),wasFocused=li.dataset.hadFocus==='true'||li.contains(document.activeElement);
     const list=li.closest('[data-list]');
-    const entry={text,undo,tone,timer:null,node:li,section:list?.closest('section[id]')?.id||null,index:list?[...list.children].indexOf(li):-1};
+    const entry={text,undo:undo||(commit?()=>null:null),commit,tone,timer:null,node:li,section:list?.closest('section[id]')?.id||null,index:list?[...list.children].indexOf(li):-1};
     clearTimeout(pending.get(key)?.timer);
-    entry.timer=setTimeout(()=>{pending.delete(key);void view.reload();},UNDO_MS);
+    entry.timer=setTimeout(()=>void(async()=>{
+      pending.delete(key);
+      if(commit)try{await commit();}catch(error){fail(li,error);}
+      await view.reload();
+    })(),UNDO_MS);
     pending.set(key,entry);
     paint(li,key,entry);
     if(wasFocused)(following?focusRow(following):view.focusSection(li));
@@ -47,7 +59,7 @@ export function createActions({api,repository,view,projects,filter,openTask,open
     line.querySelector('[data-undo]')?.addEventListener('click',()=>void(async()=>{
       const open=pending.get(key);if(!open)return;
       clearTimeout(open.timer);pending.delete(key);line.querySelector('[data-undo]').disabled=true;
-      try{await entry.undo();announce('Отменено');}catch(error){fail(li,error);}
+      try{if(!entry.commit)await entry.undo();announce('Отменено');}catch(error){fail(li,error);}
       await view.reload({focusKey:key});
     })());
   }
@@ -57,9 +69,12 @@ export function createActions({api,repository,view,projects,filter,openTask,open
     if(conflict)void view.reload({focusKey:li?.dataset.key});
   }
   async function run(li,body){
+    // One command per row at a time: a second press (J twice, E and a click) waits for nothing and sends nothing.
+    if(li.getAttribute('aria-busy')==='true'||li.dataset.state==='done')return;
     // Disabling the pressed control drops the focus: remember it, so the next row receives it afterwards.
     li.dataset.hadFocus=String(li.contains(document.activeElement));
-    const controls=[...li.querySelectorAll('button')];for(const c of controls)c.disabled=true;li.setAttribute('aria-busy','true');
+    const controls=[...li.querySelectorAll('button')].filter(c=>!c.disabled);for(const c of controls)c.disabled=true;li.setAttribute('aria-busy','true');
+    // On failure only the controls this command disabled come back; the ones disabled by their row stay so.
     try{await body();}catch(error){for(const c of controls)c.disabled=false;if(li.dataset.hadFocus==='true')focusRow(li);fail(li,error);}finally{li.removeAttribute('aria-busy');delete li.dataset.hadFocus;}
   }
   /** A date from a small form dialog; null when the person closes it. */
@@ -77,9 +92,9 @@ export function createActions({api,repository,view,projects,filter,openTask,open
       if(!verb.inline){openTask(row,{answer:true});return;}
       return run(li,async()=>{
         if(row.action.kind==='approve'&&row.request.approvalId){
-          const approval=await api.approval(row.projectId,row.request.approvalId);
-          await api.decide(row.projectId,row.request.approvalId,approval.revision,'approved');
-          settle(li,{text:`<b>${esc(doneWord.approve)}</b> · ${esc(row.displayId)}`});return;
+          // Decided against the revision the request was made on (review R4 F3), after the undo time.
+          const base=row.request.sourceRevision??(await api.approval(row.projectId,row.request.approvalId)).revision;
+          settle(li,{text:`<b>${esc(doneWord.approve)}</b> · ${esc(row.displayId)}`,commit:()=>api.decide(row.projectId,row.request.approvalId,base,'approved')});return;
         }
         const resolved=await api.resolveRequest(row.projectId,row.request.id,row.request.revision);
         settle(li,{text:`<b>${esc(doneWord[row.action.kind]||'решено')}</b> · ${esc(row.displayId)} · запрос закрыт`,
@@ -98,8 +113,8 @@ export function createActions({api,repository,view,projects,filter,openTask,open
     complete(li,row){
       const move=row.active?.transition;if(!move||row.active.cannotComplete)return;
       return run(li,async()=>{
-        const {previous}=await writeTask(row.projectId,row.taskId,{status:move.toStatusId});
-        settle(li,{text:`<b>${esc(move.label)}</b> · ${esc(row.displayId)}`,undo:()=>writeTask(row.projectId,row.taskId,previous)});
+        const {saved,previous}=await writeTask(row.projectId,row.taskId,{status:move.toStatusId},row.taskRevision);
+        settle(li,{text:`<b>${esc(move.label)}</b> · ${esc(row.displayId)}`,undo:()=>writeTask(row.projectId,row.taskId,previous,saved.revision)});
       });
     },
     async due(li,row,choice){
@@ -107,9 +122,9 @@ export function createActions({api,repository,view,projects,filter,openTask,open
       if(choice==='pick'){date=await pickDate(`Срок ${row.displayId}`,'Новый срок');if(!date)return;}
       else if(choice!=='none')date=duePresets(localDay())[Number(choice)]?.date;
       return run(li,async()=>{
-        const {previous}=await writeTask(row.projectId,row.taskId,{due:date});
+        const {saved,previous}=await writeTask(row.projectId,row.taskId,{due:date},row.taskRevision);
         settle(li,{text:date?`Срок перенесён на ${esc(date.slice(8,10)+'.'+date.slice(5,7))} · виден всем в проекте`:'Срок снят',tone:'info',
-          undo:()=>writeTask(row.projectId,row.taskId,previous)});
+          undo:()=>writeTask(row.projectId,row.taskId,previous,saved.revision)});
       });
     },
     async checkBack(li,row,choice){
@@ -174,6 +189,7 @@ export function createActions({api,repository,view,projects,filter,openTask,open
         paint(li,key,entry);
       }
     },
-    destroy(){for(const entry of pending.values())clearTimeout(entry.timer);pending.clear();},
+    /** Leaving the view: the undo lines close, and a decision still waiting for its undo time is sent now. */
+    destroy(){for(const entry of pending.values()){clearTimeout(entry.timer);if(entry.commit)void entry.commit().catch(error=>fail(null,error));}pending.clear();},
   };
 }
