@@ -472,18 +472,19 @@ object MemberAccess {
         val row = tx.row(
             """
             SELECT p.workspace_id AS "workspaceId",
-                   coalesce(${if (guest) "p.default_guest_preset_id, w.default_guest_preset_id" else "p.default_member_preset_id, w.default_member_preset_id"})
-                     AS "presetId"
+                   ${if (guest) "p.default_guest_preset_id" else "p.default_member_preset_id"} AS "projectDefault",
+                   ${if (guest) "w.default_guest_preset_id" else "w.default_member_preset_id"} AS "workspaceDefault"
             FROM app.projects p JOIN app.workspaces w ON w.id = p.workspace_id WHERE p.id = $1
             """.trimIndent(),
             projectId,
         )!!
-        val id = row.stringOrNull("presetId")
-        return if (id != null) {
-            Presets.find(tx, row.string("workspaceId"), id)
-        } else {
-            Presets.system(tx, row.string("workspaceId"), if (guest) SystemPreset.GUEST else SystemPreset.EDITOR)
-        }
+        val workspaceId = row.string("workspaceId")
+        // An archived preset is never handed out, even if a default still names it (someone who could not see
+        // the project archived it): the next default applies.
+        return listOfNotNull(row.stringOrNull("projectDefault"), row.stringOrNull("workspaceDefault"))
+            .map { Presets.find(tx, workspaceId, it) }
+            .firstOrNull { !it.archived }
+            ?: Presets.system(tx, workspaceId, if (guest) SystemPreset.GUEST else SystemPreset.EDITOR)
     }
 
     fun insertMember(
@@ -533,7 +534,12 @@ object MemberAccess {
      */
     fun stopsChanging(tx: Transaction, actor: Actor, projectId: String, principalId: String) {
         revokeAgentsIssuedBy(tx, projectId, principalId)
-        leaving(tx, principalId) { AttentionRequests.orphanRecipient(tx, actor, projectId, principalId) }
+        leaving(tx, principalId) {
+            // The project row before the requests, as every other writer of requests takes them (its activity and
+            // outbox positions live on that row).
+            tx.update("SELECT id FROM app.projects WHERE id = $1 FOR UPDATE", projectId)
+            AttentionRequests.orphanRecipient(tx, actor, projectId, principalId)
+        }
     }
 
     /**

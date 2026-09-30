@@ -15,7 +15,7 @@ import org.jooq.impl.SQLDataType
 
 
 @Suppress("warnings")
-open class CanManageWorkspaceAccess : AbstractRoutine<Boolean>("can_manage_workspace_access", Auth.AUTH, DSL.comment(""), SQLDataType.BOOLEAN) {
+open class LeavingIn : AbstractRoutine<Boolean>("leaving_in", Auth.AUTH, DSL.comment(""), SQLDataType.BOOLEAN) {
     companion object {
 
         val RETURN_VALUE: Parameter<Boolean?> = Internal.createParameter("RETURN_VALUE", SQLDataType.BOOLEAN, false)
@@ -24,15 +24,15 @@ open class CanManageWorkspaceAccess : AbstractRoutine<Boolean>("can_manage_works
     }
 
     init {
-        returnParameter = CanManageWorkspaceAccess.RETURN_VALUE
-        addInParameter(CanManageWorkspaceAccess.TARGET)
+        returnParameter = LeavingIn.RETURN_VALUE
+        addInParameter(LeavingIn.TARGET)
     }
 
     fun setTarget(value: String?): Unit {
-        setValue(CanManageWorkspaceAccess.TARGET, value)
+        setValue(LeavingIn.TARGET, value)
     }
 
     fun setTarget(field: Field<String?>): Unit {
-        setField(CanManageWorkspaceAccess.TARGET, field)
+        setField(LeavingIn.TARGET, field)
     }
 }

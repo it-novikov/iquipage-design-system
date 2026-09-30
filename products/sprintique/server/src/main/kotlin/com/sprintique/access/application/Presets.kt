@@ -238,6 +238,14 @@ object Presets {
         action: String,
     ): Map<String, Any?> {
         val administered = administeredProjects(tx, current.id)
+        // The membership lock of every project using the preset, in order, as every other change of a membership
+        // takes it before its rows (MemberAccess.manage, Invitations): the recompile below then waits for no one.
+        for (project in tx.rows(
+            "SELECT DISTINCT project_id AS id FROM app.project_members WHERE preset_id = $1::uuid ORDER BY 1",
+            current.id,
+        )) {
+            tx.row("SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", "membership:${project.string("id")}")
+        }
         val writers = writers(tx, current.id)
         tx.update(
             """

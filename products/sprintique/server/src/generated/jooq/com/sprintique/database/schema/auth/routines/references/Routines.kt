@@ -8,7 +8,6 @@ package com.sprintique.database.schema.auth.routines.references
 import com.sprintique.database.schema.auth.routines.ActorId
 import com.sprintique.database.schema.auth.routines.Can
 import com.sprintique.database.schema.auth.routines.CanManageFinance
-import com.sprintique.database.schema.auth.routines.CanManageWorkspaceAccess
 import com.sprintique.database.schema.auth.routines.CanProject
 import com.sprintique.database.schema.auth.routines.CanReadFinance
 import com.sprintique.database.schema.auth.routines.CanReadServiceWorkspace
@@ -20,6 +19,7 @@ import com.sprintique.database.schema.auth.routines.CompilePermissions
 import com.sprintique.database.schema.auth.routines.CompileWorkspacePermissions
 import com.sprintique.database.schema.auth.routines.DefaultPresetPermissions
 import com.sprintique.database.schema.auth.routines.ExplicitServicePermissions
+import com.sprintique.database.schema.auth.routines.LeavingIn
 import com.sprintique.database.schema.auth.routines.ManagesWorkspaceAccess
 import com.sprintique.database.schema.auth.routines.NeverServicePermissions
 import com.sprintique.database.schema.auth.routines.OpenRequestsFor
@@ -122,35 +122,6 @@ fun canManageFinance(
       target: Field<String?>
 ): Field<Boolean?> {
     val f = CanManageFinance()
-    f.setTarget(target)
-
-    return f.asField()
-}
-
-fun canManageWorkspaceAccess(
-      configuration: Configuration
-    , target: String?
-): Boolean? {
-    val f = CanManageWorkspaceAccess()
-    f.setTarget(target)
-
-    f.execute(configuration)
-    return f.returnValue
-}
-
-fun canManageWorkspaceAccess(
-      target: String?
-): Field<Boolean?> {
-    val f = CanManageWorkspaceAccess()
-    f.setTarget(target)
-
-    return f.asField()
-}
-
-fun canManageWorkspaceAccess(
-      target: Field<String?>
-): Field<Boolean?> {
-    val f = CanManageWorkspaceAccess()
     f.setTarget(target)
 
     return f.asField()
@@ -499,6 +470,35 @@ fun explicitServicePermissions(
 
 fun explicitServicePermissions(): Field<Array<String?>?> {
     val f = ExplicitServicePermissions()
+
+    return f.asField()
+}
+
+fun leavingIn(
+      configuration: Configuration
+    , target: String?
+): Boolean? {
+    val f = LeavingIn()
+    f.setTarget(target)
+
+    f.execute(configuration)
+    return f.returnValue
+}
+
+fun leavingIn(
+      target: String?
+): Field<Boolean?> {
+    val f = LeavingIn()
+    f.setTarget(target)
+
+    return f.asField()
+}
+
+fun leavingIn(
+      target: Field<String?>
+): Field<Boolean?> {
+    val f = LeavingIn()
+    f.setTarget(target)
 
     return f.asField()
 }

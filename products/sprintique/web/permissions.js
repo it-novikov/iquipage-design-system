@@ -85,8 +85,10 @@ export const inactiveGrants=(index,granted=[],owner=null)=>{const has=new Set(ow
 export function serviceSources(index,member,presetPermissions=[]){
   const held=new Set(member.permissions||[]),base=closure(index,[...serviceBase(index,presetPermissions),TASKS_READ]);
   const added=new Set(closure(index,member.added||[])),removed=new Set(member.removed||[]),granted=new Set(member.granted||[]);
-  // Not held although the preset or an addition gives it and nobody removed it: the owner's ceiling («недоступно»).
-  const capped=id=>(base.has(id)||granted.has(id))&&!removed.has(id);
+  // Removed: itself or something it needs was removed (the server's rule). Not held although the preset or an
+  // addition gives it and nothing was removed: the owner's ceiling («недоступно»).
+  const gone=id=>[...closure(index,[id])].some(p=>removed.has(p));
+  const capped=id=>(base.has(id)||granted.has(id))&&!gone(id);
   return Object.fromEntries([...index.keys()].map(id=>[id,serviceUse(index,id)==='never'?'forbidden':held.has(id)?(base.has(id)?'preset':added.has(id)?'added':'dependency'):capped(id)?'forbidden':base.has(id)?'removed':'absent']));
 }
 

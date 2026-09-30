@@ -229,6 +229,7 @@ object WorkspaceAccess {
         val projects = tx.rows(
             """
             SELECT project_id AS id, permissions FROM app.project_members WHERE workspace_id = $1::uuid AND principal_id = $2
+            ORDER BY project_id
             """.trimIndent(),
             workspaceId,
             id,

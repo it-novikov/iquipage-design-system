@@ -47,6 +47,11 @@ test('what the owner\'s ceiling takes reads as unavailable, not as removed',()=>
   const sources=serviceSources(index,{permissions:['tasks.read','threads.write','maps.read'],granted:['finance.write'],added:['finance.write'],removed:[]},SERVICE_TASKS);
   assert.equal(sources['tasks.write'],'forbidden');assert.equal(sources['finance.write'],'forbidden');assert.equal(sources['threads.write'],'preset');
 });
+test('a permission removed with what it needs reads as removed, as the server says',()=>{
+  const preset=['tasks.write','releases.manage','maps.read'];
+  const sources=serviceSources(index,{permissions:['tasks.read','maps.read'],granted:[],added:[],removed:['tasks.write']},preset);
+  assert.equal(sources['tasks.write'],'removed');assert.equal(sources['releases.manage'],'removed');
+});
 
 test('workspace people: nobody touches the owner row; only the owner changes administrators; appointing needs all five',()=>{
   const OWNER={actorId:'o',role:'owner',permissions:['workspace.invite','workspace.people','projects.create','projects.oversee','workspace.settings']};

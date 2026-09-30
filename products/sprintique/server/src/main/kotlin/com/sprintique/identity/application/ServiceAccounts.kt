@@ -562,7 +562,7 @@ class ServiceAccounts(private val properties: SprintiqueProperties) {
         )
         if (actor.id != managed.ownerId && !managed.isWorkspaceAdmin) {
             val mine = ProjectAccess.membership(tx, actor, projectId)?.permissions.orEmpty()
-            val beyond = wanted - mine
+            val beyond = wanted - mine - held(tx, managed, projectId)
             requireCondition(
                 beyond.isEmpty(),
                 403,
@@ -571,6 +571,22 @@ class ServiceAccounts(private val properties: SprintiqueProperties) {
             )
         }
         return Triple(preset, granted, revoked)
+    }
+
+    /** What the account's stored grant in the project gives, before its owner's ceiling (empty when it has none). */
+    private fun held(tx: Transaction, managed: Managed, projectId: String): Set<Permission> {
+        val row = tx.row(
+            """
+            SELECT preset_id::text AS preset, granted, revoked FROM app.project_members
+            WHERE project_id = $1 AND principal_id = $2
+            """.trimIndent(),
+            projectId,
+            managed.id,
+        ) ?: return emptySet()
+        val base = Presets.find(tx, managed.workspaceId, row.string("preset")).permissions
+            .filterNot { it.service == Permission.ServiceUse.EXPLICIT }
+        val wire = { name: String -> row.strings(name).mapNotNull(Permission::fromWire).toSet() }
+        return Permissions.compile(base, wire("granted"), wire("revoked"), Permissions.NEVER_SERVICE)
     }
 
     private fun revokeProject(tx: Transaction, actor: Actor, managed: Managed, projectId: String) {

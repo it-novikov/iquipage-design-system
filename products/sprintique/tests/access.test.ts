@@ -196,14 +196,17 @@ test('R4 F1 F3 a workspace administrator outside a project: a preset edit and a 
   const narrowed=await ok('PUT',base+'/presets/'+editor.id,{baseRevision:editor.revision,name:editor.name,permissions:['tasks.read','threads.write','maps.read']},carol);
   assert.equal(await status(first),'orphaned');
   await ok('POST',base+'/presets/'+editor.id+'/reset',{baseRevision:narrowed.revision},carol);
-  // Removed from the workspace with his projects by the same administrator: 200, and his open request is orphaned.
+  // Removed from the workspace with his projects by a member who only manages people (no projects.oversee, so the
+  // project is hidden from her outside the window): 200, and his open request is orphaned.
+  const erin=await person('Эрика','erin-'+randomUUID().slice(0,8)+'@example.org');
+  await f.admin.query("INSERT INTO app.workspace_members(workspace_id,principal_id,role,granted) VALUES($1,$2,'member','{workspace.people}')",[ws,erin.id]);
   const second=await ask();
-  const row=(await ok('GET',base+'/members',undefined,carol)).find((x:{id:string})=>x.id===dan.id);
-  await ok('PATCH',base+'/members/'+dan.id,{baseRevision:row.revision,role:null,alsoFromProjects:true},carol);
+  const row=(await ok('GET',base+'/members',undefined,erin)).find((x:{id:string})=>x.id===dan.id);
+  await ok('PATCH',base+'/members/'+dan.id,{baseRevision:row.revision,role:null,alsoFromProjects:true},erin);
   assert.equal(await status(second),'orphaned');
   assert.equal((await f.admin.query('SELECT count(*)::int AS n FROM app.project_members WHERE project_id=$1 AND principal_id=$2',[p,dan.id])).rows[0].n,0);
   const events=(await f.admin.query("SELECT action,actor_id FROM app.audit_events WHERE project_id=$1 AND action IN ('member.removed','request.orphaned')",[p])).rows;
-  assert.ok(events.some(e=>e.action==='member.removed'&&e.actor_id===carol.id));
+  assert.ok(events.some(e=>e.action==='member.removed'&&e.actor_id===erin.id));
   assert.equal(events.filter(e=>e.action==='request.orphaned').length,2);
 });
 
