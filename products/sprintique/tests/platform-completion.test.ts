@@ -1,6 +1,7 @@
 import {before,after,test} from 'node:test';
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
+import {readFile} from 'node:fs/promises';
 import {fixture} from './fixture.js';
 let f:Awaited<ReturnType<typeof fixture>>;
 before(async()=>{f=await fixture({prefix:'PC'});});after(async()=>{await f?.close();});
@@ -129,6 +130,18 @@ test('a person photo is re-encoded, visible only to people who share a project o
   assert.equal((await f.app.inject({method:'DELETE',url:'/api/v1/profile/avatar',headers:f.alice.headers})).statusCode,200);
   assert.equal((await f.app.inject({method:'GET',url:`/api/v1/people/${f.alice.id}/avatar`,headers:f.alice.headers})).statusCode,404);
   assert.equal((await ok('GET','/api/v1/profile')).avatarRevision,null);
+});
+test('a photo cropped in any browser becomes the person photo; a format people have but the server does not take is named',async()=>{
+  const put=(body:Buffer)=>f.app.inject({method:'PUT',url:'/api/v1/profile/avatar',headers:{...f.bob.headers,'content-type':'application/octet-stream'},payload:body});
+  // What the settings cropper sends: Chrome WebP with an ICC profile, Firefox WebP with alpha, Safari's PNG fallback.
+  for(const name of ['chromium-crop-opaque.webp','chromium-crop-alpha.webp','firefox-crop-alpha.webp','webkit-crop-alpha.png']){
+    const sent=await put(await readFile(new URL('../server/src/test/resources/media/browser-crops/'+name,import.meta.url)));
+    assert.equal(sent.statusCode,200,name+': '+sent.body);
+  }
+  const heic=await put(Buffer.concat([Buffer.from([0,0,0,24]),Buffer.from('ftypheic'),Buffer.alloc(64)]));
+  assert.equal(heic.statusCode,422);assert.equal(heic.json().code,'FILE_TYPE');assert.match(heic.json().message,/HEIC/);
+  const large=await put(Buffer.alloc(10*1024*1024+1));
+  assert.equal(large.statusCode,413);assert.equal(large.json().code,'FILE_SIZE');assert.match(large.json().message,/10 МБ/);
 });
 test('personal preferences follow the person to every device and belong to them alone',async()=>{
   const profile=async(user=f.alice)=>(await f.app.inject({method:'GET',url:'/api/v1/profile',headers:user.headers})).json();
