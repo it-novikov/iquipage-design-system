@@ -129,6 +129,13 @@ object Catalogs {
         val operation = "${catalog.wire}:${change.id}"
         return ledger.idempotent(tx, actor, change.projectId, operation, change.key, request(change)) {
             ProjectAccess.authorize(tx, actor, change.projectId, catalog.capability)
+            // The life of a release is a person's; a service account proposes it through planning, for approval.
+            requireCondition(
+                catalog != Catalog.RELEASES || !actor.isService,
+                403,
+                "HUMAN_REQUIRED",
+                "Релизы меняет человек; сервисный аккаунт предлагает изменение через план.",
+            )
             val previous = tx.row(
                 "SELECT revision FROM app.${catalog.wire} WHERE project_id = $1 AND id = $2",
                 change.projectId,

@@ -74,7 +74,8 @@ DECLARE
 BEGIN
   IF TG_OP='UPDATE' AND NEW.permissions IS NOT DISTINCT FROM OLD.permissions THEN RETURN NULL; END IF;
   UPDATE app.project_members m SET revision=m.revision+1
-  WHERE m.project_id=project AND m.principal_id IN (SELECT s.principal_id FROM auth.service_accounts s WHERE s.owner_id=owner);
+  WHERE m.project_id=project
+    AND m.principal_id IN (SELECT s.principal_id FROM auth.service_accounts s WHERE s.owner_id=owner AND s.deleted_at IS NULL);
   RETURN NULL;
 END $$;
 CREATE TRIGGER project_member_owner_ceiling AFTER INSERT OR UPDATE OR DELETE ON app.project_members
@@ -91,14 +92,32 @@ CREATE TRIGGER service_account_owner_ceiling AFTER INSERT OR UPDATE OF owner_id 
 
 -- Existing grants keep what they gave: an editor wrote tasks, discussions and maps («Сервис: задачи» plus «Менять
 -- карты»), a reader read them («Сервис: чтение»); explicit finance moves into the personal additions. The owner's
--- ceiling that used to apply at run time is now compiled in.
+-- ceiling that used to apply at run time is now compiled in. Under V20260929000027 an account wrote nothing while its
+-- owner in the project did not write tasks, discussions included; a reader («Наблюдатель») comments now, so such an
+-- account keeps «Писать в обсуждениях» removed rather than gain it.
 UPDATE app.project_members m SET
   preset_id=(SELECT a.id FROM app.access_presets a WHERE a.workspace_id=m.workspace_id
     AND a.key=CASE WHEN m.role='editor' THEN 'service_tasks' ELSE 'service_read' END),
   granted=auth.permission_sort(CASE WHEN m.role='editor' THEN ARRAY['maps.write'] ELSE ARRAY[]::text[] END
     || coalesce((SELECT g.granted FROM auth.service_account_grants g WHERE g.project_id=m.project_id AND g.principal_id=m.principal_id), ARRAY[]::text[])),
-  revoked='{}'
+  revoked=CASE WHEN m.role='editor' AND EXISTS(SELECT 1 FROM auth.service_accounts s
+      JOIN app.project_members o ON o.project_id=m.project_id AND o.principal_id=s.owner_id
+      WHERE s.principal_id=m.principal_id AND NOT 'tasks.write' = ANY(o.permissions))
+    THEN ARRAY['threads.write'] ELSE ARRAY[]::text[] END
 FROM auth.principals p WHERE p.id=m.principal_id AND p.kind='service';
+
+-- An account acts only while its owner is an enabled member of its workspace who is not a guest: guests neither make
+-- nor own service accounts (part II, II.2), so an owner made a guest stops the account however it came about.
+CREATE OR REPLACE FUNCTION auth.service_account_active(target text) RETURNS boolean
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path=pg_catalog AS $$
+  SELECT EXISTS(
+    SELECT 1 FROM auth.service_accounts s
+    JOIN auth.principals a ON a.id=s.principal_id JOIN auth.principals o ON o.id=s.owner_id
+    WHERE s.principal_id=target AND s.deleted_at IS NULL AND s.suspended_at IS NULL
+      AND a.disabled_at IS NULL AND o.disabled_at IS NULL
+      AND EXISTS(SELECT 1 FROM app.workspace_members w
+        WHERE w.workspace_id=s.workspace_id AND w.principal_id=s.owner_id AND w.role<>'guest'))
+$$;
 
 -- A permission holds only while its holder may see the project at all: for a service account that means active,
 -- with its owner a member of the project (auth.can_project, V20260929000027).

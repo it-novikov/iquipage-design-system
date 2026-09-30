@@ -69,10 +69,9 @@ export async function mountConsent(root,{client,session}){
   </form>`;
   enhance(body);
   const form=body.querySelector('form'),fresh=form.querySelector('[data-new]'),projectList=form.querySelector('[data-projects]');
-  const roleName={reader:'наблюдатель',editor:'редактор',admin:'администратор'};
   function showProjects(chosen){
     const workspace=workspaces.find(w=>w.id===(chosen||form.querySelector('[data-workspace]')?.value||workspaces[0]?.id));
-    projectList.innerHTML='<legend>Проекты</legend>'+(workspace?.projects||[]).map(p=>`<label class="iq-check consent-scope"><input type="checkbox" name="project" value="${esc(p.id)}" checked><span class="iq-check-box">${icon('check',14)}</span><span><b>${esc(p.name)}</b><small>Ваша роль: ${esc(roleName[p.role]||p.role)} — аккаунт получит не больше</small></span></label>`).join('');
+    projectList.innerHTML='<legend>Проекты</legend>'+(workspace?.projects||[]).map(p=>`<label class="iq-check consent-scope"><input type="checkbox" name="project" value="${esc(p.id)}" checked><span class="iq-check-box">${icon('check',14)}</span><span><b>${esc(p.name)}</b><small>${(p.permissions||[]).includes('tasks.write')?'Вы меняете задачи':'Вы читаете задачи'} — аккаунт получит не больше ваших прав</small></span></label>`).join('');
   }
   function showNew(){fresh.hidden=form.querySelector('[name=account]:checked')?.value!=='new';form.querySelector('[data-new-preset]').hidden=fresh.hidden;}
   form.addEventListener('iq-change',event=>{if(event.target.closest('[data-workspace]'))showProjects(event.detail?.value);});

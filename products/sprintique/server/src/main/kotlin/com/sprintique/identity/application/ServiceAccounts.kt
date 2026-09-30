@@ -161,15 +161,24 @@ class ServiceAccounts(private val properties: SprintiqueProperties) {
         return linkedMapOf("serviceAccounts" to own, "workspaces" to workspaces)
     }
 
-    /** A new account owned by the caller, with its first projects, each within the caller's own role. */
+    /**
+     * A new account owned by the caller, with its first projects, each within the caller's own permissions there. A
+     * guest of the workspace neither makes nor owns one (part II, II.2).
+     */
     fun create(tx: Transaction, actor: Actor, input: NewAccount): Map<String, Any?> {
         requirePerson(actor)
         val member = tx.row(
-            "SELECT 1 AS found FROM app.workspace_members WHERE workspace_id = $1::uuid AND principal_id = $2",
+            "SELECT role FROM app.workspace_members WHERE workspace_id = $1::uuid AND principal_id = $2",
             input.workspaceId,
             actor.id,
         )
         requireCondition(member != null, 404, "NOT_FOUND", "Пространство недоступно.")
+        requireCondition(
+            member.string("role") != "guest",
+            422,
+            "SERVICE_OWNER_INVALID",
+            "Гость пространства не создаёт сервисные аккаунты.",
+        )
         // One count per workspace at a time, so two requests cannot both take the last place.
         tx.row("SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", "service-accounts:${input.workspaceId}")
         val made = tx.row(
@@ -296,11 +305,17 @@ class ServiceAccounts(private val properties: SprintiqueProperties) {
             """
             SELECT 1 AS found FROM app.workspace_members w JOIN auth.principals p ON p.id = w.principal_id
             WHERE w.workspace_id = $1::uuid AND w.principal_id = $2 AND p.kind = 'human' AND p.disabled_at IS NULL
+              AND w.role <> 'guest'
             """.trimIndent(),
             managed.workspaceId,
             ownerId,
         )
-        requireCondition(person != null, 422, "OWNER_INVALID", "Владельцем может быть только участник пространства.")
+        requireCondition(
+            person != null,
+            422,
+            "SERVICE_OWNER_INVALID",
+            "Владельцем может быть только участник пространства, не гость.",
+        )
         tx.update(
             "UPDATE auth.service_accounts SET owner_id = $2, suspended_at = NULL WHERE principal_id = $1",
             id,
@@ -430,10 +445,13 @@ class ServiceAccounts(private val properties: SprintiqueProperties) {
 
     private fun grantProject(tx: Transaction, actor: Actor, managed: Managed, grant: ProjectGrant) {
         val projectId = grant.projectId
+        // The owner's row is held until this grant commits, so a concurrent narrowing of the owner either waits and
+        // then recompiles the account, or commits first and is what the account's row is compiled against. Every
+        // change of the owner's rights locks that row before the account's, as this does.
         val owner = tx.row(
             """
             SELECT m.permissions FROM app.project_members m JOIN app.projects p ON p.id = m.project_id
-            WHERE m.project_id = $1 AND m.principal_id = $2 AND p.workspace_id = $3::uuid
+            WHERE m.project_id = $1 AND m.principal_id = $2 AND p.workspace_id = $3::uuid FOR SHARE OF m
             """.trimIndent(),
             projectId,
             managed.ownerId,
@@ -514,7 +532,8 @@ class ServiceAccounts(private val properties: SprintiqueProperties) {
             "PRESET_NOT_FOUND",
             "Выберите пресет для сервисных аккаунтов.",
         )
-        val never = (grant.granted + grant.revoked).filter { it.service == Permission.ServiceUse.NEVER }
+        // Removing a permission the account can never hold is harmless; only adding one is refused.
+        val never = grant.granted.filter { it.service == Permission.ServiceUse.NEVER }
         requireCondition(
             never.isEmpty(),
             422,
@@ -529,7 +548,9 @@ class ServiceAccounts(private val properties: SprintiqueProperties) {
             "Нельзя одновременно дать и убрать то, от чего оно зависит: ${conflicts.joinToString { "«${it.title}»" }}.",
         )
         val base = preset.permissions.filterNot { it.service == Permission.ServiceUse.EXPLICIT }
-        val (granted, revoked) = Permissions.normalize(base, grant.granted, grant.revoked)
+        // Without a chosen preset (the consent screen) the system one is narrowed to what the owner holds here.
+        val narrowed = if (grant.presetId == null) grant.revoked + (base.toSet() - ownerHas) else grant.revoked
+        val (granted, revoked) = Permissions.normalize(base, grant.granted, narrowed)
         val wanted = Permissions.compile(base, granted, revoked, Permissions.NEVER_SERVICE)
         // Not above its owner here, and not above the person who grants it (unless it is the owner, who is the
         // ceiling).
@@ -636,7 +657,7 @@ class ServiceAccounts(private val properties: SprintiqueProperties) {
         actor.id,
     )!!
 
-    /** One account with its projects (and the role in effect under its owner's), tokens and connected apps. */
+    /** One account with its projects (compiled permissions and its owner's there), tokens and connected apps. */
     private fun present(tx: Transaction, account: Row): Map<String, Any?> {
         val id = account.string("id")
         val projects = tx.rows(

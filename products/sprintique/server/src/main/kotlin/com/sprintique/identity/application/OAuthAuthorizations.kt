@@ -149,8 +149,9 @@ class OAuthAuthorizations(
     }
 
     /**
-     * The service account the code is for. A new one gets the chosen projects of its workspace: `editor` where the
-     * person writes and the app may change data, `reader` otherwise. It never exceeds the person's own role.
+     * The service account the code is for. A new one gets the chosen projects of its workspace: «Сервис: задачи»
+     * where the person changes tasks and the app may change data, «Сервис: чтение» otherwise, each narrowed to what
+     * the person holds there.
      */
     private fun accountFor(tx: Transaction, actor: Actor, choice: AccountChoice?, write: Boolean, app: String): String =
         when (choice) {
@@ -162,11 +163,12 @@ class OAuthAuthorizations(
             is AccountChoice.New -> {
                 val roles = tx.rows(
                     """
-                    SELECT project_id AS id, role FROM app.project_members WHERE principal_id = $1 AND project_id = ANY($2)
+                    SELECT project_id AS id, permissions FROM app.project_members
+                    WHERE principal_id = $1 AND project_id = ANY($2)
                     """.trimIndent(),
                     actor.id,
                     choice.projectIds,
-                ).associate { it.string("id") to it.string("role") }
+                ).associate { it.string("id") to it.strings("permissions") }
                 requireCondition(
                     choice.projectIds.isNotEmpty() && roles.keys.containsAll(choice.projectIds),
                     422,
@@ -174,7 +176,7 @@ class OAuthAuthorizations(
                     "Выберите проекты, в которых вы участник.",
                 )
                 val grants = choice.projectIds.map { projectId ->
-                    val writes = write && roles.getValue(projectId) in setOf("editor", "admin")
+                    val writes = write && "tasks.write" in roles.getValue(projectId)
                     ServiceAccounts.ProjectGrant(projectId, writes = writes)
                 }
                 val name = choice.name.ifBlank { app }.take(OAuthClients.NAME_LIMIT)
