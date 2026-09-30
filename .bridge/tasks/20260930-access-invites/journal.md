@@ -23,3 +23,4 @@
 - 2026-09-30T14:24:23Z · claude-opus-5-5 · step · S3 · done: коммиты 87fba04, df76de9, d9c1331; gradle check, 32+ интеграционных Kotlin, 160 HTTP зелёные
 - 2026-09-30T14:24:23Z · claude-opus-5-5 · step · S4 · done: коммит UI; браузер: локальный стенд 4331 + свой Mailpit — участники, редактор прав, приглашение, письмо multipart, путь получателя (несовпадение адреса, вход кодом, принятие); headless 1440 light/dark и 390
 - 2026-09-30T14:24:23Z · claude-opus-5-5 · step · S5 · active
+- 2026-09-30T14:24:35Z · claude-review-r2 · review · R2 · начато ревью, раунд 2, после R1
