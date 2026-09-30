@@ -10,15 +10,21 @@ import com.sprintique.database.schema.app.tables.AgentRuns.AgentRunsPath
 import com.sprintique.database.schema.app.tables.PlanningSelections.PlanningSelectionsPath
 import com.sprintique.database.schema.app.tables.Projects.ProjectsPath
 import com.sprintique.database.schema.auth.Auth
+import com.sprintique.database.schema.auth.indexes.CREDENTIALS_GRANT
+import com.sprintique.database.schema.auth.indexes.CREDENTIALS_OAUTH_EXPIRY
+import com.sprintique.database.schema.auth.indexes.CREDENTIALS_SERVICE
 import com.sprintique.database.schema.auth.keys.CREDENTIALS_PKEY
 import com.sprintique.database.schema.auth.keys.CREDENTIALS_TOKEN_HASH_KEY
+import com.sprintique.database.schema.auth.keys.CREDENTIALS__CREDENTIALS_GRANT_ID_FKEY
 import com.sprintique.database.schema.auth.keys.CREDENTIALS__CREDENTIALS_INITIATOR_ID_FKEY
 import com.sprintique.database.schema.auth.keys.CREDENTIALS__CREDENTIALS_PRINCIPAL_ID_FKEY
 import com.sprintique.database.schema.auth.keys.CREDENTIALS__CREDENTIALS_PROJECT_ID_FKEY
+import com.sprintique.database.schema.auth.tables.OauthGrants.OauthGrantsPath
 import com.sprintique.database.schema.auth.tables.Principals.PrincipalsPath
 import com.sprintique.database.schema.auth.tables.records.CredentialsRecord
 
 import java.time.OffsetDateTime
+import java.util.UUID
 
 import kotlin.collections.Collection
 import kotlin.collections.List
@@ -27,6 +33,7 @@ import org.jooq.Check
 import org.jooq.Condition
 import org.jooq.Field
 import org.jooq.ForeignKey
+import org.jooq.Index
 import org.jooq.InverseForeignKey
 import org.jooq.Name
 import org.jooq.Path
@@ -95,6 +102,18 @@ open class Credentials(
 
     val REVOKED_AT: TableField<CredentialsRecord, OffsetDateTime?> = createField(DSL.name("revoked_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6), this, "")
 
+    val NAME: TableField<CredentialsRecord, String?> = createField(DSL.name("name"), SQLDataType.CLOB, this, "")
+
+    val SCOPES: TableField<CredentialsRecord, Array<String?>?> = createField(DSL.name("scopes"), SQLDataType.CLOB.array().nullable(false).defaultValue(DSL.field(DSL.raw("'{}'::text[]"), SQLDataType.CLOB.array())), this, "")
+
+    val AUDIENCE: TableField<CredentialsRecord, String?> = createField(DSL.name("audience"), SQLDataType.CLOB, this, "")
+
+    val GRANT_ID: TableField<CredentialsRecord, UUID?> = createField(DSL.name("grant_id"), SQLDataType.UUID, this, "")
+
+    val CREATED_AT: TableField<CredentialsRecord, OffsetDateTime?> = createField(DSL.name("created_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6).defaultValue(DSL.field(DSL.raw("clock_timestamp()"), SQLDataType.TIMESTAMPWITHTIMEZONE)), this, "")
+
+    val LAST_USED_AT: TableField<CredentialsRecord, OffsetDateTime?> = createField(DSL.name("last_used_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6), this, "")
+
     private constructor(alias: Name, aliased: Table<CredentialsRecord>?): this(alias, null, null, null, aliased, null, null)
     private constructor(alias: Name, aliased: Table<CredentialsRecord>?, parameters: Array<Field<*>?>?): this(alias, null, null, null, aliased, parameters, null)
     private constructor(alias: Name, aliased: Table<CredentialsRecord>?, where: Condition?): this(alias, null, null, null, aliased, null, where)
@@ -115,9 +134,13 @@ open class Credentials(
         override fun `as`(alias: Table<*>): CredentialsPath = CredentialsPath(alias.qualifiedName, this)
     }
     override fun getSchema(): Schema? = if (aliased()) null else Auth.AUTH
+    override fun getIndexes(): List<Index> = listOf(CREDENTIALS_GRANT, CREDENTIALS_OAUTH_EXPIRY, CREDENTIALS_SERVICE)
     override fun getPrimaryKey(): UniqueKey<CredentialsRecord> = CREDENTIALS_PKEY
     override fun getUniqueKeys(): List<UniqueKey<CredentialsRecord>> = listOf(CREDENTIALS_TOKEN_HASH_KEY)
-    override fun getReferences(): List<ForeignKey<CredentialsRecord, *>> = listOf(CREDENTIALS__CREDENTIALS_INITIATOR_ID_FKEY, CREDENTIALS__CREDENTIALS_PRINCIPAL_ID_FKEY, CREDENTIALS__CREDENTIALS_PROJECT_ID_FKEY)
+    override fun getReferences(): List<ForeignKey<CredentialsRecord, *>> = listOf(CREDENTIALS__CREDENTIALS_GRANT_ID_FKEY, CREDENTIALS__CREDENTIALS_INITIATOR_ID_FKEY, CREDENTIALS__CREDENTIALS_PRINCIPAL_ID_FKEY, CREDENTIALS__CREDENTIALS_PROJECT_ID_FKEY)
+
+    fun oauthGrants(): OauthGrantsPath = oauthGrants
+    val oauthGrants: OauthGrantsPath by lazy { OauthGrantsPath(this, CREDENTIALS__CREDENTIALS_GRANT_ID_FKEY, null) }
 
     fun credentialsInitiatorIdFkey(): PrincipalsPath = credentialsInitiatorIdFkey
     val credentialsInitiatorIdFkey: PrincipalsPath by lazy { PrincipalsPath(this, CREDENTIALS__CREDENTIALS_INITIATOR_ID_FKEY, null) }
@@ -152,8 +175,11 @@ open class Credentials(
     val planningSelections: PlanningSelectionsPath
         get(): PlanningSelectionsPath = planningSelections()
     override fun getChecks(): List<Check<CredentialsRecord>> = listOf(
+        Internal.createCheck(this, DSL.name("credential_delegation"), "((((kind = ANY (ARRAY['service'::text, 'oauth'::text])) = ((audience IS NOT NULL) AND (initiator_id <> principal_id) AND (project_id IS NULL) AND ((cardinality(scopes) >= 1) AND (cardinality(scopes) <= 2)) AND (scopes <@ ARRAY['read'::text, 'write'::text]))) AND ((kind = 'oauth'::text) = (grant_id IS NOT NULL)) AND ((kind = 'service'::text) = (name IS NOT NULL))))", true),
+        Internal.createCheck(this, DSL.name("credential_kind"), "((kind = ANY (ARRAY['session'::text, 'agent'::text, 'service'::text, 'oauth'::text])))", true),
+        Internal.createCheck(this, DSL.name("credentials_audience_check"), "(((audience IS NULL) OR ((length(audience) >= 1) AND (length(audience) <= 300))))", true),
         Internal.createCheck(this, DSL.name("credentials_check"), "(((kind = 'session'::text) = ((csrf IS NOT NULL) AND (project_id IS NULL))))", true),
-        Internal.createCheck(this, DSL.name("credentials_kind_check"), "((kind = ANY (ARRAY['session'::text, 'agent'::text])))", true)
+        Internal.createCheck(this, DSL.name("credentials_name_check"), "(((name IS NULL) OR ((length(name) >= 1) AND (length(name) <= 100))))", true)
     )
     override fun `as`(alias: String): Credentials = Credentials(DSL.name(alias), this)
     override fun `as`(alias: Name): Credentials = Credentials(alias, this)

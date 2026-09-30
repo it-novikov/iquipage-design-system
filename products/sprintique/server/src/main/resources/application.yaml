@@ -31,6 +31,8 @@ server:
 sprintique:
   environment: ${SPRINTIQUE_ENVIRONMENT:development}
   public-origin: ${SPRINTIQUE_PUBLIC_ORIGIN:http://localhost:4311}
+  # The programmatic API and MCP origin (https://api.iqui.page); empty means the interface origin.
+  api-origin: ${SPRINTIQUE_API_ORIGIN:}
   trust-proxy: ${SPRINTIQUE_TRUST_PROXY:}
   metrics-token: ${SPRINTIQUE_METRICS_TOKEN:}
   dev-login: ${SPRINTIQUE_DEV_LOGIN:false}

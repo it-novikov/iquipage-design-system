@@ -3,6 +3,7 @@ package com.sprintique.workbench
 import com.sprintique.database.Database
 import com.sprintique.database.IntegrationDatabase
 import com.sprintique.identity.domain.Actor
+import com.sprintique.identity.domain.CredentialKind
 import com.sprintique.identity.domain.PrincipalKind
 import com.sprintique.workbench.application.Workbench
 import com.sprintique.workbench.application.WorkbenchCursors
@@ -201,7 +202,17 @@ class WorkbenchCapacityIntegrationTest {
                 person,
             )
         }
-        return Actor(person, "Предел", PrincipalKind.HUMAN, "credential-$suffix", "csrf", null, emptySet(), person)
+        return Actor(
+            person,
+            "Предел",
+            PrincipalKind.HUMAN,
+            "credential-$suffix",
+            "csrf",
+            null,
+            emptySet(),
+            person,
+            CredentialKind.SESSION,
+        )
     }
 
     private data class Seed(val actor: Actor, val accessible: Set<String>)
@@ -344,7 +355,17 @@ class WorkbenchCapacityIntegrationTest {
             )
         }
         val actor =
-            Actor(person, "Плотная", PrincipalKind.HUMAN, "credential-$suffix", "csrf", null, emptySet(), person)
+            Actor(
+                person,
+                "Плотная",
+                PrincipalKind.HUMAN,
+                "credential-$suffix",
+                "csrf",
+                null,
+                emptySet(),
+                person,
+                CredentialKind.SESSION,
+            )
         return Seed(actor, (1..55).map { "cap-$suffix-$it" }.toSet())
     }
 

@@ -12,6 +12,7 @@ import * as membership from '../contracts/membership.js';
 import {mapSchemas} from '../contracts/maps.js';
 import {mediaSchemas} from '../contracts/media.js';
 import {agentSchemas} from '../contracts/agents.js';
+import {accessSchemas} from '../contracts/access.js';
 import {RetryJob} from '../contracts/operations.js';
 import {EventHeadResponse} from '../contracts/events.js';
 import {financeSchemas} from '../contracts/finance.js';
@@ -20,7 +21,7 @@ import {workbenchSchemas} from '../contracts/workbench.js';
 const extra={RetryJob,EventHeadResponse,
   TaskPosition:z.strictObject({baseRevision:core.Revision,status:core.TaskInput.shape.status,rank:core.TaskInput.shape.rank}),
   ViewReleaseQuery:z.strictObject({groupId:core.Id,cursor:z.string().max(3000).optional()})};
-const sources={...core,...planning,...planningResponseSchemas,...view,...workspace,...membership,...mapSchemas,...mediaSchemas,...agentSchemas,...financeSchemas,...workbenchSchemas,...extra};
+const sources={...core,...planning,...planningResponseSchemas,...view,...workspace,...membership,...mapSchemas,...mediaSchemas,...agentSchemas,...financeSchemas,...accessSchemas,...workbenchSchemas,...extra};
 const schemas:Record<string,unknown>=Object.fromEntries(Object.entries(sources).sort(([a],[b])=>a.localeCompare(b))
   .flatMap(([name,schema])=>schema instanceof z.ZodType?[[name,z.toJSONSchema(schema)]]:[]));
 schemas['Problem']={type:'object',required:['code','message','requestId'],properties:{code:{type:'string'},message:{type:'string'},requestId:{type:'string'}}};

@@ -26,9 +26,13 @@ class StaticWebController(properties: SprintiqueProperties) {
         Path.of(it).toAbsolutePath().normalize()
     }
 
-    /** The interface's own paths (docs/adr W6) load the same page; the page reads the path itself. */
+    /**
+     * The interface's own paths load the same page, which reads the path itself: the Workbench views (docs/adr W6)
+     * and `/oauth/authorize`, the consent screen for OAuth clients.
+     */
     @GetMapping(
         "/",
+        "/oauth/authorize",
         "/workbench",
         "/workbench/list",
         "/workbench/board",

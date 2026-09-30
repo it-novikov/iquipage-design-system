@@ -15,6 +15,9 @@ object Tokens {
     /** 256 random bits as 43 base64url characters. */
     fun random(): String = ByteArray(SECRET_BYTES).also(random::nextBytes).let(encoder::encodeToString)
 
+    /** A random secret with a prefix that names its kind (`spk_…`), so a leaked one is recognizable by scanners. */
+    fun prefixed(prefix: String): String = prefix + random()
+
     /** `length` uniformly random decimal digits: a code a person types from a letter. */
     fun digits(length: Int): String = buildString { repeat(length) { append(random.nextInt(DECIMAL)) } }
 

@@ -51,7 +51,7 @@ class EventController(
     @GetMapping("/api/v1/projects/{projectId}/events")
     fun events(@PathVariable projectId: String, request: HttpServletRequest): Any {
         RequestInputs.id(projectId)
-        val credential = AuthenticatedRequests.credentialOf(request)
+        val credential = requests.credentialOf(request)
         val query = QueryParameters(request, setOf("cursor", "stream"))
         val stream = query.oneOf("stream", setOf("true")) != null
         // A reconnect's last delivered event advances beyond the cursor of the original URL.
