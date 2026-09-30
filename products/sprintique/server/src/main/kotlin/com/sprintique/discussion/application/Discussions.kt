@@ -11,6 +11,7 @@ import com.sprintique.identity.domain.Capability
 import com.sprintique.problem.requireCondition
 import com.sprintique.problem.requirePresent
 import com.sprintique.task.application.Tasks
+import com.sprintique.workbench.application.AttentionRequests
 import tools.jackson.databind.JsonNode
 import tools.jackson.databind.json.JsonMapper
 import tools.jackson.databind.node.ObjectNode
@@ -256,6 +257,8 @@ object Discussions {
                 actor.id,
             )
             AuditTrail.record(tx, actor, projectId, "thread.resolution-changed", id, baseRevision + 1)
+            // A resolved question resolves the directed requests made on it, in this transaction (docs/adr W1).
+            if (resolved) AttentionRequests.resolveForThread(tx, actor, projectId, id)
             visible(actor, read(tx, projectId, id), null)
         }
     }

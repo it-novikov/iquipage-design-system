@@ -13,6 +13,7 @@ import com.sprintique.problem.requireCondition
 import com.sprintique.problem.requirePresent
 import com.sprintique.task.domain.TaskContent
 import com.sprintique.task.domain.TaskRules
+import com.sprintique.workbench.application.PersonalState
 import com.sprintique.workspace.application.Membership
 
 /** Reading and saving tasks. Parent and release changes go through planning, which previews their effects. */
@@ -182,6 +183,8 @@ object Tasks {
             id,
             saved.long("revision"),
         )
+        // The author participates in a new task from the start, privately; leaving is one command (docs/adr W5).
+        if (previous == null) PersonalState.joinCreatedTask(tx, actor, projectId, id)
         return saved(actor, saved)
     }
 

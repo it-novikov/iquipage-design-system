@@ -64,13 +64,17 @@ open class ProjectsRecord() : UpdatableRecordImpl<ProjectsRecord>(Projects.PROJE
         set(value): Unit = set(11, value)
         get(): String? = get(11) as String?
 
+    open var activitySequence: Long?
+        set(value): Unit = set(12, value)
+        get(): Long? = get(12) as Long?
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
 
     override fun key(): Record1<String?> = super.key() as Record1<String?>
 
-    constructor(id: String? = null, workspaceId: UUID? = null, name: String? = null, slug: String? = null, key: String? = null, nextTaskNumber: Int? = null, timezone: String? = null, planningRevision: Long? = null, eventSequence: Long? = null, planningDefaults: JSONB? = null, profileRevision: Int? = null, avatarAssetId: String? = null): this() {
+    constructor(id: String? = null, workspaceId: UUID? = null, name: String? = null, slug: String? = null, key: String? = null, nextTaskNumber: Int? = null, timezone: String? = null, planningRevision: Long? = null, eventSequence: Long? = null, planningDefaults: JSONB? = null, profileRevision: Int? = null, avatarAssetId: String? = null, activitySequence: Long? = null): this() {
         this.id = id
         this.workspaceId = workspaceId
         this.name = name
@@ -83,6 +87,7 @@ open class ProjectsRecord() : UpdatableRecordImpl<ProjectsRecord>(Projects.PROJE
         this.planningDefaults = planningDefaults
         this.profileRevision = profileRevision
         this.avatarAssetId = avatarAssetId
+        this.activitySequence = activitySequence
         resetTouchedOnNotNull()
     }
 }

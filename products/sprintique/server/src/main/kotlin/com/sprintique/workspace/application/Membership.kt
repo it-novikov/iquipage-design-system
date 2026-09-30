@@ -12,6 +12,7 @@ import com.sprintique.identity.domain.Capability
 import com.sprintique.problem.requireCondition
 import com.sprintique.problem.requirePresent
 import com.sprintique.token.Tokens
+import com.sprintique.workbench.application.AttentionRequests
 
 /** Who belongs to a project and how people change it: members, invitations, a person's own profile and photo. */
 object Membership {
@@ -166,6 +167,8 @@ object Membership {
                 )
             }
             if (input.role == null || input.role == "reader") {
+                // A recipient who can no longer act leaves their open requests orphaned, never silently gone.
+                AttentionRequests.orphanRecipient(tx, actor, projectId, id)
                 tx.update(
                     """
                     UPDATE auth.credentials SET revoked_at = clock_timestamp()

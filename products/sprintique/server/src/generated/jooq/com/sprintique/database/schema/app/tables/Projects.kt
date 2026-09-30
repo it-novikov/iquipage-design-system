@@ -7,6 +7,7 @@ package com.sprintique.database.schema.app.tables
 import com.sprintique.database.schema.app.App
 import com.sprintique.database.schema.app.keys.AGENT_RUNS__AGENT_RUNS_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.APPROVALS__APPROVALS_PROJECT_ID_FKEY
+import com.sprintique.database.schema.app.keys.ATTENTION_REQUESTS__ATTENTION_REQUESTS_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.AUDIT_EVENTS__AUDIT_EVENTS_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.FINANCE_ENTRY__FK_FINANCE_ENTRY__PROJECTS
 import com.sprintique.database.schema.app.keys.FINANCE_SETTINGS__FK_FINANCE_SETTINGS__PROJECTS
@@ -17,6 +18,7 @@ import com.sprintique.database.schema.app.keys.MILESTONES__MILESTONES_PROJECT_ID
 import com.sprintique.database.schema.app.keys.OUTBOX__OUTBOX_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.PLANNING_PLANS__PLANNING_PLANS_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.PLANNING_SELECTIONS__PLANNING_SELECTIONS_PROJECT_ID_FKEY
+import com.sprintique.database.schema.app.keys.PRIVATE_RECEIPTS__PRIVATE_RECEIPTS_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.PROJECTS_PKEY
 import com.sprintique.database.schema.app.keys.PROJECTS_SLUG_KEY
 import com.sprintique.database.schema.app.keys.PROJECTS_WORKSPACE_ID_ID_KEY
@@ -27,6 +29,7 @@ import com.sprintique.database.schema.app.keys.PROJECT_MEMBERS__PROJECT_MEMBERS_
 import com.sprintique.database.schema.app.keys.RELEASES__RELEASES_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.TAGS__TAGS_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.TASKS__TASKS_PROJECT_ID_FKEY
+import com.sprintique.database.schema.app.keys.TASK_ACTIVITY__TASK_ACTIVITY_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.TASK_LINKS__TASK_LINKS_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.TASK_SETTINGS_VERSIONS__TASK_SETTINGS_VERSIONS_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.TASK_SETTINGS__TASK_SETTINGS_PROJECT_ID_FKEY
@@ -34,6 +37,7 @@ import com.sprintique.database.schema.app.keys.TEMPORAL_CONSTRAINTS__TEMPORAL_CO
 import com.sprintique.database.schema.app.tables.AgentRuns.AgentRunsPath
 import com.sprintique.database.schema.app.tables.Approvals.ApprovalsPath
 import com.sprintique.database.schema.app.tables.Assets.AssetsPath
+import com.sprintique.database.schema.app.tables.AttentionRequests.AttentionRequestsPath
 import com.sprintique.database.schema.app.tables.AuditEvents.AuditEventsPath
 import com.sprintique.database.schema.app.tables.FinanceEntry.FinanceEntryPath
 import com.sprintique.database.schema.app.tables.FinanceSettings.FinanceSettingsPath
@@ -44,9 +48,11 @@ import com.sprintique.database.schema.app.tables.Milestones.MilestonesPath
 import com.sprintique.database.schema.app.tables.Outbox.OutboxPath
 import com.sprintique.database.schema.app.tables.PlanningPlans.PlanningPlansPath
 import com.sprintique.database.schema.app.tables.PlanningSelections.PlanningSelectionsPath
+import com.sprintique.database.schema.app.tables.PrivateReceipts.PrivateReceiptsPath
 import com.sprintique.database.schema.app.tables.ProjectMembers.ProjectMembersPath
 import com.sprintique.database.schema.app.tables.Releases.ReleasesPath
 import com.sprintique.database.schema.app.tables.Tags.TagsPath
+import com.sprintique.database.schema.app.tables.TaskActivity.TaskActivityPath
 import com.sprintique.database.schema.app.tables.TaskLinks.TaskLinksPath
 import com.sprintique.database.schema.app.tables.TaskSettings.TaskSettingsPath
 import com.sprintique.database.schema.app.tables.TaskSettingsVersions.TaskSettingsVersionsPath
@@ -144,6 +150,8 @@ open class Projects(
 
     val AVATAR_ASSET_ID: TableField<ProjectsRecord, String?> = createField(DSL.name("avatar_asset_id"), SQLDataType.CLOB, this, "")
 
+    val ACTIVITY_SEQUENCE: TableField<ProjectsRecord, Long?> = createField(DSL.name("activity_sequence"), SQLDataType.BIGINT.nullable(false).defaultValue(DSL.field(DSL.raw("0"), SQLDataType.BIGINT)), this, "")
+
     private constructor(alias: Name, aliased: Table<ProjectsRecord>?): this(alias, null, null, null, aliased, null, null)
     private constructor(alias: Name, aliased: Table<ProjectsRecord>?, parameters: Array<Field<*>?>?): this(alias, null, null, null, aliased, parameters, null)
     private constructor(alias: Name, aliased: Table<ProjectsRecord>?, where: Condition?): this(alias, null, null, null, aliased, null, where)
@@ -197,6 +205,18 @@ open class Projects(
 
     val approvals: ApprovalsPath
         get(): ApprovalsPath = approvals()
+
+    private lateinit var _attentionRequests: AttentionRequestsPath
+
+    fun attentionRequests(): AttentionRequestsPath {
+        if (!this::_attentionRequests.isInitialized)
+            _attentionRequests = AttentionRequestsPath(this, null, ATTENTION_REQUESTS__ATTENTION_REQUESTS_PROJECT_ID_FKEY.inverseKey)
+
+        return _attentionRequests;
+    }
+
+    val attentionRequests: AttentionRequestsPath
+        get(): AttentionRequestsPath = attentionRequests()
 
     private lateinit var _auditEvents: AuditEventsPath
 
@@ -318,6 +338,18 @@ open class Projects(
     val planningSelections: PlanningSelectionsPath
         get(): PlanningSelectionsPath = planningSelections()
 
+    private lateinit var _privateReceipts: PrivateReceiptsPath
+
+    fun privateReceipts(): PrivateReceiptsPath {
+        if (!this::_privateReceipts.isInitialized)
+            _privateReceipts = PrivateReceiptsPath(this, null, PRIVATE_RECEIPTS__PRIVATE_RECEIPTS_PROJECT_ID_FKEY.inverseKey)
+
+        return _privateReceipts;
+    }
+
+    val privateReceipts: PrivateReceiptsPath
+        get(): PrivateReceiptsPath = privateReceipts()
+
     private lateinit var _projectMembers: ProjectMembersPath
 
     fun projectMembers(): ProjectMembersPath {
@@ -353,6 +385,18 @@ open class Projects(
 
     val tags: TagsPath
         get(): TagsPath = tags()
+
+    private lateinit var _taskActivity: TaskActivityPath
+
+    fun taskActivity(): TaskActivityPath {
+        if (!this::_taskActivity.isInitialized)
+            _taskActivity = TaskActivityPath(this, null, TASK_ACTIVITY__TASK_ACTIVITY_PROJECT_ID_FKEY.inverseKey)
+
+        return _taskActivity;
+    }
+
+    val taskActivity: TaskActivityPath
+        get(): TaskActivityPath = taskActivity()
 
     private lateinit var _taskLinks: TaskLinksPath
 
