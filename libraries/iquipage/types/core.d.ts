@@ -1,5 +1,5 @@
 /** Supported core browser entry. Does not register graph, roadmap, crop, or whiteboard. */
-export declare const version:'0.6.0-vnext.24';
+export declare const version:'0.6.0-vnext.25';
 export declare function registerCore():void;
 export declare function registerComponents():void;
 export declare function registerDateFields():void;
@@ -15,7 +15,10 @@ export declare function escapeHTML(value:unknown):string;
 /** Tag colour attributes: a palette tone name, or any "#RRGGBB" (derived, theme-aware fill and text; no inline styles). */
 export declare function tagToneAttributes(tone:string):string;
 export interface AvatarPerson {name:string;id?:string;}
-export declare function notify(options:{message:string;description?:string;tone?:'info'|'success'|'warning'|'danger';duration?:number;action?:{label:string;run:()=>void}}):void;
+/** Shows a toast. It leaves by itself after 5 s (info, success), 8 s (warning), 10 s (danger) or 10 s with a shortcut
+ * action; an undo action (`action.undo`) stays until dismissed. `duration` overrides the time in ms, 0 keeps the toast,
+ * a malformed value falls back to the default. Hover, focus and a hidden tab pause the countdown. Returns a function that dismisses the toast. */
+export declare function notify(options:{message:string;description?:string;tone?:'info'|'success'|'warning'|'danger';duration?:number;action?:{label:string;run:()=>void;undo?:boolean}}):()=>void;
 /** true when the OS asks for reduced motion or <html data-motion="reduced"> is set; CSS zeroes the motion tokens on the same two signals. */
 export declare function motionReduced():boolean;
 /** A motion token in milliseconds: motionMs('enter') reads --iq-motion-enter, a '--' name is read as is. 0 under reduced motion. */

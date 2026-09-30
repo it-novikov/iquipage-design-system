@@ -16,8 +16,41 @@ function safeMarkdownURL(value) {
  // Do not allow whitespace, controls, a schemeless origin, credentials or backslashes.
  if(!source || /[\s\u0000-\u001f\u007f-\u009f\\]/.test(source))return null;
  if(/^#[A-Za-z0-9_\-:.\u0080-\uffff]+$/u.test(source))return source;
- if(!/^https:\/\//i.test(source))return null;
- try {const u=new URL(source);return u.protocol==='https:'&&u.hostname&&!u.username&&!u.password?u.href:null;}catch{return null;}
+ // A mail link names one or more addresses and may carry a subject; it never navigates the page.
+ if(/^mailto:/i.test(source))return /^mailto:[^@\/?#<>"'`]+@[^@\/?#<>"'`]+(?:,[^@\/?#<>"'`]+@[^@\/?#<>"'`]+)*(?:\?[^<>"'`]*)?$/i.test(source)?'mailto:'+source.slice(7):null;
+ // Web links: https and plain http (a pasted intranet or legacy address must stay a link); nothing is loaded.
+ if(!/^https?:\/\//i.test(source))return null;
+ try {const u=new URL(source);return (u.protocol==='https:'||u.protocol==='http:')&&u.hostname&&!u.username&&!u.password?u.href:null;}catch{return null;}
+}
+/** Web links open in a new tab without referrer; an anchor stays in the page and a mail link opens the mail app. */
+const linkTarget=url=>url[0]==='#'?'':/^mailto:/i.test(url)?' rel="noopener noreferrer"':' target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer"';
+const PASTE_LIMIT=2048;
+/** Brackets that stay open in a run of text (escaped ones do not count): >0 means an unclosed "[". */
+const openBrackets=text=>{let depth=0;for(let i=0;i<text.length;i++){if(text[i]==='\\'){i++;continue;}if(text[i]==='[')depth++;else if(text[i]===']'&&depth>0)depth--;else if(text[i]===']')return -1;}return depth;};
+/** How pasted clipboard text lands in a Markdown source, the way common editors treat a pasted link.
+ * A single http(s) or mailto URL pasted over a selection wraps it as [selection](url); pasted with nothing
+ * selected it becomes the autolink <url>, whose text is the URL itself. Returns the replacement for the
+ * [start, end) range of `source` as given (a textarea value is always LF), or null when the paste stays plain:
+ * anything but one safe link; a caret inside code, a link label, a link destination or an autolink; a selection
+ * that is a URL, spans lines, or holds code or link syntax (editing an existing link keeps its structure). */
+function markdownPasteLink(source,start,end,pasted){
+ const text=String(pasted??'').trim();
+ if(!text||text.length>PASTE_LIMIT||!/^(?:https?:\/\/|mailto:)/i.test(text))return null;
+ const url=safeMarkdownURL(text);
+ if(!url||url[0]==='#')return null;
+ const value=String(source??'');
+ const from=Math.max(0,Math.min(start|0,end|0,value.length)),to=Math.min(value.length,Math.max(start|0,end|0));
+ const before=value.slice(0,from),selected=value.slice(from,to),line=before.slice(Math.max(before.lastIndexOf('\n'),before.lastIndexOf('\r'))+1);
+ const fences=before.split(/\r\n?|\n/).filter(row=>fence(row)).length;
+ if(fences%2||(line.match(/`/g)||[]).length%2||openBrackets(line)>0||/\]\([^)]*$|<[^>]*$/.test(line))return null;
+ // The link target keeps what was pasted; the normalized form stands in only where the text cannot be one.
+ const target=/[<>]/.test(text)?url:text;
+ if(!selected.trim())return {text:`<${target}>`,start:from,end:to};
+ if(/[\r\n`<>]|\]\(/.test(selected)||openBrackets(selected)!==0||safeMarkdownURL(selected))return null;
+ // Balanced brackets are escaped; a trailing lone backslash would escape the closing bracket, so it is doubled.
+ let label=selected.replace(/\\?([\[\]])/g,'\\$1');
+ if(/(^|[^\\])(\\\\)*\\$/.test(label))label+='\\';
+ return {text:`[${label}](${target.replace(/[()]/g,'\\$&')})`,start:from,end:to};
 }
 function findEnd(text, start, open, close) {
  let depth=1;
@@ -52,7 +85,7 @@ function inline(text,depth=0,allowLinks=true){
      const match=/^(<[^>]*>|.*?)(?:\s+"([^"]*)")?$/.exec(raw);
      const destination=(match?.[1]||'').replace(/^<|>$/g,'').replace(/\\([()])/g,'$1'),url=safeMarkdownURL(destination);
      const body=inline(label|| (image?'Изображение':'Ссылка'),depth+1,false);
-     const rendered=url?`<a href="${esc(url)}"${url[0]==='#'?'':' target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer"'}${match?.[2]?` title="${esc(match[2])}"`:''}>${body}</a>`:body;
+     const rendered=url?`<a href="${esc(url)}"${linkTarget(url)}${match?.[2]?` title="${esc(match[2])}"`:''}>${body}</a>`:body;
      out+=image?`<span class="md-image-reference">${rendered}<span class="md-image-note"> (изображение по ссылке)</span></span>`:rendered;
      i=finish+1;continue;
     }
@@ -61,7 +94,7 @@ function inline(text,depth=0,allowLinks=true){
   if(allowLinks&&text[i]==='<'&&work>0&&!(closed.get('>')<=i)){
    const end=text.indexOf('>',i+1);if(end<0)closed.set('>',i);else spend(end-i);
    const url=end<0?null:safeMarkdownURL(text.slice(i+1,end));
-   if(url&&url[0]!=='#'){out+=`<a href="${esc(url)}" target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer">${esc(text.slice(i+1,end))}</a>`;i=end+1;continue;}
+   if(url&&url[0]!=='#'){out+=`<a href="${esc(url)}"${linkTarget(url)}>${esc(text.slice(i+1,end))}</a>`;i=end+1;continue;}
   }
   let matched=false;
   if(work>0)for(const [mark,tag] of [['**','strong'],['__','strong'],['~~','del'],['*','em'],['_','em']]){
@@ -155,4 +188,4 @@ function safeMarkdown(source,options={}) {
  work=8*value.length+100000;
  return renderBlocks(value.replace(/\r\n?/g,'\n').replace(/\t/g,'    ').split('\n'),level);
 }
-Object.assign(exports,{safeMarkdown,safeMarkdownURL,MARKDOWN_MAX_LENGTH:LIMIT});
+Object.assign(exports,{safeMarkdown,safeMarkdownURL,markdownPasteLink,MARKDOWN_MAX_LENGTH:LIMIT});

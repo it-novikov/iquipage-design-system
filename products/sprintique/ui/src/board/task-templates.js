@@ -46,6 +46,15 @@ export function instantiateTaskTemplate(settings,type='task') {
   result.checklists=result.checklists.map(list=>({...list,id:uid('checklist'),items:list.items.map(item=>({...item,id:uid('check'),done:false}))}));
   return result;
 }
+/** Whitespace-insensitive form of a template text: line breaks, indentation and trailing spaces are not edits. */
+export function normalizeTemplateText(text){return String(text??'').replace(/\s+/g,' ').trim();}
+/** SPR-12: a new task keeps no description made only of the template text that was inserted and never touched.
+ *  `template` is that exact inserted text (null when none was inserted); any edit keeps the whole description. */
+export function withoutUntouchedTemplate(description,template){
+  if(template==null)return description;
+  const inserted=normalizeTemplateText(template);
+  return inserted&&normalizeTemplateText(description)===inserted?'':description;
+}
 /** Missing defaults only; caller-authored content and subsequent type edits are never overwritten. */
 export function applyCreationTemplate(task,settings) {
   if(!settings || task.templateVersion)return task;
