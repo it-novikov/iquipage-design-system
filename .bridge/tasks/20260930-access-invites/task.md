@@ -8,7 +8,7 @@ owner: it-novikov
 branch: feature/access-invites
 base: main
 created: 2026-09-30
-updated: 2026-09-30T13:38:13Z
+updated: 2026-09-30T13:53:09Z
 links:
 ---
 
@@ -35,11 +35,11 @@ links:
 
 ## Передача
 
-- **Состояние:** Миграции 030–032 и сервер части I написаны; gradle check и интеграционные тесты Kotlin зелёные (30 тестов)
-- **Сейчас:** S2/S3 — HTTP-тесты и интерфейс
-- **Дальше:** обновить tests/membership.test.ts под новые приглашения, написать tests/access.test.ts, затем web
+- **Состояние:** Сервер и тесты закоммичены (df76de9): gradle check + 32 интеграционных Kotlin + 155 HTTP зелёные; интерфейс в работе у субагента; R1 бэкенда идёт
+- **Сейчас:** S4 — интерфейс, R1
+- **Дальше:** принять интерфейс, проверить в браузере (PREVIEW_PORT=4331, свой Mailpit в colima-sprintique-vnext-qa), исправить R1
 - **Незакоммичено:** нет
-- **Рабочая копия:** 79 файл(ов): products/sprintique/contracts/membership.ts, products/sprintique/scripts/export-contracts.ts, products/sprintique/server/src/generated/jooq/com/sprintique/database/schema/app/App.kt, products/sprintique/server/src/generated/jooq/com/sprintique/database/schema/app/indexes/Indexes.kt, products/sprintique/server/src/generated/jooq/com/sprintique/database/schema/app/keys/Keys.kt, products/sprintique/server/src/generated/jooq/com/sprintique/database/schema/app/tables/AuditEvents.kt, products/sprintique/server/src/generated/jooq/com/sprintique/database/schema/app/tables/ProjectMembers.kt, products/sprintique/server/src/generated/jooq/com/sprintique/database/schema/app/tables/Projects.kt, products/sprintique/server/src/generated/jooq/com/sprintique/database/schema/app/tables/WorkspaceAudit.kt, products/sprintique/server/src/generated/jooq/com/sprintique/database/schema/app/tables/WorkspaceMembers.kt, products/sprintique/server/src/generated/jooq/com/sprintique/database/schema/app/tables/Workspaces.kt, products/sprintique/server/src/generated/jooq/com/sprintique/database/schema/app/tables/records/AuditEventsRecord.kt и ещё 67 (53 files changed, 1645 insertions(+), 860 deletions(-)) · HEAD b5f28bc
+- **Рабочая копия:** нет · HEAD b81e1b6
 - **Ловушки:**
   - Trigger app.compile_project_member компилирует права при каждой записи project_members; код без preset_id идёт по пути role→системный пресет
 
