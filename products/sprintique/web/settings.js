@@ -4,6 +4,10 @@ import {settingsDialog,timeZoneField} from '../ui/planning/src/release-dialogs.j
 import {mountMembers} from './members.js';
 import {mountWorkspaceMembers} from './workspace-members.js';
 import {mountAgents} from './agents.js';
+import {mountAccess} from './access.js';
+import {mountPresets} from './presets.js';
+import {mountInvitations} from './invitations.js';
+import {can,projectPermissions} from './permissions.js';
 import {mountOperations} from './operations.js';
 import {pickProjectAvatar,pickPersonalPhoto} from './project-profile.js';
 import {dialog,input} from '../ui/src/ui.js';
@@ -18,8 +22,9 @@ export async function mountSettings(root,{repository,project,adapter,onChanged=(
  const client=repository.client,abort=new AbortController(),preferences=appearance(),phone=matchMedia('(max-width:760px)'),documentTitle=document.title;
  let workspace=null;
  try{workspace=await client.request('/workspaces/'+encodeURIComponent(project.workspaceId));}catch{/* "О пространстве" shows its own error; the other sections do not depend on it. */}
- const groups=visibleSettingsGroups(project.role,workspace?.role||''),counts={};
- let mounted=null,closed=false,modal=null,busy=false,dirty=false,current='',resetForm=()=>{},adminNames=null;
+ const own=()=>projectPermissions(project),space=()=>workspace?.permissions||project.workspacePermissions||[];
+ const groups=visibleSettingsGroups(own(),space()),counts={},lockNames=new Map();
+ let mounted=null,closed=false,modal=null,busy=false,dirty=false,current='',resetForm=()=>{};
  root.innerHTML=`<iq-settings-layout view="section"><div slot="navigation"><p class="iq-settings-title">Настройки</p><label class="product-nav-search iq-settings-search">${icon('search',17)}<input type="search" placeholder="Найти настройку" aria-label="Найти раздел настроек" data-settings-search autocomplete="off"></label><div data-settings-navigation></div><p class="iq-settings-nav-empty" data-settings-empty role="status" hidden>Ничего не найдено. Попробуйте другое слово.</p></div><header slot="heading" class="iq-page-heading iq-settings-heading" data-settings-heading></header><div class="iq-settings-stack" data-settings-content></div><p class="sr-only" role="status" data-settings-announce></p></iq-settings-layout>`;
  const layout=root.querySelector('iq-settings-layout'),nav=root.querySelector('[data-settings-navigation]'),heading=root.querySelector('[data-settings-heading]'),content=root.querySelector('[data-settings-content]'),search=root.querySelector('[data-settings-search]');
  const announce=text=>{const el=root.querySelector('[data-settings-announce]');el.textContent='';requestAnimationFrame(()=>{el.textContent=text;});};
@@ -31,7 +36,7 @@ export async function mountSettings(root,{repository,project,adapter,onChanged=(
  /** Things that need someone's decision are counted in the navigation; zero shows nothing. */
  async function loadCounts(){
   const base='/projects/'+encodeURIComponent(project.id);
-  const [approvals,operations]=await Promise.all([client.request(base+'/approvals').catch(()=>null),project.role==='admin'?client.request(base+'/operations').catch(()=>null):null]);
+  const [approvals,operations]=await Promise.all([client.request(base+'/approvals').catch(()=>null),can(project,'project.access')?client.request(base+'/operations').catch(()=>null):null]);
   if(closed)return;
   const pending=Number.isFinite(approvals?.pendingCount)?approvals.pendingCount:(approvals?.items||[]).filter(a=>a.status==='proposed'&&new Date(a.expiresAt)>new Date()).length;
   const failed=operations?.counts?.find(c=>c.state==='failed')?.count||0;
@@ -46,12 +51,12 @@ export async function mountSettings(root,{repository,project,adapter,onChanged=(
   if(!dirty)return true;
   return new Promise(resolve=>{let discard=false;const element=track(dialog({title:'Уйти без сохранения?',description:'Изменения в полях пропадут.',submitLabel:'Не сохранять',onSubmit:()=>{discard=true;resetForm();dirty=false;}}));element.addEventListener('iq-close',()=>resolve(discard),{once:true});});
  }
- /** People who cannot change project settings see who can, instead of disabled controls. */
- async function projectLock(){
-  if(project.role==='admin')return '';
-  adminNames??=client.request('/projects/'+encodeURIComponent(project.id)+'/members').then(list=>list.filter(m=>m.role==='admin'&&m.kind!=='agent').map(m=>m.name)).catch(()=>[]);
-  const names=await adminNames;
-  return s.lock(names.length>1?`Вы можете только просматривать. Изменения вносят администраторы проекта: ${names.slice(0,2).join(' и ')}.`:names.length?`Вы можете только просматривать. Изменения вносит ${names[0]}, администратор проекта.`:'Вы можете только просматривать. Изменения вносит администратор проекта.');
+ /** People without the permission a section needs see who has it, instead of disabled controls. */
+ async function projectLock(permission='project.settings'){
+  if(can(project,permission))return '';
+  if(!lockNames.has(permission))lockNames.set(permission,client.request('/projects/'+encodeURIComponent(project.id)+'/members').then(list=>list.filter(m=>m.kind==='human'&&(m.permissions||[]).includes(permission)).map(m=>m.name)).catch(()=>[]));
+  const names=await lockNames.get(permission);
+  return s.lock(names.length>1?`Вы можете только просматривать. Изменения вносят ${names.slice(0,2).join(' и ')}.`:names.length?`Вы можете только просматривать. Изменения вносит ${names[0]}.`:'Вы можете только просматривать. Изменения вносит администратор проекта.');
  }
  function renderHeading(item){
   heading.innerHTML=`<a class="iq-btn ghost sm iq-page-heading-back" href="#settings" data-settings-index>${icon('left',17)}<span>Настройки</span></a><div class="iq-page-heading-copy"><h1 tabindex="-1" data-section-title>${esc(item.label)}</h1><p class="iq-page-heading-lead">${esc(item.description)}</p></div><div class="iq-page-heading-tools" data-heading-tools></div>`;
@@ -86,14 +91,14 @@ export async function mountSettings(root,{repository,project,adapter,onChanged=(
  function syncAppearance(){if(current!=='appearance'||closed)return;renderAppearance(heading.querySelector('[data-heading-tools]'));announce(preferences.persistent?'Сохранено в этом браузере':'Настройки применены до перезагрузки');}
 
  async function renderAccount(){
-  const data=await client.request('/profile');if(closed)return;
-  const role=`${roleName(project.role)} в проекте ${project.name}`;
+  const [data,people]=await Promise.all([client.request('/profile'),client.request('/projects/'+encodeURIComponent(project.id)+'/members').catch(()=>[])]);if(closed)return;
+  const preset=people.find(m=>m.id===data.id)?.presetName||roleName(project.role),role=`${preset} в проекте ${project.name}`;
   const photo=client.avatarUrl?.(data.id,data.avatarRevision)||null;
   const photoRow=s.row({media:s.avatar(data.name,data.id,photo),title:'Фото профиля',meta:['Видно команде рядом с вашим именем: в задачах, обсуждениях и списке участников.'],
     actions:ui.btn(photo?'Заменить':'Загрузить','secondary sm','image','data-settings-action="photo-upload"')+(photo?ui.btn('Убрать','ghost sm','','data-settings-action="photo-remove"'):'')});
   content.innerHTML=formShell(s.group({title:'Как вас видят',body:s.panel(s.row({media:s.avatar(data.name,data.id,photo),title:data.name,meta:[esc(role)],attrs:'data-profile-preview'})+photoRow+s.fieldRow('Отображаемое имя','Имя и фамилия, как к вам обращаются в команде.',input('name','Отображаемое имя',data.name,{required:true,maxlength:100})))}))
    +(data.email?s.group({title:'Учётная запись',description:'Почта приходит из учётной записи организации и меняется там.',body:s.panel(s.facts([['Почта',esc(data.email)]]))}):'')
-   +s.group({title:'Ваши роли',description:'Роли выдают администраторы проекта и пространства.',body:s.panel(s.facts([[`Проект ${project.name}`,esc(roleName(project.role))],...(workspace?[[`Пространство ${workspace.name}`,esc(workspaceRoleName(workspace.role))]]:[])]))});
+   +s.group({title:'Ваши роли',description:'Пресет в проекте и роль в пространстве выдают те, кто управляет участниками.',body:s.panel(s.facts([[`Проект ${project.name}`,`${esc(preset)}<small>Пресет прав</small>`],...(workspace?[[`Пространство ${workspace.name}`,esc(workspaceRoleName(workspace.role))]]:[])]))});
   const form=content.querySelector('form'),field=form.querySelector('[name=name]'),preview=form.querySelector('[data-profile-preview] .iq-settings-row-title');
   field.addEventListener('input',()=>{preview.textContent=field.value.trim()||data.name;});
   bindForm(form,{read:()=>({name:field.value.trim()}),after:renderAccount,save:async({name})=>{if(!name)throw Error('Введите имя.');await client.request('/profile','PATCH',{baseRevision:data.revision,name});}});
@@ -105,7 +110,7 @@ export async function mountSettings(root,{repository,project,adapter,onChanged=(
  }
  async function renderProfile(){
   const base='/projects/'+encodeURIComponent(project.id)+'/profile',data=await client.request(base);if(closed)return;
-  const canEdit=project.role==='admin',address=new URL('/?project='+encodeURIComponent(data.slug),location.origin).href;
+  const canEdit=can(project,'project.settings'),address=new URL('/?project='+encodeURIComponent(data.slug),location.origin).href;
   const avatarRow=s.row({media:`<span class="iq-avatar sq-project-avatar" data-project-avatar aria-hidden="true">${esc(data.name.slice(0,1).toUpperCase())}</span>`,title:'Аватар проекта',meta:['Помогает отличать проекты в переключателе.'],
    actions:canEdit?ui.btn(data.avatarAssetId?'Заменить':'Загрузить','secondary sm','image','data-settings-action="avatar-upload"')+(data.avatarAssetId?ui.btn('Убрать','ghost sm','','data-settings-action="avatar-remove"'):''):''});
   const links=s.group({title:'Ссылки на задачи',description:'Не меняются, чтобы старые ссылки продолжали работать.',body:s.panel(s.facts([['Префикс задач',`${s.copyValue(data.key,'Скопировать префикс')}<small>Например, ${esc(data.key)}-128</small>`],['Адрес проекта',s.copyValue(address,'Скопировать адрес проекта')]]))});
@@ -127,27 +132,36 @@ export async function mountSettings(root,{repository,project,adapter,onChanged=(
   async function workspaceProjects(data){
    let list=[];try{list=await client.request('/workspaces/'+encodeURIComponent(project.workspaceId)+'/projects');}catch{return '';}
    const rows=list.map(p=>s.row({media:s.tile('folder'),title:p.name,titleExtra:p.id===project.id?s.badge('Открыт'):'',meta:[`<code class="iq-settings-code">${esc(p.key)}</code>`,esc(plural(p.members,['участник','участника','участников']))],aside:p.role?esc(roleName(p.role)):s.badge('Нет доступа')})).join('');
-   return s.group({title:'Проекты',count:list.length,description:data.role==='admin'?'Все проекты пространства. Доступ к задачам выдаётся в настройках проекта.':'Проекты пространства, в которых вы участвуете.',body:s.panel(rows||s.empty({title:'Проектов пока нет',glyph:'folder'}))});
+   return s.group({title:'Проекты',count:list.length,description:(data.permissions||[]).includes('projects.oversee')?'Все проекты пространства. Доступ к задачам выдаётся в настройках проекта.':'Проекты пространства, в которых вы участвуете.',body:s.panel(rows||s.empty({title:'Проектов пока нет',glyph:'folder'}))});
   }
+ /** Links to the workspace's people sections the person may open. */
+ function workspacePeople(data){
+  const has=id=>(data.permissions||[]).includes(id),rows=[
+   has('workspace.people')?s.row({media:s.tile('users'),title:'Участники пространства',meta:['Роли в пространстве, гости и правила.'],href:'#settings/workspace-members',attrs:'data-settings-section="workspace-members"'}):'',
+   s.row({media:s.tile('sliders'),title:'Пресеты прав',meta:['Наборы прав, с которых начинается доступ в проектах.'],href:'#settings/presets',attrs:'data-settings-section="presets"'}),
+   has('workspace.invite')?s.row({media:s.tile('send'),title:'Приглашения',meta:['Письма и ссылки-приглашения.'],href:'#settings/invitations',attrs:'data-settings-section="invitations"'}):''].join('');
+  return s.group({title:'Люди и права',body:s.panel(rows)});
+ }
  async function renderWorkspace(){
   const base='/workspaces/'+encodeURIComponent(project.workspaceId),data=await client.request(base);if(closed)return;workspace=data;
-  if(data.role!=='admin'){content.innerHTML=s.lock('Вы можете только просматривать. Настройки пространства меняет его администратор.')+s.group({title:'Основное',body:s.panel(s.facts([['Название пространства',esc(data.name)],['Часовой пояс',esc(data.timezone)]]))})+await workspaceProjects(data);return;}
+  const people=workspacePeople(data);
+  if(!(data.permissions||[]).includes('workspace.settings')){content.innerHTML=s.lock('Вы можете только просматривать. Настройки пространства меняет его администратор.')+s.group({title:'Основное',body:s.panel(s.facts([['Название пространства',esc(data.name)],['Часовой пояс',esc(data.timezone)]]))})+await workspaceProjects(data)+people;return;}
   content.innerHTML=formShell(s.group({title:'Основное',body:s.panel(s.fieldRow('Название пространства','Видно в переключателе проектов.',input('name','Название пространства',data.name,{required:true,maxlength:100}))+s.fieldRow('Часовой пояс','По умолчанию для новых проектов и дат.',timeZoneField('timezone','Часовой пояс',data.timezone)))}))
    +await workspaceProjects(data)
-   +s.group({title:'Люди',body:s.panel(s.row({media:s.tile('users'),title:'Участники пространства',meta:['Роли в пространстве и его состав.'],href:'#settings/workspace-members',attrs:'data-settings-section="workspace-members"'}))});
+   +people;
   const form=content.querySelector('form'),name=form.querySelector('[name=name]'),zone=()=>String(form.querySelector('iq-combobox[name=timezone]')?.value||data.timezone).trim();
   bindForm(form,{read:()=>({name:name.value.trim(),timezone:zone()}),after:renderWorkspace,save:async({name,timezone})=>{if(!name)throw Error('Введите название пространства.');await client.request(base,'PATCH',{baseRevision:data.revision,name,timezone});}});
  }
 
  async function renderPlanning(tools){
   const data=await adapter.settings({projectId:project.id});if(closed)return;
-  const canEdit=project.role==='admin',[format,hint]=formats[data.format]||[data.format,''];
+  const canEdit=can(project,'project.settings'),[format,hint]=formats[data.format]||[data.format,''];
   tools.innerHTML=canEdit?ui.btn('Изменить','secondary sm','','data-settings-action="planning"'):'';
   content.innerHTML=await projectLock()+s.group({title:'Новые релизы',description:'Эти значения предлагаются при создании релиза. Даты текущих релизов не изменятся.',body:s.panel(s.facts([['Формат',`${esc(format)}<small>${esc(hint)}</small>`],['Длительность спринта',esc(plural(data.days||14,['день','дня','дней']))],['Часовой пояс',data.timeZoneInherited?`${esc(data.timeZone||'UTC')}<small>Как в пространстве</small>`:esc(data.timeZone||'UTC')]]))});
  }
 
  async function select(section,{historyMode='push',force=false}={}){
-  section=settingsSection('#settings/'+section,project.role,workspace?.role||'');
+  section=settingsSection('#settings/'+section,own(),space());
   if(section===current&&!force){view();return true;}
   if(!await canLeave())return false;busy=true;
   try{
@@ -161,12 +175,16 @@ export async function mountSettings(root,{repository,project,adapter,onChanged=(
    else if(section==='workspace')await renderWorkspace();
    else if(section==='planning')await renderPlanning(tools);
    else{
-    const props={repository,project,tools,embedded:true,notice:section==='workspace-members'?'':await projectLock(),onCounts:()=>void loadCounts()};
+    const needs={members:'members.manage',operations:'project.access',tags:'project.settings',templates:'project.settings'}[section];
+    const props={repository,project,tools,embedded:true,notice:needs?await projectLock(needs):'',onCounts:()=>void loadCounts()};
     if(section==='members')mounted=await mountMembers(content,props);
+    else if(section==='access')mounted=await mountAccess(content,props);
+    else if(section==='presets')mounted=await mountPresets(content,{...props,workspace});
+    else if(section==='invitations')mounted=await mountInvitations(content,props);
     else if(section==='agents')mounted=await mountAgents(content,props);
     else if(section==='operations')mounted=await mountOperations(content,props);
     else if(section==='workspace-members')mounted=await mountWorkspaceMembers(content,{...props,workspace});
-    else mounted=await mountProjectTaskSettings(content,{...props,section,canManage:project.role==='admin'});
+    else mounted=await mountProjectTaskSettings(content,{...props,section,canManage:can(project,'project.settings')});
    }
    if(closed){mounted?.destroy();return false;}
    if(historyMode==='push')heading.querySelector('h1').focus({preventScroll:true});
@@ -197,10 +215,10 @@ export async function mountSettings(root,{repository,project,adapter,onChanged=(
  window.addEventListener('sprintique-appearance-change',()=>{if(current==='appearance'&&!content.contains(document.activeElement))syncAppearance();},{signal:abort.signal});
  phone.addEventListener('change',view,{signal:abort.signal});
  const unload=event=>{if(dirty){event.preventDefault();event.returnValue='';}};window.addEventListener('beforeunload',unload,{signal:abort.signal});
- await select(settingsSection(location.hash,project.role,workspace?.role||''),{historyMode:phone.matches&&location.hash==='#settings'?'none':'replace'});
+ await select(settingsSection(location.hash,own(),space()),{historyMode:phone.matches&&location.hash==='#settings'?'none':'replace'});
  void loadCounts();
  return {get routeHash(){return phone.matches&&location.hash==='#settings'?'#settings':'#settings/'+current;},
-  navigateSettings:async()=>{if(location.hash==='#settings'&&phone.matches){if(!await canLeave())return false;showIndex();return true;}const ok=await select(settingsSection(location.hash,project.role,workspace?.role||''),{historyMode:'none'});history.replaceState(null,'','#settings/'+current);return ok;},
+  navigateSettings:async()=>{if(location.hash==='#settings'&&phone.matches){if(!await canLeave())return false;showIndex();return true;}const ok=await select(settingsSection(location.hash,own(),space()),{historyMode:'none'});history.replaceState(null,'','#settings/'+current);return ok;},
   closeTask:canLeave,readyToLeave:()=>!busy&&!modal&&!dirty&&(!mounted||mounted.readyToLeave()),
   destroy(){closed=true;abort.abort();mounted?.destroy();modal?.close(true);document.title=documentTitle;root.replaceChildren();}};
 }

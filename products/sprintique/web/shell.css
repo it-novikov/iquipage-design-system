@@ -36,3 +36,42 @@
 /* Project avatar in settings rows: the same rounded square as in the project switcher. */
 .iq-settings-row-media .sq-project-avatar{width:40px;height:40px;border-radius:var(--iq-radius-sm);overflow:hidden;font-size:var(--iq-type-interface-size);font-weight:600}
 .sq-project-avatar img{width:100%;height:100%;object-fit:cover;display:block}
+/* Invitation context on the sign-in screen: when the link works, and for which address. */
+.sign-in-invite{display:grid;gap:var(--iq-space-2);justify-items:start;color:var(--iq-muted);font-size:var(--iq-type-caption-size)}
+.sign-in-invite p{display:flex;align-items:center;gap:var(--iq-space-2);margin:0}
+/* Access screens: the DS drawer at the permission editor's width, full screen on a phone. */
+.sq-drawer .map-modal.iq-drawer{width:min(664px,100vw);height:100dvh;max-height:100dvh;margin:0 0 0 auto;border-radius:0}
+.sq-drawer .map-dialog-form{height:100dvh;max-height:100dvh}
+.sq-footer-note{margin-right:auto;color:var(--iq-muted);font-size:var(--iq-type-caption-size)}
+.sq-footer-start{margin-right:auto}
+.sq-access-diff,.sq-access-summary{display:inline-flex;flex-wrap:wrap;align-items:center;gap:var(--iq-space-2)}
+.sq-access-summary{display:flex;padding:var(--iq-space-3) var(--iq-space-5);border-top:1px solid var(--iq-line)}
+.sq-access-summary:focus-visible{outline:2px solid var(--iq-focus);outline-offset:-2px}
+.sq-access-summary>.iq-btn{margin-left:auto}
+.map-dialog-body>.sq-access-summary{padding:0;border-top:0}
+.sq-perm-group{display:grid;gap:var(--iq-space-2)}
+.sq-perm-group h3{margin:0;font-size:var(--iq-type-label-size);font-weight:600;color:var(--iq-muted)}
+.sq-perm-catalog{display:grid;gap:var(--iq-space-5)}
+.sq-perm-hint{display:inline-flex;align-items:center;gap:var(--iq-space-1);color:var(--iq-muted)}
+.sq-perm-hint[data-tone=note]{color:var(--iq-info)}
+.sq-perm-mark{display:grid;place-items:center;width:28px;height:28px;border-radius:var(--iq-radius-sm);background:var(--iq-recessed);color:var(--iq-muted)}
+.sq-perm-mark[data-on=true]{background:var(--iq-success-bg);color:var(--iq-success)}
+.sq-preset-aside{display:inline-flex;align-items:center;gap:var(--iq-space-2);flex-wrap:wrap;justify-content:flex-end}
+.sq-owner-mark{display:inline-flex;align-items:center;gap:var(--iq-space-2);font-weight:600}
+/* Invite dialog: addresses as removable tags, the projects as a two-column list of checkboxes. */
+.sq-address-field{min-height:48px;background:var(--iq-field-bg)}
+.sq-address-field[data-invalid]{border-color:var(--iq-danger)}
+.sq-address-field:focus-within{border-color:var(--iq-focus);box-shadow:inset 0 0 0 1px var(--iq-focus)}
+.sq-address-chips{display:contents}
+.sq-address-field input{flex:1 1 160px;min-width:120px;font:inherit;color:var(--iq-ink)}
+.sq-invite-preset{display:grid;gap:var(--iq-space-3)}
+.sq-invite-preset-head{display:flex;align-items:center;justify-content:space-between;gap:var(--iq-space-3);flex-wrap:wrap}
+.sq-invite-projects{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--iq-space-2) var(--iq-space-4);margin:0;padding:var(--iq-space-3) var(--iq-space-4);border:1px solid var(--iq-line);border-radius:var(--iq-radius-md)}
+.sq-invite-controls{display:flex;align-items:center;justify-content:space-between;gap:var(--iq-space-3);flex-wrap:wrap}
+.sq-invite-search{flex:0 1 280px}
+/* Read-only matrix: the first column stays while the permissions scroll sideways. */
+.sq-matrix{overflow-x:auto;max-width:100%}
+.sq-matrix th small{display:block;color:var(--iq-muted);font-weight:400}
+.sq-matrix tbody th,.sq-matrix thead th:first-child{position:sticky;left:0;background:var(--iq-raised);z-index:1;text-align:left}
+.sq-matrix td{text-align:center;color:var(--iq-success)}
+@media(max-width:760px){.sq-invite-projects{grid-template-columns:minmax(0,1fr)}.sq-invite-search{flex:1 1 100%}.sq-access-summary>.iq-btn{margin-left:0}.sq-footer-note{flex-basis:100%}}

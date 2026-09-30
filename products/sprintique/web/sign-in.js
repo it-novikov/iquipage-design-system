@@ -1,6 +1,8 @@
 // Sign-in on the DS authentication screen: a code by e-mail first, then Google and Apple when the server has them.
 // Only the ways in the server reports are offered; a provider that sends the browser back with an error lands here
-// with ?sign-in-error=CODE, shown once and removed from the address.
+// with ?sign-in-error=CODE, shown once and removed from the address. An invitation link shows what it invites to.
+import {icon,escapeHTML as esc,formatDateTime} from '@iquipage/web/core';
+import {invitationSummary,invitationState,INVITATION_TOKEN} from './invitation-model.js';
 const ERRORS={
   LOGIN_CANCELLED:'Вход отменён. Выберите способ входа ещё раз.',
   LOGIN_STATE:'Страница входа устарела. Начните вход заново.',
@@ -15,8 +17,17 @@ const APPLE_MARK='<svg class="sign-in-mark" viewBox="0 0 814 1000" aria-hidden="
 
 /** Keeps a project invitation from the address across the sign-in, whichever way it goes. */
 function keepInvitation(){
-  const match=location.hash.match(/^#invite\/(invite_[A-Za-z0-9_-]{43})$/);
+  const match=location.hash.match(INVITATION_TOKEN);
   if(match)sessionStorage.setItem('sprintique.pending-invitation',match[1]);
+}
+/** What an invitation link offers, asked anonymously; null when it cannot be asked now (the sign-in still works). */
+export async function inspectInvitation(){
+  const match=location.hash.match(INVITATION_TOKEN);if(!match)return null;
+  try{
+    const response=await fetch('/api/v1/invitations/inspect',{method:'POST',headers:{'content-type':'application/json',accept:'application/json'},body:JSON.stringify({token:match[1]})});
+    if(response.status===404)return {state:'invalid'};
+    return response.ok?await response.json():null;
+  }catch{return null;}
 }
 
 async function post(url,body){
@@ -26,8 +37,16 @@ async function post(url,body){
   return answer;
 }
 
-export function mountSignIn(root,methods){
+export function mountSignIn(root,methods,invitation=null){
   keepInvitation();
+  const invited=invitation?.state==='pending',gone=invitation&&!invited?invitationState(invitation.state,invitation):null;
+  // A spent link is explained once and forgotten: after sign-in nothing tries to accept it.
+  if(gone){sessionStorage.removeItem('sprintique.pending-invitation');history.replaceState(null,'',location.pathname+location.search);}
+  const intro=invited?{heading:'Войдите, чтобы принять',description:methods.email?'Войдите с адресом из письма любым способом. Пароль не нужен: пришлём код.':'Войдите с адресом из письма.'}
+    :gone?{heading:gone[0],description:`${gone[1]} Войти в Sprintique можно как обычно.`}
+    :{heading:'Вход в Sprintique',description:methods.email?'Введите почту — мы пришлём код для входа. Пароль не нужен.':'Выберите, как войти.'};
+  const context=invited?{title:invitation.inviterName?`${invitation.inviterName} приглашает вас в «${invitation.workspaceName}»`:`Вас приглашают в «${invitation.workspaceName}»`,description:`${invitationSummary(invitation)}${invitation.presetHint?' '+invitation.presetHint:''}`}
+    :{title:'Задачи, релизы и карты идей команды — в одном месте.',description:'При первом входе аккаунт создаётся сам. Почта, Google и Apple с одним адресом ведут в один аккаунт.'};
   if(!methods.email&&!methods.google&&!methods.apple&&!methods.devLogin){
     root.innerHTML='<main class="iq-auth-stage"><section class="iq-auth-dialog"><h1>Вход не настроен</h1><p class="iq-auth-dialog-description">Администратору: настройте почту (SMTP) или вход через Google и Apple — см. раздел «Вход» в docs/operations.md.</p></section></main>';
     return;
@@ -36,14 +55,14 @@ export function mountSignIn(root,methods){
     methods.google?`<a class="iq-btn secondary lg sign-in-provider" href="/auth/login/google" data-provider>${GOOGLE_MARK}<span>Продолжить с Google</span></a>`:'',
     methods.apple?`<a class="iq-btn secondary lg sign-in-provider" href="/auth/login/apple" data-provider>${APPLE_MARK}<span>Продолжить с Apple</span></a>`:'',
   ].join('');
-  root.innerHTML=`<iq-auth-screen product="Sprintique" heading="Вход в Sprintique"
-      description="${methods.email?'Введите почту — мы пришлём код для входа. Пароль не нужен.':'Выберите, как войти.'}"
-      context-title="Задачи, релизы и карты идей команды — в одном месте."
-      context-description="При первом входе аккаунт создаётся сам. Почта, Google и Apple с одним адресом ведут в один аккаунт.">
+  root.innerHTML=`<iq-auth-screen product="Sprintique" heading="${esc(intro.heading)}" description="${esc(intro.description)}"
+      context-title="${esc(context.title)}" context-description="${esc(context.description)}">
+    ${invited?`<div slot="context" class="sign-in-invite"><span class="iq-badge soft info">Приглашение</span><p>${icon('clock',16)}<span>Действует до ${esc(formatDateTime(invitation.expiresAt))}</span></p>${invitation.email?`<p>${icon('user',16)}<span>Для ${esc(invitation.email)}</span></p>`:''}</div>`:''}
     <div slot="form" class="sign-in">
       ${methods.email?`<form class="sign-in-step" data-step="email" novalidate>
         <div class="iq-field"><label class="iq-control-label" for="sign-in-email">Почта</label>
-          <div class="iq-input-shell"><input id="sign-in-email" name="email" type="email" inputmode="email" autocomplete="email" autocapitalize="none" spellcheck="false" maxlength="254" required></div></div>
+          <div class="iq-input-shell"><input id="sign-in-email" name="email" type="email" inputmode="email" autocomplete="email" autocapitalize="none" spellcheck="false" maxlength="254" required${invited?' aria-describedby="sign-in-email-help"':''}></div>
+          ${invited?'<small class="iq-helper" id="sign-in-email-help">Адрес из приглашения. Если войдёте с другим, приглашение не примется.</small>':''}</div>
         <button class="iq-btn primary lg sign-in-submit" type="submit">Получить код</button>
       </form>
       <form class="sign-in-step" data-step="code" novalidate hidden>
@@ -86,8 +105,8 @@ export function mountSignIn(root,methods){
   function showStep(step){
     emailForm.hidden=step!=='email';codeForm.hidden=step!=='code';
     for(const node of root.querySelectorAll('.sign-in-divider,.sign-in-providers,.sign-in-dev'))node.hidden=step==='code';
-    screen.setAttribute('heading',step==='code'?'Проверьте почту':'Вход в Sprintique');
-    screen.setAttribute('description',step==='code'?`Мы отправили код на ${address}.`:'Введите почту — мы пришлём код для входа. Пароль не нужен.');
+    screen.setAttribute('heading',step==='code'?'Проверьте почту':intro.heading);
+    screen.setAttribute('description',step==='code'?`Мы отправили код на ${address}.`:intro.description);
     (step==='code'?codeInput:emailInput).focus();
   }
   async function send(){

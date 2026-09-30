@@ -1,4 +1,4 @@
-import {mountSignIn} from './sign-in.js';
+import {mountSignIn,inspectInvitation} from './sign-in.js';
 import {appearance} from './appearance.js';
 import '@iquipage/web/styles.css';
 import '../ui/src/maps.css';
@@ -16,6 +16,7 @@ import {PlanningAdapter} from './planning-adapter.js';
 import {mountPlanningHost,confirmPlanningChange,recoverPlanningAttempt} from './planning-host.js';
 import {openSearch} from './search.js';
 import {acceptPendingInvitation} from './members.js';
+import {can,accessSignature} from './permissions.js';
 import {sectionRouteHash} from './section-route.js';
 import {loadingMarkup} from '../ui/src/loading.js';
 import {mountProjectNavigation} from '../ui/planning/src/project-navigation.js';
@@ -75,8 +76,8 @@ function createWorkspace(){
 /** Sign-in offers only the ways in the server actually has; an unconfigured provider is never offered. */
 async function renderSignIn(){
   const none={email:false,google:false,apple:false,devLogin:false};
-  const methods=await fetch('/api/v1/auth/methods').then(r=>r.ok?r.json():none).catch(()=>none);
-  mountSignIn(root,methods);
+  const [methods,invitation]=await Promise.all([fetch('/api/v1/auth/methods').then(r=>r.ok?r.json():none).catch(()=>none),inspectInvitation()]);
+  mountSignIn(root,methods,invitation);
 }
 // The last opened project reopens after sign-in; a project link in the URL still wins.
 const LAST_PROJECT_KEY='sprintique.last-project:';
@@ -84,7 +85,10 @@ function lastProject(){try{return localStorage.getItem(LAST_PROJECT_KEY+session.
 // Failures are toasts, not modal walls: the message stays until read (hover or focus pauses it).
 function report(error){notify({tone:'danger',message:'Не удалось выполнить действие',description:error.message||'Повторите попытку.',duration:10000});}
 async function onboard(selectedWorkspaceId){
-  const workspaces=(await repository.client.request('/workspaces')).filter(w=>w.role==='admin');
+  // Projects are created where the person may: projects.create, or a members' workspace whose rule lets members create.
+  const all=await repository.client.request('/workspaces'),rule=async w=>(await repository.client.request('/workspaces/'+encodeURIComponent(w.id)).catch(()=>null))?.projectsCreatedBy==='members';
+  const allowed=await Promise.all(all.map(async w=>(w.permissions||[]).includes('projects.create')||['owner','admin'].includes(w.role)||w.role==='member'&&await rule(w)));
+  const workspaces=all.filter((_,i)=>allowed[i]);
   if(selectedWorkspaceId&&!workspaces.some(w=>w.id===selectedWorkspaceId))return dialog({title:'Нет доступных проектов',description:'Администратор пространства может создать проект и пригласить вас. Существующие проекты появятся после предоставления доступа.'});
   if(selectedWorkspaceId)workspaces.sort((a,b)=>(b.id===selectedWorkspaceId)-(a.id===selectedWorkspaceId));
   const form=input('name','Название проекта','',{required:true,maxlength:100})+input('slug','Адрес проекта','',{required:true,maxlength:48,placeholder:'my-product'})+input('key','Префикс задач','',{required:true,maxlength:10,placeholder:'SPR'})+
@@ -128,7 +132,7 @@ async function showProject(id,mode=location.hash.startsWith('#maps')?'maps':loca
   else if(mode==='planning')board=await mountPlanningHost(host,{repository,adapter:planningAdapter,project,viewState:viewStates.get(stateKey),onOpenBoard:()=>navigate('tasks')});
   else if(mode==='finance'){const {mountFinance}=await import('../ui/finance/src/index.js');board=await mountFinance(host,{repository,project,viewState:viewStates.get(stateKey)});}
   else if(mode==='settings'){const {mountSettings}=await import('./settings.js');board=await mountSettings(host,{repository,adapter:planningAdapter,project,onChanged:refreshHeader});}
-  else board=await mountTaskBoard(host,{repository,project,attachmentAdapter:repository.attachmentAdapter,canEdit:project.role!=='reader',canManageCatalogs:project.role==='admin',viewState:viewStates.get(stateKey)});
+  else board=await mountTaskBoard(host,{repository,project,attachmentAdapter:repository.attachmentAdapter,canEdit:can(project,'tasks.write'),canManageCatalogs:can(project,'project.settings'),viewState:viewStates.get(stateKey)});
   }finally{
     clearTimeout(timer);
     if(swap){await previous.destroy();current.remove();cover?.remove();host.classList.remove('host-view-incoming');}
@@ -140,7 +144,7 @@ async function showProject(id,mode=location.hash.startsWith('#maps')?'maps':loca
     if(change?.roleChanged){
       if(root.querySelector('[data-access-change]'))return;
       const banner=document.createElement('section');banner.dataset.accessChange='';
-      banner.innerHTML=ui.alert('Права изменились','Несохранённый текст остаётся в открытой форме. Обновите доступ, чтобы применить новую роль.','warning')+ui.btn('Обновить доступ','secondary sm');
+      banner.innerHTML=ui.alert('Права изменились','Несохранённый текст остаётся в открытой форме. Обновите доступ, чтобы применить новые права.','warning')+ui.btn('Обновить доступ','secondary sm');
       host.before(banner);
       banner.querySelector('button').onclick=()=>{void(async()=>{if(board&&!await board.closeTask())return;session=await repository.initialize();await showProject(project.id,viewMode);})().catch(report);};
       return;
@@ -148,7 +152,7 @@ async function showProject(id,mode=location.hash.startsWith('#maps')?'maps':loca
     board?.destroy();board=null;session=null;planningAdapter?.clear();
     for(const modal of document.querySelectorAll('iq-dialog'))modal.close(true);
     root.innerHTML='<main class="host-landing"><h1>Доступ изменился</h1><p>Обновите страницу, чтобы проверить доступные проекты.</p><a class="iq-btn primary" href="/">Обновить доступ</a></main>';
-  },{cursor:eventHead.cursor,role:project.role});
+  },{cursor:eventHead.cursor,access:accessSignature(project)});
   const task=parseTaskRoute(location.hash);if(task&&board.openTask)await board.openTask(task,{fromRoute:true});
   return true;
   }finally{navigating=false;}
@@ -176,7 +180,7 @@ function paletteCommands(){
     {id:'theme',label:document.documentElement.dataset.theme==='dark'?'Светлая тема':'Тёмная тема',icon:document.documentElement.dataset.theme==='dark'?'sun':'moon',keywords:'тема theme dark light',run:()=>applyTheme(document.documentElement.dataset.theme==='dark'?'light':'dark')},
     {id:'profile',label:'Профиль',hint:'Настройки',icon:'user',keywords:'имя профиль profile',run:go('settings','#settings/account')}
   ];
-  if(currentProject?.role!=='reader')commands.unshift({id:'new-task',label:'Новая задача',hint:'Создать на доске',icon:'plus',keywords:'создать задачу task new',run:async()=>{if(viewMode!=='tasks'){history.replaceState(null,'','#tasks');await navigate('tasks');}await board?.createTask?.();}});
+  if(can(currentProject,'tasks.write'))commands.unshift({id:'new-task',label:'Новая задача',hint:'Создать на доске',icon:'plus',keywords:'создать задачу task new',run:async()=>{if(viewMode!=='tasks'){history.replaceState(null,'','#tasks');await navigate('tasks');}await board?.createTask?.();}});
   return commands;
 }
 function search(){if(!session||document.querySelector('dialog[open]'))return;openSearch({client:repository.client,commands:paletteCommands(),onOpen:async item=>{

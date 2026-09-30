@@ -1,6 +1,7 @@
 import {ui,icon,escapeHTML as esc,enhance,formatDateTime,count} from '@iquipage/web/core';
 import {dialog,input,select,pretty} from '../ui/src/ui.js';
 import * as s from './settings-ui.js';
+import {can} from './permissions.js';
 
 const states={running:['В работе','info'],awaiting_approval:['Ждёт решения','warning'],completed:['Завершён','success'],failed:['Ошибка','danger'],cancelled:['Остановлен','neutral'],expired:['Срок истёк','neutral'],proposed:['Ждёт решения','warning'],approved:['Подтверждено','success'],rejected:['Отклонено','neutral']};
 const areas=[['tasks','Задачи'],['threads','Обсуждения'],['maps','Карты']];
@@ -14,7 +15,7 @@ const grantState=g=>g.revokedAt?['Отозван','neutral']:new Date(g.expiresA
 
 /** External agents only. This screen grants scoped access, never starts a shell or LLM. Proposals need a human decision. */
 export async function mountAgents(root,{repository,project,tools,onCounts=()=>{}}){
-  const client=repository.client,base='/projects/'+encodeURIComponent(project.id),abort=new AbortController(),admin=project.role==='admin';
+  const client=repository.client,base='/projects/'+encodeURIComponent(project.id),abort=new AbortController(),admin=can(project,'agents.manage');
   let closed=false,modal=null,sequence=0,runs=[],approvals=[],grants=[],names=new Map(),runCursor=null,approvalCursor=null;
   if(tools&&admin)tools.innerHTML=ui.btn('Подключить агента','primary sm','plus','data-agent-grant');
   function show(options){
@@ -28,7 +29,7 @@ export async function mountAgents(root,{repository,project,tools,onCounts=()=>{}
   const runRow=r=>s.row({media:s.tile('play'),title:r.goal,meta:[r.createdAt?`Начат ${esc(when(r.createdAt))}`:'',`Предложений ${r.usedProposals} из ${r.maxProposals}`],aside:s.badge(...states[r.state]||[r.state]),button:`data-run="${esc(r.id)}"`});
   function render(){
     if(closed)return;
-    const lock=project.role==='reader'?s.lock('Вы можете только просматривать. Решения по предложениям принимают участники и администраторы.'):'';
+    const lock=can(project,'approvals.decide')?'':s.lock('Вы можете только просматривать. Решения по предложениям принимают те, у кого есть право «Решать по предложениям агентов».');
     if(!runs.length&&!approvals.length&&!grants.length){
       root.innerHTML=lock+s.panel(s.empty({title:'Агенты ещё не подключены',body:'Агент работает по API только в этом проекте, с выбранными правами и ограниченным сроком. Его изменения применяются после решения человека.',glyph:'spark'}));return;
     }
@@ -47,7 +48,7 @@ export async function mountAgents(root,{repository,project,tools,onCounts=()=>{}
   async function review(id){
     const detail=await client.request(base+'/approvals/'+id);
     let cursor=null,items=[],loading=false;
-    const canDecide=project.role!=='reader'&&pending(detail);
+    const canDecide=can(project,'approvals.decide')&&pending(detail);
     const el=show({title:'Предложение агента',wide:true,
       description:canDecide?'Подтверждение разрешает только этот план. Устаревший план не выполнится.':`${(states[detail.status]||[detail.status])[0]}.`,
       body:`<p><b>${esc(summary(detail.preview))}</b></p>${(detail.preview.details||[]).map(d=>`<p><b>${esc(d.label)}</b>. ${esc(d.description)}</p>`).join('')}
