@@ -23,6 +23,7 @@ import com.sprintique.database.schema.app.tables.Messages
 import com.sprintique.database.schema.app.tables.Milestones
 import com.sprintique.database.schema.app.tables.Outbox
 import com.sprintique.database.schema.app.tables.PersonAvatars
+import com.sprintique.database.schema.app.tables.PersonPreferences
 import com.sprintique.database.schema.app.tables.PlanningApplied
 import com.sprintique.database.schema.app.tables.PlanningPlans
 import com.sprintique.database.schema.app.tables.PlanningSelections
@@ -60,6 +61,7 @@ import com.sprintique.database.schema.app.tables.records.MessagesRecord
 import com.sprintique.database.schema.app.tables.records.MilestonesRecord
 import com.sprintique.database.schema.app.tables.records.OutboxRecord
 import com.sprintique.database.schema.app.tables.records.PersonAvatarsRecord
+import com.sprintique.database.schema.app.tables.records.PersonPreferencesRecord
 import com.sprintique.database.schema.app.tables.records.PlanningAppliedRecord
 import com.sprintique.database.schema.app.tables.records.PlanningPlansRecord
 import com.sprintique.database.schema.app.tables.records.PlanningSelectionsRecord
@@ -117,6 +119,7 @@ val MESSAGES_PKEY: UniqueKey<MessagesRecord> = Internal.createUniqueKey(Messages
 val MILESTONES_PKEY: UniqueKey<MilestonesRecord> = Internal.createUniqueKey(Milestones.MILESTONES, DSL.name("milestones_pkey"), arrayOf(Milestones.MILESTONES.PROJECT_ID, Milestones.MILESTONES.ID), true)
 val OUTBOX_PKEY: UniqueKey<OutboxRecord> = Internal.createUniqueKey(Outbox.OUTBOX, DSL.name("outbox_pkey"), arrayOf(Outbox.OUTBOX.ID), true)
 val PERSON_AVATARS_PKEY: UniqueKey<PersonAvatarsRecord> = Internal.createUniqueKey(PersonAvatars.PERSON_AVATARS, DSL.name("person_avatars_pkey"), arrayOf(PersonAvatars.PERSON_AVATARS.PRINCIPAL_ID), true)
+val PERSON_PREFERENCES_PKEY: UniqueKey<PersonPreferencesRecord> = Internal.createUniqueKey(PersonPreferences.PERSON_PREFERENCES, DSL.name("person_preferences_pkey"), arrayOf(PersonPreferences.PERSON_PREFERENCES.PRINCIPAL_ID), true)
 val PLANNING_APPLIED_PKEY: UniqueKey<PlanningAppliedRecord> = Internal.createUniqueKey(PlanningApplied.PLANNING_APPLIED, DSL.name("planning_applied_pkey"), arrayOf(PlanningApplied.PLANNING_APPLIED.PROJECT_ID, PlanningApplied.PLANNING_APPLIED.PLAN_ID), true)
 val PLANNING_PLANS_PKEY: UniqueKey<PlanningPlansRecord> = Internal.createUniqueKey(PlanningPlans.PLANNING_PLANS, DSL.name("planning_plans_pkey"), arrayOf(PlanningPlans.PLANNING_PLANS.PROJECT_ID, PlanningPlans.PLANNING_PLANS.ID), true)
 val PLANNING_SELECTIONS_PKEY: UniqueKey<PlanningSelectionsRecord> = Internal.createUniqueKey(PlanningSelections.PLANNING_SELECTIONS, DSL.name("planning_selections_pkey"), arrayOf(PlanningSelections.PLANNING_SELECTIONS.PROJECT_ID, PlanningSelections.PLANNING_SELECTIONS.ID), true)
@@ -188,6 +191,7 @@ val MILESTONES__MILESTONES_PROJECT_ID_FKEY: ForeignKey<MilestonesRecord, Project
 val OUTBOX__OUTBOX_ID_FKEY: ForeignKey<OutboxRecord, AuditEventsRecord> = Internal.createForeignKey(Outbox.OUTBOX, DSL.name("outbox_id_fkey"), arrayOf(Outbox.OUTBOX.ID), com.sprintique.database.schema.app.keys.AUDIT_EVENTS_PKEY, arrayOf(AuditEvents.AUDIT_EVENTS.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
 val OUTBOX__OUTBOX_PROJECT_ID_FKEY: ForeignKey<OutboxRecord, ProjectsRecord> = Internal.createForeignKey(Outbox.OUTBOX, DSL.name("outbox_project_id_fkey"), arrayOf(Outbox.OUTBOX.PROJECT_ID), com.sprintique.database.schema.app.keys.PROJECTS_PKEY, arrayOf(Projects.PROJECTS.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
 val PERSON_AVATARS__PERSON_AVATARS_PRINCIPAL_ID_FKEY: ForeignKey<PersonAvatarsRecord, PrincipalsRecord> = Internal.createForeignKey(PersonAvatars.PERSON_AVATARS, DSL.name("person_avatars_principal_id_fkey"), arrayOf(PersonAvatars.PERSON_AVATARS.PRINCIPAL_ID), PRINCIPALS_PKEY, arrayOf(Principals.PRINCIPALS.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
+val PERSON_PREFERENCES__PERSON_PREFERENCES_PRINCIPAL_ID_FKEY: ForeignKey<PersonPreferencesRecord, PrincipalsRecord> = Internal.createForeignKey(PersonPreferences.PERSON_PREFERENCES, DSL.name("person_preferences_principal_id_fkey"), arrayOf(PersonPreferences.PERSON_PREFERENCES.PRINCIPAL_ID), PRINCIPALS_PKEY, arrayOf(Principals.PRINCIPALS.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
 val PLANNING_APPLIED__PLANNING_APPLIED_PROJECT_ID_PLAN_ID_FKEY: ForeignKey<PlanningAppliedRecord, PlanningPlansRecord> = Internal.createForeignKey(PlanningApplied.PLANNING_APPLIED, DSL.name("planning_applied_project_id_plan_id_fkey"), arrayOf(PlanningApplied.PLANNING_APPLIED.PROJECT_ID, PlanningApplied.PLANNING_APPLIED.PLAN_ID), com.sprintique.database.schema.app.keys.PLANNING_PLANS_PKEY, arrayOf(PlanningPlans.PLANNING_PLANS.PROJECT_ID, PlanningPlans.PLANNING_PLANS.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
 val PLANNING_PLANS__PLANNING_PLANS_ACTOR_ID_FKEY: ForeignKey<PlanningPlansRecord, PrincipalsRecord> = Internal.createForeignKey(PlanningPlans.PLANNING_PLANS, DSL.name("planning_plans_actor_id_fkey"), arrayOf(PlanningPlans.PLANNING_PLANS.ACTOR_ID), PRINCIPALS_PKEY, arrayOf(Principals.PRINCIPALS.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
 val PLANNING_PLANS__PLANNING_PLANS_PROJECT_ID_FKEY: ForeignKey<PlanningPlansRecord, ProjectsRecord> = Internal.createForeignKey(PlanningPlans.PLANNING_PLANS, DSL.name("planning_plans_project_id_fkey"), arrayOf(PlanningPlans.PLANNING_PLANS.PROJECT_ID), com.sprintique.database.schema.app.keys.PROJECTS_PKEY, arrayOf(Projects.PROJECTS.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)

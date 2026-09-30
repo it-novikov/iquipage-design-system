@@ -11543,6 +11543,19 @@
       ],
       "additionalProperties": false
     },
+    "PersonPreferences": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "confirmReleaseScope": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "confirmReleaseScope"
+      ],
+      "additionalProperties": false
+    },
     "PlanningCapabilitiesResponse": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",

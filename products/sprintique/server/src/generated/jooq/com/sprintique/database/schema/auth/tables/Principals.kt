@@ -24,6 +24,7 @@ import com.sprintique.database.schema.app.keys.MAP_VERSIONS__MAP_VERSIONS_ACTOR_
 import com.sprintique.database.schema.app.keys.MAP_VOTES__MAP_VOTES_ACTOR_ID_FKEY
 import com.sprintique.database.schema.app.keys.MESSAGES__MESSAGES_AUTHOR_ID_FKEY
 import com.sprintique.database.schema.app.keys.PERSON_AVATARS__PERSON_AVATARS_PRINCIPAL_ID_FKEY
+import com.sprintique.database.schema.app.keys.PERSON_PREFERENCES__PERSON_PREFERENCES_PRINCIPAL_ID_FKEY
 import com.sprintique.database.schema.app.keys.PLANNING_PLANS__PLANNING_PLANS_ACTOR_ID_FKEY
 import com.sprintique.database.schema.app.keys.PLANNING_SELECTIONS__PLANNING_SELECTIONS_ACTOR_ID_FKEY
 import com.sprintique.database.schema.app.keys.PROJECT_MEMBERS__PROJECT_MEMBERS_PRINCIPAL_ID_FKEY
@@ -49,6 +50,7 @@ import com.sprintique.database.schema.app.tables.MapVotes.MapVotesPath
 import com.sprintique.database.schema.app.tables.Maps.MapsPath
 import com.sprintique.database.schema.app.tables.Messages.MessagesPath
 import com.sprintique.database.schema.app.tables.PersonAvatars.PersonAvatarsPath
+import com.sprintique.database.schema.app.tables.PersonPreferences.PersonPreferencesPath
 import com.sprintique.database.schema.app.tables.PlanningPlans.PlanningPlansPath
 import com.sprintique.database.schema.app.tables.PlanningSelections.PlanningSelectionsPath
 import com.sprintique.database.schema.app.tables.ProjectMembers.ProjectMembersPath
@@ -423,6 +425,18 @@ open class Principals(
 
     val personAvatars: PersonAvatarsPath
         get(): PersonAvatarsPath = personAvatars()
+
+    private lateinit var _personPreferences: PersonPreferencesPath
+
+    fun personPreferences(): PersonPreferencesPath {
+        if (!this::_personPreferences.isInitialized)
+            _personPreferences = PersonPreferencesPath(this, null, PERSON_PREFERENCES__PERSON_PREFERENCES_PRINCIPAL_ID_FKEY.inverseKey)
+
+        return _personPreferences;
+    }
+
+    val personPreferences: PersonPreferencesPath
+        get(): PersonPreferencesPath = personPreferences()
 
     private lateinit var _planningPlans: PlanningPlansPath
 

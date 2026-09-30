@@ -23,6 +23,7 @@ import com.sprintique.database.schema.app.tables.Messages
 import com.sprintique.database.schema.app.tables.Milestones
 import com.sprintique.database.schema.app.tables.Outbox
 import com.sprintique.database.schema.app.tables.PersonAvatars
+import com.sprintique.database.schema.app.tables.PersonPreferences
 import com.sprintique.database.schema.app.tables.PlanningApplied
 import com.sprintique.database.schema.app.tables.PlanningPlans
 import com.sprintique.database.schema.app.tables.PlanningSelections
@@ -94,6 +95,8 @@ open class App : SchemaImpl(DSL.name("app"), DefaultCatalog.DEFAULT_CATALOG, DSL
 
     val PERSON_AVATARS: PersonAvatars get() = PersonAvatars.PERSON_AVATARS
 
+    val PERSON_PREFERENCES: PersonPreferences get() = PersonPreferences.PERSON_PREFERENCES
+
     val PLANNING_APPLIED: PlanningApplied get() = PlanningApplied.PLANNING_APPLIED
 
     val PLANNING_PLANS: PlanningPlans get() = PlanningPlans.PLANNING_PLANS
@@ -153,6 +156,7 @@ open class App : SchemaImpl(DSL.name("app"), DefaultCatalog.DEFAULT_CATALOG, DSL
         Milestones.MILESTONES,
         Outbox.OUTBOX,
         PersonAvatars.PERSON_AVATARS,
+        PersonPreferences.PERSON_PREFERENCES,
         PlanningApplied.PLANNING_APPLIED,
         PlanningPlans.PLANNING_PLANS,
         PlanningSelections.PLANNING_SELECTIONS,

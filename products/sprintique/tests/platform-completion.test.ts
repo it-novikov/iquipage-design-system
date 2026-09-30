@@ -130,3 +130,15 @@ test('a person photo is re-encoded, visible only to people who share a project o
   assert.equal((await f.app.inject({method:'GET',url:`/api/v1/people/${f.alice.id}/avatar`,headers:f.alice.headers})).statusCode,404);
   assert.equal((await ok('GET','/api/v1/profile')).avatarRevision,null);
 });
+test('personal preferences follow the person to every device and belong to them alone',async()=>{
+  const profile=async(user=f.alice)=>(await f.app.inject({method:'GET',url:'/api/v1/profile',headers:user.headers})).json();
+  const set=(payload:unknown,user=f.alice)=>f.app.inject({method:'PUT',url:'/api/v1/profile/preferences',headers:user.headers,payload:payload as Record<string,unknown>});
+  assert.deepEqual((await profile()).preferences,{confirmReleaseScope:true},'the confirmation is on until the person turns it off');
+  const off=await set({confirmReleaseScope:false});assert.equal(off.statusCode,200,off.body);assert.deepEqual(off.json(),{confirmReleaseScope:false});
+  assert.deepEqual((await set({confirmReleaseScope:false})).json(),{confirmReleaseScope:false},'repeating the request changes nothing');
+  assert.deepEqual((await profile()).preferences,{confirmReleaseScope:false});
+  assert.deepEqual((await profile(f.reader)).preferences,{confirmReleaseScope:true},'another person keeps their own');
+  assert.equal((await set({confirmReleaseScope:true,theme:'dark'})).statusCode,400);
+  assert.equal((await f.app.inject({method:'PUT',url:'/api/v1/profile/preferences',payload:{confirmReleaseScope:true}})).statusCode,401);
+  assert.deepEqual((await set({confirmReleaseScope:true})).json(),{confirmReleaseScope:true});
+});

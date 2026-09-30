@@ -188,6 +188,15 @@ class ProfileController(
         Membership.changeProfile(tx, actor, input.baseRevision, input.name)
     }
 
+    @PutMapping("/api/v1/profile/preferences")
+    @Accepts(PersonPreferencesRequest::class)
+    fun changePreferences(
+        @RequestBody(required = false) body: JsonNode?,
+        request: HttpServletRequest,
+    ) = requests.run(request) { tx, actor ->
+        Membership.changePreferences(tx, actor, contracts.parse<PersonPreferencesRequest>(body).confirmReleaseScope)
+    }
+
     /** The caller is authenticated before any image is decoded, and again for the write. */
     @PutMapping("/api/v1/profile/avatar", consumes = [MediaType.APPLICATION_OCTET_STREAM_VALUE, MediaType.ALL_VALUE])
     fun setAvatar(@RequestBody(required = false) body: ByteArray?, request: HttpServletRequest): Any {

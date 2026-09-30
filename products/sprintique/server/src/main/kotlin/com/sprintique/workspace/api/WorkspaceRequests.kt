@@ -91,6 +91,9 @@ data class AcceptInvitationRequest(
     val token: String,
 )
 
+@Schema(name = "PersonPreferences")
+data class PersonPreferencesRequest(val confirmReleaseScope: Boolean)
+
 @Schema(name = "ChangeProfile")
 data class ChangeProfileRequest(
     @field:Min(0) @field:Max(MAX_SAFE_INTEGER)

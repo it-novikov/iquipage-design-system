@@ -23,6 +23,7 @@ import com.sprintique.database.schema.app.tables.Messages
 import com.sprintique.database.schema.app.tables.Milestones
 import com.sprintique.database.schema.app.tables.Outbox
 import com.sprintique.database.schema.app.tables.PersonAvatars
+import com.sprintique.database.schema.app.tables.PersonPreferences
 import com.sprintique.database.schema.app.tables.PlanningApplied
 import com.sprintique.database.schema.app.tables.PlanningPlans
 import com.sprintique.database.schema.app.tables.PlanningSelections
@@ -80,6 +81,8 @@ val MILESTONES: Milestones = Milestones.MILESTONES
 val OUTBOX: Outbox = Outbox.OUTBOX
 
 val PERSON_AVATARS: PersonAvatars = PersonAvatars.PERSON_AVATARS
+
+val PERSON_PREFERENCES: PersonPreferences = PersonPreferences.PERSON_PREFERENCES
 
 val PLANNING_APPLIED: PlanningApplied = PlanningApplied.PLANNING_APPLIED
 
