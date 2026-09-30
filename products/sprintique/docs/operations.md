@@ -88,7 +88,7 @@ Evidence timestamps matter: a backup or browser check proves its recorded state,
 
 `node --import tsx scripts/backup-drill.mjs` is intentionally **local-only** and targets the fixed owned QA resources. Stop the local API and worker first. The script refuses active runtime database sessions/online API; keep other writers stopped throughout. It does not overwrite the source database.
 
-The drill creates a private custom-format dump of the application database (people and their ways in included), copies referenced object variants with checksums, and fingerprints canonical tables. It restores into a new isolated PostgreSQL container and S3 prefix, compares table fingerprints, starts the server on the restored copy (runtime role, `SPRINTIQUE_STORAGE_PREFIX` pointing at the restored objects), authenticates a restored session and downloads restored private files; anonymous reads must fail. The restore container holds real private data on a published loopback port, so every TCP login uses a fresh per-run secret and SCRAM; it is never started with trust authentication. Container teardown runs even when a client or object cleanup step fails. It rechecks the source fingerprints at the end. Temporary restored objects/container/anonymous volume are removed; the private checkpoint remains in `output/infra/backups/<id>/`.
+The drill streams every object to disk and back with its hash (files may be up to 2 GiB). It creates a private custom-format dump of the application database (people and their ways in included), copies referenced object variants with checksums, and fingerprints canonical tables. It restores into a new isolated PostgreSQL container and S3 prefix, compares table fingerprints, starts the server on the restored copy (runtime role, `SPRINTIQUE_STORAGE_PREFIX` pointing at the restored objects), authenticates a restored session and downloads restored private files; anonymous reads must fail. The restore container holds real private data on a published loopback port, so every TCP login uses a fresh per-run secret and SCRAM; it is never started with trust authentication. Container teardown runs even when a client or object cleanup step fails. It rechecks the source fingerprints at the end. Temporary restored objects/container/anonymous volume are removed; the private checkpoint remains in `output/infra/backups/<id>/`.
 
 Limits: 128 MiB per dump, 50,000 rows per fingerprinted table and 200 assets. This is a small local consistency drill, not a general production backup tool. Checkpoints are mode 0600/0700 but **not encrypted**. The restored ways in are counted; a new sign-in against the restored copy is not exercised. No production RPO/RTO, off-site replication or retention SLA is asserted. Restart with `npm run local:start` after the drill.
 
@@ -96,7 +96,68 @@ Limits: 128 MiB per dump, 50,000 rows per fingerprinted table and 200 assets. Th
 
 `/health` is liveness. `/ready` verifies exact schema/runtime-role/S3 readiness; use it for traffic admission. Optional `SPRINTIQUE_METRICS_TOKEN` (32–256 characters) enables `/internal/metrics`, requiring its own Bearer token; otherwise the route is absent. Keep it private. Aggregate schema `runtime-metrics/1` is process-local and resets on restart. Labels are bounded route templates/method/status class, never user paths, query strings, principal IDs or tokens. Long-lived streams are counted when closed, not as active-connection telemetry. Request logs omit bodies, cookies, headers, SQL and provider responses.
 
-Default process limits: 1,000 requests/minute/IP; sign-in 20/minute/IP (starting a provider sign-in, both e-mail steps, dev login); 64 active requests and 8 upload requests; 100 SSE streams overall and 3 per credential. S3 I/O has a 15-second deadline. The image decoder allows two concurrent operations. These are explicit conservative defaults; distributed deployment needs shared admission control. Load regression tests exercise 2,000 tasks and concurrent reads/CAS writes; their thresholds are not an SLA.
+Default process limits: 1,000 requests/minute/IP; sign-in 20/minute/IP (starting a provider sign-in, both e-mail steps, dev login); 64 active requests; transfers in lanes capped in total and per credential (a session or an agent token — a person with several sign-ins holds several), so one sign-in cannot fill a lane: short uploads up to 32 MiB and a person's photo (8 in all, 2 per credential), uploads over 32 MiB (8, 2 each; not counted in the 64) and downloads of originals (32, 8 each; not counted in the 64); 100 SSE streams overall and 3 per credential. Request bodies: 128 KiB for commands, 2 MiB for map documents, 10 MiB for a person's photo, 2 GiB for a file's content. S3 calls have a 15-second deadline (two minutes for a part, a whole small object or assembling the parts; a minute of silence cuts a connection). The image decoder allows two concurrent operations. These are explicit conservative defaults; distributed deployment needs shared admission control. Load regression tests exercise 2,000 tasks and concurrent reads/CAS writes; their thresholds are not an SLA.
+
+## Files
+
+Uploads stream through the API, never directly from the browser to S3: the bucket stays private, needs no CORS and is never named to a browser; same-origin, CSRF, project policy, RLS and the limits above apply to the upload itself. The browser computes the file's SHA-256 slice by slice (WebCrypto up to 64 MiB, an incremental digest beyond), reserves the upload with name, size and hash, and sends the body with `PUT /api/v1/projects/{project}/assets/{id}/content`. The server:
+
+- opens the upload in a short transaction and closes it before reading the body — no transaction, row or project lock is held while bytes arrive;
+- checks the first 512 bytes against the signature of the declared extension, text as strict UTF-8 without NUL to the last byte, and the size and SHA-256 of every byte;
+- holds at most one 8 MiB part per upload in memory (files up to 8 MiB and previewable images up to 32 MiB are held whole, within 96 MiB for all held uploads together) and writes larger bodies as an S3 multipart upload that it completes only after the size and hash matched the reservation, so no unchecked byte is ever visible under a key;
+- cuts a body off when its reservation expires, when it arrives slower than 16 KiB/s on average after the first minute, or when a body held in memory takes longer than five minutes;
+- marks the upload `publishing` in a short transaction, completes the objects with no transaction or lock held (discarding answers `409 FILE_BUSY` meanwhile and cleanup postpones itself; a publication untouched for ten minutes is abandoned — its process died or its session ended — and the upload is open again; a file published close to its expiry gets an hour to be linked), and marks it ready in a last short transaction;
+- quarantines a refused body (signature, size, hash, expiry, unreadable image) in its own transaction and aborts its parts.
+
+Accepted formats (the extension picks the type, the first bytes must agree): video `mp4 m4v mov webm`; audio `mp3 m4a wav ogg`; documents `pdf docx xlsx pptx odt ods odp doc xls ppt rtf`; images `png jpg jpeg webp gif heic heif svg`; archives `zip 7z rar tar gz`; text `txt md csv json log`. Any other name is stored as `application/octet-stream`. Up to 2 GiB per file; a project holds up to 20 GiB. Previews (WebP, 2048 and 720 px) are made only for PNG, JPEG and WebP up to 32 MiB and 40 megapixels; a larger or animated image in a task is kept as a file without a preview; a map image or project avatar must be such an image.
+
+Downloads stream from S3 in 16 MiB windows, and project access is checked again before every window. A single `Range: bytes=…` is honoured to its end (`206`, `416`, `If-Range` against the SHA-256 `ETag`, `Accept-Ranges: bytes`), so players seek and download managers resume. A failure after the first bytes (storage, database, revoked access) ends the response short and closes its connection (`Connection: close` on every original), so a reader sees fewer bytes than announced and never a problem body inside the file. PNG, JPEG, WebP, GIF and video are served `inline`; everything else, SVG included, is `attachment`, and SVG, HTML and XML are never named as such (`application/octet-stream`). Every file carries `X-Content-Type-Options: nosniff`, `Content-Security-Policy: default-src 'none'; sandbox; frame-ancestors 'none'` and `Cache-Control: no-store`.
+
+Cleanup deletes the objects of discarded, quarantined and expired uploads and aborts any unfinished multipart upload under their keys; a completed upload also aborts every other unfinished upload of the same key (a concurrent duplicate of the same content then fails, which loses nothing). Cleanup needs `s3:ListBucketMultipartUploads` and `s3:AbortMultipartUpload` besides get, put and delete; without them objects are still deleted and the lifecycle rule remains the only line against leftover parts. As a second line for a process that died mid-upload, give the bucket a lifecycle rule that aborts incomplete multipart uploads after one day.
+
+The reverse proxy in front of the API must let 2 GiB through without spooling it, and must not buffer long downloads. For nginx, in the server block of the API:
+
+```nginx
+client_max_body_size 2050m;          # 2 GiB body plus headroom; the API enforces the exact limits
+location ~ ^/api/v1/projects/[^/]+/assets/[^/]+/(content|original)$ {
+    proxy_pass http://sprintique_api;  # the same upstream and proxy headers as the other API locations
+    proxy_request_buffering off;       # stream the upload to the API as it arrives
+    proxy_buffering off;               # stream downloads and ranges without temporary files
+    proxy_read_timeout 300s;           # publishing a finished 2 GiB upload may take a while
+    proxy_send_timeout 300s;
+    client_body_timeout 120s;
+}
+```
+
+Migration `V20260929000026` (files up to 2 GiB) can be rolled back only while no file is larger than 10 MiB and none is being published; after that, only forward. Stop the API and worker, run this as the migration owner in one transaction, then start the previous artifact (it validates the shortened history). The script refuses when rollback would lose data. Checked on a fresh database: after it, `pg_dump --schema-only` equals a database migrated without 026, the previous artifact migrates cleanly, and 026 applies again.
+
+```sql
+BEGIN;
+LOCK TABLE app.assets IN ACCESS EXCLUSIVE MODE;
+DO $$ BEGIN
+  IF EXISTS(SELECT 1 FROM app.assets WHERE size>10485760 OR state='publishing') THEN
+    RAISE EXCEPTION 'ROLLBACK_REFUSED: files over 10 MiB or publications exist; roll forward instead';
+  END IF;
+END $$;
+ALTER TABLE app.assets DROP CONSTRAINT asset_size;
+ALTER TABLE app.assets ALTER COLUMN size TYPE integer;
+ALTER TABLE app.assets ADD CONSTRAINT assets_size_check CHECK(size BETWEEN 1 AND 10485760);
+ALTER TABLE app.assets DROP CONSTRAINT asset_state;
+ALTER TABLE app.assets ADD CONSTRAINT asset_state CHECK(state IN ('uploading','ready','attached','detached','quarantined','deleting','deleted'));
+CREATE OR REPLACE FUNCTION work.prepare_asset_gc(job_id uuid,token uuid) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog AS $$
+DECLARE job work.jobs;asset app.assets;
+BEGIN
+  SELECT * INTO job FROM work.jobs WHERE id=job_id AND lease_token=token AND kind='asset.gc' AND state='running' AND lease_until>clock_timestamp() FOR UPDATE;
+  IF job.id IS NULL THEN RAISE EXCEPTION 'LEASE_LOST' USING ERRCODE='55000'; END IF;
+  SELECT * INTO asset FROM app.assets WHERE project_id=job.project_id AND id=job.payload->>'assetId' FOR UPDATE;
+  IF asset.id IS NULL OR asset.state IN ('attached','deleted') OR asset.expires_at>clock_timestamp() THEN RETURN NULL; END IF;
+  UPDATE app.assets SET state='deleting',updated_at=clock_timestamp() WHERE project_id=asset.project_id AND id=asset.id;
+  RETURN jsonb_build_object('id',asset.id,'projectId',asset.project_id,'sha256',asset.sha256);
+END $$;
+REVOKE ALL ON FUNCTION work.prepare_asset_gc(uuid,uuid) FROM PUBLIC;
+DELETE FROM public.flyway_schema_history WHERE version='20260929000026';
+COMMIT;
+```
 
 ## Before external release
 

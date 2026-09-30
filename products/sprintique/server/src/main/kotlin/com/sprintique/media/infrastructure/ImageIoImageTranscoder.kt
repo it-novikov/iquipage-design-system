@@ -48,7 +48,7 @@ class ImageIoImageTranscoder(private val timeout: Duration = DEFAULT_TIMEOUT) : 
 
     override fun avatar(bytes: ByteArray): ByteArray {
         requireCondition(
-            bytes.isNotEmpty() && bytes.size <= FileInspection.FILE_LIMIT,
+            bytes.isNotEmpty() && bytes.size <= AVATAR_SOURCE_BYTES,
             422,
             "FILE_SIZE",
             "Файл должен быть непустым и не больше 10 МБ.",
@@ -76,6 +76,7 @@ class ImageIoImageTranscoder(private val timeout: Duration = DEFAULT_TIMEOUT) : 
     }
 
     override fun variants(bytes: ByteArray): ProcessedImage = bounded(bytes) { decoder ->
+        requireCondition(bytes.size <= FileInspection.IMAGE_BYTES, 422, "IMAGE_SIZE", "Слишком большое изображение.")
         val header = decoder.header()
         requireCondition(header.pixels <= IMAGE_PIXELS, 422, "IMAGE_SIZE", "Слишком большое изображение.")
         val image = decoder.oriented()
@@ -115,7 +116,11 @@ class ImageIoImageTranscoder(private val timeout: Duration = DEFAULT_TIMEOUT) : 
         } catch (@Suppress("SwallowedException") _: TimeoutException) {
             // Asks the reader to stop; the work ends on its own thread and gives the slot back there.
             decoder.get()?.let { runCatching { it.abort() } }
-            throw decodeFailure()
+            throw ProblemException(
+                422,
+                "IMAGE_TIMEOUT",
+                "Изображение обрабатывается слишком долго. Выберите другой файл.",
+            )
         } catch (@Suppress("SwallowedException") error: ExecutionException) {
             // A reader failure is reported as an unreadable image; its cause says nothing useful to the client.
             throw error.cause as? ProblemException ?: decodeFailure()
@@ -169,6 +174,9 @@ class ImageIoImageTranscoder(private val timeout: Duration = DEFAULT_TIMEOUT) : 
         private const val AVATAR_SIZE = 256
         private const val AVATAR_MINIMUM = 32
         private const val AVATAR_BYTES = 262_144
+
+        /** A person's photo arrives whole in one request (`BodySizeFilter.AVATAR_LIMIT`). */
+        private const val AVATAR_SOURCE_BYTES = 10 * 1024 * 1024
         private const val AVATAR_QUALITY = 0.82f
         private const val DISPLAY_SIZE = 2048
         private const val DISPLAY_QUALITY = 0.84f

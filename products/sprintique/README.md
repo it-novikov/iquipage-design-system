@@ -93,7 +93,7 @@ Live project-scoped authorization is enforced in use cases and PostgreSQL RLS. W
 
 - Planning mutations use a conservative project-wide revision fence/serialized transaction; no unlimited-scale or finer task-level ACL claim.
 - Planning pages 100; explicit selections 200 (server snapshots support larger operations); legacy task pages 200; catalogs 500; thread pages 50; full thread messages capped at 2,000.
-- Files 10 MiB; images 40 megapixels and two decoder slots; private re-encoded variants. No video covers or antivirus claim. Media quota 5 GiB/project, 100 pending assets/actor.
+- Files up to 2 GiB, streamed to S3 in 8 MiB multipart parts and read back by byte ranges (video plays and seeks in the task). Video, audio, office documents, images, archives, text and PDF are checked by signature; any other file is a generic download. Previews only for PNG/JPEG/WebP up to 32 MiB and 40 megapixels, two decoder slots; private re-encoded variants. No video transcoding, posters or antivirus claim. Media quota 20 GiB/project, 100 pending assets/actor. See [operations](docs/operations.md#files).
 - Finance: 100,000 entries per project; amounts up to 10^15−1 minor units; ledger pages 100, history pages 50; the summary lists up to 240 months and 200 categories.
 - Maps: 600 objects / 1,600 connections. Agent context: 20 tasks / 100 objects / 64 KiB; runs/proposals have explicit budgets and expiry.
 - Rate/concurrency/stream limits are per API process. Horizontal deployment needs shared gateway/limits. Metrics are bounded process aggregates, not distributed tracing.

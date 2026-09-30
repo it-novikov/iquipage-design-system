@@ -252,3 +252,12 @@
 .cover-crop-note{margin:0 auto 0 0;font-size:var(--iq-type-caption-size);color:var(--iq-muted)}
 .cover-crop-dialog{--iq-crop-stage-height:clamp(200px,calc(100dvh - 320px),440px)}
 .square-crop-dialog{--iq-crop-stage-height:clamp(200px,calc(100dvh - 320px),400px)}
+/* Large files: a progress bar under the name, a tile for files without a drawn preview, a video player in a DS dialog. */
+.task-file-progress{margin-top:var(--iq-space-2);max-width:280px}
+.task-file-progress[hidden]{display:none}
+.task-file-tile{display:grid;place-items:center;align-content:center;gap:var(--iq-space-1);flex:0 0 63px;width:63px;height:62px;padding:0;border:1px solid var(--iq-line);border-radius:var(--iq-radius-sm);background:var(--iq-surface);color:var(--iq-muted);font-size:var(--iq-type-caption-size);letter-spacing:.04em;cursor:pointer}
+.task-file-tile:hover{color:var(--iq-ink);background:var(--iq-recessed)}
+.task-file-tile[data-kind=video]{color:var(--iq-accent)}
+.task-video{display:grid;place-items:center;border-radius:var(--iq-radius-sm);background:var(--iq-recessed);overflow:hidden}
+.task-video video{display:block;width:100%;max-height:calc(100dvh - 240px);background:var(--iq-recessed)}
+.task-video .iq-helper{padding:var(--iq-space-5)}

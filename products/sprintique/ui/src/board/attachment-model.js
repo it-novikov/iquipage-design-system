@@ -1,26 +1,18 @@
 import {clone,requireValue,validId,validText,now} from '../common.js';
+import {fileTypeOf,HEAD_BYTES} from '../../../contracts/media.ts';
 /** Per axis the frame lies inside the image or contains it whole (a letterboxed "Вписать" cover). */
 const coverAxisValid=(position,size)=>size<=1?position>=-1e-6&&position<=1-size+1e-6:position<=1e-6&&position>=1-size-1e-6;
-export const FILE_LIMIT = 10 * 1024 * 1024;
-export const IMAGE_PIXELS = 40_000_000;
+export {FILE_LIMIT,IMAGE_PIXELS} from '../../../contracts/media.ts';
+/** The in-browser reference adapters hold a file whole; the server streams up to FILE_LIMIT. */
+export const LOCAL_FILE_LIMIT = 10 * 1024 * 1024;
 export const STAGING_TTL = 24 * 60 * 60 * 1000;
-export const FILE_ACCEPT = '.png,.jpg,.jpeg,.webp,.pdf,.txt,.md,.csv,.json,.log,.zip';
-const types = {png:'image/png',jpg:'image/jpeg',jpeg:'image/jpeg',webp:'image/webp',pdf:'application/pdf',txt:'text/plain',md:'text/plain',csv:'text/plain',json:'text/plain',log:'text/plain',zip:'application/zip'};
 export function inspectFile(name,bytes){
   requireValue(validText(name,180)&&name.trim()===name&&name.length&&!/[\x00-\x1f\x7f/\\]/.test(name),'FILE_NAME','Некорректное имя файла.');
-  requireValue(bytes instanceof Uint8Array&&bytes.length>0&&bytes.length<=FILE_LIMIT,'FILE_SIZE','Файл должен быть непустым и не больше 10 МБ.');
-  const ext=name.split('.').pop().toLowerCase(),mime=Object.hasOwn(types,ext)?types[ext]:null;
-  requireValue(mime,'FILE_TYPE','Поддерживаются PNG, JPG, WebP, PDF, TXT, MD, CSV, JSON, LOG и ZIP.');
-  const starts=signature=>signature.every((value,index)=>bytes[index]===value);
-  let valid=true;
-  if(mime==='image/png')valid=starts([137,80,78,71,13,10,26,10]);
-  if(mime==='image/jpeg')valid=starts([255,216,255]);
-  if(mime==='image/webp')valid=starts([82,73,70,70])&&String.fromCharCode(...bytes.slice(8,12))==='WEBP';
-  if(mime==='application/pdf')valid=starts([37,80,68,70,45]);
-  if(mime==='application/zip')valid=starts([80,75,3,4])||starts([80,75,5,6]);
-  if(mime==='text/plain')try{new TextDecoder('utf-8',{fatal:true}).decode(bytes);valid=!bytes.includes(0);}catch{valid=false;}
+  requireValue(bytes instanceof Uint8Array&&bytes.length>0&&bytes.length<=LOCAL_FILE_LIMIT,'FILE_SIZE','Файл должен быть непустым и не больше 10 МБ.');
+  const type=fileTypeOf(name);let valid=type.matches(bytes.subarray(0,HEAD_BYTES));
+  if(valid&&type.text)try{new TextDecoder('utf-8',{fatal:true}).decode(bytes);valid=!bytes.includes(0);}catch{valid=false;}
   requireValue(valid,'FILE_CONTENT','Содержимое файла не соответствует формату.');
-  return {name,mime,size:bytes.length,image:mime.startsWith('image/')};
+  return {name,mime:type.mime,size:bytes.length,image:type.previewable};
 }
 export function attachmentMetadata(input,processed,actorId){
   requireValue(validId(input.id)&&validId(input.taskId)&&validId(input.projectId),'FILE_ID','Не задана задача для файла.');
