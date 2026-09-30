@@ -47,6 +47,9 @@ test('A01 an editing service account of the project owns tasks; others are refus
   const foreign=await account(f.bob,'Чужой','editor',f.second.id,f.second.workspaceId);
   refused(await put('asg-foreign',{ownerId:foreign.id}),/не участвует в этом проекте/);
   refused(await put('asg-stranger',{ownerId:f.bob.id}),/только участник проекта/);
+  // The author's Workbench names the owner as a service account.
+  const workbench=await call(f.alice,'GET','/api/v1/workbench?mode=now&projects='+f.first.id);assert.equal(workbench.statusCode,200,workbench.body);
+  assert.ok(workbench.body.includes('"name":"Робот (сервисный аккаунт)"'),workbench.body.slice(0,2000));
   // Planning assigns through the same rule.
   const preview=(owner:string|null)=>call(f.alice,'POST',project('planning/previews'),{kind:'bulk',selection:{kind:'tasks',ids:[person.id]},fields:{ownerId:owner}});
   assert.equal((await preview(reading.id)).json().code,'TASK_OWNER');
