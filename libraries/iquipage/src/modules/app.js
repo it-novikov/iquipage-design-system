@@ -65,10 +65,12 @@ function viewDelay(fn, ms) {
     return id;
 }
 function clearViewTimers() { pageTimers.forEach(id => clearTimeout(id)); pageTimers.clear(); }
-let theme = components_js_1.load('theme', 'light');
+// theme-boot.js (inline in <head>) already applied `iq-theme` or the system scheme before first paint; the legacy key is a fallback.
+let theme = document.documentElement.dataset.theme || components_js_1.load('theme', 'light');
 if (!['light', 'dark'].includes(theme))
     theme = 'light';
 document.documentElement.dataset.theme = theme;
+const saveTheme = value => { components_js_1.save('theme', value); try { localStorage.setItem('iq-theme', value); } catch { /* storage may be blocked */ } };
 let reduced = components_js_1.load('reduced-motion', false);
 document.documentElement.dataset.motion = reduced ? 'reduced' : 'standard';
 const root = document.getElementById('app');
@@ -103,7 +105,7 @@ function workspace(path) {
     const mode=path.split('/')[1]||'tasks',done=tasks.filter(t=>t.status==='done').length,review=tasks.filter(t=>t.status==='review').length;
     return `<div class="page-shell work-page">${edition_js_1.exampleNav('workspace')}
     <iq-work-layout density="${workspaceDensity}" class="workspace-layout" label="Проект Sprintique">
-     <iq-work-header slot="header" title="Выпуск 2.4" eyebrow="SPRINTIQUE / КОМАНДНЫЙ ПРОЕКТ" description="Контекст, задачи и решения команды."><div slot="actions" class="iq-work-toolbar-group">${ui_js_1.avatars()}${ui_js_1.btn('Новая задача','primary sm','','data-create-task')}</div></iq-work-header>
+     <iq-work-header slot="header" title="Выпуск 2.4" eyebrow="SPRINTIQUE / Командный проект" description="Контекст, задачи и решения команды."><div slot="actions" class="iq-work-toolbar-group">${ui_js_1.avatars()}${ui_js_1.btn('Новая задача','primary sm','','data-create-task')}</div></iq-work-header>
      <nav slot="navigation" class="iq-work-navigation" aria-label="Представление задач">${[['tasks','Список','list'],['board','Доска','board'],['plan','План','calendar']].map(([value,label,glyph])=>`<a href="#workspace/${value}" ${mode===value?'aria-current="page"':''}>${components_js_1.icon(glyph,16)}${label}</a>`).join('')}</nav>
      <div slot="summary" class="iq-work-summary"><span><b data-summary-count>${tasks.length}</b> задач</span><span><b data-summary-review>${review}</b> на проверке</span><span data-summary-done>${done} из ${tasks.length} завершено</span></div>
      <div slot="toolbar" class="workspace-tools"><div class="iq-search-small">${components_js_1.icon('search',16)}<input placeholder="Найти задачу…" aria-label="Найти задачу" value="${components_js_1.escapeHTML(taskSearch)}" data-task-search></div>${ui_js_1.select('Фильтр по статусу',[{value:'all',label:'Все статусы'},...Object.entries(statusInfo).map(([value,v])=>({value,label:v.label}))],`class="compact-select" id="task-status-filter" value="${statusFilter}"`)}${sortMenu()}${ui_js_1.btn(workspaceDensity==='compact'?'Компактно':'Свободно','ghost sm','','data-work-density aria-pressed="'+(workspaceDensity==='compact')+'"')}${ui_js_1.menu(ui_js_1.ib('more','Настройки проекта','ghost sm'),[{label:'Экспортировать задачи',glyph:'download',action:'export-tasks'},{label:'Сбросить демо-данные',glyph:'refresh',action:'reset-data'}])}</div>
@@ -191,7 +193,7 @@ function openCreateTask() {
     const draft = components_js_1.load('task-draft', {});
     const modal = document.createElement('iq-dialog');
     modal.id = 'create-task-dialog';
-    modal.innerHTML = `<div class="iq-dialog-head"><div><span class="eyebrow no-line" style="font-size:12px;margin-bottom:12px">SPRINTIQUE / НОВАЯ ЗАДАЧА</span><h2>Следующий шаг.</h2><p>Опишите результат, к которому нужно прийти.</p></div>${ui_js_1.ib('x', 'Закрыть создание задачи', 'ghost sm', 'data-close')}</div><form id="create-task-form" class="stack" novalidate>${ui_js_1.field('Название задачи', draft.title || '', { placeholder: 'Что должно быть сделано?', name: 'title', required: true, max: 140 })}${ui_js_1.textarea('Описание', draft.description || '', { name: 'description', placeholder: 'Цель, контекст и критерий готовности…', maxlength: 1600 })}<div class="grid-2" style="gap:18px">${ui_js_1.select('Ответственный', owners.map(x => ({ value: x, label: x, icon: 'user' })), `name="owner" value="${components_js_1.escapeHTML(draft.owner || owners[0])}"`)}${ui_js_1.field('Срок', draft.due ?? '2026-09-18', { type: 'date', name: 'due' })}</div>${ui_js_1.select('Приоритет', (0, priority_js_1.priorityOptions)(), `name="priority" value="${(0, priority_js_1.normalizePriority)(draft.priority)}"`)}<p class="iq-helper">Черновик сохраняется в браузере при доступном хранилище. Иначе — до закрытия вкладки.</p><div class="iq-dialog-footer">${ui_js_1.btn('Закрыть', 'secondary', '', 'data-close')}${ui_js_1.btn('Создать задачу', 'primary', 'plus', 'data-submit-task')}</div></form>`;
+    modal.innerHTML = `<div class="iq-dialog-head"><div><span class="eyebrow no-line" style="font-size:12px;margin-bottom:12px">SPRINTIQUE / Новая задача</span><h2>Следующий шаг.</h2><p>Опишите результат, к которому нужно прийти.</p></div>${ui_js_1.ib('x', 'Закрыть создание задачи', 'ghost sm', 'data-close')}</div><form id="create-task-form" class="stack" novalidate>${ui_js_1.field('Название задачи', draft.title || '', { placeholder: 'Что должно быть сделано?', name: 'title', required: true, max: 140 })}${ui_js_1.textarea('Описание', draft.description || '', { name: 'description', placeholder: 'Цель, контекст и критерий готовности…', maxlength: 1600 })}<div class="grid-2" style="gap:18px">${ui_js_1.select('Ответственный', owners.map(x => ({ value: x, label: x, icon: 'user' })), `name="owner" value="${components_js_1.escapeHTML(draft.owner || owners[0])}"`)}${ui_js_1.field('Срок', draft.due ?? '2026-09-18', { type: 'date', name: 'due' })}</div>${ui_js_1.select('Приоритет', (0, priority_js_1.priorityOptions)(), `name="priority" value="${(0, priority_js_1.normalizePriority)(draft.priority)}"`)}<p class="iq-helper">Черновик сохраняется в браузере при доступном хранилище. Иначе — до закрытия вкладки.</p><div class="iq-dialog-footer">${ui_js_1.btn('Закрыть', 'secondary', '', 'data-close')}${ui_js_1.btn('Создать задачу', 'primary', 'plus', 'data-submit-task')}</div></form>`;
     document.getElementById('portals').append(modal);
     components_js_1.enhance(modal);
     modal.show();
@@ -207,7 +209,7 @@ function openTask(id) {
     modal.setAttribute('kind', 'drawer');
     modal.dataset.taskPriority = (0, priority_js_1.normalizePriority)(t.priority);
     modal.innerHTML = `<div class="task-document-toolbar"><nav class="iq-breadcrumb" aria-label="Задача"><span>Sprintique</span>${components_js_1.icon('chevron', 14)}<span>${t.id}</span></nav><div class="row">${ui_js_1.ib('expand', 'Открыть задачу на весь экран', 'ghost sm', 'data-task-expand aria-pressed="false"')}${ui_js_1.ib('x', 'Закрыть задачу', 'ghost sm', 'data-close')}</div></div>
-    <div class="task-document"><header class="task-document-heading"><span class="sample-overline">${t.type === 'epic' ? 'ЭПИК' : 'РАБОЧАЯ ЗАДАЧА'}</span><h2 class="task-drawer-title">${components_js_1.escapeHTML(t.title)}</h2></header>
+    <div class="task-document"><header class="task-document-heading"><span class="sample-overline">${t.type === 'epic' ? 'Эпик' : 'Рабочая задача'}</span><h2 class="task-drawer-title">${components_js_1.escapeHTML(t.title)}</h2></header>
     <aside class="task-document-properties" aria-label="Свойства задачи">
       <div>${ui_js_1.select('Статус', Object.entries(statusInfo).map(([value, v]) => ({ value, label: v.label })), `id="task-drawer-status" value="${t.status}"`)}</div>
       <div>${ui_js_1.select('Тип задачи', task_kind_js_1.taskKindOptions(), `id="task-drawer-kind" value="${task_kind_js_1.normalizeTaskKind(t.type)}"`)}</div>
@@ -240,10 +242,10 @@ function toggleTaskView(button) {
     button.setAttribute('aria-pressed', String(expanded));
     button.setAttribute('aria-label', expanded ? 'Вернуть в боковую панель' : 'Открыть задачу на весь экран');
     // Keep existing editors/selection intact. Only reveal the new composition.
-    if (!matchMedia('(prefers-reduced-motion: reduce)').matches && document.documentElement.dataset.motion !== 'reduced') {
+    if (!interaction_js_1.motionReduced()) {
         const body = host.querySelector('.task-document');
         body.getAnimations().forEach(a => a.cancel());
-        body.animate([{ opacity: .65, transform: 'translateY(6px)' }, { opacity: 1, transform: 'none' }], { duration: 200, easing: 'cubic-bezier(.2,.7,.2,1)' });
+        body.animate([{ opacity: .65, transform: 'translateY(6px)' }, { opacity: 1, transform: 'none' }], { duration: interaction_js_1.motionMs('standard', 180), easing: interaction_js_1.motionEase('ease') });
     }
 }
 function setPriority(id, value) {
@@ -456,13 +458,14 @@ document.body.addEventListener('click', async (ev) => {
         document.getElementById('command-dialog').close();
         go(path);
         if (focus)
-            setTimeout(() => { document.getElementById('story-' + focus)?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 90);
+            setTimeout(() => { document.getElementById('story-' + focus)?.scrollIntoView({ behavior: interaction_js_1.scrollBehavior(), block: 'start' }); }, 90);
         return;
     }
     if (el.hasAttribute('data-theme-toggle')) {
         theme = theme === 'light' ? 'dark' : 'light';
-        document.documentElement.dataset.theme = theme;
-        components_js_1.save('theme', theme);
+        // MOT-05: the whole page repaints in one frame instead of rippling through per-component colour transitions.
+        interaction_js_1.withoutTransitions(() => { document.documentElement.dataset.theme = theme; });
+        saveTheme(theme);
         el.innerHTML = components_js_1.icon(theme === 'light' ? 'moon' : 'sun', 17);
         el.setAttribute('aria-label', theme === 'light' ? 'Включить тёмную тему' : 'Включить светлую тему');
         const caption = document.querySelector('.library-toolbar>.row>span:last-child');
@@ -868,7 +871,7 @@ document.body.addEventListener('iq-change', (event) => {
     refreshTasks();
     const modal = document.getElementById('task-drawer');
     const heading = modal?.querySelector('.task-document-heading .sample-overline');
-    if (heading) heading.textContent = task.type === 'epic' ? 'ЭПИК' : 'РАБОЧАЯ ЗАДАЧА';
+    if (heading) heading.textContent = task.type === 'epic' ? 'Эпик' : 'Рабочая задача';
     const status = modal?.querySelector('[data-task-save-state] span');
     if (status) status.textContent = 'Тип задачи сохранён';
 });

@@ -34,9 +34,12 @@ function btn(text, variant = 'primary', glyph = '', attrs = '') {
     return `<button type="button" class="iq-btn ${variant}" ${attrs}>${glyph && !trailing ? components_js_1.icon(glyph, 17) : ''}${text}${trailing ? components_js_1.icon(glyph, 17) : ''}</button>`;
 }
 function ib(glyph, label, variant = 'ghost', attrs = '') { return btn('', `icon ${variant}`, glyph, `aria-label="${components_js_1.escapeHTML(label)}" ${attrs}`); }
-function badge(text, tone = '', _dot = true) {
+/** Status glyphs give success/danger/warning a non-colour channel (COL-06); `withIcon=false` keeps a text-only badge. */
+const badgeGlyph = { success: 'checkCircle', danger: 'xCircle', warning: 'warning' };
+function badge(text, tone = '', withIcon = true) {
     const semantic = tone || (/^(Запланировано|Запланирован|В плане)$/.test(text) ? 'planned' : /^(На проверке|Требует решения)$/.test(text) ? 'warning' : text === 'Готово' ? 'success' : /Образец|образц|Демо|Пример/.test(text) ? 'sample' : 'neutral');
-    return `<span class="iq-badge ${components_js_1.escapeHTML(semantic)}">${components_js_1.escapeHTML(text)}</span>`;
+    const glyph = withIcon && badgeGlyph[semantic] ? components_js_1.icon(badgeGlyph[semantic], 14) : '';
+    return `<span class="iq-badge ${components_js_1.escapeHTML(semantic)}">${glyph}${components_js_1.escapeHTML(text)}</span>`;
 }
 function field(label, value = '', opts = {}) {
     const key = id();

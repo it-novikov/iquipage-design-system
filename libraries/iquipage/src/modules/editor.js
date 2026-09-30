@@ -134,9 +134,12 @@ class IqMarkdownEditor extends components_js_1.IqElement {
         else interaction_js_1.autosize(this.input);
         if (focus && !on) this.input.focus({preventScroll: true});
         const after = shell.getBoundingClientRect().height;
-        if (changed && animate && !interaction_js_1.motionReduced()) {
-            this._previewAnimation = shell.animate([{height: before + 'px', overflow: 'hidden'}, {height: after + 'px', overflow: 'hidden'}], {duration: 220, easing: 'cubic-bezier(.2,0,0,1)'});
-            this._previewFade = (on ? pane : this.input).animate([{opacity: .35}, {opacity: 1}], {duration: 180});
+        const duration = changed && animate && !interaction_js_1.motionReduced() ? interaction_js_1.motionMs('standard', 180) : 0;
+        if (duration > 0) {
+            // Layout is never animated (MOT-04): the shell takes its new height at once; when it grew, the added band is
+            // revealed by clip-path while the new pane fades in — both paint-only.
+            if (after > before) this._previewAnimation = shell.animate([{clipPath: `inset(0 0 ${after - before}px 0)`}, {clipPath: 'inset(0)'}], {duration, easing: interaction_js_1.motionEase('ease')});
+            this._previewFade = (on ? pane : this.input).animate([{opacity: .35}, {opacity: 1}], {duration, easing: interaction_js_1.motionEase('ease')});
         }
         if (changed) this.emit('iq-preview-change', {preview: on});
     }

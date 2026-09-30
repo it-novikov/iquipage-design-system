@@ -26,8 +26,18 @@ class StaticWebController(properties: SprintiqueProperties) {
         Path.of(it).toAbsolutePath().normalize()
     }
 
-    /** The interface; `/oauth/authorize` is its consent screen for OAuth clients, the same page on another path. */
-    @GetMapping("/", "/oauth/authorize")
+    /**
+     * The interface's own paths load the same page, which reads the path itself: the Workbench views (docs/adr W6)
+     * and `/oauth/authorize`, the consent screen for OAuth clients.
+     */
+    @GetMapping(
+        "/",
+        "/oauth/authorize",
+        "/workbench",
+        "/workbench/list",
+        "/workbench/plan",
+        "/workbench/tasks/{projectId}/{taskId}",
+    )
     fun index(): ResponseEntity<ByteArray> = html("index.html")
 
     /** Public documents required before a person chooses a sign-in method. */
@@ -39,6 +49,11 @@ class StaticWebController(properties: SprintiqueProperties) {
 
     @GetMapping("/terms")
     fun terms(): ResponseEntity<ByteArray> = html("terms.html")
+
+    /** The board view is not part of the Workbench v1 (design-v2 §11.4): its address leads to the overview. */
+    @GetMapping("/workbench/board")
+    fun workbenchBoard(): ResponseEntity<Void> =
+        ResponseEntity.status(HttpStatus.FOUND).header("Location", "/workbench").build()
 
     @GetMapping("/favicon.ico")
     fun favicon(): ResponseEntity<Void> = ResponseEntity.noContent().build()

@@ -5,7 +5,7 @@ exports.bindBoard = bindBoard;
  * A single frame loop runs only during a drag. Neighbour movement uses FLIP,
  * with transforms/opacity only; no animated blur, shadow, width or height.
  */
-const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches || document.documentElement.dataset.motion === 'reduced';
+const { motionReduced: reduced } = require('./interaction.js');
 function bindBoard(board, onDrop, options = {}) {
     const tokens = getComputedStyle(board);
     const duration = (name, fallback) => {

@@ -2,24 +2,12 @@
   "note": "Raw-value counts in src/styles today (SYS-03/04/05/07 ratchet). Counts may only shrink; regenerate after a deliberate cleanup: npm run gates:update.",
   "metrics": {
     "font-size-px": {
-      "total": 1106,
-      "files": {
-        "everyday-demo.css": 12,
-        "everyday.css": 27,
-        "foundation.css": 915,
-        "whiteboard-workshop.css": 27,
-        "whiteboard.css": 125
-      }
+      "total": 0,
+      "files": {}
     },
     "font-size-below-12px": {
-      "total": 367,
-      "files": {
-        "everyday-demo.css": 1,
-        "everyday.css": 4,
-        "foundation.css": 303,
-        "whiteboard-workshop.css": 9,
-        "whiteboard.css": 50
-      }
+      "total": 0,
+      "files": {}
     },
     "raw-hex": {
       "total": 14,
@@ -40,13 +28,8 @@
       }
     },
     "duration-raw": {
-      "total": 60,
-      "files": {
-        "foundation.css": 51,
-        "settings.css": 2,
-        "whiteboard-workshop.css": 2,
-        "whiteboard.css": 5
-      }
+      "total": 0,
+      "files": {}
     },
     "z-index-raw": {
       "total": 81,
@@ -59,10 +42,10 @@
       }
     },
     "important": {
-      "total": 102,
+      "total": 86,
       "files": {
-        "foundation.css": 68,
-        "settings.css": 4,
+        "foundation.css": 55,
+        "motion.css": 1,
         "whiteboard-workshop.css": 8,
         "whiteboard.css": 22
       }

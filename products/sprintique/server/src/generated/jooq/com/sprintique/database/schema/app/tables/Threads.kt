@@ -6,11 +6,14 @@ package com.sprintique.database.schema.app.tables
 
 import com.sprintique.database.schema.app.App
 import com.sprintique.database.schema.app.indexes.THREAD_TASK_PAGE
+import com.sprintique.database.schema.app.keys.ATTENTION_REQUESTS__ATTENTION_REQUESTS_PROJECT_ID_TASK_ID_THREAD_ID_FKEY
 import com.sprintique.database.schema.app.keys.MESSAGES__MESSAGES_PROJECT_ID_THREAD_ID_FKEY
 import com.sprintique.database.schema.app.keys.THREADS_PKEY
 import com.sprintique.database.schema.app.keys.THREADS__THREADS_PROJECT_ID_TASK_ID_FKEY
 import com.sprintique.database.schema.app.keys.THREADS__THREADS_RESOLVED_BY_FKEY
 import com.sprintique.database.schema.app.keys.THREAD_READS__THREAD_READS_PROJECT_ID_THREAD_ID_FKEY
+import com.sprintique.database.schema.app.keys.THREAD_TASK_IDENTITY
+import com.sprintique.database.schema.app.tables.AttentionRequests.AttentionRequestsPath
 import com.sprintique.database.schema.app.tables.Messages.MessagesPath
 import com.sprintique.database.schema.app.tables.Tasks.TasksPath
 import com.sprintique.database.schema.app.tables.ThreadReads.ThreadReadsPath
@@ -117,6 +120,7 @@ open class Threads(
     override fun getSchema(): Schema? = if (aliased()) null else App.APP
     override fun getIndexes(): List<Index> = listOf(THREAD_TASK_PAGE)
     override fun getPrimaryKey(): UniqueKey<ThreadsRecord> = THREADS_PKEY
+    override fun getUniqueKeys(): List<UniqueKey<ThreadsRecord>> = listOf(THREAD_TASK_IDENTITY)
     override fun getReferences(): List<ForeignKey<ThreadsRecord, *>> = listOf(THREADS__THREADS_PROJECT_ID_TASK_ID_FKEY, THREADS__THREADS_RESOLVED_BY_FKEY)
 
     fun tasks(): TasksPath = tasks
@@ -124,6 +128,18 @@ open class Threads(
 
     fun principals(): PrincipalsPath = principals
     val principals: PrincipalsPath by lazy { PrincipalsPath(this, THREADS__THREADS_RESOLVED_BY_FKEY, null) }
+
+    private lateinit var _attentionRequests: AttentionRequestsPath
+
+    fun attentionRequests(): AttentionRequestsPath {
+        if (!this::_attentionRequests.isInitialized)
+            _attentionRequests = AttentionRequestsPath(this, null, ATTENTION_REQUESTS__ATTENTION_REQUESTS_PROJECT_ID_TASK_ID_THREAD_ID_FKEY.inverseKey)
+
+        return _attentionRequests;
+    }
+
+    val attentionRequests: AttentionRequestsPath
+        get(): AttentionRequestsPath = attentionRequests()
 
     private lateinit var _messages: MessagesPath
 

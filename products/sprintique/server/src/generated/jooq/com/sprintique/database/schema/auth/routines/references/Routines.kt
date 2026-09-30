@@ -12,6 +12,7 @@ import com.sprintique.database.schema.auth.routines.CanReadFinance
 import com.sprintique.database.schema.auth.routines.CanSeePerson
 import com.sprintique.database.schema.auth.routines.CanWorkspace
 import com.sprintique.database.schema.auth.routines.CollectOauthAccessTokens
+import com.sprintique.database.schema.auth.routines.OpenRequestsFor
 import com.sprintique.database.schema.auth.routines.ProjectTimezone
 import com.sprintique.database.schema.auth.routines.ServiceAccountActive
 import com.sprintique.database.schema.auth.routines.ServiceAccountGranted
@@ -215,6 +216,35 @@ fun collectOauthAccessTokens(
 ): Field<Int?> {
     val f = CollectOauthAccessTokens()
     f.setBatch(batch)
+
+    return f.asField()
+}
+
+fun openRequestsFor(
+      configuration: Configuration
+    , recipient: String?
+): Int? {
+    val f = OpenRequestsFor()
+    f.setRecipient(recipient)
+
+    f.execute(configuration)
+    return f.returnValue
+}
+
+fun openRequestsFor(
+      recipient: String?
+): Field<Int?> {
+    val f = OpenRequestsFor()
+    f.setRecipient(recipient)
+
+    return f.asField()
+}
+
+fun openRequestsFor(
+      recipient: Field<String?>
+): Field<Int?> {
+    val f = OpenRequestsFor()
+    f.setRecipient(recipient)
 
     return f.asField()
 }

@@ -47,7 +47,7 @@ class IqImageCrop extends HTMLElement{
  }
  get mode(){if(!this.image)return null;if(Math.abs(this.zoom-1)<.005)return'fill';if(this.letterbox&&Math.abs(this.zoom-this.minZoom)<.005)return'contain';return null}
  changeDetail(){return{crop:this.value,normalized:this.normalizedValue,zoom:this.zoom,mode:this.mode}}
- get content(){return {eyebrow:this.getAttribute('eyebrow')||'ИЗОБРАЖЕНИЕ',title:this.getAttribute('heading')||'Выберите кадр',subtitle:this.getAttribute('description')||'Переместите изображение и настройте масштаб. Оригинал не изменяется.',placeholder:this.getAttribute('placeholder')||'Выберите изображение'};}
+ get content(){return {eyebrow:this.getAttribute('eyebrow')||'Изображение',title:this.getAttribute('heading')||'Выберите кадр',subtitle:this.getAttribute('description')||'Переместите изображение и настройте масштаб. Оригинал не изменяется.',placeholder:this.getAttribute('placeholder')||'Выберите изображение'};}
  /** heading/description, never the global HTML title (a title attribute would show as a native tooltip everywhere). */
  set content(v){if(!v||Object.entries(v).some(([k,s])=>!['eyebrow','title','subtitle','heading','description','placeholder'].includes(k)||typeof s!=='string'))throw new TypeError('content: eyebrow/heading/description/placeholder');for(const[k,s]of Object.entries(v))this.setAttribute({title:'heading',subtitle:'description'}[k]||k,s);}
  updateContent(){const c=this.content;for(const[k,sel]of Object.entries({eyebrow:'.iq-pro-eyebrow',title:'.iq-pro-toolbar h3',subtitle:'.iq-pro-subtitle',placeholder:'.iq-crop-placeholder b'})){const el=this.querySelector(sel);if(el)el.textContent=c[k];}}

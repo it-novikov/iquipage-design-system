@@ -58,8 +58,9 @@ test('COL-01: field borders use --iq-field-line and reach 3:1 on recessed and ra
 });
 
 test('COL-02: dark secondary buttons keep a visible border', () => {
-  assert.ok(foundation.includes('[data-theme=dark] .iq-btn.secondary{background:var(--iq-fixed-252528);border-color:var(--iq-control)}'));
-  atLeast(tokens.dark.control, '#252528', 3, 'dark secondary border on its fill');
+  assert.ok(foundation.includes('.iq-btn.secondary{border-color:var(--iq-control);background:var(--iq-secondary-fill)}'), 'secondary fill is a per-theme role, not a dark patch');
+  assert.ok(!foundation.includes('[data-theme=dark] .iq-btn.secondary'));
+  atLeast(tokens.dark.control, tokens.dark['secondary-fill'], 3, 'dark secondary border on its fill');
 });
 
 test('COL-04: light --iq-faint reads at 4.5:1 on the canvas', () => {
