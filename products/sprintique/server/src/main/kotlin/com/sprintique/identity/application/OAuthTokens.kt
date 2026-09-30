@@ -48,7 +48,8 @@ class OAuthTokens(private val database: Database, private val limits: Credential
                        o.redirect_uri AS "redirectUri", o.code_challenge AS challenge, o.scopes, o.resource,
                        o.grant_id AS "grantId", o.consumed_at IS NOT NULL AS consumed,
                        o.expires_at <= clock_timestamp() AS expired,
-                       NOT auth.service_account_active(o.principal_id) AS disabled
+                       NOT auth.service_account_active(o.principal_id) OR o.granted_by IS DISTINCT FROM (
+                         SELECT s.owner_id FROM auth.service_accounts s WHERE s.principal_id = o.principal_id) AS disabled
                 FROM auth.oauth_codes o WHERE o.code_hash = $1 FOR UPDATE OF o
                 """.trimIndent(),
                 Tokens.sha256Hex(code),
@@ -127,7 +128,9 @@ class OAuthTokens(private val database: Database, private val limits: Credential
                     """
                     SELECT g.id, g.client_id AS "clientId", g.principal_id AS "principalId", g.granted_by AS "grantedBy",
                            g.scopes, g.resource, g.revoked_at IS NOT NULL AS revoked,
-                           NOT auth.service_account_active(g.principal_id) AS disabled
+                           NOT auth.service_account_active(g.principal_id) OR g.granted_by IS DISTINCT FROM (
+                             SELECT s.owner_id FROM auth.service_accounts s WHERE s.principal_id = g.principal_id)
+                             AS disabled
                     FROM auth.oauth_grants g
                     WHERE g.id = $1::uuid FOR UPDATE OF g
                     """.trimIndent(),

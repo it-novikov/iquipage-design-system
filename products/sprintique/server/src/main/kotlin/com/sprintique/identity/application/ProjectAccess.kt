@@ -168,9 +168,10 @@ object ProjectAccess {
             """
             SELECT 1 AS found FROM auth.credentials c JOIN auth.principals p ON p.id = c.principal_id
             LEFT JOIN auth.oauth_grants g ON g.id = c.grant_id
+            LEFT JOIN auth.service_accounts s ON s.principal_id = p.id
             WHERE c.id = $1 AND c.revoked_at IS NULL AND c.expires_at > clock_timestamp() AND p.disabled_at IS NULL
               AND (c.grant_id IS NULL OR g.revoked_at IS NULL)
-              AND (p.kind <> 'service' OR auth.service_account_active(p.id))
+              AND (p.kind <> 'service' OR (auth.service_account_active(p.id) AND c.initiator_id = s.owner_id))
             """.trimIndent(),
             actor.credentialId,
         )

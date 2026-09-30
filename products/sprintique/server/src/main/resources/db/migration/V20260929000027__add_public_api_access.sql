@@ -29,6 +29,19 @@ CREATE TABLE auth.service_accounts (
 CREATE INDEX service_accounts_owner ON auth.service_accounts(owner_id) WHERE deleted_at IS NULL;
 CREATE INDEX service_accounts_workspace ON auth.service_accounts(workspace_id) WHERE deleted_at IS NULL;
 
+-- A service account reads or edits a project; it never administers one, whatever wrote the row.
+CREATE FUNCTION auth.service_account_role_check() RETURNS trigger
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog AS $$
+BEGIN
+  IF NEW.role='admin' AND EXISTS(SELECT 1 FROM auth.principals p WHERE p.id=NEW.principal_id AND p.kind='service') THEN
+    RAISE EXCEPTION 'a service account cannot administer a project' USING ERRCODE='check_violation';
+  END IF;
+  RETURN NEW;
+END $$;
+REVOKE ALL ON FUNCTION auth.service_account_role_check() FROM PUBLIC;
+CREATE TRIGGER project_members_service_role BEFORE INSERT OR UPDATE OF role,principal_id ON app.project_members
+  FOR EACH ROW EXECUTE FUNCTION auth.service_account_role_check();
+
 -- What a service account holds in a project beyond its role (reader or editor, in app.project_members): finance,
 -- only when granted explicitly, never by default. The names are those of the permission catalog that will replace
 -- roles (docs/access/access-and-invitations.md, `granted`); this table then moves into the membership row. Ending

@@ -443,10 +443,22 @@ test('P10 service accounts: within the owner\'s rights, managed by owner and adm
     // Back in the workspace is not enough: the suspension holds until an administrator reassigns the owner.
     await f.admin.query("INSERT INTO app.workspace_members(workspace_id,principal_id,role) VALUES($1,$2,'member')",[f.first.workspaceId,f.reader.id]);
     assert.equal((await f.app.inject({url:api+'/api/v1/projects/'+f.first.id+'/tasks',headers:bearer(readerToken)})).statusCode,401);
-    assert.equal((await call(f.reader,'POST','/api/v1/service-accounts/'+readerAccount.id+'/owner',{baseRevision:suspended.revision,ownerId:f.reader.id})).statusCode,403,'the owner cannot lift it');
+    // The former owner neither lifts it nor manages it any more; only an administrator resolves it.
+    assert.equal((await call(f.reader,'POST','/api/v1/service-accounts/'+readerAccount.id+'/owner',{baseRevision:suspended.revision,ownerId:f.reader.id})).statusCode,404,'the owner cannot lift it');
+    for(const [method,url,payload] of [['PATCH','',{baseRevision:suspended.revision,name:'Своё'}],['POST','/tokens',{name:'t',scopes:['read'],expiresInDays:1}],['DELETE','',undefined]] as const){
+      assert.equal((await call(f.reader,method,'/api/v1/service-accounts/'+readerAccount.id+url,payload)).statusCode,404,method+url);
+    }
+    assert.ok(!(await listAccounts(f.reader)).some(a=>a.id===readerAccount.id),'no longer listed as the former owner\'s');
     const reassigned=await call(f.alice,'POST','/api/v1/service-accounts/'+readerAccount.id+'/owner',{baseRevision:suspended.revision,ownerId:f.alice.id});
     assert.equal(reassigned.statusCode,200,reassigned.body);assert.equal(reassigned.json().suspended,false);assert.equal(reassigned.json().ownerId,f.alice.id);
-    assert.equal((await f.app.inject({url:api+'/api/v1/projects/'+f.first.id+'/tasks',headers:bearer(readerToken)})).statusCode,200);
+    // Nothing the former owner issued acts under the new owner: tokens and apps end with the reassignment.
+    assert.equal((await f.app.inject({url:api+'/api/v1/projects/'+f.first.id+'/tasks',headers:bearer(readerToken)})).statusCode,401);
+    assert.deepEqual(reassigned.json().tokens,[]);
+    const fresh=(await call(f.alice,'POST',`/api/v1/service-accounts/${readerAccount.id}/tokens`,{name:'Новый',scopes:['read'],expiresInDays:1})).json().token;
+    assert.equal((await f.app.inject({url:api+'/api/v1/projects/'+f.first.id+'/tasks',headers:bearer(fresh)})).statusCode,200);
+    // Even a token left live by hand stops once its issuer is not the owner.
+    await f.admin.query("UPDATE auth.credentials SET revoked_at=NULL WHERE token_hash=encode(sha256($1::bytea),'hex')",[readerToken]);
+    assert.equal((await f.app.inject({url:api+'/api/v1/projects/'+f.first.id+'/tasks',headers:bearer(readerToken)})).statusCode,401,'issued by someone who is not the owner now');
     // A workspace administrator deletes a person's account: everything it held ends.
     await f.admin.query("INSERT INTO app.project_members(project_id,principal_id,role) VALUES($1,$2,'reader') ON CONFLICT DO NOTHING",[f.first.id,f.reader.id]);
     const temporary=(await make(f.reader,{name:'Временный',workspaceId:f.first.workspaceId,projects:[{projectId:f.first.id,role:'reader'}]})).json();
@@ -531,9 +543,16 @@ test('P11 finance only when granted and never above the owner; project administr
     assert.equal((await call(f.bob,'PATCH','/api/v1/service-accounts/'+both.id,{baseRevision:both.revision,name:'Моё'})).statusCode,403);
     assert.equal((await call(f.bob,'POST','/api/v1/service-accounts/'+both.id+'/tokens',{name:'t',scopes:['read'],expiresInDays:1})).statusCode,403);
     assert.equal((await call(f.bob,'DELETE','/api/v1/service-accounts/'+both.id)).statusCode,403,'it works in a project he does not administer');
-    assert.equal((await grant(f.bob,both.id,f.first.id,{role:'reader'})).statusCode,200);
+    const scoped=await grant(f.bob,both.id,f.first.id,{role:'reader'});assert.equal(scoped.statusCode,200,scoped.body);
+    assert.deepEqual(scoped.json(),{id:both.id,projectId:f.first.id,role:'reader',granted:[]},'a project administrator sees only their project');
     assert.equal((await grant(f.bob,both.id,other.id,{role:'reader'})).statusCode,404,'not his project');
+    const app=await connect();void app;
+    await f.admin.query('UPDATE auth.oauth_grants SET principal_id=$1 WHERE id=(SELECT id FROM auth.oauth_grants WHERE granted_by=$2 AND revoked_at IS NULL ORDER BY created_at DESC LIMIT 1)',[both.id,f.alice.id]);
+    const grantId=(await f.admin.query('SELECT id FROM auth.oauth_grants WHERE principal_id=$1 AND revoked_at IS NULL',[both.id])).rows[0].id;
+    assert.equal((await call(f.bob,'DELETE','/api/v1/connected-apps/'+grantId)).statusCode,403,'the owner\'s app is not his to disconnect');
+    assert.equal((await call(f.alice,'DELETE','/api/v1/connected-apps/'+grantId)).statusCode,200);
     assert.equal((await call(f.bob,'DELETE',`/api/v1/service-accounts/${both.id}/projects/${f.first.id}`)).statusCode,200);
+    await assert.rejects(f.admin.query("INSERT INTO app.project_members(project_id,principal_id,role) VALUES($1,$2,'admin')",[f.first.id,both.id]),/cannot administer/,'the database never lets it administer');
     assert.equal((await call(f.bob,'DELETE','/api/v1/service-accounts/'+helper.id)).statusCode,200,'every project of it is his');
     assert.ok(!(await listAccounts(f.reader)).some(a=>a.id===helper.id));
     const events=(await f.admin.query('SELECT action,actor_id FROM auth.access_events WHERE principal_id=$1 ORDER BY created_at',[helper.id])).rows;

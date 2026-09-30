@@ -112,7 +112,7 @@ class ServiceAccounts(private val properties: SprintiqueProperties) {
                    NOT auth.service_account_active(s.principal_id) AS suspended
             FROM auth.service_accounts s JOIN auth.principals p ON p.id = s.principal_id
             JOIN auth.principals o ON o.id = s.owner_id
-            WHERE s.deleted_at IS NULL AND (s.owner_id = $1 OR EXISTS (
+            WHERE s.deleted_at IS NULL AND ((s.owner_id = $1 AND s.suspended_at IS NULL) OR EXISTS (
               SELECT 1 FROM app.workspace_members w
               WHERE w.workspace_id = s.workspace_id AND w.principal_id = $1 AND w.role = 'admin'))
             ORDER BY (s.owner_id = $1) DESC, p.name, s.principal_id LIMIT $2
@@ -255,10 +255,29 @@ class ServiceAccounts(private val properties: SprintiqueProperties) {
         } else {
             grantProject(tx, actor, managed, grant.copy(projectId = projectId))
         }
-        return present(tx, account(tx, actor, id))
+        if (managed.isOwner || managed.isWorkspaceAdmin) return present(tx, account(tx, actor, id))
+        // A project administrator sees the account only as it is in their project.
+        val member = tx.row(
+            """
+            SELECT m.role, coalesce(g.granted, '{}') AS granted FROM app.project_members m
+            LEFT JOIN auth.service_account_grants g ON g.project_id = m.project_id AND g.principal_id = m.principal_id
+            WHERE m.project_id = $1 AND m.principal_id = $2
+            """.trimIndent(),
+            projectId,
+            id,
+        )
+        return linkedMapOf(
+            "id" to id,
+            "projectId" to projectId,
+            "role" to member?.get("role"),
+            "granted" to member?.strings("granted").orEmpty(),
+        )
     }
 
-    /** A workspace administrator gives the account a new owner, a person of the workspace; this lifts a suspension. */
+    /**
+     * A workspace administrator gives the account a new owner, a person of the workspace; this lifts a suspension and
+     * ends every token and app of the account: the new owner starts afresh, nothing issued before acts under them.
+     */
     fun reassign(tx: Transaction, actor: Actor, id: String, baseRevision: Long, ownerId: String): Map<String, Any?> {
         val managed = manage(tx, actor, id)
         requireCondition(
@@ -282,6 +301,8 @@ class ServiceAccounts(private val properties: SprintiqueProperties) {
             id,
             ownerId,
         )
+        // Tokens and apps were issued by the former owner under their rights: none of them carries over to the new one.
+        endAccess(tx, id)
         bump(tx, id)
         AccessEvents.record(tx, id, "account.owner-changed", ownerId, actorId = actor.id)
         return present(tx, account(tx, actor, id))
@@ -379,11 +400,13 @@ class ServiceAccounts(private val properties: SprintiqueProperties) {
             """.trimIndent(),
             grantId,
         )
+        val managed = grant?.let { locate(tx, actor, it.string("accountId")) }
+        requireCondition(grant != null && managed != null, 404, "NOT_FOUND", "Приложение не подключено.")
         requireCondition(
-            grant != null && locate(tx, actor, grant.string("accountId")) != null,
-            404,
-            "NOT_FOUND",
-            "Приложение не подключено.",
+            managed.isOwner || managed.isWorkspaceAdmin,
+            403,
+            "FORBIDDEN",
+            "Приложение отключают владелец аккаунта и администраторы пространства.",
         )
         ConnectedApps.revokeGrant(tx, grantId)
         AccessEvents.record(tx, grant.string("accountId"), "app.revoked", grantId, grant.string("clientId"), actor.id)
@@ -506,7 +529,8 @@ class ServiceAccounts(private val properties: SprintiqueProperties) {
         val row = tx.row(
             """
             SELECT s.principal_id AS id, s.workspace_id::text AS "workspaceId", s.owner_id AS "ownerId", s.revision,
-                   s.owner_id = $2 AS "isOwner",
+                   s.owner_id = $2 AND s.suspended_at IS NULL AND EXISTS (SELECT 1 FROM app.workspace_members w
+                     WHERE w.workspace_id = s.workspace_id AND w.principal_id = $2) AS "isOwner",
                    EXISTS (SELECT 1 FROM app.workspace_members w WHERE w.workspace_id = s.workspace_id
                            AND w.principal_id = $2 AND w.role = 'admin') AS "isWorkspaceAdmin"
             FROM auth.service_accounts s WHERE s.principal_id = $1 AND s.deleted_at IS NULL FOR UPDATE OF s
