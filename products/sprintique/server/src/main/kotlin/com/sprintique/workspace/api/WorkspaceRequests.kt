@@ -45,8 +45,6 @@ data class PutProjectProfileRequest(
     @field:JsonDeserialize(using = TrimmedString::class)
     @field:Size(min = 1, max = 100)
     val name: String,
-    @field:Pattern(regexp = RESOURCE_ID)
-    val avatarAssetId: String?,
 )
 
 @Schema(name = "PutWorkspaceProfile")
@@ -91,6 +89,15 @@ data class CreateInvitationRequest(
 data class AcceptInvitationRequest(
     @field:Pattern(regexp = "^invite_[A-Za-z0-9_-]{43}$")
     val token: String,
+)
+
+@Schema(name = "PersonPreferences")
+data class PersonPreferencesRequest(val confirmReleaseScope: Boolean)
+
+@Schema(name = "ProjectPreferences")
+data class ProjectPreferencesRequest(
+    @field:Pattern(regexp = RESOURCE_ID)
+    val boardRelease: String?,
 )
 
 @Schema(name = "ChangeProfile")

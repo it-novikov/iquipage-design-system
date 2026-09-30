@@ -50,7 +50,7 @@ export const FILE_TYPES:Readonly<Record<string,FileType>>=Object.freeze({
 /** The declared type of a file name; an unknown or missing extension is the generic download. */
 export const fileTypeOf=(name:string):FileType=>{const dot=name.lastIndexOf('.');return (dot>=0&&Object.hasOwn(FILE_TYPES,name.slice(dot+1).toLowerCase())?FILE_TYPES[name.slice(dot+1).toLowerCase()]:undefined)??GENERIC_FILE;};
 export const FileName=z.string().trim().min(1).max(180).refine(v=>!/[\x00-\x1f\x7f/\\]/.test(v));
-export const AssetReservation=z.strictObject({id:ResourceId,targetType:z.enum(['task','map','project-avatar']),targetId:ResourceId,
+export const AssetReservation=z.strictObject({id:ResourceId,targetType:z.enum(['task','map']),targetId:ResourceId,
   name:FileName,size:z.number().int().min(1).max(FILE_LIMIT),sha256:z.string().regex(/^[a-f0-9]{64}$/)});
 export const AssetParams=z.strictObject({projectId:ResourceId,id:ResourceId});
 export const AssetVariant=z.enum(['original','display','thumb']);

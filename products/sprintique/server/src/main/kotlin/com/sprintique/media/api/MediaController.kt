@@ -47,7 +47,7 @@ import tools.jackson.databind.JsonNode
 import tools.jackson.databind.annotation.JsonDeserialize
 import java.net.URLEncoder
 
-enum class AssetTarget(@get:JsonValue val wire: String) { TASK("task"), MAP("map"), PROJECT_AVATAR("project-avatar") }
+enum class AssetTarget(@get:JsonValue val wire: String) { TASK("task"), MAP("map") }
 
 @Schema(name = "AssetReservation")
 data class AssetReservationRequest(

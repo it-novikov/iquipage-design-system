@@ -4,7 +4,7 @@ import {normalizeBoardFilters,hasBoardFilters,taskMatchesFilters} from './filter
 import {bindBoard,registerCore,ui,notify} from '@iquipage/web/core';
 import {TASK_COLUMNS,taskColumn,placeTask} from '../tasks.js';
 import {icon,esc,dialog,select} from '../ui.js';
-import {BOARD_SORTS,boardComparator,projectColumn} from './model.js';
+import {BOARD_SORTS,boardComparator,projectColumn,boardReleaseChoices,boardShown} from './model.js';
 import {renderTaskCard} from './card.js';
 import {openTaskDialog} from './task-dialog.js';
 import {mountTagPacking} from './tag-packing.js';
@@ -26,7 +26,7 @@ export async function mountTaskBoard(root,{repository,project,canEdit=true,canMa
   const persist=()=>{viewState.sort=sort;viewState.expanded=[...expanded];try{const {x:_x,y:_y,...stored}=viewState;localStorage.setItem(key,JSON.stringify(stored));}catch{}};
   delete viewState.query;
   root.innerHTML=`<div class="host-task-page"><header class="host-task-heading sq-page-heading"><div class="host-task-heading-title"><h1 data-board-title>Доска задач</h1></div>
-  <div class="host-task-tools sq-page-tools"><div class="host-board-sort" data-board-sort></div><div class="board-filter-bar" data-board-filters></div>
+  <div class="host-task-tools sq-page-tools"><div class="host-board-release" data-board-release></div><div class="host-board-sort" data-board-sort></div><div class="board-filter-bar" data-board-filters></div>
   <button type="button" class="iq-btn primary" data-create-task ${canEdit?'':'disabled'}>${icon('plus',18)}<span>Новая задача</span></button></div>
   </header><p class="host-task-error" role="alert" hidden></p><div class="host-board-mount"></div><p class="sr-only" id="board-drag-help">Enter или пробел — взять задачу. Стрелки — выбрать позицию, Enter — переместить, Escape — отменить. В меню задачи доступно перемещение без перетаскивания.</p><span class="sr-only" role="status" data-task-live></span></div>`;
   const ownedPage=root.firstElementChild;
@@ -40,12 +40,32 @@ export async function mountTaskBoard(root,{repository,project,canEdit=true,canMa
   const matches=t=>taskMatchesFilters(t,filterState);
   const projection=(status,tasks=items)=>projectColumn(tasks,status,{predicate:matches,compare:boardComparator(sort)});
   const empty=status=>filtering()?'<div class="board-empty-slot"><span>Нет совпадений</span><small>Измените или сбросьте фильтры</small></div>':canEdit?`<button type="button" class="file-dropwell board-empty-slot" data-column-create="${status}"><span>Добавить задачу</span><small>или перетащите её сюда</small></button>`:'<div class="board-empty-slot"><span>Пока нет задач</span></div>';
-  /** The board shows started work, so its title is the running release or sprint (all of them if several).
-   *  Kind, dates and days left belong to planning; the board keeps only the name. */
+  /** The board shows one release: the one the person picked (kept on the server for them and this project) while it is
+   *  running or planned, otherwise the running one (the one ending first when several run), otherwise the tasks
+   *  without a release. Kind, dates and days left belong to planning; the board keeps only the name. */
+  let chosenRelease=null,shown={backlog:true},saving=Promise.resolve();
+  // The person's choice loads alongside the first catalogs instead of before them.
+  let preference=repository.boardRelease?repository.boardRelease(project.id,{signal}).catch(()=>null):null;
+  const boardReleases=()=>boardReleaseChoices(catalogs.releases);
+  function resolveShown(){shown=boardShown(chosenRelease,catalogs.releases);}
   function renderTitle(){
-    const active=catalogs.releases.filter(r=>r.lifecycle==='active'&&!r.archivedAt);
-    root.querySelector('[data-board-title]').textContent=active.length?active.map(r=>r.name).join(', '):'Доска задач';
+    root.querySelector('[data-board-title]').textContent=shown.backlog?'Без релиза':shown.name;
+    const choices=boardReleases(),value=shown.backlog?'backlog':shown.releaseId;
+    const options=[...choices.map(r=>({value:r.id,label:r.name,icon:'flag',meta:r.lifecycle==='active'?'идёт':'запланирован'})),{value:'backlog',label:'Без релиза',icon:'stack',separator:choices.length>0}];
+    const slot=root.querySelector('[data-board-release]'),current=slot.querySelector('iq-select');
+    if(current&&current.dataset.options===JSON.stringify(options)){if(current.value!==value)current.value=value;return;}
+    slot.innerHTML=`<iq-select name="board-release" label="Релиз на доске" label-hidden value="${esc(value)}" options="${esc(JSON.stringify(options))}"></iq-select>`;
+    slot.querySelector('iq-select').dataset.options=JSON.stringify(options);
   }
+  root.addEventListener('iq-change',event=>{
+    if(event.target.getAttribute?.('name')!=='board-release')return;
+    const value=String(event.target.value||'');if(!value||value===(shown.backlog?'backlog':shown.releaseId))return;
+    // A load already under way for the previous release is discarded: its tasks never show under the new title.
+    chosenRelease=value;resolveShown();renderTitle();loading++;void reload();
+    // Remembered for the person in this project, on every device, one save after another so the last choice wins;
+    // a failed save keeps the choice for this visit.
+    saving=saving.then(()=>repository.setBoardRelease?.(project.id,value)).catch(()=>notify({tone:'warning',message:'Не удалось запомнить выбор релиза. Доска покажет его до перезагрузки.'}));
+  },{signal});
   function render(focusId){
     if(closed||dragging){queued=true;return;}
     const old=mount.querySelector('.iq-board');
@@ -78,9 +98,12 @@ export async function mountTaskBoard(root,{repository,project,canEdit=true,canMa
     reloadPromise=(async()=>{do{
       reloadAgain=false;const token=++loading;
       try{
-        const [all,tags,releases,members]=await Promise.all([...['tasks','tags','releases'].map(name=>repository.list(name,project.id,{signal})),
-          repository.capabilities?.members===false?[]:repository.list('members',project.id,{signal}).catch(()=>[])]);
-        if(closed||token!==loading)continue;items=all;
+        const [tags,releases,members,picked]=await Promise.all([...['tags','releases'].map(name=>repository.list(name,project.id,{signal})),
+          repository.capabilities?.members===false?[]:repository.list('members',project.id,{signal}).catch(()=>[]),preference]);
+        if(preference){preference=null;chosenRelease??=picked??null;}
+        catalogs={...catalogs,releases};resolveShown();const scope=shown;
+        const all=await repository.list('tasks',project.id,{signal,board:scope});
+        if(closed||token!==loading||scope!==shown)continue;items=all;
         const people=new Map(members.map(m=>[m.id,{id:m.id,name:m.name,image:repository.client?.avatarUrl?.(m.id,m.avatarRevision)||undefined}]));
         catalogs={tags,releases,people};filters.setData({tasks:items,...catalogs});renderTitle();render();
       }catch(e){if(!closed&&e.name!=='AbortError')fail(e);}
@@ -113,7 +136,9 @@ export async function mountTaskBoard(root,{repository,project,canEdit=true,canMa
     if(openingTask||(activeDialog&&activeDialog!==replace)||closed)return;
     openingTask=true;const controller=new AbortController();openingController=controller;
     try{
-    const created=await openTaskDialog(task,{repository,project,tasks:items,canEdit,canManage:canManageCatalogs,attachmentAdapter,status,fullscreen,replace,signal:controller.signal,isActive:()=>!closed&&!controller.signal.aborted,onOpenTask:id=>openTask(id,{via:'link',from:task}),backTo:task?trail.at(-1)||null:null,onBack:()=>{const previous=trail.at(-1);if(previous)void openTask(previous.id,{via:'back'});},onReload:async()=>{if(!(await closeTask()))return;const fresh=await repository.read('tasks',task.id,project.id);if(fresh)await edit(fresh,'ready',{fromRoute:true,fullscreen});},onSaved:async saved=>{if(!task&&!items.some(t=>t.id===saved.id))notify({tone:'success',message:`Задача ${taskKey(saved)} создана`,action:{label:'Открыть',run:()=>void openTask(saved.id)}});loading++;items=items.some(t=>t.id===saved.id)?items.map(t=>t.id===saved.id?saved:t):[...items,saved];render();await reload();}});
+    // A new task starts in the release the board shows; the form lets the person pick another or none.
+    const initialValues=task?{}:{releaseId:shown.backlog?null:shown.releaseId};
+    const created=await openTaskDialog(task,{repository,project,tasks:items,canEdit,canManage:canManageCatalogs,attachmentAdapter,status,initialValues,fullscreen,replace,signal:controller.signal,isActive:()=>!closed&&!controller.signal.aborted,onOpenTask:id=>openTask(id,{via:'link',from:task}),backTo:task?trail.at(-1)||null:null,onBack:()=>{const previous=trail.at(-1);if(previous)void openTask(previous.id,{via:'back'});},onReload:async()=>{if(!(await closeTask()))return;const fresh=await repository.read('tasks',task.id,project.id);if(fresh)await edit(fresh,'ready',{fromRoute:true,fullscreen});},onSaved:async saved=>{if(!task&&!items.some(t=>t.id===saved.id))notify({tone:'success',message:`Задача ${taskKey(saved)} создана`,action:{label:'Открыть',run:()=>void openTask(saved.id)}});loading++;items=items.some(t=>t.id===saved.id)?items.map(t=>t.id===saved.id?saved:t):[...items,saved];render();await reload();}});
     if(closed||controller.signal.aborted){created.close(true);return;}activeDialog=created;
     // Following a link or going back inside the drawer replaces the drawer's history entry, so closing it
     // always returns to the board instead of walking back through every task that was visited.

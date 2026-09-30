@@ -146,3 +146,18 @@ test('V09 manual reorder moves a task among its siblings and never across levels
   assert.equal(positions.statusCode,200,positions.body);const labels=positions.json().options.map((o:{value:string})=>o.value);
   assert.ok(labels.includes('order-a')&&labels.includes('__end__')&&!labels.includes('order-b')&&!labels.includes('order-child'));
 });
+test('V12 a task created on the board while a release runs joins that release once; a finished release takes none',async()=>{
+  const groupId=await release('Board sprint');await apply({kind:'start',groupId});
+  const intent={kind:'taskCreate',taskId:'board-in-sprint',createInBoard:true,task:TaskInput.parse({title:'Срочно в спринт',releaseId:groupId})};
+  const preview=await view('preview',intent);const [planId,token]=preview.token.split('.'),key=randomUUID();
+  const commit=()=>f.app.inject({method:'POST',url:path('planning/commands'),headers:{...f.alice.headers,'idempotency-key':key},payload:{planId,token}});
+  const first=await commit(),again=await commit();assert.equal(first.json().status,'committed',first.body);assert.deepEqual(again.json(),first.json(),'a retried commit acts once');
+  const created=(await request('tasks/board-in-sprint',undefined,f.alice.headers,'GET')).json();
+  assert.equal(created.releaseId,groupId);assert.equal(created.preparation,'ready');assert.equal(created.revision,1);
+  const board=(await request('board/tasks?limit=100',undefined,f.alice.headers,'GET')).json();
+  assert.ok(board.items.some((t:{id:string})=>t.id==='board-in-sprint'),'it is on the board of the running release');
+  assert.equal((await request('planning/view/preview',intent,f.reader.headers)).statusCode,403,'a reader changes no release scope');
+  await apply({kind:'cancel',groupId,destinationId:'backlog'});
+  const late=await request('planning/view/preview',{...intent,taskId:'board-after-sprint'});
+  assert.equal(late.statusCode,409,late.body);assert.equal(late.json().code,'RELEASE_FINISHED');
+});

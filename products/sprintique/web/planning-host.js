@@ -22,12 +22,19 @@ export async function applyPlanningChange(adapter,intent){
   let outcome;
   try{outcome=await commitInPlace(operation,intent);}finally{operation.destroy();}
   if(outcome==='confirm')return confirmPlanningChange(adapter,intent);
-  if(outcome==='uncertain'){await recoverPlanningAttempt(adapter);throw Error('Результат изменения проверен отдельно. Обновите задачу.');}
+  if(outcome==='uncertain'){
+    const receipt=await recoverPlanningAttempt(adapter);
+    if(receipt?.state==='committed')return;
+    throw Error(receipt?.state==='rejected'?receipt.message||'Изменение не сохранено.':'Результат изменения проверен отдельно. Обновите задачу.');
+  }
 }
+/** Settles a planning command whose answer was lost. Resolves with its receipt ({state:'committed'|'rejected'}), or
+ *  null when nothing was pending. */
 export async function recoverPlanningAttempt(adapter){
-  const pending=adapter.pending();if(!pending)return;
+  const pending=adapter.pending();if(!pending)return null;
+  let outcome=null;
   return new Promise(resolve=>formDialog({title:'Проверим последнее изменение',body:'<p>Предыдущая отправка не получила подтверждённого результата. Проверим её перед новой работой.</p>',submitLabel:'Проверить результат',canClose:()=>!adapter.pending(),
-    submit:async(_form,modal)=>{const result=await adapter.receipt({idempotencyKey:pending.key});if(result.state==='uncertain')throw Error('Результат пока неизвестен. Повторите проверку.');if(result.state==='rejected')modal.fail(result.message);return true;},onClose:resolve}));
+    submit:async(_form,modal)=>{const result=await adapter.receipt({idempotencyKey:pending.key});if(result.state==='uncertain')throw Error('Результат пока неизвестен. Повторите проверку.');outcome=result;if(result.state==='rejected')modal.fail(result.message);return true;},onClose:()=>resolve(outcome)}));
 }
 export async function mountPlanningHost(root,{repository,adapter,project,onOpenBoard,viewState={}}){
   const {mountPlanning}=await import('../ui/planning/src/index.js');

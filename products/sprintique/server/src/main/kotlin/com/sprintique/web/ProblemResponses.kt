@@ -73,8 +73,14 @@ class ProblemResponses {
         body(request, HttpStatus.UNSUPPORTED_MEDIA_TYPE, "INVALID_REQUEST", "Некорректный запрос.")
 
     @ExceptionHandler(PayloadTooLargeException::class)
-    fun tooLarge(request: HttpServletRequest): ResponseEntity<Map<String, Any?>> =
-        body(request, HttpStatus.CONTENT_TOO_LARGE, "INVALID_REQUEST", "Некорректный запрос.")
+    fun tooLarge(request: HttpServletRequest): ResponseEntity<Map<String, Any?>> {
+        // A streamed photo without a declared length is cut off at the limit and told the same as a declared one.
+        if (BodySizeFilter.isPhoto(request)) {
+            BodySizeFilter.refusedPhoto(-1)
+            return body(request, HttpStatus.CONTENT_TOO_LARGE, "FILE_SIZE", BodySizeFilter.PHOTO_TOO_LARGE)
+        }
+        return body(request, HttpStatus.CONTENT_TOO_LARGE, "INVALID_REQUEST", "Некорректный запрос.")
+    }
 
     @ExceptionHandler(Exception::class)
     fun unexpected(error: Exception, request: HttpServletRequest): ResponseEntity<Map<String, Any?>> {

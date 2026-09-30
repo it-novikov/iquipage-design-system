@@ -1,10 +1,12 @@
 package com.sprintique.media.infrastructure
 
+import com.sprintique.health.ReadinessProbe
 import com.sprintique.media.application.ImageTranscoder
 import com.sprintique.media.application.ProcessedImage
 import com.sprintique.media.domain.FileInspection
 import com.sprintique.problem.ProblemException
 import com.sprintique.problem.requireCondition
+import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import java.awt.RenderingHints
@@ -19,6 +21,7 @@ import java.util.concurrent.RejectedExecutionException
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 import javax.imageio.IIOImage
 import javax.imageio.ImageIO
@@ -35,15 +38,35 @@ import kotlin.math.roundToInt
  * the native libwebp only encodes pixels that were already decoded. Size is checked before decoding, any reader
  * warning fails the image, a decode past the time limit is aborted, and at most two images are decoded at once —
  * counting decodes that outlived their caller.
+ *
+ * An encoder that cannot run (its native library did not load) is the server's fault, not the image's: it answers 503
+ * IMAGE_UNAVAILABLE, is logged, and keeps the instance out of readiness until it works.
  */
 @Component
 @Profile("api")
-class ImageIoImageTranscoder(private val timeout: Duration = DEFAULT_TIMEOUT) : ImageTranscoder {
+class ImageIoImageTranscoder(
+    private val timeout: Duration = DEFAULT_TIMEOUT,
+    private val encoder: (BufferedImage, Float) -> ByteArray = ::encodeWebp,
+) : ImageTranscoder,
+    ReadinessProbe {
     private val slots = Semaphore(CONCURRENT_DECODERS)
     private val executor = Executors.newVirtualThreadPerTaskExecutor()
+    private val encoderWorks = AtomicBoolean(false)
+    private val failureLogged = AtomicBoolean(false)
 
     init {
         ImageIO.scanForPlugins()
+    }
+
+    /** One tiny encode, until the first one succeeds: a missing native library fails readiness, not the uploads. */
+    override fun check() {
+        if (encoderWorks.get()) return
+        try {
+            encode(BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB), THUMB_QUALITY)
+        } catch (failure: EncoderFailure) {
+            unavailable(failure)
+            throw ProblemException(503, "TEMPORARILY_UNAVAILABLE", "Сервис временно недоступен. Повторите позже.")
+        }
     }
 
     override fun avatar(bytes: ByteArray): ByteArray {
@@ -51,8 +74,15 @@ class ImageIoImageTranscoder(private val timeout: Duration = DEFAULT_TIMEOUT) : 
             bytes.isNotEmpty() && bytes.size <= AVATAR_SOURCE_BYTES,
             422,
             "FILE_SIZE",
-            "Файл должен быть непустым и не больше 10 МБ.",
+            "Фото должно быть не больше 10 МБ. Выберите файл поменьше.",
         )
+        FileInspection.unsupportedImage(bytes)?.let { format ->
+            throw ProblemException(
+                422,
+                "FILE_TYPE",
+                "Формат $format не поддерживается. Выберите фото JPEG, PNG или WebP.",
+            )
+        }
         requireCondition(
             FileInspection.isKnownImage(bytes),
             422,
@@ -69,7 +99,7 @@ class ImageIoImageTranscoder(private val timeout: Duration = DEFAULT_TIMEOUT) : 
             )
             // Past the pixel limit the photo fails like any unreadable image, as before.
             if (header.pixels > IMAGE_PIXELS) throw decodeFailure()
-            encodeWebp(cover(decoder.oriented(), AVATAR_SIZE), AVATAR_QUALITY)
+            encode(cover(decoder.oriented(), AVATAR_SIZE), AVATAR_QUALITY)
         }
         requireCondition(output.size <= AVATAR_BYTES, 422, "IMAGE_SIZE", "Не удалось уменьшить изображение.")
         return output
@@ -83,9 +113,22 @@ class ImageIoImageTranscoder(private val timeout: Duration = DEFAULT_TIMEOUT) : 
         ProcessedImage(
             width = header.width,
             height = header.height,
-            display = encodeWebp(inside(image, DISPLAY_SIZE), DISPLAY_QUALITY),
-            thumb = encodeWebp(inside(image, THUMB_SIZE), THUMB_QUALITY),
+            display = encode(inside(image, DISPLAY_SIZE), DISPLAY_QUALITY),
+            thumb = encode(inside(image, THUMB_SIZE), THUMB_QUALITY),
         )
+    }
+
+    /** Encoding decoded pixels is the server's work: any failure here is an [EncoderFailure], never IMAGE_DECODE. */
+    @Suppress("TooGenericExceptionCaught")
+    private fun encode(image: BufferedImage, quality: Float): ByteArray = try {
+        encoder(image, quality).also {
+            encoderWorks.set(true)
+            failureLogged.set(false)
+        }
+    } catch (error: LinkageError) {
+        throw EncoderFailure(error)
+    } catch (error: Exception) {
+        throw EncoderFailure(error)
     }
 
     private fun <T> bounded(bytes: ByteArray, work: (Decoder) -> T): T {
@@ -122,10 +165,29 @@ class ImageIoImageTranscoder(private val timeout: Duration = DEFAULT_TIMEOUT) : 
                 "Изображение обрабатывается слишком долго. Выберите другой файл.",
             )
         } catch (@Suppress("SwallowedException") error: ExecutionException) {
+            val cause = error.cause
+            if (cause is EncoderFailure || cause is LinkageError) throw unavailable(cause)
             // A reader failure is reported as an unreadable image; its cause says nothing useful to the client.
-            throw error.cause as? ProblemException ?: decodeFailure()
+            throw cause as? ProblemException ?: decodeFailure()
         }
     }
+
+    /** Logged once per outage, with the class and message of the cause only: never the image. */
+    private fun unavailable(cause: Throwable): ProblemException {
+        val root = (cause as? EncoderFailure)?.cause ?: cause
+        encoderWorks.set(false)
+        if (failureLogged.compareAndSet(false, true)) {
+            log.error("Image encoder unavailable: {}: {}", root.javaClass.name, root.message?.take(MESSAGE_LIMIT))
+        }
+        return ProblemException(
+            503,
+            "IMAGE_UNAVAILABLE",
+            "Сервис сейчас не может обработать изображение. Повторите позже.",
+        )
+    }
+
+    /** The encoder of already decoded pixels failed: a fault of this server, not of the uploaded image. */
+    private class EncoderFailure(cause: Throwable) : RuntimeException(cause)
 
     private class Header(val width: Int, val height: Int) {
         val pixels: Long get() = width.toLong() * height
@@ -168,6 +230,8 @@ class ImageIoImageTranscoder(private val timeout: Duration = DEFAULT_TIMEOUT) : 
     }
 
     companion object {
+        private val log = LoggerFactory.getLogger(ImageIoImageTranscoder::class.java)
+        private const val MESSAGE_LIMIT = 300
         private val DEFAULT_TIMEOUT: Duration = Duration.ofSeconds(10)
         private const val CONCURRENT_DECODERS = 2
         const val IMAGE_PIXELS = 40_000_000L
