@@ -1,5 +1,6 @@
 import {clone, requireValue, validId} from '../common.js';
 import {taskColumn} from '../tasks.js';
+import {avatarName} from './assignees.js';
 export {BOARD_SORTS, boardComparator} from './ordering.js';
 
 export const TASK_KINDS = Object.freeze({task:'Задача', bug:'Баг', epic:'Эпик'});
@@ -32,7 +33,8 @@ export function reparentTask(task,parentId,tasks) {
 export function childOwners(parentId,index){
   const unique=new Map();
   for(const task of index.children.get(parentId)||[]){
-    const name=String(task.owner||'').trim();
+    // A service account shows by its own name here: its initials, not those of its remark (SPR-7).
+    const name=String(task.ownerKind==='service'?avatarName(task.owner):task.owner||'').trim();
     if(name)unique.set(task.ownerId||name.toLocaleLowerCase('ru'),{id:task.ownerId||undefined,name});
   }
   return [...unique.values()].sort((a,b)=>a.name.localeCompare(b.name,'ru'));

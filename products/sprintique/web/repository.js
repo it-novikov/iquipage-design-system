@@ -4,10 +4,14 @@ import {PlanningClient,watchProject} from '../client/planning.ts';
 import {mapWriteBody,templateWriteBody} from './maps-adapter.js';
 import {MediaAdapter} from './media-adapter.js';
 import {MapMedia} from './map-media.js';
+import {describeOwner} from '../ui/src/board/assignees.js';
 
 /** Anti-corruption adapter: existing UI record intents become explicit v1 resource commands. */
-/** Board and dialogs read `owner` as a display name; the API owns ownerId, ownerName and legacy free text. */
-const displayOwner=(task,names)=>({...task,owner:task.ownerName||(task.ownerId?names?.get(task.ownerId)||'Бывший участник':task.legacyOwner||'')});
+/**
+ * Board and dialogs read `owner` as a display name; the API owns ownerId, ownerName and legacy free text. A service
+ * account owner reads «Имя (сервисный аккаунт)», marked when it can no longer act (SPR-7).
+ */
+const displayOwner=(task,people)=>({...task,...describeOwner(task,people)});
 export class ProductRepository {
   constructor(client=new SprintiqueClient()){this.client=client;this.listeners=new Set();this.context={};this.cache=new Map();this.cacheState={generation:0};this.createInBoard=true;this.capabilities={storage:'server',taskLinks:true,taskSettings:true,attachments:false,maps:true,templateImages:false};}
   async initialize(){const session=await this.client.session();this.context.actorId=session.principal.id;
@@ -72,12 +76,13 @@ export class ProductRepository {
       do{signal?.throwIfAborted();const page=await planning.releases(cursor,signal);result.push(...page.items.map(r=>({...r,status:['closed','cancelled'].includes(r.lifecycle)?'released':'planned',targetDate:r.deadline})));cursor=page.nextCursor;}while(cursor);
       return result;
     },{signal});
-    // People and service accounts of the project (agents answer through proposals). Only people own tasks; a service
-    // account is named with its owner wherever its work shows, e.g. «Робот (сервисный аккаунт Алиса)».
+    // People and service accounts of the project (agents answer through proposals). A service account is named with
+    // its owner wherever its work shows, e.g. «Робот (сервисный аккаунт Алиса)»; accountName keeps its own name for
+    // the owner pickers, where it may take tasks (SPR-7).
     if(collection==='members')return this.cached(projectId,collection,async()=>
       (await this.client.request(`/projects/${encodeURIComponent(projectId)}/members`,'GET',undefined,undefined,signal))
         .filter(m=>m.kind==='human'||m.kind==='service')
-        .map(m=>m.kind==='service'?{...m,name:`${m.name} (сервисный аккаунт ${m.ownerName||'без владельца'})`}:m),{signal});
+        .map(m=>m.kind==='service'?{...m,accountName:m.name,name:`${m.name} (сервисный аккаунт ${m.ownerName||'без владельца'})`}:m),{signal});
     if(['tags','taskSettings','taskLinks'].includes(collection))return this.cached(projectId,collection,async()=>{
       const route={tags:'tags',taskSettings:'task-settings',taskLinks:'task-links'}[collection];
       const value=await this.client.request(`/projects/${encodeURIComponent(projectId)}/${route}`,'GET',undefined,undefined,signal);return collection==='taskSettings'?[value]:value;
@@ -85,7 +90,8 @@ export class ProductRepository {
     // Unknown collection names never fall back to browser-only persistence.
     throw new ApiError('NOT_IMPLEMENTED','Этот раздел ещё не подключён к API vNext.',501);
   }
-  async memberNames(projectId,{signal}={}){return new Map((await this.list('members',projectId,{signal})).map(m=>[m.id,m.name]));}
+  /** Members by id: an owner's name, and for a service account its own name, kind and state (SPR-7). */
+  async memberNames(projectId,{signal}={}){return new Map((await this.list('members',projectId,{signal})).map(m=>[m.id,m]));}
   async read(collection,id,projectId,{signal}={}){
     try{
       if(collection==='tasks')return displayOwner(await this.client.task(projectId,id,signal));

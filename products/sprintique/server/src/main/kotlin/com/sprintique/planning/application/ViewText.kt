@@ -31,7 +31,8 @@ internal object ViewText {
 
     fun day(value: String?) = com.sprintique.planning.domain.PlanDetails.day(value)
 
-    fun memberNames(state: PlanningState) = state.members.associate { it.id to it.name }
+    /** Owner labels by id: a service account is marked as one, and so is one that can no longer act (SPR-7). */
+    fun memberNames(state: PlanningState) = state.members.associate { it.id to it.label }
 
     /** The member's name, or pre-membership free text marked until someone reassigns the task. */
     fun ownerLabel(row: PlanningRow, names: Map<String, String>): String = when {

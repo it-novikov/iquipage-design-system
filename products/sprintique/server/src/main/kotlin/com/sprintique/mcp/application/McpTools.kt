@@ -67,20 +67,23 @@ class McpTools(
         tool(
             "search_tasks", "Поиск задач",
             "Search tasks by text in the title, description or key (SPR-12), optionally within one project and by " +
-                "status or assignee. Most recently updated first.",
+                "status or assignee. Most recently updated first. assigneeId \"me\" finds the tasks assigned to this " +
+                "service account: the work handed to it. Each task names its assignee's kind (human or service) and " +
+                "state (active, suspended, deleted, former).",
             SearchTasksArguments::class,
             schema(
                 "projectId" to PROJECT,
                 "query" to text("Words or a task key to look for.", 0, SEARCH_LIMIT),
                 "status" to STATUS,
-                "assigneeId" to id("Person id of the assignee."),
+                "assigneeId" to id("Member id of the assignee, a person or a service account; \"me\" is you."),
                 "limit" to integer("Page size.", 1, PAGE_LIMIT, DEFAULT_PAGE),
                 "cursor" to text("nextCursor of the previous page.", 1, SEARCH_LIMIT),
             ),
         ) { tx, actor, input: SearchTasksArguments, _ -> untrusted(tasks.search(tx, actor, input)) },
         tool(
             "get_task", "Задача",
-            "Read one task with its subtasks and discussion (latest 20 threads, latest 50 messages each).",
+            "Read one task with its subtasks and discussion (latest 20 threads, latest 50 messages each). " +
+                "assigneeKind and assigneeState tell a person from a service account and one that can no longer act.",
             TaskArguments::class,
             schema("projectId" to PROJECT, "task" to TASK, required = listOf("projectId", "task")),
         ) { tx, actor, input: TaskArguments, _ -> untrusted(tasks.get(tx, actor, input)) },
@@ -95,7 +98,7 @@ class McpTools(
                 "description" to text("Markdown description.", 0, DESCRIPTION_LIMIT),
                 "type" to enum("Task type.", "task", "bug", "epic"),
                 "priority" to enum("Priority.", "low", "normal", "high", "critical"),
-                "assigneeId" to id("Person id of a project member."),
+                "assigneeId" to id(ASSIGNEE),
                 "dueDate" to DATE,
                 "parent" to TASK,
                 "idempotencyKey" to KEY,
@@ -116,7 +119,7 @@ class McpTools(
                 "description" to text("New Markdown description.", 0, DESCRIPTION_LIMIT),
                 "type" to enum("Task type.", "task", "bug", "epic"),
                 "priority" to enum("Priority.", "low", "normal", "high", "critical"),
-                "assigneeId" to nullable(id("Person id of a project member, or null to unassign.")),
+                "assigneeId" to nullable(id("$ASSIGNEE Null unassigns.")),
                 "dueDate" to nullable(DATE),
                 "idempotencyKey" to KEY,
                 required = listOf("projectId", "task", "baseRevision"),
@@ -268,6 +271,8 @@ class McpTools(
             linkedMapOf("trust" to "untrusted-content", "notice" to NOTICE, "data" to data)
 
         private const val SEARCH_LIMIT = 200
+        private const val ASSIGNEE = "Member id of the assignee: a person, or a service account that may edit tasks " +
+            "in the project; \"me\" assigns this account."
         private const val PAGE_LIMIT = 50
         private const val DEFAULT_PAGE = 20
         private const val TITLE_LIMIT = 240

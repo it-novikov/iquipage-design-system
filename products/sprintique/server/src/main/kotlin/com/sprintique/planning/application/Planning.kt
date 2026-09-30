@@ -19,7 +19,7 @@ import com.sprintique.problem.ProblemException
 import com.sprintique.problem.requireCondition
 import com.sprintique.problem.requirePresent
 import com.sprintique.token.Tokens
-import com.sprintique.workspace.application.Membership
+import com.sprintique.workspace.application.Assignees
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import tools.jackson.databind.JsonNode
@@ -65,7 +65,7 @@ class Planning(private val json: JsonMapper, private val ledger: CommandLedger) 
         )
         val state = PlanningStates.load(tx, projectId)
         val result = PlanChange.plan(state, command)
-        for (owner in assignedOwners(command, state)) Membership.requireAssignable(tx, projectId, owner)
+        for (owner in assignedOwners(command, state)) Assignees.requireAssignable(tx, projectId, owner)
         checkTags(tx, projectId, command)
         val id = UUID.randomUUID().toString()
         val token = Tokens.random()

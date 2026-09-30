@@ -222,7 +222,7 @@ test('P05 racing independently prepared commands have one winner, one stale rece
   assert.deepEqual(responses.map(r=>r.json().status).sort(),['committed','rejected']);
   assert.equal(responses.find(r=>r.json().status==='rejected')!.json().error.code,'PLAN_STALE');
 });
-test('P07b only a current human project member can become the owner',async()=>{
+test('P07b only a current project member can become the owner (people here; service accounts in assignees.test.ts)',async()=>{
   const outsider=await request('PUT','tasks/owner-outsider',{baseRevision:0,task:{title:'Outsider',ownerId:f.bob.id}});
   assert.equal(outsider.statusCode,422,outsider.body);assert.equal(outsider.json().code,'TASK_OWNER');
   const t=await task('owner-member',{ownerId:f.reader.id});assert.equal(t.ownerId,f.reader.id);assert.equal(t.ownerName,'Наблюдатель');

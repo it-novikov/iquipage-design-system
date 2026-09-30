@@ -1,5 +1,6 @@
 import {dialog,select,icon,esc} from '../ui.js';
 import {normalizeBoardFilters,ownerKey} from './filters.js';
+import {groupOwners} from './assignees.js';
 import {tagMarkup,tagTone} from './catalog-ui.js';
 import {tagToneAttributes} from '@iquipage/web/core';
 /** Board filters apply live. Active conditions stay visible as removable chips; tags keep their colour. */
@@ -9,7 +10,7 @@ export function mountBoardFilters(root,{initial={},onChange=()=>{},countMatches=
   function options(field){
     if(field==='owners'){
       const people=new Map();
-      for(const task of data.tasks)if(ownerKey(task)!=='none')people.set(ownerKey(task),{id:ownerKey(task),name:task.owner||task.ownerId});
+      for(const task of data.tasks)if(ownerKey(task)!=='none')people.set(ownerKey(task),{id:ownerKey(task),name:task.owner||task.ownerId,kind:task.ownerKind});
       return [{id:'none',name:'Без исполнителя'},...[...people.values()].sort((a,b)=>a.name.localeCompare(b.name,'ru'))];
     }
     if(field==='releases')return [{id:'none',name:'Без релиза'},...data.releases];
@@ -31,7 +32,10 @@ export function mountBoardFilters(root,{initial={},onChange=()=>{},countMatches=
       mount:element=>{
         const search=element.querySelector('input[type=search]');
         const label=item=>item.tone!==undefined&&data.tags.includes(item)?tagMarkup(item):`<span>${esc(item.name)}${item.archivedAt?' (в архиве)':''}</span>`;
-        function render(field){element.querySelector(`[data-filter-options=${field}]`).innerHTML=options(field).filter(item=>item.name.toLocaleLowerCase('ru').includes(search.value.trim().toLocaleLowerCase('ru'))).map(item=>`<label class="iq-check"><input type="checkbox" data-filter-field="${field}" value="${esc(item.id)}" ${value[field].includes(item.id)?'checked':''}><span class="iq-check-box">${icon('check',14)}</span>${label(item)}</label>`).join('')||'<p class="iq-helper">Нет значений.</p>';}
+        // Service accounts that own tasks follow the people under a heading of their own (SPR-7).
+        const shown=(field,items)=>field==='owners'?groupOwners(items):items;
+        const heading=item=>item.group?`<span class="iq-control-label board-filter-group">${esc(item.group)}</span>`:'';
+        function render(field){element.querySelector(`[data-filter-options=${field}]`).innerHTML=shown(field,options(field).filter(item=>item.name.toLocaleLowerCase('ru').includes(search.value.trim().toLocaleLowerCase('ru')))).map(item=>`${heading(item)}<label class="iq-check"><input type="checkbox" data-filter-field="${field}" value="${esc(item.id)}" ${value[field].includes(item.id)?'checked':''}><span class="iq-check-box">${icon('check',14)}</span>${label(item)}</label>`).join('')||'<p class="iq-helper">Нет значений.</p>';}
         const counter=()=>{const n=countMatches?.(value);element.querySelector('[data-filter-count]').textContent=n==null?'Условия разных групп действуют вместе.':`Показано задач: ${n}. Условия разных групп действуют вместе.`;};
         panel={refresh(){Object.keys(names).forEach(render);counter();}};
         search.addEventListener('input',()=>Object.keys(names).forEach(render));

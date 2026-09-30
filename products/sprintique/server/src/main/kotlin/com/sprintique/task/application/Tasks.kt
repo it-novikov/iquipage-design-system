@@ -13,16 +13,19 @@ import com.sprintique.problem.requireCondition
 import com.sprintique.problem.requirePresent
 import com.sprintique.task.domain.TaskContent
 import com.sprintique.task.domain.TaskRules
-import com.sprintique.workspace.application.Membership
+import com.sprintique.workspace.application.Assignees
 
 /** Reading and saving tasks. Parent and release changes go through planning, which previews their effects. */
 object Tasks {
     private const val PAGE = 200
 
-    private const val PROJECTION = """t.id, t.project_id AS "projectId", p.key || '-' || t.number AS "displayId", t.revision, t.title,
+    // The owner's kind and state tell a service account from a person, and one that can no longer act (SPR-7).
+    private val PROJECTION = """t.id, t.project_id AS "projectId", p.key || '-' || t.number AS "displayId", t.revision, t.title,
         t.description, t.status, t.type, t.priority, t.attachment_ids AS "attachmentIds",
         t.cover_attachment_id AS "coverAttachmentId", t.cover_crop AS "coverCrop", t.owner_id AS "ownerId",
         coalesce((SELECT coalesce(o.profile_name, o.name) FROM auth.principals o WHERE o.id = t.owner_id), '') AS "ownerName",
+        (SELECT o.kind FROM auth.principals o WHERE o.id = t.owner_id) AS "ownerKind",
+        ${Assignees.stateSql("t.owner_id", "t.project_id")} AS "ownerState",
         t.owner_label AS "legacyOwner", to_char(t.due, 'YYYY-MM-DD') AS due, t.rank, t.parent_id AS "parentId",
         t.release_id AS "releaseId", t.preparation, t.result, t.assignment_mode AS "assignmentMode", t.admitted,
         to_char(t.planned_start, 'YYYY-MM-DD') AS "plannedStart", to_char(t.planned_end, 'YYYY-MM-DD') AS "plannedEnd",
@@ -156,7 +159,7 @@ object Tasks {
         if (value.ownerId !=
             previous?.stringOrNull("ownerId")
         ) {
-            Membership.requireAssignable(tx, projectId, value.ownerId)
+            Assignees.requireAssignable(tx, projectId, value.ownerId)
         }
         if (previous != null) update(tx, projectId, id, value) else insert(tx, projectId, id, value, createInBoard)
         tx.update("DELETE FROM app.task_tags WHERE project_id = $1 AND task_id = $2", projectId, id)

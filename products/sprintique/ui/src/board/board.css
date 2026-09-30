@@ -100,6 +100,7 @@
 .task-selected-tags .iq-tag{max-width:100%;white-space:normal;overflow-wrap:anywhere}
 .board-filter-fields{display:grid;gap:var(--iq-space-5)}
 .board-filter-fields [data-filter-options]{max-height:200px;overflow:auto}
+.board-filter-group{display:block;margin-top:var(--iq-space-2)}
 .task-description-surface{min-width:0;position:relative}
 .task-tag-options{display:flex;flex-wrap:wrap;align-items:center;align-content:center;justify-content:flex-start;gap:var(--iq-space-2);min-height:112px;padding-block:var(--iq-space-5)}
 .task-edit-dialog .task-edit-section>h3,.task-edit-dialog .task-edit-section>.row>h3{margin:0}

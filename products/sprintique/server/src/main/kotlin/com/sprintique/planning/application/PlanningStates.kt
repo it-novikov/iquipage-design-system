@@ -17,6 +17,7 @@ import com.sprintique.planning.domain.TaskState
 import com.sprintique.planning.domain.TemporalConstraint
 import com.sprintique.planning.domain.TemporalRules
 import com.sprintique.problem.requirePresent
+import com.sprintique.workspace.application.Assignees
 import tools.jackson.databind.JsonNode
 
 /** The project's plan as one aggregate: its lock and its complete state. */
@@ -29,7 +30,8 @@ object PlanningStates {
         to_char(planned_end, 'YYYY-MM-DD') AS "plannedEnd", to_char(deadline, 'YYYY-MM-DD') AS deadline,
         archived_at AS "archivedAt""""
 
-    private const val MEMBER_LIMIT = 500
+    // Up to 500 members of a project, then service accounts that still own its tasks.
+    private const val PEOPLE_LIMIT = 1000
 
     private val TASKS = """
         SELECT t.id, p.key || '-' || t.number AS "displayId", t.revision, t.parent_id AS "parentId", t.title, t.type,
@@ -109,15 +111,35 @@ object PlanningStates {
             """.trimIndent(),
             projectId,
         ).let { requirePresent(it, 404, "NOT_FOUND", "Проект недоступен.") }
+        // People and service accounts of the project, then service accounts that still own its tasks after leaving
+        // it or being deleted: their tasks stay assigned and say so (SPR-7).
         val members = tx.rows(
             """
-            SELECT p.id, coalesce(p.profile_name, p.name) AS name FROM app.project_members m
-            JOIN auth.principals p ON p.id = m.principal_id
-            WHERE m.project_id = $1 AND p.kind = 'human' ORDER BY name, p.id LIMIT $2
+            SELECT p.id, coalesce(p.profile_name, p.name) AS name, p.kind,
+                   ${Assignees.stateSql("p.id", "$1")} AS state,
+                   p.kind = 'human' OR ${Assignees.serviceAssignableSql("p.id", "$1")} AS assignable,
+                   (SELECT coalesce(o.profile_name, o.name) FROM auth.service_accounts s
+                    JOIN auth.principals o ON o.id = s.owner_id WHERE s.principal_id = p.id) AS "accountOwner"
+            FROM (SELECT principal_id AS id, true AS member FROM app.project_members WHERE project_id = $1
+                  UNION SELECT DISTINCT owner_id, false FROM app.tasks t WHERE t.project_id = $1 AND t.owner_id IS NOT NULL
+                    AND NOT EXISTS (SELECT 1 FROM app.project_members m WHERE m.project_id = $1 AND m.principal_id = t.owner_id)
+                 ) named
+            JOIN auth.principals p ON p.id = named.id
+            WHERE (named.member AND p.kind IN ('human', 'service')) OR (NOT named.member AND p.kind = 'service')
+            ORDER BY named.member DESC, name, p.id LIMIT $2
             """.trimIndent(),
             projectId,
-            MEMBER_LIMIT + 1,
-        ).map { ProjectPerson(it.string("id"), it.string("name")) }
+            PEOPLE_LIMIT,
+        ).map {
+            ProjectPerson(
+                id = it.string("id"),
+                name = it.string("name"),
+                kind = it.string("kind"),
+                state = it.string("state"),
+                assignable = it.boolean("assignable"),
+                accountOwner = it.stringOrNull("accountOwner"),
+            )
+        }
         TemporalRules.requireWithinLimits(
             tasks.size,
             releases.size,
