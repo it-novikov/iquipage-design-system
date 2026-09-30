@@ -16,3 +16,8 @@
 - 2026-09-30T16:31:10Z · codex · note · A4 · критерий приёмки выполнен
 - 2026-09-30T16:31:10Z · codex · note · A5 · критерий приёмки выполнен
 - 2026-09-30T16:31:10Z · codex · step · S3 · active
+- 2026-09-30T16:43:00Z · codex · note · A6 · критерий приёмки выполнен
+- 2026-09-30T16:43:00Z · codex · step · S3 · done: Образ 314e66d развёрнут на production; API и worker running; /ready, /about, /privacy и /terms отвечают 200; HTTP headers и Playwright navigation проверены
+- 2026-09-30T16:43:00Z · codex · checkpoint · - · дальше: Внести URL в Google Cloud OAuth consent screen
+- 2026-09-30T16:43:00Z · codex · status · - · review: Implementation, push and production rollout complete; review package ready
+- 2026-09-30T16:43:44Z · codex · checkpoint · - · дальше: Внести URL в Google Cloud OAuth consent screen

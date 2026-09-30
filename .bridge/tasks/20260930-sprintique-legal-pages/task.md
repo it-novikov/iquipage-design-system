@@ -2,13 +2,13 @@
 bridge: 1
 id: 20260930-sprintique-legal-pages
 title: "Sprintique: privacy policy и terms of use для Google OAuth"
-status: active
+status: review
 risk: standard
 owner: it-novikov
 branch: feature/sprintique-legal-pages
 base: main
 created: 2026-09-30
-updated: 2026-09-30T16:31:10Z
+updated: 2026-09-30T16:43:44Z
 links:
 ---
 
@@ -31,19 +31,21 @@ links:
 - [x] A3. Terms of Use описывают аккаунт, допустимое использование, контент, доступность, прекращение и ограничение ответственности без неподтверждённых юридических обещаний.
 - [x] A4. На экране входа видны ссылки на оба документа; страницы читаемы в light/dark и на узком экране, с клавиатурным фокусом.
 - [x] A5. Сборка, boundary/style checks и целевые тесты зелёны; тексты сверены с реальной auth/storage-архитектурой.
-- [ ] A6. Изменения развёрнуты на `https://sprintique.iqui.page`; оба URL отвечают 200 и содержат ожидаемый title и текст.
+- [x] A6. Изменения развёрнуты на `https://sprintique.iqui.page`; оба URL отвечают 200 и содержат ожидаемый title и текст.
 
 ## Передача
 
-- **Состояние:** S1 реализован; build/boundaries/styles зелёные; npm test 208/223
-- **Сейчас:** S2 — browser review и проверка текстов
-- **Дальше:** Поднять production build на изолированном локальном web-root и проверить legal routes
-- **Незакоммичено:** Компилируется; новые legal pages/routes/tests не закоммичены
-- **Рабочая копия:** 9 файл(ов): products/sprintique/server/src/main/kotlin/com/sprintique/web/StaticWebController.kt, products/sprintique/tests/static-http.test.ts, products/sprintique/vite.config.ts, products/sprintique/web/shell.css, products/sprintique/web/sign-in.js, products/sprintique/web/legal.css, products/sprintique/web/legal.js, products/sprintique/web/privacy.html, products/sprintique/web/terms.html (5 files changed, 40 insertions(+), 8 deletions(-)) · HEAD 2a44351
+- **Состояние:** Production deployed and smoke-tested
+- **Сейчас:** Завершено; task-card готова к коммиту
+- **Дальше:** Внести URL в Google Cloud OAuth consent screen
+- **Незакоммичено:** Только task-card deployment checkpoint
+- **Рабочая копия:** нет · HEAD 314e66d
 - **Ловушки:**
   - npm test внутри sandbox: PostgreSQL shmget Operation not permitted; запускать вне sandbox
   - npm test: 15 S3/worker тестов не запускаются без приватного output/infra/storage.json; 208 тестов, включая static legal routes, прошли
-- **Проверка:** npm run build; npm run check:boundaries; npm run check:styles; npm test = 208 pass, 15 env-only fail
+  - Полный npm test: 208/223; 15 тестов требуют отсутствующий приватный output/infra/storage.json
+  - Полный npm test: 208/223; 15 тестов требуют отсутствующий приватный output/infra/storage.json
+- **Проверка:** Build/boundaries/styles pass; static route test pass; production /ready, /about, /privacy, /terms = 200; Playwright navigation passed
 
 ## План
 
@@ -66,13 +68,14 @@ links:
 - **Итог:** Node 24 build/typecheck/boundaries/styles зелёные; Playwright 1280 light и 390 dark; npm test 208/223, 15 env-only без storage.json
 - **Зависит от:** S1
 
-### S3. Ревью, доставка и production smoke [active]
+### S3. Ревью, доставка и production smoke [done]
 - **Что:** Провести независимое ревью, доставить артефакт на VPS и проверить публичные URL
 - **Как:** Review package, commit/push, build image, миграция при необходимости, controlled compose rollout, curl/browser smoke
 - **Зачем:** Пользователю нужны рабочие ссылки, а не локальная реализация
 - **Приёмка:**
-  - [ ] Production URL отвечают 200 ожидаемым контентом, сервис ready
+  - [x] Production URL отвечают 200 ожидаемым контентом, сервис ready
 - **Покрывает:** A5,A6
+- **Итог:** Образ 314e66d развёрнут на production; API и worker running; /ready, /about, /privacy и /terms отвечают 200; HTTP headers и Playwright navigation проверены
 - **Зависит от:** S2
 
 ## Решения
