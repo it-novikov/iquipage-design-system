@@ -121,13 +121,15 @@
 .task-dialog-identity{display:flex;align-items:center;gap:var(--iq-space-1)}
 .task-dialog-identity .task-link-copy{font:inherit;user-select:none}
 .task-dialog-actions{display:flex;align-items:center;gap:var(--iq-space-1)}
-.host-task-board{--task-card-min-height:112px}
-.host-task-board .task-card{min-height:var(--task-card-min-height);padding:var(--iq-space-3);gap:var(--iq-space-2);user-select:none;cursor:pointer}
+/* A card is as tall as its content: rows start at the top instead of stretching over a fixed minimum height.
+   The identity row pulls into the padding, so the key and the menu sit close to the corner and the title follows them. */
+.host-task-board{--task-card-min-height:72px}
+.host-task-board .task-card{min-height:0;align-content:start;padding:var(--iq-space-3);gap:var(--iq-space-2);user-select:none;cursor:pointer}
 .host-task-board .board-empty-slot{min-height:var(--task-card-min-height)}
 [data-task-cover]{position:relative}
 [data-task-cover] .task-cover-actions{position:absolute;right:var(--iq-space-2);bottom:var(--iq-space-2);display:flex;gap:var(--iq-space-1);padding:var(--iq-space-1);background:var(--iq-raised);border-radius:var(--iq-radius-sm);box-shadow:var(--iq-shadow-1);z-index:1}
 .task-cover-actions .iq-btn{white-space:nowrap}
-.host-task-board .task-card-top{margin:0;min-height:28px}.host-task-board .task-card-title{margin:0}.host-task-board .task-card-footer{margin:0;gap:var(--iq-space-2)}
+.host-task-board .task-card-top{margin:calc(var(--iq-space-1) * -1) calc(var(--iq-space-1) * -1) calc(var(--iq-space-1) * -1) 0;min-height:28px}.host-task-board .task-card-title{margin:0}.host-task-board .task-card-footer{margin:0;gap:var(--iq-space-2)}
 .task-card-tags{display:flex;align-items:center;flex-wrap:wrap;gap:var(--iq-space-1);width:100%;min-width:0}
 .task-card-tags>[data-packed-tag]{flex:none;display:flex;min-width:0;overflow:hidden}.task-card-tags .iq-tag{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
 .task-card-tags>.task-tags-more{display:inline-flex;align-items:center;justify-content:center;flex:none;font:inherit;font-size:var(--iq-type-meta-size);cursor:pointer;background:var(--iq-recessed);color:var(--iq-muted)}.task-card-tags>[hidden]{display:none}
