@@ -7,6 +7,7 @@ package com.sprintique.database.schema.app.tables
 import com.sprintique.database.schema.app.App
 import com.sprintique.database.schema.app.keys.AGENT_RUNS__AGENT_RUNS_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.APPROVALS__APPROVALS_PROJECT_ID_FKEY
+import com.sprintique.database.schema.app.keys.ASSETS__ASSETS_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.AUDIT_EVENTS__AUDIT_EVENTS_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.FINANCE_ENTRY__FK_FINANCE_ENTRY__PROJECTS
 import com.sprintique.database.schema.app.keys.FINANCE_SETTINGS__FK_FINANCE_SETTINGS__PROJECTS
@@ -22,7 +23,6 @@ import com.sprintique.database.schema.app.keys.PROJECTS_SLUG_KEY
 import com.sprintique.database.schema.app.keys.PROJECTS_WORKSPACE_ID_ID_KEY
 import com.sprintique.database.schema.app.keys.PROJECTS_WORKSPACE_ID_KEY_KEY
 import com.sprintique.database.schema.app.keys.PROJECTS__PROJECTS_WORKSPACE_ID_FKEY
-import com.sprintique.database.schema.app.keys.PROJECTS__PROJECT_AVATAR
 import com.sprintique.database.schema.app.keys.PROJECT_MEMBERS__PROJECT_MEMBERS_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.RELEASES__RELEASES_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.TAGS__TAGS_PROJECT_ID_FKEY
@@ -142,8 +142,6 @@ open class Projects(
 
     val PROFILE_REVISION: TableField<ProjectsRecord, Int?> = createField(DSL.name("profile_revision"), SQLDataType.INTEGER.nullable(false).defaultValue(DSL.field(DSL.raw("1"), SQLDataType.INTEGER)), this, "")
 
-    val AVATAR_ASSET_ID: TableField<ProjectsRecord, String?> = createField(DSL.name("avatar_asset_id"), SQLDataType.CLOB, this, "")
-
     private constructor(alias: Name, aliased: Table<ProjectsRecord>?): this(alias, null, null, null, aliased, null, null)
     private constructor(alias: Name, aliased: Table<ProjectsRecord>?, parameters: Array<Field<*>?>?): this(alias, null, null, null, aliased, parameters, null)
     private constructor(alias: Name, aliased: Table<ProjectsRecord>?, where: Condition?): this(alias, null, null, null, aliased, null, where)
@@ -166,10 +164,7 @@ open class Projects(
     override fun getSchema(): Schema? = if (aliased()) null else App.APP
     override fun getPrimaryKey(): UniqueKey<ProjectsRecord> = PROJECTS_PKEY
     override fun getUniqueKeys(): List<UniqueKey<ProjectsRecord>> = listOf(PROJECTS_SLUG_KEY, PROJECTS_WORKSPACE_ID_ID_KEY, PROJECTS_WORKSPACE_ID_KEY_KEY)
-    override fun getReferences(): List<ForeignKey<ProjectsRecord, *>> = listOf(PROJECTS__PROJECT_AVATAR, PROJECTS__PROJECTS_WORKSPACE_ID_FKEY)
-
-    fun assets(): AssetsPath = assets
-    val assets: AssetsPath by lazy { AssetsPath(this, PROJECTS__PROJECT_AVATAR, null) }
+    override fun getReferences(): List<ForeignKey<ProjectsRecord, *>> = listOf(PROJECTS__PROJECTS_WORKSPACE_ID_FKEY)
 
     fun workspaces(): WorkspacesPath = workspaces
     val workspaces: WorkspacesPath by lazy { WorkspacesPath(this, PROJECTS__PROJECTS_WORKSPACE_ID_FKEY, null) }
@@ -197,6 +192,18 @@ open class Projects(
 
     val approvals: ApprovalsPath
         get(): ApprovalsPath = approvals()
+
+    private lateinit var _assets: AssetsPath
+
+    fun assets(): AssetsPath {
+        if (!this::_assets.isInitialized)
+            _assets = AssetsPath(this, null, ASSETS__ASSETS_PROJECT_ID_FKEY.inverseKey)
+
+        return _assets;
+    }
+
+    val assets: AssetsPath
+        get(): AssetsPath = assets()
 
     private lateinit var _auditEvents: AuditEventsPath
 

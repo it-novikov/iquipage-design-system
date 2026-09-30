@@ -58,8 +58,8 @@ private fun stateOf(asset: Row): String {
 }
 
 /**
- * Private files of tasks, maps and project avatars. Every media mutation locks project, then asset — the same order as
- * task, map and avatar saves — and rechecks credentials and policy after waiting: admission is not a grant.
+ * Private files of tasks and maps. Every media mutation locks project, then asset — the same order as task and map
+ * saves — and rechecks credentials and policy after waiting: admission is not a grant.
  */
 object Assets {
     private const val QUOTA_BYTES = 20L * 1024 * 1024 * 1024
@@ -107,14 +107,6 @@ object Assets {
             else -> Capability.TASKS_READ
         }
         ProjectAccess.authorize(tx, actor, projectId, capability)
-        if (targetType == "project-avatar") {
-            ProjectAccess.authorize(
-                tx,
-                actor,
-                projectId,
-                if (write) Capability.CATALOG_WRITE else Capability.TASKS_READ,
-            )
-        }
     }
 
     private fun lockProject(tx: Transaction, actor: Actor, projectId: String, targetType: String) {
@@ -149,7 +141,7 @@ object Assets {
             input.targetType == "task" || (type.previewable && input.size <= FileInspection.IMAGE_BYTES),
             422,
             "IMAGE_REQUIRED",
-            "Для карты и аватара нужно изображение PNG, JPEG или WebP до 32 МБ.",
+            "Для карты нужно изображение PNG, JPEG или WebP до 32 МБ.",
         )
         return ledger.idempotent(tx, actor, projectId, "asset.reserve:${input.id}", key, input) {
             val quota = tx.row(
@@ -244,7 +236,7 @@ object Assets {
                 asset.string("targetType") == "task" || content.preview != null,
                 422,
                 "IMAGE_REQUIRED",
-                "Для обложки карты и аватара нужно изображение.",
+                "Для карты нужно изображение.",
             )
         } catch (problem: ProblemException) {
             return Publishing.Done(UploadResult.Rejected(quarantine(tx, actor, projectId, asset, problem)))
@@ -507,25 +499,6 @@ object Assets {
             )
             if (asset.string("state") == "ready") attach(tx, projectId, asset.string("id"))
         }
-    }
-
-    /** The project's avatar, under the project lock; no private file can be borrowed from a task or another project. */
-    fun linkProjectAvatar(tx: Transaction, actor: Actor, projectId: String, id: String?) {
-        val previous = tx.row(
-            "SELECT avatar_asset_id AS id FROM app.projects WHERE id = $1",
-            projectId,
-        )!!.stringOrNull("id")
-        val rows = lockedRows(tx, projectId, listOfNotNull(previous, id).toSet())
-        if (id != null) {
-            val asset = rows.firstOrNull { it.string("id") == id }
-            val usable = asset != null && asset.boolean("image") && asset["width"] == asset["height"] &&
-                asset.string("targetType") == "project-avatar" && asset.string("targetId") == projectId &&
-                ((previous == id && asset.string("state") == "attached") || isFreshUploadOf(asset, actor))
-            requireCondition(usable, 422, "PROJECT_AVATAR", "Выберите квадратное изображение через редактор аватара.")
-            if (asset.string("state") != "attached") attach(tx, projectId, id)
-        }
-        if (previous != null && previous != id) detach(tx, projectId, rows.first { it.string("id") == previous })
-        tx.update("UPDATE app.projects SET avatar_asset_id = $2 WHERE id = $1", projectId, id)
     }
 }
 

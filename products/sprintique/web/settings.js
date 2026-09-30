@@ -6,7 +6,7 @@ import {mountWorkspaceMembers} from './workspace-members.js';
 import {mountAgents} from './agents.js';
 import {mountServiceAccounts} from './service-accounts.js';
 import {mountOperations} from './operations.js';
-import {pickProjectAvatar,pickPersonalPhoto} from './project-profile.js';
+import {pickPersonalPhoto} from './personal-photo.js';
 import {dialog,input} from '../ui/src/ui.js';
 import {appearance,appearanceDefaults} from './appearance.js';
 import {visibleSettingsGroups,settingsSection,filterSettingsGroups,roleName,workspaceRoleName} from './settings-sections.js';
@@ -100,30 +100,19 @@ export async function mountSettings(root,{repository,project,adapter,onChanged=(
   bindForm(form,{read:()=>({name:field.value.trim()}),after:renderAccount,save:async({name})=>{if(!name)throw Error('Введите имя.');await client.request('/profile','PATCH',{baseRevision:data.revision,name});}});
  }
 
- async function projectAvatar(data){
-  const el=content.querySelector('[data-project-avatar]');if(!el||!data.avatarAssetId||!repository.attachmentAdapter)return;
-  try{const blob=await repository.attachmentAdapter.blob({projectId:project.id,id:data.avatarAssetId,variant:'thumb'});if(!el.isConnected)return;const url=URL.createObjectURL(blob),img=new Image();img.alt='';img.onload=()=>URL.revokeObjectURL(url);img.src=url;el.replaceChildren(img);}catch{/* The initial stays when the image cannot be loaded. */}
- }
  async function renderProfile(){
   const base='/projects/'+encodeURIComponent(project.id)+'/profile',data=await client.request(base);if(closed)return;
   const canEdit=project.role==='admin',address=new URL('/?project='+encodeURIComponent(data.slug),location.origin).href;
-  const avatarRow=s.row({media:`<span class="iq-avatar sq-project-avatar" data-project-avatar aria-hidden="true">${esc(data.name.slice(0,1).toUpperCase())}</span>`,title:'Аватар проекта',meta:['Помогает отличать проекты в переключателе.'],
-   actions:canEdit?ui.btn(data.avatarAssetId?'Заменить':'Загрузить','secondary sm','image','data-settings-action="avatar-upload"')+(data.avatarAssetId?ui.btn('Убрать','ghost sm','','data-settings-action="avatar-remove"'):''):''});
   const links=s.group({title:'Ссылки на задачи',description:'Не меняются, чтобы старые ссылки продолжали работать.',body:s.panel(s.facts([['Префикс задач',`${s.copyValue(data.key,'Скопировать префикс')}<small>Например, ${esc(data.key)}-128</small>`],['Адрес проекта',s.copyValue(address,'Скопировать адрес проекта')]]))});
-  if(!canEdit){content.innerHTML=await projectLock()+s.group({title:'Основное',body:s.panel(avatarRow+s.facts([['Название проекта',esc(data.name)]]))})+links;}
+  if(!canEdit){content.innerHTML=await projectLock()+s.group({title:'Основное',body:s.panel(s.facts([['Название проекта',esc(data.name)]]))})+links;}
   else{
-   content.innerHTML=formShell(s.group({title:'Основное',body:s.panel(avatarRow+s.fieldRow('Название проекта','Видно в переключателе, поиске и ссылках.',input('name','Название проекта',data.name,{required:true,maxlength:100})))}))+links;
+   content.innerHTML=formShell(s.group({title:'Основное',body:s.panel(s.fieldRow('Название проекта','Видно в переключателе, поиске и ссылках.',input('name','Название проекта',data.name,{required:true,maxlength:100})))}))+links;
    const field=content.querySelector('[name=name]');
-   bindForm(content.querySelector('form'),{read:()=>({name:field.value.trim()}),after:renderProfile,save:async({name})=>{if(!name)throw Error('Введите название проекта.');const body={baseRevision:data.revision,name,avatarAssetId:data.avatarAssetId};await client.request(base,'PUT',body,await repository.key('project-profile:'+project.id,body));}});
+   bindForm(content.querySelector('form'),{read:()=>({name:field.value.trim()}),after:renderProfile,save:async({name})=>{if(!name)throw Error('Введите название проекта.');const body={baseRevision:data.revision,name};await client.request(base,'PUT',body,await repository.key('project-profile:'+project.id,body));}});
   }
-  content.dataset.revision=String(data.revision);enhance(content);void projectAvatar(data);
+  content.dataset.revision=String(data.revision);enhance(content);
   return data;
  }
- async function saveAvatar(avatarAssetId){
-  const base='/projects/'+encodeURIComponent(project.id)+'/profile',data=await client.request(base),body={baseRevision:data.revision,name:data.name,avatarAssetId};
-  await client.request(base,'PUT',body,await repository.key('project-profile:'+project.id,body));await onChanged();await renderProfile();
- }
-
   /** Projects of the workspace: every project for its administrators, one's own projects for other members. */
   async function workspaceProjects(data){
    let list=[];try{list=await client.request('/workspaces/'+encodeURIComponent(project.workspaceId)+'/projects');}catch{return '';}
@@ -193,8 +182,6 @@ export async function mountSettings(root,{repository,project,adapter,onChanged=(
   if(dirty){notify({message:'Сначала сохраните или отмените изменения названия.',tone:'warning'});return;}
   if(kind==='photo-upload'){try{const revision=await pickPersonalPhoto({client,track});if(revision&&!closed){notify({message:'Фото обновлено',tone:'success'});await onChanged();await renderAccount();}}catch(error){notify({message:error.message,tone:'danger'});}return;}
   if(kind==='photo-remove'){track(dialog({title:'Убрать фото профиля?',description:'Рядом с вашим именем останутся инициалы.',submitLabel:'Убрать',success:'Фото убрано',onSubmit:async()=>{await client.removeAvatar();await onChanged();await renderAccount();}}));return;}
-  if(kind==='avatar-upload'){const assetId=await pickProjectAvatar({repository,project,track});if(assetId&&!closed){busy=true;try{await saveAvatar(assetId);notify({message:'Аватар обновлён',tone:'success'});}catch(error){notify({message:error.message,tone:'danger'});}finally{busy=false;}}return;}
-  if(kind==='avatar-remove')track(dialog({title:'Убрать аватар проекта?',description:'В переключателе останется первая буква названия.',submitLabel:'Убрать',success:'Аватар убран',onSubmit:()=>saveAvatar(null)}));
  },{signal:abort.signal});
  window.addEventListener('sprintique-appearance-change',()=>{if(current==='appearance'&&!content.contains(document.activeElement))syncAppearance();},{signal:abort.signal});
  phone.addEventListener('change',view,{signal:abort.signal});

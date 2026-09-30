@@ -45,8 +45,6 @@ data class PutProjectProfileRequest(
     @field:JsonDeserialize(using = TrimmedString::class)
     @field:Size(min = 1, max = 100)
     val name: String,
-    @field:Pattern(regexp = RESOURCE_ID)
-    val avatarAssetId: String?,
 )
 
 @Schema(name = "PutWorkspaceProfile")

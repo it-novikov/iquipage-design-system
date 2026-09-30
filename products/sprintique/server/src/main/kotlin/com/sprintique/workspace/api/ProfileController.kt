@@ -58,7 +58,7 @@ class ProfileController(
         requests.run(request) { tx, actor ->
             RequestInputs.id(projectId)
             val input = contracts.parse<PutProjectProfileRequest>(body)
-            val change = ProjectProfiles.ProjectChange(input.baseRevision, input.name, input.avatarAssetId)
+            val change = ProjectProfiles.ProjectChange(input.baseRevision, input.name)
             ProjectProfiles.changeProject(tx, actor, projectId, change, RequestInputs.idempotencyKey(request), ledger)
         }
 

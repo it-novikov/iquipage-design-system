@@ -172,7 +172,7 @@ class Uploads(
 
     /**
      * WebP previews of an image. A task keeps an image the decoder refuses for its size, animation or time as a
-     * plain file; a map image or an avatar must be a still image within the bounds. Unreadable content fails.
+     * plain file; a map image must be a still image within the bounds. Unreadable content fails.
      */
     private fun preview(bytes: ByteArray, targetType: String): ProcessedImage? = try {
         images.variants(bytes)
@@ -180,7 +180,7 @@ class Uploads(
         when {
             targetType == "task" && problem.code in KEPT_WITHOUT_PREVIEW -> null
 
-            // Out of time under load is not the image's fault: a map image or avatar may simply be sent again.
+            // Out of time under load is not the image's fault: a map image may simply be sent again.
             problem.code == "IMAGE_TIMEOUT" -> throw ProblemException(429, "IMAGE_BUSY", BUSY_IMAGES)
 
             else -> throw problem

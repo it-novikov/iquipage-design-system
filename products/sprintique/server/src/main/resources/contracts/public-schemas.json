@@ -5985,8 +5985,7 @@
           "type": "string",
           "enum": [
             "task",
-            "map",
-            "project-avatar"
+            "map"
           ]
         },
         "targetId": {
@@ -17057,25 +17056,11 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 100
-        },
-        "avatarAssetId": {
-          "anyOf": [
-            {
-              "type": "string",
-              "minLength": 1,
-              "maxLength": 100,
-              "pattern": "^[A-Za-z0-9_-]+$"
-            },
-            {
-              "type": "null"
-            }
-          ]
         }
       },
       "required": [
         "baseRevision",
-        "name",
-        "avatarAssetId"
+        "name"
       ],
       "additionalProperties": false
     },

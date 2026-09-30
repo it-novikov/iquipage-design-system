@@ -31,7 +31,7 @@ class SessionController(
     fun session(request: HttpServletRequest): Map<String, Any?> = requests.run(request) { tx, actor ->
         val projects = tx.rows(
             """
-            SELECT p.id, p.workspace_id AS "workspaceId", p.name, p.slug, p.key, p.avatar_asset_id AS "avatarAssetId", m.role,
+            SELECT p.id, p.workspace_id AS "workspaceId", p.name, p.slug, p.key, m.role,
                    w.name AS "workspaceName"
             FROM app.projects p JOIN app.project_members m ON m.project_id = p.id AND m.principal_id = $1
             JOIN app.workspaces w ON w.id = p.workspace_id ORDER BY w.name, p.name
