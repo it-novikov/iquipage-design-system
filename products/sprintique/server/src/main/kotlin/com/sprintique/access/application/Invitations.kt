@@ -83,7 +83,13 @@ object Invitations {
             val earlier = sameInvitation(tx, actor, scope, address.value)
             val fresh = earlier != null && earlier.string("delivery") != "failed" &&
                 earlier.instant("created_at").plus(RESEND_PAUSE).isAfter(Instant.now())
-            if (earlier != null && (fresh || earlier.int("resend_count") >= RESENDS)) {
+            requireCondition(
+                earlier == null || fresh || earlier.int("resend_count") < RESENDS,
+                429,
+                "INVITATION_RESEND_LIMIT",
+                "На ${address.value} это приглашение отправляли уже пять раз. Уберите адрес или создайте ссылку.",
+            )
+            if (earlier != null && fresh) {
                 invitations += one(tx, earlier.string("id"))
                 continue
             }
@@ -533,7 +539,7 @@ object Invitations {
         ProjectAccess.requireActiveCredential(tx, actor)
         val hash = Tokens.sha256Hex(token)
         val found = requirePresent(
-            tx.row("SELECT id, workspace_id FROM auth.invitations WHERE token_hash = $1", hash),
+            tx.row("SELECT id, workspace_id, project_ids FROM auth.invitations WHERE token_hash = $1", hash),
             404,
             "INVITATION_INVALID",
             "Приглашение не найдено. Проверьте ссылку или попросите новую.",
@@ -541,6 +547,11 @@ object Invitations {
         val workspaceId = found.string("workspace_id")
         // One acceptance at a time per workspace; project locks follow in a fixed order.
         tx.row("SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", "workspace-members:$workspaceId")
+        // The project locks before the invitation row, in the order of the commands that change an invitation from
+        // a project (they hold the project first): an acceptance and a resend then wait for each other, never deadlock.
+        found.strings("project_ids").sorted().forEach {
+            tx.row("SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", "membership:$it")
+        }
         val invitation = stored(tx, found.string("id"), lock = true)!!
         val acceptedBy = invitation.stringOrNull("accepted_by")
         requireCondition(

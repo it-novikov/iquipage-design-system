@@ -86,7 +86,10 @@ export async function mountMembers(root,{repository,project,tools,notice=''}){
     el.addEventListener('iq-close',()=>{if(!confirmed)revert();},{once:true});
   }
   async function edit(member){track(await openPermissionEditor({repository,project,member,presets,held:[...own],
-    onSaved:async()=>{notify({tone:'success',message:`Права: ${member.name}`,description:'Изменение записано в историю проекта.'});await load();},onLastAdmin:presetId=>handover(presetId)}));}
+    onSaved:async()=>{notify({tone:'success',message:`Права: ${member.name}`,description:'Изменение записано в историю проекта.'});await load();},onLastAdmin:presetId=>{
+      // A handover sets a preset without personal changes: when only personal changes removed access, it would keep it.
+      if((presets.find(p=>p.id===presetId)?.permissions||[]).includes('project.access'))notify({tone:'warning',duration:10000,message:'Вы последний администратор проекта',description:'Сначала сделайте администратором другого участника, затем уберите права у себя.'});
+      else handover(presetId);}}));}
   async function addFromWorkspace(){
     const [people,access]=await Promise.all([client.request(base+'/directory'),client.request(base+'/access')]);
     if(!people.length)return show({title:'Добавить из пространства',description:'Все участники пространства уже в проекте. Новых людей можно пригласить по почте.'});

@@ -105,10 +105,16 @@ object Permissions {
         return Permission.PROJECT.associateWith { permission ->
             when {
                 permission in effective && permission in base -> Source.PRESET
+
                 permission in effective && permission in added -> Source.ADDED
+
                 permission in effective -> Source.DEPENDENCY
-                permission in revoked -> Source.REMOVED
+
+                // Removed by hand, or with something it depends on: both read «убрано».
+                closure(listOf(permission)).any { it in revoked } -> Source.REMOVED
+
                 permission in base || permission in added -> Source.FORBIDDEN
+
                 else -> Source.ABSENT
             }
         }

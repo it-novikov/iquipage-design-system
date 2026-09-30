@@ -65,7 +65,8 @@ export async function openInviteDialog({repository,project,scope='workspace',onD
   function syncPreset(){q('[data-invite-preset-slot]').innerHTML=presetSelect();q('[data-invite-preset-hint]').textContent=presetHint(presetOptions().value);note();}
   async function send(values){
     commit();
-    const presetId=values.get('presetId')||null,projectIds=values.getAll('projectIds').map(String);
+    // A workspace invitation without projects carries no preset: the server refuses a preset with nothing to apply to.
+    const projectIds=values.getAll('projectIds').map(String),presetId=fromProject||projectIds.length?values.get('presetId')||null:null;
     if(!fromProject&&guest()&&!projectIds.length)throw Error('Гостя приглашают хотя бы в один проект: отметьте его.');
     if(mode==='link'){
       const body={presetId,expiresInSeconds:Number(values.get('ttl')||604800),...(fromProject?{}:{workspaceRole:role,projectIds})};

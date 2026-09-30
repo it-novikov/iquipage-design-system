@@ -11,7 +11,7 @@ const OWN_LIMIT=10;
  */
 export async function mountPresets(root,{repository,project,workspace}){
   const client=repository.client,workspaceId=project.workspaceId,base='/workspaces/'+encodeURIComponent(workspaceId)+'/presets',abort=new AbortController();
-  const space=new Set(workspace?.permissions||project.workspacePermissions||[]),canEdit=space.has('workspace.settings');
+  const space=new Set(workspace?.permissions||project.workspacePermissions||[]),canEdit=space.has('workspace.settings'),oversee=space.has('projects.oversee');
   let closed=false,modal=null,presets=[],index=new Map(),groups=[],held=new Set(),editing=null,busy=false,loading=0;
   function track(element){modal=element;element.addEventListener('iq-close',()=>{if(modal===element)modal=null;},{once:true});return element;}
   const draft=()=>editing&&JSON.stringify([editing.name.trim(),editing.hint.trim(),[...editing.permissions]]);
@@ -25,6 +25,8 @@ export async function mountPresets(root,{repository,project,workspace}){
   function lockOf(id,on){
     if(id===TASKS_READ)return 'Есть у каждого участника';
     if(editing.key==='guest'&&id===PROJECT_ACCESS)return 'Нельзя дать гостю';
+    // Without projects.oversee an existing preset can only narrow: it may be used where the actor has less.
+    if(!on&&editing.id&&!oversee)return 'Расширить пресет может владелец или администратор пространства';
     if(!on&&!held.has(id))return 'Нет у вас';
     return '';
   }
@@ -74,7 +76,7 @@ export async function mountPresets(root,{repository,project,workspace}){
   async function open(preset){
     if(!await discard())return;
     const permissions=preset?compile(index,{base:preset.permissions,forbidden:preset.key==='guest'?[PROJECT_ACCESS]:[]}):compile(index,{base:[]});
-    editing={id:preset?.id||null,original:preset?.name||'',key:preset?.key||null,locked:!!preset?.locked,readOnly:!canEdit||!!preset?.locked,revision:preset?.revision,
+    editing={id:preset?.id||null,requestId:preset?null:crypto.randomUUID(),original:preset?.name||'',key:preset?.key||null,locked:!!preset?.locked,readOnly:!canEdit||!!preset?.locked,revision:preset?.revision,
       name:preset?.name||'',hint:preset?.hint||'',permissions,notes:new Map(),usage:null,baseline:''};
     editing.baseline=draft();render();
     const editor=root.querySelector('[data-preset-editor]');editor.scrollIntoView({block:'start',behavior:'smooth'});(editor.querySelector('[name=name]')||editor.querySelector('[data-preset-close]'))?.focus({preventScroll:true});
@@ -90,7 +92,8 @@ export async function mountPresets(root,{repository,project,workspace}){
     busy=true;submit.disabled=true;status.textContent='Сохраняем…';form.setAttribute('aria-busy','true');
     try{
       if(editing.id)await client.request(`${base}/${encodeURIComponent(editing.id)}`,'PUT',{baseRevision:editing.revision,name,hint,permissions});
-      else await client.request(base,'POST',{id:crypto.randomUUID(),name,hint,permissions});
+      // One id per new preset: a retry after a lost answer returns the preset already made.
+      else await client.request(base,'POST',{id:editing.requestId,name,hint,permissions});
       const applied=editing.usage?.members;notify({tone:'success',message:`Пресет «${name}» сохранён`,description:applied?`Применён к ${plural(applied,['участнику','участникам','участникам'])}.`:''});
       editing=null;busy=false;await load();
     }catch(failure){if(!closed&&form.isConnected){error.hidden=false;error.textContent=explain(failure);status.textContent='Не удалось сохранить';}}

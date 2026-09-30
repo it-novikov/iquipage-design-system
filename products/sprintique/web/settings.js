@@ -131,7 +131,10 @@ export async function mountSettings(root,{repository,project,adapter,onChanged=(
   /** Projects of the workspace: every project for its administrators, one's own projects for other members. */
   async function workspaceProjects(data){
    let list=[];try{list=await client.request('/workspaces/'+encodeURIComponent(project.workspaceId)+'/projects');}catch{return '';}
-   const rows=list.map(p=>s.row({media:s.tile('folder'),title:p.name,titleExtra:p.id===project.id?s.badge('Открыт'):'',meta:[`<code class="iq-settings-code">${esc(p.key)}</code>`,esc(plural(p.members,['участник','участника','участников']))],aside:p.role?esc(roleName(p.role)):s.badge('Нет доступа')})).join('');
+   const oversee=(data.permissions||[]).includes('projects.oversee');
+   // Someone who oversees the workspace enters a project they are not in explicitly; the project's history records it.
+   const rows=list.map(p=>s.row({media:s.tile('folder'),title:p.name,titleExtra:p.id===project.id?s.badge('Открыт'):'',meta:[`<code class="iq-settings-code">${esc(p.key)}</code>`,esc(plural(p.members,['участник','участника','участников']))],aside:p.role?esc(roleName(p.role)):s.badge('Нет доступа'),
+     actions:!p.role&&oversee?ui.btn('Войти как администратор','ghost sm','',`data-settings-action="join-project" data-project-join="${esc(p.id)}" data-project-name="${esc(p.name)}"`):''})).join('');
    return s.group({title:'Проекты',count:list.length,description:(data.permissions||[]).includes('projects.oversee')?'Все проекты пространства. Доступ к задачам выдаётся в настройках проекта.':'Проекты пространства, в которых вы участвуете.',body:s.panel(rows||s.empty({title:'Проектов пока нет',glyph:'folder'}))});
   }
  /** Links to the workspace's people sections the person may open. */
@@ -210,6 +213,7 @@ export async function mountSettings(root,{repository,project,adapter,onChanged=(
   if(kind==='photo-upload'){try{const revision=await pickPersonalPhoto({client,track});if(revision&&!closed){notify({message:'Фото обновлено',tone:'success'});await onChanged();await renderAccount();}}catch(error){notify({message:error.message,tone:'danger'});}return;}
   if(kind==='photo-remove'){track(dialog({title:'Убрать фото профиля?',description:'Рядом с вашим именем останутся инициалы.',submitLabel:'Убрать',success:'Фото убрано',onSubmit:async()=>{await client.removeAvatar();await onChanged();await renderAccount();}}));return;}
   if(kind==='avatar-upload'){const assetId=await pickProjectAvatar({repository,project,track});if(assetId&&!closed){busy=true;try{await saveAvatar(assetId);notify({message:'Аватар обновлён',tone:'success'});}catch(error){notify({message:error.message,tone:'danger'});}finally{busy=false;}}return;}
+  if(kind==='join-project'){const id=action.dataset.projectJoin,name=action.dataset.projectName;track(dialog({title:`Войти в проект «${name}» как администратор?`,description:'Вы станете администратором проекта. Вход запишется в историю проекта, его участники это увидят.',submitLabel:'Войти',onSubmit:async()=>{const joined=await client.request('/projects/'+encodeURIComponent(id)+'/join-as-admin','POST',{});await onChanged();notify({tone:'success',message:`Вы администратор проекта «${name}»`});const url=new URL(location.href);url.searchParams.set('project',joined.slug);url.hash='tasks';location.assign(url.href);}}));return;}
   if(kind==='avatar-remove')track(dialog({title:'Убрать аватар проекта?',description:'В переключателе останется первая буква названия.',submitLabel:'Убрать',success:'Аватар убран',onSubmit:()=>saveAvatar(null)}));
  },{signal:abort.signal});
  window.addEventListener('sprintique-appearance-change',()=>{if(current==='appearance'&&!content.contains(document.activeElement))syncAppearance();},{signal:abort.signal});

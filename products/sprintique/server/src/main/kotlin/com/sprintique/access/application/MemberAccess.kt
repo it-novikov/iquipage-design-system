@@ -288,6 +288,9 @@ object MemberAccess {
             "LAST_ADMIN",
             "Новый администратор не получил «Управлять доступом».",
         )
+        if (Permission.TASKS_WRITE !in ProjectAccess.permissionsOf(target(tx, projectId, actor.id))) {
+            revokeAgentsIssuedBy(tx, projectId, actor.id)
+        }
         recordAccessEvent(tx, actor, projectId, "member.handover", toId, mapOf("to" to toId, "ownPreset" to own.name))
         return linkedMapOf("administratorId" to toId, "presetId" to own.id)
     }

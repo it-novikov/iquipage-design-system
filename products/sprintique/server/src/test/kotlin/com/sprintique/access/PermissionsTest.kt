@@ -118,7 +118,7 @@ class PermissionsTest {
         assertThat(sources[PROJECT_ACCESS]).isEqualTo(Permissions.Source.ABSENT)
         val cascaded = Permissions.compile(editor, revoked = listOf(TASKS_WRITE))
         assertThat(Permissions.sources(editor, emptySet(), setOf(TASKS_WRITE), cascaded)[APPROVALS_DECIDE])
-            .isEqualTo(Permissions.Source.FORBIDDEN)
+            .isEqualTo(Permissions.Source.REMOVED)
     }
 
     @Test

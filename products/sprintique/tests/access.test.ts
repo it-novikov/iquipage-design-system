@@ -381,3 +381,59 @@ test('F7 parallel acceptances, parallel sends at the daily limit, the 200-a-day,
   await f.admin.query("UPDATE auth.invitations SET resend_count=5, created_at=created_at-interval '1 hour' WHERE id=$1",[one.id]);
   const sixth=await call('POST','invitations/'+one.id+'/resend',{},wo);assert.equal(sixth.statusCode,429);assert.equal(sixth.json().code,'INVITATION_RESEND_LIMIT');
 });
+
+// Review R2 (F1, F3): regression tests for the permission fixes of R1.
+test('R2 F1 without projects.oversee an existing preset only narrows, even when only an invitation uses it',async()=>{
+  const s=await space(),a=await s.project('А'),kim=await someone('kim');
+  await s.join(kim,'member');await s.add(a,kim,'admin');
+  const k=(await ok('GET','workspaces/'+s.ws+'/members')).find((m:{id:string})=>m.id===kim.id);
+  await ok('PUT','workspaces/'+s.ws+'/members/'+kim.id+'/access',{baseRevision:k.revision,granted:['workspace.settings'],revoked:[]});
+  const intern=randomUUID();
+  await ok('POST','workspaces/'+s.ws+'/presets',{id:intern,name:'Стажёр',permissions:[]});
+  await ok('POST','workspaces/'+s.ws+'/invitation-links',{workspaceRole:'member',presetId:intern,projectIds:[a]});
+  const current=(await ok('GET','workspaces/'+s.ws+'/presets',undefined,kim)).find((p:{id:string})=>p.id===intern);
+  const wider=await call('PUT','workspaces/'+s.ws+'/presets/'+intern,{baseRevision:current.revision,name:'Стажёр',permissions:['finance.read']},kim);
+  assert.equal(wider.statusCode,403);assert.equal(wider.json().code,'PERMISSION_EXCEEDS_ACTOR');
+  await ok('PUT','workspaces/'+s.ws+'/presets/'+intern,{baseRevision:current.revision,name:'Стажёр · задачи',permissions:[]},kim);
+});
+
+test('R2 F3 agent grants, release dates, a personal removal of projects.create, handover checks, project invitation lists',async()=>{
+  const s=await space(),p=await s.project('Регресс'),other=await s.project('Секретный'),lea=await someone('lea'),max=await someone('max');
+  await s.join(lea,'member');await s.join(max,'member');await s.add(p,lea,'reader');await s.add(p,max,'editor');
+  // F11 an agent never gets what its issuer lacks, and its membership is only as wide as the grant.
+  const l=await s.row(p,lea.id);
+  await ok('PUT','projects/'+p+'/members/'+lea.id+'/access',{baseRevision:l.revision,presetId:await s.presetOf('reader'),granted:['agents.manage'],revoked:[]});
+  const beyond=await call('POST','projects/'+p+'/agents',{name:'Помощник',capabilities:['tasks:read','tasks:write'],expiresInSeconds:600},lea);
+  assert.equal(beyond.statusCode,403);assert.equal(beyond.json().code,'PERMISSION_EXCEEDS_ACTOR');
+  const reader=await ok('POST','projects/'+p+'/agents',{name:'Читатель',capabilities:['tasks:read','maps:read'],expiresInSeconds:600},lea);
+  const agent=(await f.admin.query('SELECT permissions FROM app.project_members WHERE project_id=$1 AND principal_id=$2',[p,reader.id])).rows[0].permissions;
+  assert.deepEqual(agent,['tasks.read','maps.read']);
+  // F13 the dates of a release need «Управлять релизами и спринтами»; a task's do not.
+  await ok('PUT','projects/'+p+'/releases/r1',{baseRevision:0,value:{name:'Релиз 1',status:'planned',targetDate:null}});
+  await ok('PUT','projects/'+p+'/tasks/t1',{baseRevision:0,task:{title:'Задача'}});
+  const m=await s.row(p,max.id);
+  await ok('PUT','projects/'+p+'/members/'+max.id+'/access',{baseRevision:m.revision,presetId:await s.presetOf('editor'),granted:[],revoked:['releases.manage']});
+  const release=await call('POST','projects/'+p+'/planning/view/preview',{kind:'schedule',entityId:'r1',entityKind:'release',values:{start:'2026-11-01',end:'2026-11-10'}},max);
+  assert.equal(release.statusCode,403);
+  const task=await call('POST','projects/'+p+'/planning/view/preview',{kind:'schedule',entityId:'t1',entityKind:'task',values:{start:'2026-11-01',end:'2026-11-03'}},max);
+  assert.equal(task.statusCode,200,task.body);
+  const view=await ok('POST','projects/'+p+'/planning/view/groups',{},max);
+  assert.equal(view.capabilities.createRelease,false);assert.equal(view.capabilities.createTask,true);
+  // F10 a handover goes to an active person, at the revision the actor saw.
+  const target=await s.row(p,lea.id);
+  await f.admin.query('UPDATE auth.principals SET disabled_at=now() WHERE id=$1',[lea.id]);
+  assert.equal((await call('POST','projects/'+p+'/members/'+lea.id+'/handover',{baseRevision:target.revision,presetId:await s.presetOf('editor')})).json().code,'HANDOVER_INVALID');
+  await f.admin.query('UPDATE auth.principals SET disabled_at=NULL WHERE id=$1',[lea.id]);
+  assert.equal((await call('POST','projects/'+p+'/members/'+lea.id+'/handover',{baseRevision:target.revision-1,presetId:await s.presetOf('editor')})).json().code,'CONFLICT');
+  // F9 a project's invitation list names only that project.
+  await ok('POST','workspaces/'+s.ws+'/invitation-links',{workspaceRole:'member',presetId:await s.presetOf('reader'),projectIds:[p,other]});
+  const listed=await ok('GET','projects/'+p+'/invitations');
+  assert.ok(listed.length>0&&listed.every((i:{projectNames:string[]})=>!i.projectNames.includes('Секретный')));
+  // F14 a personal removal of «Создавать проекты» holds while members may create projects.
+  const rules=await ok('GET','workspaces/'+s.ws+'/access');
+  await ok('PUT','workspaces/'+s.ws+'/access',{baseRevision:rules.revision,projectsCreatedBy:'members',defaultMemberPresetId:null,defaultGuestPresetId:null});
+  const mx=(await ok('GET','workspaces/'+s.ws+'/members')).find((x:{id:string})=>x.id===max.id);
+  await ok('PUT','workspaces/'+s.ws+'/members/'+max.id+'/access',{baseRevision:mx.revision,granted:[],revoked:['projects.create']});
+  assert.equal((await call('POST','projects',{workspaceId:s.ws,name:'Нельзя',slug:'no-'+randomUUID().slice(0,8),key:'NOPE'},max)).statusCode,403);
+  assert.equal((await call('POST','projects',{workspaceId:s.ws,name:'Можно',slug:'yes-'+randomUUID().slice(0,8),key:'YES'},lea)).statusCode,200);
+});
