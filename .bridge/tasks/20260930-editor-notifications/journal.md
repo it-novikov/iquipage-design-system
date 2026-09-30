@@ -35,3 +35,5 @@
 - 2026-09-30T21:12:46Z · claude-opus-5-5 · note · A5 · критерий приёмки выполнен
 - 2026-09-30T21:12:46Z · claude-opus-5-5 · status · - · review: PR открыт, гейты зелёные
 - 2026-09-30T21:12:46Z · claude-opus-5-5 · checkpoint · - · дальше: владелец: ревью и слияние PR (после #24 — уже влит)
+- 2026-09-30T21:13:05Z · claude-opus-5-5 · note · - · PR #34 открыт: https://github.com/it-novikov/iquipage-design-system/pull/34
+- 2026-09-30T21:13:05Z · claude-opus-5-5 · release · - · отпустил задачу
