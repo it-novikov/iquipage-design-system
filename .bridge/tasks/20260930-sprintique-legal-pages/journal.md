@@ -21,3 +21,8 @@
 - 2026-09-30T16:43:00Z · codex · checkpoint · - · дальше: Внести URL в Google Cloud OAuth consent screen
 - 2026-09-30T16:43:00Z · codex · status · - · review: Implementation, push and production rollout complete; review package ready
 - 2026-09-30T16:43:44Z · codex · checkpoint · - · дальше: Внести URL в Google Cloud OAuth consent screen
+- 2026-09-30T16:49:22Z · codex · status · - · ready: Владелец запросил переработку дизайна и проверку правовых пробелов; подтвердил личный эксперимент
+- 2026-09-30T16:49:22Z · codex · claim · - · взял задачу
+- 2026-09-30T16:49:22Z · codex · note · S4 · добавлен шаг: Переработать публичные страницы и проверить правовые пробелы
+- 2026-09-30T20:58:40Z · codex · step · S4 · active
+- 2026-09-30T20:58:40Z · codex · checkpoint · - · дальше: Commit, build image, deploy and verify public pages
