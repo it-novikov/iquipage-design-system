@@ -35,7 +35,7 @@ export function rowMarkup(row,groupId,collapsed,canDrag=false,canEdit=false) {
   const grip=canDrag&&!disabled?ui.ib('grip',`Переместить ${key}`,'ghost sm pn-grip',`data-work-drag="${taskId}" data-focus="drag:${id}" aria-pressed="false"`):'<span class="pn-grip-space" aria-hidden="true"></span>';
   const disclosure=row.childrenCount?ui.ib(collapsed?'chevron':'down',`${collapsed?'Показать':'Скрыть'} подзадачи ${key}`,'ghost sm pn-disclose',`data-disclose="${taskId}" data-focus="disclose:${id}" aria-expanded="${!collapsed}"`):'<span class="pn-disclose-space" aria-hidden="true"></span>';
   const parent=row.parentContext?`<span class="iq-work-list-context">Часть: ${esc(row.parentTitle||row.parentContext)}</span>`:'';
-  const owner=row.ownerLabel?`${ui.personAvatar({id:row.ownerId||row.ownerLabel,name:avatarName(row.ownerLabel)},{size:'xs'})}<span class="pn-person-name">${esc(row.ownerLabel)}</span>`:'<span class="pn-empty-value">Не назначен</span>';
+  const owner=row.ownerLabel?`${ui.personAvatar({id:row.ownerId||row.ownerLabel,name:avatarName(row.ownerLabel)},{size:'xs'})}<span class="pn-person-name" title="${esc(row.ownerLabel)}">${esc(row.ownerLabel)}</span>`:'<span class="pn-empty-value">Не назначен</span>';
   const ownerEditable=canEdit&&!disabled&&row.ownerId!==undefined,ownerEmpty=row.ownerLabel?'':' data-empty="true"';
   const tone=dueTone(row.dueValue,row.done),dueEditable=canEdit&&!disabled&&row.dueValue!==undefined,dueEmpty=row.dueValue?'':' data-empty="true"';
   const due=row.dueValue?esc(formatDate(row.dueValue)):'<span class="pn-empty-value">Без даты</span>';

@@ -33,6 +33,10 @@ test('the current owner stays visible and says why it can no longer be chosen',(
   assert.equal(suspended.label,'Пауза (сервисный аккаунт, приостановлен)');assert.match(suspended.description,/приостановлен/);
   const deleted=ownerOptions(members,{ownerId:'gone',ownerKind:'service',ownerState:'deleted',ownerName:'Старый'}).at(-1);
   assert.equal(deleted.label,'Старый (сервисный аккаунт, удалён)');
+  // The task's own state wins over a members list read before the account was suspended.
+  const fresh=ownerOptions(members,{ownerId:'robot',ownerKind:'service',ownerState:'suspended',ownerName:'Робот'});
+  assert.deepEqual(fresh.filter(o=>o.value==='robot').map(o=>o.label),['Робот (сервисный аккаунт, приостановлен)']);
+  assert.deepEqual(fresh.slice(-2).map(o=>o.value),[SERVICE_HEADING,'robot'],'still under its heading');
   // Without the task's own state (a summary), the members list tells a suspended account.
   assert.equal(ownerOptions(members,{ownerId:'paused'}).at(-1).label,'Пауза (сервисный аккаунт, приостановлен)');
   assert.equal(ownerOptions(members,{ownerId:'watcher',ownerKind:'service',ownerState:'active',ownerName:'Смотритель'}).at(-1).description,'Может только читать задачи проекта.');

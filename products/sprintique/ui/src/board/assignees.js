@@ -68,17 +68,21 @@ export function ownerWarning(task){
  */
 export function ownerOptions(members,current={},{image=()=>undefined}={}){
   const people=members.filter(m=>(m.kind??'human')==='human').map(m=>({value:m.id,label:m.name,image:image(m)}));
-  const accounts=members.filter(m=>m.kind==='service'&&assignable(m,members)).map(m=>({
+  // The task's own word on its owner is fresher than the members list, which the repository caches for a while.
+  const stale=m=>m.id===current.ownerId&&current.ownerState&&current.ownerState!=='active';
+  const accounts=members.filter(m=>m.kind==='service'&&assignable(m,members)&&!stale(m)).map(m=>({
     value:m.id,label:assigneeLabel({name:accountName(m),kind:'service'}),description:`Владелец — ${m.ownerName||'не назначен'}`,icon:'bolt'
   }));
   const options=[{value:'',label:'Не назначен'},...people];
-  if(accounts.length)options.push({value:SERVICE_HEADING,label:'Сервисные аккаунты',disabled:true,separator:true},...accounts);
+  const heading={value:SERVICE_HEADING,label:'Сервисные аккаунты',disabled:true,separator:true};
+  if(accounts.length)options.push(heading,...accounts);
   const id=current.ownerId;
   if(id&&!options.some(o=>o.value===id)){
     const member=members.find(m=>m.id===id),kind=current.ownerKind??member?.kind??'human';
     if(kind==='service'){
       const state=current.ownerState&&current.ownerState!=='active'?current.ownerState:member?memberState(member):'former';
       const name=current.ownerName||accountName(member)||'Сервисный аккаунт';
+      if(!accounts.length)options.push(heading);
       options.push({value:id,label:assigneeLabel({name,kind,state}),description:STATE_HINTS[state]||'Может только читать задачи проекта.',icon:'bolt'});
     }else options.push({value:id,label:current.ownerName||current.owner||'Бывший участник',description:'Больше не участник проекта'});
   }
