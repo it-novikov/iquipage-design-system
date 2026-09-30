@@ -64,3 +64,5 @@
 - 2026-09-30T13:39:10Z · claude-opus-5-5 · note · A7 · критерий приёмки выполнен
 - 2026-09-30T13:39:10Z · claude-opus-5-5 · checkpoint · - · дальше: Владелец: слияние после PR #26 (027 после 026); прод: SPRINTIQUE_API_ORIGIN=https://api.iqui.page, бэкап перед миграцией
 - 2026-09-30T13:39:10Z · claude-opus-5-5 · status · - · review: PR открыт, не слит
+- 2026-09-30T13:48:24Z · claude-opus-5-5 · note · - · Слит origin/main (PR #26 большие файлы, #28) в 35b0dce: конфликты RequestLimitFilter (дорожки передач + окно bearer) и operations.md разрешены; миграции 025→026→027 по порядку. verify-vnext PASS (2026-09-30T13-40-41.716Z): npm test 223/223, Kotlin unit 63 + integration 32, пропусков нет
+- 2026-09-30T13:48:25Z · claude-opus-5-5 · checkpoint · - · дальше: Владелец: слияние; прод: SPRINTIQUE_API_ORIGIN=https://api.iqui.page, бэкап перед миграцией 027

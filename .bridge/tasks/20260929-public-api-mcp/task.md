@@ -8,7 +8,7 @@ owner: it-novikov
 branch: feature/public-api-mcp
 base: main
 created: 2026-09-29
-updated: 2026-09-30T13:39:10Z
+updated: 2026-09-30T13:48:25Z
 links:
   - https://github.com/it-novikov/iquipage-design-system/pull/27
 ---
@@ -44,11 +44,11 @@ links:
 
 ## Передача
 
-- **Состояние:** Гейты зелёные на b20d5ed, ревью R3 закрыто (P1 исправлен)
+- **Состояние:** Гейты зелёные на 35b0dce (слияние с main), ревью R3 закрыто
 - **Сейчас:** PR #27 обновлён, ждёт владельца
-- **Дальше:** Владелец: слияние после PR #26 (027 после 026); прод: SPRINTIQUE_API_ORIGIN=https://api.iqui.page, бэкап перед миграцией
+- **Дальше:** Владелец: слияние; прод: SPRINTIQUE_API_ORIGIN=https://api.iqui.page, бэкап перед миграцией 027
 - **Незакоммичено:** нет
-- **Рабочая копия:** нет · HEAD b20d5ed
+- **Рабочая копия:** нет · HEAD 35b0dce
 - **Ловушки:**
   - Узел по умолчанию v26: для гейтов PATH=/opt/homebrew/opt/node@24/bin:$PATH
   - TEST_S3_CONFIG=/Users/nvkv71/iquipage-work/ux-ds-20260925/products/sprintique/output/infra/storage.json
