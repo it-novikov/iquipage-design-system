@@ -27,3 +27,11 @@
 - 2026-09-30T19:01:46Z · claude-opus-5-5 · checkpoint · S5 · дальше: проверка в браузере
 - 2026-09-30T19:10:48Z · claude-opus-5-5 · checkpoint · S5 · дальше: исправить ревью, гейты
 - 2026-09-30T21:02:42Z · claude-opus-5-5 · checkpoint · S5 · дальше: npm test продукта, verify-vnext, коммит, PR
+- 2026-09-30T21:12:46Z · claude-opus-5-5 · step · S5 · done: 43484f9; verify-vnext PASS 2026-09-30T21-03-01Z: DS 385/385, product npm test 263/263, Kotlin unit 78 + integration 35, 0 skipped, detached PASS; браузер 127.0.0.1:4417; ревью R1 исправлено
+- 2026-09-30T21:12:46Z · claude-opus-5-5 · note · A1 · критерий приёмки выполнен
+- 2026-09-30T21:12:46Z · claude-opus-5-5 · note · A2 · критерий приёмки выполнен
+- 2026-09-30T21:12:46Z · claude-opus-5-5 · note · A3 · критерий приёмки выполнен
+- 2026-09-30T21:12:46Z · claude-opus-5-5 · note · A4 · критерий приёмки выполнен
+- 2026-09-30T21:12:46Z · claude-opus-5-5 · note · A5 · критерий приёмки выполнен
+- 2026-09-30T21:12:46Z · claude-opus-5-5 · status · - · review: PR открыт, гейты зелёные
+- 2026-09-30T21:12:46Z · claude-opus-5-5 · checkpoint · - · дальше: владелец: ревью и слияние PR (после #24 — уже влит)

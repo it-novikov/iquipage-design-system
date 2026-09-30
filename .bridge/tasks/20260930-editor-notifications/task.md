@@ -2,13 +2,13 @@
 bridge: 1
 id: 20260930-editor-notifications
 title: "Релиз 1.0: ссылки при вставке (SPR-5), автоскрытие уведомлений (SPR-8), пустой шаблон описания (SPR-12)"
-status: active
+status: review
 risk: standard
 owner: nvkv71
 branch: feature/editor-notifications
 base: main
 created: 2026-09-30
-updated: 2026-09-30T21:02:42Z
+updated: 2026-09-30T21:12:46Z
 links:
 ---
 
@@ -26,19 +26,19 @@ links:
 
 ## Приёмка
 
-- [ ] A1. SPR-5: вставка http(s)/mailto-ссылки в iq-markdown-editor и инлайн-редактор карты: без выделения — ссылка с адресом в тексте, поверх выделения — [текст](url); обычный текст без изменений; отмена одним шагом; ссылка кликабельна в предпросмотре
-- [ ] A2. SPR-8: DS notify скрывается сам: info/success 5 с, warning 8 с, danger 10 с; действие-переход (Открыть) 10 с; действие-отмена (undo) остаётся до закрытия; пауза при наведении/фокусе/скрытой вкладке; Escape и кнопка закрывают; role status/alert; reduced motion
-- [ ] A3. SPR-12: новая задача с нетронутым текстом шаблона (любой тип и стартовый шаблон, пробелы нормализованы) сохраняется с пустым описанием; любое изменение — сохраняется всё
-- [ ] A4. DS 0.6.0-vnext.25 (после vnext.24 из PR #24) собран, протестирован, упакован в vendor продукта; старый tarball удалён; lockfile обновлён
-- [ ] A5. Проверено в браузере на локальном запуске; независимое read-only ревью, обоснованное исправлено; гейты зелёные без пропусков (DS npm test, продукт npm test + Kotlin, verify-vnext); PR в main открыт, не слит
+- [x] A1. SPR-5: вставка http(s)/mailto-ссылки в iq-markdown-editor и инлайн-редактор карты: без выделения — ссылка с адресом в тексте, поверх выделения — [текст](url); обычный текст без изменений; отмена одним шагом; ссылка кликабельна в предпросмотре
+- [x] A2. SPR-8: DS notify скрывается сам: info/success 5 с, warning 8 с, danger 10 с; действие-переход (Открыть) 10 с; действие-отмена (undo) остаётся до закрытия; пауза при наведении/фокусе/скрытой вкладке; Escape и кнопка закрывают; role status/alert; reduced motion
+- [x] A3. SPR-12: новая задача с нетронутым текстом шаблона (любой тип и стартовый шаблон, пробелы нормализованы) сохраняется с пустым описанием; любое изменение — сохраняется всё
+- [x] A4. DS 0.6.0-vnext.25 (после vnext.24 из PR #24) собран, протестирован, упакован в vendor продукта; старый tarball удалён; lockfile обновлён
+- [x] A5. Проверено в браузере на локальном запуске; независимое read-only ревью, обоснованное исправлено; гейты зелёные без пропусков (DS npm test, продукт npm test + Kotlin, verify-vnext); PR в main открыт, не слит
 
 ## Передача
 
-- **Состояние:** Ревью R1: 3×P2 и P3 исправлены (ссылки не ломаются, многострочные выделения, docs URL, resume, duration, фокус, !task, legacyChecklists); DS npm test 385/385; повторная проверка в браузере ОК; стенд остановлен
-- **Сейчас:** S5 — гейты
-- **Дальше:** npm test продукта, verify-vnext, коммит, PR
-- **Незакоммичено:** DS+продукт, компилируется, тесты зелёные
-- **Рабочая копия:** 27 файл(ов): libraries/iquipage/PROVENANCE.json, libraries/iquipage/README.md, libraries/iquipage/docs/DAILY-WORK-API.md, libraries/iquipage/package-lock.json, libraries/iquipage/package.json, libraries/iquipage/src/entries/core.js, libraries/iquipage/src/modules/app.js, libraries/iquipage/src/modules/components.js, libraries/iquipage/src/modules/editor.js, libraries/iquipage/src/modules/markdown.js, libraries/iquipage/src/modules/whiteboard-studio.js, libraries/iquipage/tests/markdown056.test.cjs и ещё 15 (24 files changed, 198 insertions(+), 51 deletions(-)) · HEAD f25dff0
+- **Состояние:** Готово: 43484f9, гейты зелёные, PR открыт
+- **Сейчас:** —
+- **Дальше:** владелец: ревью и слияние PR (после #24 — уже влит)
+- **Незакоммичено:** нет
+- **Рабочая копия:** нет · HEAD 43484f9
 - **Ловушки:**
   - Локальный стенд: PREVIEW_PORT=4417 JAVA_HOME=/opt/homebrew/opt/openjdk@25 LC_ALL=C npm run dev:local; порт 4391 занят чужим стендом
   - Уведомление под неподвижным указателем: Chrome шлёт синтетический pointermove при смене раскладки — пауза только после сдвига указателя ≥4px
@@ -86,14 +86,15 @@ links:
 - **Итог:** DS 0.6.0-vnext.25: npm test 380/380, npm pack в vendor, vnext.24.tgz удалён, lockfile integrity пересчитан, npm ci + build + check:boundaries PASS
 - **Зависит от:** S1,S2
 
-### S5. Проверка, ревью, гейты, PR [active]
+### S5. Проверка, ревью, гейты, PR [done]
 - **Что:** Браузер, ревью subagent, гейты, PR
 - **Как:** локальный стенд; verify-vnext
 - **Зачем:** Доказательство
 - **Приёмка:**
-  - [ ] гейты зелёные
-  - [ ] PR открыт
+  - [x] гейты зелёные
+  - [x] PR открыт
 - **Покрывает:** A5
+- **Итог:** 43484f9; verify-vnext PASS 2026-09-30T21-03-01Z: DS 385/385, product npm test 263/263, Kotlin unit 78 + integration 35, 0 skipped, detached PASS; браузер 127.0.0.1:4417; ревью R1 исправлено
 - **Зависит от:** S3,S4
 
 ## Решения
