@@ -25,8 +25,11 @@ import com.sprintique.database.schema.app.keys.PROJECTS_PKEY
 import com.sprintique.database.schema.app.keys.PROJECTS_SLUG_KEY
 import com.sprintique.database.schema.app.keys.PROJECTS_WORKSPACE_ID_ID_KEY
 import com.sprintique.database.schema.app.keys.PROJECTS_WORKSPACE_ID_KEY_KEY
+import com.sprintique.database.schema.app.keys.PROJECTS__PROJECTS_DEFAULT_GUEST_PRESET_ID_FKEY
+import com.sprintique.database.schema.app.keys.PROJECTS__PROJECTS_DEFAULT_MEMBER_PRESET_ID_FKEY
 import com.sprintique.database.schema.app.keys.PROJECTS__PROJECTS_WORKSPACE_ID_FKEY
 import com.sprintique.database.schema.app.keys.PROJECT_MEMBERS__PROJECT_MEMBERS_PROJECT_ID_FKEY
+import com.sprintique.database.schema.app.keys.PROJECT_MEMBERS__PROJECT_MEMBER_WORKSPACE
 import com.sprintique.database.schema.app.keys.RELEASES__RELEASES_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.TAGS__TAGS_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.TASKS__TASKS_PROJECT_ID_FKEY
@@ -35,6 +38,7 @@ import com.sprintique.database.schema.app.keys.TASK_LINKS__TASK_LINKS_PROJECT_ID
 import com.sprintique.database.schema.app.keys.TASK_SETTINGS_VERSIONS__TASK_SETTINGS_VERSIONS_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.TASK_SETTINGS__TASK_SETTINGS_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.TEMPORAL_CONSTRAINTS__TEMPORAL_CONSTRAINTS_PROJECT_ID_FKEY
+import com.sprintique.database.schema.app.tables.AccessPresets.AccessPresetsPath
 import com.sprintique.database.schema.app.tables.AgentRuns.AgentRunsPath
 import com.sprintique.database.schema.app.tables.Approvals.ApprovalsPath
 import com.sprintique.database.schema.app.tables.Assets.AssetsPath
@@ -63,10 +67,10 @@ import com.sprintique.database.schema.app.tables.TemporalConstraints.TemporalCon
 import com.sprintique.database.schema.app.tables.Workspaces.WorkspacesPath
 import com.sprintique.database.schema.app.tables.records.ProjectsRecord
 import com.sprintique.database.schema.auth.keys.CREDENTIALS__CREDENTIALS_PROJECT_ID_FKEY
-import com.sprintique.database.schema.auth.keys.PROJECT_INVITATIONS__PROJECT_INVITATIONS_PROJECT_ID_FKEY
+import com.sprintique.database.schema.auth.keys.INVITATIONS__INVITATIONS_FROM_PROJECT_ID_FKEY
 import com.sprintique.database.schema.auth.tables.Credentials.CredentialsPath
+import com.sprintique.database.schema.auth.tables.Invitations.InvitationsPath
 import com.sprintique.database.schema.auth.tables.Principals.PrincipalsPath
-import com.sprintique.database.schema.auth.tables.ProjectInvitations.ProjectInvitationsPath
 import com.sprintique.database.schema.work.keys.JOBS__JOBS_PROJECT_ID_FKEY
 import com.sprintique.database.schema.work.tables.Jobs.JobsPath
 
@@ -152,6 +156,12 @@ open class Projects(
 
     val ACTIVITY_SEQUENCE: TableField<ProjectsRecord, Long?> = createField(DSL.name("activity_sequence"), SQLDataType.BIGINT.nullable(false).defaultValue(DSL.field(DSL.raw("0"), SQLDataType.BIGINT)), this, "")
 
+    val DEFAULT_MEMBER_PRESET_ID: TableField<ProjectsRecord, UUID?> = createField(DSL.name("default_member_preset_id"), SQLDataType.UUID, this, "")
+
+    val DEFAULT_GUEST_PRESET_ID: TableField<ProjectsRecord, UUID?> = createField(DSL.name("default_guest_preset_id"), SQLDataType.UUID, this, "")
+
+    val ACCESS_REVISION: TableField<ProjectsRecord, Int?> = createField(DSL.name("access_revision"), SQLDataType.INTEGER.nullable(false).defaultValue(DSL.field(DSL.raw("1"), SQLDataType.INTEGER)), this, "")
+
     private constructor(alias: Name, aliased: Table<ProjectsRecord>?): this(alias, null, null, null, aliased, null, null)
     private constructor(alias: Name, aliased: Table<ProjectsRecord>?, parameters: Array<Field<*>?>?): this(alias, null, null, null, aliased, parameters, null)
     private constructor(alias: Name, aliased: Table<ProjectsRecord>?, where: Condition?): this(alias, null, null, null, aliased, null, where)
@@ -174,7 +184,13 @@ open class Projects(
     override fun getSchema(): Schema? = if (aliased()) null else App.APP
     override fun getPrimaryKey(): UniqueKey<ProjectsRecord> = PROJECTS_PKEY
     override fun getUniqueKeys(): List<UniqueKey<ProjectsRecord>> = listOf(PROJECTS_SLUG_KEY, PROJECTS_WORKSPACE_ID_ID_KEY, PROJECTS_WORKSPACE_ID_KEY_KEY)
-    override fun getReferences(): List<ForeignKey<ProjectsRecord, *>> = listOf(PROJECTS__PROJECTS_WORKSPACE_ID_FKEY)
+    override fun getReferences(): List<ForeignKey<ProjectsRecord, *>> = listOf(PROJECTS__PROJECTS_DEFAULT_GUEST_PRESET_ID_FKEY, PROJECTS__PROJECTS_DEFAULT_MEMBER_PRESET_ID_FKEY, PROJECTS__PROJECTS_WORKSPACE_ID_FKEY)
+
+    fun projectsDefaultGuestPresetIdFkey(): AccessPresetsPath = projectsDefaultGuestPresetIdFkey
+    val projectsDefaultGuestPresetIdFkey: AccessPresetsPath by lazy { AccessPresetsPath(this, PROJECTS__PROJECTS_DEFAULT_GUEST_PRESET_ID_FKEY, null) }
+
+    fun projectsDefaultMemberPresetIdFkey(): AccessPresetsPath = projectsDefaultMemberPresetIdFkey
+    val projectsDefaultMemberPresetIdFkey: AccessPresetsPath by lazy { AccessPresetsPath(this, PROJECTS__PROJECTS_DEFAULT_MEMBER_PRESET_ID_FKEY, null) }
 
     fun workspaces(): WorkspacesPath = workspaces
     val workspaces: WorkspacesPath by lazy { WorkspacesPath(this, PROJECTS__PROJECTS_WORKSPACE_ID_FKEY, null) }
@@ -371,17 +387,29 @@ open class Projects(
     val privateReceipts: PrivateReceiptsPath
         get(): PrivateReceiptsPath = privateReceipts()
 
-    private lateinit var _projectMembers: ProjectMembersPath
+    private lateinit var _projectMemberWorkspace: ProjectMembersPath
 
-    fun projectMembers(): ProjectMembersPath {
-        if (!this::_projectMembers.isInitialized)
-            _projectMembers = ProjectMembersPath(this, null, PROJECT_MEMBERS__PROJECT_MEMBERS_PROJECT_ID_FKEY.inverseKey)
+    fun projectMemberWorkspace(): ProjectMembersPath {
+        if (!this::_projectMemberWorkspace.isInitialized)
+            _projectMemberWorkspace = ProjectMembersPath(this, null, PROJECT_MEMBERS__PROJECT_MEMBER_WORKSPACE.inverseKey)
 
-        return _projectMembers;
+        return _projectMemberWorkspace;
     }
 
-    val projectMembers: ProjectMembersPath
-        get(): ProjectMembersPath = projectMembers()
+    val projectMemberWorkspace: ProjectMembersPath
+        get(): ProjectMembersPath = projectMemberWorkspace()
+
+    private lateinit var _projectMembersProjectIdFkey: ProjectMembersPath
+
+    fun projectMembersProjectIdFkey(): ProjectMembersPath {
+        if (!this::_projectMembersProjectIdFkey.isInitialized)
+            _projectMembersProjectIdFkey = ProjectMembersPath(this, null, PROJECT_MEMBERS__PROJECT_MEMBERS_PROJECT_ID_FKEY.inverseKey)
+
+        return _projectMembersProjectIdFkey;
+    }
+
+    val projectMembersProjectIdFkey: ProjectMembersPath
+        get(): ProjectMembersPath = projectMembersProjectIdFkey()
 
     private lateinit var _releases: ReleasesPath
 
@@ -491,17 +519,17 @@ open class Projects(
     val credentials: CredentialsPath
         get(): CredentialsPath = credentials()
 
-    private lateinit var _projectInvitations: ProjectInvitationsPath
+    private lateinit var _invitations: InvitationsPath
 
-    fun projectInvitations(): ProjectInvitationsPath {
-        if (!this::_projectInvitations.isInitialized)
-            _projectInvitations = ProjectInvitationsPath(this, null, PROJECT_INVITATIONS__PROJECT_INVITATIONS_PROJECT_ID_FKEY.inverseKey)
+    fun invitations(): InvitationsPath {
+        if (!this::_invitations.isInitialized)
+            _invitations = InvitationsPath(this, null, INVITATIONS__INVITATIONS_FROM_PROJECT_ID_FKEY.inverseKey)
 
-        return _projectInvitations;
+        return _invitations;
     }
 
-    val projectInvitations: ProjectInvitationsPath
-        get(): ProjectInvitationsPath = projectInvitations()
+    val invitations: InvitationsPath
+        get(): InvitationsPath = invitations()
 
     private lateinit var _jobs: JobsPath
 
@@ -519,8 +547,9 @@ open class Projects(
         get(): PrincipalsPath = personProjectPreferences().principals()
 
     val projectMembersPrincipalIdFkey: PrincipalsPath
-        get(): PrincipalsPath = projectMembers().principals()
+        get(): PrincipalsPath = projectMembersProjectIdFkey().projectMembersPrincipalIdFkey()
     override fun getChecks(): List<Check<ProjectsRecord>> = listOf(
+        Internal.createCheck(this, DSL.name("projects_access_revision_check"), "((access_revision > 0))", true),
         Internal.createCheck(this, DSL.name("projects_next_task_number_check"), "((next_task_number > 0))", true),
         Internal.createCheck(this, DSL.name("projects_profile_revision_check"), "((profile_revision > 0))", true)
     )

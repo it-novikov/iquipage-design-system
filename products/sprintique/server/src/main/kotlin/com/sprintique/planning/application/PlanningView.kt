@@ -99,10 +99,10 @@ class PlanningView(private val json: JsonMapper, private val support: ViewSuppor
             "nextCursor" to page.nextCursor,
             "matchedTotal" to items.sumOf { it["matched"] as Int },
             "capabilities" to linkedMapOf(
-                "createTask" to can, "createRelease" to can, "prepare" to can, "move" to can, "start" to can,
-                "editRelease" to can, "close" to can, "cancel" to can, "bulk" to can, "reorder" to can,
-                "selection" to can,
-                "timeline" to true, "temporal" to can, "milestone" to can, "settings" to c.admin,
+                "createTask" to can, "createRelease" to c.releases, "prepare" to can, "move" to can,
+                "start" to c.releases, "editRelease" to c.releases, "close" to c.releases, "cancel" to c.releases,
+                "bulk" to can, "reorder" to can, "selection" to can,
+                "timeline" to true, "temporal" to can, "milestone" to c.releases, "settings" to c.admin,
             ),
         )
     }

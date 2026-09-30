@@ -2,8 +2,8 @@ package com.sprintique.identity.application
 
 import com.sprintique.identity.domain.EmailAddress
 
-/** A plain-text letter to one person. */
-data class MailMessage(val to: EmailAddress, val subject: String, val text: String)
+/** A letter to one person: plain text, and optionally the same message as HTML (sent as multipart/alternative). */
+data class MailMessage(val to: EmailAddress, val subject: String, val text: String, val html: String? = null)
 
 /** Outgoing mail. Exists only when a transport is configured; sign-in by e-mail is offered only then. */
 fun interface MailPort {

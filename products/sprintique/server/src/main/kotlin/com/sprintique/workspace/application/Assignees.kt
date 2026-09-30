@@ -6,14 +6,14 @@ import com.sprintique.problem.requireCondition
 
 /**
  * Who may own a task (SPR-7). A person who is a member of the project, or a service account of the project that may
- * change tasks there right now: an editor whose owner is an editor or an administrator of the project too, neither
- * suspended nor deleted. That is how work is handed to an agent: it finds the tasks assigned to its account.
+ * change tasks there right now: it and its owner both hold «Менять задачи» (`tasks.write`) in the project, and it is
+ * neither suspended nor deleted. That is how work is handed to an agent: it finds the tasks assigned to its account.
  *
  * An owner that can no longer act keeps its tasks until someone reassigns them; the task says why ([stateSql]).
  */
 object Assignees {
     private const val REFUSED = "TASK_OWNER"
-    private val EDITING = setOf("editor", "admin")
+    private const val EDITS = "tasks.write"
 
     /**
      * The state of a task owner in its project, as SQL over an owner id and a project id: `active`, `suspended` (a
@@ -49,7 +49,7 @@ object Assignees {
         """EXISTS (SELECT 1 FROM auth.service_accounts sa
             JOIN app.project_members sm ON sm.project_id = $project AND sm.principal_id = sa.principal_id
             JOIN app.project_members om ON om.project_id = $project AND om.principal_id = sa.owner_id
-            WHERE sa.principal_id = $principal AND sm.role IN ('editor', 'admin') AND om.role IN ('editor', 'admin')
+            WHERE sa.principal_id = $principal AND '$EDITS' = ANY(sm.permissions) AND '$EDITS' = ANY(om.permissions)
               AND auth.service_account_active(sa.principal_id))"""
 
     /** A newly chosen owner must be able to see and act on the task; no owner (unassigning) is always allowed. */
@@ -60,8 +60,9 @@ object Assignees {
             SELECT p.kind, p.disabled_at IS NOT NULL AS disabled, m.role, s.deleted_at IS NOT NULL AS deleted,
                    s.workspace_id IS NOT DISTINCT FROM (SELECT pr.workspace_id FROM app.projects pr WHERE pr.id = $1) AS local,
                    CASE WHEN s.principal_id IS NULL THEN false ELSE auth.service_account_active(s.principal_id) END AS active,
-                   (SELECT o.role FROM app.project_members o WHERE o.project_id = $1 AND o.principal_id = s.owner_id)
-                     AS "ownerRole"
+                   coalesce('$EDITS' = ANY(m.permissions), false) AS edits,
+                   coalesce((SELECT '$EDITS' = ANY(o.permissions) FROM app.project_members o
+                     WHERE o.project_id = $1 AND o.principal_id = s.owner_id), false) AS "ownerEdits"
             FROM auth.principals p
             LEFT JOIN app.project_members m ON m.project_id = $1 AND m.principal_id = p.id
             LEFT JOIN auth.service_accounts s ON s.principal_id = p.id
@@ -103,7 +104,7 @@ object Assignees {
             "Сервисный аккаунт приостановлен: его нельзя назначить исполнителем.",
         )
         requireCondition(
-            account.stringOrNull("role") in EDITING && account.stringOrNull("ownerRole") in EDITING,
+            account.boolean("edits") && account.boolean("ownerEdits"),
             422,
             REFUSED,
             "Сервисный аккаунт может быть исполнителем, только если он и его владелец могут редактировать задачи " +

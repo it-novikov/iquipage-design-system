@@ -34,7 +34,8 @@ CREATE POLICY finance_settings_runtime_update ON app.finance_settings AS RESTRIC
 -- Workbench: meaningful task events and private receipts are append-only (docs/adr W2, W3).
 REVOKE UPDATE ON app.task_activity,app.private_receipts FROM "${runtime_role}";
 GRANT SELECT,INSERT,UPDATE ON auth.principals,auth.credentials TO "${runtime_role}";
-GRANT SELECT,INSERT,UPDATE ON auth.project_invitations TO "${runtime_role}";
+-- Invitations (V20260930000039) are revoked, replaced or accepted, never deleted: their history stays.
+GRANT SELECT,INSERT,UPDATE ON auth.invitations TO "${runtime_role}";
 GRANT SELECT,INSERT,DELETE ON auth.login_states TO "${runtime_role}";
 GRANT SELECT,INSERT,UPDATE ON auth.identities TO "${runtime_role}";
 GRANT SELECT,INSERT,UPDATE,DELETE ON auth.email_challenges TO "${runtime_role}";
@@ -46,8 +47,6 @@ GRANT SELECT,INSERT,UPDATE ON auth.oauth_grants TO "${runtime_role}";
 GRANT SELECT,INSERT ON auth.access_events TO "${runtime_role}";
 -- Service accounts are deleted by marking them; their principal and history stay.
 GRANT SELECT,INSERT,UPDATE ON auth.service_accounts TO "${runtime_role}";
--- Explicit grants of a service account in a project (finance): set, changed and removed with its membership.
-GRANT SELECT,INSERT,UPDATE,DELETE ON auth.service_account_grants TO "${runtime_role}";
 GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA auth TO "${runtime_role}";
 GRANT USAGE ON SCHEMA work TO "${runtime_role}";
 GRANT SELECT,INSERT ON work.jobs TO "${runtime_role}";

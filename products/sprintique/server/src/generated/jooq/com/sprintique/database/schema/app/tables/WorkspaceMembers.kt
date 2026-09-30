@@ -5,13 +5,16 @@ package com.sprintique.database.schema.app.tables
 
 
 import com.sprintique.database.schema.app.App
+import com.sprintique.database.schema.app.indexes.WORKSPACE_ONE_OWNER
 import com.sprintique.database.schema.app.keys.WORKSPACE_MEMBERS_PKEY
+import com.sprintique.database.schema.app.keys.WORKSPACE_MEMBERS__WORKSPACE_MEMBERS_INVITED_BY_FKEY
 import com.sprintique.database.schema.app.keys.WORKSPACE_MEMBERS__WORKSPACE_MEMBERS_PRINCIPAL_ID_FKEY
 import com.sprintique.database.schema.app.keys.WORKSPACE_MEMBERS__WORKSPACE_MEMBERS_WORKSPACE_ID_FKEY
 import com.sprintique.database.schema.app.tables.Workspaces.WorkspacesPath
 import com.sprintique.database.schema.app.tables.records.WorkspaceMembersRecord
 import com.sprintique.database.schema.auth.tables.Principals.PrincipalsPath
 
+import java.time.OffsetDateTime
 import java.util.UUID
 
 import kotlin.collections.Collection
@@ -21,6 +24,7 @@ import org.jooq.Check
 import org.jooq.Condition
 import org.jooq.Field
 import org.jooq.ForeignKey
+import org.jooq.Index
 import org.jooq.InverseForeignKey
 import org.jooq.Name
 import org.jooq.Path
@@ -77,6 +81,16 @@ open class WorkspaceMembers(
 
     val REVISION: TableField<WorkspaceMembersRecord, Int?> = createField(DSL.name("revision"), SQLDataType.INTEGER.nullable(false).defaultValue(DSL.field(DSL.raw("1"), SQLDataType.INTEGER)), this, "")
 
+    val GRANTED: TableField<WorkspaceMembersRecord, Array<String?>?> = createField(DSL.name("granted"), SQLDataType.CLOB.array().nullable(false).defaultValue(DSL.field(DSL.raw("'{}'::text[]"), SQLDataType.CLOB.array())), this, "")
+
+    val REVOKED: TableField<WorkspaceMembersRecord, Array<String?>?> = createField(DSL.name("revoked"), SQLDataType.CLOB.array().nullable(false).defaultValue(DSL.field(DSL.raw("'{}'::text[]"), SQLDataType.CLOB.array())), this, "")
+
+    val PERMISSIONS: TableField<WorkspaceMembersRecord, Array<String?>?> = createField(DSL.name("permissions"), SQLDataType.CLOB.array().nullable(false).defaultValue(DSL.field(DSL.raw("'{}'::text[]"), SQLDataType.CLOB.array())), this, "")
+
+    val JOINED_AT: TableField<WorkspaceMembersRecord, OffsetDateTime?> = createField(DSL.name("joined_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6).defaultValue(DSL.field(DSL.raw("clock_timestamp()"), SQLDataType.TIMESTAMPWITHTIMEZONE)), this, "")
+
+    val INVITED_BY: TableField<WorkspaceMembersRecord, String?> = createField(DSL.name("invited_by"), SQLDataType.CLOB, this, "")
+
     private constructor(alias: Name, aliased: Table<WorkspaceMembersRecord>?): this(alias, null, null, null, aliased, null, null)
     private constructor(alias: Name, aliased: Table<WorkspaceMembersRecord>?, parameters: Array<Field<*>?>?): this(alias, null, null, null, aliased, parameters, null)
     private constructor(alias: Name, aliased: Table<WorkspaceMembersRecord>?, where: Condition?): this(alias, null, null, null, aliased, null, where)
@@ -97,17 +111,22 @@ open class WorkspaceMembers(
         override fun `as`(alias: Table<*>): WorkspaceMembersPath = WorkspaceMembersPath(alias.qualifiedName, this)
     }
     override fun getSchema(): Schema? = if (aliased()) null else App.APP
+    override fun getIndexes(): List<Index> = listOf(WORKSPACE_ONE_OWNER)
     override fun getPrimaryKey(): UniqueKey<WorkspaceMembersRecord> = WORKSPACE_MEMBERS_PKEY
-    override fun getReferences(): List<ForeignKey<WorkspaceMembersRecord, *>> = listOf(WORKSPACE_MEMBERS__WORKSPACE_MEMBERS_PRINCIPAL_ID_FKEY, WORKSPACE_MEMBERS__WORKSPACE_MEMBERS_WORKSPACE_ID_FKEY)
+    override fun getReferences(): List<ForeignKey<WorkspaceMembersRecord, *>> = listOf(WORKSPACE_MEMBERS__WORKSPACE_MEMBERS_INVITED_BY_FKEY, WORKSPACE_MEMBERS__WORKSPACE_MEMBERS_PRINCIPAL_ID_FKEY, WORKSPACE_MEMBERS__WORKSPACE_MEMBERS_WORKSPACE_ID_FKEY)
 
-    fun principals(): PrincipalsPath = principals
-    val principals: PrincipalsPath by lazy { PrincipalsPath(this, WORKSPACE_MEMBERS__WORKSPACE_MEMBERS_PRINCIPAL_ID_FKEY, null) }
+    fun workspaceMembersInvitedByFkey(): PrincipalsPath = workspaceMembersInvitedByFkey
+    val workspaceMembersInvitedByFkey: PrincipalsPath by lazy { PrincipalsPath(this, WORKSPACE_MEMBERS__WORKSPACE_MEMBERS_INVITED_BY_FKEY, null) }
+
+    fun workspaceMembersPrincipalIdFkey(): PrincipalsPath = workspaceMembersPrincipalIdFkey
+    val workspaceMembersPrincipalIdFkey: PrincipalsPath by lazy { PrincipalsPath(this, WORKSPACE_MEMBERS__WORKSPACE_MEMBERS_PRINCIPAL_ID_FKEY, null) }
 
     fun workspaces(): WorkspacesPath = workspaces
     val workspaces: WorkspacesPath by lazy { WorkspacesPath(this, WORKSPACE_MEMBERS__WORKSPACE_MEMBERS_WORKSPACE_ID_FKEY, null) }
     override fun getChecks(): List<Check<WorkspaceMembersRecord>> = listOf(
-        Internal.createCheck(this, DSL.name("workspace_members_revision_check"), "((revision > 0))", true),
-        Internal.createCheck(this, DSL.name("workspace_members_role_check"), "((role = ANY (ARRAY['member'::text, 'admin'::text])))", true)
+        Internal.createCheck(this, DSL.name("workspace_member_permissions"), "(((granted <@ auth.workspace_permission_catalog()) AND (revoked <@ auth.workspace_permission_catalog()) AND ((role <> 'guest'::text) OR (cardinality(granted) = 0))))", true),
+        Internal.createCheck(this, DSL.name("workspace_member_role"), "((role = ANY (ARRAY['owner'::text, 'admin'::text, 'member'::text, 'guest'::text])))", true),
+        Internal.createCheck(this, DSL.name("workspace_members_revision_check"), "((revision > 0))", true)
     )
     override fun `as`(alias: String): WorkspaceMembers = WorkspaceMembers(DSL.name(alias), this)
     override fun `as`(alias: Name): WorkspaceMembers = WorkspaceMembers(alias, this)

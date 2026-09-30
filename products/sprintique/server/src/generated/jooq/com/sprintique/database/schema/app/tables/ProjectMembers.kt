@@ -5,16 +5,21 @@ package com.sprintique.database.schema.app.tables
 
 
 import com.sprintique.database.schema.app.App
+import com.sprintique.database.schema.app.indexes.PROJECT_MEMBERS_PRESET
+import com.sprintique.database.schema.app.indexes.PROJECT_MEMBERS_PRINCIPAL
 import com.sprintique.database.schema.app.keys.PROJECT_MEMBERS_PKEY
+import com.sprintique.database.schema.app.keys.PROJECT_MEMBERS__PROJECT_MEMBERS_CHANGED_BY_FKEY
+import com.sprintique.database.schema.app.keys.PROJECT_MEMBERS__PROJECT_MEMBERS_PRESET_ID_FKEY
 import com.sprintique.database.schema.app.keys.PROJECT_MEMBERS__PROJECT_MEMBERS_PRINCIPAL_ID_FKEY
 import com.sprintique.database.schema.app.keys.PROJECT_MEMBERS__PROJECT_MEMBERS_PROJECT_ID_FKEY
+import com.sprintique.database.schema.app.keys.PROJECT_MEMBERS__PROJECT_MEMBER_WORKSPACE
+import com.sprintique.database.schema.app.tables.AccessPresets.AccessPresetsPath
 import com.sprintique.database.schema.app.tables.Projects.ProjectsPath
 import com.sprintique.database.schema.app.tables.records.ProjectMembersRecord
-import com.sprintique.database.schema.auth.keys.SERVICE_ACCOUNT_GRANTS__SERVICE_ACCOUNT_GRANTS_PROJECT_ID_PRINCIPAL_ID_FKEY
 import com.sprintique.database.schema.auth.tables.Principals.PrincipalsPath
-import com.sprintique.database.schema.auth.tables.ServiceAccountGrants.ServiceAccountGrantsPath
 
 import java.time.OffsetDateTime
+import java.util.UUID
 
 import kotlin.collections.Collection
 import kotlin.collections.List
@@ -23,6 +28,7 @@ import org.jooq.Check
 import org.jooq.Condition
 import org.jooq.Field
 import org.jooq.ForeignKey
+import org.jooq.Index
 import org.jooq.InverseForeignKey
 import org.jooq.Name
 import org.jooq.Path
@@ -81,6 +87,20 @@ open class ProjectMembers(
 
     val JOINED_AT: TableField<ProjectMembersRecord, OffsetDateTime?> = createField(DSL.name("joined_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6).defaultValue(DSL.field(DSL.raw("clock_timestamp()"), SQLDataType.TIMESTAMPWITHTIMEZONE)), this, "")
 
+    val WORKSPACE_ID: TableField<ProjectMembersRecord, UUID?> = createField(DSL.name("workspace_id"), SQLDataType.UUID.nullable(false), this, "")
+
+    val PRESET_ID: TableField<ProjectMembersRecord, UUID?> = createField(DSL.name("preset_id"), SQLDataType.UUID.nullable(false), this, "")
+
+    val GRANTED: TableField<ProjectMembersRecord, Array<String?>?> = createField(DSL.name("granted"), SQLDataType.CLOB.array().nullable(false).defaultValue(DSL.field(DSL.raw("'{}'::text[]"), SQLDataType.CLOB.array())), this, "")
+
+    val REVOKED: TableField<ProjectMembersRecord, Array<String?>?> = createField(DSL.name("revoked"), SQLDataType.CLOB.array().nullable(false).defaultValue(DSL.field(DSL.raw("'{}'::text[]"), SQLDataType.CLOB.array())), this, "")
+
+    val PERMISSIONS: TableField<ProjectMembersRecord, Array<String?>?> = createField(DSL.name("permissions"), SQLDataType.CLOB.array().nullable(false).defaultValue(DSL.field(DSL.raw("'{}'::text[]"), SQLDataType.CLOB.array())), this, "")
+
+    val CHANGED_BY: TableField<ProjectMembersRecord, String?> = createField(DSL.name("changed_by"), SQLDataType.CLOB, this, "")
+
+    val CHANGED_AT: TableField<ProjectMembersRecord, OffsetDateTime?> = createField(DSL.name("changed_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6), this, "")
+
     private constructor(alias: Name, aliased: Table<ProjectMembersRecord>?): this(alias, null, null, null, aliased, null, null)
     private constructor(alias: Name, aliased: Table<ProjectMembersRecord>?, parameters: Array<Field<*>?>?): this(alias, null, null, null, aliased, parameters, null)
     private constructor(alias: Name, aliased: Table<ProjectMembersRecord>?, where: Condition?): this(alias, null, null, null, aliased, null, where)
@@ -101,27 +121,26 @@ open class ProjectMembers(
         override fun `as`(alias: Table<*>): ProjectMembersPath = ProjectMembersPath(alias.qualifiedName, this)
     }
     override fun getSchema(): Schema? = if (aliased()) null else App.APP
+    override fun getIndexes(): List<Index> = listOf(PROJECT_MEMBERS_PRESET, PROJECT_MEMBERS_PRINCIPAL)
     override fun getPrimaryKey(): UniqueKey<ProjectMembersRecord> = PROJECT_MEMBERS_PKEY
-    override fun getReferences(): List<ForeignKey<ProjectMembersRecord, *>> = listOf(PROJECT_MEMBERS__PROJECT_MEMBERS_PRINCIPAL_ID_FKEY, PROJECT_MEMBERS__PROJECT_MEMBERS_PROJECT_ID_FKEY)
+    override fun getReferences(): List<ForeignKey<ProjectMembersRecord, *>> = listOf(PROJECT_MEMBERS__PROJECT_MEMBER_WORKSPACE, PROJECT_MEMBERS__PROJECT_MEMBERS_CHANGED_BY_FKEY, PROJECT_MEMBERS__PROJECT_MEMBERS_PRESET_ID_FKEY, PROJECT_MEMBERS__PROJECT_MEMBERS_PRINCIPAL_ID_FKEY, PROJECT_MEMBERS__PROJECT_MEMBERS_PROJECT_ID_FKEY)
 
-    fun principals(): PrincipalsPath = principals
-    val principals: PrincipalsPath by lazy { PrincipalsPath(this, PROJECT_MEMBERS__PROJECT_MEMBERS_PRINCIPAL_ID_FKEY, null) }
+    fun projectMemberWorkspace(): ProjectsPath = projectMemberWorkspace
+    val projectMemberWorkspace: ProjectsPath by lazy { ProjectsPath(this, PROJECT_MEMBERS__PROJECT_MEMBER_WORKSPACE, null) }
 
-    fun projects(): ProjectsPath = projects
-    val projects: ProjectsPath by lazy { ProjectsPath(this, PROJECT_MEMBERS__PROJECT_MEMBERS_PROJECT_ID_FKEY, null) }
+    fun projectMembersChangedByFkey(): PrincipalsPath = projectMembersChangedByFkey
+    val projectMembersChangedByFkey: PrincipalsPath by lazy { PrincipalsPath(this, PROJECT_MEMBERS__PROJECT_MEMBERS_CHANGED_BY_FKEY, null) }
 
-    private lateinit var _serviceAccountGrants: ServiceAccountGrantsPath
+    fun accessPresets(): AccessPresetsPath = accessPresets
+    val accessPresets: AccessPresetsPath by lazy { AccessPresetsPath(this, PROJECT_MEMBERS__PROJECT_MEMBERS_PRESET_ID_FKEY, null) }
 
-    fun serviceAccountGrants(): ServiceAccountGrantsPath {
-        if (!this::_serviceAccountGrants.isInitialized)
-            _serviceAccountGrants = ServiceAccountGrantsPath(this, null, SERVICE_ACCOUNT_GRANTS__SERVICE_ACCOUNT_GRANTS_PROJECT_ID_PRINCIPAL_ID_FKEY.inverseKey)
+    fun projectMembersPrincipalIdFkey(): PrincipalsPath = projectMembersPrincipalIdFkey
+    val projectMembersPrincipalIdFkey: PrincipalsPath by lazy { PrincipalsPath(this, PROJECT_MEMBERS__PROJECT_MEMBERS_PRINCIPAL_ID_FKEY, null) }
 
-        return _serviceAccountGrants;
-    }
-
-    val serviceAccountGrants: ServiceAccountGrantsPath
-        get(): ServiceAccountGrantsPath = serviceAccountGrants()
+    fun projectMembersProjectIdFkey(): ProjectsPath = projectMembersProjectIdFkey
+    val projectMembersProjectIdFkey: ProjectsPath by lazy { ProjectsPath(this, PROJECT_MEMBERS__PROJECT_MEMBERS_PROJECT_ID_FKEY, null) }
     override fun getChecks(): List<Check<ProjectMembersRecord>> = listOf(
+        Internal.createCheck(this, DSL.name("project_member_permissions"), "(((granted <@ auth.project_permission_catalog()) AND (revoked <@ auth.project_permission_catalog()) AND (NOT ('tasks.read'::text = ANY (revoked)))))", true),
         Internal.createCheck(this, DSL.name("project_members_revision_check"), "((revision > 0))", true),
         Internal.createCheck(this, DSL.name("project_members_role_check"), "((role = ANY (ARRAY['reader'::text, 'editor'::text, 'admin'::text])))", true)
     )

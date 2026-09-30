@@ -49,7 +49,7 @@ class CatalogController(
         @RequestBody(required = false) body: JsonNode?,
         request: HttpServletRequest,
     ) = requests.run(request) { tx, actor ->
-        fence(tx, actor, projectId, id)
+        fence(tx, actor, projectId, id, Catalog.TAGS)
         val input = contracts.parse<PutTagRequest>(body)
         val value = TagValue(input.value.name, input.value.normalizedTone()!!, input.value.archivedAt != null)
         val change = Catalogs.Change(projectId, id, input.baseRevision, value, RequestInputs.idempotencyKey(request))
@@ -65,7 +65,7 @@ class CatalogController(
         @RequestBody(required = false) body: JsonNode?,
         request: HttpServletRequest,
     ) = requests.run(request) { tx, actor ->
-        fence(tx, actor, projectId, id)
+        fence(tx, actor, projectId, id, Catalog.RELEASES)
         val input = contracts.parse<PutReleaseRequest>(body)
         val release = input.value
         val value = ReleaseValue(release.name, release.status.wire, release.targetDate, release.archivedAt != null)
@@ -73,10 +73,10 @@ class CatalogController(
         Catalogs.putRelease(tx, actor, change, ledger)
     }
 
-    /** Catalog writes take the project fence before the body is read: only administrators learn its rules. */
-    private fun fence(tx: Transaction, actor: Actor, projectId: String, id: String) {
+    /** Catalog writes take the project fence before the body is read: only those who may change it learn its rules. */
+    private fun fence(tx: Transaction, actor: Actor, projectId: String, id: String, catalog: Catalog) {
         RequestInputs.id(projectId)
         RequestInputs.id(id)
-        ProjectAccess.projectWriteFence(tx, actor, projectId, Capability.CATALOG_WRITE)
+        ProjectAccess.projectWriteFence(tx, actor, projectId, catalog.capability)
     }
 }

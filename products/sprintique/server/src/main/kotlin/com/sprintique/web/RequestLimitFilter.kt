@@ -170,11 +170,19 @@ class RequestLimitFilter(private val clientAddresses: ClientAddresses) : OncePer
         private const val SESSION_COOKIE = "__Host-sprintique"
 
         /**
-         * Entry points that start a sign-in or check a secret, and open OAuth client registration, share the tighter
-         * per-address login budget. The token endpoint is not among them: its codes, refresh tokens and client secrets
-         * are 256 random bits, and one assistant's servers refresh the tokens of many people from few addresses.
+         * Entry points that start a sign-in or check a secret (an invitation token too), and open OAuth client
+         * registration, share the tighter per-address login budget. The token endpoint is not among them: its codes,
+         * refresh tokens and client secrets are 256 random bits, and one assistant's servers refresh the tokens of many
+         * people from few addresses.
          */
-        private val LOGINS = listOf("/auth/login", "/auth/dev-login", "/auth/email/", "/api/oauth/register")
+        private val LOGINS = listOf(
+            "/auth/login",
+            "/auth/dev-login",
+            "/auth/email/",
+            "/api/oauth/register",
+            "/api/v1/invitations/inspect",
+            "/api/v1/invitations/accept",
+        )
         private val UPLOAD = Regex("^/api/v1/projects/[^/]+/assets/[^/]+/content$")
         private val DOWNLOAD = Regex("^/api/v1/projects/[^/]+/assets/[^/]+/original$")
         private val STREAM = Regex("^/api/v1/projects/[^/]+/events$")

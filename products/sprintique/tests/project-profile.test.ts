@@ -15,17 +15,20 @@ test('Q01 project profile CAS and replay preserve human URLs; a project has no a
   assert.equal('avatarAssetId' in updated.json(),false);assert.equal('avatarAssetId' in (await call('GET','session')).json().projects[0],false);
   assert.equal((await call('PUT',path,{...body,baseRevision:2},f.reader)).statusCode,403);
 });
-test('Q02 workspace profile and roles are independent, CAS protected and cannot remove the last administrator',async()=>{
+test('Q02 workspace profile and roles are independent, CAS protected and the owner stays the owner',async()=>{
   const base='workspaces/'+f.first.workspaceId;
   assert.equal((await call('GET',base,undefined,f.bob)).statusCode,404);
   assert.equal((await call('PATCH',base,{baseRevision:1,name:'Изменено',timezone:'Europe/Moscow'},f.reader)).statusCode,403);
   const updated=await call('PATCH',base,{baseRevision:1,name:'Продукты',timezone:'Europe/Moscow'});assert.equal(updated.statusCode,200,updated.body);assert.equal(updated.json().revision,2);
   assert.equal((await call('PATCH',base,{baseRevision:1,name:'Устарело',timezone:'UTC'})).statusCode,409);
-  const last=await call('PATCH',base+'/members/'+f.alice.id,{baseRevision:1,role:'member'});assert.equal(last.json().code,'LAST_ADMIN');
+  // The creator owns the workspace: only a transfer of ownership changes that.
+  const last=await call('PATCH',base+'/members/'+f.alice.id,{baseRevision:1,role:'member'});assert.equal(last.json().code,'OWNER_PROTECTED');
   const removal=await call('PATCH',base+'/members/'+f.reader.id,{baseRevision:1,role:null});assert.equal(removal.json().code,'PROJECT_ACCESS_REMAINS');
   assert.equal((await call('PATCH',base+'/members/'+f.reader.id,{baseRevision:1,role:'admin'})).statusCode,200);
-  const results=await Promise.all([call('PATCH',base+'/members/'+f.alice.id,{baseRevision:1,role:'member'}),call('PATCH',base+'/members/'+f.reader.id,{baseRevision:2,role:'member'},f.reader)]);
-  assert.deepEqual(results.map(r=>r.statusCode).sort(),[200,409]);
+  // The owner and the administrator both demote the administrator at once: CAS lets exactly one through.
+  const results=await Promise.all([call('PATCH',base+'/members/'+f.reader.id,{baseRevision:2,role:'member'}),call('PATCH',base+'/members/'+f.reader.id,{baseRevision:2,role:'member'},f.reader)]);
+  // The loser either sees the changed revision (409) or, when the owner won first, has lost the right itself (403).
+  const codes=results.map(r=>r.statusCode).sort();assert.equal(codes[0],200);assert.ok([403,409].includes(codes[1]!),String(codes));
   const projectRole=(await call('GET','session',undefined,f.reader)).json().projects.find((p:{id:string})=>p.id===f.first.id).role;assert.equal(projectRole,'reader');
 });
 test('Q03 workspace catalog authority does not grant project content or profile write authority',async()=>{

@@ -1,5 +1,7 @@
 package com.sprintique.identity.domain
 
+import com.sprintique.access.domain.Permission
+
 /** A bearer secret as presented: a browser session cookie, an agent token or a service account's token. */
 data class Credential(val token: String, val kind: CredentialKind)
 
@@ -55,23 +57,27 @@ enum class PrincipalKind(val wire: String) {
 }
 
 /**
- * What a principal may do in a project. The first six can be granted to an agent; catalog and agent management exist
- * only for project administrators; finance is read by the people of the project and changed by its administrators.
+ * An action on a project, checked against the one [Permission] it needs (docs/access/access-and-invitations.md). The
+ * first six can also be granted to a project agent's token, which then needs both the capability and the permission
+ * on its membership; the others are decisions and settings that only people make.
  */
-enum class Capability(val wire: String) {
-    TASKS_READ("tasks:read"),
-    TASKS_WRITE("tasks:write"),
-    THREADS_READ("threads:read"),
-    THREADS_WRITE("threads:write"),
-    MAPS_READ("maps:read"),
-    MAPS_WRITE("maps:write"),
-    CATALOG_WRITE("catalog:write"),
-    AGENTS_MANAGE("agents:manage"),
-    FINANCE_READ("finance:read"),
-    FINANCE_WRITE("finance:write"),
+enum class Capability(val wire: String, val permission: Permission) {
+    TASKS_READ("tasks:read", Permission.TASKS_READ),
+    TASKS_WRITE("tasks:write", Permission.TASKS_WRITE),
+    THREADS_READ("threads:read", Permission.TASKS_READ),
+    THREADS_WRITE("threads:write", Permission.THREADS_WRITE),
+    MAPS_READ("maps:read", Permission.MAPS_READ),
+    MAPS_WRITE("maps:write", Permission.MAPS_WRITE),
+    RELEASES_MANAGE("releases:manage", Permission.RELEASES_MANAGE),
+    PROJECT_SETTINGS("project:settings", Permission.PROJECT_SETTINGS),
+    APPROVALS_DECIDE("approvals:decide", Permission.APPROVALS_DECIDE),
+    AGENTS_MANAGE("agents:manage", Permission.AGENTS_MANAGE),
+    MEMBERS_INVITE("members:invite", Permission.MEMBERS_INVITE),
+    MEMBERS_MANAGE("members:manage", Permission.MEMBERS_MANAGE),
+    PROJECT_ACCESS("project:access", Permission.PROJECT_ACCESS),
+    FINANCE_READ("finance:read", Permission.FINANCE_READ),
+    FINANCE_WRITE("finance:write", Permission.FINANCE_WRITE),
     ;
-
-    val isWrite: Boolean get() = !wire.endsWith(":read")
 
     companion object {
         val GRANTABLE: List<Capability> =

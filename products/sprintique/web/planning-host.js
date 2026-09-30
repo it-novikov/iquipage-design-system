@@ -3,6 +3,7 @@ import {PlanningOperation,commitInPlace} from '../ui/planning/src/operation.js';
 import {intentDialog,releaseFields,readReleaseFields} from '../ui/planning/src/release-dialogs.js';
 import {openTaskDialog} from '../ui/src/board/task-dialog.js';
 import {taskKey} from '../ui/src/board/task-route.js';
+import {can} from './permissions.js';
 
 /** Shared host confirmation used by task forms on either surface. */
 export function confirmPlanningChange(adapter,intent){
@@ -46,7 +47,7 @@ export async function mountPlanningHost(root,{repository,adapter,project,onOpenB
     try{
     const task=id?await repository.read('tasks',id,project.id,{signal:request.signal}):null;
     if(request.signal.aborted||closed)return false;if(id&&!task)throw Error('Задача недоступна.');
-    const created=await openTaskDialog(task,{repository:scoped,project,tasks:[],attachmentAdapter:repository.attachmentAdapter,canEdit:project.role!=='reader',canManage:project.role==='admin',initialValues:{releaseId:groupId==='backlog'?null:groupId},
+    const created=await openTaskDialog(task,{repository:scoped,project,tasks:[],attachmentAdapter:repository.attachmentAdapter,canEdit:can(project,'tasks.write'),canManage:can(project,'project.settings'),initialValues:{releaseId:groupId==='backlog'?null:groupId},
       signal:request.signal,isActive:()=>!closed&&!request.signal.aborted,onSaved:onChanged,onOpenTask:async next=>{if(await closeTask())await openTask(next);}});
     if(closed||request.signal.aborted){created.close(true);return false;}modal=created;
     const opened=modal;if(task&&!fromRoute)history.pushState(null,'','#/task/'+encodeURIComponent(taskKey(task)));

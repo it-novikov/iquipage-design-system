@@ -1,4 +1,4 @@
-import {mountSignIn} from './sign-in.js';
+import {mountSignIn,inspectInvitation} from './sign-in.js';
 import {appearance} from './appearance.js';
 import '@iquipage/web/styles.css';
 import '../ui/src/maps.css';
@@ -17,6 +17,8 @@ import {mountPlanningHost,confirmPlanningChange,applyPlanningChange,recoverPlann
 import {createInRelease} from './release-scope.js';
 import {openSearch} from './search.js';
 import {acceptPendingInvitation} from './members.js';
+import {invitationFlow} from './invitation-flow.js';
+import {can,accessSignature,mayCreateProjects} from './permissions.js';
 import {sectionRouteHash} from './section-route.js';
 import {keepAuthorization,resumeAuthorization,mountConsent} from './consent.js';
 import {loadingMarkup} from '../ui/src/loading.js';
@@ -61,7 +63,7 @@ function ensureShell(project,mode){
       onTeam:()=>{location.hash='#settings/members';},
       onSignOut:()=>void(async()=>{if(board&&!await board.closeTask())return;await repository.client.request('/logout','POST');location.reload();})().catch(report),
       onTheme:()=>applyTheme(document.documentElement.dataset.theme==='dark'?'light':'dark'),
-      onSearch:search,onCreateProject:()=>void onboard(currentProject?.workspaceId).catch(report),onCreateWorkspace:createWorkspace,
+      onSearch:search,onCreateProject:creatable===null||creatable.length?()=>void onboard(currentProject?.workspaceId).catch(report):undefined,onCreateWorkspace:createWorkspace,
       workbench:workbenchOn()&&featureOn('workbench_mvp')
     });
     nav.setTheme(document.documentElement.dataset.theme);
@@ -76,17 +78,26 @@ function createWorkspace(){
 /** Sign-in offers only the ways in the server actually has; an unconfigured provider is never offered. */
 async function renderSignIn(){
   const none={email:false,google:false,apple:false,devLogin:false};
-  const methods=await fetch('/api/v1/auth/methods').then(r=>r.ok?r.json():none).catch(()=>none);
-  mountSignIn(root,methods);
+  const [methods,invitation]=await Promise.all([fetch('/api/v1/auth/methods').then(r=>r.ok?r.json():none).catch(()=>none),inspectInvitation()]);
+  mountSignIn(root,methods,invitation);
 }
 // The last opened project reopens after sign-in; a project link in the URL still wins.
 const LAST_PROJECT_KEY='sprintique.last-project:';
 function lastProject(){try{return localStorage.getItem(LAST_PROJECT_KEY+session.principal.id)||undefined;}catch{return undefined;}}
 // Failures are toasts, not modal walls: the message stays until read (hover or focus pauses it).
 function report(error){notify({tone:'danger',message:'Не удалось выполнить действие',description:error.message||'Повторите попытку.',duration:10000});}
+/** Workspaces where the person may create a project now (mayCreateProjects); a member's answer needs their access. */
+async function creatableWorkspaces(){
+  const client=repository.client,all=await client.request('/workspaces');
+  const allowed=await Promise.all(all.map(async w=>mayCreateProjects(w,w.role==='member'?await client.request('/workspaces/'+encodeURIComponent(w.id)+'/access').catch(()=>null):null)));
+  return all.filter((_,i)=>allowed[i]);
+}
+/** «Новый проект» appears in the navigation only where it can succeed (unknown: shown, the server decides); once per load. */
+let creatable=null;
 async function onboard(selectedWorkspaceId){
-  const workspaces=(await repository.client.request('/workspaces')).filter(w=>w.role==='admin');
-  if(selectedWorkspaceId&&!workspaces.some(w=>w.id===selectedWorkspaceId))return dialog({title:'Нет доступных проектов',description:'Администратор пространства может создать проект и пригласить вас. Существующие проекты появятся после предоставления доступа.'});
+  // Projects are created where the person may: projects.create, or a members' workspace whose rule lets members create.
+  const workspaces=await creatableWorkspaces();
+  if(selectedWorkspaceId&&!workspaces.length)return dialog({title:'Нет доступных проектов',description:'Администратор пространства может создать проект и пригласить вас. Существующие проекты появятся после предоставления доступа.'});
   if(selectedWorkspaceId)workspaces.sort((a,b)=>(b.id===selectedWorkspaceId)-(a.id===selectedWorkspaceId));
   const form=input('name','Название проекта','',{required:true,maxlength:100})+input('slug','Адрес проекта','',{required:true,maxlength:48,placeholder:'my-product'})+input('key','Префикс задач','',{required:true,maxlength:10,placeholder:'SPR'})+
     (workspaces.length?`<iq-select name="workspaceId" label="Пространство" value="${esc(workspaces[0].id)}">${workspaces.map(w=>`<option value="${esc(w.id)}">${esc(w.name)}</option>`).join('')}</iq-select>`:input('workspace','Название пространства',''));
@@ -94,7 +105,10 @@ async function onboard(selectedWorkspaceId){
     let workspaceId=values.get('workspaceId');
     if(!workspaceId)workspaceId=(await repository.client.request('/workspaces','POST',{name:values.get('workspace')})).id;
     const project=await repository.client.request('/projects','POST',{workspaceId,name:values.get('name'),slug:values.get('slug'),key:values.get('key')});
-    session=await repository.initialize();location.hash='#tasks';await showProject(project.id);
+    session=await repository.initialize();
+    // A new workspace may let the person create projects where they could not: the navigation is built again.
+    creatable=await creatableWorkspaces().catch(()=>null);nav?.destroy();nav=null;
+    location.hash='#tasks';await showProject(project.id);
   }});
 }
 async function showProject(id,mode=location.hash.startsWith('#maps')?'maps':location.hash.startsWith('#settings')?'settings':location.hash.startsWith('#finance')?'finance':location.hash==='#planning'?'planning':'tasks'){
@@ -131,7 +145,7 @@ async function showProject(id,mode=location.hash.startsWith('#maps')?'maps':loca
   else if(mode==='planning')board=await mountPlanningHost(host,{repository,adapter:planningAdapter,project,viewState:viewStates.get(stateKey),onOpenBoard:()=>navigate('tasks')});
   else if(mode==='finance'){const {mountFinance}=await import('../ui/finance/src/index.js');board=await mountFinance(host,{repository,project,viewState:viewStates.get(stateKey)});}
   else if(mode==='settings'){const {mountSettings}=await import('./settings.js');board=await mountSettings(host,{repository,adapter:planningAdapter,project,onChanged:refreshHeader});}
-  else board=await mountTaskBoard(host,{repository,project,attachmentAdapter:repository.attachmentAdapter,canEdit:project.role!=='reader',canManageCatalogs:project.role==='admin',viewState:viewStates.get(stateKey)});
+  else board=await mountTaskBoard(host,{repository,project,attachmentAdapter:repository.attachmentAdapter,canEdit:can(project,'tasks.write'),canManageCatalogs:can(project,'project.settings'),viewState:viewStates.get(stateKey)});
   }finally{
     clearTimeout(timer);
     if(swap){await previous.destroy();current.remove();cover?.remove();host.classList.remove('host-view-incoming');}
@@ -142,7 +156,7 @@ async function showProject(id,mode=location.hash.startsWith('#maps')?'maps':loca
     if(change?.roleChanged){
       if(root.querySelector('[data-access-change]'))return;
       const banner=document.createElement('section');banner.dataset.accessChange='';
-      banner.innerHTML=ui.alert('Права изменились','Несохранённый текст остаётся в открытой форме. Обновите доступ, чтобы применить новую роль.','warning')+ui.btn('Обновить доступ','secondary sm');
+      banner.innerHTML=ui.alert('Права изменились','Несохранённый текст остаётся в открытой форме. Обновите доступ, чтобы применить новые права.','warning')+ui.btn('Обновить доступ','secondary sm');
       host.before(banner);
       banner.querySelector('button').onclick=()=>{void(async()=>{if(board&&!await board.closeTask())return;session=await repository.initialize();await showProject(project.id,viewMode);})().catch(report);};
       return;
@@ -150,7 +164,7 @@ async function showProject(id,mode=location.hash.startsWith('#maps')?'maps':loca
     board?.destroy();board=null;session=null;planningAdapter?.clear();
     for(const modal of document.querySelectorAll('iq-dialog'))modal.close(true);
     root.innerHTML='<main class="host-landing"><h1>Доступ изменился</h1><p>Обновите страницу, чтобы проверить доступные проекты.</p><a class="iq-btn primary" href="/">Обновить доступ</a></main>';
-  },{cursor:eventHead.cursor,role:project.role});
+  },{cursor:eventHead.cursor,access:accessSignature(project)});
   const task=parseTaskRoute(location.hash);if(task&&board.openTask)await board.openTask(task,{fromRoute:true});
   return true;
   }finally{navigating=false;}
@@ -210,7 +224,7 @@ function paletteCommands(){
     {id:'theme',label:document.documentElement.dataset.theme==='dark'?'Светлая тема':'Тёмная тема',icon:document.documentElement.dataset.theme==='dark'?'sun':'moon',keywords:'тема theme dark light',run:()=>applyTheme(document.documentElement.dataset.theme==='dark'?'light':'dark')},
     {id:'profile',label:'Профиль',hint:'Настройки',icon:'user',keywords:'имя профиль profile',run:go('settings','#settings/account')}
   ];
-  if(currentProject?.role!=='reader')commands.unshift({id:'new-task',label:'Новая задача',hint:'Создать на доске',icon:'plus',keywords:'создать задачу task new',run:async()=>{if(viewMode!=='tasks'){history.replaceState(null,'','#tasks');await navigate('tasks');}await board?.createTask?.();}});
+  if(can(currentProject,'tasks.write'))commands.unshift({id:'new-task',label:'Новая задача',hint:'Создать на доске',icon:'plus',keywords:'создать задачу task new',run:async()=>{if(viewMode!=='tasks'){history.replaceState(null,'','#tasks');await navigate('tasks');}await board?.createTask?.();}});
   return commands;
 }
 function search(){if(!session||document.querySelector('dialog[open]'))return;openSearch({client:repository.client,commands:paletteCommands(),onOpen:async item=>{
@@ -226,9 +240,9 @@ window.addEventListener('hashchange',()=>{if(workbench||isWorkbenchPath())return
 try{session=await repository.initialize();
   if(location.pathname==='/oauth/authorize'){await mountConsent(root,{client:repository.client,session});throw STOP;}
   if(resumeAuthorization())throw STOP;
-  const pending=sessionStorage.getItem('sprintique.pending-invitation');sessionStorage.removeItem('sprintique.pending-invitation');
-  if(pending&&/^invite_[A-Za-z0-9_-]{43}$/.test(pending)&&!location.hash.startsWith('#invite/'))history.replaceState(null,'','#invite/'+pending);
+  invitationFlow().restore();
   if(await acceptPendingInvitation(repository.client))session=await repository.initialize();
+  creatable=await creatableWorkspaces().catch(()=>null);
   if(isWorkbenchPath()&&workbenchOn())await openWorkbench({push:false});
   else{if(isWorkbenchPath())history.replaceState(null,'','/');
   const slug=new URL(location.href).searchParams.get('project');await showProject(session.projects.find(p=>p.slug===slug)?.id??lastProject());}}

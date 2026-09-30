@@ -9,6 +9,7 @@ import com.sprintique.database.schema.auth.tables.AccessEvents
 import com.sprintique.database.schema.auth.tables.Credentials
 import com.sprintique.database.schema.auth.tables.EmailChallenges
 import com.sprintique.database.schema.auth.tables.Identities
+import com.sprintique.database.schema.auth.tables.Invitations
 import com.sprintique.database.schema.auth.tables.KnownDevices
 import com.sprintique.database.schema.auth.tables.LoginStates
 import com.sprintique.database.schema.auth.tables.OauthClients
@@ -16,9 +17,7 @@ import com.sprintique.database.schema.auth.tables.OauthCodes
 import com.sprintique.database.schema.auth.tables.OauthGrants
 import com.sprintique.database.schema.auth.tables.OauthRefreshTokens
 import com.sprintique.database.schema.auth.tables.Principals
-import com.sprintique.database.schema.auth.tables.ProjectInvitations
 import com.sprintique.database.schema.auth.tables.ProjectTimezoneSource
-import com.sprintique.database.schema.auth.tables.ServiceAccountGrants
 import com.sprintique.database.schema.auth.tables.ServiceAccountWorkspace
 import com.sprintique.database.schema.auth.tables.ServiceAccounts
 import com.sprintique.database.schema.auth.tables.WorkspaceProjects
@@ -42,6 +41,8 @@ val EMAIL_CHALLENGES: EmailChallenges = EmailChallenges.EMAIL_CHALLENGES
 
 val IDENTITIES: Identities = Identities.IDENTITIES
 
+val INVITATIONS: Invitations = Invitations.INVITATIONS
+
 val KNOWN_DEVICES: KnownDevices = KnownDevices.KNOWN_DEVICES
 
 val LOGIN_STATES: LoginStates = LoginStates.LOGIN_STATES
@@ -55,8 +56,6 @@ val OAUTH_GRANTS: OauthGrants = OauthGrants.OAUTH_GRANTS
 val OAUTH_REFRESH_TOKENS: OauthRefreshTokens = OauthRefreshTokens.OAUTH_REFRESH_TOKENS
 
 val PRINCIPALS: Principals = Principals.PRINCIPALS
-
-val PROJECT_INVITATIONS: ProjectInvitations = ProjectInvitations.PROJECT_INVITATIONS
 
 val PROJECT_TIMEZONE_SOURCE: ProjectTimezoneSource = ProjectTimezoneSource.PROJECT_TIMEZONE_SOURCE
 
@@ -78,8 +77,6 @@ fun PROJECT_TIMEZONE_SOURCE(
 ): ProjectTimezoneSource = com.sprintique.database.schema.auth.tables.ProjectTimezoneSource.PROJECT_TIMEZONE_SOURCE.call(
     target
 )
-
-val SERVICE_ACCOUNT_GRANTS: ServiceAccountGrants = ServiceAccountGrants.SERVICE_ACCOUNT_GRANTS
 
 val SERVICE_ACCOUNT_WORKSPACE: ServiceAccountWorkspace = ServiceAccountWorkspace.SERVICE_ACCOUNT_WORKSPACE
 

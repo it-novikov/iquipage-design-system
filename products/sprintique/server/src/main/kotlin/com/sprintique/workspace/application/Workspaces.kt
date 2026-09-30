@@ -1,5 +1,10 @@
 package com.sprintique.workspace.application
 
+import com.sprintique.access.application.MemberAccess
+import com.sprintique.access.application.Presets
+import com.sprintique.access.application.WorkspaceAccess
+import com.sprintique.access.domain.Permission
+import com.sprintique.access.domain.SystemPreset
 import com.sprintique.command.AuditTrail
 import com.sprintique.database.Row
 import com.sprintique.database.Transaction
@@ -9,7 +14,10 @@ import com.sprintique.problem.requireCondition
 import com.sprintique.problem.requirePresent
 import java.util.UUID
 
-/** Workspaces and projects: only people create them, and the creator becomes their administrator. */
+/**
+ * Workspaces and projects: only people create them. The creator of a workspace becomes its owner and the workspace
+ * gets its system presets; the creator of a project becomes its administrator (preset Администратор).
+ */
 object Workspaces {
     fun create(tx: Transaction, actor: Actor, name: String, timezone: String): Map<String, Any> {
         requireCondition(actor.isHuman, 403, "FORBIDDEN", "Пространство создаёт человек.")
@@ -23,7 +31,7 @@ object Workspaces {
             timezone,
         )
         tx.update(
-            "INSERT INTO app.workspace_members(workspace_id, principal_id, role) VALUES ($1, $2, 'admin')",
+            "INSERT INTO app.workspace_members(workspace_id, principal_id, role) VALUES ($1, $2, 'owner')",
             id,
             actor.id,
         )
@@ -32,7 +40,7 @@ object Workspaces {
 
     fun list(tx: Transaction, actor: Actor): List<Row> = tx.rows(
         """
-        SELECT w.id, w.name, m.role FROM app.workspaces w
+        SELECT w.id, w.name, m.role, m.permissions FROM app.workspaces w
         JOIN app.workspace_members m ON m.workspace_id = w.id AND m.principal_id = $1 ORDER BY w.name, w.id LIMIT 500
         """.trimIndent(),
         actor.id,
@@ -48,15 +56,7 @@ object Workspaces {
 
     fun createProject(tx: Transaction, actor: Actor, input: NewProject): Map<String, Any?> {
         requireCondition(actor.isHuman, 403, "FORBIDDEN", "Проект создаёт человек.")
-        lockAsAdministrator(tx, actor, input.workspaceId)
-        val admin = tx.row(
-            """
-            SELECT 1 AS admin FROM app.workspace_members WHERE workspace_id = $1 AND principal_id = $2 AND role = 'admin'
-            """.trimIndent(),
-            input.workspaceId,
-            actor.id,
-        )
-        requireCondition(admin != null, 403, "FORBIDDEN", "Нужны права администратора пространства.")
+        WorkspaceAccess.lock(tx, actor, input.workspaceId, Permission.PROJECTS_CREATE)
         val id = UUID.randomUUID().toString()
         tx.update(
             "INSERT INTO app.projects(id, workspace_id, name, slug, key, timezone) VALUES ($1, $2, $3, $4, $5, $6)",
@@ -67,11 +67,8 @@ object Workspaces {
             input.key,
             input.timezone,
         )
-        tx.update(
-            "INSERT INTO app.project_members(project_id, principal_id, role) VALUES ($1, $2, 'admin')",
-            id,
-            actor.id,
-        )
+        val admin = Presets.system(tx, input.workspaceId, SystemPreset.ADMIN)
+        MemberAccess.insertMember(tx, id, input.workspaceId, actor.id, admin.id, actor.id)
         TaskSettings.provision(tx, id, actor.id)
         AuditTrail.record(tx, actor, id, "project.created", id, 1)
         return linkedMapOf(
@@ -89,28 +86,13 @@ object Workspaces {
         requireCondition(actor.isHuman, 403, "HUMAN_REQUIRED", "Пространством управляет человек.")
         val row = tx.row(
             """
-            SELECT w.id, w.name, w.timezone, w.revision, m.role FROM app.workspaces w
+            SELECT w.id, w.name, w.timezone, w.revision, m.role, m.permissions,
+                   w.projects_created_by AS "projectsCreatedBy" FROM app.workspaces w
             JOIN app.workspace_members m ON m.workspace_id = w.id AND m.principal_id = $2 WHERE w.id = $1
             """.trimIndent(),
             id,
             actor.id,
         )
         return requirePresent(row, 404, "NOT_FOUND", "Пространство недоступно.")
-    }
-
-    /** Locks the workspace row, revalidates the credential and requires the administrator role after the wait. */
-    fun lockAsAdministrator(tx: Transaction, actor: Actor, id: String): Row {
-        ProjectAccess.requireInteractive(actor)
-        profile(tx, actor, id)
-        tx.update("SELECT id FROM app.workspaces WHERE id = $1 FOR UPDATE", id)
-        ProjectAccess.requireActiveCredential(tx, actor)
-        val workspace = profile(tx, actor, id)
-        requireCondition(
-            workspace.string("role") == "admin",
-            403,
-            "FORBIDDEN",
-            "Нужны права администратора пространства.",
-        )
-        return workspace
     }
 }

@@ -242,7 +242,7 @@ object Plan {
      */
     private val QUERY = """
         WITH authorized AS MATERIALIZED (
-          SELECT p.id, p.key, p.name, m.role, w.name AS workspace_name
+          SELECT p.id, p.key, p.name, m.role, m.permissions, w.name AS workspace_name
           FROM app.project_members m JOIN app.projects p ON p.id = m.project_id
           LEFT JOIN app.workspaces w ON w.id = p.workspace_id
           WHERE m.principal_id = $1 AND ($2::text[] IS NULL OR p.id = ANY($2::text[]))
@@ -252,7 +252,7 @@ object Plan {
           WHERE s.principal_id = $1 AND $4::boolean
         ), requests AS MATERIALIZED (
           SELECT r.* FROM app.attention_requests r JOIN authorized a ON a.id = r.project_id
-          WHERE $3::boolean AND r.recipient_id = $1 AND r.status = 'open' AND a.role IN ('editor', 'admin')
+          WHERE $3::boolean AND r.recipient_id = $1 AND r.status = 'open' AND 'tasks.write' = ANY(a.permissions)
             -- A request on an approval that expired can no longer be answered: it is not planned time.
             AND (r.approval_id IS NULL OR EXISTS (SELECT 1 FROM app.approvals ap WHERE ap.project_id = r.project_id
                  AND ap.id = r.approval_id AND ap.status = 'proposed' AND ap.expires_at > now()))

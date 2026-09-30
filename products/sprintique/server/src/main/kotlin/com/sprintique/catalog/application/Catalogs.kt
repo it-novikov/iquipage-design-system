@@ -14,9 +14,13 @@ import com.sprintique.problem.requireCondition
  * The project's tag and release catalogs. Each collection maps to one fixed table in code; a table name never comes
  * from the network.
  */
-enum class Catalog(val wire: String, private val fields: String) {
-    TAGS("tags", "name, tone"),
-    RELEASES("releases", """name, status, to_char(target_date, 'YYYY-MM-DD') AS "targetDate""""),
+enum class Catalog(val wire: String, private val fields: String, val capability: Capability) {
+    TAGS("tags", "name, tone", Capability.PROJECT_SETTINGS),
+    RELEASES(
+        "releases",
+        """name, status, to_char(target_date, 'YYYY-MM-DD') AS "targetDate"""",
+        Capability.RELEASES_MANAGE,
+    ),
     ;
 
     val projection: String get() = """id, project_id AS "projectId", revision, archived_at AS "archivedAt", $fields"""
@@ -124,7 +128,14 @@ object Catalogs {
     ): Any {
         val operation = "${catalog.wire}:${change.id}"
         return ledger.idempotent(tx, actor, change.projectId, operation, change.key, request(change)) {
-            ProjectAccess.authorize(tx, actor, change.projectId, Capability.CATALOG_WRITE)
+            ProjectAccess.authorize(tx, actor, change.projectId, catalog.capability)
+            // The life of a release is a person's; a service account proposes it through planning, for approval.
+            requireCondition(
+                catalog != Catalog.RELEASES || !actor.isService,
+                403,
+                "HUMAN_REQUIRED",
+                "Релизы меняет человек; сервисный аккаунт предлагает изменение через план.",
+            )
             val previous = tx.row(
                 "SELECT revision FROM app.${catalog.wire} WHERE project_id = $1 AND id = $2",
                 change.projectId,

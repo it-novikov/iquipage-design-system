@@ -6,17 +6,33 @@ package com.sprintique.database.schema.auth.routines.references
 
 
 import com.sprintique.database.schema.auth.routines.ActorId
+import com.sprintique.database.schema.auth.routines.Can
 import com.sprintique.database.schema.auth.routines.CanManageFinance
 import com.sprintique.database.schema.auth.routines.CanProject
 import com.sprintique.database.schema.auth.routines.CanReadFinance
 import com.sprintique.database.schema.auth.routines.CanReadServiceWorkspace
 import com.sprintique.database.schema.auth.routines.CanSeePerson
 import com.sprintique.database.schema.auth.routines.CanWorkspace
+import com.sprintique.database.schema.auth.routines.CanWorkspaceDo
 import com.sprintique.database.schema.auth.routines.CollectOauthAccessTokens
+import com.sprintique.database.schema.auth.routines.CompilePermissions
+import com.sprintique.database.schema.auth.routines.CompileWorkspacePermissions
+import com.sprintique.database.schema.auth.routines.DefaultPresetPermissions
+import com.sprintique.database.schema.auth.routines.ExplicitServicePermissions
+import com.sprintique.database.schema.auth.routines.LeavingIn
+import com.sprintique.database.schema.auth.routines.ManagesWorkspaceAccess
+import com.sprintique.database.schema.auth.routines.NeverServicePermissions
 import com.sprintique.database.schema.auth.routines.OpenRequestsFor
+import com.sprintique.database.schema.auth.routines.PermissionCatalog
+import com.sprintique.database.schema.auth.routines.PermissionClosure
+import com.sprintique.database.schema.auth.routines.PermissionImplies
+import com.sprintique.database.schema.auth.routines.PermissionSort
+import com.sprintique.database.schema.auth.routines.ProjectPermissionCatalog
 import com.sprintique.database.schema.auth.routines.ProjectTimezone
+import com.sprintique.database.schema.auth.routines.ProvisionAccessPresets
 import com.sprintique.database.schema.auth.routines.ServiceAccountActive
-import com.sprintique.database.schema.auth.routines.ServiceAccountGranted
+import com.sprintique.database.schema.auth.routines.WorkspacePermissionCatalog
+import com.sprintique.database.schema.auth.routines.WorkspaceRolePermissions
 import com.sprintique.database.schema.auth.tables.ProjectTimezoneSource
 import com.sprintique.database.schema.auth.tables.ServiceAccountWorkspace
 import com.sprintique.database.schema.auth.tables.WorkspaceProjects
@@ -47,6 +63,41 @@ fun actorId(): Field<String?> {
     return f.asField()
 }
 
+fun can(
+      configuration: Configuration
+    , target: String?
+    , permission: String?
+): Boolean? {
+    val f = Can()
+    f.setTarget(target)
+    f.setPermission(permission)
+
+    f.execute(configuration)
+    return f.returnValue
+}
+
+fun can(
+      target: String?
+    , permission: String?
+): Field<Boolean?> {
+    val f = Can()
+    f.setTarget(target)
+    f.setPermission(permission)
+
+    return f.asField()
+}
+
+fun can(
+      target: Field<String?>
+    , permission: Field<String?>
+): Field<Boolean?> {
+    val f = Can()
+    f.setTarget(target)
+    f.setPermission(permission)
+
+    return f.asField()
+}
+
 fun canManageFinance(
       configuration: Configuration
     , target: String?
@@ -217,6 +268,41 @@ fun canWorkspace(
 ): Field<Boolean?> {
     val f = CanWorkspace()
     f.setTarget(target)
+
+    return f.asField()
+}
+
+fun canWorkspaceDo(
+      configuration: Configuration
+    , target: UUID?
+    , permission: String?
+): Boolean? {
+    val f = CanWorkspaceDo()
+    f.setTarget(target)
+    f.setPermission(permission)
+
+    f.execute(configuration)
+    return f.returnValue
+}
+
+fun canWorkspaceDo(
+      target: UUID?
+    , permission: String?
+): Field<Boolean?> {
+    val f = CanWorkspaceDo()
+    f.setTarget(target)
+    f.setPermission(permission)
+
+    return f.asField()
+}
+
+fun canWorkspaceDo(
+      target: Field<UUID?>
+    , permission: Field<String?>
+): Field<Boolean?> {
+    val f = CanWorkspaceDo()
+    f.setTarget(target)
+    f.setPermission(permission)
 
     return f.asField()
 }
@@ -250,6 +336,217 @@ fun collectOauthAccessTokens(
     return f.asField()
 }
 
+fun compilePermissions(
+      configuration: Configuration
+    , base: Array<String?>?
+    , granted: Array<String?>?
+    , revoked: Array<String?>?
+    , forbidden: Array<String?>?
+    , ceiling: Array<String?>?
+): Array<String?>? {
+    val f = CompilePermissions()
+    f.setBase(base)
+    f.setGranted(granted)
+    f.setRevoked(revoked)
+    f.setForbidden(forbidden)
+    f.setCeiling(ceiling)
+
+    f.execute(configuration)
+    return f.returnValue
+}
+
+fun compilePermissions(
+      base: Array<String?>?
+    , granted: Array<String?>?
+    , revoked: Array<String?>?
+    , forbidden: Array<String?>?
+    , ceiling: Array<String?>?
+): Field<Array<String?>?> {
+    val f = CompilePermissions()
+    f.setBase(base)
+    f.setGranted(granted)
+    f.setRevoked(revoked)
+    f.setForbidden(forbidden)
+    f.setCeiling(ceiling)
+
+    return f.asField()
+}
+
+fun compilePermissions(
+      base: Field<Array<String?>?>
+    , granted: Field<Array<String?>?>
+    , revoked: Field<Array<String?>?>
+    , forbidden: Field<Array<String?>?>
+    , ceiling: Field<Array<String?>?>
+): Field<Array<String?>?> {
+    val f = CompilePermissions()
+    f.setBase(base)
+    f.setGranted(granted)
+    f.setRevoked(revoked)
+    f.setForbidden(forbidden)
+    f.setCeiling(ceiling)
+
+    return f.asField()
+}
+
+fun compileWorkspacePermissions(
+      configuration: Configuration
+    , base: Array<String?>?
+    , granted: Array<String?>?
+    , revoked: Array<String?>?
+): Array<String?>? {
+    val f = CompileWorkspacePermissions()
+    f.setBase(base)
+    f.setGranted(granted)
+    f.setRevoked(revoked)
+
+    f.execute(configuration)
+    return f.returnValue
+}
+
+fun compileWorkspacePermissions(
+      base: Array<String?>?
+    , granted: Array<String?>?
+    , revoked: Array<String?>?
+): Field<Array<String?>?> {
+    val f = CompileWorkspacePermissions()
+    f.setBase(base)
+    f.setGranted(granted)
+    f.setRevoked(revoked)
+
+    return f.asField()
+}
+
+fun compileWorkspacePermissions(
+      base: Field<Array<String?>?>
+    , granted: Field<Array<String?>?>
+    , revoked: Field<Array<String?>?>
+): Field<Array<String?>?> {
+    val f = CompileWorkspacePermissions()
+    f.setBase(base)
+    f.setGranted(granted)
+    f.setRevoked(revoked)
+
+    return f.asField()
+}
+
+fun defaultPresetPermissions(
+      configuration: Configuration
+    , key: String?
+): Array<String?>? {
+    val f = DefaultPresetPermissions()
+    f.setKey(key)
+
+    f.execute(configuration)
+    return f.returnValue
+}
+
+fun defaultPresetPermissions(
+      key: String?
+): Field<Array<String?>?> {
+    val f = DefaultPresetPermissions()
+    f.setKey(key)
+
+    return f.asField()
+}
+
+fun defaultPresetPermissions(
+      key: Field<String?>
+): Field<Array<String?>?> {
+    val f = DefaultPresetPermissions()
+    f.setKey(key)
+
+    return f.asField()
+}
+
+fun explicitServicePermissions(
+      configuration: Configuration
+): Array<String?>? {
+    val f = ExplicitServicePermissions()
+
+    f.execute(configuration)
+    return f.returnValue
+}
+
+fun explicitServicePermissions(): Field<Array<String?>?> {
+    val f = ExplicitServicePermissions()
+
+    return f.asField()
+}
+
+fun leavingIn(
+      configuration: Configuration
+    , target: String?
+): Boolean? {
+    val f = LeavingIn()
+    f.setTarget(target)
+
+    f.execute(configuration)
+    return f.returnValue
+}
+
+fun leavingIn(
+      target: String?
+): Field<Boolean?> {
+    val f = LeavingIn()
+    f.setTarget(target)
+
+    return f.asField()
+}
+
+fun leavingIn(
+      target: Field<String?>
+): Field<Boolean?> {
+    val f = LeavingIn()
+    f.setTarget(target)
+
+    return f.asField()
+}
+
+fun managesWorkspaceAccess(
+      configuration: Configuration
+    , target: UUID?
+): Boolean? {
+    val f = ManagesWorkspaceAccess()
+    f.setTarget(target)
+
+    f.execute(configuration)
+    return f.returnValue
+}
+
+fun managesWorkspaceAccess(
+      target: UUID?
+): Field<Boolean?> {
+    val f = ManagesWorkspaceAccess()
+    f.setTarget(target)
+
+    return f.asField()
+}
+
+fun managesWorkspaceAccess(
+      target: Field<UUID?>
+): Field<Boolean?> {
+    val f = ManagesWorkspaceAccess()
+    f.setTarget(target)
+
+    return f.asField()
+}
+
+fun neverServicePermissions(
+      configuration: Configuration
+): Array<String?>? {
+    val f = NeverServicePermissions()
+
+    f.execute(configuration)
+    return f.returnValue
+}
+
+fun neverServicePermissions(): Field<Array<String?>?> {
+    val f = NeverServicePermissions()
+
+    return f.asField()
+}
+
 fun openRequestsFor(
       configuration: Configuration
     , recipient: String?
@@ -275,6 +572,123 @@ fun openRequestsFor(
 ): Field<Int?> {
     val f = OpenRequestsFor()
     f.setRecipient(recipient)
+
+    return f.asField()
+}
+
+fun permissionCatalog(
+      configuration: Configuration
+): Array<String?>? {
+    val f = PermissionCatalog()
+
+    f.execute(configuration)
+    return f.returnValue
+}
+
+fun permissionCatalog(): Field<Array<String?>?> {
+    val f = PermissionCatalog()
+
+    return f.asField()
+}
+
+fun permissionClosure(
+      configuration: Configuration
+    , permissions: Array<String?>?
+): Array<String?>? {
+    val f = PermissionClosure()
+    f.setPermissions(permissions)
+
+    f.execute(configuration)
+    return f.returnValue
+}
+
+fun permissionClosure(
+      permissions: Array<String?>?
+): Field<Array<String?>?> {
+    val f = PermissionClosure()
+    f.setPermissions(permissions)
+
+    return f.asField()
+}
+
+fun permissionClosure(
+      permissions: Field<Array<String?>?>
+): Field<Array<String?>?> {
+    val f = PermissionClosure()
+    f.setPermissions(permissions)
+
+    return f.asField()
+}
+
+fun permissionImplies(
+      configuration: Configuration
+    , permission: String?
+): Array<String?>? {
+    val f = PermissionImplies()
+    f.setPermission(permission)
+
+    f.execute(configuration)
+    return f.returnValue
+}
+
+fun permissionImplies(
+      permission: String?
+): Field<Array<String?>?> {
+    val f = PermissionImplies()
+    f.setPermission(permission)
+
+    return f.asField()
+}
+
+fun permissionImplies(
+      permission: Field<String?>
+): Field<Array<String?>?> {
+    val f = PermissionImplies()
+    f.setPermission(permission)
+
+    return f.asField()
+}
+
+fun permissionSort(
+      configuration: Configuration
+    , permissions: Array<String?>?
+): Array<String?>? {
+    val f = PermissionSort()
+    f.setPermissions(permissions)
+
+    f.execute(configuration)
+    return f.returnValue
+}
+
+fun permissionSort(
+      permissions: Array<String?>?
+): Field<Array<String?>?> {
+    val f = PermissionSort()
+    f.setPermissions(permissions)
+
+    return f.asField()
+}
+
+fun permissionSort(
+      permissions: Field<Array<String?>?>
+): Field<Array<String?>?> {
+    val f = PermissionSort()
+    f.setPermissions(permissions)
+
+    return f.asField()
+}
+
+fun projectPermissionCatalog(
+      configuration: Configuration
+): Array<String?>? {
+    val f = ProjectPermissionCatalog()
+
+    f.execute(configuration)
+    return f.returnValue
+}
+
+fun projectPermissionCatalog(): Field<Array<String?>?> {
+    val f = ProjectPermissionCatalog()
 
     return f.asField()
 }
@@ -308,6 +722,16 @@ fun projectTimezone(
     return f.asField()
 }
 
+fun provisionAccessPresets(
+      configuration: Configuration
+    , target: UUID?
+): Unit {
+    val p = ProvisionAccessPresets()
+    p.setTarget(target)
+
+    p.execute(configuration)
+}
+
 fun serviceAccountActive(
       configuration: Configuration
     , target: String?
@@ -337,37 +761,46 @@ fun serviceAccountActive(
     return f.asField()
 }
 
-fun serviceAccountGranted(
+fun workspacePermissionCatalog(
       configuration: Configuration
-    , target: String?
-    , permission: String?
-): Boolean? {
-    val f = ServiceAccountGranted()
-    f.setTarget(target)
-    f.setPermission(permission)
+): Array<String?>? {
+    val f = WorkspacePermissionCatalog()
 
     f.execute(configuration)
     return f.returnValue
 }
 
-fun serviceAccountGranted(
-      target: String?
-    , permission: String?
-): Field<Boolean?> {
-    val f = ServiceAccountGranted()
-    f.setTarget(target)
-    f.setPermission(permission)
+fun workspacePermissionCatalog(): Field<Array<String?>?> {
+    val f = WorkspacePermissionCatalog()
 
     return f.asField()
 }
 
-fun serviceAccountGranted(
-      target: Field<String?>
-    , permission: Field<String?>
-): Field<Boolean?> {
-    val f = ServiceAccountGranted()
-    f.setTarget(target)
-    f.setPermission(permission)
+fun workspaceRolePermissions(
+      configuration: Configuration
+    , role: String?
+): Array<String?>? {
+    val f = WorkspaceRolePermissions()
+    f.setRole(role)
+
+    f.execute(configuration)
+    return f.returnValue
+}
+
+fun workspaceRolePermissions(
+      role: String?
+): Field<Array<String?>?> {
+    val f = WorkspaceRolePermissions()
+    f.setRole(role)
+
+    return f.asField()
+}
+
+fun workspaceRolePermissions(
+      role: Field<String?>
+): Field<Array<String?>?> {
+    val f = WorkspaceRolePermissions()
+    f.setRole(role)
 
     return f.asField()
 }

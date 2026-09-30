@@ -60,8 +60,9 @@ class McpTools(
     val all: List<McpTool> = listOf(
         tool(
             "list_projects", "Проекты",
-            "List the workspaces and projects this service account can access, with its role in effect in each " +
-                "(never above its owner's). Project ids from here are the projectId of the other tools.",
+            "List the workspaces and projects this service account can access, with its permissions in each " +
+                "(never above its owner's; role is a summary). Project ids from here are the projectId of the other " +
+                "tools.",
             NoArguments::class, schema(),
         ) { tx, actor, _: NoArguments, _ -> untrusted(projects(tx, actor)) },
         tool(
@@ -195,16 +196,12 @@ class McpTools(
     private fun projects(tx: Transaction, actor: Actor): Map<String, Any?> {
         val rows = tx.rows(
             """
-            SELECT p.id, p.key, p.name, p.slug, p.workspace_id AS "workspaceId",
-                   CASE WHEN m.role = 'reader' OR (o.role IS NOT NULL AND o.role = 'reader') THEN 'reader'
-                        ELSE m.role END AS role
+            SELECT p.id, p.key, p.name, p.slug, p.workspace_id AS "workspaceId", m.role, m.permissions
             FROM app.project_members m JOIN app.projects p ON p.id = m.project_id AND auth.can_project(p.id)
-            LEFT JOIN app.project_members o ON o.project_id = m.project_id AND o.principal_id = $3
             WHERE m.principal_id = $1 ORDER BY p.workspace_id, p.name, p.id LIMIT $2
             """.trimIndent(),
             actor.id,
             PROJECT_LIMIT,
-            if (actor.isService) actor.initiatorId else null,
         )
         // A service account is not a workspace member: workspace names come from its own record, not from row security.
         val names = tx.rows(
@@ -225,6 +222,7 @@ class McpTools(
                         "key" to project["key"],
                         "name" to project["name"],
                         "role" to project["role"],
+                        "permissions" to project["permissions"],
                         "url" to "${properties.publicOrigin}/?project=" +
                             URLEncoder.encode(project.string("slug"), StandardCharsets.UTF_8),
                     )

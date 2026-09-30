@@ -27,10 +27,21 @@ type User=Awaited<ReturnType<typeof fixture>>['alice'];
 // Apps and scripts act as a service account of a person, never as the person: one account per person here, a member
 // of the first project with the person's own role (a reader's account reads, an editor's writes).
 const accounts=new Map<string,{id:string;revision:number}>();
+// A service account's grant in a project on the permission catalog: the service preset of the former role (an editor
+// also changes maps, as it did) plus explicit additions such as finance.
+const servicePresets=new Map<string,string>();
+async function servicePreset(key:'service_read'|'service_tasks'){
+  if(!servicePresets.has(key))servicePresets.set(key,(await f.admin.query('SELECT id FROM app.access_presets WHERE workspace_id=$1 AND key=$2',[f.first.workspaceId,key])).rows[0].id);
+  return servicePresets.get(key)!;
+}
+async function grantOf(role:'reader'|'editor',granted:string[]=[]){
+  return {presetId:await servicePreset(role==='editor'?'service_tasks':'service_read'),granted:[...(role==='editor'?['maps.write']:[]),...granted],revoked:[]};
+}
+async function sa(projectId:string,role:'reader'|'editor',granted:string[]=[]){return {projectId,...await grantOf(role,granted)};}
 async function account(user:User=f.alice){
   const known=accounts.get(user.id);if(known)return known;
   const role=user===f.reader?'reader':'editor';
-  const r=await f.app.inject({method:'POST',url:ui+'/api/v1/service-accounts',headers:user.headers,payload:{name:'Claude',workspaceId:f.first.workspaceId,projects:[{projectId:f.first.id,role}]}});
+  const r=await f.app.inject({method:'POST',url:ui+'/api/v1/service-accounts',headers:user.headers,payload:{name:'Claude',workspaceId:f.first.workspaceId,projects:[await sa(f.first.id,role)]}});
   assert.equal(r.statusCode,200,r.body);const made=r.json<{id:string;revision:number}>();accounts.set(user.id,made);return made;
 }
 async function serviceToken(user:User=f.alice,scopes=['read'],name='Скрипт',expiresInDays=1){
@@ -110,6 +121,8 @@ test('P01 discovery, registration and the full OAuth + MCP flow through a servic
   assert.equal(projects.isError,false);assert.equal(projects.structuredContent.trust,'untrusted-content');
   const ids=projects.structuredContent.data.workspaces.flatMap((w:{projects:{id:string}[]})=>w.projects.map(p=>p.id));
   assert.ok(ids.includes(f.first.id));assert.ok(!ids.includes(f.second.id),'another person\'s project is never listed');
+  const firstListed=projects.structuredContent.data.workspaces.flatMap((w:{projects:{id:string;permissions:string[]}[]})=>w.projects).find((p:{id:string})=>p.id===f.first.id);
+  assert.ok(firstListed.permissions.includes('tasks.write')&&!firstListed.permissions.includes('project.access'),'its permissions, not only a role');
   // The workspace is named: row security on workspaces used to hide it from a service account, which is no member.
   const workspaceName=(await f.admin.query('SELECT name FROM app.workspaces WHERE id=$1',[f.first.workspaceId])).rows[0].name;
   assert.deepEqual(projects.structuredContent.data.workspaces.map((w:{id:string;name:string})=>[w.id,w.name]),[[f.first.workspaceId,workspaceName]]);
@@ -414,11 +427,11 @@ test('P10 service accounts: within the owner\'s rights, managed by owner and adm
   const call=(user:User,method:'GET'|'POST'|'PATCH'|'PUT'|'DELETE',url:string,payload?:unknown)=>f.app.inject({method,url:ui+url,headers:{...user.headers,'idempotency-key':randomUUID()},...(payload===undefined?{}:{payload:payload as Record<string,unknown>})});
   const make=(user:User,payload:Record<string,unknown>)=>call(user,'POST','/api/v1/service-accounts',payload);
   // Grants never exceed the owner's own rights, and only in the owner's workspace.
-  assert.equal((await make(f.reader,{name:'Выше',workspaceId:f.first.workspaceId,projects:[{projectId:f.first.id,role:'editor'}]})).json().code,'ROLE_ABOVE_OWNER');
-  assert.equal((await make(f.alice,{name:'Чужой',workspaceId:f.first.workspaceId,projects:[{projectId:f.second.id,role:'reader'}]})).json().code,'OWNER_NOT_MEMBER');
+  assert.equal((await make(f.reader,{name:'Выше',workspaceId:f.first.workspaceId,projects:[await sa(f.first.id,'editor')]})).json().code,'SERVICE_RESTRICTED');
+  assert.equal((await make(f.alice,{name:'Чужой',workspaceId:f.first.workspaceId,projects:[await sa(f.second.id,'reader')]})).json().code,'OWNER_NOT_MEMBER');
   const stranger=await make(f.bob,{name:'Не своё',workspaceId:f.first.workspaceId,projects:[]});assert.equal(stranger.statusCode,404,stranger.body);
-  const robot=(await make(f.alice,{name:'Робот',workspaceId:f.first.workspaceId,projects:[{projectId:f.first.id,role:'editor'}]})).json();
-  assert.equal(robot.projects[0].effectiveRole,'editor');assert.equal(robot.ownerName,'Алиса');assert.equal(robot.suspended,false);
+  const robot=(await make(f.alice,{name:'Робот',workspaceId:f.first.workspaceId,projects:[await sa(f.first.id,'editor')]})).json();
+  assert.equal(robot.projects[0].role,'editor');assert.ok(robot.projects[0].permissions.includes('maps.write'));assert.equal(robot.ownerName,'Алиса');assert.equal(robot.suspended,false);
   const token=(await call(f.alice,'POST',`/api/v1/service-accounts/${robot.id}/tokens`,{name:'t',scopes:['read','write'],expiresInDays:1})).json().token;
   const put=(t:string)=>f.app.inject({method:'PUT',url:api+'/api/v1/projects/'+f.first.id+'/tasks/robot-'+randomUUID().slice(0,8),headers:{...bearer(t),'idempotency-key':randomUUID()},payload:{baseRevision:0,task:{title:'Робот'}}});
   assert.equal((await put(token)).statusCode,200);
@@ -428,7 +441,10 @@ test('P10 service accounts: within the owner\'s rights, managed by owner and adm
   // No escalation through its token: finance, members, invitations, service accounts, approvals of access.
   for(const [method,url,payload] of [['GET','/api/v1/projects/'+f.first.id+'/finance-summary',undefined],
     ['PATCH','/api/v1/projects/'+f.first.id+'/members/'+f.reader.id,{baseRevision:1,role:'editor'}],
-    ['POST','/api/v1/projects/'+f.first.id+'/invitations',{id:randomUUID(),role:'editor',expiresInSeconds:86400}],
+    ['POST','/api/v1/projects/'+f.first.id+'/invitation-links',{}],
+    ['GET','/api/v1/workspaces/'+f.first.workspaceId+'/presets',undefined],
+    ['GET','/api/v1/projects/'+f.first.id+'/access/matrix',undefined],
+    ['POST','/api/v1/projects/'+f.first.id+'/join-as-admin',{}],
     ['DELETE','/api/v1/service-accounts/'+robot.id,undefined]] as const){
     const r=await f.app.inject({method,url:api+url,headers:{...bearer(token),'idempotency-key':randomUUID()},...(payload?{payload}:{})});
     assert.equal(r.statusCode,403,`${method} ${url}: ${r.body}`);
@@ -438,12 +454,12 @@ test('P10 service accounts: within the owner\'s rights, managed by owner and adm
   // A project administrator cannot raise the reader's account above its owner, by either way of setting it.
   const readerAccount=await account(f.reader),readerToken=(await serviceToken(f.reader,['read','write'],'Запись')).token;
   const row=(await call(f.alice,'GET','/api/v1/projects/'+f.first.id+'/members')).json().find((m:{id:string})=>m.id===readerAccount.id);
-  assert.equal((await call(f.alice,'PATCH','/api/v1/projects/'+f.first.id+'/members/'+readerAccount.id,{baseRevision:row.revision,role:'admin'})).json().code,'SERVICE_ACCOUNT_ROLE');
-  assert.equal((await call(f.alice,'PATCH','/api/v1/projects/'+f.first.id+'/members/'+readerAccount.id,{baseRevision:row.revision,role:'editor'})).json().code,'ROLE_ABOVE_OWNER');
-  assert.equal((await call(f.alice,'PUT',`/api/v1/service-accounts/${readerAccount.id}/projects/${f.first.id}`,{role:'editor'})).json().code,'ROLE_ABOVE_OWNER');
-  // Should a stored role exceed the owner's anyway, the live ceiling holds: the owner only reads, so it cannot write.
+  assert.equal((await call(f.alice,'PATCH','/api/v1/projects/'+f.first.id+'/members/'+readerAccount.id,{baseRevision:row.revision,role:'admin'})).json().code,'SERVICE_ACCOUNT_ENDPOINT');
+  assert.equal((await call(f.alice,'PATCH','/api/v1/projects/'+f.first.id+'/members/'+readerAccount.id,{baseRevision:row.revision,role:'editor'})).json().code,'SERVICE_ACCOUNT_ENDPOINT');
+  assert.equal((await call(f.alice,'PUT',`/api/v1/service-accounts/${readerAccount.id}/projects/${f.first.id}`,await grantOf('editor'))).json().code,'SERVICE_RESTRICTED');
+  // Should a stored grant exceed the owner's anyway, the database caps it: the owner only reads, so it cannot write.
   await f.admin.query("UPDATE app.project_members SET role='editor' WHERE project_id=$1 AND principal_id=$2",[f.first.id,readerAccount.id]);
-  const capped=await put(readerToken);assert.equal(capped.statusCode,403);assert.equal(capped.json().code,'OWNER_RIGHTS');
+  const capped=await put(readerToken);assert.equal(capped.statusCode,403);assert.equal(capped.json().code,'FORBIDDEN');
   assert.equal((await f.app.inject({url:api+'/api/v1/projects/'+f.first.id+'/tasks',headers:bearer(readerToken)})).statusCode,200);
   // The owner leaves the workspace: the account stops at once and stays suspended until an administrator acts.
   const self=(await call(f.alice,'GET','/api/v1/projects/'+f.first.id+'/members')).json().find((m:{id:string})=>m.id===f.reader.id);
@@ -477,7 +493,7 @@ test('P10 service accounts: within the owner\'s rights, managed by owner and adm
     assert.equal((await f.app.inject({url:api+'/api/v1/projects/'+f.first.id+'/tasks',headers:bearer(readerToken)})).statusCode,401,'issued by someone who is not the owner now');
     // A workspace administrator deletes a person's account: everything it held ends.
     await f.admin.query("INSERT INTO app.project_members(project_id,principal_id,role) VALUES($1,$2,'reader') ON CONFLICT DO NOTHING",[f.first.id,f.reader.id]);
-    const temporary=(await make(f.reader,{name:'Временный',workspaceId:f.first.workspaceId,projects:[{projectId:f.first.id,role:'reader'}]})).json();
+    const temporary=(await make(f.reader,{name:'Временный',workspaceId:f.first.workspaceId,projects:[await sa(f.first.id,'reader')]})).json();
     const temporaryToken=(await call(f.reader,'POST',`/api/v1/service-accounts/${temporary.id}/tokens`,{name:'t',scopes:['read'],expiresInDays:1})).json().token;
     assert.equal((await f.app.inject({url:api+'/api/v1/projects/'+f.first.id+'/tasks',headers:bearer(temporaryToken)})).statusCode,200);
     assert.equal((await call(f.alice,'DELETE','/api/v1/service-accounts/'+temporary.id)).statusCode,200);
@@ -495,7 +511,7 @@ test('P11 finance only when granted and never above the owner; project administr
   const bearer=(t:string)=>({authorization:'Bearer '+t});
   const call=(user:User,method:'GET'|'POST'|'PATCH'|'PUT'|'DELETE',url:string,payload?:unknown)=>f.app.inject({method,url:ui+url,headers:{...user.headers,'idempotency-key':randomUUID()},...(payload===undefined?{}:{payload:payload as Record<string,unknown>})});
   const grant=(user:User,id:string,projectId:string,body:Record<string,unknown>)=>call(user,'PUT',`/api/v1/service-accounts/${id}/projects/${projectId}`,body);
-  const bookkeeper=(await call(f.alice,'POST','/api/v1/service-accounts',{name:'Бухгалтер',workspaceId:f.first.workspaceId,projects:[{projectId:f.first.id,role:'reader'}]})).json();
+  const bookkeeper=(await call(f.alice,'POST','/api/v1/service-accounts',{name:'Бухгалтер',workspaceId:f.first.workspaceId,projects:[await sa(f.first.id,'reader')]})).json();
   assert.deepEqual(bookkeeper.projects[0].granted,[]);
   const token=(await call(f.alice,'POST',`/api/v1/service-accounts/${bookkeeper.id}/tokens`,{name:'Отчёт',scopes:['read','write'],expiresInDays:1})).json().token;
   const readOnly=(await call(f.alice,'POST',`/api/v1/service-accounts/${bookkeeper.id}/tokens`,{name:'Сводка',scopes:['read'],expiresInDays:1})).json().token;
@@ -503,27 +519,29 @@ test('P11 finance only when granted and never above the owner; project administr
   const posted={direction:'expense',state:'posted',amountMinor:1250050,currencyCode:'RUB',postedDate:'2026-09-10',category:'Хостинг',description:'Серверы за сентябрь'};
   const entry=(id:string,t=token)=>f.app.inject({method:'PUT',url:api+'/api/v1/projects/'+f.first.id+'/finance-entries/'+id,headers:{...bearer(t),'idempotency-key':randomUUID()},payload:{baseRevision:0,value:posted}});
   // Off by default, though its owner administers the project.
-  let r=await summary();assert.equal(r.statusCode,403);assert.equal(r.json().code,'SERVICE_ACCOUNT_FORBIDDEN');
+  let r=await summary();assert.equal(r.statusCode,403);assert.equal(r.json().code,'FORBIDDEN');
   assert.equal((await entry('sa-fin-0')).statusCode,403);
   // A token never grants itself anything.
-  r=await f.app.inject({method:'PUT',url:api+`/api/v1/service-accounts/${bookkeeper.id}/projects/${f.first.id}`,headers:bearer(token),payload:{role:'editor',granted:['finance.read','finance.write']}});
+  r=await f.app.inject({method:'PUT',url:api+`/api/v1/service-accounts/${bookkeeper.id}/projects/${f.first.id}`,headers:bearer(token),payload:await grantOf('editor',['finance.read','finance.write'])});
   assert.equal(r.statusCode,403);assert.equal(r.json().code,'SESSION_REQUIRED');
   // Reading, granted explicitly: the summary opens, the books stay closed.
-  r=await grant(f.alice,bookkeeper.id,f.first.id,{role:'reader',granted:['finance.read']});assert.equal(r.statusCode,200,r.body);
-  assert.deepEqual(r.json().projects[0].granted,['finance.read']);assert.deepEqual(r.json().projects[0].effectiveGranted,['finance.read']);
+  r=await grant(f.alice,bookkeeper.id,f.first.id,await grantOf('reader',['finance.read']));assert.equal(r.statusCode,200,r.body);
+  assert.deepEqual(r.json().projects[0].granted,['finance.read']);assert.ok(r.json().projects[0].permissions.includes('finance.read'));
   assert.equal((await summary()).statusCode,200);
   r=await entry('sa-fin-1');assert.equal(r.statusCode,403);
   // Keeping the books, granted explicitly while its owner administers the project; a read-only token still only reads.
-  assert.equal((await grant(f.alice,bookkeeper.id,f.first.id,{role:'reader',granted:['finance.read','finance.write']})).statusCode,200);
+  assert.equal((await grant(f.alice,bookkeeper.id,f.first.id,await grantOf('reader',['finance.read','finance.write']))).statusCode,200);
   r=await entry('sa-fin-2');assert.equal(r.statusCode,200,r.body);
   assert.equal((await f.admin.query('SELECT created_by FROM app.finance_entry WHERE id=$1',['sa-fin-2'])).rows[0].created_by,bookkeeper.id,'the entry is the account\'s');
   r=await entry('sa-fin-3',readOnly);assert.equal(r.statusCode,403);assert.equal(r.json().code,'INSUFFICIENT_SCOPE');
   // The owner's ceiling is live: once the owner stops administering the project, the account cannot keep the books.
   await f.admin.query("UPDATE app.project_members SET role='editor' WHERE project_id=$1 AND principal_id=$2",[f.first.id,f.alice.id]);
   try{
-    r=await entry('sa-fin-4');assert.equal(r.statusCode,403);assert.equal(r.json().code,'OWNER_RIGHTS');
+    r=await entry('sa-fin-4');assert.equal(r.statusCode,403);assert.equal(r.json().code,'FORBIDDEN');
     assert.equal((await summary()).statusCode,200,'it still reads, as its owner does');
-    assert.deepEqual((await listAccounts()).find(a=>a.id===bookkeeper.id).projects[0].effectiveGranted,['finance.read']);
+    const kept=(await listAccounts()).find(a=>a.id===bookkeeper.id).projects[0];
+    assert.ok(kept.permissions.includes('finance.read')&&!kept.permissions.includes('finance.write'),'granted, but above the owner now');
+    assert.deepEqual(kept.granted,['finance.read','finance.write']);
   }finally{
     await f.admin.query("UPDATE app.project_members SET role='admin' WHERE project_id=$1 AND principal_id=$2",[f.first.id,f.alice.id]);
   }
@@ -536,11 +554,11 @@ test('P11 finance only when granted and never above the owner; project administr
   };
   assert.ok(await rows(bookkeeper.id)>0);
   // The reader's account: never the books (its owner does not keep them), reading only when granted.
-  const readerOwn=(await call(f.reader,'POST','/api/v1/service-accounts',{name:'Читатель',workspaceId:f.first.workspaceId,projects:[{projectId:f.first.id,role:'reader'}]})).json();
+  const readerOwn=(await call(f.reader,'POST','/api/v1/service-accounts',{name:'Читатель',workspaceId:f.first.workspaceId,projects:[await sa(f.first.id,'reader')]})).json();
   assert.equal(await rows(readerOwn.id),0,'finance stays hidden from an account without a grant');
-  r=await grant(f.reader,readerOwn.id,f.first.id,{role:'reader',granted:['finance.write']});assert.equal(r.statusCode,422);assert.equal(r.json().code,'ROLE_ABOVE_OWNER');
-  r=await grant(f.alice,readerOwn.id,f.first.id,{role:'reader',granted:['finance.read','finance.write']});assert.equal(r.json().code,'ROLE_ABOVE_OWNER','nor may an administrator exceed the owner');
-  assert.equal((await grant(f.reader,readerOwn.id,f.first.id,{role:'reader',granted:['finance.read']})).statusCode,200);
+  r=await grant(f.reader,readerOwn.id,f.first.id,await grantOf('reader',['finance.write']));assert.equal(r.statusCode,422);assert.equal(r.json().code,'SERVICE_RESTRICTED');
+  r=await grant(f.alice,readerOwn.id,f.first.id,await grantOf('reader',['finance.read','finance.write']));assert.equal(r.json().code,'SERVICE_RESTRICTED','nor may an administrator exceed the owner');
+  assert.equal((await grant(f.reader,readerOwn.id,f.first.id,await grantOf('reader',['finance.read']))).statusCode,200);
   assert.ok(await rows(readerOwn.id)>0);
   // A person cannot pick another person's account on the consent screen.
   const {challenge}=pkce(),query=authorizeQuery((shared??=await register()).client_id,challenge);
@@ -553,22 +571,25 @@ test('P11 finance only when granted and never above the owner; project administr
   await f.admin.query("INSERT INTO app.workspace_members(workspace_id,principal_id,role) VALUES($1,$2,'member')",[f.first.workspaceId,f.bob.id]);
   await f.admin.query("INSERT INTO app.project_members(project_id,principal_id,role) VALUES($1,$2,'admin')",[f.first.id,f.bob.id]);
   try{
-    const helper=(await call(f.reader,'POST','/api/v1/service-accounts',{name:'Помощник',workspaceId:f.first.workspaceId,projects:[{projectId:f.first.id,role:'reader'}]})).json();
-    const both=(await call(f.alice,'POST','/api/v1/service-accounts',{name:'Двойной',workspaceId:f.first.workspaceId,projects:[{projectId:f.first.id,role:'editor'},{projectId:other.id,role:'editor'}]})).json();
+    const helper=(await call(f.reader,'POST','/api/v1/service-accounts',{name:'Помощник',workspaceId:f.first.workspaceId,projects:[await sa(f.first.id,'reader')]})).json();
+    const both=(await call(f.alice,'POST','/api/v1/service-accounts',{name:'Двойной',workspaceId:f.first.workspaceId,projects:[await sa(f.first.id,'editor'),await sa(other.id,'editor')]})).json();
     assert.equal(both.projects.length,2,JSON.stringify(both));
     assert.equal((await call(f.bob,'PATCH','/api/v1/service-accounts/'+both.id,{baseRevision:both.revision,name:'Моё'})).statusCode,403);
     assert.equal((await call(f.bob,'POST','/api/v1/service-accounts/'+both.id+'/tokens',{name:'t',scopes:['read'],expiresInDays:1})).statusCode,403);
     assert.equal((await call(f.bob,'DELETE','/api/v1/service-accounts/'+both.id)).statusCode,403,'it works in a project he does not administer');
-    const scoped=await grant(f.bob,both.id,f.first.id,{role:'reader'});assert.equal(scoped.statusCode,200,scoped.body);
-    assert.deepEqual(scoped.json(),{id:both.id,projectId:f.first.id,role:'reader',granted:[]},'a project administrator sees only their project');
-    assert.equal((await grant(f.bob,both.id,other.id,{role:'reader'})).statusCode,404,'not his project');
+    const scoped=await grant(f.bob,both.id,f.first.id,await grantOf('reader'));assert.equal(scoped.statusCode,200,scoped.body);
+    const view=scoped.json();assert.deepEqual([view.id,view.projectId,view.role,view.granted],[both.id,f.first.id,'reader',[]]);
+    assert.equal(view.name,undefined,'a project administrator sees only their project');
+    assert.equal((await grant(f.bob,both.id,other.id,await grantOf('reader'))).statusCode,404,'not his project');
     const app=await connect();void app;
     await f.admin.query('UPDATE auth.oauth_grants SET principal_id=$1 WHERE id=(SELECT id FROM auth.oauth_grants WHERE granted_by=$2 AND revoked_at IS NULL ORDER BY created_at DESC LIMIT 1)',[both.id,f.alice.id]);
     const grantId=(await f.admin.query('SELECT id FROM auth.oauth_grants WHERE principal_id=$1 AND revoked_at IS NULL',[both.id])).rows[0].id;
     assert.equal((await call(f.bob,'DELETE','/api/v1/connected-apps/'+grantId)).statusCode,403,'the owner\'s app is not his to disconnect');
     assert.equal((await call(f.alice,'DELETE','/api/v1/connected-apps/'+grantId)).statusCode,200);
     assert.equal((await call(f.bob,'DELETE',`/api/v1/service-accounts/${both.id}/projects/${f.first.id}`)).statusCode,200);
-    await assert.rejects(f.admin.query("INSERT INTO app.project_members(project_id,principal_id,role) VALUES($1,$2,'admin')",[f.first.id,both.id]),/cannot administer/,'the database never lets it administer');
+    await f.admin.query("INSERT INTO app.project_members(project_id,principal_id,role) VALUES($1,$2,'admin')",[f.first.id,both.id]);
+    const forced=(await f.admin.query('SELECT role,permissions FROM app.project_members WHERE project_id=$1 AND principal_id=$2',[f.first.id,both.id])).rows[0];
+    assert.notEqual(forced.role,'admin','the database never lets it administer');assert.ok(!forced.permissions.includes('project.access'));
     assert.equal((await call(f.bob,'DELETE','/api/v1/service-accounts/'+helper.id)).statusCode,200,'every project of it is his');
     assert.ok(!(await listAccounts(f.reader)).some(a=>a.id===helper.id));
     const events=(await f.admin.query('SELECT action,actor_id FROM auth.access_events WHERE principal_id=$1 ORDER BY created_at',[helper.id])).rows;
@@ -593,6 +614,55 @@ test('P11 finance only when granted and never above the owner; project administr
   assert.equal((await f.app.inject({url:api+'/api/v1/session',headers:bearer('spp_'+randomBytes(32).toString('base64url'))})).statusCode,401);
   await assert.rejects(f.admin.query("INSERT INTO auth.credentials(id,principal_id,token_hash,kind,initiator_id,expires_at,scopes,audience,name) VALUES($1,$2,$3,'personal',$2,now()+interval '1 day','{read}',$4,'x')",[randomUUID(),f.alice.id,randomBytes(32).toString('hex'),api]),/violates check constraint/);
   await assert.rejects(f.admin.query("INSERT INTO auth.credentials(id,principal_id,token_hash,kind,initiator_id,expires_at,scopes,audience,name) VALUES($1,$2,$3,'service',$2,now()+interval '1 day','{read}',$4,'x')",[randomUUID(),f.alice.id,randomBytes(32).toString('hex'),api]),/violates check constraint/,'a token acting as its own maker is refused');
+});
+
+test('P13 guests neither make nor own service accounts; an owner made a guest stops their accounts',async()=>{
+  const bearer=(t:string)=>({authorization:'Bearer '+t}),ws=f.first.workspaceId;
+  const call=(user:User,method:'GET'|'POST'|'PATCH',url:string,payload?:unknown)=>f.app.inject({method,url:ui+url,headers:{...user.headers,'idempotency-key':randomUUID()},...(payload===undefined?{}:{payload:payload as Record<string,unknown>})});
+  const made=await call(f.reader,'POST','/api/v1/service-accounts',{name:'До гостя',workspaceId:ws,projects:[await sa(f.first.id,'reader')]});
+  assert.equal(made.statusCode,200,made.body);const account=made.json();
+  const token=(await call(f.reader,'POST',`/api/v1/service-accounts/${account.id}/tokens`,{name:'t',scopes:['read'],expiresInDays:1})).json().token;
+  const tasks=()=>f.app.inject({url:api+'/api/v1/projects/'+f.first.id+'/tasks',headers:bearer(token)});
+  assert.equal((await tasks()).statusCode,200);
+  const people=(await call(f.alice,'GET','/api/v1/workspaces/'+ws+'/members')).json();
+  const row=(people.items??people).find((m:{id:string})=>m.id===f.reader.id);
+  try{
+    const demoted=await call(f.alice,'PATCH','/api/v1/workspaces/'+ws+'/members/'+f.reader.id,{baseRevision:row.revision,role:'guest'});
+    assert.equal(demoted.statusCode,200,demoted.body);
+    assert.equal((await tasks()).statusCode,401,'the owner is a guest now');
+    const listed=(await listAccounts(f.alice)).find(a=>a.id===account.id);assert.equal(listed.suspended,true);
+    // Nor a new one in its place, nor a guest appointed owner.
+    const again=await call(f.reader,'POST','/api/v1/service-accounts',{name:'Гостевой',workspaceId:ws,projects:[]});
+    assert.equal(again.statusCode,422,again.body);assert.equal(again.json().code,'SERVICE_OWNER_INVALID');
+    const handed=await call(f.alice,'POST','/api/v1/service-accounts/'+account.id+'/owner',{baseRevision:listed.revision,ownerId:f.reader.id});
+    assert.equal(handed.statusCode,422,handed.body);assert.equal(handed.json().code,'SERVICE_OWNER_INVALID');
+    // Even with the suspension lifted by hand, an account whose owner is a guest does not act.
+    await f.admin.query('UPDATE auth.service_accounts SET suspended_at=NULL WHERE principal_id=$1',[account.id]);
+    await f.admin.query("UPDATE auth.credentials SET revoked_at=NULL WHERE token_hash=encode(sha256($1::bytea),'hex')",[token]);
+    assert.equal((await tasks()).statusCode,401);
+  }finally{
+    await f.admin.query("UPDATE app.workspace_members SET role='member' WHERE workspace_id=$1 AND principal_id=$2",[ws,f.reader.id]);
+    await f.admin.query("INSERT INTO app.project_members(project_id,principal_id,role) VALUES($1,$2,'reader') ON CONFLICT DO NOTHING",[f.first.id,f.reader.id]);
+    accounts.delete(f.reader.id);
+  }
+});
+
+test('P14 the owner\'s ceiling applies in the database, never written into the grant: the account follows its owner up',async()=>{
+  const call=(user:User,method:'POST'|'DELETE',url:string,payload?:unknown)=>f.app.inject({method,url:ui+url,headers:{...user.headers,'idempotency-key':randomUUID()},...(payload===undefined?{}:{payload:payload as Record<string,unknown>})});
+  const made=await call(f.reader,'POST','/api/v1/service-accounts',{name:'Под потолком',workspaceId:f.first.workspaceId,projects:[{projectId:f.first.id,presetId:await servicePreset('service_tasks'),granted:[],revoked:[]}]});
+  assert.equal(made.statusCode,200,made.body);const account=made.json();
+  const row=async()=>(await f.admin.query('SELECT revoked,permissions FROM app.project_members WHERE project_id=$1 AND principal_id=$2',[f.first.id,account.id])).rows[0];
+  const before=await row();assert.deepEqual(before.revoked,[]);assert.ok(!before.permissions.includes('tasks.write'),'capped by a reading owner');
+  // An addition beyond the owner is still refused.
+  const above=await call(f.reader,'POST','/api/v1/service-accounts',{name:'Выше',workspaceId:f.first.workspaceId,projects:[{projectId:f.first.id,presetId:await servicePreset('service_read'),granted:['maps.write'],revoked:[]}]});
+  assert.equal(above.json().code,'SERVICE_RESTRICTED');
+  try{
+    await f.admin.query("UPDATE app.project_members SET role='editor' WHERE project_id=$1 AND principal_id=$2",[f.first.id,f.reader.id]);
+    assert.ok((await row()).permissions.includes('tasks.write'),'the owner writes now, so does the account');
+  }finally{
+    await f.admin.query("UPDATE app.project_members SET role='reader' WHERE project_id=$1 AND principal_id=$2",[f.first.id,f.reader.id]);
+    assert.equal((await call(f.alice,'DELETE','/api/v1/service-accounts/'+account.id)).statusCode,200);
+  }
 });
 
 test('P12 request windows: 600 a minute per credential from any address; refused tokens cost their address',async()=>{
