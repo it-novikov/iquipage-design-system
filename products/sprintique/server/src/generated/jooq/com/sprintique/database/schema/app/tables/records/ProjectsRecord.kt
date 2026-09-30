@@ -60,25 +60,21 @@ open class ProjectsRecord() : UpdatableRecordImpl<ProjectsRecord>(Projects.PROJE
         set(value): Unit = set(10, value)
         get(): Int? = get(10) as Int?
 
-    open var avatarAssetId: String?
-        set(value): Unit = set(11, value)
-        get(): String? = get(11) as String?
-
     open var activitySequence: Long?
-        set(value): Unit = set(12, value)
-        get(): Long? = get(12) as Long?
+        set(value): Unit = set(11, value)
+        get(): Long? = get(11) as Long?
 
     open var defaultMemberPresetId: UUID?
+        set(value): Unit = set(12, value)
+        get(): UUID? = get(12) as UUID?
+
+    open var defaultGuestPresetId: UUID?
         set(value): Unit = set(13, value)
         get(): UUID? = get(13) as UUID?
 
-    open var defaultGuestPresetId: UUID?
-        set(value): Unit = set(14, value)
-        get(): UUID? = get(14) as UUID?
-
     open var accessRevision: Int?
-        set(value): Unit = set(15, value)
-        get(): Int? = get(15) as Int?
+        set(value): Unit = set(14, value)
+        get(): Int? = get(14) as Int?
 
     // -------------------------------------------------------------------------
     // Primary key information
@@ -86,7 +82,7 @@ open class ProjectsRecord() : UpdatableRecordImpl<ProjectsRecord>(Projects.PROJE
 
     override fun key(): Record1<String?> = super.key() as Record1<String?>
 
-    constructor(id: String? = null, workspaceId: UUID? = null, name: String? = null, slug: String? = null, key: String? = null, nextTaskNumber: Int? = null, timezone: String? = null, planningRevision: Long? = null, eventSequence: Long? = null, planningDefaults: JSONB? = null, profileRevision: Int? = null, avatarAssetId: String? = null, activitySequence: Long? = null, defaultMemberPresetId: UUID? = null, defaultGuestPresetId: UUID? = null, accessRevision: Int? = null): this() {
+    constructor(id: String? = null, workspaceId: UUID? = null, name: String? = null, slug: String? = null, key: String? = null, nextTaskNumber: Int? = null, timezone: String? = null, planningRevision: Long? = null, eventSequence: Long? = null, planningDefaults: JSONB? = null, profileRevision: Int? = null, activitySequence: Long? = null, defaultMemberPresetId: UUID? = null, defaultGuestPresetId: UUID? = null, accessRevision: Int? = null): this() {
         this.id = id
         this.workspaceId = workspaceId
         this.name = name
@@ -98,7 +94,6 @@ open class ProjectsRecord() : UpdatableRecordImpl<ProjectsRecord>(Projects.PROJE
         this.eventSequence = eventSequence
         this.planningDefaults = planningDefaults
         this.profileRevision = profileRevision
-        this.avatarAssetId = avatarAssetId
         this.activitySequence = activitySequence
         this.defaultMemberPresetId = defaultMemberPresetId
         this.defaultGuestPresetId = defaultGuestPresetId

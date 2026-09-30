@@ -1,11 +1,11 @@
 /** Settings sections by scope. Ids are the deep links (#settings/<id>) and stay stable when labels change. */
 export const settingsGroups=[
  {id:'personal',label:'Для меня',items:[
-  {id:'account',label:'Профиль',icon:'user',description:'Так вас видят в задачах, обсуждениях и списке участников.',keywords:'имя профиль роль мой'},
+  {id:'account',label:'Профиль',icon:'user',description:'Так вас видят в задачах, обсуждениях и списке участников.',keywords:'имя профиль роль мой фото подтверждения релиз спрашивать'},
   {id:'appearance',label:'Внешний вид',icon:'sun',description:'Только для вас и только в этом браузере. Изменения применяются сразу.',keywords:'тема тёмная светлая акцент цвет плотность анимация'},
   {id:'service-accounts',label:'Сервисные аккаунты',icon:'bolt',description:'Приложения и скрипты работают как сервисный аккаунт, не от вашего имени: Claude, MCP-клиенты, токены API.',keywords:'api mcp claude токен коннектор приложение oauth доступ приложений сервисный аккаунт робот скрипт'}]},
  {id:'project',label:'Проект',items:[
-  {id:'profile',label:'О проекте',icon:'folder',description:'Название, аватар и ссылки на задачи. Видят все участники проекта.',keywords:'название аватар префикс адрес ссылка'},
+  {id:'profile',label:'О проекте',icon:'folder',description:'Название и ссылки на задачи. Видят все участники проекта.',keywords:'название префикс адрес ссылка'},
   {id:'members',label:'Участники',icon:'users',description:'Кто работает в проекте и какие у кого права.',keywords:'команда роли пресет права приглашение ссылка'},
   {id:'access',label:'Доступ',icon:'lock',description:'Пресеты для новых участников и отличия от пресетов в этом проекте.',keywords:'доступ права пресет матрица администратор переопределение'},
   {id:'tags',label:'Теги',icon:'palette',description:'Общие метки проекта: имя и цвет меняются сразу во всех задачах.',keywords:'теги метки цвета'},

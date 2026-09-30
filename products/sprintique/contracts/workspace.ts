@@ -16,5 +16,5 @@ export const TaskLinkInput=z.strictObject({kind:z.enum(['depends','related']),fr
 export const PutTaskLink=z.strictObject({baseRevision:Revision,value:TaskLinkInput});
 export type TaskLinkData=z.infer<typeof TaskLinkInput>;
 export const SearchQuery=z.strictObject({q:z.string().trim().min(1).max(200),cursor:z.string().max(1000).optional()});
-export const PutProjectProfile=z.strictObject({baseRevision:Revision,name:z.string().trim().min(1).max(100),avatarAssetId:Id.nullable()});
+export const PutProjectProfile=z.strictObject({baseRevision:Revision,name:z.string().trim().min(1).max(100)});
 export const PutWorkspaceProfile=z.strictObject({baseRevision:Revision,name:z.string().trim().min(1).max(100),timezone:Timezone});

@@ -7,6 +7,7 @@ package com.sprintique.database.schema.app.tables
 import com.sprintique.database.schema.app.App
 import com.sprintique.database.schema.app.keys.AGENT_RUNS__AGENT_RUNS_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.APPROVALS__APPROVALS_PROJECT_ID_FKEY
+import com.sprintique.database.schema.app.keys.ASSETS__ASSETS_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.ATTENTION_REQUESTS__ATTENTION_REQUESTS_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.AUDIT_EVENTS__AUDIT_EVENTS_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.FINANCE_ENTRY__FK_FINANCE_ENTRY__PROJECTS
@@ -16,6 +17,7 @@ import com.sprintique.database.schema.app.keys.MAPS__MAPS_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.MAP_TEMPLATES__MAP_TEMPLATES_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.MILESTONES__MILESTONES_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.OUTBOX__OUTBOX_PROJECT_ID_FKEY
+import com.sprintique.database.schema.app.keys.PERSON_PROJECT_PREFERENCES__PERSON_PROJECT_PREFERENCES_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.PLANNING_PLANS__PLANNING_PLANS_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.PLANNING_SELECTIONS__PLANNING_SELECTIONS_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.PRIVATE_RECEIPTS__PRIVATE_RECEIPTS_PROJECT_ID_FKEY
@@ -26,7 +28,6 @@ import com.sprintique.database.schema.app.keys.PROJECTS_WORKSPACE_ID_KEY_KEY
 import com.sprintique.database.schema.app.keys.PROJECTS__PROJECTS_DEFAULT_GUEST_PRESET_ID_FKEY
 import com.sprintique.database.schema.app.keys.PROJECTS__PROJECTS_DEFAULT_MEMBER_PRESET_ID_FKEY
 import com.sprintique.database.schema.app.keys.PROJECTS__PROJECTS_WORKSPACE_ID_FKEY
-import com.sprintique.database.schema.app.keys.PROJECTS__PROJECT_AVATAR
 import com.sprintique.database.schema.app.keys.PROJECT_MEMBERS__PROJECT_MEMBERS_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.PROJECT_MEMBERS__PROJECT_MEMBER_WORKSPACE
 import com.sprintique.database.schema.app.keys.RELEASES__RELEASES_PROJECT_ID_FKEY
@@ -50,6 +51,7 @@ import com.sprintique.database.schema.app.tables.MapTemplates.MapTemplatesPath
 import com.sprintique.database.schema.app.tables.Maps.MapsPath
 import com.sprintique.database.schema.app.tables.Milestones.MilestonesPath
 import com.sprintique.database.schema.app.tables.Outbox.OutboxPath
+import com.sprintique.database.schema.app.tables.PersonProjectPreferences.PersonProjectPreferencesPath
 import com.sprintique.database.schema.app.tables.PlanningPlans.PlanningPlansPath
 import com.sprintique.database.schema.app.tables.PlanningSelections.PlanningSelectionsPath
 import com.sprintique.database.schema.app.tables.PrivateReceipts.PrivateReceiptsPath
@@ -152,8 +154,6 @@ open class Projects(
 
     val PROFILE_REVISION: TableField<ProjectsRecord, Int?> = createField(DSL.name("profile_revision"), SQLDataType.INTEGER.nullable(false).defaultValue(DSL.field(DSL.raw("1"), SQLDataType.INTEGER)), this, "")
 
-    val AVATAR_ASSET_ID: TableField<ProjectsRecord, String?> = createField(DSL.name("avatar_asset_id"), SQLDataType.CLOB, this, "")
-
     val ACTIVITY_SEQUENCE: TableField<ProjectsRecord, Long?> = createField(DSL.name("activity_sequence"), SQLDataType.BIGINT.nullable(false).defaultValue(DSL.field(DSL.raw("0"), SQLDataType.BIGINT)), this, "")
 
     val DEFAULT_MEMBER_PRESET_ID: TableField<ProjectsRecord, UUID?> = createField(DSL.name("default_member_preset_id"), SQLDataType.UUID, this, "")
@@ -184,10 +184,7 @@ open class Projects(
     override fun getSchema(): Schema? = if (aliased()) null else App.APP
     override fun getPrimaryKey(): UniqueKey<ProjectsRecord> = PROJECTS_PKEY
     override fun getUniqueKeys(): List<UniqueKey<ProjectsRecord>> = listOf(PROJECTS_SLUG_KEY, PROJECTS_WORKSPACE_ID_ID_KEY, PROJECTS_WORKSPACE_ID_KEY_KEY)
-    override fun getReferences(): List<ForeignKey<ProjectsRecord, *>> = listOf(PROJECTS__PROJECT_AVATAR, PROJECTS__PROJECTS_DEFAULT_GUEST_PRESET_ID_FKEY, PROJECTS__PROJECTS_DEFAULT_MEMBER_PRESET_ID_FKEY, PROJECTS__PROJECTS_WORKSPACE_ID_FKEY)
-
-    fun assets(): AssetsPath = assets
-    val assets: AssetsPath by lazy { AssetsPath(this, PROJECTS__PROJECT_AVATAR, null) }
+    override fun getReferences(): List<ForeignKey<ProjectsRecord, *>> = listOf(PROJECTS__PROJECTS_DEFAULT_GUEST_PRESET_ID_FKEY, PROJECTS__PROJECTS_DEFAULT_MEMBER_PRESET_ID_FKEY, PROJECTS__PROJECTS_WORKSPACE_ID_FKEY)
 
     fun projectsDefaultGuestPresetIdFkey(): AccessPresetsPath = projectsDefaultGuestPresetIdFkey
     val projectsDefaultGuestPresetIdFkey: AccessPresetsPath by lazy { AccessPresetsPath(this, PROJECTS__PROJECTS_DEFAULT_GUEST_PRESET_ID_FKEY, null) }
@@ -221,6 +218,18 @@ open class Projects(
 
     val approvals: ApprovalsPath
         get(): ApprovalsPath = approvals()
+
+    private lateinit var _assets: AssetsPath
+
+    fun assets(): AssetsPath {
+        if (!this::_assets.isInitialized)
+            _assets = AssetsPath(this, null, ASSETS__ASSETS_PROJECT_ID_FKEY.inverseKey)
+
+        return _assets;
+    }
+
+    val assets: AssetsPath
+        get(): AssetsPath = assets()
 
     private lateinit var _attentionRequests: AttentionRequestsPath
 
@@ -329,6 +338,18 @@ open class Projects(
 
     val outbox: OutboxPath
         get(): OutboxPath = outbox()
+
+    private lateinit var _personProjectPreferences: PersonProjectPreferencesPath
+
+    fun personProjectPreferences(): PersonProjectPreferencesPath {
+        if (!this::_personProjectPreferences.isInitialized)
+            _personProjectPreferences = PersonProjectPreferencesPath(this, null, PERSON_PROJECT_PREFERENCES__PERSON_PROJECT_PREFERENCES_PROJECT_ID_FKEY.inverseKey)
+
+        return _personProjectPreferences;
+    }
+
+    val personProjectPreferences: PersonProjectPreferencesPath
+        get(): PersonProjectPreferencesPath = personProjectPreferences()
 
     private lateinit var _planningPlans: PlanningPlansPath
 
@@ -522,7 +543,10 @@ open class Projects(
     val jobs: JobsPath
         get(): JobsPath = jobs()
 
-    val principals: PrincipalsPath
+    val personProjectPreferencesPrincipalIdFkey: PrincipalsPath
+        get(): PrincipalsPath = personProjectPreferences().principals()
+
+    val projectMembersPrincipalIdFkey: PrincipalsPath
         get(): PrincipalsPath = projectMembersProjectIdFkey().projectMembersPrincipalIdFkey()
     override fun getChecks(): List<Check<ProjectsRecord>> = listOf(
         Internal.createCheck(this, DSL.name("projects_access_revision_check"), "((access_revision > 0))", true),

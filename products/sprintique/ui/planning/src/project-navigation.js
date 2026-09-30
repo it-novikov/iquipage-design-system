@@ -77,6 +77,6 @@ export function mountProjectNavigation(root,{current,profile,projects,catalog=()
     if(event.detail.action==='account')onAccount?.();if(event.detail.action==='signout')onSignOut?.();if(event.detail.action==='team')onTeam?.();},{signal:events.signal});
   /** A new photo or name reaches the header without rebuilding the navigation. */
   function setProfile(next){profile={...profile,...next};const button=root.querySelector('[data-profile-avatar]');if(!button)return;button.innerHTML=profileAvatar(profile);button.setAttribute('aria-label','Профиль: '+profile.name);}
-  return {update,setRoute,setTheme,setProfile,openSwitcher:()=>void switchProject(),avatar:()=>null,readyToLeave:()=>!switching&&!dialog,
+  return {update,setRoute,setTheme,setProfile,openSwitcher:()=>void switchProject(),readyToLeave:()=>!switching&&!dialog,
     destroy(){if(disposed)return true;if(switching||dialog&&dialog.close()===false)return false;disposed=true;events.abort();root.replaceChildren();return true;}};
 }

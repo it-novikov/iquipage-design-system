@@ -29,15 +29,17 @@ export function dialog({title,description='',body='',submitLabel='',wide=false,o
   const form=el.querySelector('form'),error=el.querySelector('.map-dialog-form > .map-form-error');
   let busy=false;
   form.addEventListener('submit',async event=>{
-    event.preventDefault();if(busy||!onSubmit)return;error.hidden=true;
+    event.preventDefault();if(busy||!onSubmit)return;error.hidden=true;let cancelled=false;
     const wasPersistent=el.hasAttribute('persistent');
     try{busy=true;el.setAttribute('persistent','');form.querySelectorAll('button[type=submit],[data-close]').forEach(b=>b.disabled=true);
       const values=new FormData(form);
       const fields=[...form.querySelectorAll('input,textarea,iq-select,button:not([type=submit]):not([data-close])')].filter(x=>!x.hasAttribute('disabled'));
       fields.forEach(x=>x.setAttribute('disabled',''));
       let keep;try{keep=await onSubmit(values,form,el);}finally{fields.forEach(x=>x.removeAttribute('disabled'));}if(keep!==false){el.close(true);if(success)notify({tone:'success',message:success});}
-    }catch(e){error.textContent=e.message||'Не удалось выполнить действие.';error.hidden=false;}
-    finally{busy=false;if(!wasPersistent)el.removeAttribute('persistent');form.querySelectorAll('button[type=submit],[data-close]').forEach(b=>b.disabled=false);}
+    // A cancelled confirmation inside the submit leaves the form as it was, without an error, and focus returns to
+    // the submit button once it is enabled again (the confirmation remembered it while it was disabled).
+    }catch(e){if(e?.cancelled)cancelled=true;else{error.textContent=e.message||'Не удалось выполнить действие.';error.hidden=false;}}
+    finally{busy=false;if(!wasPersistent)el.removeAttribute('persistent');form.querySelectorAll('button[type=submit],[data-close]').forEach(b=>b.disabled=false);if(cancelled)form.querySelector('button[type=submit]')?.focus({preventScroll:true});}
   });
   el.addEventListener('iq-close',()=>el.remove(),{once:true});mount?.(el,form);
   // A replacing surface takes over in one frame: the old one closes without motion and the new one appears without it.

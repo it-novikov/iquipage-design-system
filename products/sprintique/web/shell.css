@@ -46,9 +46,6 @@
 .platform-main{position:relative}
 .host-view-incoming{position:absolute;inset:0;visibility:hidden;pointer-events:none}
 .host-view-cover{position:absolute;inset:0;z-index:1;overflow:hidden;background:var(--iq-canvas)}
-/* Project avatar in settings rows: the same rounded square as in the project switcher. */
-.iq-settings-row-media .sq-project-avatar{width:40px;height:40px;border-radius:var(--iq-radius-sm);overflow:hidden;font-size:var(--iq-type-interface-size);font-weight:600}
-.sq-project-avatar img{width:100%;height:100%;object-fit:cover;display:block}
 /* Invitation context on the sign-in screen: when the link works, and for which address. */
 .sign-in-invite{display:grid;gap:var(--iq-space-2);justify-items:start;color:var(--iq-muted);font-size:var(--iq-type-caption-size)}
 .sign-in-invite p{display:flex;align-items:center;gap:var(--iq-space-2);margin:0}

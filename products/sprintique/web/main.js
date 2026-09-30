@@ -14,6 +14,7 @@ import {dialog,input} from '../ui/src/ui.js';
 import {ProductRepository} from './repository.js';
 import {PlanningAdapter} from './planning-adapter.js';
 import {mountPlanningHost,confirmPlanningChange,applyPlanningChange,recoverPlanningAttempt} from './planning-host.js';
+import {createInRelease} from './release-scope.js';
 import {openSearch} from './search.js';
 import {acceptPendingInvitation} from './members.js';
 import {invitationFlow} from './invitation-flow.js';
@@ -29,26 +30,16 @@ registerCore();
 /** Ends the boot sequence without an error: the page is already what it should be. */
 const STOP=Symbol('stop');
 const root=document.querySelector('#app'),repository=new ProductRepository();
-let board,session,currentProject,planningAdapter,viewMode='tasks',navigating=false,avatarUrl=null,workbench=null;
+let board,session,currentProject,planningAdapter,viewMode='tasks',navigating=false,workbench=null;
 // The Workbench (docs/adr W6): served when the server enables it; its link shows for everyone with workbench_mvp.
 const featureOn=name=>!!session?.features?.includes(name);
 const workbenchOn=()=>featureOn('workbench_read_internal');
 const isWorkbenchPath=()=>location.pathname==='/workbench'||location.pathname.startsWith('/workbench/');
 const viewStates=new Map();
-async function renderAvatar(project){
-  const el=nav?.avatar();if(!el)return;
-  if(avatarUrl){URL.revokeObjectURL(avatarUrl);avatarUrl=null;}
-  el.textContent=project.name.slice(0,1);if(!project.avatarAssetId||!repository.attachmentAdapter)return;
-  try{const blob=await repository.attachmentAdapter.blob({projectId:project.id,id:project.avatarAssetId,variant:'thumb'});
-    if(!el.isConnected||currentProject.id!==project.id)return;
-    avatarUrl=URL.createObjectURL(blob);const img=new Image();img.alt='';img.src=avatarUrl;el.replaceChildren(img);
-  }catch{/* The accessible project name remains; a missing avatar must not block navigation. */}
-}
 async function refreshHeader(){
   session=await repository.initialize();const updated=session.projects.find(p=>p.id===currentProject.id);if(!updated)return;
   Object.assign(currentProject,updated);
   nav?.update(context(updated));nav?.setProfile?.(profileOf(session));
-  await renderAvatar(updated);
 }
 // ---- Product shell (UX R3 navigation) ----
 let nav=null;
@@ -129,7 +120,6 @@ async function showProject(id,mode=location.hash.startsWith('#maps')?'maps':loca
   if(!project){await previous?.destroy();root.innerHTML='<main class="host-landing"><h1>Создадим первый проект</h1><p>Задачи, обсуждения и команда в одном месте.</p><button class="iq-btn primary" data-onboard>Создать проект</button></main>';root.querySelector('[data-onboard]').onclick=()=>onboard().catch(report);return;}
   currentProject=project;viewMode=mode;
   try{localStorage.setItem(LAST_PROJECT_KEY+session.principal.id,project.id);}catch{}
-  if(avatarUrl){URL.revokeObjectURL(avatarUrl);avatarUrl=null;}
   // Capture the durable watermark before loading any view snapshot. Writes during
   // mount are replayed afterwards, while older membership events are not mistaken for new changes.
   const eventHead=await repository.client.request(`/projects/${encodeURIComponent(project.id)}/events/head`);
@@ -137,6 +127,7 @@ async function showProject(id,mode=location.hash.startsWith('#maps')?'maps':loca
   planningAdapter=new PlanningAdapter(repository,project.id);
   repository.confirmPlanningChange=intent=>confirmPlanningChange(planningAdapter,intent);
   repository.applyPlanningChange=intent=>applyPlanningChange(planningAdapter,intent);
+  repository.createInRelease=(intent,release,createInBacklog)=>createInRelease({adapter:planningAdapter,client:repository.client,intent,release,createInBacklog});
   const url=new URL(location.href);if(isWorkbenchPath()){url.pathname='/';url.search='';}url.searchParams.set('project',project.slug);history.replaceState(null,'',url);
   ensureShell(project,mode);
   await recoverPlanningAttempt(planningAdapter);
@@ -161,7 +152,6 @@ async function showProject(id,mode=location.hash.startsWith('#maps')?'maps':loca
   }
   // Content that replaces a visible outline fades in; a direct swap between sections does not animate.
   if(!swap||cover)host.firstElementChild?.classList.add('iq-reveal');
-  await renderAvatar(project);
   repository.watch(project.id,change=>{
     if(change?.roleChanged){
       if(root.querySelector('[data-access-change]'))return;

@@ -62,6 +62,10 @@ object FileInspection {
     private val OGG = "OggS".toByteArray()
     private val ID3 = "ID3".toByteArray()
     private val FTYP = "ftyp".toByteArray()
+    private val AVIF_BRANDS = setOf("avif", "avis")
+    private val BMP = "BM".toByteArray()
+    private val TIFF_LE = bytes(0x49, 0x49, 0x2A, 0x00)
+    private val TIFF_BE = bytes(0x4D, 0x4D, 0x00, 0x2A)
     private val HEIF_BRANDS = setOf("heic", "heix", "hevc", "hevx", "heim", "heis", "hevm", "hevs", "mif1", "msf1")
     private val QUICKTIME_ATOMS = setOf("moov", "mdat", "wide", "free", "skip", "pnot")
     private const val BOX_TYPE = 4
@@ -143,6 +147,28 @@ object FileInspection {
     /** A whole file in memory at once; uploads stream through [ContentCheck] instead. */
     fun inspect(name: String, bytes: ByteArray): InspectedFile =
         ContentCheck(name, FILE_LIMIT).apply { update(bytes, 0, bytes.size) }.finish()
+
+    /**
+     * The name of a picture format people commonly have but image processing does not take (a phone's HEIC, an AVIF,
+     * a GIF, SVG, BMP, TIFF), for a message that says what to do; null for anything else.
+     */
+    fun unsupportedImage(head: ByteArray): String? = when {
+        isIsoMedia(head) && head.ascii(BRAND) in AVIF_BRANDS -> "AVIF"
+        isHeif(head) -> "HEIC"
+        head.startsWith(GIF87) || head.startsWith(GIF89) -> "GIF"
+        head.startsWith(BMP) -> "BMP"
+        head.startsWith(TIFF_LE) || head.startsWith(TIFF_BE) -> "TIFF"
+        isMarkup(head.copyOf(minOf(head.size, HEAD_BYTES))) -> "SVG"
+        else -> null
+    }
+
+    /** A short name of the picture format the first bytes announce, for logs; never the content. */
+    fun imageFormat(head: ByteArray): String = when {
+        png.matches(head) -> "PNG"
+        jpeg.matches(head) -> "JPEG"
+        webp.matches(head) -> "WebP"
+        else -> unsupportedImage(head) ?: "unknown"
+    }
 
     /** Whether the bytes start like one of the three image formats the image processing accepts. */
     fun isKnownImage(bytes: ByteArray): Boolean = png.matches(bytes) || jpeg.matches(bytes) || webp.matches(bytes)

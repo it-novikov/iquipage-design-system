@@ -79,15 +79,11 @@ test('F05 map image linking is target-scoped, atomic, and immutable versions ret
   const page=await f.app.inject({method:'GET',url:path('maps/image-map/history'),headers:f.reader.headers});assert.deepEqual(page.json().items.map((r:{revision:number})=>r.revision),[2,1]);
   assert.equal((await f.app.inject({method:'GET',url:path('maps/image-map/history/1'),headers:f.bob.headers})).statusCode,404);
 });
-test('F06 square project avatar uses private S3, is atomically attached, and detachment schedules cleanup',async()=>{
-  const bytes=await sharp({create:{width:64,height:64,channels:3,background:'#c3a7cb'}}).webp().toBuffer(),id='project-avatar';
-  const reserved=await f.app.inject({method:'POST',url:path('assets'),headers:{...f.alice.headers,'idempotency-key':randomUUID()},payload:{id,name:'avatar.webp',targetType:'project-avatar',targetId:f.first.id,size:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex')}});assert.equal(reserved.statusCode,200,reserved.body);
-  assert.equal((await upload(id,bytes)).statusCode,200);
-  const update=(revision:number,avatarAssetId:string|null)=>f.app.inject({method:'PUT',url:path('profile'),headers:{...f.alice.headers,'idempotency-key':randomUUID()},payload:{baseRevision:revision,name:'С аватаром',avatarAssetId}});
-  const result=await update(1,id);assert.equal(result.statusCode,200,result.body);assert.equal((await get(id,f.reader.headers,'thumb')).statusCode,200);
-  const session=(await f.app.inject({method:'GET',url:'/api/v1/session',headers:f.reader.headers})).json();assert.equal(session.projects[0].avatarAssetId,id);
-  assert.equal((await update(2,null)).statusCode,200);assert.equal((await get(id,f.reader.headers,'thumb')).statusCode,404);
-  const jobs=(await f.admin.query("SELECT 1 FROM work.jobs WHERE project_id=$1 AND payload->>'assetId'=$2",[f.first.id,id])).rows;assert.ok(jobs.length>=2);
+test('F06 a project has no avatar: the upload target is refused before any byte is stored',async()=>{
+  const bytes=await sharp({create:{width:64,height:64,channels:3,background:'#c3a7cb'}}).webp().toBuffer();
+  const reserved=await f.app.inject({method:'POST',url:path('assets'),headers:{...f.alice.headers,'idempotency-key':randomUUID()},payload:{id:'project-avatar',name:'avatar.webp',targetType:'project-avatar',targetId:f.first.id,size:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex')}});
+  assert.equal(reserved.statusCode,400,reserved.body);
+  assert.equal((await f.admin.query("SELECT 1 FROM app.assets WHERE project_id=$1 AND id='project-avatar'",[f.first.id])).rowCount,0);
 });
 const sample=(head:number[]|string,length=64)=>{const bytes=Buffer.alloc(Math.max(length,typeof head==='string'?Buffer.byteLength(head):head.length));(typeof head==='string'?Buffer.from(head):Buffer.from(head)).copy(bytes);return bytes;};
 const iso=(brand:string)=>sample([0,0,0,0x18,...Buffer.from('ftyp'+brand)]);

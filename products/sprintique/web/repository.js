@@ -60,14 +60,21 @@ export class ProductRepository {
     return result;
   },{signal});
   }
-  async list(collection,projectId,{signal}={}){
+  /** The release a person's board shows in this project, kept on the server: an id, 'backlog', or null (running). */
+  async boardRelease(projectId,{signal}={}){return (await this.client.request(`/projects/${encodeURIComponent(projectId)}/preferences`,'GET',undefined,undefined,signal)).boardRelease??null;}
+  setBoardRelease(projectId,boardRelease){return this.client.request(`/projects/${encodeURIComponent(projectId)}/preferences`,'PUT',{boardRelease});}
+  /** `board` narrows the board: {releaseId, lifecycle} for one release, {backlog:true} for tasks without one. A
+   *  running release lists what the server admits to the board; a planned one lists its prepared, open tasks. */
+  async list(collection,projectId,{signal,board}={}){
     if(collection==='maps'){
       let cursor,result=[];do{signal?.throwIfAborted();const page=await this.client.request(`/projects/${encodeURIComponent(projectId)}/maps${cursor?'?cursor='+encodeURIComponent(cursor):''}`,'GET',undefined,undefined,signal);result.push(...page.items);cursor=page.nextCursor;}while(cursor);return result;
     }
     if(collection==='templates')return this.client.request(`/projects/${encodeURIComponent(projectId)}/map-templates`,'GET',undefined,undefined,signal);
     if(collection==='tasks'){
       let cursor,result=[];const planning=new PlanningClient(this.client,projectId);
-      do{signal?.throwIfAborted();const page=await planning.board({cursor,limit:100},signal);result.push(...page.items.map(t=>({...t,projectId,summary:true})));cursor=page.nextCursor;
+      const planned=board&&!board.backlog&&board.lifecycle==='planned',scope=!board?{}:board.backlog?{unassigned:'true'}:{releaseId:board.releaseId};
+      do{signal?.throwIfAborted();const page=planned?await planning.tasks({...scope,preparation:'ready',cursor,limit:100},signal):await planning.board({...scope,cursor,limit:100},signal);
+        result.push(...page.items.filter(t=>!planned||t.result==='open').map(t=>({...t,projectId,summary:true})));cursor=page.nextCursor;
       }while(cursor);const names=await this.memberNames(projectId,{signal});return result.map(t=>displayOwner(t,names));
     }
     if(collection==='releases')return this.cached(projectId,collection,async()=>{
@@ -129,6 +136,17 @@ export class ProductRepository {
       if(!parsed.success){const text=parsed.error.issues.map(issue=>issue.message).find(message=>/[а-яё]/i.test(message));throw new ApiError('VALIDATION',text||'Проверьте поля задачи.',422);}
       const content=parsed.data;
       const {parentId,releaseId}=content;
+      // A task created on the board in a running or planned release joins it: the host asks first (the release scope
+      // changes) and commits through planning; without the right to change the scope it goes to the backlog, as
+      // before. A finished or archived release takes the ordinary path, which refuses it.
+      if(!baseRevision&&this.createInBoard&&releaseId&&this.createInRelease){
+        const release=(await this.list('releases',record.projectId,{signal})).find(item=>item.id===releaseId&&['active','planned'].includes(item.lifecycle)&&!item.archivedAt);
+        if(release){
+          await this.createInRelease({kind:'taskCreate',taskId:record.id,task:content,createInBoard:true},release,
+            ()=>this.write('tasks',{...record,releaseId:null},0,{signal}));
+          const saved=await this.client.task(record.projectId,record.id);this.clearProjectCache(record.projectId);this.listeners.forEach(fn=>fn({collection,projectId:record.projectId,id:record.id}));return displayOwner(saved);
+        }
+      }
       const previous=baseRevision?await this.client.task(record.projectId,record.id):null;
       if(this.confirmPlanningChange&&(!baseRevision&&releaseId||previous&&(previous.parentId!==parentId||previous.releaseId!==releaseId))){
         const intent=baseRevision?{kind:'taskEdit',taskId:record.id,baseRevision,task:content}:{kind:'taskCreate',taskId:record.id,task:content,createInBoard:this.createInBoard};
