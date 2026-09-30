@@ -24,7 +24,6 @@ exports.escapeHTML = escapeHTML;
 let sequence = 0;
 const uid = () => `iq-${++sequence}`;
 exports.uid = uid;
-const isReduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches || document.documentElement.dataset.motion === 'reduced';
 const sessionValues = new Map();
 function save(key, value) {
     sessionValues.set(key, structuredClone(value));
@@ -412,9 +411,9 @@ class IqDialog extends IqElement {
                 this.close();
         });
         this.listen(this.native, 'close', () => {
-            if (this.previous?.isConnected)
-                this.previous.focus({ preventScroll: true });
-            this.emit('iq-close', {});
+            this.native.inert = false;
+            this.closing = false;
+            this.settle();
         });
         this.listen(this.native, 'click', e => {
             if (e.target.closest('[data-close]')) {
@@ -449,41 +448,71 @@ class IqDialog extends IqElement {
     }
     /** instant: no entrance motion, for a surface that replaces another in the same frame (for example one task drawer
      *  handing over to the next), so the backdrop and panel never blink. */
+    /** Enter and exit are a symmetrical pair from the tokens (MOT-08): a dialog fades on --iq-motion-standard, a drawer slides
+     *  on --iq-motion-enter. Under reduced motion the tokens are 0 and nothing animates. */
+    motionMs() {
+        const drawer = this.getAttribute('kind') === 'drawer';
+        return interaction_js_1.motionReduced() ? 0 : interaction_js_1.motionMs(drawer ? 'enter' : 'standard', drawer ? 280 : 180);
+    }
     show({ instant = false } = {}) {
         this.generation++;
         this.motion?.cancel(); this.backdropAnimation?.cancel(); this.backdropAnimation = null;
+        this.native.inert = false;
+        this.closing = false;
         if (!this.native.open) {
             this.previous = document.activeElement;
             this.native.showModal();
+            this.settled = false;
             this.emit('iq-open', {});
         }
-        if (!instant && !isReduced()) {
+        else if (this.settled) {
+            // Reopened during its own exit: the close was already announced, so the open is announced again.
+            this.settled = false;
+            this.emit('iq-open', {});
+        }
+        const duration = instant ? 0 : this.motionMs();
+        if (duration > 0) {
             // A drawer slides in opaque (a translucent panel over a dimmed page reads as a blink); the backdrop fades
             // in with it instead of darkening the page in one frame.
             const x = this.getAttribute('kind') === 'drawer';
-            this.motion = this.native.animate(x ? [{ transform: 'translateX(100%)' }, { transform: 'translateX(0)' }] : [{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'translate(0)' }], { duration: x ? 280 : 180, easing: 'cubic-bezier(.2,.7,.2,1)' });
+            this.motion = this.native.animate(x ? [{ transform: 'translateX(100%)' }, { transform: 'translateX(0)' }] : [{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'translate(0)' }], { duration, easing: interaction_js_1.motionEase('ease') });
             this.motion.finished.catch(() => { });
-            this.backdropMotion(true, x ? 280 : 180);
+            this.backdropMotion(true, duration);
         }
     }
     /** Fades the ::backdrop where the engine can animate it; elsewhere it simply appears and disappears. */
     backdropMotion(opening, duration) {
         this.backdropAnimation?.cancel(); this.backdropAnimation = null;
-        try { this.backdropAnimation = this.native.animate(opening ? [{ opacity: 0 }, { opacity: 1 }] : [{ opacity: 1 }, { opacity: 0 }], { duration, easing: opening ? 'cubic-bezier(.2,.7,.2,1)' : 'ease-in', fill: opening ? 'none' : 'forwards', pseudoElement: '::backdrop' }); this.backdropAnimation.finished.catch(() => { }); }
+        try { this.backdropAnimation = this.native.animate(opening ? [{ opacity: 0 }, { opacity: 1 }] : [{ opacity: 1 }, { opacity: 0 }], { duration, easing: interaction_js_1.motionEase(opening ? 'ease' : 'out'), fill: opening ? 'none' : 'forwards', pseudoElement: '::backdrop' }); this.backdropAnimation.finished.catch(() => { }); }
         catch { }
     }
+    /** The result of closing, once per open: focus returns to the opener and iq-close fires. */
+    settle() {
+        if (this.settled)
+            return;
+        this.settled = true;
+        if (this.previous?.isConnected)
+            this.previous.focus({ preventScroll: true });
+        this.emit('iq-close', {});
+    }
+    /** The result comes first (MOT-16): focus returns and iq-close fires immediately; the exit motion only explains it,
+     *  with the dialog inert meanwhile. A second close() during the exit is ignored. */
     close(immediate = false) {
-        if (!this.native?.open)
+        if (!this.native?.open || this.closing)
             return;
         const generation = ++this.generation;
         this.motion?.cancel(); this.backdropAnimation?.cancel(); this.backdropAnimation = null;
-        if (immediate || isReduced()) {
+        const duration = immediate ? 0 : this.motionMs();
+        if (!(duration > 0)) {
             this.native.close();
             return;
         }
+        this.closing = true;
+        this.native.inert = true;
+        this.settle();
         const x = this.getAttribute('kind') === 'drawer';
-        this.motion = this.native.animate(x ? [{ transform: 'translateX(0)' }, { transform: 'translateX(100%)' }] : [{ opacity: 1 }, { opacity: 0 }], { duration: x ? 200 : 120, easing: x ? 'cubic-bezier(.4,0,1,1)' : 'ease-out', fill: 'forwards' });
-        this.backdropMotion(false, x ? 200 : 120);
+        this.motion = this.native.animate(x ? [{ transform: 'translateX(0)' }, { transform: 'translateX(100%)' }] : [{ opacity: 1 }, { opacity: 0 }], { duration, easing: interaction_js_1.motionEase('out'), fill: 'forwards' });
+        this.backdropMotion(false, duration);
         this.motion.finished.then(() => {
             if (this.generation === generation && this.native.open) {
                 this.native.close();
@@ -496,6 +525,8 @@ class IqDialog extends IqElement {
     disconnectedCallback() {
         this.generation++;
         this.motion?.cancel();
+        this.closing = false;
+        if (this.native) this.native.inert = false;
         if (this.native?.open)
             this.native.close();
         super.disconnectedCallback();
@@ -548,7 +579,7 @@ function notify(options) {
         removed = true;
         clearTimeout(timer);
         toast.classList.add('leaving');
-        setTimeout(() => toast.remove(), isReduced() ? 0 : 150);
+        setTimeout(() => toast.remove(), interaction_js_1.motionReduced() ? 0 : interaction_js_1.motionMs('standard', 180));
     };
     const resume = () => {
         clearTimeout(timer);
@@ -978,21 +1009,32 @@ class IqMenu extends IqElement {
             return;
         this.opened = true;
         this.trigger.setAttribute('aria-expanded', 'true');
+        this.exit?.cancel(); this.exit = null;
         showPopup(this.popup);
         this.position();
         const chosen = last ? this.items().at(-1) : this.popup.querySelector('[aria-checked=true]') || this.items()[0];
         chosen?.focus({ preventScroll: true });
-        if (!isReduced()) {
-            const a = this.popup.animate([{ opacity: 0, transform: 'translateY(-4px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 150, easing: 'cubic-bezier(.2,.7,.2,1)' });
+        const duration = interaction_js_1.motionReduced() ? 0 : interaction_js_1.motionMs('fast', 120);
+        if (duration > 0) {
+            const a = this.popup.animate([{ opacity: 0, transform: 'translateY(-4px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration, easing: interaction_js_1.motionEase('ease') });
+            a.finished.catch(() => { });
             this.addCleanup(() => a.cancel());
         }
     }
+    /** Closing is immediate for the state (aria-expanded, focus); the popup fades out on the same fast token it faded in on. */
     close(focus = true) {
         if (!this.opened)
             return;
         this.opened = false;
         this.trigger?.setAttribute('aria-expanded', 'false');
-        hidePopup(this.popup);
+        const duration = interaction_js_1.motionReduced() ? 0 : interaction_js_1.motionMs('fast', 120);
+        if (duration > 0 && typeof this.popup.animate === 'function') {
+            const a = this.exit = this.popup.animate([{ opacity: 1 }, { opacity: 0 }], { duration, easing: interaction_js_1.motionEase('out'), fill: 'forwards' });
+            a.finished.then(() => { if (this.exit === a && !this.opened) hidePopup(this.popup); }).catch(() => { }).finally(() => { if (this.exit === a) this.exit = null; a.cancel(); });
+            this.addCleanup(() => { a.cancel(); if (!this.opened) hidePopup(this.popup); });
+        }
+        else
+            hidePopup(this.popup);
         if (focus && this.trigger?.isConnected)
             this.trigger.focus({ preventScroll: true });
     }
@@ -1260,15 +1302,15 @@ class IqTagPicker extends IqElement {
         if (this.locked || !this._value.includes(value)) return;
         const chip = this.querySelector(`.iq-tag[data-value="${CSS.escape(value)}"]`);
         const done = () => { if (!this._value.includes(value)) return; this._value = this._value.filter(v => v !== value); this.paint(); this.emit('iq-change', { value: this.value }); this.input?.focus({ preventScroll: true }); };
-        if (!chip || isReduced()) { done(); return; }
-        chip.setAttribute('data-leaving', ''); chip.addEventListener('animationend', done, { once: true }); setTimeout(done, 240);
+        if (!chip || interaction_js_1.motionReduced()) { done(); return; }
+        chip.setAttribute('data-leaving', ''); chip.addEventListener('animationend', done, { once: true }); setTimeout(done, interaction_js_1.motionMs('fast', 120) + 120);
     }
     paint() {
         if (!this.input) return;
         this.querySelector('.iq-control-label').textContent = this.getAttribute('label') || 'Теги';
         const byValue = new Map(this._options.map(o => [o.value, o]));
         this.querySelector('.iq-tag-picker-values').innerHTML = this._value.map(v => { const o = byValue.get(v) || { label: 'Недоступный тег', tone: 'neutral' };
-            return `<span class="iq-tag" ${tagToneAttributes(o.tone)} data-value="${escapeHTML(v)}" ${this.entering.has(v) && !isReduced() ? 'data-entering' : ''}><span>${escapeHTML(o.label)}${o.archived ? ' (в архиве)' : ''}</span>${this.locked ? '' : `<button type="button" class="iq-tag-remove" data-tag-remove="${escapeHTML(v)}" aria-label="Убрать тег ${escapeHTML(o.label)}">${icons_js_1.icon('x', 12)}</button>`}</span>`; }).join('')
+            return `<span class="iq-tag" ${tagToneAttributes(o.tone)} data-value="${escapeHTML(v)}" ${this.entering.has(v) && !interaction_js_1.motionReduced() ? 'data-entering' : ''}><span>${escapeHTML(o.label)}${o.archived ? ' (в архиве)' : ''}</span>${this.locked ? '' : `<button type="button" class="iq-tag-remove" data-tag-remove="${escapeHTML(v)}" aria-label="Убрать тег ${escapeHTML(o.label)}">${icons_js_1.icon('x', 12)}</button>`}</span>`; }).join('')
             ;
         const add = this.querySelector('.iq-tag-picker-add'); if (add) add.hidden = !(this.hasAttribute('creatable') && !this.locked);
         const chips = this.querySelectorAll('.iq-tag-picker-values > .iq-tag'); chips.forEach((chip, i) => chip.toggleAttribute('data-armed', !!this.armed && i === chips.length - 1));

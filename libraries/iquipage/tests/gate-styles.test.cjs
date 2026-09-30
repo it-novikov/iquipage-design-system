@@ -10,7 +10,8 @@ test('the scanner sees every stylesheet and every metric', async () => {
   assert.ok(files.includes('foundation.css') && files.length >= 11, files.join(','));
   const found = scan(files), summary = summarize(found);
   assert.deepEqual(Object.keys(summary), Object.keys(METRICS));
-  assert.ok(summary['font-size-px'].total > 0 && summary['font-size-px'].files['foundation.css'] > 0, 'foundation.css has px font sizes; the scanner is broken if it finds none');
+  assert.ok(summary['radius-raw-px'].total > 0 && summary['radius-raw-px'].files['foundation.css'] > 0, 'foundation.css has raw radii; the scanner is broken if it finds none');
+  assert.equal(summary['font-size-px'].total, 0, 'wave 1: every font size is a token or rem (scripts/codemods/type-scale.mjs)');
   for (const h of found['font-size-below-12px']) assert.match(h.declaration, /font(-size)?\s*:/, h.declaration);
 });
 

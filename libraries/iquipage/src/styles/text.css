@@ -1,0 +1,19 @@
+/* Wave 1 typography (TYP-09, TYP-14, TYP-16, TYP-18, TYP-19). Loaded after the component sheets and before focus.css.
+   The type scale is rem at a 16px root (tokens/semantic.json), so the browser's font-size preference scales text;
+   spacing, controls and radii stay in px. Sizes in the sheets are produced by scripts/codemods/type-scale.mjs. */
+html{font-size:100%;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+/* Russian prose hyphenates instead of breaking a word anywhere (Chromium, Safari and Firefox ship the ru dictionary; template.html and the products set lang="ru"). */
+:lang(ru) .md-document,:lang(ru) .md-preview,:lang(ru) .iq-card p,:lang(ru) .comment-body,:lang(ru) p.iq-message-text,:lang(ru) h1,:lang(ru) h2,:lang(ru) h3{hyphens:auto;-webkit-hyphens:auto;hyphenate-limit-chars:6 3 3}
+/* Reading measure for documents: the body step, its line height and a 68-character line; the container decides the alignment. */
+.md-document{font-size:var(--iq-type-body-size);line-height:var(--iq-type-body-lineHeight);max-width:68ch}
+/* Utilities: the four existing roles restated from their tokens, and the roles that had no class: every --iq-type-* token now has a consumer. */
+.type-body{font-size:var(--iq-type-body-size);font-weight:var(--iq-type-body-weight);line-height:var(--iq-type-body-lineHeight);letter-spacing:var(--iq-type-body-letterSpacing)}
+.type-interface{font-size:var(--iq-type-interface-size);font-weight:var(--iq-type-interface-weight);line-height:var(--iq-type-interface-lineHeight);letter-spacing:var(--iq-type-interface-letterSpacing)}
+.type-label{font-size:var(--iq-type-label-size);font-weight:var(--iq-type-label-weight);line-height:var(--iq-type-label-lineHeight);letter-spacing:var(--iq-type-label-letterSpacing)}
+.type-caption{font-size:var(--iq-type-caption-size);font-weight:var(--iq-type-caption-weight);line-height:var(--iq-type-caption-lineHeight);letter-spacing:var(--iq-type-caption-letterSpacing)}
+.type-heading1{font-size:var(--iq-type-heading1-size);font-weight:var(--iq-type-heading1-weight);line-height:var(--iq-type-heading1-lineHeight);letter-spacing:var(--iq-type-heading1-letterSpacing)}
+.type-heading3{font-size:var(--iq-type-heading3-size);font-weight:var(--iq-type-heading3-weight);line-height:var(--iq-type-heading3-lineHeight);letter-spacing:var(--iq-type-heading3-letterSpacing)}
+.type-lead{font-size:var(--iq-type-lead-size);font-weight:var(--iq-type-lead-weight);line-height:var(--iq-type-lead-lineHeight);letter-spacing:var(--iq-type-lead-letterSpacing)}
+.type-title{font-size:var(--iq-type-title-size);font-weight:var(--iq-type-title-weight);line-height:var(--iq-type-title-lineHeight);letter-spacing:var(--iq-type-title-letterSpacing)}
+/* Meta is the uppercase kicker role: sentence case in the source, uppercase and open tracking in CSS. */
+.type-meta{font-size:var(--iq-type-meta-size);font-weight:var(--iq-type-meta-weight);line-height:var(--iq-type-meta-lineHeight);letter-spacing:var(--iq-type-meta-letterSpacing);text-transform:uppercase}

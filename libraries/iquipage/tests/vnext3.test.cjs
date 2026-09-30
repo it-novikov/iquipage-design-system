@@ -20,7 +20,7 @@ test('tag tones and the selectable tag are public CSS variants', () => {
 });
 
 test('the type scale is a token contract, including meta and title steps', () => {
-  const steps = { display: '64px', heading1: '44px', heading2: '32px', heading3: '22px', lead: '20px', title: '18px', body: '16px', interface: '14px', label: '13px', caption: '12px', meta: '11px' };
+  const steps = { display: '4rem', heading1: '2.75rem', heading2: '2rem', heading3: '1.375rem', lead: '1.25rem', title: '1.125rem', body: '1rem', interface: '.875rem', label: '.8125rem', caption: '.75rem', meta: '.75rem' }; // rem at a 16px root since wave 1 (TYP-03); meta is the 12px floor (TYP-04)
   for (const [step, size] of Object.entries(steps)) {
     assert.equal(tokens.base[`type-${step}-size`], size, step);
     assert.ok(tokens.base[`type-${step}-weight`], step + ' weight');

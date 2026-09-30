@@ -1,5 +1,5 @@
 /** Supported core browser entry. Does not register graph, roadmap, crop, or whiteboard. */
-export declare const version:'0.6.0-vnext.23';
+export declare const version:'0.6.0-vnext.24';
 export declare function registerCore():void;
 export declare function registerComponents():void;
 export declare function registerDateFields():void;
@@ -16,7 +16,18 @@ export declare function escapeHTML(value:unknown):string;
 export declare function tagToneAttributes(tone:string):string;
 export interface AvatarPerson {name:string;id?:string;}
 export declare function notify(options:{message:string;description?:string;tone?:'info'|'success'|'warning'|'danger';duration?:number;action?:{label:string;run:()=>void}}):void;
+/** true when the OS asks for reduced motion or <html data-motion="reduced"> is set; CSS zeroes the motion tokens on the same two signals. */
 export declare function motionReduced():boolean;
+/** A motion token in milliseconds: motionMs('enter') reads --iq-motion-enter, a '--' name is read as is. 0 under reduced motion. */
+export declare function motionMs(name:'instant'|'fast'|'standard'|'enter'|'layout'|'scene'|`--${string}`,fallback?:number):number;
+/** An easing token for element.animate(): 'ease' → --iq-ease, 'spring' → --iq-ease-spring, 'out' → --iq-ease-out (exits). */
+export declare function motionEase(name?:'ease'|'spring'|'out'):string;
+/** 'auto' under reduced motion, otherwise 'smooth' — for scrollIntoView/scrollTo behavior. */
+export declare function scrollBehavior():'auto'|'smooth';
+/** Runs fn with every transition suppressed for the frame in which its change lands (theme switches). */
+export declare function withoutTransitions<T>(fn:()=>T):T;
+/** Loading policy: .iq-loading + aria-busy now, .iq-loading-slow with a status note after --iq-loading-slow. Returns the function that ends the state. */
+export declare function bindLoading(el:HTMLElement,options?:{slowAfter?:number;note?:string}):()=>void;
 export declare function transition(el:HTMLElement,frames:Keyframe[],duration?:number,delay?:number):Animation|undefined;
 export declare function autosize(input:HTMLTextAreaElement):void;
 export declare function bindAutosize(root:ParentNode,signal?:AbortSignal):void;
@@ -33,6 +44,8 @@ export interface PluralForms {one:string;few?:string;many?:string;other?:string;
 export declare function plural(n:number,forms:PluralForms,locale?:string):string;
 /** The formatted number and its form: count(5,{one:'задача',few:'задачи',many:'задач'}) === '5 задач'. */
 export declare function count(n:number,forms:PluralForms,locale?:string):string;
+/** Russian micro-typography: non-breaking spaces after one- and two-letter words, before «—», between a number and its unit and after «№». Idempotent. */
+export declare function typo(text:string):string;
 export declare class IqDateField extends HTMLElement {value:string;readonly timeValue:string;disabled:boolean;open():void;close(restore?:boolean):void;}
 export declare class IqTime extends HTMLElement {value:string;hourCycle:12|24;}
 export interface MarkdownEditorAction {id:string;label:string;pressed:boolean;disabled?:boolean;tone?:'neutral'|'warning';hint?:string;/** 'chip' renders a compact pressed toggle (chat composers); 'check' a checkbox with a hint. */appearance?:'check'|'chip';icon?:string;}
