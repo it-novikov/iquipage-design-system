@@ -75,6 +75,10 @@ function placed(env:WorkbenchEnvelope){
 }
 const where=(env:WorkbenchEnvelope,taskId:string)=>placed(env).filter(x=>x.row.taskId===taskId).map(x=>x.place);
 const today=()=>new Date().toISOString().slice(0,10);
+/** «Просмотрено» on one task: its news is seen, the task returns to its group. */
+async function markSeen(p:string,t:string,user:User=f.alice){
+  const state=await personal(p,t,user);return ok(call('PUT',`${base(p)}/tasks/${t}/personal/seen`,{baseRevision:state.seenRevision,sequence:state.latestSequence},user));
+}
 const inDays=(n:number)=>new Date(Date.now()+n*86400000).toISOString().slice(0,10);
 
 test('W01 inclusion matrix: explicit relations only, one task one row, counts equal rows',async()=>{
@@ -106,7 +110,7 @@ test('W01 inclusion matrix: explicit relations only, one task one row, counts eq
   assert.deepEqual(where(env,'wait'),['waiting'],'assigning while participating is "Жду"');
   assert.deepEqual(where(env,'notmine'),[],'another person\'s task without a relation');
   assert.deepEqual(where(env,'left'),[],'leaving is one command');
-  assert.deepEqual(where(env,'followed'),['joined'],'"Участвую" outranks news; the news stays on the row');
+  assert.deepEqual(where(env,'followed'),['updates'],'unseen news lifts a task from "Участвую" into "Изменилось"');
   assert.deepEqual(where(env,'finished'),['updates'],'done work leaves "Участвую"; its completion is news');
   assert.deepEqual(where(env,'mine-joined'),['active'],'assigned active work is "В работе" even when I participate');
   assert.deepEqual(where(env,'own'),['joined'],'own edits are not news');
@@ -121,16 +125,18 @@ test('W01 inclusion matrix: explicit relations only, one task one row, counts eq
   assert.equal(req.statusCategory,'todo');assert.equal(row('active').statusCategory,'active');
   assert.equal('workspaceName' in req,false);
   const followed=row('followed');
-  assert.equal(followed.group,'joined');assert.equal(followed.primaryReason.code,'participating');
-  const news=followed.secondaryReasons.find(r=>r.code==='followed_status_changed')!;
-  assert.equal(news.text,'Вы участвуете: статус «В работе»');assert.equal(news.actor?.id,f.bob.id);
+  assert.equal(followed.section,'updates');assert.equal(followed.group,null);
+  assert.equal(followed.primaryReason.code,'followed_status_changed');assert.equal(followed.primaryReason.text,'Вы участвуете: статус «В работе»');
+  assert.equal(followed.primaryReason.actor?.id,f.bob.id);assert.ok(followed.secondaryReasons.some(r=>r.code==='participating'));
   // The change is drawable as "было → стало" without another request.
   assert.equal(followed.updates!.count,1);
   assert.deepEqual({...followed.updates!.latest!,at:undefined,sequence:undefined},
     {kind:'status',detail:{from:'ready',to:'in_progress'},actor:{id:f.bob.id,name:'Борис'},actorName:'Борис',at:undefined,sequence:undefined});
   assert.equal(followed.updates!.latest!.sequence,followed.updates!.latestSequence);
+  // Once seen, it returns to «Участвую».
+  await markSeen(p,'followed');assert.deepEqual(where(await envelope(f.alice,p),'followed'),['joined']);
   assert.equal(followed.personal.participating,true);assert.equal(typeof followed.personal.rank,'number');
-  assert.ok(followed.statusEnteredAt);assert.ok(followed.allowedActions.includes('rankUp'));
+  assert.ok(followed.statusEnteredAt);assert.ok(!followed.allowedActions.includes('rankUp'),'order is set only in «Участвую»');
   assert.equal(row('finished').primaryReason.text,'Вы участвуете: работа завершена');assert.equal(row('finished').statusCategory,'done');
   assert.equal(row('mine-joined').personal.participating,true);assert.ok(!row('mine-joined').allowedActions.includes('rankUp'));
   assert.equal(row('auto').primaryReason.text,'Вы участвуете');
@@ -140,7 +146,7 @@ test('W01 inclusion matrix: explicit relations only, one task one row, counts eq
   assert.equal(action!.count,action!.items!.length);assert.equal(updates!.count,updates!.items!.length);
   for(const group of current!.groups!)assert.equal(group.count,group.items.length,group.key);
   assert.deepEqual(current!.groups!.map(g=>g.key),['joined','active','waiting']);
-  assert.equal(current!.groups!.find(g=>g.key==='joined')!.count,4);assert.equal(updates!.count,1);
+  assert.equal(current!.groups!.find(g=>g.key==='joined')!.count,3);assert.equal(updates!.count,2);
   assert.equal(current!.count,current!.groups!.reduce((sum,g)=>sum+g.count,0));
   assert.equal(current!.backlogCount,1);
   const keys=placed(env).map(x=>x.row.key);assert.equal(new Set(keys).size,keys.length);
@@ -351,21 +357,24 @@ test('W07 "Жду": assigning while participating; check-back; reassignment and 
   assert.ok(row.row.waiting!.assignedAt);
   await ok(checkBack(p,'d',inDays(3)));
   row=placed(await envelope(f.alice,p)).find(x=>x.row.taskId==='d')!;assert.equal(row.row.waiting!.checkBackAt,inDays(3));
-  // Someone else's assignment while I participate is not my delegation: the task stays "Участвую" with the news.
+  // Someone else's assignment while I participate is not my delegation: news, then back to "Участвую".
   await task(p,'theirs',{},f.bob);await participate(p,'theirs');await edit(p,'theirs',{ownerId:carol.id},f.bob);
   const theirs=placed(await envelope(f.alice,p)).find(x=>x.row.taskId==='theirs')!;
-  assert.equal(theirs.place,'joined');assert.equal(theirs.row.waiting,null);
+  assert.equal(theirs.place,'updates');assert.equal(theirs.row.waiting,null);
+  await markSeen(p,'theirs');assert.deepEqual(where(await envelope(f.alice,p),'theirs'),['joined']);
   assert.deepEqual(theirs.row.updates!.latest!.detail,{from:null,to:{id:carol.id,name:'Карина'}});
   // Assigning to myself is my active work, not waiting.
   await task(p,'self');await edit(p,'self',{ownerId:f.alice.id,status:'in_progress'});
   assert.deepEqual(where(await envelope(f.alice,p),'self'),['active']);
-  // Reassignment and completion are named; the control stays until the person leaves.
+  // Reassignment and completion are news first, then named on the "Жду" row; the control stays until the person leaves.
   await edit(p,'d',{ownerId:carol.id},f.bob);
-  row=placed(await envelope(f.alice,p)).find(x=>x.row.taskId==='d')!;
+  assert.deepEqual(where(await envelope(f.alice,p),'d'),['updates'],'a colleague\'s reassignment lifts it into «Изменилось»');
+  await markSeen(p,'d');
+  row=placed(await envelope(f.alice,p)).find(x=>x.row.taskId==='d')!;assert.equal(row.place,'waiting');
   assert.equal(row.row.primaryReason.code,'delegated_reassigned');assert.equal(row.row.primaryReason.text,'Поручено: Борис, сейчас исполняет Карина');
   assert.deepEqual({...row.row.waiting!,assignedAt:undefined},{expectedAssignee:{id:f.bob.id,name:'Борис'},expectedAssigneeLeft:false,
     ownerNow:{id:carol.id,name:'Карина'},checkBackAt:inDays(3),done:false,doneAt:null,assignedAt:undefined});
-  await edit(p,'d',{status:'ready_for_release'},carol);
+  await edit(p,'d',{status:'ready_for_release'},carol);await markSeen(p,'d');
   row=placed(await envelope(f.alice,p)).find(x=>x.row.taskId==='d')!;
   assert.equal(row.place,'waiting');assert.equal(row.row.primaryReason.code,'delegated_completed');assert.equal(row.row.waiting!.done,true);
   await participate(p,'d',false);
@@ -391,9 +400,9 @@ test('W08 requests follow their source: thread and approval resolution, membersh
   await ok(call('PATCH',`${base(p)}/threads/question/resolution`,{resolved:true,baseRevision:thread.revision}));
   const after=(await personal(p,'q')).requests.find((r:any)=>r.id===request.id);assert.equal(after.status,'resolved');
   assert.deepEqual(where(await envelope(f.alice,p),'q'),[]);
-  // The requester learns about it through the news of the task: on its "Участвую" row (Bob is its author).
-  const bobRow=placed(await envelope(f.bob,p)).find(x=>x.row.taskId==='q')!;assert.equal(bobRow.place,'joined');
-  assert.ok(bobRow.row.secondaryReasons.some(r=>r.code==='request_resolved'));
+  // The requester learns about it in «Изменилось» (Bob is its author and participates).
+  const bobRow=placed(await envelope(f.bob,p)).find(x=>x.row.taskId==='q')!;assert.equal(bobRow.place,'updates');
+  assert.equal(bobRow.row.primaryReason.code,'request_resolved');
   assert.deepEqual(bobRow.row.updates!.latest!.detail,{change:'resolved',requestKind:'answer'});
   // An approval source: a decision resolves the request made on it.
   const approval=randomUUID();
@@ -411,9 +420,9 @@ test('W08 requests follow their source: thread and approval resolution, membersh
   const orphan=(await personal(p,'q')).requests.find((r:any)=>r.id===toCarol.id);assert.equal(orphan.status,'orphaned');
   assert.equal(placed(await envelope(carol,p)).length,0);
   const bobUpdate=placed(await envelope(f.bob,p)).find(x=>x.row.taskId==='q')!;
-  const orphaned=bobUpdate.row.secondaryReasons.find(r=>r.code==='request_orphaned')!;
-  assert.ok(orphaned.text.endsWith(': адресат больше не в проекте'));
-  // Without participation the requester's own request is the relation: its news is "Изменилось".
+  assert.equal(bobUpdate.place,'updates');assert.equal(bobUpdate.row.primaryReason.code,'request_orphaned');
+  assert.ok(bobUpdate.row.primaryReason.text.endsWith(': адресат больше не в проекте'));
+  // Without participation the requester's own request is the relation: its news is still "Изменилось".
   await participate(p,'q',false,f.bob);
   const onlyRequest=placed(await envelope(f.bob,p)).find(x=>x.row.taskId==='q')!;
   assert.equal(onlyRequest.place,'updates');assert.equal(onlyRequest.row.primaryReason.code,'request_orphaned');
@@ -535,8 +544,12 @@ test('W11 blockers: my work blocked, delegated work blocked, events on both ends
   assert.equal(mine.place,'active');assert.equal(mine.row.primaryReason.code,'your_work_blocked');
   const blockerKey=(await ok<any>(call('GET',`${base(p)}/tasks/blocker`))).displayId;
   assert.equal(mine.row.primaryReason.text,`Назначено вам, заблокирована задачей ${blockerKey}`);assert.equal(mine.row.blockedBy?.displayId,blockerKey);
-  const deleg=placed(env).find(x=>x.row.taskId==='deleg')!;
+  // The new blocker is news first; seen, the "Жду" row still names the open blocker.
+  assert.deepEqual(where(env,'deleg'),['updates']);
+  await markSeen(p,'deleg');
+  const deleg=placed(await envelope(f.alice,p)).find(x=>x.row.taskId==='deleg')!;
   assert.equal(deleg.place,'waiting');assert.equal(deleg.row.primaryReason.code,'delegated_blocked');
+  assert.equal(deleg.row.primaryReason.text,`Поручено: Борис, заблокирована задачей ${(await ok<any>(call('GET',`${base(p)}/tasks/blocker`))).displayId}`);
   const events=(await f.admin.query<{task_id:string;role:string;other:string}>("SELECT task_id,detail->>'role' AS role,detail->>'other' AS other FROM app.task_activity WHERE project_id=$1 AND kind='dependency' ORDER BY sequence",[p])).rows;
   assert.deepEqual(events.slice(0,2),[{task_id:'mine',role:'blocked_by',other:'blocker'},{task_id:'blocker',role:'blocks',other:'mine'}]);
   assert.ok(!where(await envelope(f.bob,p),'blocker').includes('action'),'blocking someone is not an action without a request');
@@ -554,14 +567,14 @@ test('W12 own noise: edits by my own agent are not news, a colleague\'s are',asy
   assert.equal(quiet.place,'joined');assert.equal(quiet.row.updates,null,'my agent\'s edits are my own noise');
   await edit(p,'watched',{status:'review'},f.bob);
   const row=placed(await envelope(f.alice,p)).find(x=>x.row.taskId==='watched')!;
-  assert.equal(row.place,'joined');assert.equal(row.row.updates!.count,1);assert.equal(row.row.updates!.latest!.actor?.id,f.bob.id);
+  assert.equal(row.place,'updates');assert.equal(row.row.updates!.count,1);assert.equal(row.row.updates!.latest!.actor?.id,f.bob.id);
 });
 
 test('W13 discussions reach participants: a new message, then the question resolved',async()=>{
   const p=await project([[f.bob,'editor']]);
   await task(p,'discussed');
   const thread=await ok<any>(call('POST',`${base(p)}/tasks/discussed/threads`,{id:'q1',messageId:'m1',body:'Кто берёт?',requiresResolution:true},f.bob));
-  const news=async()=>placed(await envelope(f.alice,p)).find(x=>x.row.taskId==='discussed')!.row.secondaryReasons.find(r=>r.code==='followed_thread_changed');
+  const news=async()=>{const x=placed(await envelope(f.alice,p)).find(x=>x.row.taskId==='discussed')!;return x.place==='updates'?x.row.primaryReason:undefined;};
   assert.equal((await news())?.text,'Вы участвуете: новое сообщение в обсуждении');
   const state=await personal(p,'discussed');
   await ok(call('PUT',`${base(p)}/tasks/discussed/personal/seen`,{baseRevision:state.seenRevision,sequence:state.latestSequence}));
@@ -628,7 +641,7 @@ test('W16 review R2 F2/F8: "Жду" follows my latest assignment, including my a
   const p=await project([[f.bob,'editor'],[carol,'editor'],[dan,'editor']]);
   // I delegate, then take the task myself; a colleague then hands it on: that is no longer my delegation.
   await task(p,'took');await edit(p,'took',{ownerId:f.bob.id});await edit(p,'took',{ownerId:f.alice.id});
-  await edit(p,'took',{ownerId:dan.id},carol);
+  await edit(p,'took',{ownerId:dan.id},carol);await markSeen(p,'took');
   let row=placed(await envelope(f.alice,p)).find(x=>x.row.taskId==='took')!;
   assert.equal(row.place,'joined');assert.equal(row.row.waiting,null);
   assert.equal((await personal(p,'took')).delegated,null);
@@ -637,7 +650,7 @@ test('W16 review R2 F2/F8: "Жду" follows my latest assignment, including my a
   assert.deepEqual(where(await envelope(f.alice,p),'unset'),['joined']);
   assert.equal((await checkBack(p,'unset',inDays(2))).json().code,'NOT_WAITING');
   // A colleague removes the owner of what I delegated: still mine to wait for, "исполнитель снят".
-  await task(p,'removed');await edit(p,'removed',{ownerId:f.bob.id});await edit(p,'removed',{ownerId:null},carol);
+  await task(p,'removed');await edit(p,'removed',{ownerId:f.bob.id});await edit(p,'removed',{ownerId:null},carol);await markSeen(p,'removed');
   row=placed(await envelope(f.alice,p)).find(x=>x.row.taskId==='removed')!;
   assert.equal(row.place,'waiting');assert.equal(row.row.primaryReason.text,'Поручено: Борис, исполнитель снят');assert.equal(row.row.waiting!.ownerNow,null);
   // My own agent assigns on my behalf: that is my delegation.
@@ -755,17 +768,16 @@ test('W21 round 2: "Принять результат" of delegated done work, i
   const notDone=await call('PUT',`${base(p)}/tasks/r/personal/accept`,{baseRevision:early.acceptRevision,accepted:true});
   assert.equal(notDone.statusCode,422);assert.equal(notDone.json().code,'NOT_DONE');
   await edit(p,'r',{status:'ready_for_release'},f.bob);
+  assert.deepEqual(where(await envelope(f.alice,p),'r'),['updates'],'the completion is news first');
+  await markSeen(p,'r');
   let row=placed(await envelope(f.alice,p)).find(x=>x.row.taskId==='r')!;
   assert.equal(row.place,'waiting');assert.equal(row.row.waiting!.done,true);assert.ok(row.row.waiting!.doneAt);
   assert.ok(row.row.allowedActions.includes('acceptResult'));
   const state=await personal(p,'r');
   const accepted=await ok<any>(call('PUT',`${base(p)}/tasks/r/personal/accept`,{baseRevision:state.acceptRevision,accepted:true}));
   assert.equal(accepted.accepted,true);
-  // Accepted done work leaves "Жду"; its completion stays news until seen (the interface marks it seen with the accept).
-  assert.deepEqual(where(await envelope(f.alice,p),'r'),['updates']);
-  const seen=await personal(p,'r');
-  await ok(call('PUT',`${base(p)}/tasks/r/personal/seen`,{baseRevision:seen.seenRevision,sequence:seen.latestSequence}));
-  assert.deepEqual(where(await envelope(f.alice,p),'r'),[],'and done work is not "Участвую"');
+  // Accepted done work leaves "Жду", and done work is not "Участвую".
+  assert.deepEqual(where(await envelope(f.alice,p),'r'),[]);
   const after=await personal(p,'r');assert.equal(after.participating,true,'participation stays');assert.equal(after.delegated.accepted,true);
   // Undo from the toast.
   await ok(call('PUT',`${base(p)}/tasks/r/personal/accept`,{baseRevision:after.acceptRevision,accepted:false}));
@@ -773,7 +785,7 @@ test('W21 round 2: "Принять результат" of delegated done work, i
   // Accept again, then the task is reopened: it is waited for again without a command.
   const again=await personal(p,'r');
   await ok(call('PUT',`${base(p)}/tasks/r/personal/accept`,{baseRevision:again.acceptRevision,accepted:true}));
-  await edit(p,'r',{status:'in_progress'},f.bob);
+  await edit(p,'r',{status:'in_progress'},f.bob);await markSeen(p,'r');
   assert.deepEqual(where(await envelope(f.alice,p),'r'),['waiting']);
   // Nothing of it reaches the shared log.
   const shared=await f.admin.query("SELECT count(*)::int AS n FROM app.audit_events WHERE project_id=$1 AND action LIKE '%accept%'",[p]);
@@ -783,7 +795,8 @@ test('W21 round 2: "Принять результат" of delegated done work, i
 test('W22 round 2: «Просмотрено» for all of "Изменилось" marks only what was seen, never later news',async()=>{
   const p=await project([[f.bob,'editor']]);
   for(const id of ['u1','u2']){await task(p,id,{},f.bob);await participate(p,id);await edit(p,id,{status:'ready_for_release'},f.bob);}
-  await task(p,'lane',{},f.bob);await participate(p,'lane');await edit(p,'lane',{status:'in_progress'},f.bob);
+  // Active work keeps its place: its news stays on its row.
+  await task(p,'lane',{status:'in_progress',ownerId:f.alice.id},f.bob);await participate(p,'lane');await edit(p,'lane',{due:inDays(3)},f.bob);
   let env=await envelope(f.alice,p);
   assert.equal(env.sections[2]!.count,2);
   const before=env.generatedAt;
@@ -796,7 +809,8 @@ test('W22 round 2: «Просмотрено» for all of "Изменилось" 
   assert.deepEqual(where(env,'u1'),[]);
   const u2=placed(env).find(x=>x.row.taskId==='u2')!;assert.equal(u2.place,'updates');assert.equal(u2.row.updates!.count,1);
   assert.equal(u2.row.updates!.latest!.kind,'due');
-  assert.equal(placed(env).find(x=>x.row.taskId==='lane')!.row.updates!.count,1,'news on a lane row is not part of «Изменилось»');
+  assert.equal(placed(env).find(x=>x.row.taskId==='lane')!.row.updates!.count,1,'news on an active row is not part of «Изменилось»');
+  assert.deepEqual(where(env,'lane'),['active']);
   // A retry is harmless; another person's news is untouched.
   assert.equal((await ok<any>(call('POST','/api/v1/workbench/seen',{before,projects:[p]}))).marked,0);
   assert.equal((await call('POST','/api/v1/workbench/seen',{before:'yesterday'})).statusCode,400);

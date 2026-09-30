@@ -83,6 +83,7 @@ object Reasons {
         ownerName: String?,
         done: Boolean,
         latest: Activity?,
+        blockedBy: String? = null,
     ): Reason {
         // Names are not declined in Russian here, so the person follows a colon: "Поручено: Анна, работа завершена".
         val who = if (expectedIsMember && expectedName != null) "Поручено: $expectedName" else "Вы ждёте результат"
@@ -106,6 +107,9 @@ object Reasons {
                     else -> "$who, сейчас исполняет $ownerName"
                 },
             )
+
+            // An open blocker of the delegated work, whether or not its news was seen.
+            blockedBy != null -> Reason("delegated_blocked", "$who, заблокирована задачей $blockedBy")
 
             latest?.isNewBlocker() == true ->
                 Reason("delegated_blocked", "$who, появилась блокировка", latest.actorId, latest.actorName, latest.at)

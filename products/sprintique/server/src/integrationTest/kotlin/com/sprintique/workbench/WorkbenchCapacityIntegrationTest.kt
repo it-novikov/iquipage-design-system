@@ -58,12 +58,12 @@ class WorkbenchCapacityIntegrationTest {
 
         @Suppress("UNCHECKED_CAST")
         val groups = (current["groups"] as List<Map<String, Any?>>).associate { it["key"] to it["count"] }
-        // Precedence action > joined > active > waiting > updates: 40 active (5 of them also participating), 10
-        // delegated, 40 open participating tasks (20 of them with news on the row), 10 done participating tasks with
-        // news in "Изменилось".
-        assertThat(groups).isEqualTo(mapOf("joined" to 40L, "active" to 40L, "waiting" to 10L))
+        // Precedence action > active > updates > joined > waiting: 40 active (5 of them also participating), 10
+        // delegated, 40 open participating tasks of which 20 have unseen news and are lifted into "Изменилось"
+        // together with the 10 done participating tasks with news.
+        assertThat(groups).isEqualTo(mapOf("joined" to 20L, "active" to 40L, "waiting" to 10L))
         assertThat(current["backlogCount"]).isEqualTo(60L)
-        assertThat(updates["count"]).isEqualTo(10L)
+        assertThat(updates["count"]).isEqualTo(30L)
         assertThat(rows.size).isLessThanOrEqualTo(5 * Workbench.DEFAULT_LIMIT)
     }
 
@@ -110,7 +110,8 @@ class WorkbenchCapacityIntegrationTest {
 
             @Suppress("UNCHECKED_CAST")
             val groups = (current["groups"] as List<Map<String, Any?>>).associate { it["key"] to it["count"] }
-            assertThat(groups).isEqualTo(mapOf("joined" to 1800L, "active" to 0L, "waiting" to 200L))
+            // Two tasks per project have their whole history unseen: they are in "Изменилось".
+            assertThat(groups).isEqualTo(mapOf("joined" to 1760L, "active" to 0L, "waiting" to 200L))
             (System.nanoTime() - started) / 1_000_000
         }
         // Well inside the 5 s statement budget (docs/adr W4 §6), warm.

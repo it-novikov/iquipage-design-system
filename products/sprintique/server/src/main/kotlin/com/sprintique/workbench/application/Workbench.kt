@@ -13,12 +13,12 @@ data class WorkbenchParts(val requests: Boolean, val personal: Boolean, val wait
 /**
  * The Workbench "Сейчас" projection (docs/adr W4): one set-based statement over the caller's authorized projects,
  * so counts and first pages share one snapshot. Candidate reasons are deduplicated per task before any page is cut:
- * `action > joined > active > waiting > updates` (owner decision 2026-09-30, docs/workbench/design-v2.md §7). The
+ * `action > active > updates > joined > waiting` (owner decisions 2026-09-30, docs/workbench/design-v2.md §11). The
  * current-work groups are disjoint by definition: "Участвую" (joined) is open work the person participates in, does
  * not own and did not delegate; an assigned active task is "В работе" whether or not the person also participates;
- * "Жду" is participating work the person assigned to someone else. News on a task placed higher stays on its row
- * (`updates`); "Изменилось" holds news on tasks without a current place. Nothing is filtered after SQL; row
- * security applies underneath.
+ * "Жду" is participating work the person assigned to someone else. Unseen meaningful news lifts a joined or waiting
+ * task into "Изменилось"; once seen, the task returns to its group. A request and active work keep their place and
+ * carry their news on the row (`updates`). Nothing is filtered after SQL; row security applies underneath.
  */
 object Workbench {
     const val PROJECT_LIMIT = 1000
@@ -402,16 +402,16 @@ object Workbench {
           WHERE agg.n > 0
         ), candidates AS (
           SELECT project_id, task_id, 1 AS weight FROM lead_request
-          UNION ALL SELECT project_id, task_id, 2 FROM joined
-          UNION ALL SELECT project_id, task_id, 3 FROM assigned
-          UNION ALL SELECT project_id, task_id, 4 FROM delegated
-          UNION ALL SELECT project_id, task_id, 5 FROM unseen
+          UNION ALL SELECT project_id, task_id, 2 FROM assigned
+          UNION ALL SELECT project_id, task_id, 3 FROM unseen
+          UNION ALL SELECT project_id, task_id, 4 FROM joined
+          UNION ALL SELECT project_id, task_id, 5 FROM delegated
         ), placed AS (
           $placed
         ), shaped AS (
           SELECT pl.project_id, pl.task_id, pl.weights,
-                 CASE pl.weight WHEN 0 THEN 'snoozed' WHEN 1 THEN 'action' WHEN 2 THEN 'joined' WHEN 3 THEN 'active'
-                   WHEN 4 THEN 'waiting' WHEN 5 THEN 'updates' ELSE 'backlog' END AS bucket,
+                 CASE pl.weight WHEN 0 THEN 'snoozed' WHEN 1 THEN 'action' WHEN 2 THEN 'active' WHEN 3 THEN 'updates'
+                   WHEN 4 THEN 'joined' WHEN 5 THEN 'waiting' ELSE 'backlog' END AS bucket,
                  t.title, t.status, t.type, t.priority, t.revision AS task_revision, t.owner_id,
                  (t.status = 'ready_for_release' OR t.result = 'accepted') AS done, a.role AS project_role,
                  to_char(t.due, 'YYYY-MM-DD') AS due, to_char(t.planned_start, 'YYYY-MM-DD') AS planned_start,

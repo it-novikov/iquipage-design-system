@@ -279,6 +279,7 @@ internal object WorkbenchRows {
         row.stringOrNull("owner_name"),
         row.boolean("done"),
         latest,
+        row.stringOrNull("blocker_display_id"),
     )
 
     private fun activeReason(row: Row) = Reasons.assigned(row.string("status"), row.stringOrNull("blocker_display_id"))
@@ -321,10 +322,10 @@ internal object WorkbenchRows {
 
     // The precedence of a task's placement, as the statement ranks candidates: lower wins.
     private const val ACTION_WEIGHT = 1
-    private const val JOINED_WEIGHT = 2
-    private const val ACTIVE_WEIGHT = 3
-    private const val WAITING_WEIGHT = 4
-    private const val UPDATES_WEIGHT = 5
+    private const val ACTIVE_WEIGHT = 2
+    private const val UPDATES_WEIGHT = 3
+    private const val JOINED_WEIGHT = 4
+    private const val WAITING_WEIGHT = 5
     private val WEIGHT = mapOf(
         "action" to ACTION_WEIGHT,
         "joined" to JOINED_WEIGHT,

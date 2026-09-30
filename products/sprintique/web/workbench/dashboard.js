@@ -125,7 +125,7 @@ export function mountDashboard(host,{mode,api,repository,projects,filter,prefs,s
     else if(envError&&!envelope)body=`<ul>${failedRow('«Текущая работа»')}</ul>`;
     else body=`${wide?'':`<div class="iq-segmented dsk-lanes-tabs" role="group" aria-label="Дорожка">${LANES.map(l=>`<button type="button" data-lane-tab="${l.key}" aria-pressed="${laneTab===l.key}">${esc(l.title)} ${groupOf(l.key)?.count??0}</button>`).join('')}</div>`}
       <div class="dsk-lanes${form==='list'?' as-list':''}">${LANES.map(lane).join('')}</div>
-      ${wide?'':'<p class="dsk-hint dsk-rule">Одна задача — одна строка: запрос → В работе → Жду → Участвую. ○ — готово, «Проверить» — ваша личная дата, ↑↓ — ваш порядок.</p>'}`;
+      ${wide?'':'<p class="dsk-hint dsk-rule">Одна задача — одна строка: запрос → В работе → Изменилось → Участвую · Жду. Новость поднимает задачу в «Изменилось», после «Просмотрено» она возвращается. ○ — готово, «Проверить» — ваша личная дата, ↑↓ — ваш порядок.</p>'}`;
     const backlog=current?.backlogCount?`<a class="iq-btn ghost sm" href="/workbench/list#dsk-backlog" data-view="list" data-backlog>${icon('list',16)}<span>Назначено мне: бэклог ${current.backlogCount}</span></a>`:'';
     const toggle=wide?'':`<div class="iq-segmented dsk-form" role="group" aria-label="Текущая работа как">${ui.ib('board','Дорожками','',`data-form="lanes" aria-pressed="${form==='lanes'}"`)}${ui.ib('list','Списком','',`data-form="list" aria-pressed="${form==='list'}"`)}</div>`;
     return section('dsk-current','dsk-span-12','Текущая работа','board',countBadge(current?.count),backlog+toggle,body,{busy:loading&&!envelope});
@@ -138,7 +138,7 @@ export function mountDashboard(host,{mode,api,repository,projects,filter,prefs,s
     else{
       const items=index(itemsOf('updates'));
       body=`${wide&&items.length?'<div class="dsk-cols dsk-cols-chg" aria-hidden="true"><span></span><span>Задача · что изменилось</span><span>Проект</span><span>Когда</span><span></span></div>':''}
-        <ul class="dsk-changes" data-list aria-label="Изменения">${items.length?items.map(r=>changeRow(r,{wide})).join(''):emptyRow('Нет непросмотренных изменений','Здесь появятся значимые изменения задач, в которых вы участвуете, и ваших запросов.')}</ul>
+        <ul class="dsk-changes" data-list aria-label="Изменения">${items.length?items.map(r=>changeRow(r,{wide})).join(''):emptyRow('Нет непросмотренных изменений','Значимое изменение задачи, в которой вы участвуете или которую поручили, поднимет её сюда; после «Просмотрено» она вернётся на своё место.')}</ul>
         ${more('updates')}${items.length?`<p class="dsk-hint">Показано ${items.length} из ${esc(countLabel(s.count,s.countCapped))} · по задаче, новые сверху</p>`:''}`;
     }
     const all=s?.count&&(p.personal||p.requests)?`<button type="button" class="iq-btn ghost sm" data-seen-all>${icon('eye',16)}<span>Отметить всё просмотренным</span></button>`:'';
