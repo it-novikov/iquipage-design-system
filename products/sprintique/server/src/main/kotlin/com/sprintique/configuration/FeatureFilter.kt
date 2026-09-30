@@ -37,15 +37,18 @@ class FeatureFilter(private val flags: FeatureFlags) : OncePerRequestFilter() {
             Regex("^/api/v1/workbench(/list)?$") to { f -> f.isEnabled(Feature.WORKBENCH_READ_INTERNAL) },
             Regex("$TASK/personal$") to { f -> f.isEnabled(Feature.WORKBENCH_READ_INTERNAL) },
             // "Seen" moves the watermark that requests and waiting count their news from as well.
+            // ("Жду" is derived from participation, so waiting alone adds nothing.)
             Regex("$TASK/personal/seen$") to { f ->
-                f.isEnabled(Feature.WORKBENCH_PERSONAL_STATE) || f.isEnabled(Feature.WORKBENCH_REQUESTS) ||
-                    f.isEnabled(Feature.WORKBENCH_WAITING)
+                f.isEnabled(Feature.WORKBENCH_PERSONAL_STATE) || f.isEnabled(Feature.WORKBENCH_REQUESTS)
             },
             Regex("$TASK/personal/snooze$") to { f ->
                 f.isEnabled(Feature.WORKBENCH_PERSONAL_STATE) && f.isEnabled(Feature.WORKBENCH_REQUESTS)
             },
             Regex("$TASK/personal/(participation|rank)$") to { f -> f.isEnabled(Feature.WORKBENCH_PERSONAL_STATE) },
-            Regex("$TASK/personal/check-back$") to { f -> f.isEnabled(Feature.WORKBENCH_WAITING) },
+            // "Жду" is derived from participation: its check-back needs both switches.
+            Regex("$TASK/personal/check-back$") to { f ->
+                f.isEnabled(Feature.WORKBENCH_WAITING) && f.isEnabled(Feature.WORKBENCH_PERSONAL_STATE)
+            },
             Regex("$TASK/requests$") to { f -> f.isEnabled(Feature.WORKBENCH_REQUESTS) },
             Regex("^/api/v1/projects/[^/]+/requests/[^/]+(/(resolve|reopen|cancel))?$") to { f ->
                 f.isEnabled(Feature.WORKBENCH_REQUESTS)

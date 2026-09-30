@@ -57,11 +57,12 @@ class WorkbenchCapacityIntegrationTest {
 
         @Suppress("UNCHECKED_CAST")
         val groups = (current["groups"] as List<Map<String, Any?>>).associate { it["key"] to it["count"] }
-        // Precedence action > active > waiting > updates > participating: 40 active (5 of them also participating),
-        // 10 delegated, 30 participating tasks with news, 20 participating without.
-        assertThat(groups).isEqualTo(mapOf("participating" to 20L, "active" to 40L, "waiting" to 10L))
+        // Precedence action > joined > active > waiting > updates: 40 active (5 of them also participating), 10
+        // delegated, 40 open participating tasks (20 of them with news on the row), 10 done participating tasks with
+        // news in "Изменилось".
+        assertThat(groups).isEqualTo(mapOf("joined" to 40L, "active" to 40L, "waiting" to 10L))
         assertThat(current["backlogCount"]).isEqualTo(60L)
-        assertThat(updates["count"]).isEqualTo(30L)
+        assertThat(updates["count"]).isEqualTo(10L)
         assertThat(rows.size).isLessThanOrEqualTo(5 * Workbench.DEFAULT_LIMIT)
     }
 
@@ -90,6 +91,117 @@ class WorkbenchCapacityIntegrationTest {
                 .`as`("sequential scan of app.$relation in\n$plan")
                 .isFalse()
         }
+    }
+
+    @Test
+    fun `a person at the participation limit with long histories reads waiting through the owner events only`() {
+        val actor = limitSeed()
+        IntegrationDatabase.admin.transaction { tx -> tx.update("ANALYZE app.task_activity") }
+        val timings = (1..3).map {
+            val started = System.nanoTime()
+            val envelope = IntegrationDatabase.runtime.transaction { tx ->
+                tx.row("SELECT set_config('app.actor_id', $1, true)", actor.id)
+                Workbench.envelope(tx, actor, null, Workbench.DEFAULT_LIMIT, parts, WorkbenchCursors(""))
+            }
+
+            @Suppress("UNCHECKED_CAST")
+            val current = (envelope["sections"] as List<Map<String, Any?>>)[1]
+
+            @Suppress("UNCHECKED_CAST")
+            val groups = (current["groups"] as List<Map<String, Any?>>).associate { it["key"] to it["count"] }
+            assertThat(groups).isEqualTo(mapOf("joined" to 1800L, "active" to 0L, "waiting" to 200L))
+            (System.nanoTime() - started) / 1_000_000
+        }
+        // Well inside the 5 s statement budget (docs/adr W4 §6), warm.
+        assertThat(timings.min()).`as`("envelope time at the limit, ms: $timings").isLessThan(2000)
+        val plan = IntegrationDatabase.runtime.transaction { tx ->
+            tx.row("SELECT set_config('app.actor_id', $1, true)", actor.id)
+            tx.rows(
+                "EXPLAIN (FORMAT JSON) " + Workbench.snapshotStatement(),
+                actor.id,
+                null,
+                true,
+                true,
+                true,
+                Workbench.DEFAULT_LIMIT + 1,
+            ).first().values.first().toString()
+        }
+        assertThat(plan).`as`("the latest assignment is read from the owner events").contains("task_activity_owner")
+    }
+
+    /**
+     * 2 000 participations (the limit) over 20 projects, 150 events of history on each task (300 000 events), every
+     * tenth task assigned by the person to a colleague; two tasks per project with their whole history unseen.
+     */
+    @Suppress("LongMethod")
+    private fun limitSeed(): Actor {
+        val suffix = UUID.randomUUID().toString().take(8)
+        val person = "limit-$suffix"
+        val colleague = "worker-$suffix"
+        val workspace = UUID.randomUUID().toString()
+        val p = "'lim-' || \$1 || '-'"
+        IntegrationDatabase.admin.transaction { tx ->
+            tx.update(
+                """
+                INSERT INTO auth.principals(id, kind, name, issuer, subject)
+                SELECT id, 'human', name, 'https://test.example', id FROM (VALUES ($1, 'Предел'), ($2, 'Исполнитель')) v(id, name)
+                """.trimIndent(),
+                person,
+                colleague,
+            )
+            tx.update("INSERT INTO app.workspaces(id, name, created_by) VALUES ($1, 'Предел', $2)", workspace, person)
+            tx.update(
+                """
+                INSERT INTO app.projects(id, workspace_id, name, slug, key)
+                SELECT 'lim-' || $2 || '-' || n, $1, 'Предел ' || n, 'lim-' || $2 || '-' || n, 'L' || n
+                FROM generate_series(1, 20) n
+                """.trimIndent(),
+                workspace,
+                suffix,
+            )
+            tx.update(
+                """
+                INSERT INTO app.project_members(project_id, principal_id, role)
+                SELECT $p || n, v.p, 'editor' FROM generate_series(1, 20) n, (VALUES ($2), ($3)) v(p)
+                """.trimIndent(),
+                suffix,
+                person,
+                colleague,
+            )
+            tx.update(
+                """
+                INSERT INTO app.tasks(id, project_id, number, title, description, status, type, priority, owner_label, rank,
+                                      revision, owner_id)
+                SELECT 't' || t, $p || n, t, 'Задача ' || t, '', 'ready', 'task', 'normal', '', t, 1, $2
+                FROM generate_series(1, 20) n, generate_series(1, 100) t
+                """.trimIndent(),
+                suffix,
+                colleague,
+            )
+            tx.update(
+                """
+                INSERT INTO app.task_activity(project_id, sequence, task_id, kind, actor_id, detail)
+                SELECT $p || n, (t - 1) * 150 + e, 't' || t, 'status', $2, '{"from":"ready","to":"in_progress"}'::jsonb
+                FROM generate_series(1, 20) n, generate_series(1, 100) t, generate_series(1, 150) e
+                UNION ALL
+                SELECT $p || n, 20000 + t, 't' || t, 'owner', $3, jsonb_build_object('from', null, 'to', $2::text)
+                FROM generate_series(1, 20) n, generate_series(10, 100, 10) t
+                """.trimIndent(),
+                suffix,
+                colleague,
+                person,
+            )
+            tx.update(
+                """
+                INSERT INTO app.task_personal_state(project_id, task_id, principal_id, participating, rank, last_seen_sequence)
+                SELECT $p || n, 't' || t, $2, true, n * 1000 + t, CASE WHEN t % 50 = 1 THEN 0 ELSE 30000 END
+                FROM generate_series(1, 20) n, generate_series(1, 100) t
+                """.trimIndent(),
+                suffix,
+                person,
+            )
+        }
+        return Actor(person, "Предел", PrincipalKind.HUMAN, "credential-$suffix", "csrf", null, emptySet(), person)
     }
 
     private data class Seed(val actor: Actor, val accessible: Set<String>)
@@ -161,6 +273,14 @@ class WorkbenchCapacityIntegrationTest {
                 """.trimIndent(),
                 suffix,
                 person,
+            )
+            // Tasks 12–13 of projects 1–5 are done: they leave "Участвую", and their news goes to "Изменилось".
+            tx.update(
+                """
+                UPDATE app.tasks SET status = 'ready_for_release'
+                WHERE project_id IN (SELECT $p || n FROM generate_series(1, 5) n) AND id IN ('t12', 't13')
+                """.trimIndent(),
+                suffix,
             )
             // "Участвую" on tasks 4–13 and on the assigned task 1 of projects 1–5; the same on revoked 56–60.
             tx.update(

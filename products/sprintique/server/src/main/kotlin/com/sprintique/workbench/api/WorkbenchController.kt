@@ -8,9 +8,11 @@ import com.sprintique.contract.QueryParameters
 import com.sprintique.contract.RESOURCE_ID
 import com.sprintique.identity.api.AuthenticatedRequests
 import com.sprintique.web.RequestValidationException
+import com.sprintique.workbench.application.Field
 import com.sprintique.workbench.application.Plan
 import com.sprintique.workbench.application.Workbench
 import com.sprintique.workbench.application.WorkbenchCursors
+import com.sprintique.workbench.application.WorkbenchLayout
 import com.sprintique.workbench.application.WorkbenchParts
 import com.sprintique.workbench.domain.Horizon
 import com.sprintique.workbench.domain.PlanHorizon
@@ -57,12 +59,14 @@ class WorkbenchController(
     fun plan(request: HttpServletRequest) = requests.run(request) { tx, actor ->
         flags.require(Feature.WORKBENCH_READ_INTERNAL)
         flags.require(Feature.WORKBENCH_PLAN_HORIZON)
-        val query = QueryParameters(request, setOf("horizon", "projects", "timezone"))
+        val query = QueryParameters(request, setOf("horizon", "projects", "timezone", "undated"))
         val horizon = Horizon.fromWire(query.oneOf("horizon", Horizon.entries.map { it.wire }.toSet()) ?: "today")!!
         val timezone = query.string("timezone", MAX_ZONE)?.also {
             if (PlanHorizon.zoneOf(it) == null) throw RequestValidationException()
         }
-        Plan.horizon(tx, actor, horizon, projectsOf(query), timezone, parts())
+        // The overview's week needs only the number of undated tasks, not their rows.
+        val undatedRows = (query.oneOf("undated", setOf("list", "count")) ?: "list") == "list"
+        Plan.horizon(tx, actor, horizon, projectsOf(query), timezone, parts(), undatedRows)
     }
 
     @GetMapping("/api/v1/workbench/preferences")
@@ -80,13 +84,21 @@ class WorkbenchController(
     ) = requests.run(request) { tx, actor ->
         flags.require(Feature.WORKBENCH_PLAN_HORIZON)
         val input = contracts.parse<PutWorkbenchPreferencesRequest>(body)
-        Plan.savePreferences(tx, actor, input.baseRevision, input.timezone)
+        val present = { name: String -> body?.has(name) == true }
+        Plan.savePreferences(
+            tx,
+            actor,
+            input.baseRevision,
+            timezone = if (present("timezone")) Field.Set(input.timezone) else Field.Keep,
+            layout = if (present("layout")) Field.Set(input.layout?.let(::layoutOf)) else Field.Keep,
+        )
     }
 
-    private fun parts() = WorkbenchParts(
-        requests = flags.isEnabled(Feature.WORKBENCH_REQUESTS),
-        personal = flags.isEnabled(Feature.WORKBENCH_PERSONAL_STATE),
-        waiting = flags.isEnabled(Feature.WORKBENCH_WAITING),
+    private fun parts() = flags.workbenchParts()
+
+    private fun layoutOf(layout: WorkbenchLayoutInput) = WorkbenchLayout(
+        hiddenWidgets = layout.hiddenWidgets.map { it.wire }.distinct().sorted(),
+        currentWork = layout.currentWork.wire,
     )
 
     private companion object {
@@ -112,3 +124,13 @@ class WorkbenchController(
         const val RESOURCE_LENGTH = 100
     }
 }
+
+/**
+ * What the Workbench serves under the current switches. "Жду" is derived from participation (docs/adr W5), so it is
+ * on only while personal state is: a waiting group that can never fill is reported off, not on and empty.
+ */
+internal fun FeatureFlags.workbenchParts() = WorkbenchParts(
+    requests = isEnabled(Feature.WORKBENCH_REQUESTS),
+    personal = isEnabled(Feature.WORKBENCH_PERSONAL_STATE),
+    waiting = isEnabled(Feature.WORKBENCH_WAITING) && isEnabled(Feature.WORKBENCH_PERSONAL_STATE),
+)

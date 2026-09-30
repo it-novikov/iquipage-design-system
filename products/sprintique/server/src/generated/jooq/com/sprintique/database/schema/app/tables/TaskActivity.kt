@@ -5,6 +5,7 @@ package com.sprintique.database.schema.app.tables
 
 
 import com.sprintique.database.schema.app.App
+import com.sprintique.database.schema.app.indexes.TASK_ACTIVITY_OWNER
 import com.sprintique.database.schema.app.indexes.TASK_ACTIVITY_TASK
 import com.sprintique.database.schema.app.keys.TASK_ACTIVITY_PKEY
 import com.sprintique.database.schema.app.keys.TASK_ACTIVITY__TASK_ACTIVITY_ACTOR_ID_FKEY
@@ -111,7 +112,7 @@ open class TaskActivity(
         override fun `as`(alias: Table<*>): TaskActivityPath = TaskActivityPath(alias.qualifiedName, this)
     }
     override fun getSchema(): Schema? = if (aliased()) null else App.APP
-    override fun getIndexes(): List<Index> = listOf(TASK_ACTIVITY_TASK)
+    override fun getIndexes(): List<Index> = listOf(TASK_ACTIVITY_OWNER, TASK_ACTIVITY_TASK)
     override fun getPrimaryKey(): UniqueKey<TaskActivityRecord> = TASK_ACTIVITY_PKEY
     override fun getReferences(): List<ForeignKey<TaskActivityRecord, *>> = listOf(TASK_ACTIVITY__TASK_ACTIVITY_ACTOR_ID_FKEY, TASK_ACTIVITY__TASK_ACTIVITY_INITIATOR_ID_FKEY, TASK_ACTIVITY__TASK_ACTIVITY_PROJECT_ID_FKEY, TASK_ACTIVITY__TASK_ACTIVITY_PROJECT_ID_TASK_ID_FKEY)
 

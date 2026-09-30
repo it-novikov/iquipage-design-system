@@ -11,6 +11,7 @@ import com.sprintique.contract.TrimmedString
 import com.sprintique.contract.UUID
 import com.sprintique.workbench.application.RankMove
 import io.swagger.v3.oas.annotations.media.Schema
+import jakarta.validation.Valid
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.Pattern
@@ -107,13 +108,40 @@ data class AttentionRequestRevisionRequest(
     val baseRevision: Long,
 )
 
+/** A widget of the overview the person may hide (docs/workbench/design-v2.md §5.1). */
+enum class WorkbenchWidget(@get:JsonValue val wire: String) {
+    WEEK("week"),
+    UPDATES("updates"),
+    MORE("more"),
+}
+
+/** The form of "Текущая работа" on the overview. */
+enum class CurrentWorkForm(@get:JsonValue val wire: String) {
+    BOARD("board"),
+    LIST("list"),
+}
+
+@Schema(name = "WorkbenchLayout")
+data class WorkbenchLayoutInput(
+    @field:Size(max = WIDGET_LIMIT)
+    val hiddenWidgets: List<WorkbenchWidget> = emptyList(),
+    val currentWork: CurrentWorkForm = CurrentWorkForm.BOARD,
+)
+
+/**
+ * The person's Workbench preferences. A field left out keeps its value; `timezone: null` forgets the chosen zone and
+ * `layout: null` restores the default layout.
+ */
 @Schema(name = "PutWorkbenchPreferences")
 data class PutWorkbenchPreferencesRequest(
     @field:Min(0) @field:Max(MAX_SAFE_INTEGER)
     val baseRevision: Long,
     @field:Timezone
-    val timezone: String,
+    val timezone: String? = null,
+    @field:Valid
+    val layout: WorkbenchLayoutInput? = null,
 )
 
 private const val NOTE_LIMIT = 500
 private const val FILTER_LIMIT = 100
+private const val WIDGET_LIMIT = 3

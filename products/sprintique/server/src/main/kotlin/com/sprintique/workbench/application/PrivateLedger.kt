@@ -12,8 +12,13 @@ data class PrivateEffect(val resourceId: String, val revision: Long, val result:
 
 /**
  * The retry ledger of personal commands (docs/adr W2). Like [CommandLedger], but principal-scoped: a person's
- * focus, follow, seen, snooze and waiting commands never reach the project-visible `app.idempotency`. A replay
- * returns the original effect marked `replayed`; the current state is read separately.
+ * participation, rank, seen, snooze and check-back commands never reach the project-visible `app.idempotency`. A
+ * replay returns the original effect marked `replayed`; the current state is read separately.
+ *
+ * Lock order (docs/adr W3 §3): the project row first, then the person, then their state row. Shared commands hold
+ * the project row `FOR UPDATE` before they touch a person's state (a new task's author joins it, a requester starts
+ * following); taking it here first, `FOR KEY SHARE` as the receipt's own foreign key would later, keeps both paths
+ * in one order, so they wait for each other instead of deadlocking.
  */
 object PrivateLedger {
     private val KEY = Regex("^[A-Za-z0-9_-]{8,120}$")
@@ -30,6 +35,7 @@ object PrivateLedger {
         effect: () -> PrivateEffect,
     ): Map<String, Any?> {
         requireCondition(KEY.matches(key), 400, "IDEMPOTENCY_KEY", "Передайте корректный Idempotency-Key.")
+        tx.row("SELECT id FROM app.projects WHERE id = $1 FOR KEY SHARE", projectId)
         val requestHash = Tokens.sha256Hex(CommandLedger.canonical(json.valueToTree(input)))
         val lock = "private:${actor.id}:$projectId:$operation:$key"
         tx.row("SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", lock)

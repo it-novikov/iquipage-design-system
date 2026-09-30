@@ -134,7 +134,7 @@ open class TaskPersonalState(
     val tasks: TasksPath by lazy { TasksPath(this, TASK_PERSONAL_STATE__TASK_PERSONAL_STATE_PROJECT_ID_TASK_ID_FKEY, null) }
     override fun getChecks(): List<Check<TaskPersonalStateRecord>> = listOf(
         Internal.createCheck(this, DSL.name("task_personal_state_check"), "(((snoozed_until IS NULL) = (snoozed_at IS NULL)))", true),
-        Internal.createCheck(this, DSL.name("task_personal_state_check1"), "((participating OR (rank IS NULL)))", true),
+        Internal.createCheck(this, DSL.name("task_personal_state_check1"), "((participating = (rank IS NOT NULL)))", true),
         Internal.createCheck(this, DSL.name("task_personal_state_check_back_revision_check"), "((check_back_revision >= 0))", true),
         Internal.createCheck(this, DSL.name("task_personal_state_last_seen_sequence_check"), "((last_seen_sequence >= 0))", true),
         Internal.createCheck(this, DSL.name("task_personal_state_participation_revision_check"), "((participation_revision >= 0))", true),

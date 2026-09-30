@@ -27,7 +27,14 @@ class StaticWebController(properties: SprintiqueProperties) {
     }
 
     /** The interface's own paths (docs/adr W6) load the same page; the page reads the path itself. */
-    @GetMapping("/", "/workbench", "/workbench/plan", "/workbench/tasks/{projectId}/{taskId}")
+    @GetMapping(
+        "/",
+        "/workbench",
+        "/workbench/list",
+        "/workbench/board",
+        "/workbench/plan",
+        "/workbench/tasks/{projectId}/{taskId}",
+    )
     fun index(): ResponseEntity<ByteArray> {
         val file = requireRoot().resolve("index.html")
         if (!Files.isRegularFile(file)) throw notFound()

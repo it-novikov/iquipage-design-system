@@ -15,6 +15,8 @@ CREATE TABLE app.task_activity (
   FOREIGN KEY(project_id,task_id) REFERENCES app.tasks(project_id,id)
 );
 CREATE INDEX task_activity_task ON app.task_activity(project_id,task_id,sequence DESC);
+-- "Жду" reads the latest assignment of a task: only its owner events, however long the rest of its history is.
+CREATE INDEX task_activity_owner ON app.task_activity(project_id,task_id,sequence DESC) WHERE kind='owner';
 ALTER TABLE app.task_activity ENABLE ROW LEVEL SECURITY;
 ALTER TABLE app.task_activity FORCE ROW LEVEL SECURITY;
 CREATE POLICY tenant_policy ON app.task_activity USING(auth.can_project(project_id)) WITH CHECK(auth.can_project(project_id));

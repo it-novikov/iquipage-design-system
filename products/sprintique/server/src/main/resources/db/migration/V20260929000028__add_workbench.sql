@@ -66,7 +66,8 @@ CREATE TABLE app.task_personal_state (
   PRIMARY KEY(project_id,task_id,principal_id),
   FOREIGN KEY(project_id,task_id) REFERENCES app.tasks(project_id,id),
   CHECK((snoozed_until IS NULL)=(snoozed_at IS NULL)),
-  CHECK(participating OR rank IS NULL)
+  -- Exactly the rows the person participates in have a rank: the order never holds a gap or a stray row.
+  CHECK(participating=(rank IS NOT NULL))
 );
 CREATE INDEX personal_state_principal ON app.task_personal_state(principal_id,project_id,task_id);
 CREATE INDEX personal_state_participating ON app.task_personal_state(principal_id,rank) WHERE participating;
@@ -82,14 +83,17 @@ CREATE TABLE app.private_receipts (
   effect_revision bigint NOT NULL,
   result jsonb NOT NULL,
   created_at timestamptz NOT NULL DEFAULT clock_timestamp(),
+  -- Reserved for the collector of old receipts after the MVP (docs/adr W2); nothing writes it yet.
   expires_at timestamptz,
   PRIMARY KEY(principal_id,project_id,operation,key)
 );
 
--- W5. The time zone a person chose for the plan lens.
+-- W5. The time zone a person chose for the plan lens (null: not chosen) and the layout of their Workbench: hidden
+-- widgets and the form of "Текущая работа" (docs/workbench/design-v2.md §5.1). The server validates the layout.
 CREATE TABLE app.workbench_preferences (
   principal_id text PRIMARY KEY REFERENCES auth.principals,
-  timezone text NOT NULL CHECK(length(timezone) BETWEEN 1 AND 100),
+  timezone text CHECK(length(timezone) BETWEEN 1 AND 100),
+  layout jsonb NOT NULL DEFAULT '{}'::jsonb CHECK(jsonb_typeof(layout)='object' AND octet_length(layout::text)<=2000),
   revision bigint NOT NULL DEFAULT 1 CHECK(revision>0),
   updated_at timestamptz NOT NULL DEFAULT clock_timestamp()
 );

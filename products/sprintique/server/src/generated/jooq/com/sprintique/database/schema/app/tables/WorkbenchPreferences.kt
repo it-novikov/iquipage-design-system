@@ -20,6 +20,7 @@ import org.jooq.Condition
 import org.jooq.Field
 import org.jooq.ForeignKey
 import org.jooq.InverseForeignKey
+import org.jooq.JSONB
 import org.jooq.Name
 import org.jooq.Path
 import org.jooq.PlainSQL
@@ -69,7 +70,9 @@ open class WorkbenchPreferences(
 
     val PRINCIPAL_ID: TableField<WorkbenchPreferencesRecord, String?> = createField(DSL.name("principal_id"), SQLDataType.CLOB.nullable(false), this, "")
 
-    val TIMEZONE: TableField<WorkbenchPreferencesRecord, String?> = createField(DSL.name("timezone"), SQLDataType.CLOB.nullable(false), this, "")
+    val TIMEZONE: TableField<WorkbenchPreferencesRecord, String?> = createField(DSL.name("timezone"), SQLDataType.CLOB, this, "")
+
+    val LAYOUT: TableField<WorkbenchPreferencesRecord, JSONB?> = createField(DSL.name("layout"), SQLDataType.JSONB.nullable(false).defaultValue(DSL.field(DSL.raw("'{}'::jsonb"), SQLDataType.JSONB)), this, "")
 
     val REVISION: TableField<WorkbenchPreferencesRecord, Long?> = createField(DSL.name("revision"), SQLDataType.BIGINT.nullable(false).defaultValue(DSL.field(DSL.raw("1"), SQLDataType.BIGINT)), this, "")
 
@@ -101,6 +104,7 @@ open class WorkbenchPreferences(
     fun principals(): PrincipalsPath = principals
     val principals: PrincipalsPath by lazy { PrincipalsPath(this, WORKBENCH_PREFERENCES__WORKBENCH_PREFERENCES_PRINCIPAL_ID_FKEY, null) }
     override fun getChecks(): List<Check<WorkbenchPreferencesRecord>> = listOf(
+        Internal.createCheck(this, DSL.name("workbench_preferences_layout_check"), "(((jsonb_typeof(layout) = 'object'::text) AND (octet_length((layout)::text) <= 2000)))", true),
         Internal.createCheck(this, DSL.name("workbench_preferences_revision_check"), "((revision > 0))", true),
         Internal.createCheck(this, DSL.name("workbench_preferences_timezone_check"), "(((length(timezone) >= 1) AND (length(timezone) <= 100)))", true)
     )

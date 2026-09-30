@@ -93,19 +93,23 @@ test('W01 inclusion matrix: explicit relations only, one task one row, counts eq
   await task(p,'followed',{},B);await participate(p,'followed');await edit(p,'followed',{status:'in_progress'},B);
   await task(p,'own',{},B);await participate(p,'own');await edit(p,'own',{due:inDays(3)});
   await task(p,'multi',{},B);await participate(p,'multi');await ask(p,'multi',B,f.alice,{kind:'answer'});await edit(p,'multi',{priority:'high',due:inDays(2)},B);
+  await task(p,'finished',{},B);await participate(p,'finished');await edit(p,'finished',{status:'ready_for_release'},B);
+  await task(p,'mine-joined',{status:'in_progress',ownerId:f.alice.id});
   const env=await envelope(f.alice,p);
   assert.deepEqual(where(env,'req'),['action']);
   assert.deepEqual(where(env,'review'),[],'status review without a recipient is not a request');
   assert.deepEqual(where(env,'due'),[],'a date without a relation is not relevance');
-  assert.deepEqual(where(env,'part'),['participating']);
-  assert.deepEqual(where(env,'auto'),['participating'],'the author participates in a new task');
+  assert.deepEqual(where(env,'part'),['joined']);
+  assert.deepEqual(where(env,'auto'),['joined'],'the author participates in a new task');
   assert.deepEqual(where(env,'active'),['active']);
   assert.deepEqual(where(env,'backlog'),[],'assigned backlog stays off the first screen');
   assert.deepEqual(where(env,'wait'),['waiting'],'assigning while participating is "Жду"');
   assert.deepEqual(where(env,'notmine'),[],'another person\'s task without a relation');
   assert.deepEqual(where(env,'left'),[],'leaving is one command');
-  assert.deepEqual(where(env,'followed'),['updates']);
-  assert.deepEqual(where(env,'own'),['participating'],'own edits are not news');
+  assert.deepEqual(where(env,'followed'),['joined'],'"Участвую" outranks news; the news stays on the row');
+  assert.deepEqual(where(env,'finished'),['updates'],'done work leaves "Участвую"; its completion is news');
+  assert.deepEqual(where(env,'mine-joined'),['active'],'assigned active work is "В работе" even when I participate');
+  assert.deepEqual(where(env,'own'),['joined'],'own edits are not news');
   assert.deepEqual(where(env,'multi'),['action'],'one task, one row, strongest reason');
   const row=(id:string)=>placed(env).find(x=>x.row.taskId===id)!.row;
   const multi=row('multi');
@@ -117,15 +121,26 @@ test('W01 inclusion matrix: explicit relations only, one task one row, counts eq
   assert.equal(req.statusCategory,'todo');assert.equal(row('active').statusCategory,'active');
   assert.equal('workspaceName' in req,false);
   const followed=row('followed');
-  assert.equal(followed.primaryReason.code,'followed_status_changed');assert.equal(followed.primaryReason.text,'Вы участвуете: статус «В работе»');
-  assert.equal(followed.primaryReason.actor?.id,f.bob.id);
+  assert.equal(followed.group,'joined');assert.equal(followed.primaryReason.code,'participating');
+  const news=followed.secondaryReasons.find(r=>r.code==='followed_status_changed')!;
+  assert.equal(news.text,'Вы участвуете: статус «В работе»');assert.equal(news.actor?.id,f.bob.id);
+  // The change is drawable as "было → стало" without another request.
+  assert.equal(followed.updates!.count,1);
+  assert.deepEqual({...followed.updates!.latest!,at:undefined,sequence:undefined},
+    {kind:'status',detail:{from:'ready',to:'in_progress'},actor:{id:f.bob.id,name:'Борис'},actorName:'Борис',at:undefined,sequence:undefined});
+  assert.equal(followed.updates!.latest!.sequence,followed.updates!.latestSequence);
+  assert.equal(followed.personal.participating,true);assert.equal(typeof followed.personal.rank,'number');
+  assert.ok(followed.statusEnteredAt);assert.ok(followed.allowedActions.includes('rankUp'));
+  assert.equal(row('finished').primaryReason.text,'Вы участвуете: работа завершена');assert.equal(row('finished').statusCategory,'done');
+  assert.equal(row('mine-joined').personal.participating,true);assert.ok(!row('mine-joined').allowedActions.includes('rankUp'));
   assert.equal(row('auto').primaryReason.text,'Вы участвуете');
   assert.equal(row('wait').primaryReason.text,'Поручено: Борис');
   // Snapshot: each count equals its rows, no task twice anywhere.
   const [action,current,updates]=env.sections;
   assert.equal(action!.count,action!.items!.length);assert.equal(updates!.count,updates!.items!.length);
   for(const group of current!.groups!)assert.equal(group.count,group.items.length,group.key);
-  assert.equal(current!.groups!.find(g=>g.key==='participating')!.count,3);
+  assert.deepEqual(current!.groups!.map(g=>g.key),['joined','active','waiting']);
+  assert.equal(current!.groups!.find(g=>g.key==='joined')!.count,4);assert.equal(updates!.count,1);
   assert.equal(current!.count,current!.groups!.reduce((sum,g)=>sum+g.count,0));
   assert.equal(current!.backlogCount,1);
   const keys=placed(env).map(x=>x.row.key);assert.equal(new Set(keys).size,keys.length);
@@ -152,7 +167,7 @@ test('W02 reading never resolves; resolve demotes deterministically; undo; resol
   const resolved=await ok<any>(call('POST',`${base(p)}/requests/${request.id}/resolve`,{baseRevision:request.revision},f.alice,key));
   assert.equal(resolved.status,'resolved');
   assert.deepEqual(await ok(call('POST',`${base(p)}/requests/${request.id}/resolve`,{baseRevision:request.revision},f.alice,key)),resolved,'retry after a lost response');
-  assert.deepEqual(where(await envelope(f.alice,p),'t'),['participating'],'the next reason takes over');
+  assert.deepEqual(where(await envelope(f.alice,p),'t'),['joined'],'the next reason takes over');
   const again=await call('POST',`${base(p)}/requests/${request.id}/resolve`,{baseRevision:resolved.revision});
   assert.equal(again.statusCode,409);assert.equal(again.json().code,'REQUEST_CLOSED');
   const reopened=await ok<any>(call('POST',`${base(p)}/requests/${request.id}/reopen`,{baseRevision:resolved.revision}));
@@ -246,17 +261,17 @@ test('W05 security: never-member, former member, cursor replay, wrong pair, agen
   const p=await project([[f.bob,'editor']]);
   for(let i=0;i<12;i++)await task(p,'f'+i);
   const env=await envelope(f.alice,p,'&limit=5');
-  const group=env.sections[1]!.groups!.find(g=>g.key==='participating')!;assert.equal(group.count,12);assert.equal(group.items.length,5);
+  const group=env.sections[1]!.groups!.find(g=>g.key==='joined')!;assert.equal(group.count,12);assert.equal(group.items.length,5);
   const cursor=group.nextCursor!;
   // Never-member: the filter naming a foreign project answers exactly like an unknown id.
   const foreign=await envelope(dan,p),unknown=await envelope(dan,'nope');
   assert.deepEqual(foreign.sections,unknown.sections);assert.equal(foreign.scope.projectCount,0);
   const list=(user:User,query:string)=>f.app.inject({url:`/api/v1/workbench/list?${query}`,headers:user.headers});
-  const foreignList=await list(dan,`section=participating&projects=${p}&cursor=${encodeURIComponent(cursor)}`);
+  const foreignList=await list(dan,`section=joined&projects=${p}&cursor=${encodeURIComponent(cursor)}`);
   assert.equal(foreignList.statusCode,400);assert.equal(foreignList.json().code,'CURSOR_INVALID');
-  assert.equal((await list(f.alice,`section=participating&cursor=${encodeURIComponent(cursor)}`)).json().code,'CURSOR_INVALID');
+  assert.equal((await list(f.alice,`section=joined&cursor=${encodeURIComponent(cursor)}`)).json().code,'CURSOR_INVALID');
   assert.equal((await list(f.alice,`section=active&projects=${p}&cursor=${encodeURIComponent(cursor)}`)).json().code,'CURSOR_INVALID');
-  const garbage=await list(f.alice,`section=participating&projects=${p}&cursor=abc.def`);
+  const garbage=await list(f.alice,`section=joined&projects=${p}&cursor=abc.def`);
   assert.equal(garbage.statusCode,400);assert.equal(garbage.json().code,'CURSOR_INVALID');
   assert.equal((await f.app.inject({url:'/api/v1/workbench?limit=51',headers:f.alice.headers})).statusCode,400);
   assert.equal((await f.app.inject({url:'/api/v1/workbench?mode=later',headers:f.alice.headers})).statusCode,400);
@@ -269,15 +284,15 @@ test('W05 security: never-member, former member, cursor replay, wrong pair, agen
   assert.equal((await call('PUT',`${base(p)}/tasks/f0/personal/participation`,{baseRevision:0,participating:true},dan)).statusCode,404);
   // Former member: bob participates, loses access; his rows vanish, his cursor turns stale, the rows come back with access.
   for(let i=0;i<6;i++)await participate(p,'f'+i,true,f.bob);
-  const bobEnv=await envelope(f.bob,p,'&limit=5');const bobCursor=bobEnv.sections[1]!.groups!.find(g=>g.key==='participating')!.nextCursor!;
+  const bobEnv=await envelope(f.bob,p,'&limit=5');const bobCursor=bobEnv.sections[1]!.groups!.find(g=>g.key==='joined')!.nextCursor!;
   const member=(await ok<any[]>(call('GET',`${base(p)}/members`))).find(m=>m.id===f.bob.id);
   await ok(call('PATCH',`${base(p)}/members/${f.bob.id}`,{baseRevision:member.revision,role:null}));
   const after=await envelope(f.bob,p);assert.equal(placed(after).length,0);assert.equal(after.scope.projectCount,0);
-  const staleCursor=await list(f.bob,`section=participating&projects=${p}&cursor=${encodeURIComponent(bobCursor)}`);
+  const staleCursor=await list(f.bob,`section=joined&projects=${p}&cursor=${encodeURIComponent(bobCursor)}`);
   assert.equal(staleCursor.statusCode,409);assert.equal(staleCursor.json().code,'CURSOR_STALE');
   assert.equal((await call('GET',`${base(p)}/tasks/f0/personal`,undefined,f.bob)).statusCode,404);
   await f.admin.query("INSERT INTO app.project_members(project_id,principal_id,role) VALUES($1,$2,'editor')",[p,f.bob.id]);
-  assert.equal((await envelope(f.bob,p)).sections[1]!.groups!.find(g=>g.key==='participating')!.count,6,'rows return with access');
+  assert.equal((await envelope(f.bob,p)).sections[1]!.groups!.find(g=>g.key==='joined')!.count,6,'rows return with access');
   // An agent has no cross-project read and no personal state.
   const grant=await ok<{token:string}>(call('POST',`${base(p)}/agents`,{name:'Агент',capabilities:['tasks:read','tasks:write'],expiresInSeconds:600}));
   const agent={authorization:'Bearer '+grant.token};
@@ -292,7 +307,7 @@ test('W06 keyset pagination: pages are disjoint, complete and ordered; counts ma
   const ids:string[]=[];for(let i=0;i<23;i++){await task(p,'k'+i,{status:'in_progress',ownerId:f.alice.id,priority:i%3?'normal':'high'});ids.push('k'+i);}
   const env=await envelope(f.alice,p,'&limit=10');
   const active=env.sections[1]!.groups!.find(g=>g.key==='active')!;assert.equal(active.count,23);
-  assert.equal(env.sections[1]!.groups!.find(g=>g.key==='participating')!.count,0,'active work is not repeated under participation');
+  assert.equal(env.sections[1]!.groups!.find(g=>g.key==='joined')!.count,0,'active work is not repeated under participation');
   const seen=active.items.map(r=>r.taskId);let cursor=active.nextCursor;let pages=1;
   while(cursor){
     const page=await ok<WorkbenchPage>(f.app.inject({url:`/api/v1/workbench/list?section=active&projects=${p}&limit=10&cursor=${encodeURIComponent(cursor)}`,headers:f.alice.headers}));
@@ -304,7 +319,7 @@ test('W06 keyset pagination: pages are disjoint, complete and ordered; counts ma
   // The order of what the person participates in is manual and movable by buttons.
   const q=await project();
   for(const id of ['r0','r1','r2'])await task(q,id);
-  const order=async()=>(await envelope(f.alice,q)).sections[1]!.groups!.find(g=>g.key==='participating')!.items.map(r=>r.taskId);
+  const order=async()=>(await envelope(f.alice,q)).sections[1]!.groups!.find(g=>g.key==='joined')!.items.map(r=>r.taskId);
   assert.deepEqual(await order(),['r0','r1','r2']);
   await ok(rank(q,'r2','up'));assert.deepEqual(await order(),['r0','r2','r1']);
   await ok(rank(q,'r0','down'));assert.deepEqual(await order(),['r2','r0','r1']);
@@ -336,9 +351,11 @@ test('W07 "Жду": assigning while participating; check-back; reassignment and 
   assert.ok(row.row.waiting!.assignedAt);
   await ok(checkBack(p,'d',inDays(3)));
   row=placed(await envelope(f.alice,p)).find(x=>x.row.taskId==='d')!;assert.equal(row.row.waiting!.checkBackAt,inDays(3));
-  // Someone else's assignment while I participate is not my delegation.
+  // Someone else's assignment while I participate is not my delegation: the task stays "Участвую" with the news.
   await task(p,'theirs',{},f.bob);await participate(p,'theirs');await edit(p,'theirs',{ownerId:carol.id},f.bob);
-  assert.deepEqual(where(await envelope(f.alice,p),'theirs'),['updates']);
+  const theirs=placed(await envelope(f.alice,p)).find(x=>x.row.taskId==='theirs')!;
+  assert.equal(theirs.place,'joined');assert.equal(theirs.row.waiting,null);
+  assert.deepEqual(theirs.row.updates!.latest!.detail,{from:null,to:{id:carol.id,name:'Карина'}});
   // Assigning to myself is my active work, not waiting.
   await task(p,'self');await edit(p,'self',{ownerId:f.alice.id,status:'in_progress'});
   assert.deepEqual(where(await envelope(f.alice,p),'self'),['active']);
@@ -346,11 +363,17 @@ test('W07 "Жду": assigning while participating; check-back; reassignment and 
   await edit(p,'d',{ownerId:carol.id},f.bob);
   row=placed(await envelope(f.alice,p)).find(x=>x.row.taskId==='d')!;
   assert.equal(row.row.primaryReason.code,'delegated_reassigned');assert.equal(row.row.primaryReason.text,'Поручено: Борис, сейчас исполняет Карина');
+  assert.deepEqual({...row.row.waiting!,assignedAt:undefined},{expectedAssignee:{id:f.bob.id,name:'Борис'},expectedAssigneeLeft:false,
+    ownerNow:{id:carol.id,name:'Карина'},checkBackAt:inDays(3),done:false,assignedAt:undefined});
   await edit(p,'d',{status:'ready_for_release'},carol);
   row=placed(await envelope(f.alice,p)).find(x=>x.row.taskId==='d')!;
-  assert.equal(row.place,'waiting');assert.equal(row.row.primaryReason.code,'delegated_completed');
+  assert.equal(row.place,'waiting');assert.equal(row.row.primaryReason.code,'delegated_completed');assert.equal(row.row.waiting!.done,true);
   await participate(p,'d',false);
   assert.deepEqual(where(await envelope(f.alice,p),'d'),[],'leaving ends the control');
+  // Leaving drops the check-back date too: a later join does not revive an old date (review R2 F5).
+  assert.equal((await personal(p,'d')).checkBackAt,null);
+  await participate(p,'d');
+  row=placed(await envelope(f.alice,p)).find(x=>x.row.taskId==='d')!;assert.equal(row.place,'waiting');assert.equal(row.row.waiting!.checkBackAt,null);
   assert.equal((await ok<any>(call('GET',`${base(p)}/tasks/d`))).status,'ready_for_release','the task itself is untouched');
   // An agent's new task does not make anyone participate.
   const grant=await ok<{token:string}>(call('POST',`${base(p)}/agents`,{name:'Агент',capabilities:['tasks:read','tasks:write'],expiresInSeconds:600}));
@@ -368,8 +391,10 @@ test('W08 requests follow their source: thread and approval resolution, membersh
   await ok(call('PATCH',`${base(p)}/threads/question/resolution`,{resolved:true,baseRevision:thread.revision}));
   const after=(await personal(p,'q')).requests.find((r:any)=>r.id===request.id);assert.equal(after.status,'resolved');
   assert.deepEqual(where(await envelope(f.alice,p),'q'),[]);
-  // The requester learns about it through the updates of the task.
-  const bobRow=placed(await envelope(f.bob,p)).find(x=>x.row.taskId==='q');assert.equal(bobRow?.place,'updates');assert.equal(bobRow?.row.primaryReason.code,'request_resolved');
+  // The requester learns about it through the news of the task: on its "Участвую" row (Bob is its author).
+  const bobRow=placed(await envelope(f.bob,p)).find(x=>x.row.taskId==='q')!;assert.equal(bobRow.place,'joined');
+  assert.ok(bobRow.row.secondaryReasons.some(r=>r.code==='request_resolved'));
+  assert.deepEqual(bobRow.row.updates!.latest!.detail,{change:'resolved',requestKind:'answer'});
   // An approval source: a decision resolves the request made on it.
   const approval=randomUUID();
   await f.admin.query("INSERT INTO app.approvals(project_id,id,subject_kind,subject_id,action_hash,requested_by,initiator_id,expires_at) VALUES($1,$2,'plan',$3,'hash',$4,$4,now()+interval '1 day')",[p,approval,randomUUID(),f.bob.id]);
@@ -385,8 +410,13 @@ test('W08 requests follow their source: thread and approval resolution, membersh
   await ok(call('PATCH',`${base(p)}/members/${carol.id}`,{baseRevision:member.revision,role:'reader'}));
   const orphan=(await personal(p,'q')).requests.find((r:any)=>r.id===toCarol.id);assert.equal(orphan.status,'orphaned');
   assert.equal(placed(await envelope(carol,p)).length,0);
-  const bobUpdate=placed(await envelope(f.bob,p)).find(x=>x.row.taskId==='q')!;assert.equal(bobUpdate.row.primaryReason.code,'request_orphaned');
-  assert.ok(bobUpdate.row.primaryReason.text.endsWith(': адресат больше не в проекте'));
+  const bobUpdate=placed(await envelope(f.bob,p)).find(x=>x.row.taskId==='q')!;
+  const orphaned=bobUpdate.row.secondaryReasons.find(r=>r.code==='request_orphaned')!;
+  assert.ok(orphaned.text.endsWith(': адресат больше не в проекте'));
+  // Without participation the requester's own request is the relation: its news is "Изменилось".
+  await participate(p,'q',false,f.bob);
+  const onlyRequest=placed(await envelope(f.bob,p)).find(x=>x.row.taskId==='q')!;
+  assert.equal(onlyRequest.place,'updates');assert.equal(onlyRequest.row.primaryReason.code,'request_orphaned');
   const reassigned=await ok<any>(call('PATCH',`${base(p)}/requests/${toCarol.id}`,{baseRevision:orphan.revision,recipientId:f.alice.id,neededBy:inDays(1)},f.bob));
   assert.equal(reassigned.status,'open');assert.deepEqual(where(await envelope(f.alice,p),'q'),['action']);
   const cancelled=await ok<any>(call('POST',`${base(p)}/requests/${toCarol.id}/cancel`,{baseRevision:reassigned.revision},f.bob));
@@ -423,9 +453,29 @@ test('W09 plan: today and seven days keep due, planned, answer, check-back and m
   assert.ok(!all.some(x=>x.includes('foreign-due')),'another person\'s deadline is not my plan');
   assert.ok(!JSON.stringify(week).includes('secret'),'an inaccessible project is excluded before grouping');
   assert.equal(week.days.flatMap(d=>d.items).find(i=>i.kind==='neededBy')!.date,inDays(2),'a date-only value stays a date');
+  // Each item says why it is my time and carries what a card needs (review R2 F7).
+  const items=week.days.flatMap(d=>d.items);
+  const item=(kind:string,id:string)=>items.find(i=>i.kind===kind&&i.task?.id===id)!;
+  assert.equal(item('due','later').relation,'assigned');assert.equal(item('neededBy','asked').relation,'request');
+  assert.equal(item('checkBack','deleg').relation,'waiting');assert.equal(items.find(i=>i.kind==='milestone')!.relation,null);
+  assert.deepEqual(item('checkBack','deleg').task!.owner,{id:f.bob.id,name:'Борис'});
+  assert.equal(item('planned','planned').task!.plannedStart,inDays(1));assert.equal(item('planned','planned').task!.due,null);
+  assert.equal(item('due','later').task!.priority,'normal');
+  assert.equal(week.undated[0]!.relation,'participating');
+  assert.deepEqual(week.summary,{itemCount:items.length,overdueCount:1,undatedCount:1,undatedTruncated:false});
+  assert.equal(new Set(items.map(i=>i.key)).size,items.length,'item keys are unique');
+  // The overview's week asks only for the number of undated tasks.
+  const overview=await plan(`horizon=7d&timezone=UTC&undated=count&projects=${p}`);
+  assert.deepEqual(overview.undated,[]);assert.equal(overview.summary.undatedCount,1);assert.equal(overview.days.length,7);
+  assert.equal((await f.app.inject({url:'/api/v1/workbench/plan?undated=all',headers:f.alice.headers})).statusCode,400);
+  // Two requests on one task due the same day are two items with two keys (review R2 F11).
+  await ask(p,'asked',f.bob,f.alice,{kind:'answer',neededBy:inDays(2)});
+  const twice=(await plan(`horizon=7d&timezone=UTC&projects=${p}`)).days.flatMap(d=>d.items).filter(i=>i.kind==='neededBy');
+  assert.equal(twice.length,2);assert.notEqual(twice[0]!.key,twice[1]!.key);
   // The chosen time zone is kept; the default names its source.
   assert.equal(today1.timezoneSource,'request');
   const saved=await ok<any>(call('PUT','/api/v1/workbench/preferences',{baseRevision:0,timezone:'Pacific/Kiritimati'}));
+  assert.deepEqual(saved,{timezone:'Pacific/Kiritimati',layout:{hiddenWidgets:[],currentWork:'board'},revision:1});
   assert.equal((await call('PUT','/api/v1/workbench/preferences',{baseRevision:0,timezone:'UTC'})).statusCode,409);
   assert.equal((await call('PUT','/api/v1/workbench/preferences',{baseRevision:saved.revision,timezone:'Mars/Base'})).statusCode,400);
   const kiritimati=await plan(`projects=${p}`);
@@ -443,6 +493,11 @@ test('W10 flags: off means not found and the session names what is on',async()=>
     const env=await off.inject({url:'/api/v1/workbench',headers:f.alice.headers});assert.equal(env.statusCode,200,env.body);
     assert.deepEqual(env.json().features,{requests:false,participation:false,waiting:false});
     const p=await project([[f.bob,'editor']]);await task(p,'z');
+    // With personal state off a new task's author does not join it: the switch stops that path too (review R2 F4).
+    const created=await off.inject({method:'PUT',url:`${base(p)}/tasks/quiet`,headers:{...f.alice.headers,'idempotency-key':randomUUID()},payload:{baseRevision:0,task:{title:'Тихо'}}});
+    assert.equal(created.statusCode,200,created.body);
+    const quiet=await off.inject({url:`${base(p)}/tasks/quiet/personal`,headers:f.alice.headers});
+    assert.equal(quiet.json().participating,false);assert.equal(quiet.json().participationRevision,0);
     for(const [method,url,payload] of [
       ['GET','/api/v1/workbench/plan',undefined],
       ['PUT',`${base(p)}/tasks/z/personal/participation`,{baseRevision:1,participating:false}],
@@ -452,7 +507,18 @@ test('W10 flags: off means not found and the session names what is on',async()=>
       const r=await off.inject({method,url,headers:{...f.alice.headers,'idempotency-key':randomUUID()},...(payload?{payload}:{})});assert.equal(r.statusCode,404,url);
     }
     assert.deepEqual((await off.inject({url:'/api/v1/session',headers:f.alice.headers})).json().features,['workbench_read_internal']);
+    const seen=await off.inject({method:'PUT',url:`${base(p)}/tasks/z/personal/seen`,headers:{...f.alice.headers,'idempotency-key':randomUUID()},payload:{baseRevision:0,sequence:0}});
+    assert.equal(seen.statusCode,404,'seen with nothing it serves is not found');
   }finally{await off.close();}
+  // "Жду" is derived from participation: switched on alone it is reported off and its command is not found.
+  const waitingOnly=await startApp({settings:{SPRINTIQUE_FEATURES:'workbench_read_internal,workbench_waiting'}});
+  try{
+    const env=await waitingOnly.inject({url:'/api/v1/workbench',headers:f.alice.headers});
+    assert.deepEqual(env.json().features,{requests:false,participation:false,waiting:false});
+    const p=await project();await task(p,'w');
+    const r=await waitingOnly.inject({method:'PUT',url:`${base(p)}/tasks/w/personal/check-back`,headers:{...f.alice.headers,'idempotency-key':randomUUID()},payload:{baseRevision:0,checkBackAt:null}});
+    assert.equal(r.statusCode,404);
+  }finally{await waitingOnly.close();}
   // The production default (nothing named = nothing on) is proven by FeatureFlagsTest: a production process needs HTTPS.
 });
 
@@ -482,24 +548,26 @@ test('W12 own noise: edits by my own agent are not news, a colleague\'s are',asy
   await edit(p,'watched',{status:'in_progress',due:inDays(4)},agent);
   const own=(await f.admin.query<{actor_id:string;initiator_id:string}>("SELECT actor_id,initiator_id FROM app.task_activity WHERE project_id=$1 AND task_id='watched' AND kind='status'",[p])).rows[0]!;
   assert.equal(own.initiator_id,f.alice.id,'the agent acts on the initiator\'s behalf');assert.notEqual(own.actor_id,f.alice.id);
-  assert.deepEqual(where(await envelope(f.alice,p),'watched'),['participating'],'my agent\'s edits are my own noise');
+  const quiet=placed(await envelope(f.alice,p)).find(x=>x.row.taskId==='watched')!;
+  assert.equal(quiet.place,'joined');assert.equal(quiet.row.updates,null,'my agent\'s edits are my own noise');
   await edit(p,'watched',{status:'review'},f.bob);
   const row=placed(await envelope(f.alice,p)).find(x=>x.row.taskId==='watched')!;
-  assert.equal(row.place,'updates');assert.equal(row.row.updates!.count,1);assert.equal(row.row.primaryReason.actor?.id,f.bob.id);
+  assert.equal(row.place,'joined');assert.equal(row.row.updates!.count,1);assert.equal(row.row.updates!.latest!.actor?.id,f.bob.id);
 });
 
 test('W13 discussions reach participants: a new message, then the question resolved',async()=>{
   const p=await project([[f.bob,'editor']]);
   await task(p,'discussed');
   const thread=await ok<any>(call('POST',`${base(p)}/tasks/discussed/threads`,{id:'q1',messageId:'m1',body:'Кто берёт?',requiresResolution:true},f.bob));
-  let row=placed(await envelope(f.alice,p)).find(x=>x.row.taskId==='discussed')!;
-  assert.equal(row.row.primaryReason.code,'followed_thread_changed');assert.equal(row.row.primaryReason.text,'Вы участвуете: новое сообщение в обсуждении');
+  const news=async()=>placed(await envelope(f.alice,p)).find(x=>x.row.taskId==='discussed')!.row.secondaryReasons.find(r=>r.code==='followed_thread_changed');
+  assert.equal((await news())?.text,'Вы участвуете: новое сообщение в обсуждении');
   const state=await personal(p,'discussed');
   await ok(call('PUT',`${base(p)}/tasks/discussed/personal/seen`,{baseRevision:state.seenRevision,sequence:state.latestSequence}));
-  assert.deepEqual(where(await envelope(f.alice,p),'discussed'),['participating']);
+  assert.deepEqual(where(await envelope(f.alice,p),'discussed'),['joined']);assert.equal(await news(),undefined,'seen news is gone');
   await ok(call('PATCH',`${base(p)}/threads/q1/resolution`,{resolved:true,baseRevision:thread.revision},f.bob));
-  row=placed(await envelope(f.alice,p)).find(x=>x.row.taskId==='discussed')!;
-  assert.equal(row.row.primaryReason.text,'Вы участвуете: вопрос в обсуждении решён');
+  assert.equal((await news())?.text,'Вы участвуете: вопрос в обсуждении решён');
+  const latest=placed(await envelope(f.alice,p)).find(x=>x.row.taskId==='discussed')!.row.updates!.latest!;
+  assert.equal(latest.kind,'resolution');assert.deepEqual(latest.detail,{resolved:true});
 });
 
 test('W14 review R1: reassignment pierces a snooze, a new relation starts now, first joins race, off is 404 unauthenticated',async()=>{
@@ -515,7 +583,8 @@ test('W14 review R1: reassignment pierces a snooze, a new relation starts now, f
   // F3: participating again does not replay the history from before the new relation.
   await task(p,'h',{},f.bob);await participate(p,'h');await participate(p,'h',false);
   for(const status of ['in_progress','review','testing'])await edit(p,'h',{status},f.bob);
-  await participate(p,'h');assert.deepEqual(where(await envelope(f.alice,p),'h'),['participating']);
+  await participate(p,'h');assert.deepEqual(where(await envelope(f.alice,p),'h'),['joined']);
+  assert.equal(placed(await envelope(f.alice,p)).find(x=>x.row.taskId==='h')!.row.updates,null);
   await edit(p,'h',{status:'in_progress'},f.bob);
   assert.equal(placed(await envelope(f.alice,p)).find(x=>x.row.taskId==='h')!.row.updates!.count,1);
   // F4: two first joins from two tabs: one wins, the other is told.
@@ -532,4 +601,94 @@ test('W14 review R1: reassignment pierces a snooze, a new relation starts now, f
   const none=await startApp({settings:{SPRINTIQUE_FEATURES:'none'}});
   try{for(const url of ['/workbench','/workbench/plan','/api/v1/workbench'])assert.equal((await none.inject({url})).statusCode,404,url);}
   finally{await none.close();}
+});
+
+test('W15 review R2 F1: personal commands and shared commands of one person in one project never deadlock',async()=>{
+  const p=await project([[f.bob,'editor']]);
+  for(const id of ['a','b','c'])await task(p,id);
+  // A move in "Участвую" in one tab while a new task is created in another (both take the person's lock).
+  for(let i=0;i<8;i++){
+    const [moved,created]=await Promise.all([rank(p,i%2?'c':'b','up'),call('PUT',`${base(p)}/tasks/n${i}`,{baseRevision:0,task:{title:'Новая '+i}})]);
+    assert.ok([200,409,422].includes(moved.statusCode),moved.body);assert.equal(created.statusCode,200,created.body);
+  }
+  // Seen from the drawer while a request goes out on the same task (the personal row and the project row).
+  for(let i=0;i<8;i++){
+    const state=await personal(p,'a');
+    const [seen,asked]=await Promise.all([
+      call('PUT',`${base(p)}/tasks/a/personal/seen`,{baseRevision:state.seenRevision,sequence:state.latestSequence}),
+      call('POST',`${base(p)}/tasks/a/requests`,{id:randomUUID(),recipientId:f.bob.id,kind:'answer'}),
+    ]);
+    assert.equal(seen.statusCode,200,seen.body);assert.equal(asked.statusCode,200,asked.body);
+  }
+});
+
+test('W16 review R2 F2/F8: "Жду" follows my latest assignment, including my agent\'s; a task from planning joins its author',async()=>{
+  const p=await project([[f.bob,'editor'],[carol,'editor'],[dan,'editor']]);
+  // I delegate, then take the task myself; a colleague then hands it on: that is no longer my delegation.
+  await task(p,'took');await edit(p,'took',{ownerId:f.bob.id});await edit(p,'took',{ownerId:f.alice.id});
+  await edit(p,'took',{ownerId:dan.id},carol);
+  let row=placed(await envelope(f.alice,p)).find(x=>x.row.taskId==='took')!;
+  assert.equal(row.place,'joined');assert.equal(row.row.waiting,null);
+  assert.equal((await personal(p,'took')).delegated,null);
+  // I delegate, then remove the owner myself: nothing is delegated.
+  await task(p,'unset');await edit(p,'unset',{ownerId:f.bob.id});await edit(p,'unset',{ownerId:null});
+  assert.deepEqual(where(await envelope(f.alice,p),'unset'),['joined']);
+  assert.equal((await checkBack(p,'unset',inDays(2))).json().code,'NOT_WAITING');
+  // A colleague removes the owner of what I delegated: still mine to wait for, "исполнитель снят".
+  await task(p,'removed');await edit(p,'removed',{ownerId:f.bob.id});await edit(p,'removed',{ownerId:null},carol);
+  row=placed(await envelope(f.alice,p)).find(x=>x.row.taskId==='removed')!;
+  assert.equal(row.place,'waiting');assert.equal(row.row.primaryReason.text,'Поручено: Борис, исполнитель снят');assert.equal(row.row.waiting!.ownerNow,null);
+  // My own agent assigns on my behalf: that is my delegation.
+  const grant=await ok<{token:string}>(call('POST',`${base(p)}/agents`,{name:'Мой агент',capabilities:['tasks:read','tasks:write'],expiresInSeconds:600}));
+  const agent={headers:{authorization:'Bearer '+grant.token}} as unknown as User;
+  await task(p,'via-agent');await edit(p,'via-agent',{ownerId:f.bob.id},agent);
+  row=placed(await envelope(f.alice,p)).find(x=>x.row.taskId==='via-agent')!;
+  assert.equal(row.place,'waiting');assert.deepEqual(row.row.waiting!.expectedAssignee,{id:f.bob.id,name:'Борис'});
+  // A task created through planning joins its author like one created on the board.
+  const view=(suffix:string,payload:unknown)=>ok<any>(call('POST',`${base(p)}/planning/view/${suffix}`,payload));
+  const preview=await view('preview',{kind:'taskCreate',taskId:'planned-new',task:{title:'Из планирования'}});
+  const [planId,token]=preview.token.split('.');
+  assert.equal((await ok<any>(call('POST',`${base(p)}/planning/commands`,{planId,token}))).status,'committed');
+  assert.deepEqual(where(await envelope(f.alice,p),'planned-new'),['joined']);
+  assert.equal((await personal(p,'planned-new')).participating,true);
+});
+
+test('W17 review R2 F3/F10: rank moves among the visible neighbours; a task with an awake request is not also snoozed',async()=>{
+  const p=await project([[f.bob,'editor']]);
+  await task(p,'A');await task(p,'B',{ownerId:f.bob.id});await task(p,'C');
+  const joined=async()=>(await envelope(f.alice,p)).sections[1]!.groups!.find(g=>g.key==='joined')!.items.map(r=>r.taskId);
+  assert.deepEqual(await joined(),['A','C']);
+  assert.deepEqual(where(await envelope(f.alice,p),'B'),['waiting']);
+  await ok(rank(p,'C','up'));assert.deepEqual(await joined(),['C','A'],'one press moves past the visible neighbour');
+  assert.equal((await rank(p,'C','up')).json().code,'RANK_EDGE');
+  const hidden=await rank(p,'B','up');assert.equal(hidden.statusCode,422);assert.equal(hidden.json().code,'RANK_NOT_LISTED');
+  // F10: one request snoozed, a newer one awake: the task is in "Нужно действие" only.
+  await task(p,'s',{},f.bob);await ask(p,'s',f.bob,f.alice);
+  const state=await personal(p,'s');
+  await ok(call('PUT',`${base(p)}/tasks/s/personal/snooze`,{baseRevision:state.snoozeRevision,until:inDays(3)+'T09:00:00Z'}));
+  assert.equal((await envelope(f.alice,p)).sections[0]!.snoozedCount,1);
+  await ask(p,'s',f.bob,f.alice,{kind:'decision'});
+  const env=await envelope(f.alice,p);
+  assert.deepEqual(where(env,'s'),['action']);assert.equal(env.sections[0]!.snoozedCount,0);
+  const snoozed=await ok<WorkbenchPage>(f.app.inject({url:`/api/v1/workbench/list?section=snoozed&projects=${p}`,headers:f.alice.headers}));
+  assert.deepEqual(snoozed.items,[]);
+});
+
+test('W18 preferences: layout and time zone are separate fields of one revision',async()=>{
+  const u=await human('Эмма');
+  const put=(payload:unknown)=>call('PUT','/api/v1/workbench/preferences',payload,u);
+  assert.deepEqual(await ok(call('GET','/api/v1/workbench/preferences',undefined,u)),{timezone:null,layout:{hiddenWidgets:[],currentWork:'board'},revision:0});
+  const first=await ok<any>(put({baseRevision:0,layout:{hiddenWidgets:['week','more'],currentWork:'list'}}));
+  assert.deepEqual(first,{timezone:null,layout:{hiddenWidgets:['more','week'],currentWork:'list'},revision:1});
+  const zoned=await ok<any>(put({baseRevision:1,timezone:'Europe/Moscow'}));
+  assert.deepEqual(zoned.layout,first.layout,'a field left out keeps its value');assert.equal(zoned.timezone,'Europe/Moscow');
+  assert.equal((await put({baseRevision:1,timezone:'UTC'})).statusCode,409);
+  for(const bad of [{baseRevision:2},{baseRevision:2,layout:{hiddenWidgets:['calendar']}},{baseRevision:2,layout:{currentWork:'grid'}},
+    {baseRevision:2,layout:{hiddenWidgets:[],currentWork:'board',extra:1}}])assert.equal((await put(bad)).statusCode,400,JSON.stringify(bad));
+  const reset=await ok<any>(put({baseRevision:2,layout:null,timezone:null}));
+  assert.deepEqual(reset,{timezone:null,layout:{hiddenWidgets:[],currentWork:'board'},revision:3});
+  // Private: another person reads only their own.
+  assert.equal((await ok<any>(call('GET','/api/v1/workbench/preferences',undefined,f.bob))).layout.currentWork,'board');
+  const rows=await f.db.authenticated({token:f.bob.token,kind:'session'},tx=>tx.query('SELECT 1 FROM app.workbench_preferences WHERE principal_id=$1',[u.id]));
+  assert.equal(rows.rowCount,0);
 });

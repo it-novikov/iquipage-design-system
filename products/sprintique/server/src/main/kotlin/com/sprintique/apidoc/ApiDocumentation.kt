@@ -260,6 +260,15 @@ internal object ApiQueries {
             query("horizon", mapOf("type" to "string", "enum" to listOf("today", "7d"), "default" to "today")),
             workbenchProjects,
             query("timezone", mapOf("type" to "string", "maxLength" to MAX_TIMEZONE)),
+            query(
+                "undated",
+                mapOf(
+                    "type" to "string",
+                    "enum" to listOf("list", "count"),
+                    "default" to "list",
+                    "description" to "count: only summary.undatedCount, for the overview's week.",
+                ),
+            ),
         )
 
         "$P/maps", "$P/agent-runs", "$P/approvals" -> listOf(cursor)

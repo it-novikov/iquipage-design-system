@@ -54,12 +54,13 @@ class PersonalTaskController(
         LinkedHashMap(state).apply {
             val shared = flags.isEnabled(Feature.WORKBENCH_REQUESTS)
             put("requests", if (shared) AttentionRequests.forTask(tx, actor, projectId, taskId) else null)
+            val parts = flags.workbenchParts()
             put(
                 "features",
                 linkedMapOf(
-                    "participation" to flags.isEnabled(Feature.WORKBENCH_PERSONAL_STATE),
-                    "requests" to flags.isEnabled(Feature.WORKBENCH_REQUESTS),
-                    "waiting" to flags.isEnabled(Feature.WORKBENCH_WAITING),
+                    "participation" to parts.personal,
+                    "requests" to parts.requests,
+                    "waiting" to parts.waiting,
                 ),
             )
         }
@@ -94,7 +95,18 @@ class PersonalTaskController(
         ids(projectId, taskId)
         val input = contracts.parse<PutRankRequest>(body)
         val scope = input.projects?.distinct()?.sorted()
-        PersonalState.rank(tx, actor, projectId, taskId, input.baseRevision, input.move.move, scope, key(request))
+        val parts = flags.workbenchParts()
+        PersonalState.rank(
+            tx,
+            actor,
+            projectId,
+            taskId,
+            input.baseRevision,
+            input.move.move,
+            scope,
+            parts,
+            key(request),
+        )
     }
 
     /** The private date to check delegated work ("Жду"); null clears it. */
@@ -108,6 +120,7 @@ class PersonalTaskController(
         request: HttpServletRequest,
     ) = requests.run(request) { tx, actor ->
         flags.require(Feature.WORKBENCH_WAITING)
+        flags.require(Feature.WORKBENCH_PERSONAL_STATE)
         ids(projectId, taskId)
         val input = contracts.parse<PutCheckBackRequest>(body)
         PersonalState.checkBack(tx, actor, projectId, taskId, input.baseRevision, input.checkBackAt, key(request))
@@ -122,6 +135,9 @@ class PersonalTaskController(
         @RequestBody(required = false) body: JsonNode?,
         request: HttpServletRequest,
     ) = requests.run(request) { tx, actor ->
+        // "Seen" moves the watermark that requests and waiting count their news from as well (as FeatureFilter).
+        val parts = flags.workbenchParts()
+        if (!parts.personal && !parts.requests) flags.require(Feature.WORKBENCH_PERSONAL_STATE)
         ids(projectId, taskId)
         val input = contracts.parse<PutSeenRequest>(body)
         PersonalState.seen(tx, actor, projectId, taskId, input.baseRevision, input.sequence, key(request))

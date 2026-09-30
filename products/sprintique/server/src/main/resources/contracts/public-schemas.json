@@ -16742,14 +16742,58 @@
           "maximum": 9007199254740991
         },
         "timezone": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 100
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "layout": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "hiddenWidgets": {
+                  "default": [],
+                  "maxItems": 3,
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "week",
+                      "updates",
+                      "more"
+                    ]
+                  }
+                },
+                "currentWork": {
+                  "default": "board",
+                  "type": "string",
+                  "enum": [
+                    "board",
+                    "list"
+                  ]
+                }
+              },
+              "required": [
+                "hiddenWidgets",
+                "currentWork"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       },
       "required": [
-        "baseRevision",
-        "timezone"
+        "baseRevision"
       ],
       "additionalProperties": false
     },
@@ -20428,6 +20472,38 @@
         "releaseId",
         "tagIds",
         "tagMode"
+      ],
+      "additionalProperties": false
+    },
+    "WorkbenchLayout": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "hiddenWidgets": {
+          "default": [],
+          "maxItems": 3,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "week",
+              "updates",
+              "more"
+            ]
+          }
+        },
+        "currentWork": {
+          "default": "board",
+          "type": "string",
+          "enum": [
+            "board",
+            "list"
+          ]
+        }
+      },
+      "required": [
+        "hiddenWidgets",
+        "currentWork"
       ],
       "additionalProperties": false
     },

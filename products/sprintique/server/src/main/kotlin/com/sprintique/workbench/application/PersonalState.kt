@@ -19,6 +19,13 @@ enum class RankMove(val wire: String) { UP("up"), DOWN("down") }
  */
 object PersonalState {
     const val PARTICIPATION_LIMIT = 2000
+
+    /**
+     * Whether a new task's author joins it (docs/adr W5 §3): on only while `workbench_personal_state` is, so switching
+     * the feature off stops this path as well (docs/adr W6 §7). Set once at start by [WorkbenchSwitches].
+     */
+    @Volatile
+    var joinsOnCreate: Boolean = false
     private const val RANK_STEP = 1_048_576L
     private val SNOOZE_LIMIT: Duration = Duration.ofDays(30)
 
@@ -60,8 +67,10 @@ object PersonalState {
     private fun revision(row: Row?, name: String): Long = row?.long(name) ?: 0L
 
     /**
-     * "Жду" (docs/adr W5): the person participates and the task's current owner is someone else whom the person
-     * assigned it to (their latest assignment of it). Null when the task is not delegated by the person.
+     * "Жду" (docs/adr W5): the person's latest assignment of the task (by them or their agent) went to someone else,
+     * and the person does not own it now. A later assignment to themselves or a removal of the owner by them ends it;
+     * a colleague's reassignment does not. Null when the task is not delegated by the person. The same rule as the
+     * Workbench statement.
      */
     fun delegation(tx: Transaction, actor: Actor, projectId: String, taskId: String): Map<String, Any?>? = tx.row(
         """
@@ -69,10 +78,11 @@ object PersonalState {
         FROM app.tasks t CROSS JOIN LATERAL (
           SELECT e.detail->>'to' AS expected, e.sequence FROM app.task_activity e
           WHERE e.project_id = t.project_id AND e.task_id = t.id AND e.kind = 'owner'
-            AND (e.actor_id = $3 OR e.initiator_id = $3) AND e.detail->>'to' IS NOT NULL AND e.detail->>'to' <> $3
+            AND (e.actor_id = $3 OR e.initiator_id = $3)
           ORDER BY e.sequence DESC LIMIT 1
         ) d
         WHERE t.project_id = $1 AND t.id = $2 AND t.owner_id IS DISTINCT FROM $3
+          AND d.expected IS NOT NULL AND d.expected <> $3
         """.trimIndent(),
         projectId,
         taskId,
@@ -81,7 +91,11 @@ object PersonalState {
         LinkedHashMap<String, Any?>(it).apply { put("assignedSequence", it["assignedSequence"]?.toString()?.toLong()) }
     }
 
-    /** "Участвую" on or off. Joining appends the task to the end of the person's order; leaving drops its rank. */
+    /**
+     * "Участвую" on or off. Joining appends the task to the end of the person's order; leaving drops its rank and its
+     * check-back date: to stop controlling delegated work is to leave it (docs/adr W5 §8), and a later join must not
+     * revive an old date.
+     */
     @Suppress("LongParameterList")
     fun participation(
         tx: Transaction,
@@ -126,7 +140,7 @@ object PersonalState {
      * is one command. Part of the task's creation, so no receipt of its own.
      */
     fun joinCreatedTask(tx: Transaction, actor: Actor, projectId: String, taskId: String) {
-        if (!actor.isHuman) return
+        if (!joinsOnCreate || !actor.isHuman) return
         tx.row("SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", "participation:${actor.id}")
         if (count(tx, actor) >= PARTICIPATION_LIMIT) return
         lock(tx, actor, projectId, taskId)
@@ -151,7 +165,10 @@ object PersonalState {
         tx.row(
             """
             UPDATE app.task_personal_state SET participating = $4, participation_revision = participation_revision + 1,
-                   rank = $5, rank_revision = rank_revision + 1, updated_at = clock_timestamp()
+                   rank = $5, rank_revision = rank_revision + 1,
+                   check_back_revision = check_back_revision + CASE WHEN $4 OR check_back_at IS NULL THEN 0 ELSE 1 END,
+                   check_back_at = CASE WHEN $4 THEN check_back_at END,
+                   updated_at = clock_timestamp()
             WHERE project_id = $1 AND task_id = $2 AND principal_id = $3 RETURNING participation_revision
             """.trimIndent(),
             projectId,
@@ -161,7 +178,10 @@ object PersonalState {
             rank,
         )!!.long("participation_revision")
 
-    /** Up or down within the list the person sees: `scope` is the Workbench project filter (null: every project). */
+    /**
+     * Up or down within the "Участвую" group the person sees: `scope` is the Workbench project filter (null: every
+     * project), `parts` what the Workbench serves, so the neighbours are exactly those on the screen.
+     */
     @Suppress("LongParameterList")
     fun rank(
         tx: Transaction,
@@ -171,6 +191,7 @@ object PersonalState {
         baseRevision: Long,
         move: RankMove,
         scope: List<String>?,
+        parts: WorkbenchParts,
         key: String,
     ): Map<String, Any?> {
         WorkbenchAccess.task(tx, actor, projectId, taskId, Capability.TASKS_READ)
@@ -181,7 +202,8 @@ object PersonalState {
             val current = lock(tx, actor, projectId, taskId)
             requireRevision(current.long("rank_revision"), baseRevision)
             requireCondition(current.boolean("participating"), 422, "NOT_PARTICIPATING", "Вы не участвуете в задаче.")
-            val rank = move(tx, actor, projectId, taskId, move == RankMove.UP, scope)
+            val visible = { Workbench.joinedOrder(tx, actor, scope, parts) }
+            val rank = move(tx, actor, projectId, taskId, move == RankMove.UP, visible)
             val revision = tx.row(
                 """
                 UPDATE app.task_personal_state SET rank = $4, rank_revision = rank_revision + 1, updated_at = clock_timestamp()
@@ -208,19 +230,19 @@ object PersonalState {
      * left the person's whole order is renumbered in its current order first. Ranks encode order only, so the other
      * rows keep their revisions.
      */
-    @Suppress("LongParameterList")
     private fun move(
         tx: Transaction,
         actor: Actor,
         projectId: String,
         taskId: String,
         up: Boolean,
-        scope: List<String>?,
+        visible: () -> List<Row>,
     ): Long {
-        val order = rankOrder(tx, actor, scope)
+        val order = visible()
         val index = order.indexOfFirst { it["projectId"] == projectId && it["taskId"] == taskId }
+        requireCondition(index >= 0, 422, "RANK_NOT_LISTED", "Задача не в группе «Участвую»: её порядок не задаётся.")
         val target = if (up) index - 1 else index + 1
-        requireCondition(index >= 0 && target in order.indices, 422, "RANK_EDGE", "Задача уже на краю списка.")
+        requireCondition(target in order.indices, 422, "RANK_EDGE", "Задача уже на краю списка.")
         placeBetween(order, index, target)?.let { return it }
         tx.update(
             """
@@ -232,18 +254,8 @@ object PersonalState {
             actor.id,
             RANK_STEP,
         )
-        return requireNotNull(placeBetween(rankOrder(tx, actor, scope), index, target))
+        return requireNotNull(placeBetween(visible(), index, target))
     }
-
-    private fun rankOrder(tx: Transaction, actor: Actor, scope: List<String>?): List<Row> = tx.rows(
-        """
-        SELECT project_id AS "projectId", task_id AS "taskId", rank FROM app.task_personal_state
-        WHERE principal_id = $1 AND participating AND ($2::text[] IS NULL OR project_id = ANY($2::text[]))
-        ORDER BY rank, project_id, task_id
-        """.trimIndent(),
-        actor.id,
-        scope,
-    )
 
     private fun placeBetween(order: List<Row>, index: Int, target: Int): Long? {
         val reordered = order.toMutableList().apply { add(target, removeAt(index)) }
