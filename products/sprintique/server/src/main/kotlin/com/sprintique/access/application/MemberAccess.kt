@@ -529,7 +529,7 @@ object MemberAccess {
      * A person leaves the project or can no longer change tasks there: the agent tokens they issued stop, and the
      * requests addressed to them become orphaned for the requester to reassign (docs/adr W1), never silently gone.
      * Row security admits a member of the project to its requests; a workspace access manager who is not one works
-     * on exactly this person's open requests, and records it, while [leaving] names them (V20260930000034).
+     * on exactly this person's open requests, and records it, while [leaving] names them (V20260930000041).
      */
     fun stopsChanging(tx: Transaction, actor: Actor, projectId: String, principalId: String) {
         revokeAgentsIssuedBy(tx, projectId, principalId)

@@ -153,7 +153,7 @@ effective = (closure(preset.perms ∪ granted) \ cascade(revoked)) ∩ effective
 
 ### 7.1 Миграции (после ветвей в работе: финансы 025, API 026–027, рабочий стол 028–029)
 
-**V…030 `add_permissions`**
+**V…037 `add_permissions`**
 ```sql
 CREATE FUNCTION auth.permission_known(p text) RETURNS boolean LANGUAGE sql IMMUTABLE AS $$
   SELECT p = ANY (ARRAY['tasks.read','tasks.write','threads.write','releases.manage','maps.read','maps.write',
@@ -194,11 +194,11 @@ REVOKE ALL ON FUNCTION auth.can(text, text), auth.can_workspace_do(uuid, text) F
 ```
 `auth.can_project(id)` остаётся (= `auth.can(id,'tasks.read')`); политики содержимого не переписываются. Финансы: `auth.can_read_finance(p)` → `auth.can(p,'finance.read')`, `auth.can_manage_finance(p)` → `auth.can(p,'finance.write')` (у сервисных аккаунтов — только при явной выдаче).
 
-**V…031 `migrate_roles_to_presets`** — в каждом пространстве создаются системные пресеты; `project_members.preset_id` по `role` (`admin`→Администратор, `editor`→Редактор, `reader`→Наблюдатель); `permissions` = `auth.compile_permissions(preset, granted, revoked)`; `workspace_members`: `admin`→Администратор, `member`→Участник, владелец = `created_by` если администратор, иначе самый ранний администратор-человек; `default_project_preset_id` = Редактор (гостям — Гость). Нынешние агентские принципалы (`kind='agent'`) становятся сервисными аккаунтами (II.7). Колонка `role` в `project_members` остаётся один релиз как производная, затем удаляется.
+**V…038 `migrate_roles_to_presets`** — в каждом пространстве создаются системные пресеты; `project_members.preset_id` по `role` (`admin`→Администратор, `editor`→Редактор, `reader`→Наблюдатель); `permissions` = `auth.compile_permissions(preset, granted, revoked)`; `workspace_members`: `admin`→Администратор, `member`→Участник, владелец = `created_by` если администратор, иначе самый ранний администратор-человек; `default_project_preset_id` = Редактор (гостям — Гость). Нынешние агентские принципалы (`kind='agent'`) становятся сервисными аккаунтами (II.7). Колонка `role` в `project_members` остаётся один релиз как производная, затем удаляется.
 
-**V…032 `add_email_invitations`** — как в раунде 1, с `workspace_preset_id`, `project_preset_id`.
+**V…039 `add_email_invitations`** — как в раунде 1, с `workspace_preset_id`, `project_preset_id`.
 
-**V…033 `add_service_accounts`** — часть II.
+**V…040 `add_service_accounts`** — часть II.
 
 ### 7.2 Компиляция и согласованность
 `auth.compile_permissions(preset_id, granted, revoked, owner_permissions text[] DEFAULT NULL)` — SQL с таблицей зависимостей `auth.permission_implies(p)`; для сервисного аккаунта пересекает с правами владельца и вычитает `NEVER_SERVICE`, а `finance.*` берёт только из явных добавлений. Вызывается сценарием при каждой записи членства, при изменении пресета (`UPDATE … WHERE preset_id = $1` под блокировкой пространства) и при сужении прав владельца (пересчёт его сервисных аккаунтов в той же транзакции). Триггер `BEFORE INSERT OR UPDATE` на членствах проверяет, что `permissions` равен результату компиляции, `tasks.read` у всех, гость без `project.access`, сервисный аккаунт без `NEVER_SERVICE`. Почему `text[]`, а не битовая маска: самодокументируемый SQL и аудит, нет таблицы соответствий, ≤ 300 байт на строку, проверка — одна строка по PK.
@@ -206,7 +206,7 @@ REVOKE ALL ON FUNCTION auth.can(text, text), auth.can_workspace_do(uuid, text) F
 ### 7.3 Аудит
 `app.audit_events`: `member.added`, `member.permissions.updated` (payload: `presetBefore/After`, `granted`, `revoked`), `member.removed`, `access.defaults.updated`, `access.workspace_admin_joined`, `invitation.*`, `service_account.*` (II.6). `app.workspace_audit`: `preset.created|updated|archived`, `workspace.member.permissions.updated`, `workspace.owner.transferred`, `workspace.rules.updated`, `service_account.created|owner_transferred|suspended|deleted`.
 
-### 7.4 Как реализовано (ветка `feature/access-invites`, миграции V20260930000030–032)
+### 7.4 Как реализовано (ветка `feature/access-invites`, миграции V20260930000037–041)
 
 Отличия от набросков выше, принятые при реализации:
 
@@ -216,7 +216,7 @@ REVOKE ALL ON FUNCTION auth.can(text, text), auth.can_workspace_do(uuid, text) F
 4. **`app.access_presets`** без колонки `scope` (только пресеты проекта; `subject` — человек/сервис), без RLS, как и таблицы членства (вход политики, доступ через проверки сценариев). Системные пресеты создаются триггером на вставку пространства. Уникальность названия без учёта регистра проверяет приложение (SQL `lower()` зависит от collation).
 5. **`project_members.workspace_id`** с FK `(workspace_id, project_id)` → `projects` — пресет чужого пространства отвергается без чтения проекта под RLS.
 6. **Приглашения** — одна таблица `auth.invitations` для писем и ссылок (`kind`), со снимком имён для анонимного `POST /api/v1/invitations/inspect`; прежние ссылки `auth.project_invitations` перенесены с тем же хэшем и таблица удалена. Пути: `POST /workspaces/{id}/invitations` и `/projects/{id}/invitations` (письма), `…/invitation-links` (ссылка), `POST /invitations/{id}/resend`, `DELETE /invitations/{id}`, `POST /invitations/accept`.
-7. **Сервисные аккаунты (часть II, после слияния PR #27):** миграция `V20260930000033` переводит их с роли и флагов финансов на сервисный пресет с личными добавлениями; потолок владельца компилирует триггер (`ceiling`), пересчёт — при изменении прав владельца в проекте и при смене владельца; `auth.can` проверяет и видимость проекта (`auth.can_project`: аккаунт активен, владелец участник). Все управляющие сценарии требуют сессию человека (`SESSION_REQUIRED`; на правах доступа — `members.*`, `agents.manage`, `project.access`, `approvals.decide` — токен сервисного аккаунта тоже получает `SESSION_REQUIRED`, а не `SERVICE_ACCOUNT_FORBIDDEN`). Выдача хранит пресет и личные изменения как есть: то, что пресет даёт сверх прав владельца, в исключения не записывается — база срезает это потолком и вернёт, когда право появится у владельца; личное добавление сверх владельца отклоняется (`SERVICE_RESTRICTED`). Кто лишился «Менять задачи» (личные права, пресет, удаление из проекта или пространства) — его агентские токены отзываются, открытые запросы Workbench переходят в `orphaned`, в том числе когда это делает администратор пространства вне проекта (миграция `V20260930000034`). Гость пространства не создаёт аккаунт и не назначается владельцем (`SERVICE_OWNER_INVALID`), `auth.service_account_active` не считает гостя владельцем. Отличия от II.5: приостановленный аккаунт получает 401 `UNAUTHENTICATED` (токен не принимается), а не 403 `SERVICE_SUSPENDED`; экран согласия пресет не выбирает — новый аккаунт получает «Сервис: задачи» (если приложению разрешено изменять и человек меняет задачи) или «Сервис: чтение»; `PUT /catalogs/releases` для сервисного аккаунта закрыт (`HUMAN_REQUIRED`), релизы он предлагает через план. «Не больше своего» проверяют сценарии, база его не проверяет (триггер только компилирует права); пересборка участий при правке пресета или роли пространства увеличивает `revision` участий, но событий в журнал проекта и outbox не пишет (событие — в журнале пространства).
+7. **Сервисные аккаунты (часть II, после слияния PR #27):** миграция `V20260930000040` переводит их с роли и флагов финансов на сервисный пресет с личными добавлениями; потолок владельца компилирует триггер (`ceiling`), пересчёт — при изменении прав владельца в проекте и при смене владельца; `auth.can` проверяет и видимость проекта (`auth.can_project`: аккаунт активен, владелец участник). Все управляющие сценарии требуют сессию человека (`SESSION_REQUIRED`; на правах доступа — `members.*`, `agents.manage`, `project.access`, `approvals.decide` — токен сервисного аккаунта тоже получает `SESSION_REQUIRED`, а не `SERVICE_ACCOUNT_FORBIDDEN`). Выдача хранит пресет и личные изменения как есть: то, что пресет даёт сверх прав владельца, в исключения не записывается — база срезает это потолком и вернёт, когда право появится у владельца; личное добавление сверх владельца отклоняется (`SERVICE_RESTRICTED`). Кто лишился «Менять задачи» (личные права, пресет, удаление из проекта или пространства) — его агентские токены отзываются, открытые запросы Workbench переходят в `orphaned`, в том числе когда это делает администратор пространства вне проекта (миграция `V20260930000041`). Гость пространства не создаёт аккаунт и не назначается владельцем (`SERVICE_OWNER_INVALID`), `auth.service_account_active` не считает гостя владельцем. Отличия от II.5: приостановленный аккаунт получает 401 `UNAUTHENTICATED` (токен не принимается), а не 403 `SERVICE_SUSPENDED`; экран согласия пресет не выбирает — новый аккаунт получает «Сервис: задачи» (если приложению разрешено изменять и человек меняет задачи) или «Сервис: чтение»; `PUT /catalogs/releases` для сервисного аккаунта закрыт (`HUMAN_REQUIRED`), релизы он предлагает через план. «Не больше своего» проверяют сценарии, база его не проверяет (триггер только компилирует права); пересборка участий при правке пресета или роли пространства увеличивает `revision` участий, но событий в журнал проекта и outbox не пишет (событие — в журнале пространства).
 8. **`Capability` остаётся** словарём действий (и возможностей токена агента); каждое действие сопоставлено одному праву (`Capability.permission`), `ProjectAccess.authorize` проверяет право на строке членства. Команды жизни релиза требуют `releases.manage` от человека; предложения агента по релизам по-прежнему утверждает человек с `approvals.decide`.
 
 ## 8. API (сессия человека; сервисные и OAuth-учётные данные — `SESSION_REQUIRED`)
@@ -285,7 +285,7 @@ Kotlin: `Permission` enum заменяет `Capability` (`implies`, `serviceAllo
 
 **База — миграция 027 PR #27** (`V20260929000027__add_public_api_access.sql`), которая уже вводит: `auth.principals.kind = 'service'`; `auth.service_accounts (principal_id, workspace_id, owner_id NOT NULL, created_by, revision, suspended_at, deleted_at)`; `auth.service_account_active(principal)` (не удалён, не приостановлен, владелец активен и в пространстве); потолок в `auth.can_project` (проект виден сервисному аккаунту, только если владелец — участник проекта); `auth.oauth_clients`, `auth.oauth_grants` (одобрение клиента для одного сервисного аккаунта со скоупами и ресурсом), `auth.oauth_codes`, `auth.oauth_refresh_tokens`; `auth.credentials.kind ∈ {service, oauth}` со `scopes`, `audience`, `name`, `grant_id`; `auth.access_events` (история аккаунтов и подключений); `app.audit_events.credential_kind`. Эта часть **не заменяет** 027, а дополняет её:
 
-**V…033 `service_account_permissions`** (после 030–031 части I)
+**V…040 `service_account_permissions`** (после 037–038 части I)
 ```sql
 -- Имя (копия auth.principals.name, обновляется вместе с ним) и описание; имя уникально в пространстве.
 ALTER TABLE auth.service_accounts ADD COLUMN name text NOT NULL DEFAULT '' CHECK (length(name) <= 100),
@@ -300,7 +300,7 @@ CREATE FUNCTION auth.owner_permissions(service text, project text) RETURNS text[
   SELECT coalesce((SELECT m.permissions FROM auth.service_accounts s JOIN app.project_members m ON m.project_id = project AND m.principal_id = s.owner_id
                    WHERE s.principal_id = service), '{}') $$;
 -- Потолок уточняется: вместо «владелец — участник проекта» — «право есть в пересечении», что даёт auth.compile_permissions;
--- auth.can(project, permission) из 030 достаточно, потолок в auth.can_project остаётся как страховка.
+-- auth.can(project, permission) из 037 достаточно, потолок в auth.can_project остаётся как страховка.
 ```
 Компиляция для сервисного аккаунта: `permissions = (closure(preset ∪ granted) \ cascade(revoked)) ∩ auth.owner_permissions(sa, project) \ NEVER_SERVICE`, где `finance.*` учитываются только из `granted`; пересчёт при каждом изменении прав владельца в проекте (в той же транзакции, под блокировкой проекта). Перенос старых грантов (`kind='agent'`): на каждый живой грант — строка `auth.service_accounts` (владелец `initiator_id`, `workspace_id` проекта), `workspace_members role='service'`, `project_members` с `permissions` из capabilities в новых именах; credential становится `kind='service'`, `scopes='{read,write}'`, `audience` = API, `name` = имя гранта.
 
@@ -331,7 +331,7 @@ CREATE FUNCTION auth.owner_permissions(service text, project text) RETURNS text[
 ## II.7 Миграция и совместимость с PR #27
 
 1. В PR #27 уже есть (миграция 027): сервисные аккаунты с владельцем, приостановкой и удалением, OAuth-одобрения на сервисный аккаунт, токены `service`/`oauth` со скоупами, история `auth.access_events`, потолок «владелец — участник проекта». Остаются: сервер авторизации OAuth 2.1, MCP-транспорт и инструменты, `read/write`. Что добавляет эта часть: права аккаунта из каталога (пресеты «Сервис: …», добавления/исключения, `NEVER_SERVICE`, явный `finance.read`), пересечение с правами владельца при компиляции, право `agents.manage` как условие создания и владения, консент-экран с выбором/созданием аккаунта (II.3), экраны II.4, группа «Сервисные аккаунты» в участниках проекта, перенос старых агентских грантов.
-2. Порядок: миграции 030–031 (права) → 033 (права сервисных аккаунтов, перенос грантов) → правка `AgentGrants`/`AgentRuns` → консент-экран (`web/consent.js`: добавить шаг «Кто будет действовать» перед скоупами; тексты `context-title/description` — из II.3).
+2. Порядок: миграции 037–038 (права) → 040 (права сервисных аккаунтов, перенос грантов) → правка `AgentGrants`/`AgentRuns` → консент-экран (`web/consent.js`: добавить шаг «Кто будет действовать» перед скоупами; тексты `context-title/description` — из II.3).
 3. Инструменты MCP получают `whoami` с именем аккаунта и владельца; тексты инструментов не меняются.
 
 ## II.8 Тесты

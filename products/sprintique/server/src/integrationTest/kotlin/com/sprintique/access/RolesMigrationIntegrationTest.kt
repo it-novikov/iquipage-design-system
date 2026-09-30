@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test
 import java.util.UUID
 
 /**
- * PR09: the roles of a database at version 025 become presets without losing any access (migrations 030–032).
+ * PR09: the roles of a database at version 025 become presets without losing any access (migrations 037–039).
  * The data is shaped like production: several workspaces, a creator who is no longer an administrator, a workspace
  * without administrators, a project agent allowed to change maps, finance entries and a pending invitation link.
  */

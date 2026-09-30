@@ -6,7 +6,7 @@
 -- recompiles whenever the owner's permissions or the owner change. Never the decisions and access of people
 -- (auth.never_service_permissions); finance only when added one by one.
 
--- The compile rule of V20260930000030 with the owner's ceiling for a service account.
+-- The compile rule of V20260930000037 with the owner's ceiling for a service account.
 CREATE OR REPLACE FUNCTION app.compile_project_member() RETURNS trigger LANGUAGE plpgsql SET search_path=pg_catalog AS $$
 DECLARE
   principal_kind text;

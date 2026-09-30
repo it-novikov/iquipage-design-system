@@ -34,7 +34,7 @@ CREATE POLICY finance_settings_runtime_update ON app.finance_settings AS RESTRIC
 -- Workbench: meaningful task events and private receipts are append-only (docs/adr W2, W3).
 REVOKE UPDATE ON app.task_activity,app.private_receipts FROM "${runtime_role}";
 GRANT SELECT,INSERT,UPDATE ON auth.principals,auth.credentials TO "${runtime_role}";
--- Invitations (V20260930000032) are revoked, replaced or accepted, never deleted: their history stays.
+-- Invitations (V20260930000039) are revoked, replaced or accepted, never deleted: their history stays.
 GRANT SELECT,INSERT,UPDATE ON auth.invitations TO "${runtime_role}";
 GRANT SELECT,INSERT,DELETE ON auth.login_states TO "${runtime_role}";
 GRANT SELECT,INSERT,UPDATE ON auth.identities TO "${runtime_role}";

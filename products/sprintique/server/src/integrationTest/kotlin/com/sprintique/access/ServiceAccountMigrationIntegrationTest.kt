@@ -11,7 +11,7 @@ import java.util.concurrent.CountDownLatch
 import kotlin.concurrent.thread
 
 /**
- * Migrations 030–033 over service accounts written as production holds them under 027: an editor with finance read
+ * Migrations 037–040 over service accounts written as production holds them under 027: an editor with finance read
  * granted under an administering owner, a reader, an editor granted finance write under an owner who only edits, and
  * an editor whose owner only reads. Each keeps exactly the access it had under the role-and-flag model (where the
  * owner's role capped it at run time). Then the owner's ceiling follows the owner: leaving and rejoining the project,

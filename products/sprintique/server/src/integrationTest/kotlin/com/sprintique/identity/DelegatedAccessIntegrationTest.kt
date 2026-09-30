@@ -12,7 +12,7 @@ import java.util.UUID
  * Migration 027 on a real database: tokens belong to service accounts, bound to a resource, with known scopes and
  * made by someone else; row security holds a service account under its owner's membership, finance only as granted;
  * connected apps and the access history cannot be erased by the runtime role; expired access tokens are collected.
- * Since V20260930000033 its permissions are a service preset with personal additions, capped by its owner's.
+ * Since V20260930000040 its permissions are a service preset with personal additions, capped by its owner's.
  */
 class DelegatedAccessIntegrationTest {
     private val runtime = IntegrationDatabase.runtime
