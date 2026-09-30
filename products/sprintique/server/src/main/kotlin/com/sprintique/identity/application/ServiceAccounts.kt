@@ -548,13 +548,12 @@ class ServiceAccounts(private val properties: SprintiqueProperties) {
             "Нельзя одновременно дать и убрать то, от чего оно зависит: ${conflicts.joinToString { "«${it.title}»" }}.",
         )
         val base = preset.permissions.filterNot { it.service == Permission.ServiceUse.EXPLICIT }
-        // Without a chosen preset (the consent screen) the system one is narrowed to what the owner holds here.
-        val narrowed = if (grant.presetId == null) grant.revoked + (base.toSet() - ownerHas) else grant.revoked
-        val (granted, revoked) = Permissions.normalize(base, grant.granted, narrowed)
+        val (granted, revoked) = Permissions.normalize(base, grant.granted, grant.revoked)
         val wanted = Permissions.compile(base, granted, revoked, Permissions.NEVER_SERVICE)
-        // Not above its owner here, and not above the person who grants it (unless it is the owner, who is the
-        // ceiling).
-        val beyondOwner = wanted - ownerHas
+        // An addition is never above its owner here. What the preset holds beyond the owner stays in the grant: the
+        // database caps it by the owner's current permissions (II.5), so it applies once the owner has it, and is
+        // not written into the removals. Nor above the person who grants it, unless that is the owner.
+        val beyondOwner = granted - ownerHas
         requireCondition(
             beyondOwner.isEmpty(),
             422,

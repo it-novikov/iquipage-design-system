@@ -180,6 +180,33 @@ test('workspace roles: one owner, transfer of ownership, administrators removed 
   assert.ok(carolRow);
 });
 
+test('R4 F1 F3 a workspace administrator outside a project: a preset edit and a removal orphan the person\'s requests there',async()=>{
+  const ws=(await ok('POST','workspaces',{name:'Сироты'})).id,base='workspaces/'+ws;
+  const carol=await person('Карина','carol-'+randomUUID().slice(0,8)+'@example.org'),dan=await person('Данил','dan-'+randomUUID().slice(0,8)+'@example.org');
+  for(const [id,role] of [[carol.id,'admin'],[dan.id,'member']] as const)await f.admin.query('INSERT INTO app.workspace_members(workspace_id,principal_id,role) VALUES($1,$2,$3)',[ws,id,role]);
+  const p=(await ok('POST','projects',{workspaceId:ws,name:'Без Карины',slug:'o-'+randomUUID().slice(0,8),key:'ORP'})).id;
+  await f.admin.query("INSERT INTO app.project_members(project_id,principal_id,role) VALUES($1,$2,'editor')",[p,dan.id]);
+  const task='t-'+randomUUID().slice(0,8);
+  await ok('PUT','projects/'+p+'/tasks/'+task,{baseRevision:0,task:{title:'Вопрос Данилу'}});
+  const ask=async()=>{const id=randomUUID();await f.admin.query("INSERT INTO app.attention_requests(project_id,id,task_id,recipient_id,requested_by,kind) VALUES($1,$2,$3,$4,$5,'answer')",[p,id,task,dan.id,f.alice.id]);return id;};
+  const status=async(id:string)=>(await f.admin.query('SELECT status FROM app.attention_requests WHERE id=$1',[id])).rows[0].status;
+  // The editor preset loses «Менять задачи», edited by someone who is not in the project: Данил cannot act any more.
+  const first=await ask();
+  const editor=(await ok('GET',base+'/presets',undefined,carol)).find((x:{key:string})=>x.key==='editor');
+  const narrowed=await ok('PUT',base+'/presets/'+editor.id,{baseRevision:editor.revision,name:editor.name,permissions:['tasks.read','threads.write','maps.read']},carol);
+  assert.equal(await status(first),'orphaned');
+  await ok('POST',base+'/presets/'+editor.id+'/reset',{baseRevision:narrowed.revision},carol);
+  // Removed from the workspace with his projects by the same administrator: 200, and his open request is orphaned.
+  const second=await ask();
+  const row=(await ok('GET',base+'/members',undefined,carol)).find((x:{id:string})=>x.id===dan.id);
+  await ok('PATCH',base+'/members/'+dan.id,{baseRevision:row.revision,role:null,alsoFromProjects:true},carol);
+  assert.equal(await status(second),'orphaned');
+  assert.equal((await f.admin.query('SELECT count(*)::int AS n FROM app.project_members WHERE project_id=$1 AND principal_id=$2',[p,dan.id])).rows[0].n,0);
+  const events=(await f.admin.query("SELECT action,actor_id FROM app.audit_events WHERE project_id=$1 AND action IN ('member.removed','request.orphaned')",[p])).rows;
+  assert.ok(events.some(e=>e.action==='member.removed'&&e.actor_id===carol.id));
+  assert.equal(events.filter(e=>e.action==='request.orphaned').length,2);
+});
+
 test('IN01 IN02 letters to several addresses: multipart letter, hashed token, same answers for any address',async()=>{
   const known=await person('Иван','ivan-'+randomUUID().slice(0,8)+'@example.org');
   const unknown='nobody-'+randomUUID().slice(0,8)+'@example.org';

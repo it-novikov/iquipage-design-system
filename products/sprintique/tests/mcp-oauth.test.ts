@@ -631,6 +631,24 @@ test('P13 guests neither make nor own service accounts; an owner made a guest st
   }
 });
 
+test('P14 the owner\'s ceiling applies in the database, never written into the grant: the account follows its owner up',async()=>{
+  const call=(user:User,method:'POST'|'DELETE',url:string,payload?:unknown)=>f.app.inject({method,url:ui+url,headers:{...user.headers,'idempotency-key':randomUUID()},...(payload===undefined?{}:{payload:payload as Record<string,unknown>})});
+  const made=await call(f.reader,'POST','/api/v1/service-accounts',{name:'Под потолком',workspaceId:f.first.workspaceId,projects:[{projectId:f.first.id,presetId:await servicePreset('service_tasks'),granted:[],revoked:[]}]});
+  assert.equal(made.statusCode,200,made.body);const account=made.json();
+  const row=async()=>(await f.admin.query('SELECT revoked,permissions FROM app.project_members WHERE project_id=$1 AND principal_id=$2',[f.first.id,account.id])).rows[0];
+  const before=await row();assert.deepEqual(before.revoked,[]);assert.ok(!before.permissions.includes('tasks.write'),'capped by a reading owner');
+  // An addition beyond the owner is still refused.
+  const above=await call(f.reader,'POST','/api/v1/service-accounts',{name:'Выше',workspaceId:f.first.workspaceId,projects:[{projectId:f.first.id,presetId:await servicePreset('service_read'),granted:['maps.write'],revoked:[]}]});
+  assert.equal(above.json().code,'SERVICE_RESTRICTED');
+  try{
+    await f.admin.query("UPDATE app.project_members SET role='editor' WHERE project_id=$1 AND principal_id=$2",[f.first.id,f.reader.id]);
+    assert.ok((await row()).permissions.includes('tasks.write'),'the owner writes now, so does the account');
+  }finally{
+    await f.admin.query("UPDATE app.project_members SET role='reader' WHERE project_id=$1 AND principal_id=$2",[f.first.id,f.reader.id]);
+    assert.equal((await call(f.alice,'DELETE','/api/v1/service-accounts/'+account.id)).statusCode,200);
+  }
+});
+
 test('P12 request windows: 600 a minute per credential from any address; refused tokens cost their address',async()=>{
   const busy=await connect(),calm=await serviceToken(f.alice,['read'],'Спокойный');
   for(let i=0;i<600;i++){const r=await mcp(busy.access_token,'ping');assert.equal(r.statusCode,200,`request ${i}: ${r.body}`);}

@@ -42,7 +42,7 @@ export async function mountMembers(root,{repository,project,tools,notice=''}){
     return s.row({media:s.avatar(m.name,m.id,client.avatarUrl?.(m.id,m.avatarRevision)),title:m.name,titleExtra:extra,meta,aside,actions:items.length?rowMenu(m.name,items):'<span class="iq-settings-row-spacer"></span>',attrs:`data-member-id="${esc(m.id)}"`});
   }
   /** Who may change a service account here: its owner, people managing members or agents here, workspace people managers. */
-  const serviceManager=m=>agentsManage||peopleManager||m.ownerId===self;
+  const serviceManager=m=>agentsManage||peopleManager||m.ownerId===self&&!m.suspended;
   const ownerOf=m=>members.find(x=>x.id===m.ownerId&&x.kind==='human');
   function serviceRow(m){
     const extra=` ${s.badge('Сервисный аккаунт','planned')}${m.suspended?' '+s.badge('Приостановлен','warning'):''}`;

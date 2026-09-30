@@ -83,8 +83,11 @@ export const inactiveGrants=(index,granted=[],owner=null)=>{const has=new Set(ow
  * removals the server lists, the permissions service accounts never hold. Pure.
  */
 export function serviceSources(index,member,presetPermissions=[]){
-  const held=new Set(member.permissions||[]),base=closure(index,[...serviceBase(index,presetPermissions),TASKS_READ]),added=new Set(closure(index,member.added||[]));
-  return Object.fromEntries([...index.keys()].map(id=>[id,serviceUse(index,id)==='never'?'forbidden':held.has(id)?(base.has(id)?'preset':added.has(id)?'added':'dependency'):base.has(id)?'removed':'absent']));
+  const held=new Set(member.permissions||[]),base=closure(index,[...serviceBase(index,presetPermissions),TASKS_READ]);
+  const added=new Set(closure(index,member.added||[])),removed=new Set(member.removed||[]),granted=new Set(member.granted||[]);
+  // Not held although the preset or an addition gives it and nobody removed it: the owner's ceiling («недоступно»).
+  const capped=id=>(base.has(id)||granted.has(id))&&!removed.has(id);
+  return Object.fromEntries([...index.keys()].map(id=>[id,serviceUse(index,id)==='never'?'forbidden':held.has(id)?(base.has(id)?'preset':added.has(id)?'added':'dependency'):capped(id)?'forbidden':base.has(id)?'removed':'absent']));
 }
 
 /**

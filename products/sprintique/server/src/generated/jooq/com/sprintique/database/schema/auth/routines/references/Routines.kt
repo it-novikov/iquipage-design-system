@@ -8,6 +8,7 @@ package com.sprintique.database.schema.auth.routines.references
 import com.sprintique.database.schema.auth.routines.ActorId
 import com.sprintique.database.schema.auth.routines.Can
 import com.sprintique.database.schema.auth.routines.CanManageFinance
+import com.sprintique.database.schema.auth.routines.CanManageWorkspaceAccess
 import com.sprintique.database.schema.auth.routines.CanProject
 import com.sprintique.database.schema.auth.routines.CanReadFinance
 import com.sprintique.database.schema.auth.routines.CanSeePerson
@@ -119,6 +120,35 @@ fun canManageFinance(
       target: Field<String?>
 ): Field<Boolean?> {
     val f = CanManageFinance()
+    f.setTarget(target)
+
+    return f.asField()
+}
+
+fun canManageWorkspaceAccess(
+      configuration: Configuration
+    , target: String?
+): Boolean? {
+    val f = CanManageWorkspaceAccess()
+    f.setTarget(target)
+
+    f.execute(configuration)
+    return f.returnValue
+}
+
+fun canManageWorkspaceAccess(
+      target: String?
+): Field<Boolean?> {
+    val f = CanManageWorkspaceAccess()
+    f.setTarget(target)
+
+    return f.asField()
+}
+
+fun canManageWorkspaceAccess(
+      target: Field<String?>
+): Field<Boolean?> {
+    val f = CanManageWorkspaceAccess()
     f.setTarget(target)
 
     return f.asField()

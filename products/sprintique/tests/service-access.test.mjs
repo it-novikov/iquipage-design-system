@@ -42,6 +42,11 @@ test('«Что может» of a service account from its row',()=>{
   assert.equal(sources['maps.read'],'preset');assert.equal(sources['finance.read'],'added');assert.equal(sources['tasks.write'],'removed');
   assert.equal(sources['project.access'],'forbidden');assert.equal(sources['maps.write'],'absent');
 });
+test('what the owner\'s ceiling takes reads as unavailable, not as removed',()=>{
+  // «Сервис: задачи» under an owner who only reads: nobody removed tasks.write, the owner lacks it.
+  const sources=serviceSources(index,{permissions:['tasks.read','threads.write','maps.read'],granted:['finance.write'],added:['finance.write'],removed:[]},SERVICE_TASKS);
+  assert.equal(sources['tasks.write'],'forbidden');assert.equal(sources['finance.write'],'forbidden');assert.equal(sources['threads.write'],'preset');
+});
 
 test('workspace people: nobody touches the owner row; only the owner changes administrators; appointing needs all five',()=>{
   const OWNER={actorId:'o',role:'owner',permissions:['workspace.invite','workspace.people','projects.create','projects.oversee','workspace.settings']};
@@ -76,4 +81,8 @@ test('invitation actions follow the server: the project it came from, the author
   assert.deepEqual(invitationRights(space,{actorId:'me',workspacePermissions:['workspace.invite'],projectInvite:here}),{resend:true,revoke:true});
   assert.deepEqual(invitationRights({...space,inviterId:'other'},{actorId:'me',workspacePermissions:['workspace.invite'],projectInvite:here}),{resend:true,revoke:false});
   assert.deepEqual(invitationRights(fromThere,{actorId:'me',workspacePermissions:['workspace.invite','workspace.people'],projectInvite:here}),{resend:false,revoke:true});
+  // Inviting an administrator again needs all five workspace permissions.
+  const admin={...space,workspaceRole:'admin'},all=['workspace.invite','workspace.people','projects.create','projects.oversee','workspace.settings'];
+  assert.equal(invitationRights(admin,{actorId:'me',workspacePermissions:['workspace.invite'],projectInvite:here}).resend,false);
+  assert.equal(invitationRights(admin,{actorId:'me',workspacePermissions:all,projectInvite:here}).resend,true);
 });

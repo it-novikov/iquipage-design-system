@@ -2,7 +2,7 @@ import {ui,icon,enhance,notify,escapeHTML as esc,formatDate,formatDateTime} from
 import {dialog,input} from '../ui/src/ui.js';
 import {loadCatalog,loadPresets,choose,diffChips,rowMenu,radios,listPhrase,lowerFirst,title,plural,explain} from './access-ui.js';
 import {openPermissionEditor} from './permission-editor.js';
-import {serviceBase,serviceEffective,inactiveGrants,difference,ordered} from './permissions.js';
+import {inactiveGrants,ordered} from './permissions.js';
 import {workspaceRoleNames} from './invitation-model.js';
 import * as s from './settings-ui.js';
 
@@ -107,15 +107,8 @@ export async function mountServiceAccounts(root,{repository,tools}){
   }
   const current=()=>accounts.find(a=>a.id===selected);
   const path=(...parts)=>'/service-accounts/'+parts.map(encodeURIComponent).join('/');
-  /**
-   * The grant the person's own project allows: the preset, and removals of what it gives beyond the person's own
-   * permissions there (the owner's ceiling; the server refuses a grant above it).
-   */
-  function ownGrant(presets,presetId,projectId){
-    const preset=presets.find(p=>p.id===presetId)?.permissions||[],mine=myProjects.find(p=>p.id===projectId)?.permissions||null;
-    const {granted,revoked}=difference(index,serviceBase(index,preset),serviceEffective(index,{preset,owner:mine}));
-    return {projectId,presetId:presetId||null,granted,revoked};
-  }
+  /** A new grant: the preset as it is; the database caps it by the owner's permissions there (II.5). */
+  const ownGrant=(presets,presetId,projectId)=>({projectId,presetId:presetId||null,granted:[],revoked:[]});
   const defaultPreset=presets=>(presets.find(p=>p.key==='service_read')||presets[0])?.id||'';
   const presetOptions=presets=>presets.map(p=>[p.id,p.name]);
 

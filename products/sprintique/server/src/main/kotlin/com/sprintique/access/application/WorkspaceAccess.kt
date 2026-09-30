@@ -168,9 +168,11 @@ object WorkspaceAccess {
                 "SELF_REMOVAL",
                 "Удаление своего доступа выполняет другой администратор.",
             )
-            removeFromProjects(tx, actor, workspaceId, id, input.alsoFromProjects)
-            // The service accounts this person owns here stop until they get a new owner or are deleted.
+            // The service accounts this person owns here stop until they get a new owner or are deleted. Before the
+            // projects: the account's row is locked ahead of its owner's membership, as every service-account change
+            // does (ServiceAccounts.locate, then grantProject).
             ServiceAccounts.suspendOwnedBy(tx, actor, workspaceId, id)
+            removeFromProjects(tx, actor, workspaceId, id, input.alsoFromProjects)
             tx.update(
                 "DELETE FROM app.workspace_members WHERE workspace_id = $1::uuid AND principal_id = $2",
                 workspaceId,
@@ -241,7 +243,10 @@ object WorkspaceAccess {
             ) {
                 MemberAccess.requireAnotherAdministrator(tx, projectId, id)
             }
-            MemberAccess.recordAccessEvent(tx, actor, projectId, "member.removed", id, mapOf("fromWorkspace" to true))
+            val details = mapOf("fromWorkspace" to true)
+            MemberAccess.leaving(tx, id) {
+                MemberAccess.recordAccessEvent(tx, actor, projectId, "member.removed", id, details)
+            }
             MemberAccess.stopsChanging(tx, actor, projectId, id)
             tx.update("DELETE FROM app.project_members WHERE project_id = $1 AND principal_id = $2", projectId, id)
         }

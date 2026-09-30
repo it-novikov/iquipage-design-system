@@ -114,7 +114,10 @@ async function onboard(selectedWorkspaceId){
     let workspaceId=values.get('workspaceId');
     if(!workspaceId)workspaceId=(await repository.client.request('/workspaces','POST',{name:values.get('workspace')})).id;
     const project=await repository.client.request('/projects','POST',{workspaceId,name:values.get('name'),slug:values.get('slug'),key:values.get('key')});
-    session=await repository.initialize();location.hash='#tasks';await showProject(project.id);
+    session=await repository.initialize();
+    // A new workspace may let the person create projects where they could not: the navigation is built again.
+    creatable=await creatableWorkspaces().catch(()=>null);nav?.destroy();nav=null;
+    location.hash='#tasks';await showProject(project.id);
   }});
 }
 async function showProject(id,mode=location.hash.startsWith('#maps')?'maps':location.hash.startsWith('#settings')?'settings':location.hash.startsWith('#finance')?'finance':location.hash==='#planning'?'planning':'tasks'){

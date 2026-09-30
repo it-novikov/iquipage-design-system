@@ -23,12 +23,15 @@ export async function openPermissionEditor({repository,project,member,presets,he
   const client=repository.client,{index,project:groups}=await loadCatalog(client),own=held?new Set(held):null;
   const self=!service&&member.id===repository.context.actorId,guest=!service&&member.workspaceRole==='guest';
   const owner=service?.ownerPermissions?new Set(service.ownerPermissions):null,orphan=!!service&&!owner;
-  const forbidden=service?serviceForbidden(index,service.ownerPermissions):guest?[PROJECT_ACCESS]:[];
+  // A service account's grant is kept as its own (the database caps it by the owner at any time, II.5): what the owner
+  // lacks is shown locked off, never saved as a removal; only the permissions accounts never hold are forbidden here.
+  const forbidden=service?serviceForbidden(index,[...index.keys()]):guest?[PROJECT_ACCESS]:[];
+  const shown=id=>effective.has(id)&&(!service||id===TASKS_READ||!!owner?.has(id));
   const readOnly=orphan||!self&&!!own&&(member.permissions||[]).some(p=>!own.has(p));
   let presetId=member.presetId,notes=new Map();
   const presetOf=()=>{const list=presets.find(p=>p.id===presetId)?.permissions||[];return service?serviceBase(index,list):list;};
-  // A service account starts from its grant compiled under its owner now, as the database does.
-  let effective=service?compile(index,{base:presetOf(),granted:member.granted||[],revoked:member.revoked||[],forbidden}):new Set(member.permissions);
+  // A service account starts from its grant; additions the owner lacks do not apply and are dropped on save.
+  let effective=service?compile(index,{base:presetOf(),granted:(member.granted||[]).filter(id=>owner?.has(id)),revoked:member.revoked||[],forbidden}):new Set(member.permissions);
   const snapshot=()=>JSON.stringify([presetId,[...effective].sort()]),baseline=snapshot();
   const inactive=service?inactiveGrants(index,member.granted||[],service.ownerPermissions):[];
   function lockOf(id,on){
@@ -45,7 +48,7 @@ export async function openPermissionEditor({repository,project,member,presets,he
     return `${s.badge(name,'planned')}${diffChips(index,granted,revoked)}${cap}${readOnly?'':granted.length||revoked.length?ui.btn('Вернуть к пресету','ghost sm','refresh','data-editor-reset'):'<span class="iq-helper">Права совпадают с пресетом.</span>'}`;
   }
   function permissionRow(p){
-    const on=effective.has(p.id),lock=lockOf(p.id,on);
+    const on=shown(p.id),lock=lockOf(p.id,on);
     // A permission locked off for a service account says why in its lock, not as «убрано».
     const [label,tone]=service&&lock&&!on?[]:sourceBadges[source(index,presetOf(),effective,p.id)]||[];
     const explicit=service&&serviceUse(index,p.id)==='explicit'?' '+s.badge('явно','warning'):'';

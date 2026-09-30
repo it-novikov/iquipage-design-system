@@ -218,6 +218,16 @@ object Presets {
         return write(tx, actor, current, current.name, current.hint, system.defaults, "preset.reset")
     }
 
+    /** The people who change tasks through the preset, as (project, person). */
+    private fun writers(tx: Transaction, presetId: String): Set<Pair<String, String>> = tx.rows(
+        """
+        SELECT m.project_id AS "projectId", m.principal_id AS id FROM app.project_members m
+        JOIN auth.principals p ON p.id = m.principal_id
+        WHERE m.preset_id = $1::uuid AND p.kind = 'human' AND 'tasks.write' = ANY(m.permissions)
+        """.trimIndent(),
+        presetId,
+    ).map { it.string("projectId") to it.string("id") }.toSet()
+
     private fun write(
         tx: Transaction,
         actor: Actor,
@@ -228,6 +238,7 @@ object Presets {
         action: String,
     ): Map<String, Any?> {
         val administered = administeredProjects(tx, current.id)
+        val writers = writers(tx, current.id)
         tx.update(
             """
             UPDATE app.access_presets SET name = $2, hint = $3, permissions = $4::text[], revision = revision + 1,
@@ -242,6 +253,10 @@ object Presets {
             current.id,
         )
         requireAdministratorsRemain(tx, administered)
+        // Whoever no longer changes tasks through the preset stops as if their own access had changed.
+        for ((projectId, principalId) in writers - writers(tx, current.id)) {
+            MemberAccess.stopsChanging(tx, actor, projectId, principalId)
+        }
         WorkspaceAccess.audit(
             tx, actor, current.workspaceId, action, current.id, current.revision + 1,
             mapOf(

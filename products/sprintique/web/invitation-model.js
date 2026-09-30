@@ -1,3 +1,4 @@
+import {WORKSPACE_PERMISSIONS} from './permissions.js';
 /** Invitation rules the page needs before the server answers. Pure: no DOM, tested in node. */
 export const MAX_ADDRESSES=20;
 /** One address, as the server accepts it: a local part, @, a domain with a dot. */
@@ -60,11 +61,14 @@ export const INVITATION_TOKEN=/^#invite\/(invite_[A-Za-z0-9_-]{43})$/;
  * Which invitation actions the server would allow (Invitations.resend/revoke). A resend is a new invitation from the
  * same place: one from a project needs «Приглашать в проект» there, one from the workspace needs workspace.invite.
  * A cancel: workspace.people, the author with workspace.invite, or anyone who may invite in the project it came from.
+ * An invitation of an administrator needs all five workspace permissions (Invitations.authorize). Whether its preset
+ * fits the sender's own permissions is left to the server, which answers PERMISSION_EXCEEDS_ACTOR.
  * `projectInvite(id)` tells whether the person holds members.invite in that project.
  */
 export function invitationRights(i,{actorId,workspacePermissions=[],projectInvite=()=>false}){
   const space=new Set(workspacePermissions),from=i.fromProjectId||null;
-  const resend=from?projectInvite(from):space.has('workspace.invite');
+  const admin=i.workspaceRole==='admin'&&!WORKSPACE_PERMISSIONS.every(p=>space.has(p));
+  const resend=!admin&&(from?projectInvite(from):space.has('workspace.invite'));
   const revoke=space.has('workspace.people')||i.inviterId===actorId&&space.has('workspace.invite')||!!from&&projectInvite(from);
   return {resend,revoke};
 }
