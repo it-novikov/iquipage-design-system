@@ -339,3 +339,5 @@ dl.tdr-facts dd{margin:0}
 .host-task-board>.kanban-column::after{content:"";display:block;flex:none;position:sticky;bottom:0;z-index:4;height:var(--sq-column-radius);margin-top:auto;pointer-events:none;
   background:radial-gradient(circle at 100% 0,transparent calc(var(--sq-column-radius) - 0.5px),var(--iq-canvas) var(--sq-column-radius)) left bottom/var(--sq-column-radius) var(--sq-column-radius) no-repeat,
     radial-gradient(circle at 0 0,transparent calc(var(--sq-column-radius) - 0.5px),var(--iq-canvas) var(--sq-column-radius)) right bottom/var(--sq-column-radius) var(--sq-column-radius) no-repeat}
+/* SPR-13: the release the board shows, a compact DS select before the sort. */
+.host-board-release iq-select{min-width:0;max-width:260px}

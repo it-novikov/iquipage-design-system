@@ -52,3 +52,9 @@ export function runningRelease(releases=[]){
   const end=release=>release.plannedEnd||'9999-12-31';
   return running.sort((a,b)=>end(a).localeCompare(end(b))||String(a.name).localeCompare(String(b.name),'ru'))[0]||null;
 }
+/** Releases a board can show: running ones first (the one ending first leads), then planned ones by their start. */
+export function boardReleaseChoices(releases=[]){
+  const open=releases.filter(release=>['active','planned'].includes(release.lifecycle)&&!release.archivedAt);
+  const key=release=>[release.lifecycle==='active'?0:1,release.lifecycle==='active'?release.plannedEnd||'9999-12-31':release.plannedStart||'9999-12-31'];
+  return open.sort((a,b)=>{const [x,y]=[key(a),key(b)];return x[0]-y[0]||x[1].localeCompare(y[1])||String(a.name).localeCompare(String(b.name),'ru');});
+}

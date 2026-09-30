@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {createInRunningRelease,commitIntent} from '../web/release-create.js';
+import {createInRelease as createInRunningRelease,commitIntent} from '../web/release-create.js';
 import {runningRelease} from '../ui/src/board/model.js';
 
 const release={id:'r1',name:'Спринт 12',lifecycle:'active',archivedAt:null,plannedEnd:'2026-10-10'};

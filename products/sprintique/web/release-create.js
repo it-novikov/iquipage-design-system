@@ -30,12 +30,13 @@ export async function commitIntent(adapter,intent){
 }
 
 /**
- * A task created on the board while a release runs joins that release. The person is asked first unless they chose
- * not to be; then the creation goes through planning (release admission, revision fence, idempotent commit). Without
- * the right to change the release scope the task is created in the backlog, as before, and the person is told so.
- * A cancelled question keeps the form open with everything typed.
+ * A task created on the board in the release it shows (running or planned) joins that release. The person is asked
+ * first unless they chose not to be; then the creation goes through planning (release admission, revision fence,
+ * idempotent commit). Without the right to change the release scope (refused as 403 by the preview; today that is
+ * tasks:write, so a person who may create may also do this) the task is created in the backlog, as before, and the
+ * person is told so. A cancelled question keeps the form open with everything typed.
  */
-export async function createInRunningRelease({adapter,client,intent,release,createInBacklog,ask,notify,recover}){
+export async function createInRelease({adapter,client,intent,release,createInBacklog,ask,notify,recover}){
   if(await asksFirst(client)){
     const answer=await ask({release});
     // Cancelling is a choice, not a failure: the form stays open with everything typed and shows no error.
