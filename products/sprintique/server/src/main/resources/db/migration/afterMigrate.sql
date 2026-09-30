@@ -14,6 +14,23 @@ REVOKE UPDATE ON app.task_settings_versions FROM "${runtime_role}";
 REVOKE UPDATE ON app.map_versions,app.map_template_versions FROM "${runtime_role}";
 REVOKE UPDATE ON app.agent_run_plans FROM "${runtime_role}";
 REVOKE UPDATE ON app.workspace_audit FROM "${runtime_role}";
+-- Finance history is append-only: versions are written by a trigger and never changed or removed.
+REVOKE UPDATE ON app.finance_entry_version FROM "${runtime_role}";
+-- The runtime role writes finance as the person of the request, at the moment of the request: the version a trigger
+-- records takes its author and time from the row, so neither may be set by hand. A data import on the owner role
+-- carries its own authors and times; these restrictive policies apply to the runtime role only.
+DROP POLICY IF EXISTS finance_entry_runtime_insert ON app.finance_entry;
+CREATE POLICY finance_entry_runtime_insert ON app.finance_entry AS RESTRICTIVE FOR INSERT TO "${runtime_role}"
+  WITH CHECK(created_by=auth.actor_id() AND updated_by=auth.actor_id() AND created_at>=now() AND updated_at>=now());
+DROP POLICY IF EXISTS finance_entry_runtime_update ON app.finance_entry;
+CREATE POLICY finance_entry_runtime_update ON app.finance_entry AS RESTRICTIVE FOR UPDATE TO "${runtime_role}"
+  USING(true) WITH CHECK(updated_by=auth.actor_id() AND updated_at>=now());
+DROP POLICY IF EXISTS finance_settings_runtime_insert ON app.finance_settings;
+CREATE POLICY finance_settings_runtime_insert ON app.finance_settings AS RESTRICTIVE FOR INSERT TO "${runtime_role}"
+  WITH CHECK(updated_by=auth.actor_id() AND updated_at>=now());
+DROP POLICY IF EXISTS finance_settings_runtime_update ON app.finance_settings;
+CREATE POLICY finance_settings_runtime_update ON app.finance_settings AS RESTRICTIVE FOR UPDATE TO "${runtime_role}"
+  USING(true) WITH CHECK(updated_by=auth.actor_id() AND updated_at>=now());
 -- Workbench: meaningful task events and private receipts are append-only (docs/adr W2, W3).
 REVOKE UPDATE ON app.task_activity,app.private_receipts FROM "${runtime_role}";
 GRANT SELECT,INSERT,UPDATE ON auth.principals,auth.credentials TO "${runtime_role}";

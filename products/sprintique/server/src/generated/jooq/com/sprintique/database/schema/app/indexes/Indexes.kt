@@ -9,6 +9,7 @@ import com.sprintique.database.schema.app.tables.AgentRuns
 import com.sprintique.database.schema.app.tables.Assets
 import com.sprintique.database.schema.app.tables.AttentionRequests
 import com.sprintique.database.schema.app.tables.AuditEvents
+import com.sprintique.database.schema.app.tables.FinanceEntry
 import com.sprintique.database.schema.app.tables.MapTemplates
 import com.sprintique.database.schema.app.tables.Maps
 import com.sprintique.database.schema.app.tables.Messages
@@ -38,6 +39,7 @@ val ATTENTION_REQUEST_REQUESTER: Index = Internal.createIndex(DSL.name("attentio
 val ATTENTION_REQUEST_TASK: Index = Internal.createIndex(DSL.name("attention_request_task"), AttentionRequests.ATTENTION_REQUESTS, arrayOf(AttentionRequests.ATTENTION_REQUESTS.PROJECT_ID, AttentionRequests.ATTENTION_REQUESTS.TASK_ID, AttentionRequests.ATTENTION_REQUESTS.CREATED_AT), false)
 val ATTENTION_REQUEST_THREAD: Index = Internal.createIndex(DSL.name("attention_request_thread"), AttentionRequests.ATTENTION_REQUESTS, arrayOf(AttentionRequests.ATTENTION_REQUESTS.PROJECT_ID, AttentionRequests.ATTENTION_REQUESTS.THREAD_ID), false)
 val AUDIT_ACTOR_RECENT: Index = Internal.createIndex(DSL.name("audit_actor_recent"), AuditEvents.AUDIT_EVENTS, arrayOf(AuditEvents.AUDIT_EVENTS.PROJECT_ID, AuditEvents.AUDIT_EVENTS.ACTOR_ID, AuditEvents.AUDIT_EVENTS.CREATED_AT.desc()), false)
+val IX_FINANCE_ENTRY__ENTRY_DATE: Index = Internal.createIndex(DSL.name("ix_finance_entry__entry_date"), FinanceEntry.FINANCE_ENTRY, arrayOf(FinanceEntry.FINANCE_ENTRY.PROJECT_ID, FinanceEntry.FINANCE_ENTRY.ENTRY_DATE.desc(), FinanceEntry.FINANCE_ENTRY.ID.desc()), false)
 val MAP_TEMPLATE_WORKSPACE: Index = Internal.createIndex(DSL.name("map_template_workspace"), MapTemplates.MAP_TEMPLATES, arrayOf(MapTemplates.MAP_TEMPLATES.WORKSPACE_ID, MapTemplates.MAP_TEMPLATES.ID), false)
 val MAPS_PAGE: Index = Internal.createIndex(DSL.name("maps_page"), Maps.MAPS, arrayOf(Maps.MAPS.PROJECT_ID, Maps.MAPS.ID), false)
 val MESSAGE_THREAD_PAGE: Index = Internal.createIndex(DSL.name("message_thread_page"), Messages.MESSAGES, arrayOf(Messages.MESSAGES.PROJECT_ID, Messages.MESSAGES.THREAD_ID, Messages.MESSAGES.CREATED_AT, Messages.MESSAGES.ID), false)

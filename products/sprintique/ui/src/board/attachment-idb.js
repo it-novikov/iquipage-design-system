@@ -1,5 +1,5 @@
 import {prepareBrowserAttachment} from './attachment-browser.js';
-import {attachmentMetadata,sameAttachment,fileReadable,STAGING_TTL,FILE_LIMIT} from './attachment-model.js';
+import {attachmentMetadata,sameAttachment,fileReadable,STAGING_TTL,LOCAL_FILE_LIMIT} from './attachment-model.js';
 import {clone,requireValue,validId,DomainError} from '../common.js';
 /** Offline reference. Blobs and metadata share an IndexedDB transaction, not JSON/base64. */
 export class BrowserAttachmentAdapter {
@@ -23,7 +23,7 @@ export class BrowserAttachmentAdapter {
   actor(){return this.repository.context.actorId;}
   check(meta,task,input){requireValue(fileReadable(meta,task,input.projectId,input.taskId,this.actor()),'FILE_ACCESS','Файл недоступен в этой задаче.');}
   async upload(input,file,{signal,onProgress=()=>{}}={}){
-    requireValue(file.size>0&&file.size<=FILE_LIMIT,'FILE_SIZE','Файл должен быть непустым и не больше 10 МБ.');
+    requireValue(file.size>0&&file.size<=LOCAL_FILE_LIMIT,'FILE_SIZE','Файл должен быть непустым и не больше 10 МБ.');
     requireValue(this.active<2,'FILE_BUSY','Обрабатываются другие файлы. Повторите загрузку.');
     this.active++;onProgress({phase:'preparing'});
     try{

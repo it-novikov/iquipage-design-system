@@ -9,6 +9,8 @@ import com.sprintique.database.schema.app.keys.AGENT_RUNS__AGENT_RUNS_PROJECT_ID
 import com.sprintique.database.schema.app.keys.APPROVALS__APPROVALS_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.ATTENTION_REQUESTS__ATTENTION_REQUESTS_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.AUDIT_EVENTS__AUDIT_EVENTS_PROJECT_ID_FKEY
+import com.sprintique.database.schema.app.keys.FINANCE_ENTRY__FK_FINANCE_ENTRY__PROJECTS
+import com.sprintique.database.schema.app.keys.FINANCE_SETTINGS__FK_FINANCE_SETTINGS__PROJECTS
 import com.sprintique.database.schema.app.keys.IDEMPOTENCY__IDEMPOTENCY_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.MAPS__MAPS_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.MAP_TEMPLATES__MAP_TEMPLATES_PROJECT_ID_FKEY
@@ -37,6 +39,8 @@ import com.sprintique.database.schema.app.tables.Approvals.ApprovalsPath
 import com.sprintique.database.schema.app.tables.Assets.AssetsPath
 import com.sprintique.database.schema.app.tables.AttentionRequests.AttentionRequestsPath
 import com.sprintique.database.schema.app.tables.AuditEvents.AuditEventsPath
+import com.sprintique.database.schema.app.tables.FinanceEntry.FinanceEntryPath
+import com.sprintique.database.schema.app.tables.FinanceSettings.FinanceSettingsPath
 import com.sprintique.database.schema.app.tables.Idempotency.IdempotencyPath
 import com.sprintique.database.schema.app.tables.MapTemplates.MapTemplatesPath
 import com.sprintique.database.schema.app.tables.Maps.MapsPath
@@ -225,6 +229,30 @@ open class Projects(
 
     val auditEvents: AuditEventsPath
         get(): AuditEventsPath = auditEvents()
+
+    private lateinit var _financeEntry: FinanceEntryPath
+
+    fun financeEntry(): FinanceEntryPath {
+        if (!this::_financeEntry.isInitialized)
+            _financeEntry = FinanceEntryPath(this, null, FINANCE_ENTRY__FK_FINANCE_ENTRY__PROJECTS.inverseKey)
+
+        return _financeEntry;
+    }
+
+    val financeEntry: FinanceEntryPath
+        get(): FinanceEntryPath = financeEntry()
+
+    private lateinit var _financeSettings: FinanceSettingsPath
+
+    fun financeSettings(): FinanceSettingsPath {
+        if (!this::_financeSettings.isInitialized)
+            _financeSettings = FinanceSettingsPath(this, null, FINANCE_SETTINGS__FK_FINANCE_SETTINGS__PROJECTS.inverseKey)
+
+        return _financeSettings;
+    }
+
+    val financeSettings: FinanceSettingsPath
+        get(): FinanceSettingsPath = financeSettings()
 
     private lateinit var _idempotency: IdempotencyPath
 

@@ -6,7 +6,9 @@ package com.sprintique.database.schema.auth.routines.references
 
 
 import com.sprintique.database.schema.auth.routines.ActorId
+import com.sprintique.database.schema.auth.routines.CanManageFinance
 import com.sprintique.database.schema.auth.routines.CanProject
+import com.sprintique.database.schema.auth.routines.CanReadFinance
 import com.sprintique.database.schema.auth.routines.CanSeePerson
 import com.sprintique.database.schema.auth.routines.CanWorkspace
 import com.sprintique.database.schema.auth.routines.OpenRequestsFor
@@ -39,6 +41,35 @@ fun actorId(): Field<String?> {
     return f.asField()
 }
 
+fun canManageFinance(
+      configuration: Configuration
+    , target: String?
+): Boolean? {
+    val f = CanManageFinance()
+    f.setTarget(target)
+
+    f.execute(configuration)
+    return f.returnValue
+}
+
+fun canManageFinance(
+      target: String?
+): Field<Boolean?> {
+    val f = CanManageFinance()
+    f.setTarget(target)
+
+    return f.asField()
+}
+
+fun canManageFinance(
+      target: Field<String?>
+): Field<Boolean?> {
+    val f = CanManageFinance()
+    f.setTarget(target)
+
+    return f.asField()
+}
+
 fun canProject(
       configuration: Configuration
     , target: String?
@@ -63,6 +94,35 @@ fun canProject(
       target: Field<String?>
 ): Field<Boolean?> {
     val f = CanProject()
+    f.setTarget(target)
+
+    return f.asField()
+}
+
+fun canReadFinance(
+      configuration: Configuration
+    , target: String?
+): Boolean? {
+    val f = CanReadFinance()
+    f.setTarget(target)
+
+    f.execute(configuration)
+    return f.returnValue
+}
+
+fun canReadFinance(
+      target: String?
+): Field<Boolean?> {
+    val f = CanReadFinance()
+    f.setTarget(target)
+
+    return f.asField()
+}
+
+fun canReadFinance(
+      target: Field<String?>
+): Field<Boolean?> {
+    val f = CanReadFinance()
     f.setTarget(target)
 
     return f.asField()

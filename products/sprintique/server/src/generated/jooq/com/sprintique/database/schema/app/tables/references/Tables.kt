@@ -11,6 +11,9 @@ import com.sprintique.database.schema.app.tables.Approvals
 import com.sprintique.database.schema.app.tables.Assets
 import com.sprintique.database.schema.app.tables.AttentionRequests
 import com.sprintique.database.schema.app.tables.AuditEvents
+import com.sprintique.database.schema.app.tables.FinanceEntry
+import com.sprintique.database.schema.app.tables.FinanceEntryVersion
+import com.sprintique.database.schema.app.tables.FinanceSettings
 import com.sprintique.database.schema.app.tables.Idempotency
 import com.sprintique.database.schema.app.tables.MapTemplateVersions
 import com.sprintique.database.schema.app.tables.MapTemplates
@@ -58,6 +61,12 @@ val ASSETS: Assets = Assets.ASSETS
 val ATTENTION_REQUESTS: AttentionRequests = AttentionRequests.ATTENTION_REQUESTS
 
 val AUDIT_EVENTS: AuditEvents = AuditEvents.AUDIT_EVENTS
+
+val FINANCE_ENTRY: FinanceEntry = FinanceEntry.FINANCE_ENTRY
+
+val FINANCE_ENTRY_VERSION: FinanceEntryVersion = FinanceEntryVersion.FINANCE_ENTRY_VERSION
+
+val FINANCE_SETTINGS: FinanceSettings = FinanceSettings.FINANCE_SETTINGS
 
 val IDEMPOTENCY: Idempotency = Idempotency.IDEMPOTENCY
 

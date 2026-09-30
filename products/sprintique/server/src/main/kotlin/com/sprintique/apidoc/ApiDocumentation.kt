@@ -198,6 +198,14 @@ class ApiDocumentation(
             "GET $P/planning/roadmap" to "RoadmapPageResponse",
             "PUT $P/planning/constraints/:id" to "ConstraintResponse",
             "PUT $P/planning/milestones/:id" to "MilestoneResponse",
+            "GET $P/finance-settings" to "FinanceSettingsResponse",
+            "PUT $P/finance-settings" to "FinanceSettingsResponse",
+            "GET $P/finance-summary" to "FinanceSummaryResponse",
+            "GET $P/finance-entries" to "FinanceEntryPageResponse",
+            "GET $P/finance-entries/:id" to "FinanceEntryResponse",
+            "PUT $P/finance-entries/:id" to "FinanceEntryResponse",
+            "PATCH $P/finance-entries/:id/state" to "FinanceEntryResponse",
+            "GET $P/finance-entries/:id/history" to "FinanceEntryHistoryResponse",
         )
     }
 }
@@ -235,6 +243,12 @@ internal object ApiQueries {
     private val pagination = listOf(
         cursor,
         query("limit", mapOf("type" to "integer", "minimum" to 1, "maximum" to PAGE_SIZE, "default" to 50)),
+    )
+
+    /** An inclusive range of entry dates. */
+    private val period = listOf(
+        query("from", mapOf("type" to "string", "format" to "date")),
+        query("to", mapOf("type" to "string", "format" to "date")),
     )
 
     fun of(route: String, contracts: PublicContracts): List<Map<String, Any?>> = when (route) {
@@ -316,6 +330,17 @@ internal object ApiQueries {
             contracts.schemas.path("PlanningQuery").path("properties").properties().map { (name, schema) ->
                 query(name, schema)
             }
+
+        "$P/finance-entries" -> pagination + listOf(
+            query("state", mapOf("type" to "string", "enum" to listOf("planned", "posted", "voided"))),
+            query("direction", mapOf("type" to "string", "enum" to listOf("income", "expense"))),
+        ) + period
+
+        "$P/finance-summary" -> period
+
+        "$P/finance-entries/:id/history" -> listOf(
+            query("before", mapOf("type" to "integer", "minimum" to 1, "maximum" to Int.MAX_VALUE)),
+        )
 
         "$P/planning/roadmap" -> pagination + listOf(
             query("from", mapOf("type" to "string", "format" to "date")),

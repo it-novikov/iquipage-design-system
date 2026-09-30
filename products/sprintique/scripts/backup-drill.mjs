@@ -3,6 +3,7 @@ import {mkdir,readFile,writeFile} from 'node:fs/promises';
 import {resolve} from 'node:path';
 import {randomUUID,createHash,randomBytes} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
+import {createReadStream} from 'node:fs';
 import {setTimeout} from 'node:timers/promises';
 import pg from 'pg';
 // Run with `node --import tsx scripts/backup-drill.mjs`: the object storage client is shared with the tests.
@@ -18,6 +19,7 @@ const docker=(...args)=>execFileSync('docker',['--context',context,...args],{enc
 assert.equal(docker('inspect','--format','{{index .Config.Labels "sprintique.owner"}}',source),'vnext-qa');
 assert.equal(docker('inspect','--format','{{index .Config.Labels "sprintique.owner"}}','sprintique-vnext-qa-garage'),'vnext-qa');
 const sha=value=>createHash('sha256').update(value).digest('hex');
+const shaOfFile=async path=>{const hash=createHash('sha256');for await(const chunk of createReadStream(path))hash.update(chunk);return hash.digest('hex');};
 const runId=randomUUID(),target='sprintique-restore-'+runId,objectPrefix='restore-drill/'+runId+'/',backup=root+'/backups/'+runId;
 // The restore holds real private data on a published loopback port: every TCP login is authenticated
 // with a fresh per-run secret instead of trust, so another local process cannot read the copy.
@@ -51,8 +53,9 @@ try{
   const assets=(await sourceDb.query("SELECT project_id AS \"projectId\",id,sha256,image,mime FROM app.assets WHERE state IN ('ready','attached','detached') ORDER BY project_id,id")).rows;
   assert.ok(assets.length<=200,'Local drill is bounded to 200 assets.');
   for(const asset of assets)for(const variant of asset.image?['original','display','thumb']:['original']){
-    const key=objectKey(asset,variant),bytes=await objects.get(key),file='objects/'+sha(key),mime=variant==='original'?asset.mime:'image/webp';
-    await writeFile(backup+'/'+file,bytes,{mode:0o600,flag:'wx'});manifest.objects.push({key,file,mime,sha256:sha(bytes),bytes:bytes.length,projectId:asset.projectId,id:asset.id,variant});
+    // Files may be up to 2 GiB: each object streams to disk with its hash, never held whole.
+    const key=objectKey(asset,variant),file='objects/'+sha(key),mime=variant==='original'?asset.mime:'image/webp';
+    const copied=await objects.download(key,backup+'/'+file);manifest.objects.push({key,file,mime,sha256:copied.sha256,bytes:copied.bytes,projectId:asset.projectId,id:asset.id,variant});
   }
   assert.ok(manifest.objects.length>0,'The drill must include a real private file, not only empty storage.');
   await writeFile(backup+'/manifest.json',JSON.stringify(manifest,null,2),{mode:0o600,flag:'wx'});
@@ -77,7 +80,7 @@ try{
   }
   await restoredAdmin.end();restoredAdmin=new pg.Client({connectionString:url('postgres')});await restoredAdmin.connect();
   assert.deepEqual(await fingerprints(restoredAdmin,['app','auth','work']),manifest.tables,'Restored canonical rows differ.');
-  for(const file of manifest.objects){const bytes=await readFile(backup+'/'+file.file);assert.equal(sha(bytes),file.sha256);await objects.put(objectPrefix+file.key,bytes,file.mime);written.push(objectPrefix+file.key);assert.equal(sha(await objects.get(objectPrefix+file.key)),file.sha256);}
+  for(const file of manifest.objects){assert.equal(await shaOfFile(backup+'/'+file.file),file.sha256);await objects.upload(objectPrefix+file.key,backup+'/'+file.file,file.mime);written.push(objectPrefix+file.key);assert.equal(await objects.sha256(objectPrefix+file.key),file.sha256);}
   // The restored copy is served by the server itself, on the runtime role, reading objects under the drill's prefix.
   buildServer();
   api=await startServer({SPRINTIQUE_DATABASE_URL:url('sprintique_app'),SPRINTIQUE_PUBLIC_ORIGIN:identity.origin,SPRINTIQUE_ENVIRONMENT:'local',
@@ -88,7 +91,7 @@ try{
   const state=JSON.parse(await readFile(root+'/browser-state.json','utf8')),cookie=state.cookies.find(c=>c.name==='__Host-sprintique');
   const headers={cookie:cookie.name+'='+cookie.value};const session=await get('/api/v1/session',headers);assert.equal(session.status,200);
   const allowed=new Set((await session.json()).projects.map(p=>p.id));let authenticatedFiles=0;
-  for(const file of manifest.objects.filter(f=>allowed.has(f.projectId))){const r=await get(`/api/v1/projects/${file.projectId}/assets/${file.id}/${file.variant}`,headers);assert.equal(r.status,200);assert.equal(sha(Buffer.from(await r.arrayBuffer())),file.sha256);authenticatedFiles++;}
+  for(const file of manifest.objects.filter(f=>allowed.has(f.projectId))){const r=await get(`/api/v1/projects/${file.projectId}/assets/${file.id}/${file.variant}`,headers);assert.equal(r.status,200);const served=createHash('sha256');for await(const chunk of r.body)served.update(chunk);assert.equal(served.digest('hex'),file.sha256);authenticatedFiles++;}
   assert.ok(authenticatedFiles>0,'The restored session must read at least one private file: run scripts/check-local-sign-in.mjs on the stand first');assert.equal((await get('/api/v1/session')).status,401);
   // Ways in live in the product database now: the restored people can sign in as before.
   const identities=Number((await restoredAdmin.query('SELECT count(*) AS n FROM auth.identities')).rows[0].n);assert.ok(identities>0);

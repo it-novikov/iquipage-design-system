@@ -16,6 +16,10 @@ export interface AttachmentAdapter {
   blob(target:AttachmentTarget&{variant:FileVariant},options?:{signal?:AbortSignal}):Promise<Blob>;
   discard(target:AttachmentTarget):Promise<boolean>;
   collect?(at?:number):Promise<number>;
+  /** A same-origin address that streams the stored file (byte ranges for players, a download link). */
+  url?(target:AttachmentTarget,variant?:FileVariant):string;
+  /** Rejects a file the host would refuse (size, signature) before anything is sent. */
+  precheck?(file:File):Promise<unknown>;
 }
 /** Same-origin reference adapter; production authentication belongs to the host. */
 export declare class HttpAttachmentAdapter implements AttachmentAdapter {

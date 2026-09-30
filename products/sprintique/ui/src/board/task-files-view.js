@@ -1,6 +1,17 @@
 import {dialog,icon,esc} from '../ui.js';
 import {uid,requireValue} from '../common.js';
-import {FILE_ACCEPT} from './attachment-model.js';
+import {fileTypeOf,IMAGE_BYTES} from '../../../contracts/media.ts';
+
+/** Originals up to this size are fetched to draw a PDF or text preview; larger files show a tile. */
+const PREVIEW_ORIGINAL_LIMIT=10*1024*1024;
+const MB=1024*1024,GB=1024*MB;
+const formatSize=n=>n<MB?`${Math.ceil(n/1024)} КБ`:n<GB?`${(n/MB).toFixed(1).replace('.',',')} МБ`:`${(n/GB).toFixed(2).replace('.',',')} ГБ`;
+const extensionOf=name=>name.includes('.')?name.split('.').pop().slice(0,5).toUpperCase():'FILE';
+const isVideo=mime=>/^video\//.test(mime||'');
+/** A PDF or text small enough that the DS preview may read the original to draw its first page. */
+const smallDocument=(mime,size)=>(mime==='application/pdf'||mime==='text/plain')&&size<=PREVIEW_ORIGINAL_LIMIT;
+/** A picked file the DS preview can draw without reading much of it: a bounded image, a video, a small document. */
+const localPreview=file=>{const type=fileTypeOf(file.name);return (type.previewable&&file.size<=IMAGE_BYTES)||type.mime.startsWith('video/')||smallDocument(type.mime,file.size);};
 import {editCoverImage,coverImageStyle,coverLetterboxed} from './cover-crop.js';
 
 /** Draft changes are committed by the task form, never by a preview. */
@@ -12,20 +23,44 @@ export function mountTaskFiles(root,{coverRoot,adapter,task,readOnly=false,onCov
   const events=new AbortController(),signal=events.signal;
   const target=id=>({id,projectId:task.projectId,taskId:task.id});
   const editable=!readOnly&&!!adapter;
-  const size=n=>n<1024*1024?`${Math.ceil(n/1024)} КБ`:`${(n/1024/1024).toFixed(1).replace('.',',')} МБ`;
+  const size=formatSize;
   // The files zone stays collapsed: one quiet action in the head, and the whole section takes dropped files.
-  root.innerHTML=`<div class="iq-section-head">${icon('file',16)}<h3>Файлы</h3><span class="iq-section-count" data-file-count></span><span class="iq-section-actions">${editable?`<iq-file-picker variant="button" multiple accept="${FILE_ACCEPT}" label="Прикрепить" drop-target="[data-task-files]" data-file-picker></iq-file-picker>`:''}</span></div>
+  root.innerHTML=`<div class="iq-section-head">${icon('file',16)}<h3>Файлы</h3><span class="iq-section-count" data-file-count></span><span class="iq-section-actions">${editable?`<iq-file-picker variant="button" multiple label="Прикрепить" drop-target="[data-task-files]" data-file-picker></iq-file-picker>`:''}</span></div>
     <p class="map-form-error" role="alert" data-file-error hidden></p><div data-file-list></div>
-    <p class="task-files-empty" data-files-empty>${editable?'Перетащите файлы в этот раздел или нажмите «Прикрепить». До 10 МБ на файл.':'Файлов пока нет'}</p>
+    <p class="task-files-empty" data-files-empty>${editable?'Перетащите файлы в этот раздел или нажмите «Прикрепить». Видео, документы, архивы и изображения — до 2 ГБ на файл.':'Файлов пока нет'}</p>
     ${editable?`<iq-file-picker hidden accept=".png,.jpg,.jpeg,.webp" label="Изображение обложки" data-cover-picker></iq-file-picker>`:''}
     ${adapter?'':'<p class="iq-helper">Хранилище файлов не подключено.</p>'}`;
   const list=root.querySelector('[data-file-list]'),error=root.querySelector('[data-file-error]');
   const report=e=>{if(!closed){error.hidden=false;error.textContent=e.message||'Не удалось загрузить файл. Повторите попытку.';}};
   const emit=()=>root.dispatchEvent(new CustomEvent('task-files-change',{bubbles:true}));
-  const discard=id=>{if(adapter)Promise.resolve(adapter.discard(target(id))).catch(()=>{});};
+  // A file still being published cannot be discarded yet (FILE_BUSY): try again, backing off to 15 s, until the
+  // server's ten-minute publication lease is surely over (some ten and a half minutes in all).
+  const discard=(id,attempt=0)=>{if(adapter)Promise.resolve(adapter.discard(target(id))).catch(error=>{if(error?.code==='FILE_BUSY'&&attempt<45)setTimeout(()=>discard(id,attempt+1),Math.min(2000*(attempt+1),15000));});};
+  // Originals share the download lane (8 per sign-in): fetch at most three previews at once.
+  let previewSlots=3;const previewQueue=[];
+  const previewFetch=run=>new Promise((resolve,reject)=>{const start=()=>{previewSlots--;run().then(resolve,reject).finally(()=>{previewSlots++;previewQueue.shift()?.();});};if(previewSlots>0)start();else previewQueue.push(start);});
   const controller=()=>{const item=new AbortController();requests.add(item);return item;};
   const rowFor=id=>list.querySelector(`[data-file-row="${CSS.escape(id)}"]`);
-  const states={queued:'В очереди',uploading:'Загружается',preparing:'Подготовка',processing:'Обработка',saving:'Сохраняется',ready:'',failed:'Не загружен',loading:'Чтение',unavailable:'Хранилище не подключено'};
+  const states={queued:'В очереди',uploading:'Загружается',preparing:'Проверка файла',processing:'Сохраняется в хранилище',saving:'Сохраняется',ready:'',failed:'Не загружен',loading:'Чтение',unavailable:'Хранилище не подключено'};
+  const percent=row=>row.total?Math.floor(row.loaded/row.total*100):0;
+  // Progress of the check and the transfer: a DS progress bar and one line of text, updated in place.
+  function progressText(row){
+    if(row.state==='preparing')return `Проверка файла ${percent(row)}%`;
+    if(row.state==='uploading')return `Загрузка ${percent(row)}% · ${size(row.loaded||0)} из ${size(row.total||row.size||0)}`;
+    return null;
+  }
+  function showProgress(row){
+    const element=rowFor(row.id);if(!element)return;
+    const bar=element.querySelector('[data-file-progress]'),text=progressText(row),active=['preparing','uploading','processing'].includes(row.state);
+    bar.hidden=!active;bar.setAttribute('aria-valuenow',String(row.state==='processing'?100:percent(row)));
+    bar.style.setProperty('--progress',`${row.state==='processing'?100:percent(row)}%`);
+    if(text)element.querySelector('[data-file-status]').textContent=text;
+  }
+  const tile=(row,kind)=>{const button=document.createElement('button');button.type='button';button.className='task-file-tile';button.dataset.kind=kind;
+    if(kind==='video'){button.dataset.filePlay=row.id;button.setAttribute('aria-label',`Смотреть ${row.name}`);}
+    else{button.dataset.fileDownload=row.id;button.setAttribute('aria-label',`Скачать ${row.name}`);}
+    button.innerHTML=`${icon(kind==='video'?'play':'file',20)}<span>${esc(kind==='video'?'ВИДЕО':extensionOf(row.name))}</span>`;return button;};
+  function placeTile(element,row,kind){element.querySelector('[data-file-preview]')?.replaceWith(tile(row,kind));}
   function controls(row){
     if(row.state==='ready')return `${editable&&row.meta.image?`<button type="button" class="iq-btn ghost icon sm" data-file-cover="${esc(row.id)}" aria-label="Сделать обложкой: ${esc(row.name)}" aria-pressed="${coverId===row.id}">${icon('image',16)}</button>`:''}<button type="button" class="iq-btn ghost icon sm" data-file-download="${esc(row.id)}" aria-label="Скачать ${esc(row.name)}">${icon('download',16)}</button>`;
     return row.state==='failed'?`<button type="button" class="iq-btn ghost sm" data-file-retry="${esc(row.id)}">Повторить</button>`:'';
@@ -33,15 +68,20 @@ export function mountTaskFiles(root,{coverRoot,adapter,task,readOnly=false,onCov
   function drawRow(row){
     if(closed)return;let element=rowFor(row.id);
     if(!element){element=document.createElement('div');element.className='iq-file-item task-file-row';element.dataset.fileRow=row.id;
-      element.innerHTML=`<iq-file-preview data-file-preview></iq-file-preview><div class="file-item-copy"><b></b><small data-file-status></small><p class="iq-helper error" data-row-error hidden></p></div><span class="task-file-actions"></span>`;list.append(element);}
+      element.innerHTML=`<iq-file-preview data-file-preview></iq-file-preview><div class="file-item-copy"><b></b><small data-file-status></small><div class="iq-progress task-file-progress" role="progressbar" aria-label="Ход загрузки" aria-valuemin="0" aria-valuemax="100" data-file-progress hidden><span></span></div><p class="iq-helper error" data-row-error hidden></p></div><span class="task-file-actions"></span>`;list.append(element);}
     element.dataset.state=row.state;element.querySelector('b').textContent=row.name;
     element.querySelector('[data-file-status]').innerHTML=[size(row.size||0),states[row.state],row.id===coverId?'Обложка':''].filter(Boolean).map(text=>`<span>${esc(text)}</span>`).join('');
     const message=element.querySelector('[data-row-error]');message.hidden=!row.error;message.textContent=row.error||'';
-    element.querySelector('.task-file-actions').innerHTML=controls(row)+(editable?`<button type="button" class="iq-btn ghost icon sm" data-file-remove="${esc(row.id)}" aria-label="${row.state==='ready'?'Убрать файл':'Отменить загрузку'}: ${esc(row.name)}">${icon('x',16)}</button>`:'');
+    element.querySelector('.task-file-actions').innerHTML=controls(row)+(editable?`<button type="button" class="iq-btn ghost icon sm" data-file-remove="${esc(row.id)}" aria-label="${row.state==='ready'||row.state==='failed'?'Убрать файл':'Отменить загрузку'}: ${esc(row.name)}">${icon('x',16)}</button>`:'');
+    showProgress(row);
     root.querySelector('[data-files-empty]').hidden=rows.size>0;const count=root.querySelector('[data-file-count]');if(count)count.textContent=rows.size?String(rows.size):'';
-    if(row.file&&!row.previewStarted){element.querySelector('iq-file-preview').file=row.file;row.previewStarted=true;}
+    if(row.file&&!row.previewStarted){row.previewStarted=true;
+      if(localPreview(row.file))element.querySelector('iq-file-preview').file=row.file;else placeTile(element,row,'file');}
+    // A stored file is fetched only for its WebP preview or a small document; anything else is a tile, never a download.
+    if(row.meta&&!row.previewStarted&&!row.meta.image&&isVideo(row.meta.mime)&&adapter.url){row.previewStarted=true;placeTile(element,row,'video');}
+    if(row.meta&&!row.previewStarted&&!row.meta.image&&!smallDocument(row.meta.mime,row.meta.size)){row.previewStarted=true;placeTile(element,row,'file');}
     if(row.meta&&!row.previewStarted){row.previewStarted=true;const request=controller();
-      adapter.blob({...target(row.id),variant:row.meta.image?'display':'original'},{signal:request.signal}).then(blob=>{
+      previewFetch(()=>adapter.blob({...target(row.id),variant:row.meta.image?'display':'original'},{signal:request.signal})).then(blob=>{
         if(closed||!rows.has(row.id)||!element.isConnected)return;
         if(row.meta.image)requireValue(blob.type==='image/webp','FILE_PREVIEW','Миниатюра недоступна.');
         element.querySelector('iq-file-preview').file=new File([blob],row.name,{type:row.meta.image?'image/webp':row.meta.mime});
@@ -91,8 +131,9 @@ export function mountTaskFiles(root,{coverRoot,adapter,task,readOnly=false,onCov
     active++;row.state='preparing';row.error='';const request=controller();row.controller=request;drawRow(row);
     try{
       const meta=await adapter.upload(target(row.id),row.file,{signal:request.signal,onProgress:progress=>{
-        if(closed||!rows.has(row.id))return;row.state=progress.phase;drawRow(row);
-        if(progress.total&&progress.phase==='uploading')rowFor(row.id).querySelector('[data-file-status]').textContent=`Загрузка ${Math.round(progress.loaded/progress.total*100)}%`;
+        if(closed||!rows.has(row.id))return;const phaseChanged=row.state!==progress.phase;
+        Object.assign(row,{state:progress.phase,loaded:progress.loaded||0,total:progress.total||row.size});
+        if(phaseChanged)drawRow(row);else showProgress(row);
       }});
       if(closed||!rows.has(row.id)){discard(row.id);return;}
       staged.add(row.id);row.meta=meta;row.name=meta.name;row.size=meta.size;row.state='ready';row.file=null;
@@ -102,10 +143,14 @@ export function mountTaskFiles(root,{coverRoot,adapter,task,readOnly=false,onCov
     finally{active--;requests.delete(request);row.controller=null;pump();}
   }
   function pump(){for(const row of rows.values()){if(active>=2||closed)break;if(row.state==='queued')void upload(row);}}
-  function add(files,asCover=false,crop=null){
+  async function add(files,asCover=false,crop=null){
     if(!editable||closed||locked)return;error.hidden=true;
     if(files.length>50){report(Error('За один раз выберите не более 50 файлов.'));return;}
-    const selected=Array.from(files).slice(0,asCover?1:50);if(!selected.length)return;
+    // Size and format are checked before anything is sent, so a wrong file fails at once, not after a long upload.
+    const refused=[],selected=[];
+    for(const file of Array.from(files).slice(0,asCover?1:50)){try{await adapter.precheck?.(file);selected.push(file);}catch(e){refused.push(e.message);}}
+    if(closed||locked)return;
+    if(refused.length)report(Error(refused.join(' ')));if(!selected.length)return;
     const intent=asCover?++coverIntent:null;
     for(const file of selected){
       const row={id:uid('file'),file,name:file.name,size:file.size,state:'queued',asCover,coverIntent:intent,crop};rows.set(row.id,row);drawRow(row);
@@ -122,8 +167,20 @@ export function mountTaskFiles(root,{coverRoot,adapter,task,readOnly=false,onCov
     try{const blob=await adapter.blob({...target(id),variant:'original'},{signal:request.signal});if(closed||locked||intent!==coverIntent)return;const row=rows.get(id),file=new File([blob],row.name,{type:row.meta.mime});cropDialog=editCoverImage(file,{crop:coverId===id?coverCrop:null,onApply:(source,crop)=>{if(closed||locked||!rows.has(id))throw Error('Файл больше недоступен.');if(source===file)setCover(id,{crop});else add([new File([source],source.name||'Обложка.png',{type:source.type})],true,crop);}});}
     catch(error){if(error.name!=='AbortError')report(error);}finally{requests.delete(request);}
   }
+  function playVideo(id){
+    const row=rows.get(id);if(!row?.meta||!adapter?.url)return;
+    // DS gap: iq-file-preview plays only a local File; a stored video streams by byte ranges into a native player.
+    dialog({title:row.name,description:size(row.meta.size),body:'<div class="task-video"><video controls playsinline preload="metadata"></video></div>',wide:true,mount:element=>{
+      const video=element.querySelector('video');video.src=adapter.url(target(id));
+      video.addEventListener('error',()=>{const box=element.querySelector('.task-video');if(box)box.innerHTML='<p class="iq-helper">Браузер не может воспроизвести этот формат. Скачайте файл, чтобы открыть его в плеере.</p>';},{once:true});
+      element.addEventListener('iq-close',()=>{video.pause();video.removeAttribute('src');video.load();},{once:true});
+    }});
+  }
   async function downloadFile(id){
-    const row=rows.get(id);if(!row?.meta||!adapter)return;const request=controller();
+    const row=rows.get(id);if(!row?.meta||!adapter)return;
+    // A stored file streams straight to the browser's downloads; nothing is held in page memory.
+    if(adapter.url){const link=document.createElement('a');link.href=adapter.url(target(id));link.download=row.name;link.rel='noopener';link.click();return;}
+    const request=controller();
     try{const blob=await adapter.blob({...target(id),variant:'original'},{signal:request.signal});
       if(closed)return;const url=URL.createObjectURL(blob);downloads.add(url);
       const link=document.createElement('a');link.href=url;link.download=row.name;link.click();
@@ -136,6 +193,7 @@ export function mountTaskFiles(root,{coverRoot,adapter,task,readOnly=false,onCov
     if(button.dataset.fileRemove&&editable)remove(button.dataset.fileRemove);
     if(button.dataset.fileCover&&editable)void cropExisting(button.dataset.fileCover);
     if(button.dataset.fileDownload)void downloadFile(button.dataset.fileDownload);
+    if(button.dataset.filePlay)playVideo(button.dataset.filePlay);
     if(button.dataset.fileRetry){const row=rows.get(button.dataset.fileRetry);if(row?.file){row.state='queued';pump();}else if(row)void loadExisting(row.id);}
   },{signal});
   async function openPresetPicker(){
