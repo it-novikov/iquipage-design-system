@@ -5,16 +5,25 @@
 package com.sprintique.database.schema.auth.tables.references
 
 
+import com.sprintique.database.schema.auth.tables.AccessEvents
 import com.sprintique.database.schema.auth.tables.Credentials
 import com.sprintique.database.schema.auth.tables.EmailChallenges
 import com.sprintique.database.schema.auth.tables.Identities
 import com.sprintique.database.schema.auth.tables.KnownDevices
 import com.sprintique.database.schema.auth.tables.LoginStates
+import com.sprintique.database.schema.auth.tables.OauthClients
+import com.sprintique.database.schema.auth.tables.OauthCodes
+import com.sprintique.database.schema.auth.tables.OauthGrants
+import com.sprintique.database.schema.auth.tables.OauthRefreshTokens
 import com.sprintique.database.schema.auth.tables.Principals
 import com.sprintique.database.schema.auth.tables.ProjectInvitations
 import com.sprintique.database.schema.auth.tables.ProjectTimezoneSource
+import com.sprintique.database.schema.auth.tables.ServiceAccountGrants
+import com.sprintique.database.schema.auth.tables.ServiceAccountWorkspace
+import com.sprintique.database.schema.auth.tables.ServiceAccounts
 import com.sprintique.database.schema.auth.tables.WorkspaceProjects
 import com.sprintique.database.schema.auth.tables.records.ProjectTimezoneSourceRecord
+import com.sprintique.database.schema.auth.tables.records.ServiceAccountWorkspaceRecord
 import com.sprintique.database.schema.auth.tables.records.WorkspaceProjectsRecord
 
 import java.util.UUID
@@ -25,6 +34,8 @@ import org.jooq.Result
 
 
 
+val ACCESS_EVENTS: AccessEvents = AccessEvents.ACCESS_EVENTS
+
 val CREDENTIALS: Credentials = Credentials.CREDENTIALS
 
 val EMAIL_CHALLENGES: EmailChallenges = EmailChallenges.EMAIL_CHALLENGES
@@ -34,6 +45,14 @@ val IDENTITIES: Identities = Identities.IDENTITIES
 val KNOWN_DEVICES: KnownDevices = KnownDevices.KNOWN_DEVICES
 
 val LOGIN_STATES: LoginStates = LoginStates.LOGIN_STATES
+
+val OAUTH_CLIENTS: OauthClients = OauthClients.OAUTH_CLIENTS
+
+val OAUTH_CODES: OauthCodes = OauthCodes.OAUTH_CODES
+
+val OAUTH_GRANTS: OauthGrants = OauthGrants.OAUTH_GRANTS
+
+val OAUTH_REFRESH_TOKENS: OauthRefreshTokens = OauthRefreshTokens.OAUTH_REFRESH_TOKENS
 
 val PRINCIPALS: Principals = Principals.PRINCIPALS
 
@@ -59,6 +78,20 @@ fun PROJECT_TIMEZONE_SOURCE(
 ): ProjectTimezoneSource = com.sprintique.database.schema.auth.tables.ProjectTimezoneSource.PROJECT_TIMEZONE_SOURCE.call(
     target
 )
+
+val SERVICE_ACCOUNT_GRANTS: ServiceAccountGrants = ServiceAccountGrants.SERVICE_ACCOUNT_GRANTS
+
+val SERVICE_ACCOUNT_WORKSPACE: ServiceAccountWorkspace = ServiceAccountWorkspace.SERVICE_ACCOUNT_WORKSPACE
+
+fun SERVICE_ACCOUNT_WORKSPACE(
+      configuration: Configuration
+): Result<ServiceAccountWorkspaceRecord> = configuration.dsl().selectFrom(com.sprintique.database.schema.auth.tables.ServiceAccountWorkspace.SERVICE_ACCOUNT_WORKSPACE.call(
+)).fetch()
+
+fun SERVICE_ACCOUNT_WORKSPACE(): ServiceAccountWorkspace = com.sprintique.database.schema.auth.tables.ServiceAccountWorkspace.SERVICE_ACCOUNT_WORKSPACE.call(
+)
+
+val SERVICE_ACCOUNTS: ServiceAccounts = ServiceAccounts.SERVICE_ACCOUNTS
 
 val WORKSPACE_PROJECTS: WorkspaceProjects = WorkspaceProjects.WORKSPACE_PROJECTS
 

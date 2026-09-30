@@ -14,12 +14,38 @@ REVOKE UPDATE ON app.task_settings_versions FROM "${runtime_role}";
 REVOKE UPDATE ON app.map_versions,app.map_template_versions FROM "${runtime_role}";
 REVOKE UPDATE ON app.agent_run_plans FROM "${runtime_role}";
 REVOKE UPDATE ON app.workspace_audit FROM "${runtime_role}";
+-- Finance history is append-only: versions are written by a trigger and never changed or removed.
+REVOKE UPDATE ON app.finance_entry_version FROM "${runtime_role}";
+-- The runtime role writes finance as the person of the request, at the moment of the request: the version a trigger
+-- records takes its author and time from the row, so neither may be set by hand. A data import on the owner role
+-- carries its own authors and times; these restrictive policies apply to the runtime role only.
+DROP POLICY IF EXISTS finance_entry_runtime_insert ON app.finance_entry;
+CREATE POLICY finance_entry_runtime_insert ON app.finance_entry AS RESTRICTIVE FOR INSERT TO "${runtime_role}"
+  WITH CHECK(created_by=auth.actor_id() AND updated_by=auth.actor_id() AND created_at>=now() AND updated_at>=now());
+DROP POLICY IF EXISTS finance_entry_runtime_update ON app.finance_entry;
+CREATE POLICY finance_entry_runtime_update ON app.finance_entry AS RESTRICTIVE FOR UPDATE TO "${runtime_role}"
+  USING(true) WITH CHECK(updated_by=auth.actor_id() AND updated_at>=now());
+DROP POLICY IF EXISTS finance_settings_runtime_insert ON app.finance_settings;
+CREATE POLICY finance_settings_runtime_insert ON app.finance_settings AS RESTRICTIVE FOR INSERT TO "${runtime_role}"
+  WITH CHECK(updated_by=auth.actor_id() AND updated_at>=now());
+DROP POLICY IF EXISTS finance_settings_runtime_update ON app.finance_settings;
+CREATE POLICY finance_settings_runtime_update ON app.finance_settings AS RESTRICTIVE FOR UPDATE TO "${runtime_role}"
+  USING(true) WITH CHECK(updated_by=auth.actor_id() AND updated_at>=now());
 GRANT SELECT,INSERT,UPDATE ON auth.principals,auth.credentials TO "${runtime_role}";
 GRANT SELECT,INSERT,UPDATE ON auth.project_invitations TO "${runtime_role}";
 GRANT SELECT,INSERT,DELETE ON auth.login_states TO "${runtime_role}";
 GRANT SELECT,INSERT,UPDATE ON auth.identities TO "${runtime_role}";
 GRANT SELECT,INSERT,UPDATE,DELETE ON auth.email_challenges TO "${runtime_role}";
 GRANT SELECT,INSERT,UPDATE,DELETE ON auth.known_devices TO "${runtime_role}";
+-- Delegated access (V20260929000027). Codes, refresh tokens and never-used clients are collected when they expire;
+-- grants are revoked, not deleted, so the history of connected apps stays.
+GRANT SELECT,INSERT,UPDATE,DELETE ON auth.oauth_clients,auth.oauth_codes,auth.oauth_refresh_tokens TO "${runtime_role}";
+GRANT SELECT,INSERT,UPDATE ON auth.oauth_grants TO "${runtime_role}";
+GRANT SELECT,INSERT ON auth.access_events TO "${runtime_role}";
+-- Service accounts are deleted by marking them; their principal and history stay.
+GRANT SELECT,INSERT,UPDATE ON auth.service_accounts TO "${runtime_role}";
+-- Explicit grants of a service account in a project (finance): set, changed and removed with its membership.
+GRANT SELECT,INSERT,UPDATE,DELETE ON auth.service_account_grants TO "${runtime_role}";
 GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA auth TO "${runtime_role}";
 GRANT USAGE ON SCHEMA work TO "${runtime_role}";
 GRANT SELECT,INSERT ON work.jobs TO "${runtime_role}";

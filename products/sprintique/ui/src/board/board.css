@@ -86,31 +86,18 @@
 .task-files-empty .empty-sheet{width:46px;height:46px;left:8px;top:4px;border-radius:var(--iq-radius-sm)}
 [data-task-files] .map-form-error{padding:var(--iq-space-2) 0}
 [data-task-files] .file-dropwell{margin:0}
-/* Task drawer: one column like the DS reference (780px). Properties sit in a 2×N grid under the title, labels on top,
-   closed by a line; the description keeps its natural height, so there are no gaps and one left and right edge. */
+/* Task drawer: one column like the DS reference (780px). Properties are a grid of facts under the title (below);
+   the description keeps its natural height, so there are no gaps and one left and right edge. */
 .task-editor-layout{display:grid;grid-template-columns:minmax(0,1fr);grid-template-areas:"title" "props" "desc" "supp";gap:var(--iq-space-6);align-items:start}
 .task-editor-title{grid-area:title;min-width:0}
 .task-editor-properties{grid-area:props;min-width:0;padding-bottom:var(--iq-space-6);border-bottom:1px solid var(--iq-line)}
-.task-props{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--iq-space-4) var(--iq-space-5);align-items:start}
-.task-props>*{min-width:0}
-.task-prop-wide{grid-column:1 / -1}
 .task-editor-description{grid-area:desc;min-width:0}
 .task-editor-supplements{grid-area:supp;display:grid;gap:var(--iq-space-6);min-width:0}
 /* A cover, when set, is a banner above everything; without one nothing takes space. */
 .task-editor-cover[hidden]{display:none}
 .task-editor-cover:not([hidden]){margin:0 0 var(--iq-space-6)}
-/* Fullscreen: the reading column plus a sticky properties column, as the DS reference does when expanded. */
-@media(min-width:900px){
- .task-edit-dialog[data-fullscreen=true] .task-editor-layout{grid-template-columns:minmax(0,1fr) 280px;grid-template-areas:"title props" "desc props" "supp props";column-gap:var(--iq-space-8)}
- .task-edit-dialog[data-fullscreen=true] .task-editor-properties{position:sticky;top:0;padding-bottom:0;border-bottom:0}
- .task-edit-dialog[data-fullscreen=true] .task-props{grid-template-columns:minmax(0,1fr)}
-}
-@media(max-width:640px){.task-props{grid-template-columns:minmax(0,1fr)}}
 .task-editor-supplements>.task-edit-section{padding:0;border:0}
-.task-tags-trigger{height:auto;min-height:var(--iq-control-md);gap:var(--iq-space-2);text-align:left}
-.task-tags-trigger .task-selected-tags{flex:1;min-width:0;min-height:0}
 .task-selected-tags .iq-tag{max-width:100%;white-space:normal;overflow-wrap:anywhere}
-.task-tags-trigger>svg{flex:none}
 .board-filter-fields{display:grid;gap:var(--iq-space-5)}
 .board-filter-fields [data-filter-options]{max-height:200px;overflow:auto}
 .task-description-surface{min-width:0;position:relative}
@@ -121,13 +108,15 @@
 .task-dialog-identity{display:flex;align-items:center;gap:var(--iq-space-1)}
 .task-dialog-identity .task-link-copy{font:inherit;user-select:none}
 .task-dialog-actions{display:flex;align-items:center;gap:var(--iq-space-1)}
-.host-task-board{--task-card-min-height:112px}
-.host-task-board .task-card{min-height:var(--task-card-min-height);padding:var(--iq-space-3);gap:var(--iq-space-2);user-select:none;cursor:pointer}
+/* A card is as tall as its content: rows start at the top instead of stretching over a fixed minimum height.
+   The identity row pulls into the padding, so the key and the menu sit close to the corner and the title follows them. */
+.host-task-board{--task-card-min-height:72px}
+.host-task-board .task-card{min-height:0;align-content:start;padding:var(--iq-space-3);gap:var(--iq-space-2);user-select:none;cursor:pointer}
 .host-task-board .board-empty-slot{min-height:var(--task-card-min-height)}
 [data-task-cover]{position:relative}
 [data-task-cover] .task-cover-actions{position:absolute;right:var(--iq-space-2);bottom:var(--iq-space-2);display:flex;gap:var(--iq-space-1);padding:var(--iq-space-1);background:var(--iq-raised);border-radius:var(--iq-radius-sm);box-shadow:var(--iq-shadow-1);z-index:1}
 .task-cover-actions .iq-btn{white-space:nowrap}
-.host-task-board .task-card-top{margin:0;min-height:28px}.host-task-board .task-card-title{margin:0}.host-task-board .task-card-footer{margin:0;gap:var(--iq-space-2)}
+.host-task-board .task-card-top{margin:calc(var(--iq-space-1) * -1) calc(var(--iq-space-1) * -1) calc(var(--iq-space-1) * -1) 0;min-height:28px}.host-task-board .task-card-title{margin:0}.host-task-board .task-card-footer{margin:0;gap:var(--iq-space-2)}
 .task-card-tags{display:flex;align-items:center;flex-wrap:wrap;gap:var(--iq-space-1);width:100%;min-width:0}
 .task-card-tags>[data-packed-tag]{flex:none;display:flex;min-width:0;overflow:hidden}.task-card-tags .iq-tag{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
 .task-card-tags>.task-tags-more{display:inline-flex;align-items:center;justify-content:center;flex:none;font:inherit;font-size:var(--iq-type-meta-size);cursor:pointer;background:var(--iq-recessed);color:var(--iq-muted)}.task-card-tags>[hidden]{display:none}
@@ -178,8 +167,6 @@
 .task-edit-dialog .task-edit-section>h3{margin:0 0 var(--iq-space-3);font:600 var(--iq-type-interface-size)/1.4 var(--iq-font);color:var(--iq-ink)}
 .task-edit-dialog .task-editor-description>h3{font-size:var(--iq-type-interface-size)}
 /* The description reads as text until it is clicked: no frame in preview, a soft hover says it is editable. */
-.task-relations .task-parent{margin-bottom:var(--iq-space-2)}
-.task-relations .task-parent iq-select{--iq-properties-label:136px}
 /* Cover: one menu on the image, shown on hover or focus (always on touch screens). */
 .task-editor-cover:not([hidden]){margin:0 0 var(--iq-space-6);position:relative}
 .task-cover-menu{position:absolute;right:var(--iq-space-3);bottom:var(--iq-space-3);opacity:0;transition:opacity var(--iq-motion-fast) var(--iq-ease)}
@@ -187,7 +174,6 @@
 .task-editor-cover:is(:hover,:focus-within) .task-cover-menu,.task-cover-menu:has([aria-expanded=true]){opacity:1}
 @media(hover:none){.task-cover-menu{opacity:1}}
 .task-dialog-actions{display:flex;align-items:center;gap:var(--iq-space-1);margin-left:auto}
-@media(max-width:640px){.task-relations .task-parent iq-select{--iq-properties-label:88px}}
 .task-edit-dialog textarea.iq-inline-title{min-height:0;max-height:none;overflow:hidden}
 .task-edit-dialog .task-editor-description>h3{margin-bottom:var(--iq-space-1)}
 .task-relations [data-task-links]{display:grid;gap:var(--iq-space-3);margin-bottom:var(--iq-space-3)}
@@ -228,12 +214,9 @@
 .task-dialog-identity .task-back{width:32px;min-width:32px;height:32px;min-height:32px;padding:0;margin-left:calc(-1 * var(--iq-space-2));display:inline-grid;place-items:center}
 .task-dialog-identity .task-link-copy{flex:none;height:32px;padding-inline:var(--iq-space-1)}
 .task-dialog-identity .task-link-copy .iq-switcher-label{max-width:none}
-/* Core facts: title, 16px, the property grid, 16px, the tag line, 24px, then "Описание". */
+/* Core facts: title, 16px, the grid of facts, 24px, then "Описание". */
 .task-editor-title{margin-bottom:var(--iq-space-4)}
 .task-editor-properties{display:grid;gap:var(--iq-space-4);padding-bottom:var(--iq-space-6)}
-.task-release-slot{display:contents}
-.task-tags-row{min-width:0}
-.task-tags-row:empty{display:none}
 /* Cover: the whole 12:5 frame across the drawer's content column (720px at most in fullscreen), never a letterbox band. A letterboxed ("Вписать") cover shows a blurred copy of itself inside the frame. */
 .task-editor-cover:not([hidden]){position:relative;width:100%;margin:0 0 var(--iq-space-5)}
 .task-edit-dialog[data-fullscreen=true] .task-editor-cover:not([hidden]){width:min(100%,720px)}
@@ -250,3 +233,87 @@
 .cover-crop-note{margin:0 auto 0 0;font-size:var(--iq-type-caption-size);color:var(--iq-muted)}
 .cover-crop-dialog{--iq-crop-stage-height:clamp(200px,calc(100dvh - 320px),440px)}
 .square-crop-dialog{--iq-crop-stage-height:clamp(200px,calc(100dvh - 320px),400px)}
+/* Large files: a progress bar under the name, a tile for files without a drawn preview, a video player in a DS dialog. */
+.task-file-progress{margin-top:var(--iq-space-2);max-width:280px}
+.task-file-progress[hidden]{display:none}
+.task-file-tile{display:grid;place-items:center;align-content:center;gap:var(--iq-space-1);flex:0 0 63px;width:63px;height:62px;padding:0;border:1px solid var(--iq-line);border-radius:var(--iq-radius-sm);background:var(--iq-surface);color:var(--iq-muted);font-size:var(--iq-type-caption-size);letter-spacing:.04em;cursor:pointer}
+.task-file-tile:hover{color:var(--iq-ink);background:var(--iq-recessed)}
+.task-file-tile[data-kind=video]{color:var(--iq-accent)}
+.task-video{display:grid;place-items:center;border-radius:var(--iq-radius-sm);background:var(--iq-recessed);overflow:hidden}
+.task-video video{display:block;width:100%;max-height:calc(100dvh - 240px);background:var(--iq-recessed)}
+.task-video .iq-helper{padding:var(--iq-space-5)}
+/* Task facts (docs/task-drawer/fields-handoff.md, direction D «Сетка фактов»; DS-GAP-F): tiles with the label over
+   the value, three columns (two on a phone). The DS supplies every value control and its ghost trigger through
+   .iq-properties[data-columns]; the product only stacks each field and lays the tiles out. */
+.tdr-facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--iq-space-3) var(--iq-space-4);align-items:start;min-width:0;margin:0}
+.tdr-facts>*{min-width:0}
+.tdr-facts>.tdr-span-2{grid-column:span 2}
+.tdr-facts>.tdr-span-all{grid-column:1 / -1}
+.tdr-facts.iq-properties[data-columns] :is(iq-select,iq-combobox,iq-date-field),.tdr-fact{display:flex;flex-direction:column;align-items:flex-start;min-width:0;min-height:0;margin:0}
+/* The hero row (Статус · Исполнитель · Срок) carries its values at 500; the status pill is the only fill. */
+.tdr-facts.hero :is(.iq-select-value,[data-date-caption]){font-weight:500}
+/* A long value ends in an ellipsis and keeps its quiet meta ("до 17.10") in view (DS-GAP-J: two lines need the DS). */
+.tdr-facts .iq-select-label{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.tdr-facts .iq-select-meta{flex:none}
+.tdr-fact-label{display:block;max-width:100%;margin:0;font-size:var(--iq-type-label-size);font-weight:400;line-height:1.45;color:var(--iq-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tdr-facts.iq-properties iq-tag-picker{display:block;width:100%}
+.tdr-fact>.task-selected-tags{width:100%}
+/* The plan trigger is the DS date trigger; its text lines up with the label like the DS values do. */
+.tdr-facts.iq-properties[data-columns] .tdr-plan-trigger{max-width:calc(100% + var(--iq-space-2));margin-left:calc(-1 * var(--iq-space-2))}
+/* Read-only: the same tiles as text, never disabled controls. */
+.tdr-lock{display:flex;align-items:center;gap:var(--iq-space-2);margin:0;font-size:var(--iq-type-caption-size);line-height:1.5;color:var(--iq-muted)}
+.tdr-lock>.iq-icon{flex:none}
+.tdr-static{display:inline-flex;align-items:center;gap:var(--iq-space-2);max-width:100%;min-width:0;min-height:32px;margin:0;font-size:var(--iq-type-interface-size);color:var(--iq-ink)}
+.tdr-static[data-empty=true]{color:var(--iq-muted)}
+.tdr-static>.iq-icon,.tdr-glyph>.iq-icon{flex:none;color:var(--iq-muted)}
+.tdr-glyph{display:inline-flex;align-items:center;gap:var(--iq-space-2);min-width:0}
+.tdr-glyph[data-tone=high]{color:var(--iq-task-high-text)}
+.tdr-glyph[data-tone=critical]{color:var(--iq-task-critical-text)}
+.tdr-glyph:is([data-tone=high],[data-tone=critical])>.iq-icon{color:inherit}
+.tdr-static [data-tone=danger]{color:var(--iq-danger)}
+.tdr-text{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.tdr-meta{flex:none;color:var(--iq-muted);font-size:var(--iq-type-label-size);white-space:nowrap;font-variant-numeric:tabular-nums}
+.tdr-key{font:500 var(--iq-type-label-size)/1 var(--iq-mono);color:var(--iq-muted)}
+.tdr-tags{display:flex;flex-wrap:wrap;gap:var(--iq-space-1);padding-block:var(--iq-space-1)}
+.tdr-pill{display:inline-flex;align-items:center;gap:var(--iq-space-2);height:28px;padding:0 var(--iq-space-3);border-radius:var(--iq-radius-pill);background:var(--iq-surface);font-size:var(--iq-type-label-size);font-weight:500}
+.tdr-dot{width:8px;height:8px;flex:none;border-radius:50%;background:var(--tdr-tone,var(--iq-muted))}
+.tdr-pill[data-tone=info]{--tdr-tone:var(--iq-info)}
+.tdr-pill[data-tone=warning]{--tdr-tone:var(--iq-warning-fill)}
+.tdr-pill[data-tone=success]{--tdr-tone:var(--iq-success)}
+dl.tdr-facts dd{margin:0}
+/* Fullscreen: the facts stay under the title, across the reading column. */
+.task-edit-dialog[data-fullscreen=true] .task-editor-properties{max-width:720px}
+@media(max-width:640px){.tdr-facts{grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--iq-space-3)}}
+/* Plan range popup (DS-GAP-G, the iq-date-range-field spec in the handoff §4) on the DS date popup surface. */
+.tdr-range{padding:var(--iq-space-2) var(--iq-space-3) var(--iq-space-3)}
+.tdr-range-caption{margin:0;padding:var(--iq-space-2) var(--iq-space-1) var(--iq-space-2);font-size:var(--iq-type-meta-size);letter-spacing:.04em;text-transform:uppercase;color:var(--iq-muted)}
+.tdr-range-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--iq-space-2);margin-bottom:var(--iq-space-2)}
+.tdr-range-field{display:grid;gap:2px;min-width:0}
+.tdr-range-field>span:first-child{padding-left:2px;font-size:var(--iq-type-meta-size);color:var(--iq-muted)}
+.tdr-range-field input{font-variant-numeric:tabular-nums}
+.tdr-cal-head{display:flex;align-items:center;justify-content:space-between;margin:var(--iq-space-1) 0}
+.tdr-cal-head>b{font-size:var(--iq-type-label-size);font-weight:500}
+.tdr-cal{display:grid;row-gap:2px}
+.tdr-cal>[role=row]{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
+.tdr-cal-week>span{padding:6px 0;text-align:center;font-size:var(--iq-type-meta-size);font-weight:500;color:var(--iq-muted)}
+.tdr-cal [role=gridcell]{display:block;min-width:0}
+.tdr-cal-day{display:grid;place-items:center;width:100%;height:34px;padding:0;border:0;border-radius:0;background:transparent;color:var(--iq-ink);font-size:var(--iq-type-label-size);font-variant-numeric:tabular-nums;cursor:pointer}
+.tdr-cal-day:hover{background:var(--iq-hover)}
+.tdr-cal-day[data-outside]{color:var(--iq-faint)}
+.tdr-cal-day[data-in]{background:var(--iq-accent-soft)}
+.tdr-cal-day[data-edge]{background:var(--iq-accent-fill);color:var(--iq-on-accent)}
+.tdr-cal-day[data-edge=start]{border-radius:var(--iq-radius-sm) 0 0 var(--iq-radius-sm)}
+.tdr-cal-day[data-edge=end]{border-radius:0 var(--iq-radius-sm) var(--iq-radius-sm) 0}
+.tdr-cal-day[data-single]{border-radius:var(--iq-radius-sm)}
+.tdr-cal-day[data-due]{box-shadow:inset 0 -2px 0 var(--iq-danger)}
+.tdr-cal-day[data-today]{font-weight:600;text-decoration:underline;text-underline-offset:3px}
+.tdr-cal-day:focus-visible{position:relative;z-index:1;outline:2px solid var(--iq-focus);outline-offset:-2px}
+.tdr-range-presets{display:flex;flex-wrap:wrap;gap:6px;margin-top:var(--iq-space-3)}
+.tdr-range-presets>.iq-btn{border:1px solid var(--iq-line)}
+.tdr-range-help{display:flex;align-items:flex-start;gap:6px;margin:var(--iq-space-3) 0 0;font-size:var(--iq-type-caption-size);line-height:1.5;color:var(--iq-muted)}
+.tdr-range-help>.iq-icon{flex:none;margin-top:2px;color:var(--iq-warning)}
+.tdr-range-help[data-tone=danger]{color:var(--iq-danger)}
+.tdr-range-help[data-tone=danger]>.iq-icon{color:inherit}
+.tdr-range-foot{display:flex;align-items:center;justify-content:flex-end;gap:var(--iq-space-2);margin-top:var(--iq-space-3);padding-top:var(--iq-space-3);border-top:1px solid var(--iq-line)}
+.tdr-range-foot>[data-range-clear]{margin-right:auto}
+@media(pointer:coarse){.tdr-cal-day{height:40px}}

@@ -41,7 +41,7 @@ export class ProductRepository {
     const stop=watchProject(projectId,event=>{
       if(closed)return;
       if(event.topic==='member.updated'&&event.resourceId===this.context.actorId)void checkMembership();
-      const names={'task':'tasks','thread':'threads','tags':'tags','release':'releases','releases':'releases','map':'maps','map-template':'templates','task-link':'taskLinks','task-settings':'taskSettings'};
+      const names={'task':'tasks','thread':'threads','tags':'tags','release':'releases','releases':'releases','map':'maps','map-template':'templates','task-link':'taskLinks','task-settings':'taskSettings','finance-entry':'financeEntries','finance-settings':'financeSettings'};
       const collection=names[event.topic.split('.')[0]];
       this.clearProjectCache(projectId);
       if(event.topic==='resync'||event.topic.startsWith('planning.')||event.topic.startsWith('member.')){collections.forEach(name=>queue(name,{...event,topic:'resync'}));if(event.topic==='resync')void checkMembership();}
@@ -72,9 +72,12 @@ export class ProductRepository {
       do{signal?.throwIfAborted();const page=await planning.releases(cursor,signal);result.push(...page.items.map(r=>({...r,status:['closed','cancelled'].includes(r.lifecycle)?'released':'planned',targetDate:r.deadline})));cursor=page.nextCursor;}while(cursor);
       return result;
     },{signal});
-    // Human project members are the only possible task owners.
+    // People and service accounts of the project (agents answer through proposals). Only people own tasks; a service
+    // account is named with its owner wherever its work shows, e.g. «Робот (сервисный аккаунт Алиса)».
     if(collection==='members')return this.cached(projectId,collection,async()=>
-      (await this.client.request(`/projects/${encodeURIComponent(projectId)}/members`,'GET',undefined,undefined,signal)).filter(m=>m.kind==='human'),{signal});
+      (await this.client.request(`/projects/${encodeURIComponent(projectId)}/members`,'GET',undefined,undefined,signal))
+        .filter(m=>m.kind==='human'||m.kind==='service')
+        .map(m=>m.kind==='service'?{...m,name:`${m.name} (сервисный аккаунт ${m.ownerName||'без владельца'})`}:m),{signal});
     if(['tags','taskSettings','taskLinks'].includes(collection))return this.cached(projectId,collection,async()=>{
       const route={tags:'tags',taskSettings:'task-settings',taskLinks:'task-links'}[collection];
       const value=await this.client.request(`/projects/${encodeURIComponent(projectId)}/${route}`,'GET',undefined,undefined,signal);return collection==='taskSettings'?[value]:value;

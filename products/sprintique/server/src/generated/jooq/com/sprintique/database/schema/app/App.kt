@@ -10,6 +10,9 @@ import com.sprintique.database.schema.app.tables.AgentRuns
 import com.sprintique.database.schema.app.tables.Approvals
 import com.sprintique.database.schema.app.tables.Assets
 import com.sprintique.database.schema.app.tables.AuditEvents
+import com.sprintique.database.schema.app.tables.FinanceEntry
+import com.sprintique.database.schema.app.tables.FinanceEntryVersion
+import com.sprintique.database.schema.app.tables.FinanceSettings
 import com.sprintique.database.schema.app.tables.Idempotency
 import com.sprintique.database.schema.app.tables.MapTemplateVersions
 import com.sprintique.database.schema.app.tables.MapTemplates
@@ -64,6 +67,12 @@ open class App : SchemaImpl(DSL.name("app"), DefaultCatalog.DEFAULT_CATALOG, DSL
     val ASSETS: Assets get() = Assets.ASSETS
 
     val AUDIT_EVENTS: AuditEvents get() = AuditEvents.AUDIT_EVENTS
+
+    val FINANCE_ENTRY: FinanceEntry get() = FinanceEntry.FINANCE_ENTRY
+
+    val FINANCE_ENTRY_VERSION: FinanceEntryVersion get() = FinanceEntryVersion.FINANCE_ENTRY_VERSION
+
+    val FINANCE_SETTINGS: FinanceSettings get() = FinanceSettings.FINANCE_SETTINGS
 
     val IDEMPOTENCY: Idempotency get() = Idempotency.IDEMPOTENCY
 
@@ -131,6 +140,9 @@ open class App : SchemaImpl(DSL.name("app"), DefaultCatalog.DEFAULT_CATALOG, DSL
         Approvals.APPROVALS,
         Assets.ASSETS,
         AuditEvents.AUDIT_EVENTS,
+        FinanceEntry.FINANCE_ENTRY,
+        FinanceEntryVersion.FINANCE_ENTRY_VERSION,
+        FinanceSettings.FINANCE_SETTINGS,
         Idempotency.IDEMPOTENCY,
         MapTemplateVersions.MAP_TEMPLATE_VERSIONS,
         MapTemplates.MAP_TEMPLATES,

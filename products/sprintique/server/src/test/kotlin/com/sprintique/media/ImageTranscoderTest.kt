@@ -62,7 +62,7 @@ class ImageTranscoderTest {
     @Test
     fun `a decode past the time limit is aborted`() {
         val impatient = ImageIoImageTranscoder(Duration.ofMillis(1))
-        assertThatThrownBy { impatient.variants(png(3000, 3000)) }.hasFieldOrPropertyWithValue("code", "IMAGE_DECODE")
+        assertThatThrownBy { impatient.variants(png(3000, 3000)) }.hasFieldOrPropertyWithValue("code", "IMAGE_TIMEOUT")
     }
 
     @Test
@@ -71,7 +71,7 @@ class ImageTranscoderTest {
         repeat(2) {
             assertThatThrownBy {
                 impatient.variants(png(3000, 3000))
-            }.hasFieldOrPropertyWithValue("code", "IMAGE_DECODE")
+            }.hasFieldOrPropertyWithValue("code", "IMAGE_TIMEOUT")
         }
         val small = png(64, 64)
         val deadline = System.nanoTime() + Duration.ofSeconds(30).toNanos()

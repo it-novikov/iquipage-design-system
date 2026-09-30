@@ -1,4 +1,5 @@
 import {operationDialog,formDialog} from '../ui/planning/src/dialog.js';
+import {PlanningOperation,commitInPlace} from '../ui/planning/src/operation.js';
 import {intentDialog,releaseFields,readReleaseFields} from '../ui/planning/src/release-dialogs.js';
 import {openTaskDialog} from '../ui/src/board/task-dialog.js';
 import {taskKey} from '../ui/src/board/task-route.js';
@@ -9,6 +10,19 @@ export function confirmPlanningChange(adapter,intent){
     let result=null;
     operationDialog({adapter,projectId:adapter.projectId,intent,title:'Проверить изменение задачи',onCommitted:r=>{result=r;},onClose:()=>result?resolve(result):reject(Error('Изменение не подтверждено. Данные формы сохранены.'))});
   });
+}
+/**
+ * A planning change the person already confirmed in place (the plan field of the task drawer): the same
+ * preview and commit as the check dialog, with the same idempotency journal, only without a second
+ * confirmation when the preview touches nothing beyond the one task. More effects, a blocker or a stale
+ * preview open the full check dialog instead; an unknown result is checked by its receipt before it returns.
+ */
+export async function applyPlanningChange(adapter,intent){
+  const operation=new PlanningOperation(adapter,adapter.projectId);
+  let outcome;
+  try{outcome=await commitInPlace(operation,intent);}finally{operation.destroy();}
+  if(outcome==='confirm')return confirmPlanningChange(adapter,intent);
+  if(outcome==='uncertain'){await recoverPlanningAttempt(adapter);throw Error('Результат изменения проверен отдельно. Обновите задачу.');}
 }
 export async function recoverPlanningAttempt(adapter){
   const pending=adapter.pending();if(!pending)return;

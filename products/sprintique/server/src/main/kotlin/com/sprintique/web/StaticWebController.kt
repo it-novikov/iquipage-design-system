@@ -26,7 +26,8 @@ class StaticWebController(properties: SprintiqueProperties) {
         Path.of(it).toAbsolutePath().normalize()
     }
 
-    @GetMapping("/")
+    /** The interface; `/oauth/authorize` is its consent screen for OAuth clients, the same page on another path. */
+    @GetMapping("/", "/oauth/authorize")
     fun index(): ResponseEntity<ByteArray> {
         val file = requireRoot().resolve("index.html")
         if (!Files.isRegularFile(file)) throw notFound()

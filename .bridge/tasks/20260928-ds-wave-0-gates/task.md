@@ -8,7 +8,7 @@ owner: it-novikov
 branch: feature/ds-wave-0
 base: main
 created: 2026-09-28
-updated: 2026-09-28T23:14:14Z
+updated: 2026-09-29T08:24:47Z
 links:
 ---
 
@@ -35,12 +35,13 @@ links:
 
 ## Передача
 
-- **Состояние:** vnext.23 собран, продукт принял релиз, quick checks зелёные
-- **Сейчас:** PR на main
-- **Дальше:** полный гейт продукта node scripts/test.mjs не запускался из-за лимита сессии — запустить до слияния (JAVA_HOME=/opt/homebrew/opt/openjdk@25, TEST_S3_CONFIG стенда ux-ds); затем волна 1
+- **Состояние:** все шаги готовы, PR #23 открыт, гейт продукта зелёный
+- **Сейчас:** ревью владельца
+- **Дальше:** после слияния статус done; волна 1 идёт на ветке feature/ds-wave-1 поверх этой
 - **Незакоммичено:** нет
-- **Рабочая копия:** 20 файл(ов): libraries/iquipage/PROVENANCE.json, libraries/iquipage/README.md, libraries/iquipage/package.json, libraries/iquipage/scripts/gates/contrast-baseline.json, libraries/iquipage/scripts/gates/size-baseline.json, libraries/iquipage/src/entries/core.js, libraries/iquipage/tests/vnext22.test.cjs, libraries/iquipage/tokens/semantic.json, libraries/iquipage/types/core.d.ts, products/sprintique/README.md, products/sprintique/docs/planning-r2.md, products/sprintique/docs/ux-ds-alignment.md и ещё 8 (23 files changed, 47 insertions(+), 33 deletions(-)) · HEAD fb6b94d
+- **Рабочая копия:** нет · HEAD 9df8a70 · снято 2026-09-29T08:24:47Z
 - **Проверка:** cd libraries/iquipage && npm run build && npm test; cd products/sprintique && npm ci && npm run build && npm run check:boundaries
+- **Причина:** review — claude, 2026-09-29T08:24:47Z: Готово к слиянию: PR #23, гейт 192/192
 
 ## План
 
@@ -77,13 +78,14 @@ links:
   - [ ] тест wave0-text зелёный
 - **Покрывает:** A5
 
-### S5. Интеграция, релиз vnext.23, адаптация продукта [todo]
+### S5. Интеграция, релиз vnext.23, адаптация продукта [done]
 - **Что:** слить четыре ветки в feature/ds-wave-0, обновить базовые линии гейтов после фиксов, версия, changelog, тарбол, гейт продукта, PR
 - **Как:** git merge; npm run gates:update; npm pack; npm ci в продукте; node scripts/test.mjs
 - **Зачем:** Одна волна = один PR
 - **Приёмка:**
-  - [ ] оба npm test зелёные, PR открыт
+  - [x] оба npm test зелёные, PR открыт
 - **Покрывает:** A6
+- **Итог:** полный гейт продукта node scripts/test.mjs 192/192, exit 0; PR #23
 
 ## Решения
 

@@ -53,6 +53,14 @@ class ApiDocumentation(
             "securitySchemes" to linkedMapOf(
                 "humanSession" to linkedMapOf("type" to "apiKey", "in" to "cookie", "name" to "__Host-sprintique"),
                 "agentBearer" to linkedMapOf("type" to "http", "scheme" to "bearer"),
+                "serviceAccountBearer" to linkedMapOf(
+                    "type" to "http",
+                    "scheme" to "bearer",
+                    "description" to "A service account's token (spk_) or OAuth access token (spo_): the account's " +
+                        "project roles, never above its owner's, narrowed by the read/write scopes. Security actions " +
+                        "(agents, members, approvals, service accounts, tokens) need a person's session. See " +
+                        "/.well-known/oauth-authorization-server.",
+                ),
             ),
             "schemas" to contracts.schemas,
         ),
@@ -81,7 +89,11 @@ class ApiDocumentation(
             "operationId" to key.replace(Regex("[^A-Za-z0-9]+"), "_"),
             "tags" to listOf(tagOf(route)),
             "security" to
-                listOf(mapOf("humanSession" to emptyList<String>()), mapOf("agentBearer" to emptyList<String>())),
+                listOf(
+                    mapOf("humanSession" to emptyList<String>()),
+                    mapOf("agentBearer" to emptyList<String>()),
+                    mapOf("serviceAccountBearer" to emptyList<String>()),
+                ),
             "parameters" to parameters(method, path, route, idempotent),
         )
         requestBody(body, binary)?.let { operation["requestBody"] = it }
@@ -129,7 +141,7 @@ class ApiDocumentation(
                 "name" to "X-CSRF-Token",
                 "required" to false,
                 "description" to "Required for human session mutations together with same-origin Origin; " +
-                    "not used by bearer agents.",
+                    "not used by bearer tokens.",
                 "schema" to STRING,
             )
         }
@@ -197,6 +209,14 @@ class ApiDocumentation(
             "GET $P/planning/roadmap" to "RoadmapPageResponse",
             "PUT $P/planning/constraints/:id" to "ConstraintResponse",
             "PUT $P/planning/milestones/:id" to "MilestoneResponse",
+            "GET $P/finance-settings" to "FinanceSettingsResponse",
+            "PUT $P/finance-settings" to "FinanceSettingsResponse",
+            "GET $P/finance-summary" to "FinanceSummaryResponse",
+            "GET $P/finance-entries" to "FinanceEntryPageResponse",
+            "GET $P/finance-entries/:id" to "FinanceEntryResponse",
+            "PUT $P/finance-entries/:id" to "FinanceEntryResponse",
+            "PATCH $P/finance-entries/:id/state" to "FinanceEntryResponse",
+            "GET $P/finance-entries/:id/history" to "FinanceEntryHistoryResponse",
         )
     }
 }
@@ -209,6 +229,7 @@ internal object ApiQueries {
     private const val THREAD_PAGE = 50
     private const val THREAD_DEFAULT = 20
     private const val SEARCH_LIMIT = 200
+    private const val OAUTH_REQUEST = 4000
 
     private fun query(name: String, schema: Any?, required: Boolean = false) =
         linkedMapOf("in" to "query", "name" to name, "required" to required, "schema" to schema)
@@ -219,11 +240,20 @@ internal object ApiQueries {
         query("limit", mapOf("type" to "integer", "minimum" to 1, "maximum" to PAGE_SIZE, "default" to 50)),
     )
 
+    /** An inclusive range of entry dates. */
+    private val period = listOf(
+        query("from", mapOf("type" to "string", "format" to "date")),
+        query("to", mapOf("type" to "string", "format" to "date")),
+    )
+
     fun of(route: String, contracts: PublicContracts): List<Map<String, Any?>> = when (route) {
         "/api/v1/search" ->
             listOf(query("q", mapOf("type" to "string", "minLength" to 1, "maxLength" to SEARCH_LIMIT), true), cursor)
 
         "$P/tasks" -> listOf(query("cursor", mapOf("type" to "integer", "minimum" to 0, "default" to 0)))
+
+        "/api/v1/oauth/authorization" ->
+            listOf(query("request", mapOf("type" to "string", "minLength" to 1, "maxLength" to OAUTH_REQUEST), true))
 
         "$P/maps", "$P/agent-runs", "$P/approvals" -> listOf(cursor)
 
@@ -270,6 +300,17 @@ internal object ApiQueries {
             contracts.schemas.path("PlanningQuery").path("properties").properties().map { (name, schema) ->
                 query(name, schema)
             }
+
+        "$P/finance-entries" -> pagination + listOf(
+            query("state", mapOf("type" to "string", "enum" to listOf("planned", "posted", "voided"))),
+            query("direction", mapOf("type" to "string", "enum" to listOf("income", "expense"))),
+        ) + period
+
+        "$P/finance-summary" -> period
+
+        "$P/finance-entries/:id/history" -> listOf(
+            query("before", mapOf("type" to "integer", "minimum" to 1, "maximum" to Int.MAX_VALUE)),
+        )
 
         "$P/planning/roadmap" -> pagination + listOf(
             query("from", mapOf("type" to "string", "format" to "date")),

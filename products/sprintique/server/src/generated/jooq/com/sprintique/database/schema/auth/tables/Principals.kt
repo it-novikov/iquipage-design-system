@@ -12,6 +12,10 @@ import com.sprintique.database.schema.app.keys.APPROVALS__APPROVALS_REQUESTED_BY
 import com.sprintique.database.schema.app.keys.ASSETS__ASSETS_ACTOR_ID_FKEY
 import com.sprintique.database.schema.app.keys.AUDIT_EVENTS__AUDIT_EVENTS_ACTOR_ID_FKEY
 import com.sprintique.database.schema.app.keys.AUDIT_EVENTS__AUDIT_EVENTS_INITIATOR_ID_FKEY
+import com.sprintique.database.schema.app.keys.FINANCE_ENTRY_VERSION__FK_FINANCE_ENTRY_VERSION__PRINCIPALS
+import com.sprintique.database.schema.app.keys.FINANCE_ENTRY__FK_FINANCE_ENTRY__CREATED_BY
+import com.sprintique.database.schema.app.keys.FINANCE_ENTRY__FK_FINANCE_ENTRY__UPDATED_BY
+import com.sprintique.database.schema.app.keys.FINANCE_SETTINGS__FK_FINANCE_SETTINGS__PRINCIPALS
 import com.sprintique.database.schema.app.keys.IDEMPOTENCY__IDEMPOTENCY_ACTOR_ID_FKEY
 import com.sprintique.database.schema.app.keys.MAPS__MAPS_CREATED_BY_FKEY
 import com.sprintique.database.schema.app.keys.MAP_TEMPLATES__MAP_TEMPLATES_OWNER_ID_FKEY
@@ -34,6 +38,9 @@ import com.sprintique.database.schema.app.tables.AgentRuns.AgentRunsPath
 import com.sprintique.database.schema.app.tables.Approvals.ApprovalsPath
 import com.sprintique.database.schema.app.tables.Assets.AssetsPath
 import com.sprintique.database.schema.app.tables.AuditEvents.AuditEventsPath
+import com.sprintique.database.schema.app.tables.FinanceEntry.FinanceEntryPath
+import com.sprintique.database.schema.app.tables.FinanceEntryVersion.FinanceEntryVersionPath
+import com.sprintique.database.schema.app.tables.FinanceSettings.FinanceSettingsPath
 import com.sprintique.database.schema.app.tables.Idempotency.IdempotencyPath
 import com.sprintique.database.schema.app.tables.MapTemplateVersions.MapTemplateVersionsPath
 import com.sprintique.database.schema.app.tables.MapTemplates.MapTemplatesPath
@@ -54,16 +61,29 @@ import com.sprintique.database.schema.app.tables.WorkspaceAudit.WorkspaceAuditPa
 import com.sprintique.database.schema.app.tables.WorkspaceMembers.WorkspaceMembersPath
 import com.sprintique.database.schema.app.tables.Workspaces.WorkspacesPath
 import com.sprintique.database.schema.auth.Auth
+import com.sprintique.database.schema.auth.keys.ACCESS_EVENTS__ACCESS_EVENTS_ACTOR_ID_FKEY
+import com.sprintique.database.schema.auth.keys.ACCESS_EVENTS__ACCESS_EVENTS_PRINCIPAL_ID_FKEY
 import com.sprintique.database.schema.auth.keys.CREDENTIALS__CREDENTIALS_INITIATOR_ID_FKEY
 import com.sprintique.database.schema.auth.keys.CREDENTIALS__CREDENTIALS_PRINCIPAL_ID_FKEY
 import com.sprintique.database.schema.auth.keys.IDENTITIES__IDENTITIES_PRINCIPAL_ID_FKEY
+import com.sprintique.database.schema.auth.keys.OAUTH_CODES__OAUTH_CODES_GRANTED_BY_FKEY
+import com.sprintique.database.schema.auth.keys.OAUTH_CODES__OAUTH_CODES_PRINCIPAL_ID_FKEY
+import com.sprintique.database.schema.auth.keys.OAUTH_GRANTS__OAUTH_GRANTS_GRANTED_BY_FKEY
+import com.sprintique.database.schema.auth.keys.OAUTH_GRANTS__OAUTH_GRANTS_PRINCIPAL_ID_FKEY
 import com.sprintique.database.schema.auth.keys.PRINCIPALS_ISSUER_SUBJECT_KEY
 import com.sprintique.database.schema.auth.keys.PRINCIPALS_PKEY
 import com.sprintique.database.schema.auth.keys.PROJECT_INVITATIONS__PROJECT_INVITATIONS_ACCEPTED_BY_FKEY
 import com.sprintique.database.schema.auth.keys.PROJECT_INVITATIONS__PROJECT_INVITATIONS_INVITER_ID_FKEY
+import com.sprintique.database.schema.auth.keys.SERVICE_ACCOUNTS__SERVICE_ACCOUNTS_CREATED_BY_FKEY
+import com.sprintique.database.schema.auth.keys.SERVICE_ACCOUNTS__SERVICE_ACCOUNTS_OWNER_ID_FKEY
+import com.sprintique.database.schema.auth.keys.SERVICE_ACCOUNTS__SERVICE_ACCOUNTS_PRINCIPAL_ID_FKEY
+import com.sprintique.database.schema.auth.tables.AccessEvents.AccessEventsPath
 import com.sprintique.database.schema.auth.tables.Credentials.CredentialsPath
 import com.sprintique.database.schema.auth.tables.Identities.IdentitiesPath
+import com.sprintique.database.schema.auth.tables.OauthCodes.OauthCodesPath
+import com.sprintique.database.schema.auth.tables.OauthGrants.OauthGrantsPath
 import com.sprintique.database.schema.auth.tables.ProjectInvitations.ProjectInvitationsPath
+import com.sprintique.database.schema.auth.tables.ServiceAccounts.ServiceAccountsPath
 import com.sprintique.database.schema.auth.tables.records.PrincipalsRecord
 
 import java.time.OffsetDateTime
@@ -259,6 +279,54 @@ open class Principals(
 
     val auditEventsInitiatorIdFkey: AuditEventsPath
         get(): AuditEventsPath = auditEventsInitiatorIdFkey()
+
+    private lateinit var _fkFinanceEntry_CreatedBy: FinanceEntryPath
+
+    fun fkFinanceEntry_CreatedBy(): FinanceEntryPath {
+        if (!this::_fkFinanceEntry_CreatedBy.isInitialized)
+            _fkFinanceEntry_CreatedBy = FinanceEntryPath(this, null, FINANCE_ENTRY__FK_FINANCE_ENTRY__CREATED_BY.inverseKey)
+
+        return _fkFinanceEntry_CreatedBy;
+    }
+
+    val fkFinanceEntry_CreatedBy: FinanceEntryPath
+        get(): FinanceEntryPath = fkFinanceEntry_CreatedBy()
+
+    private lateinit var _fkFinanceEntry_UpdatedBy: FinanceEntryPath
+
+    fun fkFinanceEntry_UpdatedBy(): FinanceEntryPath {
+        if (!this::_fkFinanceEntry_UpdatedBy.isInitialized)
+            _fkFinanceEntry_UpdatedBy = FinanceEntryPath(this, null, FINANCE_ENTRY__FK_FINANCE_ENTRY__UPDATED_BY.inverseKey)
+
+        return _fkFinanceEntry_UpdatedBy;
+    }
+
+    val fkFinanceEntry_UpdatedBy: FinanceEntryPath
+        get(): FinanceEntryPath = fkFinanceEntry_UpdatedBy()
+
+    private lateinit var _financeEntryVersion: FinanceEntryVersionPath
+
+    fun financeEntryVersion(): FinanceEntryVersionPath {
+        if (!this::_financeEntryVersion.isInitialized)
+            _financeEntryVersion = FinanceEntryVersionPath(this, null, FINANCE_ENTRY_VERSION__FK_FINANCE_ENTRY_VERSION__PRINCIPALS.inverseKey)
+
+        return _financeEntryVersion;
+    }
+
+    val financeEntryVersion: FinanceEntryVersionPath
+        get(): FinanceEntryVersionPath = financeEntryVersion()
+
+    private lateinit var _financeSettings: FinanceSettingsPath
+
+    fun financeSettings(): FinanceSettingsPath {
+        if (!this::_financeSettings.isInitialized)
+            _financeSettings = FinanceSettingsPath(this, null, FINANCE_SETTINGS__FK_FINANCE_SETTINGS__PRINCIPALS.inverseKey)
+
+        return _financeSettings;
+    }
+
+    val financeSettings: FinanceSettingsPath
+        get(): FinanceSettingsPath = financeSettings()
 
     private lateinit var _idempotency: IdempotencyPath
 
@@ -476,6 +544,30 @@ open class Principals(
     val workspaces: WorkspacesPath
         get(): WorkspacesPath = workspaces()
 
+    private lateinit var _accessEventsActorIdFkey: AccessEventsPath
+
+    fun accessEventsActorIdFkey(): AccessEventsPath {
+        if (!this::_accessEventsActorIdFkey.isInitialized)
+            _accessEventsActorIdFkey = AccessEventsPath(this, null, ACCESS_EVENTS__ACCESS_EVENTS_ACTOR_ID_FKEY.inverseKey)
+
+        return _accessEventsActorIdFkey;
+    }
+
+    val accessEventsActorIdFkey: AccessEventsPath
+        get(): AccessEventsPath = accessEventsActorIdFkey()
+
+    private lateinit var _accessEventsPrincipalIdFkey: AccessEventsPath
+
+    fun accessEventsPrincipalIdFkey(): AccessEventsPath {
+        if (!this::_accessEventsPrincipalIdFkey.isInitialized)
+            _accessEventsPrincipalIdFkey = AccessEventsPath(this, null, ACCESS_EVENTS__ACCESS_EVENTS_PRINCIPAL_ID_FKEY.inverseKey)
+
+        return _accessEventsPrincipalIdFkey;
+    }
+
+    val accessEventsPrincipalIdFkey: AccessEventsPath
+        get(): AccessEventsPath = accessEventsPrincipalIdFkey()
+
     private lateinit var _credentialsInitiatorIdFkey: CredentialsPath
 
     fun credentialsInitiatorIdFkey(): CredentialsPath {
@@ -512,6 +604,54 @@ open class Principals(
     val identities: IdentitiesPath
         get(): IdentitiesPath = identities()
 
+    private lateinit var _oauthCodesGrantedByFkey: OauthCodesPath
+
+    fun oauthCodesGrantedByFkey(): OauthCodesPath {
+        if (!this::_oauthCodesGrantedByFkey.isInitialized)
+            _oauthCodesGrantedByFkey = OauthCodesPath(this, null, OAUTH_CODES__OAUTH_CODES_GRANTED_BY_FKEY.inverseKey)
+
+        return _oauthCodesGrantedByFkey;
+    }
+
+    val oauthCodesGrantedByFkey: OauthCodesPath
+        get(): OauthCodesPath = oauthCodesGrantedByFkey()
+
+    private lateinit var _oauthCodesPrincipalIdFkey: OauthCodesPath
+
+    fun oauthCodesPrincipalIdFkey(): OauthCodesPath {
+        if (!this::_oauthCodesPrincipalIdFkey.isInitialized)
+            _oauthCodesPrincipalIdFkey = OauthCodesPath(this, null, OAUTH_CODES__OAUTH_CODES_PRINCIPAL_ID_FKEY.inverseKey)
+
+        return _oauthCodesPrincipalIdFkey;
+    }
+
+    val oauthCodesPrincipalIdFkey: OauthCodesPath
+        get(): OauthCodesPath = oauthCodesPrincipalIdFkey()
+
+    private lateinit var _oauthGrantsGrantedByFkey: OauthGrantsPath
+
+    fun oauthGrantsGrantedByFkey(): OauthGrantsPath {
+        if (!this::_oauthGrantsGrantedByFkey.isInitialized)
+            _oauthGrantsGrantedByFkey = OauthGrantsPath(this, null, OAUTH_GRANTS__OAUTH_GRANTS_GRANTED_BY_FKEY.inverseKey)
+
+        return _oauthGrantsGrantedByFkey;
+    }
+
+    val oauthGrantsGrantedByFkey: OauthGrantsPath
+        get(): OauthGrantsPath = oauthGrantsGrantedByFkey()
+
+    private lateinit var _oauthGrantsPrincipalIdFkey: OauthGrantsPath
+
+    fun oauthGrantsPrincipalIdFkey(): OauthGrantsPath {
+        if (!this::_oauthGrantsPrincipalIdFkey.isInitialized)
+            _oauthGrantsPrincipalIdFkey = OauthGrantsPath(this, null, OAUTH_GRANTS__OAUTH_GRANTS_PRINCIPAL_ID_FKEY.inverseKey)
+
+        return _oauthGrantsPrincipalIdFkey;
+    }
+
+    val oauthGrantsPrincipalIdFkey: OauthGrantsPath
+        get(): OauthGrantsPath = oauthGrantsPrincipalIdFkey()
+
     private lateinit var _projectInvitationsAcceptedByFkey: ProjectInvitationsPath
 
     fun projectInvitationsAcceptedByFkey(): ProjectInvitationsPath {
@@ -536,12 +676,48 @@ open class Principals(
     val projectInvitationsInviterIdFkey: ProjectInvitationsPath
         get(): ProjectInvitationsPath = projectInvitationsInviterIdFkey()
 
+    private lateinit var _serviceAccountsCreatedByFkey: ServiceAccountsPath
+
+    fun serviceAccountsCreatedByFkey(): ServiceAccountsPath {
+        if (!this::_serviceAccountsCreatedByFkey.isInitialized)
+            _serviceAccountsCreatedByFkey = ServiceAccountsPath(this, null, SERVICE_ACCOUNTS__SERVICE_ACCOUNTS_CREATED_BY_FKEY.inverseKey)
+
+        return _serviceAccountsCreatedByFkey;
+    }
+
+    val serviceAccountsCreatedByFkey: ServiceAccountsPath
+        get(): ServiceAccountsPath = serviceAccountsCreatedByFkey()
+
+    private lateinit var _serviceAccountsOwnerIdFkey: ServiceAccountsPath
+
+    fun serviceAccountsOwnerIdFkey(): ServiceAccountsPath {
+        if (!this::_serviceAccountsOwnerIdFkey.isInitialized)
+            _serviceAccountsOwnerIdFkey = ServiceAccountsPath(this, null, SERVICE_ACCOUNTS__SERVICE_ACCOUNTS_OWNER_ID_FKEY.inverseKey)
+
+        return _serviceAccountsOwnerIdFkey;
+    }
+
+    val serviceAccountsOwnerIdFkey: ServiceAccountsPath
+        get(): ServiceAccountsPath = serviceAccountsOwnerIdFkey()
+
+    private lateinit var _serviceAccountsPrincipalIdFkey: ServiceAccountsPath
+
+    fun serviceAccountsPrincipalIdFkey(): ServiceAccountsPath {
+        if (!this::_serviceAccountsPrincipalIdFkey.isInitialized)
+            _serviceAccountsPrincipalIdFkey = ServiceAccountsPath(this, null, SERVICE_ACCOUNTS__SERVICE_ACCOUNTS_PRINCIPAL_ID_FKEY.inverseKey)
+
+        return _serviceAccountsPrincipalIdFkey;
+    }
+
+    val serviceAccountsPrincipalIdFkey: ServiceAccountsPath
+        get(): ServiceAccountsPath = serviceAccountsPrincipalIdFkey()
+
     val projects: ProjectsPath
         get(): ProjectsPath = projectMembers().projects()
     override fun getChecks(): List<Check<PrincipalsRecord>> = listOf(
+        Internal.createCheck(this, DSL.name("principal_kind"), "((kind = ANY (ARRAY['human'::text, 'agent'::text, 'service'::text])))", true),
         Internal.createCheck(this, DSL.name("principals_agent_has_no_identity"), "(((kind = 'human'::text) OR ((issuer IS NULL) AND (subject IS NULL))))", true),
         Internal.createCheck(this, DSL.name("principals_email_check"), "(((email IS NULL) OR (((length(email) >= 3) AND (length(email) <= 320)) AND (POSITION(('@'::text) IN (email)) > 1))))", true),
-        Internal.createCheck(this, DSL.name("principals_kind_check"), "((kind = ANY (ARRAY['human'::text, 'agent'::text])))", true),
         Internal.createCheck(this, DSL.name("principals_profile_name_check"), "(((length(profile_name) >= 1) AND (length(profile_name) <= 100)))", true),
         Internal.createCheck(this, DSL.name("principals_revision_check"), "((revision > 0))", true)
     )
