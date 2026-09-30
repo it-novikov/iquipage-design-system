@@ -60,13 +60,17 @@ open class ProjectsRecord() : UpdatableRecordImpl<ProjectsRecord>(Projects.PROJE
         set(value): Unit = set(10, value)
         get(): Int? = get(10) as Int?
 
+    open var activitySequence: Long?
+        set(value): Unit = set(11, value)
+        get(): Long? = get(11) as Long?
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
 
     override fun key(): Record1<String?> = super.key() as Record1<String?>
 
-    constructor(id: String? = null, workspaceId: UUID? = null, name: String? = null, slug: String? = null, key: String? = null, nextTaskNumber: Int? = null, timezone: String? = null, planningRevision: Long? = null, eventSequence: Long? = null, planningDefaults: JSONB? = null, profileRevision: Int? = null): this() {
+    constructor(id: String? = null, workspaceId: UUID? = null, name: String? = null, slug: String? = null, key: String? = null, nextTaskNumber: Int? = null, timezone: String? = null, planningRevision: Long? = null, eventSequence: Long? = null, planningDefaults: JSONB? = null, profileRevision: Int? = null, activitySequence: Long? = null): this() {
         this.id = id
         this.workspaceId = workspaceId
         this.name = name
@@ -78,6 +82,7 @@ open class ProjectsRecord() : UpdatableRecordImpl<ProjectsRecord>(Projects.PROJE
         this.eventSequence = eventSequence
         this.planningDefaults = planningDefaults
         this.profileRevision = profileRevision
+        this.activitySequence = activitySequence
         resetTouchedOnNotNull()
     }
 }

@@ -30,6 +30,12 @@ data class SprintiqueProperties(
     val webRoot: String = "",
     /** `production` forbids development conveniences; anything else is a development or test environment. */
     val environment: String = "development",
+    /**
+     * Enabled product features: a comma-separated list of names, `all` or `none`. Empty means `all` outside
+     * production and `none` in production, so a feature reaches production only when it is named there.
+     */
+    val features: String = "",
+    val workbench: WorkbenchProperties = WorkbenchProperties(),
 ) {
     val isProduction: Boolean get() = environment == "production"
     val isSecureOrigin: Boolean get() = URI(publicOrigin).scheme == "https"
@@ -114,3 +120,12 @@ data class StorageProperties(
 ) {
     val isConfigured: Boolean get() = endpoint.isNotEmpty()
 }
+
+/** The Workbench projection (docs/adr W4). */
+data class WorkbenchProperties(
+    /**
+     * HMAC key of the page cursors, 32+ characters. Empty: a random key per process, so cursors do not survive a
+     * restart and several API processes need one shared value.
+     */
+    val cursorSecret: String = "",
+)

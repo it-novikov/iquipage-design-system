@@ -1,5 +1,6 @@
 package com.sprintique.identity.api
 
+import com.sprintique.configuration.FeatureFlags
 import com.sprintique.identity.application.EmailSignIn
 import com.sprintique.identity.application.SignInMethod
 import com.sprintique.identity.application.SignInProviders
@@ -17,6 +18,7 @@ class SessionController(
     private val methods: List<SignInMethod>,
     private val providers: SignInProviders,
     private val emailSignIn: EmailSignIn,
+    private val flags: FeatureFlags,
 ) {
     /** Anonymous: which ways in exist, so the sign-in screen never offers an unconfigured one. */
     @GetMapping("/api/v1/auth/methods")
@@ -49,6 +51,8 @@ class SessionController(
                 ),
             "csrf" to actor.csrf,
             "projects" to projects,
+            // Which product features this server serves (docs/adr W6); the interface hides what is off.
+            "features" to flags.enabled.map { it.wire }.sorted(),
         )
     }
 

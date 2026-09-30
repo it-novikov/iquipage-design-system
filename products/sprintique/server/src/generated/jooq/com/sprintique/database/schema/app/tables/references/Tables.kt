@@ -9,6 +9,7 @@ import com.sprintique.database.schema.app.tables.AgentRunPlans
 import com.sprintique.database.schema.app.tables.AgentRuns
 import com.sprintique.database.schema.app.tables.Approvals
 import com.sprintique.database.schema.app.tables.Assets
+import com.sprintique.database.schema.app.tables.AttentionRequests
 import com.sprintique.database.schema.app.tables.AuditEvents
 import com.sprintique.database.schema.app.tables.FinanceEntry
 import com.sprintique.database.schema.app.tables.FinanceEntryVersion
@@ -28,12 +29,15 @@ import com.sprintique.database.schema.app.tables.PersonProjectPreferences
 import com.sprintique.database.schema.app.tables.PlanningApplied
 import com.sprintique.database.schema.app.tables.PlanningPlans
 import com.sprintique.database.schema.app.tables.PlanningSelections
+import com.sprintique.database.schema.app.tables.PrivateReceipts
 import com.sprintique.database.schema.app.tables.ProjectMembers
 import com.sprintique.database.schema.app.tables.Projects
 import com.sprintique.database.schema.app.tables.ReleaseSnapshots
 import com.sprintique.database.schema.app.tables.Releases
 import com.sprintique.database.schema.app.tables.Tags
+import com.sprintique.database.schema.app.tables.TaskActivity
 import com.sprintique.database.schema.app.tables.TaskLinks
+import com.sprintique.database.schema.app.tables.TaskPersonalState
 import com.sprintique.database.schema.app.tables.TaskSettings
 import com.sprintique.database.schema.app.tables.TaskSettingsVersions
 import com.sprintique.database.schema.app.tables.TaskTags
@@ -41,6 +45,7 @@ import com.sprintique.database.schema.app.tables.Tasks
 import com.sprintique.database.schema.app.tables.TemporalConstraints
 import com.sprintique.database.schema.app.tables.ThreadReads
 import com.sprintique.database.schema.app.tables.Threads
+import com.sprintique.database.schema.app.tables.WorkbenchPreferences
 import com.sprintique.database.schema.app.tables.WorkspaceAudit
 import com.sprintique.database.schema.app.tables.WorkspaceMembers
 import com.sprintique.database.schema.app.tables.Workspaces
@@ -54,6 +59,8 @@ val AGENT_RUNS: AgentRuns = AgentRuns.AGENT_RUNS
 val APPROVALS: Approvals = Approvals.APPROVALS
 
 val ASSETS: Assets = Assets.ASSETS
+
+val ATTENTION_REQUESTS: AttentionRequests = AttentionRequests.ATTENTION_REQUESTS
 
 val AUDIT_EVENTS: AuditEvents = AuditEvents.AUDIT_EVENTS
 
@@ -93,6 +100,8 @@ val PLANNING_PLANS: PlanningPlans = PlanningPlans.PLANNING_PLANS
 
 val PLANNING_SELECTIONS: PlanningSelections = PlanningSelections.PLANNING_SELECTIONS
 
+val PRIVATE_RECEIPTS: PrivateReceipts = PrivateReceipts.PRIVATE_RECEIPTS
+
 val PROJECT_MEMBERS: ProjectMembers = ProjectMembers.PROJECT_MEMBERS
 
 val PROJECTS: Projects = Projects.PROJECTS
@@ -103,7 +112,11 @@ val RELEASES: Releases = Releases.RELEASES
 
 val TAGS: Tags = Tags.TAGS
 
+val TASK_ACTIVITY: TaskActivity = TaskActivity.TASK_ACTIVITY
+
 val TASK_LINKS: TaskLinks = TaskLinks.TASK_LINKS
+
+val TASK_PERSONAL_STATE: TaskPersonalState = TaskPersonalState.TASK_PERSONAL_STATE
 
 val TASK_SETTINGS: TaskSettings = TaskSettings.TASK_SETTINGS
 
@@ -118,6 +131,8 @@ val TEMPORAL_CONSTRAINTS: TemporalConstraints = TemporalConstraints.TEMPORAL_CON
 val THREAD_READS: ThreadReads = ThreadReads.THREAD_READS
 
 val THREADS: Threads = Threads.THREADS
+
+val WORKBENCH_PREFERENCES: WorkbenchPreferences = WorkbenchPreferences.WORKBENCH_PREFERENCES
 
 val WORKSPACE_AUDIT: WorkspaceAudit = WorkspaceAudit.WORKSPACE_AUDIT
 

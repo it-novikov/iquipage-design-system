@@ -6079,6 +6079,21 @@
         }
       ]
     },
+    "AttentionRequestRevision": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "baseRevision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        }
+      },
+      "required": [
+        "baseRevision"
+      ],
+      "additionalProperties": false
+    },
     "Capability": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "string",
@@ -6090,6 +6105,41 @@
         "maps:read",
         "maps:write"
       ]
+    },
+    "ChangeAttentionRequest": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "baseRevision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "recipientId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "neededBy": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "baseRevision",
+        "recipientId",
+        "neededBy"
+      ],
+      "additionalProperties": false
     },
     "ChangeFinanceEntryState": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -6607,6 +6657,88 @@
         "y",
         "width",
         "height"
+      ],
+      "additionalProperties": false
+    },
+    "CreateAttentionRequest": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+        },
+        "recipientId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "answer",
+            "review",
+            "decision",
+            "approval",
+            "do"
+          ]
+        },
+        "neededBy": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "threadId": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100,
+              "pattern": "^[A-Za-z0-9_-]+$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "approvalId": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "note": {
+          "default": "",
+          "type": "string",
+          "maxLength": 500
+        }
+      },
+      "required": [
+        "id",
+        "recipientId",
+        "kind",
+        "neededBy",
+        "threadId",
+        "approvalId",
+        "note"
       ],
       "additionalProperties": false
     },
@@ -11318,6 +11450,41 @@
       },
       "required": [
         "seenActivityAt"
+      ],
+      "additionalProperties": false
+    },
+    "MarkWorkbenchSeen": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "before": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+        },
+        "projects": {
+          "default": null,
+          "anyOf": [
+            {
+              "minItems": 1,
+              "maxItems": 100,
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100,
+                "pattern": "^[A-Za-z0-9_-]+$"
+              }
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "before",
+        "projects"
       ],
       "additionalProperties": false
     },
@@ -16046,6 +16213,53 @@
       ],
       "additionalProperties": false
     },
+    "PutAccept": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "baseRevision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "accepted": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "baseRevision",
+        "accepted"
+      ],
+      "additionalProperties": false
+    },
+    "PutCheckBack": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "baseRevision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "checkBackAt": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "baseRevision",
+        "checkBackAt"
+      ],
+      "additionalProperties": false
+    },
     "PutFinanceEntry": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
@@ -17079,6 +17293,25 @@
       ],
       "additionalProperties": false
     },
+    "PutParticipation": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "baseRevision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "participating": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "baseRevision",
+        "participating"
+      ],
+      "additionalProperties": false
+    },
     "PutProjectProfile": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
@@ -17097,6 +17330,49 @@
       "required": [
         "baseRevision",
         "name"
+      ],
+      "additionalProperties": false
+    },
+    "PutRank": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "baseRevision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "move": {
+          "type": "string",
+          "enum": [
+            "up",
+            "down"
+          ]
+        },
+        "projects": {
+          "default": null,
+          "anyOf": [
+            {
+              "minItems": 1,
+              "maxItems": 100,
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100,
+                "pattern": "^[A-Za-z0-9_-]+$"
+              }
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "baseRevision",
+        "move",
+        "projects"
       ],
       "additionalProperties": false
     },
@@ -17163,6 +17439,55 @@
       "required": [
         "baseRevision",
         "value"
+      ],
+      "additionalProperties": false
+    },
+    "PutSeen": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "baseRevision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "sequence": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        }
+      },
+      "required": [
+        "baseRevision",
+        "sequence"
+      ],
+      "additionalProperties": false
+    },
+    "PutSnooze": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "baseRevision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "until": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "baseRevision",
+        "until"
       ],
       "additionalProperties": false
     },
@@ -17785,6 +18110,57 @@
       "required": [
         "baseRevision",
         "value"
+      ],
+      "additionalProperties": false
+    },
+    "PutWorkbenchPreferences": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "baseRevision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "timezone": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "layout": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "currentForm": {
+                  "default": "lanes",
+                  "type": "string",
+                  "enum": [
+                    "lanes",
+                    "list"
+                  ]
+                }
+              },
+              "required": [
+                "currentForm"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "baseRevision"
       ],
       "additionalProperties": false
     },
@@ -21603,6 +21979,24 @@
         "releaseId",
         "tagIds",
         "tagMode"
+      ],
+      "additionalProperties": false
+    },
+    "WorkbenchLayout": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "currentForm": {
+          "default": "lanes",
+          "type": "string",
+          "enum": [
+            "lanes",
+            "list"
+          ]
+        }
+      },
+      "required": [
+        "currentForm"
       ],
       "additionalProperties": false
     },

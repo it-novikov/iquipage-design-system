@@ -2,6 +2,7 @@ package com.sprintique.apidoc
 
 import com.sprintique.contract.Accepts
 import com.sprintique.contract.Idempotent
+import com.sprintique.workbench.application.Workbench
 import io.swagger.v3.oas.annotations.media.Schema
 import org.springframework.beans.factory.SmartInitializingSingleton
 import org.springframework.beans.factory.annotation.Qualifier
@@ -235,6 +236,23 @@ internal object ApiQueries {
         linkedMapOf("in" to "query", "name" to name, "required" to required, "schema" to schema)
 
     private val cursor = query("cursor", mapOf("type" to "string", "maxLength" to CURSOR_LIMIT))
+    private const val MAX_TIMEZONE = 100
+
+    /** The output filter of the Workbench: comma-separated project ids, not navigation. */
+    private val workbenchProjects = query(
+        "projects",
+        mapOf("type" to "string", "description" to "Comma-separated project ids; absent means all accessible."),
+    )
+    private val workbenchLimit = query(
+        "limit",
+        mapOf(
+            "type" to "integer",
+            "minimum" to 1,
+            "maximum" to Workbench.MAXIMUM_LIMIT,
+            "default" to Workbench.DEFAULT_LIMIT,
+        ),
+    )
+
     private val pagination = listOf(
         cursor,
         query("limit", mapOf("type" to "integer", "minimum" to 1, "maximum" to PAGE_SIZE, "default" to 50)),
@@ -251,6 +269,34 @@ internal object ApiQueries {
             listOf(query("q", mapOf("type" to "string", "minLength" to 1, "maxLength" to SEARCH_LIMIT), true), cursor)
 
         "$P/tasks" -> listOf(query("cursor", mapOf("type" to "integer", "minimum" to 0, "default" to 0)))
+
+        "/api/v1/workbench" -> listOf(
+            query("mode", mapOf("type" to "string", "enum" to listOf("now"))),
+            workbenchProjects,
+            workbenchLimit,
+        )
+
+        "/api/v1/workbench/list" -> listOf(
+            query("section", mapOf("type" to "string", "enum" to Workbench.SECTIONS), true),
+            workbenchProjects,
+            cursor,
+            workbenchLimit,
+        )
+
+        "/api/v1/workbench/plan" -> listOf(
+            query("horizon", mapOf("type" to "string", "enum" to listOf("today", "7d"), "default" to "today")),
+            workbenchProjects,
+            query("timezone", mapOf("type" to "string", "maxLength" to MAX_TIMEZONE)),
+            query(
+                "undated",
+                mapOf(
+                    "type" to "string",
+                    "enum" to listOf("list", "count"),
+                    "default" to "list",
+                    "description" to "count: only summary.undatedCount, for the overview's week.",
+                ),
+            ),
+        )
 
         "/api/v1/oauth/authorization" ->
             listOf(query("request", mapOf("type" to "string", "minLength" to 1, "maxLength" to OAUTH_REQUEST), true))
