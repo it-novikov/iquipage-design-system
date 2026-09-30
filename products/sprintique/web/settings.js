@@ -4,6 +4,7 @@ import {settingsDialog,timeZoneField} from '../ui/planning/src/release-dialogs.j
 import {mountMembers} from './members.js';
 import {mountWorkspaceMembers} from './workspace-members.js';
 import {mountAgents} from './agents.js';
+import {mountServiceAccounts} from './service-accounts.js';
 import {mountOperations} from './operations.js';
 import {pickProjectAvatar,pickPersonalPhoto} from './project-profile.js';
 import {dialog,input} from '../ui/src/ui.js';
@@ -164,6 +165,7 @@ export async function mountSettings(root,{repository,project,adapter,onChanged=(
     const props={repository,project,tools,embedded:true,notice:section==='workspace-members'?'':await projectLock(),onCounts:()=>void loadCounts()};
     if(section==='members')mounted=await mountMembers(content,props);
     else if(section==='agents')mounted=await mountAgents(content,props);
+    else if(section==='service-accounts')mounted=await mountServiceAccounts(content,props);
     else if(section==='operations')mounted=await mountOperations(content,props);
     else if(section==='workspace-members')mounted=await mountWorkspaceMembers(content,{...props,workspace});
     else mounted=await mountProjectTaskSettings(content,{...props,section,canManage:project.role==='admin'});

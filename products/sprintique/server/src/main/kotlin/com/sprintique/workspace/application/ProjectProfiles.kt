@@ -5,6 +5,7 @@ import com.sprintique.command.CommandLedger
 import com.sprintique.database.Row
 import com.sprintique.database.Transaction
 import com.sprintique.identity.application.ProjectAccess
+import com.sprintique.identity.application.ServiceAccounts
 import com.sprintique.identity.domain.Actor
 import com.sprintique.identity.domain.Capability
 import com.sprintique.media.application.Assets
@@ -146,6 +147,8 @@ object ProjectProfiles {
                 workspaceId,
                 id,
             )
+            // The service accounts this person owns in the workspace stop until they get a new owner or are deleted.
+            ServiceAccounts.suspendOwnedBy(tx, actor, workspaceId, id)
         } else {
             tx.update(
                 """

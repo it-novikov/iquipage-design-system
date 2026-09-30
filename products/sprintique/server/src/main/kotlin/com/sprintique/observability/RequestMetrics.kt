@@ -23,6 +23,7 @@ import java.util.concurrent.ConcurrentHashMap
 class RequestMetrics : OncePerRequestFilter() {
     private val log = LoggerFactory.getLogger("http")
     private val measurements = ConcurrentHashMap<String, Measurement>()
+    private val tools = ConcurrentHashMap<String, Measurement>()
     val startedAtMillis: Long = System.currentTimeMillis()
 
     class Measurement(val method: String, val route: String, val statusClass: Int) {
@@ -54,7 +55,7 @@ class RequestMetrics : OncePerRequestFilter() {
             measurement.durationMs += durationMs
             measurement.maxDurationMs = maxOf(measurement.maxDurationMs, durationMs)
         }
-        if (route.startsWith("/api/") || route.startsWith("/auth/")) {
+        if (route.startsWith("/api/") || route.startsWith("/auth/") || route == "/mcp") {
             log.info(
                 "http.request.completed request_id={} method={} route={} status_code={} duration_ms={}",
                 RequestIds.of(request),
@@ -62,6 +63,33 @@ class RequestMetrics : OncePerRequestFilter() {
                 route,
                 status,
                 durationMs.toLong(),
+            )
+        }
+    }
+
+    /**
+     * One MCP tool call by tool and outcome. Tool names come from the server's fixed list and outcomes from a fixed
+     * set, so the series stay bounded; the caller, the client and the arguments are never labels.
+     */
+    fun recordTool(tool: String, outcome: String, durationMs: Double) {
+        val key = "$tool $outcome"
+        if (!tools.containsKey(key) && tools.size >= MAX_TOOL_SERIES) return
+        val measurement = tools.computeIfAbsent(key) { Measurement("TOOL", tool, 0) }
+        synchronized(measurement) {
+            measurement.requests++
+            measurement.durationMs += durationMs
+            measurement.maxDurationMs = maxOf(measurement.maxDurationMs, durationMs)
+        }
+    }
+
+    fun toolSnapshot(): List<Map<String, Any>> = tools.map { (key, measurement) ->
+        synchronized(measurement) {
+            linkedMapOf(
+                "tool" to measurement.route,
+                "outcome" to key.substringAfter(' '),
+                "calls" to measurement.requests,
+                "durationMs" to measurement.durationMs,
+                "maxDurationMs" to measurement.maxDurationMs,
             )
         }
     }
@@ -83,6 +111,7 @@ class RequestMetrics : OncePerRequestFilter() {
         const val NANOSECONDS_PER_MILLISECOND = 1_000_000.0
         const val STATUS_CLASS = 100
         const val MAX_SERIES = 2048
+        const val MAX_TOOL_SERIES = 128
         val METHODS = setOf("GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS")
         val PATH_VARIABLE = Regex("\\{([^}/]+)}")
     }

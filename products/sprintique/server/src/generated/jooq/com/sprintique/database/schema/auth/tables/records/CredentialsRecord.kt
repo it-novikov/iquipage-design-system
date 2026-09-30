@@ -7,6 +7,7 @@ package com.sprintique.database.schema.auth.tables.records
 import com.sprintique.database.schema.auth.tables.Credentials
 
 import java.time.OffsetDateTime
+import java.util.UUID
 
 import org.jooq.Record1
 import org.jooq.impl.UpdatableRecordImpl
@@ -55,13 +56,37 @@ open class CredentialsRecord() : UpdatableRecordImpl<CredentialsRecord>(Credenti
         set(value): Unit = set(9, value)
         get(): OffsetDateTime? = get(9) as OffsetDateTime?
 
+    open var name: String?
+        set(value): Unit = set(10, value)
+        get(): String? = get(10) as String?
+
+    open var scopes: Array<String?>?
+        set(value): Unit = set(11, value)
+        get(): Array<String?>? = get(11) as Array<String?>?
+
+    open var audience: String?
+        set(value): Unit = set(12, value)
+        get(): String? = get(12) as String?
+
+    open var grantId: UUID?
+        set(value): Unit = set(13, value)
+        get(): UUID? = get(13) as UUID?
+
+    open var createdAt: OffsetDateTime?
+        set(value): Unit = set(14, value)
+        get(): OffsetDateTime? = get(14) as OffsetDateTime?
+
+    open var lastUsedAt: OffsetDateTime?
+        set(value): Unit = set(15, value)
+        get(): OffsetDateTime? = get(15) as OffsetDateTime?
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
 
     override fun key(): Record1<String?> = super.key() as Record1<String?>
 
-    constructor(id: String? = null, principalId: String? = null, tokenHash: String? = null, kind: String? = null, csrf: String? = null, projectId: String? = null, capabilities: Array<String?>? = null, initiatorId: String? = null, expiresAt: OffsetDateTime? = null, revokedAt: OffsetDateTime? = null): this() {
+    constructor(id: String? = null, principalId: String? = null, tokenHash: String? = null, kind: String? = null, csrf: String? = null, projectId: String? = null, capabilities: Array<String?>? = null, initiatorId: String? = null, expiresAt: OffsetDateTime? = null, revokedAt: OffsetDateTime? = null, name: String? = null, scopes: Array<String?>? = null, audience: String? = null, grantId: UUID? = null, createdAt: OffsetDateTime? = null, lastUsedAt: OffsetDateTime? = null): this() {
         this.id = id
         this.principalId = principalId
         this.tokenHash = tokenHash
@@ -72,6 +97,12 @@ open class CredentialsRecord() : UpdatableRecordImpl<CredentialsRecord>(Credenti
         this.initiatorId = initiatorId
         this.expiresAt = expiresAt
         this.revokedAt = revokedAt
+        this.name = name
+        this.scopes = scopes
+        this.audience = audience
+        this.grantId = grantId
+        this.createdAt = createdAt
+        this.lastUsedAt = lastUsedAt
         resetTouchedOnNotNull()
     }
 }

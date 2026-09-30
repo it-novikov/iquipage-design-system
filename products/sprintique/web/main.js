@@ -17,10 +17,13 @@ import {mountPlanningHost,confirmPlanningChange,recoverPlanningAttempt} from './
 import {openSearch} from './search.js';
 import {acceptPendingInvitation} from './members.js';
 import {sectionRouteHash} from './section-route.js';
+import {keepAuthorization,resumeAuthorization,mountConsent} from './consent.js';
 import {loadingMarkup} from '../ui/src/loading.js';
 import {mountProjectNavigation} from '../ui/planning/src/project-navigation.js';
 import '../ui/planning/src/navigation.css';
 registerCore();
+/** Ends the boot sequence without an error: the page is already what it should be. */
+const STOP=Symbol('stop');
 const root=document.querySelector('#app'),repository=new ProductRepository();
 let board,session,currentProject,planningAdapter,viewMode='tasks',navigating=false,avatarUrl=null;
 const viewStates=new Map();
@@ -190,11 +193,14 @@ window.addEventListener('hashchange',()=>{void(async()=>{const task=parseTaskRou
     // (a remount reloads every card and its cover, which reads as a blink).
     if(viewMode===mode&&board)await board.closeTask?.();else await navigate(mode);}else await board?.closeTask();})().catch(report);});
 try{session=await repository.initialize();
+  if(location.pathname==='/oauth/authorize'){await mountConsent(root,{client:repository.client,session});throw STOP;}
+  if(resumeAuthorization())throw STOP;
   const pending=sessionStorage.getItem('sprintique.pending-invitation');sessionStorage.removeItem('sprintique.pending-invitation');
   if(pending&&/^invite_[A-Za-z0-9_-]{43}$/.test(pending)&&!location.hash.startsWith('#invite/'))history.replaceState(null,'','#invite/'+pending);
   if(await acceptPendingInvitation(repository.client))session=await repository.initialize();
   const slug=new URL(location.href).searchParams.get('project');await showProject(session.projects.find(p=>p.slug===slug)?.id??lastProject());}
 catch(error){
-  if(error.status===401)await renderSignIn();
+  if(error===STOP){/* The consent screen, or on the way back to it: nothing else to show. */}
+  else if(error.status===401){keepAuthorization();await renderSignIn();}
   else {root.innerHTML='<main class="host-landing"><h1>Не удалось открыть Sprintique</h1><p role="alert"></p></main>';root.querySelector('[role=alert]').textContent=error.message;}
 }

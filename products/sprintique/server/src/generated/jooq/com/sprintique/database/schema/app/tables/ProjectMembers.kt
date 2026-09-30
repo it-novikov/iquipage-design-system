@@ -10,7 +10,9 @@ import com.sprintique.database.schema.app.keys.PROJECT_MEMBERS__PROJECT_MEMBERS_
 import com.sprintique.database.schema.app.keys.PROJECT_MEMBERS__PROJECT_MEMBERS_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.tables.Projects.ProjectsPath
 import com.sprintique.database.schema.app.tables.records.ProjectMembersRecord
+import com.sprintique.database.schema.auth.keys.SERVICE_ACCOUNT_GRANTS__SERVICE_ACCOUNT_GRANTS_PROJECT_ID_PRINCIPAL_ID_FKEY
 import com.sprintique.database.schema.auth.tables.Principals.PrincipalsPath
+import com.sprintique.database.schema.auth.tables.ServiceAccountGrants.ServiceAccountGrantsPath
 
 import java.time.OffsetDateTime
 
@@ -107,6 +109,18 @@ open class ProjectMembers(
 
     fun projects(): ProjectsPath = projects
     val projects: ProjectsPath by lazy { ProjectsPath(this, PROJECT_MEMBERS__PROJECT_MEMBERS_PROJECT_ID_FKEY, null) }
+
+    private lateinit var _serviceAccountGrants: ServiceAccountGrantsPath
+
+    fun serviceAccountGrants(): ServiceAccountGrantsPath {
+        if (!this::_serviceAccountGrants.isInitialized)
+            _serviceAccountGrants = ServiceAccountGrantsPath(this, null, SERVICE_ACCOUNT_GRANTS__SERVICE_ACCOUNT_GRANTS_PROJECT_ID_PRINCIPAL_ID_FKEY.inverseKey)
+
+        return _serviceAccountGrants;
+    }
+
+    val serviceAccountGrants: ServiceAccountGrantsPath
+        get(): ServiceAccountGrantsPath = serviceAccountGrants()
     override fun getChecks(): List<Check<ProjectMembersRecord>> = listOf(
         Internal.createCheck(this, DSL.name("project_members_revision_check"), "((revision > 0))", true),
         Internal.createCheck(this, DSL.name("project_members_role_check"), "((role = ANY (ARRAY['reader'::text, 'editor'::text, 'admin'::text])))", true)

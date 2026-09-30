@@ -13,6 +13,7 @@ import java.util.UUID
 object Workspaces {
     fun create(tx: Transaction, actor: Actor, name: String, timezone: String): Map<String, Any> {
         requireCondition(actor.isHuman, 403, "FORBIDDEN", "Пространство создаёт человек.")
+        ProjectAccess.requireInteractive(actor)
         val id = UUID.randomUUID().toString()
         tx.update(
             "INSERT INTO app.workspaces(id, name, created_by, timezone) VALUES ($1, $2, $3, $4)",
@@ -99,6 +100,7 @@ object Workspaces {
 
     /** Locks the workspace row, revalidates the credential and requires the administrator role after the wait. */
     fun lockAsAdministrator(tx: Transaction, actor: Actor, id: String): Row {
+        ProjectAccess.requireInteractive(actor)
         profile(tx, actor, id)
         tx.update("SELECT id FROM app.workspaces WHERE id = $1 FOR UPDATE", id)
         ProjectAccess.requireActiveCredential(tx, actor)
