@@ -9,12 +9,15 @@ import jakarta.mail.MessagingException
 import jakarta.mail.Session
 import jakarta.mail.Transport
 import jakarta.mail.internet.InternetAddress
+import jakarta.mail.internet.MimeBodyPart
 import jakarta.mail.internet.MimeMessage
+import jakarta.mail.internet.MimeMultipart
 import java.util.Date
 import java.util.Properties
 
 /**
- * Plain-text letters over SMTP, from the configured address in both the header and the envelope. STARTTLS is
+ * Letters over SMTP (plain text, or multipart/alternative with an HTML part), from the configured address in both the
+ * header and the envelope. STARTTLS is
  * required, not merely attempted, unless the relay is on loopback; the server certificate is checked against the
  * host name; every step has a ten-second timeout.
  */
@@ -49,7 +52,19 @@ class SmtpMailAdapter(private val smtp: SmtpProperties, from: String) : MailPort
                 setFrom(fromAddress)
                 setRecipient(Message.RecipientType.TO, InternetAddress(message.to.value, true))
                 setSubject(message.subject, Charsets.UTF_8.name())
-                setText(message.text, Charsets.UTF_8.name())
+                // Transactional mail, never a reply target for autoresponders (RFC 3834).
+                setHeader("Auto-Submitted", "auto-generated")
+                val html = message.html
+                if (html == null) {
+                    setText(message.text, Charsets.UTF_8.name())
+                } else {
+                    setContent(
+                        MimeMultipart("alternative").apply {
+                            addBodyPart(MimeBodyPart().apply { setText(message.text, Charsets.UTF_8.name(), "plain") })
+                            addBodyPart(MimeBodyPart().apply { setText(html, Charsets.UTF_8.name(), "html") })
+                        },
+                    )
+                }
                 sentDate = Date()
             }
             if (smtp.username.isEmpty()) {

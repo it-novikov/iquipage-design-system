@@ -4,7 +4,7 @@ import {mkdtemp,readFile,readdir,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 
-export interface Letter {to:string;subject:string;text:string}
+export interface Letter {to:string;subject:string;text:string;html?:string|null}
 export interface Mailbox {directory:string;letters(to:string):Promise<Letter[]>;code(to:string):Promise<string>;close():Promise<void>}
 
 export async function openMailbox():Promise<Mailbox>{

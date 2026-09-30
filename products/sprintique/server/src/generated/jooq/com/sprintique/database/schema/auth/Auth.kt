@@ -9,6 +9,7 @@ import com.sprintique.database.schema.auth.tables.AccessEvents
 import com.sprintique.database.schema.auth.tables.Credentials
 import com.sprintique.database.schema.auth.tables.EmailChallenges
 import com.sprintique.database.schema.auth.tables.Identities
+import com.sprintique.database.schema.auth.tables.Invitations
 import com.sprintique.database.schema.auth.tables.KnownDevices
 import com.sprintique.database.schema.auth.tables.LoginStates
 import com.sprintique.database.schema.auth.tables.OauthClients
@@ -16,9 +17,7 @@ import com.sprintique.database.schema.auth.tables.OauthCodes
 import com.sprintique.database.schema.auth.tables.OauthGrants
 import com.sprintique.database.schema.auth.tables.OauthRefreshTokens
 import com.sprintique.database.schema.auth.tables.Principals
-import com.sprintique.database.schema.auth.tables.ProjectInvitations
 import com.sprintique.database.schema.auth.tables.ProjectTimezoneSource
-import com.sprintique.database.schema.auth.tables.ServiceAccountGrants
 import com.sprintique.database.schema.auth.tables.ServiceAccountWorkspace
 import com.sprintique.database.schema.auth.tables.ServiceAccounts
 import com.sprintique.database.schema.auth.tables.WorkspaceProjects
@@ -54,6 +53,8 @@ open class Auth : SchemaImpl(DSL.name("auth"), DefaultCatalog.DEFAULT_CATALOG, D
 
     val IDENTITIES: Identities get() = Identities.IDENTITIES
 
+    val INVITATIONS: Invitations get() = Invitations.INVITATIONS
+
     val KNOWN_DEVICES: KnownDevices get() = KnownDevices.KNOWN_DEVICES
 
     val LOGIN_STATES: LoginStates get() = LoginStates.LOGIN_STATES
@@ -67,8 +68,6 @@ open class Auth : SchemaImpl(DSL.name("auth"), DefaultCatalog.DEFAULT_CATALOG, D
     val OAUTH_REFRESH_TOKENS: OauthRefreshTokens get() = OauthRefreshTokens.OAUTH_REFRESH_TOKENS
 
     val PRINCIPALS: Principals get() = Principals.PRINCIPALS
-
-    val PROJECT_INVITATIONS: ProjectInvitations get() = ProjectInvitations.PROJECT_INVITATIONS
 
     val PROJECT_TIMEZONE_SOURCE: ProjectTimezoneSource get() = ProjectTimezoneSource.PROJECT_TIMEZONE_SOURCE
 
@@ -90,8 +89,6 @@ open class Auth : SchemaImpl(DSL.name("auth"), DefaultCatalog.DEFAULT_CATALOG, D
     ): ProjectTimezoneSource = com.sprintique.database.schema.auth.tables.ProjectTimezoneSource.PROJECT_TIMEZONE_SOURCE.call(
         target
     )
-
-    val SERVICE_ACCOUNT_GRANTS: ServiceAccountGrants get() = ServiceAccountGrants.SERVICE_ACCOUNT_GRANTS
 
     val SERVICE_ACCOUNT_WORKSPACE: ServiceAccountWorkspace get() = ServiceAccountWorkspace.SERVICE_ACCOUNT_WORKSPACE
 
@@ -133,6 +130,7 @@ open class Auth : SchemaImpl(DSL.name("auth"), DefaultCatalog.DEFAULT_CATALOG, D
         Credentials.CREDENTIALS,
         EmailChallenges.EMAIL_CHALLENGES,
         Identities.IDENTITIES,
+        Invitations.INVITATIONS,
         KnownDevices.KNOWN_DEVICES,
         LoginStates.LOGIN_STATES,
         OauthClients.OAUTH_CLIENTS,
@@ -140,9 +138,7 @@ open class Auth : SchemaImpl(DSL.name("auth"), DefaultCatalog.DEFAULT_CATALOG, D
         OauthGrants.OAUTH_GRANTS,
         OauthRefreshTokens.OAUTH_REFRESH_TOKENS,
         Principals.PRINCIPALS,
-        ProjectInvitations.PROJECT_INVITATIONS,
         ProjectTimezoneSource.PROJECT_TIMEZONE_SOURCE,
-        ServiceAccountGrants.SERVICE_ACCOUNT_GRANTS,
         ServiceAccountWorkspace.SERVICE_ACCOUNT_WORKSPACE,
         ServiceAccounts.SERVICE_ACCOUNTS,
         WorkspaceProjects.WORKSPACE_PROJECTS

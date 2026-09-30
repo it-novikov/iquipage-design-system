@@ -56,7 +56,7 @@ class Planning(private val json: JsonMapper, private val ledger: CommandLedger) 
         // a preview into a project-wide read.
         ProjectAccess.authorize(tx, actor, projectId, Capability.TASKS_READ)
         val command = contract.toDomain()
-        if (command is PlanningCommand.Settings) ProjectAccess.authorize(tx, actor, projectId, Capability.CATALOG_WRITE)
+        requireCommandPermission(tx, actor, projectId, command)
         budgetPreviews(tx, actor, projectId)
         requireCondition(
             command !is PlanningCommand.ReleaseCreate || command.projectId == projectId,
@@ -193,7 +193,7 @@ class Planning(private val json: JsonMapper, private val ledger: CommandLedger) 
         val stored = readPlan(tx, actor, projectId, planId)
         val contract = json.treeToValue(stored.command, PlanningCommandContract::class.java)
         val command = contract.toDomain()
-        if (command is PlanningCommand.Settings) ProjectAccess.authorize(tx, actor, projectId, Capability.CATALOG_WRITE)
+        requireCommandPermission(tx, actor, projectId, command)
         requireCondition(
             stored.credentialId == actor.credentialId && stored.initiatorId == actor.initiatorId &&
                 Tokens.equalsInConstantTime(stored.tokenHash, Tokens.sha256Hex(token)),
@@ -263,6 +263,37 @@ class Planning(private val json: JsonMapper, private val ledger: CommandLedger) 
         return receipt
     }
 
+    /**
+     * Planning settings need «Настраивать проект»; the life of a release (create, edit, start, close, cancel, shift,
+     * milestones) needs «Управлять релизами и спринтами» from a person. An agent's release commands still need an
+     * approval by a person who may decide on them, as before.
+     */
+    private fun requireCommandPermission(tx: Transaction, actor: Actor, projectId: String, command: PlanningCommand) {
+        when (command) {
+            is PlanningCommand.Settings -> ProjectAccess.authorize(tx, actor, projectId, Capability.PROJECT_SETTINGS)
+
+            is PlanningCommand.Start, is PlanningCommand.ReleaseEdit, is PlanningCommand.ReleaseCreate,
+            is PlanningCommand.Close, is PlanningCommand.Cancel, is PlanningCommand.Shift,
+            is PlanningCommand.MilestoneChange,
+            -> if (actor.isHuman) ProjectAccess.authorize(tx, actor, projectId, Capability.RELEASES_MANAGE)
+
+            // New dates of a release or a milestone are part of its life too; a task's dates are not.
+            is PlanningCommand.Schedule ->
+                if (actor.isHuman && command.entity.kind != "task") {
+                    ProjectAccess.authorize(tx, actor, projectId, Capability.RELEASES_MANAGE)
+                }
+
+            is PlanningCommand.ScheduleBatch ->
+                if (actor.isHuman &&
+                    command.actions.any { it is PlanningCommand.Schedule && it.entity.kind != "task" }
+                ) {
+                    ProjectAccess.authorize(tx, actor, projectId, Capability.RELEASES_MANAGE)
+                }
+
+            else -> Unit
+        }
+    }
+
     private fun requireApproval(tx: Transaction, actor: Actor, projectId: String, stored: StoredPlan) {
         val approval = tx.row(
             """
@@ -278,7 +309,7 @@ class Planning(private val json: JsonMapper, private val ledger: CommandLedger) 
         val approver = tx.row(
             """
             SELECT 1 AS found FROM app.project_members m JOIN auth.principals p ON p.id = m.principal_id
-            WHERE project_id = $1 AND principal_id = $2 AND role IN ('editor', 'admin') AND p.kind = 'human' AND p.disabled_at IS NULL
+            WHERE project_id = $1 AND principal_id = $2 AND 'approvals.decide' = ANY(m.permissions) AND p.kind = 'human' AND p.disabled_at IS NULL
             """.trimIndent(),
             projectId,
             decided.string("decidedBy"),

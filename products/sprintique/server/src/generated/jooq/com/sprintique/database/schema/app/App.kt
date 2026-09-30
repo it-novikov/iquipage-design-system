@@ -5,6 +5,7 @@ package com.sprintique.database.schema.app
 
 
 import com.sprintique.database.schema.DefaultCatalog
+import com.sprintique.database.schema.app.tables.AccessPresets
 import com.sprintique.database.schema.app.tables.AgentRunPlans
 import com.sprintique.database.schema.app.tables.AgentRuns
 import com.sprintique.database.schema.app.tables.Approvals
@@ -64,6 +65,8 @@ open class App : SchemaImpl(DSL.name("app"), DefaultCatalog.DEFAULT_CATALOG, DSL
 
         val APP: App = App()
     }
+
+    val ACCESS_PRESETS: AccessPresets get() = AccessPresets.ACCESS_PRESETS
 
     val AGENT_RUN_PLANS: AgentRunPlans get() = AgentRunPlans.AGENT_RUN_PLANS
 
@@ -156,6 +159,7 @@ open class App : SchemaImpl(DSL.name("app"), DefaultCatalog.DEFAULT_CATALOG, DSL
     override fun getCatalog(): Catalog = DefaultCatalog.DEFAULT_CATALOG
 
     override fun getTables(): List<Table<*>> = listOf(
+        AccessPresets.ACCESS_PRESETS,
         AgentRunPlans.AGENT_RUN_PLANS,
         AgentRuns.AGENT_RUNS,
         Approvals.APPROVALS,

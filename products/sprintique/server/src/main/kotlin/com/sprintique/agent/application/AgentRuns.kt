@@ -1,5 +1,6 @@
 package com.sprintique.agent.application
 
+import com.sprintique.access.domain.Permission
 import com.sprintique.command.AuditTrail
 import com.sprintique.command.CommandLedger
 import com.sprintique.database.Row
@@ -206,7 +207,8 @@ class AgentRuns(
             } else {
                 val access = ProjectAccess.authorize(tx, actor, projectId, Capability.TASKS_WRITE)
                 requireCondition(
-                    end.state == "cancelled" && (run.string("initiatorId") == actor.id || access.role == "admin"),
+                    end.state == "cancelled" &&
+                        (run.string("initiatorId") == actor.id || access.has(Permission.PROJECT_ACCESS)),
                     403,
                     "RUN_OWNER",
                     "Остановить запуск может инициатор или администратор.",

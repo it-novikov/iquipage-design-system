@@ -4,6 +4,7 @@ import {PlanningClient,watchProject} from '../client/planning.ts';
 import {mapWriteBody,templateWriteBody} from './maps-adapter.js';
 import {MediaAdapter} from './media-adapter.js';
 import {MapMedia} from './map-media.js';
+import {accessSignature} from './permissions.js';
 
 /** Anti-corruption adapter: existing UI record intents become explicit v1 resource commands. */
 /** Board and dialogs read `owner` as a display name; the API owns ownerId, ownerName and legacy free text. */
@@ -21,7 +22,8 @@ export class ProductRepository {
     if(generation===this.cacheState.generation){this.cache.set(key,{value:structuredClone(value),until:Date.now()+30000});while(this.cache.size>48)this.cache.delete(this.cache.keys().next().value);}
     return value;
   }
-  watch(projectId,onAccessRevoked,{cursor,role}={}){
+  /** `access` is the person's permissions signature: a change of it (not only of the derived role) asks for a refresh. */
+  watch(projectId,onAccessRevoked,{cursor,access,role}={}){
     this.stopWatch?.();let timer,closed=false,checking=false,checkAgain=false;
     const changed=new Map();
     const controller=new AbortController();
@@ -30,7 +32,8 @@ export class ProductRepository {
       if(checking){checkAgain=true;return;}checking=true;
       try{do{checkAgain=false;const session=await this.client.request('/session','GET',undefined,undefined,controller.signal);if(closed)return;
         const current=session.projects.find(project=>project.id===projectId);
-        if(!current){lost();return;}if(role&&current.role!==role){role=current.role;this.clearProjectCache(projectId);onAccessRevoked({roleChanged:true,role});}
+        if(!current){lost();return;}if(access!==undefined){const signature=accessSignature(current);if(signature!==access){access=signature;this.clearProjectCache(projectId);onAccessRevoked({roleChanged:true,role:current.role,permissions:current.permissions});}}
+        else if(role&&current.role!==role){role=current.role;this.clearProjectCache(projectId);onAccessRevoked({roleChanged:true,role});}
       }while(checkAgain&&!closed);}catch(error){if(!closed&&[401,403,404].includes(error.status))lost();}finally{checking=false;}
     };
     const collections=['tasks','threads','tags','releases','maps','templates','taskLinks','taskSettings'];

@@ -1,6 +1,7 @@
 package com.sprintique.identity.api
 
 import com.fasterxml.jackson.annotation.JsonValue
+import com.sprintique.access.api.ProjectPermissionName
 import com.sprintique.contract.Accepts
 import com.sprintique.contract.Contracts
 import com.sprintique.contract.MAX_SAFE_INTEGER
@@ -76,27 +77,25 @@ data class OAuthDecisionRequest(
     val newServiceAccount: NewServiceAccountRequest? = null,
 )
 
-enum class ServiceAccountRoleName(@get:JsonValue val wire: String, val role: ServiceAccounts.Role) {
-    READER("reader", ServiceAccounts.Role.READER),
-    EDITOR("editor", ServiceAccounts.Role.EDITOR),
-}
-
-/** An explicit grant beyond the role, by the permission catalog's name; finance is never given by default. */
-enum class ServiceAccountGrantName(@get:JsonValue val wire: String, val grant: ServiceAccounts.Grant) {
-    FINANCE_READ("finance.read", ServiceAccounts.Grant.FINANCE_READ),
-    FINANCE_WRITE("finance.write", ServiceAccounts.Grant.FINANCE_WRITE),
-}
-
 @Schema(name = "ServiceAccountProject")
 data class ServiceAccountProjectRequest(
     @field:Pattern(regexp = RESOURCE_ID)
     val projectId: String,
-    val role: ServiceAccountRoleName,
-    @field:Size(max = 2)
+    @field:Pattern(regexp = UUID)
+    val presetId: String? = null,
+    @field:Size(max = 14)
     @field:UniqueItems
-    val granted: List<ServiceAccountGrantName> = emptyList(),
+    val granted: List<ProjectPermissionName> = emptyList(),
+    @field:Size(max = 14)
+    @field:UniqueItems
+    val revoked: List<ProjectPermissionName> = emptyList(),
 ) {
-    fun toGrant() = ServiceAccounts.ProjectGrant(projectId, role.role, granted.map { it.grant }.toSet())
+    fun toGrant() = ServiceAccounts.ProjectGrant(
+        projectId,
+        presetId?.lowercase(),
+        granted.mapTo(linkedSetOf()) { it.permission },
+        revoked.mapTo(linkedSetOf()) { it.permission },
+    )
 }
 
 @Schema(name = "CreateServiceAccount")
@@ -132,10 +131,14 @@ data class ReassignServiceAccountRequest(
 
 @Schema(name = "SetServiceAccountProject")
 data class SetServiceAccountProjectRequest(
-    val role: ServiceAccountRoleName,
-    @field:Size(max = 2)
+    @field:Pattern(regexp = UUID)
+    val presetId: String? = null,
+    @field:Size(max = 14)
     @field:UniqueItems
-    val granted: List<ServiceAccountGrantName> = emptyList(),
+    val granted: List<ProjectPermissionName> = emptyList(),
+    @field:Size(max = 14)
+    @field:UniqueItems
+    val revoked: List<ProjectPermissionName> = emptyList(),
 )
 
 @Schema(name = "ServiceToken")
@@ -251,7 +254,12 @@ class DelegatedAccessController(
         request: HttpServletRequest,
     ) = requests.run(request) { tx, actor ->
         val input = contracts.parse<SetServiceAccountProjectRequest>(body)
-        val grant = ServiceAccounts.ProjectGrant(projectId, input.role.role, input.granted.map { it.grant }.toSet())
+        val grant = ServiceAccounts.ProjectGrant(
+            projectId,
+            input.presetId?.lowercase(),
+            input.granted.mapTo(linkedSetOf()) { it.permission },
+            input.revoked.mapTo(linkedSetOf()) { it.permission },
+        )
         accounts.setProject(tx, actor, RequestInputs.id(id), RequestInputs.id(projectId), grant)
     }
 

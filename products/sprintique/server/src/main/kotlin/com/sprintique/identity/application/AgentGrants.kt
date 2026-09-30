@@ -1,5 +1,7 @@
 package com.sprintique.identity.application
 
+import com.sprintique.access.application.Presets
+import com.sprintique.access.domain.SystemPreset
 import com.sprintique.command.AuditTrail
 import com.sprintique.database.Row
 import com.sprintique.database.Transaction
@@ -21,7 +23,15 @@ object AgentGrants {
     data class Grant(val name: String, val capabilities: List<Capability>, val expiresInSeconds: Long)
 
     fun issue(tx: Transaction, actor: Actor, projectId: String, grant: Grant): Map<String, Any> {
-        Membership.manageProject(tx, actor, projectId)
+        val me = Membership.manageProject(tx, actor, projectId, Capability.AGENTS_MANAGE)
+        // Not more than one's own: every capability of the token needs its permission on the issuer's membership.
+        val beyond = grant.capabilities.map(Capability::permission).filterNot(me::has).distinct()
+        requireCondition(
+            beyond.isEmpty(),
+            403,
+            "PERMISSION_EXCEEDS_ACTOR",
+            "Нельзя дать агенту право, которого нет у вас: ${beyond.joinToString { "«${it.title}»" }}.",
+        )
         val members = tx.row("SELECT count(*)::int AS n FROM app.project_members WHERE project_id = $1", projectId)
         val count = members!!.int("n")
         requireCondition(count < MEMBER_LIMIT, 422, "MEMBER_LIMIT", "В проекте достигнут лимит участников.")
@@ -29,9 +39,18 @@ object AgentGrants {
         val credentialId = UUID.randomUUID().toString()
         val token = "spr_" + Tokens.random()
         tx.update("INSERT INTO auth.principals(id, name, kind) VALUES ($1, $2, 'agent')", id, grant.name)
+        // «Сервис: чтение» plus exactly the changes the token may make: the membership is never wider than the grant.
+        val preset = Presets.system(tx, me.workspaceId, SystemPreset.SERVICE_READ)
         tx.update(
-            "INSERT INTO app.project_members(project_id, principal_id, role) VALUES ($1, $2, 'editor')",
-            projectId, id,
+            """
+            INSERT INTO app.project_members(project_id, workspace_id, principal_id, preset_id, granted, changed_by, changed_at)
+            VALUES ($1, $2::uuid, $3, $4::uuid, $5::text[], $6, clock_timestamp())
+            """.trimIndent(),
+            projectId, me.workspaceId, id, preset.id,
+            grant.capabilities.map(Capability::permission).filter {
+                it.wire.endsWith(".write")
+            }.map { it.wire }.distinct(),
+            actor.id,
         )
         val expiresAt = Instant.now().plusSeconds(grant.expiresInSeconds)
         val wire = grant.capabilities.map(Capability::wire)
@@ -63,7 +82,7 @@ object AgentGrants {
     }
 
     fun revoke(tx: Transaction, actor: Actor, projectId: String, id: String): Map<String, Any> {
-        Membership.manageProject(tx, actor, projectId)
+        Membership.manageProject(tx, actor, projectId, Capability.AGENTS_MANAGE)
         val revoked = tx.row(
             """
             UPDATE auth.credentials SET revoked_at = clock_timestamp()

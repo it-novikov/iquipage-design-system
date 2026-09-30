@@ -15,7 +15,7 @@ import org.jooq.impl.SQLDataType
 
 
 @Suppress("warnings")
-open class ServiceAccountGranted : AbstractRoutine<Boolean>("service_account_granted", Auth.AUTH, DSL.comment(""), SQLDataType.BOOLEAN) {
+open class Can : AbstractRoutine<Boolean>("can", Auth.AUTH, DSL.comment(""), SQLDataType.BOOLEAN) {
     companion object {
 
         val RETURN_VALUE: Parameter<Boolean?> = Internal.createParameter("RETURN_VALUE", SQLDataType.BOOLEAN, false)
@@ -26,24 +26,24 @@ open class ServiceAccountGranted : AbstractRoutine<Boolean>("service_account_gra
     }
 
     init {
-        returnParameter = ServiceAccountGranted.RETURN_VALUE
-        addInParameter(ServiceAccountGranted.TARGET)
-        addInParameter(ServiceAccountGranted.PERMISSION)
+        returnParameter = Can.RETURN_VALUE
+        addInParameter(Can.TARGET)
+        addInParameter(Can.PERMISSION)
     }
 
     fun setTarget(value: String?): Unit {
-        setValue(ServiceAccountGranted.TARGET, value)
+        setValue(Can.TARGET, value)
     }
 
     fun setTarget(field: Field<String?>): Unit {
-        setField(ServiceAccountGranted.TARGET, field)
+        setField(Can.TARGET, field)
     }
 
     fun setPermission(value: String?): Unit {
-        setValue(ServiceAccountGranted.PERMISSION, value)
+        setValue(Can.PERMISSION, value)
     }
 
     fun setPermission(field: Field<String?>): Unit {
-        setField(ServiceAccountGranted.PERMISSION, field)
+        setField(Can.PERMISSION, field)
     }
 }

@@ -28,6 +28,7 @@ import org.jooq.Field
 import org.jooq.ForeignKey
 import org.jooq.Index
 import org.jooq.InverseForeignKey
+import org.jooq.JSONB
 import org.jooq.Name
 import org.jooq.Path
 import org.jooq.PlainSQL
@@ -100,6 +101,8 @@ open class AuditEvents(
     val CREDENTIAL_KIND: TableField<AuditEventsRecord, String?> = createField(DSL.name("credential_kind"), SQLDataType.CLOB, this, "")
 
     val CLIENT_ID: TableField<AuditEventsRecord, String?> = createField(DSL.name("client_id"), SQLDataType.CLOB, this, "")
+
+    val DETAILS: TableField<AuditEventsRecord, JSONB?> = createField(DSL.name("details"), SQLDataType.JSONB, this, "")
 
     private constructor(alias: Name, aliased: Table<AuditEventsRecord>?): this(alias, null, null, null, aliased, null, null)
     private constructor(alias: Name, aliased: Table<AuditEventsRecord>?, parameters: Array<Field<*>?>?): this(alias, null, null, null, aliased, parameters, null)

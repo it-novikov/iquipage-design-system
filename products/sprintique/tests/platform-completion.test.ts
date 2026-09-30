@@ -22,7 +22,7 @@ test('members show when they joined and when they were last active',async()=>{
   assert.equal(reader.lastActiveAt,null,'no activity yet');
 });
 test('invitations name who invited and who accepted',async()=>{
-  const created=await ok('POST',path('invitations'),{id:randomUUID(),role:'editor',expiresInSeconds:86400});
+  const created=await ok('POST',path('invitation-links'),{expiresInSeconds:86400});
   const list=await ok('GET',path('invitations'));
   const mine=list.find((i:{id:string})=>i.id===created.id);
   assert.equal(mine.inviterName,'Алиса');assert.equal(mine.acceptedByName,null);
@@ -108,7 +108,8 @@ test('a comment can become a question after posting; a resolved question keeps i
   const refused=await call('PATCH',path('threads/kind-one/kind'),{requiresResolution:false,baseRevision:3});
   assert.equal(refused.statusCode,422);assert.equal(refused.json().code,'THREAD_KIND');
   assert.equal((await call('PATCH',path('threads/kind-one/kind'),{requiresResolution:true,baseRevision:1})).statusCode,409);
-  assert.equal((await call('PATCH',path('threads/kind-one/kind'),{requiresResolution:true,baseRevision:3},f.reader.headers)).statusCode,403);
+  // Наблюдатель writes in discussions (owner decision): the rule of the resolved question refuses, not the permission.
+  assert.equal((await call('PATCH',path('threads/kind-one/kind'),{requiresResolution:false,baseRevision:3},f.reader.headers)).json().code,'THREAD_KIND');
 });
 test('a person photo is re-encoded, visible only to people who share a project or workspace, and cached by revision',async()=>{
   const sharp=(await import('sharp')).default;

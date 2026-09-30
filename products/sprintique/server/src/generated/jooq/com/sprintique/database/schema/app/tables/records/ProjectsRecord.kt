@@ -64,13 +64,25 @@ open class ProjectsRecord() : UpdatableRecordImpl<ProjectsRecord>(Projects.PROJE
         set(value): Unit = set(11, value)
         get(): Long? = get(11) as Long?
 
+    open var defaultMemberPresetId: UUID?
+        set(value): Unit = set(12, value)
+        get(): UUID? = get(12) as UUID?
+
+    open var defaultGuestPresetId: UUID?
+        set(value): Unit = set(13, value)
+        get(): UUID? = get(13) as UUID?
+
+    open var accessRevision: Int?
+        set(value): Unit = set(14, value)
+        get(): Int? = get(14) as Int?
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
 
     override fun key(): Record1<String?> = super.key() as Record1<String?>
 
-    constructor(id: String? = null, workspaceId: UUID? = null, name: String? = null, slug: String? = null, key: String? = null, nextTaskNumber: Int? = null, timezone: String? = null, planningRevision: Long? = null, eventSequence: Long? = null, planningDefaults: JSONB? = null, profileRevision: Int? = null, activitySequence: Long? = null): this() {
+    constructor(id: String? = null, workspaceId: UUID? = null, name: String? = null, slug: String? = null, key: String? = null, nextTaskNumber: Int? = null, timezone: String? = null, planningRevision: Long? = null, eventSequence: Long? = null, planningDefaults: JSONB? = null, profileRevision: Int? = null, activitySequence: Long? = null, defaultMemberPresetId: UUID? = null, defaultGuestPresetId: UUID? = null, accessRevision: Int? = null): this() {
         this.id = id
         this.workspaceId = workspaceId
         this.name = name
@@ -83,6 +95,9 @@ open class ProjectsRecord() : UpdatableRecordImpl<ProjectsRecord>(Projects.PROJE
         this.planningDefaults = planningDefaults
         this.profileRevision = profileRevision
         this.activitySequence = activitySequence
+        this.defaultMemberPresetId = defaultMemberPresetId
+        this.defaultGuestPresetId = defaultGuestPresetId
+        this.accessRevision = accessRevision
         resetTouchedOnNotNull()
     }
 }

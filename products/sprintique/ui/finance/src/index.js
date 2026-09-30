@@ -20,7 +20,8 @@ export async function mountFinance(root,{repository,project,viewState={}}){
   registerCore();
   const base='/projects/'+encodeURIComponent(project.id);
   const api={request:(path,method='GET',body,key,signal)=>repository.client.request(base+path,method,body,key,signal),key:(path,body)=>repository.key(base+path,body)};
-  const canManage=project.role==='admin';
+  // «Вести журнал финансов»; a session without permissions[] falls back to the derived role.
+  const canManage=Array.isArray(project.permissions)?project.permissions.includes('finance.write'):project.role==='admin';
   const view={mode:viewState.mode==='summary'?'summary':'ledger',period:PERIODS.some(([id])=>id===viewState.period)?viewState.period:'all',
     state:viewState.state||'',direction:viewState.direction||''};
   let settings=null,summary=null,entries=[],total=0,cursor=null,loadingMore=false,error='',disposed=false,modal=null,modalHasForm=false,generation=0,refreshTimer=0;
@@ -90,14 +91,14 @@ export async function mountFinance(root,{repository,project,viewState={}}){
   let administrators=[];
   async function loadAdministrators(){
     if(canManage)return;
-    try{administrators=(await repository.client.request(base+'/members','GET',undefined,undefined,abort.signal)).filter(m=>m.role==='admin'&&m.kind!=='agent').map(m=>m.name);}
+    try{administrators=(await repository.client.request(base+'/members','GET',undefined,undefined,abort.signal)).filter(m=>(Array.isArray(m.permissions)?m.permissions.includes('finance.write'):m.role==='admin')&&m.kind!=='agent').map(m=>m.name);}
     catch{administrators=[];}
     if(!disposed)renderNotice();
   }
   function renderNotice(){
     const names=administrators.slice(0,2);
-    const text=names.length>1?`Вы можете только просматривать. Операции вносят администраторы проекта: ${names.join(' и ')}.`
-      :names.length?`Вы можете только просматривать. Операции вносит ${names[0]}, администратор проекта.`:'Вы можете только просматривать. Операции вносят администраторы проекта.';
+    const text=names.length>1?`Вы можете только просматривать. Операции вносят ${names.join(' и ')}.`
+      :names.length?`Вы можете только просматривать. Операции вносит ${names[0]}.`:'Вы можете только просматривать. Операции вносят те, у кого есть право «Вести журнал финансов».';
     q('[data-notice]').innerHTML=canManage?'':`<p class="iq-settings-lock fin-lock">${icon('lock',17)}<span>${esc(text)}</span></p>`;
   }
   function renderTotals(){
@@ -129,7 +130,7 @@ export async function mountFinance(root,{repository,project,viewState={}}){
       footer.hidden=true;
       list.innerHTML=filtered
         ?`<div class="iq-empty compact"><h3>Нет операций по условиям</h3><p>Измените период или фильтры, чтобы увидеть другие операции.</p>${ui.btn('Сбросить фильтры','secondary sm','','data-reset-filters')}</div>`
-        :`<div class="iq-empty compact"><span class="iq-settings-row-tile">${icon('chart',20)}</span><h3>Операций пока нет</h3><p>${canManage?'Добавьте доход или расход проекта: проведённый или ожидаемый к дате. Итоги появятся здесь.':'Операции вносят администраторы проекта. Когда они появятся, здесь будут журнал и итоги.'}</p>${canManage?ui.btn('Добавить операцию','primary sm','plus','data-new-entry'):''}</div>`;
+        :`<div class="iq-empty compact"><span class="iq-settings-row-tile">${icon('chart',20)}</span><h3>Операций пока нет</h3><p>${canManage?'Добавьте доход или расход проекта: проведённый или ожидаемый к дате. Итоги появятся здесь.':'Операции вносят те, кто ведёт журнал финансов. Когда они появятся, здесь будут журнал и итоги.'}</p>${canManage?ui.btn('Добавить операцию','primary sm','plus','data-new-entry'):''}</div>`;
       return;
     }
     list.innerHTML=`<table class="iq-work-table fin-table"><caption class="sr-only">Операции проекта</caption><thead><tr><th scope="col">Операция</th><th scope="col" class="fin-col-date">Дата</th><th scope="col" class="fin-col-status">Статус</th><th scope="col" class="fin-col-amount">Сумма</th></tr></thead><tbody>${entries.map(row).join('')}</tbody></table>`;

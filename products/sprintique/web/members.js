@@ -1,106 +1,192 @@
-import {ui,icon,escapeHTML as esc,notify,enhance,formatDate,formatDateTime} from '@iquipage/web/core';
-import {dialog,select} from '../ui/src/ui.js';
-import {projectRoles,roleName} from './settings-sections.js';
+import {ui,icon,escapeHTML as esc,notify,formatDate} from '@iquipage/web/core';
+import {dialog} from '../ui/src/ui.js';
+import {loadCatalog,loadPresets,presetChoices,choose,diffChips,changedBy,rowMenu,presetPhrase,usagePhrase,radios,explain,listPhrase,title} from './access-ui.js';
+import {projectPermissions,closure,canWorkspace,inactiveGrants,PROJECT_ACCESS} from './permissions.js';
+import {openPermissionEditor} from './permission-editor.js';
+import {openEffective} from './effective.js';
+import {openInviteDialog} from './invite-dialog.js';
+import {invitationRow,invitationAction,nextResend} from './invitations.js';
+import {isWaiting,invitationSummary,invitationState,goneState,invitationRights} from './invitation-model.js';
+import {invitationFlow} from './invitation-flow.js';
 import * as s from './settings-ui.js';
-const lifetimes=[['86400','24 часа'],['259200','3 дня'],['604800','7 дней']];
-// A service account: its role is a reader's or an editor's, finance only as granted, never above its owner.
-const serviceRoles=[['reader','Наблюдатель'],['editor','Редактор']];
-const serviceFinance=[['none','Без финансов'],['read','Видит финансы'],['write','Ведёт финансы']];
-const financeOf=granted=>granted?.includes('finance.write')?'write':granted?.includes('finance.read')?'read':'none';
-const grantedOf=level=>level==='write'?['finance.read','finance.write']:level==='read'?['finance.read']:[];
-const invitationState=i=>i.acceptedAt?['Принято','success']:i.revokedAt?['Отменено','neutral']:new Date(i.expiresAt)<=new Date()?['Истекло','neutral']:['Активно','info'];
-/** Project members: the role is changed in the row, removal lives in the row menu; the API checks every change again. */
+/**
+ * Project members: the preset is chosen in the row and applies at once (personal changes stay); the row menu opens
+ * «Что может», the permission editor and removal. Service accounts are a group of their own: their rights are changed
+ * by their owner (never above the owner's), by people who manage members or agents here (never above their own) and by
+ * workspace people managers, always through the service-account endpoint. The API checks every change again.
+ */
 export async function mountMembers(root,{repository,project,tools,notice=''}){
-  const client=repository.client,base='/projects/'+encodeURIComponent(project.id),abort=new AbortController(),admin=project.role==='admin',self=repository.context.actorId;
-  let closed=false,modal=null,members=[],invitations=[],loading=0,query='';
-  function show(options){modal=dialog(options);modal.addEventListener('iq-close',()=>{modal=null;},{once:true});return modal;}
-  if(tools&&admin)tools.innerHTML=ui.btn('Пригласить','primary sm','plus','data-invite');
+  const client=repository.client,base='/projects/'+encodeURIComponent(project.id),abort=new AbortController(),self=repository.context.actorId;
+  const own=new Set(projectPermissions(project)),manage=own.has('members.manage'),mayInvite=own.has('members.invite');
+  const agentsManage=own.has('members.manage')||own.has('agents.manage'),peopleManager=canWorkspace(project,'workspace.people');
+  let closed=false,modal=null,members=[],presets=[],servicePresets=[],invitations=[],index=new Map(),loading=0,query='',timer=0;
+  // «Отправить снова» and «Отменить» only where the server would do it (invitationRights).
+  const rights=i=>invitationRights(i,{actorId:self,workspacePermissions:project.workspacePermissions,projectInvite:id=>id===project.id&&mayInvite});
+  function track(element){modal=element;element.addEventListener('iq-close',()=>{if(modal===element)modal=null;},{once:true});return element;}
+  const show=options=>track(dialog(options));
+  if(tools)tools.innerHTML=(manage?ui.btn('Добавить из пространства','secondary sm','users','data-add-member'):'')+(mayInvite?ui.btn('Пригласить','primary sm','plus','data-invite'):'');
+  /** Someone holding more than the actor can be changed only by someone holding as much. */
+  const editable=m=>manage&&m.kind==='human'&&(m.id===self||m.permissions.every(p=>own.has(p)));
   function personRow(m){
-    const extra=`${m.id===self?s.badge('Вы'):''}${m.kind==='agent'?s.badge('Агент','planned'):''}`;
-    const editable=admin&&m.kind==='human';
-    const aside=editable?select('role','Роль '+m.name,m.role,projectRoles.map(([id,label])=>[id,label]),'label-hidden density="compact" data-member-role'):esc(roleName(m.role));
-    const actions=editable&&m.id!==self?ui.menu(`<button type="button" class="iq-btn ghost icon sm" aria-label="Действия: ${esc(m.name)}">${icon('more',17)}</button>`,[{label:'Удалить из проекта',action:'remove-member',danger:true,glyph:'trash'}]):editable?'<span class="iq-settings-row-spacer"></span>':'';
-    const since=m.joinedAt?`В проекте с ${esc(formatDate(m.joinedAt))}`:'',active=m.lastActiveAt?`Был активен ${esc(formatDateTime(m.lastActiveAt))}`:'';
-    return s.row({media:s.avatar(m.name,m.id,client.avatarUrl?.(m.id,m.avatarRevision)),title:m.name,titleExtra:extra,meta:[esc(projectRoles.find(r=>r[0]===m.role)?.[2]||''),since,active],aside,actions,attrs:`data-member-id="${esc(m.id)}"`});
+    const human=m.kind==='human',mine=m.id===self,guest=m.workspaceRole==='guest';
+    const extra=`${mine?' '+s.badge('Вы'):''}${guest?' '+s.badge('Гость','planned'):''}${!human?' '+s.badge('Агент','planned'):''}`;
+    const changed=m.modified?' '+s.badge('изменено','warning'):'';
+    const aside=editable(m)?`<span class="sq-preset-aside">${choose('preset','Пресет: '+m.name,m.presetId,presetChoices(index,presets,{guest,held:own,current:m.presetId}),'label-hidden density="compact" data-member-preset')}${changed}</span>`
+      :`<span class="sq-preset-aside">${esc(m.presetName||'')}${changed}</span>`;
+    const items=[];
+    if(human&&(mine||manage))items.push({label:mine?'Что я могу':'Что может',action:'member-effective',glyph:'eye'});
+    if(editable(m))items.push({label:'Изменить права',action:'member-edit',glyph:'sliders'});
+    if(editable(m)&&!mine)items.push({label:'Удалить из проекта',action:'remove-member',danger:true,glyph:'trash'});
+    const since=m.joinedAt?`В проекте с ${esc(formatDate(m.joinedAt))}`:'',invited=guest&&m.invitedByName?`Приглашение от ${esc(m.invitedByName)}`:'';
+    const meta=m.modified?[diffChips(index,m.added,m.removed),changedBy(m.changedAt,m.changedByName)]:[esc(m.presetHint||''),invited||since];
+    return s.row({media:s.avatar(m.name,m.id,client.avatarUrl?.(m.id,m.avatarRevision)),title:m.name,titleExtra:extra,meta,aside,actions:items.length?rowMenu(m.name,items):'<span class="iq-settings-row-spacer"></span>',attrs:`data-member-id="${esc(m.id)}"`});
   }
+  /** Who may change a service account here: its owner, people managing members or agents here, workspace people managers. */
+  const serviceManager=m=>agentsManage||peopleManager||m.ownerId===self&&!m.suspended;
+  const ownerOf=m=>members.find(x=>x.id===m.ownerId&&x.kind==='human');
   function serviceRow(m){
-    const extra=' '+s.badge('Сервисный аккаунт','info')+(m.suspended?' '+s.badge('Приостановлен','danger'):'');
-    const aside=admin?select('role','Роль '+m.name,m.role,serviceRoles,'label-hidden density="compact" data-service-role')+select('finance','Финансы '+m.name,financeOf(m.granted),serviceFinance,'label-hidden density="compact" data-service-finance')
-      :esc(roleName(m.role))+(financeOf(m.granted)!=='none'?' · '+esc(serviceFinance.find(f=>f[0]===financeOf(m.granted))[1]):'');
-    const actions=admin?ui.menu(`<button type="button" class="iq-btn ghost icon sm" aria-label="Действия: ${esc(m.name)}">${icon('more',17)}</button>`,[{label:'Убрать из проекта',action:'remove-member',glyph:'x'},{label:'Удалить сервисный аккаунт',action:'delete-service',danger:true,glyph:'trash'}]):'';
-    const active=m.lastActiveAt?`Был активен ${esc(formatDateTime(m.lastActiveAt))}`:'';
-    return s.row({media:s.tile('bolt'),title:m.name,titleExtra:extra,meta:[`Владелец ${esc(m.ownerName||'—')}`,m.suspended?'Владелец вне пространства: аккаунт ничего не делает':'',active],aside,actions,attrs:`data-member-id="${esc(m.id)}"`});
+    const extra=` ${s.badge('Сервисный аккаунт','planned')}${m.suspended?' '+s.badge('Приостановлен','warning'):''}`;
+    const inactive=m.suspended?[]:inactiveGrants(index,m.granted||[],ownerOf(m)?.permissions);
+    const meta=[`${esc(m.presetName||'')}${diffChips(index,m.added,m.removed)}`,esc(`Владелец: ${m.ownerName||'—'}${m.ownerId===self?' (вы)':''}`),
+      m.suspended?esc('Подключения не работают, пока администратор пространства не назначит владельца'):'',
+      inactive.length?esc(`Не действует: у владельца нет ${listPhrase(inactive.map(id=>`«${title(index,id)}»`))}`):''];
+    const items=serviceManager(m)?[{label:'Что может',action:'member-effective',glyph:'eye'},{label:'Права',action:'service-edit',glyph:'sliders'},{label:'Убрать из проекта',action:'service-remove',danger:true,glyph:'trash'}]:[];
+    return s.row({media:s.tile('bolt'),title:m.name,titleExtra:extra,meta,aside:`<span class="sq-preset-aside">${esc(m.presetName||'')}${m.modified?' '+s.badge('изменено','warning'):''}</span>`,
+      actions:items.length?rowMenu(m.name,items):'<span class="iq-settings-row-spacer"></span>',state:m.suspended?'muted':'',attrs:`data-member-id="${esc(m.id)}"`});
   }
-  function invitationRow(i){
-    const [label,tone]=invitationState(i),active=tone==='info';
-    return s.row({media:s.tile('link'),title:`Ссылка для роли ${roleName(i.role)}`,meta:[`Создана ${esc(formatDateTime(i.createdAt))}${i.inviterName?`, пригласил ${esc(i.inviterName)}`:''}`,active?`Действует до ${esc(formatDateTime(i.expiresAt))}`:'',i.acceptedByName?`Принял ${esc(i.acceptedByName)}`:''],aside:s.badge(label,tone),actions:active?ui.btn('Отменить','ghost sm','',`data-revoke="${esc(i.id)}"`):'',state:active?'':'muted'});
+  function presetRow(p){
+    const badges=`${p.locked?' '+s.badge('закреплён'):''}${p.modified?' '+s.badge('изменён','warning'):''}${p.custom?' '+s.badge('свой','planned'):''}`;
+    return s.row({title:p.name,titleExtra:badges,meta:[esc(presetPhrase(index,p)),esc(usagePhrase(p))],href:'#settings/presets',attrs:'data-settings-section="presets"'});
   }
   function render(){
-    if(closed)return;
-    const q=query.toLocaleLowerCase('ru').trim(),people=members.filter(m=>m.kind==='human'),agents=members.filter(m=>m.kind==='agent'),services=members.filter(m=>m.kind==='service');
-    const shown=people.filter(m=>!q||m.name.toLocaleLowerCase('ru').includes(q));
-    const active=invitations.filter(i=>invitationState(i)[1]==='info'),past=invitations.filter(i=>invitationState(i)[1]!=='info');
+    if(closed)return;clearTimeout(timer);
+    const q=query.toLocaleLowerCase('ru').trim(),people=members.filter(m=>m.kind==='human'),services=members.filter(m=>m.kind==='service'),agents=members.filter(m=>!['human','service'].includes(m.kind));
+    const shown=people.filter(m=>!q||m.name.toLocaleLowerCase('ru').includes(q)),waiting=invitations.filter(isWaiting),past=invitations.filter(i=>!isWaiting(i));
     const filter=people.length>10?`<label class="product-nav-search iq-settings-search">${icon('search',17)}<input type="search" placeholder="Найти участника" aria-label="Найти участника" data-member-search value="${esc(query)}"></label>`:'';
     root.innerHTML=`${notice}
-      ${s.group({title:'Команда',count:people.length,description:admin?'Роль меняется сразу. Последнего администратора убрать нельзя.':'',body:filter+s.panel(shown.map(personRow).join('')||s.empty({title:'Никого не нашли',body:'Проверьте написание имени.',glyph:'search'}),'ul')})}
-      ${services.length?s.group({title:'Сервисные аккаунты',count:services.length,description:'Через них работают приложения и скрипты. Права аккаунта не шире прав его владельца; управлять доступом он не может.',body:s.panel(services.map(serviceRow).join(''),'ul')}):''}
+      ${s.group({title:'Команда',count:people.length,description:manage?'Пресет выбирается в строке и применяется сразу. «Изменено» — у человека есть права сверх пресета или без части его прав; подробности в меню «Что может».':'Пресеты и права меняют те, кто управляет участниками проекта.',body:filter+s.panel(shown.map(personRow).join('')||s.empty({title:'Никого не нашли',body:'Проверьте написание имени.',glyph:'search'}),'ul')})}
+      ${services.length?s.group({title:'Сервисные аккаунты',count:services.length,description:'Через них работают агенты, Claude и скрипты. Права — не шире прав владельца; управление людьми и доступом и решения по агентам им недоступны. Действия подписываются аккаунтом и владельцем.',body:s.panel(services.map(serviceRow).join(''),'ul')}):''}
       ${agents.length?s.group({title:'Агенты',count:agents.length,description:'Доступ агентов выдаётся и отзывается в разделе «Агенты».',body:s.panel(agents.map(personRow).join(''),'ul')}):''}
-      ${admin?s.group({title:'Приглашения',description:'Одноразовая ссылка. Её принимает один человек после входа.',body:s.panel(active.map(invitationRow).join('')||s.empty({title:'Активных приглашений нет',body:people.length<2?'Вы пока один в проекте. Создайте ссылку и отправьте её коллеге.':'Создайте ссылку и отправьте её тому, кого хотите пригласить.',action:ui.btn('Пригласить','secondary sm','plus','data-invite'),glyph:'link'}))+(past.length?`<details class="iq-accordion iq-settings-past"><summary>Прошлые приглашения (${past.length}) ${icon('down',16)}</summary>${s.panel(past.map(invitationRow).join(''))}</details>`:'')}):''}
-      ${s.group({title:'Что могут роли',body:s.panel(s.facts(projectRoles.map(([,label,hint])=>[label,esc(hint)])))})}`;
+      ${mayInvite?s.group({title:'Приглашения',count:waiting.length,description:'Письмо приходит от Sprintique <no-reply@iqui.page>. Ссылка одноразовая и действует 7 дней.',body:s.panel(waiting.map(i=>invitationRow(i,{rights:rights(i)})).join('')||s.empty({title:'Никто не ждёт ответа',body:people.length<2?'Вы пока один в проекте. Пригласите коллег по почте.':'Пригласите людей по почте или создайте ссылку без письма.',action:ui.btn('Пригласить','secondary sm','plus','data-invite'),glyph:'send'}),'ul')+(past.length?`<details class="iq-accordion"><summary>Прошлые приглашения (${past.length}) ${icon('down',16)}</summary>${s.panel(past.map(i=>invitationRow(i)).join(''),'ul')}</details>`:'')}):''}
+      ${presets.length?s.group({title:'Пресеты прав',count:presets.length,description:'Пресеты пространства. Меняются в настройках пространства и применяются ко всем проектам.',body:s.panel(presets.map(presetRow).join(''),'ul')}):''}`;
+    const next=nextResend(waiting);if(next)timer=setTimeout(render,Math.min(next-Date.now()+500,2**31-1));
   }
   async function load(){
     const sequence=++loading;
-    const [people,links]=await Promise.all([client.request(base+'/members'),admin?client.request(base+'/invitations'):[]]);
-    if(closed||sequence!==loading)return;members=people;invitations=links.sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt)));render();
+    const [people,list,services,catalog,links]=await Promise.all([client.request(base+'/members'),loadPresets(client,project.workspaceId).catch(()=>[]),loadPresets(client,project.workspaceId,'service').catch(()=>[]),loadCatalog(client),mayInvite?client.request(base+'/invitations').catch(()=>[]):[]]);
+    if(closed||sequence!==loading)return;
+    members=people;presets=list;servicePresets=services;index=catalog.index;invitations=links.sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt)));render();
   }
-  async function changeRole(member,role,control){
-    const save=async()=>{const body={baseRevision:member.revision,role};await client.request(base+'/members/'+encodeURIComponent(member.id),'PATCH',body,await repository.key('member:'+member.id,body));notify({message:`${member.name} теперь ${roleName(role).toLocaleLowerCase('ru')}`,tone:'success'});await load();};
-    if(member.id===self&&member.role==='admin'&&role!=='admin'){
-      let confirmed=false;const el=show({title:'Снять с себя права администратора?',description:'Вы больше не сможете менять участников и настройки проекта.',submitLabel:'Снять права',onSubmit:async()=>{confirmed=true;await save();}});
-      el.addEventListener('iq-close',()=>{if(!confirmed)control.value=member.role;},{once:true});return;
-    }
-    const row=control.closest('.iq-settings-row');row?.setAttribute('aria-busy','true');
-    try{await save();}catch(error){control.value=member.role;notify({message:error.message,tone:'danger'});}finally{row?.removeAttribute('aria-busy');}
+  const find=el=>members.find(m=>m.id===el.closest('[data-member-id]')?.dataset.memberId);
+  const presetName=id=>presets.find(p=>p.id===id)?.name||'';
+  /** The only way out of administration for the last administrator: someone else becomes Администратор first. */
+  function handover(presetId){
+    const candidates=members.filter(m=>m.kind==='human'&&m.id!==self);
+    if(!candidates.length)return show({title:'Нельзя снять последнего администратора',description:'Вы — единственный человек в проекте. Сначала пригласите или добавьте того, кто станет администратором.'});
+    const first=candidates.find(m=>m.workspaceRole!=='guest');
+    show({title:'Нельзя снять последнего администратора',description:`Вы — единственный администратор проекта «${project.name}». Назначьте кого-то ещё: он получит ваши текущие права, а ваш пресет станет «${presetName(presetId)}».`,
+      body:radios('to','Кто станет администратором',candidates.map(m=>m.workspaceRole==='guest'?[m.id,m.name,'Гость: администратором может стать только участник пространства.',true]:[m.id,m.name,`${m.presetName||''}${m.joinedAt?`, в проекте с ${formatDate(m.joinedAt)}`:''}`]),first?.id||'')
+        +'<p class="iq-helper">Или отмените: ваш пресет останется прежним. Владелец пространства в любом случае сможет войти в проект как администратор.</p>',
+      submitLabel:first?'Назначить и снять с себя права':'',
+      onSubmit:async values=>{const to=members.find(m=>m.id===values.get('to'));if(!to)throw Error('Выберите, кто станет администратором.');
+        await client.request(`${base}/members/${encodeURIComponent(to.id)}/handover`,'POST',{baseRevision:to.revision,presetId});notify({tone:'success',message:`${to.name} — администратор проекта`,description:`Ваш пресет — «${presetName(presetId)}».`});await load();}});
   }
-  function invite(){
-    show({title:'Пригласить в проект',description:'Отправьте ссылку человеку, которого хотите пригласить. Её примет один человек после входа.',
-      body:s.choiceList('role','Роль',projectRoles,'editor')+select('ttl','Срок действия ссылки','86400',lifetimes),submitLabel:'Создать ссылку',onSubmit:async(values,_form,element)=>{
-      const invitation=await client.request(base+'/invitations','POST',{id:crypto.randomUUID(),role:values.get('role'),expiresInSeconds:Number(values.get('ttl'))});
-      const url=new URL('/',location.origin);url.hash='invite/'+invitation.token;
-      // The secret stays only in this dialog, never in URL logs or browser storage.
-      const body=element.querySelector('.map-dialog-body');body.innerHTML=s.secret({label:'Ссылка-приглашение',value:url.href,note:'Ссылку покажем только сейчас. Если потеряете её, создайте новую.'});enhance(body);
-      body.querySelector('input').select();element.querySelector('[type=submit]').remove();element.querySelector('.iq-dialog-footer [data-close]').textContent='Готово';
-      await load();return false;
-    }});
+  async function changePreset(member,presetId,control){
+    const revert=()=>{control.value=member.presetId;};
+    const save=async()=>{
+      const row=control.closest('.iq-settings-row');row?.setAttribute('aria-busy','true');
+      try{await client.request(`${base}/members/${encodeURIComponent(member.id)}/access`,'PUT',{baseRevision:member.revision,presetId,granted:member.granted||[],revoked:member.revoked||[]});
+        notify({tone:'success',message:`${member.name}: пресет ${presetName(presetId)}`});await load();}
+      catch(error){revert();if(error.code==='LAST_ADMIN')handover(presetId);else notify({tone:'danger',message:'Пресет не изменён',description:explain(error),duration:10000});}
+      finally{row?.removeAttribute('aria-busy');}
+    };
+    const losesAccess=member.id===self&&own.has(PROJECT_ACCESS)&&!closure(index,presets.find(p=>p.id===presetId)?.permissions||[]).has(PROJECT_ACCESS);
+    if(!losesAccess)return save();
+    let confirmed=false;const el=show({title:'Снять с себя права администратора?',description:'Вы больше не сможете менять участников, доступ и настройки проекта.',submitLabel:'Снять права',onSubmit:()=>{confirmed=true;setTimeout(()=>void save());}});
+    el.addEventListener('iq-close',()=>{if(!confirmed)revert();},{once:true});
+  }
+  async function edit(member){track(await openPermissionEditor({repository,project,member,presets,held:[...own],
+    onSaved:async()=>{notify({tone:'success',message:`Права: ${member.name}`,description:'Изменение записано в историю проекта.'});await load();},onLastAdmin:presetId=>{
+      // A handover sets a preset without personal changes: when only personal changes removed access, it would keep it.
+      if((presets.find(p=>p.id===presetId)?.permissions||[]).includes('project.access'))notify({tone:'warning',duration:10000,message:'Вы последний администратор проекта',description:'Сначала сделайте администратором другого участника, затем уберите права у себя.'});
+      else handover(presetId);}}));}
+  /** The service-mode editor; the owner's current permissions here come from the owner's row (none: not a member). */
+  async function editService(member){
+    const actorCap=peopleManager||member.ownerId===self?null:[...own];
+    track(await openPermissionEditor({repository,project,member,presets:servicePresets,held:actorCap,service:{ownerName:member.ownerName,ownerPermissions:ownerOf(member)?.permissions||null},
+      onSaved:async()=>{notify({tone:'success',message:`Права: ${member.name}`,description:'Изменение записано в историю проекта.'});await load();}}));
+  }
+  async function addFromWorkspace(){
+    const [people,access]=await Promise.all([client.request(base+'/directory'),client.request(base+'/access')]);
+    if(!people.length)return show({title:'Добавить из пространства',description:'Все участники пространства уже в проекте. Новых людей можно пригласить по почте.'});
+    const fallback=access.memberPresetId??access.workspaceMemberPresetId,options=presetChoices(index,presets,{held:own});
+    show({title:'Добавить из пространства',description:'Люди пространства, которых ещё нет в проекте. Гостей добавляют только приглашением.',
+      body:choose('principalId','Кто',people[0].id,people.map(p=>[p.id,p.name]),'searchable')+choose('presetId','Пресет',options.some(o=>o[0]===fallback)?fallback:options[0]?.[0]||'',options),submitLabel:'Добавить',
+      onSubmit:async values=>{const person=people.find(p=>p.id===values.get('principalId'));await client.request(base+'/members','POST',{principalId:values.get('principalId'),presetId:values.get('presetId')||null});
+        notify({tone:'success',message:`${person?.name||'Участник'} в проекте`,description:`Пресет «${presetName(values.get('presetId'))}».`});await load();}});
   }
   root.addEventListener('input',event=>{if(event.target.matches('[data-member-search]')){query=event.target.value;render();const field=root.querySelector('[data-member-search]');field.focus();field.setSelectionRange(query.length,query.length);}},{signal:abort.signal});
-  // A service account's rights are set through its own endpoint, which checks its owner's rights again.
-  root.addEventListener('iq-change',event=>{const control=event.target.closest('[data-service-role],[data-service-finance]');if(!control)return;
-    const member=members.find(m=>m.id===control.closest('[data-member-id]')?.dataset.memberId);if(!member)return;
-    const isRole=control.hasAttribute('data-service-role'),value=event.detail.value,previous=isRole?member.role:financeOf(member.granted);if(value===previous)return;
-    const body={role:isRole?value:member.role,granted:isRole?member.granted||[]:grantedOf(value)};
-    void client.request('/service-accounts/'+encodeURIComponent(member.id)+'/projects/'+encodeURIComponent(project.id),'PUT',body)
-      .then(()=>{notify({message:'Права сервисного аккаунта изменены',tone:'success'});return load();})
-      .catch(error=>{control.value=previous;notify({message:error.message,tone:'danger'});});
-  },{signal:abort.signal});
-  root.addEventListener('iq-change',event=>{const control=event.target.closest('[data-member-role]');if(!control)return;const member=members.find(m=>m.id===control.closest('[data-member-id]')?.dataset.memberId);if(member&&event.detail.value!==member.role)void changeRole(member,event.detail.value,control);},{signal:abort.signal});
+  root.addEventListener('iq-change',event=>{const control=event.target.closest('[data-member-preset]');if(!control)return;const member=find(control);if(member&&event.detail.value!==member.presetId)void changePreset(member,event.detail.value,control);},{signal:abort.signal});
   const onClick=event=>{void(async()=>{
-    if(event.target.closest('[data-invite]'))return invite();
-    if(event.target.closest('[data-action="remove-member"]')){const member=members.find(m=>m.id===event.target.closest('[data-member-id]')?.dataset.memberId);if(!member)return;
-      return show({title:`Удалить ${member.name} из проекта?`,description:member.kind==='service'?'Аккаунт сразу перестанет видеть проект. Вернуть его может владелец аккаунта.':'Доступ к задачам и картам пропадёт сразу. Позже человека можно пригласить снова.',submitLabel:'Удалить',success:`${member.name} больше не в проекте`,onSubmit:async()=>{const body={baseRevision:member.revision,role:null};await client.request(base+'/members/'+encodeURIComponent(member.id),'PATCH',body,await repository.key('member:'+member.id,body));await load();}});}
-    if(event.target.closest('[data-action="delete-service"]')){const member=members.find(m=>m.id===event.target.closest('[data-member-id]')?.dataset.memberId);if(!member)return;
-      return show({title:`Удалить сервисный аккаунт «${member.name}»?`,description:'Его приложения и токены сразу потеряют доступ. История его действий останется. Если аккаунт работает и в других проектах, удалить его может только владелец или администратор пространства.',submitLabel:'Удалить',success:'Сервисный аккаунт удалён',onSubmit:async()=>{await client.request('/service-accounts/'+encodeURIComponent(member.id),'DELETE');await load();}});}
-    const id=event.target.closest('[data-revoke]')?.dataset.revoke;
-    if(id)return show({title:'Отменить приглашение?',description:'По этой ссылке больше нельзя будет присоединиться к проекту.',submitLabel:'Отменить приглашение',success:'Приглашение отменено',onSubmit:async()=>{await client.request(base+'/invitations/'+encodeURIComponent(id),'DELETE');await load();}});
-  })().catch(error=>show({title:'Не удалось изменить доступ',description:error.message}));};
+    if(event.target.closest('[data-invite]'))return track(await openInviteDialog({repository,project,scope:'project',onDone:load}));
+    if(event.target.closest('[data-add-member]'))return addFromWorkspace();
+    if(invitationAction(event,{client,show,reload:load}))return;
+    const action=event.target.closest('[data-action]')?.dataset.action,member=action&&find(event.target);if(!member)return;
+    if(member.kind==='service'){
+      // …/effective needs members.manage; the owner and agent managers see it built from the row.
+      if(action==='member-effective')return track(await openEffective({repository,project,member,canEdit:serviceManager(member),onEdit:editService,
+        presetPermissions:manage?null:servicePresets.find(p=>p.id===member.presetId)?.permissions||[]}));
+      if(action==='service-edit')return editService(member);
+      if(action==='service-remove')return show({title:`Убрать «${member.name}» из проекта?`,description:'Аккаунт сразу перестанет видеть проект; в других проектах он продолжит работать. История его действий останется.',submitLabel:'Убрать',success:`«${member.name}» больше не в проекте`,
+        onSubmit:async()=>{try{await client.request(`/service-accounts/${encodeURIComponent(member.id)}/projects/${encodeURIComponent(project.id)}`,'DELETE');}catch(error){throw Error(explain(error));}await load();}});
+      return;
+    }
+    if(action==='member-effective')return track(await openEffective({repository,project,member,self:member.id===self,canEdit:editable(member),onEdit:edit}));
+    if(action==='member-edit')return edit(member);
+    if(action==='remove-member')return show({title:`Удалить ${member.name} из проекта?`,description:'Доступ к задачам и картам пропадёт сразу. Позже человека можно пригласить снова.',submitLabel:'Удалить',success:`${member.name} больше не в проекте`,
+      onSubmit:async()=>{const body={baseRevision:member.revision,role:null};try{await client.request(base+'/members/'+encodeURIComponent(member.id),'PATCH',body,await repository.key('member:'+member.id,body));}catch(error){throw Error(explain(error));}await load();}});
+  })().catch(error=>notify({tone:'danger',message:'Не удалось выполнить действие',description:explain(error),duration:10000}));};
   root.addEventListener('click',onClick,{signal:abort.signal});tools?.addEventListener('click',onClick,{signal:abort.signal});
-  await load();return {readyToLeave:()=>!modal,destroy(){closed=true;loading++;abort.abort();modal?.close(true);root.replaceChildren();}};
+  await load();return {readyToLeave:()=>!modal,destroy(){closed=true;loading++;clearTimeout(timer);abort.abort();modal?.close(true);root.replaceChildren();}};
 }
-export async function acceptPendingInvitation(client){
-  const match=location.hash.match(/^#invite\/(invite_[A-Za-z0-9_-]{43})$/);if(!match)return false;
+
+/**
+ * After sign-in, an invitation link in the address asks once and joins. A link for another address offers signing in
+ * with the right one (the token waits in sessionStorage across the sign-out, nowhere else); a spent link says why.
+ */
+export async function acceptPendingInvitation(client,flow=invitationFlow()){
+  const token=flow.fromAddress();if(!token)return false;
+  const leave=()=>flow.leave();
+  const explainGone=(state,info)=>new Promise(resolve=>{const [title,description]=invitationState(state,info);dialog({title,description}).addEventListener('iq-close',()=>resolve(false),{once:true});});
+  let info;
+  try{info=await client.request('/invitations/inspect','POST',{token});}catch(error){leave();return explainGone(goneState(error.code)||'invalid',{});}
+  if(info.state!=='pending'){leave();return explainGone(info.state,info);}
   return new Promise(resolve=>{
-    const el=dialog({title:'Присоединиться к проекту?',description:'После подтверждения проект появится в списке доступных. Ваш текущий доступ к другим проектам не изменится.',submitLabel:'Присоединиться',onSubmit:async()=>{
-      const result=await client.request('/invitations/accept','POST',{token:match[1]});const url=new URL(location.href);url.hash='tasks';url.searchParams.set('project',result.slug);history.replaceState(null,'',url);resolve(true);
-    }});el.addEventListener('iq-close',()=>{if(location.hash.startsWith('#invite/'))history.replaceState(null,'','#tasks');resolve(false);},{once:true});
+    let joined=false,mismatch=null,gone='';
+    const el=dialog({title:`Присоединиться к «${info.workspaceName}»?`,description:`${info.inviterName?`${info.inviterName} приглашает вас. `:''}${invitationSummary(info)} Ваш доступ к другим проектам не изменится.`,submitLabel:'Присоединиться',onSubmit:async()=>{
+      try{
+        const result=await client.request('/invitations/accept','POST',{token}),first=result.projects?.find(p=>p.slug===result.slug)||result.projects?.[0];
+        const url=new URL(location.href);url.hash='tasks';if(first?.slug)url.searchParams.set('project',first.slug);history.replaceState(null,'',url);flow.leave();joined=true;
+        const skipped=(result.skippedProjects||[]).map(p=>typeof p==='string'?p:p.name).filter(Boolean);
+        notify({tone:'success',message:`Вы в пространстве «${info.workspaceName}»`,description:[first?`Открываем «${first.name}».`:'',skipped.length?`Недоступны: ${skipped.join(', ')}.`:''].filter(Boolean).join(' ')});
+      }catch(error){
+        if(error.code==='INVITATION_EMAIL_MISMATCH'){mismatch=error;return;}
+        if(goneState(error.code)){gone=goneState(error.code);return;}
+        throw error;
+      }
+    }});
+    el.addEventListener('iq-close',()=>void(async()=>{
+      if(mismatch){
+        const profile=await client.request('/profile').catch(()=>({})),invited=mismatch.action?.invitedEmail||'другой адрес',current=profile.email||'текущий адрес';
+        let other=false;
+        const next=dialog({title:'Это приглашение для другого адреса',description:`Оно отправлено на ${invited}, а вы вошли как ${current}. Войдите с адресом из письма или попросите новое приглашение на текущий адрес.`,submitLabel:'Войти с другой почтой',
+          mount:element=>{const stay=element.querySelector('.iq-dialog-footer [data-close]');if(stay)stay.textContent=`Остаться как ${current}`;},
+          onSubmit:async()=>{other=true;flow.handOver(token);await client.request('/logout','POST');}});
+        next.addEventListener('iq-close',()=>{if(other){history.replaceState(null,'',flow.handOver(token));location.reload();return;}leave();resolve(false);},{once:true});
+        return;
+      }
+      if(gone){leave();resolve(await explainGone(gone,info));return;}
+      if(!joined)leave();resolve(joined);
+    })(),{once:true});
   });
 }

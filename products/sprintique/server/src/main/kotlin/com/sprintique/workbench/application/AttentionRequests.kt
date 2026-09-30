@@ -30,7 +30,6 @@ data class NewAttentionRequest(
  */
 object AttentionRequests {
     const val OPEN_LIMIT = 500
-    private val WRITERS = setOf("editor", "admin")
 
     private const val PROJECTION = """r.id::text AS id, r.project_id AS "projectId", r.task_id AS "taskId", r.kind, r.status,
         r.revision::int AS revision, r.note, to_char(r.needed_by, 'YYYY-MM-DD') AS "neededBy", r.thread_id AS "threadId",
@@ -363,18 +362,19 @@ object AttentionRequests {
         return current
     }
 
-    /** A current human member who can act on the task: editor or administrator, not disabled. */
+    /** A current human member who can act on the task: changes tasks there («Менять задачи»), not disabled. */
     private fun requireRecipient(tx: Transaction, projectId: String, recipientId: String) {
         val member = tx.row(
             """
-            SELECT m.role FROM app.project_members m JOIN auth.principals p ON p.id = m.principal_id
+            SELECT 'tasks.write' = ANY(m.permissions) AS writes FROM app.project_members m
+            JOIN auth.principals p ON p.id = m.principal_id
             WHERE m.project_id = $1 AND m.principal_id = $2 AND p.kind = 'human' AND p.disabled_at IS NULL
             """.trimIndent(),
             projectId,
             recipientId,
         )
         requireCondition(
-            member != null && member.string("role") in WRITERS,
+            member != null && member.boolean("writes"),
             422,
             "REQUEST_RECIPIENT",
             "Адресатом может быть участник проекта с правом изменения.",

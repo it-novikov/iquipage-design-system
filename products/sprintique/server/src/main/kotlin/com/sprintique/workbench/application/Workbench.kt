@@ -321,7 +321,7 @@ object Workbench {
         val leadFromSnoozed = if (view == "snoozed") "snoozed" else "NOT snoozed"
         return """
         WITH authorized AS MATERIALIZED (
-          SELECT p.id, p.key, p.name, m.role, w.name AS workspace_name,
+          SELECT p.id, p.key, p.name, m.role, m.permissions, w.name AS workspace_name,
                  coalesce(auth.project_timezone(p.id), 'UTC') AS timezone
           FROM app.project_members m JOIN app.projects p ON p.id = m.project_id
           LEFT JOIN app.workspaces w ON w.id = p.workspace_id
@@ -338,7 +338,7 @@ object Workbench {
                    AND (r.needed_by IS NULL OR (r.needed_by::timestamp AT TIME ZONE a.timezone) > now()), false) AS snoozed
           FROM app.attention_requests r JOIN authorized a ON a.id = r.project_id
           LEFT JOIN personal s ON s.project_id = r.project_id AND s.task_id = r.task_id
-          WHERE $3::boolean AND r.recipient_id = $1 AND r.status = 'open' AND a.role IN ('editor', 'admin')
+          WHERE $3::boolean AND r.recipient_id = $1 AND r.status = 'open' AND 'tasks.write' = ANY(a.permissions)
             AND (r.approval_id IS NULL OR EXISTS (SELECT 1 FROM app.approvals ap WHERE ap.project_id = r.project_id
                  AND ap.id = r.approval_id AND ap.status = 'proposed' AND ap.expires_at > now()))
         ), awake AS MATERIALIZED (
@@ -413,7 +413,7 @@ object Workbench {
                  CASE pl.weight WHEN 0 THEN 'snoozed' WHEN 1 THEN 'action' WHEN 2 THEN 'active' WHEN 3 THEN 'updates'
                    WHEN 4 THEN 'joined' WHEN 5 THEN 'waiting' ELSE 'backlog' END AS bucket,
                  t.title, t.status, t.type, t.priority, t.revision AS task_revision, t.owner_id,
-                 (t.status = 'ready_for_release' OR t.result = 'accepted') AS done, a.role AS project_role,
+                 (t.status = 'ready_for_release' OR t.result = 'accepted') AS done, CASE WHEN 'tasks.write' = ANY(a.permissions) THEN 'editor' ELSE 'reader' END AS project_role,
                  to_char(t.due, 'YYYY-MM-DD') AS due, to_char(t.planned_start, 'YYYY-MM-DD') AS planned_start,
                  to_char(t.planned_end, 'YYYY-MM-DD') AS planned_end, t.due AS due_date,
                  to_char(t.status_entered_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS status_entered_at,

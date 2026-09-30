@@ -22,6 +22,7 @@ import org.jooq.Condition
 import org.jooq.Field
 import org.jooq.ForeignKey
 import org.jooq.InverseForeignKey
+import org.jooq.JSONB
 import org.jooq.Name
 import org.jooq.Path
 import org.jooq.PlainSQL
@@ -82,6 +83,8 @@ open class WorkspaceAudit(
     val REVISION: TableField<WorkspaceAuditRecord, Int?> = createField(DSL.name("revision"), SQLDataType.INTEGER.nullable(false), this, "")
 
     val CREATED_AT: TableField<WorkspaceAuditRecord, OffsetDateTime?> = createField(DSL.name("created_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6).nullable(false).defaultValue(DSL.field(DSL.raw("clock_timestamp()"), SQLDataType.TIMESTAMPWITHTIMEZONE)), this, "")
+
+    val DETAILS: TableField<WorkspaceAuditRecord, JSONB?> = createField(DSL.name("details"), SQLDataType.JSONB, this, "")
 
     private constructor(alias: Name, aliased: Table<WorkspaceAuditRecord>?): this(alias, null, null, null, aliased, null, null)
     private constructor(alias: Name, aliased: Table<WorkspaceAuditRecord>?, parameters: Array<Field<*>?>?): this(alias, null, null, null, aliased, parameters, null)

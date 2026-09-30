@@ -34,9 +34,11 @@ class SessionController(
         val projects = tx.rows(
             """
             SELECT p.id, p.workspace_id AS "workspaceId", p.name, p.slug, p.key, m.role,
-                   w.name AS "workspaceName"
+                   m.permissions, w.name AS "workspaceName", wm.role AS "workspaceRole", wm.permissions AS "workspacePermissions"
             FROM app.projects p JOIN app.project_members m ON m.project_id = p.id AND m.principal_id = $1
-            JOIN app.workspaces w ON w.id = p.workspace_id ORDER BY w.name, p.name
+            JOIN app.workspaces w ON w.id = p.workspace_id
+            LEFT JOIN app.workspace_members wm ON wm.workspace_id = p.workspace_id AND wm.principal_id = $1
+            ORDER BY w.name, p.name
             """.trimIndent(),
             actor.id,
         )
