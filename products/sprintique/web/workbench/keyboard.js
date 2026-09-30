@@ -1,6 +1,6 @@
 // Keyboard of the Workbench (design-v2 §11.3): one Tab stop per list (roving tabindex), ↑↓ between rows, Home/End,
 // → into the row's actions and ← back, Enter opens the task. On a row: E — its verb, D — done, S — snooze,
-// J — participate or leave, ⌘↑/⌘↓ (Ctrl on other systems) — the order in «Участвую». 1–6 go to the sections of the
+// J — watch or stop watching («Наблюдаю»), ⌘↑/⌘↓ (Ctrl on other systems) — the order in «Наблюдаю». 1–6 go to the sections of the
 // summary line. Nothing here acts by itself: the keys press the row's own labelled controls.
 
 const typing=target=>target.closest?.('input,textarea,select,[contenteditable=""],[contenteditable=true],iq-markdown-editor,iq-date-field,dialog');

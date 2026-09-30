@@ -137,7 +137,7 @@ export async function seedDevData(app:TestApp,admin:pg.Client,origin:string){
     }
   }
   await seedWorkbench(app,admin,origin,{adminId,people,projectIds,call});
-  summary.push('Рабочий стол: запросы всех видов, «В работе», «Жду», «Участвую», изменения и неделя для администратора');
+  summary.push('Рабочий стол: запросы всех видов, «В работе», «Жду», «Наблюдаю», изменения и неделя для администратора');
   return {adminId,summary};
 }
 
@@ -181,7 +181,7 @@ async function seedWorkbench(app:TestApp,admin:pg.Client,origin:string,{adminId,
   const dark=await me('GET',P('SPQ')+'tasks/spq-dark/personal');await me('PUT',P('SPQ')+'tasks/spq-dark/personal/check-back',{baseRevision:dark.checkBackRevision,checkBackAt:day(0)});
   await participate('SPQ','spq-cleanup');await edit(me,'SPQ','spq-cleanup',{ownerId:people.get('Борис Петров')});
   await edit(boris,'SPQ','spq-cleanup',{status:'ready_for_release'});
-  // «Участвую»: tasks the administrator keeps on the Workbench.
+  // «Наблюдаю»: tasks the administrator keeps on the Workbench.
   for(const [key,id] of [['SPQ','spq-onboarding'],['SPQ','spq-palette'],['WEB','web-press'],['IDEA','idea-1']] as const)await participate(key,id);
   // Requests of every kind, exact recipient.
   await boris('POST',P('SPQ')+'tasks/spq-sync/requests',{id:randomUUID(),recipientId:adminId,kind:'review',neededBy:day(1),note:'Проверь, пожалуйста, переподключение SSE.'});

@@ -126,7 +126,7 @@ test('W01 inclusion matrix: explicit relations only, one task one row, counts eq
   assert.equal('workspaceName' in req,false);
   const followed=row('followed');
   assert.equal(followed.section,'updates');assert.equal(followed.group,null);
-  assert.equal(followed.primaryReason.code,'followed_status_changed');assert.equal(followed.primaryReason.text,'Вы участвуете: статус «В работе»');
+  assert.equal(followed.primaryReason.code,'followed_status_changed');assert.equal(followed.primaryReason.text,'Вы наблюдаете: статус «В работе»');
   assert.equal(followed.primaryReason.actor?.id,f.bob.id);assert.ok(followed.secondaryReasons.some(r=>r.code==='participating'));
   // The change is drawable as "было → стало" without another request.
   assert.equal(followed.updates!.count,1);
@@ -137,9 +137,9 @@ test('W01 inclusion matrix: explicit relations only, one task one row, counts eq
   await markSeen(p,'followed');assert.deepEqual(where(await envelope(f.alice,p),'followed'),['joined']);
   assert.equal(followed.personal.participating,true);assert.equal(typeof followed.personal.rank,'number');
   assert.ok(followed.statusEnteredAt);assert.ok(!followed.allowedActions.includes('rankUp'),'order is set only in «Участвую»');
-  assert.equal(row('finished').primaryReason.text,'Вы участвуете: работа завершена');assert.equal(row('finished').statusCategory,'done');
+  assert.equal(row('finished').primaryReason.text,'Вы наблюдаете: работа завершена');assert.equal(row('finished').statusCategory,'done');
   assert.equal(row('mine-joined').personal.participating,true);assert.ok(!row('mine-joined').allowedActions.includes('rankUp'));
-  assert.equal(row('auto').primaryReason.text,'Вы участвуете');
+  assert.equal(row('auto').primaryReason.text,'Вы наблюдаете');
   assert.equal(row('wait').primaryReason.text,'Поручено: Борис');
   // Snapshot: each count equals its rows, no task twice anywhere.
   const [action,current,updates]=env.sections;
@@ -580,12 +580,12 @@ test('W13 discussions reach participants: a new message, then the question resol
   await task(p,'discussed');
   const thread=await ok<any>(call('POST',`${base(p)}/tasks/discussed/threads`,{id:'q1',messageId:'m1',body:'Кто берёт?',requiresResolution:true},f.bob));
   const news=async()=>{const x=placed(await envelope(f.alice,p)).find(x=>x.row.taskId==='discussed')!;return x.place==='updates'?x.row.primaryReason:undefined;};
-  assert.equal((await news())?.text,'Вы участвуете: новое сообщение в обсуждении');
+  assert.equal((await news())?.text,'Вы наблюдаете: новое сообщение в обсуждении');
   const state=await personal(p,'discussed');
   await ok(call('PUT',`${base(p)}/tasks/discussed/personal/seen`,{baseRevision:state.seenRevision,sequence:state.latestSequence}));
   assert.deepEqual(where(await envelope(f.alice,p),'discussed'),['joined']);assert.equal(await news(),undefined,'seen news is gone');
   await ok(call('PATCH',`${base(p)}/threads/q1/resolution`,{resolved:true,baseRevision:thread.revision},f.bob));
-  assert.equal((await news())?.text,'Вы участвуете: вопрос в обсуждении решён');
+  assert.equal((await news())?.text,'Вы наблюдаете: вопрос в обсуждении решён');
   const latest=placed(await envelope(f.alice,p)).find(x=>x.row.taskId==='discussed')!.row.updates!.latest!;
   assert.equal(latest.kind,'resolution');assert.deepEqual(latest.detail,{resolved:true});
 });

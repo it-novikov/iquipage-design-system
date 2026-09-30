@@ -98,9 +98,9 @@ object PersonalState {
     }
 
     /**
-     * "Участвую" on or off. Joining appends the task to the end of the person's order; leaving drops its rank and its
-     * check-back date: to stop controlling delegated work is to leave it (docs/adr W5 §8), and a later join must not
-     * revive an old date.
+     * "Наблюдаю" (API `participating`) on or off. Joining appends the task to the end of the person's order; leaving
+     * drops its rank and its check-back date: to stop controlling delegated work is to leave it (docs/adr W5 §8), and a
+     * later join must not revive an old date.
      */
     @Suppress("LongParameterList")
     fun participation(
@@ -127,7 +127,7 @@ object PersonalState {
                         count(tx, actor) < PARTICIPATION_LIMIT,
                         422,
                         "PARTICIPATION_LIMIT",
-                        "Вы участвуете в слишком многих задачах. Выйдите из лишних.",
+                        "Вы наблюдаете за слишком многими задачами. Перестаньте наблюдать за лишними.",
                     )
                     startRelation(tx, actor, projectId, taskId)
                 }
@@ -211,7 +211,7 @@ object PersonalState {
             tx.row("SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", "participation:${actor.id}")
             val current = lock(tx, actor, projectId, taskId)
             requireRevision(current.long("rank_revision"), baseRevision)
-            requireCondition(current.boolean("participating"), 422, "NOT_PARTICIPATING", "Вы не участвуете в задаче.")
+            requireCondition(current.boolean("participating"), 422, "NOT_PARTICIPATING", "Вы не наблюдаете за задачей.")
             val visible = { ranksOf(tx, actor, listed) }
             val rank = move(tx, actor, projectId, taskId, move == RankMove.UP, visible)
             val revision = tx.row(
@@ -250,7 +250,7 @@ object PersonalState {
     ): Long {
         val order = visible()
         val index = order.indexOfFirst { it["projectId"] == projectId && it["taskId"] == taskId }
-        requireCondition(index >= 0, 422, "RANK_NOT_LISTED", "Задача не в группе «Участвую»: её порядок не задаётся.")
+        requireCondition(index >= 0, 422, "RANK_NOT_LISTED", "Задача не в группе «Наблюдаю»: её порядок не задаётся.")
         val target = if (up) index - 1 else index + 1
         requireCondition(target in order.indices, 422, "RANK_EDGE", "Задача уже на краю списка.")
         placeBetween(order, index, target)?.let { return it }
@@ -419,7 +419,7 @@ object PersonalState {
                 checkBackAt == null || waiting,
                 422,
                 "NOT_WAITING",
-                "Дату проверки ставят для задачи, которую вы поручили и в которой участвуете.",
+                "Дату проверки ставят для задачи, которую вы поручили и за которой наблюдаете.",
             )
             val revision = tx.row(
                 """
@@ -467,7 +467,7 @@ object PersonalState {
                 !accepted || delegated?.get("done") == true,
                 422,
                 "NOT_DONE",
-                "Принять можно только завершённую работу, которую вы поручили и в которой участвуете.",
+                "Принять можно только завершённую работу, которую вы поручили и за которой наблюдаете.",
             )
             val revision = tx.row(
                 """

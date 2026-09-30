@@ -234,9 +234,11 @@ button.dsk-when[data-tone] .dsk-chev{color:currentColor}
 .dsk-first-run h2{margin:0 0 var(--iq-space-1);font-size:var(--iq-type-label-size);font-weight:600}
 .dsk-first-run p{margin:0 0 var(--iq-space-3);color:var(--iq-muted);font-size:var(--iq-type-caption-size)}
 
-/* ---------- Drawer from the Workbench: «Участвую» and the request card (DS-GAP-4, DS-GAP-7) ---------- */
-.dsk-join{gap:6px}
-.dsk-join[aria-pressed=true]{background:var(--iq-accent-soft);color:var(--iq-ink)}
+/* ---------- Drawer from the Workbench: «Наблюдаю» and the request card (DS-GAP-4, DS-GAP-7) ---------- */
+/* The eye is an icon button of the header's row; on, it takes the DS pressed state (accent glyph on accent-soft),
+   which the ghost hover must not wash out. The tooltip wrapper lines up with its neighbours. */
+.dsk-watch-tip{display:inline-flex}
+.iq-btn.dsk-join[aria-pressed=true]:hover{background:var(--iq-accent-soft);color:var(--iq-accent)}
 .dsk-open-project{gap:6px}
 .task-personal-section[hidden]{display:none}
 /* The request card sits under the title, before the task's facts (design-v2 §5.4). */

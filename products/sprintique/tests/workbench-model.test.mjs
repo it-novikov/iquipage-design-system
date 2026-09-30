@@ -1,6 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {addDays,changeLine,changeOf,checkWhen,dayLabel,dueWhen,duePresets,neededWhen,parseRoute,plural,readFilter,snoozePresets,verbOf,viewPath,writeFilter}
+import {readFileSync} from 'node:fs';
+import {addDays,changeLine,changeOf,checkWhen,dayLabel,dueWhen,duePresets,neededWhen,parseRoute,plural,readFilter,snoozePresets,verbOf,viewPath,watchToggle,writeFilter}
   from '../web/workbench/model.js';
 
 // The presentation rules of the Workbench interface (design-v2 §11), without a browser.
@@ -48,4 +49,26 @@ test('WM03 routes, the project filter, and presets bounded by the date someone w
   assert.ok(bounded.every(p=>p.until<=new Date('2026-10-01T00:00:00')),'never past the morning of neededBy');
   assert.equal(snoozePresets('2026-09-30',now).length,0,'nothing to offer on the day it is needed');
   assert.deepEqual(duePresets('2026-09-30').map(p=>p.date),['2026-10-01','2026-10-02','2026-10-05']);
+});
+
+test('WM04 «Наблюдаю» is an icon toggle among the drawer header\'s icon buttons: pressed state, name and tooltip',()=>{
+  const off=watchToggle(false),on=watchToggle(true);
+  assert.deepEqual([off.pressed,off.label,off.heading],['false','Наблюдать за задачей','Наблюдать за задачей']);
+  assert.deepEqual([on.pressed,on.label,on.heading],['true','Наблюдаю — нажмите, чтобы перестать','Наблюдаю']);
+  assert.match(off.text,/^Задача будет на вашем Рабочем столе, изменения придут в «Изменилось»\.$/);
+  assert.match(on.text,/Автор задачи наблюдает с момента создания/,'the author is in from creation, and the tooltip says so');
+  for(const view of [off,on])assert.doesNotMatch(Object.values(view).join(' '),/[Уу]част/,'the old name is gone');
+  // The toggle has no visible text: the same button family as cover, full screen and close (task-dialog.js).
+  const panel=readFileSync(new URL('../web/workbench/personal-panel.js',import.meta.url),'utf8');
+  assert.match(panel,/join\.className='iq-btn ghost icon sm dsk-join'/);
+  assert.match(panel,/join\.innerHTML=icon\('eye',18\)/);
+  assert.match(panel,/document\.createElement\('iq-tooltip'\)/);
+  assert.match(panel,/insertBefore\(tip,actions\.querySelector\(':scope > \.iq-btn\.icon'\)\)/,'placed right before the header\'s icon buttons');
+  const dialog=readFileSync(new URL('../ui/src/board/task-dialog.js',import.meta.url),'utf8');
+  assert.match(dialog,/class="iq-btn ghost icon sm" data-task-fullscreen[^`]*icon\('expand',18\)/,'the neighbours it matches');
+  // J on a Workbench row still toggles it.
+  const keyboard=readFileSync(new URL('../web/workbench/keyboard.js',import.meta.url),'utf8');
+  assert.match(keyboard,/event\.key==='j'\|\|event\.key==='J'[^\n]*dsk-toggle-participation/);
+  const lanes=readFileSync(new URL('../web/workbench/dashboard.js',import.meta.url),'utf8');
+  assert.match(lanes,/\{key:'joined',title:'Наблюдаю',icon:'eye'/);
 });
