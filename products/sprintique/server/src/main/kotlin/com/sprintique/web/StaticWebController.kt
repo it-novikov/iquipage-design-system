@@ -28,11 +28,17 @@ class StaticWebController(properties: SprintiqueProperties) {
 
     /** The interface; `/oauth/authorize` is its consent screen for OAuth clients, the same page on another path. */
     @GetMapping("/", "/oauth/authorize")
-    fun index(): ResponseEntity<ByteArray> {
-        val file = requireRoot().resolve("index.html")
-        if (!Files.isRegularFile(file)) throw notFound()
-        return ResponseEntity.ok().contentType(MediaType.TEXT_HTML).body(Files.readAllBytes(file))
-    }
+    fun index(): ResponseEntity<ByteArray> = html("index.html")
+
+    /** Public documents required before a person chooses a sign-in method. */
+    @GetMapping("/about")
+    fun about(): ResponseEntity<ByteArray> = html("about.html")
+
+    @GetMapping("/privacy")
+    fun privacy(): ResponseEntity<ByteArray> = html("privacy.html")
+
+    @GetMapping("/terms")
+    fun terms(): ResponseEntity<ByteArray> = html("terms.html")
 
     @GetMapping("/favicon.ico")
     fun favicon(): ResponseEntity<Void> = ResponseEntity.noContent().build()
@@ -67,6 +73,12 @@ class StaticWebController(properties: SprintiqueProperties) {
     }
 
     private fun requireRoot(): Path = root ?: throw notFound()
+
+    private fun html(name: String): ResponseEntity<ByteArray> {
+        val file = requireRoot().resolve(name)
+        if (!Files.isRegularFile(file)) throw notFound()
+        return ResponseEntity.ok().contentType(MediaType.TEXT_HTML).body(Files.readAllBytes(file))
+    }
 
     private fun notFound() = ProblemException(404, "NOT_FOUND", "Файл недоступен.")
 

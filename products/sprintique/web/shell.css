@@ -13,6 +13,9 @@
 .sign-in-divider{display:flex;align-items:center;gap:var(--iq-space-3);color:var(--iq-muted);font-size:var(--iq-type-caption-size)}
 .sign-in-divider::before,.sign-in-divider::after{content:"";flex:1;border-top:1px solid var(--iq-line)}
 .sign-in-dev{justify-self:center}
+.sign-in-legal{margin:0;color:var(--iq-muted);font-size:var(--iq-type-caption-size);line-height:1.5;text-align:center}
+.sign-in-legal a{color:var(--iq-text);text-underline-offset:.2em}
+.sign-in-legal a:hover{text-decoration-thickness:.12em}
 /* The OAuth consent screen (consent.js) on the same authentication composition. */
 .consent,.consent-form{display:grid;gap:var(--iq-space-5)}
 .consent-facts{display:grid;gap:var(--iq-space-3);margin:0}
