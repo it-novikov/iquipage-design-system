@@ -54,7 +54,7 @@
 | Финансы | `finance.read` | Видеть финансы | Журнал и сводка. | `tasks.read` | только явно, вне пресетов (выключено по умолчанию) |
 | Финансы | `finance.write` | Вести журнал финансов | Проводить, править, аннулировать (ADR 0003). | `finance.read` | только явно, вне пресетов (выключено по умолчанию) |
 | Агенты | `approvals.decide` | Решать по предложениям агентов | Подтверждать/отклонять планы. | `tasks.write` | никогда |
-| Агенты | `agents.manage` | Управлять сервисными аккаунтами в проекте | Добавлять в проект чужие сервисные аккаунты, менять их права и убирать их. Свои аккаунты владелец ведёт сам (II.2). | `tasks.read` | никогда |
+| Агенты | `agents.manage` | Управлять агентами в проекте | Подключать агентов и чужие сервисные аккаунты к проекту, менять их права и отключать. Свои сервисные аккаунты владелец ведёт сам (II.2). | `tasks.read` | никогда |
 | Участники и приглашения | `members.invite` | Приглашать в проект | Пресет приглашённого ≤ прав приглашающего; входит в пространство гостем. | `tasks.read` | никогда |
 | Участники и приглашения | `members.manage` | Менять права участников | Пресеты, добавления/исключения, удаление, добавление из справочника, права сервисных аккаунтов в проекте. | `members.invite` | никогда |
 | Настройки проекта | `project.settings` | Настраивать проект | Название, аватар, теги, шаблоны, параметры планирования (нынешний `catalog:write`). | `tasks.read` | никогда |
@@ -205,6 +205,18 @@ REVOKE ALL ON FUNCTION auth.can(text, text), auth.can_workspace_do(uuid, text) F
 
 ### 7.3 Аудит
 `app.audit_events`: `member.added`, `member.permissions.updated` (payload: `presetBefore/After`, `granted`, `revoked`), `member.removed`, `access.defaults.updated`, `access.workspace_admin_joined`, `invitation.*`, `service_account.*` (II.6). `app.workspace_audit`: `preset.created|updated|archived`, `workspace.member.permissions.updated`, `workspace.owner.transferred`, `workspace.rules.updated`, `service_account.created|owner_transferred|suspended|deleted`.
+
+### 7.4 Как реализовано (ветка `feature/access-invites`, миграции V20260930000030–032)
+
+Отличия от набросков выше, принятые при реализации:
+
+1. **Триггер вычисляет, а не проверяет.** `app.compile_project_member` (BEFORE INSERT/UPDATE на `project_members`) сам записывает `permissions` = `auth.compile_permissions(base, granted, revoked, forbidden, ceiling)` и производную `role` (`admin` с `project.access`, `editor` с `tasks.write`, иначе `reader`). Запись, где задана только `role` (старый код, данные импорта, PR #27 до доработки), получает системный пресет этой роли (читатель-гость — Гость, агент — «Сервис: чтение/задачи»). У гостя вычитается `project.access`; у принципала не-человека — `NEVER_SERVICE`, а `finance.*` берётся только из `granted`. Параметр `ceiling` оставлен для прав владельца сервисного аккаунта (часть II).
+2. **Пресеты пространства = роли.** Отдельных строк пресетов пространства нет: `workspace_members.role` ∈ {owner, admin, member, guest} и есть пресет; личные `granted`/`revoked` и скомпилированные `permissions` — на строке (триггер `app.compile_workspace_member`). `projects.create` у участника — по правилу `workspaces.projects_created_by`.
+3. **Умолчания для новых участников** — на пространстве (`workspaces.default_member_preset_id`, `default_guest_preset_id`; пусто = Редактор/Гость) и переопределение в проекте (`projects.default_*_preset_id`); `default_project_preset_id` на участнике не заводился.
+4. **`app.access_presets`** без колонки `scope` (только пресеты проекта; `subject` — человек/сервис), без RLS, как и таблицы членства (вход политики, доступ через проверки сценариев). Системные пресеты создаются триггером на вставку пространства. Уникальность названия без учёта регистра проверяет приложение (SQL `lower()` зависит от collation).
+5. **`project_members.workspace_id`** с FK `(workspace_id, project_id)` → `projects` — пресет чужого пространства отвергается без чтения проекта под RLS.
+6. **Приглашения** — одна таблица `auth.invitations` для писем и ссылок (`kind`), со снимком имён для анонимного `POST /api/v1/invitations/inspect`; прежние ссылки `auth.project_invitations` перенесены с тем же хэшем и таблица удалена. Пути: `POST /workspaces/{id}/invitations` и `/projects/{id}/invitations` (письма), `…/invitation-links` (ссылка), `POST /invitations/{id}/resend`, `DELETE /invitations/{id}`, `POST /invitations/accept`.
+7. **`Capability` остаётся** словарём действий (и возможностей токена агента); каждое действие сопоставлено одному праву (`Capability.permission`), `ProjectAccess.authorize` проверяет право на строке членства. Команды жизни релиза требуют `releases.manage` от человека; предложения агента по релизам по-прежнему утверждает человек с `approvals.decide`.
 
 ## 8. API (сессия человека; сервисные и OAuth-учётные данные — `SESSION_REQUIRED`)
 

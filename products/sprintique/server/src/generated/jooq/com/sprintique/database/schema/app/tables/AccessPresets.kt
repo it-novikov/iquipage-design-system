@@ -5,6 +5,7 @@ package com.sprintique.database.schema.app.tables
 
 
 import com.sprintique.database.schema.app.App
+import com.sprintique.database.schema.app.indexes.ACCESS_PRESETS_NAME
 import com.sprintique.database.schema.app.keys.ACCESS_PRESETS_PKEY
 import com.sprintique.database.schema.app.keys.ACCESS_PRESETS_WORKSPACE_ID_KEY_KEY
 import com.sprintique.database.schema.app.keys.ACCESS_PRESETS__ACCESS_PRESETS_CREATED_BY_FKEY
@@ -33,6 +34,7 @@ import org.jooq.Check
 import org.jooq.Condition
 import org.jooq.Field
 import org.jooq.ForeignKey
+import org.jooq.Index
 import org.jooq.InverseForeignKey
 import org.jooq.Name
 import org.jooq.Path
@@ -127,6 +129,7 @@ open class AccessPresets(
         override fun `as`(alias: Table<*>): AccessPresetsPath = AccessPresetsPath(alias.qualifiedName, this)
     }
     override fun getSchema(): Schema? = if (aliased()) null else App.APP
+    override fun getIndexes(): List<Index> = listOf(ACCESS_PRESETS_NAME)
     override fun getPrimaryKey(): UniqueKey<AccessPresetsRecord> = ACCESS_PRESETS_PKEY
     override fun getUniqueKeys(): List<UniqueKey<AccessPresetsRecord>> = listOf(ACCESS_PRESETS_WORKSPACE_ID_KEY_KEY)
     override fun getReferences(): List<ForeignKey<AccessPresetsRecord, *>> = listOf(ACCESS_PRESETS__ACCESS_PRESETS_CREATED_BY_FKEY, ACCESS_PRESETS__ACCESS_PRESETS_UPDATED_BY_FKEY, ACCESS_PRESETS__ACCESS_PRESETS_WORKSPACE_ID_FKEY)

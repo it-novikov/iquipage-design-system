@@ -9,6 +9,7 @@ import com.sprintique.identity.application.ProjectAccess
 import com.sprintique.identity.domain.Actor
 import com.sprintique.problem.requireCondition
 import com.sprintique.problem.requirePresent
+import java.util.Locale
 
 /** A preset as stored: its key when it is a system one, its permissions and whether it is for people. */
 data class Preset(
@@ -325,17 +326,17 @@ object Presets {
         )
     }
 
+    /**
+     * Names are unique in a workspace whatever their case. Compared here rather than with SQL lower(), which leaves
+     * Cyrillic as it is under the C collation of some clusters; the workspace lock serializes the writers.
+     */
     private fun requireUniqueName(tx: Transaction, workspaceId: String, name: String, except: String?) {
-        val taken = tx.row(
-            """
-            SELECT 1 AS found FROM app.access_presets WHERE workspace_id = $1::uuid AND lower(name) = lower($2)
-              AND archived_at IS NULL AND ($3::uuid IS NULL OR id <> $3::uuid)
-            """.trimIndent(),
+        val key = name.trim().lowercase(Locale.ROOT)
+        val taken = tx.rows(
+            "SELECT id, name FROM app.access_presets WHERE workspace_id = $1::uuid AND archived_at IS NULL",
             workspaceId,
-            name,
-            except,
-        )
-        requireCondition(taken == null, 409, "PRESET_NAME_TAKEN", "Пресет с таким названием уже есть.")
+        ).any { it.string("id") != except && it.string("name").trim().lowercase(Locale.ROOT) == key }
+        requireCondition(!taken, 409, "PRESET_NAME_TAKEN", "Пресет с таким названием уже есть.")
     }
 
     private fun presetOf(row: Row) = Preset(

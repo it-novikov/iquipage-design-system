@@ -5,6 +5,7 @@
 package com.sprintique.database.schema.app.indexes
 
 
+import com.sprintique.database.schema.app.tables.AccessPresets
 import com.sprintique.database.schema.app.tables.AgentRuns
 import com.sprintique.database.schema.app.tables.Assets
 import com.sprintique.database.schema.app.tables.AuditEvents
@@ -30,6 +31,7 @@ import org.jooq.impl.Internal
 // INDEX definitions
 // -------------------------------------------------------------------------
 
+val ACCESS_PRESETS_NAME: Index = Internal.createIndex(DSL.name("access_presets_name"), AccessPresets.ACCESS_PRESETS, arrayOf(AccessPresets.ACCESS_PRESETS.WORKSPACE_ID, AccessPresets.ACCESS_PRESETS.NAME), true)
 val AGENT_RUNS_PAGE: Index = Internal.createIndex(DSL.name("agent_runs_page"), AgentRuns.AGENT_RUNS, arrayOf(AgentRuns.AGENT_RUNS.PROJECT_ID, AgentRuns.AGENT_RUNS.ID), false)
 val ASSET_CLEANUP: Index = Internal.createIndex(DSL.name("asset_cleanup"), Assets.ASSETS, arrayOf(Assets.ASSETS.EXPIRES_AT), false)
 val AUDIT_ACTOR_RECENT: Index = Internal.createIndex(DSL.name("audit_actor_recent"), AuditEvents.AUDIT_EVENTS, arrayOf(AuditEvents.AUDIT_EVENTS.PROJECT_ID, AuditEvents.AUDIT_EVENTS.ACTOR_ID, AuditEvents.AUDIT_EVENTS.CREATED_AT.desc()), false)

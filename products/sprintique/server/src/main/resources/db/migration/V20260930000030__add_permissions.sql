@@ -121,7 +121,8 @@ CREATE TABLE app.access_presets (
   CHECK(subject='human' OR NOT (permissions && (auth.never_service_permissions() || auth.explicit_service_permissions()))),
   CHECK(NOT locked OR key='admin')
 );
-CREATE UNIQUE INDEX access_presets_name ON app.access_presets(workspace_id,lower(name)) WHERE archived_at IS NULL;
+-- Names are unique per workspace ignoring case; the application compares them (SQL lower() depends on the collation).
+CREATE UNIQUE INDEX access_presets_name ON app.access_presets(workspace_id,name) WHERE archived_at IS NULL;
 -- A preset's permissions are always closed under their dependencies.
 CREATE FUNCTION app.normalize_access_preset() RETURNS trigger LANGUAGE plpgsql SET search_path=pg_catalog AS $$
 BEGIN
