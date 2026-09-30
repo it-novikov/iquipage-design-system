@@ -19,3 +19,7 @@
 - 2026-09-30T13:38:13Z · claude-opus-5-5 · checkpoint · S2 · дальше: обновить tests/membership.test.ts под новые приглашения, написать tests/access.test.ts, затем web
 - 2026-09-30T13:49:43Z · claude-review-r1 · review · R1 · начато ревью, раунд 1
 - 2026-09-30T13:53:09Z · claude-opus-5-5 · checkpoint · S4 · дальше: принять интерфейс, проверить в браузере (PREVIEW_PORT=4331, свой Mailpit в colima-sprintique-vnext-qa), исправить R1
+- 2026-09-30T14:24:23Z · claude-opus-5-5 · step · S2 · done: миграции 030–032, коммиты 87fba04/d9c1331; миграция ролей проверена RolesMigrationIntegrationTest
+- 2026-09-30T14:24:23Z · claude-opus-5-5 · step · S3 · done: коммиты 87fba04, df76de9, d9c1331; gradle check, 32+ интеграционных Kotlin, 160 HTTP зелёные
+- 2026-09-30T14:24:23Z · claude-opus-5-5 · step · S4 · done: коммит UI; браузер: локальный стенд 4331 + свой Mailpit — участники, редактор прав, приглашение, письмо multipart, путь получателя (несовпадение адреса, вход кодом, принятие); headless 1440 light/dark и 390
+- 2026-09-30T14:24:23Z · claude-opus-5-5 · step · S5 · active
