@@ -9,8 +9,7 @@ import com.sprintique.contract.ResourceIds
 import com.sprintique.contract.Timezone
 import com.sprintique.contract.TrimmedString
 import com.sprintique.contract.UUID
-import com.sprintique.workbench.application.FocusAction
-import com.sprintique.workbench.application.WaitOutcome
+import com.sprintique.workbench.application.RankMove
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
@@ -20,29 +19,35 @@ import tools.jackson.databind.annotation.JsonDeserialize
 
 // Request contracts of the Workbench, field for field the Zod schemas in contracts/workbench.ts.
 
-@Schema(name = "PutFollow")
-data class PutFollowRequest(
+@Schema(name = "PutParticipation")
+data class PutParticipationRequest(
     @field:Min(0) @field:Max(MAX_SAFE_INTEGER)
     val baseRevision: Long,
-    val following: Boolean,
+    val participating: Boolean,
 )
 
-enum class FocusActionWire(@get:JsonValue val wire: String, val action: FocusAction) {
-    ADD("add", FocusAction.ADD),
-    REMOVE("remove", FocusAction.REMOVE),
-    UP("up", FocusAction.UP),
-    DOWN("down", FocusAction.DOWN),
+enum class RankMoveWire(@get:JsonValue val wire: String, val move: RankMove) {
+    UP("up", RankMove.UP),
+    DOWN("down", RankMove.DOWN),
 }
 
-@Schema(name = "PutFocus")
-data class PutFocusRequest(
+@Schema(name = "PutRank")
+data class PutRankRequest(
     @field:Min(0) @field:Max(MAX_SAFE_INTEGER)
     val baseRevision: Long,
-    val action: FocusActionWire,
+    val move: RankMoveWire,
     /** Up and down move within the list the person sees: the Workbench project filter, null for every project. */
     @field:ResourceIds
     @field:Size(min = 1, max = FILTER_LIMIT)
     val projects: List<String>? = null,
+)
+
+@Schema(name = "PutCheckBack")
+data class PutCheckBackRequest(
+    @field:Min(0) @field:Max(MAX_SAFE_INTEGER)
+    val baseRevision: Long,
+    @field:IsoDate
+    val checkBackAt: String?,
 )
 
 @Schema(name = "PutSeen")
@@ -100,36 +105,6 @@ data class ChangeAttentionRequestRequest(
 data class AttentionRequestRevisionRequest(
     @field:Min(0) @field:Max(MAX_SAFE_INTEGER)
     val baseRevision: Long,
-)
-
-@Schema(name = "StartWaiting")
-data class StartWaitingRequest(
-    @field:Min(0) @field:Max(MAX_SAFE_INTEGER)
-    val baseRevision: Long,
-    @field:IsoDate
-    val checkBackAt: String? = null,
-    @field:Min(1) @field:Max(MAX_SAFE_INTEGER)
-    val sourceSequence: Long? = null,
-)
-
-@Schema(name = "ChangeWaiting")
-data class ChangeWaitingRequest(
-    @field:Min(0) @field:Max(MAX_SAFE_INTEGER)
-    val baseRevision: Long,
-    @field:IsoDate
-    val checkBackAt: String?,
-)
-
-enum class WaitOutcomeWire(@get:JsonValue val wire: String, val outcome: WaitOutcome) {
-    RESOLVED("resolved", WaitOutcome.RESOLVED),
-    CANCELLED("cancelled", WaitOutcome.CANCELLED),
-}
-
-@Schema(name = "CloseWaiting")
-data class CloseWaitingRequest(
-    @field:Min(0) @field:Max(MAX_SAFE_INTEGER)
-    val baseRevision: Long,
-    val outcome: WaitOutcomeWire,
 )
 
 @Schema(name = "PutWorkbenchPreferences")

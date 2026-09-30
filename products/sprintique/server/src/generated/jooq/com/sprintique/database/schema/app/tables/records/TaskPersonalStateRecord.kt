@@ -6,6 +6,7 @@ package com.sprintique.database.schema.app.tables.records
 
 import com.sprintique.database.schema.app.tables.TaskPersonalState
 
+import java.time.LocalDate
 import java.time.OffsetDateTime
 
 import org.jooq.Record3
@@ -27,19 +28,19 @@ open class TaskPersonalStateRecord() : UpdatableRecordImpl<TaskPersonalStateReco
         set(value): Unit = set(2, value)
         get(): String? = get(2) as String?
 
-    open var following: Boolean?
+    open var participating: Boolean?
         set(value): Unit = set(3, value)
         get(): Boolean? = get(3) as Boolean?
 
-    open var followRevision: Long?
+    open var participationRevision: Long?
         set(value): Unit = set(4, value)
         get(): Long? = get(4) as Long?
 
-    open var focusRank: Long?
+    open var rank: Long?
         set(value): Unit = set(5, value)
         get(): Long? = get(5) as Long?
 
-    open var focusRevision: Long?
+    open var rankRevision: Long?
         set(value): Unit = set(6, value)
         get(): Long? = get(6) as Long?
 
@@ -63,9 +64,17 @@ open class TaskPersonalStateRecord() : UpdatableRecordImpl<TaskPersonalStateReco
         set(value): Unit = set(11, value)
         get(): Long? = get(11) as Long?
 
-    open var updatedAt: OffsetDateTime?
+    open var checkBackAt: LocalDate?
         set(value): Unit = set(12, value)
-        get(): OffsetDateTime? = get(12) as OffsetDateTime?
+        get(): LocalDate? = get(12) as LocalDate?
+
+    open var checkBackRevision: Long?
+        set(value): Unit = set(13, value)
+        get(): Long? = get(13) as Long?
+
+    open var updatedAt: OffsetDateTime?
+        set(value): Unit = set(14, value)
+        get(): OffsetDateTime? = get(14) as OffsetDateTime?
 
     // -------------------------------------------------------------------------
     // Primary key information
@@ -73,19 +82,21 @@ open class TaskPersonalStateRecord() : UpdatableRecordImpl<TaskPersonalStateReco
 
     override fun key(): Record3<String?, String?, String?> = super.key() as Record3<String?, String?, String?>
 
-    constructor(projectId: String? = null, taskId: String? = null, principalId: String? = null, following: Boolean? = null, followRevision: Long? = null, focusRank: Long? = null, focusRevision: Long? = null, lastSeenSequence: Long? = null, seenRevision: Long? = null, snoozedUntil: OffsetDateTime? = null, snoozedAt: OffsetDateTime? = null, snoozeRevision: Long? = null, updatedAt: OffsetDateTime? = null): this() {
+    constructor(projectId: String? = null, taskId: String? = null, principalId: String? = null, participating: Boolean? = null, participationRevision: Long? = null, rank: Long? = null, rankRevision: Long? = null, lastSeenSequence: Long? = null, seenRevision: Long? = null, snoozedUntil: OffsetDateTime? = null, snoozedAt: OffsetDateTime? = null, snoozeRevision: Long? = null, checkBackAt: LocalDate? = null, checkBackRevision: Long? = null, updatedAt: OffsetDateTime? = null): this() {
         this.projectId = projectId
         this.taskId = taskId
         this.principalId = principalId
-        this.following = following
-        this.followRevision = followRevision
-        this.focusRank = focusRank
-        this.focusRevision = focusRevision
+        this.participating = participating
+        this.participationRevision = participationRevision
+        this.rank = rank
+        this.rankRevision = rankRevision
         this.lastSeenSequence = lastSeenSequence
         this.seenRevision = seenRevision
         this.snoozedUntil = snoozedUntil
         this.snoozedAt = snoozedAt
         this.snoozeRevision = snoozeRevision
+        this.checkBackAt = checkBackAt
+        this.checkBackRevision = checkBackRevision
         this.updatedAt = updatedAt
         resetTouchedOnNotNull()
     }

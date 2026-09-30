@@ -32,8 +32,6 @@ import com.sprintique.database.schema.app.keys.TASK_ACTIVITY__TASK_ACTIVITY_ACTO
 import com.sprintique.database.schema.app.keys.TASK_ACTIVITY__TASK_ACTIVITY_INITIATOR_ID_FKEY
 import com.sprintique.database.schema.app.keys.TASK_PERSONAL_STATE__TASK_PERSONAL_STATE_PRINCIPAL_ID_FKEY
 import com.sprintique.database.schema.app.keys.TASK_SETTINGS_VERSIONS__TASK_SETTINGS_VERSIONS_ACTOR_ID_FKEY
-import com.sprintique.database.schema.app.keys.TASK_WAIT_STATE__TASK_WAIT_STATE_EXPECTED_ASSIGNEE_ID_FKEY
-import com.sprintique.database.schema.app.keys.TASK_WAIT_STATE__TASK_WAIT_STATE_PRINCIPAL_ID_FKEY
 import com.sprintique.database.schema.app.keys.THREADS__THREADS_RESOLVED_BY_FKEY
 import com.sprintique.database.schema.app.keys.THREAD_READS__THREAD_READS_PRINCIPAL_ID_FKEY
 import com.sprintique.database.schema.app.keys.WORKBENCH_PREFERENCES__WORKBENCH_PREFERENCES_PRINCIPAL_ID_FKEY
@@ -61,7 +59,6 @@ import com.sprintique.database.schema.app.tables.Projects.ProjectsPath
 import com.sprintique.database.schema.app.tables.TaskActivity.TaskActivityPath
 import com.sprintique.database.schema.app.tables.TaskPersonalState.TaskPersonalStatePath
 import com.sprintique.database.schema.app.tables.TaskSettingsVersions.TaskSettingsVersionsPath
-import com.sprintique.database.schema.app.tables.TaskWaitState.TaskWaitStatePath
 import com.sprintique.database.schema.app.tables.Tasks.TasksPath
 import com.sprintique.database.schema.app.tables.ThreadReads.ThreadReadsPath
 import com.sprintique.database.schema.app.tables.Threads.ThreadsPath
@@ -504,30 +501,6 @@ open class Principals(
     val taskSettingsVersions: TaskSettingsVersionsPath
         get(): TaskSettingsVersionsPath = taskSettingsVersions()
 
-    private lateinit var _taskWaitStateExpectedAssigneeIdFkey: TaskWaitStatePath
-
-    fun taskWaitStateExpectedAssigneeIdFkey(): TaskWaitStatePath {
-        if (!this::_taskWaitStateExpectedAssigneeIdFkey.isInitialized)
-            _taskWaitStateExpectedAssigneeIdFkey = TaskWaitStatePath(this, null, TASK_WAIT_STATE__TASK_WAIT_STATE_EXPECTED_ASSIGNEE_ID_FKEY.inverseKey)
-
-        return _taskWaitStateExpectedAssigneeIdFkey;
-    }
-
-    val taskWaitStateExpectedAssigneeIdFkey: TaskWaitStatePath
-        get(): TaskWaitStatePath = taskWaitStateExpectedAssigneeIdFkey()
-
-    private lateinit var _taskWaitStatePrincipalIdFkey: TaskWaitStatePath
-
-    fun taskWaitStatePrincipalIdFkey(): TaskWaitStatePath {
-        if (!this::_taskWaitStatePrincipalIdFkey.isInitialized)
-            _taskWaitStatePrincipalIdFkey = TaskWaitStatePath(this, null, TASK_WAIT_STATE__TASK_WAIT_STATE_PRINCIPAL_ID_FKEY.inverseKey)
-
-        return _taskWaitStatePrincipalIdFkey;
-    }
-
-    val taskWaitStatePrincipalIdFkey: TaskWaitStatePath
-        get(): TaskWaitStatePath = taskWaitStatePrincipalIdFkey()
-
     private lateinit var _tasks: TasksPath
 
     fun tasks(): TasksPath {
@@ -674,12 +647,6 @@ open class Principals(
 
     val projects: ProjectsPath
         get(): ProjectsPath = projectMembers().projects()
-
-    val taskPersonalStateProjectIdTaskIdFkey: TasksPath
-        get(): TasksPath = taskPersonalState().tasks()
-
-    val taskWaitStateProjectIdTaskIdFkey: TasksPath
-        get(): TasksPath = taskWaitStatePrincipalIdFkey().tasks()
     override fun getChecks(): List<Check<PrincipalsRecord>> = listOf(
         Internal.createCheck(this, DSL.name("principals_agent_has_no_identity"), "(((kind = 'human'::text) OR ((issuer IS NULL) AND (subject IS NULL))))", true),
         Internal.createCheck(this, DSL.name("principals_email_check"), "(((email IS NULL) OR (((length(email) >= 3) AND (length(email) <= 320)) AND (POSITION(('@'::text) IN (email)) > 1))))", true),

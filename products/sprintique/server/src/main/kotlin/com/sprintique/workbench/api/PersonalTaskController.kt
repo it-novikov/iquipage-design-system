@@ -13,7 +13,6 @@ import com.sprintique.web.RequestValidationException
 import com.sprintique.workbench.application.AttentionRequests
 import com.sprintique.workbench.application.NewAttentionRequest
 import com.sprintique.workbench.application.PersonalState
-import com.sprintique.workbench.application.Waiting
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.context.annotation.Profile
 import org.springframework.web.bind.annotation.GetMapping
@@ -58,7 +57,7 @@ class PersonalTaskController(
             put(
                 "features",
                 linkedMapOf(
-                    "personal" to flags.isEnabled(Feature.WORKBENCH_PERSONAL_STATE),
+                    "participation" to flags.isEnabled(Feature.WORKBENCH_PERSONAL_STATE),
                     "requests" to flags.isEnabled(Feature.WORKBENCH_REQUESTS),
                     "waiting" to flags.isEnabled(Feature.WORKBENCH_WAITING),
                 ),
@@ -66,10 +65,11 @@ class PersonalTaskController(
         }
     }
 
-    @PutMapping("/tasks/{taskId}/personal/follow")
-    @Accepts(PutFollowRequest::class)
+    /** "Участвую": the person tracks the task and keeps it on their Workbench (docs/adr W5). */
+    @PutMapping("/tasks/{taskId}/personal/participation")
+    @Accepts(PutParticipationRequest::class)
     @Idempotent
-    fun follow(
+    fun participation(
         @PathVariable projectId: String,
         @PathVariable taskId: String,
         @RequestBody(required = false) body: JsonNode?,
@@ -77,14 +77,14 @@ class PersonalTaskController(
     ) = requests.run(request) { tx, actor ->
         flags.require(Feature.WORKBENCH_PERSONAL_STATE)
         ids(projectId, taskId)
-        val input = contracts.parse<PutFollowRequest>(body)
-        PersonalState.follow(tx, actor, projectId, taskId, input.baseRevision, input.following, key(request))
+        val input = contracts.parse<PutParticipationRequest>(body)
+        PersonalState.participation(tx, actor, projectId, taskId, input.baseRevision, input.participating, key(request))
     }
 
-    @PutMapping("/tasks/{taskId}/personal/focus")
-    @Accepts(PutFocusRequest::class)
+    @PutMapping("/tasks/{taskId}/personal/rank")
+    @Accepts(PutRankRequest::class)
     @Idempotent
-    fun focus(
+    fun rank(
         @PathVariable projectId: String,
         @PathVariable taskId: String,
         @RequestBody(required = false) body: JsonNode?,
@@ -92,9 +92,25 @@ class PersonalTaskController(
     ) = requests.run(request) { tx, actor ->
         flags.require(Feature.WORKBENCH_PERSONAL_STATE)
         ids(projectId, taskId)
-        val input = contracts.parse<PutFocusRequest>(body)
+        val input = contracts.parse<PutRankRequest>(body)
         val scope = input.projects?.distinct()?.sorted()
-        PersonalState.focus(tx, actor, projectId, taskId, input.baseRevision, input.action.action, scope, key(request))
+        PersonalState.rank(tx, actor, projectId, taskId, input.baseRevision, input.move.move, scope, key(request))
+    }
+
+    /** The private date to check delegated work ("Жду"); null clears it. */
+    @PutMapping("/tasks/{taskId}/personal/check-back")
+    @Accepts(PutCheckBackRequest::class)
+    @Idempotent
+    fun checkBack(
+        @PathVariable projectId: String,
+        @PathVariable taskId: String,
+        @RequestBody(required = false) body: JsonNode?,
+        request: HttpServletRequest,
+    ) = requests.run(request) { tx, actor ->
+        flags.require(Feature.WORKBENCH_WAITING)
+        ids(projectId, taskId)
+        val input = contracts.parse<PutCheckBackRequest>(body)
+        PersonalState.checkBack(tx, actor, projectId, taskId, input.baseRevision, input.checkBackAt, key(request))
     }
 
     @PutMapping("/tasks/{taskId}/personal/seen")
@@ -126,53 +142,6 @@ class PersonalTaskController(
         val input = contracts.parse<PutSnoozeRequest>(body)
         val until = input.until?.let(Instant::parse)
         PersonalState.snooze(tx, actor, projectId, taskId, input.baseRevision, until, key(request))
-    }
-
-    @PostMapping("/tasks/{taskId}/wait-state")
-    @Accepts(StartWaitingRequest::class)
-    @Idempotent
-    fun startWaiting(
-        @PathVariable projectId: String,
-        @PathVariable taskId: String,
-        @RequestBody(required = false) body: JsonNode?,
-        request: HttpServletRequest,
-    ) = requests.run(request) { tx, actor ->
-        flags.require(Feature.WORKBENCH_WAITING)
-        ids(projectId, taskId)
-        val input = contracts.parse<StartWaitingRequest>(body)
-        val key = key(request)
-        Waiting.start(tx, actor, projectId, taskId, input.baseRevision, input.checkBackAt, input.sourceSequence, key)
-    }
-
-    @PatchMapping("/tasks/{taskId}/wait-state")
-    @Accepts(ChangeWaitingRequest::class)
-    @Idempotent
-    fun changeWaiting(
-        @PathVariable projectId: String,
-        @PathVariable taskId: String,
-        @RequestBody(required = false) body: JsonNode?,
-        request: HttpServletRequest,
-    ) = requests.run(request) { tx, actor ->
-        flags.require(Feature.WORKBENCH_WAITING)
-        ids(projectId, taskId)
-        val input = contracts.parse<ChangeWaitingRequest>(body)
-        Waiting.change(tx, actor, projectId, taskId, input.baseRevision, input.checkBackAt, key(request))
-    }
-
-    /** Ending the control is a state with a receipt, not a deletion: the task and colleagues are untouched. */
-    @PostMapping("/tasks/{taskId}/wait-state/resolve")
-    @Accepts(CloseWaitingRequest::class)
-    @Idempotent
-    fun closeWaiting(
-        @PathVariable projectId: String,
-        @PathVariable taskId: String,
-        @RequestBody(required = false) body: JsonNode?,
-        request: HttpServletRequest,
-    ) = requests.run(request) { tx, actor ->
-        flags.require(Feature.WORKBENCH_WAITING)
-        ids(projectId, taskId)
-        val input = contracts.parse<CloseWaitingRequest>(body)
-        Waiting.close(tx, actor, projectId, taskId, input.baseRevision, input.outcome.outcome, key(request))
     }
 
     @PostMapping("/tasks/{taskId}/requests")

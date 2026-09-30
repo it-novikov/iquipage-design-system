@@ -19,7 +19,7 @@ class ReasonsTest {
         assertThat(Reasons.request("approval", null, null, null, null).code).isEqualTo("approval_to_you")
         val texts = listOf(
             reason.text,
-            Reasons.focus().text,
+            Reasons.participating().text,
             Reasons.assigned("in_progress", null).text,
             Reasons.update(activity("due", mapOf("from" to "2026-10-02", "to" to "2026-10-09")), true, "ready").text,
         )
@@ -32,7 +32,7 @@ class ReasonsTest {
         assertThat(Reasons.assigned("review", "API-31").code).isEqualTo("your_work_blocked")
         val moved = activity("due", mapOf("from" to "2026-10-02", "to" to "2026-10-09"))
         assertThat(Reasons.update(moved, true, "ready").text)
-            .isEqualTo("Вы следите: срок перенесён с 02.10 на 09.10")
+            .isEqualTo("Вы участвуете: срок перенесён с 02.10 на 09.10")
         assertThat(Reasons.update(activity("request", mapOf("change" to "orphaned")), false, "ready").text)
             .isEqualTo("Ваш запрос: адресат больше не в проекте")
     }

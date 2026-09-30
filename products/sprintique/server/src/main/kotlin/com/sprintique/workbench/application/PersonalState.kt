@@ -8,26 +8,27 @@ import com.sprintique.problem.requireCondition
 import java.time.Duration
 import java.time.Instant
 
-/** How a person changes a task's place in their focus. */
-enum class FocusAction(val wire: String) { ADD("add"), REMOVE("remove"), UP("up"), DOWN("down") }
+/** How a person moves a task they participate in within their own order. */
+enum class RankMove(val wire: String) { UP("up"), DOWN("down") }
 
 /**
- * A person's private relation to a task (docs/adr W2, W3): following, focus with its rank, the event watermark and a
- * snooze. Every field is changed by its own command against its own revision, so a seen marker from one tab never
- * collides with a focus move from another. Nothing here writes the project's audit, outbox or retry ledger.
+ * A person's private relation to a task (docs/adr W2, W3, W5): "Участвую" with the person's own order, the event
+ * watermark, a snooze of requests and a check-back date of delegated work. Every field is changed by its own command
+ * against its own revision, so a seen marker from one tab never collides with a move from another. Nothing here
+ * writes the project's audit, outbox or retry ledger.
  */
 object PersonalState {
-    const val FOCUS_LIMIT = 200
-    const val FOLLOW_LIMIT = 2000
+    const val PARTICIPATION_LIMIT = 2000
     private const val RANK_STEP = 1_048_576L
     private val SNOOZE_LIMIT: Duration = Duration.ofDays(30)
 
-    private const val PROJECTION = """following, follow_revision AS "followRevision", focus_rank AS "focusRank",
-        focus_revision AS "focusRevision", last_seen_sequence AS "lastSeenSequence", seen_revision AS "seenRevision",
+    private const val PROJECTION = """participating, participation_revision AS "participationRevision", rank,
+        rank_revision AS "rankRevision", last_seen_sequence AS "lastSeenSequence", seen_revision AS "seenRevision",
         to_char(snoozed_until AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS "snoozedUntil",
-        snooze_revision AS "snoozeRevision""""
+        snooze_revision AS "snoozeRevision", to_char(check_back_at, 'YYYY-MM-DD') AS "checkBackAt",
+        check_back_revision AS "checkBackRevision""""
 
-    /** The caller's own state of a task, with its waiting relation and the newest event position. */
+    /** The caller's own state of a task, "Жду" as derived from it, and the newest event position. */
     fun read(tx: Transaction, actor: Actor, projectId: String, taskId: String): Map<String, Any?> {
         WorkbenchAccess.task(tx, actor, projectId, taskId, Capability.TASKS_READ)
         val row = tx.row(
@@ -38,151 +39,174 @@ object PersonalState {
             taskId,
             actor.id,
         )
+        val participating = row?.get("participating") == true
         return linkedMapOf(
             "projectId" to projectId,
             "taskId" to taskId,
-            "following" to (row?.get("following") ?: false),
-            "followRevision" to revision(row, "followRevision"),
-            "focused" to (row?.get("focusRank") != null),
-            "focusRevision" to revision(row, "focusRevision"),
+            "participating" to participating,
+            "participationRevision" to revision(row, "participationRevision"),
+            "rankRevision" to revision(row, "rankRevision"),
             "lastSeenSequence" to row?.get("lastSeenSequence")?.toString()?.toLong(),
             "seenRevision" to revision(row, "seenRevision"),
             "snoozedUntil" to row?.get("snoozedUntil"),
             "snoozeRevision" to revision(row, "snoozeRevision"),
+            "checkBackAt" to row?.get("checkBackAt"),
+            "checkBackRevision" to revision(row, "checkBackRevision"),
             "latestSequence" to WorkbenchAccess.latestSequence(tx, projectId, taskId),
-            // The newest assignment: "Следить за результатом" right after assigning names it as its source.
-            "ownerSequence" to tx.row(
-                """
-                SELECT max(sequence) AS latest FROM app.task_activity
-                WHERE project_id = $1 AND task_id = $2 AND kind = 'owner'
-                """.trimIndent(),
-                projectId,
-                taskId,
-            )?.get("latest")?.toString()?.toLong(),
-            "waiting" to Waiting.current(tx, actor, projectId, taskId)?.let {
-                it.with("sourceSequence" to it["sourceSequence"]?.toString()?.toLong())
-            },
+            "delegated" to if (participating) delegation(tx, actor, projectId, taskId) else null,
         )
     }
 
     private fun revision(row: Row?, name: String): Long = row?.long(name) ?: 0L
 
+    /**
+     * "Жду" (docs/adr W5): the person participates and the task's current owner is someone else whom the person
+     * assigned it to (their latest assignment of it). Null when the task is not delegated by the person.
+     */
+    fun delegation(tx: Transaction, actor: Actor, projectId: String, taskId: String): Map<String, Any?>? = tx.row(
+        """
+        SELECT d.expected AS "expectedAssigneeId", t.owner_id AS "ownerId", d.sequence AS "assignedSequence"
+        FROM app.tasks t CROSS JOIN LATERAL (
+          SELECT e.detail->>'to' AS expected, e.sequence FROM app.task_activity e
+          WHERE e.project_id = t.project_id AND e.task_id = t.id AND e.kind = 'owner'
+            AND (e.actor_id = $3 OR e.initiator_id = $3) AND e.detail->>'to' IS NOT NULL AND e.detail->>'to' <> $3
+          ORDER BY e.sequence DESC LIMIT 1
+        ) d
+        WHERE t.project_id = $1 AND t.id = $2 AND t.owner_id IS DISTINCT FROM $3
+        """.trimIndent(),
+        projectId,
+        taskId,
+        actor.id,
+    )?.let {
+        LinkedHashMap<String, Any?>(it).apply { put("assignedSequence", it["assignedSequence"]?.toString()?.toLong()) }
+    }
+
+    /** "Участвую" on or off. Joining appends the task to the end of the person's order; leaving drops its rank. */
     @Suppress("LongParameterList")
-    fun follow(
+    fun participation(
         tx: Transaction,
         actor: Actor,
         projectId: String,
         taskId: String,
         baseRevision: Long,
-        following: Boolean,
+        participating: Boolean,
         key: String,
     ): Map<String, Any?> {
         WorkbenchAccess.task(tx, actor, projectId, taskId, Capability.TASKS_READ)
-        val input = mapOf("taskId" to taskId, "baseRevision" to baseRevision, "following" to following)
-        return PrivateLedger.once(tx, actor, projectId, "personal.follow", key, input) {
+        val input = mapOf("taskId" to taskId, "baseRevision" to baseRevision, "participating" to participating)
+        return PrivateLedger.once(tx, actor, projectId, "personal.participation", key, input) {
+            // Per person, before any row lock: the limit and the order span every project of the person.
+            tx.row("SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", "participation:${actor.id}")
             val current = lock(tx, actor, projectId, taskId)
-            requireRevision(current.long("follow_revision"), baseRevision)
-            var revision = current.long("follow_revision")
-            if (current.boolean("following") != following) {
-                if (following) {
-                    // Limits count under a per-person lock: two tabs cannot both take the last place.
-                    tx.row("SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", "follow:${actor.id}")
-                    startRelation(tx, actor, projectId, taskId)
-                    val count = tx.row(
-                        "SELECT count(*)::int AS n FROM app.task_personal_state WHERE principal_id = $1 AND following",
-                        actor.id,
-                    )!!.int("n")
+            requireRevision(current.long("participation_revision"), baseRevision)
+            val revision = if (current.boolean("participating") == participating) {
+                current.long("participation_revision")
+            } else {
+                if (participating) {
                     requireCondition(
-                        count < FOLLOW_LIMIT,
+                        count(tx, actor) < PARTICIPATION_LIMIT,
                         422,
-                        "FOLLOW_LIMIT",
-                        "Слишком много подписок. Снимите лишние.",
+                        "PARTICIPATION_LIMIT",
+                        "Вы участвуете в слишком многих задачах. Выйдите из лишних.",
                     )
+                    startRelation(tx, actor, projectId, taskId)
                 }
-                revision = tx.row(
-                    """
-                    UPDATE app.task_personal_state SET following = $4, follow_revision = follow_revision + 1,
-                           updated_at = clock_timestamp()
-                    WHERE project_id = $1 AND task_id = $2 AND principal_id = $3 RETURNING follow_revision
-                    """.trimIndent(),
-                    projectId,
-                    taskId,
-                    actor.id,
-                    following,
-                )!!.long("follow_revision")
+                write(tx, actor, projectId, taskId, participating, if (participating) nextRank(tx, actor) else null)
             }
-            PrivateEffect(taskId, revision, effect("follow", taskId, projectId, revision, "following" to following))
+            PrivateEffect(
+                taskId,
+                revision,
+                effect("participation", taskId, projectId, revision, "participating" to participating),
+            )
         }
     }
 
+    /**
+     * The author of a new task participates in it from the start (a person, not an agent), within the limit; leaving
+     * is one command. Part of the task's creation, so no receipt of its own.
+     */
+    fun joinCreatedTask(tx: Transaction, actor: Actor, projectId: String, taskId: String) {
+        if (!actor.isHuman) return
+        tx.row("SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", "participation:${actor.id}")
+        if (count(tx, actor) >= PARTICIPATION_LIMIT) return
+        lock(tx, actor, projectId, taskId)
+        startRelation(tx, actor, projectId, taskId)
+        write(tx, actor, projectId, taskId, true, nextRank(tx, actor))
+    }
+
+    private fun count(tx: Transaction, actor: Actor): Int = tx.row(
+        "SELECT count(*)::int AS n FROM app.task_personal_state WHERE principal_id = $1 AND participating",
+        actor.id,
+    )!!.int("n")
+
     @Suppress("LongParameterList")
-    fun focus(
+    private fun write(
+        tx: Transaction,
+        actor: Actor,
+        projectId: String,
+        taskId: String,
+        on: Boolean,
+        rank: Long?,
+    ): Long =
+        tx.row(
+            """
+            UPDATE app.task_personal_state SET participating = $4, participation_revision = participation_revision + 1,
+                   rank = $5, rank_revision = rank_revision + 1, updated_at = clock_timestamp()
+            WHERE project_id = $1 AND task_id = $2 AND principal_id = $3 RETURNING participation_revision
+            """.trimIndent(),
+            projectId,
+            taskId,
+            actor.id,
+            on,
+            rank,
+        )!!.long("participation_revision")
+
+    /** Up or down within the list the person sees: `scope` is the Workbench project filter (null: every project). */
+    @Suppress("LongParameterList")
+    fun rank(
         tx: Transaction,
         actor: Actor,
         projectId: String,
         taskId: String,
         baseRevision: Long,
-        action: FocusAction,
+        move: RankMove,
         scope: List<String>?,
         key: String,
     ): Map<String, Any?> {
         WorkbenchAccess.task(tx, actor, projectId, taskId, Capability.TASKS_READ)
-        val input = mapOf(
-            "taskId" to taskId, "baseRevision" to baseRevision, "action" to action.wire,
-            "projects" to scope,
-        )
-        return PrivateLedger.once(tx, actor, projectId, "personal.focus", key, input) {
-            // One person's focus order spans projects: moves are serialized per person, and this lock comes before
-            // any row lock, so a renumbering never waits on a row another focus command holds.
-            tx.row("SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", "focus:${actor.id}")
+        val input = mapOf("taskId" to taskId, "baseRevision" to baseRevision, "move" to move.wire, "projects" to scope)
+        return PrivateLedger.once(tx, actor, projectId, "personal.rank", key, input) {
+            // Per person before any row lock: a renumbering never waits on a row another command of theirs holds.
+            tx.row("SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", "participation:${actor.id}")
             val current = lock(tx, actor, projectId, taskId)
-            requireRevision(current.long("focus_revision"), baseRevision)
-            val focused = current["focus_rank"] != null
-            val rank: Long? = when (action) {
-                FocusAction.ADD -> if (focused) current.long("focus_rank") else nextRank(tx, actor)
-
-                FocusAction.REMOVE -> null
-
-                FocusAction.UP, FocusAction.DOWN -> {
-                    requireCondition(focused, 422, "FOCUS_MISSING", "Задача не в фокусе.")
-                    move(tx, actor, projectId, taskId, action == FocusAction.UP, scope)
-                }
-            }
-            val changed = (rank != null) != focused || (rank != null && rank != current.long("focus_rank"))
-            var revision = current.long("focus_revision")
-            if (changed) {
-                revision = tx.row(
-                    """
-                    UPDATE app.task_personal_state SET focus_rank = $4, focus_revision = focus_revision + 1,
-                           updated_at = clock_timestamp()
-                    WHERE project_id = $1 AND task_id = $2 AND principal_id = $3 RETURNING focus_revision
-                    """.trimIndent(),
-                    projectId,
-                    taskId,
-                    actor.id,
-                    rank,
-                )!!.long("focus_revision")
-            }
-            PrivateEffect(taskId, revision, effect("focus", taskId, projectId, revision, "focused" to (rank != null)))
+            requireRevision(current.long("rank_revision"), baseRevision)
+            requireCondition(current.boolean("participating"), 422, "NOT_PARTICIPATING", "Вы не участвуете в задаче.")
+            val rank = move(tx, actor, projectId, taskId, move == RankMove.UP, scope)
+            val revision = tx.row(
+                """
+                UPDATE app.task_personal_state SET rank = $4, rank_revision = rank_revision + 1, updated_at = clock_timestamp()
+                WHERE project_id = $1 AND task_id = $2 AND principal_id = $3 RETURNING rank_revision
+                """.trimIndent(),
+                projectId,
+                taskId,
+                actor.id,
+                rank,
+            )!!.long("rank_revision")
+            PrivateEffect(taskId, revision, effect("rank", taskId, projectId, revision, "move" to move.wire))
         }
     }
 
-    private fun nextRank(tx: Transaction, actor: Actor): Long {
-        val row = tx.row(
-            """
-            SELECT count(*)::int AS n, coalesce(max(focus_rank), 0) AS last FROM app.task_personal_state
-            WHERE principal_id = $1 AND focus_rank IS NOT NULL
-            """.trimIndent(),
-            actor.id,
-        )!!
-        requireCondition(row.int("n") < FOCUS_LIMIT, 422, "FOCUS_LIMIT", "В фокусе уже 200 задач. Уберите лишние.")
-        return row.long("last") + RANK_STEP
-    }
+    private fun nextRank(tx: Transaction, actor: Actor): Long = tx.row(
+        """
+        SELECT coalesce(max(rank), 0) AS last FROM app.task_personal_state WHERE principal_id = $1 AND participating
+        """.trimIndent(),
+        actor.id,
+    )!!.long("last") + RANK_STEP
 
     /**
-     * The rank that places the task one step up or down in the list the person sees: their focus in `scope` (the
-     * Workbench project filter; null is every project). Ranks keep gaps; with no gap left the person's whole focus is
-     * renumbered in its current order first. Ranks encode order only, so the other rows keep their revisions.
+     * The rank that places the task one step up or down in the list the person sees. Ranks keep gaps; with no gap
+     * left the person's whole order is renumbered in its current order first. Ranks encode order only, so the other
+     * rows keep their revisions.
      */
     @Suppress("LongParameterList")
     private fun move(
@@ -193,35 +217,34 @@ object PersonalState {
         up: Boolean,
         scope: List<String>?,
     ): Long {
-        val order = focusOrder(tx, actor, scope)
+        val order = rankOrder(tx, actor, scope)
         val index = order.indexOfFirst { it["projectId"] == projectId && it["taskId"] == taskId }
         val target = if (up) index - 1 else index + 1
-        requireCondition(index >= 0 && target in order.indices, 422, "FOCUS_EDGE", "Задача уже на краю списка.")
+        requireCondition(index >= 0 && target in order.indices, 422, "RANK_EDGE", "Задача уже на краю списка.")
         placeBetween(order, index, target)?.let { return it }
         tx.update(
             """
-            UPDATE app.task_personal_state s SET focus_rank = o.position * $2
-            FROM (SELECT project_id, task_id, row_number() OVER (ORDER BY focus_rank, project_id, task_id) AS position
-                  FROM app.task_personal_state WHERE principal_id = $1 AND focus_rank IS NOT NULL) o
+            UPDATE app.task_personal_state s SET rank = o.position * $2
+            FROM (SELECT project_id, task_id, row_number() OVER (ORDER BY rank, project_id, task_id) AS position
+                  FROM app.task_personal_state WHERE principal_id = $1 AND participating) o
             WHERE s.principal_id = $1 AND s.project_id = o.project_id AND s.task_id = o.task_id
             """.trimIndent(),
             actor.id,
             RANK_STEP,
         )
-        return requireNotNull(placeBetween(focusOrder(tx, actor, scope), index, target))
+        return requireNotNull(placeBetween(rankOrder(tx, actor, scope), index, target))
     }
 
-    private fun focusOrder(tx: Transaction, actor: Actor, scope: List<String>?): List<Row> = tx.rows(
+    private fun rankOrder(tx: Transaction, actor: Actor, scope: List<String>?): List<Row> = tx.rows(
         """
-        SELECT project_id AS "projectId", task_id AS "taskId", focus_rank AS rank FROM app.task_personal_state
-        WHERE principal_id = $1 AND focus_rank IS NOT NULL AND ($2::text[] IS NULL OR project_id = ANY($2::text[]))
-        ORDER BY focus_rank, project_id, task_id
+        SELECT project_id AS "projectId", task_id AS "taskId", rank FROM app.task_personal_state
+        WHERE principal_id = $1 AND participating AND ($2::text[] IS NULL OR project_id = ANY($2::text[]))
+        ORDER BY rank, project_id, task_id
         """.trimIndent(),
         actor.id,
         scope,
     )
 
-    /** A rank strictly between the new neighbours of the moved row, or null when they leave no gap. */
     private fun placeBetween(order: List<Row>, index: Int, target: Int): Long? {
         val reordered = order.toMutableList().apply { add(target, removeAt(index)) }
         val before = reordered.getOrNull(target - 1)?.long("rank") ?: 0L
@@ -339,6 +362,50 @@ object PersonalState {
         )
     }
 
+    /** The person's own date to check delegated work: private, never the task's due date (docs/adr W5). */
+    @Suppress("LongParameterList")
+    fun checkBack(
+        tx: Transaction,
+        actor: Actor,
+        projectId: String,
+        taskId: String,
+        baseRevision: Long,
+        checkBackAt: String?,
+        key: String,
+    ): Map<String, Any?> {
+        WorkbenchAccess.task(tx, actor, projectId, taskId, Capability.TASKS_READ)
+        val input = mapOf("taskId" to taskId, "baseRevision" to baseRevision, "checkBackAt" to checkBackAt)
+        return PrivateLedger.once(tx, actor, projectId, "personal.check-back", key, input) {
+            val current = lock(tx, actor, projectId, taskId)
+            requireRevision(current.long("check_back_revision"), baseRevision)
+            val waiting = current.boolean("participating") && delegation(tx, actor, projectId, taskId) != null
+            requireCondition(
+                checkBackAt == null || waiting,
+                422,
+                "NOT_WAITING",
+                "Дату проверки ставят для задачи, которую вы поручили и в которой участвуете.",
+            )
+            val revision = tx.row(
+                """
+                UPDATE app.task_personal_state SET check_back_at = $4::date, check_back_revision = check_back_revision + 1,
+                       updated_at = clock_timestamp()
+                WHERE project_id = $1 AND task_id = $2 AND principal_id = $3 RETURNING check_back_revision
+                """.trimIndent(),
+                projectId,
+                taskId,
+                actor.id,
+                checkBackAt,
+            )!!.long("check_back_revision")
+            PrivateEffect(
+                taskId, revision,
+                effect(
+                    "checkBack", taskId, projectId, revision,
+                    "checkBackAt" to checkBackAt,
+                ),
+            )
+        }
+    }
+
     /**
      * The person's state row, created empty on first use and locked: every field command checks its own revision
      * against this row, so concurrent commands on different fields serialize without conflicting.
@@ -371,9 +438,9 @@ object PersonalState {
         linkedMapOf("command" to field, "projectId" to projectId, "taskId" to taskId, "revision" to revision, value)
 
     /**
-     * A relation that starts from nothing (a follow, a waiting control, an own request) starts at the task's current
-     * events: history before it is not news (docs/adr W3 §5). Called before the new relation is written; while
-     * another relation already holds, the person's marker and their unseen news are kept.
+     * A relation that starts from nothing (participation, an own request) starts at the task's current events:
+     * history before it is not news (docs/adr W3 §5). Called before the new relation is written; while another
+     * relation already holds, the person's marker and their unseen news are kept.
      */
     fun startRelation(tx: Transaction, actor: Actor, projectId: String, taskId: String) {
         tx.update(
@@ -384,9 +451,7 @@ object PersonalState {
               SET last_seen_sequence = greatest(coalesce(app.task_personal_state.last_seen_sequence, 0),
                                                 EXCLUDED.last_seen_sequence),
                   seen_revision = app.task_personal_state.seen_revision + 1
-              WHERE NOT app.task_personal_state.following
-                AND NOT EXISTS (SELECT 1 FROM app.task_wait_state w WHERE w.project_id = $1 AND w.task_id = $2
-                                AND w.principal_id = $3 AND w.state = 'active')
+              WHERE NOT app.task_personal_state.participating
                 AND NOT EXISTS (SELECT 1 FROM app.attention_requests r WHERE r.project_id = $1 AND r.task_id = $2
                                 AND r.requested_by = $3
                                 AND (r.status IN ('open', 'orphaned') OR r.updated_at > now() - interval '30 days'))

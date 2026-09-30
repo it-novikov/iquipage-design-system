@@ -44,8 +44,8 @@ class FeatureFilter(private val flags: FeatureFlags) : OncePerRequestFilter() {
             Regex("$TASK/personal/snooze$") to { f ->
                 f.isEnabled(Feature.WORKBENCH_PERSONAL_STATE) && f.isEnabled(Feature.WORKBENCH_REQUESTS)
             },
-            Regex("$TASK/personal/(follow|focus)$") to { f -> f.isEnabled(Feature.WORKBENCH_PERSONAL_STATE) },
-            Regex("$TASK/wait-state(/resolve)?$") to { f -> f.isEnabled(Feature.WORKBENCH_WAITING) },
+            Regex("$TASK/personal/(participation|rank)$") to { f -> f.isEnabled(Feature.WORKBENCH_PERSONAL_STATE) },
+            Regex("$TASK/personal/check-back$") to { f -> f.isEnabled(Feature.WORKBENCH_WAITING) },
             Regex("$TASK/requests$") to { f -> f.isEnabled(Feature.WORKBENCH_REQUESTS) },
             Regex("^/api/v1/projects/[^/]+/requests/[^/]+(/(resolve|reopen|cancel))?$") to { f ->
                 f.isEnabled(Feature.WORKBENCH_REQUESTS)

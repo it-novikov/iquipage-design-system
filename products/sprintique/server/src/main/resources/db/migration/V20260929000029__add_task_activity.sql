@@ -18,7 +18,6 @@ CREATE INDEX task_activity_task ON app.task_activity(project_id,task_id,sequence
 ALTER TABLE app.task_activity ENABLE ROW LEVEL SECURITY;
 ALTER TABLE app.task_activity FORCE ROW LEVEL SECURITY;
 CREATE POLICY tenant_policy ON app.task_activity USING(auth.can_project(project_id)) WITH CHECK(auth.can_project(project_id));
-ALTER TABLE app.task_wait_state ADD CONSTRAINT wait_state_source FOREIGN KEY(project_id,source_sequence) REFERENCES app.task_activity(project_id,sequence);
 
 -- The position is allocated under the project row lock, so position order is commit order (as outbox positions).
 -- Without a request actor (a migration, a maintenance script) nothing is recorded: there is nobody to attribute.

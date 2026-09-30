@@ -36,7 +36,6 @@ import com.sprintique.database.schema.app.tables.TaskPersonalState
 import com.sprintique.database.schema.app.tables.TaskSettings
 import com.sprintique.database.schema.app.tables.TaskSettingsVersions
 import com.sprintique.database.schema.app.tables.TaskTags
-import com.sprintique.database.schema.app.tables.TaskWaitState
 import com.sprintique.database.schema.app.tables.Tasks
 import com.sprintique.database.schema.app.tables.TemporalConstraints
 import com.sprintique.database.schema.app.tables.ThreadReads
@@ -123,8 +122,6 @@ open class App : SchemaImpl(DSL.name("app"), DefaultCatalog.DEFAULT_CATALOG, DSL
 
     val TASK_TAGS: TaskTags get() = TaskTags.TASK_TAGS
 
-    val TASK_WAIT_STATE: TaskWaitState get() = TaskWaitState.TASK_WAIT_STATE
-
     val TASKS: Tasks get() = Tasks.TASKS
 
     val TEMPORAL_CONSTRAINTS: TemporalConstraints get() = TemporalConstraints.TEMPORAL_CONSTRAINTS
@@ -175,7 +172,6 @@ open class App : SchemaImpl(DSL.name("app"), DefaultCatalog.DEFAULT_CATALOG, DSL
         TaskSettings.TASK_SETTINGS,
         TaskSettingsVersions.TASK_SETTINGS_VERSIONS,
         TaskTags.TASK_TAGS,
-        TaskWaitState.TASK_WAIT_STATE,
         Tasks.TASKS,
         TemporalConstraints.TEMPORAL_CONSTRAINTS,
         ThreadReads.THREAD_READS,

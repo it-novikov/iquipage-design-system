@@ -57,9 +57,9 @@ class WorkbenchCapacityIntegrationTest {
 
         @Suppress("UNCHECKED_CAST")
         val groups = (current["groups"] as List<Map<String, Any?>>).associate { it["key"] to it["count"] }
-        // Focus wins over active work and over updates for the tasks that carry both reasons: 25 focused (5 of them
-        // assigned and active), 35 more active, 10 waiting; 50 followed tasks with news, 20 of them already in focus.
-        assertThat(groups).isEqualTo(mapOf("focus" to 25L, "active" to 35L, "waiting" to 10L))
+        // Precedence action > active > waiting > updates > participating: 40 active (5 of them also participating),
+        // 10 delegated, 30 participating tasks with news, 20 participating without.
+        assertThat(groups).isEqualTo(mapOf("participating" to 20L, "active" to 40L, "waiting" to 10L))
         assertThat(current["backlogCount"]).isEqualTo(60L)
         assertThat(updates["count"]).isEqualTo(30L)
         assertThat(rows.size).isLessThanOrEqualTo(5 * Workbench.DEFAULT_LIMIT)
@@ -162,31 +162,31 @@ class WorkbenchCapacityIntegrationTest {
                 suffix,
                 person,
             )
-            // Personal state on tasks 4–13 of projects 1–5: focus on 20, follow on 50; the same on revoked 56–60.
+            // "Участвую" on tasks 4–13 and on the assigned task 1 of projects 1–5; the same on revoked 56–60.
             tx.update(
                 """
-                INSERT INTO app.task_personal_state(project_id, task_id, principal_id, following, focus_rank, last_seen_sequence)
-                SELECT $p || n, 't' || t, $2, true, CASE WHEN t <= 7 AND n <= 5 THEN n * 100 + t END, 0
-                FROM generate_series(1, 5) n, generate_series(4, 13) t
+                INSERT INTO app.task_personal_state(project_id, task_id, principal_id, participating, rank, last_seen_sequence)
+                SELECT $p || n, 't' || t, $2, true, n * 100 + t, 0 FROM generate_series(1, 5) n, generate_series(4, 13) t
+                UNION ALL SELECT $p || n, 't1', $2, true, n, 0 FROM generate_series(1, 5) n
                 UNION ALL SELECT $p || n, 't' || t, $2, true, n * 100 + t, 0 FROM generate_series(56, 60) n, generate_series(4, 13) t
                 """.trimIndent(),
                 suffix,
                 person,
             )
-            // Duplicates: 5 of the focused tasks are also assigned active work (task 1 of projects 1–5 into focus).
+            // "Жду": 10 participating tasks (projects 6–15, task 14) the person assigned to the colleague.
             tx.update(
                 """
-                INSERT INTO app.task_personal_state(project_id, task_id, principal_id, focus_rank)
-                SELECT $p || n, 't1', $2, n FROM generate_series(1, 5) n
+                INSERT INTO app.task_personal_state(project_id, task_id, principal_id, participating, rank, last_seen_sequence)
+                SELECT $p || n, 't14', $2, true, 9000 + n, 5000 FROM generate_series(6, 15) n
                 """.trimIndent(),
                 suffix,
                 person,
             )
-            // 10 waiting relations (projects 6–15, task 14).
             tx.update(
                 """
-                INSERT INTO app.task_wait_state(project_id, task_id, principal_id, expected_assignee_id)
-                SELECT $p || n, 't14', $2, $3 FROM generate_series(6, 15) n
+                INSERT INTO app.task_activity(project_id, sequence, task_id, kind, actor_id, detail)
+                SELECT $p || n, 5000, 't14', 'owner', $2, jsonb_build_object('from', null, 'to', $3::text)
+                FROM generate_series(6, 15) n
                 """.trimIndent(),
                 suffix,
                 person,
@@ -202,12 +202,12 @@ class WorkbenchCapacityIntegrationTest {
                 person,
                 colleague,
             )
-            // Dense events: 30 per followed task, by the colleague, plus 40 000 events on unrelated projects.
+            // Dense events: 30 per participating task 8–13, by the colleague, plus 40 000 on unrelated projects.
             tx.update(
                 """
                 INSERT INTO app.task_activity(project_id, sequence, task_id, kind, actor_id, detail)
-                SELECT $p || n, (t - 4) * 30 + e, 't' || t, 'status', $2, '{"from":"ready","to":"in_progress"}'::jsonb
-                FROM generate_series(1, 5) n, generate_series(4, 13) t, generate_series(1, 30) e
+                SELECT $p || n, (t - 8) * 30 + e, 't' || t, 'status', $2, '{"from":"ready","to":"in_progress"}'::jsonb
+                FROM generate_series(1, 5) n, generate_series(8, 13) t, generate_series(1, 30) e
                 UNION ALL
                 SELECT $p || n, 1000 + t * 2 + e, 't' || t, 'due', $2, '{}'::jsonb
                 FROM generate_series(61, 260) n, generate_series(1, 100) t, generate_series(1, 2) e

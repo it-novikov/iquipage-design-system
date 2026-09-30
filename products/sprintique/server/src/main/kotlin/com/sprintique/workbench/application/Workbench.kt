@@ -17,7 +17,9 @@ data class WorkbenchParts(val requests: Boolean, val personal: Boolean, val wait
 /**
  * The Workbench "Сейчас" projection (docs/adr W4): one set-based statement over the caller's authorized projects,
  * so counts and first pages share one snapshot. Candidate reasons are deduplicated per task before any page is cut:
- * `action > focus > active > waiting > updates`. Nothing is filtered after SQL; row security applies underneath.
+ * `action > active > waiting > updates > participating`: news on a task the person participates in surfaces in
+ * "Изменилось"; once seen, the task returns to "Участвую". Nothing is filtered after SQL; row security applies
+ * underneath.
  */
 object Workbench {
     const val PROJECT_LIMIT = 1000
@@ -28,7 +30,7 @@ object Workbench {
     private val json = JsonMapper.builder().build()
 
     /** The sections and groups of the default view, and the filter lists. */
-    val SECTIONS = listOf("action", "focus", "active", "waiting", "updates", "snoozed", "backlog")
+    val SECTIONS = listOf("action", "participating", "active", "waiting", "updates", "snoozed", "backlog")
 
     /** The first screen: every section's count and first page from one snapshot. */
     fun envelope(
@@ -55,7 +57,7 @@ object Workbench {
             pageOf(bucketRows, limit, count, CursorScope(actor.id, epoch, bucket, filter), cursors, parts)
         }
         val action = page("action")
-        val focus = page("focus")
+        val participating = page("participating")
         val active = page("active")
         val waiting = page("waiting")
         val updates = page("updates")
@@ -63,9 +65,13 @@ object Workbench {
             section("action", action, extras = mapOf("snoozedCount" to extras.long("snoozed_count"))),
             linkedMapOf(
                 "key" to "current",
-                "count" to (focus.count + active.count + waiting.count),
+                "count" to (participating.count + active.count + waiting.count),
                 "backlogCount" to extras.long("backlog_count"),
-                "groups" to listOf(group("focus", focus), group("active", active), group("waiting", waiting)),
+                "groups" to listOf(
+                    group("participating", participating),
+                    group("active", active),
+                    group("waiting", waiting),
+                ),
             ),
             section("updates", updates, capped = true),
         )
@@ -74,8 +80,11 @@ object Workbench {
             "generatedAt" to extras["generated_at"],
             "snapshotToken" to snapshotToken(epoch, filter, sections),
             "scope" to scopeOf(extras, projects),
-            "features" to
-                linkedMapOf("requests" to parts.requests, "personal" to parts.personal, "waiting" to parts.waiting),
+            "features" to linkedMapOf(
+                "requests" to parts.requests,
+                "participation" to parts.personal,
+                "waiting" to parts.waiting,
+            ),
             "sections" to sections,
         )
     }
@@ -219,7 +228,7 @@ object Workbench {
 
     private val SECTION_OF = mapOf(
         "action" to ("action" to null),
-        "focus" to ("current" to "focus"),
+        "participating" to ("current" to "participating"),
         "active" to ("current" to "active"),
         "waiting" to ("current" to "waiting"),
         "updates" to ("updates" to null),
@@ -264,6 +273,12 @@ object Workbench {
             "taskRevision" to row.long("task_revision"),
             "title" to row["title"],
             "status" to row["status"],
+            // Board and calendar views group by these without another round trip.
+            "statusCategory" to when {
+                row.boolean("done") -> "done"
+                row.string("status") == "ready" -> "todo"
+                else -> "active"
+            },
             "type" to row["type"],
             "priority" to row["priority"],
             "done" to row.boolean("done"),
@@ -286,9 +301,8 @@ object Workbench {
                     "openCount" to row.long("open_requests"),
                 )
             },
-            "waiting" to row["wait_revision"]?.let {
+            "waiting" to if (row.boolean("delegated")) {
                 linkedMapOf(
-                    "revision" to row.long("wait_revision"),
                     "checkBackAt" to row["check_back_at"],
                     "expectedAssignee" to if (row.boolean("expected_is_member")) {
                         person(row["expected_assignee_id"], row["expected_name"])
@@ -296,7 +310,10 @@ object Workbench {
                         null
                     },
                     "expectedAssigneeLeft" to !row.boolean("expected_is_member"),
+                    "assignedAt" to row["assigned_at"],
                 )
+            } else {
+                null
             },
             "updates" to row["unseen_count"]?.let {
                 linkedMapOf(
@@ -307,14 +324,15 @@ object Workbench {
                 )
             },
             "personal" to linkedMapOf(
-                "following" to (row["following"] ?: false),
-                "followRevision" to (row["follow_revision"]?.toString()?.toLong() ?: 0L),
-                "focused" to (row["focus_rank"] != null),
-                "focusRevision" to (row["focus_revision"]?.toString()?.toLong() ?: 0L),
+                "participating" to (row["participating"] ?: false),
+                "participationRevision" to (row["participation_revision"]?.toString()?.toLong() ?: 0L),
+                "rankRevision" to (row["rank_revision"]?.toString()?.toLong() ?: 0L),
                 "lastSeenSequence" to row["last_seen_sequence"]?.toString()?.toLong(),
                 "seenRevision" to (row["seen_revision"]?.toString()?.toLong() ?: 0L),
                 "snoozedUntil" to row["snoozed_until"],
                 "snoozeRevision" to (row["snooze_revision"]?.toString()?.toLong() ?: 0L),
+                "checkBackAt" to row["check_back_at"],
+                "checkBackRevision" to (row["check_back_revision"]?.toString()?.toLong() ?: 0L),
             ),
             "latestSequence" to (row["latest_sequence"]?.toString()?.toLong() ?: 0L),
             "blockedBy" to
@@ -356,12 +374,12 @@ object Workbench {
     private fun activeReason(row: Row) = Reasons.assigned(row.string("status"), row.stringOrNull("blocker_display_id"))
 
     private fun updateReason(row: Row, latest: Activity) =
-        Reasons.update(latest, row["following"] == true, row.string("status"))
+        Reasons.update(latest, row["participating"] == true, row.string("status"))
 
     private fun reasonsOf(row: Row, latest: Activity?): List<Reason> = listOf(
         when (row.string("bucket")) {
             "action", "snoozed" -> requestReason(row)
-            "focus" -> Reasons.focus()
+            "participating" -> Reasons.participating()
             "active" -> activeReason(row)
             "waiting" -> waitingReason(row, latest)
             "backlog" -> Reasons.backlog()
@@ -377,35 +395,32 @@ object Workbench {
             if (weight == WEIGHT[bucket]) continue
             when (weight) {
                 ACTION_WEIGHT -> if (row.stringOrNull("request_id") != null) add(requestReason(row))
-
-                FOCUS_WEIGHT -> add(Reasons.focus())
-
+                PARTICIPATING_WEIGHT -> add(Reasons.participating())
                 ACTIVE_WEIGHT -> add(activeReason(row))
-
                 WAITING_WEIGHT -> add(waitingReason(row, latest))
-
-                UPDATES_WEIGHT -> latest?.let {
-                    add(Reasons.update(it, row["following"] == true, row.string("status")))
-                }
+                UPDATES_WEIGHT -> latest?.let { add(updateReason(row, it)) }
             }
         }
-        if (row["following"] == true && bucket != "updates" && weights.none { it == UPDATES_WEIGHT }) {
-            add(Reason("following", "Вы следите за задачей"))
+        // Participation is a quiet fact behind a stronger placement (active or delegated work, a request).
+        if (row["participating"] == true && bucket in setOf("action", "active", "waiting") &&
+            weights.none { it == PARTICIPATING_WEIGHT }
+        ) {
+            add(Reasons.participating())
         }
     }
 
     // The precedence of a task's placement, as the statement ranks candidates: lower wins.
     private const val ACTION_WEIGHT = 1
-    private const val FOCUS_WEIGHT = 2
-    private const val ACTIVE_WEIGHT = 3
-    private const val WAITING_WEIGHT = 4
-    private const val UPDATES_WEIGHT = 5
+    private const val ACTIVE_WEIGHT = 2
+    private const val WAITING_WEIGHT = 3
+    private const val UPDATES_WEIGHT = 4
+    private const val PARTICIPATING_WEIGHT = 5
     private val WEIGHT = mapOf(
         "action" to ACTION_WEIGHT,
-        "focus" to FOCUS_WEIGHT,
         "active" to ACTIVE_WEIGHT,
         "waiting" to WAITING_WEIGHT,
         "updates" to UPDATES_WEIGHT,
+        "participating" to PARTICIPATING_WEIGHT,
     )
 
     /** A hint for the interface only: the server checks every command again. */
@@ -413,22 +428,22 @@ object Workbench {
         add("open")
         add("openProject")
         if (parts.personal) {
-            add(if (row["focus_rank"] != null) "unfocus" else "focus")
-            if (row["focus_rank"] != null) addAll(listOf("rankUp", "rankDown"))
-            add(if (row["following"] == true) "unfollow" else "follow")
+            add(if (row["participating"] == true) "leave" else "participate")
+            if (bucket == "participating") addAll(listOf("rankUp", "rankDown"))
         }
         if (row.stringOrNull("request_id") != null) {
             add("resolveRequest")
             if (parts.personal) add(if (bucket == "snoozed") "unsnooze" else "snooze")
         }
-        if (row["wait_revision"] != null) addAll(listOf("resolveWaiting", "cancelWaiting", "changeCheckBack"))
-        // Seen moves the watermark that requests and waiting also count news from.
+        if (row.boolean("delegated")) add("changeCheckBack")
+        // Seen moves the watermark that requests count news from as well.
         if (row["unseen_count"] != null) add("markSeen")
     }
 
     /**
-     * The statement. `$1` actor, `$2` project filter (null: all), `$3`–`$5` enabled parts; the rest depends on the
-     * final part. Every CTE starts from the caller's memberships; foreign projects never enter a count.
+     * The statement. `$1` actor, `$2` project filter (null: all), `$3` requests, `$4` personal state (participation),
+     * `$5` waiting; the rest depends on the final part. Every CTE starts from the caller's memberships; foreign
+     * projects never enter a count.
      */
     // One statement is one snapshot: its CTEs stay together, in the order the ADR describes them.
     @Suppress("LongMethod")
@@ -457,7 +472,7 @@ object Workbench {
           WHERE m.principal_id = $1 AND ($2::text[] IS NULL OR p.id = ANY($2::text[]))
           ORDER BY p.id LIMIT $PROJECT_LIMIT
         ), personal AS MATERIALIZED (
-          -- Watermarks are read whatever is switched on: requests and waiting count news from them too.
+          -- Watermarks are read whatever is switched on: requests count news from them too.
           SELECT s.* FROM app.task_personal_state s JOIN authorized a ON a.id = s.project_id
           WHERE s.principal_id = $1
         ), requests AS MATERIALIZED (
@@ -473,9 +488,19 @@ object Workbench {
           SELECT DISTINCT ON (project_id, task_id) *, count(*) OVER (PARTITION BY project_id, task_id) AS open_requests
           FROM requests WHERE $leadFromSnoozed
           ORDER BY project_id, task_id, needed_by NULLS LAST, created_at, id
-        ), waits AS MATERIALIZED (
-          SELECT w.* FROM app.task_wait_state w JOIN authorized a ON a.id = w.project_id
-          WHERE $5::boolean AND w.principal_id = $1 AND w.state = 'active'
+        ), participating AS MATERIALIZED (
+          SELECT project_id, task_id, rank FROM personal WHERE participating AND $4::boolean
+        ), delegated AS MATERIALIZED (
+          -- "Жду": a task the person participates in and assigned to someone else, who still owns it (docs/adr W5).
+          SELECT p.project_id, p.task_id, d.expected, d.assigned_at
+          FROM participating p JOIN app.tasks t ON t.project_id = p.project_id AND t.id = p.task_id
+          CROSS JOIN LATERAL (
+            SELECT e.detail->>'to' AS expected, e.created_at AS assigned_at FROM app.task_activity e
+            WHERE e.project_id = p.project_id AND e.task_id = p.task_id AND e.kind = 'owner'
+              AND (e.actor_id = $1 OR e.initiator_id = $1) AND e.detail->>'to' IS NOT NULL AND e.detail->>'to' <> $1
+            ORDER BY e.sequence DESC LIMIT 1
+          ) d
+          WHERE $5::boolean AND t.owner_id IS DISTINCT FROM $1
         ), assigned AS MATERIALIZED (
           SELECT t.project_id, t.id AS task_id FROM app.tasks t JOIN authorized a ON a.id = t.project_id
           WHERE t.owner_id = $1 AND t.result = 'open' AND t.status IN ('in_progress', 'review', 'ready_for_testing', 'testing')
@@ -484,10 +509,9 @@ object Workbench {
           WHERE $3::boolean AND r.requested_by = $1
             AND (r.status IN ('open', 'orphaned') OR r.updated_at > now() - interval '30 days')
         ), related AS (
-          -- A person's own request makes only its own events news; following and waiting make every event news.
+          -- A person's own request makes only its own events news; participation makes every meaningful event news.
           SELECT project_id, task_id, bool_and(request_only) AS request_only FROM (
-            SELECT project_id, task_id, false AS request_only FROM personal WHERE following AND $4::boolean
-            UNION ALL SELECT project_id, task_id, false FROM waits
+            SELECT project_id, task_id, false AS request_only FROM participating
             UNION ALL SELECT project_id, task_id, true FROM outgoing
           ) relation GROUP BY project_id, task_id
         ), unseen AS MATERIALIZED (
@@ -509,16 +533,16 @@ object Workbench {
           WHERE agg.n > 0
         ), candidates AS (
           SELECT project_id, task_id, 1 AS weight FROM lead_request
-          UNION ALL SELECT project_id, task_id, 2 FROM personal WHERE focus_rank IS NOT NULL AND $4::boolean
-          UNION ALL SELECT project_id, task_id, 3 FROM assigned
-          UNION ALL SELECT project_id, task_id, 4 FROM waits
-          UNION ALL SELECT project_id, task_id, 5 FROM unseen
+          UNION ALL SELECT project_id, task_id, 2 FROM assigned
+          UNION ALL SELECT project_id, task_id, 3 FROM delegated
+          UNION ALL SELECT project_id, task_id, 4 FROM unseen
+          UNION ALL SELECT project_id, task_id, 5 FROM participating
         ), placed AS (
           $placed
         ), shaped AS (
           SELECT pl.project_id, pl.task_id, pl.weights,
-                 CASE pl.weight WHEN 0 THEN 'snoozed' WHEN 1 THEN 'action' WHEN 2 THEN 'focus' WHEN 3 THEN 'active'
-                   WHEN 4 THEN 'waiting' WHEN 5 THEN 'updates' ELSE 'backlog' END AS bucket,
+                 CASE pl.weight WHEN 0 THEN 'snoozed' WHEN 1 THEN 'action' WHEN 2 THEN 'active' WHEN 3 THEN 'waiting'
+                   WHEN 4 THEN 'updates' WHEN 5 THEN 'participating' ELSE 'backlog' END AS bucket,
                  t.title, t.status, t.type, t.priority, t.revision AS task_revision, t.owner_id,
                  (t.status = 'ready_for_release' OR t.result = 'accepted') AS done,
                  to_char(t.due, 'YYYY-MM-DD') AS due, to_char(t.planned_start, 'YYYY-MM-DD') AS planned_start,
@@ -527,19 +551,22 @@ object Workbench {
                  CASE WHEN a.name IN (SELECT name FROM authorized GROUP BY name HAVING count(*) > 1) THEN a.workspace_name END
                    AS workspace_name,
                  (SELECT coalesce(o.profile_name, o.name) FROM auth.principals o WHERE o.id = t.owner_id) AS owner_name,
-                 s.following, s.follow_revision, s.focus_rank, s.focus_revision, s.last_seen_sequence, s.seen_revision,
+                 coalesce(s.participating, false) AS participating, s.participation_revision, s.rank, s.rank_revision,
+                 s.last_seen_sequence, s.seen_revision,
                  to_char(s.snoozed_until AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS snoozed_until,
                  s.snoozed_until AS snoozed_until_at, s.snooze_revision,
+                 to_char(s.check_back_at, 'YYYY-MM-DD') AS check_back_at, s.check_back_at AS check_back_date,
+                 s.check_back_revision,
                  q.id AS request_id, q.kind AS request_kind, q.revision AS request_revision, q.note AS request_note,
                  q.requested_by, q.open_requests, q.needed_by AS needed_by_date,
                  to_char(q.needed_by, 'YYYY-MM-DD') AS needed_by, q.created_at AS requested_at_raw,
                  to_char(q.created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS requested_at,
                  (SELECT coalesce(o.profile_name, o.name) FROM auth.principals o WHERE o.id = q.requested_by) AS requested_by_name,
-                 w.revision AS wait_revision, to_char(w.check_back_at, 'YYYY-MM-DD') AS check_back_at, w.check_back_at AS check_back_date,
-                 w.updated_at AS wait_updated_at, w.expected_assignee_id,
-                 (SELECT coalesce(o.profile_name, o.name) FROM auth.principals o WHERE o.id = w.expected_assignee_id) AS expected_name,
+                 (dl.task_id IS NOT NULL) AS delegated, dl.expected AS expected_assignee_id, dl.assigned_at AS assigned_at_raw,
+                 to_char(dl.assigned_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS assigned_at,
+                 (SELECT coalesce(o.profile_name, o.name) FROM auth.principals o WHERE o.id = dl.expected) AS expected_name,
                  EXISTS (SELECT 1 FROM app.project_members pm WHERE pm.project_id = pl.project_id
-                         AND pm.principal_id = w.expected_assignee_id) AS expected_is_member,
+                         AND pm.principal_id = dl.expected) AS expected_is_member,
                  u.n AS unseen_count, u.latest AS unseen_latest, u.latest_at AS unseen_latest_at_raw,
                  to_char(u.latest_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS unseen_latest_at,
                  u.latest_kind, u.latest_actor, u.latest_detail, u.kinds AS unseen_kinds,
@@ -553,7 +580,7 @@ object Workbench {
           JOIN authorized a ON a.id = pl.project_id
           LEFT JOIN personal s ON s.project_id = pl.project_id AND s.task_id = pl.task_id
           LEFT JOIN lead_request q ON q.project_id = pl.project_id AND q.task_id = pl.task_id
-          LEFT JOIN waits w ON w.project_id = pl.project_id AND w.task_id = pl.task_id
+          LEFT JOIN delegated dl ON dl.project_id = pl.project_id AND dl.task_id = pl.task_id
           LEFT JOIN unseen u ON u.project_id = pl.project_id AND u.task_id = pl.task_id
           LEFT JOIN LATERAL (
             SELECT b.id, a.key || '-' || b.number AS display_id FROM app.task_links l
@@ -567,7 +594,7 @@ object Workbench {
               WHEN 'action' THEN coalesce(to_char(needed_by_date, 'YYYY-MM-DD'), '9999-12-31') || '|'
                 || to_char(requested_at_raw AT TIME ZONE 'UTC', 'YYYYMMDDHH24MISSUS')
               WHEN 'snoozed' THEN to_char(snoozed_until_at AT TIME ZONE 'UTC', 'YYYYMMDDHH24MISSUS')
-              WHEN 'focus' THEN lpad(focus_rank::text, 19, '0')
+              WHEN 'participating' THEN lpad(rank::text, 19, '0')
               WHEN 'active' THEN (CASE status WHEN 'in_progress' THEN '1' WHEN 'review' THEN '2'
                   WHEN 'ready_for_testing' THEN '3' ELSE '4' END)
                 || (CASE priority WHEN 'critical' THEN '0' WHEN 'high' THEN '1' WHEN 'normal' THEN '2' ELSE '3' END)
@@ -575,7 +602,7 @@ object Workbench {
               WHEN 'backlog' THEN (CASE priority WHEN 'critical' THEN '0' WHEN 'high' THEN '1' WHEN 'normal' THEN '2' ELSE '3' END)
                 || '|' || coalesce(to_char(due_date, 'YYYY-MM-DD'), '9999-12-31')
               WHEN 'waiting' THEN coalesce(to_char(check_back_date, 'YYYY-MM-DD'), '9999-12-31') || '|'
-                || lpad((9999999999999 - floor(extract(epoch FROM coalesce(unseen_latest_at_raw, wait_updated_at)) * 1000))::bigint::text, 13, '0')
+                || lpad((9999999999999 - floor(extract(epoch FROM coalesce(unseen_latest_at_raw, assigned_at_raw)) * 1000))::bigint::text, 13, '0')
               ELSE lpad((9999999999999 - floor(extract(epoch FROM unseen_latest_at_raw) * 1000))::bigint::text, 13, '0')
             END) || '|' || project_id || '|' || task_id AS sort_key
           FROM shaped

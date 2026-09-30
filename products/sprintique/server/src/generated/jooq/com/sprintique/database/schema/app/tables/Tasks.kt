@@ -20,7 +20,6 @@ import com.sprintique.database.schema.app.keys.TASK_LINKS__TASK_LINKS_PROJECT_ID
 import com.sprintique.database.schema.app.keys.TASK_LINKS__TASK_LINKS_PROJECT_ID_TO_ID_FKEY
 import com.sprintique.database.schema.app.keys.TASK_PERSONAL_STATE__TASK_PERSONAL_STATE_PROJECT_ID_TASK_ID_FKEY
 import com.sprintique.database.schema.app.keys.TASK_TAGS__TASK_TAGS_PROJECT_ID_TASK_ID_FKEY
-import com.sprintique.database.schema.app.keys.TASK_WAIT_STATE__TASK_WAIT_STATE_PROJECT_ID_TASK_ID_FKEY
 import com.sprintique.database.schema.app.keys.THREADS__THREADS_PROJECT_ID_TASK_ID_FKEY
 import com.sprintique.database.schema.app.tables.AttentionRequests.AttentionRequestsPath
 import com.sprintique.database.schema.app.tables.Projects.ProjectsPath
@@ -29,7 +28,6 @@ import com.sprintique.database.schema.app.tables.TaskActivity.TaskActivityPath
 import com.sprintique.database.schema.app.tables.TaskLinks.TaskLinksPath
 import com.sprintique.database.schema.app.tables.TaskPersonalState.TaskPersonalStatePath
 import com.sprintique.database.schema.app.tables.TaskTags.TaskTagsPath
-import com.sprintique.database.schema.app.tables.TaskWaitState.TaskWaitStatePath
 import com.sprintique.database.schema.app.tables.Threads.ThreadsPath
 import com.sprintique.database.schema.app.tables.records.TasksRecord
 import com.sprintique.database.schema.auth.tables.Principals.PrincipalsPath
@@ -257,18 +255,6 @@ open class Tasks(
     val taskTags: TaskTagsPath
         get(): TaskTagsPath = taskTags()
 
-    private lateinit var _taskWaitState: TaskWaitStatePath
-
-    fun taskWaitState(): TaskWaitStatePath {
-        if (!this::_taskWaitState.isInitialized)
-            _taskWaitState = TaskWaitStatePath(this, null, TASK_WAIT_STATE__TASK_WAIT_STATE_PROJECT_ID_TASK_ID_FKEY.inverseKey)
-
-        return _taskWaitState;
-    }
-
-    val taskWaitState: TaskWaitStatePath
-        get(): TaskWaitStatePath = taskWaitState()
-
     private lateinit var _threads: ThreadsPath
 
     fun threads(): ThreadsPath {
@@ -280,12 +266,6 @@ open class Tasks(
 
     val threads: ThreadsPath
         get(): ThreadsPath = threads()
-
-    val taskPersonalStatePrincipalIdFkey: PrincipalsPath
-        get(): PrincipalsPath = taskPersonalState().principals()
-
-    val taskWaitStatePrincipalIdFkey: PrincipalsPath
-        get(): PrincipalsPath = taskWaitState().taskWaitStatePrincipalIdFkey()
     override fun getChecks(): List<Check<TasksRecord>> = listOf(
         Internal.createCheck(this, DSL.name("task_cover_attachment"), "(((cover_attachment_id IS NULL) OR (cover_attachment_id = ANY (attachment_ids))))", true),
         Internal.createCheck(this, DSL.name("task_planned_interval"), "(((planned_start IS NULL) OR (planned_end IS NULL) OR (planned_start <= planned_end)))", true),

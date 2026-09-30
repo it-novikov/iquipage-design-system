@@ -6213,34 +6213,6 @@
       ],
       "additionalProperties": false
     },
-    "ChangeWaiting": {
-      "$schema": "https://json-schema.org/draft/2020-12/schema",
-      "type": "object",
-      "properties": {
-        "baseRevision": {
-          "type": "integer",
-          "minimum": 0,
-          "maximum": 9007199254740991
-        },
-        "checkBackAt": {
-          "anyOf": [
-            {
-              "type": "string",
-              "format": "date",
-              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        }
-      },
-      "required": [
-        "baseRevision",
-        "checkBackAt"
-      ],
-      "additionalProperties": false
-    },
     "ChangeWorkspaceMember": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
@@ -6268,29 +6240,6 @@
       "required": [
         "baseRevision",
         "role"
-      ],
-      "additionalProperties": false
-    },
-    "CloseWaiting": {
-      "$schema": "https://json-schema.org/draft/2020-12/schema",
-      "type": "object",
-      "properties": {
-        "baseRevision": {
-          "type": "integer",
-          "minimum": 0,
-          "maximum": 9007199254740991
-        },
-        "outcome": {
-          "type": "string",
-          "enum": [
-            "resolved",
-            "cancelled"
-          ]
-        }
-      },
-      "required": [
-        "baseRevision",
-        "outcome"
       ],
       "additionalProperties": false
     },
@@ -15036,7 +14985,7 @@
       ],
       "additionalProperties": false
     },
-    "PutFocus": {
+    "PutCheckBack": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {
@@ -15045,28 +14994,12 @@
           "minimum": 0,
           "maximum": 9007199254740991
         },
-        "action": {
-          "type": "string",
-          "enum": [
-            "add",
-            "remove",
-            "up",
-            "down"
-          ]
-        },
-        "projects": {
-          "default": null,
+        "checkBackAt": {
           "anyOf": [
             {
-              "minItems": 1,
-              "maxItems": 100,
-              "type": "array",
-              "items": {
-                "type": "string",
-                "minLength": 1,
-                "maxLength": 100,
-                "pattern": "^[A-Za-z0-9_-]+$"
-              }
+              "type": "string",
+              "format": "date",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
             },
             {
               "type": "null"
@@ -15076,27 +15009,7 @@
       },
       "required": [
         "baseRevision",
-        "action",
-        "projects"
-      ],
-      "additionalProperties": false
-    },
-    "PutFollow": {
-      "$schema": "https://json-schema.org/draft/2020-12/schema",
-      "type": "object",
-      "properties": {
-        "baseRevision": {
-          "type": "integer",
-          "minimum": 0,
-          "maximum": 9007199254740991
-        },
-        "following": {
-          "type": "boolean"
-        }
-      },
-      "required": [
-        "baseRevision",
-        "following"
+        "checkBackAt"
       ],
       "additionalProperties": false
     },
@@ -15985,6 +15898,25 @@
       ],
       "additionalProperties": false
     },
+    "PutParticipation": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "baseRevision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "participating": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "baseRevision",
+        "participating"
+      ],
+      "additionalProperties": false
+    },
     "PutProjectProfile": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
@@ -16017,6 +15949,49 @@
         "baseRevision",
         "name",
         "avatarAssetId"
+      ],
+      "additionalProperties": false
+    },
+    "PutRank": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "baseRevision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "move": {
+          "type": "string",
+          "enum": [
+            "up",
+            "down"
+          ]
+        },
+        "projects": {
+          "default": null,
+          "anyOf": [
+            {
+              "minItems": 1,
+              "maxItems": 100,
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100,
+                "pattern": "^[A-Za-z0-9_-]+$"
+              }
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "baseRevision",
+        "move",
+        "projects"
       ],
       "additionalProperties": false
     },
@@ -17916,49 +17891,6 @@
         "goal",
         "maxProposals",
         "expiresInSeconds"
-      ],
-      "additionalProperties": false
-    },
-    "StartWaiting": {
-      "$schema": "https://json-schema.org/draft/2020-12/schema",
-      "type": "object",
-      "properties": {
-        "baseRevision": {
-          "type": "integer",
-          "minimum": 0,
-          "maximum": 9007199254740991
-        },
-        "checkBackAt": {
-          "default": null,
-          "anyOf": [
-            {
-              "type": "string",
-              "format": "date",
-              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "sourceSequence": {
-          "default": null,
-          "anyOf": [
-            {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 9007199254740991
-            },
-            {
-              "type": "null"
-            }
-          ]
-        }
-      },
-      "required": [
-        "baseRevision",
-        "checkBackAt",
-        "sourceSequence"
       ],
       "additionalProperties": false
     },

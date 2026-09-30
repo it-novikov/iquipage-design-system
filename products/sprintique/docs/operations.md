@@ -21,9 +21,9 @@ A database created by the previous TypeScript migrator (`public.schema_migration
 | Feature | What it serves |
 |---|---|
 | `workbench_read_internal` | `GET /api/v1/workbench`, `/workbench/list`, `/projects/:p/tasks/:t/personal` and the `/workbench` pages |
-| `workbench_personal_state` | Follow, focus, seen and snooze commands (private, own revisions and receipts) |
+| `workbench_personal_state` | «Участвую» and its order, seen and snooze commands (private, own revisions and receipts) |
 | `workbench_requests` | Directed requests to an exact recipient ("Нужно действие") |
-| `workbench_waiting` | "Жду": private control of delegated work |
+| `workbench_waiting` | "Жду": participating tasks the person assigned to someone else, with a private check-back date |
 | `workbench_plan_horizon` | `GET /api/v1/workbench/plan` (Сегодня / 7 дней) and the time-zone preference |
 | `workbench_mvp` | The "Рабочий стол" item in the global navigation for everyone |
 

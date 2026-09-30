@@ -11,9 +11,7 @@ import com.sprintique.database.schema.app.keys.TASK_ACTIVITY__TASK_ACTIVITY_ACTO
 import com.sprintique.database.schema.app.keys.TASK_ACTIVITY__TASK_ACTIVITY_INITIATOR_ID_FKEY
 import com.sprintique.database.schema.app.keys.TASK_ACTIVITY__TASK_ACTIVITY_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.TASK_ACTIVITY__TASK_ACTIVITY_PROJECT_ID_TASK_ID_FKEY
-import com.sprintique.database.schema.app.keys.TASK_WAIT_STATE__WAIT_STATE_SOURCE
 import com.sprintique.database.schema.app.tables.Projects.ProjectsPath
-import com.sprintique.database.schema.app.tables.TaskWaitState.TaskWaitStatePath
 import com.sprintique.database.schema.app.tables.Tasks.TasksPath
 import com.sprintique.database.schema.app.tables.records.TaskActivityRecord
 import com.sprintique.database.schema.auth.tables.Principals.PrincipalsPath
@@ -128,18 +126,6 @@ open class TaskActivity(
 
     fun tasks(): TasksPath = tasks
     val tasks: TasksPath by lazy { TasksPath(this, TASK_ACTIVITY__TASK_ACTIVITY_PROJECT_ID_TASK_ID_FKEY, null) }
-
-    private lateinit var _taskWaitState: TaskWaitStatePath
-
-    fun taskWaitState(): TaskWaitStatePath {
-        if (!this::_taskWaitState.isInitialized)
-            _taskWaitState = TaskWaitStatePath(this, null, TASK_WAIT_STATE__WAIT_STATE_SOURCE.inverseKey)
-
-        return _taskWaitState;
-    }
-
-    val taskWaitState: TaskWaitStatePath
-        get(): TaskWaitStatePath = taskWaitState()
     override fun getChecks(): List<Check<TaskActivityRecord>> = listOf(
         Internal.createCheck(this, DSL.name("task_activity_kind_check"), "((kind = ANY (ARRAY['status'::text, 'completed'::text, 'reopened'::text, 'owner'::text, 'due'::text, 'planned'::text, 'dependency'::text, 'thread'::text, 'resolution'::text, 'request'::text])))", true)
     )

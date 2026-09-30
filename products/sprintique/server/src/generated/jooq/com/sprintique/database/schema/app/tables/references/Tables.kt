@@ -36,7 +36,6 @@ import com.sprintique.database.schema.app.tables.TaskPersonalState
 import com.sprintique.database.schema.app.tables.TaskSettings
 import com.sprintique.database.schema.app.tables.TaskSettingsVersions
 import com.sprintique.database.schema.app.tables.TaskTags
-import com.sprintique.database.schema.app.tables.TaskWaitState
 import com.sprintique.database.schema.app.tables.Tasks
 import com.sprintique.database.schema.app.tables.TemporalConstraints
 import com.sprintique.database.schema.app.tables.ThreadReads
@@ -109,8 +108,6 @@ val TASK_SETTINGS: TaskSettings = TaskSettings.TASK_SETTINGS
 val TASK_SETTINGS_VERSIONS: TaskSettingsVersions = TaskSettingsVersions.TASK_SETTINGS_VERSIONS
 
 val TASK_TAGS: TaskTags = TaskTags.TASK_TAGS
-
-val TASK_WAIT_STATE: TaskWaitState = TaskWaitState.TASK_WAIT_STATE
 
 val TASKS: Tasks = Tasks.TASKS
 

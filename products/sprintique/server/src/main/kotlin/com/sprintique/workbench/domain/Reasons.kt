@@ -59,7 +59,7 @@ object Reasons {
         neededBy = neededBy,
     )
 
-    fun focus(): Reason = Reason("manual_focus", "Вы добавили в фокус")
+    fun participating(): Reason = Reason("participating", "Вы участвуете")
 
     fun assigned(status: String, blockedBy: String?): Reason = if (blockedBy != null) {
         Reason("your_work_blocked", "Назначено вам, заблокирована задачей $blockedBy")
@@ -109,9 +109,9 @@ object Reasons {
         }
     }
 
-    /** News on a followed task or on a person's own request, named by its newest event. */
-    fun update(latest: Activity, following: Boolean, statusNow: String): Reason {
-        val prefix = if (following) "Вы следите" else "Ваш запрос"
+    /** News on a task the person participates in or on their own request, named by its newest event. */
+    fun update(latest: Activity, participating: Boolean, statusNow: String): Reason {
+        val prefix = if (participating) "Вы участвуете" else "Ваш запрос"
         val (code, change) = when (latest.kind) {
             "status", "reopened" -> "followed_status_changed" to "статус «${statusLabel(statusNow)}»"
 

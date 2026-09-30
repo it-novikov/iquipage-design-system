@@ -5,7 +5,7 @@ package com.sprintique.database.schema.app.tables
 
 
 import com.sprintique.database.schema.app.App
-import com.sprintique.database.schema.app.indexes.PERSONAL_STATE_FOCUS
+import com.sprintique.database.schema.app.indexes.PERSONAL_STATE_PARTICIPATING
 import com.sprintique.database.schema.app.indexes.PERSONAL_STATE_PRINCIPAL
 import com.sprintique.database.schema.app.keys.TASK_PERSONAL_STATE_PKEY
 import com.sprintique.database.schema.app.keys.TASK_PERSONAL_STATE__TASK_PERSONAL_STATE_PRINCIPAL_ID_FKEY
@@ -14,6 +14,7 @@ import com.sprintique.database.schema.app.tables.Tasks.TasksPath
 import com.sprintique.database.schema.app.tables.records.TaskPersonalStateRecord
 import com.sprintique.database.schema.auth.tables.Principals.PrincipalsPath
 
+import java.time.LocalDate
 import java.time.OffsetDateTime
 
 import kotlin.collections.Collection
@@ -78,13 +79,13 @@ open class TaskPersonalState(
 
     val PRINCIPAL_ID: TableField<TaskPersonalStateRecord, String?> = createField(DSL.name("principal_id"), SQLDataType.CLOB.nullable(false), this, "")
 
-    val FOLLOWING: TableField<TaskPersonalStateRecord, Boolean?> = createField(DSL.name("following"), SQLDataType.BOOLEAN.nullable(false).defaultValue(DSL.field(DSL.raw("false"), SQLDataType.BOOLEAN)), this, "")
+    val PARTICIPATING: TableField<TaskPersonalStateRecord, Boolean?> = createField(DSL.name("participating"), SQLDataType.BOOLEAN.nullable(false).defaultValue(DSL.field(DSL.raw("false"), SQLDataType.BOOLEAN)), this, "")
 
-    val FOLLOW_REVISION: TableField<TaskPersonalStateRecord, Long?> = createField(DSL.name("follow_revision"), SQLDataType.BIGINT.nullable(false).defaultValue(DSL.field(DSL.raw("0"), SQLDataType.BIGINT)), this, "")
+    val PARTICIPATION_REVISION: TableField<TaskPersonalStateRecord, Long?> = createField(DSL.name("participation_revision"), SQLDataType.BIGINT.nullable(false).defaultValue(DSL.field(DSL.raw("0"), SQLDataType.BIGINT)), this, "")
 
-    val FOCUS_RANK: TableField<TaskPersonalStateRecord, Long?> = createField(DSL.name("focus_rank"), SQLDataType.BIGINT, this, "")
+    val RANK: TableField<TaskPersonalStateRecord, Long?> = createField(DSL.name("rank"), SQLDataType.BIGINT, this, "")
 
-    val FOCUS_REVISION: TableField<TaskPersonalStateRecord, Long?> = createField(DSL.name("focus_revision"), SQLDataType.BIGINT.nullable(false).defaultValue(DSL.field(DSL.raw("0"), SQLDataType.BIGINT)), this, "")
+    val RANK_REVISION: TableField<TaskPersonalStateRecord, Long?> = createField(DSL.name("rank_revision"), SQLDataType.BIGINT.nullable(false).defaultValue(DSL.field(DSL.raw("0"), SQLDataType.BIGINT)), this, "")
 
     val LAST_SEEN_SEQUENCE: TableField<TaskPersonalStateRecord, Long?> = createField(DSL.name("last_seen_sequence"), SQLDataType.BIGINT, this, "")
 
@@ -95,6 +96,10 @@ open class TaskPersonalState(
     val SNOOZED_AT: TableField<TaskPersonalStateRecord, OffsetDateTime?> = createField(DSL.name("snoozed_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6), this, "")
 
     val SNOOZE_REVISION: TableField<TaskPersonalStateRecord, Long?> = createField(DSL.name("snooze_revision"), SQLDataType.BIGINT.nullable(false).defaultValue(DSL.field(DSL.raw("0"), SQLDataType.BIGINT)), this, "")
+
+    val CHECK_BACK_AT: TableField<TaskPersonalStateRecord, LocalDate?> = createField(DSL.name("check_back_at"), SQLDataType.LOCALDATE, this, "")
+
+    val CHECK_BACK_REVISION: TableField<TaskPersonalStateRecord, Long?> = createField(DSL.name("check_back_revision"), SQLDataType.BIGINT.nullable(false).defaultValue(DSL.field(DSL.raw("0"), SQLDataType.BIGINT)), this, "")
 
     val UPDATED_AT: TableField<TaskPersonalStateRecord, OffsetDateTime?> = createField(DSL.name("updated_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6).nullable(false).defaultValue(DSL.field(DSL.raw("clock_timestamp()"), SQLDataType.TIMESTAMPWITHTIMEZONE)), this, "")
 
@@ -118,7 +123,7 @@ open class TaskPersonalState(
         override fun `as`(alias: Table<*>): TaskPersonalStatePath = TaskPersonalStatePath(alias.qualifiedName, this)
     }
     override fun getSchema(): Schema? = if (aliased()) null else App.APP
-    override fun getIndexes(): List<Index> = listOf(PERSONAL_STATE_FOCUS, PERSONAL_STATE_PRINCIPAL)
+    override fun getIndexes(): List<Index> = listOf(PERSONAL_STATE_PARTICIPATING, PERSONAL_STATE_PRINCIPAL)
     override fun getPrimaryKey(): UniqueKey<TaskPersonalStateRecord> = TASK_PERSONAL_STATE_PKEY
     override fun getReferences(): List<ForeignKey<TaskPersonalStateRecord, *>> = listOf(TASK_PERSONAL_STATE__TASK_PERSONAL_STATE_PRINCIPAL_ID_FKEY, TASK_PERSONAL_STATE__TASK_PERSONAL_STATE_PROJECT_ID_TASK_ID_FKEY)
 
@@ -129,10 +134,12 @@ open class TaskPersonalState(
     val tasks: TasksPath by lazy { TasksPath(this, TASK_PERSONAL_STATE__TASK_PERSONAL_STATE_PROJECT_ID_TASK_ID_FKEY, null) }
     override fun getChecks(): List<Check<TaskPersonalStateRecord>> = listOf(
         Internal.createCheck(this, DSL.name("task_personal_state_check"), "(((snoozed_until IS NULL) = (snoozed_at IS NULL)))", true),
-        Internal.createCheck(this, DSL.name("task_personal_state_focus_rank_check"), "((focus_rank > 0))", true),
-        Internal.createCheck(this, DSL.name("task_personal_state_focus_revision_check"), "((focus_revision >= 0))", true),
-        Internal.createCheck(this, DSL.name("task_personal_state_follow_revision_check"), "((follow_revision >= 0))", true),
+        Internal.createCheck(this, DSL.name("task_personal_state_check1"), "((participating OR (rank IS NULL)))", true),
+        Internal.createCheck(this, DSL.name("task_personal_state_check_back_revision_check"), "((check_back_revision >= 0))", true),
         Internal.createCheck(this, DSL.name("task_personal_state_last_seen_sequence_check"), "((last_seen_sequence >= 0))", true),
+        Internal.createCheck(this, DSL.name("task_personal_state_participation_revision_check"), "((participation_revision >= 0))", true),
+        Internal.createCheck(this, DSL.name("task_personal_state_rank_check"), "((rank > 0))", true),
+        Internal.createCheck(this, DSL.name("task_personal_state_rank_revision_check"), "((rank_revision >= 0))", true),
         Internal.createCheck(this, DSL.name("task_personal_state_seen_revision_check"), "((seen_revision >= 0))", true),
         Internal.createCheck(this, DSL.name("task_personal_state_snooze_revision_check"), "((snooze_revision >= 0))", true)
     )

@@ -159,12 +159,14 @@ object Plan {
             AND (r.approval_id IS NULL OR EXISTS (SELECT 1 FROM app.approvals ap WHERE ap.project_id = r.project_id
                  AND ap.id = r.approval_id AND ap.status = 'proposed' AND ap.expires_at > now()))
         ), waits AS MATERIALIZED (
-          SELECT w.* FROM app.task_wait_state w JOIN authorized a ON a.id = w.project_id
-          WHERE $5::boolean AND w.principal_id = $1 AND w.state = 'active'
+          -- "Жду": a check-back date on a task the person participates in and assigned to someone else.
+          SELECT s.project_id, s.task_id, s.check_back_at FROM personal s JOIN app.tasks t ON t.project_id = s.project_id
+            AND t.id = s.task_id
+          WHERE $5::boolean AND s.participating AND s.check_back_at IS NOT NULL AND t.owner_id IS DISTINCT FROM $1
         ), mine AS MATERIALIZED (
           SELECT t.project_id, t.id AS task_id FROM app.tasks t JOIN authorized a ON a.id = t.project_id
           WHERE t.owner_id = $1 AND t.result = 'open' AND t.status <> 'ready_for_release'
-          UNION SELECT project_id, task_id FROM personal WHERE focus_rank IS NOT NULL
+          UNION SELECT project_id, task_id FROM personal WHERE participating AND $4::boolean
         ), items AS (
           SELECT 'due' AS kind, m.project_id, m.task_id, t.due AS day, NULL::date AS start_day, NULL::date AS end_day,
                  NULL::text AS ref_id, 1 AS kind_order
@@ -196,10 +198,10 @@ object Plan {
           SELECT 'undated' AS kind, s.project_id, s.task_id, NULL::date AS day, NULL::date AS start_day, NULL::date AS end_day,
                  NULL::text AS ref_id, 9 AS kind_order, NULL::date AS placed_day
           FROM personal s JOIN app.tasks t ON t.project_id = s.project_id AND t.id = s.task_id
-          WHERE s.focus_rank IS NOT NULL AND t.due IS NULL AND t.planned_start IS NULL AND t.planned_end IS NULL
+          WHERE $4::boolean AND s.participating AND t.result = 'open' AND t.status <> 'ready_for_release' AND t.due IS NULL AND t.planned_start IS NULL AND t.planned_end IS NULL
             AND NOT EXISTS (SELECT 1 FROM requests r WHERE r.project_id = s.project_id AND r.task_id = s.task_id AND r.needed_by IS NOT NULL)
             AND NOT EXISTS (SELECT 1 FROM waits w WHERE w.project_id = s.project_id AND w.task_id = s.task_id AND w.check_back_at IS NOT NULL)
-          ORDER BY s.focus_rank LIMIT ${UNDATED_LIMIT}
+          ORDER BY s.rank LIMIT ${UNDATED_LIMIT}
         ), picked AS (
           SELECT * FROM dated UNION ALL SELECT * FROM undated
         )
