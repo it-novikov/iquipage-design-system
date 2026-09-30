@@ -277,6 +277,7 @@ CREATE FUNCTION auth.can_workspace_do(target uuid, permission text) RETURNS bool
 LANGUAGE sql STABLE SECURITY DEFINER SET search_path=pg_catalog AS $$
   SELECT EXISTS(SELECT 1 FROM app.workspace_members m WHERE m.workspace_id=target AND m.principal_id=auth.actor_id()
     AND (permission = ANY(m.permissions) OR (permission='projects.create' AND m.role='member'
+      AND NOT ('projects.create' = ANY(m.revoked))
       AND EXISTS(SELECT 1 FROM app.workspaces w WHERE w.id=target AND w.projects_created_by='members'))))
     AND coalesce(current_setting('app.project_limit',true),'')=''
 $$;

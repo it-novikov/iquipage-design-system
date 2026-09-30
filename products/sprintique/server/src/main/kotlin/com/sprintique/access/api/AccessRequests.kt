@@ -121,6 +121,8 @@ data class AddMemberRequest(
 
 @Schema(name = "HandoverAccess")
 data class HandoverAccessRequest(
+    @field:Min(0) @field:Max(MAX_SAFE_INTEGER)
+    val baseRevision: Long,
     @field:Pattern(regexp = UUID)
     val presetId: String,
 )

@@ -9395,6 +9395,11 @@
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {
+        "baseRevision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
         "presetId": {
           "type": "string",
           "format": "uuid",
@@ -9402,6 +9407,7 @@
         }
       },
       "required": [
+        "baseRevision",
         "presetId"
       ],
       "additionalProperties": false

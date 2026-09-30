@@ -100,7 +100,7 @@ test('PR02 PR03 PR10 personal changes: dependencies, the readable difference, no
   // The last administrator leaves only through a handover.
   const last=await call('PUT',project()+'/members/'+f.alice.id+'/access',{baseRevision:alice.revision,presetId:await preset('editor'),granted:[],revoked:[]});
   assert.equal(last.statusCode,409);assert.equal(last.json().code,'LAST_ADMIN');
-  const handover=await ok('POST',project()+'/members/'+f.bob.id+'/handover',{presetId:await preset('editor')});
+  const handover=await ok('POST',project()+'/members/'+f.bob.id+'/handover',{baseRevision:(await member(f.bob.id)).revision,presetId:await preset('editor')});
   assert.equal(handover.administratorId,f.bob.id);
   assert.equal((await member(f.bob.id)).role,'admin');assert.equal((await member(f.alice.id)).presetName,'Редактор');
   const again=await member(f.alice.id);
@@ -242,7 +242,7 @@ test('IN06 limits: twenty at once, fifty a day per person, five a day to one add
       VALUES($1,$2,'email',$3,$4,'member',$5,'Другое','Борис',now()+interval '7 days','sent')`,[randomUUID(),f.second.workspaceId,target,createHash('sha256').update(randomUUID()).digest('hex'),f.bob.id]);
   }
   const limited=(await ok('POST',workspace()+'/invitations',{emails:[target],workspaceRole:'member'})).invitations[0];
-  assert.equal(limited.delivery,'failed');assert.match(limited.deliveryError,/Слишком много писем/);
+  assert.equal(limited.delivery,'failed');assert.match(limited.deliveryError,/много писем/);
   assert.equal((await mailbox.letters(target)).length,0);
   const sent=(await f.admin.query("SELECT count(*)::int AS n FROM auth.invitations WHERE inviter_id=$1 AND kind='email' AND created_at>now()-interval '1 day'",[f.alice.id])).rows[0].n as number;
   for(let i=sent;i<50;i++){
@@ -269,4 +269,115 @@ test('IN07 from a project, someone who may invite only there invites guests of t
   await ok('POST','invitations/accept',{token:tokenOf((await mailbox.letters(email)).at(-1)!.text)},invitee);
   const joined=await member(invitee.id);assert.equal(joined.workspaceRole,'guest');assert.equal(joined.presetName,'Гость');
   assert.equal((await ok('GET',project()+'/invitations',undefined,inviter)).some((i:{id:string})=>i.id===invitation.id),true);
+});
+
+// Review R1 (F1–F7): the risky paths, each in a workspace of its own.
+async function space(owner:User=f.alice){
+  const ws=(await ok('POST','workspaces',{name:'Проверка '+randomUUID().slice(0,6)},owner)).id as string;
+  const project=async(name:string)=>(await ok('POST','projects',{workspaceId:ws,name,slug:'r-'+randomUUID().slice(0,8),key:'R'+randomUUID().slice(0,4).toUpperCase().replace(/[^A-Z0-9]/g,'X')},owner)).id as string;
+  const presetOf=async(key:string)=>(await f.admin.query('SELECT id FROM app.access_presets WHERE workspace_id=$1 AND key=$2',[ws,key])).rows[0].id as string;
+  const join=async(user:User,role:string)=>{await f.admin.query('INSERT INTO app.workspace_members(workspace_id,principal_id,role) VALUES($1,$2,$3)',[ws,user.id,role]);};
+  const add=async(projectId:string,user:User,key:string)=>ok('POST','projects/'+projectId+'/members',{principalId:user.id,presetId:await presetOf(key)},owner);
+  const row=async(projectId:string,id:string)=>(await ok('GET','projects/'+projectId+'/members',undefined,owner)).find((m:{id:string})=>m.id===id);
+  return {ws,project,presetOf,join,add,row};
+}
+const someone=(name:string)=>person(name,name.toLowerCase().replace(/[^a-z]/g,'')+'-'+randomUUID().slice(0,8)+'@example.org');
+
+test('F1 a handover gives exactly the actor\'s access and keeps the actor within it',async()=>{
+  const s=await space(),p=await s.project('Передача'),anna=await someone('anna'),boris=await someone('boris');
+  await s.join(anna,'member');await s.join(boris,'member');await s.add(p,anna,'admin');await s.add(p,boris,'reader');
+  const a=await s.row(p,anna.id);
+  await ok('PUT','projects/'+p+'/members/'+anna.id+'/access',{baseRevision:a.revision,presetId:await s.presetOf('admin'),granted:[],revoked:['finance.write']});
+  const b=await s.row(p,boris.id);
+  const greedy=await call('POST','projects/'+p+'/members/'+boris.id+'/handover',{baseRevision:b.revision,presetId:await s.presetOf('admin')},anna);
+  assert.equal(greedy.statusCode,403);assert.equal(greedy.json().code,'PERMISSION_EXCEEDS_ACTOR');
+  await ok('POST','projects/'+p+'/members/'+boris.id+'/handover',{baseRevision:b.revision,presetId:await s.presetOf('editor')},anna);
+  const after=await s.row(p,boris.id);
+  assert.ok(after.permissions.includes('project.access'));assert.ok(!after.permissions.includes('finance.write'));
+  assert.equal((await s.row(p,anna.id)).presetName,'Редактор');
+});
+
+test('F2 F4 a preset in use takes only what its editor holds wherever it is used, and never the last administrator',async()=>{
+  const s=await space(),a=await s.project('А'),b=await s.project('Б'),dan=await someone('dan');
+  await s.join(dan,'member');await s.add(a,dan,'editor');await s.add(b,dan,'admin');
+  const d=(await ok('GET','workspaces/'+s.ws+'/members')).find((m:{id:string})=>m.id===dan.id);
+  await ok('PUT','workspaces/'+s.ws+'/members/'+dan.id+'/access',{baseRevision:d.revision,granted:['workspace.settings'],revoked:[]});
+  const editor=(await ok('GET','workspaces/'+s.ws+'/presets',undefined,dan)).find((p:{key:string})=>p.key==='editor');
+  const wider=await call('PUT','workspaces/'+s.ws+'/presets/'+editor.id,{baseRevision:editor.revision,name:editor.name,hint:editor.hint,permissions:[...editor.permissions,'project.access']},dan);
+  assert.equal(wider.statusCode,403);assert.equal(wider.json().code,'PERMISSION_EXCEEDS_ACTOR');
+  // The only administrator of a project moves to a custom preset; removing its access is refused.
+  const lead=randomUUID();
+  await ok('POST','workspaces/'+s.ws+'/presets',{id:lead,name:'Руководитель',permissions:['project.access','tasks.write']});
+  const me=await s.row(a,f.alice.id);
+  await ok('PUT','projects/'+a+'/members/'+f.alice.id+'/access',{baseRevision:me.revision,presetId:lead,granted:[],revoked:[]});
+  const custom=(await ok('GET','workspaces/'+s.ws+'/presets')).find((p:{id:string})=>p.id===lead);
+  const orphan=await call('PUT','workspaces/'+s.ws+'/presets/'+lead,{baseRevision:custom.revision,name:'Руководитель',permissions:['tasks.write']});
+  assert.equal(orphan.statusCode,409);assert.equal(orphan.json().code,'LAST_ADMIN');
+  // A retry of the same creation answers with the same preset.
+  assert.equal((await ok('POST','workspaces/'+s.ws+'/presets',{id:lead,name:'Руководитель',permissions:['project.access','tasks.write']})).revision,custom.revision);
+});
+
+test('F3 an administrator cannot strip another administrator, nor anyone change people above them',async()=>{
+  const s=await space(),carol=await someone('carol'),dan=await someone('dan'),eva=await someone('eva');
+  await s.join(carol,'admin');await s.join(dan,'admin');await s.join(eva,'member');
+  const members=await ok('GET','workspaces/'+s.ws+'/members');const row=(id:string)=>members.find((m:{id:string})=>m.id===id);
+  const strip=await call('PUT','workspaces/'+s.ws+'/members/'+dan.id+'/access',{baseRevision:row(dan.id).revision,granted:[],revoked:['workspace.invite']},carol);
+  assert.equal(strip.json().code,'OWNER_REQUIRED');
+  await ok('PUT','workspaces/'+s.ws+'/members/'+eva.id+'/access',{baseRevision:row(eva.id).revision,granted:['workspace.people'],revoked:[]});
+  const people=await ok('GET','workspaces/'+s.ws+'/members',undefined,eva);
+  const above=await call('PATCH','workspaces/'+s.ws+'/members/'+carol.id,{baseRevision:people.find((m:{id:string})=>m.id===carol.id).revision,role:'member'},eva);
+  assert.equal(above.statusCode,403);
+});
+
+test('F6 another author\'s invitation to the same address is not replaced; a quick retry answers with the first',async()=>{
+  const o=await someone('owner'),s=await space(o),p=await s.project('Письма'),carol=await someone('carol'),email='twice-'+randomUUID().slice(0,8)+'@example.org';
+  await s.join(carol,'admin');
+  const first=(await ok('POST','workspaces/'+s.ws+'/invitations',{emails:[email],workspaceRole:'member',presetId:await s.presetOf('editor'),projectIds:[p]},o)).invitations[0];
+  const retry=(await ok('POST','workspaces/'+s.ws+'/invitations',{emails:[email],workspaceRole:'member',presetId:await s.presetOf('editor'),projectIds:[p]},o)).invitations[0];
+  assert.equal(retry.id,first.id);assert.equal((await mailbox.letters(email)).length,1);
+  const other=(await ok('POST','workspaces/'+s.ws+'/invitations',{emails:[email],workspaceRole:'guest',presetId:await s.presetOf('guest'),projectIds:[p]},carol)).invitations[0];
+  assert.notEqual(other.id,first.id);
+  const states=(await ok('GET','workspaces/'+s.ws+'/invitations',undefined,o)).filter((i:{email:string})=>i.email===email).map((i:{state:string})=>i.state);
+  assert.deepEqual(states,['pending','pending']);
+  // F7(d) the author of a workspace invitation who lost the right to invite no longer lets anyone in.
+  const invitee=await person('Кому',email),token=tokenOf((await mailbox.letters(email)).at(-1)!.text);
+  const c=(await ok('GET','workspaces/'+s.ws+'/members',undefined,o)).find((m:{id:string})=>m.id===carol.id);
+  await ok('PATCH','workspaces/'+s.ws+'/members/'+carol.id,{baseRevision:c.revision,role:'member'},o);
+  const refused=await call('POST','invitations/accept',{token},invitee);assert.equal(refused.statusCode,403);assert.equal(refused.json().code,'INVITATION_REVOKED');
+});
+
+test('F7 parallel acceptances, parallel sends at the daily limit, the 200-a-day, 500-pending and five-resend limits',async()=>{
+  const o=await someone('racer'),s=await space(o),p=await s.project('Гонки');
+  const link=await ok('POST','projects/'+p+'/invitation-links',{presetId:await s.presetOf('reader')},o);
+  const x=await someone('xena'),y=await someone('yuri');
+  const both=await Promise.all([call('POST','invitations/accept',{token:link.token},x),call('POST','invitations/accept',{token:link.token},y)]);
+  assert.deepEqual(both.map(r=>r.statusCode).sort(),[200,409]);
+  const again=await ok('POST','projects/'+p+'/invitation-links',{presetId:await s.presetOf('reader')},o);
+  const z=await someone('zoya');
+  const twice=await Promise.all([call('POST','invitations/accept',{token:again.token},z),call('POST','invitations/accept',{token:again.token},z)]);
+  assert.deepEqual(twice.map(r=>r.statusCode),[200,200]);
+  assert.equal((await f.admin.query('SELECT count(*)::int AS n FROM app.project_members WHERE project_id=$1 AND principal_id=$2',[p,z.id])).rows[0].n,1);
+  // Sending: the owner of a fresh workspace has 48 letters today; two parallel sends of two cross 50 together.
+  const owner=await someone('olga'),t=await space(owner);
+  const fill=async(ws:string,inviter:string,count:number,pending=false)=>{for(let i=0;i<count;i++)await f.admin.query(`INSERT INTO auth.invitations(id,workspace_id,kind,email,token_hash,workspace_role,inviter_id,workspace_name,inviter_name,expires_at,delivery,revoked_at)
+    VALUES($1,$2,'email',$3,$4,'member',$5,'Проверка','Кто-то',now()+interval '7 days','sent',$6)`,[randomUUID(),ws,`fill-${randomUUID().slice(0,8)}@example.org`,createHash('sha256').update(randomUUID()).digest('hex'),inviter,pending?null:new Date()]);};
+  await fill(t.ws,owner.id,48);
+  const addresses=()=>[0,1].map(()=>'par-'+randomUUID().slice(0,8)+'@example.org');
+  const sends=await Promise.all([call('POST','workspaces/'+t.ws+'/invitations',{emails:addresses(),workspaceRole:'member'},owner),call('POST','workspaces/'+t.ws+'/invitations',{emails:addresses(),workspaceRole:'member'},owner)]);
+  assert.deepEqual(sends.map(r=>r.statusCode).sort(),[200,429]);
+  // 200 a day per workspace, whoever sends.
+  const uo=await someone('ulya'),u=await space(uo),helper=await someone('helper');await u.join(helper,'admin');
+  await fill(u.ws,helper.id,199);
+  const busy=await call('POST','workspaces/'+u.ws+'/invitations',{emails:addresses(),workspaceRole:'member'},uo);
+  assert.equal(busy.json().code,'INVITATION_LIMIT');assert.match(busy.json().message,/200/);
+  // 500 pending in a workspace (links count too).
+  const v=await space();
+  await f.admin.query(`INSERT INTO auth.invitations(id,workspace_id,kind,token_hash,workspace_role,inviter_id,workspace_name,inviter_name,expires_at,delivery,created_at)
+    SELECT gen_random_uuid(),$1,'link',md5(random()::text)||md5(random()::text),'member',$2,'Проверка','Алиса',now()+interval '7 days','link',now()-interval '2 days' FROM generate_series(1,500)`,[v.ws,f.alice.id]);
+  assert.equal((await call('POST','workspaces/'+v.ws+'/invitation-links',{workspaceRole:'member'})).json().code,'INVITATION_LIMIT');
+  // Five new letters for one invitation at most.
+  const wo=await someone('wanda'),w=await space(wo),email='five-'+randomUUID().slice(0,8)+'@example.org';
+  const one=(await ok('POST','workspaces/'+w.ws+'/invitations',{emails:[email],workspaceRole:'member'},wo)).invitations[0];
+  await f.admin.query("UPDATE auth.invitations SET resend_count=5, created_at=created_at-interval '1 hour' WHERE id=$1",[one.id]);
+  const sixth=await call('POST','invitations/'+one.id+'/resend',{},wo);assert.equal(sixth.statusCode,429);assert.equal(sixth.json().code,'INVITATION_RESEND_LIMIT');
 });

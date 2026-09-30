@@ -1,9 +1,10 @@
 -- Existing roles become presets without losing any access (docs/access/access-and-invitations.md, 7.1):
 -- every workspace gets the system presets; a project administrator gets Администратор, an editor Редактор, a reader
 -- Наблюдатель (which may now also write in discussions, as the owner decided); a project agent gets «Сервис: задачи»
--- plus «Менять карты» when one of its live grants allows maps:write. The workspace creator becomes its owner when
--- still an administrator, otherwise the first administrator who is a person (by identifier: join dates were never
--- recorded). The derived role of every membership must stay what it was; the migration stops otherwise.
+-- plus «Менять карты» when one of its live grants allows maps:write. The owner of a workspace is an administrator who
+-- is a person: an enabled one first, the creator first among them, then by identifier (join dates were never
+-- recorded). A workspace without such an administrator gets no owner (docs/operations.md says how to set one). The
+-- derived role of every membership must stay what it was; the migration stops otherwise.
 
 -- FORCE row security would hide every row from the migration role (no actor): lifted for this data move only.
 ALTER TABLE app.projects NO FORCE ROW LEVEL SECURITY;
@@ -16,7 +17,7 @@ WITH chosen AS (
   SELECT DISTINCT ON (m.workspace_id) m.workspace_id, m.principal_id
   FROM app.workspace_members m JOIN app.workspaces w ON w.id=m.workspace_id JOIN auth.principals p ON p.id=m.principal_id
   WHERE m.role='admin' AND p.kind='human'
-  ORDER BY m.workspace_id, (m.principal_id=w.created_by) DESC, (p.disabled_at IS NULL) DESC, m.principal_id)
+  ORDER BY m.workspace_id, (p.disabled_at IS NULL) DESC, (m.principal_id=w.created_by) DESC, m.principal_id)
 UPDATE app.workspace_members m SET role='owner' FROM chosen c
 WHERE m.workspace_id=c.workspace_id AND m.principal_id=c.principal_id;
 -- Compiles the workspace permissions of every member (the trigger of the previous migration).

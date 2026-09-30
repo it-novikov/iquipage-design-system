@@ -30,6 +30,8 @@ internal data class ViewContext(
     val rows: List<PlanningRow>,
     val write: Boolean,
     val admin: Boolean,
+    /** Whether the person may run the life of a release (releases.manage), not only move tasks. */
+    val releases: Boolean,
 )
 
 /** What the planning projection and the intents share: the read context, stored history, selections, cursors. */
@@ -49,6 +51,7 @@ class ViewSupport(private val json: JsonMapper, private val contracts: Contracts
         return ViewContext(
             revision, state, PlanningRows.project(state), interactive,
             interactive && access.has(Permission.PROJECT_SETTINGS),
+            interactive && access.has(Permission.RELEASES_MANAGE),
         )
     }
 

@@ -107,23 +107,50 @@ object Presets {
     }
 
     /**
-     * What an actor may put into a preset: not more than their own. The owner and administrators (who may enter any
-     * project) may use every permission; anyone else only what they hold in some project of the workspace.
+     * What an actor may add to a preset: not more than their own. The owner and administrators (who may enter any
+     * project) may use every permission. Anyone else: for a preset nobody uses yet, what they hold in some project of
+     * the workspace; for a preset in use, only what they hold in every project where it is used (a change applies there
+     * at once, so it must not give anyone there more than the actor has in that project).
      */
-    fun allowed(tx: Transaction, actor: Actor, workspace: WorkspaceMembership): Set<Permission> {
+    fun allowed(
+        tx: Transaction,
+        actor: Actor,
+        workspace: WorkspaceMembership,
+        presetId: String? = null,
+    ): Set<Permission> {
         if (workspace.has(Permission.PROJECTS_OVERSEE)) return Permission.PROJECT.toSet()
+        val used = presetId?.let {
+            tx.rows("SELECT DISTINCT project_id AS id FROM app.project_members WHERE preset_id = $1::uuid", it)
+                .map { row -> row.string("id") }
+        }.orEmpty()
         val held = tx.rows(
-            "SELECT permissions FROM app.project_members WHERE workspace_id = $1::uuid AND principal_id = $2",
+            """
+            SELECT project_id AS id, permissions FROM app.project_members WHERE workspace_id = $1::uuid AND principal_id = $2
+            """.trimIndent(),
             workspace.workspaceId,
             actor.id,
-        ).flatMap { ProjectAccess.permissionsOf(it) }
-        return Permissions.sorted(held)
+        ).associate { it.string("id") to ProjectAccess.permissionsOf(it) }
+        if (used.isEmpty()) return Permissions.sorted(held.values.flatten())
+        return used.map { held[it].orEmpty() }.reduce { common, next -> common intersect next }.let(Permissions::sorted)
     }
 
     data class Draft(val name: String, val hint: String, val permissions: Set<Permission>)
 
     fun create(tx: Transaction, actor: Actor, workspaceId: String, id: String, draft: Draft): Map<String, Any?> {
         val me = WorkspaceAccess.lock(tx, actor, workspaceId, Permission.WORKSPACE_SETTINGS)
+        // A retry of the same command (same id, same content) answers with what the first one made.
+        val existing = tx.row("SELECT workspace_id::text AS w FROM app.access_presets WHERE id = $1::uuid", id)
+        if (existing != null) {
+            val made = find(tx, workspaceId, id)
+            requireCondition(
+                existing.string("w") == workspaceId && made.name == draft.name && made.hint == draft.hint &&
+                    made.permissions == Permissions.closure(draft.permissions + Permission.TASKS_READ),
+                409,
+                "PRESET_EXISTS",
+                "Пресет с этим идентификатором уже создан с другим содержанием.",
+            )
+            return one(tx, workspaceId, id)
+        }
         val custom = tx.row(
             """
             SELECT count(*)::int AS n FROM app.access_presets WHERE workspace_id = $1::uuid AND key IS NULL AND archived_at IS NULL
@@ -176,7 +203,7 @@ object Presets {
             )
         }
         if (current.key == SystemPreset.GUEST) permissions = permissions - Permission.PROJECT_ACCESS
-        requireWithin(permissions - current.permissions, allowed(tx, actor, me))
+        requireWithin(permissions - current.permissions, allowed(tx, actor, me, current.id))
         requireUniqueName(tx, workspaceId, draft.name, id)
         return write(tx, actor, current, draft.name, draft.hint, permissions, "preset.updated")
     }
@@ -193,7 +220,7 @@ object Presets {
             "Вернуть по умолчанию можно только системный пресет.",
         )
         requireCondition(current.revision == baseRevision, 409, "CONFLICT", "Пресет уже изменён. Обновите страницу.")
-        requireWithin(system.defaults - current.permissions, allowed(tx, actor, me))
+        requireWithin(system.defaults - current.permissions, allowed(tx, actor, me, current.id))
         return write(tx, actor, current, current.name, current.hint, system.defaults, "preset.reset")
     }
 
@@ -213,11 +240,13 @@ object Presets {
             """.trimIndent(),
             current.id, name, hint, permissions.map(Permission::wire), actor.id,
         )
-        // Every membership with the preset is compiled again by the database trigger, personal changes kept.
+        // Every membership with the preset is compiled again by the database trigger, personal changes kept; its
+        // revision moves, so an edit based on the old permissions is refused.
         val affected = tx.update(
-            "UPDATE app.project_members SET granted = granted WHERE preset_id = $1::uuid",
+            "UPDATE app.project_members SET revision = revision + 1 WHERE preset_id = $1::uuid",
             current.id,
         )
+        requireAdministratorsRemain(tx, current.id)
         WorkspaceAccess.audit(
             tx, actor, current.workspaceId, action, current.id, current.revision + 1,
             mapOf(
@@ -229,6 +258,28 @@ object Presets {
             ),
         )
         return one(tx, current.workspaceId, current.id)
+    }
+
+    /** A preset change must leave every project where it is used with an active person who manages access. */
+    private fun requireAdministratorsRemain(tx: Transaction, presetId: String) {
+        val orphaned = tx.rows(
+            """
+            SELECT DISTINCT x.name FROM app.project_members m JOIN app.projects x ON x.id = m.project_id
+            WHERE m.preset_id = $1::uuid AND NOT EXISTS(
+              SELECT 1 FROM app.project_members a JOIN auth.principals p ON p.id = a.principal_id
+              WHERE a.project_id = m.project_id AND 'project.access' = ANY(a.permissions) AND p.kind = 'human'
+                AND p.disabled_at IS NULL)
+            ORDER BY x.name LIMIT 5
+            """.trimIndent(),
+            presetId,
+        ).map { it.string("name") }
+        requireCondition(
+            orphaned.isEmpty(),
+            409,
+            "LAST_ADMIN",
+            "После изменения в проектах не останется администратора: ${orphaned.joinToString { "«$it»" }}. " +
+                "Сначала назначьте администратора там.",
+        )
     }
 
     /** Only a preset of the workspace's own that nobody, no project default and no pending invitation uses. */

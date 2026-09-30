@@ -44,10 +44,14 @@ class InvitationMail(
         val transport = mail.ifAvailable
         val outcomes = batch.letters.associate { letter ->
             val rendered = InvitationLetter.render(letter.content)
+            // Any failure of one letter leaves that invitation «Не отправлено» and does not stop the others.
             val sent = try {
                 transport?.send(MailMessage(letter.email, rendered.subject, rendered.text, rendered.html)) != null
             } catch (error: MailUnavailableException) {
                 log.warn("Invitation letter could not be sent: {}", error.cause?.javaClass?.simpleName)
+                false
+            } catch (@Suppress("TooGenericExceptionCaught") error: RuntimeException) {
+                log.warn("Invitation letter could not be sent: {}", error.javaClass.simpleName)
                 false
             }
             letter.invitationId to sent

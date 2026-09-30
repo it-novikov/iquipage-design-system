@@ -188,7 +188,7 @@ open class Invitations(
         Internal.createCheck(this, DSL.name("invitations_check2"), "(((project_preset_id IS NULL) = (cardinality(project_ids) = 0)))", true),
         Internal.createCheck(this, DSL.name("invitations_check3"), "((cardinality(project_names) = cardinality(project_ids)))", true),
         Internal.createCheck(this, DSL.name("invitations_check4"), "(((accepted_at IS NULL) = (accepted_by IS NULL)))", true),
-        Internal.createCheck(this, DSL.name("invitations_check5"), "(((from_project_id IS NULL) OR ((workspace_role = 'guest'::text) AND (project_ids = ARRAY[from_project_id]))))", true),
+        Internal.createCheck(this, DSL.name("invitations_check5"), "(((from_project_id IS NULL) OR (project_ids = ARRAY[from_project_id])))", true),
         Internal.createCheck(this, DSL.name("invitations_delivery_check"), "((delivery = ANY (ARRAY['pending'::text, 'sent'::text, 'failed'::text, 'link'::text])))", true),
         Internal.createCheck(this, DSL.name("invitations_delivery_error_check"), "(((delivery_error IS NULL) OR (length(delivery_error) <= 200)))", true),
         Internal.createCheck(this, DSL.name("invitations_email_check"), "(((email IS NULL) OR (((length(email) >= 3) AND (length(email) <= 320)) AND (POSITION(('@'::text) IN (email)) > 1) AND (email = lower(email)))))", true),

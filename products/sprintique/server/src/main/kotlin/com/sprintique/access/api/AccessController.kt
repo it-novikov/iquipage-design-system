@@ -208,7 +208,7 @@ class AccessController(private val requests: AuthenticatedRequests, private val 
         RequestInputs.id(projectId)
         RequestInputs.id(id)
         val input = contracts.parse<HandoverAccessRequest>(body)
-        MemberAccess.handover(tx, actor, projectId, id, input.presetId.lowercase())
+        MemberAccess.handover(tx, actor, projectId, id, input.baseRevision, input.presetId.lowercase())
     }
 
     @GetMapping("/api/v1/projects/{projectId}/access")

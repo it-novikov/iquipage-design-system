@@ -77,21 +77,26 @@ object Invitations {
         val letters = mutableListOf<PendingLetter>()
         for (address in addresses.sortedBy(EmailAddress::value)) {
             tx.row("SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", "invitation-address:${address.value}")
-            // An earlier pending letter to the same address in this workspace is replaced by the new one.
-            val earlier = tx.row(
-                """
-                UPDATE auth.invitations SET replaced_at = clock_timestamp()
-                WHERE id = (SELECT id FROM auth.invitations WHERE workspace_id = $1::uuid AND email = $2 AND kind = 'email'
-                  AND accepted_at IS NULL AND revoked_at IS NULL AND replaced_at IS NULL ORDER BY created_at DESC LIMIT 1)
-                RETURNING id, resend_count AS "resendCount"
-                """.trimIndent(),
-                workspaceId,
-                address.value,
-            )
+            // The same author inviting the same address to the same again: within five minutes (unless the letter
+            // failed) it is a retry and answers with the invitation already made; later it is a new letter for it, with
+            // the limits of «Отправить снова». Anything else is another invitation: it never replaces someone else's.
+            val earlier = sameInvitation(tx, actor, scope, address.value)
+            val fresh = earlier != null && earlier.string("delivery") != "failed" &&
+                earlier.instant("created_at").plus(RESEND_PAUSE).isAfter(Instant.now())
+            if (earlier != null && (fresh || earlier.int("resend_count") >= RESENDS)) {
+                invitations += one(tx, earlier.string("id"))
+                continue
+            }
+            earlier?.let {
+                tx.update(
+                    "UPDATE auth.invitations SET replaced_at = clock_timestamp() WHERE id = $1::uuid",
+                    it.string("id"),
+                )
+            }
             val token = "invite_" + Tokens.random()
             val id = insert(
                 tx, actor, scope, "email", address.value, token, LETTER_LIFETIME,
-                earlier?.string("id"), earlier?.int("resendCount") ?: 0,
+                earlier?.string("id"), earlier?.let { it.int("resend_count") + 1 } ?: 0,
             )
             val underLimit = addressRoom(tx, address.value)
             if (underLimit) {
@@ -104,6 +109,25 @@ object Invitations {
         }
         return InvitationBatch(invitations, letters)
     }
+
+    /** The live letter of this author to this address with exactly this role, preset and projects, if any. */
+    private fun sameInvitation(tx: Transaction, actor: Actor, scope: Scope, email: String): Row? = tx.row(
+        """
+        SELECT id, delivery, created_at, resend_count FROM auth.invitations
+        WHERE workspace_id = $1::uuid AND email = $2 AND kind = 'email' AND inviter_id = $3 AND workspace_role = $4
+          AND project_preset_id IS NOT DISTINCT FROM $5::uuid AND project_ids = $6::text[]
+          AND from_project_id IS NOT DISTINCT FROM $7
+          AND accepted_at IS NULL AND revoked_at IS NULL AND replaced_at IS NULL AND expires_at > clock_timestamp()
+        ORDER BY created_at DESC LIMIT 1 FOR UPDATE
+        """.trimIndent(),
+        scope.workspaceId,
+        email,
+        actor.id,
+        scope.request.workspaceRole.wire,
+        scope.request.presetId,
+        scope.request.projectIds,
+        scope.request.fromProjectId,
+    )
 
     /** A link without a letter, accepted by one person; the token is shown once. */
     fun link(
@@ -372,12 +396,19 @@ object Invitations {
         ).map(::view)
     }
 
+    /** A project's invitations show that project only: names of other projects stay with those who may see them. */
     fun listForProject(tx: Transaction, actor: Actor, projectId: String): List<Map<String, Any?>> {
         ProjectAccess.authorize(tx, actor, projectId, Capability.MEMBERS_INVITE)
         return tx.rows(
             "$SELECT_VIEW WHERE $1 = ANY(i.project_ids) ORDER BY i.created_at DESC LIMIT 200",
             projectId,
-        ).map(::view)
+        ).map { row ->
+            val index = row.strings("projectIds").indexOf(projectId)
+            LinkedHashMap(view(row)).apply {
+                put("projectIds", listOf(projectId))
+                put("projectNames", listOfNotNull(row.strings("projectNames").getOrNull(index)))
+            }
+        }
     }
 
     /**
@@ -661,7 +692,9 @@ object Invitations {
                 workspaceId, principalId, role.wire,
             )
             tx.update(
-                "UPDATE app.project_members SET granted = granted WHERE workspace_id = $1::uuid AND principal_id = $2",
+                """
+                UPDATE app.project_members SET revision = revision + 1 WHERE workspace_id = $1::uuid AND principal_id = $2
+                """.trimIndent(),
                 workspaceId,
                 principalId,
             )
@@ -736,7 +769,7 @@ object Invitations {
     private const val NAME_LIMIT = 100
     private const val MEMBER_LIMIT = 500
     private const val ADDRESS_LIMIT =
-        "Слишком много писем на этот адрес за сутки. Отправьте завтра или создайте ссылку."
+        "Письмо сейчас не отправлено: на этот адрес за сутки ушло много писем. Повторите завтра или создайте ссылку."
     private const val RELAY_FAILED = "Письмо не ушло: почтовый сервер не ответил."
 
     private val SELECT_VIEW = """

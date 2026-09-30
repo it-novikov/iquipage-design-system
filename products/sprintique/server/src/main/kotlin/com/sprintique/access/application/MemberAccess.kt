@@ -26,6 +26,7 @@ import java.util.UUID
 @Suppress("TooManyFunctions")
 object MemberAccess {
     private const val MEMBER_LIMIT = 500
+    private val AGENT_VIEW = setOf("id", "name", "kind", "role", "avatarRevision", "joinedAt", "lastActiveAt")
 
     /**
      * The membership lock shared with the other membership changes: an advisory lock, the project row, then the live
@@ -59,7 +60,10 @@ object MemberAccess {
             WHERE m.project_id = $1 ORDER BY name, p.id LIMIT 501
             """.trimIndent(),
             projectId,
-        ).map(::withDifference)
+        ).map { row ->
+            // An agent's token sees who is in the project, not how their access is set up.
+            if (actor.isHuman) withDifference(row) else row.filterKeys { it in AGENT_VIEW }
+        }
     }
 
     /** The personal difference from the preset as the page shows it: what is added and what is removed. */
@@ -234,33 +238,42 @@ object MemberAccess {
     }
 
     /**
-     * The only way out of administration for the last administrator: someone else gets Администратор, and the actor
-     * takes the preset they chose, in one step.
+     * The only way out of administration for the last administrator: someone else gets exactly the actor's access
+     * (never more), and the actor takes a preset within it, in one step.
      */
     fun handover(
         tx: Transaction,
         actor: Actor,
         projectId: String,
         toId: String,
+        baseRevision: Long,
         ownPresetId: String,
     ): Map<String, Any?> {
         val me = manage(tx, actor, projectId, Capability.PROJECT_ACCESS)
         requireCondition(toId != actor.id, 422, "HANDOVER_SELF", "Выберите другого участника.")
         val target = target(tx, projectId, toId)
+        val active = tx.row("SELECT disabled_at IS NULL AS active FROM auth.principals WHERE id = $1", toId)!!
         requireCondition(
-            target.string("kind") == "human" && target.stringOrNull("workspaceRole") != WorkspaceRole.GUEST.wire,
+            target.string("kind") == "human" && active.boolean("active") &&
+                target.stringOrNull("workspaceRole") != WorkspaceRole.GUEST.wire,
             422,
             "HANDOVER_INVALID",
-            "Администратором может стать участник пространства, не гость.",
+            "Администратором может стать активный участник пространства, не гость.",
         )
-        val admin = Presets.system(tx, me.workspaceId, SystemPreset.ADMIN)
+        requireCondition(target.long("revision") == baseRevision, 409, "CONFLICT", "Права участника уже изменены.")
+        // Not more than one's own: the new administrator gets exactly the actor's access, and the actor keeps no more.
+        val mine = target(tx, projectId, actor.id)
         val own = Presets.requireUsable(tx, me.workspaceId, ownPresetId)
+        val kept = Permissions.compile(own.permissions)
+        requireNotAbove(me, actor.id, actor, me.permissions, kept)
+        requireNotAbove(me, toId, actor, ProjectAccess.permissionsOf(target), me.permissions)
         tx.update(
             """
-            UPDATE app.project_members SET preset_id = $3::uuid, granted = '{}', revoked = '{}', revision = revision + 1,
-              changed_by = $4, changed_at = clock_timestamp() WHERE project_id = $1 AND principal_id = $2
+            UPDATE app.project_members SET preset_id = $3::uuid, granted = $4::text[], revoked = $5::text[],
+              revision = revision + 1, changed_by = $6, changed_at = clock_timestamp()
+            WHERE project_id = $1 AND principal_id = $2
             """.trimIndent(),
-            projectId, toId, admin.id, actor.id,
+            projectId, toId, mine.string("presetId"), mine.strings("granted"), mine.strings("revoked"), actor.id,
         )
         tx.update(
             """
@@ -268,6 +281,12 @@ object MemberAccess {
               changed_by = $2, changed_at = clock_timestamp() WHERE project_id = $1 AND principal_id = $2
             """.trimIndent(),
             projectId, actor.id, own.id,
+        )
+        requireCondition(
+            Permission.PROJECT_ACCESS in ProjectAccess.permissionsOf(target(tx, projectId, toId)),
+            409,
+            "LAST_ADMIN",
+            "Новый администратор не получил «Управлять доступом».",
         )
         recordAccessEvent(tx, actor, projectId, "member.handover", toId, mapOf("to" to toId, "ownPreset" to own.name))
         return linkedMapOf("administratorId" to toId, "presetId" to own.id)

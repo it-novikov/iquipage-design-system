@@ -276,6 +276,19 @@ class Planning(private val json: JsonMapper, private val ledger: CommandLedger) 
             is PlanningCommand.MilestoneChange,
             -> if (actor.isHuman) ProjectAccess.authorize(tx, actor, projectId, Capability.RELEASES_MANAGE)
 
+            // New dates of a release or a milestone are part of its life too; a task's dates are not.
+            is PlanningCommand.Schedule ->
+                if (actor.isHuman && command.entity.kind != "task") {
+                    ProjectAccess.authorize(tx, actor, projectId, Capability.RELEASES_MANAGE)
+                }
+
+            is PlanningCommand.ScheduleBatch ->
+                if (actor.isHuman &&
+                    command.actions.any { it is PlanningCommand.Schedule && it.entity.kind != "task" }
+                ) {
+                    ProjectAccess.authorize(tx, actor, projectId, Capability.RELEASES_MANAGE)
+                }
+
             else -> Unit
         }
     }

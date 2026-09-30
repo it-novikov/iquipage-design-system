@@ -17,9 +17,14 @@ data class WorkspaceMembership(
     val role: WorkspaceRole,
     val permissions: Set<Permission>,
     val membersCreateProjects: Boolean,
+    val revoked: Set<Permission> = emptySet(),
 ) {
+    /** Members create projects when the workspace allows it, unless that was removed for them personally. */
     fun has(permission: Permission): Boolean = permission in permissions ||
-        (permission == Permission.PROJECTS_CREATE && role == WorkspaceRole.MEMBER && membersCreateProjects)
+        (
+            permission == Permission.PROJECTS_CREATE && role == WorkspaceRole.MEMBER && membersCreateProjects &&
+                permission !in revoked
+            )
 
     val isOwner: Boolean get() = role == WorkspaceRole.OWNER
 }
@@ -34,7 +39,7 @@ object WorkspaceAccess {
         if (!actor.isHuman) return null
         val row = tx.row(
             """
-            SELECT m.role, m.permissions, w.projects_created_by = 'members' AS "membersCreate"
+            SELECT m.role, m.permissions, m.revoked, w.projects_created_by = 'members' AS "membersCreate"
             FROM app.workspace_members m JOIN app.workspaces w ON w.id = m.workspace_id
             WHERE m.workspace_id = $1::uuid AND m.principal_id = $2
             """.trimIndent(),
@@ -46,6 +51,7 @@ object WorkspaceAccess {
             WorkspaceRole.fromWire(row.string("role"))!!,
             ProjectAccess.permissionsOf(row),
             row.boolean("membersCreate"),
+            ProjectAccess.permissionsOf(row, "revoked"),
         )
     }
 
@@ -76,7 +82,10 @@ object WorkspaceAccess {
     /** Locks the workspace row, revalidates the credential and the permission after the wait. */
     fun lock(tx: Transaction, actor: Actor, workspaceId: String, permission: Permission?): WorkspaceMembership {
         require(tx, actor, workspaceId, permission)
-        tx.update("SELECT id FROM app.workspaces WHERE id = $1::uuid FOR UPDATE", workspaceId)
+        // NO KEY UPDATE: serializes the workspace's own writers without blocking the foreign-key checks (KEY SHARE) of
+        // rows that reference the workspace, such as an acceptance inserting its member row while holding its
+        // invitation.
+        tx.update("SELECT id FROM app.workspaces WHERE id = $1::uuid FOR NO KEY UPDATE", workspaceId)
         ProjectAccess.requireActiveCredential(tx, actor)
         return require(tx, actor, workspaceId, permission)
     }
@@ -141,6 +150,7 @@ object WorkspaceAccess {
             "OWNER_REQUIRED",
             "Снять администратора может только владелец пространства.",
         )
+        requireNotAbove(me, actor, id, ProjectAccess.permissionsOf(current))
         // Not more than one's own: appointing an administrator gives every workspace permission.
         requireCondition(
             input.role != WorkspaceRole.ADMIN || role == WorkspaceRole.ADMIN ||
@@ -189,7 +199,9 @@ object WorkspaceAccess {
             )
             // Whether someone is a guest changes what their project presets may give.
             tx.update(
-                "UPDATE app.project_members SET granted = granted WHERE workspace_id = $1::uuid AND principal_id = $2",
+                """
+                UPDATE app.project_members SET revision = revision + 1 WHERE workspace_id = $1::uuid AND principal_id = $2
+                """.trimIndent(),
                 workspaceId,
                 id,
             )
@@ -268,6 +280,13 @@ object WorkspaceAccess {
             "Здесь меняются только права пространства.",
         )
         val before = ProjectAccess.permissionsOf(current)
+        requireCondition(
+            role != WorkspaceRole.ADMIN || me.isOwner || id == actor.id,
+            403,
+            "OWNER_REQUIRED",
+            "Права администратора пространства меняет только владелец.",
+        )
+        requireNotAbove(me, actor, id, before)
         val after = Permissions.compileWorkspace(role, input.granted, input.revoked)
         requireCondition(
             me.permissions.containsAll(after - before),
@@ -387,6 +406,16 @@ object WorkspaceAccess {
             mapOf("projectsCreatedBy" to input.projectsCreatedBy),
         )
         return settings(tx, actor, workspaceId)
+    }
+
+    /** Someone who holds a workspace permission the actor lacks is changed by the owner (or by themselves). */
+    private fun requireNotAbove(me: WorkspaceMembership, actor: Actor, id: String, theirs: Set<Permission>) {
+        requireCondition(
+            id == actor.id || me.isOwner || me.permissions.containsAll(theirs),
+            403,
+            "PERMISSION_EXCEEDS_ACTOR",
+            "У этого человека есть права пространства, которых нет у вас: изменить их может владелец.",
+        )
     }
 
     private fun target(tx: Transaction, workspaceId: String, id: String): Row = requirePresent(

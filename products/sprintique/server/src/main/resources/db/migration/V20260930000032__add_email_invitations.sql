@@ -14,7 +14,8 @@ CREATE TABLE auth.invitations (
   workspace_role text NOT NULL CHECK(workspace_role IN ('admin','member','guest')),
   project_preset_id uuid REFERENCES app.access_presets,
   project_ids text[] NOT NULL DEFAULT '{}' CHECK(cardinality(project_ids) <= 100),
-  -- Made from a project's settings by someone who may invite to that project only: the invitee joins as a guest.
+  -- Made from a project's settings on the strength of «Приглашать в проект» there (the invitee joins as a guest), or a
+  -- link made before this migration by an administrator of the project: accepting it checks that right in the project.
   from_project_id text REFERENCES app.projects,
   inviter_id text NOT NULL REFERENCES auth.principals,
   workspace_name text NOT NULL CHECK(length(workspace_name) BETWEEN 1 AND 100),
@@ -40,7 +41,7 @@ CREATE TABLE auth.invitations (
   CHECK((project_preset_id IS NULL)=(cardinality(project_ids)=0)),
   CHECK(cardinality(project_names)=cardinality(project_ids)),
   CHECK((accepted_at IS NULL)=(accepted_by IS NULL)),
-  CHECK(from_project_id IS NULL OR (workspace_role='guest' AND project_ids=ARRAY[from_project_id]))
+  CHECK(from_project_id IS NULL OR project_ids=ARRAY[from_project_id])
 );
 CREATE INDEX invitations_workspace ON auth.invitations(workspace_id,created_at DESC);
 CREATE INDEX invitations_email ON auth.invitations(email,created_at) WHERE email IS NOT NULL;
@@ -49,12 +50,13 @@ CREATE INDEX invitations_pending ON auth.invitations(workspace_id,expires_at)
   WHERE accepted_at IS NULL AND revoked_at IS NULL AND replaced_at IS NULL;
 
 -- Links made before this migration keep working until they expire: the same token hash, the preset of their role,
--- and the workspace as a member (what accepting one always did).
+-- the workspace as a member (what accepting one always did), and the author's right in the project, not in the
+-- workspace, checked on acceptance (a project administrator made them).
 ALTER TABLE app.projects NO FORCE ROW LEVEL SECURITY;
 ALTER TABLE app.workspaces NO FORCE ROW LEVEL SECURITY;
-INSERT INTO auth.invitations(id,workspace_id,kind,token_hash,workspace_role,project_preset_id,project_ids,inviter_id,
+INSERT INTO auth.invitations(id,workspace_id,kind,token_hash,workspace_role,project_preset_id,project_ids,from_project_id,inviter_id,
   workspace_name,project_names,preset_name,preset_hint,inviter_name,created_at,expires_at,delivery,revoked_at,accepted_at,accepted_by)
-SELECT i.id,p.workspace_id,'link',i.token_hash,'member',a.id,ARRAY[p.id],i.inviter_id,left(w.name,100),ARRAY[p.name],a.name,a.hint,
+SELECT i.id,p.workspace_id,'link',i.token_hash,'member',a.id,ARRAY[p.id],p.id,i.inviter_id,left(w.name,100),ARRAY[p.name],a.name,a.hint,
   left(coalesce(x.profile_name,x.name),100),i.created_at,i.expires_at,'link',i.revoked_at,i.accepted_at,i.accepted_by
 FROM auth.project_invitations i JOIN app.projects p ON p.id=i.project_id JOIN app.workspaces w ON w.id=p.workspace_id
 JOIN app.access_presets a ON a.workspace_id=p.workspace_id AND a.key=i.role JOIN auth.principals x ON x.id=i.inviter_id;

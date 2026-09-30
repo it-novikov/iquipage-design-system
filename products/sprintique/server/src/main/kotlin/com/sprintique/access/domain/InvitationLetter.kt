@@ -54,7 +54,7 @@ object InvitationLetter {
             appendLine()
             appendLine(
                 "Не ждали этого письма? Просто удалите его: без входа с вашего адреса доступ никто не получит. " +
-                    "Приглашение может отменить только администратор пространства.",
+                    "Отменить приглашение может тот, кто его отправил, или администратор пространства.",
             )
             appendLine()
             appendLine("—")
@@ -131,7 +131,7 @@ object InvitationLetter {
             <tr><td style="padding:24px 32px 0;"><a href="$link" style="display:inline-block;background:#1d1d20;color:#ffffff;text-decoration:none;padding:12px 22px;border-radius:10px;font-weight:600;">Принять приглашение</a></td></tr>
             <tr><td style="padding:20px 32px 0;">Войдите с адресом <b>${escape(content.email)}</b> — по коду из письма, через Google или Apple. Ссылка работает один раз.</td></tr>
             <tr><td style="padding:16px 32px 0;color:#6b6b73;font-size:14px;">Если кнопка не открывается, скопируйте адрес в браузер:<br><a href="$link" style="color:#2450d8;word-break:break-all;">$link</a></td></tr>
-            <tr><td style="padding:16px 32px 24px;color:#6b6b73;font-size:14px;">Не ждали этого письма? Просто удалите его: без входа с вашего адреса доступ никто не получит. Приглашение может отменить только администратор пространства.</td></tr>
+            <tr><td style="padding:16px 32px 24px;color:#6b6b73;font-size:14px;">Не ждали этого письма? Просто удалите его: без входа с вашего адреса доступ никто не получит. Отменить приглашение может тот, кто его отправил, или администратор пространства.</td></tr>
             <tr><td style="padding:16px 32px 28px;border-top:1px solid #e3e3e8;color:#6b6b73;font-size:13px;">Sprintique · ${escape(host(content.link))}<br>Письмо отправлено автоматически, отвечать на него не нужно.</td></tr>
             </table></td></tr></table></body></html>
         """.trimIndent()

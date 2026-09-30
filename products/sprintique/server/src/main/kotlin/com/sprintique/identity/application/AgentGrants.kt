@@ -24,6 +24,14 @@ object AgentGrants {
 
     fun issue(tx: Transaction, actor: Actor, projectId: String, grant: Grant): Map<String, Any> {
         val me = Membership.manageProject(tx, actor, projectId, Capability.AGENTS_MANAGE)
+        // Not more than one's own: every capability of the token needs its permission on the issuer's membership.
+        val beyond = grant.capabilities.map(Capability::permission).filterNot(me::has).distinct()
+        requireCondition(
+            beyond.isEmpty(),
+            403,
+            "PERMISSION_EXCEEDS_ACTOR",
+            "Нельзя дать агенту право, которого нет у вас: ${beyond.joinToString { "«${it.title}»" }}.",
+        )
         val members = tx.row("SELECT count(*)::int AS n FROM app.project_members WHERE project_id = $1", projectId)
         val count = members!!.int("n")
         requireCondition(count < MEMBER_LIMIT, 422, "MEMBER_LIMIT", "В проекте достигнут лимит участников.")
@@ -31,15 +39,18 @@ object AgentGrants {
         val credentialId = UUID.randomUUID().toString()
         val token = "spr_" + Tokens.random()
         tx.update("INSERT INTO auth.principals(id, name, kind) VALUES ($1, $2, 'agent')", id, grant.name)
-        // «Сервис: задачи», plus «Менять карты» when the grant allows it; the token's capabilities narrow it further.
-        val preset = Presets.system(tx, me.workspaceId, SystemPreset.SERVICE_TASKS)
+        // «Сервис: чтение» plus exactly the changes the token may make: the membership is never wider than the grant.
+        val preset = Presets.system(tx, me.workspaceId, SystemPreset.SERVICE_READ)
         tx.update(
             """
             INSERT INTO app.project_members(project_id, workspace_id, principal_id, preset_id, granted, changed_by, changed_at)
             VALUES ($1, $2::uuid, $3, $4::uuid, $5::text[], $6, clock_timestamp())
             """.trimIndent(),
             projectId, me.workspaceId, id, preset.id,
-            if (Capability.MAPS_WRITE in grant.capabilities) listOf("maps.write") else emptyList(), actor.id,
+            grant.capabilities.map(Capability::permission).filter {
+                it.wire.endsWith(".write")
+            }.map { it.wire }.distinct(),
+            actor.id,
         )
         val expiresAt = Instant.now().plusSeconds(grant.expiresInSeconds)
         val wire = grant.capabilities.map(Capability::wire)

@@ -1,8 +1,12 @@
 package com.sprintique.access
 
+import com.sprintique.access.application.Invitations
 import com.sprintique.database.Database
 import com.sprintique.database.IntegrationDatabase
 import com.sprintique.database.SchemaMigrations
+import com.sprintique.identity.domain.Actor
+import com.sprintique.identity.domain.PrincipalKind
+import com.sprintique.token.Tokens
 import org.assertj.core.api.Assertions.assertThat
 import org.flywaydb.core.Flyway
 import org.junit.jupiter.api.Test
@@ -39,6 +43,7 @@ class RolesMigrationIntegrationTest {
                     SchemaMigrations.migrate(database.dataSource, RUNTIME, WORKER)
                     SchemaMigrations.requireCurrent(database.dataSource)
                     Database.connect(IntegrationDatabase.adminUrl(name), 1, "roles-check").use(::check)
+                    accept(name)
                 }
         } finally {
             IntegrationDatabase.execute("postgres", "DROP DATABASE IF EXISTS $name WITH (FORCE)")
@@ -101,9 +106,10 @@ class RolesMigrationIntegrationTest {
         tx.update(
             """
             INSERT INTO auth.project_invitations(id, project_id, token_hash, role, inviter_id, expires_at)
-            VALUES ($1::uuid, 'p1', repeat('b', 64), 'editor', 'alice', now() + interval '3 days')
+            VALUES ($1::uuid, 'p4', $2, 'editor', 'fay', now() + interval '3 days')
             """.trimIndent(),
             INVITATION,
+            Tokens.sha256Hex(TOKEN),
         )
     }
 
@@ -142,16 +148,51 @@ class RolesMigrationIntegrationTest {
             tx.row(
                 """
                 SELECT i.kind, i.workspace_role, i.project_ids, a.key FROM auth.invitations i
-                JOIN app.access_presets a ON a.id = i.project_preset_id WHERE i.token_hash = repeat('b', 64)
+                JOIN app.access_presets a ON a.id = i.project_preset_id WHERE i.id = $1::uuid
                 """.trimIndent(),
+                INVITATION,
             )!!
         }
         assertThat(invitation.string("kind")).isEqualTo("link")
         assertThat(invitation.string("key")).isEqualTo("editor")
-        assertThat(invitation.strings("project_ids")).containsExactly("p1")
+        assertThat(invitation.strings("project_ids")).containsExactly("p4")
+    }
+
+    /**
+     * A link a project administrator made before the migration still lets someone in: Фая administers p4 but is only a
+     * member of W3, and her link is accepted under the runtime role.
+     */
+    private fun accept(name: String) {
+        Database.connect(IntegrationDatabase.adminUrl(name), 1, "roles-invitee").use { admin ->
+            admin.transaction { tx ->
+                tx.update("INSERT INTO auth.principals(id, kind, name) VALUES ('gleb', 'human', 'Глеб')")
+                tx.update(
+                    """
+                    INSERT INTO auth.credentials(id, principal_id, token_hash, kind, csrf, initiator_id, expires_at)
+                    VALUES ('gleb-session', 'gleb', repeat('c', 64), 'session', 'csrf', 'gleb', now() + interval '1 hour')
+                    """.trimIndent(),
+                )
+            }
+        }
+        val runtime = IntegrationDatabase.environment("SPRINTIQUE_TEST_DATABASE_URL").replace("/sprintique?", "/$name?")
+        Database.connect(runtime, 1, "roles-runtime").use { database ->
+            val actor = Actor("gleb", "Глеб", PrincipalKind.HUMAN, "gleb-session", "csrf", null, emptySet(), "gleb")
+            val result = database.transaction { tx ->
+                tx.row("SELECT set_config('app.actor_id', 'gleb', true)")
+                Invitations.accept(tx, actor, TOKEN)
+            }
+            assertThat(result["projectId"]).isEqualTo("p4")
+            val role = database.transaction { tx ->
+                tx.row("SELECT set_config('app.actor_id', 'gleb', true)")
+                val sql = "SELECT role FROM app.project_members WHERE project_id = 'p4' AND principal_id = 'gleb'"
+                tx.row(sql)!!.string("role")
+            }
+            assertThat(role).isEqualTo("editor")
+        }
     }
 
     private companion object {
+        val TOKEN = "invite_" + "L".repeat(43)
         const val RUNTIME = "sprintique_app"
         const val WORKER = "sprintique_worker"
         const val POOL = 3
