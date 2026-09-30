@@ -303,13 +303,35 @@ object Membership {
         return linkedMapOf("projectId" to projectId, "slug" to project.string("slug"))
     }
 
-    fun profile(tx: Transaction, actor: Actor): Row? = tx.row(
-        """
-        SELECT p.id, coalesce(p.profile_name, p.name) AS name, p.email, p.revision, a.revision AS "avatarRevision"
-        FROM auth.principals p LEFT JOIN app.person_avatars a ON a.principal_id = p.id WHERE p.id = $1
-        """.trimIndent(),
-        actor.id,
-    )
+    /** The person's profile with their own preferences, which follow them to every device. */
+    fun profile(tx: Transaction, actor: Actor): Map<String, Any?>? {
+        val row = tx.row(
+            """
+            SELECT p.id, coalesce(p.profile_name, p.name) AS name, p.email, p.revision, a.revision AS "avatarRevision",
+                   coalesce(r.confirm_release_scope, true) AS "confirmReleaseScope"
+            FROM auth.principals p LEFT JOIN app.person_avatars a ON a.principal_id = p.id
+            LEFT JOIN app.person_preferences r ON r.principal_id = p.id WHERE p.id = $1
+            """.trimIndent(),
+            actor.id,
+        ) ?: return null
+        val preferences = mapOf("confirmReleaseScope" to row["confirmReleaseScope"])
+        return row.filterKeys { it != "confirmReleaseScope" } + ("preferences" to preferences)
+    }
+
+    /** Sets the person's preferences as a whole: a repeated request leaves the same state, the last one wins. */
+    fun changePreferences(tx: Transaction, actor: Actor, confirmReleaseScope: Boolean): Map<String, Any?> {
+        requireHuman(tx, actor, "Настройки доступны человеку.")
+        val row = tx.row(
+            """
+            INSERT INTO app.person_preferences(principal_id, confirm_release_scope) VALUES ($1, $2)
+            ON CONFLICT (principal_id) DO UPDATE SET confirm_release_scope = EXCLUDED.confirm_release_scope,
+                updated_at = clock_timestamp()
+            RETURNING confirm_release_scope AS "confirmReleaseScope"
+            """.trimIndent(),
+            actor.id, confirmReleaseScope,
+        )!!
+        return mapOf("confirmReleaseScope" to row["confirmReleaseScope"])
+    }
 
     fun changeProfile(tx: Transaction, actor: Actor, baseRevision: Long, name: String): Row {
         requireHuman(tx, actor, "Профиль доступен человеку.")
@@ -320,6 +342,44 @@ object Membership {
             actor.id, name, baseRevision,
         )
         return requirePresent(result, 409, "CONFLICT", "Профиль уже изменён.")
+    }
+
+    /** The person's settings for one project: which release the board shows (null: the running one). */
+    fun projectPreferences(tx: Transaction, actor: Actor, projectId: String): Map<String, Any?> {
+        requireHuman(tx, actor, "Настройки доступны человеку.")
+        ProjectAccess.authorize(tx, actor, projectId, Capability.TASKS_READ)
+        val row = tx.row(
+            "SELECT board_release FROM app.person_project_preferences WHERE principal_id = $1 AND project_id = $2",
+            actor.id, projectId,
+        )
+        return mapOf("boardRelease" to row?.stringOrNull("board_release"))
+    }
+
+    /** Sets them as a whole; the last write wins. */
+    fun changeProjectPreferences(
+        tx: Transaction,
+        actor: Actor,
+        projectId: String,
+        boardRelease: String?,
+    ): Map<String, Any?> {
+        requireHuman(tx, actor, "Настройки доступны человеку.")
+        ProjectAccess.authorize(tx, actor, projectId, Capability.TASKS_READ)
+        requireCondition(
+            boardRelease == null || boardRelease == "backlog" ||
+                tx.row("SELECT 1 FROM app.releases WHERE project_id = $1 AND id = $2", projectId, boardRelease) != null,
+            422,
+            "RELEASE_UNAVAILABLE",
+            "Релиз недоступен.",
+        )
+        tx.update(
+            """
+            INSERT INTO app.person_project_preferences(principal_id, project_id, board_release) VALUES ($1, $2, $3)
+            ON CONFLICT (principal_id, project_id) DO UPDATE SET board_release = EXCLUDED.board_release,
+                updated_at = clock_timestamp()
+            """.trimIndent(),
+            actor.id, projectId, boardRelease,
+        )
+        return mapOf("boardRelease" to boardRelease)
     }
 
     /** Replaces the person's photo with an already re-encoded image; the revision becomes the cache key. */

@@ -1,6 +1,7 @@
 import {before,after,test} from 'node:test';
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
+import {readFile} from 'node:fs/promises';
 import {fixture} from './fixture.js';
 let f:Awaited<ReturnType<typeof fixture>>;
 before(async()=>{f=await fixture({prefix:'PC'});});after(async()=>{await f?.close();});
@@ -129,4 +130,52 @@ test('a person photo is re-encoded, visible only to people who share a project o
   assert.equal((await f.app.inject({method:'DELETE',url:'/api/v1/profile/avatar',headers:f.alice.headers})).statusCode,200);
   assert.equal((await f.app.inject({method:'GET',url:`/api/v1/people/${f.alice.id}/avatar`,headers:f.alice.headers})).statusCode,404);
   assert.equal((await ok('GET','/api/v1/profile')).avatarRevision,null);
+});
+test('a photo cropped in any browser becomes the person photo; a format people have but the server does not take is named',async()=>{
+  const put=(body:Buffer)=>f.app.inject({method:'PUT',url:'/api/v1/profile/avatar',headers:{...f.bob.headers,'content-type':'application/octet-stream'},payload:body});
+  // What the settings cropper sends: Chrome WebP with an ICC profile, Firefox WebP with alpha, Safari's PNG fallback.
+  for(const name of ['chromium-crop-opaque.webp','chromium-crop-alpha.webp','firefox-crop-alpha.webp','webkit-crop-alpha.png']){
+    const sent=await put(await readFile(new URL('../server/src/test/resources/media/browser-crops/'+name,import.meta.url)));
+    assert.equal(sent.statusCode,200,name+': '+sent.body);
+  }
+  const heic=await put(Buffer.concat([Buffer.from([0,0,0,24]),Buffer.from('ftypheic'),Buffer.alloc(64)]));
+  assert.equal(heic.statusCode,422);assert.equal(heic.json().code,'FILE_TYPE');assert.match(heic.json().message,/HEIC/);
+  const large=await put(Buffer.alloc(10*1024*1024+1));
+  assert.equal(large.statusCode,413);assert.equal(large.json().code,'FILE_SIZE');assert.match(large.json().message,/10 МБ/);
+});
+test('personal preferences follow the person to every device and belong to them alone',async()=>{
+  const profile=async(user=f.alice)=>(await f.app.inject({method:'GET',url:'/api/v1/profile',headers:user.headers})).json();
+  const set=(payload:unknown,user=f.alice)=>f.app.inject({method:'PUT',url:'/api/v1/profile/preferences',headers:user.headers,payload:payload as Record<string,unknown>});
+  assert.deepEqual((await profile()).preferences,{confirmReleaseScope:true},'the confirmation is on until the person turns it off');
+  const off=await set({confirmReleaseScope:false});assert.equal(off.statusCode,200,off.body);assert.deepEqual(off.json(),{confirmReleaseScope:false});
+  assert.deepEqual((await set({confirmReleaseScope:false})).json(),{confirmReleaseScope:false},'repeating the request changes nothing');
+  assert.deepEqual((await profile()).preferences,{confirmReleaseScope:false});
+  assert.deepEqual((await profile(f.reader)).preferences,{confirmReleaseScope:true},'another person keeps their own');
+  assert.equal((await set({confirmReleaseScope:true,theme:'dark'})).statusCode,400);
+  assert.equal((await f.app.inject({method:'PUT',url:'/api/v1/profile/preferences',payload:{confirmReleaseScope:true}})).statusCode,401);
+  assert.deepEqual((await set({confirmReleaseScope:true})).json(),{confirmReleaseScope:true});
+});
+test('the release a board shows is remembered per person and project, and only for people of the project',async()=>{
+  const url=`/api/v1/projects/${f.first.id}/preferences`;
+  const get=async(user=f.alice)=>f.app.inject({method:'GET',url,headers:user.headers});
+  const set=(payload:unknown,user=f.alice)=>f.app.inject({method:'PUT',url,headers:user.headers,payload:payload as Record<string,unknown>});
+  assert.deepEqual((await get()).json(),{boardRelease:null},'the running release until the person picks one');
+  assert.deepEqual((await set({boardRelease:'backlog'})).json(),{boardRelease:'backlog'});
+  assert.deepEqual((await get()).json(),{boardRelease:'backlog'});
+  assert.deepEqual((await get(f.reader)).json(),{boardRelease:null},'another person keeps their own');
+  assert.equal((await get(f.bob)).statusCode,404,'an outsider learns nothing about the project');
+  assert.equal((await set({boardRelease:'backlog'},f.bob)).statusCode,404);
+  assert.equal((await set({boardRelease:'not an id!'})).statusCode,400);
+  assert.equal((await f.app.inject({method:'GET',url})).statusCode,401);
+  assert.equal((await set({boardRelease:'no-such-release'})).json().code,'RELEASE_UNAVAILABLE','only a release of this project');
+  assert.deepEqual((await set({boardRelease:null})).json(),{boardRelease:null});
+  // Row security itself, as the runtime role: a person reads only their own row, and only while in the project.
+  await set({boardRelease:'backlog'});
+  const rows=async(actor:string,setup='')=>{await f.admin.query('BEGIN');try{if(setup)await f.admin.query(setup,[actor,f.first.id]);
+    await f.admin.query(`SET LOCAL ROLE "${process.env.DATABASE_RUNTIME_ROLE}"`);await f.admin.query("SELECT set_config('app.actor_id',$1,true)",[actor]);
+    return (await f.admin.query('SELECT principal_id FROM app.person_project_preferences')).rows.map((r:{principal_id:string})=>r.principal_id);}finally{await f.admin.query('ROLLBACK');}};
+  assert.deepEqual(await rows(f.alice.id),[f.alice.id]);
+  assert.deepEqual(await rows(f.reader.id),[],'another person sees none of it');
+  assert.deepEqual(await rows(f.alice.id,'DELETE FROM app.project_members WHERE principal_id=$1 AND project_id=$2'),[],'nor does a person who left the project');
+  await set({boardRelease:null});
 });

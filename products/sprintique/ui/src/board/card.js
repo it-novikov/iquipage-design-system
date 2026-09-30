@@ -26,7 +26,9 @@ function subtasks(t,children=[],expanded=false,people=''){
   return `<div class="task-card-subtasks"><button type="button" class="task-subtasks-summary" data-toggle-children="${id}" aria-expanded="${expanded}" aria-controls="subtasks-${id}"><span>Подзадачи</span><span class="task-subtasks-count">${done}/${children.length}</span>${ui.progress(percent,'Готово подзадач','task-subtasks-progress')}${icon('down',14)}</button>${people?`<span class="task-subtasks-people">${people}</span>`:''}${list}</div>`;
 }
 export function renderTaskCard(row,{index,canEdit,pending=false,expanded=false,catalogs={tags:[],releases:[],people:new Map()}}){
-  const t=row.task,id=esc(t.id),label=taskKindLabel(t);
+  // The kind leads the key («Задача SPR-1», «Баг SPR-2», «Эпик SPR-3»); the key stays the drag handle, and the signal
+  // after it keeps only urgency, since the kind is already said.
+  const t=row.task,id=esc(t.id),label=taskKindLabel(t),key=t.displayId||t.id.slice(-7).toUpperCase();
   canEdit=canEdit&&t.result!=='accepted';
   const tags=catalogs.tags.filter(tag=>(t.tagIds||[]).includes(tag.id)),release=catalogs.releases.find(item=>item.id===t.releaseId);
   const metadata=tags.length?`<div class="task-card-tags" data-card-tags>${tags.map(tag=>`<span data-packed-tag title="${esc(tag.name)}">${tagMarkup(tag)}</span>`).join('')}<button type="button" class="iq-tag task-tags-more" data-tags-overflow="${id}" hidden></button></div>`:'';
@@ -38,10 +40,10 @@ export function renderTaskCard(row,{index,canEdit,pending=false,expanded=false,c
   // Moving is one step: the columns are listed right in the card menu.
   const moves=canEdit?[{section:'Переместить в'},...TASK_COLUMNS.filter(c=>c.id!==taskColumn(t)).map(c=>({label:c.label,glyph:c.icon,action:`move-to:${c.id}:${t.id}`}))]:[];
   const menu=ui.menu(ui.ib('more','Действия задачи: '+t.title,'ghost sm'),[{label:'Открыть задачу',glyph:'expand',action:'open:'+t.id},...moves]);
-  return `<article class="task-card" tabindex="0" role="link" aria-label="Открыть задачу: ${esc(t.title)}" data-task-surface="${id}" data-task-emphasis="${taskEmphasis(t)}" data-task-kind="${esc(t.type||'task')}" data-drag-id="${id}" data-priority="${normalizePriority(t.priority)}" ${pending?'aria-busy="true"':''}>
+  return `<article class="task-card" tabindex="0" role="link" aria-label="Открыть: ${esc(label)} ${esc(key)}, ${esc(t.title)}" data-task-surface="${id}" data-task-emphasis="${taskEmphasis(t)}" data-task-kind="${esc(t.type||'task')}" data-drag-id="${id}" data-priority="${normalizePriority(t.priority)}" ${pending?'aria-busy="true"':''}>
     ${t.coverAttachmentId?`<button type="button" class="task-card-cover" data-state="loading" data-open-task="${id}" aria-label="Открыть задачу: ${esc(t.title)}" tabindex="-1">${coverLetterboxed(t.coverCrop)&&t.coverCrop.attachmentId===t.coverAttachmentId?'<img class="task-cover-backdrop" alt="" aria-hidden="true" hidden>':''}<img data-cover-id="${esc(t.coverAttachmentId)}" data-cover-task="${id}" style="${coverImageStyle(t.coverCrop,t.coverAttachmentId)}" alt="" draggable="false" decoding="async"><span class="task-cover-fallback">${icon('image',20)}</span></button>`:''}
     <div class="task-card-top"><div class="task-identity">
-    <button type="button" class="task-card-id task-id-drag" data-drag-handle title="${esc(label)}. Перетащите за номер задачи" aria-label="Переместить задачу: ${esc(t.title)}" aria-pressed="false" aria-describedby="board-drag-help" ${!canEdit||pending?'disabled':''}>${esc(t.displayId||t.id.slice(-7).toUpperCase())}</button>${taskSignal(t)}</div>${menu}</div>
+    <span class="task-card-kind">${esc(label)}</span><button type="button" class="task-card-id task-id-drag" data-drag-handle title="${esc(label)} ${esc(key)}. Перетащите за номер задачи" aria-label="Переместить: ${esc(label)} ${esc(key)}, ${esc(t.title)}" aria-pressed="false" aria-describedby="board-drag-help" ${!canEdit||pending?'disabled':''}>${esc(key)}</button>${taskSignal({...t,type:'task'})}</div>${menu}</div>
 
     <button type="button" class="task-card-title" data-open-task="${id}" title="${esc(t.title)}" tabindex="-1">${esc(t.title)}</button>
     ${row.parent?`<button type="button" class="task-card-parent" data-open-task="${esc(row.parent.id)}" tabindex="-1" title="Родительская задача: ${esc(row.parent.title)}">${icon('stack',14)}<span>${esc(row.parent.title)}</span></button>`:''}

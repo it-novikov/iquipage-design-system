@@ -8,23 +8,22 @@ import com.sprintique.identity.application.ProjectAccess
 import com.sprintique.identity.application.ServiceAccounts
 import com.sprintique.identity.domain.Actor
 import com.sprintique.identity.domain.Capability
-import com.sprintique.media.application.Assets
 import com.sprintique.problem.requireCondition
 import java.util.UUID
 
-/** Project and workspace profiles: names, time zones, avatars, catalogs of projects and members. */
+/** Project and workspace profiles: names, time zones, catalogs of projects and members. */
 object ProjectProfiles {
     fun project(tx: Transaction, actor: Actor, projectId: String): Row? {
         ProjectAccess.authorize(tx, actor, projectId, Capability.TASKS_READ)
         return tx.row(
             """
-            SELECT id, name, slug, key, profile_revision AS revision, avatar_asset_id AS "avatarAssetId" FROM app.projects WHERE id = $1
+            SELECT id, name, slug, key, profile_revision AS revision FROM app.projects WHERE id = $1
             """.trimIndent(),
             projectId,
         )
     }
 
-    data class ProjectChange(val baseRevision: Long, val name: String, val avatarAssetId: String?)
+    data class ProjectChange(val baseRevision: Long, val name: String)
 
     fun changeProject(
         tx: Transaction,
@@ -43,7 +42,6 @@ object ProjectProfiles {
                 "CONFLICT",
                 "Настройки проекта уже изменены.",
             )
-            Assets.linkProjectAvatar(tx, actor, projectId, input.avatarAssetId)
             tx.update(
                 "UPDATE app.projects SET name = $2, profile_revision = profile_revision + 1 WHERE id = $1",
                 projectId,

@@ -200,6 +200,47 @@ val imageArchitecture =
         if (System.getProperty("os.arch") in setOf("aarch64", "arm64")) "arm64" else "amd64",
     )
 
+// The WebP encoder is a native library inside webp-imageio. Its loader copies the library to java.io.tmpdir and loads
+// it from there, which a container with a noexec /tmp refuses: every photo and preview then failed as an unreadable
+// image. The image carries the library in /app/native instead, where the loader finds it on java.library.path.
+fun webpNativeFolder(architecture: String) = if (architecture == "arm64") "aarch64" else "x86_64"
+
+val webpImageioJar = configurations.runtimeClasspath.map { classpath ->
+    classpath.single { it.name.startsWith("webp-imageio-") && it.name.endsWith(".jar") }
+}
+
+val webpNative = tasks.register<Sync>("webpNative") {
+    group = "build"
+    description = "Extracts the Linux WebP encoder library of the image architecture for /app/native."
+    val library = imageArchitecture.map { "native/Linux/${webpNativeFolder(it)}/libwebp-imageio.so" }
+    from(webpImageioJar.map { zipTree(it) }) {
+        include(library.get())
+        eachFile { path = name }
+    }
+    includeEmptyDirs = false
+    into(layout.buildDirectory.dir("webp-native"))
+}
+
+// A dependency upgrade that moves or drops the library must fail the build, not the photos in production.
+val verifyWebpNative = tasks.register("verifyWebpNative") {
+    group = "verification"
+    description = "Fails when webp-imageio no longer carries the Linux libraries the image loads from /app/native."
+    inputs.files(webpImageioJar)
+    doLast {
+        val entries = zipTree(webpImageioJar.get()).matching { include("native/Linux/**") }.files.map {
+            it.invariantSeparatorsPath.substringAfter("/native/Linux/")
+        }
+        for (architecture in listOf("arm64", "amd64")) {
+            val expected = "${webpNativeFolder(architecture)}/libwebp-imageio.so"
+            check(expected in entries) { "webp-imageio has no native/Linux/$expected" }
+        }
+    }
+}
+
+tasks.check { dependsOn(verifyWebpNative) }
+
+tasks.matching { it.name.startsWith("jib") }.configureEach { dependsOn(webpNative) }
+
 jib {
     from {
         image = "eclipse-temurin:25-jre-noble@sha256:30772b161c319f9a10c82e30fd77b7b6702c6b051e44e0e9f3d7ab5dd389a5ab"
@@ -226,13 +267,22 @@ jib {
             "SPRINTIQUE_PORT" to "4311",
             "SPRINTIQUE_WEB_ROOT" to "/app/web",
         )
-        jvmFlags = listOf("-XX:MaxRAMPercentage=75", "-XX:+ExitOnOutOfMemoryError")
+        jvmFlags = listOf(
+            "-XX:MaxRAMPercentage=75",
+            "-XX:+ExitOnOutOfMemoryError",
+            "-Djava.library.path=/app/native",
+            "--enable-native-access=ALL-UNNAMED",
+        )
     }
     extraDirectories {
         paths {
             path {
                 setFrom(file("../dist"))
                 into = "/app/web"
+            }
+            path {
+                setFrom(layout.buildDirectory.dir("webp-native"))
+                into = "/app/native"
             }
         }
     }

@@ -1,0 +1,39 @@
+# Журнал 20260930-editor-notifications
+
+- 2026-09-30T18:53:23Z · claude-opus-5-5 · create · - · Релиз 1.0: ссылки при вставке (SPR-5), автоскрытие уведомлений (SPR-8), пустой шаблон описания (SPR-12)
+- 2026-09-30T18:53:30Z · claude-opus-5-5 · claim · - · взял задачу
+- 2026-09-30T18:53:30Z · claude-opus-5-5 · note · A1 · критерий приёмки: SPR-5: вставка http(s)/mailto-ссылки в iq-markdown-editor и инлайн-редактор карты: без выделения — ссылка с адресом в тексте, поверх выделения — [текст](url); обычный текст без изменений; отмена одним шагом; ссылка кликабельна в предпросмотре
+- 2026-09-30T18:53:31Z · claude-opus-5-5 · note · A2 · критерий приёмки: SPR-8: DS notify скрывается сам: info/success 5 с, warning 8 с, danger 10 с; действие-переход (Открыть) 10 с; действие-отмена (undo) остаётся до закрытия; пауза при наведении/фокусе/скрытой вкладке; Escape и кнопка закрывают; role status/alert; reduced motion
+- 2026-09-30T18:53:31Z · claude-opus-5-5 · note · A3 · критерий приёмки: SPR-12: новая задача с нетронутым текстом шаблона (любой тип и стартовый шаблон, пробелы нормализованы) сохраняется с пустым описанием; любое изменение — сохраняется всё
+- 2026-09-30T18:53:31Z · claude-opus-5-5 · note · A4 · критерий приёмки: DS 0.6.0-vnext.25 (после vnext.24 из PR #24) собран, протестирован, упакован в vendor продукта; старый tarball удалён; lockfile обновлён
+- 2026-09-30T18:53:31Z · claude-opus-5-5 · note · A5 · критерий приёмки: Проверено в браузере на локальном запуске; независимое read-only ревью, обоснованное исправлено; гейты зелёные без пропусков (DS npm test, продукт npm test + Kotlin, verify-vnext); PR в main открыт, не слит
+- 2026-09-30T18:53:40Z · claude-opus-5-5 · note · S1 · добавлен шаг: SPR-5 ссылка при вставке
+- 2026-09-30T18:53:40Z · claude-opus-5-5 · note · S2 · добавлен шаг: SPR-8 автоскрытие уведомлений
+- 2026-09-30T18:53:40Z · claude-opus-5-5 · note · S3 · добавлен шаг: SPR-12 пустой шаблон
+- 2026-09-30T18:53:40Z · claude-opus-5-5 · note · S4 · добавлен шаг: Релиз DS vnext.25 и принятие в продукте
+- 2026-09-30T18:53:40Z · claude-opus-5-5 · note · S5 · добавлен шаг: Проверка, ревью, гейты, PR
+- 2026-09-30T18:53:40Z · claude-opus-5-5 · step · S1 · active
+- 2026-09-30T18:59:28Z · claude-opus-5-5 · decision · D1 · SPR-5: safeMarkdownURL теперь пропускает http: и mailto: (раньше только https) — задача требует http(s)/mailto-ссылок, а без этого вставленная http-ссылка не стала бы кликабельной; учётные данные, пробелы, обратные слэши и прочие схемы по-прежнему отклоняются, mailto открывается без target=_blank
+- 2026-09-30T18:59:28Z · claude-opus-5-5 · decision · D2 · SPR-5: без выделения вставляется автоссылка <url> (текст = URL, без экранирования _ и *), поверх выделения — [текст](url) с экранированием [] и (); внутри кода, в адресе ссылки, поверх URL и через абзацы — обычная вставка
+- 2026-09-30T18:59:28Z · claude-opus-5-5 · decision · D3 · SPR-8: info/success 5 с, warning 8 с, danger 10 с, действие-переход (Открыть) 10 с; только action.undo держит уведомление до закрытия (окно отмены A11Y-01 сохранено); демо-вызовы «Отменить» в DS помечены undo:true
+- 2026-09-30T18:59:28Z · claude-opus-5-5 · decision · D4 · Версия DS 0.6.0-vnext.25: PR #24 (vnext.24) влит в main; локальная волна 2 планировала vnext.25 — при её выпуске нужна vnext.26
+- 2026-09-30T18:59:28Z · claude-opus-5-5 · step · S1 · done: markdownPasteLink + pasteLink в editor.js и whiteboard-studio.js; tests/vnext25.test.cjs; DS npm test 380/380 (браузер — в S5)
+- 2026-09-30T18:59:28Z · claude-opus-5-5 · step · S2 · done: toastDuration/TOAST_DURATION, пауза hover/focus/hidden, Escape; DS npm test 380/380
+- 2026-09-30T18:59:28Z · claude-opus-5-5 · step · S3 · active
+- 2026-09-30T18:59:28Z · claude-opus-5-5 · checkpoint · S3 · дальше: withoutUntouchedTemplate + тест продукта
+- 2026-09-30T19:01:46Z · claude-opus-5-5 · step · S3 · done: withoutUntouchedTemplate в task-templates.js, task-dialog.js; tests/task-templates.test.mjs 5/5 (браузер — в S5)
+- 2026-09-30T19:01:46Z · claude-opus-5-5 · step · S4 · done: DS 0.6.0-vnext.25: npm test 380/380, npm pack в vendor, vnext.24.tgz удалён, lockfile integrity пересчитан, npm ci + build + check:boundaries PASS
+- 2026-09-30T19:01:46Z · claude-opus-5-5 · step · S5 · active
+- 2026-09-30T19:01:46Z · claude-opus-5-5 · checkpoint · S5 · дальше: проверка в браузере
+- 2026-09-30T19:10:48Z · claude-opus-5-5 · checkpoint · S5 · дальше: исправить ревью, гейты
+- 2026-09-30T21:02:42Z · claude-opus-5-5 · checkpoint · S5 · дальше: npm test продукта, verify-vnext, коммит, PR
+- 2026-09-30T21:12:46Z · claude-opus-5-5 · step · S5 · done: 43484f9; verify-vnext PASS 2026-09-30T21-03-01Z: DS 385/385, product npm test 263/263, Kotlin unit 78 + integration 35, 0 skipped, detached PASS; браузер 127.0.0.1:4417; ревью R1 исправлено
+- 2026-09-30T21:12:46Z · claude-opus-5-5 · note · A1 · критерий приёмки выполнен
+- 2026-09-30T21:12:46Z · claude-opus-5-5 · note · A2 · критерий приёмки выполнен
+- 2026-09-30T21:12:46Z · claude-opus-5-5 · note · A3 · критерий приёмки выполнен
+- 2026-09-30T21:12:46Z · claude-opus-5-5 · note · A4 · критерий приёмки выполнен
+- 2026-09-30T21:12:46Z · claude-opus-5-5 · note · A5 · критерий приёмки выполнен
+- 2026-09-30T21:12:46Z · claude-opus-5-5 · status · - · review: PR открыт, гейты зелёные
+- 2026-09-30T21:12:46Z · claude-opus-5-5 · checkpoint · - · дальше: владелец: ревью и слияние PR (после #24 — уже влит)
+- 2026-09-30T21:13:05Z · claude-opus-5-5 · note · - · PR #34 открыт: https://github.com/it-novikov/iquipage-design-system/pull/34
+- 2026-09-30T21:13:05Z · claude-opus-5-5 · release · - · отпустил задачу

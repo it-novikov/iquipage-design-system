@@ -40,7 +40,7 @@ class ImageTranscoderTest {
     fun `a tiny avatar and a non-image are refused`() {
         assertThatThrownBy { transcoder.avatar(png(20, 20)) }.hasFieldOrPropertyWithValue("code", "IMAGE_SIZE")
         assertThatThrownBy {
-            transcoder.avatar("GIF89a".toByteArray())
+            transcoder.avatar("not an image".toByteArray())
         }.hasFieldOrPropertyWithValue("code", "FILE_TYPE")
     }
 
@@ -82,6 +82,54 @@ class ImageTranscoderTest {
         } while (outcome == "IMAGE_BUSY" && System.nanoTime() < deadline)
         // Any answer but IMAGE_BUSY means a slot was free again (a small image may still miss 50 ms on a cold JVM).
         assertThat(outcome).isNotEqualTo("IMAGE_BUSY")
+    }
+
+    @Test
+    fun `photos cropped in Chrome, Firefox and Safari become avatars`() {
+        // What the settings cropper sends: Chrome's WebP carries an ICC profile (VP8X), Firefox's keeps alpha in an
+        // ALPH chunk, Safari cannot encode WebP and sends PNG.
+        for (name in listOf(
+            "chromium-crop-opaque.webp",
+            "chromium-crop-alpha.webp",
+            "firefox-crop-alpha.webp",
+            "webkit-crop-alpha.png",
+        )) {
+            val bytes = javaClass.getResourceAsStream("/media/browser-crops/$name")!!.use { it.readBytes() }
+            assertThat(size(transcoder.avatar(bytes))).describedAs(name).isEqualTo(256 to 256)
+        }
+    }
+
+    @Test
+    fun `an encoder that cannot load is the server's fault, never an unreadable photo`() {
+        // Production: the native WebP library could not load from a noexec /tmp, and every photo came back as 422.
+        var broken = true
+        val transcoder = ImageIoImageTranscoder(Duration.ofSeconds(10)) { _, _ ->
+            if (broken) throw UnsatisfiedLinkError("failed to map segment from shared object")
+            byteArrayOf(1, 2, 3)
+        }
+        assertThatThrownBy { transcoder.avatar(png(300, 200)) }
+            .hasFieldOrPropertyWithValue("status", 503)
+            .hasFieldOrPropertyWithValue("code", "IMAGE_UNAVAILABLE")
+        assertThatThrownBy {
+            transcoder.variants(png(300, 200))
+        }.hasFieldOrPropertyWithValue("code", "IMAGE_UNAVAILABLE")
+        assertThatThrownBy { transcoder.check() }.hasFieldOrPropertyWithValue("status", 503)
+        broken = false
+        transcoder.check()
+        assertThat(transcoder.avatar(png(300, 200))).containsExactly(1, 2, 3)
+    }
+
+    @Test
+    fun `formats people have but the photo does not take are named in the refusal`() {
+        val heic = byteArrayOf(0, 0, 0, 24) + "ftypheic".toByteArray() + ByteArray(16)
+        val avif = byteArrayOf(0, 0, 0, 24) + "ftypavif".toByteArray() + ByteArray(16)
+        for ((bytes, name) in listOf(heic to "HEIC", avif to "AVIF", "GIF89a....".toByteArray() to "GIF")) {
+            assertThatThrownBy { transcoder.avatar(bytes) }
+                .hasFieldOrPropertyWithValue("code", "FILE_TYPE")
+                .hasMessageContaining(name)
+        }
+        assertThatThrownBy { transcoder.avatar(ByteArray(10 * 1024 * 1024 + 1)) }
+            .hasFieldOrPropertyWithValue("code", "FILE_SIZE")
     }
 
     private fun image(width: Int, height: Int): BufferedImage = BufferedImage(

@@ -76,5 +76,5 @@ export interface TaskReceipt {receipt:'task';id:string;projectId:string;displayI
 export interface ThreadReceipt extends Omit<Thread,'messages'> {receipt:'thread';messages:Message[]}
 export interface ThreadSummary extends Omit<Thread,'messages'> {summary:true;messageCount:number;lastAuthorId:string|null;participants:string[];/** When the caller last saw this thread's activity (their own read marker). */readAt:string|null;messages:{body:string;authorId:string|null;createdAt:string|null}[]}
 export interface ThreadPage {items:ThreadSummary[];total:number;unresolved:number;/** Open threads with activity the caller has not seen. */unread:number;nextCursor:string|null}
-export interface Project {id:string;workspaceId:string;name:string;slug:string;key:string;role:'reader'|'editor'|'admin';workspaceName:string;avatarAssetId:string|null}
+export interface Project {id:string;workspaceId:string;name:string;slug:string;key:string;role:'reader'|'editor'|'admin';workspaceName:string}
 export interface SessionInfo {principal:{id:string;kind:'human'|'agent';name:string;/** Revision of the person's photo, null without one. */avatarRevision:number|null};csrf:string|null;projects:Project[]}

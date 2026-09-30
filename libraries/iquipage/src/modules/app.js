@@ -327,7 +327,7 @@ function setStatus(id, status) {
     t.status = status;
     taskSave();
     refreshTasks();
-    components_js_1.notify({ tone: 'success', message: 'Статус обновлён', description: statusInfo[status].label, action: { label: 'Отменить', run: () => { t.status = before; taskSave(); refreshTasks(); } } });
+    components_js_1.notify({ tone: 'success', message: 'Статус обновлён', description: statusInfo[status].label, action: { label: 'Отменить', undo: true, run: () => { t.status = before; taskSave(); refreshTasks(); } } });
 }
 function removeTask(id) {
     const index = tasks.findIndex(t => t.id === id);
@@ -337,7 +337,7 @@ function removeTask(id) {
     selection.delete(id);
     taskSave();
     refreshTasks();
-    components_js_1.notify({ message: 'Задача удалена', description: removed.title, action: { label: 'Отменить', run: () => { tasks.splice(index, 0, removed); taskSave(); refreshTasks(); } } });
+    components_js_1.notify({ message: 'Задача удалена', description: removed.title, action: { label: 'Отменить', undo: true, run: () => { tasks.splice(index, 0, removed); taskSave(); refreshTasks(); } } });
 }
 let confirmAction = () => components_js_1.notify({ tone: 'info', message: 'Пример подтверждения завершён' });
 function confirm(title, description, action) { confirmAction = action; document.getElementById('confirm-title').textContent = title; document.getElementById('confirm-description').textContent = description; document.getElementById('confirm-dialog').show(); }
@@ -385,7 +385,7 @@ function bindDrag(parent) {
         refreshTasks();
         if (detail.keyboard)
             document.querySelector(`[data-drag-id="${detail.id}"] [data-drag-handle]`)?.focus({ preventScroll: true });
-        components_js_1.notify({ tone: 'success', message: 'Задача перемещена', description: `${detail.id}: ${statusInfo[detail.status].label}`, action: { label: 'Отменить', run: () => { tasks = old; taskSave(); refreshTasks(); } } });
+        components_js_1.notify({ tone: 'success', message: 'Задача перемещена', description: `${detail.id}: ${statusInfo[detail.status].label}`, action: { label: 'Отменить', undo: true, run: () => { tasks = old; taskSave(); refreshTasks(); } } });
     }) : () => { };
 }
 function validateForm(form) { return validation_js_1.validateFields(form); }
@@ -567,7 +567,7 @@ document.body.addEventListener('click', async (ev) => {
     }
     if (el.hasAttribute('data-bulk-delete')) {
         const ids = [...selection];
-        confirm(`Удалить ${time_js_1.count(ids.length, { one: 'задачу', few: 'задачи', many: 'задач' })}?`, 'Будут удалены только выбранные локальные демо-данные.', () => { const previous = structuredClone(tasks); tasks = tasks.filter(t => !selection.has(t.id)); selection.clear(); taskSave(); refreshTasks(); components_js_1.notify({ message: 'Выбранные задачи удалены', action: { label: 'Отменить', run: () => { tasks = previous; taskSave(); refreshTasks(); } } }); });
+        confirm(`Удалить ${time_js_1.count(ids.length, { one: 'задачу', few: 'задачи', many: 'задач' })}?`, 'Будут удалены только выбранные локальные демо-данные.', () => { const previous = structuredClone(tasks); tasks = tasks.filter(t => !selection.has(t.id)); selection.clear(); taskSave(); refreshTasks(); components_js_1.notify({ message: 'Выбранные задачи удалены', action: { label: 'Отменить', undo: true, run: () => { tasks = previous; taskSave(); refreshTasks(); } } }); });
         return;
     }
     if (el.dataset.storyCode) {
@@ -585,7 +585,7 @@ document.body.addEventListener('click', async (ev) => {
     }
     if (el.dataset.toast) {
         const tone = el.dataset.toast;
-        components_js_1.notify({ tone, message: { success: 'Изменение сохранено', info: 'Доступен новый контекст', warning: 'Нужно ваше решение', danger: 'Не удалось выполнить действие' }[tone], description: 'Демонстрация системного сообщения.', action: tone === 'success' ? { label: 'Отменить', run: () => components_js_1.notify({ message: 'Демонстрационное действие отменено' }) } : undefined });
+        components_js_1.notify({ tone, message: { success: 'Изменение сохранено', info: 'Доступен новый контекст', warning: 'Нужно ваше решение', danger: 'Не удалось выполнить действие' }[tone], description: 'Демонстрация системного сообщения.', action: tone === 'success' ? { label: 'Отменить', undo: true, run: () => components_js_1.notify({ message: 'Демонстрационное действие отменено' }) } : undefined });
         return;
     }
     if (el.hasAttribute('data-async')) {

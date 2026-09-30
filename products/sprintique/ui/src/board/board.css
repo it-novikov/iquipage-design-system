@@ -112,7 +112,9 @@
 /* A card is as tall as its content: rows start at the top instead of stretching over a fixed minimum height.
    The identity row pulls into the padding, so the key and the menu sit close to the corner and the title follows them. */
 .host-task-board{--task-card-min-height:72px}
-.host-task-board .task-card{min-height:0;align-content:start;padding:var(--iq-space-3);gap:var(--iq-space-2);user-select:none;cursor:pointer}
+/* SPR-6: the bottom of a card breathes one DS step more than its sides; the top stays compact (the identity row pulls
+   into it). */
+.host-task-board .task-card{min-height:0;align-content:start;padding:var(--iq-space-3) var(--iq-space-3) var(--iq-space-4);gap:var(--iq-space-2);user-select:none;cursor:pointer}
 .host-task-board .board-empty-slot{min-height:var(--task-card-min-height)}
 [data-task-cover]{position:relative}
 [data-task-cover] .task-cover-actions{position:absolute;right:var(--iq-space-2);bottom:var(--iq-space-2);display:flex;gap:var(--iq-space-1);padding:var(--iq-space-1);background:var(--iq-raised);border-radius:var(--iq-radius-sm);box-shadow:var(--iq-shadow-1);z-index:1}
@@ -318,3 +320,25 @@ dl.tdr-facts dd{margin:0}
 .tdr-range-foot{display:flex;align-items:center;justify-content:flex-end;gap:var(--iq-space-2);margin-top:var(--iq-space-3);padding-top:var(--iq-space-3);border-top:1px solid var(--iq-line)}
 .tdr-range-foot>[data-range-clear]{margin-right:auto}
 @media(pointer:coarse){.tdr-cal-day{height:40px}}
+/* SPR-9: the kind leads the key on a card («Задача SPR-1»); the row stays on one line on a phone, the urgency label
+   gives way first. */
+.host-task-board .task-identity{flex-wrap:nowrap;gap:var(--iq-space-1)}
+.host-task-board .task-card-kind{flex:none;font-size:var(--iq-type-meta-size);line-height:18px;font-weight:500;color:var(--iq-muted);white-space:nowrap}
+.host-task-board .task-card[data-task-emphasis]:not([data-task-emphasis=none]) .task-card-kind{color:var(--iq-task-light-meta)}
+.host-task-board .task-identity>.task-card-id{flex:none}
+.host-task-board .task-identity>.task-signal-copy{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* SPR-10: the board scrolls as a whole, so a column cut by the top or bottom edge of the board lost its rounded corners
+   (only the board's own outer corners stayed round). Each column masks the corners of its visible part with the page
+   colour: its sticky header carries the top two, a sticky strip at the column's end the bottom two (it adds the radius
+   below the last card). The radius is the DS column's; a board on another surface sets --sq-board-backdrop to it. */
+.host-task-board{--sq-column-radius:12px;--sq-board-backdrop:var(--iq-canvas)}
+.host-task-board .kanban-column-header::before,.host-task-board .kanban-column-header::after{content:"";position:absolute;top:0;width:var(--sq-column-radius);height:var(--sq-column-radius);pointer-events:none}
+.host-task-board .kanban-column-header::before{left:0;background:radial-gradient(circle at 100% 100%,transparent calc(var(--sq-column-radius) - 0.5px),var(--sq-board-backdrop) var(--sq-column-radius))}
+.host-task-board .kanban-column-header::after{right:0;background:radial-gradient(circle at 0 100%,transparent calc(var(--sq-column-radius) - 0.5px),var(--sq-board-backdrop) var(--sq-column-radius))}
+/* The column lays out as a flex column so the strip sits at its end even when its cards are few. */
+.host-task-board.kanban>.kanban-column{display:flex;flex-direction:column}
+.host-task-board>.kanban-column::after{content:"";display:block;flex:none;position:sticky;bottom:0;z-index:4;height:var(--sq-column-radius);margin-top:auto;pointer-events:none;
+  background:radial-gradient(circle at 100% 0,transparent calc(var(--sq-column-radius) - 0.5px),var(--sq-board-backdrop) var(--sq-column-radius)) left bottom/var(--sq-column-radius) var(--sq-column-radius) no-repeat,
+    radial-gradient(circle at 0 0,transparent calc(var(--sq-column-radius) - 0.5px),var(--sq-board-backdrop) var(--sq-column-radius)) right bottom/var(--sq-column-radius) var(--sq-column-radius) no-repeat}
+/* SPR-13: the release the board shows, a compact DS select before the sort. */
+.host-board-release iq-select{min-width:0;max-width:260px}

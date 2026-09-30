@@ -1,9 +1,10 @@
-const {safeMarkdown} = require('./markdown.js');
+const {safeMarkdown, markdownPasteLink} = require('./markdown.js');
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.markdownTools = exports.IqTime = exports.IqMarkdownEditor = void 0;
 exports.registerEditors = registerEditors;
 exports.safeMarkdown = safeMarkdown;
+exports.pasteLink = pasteLink;
 const time_js_1 = require("./time.js");
 const time_js_2 = require("./time.js");
 const IqTime = time_js_2.IqTime;
@@ -21,6 +22,29 @@ const markdownTools = [
     { id: 'undo', label: 'Отменить', glyph: 'undo', shortcut: 'Ctrl/⌘ Z' }, { id: 'redo', label: 'Повторить', glyph: 'redo', shortcut: 'Ctrl/⌘ Shift Z' }
 ];
 exports.markdownTools = markdownTools;
+/** A pasted link becomes Markdown at once: [selection](url) over a selection, <url> at a caret (see markdownPasteLink).
+ * The edit goes through the browser's insertText, so it fires one input event (one history entry) and the native
+ * undo reverts it in one step too; setRangeText plus a synthetic input event is the fallback. */
+function pasteLink(input, event) {
+    if (!input || event.defaultPrevented || input.disabled || input.readOnly)
+        return false;
+    const link = markdownPasteLink(input.value, input.selectionStart, input.selectionEnd, event.clipboardData?.getData('text/plain'));
+    if (!link)
+        return false;
+    // A link that would not fit stays an ordinary paste, which the field itself truncates.
+    if (input.maxLength >= 0 && input.value.length - (link.end - link.start) + link.text.length > input.maxLength)
+        return false;
+    event.preventDefault();
+    input.setSelectionRange(link.start, link.end);
+    let inserted = false;
+    try { inserted = input.ownerDocument.activeElement === input && input.ownerDocument.execCommand('insertText', false, link.text); }
+    catch { inserted = false; }
+    if (!inserted) {
+        input.setRangeText(link.text, link.start, link.end, 'end');
+        input.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertFromPaste', data: link.text }));
+    }
+    return true;
+}
 class IqMarkdownEditor extends components_js_1.IqElement {
     connectedMoveCallback() {
         if (this.input?.form !== this._boundForm || this.ownerDocument !== this._boundDocument) this.connectedCallback();
@@ -317,6 +341,7 @@ class IqMarkdownEditor extends components_js_1.IqElement {
                 interaction_js_1.autosize(this.input);
             }));
         this.listen(this.input, 'input', () => { this.record(); interaction_js_1.autosize(this.input); this.sync(); this.emit('iq-change', { value: this.value }); });
+        this.listen(this.input, 'paste', event => { if (!this.disabled && !this.readOnly) pasteLink(this.input, event); });
         this.listen(this, 'click', ev => {
             const t = ev.target.closest('[data-md]');
             if (t)

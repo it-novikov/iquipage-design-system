@@ -5985,8 +5985,7 @@
           "type": "string",
           "enum": [
             "task",
-            "map",
-            "project-avatar"
+            "map"
           ]
         },
         "targetId": {
@@ -11825,6 +11824,19 @@
       ],
       "additionalProperties": false
     },
+    "PersonPreferences": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "confirmReleaseScope": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "confirmReleaseScope"
+      ],
+      "additionalProperties": false
+    },
     "PlanningCapabilitiesResponse": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
@@ -16368,6 +16380,29 @@
       ],
       "additionalProperties": false
     },
+    "ProjectPreferences": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "boardRelease": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100,
+              "pattern": "^[A-Za-z0-9_-]+$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "boardRelease"
+      ],
+      "additionalProperties": false
+    },
     "PutAccept": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
@@ -17480,25 +17515,11 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 100
-        },
-        "avatarAssetId": {
-          "anyOf": [
-            {
-              "type": "string",
-              "minLength": 1,
-              "maxLength": 100,
-              "pattern": "^[A-Za-z0-9_-]+$"
-            },
-            {
-              "type": "null"
-            }
-          ]
         }
       },
       "required": [
         "baseRevision",
-        "name",
-        "avatarAssetId"
+        "name"
       ],
       "additionalProperties": false
     },

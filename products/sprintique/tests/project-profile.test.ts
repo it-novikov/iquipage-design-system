@@ -5,13 +5,14 @@ import {fixture} from './fixture.js';
 let f:Awaited<ReturnType<typeof fixture>>;
 before(async()=>{f=await fixture({prefix:'Q'});});after(async()=>{await f?.close();});
 const call=(method:'GET'|'POST'|'PUT'|'PATCH',path:string,payload?:unknown,user=f.alice,key=randomUUID())=>f.app.inject({method,url:'/api/v1/'+path,headers:{...user.headers,'idempotency-key':key},...(payload===undefined?{}:{payload:payload as Record<string,unknown>})});
-test('Q01 project profile CAS and replay preserve human URLs and reject foreign/staged file references',async()=>{
+test('Q01 project profile CAS and replay preserve human URLs; a project has no avatar',async()=>{
   const path='projects/'+f.first.id+'/profile',previous=(await call('GET',path)).json();
-  const key=randomUUID(),body={baseRevision:1,name:'Переименованный проект',avatarAssetId:null};
+  const key=randomUUID(),body={baseRevision:1,name:'Переименованный проект'};
   const updated=await call('PUT',path,body,f.alice,key);assert.equal(updated.statusCode,200,updated.body);assert.equal(updated.json().slug,previous.slug);assert.equal(updated.json().key,previous.key);
   assert.deepEqual((await call('PUT',path,body,f.alice,key)).json(),updated.json());
   assert.equal((await call('PUT',path,body)).statusCode,409);
-  assert.equal((await call('PUT',path,{...body,baseRevision:2,avatarAssetId:'foreign'})).statusCode,422);
+  assert.equal((await call('PUT',path,{...body,baseRevision:2,avatarAssetId:null})).statusCode,400,'the avatar field is gone from the contract');
+  assert.equal('avatarAssetId' in updated.json(),false);assert.equal('avatarAssetId' in (await call('GET','session')).json().projects[0],false);
   assert.equal((await call('PUT',path,{...body,baseRevision:2},f.reader)).statusCode,403);
 });
 test('Q02 workspace profile and roles are independent, CAS protected and cannot remove the last administrator',async()=>{
@@ -34,6 +35,6 @@ test('Q03 workspace catalog authority does not grant project content or profile 
   const id=project.json().id;
   assert.equal((await call('GET','projects/'+id+'/tasks')).statusCode,404);
   assert.equal((await call('GET','projects/'+id+'/profile')).statusCode,404);
-  assert.equal((await call('PUT','projects/'+id+'/profile',{baseRevision:1,name:'Hijack',avatarAssetId:null})).statusCode,404);
+  assert.equal((await call('PUT','projects/'+id+'/profile',{baseRevision:1,name:'Hijack'})).statusCode,404);
   assert.equal((await call('PATCH','workspaces/'+workspace.id+'/members/'+f.bob.id,{baseRevision:1,role:null})).json().code,'PROJECT_ACCESS_REMAINS');
 });

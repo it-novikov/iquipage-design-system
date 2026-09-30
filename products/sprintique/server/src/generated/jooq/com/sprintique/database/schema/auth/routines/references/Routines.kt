@@ -9,6 +9,7 @@ import com.sprintique.database.schema.auth.routines.ActorId
 import com.sprintique.database.schema.auth.routines.CanManageFinance
 import com.sprintique.database.schema.auth.routines.CanProject
 import com.sprintique.database.schema.auth.routines.CanReadFinance
+import com.sprintique.database.schema.auth.routines.CanReadServiceWorkspace
 import com.sprintique.database.schema.auth.routines.CanSeePerson
 import com.sprintique.database.schema.auth.routines.CanWorkspace
 import com.sprintique.database.schema.auth.routines.CollectOauthAccessTokens
@@ -128,6 +129,35 @@ fun canReadFinance(
       target: Field<String?>
 ): Field<Boolean?> {
     val f = CanReadFinance()
+    f.setTarget(target)
+
+    return f.asField()
+}
+
+fun canReadServiceWorkspace(
+      configuration: Configuration
+    , target: UUID?
+): Boolean? {
+    val f = CanReadServiceWorkspace()
+    f.setTarget(target)
+
+    f.execute(configuration)
+    return f.returnValue
+}
+
+fun canReadServiceWorkspace(
+      target: UUID?
+): Field<Boolean?> {
+    val f = CanReadServiceWorkspace()
+    f.setTarget(target)
+
+    return f.asField()
+}
+
+fun canReadServiceWorkspace(
+      target: Field<UUID?>
+): Field<Boolean?> {
+    val f = CanReadServiceWorkspace()
     f.setTarget(target)
 
     return f.asField()
