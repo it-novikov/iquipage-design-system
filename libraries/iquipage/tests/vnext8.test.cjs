@@ -13,7 +13,7 @@ test('work lists show a DS column header', () => {
   assert.match(read('src/styles/work-list.css'), /\.iq-work-list thead th\{/);
 });
 test('.iq-loading waits 180ms before appearing and .iq-reveal fades content in', () => {
-  assert.match(css, /\.iq-loading\{display:grid;gap:var\(--iq-space-3\);animation:iq-loading-appear var\(--iq-motion-standard\) var\(--iq-ease\) 180ms both\}/);
+  assert.match(css, /\.iq-loading\{display:grid;gap:var\(--iq-space-3\);animation:iq-loading-appear var\(--iq-motion-standard\) var\(--iq-ease\) var\(--iq-loading-delay\) backwards\}/); // wave 1: the 180 ms gate is the --iq-loading-delay token (not zeroed by reduced motion)
   assert.match(css, /\.iq-reveal\{animation:iq-reveal/);
 });
 test('calendar entries render as task cards with key, signal, kind and owner, never the raw id', () => {

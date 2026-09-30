@@ -5,6 +5,7 @@ exports.configureDemoFiles = configureDemoFiles;
 exports.configurePDFPreviews = configurePDFPreviews;
 exports.exampleFiles = exampleFiles;
 const icons_js_1 = require("./icons.js");
+const interaction_js_1 = require("./interaction.js");
 const esc = (s) => s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const samplePDFs = new WeakMap();
 let demoFactory;
@@ -159,7 +160,7 @@ class IqFilePreview extends HTMLElement {
                     button.title = 'Миниатюра недоступна. Нажмите, чтобы открыть оригинал.';
                     const badge = this.querySelector('.preview-kind');
                     if (badge)
-                        badge.textContent = 'ОТКРЫТЬ';
+                        badge.textContent = 'Открыть';
                     const load = this.querySelector('.preview-loading');
                     if (load)
                         load.innerHTML = icons_js_1.icon('file', 25);
@@ -181,7 +182,7 @@ class IqFilePreview extends HTMLElement {
         }, { rootMargin: '80px' });
         this.observer.observe(this);
         button.addEventListener('pointermove', e => {
-            if (k !== 'video' || e.pointerType === 'touch' || matchMedia('(prefers-reduced-motion: reduce)').matches || document.documentElement.dataset.motion === 'reduced' || !this.video?.duration)
+            if (k !== 'video' || e.pointerType === 'touch' || interaction_js_1.motionReduced() || !this.video?.duration)
                 return;
             const r = button.getBoundingClientRect();
             this.desired = Math.max(0, Math.min(.995, (e.clientX - r.left) / r.width)) * this.video.duration;
@@ -345,7 +346,7 @@ class IqFilePreview extends HTMLElement {
         this.dialog = d;
         const k = kind(f);
         const safe = esc(f.name);
-        d.innerHTML = `<header><div><span class="sample-overline">ЛОКАЛЬНЫЙ ФАЙЛ</span><h2>${safe}</h2></div><button class="iq-btn ghost icon" aria-label="Закрыть предпросмотр">${icons_js_1.icon('x', 20)}</button></header><div class="media-dialog-body"></div><footer><span>Оригинал остаётся на устройстве</span><a class="iq-btn secondary sm" href="${this.url}" download="${safe}">${icons_js_1.icon('download', 17)}Сохранить файл</a></footer>`;
+        d.innerHTML = `<header><div><span class="sample-overline">Локальный файл</span><h2>${safe}</h2></div><button class="iq-btn ghost icon" aria-label="Закрыть предпросмотр">${icons_js_1.icon('x', 20)}</button></header><div class="media-dialog-body"></div><footer><span>Оригинал остаётся на устройстве</span><a class="iq-btn secondary sm" href="${this.url}" download="${safe}">${icons_js_1.icon('download', 17)}Сохранить файл</a></footer>`;
         document.body.append(d);
         const body = d.querySelector('.media-dialog-body');
         if (k === 'video')

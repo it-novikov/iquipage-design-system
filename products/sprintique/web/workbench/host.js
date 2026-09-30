@@ -10,7 +10,7 @@ import {mountWeek} from './week.js';
 import {mountPersonalPanel} from './personal-panel.js';
 import {VIEWS,countLabel,parseRoute,readFilter,viewPath,writeFilter} from './model.js';
 
-export async function mountWorkbench(root,{repository,session:initialSession,onOpenProject,onSearch,onTheme,onSignOut,onAccount}){
+export async function mountWorkbench(root,{repository,session:initialSession,planning,onOpenProject,onSearch,onTheme,onSignOut,onAccount}){
   let session=initialSession;
   const api=new WorkbenchApi(repository.client);
   const route0=parseRoute(location.pathname)||{view:'overview',task:null};
@@ -99,6 +99,8 @@ ${ui.btn('Задача','primary sm','plus','data-create-task aria-label="Соз
       const task=await repository.read('tasks',target.taskId,project.id).catch(()=>null);
       if(!task||task.projectId!==project.id)throw Object.assign(Error('Задача недоступна'),{status:404});
       if(!fromRoute)history.pushState({workbench:true,drawer:true},'',url(view,target));
+      // Parent, release and plan changes are planning commands of this task's project.
+      const hooks=planning?.(project.id);repository.confirmPlanningChange=hooks?.confirm;repository.applyPlanningChange=hooks?.apply;
       const features=new Set(session.features||[]);
       const parts={personal:features.has('workbench_personal_state'),requests:features.has('workbench_requests'),waiting:features.has('workbench_waiting')&&features.has('workbench_personal_state')};
       drawer=await openTaskDialog(task,{repository,project,tasks:[],canEdit:project.role!=='reader',canManage:project.role==='admin',attachmentAdapter:repository.attachmentAdapter,

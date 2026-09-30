@@ -13,7 +13,7 @@ import {parseTaskRoute} from '../ui/src/board/task-route.js';
 import {dialog,input} from '../ui/src/ui.js';
 import {ProductRepository} from './repository.js';
 import {PlanningAdapter} from './planning-adapter.js';
-import {mountPlanningHost,confirmPlanningChange,recoverPlanningAttempt} from './planning-host.js';
+import {mountPlanningHost,confirmPlanningChange,applyPlanningChange,recoverPlanningAttempt} from './planning-host.js';
 import {openSearch} from './search.js';
 import {acceptPendingInvitation} from './members.js';
 import {sectionRouteHash} from './section-route.js';
@@ -122,6 +122,7 @@ async function showProject(id,mode=location.hash.startsWith('#maps')?'maps':loca
   repository.clearProjectCache(project.id);
   planningAdapter=new PlanningAdapter(repository,project.id);
   repository.confirmPlanningChange=intent=>confirmPlanningChange(planningAdapter,intent);
+  repository.applyPlanningChange=intent=>applyPlanningChange(planningAdapter,intent);
   const url=new URL(location.href);if(isWorkbenchPath()){url.pathname='/';url.search='';}url.searchParams.set('project',project.slug);history.replaceState(null,'',url);
   ensureShell(project,mode);
   await recoverPlanningAttempt(planningAdapter);
@@ -182,7 +183,10 @@ async function openWorkbench({push=true}={}){
   try{
     repository.stopWatch?.();await board?.destroy();board=null;nav?.destroy();nav=null;
     if(push&&!isWorkbenchPath())history.pushState({workbench:true},'','/workbench');
-    workbench=await mountWorkbench(root,{repository,session,onSearch:search,onTheme:()=>applyTheme(document.documentElement.dataset.theme==='dark'?'light':'dark'),
+    // Planning changes from a Workbench drawer go through the drawer's own project, never the last one shown.
+    const planning=projectId=>{const adapter=new PlanningAdapter(repository,projectId);
+      return {confirm:intent=>confirmPlanningChange(adapter,intent),apply:intent=>applyPlanningChange(adapter,intent)};};
+    workbench=await mountWorkbench(root,{repository,session,planning,onSearch:search,onTheme:()=>applyTheme(document.documentElement.dataset.theme==='dark'?'light':'dark'),
       onSignOut:()=>void(async()=>{await repository.client.request('/logout','POST');location.href='/';})().catch(report),
       onAccount:()=>void leaveWorkbench(null,null,'#settings/account').catch(report),
       onOpenProject:(projectId,taskId)=>void leaveWorkbench(projectId,taskId).catch(report)});
