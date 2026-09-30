@@ -60,37 +60,13 @@ data class PutWorkspaceProfileRequest(
     val timezone: String,
 )
 
-enum class WorkspaceRole(@get:JsonValue val wire: String) { MEMBER("member"), ADMIN("admin") }
-
 enum class MemberRole(@get:JsonValue val wire: String) { READER("reader"), EDITOR("editor"), ADMIN("admin") }
-
-@Schema(name = "ChangeWorkspaceMember")
-data class ChangeWorkspaceMemberRequest(
-    @field:Min(0) @field:Max(MAX_SAFE_INTEGER)
-    val baseRevision: Long,
-    val role: WorkspaceRole?,
-)
 
 @Schema(name = "ChangeMember")
 data class ChangeMemberRequest(
     @field:Min(0) @field:Max(MAX_SAFE_INTEGER)
     val baseRevision: Long,
     val role: MemberRole?,
-)
-
-@Schema(name = "CreateInvitation")
-data class CreateInvitationRequest(
-    @field:Pattern(regexp = UUID)
-    val id: String,
-    val role: MemberRole,
-    @field:Min(60) @field:Max(604_800)
-    val expiresInSeconds: Long = 86_400,
-)
-
-@Schema(name = "AcceptInvitation")
-data class AcceptInvitationRequest(
-    @field:Pattern(regexp = "^invite_[A-Za-z0-9_-]{43}$")
-    val token: String,
 )
 
 @Schema(name = "ChangeProfile")

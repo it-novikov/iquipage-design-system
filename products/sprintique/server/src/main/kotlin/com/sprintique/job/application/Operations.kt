@@ -14,7 +14,7 @@ object Operations {
     private const val LIMIT = 50
 
     fun overview(tx: Transaction, actor: Actor, projectId: String): Map<String, Any?> {
-        ProjectAccess.authorize(tx, actor, projectId, Capability.AGENTS_MANAGE)
+        ProjectAccess.authorize(tx, actor, projectId, Capability.PROJECT_SETTINGS)
         val counts = tx.rows(
             """
             SELECT kind, state, count(*)::int AS count FROM work.jobs WHERE project_id = $1
@@ -49,7 +49,7 @@ object Operations {
         key: String,
         ledger: CommandLedger,
     ): Any {
-        Membership.manageProject(tx, actor, projectId)
+        Membership.manageProject(tx, actor, projectId, Capability.PROJECT_SETTINGS)
         return ledger.idempotent(tx, actor, projectId, "job.retry:$jobId", key, emptyMap<String, Any>()) {
             val result = tx.row("SELECT work.retry_asset_job($1, $2) AS ok", projectId, jobId)
             requireCondition(

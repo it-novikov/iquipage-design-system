@@ -7,6 +7,7 @@ package com.sprintique.database.schema.app.tables.records
 import com.sprintique.database.schema.app.tables.ProjectMembers
 
 import java.time.OffsetDateTime
+import java.util.UUID
 
 import org.jooq.Record2
 import org.jooq.impl.UpdatableRecordImpl
@@ -35,18 +36,53 @@ open class ProjectMembersRecord() : UpdatableRecordImpl<ProjectMembersRecord>(Pr
         set(value): Unit = set(4, value)
         get(): OffsetDateTime? = get(4) as OffsetDateTime?
 
+    open var workspaceId: UUID?
+        set(value): Unit = set(5, value)
+        get(): UUID? = get(5) as UUID?
+
+    open var presetId: UUID?
+        set(value): Unit = set(6, value)
+        get(): UUID? = get(6) as UUID?
+
+    open var granted: Array<String?>?
+        set(value): Unit = set(7, value)
+        get(): Array<String?>? = get(7) as Array<String?>?
+
+    open var revoked: Array<String?>?
+        set(value): Unit = set(8, value)
+        get(): Array<String?>? = get(8) as Array<String?>?
+
+    open var permissions: Array<String?>?
+        set(value): Unit = set(9, value)
+        get(): Array<String?>? = get(9) as Array<String?>?
+
+    open var changedBy: String?
+        set(value): Unit = set(10, value)
+        get(): String? = get(10) as String?
+
+    open var changedAt: OffsetDateTime?
+        set(value): Unit = set(11, value)
+        get(): OffsetDateTime? = get(11) as OffsetDateTime?
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
 
     override fun key(): Record2<String?, String?> = super.key() as Record2<String?, String?>
 
-    constructor(projectId: String? = null, principalId: String? = null, role: String? = null, revision: Int? = null, joinedAt: OffsetDateTime? = null): this() {
+    constructor(projectId: String? = null, principalId: String? = null, role: String? = null, revision: Int? = null, joinedAt: OffsetDateTime? = null, workspaceId: UUID? = null, presetId: UUID? = null, granted: Array<String?>? = null, revoked: Array<String?>? = null, permissions: Array<String?>? = null, changedBy: String? = null, changedAt: OffsetDateTime? = null): this() {
         this.projectId = projectId
         this.principalId = principalId
         this.role = role
         this.revision = revision
         this.joinedAt = joinedAt
+        this.workspaceId = workspaceId
+        this.presetId = presetId
+        this.granted = granted
+        this.revoked = revoked
+        this.permissions = permissions
+        this.changedBy = changedBy
+        this.changedAt = changedAt
         resetTouchedOnNotNull()
     }
 }

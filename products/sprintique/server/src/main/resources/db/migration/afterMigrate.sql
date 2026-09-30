@@ -32,7 +32,8 @@ DROP POLICY IF EXISTS finance_settings_runtime_update ON app.finance_settings;
 CREATE POLICY finance_settings_runtime_update ON app.finance_settings AS RESTRICTIVE FOR UPDATE TO "${runtime_role}"
   USING(true) WITH CHECK(updated_by=auth.actor_id() AND updated_at>=now());
 GRANT SELECT,INSERT,UPDATE ON auth.principals,auth.credentials TO "${runtime_role}";
-GRANT SELECT,INSERT,UPDATE ON auth.project_invitations TO "${runtime_role}";
+-- Invitations (V20260930000032) are revoked, replaced or accepted, never deleted: their history stays.
+GRANT SELECT,INSERT,UPDATE ON auth.invitations TO "${runtime_role}";
 GRANT SELECT,INSERT,DELETE ON auth.login_states TO "${runtime_role}";
 GRANT SELECT,INSERT,UPDATE ON auth.identities TO "${runtime_role}";
 GRANT SELECT,INSERT,UPDATE,DELETE ON auth.email_challenges TO "${runtime_role}";

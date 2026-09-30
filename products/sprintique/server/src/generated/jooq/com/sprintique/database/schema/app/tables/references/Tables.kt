@@ -5,6 +5,7 @@
 package com.sprintique.database.schema.app.tables.references
 
 
+import com.sprintique.database.schema.app.tables.AccessPresets
 import com.sprintique.database.schema.app.tables.AgentRunPlans
 import com.sprintique.database.schema.app.tables.AgentRuns
 import com.sprintique.database.schema.app.tables.Approvals
@@ -44,6 +45,8 @@ import com.sprintique.database.schema.app.tables.WorkspaceMembers
 import com.sprintique.database.schema.app.tables.Workspaces
 
 
+
+val ACCESS_PRESETS: AccessPresets = AccessPresets.ACCESS_PRESETS
 
 val AGENT_RUN_PLANS: AgentRunPlans = AgentRunPlans.AGENT_RUN_PLANS
 

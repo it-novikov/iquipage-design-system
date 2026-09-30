@@ -4,6 +4,8 @@
 package com.sprintique.database.schema.auth.tables
 
 
+import com.sprintique.database.schema.app.keys.ACCESS_PRESETS__ACCESS_PRESETS_CREATED_BY_FKEY
+import com.sprintique.database.schema.app.keys.ACCESS_PRESETS__ACCESS_PRESETS_UPDATED_BY_FKEY
 import com.sprintique.database.schema.app.keys.AGENT_RUNS__AGENT_RUNS_AGENT_ID_FKEY
 import com.sprintique.database.schema.app.keys.AGENT_RUNS__AGENT_RUNS_INITIATOR_ID_FKEY
 import com.sprintique.database.schema.app.keys.APPROVALS__APPROVALS_DECIDED_BY_FKEY
@@ -26,6 +28,7 @@ import com.sprintique.database.schema.app.keys.MESSAGES__MESSAGES_AUTHOR_ID_FKEY
 import com.sprintique.database.schema.app.keys.PERSON_AVATARS__PERSON_AVATARS_PRINCIPAL_ID_FKEY
 import com.sprintique.database.schema.app.keys.PLANNING_PLANS__PLANNING_PLANS_ACTOR_ID_FKEY
 import com.sprintique.database.schema.app.keys.PLANNING_SELECTIONS__PLANNING_SELECTIONS_ACTOR_ID_FKEY
+import com.sprintique.database.schema.app.keys.PROJECT_MEMBERS__PROJECT_MEMBERS_CHANGED_BY_FKEY
 import com.sprintique.database.schema.app.keys.PROJECT_MEMBERS__PROJECT_MEMBERS_PRINCIPAL_ID_FKEY
 import com.sprintique.database.schema.app.keys.TASKS__TASKS_OWNER_ID_FKEY
 import com.sprintique.database.schema.app.keys.TASK_SETTINGS_VERSIONS__TASK_SETTINGS_VERSIONS_ACTOR_ID_FKEY
@@ -33,7 +36,9 @@ import com.sprintique.database.schema.app.keys.THREADS__THREADS_RESOLVED_BY_FKEY
 import com.sprintique.database.schema.app.keys.THREAD_READS__THREAD_READS_PRINCIPAL_ID_FKEY
 import com.sprintique.database.schema.app.keys.WORKSPACES__WORKSPACES_CREATED_BY_FKEY
 import com.sprintique.database.schema.app.keys.WORKSPACE_AUDIT__WORKSPACE_AUDIT_ACTOR_ID_FKEY
+import com.sprintique.database.schema.app.keys.WORKSPACE_MEMBERS__WORKSPACE_MEMBERS_INVITED_BY_FKEY
 import com.sprintique.database.schema.app.keys.WORKSPACE_MEMBERS__WORKSPACE_MEMBERS_PRINCIPAL_ID_FKEY
+import com.sprintique.database.schema.app.tables.AccessPresets.AccessPresetsPath
 import com.sprintique.database.schema.app.tables.AgentRuns.AgentRunsPath
 import com.sprintique.database.schema.app.tables.Approvals.ApprovalsPath
 import com.sprintique.database.schema.app.tables.Assets.AssetsPath
@@ -64,13 +69,14 @@ import com.sprintique.database.schema.auth.Auth
 import com.sprintique.database.schema.auth.keys.CREDENTIALS__CREDENTIALS_INITIATOR_ID_FKEY
 import com.sprintique.database.schema.auth.keys.CREDENTIALS__CREDENTIALS_PRINCIPAL_ID_FKEY
 import com.sprintique.database.schema.auth.keys.IDENTITIES__IDENTITIES_PRINCIPAL_ID_FKEY
+import com.sprintique.database.schema.auth.keys.INVITATIONS__INVITATIONS_ACCEPTED_BY_FKEY
+import com.sprintique.database.schema.auth.keys.INVITATIONS__INVITATIONS_INVITER_ID_FKEY
+import com.sprintique.database.schema.auth.keys.INVITATIONS__INVITATIONS_REVOKED_BY_FKEY
 import com.sprintique.database.schema.auth.keys.PRINCIPALS_ISSUER_SUBJECT_KEY
 import com.sprintique.database.schema.auth.keys.PRINCIPALS_PKEY
-import com.sprintique.database.schema.auth.keys.PROJECT_INVITATIONS__PROJECT_INVITATIONS_ACCEPTED_BY_FKEY
-import com.sprintique.database.schema.auth.keys.PROJECT_INVITATIONS__PROJECT_INVITATIONS_INVITER_ID_FKEY
 import com.sprintique.database.schema.auth.tables.Credentials.CredentialsPath
 import com.sprintique.database.schema.auth.tables.Identities.IdentitiesPath
-import com.sprintique.database.schema.auth.tables.ProjectInvitations.ProjectInvitationsPath
+import com.sprintique.database.schema.auth.tables.Invitations.InvitationsPath
 import com.sprintique.database.schema.auth.tables.records.PrincipalsRecord
 
 import java.time.OffsetDateTime
@@ -170,6 +176,30 @@ open class Principals(
     override fun getSchema(): Schema? = if (aliased()) null else Auth.AUTH
     override fun getPrimaryKey(): UniqueKey<PrincipalsRecord> = PRINCIPALS_PKEY
     override fun getUniqueKeys(): List<UniqueKey<PrincipalsRecord>> = listOf(PRINCIPALS_ISSUER_SUBJECT_KEY)
+
+    private lateinit var _accessPresetsCreatedByFkey: AccessPresetsPath
+
+    fun accessPresetsCreatedByFkey(): AccessPresetsPath {
+        if (!this::_accessPresetsCreatedByFkey.isInitialized)
+            _accessPresetsCreatedByFkey = AccessPresetsPath(this, null, ACCESS_PRESETS__ACCESS_PRESETS_CREATED_BY_FKEY.inverseKey)
+
+        return _accessPresetsCreatedByFkey;
+    }
+
+    val accessPresetsCreatedByFkey: AccessPresetsPath
+        get(): AccessPresetsPath = accessPresetsCreatedByFkey()
+
+    private lateinit var _accessPresetsUpdatedByFkey: AccessPresetsPath
+
+    fun accessPresetsUpdatedByFkey(): AccessPresetsPath {
+        if (!this::_accessPresetsUpdatedByFkey.isInitialized)
+            _accessPresetsUpdatedByFkey = AccessPresetsPath(this, null, ACCESS_PRESETS__ACCESS_PRESETS_UPDATED_BY_FKEY.inverseKey)
+
+        return _accessPresetsUpdatedByFkey;
+    }
+
+    val accessPresetsUpdatedByFkey: AccessPresetsPath
+        get(): AccessPresetsPath = accessPresetsUpdatedByFkey()
 
     private lateinit var _agentRunsAgentIdFkey: AgentRunsPath
 
@@ -435,17 +465,29 @@ open class Principals(
     val planningSelections: PlanningSelectionsPath
         get(): PlanningSelectionsPath = planningSelections()
 
-    private lateinit var _projectMembers: ProjectMembersPath
+    private lateinit var _projectMembersChangedByFkey: ProjectMembersPath
 
-    fun projectMembers(): ProjectMembersPath {
-        if (!this::_projectMembers.isInitialized)
-            _projectMembers = ProjectMembersPath(this, null, PROJECT_MEMBERS__PROJECT_MEMBERS_PRINCIPAL_ID_FKEY.inverseKey)
+    fun projectMembersChangedByFkey(): ProjectMembersPath {
+        if (!this::_projectMembersChangedByFkey.isInitialized)
+            _projectMembersChangedByFkey = ProjectMembersPath(this, null, PROJECT_MEMBERS__PROJECT_MEMBERS_CHANGED_BY_FKEY.inverseKey)
 
-        return _projectMembers;
+        return _projectMembersChangedByFkey;
     }
 
-    val projectMembers: ProjectMembersPath
-        get(): ProjectMembersPath = projectMembers()
+    val projectMembersChangedByFkey: ProjectMembersPath
+        get(): ProjectMembersPath = projectMembersChangedByFkey()
+
+    private lateinit var _projectMembersPrincipalIdFkey: ProjectMembersPath
+
+    fun projectMembersPrincipalIdFkey(): ProjectMembersPath {
+        if (!this::_projectMembersPrincipalIdFkey.isInitialized)
+            _projectMembersPrincipalIdFkey = ProjectMembersPath(this, null, PROJECT_MEMBERS__PROJECT_MEMBERS_PRINCIPAL_ID_FKEY.inverseKey)
+
+        return _projectMembersPrincipalIdFkey;
+    }
+
+    val projectMembersPrincipalIdFkey: ProjectMembersPath
+        get(): ProjectMembersPath = projectMembersPrincipalIdFkey()
 
     private lateinit var _taskSettingsVersions: TaskSettingsVersionsPath
 
@@ -507,17 +549,29 @@ open class Principals(
     val workspaceAudit: WorkspaceAuditPath
         get(): WorkspaceAuditPath = workspaceAudit()
 
-    private lateinit var _workspaceMembers: WorkspaceMembersPath
+    private lateinit var _workspaceMembersInvitedByFkey: WorkspaceMembersPath
 
-    fun workspaceMembers(): WorkspaceMembersPath {
-        if (!this::_workspaceMembers.isInitialized)
-            _workspaceMembers = WorkspaceMembersPath(this, null, WORKSPACE_MEMBERS__WORKSPACE_MEMBERS_PRINCIPAL_ID_FKEY.inverseKey)
+    fun workspaceMembersInvitedByFkey(): WorkspaceMembersPath {
+        if (!this::_workspaceMembersInvitedByFkey.isInitialized)
+            _workspaceMembersInvitedByFkey = WorkspaceMembersPath(this, null, WORKSPACE_MEMBERS__WORKSPACE_MEMBERS_INVITED_BY_FKEY.inverseKey)
 
-        return _workspaceMembers;
+        return _workspaceMembersInvitedByFkey;
     }
 
-    val workspaceMembers: WorkspaceMembersPath
-        get(): WorkspaceMembersPath = workspaceMembers()
+    val workspaceMembersInvitedByFkey: WorkspaceMembersPath
+        get(): WorkspaceMembersPath = workspaceMembersInvitedByFkey()
+
+    private lateinit var _workspaceMembersPrincipalIdFkey: WorkspaceMembersPath
+
+    fun workspaceMembersPrincipalIdFkey(): WorkspaceMembersPath {
+        if (!this::_workspaceMembersPrincipalIdFkey.isInitialized)
+            _workspaceMembersPrincipalIdFkey = WorkspaceMembersPath(this, null, WORKSPACE_MEMBERS__WORKSPACE_MEMBERS_PRINCIPAL_ID_FKEY.inverseKey)
+
+        return _workspaceMembersPrincipalIdFkey;
+    }
+
+    val workspaceMembersPrincipalIdFkey: WorkspaceMembersPath
+        get(): WorkspaceMembersPath = workspaceMembersPrincipalIdFkey()
 
     private lateinit var _workspaces: WorkspacesPath
 
@@ -567,32 +621,44 @@ open class Principals(
     val identities: IdentitiesPath
         get(): IdentitiesPath = identities()
 
-    private lateinit var _projectInvitationsAcceptedByFkey: ProjectInvitationsPath
+    private lateinit var _invitationsAcceptedByFkey: InvitationsPath
 
-    fun projectInvitationsAcceptedByFkey(): ProjectInvitationsPath {
-        if (!this::_projectInvitationsAcceptedByFkey.isInitialized)
-            _projectInvitationsAcceptedByFkey = ProjectInvitationsPath(this, null, PROJECT_INVITATIONS__PROJECT_INVITATIONS_ACCEPTED_BY_FKEY.inverseKey)
+    fun invitationsAcceptedByFkey(): InvitationsPath {
+        if (!this::_invitationsAcceptedByFkey.isInitialized)
+            _invitationsAcceptedByFkey = InvitationsPath(this, null, INVITATIONS__INVITATIONS_ACCEPTED_BY_FKEY.inverseKey)
 
-        return _projectInvitationsAcceptedByFkey;
+        return _invitationsAcceptedByFkey;
     }
 
-    val projectInvitationsAcceptedByFkey: ProjectInvitationsPath
-        get(): ProjectInvitationsPath = projectInvitationsAcceptedByFkey()
+    val invitationsAcceptedByFkey: InvitationsPath
+        get(): InvitationsPath = invitationsAcceptedByFkey()
 
-    private lateinit var _projectInvitationsInviterIdFkey: ProjectInvitationsPath
+    private lateinit var _invitationsInviterIdFkey: InvitationsPath
 
-    fun projectInvitationsInviterIdFkey(): ProjectInvitationsPath {
-        if (!this::_projectInvitationsInviterIdFkey.isInitialized)
-            _projectInvitationsInviterIdFkey = ProjectInvitationsPath(this, null, PROJECT_INVITATIONS__PROJECT_INVITATIONS_INVITER_ID_FKEY.inverseKey)
+    fun invitationsInviterIdFkey(): InvitationsPath {
+        if (!this::_invitationsInviterIdFkey.isInitialized)
+            _invitationsInviterIdFkey = InvitationsPath(this, null, INVITATIONS__INVITATIONS_INVITER_ID_FKEY.inverseKey)
 
-        return _projectInvitationsInviterIdFkey;
+        return _invitationsInviterIdFkey;
     }
 
-    val projectInvitationsInviterIdFkey: ProjectInvitationsPath
-        get(): ProjectInvitationsPath = projectInvitationsInviterIdFkey()
+    val invitationsInviterIdFkey: InvitationsPath
+        get(): InvitationsPath = invitationsInviterIdFkey()
+
+    private lateinit var _invitationsRevokedByFkey: InvitationsPath
+
+    fun invitationsRevokedByFkey(): InvitationsPath {
+        if (!this::_invitationsRevokedByFkey.isInitialized)
+            _invitationsRevokedByFkey = InvitationsPath(this, null, INVITATIONS__INVITATIONS_REVOKED_BY_FKEY.inverseKey)
+
+        return _invitationsRevokedByFkey;
+    }
+
+    val invitationsRevokedByFkey: InvitationsPath
+        get(): InvitationsPath = invitationsRevokedByFkey()
 
     val projects: ProjectsPath
-        get(): ProjectsPath = projectMembers().projects()
+        get(): ProjectsPath = projectMembersPrincipalIdFkey().projectMembersProjectIdFkey()
     override fun getChecks(): List<Check<PrincipalsRecord>> = listOf(
         Internal.createCheck(this, DSL.name("principals_agent_has_no_identity"), "(((kind = 'human'::text) OR ((issuer IS NULL) AND (subject IS NULL))))", true),
         Internal.createCheck(this, DSL.name("principals_email_check"), "(((email IS NULL) OR (((length(email) >= 3) AND (length(email) <= 320)) AND (POSITION(('@'::text) IN (email)) > 1))))", true),

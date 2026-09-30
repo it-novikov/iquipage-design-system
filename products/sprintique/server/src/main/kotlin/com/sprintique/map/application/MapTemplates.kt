@@ -65,8 +65,7 @@ class MapTemplates(private val json: JsonMapper, private val ledger: CommandLedg
             if (input.value.scope.wire == "workspace") {
                 val admin = tx.row(
                     """
-                    SELECT 1 AS found FROM app.workspace_members
-                    WHERE workspace_id = $1 AND principal_id = $2 AND role = 'admin'
+                    SELECT 1 AS found WHERE auth.can_workspace_do($1::uuid, 'workspace.settings') AND $2 = auth.actor_id()
                     """.trimIndent(),
                     workspaceId,
                     actor.id,

@@ -6,6 +6,7 @@ package com.sprintique.database.schema.app.tables.records
 
 import com.sprintique.database.schema.app.tables.WorkspaceMembers
 
+import java.time.OffsetDateTime
 import java.util.UUID
 
 import org.jooq.Record2
@@ -31,17 +32,42 @@ open class WorkspaceMembersRecord() : UpdatableRecordImpl<WorkspaceMembersRecord
         set(value): Unit = set(3, value)
         get(): Int? = get(3) as Int?
 
+    open var granted: Array<String?>?
+        set(value): Unit = set(4, value)
+        get(): Array<String?>? = get(4) as Array<String?>?
+
+    open var revoked: Array<String?>?
+        set(value): Unit = set(5, value)
+        get(): Array<String?>? = get(5) as Array<String?>?
+
+    open var permissions: Array<String?>?
+        set(value): Unit = set(6, value)
+        get(): Array<String?>? = get(6) as Array<String?>?
+
+    open var joinedAt: OffsetDateTime?
+        set(value): Unit = set(7, value)
+        get(): OffsetDateTime? = get(7) as OffsetDateTime?
+
+    open var invitedBy: String?
+        set(value): Unit = set(8, value)
+        get(): String? = get(8) as String?
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
 
     override fun key(): Record2<UUID?, String?> = super.key() as Record2<UUID?, String?>
 
-    constructor(workspaceId: UUID? = null, principalId: String? = null, role: String? = null, revision: Int? = null): this() {
+    constructor(workspaceId: UUID? = null, principalId: String? = null, role: String? = null, revision: Int? = null, granted: Array<String?>? = null, revoked: Array<String?>? = null, permissions: Array<String?>? = null, joinedAt: OffsetDateTime? = null, invitedBy: String? = null): this() {
         this.workspaceId = workspaceId
         this.principalId = principalId
         this.role = role
         this.revision = revision
+        this.granted = granted
+        this.revoked = revoked
+        this.permissions = permissions
+        this.joinedAt = joinedAt
+        this.invitedBy = invitedBy
         resetTouchedOnNotNull()
     }
 }

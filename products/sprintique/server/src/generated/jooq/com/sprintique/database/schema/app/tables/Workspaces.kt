@@ -5,17 +5,23 @@ package com.sprintique.database.schema.app.tables
 
 
 import com.sprintique.database.schema.app.App
+import com.sprintique.database.schema.app.keys.ACCESS_PRESETS__ACCESS_PRESETS_WORKSPACE_ID_FKEY
 import com.sprintique.database.schema.app.keys.MAP_TEMPLATES__MAP_TEMPLATES_WORKSPACE_ID_FKEY
 import com.sprintique.database.schema.app.keys.PROJECTS__PROJECTS_WORKSPACE_ID_FKEY
 import com.sprintique.database.schema.app.keys.WORKSPACES_PKEY
 import com.sprintique.database.schema.app.keys.WORKSPACES__WORKSPACES_CREATED_BY_FKEY
+import com.sprintique.database.schema.app.keys.WORKSPACES__WORKSPACES_DEFAULT_GUEST_PRESET_ID_FKEY
+import com.sprintique.database.schema.app.keys.WORKSPACES__WORKSPACES_DEFAULT_MEMBER_PRESET_ID_FKEY
 import com.sprintique.database.schema.app.keys.WORKSPACE_AUDIT__WORKSPACE_AUDIT_WORKSPACE_ID_FKEY
 import com.sprintique.database.schema.app.keys.WORKSPACE_MEMBERS__WORKSPACE_MEMBERS_WORKSPACE_ID_FKEY
+import com.sprintique.database.schema.app.tables.AccessPresets.AccessPresetsPath
 import com.sprintique.database.schema.app.tables.MapTemplates.MapTemplatesPath
 import com.sprintique.database.schema.app.tables.Projects.ProjectsPath
 import com.sprintique.database.schema.app.tables.WorkspaceAudit.WorkspaceAuditPath
 import com.sprintique.database.schema.app.tables.WorkspaceMembers.WorkspaceMembersPath
 import com.sprintique.database.schema.app.tables.records.WorkspacesRecord
+import com.sprintique.database.schema.auth.keys.INVITATIONS__INVITATIONS_WORKSPACE_ID_FKEY
+import com.sprintique.database.schema.auth.tables.Invitations.InvitationsPath
 import com.sprintique.database.schema.auth.tables.Principals.PrincipalsPath
 
 import java.util.UUID
@@ -85,6 +91,14 @@ open class Workspaces(
 
     val REVISION: TableField<WorkspacesRecord, Int?> = createField(DSL.name("revision"), SQLDataType.INTEGER.nullable(false).defaultValue(DSL.field(DSL.raw("1"), SQLDataType.INTEGER)), this, "")
 
+    val PROJECTS_CREATED_BY: TableField<WorkspacesRecord, String?> = createField(DSL.name("projects_created_by"), SQLDataType.CLOB.nullable(false).defaultValue(DSL.field(DSL.raw("'admins'::text"), SQLDataType.CLOB)), this, "")
+
+    val DEFAULT_MEMBER_PRESET_ID: TableField<WorkspacesRecord, UUID?> = createField(DSL.name("default_member_preset_id"), SQLDataType.UUID, this, "")
+
+    val DEFAULT_GUEST_PRESET_ID: TableField<WorkspacesRecord, UUID?> = createField(DSL.name("default_guest_preset_id"), SQLDataType.UUID, this, "")
+
+    val ACCESS_REVISION: TableField<WorkspacesRecord, Int?> = createField(DSL.name("access_revision"), SQLDataType.INTEGER.nullable(false).defaultValue(DSL.field(DSL.raw("1"), SQLDataType.INTEGER)), this, "")
+
     private constructor(alias: Name, aliased: Table<WorkspacesRecord>?): this(alias, null, null, null, aliased, null, null)
     private constructor(alias: Name, aliased: Table<WorkspacesRecord>?, parameters: Array<Field<*>?>?): this(alias, null, null, null, aliased, parameters, null)
     private constructor(alias: Name, aliased: Table<WorkspacesRecord>?, where: Condition?): this(alias, null, null, null, aliased, null, where)
@@ -106,10 +120,28 @@ open class Workspaces(
     }
     override fun getSchema(): Schema? = if (aliased()) null else App.APP
     override fun getPrimaryKey(): UniqueKey<WorkspacesRecord> = WORKSPACES_PKEY
-    override fun getReferences(): List<ForeignKey<WorkspacesRecord, *>> = listOf(WORKSPACES__WORKSPACES_CREATED_BY_FKEY)
+    override fun getReferences(): List<ForeignKey<WorkspacesRecord, *>> = listOf(WORKSPACES__WORKSPACES_CREATED_BY_FKEY, WORKSPACES__WORKSPACES_DEFAULT_GUEST_PRESET_ID_FKEY, WORKSPACES__WORKSPACES_DEFAULT_MEMBER_PRESET_ID_FKEY)
 
     fun principals(): PrincipalsPath = principals
     val principals: PrincipalsPath by lazy { PrincipalsPath(this, WORKSPACES__WORKSPACES_CREATED_BY_FKEY, null) }
+
+    fun workspacesDefaultGuestPresetIdFkey(): AccessPresetsPath = workspacesDefaultGuestPresetIdFkey
+    val workspacesDefaultGuestPresetIdFkey: AccessPresetsPath by lazy { AccessPresetsPath(this, WORKSPACES__WORKSPACES_DEFAULT_GUEST_PRESET_ID_FKEY, null) }
+
+    fun workspacesDefaultMemberPresetIdFkey(): AccessPresetsPath = workspacesDefaultMemberPresetIdFkey
+    val workspacesDefaultMemberPresetIdFkey: AccessPresetsPath by lazy { AccessPresetsPath(this, WORKSPACES__WORKSPACES_DEFAULT_MEMBER_PRESET_ID_FKEY, null) }
+
+    private lateinit var _accessPresets: AccessPresetsPath
+
+    fun accessPresets(): AccessPresetsPath {
+        if (!this::_accessPresets.isInitialized)
+            _accessPresets = AccessPresetsPath(this, null, ACCESS_PRESETS__ACCESS_PRESETS_WORKSPACE_ID_FKEY.inverseKey)
+
+        return _accessPresets;
+    }
+
+    val accessPresets: AccessPresetsPath
+        get(): AccessPresetsPath = accessPresets()
 
     private lateinit var _mapTemplates: MapTemplatesPath
 
@@ -158,7 +190,21 @@ open class Workspaces(
 
     val workspaceMembers: WorkspaceMembersPath
         get(): WorkspaceMembersPath = workspaceMembers()
+
+    private lateinit var _invitations: InvitationsPath
+
+    fun invitations(): InvitationsPath {
+        if (!this::_invitations.isInitialized)
+            _invitations = InvitationsPath(this, null, INVITATIONS__INVITATIONS_WORKSPACE_ID_FKEY.inverseKey)
+
+        return _invitations;
+    }
+
+    val invitations: InvitationsPath
+        get(): InvitationsPath = invitations()
     override fun getChecks(): List<Check<WorkspacesRecord>> = listOf(
+        Internal.createCheck(this, DSL.name("workspaces_access_revision_check"), "((access_revision > 0))", true),
+        Internal.createCheck(this, DSL.name("workspaces_projects_created_by_check"), "((projects_created_by = ANY (ARRAY['admins'::text, 'members'::text])))", true),
         Internal.createCheck(this, DSL.name("workspaces_revision_check"), "((revision > 0))", true)
     )
     override fun `as`(alias: String): Workspaces = Workspaces(DSL.name(alias), this)

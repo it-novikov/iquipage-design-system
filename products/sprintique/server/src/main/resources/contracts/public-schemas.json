@@ -1,17 +1,39 @@
 {
   "planningPolicy": "planning-r3.1",
   "schemas": {
-    "AcceptInvitation": {
+    "AccessCommand": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    },
+    "AddMember": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {
-        "token": {
+        "principalId": {
           "type": "string",
-          "pattern": "^invite_[A-Za-z0-9_-]{43}$"
+          "minLength": 1,
+          "maxLength": 100,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "presetId": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       },
       "required": [
-        "token"
+        "principalId",
+        "presetId"
       ],
       "additionalProperties": false
     },
@@ -6184,6 +6206,77 @@
       ],
       "additionalProperties": false
     },
+    "ChangeMemberAccess": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "baseRevision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "presetId": {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+        },
+        "granted": {
+          "default": [],
+          "maxItems": 14,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "tasks.read",
+              "tasks.write",
+              "threads.write",
+              "releases.manage",
+              "maps.read",
+              "maps.write",
+              "finance.read",
+              "finance.write",
+              "approvals.decide",
+              "agents.manage",
+              "members.invite",
+              "members.manage",
+              "project.settings",
+              "project.access"
+            ]
+          }
+        },
+        "revoked": {
+          "default": [],
+          "maxItems": 14,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "tasks.read",
+              "tasks.write",
+              "threads.write",
+              "releases.manage",
+              "maps.read",
+              "maps.write",
+              "finance.read",
+              "finance.write",
+              "approvals.decide",
+              "agents.manage",
+              "members.invite",
+              "members.manage",
+              "project.settings",
+              "project.access"
+            ]
+          }
+        }
+      },
+      "required": [
+        "baseRevision",
+        "presetId",
+        "granted",
+        "revoked"
+      ],
+      "additionalProperties": false
+    },
     "ChangeProfile": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
@@ -6238,19 +6331,72 @@
             {
               "type": "string",
               "enum": [
+                "admin",
                 "member",
-                "admin"
+                "guest"
               ]
             },
             {
               "type": "null"
             }
           ]
+        },
+        "alsoFromProjects": {
+          "default": false,
+          "type": "boolean"
         }
       },
       "required": [
         "baseRevision",
-        "role"
+        "role",
+        "alsoFromProjects"
+      ],
+      "additionalProperties": false
+    },
+    "ChangeWorkspaceMemberAccess": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "baseRevision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "granted": {
+          "default": [],
+          "maxItems": 5,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "workspace.invite",
+              "workspace.people",
+              "projects.create",
+              "projects.oversee",
+              "workspace.settings"
+            ]
+          }
+        },
+        "revoked": {
+          "default": [],
+          "maxItems": 5,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "workspace.invite",
+              "workspace.people",
+              "projects.create",
+              "projects.oversee",
+              "workspace.settings"
+            ]
+          }
+        }
+      },
+      "required": [
+        "baseRevision",
+        "granted",
+        "revoked"
       ],
       "additionalProperties": false
     },
@@ -6611,7 +6757,113 @@
       ],
       "additionalProperties": false
     },
-    "CreateInvitation": {
+    "CreateInvitationLink": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "workspaceRole": {
+          "type": "string",
+          "enum": [
+            "admin",
+            "member",
+            "guest"
+          ]
+        },
+        "presetId": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "projectIds": {
+          "default": [],
+          "maxItems": 100,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "pattern": "^[A-Za-z0-9_-]+$"
+          }
+        },
+        "expiresInSeconds": {
+          "default": 604800,
+          "type": "integer",
+          "minimum": 3600,
+          "maximum": 604800
+        }
+      },
+      "required": [
+        "workspaceRole",
+        "presetId",
+        "projectIds",
+        "expiresInSeconds"
+      ],
+      "additionalProperties": false
+    },
+    "CreateInvitations": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "emails": {
+          "minItems": 1,
+          "maxItems": 20,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 320
+          }
+        },
+        "workspaceRole": {
+          "type": "string",
+          "enum": [
+            "admin",
+            "member",
+            "guest"
+          ]
+        },
+        "presetId": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "projectIds": {
+          "default": [],
+          "maxItems": 100,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "pattern": "^[A-Za-z0-9_-]+$"
+          }
+        }
+      },
+      "required": [
+        "emails",
+        "workspaceRole",
+        "presetId",
+        "projectIds"
+      ],
+      "additionalProperties": false
+    },
+    "CreatePreset": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {
@@ -6620,25 +6872,45 @@
           "format": "uuid",
           "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
         },
-        "role": {
+        "name": {
           "type": "string",
-          "enum": [
-            "reader",
-            "editor",
-            "admin"
-          ]
+          "minLength": 1,
+          "maxLength": 40
         },
-        "expiresInSeconds": {
-          "default": 86400,
-          "type": "integer",
-          "minimum": 60,
-          "maximum": 604800
+        "hint": {
+          "default": "",
+          "type": "string",
+          "maxLength": 140
+        },
+        "permissions": {
+          "maxItems": 14,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "tasks.read",
+              "tasks.write",
+              "threads.write",
+              "releases.manage",
+              "maps.read",
+              "maps.write",
+              "finance.read",
+              "finance.write",
+              "approvals.decide",
+              "agents.manage",
+              "members.invite",
+              "members.manage",
+              "project.settings",
+              "project.access"
+            ]
+          }
         }
       },
       "required": [
         "id",
-        "role",
-        "expiresInSeconds"
+        "name",
+        "hint",
+        "permissions"
       ],
       "additionalProperties": false
     },
@@ -6686,6 +6958,70 @@
         "slug",
         "key",
         "timezone"
+      ],
+      "additionalProperties": false
+    },
+    "CreateProjectInvitationLink": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "presetId": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "expiresInSeconds": {
+          "default": 604800,
+          "type": "integer",
+          "minimum": 3600,
+          "maximum": 604800
+        }
+      },
+      "required": [
+        "presetId",
+        "expiresInSeconds"
+      ],
+      "additionalProperties": false
+    },
+    "CreateProjectInvitations": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "emails": {
+          "minItems": 1,
+          "maxItems": 20,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 320
+          }
+        },
+        "presetId": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "emails",
+        "presetId"
       ],
       "additionalProperties": false
     },
@@ -9055,6 +9391,21 @@
       ],
       "additionalProperties": false
     },
+    "HandoverAccess": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "presetId": {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+        }
+      },
+      "required": [
+        "presetId"
+      ],
+      "additionalProperties": false
+    },
     "HistoryPageResponse": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
@@ -9814,6 +10165,20 @@
       "minLength": 1,
       "maxLength": 100,
       "pattern": "^[A-Za-z0-9_-]+$"
+    },
+    "InvitationToken": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "token": {
+          "type": "string",
+          "pattern": "^invite_[A-Za-z0-9_-]{43}$"
+        }
+      },
+      "required": [
+        "token"
+      ],
+      "additionalProperties": false
     },
     "MapConnection": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -16881,6 +17246,98 @@
       ],
       "additionalProperties": false
     },
+    "PutPreset": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "baseRevision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 40
+        },
+        "hint": {
+          "default": "",
+          "type": "string",
+          "maxLength": 140
+        },
+        "permissions": {
+          "maxItems": 14,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "tasks.read",
+              "tasks.write",
+              "threads.write",
+              "releases.manage",
+              "maps.read",
+              "maps.write",
+              "finance.read",
+              "finance.write",
+              "approvals.decide",
+              "agents.manage",
+              "members.invite",
+              "members.manage",
+              "project.settings",
+              "project.access"
+            ]
+          }
+        }
+      },
+      "required": [
+        "baseRevision",
+        "name",
+        "hint",
+        "permissions"
+      ],
+      "additionalProperties": false
+    },
+    "PutProjectAccess": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "baseRevision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "defaultMemberPresetId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "defaultGuestPresetId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "baseRevision",
+        "defaultMemberPresetId",
+        "defaultGuestPresetId"
+      ],
+      "additionalProperties": false
+    },
     "PutProjectProfile": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
@@ -17604,6 +18061,55 @@
       ],
       "additionalProperties": false
     },
+    "PutWorkspaceAccess": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "baseRevision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "projectsCreatedBy": {
+          "type": "string",
+          "enum": [
+            "admins",
+            "members"
+          ]
+        },
+        "defaultMemberPresetId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "defaultGuestPresetId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "baseRevision",
+        "projectsCreatedBy",
+        "defaultMemberPresetId",
+        "defaultGuestPresetId"
+      ],
+      "additionalProperties": false
+    },
     "PutWorkspaceProfile": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
@@ -18211,6 +18717,21 @@
       "required": [
         "baseRevision",
         "value"
+      ],
+      "additionalProperties": false
+    },
+    "ResetPreset": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "baseRevision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        }
+      },
+      "required": [
+        "baseRevision"
       ],
       "additionalProperties": false
     },
@@ -19415,6 +19936,22 @@
       "type": "string",
       "minLength": 1,
       "maxLength": 100
+    },
+    "TransferOwnership": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "toPrincipalId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        }
+      },
+      "required": [
+        "toPrincipalId"
+      ],
+      "additionalProperties": false
     },
     "ViewFilters": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",

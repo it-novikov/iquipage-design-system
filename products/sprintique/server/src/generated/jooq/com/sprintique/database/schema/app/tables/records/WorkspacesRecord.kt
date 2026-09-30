@@ -35,18 +35,38 @@ open class WorkspacesRecord() : UpdatableRecordImpl<WorkspacesRecord>(Workspaces
         set(value): Unit = set(4, value)
         get(): Int? = get(4) as Int?
 
+    open var projectsCreatedBy: String?
+        set(value): Unit = set(5, value)
+        get(): String? = get(5) as String?
+
+    open var defaultMemberPresetId: UUID?
+        set(value): Unit = set(6, value)
+        get(): UUID? = get(6) as UUID?
+
+    open var defaultGuestPresetId: UUID?
+        set(value): Unit = set(7, value)
+        get(): UUID? = get(7) as UUID?
+
+    open var accessRevision: Int?
+        set(value): Unit = set(8, value)
+        get(): Int? = get(8) as Int?
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
 
     override fun key(): Record1<UUID?> = super.key() as Record1<UUID?>
 
-    constructor(id: UUID? = null, name: String? = null, createdBy: String? = null, timezone: String? = null, revision: Int? = null): this() {
+    constructor(id: UUID? = null, name: String? = null, createdBy: String? = null, timezone: String? = null, revision: Int? = null, projectsCreatedBy: String? = null, defaultMemberPresetId: UUID? = null, defaultGuestPresetId: UUID? = null, accessRevision: Int? = null): this() {
         this.id = id
         this.name = name
         this.createdBy = createdBy
         this.timezone = timezone
         this.revision = revision
+        this.projectsCreatedBy = projectsCreatedBy
+        this.defaultMemberPresetId = defaultMemberPresetId
+        this.defaultGuestPresetId = defaultGuestPresetId
+        this.accessRevision = accessRevision
         resetTouchedOnNotNull()
     }
 }

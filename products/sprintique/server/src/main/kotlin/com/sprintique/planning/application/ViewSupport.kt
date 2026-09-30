@@ -1,5 +1,6 @@
 package com.sprintique.planning.application
 
+import com.sprintique.access.domain.Permission
 import com.sprintique.command.CommandLedger
 import com.sprintique.contract.Contracts
 import com.sprintique.database.Transaction
@@ -42,12 +43,12 @@ class ViewSupport(private val json: JsonMapper, private val contracts: Contracts
         val revision = PlanningStates.lock(tx, actor, projectId).revision
         val state = PlanningStates.load(tx, projectId)
         val access = ProjectAccess.authorize(tx, actor, projectId, Capability.TASKS_READ)
-        val write = access.role != "reader" && actor.mayRead(Capability.TASKS_WRITE)
+        val write = access.has(Permission.TASKS_WRITE) && actor.mayRead(Capability.TASKS_WRITE)
         // The interactive screen has no agent approval step; agents use the canonical proposal API.
         val interactive = write && actor.isHuman
         return ViewContext(
             revision, state, PlanningRows.project(state), interactive,
-            interactive && access.role == "admin",
+            interactive && access.has(Permission.PROJECT_SETTINGS),
         )
     }
 

@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import tools.jackson.databind.JsonNode
 
-/** Project and workspace profiles, members, invitations, and a person's own profile and photo. */
+/** Project and workspace profiles, project members by role, and a person's own profile and photo. */
 @RestController
 @Profile("api")
 class ProfileController(
@@ -90,34 +90,6 @@ class ProfileController(
         ProjectProfiles.workspaceProjects(tx, actor, workspaceIdOf(workspaceId))
     }
 
-    @GetMapping("/api/v1/workspaces/{workspaceId}/members")
-    fun workspaceMembers(
-        @PathVariable workspaceId: String,
-        request: HttpServletRequest,
-    ) = requests.run(request) { tx, actor ->
-        ProjectProfiles.workspaceMembers(tx, actor, workspaceIdOf(workspaceId))
-    }
-
-    @PatchMapping("/api/v1/workspaces/{workspaceId}/members/{id}")
-    @Accepts(ChangeWorkspaceMemberRequest::class)
-    fun changeWorkspaceMember(
-        @PathVariable workspaceId: String,
-        @PathVariable id: String,
-        @RequestBody(required = false) body: JsonNode?,
-        request: HttpServletRequest,
-    ) = requests.run(request) { tx, actor ->
-        val workspace = workspaceIdOf(workspaceId)
-        if (id.isEmpty() || id.length > MEMBER_ID_LIMIT) throw RequestValidationException()
-        val input = contracts.parse<ChangeWorkspaceMemberRequest>(body)
-        ProjectProfiles.changeWorkspaceMember(
-            tx,
-            actor,
-            workspace,
-            id,
-            ProjectProfiles.WorkspaceMemberChange(input.baseRevision, input.role?.wire),
-        )
-    }
-
     @GetMapping("/api/v1/projects/{projectId}/members")
     fun members(@PathVariable projectId: String, request: HttpServletRequest) = requests.run(request) { tx, actor ->
         Membership.members(tx, actor, RequestInputs.id(projectId))
@@ -137,39 +109,6 @@ class ProfileController(
         val input = contracts.parse<ChangeMemberRequest>(body)
         val change = Membership.MemberChange(input.baseRevision, input.role?.wire)
         Membership.changeMember(tx, actor, projectId, id, change, RequestInputs.idempotencyKey(request), ledger)
-    }
-
-    @GetMapping("/api/v1/projects/{projectId}/invitations")
-    fun invitations(@PathVariable projectId: String, request: HttpServletRequest) = requests.run(request) { tx, actor ->
-        Membership.invitations(tx, actor, RequestInputs.id(projectId))
-    }
-
-    @PostMapping("/api/v1/projects/{projectId}/invitations")
-    @Accepts(CreateInvitationRequest::class)
-    fun invite(
-        @PathVariable projectId: String,
-        @RequestBody(required = false) body: JsonNode?,
-        request: HttpServletRequest,
-    ) =
-        requests.run(request) { tx, actor ->
-            RequestInputs.id(projectId)
-            val input = contracts.parse<CreateInvitationRequest>(body)
-            Membership.invite(tx, actor, projectId, input.id, input.role.wire, input.expiresInSeconds)
-        }
-
-    @DeleteMapping("/api/v1/projects/{projectId}/invitations/{id}")
-    fun revokeInvitation(@PathVariable projectId: String, @PathVariable id: String, request: HttpServletRequest) =
-        requests.run(
-            request,
-        ) { tx, actor -> Membership.revokeInvitation(tx, actor, RequestInputs.id(projectId), RequestInputs.id(id)) }
-
-    @PostMapping("/api/v1/invitations/accept")
-    @Accepts(AcceptInvitationRequest::class)
-    fun accept(
-        @RequestBody(required = false) body: JsonNode?,
-        request: HttpServletRequest,
-    ) = requests.run(request) { tx, actor ->
-        Membership.acceptInvitation(tx, actor, contracts.parse<AcceptInvitationRequest>(body).token)
     }
 
     @GetMapping("/api/v1/profile")
@@ -223,7 +162,6 @@ class ProfileController(
     ): String = value.also { if (!UUID_PATTERN.matches(it)) throw RequestValidationException() }
 
     private companion object {
-        const val MEMBER_ID_LIMIT = 100
         val UUID_PATTERN = Regex(com.sprintique.contract.UUID)
         val PERSON_ID = Regex("^[A-Za-z0-9._:-]{1,200}$")
     }

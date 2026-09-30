@@ -90,8 +90,17 @@ class RequestLimitFilter(private val clientAddresses: ClientAddresses) : OncePer
         private const val MAX_ACTIVE = 64
         private const val MAX_UPLOADS = 8
 
-        /** Entry points that start a sign-in or check a secret: they share the tighter per-address login budget. */
-        private val LOGINS = listOf("/auth/login", "/auth/dev-login", "/auth/email/")
+        /**
+         * Entry points that start a sign-in or check a secret (an invitation token too): they share the tighter login
+         * budget.
+         */
+        private val LOGINS = listOf(
+            "/auth/login",
+            "/auth/dev-login",
+            "/auth/email/",
+            "/api/v1/invitations/inspect",
+            "/api/v1/invitations/accept",
+        )
         private val UPLOAD = Regex("^/api/v1/projects/[^/]+/assets/[^/]+/content$")
         private val STREAM = Regex("^/api/v1/projects/[^/]+/events$")
 

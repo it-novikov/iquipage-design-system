@@ -80,7 +80,7 @@ object Assets {
                 tx,
                 actor,
                 projectId,
-                if (write) Capability.CATALOG_WRITE else Capability.TASKS_READ,
+                if (write) Capability.PROJECT_SETTINGS else Capability.TASKS_READ,
             )
         }
     }

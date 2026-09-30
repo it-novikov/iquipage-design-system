@@ -87,7 +87,7 @@ object TaskSettings {
         ledger: CommandLedger,
     ): Any {
         PlanningStates.lock(tx, actor, projectId, write = true)
-        ProjectAccess.authorize(tx, actor, projectId, Capability.CATALOG_WRITE)
+        ProjectAccess.authorize(tx, actor, projectId, Capability.PROJECT_SETTINGS)
         val request = mapOf("baseRevision" to baseRevision, "value" to value)
         return ledger.idempotent(tx, actor, projectId, "task-settings.put", key, request) {
             val previous = read(tx, actor, projectId)

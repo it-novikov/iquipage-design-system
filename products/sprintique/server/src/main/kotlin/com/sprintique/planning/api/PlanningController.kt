@@ -1,5 +1,6 @@
 package com.sprintique.planning.api
 
+import com.sprintique.access.domain.Permission
 import com.sprintique.command.CommandLedger
 import com.sprintique.contract.Accepts
 import com.sprintique.contract.Contracts
@@ -8,6 +9,7 @@ import com.sprintique.contract.QueryParameters
 import com.sprintique.contract.UUID
 import com.sprintique.identity.api.AuthenticatedRequests
 import com.sprintique.identity.api.RequestInputs
+import com.sprintique.identity.application.ProjectAccess
 import com.sprintique.identity.domain.Capability
 import com.sprintique.planning.application.Approvals
 import com.sprintique.planning.application.Calendar
@@ -51,12 +53,9 @@ class PlanningController(
         request: HttpServletRequest,
     ) = requests.run(request) { tx, actor ->
         val lock = PlanningStates.lock(tx, actor, RequestInputs.id(projectId))
-        val role = tx.row(
-            "SELECT role FROM app.project_members WHERE project_id = $1 AND principal_id = $2",
-            projectId,
-            actor.id,
-        )!!.string("role")
-        val canWrite = role != "reader" && actor.mayRead(Capability.TASKS_WRITE)
+        val membership = ProjectAccess.membership(tx, actor, projectId)!!
+        val canWrite = membership.has(Permission.TASKS_WRITE) && actor.mayRead(Capability.TASKS_WRITE)
+        val canDecide = canWrite && membership.has(Permission.APPROVALS_DECIDE)
         linkedMapOf(
             "contractVersion" to 2,
             "policyVersion" to PLANNING_POLICY,
@@ -67,10 +66,10 @@ class PlanningController(
                 "preview" to linkedMapOf("allowed" to canWrite, "reason" to if (canWrite) null else "READ_ONLY"),
                 "commit" to linkedMapOf("allowed" to canWrite, "requiresHumanApproval" to !actor.isHuman),
                 "approve" to linkedMapOf(
-                    "allowed" to (canWrite && actor.isHuman),
+                    "allowed" to (canDecide && actor.isHuman),
                     "reason" to when {
                         !actor.isHuman -> "HUMAN_REQUIRED"
-                        canWrite -> null
+                        canDecide -> null
                         else -> "READ_ONLY"
                     },
                 ),
