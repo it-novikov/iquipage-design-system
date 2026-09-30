@@ -2,7 +2,7 @@
 /** Spatial editor composition. Extends stable history/controlled-state mechanisms. */
 const B=require('./whiteboard-core.js'),U=require('./whiteboard-experience-core.js'),R=require('./whiteboard-routing.js');
 const {icon,escapeHTML:esc}=require('./components.js');
-const {safeMarkdown,markdownTools}=require('./editor.js');
+const {safeMarkdown,markdownTools,pasteLink}=require('./editor.js');
 const TITLES={sticky:'Заметка',text:'Текст',shape:'Фигура',frame:'Область',task:'Действие',image:'Подпись изображения'};
 const Shapes=require('./whiteboard-shapes.js');
 const SIDE_LABELS={auto:'Автоматически',top:'Сверху',right:'Справа',bottom:'Снизу',left:'Слева'};
@@ -102,6 +102,8 @@ function installStudio(Klass){
   const input=document.createElement('textarea');input.className='wb-inline-input';input.value=o.text;input.maxLength=10000;input.setAttribute('aria-label',`Текст: ${TITLES[o.type]}`);input.setAttribute('spellcheck','true');input.rows=1;
   Object.defineProperty(input,'innerText',{get(){return this.value},set(v){this.value=v},configurable:true});
   text.replaceChildren(input);text.classList.add('has-editor');el.classList.add('is-editing');this._selection=[id];this.editing={id,original:o.text,height:o.height,textEl:input,input,align:o.align,valign:o.valign,history:[o.text],cursor:0};
+  // A pasted link becomes Markdown in place; its input event below records it as one history step.
+  input.onpaste=e=>{if(!this.locked)pasteLink(input,e);};
   input.oninput=()=>{const ed=this.editing;if(!ed)return;if(ed.history[ed.cursor]!==input.value){ed.history=ed.history.slice(0,ed.cursor+1);ed.history.push(input.value);ed.cursor=ed.history.length-1;}cancelAnimationFrame(this.measureFrame);this.measureFrame=requestAnimationFrame(()=>this.sizeWhileEditing());};
   this.renderSelection();this.focusObjects([id]);input.focus({preventScroll:true});input.setSelectionRange(input.value.length,input.value.length);this.sizeWhileEditing();
  },
