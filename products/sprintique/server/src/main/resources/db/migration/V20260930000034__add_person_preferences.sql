@@ -3,7 +3,6 @@
 CREATE TABLE app.person_preferences (
   principal_id text PRIMARY KEY REFERENCES auth.principals,
   confirm_release_scope boolean NOT NULL DEFAULT true,
-  revision integer NOT NULL DEFAULT 1 CHECK(revision>0),
   updated_at timestamptz NOT NULL DEFAULT clock_timestamp()
 );
 ALTER TABLE app.person_preferences ENABLE ROW LEVEL SECURITY;

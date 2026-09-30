@@ -48,7 +48,13 @@ export async function createInRunningRelease({adapter,client,intent,release,crea
   let placed;
   // A lost answer is settled from its receipt, never by sending the command again.
   try{placed=await commitIntent(adapter,intent);}
-  catch(error){if(!error.uncertain||!recover)throw error;await recover();placed=true;}
+  catch(error){
+    if(!error.uncertain||!recover)throw error;
+    const outcome=await recover();
+    if(outcome?.state==='rejected')throw Error(outcome.message||'Задача не создана.');
+    if(outcome?.state!=='committed')throw error;
+    placed=true;
+  }
   if(placed)return 'release';
   await createInBacklog();
   notify({tone:'warning',message:`Нет права менять состав релиза «${release.name}». Задача создана в бэклоге.`});

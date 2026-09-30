@@ -329,14 +329,14 @@ object Membership {
         return row.filterKeys { it != "confirmReleaseScope" } + ("preferences" to preferences)
     }
 
-    /** Sets the person's preferences as a whole: a repeated request leaves the same state. */
+    /** Sets the person's preferences as a whole: a repeated request leaves the same state, the last one wins. */
     fun changePreferences(tx: Transaction, actor: Actor, confirmReleaseScope: Boolean): Map<String, Any?> {
         requireHuman(tx, actor, "Настройки доступны человеку.")
         val row = tx.row(
             """
             INSERT INTO app.person_preferences(principal_id, confirm_release_scope) VALUES ($1, $2)
             ON CONFLICT (principal_id) DO UPDATE SET confirm_release_scope = EXCLUDED.confirm_release_scope,
-                revision = app.person_preferences.revision + 1, updated_at = clock_timestamp()
+                updated_at = clock_timestamp()
             RETURNING confirm_release_scope AS "confirmReleaseScope"
             """.trimIndent(),
             actor.id, confirmReleaseScope,

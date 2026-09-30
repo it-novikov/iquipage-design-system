@@ -12,11 +12,10 @@ export function releaseScopeDialog({release}){
     let answer=null;
     const element=dialog({title:'Добавить задачу в идущий релиз?',
       description:`«${release.name}» уже начат: задача войдёт в его состав, и объём работы релиза вырастет.`,
-      body:`${check('stopAsking','Больше не показывать')}<p class="iq-helper release-scope-hint">Вернуть вопрос можно в настройках: Профиль → Подтверждения.</p>`,
+      body:`${check('stopAsking','Больше не показывать')}<p class="iq-helper">Вернуть вопрос можно в настройках: Профиль → Подтверждения.</p>`,
       submitLabel:'Добавить в релиз',
       onSubmit:(values)=>{answer={stopAsking:values.get('stopAsking')==='on'};},
       mount:el=>{
-        el.setAttribute('data-size','compact');el.classList.add('release-scope-dialog');
         // An alert dialog: assistive technology reads the consequence together with the question.
         const native=el.querySelector('dialog'),text=native.querySelector('.iq-dialog-head p');
         native.setAttribute('role','alertdialog');

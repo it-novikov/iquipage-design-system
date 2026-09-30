@@ -61,8 +61,10 @@ test('a finished release, a blocker or a lost answer never pass as created',asyn
   let commits=0;
   const lost=adapter({commit:async()=>{commits++;throw Error('timeout');},receipt:async()=>({state:'pending'})});
   await assert.rejects(commitIntent(lost,intent),error=>error.uncertain===true);assert.equal(commits,1,'a lost answer is never sent twice');
-  let recovered=0;const settled=createInRunningRelease({adapter:lost,client:client(false),intent,release,createInBacklog:async()=>{},ask:async()=>null,notify:()=>{},recover:async()=>{recovered++;}});
-  assert.equal(await settled,'release');assert.equal(recovered,1);assert.equal(commits,2,'only the first attempt of this second run');
+  const settle=outcome=>createInRunningRelease({adapter:lost,client:client(false),intent,release,createInBacklog:async()=>{throw Error('no backlog');},ask:async()=>null,notify:()=>{},recover:async()=>outcome});
+  assert.equal(await settle({state:'committed',operationId:'op-1'}),'release','a receipt that says committed means created');
+  await assert.rejects(settle({state:'rejected',message:'Релиз уже завершён.'}),/завершён/,'a rejected receipt tells its reason');
+  await assert.rejects(settle(null),error=>error.uncertain===true,'an unsettled answer is never taken for created');
   const answered=adapter({commit:async()=>{throw Error('timeout');}});
   assert.equal(await commitIntent(answered,intent),true,'the receipt settles a lost answer');
 });

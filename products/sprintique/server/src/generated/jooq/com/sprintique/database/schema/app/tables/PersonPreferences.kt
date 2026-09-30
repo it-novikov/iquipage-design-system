@@ -15,7 +15,6 @@ import java.time.OffsetDateTime
 import kotlin.collections.Collection
 import kotlin.collections.List
 
-import org.jooq.Check
 import org.jooq.Condition
 import org.jooq.Field
 import org.jooq.ForeignKey
@@ -71,8 +70,6 @@ open class PersonPreferences(
 
     val CONFIRM_RELEASE_SCOPE: TableField<PersonPreferencesRecord, Boolean?> = createField(DSL.name("confirm_release_scope"), SQLDataType.BOOLEAN.nullable(false).defaultValue(DSL.field(DSL.raw("true"), SQLDataType.BOOLEAN)), this, "")
 
-    val REVISION: TableField<PersonPreferencesRecord, Int?> = createField(DSL.name("revision"), SQLDataType.INTEGER.nullable(false).defaultValue(DSL.field(DSL.raw("1"), SQLDataType.INTEGER)), this, "")
-
     val UPDATED_AT: TableField<PersonPreferencesRecord, OffsetDateTime?> = createField(DSL.name("updated_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6).nullable(false).defaultValue(DSL.field(DSL.raw("clock_timestamp()"), SQLDataType.TIMESTAMPWITHTIMEZONE)), this, "")
 
     private constructor(alias: Name, aliased: Table<PersonPreferencesRecord>?): this(alias, null, null, null, aliased, null, null)
@@ -100,9 +97,6 @@ open class PersonPreferences(
 
     fun principals(): PrincipalsPath = principals
     val principals: PrincipalsPath by lazy { PrincipalsPath(this, PERSON_PREFERENCES__PERSON_PREFERENCES_PRINCIPAL_ID_FKEY, null) }
-    override fun getChecks(): List<Check<PersonPreferencesRecord>> = listOf(
-        Internal.createCheck(this, DSL.name("person_preferences_revision_check"), "((revision > 0))", true)
-    )
     override fun `as`(alias: String): PersonPreferences = PersonPreferences(DSL.name(alias), this)
     override fun `as`(alias: Name): PersonPreferences = PersonPreferences(alias, this)
     override fun `as`(alias: Table<*>): PersonPreferences = PersonPreferences(alias.qualifiedName, this)

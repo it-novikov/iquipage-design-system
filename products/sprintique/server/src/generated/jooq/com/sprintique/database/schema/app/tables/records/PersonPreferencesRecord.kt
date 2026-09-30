@@ -23,13 +23,9 @@ open class PersonPreferencesRecord() : UpdatableRecordImpl<PersonPreferencesReco
         set(value): Unit = set(1, value)
         get(): Boolean? = get(1) as Boolean?
 
-    open var revision: Int?
-        set(value): Unit = set(2, value)
-        get(): Int? = get(2) as Int?
-
     open var updatedAt: OffsetDateTime?
-        set(value): Unit = set(3, value)
-        get(): OffsetDateTime? = get(3) as OffsetDateTime?
+        set(value): Unit = set(2, value)
+        get(): OffsetDateTime? = get(2) as OffsetDateTime?
 
     // -------------------------------------------------------------------------
     // Primary key information
@@ -37,10 +33,9 @@ open class PersonPreferencesRecord() : UpdatableRecordImpl<PersonPreferencesReco
 
     override fun key(): Record1<String?> = super.key() as Record1<String?>
 
-    constructor(principalId: String? = null, confirmReleaseScope: Boolean? = null, revision: Int? = null, updatedAt: OffsetDateTime? = null): this() {
+    constructor(principalId: String? = null, confirmReleaseScope: Boolean? = null, updatedAt: OffsetDateTime? = null): this() {
         this.principalId = principalId
         this.confirmReleaseScope = confirmReleaseScope
-        this.revision = revision
         this.updatedAt = updatedAt
         resetTouchedOnNotNull()
     }

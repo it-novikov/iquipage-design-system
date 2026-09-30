@@ -78,6 +78,15 @@ class ProjectAvatarRetirementIntegrationTest {
                             "ORDER BY 1",
                     ).map { it.string("dedupe_key") to it.string("asset") }
                     assertThat(jobs).containsExactly("linked:2" to "linked", "staged:2" to "staged")
+                    // Due at once: cleanup takes a detached asset only after its expiry, and the jobs are due now.
+                    val due = tx.row(
+                        """
+                        SELECT bool_and(a.expires_at <= clock_timestamp() AND j.available_at <= clock_timestamp()) AS due
+                        FROM app.assets a JOIN work.jobs j ON j.project_id = a.project_id AND j.payload->>'assetId' = a.id
+                        WHERE a.target_type = 'project-avatar' AND a.state = 'detached'
+                        """.trimIndent(),
+                    )!!.boolean("due")
+                    assertThat(due).isTrue()
                     val column = tx.row(
                         """
                         SELECT count(*)::int AS n FROM information_schema.columns
