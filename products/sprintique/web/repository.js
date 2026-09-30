@@ -41,7 +41,7 @@ export class ProductRepository {
     const stop=watchProject(projectId,event=>{
       if(closed)return;
       if(event.topic==='member.updated'&&event.resourceId===this.context.actorId)void checkMembership();
-      const names={'task':'tasks','thread':'threads','tags':'tags','release':'releases','releases':'releases','map':'maps','map-template':'templates','task-link':'taskLinks','task-settings':'taskSettings'};
+      const names={'task':'tasks','thread':'threads','tags':'tags','release':'releases','releases':'releases','map':'maps','map-template':'templates','task-link':'taskLinks','task-settings':'taskSettings','finance-entry':'financeEntries','finance-settings':'financeSettings'};
       const collection=names[event.topic.split('.')[0]];
       this.clearProjectCache(projectId);
       if(event.topic==='resync'||event.topic.startsWith('planning.')||event.topic.startsWith('member.')){collections.forEach(name=>queue(name,{...event,topic:'resync'}));if(event.topic==='resync')void checkMembership();}

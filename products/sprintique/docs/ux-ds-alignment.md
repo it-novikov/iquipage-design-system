@@ -114,6 +114,7 @@ Private DS **0.6.0-vnext.23**. It covers the component audit of the whole Sprint
     - Phones: the DS two-line row (title; status, person, date), the toolbar as one strip that scrolls sideways.
     - The projection carries `done`, `doneChildrenCount` and `parentTitle` per row and `drafts` and `unassigned` per group; the UI works without them.
     - The soft warning and success badges lost their text in the dark theme because `--iq-warning-bg` and `--iq-success-bg` equalled the fill colours; DS vnext.21 made them tints, so the list uses the DS badges as they are.
+- **Finance** (`#finance`, see [finance](finance.md)): the section heading holds the view switch ("Журнал", "Сводка"), the period and, for administrators, "Валюта" and "Новая операция". Totals of the period are one row of labelled figures per currency: "Поступило", "Потрачено", "Баланс" (the one raised tile; a negative balance is red), "С учётом ожидаемых" with what is still expected in and out. The ledger is the DS work table: the operation with its category and counterparty, the date, a soft status badge ("Ожидается" info, "Просрочена" warning, "Проведена" quiet, "Аннулирована" danger) and the signed amount (income in the success tone, a voided amount struck through); on phones the DS two-line row with the amount beside the title. Status and direction filters are DS segmented controls; the footer counts entries and loads the next page. "Сводка" is DS tables by month and by category. An entry opens as a dialog with its facts, one action per state ("Провести", "Изменить", "Аннулировать") and its history; forms are DS fields, choice lists and the date field. People who may only read see the values and the administrator's name instead of buttons, as in settings. An empty ledger is `.iq-empty.compact` with the one action that fills it.
 - **Settings:** a full-width settings workspace on the DS side navigation.
   - Every page has the same anatomy: the title and one sentence about the section, the main action on the right, then groups of panels. Changes are saved with a bar that appears only when something changed.
   - People who cannot change a setting see values and a lock notice naming an administrator, not disabled fields.
@@ -132,6 +133,10 @@ Private DS **0.6.0-vnext.23**. It covers the component audit of the whole Sprint
 - **Style contract:** `npm run check:styles` fails on px font sizes, raw radii and colours, DS-internal selectors, and inline styles.
 
 ## Known gaps
+
+- DS-GAP-FIN-1 (missing capability): no text field with suggestions that also accepts a new value. `iq-combobox` only picks from its options. The finance category is a DS text field with a native `datalist` of the categories already in use; the browser draws the suggestion list.
+- DS-GAP-FIN-2 (DS defect): `ui.textarea` renders a character counter (`data-count`), but only the DS catalogue script updates it; `enhance()` does not. The finance dialogs update the counter themselves.
+- DS-GAP-FIN-3 (missing component): no compact figure tile for a row of totals. `.iq-metric` is a catalogue-scale card (36–64px figures, demo `metric-*` parts). Finance places `dl` facts on `--iq-surface` tiles with DS type and radius tokens. There is no currency-aware amount field either: the amount is a DS text field with `inputmode="decimal"` and the DS input suffix for the currency sign.
 
 - On the board, the drag handle inside a card is smaller than 44px on touch screens. The whole card surface is still a tap target.
 - In a hidden or background browser tab, DS dialogs finish closing only once their close animation runs, because Web Animations pause while the tab is hidden. Visible tabs are not affected.

@@ -17,6 +17,9 @@ data class ProjectMembership(val workspaceId: String, val role: String)
 object ProjectAccess {
     private val WRITERS = setOf("editor", "admin")
 
+    /** Capabilities only a person who administers the project holds; agents are never granted them. */
+    private val ADMINISTRATION = setOf(Capability.AGENTS_MANAGE, Capability.CATALOG_WRITE, Capability.FINANCE_WRITE)
+
     fun authorize(tx: Transaction, actor: Actor, projectId: String, capability: Capability): ProjectMembership {
         val row = tx.row(
             """
@@ -56,7 +59,7 @@ object ProjectAccess {
             "INSUFFICIENT_SCOPE",
             "Токену разрешено только чтение.",
         )
-        if (capability == Capability.AGENTS_MANAGE || capability == Capability.CATALOG_WRITE) {
+        if (capability in ADMINISTRATION) {
             requireCondition(
                 actor.isHuman && membership.role == "admin",
                 403,

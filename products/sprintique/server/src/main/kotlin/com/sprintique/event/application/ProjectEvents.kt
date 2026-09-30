@@ -15,7 +15,7 @@ data class EventPage(val items: List<Map<String, Any?>>, val cursor: String?, va
 
 /**
  * The committed outbox of a project as a durable, commit-ordered feed. Each reader sees only the topics its rights
- * cover; the feed carries identifiers and revisions, never content.
+ * cover (agents never see finance); the feed carries identifiers and revisions, never content.
  */
 object ProjectEvents {
     private const val PAGE = 100
@@ -51,6 +51,7 @@ object ProjectEvents {
             WHERE o.project_id = $1 AND o.project_sequence > $2
               AND ($3::boolean OR o.topic NOT LIKE 'thread.%')
               AND ($4::boolean OR o.topic NOT LIKE 'agent.%')
+              AND ($4::boolean OR o.topic NOT LIKE 'finance-%')
               AND ((o.topic LIKE 'thread.%' AND $3::boolean)
                 OR ((o.topic LIKE 'map.%' OR o.topic LIKE 'map-template.%') AND $7::boolean)
                 OR (o.topic LIKE 'asset.%' AND EXISTS (SELECT 1 FROM app.assets f WHERE f.project_id = $1 AND f.id = a.resource_id

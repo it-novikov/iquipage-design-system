@@ -45,8 +45,8 @@ enum class PrincipalKind(val wire: String) {
 }
 
 /**
- * What a principal may do in a project. The first six can be granted to an agent; the last two exist only for
- * project administrators.
+ * What a principal may do in a project. The first six can be granted to an agent; catalog and agent management exist
+ * only for project administrators; finance is read by the people of the project and changed by its administrators.
  */
 enum class Capability(val wire: String) {
     TASKS_READ("tasks:read"),
@@ -57,6 +57,8 @@ enum class Capability(val wire: String) {
     MAPS_WRITE("maps:write"),
     CATALOG_WRITE("catalog:write"),
     AGENTS_MANAGE("agents:manage"),
+    FINANCE_READ("finance:read"),
+    FINANCE_WRITE("finance:write"),
     ;
 
     val isWrite: Boolean get() = !wire.endsWith(":read")

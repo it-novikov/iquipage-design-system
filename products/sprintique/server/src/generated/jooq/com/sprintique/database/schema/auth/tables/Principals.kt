@@ -12,6 +12,10 @@ import com.sprintique.database.schema.app.keys.APPROVALS__APPROVALS_REQUESTED_BY
 import com.sprintique.database.schema.app.keys.ASSETS__ASSETS_ACTOR_ID_FKEY
 import com.sprintique.database.schema.app.keys.AUDIT_EVENTS__AUDIT_EVENTS_ACTOR_ID_FKEY
 import com.sprintique.database.schema.app.keys.AUDIT_EVENTS__AUDIT_EVENTS_INITIATOR_ID_FKEY
+import com.sprintique.database.schema.app.keys.FINANCE_ENTRY_VERSION__FK_FINANCE_ENTRY_VERSION__PRINCIPALS
+import com.sprintique.database.schema.app.keys.FINANCE_ENTRY__FK_FINANCE_ENTRY__CREATED_BY
+import com.sprintique.database.schema.app.keys.FINANCE_ENTRY__FK_FINANCE_ENTRY__UPDATED_BY
+import com.sprintique.database.schema.app.keys.FINANCE_SETTINGS__FK_FINANCE_SETTINGS__PRINCIPALS
 import com.sprintique.database.schema.app.keys.IDEMPOTENCY__IDEMPOTENCY_ACTOR_ID_FKEY
 import com.sprintique.database.schema.app.keys.MAPS__MAPS_CREATED_BY_FKEY
 import com.sprintique.database.schema.app.keys.MAP_TEMPLATES__MAP_TEMPLATES_OWNER_ID_FKEY
@@ -34,6 +38,9 @@ import com.sprintique.database.schema.app.tables.AgentRuns.AgentRunsPath
 import com.sprintique.database.schema.app.tables.Approvals.ApprovalsPath
 import com.sprintique.database.schema.app.tables.Assets.AssetsPath
 import com.sprintique.database.schema.app.tables.AuditEvents.AuditEventsPath
+import com.sprintique.database.schema.app.tables.FinanceEntry.FinanceEntryPath
+import com.sprintique.database.schema.app.tables.FinanceEntryVersion.FinanceEntryVersionPath
+import com.sprintique.database.schema.app.tables.FinanceSettings.FinanceSettingsPath
 import com.sprintique.database.schema.app.tables.Idempotency.IdempotencyPath
 import com.sprintique.database.schema.app.tables.MapTemplateVersions.MapTemplateVersionsPath
 import com.sprintique.database.schema.app.tables.MapTemplates.MapTemplatesPath
@@ -265,6 +272,54 @@ open class Principals(
 
     val auditEventsInitiatorIdFkey: AuditEventsPath
         get(): AuditEventsPath = auditEventsInitiatorIdFkey()
+
+    private lateinit var _fkFinanceEntry_CreatedBy: FinanceEntryPath
+
+    fun fkFinanceEntry_CreatedBy(): FinanceEntryPath {
+        if (!this::_fkFinanceEntry_CreatedBy.isInitialized)
+            _fkFinanceEntry_CreatedBy = FinanceEntryPath(this, null, FINANCE_ENTRY__FK_FINANCE_ENTRY__CREATED_BY.inverseKey)
+
+        return _fkFinanceEntry_CreatedBy;
+    }
+
+    val fkFinanceEntry_CreatedBy: FinanceEntryPath
+        get(): FinanceEntryPath = fkFinanceEntry_CreatedBy()
+
+    private lateinit var _fkFinanceEntry_UpdatedBy: FinanceEntryPath
+
+    fun fkFinanceEntry_UpdatedBy(): FinanceEntryPath {
+        if (!this::_fkFinanceEntry_UpdatedBy.isInitialized)
+            _fkFinanceEntry_UpdatedBy = FinanceEntryPath(this, null, FINANCE_ENTRY__FK_FINANCE_ENTRY__UPDATED_BY.inverseKey)
+
+        return _fkFinanceEntry_UpdatedBy;
+    }
+
+    val fkFinanceEntry_UpdatedBy: FinanceEntryPath
+        get(): FinanceEntryPath = fkFinanceEntry_UpdatedBy()
+
+    private lateinit var _financeEntryVersion: FinanceEntryVersionPath
+
+    fun financeEntryVersion(): FinanceEntryVersionPath {
+        if (!this::_financeEntryVersion.isInitialized)
+            _financeEntryVersion = FinanceEntryVersionPath(this, null, FINANCE_ENTRY_VERSION__FK_FINANCE_ENTRY_VERSION__PRINCIPALS.inverseKey)
+
+        return _financeEntryVersion;
+    }
+
+    val financeEntryVersion: FinanceEntryVersionPath
+        get(): FinanceEntryVersionPath = financeEntryVersion()
+
+    private lateinit var _financeSettings: FinanceSettingsPath
+
+    fun financeSettings(): FinanceSettingsPath {
+        if (!this::_financeSettings.isInitialized)
+            _financeSettings = FinanceSettingsPath(this, null, FINANCE_SETTINGS__FK_FINANCE_SETTINGS__PRINCIPALS.inverseKey)
+
+        return _financeSettings;
+    }
+
+    val financeSettings: FinanceSettingsPath
+        get(): FinanceSettingsPath = financeSettings()
 
     private lateinit var _idempotency: IdempotencyPath
 
