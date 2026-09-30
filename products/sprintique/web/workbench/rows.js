@@ -4,6 +4,7 @@
 import {ui,icon,escapeHTML as esc} from '@iquipage/web/core';
 import {ageLabel,changeLine,changeOf,checkWhen,countLabel,dueWhen,duePresets,moreReasons,neededWhen,planTone,planWhen,PLAN_KINDS,snoozePresets,
   statusLabel,verbOf,CHANGE_GLYPH,localDay} from './model.js';
+import {avatarName} from '../../ui/src/board/assignees.js';
 
 const person=p=>p&&p.name?{id:p.id,name:p.name}:null;
 const key=row=>esc(row.displayId);
@@ -104,7 +105,8 @@ function waitingState(row){
 /** «Жду»: the face of whom I assigned it to, what happened, "Проверить ▾" or «Принять» when done. */
 export function waitingItem(row,{wide=false,today=localDay(),parts}={}){
   const w=row.waiting,face=person(w.expectedAssignee)||person(w.ownerNow);
-  const lead=face?ui.personAvatar(face,{size:'sm'}):`<span class="dsk-item-glyph">${icon('user',14)}</span>`;
+  // A service account's disc takes its own initials, not those of its remark (SPR-7).
+  const lead=face?ui.personAvatar({...face,name:avatarName(face.name)},{size:'sm'}):`<span class="dsk-item-glyph">${icon('user',14)}</span>`;
   const check=checkWhen(row,today),presets=duePresets(today);
   const tail=w.done&&parts.waiting?verbButton('Принять','check',`data-accept aria-label="Принять результат: ${key(row)}" aria-keyshortcuts="E"`)
     :parts.waiting?ui.menu(whenFact(check,{button:'data-check-back',label:`Проверить ${row.displayId}: ${check.value}. Изменить дату`}),

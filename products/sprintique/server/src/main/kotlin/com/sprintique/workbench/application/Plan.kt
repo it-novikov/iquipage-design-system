@@ -6,6 +6,7 @@ import com.sprintique.identity.domain.Actor
 import com.sprintique.problem.requireCondition
 import com.sprintique.workbench.domain.Horizon
 import com.sprintique.workbench.domain.PlanHorizon
+import com.sprintique.workspace.application.Assignees
 import tools.jackson.databind.json.JsonMapper
 import java.time.ZoneId
 
@@ -332,10 +333,7 @@ object Plan {
                    AS workspace_name,
                  coalesce(t.title, ms.title) AS title, a.key || '-' || t.number AS display_id, t.status,
                  t.revision AS task_revision, t.priority, t.owner_id,
-                 (SELECT coalesce(o.profile_name, o.name) || CASE WHEN o.kind <> 'service' THEN ''
-                   WHEN o.disabled_at IS NOT NULL THEN ' (сервисный аккаунт, удалён)'
-                   WHEN auth.service_account_active(o.id) THEN ' (сервисный аккаунт)'
-                   ELSE ' (сервисный аккаунт, приостановлен)' END
+                 (SELECT coalesce(o.profile_name, o.name) || ${Assignees.remarkSql("o", "o.id", "t.project_id")}
                    FROM auth.principals o WHERE o.id = t.owner_id) AS owner_name,
                  to_char(t.due, 'YYYY-MM-DD') AS task_due, to_char(t.planned_start, 'YYYY-MM-DD') AS task_planned_start,
                  to_char(t.planned_end, 'YYYY-MM-DD') AS task_planned_end,

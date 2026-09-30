@@ -45,7 +45,8 @@ test('A01 an editing service account of the project owns tasks; others are refus
   const reading=await account(f.reader,'Читатель','reader');
   refused(await put('asg-reader',{ownerId:reading.id}),/редактировать задачи/);
   const foreign=await account(f.bob,'Чужой','editor',f.second.id,f.second.workspaceId);
-  refused(await put('asg-foreign',{ownerId:foreign.id}),/не участвует в этом проекте/);
+  // An account of another workspace reads as any stranger: nothing about it is told.
+  refused(await put('asg-foreign',{ownerId:foreign.id}),/^Исполнителем может быть только участник проекта\.$/);
   refused(await put('asg-stranger',{ownerId:f.bob.id}),/только участник проекта/);
   // The author's Workbench names the owner as a service account.
   const workbench=await call(f.alice,'GET','/api/v1/workbench?mode=now&projects='+f.first.id);assert.equal(workbench.statusCode,200,workbench.body);
@@ -129,4 +130,32 @@ test('A04 MCP: the account finds the work handed to it with assignee "me", takes
   // Unassigning through MCP is always possible.
   const released=await tool('update_task',{projectId:f.first.id,task:other.id,baseRevision:taken.revision,assigneeId:null,idempotencyKey:'free-task-0001'});
   assert.equal(released.assigneeId,null);assert.equal(released.assigneeState,null);
+});
+
+test('A05 board lists name owners that left or were deleted; an owner who leaves the project suspends its account there; agents never own tasks',async()=>{
+  const list=async(q:string)=>{const r=await call(f.alice,'GET',project('planning/tasks?q='+encodeURIComponent(q)));assert.equal(r.statusCode,200,r.body);return r.json<{items:any[]}>().items;};
+  const [deleted]=await list('Переименована');
+  assert.deepEqual([deleted.ownerName,deleted.ownerKind,deleted.ownerState],['Робот','service','deleted']);
+  const [left]=await list('asg-left');assert.deepEqual([left.ownerName,left.ownerKind,left.ownerState],['Помощник','service','former']);
+  const [person]=await list('asg-person');assert.deepEqual([person.ownerKind,person.ownerState],['service','deleted'],'reassigned to the robot in A01');
+  // Bob edits here for a while and hands a task to his account; then he leaves the project.
+  await f.admin.query("INSERT INTO app.workspace_members(workspace_id,principal_id,role) VALUES($1,$2,'member') ON CONFLICT DO NOTHING",[f.first.workspaceId,f.bob.id]);
+  await f.admin.query("INSERT INTO app.project_members(project_id,principal_id,role) VALUES($1,$2,'editor')",[f.first.id,f.bob.id]);
+  const helper=await account(f.bob,'Сменщик','editor'),handed=await saved('asg-bob',{ownerId:helper.id});
+  assert.equal(handed.ownerState,'active');
+  const bob=(await call(f.alice,'GET',project('members'))).json().find((m:{id:string})=>m.id===f.bob.id);
+  assert.equal((await call(f.alice,'PATCH',project('members/'+f.bob.id),{baseRevision:bob.revision,role:null})).statusCode,200);
+  assert.equal((await read(handed.id)).ownerState,'suspended');assert.equal(await planningLabel(handed.id),'Сменщик (сервисный аккаунт, приостановлен)');
+  refused(await put('asg-bob-again',{ownerId:helper.id}),/его владелец могут редактировать/);
+  // An owner accepted at preview is checked again when the plan is applied.
+  const target=await saved('asg-late',{});const robot=await account(f.alice,'Опоздавший','editor');
+  const plan=(await call(f.alice,'POST',project('planning/previews'),{kind:'bulk',selection:{kind:'tasks',ids:[target.id]},fields:{ownerId:robot.id}})).json();
+  await f.admin.query('UPDATE auth.service_accounts SET suspended_at=clock_timestamp() WHERE principal_id=$1',[robot.id]);
+  const late=await call(f.alice,'POST',project('planning/commands'),{planId:plan.id,token:plan.token});
+  assert.notEqual(late.json().status,'committed',late.body);assert.equal((await read(target.id)).ownerId,null);
+  // A project agent is never an owner.
+  const agent=randomUUID();
+  await f.admin.query("INSERT INTO auth.principals(id,kind,name) VALUES($1,'agent','Агент проекта')",[agent]);
+  await f.admin.query("INSERT INTO app.project_members(project_id,principal_id,role) VALUES($1,$2,'editor')",[f.first.id,agent]);
+  refused(await put('asg-agent',{ownerId:agent}),/только участник проекта/);
 });

@@ -83,7 +83,7 @@ export function ownerOptions(members,current={},{image=()=>undefined}={}){
       const state=current.ownerState&&current.ownerState!=='active'?current.ownerState:member?memberState(member):'former';
       const name=current.ownerName||accountName(member)||'Сервисный аккаунт';
       if(!accounts.length)options.push(heading);
-      options.push({value:id,label:assigneeLabel({name,kind,state}),description:STATE_HINTS[state]||'Может только читать задачи проекта.',icon:'bolt'});
+      options.push({value:id,label:assigneeLabel({name,kind,state}),description:STATE_HINTS[state]||'Сейчас не может работать над задачами проекта.',icon:'bolt'});
     }else options.push({value:id,label:current.ownerName||current.owner||'Бывший участник',description:'Больше не участник проекта'});
   }
   return options;

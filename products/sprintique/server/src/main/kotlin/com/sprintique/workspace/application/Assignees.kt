@@ -17,8 +17,9 @@ object Assignees {
 
     /**
      * The state of a task owner in its project, as SQL over an owner id and a project id: `active`, `suspended` (a
-     * service account that cannot act now: suspended, or its owner gone or disabled), `deleted` (a deleted service
-     * account), `former` (no longer a member of the project), or null without an owner.
+     * service account that cannot act here now: suspended, its owner gone or disabled, or its owner no longer a member
+     * of the project), `deleted` (a deleted service account), `former` (no longer a member of the project), or null
+     * without an owner.
      */
     fun stateSql(owner: String, project: String): String =
         """CASE WHEN $owner IS NULL THEN NULL
@@ -26,9 +27,19 @@ object Assignees {
             THEN 'deleted'
           WHEN NOT EXISTS (SELECT 1 FROM app.project_members pm WHERE pm.project_id = $project AND pm.principal_id = $owner)
             THEN 'former'
-          WHEN EXISTS (SELECT 1 FROM auth.service_accounts sa WHERE sa.principal_id = $owner)
-               AND NOT auth.service_account_active($owner) THEN 'suspended'
+          WHEN EXISTS (SELECT 1 FROM auth.service_accounts sa WHERE sa.principal_id = $owner
+               AND (NOT auth.service_account_active($owner) OR NOT EXISTS (SELECT 1 FROM app.project_members om
+                 WHERE om.project_id = $project AND om.principal_id = sa.owner_id))) THEN 'suspended'
           ELSE 'active' END"""
+
+    /**
+     * What follows a task owner's name, as SQL over the owner's principal row alias, owner id and project id: nothing
+     * for a person, « (сервисный аккаунт)» for a service account, with why it cannot act when it cannot.
+     */
+    fun remarkSql(principal: String, owner: String, project: String): String =
+        """CASE WHEN $principal.kind <> 'service' THEN '' ELSE CASE ${stateSql(owner, project)}
+          WHEN 'suspended' THEN ' (сервисный аккаунт, приостановлен)' WHEN 'deleted' THEN ' (сервисный аккаунт, удалён)'
+          WHEN 'former' THEN ' (сервисный аккаунт, не в проекте)' ELSE ' (сервисный аккаунт)' END END"""
 
     /**
      * Whether a service account member may own tasks of its project now, as SQL over its principal id and the
@@ -47,6 +58,7 @@ object Assignees {
         val candidate = tx.row(
             """
             SELECT p.kind, p.disabled_at IS NOT NULL AS disabled, m.role, s.deleted_at IS NOT NULL AS deleted,
+                   s.workspace_id IS NOT DISTINCT FROM (SELECT pr.workspace_id FROM app.projects pr WHERE pr.id = $1) AS local,
                    CASE WHEN s.principal_id IS NULL THEN false ELSE auth.service_account_active(s.principal_id) END AS active,
                    (SELECT o.role FROM app.project_members o WHERE o.project_id = $1 AND o.principal_id = s.owner_id)
                      AS "ownerRole"
@@ -58,7 +70,8 @@ object Assignees {
             projectId,
             ownerId,
         )
-        if (candidate?.string("kind") == "service") {
+        // An account of another workspace reads as any stranger: its details are not this project's to tell.
+        if (candidate?.string("kind") == "service" && candidate.boolean("local")) {
             requireService(candidate)
         } else {
             requireCondition(

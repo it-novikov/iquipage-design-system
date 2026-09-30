@@ -7,7 +7,9 @@ export const ReleaseResponse=ReleaseValue.safeExtend({id:Id,projectId:Id,revisio
 export const PlanningRowResponse=z.strictObject({
   attachmentIds:TaskInput.shape.attachmentIds.optional(),coverAttachmentId:TaskInput.shape.coverAttachmentId.optional(),coverCrop:TaskInput.shape.coverCrop.optional(),
   id:Id,displayId:z.string(),revision:Revision,parentId:Id.nullable(),title:z.string(),type:TaskInput.shape.type,status:TaskInput.shape.status,
-  ownerId:Id.nullable(),legacyOwner:z.string().optional(),priority:TaskInput.shape.priority,rank:z.number(),statusEnteredAt:z.iso.datetime(),createdAt:z.iso.datetime(),tagIds:z.array(Id),
+  ownerId:Id.nullable(),legacyOwner:z.string().optional(),
+  // The owner as the board names it (task lists only): a service account keeps its name, kind and state (SPR-7).
+  ownerName:z.string().optional(),ownerKind:z.enum(['human','service']).optional(),ownerState:z.enum(['active','suspended','deleted','former']).optional(),priority:TaskInput.shape.priority,rank:z.number(),statusEnteredAt:z.iso.datetime(),createdAt:z.iso.datetime(),tagIds:z.array(Id),
   preparation:z.enum(['draft','ready']),result:z.enum(['open','accepted']),admitted:z.boolean(),plannedStart:DateOnly.nullable(),plannedEnd:DateOnly.nullable().optional(),due:DateOnly.nullable(),
   assignmentMode:z.enum(['inherit','assigned','none']),releaseId:Id.nullable(),effectiveReleaseId:Id.nullable(),assignmentSourceId:Id.nullable(),boardEligible:z.boolean(),childCount:z.number().int().nonnegative()
 });

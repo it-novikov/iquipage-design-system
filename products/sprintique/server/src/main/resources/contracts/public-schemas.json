@@ -7096,6 +7096,25 @@
                 "legacyOwner": {
                   "type": "string"
                 },
+                "ownerName": {
+                  "type": "string"
+                },
+                "ownerKind": {
+                  "type": "string",
+                  "enum": [
+                    "human",
+                    "service"
+                  ]
+                },
+                "ownerState": {
+                  "type": "string",
+                  "enum": [
+                    "active",
+                    "suspended",
+                    "deleted",
+                    "former"
+                  ]
+                },
                 "priority": {
                   "default": "normal",
                   "type": "string",
@@ -7411,6 +7430,25 @@
             },
             "legacyOwner": {
               "type": "string"
+            },
+            "ownerName": {
+              "type": "string"
+            },
+            "ownerKind": {
+              "type": "string",
+              "enum": [
+                "human",
+                "service"
+              ]
+            },
+            "ownerState": {
+              "type": "string",
+              "enum": [
+                "active",
+                "suspended",
+                "deleted",
+                "former"
+              ]
             },
             "priority": {
               "default": "normal",
@@ -7748,6 +7786,25 @@
                       "legacyOwner": {
                         "type": "string"
                       },
+                      "ownerName": {
+                        "type": "string"
+                      },
+                      "ownerKind": {
+                        "type": "string",
+                        "enum": [
+                          "human",
+                          "service"
+                        ]
+                      },
+                      "ownerState": {
+                        "type": "string",
+                        "enum": [
+                          "active",
+                          "suspended",
+                          "deleted",
+                          "former"
+                        ]
+                      },
                       "priority": {
                         "default": "normal",
                         "type": "string",
@@ -8063,6 +8120,25 @@
                   },
                   "legacyOwner": {
                     "type": "string"
+                  },
+                  "ownerName": {
+                    "type": "string"
+                  },
+                  "ownerKind": {
+                    "type": "string",
+                    "enum": [
+                      "human",
+                      "service"
+                    ]
+                  },
+                  "ownerState": {
+                    "type": "string",
+                    "enum": [
+                      "active",
+                      "suspended",
+                      "deleted",
+                      "former"
+                    ]
                   },
                   "priority": {
                     "default": "normal",
@@ -9421,6 +9497,25 @@
                   "legacyOwner": {
                     "type": "string"
                   },
+                  "ownerName": {
+                    "type": "string"
+                  },
+                  "ownerKind": {
+                    "type": "string",
+                    "enum": [
+                      "human",
+                      "service"
+                    ]
+                  },
+                  "ownerState": {
+                    "type": "string",
+                    "enum": [
+                      "active",
+                      "suspended",
+                      "deleted",
+                      "former"
+                    ]
+                  },
                   "priority": {
                     "default": "normal",
                     "type": "string",
@@ -9731,6 +9826,25 @@
                   },
                   "legacyOwner": {
                     "type": "string"
+                  },
+                  "ownerName": {
+                    "type": "string"
+                  },
+                  "ownerKind": {
+                    "type": "string",
+                    "enum": [
+                      "human",
+                      "service"
+                    ]
+                  },
+                  "ownerState": {
+                    "type": "string",
+                    "enum": [
+                      "active",
+                      "suspended",
+                      "deleted",
+                      "former"
+                    ]
                   },
                   "priority": {
                     "default": "normal",
@@ -14726,6 +14840,25 @@
               "legacyOwner": {
                 "type": "string"
               },
+              "ownerName": {
+                "type": "string"
+              },
+              "ownerKind": {
+                "type": "string",
+                "enum": [
+                  "human",
+                  "service"
+                ]
+              },
+              "ownerState": {
+                "type": "string",
+                "enum": [
+                  "active",
+                  "suspended",
+                  "deleted",
+                  "former"
+                ]
+              },
               "priority": {
                 "default": "normal",
                 "type": "string",
@@ -15135,6 +15268,25 @@
         "legacyOwner": {
           "type": "string"
         },
+        "ownerName": {
+          "type": "string"
+        },
+        "ownerKind": {
+          "type": "string",
+          "enum": [
+            "human",
+            "service"
+          ]
+        },
+        "ownerState": {
+          "type": "string",
+          "enum": [
+            "active",
+            "suspended",
+            "deleted",
+            "former"
+          ]
+        },
         "priority": {
           "default": "normal",
           "type": "string",
@@ -15507,6 +15659,25 @@
                       "legacyOwner": {
                         "type": "string"
                       },
+                      "ownerName": {
+                        "type": "string"
+                      },
+                      "ownerKind": {
+                        "type": "string",
+                        "enum": [
+                          "human",
+                          "service"
+                        ]
+                      },
+                      "ownerState": {
+                        "type": "string",
+                        "enum": [
+                          "active",
+                          "suspended",
+                          "deleted",
+                          "former"
+                        ]
+                      },
                       "priority": {
                         "default": "normal",
                         "type": "string",
@@ -15822,6 +15993,25 @@
                   },
                   "legacyOwner": {
                     "type": "string"
+                  },
+                  "ownerName": {
+                    "type": "string"
+                  },
+                  "ownerKind": {
+                    "type": "string",
+                    "enum": [
+                      "human",
+                      "service"
+                    ]
+                  },
+                  "ownerState": {
+                    "type": "string",
+                    "enum": [
+                      "active",
+                      "suspended",
+                      "deleted",
+                      "former"
+                    ]
                   },
                   "priority": {
                     "default": "normal",

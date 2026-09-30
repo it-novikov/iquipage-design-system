@@ -239,6 +239,8 @@ class Planning(private val json: JsonMapper, private val ledger: CommandLedger) 
             state = state.copy(creation = state.creation.copy(createdAt = createdAt.asString()))
         }
         val current = PlanChange.plan(state, command)
+        // An owner accepted at preview may have been suspended or removed since.
+        for (owner in assignedOwners(command, state)) Assignees.requireAssignable(tx, projectId, owner)
         requireCondition(
             CommandLedger.canonical(json.valueToTree(current)) == CommandLedger.canonical(stored.effects),
             409,

@@ -80,6 +80,8 @@ export interface PlanningRow {
   attachmentIds?:string[];coverAttachmentId?:string|null;coverCrop?:import('./media.js').TaskMediaData['coverCrop'];
   id:string;displayId:string;revision:number;parentId:string|null;title:string;type:string;status:string;
   ownerId:string|null;legacyOwner?:string;priority:string;rank:number;statusEnteredAt:string;createdAt:string;tagIds:string[];preparation:'draft'|'ready';result:'open'|'accepted';admitted:boolean;
+  /** Task lists name the owner (SPR-7): a service account keeps its name, kind and state after it left or was deleted. */
+  ownerName?:string;ownerKind?:'human'|'service';ownerState?:'active'|'suspended'|'deleted'|'former';
   plannedStart:string|null;plannedEnd?:string|null;due:string|null;assignmentMode:'inherit'|'assigned'|'none';releaseId:string|null;
   effectiveReleaseId:string|null;assignmentSourceId:string|null;boardEligible:boolean;childCount:number;
 }

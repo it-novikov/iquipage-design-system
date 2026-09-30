@@ -4,6 +4,7 @@ import com.sprintique.command.CommandLedger
 import com.sprintique.database.Transaction
 import com.sprintique.identity.domain.Actor
 import com.sprintique.planning.domain.PlanningRows
+import com.sprintique.planning.domain.ProjectPerson
 import com.sprintique.token.Tokens
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
@@ -38,7 +39,8 @@ class PlanningQueries(private val json: JsonMapper) {
     ): Map<String, Any?> {
         val revision = PlanningStates.lock(tx, actor, projectId).revision
         val query = filters.q.lowercase(Locale.ROOT)
-        val rows = PlanningRows.project(PlanningStates.load(tx, projectId)).filter { row ->
+        val state = PlanningStates.load(tx, projectId)
+        val rows = PlanningRows.project(state).filter { row ->
             (filters.q.isEmpty() || query in "${row.title} ${row.displayId}".lowercase(Locale.ROOT)) &&
                 (filters.releaseId == null || row.effectiveReleaseId == filters.releaseId) &&
                 (!filters.unassigned || row.effectiveReleaseId == null) &&
@@ -49,7 +51,20 @@ class PlanningQueries(private val json: JsonMapper) {
                 (filters.tagId == null || filters.tagId in row.tagIds) &&
                 (!filters.board || row.boardEligible)
         }
-        return PlanningJson.page(Pages.page(rows, binding(projectId, "tasks", filters), revision, limit, cursor))
+        val page = Pages.page(rows, binding(projectId, "tasks", filters), revision, limit, cursor)
+        // The board names owners from here: a service account keeps its name, kind and state even after it left the
+        // project or was deleted (SPR-7). A person who left stays unnamed, as before.
+        val people = state.members.associateBy(ProjectPerson::id)
+        val items = page.items.map { row ->
+            val owner = row.ownerId?.let(people::get) ?: return@map row
+            @Suppress("UNCHECKED_CAST")
+            (json.convertValue(row, LinkedHashMap::class.java) as LinkedHashMap<String, Any?>).apply {
+                put("ownerName", owner.name)
+                put("ownerKind", owner.kind)
+                put("ownerState", owner.state)
+            }
+        }
+        return PlanningJson.page(Page(items, page.total, page.projectRevision, page.nextCursor))
     }
 
     fun constraints(tx: Transaction, actor: Actor, projectId: String, limit: Int, cursor: String?): Map<String, Any?> {

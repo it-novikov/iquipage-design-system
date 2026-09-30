@@ -39,7 +39,7 @@ test('the current owner stays visible and says why it can no longer be chosen',(
   assert.deepEqual(fresh.slice(-2).map(o=>o.value),[SERVICE_HEADING,'robot'],'still under its heading');
   // Without the task's own state (a summary), the members list tells a suspended account.
   assert.equal(ownerOptions(members,{ownerId:'paused'}).at(-1).label,'Пауза (сервисный аккаунт, приостановлен)');
-  assert.equal(ownerOptions(members,{ownerId:'watcher',ownerKind:'service',ownerState:'active',ownerName:'Смотритель'}).at(-1).description,'Может только читать задачи проекта.');
+  assert.equal(ownerOptions(members,{ownerId:'watcher',ownerKind:'service',ownerState:'active',ownerName:'Смотритель'}).at(-1).description,'Сейчас не может работать над задачами проекта.');
   assert.deepEqual(ownerOptions(members,{ownerId:'left',owner:'Бывший участник'}).at(-1),{value:'left',label:'Бывший участник',description:'Больше не участник проекта'});
 });
 
