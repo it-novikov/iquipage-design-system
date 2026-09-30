@@ -8,7 +8,7 @@ owner: it-novikov
 branch: feature/workbench
 base: main
 created: 2026-09-29
-updated: 2026-09-30T18:52:13Z
+updated: 2026-09-30T19:12:16Z
 links:
   - https://claude.ai/artifact/RHgUPWLj3TsT7Rq1QRJNQm
 ---
@@ -33,15 +33,15 @@ links:
 - [x] A4. A4. Личные команды follow/focus/seen/snooze с независимыми ревизиями, ключом повтора и приватной квитанцией, без общих событий; запросы с точным адресатом, CAS, синхронизацией источника и потерей членства; «Жду» с явным opt-in и checkBackAt
 - [x] A5. A5. UI «Сейчас» и «План» на композициях DS, все состояния секций, drawer по /workbench/tasks/:projectId/:taskId с восстановлением фокуса, 390/320, WCAG 2.2 AA
 - [x] A6. A6. Флаги workbench_* в конфигурации сервера: выключены в production по умолчанию, включены в тестах и локально
-- [ ] A7. A7. Гейты: npm test продукта с S3, backend unit+integration, корневой verify-vnext — зелёные без пропусков; ревью R1 и R2 записаны; PR открыт
+- [x] A7. A7. Гейты: npm test продукта с S3, backend unit+integration, корневой verify-vnext — зелёные без пропусков; ревью R1 и R2 записаны; PR открыт
 
 ## Передача
 
-- **Состояние:** Бэкенд и интерфейс раунда 2 в PR #30; идёт UI-ревью R4
-- **Сейчас:** S4: интерфейс Обзор/Список/Неделя + drawer
-- **Дальше:** Исправить R4, гейты, push, обновить PR
+- **Состояние:** Бэкенд и интерфейс раунда 2 в PR #30, гейты зелёные, ревью R1–R5 закрыты
+- **Сейчас:** Ожидание приёмки владельцем
+- **Дальше:** После мержа #30 — карточку в done
 - **Незакоммичено:** нет
-- **Рабочая копия:** 3 файл(ов): products/sprintique/docs/adr/W6-route-and-drawer.md, products/sprintique/web/workbench/actions.js, products/sprintique/web/workbench/dashboard.js (5 files changed, 39 insertions(+), 15 deletions(-)) · HEAD 9f9744d
+- **Рабочая копия:** нет · HEAD 8c2630e
 
 ## План
 
@@ -81,13 +81,14 @@ links:
 - **Покрывает:** A5
 - **Итог:** Интерфейс раунда 2: 9f9744d, a681402, 8c6ec4d, 19191a8, 4224ca4; R4 и R5 закрыты
 
-### S5. Гейты, ревью R2, PR [active]
+### S5. Гейты, ревью R2, PR [done]
 - **Что:** npm test, verify-vnext, R2, PR
 - **Как:** полные гейты, субагент-ревью
 - **Зачем:** Release gate
 - **Приёмка:**
-  - [ ] Гейты зелёные, PR открыт
+  - [x] Гейты зелёные, PR открыт
 - **Покрывает:** A7
+- **Итог:** PR #30; verify-vnext 7/7 и npm test 258/258 на 8c2630e; R1–R5 закрыты
 
 ## Решения
 

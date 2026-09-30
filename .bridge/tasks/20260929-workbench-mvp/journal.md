@@ -59,3 +59,7 @@
 - 2026-09-30T18:52:13Z · claude-opus-5-5 · note · A5 · критерий приёмки выполнен
 - 2026-09-30T18:52:13Z · claude-opus-5-5 · step · S5 · active
 - 2026-09-30T18:52:13Z · claude-opus-5-5 · note · - · R5 (r5-ui-fixes) записан: N1–N6 исправлены в 4224ca4, проверено в браузере
+- 2026-09-30T19:12:16Z · claude-opus-5-5 · note · - · Слит origin/main: #32 (сетка фактов drawer) и #24 (DS vnext.24) — 8c2630e; гейты на 8c2630e: verify-vnext 7/7 PASS + source-stability, npm test 258/258, Kotlin unit 78, integration 35, пропусков 0
+- 2026-09-30T19:12:16Z · claude-opus-5-5 · step · S5 · done: PR #30; verify-vnext 7/7 и npm test 258/258 на 8c2630e; R1–R5 закрыты
+- 2026-09-30T19:12:16Z · claude-opus-5-5 · note · A7 · критерий приёмки выполнен
+- 2026-09-30T19:12:16Z · claude-opus-5-5 · checkpoint · - · дальше: После мержа #30 — карточку в done
