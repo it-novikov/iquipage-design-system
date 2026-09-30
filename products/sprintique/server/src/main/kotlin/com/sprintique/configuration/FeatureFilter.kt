@@ -36,6 +36,10 @@ class FeatureFilter(private val flags: FeatureFlags) : OncePerRequestFilter() {
             // The overview's layout and the plan's time zone: part of the Workbench itself, not of the plan.
             Regex("^/api/v1/workbench/preferences$") to { f -> f.isEnabled(Feature.WORKBENCH_READ_INTERNAL) },
             Regex("^/api/v1/workbench(/list)?$") to { f -> f.isEnabled(Feature.WORKBENCH_READ_INTERNAL) },
+            Regex("^/api/v1/workbench/seen$") to { f ->
+                f.isEnabled(Feature.WORKBENCH_READ_INTERNAL) &&
+                    (f.isEnabled(Feature.WORKBENCH_PERSONAL_STATE) || f.isEnabled(Feature.WORKBENCH_REQUESTS))
+            },
             Regex("$TASK/personal$") to { f -> f.isEnabled(Feature.WORKBENCH_READ_INTERNAL) },
             // "Seen" moves the watermark that requests and waiting count their news from as well.
             // ("Жду" is derived from participation, so waiting alone adds nothing.)
@@ -47,7 +51,7 @@ class FeatureFilter(private val flags: FeatureFlags) : OncePerRequestFilter() {
             },
             Regex("$TASK/personal/(participation|rank)$") to { f -> f.isEnabled(Feature.WORKBENCH_PERSONAL_STATE) },
             // "Жду" is derived from participation: its check-back needs both switches.
-            Regex("$TASK/personal/check-back$") to { f ->
+            Regex("$TASK/personal/(check-back|accept)$") to { f ->
                 f.isEnabled(Feature.WORKBENCH_WAITING) && f.isEnabled(Feature.WORKBENCH_PERSONAL_STATE)
             },
             Regex("$TASK/requests$") to { f -> f.isEnabled(Feature.WORKBENCH_REQUESTS) },

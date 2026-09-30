@@ -35,7 +35,6 @@ class StaticWebController(properties: SprintiqueProperties) {
         "/oauth/authorize",
         "/workbench",
         "/workbench/list",
-        "/workbench/board",
         "/workbench/plan",
         "/workbench/tasks/{projectId}/{taskId}",
     )
@@ -44,6 +43,11 @@ class StaticWebController(properties: SprintiqueProperties) {
         if (!Files.isRegularFile(file)) throw notFound()
         return ResponseEntity.ok().contentType(MediaType.TEXT_HTML).body(Files.readAllBytes(file))
     }
+
+    /** The board view is not part of the Workbench v1 (design-v2 §11.4): its address leads to the overview. */
+    @GetMapping("/workbench/board")
+    fun workbenchBoard(): ResponseEntity<Void> =
+        ResponseEntity.status(HttpStatus.FOUND).header("Location", "/workbench").build()
 
     @GetMapping("/favicon.ico")
     fun favicon(): ResponseEntity<Void> = ResponseEntity.noContent().build()

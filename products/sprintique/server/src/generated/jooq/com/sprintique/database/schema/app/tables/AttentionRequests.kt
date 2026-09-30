@@ -170,7 +170,7 @@ open class AttentionRequests(
         Internal.createCheck(this, DSL.name("attention_requests_check1"), "(((thread_id IS NULL) OR (approval_id IS NULL)))", true),
         Internal.createCheck(this, DSL.name("attention_requests_check2"), "(((kind = 'approval'::text) = (approval_id IS NOT NULL)))", true),
         Internal.createCheck(this, DSL.name("attention_requests_check3"), "(((status = ANY (ARRAY['resolved'::text, 'cancelled'::text])) = ((closed_at IS NOT NULL) AND (closed_by IS NOT NULL))))", true),
-        Internal.createCheck(this, DSL.name("attention_requests_kind_check"), "((kind = ANY (ARRAY['answer'::text, 'review'::text, 'decision'::text, 'approval'::text])))", true),
+        Internal.createCheck(this, DSL.name("attention_requests_kind_check"), "((kind = ANY (ARRAY['answer'::text, 'review'::text, 'decision'::text, 'approval'::text, 'do'::text])))", true),
         Internal.createCheck(this, DSL.name("attention_requests_note_check"), "((length(note) <= 500))", true),
         Internal.createCheck(this, DSL.name("attention_requests_revision_check"), "((revision > 0))", true),
         Internal.createCheck(this, DSL.name("attention_requests_status_check"), "((status = ANY (ARRAY['open'::text, 'resolved'::text, 'cancelled'::text, 'orphaned'::text])))", true)

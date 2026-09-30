@@ -33,7 +33,7 @@ object PersonalState {
         rank_revision AS "rankRevision", last_seen_sequence AS "lastSeenSequence", seen_revision AS "seenRevision",
         to_char(snoozed_until AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS "snoozedUntil",
         snooze_revision AS "snoozeRevision", to_char(check_back_at, 'YYYY-MM-DD') AS "checkBackAt",
-        check_back_revision AS "checkBackRevision""""
+        check_back_revision AS "checkBackRevision", accept_revision AS "acceptRevision""""
 
     /** The caller's own state of a task, "Жду" as derived from it, and the newest event position. */
     fun read(tx: Transaction, actor: Actor, projectId: String, taskId: String): Map<String, Any?> {
@@ -59,6 +59,7 @@ object PersonalState {
             "snoozeRevision" to revision(row, "snoozeRevision"),
             "checkBackAt" to row?.get("checkBackAt"),
             "checkBackRevision" to revision(row, "checkBackRevision"),
+            "acceptRevision" to revision(row, "acceptRevision"),
             "latestSequence" to WorkbenchAccess.latestSequence(tx, projectId, taskId),
             "delegated" to if (participating) delegation(tx, actor, projectId, taskId) else null,
         )
@@ -74,8 +75,13 @@ object PersonalState {
      */
     fun delegation(tx: Transaction, actor: Actor, projectId: String, taskId: String): Map<String, Any?>? = tx.row(
         """
-        SELECT d.expected AS "expectedAssigneeId", t.owner_id AS "ownerId", d.sequence AS "assignedSequence"
-        FROM app.tasks t CROSS JOIN LATERAL (
+        SELECT d.expected AS "expectedAssigneeId", t.owner_id AS "ownerId", d.sequence AS "assignedSequence",
+               (t.status = 'ready_for_release' OR t.result = 'accepted') AS done,
+               coalesce(s.accepted_sequence >= d.sequence AND (t.status = 'ready_for_release' OR t.result = 'accepted'), false)
+                 AS accepted
+        FROM app.tasks t
+        LEFT JOIN app.task_personal_state s ON s.project_id = t.project_id AND s.task_id = t.id AND s.principal_id = $3
+        CROSS JOIN LATERAL (
           SELECT e.detail->>'to' AS expected, e.sequence FROM app.task_activity e
           WHERE e.project_id = t.project_id AND e.task_id = t.id AND e.kind = 'owner'
             AND (e.actor_id = $3 OR e.initiator_id = $3)
@@ -407,7 +413,8 @@ object PersonalState {
         return PrivateLedger.once(tx, actor, projectId, "personal.check-back", key, input) {
             val current = lock(tx, actor, projectId, taskId)
             requireRevision(current.long("check_back_revision"), baseRevision)
-            val waiting = current.boolean("participating") && delegation(tx, actor, projectId, taskId) != null
+            val waiting = current.boolean("participating") &&
+                delegation(tx, actor, projectId, taskId)?.let { it["accepted"] != true } == true
             requireCondition(
                 checkBackAt == null || waiting,
                 422,
@@ -432,6 +439,48 @@ object PersonalState {
                     "checkBackAt" to checkBackAt,
                 ),
             )
+        }
+    }
+
+    /**
+     * "Принять результат" (design-v2 §11.3): the person takes the done result of work they delegated, so it leaves
+     * "Жду"; participation stays. `accepted: false` is the toast's undo. A reopened task or a new assignment waits
+     * again without any command.
+     */
+    @Suppress("LongParameterList")
+    fun accept(
+        tx: Transaction,
+        actor: Actor,
+        projectId: String,
+        taskId: String,
+        baseRevision: Long,
+        accepted: Boolean,
+        key: String,
+    ): Map<String, Any?> {
+        WorkbenchAccess.task(tx, actor, projectId, taskId, Capability.TASKS_READ)
+        val input = mapOf("taskId" to taskId, "baseRevision" to baseRevision, "accepted" to accepted)
+        return PrivateLedger.once(tx, actor, projectId, "personal.accept", key, input) {
+            val current = lock(tx, actor, projectId, taskId)
+            requireRevision(current.long("accept_revision"), baseRevision)
+            val delegated = if (current.boolean("participating")) delegation(tx, actor, projectId, taskId) else null
+            requireCondition(
+                !accepted || delegated?.get("done") == true,
+                422,
+                "NOT_DONE",
+                "Принять можно только завершённую работу, которую вы поручили и в которой участвуете.",
+            )
+            val revision = tx.row(
+                """
+                UPDATE app.task_personal_state SET accepted_sequence = $4, accept_revision = accept_revision + 1,
+                       updated_at = clock_timestamp()
+                WHERE project_id = $1 AND task_id = $2 AND principal_id = $3 RETURNING accept_revision
+                """.trimIndent(),
+                projectId,
+                taskId,
+                actor.id,
+                if (accepted) delegated?.get("assignedSequence") else null,
+            )!!.long("accept_revision")
+            PrivateEffect(taskId, revision, effect("accept", taskId, projectId, revision, "accepted" to accepted))
         }
     }
 

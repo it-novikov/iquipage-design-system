@@ -19,10 +19,12 @@ import com.sprintique.workbench.domain.PlanHorizon
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.context.annotation.Profile
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import tools.jackson.databind.JsonNode
+import java.time.Instant
 
 /**
  * The person's Workbench (docs/adr W4–W6): one snapshot of "Сейчас", the next page of one section, the read-only
@@ -96,10 +98,21 @@ class WorkbenchController(
 
     private fun parts() = flags.workbenchParts()
 
-    private fun layoutOf(layout: WorkbenchLayoutInput) = WorkbenchLayout(
-        hiddenWidgets = layout.hiddenWidgets.map { it.wire }.distinct().sorted(),
-        currentWork = layout.currentWork.wire,
-    )
+    private fun layoutOf(layout: WorkbenchLayoutInput) = WorkbenchLayout(currentForm = layout.currentForm.wire)
+
+    /** «Просмотрено» for all of "Изменилось": private, forward-only watermarks, naturally idempotent. */
+    @PostMapping("/api/v1/workbench/seen")
+    @Accepts(MarkWorkbenchSeenRequest::class)
+    fun seenAll(
+        @RequestBody(required = false) body: JsonNode?,
+        request: HttpServletRequest,
+    ) = requests.run(request) { tx, actor ->
+        flags.require(Feature.WORKBENCH_READ_INTERNAL)
+        val parts = parts()
+        if (!parts.personal && !parts.requests) flags.require(Feature.WORKBENCH_PERSONAL_STATE)
+        val input = contracts.parse<MarkWorkbenchSeenRequest>(body)
+        Workbench.seenAll(tx, actor, input.projects?.distinct()?.sorted(), Instant.parse(input.before), parts)
+    }
 
     private companion object {
         const val MAX_ZONE = 100

@@ -12,7 +12,8 @@ CREATE TABLE app.attention_requests (
   task_id text NOT NULL,
   recipient_id text NOT NULL REFERENCES auth.principals,
   requested_by text NOT NULL REFERENCES auth.principals,
-  kind text NOT NULL CHECK(kind IN ('answer','review','decision','approval')),
+  -- What is asked: an answer to a question, a review, a decision, an approval of a proposal, or to do something.
+  kind text NOT NULL CHECK(kind IN ('answer','review','decision','approval','do')),
   thread_id text,
   approval_id uuid,
   note text NOT NULL DEFAULT '' CHECK(length(note)<=500),
@@ -62,6 +63,10 @@ CREATE TABLE app.task_personal_state (
   -- A calendar date of the person's own check of delegated work; never the task's due date.
   check_back_at date,
   check_back_revision bigint NOT NULL DEFAULT 0 CHECK(check_back_revision>=0),
+  -- "Принять результат": the delegation (its owner event position) whose done result the person accepted; while the
+  -- task stays done it is no longer "Жду". A later assignment or a reopened task waits again.
+  accepted_sequence bigint CHECK(accepted_sequence>0),
+  accept_revision bigint NOT NULL DEFAULT 0 CHECK(accept_revision>=0),
   updated_at timestamptz NOT NULL DEFAULT clock_timestamp(),
   PRIMARY KEY(project_id,task_id,principal_id),
   FOREIGN KEY(project_id,task_id) REFERENCES app.tasks(project_id,id),

@@ -39,6 +39,7 @@ object Reasons {
         "review" to "просит проверить",
         "decision" to "просит решение",
         "approval" to "просит утвердить",
+        "do" to "просит сделать",
     )
 
     fun statusLabel(status: String): String = STATUS[status] ?: status

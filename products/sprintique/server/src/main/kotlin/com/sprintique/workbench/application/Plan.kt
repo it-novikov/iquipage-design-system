@@ -17,14 +17,14 @@ sealed interface Field<out T> {
 }
 
 /**
- * How the person arranged their Workbench (docs/workbench/design-v2.md §5.1): the overview widgets they hid and the
- * form of "Текущая работа". Validated by the request contract; stored as it is.
+ * The one personal setting of the overview (docs/workbench/design-v2.md §11.4): "Текущая работа" as lanes or as one
+ * list. Validated by the request contract; stored as it is.
  */
-data class WorkbenchLayout(val hiddenWidgets: List<String>, val currentWork: String) {
-    fun toMap(): Map<String, Any?> = linkedMapOf("hiddenWidgets" to hiddenWidgets, "currentWork" to currentWork)
+data class WorkbenchLayout(val currentForm: String) {
+    fun toMap(): Map<String, Any?> = linkedMapOf("currentForm" to currentForm)
 
     companion object {
-        val DEFAULT = WorkbenchLayout(emptyList(), "board")
+        val DEFAULT = WorkbenchLayout("lanes")
     }
 }
 
@@ -56,9 +56,8 @@ object Plan {
 
     private fun layoutOf(row: Row?): WorkbenchLayout {
         val node = row?.json("layout") ?: return WorkbenchLayout.DEFAULT
-        val hidden = node.path("hiddenWidgets").values().map { it.asString() }
-        val form = node.path("currentWork").asString().takeIf { it.isNotEmpty() } ?: WorkbenchLayout.DEFAULT.currentWork
-        return WorkbenchLayout(hidden, form)
+        val form = node.path("currentForm").asString().takeIf { it.isNotEmpty() } ?: WorkbenchLayout.DEFAULT.currentForm
+        return WorkbenchLayout(form)
     }
 
     /** Sets the fields the command names and keeps the others, against the preferences' one revision. */
@@ -257,18 +256,20 @@ object Plan {
             AND (r.approval_id IS NULL OR EXISTS (SELECT 1 FROM app.approvals ap WHERE ap.project_id = r.project_id
                  AND ap.id = r.approval_id AND ap.status = 'proposed' AND ap.expires_at > now()))
         ), participating AS MATERIALIZED (
-          SELECT project_id, task_id, rank, check_back_at FROM personal WHERE participating
+          SELECT project_id, task_id, rank, check_back_at, accepted_sequence FROM personal WHERE participating
         ), delegated AS MATERIALIZED (
           -- "Жду", by the same rule as the Workbench statement: the person's latest assignment went to someone else.
           SELECT p.project_id, p.task_id, p.check_back_at
           FROM participating p JOIN app.tasks t ON t.project_id = p.project_id AND t.id = p.task_id
           CROSS JOIN LATERAL (
-            SELECT e.detail->>'to' AS expected FROM app.task_activity e
+            SELECT e.detail->>'to' AS expected, e.sequence FROM app.task_activity e
             WHERE e.project_id = p.project_id AND e.task_id = p.task_id AND e.kind = 'owner'
               AND (e.actor_id = $1 OR e.initiator_id = $1)
             ORDER BY e.sequence DESC LIMIT 1
           ) d
           WHERE $5::boolean AND t.owner_id IS DISTINCT FROM $1 AND d.expected IS NOT NULL AND d.expected <> $1
+            AND NOT (p.accepted_sequence IS NOT NULL AND p.accepted_sequence >= d.sequence
+                     AND (t.status = 'ready_for_release' OR t.result = 'accepted'))
         ), mine AS MATERIALIZED (
           -- One relation per task: an assignment outranks participation, delegated participation is waiting.
           SELECT DISTINCT ON (project_id, task_id) project_id, task_id, relation FROM (

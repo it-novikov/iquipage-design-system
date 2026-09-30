@@ -5,6 +5,7 @@ import com.sprintique.database.Transaction
 import com.sprintique.identity.domain.Actor
 import com.sprintique.problem.requireCondition
 import com.sprintique.token.Tokens
+import java.time.Instant
 
 /** Which parts of the Workbench this process serves (docs/adr W6); a disabled part contributes no candidates. */
 data class WorkbenchParts(val requests: Boolean, val personal: Boolean, val waiting: Boolean)
@@ -59,7 +60,15 @@ object Workbench {
         val waiting = page("waiting")
         val updates = page("updates")
         val sections = listOf(
-            section("action", action, extras = mapOf("snoozedCount" to extras.long("snoozed_count"))),
+            section(
+                "action",
+                action,
+                extras = mapOf(
+                    "snoozedCount" to extras.long("snoozed_count"),
+                    // Tasks with an awake request whose date has passed: "k просрочен" in the summary line.
+                    "overdueCount" to extras.long("overdue_count"),
+                ),
+            ),
             linkedMapOf(
                 "key" to "current",
                 "count" to (joined.count + active.count + waiting.count),
@@ -104,6 +113,54 @@ object Workbench {
         parts.personal,
         parts.waiting,
     )
+
+    /**
+     * «Просмотрено» for all of "Изменилось" in the filter (design-v2 §11.3): each task's watermark moves forward to its
+     * newest event created at or before [before] (the snapshot the person looked at), never to later news. Private
+     * and forward-only, so a retry is harmless. The person's rows are locked in key order; no project row is taken.
+     */
+    fun seenAll(
+        tx: Transaction,
+        actor: Actor,
+        projects: List<String>?,
+        before: Instant,
+        parts: WorkbenchParts,
+    ): Map<String, Any?> {
+        WorkbenchAccess.requireHuman(actor)
+        tx.update("SET LOCAL statement_timeout = '$STATEMENT_BUDGET'")
+        val tasks =
+            tx.rows(query("now", final = UPDATES), actor.id, projects, parts.requests, parts.personal, parts.waiting)
+        val projectIds = tasks.map { it.string("project_id") }
+        val taskIds = tasks.map { it.string("task_id") }
+        tx.rows(
+            """
+            SELECT 1 FROM app.task_personal_state s
+            JOIN unnest($2::text[], $3::text[]) v(project_id, task_id) ON v.project_id = s.project_id AND v.task_id = s.task_id
+            WHERE s.principal_id = $1 ORDER BY s.project_id, s.task_id FOR UPDATE
+            """.trimIndent(),
+            actor.id,
+            projectIds,
+            taskIds,
+        )
+        val marked = tx.update(
+            """
+            UPDATE app.task_personal_state s
+            SET last_seen_sequence = m.latest, seen_revision = s.seen_revision + 1, updated_at = clock_timestamp()
+            FROM (
+              SELECT v.project_id, v.task_id, (SELECT max(e.sequence) FROM app.task_activity e
+                WHERE e.project_id = v.project_id AND e.task_id = v.task_id AND e.created_at <= $4) AS latest
+              FROM unnest($2::text[], $3::text[]) v(project_id, task_id)
+            ) m
+            WHERE s.principal_id = $1 AND s.project_id = m.project_id AND s.task_id = m.task_id
+              AND m.latest > coalesce(s.last_seen_sequence, 0)
+            """.trimIndent(),
+            actor.id,
+            projectIds,
+            taskIds,
+            before,
+        )
+        return linkedMapOf("marked" to marked, "before" to before.toString())
+    }
 
     /** The next page of one section or group, or the first page of a filter list (`snoozed`, `backlog`). */
     @Suppress("LongParameterList")
@@ -276,6 +333,7 @@ object Workbench {
           WHERE s.principal_id = $1
         ), requests AS MATERIALIZED (
           SELECT r.project_id, r.task_id, r.id::text AS id, r.kind, r.needed_by, r.created_at, r.requested_by, r.revision,
+                 r.approval_id::text AS approval_id, r.thread_id,
                  coalesce($4::boolean AND s.snoozed_until > now() AND r.addressed_at <= s.snoozed_at
                    AND (r.needed_by IS NULL OR (r.needed_by::timestamp AT TIME ZONE a.timezone) > now()), false) AS snoozed
           FROM app.attention_requests r JOIN authorized a ON a.id = r.project_id
@@ -290,19 +348,22 @@ object Workbench {
           FROM requests WHERE $leadFromSnoozed
           ORDER BY project_id, task_id, needed_by NULLS LAST, created_at, id
         ), participating AS MATERIALIZED (
-          SELECT project_id, task_id, rank FROM personal WHERE participating AND $4::boolean
+          SELECT project_id, task_id, rank, accepted_sequence FROM personal WHERE participating AND $4::boolean
         ), delegated AS MATERIALIZED (
           -- "Жду" (docs/adr W5): a task the person participates in whose latest assignment by the person (or their
-          -- agent) went to someone else, and which the person does not own now. Only owner events are read.
+          -- agent) went to someone else, and which the person does not own now. Only owner events are read. A done
+          -- result the person accepted is no longer waited for, until the task is reopened or assigned again.
           SELECT p.project_id, p.task_id, d.expected, d.assigned_at
           FROM participating p JOIN app.tasks t ON t.project_id = p.project_id AND t.id = p.task_id
           CROSS JOIN LATERAL (
-            SELECT e.detail->>'to' AS expected, e.created_at AS assigned_at FROM app.task_activity e
+            SELECT e.detail->>'to' AS expected, e.created_at AS assigned_at, e.sequence FROM app.task_activity e
             WHERE e.project_id = p.project_id AND e.task_id = p.task_id AND e.kind = 'owner'
               AND (e.actor_id = $1 OR e.initiator_id = $1)
             ORDER BY e.sequence DESC LIMIT 1
           ) d
           WHERE $5::boolean AND t.owner_id IS DISTINCT FROM $1 AND d.expected IS NOT NULL AND d.expected <> $1
+            AND NOT (p.accepted_sequence IS NOT NULL AND p.accepted_sequence >= d.sequence
+                     AND (t.status = 'ready_for_release' OR t.result = 'accepted'))
         ), joined AS MATERIALIZED (
           -- "Участвую": open work the person participates in, neither owns nor delegated.
           SELECT p.project_id, p.task_id FROM participating p
@@ -352,7 +413,7 @@ object Workbench {
                  CASE pl.weight WHEN 0 THEN 'snoozed' WHEN 1 THEN 'action' WHEN 2 THEN 'joined' WHEN 3 THEN 'active'
                    WHEN 4 THEN 'waiting' WHEN 5 THEN 'updates' ELSE 'backlog' END AS bucket,
                  t.title, t.status, t.type, t.priority, t.revision AS task_revision, t.owner_id,
-                 (t.status = 'ready_for_release' OR t.result = 'accepted') AS done,
+                 (t.status = 'ready_for_release' OR t.result = 'accepted') AS done, a.role AS project_role,
                  to_char(t.due, 'YYYY-MM-DD') AS due, to_char(t.planned_start, 'YYYY-MM-DD') AS planned_start,
                  to_char(t.planned_end, 'YYYY-MM-DD') AS planned_end, t.due AS due_date,
                  to_char(t.status_entered_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS status_entered_at,
@@ -368,8 +429,9 @@ object Workbench {
                  to_char(s.snoozed_until AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS snoozed_until,
                  s.snoozed_until AS snoozed_until_at, s.snooze_revision,
                  to_char(s.check_back_at, 'YYYY-MM-DD') AS check_back_at, s.check_back_at AS check_back_date,
-                 s.check_back_revision,
+                 s.check_back_revision, s.accept_revision,
                  q.id AS request_id, q.kind AS request_kind, q.revision AS request_revision,
+                 q.approval_id AS request_approval_id, q.thread_id AS request_thread_id,
                  q.requested_by, q.open_requests, q.needed_by AS needed_by_date,
                  to_char(q.needed_by, 'YYYY-MM-DD') AS needed_by, q.created_at AS requested_at_raw,
                  to_char(q.created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS requested_at,
@@ -377,6 +439,11 @@ object Workbench {
                  (dl.task_id IS NOT NULL) AS delegated, dl.expected AS expected_assignee_id, dl.assigned_at AS assigned_at_raw,
                  to_char(dl.assigned_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS assigned_at,
                  (SELECT coalesce(o.profile_name, o.name) FROM auth.principals o WHERE o.id = dl.expected) AS expected_name,
+                 -- When delegated work became done: its latest completion event.
+                 CASE WHEN dl.task_id IS NOT NULL AND (t.status = 'ready_for_release' OR t.result = 'accepted') THEN
+                   (SELECT to_char(e.created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') FROM app.task_activity e
+                    WHERE e.project_id = pl.project_id AND e.task_id = pl.task_id AND e.kind = 'completed'
+                    ORDER BY e.sequence DESC LIMIT 1) END AS done_at,
                  EXISTS (SELECT 1 FROM app.project_members pm WHERE pm.project_id = pl.project_id
                          AND pm.principal_id = dl.expected) AS expected_is_member,
                  u.n AS unseen_count, u.latest AS unseen_latest, u.latest_at AS unseen_latest_at_raw,
@@ -427,7 +494,10 @@ object Workbench {
             END) || '|' || project_id || '|' || task_id AS sort_key
           FROM shaped
         ), extras AS (
-          SELECT (SELECT count(*) FROM (SELECT DISTINCT project_id, task_id FROM requests r WHERE snoozed
+          SELECT (SELECT count(*) FROM (SELECT DISTINCT q.project_id, q.task_id FROM requests q
+                    JOIN authorized a ON a.id = q.project_id
+                    WHERE NOT q.snoozed AND q.needed_by < (now() AT TIME ZONE a.timezone)::date) z) AS overdue_count,
+                 (SELECT count(*) FROM (SELECT DISTINCT project_id, task_id FROM requests r WHERE snoozed
                     AND NOT EXISTS (SELECT 1 FROM awake w WHERE w.project_id = r.project_id AND w.task_id = r.task_id)) z)
                    AS snoozed_count,
                  (SELECT count(*) FROM app.tasks t JOIN authorized a ON a.id = t.project_id
@@ -457,6 +527,11 @@ object Workbench {
           SELECT * FROM keyed WHERE bucket = $6 AND sort_key COLLATE "C" > $7 ORDER BY sort_key COLLATE "C" LIMIT $8
         ) x ON true
         ORDER BY x.sort_key COLLATE "C"
+    """
+
+    /** The tasks of "Изменилось"; no further parameters. */
+    private const val UPDATES = """
+        SELECT project_id, task_id FROM keyed WHERE bucket = 'updates' ORDER BY project_id, task_id
     """
 
     /** The "Участвую" group in the envelope's order; no further parameters. */

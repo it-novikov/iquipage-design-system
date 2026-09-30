@@ -72,6 +72,7 @@ enum class RequestKind(@get:JsonValue val wire: String) {
     REVIEW("review"),
     DECISION("decision"),
     APPROVAL("approval"),
+    DO("do"),
 }
 
 @Schema(name = "CreateAttentionRequest")
@@ -108,24 +109,34 @@ data class AttentionRequestRevisionRequest(
     val baseRevision: Long,
 )
 
-/** A widget of the overview the person may hide (docs/workbench/design-v2.md §5.1). */
-enum class WorkbenchWidget(@get:JsonValue val wire: String) {
-    WEEK("week"),
-    UPDATES("updates"),
-    MORE("more"),
-}
-
-/** The form of "Текущая работа" on the overview. */
+/** The form of "Текущая работа" on the overview (design-v2 §11.4): lanes or one list. */
 enum class CurrentWorkForm(@get:JsonValue val wire: String) {
-    BOARD("board"),
+    LANES("lanes"),
     LIST("list"),
 }
 
+/** The one personal setting of the overview; the widgets themselves are fixed for everyone (design-v2 §11.4). */
 @Schema(name = "WorkbenchLayout")
 data class WorkbenchLayoutInput(
-    @field:Size(max = WIDGET_LIMIT)
-    val hiddenWidgets: List<WorkbenchWidget> = emptyList(),
-    val currentWork: CurrentWorkForm = CurrentWorkForm.BOARD,
+    val currentForm: CurrentWorkForm = CurrentWorkForm.LANES,
+)
+
+/** "Принять результат" of delegated done work; `accepted: false` is the undo. */
+@Schema(name = "PutAccept")
+data class PutAcceptRequest(
+    @field:Min(0) @field:Max(MAX_SAFE_INTEGER)
+    val baseRevision: Long,
+    val accepted: Boolean,
+)
+
+/** «Просмотрено» for everything in "Изменилось" the person saw: events up to `before` (the snapshot's time). */
+@Schema(name = "MarkWorkbenchSeen")
+data class MarkWorkbenchSeenRequest(
+    @field:IsoDateTime(offset = true)
+    val before: String,
+    @field:ResourceIds
+    @field:Size(min = 1, max = FILTER_LIMIT)
+    val projects: List<String>? = null,
 )
 
 /**
@@ -144,4 +155,3 @@ data class PutWorkbenchPreferencesRequest(
 
 private const val NOTE_LIMIT = 500
 private const val FILTER_LIMIT = 100
-private const val WIDGET_LIMIT = 3

@@ -81,17 +81,11 @@ internal object WorkbenchRows {
             "group" to group,
             "primaryReason" to reasons.first().let(::reasonOf),
             "secondaryReasons" to secondary(row, bucket, weights, latest).map(::reasonOf),
-            "request" to row.stringOrNull("request_id")?.let {
-                linkedMapOf(
-                    "id" to it,
-                    "kind" to row["request_kind"],
-                    "revision" to row.long("request_revision"),
-                    "neededBy" to row["needed_by"],
-                    "requestedBy" to person(row["requested_by"], row["requested_by_name"]),
-                    "createdAt" to row["requested_at"],
-                    "openCount" to row.long("open_requests"),
-                )
-            },
+            "request" to requestOf(row),
+            "action" to actionOf(row),
+            "active" to if (bucket == "active") activeOf(row) else null,
+            // The due date is shared: a writer of the project may move it from the row (the task write of the drawer).
+            "canEditDue" to (row.string("project_role") in WRITERS && !row.boolean("done")),
             "waiting" to if (row.boolean("delegated")) waitingOf(row) else null,
             "updates" to row["unseen_count"]?.let {
                 linkedMapOf(
@@ -102,18 +96,7 @@ internal object WorkbenchRows {
                     "latest" to latest?.let { change(row, it) },
                 )
             },
-            "personal" to linkedMapOf(
-                "participating" to (row["participating"] ?: false),
-                "participationRevision" to (row["participation_revision"]?.toString()?.toLong() ?: 0L),
-                "rank" to row["rank"]?.toString()?.toLong(),
-                "rankRevision" to (row["rank_revision"]?.toString()?.toLong() ?: 0L),
-                "lastSeenSequence" to row["last_seen_sequence"]?.toString()?.toLong(),
-                "seenRevision" to (row["seen_revision"]?.toString()?.toLong() ?: 0L),
-                "snoozedUntil" to row["snoozed_until"],
-                "snoozeRevision" to (row["snooze_revision"]?.toString()?.toLong() ?: 0L),
-                "checkBackAt" to row["check_back_at"],
-                "checkBackRevision" to (row["check_back_revision"]?.toString()?.toLong() ?: 0L),
-            ),
+            "personal" to personalOf(row),
             "latestSequence" to (row["latest_sequence"]?.toString()?.toLong() ?: 0L),
             "blockedBy" to
                 row.stringOrNull("blocker_id")?.let {
@@ -123,6 +106,42 @@ internal object WorkbenchRows {
             "canonicalUrl" to "/workbench/tasks/$projectId/$taskId",
         ).apply { if (get("workspaceName") == null) remove("workspaceName") }
     }
+
+    private fun requestOf(row: Row): Map<String, Any?>? = row.stringOrNull("request_id")?.let {
+        linkedMapOf(
+            "id" to it,
+            "kind" to row["request_kind"],
+            "revision" to row.long("request_revision"),
+            "neededBy" to row["needed_by"],
+            "requestedBy" to person(row["requested_by"], row["requested_by_name"]),
+            "createdAt" to row["requested_at"],
+            "openCount" to row.long("open_requests"),
+            "approvalId" to row["request_approval_id"],
+            "threadId" to row["request_thread_id"],
+        )
+    }
+
+    // What the row's verb does (design-v2 §11.3): review, approve and do resolve in the row; a question or a
+    // decision opens the drawer to answer.
+
+    private fun actionOf(row: Row): Map<String, Any?>? = row.stringOrNull("request_kind")?.let { kind ->
+        val action = ACTION_OF[kind] ?: "question"
+        linkedMapOf("kind" to action, "inline" to (action in INLINE))
+    }
+
+    private fun personalOf(row: Row): Map<String, Any?> = linkedMapOf(
+        "participating" to (row["participating"] ?: false),
+        "participationRevision" to (row["participation_revision"]?.toString()?.toLong() ?: 0L),
+        "rank" to row["rank"]?.toString()?.toLong(),
+        "rankRevision" to (row["rank_revision"]?.toString()?.toLong() ?: 0L),
+        "lastSeenSequence" to row["last_seen_sequence"]?.toString()?.toLong(),
+        "seenRevision" to (row["seen_revision"]?.toString()?.toLong() ?: 0L),
+        "snoozedUntil" to row["snoozed_until"],
+        "snoozeRevision" to (row["snooze_revision"]?.toString()?.toLong() ?: 0L),
+        "checkBackAt" to row["check_back_at"],
+        "checkBackRevision" to (row["check_back_revision"]?.toString()?.toLong() ?: 0L),
+        "acceptRevision" to (row["accept_revision"]?.toString()?.toLong() ?: 0L),
+    )
 
     /**
      * "Жду" on the row (docs/adr W5): whom the person assigned the task to (named while still a member), who owns it
@@ -138,7 +157,54 @@ internal object WorkbenchRows {
         "ownerNow" to person(row["owner_id"], row["owner_name"]),
         "checkBackAt" to row["check_back_at"],
         "done" to row.boolean("done"),
+        "doneAt" to row["done_at"],
         "assignedAt" to row["assigned_at"],
+    )
+
+    /**
+     * "Готово" from the row (design-v2 §11.3): the next stage of the project's workflow and its verb, or why the
+     * task cannot be moved from here (no write right, an open blocker).
+     */
+    private fun activeOf(row: Row): Map<String, Any?> {
+        val next = NEXT_STAGE[row.string("status")]
+        val blocker = row.stringOrNull("blocker_display_id")
+        val cannot = when {
+            row.string("project_role") !in WRITERS ->
+                linkedMapOf("reason" to "read_only", "text" to "Только чтение: нет права менять задачи проекта")
+
+            blocker != null -> linkedMapOf("reason" to "blocked", "text" to "Заблокирована задачей $blocker")
+
+            next == null -> linkedMapOf("reason" to "final", "text" to "Задача уже на последней стадии")
+
+            else -> null
+        }
+        return linkedMapOf(
+            "transition" to next?.let { (status, label) -> linkedMapOf("label" to label, "toStatusId" to status) },
+            "cannotComplete" to cannot,
+        )
+    }
+
+    private fun completable(row: Row) = row.string("project_role") in WRITERS &&
+        row.stringOrNull("blocker_display_id") == null && NEXT_STAGE.containsKey(row.string("status"))
+
+    private val WRITERS = setOf("editor", "admin")
+
+    /** Request kinds as the row's verbs name them. */
+    private val ACTION_OF = mapOf(
+        "review" to "review",
+        "approval" to "approve",
+        "do" to "do",
+        "answer" to "question",
+        "decision" to "decision",
+    )
+    private val INLINE = setOf("review", "approve", "do")
+
+    /** The next stage of the workflow from an active one, with the verb of the move. */
+    private val NEXT_STAGE = mapOf(
+        "in_progress" to ("review" to "На проверку"),
+        "review" to ("ready_for_testing" to "Проверено"),
+        "ready_for_testing" to ("testing" to "Взять в тест"),
+        "testing" to ("ready_for_release" to "Готово"),
     )
 
     /**
@@ -279,7 +345,12 @@ internal object WorkbenchRows {
             add("resolveRequest")
             if (parts.personal) add(if (bucket == "snoozed") "unsnooze" else "snooze")
         }
-        if (row.boolean("delegated")) add("changeCheckBack")
+        if (row.boolean("delegated")) {
+            add("changeCheckBack")
+            if (row.boolean("done")) add("acceptResult")
+        }
+        if (bucket == "active" && completable(row)) add("complete")
+        if (row.string("project_role") in WRITERS && !row.boolean("done")) add("changeDue")
         // Seen moves the watermark that requests count news from as well.
         if (row["unseen_count"] != null) add("markSeen")
     }

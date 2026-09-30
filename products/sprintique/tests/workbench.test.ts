@@ -364,7 +364,7 @@ test('W07 "Жду": assigning while participating; check-back; reassignment and 
   row=placed(await envelope(f.alice,p)).find(x=>x.row.taskId==='d')!;
   assert.equal(row.row.primaryReason.code,'delegated_reassigned');assert.equal(row.row.primaryReason.text,'Поручено: Борис, сейчас исполняет Карина');
   assert.deepEqual({...row.row.waiting!,assignedAt:undefined},{expectedAssignee:{id:f.bob.id,name:'Борис'},expectedAssigneeLeft:false,
-    ownerNow:{id:carol.id,name:'Карина'},checkBackAt:inDays(3),done:false,assignedAt:undefined});
+    ownerNow:{id:carol.id,name:'Карина'},checkBackAt:inDays(3),done:false,doneAt:null,assignedAt:undefined});
   await edit(p,'d',{status:'ready_for_release'},carol);
   row=placed(await envelope(f.alice,p)).find(x=>x.row.taskId==='d')!;
   assert.equal(row.place,'waiting');assert.equal(row.row.primaryReason.code,'delegated_completed');assert.equal(row.row.waiting!.done,true);
@@ -475,7 +475,7 @@ test('W09 plan: today and seven days keep due, planned, answer, check-back and m
   // The chosen time zone is kept; the default names its source.
   assert.equal(today1.timezoneSource,'request');
   const saved=await ok<any>(call('PUT','/api/v1/workbench/preferences',{baseRevision:0,timezone:'Pacific/Kiritimati'}));
-  assert.deepEqual(saved,{timezone:'Pacific/Kiritimati',layout:{hiddenWidgets:[],currentWork:'board'},revision:1});
+  assert.deepEqual(saved,{timezone:'Pacific/Kiritimati',layout:{currentForm:'lanes'},revision:1});
   assert.equal((await call('PUT','/api/v1/workbench/preferences',{baseRevision:0,timezone:'UTC'})).statusCode,409);
   assert.equal((await call('PUT','/api/v1/workbench/preferences',{baseRevision:saved.revision,timezone:'Mars/Base'})).statusCode,400);
   const kiritimati=await plan(`projects=${p}`);
@@ -676,21 +676,21 @@ test('W17 review R2 F3/F10: rank moves among the visible neighbours; a task with
   assert.deepEqual(snoozed.items,[]);
 });
 
-test('W18 preferences: layout and time zone are separate fields of one revision',async()=>{
+test('W18 preferences: the form of «Текущая работа» and the time zone are separate fields of one revision',async()=>{
   const u=await human('Эмма');
   const put=(payload:unknown)=>call('PUT','/api/v1/workbench/preferences',payload,u);
-  assert.deepEqual(await ok(call('GET','/api/v1/workbench/preferences',undefined,u)),{timezone:null,layout:{hiddenWidgets:[],currentWork:'board'},revision:0});
-  const first=await ok<any>(put({baseRevision:0,layout:{hiddenWidgets:['week','more'],currentWork:'list'}}));
-  assert.deepEqual(first,{timezone:null,layout:{hiddenWidgets:['more','week'],currentWork:'list'},revision:1});
+  assert.deepEqual(await ok(call('GET','/api/v1/workbench/preferences',undefined,u)),{timezone:null,layout:{currentForm:'lanes'},revision:0});
+  const first=await ok<any>(put({baseRevision:0,layout:{currentForm:'list'}}));
+  assert.deepEqual(first,{timezone:null,layout:{currentForm:'list'},revision:1});
   const zoned=await ok<any>(put({baseRevision:1,timezone:'Europe/Moscow'}));
   assert.deepEqual(zoned.layout,first.layout,'a field left out keeps its value');assert.equal(zoned.timezone,'Europe/Moscow');
   assert.equal((await put({baseRevision:1,timezone:'UTC'})).statusCode,409);
-  for(const bad of [{baseRevision:2},{baseRevision:2,layout:{hiddenWidgets:['calendar']}},{baseRevision:2,layout:{currentWork:'grid'}},
-    {baseRevision:2,layout:{hiddenWidgets:[],currentWork:'board',extra:1}}])assert.equal((await put(bad)).statusCode,400,JSON.stringify(bad));
+  for(const bad of [{baseRevision:2},{baseRevision:2,layout:{currentForm:'board'}},{baseRevision:2,layout:{hiddenWidgets:['week']}},
+    {baseRevision:2,layout:{currentForm:'list',extra:1}}])assert.equal((await put(bad)).statusCode,400,JSON.stringify(bad));
   const reset=await ok<any>(put({baseRevision:2,layout:null,timezone:null}));
-  assert.deepEqual(reset,{timezone:null,layout:{hiddenWidgets:[],currentWork:'board'},revision:3});
+  assert.deepEqual(reset,{timezone:null,layout:{currentForm:'lanes'},revision:3});
   // Private: another person reads only their own.
-  assert.equal((await ok<any>(call('GET','/api/v1/workbench/preferences',undefined,f.bob))).layout.currentWork,'board');
+  assert.equal((await ok<any>(call('GET','/api/v1/workbench/preferences',undefined,f.bob))).layout.currentForm,'lanes');
   const rows=await f.db.authenticated({token:f.bob.token,kind:'session'},tx=>tx.query('SELECT 1 FROM app.workbench_preferences WHERE principal_id=$1',[u.id]));
   assert.equal(rows.rowCount,0);
 });
@@ -705,7 +705,7 @@ test('W19 review R3 F1: a person who left the project is not named, not as the e
   const gone=placed(env).find(x=>x.row.taskId==='gone')!;
   assert.equal(gone.place,'waiting');assert.equal(gone.row.primaryReason.code,'delegated_orphaned');
   assert.deepEqual({...gone.row.waiting!,assignedAt:undefined,checkBackAt:undefined},
-    {expectedAssignee:null,expectedAssigneeLeft:true,ownerNow:{id:f.bob.id,name:null},checkBackAt:undefined,done:false,assignedAt:undefined});
+    {expectedAssignee:null,expectedAssigneeLeft:true,ownerNow:{id:f.bob.id,name:null},checkBackAt:undefined,done:false,doneAt:null,assignedAt:undefined});
   assert.deepEqual(gone.row.owner,{id:f.bob.id,name:null});
   assert.ok(!JSON.stringify(gone.row).includes('Борис'));
   const handed=placed(env).find(x=>x.row.taskId==='handed')!.row.updates!.latest!;
@@ -716,4 +716,88 @@ test('W19 review R3 F1: a person who left the project is not named, not as the e
   await f.admin.query('UPDATE app.tasks SET owner_id=$3 WHERE project_id=$1 AND id=$2',[p,'passed',f.bob.id]);
   const passed=placed(await envelope(f.alice,p)).find(x=>x.row.taskId==='passed')!;
   assert.equal(passed.row.primaryReason.text,'Поручено: Карина, исполнитель больше не в проекте');
+});
+
+test('W20 round 2: verbs by request kind, "Готово" from the row, the due date, the overdue count',async()=>{
+  const p=await project([[f.bob,'editor'],[dan,'reader']]);
+  const kinds:[string,string,boolean][]=[['review','review',true],['do','do',true],['answer','question',false],['decision','decision',false]];
+  for(const [kind] of kinds){await task(p,'k-'+kind,{},f.bob);await ask(p,'k-'+kind,f.bob,f.alice,{kind});}
+  await task(p,'late',{},f.bob);await ask(p,'late',f.bob,f.alice,{neededBy:inDays(1)});
+  await f.admin.query("UPDATE app.attention_requests SET needed_by=$2 WHERE project_id=$1 AND task_id='late'",[p,inDays(-2)]);
+  let env=await envelope(f.alice,p);
+  for(const [kind,action,inline] of kinds){
+    const row=placed(env).find(x=>x.row.taskId==='k-'+kind)!.row;
+    assert.deepEqual(row.action,{kind:action,inline},kind);assert.equal(row.active,null);
+  }
+  assert.equal(placed(env).find(x=>x.row.taskId==='k-do')!.row.primaryReason.text,'Борис просит сделать');
+  assert.equal(env.sections[0]!.overdueCount,1,'one awake request is past its date');
+  // "В работе": the next stage and its verb; a blocker or a reader's role says why not.
+  await task(p,'work',{status:'in_progress',ownerId:f.alice.id});
+  await task(p,'testing',{status:'testing',ownerId:f.alice.id});
+  await task(p,'stuck',{status:'in_progress',ownerId:f.alice.id});await task(p,'wall',{},f.bob);
+  await ok(call('PUT',`${base(p)}/task-links/w1`,{baseRevision:0,value:{kind:'depends',fromId:'stuck',toId:'wall'}}));
+  env=await envelope(f.alice,p);
+  const row=(id:string)=>placed(env).find(x=>x.row.taskId===id)!.row;
+  assert.deepEqual(row('work').active,{transition:{label:'На проверку',toStatusId:'review'},cannotComplete:null});
+  assert.deepEqual(row('testing').active!.transition,{label:'Готово',toStatusId:'ready_for_release'});
+  assert.equal(row('stuck').active!.cannotComplete!.reason,'blocked');assert.ok(!row('stuck').allowedActions.includes('complete'));
+  assert.ok(row('work').allowedActions.includes('complete'));assert.equal(row('work').canEditDue,true);
+  // A reader sees the same kind of row with the reason it cannot move it.
+  await f.admin.query("INSERT INTO app.tasks(project_id,id,number,title,description,status,type,priority,owner_label,rank,revision,owner_id) SELECT $1,'readonly',999,'Только чтение','','in_progress','task','normal','',999,1,$2",[p,dan.id]);
+  const danRow=placed(await envelope(dan,p)).find(x=>x.row.taskId==='readonly')!.row;
+  assert.equal(danRow.active!.cannotComplete!.reason,'read_only');assert.equal(danRow.canEditDue,false);
+});
+
+test('W21 round 2: "Принять результат" of delegated done work, its undo, and a reopened task waits again',async()=>{
+  const p=await project([[f.bob,'editor']]);
+  await task(p,'r');await edit(p,'r',{ownerId:f.bob.id});
+  const early=await personal(p,'r');
+  const notDone=await call('PUT',`${base(p)}/tasks/r/personal/accept`,{baseRevision:early.acceptRevision,accepted:true});
+  assert.equal(notDone.statusCode,422);assert.equal(notDone.json().code,'NOT_DONE');
+  await edit(p,'r',{status:'ready_for_release'},f.bob);
+  let row=placed(await envelope(f.alice,p)).find(x=>x.row.taskId==='r')!;
+  assert.equal(row.place,'waiting');assert.equal(row.row.waiting!.done,true);assert.ok(row.row.waiting!.doneAt);
+  assert.ok(row.row.allowedActions.includes('acceptResult'));
+  const state=await personal(p,'r');
+  const accepted=await ok<any>(call('PUT',`${base(p)}/tasks/r/personal/accept`,{baseRevision:state.acceptRevision,accepted:true}));
+  assert.equal(accepted.accepted,true);
+  // Accepted done work leaves "Жду"; its completion stays news until seen (the interface marks it seen with the accept).
+  assert.deepEqual(where(await envelope(f.alice,p),'r'),['updates']);
+  const seen=await personal(p,'r');
+  await ok(call('PUT',`${base(p)}/tasks/r/personal/seen`,{baseRevision:seen.seenRevision,sequence:seen.latestSequence}));
+  assert.deepEqual(where(await envelope(f.alice,p),'r'),[],'and done work is not "Участвую"');
+  const after=await personal(p,'r');assert.equal(after.participating,true,'participation stays');assert.equal(after.delegated.accepted,true);
+  // Undo from the toast.
+  await ok(call('PUT',`${base(p)}/tasks/r/personal/accept`,{baseRevision:after.acceptRevision,accepted:false}));
+  assert.deepEqual(where(await envelope(f.alice,p),'r'),['waiting']);
+  // Accept again, then the task is reopened: it is waited for again without a command.
+  const again=await personal(p,'r');
+  await ok(call('PUT',`${base(p)}/tasks/r/personal/accept`,{baseRevision:again.acceptRevision,accepted:true}));
+  await edit(p,'r',{status:'in_progress'},f.bob);
+  assert.deepEqual(where(await envelope(f.alice,p),'r'),['waiting']);
+  // Nothing of it reaches the shared log.
+  const shared=await f.admin.query("SELECT count(*)::int AS n FROM app.audit_events WHERE project_id=$1 AND action LIKE '%accept%'",[p]);
+  assert.equal(shared.rows[0]!.n,0);
+});
+
+test('W22 round 2: «Просмотрено» for all of "Изменилось" marks only what was seen, never later news',async()=>{
+  const p=await project([[f.bob,'editor']]);
+  for(const id of ['u1','u2']){await task(p,id,{},f.bob);await participate(p,id);await edit(p,id,{status:'ready_for_release'},f.bob);}
+  await task(p,'lane',{},f.bob);await participate(p,'lane');await edit(p,'lane',{status:'in_progress'},f.bob);
+  let env=await envelope(f.alice,p);
+  assert.equal(env.sections[2]!.count,2);
+  const before=env.generatedAt;
+  await new Promise(resolve=>setTimeout(resolve,20));
+  // News that arrives after the snapshot stays unseen.
+  await edit(p,'u2',{due:inDays(4)},f.bob);
+  const marked=await ok<any>(call('POST','/api/v1/workbench/seen',{before,projects:[p]}));
+  assert.equal(marked.marked,2);
+  env=await envelope(f.alice,p);
+  assert.deepEqual(where(env,'u1'),[]);
+  const u2=placed(env).find(x=>x.row.taskId==='u2')!;assert.equal(u2.place,'updates');assert.equal(u2.row.updates!.count,1);
+  assert.equal(u2.row.updates!.latest!.kind,'due');
+  assert.equal(placed(env).find(x=>x.row.taskId==='lane')!.row.updates!.count,1,'news on a lane row is not part of «Изменилось»');
+  // A retry is harmless; another person's news is untouched.
+  assert.equal((await ok<any>(call('POST','/api/v1/workbench/seen',{before,projects:[p]}))).marked,0);
+  assert.equal((await call('POST','/api/v1/workbench/seen',{before:'yesterday'})).statusCode,400);
 });

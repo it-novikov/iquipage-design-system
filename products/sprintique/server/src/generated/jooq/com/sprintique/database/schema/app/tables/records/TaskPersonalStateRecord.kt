@@ -72,9 +72,17 @@ open class TaskPersonalStateRecord() : UpdatableRecordImpl<TaskPersonalStateReco
         set(value): Unit = set(13, value)
         get(): Long? = get(13) as Long?
 
-    open var updatedAt: OffsetDateTime?
+    open var acceptedSequence: Long?
         set(value): Unit = set(14, value)
-        get(): OffsetDateTime? = get(14) as OffsetDateTime?
+        get(): Long? = get(14) as Long?
+
+    open var acceptRevision: Long?
+        set(value): Unit = set(15, value)
+        get(): Long? = get(15) as Long?
+
+    open var updatedAt: OffsetDateTime?
+        set(value): Unit = set(16, value)
+        get(): OffsetDateTime? = get(16) as OffsetDateTime?
 
     // -------------------------------------------------------------------------
     // Primary key information
@@ -82,7 +90,7 @@ open class TaskPersonalStateRecord() : UpdatableRecordImpl<TaskPersonalStateReco
 
     override fun key(): Record3<String?, String?, String?> = super.key() as Record3<String?, String?, String?>
 
-    constructor(projectId: String? = null, taskId: String? = null, principalId: String? = null, participating: Boolean? = null, participationRevision: Long? = null, rank: Long? = null, rankRevision: Long? = null, lastSeenSequence: Long? = null, seenRevision: Long? = null, snoozedUntil: OffsetDateTime? = null, snoozedAt: OffsetDateTime? = null, snoozeRevision: Long? = null, checkBackAt: LocalDate? = null, checkBackRevision: Long? = null, updatedAt: OffsetDateTime? = null): this() {
+    constructor(projectId: String? = null, taskId: String? = null, principalId: String? = null, participating: Boolean? = null, participationRevision: Long? = null, rank: Long? = null, rankRevision: Long? = null, lastSeenSequence: Long? = null, seenRevision: Long? = null, snoozedUntil: OffsetDateTime? = null, snoozedAt: OffsetDateTime? = null, snoozeRevision: Long? = null, checkBackAt: LocalDate? = null, checkBackRevision: Long? = null, acceptedSequence: Long? = null, acceptRevision: Long? = null, updatedAt: OffsetDateTime? = null): this() {
         this.projectId = projectId
         this.taskId = taskId
         this.principalId = principalId
@@ -97,6 +105,8 @@ open class TaskPersonalStateRecord() : UpdatableRecordImpl<TaskPersonalStateReco
         this.snoozeRevision = snoozeRevision
         this.checkBackAt = checkBackAt
         this.checkBackRevision = checkBackRevision
+        this.acceptedSequence = acceptedSequence
+        this.acceptRevision = acceptRevision
         this.updatedAt = updatedAt
         resetTouchedOnNotNull()
     }

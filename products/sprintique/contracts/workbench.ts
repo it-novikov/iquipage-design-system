@@ -15,7 +15,7 @@ export const PutSeen=z.strictObject({baseRevision:Revision,sequence:Revision});
 // `null` ends a snooze; the server bounds it by 30 days and by the start of the request's neededBy day.
 export const PutSnooze=z.strictObject({baseRevision:Revision,until:z.string().datetime({offset:true}).nullable()});
 
-export const RequestKind=z.enum(['answer','review','decision','approval']);
+export const RequestKind=z.enum(['answer','review','decision','approval','do']);
 export const CreateAttentionRequest=z.strictObject({
   id:z.uuid(),recipientId:Id,kind:RequestKind,
   neededBy:DateOnly.nullable().default(null),
@@ -25,15 +25,18 @@ export const CreateAttentionRequest=z.strictObject({
 export const ChangeAttentionRequest=z.strictObject({baseRevision:Revision,recipientId:Id,neededBy:DateOnly.nullable()});
 export const AttentionRequestRevision=z.strictObject({baseRevision:Revision});
 
-// How the person arranged the overview (docs/workbench/design-v2.md §5.1): hidden widgets and the form of "Текущая работа".
-export const WorkbenchWidget=z.enum(['week','updates','more']);
-export const WorkbenchLayout=z.strictObject({hiddenWidgets:z.array(WorkbenchWidget).max(3).default([]),currentWork:z.enum(['board','list']).default('board')});
+// The one personal setting of the overview (docs/workbench/design-v2.md §11.4): "Текущая работа" as lanes or one list.
+export const WorkbenchLayout=z.strictObject({currentForm:z.enum(['lanes','list']).default('lanes')});
+// "Принять результат" of delegated done work; `accepted: false` is the undo.
+export const PutAccept=z.strictObject({baseRevision:Revision,accepted:z.boolean()});
+// «Просмотрено» for all of "Изменилось": events up to `before`, the time of the snapshot the person looked at.
+export const MarkWorkbenchSeen=z.strictObject({before:z.string().datetime({offset:true}),projects:z.array(Id).min(1).max(100).nullable().default(null)});
 // A field left out keeps its value; `timezone: null` forgets the chosen zone, `layout: null` restores the default layout.
 export const PutWorkbenchPreferences=z.strictObject({baseRevision:Revision,timezone:Timezone.nullable().optional(),layout:WorkbenchLayout.nullable().optional()})
   .refine(value=>value.timezone!==undefined||value.layout!==undefined,{message:'timezone or layout'});
 
 export const workbenchSchemas={PutParticipation,PutRank,PutCheckBack,PutSeen,PutSnooze,CreateAttentionRequest,ChangeAttentionRequest,
-  AttentionRequestRevision,WorkbenchLayout,PutWorkbenchPreferences};
+  AttentionRequestRevision,WorkbenchLayout,PutWorkbenchPreferences,PutAccept,MarkWorkbenchSeen};
 
 // Responses, as the interface reads them. Rows carry references and codes; no description or comment text.
 export interface WorkbenchReason {code:string;text:string;actor?:{id:string;name:string|null};occurredAt?:string;neededBy?:string}
@@ -60,18 +63,25 @@ export interface WorkbenchRow {
   section:'action'|'current'|'updates';group:'joined'|'active'|'waiting'|'snoozed'|'backlog'|null;
   primaryReason:WorkbenchReason;secondaryReasons:WorkbenchReason[];
   // No request note in a first-screen row (delivery-plan §4.2): the drawer reads it from `/personal`.
-  request:{id:string;kind:string;revision:number;neededBy:string|null;requestedBy:WorkbenchPerson|null;createdAt:string;openCount:number}|null;
+  request:{id:string;kind:'answer'|'review'|'decision'|'approval'|'do';revision:number;neededBy:string|null;requestedBy:WorkbenchPerson|null;
+    createdAt:string;openCount:number;approvalId:string|null;threadId:string|null}|null;
+  // The row's verb: review, approve and do resolve in the row; a question or a decision opens the drawer to answer.
+  action:{kind:'review'|'approve'|'do'|'question'|'decision';inline:boolean}|null;
+  // "Готово" from an "В работе" row: the next workflow stage and its verb, or why it cannot be moved from here.
+  active:{transition:{label:string;toStatusId:string}|null;cannotComplete:{reason:'read_only'|'blocked'|'final';text:string}|null}|null;
+  // The shared due date may be moved from the row (by the task write the drawer uses).
+  canEditDue:boolean;
   // "Жду": whom I assigned it to, who owns it now (null: owner removed), my check-back date, whether the work is done.
   waiting:{expectedAssignee:WorkbenchPerson|null;expectedAssigneeLeft:boolean;ownerNow:WorkbenchPerson|null;checkBackAt:string|null;done:boolean;
-    assignedAt:string}|null;
+    doneAt:string|null;assignedAt:string}|null;
   // Unseen news on the task wherever the row is placed; "Изменилось" holds the tasks with news and no stronger place.
   updates:{count:number;latestSequence:number;latestAt:string;kinds:string[];latest:WorkbenchChange|null}|null;
   personal:{participating:boolean;participationRevision:number;rank:number|null;rankRevision:number;lastSeenSequence:number|null;seenRevision:number;
-    snoozedUntil:string|null;snoozeRevision:number;checkBackAt:string|null;checkBackRevision:number};
+    snoozedUntil:string|null;snoozeRevision:number;checkBackAt:string|null;checkBackRevision:number;acceptRevision:number};
   latestSequence:number;blockedBy:{id:string;displayId:string}|null;allowedActions:string[];canonicalUrl:string;
 }
 export interface WorkbenchGroup {key:'joined'|'active'|'waiting';count:number;items:WorkbenchRow[];nextCursor:string|null}
-export interface WorkbenchSection {key:'action'|'current'|'updates';count:number;countCapped?:boolean;snoozedCount?:number;backlogCount?:number;
+export interface WorkbenchSection {key:'action'|'current'|'updates';count:number;countCapped?:boolean;snoozedCount?:number;overdueCount?:number;backlogCount?:number;
   items?:WorkbenchRow[];groups?:WorkbenchGroup[];nextCursor?:string|null}
 export interface WorkbenchEnvelope {mode:'now';generatedAt:string;snapshotToken:string;
   scope:{kind:'all'|'selected';projectIds:string[]|null;projectCount:number;truncated:boolean};
@@ -89,4 +99,4 @@ export interface PlanItem {key:string;kind:'due'|'planned'|'neededBy'|'checkBack
 export interface PlanHorizon {horizon:'today'|'7d';timezone:string;timezoneSource:'request'|'preference'|'default';preferredTimezone:string|null;
   generatedAt:string;today:string;from:string;to:string;days:{date:string;items:PlanItem[]}[];undated:PlanItem[];truncated:boolean;
   summary:{itemCount:number;overdueCount:number;undatedCount:number;undatedTruncated:boolean}}
-export interface WorkbenchPreferences {timezone:string|null;layout:{hiddenWidgets:('week'|'updates'|'more')[];currentWork:'board'|'list'};revision:number}
+export interface WorkbenchPreferences {timezone:string|null;layout:{currentForm:'lanes'|'list'};revision:number}

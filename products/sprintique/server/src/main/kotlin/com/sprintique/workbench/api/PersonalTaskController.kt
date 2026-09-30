@@ -126,6 +126,23 @@ class PersonalTaskController(
         PersonalState.checkBack(tx, actor, projectId, taskId, input.baseRevision, input.checkBackAt, key(request))
     }
 
+    /** "Принять результат" of delegated work that is done: it leaves "Жду", participation stays. */
+    @PutMapping("/tasks/{taskId}/personal/accept")
+    @Accepts(PutAcceptRequest::class)
+    @Idempotent
+    fun accept(
+        @PathVariable projectId: String,
+        @PathVariable taskId: String,
+        @RequestBody(required = false) body: JsonNode?,
+        request: HttpServletRequest,
+    ) = requests.run(request) { tx, actor ->
+        flags.require(Feature.WORKBENCH_WAITING)
+        flags.require(Feature.WORKBENCH_PERSONAL_STATE)
+        ids(projectId, taskId)
+        val input = contracts.parse<PutAcceptRequest>(body)
+        PersonalState.accept(tx, actor, projectId, taskId, input.baseRevision, input.accepted, key(request))
+    }
+
     @PutMapping("/tasks/{taskId}/personal/seen")
     @Accepts(PutSeenRequest::class)
     @Idempotent

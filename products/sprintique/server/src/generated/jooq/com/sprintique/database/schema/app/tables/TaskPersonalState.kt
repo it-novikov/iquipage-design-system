@@ -101,6 +101,10 @@ open class TaskPersonalState(
 
     val CHECK_BACK_REVISION: TableField<TaskPersonalStateRecord, Long?> = createField(DSL.name("check_back_revision"), SQLDataType.BIGINT.nullable(false).defaultValue(DSL.field(DSL.raw("0"), SQLDataType.BIGINT)), this, "")
 
+    val ACCEPTED_SEQUENCE: TableField<TaskPersonalStateRecord, Long?> = createField(DSL.name("accepted_sequence"), SQLDataType.BIGINT, this, "")
+
+    val ACCEPT_REVISION: TableField<TaskPersonalStateRecord, Long?> = createField(DSL.name("accept_revision"), SQLDataType.BIGINT.nullable(false).defaultValue(DSL.field(DSL.raw("0"), SQLDataType.BIGINT)), this, "")
+
     val UPDATED_AT: TableField<TaskPersonalStateRecord, OffsetDateTime?> = createField(DSL.name("updated_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6).nullable(false).defaultValue(DSL.field(DSL.raw("clock_timestamp()"), SQLDataType.TIMESTAMPWITHTIMEZONE)), this, "")
 
     private constructor(alias: Name, aliased: Table<TaskPersonalStateRecord>?): this(alias, null, null, null, aliased, null, null)
@@ -133,6 +137,8 @@ open class TaskPersonalState(
     fun tasks(): TasksPath = tasks
     val tasks: TasksPath by lazy { TasksPath(this, TASK_PERSONAL_STATE__TASK_PERSONAL_STATE_PROJECT_ID_TASK_ID_FKEY, null) }
     override fun getChecks(): List<Check<TaskPersonalStateRecord>> = listOf(
+        Internal.createCheck(this, DSL.name("task_personal_state_accept_revision_check"), "((accept_revision >= 0))", true),
+        Internal.createCheck(this, DSL.name("task_personal_state_accepted_sequence_check"), "((accepted_sequence > 0))", true),
         Internal.createCheck(this, DSL.name("task_personal_state_check"), "(((snoozed_until IS NULL) = (snoozed_at IS NULL)))", true),
         Internal.createCheck(this, DSL.name("task_personal_state_check1"), "((participating = (rank IS NOT NULL)))", true),
         Internal.createCheck(this, DSL.name("task_personal_state_check_back_revision_check"), "((check_back_revision >= 0))", true),
