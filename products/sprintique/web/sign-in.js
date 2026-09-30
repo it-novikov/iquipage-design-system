@@ -2,7 +2,8 @@
 // Only the ways in the server reports are offered; a provider that sends the browser back with an error lands here
 // with ?sign-in-error=CODE, shown once and removed from the address. An invitation link shows what it invites to.
 import {icon,escapeHTML as esc,formatDateTime} from '@iquipage/web/core';
-import {invitationSummary,invitationState,INVITATION_TOKEN} from './invitation-model.js';
+import {invitationSummary,invitationState} from './invitation-model.js';
+import {invitationFlow} from './invitation-flow.js';
 const ERRORS={
   LOGIN_CANCELLED:'Вход отменён. Выберите способ входа ещё раз.',
   LOGIN_STATE:'Страница входа устарела. Начните вход заново.',
@@ -16,15 +17,12 @@ const GOOGLE_MARK='<svg class="sign-in-mark" viewBox="0 0 48 48" aria-hidden="tr
 const APPLE_MARK='<svg class="sign-in-mark" viewBox="0 0 814 1000" aria-hidden="true"><path fill="currentColor" d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76.5 0-103.7 40.8-165.9 40.8s-105.6-57-155.5-127C46.7 790.7 0 663 0 541.8c0-194.4 126.4-297.5 250.8-297.5 66.1 0 121.2 43.4 162.7 43.4 39.5 0 101.1-46 176.3-46 28.5 0 130.9 2.6 198.3 99.2zm-234-181.5c31.1-36.9 53.1-88.1 53.1-139.3 0-7.1-.6-14.3-1.9-20.1-50.6 1.9-110.8 33.7-147.1 75.8-28.5 32.4-55.1 83.6-55.1 135.5 0 7.8 1.3 15.6 1.9 18.1 3.2.6 8.4 1.3 13.6 1.3 45.4 0 102.5-30.4 135.5-71.3z"/></svg>';
 
 /** Keeps a project invitation from the address across the sign-in, whichever way it goes. */
-function keepInvitation(){
-  const match=location.hash.match(INVITATION_TOKEN);
-  if(match)sessionStorage.setItem('sprintique.pending-invitation',match[1]);
-}
+const keepInvitation=()=>{invitationFlow().keep();};
 /** What an invitation link offers, asked anonymously; null when it cannot be asked now (the sign-in still works). */
 export async function inspectInvitation(){
-  const match=location.hash.match(INVITATION_TOKEN);if(!match)return null;
+  const token=invitationFlow().fromAddress();if(!token)return null;
   try{
-    const response=await fetch('/api/v1/invitations/inspect',{method:'POST',headers:{'content-type':'application/json',accept:'application/json'},body:JSON.stringify({token:match[1]})});
+    const response=await fetch('/api/v1/invitations/inspect',{method:'POST',headers:{'content-type':'application/json',accept:'application/json'},body:JSON.stringify({token})});
     if(response.status===404)return {state:'invalid'};
     return response.ok?await response.json():null;
   }catch{return null;}
@@ -41,7 +39,7 @@ export function mountSignIn(root,methods,invitation=null){
   keepInvitation();
   const invited=invitation?.state==='pending',gone=invitation&&!invited?invitationState(invitation.state,invitation):null;
   // A spent link is explained once and forgotten: after sign-in nothing tries to accept it.
-  if(gone){sessionStorage.removeItem('sprintique.pending-invitation');history.replaceState(null,'',location.pathname+location.search);}
+  if(gone)invitationFlow().drop();
   const intro=invited?{heading:'Войдите, чтобы принять',description:methods.email?'Войдите с адресом из письма любым способом. Пароль не нужен: пришлём код.':'Войдите с адресом из письма.'}
     :gone?{heading:gone[0],description:`${gone[1]} Войти в Sprintique можно как обычно.`}
     :{heading:'Вход в Sprintique',description:methods.email?'Введите почту — мы пришлём код для входа. Пароль не нужен.':'Выберите, как войти.'};
