@@ -359,7 +359,10 @@ object Workbench {
                  a.key || '-' || t.number AS display_id, a.name AS project_name,
                  CASE WHEN a.name IN (SELECT name FROM authorized GROUP BY name HAVING count(*) > 1) THEN a.workspace_name END
                    AS workspace_name,
-                 (SELECT coalesce(o.profile_name, o.name) FROM auth.principals o WHERE o.id = t.owner_id) AS owner_name,
+                 -- People are named only while they are members of the project (docs/adr W5 §6); ids stay.
+                 (SELECT coalesce(o.profile_name, o.name) FROM auth.principals o
+                   JOIN app.project_members pm ON pm.principal_id = o.id AND pm.project_id = pl.project_id
+                   WHERE o.id = t.owner_id) AS owner_name,
                  coalesce(s.participating, false) AS participating, s.participation_revision, s.rank, s.rank_revision,
                  s.last_seen_sequence, s.seen_revision,
                  to_char(s.snoozed_until AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS snoozed_until,
@@ -379,7 +382,9 @@ object Workbench {
                  u.n AS unseen_count, u.latest AS unseen_latest, u.latest_at AS unseen_latest_at_raw,
                  to_char(u.latest_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS unseen_latest_at,
                  u.latest_kind, u.latest_actor, u.latest_detail, u.kinds AS unseen_kinds,
-                 (SELECT coalesce(o.profile_name, o.name) FROM auth.principals o WHERE o.id = u.latest_actor) AS latest_actor_name,
+                 (SELECT coalesce(o.profile_name, o.name) FROM auth.principals o
+                   JOIN app.project_members pm ON pm.principal_id = o.id AND pm.project_id = pl.project_id
+                   WHERE o.id = u.latest_actor) AS latest_actor_name,
                  -- The people of an owner change, named only while they are members of the project.
                  CASE WHEN u.latest_kind = 'owner' THEN (SELECT coalesce(o.profile_name, o.name) FROM auth.principals o
                    JOIN app.project_members pm ON pm.principal_id = o.id AND pm.project_id = pl.project_id

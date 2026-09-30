@@ -9,7 +9,7 @@ import type {WorkbenchEnvelope,WorkbenchRow,WorkbenchPage,PlanHorizon} from '../
 type User=Awaited<ReturnType<typeof fixture>>['alice'];
 let f:Awaited<ReturnType<typeof fixture>>;
 let carol:User,dan:User;
-before(async()=>{f=await fixture({prefix:'W'});carol=await human('Карина');dan=await human('Денис');});
+before(async()=>{f=await fixture({prefix:'WB'});carol=await human('Карина');dan=await human('Денис');});
 after(async()=>{await f?.close();});
 
 const hash=(value:string)=>createHash('sha256').update(value).digest('hex');
@@ -507,6 +507,8 @@ test('W10 flags: off means not found and the session names what is on',async()=>
       const r=await off.inject({method,url,headers:{...f.alice.headers,'idempotency-key':randomUUID()},...(payload?{payload}:{})});assert.equal(r.statusCode,404,url);
     }
     assert.deepEqual((await off.inject({url:'/api/v1/session',headers:f.alice.headers})).json().features,['workbench_read_internal']);
+    // The overview's layout lives with the Workbench, not with the plan (review R3 F3).
+    assert.equal((await off.inject({url:'/api/v1/workbench/preferences',headers:f.alice.headers})).statusCode,200);
     const seen=await off.inject({method:'PUT',url:`${base(p)}/tasks/z/personal/seen`,headers:{...f.alice.headers,'idempotency-key':randomUUID()},payload:{baseRevision:0,sequence:0}});
     assert.equal(seen.statusCode,404,'seen with nothing it serves is not found');
   }finally{await off.close();}
@@ -691,4 +693,27 @@ test('W18 preferences: layout and time zone are separate fields of one revision'
   assert.equal((await ok<any>(call('GET','/api/v1/workbench/preferences',undefined,f.bob))).layout.currentWork,'board');
   const rows=await f.db.authenticated({token:f.bob.token,kind:'session'},tx=>tx.query('SELECT 1 FROM app.workbench_preferences WHERE principal_id=$1',[u.id]));
   assert.equal(rows.rowCount,0);
+});
+
+test('W19 review R3 F1: a person who left the project is not named, not as the expected assignee, the owner or the actor',async()=>{
+  const p=await project([[f.bob,'editor'],[carol,'editor']]);
+  await task(p,'gone');await edit(p,'gone',{ownerId:f.bob.id});
+  await task(p,'handed');await participate(p,'handed');await edit(p,'handed',{ownerId:carol.id},f.bob);
+  const member=(await ok<any[]>(call('GET',`${base(p)}/members`))).find(m=>m.id===f.bob.id);
+  await ok(call('PATCH',`${base(p)}/members/${f.bob.id}`,{baseRevision:member.revision,role:null}));
+  const env=await envelope(f.alice,p);
+  const gone=placed(env).find(x=>x.row.taskId==='gone')!;
+  assert.equal(gone.place,'waiting');assert.equal(gone.row.primaryReason.code,'delegated_orphaned');
+  assert.deepEqual({...gone.row.waiting!,assignedAt:undefined,checkBackAt:undefined},
+    {expectedAssignee:null,expectedAssigneeLeft:true,ownerNow:{id:f.bob.id,name:null},checkBackAt:undefined,done:false,assignedAt:undefined});
+  assert.deepEqual(gone.row.owner,{id:f.bob.id,name:null});
+  assert.ok(!JSON.stringify(gone.row).includes('Борис'));
+  const handed=placed(env).find(x=>x.row.taskId==='handed')!.row.updates!.latest!;
+  assert.deepEqual(handed.actor,{id:f.bob.id,name:null});assert.equal(handed.actorName,null);
+  assert.deepEqual(handed.detail,{from:null,to:{id:carol.id,name:'Карина'}});
+  // A colleague hands delegated work to someone who then leaves: the text says so without a name.
+  await task(p,'passed');await edit(p,'passed',{ownerId:carol.id});
+  await f.admin.query('UPDATE app.tasks SET owner_id=$3 WHERE project_id=$1 AND id=$2',[p,'passed',f.bob.id]);
+  const passed=placed(await envelope(f.alice,p)).find(x=>x.row.taskId==='passed')!;
+  assert.equal(passed.row.primaryReason.text,'Поручено: Карина, исполнитель больше не в проекте');
 });

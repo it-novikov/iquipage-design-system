@@ -71,7 +71,7 @@ class WorkbenchController(
 
     @GetMapping("/api/v1/workbench/preferences")
     fun preferences(request: HttpServletRequest) = requests.run(request) { tx, actor ->
-        flags.require(Feature.WORKBENCH_PLAN_HORIZON)
+        flags.require(Feature.WORKBENCH_READ_INTERNAL)
         QueryParameters(request, emptySet())
         Plan.preferences(tx, actor)
     }
@@ -82,7 +82,7 @@ class WorkbenchController(
         @RequestBody(required = false) body: JsonNode?,
         request: HttpServletRequest,
     ) = requests.run(request) { tx, actor ->
-        flags.require(Feature.WORKBENCH_PLAN_HORIZON)
+        flags.require(Feature.WORKBENCH_READ_INTERNAL)
         val input = contracts.parse<PutWorkbenchPreferencesRequest>(body)
         val present = { name: String -> body?.has(name) == true }
         Plan.savePreferences(

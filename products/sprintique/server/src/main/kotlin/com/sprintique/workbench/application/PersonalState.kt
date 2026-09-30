@@ -180,7 +180,9 @@ object PersonalState {
 
     /**
      * Up or down within the "Участвую" group the person sees: `scope` is the Workbench project filter (null: every
-     * project), `parts` what the Workbench serves, so the neighbours are exactly those on the screen.
+     * project), `parts` what the Workbench serves, so the neighbours are exactly those on the screen. Which tasks are
+     * listed is read before any lock (it is the whole snapshot statement); under the locks only their current ranks
+     * are read, so a move never holds the project row while the snapshot runs.
      */
     @Suppress("LongParameterList")
     fun rank(
@@ -196,13 +198,14 @@ object PersonalState {
     ): Map<String, Any?> {
         WorkbenchAccess.task(tx, actor, projectId, taskId, Capability.TASKS_READ)
         val input = mapOf("taskId" to taskId, "baseRevision" to baseRevision, "move" to move.wire, "projects" to scope)
+        val listed = Workbench.joinedOrder(tx, actor, scope, parts).map { it.string("projectId") to it.string("taskId") }
         return PrivateLedger.once(tx, actor, projectId, "personal.rank", key, input) {
             // Per person before any row lock: a renumbering never waits on a row another command of theirs holds.
             tx.row("SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", "participation:${actor.id}")
             val current = lock(tx, actor, projectId, taskId)
             requireRevision(current.long("rank_revision"), baseRevision)
             requireCondition(current.boolean("participating"), 422, "NOT_PARTICIPATING", "Вы не участвуете в задаче.")
-            val visible = { Workbench.joinedOrder(tx, actor, scope, parts) }
+            val visible = { ranksOf(tx, actor, listed) }
             val rank = move(tx, actor, projectId, taskId, move == RankMove.UP, visible)
             val revision = tx.row(
                 """
@@ -256,6 +259,19 @@ object PersonalState {
         )
         return requireNotNull(placeBetween(visible(), index, target))
     }
+
+    /** The current ranks of the listed tasks the person still participates in, in their order. */
+    private fun ranksOf(tx: Transaction, actor: Actor, listed: List<Pair<String, String>>): List<Row> = tx.rows(
+        """
+        SELECT s.project_id AS "projectId", s.task_id AS "taskId", s.rank FROM app.task_personal_state s
+        JOIN unnest($2::text[], $3::text[]) v(project_id, task_id) ON v.project_id = s.project_id AND v.task_id = s.task_id
+        WHERE s.principal_id = $1 AND s.participating
+        ORDER BY s.rank, s.project_id, s.task_id
+        """.trimIndent(),
+        actor.id,
+        listed.map { it.first },
+        listed.map { it.second },
+    )
 
     private fun placeBetween(order: List<Row>, index: Int, target: Int): Long? {
         val reordered = order.toMutableList().apply { add(target, removeAt(index)) }

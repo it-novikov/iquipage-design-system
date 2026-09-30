@@ -33,7 +33,8 @@ class FeatureFilter(private val flags: FeatureFlags) : OncePerRequestFilter() {
             Regex("^/api/v1/workbench/plan$") to { f ->
                 f.isEnabled(Feature.WORKBENCH_READ_INTERNAL) && f.isEnabled(Feature.WORKBENCH_PLAN_HORIZON)
             },
-            Regex("^/api/v1/workbench/preferences$") to { f -> f.isEnabled(Feature.WORKBENCH_PLAN_HORIZON) },
+            // The overview's layout and the plan's time zone: part of the Workbench itself, not of the plan.
+            Regex("^/api/v1/workbench/preferences$") to { f -> f.isEnabled(Feature.WORKBENCH_READ_INTERNAL) },
             Regex("^/api/v1/workbench(/list)?$") to { f -> f.isEnabled(Feature.WORKBENCH_READ_INTERNAL) },
             Regex("$TASK/personal$") to { f -> f.isEnabled(Feature.WORKBENCH_READ_INTERNAL) },
             // "Seen" moves the watermark that requests and waiting count their news from as well.

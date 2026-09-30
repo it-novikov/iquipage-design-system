@@ -99,7 +99,11 @@ object Reasons {
 
             ownerId != expectedId -> Reason(
                 "delegated_reassigned",
-                if (ownerName != null) "$who, сейчас исполняет $ownerName" else "$who, исполнитель снят",
+                when {
+                    ownerId == null -> "$who, исполнитель снят"
+                    ownerName == null -> "$who, исполнитель больше не в проекте"
+                    else -> "$who, сейчас исполняет $ownerName"
+                },
             )
 
             latest?.isNewBlocker() == true ->
