@@ -12,7 +12,7 @@ import {mountTaskDescription} from './description-view.js';
 import {copyAtButton,motionReduced,ui} from '@iquipage/web/core';
 import {taskKey,taskURL} from './task-route.js';
 
-export async function openTaskDialog(task,{repository,project,tasks,canEdit=true,canManage=true,attachmentAdapter=null,status='ready',initialValues={},fullscreen=false,backTo=null,onBack=()=>{},onOpenTask,onReload=onOpenTask&&(()=>onOpenTask(task.id)),onSaved=()=>{},isActive=()=>true,signal,replace=null}){
+export async function openTaskDialog(task,{repository,project,tasks,canEdit=true,canManage=true,attachmentAdapter=null,status='ready',initialValues={},fullscreen=false,backTo=null,onBack=()=>{},onOpenTask,onReload=onOpenTask&&(()=>onOpenTask(task.id)),onSaved=()=>{},isActive=()=>true,signal,replace=null,supplement=null}){
   signal?.throwIfAborted();const initialTask=task;
   const [detail,context,support,members]=await Promise.all([
     task?.summary?repository.read('tasks',task.id,project.id,{signal}):task,
@@ -32,7 +32,7 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
   let files,description;
   // Existing tasks save each field as it changes; a new task is created deliberately with one button.
   const autosave=!!task&&canEdit;
-  let current=task,baseline='',saving=false,confirming=false,priorityTouched=false,catalogs,threads,links;
+  let current=task,baseline='',saving=false,confirming=false,priorityTouched=false,catalogs,threads,links,personal=null;
   // Owners are current human project members. A former member or pre-membership text stays visible until reassigned.
   const owners=[{value:'',label:'Не назначен'},...members.filter(m=>(m.kind??'human')==='human').map(m=>({value:m.id,label:m.name,image:repository.client?.avatarUrl?.(m.id,m.avatarRevision)||undefined}))];
   if(initial.ownerId&&!owners.some(o=>o.value===initial.ownerId))owners.push({value:initial.ownerId,label:initial.owner||'Бывший участник',description:'Больше не участник проекта'});
@@ -53,6 +53,7 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
   const opts=list=>esc(JSON.stringify(list));
   const content=`<section class="task-editor-cover" data-task-cover hidden></section><div class="task-editor-layout">
     <div class="task-editor-title"><label class="sr-only" for="${taskId}-title">Название</label><textarea class="iq-inline-title" id="${taskId}-title" name="title" rows="1" required maxlength="240" placeholder="Что нужно сделать?">${esc(initial.title)}</textarea></div>
+    ${task&&supplement?'<section class="task-personal-section" data-task-personal aria-label="Запросы к вам" hidden></section>':''}
     <section class="task-editor-properties" aria-label="Свойства задачи">
       <div class="iq-properties task-props" data-columns="auto">
         <iq-select name="status" label="Статус" appearance="pill" value="${esc(task?taskColumn(task):status)}" options="${opts(statusOptions)}"></iq-select>
@@ -135,6 +136,8 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
         const target=await repository.read('tasks',id,project.id);if(!target)throw Error('Задача недоступна.');
         await openTaskDialog(target,{repository,project,tasks,canEdit,canManage,attachmentAdapter,onSaved});
       }});
+      // A host may add its own section (the Workbench: personal relation, requests, waiting) and header actions.
+      if(task&&supplement)personal=supplement({root:form.querySelector('[data-task-personal]'),actions:form.querySelector('.task-dialog-actions'),task,dialog:el});
       if(task)threads=mountThreads(form.querySelector('[data-task-threads]'),{repository,task,readOnly:!canDiscuss,people:new Map(members.map(m=>[m.id,m])),actorId:repository.context?.actorId||'local-user'});
       else form.querySelector('[data-task-threads]').hidden=true;
       function applyTemplate(changePriority=false){
@@ -187,7 +190,7 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
             const saved=await repository.write('tasks',next,current.revision);
             current=saved;files.accepted(saved);baseline=snapshot;
             showState(threads?.dirty()?'Задача сохранена. Черновик сообщения ещё не опубликован.':'Все изменения сохранены');
-            await onSaved(saved);return true;
+            await onSaved(saved);personal?.saved?.(saved);return true;
           }catch(error){
             conflict=error.code==='CONFLICT';
             showState(conflict?'Задачу изменили в другом месте. Ваши последние правки не сохранены.':'Не удалось сохранить: '+(error.message||'ошибка сети'),{error:true,action:conflict?'reload':'retry'});
@@ -241,7 +244,7 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
       };
       window.addEventListener('beforeunload',unload);
       el.addEventListener('iq-close',()=>{
-        clearTimeout(timer);window.removeEventListener('beforeunload',unload);description.destroy();files.destroy();catalogs.destroy();threads?.destroy();links?.destroy();
+        clearTimeout(timer);window.removeEventListener('beforeunload',unload);description.destroy();files.destroy();catalogs.destroy();threads?.destroy();links?.destroy();personal?.destroy?.();
       },{once:true});
       baseline=JSON.stringify(read(form));
       // A new task starts at its title.

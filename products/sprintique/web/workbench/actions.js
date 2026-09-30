@@ -1,0 +1,160 @@
+// What a row's controls do (design-v2 §11.3). Each command goes to the server with the revision the row carries; the
+// row then shows what happened with «Отменить» for 8 s (role=status), focus moves to the next row, and the view
+// reloads. A conflict or a refusal is said in words on the row; nothing is changed on screen before the server agrees.
+import {icon,escapeHTML as esc,notify} from '@iquipage/web/core';
+import {dialog} from '../../ui/src/ui.js';
+import {duePresets,localDay,snoozePresets,verbOf,doneWord} from './model.js';
+import {focusRow} from './keyboard.js';
+
+const UNDO_MS=8000;
+
+export function createActions({api,repository,view,projects,filter,openTask,openProject,announce}){
+  const pending=new Map();// row key → timer of its undo line
+
+  /** The whole task, read fresh, written with the fields changed: the same write the drawer makes. */
+  async function writeTask(projectId,taskId,changes){
+    const project=projects.get(projectId);if(!project)throw Error('Проект недоступен.');
+    const task=await repository.read('tasks',taskId,projectId);
+    if(!task)throw Error('Задача недоступна.');
+    const previous=Object.fromEntries(Object.keys(changes).map(k=>[k,task[k]]));
+    const saved=await repository.write('tasks',{...task,...changes},task.revision);
+    return {saved,previous};
+  }
+  function next(li){
+    const list=li.closest('[data-list]'),rows=list?[...list.querySelectorAll(':scope > [data-row]')]:[];
+    const i=rows.indexOf(li);return rows[i+1]||rows[i-1]||null;
+  }
+  /**
+   * The row says what happened and offers «Отменить» for 8 s; the focus moves on. `undo` puts it back. The view
+   * reloads when the time is over or after an undo.
+   */
+  function settle(li,{text,undo=null,tone='success'}){
+    const key=li.dataset.key,following=next(li),wasFocused=li.dataset.hadFocus==='true'||li.contains(document.activeElement);
+    li.dataset.state='done';li.removeAttribute('tabindex');
+    const line=document.createElement('div');line.className='dsk-row-done';line.setAttribute('role','status');line.dataset.tone=tone;
+    line.innerHTML=`${icon(tone==='success'?'checkCircle':'info',16)}<span>${text}</span>${undo?'<button type="button" class="iq-btn ghost sm" data-undo>Отменить</button>':''}`;
+    li.append(line);
+    if(wasFocused)(following?focusRow(following):view.focusSection(li));
+    clearTimeout(pending.get(key));
+    const finish=()=>{pending.delete(key);void view.reload();};
+    pending.set(key,setTimeout(finish,UNDO_MS));
+    line.querySelector('[data-undo]')?.addEventListener('click',()=>void(async()=>{
+      clearTimeout(pending.get(key));pending.delete(key);
+      try{await undo();announce('Отменено');}catch(error){fail(li,error);}
+      await view.reload({focusKey:key});
+    })());
+  }
+  function fail(li,error){
+    const conflict=['CONFLICT','REQUEST_CHANGED','REQUEST_CLOSED'].includes(error?.code);
+    notify({tone:conflict?'warning':'danger',message:conflict?'Уже изменено в другом месте':'Не получилось',description:conflict?'Рабочий стол обновлён: посмотрите, что изменилось.':(error?.message||'Сервер не ответил.')});
+    if(conflict)void view.reload({focusKey:li?.dataset.key});
+  }
+  async function run(li,body){
+    // Disabling the pressed control drops the focus: remember it, so the next row receives it afterwards.
+    li.dataset.hadFocus=String(li.contains(document.activeElement));
+    const controls=[...li.querySelectorAll('button')];for(const c of controls)c.disabled=true;li.setAttribute('aria-busy','true');
+    try{await body();}catch(error){for(const c of controls)c.disabled=false;if(li.dataset.hadFocus==='true')focusRow(li);fail(li,error);}finally{li.removeAttribute('aria-busy');delete li.dataset.hadFocus;}
+  }
+  /** A date from a small form dialog; null when the person closes it. */
+  const pickDate=(title,label)=>new Promise(resolve=>{
+    let chosen=null;
+    const el=dialog({title,body:`<iq-date-field name="date" label="${esc(label)}" required></iq-date-field>`,submitLabel:'Сохранить',
+      onSubmit:async(_values,form)=>{const value=form.querySelector('iq-date-field[name=date]').value;if(!value)throw Error('Выберите дату.');chosen=value;}});
+    el.addEventListener('iq-close',()=>resolve(chosen),{once:true});
+  });
+
+  return {
+    /** The verb of a request: review, approve and do resolve here; a question or a decision opens the drawer. */
+    verb(li,row){
+      const verb=verbOf(row);
+      if(!verb.inline){openTask(row,{answer:true});return;}
+      return run(li,async()=>{
+        if(row.action.kind==='approve'&&row.request.approvalId){
+          const approval=await api.approval(row.projectId,row.request.approvalId);
+          await api.decide(row.projectId,row.request.approvalId,approval.revision,'approved');
+          settle(li,{text:`<b>${esc(doneWord.approve)}</b> · ${esc(row.displayId)}`});return;
+        }
+        const resolved=await api.resolveRequest(row.projectId,row.request.id,row.request.revision);
+        settle(li,{text:`<b>${esc(doneWord[row.action.kind]||'решено')}</b> · ${esc(row.displayId)} · запрос закрыт`,
+          undo:()=>api.reopenRequest(row.projectId,row.request.id,resolved.revision)});
+      });
+    },
+    snooze(li,row,index){
+      const preset=snoozePresets(row.request?.neededBy)[index];if(!preset)return;
+      return run(li,async()=>{
+        const state=await api.personal(row.projectId,row.taskId);
+        const saved=await api.snooze(row.projectId,row.taskId,state.snoozeRevision,preset.until.toISOString());
+        settle(li,{text:`Отложено: ${esc(preset.label.toLowerCase())}`,tone:'info',undo:()=>api.snooze(row.projectId,row.taskId,saved.revision,null)});
+      });
+    },
+    /** «Готово» / «На проверку»: the next stage of the workflow, by the task write; undo writes the stage back. */
+    complete(li,row){
+      const move=row.active?.transition;if(!move||row.active.cannotComplete)return;
+      return run(li,async()=>{
+        const {previous}=await writeTask(row.projectId,row.taskId,{status:move.toStatusId});
+        settle(li,{text:`<b>${esc(move.label)}</b> · ${esc(row.displayId)}`,undo:()=>writeTask(row.projectId,row.taskId,previous)});
+      });
+    },
+    async due(li,row,choice){
+      let date=null;
+      if(choice==='pick'){date=await pickDate(`Срок ${row.displayId}`,'Новый срок');if(!date)return;}
+      else if(choice!=='none')date=duePresets(localDay())[Number(choice)]?.date;
+      return run(li,async()=>{
+        const {previous}=await writeTask(row.projectId,row.taskId,{due:date});
+        settle(li,{text:date?`Срок перенесён на ${esc(date.slice(8,10)+'.'+date.slice(5,7))} · виден всем в проекте`:'Срок снят',tone:'info',
+          undo:()=>writeTask(row.projectId,row.taskId,previous)});
+      });
+    },
+    async checkBack(li,row,choice){
+      let date=null;const today=localDay();
+      if(choice==='pick'){date=await pickDate(`Проверить ${row.displayId}`,'Когда проверить');if(!date)return;}
+      else if(choice==='today')date=today;
+      else if(choice!=='none')date=duePresets(today)[Number(choice)]?.date;
+      return run(li,async()=>{
+        const saved=await api.checkBack(row.projectId,row.taskId,row.personal.checkBackRevision,date);
+        announce(date?'Дата проверки сохранена':'Дата проверки снята');void saved;await view.reload({focusKey:row.key});
+      });
+    },
+    /** «Принять»: the done result leaves «Жду»; its completion is taken as seen with it. */
+    accept(li,row){
+      return run(li,async()=>{
+        const accepted=await api.accept(row.projectId,row.taskId,row.personal.acceptRevision,true);
+        if(row.updates)await api.seen(row.projectId,row.taskId,row.personal.seenRevision,row.updates.latestSequence).catch(()=>null);
+        settle(li,{text:`<b>Результат принят</b> · ${esc(row.displayId)} · вы участвуете дальше`,undo:()=>api.accept(row.projectId,row.taskId,accepted.revision,false)});
+      });
+    },
+    rank(li,row,move){
+      return run(li,async()=>{
+        await api.rank(row.projectId,row.taskId,row.personal.rankRevision,move,filter());
+        await view.reload({focusKey:row.key,focusControl:`[data-rank="${move}"]`});
+        const moved=view.rowElement(row.key),list=moved?.closest('[data-list]');
+        if(moved&&list){const rows=[...list.querySelectorAll(':scope > [data-row]')];announce(`${row.displayId} на позиции ${rows.indexOf(moved)+1} из ${rows.length}`);}
+      });
+    },
+    seen(li,row){
+      return run(li,async()=>{
+        await api.seen(row.projectId,row.taskId,row.personal.seenRevision,row.updates?.latestSequence??row.latestSequence);
+        settle(li,{text:`Просмотрено · ${esc(row.displayId)}`,tone:'info'});
+      });
+    },
+    async seenAll(button,generatedAt){
+      button.disabled=true;
+      try{const result=await api.seenAll(generatedAt,filter());announce(`Просмотрено: ${result.marked}`);await view.reload();}
+      catch(error){fail(null,error);}finally{button.disabled=false;}
+    },
+    /** Participation from a row: J on the row or «Перестать участвовать» in its menu, with undo. */
+    toggleParticipation(li,row){
+      return run(li,async()=>{
+        const joining=!row.personal.participating;
+        const saved=await api.participation(row.projectId,row.taskId,row.personal.participationRevision,joining);
+        if(joining){announce(`Вы участвуете: ${row.displayId}`);await view.reload({focusKey:row.key});return;}
+        settle(li,{text:`Вы больше не участвуете · ${esc(row.displayId)}${row.group==='active'?' · назначенная вам задача остаётся «В работе»':''}`,tone:'info',
+          undo:()=>api.participation(row.projectId,row.taskId,saved.revision,true)});
+      });
+    },
+    open:row=>openTask(row),
+    openProject:row=>openProject(row.projectId,row.taskId),
+    pendingKeys:()=>[...pending.keys()],
+    destroy(){for(const timer of pending.values())clearTimeout(timer);pending.clear();},
+  };
+}

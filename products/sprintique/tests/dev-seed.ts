@@ -90,12 +90,12 @@ export async function seedDevData(app:TestApp,admin:pg.Client,origin:string){
     if(response.statusCode>=300)throw Error(`${method} ${url} → ${response.statusCode} ${response.body.slice(0,300)}`);
     return response.json<T>();
   };
-  const summary:string[]=[];
+  const summary:string[]=[];const projectIds=new Map<string,string>();
   for(const space of WORKSPACES){
     const workspace=await call<{id:string}>('POST','/workspaces',{name:space.name});
     for(const spec of space.projects){
       const project=await call<{id:string}>('POST','/projects',{workspaceId:workspace.id,name:spec.name,slug:spec.key.toLowerCase(),key:spec.key});
-      const P=`/projects/${project.id}/`;
+      const P=`/projects/${project.id}/`;projectIds.set(spec.key,project.id);
       for(const [name,role] of spec.members){
         await admin.query("INSERT INTO app.workspace_members(workspace_id,principal_id,role) VALUES($1,$2,'member') ON CONFLICT DO NOTHING",[workspace.id,people.get(name)]);
         await admin.query('INSERT INTO app.project_members(project_id,principal_id,role) VALUES($1,$2,$3)',[project.id,people.get(name),role]);
@@ -136,5 +136,65 @@ export async function seedDevData(app:TestApp,admin:pg.Client,origin:string){
       summary.push(`${space.name} / ${spec.name} (${spec.key}): задач — ${spec.tasks.length}`);
     }
   }
+  await seedWorkbench(app,admin,origin,{adminId,people,projectIds,call});
+  summary.push('Рабочий стол: запросы всех видов, «В работе», «Жду», «Участвую», изменения и неделя для администратора');
   return {adminId,summary};
+}
+
+/**
+ * The administrator's Workbench (docs/workbench/design-v2.md §11): requests of every kind from teammates, active work,
+ * work delegated to others ("Жду"), tasks the administrator participates in, colleagues' news, dates of the week.
+ */
+async function seedWorkbench(app:TestApp,admin:pg.Client,origin:string,{adminId,people,projectIds,call}:{adminId:string;people:Map<string,string>;
+  projectIds:Map<string,string>;call:<T=unknown>(method:'GET'|'POST'|'PUT'|'PATCH',url:string,payload?:unknown)=>Promise<T>}){
+  const as=async(name:string)=>{
+    const id=people.get(name)!,token=secret(),csrf=secret();
+    await admin.query("INSERT INTO auth.credentials(id,principal_id,token_hash,kind,csrf,initiator_id,expires_at) VALUES($1,$2,$3,'session',$4,$2,now()+interval '10 minutes')",[randomUUID(),id,hash(token),csrf]);
+    const headers={cookie:`__Host-sprintique=${token}`,origin,'x-csrf-token':csrf};
+    return async<T=any>(method:'GET'|'POST'|'PUT'|'PATCH',url:string,payload?:unknown):Promise<T>=>{
+      const response=await app.inject({method,url:'/api/v1'+url,headers:{...headers,'idempotency-key':randomUUID()},...(payload===undefined?{}:{payload:payload as Record<string,unknown>})});
+      if(response.statusCode>=300)throw Error(`${method} ${url} → ${response.statusCode} ${response.body.slice(0,300)}`);
+      return response.json<T>();
+    };
+  };
+  type Caller=(method:'GET'|'POST'|'PUT'|'PATCH',url:string,payload?:unknown)=>Promise<any>;
+  const P=(key:string)=>`/projects/${projectIds.get(key)}/`;
+  const edit=async(caller:Caller,key:string,id:string,changes:Record<string,unknown>)=>{
+    const t=await caller('GET',P(key)+'tasks/'+id);
+    const task={title:t.title,description:t.description,status:t.status,type:t.type,priority:t.priority,ownerId:t.ownerId,due:t.due,rank:t.rank,parentId:t.parentId,
+      releaseId:t.releaseId,tagIds:t.tagIds,attachmentIds:t.attachmentIds??[],coverAttachmentId:t.coverAttachmentId??null,coverCrop:t.coverCrop??null,...changes};
+    return caller('PUT',P(key)+'tasks/'+id,{baseRevision:t.revision,task});
+  };
+  const me=call as unknown as Caller;
+  const participate=async(key:string,id:string)=>{const s=await me('GET',P(key)+`tasks/${id}/personal`);if(!s.participating)await me('PUT',P(key)+`tasks/${id}/personal/participation`,{baseRevision:s.participationRevision,participating:true});};
+  const boris=await as('Борис Петров'),vera=await as('Вера Козлова'),grigory=await as('Григорий Орлов'),alice=await as('Алиса Смирнова');
+  // «В работе»: assigned to the administrator in active stages, with dates and one blocked.
+  await edit(me,'SPQ','spq-a11y',{ownerId:adminId,status:'in_progress',due:day(1)});
+  await edit(me,'RSR','rsr-synth',{ownerId:adminId,status:'review'});
+  await admin.query('UPDATE app.tasks SET planned_start=$3,planned_end=$4 WHERE project_id=$1 AND id=$2',[projectIds.get('RSR'),'rsr-synth',day(0),day(2)]);
+  await edit(me,'WEB','web-pricing',{ownerId:adminId,status:'testing',due:day(4)});
+  await edit(me,'SPQ','spq-search',{ownerId:adminId,status:'in_progress'});
+  await boris('PUT',P('SPQ')+'task-links/wb-block',{baseRevision:0,value:{kind:'depends',fromId:'spq-search',toId:'spq-perf'}});
+  // «Жду»: the administrator assigns work to colleagues (participating as the author or by joining).
+  await participate('SPQ','spq-dark');await edit(me,'SPQ','spq-dark',{ownerId:people.get('Вера Козлова')});
+  await participate('MOB','mob-offline');await edit(me,'MOB','mob-offline',{ownerId:people.get('Григорий Орлов')});
+  const dark=await me('GET',P('SPQ')+'tasks/spq-dark/personal');await me('PUT',P('SPQ')+'tasks/spq-dark/personal/check-back',{baseRevision:dark.checkBackRevision,checkBackAt:day(0)});
+  await participate('SPQ','spq-cleanup');await edit(me,'SPQ','spq-cleanup',{ownerId:people.get('Борис Петров')});
+  await edit(boris,'SPQ','spq-cleanup',{status:'ready_for_release'});
+  // «Участвую»: tasks the administrator keeps on the Workbench.
+  for(const [key,id] of [['SPQ','spq-onboarding'],['SPQ','spq-palette'],['WEB','web-press'],['IDEA','idea-1']] as const)await participate(key,id);
+  // Requests of every kind, exact recipient.
+  await boris('POST',P('SPQ')+'tasks/spq-sync/requests',{id:randomUUID(),recipientId:adminId,kind:'review',neededBy:day(1),note:'Проверь, пожалуйста, переподключение SSE.'});
+  await vera('POST',P('WEB')+'tasks/web-hero/requests',{id:randomUUID(),recipientId:adminId,kind:'decision',neededBy:day(3),note:'Какой вариант первого экрана берём?'});
+  await grigory('POST',P('MOB')+'tasks/mob-crash/requests',{id:randomUUID(),recipientId:adminId,kind:'answer'});
+  const late=await alice('POST',P('SPQ')+'tasks/spq-export/requests',{id:randomUUID(),recipientId:adminId,kind:'do',neededBy:day(1),note:'Нужен ключ доступа к песочнице.'});
+  // A request whose date has already passed (a new one cannot be dated in the past).
+  await admin.query('UPDATE app.attention_requests SET needed_by=$3 WHERE project_id=$1 AND id=$2',[projectIds.get('SPQ'),late.id,day(-2)]);
+  await boris('POST',P('SPQ')+'tasks/spq-login-bug/requests',{id:randomUUID(),recipientId:adminId,kind:'review'});
+  // News from colleagues on tasks the administrator participates in.
+  await edit(alice,'SPQ','spq-onboarding',{due:day(8)});
+  await edit(vera,'WEB','web-press',{status:'in_progress'});
+  await edit(grigory,'MOB','mob-offline',{status:'in_progress'});
+  await participate('SPQ','spq-notes');await edit(alice,'SPQ','spq-notes',{status:'testing'});await edit(alice,'SPQ','spq-notes',{status:'ready_for_release'});
+  await admin.query("INSERT INTO app.milestones(project_id,id,title,date) VALUES($1,'beta','Бета для команд',$2) ON CONFLICT DO NOTHING",[projectIds.get('SPQ'),day(4)]);
 }
