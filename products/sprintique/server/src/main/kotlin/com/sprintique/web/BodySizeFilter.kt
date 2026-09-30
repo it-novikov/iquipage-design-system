@@ -12,8 +12,9 @@ import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
 
 /**
- * Request bodies are bounded per route: 128 KiB for commands, 2 MiB for map documents, 10 MiB for uploads. A declared
- * length over the limit is refused at once; a streamed body is counted and cut off at the limit.
+ * Request bodies are bounded per route: 128 KiB for commands, 2 MiB for map documents, 10 MiB for a person's photo,
+ * 2 GiB for a file's content. A declared length over the limit is refused at once; a streamed body is counted and cut
+ * off at the limit.
  */
 @Component
 @Profile("api")
@@ -66,11 +67,15 @@ class BodySizeFilter : OncePerRequestFilter() {
     companion object {
         const val COMMAND_LIMIT = 128L * 1024
         const val DOCUMENT_LIMIT = 2L * 1024 * 1024
-        const val FILE_LIMIT = 10L * 1024 * 1024
+        const val AVATAR_LIMIT = 10L * 1024 * 1024
+
+        /** The content of one stored file; the media module checks the exact reserved size inside this bound. */
+        const val FILE_LIMIT = 2L * 1024 * 1024 * 1024
         private val DOCUMENT = Regex("^/api/v1/projects/[^/]+/(maps|map-templates)/[^/]+$")
 
         fun limitFor(request: HttpServletRequest): Long = when {
-            RequestLimitFilter.isUpload(request) -> FILE_LIMIT
+            RequestLimitFilter.isFileContent(request) -> FILE_LIMIT
+            RequestLimitFilter.isUpload(request) -> AVATAR_LIMIT
             request.method == "PUT" && DOCUMENT.matches(RequestLimitFilter.routedPath(request)) -> DOCUMENT_LIMIT
             else -> COMMAND_LIMIT
         }

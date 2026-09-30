@@ -1,0 +1,50 @@
+# Журнал 20260928-large-files
+
+- 2026-09-28T23:03:03Z · claude-opus-5-5 · create · - · Большие файлы: видео, документы и архивы до 2 ГиБ
+- 2026-09-28T23:06:47Z · claude-opus-5-5 · note · A1 · критерий приёмки: A1. Загрузка до 2 ГиБ идёт потоком: сервер не держит файл в памяти (части по 8 МиБ в S3 multipart), не держит транзакцию и блокировку проекта во время передачи; подпись формата проверяется по первым байтам, SHA-256 и размер — по всему потоку до завершения multipart
+- 2026-09-28T23:06:47Z · claude-opus-5-5 · note · A2 · критерий приёмки: A2. Типы: видео mp4/mov/webm/m4v, аудио mp3/m4a/wav/ogg, офис docx/xlsx/pptx/odt/ods/odp/doc/xls/ppt/rtf, изображения png/jpg/webp/gif/heic/heif/svg, архивы zip/7z/rar/tar/gz, текст и PDF; любой другой файл — application/octet-stream; несовпадение подписи с расширением отклоняется и уходит в карантин
+- 2026-09-28T23:06:47Z · claude-opus-5-5 · note · A3 · критерий приёмки: A3. Отдача: только растровые изображения и видео inline, всё остальное (SVG, HEIC, документы, архивы, аудио, неизвестные) — attachment; всегда nosniff и CSP sandbox; SVG/HTML/XML никогда не отдаются как активный документ
+- 2026-09-28T23:06:47Z · claude-opus-5-5 · note · A4 · критерий приёмки: A4. Скачивание потоком из S3 с HTTP Range (206, 416, If-Range, Accept-Ranges); видео играет и перематывается в <video> в задаче; частичные ответы ограничены окном, права перепроверяются между окнами
+- 2026-09-28T23:06:48Z · claude-opus-5-5 · note · A5 · критерий приёмки: A5. Превью строятся только для PNG/JPEG/WebP до 32 МиБ и 40 Мп; большие или анимированные изображения в задаче хранятся как файл без превью; для карты и аватара нужно ограниченное изображение
+- 2026-09-28T23:06:48Z · claude-opus-5-5 · note · A6 · критерий приёмки: A6. UI: прогресс подготовки и загрузки, отмена, понятные ошибки размера и формата до отправки, видео в DS-поверхности, обе темы и 390 px; проверено в браузере на локальном стенде
+- 2026-09-28T23:06:48Z · claude-opus-5-5 · note · A7 · критерий приёмки: A7. Лимиты и эксплуатация: миграция 026 (bigint, 1..2 ГиБ), operations.md (лимиты, nginx client_max_body_size/proxy_request_buffering off, lifecycle для незавершённых multipart), брошенные multipart убираются очисткой
+- 2026-09-28T23:06:48Z · claude-opus-5-5 · note · A8 · критерий приёмки: A8. Гейты: npm test продукта (с реальным S3, включая multipart и Range), Kotlin unit+integration, корневой verify-vnext — зелёные
+- 2026-09-28T23:07:21Z · claude-opus-5-5 · decision · D1 · Загрузка потоком через API в S3 multipart, а не presigned direct-to-S3 — тот же origin, CSRF, RLS и лимиты; подпись, размер и SHA-256 проверяются до CompleteMultipartUpload, так что в bucket не попадают непроверенные байты; bucket без CORS и не виден браузеру
+- 2026-09-28T23:07:21Z · claude-opus-5-5 · decision · D2 · SHA-256 по-прежнему считает браузер до резервирования (WebCrypto до 64 МиБ, потоковый JS-SHA-256 по частям для больших) — сохраняет контракт резервирования, идемпотентность и адресацию объекта по содержимому без копирования в S3
+- 2026-09-28T23:07:21Z · claude-opus-5-5 · decision · D3 · Скачивание: Content-Disposition inline только для PNG/JPEG/WebP/GIF и видео, остальное attachment; частичные ответы ограничены 16 МиБ, чтобы приостановленное видео не держало запрос; права перепроверяются перед каждым окном 16 МиБ
+- 2026-09-28T23:07:22Z · claude-opus-5-5 · decision · D4 · Квота проекта поднята с 5 до 20 ГиБ — при файлах до 2 ГиБ прежняя квота вмещала два видео; окончательное значение — решение владельца
+- 2026-09-28T23:07:22Z · claude-opus-5-5 · decision · D5 · DS-GAP: iq-file-preview работает только с локальным File и не принимает URL, в DS нет медиаплеера — видео из хранилища показывается нативным <video controls> в диалоге DS; нужен режим iq-file-preview для удалённого источника
+- 2026-09-28T23:07:57Z · claude-opus-5-5 · note · S1 · добавлен шаг: Типы и потоковая проверка
+- 2026-09-28T23:07:57Z · claude-opus-5-5 · note · S2 · добавлен шаг: Хранилище: multipart и Range
+- 2026-09-28T23:07:57Z · claude-opus-5-5 · note · S3 · добавлен шаг: Загрузка и скачивание в API
+- 2026-09-28T23:07:58Z · claude-opus-5-5 · note · S4 · добавлен шаг: UI загрузки и просмотра
+- 2026-09-28T23:07:58Z · claude-opus-5-5 · note · S5 · добавлен шаг: Документация, гейты, PR
+- 2026-09-28T23:07:58Z · claude-opus-5-5 · claim · - · взял задачу
+- 2026-09-28T23:07:58Z · claude-opus-5-5 · status · - · active
+- 2026-09-28T23:07:58Z · claude-opus-5-5 · step · S1 · active
+- 2026-09-29T08:24:43Z · claude-opus-5-5 · checkpoint · S1 · дальше: Переписать S3ObjectStorageIntegrationTest и MediaLockIntegrationTest под новый порт, запустить gradle check
+- 2026-09-29T08:41:46Z · claude-opus-5-5 · checkpoint · S5 · дальше: npm test + verify-vnext, коммит CSP media-src и полосы прогресса, документация, PR
+- 2026-09-29T08:43:06Z · claude-opus-5-5 · step · S1 · done: bb75ca8: FileInspection (35 форматов + octet-stream), ContentCheck, Utf8Validator; FileInspectionTest 6/6
+- 2026-09-29T08:43:07Z · claude-opus-5-5 · step · S2 · active
+- 2026-09-29T08:43:07Z · claude-opus-5-5 · step · S2 · done: bb75ca8: startWrite/read(range)/remove с abort; S3ObjectStorageIntegrationTest 3/3 на Garage (multipart, range, abort, брошенная запись)
+- 2026-09-29T08:43:07Z · claude-opus-5-5 · step · S3 · active
+- 2026-09-29T08:43:07Z · claude-opus-5-5 · step · S3 · done: bb75ca8: Uploads/Assets start-reject-finish, MediaController поток+Range, фильтры, миграция 026, jOOQ; Kotlin 71/71 без пропусков; HTTP F01–F09, J01–J04, R4-B03 зелёные
+- 2026-09-29T08:43:07Z · claude-opus-5-5 · step · S4 · active
+- 2026-09-29T08:43:07Z · claude-opus-5-5 · step · S4 · done: 4c546e4, a3beb8f: SHA-256 по частям (288 МБ/с), проверка до отправки, прогресс DS, отмена, видео в диалоге DS; стенд 4371: 600/900 МБ, mp4 играет и перематывается (206), светлая/тёмная, 375 px
+- 2026-09-29T08:43:07Z · claude-opus-5-5 · step · S5 · active
+- 2026-09-29T08:43:07Z · claude-opus-5-5 · note · A1 · критерий приёмки выполнен
+- 2026-09-29T08:43:07Z · claude-opus-5-5 · note · A2 · критерий приёмки выполнен
+- 2026-09-29T08:43:07Z · claude-opus-5-5 · note · A3 · критерий приёмки выполнен
+- 2026-09-29T08:43:07Z · claude-opus-5-5 · note · A4 · критерий приёмки выполнен
+- 2026-09-29T08:43:07Z · claude-opus-5-5 · note · A5 · критерий приёмки выполнен
+- 2026-09-29T08:43:07Z · claude-opus-5-5 · note · A6 · критерий приёмки выполнен
+- 2026-09-29T08:43:07Z · claude-opus-5-5 · note · A7 · критерий приёмки выполнен
+- 2026-09-29T08:49:46Z · claude-opus-5-5 · checkpoint · S5 · дальше: Разобрать R1, исправить P0/P1, повторить гейты, push и PR
+- 2026-09-29T08:50:11Z · claude-opus-5-5 · status · - · review: Гейты зелёные; ревью R1 (независимый субагент) ещё идёт
+- 2026-09-29T21:04:25Z · claude-opus-5-5 · step · S5 · done: b59c028: verify-vnext все этапы PASS (Node 24, TEST_S3_CONFIG Garage, source-stability PASS, отпечаток 46dad0b30b4a); продукт 198/198 и отделяемый 198/198 без пропусков; Kotlin 51 unit + 24 integration без пропусков; ревью R1–R3 закрыты, P0/P1 нет; откат 026 проверен
+- 2026-09-29T21:04:25Z · claude-opus-5-5 · note · A8 · критерий приёмки выполнен
+- 2026-09-29T21:04:32Z · claude-opus-5-5 · decision · D6 · Скачивание оригинала отдаётся с Connection: close — сбой после первых байтов закрывает соединение сразу, а не через keep-alive 15 с или proxy_read_timeout nginx; у nginx нет keepalive к API, поэтому в production это ничего не стоит
+- 2026-09-29T21:04:32Z · claude-opus-5-5 · checkpoint · S5 · дальше: Владелец: слить PR #25 (V…025), затем PR #26; после слияния поднять client_max_body_size и таймауты в deploy/vps/nginx.conf
+- 2026-09-29T21:04:44Z · claude-opus-5-5 · checkpoint · - · контрольная точка
+- 2026-09-29T21:13:54Z · claude-opus-5-5 · step · S5 · done: 39897f1 (слияние main с #25 V…025): verify-vnext все этапы PASS (Node 24, Garage, source-stability, отпечаток 272bc92217c8); продукт 211/211 и отделяемый 211/211 без пропусков; Kotlin 55 unit + 27 integration без пропусков; jOOQ из слитой истории без изменений; откат 026 проверен на слитой истории; ревью R1–R3 закрыты
+- 2026-09-29T21:13:54Z · claude-opus-5-5 · checkpoint · - · дальше: Владелец: слить PR #26; после слияния поднять client_max_body_size 2050m и proxy_send_timeout 300s в products/sprintique/deploy/vps/nginx.conf

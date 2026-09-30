@@ -39,6 +39,7 @@ class SecurityHeadersFilter(private val properties: SprintiqueProperties) : Once
     private companion object {
         const val CONTENT_SECURITY_POLICY =
             "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; " +
+                "media-src 'self' blob:; " +
                 "font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'"
     }
 }

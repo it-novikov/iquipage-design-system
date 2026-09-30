@@ -39,9 +39,9 @@ open class AssetsRecord() : UpdatableRecordImpl<AssetsRecord>(Assets.ASSETS) {
         set(value): Unit = set(5, value)
         get(): String? = get(5) as String?
 
-    open var size: Int?
+    open var size: Long?
         set(value): Unit = set(6, value)
-        get(): Int? = get(6) as Int?
+        get(): Long? = get(6) as Long?
 
     open var sha256: String?
         set(value): Unit = set(7, value)
@@ -89,7 +89,7 @@ open class AssetsRecord() : UpdatableRecordImpl<AssetsRecord>(Assets.ASSETS) {
 
     override fun key(): Record2<String?, String?> = super.key() as Record2<String?, String?>
 
-    constructor(projectId: String? = null, id: String? = null, targetType: String? = null, targetId: String? = null, actorId: String? = null, name: String? = null, size: Int? = null, sha256: String? = null, state: String? = null, mime: String? = null, image: Boolean? = null, width: Int? = null, height: Int? = null, revision: Int? = null, createdAt: OffsetDateTime? = null, updatedAt: OffsetDateTime? = null, expiresAt: OffsetDateTime? = null): this() {
+    constructor(projectId: String? = null, id: String? = null, targetType: String? = null, targetId: String? = null, actorId: String? = null, name: String? = null, size: Long? = null, sha256: String? = null, state: String? = null, mime: String? = null, image: Boolean? = null, width: Int? = null, height: Int? = null, revision: Int? = null, createdAt: OffsetDateTime? = null, updatedAt: OffsetDateTime? = null, expiresAt: OffsetDateTime? = null): this() {
         this.projectId = projectId
         this.id = id
         this.targetType = targetType

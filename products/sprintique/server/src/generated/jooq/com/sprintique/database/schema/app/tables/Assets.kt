@@ -83,7 +83,7 @@ open class Assets(
 
     val NAME: TableField<AssetsRecord, String?> = createField(DSL.name("name"), SQLDataType.CLOB.nullable(false), this, "")
 
-    val SIZE: TableField<AssetsRecord, Int?> = createField(DSL.name("size"), SQLDataType.INTEGER.nullable(false), this, "")
+    val SIZE: TableField<AssetsRecord, Long?> = createField(DSL.name("size"), SQLDataType.BIGINT.nullable(false), this, "")
 
     val SHA256: TableField<AssetsRecord, String?> = createField(DSL.name("sha256"), SQLDataType.CLOB.nullable(false), this, "")
 
@@ -135,8 +135,8 @@ open class Assets(
     fun projects(): ProjectsPath = projects
     val projects: ProjectsPath by lazy { ProjectsPath(this, ASSETS__ASSETS_PROJECT_ID_FKEY, null) }
     override fun getChecks(): List<Check<AssetsRecord>> = listOf(
-        Internal.createCheck(this, DSL.name("asset_state"), "((state = ANY (ARRAY['uploading'::text, 'ready'::text, 'attached'::text, 'detached'::text, 'quarantined'::text, 'deleting'::text, 'deleted'::text])))", true),
-        Internal.createCheck(this, DSL.name("assets_size_check"), "(((size >= 1) AND (size <= 10485760)))", true),
+        Internal.createCheck(this, DSL.name("asset_size"), "(((size >= 1) AND (size <= '2147483648'::bigint)))", true),
+        Internal.createCheck(this, DSL.name("asset_state"), "((state = ANY (ARRAY['uploading'::text, 'publishing'::text, 'ready'::text, 'attached'::text, 'detached'::text, 'quarantined'::text, 'deleting'::text, 'deleted'::text])))", true),
         Internal.createCheck(this, DSL.name("assets_target_type_check"), "((target_type = ANY (ARRAY['task'::text, 'map'::text, 'project-avatar'::text])))", true)
     )
     override fun `as`(alias: String): Assets = Assets(DSL.name(alias), this)
