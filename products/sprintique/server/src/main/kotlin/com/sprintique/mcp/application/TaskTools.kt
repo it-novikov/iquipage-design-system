@@ -132,7 +132,7 @@ class TaskTools(private val ledger: CommandLedger, private val properties: Sprin
                     releaseId = null,
                     tagIds = emptyList(),
                 ),
-                input.addToBoard,
+                false,
             )
         }
         return present(tx, input.projectId, Tasks.read(tx, input.projectId, id))

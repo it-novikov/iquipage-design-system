@@ -3,25 +3,32 @@ package com.sprintique.identity.api
 import com.fasterxml.jackson.annotation.JsonValue
 import com.sprintique.contract.Accepts
 import com.sprintique.contract.Contracts
+import com.sprintique.contract.MAX_SAFE_INTEGER
 import com.sprintique.contract.QueryParameters
+import com.sprintique.contract.RESOURCE_ID
 import com.sprintique.contract.TrimmedString
+import com.sprintique.contract.UUID
 import com.sprintique.contract.UniqueItems
 import com.sprintique.identity.application.AuthorizationRequest
-import com.sprintique.identity.application.ConnectedApps
 import com.sprintique.identity.application.OAuthAuthorizations
-import com.sprintique.identity.application.PersonalTokens
+import com.sprintique.identity.application.ServiceAccounts
 import com.sprintique.identity.domain.Scope
 import com.sprintique.problem.ProblemException
+import com.sprintique.web.RequestValidationException
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.servlet.http.HttpServletRequest
+import jakarta.validation.Valid
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
+import jakarta.validation.constraints.Pattern
 import jakarta.validation.constraints.Size
 import org.springframework.context.annotation.Profile
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import tools.jackson.databind.JsonNode
@@ -35,7 +42,26 @@ enum class TokenScope(@get:JsonValue val wire: String, val scope: Scope) {
     WRITE("write", Scope.WRITE),
 }
 
-/** The person's answer on the consent screen, with the authorization request exactly as the client sent it. */
+/** A new service account made on the consent screen. */
+@Schema(name = "NewServiceAccount")
+data class NewServiceAccountRequest(
+    @field:JsonDeserialize(using = TrimmedString::class)
+    @field:Size(min = 1, max = 100)
+    val name: String,
+    @field:Pattern(regexp = UUID)
+    val workspaceId: String,
+    @field:Size(min = 1, max = 100)
+    @field:UniqueItems
+    val projectIds: List<
+        @Pattern(regexp = RESOURCE_ID)
+        String,
+        >,
+)
+
+/**
+ * The person's answer on the consent screen, with the authorization request exactly as the client sent it. An approval
+ * names the service account the app will act as: one of the person's own or a new one, exactly one of them.
+ */
 @Schema(name = "OAuthDecision")
 data class OAuthDecisionRequest(
     @field:Size(min = 1, max = 4000)
@@ -44,10 +70,60 @@ data class OAuthDecisionRequest(
     @field:Size(min = 1, max = 2)
     @field:UniqueItems
     val scopes: List<TokenScope>,
+    @field:Pattern(regexp = RESOURCE_ID)
+    val serviceAccountId: String? = null,
+    @field:Valid
+    val newServiceAccount: NewServiceAccountRequest? = null,
 )
 
-@Schema(name = "PersonalToken")
-data class PersonalTokenRequest(
+enum class ServiceAccountRoleName(@get:JsonValue val wire: String, val role: ServiceAccounts.Role) {
+    READER("reader", ServiceAccounts.Role.READER),
+    EDITOR("editor", ServiceAccounts.Role.EDITOR),
+}
+
+@Schema(name = "ServiceAccountProject")
+data class ServiceAccountProjectRequest(
+    @field:Pattern(regexp = RESOURCE_ID)
+    val projectId: String,
+    val role: ServiceAccountRoleName,
+)
+
+@Schema(name = "CreateServiceAccount")
+data class CreateServiceAccountRequest(
+    @field:JsonDeserialize(using = TrimmedString::class)
+    @field:Size(min = 1, max = 100)
+    val name: String,
+    @field:Pattern(regexp = UUID)
+    val workspaceId: String,
+    @field:Size(max = 100)
+    @field:Valid
+    val projects: List<ServiceAccountProjectRequest>,
+)
+
+@Schema(name = "RenameServiceAccount")
+data class RenameServiceAccountRequest(
+    @field:Min(0)
+    @field:Max(MAX_SAFE_INTEGER)
+    val baseRevision: Long,
+    @field:JsonDeserialize(using = TrimmedString::class)
+    @field:Size(min = 1, max = 100)
+    val name: String,
+)
+
+@Schema(name = "ReassignServiceAccount")
+data class ReassignServiceAccountRequest(
+    @field:Min(0)
+    @field:Max(MAX_SAFE_INTEGER)
+    val baseRevision: Long,
+    @field:Pattern(regexp = RESOURCE_ID)
+    val ownerId: String,
+)
+
+@Schema(name = "SetServiceAccountProject")
+data class SetServiceAccountProjectRequest(val role: ServiceAccountRoleName)
+
+@Schema(name = "ServiceToken")
+data class ServiceTokenRequest(
     @field:JsonDeserialize(using = TrimmedString::class)
     @field:Size(min = 1, max = 100)
     val name: String,
@@ -60,8 +136,8 @@ data class PersonalTokenRequest(
 )
 
 /**
- * The person's side of delegated access, for the interface only (a session is required throughout): the consent
- * screen of the OAuth flow, the connected apps, the personal access tokens.
+ * The person's side of programmatic access, for the interface only (a session is required throughout): the consent
+ * screen of the OAuth flow and the service accounts with their projects, tokens and connected apps.
  */
 @RestController
 @Profile("api")
@@ -69,7 +145,7 @@ class DelegatedAccessController(
     private val requests: AuthenticatedRequests,
     private val contracts: Contracts,
     private val authorizations: OAuthAuthorizations,
-    private val personalTokens: PersonalTokens,
+    private val accounts: ServiceAccounts,
 ) {
     /** What the consent screen shows for an authorization request (`request` is its query string). */
     @GetMapping("/api/v1/oauth/authorization")
@@ -83,46 +159,118 @@ class DelegatedAccessController(
     fun decide(@RequestBody(required = false) body: JsonNode?, request: HttpServletRequest) =
         requests.run(request) { tx, actor ->
             val input = contracts.parse<OAuthDecisionRequest>(body)
+            val choice = when {
+                input.serviceAccountId != null && input.newServiceAccount != null -> throw RequestValidationException()
+
+                input.serviceAccountId != null -> OAuthAuthorizations.AccountChoice.Existing(input.serviceAccountId)
+
+                input.newServiceAccount != null -> input.newServiceAccount.let {
+                    OAuthAuthorizations.AccountChoice.New(it.name, it.workspaceId, it.projectIds)
+                }
+
+                else -> null
+            }
             authorizations.decide(
                 tx,
                 actor,
                 authorizationRequest(input.request),
                 input.approve,
                 input.scopes.map(TokenScope::scope).toSet(),
+                choice,
             )
         }
 
-    @GetMapping("/api/v1/connected-apps")
-    fun connectedApps(request: HttpServletRequest) = requests.run(request) { tx, actor ->
-        mapOf("items" to ConnectedApps.list(tx, actor))
+    @GetMapping("/api/v1/service-accounts")
+    fun serviceAccounts(request: HttpServletRequest) = requests.run(request) { tx, actor ->
+        mapOf("items" to accounts.list(tx, actor))
     }
+
+    @PostMapping("/api/v1/service-accounts")
+    @Accepts(CreateServiceAccountRequest::class)
+    fun create(@RequestBody(required = false) body: JsonNode?, request: HttpServletRequest) =
+        requests.run(request) { tx, actor ->
+            val input = contracts.parse<CreateServiceAccountRequest>(body)
+            accounts.create(
+                tx,
+                actor,
+                ServiceAccounts.NewAccount(
+                    input.name,
+                    input.workspaceId,
+                    input.projects.map { ServiceAccounts.ProjectGrant(it.projectId, it.role.role) },
+                ),
+            )
+        }
+
+    @PatchMapping("/api/v1/service-accounts/{id}")
+    @Accepts(RenameServiceAccountRequest::class)
+    fun rename(@PathVariable id: String, @RequestBody(required = false) body: JsonNode?, request: HttpServletRequest) =
+        requests.run(request) { tx, actor ->
+            val input = contracts.parse<RenameServiceAccountRequest>(body)
+            accounts.rename(tx, actor, RequestInputs.id(id), input.baseRevision, input.name)
+        }
+
+    @PostMapping("/api/v1/service-accounts/{id}/owner")
+    @Accepts(ReassignServiceAccountRequest::class)
+    fun reassign(
+        @PathVariable id: String,
+        @RequestBody(required = false) body: JsonNode?,
+        request: HttpServletRequest,
+    ) =
+        requests.run(request) { tx, actor ->
+            val input = contracts.parse<ReassignServiceAccountRequest>(body)
+            accounts.reassign(tx, actor, RequestInputs.id(id), input.baseRevision, input.ownerId)
+        }
+
+    @DeleteMapping("/api/v1/service-accounts/{id}")
+    fun delete(@PathVariable id: String, request: HttpServletRequest) = requests.run(request) { tx, actor ->
+        accounts.delete(tx, actor, RequestInputs.id(id))
+    }
+
+    @PutMapping("/api/v1/service-accounts/{id}/projects/{projectId}")
+    @Accepts(SetServiceAccountProjectRequest::class)
+    fun setProject(
+        @PathVariable id: String,
+        @PathVariable projectId: String,
+        @RequestBody(required = false) body: JsonNode?,
+        request: HttpServletRequest,
+    ) = requests.run(request) { tx, actor ->
+        val input = contracts.parse<SetServiceAccountProjectRequest>(body)
+        accounts.setProject(tx, actor, RequestInputs.id(id), RequestInputs.id(projectId), input.role.role)
+    }
+
+    @DeleteMapping("/api/v1/service-accounts/{id}/projects/{projectId}")
+    fun removeProject(@PathVariable id: String, @PathVariable projectId: String, request: HttpServletRequest) =
+        requests.run(request) { tx, actor ->
+            accounts.setProject(tx, actor, RequestInputs.id(id), RequestInputs.id(projectId), null)
+        }
+
+    /** A new token of the service account, shown once in this response. */
+    @PostMapping("/api/v1/service-accounts/{id}/tokens")
+    @Accepts(ServiceTokenRequest::class)
+    fun createToken(
+        @PathVariable id: String,
+        @RequestBody(required = false) body: JsonNode?,
+        request: HttpServletRequest,
+    ) = requests.run(request) { tx, actor ->
+        val input = contracts.parse<ServiceTokenRequest>(body)
+        accounts.createToken(
+            tx,
+            actor,
+            RequestInputs.id(id),
+            ServiceAccounts.NewToken(input.name, input.scopes.map(TokenScope::scope).toSet(), input.expiresInDays),
+        )
+    }
+
+    @DeleteMapping("/api/v1/service-accounts/{id}/tokens/{tokenId}")
+    fun revokeToken(@PathVariable id: String, @PathVariable tokenId: String, request: HttpServletRequest) =
+        requests.run(request) { tx, actor ->
+            accounts.revokeToken(tx, actor, RequestInputs.id(id), RequestInputs.id(tokenId))
+        }
 
     @DeleteMapping("/api/v1/connected-apps/{id}")
     fun revokeApp(@PathVariable id: String, request: HttpServletRequest) = requests.run(request) { tx, actor ->
-        ConnectedApps.revoke(tx, actor, RequestInputs.id(id))
+        accounts.revokeApp(tx, actor, RequestInputs.id(id))
     }
-
-    @GetMapping("/api/v1/personal-tokens")
-    fun personalTokens(request: HttpServletRequest) = requests.run(request) { tx, actor ->
-        mapOf("items" to personalTokens.list(tx, actor))
-    }
-
-    /** A new token, shown once in this response. */
-    @PostMapping("/api/v1/personal-tokens")
-    @Accepts(PersonalTokenRequest::class)
-    fun createPersonalToken(@RequestBody(required = false) body: JsonNode?, request: HttpServletRequest) =
-        requests.run(request) { tx, actor ->
-            val input = contracts.parse<PersonalTokenRequest>(body)
-            personalTokens.create(
-                tx,
-                actor,
-                PersonalTokens.NewToken(input.name, input.scopes.map(TokenScope::scope).toSet(), input.expiresInDays),
-            )
-        }
-
-    @DeleteMapping("/api/v1/personal-tokens/{id}")
-    fun revokePersonalToken(@PathVariable id: String, request: HttpServletRequest) =
-        requests.run(request) { tx, actor -> personalTokens.revoke(tx, actor, RequestInputs.id(id)) }
 
     private companion object {
         const val REQUEST_LIMIT = 4000

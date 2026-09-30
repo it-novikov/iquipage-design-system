@@ -55,7 +55,7 @@ class AuthenticatedRequests(private val authentication: Authentication, private 
     companion object {
         const val SESSION_COOKIE = "__Host-sprintique"
         private val SAFE_METHODS = setOf("GET", "HEAD", "OPTIONS")
-        private val BEARER = Regex("^[Bb]earer ((?:spr|spp|spo)_[A-Za-z0-9_-]{43})$")
+        private val BEARER = Regex("^[Bb]earer ((?:spr|spk|spo)_[A-Za-z0-9_-]{43})$")
         private val SESSION_TOKEN = Regex("^[A-Za-z0-9_-]{43}$")
 
         /** Whether an Authorization header has the shape of this server's bearer tokens; nothing is looked up. */

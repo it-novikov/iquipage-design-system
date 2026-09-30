@@ -18,8 +18,11 @@ import com.sprintique.database.schema.auth.tables.OauthRefreshTokens
 import com.sprintique.database.schema.auth.tables.Principals
 import com.sprintique.database.schema.auth.tables.ProjectInvitations
 import com.sprintique.database.schema.auth.tables.ProjectTimezoneSource
+import com.sprintique.database.schema.auth.tables.ServiceAccountWorkspace
+import com.sprintique.database.schema.auth.tables.ServiceAccounts
 import com.sprintique.database.schema.auth.tables.WorkspaceProjects
 import com.sprintique.database.schema.auth.tables.records.ProjectTimezoneSourceRecord
+import com.sprintique.database.schema.auth.tables.records.ServiceAccountWorkspaceRecord
 import com.sprintique.database.schema.auth.tables.records.WorkspaceProjectsRecord
 
 import java.util.UUID
@@ -74,6 +77,18 @@ fun PROJECT_TIMEZONE_SOURCE(
 ): ProjectTimezoneSource = com.sprintique.database.schema.auth.tables.ProjectTimezoneSource.PROJECT_TIMEZONE_SOURCE.call(
     target
 )
+
+val SERVICE_ACCOUNT_WORKSPACE: ServiceAccountWorkspace = ServiceAccountWorkspace.SERVICE_ACCOUNT_WORKSPACE
+
+fun SERVICE_ACCOUNT_WORKSPACE(
+      configuration: Configuration
+): Result<ServiceAccountWorkspaceRecord> = configuration.dsl().selectFrom(com.sprintique.database.schema.auth.tables.ServiceAccountWorkspace.SERVICE_ACCOUNT_WORKSPACE.call(
+)).fetch()
+
+fun SERVICE_ACCOUNT_WORKSPACE(): ServiceAccountWorkspace = com.sprintique.database.schema.auth.tables.ServiceAccountWorkspace.SERVICE_ACCOUNT_WORKSPACE.call(
+)
+
+val SERVICE_ACCOUNTS: ServiceAccounts = ServiceAccounts.SERVICE_ACCOUNTS
 
 val WORKSPACE_PROJECTS: WorkspaceProjects = WorkspaceProjects.WORKSPACE_PROJECTS
 

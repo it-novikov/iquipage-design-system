@@ -28,37 +28,41 @@ open class OauthCodesRecord() : UpdatableRecordImpl<OauthCodesRecord>(OauthCodes
         set(value): Unit = set(2, value)
         get(): String? = get(2) as String?
 
-    open var redirectUri: String?
+    open var grantedBy: String?
         set(value): Unit = set(3, value)
         get(): String? = get(3) as String?
 
-    open var codeChallenge: String?
+    open var redirectUri: String?
         set(value): Unit = set(4, value)
         get(): String? = get(4) as String?
 
-    open var scopes: Array<String?>?
+    open var codeChallenge: String?
         set(value): Unit = set(5, value)
-        get(): Array<String?>? = get(5) as Array<String?>?
+        get(): String? = get(5) as String?
+
+    open var scopes: Array<String?>?
+        set(value): Unit = set(6, value)
+        get(): Array<String?>? = get(6) as Array<String?>?
 
     open var resource: String?
-        set(value): Unit = set(6, value)
-        get(): String? = get(6) as String?
+        set(value): Unit = set(7, value)
+        get(): String? = get(7) as String?
 
     open var createdAt: OffsetDateTime?
-        set(value): Unit = set(7, value)
-        get(): OffsetDateTime? = get(7) as OffsetDateTime?
-
-    open var expiresAt: OffsetDateTime?
         set(value): Unit = set(8, value)
         get(): OffsetDateTime? = get(8) as OffsetDateTime?
 
-    open var consumedAt: OffsetDateTime?
+    open var expiresAt: OffsetDateTime?
         set(value): Unit = set(9, value)
         get(): OffsetDateTime? = get(9) as OffsetDateTime?
 
-    open var grantId: UUID?
+    open var consumedAt: OffsetDateTime?
         set(value): Unit = set(10, value)
-        get(): UUID? = get(10) as UUID?
+        get(): OffsetDateTime? = get(10) as OffsetDateTime?
+
+    open var grantId: UUID?
+        set(value): Unit = set(11, value)
+        get(): UUID? = get(11) as UUID?
 
     // -------------------------------------------------------------------------
     // Primary key information
@@ -66,10 +70,11 @@ open class OauthCodesRecord() : UpdatableRecordImpl<OauthCodesRecord>(OauthCodes
 
     override fun key(): Record1<String?> = super.key() as Record1<String?>
 
-    constructor(codeHash: String? = null, clientId: String? = null, principalId: String? = null, redirectUri: String? = null, codeChallenge: String? = null, scopes: Array<String?>? = null, resource: String? = null, createdAt: OffsetDateTime? = null, expiresAt: OffsetDateTime? = null, consumedAt: OffsetDateTime? = null, grantId: UUID? = null): this() {
+    constructor(codeHash: String? = null, clientId: String? = null, principalId: String? = null, grantedBy: String? = null, redirectUri: String? = null, codeChallenge: String? = null, scopes: Array<String?>? = null, resource: String? = null, createdAt: OffsetDateTime? = null, expiresAt: OffsetDateTime? = null, consumedAt: OffsetDateTime? = null, grantId: UUID? = null): this() {
         this.codeHash = codeHash
         this.clientId = clientId
         this.principalId = principalId
+        this.grantedBy = grantedBy
         this.redirectUri = redirectUri
         this.codeChallenge = codeChallenge
         this.scopes = scopes

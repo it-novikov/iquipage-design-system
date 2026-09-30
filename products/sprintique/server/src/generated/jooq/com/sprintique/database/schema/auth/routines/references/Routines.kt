@@ -13,9 +13,12 @@ import com.sprintique.database.schema.auth.routines.CanSeePerson
 import com.sprintique.database.schema.auth.routines.CanWorkspace
 import com.sprintique.database.schema.auth.routines.CollectOauthAccessTokens
 import com.sprintique.database.schema.auth.routines.ProjectTimezone
+import com.sprintique.database.schema.auth.routines.ServiceAccountActive
 import com.sprintique.database.schema.auth.tables.ProjectTimezoneSource
+import com.sprintique.database.schema.auth.tables.ServiceAccountWorkspace
 import com.sprintique.database.schema.auth.tables.WorkspaceProjects
 import com.sprintique.database.schema.auth.tables.records.ProjectTimezoneSourceRecord
+import com.sprintique.database.schema.auth.tables.records.ServiceAccountWorkspaceRecord
 import com.sprintique.database.schema.auth.tables.records.WorkspaceProjectsRecord
 
 import java.util.UUID
@@ -244,6 +247,35 @@ fun projectTimezone(
     return f.asField()
 }
 
+fun serviceAccountActive(
+      configuration: Configuration
+    , target: String?
+): Boolean? {
+    val f = ServiceAccountActive()
+    f.setTarget(target)
+
+    f.execute(configuration)
+    return f.returnValue
+}
+
+fun serviceAccountActive(
+      target: String?
+): Field<Boolean?> {
+    val f = ServiceAccountActive()
+    f.setTarget(target)
+
+    return f.asField()
+}
+
+fun serviceAccountActive(
+      target: Field<String?>
+): Field<Boolean?> {
+    val f = ServiceAccountActive()
+    f.setTarget(target)
+
+    return f.asField()
+}
+
 fun projectTimezoneSource(
       configuration: Configuration
     , target: String?
@@ -261,6 +293,14 @@ fun projectTimezoneSource(
       target: Field<String?>
 ): ProjectTimezoneSource = com.sprintique.database.schema.auth.tables.ProjectTimezoneSource.PROJECT_TIMEZONE_SOURCE.call(
     target
+)
+
+fun serviceAccountWorkspace(
+      configuration: Configuration
+): Result<ServiceAccountWorkspaceRecord> = configuration.dsl().selectFrom(com.sprintique.database.schema.auth.tables.ServiceAccountWorkspace.SERVICE_ACCOUNT_WORKSPACE.call(
+)).fetch()
+
+fun serviceAccountWorkspace(): ServiceAccountWorkspace = com.sprintique.database.schema.auth.tables.ServiceAccountWorkspace.SERVICE_ACCOUNT_WORKSPACE.call(
 )
 
 fun workspaceProjects(

@@ -7,6 +7,7 @@ package com.sprintique.database.schema.auth.tables
 import com.sprintique.database.schema.auth.Auth
 import com.sprintique.database.schema.auth.indexes.ACCESS_EVENTS_PRINCIPAL
 import com.sprintique.database.schema.auth.keys.ACCESS_EVENTS_PKEY
+import com.sprintique.database.schema.auth.keys.ACCESS_EVENTS__ACCESS_EVENTS_ACTOR_ID_FKEY
 import com.sprintique.database.schema.auth.keys.ACCESS_EVENTS__ACCESS_EVENTS_PRINCIPAL_ID_FKEY
 import com.sprintique.database.schema.auth.tables.Principals.PrincipalsPath
 import com.sprintique.database.schema.auth.tables.records.AccessEventsRecord
@@ -74,6 +75,8 @@ open class AccessEvents(
 
     val PRINCIPAL_ID: TableField<AccessEventsRecord, String?> = createField(DSL.name("principal_id"), SQLDataType.CLOB.nullable(false), this, "")
 
+    val ACTOR_ID: TableField<AccessEventsRecord, String?> = createField(DSL.name("actor_id"), SQLDataType.CLOB, this, "")
+
     val ACTION: TableField<AccessEventsRecord, String?> = createField(DSL.name("action"), SQLDataType.CLOB.nullable(false), this, "")
 
     val SUBJECT_ID: TableField<AccessEventsRecord, String?> = createField(DSL.name("subject_id"), SQLDataType.CLOB.nullable(false), this, "")
@@ -104,12 +107,15 @@ open class AccessEvents(
     override fun getSchema(): Schema? = if (aliased()) null else Auth.AUTH
     override fun getIndexes(): List<Index> = listOf(ACCESS_EVENTS_PRINCIPAL)
     override fun getPrimaryKey(): UniqueKey<AccessEventsRecord> = ACCESS_EVENTS_PKEY
-    override fun getReferences(): List<ForeignKey<AccessEventsRecord, *>> = listOf(ACCESS_EVENTS__ACCESS_EVENTS_PRINCIPAL_ID_FKEY)
+    override fun getReferences(): List<ForeignKey<AccessEventsRecord, *>> = listOf(ACCESS_EVENTS__ACCESS_EVENTS_ACTOR_ID_FKEY, ACCESS_EVENTS__ACCESS_EVENTS_PRINCIPAL_ID_FKEY)
 
-    fun principals(): PrincipalsPath = principals
-    val principals: PrincipalsPath by lazy { PrincipalsPath(this, ACCESS_EVENTS__ACCESS_EVENTS_PRINCIPAL_ID_FKEY, null) }
+    fun accessEventsActorIdFkey(): PrincipalsPath = accessEventsActorIdFkey
+    val accessEventsActorIdFkey: PrincipalsPath by lazy { PrincipalsPath(this, ACCESS_EVENTS__ACCESS_EVENTS_ACTOR_ID_FKEY, null) }
+
+    fun accessEventsPrincipalIdFkey(): PrincipalsPath = accessEventsPrincipalIdFkey
+    val accessEventsPrincipalIdFkey: PrincipalsPath by lazy { PrincipalsPath(this, ACCESS_EVENTS__ACCESS_EVENTS_PRINCIPAL_ID_FKEY, null) }
     override fun getChecks(): List<Check<AccessEventsRecord>> = listOf(
-        Internal.createCheck(this, DSL.name("access_events_action_check"), "((action = ANY (ARRAY['token.created'::text, 'token.revoked'::text, 'app.connected'::text, 'app.revoked'::text, 'app.code-replayed'::text, 'app.refresh-replayed'::text])))", true),
+        Internal.createCheck(this, DSL.name("access_events_action_check"), "((action = ANY (ARRAY['account.created'::text, 'account.changed'::text, 'account.owner-changed'::text, 'account.suspended'::text, 'account.deleted'::text, 'project.granted'::text, 'project.revoked'::text, 'token.created'::text, 'token.revoked'::text, 'app.connected'::text, 'app.revoked'::text, 'app.code-replayed'::text, 'app.refresh-replayed'::text])))", true),
         Internal.createCheck(this, DSL.name("access_events_client_id_check"), "(((client_id IS NULL) OR (length(client_id) <= 100)))", true),
         Internal.createCheck(this, DSL.name("access_events_subject_id_check"), "(((length(subject_id) >= 1) AND (length(subject_id) <= 100)))", true)
     )

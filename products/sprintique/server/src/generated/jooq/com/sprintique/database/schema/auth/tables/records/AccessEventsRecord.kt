@@ -24,21 +24,25 @@ open class AccessEventsRecord() : UpdatableRecordImpl<AccessEventsRecord>(Access
         set(value): Unit = set(1, value)
         get(): String? = get(1) as String?
 
-    open var action: String?
+    open var actorId: String?
         set(value): Unit = set(2, value)
         get(): String? = get(2) as String?
 
-    open var subjectId: String?
+    open var action: String?
         set(value): Unit = set(3, value)
         get(): String? = get(3) as String?
 
-    open var clientId: String?
+    open var subjectId: String?
         set(value): Unit = set(4, value)
         get(): String? = get(4) as String?
 
-    open var createdAt: OffsetDateTime?
+    open var clientId: String?
         set(value): Unit = set(5, value)
-        get(): OffsetDateTime? = get(5) as OffsetDateTime?
+        get(): String? = get(5) as String?
+
+    open var createdAt: OffsetDateTime?
+        set(value): Unit = set(6, value)
+        get(): OffsetDateTime? = get(6) as OffsetDateTime?
 
     // -------------------------------------------------------------------------
     // Primary key information
@@ -46,9 +50,10 @@ open class AccessEventsRecord() : UpdatableRecordImpl<AccessEventsRecord>(Access
 
     override fun key(): Record1<UUID?> = super.key() as Record1<UUID?>
 
-    constructor(id: UUID? = null, principalId: String? = null, action: String? = null, subjectId: String? = null, clientId: String? = null, createdAt: OffsetDateTime? = null): this() {
+    constructor(id: UUID? = null, principalId: String? = null, actorId: String? = null, action: String? = null, subjectId: String? = null, clientId: String? = null, createdAt: OffsetDateTime? = null): this() {
         this.id = id
         this.principalId = principalId
+        this.actorId = actorId
         this.action = action
         this.subjectId = subjectId
         this.clientId = clientId

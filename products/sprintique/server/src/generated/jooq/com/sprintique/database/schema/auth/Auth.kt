@@ -18,8 +18,11 @@ import com.sprintique.database.schema.auth.tables.OauthRefreshTokens
 import com.sprintique.database.schema.auth.tables.Principals
 import com.sprintique.database.schema.auth.tables.ProjectInvitations
 import com.sprintique.database.schema.auth.tables.ProjectTimezoneSource
+import com.sprintique.database.schema.auth.tables.ServiceAccountWorkspace
+import com.sprintique.database.schema.auth.tables.ServiceAccounts
 import com.sprintique.database.schema.auth.tables.WorkspaceProjects
 import com.sprintique.database.schema.auth.tables.records.ProjectTimezoneSourceRecord
+import com.sprintique.database.schema.auth.tables.records.ServiceAccountWorkspaceRecord
 import com.sprintique.database.schema.auth.tables.records.WorkspaceProjectsRecord
 
 import java.util.UUID
@@ -87,6 +90,18 @@ open class Auth : SchemaImpl(DSL.name("auth"), DefaultCatalog.DEFAULT_CATALOG, D
         target
     )
 
+    val SERVICE_ACCOUNT_WORKSPACE: ServiceAccountWorkspace get() = ServiceAccountWorkspace.SERVICE_ACCOUNT_WORKSPACE
+
+    fun SERVICE_ACCOUNT_WORKSPACE(
+          configuration: Configuration
+    ): Result<ServiceAccountWorkspaceRecord> = configuration.dsl().selectFrom(com.sprintique.database.schema.auth.tables.ServiceAccountWorkspace.SERVICE_ACCOUNT_WORKSPACE.call(
+    )).fetch()
+
+    fun SERVICE_ACCOUNT_WORKSPACE(): ServiceAccountWorkspace = com.sprintique.database.schema.auth.tables.ServiceAccountWorkspace.SERVICE_ACCOUNT_WORKSPACE.call(
+    )
+
+    val SERVICE_ACCOUNTS: ServiceAccounts get() = ServiceAccounts.SERVICE_ACCOUNTS
+
     val WORKSPACE_PROJECTS: WorkspaceProjects get() = WorkspaceProjects.WORKSPACE_PROJECTS
 
     fun WORKSPACE_PROJECTS(
@@ -124,6 +139,8 @@ open class Auth : SchemaImpl(DSL.name("auth"), DefaultCatalog.DEFAULT_CATALOG, D
         Principals.PRINCIPALS,
         ProjectInvitations.PROJECT_INVITATIONS,
         ProjectTimezoneSource.PROJECT_TIMEZONE_SOURCE,
+        ServiceAccountWorkspace.SERVICE_ACCOUNT_WORKSPACE,
+        ServiceAccounts.SERVICE_ACCOUNTS,
         WorkspaceProjects.WORKSPACE_PROJECTS
     )
 }

@@ -1,67 +1,46 @@
 package com.sprintique.identity.application
 
 import com.sprintique.database.Transaction
-import com.sprintique.identity.domain.Actor
-import com.sprintique.problem.requireCondition
 
 /**
- * The apps a person connected by OAuth: one entry per app, with the client's own name, the scopes and when it was
- * last used. Connecting the same app again replaces its earlier grant; a grant whose tokens have all expired is no
- * longer a connection. Revoking an app ends its access and refresh tokens at once.
+ * The apps connected to a service account by OAuth: one entry per app, with the client's own name, the scopes, who
+ * approved it and when it was last used. Connecting the same app again replaces its earlier grant; a grant whose
+ * tokens have all expired is no longer a connection. Revoking an app ends its access and refresh tokens at once.
  */
 object ConnectedApps {
+    /** Connected apps per person who approves them, across their service accounts. */
     const val LIMIT = 50
 
     /** SQL condition on a grant `g`: not revoked and still holding a live refresh or access token. */
     const val LIVE = """g.revoked_at IS NULL AND (
           EXISTS (SELECT 1 FROM auth.oauth_refresh_tokens r WHERE r.grant_id = g.id AND r.revoked_at IS NULL
-                    AND r.rotated_at IS NULL AND r.expires_at > clock_timestamp())
+                    AND r.rotated_at IS NULL AND r.superseded_at IS NULL AND r.expires_at > clock_timestamp())
           OR EXISTS (SELECT 1 FROM auth.credentials t WHERE t.grant_id = g.id AND t.revoked_at IS NULL
                        AND t.expires_at > clock_timestamp()))"""
-    private val UUID = Regex("^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")
 
-    fun list(tx: Transaction, actor: Actor): List<Map<String, Any?>> {
-        ProjectAccess.requireInteractive(actor)
-        return tx.rows(
-            """
-            SELECT g.id, c.name, g.client_id AS "clientId", c.redirect_uris[1] AS "redirectUri", g.scopes, g.resource,
-                   g.created_at AS "createdAt",
-                   greatest(g.last_used_at, (SELECT max(t.last_used_at) FROM auth.credentials t WHERE t.grant_id = g.id))
-                     AS "lastUsedAt"
-            FROM auth.oauth_grants g JOIN auth.oauth_clients c ON c.id = g.client_id
-            WHERE g.principal_id = $1 AND $LIVE ORDER BY g.created_at DESC, g.id LIMIT $2
-            """.trimIndent(),
-            actor.id,
-            LIMIT,
-        ).map { row ->
-            linkedMapOf(
-                "id" to row["id"],
-                "name" to row["name"],
-                "clientId" to row["clientId"],
-                "redirectHost" to runCatching { java.net.URI(row.string("redirectUri")).authority }.getOrNull(),
-                "scopes" to row.strings("scopes"),
-                "resource" to row["resource"],
-                "createdAt" to row["createdAt"],
-                "lastUsedAt" to row["lastUsedAt"],
-            )
-        }
-    }
-
-    fun revoke(tx: Transaction, actor: Actor, id: String): Map<String, Boolean> {
-        ProjectAccess.requireInteractive(actor)
-        requireCondition(UUID.matches(id), 404, "NOT_FOUND", "Приложение не подключено.")
-        val grant = tx.row(
-            """
-            SELECT client_id AS "clientId" FROM auth.oauth_grants
-            WHERE id = $1::uuid AND principal_id = $2 AND revoked_at IS NULL FOR UPDATE
-            """.trimIndent(),
-            id,
-            actor.id,
+    fun of(tx: Transaction, accountId: String): List<Map<String, Any?>> = tx.rows(
+        """
+        SELECT g.id, c.name, g.client_id AS "clientId", c.redirect_uris[1] AS "redirectUri", g.scopes,
+               g.created_at AS "createdAt", coalesce(b.profile_name, b.name) AS "grantedBy",
+               greatest(g.last_used_at, (SELECT max(t.last_used_at) FROM auth.credentials t WHERE t.grant_id = g.id))
+                 AS "lastUsedAt"
+        FROM auth.oauth_grants g JOIN auth.oauth_clients c ON c.id = g.client_id
+        JOIN auth.principals b ON b.id = g.granted_by
+        WHERE g.principal_id = $1 AND $LIVE ORDER BY g.created_at DESC, g.id LIMIT $2
+        """.trimIndent(),
+        accountId,
+        LIMIT,
+    ).map { row ->
+        linkedMapOf(
+            "id" to row["id"],
+            "name" to row["name"],
+            "clientId" to row["clientId"],
+            "redirectHost" to runCatching { java.net.URI(row.string("redirectUri")).authority }.getOrNull(),
+            "scopes" to row.strings("scopes"),
+            "grantedBy" to row["grantedBy"],
+            "createdAt" to row["createdAt"],
+            "lastUsedAt" to row["lastUsedAt"],
         )
-        requireCondition(grant != null, 404, "NOT_FOUND", "Приложение не подключено.")
-        revokeGrant(tx, id)
-        AccessEvents.record(tx, actor.id, "app.revoked", id, grant.string("clientId"))
-        return mapOf("revoked" to true)
     }
 
     /** Ends a grant with every token issued under it, in the caller's transaction. */

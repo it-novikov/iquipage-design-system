@@ -11,8 +11,9 @@ import com.sprintique.problem.requirePresent
 data class ProjectMembership(val workspaceId: String, val role: String)
 
 /**
- * Project access for people and agents. The database enforces the same boundary with row security; these checks
- * give the precise error and cover the rules row security cannot express (grantor rights, capabilities).
+ * Project access for people, agents and service accounts. The database enforces the same boundary with row
+ * security; these checks give the precise error and cover the rules row security cannot express (grantor and owner
+ * rights, capabilities).
  */
 object ProjectAccess {
     private val WRITERS = setOf("editor", "admin")
@@ -30,7 +31,7 @@ object ProjectAccess {
             actor.id,
         )
         val membership = requirePresent(row, 404, "NOT_FOUND", "Проект недоступен.").let(::membershipOf)
-        if (!actor.isHuman) {
+        if (actor.isAgent) {
             requireCondition(
                 actor.projectId == projectId && capability in actor.capabilities,
                 403,
@@ -53,6 +54,7 @@ object ProjectAccess {
             )
         }
         requireCondition(!capability.isWrite || membership.role in WRITERS, 403, "FORBIDDEN", "Недостаточно прав.")
+        if (actor.isService) requireOwnerRights(tx, actor, projectId, capability)
         requireCondition(
             !capability.isWrite || actor.mayChange,
             403,
@@ -71,6 +73,34 @@ object ProjectAccess {
         // delegated token must never mint a credential that outlives it or let someone else in.
         if (capability == Capability.AGENTS_MANAGE) requireInteractive(actor)
         return membership
+    }
+
+    /**
+     * A service account works only on tasks, discussions and maps (never finance, catalogs or access), and never above
+     * its owner: the owner must be a member of the project now, and a writer there for a change. Row security holds
+     * the same ceiling for reads (auth.can_project).
+     */
+    private fun requireOwnerRights(tx: Transaction, actor: Actor, projectId: String, capability: Capability) {
+        requireCondition(
+            capability in Capability.GRANTABLE,
+            403,
+            "SERVICE_ACCOUNT_FORBIDDEN",
+            "Сервисному аккаунту это действие недоступно.",
+        )
+        val owner = tx.row(
+            """
+            SELECT m.role FROM app.project_members m JOIN auth.principals p ON p.id = m.principal_id
+            WHERE m.project_id = $1 AND m.principal_id = $2 AND p.disabled_at IS NULL
+            """.trimIndent(),
+            projectId,
+            actor.initiatorId,
+        )
+        requireCondition(
+            owner != null && (!capability.isWrite || owner.string("role") in WRITERS),
+            403,
+            "OWNER_RIGHTS",
+            "Права владельца сервисного аккаунта не позволяют это действие.",
+        )
     }
 
     /**
@@ -104,6 +134,7 @@ object ProjectAccess {
             LEFT JOIN auth.oauth_grants g ON g.id = c.grant_id
             WHERE c.id = $1 AND c.revoked_at IS NULL AND c.expires_at > clock_timestamp() AND p.disabled_at IS NULL
               AND (c.grant_id IS NULL OR g.revoked_at IS NULL)
+              AND (p.kind <> 'service' OR auth.service_account_active(p.id))
             """.trimIndent(),
             actor.credentialId,
         )

@@ -28,25 +28,29 @@ open class OauthGrantsRecord() : UpdatableRecordImpl<OauthGrantsRecord>(OauthGra
         set(value): Unit = set(2, value)
         get(): String? = get(2) as String?
 
-    open var scopes: Array<String?>?
+    open var grantedBy: String?
         set(value): Unit = set(3, value)
-        get(): Array<String?>? = get(3) as Array<String?>?
+        get(): String? = get(3) as String?
+
+    open var scopes: Array<String?>?
+        set(value): Unit = set(4, value)
+        get(): Array<String?>? = get(4) as Array<String?>?
 
     open var resource: String?
-        set(value): Unit = set(4, value)
-        get(): String? = get(4) as String?
+        set(value): Unit = set(5, value)
+        get(): String? = get(5) as String?
 
     open var createdAt: OffsetDateTime?
-        set(value): Unit = set(5, value)
-        get(): OffsetDateTime? = get(5) as OffsetDateTime?
-
-    open var lastUsedAt: OffsetDateTime?
         set(value): Unit = set(6, value)
         get(): OffsetDateTime? = get(6) as OffsetDateTime?
 
-    open var revokedAt: OffsetDateTime?
+    open var lastUsedAt: OffsetDateTime?
         set(value): Unit = set(7, value)
         get(): OffsetDateTime? = get(7) as OffsetDateTime?
+
+    open var revokedAt: OffsetDateTime?
+        set(value): Unit = set(8, value)
+        get(): OffsetDateTime? = get(8) as OffsetDateTime?
 
     // -------------------------------------------------------------------------
     // Primary key information
@@ -54,10 +58,11 @@ open class OauthGrantsRecord() : UpdatableRecordImpl<OauthGrantsRecord>(OauthGra
 
     override fun key(): Record1<UUID?> = super.key() as Record1<UUID?>
 
-    constructor(id: UUID? = null, clientId: String? = null, principalId: String? = null, scopes: Array<String?>? = null, resource: String? = null, createdAt: OffsetDateTime? = null, lastUsedAt: OffsetDateTime? = null, revokedAt: OffsetDateTime? = null): this() {
+    constructor(id: UUID? = null, clientId: String? = null, principalId: String? = null, grantedBy: String? = null, scopes: Array<String?>? = null, resource: String? = null, createdAt: OffsetDateTime? = null, lastUsedAt: OffsetDateTime? = null, revokedAt: OffsetDateTime? = null): this() {
         this.id = id
         this.clientId = clientId
         this.principalId = principalId
+        this.grantedBy = grantedBy
         this.scopes = scopes
         this.resource = resource
         this.createdAt = createdAt

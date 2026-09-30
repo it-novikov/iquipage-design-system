@@ -60,8 +60,8 @@ class McpTools(
     val all: List<McpTool> = listOf(
         tool(
             "list_projects", "Проекты",
-            "List the workspaces and projects you can access, with your role in each. Project ids from here are the " +
-                "projectId of the other tools.",
+            "List the workspaces and projects this service account can access, with its role in effect in each " +
+                "(never above its owner's). Project ids from here are the projectId of the other tools.",
             NoArguments::class, schema(),
         ) { tx, actor, _: NoArguments, _ -> untrusted(projects(tx, actor)) },
         tool(
@@ -86,8 +86,8 @@ class McpTools(
         ) { tx, actor, input: TaskArguments, _ -> untrusted(tasks.get(tx, actor, input)) },
         tool(
             "create_task", "Создать задачу",
-            "Create a task. It lands in the backlog as a draft unless addToBoard is true. Pass an idempotencyKey to " +
-                "retry safely.",
+            "Create a task. It lands in the backlog as a draft; a person of the project puts it on the board. Pass " +
+                "an idempotencyKey to retry safely.",
             CreateTaskArguments::class,
             schema(
                 "projectId" to PROJECT,
@@ -98,7 +98,6 @@ class McpTools(
                 "assigneeId" to id("Person id of a project member."),
                 "dueDate" to DATE,
                 "parent" to TASK,
-                "addToBoard" to boolean("Put the task on the board at once instead of the backlog."),
                 "idempotencyKey" to KEY,
                 required = listOf("projectId", "title"),
             ),
@@ -193,18 +192,30 @@ class McpTools(
     private fun projects(tx: Transaction, actor: Actor): Map<String, Any?> {
         val rows = tx.rows(
             """
-            SELECT p.id, p.key, p.name, p.slug, m.role, w.id AS "workspaceId", w.name AS "workspaceName"
-            FROM app.project_members m JOIN app.projects p ON p.id = m.project_id
-            JOIN app.workspaces w ON w.id = p.workspace_id
-            WHERE m.principal_id = $1 ORDER BY w.name, w.id, p.name, p.id LIMIT $2
+            SELECT p.id, p.key, p.name, p.slug, p.workspace_id AS "workspaceId",
+                   CASE WHEN m.role = 'reader' OR (o.role IS NOT NULL AND o.role = 'reader') THEN 'reader'
+                        ELSE m.role END AS role
+            FROM app.project_members m JOIN app.projects p ON p.id = m.project_id AND auth.can_project(p.id)
+            LEFT JOIN app.project_members o ON o.project_id = m.project_id AND o.principal_id = $3
+            WHERE m.principal_id = $1 ORDER BY p.workspace_id, p.name, p.id LIMIT $2
             """.trimIndent(),
             actor.id,
             PROJECT_LIMIT,
+            if (actor.isService) actor.initiatorId else null,
         )
-        val workspaces = rows.groupBy { it.string("workspaceId") }.map { (id, projects) ->
+        // A service account is not a workspace member: workspace names come from its own record, not from row security.
+        val names = tx.rows(
+            """
+            SELECT id, name FROM auth.service_account_workspace()
+            UNION SELECT w.id, w.name FROM app.workspaces w JOIN app.workspace_members m ON m.workspace_id = w.id
+            WHERE m.principal_id = $1
+            """.trimIndent(),
+            actor.id,
+        ).associate { it["id"].toString() to it.string("name") }
+        val workspaces = rows.groupBy { it["workspaceId"].toString() }.map { (id, projects) ->
             linkedMapOf(
                 "id" to id,
-                "name" to projects.first().string("workspaceName"),
+                "name" to names[id].orEmpty(),
                 "projects" to projects.map { project ->
                     linkedMapOf(
                         "id" to project["id"],

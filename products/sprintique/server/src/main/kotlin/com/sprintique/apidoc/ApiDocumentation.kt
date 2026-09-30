@@ -53,12 +53,13 @@ class ApiDocumentation(
             "securitySchemes" to linkedMapOf(
                 "humanSession" to linkedMapOf("type" to "apiKey", "in" to "cookie", "name" to "__Host-sprintique"),
                 "agentBearer" to linkedMapOf("type" to "http", "scheme" to "bearer"),
-                "personBearer" to linkedMapOf(
+                "serviceAccountBearer" to linkedMapOf(
                     "type" to "http",
                     "scheme" to "bearer",
-                    "description" to "A person's personal access token (spp_) or OAuth access token (spo_), acting " +
-                        "with the person's rights narrowed by the read/write scopes. Security actions (agents, " +
-                        "members, approvals, tokens) need the session. See /.well-known/oauth-authorization-server.",
+                    "description" to "A service account's token (spk_) or OAuth access token (spo_): the account's " +
+                        "project roles, never above its owner's, narrowed by the read/write scopes. Security actions " +
+                        "(agents, members, approvals, service accounts, tokens) need a person's session. See " +
+                        "/.well-known/oauth-authorization-server.",
                 ),
             ),
             "schemas" to contracts.schemas,
@@ -91,7 +92,7 @@ class ApiDocumentation(
                 listOf(
                     mapOf("humanSession" to emptyList<String>()),
                     mapOf("agentBearer" to emptyList<String>()),
-                    mapOf("personBearer" to emptyList<String>()),
+                    mapOf("serviceAccountBearer" to emptyList<String>()),
                 ),
             "parameters" to parameters(method, path, route, idempotent),
         )

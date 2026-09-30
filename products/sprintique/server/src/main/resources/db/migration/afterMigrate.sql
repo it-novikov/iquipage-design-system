@@ -42,6 +42,8 @@ GRANT SELECT,INSERT,UPDATE,DELETE ON auth.known_devices TO "${runtime_role}";
 GRANT SELECT,INSERT,UPDATE,DELETE ON auth.oauth_clients,auth.oauth_codes,auth.oauth_refresh_tokens TO "${runtime_role}";
 GRANT SELECT,INSERT,UPDATE ON auth.oauth_grants TO "${runtime_role}";
 GRANT SELECT,INSERT ON auth.access_events TO "${runtime_role}";
+-- Service accounts are deleted by marking them; their principal and history stay.
+GRANT SELECT,INSERT,UPDATE ON auth.service_accounts TO "${runtime_role}";
 GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA auth TO "${runtime_role}";
 GRANT USAGE ON SCHEMA work TO "${runtime_role}";
 GRANT SELECT,INSERT ON work.jobs TO "${runtime_role}";

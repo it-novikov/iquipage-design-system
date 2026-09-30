@@ -44,12 +44,12 @@ class OAuthTokens(private val database: Database, private val limits: Credential
             }
             val row = tx.row(
                 """
-                SELECT o.client_id AS "clientId", o.principal_id AS "principalId", o.redirect_uri AS "redirectUri",
-                       o.code_challenge AS challenge, o.scopes, o.resource, o.grant_id AS "grantId",
-                       o.consumed_at IS NOT NULL AS consumed, o.expires_at <= clock_timestamp() AS expired,
-                       p.disabled_at IS NOT NULL AS disabled
-                FROM auth.oauth_codes o JOIN auth.principals p ON p.id = o.principal_id
-                WHERE o.code_hash = $1 FOR UPDATE OF o
+                SELECT o.client_id AS "clientId", o.principal_id AS "principalId", o.granted_by AS "grantedBy",
+                       o.redirect_uri AS "redirectUri", o.code_challenge AS challenge, o.scopes, o.resource,
+                       o.grant_id AS "grantId", o.consumed_at IS NOT NULL AS consumed,
+                       o.expires_at <= clock_timestamp() AS expired,
+                       NOT auth.service_account_active(o.principal_id) AS disabled
+                FROM auth.oauth_codes o WHERE o.code_hash = $1 FOR UPDATE OF o
                 """.trimIndent(),
                 Tokens.sha256Hex(code),
             )
@@ -69,12 +69,13 @@ class OAuthTokens(private val database: Database, private val limits: Credential
             val grant = UUID.randomUUID().toString()
             tx.update(
                 """
-                INSERT INTO auth.oauth_grants(id, client_id, principal_id, scopes, resource)
-                VALUES ($1::uuid, $2, $3, $4, $5)
+                INSERT INTO auth.oauth_grants(id, client_id, principal_id, granted_by, scopes, resource)
+                VALUES ($1::uuid, $2, $3, $4, $5, $6)
                 """.trimIndent(),
                 grant,
                 client.id,
                 row.string("principalId"),
+                row.string("grantedBy"),
                 row.strings("scopes"),
                 row.string("resource"),
             )
@@ -83,24 +84,27 @@ class OAuthTokens(private val database: Database, private val limits: Credential
                 Tokens.sha256Hex(code),
                 grant,
             )
-            AccessEvents.record(tx, row.string("principalId"), "app.connected", grant, client.id)
-            // Connecting the same app again replaces its earlier connection: one entry per app in the settings.
+            val grantedBy = row.string("grantedBy")
+            AccessEvents.record(tx, row.string("principalId"), "app.connected", grant, client.id, grantedBy)
+            // The same person connecting the same app again replaces its earlier connection, whichever service account
+            // it acted as: the app keeps one set of tokens.
             val earlier = tx.rows(
                 """
-                SELECT id FROM auth.oauth_grants
-                WHERE principal_id = $1 AND client_id = $2 AND id <> $3::uuid AND revoked_at IS NULL FOR UPDATE
+                SELECT id, principal_id AS "accountId" FROM auth.oauth_grants
+                WHERE granted_by = $1 AND client_id = $2 AND id <> $3::uuid AND revoked_at IS NULL FOR UPDATE
                 """.trimIndent(),
-                row.string("principalId"),
+                grantedBy,
                 client.id,
                 grant,
             )
             for (replaced in earlier) {
                 ConnectedApps.revokeGrant(tx, replaced.string("id"))
-                AccessEvents.record(tx, row.string("principalId"), "app.revoked", replaced.string("id"), client.id)
+                val account = replaced.string("accountId")
+                AccessEvents.record(tx, account, "app.revoked", replaced.string("id"), client.id, grantedBy)
             }
             issue(
                 tx,
-                Grant(grant, row.string("principalId"), row.strings("scopes"), row.string("resource")),
+                Grant(grant, row.string("principalId"), grantedBy, row.strings("scopes"), row.string("resource")),
                 row.strings("scopes"),
                 "refresh_token" in client.grantTypes,
             )
@@ -121,9 +125,10 @@ class OAuthTokens(private val database: Database, private val limits: Credential
                 // The grant row is the lock of its whole chain: one refresh of a grant at a time.
                 val grant = tx.row(
                     """
-                    SELECT g.id, g.client_id AS "clientId", g.principal_id AS "principalId", g.scopes, g.resource,
-                           g.revoked_at IS NOT NULL AS revoked, p.disabled_at IS NOT NULL AS disabled
-                    FROM auth.oauth_grants g JOIN auth.principals p ON p.id = g.principal_id
+                    SELECT g.id, g.client_id AS "clientId", g.principal_id AS "principalId", g.granted_by AS "grantedBy",
+                           g.scopes, g.resource, g.revoked_at IS NOT NULL AS revoked,
+                           NOT auth.service_account_active(g.principal_id) AS disabled
+                    FROM auth.oauth_grants g
                     WHERE g.id = $1::uuid FOR UPDATE OF g
                     """.trimIndent(),
                     grantId,
@@ -161,7 +166,13 @@ class OAuthTokens(private val database: Database, private val limits: Credential
                 collect(tx, grantId)
                 val issued = issue(
                     tx,
-                    Grant(grantId, grant.string("principalId"), granted, grant.string("resource")),
+                    Grant(
+                        grantId,
+                        grant.string("principalId"),
+                        grant.string("grantedBy"),
+                        granted,
+                        grant.string("resource"),
+                    ),
                     scopes,
                     true,
                     parent = hash,
@@ -214,7 +225,13 @@ class OAuthTokens(private val database: Database, private val limits: Credential
         }
     }
 
-    private data class Grant(val id: String, val principalId: String, val scopes: List<String>, val resource: String)
+    private data class Grant(
+        val id: String,
+        val principalId: String,
+        val grantedBy: String,
+        val scopes: List<String>,
+        val resource: String,
+    )
 
     /**
      * A retried token: the unused access tokens issued for it end, and its refresh tokens stay until one of them is
@@ -304,7 +321,7 @@ class OAuthTokens(private val database: Database, private val limits: Credential
             """
             INSERT INTO auth.credentials(id, principal_id, token_hash, kind, initiator_id, expires_at, scopes, audience,
                                          grant_id)
-            VALUES ($1, $2, $3, 'oauth', $2, clock_timestamp() + make_interval(secs => $4::int), $5, $6, $7::uuid)
+            VALUES ($1, $2, $3, 'oauth', $8, clock_timestamp() + make_interval(secs => $4::int), $5, $6, $7::uuid)
             """.trimIndent(),
             accessId,
             grant.principalId,
@@ -313,6 +330,7 @@ class OAuthTokens(private val database: Database, private val limits: Credential
             scopes,
             grant.resource,
             grant.id,
+            grant.grantedBy,
         )
         val result = linkedMapOf<String, Any?>(
             "access_token" to access,

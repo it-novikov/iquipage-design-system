@@ -9,6 +9,7 @@ import com.sprintique.database.schema.auth.indexes.OAUTH_CODES_CLIENT
 import com.sprintique.database.schema.auth.indexes.OAUTH_CODES_EXPIRY
 import com.sprintique.database.schema.auth.keys.OAUTH_CODES_PKEY
 import com.sprintique.database.schema.auth.keys.OAUTH_CODES__OAUTH_CODES_CLIENT_ID_FKEY
+import com.sprintique.database.schema.auth.keys.OAUTH_CODES__OAUTH_CODES_GRANTED_BY_FKEY
 import com.sprintique.database.schema.auth.keys.OAUTH_CODES__OAUTH_CODES_GRANT_ID_FKEY
 import com.sprintique.database.schema.auth.keys.OAUTH_CODES__OAUTH_CODES_PRINCIPAL_ID_FKEY
 import com.sprintique.database.schema.auth.tables.OauthClients.OauthClientsPath
@@ -81,6 +82,8 @@ open class OauthCodes(
 
     val PRINCIPAL_ID: TableField<OauthCodesRecord, String?> = createField(DSL.name("principal_id"), SQLDataType.CLOB.nullable(false), this, "")
 
+    val GRANTED_BY: TableField<OauthCodesRecord, String?> = createField(DSL.name("granted_by"), SQLDataType.CLOB.nullable(false), this, "")
+
     val REDIRECT_URI: TableField<OauthCodesRecord, String?> = createField(DSL.name("redirect_uri"), SQLDataType.CLOB.nullable(false), this, "")
 
     val CODE_CHALLENGE: TableField<OauthCodesRecord, String?> = createField(DSL.name("code_challenge"), SQLDataType.CLOB.nullable(false), this, "")
@@ -119,7 +122,7 @@ open class OauthCodes(
     override fun getSchema(): Schema? = if (aliased()) null else Auth.AUTH
     override fun getIndexes(): List<Index> = listOf(OAUTH_CODES_CLIENT, OAUTH_CODES_EXPIRY)
     override fun getPrimaryKey(): UniqueKey<OauthCodesRecord> = OAUTH_CODES_PKEY
-    override fun getReferences(): List<ForeignKey<OauthCodesRecord, *>> = listOf(OAUTH_CODES__OAUTH_CODES_CLIENT_ID_FKEY, OAUTH_CODES__OAUTH_CODES_GRANT_ID_FKEY, OAUTH_CODES__OAUTH_CODES_PRINCIPAL_ID_FKEY)
+    override fun getReferences(): List<ForeignKey<OauthCodesRecord, *>> = listOf(OAUTH_CODES__OAUTH_CODES_CLIENT_ID_FKEY, OAUTH_CODES__OAUTH_CODES_GRANT_ID_FKEY, OAUTH_CODES__OAUTH_CODES_GRANTED_BY_FKEY, OAUTH_CODES__OAUTH_CODES_PRINCIPAL_ID_FKEY)
 
     fun oauthClients(): OauthClientsPath = oauthClients
     val oauthClients: OauthClientsPath by lazy { OauthClientsPath(this, OAUTH_CODES__OAUTH_CODES_CLIENT_ID_FKEY, null) }
@@ -127,8 +130,11 @@ open class OauthCodes(
     fun oauthGrants(): OauthGrantsPath = oauthGrants
     val oauthGrants: OauthGrantsPath by lazy { OauthGrantsPath(this, OAUTH_CODES__OAUTH_CODES_GRANT_ID_FKEY, null) }
 
-    fun principals(): PrincipalsPath = principals
-    val principals: PrincipalsPath by lazy { PrincipalsPath(this, OAUTH_CODES__OAUTH_CODES_PRINCIPAL_ID_FKEY, null) }
+    fun oauthCodesGrantedByFkey(): PrincipalsPath = oauthCodesGrantedByFkey
+    val oauthCodesGrantedByFkey: PrincipalsPath by lazy { PrincipalsPath(this, OAUTH_CODES__OAUTH_CODES_GRANTED_BY_FKEY, null) }
+
+    fun oauthCodesPrincipalIdFkey(): PrincipalsPath = oauthCodesPrincipalIdFkey
+    val oauthCodesPrincipalIdFkey: PrincipalsPath by lazy { PrincipalsPath(this, OAUTH_CODES__OAUTH_CODES_PRINCIPAL_ID_FKEY, null) }
     override fun getChecks(): List<Check<OauthCodesRecord>> = listOf(
         Internal.createCheck(this, DSL.name("oauth_codes_code_challenge_check"), "((code_challenge ~ '^[A-Za-z0-9_-]{43}\$'::text))", true),
         Internal.createCheck(this, DSL.name("oauth_codes_code_hash_check"), "((length(code_hash) = 64))", true),

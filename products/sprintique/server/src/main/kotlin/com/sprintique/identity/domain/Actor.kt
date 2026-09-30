@@ -1,20 +1,22 @@
 package com.sprintique.identity.domain
 
-/** A bearer secret as presented: a browser session cookie, an agent token or a person's delegated token. */
+/** A bearer secret as presented: a browser session cookie, an agent token or a service account's token. */
 data class Credential(val token: String, val kind: CredentialKind)
 
 /**
- * How a principal proved who it is. A session is the person at the interface; an agent is its own principal; a
- * personal token and an OAuth access token are the person, delegated to a script or an app and narrowed by scopes.
+ * How a principal proved who it is. A session is the person at the interface; an agent token is a project agent's.
+ * A service token (for scripts) and an OAuth access token (for apps such as Claude) are a service account's: its owner
+ * delegated work to it, never their own identity, and the token is narrowed by scopes.
  */
 enum class CredentialKind(val wire: String, val prefix: String?) {
     SESSION("session", null),
     AGENT("agent", "spr_"),
-    PERSONAL("personal", "spp_"),
+    SERVICE("service", "spk_"),
     OAUTH("oauth", "spo_"),
     ;
 
-    val isDelegated: Boolean get() = this == PERSONAL || this == OAUTH
+    /** A service account's token: bound to a resource, narrowed by scopes, never trusted with access decisions. */
+    val isDelegated: Boolean get() = this == SERVICE || this == OAUTH
 
     companion object {
         /** The kind of a bearer token by its prefix; a session is never a bearer token. */
@@ -25,7 +27,7 @@ enum class CredentialKind(val wire: String, val prefix: String?) {
     }
 }
 
-/** What a delegated credential may do with its person's rights: read, and optionally change. */
+/** What a service account's token may do with the account's rights: read, and optionally change. */
 enum class Scope(val wire: String) {
     READ("read"),
     WRITE("write"),
@@ -42,6 +44,14 @@ enum class ProtectedResource { API, MCP }
 enum class PrincipalKind(val wire: String) {
     HUMAN("human"),
     AGENT("agent"),
+
+    /** A service account: made and owned by a person, a member of the projects it was granted, never above them. */
+    SERVICE("service"),
+    ;
+
+    companion object {
+        fun fromWire(value: String): PrincipalKind = entries.first { it.wire == value }
+    }
 }
 
 /**
@@ -73,8 +83,9 @@ enum class Capability(val wire: String) {
 
 /**
  * The principal behind a request, resolved from a live credential inside the request's transaction. An agent is
- * limited to one project, its granted capabilities and the current rights of the person who issued it. A delegated
- * credential is the person, narrowed by its [scopes]; [clientId] names the OAuth app it was issued to.
+ * limited to one project, its granted capabilities and the current rights of the person who issued it. A service
+ * account acts as itself through a token narrowed by its [scopes], within its project roles and its owner's current
+ * rights; its [initiatorId] is its owner, and [clientId] names the OAuth app the token was issued to.
  */
 data class Actor(
     val id: String,
@@ -91,6 +102,10 @@ data class Actor(
 ) {
     val isHuman: Boolean get() = kind == PrincipalKind.HUMAN
 
+    val isAgent: Boolean get() = kind == PrincipalKind.AGENT
+
+    val isService: Boolean get() = kind == PrincipalKind.SERVICE
+
     /** The person at the interface, with a session: the only caller trusted with security decisions. */
     val isInteractive: Boolean get() = credentialKind == CredentialKind.SESSION
 
@@ -99,6 +114,9 @@ data class Actor(
     /** Whether the credential lets the caller change data at all; people's roles are checked separately. */
     val mayChange: Boolean get() = !isDelegated || Scope.WRITE in scopes
 
-    /** A write-only agent grant must not receive existing content back; people read through membership. */
-    fun mayRead(capability: Capability): Boolean = isHuman || capability in capabilities
+    /**
+     * A write-only agent grant must not receive existing content back; people and service accounts read through
+     * membership.
+     */
+    fun mayRead(capability: Capability): Boolean = !isAgent || capability in capabilities
 }

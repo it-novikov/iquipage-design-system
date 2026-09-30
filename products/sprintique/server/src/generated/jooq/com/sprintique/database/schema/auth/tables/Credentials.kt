@@ -12,7 +12,7 @@ import com.sprintique.database.schema.app.tables.Projects.ProjectsPath
 import com.sprintique.database.schema.auth.Auth
 import com.sprintique.database.schema.auth.indexes.CREDENTIALS_GRANT
 import com.sprintique.database.schema.auth.indexes.CREDENTIALS_OAUTH_EXPIRY
-import com.sprintique.database.schema.auth.indexes.CREDENTIALS_PERSONAL
+import com.sprintique.database.schema.auth.indexes.CREDENTIALS_SERVICE
 import com.sprintique.database.schema.auth.keys.CREDENTIALS_PKEY
 import com.sprintique.database.schema.auth.keys.CREDENTIALS_TOKEN_HASH_KEY
 import com.sprintique.database.schema.auth.keys.CREDENTIALS__CREDENTIALS_GRANT_ID_FKEY
@@ -134,7 +134,7 @@ open class Credentials(
         override fun `as`(alias: Table<*>): CredentialsPath = CredentialsPath(alias.qualifiedName, this)
     }
     override fun getSchema(): Schema? = if (aliased()) null else Auth.AUTH
-    override fun getIndexes(): List<Index> = listOf(CREDENTIALS_GRANT, CREDENTIALS_OAUTH_EXPIRY, CREDENTIALS_PERSONAL)
+    override fun getIndexes(): List<Index> = listOf(CREDENTIALS_GRANT, CREDENTIALS_OAUTH_EXPIRY, CREDENTIALS_SERVICE)
     override fun getPrimaryKey(): UniqueKey<CredentialsRecord> = CREDENTIALS_PKEY
     override fun getUniqueKeys(): List<UniqueKey<CredentialsRecord>> = listOf(CREDENTIALS_TOKEN_HASH_KEY)
     override fun getReferences(): List<ForeignKey<CredentialsRecord, *>> = listOf(CREDENTIALS__CREDENTIALS_GRANT_ID_FKEY, CREDENTIALS__CREDENTIALS_INITIATOR_ID_FKEY, CREDENTIALS__CREDENTIALS_PRINCIPAL_ID_FKEY, CREDENTIALS__CREDENTIALS_PROJECT_ID_FKEY)
@@ -175,8 +175,8 @@ open class Credentials(
     val planningSelections: PlanningSelectionsPath
         get(): PlanningSelectionsPath = planningSelections()
     override fun getChecks(): List<Check<CredentialsRecord>> = listOf(
-        Internal.createCheck(this, DSL.name("credential_delegation"), "((((kind = ANY (ARRAY['personal'::text, 'oauth'::text])) = ((audience IS NOT NULL) AND (initiator_id = principal_id) AND (project_id IS NULL) AND ((cardinality(scopes) >= 1) AND (cardinality(scopes) <= 2)) AND (scopes <@ ARRAY['read'::text, 'write'::text]))) AND ((kind = 'oauth'::text) = (grant_id IS NOT NULL)) AND ((kind = 'personal'::text) = (name IS NOT NULL))))", true),
-        Internal.createCheck(this, DSL.name("credential_kind"), "((kind = ANY (ARRAY['session'::text, 'agent'::text, 'personal'::text, 'oauth'::text])))", true),
+        Internal.createCheck(this, DSL.name("credential_delegation"), "((((kind = ANY (ARRAY['service'::text, 'oauth'::text])) = ((audience IS NOT NULL) AND (initiator_id <> principal_id) AND (project_id IS NULL) AND ((cardinality(scopes) >= 1) AND (cardinality(scopes) <= 2)) AND (scopes <@ ARRAY['read'::text, 'write'::text]))) AND ((kind = 'oauth'::text) = (grant_id IS NOT NULL)) AND ((kind = 'service'::text) = (name IS NOT NULL))))", true),
+        Internal.createCheck(this, DSL.name("credential_kind"), "((kind = ANY (ARRAY['session'::text, 'agent'::text, 'service'::text, 'oauth'::text])))", true),
         Internal.createCheck(this, DSL.name("credentials_audience_check"), "(((audience IS NULL) OR ((length(audience) >= 1) AND (length(audience) <= 300))))", true),
         Internal.createCheck(this, DSL.name("credentials_check"), "(((kind = 'session'::text) = ((csrf IS NOT NULL) AND (project_id IS NULL))))", true),
         Internal.createCheck(this, DSL.name("credentials_name_check"), "(((name IS NULL) OR ((length(name) >= 1) AND (length(name) <= 100))))", true)

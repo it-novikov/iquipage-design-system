@@ -33,8 +33,9 @@ data class RequestIntent(
 /**
  * Runs an operation in one transaction with the caller resolved from a live credential and the row-security context
  * set: `app.actor_id`, and `app.project_limit` for an agent. A person's mutation with a session also needs the
- * same-origin header and the CSRF token of the session. A delegated token must be issued for the requested resource
- * and carry the `write` scope to change anything; it carries no ambient authority, so CSRF does not apply to it.
+ * same-origin header and the CSRF token of the session. A service account's token (service or OAuth) authenticates
+ * only a live service account (its owner still an enabled member of its workspace), must be issued for the requested
+ * resource and carry the `write` scope to change anything; it carries no ambient authority, so CSRF does not apply.
  */
 @Component
 @Profile("api")
@@ -51,13 +52,16 @@ class Authentication(
         val row = tx.row(
             """
             SELECT p.id, coalesce(p.profile_name, p.name) AS name, p.kind, c.id AS "credentialId", c.csrf,
-                   c.project_id AS "projectId", c.capabilities, c.initiator_id AS "initiatorId", c.scopes, c.audience,
+                   c.project_id AS "projectId", c.capabilities, coalesce(s.owner_id, c.initiator_id) AS "initiatorId",
+                   c.scopes, c.audience,
                    g.client_id AS "clientId", coalesce(c.grant_id::text, c.id) AS "limitKey",
                    (c.last_used_at IS NULL OR c.last_used_at < clock_timestamp() - interval '5 minutes') AS stale
             FROM auth.credentials c JOIN auth.principals p ON p.id = c.principal_id
             LEFT JOIN auth.oauth_grants g ON g.id = c.grant_id
+            LEFT JOIN auth.service_accounts s ON s.principal_id = p.id
             WHERE c.token_hash = $1 AND c.kind = $2 AND c.revoked_at IS NULL AND c.expires_at > clock_timestamp()
               AND p.disabled_at IS NULL AND (c.grant_id IS NULL OR g.revoked_at IS NULL)
+              AND (c.kind NOT IN ('service', 'oauth') OR (p.kind = 'service' AND auth.service_account_active(p.id)))
             """.trimIndent(),
             Tokens.sha256Hex(credential.token),
             credential.kind.wire,
@@ -121,7 +125,7 @@ class Authentication(
     private fun actorOf(row: Row, kind: CredentialKind) = Actor(
         id = row.string("id"),
         name = row.string("name"),
-        kind = if (row.string("kind") == "agent") PrincipalKind.AGENT else PrincipalKind.HUMAN,
+        kind = PrincipalKind.fromWire(row.string("kind")),
         credentialId = row.string("credentialId"),
         csrf = row.stringOrNull("csrf"),
         projectId = row.stringOrNull("projectId"),

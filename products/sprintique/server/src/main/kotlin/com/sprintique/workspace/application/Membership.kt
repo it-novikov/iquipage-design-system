@@ -4,6 +4,7 @@ import com.sprintique.command.AuditTrail
 import com.sprintique.command.CommandLedger
 import com.sprintique.database.Row
 import com.sprintique.database.Transaction
+import com.sprintique.identity.application.AccessEvents
 import com.sprintique.identity.application.ProjectAccess
 import com.sprintique.identity.application.ProjectMembership
 import com.sprintique.identity.domain.Actor
@@ -42,7 +43,10 @@ object Membership {
         requireCondition(member != null, 422, "TASK_OWNER", "Исполнителем может быть только участник проекта.")
     }
 
-    /** Last activity is the member's newest audit event in this project. */
+    /**
+     * Last activity is the member's newest audit event in this project. A service account names its owner and whether
+     * it is suspended; its role is capped by its owner's.
+     */
     fun members(tx: Transaction, actor: Actor, projectId: String): List<Row> {
         ProjectAccess.authorize(tx, actor, projectId, Capability.TASKS_READ)
         return tx.rows(
@@ -50,8 +54,13 @@ object Membership {
             SELECT p.id, coalesce(p.profile_name, p.name) AS name, p.kind, m.role, m.revision, m.joined_at AS "joinedAt",
                    (SELECT a.created_at FROM app.audit_events a WHERE a.project_id = m.project_id AND a.actor_id = p.id
                     ORDER BY a.created_at DESC LIMIT 1) AS "lastActiveAt",
-                   (SELECT v.revision FROM app.person_avatars v WHERE v.principal_id = p.id) AS "avatarRevision"
+                   (SELECT v.revision FROM app.person_avatars v WHERE v.principal_id = p.id) AS "avatarRevision",
+                   s.owner_id AS "ownerId",
+                   (SELECT coalesce(o.profile_name, o.name) FROM auth.principals o WHERE o.id = s.owner_id) AS "ownerName",
+                   CASE WHEN s.principal_id IS NULL THEN NULL
+                        ELSE NOT auth.service_account_active(s.principal_id) END AS suspended
             FROM app.project_members m JOIN auth.principals p ON p.id = m.principal_id
+            LEFT JOIN auth.service_accounts s ON s.principal_id = p.id
             WHERE m.project_id = $1 ORDER BY name, p.id LIMIT 501
             """.trimIndent(),
             projectId,
@@ -86,10 +95,17 @@ object Membership {
             )
             requireCondition(member != null, 404, "NOT_FOUND", "Участник недоступен.")
             requireCondition(
-                member.string("kind") == "human",
+                member.string("kind") != "agent",
                 422,
                 "AGENT_GRANT_REQUIRED",
                 "Доступ агента изменяется через его разрешение.",
+            )
+            // A service account is a reader or an editor, never an administrator.
+            requireCondition(
+                member.string("kind") != "service" || input.role != "admin",
+                422,
+                "SERVICE_ACCOUNT_ROLE",
+                "Сервисный аккаунт может быть только наблюдателем или редактором.",
             )
             requireCondition(
                 member.long("revision") == input.baseRevision,
@@ -118,6 +134,15 @@ object Membership {
                     UPDATE app.project_members SET role = $3, revision = revision + 1 WHERE project_id = $1 AND principal_id = $2
                     """.trimIndent(),
                     projectId, id, input.role,
+                )
+            }
+            if (member.string("kind") == "service") {
+                AccessEvents.record(
+                    tx,
+                    id,
+                    if (input.role == null) "project.revoked" else "project.granted",
+                    if (input.role == null) projectId else "$projectId:${input.role}",
+                    actorId = actor.id,
                 )
             }
             if (input.role == null || input.role == "reader") {

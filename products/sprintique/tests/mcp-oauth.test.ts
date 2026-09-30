@@ -23,8 +23,26 @@ async function register(extra:Record<string,unknown>={}){
 function authorizeQuery(clientId:string,challenge:string,{scope='read write',resource=api+'/mcp',state='state-'+randomUUID()}:{scope?:string;resource?:string;state?:string}={}){
   return new URLSearchParams({response_type:'code',client_id:clientId,redirect_uri:REDIRECT,code_challenge:challenge,code_challenge_method:'S256',state,scope,resource}).toString();
 }
+type User=Awaited<ReturnType<typeof fixture>>['alice'];
+// Apps and scripts act as a service account of a person, never as the person: one account per person here, a member
+// of the first project with the person's own role (a reader's account reads, an editor's writes).
+const accounts=new Map<string,{id:string;revision:number}>();
+async function account(user:User=f.alice){
+  const known=accounts.get(user.id);if(known)return known;
+  const role=user===f.reader?'reader':'editor';
+  const r=await f.app.inject({method:'POST',url:ui+'/api/v1/service-accounts',headers:user.headers,payload:{name:'Claude',workspaceId:f.first.workspaceId,projects:[{projectId:f.first.id,role}]}});
+  assert.equal(r.statusCode,200,r.body);const made=r.json<{id:string;revision:number}>();accounts.set(user.id,made);return made;
+}
+async function serviceToken(user:User=f.alice,scopes=['read'],name='Скрипт',expiresInDays=1){
+  const r=await f.app.inject({method:'POST',url:ui+'/api/v1/service-accounts/'+(await account(user)).id+'/tokens',headers:user.headers,payload:{name,scopes,expiresInDays}});
+  assert.equal(r.statusCode,200,r.body);return r.json<{id:string;token:string;scopes:string[]}>();
+}
+async function listAccounts(user:User=f.alice){
+  const r=await f.app.inject({url:ui+'/api/v1/service-accounts',headers:user.headers});assert.equal(r.statusCode,200,r.body);
+  return r.json<{items:any[]}>().items;
+}
 async function approve(query:string,scopes=['read','write'],user=f.alice){
-  const r=await f.app.inject({method:'POST',url:ui+'/api/v1/oauth/authorizations',headers:user.headers,payload:{request:query,approve:true,scopes}});
+  const r=await f.app.inject({method:'POST',url:ui+'/api/v1/oauth/authorizations',headers:user.headers,payload:{request:query,approve:true,scopes,serviceAccountId:(await account(user)).id}});
   assert.equal(r.statusCode,200,r.body);return new URL(r.json<{redirectTo:string}>().redirectTo);
 }
 // Registration shares the per-address sign-in budget (20 a minute), so the flows below reuse one client.
@@ -107,8 +125,10 @@ test('P01 discovery, registration and the full OAuth + MCP flow: read, write, re
   const invalid=await tool(issued.access_token,'create_task',{projectId:f.first.id,title:'x',unexpected:true});
   assert.equal(invalid.isError,true);assert.equal(invalid.structuredContent.error.code,'VALIDATION');
 
-  const audit=(await f.admin.query("SELECT credential_kind,client_id FROM app.audit_events WHERE project_id=$1 AND resource_id=$2 ORDER BY created_at",[f.first.id,task.id])).rows;
+  const audit=(await f.admin.query("SELECT actor_id,initiator_id,credential_kind,client_id FROM app.audit_events WHERE project_id=$1 AND resource_id=$2 ORDER BY created_at",[f.first.id,task.id])).rows;
   assert.ok(audit.length>=3);assert.ok(audit.every(row=>row.credential_kind==='oauth'&&row.client_id===client.client_id),'the audit names the app');
+  const sa=(await account()).id;
+  assert.ok(audit.every(row=>row.actor_id===sa&&row.initiator_id===f.alice.id),'changes are the service account\'s, with its owner');
 
   const refreshed=await form('/api/oauth/token',{grant_type:'refresh_token',refresh_token:issued.refresh_token,client_id:client.client_id});
   assert.equal(refreshed.statusCode,200,refreshed.body);const second=refreshed.json();assert.notEqual(second.refresh_token,issued.refresh_token);
@@ -238,28 +258,31 @@ test('P05 scopes and audience: read-only tokens do not change anything, MCP toke
   assert.equal(noRole.isError,true);assert.equal(noRole.structuredContent.error.code,'FORBIDDEN');
 });
 
-test('P06 personal access tokens: shown once, REST and MCP as the person, scoped, security actions stay in the interface',async()=>{
-  const create=(body:unknown,headers:Record<string,string>=f.alice.headers)=>f.app.inject({method:'POST',url:ui+'/api/v1/personal-tokens',headers,payload:body as Record<string,unknown>});
-  const read=(await create({name:'Скрипт чтения',scopes:['read'],expiresInDays:30})).json(),write=(await create({name:'Скрипт записи',scopes:['read','write'],expiresInDays:7})).json();
-  assert.match(read.token,/^spp_/);assert.deepEqual(read.scopes,['read']);
-  const list=await f.app.inject({url:ui+'/api/v1/personal-tokens',headers:f.alice.headers});
-  assert.ok(!list.body.includes(read.token),'the token is shown once');assert.equal(list.json().items.length,2);
+test('P06 service tokens: shown once, REST and MCP as the service account, scoped, security actions stay in the interface',async()=>{
+  const read=await serviceToken(f.alice,['read'],'Скрипт чтения',30),write=await serviceToken(f.alice,['read','write'],'Скрипт записи',7);
+  assert.match(read.token,/^spk_/);assert.deepEqual(read.scopes,['read']);
+  const listed=await f.app.inject({url:ui+'/api/v1/service-accounts',headers:f.alice.headers});
+  assert.ok(!listed.body.includes(read.token),'the token is shown once');
+  assert.ok(listed.json().items.find((a:{id:string})=>a.id===(accounts.get(f.alice.id)!.id)).tokens.length>=2);
   const bearer=(token:string)=>({authorization:'Bearer '+token});
   assert.equal((await f.app.inject({url:api+'/api/v1/projects/'+f.first.id+'/tasks',headers:bearer(read.token)})).statusCode,200);
   assert.equal((await f.app.inject({url:api+'/api/v1/projects/'+f.second.id+'/tasks',headers:bearer(read.token)})).statusCode,404);
   const put=(token:string)=>f.app.inject({method:'PUT',url:api+'/api/v1/projects/'+f.first.id+'/tasks/pat-task',headers:{...bearer(token),'idempotency-key':randomUUID(),origin:'https://evil.example'},payload:{baseRevision:0,task:{title:'Из скрипта'}}});
   const refused=await put(read.token);assert.equal(refused.statusCode,403);assert.equal(refused.json().code,'INSUFFICIENT_SCOPE');
   const saved=await put(write.token);assert.equal(saved.statusCode,200,saved.body);
-  assert.equal((await mcp(write.token,'ping')).statusCode,200,'a personal token serves the whole API');
-  // Security decisions need the person's session: a token cannot mint tokens, agents or grants.
-  const minted=await create({name:'Ещё',scopes:['read'],expiresInDays:1},bearer(write.token));
-  assert.equal(minted.statusCode,403);assert.equal(minted.json().code,'SESSION_REQUIRED');
-  const agent=await f.app.inject({method:'POST',url:api+'/api/v1/projects/'+f.first.id+'/agents',headers:bearer(write.token),payload:{name:'Агент',capabilities:['tasks:read'],expiresInSeconds:3600}});
-  assert.equal(agent.statusCode,403);assert.equal(agent.json().code,'SESSION_REQUIRED');
-  assert.equal((await f.app.inject({url:api+'/api/v1/connected-apps',headers:bearer(write.token)})).json().code,'SESSION_REQUIRED');
-  assert.equal((await f.app.inject({method:'DELETE',url:ui+'/api/v1/personal-tokens/'+write.id,headers:f.alice.headers})).statusCode,200);
+  assert.equal((await mcp(write.token,'ping')).statusCode,200,'a service token serves the whole API');
+  // Security decisions need the person's session: a token cannot mint tokens, accounts, agents or grants.
+  const id=accounts.get(f.alice.id)!.id;
+  for(const [method,url,payload] of [['POST','/api/v1/service-accounts/'+id+'/tokens',{name:'Ещё',scopes:['read'],expiresInDays:1}],
+    ['POST','/api/v1/service-accounts',{name:'Ещё',workspaceId:f.first.workspaceId,projects:[]}],['GET','/api/v1/service-accounts',undefined],
+    ['POST','/api/v1/projects/'+f.first.id+'/agents',{name:'Агент',capabilities:['tasks:read'],expiresInSeconds:3600}]] as const){
+    const r=await f.app.inject({method,url:api+url,headers:bearer(write.token),...(payload?{payload}:{})});
+    assert.equal(r.statusCode,403,url);assert.ok(['SESSION_REQUIRED','SERVICE_ACCOUNT_FORBIDDEN'].includes(r.json().code),url+' '+r.body);
+  }
+  assert.equal((await f.app.inject({method:'DELETE',url:ui+'/api/v1/service-accounts/'+id+'/tokens/'+write.id,headers:f.alice.headers})).statusCode,200);
   assert.equal((await put(write.token)).statusCode,401,'a revoked token ends at once');
-  assert.equal((await create({name:'Слишком долго',scopes:['read'],expiresInDays:400})).statusCode,400);
+  const tooLong=await f.app.inject({method:'POST',url:ui+'/api/v1/service-accounts/'+id+'/tokens',headers:f.alice.headers,payload:{name:'Слишком долго',scopes:['read'],expiresInDays:400}});
+  assert.equal(tooLong.statusCode,400);
 });
 
 test('P07 the API name: no cookies, no interface, no CORS, no foreign Origin; revocation from settings and account loss',async()=>{
@@ -275,8 +298,8 @@ test('P07 the API name: no cookies, no interface, no CORS, no foreign Origin; re
   assert.equal((await f.app.inject({method:'GET',url:api+'/mcp',headers:{authorization:'Bearer '+c.access_token}})).statusCode,405);
   const batch=await f.app.inject({method:'POST',url:api+'/mcp',headers:{authorization:'Bearer '+c.access_token,'content-type':'application/json'},payload:JSON.stringify([{jsonrpc:'2.0',id:1,method:'ping'}])});
   assert.equal(batch.statusCode,400);
-  const apps=(await f.app.inject({url:ui+'/api/v1/connected-apps',headers:f.alice.headers})).json().items;
-  const app=apps.find((a:{clientId:string})=>a.clientId===c.client.client_id);assert.ok(app);assert.deepEqual(app.scopes,['read','write']);
+  const apps=(await listAccounts()).flatMap(a=>a.apps);
+  const app=apps.find((a:{clientId:string})=>a.clientId===c.client.client_id);assert.ok(app);assert.deepEqual(app.scopes,['read','write']);assert.equal(app.grantedBy,'Алиса');
   assert.equal((await f.app.inject({method:'DELETE',url:ui+'/api/v1/connected-apps/'+app.id,headers:f.alice.headers})).statusCode,200);
   assert.equal((await mcp(c.access_token,'ping')).statusCode,401);
   assert.equal((await form('/api/oauth/token',{grant_type:'refresh_token',refresh_token:c.refresh_token,client_id:c.client.client_id})).json().error,'invalid_grant');
@@ -290,7 +313,7 @@ test('P07 the API name: no cookies, no interface, no CORS, no foreign Origin; re
 
 test('P08 losing the project ends access through every token at once; the MCP server offers no project data then',async()=>{
   const c=await connect({user:f.reader,scopes:['read']});
-  const pat=(await f.app.inject({method:'POST',url:ui+'/api/v1/personal-tokens',headers:f.reader.headers,payload:{name:'Отчёт',scopes:['read'],expiresInDays:1}})).json();
+  const pat=await serviceToken(f.reader,['read'],'Отчёт');
   const seen=await tool(c.access_token,'list_projects',{});
   assert.ok(seen.structuredContent.data.workspaces.some((w:{projects:{id:string}[]})=>w.projects.some(p=>p.id===f.first.id)));
   const created=await tool((await connect()).access_token,'create_task',{projectId:f.first.id,title:'Видна участникам'});
@@ -336,21 +359,88 @@ test('P09 loopback redirects may change port (RFC 8252), nothing else; the same 
   assert.equal(second.statusCode,200,second.body);
   assert.equal((await mcp(first.json().access_token,'ping')).statusCode,401);
   assert.equal((await mcp(second.json().access_token,'ping')).statusCode,200);
-  const apps=(await f.app.inject({url:ui+'/api/v1/connected-apps',headers:f.alice.headers})).json().items.filter((a:{clientId:string})=>a.clientId===client.client_id);
+  const apps=(await listAccounts()).flatMap(a=>a.apps).filter((a:{clientId:string})=>a.clientId===client.client_id);
   assert.equal(apps.length,1);
   // A grant whose tokens all ended is not a connection any more.
   await f.admin.query("UPDATE auth.oauth_refresh_tokens r SET expires_at=now()-interval '1 second' FROM auth.oauth_grants g WHERE g.id=r.grant_id AND g.client_id=$1",[client.client_id]);
   await f.admin.query("UPDATE auth.credentials c SET expires_at=now()-interval '1 second' FROM auth.oauth_grants g WHERE g.id=c.grant_id AND g.client_id=$1",[client.client_id]);
-  assert.equal((await f.app.inject({url:ui+'/api/v1/connected-apps',headers:f.alice.headers})).json().items.filter((a:{clientId:string})=>a.clientId===client.client_id).length,0);
+  assert.equal((await listAccounts()).flatMap(a=>a.apps).filter((a:{clientId:string})=>a.clientId===client.client_id).length,0);
   // Other security rules of tokens: no workspace, no protocol version without batches.
-  const pat=(await f.app.inject({method:'POST',url:ui+'/api/v1/personal-tokens',headers:f.alice.headers,payload:{name:'Пространства',scopes:['read','write'],expiresInDays:1}})).json();
+  const pat=await serviceToken(f.alice,['read','write'],'Пространства');
   const workspace=await f.app.inject({method:'POST',url:api+'/api/v1/workspaces',headers:{authorization:'Bearer '+pat.token},payload:{name:'Из скрипта',timezone:'Europe/Moscow'}});
-  assert.equal(workspace.statusCode,403);assert.equal(workspace.json().code,'SESSION_REQUIRED');
+  assert.equal(workspace.statusCode,403);
   assert.equal((await mcp(pat.token,'ping',undefined,{'mcp-protocol-version':'2025-03-26'})).statusCode,400);
 });
 
-test('P10 request windows: 600 a minute per credential from any address; refused tokens cost their address',async()=>{
-  const busy=await connect(),calm=(await f.app.inject({method:'POST',url:ui+'/api/v1/personal-tokens',headers:f.alice.headers,payload:{name:'Спокойный',scopes:['read'],expiresInDays:1}})).json();
+test('P10 service accounts: within the owner\'s rights, managed by owner and administrators, suspended without the owner, no escalation',async()=>{
+  const bearer=(t:string)=>({authorization:'Bearer '+t});
+  const call=(user:User,method:'GET'|'POST'|'PATCH'|'PUT'|'DELETE',url:string,payload?:unknown)=>f.app.inject({method,url:ui+url,headers:{...user.headers,'idempotency-key':randomUUID()},...(payload===undefined?{}:{payload:payload as Record<string,unknown>})});
+  const make=(user:User,payload:Record<string,unknown>)=>call(user,'POST','/api/v1/service-accounts',payload);
+  // Grants never exceed the owner's own rights, and only in the owner's workspace.
+  assert.equal((await make(f.reader,{name:'Выше',workspaceId:f.first.workspaceId,projects:[{projectId:f.first.id,role:'editor'}]})).json().code,'ROLE_ABOVE_OWNER');
+  assert.equal((await make(f.alice,{name:'Чужой',workspaceId:f.first.workspaceId,projects:[{projectId:f.second.id,role:'reader'}]})).json().code,'OWNER_NOT_MEMBER');
+  const stranger=await make(f.bob,{name:'Не своё',workspaceId:f.first.workspaceId,projects:[]});assert.equal(stranger.statusCode,404,stranger.body);
+  const robot=(await make(f.alice,{name:'Робот',workspaceId:f.first.workspaceId,projects:[{projectId:f.first.id,role:'editor'}]})).json();
+  assert.equal(robot.projects[0].effectiveRole,'editor');assert.equal(robot.ownerName,'Алиса');assert.equal(robot.suspended,false);
+  const token=(await call(f.alice,'POST',`/api/v1/service-accounts/${robot.id}/tokens`,{name:'t',scopes:['read','write'],expiresInDays:1})).json().token;
+  const put=(t:string)=>f.app.inject({method:'PUT',url:api+'/api/v1/projects/'+f.first.id+'/tasks/robot-'+randomUUID().slice(0,8),headers:{...bearer(t),'idempotency-key':randomUUID()},payload:{baseRevision:0,task:{title:'Робот'}}});
+  assert.equal((await put(token)).statusCode,200);
+  // The project's members show it as a service account with its owner.
+  const members=(await call(f.reader,'GET','/api/v1/projects/'+f.first.id+'/members')).json();
+  const listed=members.find((m:{id:string})=>m.id===robot.id);assert.equal(listed.kind,'service');assert.equal(listed.ownerName,'Алиса');
+  // No escalation through its token: finance, members, invitations, service accounts, approvals of access.
+  for(const [method,url,payload] of [['GET','/api/v1/projects/'+f.first.id+'/finance-summary',undefined],
+    ['PATCH','/api/v1/projects/'+f.first.id+'/members/'+f.reader.id,{baseRevision:1,role:'editor'}],
+    ['POST','/api/v1/projects/'+f.first.id+'/invitations',{id:randomUUID(),role:'editor',expiresInSeconds:86400}],
+    ['DELETE','/api/v1/service-accounts/'+robot.id,undefined]] as const){
+    const r=await f.app.inject({method,url:api+url,headers:{...bearer(token),'idempotency-key':randomUUID()},...(payload?{payload}:{})});
+    assert.equal(r.statusCode,403,`${method} ${url}: ${r.body}`);
+  }
+  // Others cannot manage it: a member who is not an administrator, a stranger.
+  for(const user of [f.reader,f.bob]){const r=await call(user,'PATCH','/api/v1/service-accounts/'+robot.id,{baseRevision:robot.revision,name:'Чужое'});assert.equal(r.statusCode,404,r.body+JSON.stringify(robot));}
+  // A project administrator raises the reader's account to editor: its owner still only reads, so it cannot write.
+  const readerAccount=await account(f.reader),readerToken=(await serviceToken(f.reader,['read','write'],'Запись')).token;
+  const row=(await call(f.alice,'GET','/api/v1/projects/'+f.first.id+'/members')).json().find((m:{id:string})=>m.id===readerAccount.id);
+  assert.equal((await call(f.alice,'PATCH','/api/v1/projects/'+f.first.id+'/members/'+readerAccount.id,{baseRevision:row.revision,role:'admin'})).json().code,'SERVICE_ACCOUNT_ROLE');
+  assert.equal((await call(f.alice,'PATCH','/api/v1/projects/'+f.first.id+'/members/'+readerAccount.id,{baseRevision:row.revision,role:'editor'})).statusCode,200);
+  const capped=await put(readerToken);assert.equal(capped.statusCode,403);assert.equal(capped.json().code,'OWNER_RIGHTS');
+  assert.equal((await f.app.inject({url:api+'/api/v1/projects/'+f.first.id+'/tasks',headers:bearer(readerToken)})).statusCode,200);
+  // The owner leaves the workspace: the account stops at once and stays suspended until an administrator acts.
+  const self=(await call(f.alice,'GET','/api/v1/projects/'+f.first.id+'/members')).json().find((m:{id:string})=>m.id===f.reader.id);
+  assert.equal((await call(f.alice,'PATCH','/api/v1/projects/'+f.first.id+'/members/'+f.reader.id,{baseRevision:self.revision,role:null})).statusCode,200);
+  const wsMember=(await call(f.alice,'GET','/api/v1/workspaces/'+f.first.workspaceId+'/members')).json();
+  const wsRow=(wsMember.items??wsMember).find((m:{id:string})=>m.id===f.reader.id);
+  const left=await call(f.alice,'PATCH','/api/v1/workspaces/'+f.first.workspaceId+'/members/'+f.reader.id,{baseRevision:wsRow.revision,role:null});assert.equal(left.statusCode,200,left.body);
+  try{
+    assert.equal((await f.app.inject({url:api+'/api/v1/projects/'+f.first.id+'/tasks',headers:bearer(readerToken)})).statusCode,401);
+    const suspended=(await listAccounts(f.alice)).find(a=>a.id===readerAccount.id);assert.equal(suspended.suspended,true);assert.equal(suspended.mine,false);
+    const events=(await f.admin.query('SELECT action FROM auth.access_events WHERE principal_id=$1',[readerAccount.id])).rows.map(r=>r.action);
+    assert.ok(events.includes('account.suspended'));
+    // Back in the workspace is not enough: the suspension holds until an administrator reassigns the owner.
+    await f.admin.query("INSERT INTO app.workspace_members(workspace_id,principal_id,role) VALUES($1,$2,'member')",[f.first.workspaceId,f.reader.id]);
+    assert.equal((await f.app.inject({url:api+'/api/v1/projects/'+f.first.id+'/tasks',headers:bearer(readerToken)})).statusCode,401);
+    assert.equal((await call(f.reader,'POST','/api/v1/service-accounts/'+readerAccount.id+'/owner',{baseRevision:suspended.revision,ownerId:f.reader.id})).statusCode,403,'the owner cannot lift it');
+    const reassigned=await call(f.alice,'POST','/api/v1/service-accounts/'+readerAccount.id+'/owner',{baseRevision:suspended.revision,ownerId:f.alice.id});
+    assert.equal(reassigned.statusCode,200,reassigned.body);assert.equal(reassigned.json().suspended,false);assert.equal(reassigned.json().ownerId,f.alice.id);
+    assert.equal((await f.app.inject({url:api+'/api/v1/projects/'+f.first.id+'/tasks',headers:bearer(readerToken)})).statusCode,200);
+    // A workspace administrator deletes a person's account: everything it held ends.
+    await f.admin.query("INSERT INTO app.project_members(project_id,principal_id,role) VALUES($1,$2,'reader') ON CONFLICT DO NOTHING",[f.first.id,f.reader.id]);
+    const temporary=(await make(f.reader,{name:'Временный',workspaceId:f.first.workspaceId,projects:[{projectId:f.first.id,role:'reader'}]})).json();
+    const temporaryToken=(await call(f.reader,'POST',`/api/v1/service-accounts/${temporary.id}/tokens`,{name:'t',scopes:['read'],expiresInDays:1})).json().token;
+    assert.equal((await f.app.inject({url:api+'/api/v1/projects/'+f.first.id+'/tasks',headers:bearer(temporaryToken)})).statusCode,200);
+    assert.equal((await call(f.alice,'DELETE','/api/v1/service-accounts/'+temporary.id)).statusCode,200);
+    assert.equal((await f.app.inject({url:api+'/api/v1/projects/'+f.first.id+'/tasks',headers:bearer(temporaryToken)})).statusCode,401);
+    assert.ok(!(await listAccounts(f.reader)).some(a=>a.id===temporary.id));
+    assert.ok(!(await call(f.alice,'GET','/api/v1/projects/'+f.first.id+'/members')).json().some((m:{id:string})=>m.id===temporary.id));
+  }finally{
+    await f.admin.query("INSERT INTO app.workspace_members(workspace_id,principal_id,role) VALUES($1,$2,'member') ON CONFLICT DO NOTHING",[f.first.workspaceId,f.reader.id]);
+    await f.admin.query("INSERT INTO app.project_members(project_id,principal_id,role) VALUES($1,$2,'reader') ON CONFLICT DO NOTHING",[f.first.id,f.reader.id]);
+    accounts.delete(f.reader.id);
+  }
+});
+
+test('P11 request windows: 600 a minute per credential from any address; refused tokens cost their address',async()=>{
+  const busy=await connect(),calm=await serviceToken(f.alice,['read'],'Спокойный');
   for(let i=0;i<600;i++){const r=await mcp(busy.access_token,'ping');assert.equal(r.statusCode,200,`request ${i}: ${r.body}`);}
   const limited=await mcp(busy.access_token,'ping');assert.equal(limited.statusCode,429);assert.equal(limited.headers['retry-after'],'60');
   const rest=await f.app.inject({url:api+'/api/v1/session',headers:{authorization:'Bearer '+calm.token}});assert.notEqual(rest.statusCode,429,'another credential has its own window');

@@ -36,7 +36,17 @@ data class AuthorizationRequest(
  */
 @Component
 @Profile("api")
-class OAuthAuthorizations(private val properties: SprintiqueProperties) {
+class OAuthAuthorizations(
+    private val properties: SprintiqueProperties,
+    private val serviceAccounts: ServiceAccounts,
+) {
+    /** Which service account the app will act as: one of the person's own, or a new one made on the spot. */
+    sealed interface AccountChoice {
+        data class Existing(val id: String) : AccountChoice
+
+        data class New(val name: String, val workspaceId: String, val projectIds: List<String>) : AccountChoice
+    }
+
     private data class Checked(
         val client: OAuthClient,
         val redirectUri: String,
@@ -46,18 +56,22 @@ class OAuthAuthorizations(private val properties: SprintiqueProperties) {
         val state: String?,
     )
 
-    /** What the consent screen shows: the client as it named itself, where it will be sent, what it asks for. */
+    /**
+     * What the consent screen shows: the client as it named itself, where it will be sent, what it asks for, and the
+     * service accounts it can act as (the person's own, or a new one in a workspace and projects of the person's).
+     */
     fun describe(tx: Transaction, actor: Actor, request: AuthorizationRequest): Map<String, Any?> {
         ProjectAccess.requireInteractive(actor)
+        requireCondition(actor.isHuman, 403, "HUMAN_REQUIRED", "Доступ приложению даёт человек.")
         val checked = check(tx, request)
-        val connected = tx.row(
+        val connectedAs = tx.row(
             """
-            SELECT 1 AS found FROM auth.oauth_grants g
-            WHERE g.principal_id = $1 AND g.client_id = $2 AND ${ConnectedApps.LIVE} LIMIT 1
+            SELECT g.principal_id AS id FROM auth.oauth_grants g
+            WHERE g.granted_by = $1 AND g.client_id = $2 AND ${ConnectedApps.LIVE} ORDER BY g.created_at DESC LIMIT 1
             """.trimIndent(),
             actor.id,
             checked.client.id,
-        ) != null
+        )?.string("id")
         return linkedMapOf(
             "client" to linkedMapOf(
                 "id" to checked.client.id,
@@ -68,8 +82,9 @@ class OAuthAuthorizations(private val properties: SprintiqueProperties) {
             ),
             "scopes" to Scope.entries.filter { it in checked.scopes }.map(Scope::wire),
             "resource" to checked.resource,
-            "connected" to connected,
-        )
+            "connected" to (connectedAs != null),
+            "connectedAs" to connectedAs,
+        ) + serviceAccounts.choices(tx, actor)
     }
 
     /**
@@ -82,8 +97,10 @@ class OAuthAuthorizations(private val properties: SprintiqueProperties) {
         request: AuthorizationRequest,
         approve: Boolean,
         granted: Set<Scope>,
+        choice: AccountChoice?,
     ): Map<String, Any> {
         ProjectAccess.requireInteractive(actor)
+        requireCondition(actor.isHuman, 403, "HUMAN_REQUIRED", "Доступ приложению даёт человек.")
         val checked = check(tx, request)
         if (!approve) return mapOf("redirectTo" to errorRedirect(checked.redirectUri, checked.state, "access_denied"))
         val scopes = granted + Scope.READ
@@ -97,7 +114,7 @@ class OAuthAuthorizations(private val properties: SprintiqueProperties) {
         val active = tx.row(
             """
             SELECT count(*)::int AS n FROM auth.oauth_grants g
-            WHERE g.principal_id = $1 AND g.client_id <> $2 AND ${ConnectedApps.LIVE}
+            WHERE g.granted_by = $1 AND g.client_id <> $2 AND ${ConnectedApps.LIVE}
             """.trimIndent(),
             actor.id,
             checked.client.id,
@@ -108,15 +125,17 @@ class OAuthAuthorizations(private val properties: SprintiqueProperties) {
             "APP_LIMIT",
             "Подключено слишком много приложений. Отключите лишние в настройках.",
         )
+        val account = accountFor(tx, actor, choice, Scope.WRITE in scopes, checked.client.name)
         val code = Tokens.prefixed("spc_")
         tx.update(
             """
-            INSERT INTO auth.oauth_codes(code_hash, client_id, principal_id, redirect_uri, code_challenge, scopes, resource,
-                                         expires_at)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, clock_timestamp() + interval '5 minutes')
+            INSERT INTO auth.oauth_codes(code_hash, client_id, principal_id, granted_by, redirect_uri, code_challenge,
+                                         scopes, resource, expires_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, clock_timestamp() + interval '5 minutes')
             """.trimIndent(),
             Tokens.sha256Hex(code),
             checked.client.id,
+            account,
             actor.id,
             checked.redirectUri,
             checked.challenge,
@@ -128,6 +147,44 @@ class OAuthAuthorizations(private val properties: SprintiqueProperties) {
         parameters["iss"] = properties.apiBase
         return mapOf("redirectTo" to OAuthRules.redirect(checked.redirectUri, parameters))
     }
+
+    /**
+     * The service account the code is for. A new one gets the chosen projects of its workspace: `editor` where the
+     * person writes and the app may change data, `reader` otherwise. It never exceeds the person's own role.
+     */
+    private fun accountFor(tx: Transaction, actor: Actor, choice: AccountChoice?, write: Boolean, app: String): String =
+        when (choice) {
+            null -> throw ProblemException(400, "SERVICE_ACCOUNT_REQUIRED", "Выберите или создайте сервисный аккаунт.")
+
+            is AccountChoice.Existing -> serviceAccounts.ownedActive(tx, actor, choice.id)
+                ?: throw ProblemException(404, "NOT_FOUND", "Сервисный аккаунт недоступен.")
+
+            is AccountChoice.New -> {
+                val roles = tx.rows(
+                    """
+                    SELECT project_id AS id, role FROM app.project_members WHERE principal_id = $1 AND project_id = ANY($2)
+                    """.trimIndent(),
+                    actor.id,
+                    choice.projectIds,
+                ).associate { it.string("id") to it.string("role") }
+                requireCondition(
+                    choice.projectIds.isNotEmpty() && roles.keys.containsAll(choice.projectIds),
+                    422,
+                    "OWNER_NOT_MEMBER",
+                    "Выберите проекты, в которых вы участник.",
+                )
+                val grants = choice.projectIds.map { projectId ->
+                    val writes = write && roles.getValue(projectId) in setOf("editor", "admin")
+                    ServiceAccounts.ProjectGrant(
+                        projectId,
+                        if (writes) ServiceAccounts.Role.EDITOR else ServiceAccounts.Role.READER,
+                    )
+                }
+                val name = choice.name.ifBlank { app }.take(OAuthClients.NAME_LIMIT)
+                serviceAccounts.create(tx, actor, ServiceAccounts.NewAccount(name, choice.workspaceId, grants))
+                    .getValue("id") as String
+            }
+        }
 
     private fun check(tx: Transaction, request: AuthorizationRequest): Checked {
         val client = OAuthClients.find(tx, request.clientId)

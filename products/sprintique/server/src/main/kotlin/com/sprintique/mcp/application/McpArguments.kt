@@ -74,7 +74,6 @@ data class CreateTaskArguments(
     val dueDate: String? = null,
     @field:Pattern(regexp = RESOURCE_ID)
     val parent: String? = null,
-    val addToBoard: Boolean = false,
     @field:Pattern(regexp = IDEMPOTENCY_KEY)
     val idempotencyKey: String? = null,
 )

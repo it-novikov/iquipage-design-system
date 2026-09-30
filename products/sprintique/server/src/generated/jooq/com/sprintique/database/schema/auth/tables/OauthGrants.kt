@@ -6,11 +6,13 @@ package com.sprintique.database.schema.auth.tables
 
 import com.sprintique.database.schema.auth.Auth
 import com.sprintique.database.schema.auth.indexes.OAUTH_GRANTS_CLIENT
+import com.sprintique.database.schema.auth.indexes.OAUTH_GRANTS_GRANTED_BY
 import com.sprintique.database.schema.auth.indexes.OAUTH_GRANTS_PRINCIPAL
 import com.sprintique.database.schema.auth.keys.CREDENTIALS__CREDENTIALS_GRANT_ID_FKEY
 import com.sprintique.database.schema.auth.keys.OAUTH_CODES__OAUTH_CODES_GRANT_ID_FKEY
 import com.sprintique.database.schema.auth.keys.OAUTH_GRANTS_PKEY
 import com.sprintique.database.schema.auth.keys.OAUTH_GRANTS__OAUTH_GRANTS_CLIENT_ID_FKEY
+import com.sprintique.database.schema.auth.keys.OAUTH_GRANTS__OAUTH_GRANTS_GRANTED_BY_FKEY
 import com.sprintique.database.schema.auth.keys.OAUTH_GRANTS__OAUTH_GRANTS_PRINCIPAL_ID_FKEY
 import com.sprintique.database.schema.auth.keys.OAUTH_REFRESH_TOKENS__OAUTH_REFRESH_TOKENS_GRANT_ID_FKEY
 import com.sprintique.database.schema.auth.tables.Credentials.CredentialsPath
@@ -85,6 +87,8 @@ open class OauthGrants(
 
     val PRINCIPAL_ID: TableField<OauthGrantsRecord, String?> = createField(DSL.name("principal_id"), SQLDataType.CLOB.nullable(false), this, "")
 
+    val GRANTED_BY: TableField<OauthGrantsRecord, String?> = createField(DSL.name("granted_by"), SQLDataType.CLOB.nullable(false), this, "")
+
     val SCOPES: TableField<OauthGrantsRecord, Array<String?>?> = createField(DSL.name("scopes"), SQLDataType.CLOB.array().nullable(false), this, "")
 
     val RESOURCE: TableField<OauthGrantsRecord, String?> = createField(DSL.name("resource"), SQLDataType.CLOB.nullable(false), this, "")
@@ -115,15 +119,18 @@ open class OauthGrants(
         override fun `as`(alias: Table<*>): OauthGrantsPath = OauthGrantsPath(alias.qualifiedName, this)
     }
     override fun getSchema(): Schema? = if (aliased()) null else Auth.AUTH
-    override fun getIndexes(): List<Index> = listOf(OAUTH_GRANTS_CLIENT, OAUTH_GRANTS_PRINCIPAL)
+    override fun getIndexes(): List<Index> = listOf(OAUTH_GRANTS_CLIENT, OAUTH_GRANTS_GRANTED_BY, OAUTH_GRANTS_PRINCIPAL)
     override fun getPrimaryKey(): UniqueKey<OauthGrantsRecord> = OAUTH_GRANTS_PKEY
-    override fun getReferences(): List<ForeignKey<OauthGrantsRecord, *>> = listOf(OAUTH_GRANTS__OAUTH_GRANTS_CLIENT_ID_FKEY, OAUTH_GRANTS__OAUTH_GRANTS_PRINCIPAL_ID_FKEY)
+    override fun getReferences(): List<ForeignKey<OauthGrantsRecord, *>> = listOf(OAUTH_GRANTS__OAUTH_GRANTS_CLIENT_ID_FKEY, OAUTH_GRANTS__OAUTH_GRANTS_GRANTED_BY_FKEY, OAUTH_GRANTS__OAUTH_GRANTS_PRINCIPAL_ID_FKEY)
 
     fun oauthClients(): OauthClientsPath = oauthClients
     val oauthClients: OauthClientsPath by lazy { OauthClientsPath(this, OAUTH_GRANTS__OAUTH_GRANTS_CLIENT_ID_FKEY, null) }
 
-    fun principals(): PrincipalsPath = principals
-    val principals: PrincipalsPath by lazy { PrincipalsPath(this, OAUTH_GRANTS__OAUTH_GRANTS_PRINCIPAL_ID_FKEY, null) }
+    fun oauthGrantsGrantedByFkey(): PrincipalsPath = oauthGrantsGrantedByFkey
+    val oauthGrantsGrantedByFkey: PrincipalsPath by lazy { PrincipalsPath(this, OAUTH_GRANTS__OAUTH_GRANTS_GRANTED_BY_FKEY, null) }
+
+    fun oauthGrantsPrincipalIdFkey(): PrincipalsPath = oauthGrantsPrincipalIdFkey
+    val oauthGrantsPrincipalIdFkey: PrincipalsPath by lazy { PrincipalsPath(this, OAUTH_GRANTS__OAUTH_GRANTS_PRINCIPAL_ID_FKEY, null) }
 
     private lateinit var _credentials: CredentialsPath
 
