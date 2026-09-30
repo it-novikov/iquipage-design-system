@@ -78,7 +78,7 @@ object OAuthRules {
 
     /**
      * RFC 8707: the resource an OAuth token is for. OAuth serves the MCP server only: its consent describes what the
-     * tools do, and the whole REST API is reached with personal tokens. Absent means the MCP server; a value is
+     * tools do, and the whole REST API is reached with service tokens. Absent means the MCP server; a value is
      * compared without a single trailing slash. Null when it names anything else.
      */
     fun resource(value: String?, mcp: String): String? {

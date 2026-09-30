@@ -117,7 +117,7 @@ open class AccessEvents(
     override fun getChecks(): List<Check<AccessEventsRecord>> = listOf(
         Internal.createCheck(this, DSL.name("access_events_action_check"), "((action = ANY (ARRAY['account.created'::text, 'account.changed'::text, 'account.owner-changed'::text, 'account.suspended'::text, 'account.deleted'::text, 'project.granted'::text, 'project.revoked'::text, 'token.created'::text, 'token.revoked'::text, 'app.connected'::text, 'app.revoked'::text, 'app.code-replayed'::text, 'app.refresh-replayed'::text])))", true),
         Internal.createCheck(this, DSL.name("access_events_client_id_check"), "(((client_id IS NULL) OR (length(client_id) <= 100)))", true),
-        Internal.createCheck(this, DSL.name("access_events_subject_id_check"), "(((length(subject_id) >= 1) AND (length(subject_id) <= 100)))", true)
+        Internal.createCheck(this, DSL.name("access_events_subject_id_check"), "(((length(subject_id) >= 1) AND (length(subject_id) <= 200)))", true)
     )
     override fun `as`(alias: String): AccessEvents = AccessEvents(DSL.name(alias), this)
     override fun `as`(alias: Name): AccessEvents = AccessEvents(alias, this)

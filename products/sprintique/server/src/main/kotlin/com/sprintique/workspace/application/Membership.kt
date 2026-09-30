@@ -44,8 +44,8 @@ object Membership {
     }
 
     /**
-     * Last activity is the member's newest audit event in this project. A service account names its owner and whether
-     * it is suspended; its role is capped by its owner's.
+     * Last activity is the member's newest audit event in this project. A service account names its owner, whether
+     * it is suspended and what it was granted explicitly (finance); its rights are capped by its owner's.
      */
     fun members(tx: Transaction, actor: Actor, projectId: String): List<Row> {
         ProjectAccess.authorize(tx, actor, projectId, Capability.TASKS_READ)
@@ -58,7 +58,10 @@ object Membership {
                    s.owner_id AS "ownerId",
                    (SELECT coalesce(o.profile_name, o.name) FROM auth.principals o WHERE o.id = s.owner_id) AS "ownerName",
                    CASE WHEN s.principal_id IS NULL THEN NULL
-                        ELSE NOT auth.service_account_active(s.principal_id) END AS suspended
+                        ELSE NOT auth.service_account_active(s.principal_id) END AS suspended,
+                   CASE WHEN s.principal_id IS NULL THEN NULL ELSE coalesce((SELECT g.granted
+                     FROM auth.service_account_grants g WHERE g.project_id = m.project_id AND g.principal_id = p.id),
+                     '{}') END AS granted
             FROM app.project_members m JOIN auth.principals p ON p.id = m.principal_id
             LEFT JOIN auth.service_accounts s ON s.principal_id = p.id
             WHERE m.project_id = $1 ORDER BY name, p.id LIMIT 501
@@ -107,6 +110,23 @@ object Membership {
                 "SERVICE_ACCOUNT_ROLE",
                 "Сервисный аккаунт может быть только наблюдателем или редактором.",
             )
+            // Nor above its owner: an editor only while its owner writes in this project.
+            if (member.string("kind") == "service" && input.role == "editor") {
+                val owner = tx.row(
+                    """
+                    SELECT o.role FROM auth.service_accounts s
+                    JOIN app.project_members o ON o.project_id = $1 AND o.principal_id = s.owner_id
+                    WHERE s.principal_id = $2
+                    """.trimIndent(),
+                    projectId, id,
+                )
+                requireCondition(
+                    owner?.string("role") in setOf("editor", "admin"),
+                    422,
+                    "ROLE_ABOVE_OWNER",
+                    "Сервисный аккаунт не может получить больше прав, чем у его владельца.",
+                )
+            }
             requireCondition(
                 member.long("revision") == input.baseRevision,
                 409,

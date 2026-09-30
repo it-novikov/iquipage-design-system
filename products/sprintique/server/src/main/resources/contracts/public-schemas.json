@@ -6721,6 +6721,17 @@
                   "reader",
                   "editor"
                 ]
+              },
+              "granted": {
+                "maxItems": 2,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "finance.read",
+                    "finance.write"
+                  ]
+                }
               }
             },
             "required": [
@@ -18916,6 +18927,17 @@
             "reader",
             "editor"
           ]
+        },
+        "granted": {
+          "maxItems": 2,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "finance.read",
+              "finance.write"
+            ]
+          }
         }
       },
       "required": [
@@ -18968,6 +18990,17 @@
             "reader",
             "editor"
           ]
+        },
+        "granted": {
+          "maxItems": 2,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "finance.read",
+              "finance.write"
+            ]
+          }
         }
       },
       "required": [

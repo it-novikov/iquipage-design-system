@@ -281,6 +281,9 @@ class TaskTools(private val ledger: CommandLedger, private val properties: Sprin
                         SELECT * FROM (
                           SELECT m.id, left(m.body, $3) AS body, length(m.body) > $3 AS truncated,
                                  coalesce(a.profile_name, a.name) AS author, a.kind AS "authorKind",
+                                 (SELECT coalesce(o.profile_name, o.name) FROM auth.service_accounts s
+                                  JOIN auth.principals o ON o.id = s.owner_id WHERE s.principal_id = a.id)
+                                   AS "authorOwner",
                                  m.created_at AS "createdAt"
                           FROM app.messages m JOIN auth.principals a ON a.id = m.author_id
                           WHERE m.project_id = $1 AND m.thread_id = $2 ORDER BY m.created_at DESC, m.id DESC LIMIT $4

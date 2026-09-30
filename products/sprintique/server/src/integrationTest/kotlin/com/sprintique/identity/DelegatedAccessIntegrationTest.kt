@@ -10,8 +10,8 @@ import java.util.UUID
 
 /**
  * Migration 027 on a real database: tokens belong to service accounts, bound to a resource, with known scopes and
- * made by someone else; row security holds a service account under its owner's membership; connected apps and the
- * access history cannot be erased by the runtime role; expired access tokens are collected.
+ * made by someone else; row security holds a service account under its owner's membership, finance only as granted;
+ * connected apps and the access history cannot be erased by the runtime role; expired access tokens are collected.
  */
 class DelegatedAccessIntegrationTest {
     private val runtime = IntegrationDatabase.runtime
@@ -139,6 +139,59 @@ class DelegatedAccessIntegrationTest {
             person,
         )
         assertThat(seesProject()).isTrue()
+    }
+
+    private fun finance(): Pair<Boolean, Boolean> = runtime.transaction { tx: Transaction ->
+        tx.row("SELECT set_config('app.actor_id', $1, true)", account)
+        val row = tx.row(
+            "SELECT auth.can_read_finance($1) AS reads, auth.can_manage_finance($1) AS keeps",
+            project,
+        )!!
+        row.boolean("reads") to row.boolean("keeps")
+    }
+
+    private fun setRole(id: String, role: String) =
+        admin("UPDATE app.project_members SET role = $3 WHERE project_id = $1 AND principal_id = $2", project, id, role)
+
+    private fun grant(vararg granted: String) = runtime.transaction { tx ->
+        tx.update(
+            """
+            INSERT INTO auth.service_account_grants(project_id, principal_id, granted) VALUES ($1, $2, $3)
+            ON CONFLICT (project_id, principal_id) DO UPDATE SET granted = excluded.granted
+            """.trimIndent(),
+            project,
+            account,
+            granted.toList(),
+        )
+    }
+
+    @Test
+    fun `finance is closed to a service account until granted, and kept only under an administering owner`() {
+        assertThat(finance()).describedAs("nothing by default").isEqualTo(false to false)
+        grant("finance.read")
+        assertThat(finance()).isEqualTo(true to false)
+        grant("finance.read", "finance.write")
+        assertThat(finance()).describedAs("the owner only edits the project").isEqualTo(true to false)
+        setRole(person, "admin")
+        assertThat(finance()).isEqualTo(true to true)
+        admin("UPDATE auth.service_accounts SET suspended_at = clock_timestamp() WHERE principal_id = $1", account)
+        assertThat(finance()).describedAs("a suspended account").isEqualTo(false to false)
+        admin("UPDATE auth.service_accounts SET suspended_at = NULL WHERE principal_id = $1", account)
+        setRole(person, "editor")
+        assertThatThrownBy { grant("finance.admin") }
+            .isInstanceOf(SQLException::class.java).hasMessageContaining("violates")
+        // Ending the membership ends the grant with it.
+        admin("DELETE FROM app.project_members WHERE project_id = $1 AND principal_id = $2", project, account)
+        val left = IntegrationDatabase.admin.transaction { tx ->
+            tx.row("SELECT count(*)::int AS n FROM auth.service_account_grants WHERE principal_id = $1", account)!!
+                .int("n")
+        }
+        assertThat(left).isZero()
+        admin(
+            "INSERT INTO app.project_members(project_id, principal_id, role) VALUES ($1, $2, 'editor')",
+            project,
+            account,
+        )
     }
 
     @Test

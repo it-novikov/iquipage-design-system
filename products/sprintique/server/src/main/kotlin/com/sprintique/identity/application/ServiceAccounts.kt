@@ -42,18 +42,20 @@ object AccessEvents {
  * Service accounts: how apps (Claude and other MCP clients) and scripts reach Sprintique. An app never acts as a
  * person; it acts as a service account, a principal of its own that a person made in one workspace and owns.
  *
- * - Its rights are project roles, `reader` or `editor`, in projects of its workspace, and never more than its owner's
- *   right there now (checked on every request, see ProjectAccess and auth.can_project). It never administers, never
- *   manages access or other service accounts, never sees finance.
+ * - Any person of a workspace may make one there (at most [WORKSPACE_LIMIT] per workspace) and owns it.
+ * - Its rights are project roles, `reader` or `editor`, in projects of its workspace, plus finance only when granted
+ *   explicitly ([Grant]), and never more than its owner's right there now (checked on every request, see
+ *   ProjectAccess, auth.can_project and the finance functions). It never administers, never manages access or other
+ *   service accounts.
  * - The owner names it, grants and changes its projects within their own rights, makes and revokes its tokens,
- *   connects and disconnects apps, and deletes it. A project administrator changes its role in the project or removes
- *   it from the project. A workspace administrator does both in every project of the workspace, gives the account a
- *   new owner and deletes it.
+ *   connects and disconnects apps, and deletes it. A project administrator changes its rights in the project or
+ *   removes it from the project, and deletes it when every project it is in is one they administer. A workspace
+ *   administrator does all of that in every project of the workspace, gives the account a new owner and deletes it.
  * - While its owner is disabled or outside the workspace it does nothing; when the owner leaves the workspace it is
  *   suspended until an administrator gives it a new owner or deletes it.
  *
- * The permission grant is a project role for now; a finer set of permissions replaces [Role] without changing the
- * rest. Every operation here needs the person's own session.
+ * The permission grant is a project role plus explicit [Grant]s for now; the permission catalog replaces both
+ * without changing the rest. Every operation here needs the person's own session.
  */
 @Component
 @Profile("api")
@@ -71,7 +73,18 @@ class ServiceAccounts(private val properties: SprintiqueProperties) {
         }
     }
 
-    data class ProjectGrant(val projectId: String, val role: Role)
+    /** What a service account holds in a project only when granted explicitly, by the permission catalog's names. */
+    enum class Grant(val wire: String) {
+        FINANCE_READ("finance.read"),
+        FINANCE_WRITE("finance.write"),
+        ;
+
+        companion object {
+            fun fromWire(value: String): Grant? = entries.firstOrNull { it.wire == value }
+        }
+    }
+
+    data class ProjectGrant(val projectId: String, val role: Role, val granted: Set<Grant> = emptySet())
 
     data class NewAccount(val name: String, val workspaceId: String, val projects: List<ProjectGrant>)
 
@@ -126,7 +139,7 @@ class ServiceAccounts(private val properties: SprintiqueProperties) {
             ORDER BY p.name, s.principal_id LIMIT $2
             """.trimIndent(),
             actor.id,
-            OWNED_LIMIT,
+            LIST_LIMIT,
         )
         val projects = tx.rows(
             """
@@ -151,22 +164,23 @@ class ServiceAccounts(private val properties: SprintiqueProperties) {
     /** A new account owned by the caller, with its first projects, each within the caller's own role. */
     fun create(tx: Transaction, actor: Actor, input: NewAccount): Map<String, Any?> {
         requirePerson(actor)
-        tx.row("SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", "service-accounts:${actor.id}")
         val member = tx.row(
             "SELECT 1 AS found FROM app.workspace_members WHERE workspace_id = $1::uuid AND principal_id = $2",
             input.workspaceId,
             actor.id,
         )
         requireCondition(member != null, 404, "NOT_FOUND", "Пространство недоступно.")
-        val owned = tx.row(
-            "SELECT count(*)::int AS n FROM auth.service_accounts WHERE owner_id = $1 AND deleted_at IS NULL",
-            actor.id,
+        // One count per workspace at a time, so two requests cannot both take the last place.
+        tx.row("SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", "service-accounts:${input.workspaceId}")
+        val made = tx.row(
+            "SELECT count(*)::int AS n FROM auth.service_accounts WHERE workspace_id = $1::uuid AND deleted_at IS NULL",
+            input.workspaceId,
         )!!.int("n")
         requireCondition(
-            owned < OWNED_LIMIT,
+            made < WORKSPACE_LIMIT,
             422,
             "SERVICE_ACCOUNT_LIMIT",
-            "Можно держать не больше $OWNED_LIMIT сервисных аккаунтов. Удалите лишние.",
+            "В пространстве не больше $WORKSPACE_LIMIT сервисных аккаунтов. Удалите лишние.",
         )
         requireCondition(
             input.projects.map { it.projectId }.distinct().size == input.projects.size,
@@ -187,7 +201,7 @@ class ServiceAccounts(private val properties: SprintiqueProperties) {
         )
         AccessEvents.record(tx, id, "account.created", id, actorId = actor.id)
         val managed = Managed(id, input.workspaceId, actor.id, 1, isOwner = true, isWorkspaceAdmin = false)
-        for (grant in input.projects) grantProject(tx, actor, managed, grant.projectId, grant.role)
+        for (grant in input.projects) grantProject(tx, actor, managed, grant)
         return present(tx, account(tx, actor, id))
     }
 
@@ -201,11 +215,17 @@ class ServiceAccounts(private val properties: SprintiqueProperties) {
     }
 
     /**
-     * Grants, changes or ends the account's access to one project of its workspace (`role` null ends it). The owner
-     * grants within their own role there; a project administrator changes and removes it in their project; a
+     * Grants, changes or ends the account's access to one project of its workspace (`grant` null ends it). The owner
+     * grants within their own rights there; a project administrator changes and removes it in their project; a
      * workspace administrator in any project of the workspace. Its owner's rights cap it in any case.
      */
-    fun setProject(tx: Transaction, actor: Actor, id: String, projectId: String, role: Role?): Map<String, Any?> {
+    fun setProject(
+        tx: Transaction,
+        actor: Actor,
+        id: String,
+        projectId: String,
+        grant: ProjectGrant?,
+    ): Map<String, Any?> {
         requirePerson(actor)
         val managed = locate(tx, actor, id)
         val project = tx.row(
@@ -230,10 +250,10 @@ class ServiceAccounts(private val properties: SprintiqueProperties) {
             "NOT_FOUND",
             "Сервисный аккаунт или проект недоступен.",
         )
-        if (role == null) {
+        if (grant == null) {
             revokeProject(tx, actor, managed, projectId)
         } else {
-            grantProject(tx, actor, managed, projectId, role)
+            grantProject(tx, actor, managed, grant.copy(projectId = projectId))
         }
         return present(tx, account(tx, actor, id))
     }
@@ -267,9 +287,20 @@ class ServiceAccounts(private val properties: SprintiqueProperties) {
         return present(tx, account(tx, actor, id))
     }
 
-    /** Ends the account: its projects, tokens and apps at once. Its principal stays, disabled, for the history. */
+    /**
+     * Ends the account: its projects, tokens and apps at once. Its principal stays, disabled, for the history. The
+     * owner and workspace administrators delete it; a project administrator only when they administer every project
+     * it is in.
+     */
     fun delete(tx: Transaction, actor: Actor, id: String): Map<String, Boolean> {
-        manage(tx, actor, id)
+        requirePerson(actor)
+        val managed = requirePresent(locate(tx, actor, id), 404, "NOT_FOUND", "Сервисный аккаунт недоступен.")
+        requireCondition(
+            managed.isOwner || managed.isWorkspaceAdmin || administersEveryProject(tx, actor, id),
+            403,
+            "FORBIDDEN",
+            "Аккаунт работает и в других проектах: удалить его может владелец или администратор пространства.",
+        )
         tx.update("UPDATE auth.service_accounts SET deleted_at = clock_timestamp() WHERE principal_id = $1", id)
         tx.update("UPDATE auth.principals SET disabled_at = clock_timestamp() WHERE id = $1", id)
         tx.update("DELETE FROM app.project_members WHERE principal_id = $1", id)
@@ -369,7 +400,9 @@ class ServiceAccounts(private val properties: SprintiqueProperties) {
         actor.id,
     )?.string("id")
 
-    private fun grantProject(tx: Transaction, actor: Actor, managed: Managed, projectId: String, role: Role) {
+    private fun grantProject(tx: Transaction, actor: Actor, managed: Managed, grant: ProjectGrant) {
+        val projectId = grant.projectId
+        val role = grant.role
         // The owner's own role is the ceiling of every grant, whoever makes it.
         val owner = tx.row(
             """
@@ -392,11 +425,25 @@ class ServiceAccounts(private val properties: SprintiqueProperties) {
             "ROLE_ABOVE_OWNER",
             "Сервисный аккаунт не может получить больше прав, чем у его владельца.",
         )
+        // Finance as for people: every member reads it, an administrator changes it.
+        requireCondition(
+            Grant.FINANCE_WRITE !in grant.granted || owner.string("role") == "admin",
+            422,
+            "ROLE_ABOVE_OWNER",
+            "Вести финансы может только сервисный аккаунт администратора проекта.",
+        )
+        val granted = Grant.entries.filter { it in grant.granted }.map(Grant::wire)
+        val detail = "$projectId:${role.wire}" + granted.joinToString("") { "+$it" }
         val current = tx.row(
             "SELECT role FROM app.project_members WHERE project_id = $1 AND principal_id = $2 FOR UPDATE",
             projectId,
             managed.id,
         )
+        val previous = tx.row(
+            "SELECT granted FROM auth.service_account_grants WHERE project_id = $1 AND principal_id = $2",
+            projectId,
+            managed.id,
+        )?.strings("granted").orEmpty()
         if (current == null) {
             val count = tx.row(
                 "SELECT count(*)::int AS n FROM app.project_members WHERE principal_id = $1",
@@ -419,11 +466,28 @@ class ServiceAccounts(private val properties: SprintiqueProperties) {
                 managed.id,
                 role.wire,
             )
-        } else {
+        } else if (previous == granted) {
             return
         }
+        if (granted.isEmpty()) {
+            tx.update(
+                "DELETE FROM auth.service_account_grants WHERE project_id = $1 AND principal_id = $2",
+                projectId,
+                managed.id,
+            )
+        } else {
+            tx.update(
+                """
+                INSERT INTO auth.service_account_grants(project_id, principal_id, granted) VALUES ($1, $2, $3)
+                ON CONFLICT (project_id, principal_id) DO UPDATE SET granted = excluded.granted
+                """.trimIndent(),
+                projectId,
+                managed.id,
+                granted,
+            )
+        }
         bump(tx, managed.id)
-        AccessEvents.record(tx, managed.id, "project.granted", "$projectId:${role.wire}", actorId = actor.id)
+        AccessEvents.record(tx, managed.id, "project.granted", detail, actorId = actor.id)
     }
 
     private fun revokeProject(tx: Transaction, actor: Actor, managed: Managed, projectId: String) {
@@ -482,6 +546,18 @@ class ServiceAccounts(private val properties: SprintiqueProperties) {
         id,
     ) != null
 
+    /** Whether the caller administers every project the account is in (and it is in one at least). */
+    private fun administersEveryProject(tx: Transaction, actor: Actor, id: String): Boolean = tx.row(
+        """
+        SELECT count(*) > 0 AND bool_and(EXISTS (
+                 SELECT 1 FROM app.project_members a WHERE a.project_id = s.project_id AND a.principal_id = $1
+                 AND a.role = 'admin')) AS every
+        FROM app.project_members s WHERE s.principal_id = $2
+        """.trimIndent(),
+        actor.id,
+        id,
+    )!!.boolean("every")
+
     private fun account(tx: Transaction, actor: Actor, id: String): Row = tx.row(
         """
         SELECT s.principal_id AS id, p.name, s.workspace_id::text AS "workspaceId",
@@ -501,9 +577,11 @@ class ServiceAccounts(private val properties: SprintiqueProperties) {
         val id = account.string("id")
         val projects = tx.rows(
             """
-            SELECT m.project_id AS "projectId", coalesce(p.name, '') AS name, m.role, o.role AS "ownerRole"
+            SELECT m.project_id AS "projectId", coalesce(p.name, '') AS name, m.role, o.role AS "ownerRole",
+                   coalesce(g.granted, '{}') AS granted
             FROM app.project_members m LEFT JOIN app.projects p ON p.id = m.project_id
             LEFT JOIN app.project_members o ON o.project_id = m.project_id AND o.principal_id = $2
+            LEFT JOIN auth.service_account_grants g ON g.project_id = m.project_id AND g.principal_id = m.principal_id
             WHERE m.principal_id = $1 ORDER BY name, m.project_id
             """.trimIndent(),
             id,
@@ -518,6 +596,10 @@ class ServiceAccounts(private val properties: SprintiqueProperties) {
                     ownerRole == null -> null
                     row.string("role") == "editor" && ownerRole in WRITERS -> "editor"
                     else -> "reader"
+                },
+                "granted" to row.strings("granted"),
+                "effectiveGranted" to row.strings("granted").filter {
+                    ownerRole != null && (it != Grant.FINANCE_WRITE.wire || ownerRole == "admin")
                 },
             )
         }
@@ -552,7 +634,7 @@ class ServiceAccounts(private val properties: SprintiqueProperties) {
     }
 
     companion object {
-        const val OWNED_LIMIT = 20
+        const val WORKSPACE_LIMIT = 50
         const val TOKEN_LIMIT = 20
         const val PROJECT_LIMIT = 100
         const val MAX_TOKEN_DAYS = 365

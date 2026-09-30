@@ -14,6 +14,7 @@ import com.sprintique.database.schema.auth.routines.CanWorkspace
 import com.sprintique.database.schema.auth.routines.CollectOauthAccessTokens
 import com.sprintique.database.schema.auth.routines.ProjectTimezone
 import com.sprintique.database.schema.auth.routines.ServiceAccountActive
+import com.sprintique.database.schema.auth.routines.ServiceAccountGranted
 import com.sprintique.database.schema.auth.tables.ProjectTimezoneSource
 import com.sprintique.database.schema.auth.tables.ServiceAccountWorkspace
 import com.sprintique.database.schema.auth.tables.WorkspaceProjects
@@ -272,6 +273,41 @@ fun serviceAccountActive(
 ): Field<Boolean?> {
     val f = ServiceAccountActive()
     f.setTarget(target)
+
+    return f.asField()
+}
+
+fun serviceAccountGranted(
+      configuration: Configuration
+    , target: String?
+    , permission: String?
+): Boolean? {
+    val f = ServiceAccountGranted()
+    f.setTarget(target)
+    f.setPermission(permission)
+
+    f.execute(configuration)
+    return f.returnValue
+}
+
+fun serviceAccountGranted(
+      target: String?
+    , permission: String?
+): Field<Boolean?> {
+    val f = ServiceAccountGranted()
+    f.setTarget(target)
+    f.setPermission(permission)
+
+    return f.asField()
+}
+
+fun serviceAccountGranted(
+      target: Field<String?>
+    , permission: Field<String?>
+): Field<Boolean?> {
+    val f = ServiceAccountGranted()
+    f.setTarget(target)
+    f.setPermission(permission)
 
     return f.asField()
 }

@@ -29,6 +29,18 @@ CREATE TABLE auth.service_accounts (
 CREATE INDEX service_accounts_owner ON auth.service_accounts(owner_id) WHERE deleted_at IS NULL;
 CREATE INDEX service_accounts_workspace ON auth.service_accounts(workspace_id) WHERE deleted_at IS NULL;
 
+-- What a service account holds in a project beyond its role (reader or editor, in app.project_members): finance,
+-- only when granted explicitly, never by default. The names are those of the permission catalog that will replace
+-- roles (docs/access/access-and-invitations.md, `granted`); this table then moves into the membership row. Ending
+-- the membership ends these grants with it.
+CREATE TABLE auth.service_account_grants (
+  project_id text NOT NULL,
+  principal_id text NOT NULL REFERENCES auth.service_accounts,
+  granted text[] NOT NULL CHECK(cardinality(granted) BETWEEN 1 AND 2 AND granted <@ ARRAY['finance.read','finance.write']),
+  PRIMARY KEY(project_id,principal_id),
+  FOREIGN KEY(project_id,principal_id) REFERENCES app.project_members ON DELETE CASCADE
+);
+
 -- Whether a service account may act at all: not deleted, not suspended, and its owner an enabled member of its
 -- workspace right now.
 CREATE FUNCTION auth.service_account_active(target text) RETURNS boolean
@@ -60,6 +72,31 @@ LANGUAGE sql STABLE SECURITY DEFINER SET search_path=pg_catalog AS $$
    SELECT 1 FROM auth.service_accounts s WHERE s.principal_id=auth.actor_id()
      AND (NOT auth.service_account_active(s.principal_id)
        OR NOT EXISTS(SELECT 1 FROM app.project_members o WHERE o.project_id=target AND o.principal_id=s.owner_id)))
+$$;
+
+-- Finance for a service account: only what was granted explicitly in that project, never above its owner there (the
+-- owner reads finance as a member and changes it as an administrator), and only while the account is active (both
+-- through can_project). People keep the rules of V20260929000025.
+CREATE OR REPLACE FUNCTION auth.service_account_granted(target text, permission text) RETURNS boolean
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path=pg_catalog AS $$
+  SELECT EXISTS(SELECT 1 FROM auth.service_account_grants g
+    WHERE g.project_id=target AND g.principal_id=auth.actor_id() AND permission=ANY(g.granted))
+$$;
+REVOKE ALL ON FUNCTION auth.service_account_granted(text,text) FROM PUBLIC;
+CREATE OR REPLACE FUNCTION auth.can_read_finance(target text) RETURNS boolean
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path=pg_catalog AS $$
+  SELECT auth.can_project(target) AND (
+    EXISTS(SELECT 1 FROM auth.principals p WHERE p.id=auth.actor_id() AND p.kind='human' AND p.disabled_at IS NULL)
+    OR auth.service_account_granted(target,'finance.read') OR auth.service_account_granted(target,'finance.write'))
+$$;
+CREATE OR REPLACE FUNCTION auth.can_manage_finance(target text) RETURNS boolean
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path=pg_catalog AS $$
+  SELECT auth.can_read_finance(target) AND (
+    EXISTS(SELECT 1 FROM app.project_members m JOIN auth.principals p ON p.id=m.principal_id
+      WHERE m.project_id=target AND m.principal_id=auth.actor_id() AND m.role='admin' AND p.kind='human')
+    OR (auth.service_account_granted(target,'finance.write') AND EXISTS(
+      SELECT 1 FROM auth.service_accounts s JOIN app.project_members o ON o.project_id=target AND o.principal_id=s.owner_id
+      WHERE s.principal_id=auth.actor_id() AND o.role='admin')))
 $$;
 
 -- A client registered itself (RFC 7591). Its name and addresses are what the client declared; nothing is fetched.
@@ -190,7 +227,7 @@ CREATE TABLE auth.access_events (
   action text NOT NULL CHECK(action IN ('account.created','account.changed','account.owner-changed',
     'account.suspended','account.deleted','project.granted','project.revoked','token.created','token.revoked',
     'app.connected','app.revoked','app.code-replayed','app.refresh-replayed')),
-  subject_id text NOT NULL CHECK(length(subject_id) BETWEEN 1 AND 100),
+  subject_id text NOT NULL CHECK(length(subject_id) BETWEEN 1 AND 200),
   client_id text CHECK(client_id IS NULL OR length(client_id)<=100),
   created_at timestamptz NOT NULL DEFAULT clock_timestamp()
 );

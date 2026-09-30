@@ -18,6 +18,7 @@ import com.sprintique.database.schema.auth.tables.OauthRefreshTokens
 import com.sprintique.database.schema.auth.tables.Principals
 import com.sprintique.database.schema.auth.tables.ProjectInvitations
 import com.sprintique.database.schema.auth.tables.ProjectTimezoneSource
+import com.sprintique.database.schema.auth.tables.ServiceAccountGrants
 import com.sprintique.database.schema.auth.tables.ServiceAccountWorkspace
 import com.sprintique.database.schema.auth.tables.ServiceAccounts
 import com.sprintique.database.schema.auth.tables.WorkspaceProjects
@@ -90,6 +91,8 @@ open class Auth : SchemaImpl(DSL.name("auth"), DefaultCatalog.DEFAULT_CATALOG, D
         target
     )
 
+    val SERVICE_ACCOUNT_GRANTS: ServiceAccountGrants get() = ServiceAccountGrants.SERVICE_ACCOUNT_GRANTS
+
     val SERVICE_ACCOUNT_WORKSPACE: ServiceAccountWorkspace get() = ServiceAccountWorkspace.SERVICE_ACCOUNT_WORKSPACE
 
     fun SERVICE_ACCOUNT_WORKSPACE(
@@ -139,6 +142,7 @@ open class Auth : SchemaImpl(DSL.name("auth"), DefaultCatalog.DEFAULT_CATALOG, D
         Principals.PRINCIPALS,
         ProjectInvitations.PROJECT_INVITATIONS,
         ProjectTimezoneSource.PROJECT_TIMEZONE_SOURCE,
+        ServiceAccountGrants.SERVICE_ACCOUNT_GRANTS,
         ServiceAccountWorkspace.SERVICE_ACCOUNT_WORKSPACE,
         ServiceAccounts.SERVICE_ACCOUNTS,
         WorkspaceProjects.WORKSPACE_PROJECTS

@@ -8,7 +8,7 @@ owner: it-novikov
 branch: feature/public-api-mcp
 base: main
 created: 2026-09-29
-updated: 2026-09-30T08:15:18Z
+updated: 2026-09-30T13:05:53Z
 links:
   - https://github.com/it-novikov/iquipage-design-system/pull/27
 ---
@@ -125,7 +125,7 @@ links:
 - **Итог:** af83d0d R1, 23f2670 R2; npm test 202/202, Kotlin unit 46 + integration 24, verify-vnext PASS (2026-09-29T21-06-30Z); SDK 1.31.0 вручную на стенде с отдельным API-именем
 - **Модель:** strong
 
-### S8. Сервисные аккаунты [todo]
+### S8. Сервисные аккаунты [active]
 - **Что:** Principal kind service, auth.service_accounts, токены и OAuth-гранты на сервисный аккаунт, потолок прав владельца, приостановка при потере владельца, управление владельцем и администраторами, согласие с выбором/созданием, раздел настроек, участники
 - **Как:** Миграция 027 (правка), ServiceAccounts, ProjectAccess, can_project, OAuth, consent.js, service-accounts.js, members.js, тесты, ADR
 - **Зачем:** Требование владельца: агенты не подключаются от имени человека

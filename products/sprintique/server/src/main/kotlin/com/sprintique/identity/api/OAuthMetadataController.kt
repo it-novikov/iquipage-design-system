@@ -32,7 +32,7 @@ class OAuthMetadataController(private val properties: SprintiqueProperties) {
     )
 
     /**
-     * The whole API as one resource. Its tokens are personal access tokens made in the interface, so it names no
+     * The whole API as one resource. Its tokens are service account tokens made in the interface, so it names no
      * authorization server: OAuth issues tokens for the MCP server only.
      */
     @GetMapping("/.well-known/oauth-protected-resource")

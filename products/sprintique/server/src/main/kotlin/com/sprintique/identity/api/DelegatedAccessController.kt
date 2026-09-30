@@ -81,12 +81,23 @@ enum class ServiceAccountRoleName(@get:JsonValue val wire: String, val role: Ser
     EDITOR("editor", ServiceAccounts.Role.EDITOR),
 }
 
+/** An explicit grant beyond the role, by the permission catalog's name; finance is never given by default. */
+enum class ServiceAccountGrantName(@get:JsonValue val wire: String, val grant: ServiceAccounts.Grant) {
+    FINANCE_READ("finance.read", ServiceAccounts.Grant.FINANCE_READ),
+    FINANCE_WRITE("finance.write", ServiceAccounts.Grant.FINANCE_WRITE),
+}
+
 @Schema(name = "ServiceAccountProject")
 data class ServiceAccountProjectRequest(
     @field:Pattern(regexp = RESOURCE_ID)
     val projectId: String,
     val role: ServiceAccountRoleName,
-)
+    @field:Size(max = 2)
+    @field:UniqueItems
+    val granted: List<ServiceAccountGrantName> = emptyList(),
+) {
+    fun toGrant() = ServiceAccounts.ProjectGrant(projectId, role.role, granted.map { it.grant }.toSet())
+}
 
 @Schema(name = "CreateServiceAccount")
 data class CreateServiceAccountRequest(
@@ -120,7 +131,12 @@ data class ReassignServiceAccountRequest(
 )
 
 @Schema(name = "SetServiceAccountProject")
-data class SetServiceAccountProjectRequest(val role: ServiceAccountRoleName)
+data class SetServiceAccountProjectRequest(
+    val role: ServiceAccountRoleName,
+    @field:Size(max = 2)
+    @field:UniqueItems
+    val granted: List<ServiceAccountGrantName> = emptyList(),
+)
 
 @Schema(name = "ServiceToken")
 data class ServiceTokenRequest(
@@ -196,7 +212,7 @@ class DelegatedAccessController(
                 ServiceAccounts.NewAccount(
                     input.name,
                     input.workspaceId,
-                    input.projects.map { ServiceAccounts.ProjectGrant(it.projectId, it.role.role) },
+                    input.projects.map(ServiceAccountProjectRequest::toGrant),
                 ),
             )
         }
@@ -235,7 +251,8 @@ class DelegatedAccessController(
         request: HttpServletRequest,
     ) = requests.run(request) { tx, actor ->
         val input = contracts.parse<SetServiceAccountProjectRequest>(body)
-        accounts.setProject(tx, actor, RequestInputs.id(id), RequestInputs.id(projectId), input.role.role)
+        val grant = ServiceAccounts.ProjectGrant(projectId, input.role.role, input.granted.map { it.grant }.toSet())
+        accounts.setProject(tx, actor, RequestInputs.id(id), RequestInputs.id(projectId), grant)
     }
 
     @DeleteMapping("/api/v1/service-accounts/{id}/projects/{projectId}")

@@ -13,7 +13,9 @@ import com.sprintique.database.schema.auth.keys.SERVICE_ACCOUNTS__SERVICE_ACCOUN
 import com.sprintique.database.schema.auth.keys.SERVICE_ACCOUNTS__SERVICE_ACCOUNTS_OWNER_ID_FKEY
 import com.sprintique.database.schema.auth.keys.SERVICE_ACCOUNTS__SERVICE_ACCOUNTS_PRINCIPAL_ID_FKEY
 import com.sprintique.database.schema.auth.keys.SERVICE_ACCOUNTS__SERVICE_ACCOUNTS_WORKSPACE_ID_FKEY
+import com.sprintique.database.schema.auth.keys.SERVICE_ACCOUNT_GRANTS__SERVICE_ACCOUNT_GRANTS_PRINCIPAL_ID_FKEY
 import com.sprintique.database.schema.auth.tables.Principals.PrincipalsPath
+import com.sprintique.database.schema.auth.tables.ServiceAccountGrants.ServiceAccountGrantsPath
 import com.sprintique.database.schema.auth.tables.records.ServiceAccountsRecord
 
 import java.time.OffsetDateTime
@@ -126,6 +128,18 @@ open class ServiceAccounts(
 
     fun workspaces(): WorkspacesPath = workspaces
     val workspaces: WorkspacesPath by lazy { WorkspacesPath(this, SERVICE_ACCOUNTS__SERVICE_ACCOUNTS_WORKSPACE_ID_FKEY, null) }
+
+    private lateinit var _serviceAccountGrants: ServiceAccountGrantsPath
+
+    fun serviceAccountGrants(): ServiceAccountGrantsPath {
+        if (!this::_serviceAccountGrants.isInitialized)
+            _serviceAccountGrants = ServiceAccountGrantsPath(this, null, SERVICE_ACCOUNT_GRANTS__SERVICE_ACCOUNT_GRANTS_PRINCIPAL_ID_FKEY.inverseKey)
+
+        return _serviceAccountGrants;
+    }
+
+    val serviceAccountGrants: ServiceAccountGrantsPath
+        get(): ServiceAccountGrantsPath = serviceAccountGrants()
     override fun getChecks(): List<Check<ServiceAccountsRecord>> = listOf(
         Internal.createCheck(this, DSL.name("service_accounts_check"), "((owner_id <> principal_id))", true),
         Internal.createCheck(this, DSL.name("service_accounts_revision_check"), "((revision > 0))", true)

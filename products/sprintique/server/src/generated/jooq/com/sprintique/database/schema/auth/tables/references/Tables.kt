@@ -18,6 +18,7 @@ import com.sprintique.database.schema.auth.tables.OauthRefreshTokens
 import com.sprintique.database.schema.auth.tables.Principals
 import com.sprintique.database.schema.auth.tables.ProjectInvitations
 import com.sprintique.database.schema.auth.tables.ProjectTimezoneSource
+import com.sprintique.database.schema.auth.tables.ServiceAccountGrants
 import com.sprintique.database.schema.auth.tables.ServiceAccountWorkspace
 import com.sprintique.database.schema.auth.tables.ServiceAccounts
 import com.sprintique.database.schema.auth.tables.WorkspaceProjects
@@ -77,6 +78,8 @@ fun PROJECT_TIMEZONE_SOURCE(
 ): ProjectTimezoneSource = com.sprintique.database.schema.auth.tables.ProjectTimezoneSource.PROJECT_TIMEZONE_SOURCE.call(
     target
 )
+
+val SERVICE_ACCOUNT_GRANTS: ServiceAccountGrants = ServiceAccountGrants.SERVICE_ACCOUNT_GRANTS
 
 val SERVICE_ACCOUNT_WORKSPACE: ServiceAccountWorkspace = ServiceAccountWorkspace.SERVICE_ACCOUNT_WORKSPACE
 

@@ -6,9 +6,12 @@ package com.sprintique.database.schema.auth.keys
 
 
 import com.sprintique.database.schema.app.keys.PROJECTS_PKEY
+import com.sprintique.database.schema.app.keys.PROJECT_MEMBERS_PKEY
 import com.sprintique.database.schema.app.keys.WORKSPACES_PKEY
+import com.sprintique.database.schema.app.tables.ProjectMembers
 import com.sprintique.database.schema.app.tables.Projects
 import com.sprintique.database.schema.app.tables.Workspaces
+import com.sprintique.database.schema.app.tables.records.ProjectMembersRecord
 import com.sprintique.database.schema.app.tables.records.ProjectsRecord
 import com.sprintique.database.schema.app.tables.records.WorkspacesRecord
 import com.sprintique.database.schema.auth.tables.AccessEvents
@@ -23,6 +26,7 @@ import com.sprintique.database.schema.auth.tables.OauthGrants
 import com.sprintique.database.schema.auth.tables.OauthRefreshTokens
 import com.sprintique.database.schema.auth.tables.Principals
 import com.sprintique.database.schema.auth.tables.ProjectInvitations
+import com.sprintique.database.schema.auth.tables.ServiceAccountGrants
 import com.sprintique.database.schema.auth.tables.ServiceAccounts
 import com.sprintique.database.schema.auth.tables.records.AccessEventsRecord
 import com.sprintique.database.schema.auth.tables.records.CredentialsRecord
@@ -36,6 +40,7 @@ import com.sprintique.database.schema.auth.tables.records.OauthGrantsRecord
 import com.sprintique.database.schema.auth.tables.records.OauthRefreshTokensRecord
 import com.sprintique.database.schema.auth.tables.records.PrincipalsRecord
 import com.sprintique.database.schema.auth.tables.records.ProjectInvitationsRecord
+import com.sprintique.database.schema.auth.tables.records.ServiceAccountGrantsRecord
 import com.sprintique.database.schema.auth.tables.records.ServiceAccountsRecord
 
 import org.jooq.ForeignKey
@@ -65,6 +70,7 @@ val PRINCIPALS_ISSUER_SUBJECT_KEY: UniqueKey<PrincipalsRecord> = Internal.create
 val PRINCIPALS_PKEY: UniqueKey<PrincipalsRecord> = Internal.createUniqueKey(Principals.PRINCIPALS, DSL.name("principals_pkey"), arrayOf(Principals.PRINCIPALS.ID), true)
 val PROJECT_INVITATIONS_PKEY: UniqueKey<ProjectInvitationsRecord> = Internal.createUniqueKey(ProjectInvitations.PROJECT_INVITATIONS, DSL.name("project_invitations_pkey"), arrayOf(ProjectInvitations.PROJECT_INVITATIONS.ID), true)
 val PROJECT_INVITATIONS_TOKEN_HASH_KEY: UniqueKey<ProjectInvitationsRecord> = Internal.createUniqueKey(ProjectInvitations.PROJECT_INVITATIONS, DSL.name("project_invitations_token_hash_key"), arrayOf(ProjectInvitations.PROJECT_INVITATIONS.TOKEN_HASH), true)
+val SERVICE_ACCOUNT_GRANTS_PKEY: UniqueKey<ServiceAccountGrantsRecord> = Internal.createUniqueKey(ServiceAccountGrants.SERVICE_ACCOUNT_GRANTS, DSL.name("service_account_grants_pkey"), arrayOf(ServiceAccountGrants.SERVICE_ACCOUNT_GRANTS.PROJECT_ID, ServiceAccountGrants.SERVICE_ACCOUNT_GRANTS.PRINCIPAL_ID), true)
 val SERVICE_ACCOUNTS_PKEY: UniqueKey<ServiceAccountsRecord> = Internal.createUniqueKey(ServiceAccounts.SERVICE_ACCOUNTS, DSL.name("service_accounts_pkey"), arrayOf(ServiceAccounts.SERVICE_ACCOUNTS.PRINCIPAL_ID), true)
 
 // -------------------------------------------------------------------------
@@ -89,6 +95,8 @@ val OAUTH_REFRESH_TOKENS__OAUTH_REFRESH_TOKENS_GRANT_ID_FKEY: ForeignKey<OauthRe
 val PROJECT_INVITATIONS__PROJECT_INVITATIONS_ACCEPTED_BY_FKEY: ForeignKey<ProjectInvitationsRecord, PrincipalsRecord> = Internal.createForeignKey(ProjectInvitations.PROJECT_INVITATIONS, DSL.name("project_invitations_accepted_by_fkey"), arrayOf(ProjectInvitations.PROJECT_INVITATIONS.ACCEPTED_BY), com.sprintique.database.schema.auth.keys.PRINCIPALS_PKEY, arrayOf(Principals.PRINCIPALS.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
 val PROJECT_INVITATIONS__PROJECT_INVITATIONS_INVITER_ID_FKEY: ForeignKey<ProjectInvitationsRecord, PrincipalsRecord> = Internal.createForeignKey(ProjectInvitations.PROJECT_INVITATIONS, DSL.name("project_invitations_inviter_id_fkey"), arrayOf(ProjectInvitations.PROJECT_INVITATIONS.INVITER_ID), com.sprintique.database.schema.auth.keys.PRINCIPALS_PKEY, arrayOf(Principals.PRINCIPALS.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
 val PROJECT_INVITATIONS__PROJECT_INVITATIONS_PROJECT_ID_FKEY: ForeignKey<ProjectInvitationsRecord, ProjectsRecord> = Internal.createForeignKey(ProjectInvitations.PROJECT_INVITATIONS, DSL.name("project_invitations_project_id_fkey"), arrayOf(ProjectInvitations.PROJECT_INVITATIONS.PROJECT_ID), PROJECTS_PKEY, arrayOf(Projects.PROJECTS.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
+val SERVICE_ACCOUNT_GRANTS__SERVICE_ACCOUNT_GRANTS_PRINCIPAL_ID_FKEY: ForeignKey<ServiceAccountGrantsRecord, ServiceAccountsRecord> = Internal.createForeignKey(ServiceAccountGrants.SERVICE_ACCOUNT_GRANTS, DSL.name("service_account_grants_principal_id_fkey"), arrayOf(ServiceAccountGrants.SERVICE_ACCOUNT_GRANTS.PRINCIPAL_ID), com.sprintique.database.schema.auth.keys.SERVICE_ACCOUNTS_PKEY, arrayOf(ServiceAccounts.SERVICE_ACCOUNTS.PRINCIPAL_ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
+val SERVICE_ACCOUNT_GRANTS__SERVICE_ACCOUNT_GRANTS_PROJECT_ID_PRINCIPAL_ID_FKEY: ForeignKey<ServiceAccountGrantsRecord, ProjectMembersRecord> = Internal.createForeignKey(ServiceAccountGrants.SERVICE_ACCOUNT_GRANTS, DSL.name("service_account_grants_project_id_principal_id_fkey"), arrayOf(ServiceAccountGrants.SERVICE_ACCOUNT_GRANTS.PROJECT_ID, ServiceAccountGrants.SERVICE_ACCOUNT_GRANTS.PRINCIPAL_ID), PROJECT_MEMBERS_PKEY, arrayOf(ProjectMembers.PROJECT_MEMBERS.PROJECT_ID, ProjectMembers.PROJECT_MEMBERS.PRINCIPAL_ID), true, ForeignKeyRule.CASCADE, ForeignKeyRule.NO_ACTION)
 val SERVICE_ACCOUNTS__SERVICE_ACCOUNTS_CREATED_BY_FKEY: ForeignKey<ServiceAccountsRecord, PrincipalsRecord> = Internal.createForeignKey(ServiceAccounts.SERVICE_ACCOUNTS, DSL.name("service_accounts_created_by_fkey"), arrayOf(ServiceAccounts.SERVICE_ACCOUNTS.CREATED_BY), com.sprintique.database.schema.auth.keys.PRINCIPALS_PKEY, arrayOf(Principals.PRINCIPALS.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
 val SERVICE_ACCOUNTS__SERVICE_ACCOUNTS_OWNER_ID_FKEY: ForeignKey<ServiceAccountsRecord, PrincipalsRecord> = Internal.createForeignKey(ServiceAccounts.SERVICE_ACCOUNTS, DSL.name("service_accounts_owner_id_fkey"), arrayOf(ServiceAccounts.SERVICE_ACCOUNTS.OWNER_ID), com.sprintique.database.schema.auth.keys.PRINCIPALS_PKEY, arrayOf(Principals.PRINCIPALS.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
 val SERVICE_ACCOUNTS__SERVICE_ACCOUNTS_PRINCIPAL_ID_FKEY: ForeignKey<ServiceAccountsRecord, PrincipalsRecord> = Internal.createForeignKey(ServiceAccounts.SERVICE_ACCOUNTS, DSL.name("service_accounts_principal_id_fkey"), arrayOf(ServiceAccounts.SERVICE_ACCOUNTS.PRINCIPAL_ID), com.sprintique.database.schema.auth.keys.PRINCIPALS_PKEY, arrayOf(Principals.PRINCIPALS.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
