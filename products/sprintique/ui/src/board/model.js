@@ -58,3 +58,11 @@ export function boardReleaseChoices(releases=[]){
   const key=release=>[release.lifecycle==='active'?0:1,release.lifecycle==='active'?release.plannedEnd||'9999-12-31':release.plannedStart||'9999-12-31'];
   return open.sort((a,b)=>{const [x,y]=[key(a),key(b)];return x[0]-y[0]||x[1].localeCompare(y[1])||String(a.name).localeCompare(String(b.name),'ru');});
 }
+/** What the board shows for a person's choice: the chosen running or planned release, 'backlog', or — when nothing was
+ *  chosen or the chosen release has finished — the running release, else the tasks without a release. The choice
+ *  itself is left as it is, so the person's preference is never overwritten by a fallback. */
+export function boardShown(chosen,releases=[]){
+  if(chosen==='backlog')return {backlog:true};
+  const release=boardReleaseChoices(releases).find(item=>item.id===chosen)||runningRelease(releases);
+  return release?{releaseId:release.id,lifecycle:release.lifecycle,name:release.name}:{backlog:true};
+}

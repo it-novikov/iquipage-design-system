@@ -4,7 +4,7 @@ import {normalizeBoardFilters,hasBoardFilters,taskMatchesFilters} from './filter
 import {bindBoard,registerCore,ui,notify} from '@iquipage/web/core';
 import {TASK_COLUMNS,taskColumn,placeTask} from '../tasks.js';
 import {icon,esc,dialog,select} from '../ui.js';
-import {BOARD_SORTS,boardComparator,projectColumn,runningRelease,boardReleaseChoices} from './model.js';
+import {BOARD_SORTS,boardComparator,projectColumn,boardReleaseChoices,boardShown} from './model.js';
 import {renderTaskCard} from './card.js';
 import {openTaskDialog} from './task-dialog.js';
 import {mountTagPacking} from './tag-packing.js';
@@ -43,17 +43,15 @@ export async function mountTaskBoard(root,{repository,project,canEdit=true,canMa
   /** The board shows one release: the one the person picked (kept on the server for them and this project) while it is
    *  running or planned, otherwise the running one (the one ending first when several run), otherwise the tasks
    *  without a release. Kind, dates and days left belong to planning; the board keeps only the name. */
-  let chosenRelease=null,shown={backlog:true};
+  let chosenRelease=null,shown={backlog:true},saving=Promise.resolve();
+  // The person's choice loads alongside the first catalogs instead of before them.
+  let preference=repository.boardRelease?repository.boardRelease(project.id,{signal}).catch(()=>null):null;
   const boardReleases=()=>boardReleaseChoices(catalogs.releases);
-  function resolveShown(){
-    const choices=boardReleases(),picked=chosenRelease==='backlog'?{backlog:true}:choices.find(r=>r.id===chosenRelease);
-    const release=picked&&!picked.backlog?picked:picked?.backlog?null:runningRelease(catalogs.releases);
-    shown=release?{releaseId:release.id,lifecycle:release.lifecycle,name:release.name}:{backlog:true};
-  }
+  function resolveShown(){shown=boardShown(chosenRelease,catalogs.releases);}
   function renderTitle(){
     root.querySelector('[data-board-title]').textContent=shown.backlog?'Без релиза':shown.name;
     const choices=boardReleases(),value=shown.backlog?'backlog':shown.releaseId;
-    const options=[...choices.map(r=>({value:r.id,label:r.name,icon:'flag',meta:r.lifecycle==='active'?'идёт':'запланирован'})),{value:'backlog',label:'Без релиза',icon:'layers',separator:choices.length>0}];
+    const options=[...choices.map(r=>({value:r.id,label:r.name,icon:'flag',meta:r.lifecycle==='active'?'идёт':'запланирован'})),{value:'backlog',label:'Без релиза',icon:'stack',separator:choices.length>0}];
     const slot=root.querySelector('[data-board-release]'),current=slot.querySelector('iq-select');
     if(current&&current.dataset.options===JSON.stringify(options)){if(current.value!==value)current.value=value;return;}
     slot.innerHTML=`<iq-select name="board-release" label="Релиз на доске" label-hidden value="${esc(value)}" options="${esc(JSON.stringify(options))}"></iq-select>`;
@@ -62,9 +60,11 @@ export async function mountTaskBoard(root,{repository,project,canEdit=true,canMa
   root.addEventListener('iq-change',event=>{
     if(event.target.getAttribute?.('name')!=='board-release')return;
     const value=String(event.target.value||'');if(!value||value===(shown.backlog?'backlog':shown.releaseId))return;
-    chosenRelease=value;resolveShown();renderTitle();void reload();
-    // Remembered for the person in this project, on every device; a failed save keeps the choice for this visit.
-    repository.setBoardRelease?.(project.id,value).catch(()=>notify({tone:'warning',message:'Не удалось запомнить выбор релиза. Доска покажет его до перезагрузки.'}));
+    // A load already under way for the previous release is discarded: its tasks never show under the new title.
+    chosenRelease=value;resolveShown();renderTitle();loading++;void reload();
+    // Remembered for the person in this project, on every device, one save after another so the last choice wins;
+    // a failed save keeps the choice for this visit.
+    saving=saving.then(()=>repository.setBoardRelease?.(project.id,value)).catch(()=>notify({tone:'warning',message:'Не удалось запомнить выбор релиза. Доска покажет его до перезагрузки.'}));
   },{signal});
   function render(focusId){
     if(closed||dragging){queued=true;return;}
@@ -98,11 +98,12 @@ export async function mountTaskBoard(root,{repository,project,canEdit=true,canMa
     reloadPromise=(async()=>{do{
       reloadAgain=false;const token=++loading;
       try{
-        const [tags,releases,members]=await Promise.all([...['tags','releases'].map(name=>repository.list(name,project.id,{signal})),
-          repository.capabilities?.members===false?[]:repository.list('members',project.id,{signal}).catch(()=>[])]);
-        catalogs={...catalogs,releases};resolveShown();
-        const all=await repository.list('tasks',project.id,{signal,board:shown});
-        if(closed||token!==loading)continue;items=all;
+        const [tags,releases,members,picked]=await Promise.all([...['tags','releases'].map(name=>repository.list(name,project.id,{signal})),
+          repository.capabilities?.members===false?[]:repository.list('members',project.id,{signal}).catch(()=>[]),preference]);
+        if(preference){preference=null;chosenRelease??=picked??null;}
+        catalogs={...catalogs,releases};resolveShown();const scope=shown;
+        const all=await repository.list('tasks',project.id,{signal,board:scope});
+        if(closed||token!==loading||scope!==shown)continue;items=all;
         const people=new Map(members.map(m=>[m.id,{id:m.id,name:m.name,image:repository.client?.avatarUrl?.(m.id,m.avatarRevision)||undefined}]));
         catalogs={tags,releases,people};filters.setData({tasks:items,...catalogs});renderTitle();render();
       }catch(e){if(!closed&&e.name!=='AbortError')fail(e);}
@@ -200,7 +201,6 @@ export async function mountTaskBoard(root,{repository,project,canEdit=true,canMa
     finally{if(handoff){if(handoff.open)handoff.close(true);await handedOver;switchingTask=false;}}
     return activeDialog?.taskController.taskId===task.id;
   }
-  try{chosenRelease=await repository.boardRelease?.(project.id,{signal})??null;}catch{/* The running release is shown. */}
   await reload();
   return {reload,openTask,closeTask,createTask:()=>canEdit?edit(null,'ready'):undefined,currentTask:()=>activeDialog?.taskController.taskKey||null,readyToLeave:async()=>!openingTask&&!activeDialog&&!pending.size,destroy(){
     activeDialog?.close(true);

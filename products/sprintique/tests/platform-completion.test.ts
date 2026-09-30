@@ -167,5 +167,15 @@ test('the release a board shows is remembered per person and project, and only f
   assert.equal((await set({boardRelease:'backlog'},f.bob)).statusCode,404);
   assert.equal((await set({boardRelease:'not an id!'})).statusCode,400);
   assert.equal((await f.app.inject({method:'GET',url})).statusCode,401);
+  assert.equal((await set({boardRelease:'no-such-release'})).json().code,'RELEASE_UNAVAILABLE','only a release of this project');
   assert.deepEqual((await set({boardRelease:null})).json(),{boardRelease:null});
+  // Row security itself, as the runtime role: a person reads only their own row, and only while in the project.
+  await set({boardRelease:'backlog'});
+  const rows=async(actor:string,setup='')=>{await f.admin.query('BEGIN');try{if(setup)await f.admin.query(setup,[actor,f.first.id]);
+    await f.admin.query(`SET LOCAL ROLE "${process.env.DATABASE_RUNTIME_ROLE}"`);await f.admin.query("SELECT set_config('app.actor_id',$1,true)",[actor]);
+    return (await f.admin.query('SELECT principal_id FROM app.person_project_preferences')).rows.map((r:{principal_id:string})=>r.principal_id);}finally{await f.admin.query('ROLLBACK');}};
+  assert.deepEqual(await rows(f.alice.id),[f.alice.id]);
+  assert.deepEqual(await rows(f.reader.id),[],'another person sees none of it');
+  assert.deepEqual(await rows(f.alice.id,'DELETE FROM app.project_members WHERE principal_id=$1 AND project_id=$2'),[],'nor does a person who left the project');
+  await set({boardRelease:null});
 });

@@ -22,7 +22,11 @@ export async function applyPlanningChange(adapter,intent){
   let outcome;
   try{outcome=await commitInPlace(operation,intent);}finally{operation.destroy();}
   if(outcome==='confirm')return confirmPlanningChange(adapter,intent);
-  if(outcome==='uncertain'){await recoverPlanningAttempt(adapter);throw Error('Результат изменения проверен отдельно. Обновите задачу.');}
+  if(outcome==='uncertain'){
+    const receipt=await recoverPlanningAttempt(adapter);
+    if(receipt?.state==='committed')return;
+    throw Error(receipt?.state==='rejected'?receipt.message||'Изменение не сохранено.':'Результат изменения проверен отдельно. Обновите задачу.');
+  }
 }
 /** Settles a planning command whose answer was lost. Resolves with its receipt ({state:'committed'|'rejected'}), or
  *  null when nothing was pending. */

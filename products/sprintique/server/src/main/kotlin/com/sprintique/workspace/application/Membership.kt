@@ -378,6 +378,13 @@ object Membership {
     ): Map<String, Any?> {
         requireHuman(tx, actor, "Настройки доступны человеку.")
         ProjectAccess.authorize(tx, actor, projectId, Capability.TASKS_READ)
+        requireCondition(
+            boardRelease == null || boardRelease == "backlog" ||
+                tx.row("SELECT 1 FROM app.releases WHERE project_id = $1 AND id = $2", projectId, boardRelease) != null,
+            422,
+            "RELEASE_UNAVAILABLE",
+            "Релиз недоступен.",
+        )
         tx.update(
             """
             INSERT INTO app.person_project_preferences(principal_id, project_id, board_release) VALUES ($1, $2, $3)

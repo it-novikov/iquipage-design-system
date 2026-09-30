@@ -329,15 +329,15 @@ dl.tdr-facts dd{margin:0}
 /* SPR-10: the board scrolls as a whole, so a column cut by the top or bottom edge of the board lost its rounded corners
    (only the board's own outer corners stayed round). Each column masks the corners of its visible part with the page
    colour: its sticky header carries the top two, a sticky strip at the column's end the bottom two (it adds the radius
-   below the last card). The radius is the DS column's. */
-.host-task-board{--sq-column-radius:12px}
+   below the last card). The radius is the DS column's; a board on another surface sets --sq-board-backdrop to it. */
+.host-task-board{--sq-column-radius:12px;--sq-board-backdrop:var(--iq-canvas)}
 .host-task-board .kanban-column-header::before,.host-task-board .kanban-column-header::after{content:"";position:absolute;top:0;width:var(--sq-column-radius);height:var(--sq-column-radius);pointer-events:none}
-.host-task-board .kanban-column-header::before{left:0;background:radial-gradient(circle at 100% 100%,transparent calc(var(--sq-column-radius) - 0.5px),var(--iq-canvas) var(--sq-column-radius))}
-.host-task-board .kanban-column-header::after{right:0;background:radial-gradient(circle at 0 100%,transparent calc(var(--sq-column-radius) - 0.5px),var(--iq-canvas) var(--sq-column-radius))}
+.host-task-board .kanban-column-header::before{left:0;background:radial-gradient(circle at 100% 100%,transparent calc(var(--sq-column-radius) - 0.5px),var(--sq-board-backdrop) var(--sq-column-radius))}
+.host-task-board .kanban-column-header::after{right:0;background:radial-gradient(circle at 0 100%,transparent calc(var(--sq-column-radius) - 0.5px),var(--sq-board-backdrop) var(--sq-column-radius))}
 /* The column lays out as a flex column so the strip sits at its end even when its cards are few. */
 .host-task-board.kanban>.kanban-column{display:flex;flex-direction:column}
 .host-task-board>.kanban-column::after{content:"";display:block;flex:none;position:sticky;bottom:0;z-index:4;height:var(--sq-column-radius);margin-top:auto;pointer-events:none;
-  background:radial-gradient(circle at 100% 0,transparent calc(var(--sq-column-radius) - 0.5px),var(--iq-canvas) var(--sq-column-radius)) left bottom/var(--sq-column-radius) var(--sq-column-radius) no-repeat,
-    radial-gradient(circle at 0 0,transparent calc(var(--sq-column-radius) - 0.5px),var(--iq-canvas) var(--sq-column-radius)) right bottom/var(--sq-column-radius) var(--sq-column-radius) no-repeat}
+  background:radial-gradient(circle at 100% 0,transparent calc(var(--sq-column-radius) - 0.5px),var(--sq-board-backdrop) var(--sq-column-radius)) left bottom/var(--sq-column-radius) var(--sq-column-radius) no-repeat,
+    radial-gradient(circle at 0 0,transparent calc(var(--sq-column-radius) - 0.5px),var(--sq-board-backdrop) var(--sq-column-radius)) right bottom/var(--sq-column-radius) var(--sq-column-radius) no-repeat}
 /* SPR-13: the release the board shows, a compact DS select before the sort. */
 .host-board-release iq-select{min-width:0;max-width:260px}

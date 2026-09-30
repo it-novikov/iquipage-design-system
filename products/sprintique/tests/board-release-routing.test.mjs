@@ -1,7 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {ProductRepository} from '../web/repository.js';
-import {boardReleaseChoices} from '../ui/src/board/model.js';
+import {boardReleaseChoices,boardShown} from '../ui/src/board/model.js';
 
 const releases=[
   {id:'running',name:'Спринт 12',lifecycle:'active',archivedAt:null,plannedEnd:'2026-10-10'},
@@ -59,4 +59,13 @@ test('the board lists the running release as admitted, a planned one by its prep
   assert.match(seen[0],/\/board\/tasks\?.*releaseId=running/);assert.equal(running.length,2,'the server decides what a running release admits');
   assert.match(seen[1],/\/planning\/tasks\?.*releaseId=next/);assert.match(seen[1],/preparation=ready/);assert.deepEqual(planned.map(t=>t.id),['a']);
   assert.match(seen[2],/\/board\/tasks\?.*unassigned=true/);assert.equal(backlog.length,2);
+});
+
+test('the board shows the chosen release while it is open, else the running one, else the tasks without a release',()=>{
+  assert.deepEqual(boardShown('next',releases),{releaseId:'next',lifecycle:'planned',name:'Спринт 13'});
+  assert.deepEqual(boardShown('backlog',releases),{backlog:true});
+  assert.equal(boardShown(null,releases).releaseId,'running','nothing chosen: the running release');
+  assert.equal(boardShown('done',releases).releaseId,'running','a finished choice falls back without being overwritten');
+  assert.equal(boardShown('old',releases).releaseId,'running','so does an archived one');
+  assert.deepEqual(boardShown(null,releases.filter(r=>r.lifecycle!=='active')),{backlog:true},'no running release: the tasks without one');
 });
