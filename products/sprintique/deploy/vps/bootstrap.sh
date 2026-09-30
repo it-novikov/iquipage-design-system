@@ -8,6 +8,7 @@ set -euo pipefail
 cd "$(dirname "$0")"
 : "${SPRINTIQUE_ORIGIN:?e.g. https://sprintique.iqui.page}"
 : "${SPRINTIQUE_MAIL_FROM:?e.g. Sprintique <no-reply@iqui.page>}"
+# Optional: the origin of the programmatic surface (REST + MCP), e.g. https://api.iqui.page.
 umask 077
 mkdir -p secrets
 test -s secrets/storage.env || { echo "secrets/storage.env is missing" >&2; exit 1; }
@@ -27,6 +28,7 @@ SPRINTIQUE_ENVIRONMENT=production
 SPRINTIQUE_HOST=127.0.0.1
 SPRINTIQUE_PORT=4311
 SPRINTIQUE_PUBLIC_ORIGIN=$SPRINTIQUE_ORIGIN
+SPRINTIQUE_API_ORIGIN=${SPRINTIQUE_API_ORIGIN:-}
 SPRINTIQUE_API_ORIGIN=${SPRINTIQUE_API_ORIGIN:-}
 SPRINTIQUE_TRUST_PROXY=1
 SPRINTIQUE_DATABASE_URL=$(url sprintique_app "$runtime")
