@@ -52,6 +52,11 @@ BEGIN
       JOIN app.project_members o ON o.project_id=NEW.project_id AND o.principal_id=s.owner_id
       WHERE s.principal_id=NEW.principal_id), ARRAY[]::text[]) INTO ceiling;
   END IF;
+  -- Unknown names are refused, not dropped: a writer that means a permission must name one of the catalog.
+  IF NOT (coalesce(NEW.granted,'{}') <@ auth.project_permission_catalog() AND coalesce(NEW.revoked,'{}') <@ auth.project_permission_catalog()) THEN
+    RAISE EXCEPTION 'new row violates the permission catalog: %', array_to_string(NEW.granted || NEW.revoked, ',')
+      USING ERRCODE='check_violation';
+  END IF;
   NEW.granted := auth.permission_sort(NEW.granted);
   NEW.revoked := auth.permission_sort(NEW.revoked);
   NEW.permissions := auth.compile_permissions(base, NEW.granted, NEW.revoked, forbidden, ceiling);
@@ -75,14 +80,14 @@ END $$;
 CREATE TRIGGER project_member_owner_ceiling AFTER INSERT OR UPDATE OR DELETE ON app.project_members
   FOR EACH ROW EXECUTE FUNCTION app.recompile_owned_service_accounts();
 
--- A new owner brings a new ceiling.
+-- An account made (or given a new owner) after its memberships were written gets its owner's ceiling now.
 CREATE FUNCTION app.recompile_service_account() RETURNS trigger LANGUAGE plpgsql SET search_path=pg_catalog AS $$
 BEGIN
   UPDATE app.project_members SET revision=revision+1 WHERE principal_id=NEW.principal_id;
   RETURN NULL;
 END $$;
-CREATE TRIGGER service_account_owner_ceiling AFTER UPDATE OF owner_id ON auth.service_accounts
-  FOR EACH ROW WHEN (NEW.owner_id IS DISTINCT FROM OLD.owner_id) EXECUTE FUNCTION app.recompile_service_account();
+CREATE TRIGGER service_account_owner_ceiling AFTER INSERT OR UPDATE OF owner_id ON auth.service_accounts
+  FOR EACH ROW EXECUTE FUNCTION app.recompile_service_account();
 
 -- Existing grants keep what they gave: an editor wrote tasks, discussions and maps («Сервис: задачи» plus «Менять
 -- карты»), a reader read them («Сервис: чтение»); explicit finance moves into the personal additions. The owner's
@@ -94,6 +99,14 @@ UPDATE app.project_members m SET
     || coalesce((SELECT g.granted FROM auth.service_account_grants g WHERE g.project_id=m.project_id AND g.principal_id=m.principal_id), ARRAY[]::text[])),
   revoked='{}'
 FROM auth.principals p WHERE p.id=m.principal_id AND p.kind='service';
+
+-- A permission holds only while its holder may see the project at all: for a service account that means active,
+-- with its owner a member of the project (auth.can_project, V20260929000027).
+CREATE OR REPLACE FUNCTION auth.can(target text, permission text) RETURNS boolean
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path=pg_catalog AS $$
+  SELECT auth.can_project(target) AND EXISTS(SELECT 1 FROM app.project_members
+    WHERE project_id=target AND principal_id=auth.actor_id() AND permission = ANY(permissions))
+$$;
 
 -- The role-and-flag model is gone: the membership row is the whole grant.
 DROP TRIGGER project_members_service_role ON app.project_members;
