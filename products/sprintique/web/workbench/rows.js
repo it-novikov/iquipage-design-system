@@ -9,7 +9,7 @@ const person=p=>p&&p.name?{id:p.id,name:p.name}:null;
 const key=row=>esc(row.displayId);
 const project=row=>esc(row.projectName)+(row.workspaceName?` <small>${esc(row.workspaceName)}</small>`:'');
 /** The id of a row's title: the row is named by it (the title is its name for a screen reader, design-v2 §11.3). */
-const titleId=key=>'dsk-t-'+String(key).replace(/[^A-Za-z0-9_-]/g,'_');
+export const titleId=key=>'dsk-t-'+String(key).replace(/[^A-Za-z0-9_-]/g,'_');
 const title=row=>`<a class="dsk-title" id="${titleId(row.key)}" href="${esc(row.canonicalUrl)}" data-open>${esc(row.title)}</a>`;
 const rowAttrs=(row,kind,extra='')=>`class="dsk-${kind}" data-row data-key="${esc(row.key)}" data-project="${esc(row.projectId)}" data-task="${esc(row.taskId)}" tabindex="-1" aria-labelledby="${titleId(row.key)}" ${extra}`;
 
@@ -48,8 +48,9 @@ export function requestRow(row,{wide=false,today=localDay(),parts}={}){
 export function todayRow(item,{today}){
   const kind=PLAN_KINDS[item.kind]||PLAN_KINDS.due,tone=planTone(item);
   const name=item.task?item.task.title:item.milestone?.title||'';
-  const link=item.canonicalUrl?`<a class="dsk-title" href="${esc(item.canonicalUrl)}" data-open>${esc(name)}</a>`:`<span class="dsk-title">${esc(name)}</span>`;
-  return `<li class="dsk-today-row" data-row data-key="${esc(item.key)}" ${item.task?`data-project="${esc(item.projectId)}" data-task="${esc(item.task.id)}"`:''} tabindex="-1"${tone?` data-tone="${tone}"`:''}>
+  const id=titleId(item.key);
+  const link=item.canonicalUrl?`<a class="dsk-title" id="${id}" href="${esc(item.canonicalUrl)}" data-open>${esc(name)}</a>`:`<span class="dsk-title" id="${id}">${esc(name)}</span>`;
+  return `<li class="dsk-today-row" data-row data-key="${esc(item.key)}" ${item.task?`data-project="${esc(item.projectId)}" data-task="${esc(item.task.id)}"`:''} tabindex="-1" aria-labelledby="${id}"${tone?` data-tone="${tone}"`:''}>
     <span class="dsk-kind">${icon(kind.icon,14)}${esc(kind.label)}</span>
     <div class="dsk-item-copy">${link}<p class="dsk-meta">${item.task?`<span class="dsk-key">${esc(item.task.displayId)}</span> · `:''}${esc(item.projectName)}</p></div>
     <span class="dsk-age">${esc(planWhen(item,today))}</span>

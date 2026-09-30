@@ -21,12 +21,12 @@ export function focusRow(row){
   row.focus({preventScroll:false});return true;
 }
 
-export function bindKeyboard(root,{onOpen,sections=()=>[],signal}){
+export function bindKeyboard(root,{onOpen,section=()=>null,signal}){
   // 1–6 work wherever the focus is on the page (the page itself included), unless a dialog or a field has it.
   document.addEventListener('keydown',event=>{
     if(event.defaultPrevented||typing(event.target)||document.querySelector('dialog[open]'))return;
     if(event.metaKey||event.ctrlKey||event.altKey||!/^[1-6]$/.test(event.key))return;
-    const target=sections()[Number(event.key)-1];if(!target)return;
+    const target=section(Number(event.key));if(!target)return;
     event.preventDefault();target.scrollIntoView({block:'start'});
     const first=target.querySelector('[data-list] > [data-row]');(first?focusRow(first):target.querySelector('h2,h3')?.focus());
   },{signal});

@@ -26,6 +26,15 @@ export class WorkbenchApi {
   reopenRequest(projectId,id,baseRevision,retry=key()){return this.client.request(`/projects/${enc(projectId)}/requests/${enc(id)}/reopen`,'POST',{baseRevision},retry);}
   approval(projectId,id,signal){return this.get(`/projects/${enc(projectId)}/approvals/${enc(id)}`,signal);}
   decide(projectId,id,baseRevision,status,retry=key()){return this.client.request(`/projects/${enc(projectId)}/approvals/${enc(id)}/decision`,'POST',{baseRevision,status},retry);}
+  /**
+   * The same decision as a request that outlives the page (`keepalive`): used when the page is hidden or unloaded
+   * while a decision waits for its undo time, so it is still sent (review R5 N2).
+   */
+  decideOnLeave(projectId,id,baseRevision,status,retry=key()){
+    const headers={Accept:'application/json','Content-Type':'application/json','Idempotency-Key':retry};
+    if(this.client.csrf)headers['X-CSRF-Token']=this.client.csrf;
+    return fetch(`/api/v1/projects/${enc(projectId)}/approvals/${enc(id)}/decision`,{method:'POST',credentials:'same-origin',keepalive:true,headers,body:JSON.stringify({baseRevision,status})});
+  }
   thread(projectId,id,signal){return this.get(`/projects/${enc(projectId)}/threads/${enc(id)}`,signal);}
   reply(projectId,threadId,baseRevision,body,retry=key()){return this.client.request(`/projects/${enc(projectId)}/threads/${enc(threadId)}/messages`,'POST',{id:crypto.randomUUID(),body,baseRevision},retry);}
   startThread(projectId,taskId,body,retry=key()){return this.client.request(`${task(projectId,taskId)}/threads`,'POST',{id:crypto.randomUUID(),messageId:crypto.randomUUID(),body,requiresResolution:false},retry);}

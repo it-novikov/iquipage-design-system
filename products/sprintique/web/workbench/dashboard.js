@@ -4,7 +4,7 @@
 // empties on its own; a live change is offered as one «Обновить», never as a silent reorder.
 import {ui,icon,escapeHTML as esc} from '@iquipage/web/core';
 import {countLabel,localDay,plural,shortDate,weekday} from './model.js';
-import {activeItem,changeRow,dayStrip,emptyRow,failedRow,joinedItem,requestRow,skeletonRows,todayRow,waitingItem} from './rows.js';
+import {activeItem,changeRow,dayStrip,emptyRow,failedRow,joinedItem,requestRow,skeletonRows,titleId,todayRow,waitingItem} from './rows.js';
 import {arm,bindKeyboard,focusRow} from './keyboard.js';
 import {createActions} from './actions.js';
 
@@ -22,6 +22,8 @@ export function mountDashboard(host,{mode,api,repository,projects,filter,prefs,s
   const events=new AbortController();
   let envelope=null,plan=null,envError=null,planError=null,loading=true,rows=new Map(),extra={},snoozed=null,showSnoozed=false,laneTab='active';
   let token=null,poll=null,changed=false,destroyed=false,loadedAt=null,request=0,firstLoad=true;
+  /** Today in the person's zone, as the plan counts it; the browser's day until the plan has loaded. */
+  const day=()=>plan?.today||localDay();
   const browserZone=()=>{try{return Intl.DateTimeFormat().resolvedOptions().timeZone||undefined;}catch{return undefined;}};
   const wide=mode==='list';
   const parts=()=>({personal:!!envelope?.features?.participation,requests:!!envelope?.features?.requests,waiting:!!envelope?.features?.waiting});
@@ -45,7 +47,11 @@ export function mountDashboard(host,{mode,api,repository,projects,filter,prefs,s
     if(showSnoozed)snoozed=await api.list('snoozed',{projects:filter()}).catch(()=>null);
     loadedAt=new Date();setUpdated(loadedAt);
     render();
-    if(firstLoad&&location.hash){firstLoad=false;const target=host.querySelector(location.hash.replace(/[^#\w-]/g,''));target?.scrollIntoView({block:'start'});return;}
+    if(firstLoad&&location.hash){
+      firstLoad=false;
+      let id='';try{id=decodeURIComponent(location.hash.slice(1));}catch{/* a malformed address names nothing */}
+      const target=id&&document.getElementById(id);if(target&&host.contains(target)){target.scrollIntoView({block:'start'});return;}
+    }
     firstLoad=false;
     document.scrollingElement.scrollTop=scroll;
     if(activeKey){const li=view.rowElement(activeKey);if(li){const control=focusControl&&li.querySelector(focusControl);(control&&!control.disabled?control.focus():focusRow(li));}}
@@ -80,7 +86,7 @@ export function mountDashboard(host,{mode,api,repository,projects,filter,prefs,s
     else{
       const items=index(itemsOf('action'));
       body=`${wide?'<div class="dsk-cols dsk-cols-req" aria-hidden="true"><span></span><span>Кто просит · задача</span><span>Проект</span><span>Нужно до</span><span>Действие</span></div>':''}
-      <ol class="dsk-reqs" data-list aria-label="Запросы к вам">${items.length?items.map(r=>requestRow(r,{wide,parts:p})).join(''):emptyRow('Запросов к вам нет','Точные запросы и утверждения появятся здесь, с лицом того, кто просит, и сроком ответа.')}</ol>
+      <ol class="dsk-reqs" data-list aria-label="Запросы к вам">${items.length?items.map(r=>requestRow(r,{wide,parts:p,today:day()})).join(''):emptyRow('Запросов к вам нет','Точные запросы и утверждения появятся здесь, с лицом того, кто просит, и сроком ответа.')}</ol>
       ${showSnoozed?snoozedList():''}
       ${more('action')}
       ${wide?'':`<div class="dsk-widget-foot"><a class="iq-btn ghost sm" href="/workbench/list" data-view="list">Все запросы в списке${icon('arrow',16)}</a><p class="dsk-hint">Кнопка в строке закрывает запрос с отменой; «Ответить» открывает задачу с полем ответа.</p></div>`}`;
@@ -90,8 +96,8 @@ export function mountDashboard(host,{mode,api,repository,projects,filter,prefs,s
   }
   function snoozedList(){
     if(!snoozed)return `<ul class="dsk-snoozed">${skeletonRows(1)}</ul>`;
-    return `<div class="dsk-snoozed"><h3 class="dsk-subhead">Отложенные</h3><ul data-list>${index(snoozed.items).map(r=>`<li class="dsk-snoozed-row" data-row data-key="${esc(r.key)}" tabindex="-1">
-      <div class="dsk-item-copy"><a class="dsk-title" href="${esc(r.canonicalUrl)}" data-open>${esc(r.title)}</a><p class="dsk-meta"><span class="dsk-key">${esc(r.displayId)}</span> · вернётся ${esc(new Date(r.personal.snoozedUntil).toLocaleString('ru-RU',{weekday:'short',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}))}</p></div>
+    return `<div class="dsk-snoozed"><h3 class="dsk-subhead">Отложенные</h3><ul data-list>${index(snoozed.items).map(r=>`<li class="dsk-snoozed-row" data-row data-key="${esc(r.key)}" tabindex="-1" aria-labelledby="${titleId(r.key)}">
+      <div class="dsk-item-copy"><a class="dsk-title" id="${titleId(r.key)}" href="${esc(r.canonicalUrl)}" data-open>${esc(r.title)}</a><p class="dsk-meta"><span class="dsk-key">${esc(r.displayId)}</span> · вернётся ${esc(new Date(r.personal.snoozedUntil).toLocaleString('ru-RU',{weekday:'short',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}))}</p></div>
       ${ui.btn('Вернуть','ghost sm','undo',`data-unsnooze aria-label="Вернуть в «Нужно действие»: ${esc(r.displayId)}"`)}</li>`).join('')||'<li class="dsk-empty-row">Отложенных нет</li>'}</ul></div>`;
   }
   function todaySection(){
@@ -112,7 +118,7 @@ export function mountDashboard(host,{mode,api,repository,projects,filter,prefs,s
   }
   function lane(l){
     const g=groupOf(l.key),p=parts(),items=index(itemsOf(l.key)),total=items.length;
-    const render=(r,i)=>l.key==='active'?activeItem(r,{wide,parts:p}):l.key==='waiting'?waitingItem(r,{wide,parts:p}):joinedItem(r,{index:i,total,wide,parts:p});
+    const today=day(),render=(r,i)=>l.key==='active'?activeItem(r,{wide,parts:p,today}):l.key==='waiting'?waitingItem(r,{wide,parts:p,today}):joinedItem(r,{index:i,total,wide,parts:p,today});
     const disabled=l.key==='waiting'&&!p.waiting||l.key==='joined'&&!p.personal;
     const list=disabled?'':items.length?`<${l.list} class="dsk-items" data-list aria-label="${esc(l.title)}">${items.map(render).join('')}</${l.list}>`
       :`<div class="dsk-lane-empty"><b>${esc(l.empty[0])}</b>${esc(l.empty[1])}</div>`;
@@ -156,7 +162,7 @@ export function mountDashboard(host,{mode,api,repository,projects,filter,prefs,s
     if(!wide||!envelope?.sections[1]?.backlogCount)return '';
     const items=extra.backlog?index(extra.backlog.items):null;
     return section('dsk-backlog','dsk-span-12','Назначено мне: бэклог','list',countBadge(envelope.sections[1].backlogCount),'',
-      items?`<ol class="dsk-items dsk-list2" data-list>${items.map(r=>`<li class="dsk-item" data-row data-key="${esc(r.key)}" tabindex="-1"><span class="dsk-item-lead">${icon('circle',14)}</span><div class="dsk-item-copy"><a class="dsk-title" href="${esc(r.canonicalUrl)}" data-open>${esc(r.title)}</a><p class="dsk-meta"><span class="dsk-key">${esc(r.displayId)}</span> · ещё не начата</p></div><span class="dsk-project">${esc(r.projectName)}</span><span></span><div class="dsk-item-tail"></div></li>`).join('')}</ol>${more('backlog')}`
+      items?`<ol class="dsk-items dsk-list2" data-list>${items.map(r=>`<li class="dsk-item" data-row data-key="${esc(r.key)}" tabindex="-1" aria-labelledby="${titleId(r.key)}"><span class="dsk-item-lead">${icon('circle',14)}</span><div class="dsk-item-copy"><a class="dsk-title" id="${titleId(r.key)}" href="${esc(r.canonicalUrl)}" data-open>${esc(r.title)}</a><p class="dsk-meta"><span class="dsk-key">${esc(r.displayId)}</span> · ещё не начата</p></div><span class="dsk-project">${esc(r.projectName)}</span><span></span><div class="dsk-item-tail"></div></li>`).join('')}</ol>${more('backlog')}`
         :`<div class="dsk-lane-more">${ui.btn('Показать','ghost sm','down','data-backlog-load')}</div>`);
   }
 
@@ -226,11 +232,12 @@ export function mountDashboard(host,{mode,api,repository,projects,filter,prefs,s
   },{signal:events.signal});
   host.addEventListener('dsk-toggle-participation',event=>{const [li,row]=rowOf(event.target);if(row&&parts().personal)void actions.toggleParticipation(li,row);},{signal:events.signal});
   bindKeyboard(host,{signal:events.signal,onOpen:li=>{const row=rows.get(li.dataset.key);if(row)openTask(row);else li.querySelector('a[data-open]')?.click();},
-    sections:()=>['#dsk-action','#dsk-today','#dsk-lane-active','#dsk-lane-waiting','#dsk-lane-joined','#dsk-changes'].map(s=>reveal(s.slice(1)))});
+    section:n=>{const id=['dsk-action','dsk-today','dsk-lane-active','dsk-lane-waiting','dsk-lane-joined','dsk-changes'][n-1];return id?reveal(id):null;}});
   /** A lane hidden behind its phone segment is shown before anyone is taken to it (review R4 F7). */
   function reveal(id){
     const lane=/^dsk-lane-(active|waiting|joined)$/.exec(id)?.[1];
-    if(lane&&laneTab!==lane&&host.querySelector(`#${id}`)?.dataset.phoneHidden==='true'){laneTab=lane;render();}
+    // Segments exist only on a phone: wider, every lane is on screen and nothing is re-rendered.
+    if(lane&&laneTab!==lane&&matchMedia('(max-width:700px)').matches){laneTab=lane;render();}
     return host.querySelector(`#${CSS.escape(id)}`);
   }
 

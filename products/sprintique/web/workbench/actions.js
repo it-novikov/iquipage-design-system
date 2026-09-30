@@ -5,6 +5,7 @@ import {icon,escapeHTML as esc,notify} from '@iquipage/web/core';
 import {dialog} from '../../ui/src/ui.js';
 import {duePresets,localDay,snoozePresets,verbOf,doneWord} from './model.js';
 import {focusRow} from './keyboard.js';
+import {hold,isPending,release} from './pending.js';
 
 const UNDO_MS=8000;
 
@@ -36,17 +37,20 @@ export function createActions({api,repository,view,projects,filter,openTask,open
    * `commit`: an action that is only sent when the undo time is over (an approval cannot be taken back on the server,
    * so it waits here instead); leaving the view sends it at once.
    */
-  function settle(li,{text,undo=null,commit=null,tone='success'}){
+  function settle(li,{text,undo=null,commit=null,leave=null,requestId=null,tone='success'}){
     const key=li.dataset.key,following=next(li),wasFocused=li.dataset.hadFocus==='true'||li.contains(document.activeElement);
     const list=li.closest('[data-list]');
-    const entry={text,undo:undo||(commit?()=>null:null),commit,tone,timer:null,node:li,section:list?.closest('section[id]')?.id||null,index:list?[...list.children].indexOf(li):-1};
+    const entry={text,undo:undo||(commit?()=>null:null),commit,requestId,tone,timer:null,node:li,section:list?.closest('section[id]')?.id||null,index:list?[...list.children].indexOf(li):-1};
     clearTimeout(pending.get(key)?.timer);
-    entry.timer=setTimeout(()=>void(async()=>{
-      pending.delete(key);
-      if(commit)try{await commit();}catch(error){fail(li,error);}
-      await view.reload();
-    })(),UNDO_MS);
+    // A waiting decision is sent once: by its timer, on leaving the view or the page, never twice.
+    let sent=false;
+    const send=async()=>{if(sent)return;sent=true;clearTimeout(entry.timer);pending.delete(key);if(requestId)release(requestId);
+      if(commit)try{await commit();}catch(error){fail(li,error);}};
+    entry.send=send;
+    entry.timer=setTimeout(()=>void send().then(()=>view.reload()),UNDO_MS);
     pending.set(key,entry);
+    // The drawer of the same task can take it back too (review R5 N3); leaving the page asks first (N2).
+    if(requestId&&commit)hold(requestId,{leave:()=>{if(sent)return;sent=true;clearTimeout(entry.timer);pending.delete(key);return leave?.();},cancel:()=>{if(sent)return;sent=true;clearTimeout(entry.timer);pending.delete(key);announce('Отменено');void view.reload({focusKey:key});},commit:send});
     paint(li,key,entry);
     if(wasFocused)(following?focusRow(following):view.focusSection(li));
   }
@@ -58,7 +62,7 @@ export function createActions({api,repository,view,projects,filter,openTask,open
     li.append(line);
     line.querySelector('[data-undo]')?.addEventListener('click',()=>void(async()=>{
       const open=pending.get(key);if(!open)return;
-      clearTimeout(open.timer);pending.delete(key);line.querySelector('[data-undo]').disabled=true;
+      clearTimeout(open.timer);pending.delete(key);if(open.requestId)release(open.requestId);line.querySelector('[data-undo]').disabled=true;
       try{if(!entry.commit)await entry.undo();announce('Отменено');}catch(error){fail(li,error);}
       await view.reload({focusKey:key});
     })());
@@ -92,9 +96,11 @@ export function createActions({api,repository,view,projects,filter,openTask,open
       if(!verb.inline){openTask(row,{answer:true});return;}
       return run(li,async()=>{
         if(row.action.kind==='approve'&&row.request.approvalId){
+          if(isPending(row.request.id)){announce('Решение уже ждёт: отменить его можно в течение 8 секунд');return;}
           // Decided against the revision the request was made on (review R4 F3), after the undo time.
           const base=row.request.sourceRevision??(await api.approval(row.projectId,row.request.approvalId)).revision;
-          settle(li,{text:`<b>${esc(doneWord.approve)}</b> · ${esc(row.displayId)}`,commit:()=>api.decide(row.projectId,row.request.approvalId,base,'approved')});return;
+          settle(li,{text:`<b>${esc(doneWord.approve)}</b> · ${esc(row.displayId)}`,requestId:row.request.id,commit:()=>api.decide(row.projectId,row.request.approvalId,base,'approved'),
+            leave:()=>api.decideOnLeave(row.projectId,row.request.approvalId,base,'approved')});return;
         }
         const resolved=await api.resolveRequest(row.projectId,row.request.id,row.request.revision);
         settle(li,{text:`<b>${esc(doneWord[row.action.kind]||'решено')}</b> · ${esc(row.displayId)} · запрос закрыт`,
@@ -190,6 +196,6 @@ export function createActions({api,repository,view,projects,filter,openTask,open
       }
     },
     /** Leaving the view: the undo lines close, and a decision still waiting for its undo time is sent now. */
-    destroy(){for(const entry of pending.values()){clearTimeout(entry.timer);if(entry.commit)void entry.commit().catch(error=>fail(null,error));}pending.clear();},
+    destroy(){for(const entry of [...pending.values()]){clearTimeout(entry.timer);if(entry.commit)void entry.send();}pending.clear();},
   };
 }

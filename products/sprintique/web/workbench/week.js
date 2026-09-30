@@ -68,7 +68,7 @@ export function mountWeek(host,{api,filter,horizon:initial='7d',openTask,announc
     else if(button.hasAttribute('data-retry'))void load();
     else if(button.hasAttribute('data-zone')){const zone=Intl.DateTimeFormat().resolvedOptions().timeZone;void savePrefs({timezone:zone}).then(saved=>{if(!saved)return;announce(`Часовой пояс: ${zone}`);return load();});}
   },{signal:events.signal});
-  bindKeyboard(host,{signal:events.signal,onOpen:li=>li.querySelector('a[data-open]')?.click(),sections:()=>[...host.querySelectorAll('.dsk-day,#undated')]});
+  bindKeyboard(host,{signal:events.signal,onOpen:li=>li.querySelector('a[data-open]')?.click(),section:n=>host.querySelectorAll('.dsk-day,#undated')[n-1]||null});
   render();void load();
   return {reload:load,focusRow:key=>{const li=host.querySelector(`[data-row][data-key="${CSS.escape(key)}"]`);if(li)focusRow(li);return !!li;},destroy(){destroyed=true;events.abort();host.replaceChildren();}};
 }
