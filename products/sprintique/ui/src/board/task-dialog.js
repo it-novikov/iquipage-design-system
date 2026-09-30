@@ -10,7 +10,7 @@ import {loadTaskSupport,mountTaskCatalogs,releaseMeta} from './catalog-picker.js
 import {catalogLabel,tagMarkup} from './catalog-ui.js';
 import {mountPlanField} from './plan-field.js';
 import {today as todayValue,onlyPlanChanged} from './plan-range.js';
-import {starterTaskSettings,instantiateTaskTemplate,STARTER_TASK_TEMPLATES} from './task-templates.js';
+import {starterTaskSettings,instantiateTaskTemplate,withoutUntouchedTemplate,STARTER_TASK_TEMPLATES} from './task-templates.js';
 import {mountTaskDescription} from './description-view.js';
 import {copyAtButton,motionReduced,ui,notify,formatDate} from '@iquipage/web/core';
 import {taskKey,taskURL} from './task-route.js';
@@ -40,7 +40,8 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
   const owners=[{value:'',label:'Не назначен'},...members.filter(m=>(m.kind??'human')==='human').map(m=>({value:m.id,label:m.name,image:repository.client?.avatarUrl?.(m.id,m.avatarRevision)||undefined}))];
   if(initial.ownerId&&!owners.some(o=>o.value===initial.ownerId))owners.push({value:initial.ownerId,label:initial.owner||'Бывший участник',description:'Больше не участник проекта'});
   const legacyOwner=!initial.ownerId&&initial.legacyOwner?`<p class="iq-helper" data-legacy-owner>Было указано: «${esc(initial.legacyOwner)}». Выберите участника проекта.</p>`:'';
-  let templateVersion=initial.templateVersion,lastTemplateContent=taskMarkdown(initial);
+  // The exact template text in the editor (SPR-12). A description the caller passed in is the person's, not a template.
+  let templateVersion=initial.templateVersion,lastTemplateContent=(task||initialValues.description===undefined)?taskMarkdown(initial):null;
   const parents=[{value:'',label:'Нет'},...tasks.filter(item=>{
     if(item.archivedAt||item.projectId!==project.id)return false;
     try{reparentTask({...initial,id:taskId,projectId:project.id},item.id,tasks);return true;}catch{return false;}
@@ -127,7 +128,12 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
       files.assertReady();
       if(threads?.isBusy())throw Error('Дождитесь публикации обсуждения.');saving=true;files.setLocked(true);
       try{
-        const changes=read(form,values),value=current?{...current,...changes}:{...createTask({projectId:project.id,...changes}),...changes,id:taskId};
+        const changes=read(form,values);
+        // Untouched template text is guidance, not a description: the new task is saved without it (SPR-12).
+        // Keyed on the dialog, not on `current`: a retry after a saved-but-failed first submit strips it too; the
+        // template's legacy checklist copy goes with it.
+        if(!task){const kept=withoutUntouchedTemplate(changes.description,lastTemplateContent);if(kept!==changes.description){changes.description=kept;delete changes.legacyChecklists;}}
+        const value=current?{...current,...changes}:{...createTask({projectId:project.id,...changes}),...changes,id:taskId};
         const next=reparentTask(value,changes.parentId,tasks);
         let saved=await repository.write('tasks',next,current?.revision||0);
         current=saved;files.accepted(saved);baseline=JSON.stringify(read(form,values));
@@ -207,7 +213,7 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
       editor.addEventListener('iq-editor-action',event=>{
         if(event.detail.id!=='template'||!canEdit)return;
         const untouched=!editor.value.trim()||editor.value===lastTemplateContent;
-        const apply=id=>{if(id==='project')applyTemplate();else{editor.value=STARTER_TASK_TEMPLATES.find(t=>t.id===id).description;description.refresh();}form.dispatchEvent(new Event('change'));};
+        const apply=id=>{if(id==='project')applyTemplate();else{editor.value=STARTER_TASK_TEMPLATES.find(t=>t.id===id).description;description.refresh();lastTemplateContent=editor.value;}form.dispatchEvent(new Event('change'));};
         dialog({title:'Начать с шаблона',description:untouched?'Шаблон заполнит описание. Остальные поля не изменятся.':'Шаблон заменит текущее описание. Остальные поля не изменятся.',
           body:select('starter','Шаблон','project',[['project','Шаблон типа из настроек проекта'],...STARTER_TASK_TEMPLATES.map(t=>[t.id,t.name])]),
           submitLabel:untouched?'Применить':'Заменить описание',onSubmit:async values=>{apply(values.get('starter'));}});

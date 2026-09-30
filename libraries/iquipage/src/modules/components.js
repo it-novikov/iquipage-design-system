@@ -533,6 +533,23 @@ class IqDialog extends IqElement {
     }
 }
 exports.IqDialog = IqDialog;
+/** How long a toast stays, in ms (0: until dismissed). A short confirmation reads at a glance; a warning or an error
+ * asks for a decision, so it stays longer. An undo action (action.undo) keeps its window open until the person
+ * dismisses the toast (A11Y-01: reaching «Отменить» by keyboard or with a screen reader takes longer than any fixed
+ * time). Any other action, such as «Открыть», is a shortcut: it leaves with the toast after a longer read. */
+const TOAST_DURATION = Object.freeze({ info: 5000, success: 5000, warning: 8000, danger: 10000, action: 10000 });
+exports.TOAST_DURATION = TOAST_DURATION;
+function toastDuration(options = {}) {
+    // Only an explicit 0 keeps a toast; a malformed duration falls back to the default instead of pinning it.
+    const value = Number(options.duration);
+    if (options.duration === 0 || (options.duration != null && Number.isFinite(value) && value > 0))
+        return value;
+    if (options.action?.undo)
+        return 0;
+    const base = TOAST_DURATION[options.tone] ?? TOAST_DURATION.info;
+    return options.action ? Math.max(base, TOAST_DURATION.action) : base;
+}
+exports.toastDuration = toastDuration;
 function notify(options) {
     let region = document.querySelector('#iq-toasts');
     if (!region) {
@@ -566,36 +583,78 @@ function notify(options) {
     const glyph = { info: 'info', success: 'checkCircle', warning: 'warning', danger: 'xCircle' }[options.tone || 'info'];
     toast.innerHTML = `<span class="iq-toast-icon">${icons_js_1.icon(glyph, 21)}</span><div class="iq-toast-copy"><b>${escapeHTML(options.message)}</b>${options.description ? `<p>${escapeHTML(options.description)}</p>` : ''}</div>${options.action ? `<button type="button" class="iq-toast-action">${escapeHTML(options.action.label)}</button>` : ''}<button type="button" class="iq-btn icon ghost sm" aria-label="Закрыть уведомление">${icons_js_1.icon('x', 16)}</button>`;
     region.append(toast);
-    let timer;
-    // A toast with an action stays until dismissed (duration 0) unless the caller sets a duration: 6.5 s is not
-    // enough to reach "Undo" by keyboard or with a screen reader.
-    const duration = options.duration ?? (options.action ? 0 : 6500);
+    const duration = toastDuration(options);
+    toast.dataset.duration = String(duration);
+    let timer = 0;
     let remaining = duration;
-    let start = Date.now();
+    let start = 0;
     let removed = false;
+    // The countdown runs only while the toast can be read: it holds under a pointer that moved onto it, with focus inside
+    // and in a hidden tab. A toast that appears under a resting pointer (the "Создать" button sits where toasts land)
+    // is not being read: it keeps counting until the pointer really moves over it, or it would never leave. Browsers send
+    // a synthetic pointermove when layout changes under a resting pointer, so a move counts only once it travels.
+    let pointed = false, rest = null;
+    const held = () => (pointed && toast.matches(':hover')) || toast.contains(document.activeElement) || document.hidden;
+    const onVisibility = () => { if (document.hidden) pause(); else resume(); };
+    // Focus that entered the toast (Tab, a screen reader) goes back where it came from when the toast leaves.
+    let returnFocus = null;
     const remove = () => {
         if (removed)
             return;
         removed = true;
         clearTimeout(timer);
+        if (toast.contains(document.activeElement) && returnFocus?.isConnected)
+            returnFocus.focus({ preventScroll: true });
+        document.removeEventListener('visibilitychange', onVisibility);
         toast.classList.add('leaving');
         setTimeout(() => toast.remove(), interaction_js_1.motionReduced() ? 0 : interaction_js_1.motionMs('standard', 180));
     };
     const resume = () => {
-        clearTimeout(timer);
-        if (removed || !duration || toast.matches(':hover') || toast.contains(document.activeElement))
+        // A countdown that is already running keeps its elapsed time.
+        if (timer || removed || !duration || held())
             return;
         start = Date.now();
         timer = setTimeout(remove, remaining);
     };
-    const pause = () => { clearTimeout(timer); if (duration) remaining = Math.max(500, remaining - (Date.now() - start)); };
+    // Only a running countdown loses time; a toast the person just left keeps at least 1.5 s to finish reading.
+    const pause = () => {
+        if (!timer)
+            return;
+        clearTimeout(timer);
+        timer = 0;
+        remaining = Math.max(1500, remaining - (Date.now() - start));
+    };
     resume();
-    toast.addEventListener('pointerenter', pause);
-    toast.addEventListener('pointerleave', resume);
-    toast.addEventListener('focusin', pause);
+    document.addEventListener('visibilitychange', onVisibility);
+    toast.addEventListener('pointermove', e => {
+        if (pointed)
+            return;
+        if (!rest) {
+            rest = { x: e.clientX, y: e.clientY };
+            return;
+        }
+        if (Math.hypot(e.clientX - rest.x, e.clientY - rest.y) < 4)
+            return;
+        pointed = true;
+        pause();
+    });
+    toast.addEventListener('pointerleave', () => { pointed = false; rest = null; resume(); });
+    toast.addEventListener('focusin', e => {
+        if (e.relatedTarget && !toast.contains(e.relatedTarget))
+            returnFocus = e.relatedTarget;
+        pause();
+    });
     toast.addEventListener('focusout', e => {
         if (!toast.contains(e.relatedTarget))
             resume();
+    });
+    // Escape inside a toast closes that toast only, not the dialog or drawer underneath.
+    toast.addEventListener('keydown', e => {
+        if (e.key !== 'Escape' || e.defaultPrevented)
+            return;
+        e.preventDefault();
+        e.stopPropagation();
+        remove();
     });
     toast.querySelector('.iq-btn').addEventListener('click', remove);
     toast.querySelector('.iq-toast-action')?.addEventListener('click', () => { options.action?.run(); remove(); });
