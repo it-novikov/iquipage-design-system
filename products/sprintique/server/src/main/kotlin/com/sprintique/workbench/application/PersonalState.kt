@@ -198,7 +198,8 @@ object PersonalState {
     ): Map<String, Any?> {
         WorkbenchAccess.task(tx, actor, projectId, taskId, Capability.TASKS_READ)
         val input = mapOf("taskId" to taskId, "baseRevision" to baseRevision, "move" to move.wire, "projects" to scope)
-        val listed = Workbench.joinedOrder(tx, actor, scope, parts).map { it.string("projectId") to it.string("taskId") }
+        val listed = Workbench.joinedOrder(tx, actor, scope, parts)
+            .map { it.string("projectId") to it.string("taskId") }
         return PrivateLedger.once(tx, actor, projectId, "personal.rank", key, input) {
             // Per person before any row lock: a renumbering never waits on a row another command of theirs holds.
             tx.row("SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", "participation:${actor.id}")
