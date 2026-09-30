@@ -30,6 +30,14 @@ test('R4-PERF-01 only hashed public assets are immutable; HTML/auth/errors stay 
     const head=await app.inject({method:'HEAD',url:'/assets/app-1234abcd.js'});
     assert.equal(head.statusCode,200);assert.equal(head.body,'');assert.equal(head.headers.etag,etag);
     assert.equal((await app.inject({url:'/assets/app-1234abcd.js',headers:{'if-none-match':'"old"'}})).statusCode,200);
+    // The Workbench views are the interface's own paths (docs/adr W6, design v2): the same page, never cached.
+    for(const url of ['/workbench','/workbench/list','/workbench/plan','/workbench/tasks/p1/t1']){
+      const page=await app.inject(url);
+      assert.equal(page.statusCode,200,url);assert.match(page.body,/<title>Test<\/title>/);assert.equal(page.headers['cache-control'],'no-store',url);
+    }
+    assert.equal((await app.inject('/workbench/calendar')).statusCode,404);
+    // The board is not part of the Workbench v1: its address leads to the overview.
+    const board=await app.inject('/workbench/board');assert.equal(board.statusCode,302);assert.equal(board.headers.location,'/workbench');
     for(const url of ['/','/assets/plain.js','/assets/missing-1234abcd.js','/api/v1/session','/api/v1/projects/no-access/assets/private/original']){
       const response=await app.inject(url);
       assert.equal(response.headers['cache-control'],'no-store',url);

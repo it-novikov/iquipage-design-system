@@ -7,7 +7,7 @@ const ROUTES=[['tasks','Доска задач'],['planning','Планирова�
  *  Sections stay visible as text at every width; the host marks the current one with setRoute. */
 /** The person's photo over their initials (DS personAvatar), in the one tone they keep everywhere. */
 const profileAvatar=profile=>ui.personAvatar({id:profile.id,name:profile.name||'Я',image:profile.image||undefined},{size:''});
-export function mountProjectNavigation(root,{current,profile,projects,catalog=()=>[],onSwitch,onAccount,onSignOut,onTeam,onTheme,onSearch,onCreateProject,onCreateWorkspace}){
+export function mountProjectNavigation(root,{current,profile,projects,catalog=()=>[],onSwitch,onAccount,onSignOut,onTeam,onTheme,onSearch,onCreateProject,onCreateWorkspace,workbench=false}){
   if(!(root instanceof HTMLElement))throw Error('Нужен контейнер навигации.');
   current=readProjectContext(current);
   registerCore();const events=new AbortController();let disposed=false,dialog=null,switching=false;
@@ -15,7 +15,7 @@ export function mountProjectNavigation(root,{current,profile,projects,catalog=()
   // Workspace and project are separate choices: each name opens its own DS menu.
   root.innerHTML=`<div class="pn-context" data-context></div>`
     // Sections are the DS work navigation (text tabs, the current one underlined at the header's edge), centred.
-    +`<nav class="pn-sections iq-work-navigation" aria-label="Разделы проекта">${ROUTES.map(([route,label])=>`<a href="#${route}" data-section-link="${route}">${label}</a>`).join('')}</nav>`
+    +`<nav class="pn-sections iq-work-navigation" aria-label="Разделы проекта">${workbench?'<a href="/workbench" class="pn-global-link" data-workbench-link>Рабочий стол</a>':''}${ROUTES.map(([route,label])=>`<a href="#${route}" data-section-link="${route}">${label}</a>`).join('')}</nav>`
     +`<div class="pn-personal-navigation">${onSearch?ui.ib('search','Поиск (⌘K)','ghost sm','data-search'):''}${ui.ib('settings','Настройки','ghost sm','data-section-link="settings"')}${ui.ib('moon','Тёмная тема','ghost sm','data-theme-toggle')}`
     +`${ui.menu(`<button type="button" class="iq-btn ghost icon sm" data-profile-avatar aria-label="Профиль: ${esc(profile.name)}">${profileAvatar(profile)}</button>`,[{label:esc(profile.name),action:'account'},{label:'Команда проекта',action:'team'},{label:'Выйти',action:'signout',danger:true}])}</div>`;
   function renderContext(){
