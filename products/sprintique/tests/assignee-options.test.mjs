@@ -3,14 +3,17 @@ import assert from 'node:assert/strict';
 import {SERVICE_HEADING,assigneeLabel,assignable,avatarName,describeOwner,groupOwners,ownerOptions,ownerWarning} from '../ui/src/board/assignees.js';
 
 // SPR-7: who the owner pickers offer and how a task owner reads on the board and in dialogs.
-const alice={id:'alice',kind:'human',name:'Алиса',role:'admin'};
-const reader={id:'reader',kind:'human',name:'Наблюдатель',role:'reader'};
+// The members list as the API returns it: each member's compiled permissions (the derived role only summarises them).
+const WRITES=['tasks.read','tasks.write','threads.write','maps.read'],READS=['tasks.read','maps.read'];
+const alice={id:'alice',kind:'human',name:'Алиса',role:'admin',permissions:[...WRITES,'project.access']};
+const reader={id:'reader',kind:'human',name:'Наблюдатель',role:'reader',permissions:['tasks.read','threads.write','maps.read']};
 // The repository names a service account with its owner for discussions and keeps its own name as accountName.
-const robot={id:'robot',kind:'service',accountName:'Робот',name:'Робот (сервисный аккаунт Алиса)',role:'editor',ownerId:'alice',ownerName:'Алиса',suspended:false};
+const robot={id:'robot',kind:'service',accountName:'Робот',name:'Робот (сервисный аккаунт Алиса)',role:'editor',permissions:WRITES,ownerId:'alice',ownerName:'Алиса',suspended:false};
 const members=[alice,reader,robot,
-  {id:'paused',kind:'service',accountName:'Пауза',name:'Пауза (сервисный аккаунт Алиса)',role:'editor',ownerId:'alice',ownerName:'Алиса',suspended:true},
-  {id:'watcher',kind:'service',accountName:'Смотритель',name:'Смотритель',role:'reader',ownerId:'alice',ownerName:'Алиса',suspended:false},
-  {id:'capped',kind:'service',accountName:'Потолок',name:'Потолок',role:'editor',ownerId:'reader',ownerName:'Наблюдатель',suspended:false}];
+  {id:'paused',kind:'service',accountName:'Пауза',name:'Пауза (сервисный аккаунт Алиса)',role:'editor',permissions:WRITES,ownerId:'alice',ownerName:'Алиса',suspended:true},
+  {id:'watcher',kind:'service',accountName:'Смотритель',name:'Смотритель',role:'reader',permissions:READS,ownerId:'alice',ownerName:'Алиса',suspended:false},
+  // «Сервис: задачи» under an owner who only reads: the server compiles it down to what the owner has.
+  {id:'capped',kind:'service',accountName:'Потолок',name:'Потолок',role:'reader',permissions:READS,ownerId:'reader',ownerName:'Наблюдатель',suspended:false}];
 
 test('owner options: nobody, people, then editing service accounts under their heading with their owner',()=>{
   const options=ownerOptions(members,{});
@@ -21,11 +24,11 @@ test('owner options: nobody, people, then editing service accounts under their h
 });
 
 test('assignable: a suspended account, one that only reads, or one whose owner only reads is not offered',()=>{
-  assert.deepEqual(members.filter(m=>assignable(m,members)).map(m=>m.id),['alice','reader','robot']);
-  // With the permission catalog the members list carries permissions; they decide instead of the role.
-  const catalog=[{...alice,permissions:['tasks.read','tasks.write']},{...robot,role:'reader',permissions:['tasks.read','tasks.write']}];
-  assert.equal(assignable(catalog[1],catalog),true);
-  assert.equal(assignable({...catalog[1],permissions:['tasks.read']},catalog),false);
+  assert.deepEqual(members.filter(m=>assignable(m)).map(m=>m.id),['alice','reader','robot']);
+  // The permission decides, never the role: «Менять задачи» added to a reading preset, or taken from a writing one.
+  assert.equal(assignable({...robot,role:'reader'}),true);
+  assert.equal(assignable({...robot,role:'editor',permissions:READS}),false);
+  assert.equal(assignable({...robot,permissions:undefined}),false,'no permissions, no task');
 });
 
 test('the current owner stays visible and says why it can no longer be chosen',()=>{

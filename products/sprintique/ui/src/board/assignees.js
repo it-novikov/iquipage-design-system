@@ -11,7 +11,6 @@ const STATE_HINTS={
   deleted:'Аккаунт удалён.',
   former:'Аккаунт больше не участвует в проекте.'
 };
-const EDITING=['editor','admin'];
 
 /** The member's own name: the repository adds the owner to a service account's name for discussions. */
 export const accountName=member=>member?.accountName??member?.name??'';
@@ -31,18 +30,15 @@ export const avatarName=label=>String(label||'').replace(/\s*\([^()]*\)$/,'')||S
 /** A member's state as an owner: the members list marks a service account that cannot act now as suspended. */
 export const memberState=member=>member?.kind==='service'&&member.suspended?'suspended':'active';
 
-// Whether a member edits tasks: the permission when the members list carries permissions, else the role.
-const edits=member=>Array.isArray(member?.permissions)?member.permissions.includes('tasks.write'):EDITING.includes(member?.role);
-
 /**
- * Whether a member may be given a task now: any person of the project; a service account that is active and edits
- * tasks, while its owner edits them in this project too (its rights never exceed its owner's).
+ * Whether a member may be given a task now: any person of the project; a service account that is active and holds
+ * «Менять задачи» (`tasks.write`) here. Its owner's part is already in its permissions: the server compiles them
+ * never above the owner's in the project, and empty while the owner is not a member, so the role is not consulted.
  */
-export function assignable(member,members=[]){
+export function assignable(member){
   const kind=member?.kind??'human';
   if(kind==='human')return true;
-  if(kind!=='service'||member.suspended||!edits(member))return false;
-  return edits(members.find(m=>m.id===member.ownerId));
+  return kind==='service'&&!member.suspended&&Array.isArray(member.permissions)&&member.permissions.includes('tasks.write');
 }
 
 /** A task's owner as the board and dialogs show it, from the task itself or from the members of the project. */
@@ -70,7 +66,7 @@ export function ownerOptions(members,current={},{image=()=>undefined}={}){
   const people=members.filter(m=>(m.kind??'human')==='human').map(m=>({value:m.id,label:m.name,image:image(m)}));
   // The task's own word on its owner is fresher than the members list, which the repository caches for a while.
   const stale=m=>m.id===current.ownerId&&current.ownerState&&current.ownerState!=='active';
-  const accounts=members.filter(m=>m.kind==='service'&&assignable(m,members)&&!stale(m)).map(m=>({
+  const accounts=members.filter(m=>m.kind==='service'&&assignable(m)&&!stale(m)).map(m=>({
     value:m.id,label:assigneeLabel({name:accountName(m),kind:'service'}),description:`Владелец — ${m.ownerName||'не назначен'}`,icon:'bolt'
   }));
   const options=[{value:'',label:'Не назначен'},...people];

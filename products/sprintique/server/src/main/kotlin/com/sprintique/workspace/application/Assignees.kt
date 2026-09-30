@@ -9,6 +9,11 @@ import com.sprintique.problem.requireCondition
  * change tasks there right now: it and its owner both hold «Менять задачи» (`tasks.write`) in the project, and it is
  * neither suspended nor deleted. That is how work is handed to an agent: it finds the tasks assigned to its account.
  *
+ * The owner's part needs no check of its own: a service account's compiled permissions never exceed its owner's in
+ * the same project, and are empty while the owner is not a member there; the database compiles that ceiling on every
+ * write and again whenever the owner's permissions or the owner change (V20260930000040). So the account's own
+ * membership row is the whole answer, as it is for row security.
+ *
  * An owner that can no longer act keeps its tasks until someone reassigns them; the task says why ([stateSql]).
  */
 object Assignees {
@@ -48,8 +53,7 @@ object Assignees {
     fun serviceAssignableSql(principal: String, project: String): String =
         """EXISTS (SELECT 1 FROM auth.service_accounts sa
             JOIN app.project_members sm ON sm.project_id = $project AND sm.principal_id = sa.principal_id
-            JOIN app.project_members om ON om.project_id = $project AND om.principal_id = sa.owner_id
-            WHERE sa.principal_id = $principal AND '$EDITS' = ANY(sm.permissions) AND '$EDITS' = ANY(om.permissions)
+            WHERE sa.principal_id = $principal AND '$EDITS' = ANY(sm.permissions)
               AND auth.service_account_active(sa.principal_id))"""
 
     /** A newly chosen owner must be able to see and act on the task; no owner (unassigning) is always allowed. */
@@ -57,12 +61,11 @@ object Assignees {
         if (ownerId == null) return
         val candidate = tx.row(
             """
-            SELECT p.kind, p.disabled_at IS NOT NULL AS disabled, m.role, s.deleted_at IS NOT NULL AS deleted,
+            SELECT p.kind, p.disabled_at IS NOT NULL AS disabled, m.principal_id IS NOT NULL AS member,
+                   s.deleted_at IS NOT NULL AS deleted,
                    s.workspace_id IS NOT DISTINCT FROM (SELECT pr.workspace_id FROM app.projects pr WHERE pr.id = $1) AS local,
                    CASE WHEN s.principal_id IS NULL THEN false ELSE auth.service_account_active(s.principal_id) END AS active,
-                   coalesce('$EDITS' = ANY(m.permissions), false) AS edits,
-                   coalesce((SELECT '$EDITS' = ANY(o.permissions) FROM app.project_members o
-                     WHERE o.project_id = $1 AND o.principal_id = s.owner_id), false) AS "ownerEdits"
+                   coalesce('$EDITS' = ANY(m.permissions), false) AS edits
             FROM auth.principals p
             LEFT JOIN app.project_members m ON m.project_id = $1 AND m.principal_id = p.id
             LEFT JOIN auth.service_accounts s ON s.principal_id = p.id
@@ -76,7 +79,7 @@ object Assignees {
             requireService(candidate)
         } else {
             requireCondition(
-                candidate?.string("kind") == "human" && !candidate.boolean("disabled") && candidate["role"] != null,
+                candidate?.string("kind") == "human" && !candidate.boolean("disabled") && candidate.boolean("member"),
                 422,
                 REFUSED,
                 "Исполнителем может быть только участник проекта.",
@@ -92,7 +95,7 @@ object Assignees {
             "Сервисный аккаунт удалён: его нельзя назначить исполнителем.",
         )
         requireCondition(
-            account["role"] != null,
+            account.boolean("member"),
             422,
             REFUSED,
             "Сервисный аккаунт не участвует в этом проекте: сначала добавьте его в проект.",
@@ -104,7 +107,7 @@ object Assignees {
             "Сервисный аккаунт приостановлен: его нельзя назначить исполнителем.",
         )
         requireCondition(
-            account.boolean("edits") && account.boolean("ownerEdits"),
+            account.boolean("edits"),
             422,
             REFUSED,
             "Сервисный аккаунт может быть исполнителем, только если он и его владелец могут редактировать задачи " +
