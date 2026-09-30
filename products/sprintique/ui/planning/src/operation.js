@@ -40,6 +40,21 @@ export class PlanningOperation {
   destroy(){this.disposed=true;this.generation++;this.abort?.abort();}
 }
 
+/** A change the person already confirmed in place (the plan field of the task drawer): preview, then commit
+ *  without a second confirmation only when the preview touches the one object and nothing else. Resolves to
+ *  'committed', 'confirm' (more effects, a blocker or a stale preview: show the full check) or 'uncertain'
+ *  (the answer was lost even after a receipt check); a definite failure throws with its reason. */
+export async function commitInPlace(operation,intent){
+  await operation.inspect(intent);
+  if(operation.state!=='ready')throw Error(operation.error||'Не удалось проверить изменение.');
+  const preview=operation.preview;
+  if(preview.blockers.length||preview.changes.length>1||preview.moreChanges)return 'confirm';
+  await operation.submit();
+  if(operation.state==='uncertain')await operation.recover();
+  if(operation.state==='committed'||operation.state==='uncertain')return operation.state;
+  if(operation.state==='stale')return 'confirm';
+  throw Error(operation.error||'Изменение не сохранено.');
+}
 const text=(value,max)=>typeof value==='string'&&value.length<=max;
 function validPreview(value){
   return value&&text(value.token,4096)&&value.token.length>0&&text(value.summary,4000)

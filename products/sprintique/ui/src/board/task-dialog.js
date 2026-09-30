@@ -1,15 +1,18 @@
 import {mountTaskFiles} from './task-files-view.js';
 import {uid} from '../common.js';
 import {mountTaskLinks} from './link-view.js';
-import {dialog,input,select,icon,esc} from '../ui.js';
+import {dialog,select,icon,esc} from '../ui.js';
 import {TASK_COLUMNS,taskColumn,createTask} from '../tasks.js';
 import {TASK_KINDS,reparentTask} from './model.js';
 import {taskMarkdown,markdownTaskChanges} from './task-content.js';
 import {mountThreads} from './thread-view.js';
-import {loadTaskSupport,mountTaskCatalogs} from './catalog-picker.js';
+import {loadTaskSupport,mountTaskCatalogs,releaseMeta} from './catalog-picker.js';
+import {catalogLabel,tagMarkup} from './catalog-ui.js';
+import {mountPlanField} from './plan-field.js';
+import {today as todayValue,onlyPlanChanged} from './plan-range.js';
 import {starterTaskSettings,instantiateTaskTemplate,STARTER_TASK_TEMPLATES} from './task-templates.js';
 import {mountTaskDescription} from './description-view.js';
-import {copyAtButton,motionReduced,ui} from '@iquipage/web/core';
+import {copyAtButton,motionReduced,ui,notify,formatDate} from '@iquipage/web/core';
 import {taskKey,taskURL} from './task-route.js';
 
 export async function openTaskDialog(task,{repository,project,tasks,canEdit=true,canManage=true,attachmentAdapter=null,status='ready',initialValues={},fullscreen=false,backTo=null,onBack=()=>{},onOpenTask,onReload=onOpenTask&&(()=>onOpenTask(task.id)),onSaved=()=>{},isActive=()=>true,signal,replace=null}){
@@ -32,7 +35,7 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
   let files,description;
   // Existing tasks save each field as it changes; a new task is created deliberately with one button.
   const autosave=!!task&&canEdit;
-  let current=task,baseline='',saving=false,confirming=false,priorityTouched=false,catalogs,threads,links;
+  let current=task,baseline='',saving=false,confirming=false,priorityTouched=false,catalogs,threads,links,plan,pendingPlan=null;
   // Owners are current human project members. A former member or pre-membership text stays visible until reassigned.
   const owners=[{value:'',label:'Не назначен'},...members.filter(m=>(m.kind??'human')==='human').map(m=>({value:m.id,label:m.name,image:repository.client?.avatarUrl?.(m.id,m.avatarRevision)||undefined}))];
   if(initial.ownerId&&!owners.some(o=>o.value===initial.ownerId))owners.push({value:initial.ownerId,label:initial.owner||'Бывший участник',description:'Больше не участник проекта'});
@@ -42,8 +45,9 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
     if(item.archivedAt||item.projectId!==project.id)return false;
     try{reparentTask({...initial,id:taskId,projectId:project.id},item.id,tasks);return true;}catch{return false;}
   }).map(item=>({value:item.id,label:`${item.displayId||item.id.slice(-7).toUpperCase()} ${item.title}`,description:`${TASK_KINDS[item.type]||'Задача'}, ${TASK_COLUMNS.find(c=>c.id===taskColumn(item))?.label||item.status}`}))];
-  // Core facts form one label and value grid (state of the work on the left, people and time on the right);
-  // tags follow as a quiet line. Relationships live in "Связи".
+  // Core facts form one grid of facts (handoff docs/task-drawer/fields-handoff.md): the hero row answers
+  // "where is it, who does it, by when"; below it priority, type, release, plan, parent and tags. Every fact
+  // is always on its place, an empty one reads quietly, and each value opens its editor in one click.
   const initials=name=>String(name||'').trim().split(/\s+/).slice(0,2).map(part=>part[0]||'').join('').toUpperCase()||'?';
   const ownerOptions=owners.map(({image,...o})=>o.value?{...o,avatar:{text:initials(o.label),tone:ui.avatarTone(o.value),...(image?{image}:{})}}:o);
   const statusTones={in_progress:'info',review:'warning',ready_for_testing:'info',testing:'warning',ready_for_release:'success'};
@@ -51,18 +55,53 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
   const priorityOptions=[['critical','Критический','critical','critical'],['high','Высокий','priority','high'],['normal','Обычный','minus',''],['low','Низкий','low','']].map(([value,label,glyph,tone])=>({value,label,icon:glyph,...(tone?{tone}:{})}));
   const kindOptions=Object.entries(TASK_KINDS).map(([value,label])=>({value,label,icon:{task:'checklist',bug:'bug',epic:'stack'}[value]||'checklist'}));
   const opts=list=>esc(JSON.stringify(list));
+  const statusValue=task?taskColumn(task):status;
+  // The plan is saved by the planning command (preview, then commit), so it needs the host's planning hook.
+  const canPlan=canEdit&&typeof repository.applyPlanningChange==='function';
+  const editableFacts=()=>`<div class="iq-properties tdr-facts hero" data-columns="3">
+        <iq-select name="status" label="Статус" appearance="pill" value="${esc(statusValue)}" options="${opts(statusOptions)}"></iq-select>
+        <iq-select name="ownerId" label="Исполнитель" searchable search-placeholder="Найти участника" value="${esc(initial.ownerId||'')}" options="${opts(ownerOptions)}"></iq-select>
+        <iq-date-field name="due" label="Срок" placeholder="Без срока" value="${esc(initial.due||'')}"></iq-date-field>
+      </div>${legacyOwner}
+      <div class="iq-properties tdr-facts" data-columns="3">
+        <iq-select name="priority" label="Приоритет" value="${esc(initial.priority||'normal')}" options="${opts(priorityOptions)}"></iq-select>
+        <iq-select name="type" label="Тип" value="${esc(initial.type||'task')}" options="${opts(kindOptions)}"></iq-select>
+        <div class="tdr-fact" data-task-catalogs></div>
+        <div class="tdr-fact" data-task-plan></div>
+        <iq-select class="tdr-span-2" name="parent" label="Родитель" searchable search-placeholder="Найти задачу" value="${esc(initial.parentId||'')}" options="${opts(parents)}"></iq-select>
+        <div class="tdr-fact tdr-span-all" data-task-tags><span class="tdr-fact-label" aria-hidden="true">Теги</span></div>
+      </div>`;
+  // Read-only facts are the same tiles as plain text: no disabled controls (DS principle 12).
+  const staticFact=(label,value,{empty=false,span=''}={})=>`<div class="tdr-fact${span?' '+span:''}"><dt class="tdr-fact-label">${esc(label)}</dt><dd class="tdr-static" data-empty="${empty}">${value}</dd></div>`;
+  const staticFacts=()=>{
+    const column=TASK_COLUMNS.find(c=>c.id===statusValue),owner=owners.find(o=>o.value===(initial.ownerId||''));
+    const priority=priorityOptions.find(o=>o.value===(initial.priority||'normal'))||priorityOptions[2],kind=kindOptions.find(o=>o.value===(initial.type||'task'))||kindOptions[0];
+    const release=support.releases.find(item=>item.id===initial.releaseId),parent=tasks.find(item=>item.id===initial.parentId);
+    const chosenTags=support.tags.filter(tag=>(initial.tagIds||[]).includes(tag.id));
+    const accepted=task?.result==='accepted';
+    // "в релизе 2.4" for a release named "Релиз 2.4", "в релизе «Осень»" otherwise.
+    const where=release?(/^релиз\s+/i.test(release.name)?` в релизе ${esc(release.name.replace(/^релиз\s+/i,''))}`:` в релизе «${esc(release.name)}»`):'';
+    const reason=accepted?`Только чтение: результат принят${where}. Обсуждение открыто.`:'Только чтение: в этом проекте у вас доступ на просмотр.';
+    const dueTone=!initial.due||accepted||statusValue==='ready_for_release'?'':initial.due<todayValue()?'danger':'';
+    return `<p class="tdr-lock">${icon('lock',14)}<span>${reason}</span></p>
+      <dl class="tdr-facts hero">
+        ${staticFact('Статус',`<span class="tdr-pill" data-tone="${esc(statusTones[statusValue]||'')}"><span class="tdr-dot" aria-hidden="true"></span>${esc(column?.label||statusValue)}</span>`)}
+        ${staticFact('Исполнитель',!owner?.value&&initial.legacyOwner?`<span class="tdr-text">${esc(initial.legacyOwner)}</span>`:owner?.value?`${ui.personAvatar({id:owner.value,name:owner.label,image:owners.find(o=>o.value===owner.value)?.image},{size:'xs'})}<span class="tdr-text">${esc(owner.label)}</span>`:'Не назначен',{empty:!owner?.value})}
+        ${staticFact('Срок',initial.due?`<span class="tdr-text" ${dueTone?`data-tone="${dueTone}"`:''}>${esc(formatDate(initial.due))}</span>`:'Без срока',{empty:!initial.due})}
+      </dl>
+      <dl class="tdr-facts">
+        ${staticFact('Приоритет',`<span class="tdr-glyph" data-tone="${esc(priority.tone||'')}">${icon(priority.icon,16)}<span class="tdr-text">${esc(priority.label)}</span></span>`)}
+        ${staticFact('Тип',`${icon(kind.icon,16)}<span class="tdr-text">${esc(kind.label)}</span>`)}
+        ${staticFact('Релиз',release?`<span class="tdr-text">${esc(catalogLabel(release))}</span>${releaseMeta(release)?`<span class="tdr-meta">${esc(releaseMeta(release))}</span>`:''}`:'Без релиза',{empty:!release})}
+        <div class="tdr-fact" data-task-plan></div>
+        ${staticFact('Родитель',parent?`<span class="tdr-text"><span class="tdr-key">${esc(taskKey(parent))}</span> ${esc(parent.title)}</span>`:'Нет',{empty:!parent,span:'tdr-span-2'})}
+        ${staticFact('Теги',chosenTags.length?`<span class="tdr-tags">${chosenTags.map(tagMarkup).join('')}</span>`:'Нет тегов',{empty:!chosenTags.length,span:'tdr-span-all'})}
+      </dl>`;
+  };
   const content=`<section class="task-editor-cover" data-task-cover hidden></section><div class="task-editor-layout">
     <div class="task-editor-title"><label class="sr-only" for="${taskId}-title">Название</label><textarea class="iq-inline-title" id="${taskId}-title" name="title" rows="1" required maxlength="240" placeholder="Что нужно сделать?">${esc(initial.title)}</textarea></div>
     <section class="task-editor-properties" aria-label="Свойства задачи">
-      <div class="iq-properties task-props" data-columns="auto">
-        <iq-select name="status" label="Статус" appearance="pill" value="${esc(task?taskColumn(task):status)}" options="${opts(statusOptions)}"></iq-select>
-        <iq-combobox name="ownerId" label="Исполнитель" value="${esc(initial.ownerId||'')}" options="${opts(ownerOptions)}" placeholder="Не назначен"></iq-combobox>
-        <iq-select name="priority" label="Приоритет" value="${esc(initial.priority||'normal')}" options="${opts(priorityOptions)}"></iq-select>
-        <iq-date-field name="due" label="Срок" placeholder="Без срока" value="${esc(initial.due||'')}"></iq-date-field>
-        <iq-select name="type" label="Тип" value="${esc(initial.type||'task')}" options="${opts(kindOptions)}"></iq-select>
-        <div class="task-release-slot" data-task-catalogs></div>
-      </div>${legacyOwner}
-      <div class="task-tags-row" data-task-tags></div>
+      ${canEdit?editableFacts():staticFacts()}
     </section>
     <section class="iq-section task-editor-description"><div class="iq-section-head">${icon('text',16)}<h3>Описание</h3></div>
       <div class="task-description-surface" data-description>
@@ -70,19 +109,18 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
       </div></section>
     <div class="task-editor-supplements">
     <section class="iq-section task-relations"><div class="iq-section-head">${icon('link',16)}<h3>Связи</h3><span class="iq-section-count" data-relations-count></span><span class="iq-section-actions" data-relations-actions></span></div>
-      ${task?'<div data-task-links></div>':''}
-      <div class="iq-properties task-parent"><iq-select name="parent" label="Родительская задача" searchable search-placeholder="Найти задачу" value="${esc(initial.parentId||'')}" options="${opts(parents)}"></iq-select></div>
-      ${task?'':'<p class="iq-helper">Подзадачи и связи с другими задачами можно добавить после создания.</p>'}</section>
+      ${task?'<div data-task-links></div>':'<p class="iq-helper">Подзадачи и связи с другими задачами можно добавить после создания.</p>'}</section>
     <section class="iq-section task-files-section" data-task-files></section>
     <section class="iq-section task-threads-section" data-task-threads></section></div></div><p role="status" class="iq-helper" data-task-save-state></p>`;
   const read=(form,values=new FormData(form))=>({
     title:String(values.get('title')||'').trim(),type:values.get('type')||'task',status:values.get('status'),
-    ownerId:form.querySelector('iq-combobox[name=ownerId]').value||null,priority:values.get('priority')||'normal',
+    ownerId:form.querySelector('iq-select[name=ownerId]').value||null,priority:values.get('priority')||'normal',
     ...markdownTaskChanges(initial,form.querySelector('iq-markdown-editor[name=description]').value),
     due:form.querySelector('iq-date-field[name=due]').value||null,
     parentId:form.querySelector('iq-select[name=parent]').value||null,
     ...catalogs.value(),...files.value(),templateVersion
   });
+  const scheduleIntent=value=>({kind:'schedule',entityKind:'task',entityId:taskId,values:{start:value.start,end:value.end}});
   const el=dialog({title:task?taskKey(task):'Новая задача',body:content,wide:true,replace,submitLabel:canEdit&&!task?'Создать задачу':'',
     onSubmit:canEdit&&!task?async(values,form)=>{
       files.assertReady();
@@ -90,8 +128,14 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
       try{
         const changes=read(form,values),value=current?{...current,...changes}:{...createTask({projectId:project.id,...changes}),...changes,id:taskId};
         const next=reparentTask(value,changes.parentId,tasks);
-        const saved=await repository.write('tasks',next,current?.revision||0);
-        current=saved;files.accepted(saved);baseline=JSON.stringify(read(form,values));await onSaved(saved);
+        let saved=await repository.write('tasks',next,current?.revision||0);
+        current=saved;files.accepted(saved);baseline=JSON.stringify(read(form,values));
+        // A plan chosen before the task existed is scheduled right after it: the planning command needs the task.
+        if(pendingPlan){
+          try{await repository.applyPlanningChange(scheduleIntent(pendingPlan));pendingPlan=null;saved=await repository.read('tasks',taskId,project.id).catch(()=>null)||saved;current=saved;}
+          catch(error){notify({tone:'danger',message:'Задача создана, но план не сохранён: '+(error.message||'ошибка сети')});}
+        }
+        await onSaved(saved);
         if(threads?.dirty()){form.querySelector('[data-task-save-state]').textContent='Задача сохранена. Черновик сообщения ещё не опубликован.';return false;}
       }finally{saving=false;files.setLocked(false);}
     }:undefined,
@@ -124,12 +168,15 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
       const titleField=form.querySelector('[name=title]');
       // The title is one line of intent: Enter moves on instead of adding a line break.
       titleField.addEventListener('keydown',event=>{if(event.key==='Enter'&&!event.isComposing){event.preventDefault();titleField.blur();}});
-      const dueField=form.querySelector('iq-date-field[name=due]'),localDay=offset=>{const d=new Date(Date.now()+offset*86400000);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;};
+      const dueField=form.querySelector('iq-date-field[name=due]'),localDay=offset=>todayValue(new Date(Date.now()+offset*86400000));
       // Overdue is red, due today or tomorrow is amber; finished work carries no alarm.
-      const dueTone=()=>{const value=dueField.value,done=form.querySelector('iq-select[name=status]')?.value==='ready_for_release';dueField.dataset.tone=!value||done?'':value<localDay(0)?'danger':value<=localDay(1)?'warning':'';};
+      const dueTone=()=>{if(!dueField)return;const value=dueField.value,done=form.querySelector('iq-select[name=status]')?.value==='ready_for_release';dueField.dataset.tone=!value||done?'':value<localDay(0)?'danger':value<=localDay(1)?'warning':'';};
       form.addEventListener('iq-change',dueTone);form.addEventListener('change',dueTone);requestAnimationFrame(dueTone);
       description=mountTaskDescription(form.querySelector('[data-description]'),{value:taskMarkdown(initial),editing:false,readOnly:!canEdit});
-      catalogs=mountTaskCatalogs(form.querySelector('[data-task-catalogs]'),{tagsRoot:form.querySelector('[data-task-tags]'),repository,project,task:initial,tags:support.tags,releases:support.releases,readOnly:!canEdit,canManage,onChange:()=>form.dispatchEvent(new Event('change'))});
+      catalogs=canEdit?mountTaskCatalogs(form.querySelector('[data-task-catalogs]'),{tagsRoot:form.querySelector('[data-task-tags]'),repository,project,task:initial,tags:support.tags,releases:support.releases,canManage,onChange:()=>form.dispatchEvent(new Event('change'))})
+        :{value:()=>({releaseId:initial.releaseId||null,tagIds:[...(initial.tagIds||[])]}),destroy(){}};
+      plan=mountPlanField(form.querySelector('[data-task-plan]'),{start:initial.plannedStart||null,end:initial.plannedEnd||null,readOnly:!canPlan,
+        deadline:()=>dueField?(dueField.value||null):(initial.due||null),onApply:value=>applyPlan(value)});
       if(task&&repository.capabilities?.taskLinks!==false)links=mountTaskLinks(form.querySelector('[data-task-links]'),{repository,project,task,tasks,readOnly:!canEdit,actionsRoot:form.querySelector('[data-relations-actions]'),countRoot:form.querySelector('[data-relations-count]'),onOpenTask:async id=>{
         if(onOpenTask){await onOpenTask(id);return;}
         const target=await repository.read('tasks',id,project.id);if(!target)throw Error('Задача недоступна.');
@@ -175,7 +222,7 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
       async function flush(){
         clearTimeout(timer);timer=0;
         if(!autosave||conflict)return !conflict;
-        if(inflight){again=true;await inflight;return flush();}
+        if(inflight){again=true;await inflight.catch(()=>{});return flush();}
         const changes=read(form),snapshot=JSON.stringify(changes);
         if(snapshot===baseline)return true;
         if(!changes.title){showState('Нужно название — изменения пока не сохранены.',{error:true});return false;}
@@ -197,6 +244,45 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
         const ok=await inflight;inflight=null;
         if(again){again=false;return flush();}
         return ok;
+      }
+      /** Saves the plan through the planning command. Field autosave waits for it, and it waits for field
+       *  autosave, so every write carries the latest task revision (the command changes the task's revision). */
+      async function applyPlan(value){
+        if(!task){pendingPlan=value.start?value:null;return;}
+        if(conflict)throw Error('Задачу изменили в другом месте. Загрузите актуальную версию.');
+        if(!await flush())throw Error('Сначала сохраните остальные изменения задачи.');
+        while(inflight)await inflight;
+        let failure=null;
+        const work=(async()=>{
+          try{await repository.applyPlanningChange(scheduleIntent(value));}catch(error){failure=error;}
+          // The command may have been applied even when the call failed (a lost answer checked by its receipt),
+          // so the saved task is read in any case: its revision and plan are the truth from here on.
+          let fresh=null;
+          try{fresh=await repository.read('tasks',taskId,project.id);}catch{}
+          if(!fresh){
+            if(failure)return;
+            conflict=true;plan.set(value);
+            showState('План сохранён, но задачу не удалось обновить. Загрузите актуальную версию, чтобы продолжить правки.',{error:true,action:'reload'});
+            return;
+          }
+          plan.set({start:fresh.plannedStart,end:fresh.plannedEnd});
+          const applied=(fresh.plannedStart||null)===(value.start||null)&&(fresh.plannedEnd||null)===(value.end||null);
+          if(applied)failure=null;
+          // The planning command does not check the task's revision: a newer edit made elsewhere must not be
+          // overwritten by this form's next save, so anything besides the plan that changed is a conflict.
+          if(!onlyPlanChanged(current,fresh)){
+            conflict=true;clearTimeout(timer);
+            showState('Задачу изменили в другом месте. Ваши последние правки не сохранены.',{error:true,action:'reload'});
+            return;
+          }
+          current=fresh;files.accepted(fresh);
+          if(!failure){showState('Все изменения сохранены');await onSaved(fresh);}
+        })();
+        // Field autosave waits on this promise and must never inherit its failure.
+        inflight=work.then(()=>true,()=>false);
+        const settled=inflight;
+        try{await work;}finally{if(inflight===settled)inflight=null;}
+        if(failure)throw failure;
       }
       if(autosave){
         // The footer becomes the save status; the header close button stays the single way out.
@@ -241,9 +327,10 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
       };
       window.addEventListener('beforeunload',unload);
       el.addEventListener('iq-close',()=>{
-        clearTimeout(timer);window.removeEventListener('beforeunload',unload);description.destroy();files.destroy();catalogs.destroy();threads?.destroy();links?.destroy();
+        clearTimeout(timer);window.removeEventListener('beforeunload',unload);description.destroy();files.destroy();catalogs.destroy();plan.destroy();threads?.destroy();links?.destroy();
       },{once:true});
-      baseline=JSON.stringify(read(form));
+      // Read-only facts are text, not controls: there is nothing to compare.
+      baseline=canEdit?JSON.stringify(read(form)):'';
       // A new task starts at its title.
       if(!task&&canEdit)requestAnimationFrame(()=>requestAnimationFrame(()=>form.querySelector('[name=title]')?.focus({preventScroll:true})));
       if(!canEdit)form.querySelectorAll('input,textarea.iq-inline-title,iq-select,iq-combobox,iq-date-field,iq-markdown-editor').forEach(node=>{if(!canDiscuss||!node.closest('[data-task-threads]'))node.setAttribute('disabled','');});

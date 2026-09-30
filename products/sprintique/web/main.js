@@ -13,7 +13,7 @@ import {parseTaskRoute} from '../ui/src/board/task-route.js';
 import {dialog,input} from '../ui/src/ui.js';
 import {ProductRepository} from './repository.js';
 import {PlanningAdapter} from './planning-adapter.js';
-import {mountPlanningHost,confirmPlanningChange,recoverPlanningAttempt} from './planning-host.js';
+import {mountPlanningHost,confirmPlanningChange,applyPlanningChange,recoverPlanningAttempt} from './planning-host.js';
 import {createInRunningRelease} from './release-scope.js';
 import {openSearch} from './search.js';
 import {acceptPendingInvitation} from './members.js';
@@ -104,6 +104,7 @@ async function showProject(id,mode=location.hash.startsWith('#maps')?'maps':loca
   repository.clearProjectCache(project.id);
   planningAdapter=new PlanningAdapter(repository,project.id);
   repository.confirmPlanningChange=intent=>confirmPlanningChange(planningAdapter,intent);
+  repository.applyPlanningChange=intent=>applyPlanningChange(planningAdapter,intent);
   repository.createInRunningRelease=(intent,release,createInBacklog)=>createInRunningRelease({adapter:planningAdapter,client:repository.client,intent,release,createInBacklog});
   const url=new URL(location.href);url.searchParams.set('project',project.slug);history.replaceState(null,'',url);
   ensureShell(project,mode);

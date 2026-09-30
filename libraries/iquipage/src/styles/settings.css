@@ -10,7 +10,7 @@
 /* Page heading: shared by every work section (board, planning, settings). The title row is 48px high, tools sit on its right. */
 .iq-page-heading{display:flex;align-items:flex-start;gap:var(--iq-space-2) var(--iq-space-5);flex-wrap:wrap}
 .iq-page-heading-copy{min-width:0;flex:1 1 320px}
-.iq-page-heading h1{display:flex;align-items:center;min-height:48px;margin:0;font:600 var(--iq-work-compact-title)/1.3 var(--iq-font);letter-spacing:-.01em}
+.iq-page-heading h1{display:flex;align-items:center;min-height:48px;margin:0;font:600 var(--iq-work-compact-title)/1.3 var(--iq-font);letter-spacing:var(--iq-tracking-h3)}
 .iq-page-heading-lead{max-width:64ch;margin:0;font-size:var(--iq-type-interface-size);line-height:1.55;color:var(--iq-muted)}
 .iq-page-heading-tools{display:flex;align-items:center;gap:var(--iq-space-2);min-height:48px;margin-left:auto;flex-wrap:wrap}
 .iq-page-heading-back{display:none}
@@ -24,7 +24,7 @@
 .iq-settings-stack>.iq-settings-lock{margin-bottom:0}
 .iq-settings-stack>.iq-settings-lock+*{margin-top:var(--iq-space-6)}
 .iq-settings-group-head{display:flex;align-items:flex-end;justify-content:space-between;gap:var(--iq-space-4);margin-bottom:var(--iq-space-4)}
-.iq-settings-group-head h2{display:flex;align-items:center;gap:var(--iq-space-2);margin:0;font:500 var(--iq-type-title-size)/1.4 var(--iq-display);letter-spacing:-.01em}
+.iq-settings-group-head h2{display:flex;align-items:center;gap:var(--iq-space-2);margin:0;font:500 var(--iq-type-title-size)/1.4 var(--iq-display);letter-spacing:var(--iq-tracking-h3)}
 .iq-settings-group-head p{max-width:64ch;margin:var(--iq-space-1) 0 0;font-size:var(--iq-type-label-size);line-height:1.55;color:var(--iq-muted)}
 .iq-settings-group-actions{display:flex;align-items:center;gap:var(--iq-space-2);flex:none}
 .iq-settings-group-count{font:500 var(--iq-type-label-size)/1 var(--iq-font);font-variant-numeric:tabular-nums;color:var(--iq-muted)}
@@ -149,10 +149,6 @@ a.iq-settings-row:focus-visible,button.iq-settings-row:focus-visible{outline:2px
 .iq-accent-option:has(:focus-visible){outline:2px solid var(--iq-focus);outline-offset:2px}
 .iq-accent-dot{width:16px;height:16px;border-radius:50%;background:var(--iq-preference-blue)}
 .iq-accent-dot[data-accent=violet]{background:var(--iq-preference-violet)}.iq-accent-dot[data-accent=green]{background:var(--iq-preference-green)}
-:root[data-accent=violet]{--iq-accent:var(--iq-preference-violet);--iq-accent-fill:var(--iq-preference-violet-fill);--iq-accent-soft:var(--iq-preference-violet-soft);--iq-focus:var(--iq-preference-violet);--iq-accent-hover-fill:var(--iq-preference-violet-fill)}
-:root[data-accent=green]{--iq-accent:var(--iq-preference-green);--iq-accent-fill:var(--iq-preference-green-fill);--iq-accent-soft:var(--iq-preference-green-soft);--iq-focus:var(--iq-preference-green);--iq-accent-hover-fill:var(--iq-preference-green-fill)}
-:root[data-motion=reduced]{--iq-motion-fast:0ms;--iq-motion-standard:0ms;--iq-motion-enter:0ms;--iq-motion-layout:0ms;--iq-motion-scene:0ms;scroll-behavior:auto}
-:root[data-motion=reduced] *, :root[data-motion=reduced] *::before,:root[data-motion=reduced] *::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
 
 /* Phones: the host switches the layout between the section index and one section; the heading gets a back link. */
 @media(max-width:760px){

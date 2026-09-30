@@ -41,6 +41,34 @@ document.querySelector('#open-plan').addEventListener('click', async () => {
 
 Приложение добавляет в `<head>` предзагрузку: `<link rel="preload" as="font" type="font/woff2" crossorigin href="…/InterVariable.woff2">`, где адрес тот, под которым сборщик раздаёт файл (Vite: `import fontUrl from '@iquipage/web/assets/fonts/InterVariable.woff2?url'`). Внешние шрифтовые CDN не нужны и не должны подключаться. Полный экран без шрифта (офлайн, блокировка) остаётся читаемым на резервном стеке.
 
+## Темизация
+
+Тема, акцент, плотность и движение — четыре атрибута на `<html>`; CSS реагирует только на них, JavaScript библиотеки их не выставляет:
+
+| Атрибут | Значения | Умолчание |
+|---|---|---|
+| `data-theme` | `light`, `dark` | без атрибута — системная схема (`prefers-color-scheme`) |
+| `data-accent` | `blue` (или без атрибута), `violet`, `green` | синий |
+| `data-density` | `comfortable`, `compact` | comfortable |
+| `data-motion` | `standard`, `reduced` | standard (+ `prefers-reduced-motion`) |
+
+Все значения цвета генерируются из `tokens/semantic.json`: блок `:root` (светлая тема), `[data-theme="dark"]`, системный фолбэк `@media (prefers-color-scheme: dark){:root:not([data-theme="light"])…}` и блоки акцентов `:root[data-accent="violet"]` / `[data-theme="dark"][data-accent="violet"]` (секция `accents`). Документ без `data-theme` следует за системой и без скрипта; явное `data-theme="light"` или `"dark"` побеждает систему.
+
+Чтобы тёмная тема не мигала светлой до загрузки модулей, вставьте `theme-boot.js` (`@iquipage/web/theme-boot.js`, ≈320 байт, обычный синхронный скрипт) inline в `<head>` **до** `<link rel="stylesheet">`:
+
+```html
+<head>
+ <script>/* содержимое node_modules/@iquipage/web/dist/theme-boot.js */</script>
+ <link rel="stylesheet" href="./dist/iquipage.css">
+</head>
+```
+
+Скрипт читает из `localStorage` ключи `iq-theme`, `iq-accent`, `iq-density`, `iq-motion` (простые строки со значениями из таблицы) и выставляет соответствующие `data-*` на `document.documentElement` до первого кадра. Если `iq-theme` не `light` и не `dark` (нет ключа, значение `system`), тема берётся из `matchMedia('(prefers-color-scheme: dark)')`. Остальные три атрибута ставятся только при наличии ключа. Ошибки доступа к хранилищу (приватный режим, запрет cookies) глотаются: страница получает системную тему.
+
+Приложение хранит выбор пользователя под теми же ключами и при переключении обновляет и атрибут, и ключ; для «следовать системе» удалите `iq-theme` или запишите `system` и подпишитесь на `matchMedia(...).addEventListener('change', …)`, чтобы менять `data-theme` в открытой вкладке. Каталог IQUIPAGE использует эти же ключи. Inline-скрипт требует разрешения в CSP (`script-src` с nonce или hash); хеш содержимого `dist/theme-boot.js` стабилен внутри версии.
+
+Шкала кеглей — в `rem` при `html{font-size:100%}` (тело интерфейса `.875rem` = 14px, документ `1rem`, минимум `--iq-type-meta-size` = `.75rem` = 12px): настройка размера шрифта в браузере масштабирует текст, а отступы, контролы и радиусы остаются в px. В стилях продукта задавайте кегли токенами `var(--iq-type-*-size)` или в `rem`; ниже 12px — нельзя; медиазапросы меняют композицию, а не уменьшают текст. Кикеры пишутся строчными, капитель делает CSS (`text-transform:uppercase`, `--iq-tracking-caps`). Для русских подписей есть `typo(text)` из `@iquipage/web/core` (неразрывные пробелы после коротких слов, перед «—», между числом и единицей, после «№»).
+
 ## Состав runtime и размер
 
 `core` не импортирует roadmap, graph, crop, whiteboard. `advanced` не импортирует whiteboard. `whiteboard` не импортирует roadmap/graph/crop. Demo/stories/sample-data/ui-demo и состояние каталога не входят в runtime. Основные примитивы могут иметь нейтральный placeholder, но не демонстрационные модели пользователя.
@@ -62,6 +90,46 @@ document.querySelector('#open-plan').addEventListener('click', async () => {
 Миниатюры PDF — необязательная возможность, и по умолчанию библиотека ничего не загружает из сети: без настройки `iq-file-preview` показывает для PDF плитку-заглушку, а оригинал открывается независимо от неё. Чтобы включить миниатюры, вызовите `configurePDFPreviews({pdfjsUrl, workerUrl})` с адресом собственной (self-hosted) сборки pdf.js, разрешённой вашей CSP, либо передайте собственный renderer `(file, canvas, signal) => Promise<void>`. Если pdf.js всё же берётся с внешнего CDN, добавьте его в `script-src` и проверяйте целостность (SRI/hash) на своей стороне: библиотека этого не делает и не подставляет CDN сама. Байты документа в любом режиме не покидают устройство.
 
 Тестовые HTML содержат inline-стили/скрипт; рабочее приложение должно подключать dist как внешние ресурсы и согласовать CSP самостоятельно. Произвольный HTML из Markdown не исполняется. `mediaSources` графа может принимать Blob, но не выполняет авторизацию за приложение.
+
+## Движение
+
+Все длительности и кривые библиотеки — токены из `tokens/semantic.json`; в `src/styles` сырых миллисекунд нет (ratchet `duration-raw` = 0, проверяется `scripts/gates/styles.mjs`).
+
+| Токен | Значение | Для чего |
+|---|---|---|
+| `--iq-motion-instant` | 0 ms | явное «без движения» |
+| `--iq-motion-fast` | 120 ms | отклик: наведение, нажатие, цвет, тень, меню |
+| `--iq-motion-standard` | 180 ms | изменение: кнопка, переключатель, диалог (вход и выход), тост |
+| `--iq-motion-enter` | 280 ms | появление панели и дровера (вход и выход одинаковы) |
+| `--iq-motion-layout` | 360 ms | перестановка: FLIP карточек, прогресс, пришедшее сообщение |
+| `--iq-motion-scene` | 800 ms | презентация и индикаторы (spinner, skeleton = 2 × scene) |
+| `--iq-ease` / `--iq-ease-spring` / `--iq-ease-out` | кривые | стандартная / пружина для transform / **выход** (ускорение, `cubic-bezier(.4,0,1,1)`; это не ключевое слово `ease-out`) |
+
+Правило: движение — только `transform` и `opacity`; цвет и тень — не дольше `fast`–`standard`; layout-свойства (`width`, `height`, `top`, `grid-template-*`) и фильтры не анимируются. Прогресс `.iq-progress` двигает полосу через `transform: translateX()` — API `--progress: 40%` не изменился. Редактор при переключении предпросмотра больше не анимирует `height`: новая высота применяется сразу, новая панель проявляется через `opacity` и `clip-path`.
+
+**Совет продукту.** `task-dialog.js` в Sprintique анимирует `width` дровера при переходе на весь экран — это 280 мс перекладки всего документа задачи на каждом кадре. Замените на перекрёстный fade содержимого (`opacity`) или FLIP по `transform: scaleX()` с `transform-origin: right`, а ширину меняйте одним шагом.
+
+В JavaScript длительности читаются из тех же токенов: `motionMs('enter')` (миллисекунды, 0 при уменьшенном движении), `motionEase('spring')` — строка кривой для `element.animate()`. Диалог, дровер, меню, тост, редактор и FLIP доски используют их; продукт должен делать так же, а не писать `duration: 200`.
+
+### Уменьшенное движение
+
+Одна стратегия. И системная настройка `@media (prefers-reduced-motion: reduce)`, и атрибут `<html data-motion="reduced">` обнуляют токены `--iq-motion-*` (`src/styles/motion.css`, генерируется кодмодом `scripts/codemods/motion-tokens.mjs` из токенов). Глобальных правил `* { animation: none !important }` больше нет: компонентные переходы просто становятся нулевыми, события `transitionend`/`animationend` продолжают приходить, переходы приложения-хоста не трогаются. Задержка появления загрузки `--iq-loading-delay` (180 мс) — не движение, а защита от мигания, и под уменьшенным движением сохраняется.
+
+В JavaScript единственная проверка — `motionReduced()` из `@iquipage/web/core` (система **или** атрибут). `scrollBehavior()` возвращает `'auto'` или `'smooth'` для `scrollIntoView`.
+
+Атрибут `data-motion` должен стоять на `<html>` **до** загрузки CSS — иначе на первом кадре после навигации сработают `.iq-reveal`, тосты и панели. Ставьте его в inline-скрипте в `<head>` (`src/theme-boot.js` читает те же ключи localStorage, что и тема с акцентом), а не в модуле приложения. Селекторы токенов работают в любой момент, поэтому позднее переключение из настроек тоже корректно.
+
+### Смена темы
+
+`withoutTransitions(() => { root.dataset.theme = theme })` ставит на `<html>` атрибут `data-theme-switching`, под которым `transition: none !important` для всего документа, и снимает его после первого отрисованного кадра. Без этого смена темы (в том числе автоматическая по `prefers-color-scheme`) — рябь разноскоростных перекрасок кнопок, полей и строк. Используйте хелпер в `appearance.js` продукта и в обработчике `prefers-color-scheme change`.
+
+## Загрузка
+
+- Известная форма ответа (список, карточка, документ) — `.iq-skeleton` не дольше ≈3 с: перелив идёт три цикла (`iq-breathe`, 2 × `--iq-motion-scene`), после чего скелет остаётся приглушённым и не мерцает.
+- Неизвестная форма или длительная операция — `.iq-spinner` с текстом действия.
+- Оба — только внутри контейнера `.iq-loading`: он невидим первые `--iq-loading-delay` (180 мс), поэтому быстрые ответы не мигают.
+- `bindLoading(el)` ставит `.iq-loading` и `aria-busy="true"`, а через `--iq-loading-slow` (5 с) добавляет `.iq-loading-slow` и строку статуса «Загружаем дольше обычного…» (`role="status"`). Возвращает функцию, снимающую состояние. Кнопку «Обновить» и причину показывает продукт.
+- Под уменьшенным движением перелив и spinner статичны; задержка и текст сохраняются.
 
 ## Браузеры
 
