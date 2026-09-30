@@ -2,13 +2,13 @@
 bridge: 1
 id: 20260930-sprintique-legal-pages
 title: "Sprintique: privacy policy и terms of use для Google OAuth"
-status: active
+status: review
 risk: standard
 owner: it-novikov
 branch: feature/sprintique-legal-pages
-base: main
+base: origin/main
 created: 2026-09-30
-updated: 2026-09-30T20:58:40Z
+updated: 2026-09-30T21:07:56Z
 links:
 ---
 
@@ -35,17 +35,18 @@ links:
 
 ## Передача
 
-- **Состояние:** DS redesign and content revision implemented
-- **Сейчас:** Browser review and legal gap report
-- **Дальше:** Commit, build image, deploy and verify public pages
-- **Незакоммичено:** 5 web files, bridge card; private infrastructure unchanged
-- **Рабочая копия:** 7 файл(ов): products/sprintique/web/about.html, products/sprintique/web/legal.css, products/sprintique/web/legal.js, products/sprintique/web/privacy.html, products/sprintique/web/terms.html, .playwright-cli/, output/ (7 files changed, 143 insertions(+), 82 deletions(-)) · HEAD 5d5b614
+- **Состояние:** Redesign deployed; PR 33 mergeable; legal review delivered with unresolved operator and processing facts
+- **Сейчас:** Handoff
+- **Дальше:** Owner supplies operator identity/private contact and processing geography before broader real-user access
+- **Незакоммичено:** Deployment evidence only
+- **Рабочая копия:** 2 файл(ов): .playwright-cli/, output/ (2 files changed, 14 insertions(+), 10 deletions(-)) · HEAD 7fd9270 · снято 2026-09-30T21:07:56Z
 - **Ловушки:**
   - npm test внутри sandbox: PostgreSQL shmget Operation not permitted; запускать вне sandbox
   - npm test: 15 S3/worker тестов не запускаются без приватного output/infra/storage.json; 208 тестов, включая static legal routes, прошли
   - Полный npm test: 208/223; 15 тестов требуют отсутствующий приватный output/infra/storage.json
   - Полный npm test: 208/223; 15 тестов требуют отсутствующий приватный output/infra/storage.json
-- **Проверка:** Build and boundaries/styles pass; 24 viewport/theme cases: no overflow, one H1, all anchors resolve
+- **Проверка:** Production image 7fd9270; SHA256 8ae1a214f643a87d42389dedc39e6466a4d9a7bdca0ed9446582ee2e003f1511; all 5 routes return 200
+- **Причина:** review — codex, 2026-09-30T21:07:56Z: Implementation delivered; owner review of legal facts and PR merge remains
 
 ## План
 
@@ -78,13 +79,14 @@ links:
 - **Итог:** Образ 314e66d развёрнут на production; API и worker running; /ready, /about, /privacy и /terms отвечают 200; HTTP headers и Playwright navigation проверены
 - **Зависит от:** S2
 
-### S4. Переработать публичные страницы и проверить правовые пробелы [active]
+### S4. Переработать публичные страницы и проверить правовые пробелы [done]
 - **Что:** Единая DS-композиция, оглавление, содержание для личного эксперимента и доказательный compliance gap report
 - **Как:** Публичные CSS API vnext.23, официальные источники, browser review, build и production smoke
 - **Зачем:** Запрос владельца: дизайн и полнота документов
 - **Приёмка:**
-  - [ ] Страницы читаемы в обеих темах и на мобильном; юридические неизвестные не замаскированы гарантиями
+  - [x] Страницы читаемы в обеих темах и на мобильном; юридические неизвестные не замаскированы гарантиями
 - **Покрывает:** A2,A3,A4,A6
+- **Итог:** Production 7fd9270 on main f25dff0; DS vnext.24; Gradle check and static HTTP test pass; 24 Chromium cases pass; /about /privacy /terms /workbench /ready 200; legal unknowns recorded in docs/legal-review-2026-09-30.md
 
 ## Решения
 

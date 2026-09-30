@@ -26,3 +26,7 @@
 - 2026-09-30T16:49:22Z · codex · note · S4 · добавлен шаг: Переработать публичные страницы и проверить правовые пробелы
 - 2026-09-30T20:58:40Z · codex · step · S4 · active
 - 2026-09-30T20:58:40Z · codex · checkpoint · - · дальше: Commit, build image, deploy and verify public pages
+- 2026-09-30T21:07:55Z · codex · step · S4 · done: Production 7fd9270 on main f25dff0; DS vnext.24; Gradle check and static HTTP test pass; 24 Chromium cases pass; /about /privacy /terms /workbench /ready 200; legal unknowns recorded in docs/legal-review-2026-09-30.md
+- 2026-09-30T21:07:55Z · codex · checkpoint · - · дальше: Owner supplies operator identity/private contact and processing geography before broader real-user access
+- 2026-09-30T21:07:56Z · codex · status · - · review: PR https://github.com/it-novikov/iquipage-design-system/pull/33; deployed and checked; not a worldwide compliance certification
+- 2026-09-30T21:07:56Z · codex · handoff · - · review; HEAD 7fd9270; незакоммичено 2; Implementation delivered; owner review of legal facts and PR merge remains
