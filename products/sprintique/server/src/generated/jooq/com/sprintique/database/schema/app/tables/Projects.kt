@@ -16,6 +16,7 @@ import com.sprintique.database.schema.app.keys.MAPS__MAPS_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.MAP_TEMPLATES__MAP_TEMPLATES_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.MILESTONES__MILESTONES_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.OUTBOX__OUTBOX_PROJECT_ID_FKEY
+import com.sprintique.database.schema.app.keys.PERSON_PROJECT_PREFERENCES__PERSON_PROJECT_PREFERENCES_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.PLANNING_PLANS__PLANNING_PLANS_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.PLANNING_SELECTIONS__PLANNING_SELECTIONS_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.PROJECTS_PKEY
@@ -42,6 +43,7 @@ import com.sprintique.database.schema.app.tables.MapTemplates.MapTemplatesPath
 import com.sprintique.database.schema.app.tables.Maps.MapsPath
 import com.sprintique.database.schema.app.tables.Milestones.MilestonesPath
 import com.sprintique.database.schema.app.tables.Outbox.OutboxPath
+import com.sprintique.database.schema.app.tables.PersonProjectPreferences.PersonProjectPreferencesPath
 import com.sprintique.database.schema.app.tables.PlanningPlans.PlanningPlansPath
 import com.sprintique.database.schema.app.tables.PlanningSelections.PlanningSelectionsPath
 import com.sprintique.database.schema.app.tables.ProjectMembers.ProjectMembersPath
@@ -301,6 +303,18 @@ open class Projects(
     val outbox: OutboxPath
         get(): OutboxPath = outbox()
 
+    private lateinit var _personProjectPreferences: PersonProjectPreferencesPath
+
+    fun personProjectPreferences(): PersonProjectPreferencesPath {
+        if (!this::_personProjectPreferences.isInitialized)
+            _personProjectPreferences = PersonProjectPreferencesPath(this, null, PERSON_PROJECT_PREFERENCES__PERSON_PROJECT_PREFERENCES_PROJECT_ID_FKEY.inverseKey)
+
+        return _personProjectPreferences;
+    }
+
+    val personProjectPreferences: PersonProjectPreferencesPath
+        get(): PersonProjectPreferencesPath = personProjectPreferences()
+
     private lateinit var _planningPlans: PlanningPlansPath
 
     fun planningPlans(): PlanningPlansPath {
@@ -457,7 +471,10 @@ open class Projects(
     val jobs: JobsPath
         get(): JobsPath = jobs()
 
-    val principals: PrincipalsPath
+    val personProjectPreferencesPrincipalIdFkey: PrincipalsPath
+        get(): PrincipalsPath = personProjectPreferences().principals()
+
+    val projectMembersPrincipalIdFkey: PrincipalsPath
         get(): PrincipalsPath = projectMembers().principals()
     override fun getChecks(): List<Check<ProjectsRecord>> = listOf(
         Internal.createCheck(this, DSL.name("projects_next_task_number_check"), "((next_task_number > 0))", true),

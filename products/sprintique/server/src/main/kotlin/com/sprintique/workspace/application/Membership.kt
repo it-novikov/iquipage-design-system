@@ -355,6 +355,37 @@ object Membership {
         return requirePresent(result, 409, "CONFLICT", "Профиль уже изменён.")
     }
 
+    /** The person's settings for one project: which release the board shows (null: the running one). */
+    fun projectPreferences(tx: Transaction, actor: Actor, projectId: String): Map<String, Any?> {
+        requireHuman(tx, actor, "Настройки доступны человеку.")
+        ProjectAccess.authorize(tx, actor, projectId, Capability.TASKS_READ)
+        val row = tx.row(
+            "SELECT board_release FROM app.person_project_preferences WHERE principal_id = $1 AND project_id = $2",
+            actor.id, projectId,
+        )
+        return mapOf("boardRelease" to row?.stringOrNull("board_release"))
+    }
+
+    /** Sets them as a whole; the last write wins. */
+    fun changeProjectPreferences(
+        tx: Transaction,
+        actor: Actor,
+        projectId: String,
+        boardRelease: String?,
+    ): Map<String, Any?> {
+        requireHuman(tx, actor, "Настройки доступны человеку.")
+        ProjectAccess.authorize(tx, actor, projectId, Capability.TASKS_READ)
+        tx.update(
+            """
+            INSERT INTO app.person_project_preferences(principal_id, project_id, board_release) VALUES ($1, $2, $3)
+            ON CONFLICT (principal_id, project_id) DO UPDATE SET board_release = EXCLUDED.board_release,
+                updated_at = clock_timestamp()
+            """.trimIndent(),
+            actor.id, projectId, boardRelease,
+        )
+        return mapOf("boardRelease" to boardRelease)
+    }
+
     /** Replaces the person's photo with an already re-encoded image; the revision becomes the cache key. */
     fun setAvatar(tx: Transaction, actor: Actor, image: ByteArray): Row {
         requireHuman(tx, actor, "Фото профиля доступно человеку.")

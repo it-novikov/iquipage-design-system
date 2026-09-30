@@ -155,3 +155,17 @@ test('personal preferences follow the person to every device and belong to them 
   assert.equal((await f.app.inject({method:'PUT',url:'/api/v1/profile/preferences',payload:{confirmReleaseScope:true}})).statusCode,401);
   assert.deepEqual((await set({confirmReleaseScope:true})).json(),{confirmReleaseScope:true});
 });
+test('the release a board shows is remembered per person and project, and only for people of the project',async()=>{
+  const url=`/api/v1/projects/${f.first.id}/preferences`;
+  const get=async(user=f.alice)=>f.app.inject({method:'GET',url,headers:user.headers});
+  const set=(payload:unknown,user=f.alice)=>f.app.inject({method:'PUT',url,headers:user.headers,payload:payload as Record<string,unknown>});
+  assert.deepEqual((await get()).json(),{boardRelease:null},'the running release until the person picks one');
+  assert.deepEqual((await set({boardRelease:'backlog'})).json(),{boardRelease:'backlog'});
+  assert.deepEqual((await get()).json(),{boardRelease:'backlog'});
+  assert.deepEqual((await get(f.reader)).json(),{boardRelease:null},'another person keeps their own');
+  assert.equal((await get(f.bob)).statusCode,404,'an outsider learns nothing about the project');
+  assert.equal((await set({boardRelease:'backlog'},f.bob)).statusCode,404);
+  assert.equal((await set({boardRelease:'not an id!'})).statusCode,400);
+  assert.equal((await f.app.inject({method:'GET',url})).statusCode,401);
+  assert.deepEqual((await set({boardRelease:null})).json(),{boardRelease:null});
+});

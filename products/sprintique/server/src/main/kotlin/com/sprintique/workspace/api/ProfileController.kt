@@ -197,6 +197,22 @@ class ProfileController(
         Membership.changePreferences(tx, actor, contracts.parse<PersonPreferencesRequest>(body).confirmReleaseScope)
     }
 
+    @GetMapping("/api/v1/projects/{projectId}/preferences")
+    fun projectPreferences(@PathVariable projectId: String, request: HttpServletRequest) =
+        requests.run(request) { tx, actor -> Membership.projectPreferences(tx, actor, RequestInputs.id(projectId)) }
+
+    @PutMapping("/api/v1/projects/{projectId}/preferences")
+    @Accepts(ProjectPreferencesRequest::class)
+    fun changeProjectPreferences(
+        @PathVariable projectId: String,
+        @RequestBody(required = false) body: JsonNode?,
+        request: HttpServletRequest,
+    ) = requests.run(request) { tx, actor ->
+        RequestInputs.id(projectId)
+        val input = contracts.parse<ProjectPreferencesRequest>(body)
+        Membership.changeProjectPreferences(tx, actor, projectId, input.boardRelease)
+    }
+
     /** The caller is authenticated before any image is decoded, and again for the write. */
     @PutMapping("/api/v1/profile/avatar", consumes = [MediaType.APPLICATION_OCTET_STREAM_VALUE, MediaType.ALL_VALUE])
     fun setAvatar(@RequestBody(required = false) body: ByteArray?, request: HttpServletRequest): Any {

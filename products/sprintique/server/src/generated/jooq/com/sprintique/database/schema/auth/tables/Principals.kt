@@ -25,6 +25,7 @@ import com.sprintique.database.schema.app.keys.MAP_VOTES__MAP_VOTES_ACTOR_ID_FKE
 import com.sprintique.database.schema.app.keys.MESSAGES__MESSAGES_AUTHOR_ID_FKEY
 import com.sprintique.database.schema.app.keys.PERSON_AVATARS__PERSON_AVATARS_PRINCIPAL_ID_FKEY
 import com.sprintique.database.schema.app.keys.PERSON_PREFERENCES__PERSON_PREFERENCES_PRINCIPAL_ID_FKEY
+import com.sprintique.database.schema.app.keys.PERSON_PROJECT_PREFERENCES__PERSON_PROJECT_PREFERENCES_PRINCIPAL_ID_FKEY
 import com.sprintique.database.schema.app.keys.PLANNING_PLANS__PLANNING_PLANS_ACTOR_ID_FKEY
 import com.sprintique.database.schema.app.keys.PLANNING_SELECTIONS__PLANNING_SELECTIONS_ACTOR_ID_FKEY
 import com.sprintique.database.schema.app.keys.PROJECT_MEMBERS__PROJECT_MEMBERS_PRINCIPAL_ID_FKEY
@@ -51,6 +52,7 @@ import com.sprintique.database.schema.app.tables.Maps.MapsPath
 import com.sprintique.database.schema.app.tables.Messages.MessagesPath
 import com.sprintique.database.schema.app.tables.PersonAvatars.PersonAvatarsPath
 import com.sprintique.database.schema.app.tables.PersonPreferences.PersonPreferencesPath
+import com.sprintique.database.schema.app.tables.PersonProjectPreferences.PersonProjectPreferencesPath
 import com.sprintique.database.schema.app.tables.PlanningPlans.PlanningPlansPath
 import com.sprintique.database.schema.app.tables.PlanningSelections.PlanningSelectionsPath
 import com.sprintique.database.schema.app.tables.ProjectMembers.ProjectMembersPath
@@ -438,6 +440,18 @@ open class Principals(
     val personPreferences: PersonPreferencesPath
         get(): PersonPreferencesPath = personPreferences()
 
+    private lateinit var _personProjectPreferences: PersonProjectPreferencesPath
+
+    fun personProjectPreferences(): PersonProjectPreferencesPath {
+        if (!this::_personProjectPreferences.isInitialized)
+            _personProjectPreferences = PersonProjectPreferencesPath(this, null, PERSON_PROJECT_PREFERENCES__PERSON_PROJECT_PREFERENCES_PRINCIPAL_ID_FKEY.inverseKey)
+
+        return _personProjectPreferences;
+    }
+
+    val personProjectPreferences: PersonProjectPreferencesPath
+        get(): PersonProjectPreferencesPath = personProjectPreferences()
+
     private lateinit var _planningPlans: PlanningPlansPath
 
     fun planningPlans(): PlanningPlansPath {
@@ -726,7 +740,10 @@ open class Principals(
     val serviceAccountsPrincipalIdFkey: ServiceAccountsPath
         get(): ServiceAccountsPath = serviceAccountsPrincipalIdFkey()
 
-    val projects: ProjectsPath
+    val personProjectPreferencesProjectIdFkey: ProjectsPath
+        get(): ProjectsPath = personProjectPreferences().projects()
+
+    val projectMembersProjectIdFkey: ProjectsPath
         get(): ProjectsPath = projectMembers().projects()
     override fun getChecks(): List<Check<PrincipalsRecord>> = listOf(
         Internal.createCheck(this, DSL.name("principal_kind"), "((kind = ANY (ARRAY['human'::text, 'agent'::text, 'service'::text])))", true),

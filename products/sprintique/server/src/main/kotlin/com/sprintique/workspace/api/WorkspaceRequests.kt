@@ -94,6 +94,12 @@ data class AcceptInvitationRequest(
 @Schema(name = "PersonPreferences")
 data class PersonPreferencesRequest(val confirmReleaseScope: Boolean)
 
+@Schema(name = "ProjectPreferences")
+data class ProjectPreferencesRequest(
+    @field:Pattern(regexp = RESOURCE_ID)
+    val boardRelease: String?,
+)
+
 @Schema(name = "ChangeProfile")
 data class ChangeProfileRequest(
     @field:Min(0) @field:Max(MAX_SAFE_INTEGER)
