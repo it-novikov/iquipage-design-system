@@ -7,12 +7,15 @@ import com.sprintique.contract.Idempotent
 import com.sprintique.identity.api.AuthenticatedRequests
 import com.sprintique.identity.api.RequestInputs
 import com.sprintique.media.application.ImageTranscoder
+import com.sprintique.media.domain.FileInspection
+import com.sprintique.problem.ProblemException
 import com.sprintique.problem.requireCondition
 import com.sprintique.web.RequestValidationException
 import com.sprintique.workspace.application.Membership
 import com.sprintique.workspace.application.ProjectProfiles
 import com.sprintique.workspace.application.Workspaces
 import jakarta.servlet.http.HttpServletRequest
+import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -192,7 +195,19 @@ class ProfileController(
             request,
         ) { _, actor -> requireCondition(actor.isHuman, 403, "FORBIDDEN", "Фото профиля доступно человеку.") }
         requireCondition(body != null && body.isNotEmpty(), 400, "FILE_BODY", "Передайте изображение.")
-        val image = images.avatar(body)
+        val image = try {
+            images.avatar(body)
+        } catch (problem: ProblemException) {
+            // The code, size and detected format make the next refusal diagnosable; the image itself is never logged.
+            log.info(
+                "Profile photo refused: {} {} ({} bytes, {})",
+                problem.status,
+                problem.code,
+                body.size,
+                FileInspection.imageFormat(body),
+            )
+            throw problem
+        }
         return requests.run(request) { tx, actor -> Membership.setAvatar(tx, actor, image) }
     }
 
@@ -223,6 +238,7 @@ class ProfileController(
     ): String = value.also { if (!UUID_PATTERN.matches(it)) throw RequestValidationException() }
 
     private companion object {
+        val log = LoggerFactory.getLogger(ProfileController::class.java)
         const val MEMBER_ID_LIMIT = 100
         val UUID_PATTERN = Regex(com.sprintique.contract.UUID)
         val PERSON_ID = Regex("^[A-Za-z0-9._:-]{1,200}$")

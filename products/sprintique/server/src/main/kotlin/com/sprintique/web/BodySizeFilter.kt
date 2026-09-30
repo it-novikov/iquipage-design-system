@@ -23,6 +23,9 @@ class BodySizeFilter : OncePerRequestFilter() {
     override fun doFilterInternal(request: HttpServletRequest, response: HttpServletResponse, chain: FilterChain) {
         val limit = limitFor(request)
         if (request.contentLengthLong > limit) {
+            if (limit == AVATAR_LIMIT && !RequestLimitFilter.isFileContent(request)) {
+                return ProblemWriter.write(request, response, 413, "FILE_SIZE", "Фото должно быть не больше 10 МБ.")
+            }
             return ProblemWriter.write(request, response, 413, "INVALID_REQUEST", "Некорректный запрос.")
         }
         chain.doFilter(LimitedRequest(request, limit), response)
