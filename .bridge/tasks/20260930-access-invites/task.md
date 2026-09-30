@@ -9,7 +9,7 @@ branch: feature/access-invites
 base: main
 created: 2026-09-30
 updated: 2026-09-30T18:22:01Z
-links:
+links: https://github.com/it-novikov/iquipage-design-system/pull/31
 ---
 
 # Sprintique: права, пресеты и приглашения по почте
