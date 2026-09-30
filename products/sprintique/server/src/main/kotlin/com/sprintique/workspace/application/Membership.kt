@@ -6,6 +6,7 @@ import com.sprintique.access.domain.SystemPreset
 import com.sprintique.command.CommandLedger
 import com.sprintique.database.Row
 import com.sprintique.database.Transaction
+import com.sprintique.identity.application.AccessEvents
 import com.sprintique.identity.application.ProjectAccess
 import com.sprintique.identity.application.ProjectMembership
 import com.sprintique.identity.domain.Actor
@@ -23,6 +24,8 @@ object Membership {
         tx.row("SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", "membership:$projectId")
         tx.update("SELECT id FROM app.projects WHERE id = $1 FOR UPDATE", projectId)
         ProjectAccess.requireActiveCredential(tx, actor)
+        // Access, settings and agents are managed only by the person at the interface.
+        ProjectAccess.requireInteractive(actor)
         return ProjectAccess.authorize(tx, actor, projectId, capability)
     }
 

@@ -11,6 +11,7 @@ Postfix that signs with DKIM, files in an external S3 bucket under a prefix. Run
 | Secrets | `/opt/sprintique-vnext/secrets/*.env`, `*.secret` (0600), never in git |
 | PostgreSQL | container `sprintique-vnext-postgres-1`, `127.0.0.1:54330`, volume `sprintique-vnext_postgres-data` |
 | API | `127.0.0.1:4311`, behind nginx (`nginx.conf` → `/etc/nginx/sites-enabled/sprintique.conf`) |
+| Public API and MCP | `api.iqui.page` → the same process (second server of `nginx.conf`: only `/api/`, `/mcp`, `/.well-known/oauth-*`, with `Host $host`); `SPRINTIQUE_API_ORIGIN=https://api.iqui.page` in `secrets/api.env` |
 | Mail | Postfix `127.0.0.1:25` (`inet_interfaces = loopback-only`), OpenDKIM `127.0.0.1:8891`, selector `sprintique` |
 | Files | S3 bucket, `SPRINTIQUE_STORAGE_PREFIX=vnext/` |
 

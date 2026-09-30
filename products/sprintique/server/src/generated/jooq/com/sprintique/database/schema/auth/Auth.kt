@@ -5,16 +5,24 @@ package com.sprintique.database.schema.auth
 
 
 import com.sprintique.database.schema.DefaultCatalog
+import com.sprintique.database.schema.auth.tables.AccessEvents
 import com.sprintique.database.schema.auth.tables.Credentials
 import com.sprintique.database.schema.auth.tables.EmailChallenges
 import com.sprintique.database.schema.auth.tables.Identities
 import com.sprintique.database.schema.auth.tables.Invitations
 import com.sprintique.database.schema.auth.tables.KnownDevices
 import com.sprintique.database.schema.auth.tables.LoginStates
+import com.sprintique.database.schema.auth.tables.OauthClients
+import com.sprintique.database.schema.auth.tables.OauthCodes
+import com.sprintique.database.schema.auth.tables.OauthGrants
+import com.sprintique.database.schema.auth.tables.OauthRefreshTokens
 import com.sprintique.database.schema.auth.tables.Principals
 import com.sprintique.database.schema.auth.tables.ProjectTimezoneSource
+import com.sprintique.database.schema.auth.tables.ServiceAccountWorkspace
+import com.sprintique.database.schema.auth.tables.ServiceAccounts
 import com.sprintique.database.schema.auth.tables.WorkspaceProjects
 import com.sprintique.database.schema.auth.tables.records.ProjectTimezoneSourceRecord
+import com.sprintique.database.schema.auth.tables.records.ServiceAccountWorkspaceRecord
 import com.sprintique.database.schema.auth.tables.records.WorkspaceProjectsRecord
 
 import java.util.UUID
@@ -37,6 +45,8 @@ open class Auth : SchemaImpl(DSL.name("auth"), DefaultCatalog.DEFAULT_CATALOG, D
         val AUTH: Auth = Auth()
     }
 
+    val ACCESS_EVENTS: AccessEvents get() = AccessEvents.ACCESS_EVENTS
+
     val CREDENTIALS: Credentials get() = Credentials.CREDENTIALS
 
     val EMAIL_CHALLENGES: EmailChallenges get() = EmailChallenges.EMAIL_CHALLENGES
@@ -48,6 +58,14 @@ open class Auth : SchemaImpl(DSL.name("auth"), DefaultCatalog.DEFAULT_CATALOG, D
     val KNOWN_DEVICES: KnownDevices get() = KnownDevices.KNOWN_DEVICES
 
     val LOGIN_STATES: LoginStates get() = LoginStates.LOGIN_STATES
+
+    val OAUTH_CLIENTS: OauthClients get() = OauthClients.OAUTH_CLIENTS
+
+    val OAUTH_CODES: OauthCodes get() = OauthCodes.OAUTH_CODES
+
+    val OAUTH_GRANTS: OauthGrants get() = OauthGrants.OAUTH_GRANTS
+
+    val OAUTH_REFRESH_TOKENS: OauthRefreshTokens get() = OauthRefreshTokens.OAUTH_REFRESH_TOKENS
 
     val PRINCIPALS: Principals get() = Principals.PRINCIPALS
 
@@ -71,6 +89,18 @@ open class Auth : SchemaImpl(DSL.name("auth"), DefaultCatalog.DEFAULT_CATALOG, D
     ): ProjectTimezoneSource = com.sprintique.database.schema.auth.tables.ProjectTimezoneSource.PROJECT_TIMEZONE_SOURCE.call(
         target
     )
+
+    val SERVICE_ACCOUNT_WORKSPACE: ServiceAccountWorkspace get() = ServiceAccountWorkspace.SERVICE_ACCOUNT_WORKSPACE
+
+    fun SERVICE_ACCOUNT_WORKSPACE(
+          configuration: Configuration
+    ): Result<ServiceAccountWorkspaceRecord> = configuration.dsl().selectFrom(com.sprintique.database.schema.auth.tables.ServiceAccountWorkspace.SERVICE_ACCOUNT_WORKSPACE.call(
+    )).fetch()
+
+    fun SERVICE_ACCOUNT_WORKSPACE(): ServiceAccountWorkspace = com.sprintique.database.schema.auth.tables.ServiceAccountWorkspace.SERVICE_ACCOUNT_WORKSPACE.call(
+    )
+
+    val SERVICE_ACCOUNTS: ServiceAccounts get() = ServiceAccounts.SERVICE_ACCOUNTS
 
     val WORKSPACE_PROJECTS: WorkspaceProjects get() = WorkspaceProjects.WORKSPACE_PROJECTS
 
@@ -96,14 +126,21 @@ open class Auth : SchemaImpl(DSL.name("auth"), DefaultCatalog.DEFAULT_CATALOG, D
     override fun getCatalog(): Catalog = DefaultCatalog.DEFAULT_CATALOG
 
     override fun getTables(): List<Table<*>> = listOf(
+        AccessEvents.ACCESS_EVENTS,
         Credentials.CREDENTIALS,
         EmailChallenges.EMAIL_CHALLENGES,
         Identities.IDENTITIES,
         Invitations.INVITATIONS,
         KnownDevices.KNOWN_DEVICES,
         LoginStates.LOGIN_STATES,
+        OauthClients.OAUTH_CLIENTS,
+        OauthCodes.OAUTH_CODES,
+        OauthGrants.OAUTH_GRANTS,
+        OauthRefreshTokens.OAUTH_REFRESH_TOKENS,
         Principals.PRINCIPALS,
         ProjectTimezoneSource.PROJECT_TIMEZONE_SOURCE,
+        ServiceAccountWorkspace.SERVICE_ACCOUNT_WORKSPACE,
+        ServiceAccounts.SERVICE_ACCOUNTS,
         WorkspaceProjects.WORKSPACE_PROJECTS
     )
 }

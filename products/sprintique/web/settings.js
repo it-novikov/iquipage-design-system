@@ -8,6 +8,7 @@ import {mountAccess} from './access.js';
 import {mountPresets} from './presets.js';
 import {mountInvitations} from './invitations.js';
 import {can,projectPermissions} from './permissions.js';
+import {mountServiceAccounts} from './service-accounts.js';
 import {mountOperations} from './operations.js';
 import {pickProjectAvatar,pickPersonalPhoto} from './project-profile.js';
 import {dialog,input} from '../ui/src/ui.js';
@@ -185,6 +186,7 @@ export async function mountSettings(root,{repository,project,adapter,onChanged=(
     else if(section==='presets')mounted=await mountPresets(content,{...props,workspace});
     else if(section==='invitations')mounted=await mountInvitations(content,props);
     else if(section==='agents')mounted=await mountAgents(content,props);
+    else if(section==='service-accounts')mounted=await mountServiceAccounts(content,props);
     else if(section==='operations')mounted=await mountOperations(content,props);
     else if(section==='workspace-members')mounted=await mountWorkspaceMembers(content,{...props,workspace});
     else mounted=await mountProjectTaskSettings(content,{...props,section,canManage:can(project,'project.settings')});

@@ -21,8 +21,10 @@ import com.sprintique.database.schema.app.tables.WorkspaceAudit.WorkspaceAuditPa
 import com.sprintique.database.schema.app.tables.WorkspaceMembers.WorkspaceMembersPath
 import com.sprintique.database.schema.app.tables.records.WorkspacesRecord
 import com.sprintique.database.schema.auth.keys.INVITATIONS__INVITATIONS_WORKSPACE_ID_FKEY
+import com.sprintique.database.schema.auth.keys.SERVICE_ACCOUNTS__SERVICE_ACCOUNTS_WORKSPACE_ID_FKEY
 import com.sprintique.database.schema.auth.tables.Invitations.InvitationsPath
 import com.sprintique.database.schema.auth.tables.Principals.PrincipalsPath
+import com.sprintique.database.schema.auth.tables.ServiceAccounts.ServiceAccountsPath
 
 import java.util.UUID
 
@@ -202,6 +204,18 @@ open class Workspaces(
 
     val invitations: InvitationsPath
         get(): InvitationsPath = invitations()
+
+    private lateinit var _serviceAccounts: ServiceAccountsPath
+
+    fun serviceAccounts(): ServiceAccountsPath {
+        if (!this::_serviceAccounts.isInitialized)
+            _serviceAccounts = ServiceAccountsPath(this, null, SERVICE_ACCOUNTS__SERVICE_ACCOUNTS_WORKSPACE_ID_FKEY.inverseKey)
+
+        return _serviceAccounts;
+    }
+
+    val serviceAccounts: ServiceAccountsPath
+        get(): ServiceAccountsPath = serviceAccounts()
     override fun getChecks(): List<Check<WorkspacesRecord>> = listOf(
         Internal.createCheck(this, DSL.name("workspaces_access_revision_check"), "((access_revision > 0))", true),
         Internal.createCheck(this, DSL.name("workspaces_projects_created_by_check"), "((projects_created_by = ANY (ARRAY['admins'::text, 'members'::text])))", true),

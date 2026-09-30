@@ -34,8 +34,8 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
   const autosave=!!task&&canEdit;
   let current=task,baseline='',saving=false,confirming=false,priorityTouched=false,catalogs,threads,links;
   // Owners are current human project members. A former member or pre-membership text stays visible until reassigned.
-  const owners=[{value:'',label:'Не назначен'},...members.map(m=>({value:m.id,label:m.name,image:repository.client?.avatarUrl?.(m.id,m.avatarRevision)||undefined}))];
-  if(initial.ownerId&&!members.some(m=>m.id===initial.ownerId))owners.push({value:initial.ownerId,label:initial.owner||'Бывший участник',description:'Больше не участник проекта'});
+  const owners=[{value:'',label:'Не назначен'},...members.filter(m=>(m.kind??'human')==='human').map(m=>({value:m.id,label:m.name,image:repository.client?.avatarUrl?.(m.id,m.avatarRevision)||undefined}))];
+  if(initial.ownerId&&!owners.some(o=>o.value===initial.ownerId))owners.push({value:initial.ownerId,label:initial.owner||'Бывший участник',description:'Больше не участник проекта'});
   const legacyOwner=!initial.ownerId&&initial.legacyOwner?`<p class="iq-helper" data-legacy-owner>Было указано: «${esc(initial.legacyOwner)}». Выберите участника проекта.</p>`:'';
   let templateVersion=initial.templateVersion,lastTemplateContent=taskMarkdown(initial);
   const parents=[{value:'',label:'Нет'},...tasks.filter(item=>{

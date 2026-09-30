@@ -5,6 +5,7 @@ import com.sprintique.database.Database
 import com.sprintique.database.IntegrationDatabase
 import com.sprintique.database.SchemaMigrations
 import com.sprintique.identity.domain.Actor
+import com.sprintique.identity.domain.CredentialKind
 import com.sprintique.identity.domain.PrincipalKind
 import com.sprintique.token.Tokens
 import org.assertj.core.api.Assertions.assertThat
@@ -176,7 +177,17 @@ class RolesMigrationIntegrationTest {
         }
         val runtime = IntegrationDatabase.environment("SPRINTIQUE_TEST_DATABASE_URL").replace("/sprintique?", "/$name?")
         Database.connect(runtime, 1, "roles-runtime").use { database ->
-            val actor = Actor("gleb", "Глеб", PrincipalKind.HUMAN, "gleb-session", "csrf", null, emptySet(), "gleb")
+            val actor = Actor(
+                "gleb",
+                "Глеб",
+                PrincipalKind.HUMAN,
+                "gleb-session",
+                "csrf",
+                null,
+                emptySet(),
+                "gleb",
+                CredentialKind.SESSION,
+            )
             val result = database.transaction { tx ->
                 tx.row("SELECT set_config('app.actor_id', 'gleb', true)")
                 Invitations.accept(tx, actor, TOKEN)

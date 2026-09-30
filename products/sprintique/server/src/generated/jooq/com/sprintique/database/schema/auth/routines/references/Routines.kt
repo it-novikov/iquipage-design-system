@@ -13,6 +13,7 @@ import com.sprintique.database.schema.auth.routines.CanReadFinance
 import com.sprintique.database.schema.auth.routines.CanSeePerson
 import com.sprintique.database.schema.auth.routines.CanWorkspace
 import com.sprintique.database.schema.auth.routines.CanWorkspaceDo
+import com.sprintique.database.schema.auth.routines.CollectOauthAccessTokens
 import com.sprintique.database.schema.auth.routines.CompilePermissions
 import com.sprintique.database.schema.auth.routines.CompileWorkspacePermissions
 import com.sprintique.database.schema.auth.routines.DefaultPresetPermissions
@@ -25,11 +26,14 @@ import com.sprintique.database.schema.auth.routines.PermissionSort
 import com.sprintique.database.schema.auth.routines.ProjectPermissionCatalog
 import com.sprintique.database.schema.auth.routines.ProjectTimezone
 import com.sprintique.database.schema.auth.routines.ProvisionAccessPresets
+import com.sprintique.database.schema.auth.routines.ServiceAccountActive
 import com.sprintique.database.schema.auth.routines.WorkspacePermissionCatalog
 import com.sprintique.database.schema.auth.routines.WorkspaceRolePermissions
 import com.sprintique.database.schema.auth.tables.ProjectTimezoneSource
+import com.sprintique.database.schema.auth.tables.ServiceAccountWorkspace
 import com.sprintique.database.schema.auth.tables.WorkspaceProjects
 import com.sprintique.database.schema.auth.tables.records.ProjectTimezoneSourceRecord
+import com.sprintique.database.schema.auth.tables.records.ServiceAccountWorkspaceRecord
 import com.sprintique.database.schema.auth.tables.records.WorkspaceProjectsRecord
 
 import java.util.UUID
@@ -266,6 +270,35 @@ fun canWorkspaceDo(
     val f = CanWorkspaceDo()
     f.setTarget(target)
     f.setPermission(permission)
+
+    return f.asField()
+}
+
+fun collectOauthAccessTokens(
+      configuration: Configuration
+    , batch: Int?
+): Int? {
+    val f = CollectOauthAccessTokens()
+    f.setBatch(batch)
+
+    f.execute(configuration)
+    return f.returnValue
+}
+
+fun collectOauthAccessTokens(
+      batch: Int?
+): Field<Int?> {
+    val f = CollectOauthAccessTokens()
+    f.setBatch(batch)
+
+    return f.asField()
+}
+
+fun collectOauthAccessTokens(
+      batch: Field<Int?>
+): Field<Int?> {
+    val f = CollectOauthAccessTokens()
+    f.setBatch(batch)
 
     return f.asField()
 }
@@ -579,6 +612,35 @@ fun provisionAccessPresets(
     p.execute(configuration)
 }
 
+fun serviceAccountActive(
+      configuration: Configuration
+    , target: String?
+): Boolean? {
+    val f = ServiceAccountActive()
+    f.setTarget(target)
+
+    f.execute(configuration)
+    return f.returnValue
+}
+
+fun serviceAccountActive(
+      target: String?
+): Field<Boolean?> {
+    val f = ServiceAccountActive()
+    f.setTarget(target)
+
+    return f.asField()
+}
+
+fun serviceAccountActive(
+      target: Field<String?>
+): Field<Boolean?> {
+    val f = ServiceAccountActive()
+    f.setTarget(target)
+
+    return f.asField()
+}
+
 fun workspacePermissionCatalog(
       configuration: Configuration
 ): Array<String?>? {
@@ -640,6 +702,14 @@ fun projectTimezoneSource(
       target: Field<String?>
 ): ProjectTimezoneSource = com.sprintique.database.schema.auth.tables.ProjectTimezoneSource.PROJECT_TIMEZONE_SOURCE.call(
     target
+)
+
+fun serviceAccountWorkspace(
+      configuration: Configuration
+): Result<ServiceAccountWorkspaceRecord> = configuration.dsl().selectFrom(com.sprintique.database.schema.auth.tables.ServiceAccountWorkspace.SERVICE_ACCOUNT_WORKSPACE.call(
+)).fetch()
+
+fun serviceAccountWorkspace(): ServiceAccountWorkspace = com.sprintique.database.schema.auth.tables.ServiceAccountWorkspace.SERVICE_ACCOUNT_WORKSPACE.call(
 )
 
 fun workspaceProjects(

@@ -5,7 +5,7 @@ data class ProcessedImage(val width: Int, val height: Int, val display: ByteArra
 
 /**
  * Full decode and re-encode of untrusted images, bounded in pixels, time and concurrency. Failures are problems with
- * stable codes: IMAGE_BUSY, IMAGE_ANIMATION, IMAGE_SIZE, IMAGE_DECODE.
+ * stable codes: IMAGE_BUSY, IMAGE_ANIMATION, IMAGE_SIZE, IMAGE_TIMEOUT, IMAGE_DECODE.
  */
 interface ImageTranscoder {
     /** A person's photo: PNG, JPEG or WebP to a 256×256 WebP. */

@@ -6,6 +6,7 @@ import com.sprintique.access.domain.SystemPreset
 import com.sprintique.access.domain.WorkspaceRole
 import com.sprintique.database.Row
 import com.sprintique.database.Transaction
+import com.sprintique.identity.application.AccessEvents
 import com.sprintique.identity.application.ProjectAccess
 import com.sprintique.identity.application.ProjectMembership
 import com.sprintique.identity.domain.Actor
@@ -36,6 +37,7 @@ object MemberAccess {
         tx.row("SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", "membership:$projectId")
         tx.update("SELECT id FROM app.projects WHERE id = $1 FOR UPDATE", projectId)
         ProjectAccess.requireActiveCredential(tx, actor)
+        ProjectAccess.requireInteractive(actor)
         requireCondition(actor.isHuman, 403, "HUMAN_REQUIRED", "Доступом управляет человек.")
         return ProjectAccess.authorize(tx, actor, projectId, capability)
     }
@@ -51,9 +53,14 @@ object MemberAccess {
                    m.preset_id AS "presetId", s.name AS "presetName", s.key AS "presetKey", s.hint AS "presetHint",
                    s.permissions AS "presetPermissions", m.granted, m.revoked, m.permissions,
                    m.changed_at AS "changedAt", coalesce(c.profile_name, c.name) AS "changedByName",
-                   w.role AS "workspaceRole", coalesce(i.profile_name, i.name) AS "invitedByName"
+                   w.role AS "workspaceRole", coalesce(i.profile_name, i.name) AS "invitedByName",
+                   sa.owner_id AS "ownerId",
+                   (SELECT coalesce(o.profile_name, o.name) FROM auth.principals o WHERE o.id = sa.owner_id) AS "ownerName",
+                   CASE WHEN sa.principal_id IS NULL THEN NULL ELSE NOT auth.service_account_active(sa.principal_id) END
+                     AS suspended
             FROM app.project_members m JOIN auth.principals p ON p.id = m.principal_id
             JOIN app.access_presets s ON s.id = m.preset_id
+            LEFT JOIN auth.service_accounts sa ON sa.principal_id = m.principal_id
             LEFT JOIN auth.principals c ON c.id = m.changed_by
             LEFT JOIN app.workspace_members w ON w.workspace_id = m.workspace_id AND w.principal_id = m.principal_id
             LEFT JOIN auth.principals i ON i.id = w.invited_by
@@ -93,10 +100,17 @@ object MemberAccess {
         val me = manage(tx, actor, projectId, Capability.MEMBERS_MANAGE)
         val target = target(tx, projectId, id)
         requireCondition(
-            target.string("kind") == "human",
+            target.string("kind") != "agent",
             422,
             "AGENT_GRANT_REQUIRED",
             "Доступ агента изменяется через его разрешение.",
+        )
+        requireCondition(
+            target.string("kind") == "human",
+            422,
+            "SERVICE_ACCOUNT_ENDPOINT",
+            "Права сервисного аккаунта меняются в его настройках (PUT " +
+                "/api/v1/service-accounts/{id}/projects/{project}).",
         )
         requireCondition(
             target.long("revision") == input.baseRevision,
@@ -175,6 +189,11 @@ object MemberAccess {
             id,
             mapOf("presetBefore" to target.string("presetName")),
         )
+        if (target.string("kind") ==
+            "service"
+        ) {
+            AccessEvents.record(tx, id, "project.revoked", projectId, actorId = actor.id)
+        }
         tx.update("DELETE FROM app.project_members WHERE project_id = $1 AND principal_id = $2", projectId, id)
         revokeAgentsIssuedBy(tx, projectId, id)
         return linkedMapOf("id" to id, "role" to null, "revision" to baseRevision + 1)
@@ -182,6 +201,7 @@ object MemberAccess {
 
     /** People of the workspace who can be added: members and administrators who are not here yet (never guests). */
     fun directory(tx: Transaction, actor: Actor, projectId: String): List<Row> {
+        ProjectAccess.requireInteractive(actor)
         val me = ProjectAccess.authorize(tx, actor, projectId, Capability.MEMBERS_MANAGE)
         return tx.rows(
             """
@@ -342,6 +362,7 @@ object MemberAccess {
      * members.manage.
      */
     fun effective(tx: Transaction, actor: Actor, projectId: String, id: String): Map<String, Any?> {
+        ProjectAccess.requireInteractive(actor)
         if (id == actor.id) {
             ProjectAccess.authorize(tx, actor, projectId, Capability.TASKS_READ)
         } else {
@@ -374,6 +395,7 @@ object MemberAccess {
     }
 
     fun settings(tx: Transaction, actor: Actor, projectId: String): Map<String, Any?> {
+        ProjectAccess.requireInteractive(actor)
         val me = ProjectAccess.authorize(tx, actor, projectId, Capability.TASKS_READ)
         val row = tx.row(
             """
@@ -430,6 +452,7 @@ object MemberAccess {
 
     /** A compact read-only overview: who holds which permission. */
     fun matrix(tx: Transaction, actor: Actor, projectId: String): Map<String, Any?> {
+        ProjectAccess.requireInteractive(actor)
         ProjectAccess.authorize(tx, actor, projectId, Capability.PROJECT_ACCESS)
         val members = tx.rows(
             """

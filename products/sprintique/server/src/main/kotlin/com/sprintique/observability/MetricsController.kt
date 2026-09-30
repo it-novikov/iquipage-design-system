@@ -27,6 +27,7 @@ class MetricsController(private val properties: SprintiqueProperties, private va
             // The JVM reports committed memory, the closest portable measure of the process footprint.
             "rssBytes" to memory.heapMemoryUsage.committed + memory.nonHeapMemoryUsage.committed,
             "completedHttpRequests" to metrics.snapshot(),
+            "mcpToolCalls" to metrics.toolSnapshot(),
             "longLivedStreams" to "not included until closed",
             "resetOnRestart" to true,
         )

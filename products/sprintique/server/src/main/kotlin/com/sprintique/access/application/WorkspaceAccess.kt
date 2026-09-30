@@ -6,6 +6,7 @@ import com.sprintique.access.domain.WorkspaceRole
 import com.sprintique.database.Row
 import com.sprintique.database.Transaction
 import com.sprintique.identity.application.ProjectAccess
+import com.sprintique.identity.application.ServiceAccounts
 import com.sprintique.identity.domain.Actor
 import com.sprintique.problem.requireCondition
 import com.sprintique.problem.requirePresent
@@ -61,6 +62,7 @@ object WorkspaceAccess {
         workspaceId: String,
         permission: Permission? = null,
     ): WorkspaceMembership {
+        ProjectAccess.requireInteractive(actor)
         requireCondition(actor.isHuman, 403, "HUMAN_REQUIRED", "Пространством управляет человек.")
         val membership = requirePresent(
             membership(tx, actor, workspaceId),
@@ -167,6 +169,8 @@ object WorkspaceAccess {
                 "Удаление своего доступа выполняет другой администратор.",
             )
             removeFromProjects(tx, actor, workspaceId, id, input.alsoFromProjects)
+            // The service accounts this person owns here stop until they get a new owner or are deleted.
+            ServiceAccounts.suspendOwnedBy(tx, actor, workspaceId, id)
             tx.update(
                 "DELETE FROM app.workspace_members WHERE workspace_id = $1::uuid AND principal_id = $2",
                 workspaceId,
@@ -197,6 +201,8 @@ object WorkspaceAccess {
                 """.trimIndent(),
                 workspaceId, id, input.role.wire,
             )
+            // A guest owns no service accounts: theirs stop until they get a new owner or are deleted.
+            if (input.role == WorkspaceRole.GUEST) ServiceAccounts.suspendOwnedBy(tx, actor, workspaceId, id)
             // Whether someone is a guest changes what their project presets may give.
             tx.update(
                 """

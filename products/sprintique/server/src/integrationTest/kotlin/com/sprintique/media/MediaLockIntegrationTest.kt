@@ -4,16 +4,24 @@ import com.sprintique.command.CommandLedger
 import com.sprintique.database.IntegrationDatabase
 import com.sprintique.database.Transaction
 import com.sprintique.identity.domain.Actor
+import com.sprintique.identity.domain.CredentialKind
 import com.sprintique.identity.domain.PrincipalKind
 import com.sprintique.media.application.Assets
 import com.sprintique.media.application.ObjectStoragePort
+import com.sprintique.media.application.ObjectWrite
+import com.sprintique.media.application.Publishing
 import com.sprintique.media.application.Reservation
+import com.sprintique.media.application.UploadStart
+import com.sprintique.media.application.Uploads
 import com.sprintique.media.infrastructure.ImageIoImageTranscoder
 import com.sprintique.task.application.Tasks
 import com.sprintique.task.domain.TaskContent
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import tools.jackson.databind.json.JsonMapper
+import java.io.ByteArrayInputStream
+import java.io.InputStream
 import java.security.MessageDigest
 import java.util.HexFormat
 import java.util.UUID
@@ -22,8 +30,9 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 /**
- * R4-B03: an upload that is still writing to storage holds the project lock first and the file second; a task save
- * attaching the same file waits on the project, never on the file, so the two cannot deadlock.
+ * R4-B03 and R1: an upload takes the project lock first and the file second, and only for short transactions. While its
+ * objects are written to storage it is `publishing` and holds no lock: task saves go on, the file cannot be attached
+ * or discarded until it is ready.
  */
 class MediaLockIntegrationTest {
     private val runtime = IntegrationDatabase.runtime
@@ -40,7 +49,9 @@ class MediaLockIntegrationTest {
             release.await(WAIT, TimeUnit.SECONDS)
         }
 
-        override fun get(key: String) = ByteArray(0)
+        override fun startWrite(key: String, mime: String): ObjectWrite = error("A small file is written whole")
+
+        override fun read(key: String, range: LongRange?): InputStream = ByteArrayInputStream(ByteArray(0))
 
         override fun remove(key: String) = Unit
 
@@ -48,7 +59,7 @@ class MediaLockIntegrationTest {
     }
 
     @Test
-    fun `an upload and a task save attaching the file wait on the project, not on each other`() {
+    fun `a publishing upload holds no lock, and its file is attachable only once ready`() {
         val (actor, projectId) = seed()
         val sha = HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(bytes))
         asPerson(actor) { tx ->
@@ -65,26 +76,116 @@ class MediaLockIntegrationTest {
         val storage = StallingStorage()
         Executors.newVirtualThreadPerTaskExecutor().use { executor ->
             val upload = executor.submit<Any> {
-                asPerson(actor) { tx ->
-                    Assets.upload(tx, actor, projectId, "concurrent-file", bytes, storage, ImageIoImageTranscoder())
+                val start = asPerson(actor) { tx ->
+                    Assets.startUpload(tx, actor, projectId, "concurrent-file", bytes.size.toLong())
                 }
-            }
-            assertThat(storage.entered.await(WAIT, TimeUnit.SECONDS)).isTrue()
-            val save = executor.submit<Any> {
-                asPerson(actor) { tx ->
-                    Tasks.put(tx, actor, projectId, "lock-task", 1, content(listOf("concurrent-file")))
+                val plan = (start as UploadStart.Accepted).plan
+                Uploads(storage, ImageIoImageTranscoder()).receive(plan, ByteArrayInputStream(bytes)).use { content ->
+                    val step = asPerson(actor) { tx ->
+                        Assets.startPublishing(tx, actor, projectId, "concurrent-file", content)
+                    } as Publishing.Go
+                    content.publish(storage) { variant -> "k/$variant" }
+                    asPerson(actor) { tx ->
+                        Assets.finishPublishing(tx, actor, projectId, "concurrent-file", step, content)
+                    }
                 }
             }
             try {
-                assertThat(waitsOnProjectLock()).isTrue()
+                assertThat(storage.entered.await(WAIT, TimeUnit.SECONDS)).isTrue()
+                // Nothing waits on the stalled storage write: another save of the task commits at once.
+                val other = executor.submit<Any> {
+                    asPerson(actor) { tx -> Tasks.put(tx, actor, projectId, "lock-task", 1, content(title = "Другое")) }
+                }
+                other.get(WAIT, TimeUnit.SECONDS)
+                assertThatThrownBy {
+                    asPerson(actor) { tx ->
+                        Tasks.put(tx, actor, projectId, "lock-task", 2, content(listOf("concurrent-file")))
+                    }
+                }.hasFieldOrPropertyWithValue("code", "TASK_FILE_ACCESS")
+                assertThatThrownBy {
+                    asPerson(actor) { tx -> Assets.discard(tx, actor, projectId, "concurrent-file") }
+                }.hasFieldOrPropertyWithValue("code", "FILE_BUSY")
             } finally {
                 storage.release.countDown()
             }
             upload.get(WAIT, TimeUnit.SECONDS)
+            val saved = asPerson(actor) { tx ->
+                Tasks.put(tx, actor, projectId, "lock-task", 2, content(listOf("concurrent-file")))
+            }
             @Suppress("UNCHECKED_CAST")
-            val saved = save.get(WAIT, TimeUnit.SECONDS) as Map<String, Any?>
-            assertThat(saved["attachmentIds"]).isEqualTo(listOf("concurrent-file"))
+            assertThat((saved as Map<String, Any?>)["attachmentIds"]).isEqualTo(listOf("concurrent-file"))
         }
+    }
+
+    @Test
+    fun `finishing a publication takes the project lock before the file, and an abandoned one reopens`() {
+        val (actor, projectId) = seed()
+        val sha = HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(bytes))
+        asPerson(actor) { tx ->
+            Assets.reserve(
+                tx,
+                actor,
+                projectId,
+                Reservation("ordered-file", "task", "lock-task", "lock.txt", bytes.size.toLong(), sha),
+                UUID.randomUUID().toString(),
+                ledger,
+            )
+        }
+        val storage = StallingStorage().also { it.release.countDown() }
+        val plan = (
+            asPerson(actor) { tx ->
+                Assets.startUpload(tx, actor, projectId, "ordered-file", -1)
+            } as UploadStart.Accepted
+            ).plan
+        Uploads(storage, ImageIoImageTranscoder()).receive(plan, ByteArrayInputStream(bytes)).use { content ->
+            val step = asPerson(actor) { tx ->
+                Assets.startPublishing(tx, actor, projectId, "ordered-file", content)
+            } as Publishing.Go
+            // Storage refused: the upload waits for its bytes again.
+            asPerson(actor) { tx -> Assets.failPublishing(tx, projectId, "ordered-file", step) }
+            assertThat(stateOf(projectId, "ordered-file")).isEqualTo("uploading")
+            val again = asPerson(actor) { tx ->
+                Assets.startPublishing(tx, actor, projectId, "ordered-file", content)
+            } as Publishing.Go
+            Executors.newVirtualThreadPerTaskExecutor().use { executor ->
+                val finished = IntegrationDatabase.admin.transaction { tx ->
+                    tx.update("SELECT id FROM app.projects WHERE id = $1 FOR UPDATE", projectId)
+                    val finishing = executor.submit<Any> {
+                        asPerson(actor) { inner ->
+                            Assets.finishPublishing(inner, actor, projectId, "ordered-file", again, content)
+                        }
+                    }
+                    assertThat(waitsOnProjectLock()).isTrue()
+                    finishing
+                }
+                finished.get(WAIT, TimeUnit.SECONDS)
+            }
+        }
+        assertThat(stateOf(projectId, "ordered-file")).isEqualTo("ready")
+        // A publication whose process never came back is abandoned after its lease: discarding works again.
+        IntegrationDatabase.admin.transaction { tx ->
+            tx.update(
+                """
+                UPDATE app.assets SET state = 'publishing', updated_at = clock_timestamp() - interval '11 minutes'
+                WHERE project_id = $1 AND id = $2
+                """.trimIndent(),
+                projectId,
+                "ordered-file",
+            )
+        }
+        asPerson(actor) { tx -> Assets.discard(tx, actor, projectId, "ordered-file") }
+        assertThat(stateOf(projectId, "ordered-file")).isEqualTo("detached")
+        // The queue is shared with the suites that run next: this project's cleanup job must not stay due.
+        IntegrationDatabase.admin.transaction { tx ->
+            tx.update(
+                "UPDATE work.jobs SET state = 'cancelled' WHERE project_id = $1 AND state IN ('pending', 'running')",
+                projectId,
+            )
+        }
+    }
+
+    private fun stateOf(projectId: String, id: String) = IntegrationDatabase.admin.transaction { tx ->
+        tx.row("SELECT state FROM app.assets WHERE project_id = $1 AND id = $2", projectId, id)!!.string("state")
     }
 
     private fun waitsOnProjectLock(): Boolean {
@@ -108,12 +209,12 @@ class MediaLockIntegrationTest {
         block(tx)
     }
 
-    private fun content(attachments: List<String> = emptyList()) = TaskContent(
+    private fun content(attachments: List<String> = emptyList(), title: String = "Lock task") = TaskContent(
         attachmentIds = attachments,
         coverAttachmentId = null,
         coverCrop = null,
         coverCropAttachmentId = null,
-        title = "Lock task",
+        title = title,
         description = "",
         status = "ready",
         type = "task",
@@ -168,7 +269,11 @@ class MediaLockIntegrationTest {
                 person,
             )
         }
-        return Actor(person, "Алиса", PrincipalKind.HUMAN, credential, "csrf", null, emptySet(), person) to project
+        return Actor(
+            person, "Алиса", PrincipalKind.HUMAN, credential, "csrf", null, emptySet(), person,
+            CredentialKind.SESSION,
+        ) to
+            project
     }
 
     private companion object {

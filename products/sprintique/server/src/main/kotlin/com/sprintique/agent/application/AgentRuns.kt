@@ -80,7 +80,7 @@ class AgentRuns(
 
     fun start(tx: Transaction, actor: Actor, projectId: String, input: NewRun, key: String): Any {
         PlanningStates.lock(tx, actor, projectId, write = true)
-        requireCondition(!actor.isHuman, 403, "AGENT_REQUIRED", "Запуск регистрирует агент с отдельным разрешением.")
+        requireCondition(actor.isAgent, 403, "AGENT_REQUIRED", "Запуск регистрирует агент с отдельным разрешением.")
         return ledger.idempotent(tx, actor, projectId, "run.start", key, input) {
             val active = tx.row(
                 """

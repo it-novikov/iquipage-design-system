@@ -98,6 +98,8 @@ object Approvals {
         PlanningStates.lock(tx, actor, projectId, write = true)
         requireCondition(actor.isHuman, 403, "HUMAN_REQUIRED", "Решение принимает человек.")
         ProjectAccess.authorize(tx, actor, projectId, Capability.APPROVALS_DECIDE)
+        // An app acting for the person must not approve an agent's proposal in the person's name.
+        ProjectAccess.requireInteractive(actor)
         val request = linkedMapOf("baseRevision" to baseRevision, "status" to status)
         return ledger.idempotent(tx, actor, projectId, "approval.decide:$id", key, request) {
             val updated = tx.row(

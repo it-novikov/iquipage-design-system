@@ -61,9 +61,17 @@ open class AuditEventsRecord() : UpdatableRecordImpl<AuditEventsRecord>(AuditEve
         set(value): Unit = set(10, value)
         get(): UUID? = get(10) as UUID?
 
-    open var details: JSONB?
+    open var credentialKind: String?
         set(value): Unit = set(11, value)
-        get(): JSONB? = get(11) as JSONB?
+        get(): String? = get(11) as String?
+
+    open var clientId: String?
+        set(value): Unit = set(12, value)
+        get(): String? = get(12) as String?
+
+    open var details: JSONB?
+        set(value): Unit = set(13, value)
+        get(): JSONB? = get(13) as JSONB?
 
     // -------------------------------------------------------------------------
     // Primary key information
@@ -71,7 +79,7 @@ open class AuditEventsRecord() : UpdatableRecordImpl<AuditEventsRecord>(AuditEve
 
     override fun key(): Record1<UUID?> = super.key() as Record1<UUID?>
 
-    constructor(id: UUID? = null, projectId: String? = null, actorId: String? = null, initiatorId: String? = null, action: String? = null, resourceId: String? = null, revision: Int? = null, createdAt: OffsetDateTime? = null, operationId: UUID? = null, correlationId: UUID? = null, causationId: UUID? = null, details: JSONB? = null): this() {
+    constructor(id: UUID? = null, projectId: String? = null, actorId: String? = null, initiatorId: String? = null, action: String? = null, resourceId: String? = null, revision: Int? = null, createdAt: OffsetDateTime? = null, operationId: UUID? = null, correlationId: UUID? = null, causationId: UUID? = null, credentialKind: String? = null, clientId: String? = null, details: JSONB? = null): this() {
         this.id = id
         this.projectId = projectId
         this.actorId = actorId
@@ -83,6 +91,8 @@ open class AuditEventsRecord() : UpdatableRecordImpl<AuditEventsRecord>(AuditEve
         this.operationId = operationId
         this.correlationId = correlationId
         this.causationId = causationId
+        this.credentialKind = credentialKind
+        this.clientId = clientId
         this.details = details
         resetTouchedOnNotNull()
     }

@@ -11,10 +11,10 @@ import java.net.URI
 import java.sql.SQLException
 
 /**
- * Refuses to serve with unsafe configuration: an origin with a path, plain HTTP outside loopback, a sign-in
- * provider without HTTPS, production without SMTP, a malformed metrics token, a database role that could bypass row
- * security, or a schema that differs from the artifact. An unreachable database is not fatal: readiness reports it
- * until it comes back.
+ * Refuses to serve with unsafe configuration: an origin (interface or API) with a path, plain HTTP outside loopback,
+ * a sign-in provider without HTTPS, production without SMTP, a malformed metrics token, a database role that could
+ * bypass row security, or a schema that differs from the artifact. An unreachable database is not fatal: readiness
+ * reports it until it comes back.
  *
  * The checks run once every bean exists and before the web server starts, so no request is ever served by a process
  * that is about to refuse its configuration.
@@ -55,6 +55,15 @@ class StartupChecks(
                 "SPRINTIQUE_PUBLIC_ORIGIN must have no path or trailing slash"
             }
             require(origin.scheme == "https" || origin.host in LOOPBACK) { "HTTPS is required outside loopback" }
+            if (properties.apiOrigin.isNotEmpty()) {
+                val api = URI(properties.apiOrigin)
+                require("${api.scheme}://${api.authority}" == properties.apiOrigin) {
+                    "SPRINTIQUE_API_ORIGIN must have no path or trailing slash"
+                }
+                require(api.scheme == "https" || api.host in LOOPBACK) {
+                    "HTTPS is required for the API outside loopback"
+                }
+            }
             requireSafeSignIn(properties)
             val token = properties.metricsToken
             require(token.isEmpty() || token.length in METRICS_TOKEN_MINIMUM..METRICS_TOKEN_MAXIMUM) {
