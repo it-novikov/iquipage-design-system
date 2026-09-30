@@ -19,6 +19,7 @@ import com.sprintique.database.schema.auth.routines.CompilePermissions
 import com.sprintique.database.schema.auth.routines.CompileWorkspacePermissions
 import com.sprintique.database.schema.auth.routines.DefaultPresetPermissions
 import com.sprintique.database.schema.auth.routines.ExplicitServicePermissions
+import com.sprintique.database.schema.auth.routines.ManagesWorkspaceAccess
 import com.sprintique.database.schema.auth.routines.NeverServicePermissions
 import com.sprintique.database.schema.auth.routines.OpenRequestsFor
 import com.sprintique.database.schema.auth.routines.PermissionCatalog
@@ -468,6 +469,35 @@ fun explicitServicePermissions(
 
 fun explicitServicePermissions(): Field<Array<String?>?> {
     val f = ExplicitServicePermissions()
+
+    return f.asField()
+}
+
+fun managesWorkspaceAccess(
+      configuration: Configuration
+    , target: UUID?
+): Boolean? {
+    val f = ManagesWorkspaceAccess()
+    f.setTarget(target)
+
+    f.execute(configuration)
+    return f.returnValue
+}
+
+fun managesWorkspaceAccess(
+      target: UUID?
+): Field<Boolean?> {
+    val f = ManagesWorkspaceAccess()
+    f.setTarget(target)
+
+    return f.asField()
+}
+
+fun managesWorkspaceAccess(
+      target: Field<UUID?>
+): Field<Boolean?> {
+    val f = ManagesWorkspaceAccess()
+    f.setTarget(target)
 
     return f.asField()
 }
