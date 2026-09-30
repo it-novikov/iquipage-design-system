@@ -22,5 +22,5 @@ test('whiteboard hosts can hide the selection bar and start with the library ope
 });
 
 test('transparent controls draw keyboard focus inside their bounds', () => {
-  assert.match(read('src/styles/focus.css'), /:is\(\.iq-btn\.ghost,\.iq-btn\.icon,\.iq-tag,\.iq-segmented>button,\.iq-command-list>button,\.iq-menu-popup button,\.iq-list-item\):focus-visible\{outline-offset:-2px\}/);
+  assert.match(read('src/styles/focus.css'), /:is\(\.iq-btn\.ghost,\.iq-btn\.icon,\.iq-tag,\.iq-segmented>button,\.iq-command-list>button,\.iq-menu-popup button,\.iq-list-item\):focus-visible\{outline-offset:-2px;box-shadow:inset 0 0 0 4px var\(--iq-focus-halo\)\}/);
 });

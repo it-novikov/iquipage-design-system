@@ -1,0 +1,65 @@
+# Журнал 20260929-workbench-mvp
+
+- 2026-09-29T15:49:42Z · claude-opus-5-5 · create · - · Sprintique: Рабочий стол MVP (WP0–WP3)
+- 2026-09-29T15:58:48Z · claude-opus-5-5 · claim · - · взял задачу
+- 2026-09-29T15:58:48Z · claude-opus-5-5 · note · A1 · критерий приёмки: A1. ADR W1–W6 и контракт маршрута/drawer записаны и решают вопросы §2 delivery-plan
+- 2026-09-29T15:58:48Z · claude-opus-5-5 · note · A2 · критерий приёмки: A2. Миграции 028–029 additive, RLS: личное состояние, ожидание и квитанции видит только владелец; запросы и активность — только участники проекта; jOOQ совпадает со схемой
+- 2026-09-29T15:58:48Z · claude-opus-5-5 · note · A3 · критерий приёмки: A3. GET /workbench: один snapshot, дедупликация до пагинации, точные счётчики action/current, updates ≤99+, подписанные курсоры (actor/filter/epoch/expiry), no-store, жёсткие лимиты; матрица включения §15 зелёная
+- 2026-09-29T15:58:48Z · claude-opus-5-5 · note · A4 · критерий приёмки: A4. Личные команды follow/focus/seen/snooze с независимыми ревизиями, ключом повтора и приватной квитанцией, без общих событий; запросы с точным адресатом, CAS, синхронизацией источника и потерей членства; «Жду» с явным opt-in и checkBackAt
+- 2026-09-29T15:58:48Z · claude-opus-5-5 · note · A5 · критерий приёмки: A5. UI «Сейчас» и «План» на композициях DS, все состояния секций, drawer по /workbench/tasks/:projectId/:taskId с восстановлением фокуса, 390/320, WCAG 2.2 AA
+- 2026-09-29T15:58:48Z · claude-opus-5-5 · note · A6 · критерий приёмки: A6. Флаги workbench_* в конфигурации сервера: выключены в production по умолчанию, включены в тестах и локально
+- 2026-09-29T15:58:48Z · claude-opus-5-5 · note · A7 · критерий приёмки: A7. Гейты: npm test продукта с S3, backend unit+integration, корневой verify-vnext — зелёные без пропусков; ревью R1 и R2 записаны; PR открыт
+- 2026-09-29T15:58:48Z · claude-opus-5-5 · note · S1 · добавлен шаг: WP0: ADR и контракт
+- 2026-09-29T15:58:48Z · claude-opus-5-5 · note · S2 · добавлен шаг: WP1: миграции и RLS
+- 2026-09-29T15:58:49Z · claude-opus-5-5 · note · S3 · добавлен шаг: WP1–WP2: сервер
+- 2026-09-29T15:58:49Z · claude-opus-5-5 · note · S4 · добавлен шаг: WP3: UI Сейчас и План
+- 2026-09-29T15:58:49Z · claude-opus-5-5 · note · S5 · добавлен шаг: Гейты, ревью R2, PR
+- 2026-09-29T15:58:49Z · claude-opus-5-5 · step · S1 · active
+- 2026-09-29T15:58:49Z · claude-opus-5-5 · status · - · active
+- 2026-09-29T16:01:00Z · claude-opus-5-5 · decision · D1 · ADR лежат в products/sprintique/docs/adr/ (W1–W6), как велено в задаче, а не в docs/decisions — отдельная серия решений Рабочего стола со ссылкой из README
+- 2026-09-29T16:01:00Z · claude-opus-5-5 · step · S1 · done: ADR W1–W6 + README в docs/adr; контракт маршрута — W6
+- 2026-09-29T16:01:00Z · claude-opus-5-5 · note · A1 · критерий приёмки выполнен
+- 2026-09-29T16:01:00Z · claude-opus-5-5 · step · S2 · active
+- 2026-09-29T16:01:00Z · claude-opus-5-5 · checkpoint · S2 · дальше: Написать V20260929000028__add_workbench.sql
+- 2026-09-29T20:34:24Z · claude-opus-5-5 · checkpoint · S3 · дальше: Написать WorkbenchController и contracts/workbench.ts
+- 2026-09-29T20:49:41Z · claude-opus-5-5 · step · S2 · done: dc07a45; миграции применяются в тестовом кластере, JooqSchemaDriftIntegrationTest зелёный
+- 2026-09-29T20:49:41Z · claude-opus-5-5 · note · A2 · критерий приёмки выполнен
+- 2026-09-29T20:49:41Z · claude-opus-5-5 · step · S3 · active
+- 2026-09-29T20:49:41Z · claude-opus-5-5 · checkpoint · S3 · дальше: Дождаться R1, исправить замечания, затем S4 UI в web/workbench
+- 2026-09-29T20:49:54Z · r1-backend · review · R1 · начато ревью, раунд 1
+- 2026-09-29T21:11:08Z · claude-opus-5-5 · decision · D2 · Модель личного состояния по решению владельца: один приватный флаг «Участвую» вместо фокуса и подписки; «Жду» выводится из участия и назначения задачи мной, отдельной таблицы task_wait_state нет; миграции 028–029 правятся на месте (ветка не слита)
+- 2026-09-29T21:11:08Z · claude-opus-5-5 · decision · D3 · UI Рабочего стола поставлен на паузу владельцем (новый раунд дизайна): PR — только бэкенд; черновик UI отложен в stash/отдельную ветку
+- 2026-09-29T21:11:08Z · claude-opus-5-5 · checkpoint · S3 · дальше: Переписать V20260929000028 (participating/rank/check_back_at, без task_wait_state)
+- 2026-09-30T08:19:47Z · claude-opus-5-5 · step · S3 · done: 13631cf, 6413578, 8c22f49, 5031765 (R1), cd5b006 («Участвую»); workbench.test.ts 14/14, unit 15/15, integration 25/25 вкл. ёмкость
+- 2026-09-30T08:19:47Z · claude-opus-5-5 · note · A3 · критерий приёмки выполнен
+- 2026-09-30T08:19:47Z · claude-opus-5-5 · note · A4 · критерий приёмки выполнен
+- 2026-09-30T08:19:47Z · claude-opus-5-5 · note · A6 · критерий приёмки выполнен
+- 2026-09-30T08:19:47Z · claude-opus-5-5 · step · S4 · blocked: Владелец 2026-09-30: UI «набор таблиц» не принят, новый раунд дизайна; черновик сохранён в ветке feature/workbench-ui-draft (6f7e6e1)
+- 2026-09-30T08:19:47Z · claude-opus-5-5 · step · S5 · active
+- 2026-09-30T08:19:47Z · claude-opus-5-5 · checkpoint · S5 · дальше: Дождаться npm test, запустить verify-vnext и R2
+- 2026-09-30T08:19:59Z · r2-full · review · R2 · начато ревью, раунд 2, после R1
+- 2026-09-30T13:22:15Z · claude-opus-5-5 · claim · - · взял задачу
+- 2026-09-30T13:22:15Z · claude-opus-5-5 · decision · D4 · Размещение по решению владельца (design-v2 §7): action > joined > active > waiting > updates; «Участвую» = открытая задача, где участвую, не исполняю и не поручала; назначенная мне активная — «В работе»; завершённая уходит из «Участвую». Новость остаётся в строке задачи (updates.latest), «Изменилось» — новости без текущего места — так и читается приоритет из дизайна
+- 2026-09-30T13:22:15Z · claude-opus-5-5 · decision · D5 · Данные дизайна v2 и правки R2 — правкой миграций 028–029 на месте (как D2): ветка не слита, миграции применялись только к тестовым кластерам — поэтому без новой 030
+- 2026-09-30T13:22:16Z · claude-opus-5-5 · note · - · R2 (r2-full) закрыт: F1–F12 исправлены в c626df5; данные дизайна v2 в c626df5; запущены verify-vnext и независимое ревью R3 (r3-delta)
+- 2026-09-30T14:03:26Z · r3-delta · review · R3 · начато ревью, раунд 3, после R1, R2
+- 2026-09-30T14:11:34Z · claude-opus-5-5 · note · - · R3 (r3-delta) approve, 3×P3 исправлены в 299931f; merge origin/main (d295616): финансы #25, большие файлы #26; найдена и исправлена коллизия префикса фикстуры W с workspace.test.ts (зависание npm test)
+- 2026-09-30T14:11:34Z · claude-opus-5-5 · note · - · Гейты на cba9a78: verify-vnext 7/7 PASS + source-stability; npm test 230/230, Kotlin unit 70, integration 30, пропусков 0 (S3 проверен)
+- 2026-09-30T14:12:15Z · claude-opus-5-5 · checkpoint · - · дальше: Ответы владельца: приоритет «Участвую»/«Изменилось», автоучастие адресата/исполнителя; затем S4 UI по design-v2
+- 2026-09-30T14:12:15Z · claude-opus-5-5 · note · - · PR https://github.com/it-novikov/iquipage-design-system/pull/30 открыт (не мержить)
+- 2026-09-30T18:17:36Z · claude-opus-5-5 · claim · - · взял задачу
+- 2026-09-30T18:17:36Z · claude-opus-5-5 · decision · D6 · Раунд 2 дизайна утверждён владельцем (design-v2 §11): данные раунда 2 — f5f6a40, интерфейс — 9f9744d в той же ветке и PR #30; «Ответить» на решение — свободный текст в обсуждение задачи, подпись «Готово» — из следующей стадии процесса
+- 2026-09-30T18:17:42Z · claude-opus-5-5 · step · S5 · todo
+- 2026-09-30T18:17:42Z · claude-opus-5-5 · step · S4 · active
+- 2026-09-30T18:17:43Z · claude-opus-5-5 · checkpoint · S4 · дальше: Исправить R4, гейты, push, обновить PR
+- 2026-09-30T18:38:56Z · r4-ui · review · R4 · начато ревью, раунд 4, после R1, R2, R3
+- 2026-09-30T18:39:30Z · claude-opus-5-5 · note · - · R4 (r4-ui) записан: F1–F9, F11–F14, F16–F17 исправлены (a681402, 19191a8), F10 и F15 отложены (P3); идёт повторное ревью R5 (r5-ui-fixes)
+- 2026-09-30T18:51:43Z · r5-ui-fixes · review · R5 · начато ревью, раунд 5, после R4
+- 2026-09-30T18:52:13Z · claude-opus-5-5 · step · S4 · done: Интерфейс раунда 2: 9f9744d, a681402, 8c6ec4d, 19191a8, 4224ca4; R4 и R5 закрыты
+- 2026-09-30T18:52:13Z · claude-opus-5-5 · note · A5 · критерий приёмки выполнен
+- 2026-09-30T18:52:13Z · claude-opus-5-5 · step · S5 · active
+- 2026-09-30T18:52:13Z · claude-opus-5-5 · note · - · R5 (r5-ui-fixes) записан: N1–N6 исправлены в 4224ca4, проверено в браузере
+- 2026-09-30T19:12:16Z · claude-opus-5-5 · note · - · Слит origin/main: #32 (сетка фактов drawer) и #24 (DS vnext.24) — 8c2630e; гейты на 8c2630e: verify-vnext 7/7 PASS + source-stability, npm test 258/258, Kotlin unit 78, integration 35, пропусков 0
+- 2026-09-30T19:12:16Z · claude-opus-5-5 · step · S5 · done: PR #30; verify-vnext 7/7 и npm test 258/258 на 8c2630e; R1–R5 закрыты
+- 2026-09-30T19:12:16Z · claude-opus-5-5 · note · A7 · критерий приёмки выполнен
+- 2026-09-30T19:12:16Z · claude-opus-5-5 · checkpoint · - · дальше: После мержа #30 — карточку в done

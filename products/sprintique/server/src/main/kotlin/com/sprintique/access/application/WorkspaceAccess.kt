@@ -242,8 +242,8 @@ object WorkspaceAccess {
                 MemberAccess.requireAnotherAdministrator(tx, projectId, id)
             }
             MemberAccess.recordAccessEvent(tx, actor, projectId, "member.removed", id, mapOf("fromWorkspace" to true))
+            MemberAccess.stopsChanging(tx, actor, projectId, id)
             tx.update("DELETE FROM app.project_members WHERE project_id = $1 AND principal_id = $2", projectId, id)
-            MemberAccess.revokeAgentsIssuedBy(tx, projectId, id)
         }
     }
 

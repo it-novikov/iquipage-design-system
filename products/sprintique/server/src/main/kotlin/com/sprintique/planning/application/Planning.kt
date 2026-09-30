@@ -19,6 +19,7 @@ import com.sprintique.problem.ProblemException
 import com.sprintique.problem.requireCondition
 import com.sprintique.problem.requirePresent
 import com.sprintique.token.Tokens
+import com.sprintique.workbench.application.PersonalState
 import com.sprintique.workspace.application.Membership
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
@@ -530,6 +531,7 @@ internal object PlanApplication {
                 projectId, created.id, created.number, value.title, value.description, value.status, value.type,
                 value.priority, value.ownerId, value.rank, created.createdAt,
             )
+            PersonalState.joinCreatedTask(tx, actor, projectId, created.id)
         }
         if (result.tasks.isNotEmpty()) {
             tx.update(

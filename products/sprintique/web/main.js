@@ -13,7 +13,7 @@ import {parseTaskRoute} from '../ui/src/board/task-route.js';
 import {dialog,input} from '../ui/src/ui.js';
 import {ProductRepository} from './repository.js';
 import {PlanningAdapter} from './planning-adapter.js';
-import {mountPlanningHost,confirmPlanningChange,recoverPlanningAttempt} from './planning-host.js';
+import {mountPlanningHost,confirmPlanningChange,applyPlanningChange,recoverPlanningAttempt} from './planning-host.js';
 import {openSearch} from './search.js';
 import {acceptPendingInvitation} from './members.js';
 import {invitationFlow} from './invitation-flow.js';
@@ -22,12 +22,18 @@ import {sectionRouteHash} from './section-route.js';
 import {keepAuthorization,resumeAuthorization,mountConsent} from './consent.js';
 import {loadingMarkup} from '../ui/src/loading.js';
 import {mountProjectNavigation} from '../ui/planning/src/project-navigation.js';
+import {mountWorkbench} from './workbench/host.js';
 import '../ui/planning/src/navigation.css';
+import './workbench/workbench.css';
 registerCore();
 /** Ends the boot sequence without an error: the page is already what it should be. */
 const STOP=Symbol('stop');
 const root=document.querySelector('#app'),repository=new ProductRepository();
-let board,session,currentProject,planningAdapter,viewMode='tasks',navigating=false,avatarUrl=null;
+let board,session,currentProject,planningAdapter,viewMode='tasks',navigating=false,avatarUrl=null,workbench=null;
+// The Workbench (docs/adr W6): served when the server enables it; its link shows for everyone with workbench_mvp.
+const featureOn=name=>!!session?.features?.includes(name);
+const workbenchOn=()=>featureOn('workbench_read_internal');
+const isWorkbenchPath=()=>location.pathname==='/workbench'||location.pathname.startsWith('/workbench/');
 const viewStates=new Map();
 async function renderAvatar(project){
   const el=nav?.avatar();if(!el)return;
@@ -66,7 +72,8 @@ function ensureShell(project,mode){
       onTeam:()=>{location.hash='#settings/members';},
       onSignOut:()=>void(async()=>{if(board&&!await board.closeTask())return;await repository.client.request('/logout','POST');location.reload();})().catch(report),
       onTheme:()=>applyTheme(document.documentElement.dataset.theme==='dark'?'light':'dark'),
-      onSearch:search,onCreateProject:creatable===null||creatable.length?()=>void onboard(currentProject?.workspaceId).catch(report):undefined,onCreateWorkspace:createWorkspace
+      onSearch:search,onCreateProject:creatable===null||creatable.length?()=>void onboard(currentProject?.workspaceId).catch(report):undefined,onCreateWorkspace:createWorkspace,
+      workbench:workbenchOn()&&featureOn('workbench_mvp')
     });
     nav.setTheme(document.documentElement.dataset.theme);
   }else nav.update(context(project));
@@ -113,6 +120,7 @@ async function onboard(selectedWorkspaceId){
 async function showProject(id,mode=location.hash.startsWith('#maps')?'maps':location.hash.startsWith('#settings')?'settings':location.hash.startsWith('#finance')?'finance':location.hash==='#planning'?'planning':'tasks'){
   if(navigating)return false;navigating=true;
   try{
+  if(workbench){if(!await workbench.readyToLeave())return false;workbench.destroy();workbench=null;nav=null;}
   if(board&&!await board.closeTask())return false;
   repository.stopWatch?.();const previous=board;board=null;const project=session.projects.find(p=>p.id===id)||session.projects[0];
   if(!project){await previous?.destroy();root.innerHTML='<main class="host-landing"><h1>Создадим первый проект</h1><p>Задачи, обсуждения и команда в одном месте.</p><button class="iq-btn primary" data-onboard>Создать проект</button></main>';root.querySelector('[data-onboard]').onclick=()=>onboard().catch(report);return;}
@@ -125,7 +133,8 @@ async function showProject(id,mode=location.hash.startsWith('#maps')?'maps':loca
   repository.clearProjectCache(project.id);
   planningAdapter=new PlanningAdapter(repository,project.id);
   repository.confirmPlanningChange=intent=>confirmPlanningChange(planningAdapter,intent);
-  const url=new URL(location.href);url.searchParams.set('project',project.slug);history.replaceState(null,'',url);
+  repository.applyPlanningChange=intent=>applyPlanningChange(planningAdapter,intent);
+  const url=new URL(location.href);if(isWorkbenchPath()){url.pathname='/';url.search='';}url.searchParams.set('project',project.slug);history.replaceState(null,'',url);
   ensureShell(project,mode);
   await recoverPlanningAttempt(planningAdapter);
   const stateKey=project.id+':'+mode;if(!viewStates.has(stateKey))viewStates.set(stateKey,{});
@@ -173,7 +182,39 @@ async function navigate(mode){
   if(await showProject(currentProject.id,mode))history.replaceState(null,'',sectionRouteHash(viewMode,location.hash));
   else history.replaceState(null,'',restoreHash);
 }
-root.addEventListener('click',event=>{const link=event.target.closest('[data-section-link]');if(!link)return;event.preventDefault();void navigate(link.dataset.sectionLink).catch(report);});
+root.addEventListener('click',event=>{
+  const home=event.target.closest('[data-workbench-link]');if(home){event.preventDefault();void openWorkbench().catch(report);return;}
+  const link=event.target.closest('[data-section-link]');if(!link)return;event.preventDefault();void navigate(link.dataset.sectionLink).catch(report);});
+/** The Workbench replaces the project shell; the project's open drawer settles first, like a section switch. */
+async function openWorkbench({push=true}={}){
+  if(!workbenchOn()||navigating)return;
+  if(workbench){await workbench.navigate();return;}
+  if(board&&!await board.closeTask())return;
+  navigating=true;
+  try{
+    repository.stopWatch?.();await board?.destroy();board=null;nav?.destroy();nav=null;
+    if(push&&!isWorkbenchPath())history.pushState({workbench:true},'','/workbench');
+    // Planning changes from a Workbench drawer go through the drawer's own project, never the last one shown.
+    const planning=projectId=>{const adapter=new PlanningAdapter(repository,projectId);
+      return {confirm:intent=>confirmPlanningChange(adapter,intent),apply:intent=>applyPlanningChange(adapter,intent)};};
+    workbench=await mountWorkbench(root,{repository,session,planning,onSearch:search,onTheme:()=>applyTheme(document.documentElement.dataset.theme==='dark'?'light':'dark'),
+      onSignOut:()=>void(async()=>{await repository.client.request('/logout','POST');location.href='/';})().catch(report),
+      onAccount:()=>void leaveWorkbench(null,null,'#settings/account').catch(report),
+      onOpenProject:(projectId,taskId)=>void leaveWorkbench(projectId,taskId).catch(report)});
+  }finally{navigating=false;}
+}
+/** "Проекты" and "Открыть проект": the project context, with the task open when one is named. */
+async function leaveWorkbench(projectId,taskId,hash='#tasks'){
+  const project=session.projects.find(p=>p.id===projectId)||session.projects.find(p=>p.id===lastProject())||session.projects[0];
+  if(!project)return;
+  history.pushState(null,'',`/?project=${encodeURIComponent(project.slug)}${hash}`);
+  const shown=await showProject(project.id,hash.startsWith('#settings')?'settings':'tasks');
+  if(shown&&taskId&&board?.openTask)await board.openTask(taskId);
+}
+window.addEventListener('popstate',()=>{void(async()=>{
+  if(isWorkbenchPath()){if(workbenchOn())await openWorkbench({push:false});}
+  else if(workbench){const slug=new URL(location.href).searchParams.get('project');await showProject(session.projects.find(p=>p.slug===slug)?.id??lastProject());}
+})().catch(report);});
 /** Command palette entries for the current project and role. */
 function paletteCommands(){
   const go=(mode,hash)=>async()=>{if(hash)history.replaceState(null,'',hash);await navigate(mode);};
@@ -197,7 +238,7 @@ function search(){if(!session||document.querySelector('dialog[open]'))return;ope
   try{if(board&&!await board.closeTask())return;history.replaceState(null,'',item.kind==='map'?'#maps/'+encodeURIComponent(item.id):'#tasks');await showProject(item.projectId,item.kind==='map'?'maps':'tasks');if(item.kind==='task')await board.openTask(item.key);}catch(error){report(error);}
 }});}
 window.addEventListener('keydown',event=>{if((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='k'){event.preventDefault();search();}});
-window.addEventListener('hashchange',()=>{void(async()=>{const task=parseTaskRoute(location.hash);if(task){if(!board?.openTask)await showProject(currentProject.id,'tasks');await board?.openTask?.(task,{fromRoute:true});}else if(location.hash.startsWith('#maps'))await navigate('maps');
+window.addEventListener('hashchange',()=>{if(workbench||isWorkbenchPath())return;void(async()=>{const task=parseTaskRoute(location.hash);if(task){if(!board?.openTask)await showProject(currentProject.id,'tasks');await board?.openTask?.(task,{fromRoute:true});}else if(location.hash.startsWith('#maps'))await navigate('maps');
     else if(location.hash.startsWith('#finance')){if(viewMode==='finance'&&board?.openRoute)await board.openRoute(location.hash);else await navigate('finance');}else if(location.hash.startsWith('#settings')){if(viewMode==='settings'&&board?.navigateSettings){await board.navigateSettings();}else await navigate('settings');}
     else if(['#tasks','#planning'].includes(location.hash)){const mode=location.hash.slice(1);
     // Closing the task drawer returns to the section already on screen: close the drawer, never remount the view
@@ -209,7 +250,9 @@ try{session=await repository.initialize();
   invitationFlow().restore();
   if(await acceptPendingInvitation(repository.client))session=await repository.initialize();
   creatable=await creatableWorkspaces().catch(()=>null);
-  const slug=new URL(location.href).searchParams.get('project');await showProject(session.projects.find(p=>p.slug===slug)?.id??lastProject());}
+  if(isWorkbenchPath()&&workbenchOn())await openWorkbench({push:false});
+  else{if(isWorkbenchPath())history.replaceState(null,'','/');
+  const slug=new URL(location.href).searchParams.get('project');await showProject(session.projects.find(p=>p.slug===slug)?.id??lastProject());}}
 catch(error){
   if(error===STOP){/* The consent screen, or on the way back to it: nothing else to show. */}
   else if(error.status===401){keepAuthorization();await renderSignIn();}

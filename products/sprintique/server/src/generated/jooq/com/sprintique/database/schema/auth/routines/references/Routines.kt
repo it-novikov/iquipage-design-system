@@ -19,6 +19,7 @@ import com.sprintique.database.schema.auth.routines.CompileWorkspacePermissions
 import com.sprintique.database.schema.auth.routines.DefaultPresetPermissions
 import com.sprintique.database.schema.auth.routines.ExplicitServicePermissions
 import com.sprintique.database.schema.auth.routines.NeverServicePermissions
+import com.sprintique.database.schema.auth.routines.OpenRequestsFor
 import com.sprintique.database.schema.auth.routines.PermissionCatalog
 import com.sprintique.database.schema.auth.routines.PermissionClosure
 import com.sprintique.database.schema.auth.routines.PermissionImplies
@@ -452,6 +453,35 @@ fun neverServicePermissions(
 
 fun neverServicePermissions(): Field<Array<String?>?> {
     val f = NeverServicePermissions()
+
+    return f.asField()
+}
+
+fun openRequestsFor(
+      configuration: Configuration
+    , recipient: String?
+): Int? {
+    val f = OpenRequestsFor()
+    f.setRecipient(recipient)
+
+    f.execute(configuration)
+    return f.returnValue
+}
+
+fun openRequestsFor(
+      recipient: String?
+): Field<Int?> {
+    val f = OpenRequestsFor()
+    f.setRecipient(recipient)
+
+    return f.asField()
+}
+
+fun openRequestsFor(
+      recipient: Field<String?>
+): Field<Int?> {
+    val f = OpenRequestsFor()
+    f.setRecipient(recipient)
 
     return f.asField()
 }

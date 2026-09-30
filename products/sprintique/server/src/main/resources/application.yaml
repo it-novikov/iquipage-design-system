@@ -39,6 +39,11 @@ sprintique:
   # Local stand only: synthetic sessions of the settings preview (role:token,...).
   preview-sessions: ${SPRINTIQUE_PREVIEW_SESSIONS:}
   web-root: ${SPRINTIQUE_WEB_ROOT:}
+  # Enabled features (workbench_read_internal, workbench_personal_state, workbench_requests, workbench_waiting,
+  # workbench_plan_horizon, workbench_mvp), `all` or `none`; empty is `all` outside production, `none` in it.
+  features: ${SPRINTIQUE_FEATURES:}
+  workbench:
+    cursor-secret: ${SPRINTIQUE_WORKBENCH_CURSOR_SECRET:}
   database:
     url: ${SPRINTIQUE_DATABASE_URL:}
     worker-url: ${SPRINTIQUE_WORKER_DATABASE_URL:}

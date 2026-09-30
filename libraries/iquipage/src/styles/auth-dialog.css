@@ -3,7 +3,7 @@
 iq-auth-dialog{display:block;width:100%;max-width:440px}
 .iq-auth-dialog{width:100%;max-width:440px;margin:auto;background:var(--iq-raised);border:1px solid var(--iq-line);border-radius:var(--iq-radius-lg);padding:var(--iq-space-10);color:var(--iq-ink)}
 .iq-auth-dialog-brand{display:flex;gap:var(--iq-space-3);align-items:center;font-size:var(--iq-type-title-size);font-weight:500;margin-bottom:var(--iq-space-8)}
-.iq-auth-dialog h1{font-size:var(--iq-type-heading2-size);line-height:1.2;letter-spacing:-.028em;margin:0}
+.iq-auth-dialog h1{font-size:var(--iq-type-heading2-size);line-height:1.2;letter-spacing:var(--iq-tracking-display);margin:0}
 .iq-auth-dialog-description{color:var(--iq-muted);margin:var(--iq-space-3) 0 var(--iq-space-8);line-height:1.6}
 .iq-auth-dialog form{display:grid;gap:var(--iq-space-5)}
 .iq-auth-field{margin-bottom:var(--iq-space-5)}

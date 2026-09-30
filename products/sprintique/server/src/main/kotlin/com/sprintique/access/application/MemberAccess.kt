@@ -13,6 +13,7 @@ import com.sprintique.identity.domain.Actor
 import com.sprintique.identity.domain.Capability
 import com.sprintique.problem.requireCondition
 import com.sprintique.problem.requirePresent
+import com.sprintique.workbench.application.AttentionRequests
 import java.util.UUID
 
 /**
@@ -150,7 +151,7 @@ object MemberAccess {
         )
         val stored = target(tx, projectId, id)
         val effective = ProjectAccess.permissionsOf(stored)
-        if (Permission.TASKS_WRITE !in effective) revokeAgentsIssuedBy(tx, projectId, id)
+        if (Permission.TASKS_WRITE !in effective) stopsChanging(tx, actor, projectId, id)
         recordAccessEvent(
             tx, actor, projectId, "member.permissions.updated", id,
             mapOf(
@@ -194,8 +195,9 @@ object MemberAccess {
         ) {
             AccessEvents.record(tx, id, "project.revoked", projectId, actorId = actor.id)
         }
+        // Orphaned while the actor still sees the project's requests, then the membership goes.
+        stopsChanging(tx, actor, projectId, id)
         tx.update("DELETE FROM app.project_members WHERE project_id = $1 AND principal_id = $2", projectId, id)
-        revokeAgentsIssuedBy(tx, projectId, id)
         return linkedMapOf("id" to id, "role" to null, "revision" to baseRevision + 1)
     }
 
@@ -309,7 +311,7 @@ object MemberAccess {
             "Новый администратор не получил «Управлять доступом».",
         )
         if (Permission.TASKS_WRITE !in ProjectAccess.permissionsOf(target(tx, projectId, actor.id))) {
-            revokeAgentsIssuedBy(tx, projectId, actor.id)
+            stopsChanging(tx, actor, projectId, actor.id)
         }
         recordAccessEvent(tx, actor, projectId, "member.handover", toId, mapOf("to" to toId, "ownPreset" to own.name))
         return linkedMapOf("administratorId" to toId, "presetId" to own.id)
@@ -521,6 +523,16 @@ object MemberAccess {
             leaving,
         )!!.int("n")
         requireCondition(others > 0, 409, "LAST_ADMIN", "Сначала назначьте другого администратора.")
+    }
+
+    /**
+     * A person leaves the project or can no longer change tasks there: the agent tokens they issued stop, and the
+     * requests addressed to them become orphaned for the requester to reassign (docs/adr W1), never silently gone.
+     * Row security shows the requests to a member of the project only, so the actor orphans them while one.
+     */
+    fun stopsChanging(tx: Transaction, actor: Actor, projectId: String, principalId: String) {
+        revokeAgentsIssuedBy(tx, projectId, principalId)
+        AttentionRequests.orphanRecipient(tx, actor, projectId, principalId)
     }
 
     /** Agent tokens a person issued in the project stop when that person leaves or can no longer change tasks. */
