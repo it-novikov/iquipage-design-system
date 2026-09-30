@@ -8,7 +8,7 @@ owner: it-novikov
 branch: feature/workbench
 base: main
 created: 2026-09-29
-updated: 2026-09-29T16:01:00Z
+updated: 2026-09-30T08:19:47Z
 links:
   - https://claude.ai/artifact/RHgUPWLj3TsT7Rq1QRJNQm
 ---
@@ -21,27 +21,27 @@ links:
 
 ## Рамки
 
-- **Входит:** ADR W1–W6 (docs/adr); миграции 028–029 + RLS (task_personal_state, task_wait_state, attention_requests, private_receipts, workbench_preferences, task_activity); `GET /api/v1/workbench` (один snapshot), страницы секций с подписанными курсорами, `GET /api/v1/workbench/plan`; личные команды follow/focus/seen/snooze, запросы (create/patch/resolve/reopen/cancel), «Жду» (POST/PATCH/DELETE); синхронизация с обсуждениями, утверждениями и потерей членства; UI «Сейчас» и «План», маршрут `/workbench/tasks/:projectId/:taskId`, глобальный пункт «Рабочий стол»; флаги `workbench_*`.
+- **Входит:** ADR W1–W6 (docs/adr); миграции 028–029 + RLS (task_personal_state, task_wait_state, attention_requests, private_receipts, workbench_preferences, task_activity); `GET /api/v1/workbench` (один snapshot), страницы секций с подписанными курсорами, `GET /api/v1/workbench/plan`; личные команды participation/rank/seen/snooze/check-back («Участвую» — решение владельца 2026-09-30), запросы (create/patch/resolve/reopen/cancel), «Жду» как производное от участия и назначения; синхронизация с обсуждениями, утверждениями и потерей членства; маршрут `/workbench/tasks/:projectId/:taskId` на сервере (UI «Сейчас»/«План» поставлен владельцем на паузу до дизайна v2, черновик — ветка `feature/workbench-ui-draft`); флаги `workbench_*`.
 - **Не входит:** ассистент, bulk, календари/встречи, портфельный контроль, гипотезы, связи идей (P1), `created_by`, мьют.
 - **Ограничения:** только релиз DS из vendor/ (DS-пробелы записать, DS не патчить); продуктовый CSS с префиксом `dsk-` под `check:styles`; миграции additive с `V20260929000028` (025–027 заняты ветками finance, large files, public API/MCP — мерж после них или перенумерация перед мержем); Docker только контекст `colima-sprintique-vnext-qa`; данные стенда и `output/infra/*` не трогать; не мержить.
 
 ## Приёмка
 
 - [x] A1. A1. ADR W1–W6 и контракт маршрута/drawer записаны и решают вопросы §2 delivery-plan
-- [ ] A2. A2. Миграции 028–029 additive, RLS: личное состояние, ожидание и квитанции видит только владелец; запросы и активность — только участники проекта; jOOQ совпадает со схемой
-- [ ] A3. A3. GET /workbench: один snapshot, дедупликация до пагинации, точные счётчики action/current, updates ≤99+, подписанные курсоры (actor/filter/epoch/expiry), no-store, жёсткие лимиты; матрица включения §15 зелёная
-- [ ] A4. A4. Личные команды follow/focus/seen/snooze с независимыми ревизиями, ключом повтора и приватной квитанцией, без общих событий; запросы с точным адресатом, CAS, синхронизацией источника и потерей членства; «Жду» с явным opt-in и checkBackAt
+- [x] A2. A2. Миграции 028–029 additive, RLS: личное состояние, ожидание и квитанции видит только владелец; запросы и активность — только участники проекта; jOOQ совпадает со схемой
+- [x] A3. A3. GET /workbench: один snapshot, дедупликация до пагинации, точные счётчики action/current, updates ≤99+, подписанные курсоры (actor/filter/epoch/expiry), no-store, жёсткие лимиты; матрица включения §15 зелёная
+- [x] A4. A4. Личные команды follow/focus/seen/snooze с независимыми ревизиями, ключом повтора и приватной квитанцией, без общих событий; запросы с точным адресатом, CAS, синхронизацией источника и потерей членства; «Жду» с явным opt-in и checkBackAt
 - [ ] A5. A5. UI «Сейчас» и «План» на композициях DS, все состояния секций, drawer по /workbench/tasks/:projectId/:taskId с восстановлением фокуса, 390/320, WCAG 2.2 AA
-- [ ] A6. A6. Флаги workbench_* в конфигурации сервера: выключены в production по умолчанию, включены в тестах и локально
+- [x] A6. A6. Флаги workbench_* в конфигурации сервера: выключены в production по умолчанию, включены в тестах и локально
 - [ ] A7. A7. Гейты: npm test продукта с S3, backend unit+integration, корневой verify-vnext — зелёные без пропусков; ревью R1 и R2 записаны; PR открыт
 
 ## Передача
 
-- **Состояние:** S1 готов: ADR W1–W6
-- **Сейчас:** S2 — миграции 028–029
-- **Дальше:** Написать V20260929000028__add_workbench.sql
+- **Состояние:** Бэкенд готов на модели «Участвую» (cd5b006); R1 закрыт; UI на паузе
+- **Сейчас:** S5 — полный npm test, verify-vnext, ревью R2, PR бэкенда
+- **Дальше:** Дождаться npm test, запустить verify-vnext и R2
 - **Незакоммичено:** нет
-- **Рабочая копия:** 2 файл(ов): products/sprintique/docs/adr/, products/sprintique/docs/workbench/ · HEAD f05dee6
+- **Рабочая копия:** 5 файл(ов): products/sprintique/contracts/workbench.ts, products/sprintique/server/src/main/kotlin/com/sprintique/workbench/application/Plan.kt, products/sprintique/tests/workbench.test.ts, products/sprintique/web/main.js, products/sprintique/docs/task-drawer/ (6 files changed, 45 insertions(+), 17 deletions(-)) · HEAD cd5b006
 
 ## План
 
@@ -54,31 +54,34 @@ links:
 - **Покрывает:** A1
 - **Итог:** ADR W1–W6 + README в docs/adr; контракт маршрута — W6
 
-### S2. WP1: миграции и RLS [active]
+### S2. WP1: миграции и RLS [done]
 - **Что:** 028 таблицы+RLS, 029 task_activity+триггеры, jOOQ
 - **Как:** additive SQL, afterMigrate REVOKE, test.mjs --jooq
 - **Зачем:** Основа проекции и приватности
 - **Приёмка:**
-  - [ ] Миграции применяются, jOOQ drift зелёный
+  - [x] Миграции применяются, jOOQ drift зелёный
 - **Покрывает:** A2
+- **Итог:** dc07a45; миграции применяются в тестовом кластере, JooqSchemaDriftIntegrationTest зелёный
 
-### S3. WP1–WP2: сервер [todo]
+### S3. WP1–WP2: сервер [done]
 - **Что:** Проекция, курсоры, план, личные команды, запросы, ожидание, флаги
 - **Как:** модуль workbench (application/api), HTTP-тесты workbench*.test.ts, unit-тесты курсора и горизонта
 - **Зачем:** Контракт §4–§8
 - **Приёмка:**
-  - [ ] Тесты §15 зелёные, R1 проведено
+  - [x] Тесты §15 зелёные, R1 проведено
 - **Покрывает:** A3,A4,A6
+- **Итог:** 13631cf, 6413578, 8c22f49, 5031765 (R1), cd5b006 («Участвую»); workbench.test.ts 14/14, unit 15/15, integration 25/25 вкл. ёмкость
 
-### S4. WP3: UI Сейчас и План [todo]
+### S4. WP3: UI Сейчас и План [blocked]
 - **Что:** web/workbench/*, dsk-* CSS, маршрут, глобальный пункт
 - **Как:** композиции PR #19, drawer задачи, стенд
 - **Зачем:** Внешний MVP
 - **Приёмка:**
   - [ ] Скриншоты 1440 светлая/тёмная, 390/320; клавиатура
 - **Покрывает:** A5
+- **Итог:** Владелец 2026-09-30: UI «набор таблиц» не принят, новый раунд дизайна; черновик сохранён в ветке feature/workbench-ui-draft (6f7e6e1)
 
-### S5. Гейты, ревью R2, PR [todo]
+### S5. Гейты, ревью R2, PR [active]
 - **Что:** npm test, verify-vnext, R2, PR
 - **Как:** полные гейты, субагент-ревью
 - **Зачем:** Release gate
@@ -89,6 +92,8 @@ links:
 ## Решения
 
 - **D1** (2026-09-29) ADR лежат в products/sprintique/docs/adr/ (W1–W6), как велено в задаче, а не в docs/decisions — отдельная серия решений Рабочего стола со ссылкой из README
+- **D2** (2026-09-29) Модель личного состояния по решению владельца: один приватный флаг «Участвую» вместо фокуса и подписки; «Жду» выводится из участия и назначения задачи мной, отдельной таблицы task_wait_state нет; миграции 028–029 правятся на месте (ветка не слита)
+- **D3** (2026-09-29) UI Рабочего стола поставлен на паузу владельцем (новый раунд дизайна): PR — только бэкенд; черновик UI отложен в stash/отдельную ветку
 
 ## Вопросы
 

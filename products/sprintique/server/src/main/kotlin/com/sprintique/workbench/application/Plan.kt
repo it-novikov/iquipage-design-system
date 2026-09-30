@@ -123,6 +123,11 @@ object Plan {
                     "displayId" to row["display_id"],
                     "title" to row["title"],
                     "status" to row["status"],
+                    "statusCategory" to when {
+                        row["done"] == true -> "done"
+                        row["status"] == "ready" -> "todo"
+                        else -> "active"
+                    },
                     "done" to row["done"],
                     "revision" to row["task_revision"],
                 )

@@ -56,7 +56,7 @@ export interface WorkbenchEnvelope {mode:'now';generatedAt:string;snapshotToken:
 export interface WorkbenchPage {section:string;generatedAt:string;count:number;items:WorkbenchRow[];nextCursor:string|null}
 export interface PlanItem {key:string;kind:'due'|'planned'|'neededBy'|'checkBack'|'milestone'|'undated';day:string;date:string|null;overdue:boolean;
   startDate:string|null;endDate:string|null;projectId:string;projectName:string;workspaceName?:string;
-  task:{id:string;displayId:string;title:string;status:string;done:boolean;revision:number}|null;
+  task:{id:string;displayId:string;title:string;status:string;statusCategory:'todo'|'active'|'done';done:boolean;revision:number}|null;
   milestone:{id:string;title:string}|null;requestId:string|null;canonicalUrl:string|null}
 export interface PlanHorizon {horizon:'today'|'7d';timezone:string;timezoneSource:'request'|'preference'|'default';preferredTimezone:string|null;
   generatedAt:string;today:string;from:string;to:string;days:{date:string;items:PlanItem[]}[];undated:PlanItem[];truncated:boolean}

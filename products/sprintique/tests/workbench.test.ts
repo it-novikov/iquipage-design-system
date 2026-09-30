@@ -413,6 +413,7 @@ test('W09 plan: today and seven days keep due, planned, answer, check-back and m
   const kinds=today1.days[0]!.items.map(i=>`${i.kind}:${i.task?.id??i.milestone?.id}`).sort();
   assert.deepEqual(kinds,['due:due-today','due:overdue']);
   assert.equal(today1.days[0]!.items.find(i=>i.task?.id==='overdue')!.overdue,true);
+  assert.equal(today1.days[0]!.items.find(i=>i.task?.id==='overdue')!.task!.statusCategory,'active');
   assert.deepEqual(today1.undated.map(i=>i.task!.id),['undated']);
   const week=await plan(`horizon=7d&timezone=UTC&projects=${p},${hidden}`);
   assert.equal(week.days.length,7);assert.equal(week.to,inDays(6));

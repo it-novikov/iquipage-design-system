@@ -21,3 +21,19 @@
 - 2026-09-29T16:01:00Z · claude-opus-5-5 · note · A1 · критерий приёмки выполнен
 - 2026-09-29T16:01:00Z · claude-opus-5-5 · step · S2 · active
 - 2026-09-29T16:01:00Z · claude-opus-5-5 · checkpoint · S2 · дальше: Написать V20260929000028__add_workbench.sql
+- 2026-09-29T20:34:24Z · claude-opus-5-5 · checkpoint · S3 · дальше: Написать WorkbenchController и contracts/workbench.ts
+- 2026-09-29T20:49:41Z · claude-opus-5-5 · step · S2 · done: dc07a45; миграции применяются в тестовом кластере, JooqSchemaDriftIntegrationTest зелёный
+- 2026-09-29T20:49:41Z · claude-opus-5-5 · note · A2 · критерий приёмки выполнен
+- 2026-09-29T20:49:41Z · claude-opus-5-5 · step · S3 · active
+- 2026-09-29T20:49:41Z · claude-opus-5-5 · checkpoint · S3 · дальше: Дождаться R1, исправить замечания, затем S4 UI в web/workbench
+- 2026-09-29T20:49:54Z · r1-backend · review · R1 · начато ревью, раунд 1
+- 2026-09-29T21:11:08Z · claude-opus-5-5 · decision · D2 · Модель личного состояния по решению владельца: один приватный флаг «Участвую» вместо фокуса и подписки; «Жду» выводится из участия и назначения задачи мной, отдельной таблицы task_wait_state нет; миграции 028–029 правятся на месте (ветка не слита)
+- 2026-09-29T21:11:08Z · claude-opus-5-5 · decision · D3 · UI Рабочего стола поставлен на паузу владельцем (новый раунд дизайна): PR — только бэкенд; черновик UI отложен в stash/отдельную ветку
+- 2026-09-29T21:11:08Z · claude-opus-5-5 · checkpoint · S3 · дальше: Переписать V20260929000028 (participating/rank/check_back_at, без task_wait_state)
+- 2026-09-30T08:19:47Z · claude-opus-5-5 · step · S3 · done: 13631cf, 6413578, 8c22f49, 5031765 (R1), cd5b006 («Участвую»); workbench.test.ts 14/14, unit 15/15, integration 25/25 вкл. ёмкость
+- 2026-09-30T08:19:47Z · claude-opus-5-5 · note · A3 · критерий приёмки выполнен
+- 2026-09-30T08:19:47Z · claude-opus-5-5 · note · A4 · критерий приёмки выполнен
+- 2026-09-30T08:19:47Z · claude-opus-5-5 · note · A6 · критерий приёмки выполнен
+- 2026-09-30T08:19:47Z · claude-opus-5-5 · step · S4 · blocked: Владелец 2026-09-30: UI «набор таблиц» не принят, новый раунд дизайна; черновик сохранён в ветке feature/workbench-ui-draft (6f7e6e1)
+- 2026-09-30T08:19:47Z · claude-opus-5-5 · step · S5 · active
+- 2026-09-30T08:19:47Z · claude-opus-5-5 · checkpoint · S5 · дальше: Дождаться npm test, запустить verify-vnext и R2

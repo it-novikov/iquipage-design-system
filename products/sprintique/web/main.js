@@ -189,6 +189,8 @@ try{session=await repository.initialize();
   const pending=sessionStorage.getItem('sprintique.pending-invitation');sessionStorage.removeItem('sprintique.pending-invitation');
   if(pending&&/^invite_[A-Za-z0-9_-]{43}$/.test(pending)&&!location.hash.startsWith('#invite/'))history.replaceState(null,'','#invite/'+pending);
   if(await acceptPendingInvitation(repository.client))session=await repository.initialize();
+  // The Workbench pages (/workbench…) have no interface yet (its v2 design is pending): open the last project.
+  if(location.pathname.startsWith('/workbench'))history.replaceState(null,'','/'+location.search+location.hash);
   const slug=new URL(location.href).searchParams.get('project');await showProject(session.projects.find(p=>p.slug===slug)?.id??lastProject());}
 catch(error){
   if(error.status===401)await renderSignIn();
