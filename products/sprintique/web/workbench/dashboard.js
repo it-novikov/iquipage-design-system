@@ -161,7 +161,7 @@ export function mountDashboard(host,{mode,api,repository,projects,filter,prefs,s
     rows=new Map();
     const refresh=changed?`<div class="dsk-refresh" role="status">${ui.btn('Появились изменения. Обновить','secondary sm','refresh','data-refresh-plaque')}</div>`:'';
     host.innerHTML=`${refresh}<div class="dsk-grid${wide?' dsk-list2':''}">${requestsSection()}${todaySection()}${currentSection()}${changesSection()}${backlogSection()}</div>`;
-    arm(host);summary();
+    arm(host);summary();actions.restore(host);
   }
 
   async function loadMore(key,button){

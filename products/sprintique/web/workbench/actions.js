@@ -30,17 +30,24 @@ export function createActions({api,repository,view,projects,filter,openTask,open
    */
   function settle(li,{text,undo=null,tone='success'}){
     const key=li.dataset.key,following=next(li),wasFocused=li.dataset.hadFocus==='true'||li.contains(document.activeElement);
-    li.dataset.state='done';li.removeAttribute('tabindex');
-    const line=document.createElement('div');line.className='dsk-row-done';line.setAttribute('role','status');line.dataset.tone=tone;
-    line.innerHTML=`${icon(tone==='success'?'checkCircle':'info',16)}<span>${text}</span>${undo?'<button type="button" class="iq-btn ghost sm" data-undo>Отменить</button>':''}`;
-    li.append(line);
+    const list=li.closest('[data-list]');
+    const entry={text,undo,tone,timer:null,node:li,section:list?.closest('section[id]')?.id||null,index:list?[...list.children].indexOf(li):-1};
+    clearTimeout(pending.get(key)?.timer);
+    entry.timer=setTimeout(()=>{pending.delete(key);void view.reload();},UNDO_MS);
+    pending.set(key,entry);
+    paint(li,key,entry);
     if(wasFocused)(following?focusRow(following):view.focusSection(li));
-    clearTimeout(pending.get(key));
-    const finish=()=>{pending.delete(key);void view.reload();};
-    pending.set(key,setTimeout(finish,UNDO_MS));
+  }
+  /** The row's "done" state and its line; painted again after any re-render while the undo is still open. */
+  function paint(li,key,entry){
+    li.dataset.state='done';li.removeAttribute('tabindex');li.querySelector('.dsk-row-done')?.remove();
+    const line=document.createElement('div');line.className='dsk-row-done';line.setAttribute('role','status');line.dataset.tone=entry.tone;
+    line.innerHTML=`${icon(entry.tone==='success'?'checkCircle':'info',16)}<span>${entry.text}</span>${entry.undo?'<button type="button" class="iq-btn ghost sm" data-undo>Отменить</button>':''}`;
+    li.append(line);
     line.querySelector('[data-undo]')?.addEventListener('click',()=>void(async()=>{
-      clearTimeout(pending.get(key));pending.delete(key);
-      try{await undo();announce('Отменено');}catch(error){fail(li,error);}
+      const open=pending.get(key);if(!open)return;
+      clearTimeout(open.timer);pending.delete(key);line.querySelector('[data-undo]').disabled=true;
+      try{await entry.undo();announce('Отменено');}catch(error){fail(li,error);}
       await view.reload({focusKey:key});
     })());
   }
@@ -155,6 +162,18 @@ export function createActions({api,repository,view,projects,filter,openTask,open
     open:row=>openTask(row),
     openProject:row=>openProject(row.projectId,row.taskId),
     pendingKeys:()=>[...pending.keys()],
-    destroy(){for(const timer of pending.values())clearTimeout(timer);pending.clear();},
+    /** After a re-render: rows whose undo is still open show their line again (never lost to another reload). */
+    restore(host){
+      for(const [key,entry] of pending){
+        let li=host.querySelector(`[data-row][data-key="${CSS.escape(key)}"]`);
+        if(!li){
+          // The row has left its list (a resolved request): its line stays where it was until the undo closes.
+          const list=entry.section&&host.querySelector(`#${CSS.escape(entry.section)} [data-list]`);if(!list)continue;
+          li=entry.node;list.insertBefore(li,list.children[entry.index]||null);
+        }
+        paint(li,key,entry);
+      }
+    },
+    destroy(){for(const entry of pending.values())clearTimeout(entry.timer);pending.clear();},
   };
 }
