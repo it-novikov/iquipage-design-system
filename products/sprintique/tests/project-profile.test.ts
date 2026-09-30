@@ -26,7 +26,8 @@ test('Q02 workspace profile and roles are independent, CAS protected and the own
   assert.equal((await call('PATCH',base+'/members/'+f.reader.id,{baseRevision:1,role:'admin'})).statusCode,200);
   // The owner and the administrator both demote the administrator at once: CAS lets exactly one through.
   const results=await Promise.all([call('PATCH',base+'/members/'+f.reader.id,{baseRevision:2,role:'member'}),call('PATCH',base+'/members/'+f.reader.id,{baseRevision:2,role:'member'},f.reader)]);
-  assert.deepEqual(results.map(r=>r.statusCode).sort(),[200,409]);
+  // The loser either sees the changed revision (409) or, when the owner won first, has lost the right itself (403).
+  const codes=results.map(r=>r.statusCode).sort();assert.equal(codes[0],200);assert.ok([403,409].includes(codes[1]!),String(codes));
   const projectRole=(await call('GET','session',undefined,f.reader)).json().projects.find((p:{id:string})=>p.id===f.first.id).role;assert.equal(projectRole,'reader');
 });
 test('Q03 workspace catalog authority does not grant project content or profile write authority',async()=>{
