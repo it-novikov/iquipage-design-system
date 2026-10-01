@@ -2,14 +2,15 @@
 bridge: 1
 id: 20260930-relation-graph-v2
 title: "Граф связей v2: «Ступица» со словами на рёбрах (DS iq-relation-map)"
-status: active
+status: review
 risk: standard
 owner: nvkv71
 branch: feature/relation-graph-v2
 base: main
 created: 2026-09-30
-updated: 2026-10-01T07:26:37Z
+updated: 2026-10-01T07:27:03Z
 links:
+  - https://github.com/it-novikov/iquipage-design-system/pull/39
 ---
 
 # Граф связей v2: «Ступица» со словами на рёбрах (DS iq-relation-map)

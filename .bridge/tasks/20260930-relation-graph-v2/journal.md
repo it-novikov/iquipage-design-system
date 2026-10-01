@@ -20,3 +20,4 @@
 - 2026-10-01T07:26:37Z · claude · note · S2 · добавлен шаг: Релиз DS vnext.26 и принятие
 - 2026-10-01T07:26:37Z · claude · step · S1 · done: relation-map.js и foundation.css переписаны; board.css без вставки
 - 2026-10-01T07:26:37Z · claude · step · S2 · done: DS 387/387, продукт 341/341, verify-vnext PASS; vnext.26 в vendor
+- 2026-10-01T07:27:03Z · claude · status · - · review: PR #39 открыт
