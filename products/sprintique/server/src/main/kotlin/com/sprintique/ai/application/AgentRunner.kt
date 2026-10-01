@@ -107,7 +107,7 @@ class AgentRunner(
             }
             val context = AiConnections.context(text("connectionId").orEmpty())
             val key = text("sealed")?.let { sealed ->
-                box.open(Base64.getDecoder().decode(sealed), run.path("keyVersion").intValue(), context)
+                box.open(Base64.getMimeDecoder().decode(sealed), run.path("keyVersion").intValue(), context)
             } ?: return fail("AI_KEY_UNREADABLE")
             val endpoint = Endpoint(AiProvider.fromWire(text("provider"))!!, text("baseUrl")!!, key)
             val (system, specs) = setup() ?: return finish(lease, "failed", "ACCESS_LOST", null)

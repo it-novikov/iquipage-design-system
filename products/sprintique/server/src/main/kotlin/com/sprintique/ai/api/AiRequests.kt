@@ -96,3 +96,7 @@ data class StartTaskAgentRunRequest(
     @field:Pattern(regexp = RESOURCE_ID)
     val accountId: String,
 )
+
+/** «Проверить» a connection and «Остановить» a run: commands without fields. */
+@Schema(name = "AiCommand")
+class AiCommandRequest

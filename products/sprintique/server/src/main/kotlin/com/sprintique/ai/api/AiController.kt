@@ -100,6 +100,7 @@ class AiController(
      * outside any, and its outcome is recorded in another.
      */
     @PostMapping("/api/v1/workspaces/{workspaceId}/ai-connections/{id}/check")
+    @Accepts(AiCommandRequest::class)
     fun check(@PathVariable workspaceId: String, @PathVariable id: String, request: HttpServletRequest): Any {
         val workspace = workspace(workspaceId)
         val connection = uuid(id)
@@ -160,6 +161,7 @@ class AiController(
     }
 
     @PostMapping("/api/v1/projects/{projectId}/tasks/{taskId}/agent-runs/{runId}/stop")
+    @Accepts(AiCommandRequest::class)
     fun stop(
         @PathVariable projectId: String,
         @PathVariable taskId: String,

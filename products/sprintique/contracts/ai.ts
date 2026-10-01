@@ -20,4 +20,6 @@ export const AgentSettings=z.strictObject({baseRevision:Revision,enabled:z.boole
   maxSteps:z.number().int().min(1).max(50).default(12),maxOutputTokens:z.number().int().min(256).max(32000).default(2048),
   runsPerHour:z.number().int().min(1).max(200).default(20)});
 export const StartTaskAgentRun=z.strictObject({accountId:Id});
-export const aiSchemas={CreateAiConnection,UpdateAiConnection,AgentSettings,StartTaskAgentRun};
+/** «Проверить» a connection and «Остановить» a run carry no fields. */
+export const AiCommand=z.strictObject({});
+export const aiSchemas={CreateAiConnection,UpdateAiConnection,AgentSettings,StartTaskAgentRun,AiCommand};
