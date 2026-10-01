@@ -15,6 +15,7 @@ import {mountTaskDescription} from './description-view.js';
 import {copyAtButton,motionReduced,ui,notify,formatDate} from '@iquipage/web/core';
 import {taskKey,taskURL} from './task-route.js';
 import {avatarName,ownerOptions,ownerWarning} from './assignees.js';
+import {mountAgentRuns} from './agent-runs-view.js';
 
 export async function openTaskDialog(task,{repository,project,tasks,canEdit=true,canManage=true,attachmentAdapter=null,status='ready',initialValues={},fullscreen=false,backTo=null,onBack=()=>{},onOpenTask,onReload=onOpenTask&&(()=>onOpenTask(task.id)),onSaved=()=>{},isActive=()=>true,signal,replace=null,supplement=null}){
   signal?.throwIfAborted();const initialTask=task;
@@ -36,7 +37,7 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
   let files,description;
   // Existing tasks save each field as it changes; a new task is created deliberately with one button.
   const autosave=!!task&&canEdit;
-  let current=task,baseline='',saving=false,confirming=false,priorityTouched=false,catalogs,threads,links,plan,pendingPlan=null,personal=null;
+  let current=task,baseline='',saving=false,confirming=false,priorityTouched=false,catalogs,threads,links,plan,pendingPlan=null,personal=null,agents=null;
   // Owners are the people of the project and, in a group of their own, the service accounts that may take tasks
   // (SPR-7). A former member, an account that can no longer act or pre-membership text stays visible until reassigned.
   const owners=ownerOptions(members,initial,{image:m=>repository.client?.avatarUrl?.(m.id,m.avatarRevision)||undefined});
@@ -117,6 +118,7 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
     <section class="iq-section task-relations"><div class="iq-section-head">${icon('link',16)}<h3>Связи</h3><span class="iq-section-count" data-relations-count></span><span class="iq-section-actions" data-relations-actions></span></div>
       ${task?'<div data-task-links></div>':'<p class="iq-helper">Подзадачи и связи с другими задачами можно добавить после создания.</p>'}</section>
     <section class="iq-section task-files-section" data-task-files></section>
+    <section class="task-agent-section" data-task-agents aria-label="Агенты" hidden></section>
     <section class="iq-section task-threads-section" data-task-threads></section></div></div><p role="status" class="iq-helper" data-task-save-state></p>`;
   const read=(form,values=new FormData(form))=>({
     title:String(values.get('title')||'').trim(),type:values.get('type')||'task',status:values.get('status'),
@@ -197,6 +199,8 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
       if(task&&supplement)personal=supplement({root:form.querySelector('[data-task-personal]'),actions:form.querySelector('.task-dialog-actions'),task,dialog:el});
       if(task)threads=mountThreads(form.querySelector('[data-task-threads]'),{repository,task,readOnly:!canDiscuss,people:new Map(members.map(m=>[m.id,m])),actorId:repository.context?.actorId||'local-user'});
       else form.querySelector('[data-task-threads]').hidden=true;
+      // Agents of service accounts: a quiet header action and one line above the discussion (docs/decisions/0005-ai-agents.md).
+      if(task&&repository.capabilities?.aiAgents)agents=mountAgentRuns(form.querySelector('[data-task-agents]'),{repository,project,task,actions:form.querySelector('.task-dialog-actions')});
       function applyTemplate(changePriority=false){
         const result=instantiateTaskTemplate(settings,form.querySelector('iq-select[name=type]').value);
         editor.value=taskMarkdown(result);
@@ -342,7 +346,7 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
       };
       window.addEventListener('beforeunload',unload);
       el.addEventListener('iq-close',()=>{
-        clearTimeout(timer);window.removeEventListener('beforeunload',unload);description.destroy();files.destroy();catalogs.destroy();plan.destroy();threads?.destroy();links?.destroy();personal?.destroy?.();
+        clearTimeout(timer);window.removeEventListener('beforeunload',unload);description.destroy();files.destroy();catalogs.destroy();plan.destroy();threads?.destroy();agents?.destroy();links?.destroy();personal?.destroy?.();
       },{once:true});
       // Read-only facts are text, not controls: there is nothing to compare.
       baseline=canEdit?JSON.stringify(read(form)):'';

@@ -5,6 +5,7 @@ import {openPermissionEditor} from './permission-editor.js';
 import {inactiveGrants,ordered} from './permissions.js';
 import {workspaceRoleNames} from './invitation-model.js';
 import * as s from './settings-ui.js';
+import {mountAgentProfile} from './agent-profile.js';
 
 // «Сервисные аккаунты» (Для меня): how apps (Claude and other MCP clients) and scripts reach Sprintique. An app never
 // acts as a person; it acts as a service account that a person made in a workspace and owns. Its rights are the
@@ -87,6 +88,7 @@ export async function mountServiceAccounts(root,{repository,tools}){
       ${s.group({title:'Подключения',count:connections,description:`Что работает через этот аккаунт. Отключение действует сразу; токен показывается один раз.${a.mine?'':' Токены выпускает только владелец.'}`,
         actions:a.mine&&!a.suspended?ui.btn('Выпустить токен','secondary sm','lock','data-token-create'):'',
         body:s.panel(a.apps.map(appRow).join('')+a.tokens.map(tokenRow).join('')||s.empty({title:'Подключений нет',body:'Приложение подключается само, когда вы выбираете этот аккаунт на экране согласия. Для скрипта выпустите токен.',glyph:'spark'}),'ul')})}
+      <div data-agent-section></div>
       ${s.group({title:'Проекты',count:a.projects.length,description:'Права выдаются в каждом проекте отдельно, как людям: сервисный пресет, добавления и исключения. Не шире прав владельца в этом проекте.',
         actions:addable?ui.btn('Добавить в проект','secondary sm','plus','data-project-add'):'',
         body:s.panel(a.projects.map(projectRow).join('')||s.empty({title:'Проектов нет',body:'Без проектов аккаунт ничего не видит.',glyph:'folder'}),'ul')})}
@@ -97,6 +99,8 @@ export async function mountServiceAccounts(root,{repository,tools}){
     if(closed)return;const a=accounts.find(x=>x.id===selected);
     if(a)renderAccount(a);else{selected=null;renderList();}
     enhance(root);if(focus)root.querySelector(focus)?.focus({preventScroll:true});
+    // The account's agent, for those who manage it, when the server runs agents (docs/decisions/0005-ai-agents.md).
+    if(a&&!a.suspended&&repository.capabilities?.aiAgents)void mountAgentProfile(root.querySelector('[data-agent-section]'),{client,account:a,track}).catch(fail);
   }
   async function refresh(){
     if(closed||modal)return;const sequence=++loading;
