@@ -8,7 +8,7 @@ owner: nvkv71
 branch: feature/ai-connections
 base: main
 created: 2026-10-01
-updated: 2026-10-01T22:57:18Z
+updated: 2026-10-01T23:20:36Z
 links:
 ---
 
@@ -30,15 +30,15 @@ links:
 - [x] A2. Исходящий HTTP: таймауты, без редиректов, лимит ответа, запрет приватных/loopback/link-local адресов кроме явного allowlist; ключи не логируются, ошибки провайдера очищены
 - [x] A3. Профиль агента на сервисном аккаунте: подключение, модель, инструкции ≤ 8000, триггеры (назначение, ручной запуск), лимиты шагов/токенов/запусков в час, вкл/выкл
 - [x] A4. Исполнение: цикл вызова инструментов в нативном формате Anthropic/OpenAI через те же операции, что MCP, от имени сервисного аккаунта (права, RLS, аудит, потолок владельца); шаги, токены, идемпотентность; итоговый или аварийный комментарий; остановка
-- [ ] A5. UI: «ИИ-подключения» в настройках пространства, раздел «Агент» у сервисного аккаунта, «Запустить агента» и строка статуса в задаче; только DS, русский текст
+- [x] A5. UI: «ИИ-подключения» в настройках пространства, раздел «Агент» у сервисного аккаунта, «Запустить агента» и строка статуса в задаче; только DS, русский текст
 - [ ] A6. Тесты (фейковые провайдеры, шифрование, SSRF, права, prompt injection, триггеры, лимиты, стоп), документация (operations.md, ADR), гейты npm test и verify-vnext зелёные, PR открыт и не слит
 
 ## Передача
 
-- **Состояние:** Слит main с #40 и #41; триггер по упоминанию; самопроверка и скриншоты сделаны
-- **Дальше:** Гейты npm test и verify-vnext, PR
+- **Состояние:** PR открывается как draft: гейты упираются в тест производительности main
+- **Дальше:** Решение владельца по WorkbenchCapacityIntegrationTest; ревью; мёрж владельцем
 - **Незакоммичено:** нет
-- **Рабочая копия:** 28 файл(ов): products/sprintique/contracts/ai.ts, products/sprintique/docs/decisions/0005-ai-agents.md, products/sprintique/docs/operations.md, products/sprintique/server/src/generated/jooq/com/sprintique/database/schema/app/App.kt, products/sprintique/server/src/generated/jooq/com/sprintique/database/schema/app/routines/references/Routines.kt, products/sprintique/server/src/generated/jooq/com/sprintique/database/schema/app/tables/AiAgentProfiles.kt, products/sprintique/server/src/generated/jooq/com/sprintique/database/schema/app/tables/AiAgentRuns.kt, products/sprintique/server/src/generated/jooq/com/sprintique/database/schema/app/tables/records/AiAgentProfilesRecord.kt, products/sprintique/server/src/generated/jooq/com/sprintique/database/schema/app/tables/records/AiAgentRunsRecord.kt, products/sprintique/server/src/generated/jooq/com/sprintique/database/schema/app/tables/references/Tables.kt, products/sprintique/server/src/main/kotlin/com/sprintique/ai/api/AiController.kt, products/sprintique/server/src/main/kotlin/com/sprintique/ai/api/AiRequests.kt и ещё 16 (22 files changed, 397 insertions(+), 24 deletions(-)) · HEAD a992664
+- **Рабочая копия:** нет · HEAD f0d94de
 
 ## План
 
@@ -78,15 +78,16 @@ links:
 - **Покрывает:** A4
 - **Итог:** AI03–AI09, AI12, AI13
 
-### S5. Интерфейс [active]
+### S5. Интерфейс [done]
 - **Что:** ИИ-подключения, Агент, действие в задаче
 - **Как:** Только DS, русский текст
 - **Зачем:** Управление из интерфейса
 - **Приёмка:**
-  - [ ] снимки экрана в тёмной теме
+  - [x] снимки экрана в тёмной теме
 - **Покрывает:** A5
+- **Итог:** скриншоты ai-shots (тёмная тема), 8e6bd59 полный текст длинного комментария, a87ab4e
 
-### S6. Тесты, документы, гейты, PR [todo]
+### S6. Тесты, документы, гейты, PR [active]
 - **Что:** AI01–AI14, юнит-тесты, ADR 0005, operations.md
 - **Как:** npm test и verify-vnext
 - **Зачем:** Приёмка
