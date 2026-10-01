@@ -22,9 +22,10 @@ export async function mountNotificationSettings(root,{repository}){
     const waitNote=!status.connected&&link?`<a href="${esc(link)}" target="_blank" rel="noopener noreferrer">Открыть Telegram ещё раз</a> · ждём «Запустить» в чате`:'';
     const telegram=s.group({title:'Telegram',description:'Бот пишет вам лично. Ссылка для подключения действует 15 минут и только один раз.',
       body:s.panel(s.row({media:s.tile('send'),title:status.title,meta:[esc(status.meta),waitNote],actions:connectAction,attrs:'data-telegram-status'}))});
-    const kinds=s.group({title:'Что приходит в Telegram',description:status.connected?'Изменения сохраняются сразу.':'Станет доступно после подключения Telegram.',
+    // What goes to Telegram is chosen once there is a chat to send to; until then the kinds are listed below.
+    const kinds=status.connected?s.group({title:'Что приходит в Telegram',description:'Изменения сохраняются сразу.',
       body:s.panel(TELEGRAM_KINDS.map(k=>s.row({title:k.title,meta:[esc(k.hint)],
-        actions:ui.toggle(k.title+' в Telegram',data.preferences.telegram[k.kind]!==false,`data-telegram-kind="${k.kind}"${status.connected?'':' disabled'}`,false)})).join(''))});
+        actions:ui.toggle(k.title+' в Telegram',data.preferences.telegram[k.kind]!==false,`data-telegram-kind="${k.kind}"`,false)})).join(''))}):'';
     root.innerHTML=telegram+kinds+inProduct;
   }
   async function refresh(){data=await client.request('/profile/notifications');if(!closed)render();}

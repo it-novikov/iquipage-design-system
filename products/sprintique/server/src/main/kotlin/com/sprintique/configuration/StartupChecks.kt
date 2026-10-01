@@ -49,7 +49,7 @@ class StartupChecks(
         private val SMTP_SECURITY = setOf("starttls", "tls", "none")
         private val BOT_TOKEN = Regex("^[0-9]{3,20}:[A-Za-z0-9_-]{30,100}$")
         private val BOT_USERNAME = Regex("^[A-Za-z][A-Za-z0-9_]{3,31}$")
-        private val WEBHOOK_SECRET = Regex("^[A-Za-z0-9_-]{32,256}$")
+        private val WEBHOOK_SECRET = Regex("^[A-Za-z0-9_-]{16,256}$")
         private val SENDER = Regex("^([^<>\\r\\n]{1,100} )?<?[^\\s@<>]{1,64}@[^\\s@<>]{1,255}>?$")
 
         fun requireSafeConfiguration(properties: SprintiqueProperties) {
@@ -97,7 +97,7 @@ class StartupChecks(
                 "SPRINTIQUE_TELEGRAM_BOT_USERNAME must be the bot's username without @"
             }
             require(telegram.webhookSecret.isEmpty() || WEBHOOK_SECRET.matches(telegram.webhookSecret)) {
-                "SPRINTIQUE_TELEGRAM_WEBHOOK_SECRET must be 32–256 characters A–Z, a–z, 0–9, _ or -"
+                "SPRINTIQUE_TELEGRAM_WEBHOOK_SECRET must be 16–256 characters A–Z, a–z, 0–9, _ or -"
             }
             val api = URI(telegram.apiBase)
             require("${api.scheme}://${api.authority}" == telegram.apiBase.removeSuffix("/")) {
