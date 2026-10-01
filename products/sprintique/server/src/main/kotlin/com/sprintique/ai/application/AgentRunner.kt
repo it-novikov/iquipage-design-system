@@ -10,6 +10,7 @@ import com.sprintique.ai.domain.ToolResult
 import com.sprintique.ai.domain.ToolSpec
 import com.sprintique.ai.domain.Turn
 import com.sprintique.database.Database
+import com.sprintique.database.Transaction
 import com.sprintique.identity.application.ProjectAccess
 import com.sprintique.identity.application.RuntimeCredentials
 import com.sprintique.mcp.application.McpTools
@@ -152,12 +153,28 @@ class AgentRunner(
                     val task = TaskArguments(lease.projectId, text("taskId")!!)
                     val tool = mcp.find("get_task")!!
                     val data = json.valueToTree<JsonNode>(tool.run(tx, actor, task, json.valueToTree(task)))
-                    turns += Turn.User(AgentPrompt.task(json, data, Tokens.random().take(NONCE)))
+                    turns += Turn.User(AgentPrompt.task(json, data, Tokens.random().take(NONCE), mention(tx)))
                 }
                 system to tools.specs(tx, actor, lease.projectId)
             }
         } catch (_: ProblemException) {
             null
+        }
+
+        /** The message that mentioned the agent, read as the account; null for other triggers or when it is gone. */
+        private fun mention(tx: Transaction): AgentPrompt.Mention? {
+            val threadId = text("threadId") ?: return null
+            val row = tx.row(
+                """
+                SELECT m.body, coalesce(p.profile_name, p.name) AS author FROM app.messages m
+                JOIN auth.principals p ON p.id = m.author_id
+                WHERE m.project_id = $1 AND m.thread_id = $2 AND m.id = $3
+                """.trimIndent(),
+                lease.projectId,
+                threadId,
+                text("sourceMessageId").orEmpty(),
+            ) ?: return null
+            return AgentPrompt.Mention(threadId, row.string("author"), row.string("body"))
         }
 
         @Suppress("ReturnCount", "LoopWithTooManyJumpStatements")
@@ -260,7 +277,12 @@ class AgentRunner(
         }
 
         private fun comment(body: String, kind: String): ToolResult {
-            val arguments = mapOf("task" to text("taskId"), "body" to body.take(MESSAGE_LIMIT))
+            // A run started by a mention answers in the thread of that mention.
+            val arguments = mapOf(
+                "task" to text("taskId"),
+                "body" to body.take(MESSAGE_LIMIT),
+                "threadId" to text("threadId"),
+            ).filterValues { it != null }
             val call = ToolCall("$kind-${lease.runId}", "add_task_comment", json.writeValueAsString(arguments))
             return tools.execute(lease, credentialId!!, call, retryKey(kind))
         }

@@ -137,13 +137,21 @@ open class AiAgentRunsRecord() : UpdatableRecordImpl<AiAgentRunsRecord>(AiAgentR
         set(value): Unit = set(29, value)
         get(): Int? = get(29) as Int?
 
+    open var threadId: String?
+        set(value): Unit = set(30, value)
+        get(): String? = get(30) as String?
+
+    open var sourceMessageId: String?
+        set(value): Unit = set(31, value)
+        get(): String? = get(31) as String?
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
 
     override fun key(): Record2<String?, UUID?> = super.key() as Record2<String?, UUID?>
 
-    constructor(projectId: String? = null, id: UUID? = null, taskId: String? = null, accountId: String? = null, connectionId: UUID? = null, model: String? = null, trigger: String? = null, requestedBy: String? = null, state: String? = null, maxSteps: Int? = null, maxOutputTokens: Int? = null, stepsUsed: Int? = null, inputTokens: Long? = null, outputTokens: Long? = null, costMicros: Long? = null, errorCode: String? = null, credentialId: String? = null, leaseToken: UUID? = null, leaseUntil: OffsetDateTime? = null, attempts: Int? = null, transcript: JSONB? = null, messageId: String? = null, cancelRequestedBy: String? = null, cancelRequestedAt: OffsetDateTime? = null, revision: Int? = null, createdAt: OffsetDateTime? = null, startedAt: OffsetDateTime? = null, deadlineAt: OffsetDateTime? = null, finishedAt: OffsetDateTime? = null, maxRunTokens: Int? = null): this() {
+    constructor(projectId: String? = null, id: UUID? = null, taskId: String? = null, accountId: String? = null, connectionId: UUID? = null, model: String? = null, trigger: String? = null, requestedBy: String? = null, state: String? = null, maxSteps: Int? = null, maxOutputTokens: Int? = null, stepsUsed: Int? = null, inputTokens: Long? = null, outputTokens: Long? = null, costMicros: Long? = null, errorCode: String? = null, credentialId: String? = null, leaseToken: UUID? = null, leaseUntil: OffsetDateTime? = null, attempts: Int? = null, transcript: JSONB? = null, messageId: String? = null, cancelRequestedBy: String? = null, cancelRequestedAt: OffsetDateTime? = null, revision: Int? = null, createdAt: OffsetDateTime? = null, startedAt: OffsetDateTime? = null, deadlineAt: OffsetDateTime? = null, finishedAt: OffsetDateTime? = null, maxRunTokens: Int? = null, threadId: String? = null, sourceMessageId: String? = null): this() {
         this.projectId = projectId
         this.id = id
         this.taskId = taskId
@@ -174,6 +182,8 @@ open class AiAgentRunsRecord() : UpdatableRecordImpl<AiAgentRunsRecord>(AiAgentR
         this.deadlineAt = deadlineAt
         this.finishedAt = finishedAt
         this.maxRunTokens = maxRunTokens
+        this.threadId = threadId
+        this.sourceMessageId = sourceMessageId
         resetTouchedOnNotNull()
     }
 }

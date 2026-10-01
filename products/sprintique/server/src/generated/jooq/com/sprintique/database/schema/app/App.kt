@@ -16,6 +16,8 @@ import com.sprintique.database.schema.app.tables.AiConnectionSecrets
 import com.sprintique.database.schema.app.tables.AiConnections
 import com.sprintique.database.schema.app.tables.AiRunClaim
 import com.sprintique.database.schema.app.tables.AiRunEnqueue
+import com.sprintique.database.schema.app.tables.AiRunMention
+import com.sprintique.database.schema.app.tables.AiRunQueue
 import com.sprintique.database.schema.app.tables.Approvals
 import com.sprintique.database.schema.app.tables.Assets
 import com.sprintique.database.schema.app.tables.AttentionRequests
@@ -68,6 +70,8 @@ import com.sprintique.database.schema.app.tables.Workspaces
 import com.sprintique.database.schema.app.tables.records.AiConnectionSecretRecord
 import com.sprintique.database.schema.app.tables.records.AiRunClaimRecord
 import com.sprintique.database.schema.app.tables.records.AiRunEnqueueRecord
+import com.sprintique.database.schema.app.tables.records.AiRunMentionRecord
+import com.sprintique.database.schema.app.tables.records.AiRunQueueRecord
 
 import java.util.UUID
 
@@ -186,6 +190,90 @@ open class App : SchemaImpl(DSL.name("app"), DefaultCatalog.DEFAULT_CATALOG, DSL
         runTrigger
     )
 
+    val AI_RUN_MENTION: AiRunMention get() = AiRunMention.AI_RUN_MENTION
+
+    fun AI_RUN_MENTION(
+          configuration: Configuration
+        , targetProject: String?
+        , message: String?
+        , account: String?
+    ): Result<AiRunMentionRecord> = configuration.dsl().selectFrom(com.sprintique.database.schema.app.tables.AiRunMention.AI_RUN_MENTION.call(
+          targetProject
+        , message
+        , account
+    )).fetch()
+
+    fun AI_RUN_MENTION(
+          targetProject: String?
+        , message: String?
+        , account: String?
+    ): AiRunMention = com.sprintique.database.schema.app.tables.AiRunMention.AI_RUN_MENTION.call(
+        targetProject,
+        message,
+        account
+    )
+
+    fun AI_RUN_MENTION(
+          targetProject: Field<String?>
+        , message: Field<String?>
+        , account: Field<String?>
+    ): AiRunMention = com.sprintique.database.schema.app.tables.AiRunMention.AI_RUN_MENTION.call(
+        targetProject,
+        message,
+        account
+    )
+
+    val AI_RUN_QUEUE: AiRunQueue get() = AiRunQueue.AI_RUN_QUEUE
+
+    fun AI_RUN_QUEUE(
+          configuration: Configuration
+        , targetProject: String?
+        , targetTask: String?
+        , account: String?
+        , runTrigger: String?
+        , sourceThread: String?
+        , sourceMessage: String?
+    ): Result<AiRunQueueRecord> = configuration.dsl().selectFrom(com.sprintique.database.schema.app.tables.AiRunQueue.AI_RUN_QUEUE.call(
+          targetProject
+        , targetTask
+        , account
+        , runTrigger
+        , sourceThread
+        , sourceMessage
+    )).fetch()
+
+    fun AI_RUN_QUEUE(
+          targetProject: String?
+        , targetTask: String?
+        , account: String?
+        , runTrigger: String?
+        , sourceThread: String?
+        , sourceMessage: String?
+    ): AiRunQueue = com.sprintique.database.schema.app.tables.AiRunQueue.AI_RUN_QUEUE.call(
+        targetProject,
+        targetTask,
+        account,
+        runTrigger,
+        sourceThread,
+        sourceMessage
+    )
+
+    fun AI_RUN_QUEUE(
+          targetProject: Field<String?>
+        , targetTask: Field<String?>
+        , account: Field<String?>
+        , runTrigger: Field<String?>
+        , sourceThread: Field<String?>
+        , sourceMessage: Field<String?>
+    ): AiRunQueue = com.sprintique.database.schema.app.tables.AiRunQueue.AI_RUN_QUEUE.call(
+        targetProject,
+        targetTask,
+        account,
+        runTrigger,
+        sourceThread,
+        sourceMessage
+    )
+
     val APPROVALS: Approvals get() = Approvals.APPROVALS
 
     val ASSETS: Assets get() = Assets.ASSETS
@@ -298,6 +386,8 @@ open class App : SchemaImpl(DSL.name("app"), DefaultCatalog.DEFAULT_CATALOG, DSL
         AiConnections.AI_CONNECTIONS,
         AiRunClaim.AI_RUN_CLAIM,
         AiRunEnqueue.AI_RUN_ENQUEUE,
+        AiRunMention.AI_RUN_MENTION,
+        AiRunQueue.AI_RUN_QUEUE,
         Approvals.APPROVALS,
         Assets.ASSETS,
         AttentionRequests.ATTENTION_REQUESTS,

@@ -26,6 +26,7 @@ class AgentProfiles(private val box: SecretBox) {
         val model: String,
         val instructions: String,
         val onAssignment: Boolean,
+        val onMention: Boolean,
         val maxSteps: Int,
         val maxOutputTokens: Int,
         val runsPerHour: Int,
@@ -88,16 +89,18 @@ class AgentProfiles(private val box: SecretBox) {
         tx.update(
             """
             INSERT INTO app.ai_agent_profiles(principal_id, workspace_id, connection_id, enabled, model, instructions,
-              on_assignment, max_steps, max_output_tokens, runs_per_hour, max_run_tokens, updated_by)
-            VALUES ($1, $2::uuid, $3::uuid, $4, $5, $6, $7, $8, $9, $10, $12, $11)
+              on_assignment, max_steps, max_output_tokens, runs_per_hour, max_run_tokens, on_mention, updated_by)
+            VALUES ($1, $2::uuid, $3::uuid, $4, $5, $6, $7, $8, $9, $10, $12, $13, $11)
             ON CONFLICT (principal_id) DO UPDATE SET connection_id = excluded.connection_id, enabled = excluded.enabled,
               model = excluded.model, instructions = excluded.instructions, on_assignment = excluded.on_assignment,
+              on_mention = excluded.on_mention,
               max_steps = excluded.max_steps, max_output_tokens = excluded.max_output_tokens,
               runs_per_hour = excluded.runs_per_hour, max_run_tokens = excluded.max_run_tokens, updated_by = excluded.updated_by, updated_at = clock_timestamp(),
               revision = app.ai_agent_profiles.revision + 1
             """.trimIndent(),
             accountId, workspaceId, input.connectionId, input.enabled, input.model, input.instructions,
             input.onAssignment, input.maxSteps, input.maxOutputTokens, input.runsPerHour, actor.id, input.maxRunTokens,
+            input.onMention,
         )
         WorkspaceAccess.audit(
             tx,
@@ -113,7 +116,7 @@ class AgentProfiles(private val box: SecretBox) {
 
     private fun profile(tx: Transaction, accountId: String): Row? = tx.row(
         """
-        SELECT p.enabled, p.connection_id AS "connectionId", p.model, p.instructions, p.on_assignment AS "onAssignment",
+        SELECT p.enabled, p.connection_id AS "connectionId", p.model, p.instructions, p.on_assignment AS "onAssignment", p.on_mention AS "onMention",
                p.max_steps AS "maxSteps", p.max_output_tokens AS "maxOutputTokens", p.runs_per_hour AS "runsPerHour",
                p.max_run_tokens AS "maxRunTokens",
                p.revision, p.updated_at AS "updatedAt",

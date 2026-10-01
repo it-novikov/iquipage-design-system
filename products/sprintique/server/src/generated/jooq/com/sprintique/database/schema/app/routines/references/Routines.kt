@@ -23,9 +23,13 @@ import com.sprintique.database.schema.app.routines.TelegramUnlinkChat
 import com.sprintique.database.schema.app.tables.AiConnectionSecret
 import com.sprintique.database.schema.app.tables.AiRunClaim
 import com.sprintique.database.schema.app.tables.AiRunEnqueue
+import com.sprintique.database.schema.app.tables.AiRunMention
+import com.sprintique.database.schema.app.tables.AiRunQueue
 import com.sprintique.database.schema.app.tables.records.AiConnectionSecretRecord
 import com.sprintique.database.schema.app.tables.records.AiRunClaimRecord
 import com.sprintique.database.schema.app.tables.records.AiRunEnqueueRecord
+import com.sprintique.database.schema.app.tables.records.AiRunMentionRecord
+import com.sprintique.database.schema.app.tables.records.AiRunQueueRecord
 
 import java.util.UUID
 
@@ -677,4 +681,84 @@ fun aiRunEnqueue(
     targetTask,
     account,
     runTrigger
+)
+
+fun aiRunMention(
+      configuration: Configuration
+    , targetProject: String?
+    , message: String?
+    , account: String?
+): Result<AiRunMentionRecord> = configuration.dsl().selectFrom(com.sprintique.database.schema.app.tables.AiRunMention.AI_RUN_MENTION.call(
+      targetProject
+    , message
+    , account
+)).fetch()
+
+fun aiRunMention(
+      targetProject: String?
+    , message: String?
+    , account: String?
+): AiRunMention = com.sprintique.database.schema.app.tables.AiRunMention.AI_RUN_MENTION.call(
+    targetProject,
+    message,
+    account
+)
+
+fun aiRunMention(
+      targetProject: Field<String?>
+    , message: Field<String?>
+    , account: Field<String?>
+): AiRunMention = com.sprintique.database.schema.app.tables.AiRunMention.AI_RUN_MENTION.call(
+    targetProject,
+    message,
+    account
+)
+
+fun aiRunQueue(
+      configuration: Configuration
+    , targetProject: String?
+    , targetTask: String?
+    , account: String?
+    , runTrigger: String?
+    , sourceThread: String?
+    , sourceMessage: String?
+): Result<AiRunQueueRecord> = configuration.dsl().selectFrom(com.sprintique.database.schema.app.tables.AiRunQueue.AI_RUN_QUEUE.call(
+      targetProject
+    , targetTask
+    , account
+    , runTrigger
+    , sourceThread
+    , sourceMessage
+)).fetch()
+
+fun aiRunQueue(
+      targetProject: String?
+    , targetTask: String?
+    , account: String?
+    , runTrigger: String?
+    , sourceThread: String?
+    , sourceMessage: String?
+): AiRunQueue = com.sprintique.database.schema.app.tables.AiRunQueue.AI_RUN_QUEUE.call(
+    targetProject,
+    targetTask,
+    account,
+    runTrigger,
+    sourceThread,
+    sourceMessage
+)
+
+fun aiRunQueue(
+      targetProject: Field<String?>
+    , targetTask: Field<String?>
+    , account: Field<String?>
+    , runTrigger: Field<String?>
+    , sourceThread: Field<String?>
+    , sourceMessage: Field<String?>
+): AiRunQueue = com.sprintique.database.schema.app.tables.AiRunQueue.AI_RUN_QUEUE.call(
+    targetProject,
+    targetTask,
+    account,
+    runTrigger,
+    sourceThread,
+    sourceMessage
 )

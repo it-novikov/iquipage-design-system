@@ -104,6 +104,8 @@ open class AiAgentProfiles(
 
     val MAX_RUN_TOKENS: TableField<AiAgentProfilesRecord, Int?> = createField(DSL.name("max_run_tokens"), SQLDataType.INTEGER.nullable(false).defaultValue(DSL.field(DSL.raw("500000"), SQLDataType.INTEGER)), this, "")
 
+    val ON_MENTION: TableField<AiAgentProfilesRecord, Boolean?> = createField(DSL.name("on_mention"), SQLDataType.BOOLEAN.nullable(false).defaultValue(DSL.field(DSL.raw("true"), SQLDataType.BOOLEAN)), this, "")
+
     private constructor(alias: Name, aliased: Table<AiAgentProfilesRecord>?): this(alias, null, null, null, aliased, null, null)
     private constructor(alias: Name, aliased: Table<AiAgentProfilesRecord>?, parameters: Array<Field<*>?>?): this(alias, null, null, null, aliased, parameters, null)
     private constructor(alias: Name, aliased: Table<AiAgentProfilesRecord>?, where: Condition?): this(alias, null, null, null, aliased, null, where)

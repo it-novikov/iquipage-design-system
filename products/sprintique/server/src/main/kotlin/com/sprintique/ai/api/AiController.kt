@@ -141,7 +141,7 @@ class AiController(
                 RequestInputs.id(id),
                 AgentProfiles.Settings(
                     input.baseRevision, input.enabled, input.connectionId?.lowercase(), input.model, input.instructions,
-                    input.onAssignment, input.maxSteps, input.maxOutputTokens, input.runsPerHour,
+                    input.onAssignment, input.onMention, input.maxSteps, input.maxOutputTokens, input.runsPerHour,
                     input.maxRunTokens,
                 ),
             )

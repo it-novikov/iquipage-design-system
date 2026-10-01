@@ -8,7 +8,7 @@ owner: nvkv71
 branch: feature/ai-connections
 base: main
 created: 2026-10-01
-updated: 2026-10-01T12:38:44Z
+updated: 2026-10-01T22:57:18Z
 links:
 ---
 
@@ -35,10 +35,10 @@ links:
 
 ## Передача
 
-- **Состояние:** Слит main (#38, #39), самопроверка безопасности сделана, исправления с тестами
-- **Дальше:** Скриншоты, гейты npm test и verify-vnext, PR
+- **Состояние:** Слит main с #40 и #41; триггер по упоминанию; самопроверка и скриншоты сделаны
+- **Дальше:** Гейты npm test и verify-vnext, PR
 - **Незакоммичено:** нет
-- **Рабочая копия:** 27 файл(ов): products/sprintique/contracts/ai.ts, products/sprintique/docs/decisions/0005-ai-agents.md, products/sprintique/docs/operations.md, products/sprintique/server/src/generated/jooq/com/sprintique/database/schema/app/tables/AiAgentProfiles.kt, products/sprintique/server/src/generated/jooq/com/sprintique/database/schema/app/tables/AiAgentRuns.kt, products/sprintique/server/src/generated/jooq/com/sprintique/database/schema/app/tables/records/AiAgentProfilesRecord.kt, products/sprintique/server/src/generated/jooq/com/sprintique/database/schema/app/tables/records/AiAgentRunsRecord.kt, products/sprintique/server/src/main/kotlin/com/sprintique/ai/api/AiController.kt, products/sprintique/server/src/main/kotlin/com/sprintique/ai/api/AiRequests.kt, products/sprintique/server/src/main/kotlin/com/sprintique/ai/application/AgentProfiles.kt, products/sprintique/server/src/main/kotlin/com/sprintique/ai/application/AgentPrompt.kt, products/sprintique/server/src/main/kotlin/com/sprintique/ai/application/AgentRunner.kt и ещё 15 (25 files changed, 475 insertions(+), 147 deletions(-)) · HEAD 8bcbd14
+- **Рабочая копия:** 28 файл(ов): products/sprintique/contracts/ai.ts, products/sprintique/docs/decisions/0005-ai-agents.md, products/sprintique/docs/operations.md, products/sprintique/server/src/generated/jooq/com/sprintique/database/schema/app/App.kt, products/sprintique/server/src/generated/jooq/com/sprintique/database/schema/app/routines/references/Routines.kt, products/sprintique/server/src/generated/jooq/com/sprintique/database/schema/app/tables/AiAgentProfiles.kt, products/sprintique/server/src/generated/jooq/com/sprintique/database/schema/app/tables/AiAgentRuns.kt, products/sprintique/server/src/generated/jooq/com/sprintique/database/schema/app/tables/records/AiAgentProfilesRecord.kt, products/sprintique/server/src/generated/jooq/com/sprintique/database/schema/app/tables/records/AiAgentRunsRecord.kt, products/sprintique/server/src/generated/jooq/com/sprintique/database/schema/app/tables/references/Tables.kt, products/sprintique/server/src/main/kotlin/com/sprintique/ai/api/AiController.kt, products/sprintique/server/src/main/kotlin/com/sprintique/ai/api/AiRequests.kt и ещё 16 (22 files changed, 397 insertions(+), 24 deletions(-)) · HEAD a992664
 
 ## План
 
@@ -100,6 +100,8 @@ links:
 - **D2** (2026-10-01) Бюджет токенов на запуск (V20261001000048, 500 000 по умолчанию) — шаги и токены ответа не ограничивали цену запуска
 - **D3** (2026-10-01) «Проверить» — одна попытка без повторов и CheckGate (по одной на подключение, 2 одновременно и 30 в минуту на пространство); при проверке ключ перешифровывается текущим ключом сервера
 - **D4** (2026-10-01) Триггер по упоминанию не делаем — упоминаний в main нет
+- **D5** (2026-10-01) Триггер по упоминанию сделан после слияния #40 (V20261001000049): запускает агента, только если у автора есть «Менять задачи»; отвечает в ветке упоминания; выключается в профиле
+- **D6** (2026-10-01) Полное чтение длинного первого сообщения в ветке: сводка обрезана на 160 символов, ответ агента обрывался
 
 ## Вопросы
 

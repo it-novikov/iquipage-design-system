@@ -348,3 +348,34 @@ test('AI14 checks are paced; after a rotation of the server key a check seals th
   assert.equal(lost.statusCode,409,lost.body);assert.equal(lost.json().code,'AI_KEY_UNREADABLE');assert.ok(!lost.body.includes(key));
   await ok(call(f.alice,'DELETE',connections()+'/'+made.id));
 });
+
+test('AI15 a mention starts the agent, which answers in that thread; a commenter, the agent itself and the switch start nothing',async()=>{
+  const robot=await agent('Упоминаемый','script-mention'),quiet=await agent('Молчун','script-quiet',{onMention:false});
+  llm.script('script-quiet',()=>anthropic.text('Не должен был запуститься.'));
+  llm.script('script-mention',(request,n)=>{
+    if(n===1){
+      const first=firstUserText(request);
+      assert.match(request.body.system,/mentioned you in the discussion/);
+      assert.match(first,/"mention":\{"threadId":"ai-mention-thread","author":"Алиса","text":"@упоминаемый посмотри, пожалуйста[^"]*"\}/);
+      // The agent mentions another agent: its own message starts nothing.
+      return anthropic.tool('add_task_comment',{task:'ai-mention',body:'@Молчун и @Упоминаемый, смотрите.'});
+    }
+    return anthropic.text('Посмотрел, всё в порядке.');
+  });
+  await task('ai-mention');
+  const thread=(id:string,body:string,user:User=f.alice)=>call(user,'POST',project('tasks/ai-mention/threads'),{id,messageId:'msg-'+id,body,requiresResolution:false});
+  // A reader may comment but not change tasks: naming the agent starts nothing.
+  assert.equal((await thread('ai-reader-thread','@Упоминаемый сделай что-нибудь',f.reader)).statusCode,200);
+  await new Promise(resolve=>setTimeout(resolve,1200));
+  assert.equal((await overview('ai-mention')).runs.length,0,'a commenter cannot start an agent');
+  assert.equal((await thread('ai-mention-thread','@упоминаемый посмотри, пожалуйста, и @Молчун тоже')).statusCode,200);
+  const run=await finished('ai-mention',robot);
+  assert.equal(run.state,'completed',JSON.stringify(run));assert.equal(run.trigger,'mention');assert.equal(run.requestedBy,f.alice.id);
+  // The answer is a reply in the thread of the mention.
+  const replies=(await ok(call(f.alice,'GET',project('threads/ai-mention-thread')))).messages.map((m:any)=>[m.authorId,m.body]);
+  assert.deepEqual(replies.at(-1),[robot,'Посмотрел, всё в порядке.']);
+  await new Promise(resolve=>setTimeout(resolve,1200));
+  const runs=(await overview('ai-mention')).runs;
+  assert.equal(runs.length,1,'neither the agent\'s own mention nor an agent with mentions off started a run');
+  assert.ok(!runs.some((r:any)=>r.accountId===quiet));assert.equal(llm.for('script-quiet').length,0);
+});

@@ -147,6 +147,10 @@ open class AiAgentRuns(
 
     val MAX_RUN_TOKENS: TableField<AiAgentRunsRecord, Int?> = createField(DSL.name("max_run_tokens"), SQLDataType.INTEGER.nullable(false).defaultValue(DSL.field(DSL.raw("500000"), SQLDataType.INTEGER)), this, "")
 
+    val THREAD_ID: TableField<AiAgentRunsRecord, String?> = createField(DSL.name("thread_id"), SQLDataType.CLOB, this, "")
+
+    val SOURCE_MESSAGE_ID: TableField<AiAgentRunsRecord, String?> = createField(DSL.name("source_message_id"), SQLDataType.CLOB, this, "")
+
     private constructor(alias: Name, aliased: Table<AiAgentRunsRecord>?): this(alias, null, null, null, aliased, null, null)
     private constructor(alias: Name, aliased: Table<AiAgentRunsRecord>?, parameters: Array<Field<*>?>?): this(alias, null, null, null, aliased, parameters, null)
     private constructor(alias: Name, aliased: Table<AiAgentRunsRecord>?, where: Condition?): this(alias, null, null, null, aliased, null, where)
@@ -214,13 +218,14 @@ open class AiAgentRuns(
         Internal.createCheck(this, DSL.name("ai_agent_runs_max_output_tokens_check"), "(((max_output_tokens >= 256) AND (max_output_tokens <= 32000)))", true),
         Internal.createCheck(this, DSL.name("ai_agent_runs_max_run_tokens_check"), "(((max_run_tokens >= 10000) AND (max_run_tokens <= 5000000)))", true),
         Internal.createCheck(this, DSL.name("ai_agent_runs_max_steps_check"), "(((max_steps >= 1) AND (max_steps <= 50)))", true),
+        Internal.createCheck(this, DSL.name("ai_agent_runs_mention"), "(((trigger = 'mention'::text) = ((thread_id IS NOT NULL) AND (source_message_id IS NOT NULL))))", true),
         Internal.createCheck(this, DSL.name("ai_agent_runs_model_check"), "(((length(model) >= 1) AND (length(model) <= 200)))", true),
         Internal.createCheck(this, DSL.name("ai_agent_runs_output_tokens_check"), "((output_tokens >= 0))", true),
         Internal.createCheck(this, DSL.name("ai_agent_runs_revision_check"), "((revision > 0))", true),
         Internal.createCheck(this, DSL.name("ai_agent_runs_state_check"), "((state = ANY (ARRAY['queued'::text, 'running'::text, 'completed'::text, 'failed'::text, 'cancelled'::text])))", true),
         Internal.createCheck(this, DSL.name("ai_agent_runs_steps_used_check"), "(((steps_used >= 0) AND (steps_used <= 50)))", true),
         Internal.createCheck(this, DSL.name("ai_agent_runs_transcript_check"), "(((transcript IS NULL) OR (octet_length((transcript)::text) <= 1048576)))", true),
-        Internal.createCheck(this, DSL.name("ai_agent_runs_trigger_check"), "((trigger = ANY (ARRAY['assigned'::text, 'manual'::text])))", true)
+        Internal.createCheck(this, DSL.name("ai_agent_runs_trigger"), "((trigger = ANY (ARRAY['assigned'::text, 'manual'::text, 'mention'::text])))", true)
     )
     override fun `as`(alias: String): AiAgentRuns = AiAgentRuns(DSL.name(alias), this)
     override fun `as`(alias: Name): AiAgentRuns = AiAgentRuns(alias, this)

@@ -2889,6 +2889,10 @@
           "default": true,
           "type": "boolean"
         },
+        "onMention": {
+          "default": true,
+          "type": "boolean"
+        },
         "maxSteps": {
           "default": 12,
           "type": "integer",
@@ -2921,6 +2925,7 @@
         "model",
         "instructions",
         "onAssignment",
+        "onMention",
         "maxSteps",
         "maxOutputTokens",
         "runsPerHour",

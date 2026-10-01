@@ -30,10 +30,14 @@ object AgentPrompt {
         append("task tracker, as a service account of the project «").append(projectName).append("» (task keys ")
         append("look like ").append(projectKey).append("-12). ")
         append(
-            if (trigger == "assigned") {
-                "You were started because a task was assigned to you.\n\n"
-            } else {
-                "You were started by a person of the project to work on a task.\n\n"
+            when (trigger) {
+                "assigned" -> "You were started because a task was assigned to you.\n\n"
+
+                "mention" ->
+                    "You were started because someone mentioned you in the discussion of a task. Their " +
+                        "message is \"mention\" in the task data; your final answer is posted as a reply in that thread.\n\n"
+
+                else -> "You were started by a person of the project to work on a task.\n\n"
             },
         )
         // The rules are plain paragraphs themselves: a numbered list here would invite lists in the answers.
@@ -63,8 +67,11 @@ object AgentPrompt {
         }
     }
 
+    // The message that mentioned the agent: its thread, its author and its text (untrusted, like the task).
+    data class Mention(val threadId: String, val author: String, val text: String)
+
     /** The first user message: the task as it is now, trimmed, as data between markers with an id of [nonce]. */
-    fun task(json: JsonMapper, task: JsonNode, nonce: String): String {
+    fun task(json: JsonMapper, task: JsonNode, nonce: String, mention: Mention? = null): String {
         val data = task.path("data").takeIf { it.isObject } ?: task
         val compact = linkedMapOf<String, Any?>(
             "key" to text(data, "key"),
@@ -96,6 +103,13 @@ object AgentPrompt {
                 )
             },
         )
+        if (mention != null) {
+            compact["mention"] = mapOf(
+                "threadId" to mention.threadId,
+                "author" to mention.author,
+                "text" to mention.text.take(DESCRIPTION_LIMIT),
+            )
+        }
         return buildString {
             append("Work on task ").append(compact["key"] ?: "").append(". The task as it is now:\n")
             append("<untrusted-task-data id=\"").append(nonce).append("\">\n")

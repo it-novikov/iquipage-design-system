@@ -16,6 +16,11 @@ function modelField(value,models){
   const html=input('model','Модель',value,{required:true,maxlength:200,placeholder:'Например, claude-sonnet-4-5 или openai/gpt-5'});
   return html.replace('<input ',`<input list="${id}" autocomplete="off" spellcheck="false" `)+`<datalist id="${id}">${models.map(m=>`<option value="${esc(m)}"></option>`).join('')}</datalist>`;
 }
+/** When the agent starts, as one sentence: «Начинает работу, когда …, когда … и по кнопке в задаче». */
+function startsWhen(p,name){
+  const parts=[p.onAssignment?'когда на аккаунт назначают задачу':'',p.onMention!==false?`когда его упоминают в обсуждении (@${name})`:'','по кнопке в задаче'].filter(Boolean);
+  return 'Начинает работу '+(parts.length>1?parts.slice(0,-1).join(', ')+' и ':'')+parts.at(-1);
+}
 const number=(name,label,value,min,max)=>input(name,label,String(value),{type:'number',required:true,maxlength:7}).replace('<input ',`<input min="${min}" max="${max}" step="1" inputmode="numeric" `);
 
 export async function mountAgentProfile(root,{client,account,track}){
@@ -27,7 +32,7 @@ export async function mountAgentProfile(root,{client,account,track}){
   const p=data.profile,connection=p&&data.connections.find(c=>c.id===p.connectionId);
   const summary=p?s.row({media:s.tile('spark'),title:p.enabled?'Агент включён':'Агент выключен',
       meta:[esc(connection?`${connection.name} · ${p.model}`:'ИИ-подключение удалено'),
-        esc(p.onAssignment?'Начинает работу, когда на аккаунт назначают задачу, и по кнопке в задаче':'Начинает работу только по кнопке в задаче'),
+        esc(startsWhen(p,account.name)),
         esc(`До ${plural(p.maxSteps,['шага','шагов','шагов'])} за запуск, не больше ${plural(p.runsPerHour,['запуска','запусков','запусков'])} в час`),
         p.runsLastHour?esc(`За последний час: ${plural(p.runsLastHour,['запуск','запуска','запусков'])}`):''],
       aside:p.enabled?s.badge('Включён','success'):s.badge('Выключен'),state:p.enabled?'':'muted'})
@@ -47,7 +52,7 @@ export async function mountAgentProfile(root,{client,account,track}){
         ${options.length?choose('connectionId','ИИ-подключение',first,options,'data-agent-connection'):'<p class="iq-helper">В пространстве нет ИИ-подключений.</p>'}
         <div data-agent-model>${modelField(p?.model||connectionOf(first)?.defaultModel||'',models(first))}</div>
         ${ui.textarea('Инструкции',p?.instructions||'',{name:'instructions',maxlength:8000,help:'Как работать: роль, стиль, что делать с задачей. Они не расширяют права аккаунта.',placeholder:'Например: разбери задачу, уточни критерии приёмки и предложи план в обсуждении.'})}
-        <section class="sq-agent-part" aria-label="Когда начинать"><h3>Когда начинать</h3>${ui.check('Когда на аккаунт назначают задачу',p?p.onAssignment:true,'name="onAssignment"')}<p class="iq-helper">По кнопке «Запустить агента» в задаче — всегда, пока агент включён. Изменения, которые делает сам агент, других агентов не запускают.</p></section>
+        <section class="sq-agent-part" aria-label="Когда начинать"><h3>Когда начинать</h3>${ui.check('Когда на аккаунт назначают задачу',p?p.onAssignment:true,'name="onAssignment"')}${ui.check(`Когда аккаунт упоминают в обсуждении: @${account.name}`,p?p.onMention!==false:true,'name="onMention"')}<p class="iq-helper">По кнопке «Запустить агента» в задаче — всегда, пока агент включён. Назначить, упомянуть или запустить агента может тот, кто меняет задачи. Изменения и сообщения самого агента других агентов не запускают.</p></section>
         <section class="sq-agent-part" aria-label="Ограничения"><h3>Ограничения</h3><div class="sq-agent-limits">${number('maxSteps','Шагов за запуск',p?.maxSteps??defaults.maxSteps,1,50)}${number('maxOutputTokens','Токенов ответа за шаг',p?.maxOutputTokens??defaults.maxOutputTokens,256,32000)}${number('runsPerHour','Запусков в час',p?.runsPerHour??defaults.runsPerHour,1,200)}${number('maxRunTokens','Токенов за запуск',p?.maxRunTokens??defaults.maxRunTokens,10000,5000000)}</div><p class="iq-helper">Токены за запуск считают и вопрос, и ответ каждого шага: на этом бюджете агент останавливается, сколько бы шагов ни осталось.</p></section>`,
       submitLabel:'Сохранить',success:'Настройки агента сохранены',
       mount:el=>{el.addEventListener('iq-change',event=>{
@@ -59,7 +64,7 @@ export async function mountAgentProfile(root,{client,account,track}){
         const model=String(values.get('model')||'').trim(),enabled=values.get('enabled')!==null;
         if(!model)throw Error('Укажите модель.');if(enabled&&!connectionId)throw Error('Выберите ИИ-подключение.');
         const limit=(name,min,max)=>{const n=Number(values.get(name));if(!Number.isInteger(n)||n<min||n>max)throw Error(`Проверьте ограничения: от ${min} до ${max}.`);return n;};
-        const body={baseRevision:p?.revision||0,enabled,connectionId,model,instructions:String(values.get('instructions')||''),onAssignment:values.get('onAssignment')!==null,
+        const body={baseRevision:p?.revision||0,enabled,connectionId,model,instructions:String(values.get('instructions')||''),onAssignment:values.get('onAssignment')!==null,onMention:values.get('onMention')!==null,
           maxSteps:limit('maxSteps',1,50),maxOutputTokens:limit('maxOutputTokens',256,32000),runsPerHour:limit('runsPerHour',1,200),maxRunTokens:limit('maxRunTokens',10000,5000000)};
         try{await client.request('/service-accounts/'+encodeURIComponent(account.id)+'/agent','PUT',body);}catch(error){throw Error(explain(error));}
       }}));

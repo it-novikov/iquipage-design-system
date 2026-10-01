@@ -80,6 +80,7 @@ data class AgentSettingsRequest(
     @field:Size(max = 8000)
     val instructions: String = "",
     val onAssignment: Boolean = true,
+    val onMention: Boolean = true,
     @field:Min(1)
     @field:Max(50)
     val maxSteps: Int = 12,
