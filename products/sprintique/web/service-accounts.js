@@ -47,7 +47,10 @@ export async function mountServiceAccounts(root,{repository,tools}){
   function accountRow(a){
     const conns=connectionNames(a),several=new Set(accounts.map(x=>x.workspaceId)).size>1;
     const meta=[esc(`Владелец: ${a.mine?'вы':a.ownerName}`),several?esc(a.workspaceName):'',esc(a.projects.length?`${a.projects.length>1?'Проекты':'Проект'}: ${a.projects.map(p=>p.name||'недоступен').join(', ')}`:'Проектов нет'),
-      esc(conns.length?`Подключения: ${conns.join(', ')}`:'Подключений нет'),a.suspended?esc('Подключения не работают, пока не назначен владелец'):''];
+      esc(conns.length?`Подключения: ${conns.join(', ')}`:'Подключений нет'),
+      // The backlog the account will find in its inbox (list_inbox) when it comes back to work.
+      a.inboxUnread>0?esc(`Непрочитанных во входящих: ${a.inboxUnread}`):'',
+      a.suspended?esc('Подключения не работают, пока не назначен владелец'):''];
     const owner=a.suspended&&peopleManager(a)?ui.btn('Назначить владельца','secondary sm','user',`data-account-owner="${esc(a.id)}"`):'';
     return s.row({media:s.tile('bolt'),title:a.name,titleExtra:' '+s.badge('Сервисный аккаунт','planned'),meta,aside:stateBadge(a),
       actions:owner+ui.btn('Открыть','ghost sm','',`data-account-open="${esc(a.id)}" aria-label="Открыть ${esc(a.name)}"`),state:a.suspended?'muted':'',attrs:`data-account-id="${esc(a.id)}"`});
