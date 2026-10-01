@@ -88,3 +88,13 @@ destinations: {taskId: releaseId|'backlog'}}` (no destinationId means backlog). 
 r4.0 a done task is accepted whatever its preparation. Epics follow: an epic whose open subtasks carry over goes with
 them. `POST planning/view/release {groupId}` keeps describing counts for the dialog. Completing needs
 `releases.manage` from a person.
+
+## As implemented (2026-10-01)
+
+Request contracts: `ViewContainersQuery` (an empty object) and `ViewMoveRequest` (either `ids` + `containerId` with
+optional `afterId`, `withChildren`, `expectedRevision`, or `restore` alone). Undo items carry an extra optional
+`admitted` so a task that left the board by a move returns to it on undo. The agent form exists twice: the `place`
+view intent and the `place` planning command (`POST planning/previews`), both previewed and approved like any change.
+Server code: `PlanningContainers.kt` (projection and move), `PlaceRules.kt` (block and ranks), `PlanChange.place/
+restore`, `TemporalRules.validate` (returns warnings, refuses only cycles), `PlanningRows.acceptable` (r4 completion).
+Integration tests: `tests/planning-containers.test.ts` C01–C08.

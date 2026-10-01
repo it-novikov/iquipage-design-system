@@ -96,3 +96,12 @@ Undo hook: `onDrop` may return `{undo: () => Promise<void>, message?: string}`; 
 `--iq-line` rule filling the rest (`::after`).
 `.tree-row.is-muted`: label `--iq-muted`, cells `--iq-faint`, no priority tone (`[data-tone]` ignored), the status
 glyph keeps its shape; its tone stays success for ready_for_release (owner: «a success check glyph»).
+
+## As implemented in 0.6.0-vnext.28 (2026-10-01)
+
+Cells use the label size (13 px), as the approved frames do; `.iq-status-word` is meta size and inherits the cell
+size inside `.tree-cell`. The drag ghost lives in the top layer (Popover API), so the library adds no z-index; the
+drop line and the outline need none either. `treeDropPosition()` is exported for keyboard moves. A press held in
+place and released without moving cancels (no drop). The muted row keeps the success tone of the check (this
+contract and the owner's words); the approved r41 frame draws it grey: one CSS line in `.tree-row.is-muted` flips it.
+Built on the library of PR #41 (vnext.27); tests `tests/vnext28.test.cjs`.

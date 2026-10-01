@@ -84,7 +84,7 @@ export function containerDialog({kind,containers,today,days=14,value=null,onSubm
  */
 export function completionDialog({container,containers,format,today,onSubmit}){
   registerCore();
-  const facts=completionFacts(container,format),next=nextSprint(containers,container.id);
+  const sprint=container.kind==='sprint',facts=completionFacts(container,format),next=nextSprint(containers,container.id);
   const open=container.rows.filter(row=>row.kind!=='epic'&&!row.done);
   const destinations=[...containers.filter(c=>c.id!==container.id&&c.kind!=='backlog').map(c=>({value:c.id,label:c.name})),{value:'backlog',label:'Бэклог'}];
   const size=(count,hours)=>`${count} ${plural(count,'задача','задачи','задач')}${hours?`, ${hours}`:''}`;
@@ -94,11 +94,11 @@ export function completionDialog({container,containers,format,today,onSubmit}){
   const exceptions=open.map(row=>`<label class="pl-exception"><span class="pl-exception-title">${esc(row.title)}</span><select class="pl-exception-select" data-exception="${esc(row.id)}" aria-label="Куда: ${esc(row.title)}"><option value="">Как все</option>${destinations.map(d=>`<option value="${esc(d.value)}">${esc(d.label)}</option>`).join('')}</select></label>`).join('');
   const goal=container.goal?` · цель — ${esc(container.goal)}`:'';
   const body=`<p class="pl-complete-when">${esc(dateRange(container.start,container.end,today))}${goal}</p>
-    <div class="pl-facts"><div><b>${facts.done}</b>готово · примем</div><div><b>${facts.open}</b>не готово${facts.remaining?` · ${esc(facts.remaining)}`:''}</div><div><b>${facts.late}</b>срок за спринтом</div></div>
+    <div class="pl-facts"><div><b>${facts.done}</b>готово · примем</div><div><b>${facts.open}</b>не готово${facts.remaining?` · ${esc(facts.remaining)}`:''}</div><div><b>${sprint?facts.late:container.summary.noDue}</b>${sprint?'срок за спринтом':'без срока'}</div></div>
     ${facts.open?`<section data-common>${ui.radioGroup('Незавершённые задачи','destination',options,next?next.id:'backlog')}${exceptions?'<button type="button" class="pl-text-link" data-exceptions>Решить по каждой задаче</button>':''}</section>
     <section data-each hidden><p class="pl-complete-help">Задача без отдельного выбора поедет туда же, куда все.</p><div class="pl-exceptions">${exceptions}</div><button type="button" class="pl-text-link" data-common-back>Вернуться к общему выбору</button></section>`:'<p>Все задачи спринта готовы.</p>'}
     <p class="pl-complete-help">Снимок состава сохранится в «Завершённые». Ничего не удаляется.</p>`;
-  return formDialog({title:`Завершить ${container.name.replace(/^Спринт/,'спринт')}`,body,submitLabel:'Завершить спринт',
+  return formDialog({title:`Завершить ${container.name.replace(/^Спринт/,'спринт').replace(/^Релиз/,'релиз')}`,body,submitLabel:sprint?'Завершить спринт':'Завершить релиз',
     onMount:form=>{
       form.addEventListener('click',event=>{
         if(event.target.closest('[data-exceptions]')){form.querySelector('[data-each]').hidden=false;form.querySelector('[data-common] [data-exceptions]').hidden=true;form.querySelector('[data-each] select')?.focus();}
