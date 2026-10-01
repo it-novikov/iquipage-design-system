@@ -17,7 +17,7 @@ object Mentions {
     /** At most this many members are notified by one message: a list of the whole team is not a mention. */
     const val LIMIT = 20
     private val FENCED = Regex("(?m)^ {0,3}(```|~~~)[\\s\\S]*?(^ {0,3}\\1|\\z)")
-    private val INLINE = Regex("`[^`\\n]*`")
+    private val INLINE = Regex("(`+)[^`\\n]*?\\1")
     private const val NAME_END = "(?![\\p{L}\\p{N}_])"
     private const val MENTION_START = "(?<![\\p{L}\\p{N}_@.])@"
 

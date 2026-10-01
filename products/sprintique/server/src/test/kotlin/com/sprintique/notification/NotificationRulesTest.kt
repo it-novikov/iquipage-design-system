@@ -61,6 +61,7 @@ class NotificationRulesTest {
         // Not a member, not a token, in code or inside a word: nobody.
         assertThat(Mentions.find("@[Чужой](user:zz) @[x](mailto:a) `@[A](user:a)` mail@[A](user:a)", people)).isEmpty()
         assertThat(Mentions.find("```\n@[A](user:a)\n```", people)).isEmpty()
+        assertThat(Mentions.find("``@[A](user:a)``", people)).isEmpty()
         assertThat(Mentions.find("@[A](user:a) @[A](user:a) @Анна", people)).containsExactly("a")
         // A label with brackets or a line break is not a token; an id outside [A-Za-z0-9_-] neither.
         assertThat(Mentions.find("@[A]](user:a) @[A\nB](user:a) @[A](user:a\"b)", people)).isEmpty()
