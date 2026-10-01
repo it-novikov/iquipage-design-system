@@ -2,14 +2,14 @@
 bridge: 1
 id: 20261001-notification-channels
 title: "Каналы уведомлений: почта и Telegram, пачки и оформление"
-status: active
+status: review
 risk: high
 owner: nvkv71
 branch: feature/notification-channels
 base: main
 created: 2026-10-01
-updated: 2026-10-01T23:06:30Z
-links:
+updated: 2026-10-01T23:18:30Z
+links: https://github.com/it-novikov/iquipage-design-system/pull/44
 ---
 
 # Каналы уведомлений: почта и Telegram, пачки и оформление
@@ -31,15 +31,15 @@ links:
 - [x] A3. Пачки на человека и канал: окно 5 мин Telegram и 15 мин почта (env), раньше при 20; перепроверка каждого элемента, схлопывание по задаче, повторы с бэкоффом, 429, 403 — отвязка, учёт по пачке и элементу, не старше 24 ч, часовой пояс человека
 - [x] A4. Оформление без списков: Telegram HTML (заголовок, проект, задача ссылкой, причины, кнопки, деление по 4096 на границах задач); письмо multipart/alternative, табличный шаблон IQUIPAGE, тема, прехедер, кнопка на задачу, подвал, List-Unsubscribe one-click (RFC 8058) с подписанным токеном
 - [x] A5. Миграции V20261001000056–059 с RLS FORCE, jOOQ и контракты; интеграционные тесты каналов, окна, схлопывания, перепроверки, MIME, токена отписки, деления, повторов
-- [ ] A6. Документация (operations.md, ADR), превью письма светлое/тёмное и макет Telegram, гейты npm test и verify-vnext, PR на русском, не слит
+- [x] A6. Документация (operations.md, ADR), превью письма светлое/тёмное и макет Telegram, гейты npm test и verify-vnext, PR на русском, не слит
 
 ## Передача
 
-- **Состояние:** Реализовано: каналы, пачки, шаблоны, отписка, тесты NC01–NC08, документация, превью
-- **Сейчас:** Гейты npm test и verify-vnext
-- **Дальше:** PR в main, владелец: ревью и деплой по operations.md
+- **Состояние:** PR #44 открыт; npm test: Kotlin check зелёный, интеграционные 42/43 (флейк WorkbenchCapacity), Node 365/365; verify-vnext до product-tests PASS, стоп на том же флейке
+- **Сейчас:** —
+- **Дальше:** Владелец: ревью PR #44, перезапуск verify-vnext на свободной машине, деплой по operations.md (worker SMTP, notifications.env)
 - **Незакоммичено:** нет
-- **Рабочая копия:** нет · HEAD a667cf7
+- **Рабочая копия:** нет · HEAD 0efe466
 
 ## План
 

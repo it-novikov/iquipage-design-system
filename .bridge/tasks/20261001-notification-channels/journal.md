@@ -18,3 +18,7 @@
 - 2026-10-01T23:06:30Z · claude · note · A4 · критерий приёмки выполнен
 - 2026-10-01T23:06:30Z · claude · note · A5 · критерий приёмки выполнен
 - 2026-10-01T23:06:30Z · claude · checkpoint · - · дальше: PR в main, владелец: ревью и деплой по operations.md
+- 2026-10-01T23:18:30Z · claude · note · A6 · критерий приёмки выполнен
+- 2026-10-01T23:18:30Z · claude · checkpoint · - · дальше: Владелец: ревью PR #44, перезапуск verify-vnext на свободной машине, деплой по operations.md (worker SMTP, notifications.env)
+- 2026-10-01T23:18:30Z · claude · status · - · review: PR #44
+- 2026-10-01T23:18:30Z · claude · release · - · отпустил задачу
