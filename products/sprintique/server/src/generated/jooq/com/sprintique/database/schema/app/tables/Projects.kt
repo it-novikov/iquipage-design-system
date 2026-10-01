@@ -6,6 +6,7 @@ package com.sprintique.database.schema.app.tables
 
 import com.sprintique.database.schema.app.App
 import com.sprintique.database.schema.app.keys.AGENT_RUNS__AGENT_RUNS_PROJECT_ID_FKEY
+import com.sprintique.database.schema.app.keys.AI_AGENT_RUNS__AI_AGENT_RUNS_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.APPROVALS__APPROVALS_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.ASSETS__ASSETS_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.ATTENTION_REQUESTS__ATTENTION_REQUESTS_PROJECT_ID_FKEY
@@ -40,6 +41,7 @@ import com.sprintique.database.schema.app.keys.TASK_SETTINGS__TASK_SETTINGS_PROJ
 import com.sprintique.database.schema.app.keys.TEMPORAL_CONSTRAINTS__TEMPORAL_CONSTRAINTS_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.tables.AccessPresets.AccessPresetsPath
 import com.sprintique.database.schema.app.tables.AgentRuns.AgentRunsPath
+import com.sprintique.database.schema.app.tables.AiAgentRuns.AiAgentRunsPath
 import com.sprintique.database.schema.app.tables.Approvals.ApprovalsPath
 import com.sprintique.database.schema.app.tables.Assets.AssetsPath
 import com.sprintique.database.schema.app.tables.AttentionRequests.AttentionRequestsPath
@@ -206,6 +208,18 @@ open class Projects(
 
     val agentRuns: AgentRunsPath
         get(): AgentRunsPath = agentRuns()
+
+    private lateinit var _aiAgentRuns: AiAgentRunsPath
+
+    fun aiAgentRuns(): AiAgentRunsPath {
+        if (!this::_aiAgentRuns.isInitialized)
+            _aiAgentRuns = AiAgentRunsPath(this, null, AI_AGENT_RUNS__AI_AGENT_RUNS_PROJECT_ID_FKEY.inverseKey)
+
+        return _aiAgentRuns;
+    }
+
+    val aiAgentRuns: AiAgentRunsPath
+        get(): AiAgentRunsPath = aiAgentRuns()
 
     private lateinit var _approvals: ApprovalsPath
 

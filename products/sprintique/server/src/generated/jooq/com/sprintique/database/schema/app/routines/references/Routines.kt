@@ -5,12 +5,342 @@
 package com.sprintique.database.schema.app.routines.references
 
 
+import com.sprintique.database.schema.app.routines.AiForgetConnectionSecret
+import com.sprintique.database.schema.app.routines.AiIsOwner
+import com.sprintique.database.schema.app.routines.AiRunAttach
+import com.sprintique.database.schema.app.routines.AiRunFinish
+import com.sprintique.database.schema.app.routines.AiRunHeartbeat
+import com.sprintique.database.schema.app.routines.AiRunLoad
+import com.sprintique.database.schema.app.routines.AiRunStep
+import com.sprintique.database.schema.app.routines.AiStoreConnectionSecret
 import com.sprintique.database.schema.app.routines.AppendTaskActivity
+import com.sprintique.database.schema.app.tables.AiConnectionSecret
+import com.sprintique.database.schema.app.tables.AiRunClaim
+import com.sprintique.database.schema.app.tables.AiRunEnqueue
+import com.sprintique.database.schema.app.tables.records.AiConnectionSecretRecord
+import com.sprintique.database.schema.app.tables.records.AiRunClaimRecord
+import com.sprintique.database.schema.app.tables.records.AiRunEnqueueRecord
+
+import java.util.UUID
 
 import org.jooq.Configuration
+import org.jooq.Field
 import org.jooq.JSONB
+import org.jooq.Result
 
 
+
+fun aiForgetConnectionSecret(
+      configuration: Configuration
+    , target: UUID?
+): Unit {
+    val p = AiForgetConnectionSecret()
+    p.setTarget(target)
+
+    p.execute(configuration)
+}
+@Deprecated(message = "Unknown data type. Parameter type or return type is unknown. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
+fun aiIsOwner(
+      configuration: Configuration
+    , target: Any?
+): Boolean? {
+    val f = AiIsOwner()
+    f.setTarget(target)
+
+    f.execute(configuration)
+    return f.returnValue
+}
+@Deprecated(message = "Unknown data type. Parameter type or return type is unknown. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
+fun aiIsOwner(
+      target: Any?
+): Field<Boolean?> {
+    val f = AiIsOwner()
+    f.setTarget(target)
+
+    return f.asField()
+}
+@Deprecated(message = "Unknown data type. Parameter type or return type is unknown. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
+fun aiIsOwner(
+      target: Field<Any?>
+): Field<Boolean?> {
+    val f = AiIsOwner()
+    f.setTarget(target)
+
+    return f.asField()
+}
+
+fun aiRunAttach(
+      configuration: Configuration
+    , run: UUID?
+    , lease: UUID?
+    , credential: String?
+): Boolean? {
+    val f = AiRunAttach()
+    f.setRun(run)
+    f.setLease(lease)
+    f.setCredential(credential)
+
+    f.execute(configuration)
+    return f.returnValue
+}
+
+fun aiRunAttach(
+      run: UUID?
+    , lease: UUID?
+    , credential: String?
+): Field<Boolean?> {
+    val f = AiRunAttach()
+    f.setRun(run)
+    f.setLease(lease)
+    f.setCredential(credential)
+
+    return f.asField()
+}
+
+fun aiRunAttach(
+      run: Field<UUID?>
+    , lease: Field<UUID?>
+    , credential: Field<String?>
+): Field<Boolean?> {
+    val f = AiRunAttach()
+    f.setRun(run)
+    f.setLease(lease)
+    f.setCredential(credential)
+
+    return f.asField()
+}
+
+fun aiRunFinish(
+      configuration: Configuration
+    , run: UUID?
+    , lease: UUID?
+    , finalState: String?
+    , code: String?
+    , message: String?
+): Boolean? {
+    val f = AiRunFinish()
+    f.setRun(run)
+    f.setLease(lease)
+    f.setFinalState(finalState)
+    f.setCode(code)
+    f.setMessage(message)
+
+    f.execute(configuration)
+    return f.returnValue
+}
+
+fun aiRunFinish(
+      run: UUID?
+    , lease: UUID?
+    , finalState: String?
+    , code: String?
+    , message: String?
+): Field<Boolean?> {
+    val f = AiRunFinish()
+    f.setRun(run)
+    f.setLease(lease)
+    f.setFinalState(finalState)
+    f.setCode(code)
+    f.setMessage(message)
+
+    return f.asField()
+}
+
+fun aiRunFinish(
+      run: Field<UUID?>
+    , lease: Field<UUID?>
+    , finalState: Field<String?>
+    , code: Field<String?>
+    , message: Field<String?>
+): Field<Boolean?> {
+    val f = AiRunFinish()
+    f.setRun(run)
+    f.setLease(lease)
+    f.setFinalState(finalState)
+    f.setCode(code)
+    f.setMessage(message)
+
+    return f.asField()
+}
+
+fun aiRunHeartbeat(
+      configuration: Configuration
+    , run: UUID?
+    , lease: UUID?
+    , leaseSeconds: Int?
+    , conversation: JSONB?
+): String? {
+    val f = AiRunHeartbeat()
+    f.setRun(run)
+    f.setLease(lease)
+    f.setLeaseSeconds(leaseSeconds)
+    f.setConversation(conversation)
+
+    f.execute(configuration)
+    return f.returnValue
+}
+
+fun aiRunHeartbeat(
+      run: UUID?
+    , lease: UUID?
+    , leaseSeconds: Int?
+    , conversation: JSONB?
+): Field<String?> {
+    val f = AiRunHeartbeat()
+    f.setRun(run)
+    f.setLease(lease)
+    f.setLeaseSeconds(leaseSeconds)
+    f.setConversation(conversation)
+
+    return f.asField()
+}
+
+fun aiRunHeartbeat(
+      run: Field<UUID?>
+    , lease: Field<UUID?>
+    , leaseSeconds: Field<Int?>
+    , conversation: Field<JSONB?>
+): Field<String?> {
+    val f = AiRunHeartbeat()
+    f.setRun(run)
+    f.setLease(lease)
+    f.setLeaseSeconds(leaseSeconds)
+    f.setConversation(conversation)
+
+    return f.asField()
+}
+
+fun aiRunLoad(
+      configuration: Configuration
+    , run: UUID?
+    , lease: UUID?
+): JSONB? {
+    val f = AiRunLoad()
+    f.setRun(run)
+    f.setLease(lease)
+
+    f.execute(configuration)
+    return f.returnValue
+}
+
+fun aiRunLoad(
+      run: UUID?
+    , lease: UUID?
+): Field<JSONB?> {
+    val f = AiRunLoad()
+    f.setRun(run)
+    f.setLease(lease)
+
+    return f.asField()
+}
+
+fun aiRunLoad(
+      run: Field<UUID?>
+    , lease: Field<UUID?>
+): Field<JSONB?> {
+    val f = AiRunLoad()
+    f.setRun(run)
+    f.setLease(lease)
+
+    return f.asField()
+}
+
+fun aiRunStep(
+      configuration: Configuration
+    , run: UUID?
+    , lease: UUID?
+    , stepKind: String?
+    , stepTool: String?
+    , stepSummary: String?
+    , stepStatus: String?
+    , stepError: String?
+    , stepInput: Int?
+    , stepOutput: Int?
+    , stepCost: Long?
+): Int? {
+    val f = AiRunStep()
+    f.setRun(run)
+    f.setLease(lease)
+    f.setStepKind(stepKind)
+    f.setStepTool(stepTool)
+    f.setStepSummary(stepSummary)
+    f.setStepStatus(stepStatus)
+    f.setStepError(stepError)
+    f.setStepInput(stepInput)
+    f.setStepOutput(stepOutput)
+    f.setStepCost(stepCost)
+
+    f.execute(configuration)
+    return f.returnValue
+}
+
+fun aiRunStep(
+      run: UUID?
+    , lease: UUID?
+    , stepKind: String?
+    , stepTool: String?
+    , stepSummary: String?
+    , stepStatus: String?
+    , stepError: String?
+    , stepInput: Int?
+    , stepOutput: Int?
+    , stepCost: Long?
+): Field<Int?> {
+    val f = AiRunStep()
+    f.setRun(run)
+    f.setLease(lease)
+    f.setStepKind(stepKind)
+    f.setStepTool(stepTool)
+    f.setStepSummary(stepSummary)
+    f.setStepStatus(stepStatus)
+    f.setStepError(stepError)
+    f.setStepInput(stepInput)
+    f.setStepOutput(stepOutput)
+    f.setStepCost(stepCost)
+
+    return f.asField()
+}
+
+fun aiRunStep(
+      run: Field<UUID?>
+    , lease: Field<UUID?>
+    , stepKind: Field<String?>
+    , stepTool: Field<String?>
+    , stepSummary: Field<String?>
+    , stepStatus: Field<String?>
+    , stepError: Field<String?>
+    , stepInput: Field<Int?>
+    , stepOutput: Field<Int?>
+    , stepCost: Field<Long?>
+): Field<Int?> {
+    val f = AiRunStep()
+    f.setRun(run)
+    f.setLease(lease)
+    f.setStepKind(stepKind)
+    f.setStepTool(stepTool)
+    f.setStepSummary(stepSummary)
+    f.setStepStatus(stepStatus)
+    f.setStepError(stepError)
+    f.setStepInput(stepInput)
+    f.setStepOutput(stepOutput)
+    f.setStepCost(stepCost)
+
+    return f.asField()
+}
+
+fun aiStoreConnectionSecret(
+      configuration: Configuration
+    , target: UUID?
+    , value: ByteArray?
+    , version: Int?
+): Unit {
+    val p = AiStoreConnectionSecret()
+    p.setTarget(target)
+    p.setValue(value)
+    p.setVersion(version)
+
+    p.execute(configuration)
+}
 
 fun appendTaskActivity(
       configuration: Configuration
@@ -27,3 +357,78 @@ fun appendTaskActivity(
 
     p.execute(configuration)
 }
+
+fun aiConnectionSecret(
+      configuration: Configuration
+    , target: UUID?
+): Result<AiConnectionSecretRecord> = configuration.dsl().selectFrom(com.sprintique.database.schema.app.tables.AiConnectionSecret.AI_CONNECTION_SECRET.call(
+      target
+)).fetch()
+
+fun aiConnectionSecret(
+      target: UUID?
+): AiConnectionSecret = com.sprintique.database.schema.app.tables.AiConnectionSecret.AI_CONNECTION_SECRET.call(
+    target
+)
+
+fun aiConnectionSecret(
+      target: Field<UUID?>
+): AiConnectionSecret = com.sprintique.database.schema.app.tables.AiConnectionSecret.AI_CONNECTION_SECRET.call(
+    target
+)
+
+fun aiRunClaim(
+      configuration: Configuration
+    , leaseSeconds: Int?
+): Result<AiRunClaimRecord> = configuration.dsl().selectFrom(com.sprintique.database.schema.app.tables.AiRunClaim.AI_RUN_CLAIM.call(
+      leaseSeconds
+)).fetch()
+
+fun aiRunClaim(
+      leaseSeconds: Int?
+): AiRunClaim = com.sprintique.database.schema.app.tables.AiRunClaim.AI_RUN_CLAIM.call(
+    leaseSeconds
+)
+
+fun aiRunClaim(
+      leaseSeconds: Field<Int?>
+): AiRunClaim = com.sprintique.database.schema.app.tables.AiRunClaim.AI_RUN_CLAIM.call(
+    leaseSeconds
+)
+
+fun aiRunEnqueue(
+      configuration: Configuration
+    , targetProject: String?
+    , targetTask: String?
+    , account: String?
+    , runTrigger: String?
+): Result<AiRunEnqueueRecord> = configuration.dsl().selectFrom(com.sprintique.database.schema.app.tables.AiRunEnqueue.AI_RUN_ENQUEUE.call(
+      targetProject
+    , targetTask
+    , account
+    , runTrigger
+)).fetch()
+
+fun aiRunEnqueue(
+      targetProject: String?
+    , targetTask: String?
+    , account: String?
+    , runTrigger: String?
+): AiRunEnqueue = com.sprintique.database.schema.app.tables.AiRunEnqueue.AI_RUN_ENQUEUE.call(
+    targetProject,
+    targetTask,
+    account,
+    runTrigger
+)
+
+fun aiRunEnqueue(
+      targetProject: Field<String?>
+    , targetTask: Field<String?>
+    , account: Field<String?>
+    , runTrigger: Field<String?>
+): AiRunEnqueue = com.sprintique.database.schema.app.tables.AiRunEnqueue.AI_RUN_ENQUEUE.call(
+    targetProject,
+    targetTask,
+    account,
+    runTrigger
+)

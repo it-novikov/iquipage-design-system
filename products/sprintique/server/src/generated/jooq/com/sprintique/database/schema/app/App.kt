@@ -8,6 +8,14 @@ import com.sprintique.database.schema.DefaultCatalog
 import com.sprintique.database.schema.app.tables.AccessPresets
 import com.sprintique.database.schema.app.tables.AgentRunPlans
 import com.sprintique.database.schema.app.tables.AgentRuns
+import com.sprintique.database.schema.app.tables.AiAgentProfiles
+import com.sprintique.database.schema.app.tables.AiAgentRunSteps
+import com.sprintique.database.schema.app.tables.AiAgentRuns
+import com.sprintique.database.schema.app.tables.AiConnectionSecret
+import com.sprintique.database.schema.app.tables.AiConnectionSecrets
+import com.sprintique.database.schema.app.tables.AiConnections
+import com.sprintique.database.schema.app.tables.AiRunClaim
+import com.sprintique.database.schema.app.tables.AiRunEnqueue
 import com.sprintique.database.schema.app.tables.Approvals
 import com.sprintique.database.schema.app.tables.Assets
 import com.sprintique.database.schema.app.tables.AttentionRequests
@@ -50,10 +58,18 @@ import com.sprintique.database.schema.app.tables.WorkbenchPreferences
 import com.sprintique.database.schema.app.tables.WorkspaceAudit
 import com.sprintique.database.schema.app.tables.WorkspaceMembers
 import com.sprintique.database.schema.app.tables.Workspaces
+import com.sprintique.database.schema.app.tables.records.AiConnectionSecretRecord
+import com.sprintique.database.schema.app.tables.records.AiRunClaimRecord
+import com.sprintique.database.schema.app.tables.records.AiRunEnqueueRecord
+
+import java.util.UUID
 
 import kotlin.collections.List
 
 import org.jooq.Catalog
+import org.jooq.Configuration
+import org.jooq.Field
+import org.jooq.Result
 import org.jooq.Table
 import org.jooq.impl.DSL
 import org.jooq.impl.SchemaImpl
@@ -71,6 +87,97 @@ open class App : SchemaImpl(DSL.name("app"), DefaultCatalog.DEFAULT_CATALOG, DSL
     val AGENT_RUN_PLANS: AgentRunPlans get() = AgentRunPlans.AGENT_RUN_PLANS
 
     val AGENT_RUNS: AgentRuns get() = AgentRuns.AGENT_RUNS
+
+    val AI_AGENT_PROFILES: AiAgentProfiles get() = AiAgentProfiles.AI_AGENT_PROFILES
+
+    val AI_AGENT_RUN_STEPS: AiAgentRunSteps get() = AiAgentRunSteps.AI_AGENT_RUN_STEPS
+
+    val AI_AGENT_RUNS: AiAgentRuns get() = AiAgentRuns.AI_AGENT_RUNS
+
+    val AI_CONNECTION_SECRET: AiConnectionSecret get() = AiConnectionSecret.AI_CONNECTION_SECRET
+
+    fun AI_CONNECTION_SECRET(
+          configuration: Configuration
+        , target: UUID?
+    ): Result<AiConnectionSecretRecord> = configuration.dsl().selectFrom(com.sprintique.database.schema.app.tables.AiConnectionSecret.AI_CONNECTION_SECRET.call(
+          target
+    )).fetch()
+
+    fun AI_CONNECTION_SECRET(
+          target: UUID?
+    ): AiConnectionSecret = com.sprintique.database.schema.app.tables.AiConnectionSecret.AI_CONNECTION_SECRET.call(
+        target
+    )
+
+    fun AI_CONNECTION_SECRET(
+          target: Field<UUID?>
+    ): AiConnectionSecret = com.sprintique.database.schema.app.tables.AiConnectionSecret.AI_CONNECTION_SECRET.call(
+        target
+    )
+
+    val AI_CONNECTION_SECRETS: AiConnectionSecrets get() = AiConnectionSecrets.AI_CONNECTION_SECRETS
+
+    val AI_CONNECTIONS: AiConnections get() = AiConnections.AI_CONNECTIONS
+
+    val AI_RUN_CLAIM: AiRunClaim get() = AiRunClaim.AI_RUN_CLAIM
+
+    fun AI_RUN_CLAIM(
+          configuration: Configuration
+        , leaseSeconds: Int?
+    ): Result<AiRunClaimRecord> = configuration.dsl().selectFrom(com.sprintique.database.schema.app.tables.AiRunClaim.AI_RUN_CLAIM.call(
+          leaseSeconds
+    )).fetch()
+
+    fun AI_RUN_CLAIM(
+          leaseSeconds: Int?
+    ): AiRunClaim = com.sprintique.database.schema.app.tables.AiRunClaim.AI_RUN_CLAIM.call(
+        leaseSeconds
+    )
+
+    fun AI_RUN_CLAIM(
+          leaseSeconds: Field<Int?>
+    ): AiRunClaim = com.sprintique.database.schema.app.tables.AiRunClaim.AI_RUN_CLAIM.call(
+        leaseSeconds
+    )
+
+    val AI_RUN_ENQUEUE: AiRunEnqueue get() = AiRunEnqueue.AI_RUN_ENQUEUE
+
+    fun AI_RUN_ENQUEUE(
+          configuration: Configuration
+        , targetProject: String?
+        , targetTask: String?
+        , account: String?
+        , runTrigger: String?
+    ): Result<AiRunEnqueueRecord> = configuration.dsl().selectFrom(com.sprintique.database.schema.app.tables.AiRunEnqueue.AI_RUN_ENQUEUE.call(
+          targetProject
+        , targetTask
+        , account
+        , runTrigger
+    )).fetch()
+
+    fun AI_RUN_ENQUEUE(
+          targetProject: String?
+        , targetTask: String?
+        , account: String?
+        , runTrigger: String?
+    ): AiRunEnqueue = com.sprintique.database.schema.app.tables.AiRunEnqueue.AI_RUN_ENQUEUE.call(
+        targetProject,
+        targetTask,
+        account,
+        runTrigger
+    )
+
+    fun AI_RUN_ENQUEUE(
+          targetProject: Field<String?>
+        , targetTask: Field<String?>
+        , account: Field<String?>
+        , runTrigger: Field<String?>
+    ): AiRunEnqueue = com.sprintique.database.schema.app.tables.AiRunEnqueue.AI_RUN_ENQUEUE.call(
+        targetProject,
+        targetTask,
+        account,
+        runTrigger
+    )
 
     val APPROVALS: Approvals get() = Approvals.APPROVALS
 
@@ -162,6 +269,14 @@ open class App : SchemaImpl(DSL.name("app"), DefaultCatalog.DEFAULT_CATALOG, DSL
         AccessPresets.ACCESS_PRESETS,
         AgentRunPlans.AGENT_RUN_PLANS,
         AgentRuns.AGENT_RUNS,
+        AiAgentProfiles.AI_AGENT_PROFILES,
+        AiAgentRunSteps.AI_AGENT_RUN_STEPS,
+        AiAgentRuns.AI_AGENT_RUNS,
+        AiConnectionSecret.AI_CONNECTION_SECRET,
+        AiConnectionSecrets.AI_CONNECTION_SECRETS,
+        AiConnections.AI_CONNECTIONS,
+        AiRunClaim.AI_RUN_CLAIM,
+        AiRunEnqueue.AI_RUN_ENQUEUE,
         Approvals.APPROVALS,
         Assets.ASSETS,
         AttentionRequests.ATTENTION_REQUESTS,

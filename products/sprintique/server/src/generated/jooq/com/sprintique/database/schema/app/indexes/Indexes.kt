@@ -7,6 +7,9 @@ package com.sprintique.database.schema.app.indexes
 
 import com.sprintique.database.schema.app.tables.AccessPresets
 import com.sprintique.database.schema.app.tables.AgentRuns
+import com.sprintique.database.schema.app.tables.AiAgentProfiles
+import com.sprintique.database.schema.app.tables.AiAgentRuns
+import com.sprintique.database.schema.app.tables.AiConnections
 import com.sprintique.database.schema.app.tables.Assets
 import com.sprintique.database.schema.app.tables.AttentionRequests
 import com.sprintique.database.schema.app.tables.AuditEvents
@@ -36,6 +39,12 @@ import org.jooq.impl.Internal
 
 val ACCESS_PRESETS_NAME: Index = Internal.createIndex(DSL.name("access_presets_name"), AccessPresets.ACCESS_PRESETS, arrayOf(AccessPresets.ACCESS_PRESETS.WORKSPACE_ID, AccessPresets.ACCESS_PRESETS.NAME), true)
 val AGENT_RUNS_PAGE: Index = Internal.createIndex(DSL.name("agent_runs_page"), AgentRuns.AGENT_RUNS, arrayOf(AgentRuns.AGENT_RUNS.PROJECT_ID, AgentRuns.AGENT_RUNS.ID), false)
+val AI_AGENT_PROFILES_CONNECTION: Index = Internal.createIndex(DSL.name("ai_agent_profiles_connection"), AiAgentProfiles.AI_AGENT_PROFILES, arrayOf(AiAgentProfiles.AI_AGENT_PROFILES.CONNECTION_ID), false)
+val AI_AGENT_RUNS_ACCOUNT: Index = Internal.createIndex(DSL.name("ai_agent_runs_account"), AiAgentRuns.AI_AGENT_RUNS, arrayOf(AiAgentRuns.AI_AGENT_RUNS.ACCOUNT_ID, AiAgentRuns.AI_AGENT_RUNS.CREATED_AT.desc()), false)
+val AI_AGENT_RUNS_ACTIVE: Index = Internal.createIndex(DSL.name("ai_agent_runs_active"), AiAgentRuns.AI_AGENT_RUNS, arrayOf(AiAgentRuns.AI_AGENT_RUNS.PROJECT_ID, AiAgentRuns.AI_AGENT_RUNS.TASK_ID, AiAgentRuns.AI_AGENT_RUNS.ACCOUNT_ID), true)
+val AI_AGENT_RUNS_DUE: Index = Internal.createIndex(DSL.name("ai_agent_runs_due"), AiAgentRuns.AI_AGENT_RUNS, arrayOf(AiAgentRuns.AI_AGENT_RUNS.CREATED_AT, AiAgentRuns.AI_AGENT_RUNS.ID), false)
+val AI_AGENT_RUNS_TASK: Index = Internal.createIndex(DSL.name("ai_agent_runs_task"), AiAgentRuns.AI_AGENT_RUNS, arrayOf(AiAgentRuns.AI_AGENT_RUNS.PROJECT_ID, AiAgentRuns.AI_AGENT_RUNS.TASK_ID, AiAgentRuns.AI_AGENT_RUNS.CREATED_AT.desc()), false)
+val AI_CONNECTIONS_WORKSPACE: Index = Internal.createIndex(DSL.name("ai_connections_workspace"), AiConnections.AI_CONNECTIONS, arrayOf(AiConnections.AI_CONNECTIONS.WORKSPACE_ID, AiConnections.AI_CONNECTIONS.NAME), false)
 val ASSET_CLEANUP: Index = Internal.createIndex(DSL.name("asset_cleanup"), Assets.ASSETS, arrayOf(Assets.ASSETS.EXPIRES_AT), false)
 val ATTENTION_REQUEST_APPROVAL: Index = Internal.createIndex(DSL.name("attention_request_approval"), AttentionRequests.ATTENTION_REQUESTS, arrayOf(AttentionRequests.ATTENTION_REQUESTS.PROJECT_ID, AttentionRequests.ATTENTION_REQUESTS.APPROVAL_ID), false)
 val ATTENTION_REQUEST_RECIPIENT: Index = Internal.createIndex(DSL.name("attention_request_recipient"), AttentionRequests.ATTENTION_REQUESTS, arrayOf(AttentionRequests.ATTENTION_REQUESTS.RECIPIENT_ID, AttentionRequests.ATTENTION_REQUESTS.PROJECT_ID), false)

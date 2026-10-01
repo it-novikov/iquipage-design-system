@@ -15,10 +15,16 @@ enum class CredentialKind(val wire: String, val prefix: String?) {
     AGENT("agent", "spr_"),
     SERVICE("service", "spk_"),
     OAUTH("oauth", "spo_"),
+
+    /**
+     * The credential of one run of a service account's agent (docs/decisions/0005-ai-agents.md): issued by the server
+     * for the run and its project, never handed out as a bearer token and revoked when the run ends.
+     */
+    RUNTIME("runtime", null),
     ;
 
-    /** A service account's token: bound to a resource, narrowed by scopes, never trusted with access decisions. */
-    val isDelegated: Boolean get() = this == SERVICE || this == OAUTH
+    /** A service account's credential: narrowed by scopes, never trusted with access decisions. */
+    val isDelegated: Boolean get() = this == SERVICE || this == OAUTH || this == RUNTIME
 
     companion object {
         /** The kind of a bearer token by its prefix; a session is never a bearer token. */
