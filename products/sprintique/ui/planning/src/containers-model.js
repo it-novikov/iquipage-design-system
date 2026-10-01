@@ -70,9 +70,10 @@ export function locative(name){
 }
 /** «Анна Коваленко» → «Анна К.»; a service account keeps its name without the note in brackets. */
 export function shortPerson(label){
-  const name=String(label||'').replace(/\s*\(.*\)\s*$/,'').trim();
+  const text=String(label||''),service=/\(сервисный аккаунт/.test(text);
+  const name=text.replace(/\s*\(.*\)\s*$/,'').trim();
   const words=name.split(/\s+/).filter(Boolean);
-  return words.length>1&&!/^Бывший/.test(name)?`${words[0]} ${words[1][0]}.`:name;
+  return words.length>1&&!service&&!/^Бывший/.test(name)?`${words[0]} ${words[1][0]}.`:name;
 }
 
 const leafHours=(row,format)=>row.estimateMismatch?0:format==='points'?row.estimatePoints||0:row.estimateHours||0;

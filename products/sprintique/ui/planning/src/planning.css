@@ -28,10 +28,13 @@
 .pl-goal.is-empty{color:var(--iq-faint)}
 .pl-card-side{display:flex;align-items:center;gap:14px;height:24px;font-size:var(--iq-type-label-size);color:var(--iq-muted);white-space:nowrap}
 .pl-card-side b{font-weight:500;color:var(--iq-ink)}
+.pl-sum{display:inline-flex;align-items:center;gap:14px}
+.pl-sum:empty{display:none}
 .pl-card-side .iq-btn{--h:28px}
 .pl-sum-warning,.pl-warning{color:var(--iq-warning)}
-.pl-more{--h:28px;margin-left:-6px;opacity:0;transition:opacity var(--iq-motion-fast) var(--iq-ease)}
-.pl-card-head:hover .pl-more,.pl-more:focus-visible,.pl-more[aria-expanded=true]{opacity:1}
+/* «···» takes no room at rest: it opens beside the sum when the head is hovered or holds focus. */
+.pl-card-head .pl-more{--h:28px;width:0;min-width:0;margin-left:-14px;overflow:hidden;opacity:0;transition:opacity var(--iq-motion-fast) var(--iq-ease)}
+.pl-card-head:is(:hover,:focus-within) .pl-more.pl-more{width:var(--h);min-width:var(--h);margin-left:-6px;opacity:1}
 .pl-page[data-readonly] .pl-more{display:none}
 
 /* ---------- Rows: the DS tree; epics breathe a little before the next top-level row ---------- */
@@ -45,6 +48,9 @@
 .pl-slot.is-choosing .pl-glyph,.pl-slot:hover .pl-glyph{display:none}
 .pl-slot.is-choosing .pl-check,.pl-slot:hover .pl-check{display:grid}
 .pl-glyph{display:grid;place-items:center}
+/* Dates and estimates hug the right edge and may lean into the gap («без срока»), as values, not truncated labels. */
+.pl-card .tree-cell.is-end{overflow:visible}
+.pl-card .tree-cell.is-end>.tree-cell-button{max-width:none}
 .pl-empty-value{display:inline-block;min-width:24px;min-height:1em}
 .pl-mismatch{color:var(--iq-faint);text-decoration:line-through;text-decoration-color:var(--iq-faint)}
 .tree-row.is-selected .pl-warning{color:inherit}
@@ -73,6 +79,7 @@
 .pl-selbar .iq-btn{--h:32px}
 
 /* ---------- Ghost of a drag ---------- */
+.pl-ghost{--tree-columns:80px 96px 52px 56px;--tree-column-gap:12px}
 .pl-ghost .tree-row.has-columns{background:transparent;cursor:grabbing}
 .pl-ghost .tree-row[aria-level="2"],.pl-ghost .tree-row[aria-level="3"]{opacity:.75}
 
@@ -81,7 +88,7 @@
 .pl-menu-caption{margin:0;padding:6px 10px 2px;font-size:var(--iq-type-meta-size);letter-spacing:var(--iq-tracking-caps);text-transform:uppercase;color:var(--iq-faint)}
 .pl-menu-item{display:flex;align-items:center;justify-content:space-between;gap:var(--iq-space-4);width:100%;padding:var(--iq-space-2) 10px;border:0;border-radius:var(--iq-radius-xs);background:none;font:inherit;font-size:var(--iq-type-label-size);color:var(--iq-ink);text-align:left;cursor:pointer}
 .pl-menu-item small{font-size:var(--iq-type-label-size);color:var(--iq-faint)}
-.pl-menu-item:hover,.pl-menu-item:focus-visible{background:var(--iq-hover);outline:none}
+.pl-menu-item:hover,.pl-menu-item:focus-visible,.pl-menu-item:focus{background:var(--iq-hover);color:var(--iq-ink);outline:none;box-shadow:none;text-decoration:none}
 .pl-menu-item.is-danger{color:var(--iq-danger)}
 .pl-menu-rule{margin:6px 4px;border:0;border-top:1px solid var(--iq-line)}
 .pl-cal{width:300px;padding:10px 12px}

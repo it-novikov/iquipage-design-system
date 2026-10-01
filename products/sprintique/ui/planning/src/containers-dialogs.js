@@ -1,6 +1,7 @@
 import {ui,icon,escapeHTML as esc,registerCore} from '@iquipage/web/core';
 import {formDialog} from './dialog.js';
 import {openPopover} from '../../src/popover.js';
+import {formatSum} from '../../src/estimate.js';
 import {completionFacts,nextSprint,dateRange,shortDate,validDay,addDays,daysBetween,monthTitle,plural,nextSprintDates,nextSprintName,whenLabel} from './containers-model.js';
 
 /*
@@ -86,8 +87,10 @@ export function completionDialog({container,containers,format,today,onSubmit}){
   const facts=completionFacts(container,format),next=nextSprint(containers,container.id);
   const open=container.rows.filter(row=>row.kind!=='epic'&&!row.done);
   const destinations=[...containers.filter(c=>c.id!==container.id&&c.kind!=='backlog').map(c=>({value:c.id,label:c.name})),{value:'backlog',label:'Бэклог'}];
-  const grow=next?`Станет ${next.summary.total+facts.open} ${plural(next.summary.total+facts.open,'задача','задачи','задач')}. Эпики переедут с незавершёнными подзадачами.`:'';
-  const options=[...(next?[{value:next.id,label:`В ${next.name}`,description:grow}]:[]),{value:'backlog',label:'В бэклог',description:next?`${next.name} останется как есть.`:'Задачи вернутся в бэклог, их можно будет разложить по спринтам позже.'}];
+  const size=(count,hours)=>`${count} ${plural(count,'задача','задачи','задач')}${hours?`, ${hours}`:''}`;
+  const points=format==='points',nextSum=next?(points?next.summary.estimatePoints:next.summary.estimateHours):0,leftSum=points?container.summary.remainingPoints:container.summary.remainingHours;
+  const grow=next?`Станет ${size(next.summary.total+facts.open,formatSum(nextSum+leftSum,format))}. Эпики переедут с незавершёнными подзадачами.`:'';
+  const options=[...(next?[{value:next.id,label:`В ${next.name}`,description:grow}]:[]),{value:'backlog',label:'В бэклог',description:next?`${next.name} останется как есть — ${size(next.summary.total,formatSum(nextSum,format))}.`:'Задачи вернутся в бэклог, их можно будет разложить по спринтам позже.'}];
   const exceptions=open.map(row=>`<label class="pl-exception"><span class="pl-exception-title">${esc(row.title)}</span><select class="pl-exception-select" data-exception="${esc(row.id)}" aria-label="Куда: ${esc(row.title)}"><option value="">Как все</option>${destinations.map(d=>`<option value="${esc(d.value)}">${esc(d.label)}</option>`).join('')}</select></label>`).join('');
   const goal=container.goal?` · цель — ${esc(container.goal)}`:'';
   const body=`<p class="pl-complete-when">${esc(dateRange(container.start,container.end,today))}${goal}</p>

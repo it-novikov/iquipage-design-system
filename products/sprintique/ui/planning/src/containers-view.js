@@ -17,7 +17,7 @@ export function pageMarkup(){
 }
 
 export function firstRunMarkup(capabilities){
-  const actions=capabilities.manageReleases?`<div class="pl-first-actions">${ui.btn('Создать спринт','primary','','data-new-sprint')}${ui.btn('Создать релиз','secondary','','data-new-release')}</div>`:'';
+  const actions=capabilities.manageReleases?`<div class="pl-first-actions">${ui.btn('Создать спринт','primary sm','','data-new-sprint')}${ui.btn('Создать релиз','secondary sm','','data-new-release')}</div>`:'';
   return `<section class="pl-first" aria-label="Спринтов и релизов пока нет"><h2>Спринтов и релизов пока нет</h2><p>Спринт — две недели с целью. Релиз — набор задач к дате. Задачи и эпики из бэклога перетаскиваются в них.</p>${actions}</section>`;
 }
 
@@ -32,14 +32,18 @@ function headMarkup(c,view){
   const {capabilities,format,today,activeExists}=view;
   const when=whenLabel(c,today);
   const editable=capabilities.manageReleases&&c.kind!=='backlog';
-  const sum=summaryParts(c,format).map(part=>part.warning?`<span class="pl-sum-warning">${esc(part.warning)}</span>`:`<span><b>${esc(part.strong)}</b>${esc(part.text)}</span>`).join('');
+  const sum=sumMarkup(c,format);
   let action='';
   if(c.kind==='sprint'&&c.state==='active'&&capabilities.completeSprint)action=ui.btn('Завершить спринт','secondary sm','',`data-complete="${esc(c.id)}"`);
   else if(c.kind==='sprint'&&c.state==='planned'&&!activeExists&&view.firstPlanned===c.id&&capabilities.manageReleases)action=ui.btn('Начать спринт','secondary sm','',`data-start="${esc(c.id)}"`);
   const more=editable?`<button type="button" class="iq-btn ghost sm icon pl-more" data-more="${esc(c.id)}" aria-label="Действия: ${esc(c.name)}" aria-haspopup="menu">${icon('more',16)}</button>`:'';
   const goal=c.kind==='backlog'?'':c.goal?`<p class="pl-goal">Цель — ${esc(c.goal)}</p>`:editable?'<p class="pl-goal is-empty">Цель не задана</p>':'';
   return `<header class="pl-card-head"><div class="pl-card-title"><h2 class="pl-card-name">${esc(c.name)}</h2>${when?`<span class="pl-when">${editable?`<button type="button" class="pl-when-button" data-dates="${esc(c.id)}" aria-label="Изменить даты: ${esc(c.name)}">${esc(when)}</button>`:esc(when)}</span>`:''}</div>
-    <div class="pl-card-side">${sum}${action}${more}</div>${goal}</header>`;
+    <div class="pl-card-side"><span class="pl-sum" data-sum>${sum}</span>${action}${more}</div>${goal}</header>`;
+}
+/** The one sum of a head; during a drag the target's sum is shown as if the block were already there. */
+export function sumMarkup(c,format){
+  return summaryParts(c,format).map(part=>part.warning?`<span class="pl-sum-warning">${esc(part.warning)}</span>`:`<span><b>${esc(part.strong)}</b>${esc(part.text)}</span>`).join('');
 }
 
 function rowMarkup(row,c,view,muted){
@@ -47,7 +51,7 @@ function rowMarkup(row,c,view,muted){
   const epic=row.kind==='epic',open=epic&&expanded(row.id),selected=selection.has(row.id);
   const tone=!muted&&PRIORITY_TONES.has(row.priority)?` data-tone="${row.priority}"`:'';
   const value=cells(row,c,format,today);
-  const choosing=capabilities.plan&&selection.size>0;
+  const choosing=capabilities.plan&&c.rows.some(item=>selection.has(item.id));
   const glyph=epic?icon('stack',16):statusGlyph(row.status);
   const check=`<span class="tree-checkbox pl-check${selected?' true':''}" data-select="${esc(row.id)}" role="checkbox" aria-checked="${selected}" aria-label="Выбрать: ${esc(row.title)}">${selected?icon('check',13):''}</span>`;
   const iconSlot=capabilities.plan?`<span class="tree-node-icon pl-slot${choosing?' is-choosing':''}"><span class="pl-glyph">${glyph}</span>${check}</span>`:`<span class="tree-node-icon">${glyph}</span>`;

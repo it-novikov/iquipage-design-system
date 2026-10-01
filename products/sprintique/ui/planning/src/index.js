@@ -4,7 +4,7 @@ import {operationDialog} from './dialog.js';
 import {openMenu,closePopover} from '../../src/popover.js';
 import {estimateEditor,formatSum} from '../../src/estimate.js';
 import {loadingMarkup} from '../../src/loading.js';
-import {pageMarkup,firstRunMarkup,footMarkup,cardMarkup,selectionMarkup,dragPreview} from './containers-view.js';
+import {pageMarkup,firstRunMarkup,footMarkup,cardMarkup,selectionMarkup,dragPreview,sumMarkup} from './containers-view.js';
 import {blocksOf,blockDone,sumOf,plural,validContainers,dateRange,shortDate} from './containers-model.js';
 import {dueEditor,containerDialog,completionDialog,completedDialog,cancelDialog} from './containers-dialogs.js';
 
@@ -283,10 +283,24 @@ export async function mountPlanning(root,{adapter,project,onOpenTask,onCreateTas
     canDrag:()=>capabilities().plan&&!busy,
     items:row=>dragIds(row.dataset.treeDrag),
     preview:(row,ids)=>preview(row.dataset.treeDrag,ids),
-    onState:active=>{dragging=active;if(active)closePopover();},
+    canDrop:({ids,containerId})=>{previewSum(ids,containerId);return true;},
+    onState:active=>{dragging=active;if(active)closePopover();else previewSum([],null);},
     label:ids=>ids.length===1?(rowOf(ids[0])?.row.title||'задача'):`${ids.length} ${plural(ids.length,'задача','задачи','задач')}`,
     onDrop:async({ids,containerId,afterId})=>{const result=await move(ids,containerId,afterId);if(result)clearSelection();}
   });
+  /** While a block hovers a card, that card's head already counts it; leaving restores the sum. */
+  let previewed=null;
+  function previewSum(ids,containerId){
+    if(previewed?.id===containerId)return;
+    if(previewed){const slot=stack.querySelector(`[data-card="${CSS.escape(previewed.id)}"] [data-sum]`);if(slot)slot.innerHTML=previewed.html;previewed=null;}
+    const c=containerId&&containerOf(containerId);if(!c)return;
+    const moving=ids.map(id=>rowOf(id)).filter(found=>found&&found.container.id!==containerId&&found.row.kind!=='epic').map(found=>found.row);
+    const slot=stack.querySelector(`[data-card="${CSS.escape(containerId)}"] [data-sum]`);if(!slot||!moving.length)return;
+    const open=moving.filter(r=>!r.done),hours=rows=>rows.reduce((t,r)=>t+(r.estimateMismatch?0:r.estimateHours||0),0),points=rows=>rows.reduce((t,r)=>t+(r.estimateMismatch?0:r.estimatePoints||0),0);
+    const s=c.summary,next={...s,total:s.total+moving.length,done:s.done+moving.length-open.length,open:s.open+open.length,estimateHours:s.estimateHours+hours(moving),remainingHours:s.remainingHours+hours(open),
+      estimatePoints:s.estimatePoints+points(moving),remainingPoints:s.remainingPoints+points(open),noDue:s.noDue+(c.kind==='release'?open.filter(r=>!r.due).length:0)};
+    previewed={id:containerId,html:slot.innerHTML};slot.innerHTML=sumMarkup({...c,summary:next},format());
+  }
   /** What a drag carries: the selection, or the row; an epic takes the subtasks below it in this card along. */
   function dragIds(id){
     const ids=carry(id),found=rowOf(id);
