@@ -19,3 +19,4 @@
 - 2026-10-01T23:08:47Z · claude · step · S4 · active
 - 2026-10-01T23:08:47Z · claude · note · - · Гейты после слияния main (#40, #41): DS 396/396; Node 354/354; Kotlin check зелёный; Kotlin integration 42/43 — WorkbenchCapacity (порог 2000 мс, 2.6–3.3 с при load avg 8–12) падает так же на чистом origin/main 9aaa7b3, к ветке не относится
 - 2026-10-01T23:08:47Z · claude · checkpoint · - · дальше: Ревью PR; при необходимости перевести галочку готовых рядов в серый тон (одна строка DS)
+- 2026-10-01T23:09:17Z · claude · status · - · review: PR #43

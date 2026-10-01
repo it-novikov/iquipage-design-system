@@ -2,14 +2,14 @@
 bridge: 1
 id: 20261001-planning-containers
 title: "Планирование R4.1: контейнеры, дерево эпиков, оценки, перенос удержанием (DS vnext.28)"
-status: active
+status: review
 risk: high
 owner: nvkv71
 branch: feature/planning-containers
 base: main
 created: 2026-10-01
-updated: 2026-10-01T23:08:47Z
-links:
+updated: 2026-10-01T23:09:17Z
+links: https://github.com/it-novikov/iquipage-design-system/pull/43
 ---
 
 # Планирование R4.1: контейнеры, дерево эпиков, оценки, перенос удержанием (DS vnext.28)
