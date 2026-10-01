@@ -66,7 +66,7 @@ class PersonalTaskController(
         }
     }
 
-    /** "Участвую": the person tracks the task and keeps it on their Workbench (docs/adr W5). */
+    /** "Наблюдаю" (`participating`): the person tracks the task and keeps it on their Workbench (docs/adr W5). */
     @PutMapping("/tasks/{taskId}/personal/participation")
     @Accepts(PutParticipationRequest::class)
     @Idempotent

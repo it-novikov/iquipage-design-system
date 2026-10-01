@@ -1,5 +1,5 @@
 // Rows of the Workbench (docs/workbench/design-v2.md §11.2–§11.3): a request with its verb, a "Сегодня" item, the
-// three lanes of «Текущая работа» (В работе · Жду · Участвую) and a change with its "было → стало". Every row is an
+// three lanes of «Текущая работа» (В работе · Жду · Наблюдаю) and a change with its "было → стало". Every row is an
 // `li[data-row]` with the task title as its link and every action as its own labelled control; the views wire them.
 import {ui,icon,escapeHTML as esc} from '@iquipage/web/core';
 import {ageLabel,changeLine,changeOf,checkWhen,countLabel,dueWhen,duePresets,moreReasons,neededWhen,planTone,planWhen,PLAN_KINDS,snoozePresets,
@@ -70,7 +70,7 @@ export function dayStrip(plan){
 }
 
 const rowMenu=(row,parts,extra=[])=>menu(`Действия: ${row.displayId}`,[{label:'Открыть задачу',action:'open',glyph:'upRight'},...extra,
-  ...(parts.personal&&row.personal.participating?[{label:'Перестать участвовать',action:'leave',glyph:'users'}]:[]),
+  ...(parts.personal&&row.personal.participating?[{label:'Перестать наблюдать',action:'leave',glyph:'eye'}]:[]),
   {label:'Открыть проект',action:'open-project',glyph:'folder'}]);
 const newsNote=row=>row.updates?` · <span class="dsk-news">${esc(countLabel(row.updates.count))} ${row.updates.count===1?'изменение':'изм.'}</span>`:'';
 
@@ -121,7 +121,7 @@ export function waitingItem(row,{wide=false,today=localDay(),parts}={}){
   </li>`;
 }
 
-/** «Участвую»: my order number, the task, its owner, "Срок", ↑ ↓ with the position announced. */
+/** «Наблюдаю»: my order number, the task, its owner, "Срок", ↑ ↓ with the position announced. */
 export function joinedItem(row,{index,total,wide=false,today=localDay(),parts}={}){
   const owner=row.owner?.name?`исполняет ${row.owner.name}`:'не назначена';
   const up=index===0,down=index===total-1;
