@@ -10,6 +10,7 @@ base: main
 created: 2026-10-01
 updated: 2026-10-01T23:20:36Z
 links:
+  - https://github.com/it-novikov/iquipage-design-system/pull/45
 ---
 
 # ИИ-подключения и агенты на сервисных аккаунтах
