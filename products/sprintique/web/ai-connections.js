@@ -39,7 +39,7 @@ export async function mountAiConnections(root,{repository,project,tools}){
     const add=data.canManage&&data.available?ui.btn('Добавить подключение','primary sm','plus','data-ai-add'):'';
     root.innerHTML=`${data.available?'':s.lock('ИИ-подключения не настроены на сервере: нет ключа шифрования. Его задаёт администратор сервера.')}
       ${!data.canManage&&data.available?s.lock('Вы можете только просматривать. Подключения меняют те, кто настраивает пространство.'):''}
-      ${s.group({title:'ИИ-подключения',count:data.items.length,description:'Ключи API языковых моделей. Ими думают агенты сервисных аккаунтов: агент работает с правами своего аккаунта, не шире.',actions:add,
+      ${s.group({title:'ИИ-подключения',count:data.items.length,description:'Агент сервисного аккаунта работает с правами своего аккаунта, не шире. Текст задач уходит провайдеру выбранного подключения.',actions:add,
         body:s.panel(data.items.map(row).join('')||s.empty({title:'Подключений нет',body:'Добавьте ключ Claude, ChatGPT или любого совместимого с OpenAI сервиса, например OpenRouter.',action:add?ui.btn('Добавить подключение','secondary sm','plus','data-ai-add'):'',glyph:'spark'}),'ul')})}
       ${s.group({title:'Как это устроено',body:s.panel(s.facts([
         ['Ключ','Показывается только при вводе. Сервер хранит его зашифрованным и не отдаёт обратно; видны последние четыре символа.'],
