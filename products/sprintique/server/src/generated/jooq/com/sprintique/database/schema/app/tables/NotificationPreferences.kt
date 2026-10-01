@@ -69,11 +69,15 @@ open class NotificationPreferences(
 
     val PRINCIPAL_ID: TableField<NotificationPreferencesRecord, String?> = createField(DSL.name("principal_id"), SQLDataType.CLOB.nullable(false), this, "")
 
-    val TELEGRAM_MUTED: TableField<NotificationPreferencesRecord, Array<String?>?> = createField(DSL.name("telegram_muted"), SQLDataType.CLOB.array().nullable(false).defaultValue(DSL.field(DSL.raw("'{}'::text[]"), SQLDataType.CLOB.array())), this, "")
+    val MUTED_KINDS: TableField<NotificationPreferencesRecord, Array<String?>?> = createField(DSL.name("muted_kinds"), SQLDataType.CLOB.array().nullable(false).defaultValue(DSL.field(DSL.raw("'{}'::text[]"), SQLDataType.CLOB.array())), this, "")
 
     val REVISION: TableField<NotificationPreferencesRecord, Long?> = createField(DSL.name("revision"), SQLDataType.BIGINT.nullable(false).defaultValue(DSL.field(DSL.raw("1"), SQLDataType.BIGINT)), this, "")
 
     val UPDATED_AT: TableField<NotificationPreferencesRecord, OffsetDateTime?> = createField(DSL.name("updated_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6).nullable(false).defaultValue(DSL.field(DSL.raw("clock_timestamp()"), SQLDataType.TIMESTAMPWITHTIMEZONE)), this, "")
+
+    val EMAIL_ENABLED: TableField<NotificationPreferencesRecord, Boolean?> = createField(DSL.name("email_enabled"), SQLDataType.BOOLEAN.nullable(false).defaultValue(DSL.field(DSL.raw("false"), SQLDataType.BOOLEAN)), this, "")
+
+    val TELEGRAM_ENABLED: TableField<NotificationPreferencesRecord, Boolean?> = createField(DSL.name("telegram_enabled"), SQLDataType.BOOLEAN.nullable(false).defaultValue(DSL.field(DSL.raw("true"), SQLDataType.BOOLEAN)), this, "")
 
     private constructor(alias: Name, aliased: Table<NotificationPreferencesRecord>?): this(alias, null, null, null, aliased, null, null)
     private constructor(alias: Name, aliased: Table<NotificationPreferencesRecord>?, parameters: Array<Field<*>?>?): this(alias, null, null, null, aliased, parameters, null)
@@ -101,8 +105,8 @@ open class NotificationPreferences(
     fun principals(): PrincipalsPath = principals
     val principals: PrincipalsPath by lazy { PrincipalsPath(this, NOTIFICATION_PREFERENCES__NOTIFICATION_PREFERENCES_PRINCIPAL_ID_FKEY, null) }
     override fun getChecks(): List<Check<NotificationPreferencesRecord>> = listOf(
-        Internal.createCheck(this, DSL.name("notification_preferences_revision_check"), "((revision > 0))", true),
-        Internal.createCheck(this, DSL.name("notification_preferences_telegram_muted_check"), "(((telegram_muted <@ ARRAY['assigned'::text, 'mention'::text, 'request'::text, 'deadline'::text]) AND (cardinality(telegram_muted) <= 4)))", true)
+        Internal.createCheck(this, DSL.name("notification_preferences_muted_kinds_check"), "(((muted_kinds <@ ARRAY['assigned'::text, 'mention'::text, 'request'::text, 'deadline'::text]) AND (cardinality(muted_kinds) <= 4)))", true),
+        Internal.createCheck(this, DSL.name("notification_preferences_revision_check"), "((revision > 0))", true)
     )
     override fun `as`(alias: String): NotificationPreferences = NotificationPreferences(DSL.name(alias), this)
     override fun `as`(alias: Name): NotificationPreferences = NotificationPreferences(alias, this)

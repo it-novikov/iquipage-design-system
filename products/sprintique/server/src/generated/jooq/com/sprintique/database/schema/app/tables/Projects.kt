@@ -17,6 +17,7 @@ import com.sprintique.database.schema.app.keys.MAPS__MAPS_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.MAP_TEMPLATES__MAP_TEMPLATES_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.MILESTONES__MILESTONES_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.NOTIFICATIONS__NOTIFICATIONS_PROJECT_ID_FKEY
+import com.sprintique.database.schema.app.keys.NOTIFICATION_DELIVERIES__NOTIFICATION_DELIVERIES_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.OUTBOX__OUTBOX_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.PERSON_PROJECT_PREFERENCES__PERSON_PROJECT_PREFERENCES_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.PLANNING_PLANS__PLANNING_PLANS_PROJECT_ID_FKEY
@@ -31,6 +32,7 @@ import com.sprintique.database.schema.app.keys.PROJECTS__PROJECTS_DEFAULT_MEMBER
 import com.sprintique.database.schema.app.keys.PROJECTS__PROJECTS_WORKSPACE_ID_FKEY
 import com.sprintique.database.schema.app.keys.PROJECT_MEMBERS__PROJECT_MEMBERS_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.PROJECT_MEMBERS__PROJECT_MEMBER_WORKSPACE
+import com.sprintique.database.schema.app.keys.PROJECT_NOTIFICATION_SETTINGS__PROJECT_NOTIFICATION_SETTINGS_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.RELEASES__RELEASES_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.TAGS__TAGS_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.TASKS__TASKS_PROJECT_ID_FKEY
@@ -38,8 +40,6 @@ import com.sprintique.database.schema.app.keys.TASK_ACTIVITY__TASK_ACTIVITY_PROJ
 import com.sprintique.database.schema.app.keys.TASK_LINKS__TASK_LINKS_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.TASK_SETTINGS_VERSIONS__TASK_SETTINGS_VERSIONS_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.TASK_SETTINGS__TASK_SETTINGS_PROJECT_ID_FKEY
-import com.sprintique.database.schema.app.keys.TELEGRAM_DELIVERIES__TELEGRAM_DELIVERIES_PROJECT_ID_FKEY
-import com.sprintique.database.schema.app.keys.TELEGRAM_PROJECT_SETTINGS__TELEGRAM_PROJECT_SETTINGS_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.TEMPORAL_CONSTRAINTS__TEMPORAL_CONSTRAINTS_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.tables.AccessPresets.AccessPresetsPath
 import com.sprintique.database.schema.app.tables.AgentRuns.AgentRunsPath
@@ -53,6 +53,7 @@ import com.sprintique.database.schema.app.tables.Idempotency.IdempotencyPath
 import com.sprintique.database.schema.app.tables.MapTemplates.MapTemplatesPath
 import com.sprintique.database.schema.app.tables.Maps.MapsPath
 import com.sprintique.database.schema.app.tables.Milestones.MilestonesPath
+import com.sprintique.database.schema.app.tables.NotificationDeliveries.NotificationDeliveriesPath
 import com.sprintique.database.schema.app.tables.Notifications.NotificationsPath
 import com.sprintique.database.schema.app.tables.Outbox.OutboxPath
 import com.sprintique.database.schema.app.tables.PersonProjectPreferences.PersonProjectPreferencesPath
@@ -60,6 +61,7 @@ import com.sprintique.database.schema.app.tables.PlanningPlans.PlanningPlansPath
 import com.sprintique.database.schema.app.tables.PlanningSelections.PlanningSelectionsPath
 import com.sprintique.database.schema.app.tables.PrivateReceipts.PrivateReceiptsPath
 import com.sprintique.database.schema.app.tables.ProjectMembers.ProjectMembersPath
+import com.sprintique.database.schema.app.tables.ProjectNotificationSettings.ProjectNotificationSettingsPath
 import com.sprintique.database.schema.app.tables.Releases.ReleasesPath
 import com.sprintique.database.schema.app.tables.Tags.TagsPath
 import com.sprintique.database.schema.app.tables.TaskActivity.TaskActivityPath
@@ -67,8 +69,6 @@ import com.sprintique.database.schema.app.tables.TaskLinks.TaskLinksPath
 import com.sprintique.database.schema.app.tables.TaskSettings.TaskSettingsPath
 import com.sprintique.database.schema.app.tables.TaskSettingsVersions.TaskSettingsVersionsPath
 import com.sprintique.database.schema.app.tables.Tasks.TasksPath
-import com.sprintique.database.schema.app.tables.TelegramDeliveries.TelegramDeliveriesPath
-import com.sprintique.database.schema.app.tables.TelegramProjectSettings.TelegramProjectSettingsPath
 import com.sprintique.database.schema.app.tables.TemporalConstraints.TemporalConstraintsPath
 import com.sprintique.database.schema.app.tables.Workspaces.WorkspacesPath
 import com.sprintique.database.schema.app.tables.records.ProjectsRecord
@@ -333,6 +333,18 @@ open class Projects(
     val milestones: MilestonesPath
         get(): MilestonesPath = milestones()
 
+    private lateinit var _notificationDeliveries: NotificationDeliveriesPath
+
+    fun notificationDeliveries(): NotificationDeliveriesPath {
+        if (!this::_notificationDeliveries.isInitialized)
+            _notificationDeliveries = NotificationDeliveriesPath(this, null, NOTIFICATION_DELIVERIES__NOTIFICATION_DELIVERIES_PROJECT_ID_FKEY.inverseKey)
+
+        return _notificationDeliveries;
+    }
+
+    val notificationDeliveries: NotificationDeliveriesPath
+        get(): NotificationDeliveriesPath = notificationDeliveries()
+
     private lateinit var _notifications: NotificationsPath
 
     fun notifications(): NotificationsPath {
@@ -429,6 +441,18 @@ open class Projects(
     val projectMembersProjectIdFkey: ProjectMembersPath
         get(): ProjectMembersPath = projectMembersProjectIdFkey()
 
+    private lateinit var _projectNotificationSettings: ProjectNotificationSettingsPath
+
+    fun projectNotificationSettings(): ProjectNotificationSettingsPath {
+        if (!this::_projectNotificationSettings.isInitialized)
+            _projectNotificationSettings = ProjectNotificationSettingsPath(this, null, PROJECT_NOTIFICATION_SETTINGS__PROJECT_NOTIFICATION_SETTINGS_PROJECT_ID_FKEY.inverseKey)
+
+        return _projectNotificationSettings;
+    }
+
+    val projectNotificationSettings: ProjectNotificationSettingsPath
+        get(): ProjectNotificationSettingsPath = projectNotificationSettings()
+
     private lateinit var _releases: ReleasesPath
 
     fun releases(): ReleasesPath {
@@ -512,30 +536,6 @@ open class Projects(
 
     val tasks: TasksPath
         get(): TasksPath = tasks()
-
-    private lateinit var _telegramDeliveries: TelegramDeliveriesPath
-
-    fun telegramDeliveries(): TelegramDeliveriesPath {
-        if (!this::_telegramDeliveries.isInitialized)
-            _telegramDeliveries = TelegramDeliveriesPath(this, null, TELEGRAM_DELIVERIES__TELEGRAM_DELIVERIES_PROJECT_ID_FKEY.inverseKey)
-
-        return _telegramDeliveries;
-    }
-
-    val telegramDeliveries: TelegramDeliveriesPath
-        get(): TelegramDeliveriesPath = telegramDeliveries()
-
-    private lateinit var _telegramProjectSettings: TelegramProjectSettingsPath
-
-    fun telegramProjectSettings(): TelegramProjectSettingsPath {
-        if (!this::_telegramProjectSettings.isInitialized)
-            _telegramProjectSettings = TelegramProjectSettingsPath(this, null, TELEGRAM_PROJECT_SETTINGS__TELEGRAM_PROJECT_SETTINGS_PROJECT_ID_FKEY.inverseKey)
-
-        return _telegramProjectSettings;
-    }
-
-    val telegramProjectSettings: TelegramProjectSettingsPath
-        get(): TelegramProjectSettingsPath = telegramProjectSettings()
 
     private lateinit var _temporalConstraints: TemporalConstraintsPath
 

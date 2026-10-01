@@ -19,7 +19,7 @@ open class NotificationPreferencesRecord() : UpdatableRecordImpl<NotificationPre
         set(value): Unit = set(0, value)
         get(): String? = get(0) as String?
 
-    open var telegramMuted: Array<String?>?
+    open var mutedKinds: Array<String?>?
         set(value): Unit = set(1, value)
         get(): Array<String?>? = get(1) as Array<String?>?
 
@@ -31,17 +31,27 @@ open class NotificationPreferencesRecord() : UpdatableRecordImpl<NotificationPre
         set(value): Unit = set(3, value)
         get(): OffsetDateTime? = get(3) as OffsetDateTime?
 
+    open var emailEnabled: Boolean?
+        set(value): Unit = set(4, value)
+        get(): Boolean? = get(4) as Boolean?
+
+    open var telegramEnabled: Boolean?
+        set(value): Unit = set(5, value)
+        get(): Boolean? = get(5) as Boolean?
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
 
     override fun key(): Record1<String?> = super.key() as Record1<String?>
 
-    constructor(principalId: String? = null, telegramMuted: Array<String?>? = null, revision: Long? = null, updatedAt: OffsetDateTime? = null): this() {
+    constructor(principalId: String? = null, mutedKinds: Array<String?>? = null, revision: Long? = null, updatedAt: OffsetDateTime? = null, emailEnabled: Boolean? = null, telegramEnabled: Boolean? = null): this() {
         this.principalId = principalId
-        this.telegramMuted = telegramMuted
+        this.mutedKinds = mutedKinds
         this.revision = revision
         this.updatedAt = updatedAt
+        this.emailEnabled = emailEnabled
+        this.telegramEnabled = telegramEnabled
         resetTouchedOnNotNull()
     }
 }

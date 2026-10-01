@@ -5,17 +5,18 @@
 package com.sprintique.database.schema.work.routines.references
 
 
+import com.sprintique.database.schema.app.tables.records.NotificationDeliveriesRecord
 import com.sprintique.database.schema.app.tables.records.NotificationsRecord
-import com.sprintique.database.schema.app.tables.records.TelegramDeliveriesRecord
 import com.sprintique.database.schema.work.routines.ActAs
-import com.sprintique.database.schema.work.routines.ClaimTelegramDelivery
+import com.sprintique.database.schema.work.routines.ClaimNotificationBatch
 import com.sprintique.database.schema.work.routines.FinishAssetGc
+import com.sprintique.database.schema.work.routines.KeepDeliverable
+import com.sprintique.database.schema.work.routines.NotificationSkipReason
 import com.sprintique.database.schema.work.routines.PrepareAssetGc
 import com.sprintique.database.schema.work.routines.RaiseDueNotifications
 import com.sprintique.database.schema.work.routines.RetryAssetJob
 import com.sprintique.database.schema.work.routines.Settle
-import com.sprintique.database.schema.work.routines.SettleTelegramDelivery
-import com.sprintique.database.schema.work.routines.TelegramSkipReason
+import com.sprintique.database.schema.work.routines.SettleNotificationBatch
 import com.sprintique.database.schema.work.tables.Claim
 import com.sprintique.database.schema.work.tables.records.JobsRecord
 
@@ -38,17 +39,43 @@ fun actAs(
     p.execute(configuration)
 }
 
-fun claimTelegramDelivery(
+fun claimNotificationBatch(
       configuration: Configuration
+    , channels: Array<String?>?
+    , telegramWindow: Int?
+    , emailWindow: Int?
 ): JSONB? {
-    val f = ClaimTelegramDelivery()
+    val f = ClaimNotificationBatch()
+    f.setChannels(channels)
+    f.setTelegramWindow(telegramWindow)
+    f.setEmailWindow(emailWindow)
 
     f.execute(configuration)
     return f.returnValue
 }
 
-fun claimTelegramDelivery(): Field<JSONB?> {
-    val f = ClaimTelegramDelivery()
+fun claimNotificationBatch(
+      channels: Array<String?>?
+    , telegramWindow: Int?
+    , emailWindow: Int?
+): Field<JSONB?> {
+    val f = ClaimNotificationBatch()
+    f.setChannels(channels)
+    f.setTelegramWindow(telegramWindow)
+    f.setEmailWindow(emailWindow)
+
+    return f.asField()
+}
+
+fun claimNotificationBatch(
+      channels: Field<Array<String?>?>
+    , telegramWindow: Field<Int?>
+    , emailWindow: Field<Int?>
+): Field<JSONB?> {
+    val f = ClaimNotificationBatch()
+    f.setChannels(channels)
+    f.setTelegramWindow(telegramWindow)
+    f.setEmailWindow(emailWindow)
 
     return f.asField()
 }
@@ -84,6 +111,76 @@ fun finishAssetGc(
     val f = FinishAssetGc()
     f.setJobId(jobId)
     f.setToken(token)
+
+    return f.asField()
+}
+
+fun keepDeliverable(
+      configuration: Configuration
+    , person: String?
+    , candidates: Array<UUID?>?
+): Array<UUID?>? {
+    val f = KeepDeliverable()
+    f.setPerson(person)
+    f.setCandidates(candidates)
+
+    f.execute(configuration)
+    return f.returnValue
+}
+
+fun keepDeliverable(
+      person: String?
+    , candidates: Array<UUID?>?
+): Field<Array<UUID?>?> {
+    val f = KeepDeliverable()
+    f.setPerson(person)
+    f.setCandidates(candidates)
+
+    return f.asField()
+}
+
+fun keepDeliverable(
+      person: Field<String?>
+    , candidates: Field<Array<UUID?>?>
+): Field<Array<UUID?>?> {
+    val f = KeepDeliverable()
+    f.setPerson(person)
+    f.setCandidates(candidates)
+
+    return f.asField()
+}
+
+fun notificationSkipReason(
+      configuration: Configuration
+    , delivery: NotificationDeliveriesRecord?
+    , item: NotificationsRecord?
+): String? {
+    val f = NotificationSkipReason()
+    f.setDelivery(delivery)
+    f.setItem(item)
+
+    f.execute(configuration)
+    return f.returnValue
+}
+
+fun notificationSkipReason(
+      delivery: NotificationDeliveriesRecord?
+    , item: NotificationsRecord?
+): Field<String?> {
+    val f = NotificationSkipReason()
+    f.setDelivery(delivery)
+    f.setItem(item)
+
+    return f.asField()
+}
+
+fun notificationSkipReason(
+      delivery: Field<NotificationDeliveriesRecord?>
+    , item: Field<NotificationsRecord?>
+): Field<String?> {
+    val f = NotificationSkipReason()
+    f.setDelivery(delivery)
+    f.setItem(item)
 
     return f.asField()
 }
@@ -220,90 +317,61 @@ fun settle(
     return f.asField()
 }
 
-fun settleTelegramDelivery(
+fun settleNotificationBatch(
       configuration: Configuration
-    , deliveryId: UUID?
-    , token: UUID?
+    , target: UUID?
+    , lease: UUID?
     , outcome: String?
     , errorCode: String?
     , retryAfter: Int?
+    , delivered: Array<UUID?>?
 ): Boolean? {
-    val f = SettleTelegramDelivery()
-    f.setDeliveryId(deliveryId)
-    f.setToken(token)
+    val f = SettleNotificationBatch()
+    f.setTarget(target)
+    f.setLease(lease)
     f.setOutcome(outcome)
     f.setErrorCode(errorCode)
     f.setRetryAfter(retryAfter)
+    f.setDelivered(delivered)
 
     f.execute(configuration)
     return f.returnValue
 }
 
-fun settleTelegramDelivery(
-      deliveryId: UUID?
-    , token: UUID?
+fun settleNotificationBatch(
+      target: UUID?
+    , lease: UUID?
     , outcome: String?
     , errorCode: String?
     , retryAfter: Int?
+    , delivered: Array<UUID?>?
 ): Field<Boolean?> {
-    val f = SettleTelegramDelivery()
-    f.setDeliveryId(deliveryId)
-    f.setToken(token)
+    val f = SettleNotificationBatch()
+    f.setTarget(target)
+    f.setLease(lease)
     f.setOutcome(outcome)
     f.setErrorCode(errorCode)
     f.setRetryAfter(retryAfter)
+    f.setDelivered(delivered)
 
     return f.asField()
 }
 
-fun settleTelegramDelivery(
-      deliveryId: Field<UUID?>
-    , token: Field<UUID?>
+fun settleNotificationBatch(
+      target: Field<UUID?>
+    , lease: Field<UUID?>
     , outcome: Field<String?>
     , errorCode: Field<String?>
     , retryAfter: Field<Int?>
+    , delivered: Field<Array<UUID?>?>
 ): Field<Boolean?> {
-    val f = SettleTelegramDelivery()
-    f.setDeliveryId(deliveryId)
-    f.setToken(token)
+    val f = SettleNotificationBatch()
+    f.setTarget(target)
+    f.setLease(lease)
     f.setOutcome(outcome)
     f.setErrorCode(errorCode)
     f.setRetryAfter(retryAfter)
-
-    return f.asField()
-}
-
-fun telegramSkipReason(
-      configuration: Configuration
-    , delivery: TelegramDeliveriesRecord?
-    , item: NotificationsRecord?
-): String? {
-    val f = TelegramSkipReason()
-    f.setDelivery(delivery)
-    f.setItem(item)
-
-    f.execute(configuration)
-    return f.returnValue
-}
-
-fun telegramSkipReason(
-      delivery: TelegramDeliveriesRecord?
-    , item: NotificationsRecord?
-): Field<String?> {
-    val f = TelegramSkipReason()
-    f.setDelivery(delivery)
-    f.setItem(item)
-
-    return f.asField()
-}
-
-fun telegramSkipReason(
-      delivery: Field<TelegramDeliveriesRecord?>
-    , item: Field<NotificationsRecord?>
-): Field<String?> {
-    val f = TelegramSkipReason()
-    f.setDelivery(delivery)
-    f.setItem(item)
+    f.setDelivered(delivered)
 
     return f.asField()
 }

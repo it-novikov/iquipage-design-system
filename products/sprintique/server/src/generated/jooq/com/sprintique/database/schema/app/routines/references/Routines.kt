@@ -12,6 +12,7 @@ import com.sprintique.database.schema.app.routines.RaiseNotification
 import com.sprintique.database.schema.app.routines.TelegramAcceptUpdate
 import com.sprintique.database.schema.app.routines.TelegramLinkChat
 import com.sprintique.database.schema.app.routines.TelegramUnlinkChat
+import com.sprintique.database.schema.app.routines.TurnOffEmailNotifications
 
 import java.util.UUID
 
@@ -273,6 +274,35 @@ fun telegramUnlinkChat(
 ): Field<Boolean?> {
     val f = TelegramUnlinkChat()
     f.setChat(chat)
+
+    return f.asField()
+}
+
+fun turnOffEmailNotifications(
+      configuration: Configuration
+    , person: String?
+): Boolean? {
+    val f = TurnOffEmailNotifications()
+    f.setPerson(person)
+
+    f.execute(configuration)
+    return f.returnValue
+}
+
+fun turnOffEmailNotifications(
+      person: String?
+): Field<Boolean?> {
+    val f = TurnOffEmailNotifications()
+    f.setPerson(person)
+
+    return f.asField()
+}
+
+fun turnOffEmailNotifications(
+      person: Field<String?>
+): Field<Boolean?> {
+    val f = TurnOffEmailNotifications()
+    f.setPerson(person)
 
     return f.asField()
 }
