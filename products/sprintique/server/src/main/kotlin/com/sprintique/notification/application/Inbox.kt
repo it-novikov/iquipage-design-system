@@ -81,7 +81,9 @@ object Inbox {
         )
         val items = rows.take(query.limit)
         val names = memberNames(tx, items)
-        val next = if (rows.size > query.limit) items.last().let { cursorOf(it.instant("createdAt"), it.string("id")) } else null
+        val last = items.lastOrNull()
+        val more = rows.size > query.limit && last != null
+        val next = if (more) cursorOf(last.instant("createdAt"), last.string("id")) else null
         return linkedMapOf(
             "items" to items.map { item(it, names[it.string("projectId")].orEmpty(), origin) },
             "unread" to unreadCount(tx, actor),
@@ -139,7 +141,8 @@ object Inbox {
             """.trimIndent(),
             wanted.map { it.first }.distinct(),
             wanted.map { it.second }.distinct(),
-        ).groupBy { it.string("projectId") }.mapValues { (_, rows) -> rows.associate { it.string("id") to it.string("name") } }
+        ).groupBy { it.string("projectId") }
+            .mapValues { (_, rows) -> rows.associate { it.string("id") to it.string("name") } }
     }
 
     private fun item(row: Row, names: Map<String, String>, origin: String): Map<String, Any?> {
@@ -172,7 +175,11 @@ object Inbox {
                 "url" to taskUrl(origin, row.string("slug"), row.string("taskKey")),
             ),
             "actor" to row.stringOrNull("actorId")?.let {
-                linkedMapOf("id" to it, "name" to row.stringOrNull("actorName"), "kind" to row.stringOrNull("actorKind"))
+                linkedMapOf(
+                    "id" to it,
+                    "name" to row.stringOrNull("actorName"),
+                    "kind" to row.stringOrNull("actorKind"),
+                )
             },
             "quote" to row.stringOrNull("quote")?.let { quote(it, names) },
             "threadId" to threadId,

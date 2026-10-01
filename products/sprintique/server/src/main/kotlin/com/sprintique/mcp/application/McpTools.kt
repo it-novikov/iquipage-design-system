@@ -79,9 +79,9 @@ class McpTools(
         },
         tool(
             "mark_inbox_read", "Отметить входящие",
-            "Mark inbox items as handled, after you acted on them: ids of items, and/or upTo, the id of the last item " +
-                "handled, which marks it and every earlier unread item. Returns how many were marked and how many " +
-                "stay unread.",
+            "Mark inbox items as handled, after you acted on them: ids of items, and/or upTo, the id of the last " +
+                "item handled, which marks it and every earlier unread item. Returns how many were marked and how " +
+                "many stay unread.",
             MarkInboxReadArguments::class,
             schema(
                 "ids" to linkedMapOf(

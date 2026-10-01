@@ -141,8 +141,9 @@ data class ListInboxArguments(
 
 /** Items handled: by id, and/or everything up to and including one item in inbox order. */
 data class MarkInboxReadArguments(
+    // Checked one by one as UUIDs by the operation.
     @field:Size(max = 100)
-    val ids: List<@Pattern(regexp = INBOX_ID) String> = emptyList(),
+    val ids: List<String> = emptyList(),
     @field:Pattern(regexp = INBOX_ID)
     val upTo: String? = null,
 )
