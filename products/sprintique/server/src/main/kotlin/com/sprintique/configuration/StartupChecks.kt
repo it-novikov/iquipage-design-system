@@ -50,6 +50,8 @@ class StartupChecks(
         private val BOT_TOKEN = Regex("^[0-9]{3,20}:[A-Za-z0-9_-]{30,100}$")
         private val BOT_USERNAME = Regex("^[A-Za-z][A-Za-z0-9_]{3,31}$")
         private val WEBHOOK_SECRET = Regex("^[A-Za-z0-9_-]{16,256}$")
+        private val LINK_SECRET = Regex("^[A-Za-z0-9_-]{32,256}$")
+        private val WINDOW = 0..3600
         private val SENDER = Regex("^([^<>\\r\\n]{1,100} )?<?[^\\s@<>]{1,64}@[^\\s@<>]{1,255}>?$")
 
         fun requireSafeConfiguration(properties: SprintiqueProperties) {
@@ -69,6 +71,7 @@ class StartupChecks(
             }
             requireSafeSignIn(properties)
             requireSafeTelegram(properties.telegram)
+            requireSafeNotifications(properties.notifications)
             val token = properties.metricsToken
             require(token.isEmpty() || token.length in METRICS_TOKEN_MINIMUM..METRICS_TOKEN_MAXIMUM) {
                 "Metrics token must contain 32–256 characters."
@@ -104,6 +107,16 @@ class StartupChecks(
                 "SPRINTIQUE_TELEGRAM_API_BASE must be an origin"
             }
             require(api.scheme == "https" || api.host in LOOPBACK) { "The Telegram Bot API needs HTTPS" }
+        }
+
+        /** Batch windows within an hour; the link key long enough to sign with (API and worker alike). */
+        fun requireSafeNotifications(notifications: NotificationProperties) {
+            require(notifications.telegramWindowSeconds in WINDOW && notifications.emailWindowSeconds in WINDOW) {
+                "SPRINTIQUE_NOTIFICATIONS_*_WINDOW_SECONDS must be 0–3600"
+            }
+            require(notifications.linkSecret.isEmpty() || LINK_SECRET.matches(notifications.linkSecret)) {
+                "SPRINTIQUE_NOTIFICATIONS_LINK_SECRET must be 32–256 characters A–Z, a–z, 0–9, _ or -"
+            }
         }
 
         /** Providers over HTTPS; codes by SMTP in production, with a sender; the mail drop only off production. */

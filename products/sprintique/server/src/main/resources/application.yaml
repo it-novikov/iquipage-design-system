@@ -50,6 +50,12 @@ sprintique:
     bot-username: ${SPRINTIQUE_TELEGRAM_BOT_USERNAME:}
     webhook-secret: ${SPRINTIQUE_TELEGRAM_WEBHOOK_SECRET:}
     api-base: ${SPRINTIQUE_TELEGRAM_API_BASE:https://api.telegram.org}
+  # External notifications in batches: the window per channel in seconds, and the key of unsubscribe links (e-mail
+  # notifications are offered only with it and a mail transport).
+  notifications:
+    telegram-window-seconds: ${SPRINTIQUE_NOTIFICATIONS_TELEGRAM_WINDOW_SECONDS:300}
+    email-window-seconds: ${SPRINTIQUE_NOTIFICATIONS_EMAIL_WINDOW_SECONDS:900}
+    link-secret: ${SPRINTIQUE_NOTIFICATIONS_LINK_SECRET:}
   database:
     url: ${SPRINTIQUE_DATABASE_URL:}
     worker-url: ${SPRINTIQUE_WORKER_DATABASE_URL:}

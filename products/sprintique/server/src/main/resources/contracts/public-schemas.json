@@ -12204,11 +12204,69 @@
       ],
       "additionalProperties": false
     },
+    "NotificationChannels": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "boolean"
+        },
+        "telegram": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "email",
+        "telegram"
+      ],
+      "additionalProperties": false
+    },
+    "NotificationKinds": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "assigned": {
+          "type": "boolean"
+        },
+        "mention": {
+          "type": "boolean"
+        },
+        "request": {
+          "type": "boolean"
+        },
+        "deadline": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "assigned",
+        "mention",
+        "request",
+        "deadline"
+      ],
+      "additionalProperties": false
+    },
     "NotificationPreferences": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {
-        "telegram": {
+        "channels": {
+          "type": "object",
+          "properties": {
+            "email": {
+              "type": "boolean"
+            },
+            "telegram": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "email",
+            "telegram"
+          ],
+          "additionalProperties": false
+        },
+        "kinds": {
           "type": "object",
           "properties": {
             "assigned": {
@@ -12234,7 +12292,8 @@
         }
       },
       "required": [
-        "telegram"
+        "channels",
+        "kinds"
       ],
       "additionalProperties": false
     },
@@ -16864,6 +16923,25 @@
       ],
       "additionalProperties": false
     },
+    "ProjectNotifications": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "baseRevision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        }
+      },
+      "required": [
+        "enabled",
+        "baseRevision"
+      ],
+      "additionalProperties": false
+    },
     "ProjectPreferences": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
@@ -16884,25 +16962,6 @@
       },
       "required": [
         "boardRelease"
-      ],
-      "additionalProperties": false
-    },
-    "ProjectTelegram": {
-      "$schema": "https://json-schema.org/draft/2020-12/schema",
-      "type": "object",
-      "properties": {
-        "enabled": {
-          "type": "boolean"
-        },
-        "baseRevision": {
-          "type": "integer",
-          "minimum": 0,
-          "maximum": 9007199254740991
-        }
-      },
-      "required": [
-        "enabled",
-        "baseRevision"
       ],
       "additionalProperties": false
     },
@@ -20977,31 +21036,6 @@
       "required": [
         "base",
         "types"
-      ],
-      "additionalProperties": false
-    },
-    "TelegramKinds": {
-      "$schema": "https://json-schema.org/draft/2020-12/schema",
-      "type": "object",
-      "properties": {
-        "assigned": {
-          "type": "boolean"
-        },
-        "mention": {
-          "type": "boolean"
-        },
-        "request": {
-          "type": "boolean"
-        },
-        "deadline": {
-          "type": "boolean"
-        }
-      },
-      "required": [
-        "assigned",
-        "mention",
-        "request",
-        "deadline"
       ],
       "additionalProperties": false
     },

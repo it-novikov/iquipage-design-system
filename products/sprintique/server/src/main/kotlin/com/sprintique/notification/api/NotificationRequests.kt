@@ -21,8 +21,11 @@ data class MarkNotificationsReadRequest(
     val before: String? = null,
 )
 
-@Schema(name = "TelegramKinds")
-data class TelegramKindsRequest(
+@Schema(name = "NotificationChannels")
+data class NotificationChannelsRequest(val email: Boolean, val telegram: Boolean)
+
+@Schema(name = "NotificationKinds")
+data class NotificationKindsRequest(
     val assigned: Boolean,
     val mention: Boolean,
     val request: Boolean,
@@ -32,15 +35,18 @@ data class TelegramKindsRequest(
 @Schema(name = "NotificationPreferences")
 data class NotificationPreferencesRequest(
     @field:Valid
-    val telegram: TelegramKindsRequest,
+    val channels: NotificationChannelsRequest,
+    @field:Valid
+    val kinds: NotificationKindsRequest,
 )
 
 /** Takes an empty object: a link carries no options. */
 @Schema(name = "StartTelegramLink")
 class StartTelegramLinkRequest
 
-@Schema(name = "ProjectTelegram")
-data class ProjectTelegramRequest(
+/** «Внешние уведомления» of a project: e-mail and Telegram together. */
+@Schema(name = "ProjectNotifications")
+data class ProjectNotificationsRequest(
     val enabled: Boolean,
     @field:Min(0) @field:Max(MAX_SAFE_INTEGER)
     val baseRevision: Long,

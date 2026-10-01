@@ -109,8 +109,8 @@ object Notifications {
         }
     }
 
-    /** The project switch for Telegram as a member sees it. */
-    fun projectTelegram(tx: Transaction, actor: Actor, projectId: String, available: Boolean): Map<String, Any?> {
+    /** The project switch «Внешние уведомления» (e-mail and Telegram) as a member sees it. */
+    fun projectSwitch(tx: Transaction, actor: Actor, projectId: String, available: Boolean): Map<String, Any?> {
         val membership = requirePresent(
             ProjectAccess.membership(tx, actor, projectId),
             404,
@@ -118,7 +118,7 @@ object Notifications {
             "Проект недоступен.",
         )
         val row = tx.row(
-            "SELECT enabled, revision FROM app.telegram_project_settings WHERE project_id = $1",
+            "SELECT enabled, revision FROM app.project_notification_settings WHERE project_id = $1",
             projectId,
         )
         return linkedMapOf(

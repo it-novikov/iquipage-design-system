@@ -21,7 +21,7 @@ sealed interface TelegramCommand {
     }
 }
 
-/** The bot's own words: answers to commands and the notification message. Telegram HTML, every value escaped. */
+/** The bot's own answers to commands. Notifications themselves are [TelegramDigest]. */
 object TelegramMessages {
     private const val SETTINGS = "Sprintique → Настройки → Уведомления"
     const val LINKED = "Готово: уведомления Sprintique будут приходить сюда."
@@ -30,11 +30,4 @@ object TelegramMessages {
     const val HELLO = "Это бот уведомлений Sprintique. Чтобы подключить его, откройте $SETTINGS."
     const val STOPPED = "Уведомления Sprintique отключены. Подключить снова можно в $SETTINGS."
     const val NOT_LINKED = "Этот чат не подключён к Sprintique."
-    const val OPEN_TASK = "Открыть задачу"
-
-    /** The line, then the project and the task key in italics. */
-    fun notification(line: String, projectName: String, taskKey: String): String =
-        "${escape(line)}\n<i>${escape(projectName)} · ${escape(taskKey)}</i>"
-
-    fun escape(value: String): String = value.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 }

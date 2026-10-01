@@ -1,11 +1,14 @@
 package com.sprintique.notification
 
+import com.sprintique.notification.domain.DigestItem
 import com.sprintique.notification.domain.MentionCandidate
 import com.sprintique.notification.domain.Mentions
+import com.sprintique.notification.domain.NotificationDigest
 import com.sprintique.notification.domain.NotificationFacts
 import com.sprintique.notification.domain.NotificationKind
 import com.sprintique.notification.domain.NotificationText
 import com.sprintique.notification.domain.TelegramCommand
+import com.sprintique.notification.domain.TelegramDigest
 import com.sprintique.notification.domain.TelegramMessages
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -62,7 +65,9 @@ class NotificationRulesTest {
 
     @Test
     fun `a Telegram message escapes every value`() {
-        assertThat(TelegramMessages.notification("A <b> & c", "P&L", "K-1"))
-            .isEqualTo("A &lt;b&gt; &amp; c\n<i>P&amp;L · K-1</i>")
+        val item = DigestItem("d1", NotificationKind.ASSIGNED, "A <b> & c", "K-1", "x<y", "p", "P&L")
+        val part = TelegramDigest(null).render(NotificationDigest(listOf(item), LocalDate.parse("2026-10-01"))).single()
+        assertThat(part.html).isEqualTo("<b>x&lt;y</b>\nA &lt;. назначает вас исполнителем\n<i>P&amp;L · K-1</i>")
+        assertThat(TelegramMessages.NOT_LINKED).doesNotContain("<")
     }
 }

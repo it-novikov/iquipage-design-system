@@ -2,6 +2,7 @@ package com.sprintique.notification.infrastructure
 
 import com.sprintique.notification.application.SendResult
 import com.sprintique.notification.application.TelegramPort
+import com.sprintique.notification.domain.LinkButton
 import tools.jackson.core.JacksonException
 import tools.jackson.databind.json.JsonMapper
 import java.io.IOException
@@ -23,16 +24,17 @@ class TelegramBotApi(apiBase: String, private val token: String) : TelegramPort 
         .followRedirects(HttpClient.Redirect.NEVER)
         .build()
 
-    override fun send(chatId: Long, html: String, button: Pair<String, String>?): SendResult {
+    override fun send(chatId: Long, html: String, buttons: List<LinkButton>): SendResult {
         val body = linkedMapOf<String, Any>(
             "chat_id" to chatId,
             "text" to html,
             "parse_mode" to "HTML",
             "link_preview_options" to mapOf("is_disabled" to true),
         )
-        if (button != null) {
+        if (buttons.isNotEmpty()) {
+            // One row: «Открыть задачу» and «Открыть Sprintique» side by side.
             body["reply_markup"] =
-                mapOf("inline_keyboard" to listOf(listOf(mapOf("text" to button.first, "url" to button.second))))
+                mapOf("inline_keyboard" to listOf(buttons.map { mapOf("text" to it.text, "url" to it.url) }))
         }
         val request = HttpRequest.newBuilder(URI("$base/bot$token/sendMessage"))
             .timeout(TIMEOUT)

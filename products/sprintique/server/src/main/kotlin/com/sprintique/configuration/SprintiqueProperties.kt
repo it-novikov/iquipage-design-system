@@ -37,6 +37,7 @@ data class SprintiqueProperties(
     val features: String = "",
     val workbench: WorkbenchProperties = WorkbenchProperties(),
     val telegram: TelegramProperties = TelegramProperties(),
+    val notifications: NotificationProperties = NotificationProperties(),
 ) {
     val isProduction: Boolean get() = environment == "production"
     val isSecureOrigin: Boolean get() = URI(publicOrigin).scheme == "https"
@@ -154,4 +155,24 @@ data class TelegramProperties(
     /** The token in logs and errors: never the value. */
     override fun toString(): String =
         "TelegramProperties(botUsername=$botUsername, apiBase=$apiBase, configured=$isConfigured)"
+}
+
+/**
+ * External notifications in batches (docs/decisions/0007-notification-channels.md): how long a person's first waiting
+ * item waits for others per channel, and the key that signs the one-click unsubscribe link of a letter.
+ */
+data class NotificationProperties(
+    /** Seconds, 0–3600: Telegram collects for five minutes by default. */
+    val telegramWindowSeconds: Int = 300,
+    /** Seconds, 0–3600: e-mail collects for a quarter of an hour by default. */
+    val emailWindowSeconds: Int = 900,
+    /** HMAC key of unsubscribe links, 32–256 characters, the same on the API and the worker. Never logged. */
+    val linkSecret: String = "",
+) {
+    /** Whether letters can carry an unsubscribe link, without which e-mail notifications are not offered. */
+    val canSignLinks: Boolean get() = linkSecret.isNotEmpty()
+
+    override fun toString(): String =
+        "NotificationProperties(telegramWindowSeconds=$telegramWindowSeconds, " +
+            "emailWindowSeconds=$emailWindowSeconds, linkSecret=${if (canSignLinks) "set" else "empty"})"
 }
