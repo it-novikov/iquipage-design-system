@@ -79,9 +79,15 @@
 .pl-selbar .iq-btn{--h:32px}
 
 /* ---------- Ghost of a drag ---------- */
-.pl-ghost{--tree-columns:80px 96px 52px 56px;--tree-column-gap:12px}
-.pl-ghost .tree-row.has-columns{background:transparent;cursor:grabbing}
-.pl-ghost .tree-row[aria-level="2"],.pl-ghost .tree-row[aria-level="3"]{opacity:.75}
+/* Only the glyph and the title on the DS ghost (an opaque raised card); subtasks step in like in the tree. */
+.pl-ghost{display:grid;padding:2px 4px;cursor:grabbing}
+.pl-ghost-row{display:flex;align-items:center;gap:10px;min-height:34px;padding-inline:calc(var(--tree-level,0)*21px) var(--iq-space-6);font-size:var(--iq-type-label-size);color:var(--iq-ink)}
+.pl-ghost-row.is-branch .pl-ghost-title{font-weight:500}
+.pl-ghost-row[data-tone=critical] .pl-ghost-title{color:var(--iq-task-critical-text);font-weight:500}
+.pl-ghost-row[data-tone=high] .pl-ghost-title{color:var(--iq-task-high-text);font-weight:500}
+.pl-ghost-row.is-child{color:var(--iq-muted)}
+.pl-ghost-icon{display:grid;place-items:center;width:18px;height:18px;flex:none;color:var(--iq-muted)}
+.pl-ghost-title{min-width:0;max-width:340px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 
 /* ---------- Floating editors and menus (top layer) ---------- */
 .pl-pop{min-width:220px;padding:6px}

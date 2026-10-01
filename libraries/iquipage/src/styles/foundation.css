@@ -2596,6 +2596,7 @@ iq-tag-picker[appearance=ghost] .iq-tag-picker-field:is(:hover,:focus-within)>.i
 .iq-tree-drop-line::before{content:"";position:absolute;inset-inline-start:-3px;top:-3px;width:8px;height:8px;border-radius:var(--iq-radius-pill);background:var(--iq-accent)}
 .iq-tree-drag-ghost{position:fixed;inset:0 auto auto 0;margin:0;padding:4px 8px;overflow:visible;border:1px solid var(--iq-raised-edge);border-radius:var(--iq-radius-sm);background:var(--iq-raised);color:var(--iq-ink);box-shadow:var(--iq-shadow-3);pointer-events:none;will-change:transform;animation:iq-tree-lift var(--iq-motion-fast) var(--iq-ease)}
 .iq-tree-drag-ghost .tree-row{background:transparent}
+.iq-tree-drag-ghost[data-fit]{width:max-content;max-width:min(420px,calc(100vw - 32px))}
 .iq-tree-drag-badge{position:absolute;inset-inline-end:-10px;top:-10px;padding:3px 9px;border-radius:var(--iq-radius-pill);background:var(--iq-primary);color:var(--iq-on-primary);font-size:var(--iq-type-meta-size);font-weight:600;white-space:nowrap}
-@keyframes iq-tree-lift{from{opacity:.6;scale:.98}}
+@keyframes iq-tree-lift{from{scale:.98}}
 @media(prefers-reduced-motion:reduce){.iq-tree-drag-ghost{animation:none}}

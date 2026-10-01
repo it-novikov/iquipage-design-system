@@ -49,4 +49,9 @@ test('tree columns, glyph tones, drag states and the divider are token-only CSS'
   assert.match(block, /\.tree-divider\{display:flex;[^}]*height:36px;margin-top:6px/);
   assert.doesNotMatch(block, /#[0-9a-f]{3,8}\b|!important|z-index/i);
   assert.match(block, /@media\(prefers-reduced-motion:reduce\)\{\.iq-tree-drag-ghost\{animation:none\}\}/);
+  // The ghost is an opaque raised surface: the lift never fades it; a compact preview fits its content.
+  assert.match(block, /\.iq-tree-drag-ghost\{[^}]*background:var\(--iq-raised\)/);
+  assert.match(block, /@keyframes iq-tree-lift\{from\{scale:\.98\}\}/);
+  assert.doesNotMatch(block, /\.iq-tree-drag-ghost[^{]*\{[^}]*opacity/);
+  assert.match(block, /\.iq-tree-drag-ghost\[data-fit\]\{width:max-content/);
 });

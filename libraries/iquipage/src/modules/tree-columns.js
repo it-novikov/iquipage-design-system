@@ -153,20 +153,24 @@ function bindTreeDrag(options) {
             ghost.style.setProperty('--tree-columns', columns.getPropertyValue('--tree-columns'));
             ghost.style.setProperty('--tree-column-gap', columns.getPropertyValue('--tree-column-gap'));
         }
-        const width = Math.min(rect.width, 660);
-        ghost.style.width = `${width}px`;
+        // A compact preview (`fit`) is as wide as its content; otherwise the ghost keeps the row's width and columns.
+        if (preview.fit)
+            ghost.dataset.fit = '';
+        else
+            ghost.style.width = `${Math.min(rect.width, 660)}px`;
         ghost.popover = 'manual';
         document.body.append(ghost);
         try {
             ghost.showPopover();
         }
         catch { /* Without the Popover API the ghost is a fixed element at the end of the body. */ }
+        const width = ghost.getBoundingClientRect().width || Math.min(rect.width, 660);
         const dragged = ids.flatMap(id => [...root.querySelectorAll(`[${rowAttr}="${CSS.escape(id)}"]`)]);
         for (const node of dragged)
             node.setAttribute('data-tree-dragging', '');
         html.setAttribute('data-tree-drag-active', '');
         getSelection?.()?.removeAllRanges();
-        drag = { ids, source, row, ghost, dragged, ox: x, oy: y, dx: Math.min(Math.max(x - rect.left, 12), width - 12), dy: Math.min(Math.max(y - rect.top, 8), rect.height - 8), target: null, afterId: null, line: null, x, y, scroller: scrollParent(row), raf: 0 };
+        drag = { ids, source, row, ghost, dragged, ox: x, oy: y, dx: Math.min(Math.max(x - rect.left, 12), Math.max(12, width - 12)), dy: Math.min(Math.max(y - rect.top, 8), rect.height - 8), target: null, afterId: null, line: null, x, y, scroller: scrollParent(row), raf: 0 };
         press = null;
         place(x, y);
         say(`Перенос: ${options.label ? options.label(ids) : `задач: ${ids.length}`}. Отпустите над списком или нажмите Escape для отмены.`);

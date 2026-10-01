@@ -156,7 +156,7 @@ export interface TreeDropIntent {ids:string[];containerId:string;afterId:string|
 export interface TreeDragOptions {
  root:HTMLElement;rowSelector?:string;containerSelector?:string;holdMs?:number;slop?:number;ignore?:string;
  canDrag?:(row:HTMLElement)=>boolean;items?:(row:HTMLElement)=>string[];
- preview?:(row:HTMLElement,ids:string[])=>{html?:string;badge?:string}|null;
+ preview?:(row:HTMLElement,ids:string[])=>{html?:string;badge?:string;fit?:boolean}|null;
  canDrop?:(intent:TreeDropIntent)=>boolean;
  onDrop:(intent:TreeDropIntent&{sourceContainerId:string})=>void|{undo?:()=>void|Promise<void>;message?:string}|Promise<void|{undo?:()=>void|Promise<void>;message?:string}>;
  onState?:(active:boolean)=>void;label?:(ids:string[])=>string;

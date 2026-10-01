@@ -93,7 +93,15 @@ export function selectionMarkup(count,sum){
     <button type="button" class="iq-btn ghost sm icon" data-clear-selection aria-label="Снять выделение">${icon('x',16)}</button>`;
 }
 
-/** The ghost of a drag: the epic with the subtasks that go along, or the row, with a badge of what moves. */
+/**
+ * The ghost of a drag: an opaque raised card with only the glyph and the title of each row (an epic with the subtasks
+ * that go along, or the selection) and a chip saying what moves. No owner, date or estimate columns.
+ */
 export function dragPreview(rows,c,view,badge){
-  return {html:`<div class="pl-ghost tree-columns">${rows.map(row=>rowMarkup(row,c,{...view,selection:new Set(),focusId:''},false).replace(' data-tree-drag=',' data-ghost=')).join('')}</div>`,badge};
+  const items=rows.map(row=>{
+    const epic=row.kind==='epic',glyph=epic?icon('stack',16):statusGlyph(row.status);
+    const tone=PRIORITY_TONES.has(row.priority)&&!row.done?` data-tone="${row.priority}"`:'';
+    return `<div class="pl-ghost-row${epic?' is-branch':''}${row.depth>0?' is-child':''}"${tone} style="--tree-level:${row.depth}"><span class="pl-ghost-icon">${glyph}</span><span class="pl-ghost-title">${esc(row.title)}</span></div>`;
+  }).join('');
+  return {html:`<div class="pl-ghost">${items}</div>`,badge,fit:true};
 }
