@@ -3,27 +3,30 @@ import {transition} from '@iquipage/web/core';
 import {validDay,addDays,today,shortDay,planLabel,parseDay,typedDay,normalizePlan,planHelp,planPreset,monthGrid} from './plan-range.js';
 
 let sequence=0;
+const EMPTY='Не запланирован';
 const MONTHS=['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
 const dayName=value=>new Date(value+'T12:00:00').toLocaleDateString('ru-RU',{day:'numeric',month:'long',year:'numeric'});
 
 /**
- * The plan of a task (plannedStart–plannedEnd) as one fact: a ghost date trigger that opens a range calendar.
- * Product composition for DS-GAP-G (no iq-date-range-field in the DS yet): the closed state reuses the DS date
- * trigger, the popup the DS date popup surface; the calendar, fields, presets and footer are tdr- parts on DS tokens.
+ * The plan of a task (plannedStart–plannedEnd) as one row of the properties list: a ghost date trigger that opens a
+ * range calendar. Product composition for DS-GAP-G (no iq-date-range-field in the DS yet): the closed state reuses the
+ * DS date trigger (ghost in .iq-properties[data-label=wide]), the popup the DS date popup surface; the calendar, fields,
+ * presets and footer are tdr- parts on DS tokens. The duration lives in the popup's help line, not in the row.
  * Nothing is saved until "Применить"; onApply saves and may throw, the popup then stays open with the reason.
  */
 export function mountPlanField(root,{label='План',start=null,end=null,deadline=()=>null,readOnly=false,onApply=async()=>{}}){
   const id=`tdr-plan-${++sequence}`,abort=new AbortController(),on=(target,type,fn,options={})=>target.addEventListener(type,fn,{signal:abort.signal,...options});
   let saved=normalizePlan(start,end),draft={...saved},month='',focused='',opened=false,busy=false,error='',frame=0;
-  root.classList.add('tdr-plan');
+  // The root is a row of the DS properties list (.iq-property): the label, then the value.
+  root.classList.add('iq-property');
   if(readOnly){
-    // In the read-only facts list the tile is a term and its description.
+    // In the read-only list the row is a term and its description.
     const [term,detail]=root.closest('dl')?['dt','dd']:['span','span'];
-    root.innerHTML=`<${term} class="tdr-fact-label">${esc(label)}</${term}><${detail} class="tdr-static" data-empty="${!saved.start}">${esc(planLabel(saved.start,saved.end)||'Не запланировано')}</${detail}>`;
+    root.innerHTML=`<${term} class="iq-property-label">${esc(label)}</${term}><${detail} class="iq-property-value" data-empty="${!saved.start}">${esc(planLabel(saved.start,saved.end)||EMPTY)}</${detail}>`;
     return {value:()=>({...saved}),set(){},open(){},close(){},destroy(){abort.abort();}};
   }
-  root.innerHTML=`<span class="tdr-fact-label" id="${id}-label">${esc(label)}</span>
-    <button type="button" class="iq-date-trigger tdr-plan-trigger" aria-haspopup="dialog" aria-expanded="false" aria-controls="${id}-popup" aria-labelledby="${id}-label ${id}-value">${icon('calendar',18)}<span id="${id}-value" data-date-caption></span></button>
+  root.innerHTML=`<span class="iq-property-label" id="${id}-label">${esc(label)}</span>
+    <button type="button" class="iq-date-trigger tdr-plan-trigger" aria-haspopup="dialog" aria-expanded="false" aria-controls="${id}-popup" aria-labelledby="${id}-label ${id}-value"><span id="${id}-value" data-date-caption></span>${icon('down',16)}</button>
     <div id="${id}-popup" class="iq-date-popup tdr-range" popover="manual" role="dialog" aria-modal="false" aria-labelledby="${id}-caption" aria-describedby="${id}-keys">
       <p class="tdr-range-caption" id="${id}-caption">${esc(label)}: начало и конец</p>
       <div class="tdr-range-fields">
@@ -41,7 +44,7 @@ export function mountPlanField(root,{label='План',start=null,end=null,deadli
   const startInput=popup.querySelector('[data-range-start]'),endInput=popup.querySelector('[data-range-end]');
   function sync(){
     const text=planLabel(saved.start,saved.end);
-    root.querySelector('[data-date-caption]').textContent=text||'Не запланировано';
+    root.querySelector('[data-date-caption]').textContent=text||EMPTY;
     root.dataset.empty=String(!text);trigger.classList.toggle('is-empty',!text);
   }
   function paint(){

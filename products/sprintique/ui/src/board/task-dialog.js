@@ -6,7 +6,7 @@ import {TASK_COLUMNS,taskColumn,createTask} from '../tasks.js';
 import {TASK_KINDS,reparentTask} from './model.js';
 import {taskMarkdown,markdownTaskChanges} from './task-content.js';
 import {mountThreads} from './thread-view.js';
-import {loadTaskSupport,mountTaskCatalogs,releaseMeta} from './catalog-picker.js';
+import {loadTaskSupport,mountTaskCatalogs} from './catalog-picker.js';
 import {catalogLabel,tagMarkup} from './catalog-ui.js';
 import {mountPlanField} from './plan-field.js';
 import {today as todayValue,onlyPlanChanged} from './plan-range.js';
@@ -48,36 +48,59 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
   const parents=[{value:'',label:'Нет'},...tasks.filter(item=>{
     if(item.archivedAt||item.projectId!==project.id)return false;
     try{reparentTask({...initial,id:taskId,projectId:project.id},item.id,tasks);return true;}catch{return false;}
-  }).map(item=>({value:item.id,label:`${item.displayId||item.id.slice(-7).toUpperCase()} ${item.title}`,description:`${TASK_KINDS[item.type]||'Задача'}, ${TASK_COLUMNS.find(c=>c.id===taskColumn(item))?.label||item.status}`}))];
-  // Core facts form one grid of facts (handoff docs/task-drawer/fields-handoff.md): the hero row answers
-  // "where is it, who does it, by when"; below it priority, type, release, plan, parent and tags. Every fact
-  // is always on its place, an empty one reads quietly, and each value opens its editor in one click.
+  }).map(item=>({value:item.id,key:item.displayId||item.id.slice(-7).toUpperCase(),label:item.title,description:`${TASK_KINDS[item.type]||'Задача'}, ${TASK_COLUMNS.find(c=>c.id===taskColumn(item))?.label||item.status}`}))];
+  // Core facts are one calm list (docs/task-drawer/fields-handoff.md §8, direction A «Список»): ten 36px rows, the
+  // label on the left; "where, who, by when" first, then priority, type, release, plan, parent, tags and the author.
+  // Every fact is always on its place, an empty one reads quietly, and each value opens its editor in one click
+  // (DS .iq-properties[data-label=wide]). Glyphs, dates of releases and plan durations live in the open editors.
   const initials=name=>String(name||'').trim().split(/\s+/).slice(0,2).map(part=>part[0]||'').join('').toUpperCase()||'?';
-  // People carry an avatar; a service account carries its glyph, the group heading neither.
-  const ownerChoices=owners.map(({image,...o})=>o.value&&!o.icon&&!o.disabled?{...o,avatar:{text:initials(o.label),tone:ui.avatarTone(o.value),...(image?{image}:{})}}:o);
+  // People carry an avatar; a service account its square bot avatar, its role spoken rather than written beside the
+  // name (a state such as «приостановлен» stays in the words); the group heading neither.
+  const serviceName=label=>String(label||'').replace(/ \(сервисный аккаунт\)$/,'');
+  const ownerChoices=owners.map(({image,...o})=>!o.value||o.disabled?o
+    :o.icon?{...o,icon:'bot',label:serviceName(o.label),avatar:{kind:'bot',label:'сервисный аккаунт'}}
+    :{...o,avatar:{text:initials(o.label),tone:ui.avatarTone(o.value),...(image?{image}:{})}});
   const statusTones={in_progress:'info',review:'warning',ready_for_testing:'info',testing:'warning',ready_for_release:'success'};
   const statusOptions=TASK_COLUMNS.map(column=>({value:column.id,label:column.label,icon:column.icon,...(statusTones[column.id]?{tone:statusTones[column.id]}:{})}));
   const priorityOptions=[['critical','Критический','critical','critical'],['high','Высокий','priority','high'],['normal','Обычный','minus',''],['low','Низкий','low','']].map(([value,label,glyph,tone])=>({value,label,icon:glyph,...(tone?{tone}:{})}));
   const kindOptions=Object.entries(TASK_KINDS).map(([value,label])=>({value,label,icon:{task:'checklist',bug:'bug',epic:'stack'}[value]||'checklist'}));
   const opts=list=>esc(JSON.stringify(list));
   const statusValue=task?taskColumn(task):status;
+  // The due date's signal (owner's decision 2026-10-01): overdue in the critical tone with «просрочен», today and
+  // tomorrow in the high tone with the word; finished work («Готово к релизу», an accepted result) carries none.
+  // An editable date gets it from the DS field (`deadline`); the read-only row says the same.
+  const finished=column=>column==='ready_for_release'||task?.result==='accepted';
+  const dueSignal=due=>{
+    if(!due||finished(statusValue))return null;
+    const now=todayValue(),next=new Date();next.setDate(next.getDate()+1);
+    return due<now?{word:'просрочен',tone:'critical'}:due===now?{word:'сегодня',tone:'high'}:due===todayValue(next)?{word:'завтра',tone:'high'}:null;
+  };
+  // A static row: a term and its value, the same text as a trigger's value without a hover.
+  const row=(label,value,{empty=false,tone='',wrapper='div'}={})=>`<${wrapper} class="iq-property"><dt class="iq-property-label">${esc(label)}</dt><dd class="iq-property-value"${empty?' data-empty="true"':''}${tone?` data-tone="${tone}"`:''}>${value}</dd></${wrapper}>`;
+  // The author: who created the task and when (the server reads it from the task's creation record).
+  const author=(()=>{
+    if(!task)return {html:'после создания',empty:true};
+    const when=task.createdAt?`<span class="iq-property-meta">· ${esc(formatDate(task.createdAt))}</span>`:'';
+    if(!task.createdById)return {html:`<span class="iq-property-text">Неизвестен</span>${when}`,empty:true};
+    const service=task.createdByKind==='service',member=members.find(m=>m.id===task.createdById);
+    const image=member?repository.client?.avatarUrl?.(member.id,member.avatarRevision)||undefined:undefined;
+    return {html:`${ui.personAvatar({id:task.createdById,name:task.createdByName||'?',image,kind:service?'service':'human'},{size:'xs'})}<span class="iq-property-text">${esc(task.createdByName||'')}</span>${service?'<span class="sr-only">, сервисный аккаунт</span>':''}${when}`};
+  })();
   // The plan is saved by the planning command (preview, then commit), so it needs the host's planning hook.
   const canPlan=canEdit&&typeof repository.applyPlanningChange==='function';
-  const editableFacts=()=>`<div class="iq-properties tdr-facts hero" data-columns="3">
+  const editableFacts=()=>`<div class="iq-properties" data-label="wide">
         <iq-select name="status" label="Статус" appearance="pill" value="${esc(statusValue)}" options="${opts(statusOptions)}"></iq-select>
         <iq-select name="ownerId" label="Исполнитель" searchable search-placeholder="Найти участника" value="${esc(initial.ownerId||'')}" options="${opts(ownerChoices)}"></iq-select>
-        <iq-date-field name="due" label="Срок" placeholder="Без срока" value="${esc(initial.due||'')}"></iq-date-field>
-      </div>${legacyOwner}
-      <div class="iq-properties tdr-facts" data-columns="3">
-        <iq-select name="priority" label="Приоритет" value="${esc(initial.priority||'normal')}" options="${opts(priorityOptions)}"></iq-select>
-        <iq-select name="type" label="Тип" value="${esc(initial.type||'task')}" options="${opts(kindOptions)}"></iq-select>
-        <div class="tdr-fact" data-task-catalogs></div>
-        <div class="tdr-fact" data-task-plan></div>
-        <iq-select class="tdr-span-2" name="parent" label="Родитель" searchable search-placeholder="Найти задачу" value="${esc(initial.parentId||'')}" options="${opts(parents)}"></iq-select>
-        <div class="tdr-fact tdr-span-all" data-task-tags><span class="tdr-fact-label" aria-hidden="true">Теги</span></div>
-      </div>`;
-  // Read-only facts are the same tiles as plain text: no disabled controls (DS principle 12).
-  const staticFact=(label,value,{empty=false,span=''}={})=>`<div class="tdr-fact${span?' '+span:''}"><dt class="tdr-fact-label">${esc(label)}</dt><dd class="tdr-static" data-empty="${empty}">${value}</dd></div>`;
+        <iq-date-field name="due" label="Срок" placeholder="Без срока" ${finished(statusValue)?'':'deadline'} value="${esc(initial.due||'')}"></iq-date-field>
+        <iq-select name="priority" label="Приоритет" trigger-icon="none" value="${esc(initial.priority||'normal')}" options="${opts(priorityOptions)}"></iq-select>
+        <iq-select name="type" label="Тип" trigger-icon="none" value="${esc(initial.type||'task')}" options="${opts(kindOptions)}"></iq-select>
+        <div class="task-property-slot" data-task-catalogs></div>
+        <div data-task-plan></div>
+        <iq-select name="parent" label="Родитель" searchable search-placeholder="Найти задачу" value="${esc(initial.parentId||'')}" options="${opts(parents)}"></iq-select>
+        <div class="task-property-slot" data-task-tags></div>
+        ${row('Автор',author.html,{empty:author.empty,wrapper:'dl'})}
+      </div>${legacyOwner}`;
+  // Read-only facts are the same rows as plain text: no disabled controls (DS principle 12), one lock line says why.
   const staticFacts=()=>{
     const column=TASK_COLUMNS.find(c=>c.id===statusValue),owner=owners.find(o=>o.value===(initial.ownerId||''));
     const priority=priorityOptions.find(o=>o.value===(initial.priority||'normal'))||priorityOptions[2],kind=kindOptions.find(o=>o.value===(initial.type||'task'))||kindOptions[0];
@@ -87,20 +110,21 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
     // "в релизе 2.4" for a release named "Релиз 2.4", "в релизе «Осень»" otherwise.
     const where=release?(/^релиз\s+/i.test(release.name)?` в релизе ${esc(release.name.replace(/^релиз\s+/i,''))}`:` в релизе «${esc(release.name)}»`):'';
     const reason=accepted?`Только чтение: результат принят${where}. Обсуждение открыто.`:'Только чтение: в этом проекте у вас доступ на просмотр.';
-    const dueTone=!initial.due||accepted||statusValue==='ready_for_release'?'':initial.due<todayValue()?'danger':'';
+    const service=!!owner?.icon,signal=dueSignal(initial.due);
+    const ownerValue=!owner?.value&&initial.legacyOwner?`<span class="iq-property-text">${esc(initial.legacyOwner)}</span>`
+      :owner?.value?`${ui.personAvatar({id:owner.value,name:avatarName(owner.label),image:owner.image,kind:service?'service':'human'},{size:'xs'})}<span class="iq-property-text">${esc(service?serviceName(owner.label):owner.label)}</span>${service?'<span class="sr-only">, сервисный аккаунт</span>':''}`:'Не назначен';
     return `<p class="tdr-lock">${icon('lock',14)}<span>${reason}</span></p>
-      <dl class="tdr-facts hero">
-        ${staticFact('Статус',`<span class="tdr-pill" data-tone="${esc(statusTones[statusValue]||'')}"><span class="tdr-dot" aria-hidden="true"></span>${esc(column?.label||statusValue)}</span>`)}
-        ${staticFact('Исполнитель',!owner?.value&&initial.legacyOwner?`<span class="tdr-text">${esc(initial.legacyOwner)}</span>`:owner?.value?`${ui.personAvatar({id:owner.value,name:avatarName(owner.label),image:owners.find(o=>o.value===owner.value)?.image},{size:'xs'})}<span class="tdr-text">${esc(owner.label)}</span>`:'Не назначен',{empty:!owner?.value})}
-        ${staticFact('Срок',initial.due?`<span class="tdr-text" ${dueTone?`data-tone="${dueTone}"`:''}>${esc(formatDate(initial.due))}</span>`:'Без срока',{empty:!initial.due})}
-      </dl>
-      <dl class="tdr-facts">
-        ${staticFact('Приоритет',`<span class="tdr-glyph" data-tone="${esc(priority.tone||'')}">${icon(priority.icon,16)}<span class="tdr-text">${esc(priority.label)}</span></span>`)}
-        ${staticFact('Тип',`${icon(kind.icon,16)}<span class="tdr-text">${esc(kind.label)}</span>`)}
-        ${staticFact('Релиз',release?`<span class="tdr-text">${esc(catalogLabel(release))}</span>${releaseMeta(release)?`<span class="tdr-meta">${esc(releaseMeta(release))}</span>`:''}`:'Без релиза',{empty:!release})}
-        <div class="tdr-fact" data-task-plan></div>
-        ${staticFact('Родитель',parent?`<span class="tdr-text"><span class="tdr-key">${esc(taskKey(parent))}</span> ${esc(parent.title)}</span>`:'Нет',{empty:!parent,span:'tdr-span-2'})}
-        ${staticFact('Теги',chosenTags.length?`<span class="tdr-tags">${chosenTags.map(tagMarkup).join('')}</span>`:'Нет тегов',{empty:!chosenTags.length,span:'tdr-span-all'})}
+      <dl class="iq-properties" data-label="wide">
+        ${row('Статус',`<span class="tdr-pill" data-tone="${esc(statusTones[statusValue]||'')}"><span class="tdr-dot" aria-hidden="true"></span>${esc(column?.label||statusValue)}</span>`)}
+        ${row('Исполнитель',ownerValue,{empty:!owner?.value&&!initial.legacyOwner})}
+        ${row('Срок',initial.due?`<span class="iq-property-text">${esc(formatDate(initial.due)+(signal?' · '+signal.word:''))}</span>`:'Без срока',{empty:!initial.due,tone:signal?.tone})}
+        ${row('Приоритет',esc(priority.label),{tone:priority.tone})}
+        ${row('Тип',esc(kind.label))}
+        ${row('Релиз',release?`<span class="iq-property-text">${esc(catalogLabel(release))}</span>`:'Без релиза',{empty:!release})}
+        <div data-task-plan></div>
+        ${row('Родитель',parent?`<span class="iq-property-key">${esc(taskKey(parent))}</span><span class="iq-property-text">${esc(parent.title)}</span>`:'Нет',{empty:!parent})}
+        ${row('Теги',chosenTags.length?chosenTags.map(tagMarkup).join(''):'Нет тегов',{empty:!chosenTags.length})}
+        ${row('Автор',author.html,{empty:author.empty})}
       </dl>`;
   };
   const content=`<section class="task-editor-cover" data-task-cover hidden></section><div class="task-editor-layout">
@@ -109,7 +133,7 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
     <section class="task-editor-properties" aria-label="Свойства задачи">
       ${canEdit?editableFacts():staticFacts()}
     </section>
-    <section class="iq-section task-editor-description"><div class="iq-section-head">${icon('text',16)}<h3>Описание</h3></div>
+    <section class="iq-section task-editor-description"><div class="iq-section-head"><h3>Описание</h3></div>
       <div class="task-description-surface" data-description>
         <iq-markdown-editor label="Описание" name="description" variant="compact" density="compact" maxlength="10000" preview-on-blur preview empty-text="${canEdit?'Нажмите, чтобы добавить описание':'Описания нет'}" ${canEdit?'empty-action-label="Начать с шаблона" empty-action="template"':''}></iq-markdown-editor>
       </div></section>
@@ -179,10 +203,9 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
       const titleField=form.querySelector('[name=title]');
       // The title is one line of intent: Enter moves on instead of adding a line break.
       titleField.addEventListener('keydown',event=>{if(event.key==='Enter'&&!event.isComposing){event.preventDefault();titleField.blur();}});
-      const dueField=form.querySelector('iq-date-field[name=due]'),localDay=offset=>todayValue(new Date(Date.now()+offset*86400000));
-      // Overdue is red, due today or tomorrow is amber; finished work carries no alarm.
-      const dueTone=()=>{if(!dueField)return;const value=dueField.value,done=form.querySelector('iq-select[name=status]')?.value==='ready_for_release';dueField.dataset.tone=!value||done?'':value<localDay(0)?'danger':value<=localDay(1)?'warning':'';};
-      form.addEventListener('iq-change',dueTone);form.addEventListener('change',dueTone);requestAnimationFrame(dueTone);
+      const dueField=form.querySelector('iq-date-field[name=due]');
+      // Finished work carries no deadline signal: «Готово к релизу» removes it, another status brings it back.
+      if(dueField)form.addEventListener('iq-change',event=>{if(event.target.getAttribute?.('name')==='status')dueField.toggleAttribute('deadline',!finished(event.target.value));});
       description=mountTaskDescription(form.querySelector('[data-description]'),{value:taskMarkdown(initial),editing:false,readOnly:!canEdit});
       catalogs=canEdit?mountTaskCatalogs(form.querySelector('[data-task-catalogs]'),{tagsRoot:form.querySelector('[data-task-tags]'),repository,project,task:initial,tags:support.tags,releases:support.releases,canManage,onChange:()=>form.dispatchEvent(new Event('change'))})
         :{value:()=>({releaseId:initial.releaseId||null,tagIds:[...(initial.tagIds||[])]}),destroy(){}};

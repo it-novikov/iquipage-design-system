@@ -32,7 +32,7 @@ test('A11Y-02: the board drag handle is at least 24x24 on desktop', () => {
 test('A11Y-03: tag remove buttons are 24x24 and reachable on coarse pointers', () => {
   assert.ok(/\.iq-tag button\{[^}]*width:24px;height:24px/.test(foundation));
   assert.ok(/\.iq-tag \.iq-tag-remove\{[^}]*width:24px;height:24px/.test(foundation));
-  assert.ok(foundation.includes('@media(hover:none),(pointer:coarse){iq-tag-picker[appearance=inline] .iq-tag .iq-tag-remove{width:24px;opacity:1'));
+  assert.ok(foundation.includes('@media(hover:none),(pointer:coarse){iq-tag-picker:is([appearance=inline],[appearance=ghost]) .iq-tag .iq-tag-remove{width:24px;opacity:1'));
 });
 
 test('A11Y-04: search, command and select-search fields show a focus ring', () => {

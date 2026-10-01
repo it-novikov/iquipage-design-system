@@ -2233,7 +2233,9 @@ iq-relation-map[data-empty]{display:none}
 @media(forced-colors:active){.rm-edge{stroke:CanvasText}.rm-arrow{fill:CanvasText}.rm-current{border-color:Highlight}}
 
 /* Avatar sizes: xs 20, sm 24, md 28 (default in groups), lg 44. The overlap in a group is a quarter of the size. */
-.iq-avatar.xs{width:20px;height:20px;min-width:20px;font-size:var(--iq-type-meta-size);font-weight:600}
+/* Initials are a mark, not reading text (owner, 2026-10-01): at 20px they are 8/600, so the disc stays calm next to
+   14px names; the 12px floor is for words. vnext.27. */
+.iq-avatar.xs{width:20px;height:20px;min-width:20px;font-size:.5rem;font-weight:600;letter-spacing:var(--iq-tracking-caps);line-height:1}
 .iq-avatar.sm{width:24px;height:24px;min-width:24px;font-size:var(--iq-type-meta-size);font-weight:600}
 .iq-avatar.lg{width:44px;height:44px;min-width:44px;font-size:var(--iq-type-label-size)}
 .iq-avatars.xs{--avatar-size:20px}.iq-avatars.sm{--avatar-size:24px}.iq-avatars.lg{--avatar-size:44px}
@@ -2403,30 +2405,30 @@ iq-markdown-editor[variant=chat][data-idle] .markdown-editor>footer,iq-markdown-
 .iq-properties[data-columns]{--iq-properties-label:96px;column-gap:var(--iq-space-6);row-gap:var(--iq-space-1)}
 .iq-properties[data-columns="2"]{grid-template-columns:repeat(2,minmax(0,1fr))}
 .iq-properties[data-columns=auto]{grid-template-columns:repeat(auto-fit,minmax(min(100%,272px),1fr))}
-.iq-properties[data-columns] :is(iq-select,iq-combobox,iq-date-field){min-height:36px;column-gap:var(--iq-space-2)}
-.iq-properties[data-columns] :is(iq-select,iq-combobox,iq-date-field)>.iq-control-label{font-size:var(--iq-type-label-size);font-weight:400;white-space:nowrap}
-.iq-properties[data-columns] :is(iq-select,iq-combobox,iq-date-field)>:not(.iq-control-label){justify-self:start;max-width:calc(100% + var(--iq-space-2));margin-left:calc(-1 * var(--iq-space-2))}
-.iq-properties[data-columns] iq-select[appearance=pill]>:not(.iq-control-label){margin-left:0}
-.iq-properties[data-columns] :is(.iq-select-trigger,.iq-date-trigger,.iq-combo-shell){width:auto;max-width:100%;min-height:32px;height:32px;gap:var(--iq-space-2);padding:0 var(--iq-space-2);margin-left:0;border:1px solid transparent;border-radius:var(--iq-radius-sm);background:transparent;font-size:var(--iq-type-interface-size)}
-.iq-properties[data-columns] :is(.iq-select-trigger,.iq-date-trigger,.iq-combo-shell):hover{border-color:transparent;background:var(--iq-hover)}
-.iq-properties[data-columns] :is(.iq-select-trigger,.iq-date-trigger)[aria-expanded=true],.iq-properties[data-columns] .iq-combo-shell:focus-within{border-color:var(--iq-control);background:var(--iq-raised)}
-.iq-properties[data-columns] .iq-select-value{display:inline-flex;align-items:center;gap:var(--iq-space-2);min-width:0}
-.iq-properties[data-columns] .iq-select-value>.iq-icon{flex:none;color:var(--iq-muted)}
-.iq-properties[data-columns] .iq-select-trigger>.iq-icon:last-child,.iq-properties[data-columns] .iq-combo-shell>.iq-icon:last-child{opacity:0;width:12px;flex:none;transition:opacity var(--iq-motion-fast) var(--iq-ease)}
-.iq-properties[data-columns] :is(.iq-select-trigger,.iq-combo-shell):is(:hover,:focus-within)>.iq-icon:last-child,.iq-properties[data-columns] .iq-select-trigger[aria-expanded=true]>.iq-icon:last-child{opacity:1}
-.iq-properties[data-columns] .iq-combo-shell input{field-sizing:content;min-width:7ch;max-width:24ch;padding:0;background:transparent;font:inherit}
-.iq-properties[data-columns] .iq-combo-shell:has(>.iq-select-avatar):not(:focus-within)>.iq-icon:first-of-type{display:none}
-.iq-properties[data-columns] .iq-combo-shell:focus-within>.iq-select-avatar{display:none}
-.iq-properties[data-columns] .iq-select-avatar{width:22px;height:22px;margin:0;border:0;font-size:var(--iq-type-meta-size)}
-.iq-properties[data-columns] [data-empty=true] :is(.iq-select-label,.iq-combo-shell input,[data-date-caption]){color:var(--iq-muted)}
-.iq-properties[data-columns] .iq-select-trigger[data-tone=high]{color:var(--iq-task-high-text)}
-.iq-properties[data-columns] .iq-select-trigger[data-tone=critical]{color:var(--iq-task-critical-text)}
-.iq-properties[data-columns] :is(.iq-select-trigger[data-tone=high],.iq-select-trigger[data-tone=critical]) .iq-select-value>.iq-icon{color:inherit}
-.iq-properties[data-columns] iq-date-field[data-tone=danger] .iq-date-trigger{color:var(--iq-danger)}
-.iq-properties[data-columns] iq-date-field[data-tone=warning] .iq-date-trigger{color:var(--iq-task-high-text)}
-@media(hover:none){.iq-properties[data-columns] :is(.iq-select-trigger,.iq-combo-shell)>.iq-icon:last-child{opacity:1}}
+.iq-properties:is([data-columns],[data-label=wide]) :is(iq-select,iq-combobox,iq-date-field){min-height:36px;column-gap:var(--iq-space-2)}
+.iq-properties:is([data-columns],[data-label=wide]) :is(iq-select,iq-combobox,iq-date-field)>.iq-control-label{font-size:var(--iq-type-label-size);font-weight:400;white-space:nowrap}
+.iq-properties:is([data-columns],[data-label=wide]) :is(iq-select,iq-combobox,iq-date-field)>:not(.iq-control-label){justify-self:start;max-width:calc(100% + var(--iq-space-2));margin-left:calc(-1 * var(--iq-space-2))}
+.iq-properties:is([data-columns],[data-label=wide]) iq-select[appearance=pill]>:not(.iq-control-label){margin-left:0}
+.iq-properties:is([data-columns],[data-label=wide]) :is(.iq-select-trigger,.iq-date-trigger,.iq-combo-shell){width:auto;max-width:100%;min-height:32px;height:32px;gap:var(--iq-space-2);padding:0 var(--iq-space-2);margin-left:0;border:1px solid transparent;border-radius:var(--iq-radius-sm);background:transparent;font-size:var(--iq-type-interface-size)}
+.iq-properties:is([data-columns],[data-label=wide]) :is(.iq-select-trigger,.iq-date-trigger,.iq-combo-shell):hover{border-color:transparent;background:var(--iq-hover)}
+.iq-properties:is([data-columns],[data-label=wide]) :is(.iq-select-trigger,.iq-date-trigger)[aria-expanded=true],.iq-properties:is([data-columns],[data-label=wide]) .iq-combo-shell:focus-within{border-color:var(--iq-control);background:var(--iq-raised)}
+.iq-properties:is([data-columns],[data-label=wide]) .iq-select-value{display:inline-flex;align-items:center;gap:var(--iq-space-2);min-width:0}
+.iq-properties:is([data-columns],[data-label=wide]) .iq-select-value>.iq-icon{flex:none;color:var(--iq-muted)}
+.iq-properties:is([data-columns],[data-label=wide]) .iq-select-trigger>.iq-icon:last-child,.iq-properties:is([data-columns],[data-label=wide]) .iq-combo-shell>.iq-icon:last-child{opacity:0;width:12px;flex:none;transition:opacity var(--iq-motion-fast) var(--iq-ease)}
+.iq-properties:is([data-columns],[data-label=wide]) :is(.iq-select-trigger,.iq-combo-shell):is(:hover,:focus-within)>.iq-icon:last-child,.iq-properties:is([data-columns],[data-label=wide]) .iq-select-trigger[aria-expanded=true]>.iq-icon:last-child{opacity:1}
+.iq-properties:is([data-columns],[data-label=wide]) .iq-combo-shell input{field-sizing:content;min-width:7ch;max-width:24ch;padding:0;background:transparent;font:inherit}
+.iq-properties:is([data-columns],[data-label=wide]) .iq-combo-shell:has(>.iq-select-avatar):not(:focus-within)>.iq-icon:first-of-type{display:none}
+.iq-properties:is([data-columns],[data-label=wide]) .iq-combo-shell:focus-within>.iq-select-avatar{display:none}
+.iq-properties:is([data-columns],[data-label=wide]) .iq-select-avatar{width:22px;height:22px;margin:0;border:0;font-size:var(--iq-type-meta-size)}
+.iq-properties:is([data-columns],[data-label=wide]) [data-empty=true] :is(.iq-select-label,.iq-combo-shell input,[data-date-caption]){color:var(--iq-muted)}
+.iq-properties:is([data-columns],[data-label=wide]) .iq-select-trigger[data-tone=high]{color:var(--iq-task-high-text)}
+.iq-properties:is([data-columns],[data-label=wide]) .iq-select-trigger[data-tone=critical]{color:var(--iq-task-critical-text)}
+.iq-properties:is([data-columns],[data-label=wide]) :is(.iq-select-trigger[data-tone=high],.iq-select-trigger[data-tone=critical]) .iq-select-value>.iq-icon{color:inherit}
+.iq-properties:is([data-columns],[data-label=wide]) iq-date-field[data-tone=danger] .iq-date-trigger{color:var(--iq-danger)}
+.iq-properties:is([data-columns],[data-label=wide]) iq-date-field[data-tone=warning] .iq-date-trigger{color:var(--iq-task-high-text)}
+@media(hover:none){.iq-properties:is([data-columns],[data-label=wide]) :is(.iq-select-trigger,.iq-combo-shell)>.iq-icon:last-child{opacity:1}}
 /* iq-select appearance="pill": the one filled value, with a dot in the option's tone. */
-iq-select[appearance=pill] .iq-select-trigger,.iq-properties[data-columns] iq-select[appearance=pill] .iq-select-trigger{height:28px;min-height:28px;margin-left:0;padding:0 var(--iq-space-3);border-radius:var(--iq-radius-pill);background:var(--iq-surface);font-size:var(--iq-type-label-size);font-weight:500}
+iq-select[appearance=pill] .iq-select-trigger,.iq-properties:is([data-columns],[data-label=wide]) iq-select[appearance=pill] .iq-select-trigger{height:28px;min-height:28px;margin-left:0;padding:0 var(--iq-space-3);border-radius:var(--iq-radius-pill);background:var(--iq-surface);font-size:var(--iq-type-label-size);font-weight:500}
 iq-select[appearance=pill] .iq-select-trigger:hover{background:var(--iq-hover)}
 .iq-select-dot{width:8px;height:8px;border-radius:50%;background:var(--iq-select-tone,var(--iq-muted));flex:none}
 iq-select[appearance=pill] .iq-select-trigger[data-tone=info]{--iq-select-tone:var(--iq-info)}
@@ -2445,16 +2447,16 @@ iq-select[appearance=pill] .iq-select-trigger[data-tone=danger]{--iq-select-tone
 iq-tag-picker[appearance=inline]>.iq-control-label{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 iq-tag-picker[appearance=inline] .iq-tag-picker-field{display:flex;flex-wrap:wrap;align-items:center;gap:6px;min-height:28px;padding:0;border:0;background:transparent;box-shadow:none}
 iq-tag-picker[appearance=inline] .iq-tag-picker-field:focus-within{box-shadow:none}
-iq-tag-picker[appearance=inline] .iq-tag-picker-values{display:contents}
-iq-tag-picker[appearance=inline] .iq-tag{min-height:24px;padding:2px var(--iq-space-2);font-size:var(--iq-type-caption-size);border-radius:var(--iq-radius-xs)}
-iq-tag-picker[appearance=inline] .iq-tag .iq-tag-remove{width:0;opacity:0;overflow:hidden;margin-left:0;transition:opacity var(--iq-motion-fast) var(--iq-ease)}
-iq-tag-picker[appearance=inline] .iq-tag:is(:hover,:focus-within,[data-armed]) .iq-tag-remove{width:24px;opacity:1;margin-left:2px}
+iq-tag-picker:is([appearance=inline],[appearance=ghost]) .iq-tag-picker-values{display:contents}
+iq-tag-picker:is([appearance=inline],[appearance=ghost]) .iq-tag{min-height:24px;padding:2px var(--iq-space-2);font-size:var(--iq-type-caption-size);border-radius:var(--iq-radius-xs)}
+iq-tag-picker:is([appearance=inline],[appearance=ghost]) .iq-tag .iq-tag-remove{width:0;opacity:0;overflow:hidden;margin-left:0;transition:opacity var(--iq-motion-fast) var(--iq-ease)}
+iq-tag-picker:is([appearance=inline],[appearance=ghost]) .iq-tag:is(:hover,:focus-within,[data-armed]) .iq-tag-remove{width:24px;opacity:1;margin-left:2px}
 iq-tag-picker[appearance=inline] input{flex:0 1 150px;min-width:96px;height:24px;padding:0 var(--iq-space-1);border:0;border-bottom:1px solid transparent;border-radius:0;background:transparent;font-size:var(--iq-type-caption-size);color:var(--iq-ink)}
 iq-tag-picker[appearance=inline] input::placeholder{color:var(--iq-muted)}
 iq-tag-picker[appearance=inline] input:focus{outline:none;border-bottom-color:var(--iq-focus)}
 iq-tag-picker[appearance=inline] .iq-tag-picker-add{width:24px;height:24px;min-width:24px;min-height:24px;padding:0;margin:0;border-radius:var(--iq-radius-xs)}
-@media(hover:none),(pointer:coarse){iq-tag-picker[appearance=inline] .iq-tag .iq-tag-remove{width:24px;opacity:1;margin-left:2px}}
-@media(prefers-reduced-motion:reduce){iq-tag-picker[appearance=inline] .iq-tag .iq-tag-remove{transition:none}}
+@media(hover:none),(pointer:coarse){iq-tag-picker:is([appearance=inline],[appearance=ghost]) .iq-tag .iq-tag-remove{width:24px;opacity:1;margin-left:2px}}
+@media(prefers-reduced-motion:reduce){iq-tag-picker:is([appearance=inline],[appearance=ghost]) .iq-tag .iq-tag-remove{transition:none}}
 
 .iq-properties[data-columns] .iq-date-trigger>.iq-icon{order:-1;flex:none;color:var(--iq-muted)}
 /* iq-image-crop appearance="bare" (0.6.0-vnext.19): one surface inside a host dialog. The whole image stays visible
@@ -2485,3 +2487,61 @@ iq-tag-picker[appearance=inline] .iq-tag-picker-add{width:24px;height:24px;min-w
 /* iq-file-picker drop-target (0.6.0-vnext.20): the whole region shows it takes the files while they are dragged over. */
 [data-file-drop]{outline:2px dashed var(--iq-accent);outline-offset:4px;border-radius:var(--iq-radius-sm);background:color-mix(in srgb,var(--iq-accent) 5%,transparent)}
 iq-file-picker[variant=button]{display:inline-flex}
+/* ---------- Property list (0.6.0-vnext.27): .iq-properties[data-label=wide] ----------
+   One calm list of an object's facts: 36px rows, a wide 13px label column (120px; a host may set
+   --iq-properties-label) and the ghost value grammar of the property grid — text at rest, a hover fill and a chevron,
+   one click opens the editor. Static rows (.iq-property with .iq-property-label and .iq-property-value, or dt/dd)
+   read as the same text without a hover; the status pill is 26px so it never stands taller than its neighbours. */
+.iq-properties[data-label=wide]{--iq-properties-label:120px;gap:0}
+.iq-properties[data-label=wide] :is(iq-select,iq-combobox,iq-date-field,iq-tag-picker),.iq-properties[data-label=wide] .iq-property{display:grid;grid-template-columns:var(--iq-properties-label) minmax(0,1fr);align-items:center;column-gap:var(--iq-space-3);min-height:36px;min-width:0;max-width:none;width:100%;margin:0}
+.iq-properties[data-label=wide] :is(iq-select,iq-combobox,iq-date-field,iq-tag-picker,.iq-property)>:is(.iq-control-label,.iq-property-label){grid-column:1;margin:0;font-size:var(--iq-type-label-size);font-weight:400;line-height:20px;color:var(--iq-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.iq-properties[data-label=wide] .iq-property>:not(.iq-property-label){grid-column:2;min-width:0;margin:0}
+/* A static value starts where a ghost trigger's text does (inside its 1px transparent border). */
+.iq-properties[data-label=wide] .iq-property>.iq-property-value{padding-inline:1px}
+/* A host's own trigger in a row (e.g. a date range) is a ghost value too: its text on the column edge, the fill bleeding left. */
+.iq-properties[data-label=wide] .iq-property>:is(.iq-select-trigger,.iq-date-trigger){justify-self:start;max-width:calc(100% + var(--iq-space-2));margin-left:calc(-1 * var(--iq-space-2))}
+.iq-properties[data-label=wide] .iq-select-label{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.iq-properties[data-label=wide] .iq-select-value>.iq-select-meta{display:none}
+.iq-properties[data-label=wide] .iq-select-avatar{width:20px;height:20px;min-width:20px;font-size:.5rem;font-weight:600;letter-spacing:var(--iq-tracking-caps);line-height:1}
+.iq-properties[data-label=wide] iq-select[appearance=pill] .iq-select-trigger{height:26px;min-height:26px;padding:0 var(--iq-space-3) 0 var(--iq-space-2)}
+.iq-properties[data-label=wide] iq-select[appearance=pill] .iq-select-dot{width:7px;height:7px}
+.iq-properties[data-label=wide] iq-select[appearance=pill] .iq-select-trigger>.iq-icon:last-child{display:none}
+.iq-properties[data-label=wide] .iq-date-trigger>.iq-icon[data-glyph=calendar]{display:none}
+.iq-properties[data-label=wide] .iq-date-trigger>.iq-icon[data-glyph=down]{display:inline-block;width:12px;flex:none;color:var(--iq-muted);opacity:0;transition:opacity var(--iq-motion-fast) var(--iq-ease)}
+.iq-properties[data-label=wide] .iq-date-trigger:is(:hover,:focus-visible,[aria-expanded=true])>.iq-icon[data-glyph=down]{opacity:1}
+.iq-properties[data-label=wide] iq-tag-picker{align-items:start}
+.iq-properties[data-label=wide] iq-tag-picker>.iq-control-label{padding-block:var(--iq-space-2)}
+.iq-properties[data-label=wide] iq-tag-picker>:not(.iq-control-label){grid-column:2}
+.iq-properties[data-label=wide] iq-tag-picker>.iq-tag-picker-list{left:calc(-1 * var(--iq-space-2))}
+.iq-properties[data-label=wide] iq-tag-picker .iq-tag-picker-field{justify-self:start;max-width:calc(100% + var(--iq-space-2));margin:2px 0 2px calc(-1 * var(--iq-space-2))}
+@media(hover:none){.iq-properties[data-label=wide] .iq-date-trigger>.iq-icon[data-glyph=down]{opacity:1}}
+/* Static values: the same text as a trigger's value, in place; key, meta and text parts for composed values. */
+.iq-property-value{display:flex;flex-wrap:wrap;align-items:center;gap:var(--iq-space-1) var(--iq-space-2);min-width:0;font-size:var(--iq-type-interface-size);line-height:20px;color:var(--iq-ink)}
+.iq-property-value[data-empty=true]{color:var(--iq-muted)}
+.iq-property-value[data-tone=high]{color:var(--iq-task-high-text)}
+.iq-property-value[data-tone=critical]{color:var(--iq-task-critical-text)}
+.iq-property-value>.iq-tag{min-height:24px;padding:2px var(--iq-space-2);font-size:var(--iq-type-caption-size);line-height:1.5;border-radius:var(--iq-radius-xs)}
+.iq-property-text{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.iq-property-meta{flex:none;color:var(--iq-muted);white-space:nowrap}
+:is(.iq-select-key,.iq-property-key){flex:none;font:500 var(--iq-type-label-size)/1 var(--iq-mono);color:var(--iq-muted)}
+dl.iq-properties,.iq-properties dd{margin:0}
+/* A service account's avatar: a square with the bot glyph, quieter than a person's disc. */
+.iq-avatar.bot{border-radius:var(--iq-radius-xs);background:var(--iq-recessed);color:var(--iq-muted);box-shadow:inset 0 0 0 1px var(--iq-line)}
+.iq-avatar.bot>.iq-icon{width:11px;height:11px}
+/* iq-date-field deadline: overdue in the critical tone, today and tomorrow in the high tone; the words come with it. */
+.iq-date-trigger>.iq-icon[data-glyph=down]{display:none}
+iq-date-field[deadline] .iq-date-trigger[data-deadline=overdue]{color:var(--iq-task-critical-text)}
+iq-date-field[deadline] .iq-date-trigger:is([data-deadline=today],[data-deadline=tomorrow]){color:var(--iq-task-high-text)}
+/* iq-tag-picker appearance="ghost": a value of a property list. Chips at rest, the hover fill and chevron of the other
+   ghost triggers, a click opens the search; «Нет тегов» when empty; the search hint shows only while typing. */
+iq-tag-picker[appearance=ghost] .iq-tag-picker-field{display:flex;flex-wrap:wrap;align-items:center;gap:6px var(--iq-space-2);min-height:32px;padding:3px var(--iq-space-2);border:1px solid transparent;border-radius:var(--iq-radius-sm);background:transparent;box-shadow:none;cursor:pointer;transition:background-color var(--iq-motion-fast) var(--iq-ease),border-color var(--iq-motion-fast) var(--iq-ease)}
+iq-tag-picker[appearance=ghost] .iq-tag-picker-field:hover{border-color:transparent;background:var(--iq-hover)}
+iq-tag-picker[appearance=ghost] .iq-tag-picker-field:focus-within{border-color:var(--iq-control);background:var(--iq-raised);box-shadow:none}
+iq-tag-picker[appearance=ghost] .iq-tag-picker-field>input{flex:0 1 auto;field-sizing:content;min-width:2ch;height:24px;padding:0;border:0;background:transparent;font-size:var(--iq-type-interface-size);line-height:20px;color:var(--iq-ink);cursor:pointer}
+iq-tag-picker[appearance=ghost] .iq-tag-picker-field>input:focus{cursor:text}
+iq-tag-picker[appearance=ghost] .iq-tag-picker-field>input::placeholder{color:var(--iq-muted);opacity:1}
+iq-tag-picker[appearance=ghost] .iq-tag-picker-values:not(:empty)+input:not(:focus){flex:0 0 0;width:0;min-width:0}
+iq-tag-picker[appearance=ghost] .iq-tag-picker-chevron{display:inline-flex;flex:none;color:var(--iq-muted);opacity:0;transition:opacity var(--iq-motion-fast) var(--iq-ease)}
+iq-tag-picker[appearance=ghost] .iq-tag-picker-chevron>.iq-icon{width:12px}
+iq-tag-picker[appearance=ghost] .iq-tag-picker-field:is(:hover,:focus-within)>.iq-tag-picker-chevron{opacity:1}
+@media(hover:none){iq-tag-picker[appearance=ghost] .iq-tag-picker-chevron{opacity:1}}

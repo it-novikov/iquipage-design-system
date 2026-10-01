@@ -18,6 +18,15 @@ example demonstrates the form, not just a provider redirect. The Keycloak login 
 shipped from vnext.9 to vnext.20 was removed in vnext.21: no product uses an external
 identity provider's form any more.
 
+## Property list (0.6.0-vnext.27)
+
+- `.iq-properties[data-label=wide]` is one calm list of an object's facts: 36px rows, a 120px label column (a host may set `--iq-properties-label`, e.g. 136px in a wide reading column) with 13/400 muted labels, and 14/400 values. The values use the ghost grammar of `.iq-properties[data-columns]` (text at rest on the column edge, the `hover` fill bleeding 8px left and a 12px chevron on hover or focus, one click opens the editor); in this list a date trigger shows no calendar glyph and an option's `meta` stays in the open list. `iq-select appearance="pill"` is 26px with a 7px dot and no chevron.
+- Static rows: `.iq-property` with `.iq-property-label` and `.iq-property-value` (or `dt`/`dd` inside a `dl`), the same text without a hover; `[data-empty=true]` is muted, `[data-tone=high|critical]` takes the task text tones; `.iq-property-text` (one line, ellipsis), `.iq-property-key` (mono key), `.iq-property-meta` (quiet suffix) and `.iq-tag` chips compose a value. A host's own trigger (`.iq-select-trigger`, `.iq-date-trigger`) placed in a row is a ghost value too.
+- `iq-select`: `trigger-icon="none"` keeps an option's glyph in the open list and shows only the word on the closed control; an option may carry `key` (a mono task key before the label, also found by the search); `avatar: {kind: 'bot', label?}` draws a service account's square avatar with the bot glyph and speaks its role after the name.
+- `ui.personAvatar({…, kind: 'service'})` is the same square bot avatar; the Lucide `bot` glyph is in the icon set.
+- `iq-date-field deadline`: the value is a due date. Overdue, today and tomorrow are written beside it («28.09.2026 · просрочен», «· сегодня», «· завтра») and toned through the trigger's `data-deadline` (critical text for overdue, high text for today and tomorrow); remove the attribute for finished work.
+- `iq-tag-picker appearance="ghost"`: a value of a property list. Chips at rest, the hover fill and chevron of the other ghost triggers, a click anywhere opens the search; «Нет тегов» when empty, the «Найти тег» hint only while typing, no «+» button (an unmatched search offers «Создать тег» when `creatable`).
+
 ## Relation map «Ступица» (0.6.0-vnext.26)
 
 - `iq-relation-map` keeps its API (`value` with `center`, `parent`, `dependsOn`, `blocks`, `related`, `children`, `childrenDone`, `labels`; `iq-open {id}`, `iq-remove {id, linkId}`; `readonly`) and is redrawn: blockers on the left, tasks that wait and related tasks on the right, the parent above the centre, subtasks as a tree on a rail below. An empty side collapses, so a single blocker gets the whole width.

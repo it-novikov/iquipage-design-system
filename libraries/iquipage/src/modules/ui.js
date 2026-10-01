@@ -71,6 +71,8 @@ function personAvatar(person, { size = 'sm' } = {}) {
     if (!['', 'xs', 'sm', 'lg'].includes(size)) throw new TypeError('Unsupported avatar size');
     const sized = size ? ` ${size}` : '';
     if (!person || !String(person.name || '').trim()) return `<span class="iq-avatar${sized} more" aria-hidden="true">?</span>`;
+    // A service account (vnext.27) is a square with the bot glyph, never initials: it is not a person.
+    if (person.kind === 'service') return `<span class="iq-avatar${sized} bot" aria-hidden="true">${components_js_1.icon('bot', 12)}</span>`;
     const photo = avatarPhoto(person);
     return `<span class="iq-avatar${sized} v${avatarTone(person.id || person.name)}${photo ? ' has-image' : ''}" aria-hidden="true">${components_js_1.escapeHTML(initials(person.name))}${photo}</span>`;
 }

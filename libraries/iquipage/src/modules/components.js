@@ -186,11 +186,17 @@ class IqSelect extends IqElement {
         if (this.editable && !this.opened)
             this.trigger.value = match?.label || '';
         const photo = typeof match?.avatar?.image === 'string' && /^(\/(?!\/)|blob:|https:\/\/)/.test(match.avatar.image) ? `<img src="${escapeHTML(match.avatar.image)}" alt="" decoding="async">` : '';
-        const avatar = match?.avatar && typeof match.avatar.text === 'string' ? `<span class="iq-avatar iq-select-avatar v${Number(match.avatar.tone) || 1}${photo ? ' has-image' : ''}" aria-hidden="true">${escapeHTML(match.avatar.text.slice(0, 2))}${photo}</span>` : '';
+        // avatar {kind:'bot'} (vnext.27): a service account's square avatar with the bot glyph; its role is spoken, not shown.
+        const bot = match?.avatar?.kind === 'bot';
+        const avatar = bot ? `<span class="iq-avatar iq-select-avatar bot" aria-hidden="true">${icons_js_1.icon('bot', 12)}</span>`
+            : match?.avatar && typeof match.avatar.text === 'string' ? `<span class="iq-avatar iq-select-avatar v${Number(match.avatar.tone) || 1}${photo ? ' has-image' : ''}" aria-hidden="true">${escapeHTML(match.avatar.text.slice(0, 2))}${photo}</span>` : '';
         const caption = this.querySelector('.iq-select-value');
-        const lead = this.getAttribute('appearance') === 'pill' ? '<span class="iq-select-dot" aria-hidden="true"></span>' : avatar || (match?.icon ? icons_js_1.icon(match.icon, 17) : '');
+        // trigger-icon="none" (vnext.27): an option's glyph stays in the open list; the closed control shows the word.
+        const glyph = match?.icon && this.getAttribute('trigger-icon') !== 'none' ? icons_js_1.icon(match.icon, 17) : '';
+        const lead = this.getAttribute('appearance') === 'pill' ? '<span class="iq-select-dot" aria-hidden="true"></span>' : avatar || glyph;
+        const role = bot ? `<span class="sr-only">, ${escapeHTML(typeof match.avatar.label === 'string' && match.avatar.label ? match.avatar.label : 'сервисный аккаунт')}</span>` : '';
         if (caption)
-            caption.innerHTML = `${lead}<span class="iq-select-label">${escapeHTML(match?.label || this.getAttribute('placeholder') || 'Выбрать…')}</span>${match?.meta ? `<span class="iq-select-meta">${escapeHTML(match.meta)}</span>` : ''}`;
+            caption.innerHTML = `${lead}${match?.key ? `<span class="iq-select-key">${escapeHTML(match.key)}</span>` : ''}<span class="iq-select-label">${escapeHTML(match?.label || this.getAttribute('placeholder') || 'Выбрать…')}</span>${role}${match?.meta ? `<span class="iq-select-meta">${escapeHTML(match.meta)}</span>` : ''}`;
         // The selected option's tone and avatar show on the closed control (value-first property chips).
         this.trigger.dataset.tone = typeof match?.tone === 'string' ? match.tone : '';
         this.dataset.empty = String(!match?.value);
@@ -207,10 +213,11 @@ class IqSelect extends IqElement {
         this.renderOptions();
     }
     renderOptions() {
-        this.filtered = this.options.filter(o => !this.query || o.label.toLocaleLowerCase().includes(this.query.toLocaleLowerCase()));
+        const query = this.query.toLocaleLowerCase();
+        this.filtered = this.options.filter(o => !query || o.label.toLocaleLowerCase().includes(query) || (typeof o.key === 'string' && o.key.toLocaleLowerCase().includes(query)));
         if (this.active >= this.filtered.length)
             this.active = 0;
-        this.list.innerHTML = this.filtered.length ? this.filtered.map((o, i) => `<div id="${this.list.id}-${i}" class="iq-option ${i === this.active ? 'is-active' : ''}${o.separator ? ' iq-option-separated' : ''}" role="option" aria-selected="${o.value === this.selected}" ${o.disabled ? 'aria-disabled="true"' : ''} data-value="${escapeHTML(o.value)}">${o.icon ? `<span class="iq-option-icon">${icons_js_1.icon(o.icon, 18)}</span>` : ''}<span class="iq-option-copy"><span class="iq-option-label">${escapeHTML(o.label)}</span>${o.description ? `<small>${escapeHTML(o.description)}</small>` : ''}</span>${o.meta ? `<span class="iq-option-meta">${escapeHTML(o.meta)}</span>` : ''}${o.value === this.selected ? icons_js_1.icon('check', 17) : ''}</div>`).join('') : '<div class="iq-no-results">Ничего не найдено</div>';
+        this.list.innerHTML = this.filtered.length ? this.filtered.map((o, i) => `<div id="${this.list.id}-${i}" class="iq-option ${i === this.active ? 'is-active' : ''}${o.separator ? ' iq-option-separated' : ''}" role="option" aria-selected="${o.value === this.selected}" ${o.disabled ? 'aria-disabled="true"' : ''} data-value="${escapeHTML(o.value)}">${o.icon ? `<span class="iq-option-icon">${icons_js_1.icon(o.icon, 18)}</span>` : ''}<span class="iq-option-copy"><span class="iq-option-label">${o.key ? `<span class="iq-select-key">${escapeHTML(o.key)}</span> ` : ''}${escapeHTML(o.label)}</span>${o.description ? `<small>${escapeHTML(o.description)}</small>` : ''}</span>${o.meta ? `<span class="iq-option-meta">${escapeHTML(o.meta)}</span>` : ''}${o.value === this.selected ? icons_js_1.icon('check', 17) : ''}</div>`).join('') : '<div class="iq-no-results">Ничего не найдено</div>';
         for (const owner of [this.trigger, this.search].filter(Boolean)) {
             if (this.opened && this.filtered.length)
                 owner.setAttribute('aria-activedescendant', `${this.list.id}-${this.active}`);
@@ -1306,7 +1313,10 @@ class IqTagPicker extends IqElement {
     get locked() { return this.hasAttribute('disabled') || this.hasAttribute('readonly'); }
     mount() {
         this.uid ||= uid();
-        this.innerHTML = `<span class="iq-control-label" id="${this.uid}-label"></span><div class="iq-tag-picker-field" role="group" aria-labelledby="${this.uid}-label"><div class="iq-tag-picker-values"></div><input type="text" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="${this.uid}-list" aria-labelledby="${this.uid}-label" autocomplete="off" maxlength="100"><button type="button" class="iq-btn ghost icon sm iq-tag-picker-add" data-tag-create aria-label="Создать тег" title="Новый тег" hidden>${icons_js_1.icon('plus', 16)}</button></div><div class="iq-tag-picker-list" id="${this.uid}-list" role="listbox" hidden></div>`;
+        // appearance="ghost" (vnext.27): a value in a property list — chips at rest, a hover fill and a chevron like the
+        // other ghost triggers; a click anywhere opens the search. No "+" button: an unmatched search offers creation.
+        const ghost = this.getAttribute('appearance') === 'ghost';
+        this.innerHTML = `<span class="iq-control-label" id="${this.uid}-label"></span><div class="iq-tag-picker-field" role="group" aria-labelledby="${this.uid}-label"><div class="iq-tag-picker-values"></div><input type="text" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="${this.uid}-list" aria-labelledby="${this.uid}-label" autocomplete="off" maxlength="100">${ghost ? `<span class="iq-tag-picker-chevron" aria-hidden="true">${icons_js_1.icon('down', 16)}</span>` : `<button type="button" class="iq-btn ghost icon sm iq-tag-picker-add" data-tag-create aria-label="Создать тег" title="Новый тег" hidden>${icons_js_1.icon('plus', 16)}</button>`}</div><div class="iq-tag-picker-list" id="${this.uid}-list" role="listbox" hidden></div>`;
         this.input = this.querySelector('input');
         this.listen(this.input, 'focus', () => this.open());
         this.listen(this.input, 'input', () => { this.query = this.input.value; this.active = 0; this.open(); });
@@ -1376,7 +1386,9 @@ class IqTagPicker extends IqElement {
         this.querySelectorAll('[data-entering]').forEach(chip => chip.addEventListener('animationend', () => chip.removeAttribute('data-entering'), { once: true }));
         this.entering.clear();
         this.input.disabled = this.hasAttribute('disabled'); this.input.readOnly = this.hasAttribute('readonly');
-        this.input.placeholder = this.locked ? (this._value.length ? '' : 'Нет тегов') : this._value.length ? 'Ещё тег' : (this.getAttribute('placeholder') || 'Добавить тег');
+        // A ghost picker reads like a value: «Нет тегов» when empty; with chips the search hint shows only while typing.
+        const ghost = this.getAttribute('appearance') === 'ghost';
+        this.input.placeholder = this.locked ? (this._value.length ? '' : 'Нет тегов') : ghost ? (this._value.length ? 'Найти тег' : (this.getAttribute('placeholder') || 'Нет тегов')) : this._value.length ? 'Ещё тег' : (this.getAttribute('placeholder') || 'Добавить тег');
         this.input.hidden = this.hasAttribute('readonly');
         this.paintList();
     }
