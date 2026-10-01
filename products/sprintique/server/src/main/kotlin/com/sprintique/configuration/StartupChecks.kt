@@ -47,6 +47,9 @@ class StartupChecks(
         private const val METRICS_TOKEN_MINIMUM = 32
         private const val METRICS_TOKEN_MAXIMUM = 256
         private val SMTP_SECURITY = setOf("starttls", "tls", "none")
+        private val BOT_TOKEN = Regex("^[0-9]{3,20}:[A-Za-z0-9_-]{30,100}$")
+        private val BOT_USERNAME = Regex("^[A-Za-z][A-Za-z0-9_]{3,31}$")
+        private val WEBHOOK_SECRET = Regex("^[A-Za-z0-9_-]{32,256}$")
         private val SENDER = Regex("^([^<>\\r\\n]{1,100} )?<?[^\\s@<>]{1,64}@[^\\s@<>]{1,255}>?$")
 
         fun requireSafeConfiguration(properties: SprintiqueProperties) {
@@ -65,10 +68,42 @@ class StartupChecks(
                 }
             }
             requireSafeSignIn(properties)
+            requireSafeTelegram(properties.telegram)
             val token = properties.metricsToken
             require(token.isEmpty() || token.length in METRICS_TOKEN_MINIMUM..METRICS_TOKEN_MAXIMUM) {
                 "Metrics token must contain 32–256 characters."
             }
+        }
+
+        /**
+         * Telegram is all or nothing for people (token, username, secret), with well-formed values, so a typo does
+         * not show a link that never works; the Bot API is reached over HTTPS except on loopback (a test fake).
+         */
+        fun requireSafeTelegram(telegram: TelegramProperties) {
+            val parts = listOf(telegram.botToken, telegram.botUsername, telegram.webhookSecret)
+            require(parts.all(String::isEmpty) || parts.none(String::isEmpty)) {
+                "Telegram needs SPRINTIQUE_TELEGRAM_BOT_TOKEN, SPRINTIQUE_TELEGRAM_BOT_USERNAME and " +
+                    "SPRINTIQUE_TELEGRAM_WEBHOOK_SECRET together"
+            }
+            requireTelegramValues(telegram)
+        }
+
+        /** The worker's part of the check: it sends with the token alone. */
+        fun requireTelegramValues(telegram: TelegramProperties) {
+            require(telegram.botToken.isEmpty() || BOT_TOKEN.matches(telegram.botToken)) {
+                "SPRINTIQUE_TELEGRAM_BOT_TOKEN is not a bot token"
+            }
+            require(telegram.botUsername.isEmpty() || BOT_USERNAME.matches(telegram.botUsername)) {
+                "SPRINTIQUE_TELEGRAM_BOT_USERNAME must be the bot's username without @"
+            }
+            require(telegram.webhookSecret.isEmpty() || WEBHOOK_SECRET.matches(telegram.webhookSecret)) {
+                "SPRINTIQUE_TELEGRAM_WEBHOOK_SECRET must be 32–256 characters A–Z, a–z, 0–9, _ or -"
+            }
+            val api = URI(telegram.apiBase)
+            require("${api.scheme}://${api.authority}" == telegram.apiBase.removeSuffix("/")) {
+                "SPRINTIQUE_TELEGRAM_API_BASE must be an origin"
+            }
+            require(api.scheme == "https" || api.host in LOOPBACK) { "The Telegram Bot API needs HTTPS" }
         }
 
         /** Providers over HTTPS; codes by SMTP in production, with a sender; the mail drop only off production. */

@@ -6,8 +6,17 @@ package com.sprintique.database.schema.app.routines.references
 
 
 import com.sprintique.database.schema.app.routines.AppendTaskActivity
+import com.sprintique.database.schema.app.routines.NotificationRecipient
+import com.sprintique.database.schema.app.routines.NotifyMention
+import com.sprintique.database.schema.app.routines.RaiseNotification
+import com.sprintique.database.schema.app.routines.TelegramAcceptUpdate
+import com.sprintique.database.schema.app.routines.TelegramLinkChat
+import com.sprintique.database.schema.app.routines.TelegramUnlinkChat
+
+import java.util.UUID
 
 import org.jooq.Configuration
+import org.jooq.Field
 import org.jooq.JSONB
 
 
@@ -26,4 +35,244 @@ fun appendTaskActivity(
     p.setChange(change)
 
     p.execute(configuration)
+}
+
+fun notificationRecipient(
+      configuration: Configuration
+    , targetProject: String?
+    , person: String?
+): Boolean? {
+    val f = NotificationRecipient()
+    f.setTargetProject(targetProject)
+    f.setPerson(person)
+
+    f.execute(configuration)
+    return f.returnValue
+}
+
+fun notificationRecipient(
+      targetProject: String?
+    , person: String?
+): Field<Boolean?> {
+    val f = NotificationRecipient()
+    f.setTargetProject(targetProject)
+    f.setPerson(person)
+
+    return f.asField()
+}
+
+fun notificationRecipient(
+      targetProject: Field<String?>
+    , person: Field<String?>
+): Field<Boolean?> {
+    val f = NotificationRecipient()
+    f.setTargetProject(targetProject)
+    f.setPerson(person)
+
+    return f.asField()
+}
+
+fun notifyMention(
+      configuration: Configuration
+    , targetProject: String?
+    , message: String?
+    , person: String?
+): Boolean? {
+    val f = NotifyMention()
+    f.setTargetProject(targetProject)
+    f.setMessage(message)
+    f.setPerson(person)
+
+    f.execute(configuration)
+    return f.returnValue
+}
+
+fun notifyMention(
+      targetProject: String?
+    , message: String?
+    , person: String?
+): Field<Boolean?> {
+    val f = NotifyMention()
+    f.setTargetProject(targetProject)
+    f.setMessage(message)
+    f.setPerson(person)
+
+    return f.asField()
+}
+
+fun notifyMention(
+      targetProject: Field<String?>
+    , message: Field<String?>
+    , person: Field<String?>
+): Field<Boolean?> {
+    val f = NotifyMention()
+    f.setTargetProject(targetProject)
+    f.setMessage(message)
+    f.setPerson(person)
+
+    return f.asField()
+}
+
+fun raiseNotification(
+      configuration: Configuration
+    , person: String?
+    , targetProject: String?
+    , targetTask: String?
+    , notificationKind: String?
+    , actor: String?
+    , change: JSONB?
+    , key: String?
+): UUID? {
+    val f = RaiseNotification()
+    f.setPerson(person)
+    f.setTargetProject(targetProject)
+    f.setTargetTask(targetTask)
+    f.setNotificationKind(notificationKind)
+    f.setActor(actor)
+    f.setChange(change)
+    f.setKey(key)
+
+    f.execute(configuration)
+    return f.returnValue
+}
+
+fun raiseNotification(
+      person: String?
+    , targetProject: String?
+    , targetTask: String?
+    , notificationKind: String?
+    , actor: String?
+    , change: JSONB?
+    , key: String?
+): Field<UUID?> {
+    val f = RaiseNotification()
+    f.setPerson(person)
+    f.setTargetProject(targetProject)
+    f.setTargetTask(targetTask)
+    f.setNotificationKind(notificationKind)
+    f.setActor(actor)
+    f.setChange(change)
+    f.setKey(key)
+
+    return f.asField()
+}
+
+fun raiseNotification(
+      person: Field<String?>
+    , targetProject: Field<String?>
+    , targetTask: Field<String?>
+    , notificationKind: Field<String?>
+    , actor: Field<String?>
+    , change: Field<JSONB?>
+    , key: Field<String?>
+): Field<UUID?> {
+    val f = RaiseNotification()
+    f.setPerson(person)
+    f.setTargetProject(targetProject)
+    f.setTargetTask(targetTask)
+    f.setNotificationKind(notificationKind)
+    f.setActor(actor)
+    f.setChange(change)
+    f.setKey(key)
+
+    return f.asField()
+}
+
+fun telegramAcceptUpdate(
+      configuration: Configuration
+    , update: Long?
+): Boolean? {
+    val f = TelegramAcceptUpdate()
+    f.setUpdate(update)
+
+    f.execute(configuration)
+    return f.returnValue
+}
+
+fun telegramAcceptUpdate(
+      update: Long?
+): Field<Boolean?> {
+    val f = TelegramAcceptUpdate()
+    f.setUpdate(update)
+
+    return f.asField()
+}
+
+fun telegramAcceptUpdate(
+      update: Field<Long?>
+): Field<Boolean?> {
+    val f = TelegramAcceptUpdate()
+    f.setUpdate(update)
+
+    return f.asField()
+}
+
+fun telegramLinkChat(
+      configuration: Configuration
+    , tokenHash: String?
+    , chat: Long?
+    , handle: String?
+): String? {
+    val f = TelegramLinkChat()
+    f.setTokenHash(tokenHash)
+    f.setChat(chat)
+    f.setHandle(handle)
+
+    f.execute(configuration)
+    return f.returnValue
+}
+
+fun telegramLinkChat(
+      tokenHash: String?
+    , chat: Long?
+    , handle: String?
+): Field<String?> {
+    val f = TelegramLinkChat()
+    f.setTokenHash(tokenHash)
+    f.setChat(chat)
+    f.setHandle(handle)
+
+    return f.asField()
+}
+
+fun telegramLinkChat(
+      tokenHash: Field<String?>
+    , chat: Field<Long?>
+    , handle: Field<String?>
+): Field<String?> {
+    val f = TelegramLinkChat()
+    f.setTokenHash(tokenHash)
+    f.setChat(chat)
+    f.setHandle(handle)
+
+    return f.asField()
+}
+
+fun telegramUnlinkChat(
+      configuration: Configuration
+    , chat: Long?
+): Boolean? {
+    val f = TelegramUnlinkChat()
+    f.setChat(chat)
+
+    f.execute(configuration)
+    return f.returnValue
+}
+
+fun telegramUnlinkChat(
+      chat: Long?
+): Field<Boolean?> {
+    val f = TelegramUnlinkChat()
+    f.setChat(chat)
+
+    return f.asField()
+}
+
+fun telegramUnlinkChat(
+      chat: Field<Long?>
+): Field<Boolean?> {
+    val f = TelegramUnlinkChat()
+    f.setChat(chat)
+
+    return f.asField()
 }
