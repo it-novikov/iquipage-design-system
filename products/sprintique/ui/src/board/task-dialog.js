@@ -88,18 +88,20 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
   })();
   // The plan is saved by the planning command (preview, then commit), so it needs the host's planning hook.
   const canPlan=canEdit&&typeof repository.applyPlanningChange==='function';
-  const editableFacts=()=>`<div class="iq-properties" data-label="wide">
-        <iq-select name="status" label="Статус" appearance="pill" value="${esc(statusValue)}" options="${opts(statusOptions)}"></iq-select>
-        <iq-select name="ownerId" label="Исполнитель" searchable search-placeholder="Найти участника" value="${esc(initial.ownerId||'')}" options="${opts(ownerChoices)}"></iq-select>
-        <iq-date-field name="due" label="Срок" placeholder="Без срока" ${finished(statusValue)?'':'deadline'} value="${esc(initial.due||'')}"></iq-date-field>
-        <iq-select name="priority" label="Приоритет" trigger-icon="none" value="${esc(initial.priority||'normal')}" options="${opts(priorityOptions)}"></iq-select>
-        <iq-select name="type" label="Тип" trigger-icon="none" value="${esc(initial.type||'task')}" options="${opts(kindOptions)}"></iq-select>
-        <div class="task-property-slot" data-task-catalogs></div>
-        <div data-task-plan></div>
-        <iq-select name="parent" label="Родитель" searchable search-placeholder="Найти задачу" value="${esc(initial.parentId||'')}" options="${opts(parents)}"></iq-select>
-        <div class="task-property-slot" data-task-tags></div>
-        ${row('Автор',author.html,{empty:author.empty,wrapper:'dl'})}
-      </div>${legacyOwner}`;
+  // One entry per row, in reading order, in both the editable and the read-only list: a new fact (such as the
+  // estimate, right after «Приоритет») is one more entry in each.
+  const editableFacts=()=>`<div class="iq-properties" data-label="wide">${[
+    `<iq-select name="status" label="Статус" appearance="pill" value="${esc(statusValue)}" options="${opts(statusOptions)}"></iq-select>`,
+    `<iq-select name="ownerId" label="Исполнитель" searchable search-placeholder="Найти участника" value="${esc(initial.ownerId||'')}" options="${opts(ownerChoices)}"></iq-select>`,
+    `<iq-date-field name="due" label="Срок" placeholder="Без срока" ${finished(statusValue)?'':'deadline'} value="${esc(initial.due||'')}"></iq-date-field>`,
+    `<iq-select name="priority" label="Приоритет" trigger-icon="none" value="${esc(initial.priority||'normal')}" options="${opts(priorityOptions)}"></iq-select>`,
+    `<iq-select name="type" label="Тип" trigger-icon="none" value="${esc(initial.type||'task')}" options="${opts(kindOptions)}"></iq-select>`,
+    '<div class="task-property-slot" data-task-catalogs></div>',
+    '<div data-task-plan></div>',
+    `<iq-select name="parent" label="Родитель" searchable search-placeholder="Найти задачу" value="${esc(initial.parentId||'')}" options="${opts(parents)}"></iq-select>`,
+    '<div class="task-property-slot" data-task-tags></div>',
+    row('Автор',author.html,{empty:author.empty,wrapper:'dl'})
+  ].join('')}</div>${legacyOwner}`;
   // Read-only facts are the same rows as plain text: no disabled controls (DS principle 12), one lock line says why.
   const staticFacts=()=>{
     const column=TASK_COLUMNS.find(c=>c.id===statusValue),owner=owners.find(o=>o.value===(initial.ownerId||''));
@@ -114,18 +116,18 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
     const ownerValue=!owner?.value&&initial.legacyOwner?`<span class="iq-property-text">${esc(initial.legacyOwner)}</span>`
       :owner?.value?`${ui.personAvatar({id:owner.value,name:avatarName(owner.label),image:owner.image,kind:service?'service':'human'},{size:'xs'})}<span class="iq-property-text">${esc(service?serviceName(owner.label):owner.label)}</span>${service?'<span class="sr-only">, сервисный аккаунт</span>':''}`:'Не назначен';
     return `<p class="tdr-lock">${icon('lock',14)}<span>${reason}</span></p>
-      <dl class="iq-properties" data-label="wide">
-        ${row('Статус',`<span class="tdr-pill" data-tone="${esc(statusTones[statusValue]||'')}"><span class="tdr-dot" aria-hidden="true"></span>${esc(column?.label||statusValue)}</span>`)}
-        ${row('Исполнитель',ownerValue,{empty:!owner?.value&&!initial.legacyOwner})}
-        ${row('Срок',initial.due?`<span class="iq-property-text">${esc(formatDate(initial.due)+(signal?' · '+signal.word:''))}</span>`:'Без срока',{empty:!initial.due,tone:signal?.tone})}
-        ${row('Приоритет',esc(priority.label),{tone:priority.tone})}
-        ${row('Тип',esc(kind.label))}
-        ${row('Релиз',release?`<span class="iq-property-text">${esc(catalogLabel(release))}</span>`:'Без релиза',{empty:!release})}
-        <div data-task-plan></div>
-        ${row('Родитель',parent?`<span class="iq-property-key">${esc(taskKey(parent))}</span><span class="iq-property-text">${esc(parent.title)}</span>`:'Нет',{empty:!parent})}
-        ${row('Теги',chosenTags.length?chosenTags.map(tagMarkup).join(''):'Нет тегов',{empty:!chosenTags.length})}
-        ${row('Автор',author.html,{empty:author.empty})}
-      </dl>`;
+      <dl class="iq-properties" data-label="wide">${[
+        row('Статус',`<span class="tdr-pill" data-tone="${esc(statusTones[statusValue]||'')}"><span class="tdr-dot" aria-hidden="true"></span>${esc(column?.label||statusValue)}</span>`),
+        row('Исполнитель',ownerValue,{empty:!owner?.value&&!initial.legacyOwner}),
+        row('Срок',initial.due?`<span class="iq-property-text">${esc(formatDate(initial.due)+(signal?' · '+signal.word:''))}</span>`:'Без срока',{empty:!initial.due,tone:signal?.tone}),
+        row('Приоритет',esc(priority.label),{tone:priority.tone}),
+        row('Тип',esc(kind.label)),
+        row('Релиз',release?`<span class="iq-property-text">${esc(catalogLabel(release))}</span>`:'Без релиза',{empty:!release}),
+        '<div data-task-plan></div>',
+        row('Родитель',parent?`<span class="iq-property-key">${esc(taskKey(parent))}</span><span class="iq-property-text">${esc(parent.title)}</span>`:'Нет',{empty:!parent}),
+        row('Теги',chosenTags.length?chosenTags.map(tagMarkup).join(''):'Нет тегов',{empty:!chosenTags.length}),
+        row('Автор',author.html,{empty:author.empty})
+      ].join('')}</dl>`;
   };
   const content=`<section class="task-editor-cover" data-task-cover hidden></section><div class="task-editor-layout">
     <div class="task-editor-title"><label class="sr-only" for="${taskId}-title">Название</label><textarea class="iq-inline-title" id="${taskId}-title" name="title" rows="1" required maxlength="240" placeholder="Что нужно сделать?">${esc(initial.title)}</textarea></div>

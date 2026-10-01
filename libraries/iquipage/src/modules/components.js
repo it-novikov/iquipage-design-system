@@ -84,6 +84,14 @@ class IqElement extends HTMLElement {
 }
 exports.IqElement = IqElement;
 /** Select-only combobox. Native hidden input provides normal form submission. */
+/** An option's avatar (vnext.27: also in the open list, so people and service accounts read alike): initials over an
+ *  optional photo, or {kind:'bot'} — a service account's square avatar with the bot glyph, its role spoken, not shown. */
+function optionAvatar(o) {
+    if (o?.avatar?.kind === 'bot') return `<span class="iq-avatar iq-select-avatar bot" aria-hidden="true">${icons_js_1.icon('bot', 12)}</span>`;
+    if (!o?.avatar || typeof o.avatar.text !== 'string') return '';
+    const photo = typeof o.avatar.image === 'string' && /^(\/(?!\/)|blob:|https:\/\/)/.test(o.avatar.image) ? `<img src="${escapeHTML(o.avatar.image)}" alt="" decoding="async">` : '';
+    return `<span class="iq-avatar iq-select-avatar v${Number(o.avatar.tone) || 1}${photo ? ' has-image' : ''}" aria-hidden="true">${escapeHTML(o.avatar.text.slice(0, 2))}${photo}</span>`;
+}
 class IqSelect extends IqElement {
     disconnectedCallback() { this.close(); super.disconnectedCallback(); }
     options = [];
@@ -185,11 +193,7 @@ class IqSelect extends IqElement {
         const match = this.options.find(o => o.value === this.selected);
         if (this.editable && !this.opened)
             this.trigger.value = match?.label || '';
-        const photo = typeof match?.avatar?.image === 'string' && /^(\/(?!\/)|blob:|https:\/\/)/.test(match.avatar.image) ? `<img src="${escapeHTML(match.avatar.image)}" alt="" decoding="async">` : '';
-        // avatar {kind:'bot'} (vnext.27): a service account's square avatar with the bot glyph; its role is spoken, not shown.
-        const bot = match?.avatar?.kind === 'bot';
-        const avatar = bot ? `<span class="iq-avatar iq-select-avatar bot" aria-hidden="true">${icons_js_1.icon('bot', 12)}</span>`
-            : match?.avatar && typeof match.avatar.text === 'string' ? `<span class="iq-avatar iq-select-avatar v${Number(match.avatar.tone) || 1}${photo ? ' has-image' : ''}" aria-hidden="true">${escapeHTML(match.avatar.text.slice(0, 2))}${photo}</span>` : '';
+        const bot = match?.avatar?.kind === 'bot', avatar = optionAvatar(match);
         const caption = this.querySelector('.iq-select-value');
         // trigger-icon="none" (vnext.27): an option's glyph stays in the open list; the closed control shows the word.
         const glyph = match?.icon && this.getAttribute('trigger-icon') !== 'none' ? icons_js_1.icon(match.icon, 17) : '';
@@ -217,7 +221,7 @@ class IqSelect extends IqElement {
         this.filtered = this.options.filter(o => !query || o.label.toLocaleLowerCase().includes(query) || (typeof o.key === 'string' && o.key.toLocaleLowerCase().includes(query)));
         if (this.active >= this.filtered.length)
             this.active = 0;
-        this.list.innerHTML = this.filtered.length ? this.filtered.map((o, i) => `<div id="${this.list.id}-${i}" class="iq-option ${i === this.active ? 'is-active' : ''}${o.separator ? ' iq-option-separated' : ''}" role="option" aria-selected="${o.value === this.selected}" ${o.disabled ? 'aria-disabled="true"' : ''} data-value="${escapeHTML(o.value)}">${o.icon ? `<span class="iq-option-icon">${icons_js_1.icon(o.icon, 18)}</span>` : ''}<span class="iq-option-copy"><span class="iq-option-label">${o.key ? `<span class="iq-select-key">${escapeHTML(o.key)}</span> ` : ''}${escapeHTML(o.label)}</span>${o.description ? `<small>${escapeHTML(o.description)}</small>` : ''}</span>${o.meta ? `<span class="iq-option-meta">${escapeHTML(o.meta)}</span>` : ''}${o.value === this.selected ? icons_js_1.icon('check', 17) : ''}</div>`).join('') : '<div class="iq-no-results">Ничего не найдено</div>';
+        this.list.innerHTML = this.filtered.length ? this.filtered.map((o, i) => `<div id="${this.list.id}-${i}" class="iq-option ${i === this.active ? 'is-active' : ''}${o.separator ? ' iq-option-separated' : ''}" role="option" aria-selected="${o.value === this.selected}" ${o.disabled ? 'aria-disabled="true"' : ''} data-value="${escapeHTML(o.value)}">${o.avatar ? `<span class="iq-option-icon">${optionAvatar(o)}</span>` : o.icon ? `<span class="iq-option-icon">${icons_js_1.icon(o.icon, 18)}</span>` : ''}<span class="iq-option-copy"><span class="iq-option-label">${o.key ? `<span class="iq-select-key">${escapeHTML(o.key)}</span> ` : ''}${escapeHTML(o.label)}</span>${o.description ? `<small>${escapeHTML(o.description)}</small>` : ''}</span>${o.meta ? `<span class="iq-option-meta">${escapeHTML(o.meta)}</span>` : ''}${o.value === this.selected ? icons_js_1.icon('check', 17) : ''}</div>`).join('') : '<div class="iq-no-results">Ничего не найдено</div>';
         for (const owner of [this.trigger, this.search].filter(Boolean)) {
             if (this.opened && this.filtered.length)
                 owner.setAttribute('aria-activedescendant', `${this.list.id}-${this.active}`);
