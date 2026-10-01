@@ -36,7 +36,9 @@ test('A11Y-03: tag remove buttons are 24x24 and reachable on coarse pointers', (
 });
 
 test('A11Y-04: search, command and select-search fields show a focus ring', () => {
-  assert.ok(focus.includes('.iq-search-small:focus-within,.iq-command-input:focus-within,.iq-select-search:focus-within{box-shadow:inset 0 0 0 1.5px var(--iq-focus)}'));
+  assert.ok(focus.includes('.iq-search-small:focus-within,.iq-command-input:focus-within{box-shadow:inset 0 0 0 1.5px var(--iq-focus)}'));
+  // vnext.27: the search inside an open list keeps a soft ring (the caret and the open list already show focus).
+  assert.ok(focus.includes('.iq-select-search:focus-within{box-shadow:inset 0 0 0 1px var(--iq-line-strong)}'));
 });
 
 test('A11Y-05: roadmap resize handles are 24px with an extended hit area', () => {

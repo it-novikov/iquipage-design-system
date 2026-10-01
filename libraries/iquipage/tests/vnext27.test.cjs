@@ -71,3 +71,15 @@ test('iq-tag-picker appearance="ghost": chips at rest, no "+" button, «Нет �
     '.iq-properties[data-label=wide] iq-tag-picker .iq-tag-picker-field{justify-self:start;max-width:calc(100% + var(--iq-space-2));margin:2px 0 2px calc(-1 * var(--iq-space-2))}'])
     assert.ok(css.includes(rule), rule);
 });
+
+test('select popups: a calm list — no caption, a filled search, 34px rows with one fill for hover and keyboard, no frames', () => {
+  assert.doesNotMatch(components, /iq-select-popup" popover="manual"><div class="iq-popup-caption">/);
+  assert.match(components, /const width = Math\.min\(Math\.max\(r\.width, 280\), innerWidth - 16\);/);
+  for (const rule of ['.iq-option{display:flex;align-items:center;gap:var(--iq-space-2);min-height:34px;padding:6px var(--iq-space-2);border-radius:var(--iq-radius-sm);',
+    '.iq-option:hover,.iq-option.is-active{background:var(--iq-hover)}', '[role=listbox]:hover>.iq-option.is-active:not(:hover){background:transparent}',
+    '.iq-option.iq-option-separated{margin-top:6px}', '.iq-select-search{display:flex;align-items:center;gap:var(--iq-space-2);height:32px;margin:0 0 var(--iq-space-1);padding:0 var(--iq-space-2);border-radius:var(--iq-radius-sm);background:var(--iq-surface);',
+    '.iq-properties:is([data-columns],[data-label=wide]) .iq-combo-shell:focus-within{border-color:transparent;background:var(--iq-hover)}'])
+    assert.ok(css.includes(rule), rule);
+  assert.doesNotMatch(css, /\.iq-option\.is-active\{[^}]*outline/);
+  assert.doesNotMatch(css, /\.iq-option\.iq-option-separated\{[^}]*border-top/);
+});
