@@ -308,12 +308,11 @@ test('NT10 the worker sends through the Bot API: success with a button, 429 retr
     await f.admin.query('UPDATE app.telegram_deliveries SET next_attempt_at=now() WHERE id=$1',[limited.id]);
     await until(async()=>(await delivery(people[1]!)).state==='sent','sent after the wait',work.output);
     await until(async()=>(await delivery(people[3]!)).attempts>=1&&(await delivery(people[3]!)).state==='pending','a server error is retried',work.output);
-    for(let attempt=0;attempt<6;attempt++){
+    // Each due retry is made due at once; the worker settles the fifth failure as failed.
+    await until(async()=>{
       await f.admin.query("UPDATE app.telegram_deliveries SET next_attempt_at=now() WHERE recipient_id=$1 AND state='pending'",[people[3]!.id]);
-      const before=(await delivery(people[3]!)).attempts;
-      if((await delivery(people[3]!)).state==='failed')break;
-      await until(async()=>{const d=await delivery(people[3]!);return d.attempts>before||d.state==='failed';},'another attempt',work.output);
-    }
+      return (await delivery(people[3]!)).state==='failed';
+    },'five attempts',work.output);
     const failed=await delivery(people[3]!);
     assert.equal(failed.state,'failed');assert.equal(failed.attempts,5);assert.equal(failed.last_error_code,'TELEGRAM_502');
     assert.equal(api.sent.filter(s=>s.chat===9004).length,5);
