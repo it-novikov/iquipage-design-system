@@ -8,7 +8,7 @@ owner: nvkv71
 branch: feature/planning-containers
 base: main
 created: 2026-10-01
-updated: 2026-10-01T13:12:21Z
+updated: 2026-10-01T23:08:47Z
 links:
 ---
 
@@ -30,13 +30,15 @@ links:
 
 ## Передача
 
-- **Состояние:** Карточка, api.md (контракт сервер↔UI) и ds.md (контракт DS T1–T4) закоммичены. Созданы worktree planning-r4-ds (feature/planning-containers-ds) и planning-r4-server (feature/planning-containers-server) от этой ветки; потоки DS и сервера запущены отдельными агентами, DS-агент остановлен лимитом в самом начале (изменений нет).
-- **Сейчас:** S1/S2/S3 не начаты в коде
-- **Дальше:** Запустить потоки заново: DS по ds.md в planning-r4-ds, сервер по api.md в planning-r4-server, UI в этом worktree; затем слить ветки -ds и -server сюда
+- **Состояние:** Сервер, DS vnext.28, UI, панель задачи, тесты и кадры готовы; main (#40, #41) влит
+- **Сейчас:** PR открыт, ждёт ревью владельца
+- **Дальше:** Ревью PR; при необходимости перевести галочку готовых рядов в серый тон (одна строка DS)
 - **Незакоммичено:** нет
-- **Рабочая копия:** нет · HEAD 7cc305f
+- **Рабочая копия:** 1 файл(ов): products/sprintique/ui/planning/src/index.js (3 files changed, 10 insertions(+), 6 deletions(-)) · HEAD b43f75e
 - **Ловушки:**
   - Старый UI планирования используется вне ui/planning: web/release-create.js и web/planning-host.js (operation.js, dialog.js, release-dialogs.js), web/settings.js (settingsDialog, timeZoneField), web/main.js (project-navigation.js, navigation.css, planning.css), тесты planning-operation, task-plan-field, planning-controller, frontend-lifecycle (temporal-*, markup.js)
+  - WorkbenchCapacityIntegrationTest — порог времени, падает под нагрузкой и на main
+- **Проверка:** products/sprintique: TEST_S3_CONFIG=… npm test; корень: LC_ALL=C TEST_S3_CONFIG=… node scripts/verify-vnext.mjs
 
 ## План
 
@@ -57,15 +59,16 @@ links:
   - [x] интеграционные тесты переноса, сумм, формата, завершения, прав
 - **Итог:** containers/move/undo, оценки, цель, r4.0, завершение; миграция V20261001000050; planning-containers.test.ts C01–C08
 
-### S3. UI Планирования R4.1 [active]
+### S3. UI Планирования R4.1 [done]
 - **Что:** контейнеры, дерево, выделение, DnD, клавиатура, даты, оценки, диалог завершения, состояния; оценка в панели задачи; формат оценок в настройках
 - **Как:** ui/planning/src заново, web/planning-*
 - **Зачем:** утверждённый макет
 - **Приёмка:**
-  - [ ] скриншоты 8 кадров
-  - [ ] UI unit-тесты
+  - [x] скриншоты 8 кадров
+  - [x] UI unit-тесты
+- **Итог:** новый экран, оценка в панели после «Приоритета», 8 кадров в planning-impl-shots
 
-### S4. Гейты, самопроверка, PR [todo]
+### S4. Гейты, самопроверка, PR [active]
 - **Что:** npm test продукта, verify-vnext, два прохода ревью, PR
 - **Как:** Node 24, TEST_S3_CONFIG
 - **Зачем:** приёмка

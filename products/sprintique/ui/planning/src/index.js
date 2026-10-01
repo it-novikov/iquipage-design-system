@@ -313,7 +313,7 @@ export async function mountPlanning(root,{adapter,project,onOpenTask,onCreateTas
   function preview(id,ids){
     const found=rowOf(id);if(!found)return null;
     const {container,row}=found,v=view();
-    if(ids.length>1&&row.kind!=='epic'||ids.length>1&&ids[0]!==id){
+    if(ids.length>1&&selection.has(id)){
       const rows=ids.map(rid=>rowOf(rid)?.row).filter(Boolean),sum=formatSum(sumOf(rows,format()),format());
       return dragPreview(rows.slice(0,5).map(r=>({...r,depth:0})),container,v,`${ids.length} ${plural(ids.length,'задача','задачи','задач')}${sum?` · ${sum}`:''}`);
     }
