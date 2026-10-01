@@ -1,5 +1,5 @@
-// Pure presentation rules of notifications (docs/decisions/0006-notifications-telegram.md): the bell's count, a
-// row's facts, the Telegram status line. No DOM, no network: the bell, the settings and their tests share these.
+// Pure presentation rules of notifications (docs/decisions/0006-notifications-telegram.md, 0007-notification-channels.md):
+// the bell's count, a row's facts, the channel lines. No DOM, no network: the bell, the settings and their tests share these.
 import {ageLabel,plural} from './workbench/model.js';
 
 /** The bell's count: nothing at zero, 99+ beyond. */
@@ -17,18 +17,27 @@ export function rowMeta(item,now=Date.now()){return [item.project?.name,ageLabel
 /** The glyph of a notification without a person (a deadline). */
 export const kindGlyph=kind=>({deadline:'flag',request:'help',mention:'message',assigned:'user'})[kind]||'bell';
 
-/** The kinds a person chooses for Telegram, in the order the settings list them. */
-export const TELEGRAM_KINDS=[
+/** The kinds a person chooses for e-mail and Telegram, in the order the settings list them. */
+export const NOTIFICATION_KINDS=[
   {kind:'assigned',title:'Назначения',hint:'Кто-то другой назначил вас исполнителем задачи.'},
   {kind:'mention',title:'Упоминания',hint:'Вас упомянули в обсуждении: @Имя или @Имя Фамилия.'},
   {kind:'request',title:'Запросы',hint:'Вас попросили проверить, ответить, решить или сделать.'},
   {kind:'deadline',title:'Сроки',hint:'Срок вашей задачи — завтра или сегодня. Приходит в 9:00 по вашему времени.'}
 ];
 
-/** The Telegram row: connected as whom, or what to do. */
+/** The Telegram row: connected as whom, or what to do. Null when the server has no bot. */
 export function telegramStatus(telegram){
   if(!telegram?.available)return null;
   const connection=telegram.connection;
-  if(!connection)return {connected:false,title:'Telegram не подключён',meta:'Откроется чат с ботом. Нажмите «Запустить» — и уведомления начнут приходить туда.'};
-  return {connected:true,title:connection.username?`Подключён как @${connection.username}`:'Подключён',meta:'Уведомления приходят в этот чат. Отключить можно здесь или командой /stop в чате.'};
+  if(!connection)return {connected:false,meta:'Не подключён. Откроется чат с ботом: нажмите «Запустить», и уведомления будут приходить туда.'};
+  return {connected:true,meta:(connection.username?`Подключён как @${connection.username}. `:'Подключён. ')+'Отключить можно здесь или командой /stop в чате.'};
 }
+
+/** The e-mail row: the account's address, read-only. Null when the server sends no notification letters or there is no address. */
+export function emailStatus(email){
+  if(!email?.available||!email.address)return null;
+  return {address:email.address,meta:'Адрес вашего аккаунта. Всё, что набралось за несколько минут, приходит одним письмом.'};
+}
+
+/** Whether there is anywhere to send outside the product: then the kinds are chosen. */
+export const hasChannels=settings=>Boolean(emailStatus(settings?.email)||telegramStatus(settings?.telegram));
