@@ -6,5 +6,7 @@
    their own bounds: it never overlaps a neighbour or gets clipped by a scrolling container. */
 :is(.iq-btn.ghost,.iq-btn.icon,.iq-tag,.iq-segmented>button,.iq-command-list>button,.iq-menu-popup button,.iq-list-item):focus-visible{outline-offset:-2px;box-shadow:inset 0 0 0 4px var(--iq-focus-halo)}
 /* Search and command fields live outside .iq-input-shell, so they draw the same inset ring as the field shell on focus. */
-.iq-search-small:focus-within,.iq-command-input:focus-within,.iq-select-search:focus-within{box-shadow:inset 0 0 0 1.5px var(--iq-focus)}
+.iq-search-small:focus-within,.iq-command-input:focus-within{box-shadow:inset 0 0 0 1.5px var(--iq-focus)}
+/* The search of an open list is already where focus is (caret, the list beside it): a soft ring, not a bright frame (vnext.27). */
+.iq-select-search:focus-within{box-shadow:inset 0 0 0 1px var(--iq-line)}
 @media (forced-colors:active){:is(button,.iq-btn,[role="button"],input[type="button"],input[type="submit"],input[type="reset"]):focus-visible{outline-color:Highlight}}

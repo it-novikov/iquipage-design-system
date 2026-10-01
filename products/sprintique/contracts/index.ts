@@ -61,6 +61,8 @@ export interface Task extends TaskData {
   ownerName:string;legacyOwner:string;
   /** Who owns the task and whether they still can act on it: a suspended or deleted service account keeps it. */
   ownerKind:'human'|'service'|'agent'|null;ownerState:AssigneeState|null;
+  /** Who created the task (the drawer's «Автор»), from its creation record; read with one task, null for imported ones. */
+  createdById?:string|null;createdByName?:string|null;createdByKind?:'human'|'service'|'agent'|null;
 }
 /** active; suspended — a service account that cannot act now; deleted — a deleted service account; former — no longer a member. */
 export type AssigneeState='active'|'suspended'|'deleted'|'former';

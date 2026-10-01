@@ -8,6 +8,7 @@ const time_js_1 = require("./time.js");
 /** A date field composed with the same calendar used in the component library.
  * The visible control is a button, never a native date input. Values are local
  * ISO calendar dates, without a timezone conversion. */
+const DEADLINE_WORDS = { overdue: 'просрочен', today: 'сегодня', tomorrow: 'завтра' };
 class IqDateField extends components_js_1.IqElement {
     chosen = '';
     time = '14:30';
@@ -18,7 +19,7 @@ class IqDateField extends components_js_1.IqElement {
     calendar;
     opened = false;
     frame = 0;
-    static get observedAttributes() { return ['value', 'disabled', 'readonly', 'min', 'max', 'aria-invalid', 'aria-describedby']; }
+    static get observedAttributes() { return ['value', 'disabled', 'readonly', 'min', 'max', 'aria-invalid', 'aria-describedby', 'deadline']; }
     get value() { return this.chosen; }
     set value(value) {
         this.chosen = this.normalizeValue(value);
@@ -62,7 +63,7 @@ class IqDateField extends components_js_1.IqElement {
         this.time = /^([01]\d|2[0-3]):[0-5]\d$/.test(t) ? t : '14:30';
         this.initialTime = this.time;
         const id = components_js_1.uid(), label = this.getAttribute('label') || 'Дата';
-        this.innerHTML = `<span id="${id}-label" class="iq-control-label">${components_js_1.escapeHTML(label)}</span><button type="button" class="iq-date-trigger" aria-haspopup="dialog" aria-expanded="false" aria-controls="${id}-popup" aria-labelledby="${id}-label ${id}-value"><span id="${id}-value" data-date-caption></span>${components_js_1.icon('calendar', 18)}</button><div id="${id}-popup" class="iq-date-popup" popover="manual" role="dialog" aria-modal="false" aria-label="Календарь: ${components_js_1.escapeHTML(label.toLocaleLowerCase('ru'))}"><iq-calendar data-field-calendar ${this.hasAttribute('with-time') ? 'with-time' : ''}></iq-calendar><div class="iq-date-actions"><button type="button" data-date-clear>Убрать срок</button><button type="button" data-date-today>Сегодня</button>${this.hasAttribute('with-time') ? '<button type="button" class="iq-btn primary sm" data-date-apply>Готово</button>' : ''}</div><p class="sr-only" id="${id}-keys">Стрелки — выбор дня. Page Up и Page Down — месяц. Enter — выбрать. Escape — закрыть.</p></div><input type="hidden" data-date-value name="${components_js_1.escapeHTML(this.getAttribute('name') || 'date')}">${this.hasAttribute('with-time') ? `<input type="hidden" data-date-time name="${components_js_1.escapeHTML((this.getAttribute('name') || 'date') + '-time')}">` : ''}`;
+        this.innerHTML = `<span id="${id}-label" class="iq-control-label">${components_js_1.escapeHTML(label)}</span><button type="button" class="iq-date-trigger" aria-haspopup="dialog" aria-expanded="false" aria-controls="${id}-popup" aria-labelledby="${id}-label ${id}-value"><span id="${id}-value" data-date-caption></span>${components_js_1.icon('calendar', 18)}${components_js_1.icon('down', 16)}</button><div id="${id}-popup" class="iq-date-popup" popover="manual" role="dialog" aria-modal="false" aria-label="Календарь: ${components_js_1.escapeHTML(label.toLocaleLowerCase('ru'))}"><iq-calendar data-field-calendar ${this.hasAttribute('with-time') ? 'with-time' : ''}></iq-calendar><div class="iq-date-actions"><button type="button" data-date-clear>Убрать срок</button><button type="button" data-date-today>Сегодня</button>${this.hasAttribute('with-time') ? '<button type="button" class="iq-btn primary sm" data-date-apply>Готово</button>' : ''}</div><p class="sr-only" id="${id}-keys">Стрелки — выбор дня. Page Up и Page Down — месяц. Enter — выбрать. Escape — закрыть.</p></div><input type="hidden" data-date-value name="${components_js_1.escapeHTML(this.getAttribute('name') || 'date')}">${this.hasAttribute('with-time') ? `<input type="hidden" data-date-time name="${components_js_1.escapeHTML((this.getAttribute('name') || 'date') + '-time')}">` : ''}`;
         this.trigger = this.querySelector('.iq-date-trigger');
         this.popup = this.querySelector('.iq-date-popup');
         this.calendar = this.querySelector('iq-calendar');
@@ -186,7 +187,14 @@ class IqDateField extends components_js_1.IqElement {
             this.trigger.setAttribute('aria-describedby', described);
         else
             this.trigger.removeAttribute('aria-describedby');
-        this.querySelector('[data-date-caption]').textContent = this.chosen ? time_js_1.formatDate(this.chosen) + (this.hasAttribute('with-time') ? ' ' + this.time : '') : (this.getAttribute('placeholder') || 'Выбрать дату');
+        // deadline (vnext.27): the date is a due date. Overdue, today and tomorrow are said in words beside it (colour
+        // is never the only signal) and toned through data-deadline; a host removes the attribute for finished work.
+        const deadline = this.deadlineState();
+        this.querySelector('[data-date-caption]').textContent = this.chosen ? time_js_1.formatDate(this.chosen) + (this.hasAttribute('with-time') ? ' ' + this.time : '') + (deadline ? ' · ' + DEADLINE_WORDS[deadline] : '') : (this.getAttribute('placeholder') || 'Выбрать дату');
+        if (deadline)
+            this.trigger.dataset.deadline = deadline;
+        else
+            delete this.trigger.dataset.deadline;
         this.trigger.classList.toggle('is-empty', !this.chosen);
         const hidden = this.querySelector('[data-date-value]');
         hidden.value = this.chosen;
@@ -199,6 +207,13 @@ class IqDateField extends components_js_1.IqElement {
         const clear = this.querySelector('[data-date-clear]');
         if (clear)
             clear.disabled = this.hasAttribute('required') || !this.chosen;
+    }
+    /** 'overdue', 'today', 'tomorrow' or '' for a deadline field, by the local calendar day. */
+    deadlineState() {
+        if (!this.hasAttribute('deadline') || !this.chosen)
+            return '';
+        const day = offset => { const d = new Date(); d.setDate(d.getDate() + offset); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+        return this.chosen < day(0) ? 'overdue' : this.chosen === day(0) ? 'today' : this.chosen === day(1) ? 'tomorrow' : '';
     }
     commit(value) {
         this.chosen = this.normalizeValue(value);
