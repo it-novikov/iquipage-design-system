@@ -291,3 +291,15 @@ test('AI11 deleting a connection erases its key and switches its agents off',asy
   await task('ai-gone');
   assert.equal((await call(f.alice,'POST',project('tasks/ai-gone/agent-runs'),{accountId:robot})).json().code,'AGENT_UNAVAILABLE');
 });
+
+test('AI12 a run that waited in the queue for an hour expires instead of starting late',async()=>{
+  const robot=await agent('Запоздалый','script-late');
+  llm.script('script-late',()=>anthropic.text('Не должен был запуститься.'));
+  await task('ai-late');
+  const id=randomUUID();
+  await f.admin.query(`INSERT INTO app.ai_agent_runs(project_id,id,task_id,account_id,connection_id,model,trigger,requested_by,state,max_steps,max_output_tokens,created_at)
+    VALUES($1,$2,'ai-late',$3,$4,'script-late','manual',$5,'queued',12,2048,clock_timestamp()-interval '2 hours')`,[f.first.id,id,robot,anthropicConnection,f.alice.id]);
+  const run=await finished('ai-late',robot);
+  assert.equal(run.id,id);assert.equal(run.state,'failed');assert.equal(run.errorCode,'RUN_EXPIRED');
+  assert.equal(llm.for('script-late').length,0);assert.equal((await messages('ai-late')).length,0);
+});

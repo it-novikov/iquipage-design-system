@@ -157,7 +157,7 @@ CREATE TRIGGER ai_run_on_assignment AFTER INSERT OR UPDATE OF owner_id ON app.ta
   FOR EACH ROW EXECUTE FUNCTION app.ai_run_on_assignment();
 
 -- The runner takes the oldest due run under a lease: a queued one, or a running one whose runner stopped answering
--- (after three takeovers it is abandoned). Returns the account the run acts as.
+-- (after three takeovers it is abandoned; a run queued for an hour expires). Returns the account the run acts as.
 CREATE FUNCTION app.ai_run_claim(lease_seconds integer)
 RETURNS TABLE(run_project text, run_id uuid, run_lease uuid, run_account text)
 LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog AS $$
@@ -166,6 +166,9 @@ BEGIN
   UPDATE app.ai_agent_runs r SET state='failed',error_code='RUN_ABANDONED',finished_at=clock_timestamp(),lease_token=NULL,
     lease_until=NULL,transcript=NULL,revision=r.revision+1
   WHERE r.state='running' AND r.lease_until<clock_timestamp() AND r.attempts>=3;
+  -- A run that waited an hour (no runner: the feature was off, or none in any process) is not started late.
+  UPDATE app.ai_agent_runs r SET state='failed',error_code='RUN_EXPIRED',finished_at=clock_timestamp(),revision=r.revision+1
+  WHERE r.state='queued' AND r.created_at<clock_timestamp()-interval '1 hour';
   SELECT r.* INTO selected FROM app.ai_agent_runs r
   WHERE r.state='queued' OR (r.state='running' AND r.lease_until<clock_timestamp())
   ORDER BY r.created_at,r.id FOR UPDATE SKIP LOCKED LIMIT 1;
