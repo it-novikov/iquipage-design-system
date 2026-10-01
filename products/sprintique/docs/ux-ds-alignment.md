@@ -1,6 +1,6 @@
 # UX and design-system alignment (September 2026)
 
-Private DS **0.6.0-vnext.26**. It covers the component audit of the whole Sprintique UI and the changes the owner approved.
+Private DS **0.6.0-vnext.28**. It covers the component audit of the whole Sprintique UI and the changes the owner approved.
 
 ## Owner decisions
 
@@ -11,12 +11,13 @@ Private DS **0.6.0-vnext.26**. It covers the component audit of the whole Sprint
 | Assignee | Only a current human project member can be the assignee. |
 | Board admission | The rule stays the same. The board explains tasks that are waiting for a planned release. |
 
-## Design system (vnext.3 → vnext.26)
+## Design system (vnext.3 → vnext.28)
 
 - **vnext.3:** the R3 work list is a public entry. Tag tones have light and dark tokens. The type scale is tokenised. Dense surfaces get public variants. The keyboard focus ring is visible. The map canvas no longer collapses when the object library is open.
 - **vnext.4:** on coarse pointers, buttons, section links, selects and checkboxes are 44px (`touch.css`, loaded last). Escape closes the map object library.
 - **vnext.5:** `ui.menu` takes `{section}` labels, which keyboard navigation skips. Long menus scroll. Compact selects are 44px on touch screens.
 - **vnext.20:** drawers slide in opaque while the backdrop fades (and slide out on close), so opening a task no longer blinks; the property grid keeps two columns from 272px; `.iq-discussion-new-count` and `.iq-thread-actions-group`; whiteboard connectors end in the filled notched arrowhead of the template previews.
+- **vnext.28 (planning tree, R4.1):** built on vnext.27 of PR #41 (the property list and calm select lists). `.tree-columns` and `.tree-row.has-columns` give tree rows a label column and aligned right cells (40px, radius 8, a 2px gap between filled neighbours), `statusGlyph()`/`STATUS_GLYPHS` draw the board columns as glyphs in board tones with the grey `.iq-status-word` for review and testing states, `bindTreeDrag()` lifts a held row (200 ms or 6 px, no handle) into a ghost with a badge and reports the drop with an «Отменить» toast, and `.tree-divider` with `.tree-row.is-muted` keeps done work visible below «Готово · N · сумма».
 - **vnext.26 (relation graph «Ступица»):** `iq-relation-map` keeps its API and is redrawn by the owner-approved design: blockers left, waiting and related right, parent above, subtasks as a tree; an empty side collapses; the meaning is written on the bundled edges («блокирует», «блокируют · 1 из 3 открыта», «ждут», «связана», «входит в», «подзадачи · 2 из 4») and the words rise over the centre when both sides would squeeze the nodes; the centre is «Эта задача» and the key; nodes lie on the drawer surface (the inset panel in `board.css` is gone), open blockers have a warning edge and a lock, closed ones a dashed edge and a check; remove sits inside the node.
 - **vnext.25 (release 1.0):** a pasted http(s)/mailto link becomes Markdown in every `iq-markdown-editor` (task description, discussions, map inspector) and in the map's inline text editor — `<url>` at a caret, `[selection](url)` over a selection, one undo step; plain http and mail links render; toasts leave by themselves (5 s info/success, 8 s warning, 10 s danger or with «Открыть»), an undo action (`action.undo`) stays until dismissed, hover/focus/hidden tab pause, Escape closes (SPR-5, SPR-8).
 - **vnext.24 (wave 1 «Основания»):** the dark theme is built from per-theme roles (no `--iq-fixed-*`), accents and the system-theme fallback come out of `semantic.json`, `theme-boot.js` applies stored preferences before first paint (Sprintique keeps its own `appearance.js`, which should also write the `iq-*` keys if it adopts the boot script); status badges carry glyphs and chart series have marker shapes; disabled controls use colour tokens, the focus ring has a halo; one reduced-motion strategy with motion tokens (the product's `task-dialog.js` width animation should become a crossfade or a scaleX FLIP); the type scale is rem with a 12px floor and Cyrillic line-height and tracking tokens, `.md-document` is 16px with a 68ch measure.

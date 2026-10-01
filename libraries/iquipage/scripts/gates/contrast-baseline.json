@@ -1,6 +1,6 @@
 {
   "note": "Pairs failing WCAG 2 today (COL-14 ratchet). Regenerate only after a deliberate cleanup: npm run gates:update.",
-  "source": "tokens/semantic.json 0.6.0-vnext.26",
+  "source": "tokens/semantic.json 0.6.0-vnext.28",
   "thresholds": {
     "text": 4.5,
     "large": 3,
