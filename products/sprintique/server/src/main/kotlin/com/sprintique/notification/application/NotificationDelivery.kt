@@ -8,9 +8,11 @@ import com.sprintique.identity.domain.EmailAddress
 import com.sprintique.notification.domain.DigestItem
 import com.sprintique.notification.domain.DigestLinks
 import com.sprintique.notification.domain.EmailDigest
-import com.sprintique.notification.domain.LinkButton
+import com.sprintique.notification.domain.InlineButton
 import com.sprintique.notification.domain.NotificationDigest
 import com.sprintique.notification.domain.NotificationKind
+import com.sprintique.notification.domain.QuickAction
+import com.sprintique.notification.domain.TelegramCallbacks
 import com.sprintique.notification.domain.TelegramDigest
 import com.sprintique.notification.domain.UnsubscribeTokens
 import org.slf4j.LoggerFactory
@@ -19,6 +21,7 @@ import java.net.URI
 import java.time.Instant
 import java.time.LocalDate
 import java.time.format.DateTimeParseException
+import java.util.UUID
 
 /** What the Bot API said to one `sendMessage`. */
 sealed interface SendResult {
@@ -37,9 +40,14 @@ sealed interface SendResult {
     data class Unavailable(val code: String) : SendResult
 }
 
-/** Sends one message to a chat: HTML text and buttons that open links. */
+/** Sends one message to a chat: HTML text and rows of buttons. */
 fun interface TelegramPort {
-    fun send(chatId: Long, html: String, buttons: List<LinkButton>): SendResult
+    fun send(chatId: Long, html: String, buttons: List<List<InlineButton>>): SendResult
+}
+
+/** Changes the buttons under a message the bot sent. */
+fun interface TelegramEditor {
+    fun editButtons(chatId: Long, messageId: Long, buttons: List<List<InlineButton>>): SendResult
 }
 
 /** How long a channel's first waiting item waits for others, in seconds. */
@@ -56,6 +64,7 @@ class NotificationDelivery(
     private val telegram: TelegramPort?,
     private val mail: MailPort?,
     private val tokens: UnsubscribeTokens?,
+    private val callbacks: TelegramCallbacks?,
     origin: String,
     private val windows: BatchWindows,
     private val mailDomain: String,
@@ -130,7 +139,13 @@ class NotificationDelivery(
         val port = requireNotNull(telegram)
         val chat = claimed.path("chatId").asString().toLongOrNull() ?: return Outcome("failed", "NOT_LINKED")
         val delivered = mutableListOf<String>()
-        for (part in TelegramDigest(telegramLinks).render(digest)) {
+        val now = Instant.now()
+        val sign = callbacks?.let { signer ->
+            { action: QuickAction, notification: String ->
+                runCatching { UUID.fromString(notification) }.getOrNull()?.let { signer.sign(action, it, now) }
+            }
+        }
+        for (part in TelegramDigest(telegramLinks, sign = sign).render(digest)) {
             val result = try {
                 port.send(chat, part.html, part.buttons)
             } catch (@Suppress("TooGenericExceptionCaught") error: RuntimeException) {
@@ -196,6 +211,8 @@ class NotificationDelivery(
             requestKind = detail.text("requestKind"),
             due = detail.text("due")?.let(::dateOrNull),
             message = node.text("quote"),
+            notificationId = node.path("notificationId").asString(),
+            actions = node.path("actions").values().mapNotNull { QuickAction.fromWire(it.asString()) }.toList(),
         )
     }.toList()
 

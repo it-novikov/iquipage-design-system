@@ -1,11 +1,14 @@
 package com.sprintique.notification
 
+import com.sprintique.notification.domain.CallbackCheck
 import com.sprintique.notification.domain.DigestItem
 import com.sprintique.notification.domain.DigestLinks
 import com.sprintique.notification.domain.DigestWords
 import com.sprintique.notification.domain.EmailDigest
 import com.sprintique.notification.domain.NotificationDigest
 import com.sprintique.notification.domain.NotificationKind
+import com.sprintique.notification.domain.QuickAction
+import com.sprintique.notification.domain.TelegramCallbacks
 import com.sprintique.notification.domain.TelegramDigest
 import com.sprintique.notification.domain.UnsubscribeCheck
 import com.sprintique.notification.domain.UnsubscribeTokens
@@ -14,6 +17,7 @@ import org.junit.jupiter.api.Test
 import java.time.Instant
 import java.time.LocalDate
 import java.util.Base64
+import java.util.UUID
 
 /** Batches as people read them: grouping, collapsed duplicates, Telegram parts, the letter, the unsubscribe token. */
 class NotificationDigestTest {
@@ -58,15 +62,15 @@ class NotificationDigestTest {
         )
         assertThat(digest.projects.map { it.name }).containsExactly("Платформа", "Маркетинг")
         val graph = digest.projects[0].tasks[0]
-        assertThat(
-            graph.reasons.map {
-                it.text
-            },
-        ).containsExactly("Анна К. назначает вас исполнителем", "Пётр В. упоминает вас")
+        assertThat(graph.reasons.map { it.text })
+            .containsExactly("Вас назначили исполнителем задачи PLT-1", "Вас упомянули в обсуждении задачи PLT-1")
+        assertThat(graph.reasons.map { it.author }).containsExactly("Анна К.", "Пётр В.")
         assertThat(graph.reasons[0].deliveryIds).containsExactly("1", "3")
         assertThat(graph.reasons[1].quote).isEqualTo("@Анна глянь подписи")
-        assertThat(digest.projects[0].tasks[1].reasons.single().text).isEqualTo("Срок завтра, 2 октября")
-        assertThat(digest.projects[1].tasks.single().reasons.single().text).isEqualTo("Марина Л. просит проверить")
+        assertThat(digest.projects[0].tasks[1].reasons.single().text).isEqualTo("Срок задачи PLT-2 — завтра, 2 октября")
+        assertThat(digest.projects[0].tasks[1].reasons.single().author).isNull()
+        assertThat(digest.projects[1].tasks.single().reasons.single().text)
+            .isEqualTo("Вас попросили проверить задачу MKT-7")
         assertThat(digest.reasonCount).isEqualTo(4)
         assertThat(digest.isSingle).isFalse()
     }
@@ -86,10 +90,12 @@ class NotificationDigestTest {
         assertThat(part.html).isEqualTo(
             "<b>Sprintique · 3 новых</b>\n\n<i>Платформа</i>\n" +
                 "<a href=\"${task}PLT-1\"><b>Граф связей: подписи рёбер</b></a>\n" +
-                "Анна К. назначает вас исполнителем\nПётр В. упоминает вас: “Посмотри, @Анна, подписи”\n\n" +
-                "<a href=\"${task}PLT-2\"><b>Онбординг</b></a>\nСрок сегодня, 1 октября",
+                "Вас назначили исполнителем задачи PLT-1\n<i>Анна К.</i>\n" +
+                "Вас упомянули в обсуждении задачи PLT-1\n" +
+                "<blockquote>Посмотри, @Анна, подписи</blockquote>\n<i>Пётр В.</i>\n\n" +
+                "<a href=\"${task}PLT-2\"><b>Онбординг</b></a>\nСрок задачи PLT-2 — сегодня, 1 октября",
         )
-        assertThat(part.buttons.map { it.text }).containsExactly("Открыть Sprintique")
+        assertThat(part.buttons.flatten().map { it.text }).containsExactly("Открыть Sprintique")
         assertThat(part.deliveryIds).containsExactly("1", "2", "3")
         assertThat(part.html).doesNotContain("•", "<li>", "\n- ", "\n1. ")
     }
@@ -99,9 +105,9 @@ class NotificationDigestTest {
         val part = TelegramDigest(links).render(one()).single()
         assertThat(part.html).isEqualTo(
             "<a href=\"https://sprintique.example/?project=plt#/task/PLT-1\"><b>Граф связей: подписи рёбер</b></a>\n" +
-                "Анна К. назначает вас исполнителем\n<i>Платформа · PLT-1</i>",
+                "Вас назначили исполнителем задачи PLT-1\n<i>Анна К. · Платформа</i>",
         )
-        assertThat(part.buttons.map { it.text }).containsExactly("Открыть задачу", "Открыть Sprintique")
+        assertThat(part.buttons.flatten().map { it.text }).containsExactly("Открыть задачу", "Открыть Sprintique")
     }
 
     @Test
@@ -127,7 +133,7 @@ class NotificationDigestTest {
         assertThat(parts.drop(1)).allSatisfy { assertThat(it.html).startsWith("<i>Платформа</i>\n<a href=") }
         assertThat(parts[0].html).startsWith("<b>Sprintique · 20 новых</b>")
         // Never mid-task: every part ends with a reason line, never with a title.
-        assertThat(parts).allSatisfy { assertThat(it.html.lines().last()).contains("упоминает вас") }
+        assertThat(parts).allSatisfy { assertThat(it.html.lines().last()).startsWith("<i>Человек С.") }
     }
 
     @Test
@@ -146,6 +152,44 @@ class NotificationDigestTest {
     }
 
     @Test
+    fun `a batch about one task carries its quick actions as signed buttons, more tasks only open Sprintique`() {
+        val callbacks = TelegramCallbacks("123456789:" + "A".repeat(35))
+        val now = Instant.parse("2026-10-01T10:00:00Z")
+        val notification = "6f1c3c1e-6c2b-4a39-9a51-3f6f7d0a2b11"
+        val sign = { action: QuickAction, id: String -> callbacks.sign(action, UUID.fromString(id), now) }
+        val taken = item("1", NotificationKind.ASSIGNED)
+            .copy(notificationId = notification, actions = listOf(QuickAction.TAKE))
+        val part = TelegramDigest(links, sign = sign).render(NotificationDigest(listOf(taken), today)).single()
+        assertThat(part.buttons).hasSize(2)
+        val button = part.buttons[0].single()
+        assertThat(button.text).isEqualTo("Взять в работу")
+        assertThat(button.data!!.length).isLessThanOrEqualTo(64)
+        assertThat(callbacks.check(button.data, now))
+            .isEqualTo(CallbackCheck.Valid(QuickAction.TAKE, UUID.fromString(notification)))
+        val other = item("2", NotificationKind.ASSIGNED, task = "PLT-9").copy(actions = listOf(QuickAction.TAKE))
+        val many = TelegramDigest(links, sign = sign).render(NotificationDigest(listOf(taken, other), today)).single()
+        assertThat(many.buttons.flatten().map { it.text }).containsExactly("Открыть Sprintique")
+    }
+
+    @Test
+    fun `a button's data is refused when forged, expired, signed with another bot or for another action`() {
+        val callbacks = TelegramCallbacks("123456789:" + "A".repeat(35))
+        val now = Instant.parse("2026-10-01T10:00:00Z")
+        val id = UUID.randomUUID()
+        val data = callbacks.sign(QuickAction.ACCEPT, id, now)
+        assertThat(callbacks.check(data, now.plusSeconds(60))).isEqualTo(CallbackCheck.Valid(QuickAction.ACCEPT, id))
+        val late = now.plus(TelegramCallbacks.VALIDITY).plusSeconds(60)
+        assertThat(callbacks.check(data, late)).isEqualTo(CallbackCheck.Expired)
+        assertThat(callbacks.check(data.replaceFirst(".a.", ".t."), now)).isEqualTo(CallbackCheck.Invalid)
+        assertThat(TelegramCallbacks("987654321:" + "B".repeat(35)).check(data, now)).isEqualTo(CallbackCheck.Invalid)
+        val made = "q1.t.AAAAAAAAAAAAAAAAAAAAAA.zzzzzz.AAAAAAAAAAAAAAAA"
+        assertThat(callbacks.check(made, now)).isEqualTo(CallbackCheck.Invalid)
+        assertThat(callbacks.check(null, now)).isEqualTo(CallbackCheck.Invalid)
+        val mail = callbacks.sign(null, id, now)
+        assertThat(callbacks.check(mail, now)).isEqualTo(CallbackCheck.Valid(null, id))
+    }
+
+    @Test
     fun `without an HTTPS interface Telegram gets no links and no buttons`() {
         val part = TelegramDigest(null).render(one()).single()
         assertThat(part.html).doesNotContain("<a ")
@@ -156,8 +200,8 @@ class NotificationDigestTest {
     fun `the letter has a short subject, a preheader, the same grouping, a button per task and the footer`() {
         val email = EmailDigest(links, "https://sprintique.example/api/v1/notifications/unsubscribe?token=t.s", 900)
         val single = email.render(NotificationDigest(listOf(item("1", NotificationKind.ASSIGNED)), today))
-        assertThat(single.subject).isEqualTo("Анна К. назначает вам «Граф связей: подписи рёбер»")
-        assertThat(single.preheader).isEqualTo("Анна К. назначает вас исполнителем.")
+        assertThat(single.subject).isEqualTo("Вас назначили исполнителем задачи PLT-1")
+        assertThat(single.preheader).isEqualTo("«Граф связей: подписи рёбер». Анна К.")
         val many = email.render(
             NotificationDigest(
                 listOf(
@@ -169,11 +213,13 @@ class NotificationDigestTest {
         )
         assertThat(many.subject).isEqualTo("2 задачи требуют внимания · Sprintique")
         assertThat(many.preheader).isEqualTo(
-            "«Граф связей: подписи рёбер»: Анна К. назначает вас исполнителем. «Онбординг»: Срок завтра, 2 октября.",
+            "«Граф связей: подписи рёбер»: Вас назначили исполнителем задачи PLT-1. " +
+                "«Онбординг»: Срок задачи PLT-2 — завтра, 2 октября.",
         )
         assertThat(many.html.split("Открыть задачу").size - 1).isEqualTo(2)
         assertThat(many.html).contains(
-            "Платформа", "Срок завтра, 2 октября", "Настроить уведомления", "Отключить письма",
+            "Платформа", "Срок задачи PLT-2 — завтра, 2 октября", "Анна К.", "Настроить уведомления",
+            "Отключить письма",
             "href=\"https://sprintique.example/#settings/notifications\"",
             "Всё, что набралось за 15 минут, приходит одним письмом.", "Четверг, 1 октября",
             "prefers-color-scheme:dark",
@@ -219,7 +265,6 @@ class NotificationDigestTest {
         assertThat(quote).startsWith("…").endsWith("…").contains("@Анна")
         assertThat(quote.length).isLessThanOrEqualTo(92)
         assertThat(DigestWords.quote("```\nкод\n```")).isNull()
-        assertThat(DigestWords.deadline(today.minusDays(1), today)).isEqualTo("Срок прошёл 30 сентября")
         assertThat(DigestWords.newCount(21)).isEqualTo("21 новое")
         assertThat(DigestWords.tasksNeedAttention(5)).isEqualTo("5 задач требуют внимания")
     }

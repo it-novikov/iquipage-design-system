@@ -15,6 +15,12 @@ enum class CredentialKind(val wire: String, val prefix: String?) {
     AGENT("agent", "spr_"),
     SERVICE("service", "spk_"),
     OAUTH("oauth", "spo_"),
+
+    /**
+     * A person acting from the Telegram chat linked to them: a button under a notification or a reply to it
+     * (docs/decisions/0007-notification-channels.md). Never presented over HTTP; the link itself is the credential.
+     */
+    TELEGRAM("telegram", null),
     ;
 
     /** A service account's token: bound to a resource, narrowed by scopes, never trusted with access decisions. */

@@ -10,6 +10,8 @@ import com.sprintique.notification.domain.Mentions
 import com.sprintique.notification.domain.NotificationFacts
 import com.sprintique.notification.domain.NotificationKind
 import com.sprintique.notification.domain.NotificationText
+import com.sprintique.notification.domain.QuickAction
+import com.sprintique.notification.domain.QuickActionText
 import com.sprintique.problem.requireCondition
 import com.sprintique.problem.requirePresent
 import tools.jackson.databind.JsonNode
@@ -42,7 +44,11 @@ object Notifications {
                    n.project_id AS "projectId", p.slug, p.name AS "projectName", n.task_id AS "taskId",
                    p.key || '-' || t.number AS "taskKey", t.title, n.actor_id AS "actorId",
                    coalesce(a.profile_name, a.name) AS "actorName",
-                   (SELECT v.revision FROM app.person_avatars v WHERE v.principal_id = n.actor_id) AS "avatarRevision"
+                   (SELECT v.revision FROM app.person_avatars v WHERE v.principal_id = n.actor_id) AS "avatarRevision",
+                   app.notification_actions(n) AS actions,
+                   (clock_timestamp() AT TIME ZONE coalesce(
+                     (SELECT w.timezone FROM app.workbench_preferences w WHERE w.principal_id = n.recipient_id),
+                     auth.project_timezone(n.project_id), 'UTC'))::date::text AS today
             FROM app.notifications n
             JOIN app.tasks t ON t.project_id = n.project_id AND t.id = n.task_id
             JOIN app.projects p ON p.id = n.project_id
@@ -140,15 +146,20 @@ object Notifications {
         val facts = NotificationFacts(
             kind = kind,
             actorName = row.stringOrNull("actorName"),
-            taskTitle = row.string("title"),
+            taskKey = row.string("taskKey"),
             requestKind = detail.text("requestKind"),
             due = detail.text("due")?.let(::dateOrNull),
-            raisedOn = detail.text("on")?.let(::dateOrNull),
+            today = row.stringOrNull("today")?.let(::dateOrNull),
         )
         return linkedMapOf(
             "id" to row.string("id"),
             "kind" to kind.wire,
-            "text" to NotificationText.line(facts),
+            "text" to NotificationText.sentence(facts),
+            "author" to NotificationText.author(facts),
+            // One-click answers the person may give now, with their words («Перенести на завтра»).
+            "actions" to row.strings("actions").mapNotNull(QuickAction::fromWire).map {
+                linkedMapOf("action" to it.wire, "label" to QuickActionText.label(it, facts.due, facts.today))
+            },
             "read" to row.boolean("read"),
             "createdAt" to row.instant("createdAt").toString(),
             "project" to

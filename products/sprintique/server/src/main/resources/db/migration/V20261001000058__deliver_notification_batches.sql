@@ -15,7 +15,7 @@ BEGIN
     IF NOT coalesce(choice.telegram_enabled,true) THEN RETURN 'CHANNEL_OFF'; END IF;
     IF NOT EXISTS(SELECT 1 FROM app.telegram_connections c WHERE c.principal_id=delivery.recipient_id) THEN RETURN 'NOT_LINKED'; END IF;
   ELSE
-    IF NOT coalesce(choice.email_enabled,false) THEN RETURN 'CHANNEL_OFF'; END IF;
+    IF NOT coalesce(choice.email_enabled,true) THEN RETURN 'CHANNEL_OFF'; END IF;
     IF NOT EXISTS(SELECT 1 FROM auth.principals p WHERE p.id=delivery.recipient_id AND p.email IS NOT NULL) THEN RETURN 'NO_ADDRESS'; END IF;
   END IF;
   IF item.kind=ANY(coalesce(choice.muted_kinds,'{}')) THEN RETURN 'MUTED'; END IF;
@@ -55,6 +55,29 @@ BEGIN
   RETURN kept;
 END $$;
 
+-- The quick actions a person may take on a notification now (docs/decisions/0007-notification-channels.md), checked
+-- under the caller's row security and rights: the bell's API reads them as the person, the worker after work.act_as.
+-- An assignment can be taken into work while the task is still «ready»; an open review request addressed to them can
+-- be accepted or returned; their own due date can be moved; a mention can be answered in its thread.
+CREATE FUNCTION app.notification_actions(item app.notifications) RETURNS text[]
+LANGUAGE sql STABLE SET search_path=pg_catalog AS $$
+  SELECT array_remove(ARRAY[
+    CASE WHEN item.kind='assigned' AND t.owner_id=item.recipient_id AND t.status='ready' AND t.result<>'accepted'
+      AND auth.can(item.project_id,'tasks.write') THEN 'take' END,
+    CASE WHEN item.kind='request' AND r.status='open' AND r.kind='review' AND r.recipient_id=item.recipient_id
+      AND auth.can(item.project_id,'tasks.write') THEN 'accept' END,
+    CASE WHEN item.kind='request' AND r.status='open' AND r.kind='review' AND r.recipient_id=item.recipient_id
+      AND t.status<>'in_progress' AND t.result<>'accepted' AND auth.can(item.project_id,'tasks.write') THEN 'return' END,
+    CASE WHEN item.kind='deadline' AND t.owner_id=item.recipient_id AND t.due IS NOT NULL AND t.status<>'ready_for_release'
+      AND t.result<>'accepted' AND auth.can(item.project_id,'tasks.write') THEN 'postpone' END,
+    CASE WHEN item.kind='mention' AND EXISTS(SELECT 1 FROM app.threads h WHERE h.project_id=item.project_id
+        AND h.id=item.detail->>'threadId') AND auth.can(item.project_id,'threads.write') THEN 'reply' END
+  ],NULL)
+  FROM app.tasks t
+  LEFT JOIN app.attention_requests r ON r.project_id=item.project_id AND r.id::text=item.detail->>'requestId'
+  WHERE t.project_id=item.project_id AND t.id=item.task_id AND item.recipient_id=auth.actor_id()
+$$;
+
 -- Takes the next batch to send with a one-minute lease, or null. A batch due for another attempt comes first; then
 -- the person and channel whose window closed earliest (the window starts at their oldest waiting item), or who has
 -- twenty waiting. At most twenty items a batch. Items that may no longer go are settled as skipped on the way, and a
@@ -73,6 +96,11 @@ BEGIN
     WHERE state='sending' AND lease_until<clock_timestamp() AND attempts>=5 RETURNING id)
   UPDATE app.notification_deliveries SET state='failed',last_error_code='ATTEMPTS_EXHAUSTED'
   WHERE state='batched' AND batch_id IN (SELECT id FROM dead);
+  -- Items of a channel no worker serves (e-mail before a mail transport is set up) would wait forever: after a day
+  -- they are settled as expired, a few hundred at a time.
+  UPDATE app.notification_deliveries SET state='skipped',last_error_code='EXPIRED'
+  WHERE id IN (SELECT d.id FROM app.notification_deliveries d WHERE d.state='queued'
+    AND d.created_at<clock_timestamp()-interval '24 hours' ORDER BY d.created_at LIMIT 500);
   FOR pass IN 1..20 LOOP
     batch:=NULL;chat:=NULL;address:=NULL;
     SELECT * INTO batch FROM app.notification_batches b
@@ -121,7 +149,8 @@ BEGIN
     -- What the message says is read as the person, from the tasks as they are now.
     PERFORM work.act_as(batch.recipient_id);
     SELECT jsonb_agg(jsonb_build_object(
-        'id',d.id,'kind',n.kind,'detail',n.detail,'createdAt',n.created_at,
+        'id',d.id,'notificationId',n.id,'kind',n.kind,'detail',n.detail,'createdAt',n.created_at,
+        'actions',to_jsonb(coalesce(app.notification_actions(n),'{}')),
         'actorName',(SELECT coalesce(a.profile_name,a.name) FROM auth.principals a WHERE a.id=n.actor_id),
         'taskId',t.id,'taskTitle',t.title,'taskKey',p.key||'-'||t.number,
         'projectId',p.id,'projectSlug',p.slug,'projectName',p.name,
@@ -183,6 +212,7 @@ BEGIN
   END IF;
   RETURN true;
 END $$;
+REVOKE ALL ON FUNCTION app.notification_actions(app.notifications) FROM PUBLIC;
 REVOKE ALL ON FUNCTION work.notification_skip_reason(app.notification_deliveries,app.notifications),
   work.keep_deliverable(text,uuid[]),work.claim_notification_batch(text[],integer,integer),
   work.settle_notification_batch(uuid,uuid,text,text,integer,uuid[]) FROM PUBLIC;

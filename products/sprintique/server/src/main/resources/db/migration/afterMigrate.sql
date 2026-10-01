@@ -59,7 +59,8 @@ REVOKE INSERT,UPDATE ON app.telegram_connections,app.telegram_updates FROM "${ru
 REVOKE INSERT,UPDATE ON app.notification_deliveries,app.notification_batches FROM "${runtime_role}";
 GRANT EXECUTE ON FUNCTION app.notify_mention(text,text,text),app.telegram_accept_update(bigint),
   app.telegram_link_chat(text,bigint,text),app.telegram_unlink_chat(bigint) TO "${runtime_role}";
-GRANT EXECUTE ON FUNCTION app.turn_off_email_notifications(text) TO "${runtime_role}";
+GRANT EXECUTE ON FUNCTION app.turn_off_email_notifications(text),app.notification_actions(app.notifications),
+  app.telegram_chat_person(bigint) TO "${runtime_role}";
 GRANT USAGE ON SCHEMA work TO "${runtime_role}";
 GRANT SELECT,INSERT ON work.jobs TO "${runtime_role}";
 GRANT EXECUTE ON FUNCTION work.retry_asset_job(text,uuid) TO "${runtime_role}";

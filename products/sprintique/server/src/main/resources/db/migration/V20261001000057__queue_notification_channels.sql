@@ -33,7 +33,7 @@ BEGIN
     INSERT INTO app.notification_deliveries(notification_id,channel,recipient_id,project_id,created_at)
     VALUES(NEW.id,'telegram',NEW.recipient_id,NEW.project_id,NEW.created_at);
   END IF;
-  IF coalesce(choice.email_enabled,false) AND person.email IS NOT NULL THEN
+  IF coalesce(choice.email_enabled,true) AND person.email IS NOT NULL THEN
     INSERT INTO app.notification_deliveries(notification_id,channel,recipient_id,project_id,created_at)
     VALUES(NEW.id,'email',NEW.recipient_id,NEW.project_id,NEW.created_at);
   END IF;

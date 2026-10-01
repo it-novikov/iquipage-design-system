@@ -1,19 +1,28 @@
 package com.sprintique.notification.domain
 
-/** A button under a message: its words and the HTTPS link it opens. */
-data class LinkButton(val text: String, val url: String)
+/** A button under a message: its words, and the HTTPS link it opens or the signed data of a quick action. */
+data class InlineButton(val text: String, val url: String? = null, val data: String? = null)
 
-/** One `sendMessage`: Telegram HTML, the items it carries (settled as sent once Telegram accepts it), its buttons. */
-data class TelegramPart(val html: String, val deliveryIds: List<String>, val buttons: List<LinkButton>)
+/**
+ * One `sendMessage`: Telegram HTML, the items it carries (settled as sent once Telegram accepts it), its rows of
+ * buttons.
+ */
+data class TelegramPart(val html: String, val deliveryIds: List<String>, val buttons: List<List<InlineButton>>)
 
 /**
  * A batch as Telegram messages (docs/decisions/0007-notification-channels.md). No lists: a one-line header, then each
- * project in italics, each task as a bold link with one short line per reason under it, a blank line between tasks.
- * A batch of one reason is one clean message without the header. Too long for one message (4096 characters), it is
- * split between tasks, each later part repeating the project it continues; the buttons ride on the last part.
- * Every value is escaped; links are left out when the interface has no HTTPS origin, which Telegram requires.
+ * project in italics, each task as a bold link, under it each reason as a sentence with who did it on a quieter line
+ * and a mention's words as a quote, a blank line between tasks. A batch of one reason is one clean message without
+ * the header. Too long for one message (4096 characters), it is split between tasks, each later part repeating the
+ * project it continues; the buttons ride on the last part. A batch about one task gets its quick actions as buttons
+ * ([sign] makes their data); more tasks get only «Открыть Sprintique». Every value is escaped; links are left out
+ * when the interface has no HTTPS origin, which Telegram requires.
  */
-class TelegramDigest(private val links: DigestLinks?, private val limit: Int = LIMIT) {
+class TelegramDigest(
+    private val links: DigestLinks?,
+    private val limit: Int = LIMIT,
+    private val sign: ((QuickAction, String) -> String?)? = null,
+) {
     fun render(digest: NotificationDigest): List<TelegramPart> {
         if (digest.isSingle) return listOf(single(digest))
         val parts = mutableListOf<TelegramPart>()
@@ -51,7 +60,8 @@ class TelegramDigest(private val links: DigestLinks?, private val limit: Int = L
         val group = digest.projects.single()
         val task = group.tasks.single()
         val reason = task.reasons.single()
-        val html = "${title(task)}\n${reasonLine(reason)}\n<i>${escape(group.name)} · ${escape(task.key)}</i>"
+        val quiet = listOfNotNull(reason.author, group.name).joinToString(" · ")
+        val html = "${title(task)}\n${escape(reason.text)}${quote(reason)}\n<i>${escape(quiet)}</i>"
         return TelegramPart(html, reason.deliveryIds, buttons(digest))
     }
 
@@ -86,20 +96,26 @@ class TelegramDigest(private val links: DigestLinks?, private val limit: Int = L
         return "<a href=\"${escapeAttribute(link)}\">$bold</a>"
     }
 
+    /** A reason: its sentence, a mention's words as a quote, then who did it, quieter. */
     private fun reasonLine(reason: DigestReason): String =
-        escape(reason.text) + (reason.quote?.let { ": “${escape(it)}”" } ?: "")
+        escape(reason.text) + quote(reason) + (reason.author?.let { "\n<i>${escape(it)}</i>" } ?: "")
 
-    private fun buttons(digest: NotificationDigest): List<LinkButton> {
-        val links = links ?: return emptyList()
+    private fun quote(reason: DigestReason): String =
+        reason.quote?.let { "\n<blockquote>${escape(it)}</blockquote>" } ?: ""
+
+    private fun buttons(digest: NotificationDigest): List<List<InlineButton>> {
         val tasks = digest.tasks
-        val open = LinkButton(OPEN_PRODUCT, links.product)
-        return if (tasks.size ==
-            1
-        ) {
-            listOf(LinkButton(OPEN_TASK, links.task(tasks[0].projectSlug, tasks[0].key)), open)
+        val actions = tasks.singleOrNull()?.actions.orEmpty().mapNotNull { action ->
+            sign?.invoke(action.action, action.notificationId)?.let { InlineButton(action.label, data = it) }
+        }
+        val links = links ?: return listOfNotNull(actions.takeIf { it.isNotEmpty() })
+        val open = InlineButton(OPEN_PRODUCT, url = links.product)
+        val navigation = if (tasks.size == 1) {
+            listOf(InlineButton(OPEN_TASK, url = links.task(tasks[0].projectSlug, tasks[0].key)), open)
         } else {
             listOf(open)
         }
+        return listOfNotNull(actions.takeIf { it.isNotEmpty() }, navigation)
     }
 
     companion object {

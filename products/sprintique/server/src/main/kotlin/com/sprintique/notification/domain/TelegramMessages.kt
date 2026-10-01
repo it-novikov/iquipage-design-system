@@ -30,4 +30,16 @@ object TelegramMessages {
     const val HELLO = "Это бот уведомлений Sprintique. Чтобы подключить его, откройте $SETTINGS."
     const val STOPPED = "Уведомления Sprintique отключены. Подключить снова можно в $SETTINGS."
     const val NOT_LINKED = "Этот чат не подключён к Sprintique."
+
+    /** After linking, when letters go to the account's address too: one button turns them off. */
+    const val LINKED_WITH_MAIL = "Готово: уведомления Sprintique будут приходить сюда. Письма на почту тоже " +
+        "продолжат приходить. Если Telegram достаточно, отключите их кнопкой ниже."
+    const val MAIL_OFF = "Отключить почту"
+    const val MAIL_OFF_DONE = "Письма отключены"
+    const val BUTTON_INVALID = "Кнопка недействительна."
+    const val BUTTON_EXPIRED = "Кнопка устарела. Откройте задачу в Sprintique."
+    const val BUTTON_FOREIGN = "Эта кнопка не для аккаунта, подключённого к этому чату."
+    const val REPLY_HINT = "Ответьте на это сообщение, и ответ появится в обсуждении задачи."
+    const val REPLY_SENT = "Ответ отправлен в обсуждение."
+    const val REPLY_NOWHERE = "Ответить в обсуждение можно на сообщение об упоминании."
 }

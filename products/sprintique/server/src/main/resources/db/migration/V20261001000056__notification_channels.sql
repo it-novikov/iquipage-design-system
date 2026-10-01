@@ -6,9 +6,10 @@
 ALTER TABLE app.notification_preferences RENAME COLUMN telegram_muted TO muted_kinds;
 ALTER TABLE app.notification_preferences RENAME CONSTRAINT notification_preferences_telegram_muted_check
   TO notification_preferences_muted_kinds_check;
--- E-mail is off until the person turns it on; Telegram is on once a chat is linked, as before.
+-- E-mail is on for everyone, existing rows included (the owner's decision on PR #44); Telegram is on once a chat is
+-- linked, as before. Whoever links Telegram is offered to turn e-mail off.
 ALTER TABLE app.notification_preferences
-  ADD COLUMN email_enabled boolean NOT NULL DEFAULT false,
+  ADD COLUMN email_enabled boolean NOT NULL DEFAULT true,
   ADD COLUMN telegram_enabled boolean NOT NULL DEFAULT true;
 
 -- The project switch «Уведомления в Telegram» becomes «Внешние уведомления»: the same rows, permission and revision,

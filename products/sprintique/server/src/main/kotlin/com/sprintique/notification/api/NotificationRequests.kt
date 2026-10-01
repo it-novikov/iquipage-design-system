@@ -1,11 +1,13 @@
 package com.sprintique.notification.api
 
+import com.sprintique.contract.IsoDate
 import com.sprintique.contract.IsoDateTime
 import com.sprintique.contract.MAX_SAFE_INTEGER
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
+import jakarta.validation.constraints.Pattern
 import jakarta.validation.constraints.Size
 import tools.jackson.databind.JsonNode
 
@@ -40,6 +42,17 @@ data class NotificationPreferencesRequest(
     val kinds: NotificationKindsRequest,
 )
 
+/** A one-click answer to a notification: its name, a reply's text, or the date a deadline moves to. */
+@Schema(name = "NotificationAction")
+data class NotificationActionRequest(
+    @field:Pattern(regexp = "^(take|accept|return|postpone|reply)$")
+    val action: String,
+    @field:Size(min = 1, max = 20_000)
+    val text: String? = null,
+    @field:IsoDate
+    val due: String? = null,
+)
+
 /** Takes an empty object: a link carries no options. */
 @Schema(name = "StartTelegramLink")
 class StartTelegramLinkRequest
@@ -58,4 +71,7 @@ data class TelegramUpdateRequest(
     @Suppress("ConstructorParameterNaming")
     val update_id: Long,
     val message: JsonNode? = null,
+    /** A press of one of the bot's buttons. */
+    @Suppress("ConstructorParameterNaming")
+    val callback_query: JsonNode? = null,
 )

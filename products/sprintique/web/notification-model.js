@@ -11,8 +11,21 @@ export function bellLabel(unread){
   return n===0?'Уведомления':`Уведомления: ${n} ${plural(n,'непрочитанное','непрочитанных','непрочитанных')}`;
 }
 
-/** The second line of a row: the project and how long ago. */
-export function rowMeta(item,now=Date.now()){return [item.project?.name,ageLabel(item.createdAt,now)].filter(Boolean).join(' · ');}
+/** The quiet line of a row: who did it, the project and how long ago. */
+export function rowMeta(item,now=Date.now()){return [item.author,item.project?.name,ageLabel(item.createdAt,now)].filter(Boolean).join(' · ');}
+
+/**
+ * How a quick action is taken back from the toast, through the ordinary write it undoes (docs/decisions/0007): the
+ * task's previous status, the request reopened, the previous due date. Null when there is nothing to undo.
+ */
+export function undoRequest(item,undo){
+  if(!undo||!item?.project?.id)return null;
+  const project='/projects/'+encodeURIComponent(item.project.id);
+  if(undo.kind==='status')return {path:`${project}/tasks/${encodeURIComponent(item.task.id)}/position`,method:'PATCH',body:{baseRevision:undo.revision,status:undo.status,rank:undo.rank}};
+  if(undo.kind==='reopen')return {path:`${project}/requests/${encodeURIComponent(undo.requestId)}/reopen`,method:'POST',body:{baseRevision:undo.revision}};
+  if(undo.kind==='due'&&undo.due)return {path:`/notifications/${encodeURIComponent(item.id)}/actions`,method:'POST',body:{action:'postpone',due:undo.due}};
+  return null;
+}
 
 /** The glyph of a notification without a person (a deadline). */
 export const kindGlyph=kind=>({deadline:'flag',request:'help',mention:'message',assigned:'user'})[kind]||'bell';

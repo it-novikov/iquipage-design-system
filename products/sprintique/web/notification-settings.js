@@ -1,6 +1,7 @@
 import {ui,escapeHTML as esc,notify} from '@iquipage/web/core';
 import {NOTIFICATION_KINDS,telegramStatus,emailStatus,hasChannels} from './notification-model.js';
 import * as s from './settings-ui.js';
+import {dialog} from '../ui/src/ui.js';
 
 /** While a link waits for /start in the chat, the section looks again this often, for the link's fifteen minutes. */
 const WAIT_MS=3000,WAIT_LIMIT_MS=15*60*1000;
@@ -35,12 +36,21 @@ export async function mountNotificationSettings(root,{repository}){
         actions:ui.toggle(k.title+' на почту и в Telegram',choice.kinds[k.kind]!==false,`data-notification-kind="${k.kind}"`,false)})).join(''))});
     root.innerHTML=channels+kinds+inProduct;
   }
+  /** Right after Telegram is linked: letters still go to the account's address, and the person may keep only Telegram. */
+  function offerMailOff(){
+    const email=emailStatus(data.email);
+    if(!email||!data.preferences.channels.email){notify({tone:'success',message:'Telegram подключён'});return;}
+    askToKeepMail({address:email.address,turnOff:async()=>{
+      data=await client.request('/profile/notifications','PUT',{channels:{...data.preferences.channels,email:false},kinds:data.preferences.kinds});
+      if(!closed)render();
+    }});
+  }
   async function refresh(){data=await client.request('/profile/notifications');if(!closed)render();}
   function wait(){
     clearTimeout(waiting);
     if(closed||data.telegram.connection||Date.now()>waitUntil){link=data.telegram.connection?null:link;return;}
     waiting=setTimeout(async()=>{
-      try{await refresh();if(data.telegram.connection){link=null;render();notify({tone:'success',message:'Telegram подключён'});return;}}catch{/* next round */}
+      try{await refresh();if(data.telegram.connection){link=null;render();offerMailOff();return;}}catch{/* next round */}
       wait();
     },WAIT_MS);
   }
@@ -77,6 +87,17 @@ export async function mountNotificationSettings(root,{repository}){
   },{signal:events.signal});
   render();
   return {readyToLeave:()=>!busy,destroy(){closed=true;clearTimeout(waiting);events.abort();}};
+}
+
+/**
+ * The DS dialog shown once Telegram is linked while letters still go to the account's e-mail: «Отключить почту» turns
+ * e-mail off, «Оставить оба» keeps both. The bot offers the same with one button in the chat.
+ */
+export function askToKeepMail({address,turnOff}){
+  return dialog({title:'Telegram подключён',
+    description:`Уведомления будут приходить и в Telegram, и на почту ${address}. Если Telegram достаточно, письма можно отключить.`,
+    submitLabel:'Отключить почту',success:'Письма отключены',onSubmit:async()=>{await turnOff();},
+    mount:el=>{const keep=el.querySelector('.iq-dialog-footer [data-close]');if(keep)keep.textContent='Оставить оба';}});
 }
 
 /**

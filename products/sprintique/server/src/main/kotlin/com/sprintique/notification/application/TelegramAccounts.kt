@@ -5,6 +5,7 @@ import com.sprintique.database.Database
 import com.sprintique.database.Transaction
 import com.sprintique.identity.application.ProjectAccess
 import com.sprintique.identity.domain.Actor
+import com.sprintique.notification.domain.InlineButton
 import com.sprintique.notification.domain.TelegramCommand
 import com.sprintique.notification.domain.TelegramMessages
 import com.sprintique.problem.requireCondition
@@ -25,6 +26,7 @@ class TelegramAccounts(
     private val properties: SprintiqueProperties,
     private val database: Database,
     private val channels: NotificationChannels,
+    private val quick: TelegramQuickActions,
 ) {
     private val log = LoggerFactory.getLogger(TelegramAccounts::class.java)
     private val telegram get() = properties.telegram
@@ -81,33 +83,60 @@ class TelegramAccounts(
         isAvailable && header != null && Tokens.equalsInConstantTime(header, telegram.webhookSecret)
 
     /**
-     * One update from Telegram, once per `update_id`. Only private text messages matter: `/start <token>` links the
-     * chat, `/stop` unlinks it. The answer is a Bot API method for Telegram to perform (a reply), or null.
+     * One update from Telegram, once per `update_id`. Private chats only: `/start <token>` links the chat, `/stop`
+     * unlinks it, a button press runs its quick action, and a reply to a message about a mention goes into that
+     * thread ([TelegramQuickActions]). The answer is a Bot API method for Telegram to perform, or null.
      */
     fun handle(update: JsonNode): Map<String, Any?>? {
-        val id = update.get("update_id")?.takeIf { it.isIntegralNumber }?.asLong() ?: return null
-        val message = update.get("message")?.takeIf { it.isObject } ?: return null
-        val chat = message.get("chat")?.takeIf { it.isObject } ?: return null
-        val chatId = chat.get("id")?.takeIf { it.isIntegralNumber }?.asLong() ?: return null
-        if (chat.get("type")?.asString() != "private") return null
+        val id = update.get("update_id")?.takeIf { it.isIntegralNumber }?.asLong()
+        val callback = update.get("callback_query")?.takeIf { it.isObject }
+        val message = update.get("message")?.takeIf { it.isObject }
+        val usable = id != null && (callback != null || message != null)
+        if (!usable || !fresh(id)) return null
+        return if (callback != null) quick.press(callback) else message?.let(::text)
+    }
+
+    private fun fresh(id: Long): Boolean =
+        database.transaction { tx -> tx.row("SELECT app.telegram_accept_update($1) AS fresh", id)!!.boolean("fresh") }
+
+    /** A private text message: a command, or a reply to one of the bot's messages. */
+    private fun text(message: JsonNode): Map<String, Any?>? {
+        val chat = message.get("chat")?.takeIf { it.isObject && it.get("type")?.asString() == "private" }
+        val chatId = chat?.get("id")?.takeIf { it.isIntegralNumber }?.asLong() ?: return null
         val text = message.get("text")?.takeIf { it.isString }?.asString()
         val handle = message.get("from")?.get("username")?.takeIf { it.isString }?.asString()?.takeIf(USERNAME::matches)
-        val reply = database.transaction { tx ->
-            val fresh = tx.row("SELECT app.telegram_accept_update($1) AS fresh", id)!!.boolean("fresh")
-            if (!fresh) return@transaction null
-            when (val command = TelegramCommand.parse(text)) {
-                is TelegramCommand.Start -> link(tx, command.token, chatId, handle)
-
-                TelegramCommand.Stop -> {
-                    val removed = tx.row("SELECT app.telegram_unlink_chat($1) AS removed", chatId)!!.boolean("removed")
-                    if (removed) TelegramMessages.STOPPED else TelegramMessages.NOT_LINKED
-                }
-
-                TelegramCommand.Other -> null
+        val command = TelegramCommand.parse(text)
+        if (command == TelegramCommand.Other) {
+            val answer = text?.takeIf {
+                it.isNotBlank() && !it.startsWith("/")
+            }?.let { quick.reply(chatId, message, it) }
+            return answer?.let { send(chatId, it, null) }
+        }
+        val (reply, buttons) = database.transaction { tx ->
+            if (command is TelegramCommand.Start) {
+                val said = link(tx, command.token, chatId, handle)
+                val offer = if (said == TelegramMessages.LINKED) quick.mailOffButton(tx, chatId) else null
+                (if (offer != null) TelegramMessages.LINKED_WITH_MAIL else said) to offer
+            } else {
+                val removed = tx.row("SELECT app.telegram_unlink_chat($1) AS removed", chatId)!!.boolean("removed")
+                (if (removed) TelegramMessages.STOPPED else TelegramMessages.NOT_LINKED) to null
             }
-        } ?: return null
-        return linkedMapOf("method" to "sendMessage", "chat_id" to chatId, "text" to reply)
+        }
+        return send(chatId, reply, buttons)
     }
+
+    private fun send(chatId: Long, text: String, buttons: List<List<InlineButton>>?): Map<String, Any?> =
+        linkedMapOf<String, Any?>("method" to "sendMessage", "chat_id" to chatId, "text" to text).apply {
+            if (buttons != null) {
+                put(
+                    "reply_markup",
+                    mapOf(
+                        "inline_keyboard" to
+                            buttons.map { row -> row.map { mapOf("text" to it.text, "callback_data" to it.data) } },
+                    ),
+                )
+            }
+        }
 
     private fun link(tx: Transaction, token: String?, chatId: Long, handle: String?): String {
         if (token == null) return TelegramMessages.HELLO

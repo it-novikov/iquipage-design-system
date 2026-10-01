@@ -6,6 +6,7 @@ import com.sprintique.database.Database
 import com.sprintique.identity.application.MailPort
 import com.sprintique.notification.application.BatchWindows
 import com.sprintique.notification.application.NotificationDelivery
+import com.sprintique.notification.domain.TelegramCallbacks
 import com.sprintique.notification.domain.UnsubscribeTokens
 import jakarta.mail.internet.InternetAddress
 import org.slf4j.LoggerFactory
@@ -43,6 +44,7 @@ class NotificationWorkerConfiguration {
             telegram,
             mail.ifAvailable,
             tokens,
+            properties.telegram.botToken.takeIf { it.isNotEmpty() }?.let(::TelegramCallbacks),
             properties.publicOrigin,
             BatchWindows(notifications.telegramWindowSeconds, notifications.emailWindowSeconds),
             domain,

@@ -111,5 +111,16 @@
 .pn-bell-meta{color:var(--iq-muted);font-size:var(--iq-type-meta-size);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pn-bell-dot{width:8px;height:8px;margin-top:6px;border-radius:50%;background:var(--iq-accent)}
 .pn-bell-empty{margin:0;padding:var(--iq-space-5) var(--iq-space-4);color:var(--iq-muted);font-size:var(--iq-type-label-size);text-align:center}
+/* Quick actions under a row (docs/decisions/0007-notification-channels.md): DS buttons in one quiet line, aligned
+   with the row's text; a reply field opens in place; after an action one line says what was done. */
+.pn-bell-entry{display:grid;border-radius:var(--iq-radius-sm)}
+.pn-bell-entry+.pn-bell-entry{margin-top:var(--iq-space-1)}
+.pn-bell-task{color:var(--iq-ink);font-size:var(--iq-type-label-size);line-height:1.4;font-weight:500;overflow-wrap:anywhere}
+.pn-bell-actions{display:flex;flex-wrap:wrap;gap:var(--iq-space-2);padding:0 var(--iq-space-3) var(--iq-space-2) calc(var(--iq-space-3) + 24px + var(--iq-space-3))}
+.pn-bell-actions:empty{display:none}
+.pn-bell-reply{display:flex;align-items:center;gap:var(--iq-space-2);padding:0 var(--iq-space-3) var(--iq-space-3) calc(var(--iq-space-3) + 24px + var(--iq-space-3))}
+.pn-bell-reply .iq-input-shell{flex:1;min-width:0;min-height:var(--iq-control-sm)}
+.pn-bell-reply .iq-input-shell input{padding:var(--iq-space-2) 0}
+.pn-bell-result{display:flex;align-items:center;gap:var(--iq-space-1);margin:0;padding:0 var(--iq-space-3) var(--iq-space-2) calc(var(--iq-space-3) + 24px + var(--iq-space-3));color:var(--iq-muted);font-size:var(--iq-type-label-size)}
 .pn-bell-foot{display:flex;justify-content:space-between;gap:var(--iq-space-2);padding:var(--iq-space-1) var(--iq-space-2);border-top:1px solid var(--iq-line)}
 .pn-bell-foot>:last-child{margin-left:auto}

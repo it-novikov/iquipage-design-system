@@ -3,15 +3,19 @@ package com.sprintique.notification.api
 import com.sprintique.configuration.SprintiqueProperties
 import com.sprintique.contract.Accepts
 import com.sprintique.contract.Contracts
+import com.sprintique.contract.Idempotent
 import com.sprintique.contract.QueryParameters
 import com.sprintique.identity.api.AuthenticatedRequests
 import com.sprintique.identity.api.RequestInputs
 import com.sprintique.notification.application.ChannelChoice
+import com.sprintique.notification.application.NotificationActions
 import com.sprintique.notification.application.NotificationChannels
 import com.sprintique.notification.application.Notifications
+import com.sprintique.notification.application.QuickActionInput
 import com.sprintique.notification.application.TelegramAccounts
 import com.sprintique.notification.domain.DigestLinks
 import com.sprintique.notification.domain.NotificationKind
+import com.sprintique.notification.domain.QuickAction
 import com.sprintique.notification.domain.UnsubscribeCheck
 import com.sprintique.notification.domain.UnsubscribePage
 import com.sprintique.web.RequestValidationException
@@ -42,6 +46,7 @@ class NotificationController(
     private val contracts: Contracts,
     private val telegram: TelegramAccounts,
     private val channels: NotificationChannels,
+    private val actions: NotificationActions,
     properties: SprintiqueProperties,
 ) {
     private val links = DigestLinks(properties.publicOrigin)
@@ -67,6 +72,30 @@ class NotificationController(
             if (input.ids.isEmpty() && input.before == null) throw RequestValidationException()
             Notifications.markRead(tx, actor, input.ids.map(String::lowercase), input.before?.let(Instant::parse))
         }
+
+    /**
+     * A one-click answer from the bell: «Взять в работу», «Принять», «Вернуть», «Перенести», a reply. The same
+     * write as from the task, with the person's rights; the notification is read afterwards.
+     */
+    @PostMapping("/api/v1/notifications/{id}/actions")
+    @Accepts(NotificationActionRequest::class)
+    @Idempotent
+    fun act(
+        @PathVariable id: String,
+        @RequestBody(required = false) body: JsonNode?,
+        request: HttpServletRequest,
+    ) = requests.run(request) { tx, actor ->
+        val input = contracts.parse<NotificationActionRequest>(body)
+        val action = QuickAction.fromWire(input.action) ?: throw RequestValidationException()
+        actions.perform(
+            tx,
+            actor,
+            id.lowercase(),
+            action,
+            QuickActionInput(input.text, input.due),
+            RequestInputs.idempotencyKey(request),
+        )
+    }
 
     @GetMapping("/api/v1/profile/notifications")
     fun settings(request: HttpServletRequest) = requests.run(request) { tx, actor -> channels.settings(tx, actor) }

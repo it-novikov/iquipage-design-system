@@ -5,12 +5,16 @@ import com.sprintique.notification.domain.DigestLinks
 import com.sprintique.notification.domain.EmailDigest
 import com.sprintique.notification.domain.NotificationDigest
 import com.sprintique.notification.domain.NotificationKind
+import com.sprintique.notification.domain.QuickAction
+import com.sprintique.notification.domain.TelegramCallbacks
 import com.sprintique.notification.domain.TelegramDigest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.nio.file.Files
 import java.nio.file.Path
+import java.time.Instant
 import java.time.LocalDate
+import java.util.UUID
 
 /**
  * A sample batch rendered by the real templates. With SPRINTIQUE_PREVIEW_DIR set, the letters and the Telegram parts
@@ -45,8 +49,17 @@ class NotificationPreviewTest {
             EmailDigest(links, "https://sprintique.iqui.page/api/v1/notifications/unsubscribe?token=preview", 900)
         val many = email.render(NotificationDigest(sample, today))
         val one = email.render(NotificationDigest(sample.take(1), today))
-        val telegram = TelegramDigest(links).render(NotificationDigest(sample, today))
-        val single = TelegramDigest(links).render(NotificationDigest(sample.take(1), today))
+        val callbacks = TelegramCallbacks("123456789:" + "A".repeat(35))
+        val sign = { action: QuickAction, id: String -> callbacks.sign(action, UUID.fromString(id), Instant.now()) }
+        val telegram = TelegramDigest(links, sign = sign).render(NotificationDigest(sample, today))
+        // One task, two reasons: an assignment to take and a mention to answer.
+        val taken = sample.take(2).mapIndexed { index, item ->
+            item.copy(
+                notificationId = UUID.nameUUIDFromBytes(byteArrayOf(index.toByte())).toString(),
+                actions = listOf(if (index == 0) QuickAction.TAKE else QuickAction.REPLY),
+            )
+        }
+        val single = TelegramDigest(links, sign = sign).render(NotificationDigest(taken, today))
         assertThat(many.subject).isEqualTo("3 задачи требуют внимания · Sprintique")
         assertThat(telegram).hasSize(1)
         val directory = System.getenv("SPRINTIQUE_PREVIEW_DIR")?.let(Path::of) ?: return
@@ -56,7 +69,7 @@ class NotificationPreviewTest {
         Files.writeString(directory.resolve("email-single.html"), one.html)
         Files.writeString(directory.resolve("email-single.txt"), "${one.subject}\n${one.preheader}\n\n${one.text}")
         val parts = (telegram + single).joinToString("\n\u0000\n") { part ->
-            part.html + "\n\u0001\n" + part.buttons.joinToString("\n") { "${it.text}\t${it.url}" }
+            part.html + "\n\u0001\n" + part.buttons.joinToString("\n") { row -> row.joinToString("\t") { it.text } }
         }
         Files.writeString(directory.resolve("telegram-parts.txt"), parts)
     }

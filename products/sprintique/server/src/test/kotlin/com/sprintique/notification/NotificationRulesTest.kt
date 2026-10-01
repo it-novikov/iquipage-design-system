@@ -20,24 +20,35 @@ class NotificationRulesTest {
     private val boris = MentionCandidate("b", "Борис")
 
     @Test
-    fun `a line names who, what and which task, with a short name and a bounded title`() {
-        val assigned = NotificationFacts(NotificationKind.ASSIGNED, "Анна Кузнецова", "Граф связей: подписи рёбер")
-        assertThat(NotificationText.line(assigned)).isEqualTo("Анна К. назначил(а) вам «Граф связей: подписи рёбер»")
-        assertThat(NotificationText.line(assigned.copy(kind = NotificationKind.MENTION, actorName = "Борис")))
-            .isEqualTo("Борис упомянул(а) вас в «Граф связей: подписи рёбер»")
-        assertThat(NotificationText.line(assigned.copy(kind = NotificationKind.REQUEST, requestKind = "review")))
-            .isEqualTo("Анна К. просит проверить «Граф связей: подписи рёбер»")
-        assertThat(NotificationText.line(assigned.copy(actorName = null))).startsWith("Участник назначил(а)")
-        assertThat(NotificationText.quoted("x".repeat(200))).hasSize(82).endsWith("…»")
+    fun `a sentence says what happened with the task's key, in the past tense, and who did it apart`() {
+        val assigned = NotificationFacts(NotificationKind.ASSIGNED, "Анна Кузнецова", "SPR-26")
+        assertThat(NotificationText.sentence(assigned)).isEqualTo("Вас назначили исполнителем задачи SPR-26")
+        assertThat(NotificationText.author(assigned)).isEqualTo("Анна К.")
+        assertThat(NotificationText.sentence(assigned.copy(kind = NotificationKind.MENTION)))
+            .isEqualTo("Вас упомянули в обсуждении задачи SPR-26")
+        val request = assigned.copy(kind = NotificationKind.REQUEST)
+        assertThat(NotificationText.sentence(request.copy(requestKind = "review")))
+            .isEqualTo("Вас попросили проверить задачу SPR-26")
+        assertThat(NotificationText.sentence(request.copy(requestKind = "answer")))
+            .isEqualTo("Вас попросили ответить в обсуждении задачи SPR-26")
+        assertThat(NotificationText.sentence(request.copy(requestKind = "decision")))
+            .isEqualTo("Вас попросили принять решение по задаче SPR-26")
+        assertThat(NotificationText.author(assigned.copy(actorName = null))).isEqualTo("Участник")
+        // No gendered verb anywhere: «назначил(а)», «назначила», «упомянул» never appear.
+        val all = NotificationKind.entries.map { NotificationText.sentence(assigned.copy(kind = it)) }
+        assertThat(all).noneMatch { Regex("ил\\(а\\)|ила |нул ").containsMatchIn(it) }
     }
 
     @Test
-    fun `a deadline says tomorrow or today against the day it was raised`() {
-        val on = LocalDate.parse("2026-10-01")
-        val facts = NotificationFacts(NotificationKind.DEADLINE, null, "Релиз", due = on.plusDays(1), raisedOn = on)
-        assertThat(NotificationText.line(facts)).isEqualTo("Срок «Релиз» — завтра")
-        assertThat(NotificationText.line(facts.copy(due = on))).isEqualTo("Срок «Релиз» — сегодня")
-        assertThat(NotificationText.line(facts.copy(due = on.plusDays(5)))).isEqualTo("Срок «Релиз» — 06.10")
+    fun `a deadline says today or tomorrow against the person's day, and has no author`() {
+        val today = LocalDate.parse("2026-10-01")
+        val facts = NotificationFacts(NotificationKind.DEADLINE, null, "SPR-7", due = today.plusDays(1), today = today)
+        assertThat(NotificationText.sentence(facts)).isEqualTo("Срок задачи SPR-7 — завтра, 2 октября")
+        val on = { due: LocalDate -> NotificationText.sentence(facts.copy(due = due)) }
+        assertThat(on(today)).isEqualTo("Срок задачи SPR-7 — сегодня, 1 октября")
+        assertThat(on(today.plusDays(5))).isEqualTo("Срок задачи SPR-7 — 6 октября")
+        assertThat(on(today.minusDays(1))).isEqualTo("Срок задачи SPR-7 прошёл 30 сентября")
+        assertThat(NotificationText.author(facts)).isNull()
     }
 
     @Test
@@ -67,7 +78,8 @@ class NotificationRulesTest {
     fun `a Telegram message escapes every value`() {
         val item = DigestItem("d1", NotificationKind.ASSIGNED, "A <b> & c", "K-1", "x<y", "p", "P&L")
         val part = TelegramDigest(null).render(NotificationDigest(listOf(item), LocalDate.parse("2026-10-01"))).single()
-        assertThat(part.html).isEqualTo("<b>x&lt;y</b>\nA &lt;. назначает вас исполнителем\n<i>P&amp;L · K-1</i>")
+        assertThat(part.html)
+            .isEqualTo("<b>x&lt;y</b>\nВас назначили исполнителем задачи K-1\n<i>A &lt;. · P&amp;L</i>")
         assertThat(TelegramMessages.NOT_LINKED).doesNotContain("<")
     }
 }

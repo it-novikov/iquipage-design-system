@@ -22,7 +22,7 @@ class EmailDigest(private val links: DigestLinks, private val unsubscribe: Strin
     private fun subject(digest: NotificationDigest): String {
         val tasks = digest.tasks
         val line = when {
-            digest.isSingle -> tasks[0].reasons[0].headline
+            digest.isSingle -> tasks[0].reasons[0].text
 
             tasks.size == 1 ->
                 "${DigestWords.newCount(digest.reasonCount).replaceFirstChar(Char::uppercase)} по задаче " +
@@ -38,7 +38,9 @@ class EmailDigest(private val links: DigestLinks, private val unsubscribe: Strin
         val tasks = digest.tasks
         if (digest.isSingle) {
             val reason = tasks[0].reasons[0]
-            return oneLine(reason.quote?.let { "${reason.text}: “$it”" } ?: "${reason.text}.")
+            val title = "«${DigestWords.cut(tasks[0].title, SUBJECT_TITLE)}»"
+            val line = listOfNotNull(title, reason.author, reason.quote?.let { "“$it”" }).joinToString(". ")
+            return oneLine(if (line.endsWith('.') || line.endsWith('”')) line else "$line.")
         }
         if (tasks.size == 1) return oneLine(tasks[0].reasons.joinToString(" ") { "${it.text}." })
         val shown = tasks.take(2).joinToString(" ") { task ->
@@ -94,10 +96,10 @@ class EmailDigest(private val links: DigestLinks, private val unsubscribe: Strin
                 appendLine()
                 appendLine("${task.title} (${task.key})")
                 for (reason in task.reasons) {
-                    val quote = reason.quote?.let { "“$it”" }
-                    // A batch of one already said its reason in the headline.
-                    val line = if (digest.isSingle) quote else quote?.let { "${reason.text}: $it" } ?: reason.text
-                    line?.let(::appendLine)
+                    // A batch of one already said its sentence in the headline.
+                    if (!digest.isSingle) appendLine(reason.text)
+                    reason.quote?.let { appendLine("“$it”") }
+                    reason.author?.let(::appendLine)
                 }
                 appendLine("Открыть задачу: ${links.task(task.projectSlug, task.key)}")
             }
@@ -183,10 +185,16 @@ $summary$body
                 ""
             } else {
                 """
-                <p class="sq-ink" style="margin:8px 0 0;font-size:15px;line-height:22px;color:$INK;">${e(reason.text)}</p>
+                <p class="sq-ink" style="margin:10px 0 0;font-size:15px;line-height:22px;color:$INK;">${e(reason.text)}</p>
                 """.trimIndent()
             }
-            line + quote
+            // Who did it: a quieter line under the sentence (and under a mention's words).
+            val author = reason.author?.let {
+                """
+                <p class="sq-muted" style="margin:4px 0 0;font-size:13px;line-height:19px;color:$MUTED;">${e(it)}</p>
+                """.trimIndent()
+            }.orEmpty()
+            line + quote + author
         }
         val button = if (primary) {
             """<a class="sq-btn" href="$link" style="display:inline-block;background:$INK;color:$CARD;font-size:14px;line-height:20px;font-weight:600;padding:10px 18px;border-radius:9px;text-decoration:none;">Открыть задачу</a>"""
