@@ -8,7 +8,7 @@ owner: nvkv71
 branch: feature/planning-containers
 base: main
 created: 2026-10-01
-updated: 2026-10-01T09:57:25Z
+updated: 2026-10-01T10:05:40Z
 links:
 ---
 
@@ -30,9 +30,13 @@ links:
 
 ## Передача
 
-- **Состояние:** Задача заведена, работа не начата.
-- **Дальше:** Уточнить рамки с владельцем и составить план.
+- **Состояние:** Карточка, api.md (контракт сервер↔UI) и ds.md (контракт DS T1–T4) закоммичены. Созданы worktree planning-r4-ds (feature/planning-containers-ds) и planning-r4-server (feature/planning-containers-server) от этой ветки; потоки DS и сервера запущены отдельными агентами, DS-агент остановлен лимитом в самом начале (изменений нет).
+- **Сейчас:** S1/S2/S3 не начаты в коде
+- **Дальше:** Запустить потоки заново: DS по ds.md в planning-r4-ds, сервер по api.md в planning-r4-server, UI в этом worktree; затем слить ветки -ds и -server сюда
 - **Незакоммичено:** нет
+- **Рабочая копия:** нет · HEAD 7cc305f
+- **Ловушки:**
+  - Старый UI планирования используется вне ui/planning: web/release-create.js и web/planning-host.js (operation.js, dialog.js, release-dialogs.js), web/settings.js (settingsDialog, timeZoneField), web/main.js (project-navigation.js, navigation.css, planning.css), тесты planning-operation, task-plan-field, planning-controller, frontend-lifecycle (temporal-*, markup.js)
 
 ## План
 
