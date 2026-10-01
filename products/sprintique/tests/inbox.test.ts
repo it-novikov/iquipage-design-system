@@ -8,10 +8,10 @@ import type {InboxPage} from '../contracts/inbox.js';
 // Mentions picked from the @ list and the inbox of service accounts (docs/decisions/0008-mentions-and-service-inbox.md)
 // against the real server: tokens by id, only members, renames, the limit; service accounts as recipients of every
 // kind; the inbox over REST and MCP with pages, the trust envelope and marking read; row security between accounts.
-let f:Awaited<ReturnType<typeof fixture>>,api:string,ui:string;
+let f:Awaited<ReturnType<typeof fixture>>,api:string,ui:string,bot:Awaited<ReturnType<typeof serviceAccount>>;
 const freePort=()=>new Promise<number>((resolve,reject)=>{const probe=createServer();probe.once('error',reject);probe.listen(0,'127.0.0.1',()=>{const {port:p}=probe.address() as {port:number};probe.close(()=>resolve(p));});});
 before(async()=>{const port=await freePort();ui=`http://127.0.0.1:${port}`;api=`http://localhost:${port}`;
-  f=await fixture({prefix:'IB',port,appOrigin:ui,settings:{SPRINTIQUE_API_ORIGIN:api}});});
+  f=await fixture({prefix:'IB',port,appOrigin:ui,settings:{SPRINTIQUE_API_ORIGIN:api}});bot=await serviceAccount();});
 after(async()=>{await f?.close();});
 
 type User=Awaited<ReturnType<typeof fixture>>['alice'];
@@ -49,8 +49,6 @@ async function tool(t:string,name:string,args:Record<string,unknown>){
   assert.equal(r.statusCode,200,r.body);
   return r.json<{result:{isError:boolean;structuredContent:any}}>().result;
 }
-let bot:Awaited<ReturnType<typeof serviceAccount>>;
-before(async()=>{bot=await serviceAccount();});
 
 test('IB01 a picked mention notifies by id: members only, renamed people still found, never the author, at most twenty',async()=>{
   const p=f.first.id;
