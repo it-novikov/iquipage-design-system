@@ -1,5 +1,5 @@
 /** Supported core browser entry. Does not register graph, roadmap, crop, or whiteboard. */
-export declare const version:'0.6.0-vnext.26';
+export declare const version:'0.6.0-vnext.27';
 export declare function registerCore():void;
 export declare function registerComponents():void;
 export declare function registerDateFields():void;
@@ -14,7 +14,8 @@ export declare function mark():string;
 export declare function escapeHTML(value:unknown):string;
 /** Tag colour attributes: a palette tone name, or any "#RRGGBB" (derived, theme-aware fill and text; no inline styles). */
 export declare function tagToneAttributes(tone:string):string;
-export interface AvatarPerson {name:string;id?:string;}
+/** kind 'service' (vnext.27) draws a service account's square avatar with the bot glyph instead of initials. */
+export interface AvatarPerson {name:string;id?:string;image?:string;kind?:'human'|'service';}
 /** Shows a toast. It leaves by itself after 5 s (info, success), 8 s (warning), 10 s (danger) or 10 s with a shortcut
  * action; an undo action (`action.undo`) stays until dismissed. `duration` overrides the time in ms, 0 keeps the toast,
  * a malformed value falls back to the default. Hover, focus and a hidden tab pause the countdown. Returns a function that dismisses the toast. */
@@ -49,6 +50,8 @@ export declare function plural(n:number,forms:PluralForms,locale?:string):string
 export declare function count(n:number,forms:PluralForms,locale?:string):string;
 /** Russian micro-typography: non-breaking spaces after one- and two-letter words, before «—», between a number and its unit and after «№». Idempotent. */
 export declare function typo(text:string):string;
+/** `deadline` (vnext.27): the value is a due date; overdue, today and tomorrow are written beside it («просрочен», «сегодня», «завтра»)
+ *  and toned through the trigger's data-deadline. A host removes the attribute for finished work. */
 export declare class IqDateField extends HTMLElement {value:string;readonly timeValue:string;disabled:boolean;open():void;close(restore?:boolean):void;}
 export declare class IqTime extends HTMLElement {value:string;hourCycle:12|24;}
 export interface MarkdownEditorAction {id:string;label:string;pressed:boolean;disabled?:boolean;tone?:'neutral'|'warning';hint?:string;/** 'chip' renders a compact pressed toggle (chat composers); 'check' a checkbox with a hint. */appearance?:'check'|'chip';icon?:string;}

@@ -35,11 +35,23 @@ object Tasks {
         to_char(t.status_entered_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS "statusEnteredAt",
         ARRAY(SELECT tag_id FROM app.task_tags WHERE project_id = t.project_id AND task_id = t.id ORDER BY tag_id) AS "tagIds""""
 
-    /** A task by its id or its display id (`SPR-12`). */
+    // Who created the task: the actor of its first record, written as the task was created (a save or a planning
+    // command that created it). Read for one task only (the drawer's «Автор»); imported tasks have none.
+    private const val AUTHOR = """a.actor_id AS "createdById", coalesce(ap.profile_name, ap.name) AS "createdByName",
+        ap.kind AS "createdByKind""""
+    private const val AUTHOR_JOIN = """LEFT JOIN LATERAL (
+          SELECT e.actor_id FROM app.audit_events e
+          WHERE e.project_id = t.project_id AND e.resource_id = t.id
+            AND e.action IN ('task.created', 'task.plan.changed') AND e.created_at < t.created_at + interval '1 minute'
+          ORDER BY e.created_at, e.id LIMIT 1
+        ) a ON true LEFT JOIN auth.principals ap ON ap.id = a.actor_id"""
+
+    /** A task by its id or its display id (`SPR-12`), with its author. */
     fun read(tx: Transaction, projectId: String, id: String): Row {
         val task = tx.row(
             """
-            SELECT $PROJECTION FROM app.tasks t JOIN app.projects p ON p.id = t.project_id
+            SELECT $PROJECTION, $AUTHOR FROM app.tasks t JOIN app.projects p ON p.id = t.project_id
+            $AUTHOR_JOIN
             WHERE t.project_id = $1 AND (t.id = $2 OR p.key || '-' || t.number = $2)
             """.trimIndent(),
             projectId,
@@ -177,18 +189,20 @@ object Tasks {
             id,
             TaskMedia(value.attachmentIds, value.coverAttachmentId, value.coverCrop, value.coverCropAttachmentId),
         )
-        val saved = read(tx, projectId, id)
+        val revision = tx.row("SELECT revision FROM app.tasks WHERE project_id = $1 AND id = $2", projectId, id)!!
+            .long("revision")
         AuditTrail.record(
             tx,
             actor,
             projectId,
             if (previous != null) "task.updated" else "task.created",
             id,
-            saved.long("revision"),
+            revision,
         )
         // The author participates in a new task from the start, privately; leaving is one command (docs/adr W5).
         if (previous == null) PersonalState.joinCreatedTask(tx, actor, projectId, id)
-        return saved(actor, saved)
+        // Read after the creation record, so a new task already names its author.
+        return saved(actor, read(tx, projectId, id))
     }
 
     private fun checkReferences(tx: Transaction, projectId: String, id: String, value: TaskContent) {

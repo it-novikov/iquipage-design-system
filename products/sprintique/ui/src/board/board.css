@@ -244,48 +244,21 @@
 .task-video{display:grid;place-items:center;border-radius:var(--iq-radius-sm);background:var(--iq-recessed);overflow:hidden}
 .task-video video{display:block;width:100%;max-height:calc(100dvh - 240px);background:var(--iq-recessed)}
 .task-video .iq-helper{padding:var(--iq-space-5)}
-/* Task facts (docs/task-drawer/fields-handoff.md, direction D «Сетка фактов»; DS-GAP-F): tiles with the label over
-   the value, three columns (two on a phone). The DS supplies every value control and its ghost trigger through
-   .iq-properties[data-columns]; the product only stacks each field and lays the tiles out. */
-.tdr-facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--iq-space-3) var(--iq-space-4);align-items:start;min-width:0;margin:0}
-.tdr-facts>*{min-width:0}
-.tdr-facts>.tdr-span-2{grid-column:span 2}
-.tdr-facts>.tdr-span-all{grid-column:1 / -1}
-.tdr-facts.iq-properties[data-columns] :is(iq-select,iq-combobox,iq-date-field),.tdr-fact{display:flex;flex-direction:column;align-items:flex-start;min-width:0;min-height:0;margin:0}
-/* The hero row (Статус · Исполнитель · Срок) carries its values at 500; the status pill is the only fill. */
-.tdr-facts.hero :is(.iq-select-value,[data-date-caption]){font-weight:500}
-/* A long value ends in an ellipsis and keeps its quiet meta ("до 17.10") in view (DS-GAP-J: two lines need the DS). */
-.tdr-facts .iq-select-label{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
-.tdr-facts .iq-select-meta{flex:none}
-.tdr-fact-label{display:block;max-width:100%;margin:0;font-size:var(--iq-type-label-size);font-weight:400;line-height:1.45;color:var(--iq-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tdr-facts.iq-properties iq-tag-picker{display:block;width:100%}
-.tdr-fact>.task-selected-tags{width:100%}
-/* The plan trigger is the DS date trigger; its text lines up with the label like the DS values do. */
-.tdr-facts.iq-properties[data-columns] .tdr-plan-trigger{max-width:calc(100% + var(--iq-space-2));margin-left:calc(-1 * var(--iq-space-2))}
-/* Read-only: the same tiles as text, never disabled controls. */
-.tdr-lock{display:flex;align-items:center;gap:var(--iq-space-2);margin:0;font-size:var(--iq-type-caption-size);line-height:1.5;color:var(--iq-muted)}
+/* Task facts (docs/task-drawer/fields-handoff.md §8, direction A «Список»): one DS list, .iq-properties[data-label=wide],
+   of ten 36px rows. The DS draws the rows, labels, ghost values, static rows and the 26px status pill; the product only
+   lets the release and tags mount points pass their control through to the list, and widens the label in fullscreen. */
+.task-property-slot{display:contents}
+.task-edit-dialog[data-fullscreen=true] .task-editor-properties{max-width:720px}
+.task-edit-dialog[data-fullscreen=true] .task-editor-properties .iq-properties{--iq-properties-label:136px}
+/* Read-only: the same rows as text, never disabled controls; one 13px line with a lock says why. */
+.tdr-lock{display:flex;align-items:center;gap:var(--iq-space-2);margin:0;font-size:var(--iq-type-label-size);line-height:1.5;color:var(--iq-muted)}
 .tdr-lock>.iq-icon{flex:none}
-.tdr-static{display:inline-flex;align-items:center;gap:var(--iq-space-2);max-width:100%;min-width:0;min-height:32px;margin:0;font-size:var(--iq-type-interface-size);color:var(--iq-ink)}
-.tdr-static[data-empty=true]{color:var(--iq-muted)}
-.tdr-static>.iq-icon,.tdr-glyph>.iq-icon{flex:none;color:var(--iq-muted)}
-.tdr-glyph{display:inline-flex;align-items:center;gap:var(--iq-space-2);min-width:0}
-.tdr-glyph[data-tone=high]{color:var(--iq-task-high-text)}
-.tdr-glyph[data-tone=critical]{color:var(--iq-task-critical-text)}
-.tdr-glyph:is([data-tone=high],[data-tone=critical])>.iq-icon{color:inherit}
-.tdr-static [data-tone=danger]{color:var(--iq-danger)}
-.tdr-text{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
-.tdr-meta{flex:none;color:var(--iq-muted);font-size:var(--iq-type-label-size);white-space:nowrap;font-variant-numeric:tabular-nums}
-.tdr-key{font:500 var(--iq-type-label-size)/1 var(--iq-mono);color:var(--iq-muted)}
-.tdr-tags{display:flex;flex-wrap:wrap;gap:var(--iq-space-1);padding-block:var(--iq-space-1)}
-.tdr-pill{display:inline-flex;align-items:center;gap:var(--iq-space-2);height:28px;padding:0 var(--iq-space-3);border-radius:var(--iq-radius-pill);background:var(--iq-surface);font-size:var(--iq-type-label-size);font-weight:500}
-.tdr-dot{width:8px;height:8px;flex:none;border-radius:50%;background:var(--tdr-tone,var(--iq-muted))}
+/* The read-only status is the DS pill as text: 26px, a 7px dot in the column's tone. */
+.tdr-pill{display:inline-flex;align-items:center;gap:var(--iq-space-2);height:26px;padding:0 var(--iq-space-3) 0 var(--iq-space-2);border-radius:var(--iq-radius-pill);background:var(--iq-surface);font-size:var(--iq-type-label-size);font-weight:500}
+.tdr-dot{width:7px;height:7px;flex:none;border-radius:50%;background:var(--tdr-tone,var(--iq-muted))}
 .tdr-pill[data-tone=info]{--tdr-tone:var(--iq-info)}
 .tdr-pill[data-tone=warning]{--tdr-tone:var(--iq-warning-fill)}
 .tdr-pill[data-tone=success]{--tdr-tone:var(--iq-success)}
-dl.tdr-facts dd{margin:0}
-/* Fullscreen: the facts stay under the title, across the reading column. */
-.task-edit-dialog[data-fullscreen=true] .task-editor-properties{max-width:720px}
-@media(max-width:640px){.tdr-facts{grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--iq-space-3)}}
 /* Plan range popup (DS-GAP-G, the iq-date-range-field spec in the handoff §4) on the DS date popup surface. */
 .tdr-range{padding:var(--iq-space-2) var(--iq-space-3) var(--iq-space-3)}
 .tdr-range-caption{margin:0;padding:var(--iq-space-2) var(--iq-space-1) var(--iq-space-2);font-size:var(--iq-type-meta-size);letter-spacing:.04em;text-transform:uppercase;color:var(--iq-muted)}

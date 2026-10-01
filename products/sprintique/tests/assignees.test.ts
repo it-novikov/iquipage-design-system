@@ -49,6 +49,9 @@ test('A01 an editing service account of the project owns tasks; others are refus
   const task=await saved('asg-robot',{ownerId:robot.id});
   assert.equal(task.ownerId,robot.id);assert.equal(task.ownerName,'Робот');assert.equal(task.ownerKind,'service');assert.equal(task.ownerState,'active');
   const person=await saved('asg-person',{ownerId:f.alice.id});assert.equal(person.ownerKind,'human');assert.equal(person.ownerState,'active');
+  // The drawer's «Автор»: the saved task and a later read name who created it, not who owns it.
+  assert.deepEqual([person.createdById,person.createdByKind],[f.alice.id,'human']);assert.ok(person.createdByName);
+  const byRead=await read('asg-robot');assert.deepEqual([byRead.createdById,byRead.createdByKind],[f.alice.id,'human']);
   assert.equal((await saved('asg-nobody',{})).ownerState,null);
   // Who may not own a task: an account that only reads, an account of another project, a person from outside.
   const reading=await account(f.reader,'Читатель','reads');

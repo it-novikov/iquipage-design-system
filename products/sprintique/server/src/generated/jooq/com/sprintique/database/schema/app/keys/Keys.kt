@@ -28,6 +28,8 @@ import com.sprintique.database.schema.app.tables.MapVotes
 import com.sprintique.database.schema.app.tables.Maps
 import com.sprintique.database.schema.app.tables.Messages
 import com.sprintique.database.schema.app.tables.Milestones
+import com.sprintique.database.schema.app.tables.NotificationPreferences
+import com.sprintique.database.schema.app.tables.Notifications
 import com.sprintique.database.schema.app.tables.Outbox
 import com.sprintique.database.schema.app.tables.PersonAvatars
 import com.sprintique.database.schema.app.tables.PersonPreferences
@@ -48,6 +50,11 @@ import com.sprintique.database.schema.app.tables.TaskSettings
 import com.sprintique.database.schema.app.tables.TaskSettingsVersions
 import com.sprintique.database.schema.app.tables.TaskTags
 import com.sprintique.database.schema.app.tables.Tasks
+import com.sprintique.database.schema.app.tables.TelegramConnections
+import com.sprintique.database.schema.app.tables.TelegramDeliveries
+import com.sprintique.database.schema.app.tables.TelegramLinkTokens
+import com.sprintique.database.schema.app.tables.TelegramProjectSettings
+import com.sprintique.database.schema.app.tables.TelegramUpdates
 import com.sprintique.database.schema.app.tables.TemporalConstraints
 import com.sprintique.database.schema.app.tables.ThreadReads
 import com.sprintique.database.schema.app.tables.Threads
@@ -78,6 +85,8 @@ import com.sprintique.database.schema.app.tables.records.MapVotesRecord
 import com.sprintique.database.schema.app.tables.records.MapsRecord
 import com.sprintique.database.schema.app.tables.records.MessagesRecord
 import com.sprintique.database.schema.app.tables.records.MilestonesRecord
+import com.sprintique.database.schema.app.tables.records.NotificationPreferencesRecord
+import com.sprintique.database.schema.app.tables.records.NotificationsRecord
 import com.sprintique.database.schema.app.tables.records.OutboxRecord
 import com.sprintique.database.schema.app.tables.records.PersonAvatarsRecord
 import com.sprintique.database.schema.app.tables.records.PersonPreferencesRecord
@@ -98,6 +107,11 @@ import com.sprintique.database.schema.app.tables.records.TaskSettingsRecord
 import com.sprintique.database.schema.app.tables.records.TaskSettingsVersionsRecord
 import com.sprintique.database.schema.app.tables.records.TaskTagsRecord
 import com.sprintique.database.schema.app.tables.records.TasksRecord
+import com.sprintique.database.schema.app.tables.records.TelegramConnectionsRecord
+import com.sprintique.database.schema.app.tables.records.TelegramDeliveriesRecord
+import com.sprintique.database.schema.app.tables.records.TelegramLinkTokensRecord
+import com.sprintique.database.schema.app.tables.records.TelegramProjectSettingsRecord
+import com.sprintique.database.schema.app.tables.records.TelegramUpdatesRecord
 import com.sprintique.database.schema.app.tables.records.TemporalConstraintsRecord
 import com.sprintique.database.schema.app.tables.records.ThreadReadsRecord
 import com.sprintique.database.schema.app.tables.records.ThreadsRecord
@@ -154,6 +168,9 @@ val MAP_VOTES_PKEY: UniqueKey<MapVotesRecord> = Internal.createUniqueKey(MapVote
 val MAPS_PKEY: UniqueKey<MapsRecord> = Internal.createUniqueKey(Maps.MAPS, DSL.name("maps_pkey"), arrayOf(Maps.MAPS.PROJECT_ID, Maps.MAPS.ID), true)
 val MESSAGES_PKEY: UniqueKey<MessagesRecord> = Internal.createUniqueKey(Messages.MESSAGES, DSL.name("messages_pkey"), arrayOf(Messages.MESSAGES.PROJECT_ID, Messages.MESSAGES.ID), true)
 val MILESTONES_PKEY: UniqueKey<MilestonesRecord> = Internal.createUniqueKey(Milestones.MILESTONES, DSL.name("milestones_pkey"), arrayOf(Milestones.MILESTONES.PROJECT_ID, Milestones.MILESTONES.ID), true)
+val NOTIFICATION_PREFERENCES_PKEY: UniqueKey<NotificationPreferencesRecord> = Internal.createUniqueKey(NotificationPreferences.NOTIFICATION_PREFERENCES, DSL.name("notification_preferences_pkey"), arrayOf(NotificationPreferences.NOTIFICATION_PREFERENCES.PRINCIPAL_ID), true)
+val NOTIFICATIONS_PKEY: UniqueKey<NotificationsRecord> = Internal.createUniqueKey(Notifications.NOTIFICATIONS, DSL.name("notifications_pkey"), arrayOf(Notifications.NOTIFICATIONS.ID), true)
+val NOTIFICATIONS_RECIPIENT_ID_DEDUPE_KEY_KEY: UniqueKey<NotificationsRecord> = Internal.createUniqueKey(Notifications.NOTIFICATIONS, DSL.name("notifications_recipient_id_dedupe_key_key"), arrayOf(Notifications.NOTIFICATIONS.RECIPIENT_ID, Notifications.NOTIFICATIONS.DEDUPE_KEY), true)
 val OUTBOX_PKEY: UniqueKey<OutboxRecord> = Internal.createUniqueKey(Outbox.OUTBOX, DSL.name("outbox_pkey"), arrayOf(Outbox.OUTBOX.ID), true)
 val PERSON_AVATARS_PKEY: UniqueKey<PersonAvatarsRecord> = Internal.createUniqueKey(PersonAvatars.PERSON_AVATARS, DSL.name("person_avatars_pkey"), arrayOf(PersonAvatars.PERSON_AVATARS.PRINCIPAL_ID), true)
 val PERSON_PREFERENCES_PKEY: UniqueKey<PersonPreferencesRecord> = Internal.createUniqueKey(PersonPreferences.PERSON_PREFERENCES, DSL.name("person_preferences_pkey"), arrayOf(PersonPreferences.PERSON_PREFERENCES.PRINCIPAL_ID), true)
@@ -178,6 +195,13 @@ val TASK_SETTINGS_VERSIONS_PKEY: UniqueKey<TaskSettingsVersionsRecord> = Interna
 val TASK_TAGS_PKEY: UniqueKey<TaskTagsRecord> = Internal.createUniqueKey(TaskTags.TASK_TAGS, DSL.name("task_tags_pkey"), arrayOf(TaskTags.TASK_TAGS.PROJECT_ID, TaskTags.TASK_TAGS.TASK_ID, TaskTags.TASK_TAGS.TAG_ID), true)
 val TASKS_PKEY: UniqueKey<TasksRecord> = Internal.createUniqueKey(Tasks.TASKS, DSL.name("tasks_pkey"), arrayOf(Tasks.TASKS.PROJECT_ID, Tasks.TASKS.ID), true)
 val TASKS_PROJECT_ID_NUMBER_KEY: UniqueKey<TasksRecord> = Internal.createUniqueKey(Tasks.TASKS, DSL.name("tasks_project_id_number_key"), arrayOf(Tasks.TASKS.PROJECT_ID, Tasks.TASKS.NUMBER), true)
+val TELEGRAM_CONNECTIONS_CHAT_ID_KEY: UniqueKey<TelegramConnectionsRecord> = Internal.createUniqueKey(TelegramConnections.TELEGRAM_CONNECTIONS, DSL.name("telegram_connections_chat_id_key"), arrayOf(TelegramConnections.TELEGRAM_CONNECTIONS.CHAT_ID), true)
+val TELEGRAM_CONNECTIONS_PKEY: UniqueKey<TelegramConnectionsRecord> = Internal.createUniqueKey(TelegramConnections.TELEGRAM_CONNECTIONS, DSL.name("telegram_connections_pkey"), arrayOf(TelegramConnections.TELEGRAM_CONNECTIONS.PRINCIPAL_ID), true)
+val TELEGRAM_DELIVERIES_NOTIFICATION_ID_KEY: UniqueKey<TelegramDeliveriesRecord> = Internal.createUniqueKey(TelegramDeliveries.TELEGRAM_DELIVERIES, DSL.name("telegram_deliveries_notification_id_key"), arrayOf(TelegramDeliveries.TELEGRAM_DELIVERIES.NOTIFICATION_ID), true)
+val TELEGRAM_DELIVERIES_PKEY: UniqueKey<TelegramDeliveriesRecord> = Internal.createUniqueKey(TelegramDeliveries.TELEGRAM_DELIVERIES, DSL.name("telegram_deliveries_pkey"), arrayOf(TelegramDeliveries.TELEGRAM_DELIVERIES.ID), true)
+val TELEGRAM_LINK_TOKENS_PKEY: UniqueKey<TelegramLinkTokensRecord> = Internal.createUniqueKey(TelegramLinkTokens.TELEGRAM_LINK_TOKENS, DSL.name("telegram_link_tokens_pkey"), arrayOf(TelegramLinkTokens.TELEGRAM_LINK_TOKENS.TOKEN_SHA256), true)
+val TELEGRAM_PROJECT_SETTINGS_PKEY: UniqueKey<TelegramProjectSettingsRecord> = Internal.createUniqueKey(TelegramProjectSettings.TELEGRAM_PROJECT_SETTINGS, DSL.name("telegram_project_settings_pkey"), arrayOf(TelegramProjectSettings.TELEGRAM_PROJECT_SETTINGS.PROJECT_ID), true)
+val TELEGRAM_UPDATES_PKEY: UniqueKey<TelegramUpdatesRecord> = Internal.createUniqueKey(TelegramUpdates.TELEGRAM_UPDATES, DSL.name("telegram_updates_pkey"), arrayOf(TelegramUpdates.TELEGRAM_UPDATES.UPDATE_ID), true)
 val TEMPORAL_CONSTRAINTS_PKEY: UniqueKey<TemporalConstraintsRecord> = Internal.createUniqueKey(TemporalConstraints.TEMPORAL_CONSTRAINTS, DSL.name("temporal_constraints_pkey"), arrayOf(TemporalConstraints.TEMPORAL_CONSTRAINTS.PROJECT_ID, TemporalConstraints.TEMPORAL_CONSTRAINTS.ID), true)
 val THREAD_READS_PKEY: UniqueKey<ThreadReadsRecord> = Internal.createUniqueKey(ThreadReads.THREAD_READS, DSL.name("thread_reads_pkey"), arrayOf(ThreadReads.THREAD_READS.PROJECT_ID, ThreadReads.THREAD_READS.THREAD_ID, ThreadReads.THREAD_READS.PRINCIPAL_ID), true)
 val THREAD_TASK_IDENTITY: UniqueKey<ThreadsRecord> = Internal.createUniqueKey(Threads.THREADS, DSL.name("thread_task_identity"), arrayOf(Threads.THREADS.PROJECT_ID, Threads.THREADS.TASK_ID, Threads.THREADS.ID), true)
@@ -257,6 +281,11 @@ val MESSAGES__MESSAGES_AUTHOR_ID_FKEY: ForeignKey<MessagesRecord, PrincipalsReco
 val MESSAGES__MESSAGES_PROJECT_ID_THREAD_ID_FKEY: ForeignKey<MessagesRecord, ThreadsRecord> = Internal.createForeignKey(Messages.MESSAGES, DSL.name("messages_project_id_thread_id_fkey"), arrayOf(Messages.MESSAGES.PROJECT_ID, Messages.MESSAGES.THREAD_ID), com.sprintique.database.schema.app.keys.THREADS_PKEY, arrayOf(Threads.THREADS.PROJECT_ID, Threads.THREADS.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
 val MILESTONES__MILESTONE_RELEASE: ForeignKey<MilestonesRecord, ReleasesRecord> = Internal.createForeignKey(Milestones.MILESTONES, DSL.name("milestone_release"), arrayOf(Milestones.MILESTONES.PROJECT_ID, Milestones.MILESTONES.RELEASE_ID), com.sprintique.database.schema.app.keys.RELEASES_PKEY, arrayOf(Releases.RELEASES.PROJECT_ID, Releases.RELEASES.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
 val MILESTONES__MILESTONES_PROJECT_ID_FKEY: ForeignKey<MilestonesRecord, ProjectsRecord> = Internal.createForeignKey(Milestones.MILESTONES, DSL.name("milestones_project_id_fkey"), arrayOf(Milestones.MILESTONES.PROJECT_ID), com.sprintique.database.schema.app.keys.PROJECTS_PKEY, arrayOf(Projects.PROJECTS.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
+val NOTIFICATION_PREFERENCES__NOTIFICATION_PREFERENCES_PRINCIPAL_ID_FKEY: ForeignKey<NotificationPreferencesRecord, PrincipalsRecord> = Internal.createForeignKey(NotificationPreferences.NOTIFICATION_PREFERENCES, DSL.name("notification_preferences_principal_id_fkey"), arrayOf(NotificationPreferences.NOTIFICATION_PREFERENCES.PRINCIPAL_ID), PRINCIPALS_PKEY, arrayOf(Principals.PRINCIPALS.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
+val NOTIFICATIONS__NOTIFICATIONS_ACTOR_ID_FKEY: ForeignKey<NotificationsRecord, PrincipalsRecord> = Internal.createForeignKey(Notifications.NOTIFICATIONS, DSL.name("notifications_actor_id_fkey"), arrayOf(Notifications.NOTIFICATIONS.ACTOR_ID), PRINCIPALS_PKEY, arrayOf(Principals.PRINCIPALS.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
+val NOTIFICATIONS__NOTIFICATIONS_PROJECT_ID_FKEY: ForeignKey<NotificationsRecord, ProjectsRecord> = Internal.createForeignKey(Notifications.NOTIFICATIONS, DSL.name("notifications_project_id_fkey"), arrayOf(Notifications.NOTIFICATIONS.PROJECT_ID), com.sprintique.database.schema.app.keys.PROJECTS_PKEY, arrayOf(Projects.PROJECTS.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
+val NOTIFICATIONS__NOTIFICATIONS_PROJECT_ID_TASK_ID_FKEY: ForeignKey<NotificationsRecord, TasksRecord> = Internal.createForeignKey(Notifications.NOTIFICATIONS, DSL.name("notifications_project_id_task_id_fkey"), arrayOf(Notifications.NOTIFICATIONS.PROJECT_ID, Notifications.NOTIFICATIONS.TASK_ID), com.sprintique.database.schema.app.keys.TASKS_PKEY, arrayOf(Tasks.TASKS.PROJECT_ID, Tasks.TASKS.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
+val NOTIFICATIONS__NOTIFICATIONS_RECIPIENT_ID_FKEY: ForeignKey<NotificationsRecord, PrincipalsRecord> = Internal.createForeignKey(Notifications.NOTIFICATIONS, DSL.name("notifications_recipient_id_fkey"), arrayOf(Notifications.NOTIFICATIONS.RECIPIENT_ID), PRINCIPALS_PKEY, arrayOf(Principals.PRINCIPALS.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
 val OUTBOX__OUTBOX_ID_FKEY: ForeignKey<OutboxRecord, AuditEventsRecord> = Internal.createForeignKey(Outbox.OUTBOX, DSL.name("outbox_id_fkey"), arrayOf(Outbox.OUTBOX.ID), com.sprintique.database.schema.app.keys.AUDIT_EVENTS_PKEY, arrayOf(AuditEvents.AUDIT_EVENTS.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
 val OUTBOX__OUTBOX_PROJECT_ID_FKEY: ForeignKey<OutboxRecord, ProjectsRecord> = Internal.createForeignKey(Outbox.OUTBOX, DSL.name("outbox_project_id_fkey"), arrayOf(Outbox.OUTBOX.PROJECT_ID), com.sprintique.database.schema.app.keys.PROJECTS_PKEY, arrayOf(Projects.PROJECTS.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
 val PERSON_AVATARS__PERSON_AVATARS_PRINCIPAL_ID_FKEY: ForeignKey<PersonAvatarsRecord, PrincipalsRecord> = Internal.createForeignKey(PersonAvatars.PERSON_AVATARS, DSL.name("person_avatars_principal_id_fkey"), arrayOf(PersonAvatars.PERSON_AVATARS.PRINCIPAL_ID), PRINCIPALS_PKEY, arrayOf(Principals.PRINCIPALS.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
@@ -300,6 +329,13 @@ val TASKS__TASKS_OWNER_ID_FKEY: ForeignKey<TasksRecord, PrincipalsRecord> = Inte
 val TASKS__TASKS_PROJECT_ID_FKEY: ForeignKey<TasksRecord, ProjectsRecord> = Internal.createForeignKey(Tasks.TASKS, DSL.name("tasks_project_id_fkey"), arrayOf(Tasks.TASKS.PROJECT_ID), com.sprintique.database.schema.app.keys.PROJECTS_PKEY, arrayOf(Projects.PROJECTS.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
 val TASKS__TASKS_PROJECT_ID_PARENT_ID_FKEY: ForeignKey<TasksRecord, TasksRecord> = Internal.createForeignKey(Tasks.TASKS, DSL.name("tasks_project_id_parent_id_fkey"), arrayOf(Tasks.TASKS.PROJECT_ID, Tasks.TASKS.PARENT_ID), com.sprintique.database.schema.app.keys.TASKS_PKEY, arrayOf(Tasks.TASKS.PROJECT_ID, Tasks.TASKS.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
 val TASKS__TASKS_PROJECT_ID_RELEASE_ID_FKEY: ForeignKey<TasksRecord, ReleasesRecord> = Internal.createForeignKey(Tasks.TASKS, DSL.name("tasks_project_id_release_id_fkey"), arrayOf(Tasks.TASKS.PROJECT_ID, Tasks.TASKS.RELEASE_ID), com.sprintique.database.schema.app.keys.RELEASES_PKEY, arrayOf(Releases.RELEASES.PROJECT_ID, Releases.RELEASES.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
+val TELEGRAM_CONNECTIONS__TELEGRAM_CONNECTIONS_PRINCIPAL_ID_FKEY: ForeignKey<TelegramConnectionsRecord, PrincipalsRecord> = Internal.createForeignKey(TelegramConnections.TELEGRAM_CONNECTIONS, DSL.name("telegram_connections_principal_id_fkey"), arrayOf(TelegramConnections.TELEGRAM_CONNECTIONS.PRINCIPAL_ID), PRINCIPALS_PKEY, arrayOf(Principals.PRINCIPALS.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
+val TELEGRAM_DELIVERIES__TELEGRAM_DELIVERIES_NOTIFICATION_ID_FKEY: ForeignKey<TelegramDeliveriesRecord, NotificationsRecord> = Internal.createForeignKey(TelegramDeliveries.TELEGRAM_DELIVERIES, DSL.name("telegram_deliveries_notification_id_fkey"), arrayOf(TelegramDeliveries.TELEGRAM_DELIVERIES.NOTIFICATION_ID), com.sprintique.database.schema.app.keys.NOTIFICATIONS_PKEY, arrayOf(Notifications.NOTIFICATIONS.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
+val TELEGRAM_DELIVERIES__TELEGRAM_DELIVERIES_PROJECT_ID_FKEY: ForeignKey<TelegramDeliveriesRecord, ProjectsRecord> = Internal.createForeignKey(TelegramDeliveries.TELEGRAM_DELIVERIES, DSL.name("telegram_deliveries_project_id_fkey"), arrayOf(TelegramDeliveries.TELEGRAM_DELIVERIES.PROJECT_ID), com.sprintique.database.schema.app.keys.PROJECTS_PKEY, arrayOf(Projects.PROJECTS.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
+val TELEGRAM_DELIVERIES__TELEGRAM_DELIVERIES_RECIPIENT_ID_FKEY: ForeignKey<TelegramDeliveriesRecord, PrincipalsRecord> = Internal.createForeignKey(TelegramDeliveries.TELEGRAM_DELIVERIES, DSL.name("telegram_deliveries_recipient_id_fkey"), arrayOf(TelegramDeliveries.TELEGRAM_DELIVERIES.RECIPIENT_ID), PRINCIPALS_PKEY, arrayOf(Principals.PRINCIPALS.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
+val TELEGRAM_LINK_TOKENS__TELEGRAM_LINK_TOKENS_PRINCIPAL_ID_FKEY: ForeignKey<TelegramLinkTokensRecord, PrincipalsRecord> = Internal.createForeignKey(TelegramLinkTokens.TELEGRAM_LINK_TOKENS, DSL.name("telegram_link_tokens_principal_id_fkey"), arrayOf(TelegramLinkTokens.TELEGRAM_LINK_TOKENS.PRINCIPAL_ID), PRINCIPALS_PKEY, arrayOf(Principals.PRINCIPALS.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
+val TELEGRAM_PROJECT_SETTINGS__TELEGRAM_PROJECT_SETTINGS_PROJECT_ID_FKEY: ForeignKey<TelegramProjectSettingsRecord, ProjectsRecord> = Internal.createForeignKey(TelegramProjectSettings.TELEGRAM_PROJECT_SETTINGS, DSL.name("telegram_project_settings_project_id_fkey"), arrayOf(TelegramProjectSettings.TELEGRAM_PROJECT_SETTINGS.PROJECT_ID), com.sprintique.database.schema.app.keys.PROJECTS_PKEY, arrayOf(Projects.PROJECTS.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
+val TELEGRAM_PROJECT_SETTINGS__TELEGRAM_PROJECT_SETTINGS_UPDATED_BY_FKEY: ForeignKey<TelegramProjectSettingsRecord, PrincipalsRecord> = Internal.createForeignKey(TelegramProjectSettings.TELEGRAM_PROJECT_SETTINGS, DSL.name("telegram_project_settings_updated_by_fkey"), arrayOf(TelegramProjectSettings.TELEGRAM_PROJECT_SETTINGS.UPDATED_BY), PRINCIPALS_PKEY, arrayOf(Principals.PRINCIPALS.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
 val TEMPORAL_CONSTRAINTS__TEMPORAL_CONSTRAINTS_PROJECT_ID_FKEY: ForeignKey<TemporalConstraintsRecord, ProjectsRecord> = Internal.createForeignKey(TemporalConstraints.TEMPORAL_CONSTRAINTS, DSL.name("temporal_constraints_project_id_fkey"), arrayOf(TemporalConstraints.TEMPORAL_CONSTRAINTS.PROJECT_ID), com.sprintique.database.schema.app.keys.PROJECTS_PKEY, arrayOf(Projects.PROJECTS.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
 val THREAD_READS__THREAD_READS_PRINCIPAL_ID_FKEY: ForeignKey<ThreadReadsRecord, PrincipalsRecord> = Internal.createForeignKey(ThreadReads.THREAD_READS, DSL.name("thread_reads_principal_id_fkey"), arrayOf(ThreadReads.THREAD_READS.PRINCIPAL_ID), PRINCIPALS_PKEY, arrayOf(Principals.PRINCIPALS.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
 val THREAD_READS__THREAD_READS_PROJECT_ID_THREAD_ID_FKEY: ForeignKey<ThreadReadsRecord, ThreadsRecord> = Internal.createForeignKey(ThreadReads.THREAD_READS, DSL.name("thread_reads_project_id_thread_id_fkey"), arrayOf(ThreadReads.THREAD_READS.PROJECT_ID, ThreadReads.THREAD_READS.THREAD_ID), com.sprintique.database.schema.app.keys.THREADS_PKEY, arrayOf(Threads.THREADS.PROJECT_ID, Threads.THREADS.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)

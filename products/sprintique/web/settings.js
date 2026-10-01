@@ -11,6 +11,7 @@ import {can,projectPermissions} from './permissions.js';
 import {mountServiceAccounts} from './service-accounts.js';
 import {mountOperations} from './operations.js';
 import {mountAiConnections} from './ai-connections.js';
+import {mountNotificationSettings,mountProjectTelegram} from './notification-settings.js';
 import {pickPersonalPhoto} from './personal-photo.js';
 import {dialog,input} from '../ui/src/ui.js';
 import {appearance,appearanceDefaults} from './appearance.js';
@@ -113,13 +114,15 @@ export async function mountSettings(root,{repository,project,adapter,onChanged=(
   const base='/projects/'+encodeURIComponent(project.id)+'/profile',data=await client.request(base);if(closed)return;
   const canEdit=can(project,'project.settings'),address=new URL('/?project='+encodeURIComponent(data.slug),location.origin).href;
   const links=s.group({title:'Ссылки на задачи',description:'Не меняются, чтобы старые ссылки продолжали работать.',body:s.panel(s.facts([['Префикс задач',`${s.copyValue(data.key,'Скопировать префикс')}<small>Например, ${esc(data.key)}-128</small>`],['Адрес проекта',s.copyValue(address,'Скопировать адрес проекта')]]))});
-  if(!canEdit){content.innerHTML=await projectLock()+s.group({title:'Основное',body:s.panel(s.facts([['Название проекта',esc(data.name)]]))})+links;}
+  const telegram='<div data-project-telegram-slot></div>';
+  if(!canEdit){content.innerHTML=await projectLock()+s.group({title:'Основное',body:s.panel(s.facts([['Название проекта',esc(data.name)]]))})+links+telegram;}
   else{
-   content.innerHTML=formShell(s.group({title:'Основное',body:s.panel(s.fieldRow('Название проекта','Видно в переключателе, поиске и ссылках.',input('name','Название проекта',data.name,{required:true,maxlength:100})))}))+links;
+   content.innerHTML=formShell(s.group({title:'Основное',body:s.panel(s.fieldRow('Название проекта','Видно в переключателе, поиске и ссылках.',input('name','Название проекта',data.name,{required:true,maxlength:100})))}))+links+telegram;
    const field=content.querySelector('[name=name]');
    bindForm(content.querySelector('form'),{read:()=>({name:field.value.trim()}),after:renderProfile,save:async({name})=>{if(!name)throw Error('Введите название проекта.');const body={baseRevision:data.revision,name};await client.request(base,'PUT',body,await repository.key('project-profile:'+project.id,body));}});
   }
   content.dataset.revision=String(data.revision);enhance(content);
+  void mountProjectTelegram(content.querySelector('[data-project-telegram-slot]'),{client,project});
   return data;
  }
   /** Projects of the workspace: every project for its administrators, one's own projects for other members. */
@@ -168,6 +171,7 @@ export async function mountSettings(root,{repository,project,adapter,onChanged=(
    const tools=renderHeading(item);content.innerHTML=s.skeleton();
    if(section==='appearance')renderAppearance(tools);
    else if(section==='account')await renderAccount();
+   else if(section==='notifications')mounted=await mountNotificationSettings(content,{repository});
    else if(section==='profile')await renderProfile();
    else if(section==='workspace')await renderWorkspace();
    else if(section==='planning')await renderPlanning(tools);

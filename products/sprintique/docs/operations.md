@@ -75,7 +75,52 @@ Migration 038 made the owner of each workspace one of its human administrators (
 UPDATE app.workspace_members SET role = 'owner' WHERE workspace_id = '<workspace id>' AND principal_id = '<principal id>';
 ```
 
-Worker: the `worker` command with `SPRINTIQUE_WORKER_DATABASE_URL` plus the same storage settings. It uses only narrow security-definer queue/asset functions with fixed search paths and lease fencing; no direct tenant-table access. Jobs retry boundedly and become failed after ten attempts. A live project administrator can inspect safe job metadata and retry failed asset cleanup from settings. Cleanup respects task/map-history references. Mail is sent only for sign-in codes and invitations; no webhook or notification dispatcher is configured.
+Worker: the `worker` command with `SPRINTIQUE_WORKER_DATABASE_URL` plus the same storage settings. It uses only narrow security-definer queue/asset functions with fixed search paths and lease fencing; no direct tenant-table access. Jobs retry boundedly and become failed after ten attempts. A live project administrator can inspect safe job metadata and retry failed asset cleanup from settings. Cleanup respects task/map-history references. Mail is sent only for sign-in codes and invitations. The worker also raises deadline reminders and sends queued Telegram messages (see [Notifications and Telegram](#notifications-and-telegram)).
+
+## Notifications and Telegram
+
+Personal notifications ([ADR 0006](decisions/0006-notifications-telegram.md)): a task assigned to a person by someone else, a mention (`@Имя`, `@Имя Фамилия`) in a discussion, a Workbench request addressed to them, and the due date of their task (from 09:00 of the day before, in their Workbench time zone or else the project's). They are raised in the transaction of their cause (`app.task_activity` trigger, the discussion command, `work.raise_due_notifications` in the worker every five minutes), once per cause and person, never for the person's own action, only for enabled people who may read the task, never for service accounts or agents. The bell in the project header lists them (`GET /api/v1/notifications`, `…/unread`, `POST …/read`); a notification of a project the person left is hidden by row security, not deleted. Rows keep codes, dates and ids, no text.
+
+Telegram is optional and hidden without configuration. Settings (API and worker):
+
+| Variable | Meaning |
+| --- | --- |
+| `SPRINTIQUE_TELEGRAM_BOT_TOKEN` | Token from @BotFather. A secret: never logged, kept out of process arguments below. The worker needs it to send. |
+| `SPRINTIQUE_TELEGRAM_BOT_USERNAME` | The bot's username without `@` (`sprintique_bot`), for the `t.me` link. |
+| `SPRINTIQUE_TELEGRAM_WEBHOOK_SECRET` | 16–256 characters `A–Z a–z 0–9 _ -` (`openssl rand -hex 32`); given to `setWebhook`, checked on every webhook call in constant time. |
+| `SPRINTIQUE_TELEGRAM_API_BASE` | Default `https://api.telegram.org`; a test stand points it at a fake (HTTP only on loopback). |
+| `SPRINTIQUE_PUBLIC_ORIGIN` (worker) | The interface origin for the «Открыть задачу» button (`https://<origin>/?project=<slug>#/task/<KEY>`); without HTTPS the button is left out. |
+
+The API refuses to start with only some of the first three, or with a malformed one. People link a chat in Настройки → Уведомления: «Подключить Telegram» makes a one-time token (only its SHA-256 is stored, 15 minutes, five links a quarter of an hour) and opens `https://t.me/<bot>?start=<token>`; «Запустить» in the chat sends `/start <token>` to the webhook, which links that private chat to the person (one chat per person and one person per chat; linking again replaces) and answers in the chat. `/stop` unlinks. Each person chooses kinds for Telegram (all on by default); a project switch in «О проекте» (right «Настраивать проект», on by default) stops the project's messages.
+
+The webhook is `POST /api/v1/telegram/webhook`: public, 404 without configuration, 401 without the secret header `X-Telegram-Bot-Api-Secret-Token`, otherwise always 200 at once; an update is handled once by `update_id` (kept a week), only private text messages are read, and the answer to `/start` and `/stop` rides on the response as a Bot API method (no outgoing call from the API). It is reached on the interface name: nginx of `sprintique.iqui.page` proxies every path to the API, so it needs no change (`api.iqui.page` proxies `/api/` too, but the interface name is the one registered).
+
+Delivery: a notification gets a row in `app.telegram_deliveries` when the person linked a chat, did not mute the kind and the project allows it. The worker claims rows under a one-minute lease and checks again as the person (still linked, still allowed, still able to read the task, the cause still holds, not read in the product yet, raised less than 24 hours ago; otherwise `skipped` with a code), then calls `sendMessage` (HTML, escaped, with the «Открыть задачу» button). A 429 waits at least `retry_after`; other temporary failures back off 10 s, 40 s, 160 s, 640 s; the fifth failure is `failed` with its code (`TELEGRAM_<status>`, `NETWORK`); a 403 (the person blocked the bot) unlinks the chat. Logs carry outcomes and codes only, never tokens, chats, names or text.
+
+**Production (sprintique.iqui.page).** `secrets/telegram.env` (0600) holds the three variables above; it is read by both containers through `env_file` (optional, `required: false`, Docker Compose 2.24 or newer, so a host without it simply has no Telegram). The worker also needs the interface origin for the button:
+
+```sh
+cd /opt/sprintique-vnext
+grep -q '^SPRINTIQUE_PUBLIC_ORIGIN=' secrets/worker.env || echo 'SPRINTIQUE_PUBLIC_ORIGIN=https://sprintique.iqui.page' >> secrets/worker.env
+# Lengths only, never the values: the secret must be 16–256 characters.
+awk -F= '/^SPRINTIQUE_TELEGRAM_/{print $1, length($2)}' secrets/telegram.env
+docker compose --profile migrate run --rm migrate && docker compose up -d api worker
+```
+
+Then register the webhook once (again after changing the secret or the origin). The token and the secret go to curl through its configuration on standard input, so they never appear in the process list or the shell history:
+
+```sh
+cd /opt/sprintique-vnext && ( set -a; . ./secrets/telegram.env; set +a
+  printf 'url = "https://api.telegram.org/bot%s/setWebhook"\ndata-urlencode = "secret_token=%s"\n' \
+    "$SPRINTIQUE_TELEGRAM_BOT_TOKEN" "$SPRINTIQUE_TELEGRAM_WEBHOOK_SECRET" |
+  curl -fsS -K - --data-urlencode 'url=https://sprintique.iqui.page/api/v1/telegram/webhook' \
+    --data-urlencode 'allowed_updates=["message"]' --data-urlencode 'drop_pending_updates=true' )
+# Expect {"ok":true,"result":true,...}. Check: url, pending_update_count, and no last_error_message.
+( set -a; . ./secrets/telegram.env; set +a
+  printf 'url = "https://api.telegram.org/bot%s/getWebhookInfo"\n' "$SPRINTIQUE_TELEGRAM_BOT_TOKEN" | curl -fsS -K - )
+```
+
+`last_error_message` «Wrong response from the webhook: 401» means the secret in `telegram.env` and the one given to `setWebhook` differ; 404 means the API runs without the Telegram variables. To switch Telegram off, remove `secrets/telegram.env`, restart `api worker` and call `deleteWebhook` the same way.
 
 ## Public API and MCP server
 

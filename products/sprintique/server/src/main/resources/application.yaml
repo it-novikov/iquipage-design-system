@@ -54,6 +54,12 @@ sprintique:
     runners: ${SPRINTIQUE_AI_RUNNERS:2}
     timeout-seconds: ${SPRINTIQUE_AI_TIMEOUT_SECONDS:60}
     retry-base-millis: ${SPRINTIQUE_AI_RETRY_BASE_MS:1000}
+  # Notifications in Telegram (optional; hidden without the token, the username and the webhook secret).
+  telegram:
+    bot-token: ${SPRINTIQUE_TELEGRAM_BOT_TOKEN:}
+    bot-username: ${SPRINTIQUE_TELEGRAM_BOT_USERNAME:}
+    webhook-secret: ${SPRINTIQUE_TELEGRAM_WEBHOOK_SECRET:}
+    api-base: ${SPRINTIQUE_TELEGRAM_API_BASE:https://api.telegram.org}
   database:
     url: ${SPRINTIQUE_DATABASE_URL:}
     worker-url: ${SPRINTIQUE_WORKER_DATABASE_URL:}

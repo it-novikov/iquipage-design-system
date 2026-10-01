@@ -37,6 +37,7 @@ data class SprintiqueProperties(
     val features: String = "",
     val workbench: WorkbenchProperties = WorkbenchProperties(),
     val ai: AiProperties = AiProperties(),
+    val telegram: TelegramProperties = TelegramProperties(),
 ) {
     val isProduction: Boolean get() = environment == "production"
     val isSecureOrigin: Boolean get() = URI(publicOrigin).scheme == "https"
@@ -155,4 +156,34 @@ data class AiProperties(
     val retryBaseMillis: Long = 1000,
 ) {
     val isConfigured: Boolean get() = secretsKey.isNotEmpty()
+
+    /** The keys in logs and errors: never their values. */
+    override fun toString(): String =
+        "AiProperties(configured=$isConfigured, secretsKeyVersion=$secretsKeyVersion, allowedHosts=$allowedHosts, " +
+            "runners=$runners, timeoutSeconds=$timeoutSeconds)"
+}
+
+/**
+ * Notifications in Telegram (docs/decisions/0006-notifications-telegram.md). All optional: without the bot token,
+ * its username and the webhook secret the feature does not exist for people. The worker needs the token only.
+ */
+data class TelegramProperties(
+    /** The token from @BotFather (`123456:ABC…`). A secret: never logged. */
+    val botToken: String = "",
+    /** The bot's username without `@`, for the `t.me` link that opens the chat. */
+    val botUsername: String = "",
+    /** The `secret_token` given to `setWebhook`; Telegram sends it back in `X-Telegram-Bot-Api-Secret-Token`. */
+    val webhookSecret: String = "",
+    /** The Bot API origin; a test stand points it at a fake. */
+    val apiBase: String = "https://api.telegram.org",
+) {
+    /** Whether people can link a chat: the webhook and the link both need these. */
+    val isConfigured: Boolean get() = botToken.isNotEmpty() && botUsername.isNotEmpty() && webhookSecret.isNotEmpty()
+
+    /** Whether the worker can send. */
+    val canSend: Boolean get() = botToken.isNotEmpty()
+
+    /** The token in logs and errors: never the value. */
+    override fun toString(): String =
+        "TelegramProperties(botUsername=$botUsername, apiBase=$apiBase, configured=$isConfigured)"
 }

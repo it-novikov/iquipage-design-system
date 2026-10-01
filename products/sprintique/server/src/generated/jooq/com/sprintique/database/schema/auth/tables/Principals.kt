@@ -34,6 +34,9 @@ import com.sprintique.database.schema.app.keys.MAP_TEMPLATE_VERSIONS__MAP_TEMPLA
 import com.sprintique.database.schema.app.keys.MAP_VERSIONS__MAP_VERSIONS_ACTOR_ID_FKEY
 import com.sprintique.database.schema.app.keys.MAP_VOTES__MAP_VOTES_ACTOR_ID_FKEY
 import com.sprintique.database.schema.app.keys.MESSAGES__MESSAGES_AUTHOR_ID_FKEY
+import com.sprintique.database.schema.app.keys.NOTIFICATIONS__NOTIFICATIONS_ACTOR_ID_FKEY
+import com.sprintique.database.schema.app.keys.NOTIFICATIONS__NOTIFICATIONS_RECIPIENT_ID_FKEY
+import com.sprintique.database.schema.app.keys.NOTIFICATION_PREFERENCES__NOTIFICATION_PREFERENCES_PRINCIPAL_ID_FKEY
 import com.sprintique.database.schema.app.keys.PERSON_AVATARS__PERSON_AVATARS_PRINCIPAL_ID_FKEY
 import com.sprintique.database.schema.app.keys.PERSON_PREFERENCES__PERSON_PREFERENCES_PRINCIPAL_ID_FKEY
 import com.sprintique.database.schema.app.keys.PERSON_PROJECT_PREFERENCES__PERSON_PROJECT_PREFERENCES_PRINCIPAL_ID_FKEY
@@ -47,6 +50,10 @@ import com.sprintique.database.schema.app.keys.TASK_ACTIVITY__TASK_ACTIVITY_ACTO
 import com.sprintique.database.schema.app.keys.TASK_ACTIVITY__TASK_ACTIVITY_INITIATOR_ID_FKEY
 import com.sprintique.database.schema.app.keys.TASK_PERSONAL_STATE__TASK_PERSONAL_STATE_PRINCIPAL_ID_FKEY
 import com.sprintique.database.schema.app.keys.TASK_SETTINGS_VERSIONS__TASK_SETTINGS_VERSIONS_ACTOR_ID_FKEY
+import com.sprintique.database.schema.app.keys.TELEGRAM_CONNECTIONS__TELEGRAM_CONNECTIONS_PRINCIPAL_ID_FKEY
+import com.sprintique.database.schema.app.keys.TELEGRAM_DELIVERIES__TELEGRAM_DELIVERIES_RECIPIENT_ID_FKEY
+import com.sprintique.database.schema.app.keys.TELEGRAM_LINK_TOKENS__TELEGRAM_LINK_TOKENS_PRINCIPAL_ID_FKEY
+import com.sprintique.database.schema.app.keys.TELEGRAM_PROJECT_SETTINGS__TELEGRAM_PROJECT_SETTINGS_UPDATED_BY_FKEY
 import com.sprintique.database.schema.app.keys.THREADS__THREADS_RESOLVED_BY_FKEY
 import com.sprintique.database.schema.app.keys.THREAD_READS__THREAD_READS_PRINCIPAL_ID_FKEY
 import com.sprintique.database.schema.app.keys.WORKBENCH_PREFERENCES__WORKBENCH_PREFERENCES_PRINCIPAL_ID_FKEY
@@ -73,6 +80,8 @@ import com.sprintique.database.schema.app.tables.MapVersions.MapVersionsPath
 import com.sprintique.database.schema.app.tables.MapVotes.MapVotesPath
 import com.sprintique.database.schema.app.tables.Maps.MapsPath
 import com.sprintique.database.schema.app.tables.Messages.MessagesPath
+import com.sprintique.database.schema.app.tables.NotificationPreferences.NotificationPreferencesPath
+import com.sprintique.database.schema.app.tables.Notifications.NotificationsPath
 import com.sprintique.database.schema.app.tables.PersonAvatars.PersonAvatarsPath
 import com.sprintique.database.schema.app.tables.PersonPreferences.PersonPreferencesPath
 import com.sprintique.database.schema.app.tables.PersonProjectPreferences.PersonProjectPreferencesPath
@@ -85,6 +94,10 @@ import com.sprintique.database.schema.app.tables.TaskActivity.TaskActivityPath
 import com.sprintique.database.schema.app.tables.TaskPersonalState.TaskPersonalStatePath
 import com.sprintique.database.schema.app.tables.TaskSettingsVersions.TaskSettingsVersionsPath
 import com.sprintique.database.schema.app.tables.Tasks.TasksPath
+import com.sprintique.database.schema.app.tables.TelegramConnections.TelegramConnectionsPath
+import com.sprintique.database.schema.app.tables.TelegramDeliveries.TelegramDeliveriesPath
+import com.sprintique.database.schema.app.tables.TelegramLinkTokens.TelegramLinkTokensPath
+import com.sprintique.database.schema.app.tables.TelegramProjectSettings.TelegramProjectSettingsPath
 import com.sprintique.database.schema.app.tables.ThreadReads.ThreadReadsPath
 import com.sprintique.database.schema.app.tables.Threads.ThreadsPath
 import com.sprintique.database.schema.app.tables.WorkbenchPreferences.WorkbenchPreferencesPath
@@ -576,6 +589,42 @@ open class Principals(
     val messages: MessagesPath
         get(): MessagesPath = messages()
 
+    private lateinit var _notificationPreferences: NotificationPreferencesPath
+
+    fun notificationPreferences(): NotificationPreferencesPath {
+        if (!this::_notificationPreferences.isInitialized)
+            _notificationPreferences = NotificationPreferencesPath(this, null, NOTIFICATION_PREFERENCES__NOTIFICATION_PREFERENCES_PRINCIPAL_ID_FKEY.inverseKey)
+
+        return _notificationPreferences;
+    }
+
+    val notificationPreferences: NotificationPreferencesPath
+        get(): NotificationPreferencesPath = notificationPreferences()
+
+    private lateinit var _notificationsActorIdFkey: NotificationsPath
+
+    fun notificationsActorIdFkey(): NotificationsPath {
+        if (!this::_notificationsActorIdFkey.isInitialized)
+            _notificationsActorIdFkey = NotificationsPath(this, null, NOTIFICATIONS__NOTIFICATIONS_ACTOR_ID_FKEY.inverseKey)
+
+        return _notificationsActorIdFkey;
+    }
+
+    val notificationsActorIdFkey: NotificationsPath
+        get(): NotificationsPath = notificationsActorIdFkey()
+
+    private lateinit var _notificationsRecipientIdFkey: NotificationsPath
+
+    fun notificationsRecipientIdFkey(): NotificationsPath {
+        if (!this::_notificationsRecipientIdFkey.isInitialized)
+            _notificationsRecipientIdFkey = NotificationsPath(this, null, NOTIFICATIONS__NOTIFICATIONS_RECIPIENT_ID_FKEY.inverseKey)
+
+        return _notificationsRecipientIdFkey;
+    }
+
+    val notificationsRecipientIdFkey: NotificationsPath
+        get(): NotificationsPath = notificationsRecipientIdFkey()
+
     private lateinit var _personAvatars: PersonAvatarsPath
 
     fun personAvatars(): PersonAvatarsPath {
@@ -731,6 +780,54 @@ open class Principals(
 
     val tasks: TasksPath
         get(): TasksPath = tasks()
+
+    private lateinit var _telegramConnections: TelegramConnectionsPath
+
+    fun telegramConnections(): TelegramConnectionsPath {
+        if (!this::_telegramConnections.isInitialized)
+            _telegramConnections = TelegramConnectionsPath(this, null, TELEGRAM_CONNECTIONS__TELEGRAM_CONNECTIONS_PRINCIPAL_ID_FKEY.inverseKey)
+
+        return _telegramConnections;
+    }
+
+    val telegramConnections: TelegramConnectionsPath
+        get(): TelegramConnectionsPath = telegramConnections()
+
+    private lateinit var _telegramDeliveries: TelegramDeliveriesPath
+
+    fun telegramDeliveries(): TelegramDeliveriesPath {
+        if (!this::_telegramDeliveries.isInitialized)
+            _telegramDeliveries = TelegramDeliveriesPath(this, null, TELEGRAM_DELIVERIES__TELEGRAM_DELIVERIES_RECIPIENT_ID_FKEY.inverseKey)
+
+        return _telegramDeliveries;
+    }
+
+    val telegramDeliveries: TelegramDeliveriesPath
+        get(): TelegramDeliveriesPath = telegramDeliveries()
+
+    private lateinit var _telegramLinkTokens: TelegramLinkTokensPath
+
+    fun telegramLinkTokens(): TelegramLinkTokensPath {
+        if (!this::_telegramLinkTokens.isInitialized)
+            _telegramLinkTokens = TelegramLinkTokensPath(this, null, TELEGRAM_LINK_TOKENS__TELEGRAM_LINK_TOKENS_PRINCIPAL_ID_FKEY.inverseKey)
+
+        return _telegramLinkTokens;
+    }
+
+    val telegramLinkTokens: TelegramLinkTokensPath
+        get(): TelegramLinkTokensPath = telegramLinkTokens()
+
+    private lateinit var _telegramProjectSettings: TelegramProjectSettingsPath
+
+    fun telegramProjectSettings(): TelegramProjectSettingsPath {
+        if (!this::_telegramProjectSettings.isInitialized)
+            _telegramProjectSettings = TelegramProjectSettingsPath(this, null, TELEGRAM_PROJECT_SETTINGS__TELEGRAM_PROJECT_SETTINGS_UPDATED_BY_FKEY.inverseKey)
+
+        return _telegramProjectSettings;
+    }
+
+    val telegramProjectSettings: TelegramProjectSettingsPath
+        get(): TelegramProjectSettingsPath = telegramProjectSettings()
 
     private lateinit var _threadReads: ThreadReadsPath
 
