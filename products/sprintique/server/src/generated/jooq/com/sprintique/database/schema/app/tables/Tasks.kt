@@ -32,6 +32,7 @@ import com.sprintique.database.schema.app.tables.Threads.ThreadsPath
 import com.sprintique.database.schema.app.tables.records.TasksRecord
 import com.sprintique.database.schema.auth.tables.Principals.PrincipalsPath
 
+import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.OffsetDateTime
 
@@ -145,6 +146,10 @@ open class Tasks(
     val COVER_CROP: TableField<TasksRecord, JSONB?> = createField(DSL.name("cover_crop"), SQLDataType.JSONB, this, "")
 
     val OWNER_ID: TableField<TasksRecord, String?> = createField(DSL.name("owner_id"), SQLDataType.CLOB, this, "")
+
+    val ESTIMATE_VALUE: TableField<TasksRecord, BigDecimal?> = createField(DSL.name("estimate_value"), SQLDataType.NUMERIC(8, 2), this, "")
+
+    val ESTIMATE_UNIT: TableField<TasksRecord, String?> = createField(DSL.name("estimate_unit"), SQLDataType.CLOB, this, "")
 
     private constructor(alias: Name, aliased: Table<TasksRecord>?): this(alias, null, null, null, aliased, null, null)
     private constructor(alias: Name, aliased: Table<TasksRecord>?, parameters: Array<Field<*>?>?): this(alias, null, null, null, aliased, parameters, null)
@@ -268,6 +273,7 @@ open class Tasks(
         get(): ThreadsPath = threads()
     override fun getChecks(): List<Check<TasksRecord>> = listOf(
         Internal.createCheck(this, DSL.name("task_cover_attachment"), "(((cover_attachment_id IS NULL) OR (cover_attachment_id = ANY (attachment_ids))))", true),
+        Internal.createCheck(this, DSL.name("task_estimate"), "((((estimate_value IS NULL) AND (estimate_unit IS NULL)) OR ((estimate_value IS NOT NULL) AND (estimate_value > (0)::numeric) AND (estimate_unit = ANY (ARRAY['h'::text, 'd'::text, 'w'::text, 'sp'::text])))))", true),
         Internal.createCheck(this, DSL.name("task_planned_interval"), "(((planned_start IS NULL) OR (planned_end IS NULL) OR (planned_start <= planned_end)))", true),
         Internal.createCheck(this, DSL.name("tasks_assignment_mode_check"), "((assignment_mode = ANY (ARRAY['inherit'::text, 'assigned'::text, 'none'::text])))", true),
         Internal.createCheck(this, DSL.name("tasks_check"), "((parent_id IS DISTINCT FROM id))", true),
