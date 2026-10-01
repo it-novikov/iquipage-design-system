@@ -17,17 +17,17 @@ export async function mountNotificationSettings(root,{repository}){
     const telegramState=telegramStatus(data.telegram),email=emailStatus(data.email),choice=data.preferences;
     // Plain sentences, no lists (DS copy rule): what the bell shows is said once.
     const inProduct=s.group({title:'В Sprintique',
-      body:s.panel(s.row({media:s.tile('bell'),title:'Колокольчик в шапке',meta:['Назначения, упоминания, запросы и сроки ваших задач. Эти уведомления всегда включены.']}))});
+      body:s.panel(s.row({title:'Колокольчик в шапке',meta:['Назначения, упоминания, запросы и сроки ваших задач. Эти уведомления всегда включены.']}))});
     if(!hasChannels(data)){root.innerHTML=inProduct;return;}
     const rows=[];
-    if(email)rows.push(s.row({media:s.tile('message'),title:'Почта',meta:[`<b>${esc(email.address)}</b>`,esc(email.meta)],
+    if(email)rows.push(s.row({title:'Почта',meta:[`<b>${esc(email.address)}</b>`,esc(email.meta)],
       actions:ui.toggle('Уведомления на почту',choice.channels.email,'data-notification-channel="email"',false),attrs:'data-email-status'}));
     if(telegramState){
       const waitNote=!telegramState.connected&&link?`Ждём «Запустить» в чате. <a href="${esc(link)}" target="_blank" rel="noopener noreferrer">Открыть Telegram ещё раз</a>`:'';
       const actions=telegramState.connected
         ?ui.btn('Отключить','ghost sm','','data-telegram-action="disconnect"')+ui.toggle('Уведомления в Telegram',choice.channels.telegram,'data-notification-channel="telegram"',false)
         :ui.btn('Подключить Telegram','primary sm','send',`data-telegram-action="connect"${busy?' disabled aria-busy="true"':''}`);
-      rows.push(s.row({media:s.tile('send'),title:'Telegram',meta:[esc(telegramState.meta),waitNote],actions,attrs:'data-telegram-status'}));
+      rows.push(s.row({title:'Telegram',meta:[esc(telegramState.meta),waitNote],actions,attrs:'data-telegram-status'}));
     }
     const channels=s.group({title:'Куда присылать',description:'Уведомления собираются и приходят вместе, одним сообщением или письмом. Изменения сохраняются сразу.',body:s.panel(rows.join(''))});
     const kinds=s.group({title:'О чём сообщать',description:'Для почты и Telegram. В колокольчике видно всё.',
@@ -91,7 +91,7 @@ export async function mountProjectNotifications(slot,{client,project,lock=''}){
   if(!data.available||!slot.isConnected)return;
   const render=()=>{slot.innerHTML=s.group({title:'Внешние уведомления',
     description:'Участники получают уведомления о задачах этого проекта на почту и в Telegram, если включили их у себя. В Sprintique уведомления видны всегда.',
-    body:(data.canChange?'':lock)+s.panel(s.row({media:s.tile('bell'),title:'Отправлять на почту и в Telegram',meta:[data.enabled?'Включено для всех участников проекта.':'Выключено: уведомления проекта остаются только в Sprintique.'],
+    body:(data.canChange?'':lock)+s.panel(s.row({title:'Отправлять на почту и в Telegram',meta:[data.enabled?'Включено для всех участников проекта.':'Выключено: уведомления проекта остаются только в Sprintique.'],
       actions:ui.toggle('Отправлять на почту и в Telegram',data.enabled,`data-project-notifications${data.canChange?'':' disabled'}`,false)}))});};
   render();
   slot.addEventListener('change',async event=>{
