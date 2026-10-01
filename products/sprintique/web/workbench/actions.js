@@ -148,7 +148,7 @@ export function createActions({api,repository,view,projects,filter,openTask,open
       return run(li,async()=>{
         const accepted=await api.accept(row.projectId,row.taskId,row.personal.acceptRevision,true);
         if(row.updates)await api.seen(row.projectId,row.taskId,row.personal.seenRevision,row.updates.latestSequence).catch(()=>null);
-        settle(li,{text:`<b>Результат принят</b> · ${esc(row.displayId)} · вы участвуете дальше`,undo:()=>api.accept(row.projectId,row.taskId,accepted.revision,false)});
+        settle(li,{text:`<b>Результат принят</b> · ${esc(row.displayId)} · вы наблюдаете дальше`,undo:()=>api.accept(row.projectId,row.taskId,accepted.revision,false)});
       });
     },
     rank(li,row,move){
@@ -170,13 +170,13 @@ export function createActions({api,repository,view,projects,filter,openTask,open
       try{const result=await api.seenAll(generatedAt,filter());announce(`Просмотрено: ${result.marked}`);await view.reload();}
       catch(error){fail(null,error);}finally{button.disabled=false;}
     },
-    /** Participation from a row: J on the row or «Перестать участвовать» in its menu, with undo. */
+    /** Participation from a row: J on the row or «Перестать наблюдать» in its menu, with undo. */
     toggleParticipation(li,row){
       return run(li,async()=>{
         const joining=!row.personal.participating;
         const saved=await api.participation(row.projectId,row.taskId,row.personal.participationRevision,joining);
-        if(joining){announce(`Вы участвуете: ${row.displayId}`);await view.reload({focusKey:row.key});return;}
-        settle(li,{text:`Вы больше не участвуете · ${esc(row.displayId)}${row.group==='active'?' · назначенная вам задача остаётся «В работе»':''}`,tone:'info',
+        if(joining){announce(`Вы наблюдаете: ${row.displayId}`);await view.reload({focusKey:row.key});return;}
+        settle(li,{text:`Вы больше не наблюдаете · ${esc(row.displayId)}${row.group==='active'?' · назначенная вам задача остаётся «В работе»':''}`,tone:'info',
           undo:()=>api.participation(row.projectId,row.taskId,saved.revision,true)});
       });
     },

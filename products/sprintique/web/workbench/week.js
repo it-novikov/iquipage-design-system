@@ -51,12 +51,12 @@ export function mountWeek(host,{api,filter,horizon:initial='7d',openTask,announc
       }).join('')}</div>
       <section class="dsk-widget dsk-undated-section" id="undated" aria-labelledby="dsk-undated-h">
         <div class="iq-section-head">${icon('clock',18)}<h2 id="dsk-undated-h" tabindex="-1">Без времени</h2><span class="iq-section-count">${plan.summary.undatedCount}</span>
-          <span class="dsk-hint">участвуете, дат нет — это не ошибка</span></div>
+          <span class="dsk-hint">наблюдаете, дат нет — это не ошибка</span></div>
         ${plan.undated.length?`<ul class="dsk-changes" data-list>${plan.undated.map(i=>`<li class="dsk-chg" data-row data-key="${esc(i.key)}" data-project="${esc(i.projectId)}" data-task="${esc(i.task.id)}" tabindex="-1">
           <span class="dsk-key">${esc(i.task.displayId)}</span><div class="dsk-chg-copy"><a class="dsk-title" href="${esc(i.canonicalUrl)}" data-open>${esc(i.task.title)}</a>
           <span class="dsk-chg-what">${esc(i.relation==='assigned'?'назначена вам':i.task.owner?.name?`исполняет ${i.task.owner.name}`:'не назначена')}</span></div><span class="dsk-project">${esc(i.projectName)}</span></li>`).join('')}</ul>
           ${plan.summary.undatedTruncated?`<p class="dsk-hint">Показано ${plan.undated.length} из ${plan.summary.undatedCount} ${plural(plan.summary.undatedCount,'задачи','задач','задач')}</p>`:''}`
-          :'<p class="dsk-hint">Все задачи, в которых вы участвуете, имеют даты.</p>'}
+          :'<p class="dsk-hint">Все задачи, за которыми вы наблюдаете, имеют даты.</p>'}
       </section>`;
     arm(host);
   }

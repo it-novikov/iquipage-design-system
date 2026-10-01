@@ -64,7 +64,7 @@ ${ui.btn('Задача','primary sm','plus','data-create-task aria-label="Соз
   }
   function mountContent(){
     content?.destroy();const host=root.querySelector('[data-content]');
-    if(!session.projects.length){host.innerHTML=`<div class="dsk-first-run">${icon('users',20)}<div><h2>Рабочий стол собирается из ваших отношений к задачам</h2><p>Запросы к вам лично, задачи, которые вам назначены или в которых вы участвуете, и их изменения. Проектов пока нет.</p>${ui.btn('Открыть проекты','secondary sm','folder','data-projects')}</div></div>`;content=null;setSummary([]);return;}
+    if(!session.projects.length){host.innerHTML=`<div class="dsk-first-run">${icon('users',20)}<div><h2>Рабочий стол собирается из ваших отношений к задачам</h2><p>Запросы к вам лично, задачи, которые вам назначены или за которыми вы наблюдаете, и их изменения. Проектов пока нет.</p>${ui.btn('Открыть проекты','secondary sm','folder','data-projects')}</div></div>`;content=null;setSummary([]);return;}
     const common={api,repository,projects,filter:()=>filter,prefs,savePrefs,announce,setUpdated,
       openTask:(row,options={})=>void openTask({projectId:row.projectId,taskId:row.taskId},{key:row.key,...options}),
       openProject:(projectId,taskId)=>void leave(()=>onOpenProject(projectId,taskId)),onNavigate:(v,href)=>setView(v,href)};

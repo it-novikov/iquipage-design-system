@@ -1,8 +1,8 @@
-// The Workbench's part of the task drawer (design-v2 §5.4, §11.3): the «Участвую» toggle in the header and, when
-// someone asks the person something on this task, the request card with its verb, a text answer, and «Отложить до».
-// Reading never resolves a request; everything here is checked again by the server.
+// The Workbench's part of the task drawer (design-v2 §5.4, §11.3): the «Наблюдаю» eye among the header's icon buttons
+// and, when someone asks the person something on this task, the request card with its verb, a text answer, and
+// «Отложить до». Reading never resolves a request; everything here is checked again by the server.
 import {ui,icon,escapeHTML as esc,notify} from '@iquipage/web/core';
-import {ageLabel,dayLabel,snoozePresets,VERBS} from './model.js';
+import {ageLabel,dayLabel,snoozePresets,VERBS,watchToggle} from './model.js';
 import {cancelPending,commitPending as pendingCommit,hold,isPending,release} from './pending.js';
 
 const ACTION_OF={review:'review',approval:'approve',do:'do',answer:'question',decision:'decision'};
@@ -10,15 +10,25 @@ const ACTION_OF={review:'review',approval:'approve',do:'do',answer:'question',de
 export function mountPersonalPanel(section,{api,projectId,taskId,actorId,actions,parts,answer=false,onChanged}){
   const events=new AbortController();
   let state=null,destroyed=false;
+  // «Наблюдаю» (API `participating`): an icon-only toggle of the same family as cover, full screen and close
+  // (owner's decision 2026-10-01), placed right before them, after the text actions such as «Открыть проект».
   const join=document.createElement('button');
-  join.type='button';join.className='iq-btn ghost sm dsk-join';join.dataset.join='';join.hidden=!parts.personal;
-  actions?.prepend(join);
+  join.type='button';join.className='iq-btn ghost icon sm dsk-join';join.dataset.join='';join.innerHTML=icon('eye',18);
+  let tip=tooltipAround(join);tip.hidden=!parts.personal;
+  actions?.insertBefore(tip,actions.querySelector(':scope > .iq-btn.icon'));
 
+  function tooltipAround(button){
+    const wrap=document.createElement('iq-tooltip');wrap.className='dsk-watch-tip';wrap.append(button);return wrap;
+  }
   function renderJoin(){
-    const on=!!state?.participating;
-    join.setAttribute('aria-pressed',String(on));
-    join.innerHTML=`${icon('users',16)}<span>${on?'Участвую':'Участвовать'}</span>`;
-    join.title=on?'Задача на вашем Рабочем столе, изменения приходят в «Изменилось». Нажмите, чтобы выйти':'Держать задачу на Рабочем столе и получать её изменения';
+    const view=watchToggle(!!state?.participating);
+    join.setAttribute('aria-pressed',view.pressed);join.setAttribute('aria-label',view.label);
+    if(tip.getAttribute('heading')===view.heading)return;
+    // The DS tooltip reads its text once, when connected: a new state gets a new tooltip around the same button.
+    const focused=document.activeElement===join,next=tooltipAround(join);
+    next.setAttribute('heading',view.heading);next.setAttribute('text',view.text);next.hidden=tip.hidden;
+    if(tip.isConnected)tip.replaceWith(next);
+    tip=next;if(focused)join.focus({preventScroll:true});
   }
   function renderRequests(){
     const mine=(state?.requests||[]).filter(r=>r.status==='open'&&r.recipientId===actorId);
@@ -48,13 +58,14 @@ export function mountPersonalPanel(section,{api,projectId,taskId,actorId,actions
     if(destroyed)return;renderJoin();renderRequests();
   }
   join.addEventListener('click',()=>void(async()=>{
-    if(!state)return;join.disabled=true;
+    if(!state)return;const had=document.activeElement===join;join.disabled=true;
     try{
       await api.participation(projectId,taskId,state.participationRevision,!state.participating);
       await load();onChanged?.();
-      notify({tone:'info',message:state.participating?'Вы участвуете':'Вы больше не участвуете',duration:3000});
+      notify({tone:'info',message:state.participating?'Вы наблюдаете за задачей':'Вы больше не наблюдаете за задачей',duration:3000});
     }catch(error){notify({tone:'danger',message:'Не получилось',description:error.message});}
-    finally{join.disabled=false;}
+    // Disabling drops the focus to the page: a keyboard press keeps it on the toggle.
+    finally{join.disabled=false;if(had&&!destroyed&&(!document.activeElement||document.activeElement===document.body))join.focus({preventScroll:true});}
   })(),{signal:events.signal});
   section.addEventListener('click',event=>{
     const button=event.target.closest('button');if(!button)return;
@@ -149,6 +160,6 @@ export function mountPersonalPanel(section,{api,projectId,taskId,actorId,actions
     /** An answer typed and not sent is an unsaved change of the drawer: closing asks first (review R4 F5). */
     dirty:()=>[...section.querySelectorAll('[data-answer]:not([hidden]) textarea')].some(area=>area.value.trim()!==''),
     // A decision still waiting is sent when the drawer closes (the Workbench row's own waits for its timer).
-    destroy(){destroyed=true;for(const id of started)if(isPending(id))void pendingCommit(id);events.abort();join.remove();},
+    destroy(){destroyed=true;for(const id of started)if(isPending(id))void pendingCommit(id);events.abort();tip.remove();},
   };
 }
