@@ -26,6 +26,7 @@ A database created by the previous TypeScript migrator (`public.schema_migration
 | `workbench_waiting` | "Жду": participating tasks the person assigned to someone else, with a private check-back date |
 | `workbench_plan_horizon` | `GET /api/v1/workbench/plan` (Сегодня / 7 дней) and the time-zone preference |
 | `workbench_mvp` | The "Рабочий стол" item in the global navigation for everyone |
+| `ai_agents` | AI connections of workspaces, agents of service accounts and their runs on tasks (see [AI connections and agents](#ai-connections-and-agents)) |
 
 Production default: all off. A pilot names them explicitly, for example `SPRINTIQUE_FEATURES=workbench_read_internal,workbench_personal_state,workbench_requests,workbench_waiting,workbench_plan_horizon` (internal) plus `workbench_mvp` for the cohort. `SPRINTIQUE_WORKBENCH_CURSOR_SECRET` (32+ characters) signs the Workbench page cursors; without it each API process uses a random key, so cursors do not survive a restart and several API processes need one shared value. Workbench logs and metrics carry routes and status classes only, never titles, project names or cursors.
 
@@ -110,6 +111,30 @@ MCP tools: `list_projects`, `search_tasks`, `get_task` (with subtasks and the la
 **Connecting Claude.** In Claude: Settings → Connectors → Add custom connector, URL `https://api.iqui.page/mcp`, no client id or secret. Claude registers itself, opens the consent screen of `sprintique.iqui.page`; sign in, choose one of your service accounts or create a new one (a workspace and your projects), check the rights (untick «Изменять» for read-only) and press «Разрешить». The app then appears under that account in «Сервисные аккаунты», where «Отключить» ends it at once. Claude Code: `claude mcp add --transport http sprintique https://api.iqui.page/mcp`, then `/mcp` to sign in. Other clients connect the same way, or with a service token in `Authorization: Bearer`.
 
 Audit and limits: changes made with a token carry `credential_kind` and, for OAuth, `client_id` in `app.audit_events`; accounts made, changed, suspended, reassigned and deleted, project grants, tokens made and revoked, apps connected and revoked and detected replays are in `auth.access_events` (identifiers only). Logs name the OAuth grant type, error codes and MCP tool names with outcome and duration, never bodies, arguments, codes or tokens. `/internal/metrics` adds `mcpToolCalls` by tool and outcome. Each bearer credential has its own window of 600 requests a minute (in this process; all access tokens of one OAuth connection share it), counted once the token is found live. Requests with a bearer token do not spend the per-address window, because an assistant's servers carry many people's tokens from a few addresses; a bearer header that proves no live credential costs its address one request, and an address whose window is spent is refused whatever it carries. The address budgets still apply to the token endpoint (1,000 a minute) and registration (20 a minute): if many people connect through one assistant at once, raise them or exempt its addresses at the proxy.
+
+## AI connections and agents
+
+Service accounts can think with a language model and work on tasks inside Sprintique ([ADR 0005](decisions/0005-ai-agents.md)). Feature switch `ai_agents` (off in production until named).
+
+| Setting | Meaning |
+| --- | --- |
+| `SPRINTIQUE_SECRETS_KEY` | Required for the feature. Base64 of 32 random bytes: the AES-256-GCM key that seals the API keys of AI connections. Generate with `openssl rand -base64 32`, keep it in the secrets store next to the database password, never in Git or logs. Without it the settings say that connections are not configured and no agent runs. |
+| `SPRINTIQUE_SECRETS_KEY_VERSION` | Version stored with every sealed key (default `1`). |
+| `SPRINTIQUE_SECRETS_PREVIOUS_KEYS` | Earlier keys still needed after a rotation: `1:<base64>,2:<base64>`. |
+| `SPRINTIQUE_AI_ALLOWED_HOSTS` | Comma-separated `host` or `host:port` that a connection may reach over plain `http` or at a private address (a local vLLM or Ollama). Empty: only public `https`. |
+| `SPRINTIQUE_AI_RUNNERS` | Agent runs worked on at once in this API process (default `2`, `0` = none here). |
+| `SPRINTIQUE_AI_TIMEOUT_SECONDS` | Longest wait for one provider answer (default `60`). |
+| `SPRINTIQUE_AI_RETRY_BASE_MS` | First pause before retrying a 429/5xx/timeout (default `1000`, doubles, two retries). |
+
+**Rotating the secrets key.** Set the new key with `SPRINTIQUE_SECRETS_KEY_VERSION` one higher and move the old one to `SPRINTIQUE_SECRETS_PREVIOUS_KEYS` (`<old version>:<old key>`); restart. Keys sealed earlier still open; each is resealed with the new key when its connection's key is replaced in settings. Once every connection was saved again (`SELECT count(*) FROM app.ai_connection_secrets WHERE key_version<>$new` as the migration role is 0), drop the old key. A lost key cannot be recovered: connections then answer `AI_KEY_UNREADABLE` and their keys are entered again.
+
+**Production steps.** 1) Generate the key, add `SPRINTIQUE_SECRETS_KEY` to the API's environment (`/opt/sprintique-vnext/secrets/`), add `ai_agents` to `SPRINTIQUE_FEATURES`. 2) Deploy (migrations 046–047). 3) The API must reach the providers over HTTPS (`api.anthropic.com`, `api.openai.com`, `openrouter.ai`…); nothing else to open. The worker is not involved: agents run in the API process, which has the runtime role they act through.
+
+**Trying it with a real key (from the interface only).** Settings → Пространство → «ИИ-подключения» → «Добавить подключение»: Anthropic with a Claude key, OpenAI with a ChatGPT key, or «Совместимый с OpenAI» with `https://openrouter.ai/api/v1` and an OpenRouter key; then «Проверить» (a list of models; nothing is generated). Make a service account with «Сервис: задачи» in a test project, open it → «Агент» → «Настроить агента»: the connection, a model (for example `claude-sonnet-4-5`, `gpt-5-mini`, `anthropic/claude-sonnet-4.5`), short instructions, low limits. Assign a test task to the account or open the task → spark button → «Запустить …». The line above «Обсуждения» shows the run; the answer arrives as the account's comment. Keys are never shown again, never logged and never in error texts.
+
+**What an agent can do.** Exactly what its service account may do in the project, through the MCP task tools (read and search tasks, releases, milestones; comment; change fields and status; create tasks), checked on every call by the application and row security, never above its owner. Each run gets its own `runtime` credential (one project, no secret, revoked at the end); changes are audited with `credential_kind='runtime'`, the account as actor and its owner as initiator. Runs and steps are in `app.ai_agent_runs` and `app.ai_agent_run_steps` (tool names, short argument summaries, tokens, cost when the provider reports it — never prompts or keys); the conversation is kept only while a run is active. Logs carry run ids, tool names and error classes only.
+
+**Limits.** Per agent: steps per run (default 12, ≤ 50), output tokens per step (2048, ≤ 32000), runs per hour (20, ≤ 200); a run ends after 20 minutes; one active run per task and account. Provider answers ≤ 2 MiB, no redirects, private and loopback addresses refused unless allowed. To stop everything at once: switch `ai_agents` off (runners stop, routes answer 404) or set `SPRINTIQUE_AI_RUNNERS=0`; to stop one workspace, delete its connection (the key is erased, its agents switch off).
 
 ## Containers
 
