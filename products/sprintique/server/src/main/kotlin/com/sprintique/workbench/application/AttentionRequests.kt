@@ -362,13 +362,18 @@ object AttentionRequests {
         return current
     }
 
-    /** A current human member who can act on the task: changes tasks there («Менять задачи»), not disabled. */
+    /**
+     * A current member who can act on the task: changes tasks there («Менять задачи»), not disabled. A service account
+     * that may act is one too (docs/decisions/0008-mentions-and-service-inbox.md): the request reaches its inbox, it
+     * answers in the discussion, and a person resolves the request.
+     */
     private fun requireRecipient(tx: Transaction, projectId: String, recipientId: String) {
         val member = tx.row(
             """
             SELECT 'tasks.write' = ANY(m.permissions) AS writes FROM app.project_members m
             JOIN auth.principals p ON p.id = m.principal_id
-            WHERE m.project_id = $1 AND m.principal_id = $2 AND p.kind = 'human' AND p.disabled_at IS NULL
+            WHERE m.project_id = $1 AND m.principal_id = $2 AND p.disabled_at IS NULL
+              AND (p.kind = 'human' OR (p.kind = 'service' AND auth.service_account_active(p.id)))
             """.trimIndent(),
             projectId,
             recipientId,

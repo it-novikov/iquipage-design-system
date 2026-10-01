@@ -283,6 +283,21 @@ internal object ApiQueries {
             ),
         )
 
+        "/api/v1/inbox" -> listOf(
+            query(
+                "unreadOnly",
+                mapOf("type" to "string", "enum" to listOf("true", "false"), "default" to "true"),
+            ),
+            cursor,
+            query(
+                "limit",
+                mapOf(
+                    "type" to "integer", "minimum" to 1, "maximum" to NOTIFICATION_PAGE,
+                    "default" to NOTIFICATION_DEFAULT,
+                ),
+            ),
+        )
+
         "/api/v1/workbench" -> listOf(
             query("mode", mapOf("type" to "string", "enum" to listOf("now"))),
             workbenchProjects,

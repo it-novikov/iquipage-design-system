@@ -47,7 +47,9 @@ class McpToolSchemaTest {
     @Test
     fun `only the changing tools need the write scope and there is no generic tool`() {
         assertThat(tools.all.filter { it.write }.map { it.name })
-            .containsExactlyInAnyOrder("create_task", "update_task", "change_task_status", "add_task_comment")
+            .containsExactlyInAnyOrder(
+                "create_task", "update_task", "change_task_status", "add_task_comment", "mark_inbox_read",
+            )
         assertThat(tools.all.map { it.name }).noneMatch { it.contains("sql") || it.contains("execute") }
     }
 }
