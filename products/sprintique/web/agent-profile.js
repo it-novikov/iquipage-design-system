@@ -19,7 +19,7 @@ function modelField(value,models){
 /** When the agent starts, as one sentence: «Начинает работу, когда …, когда … и по кнопке в задаче». */
 function startsWhen(p,name){
   const parts=[p.onAssignment?'когда на аккаунт назначают задачу':'',p.onMention!==false?`когда его упоминают в обсуждении (@${name})`:'','по кнопке в задаче'].filter(Boolean);
-  return 'Начинает работу '+(parts.length>1?parts.slice(0,-1).join(', ')+' и ':'')+parts.at(-1);
+  return 'Начинает работу'+(parts.length>1?', ':' ')+(parts.length>1?parts.slice(0,-1).join(', ')+' и ':'')+parts.at(-1);
 }
 const number=(name,label,value,min,max)=>input(name,label,String(value),{type:'number',required:true,maxlength:7}).replace('<input ',`<input min="${min}" max="${max}" step="1" inputmode="numeric" `);
 
