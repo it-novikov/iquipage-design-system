@@ -14,12 +14,13 @@ export async function mountNotificationSettings(root,{repository}){
   let data=await client.request('/profile/notifications'),busy=false,waiting=0,waitUntil=0,link=null,closed=false;
   function render(){
     const status=telegramStatus(data.telegram);
-    const inProduct=s.group({title:'В Sprintique',description:'Колокольчик в шапке показывает то, что ждёт вашего действия. Эти уведомления всегда включены.',
-      body:s.panel(TELEGRAM_KINDS.map(k=>s.row({title:k.title,meta:[esc(k.hint)]})).join(''))});
+    // Plain sentences, no lists (DS copy rule): what the bell shows is said once.
+    const inProduct=s.group({title:'В Sprintique',
+      body:s.panel(s.row({media:s.tile('bell'),title:'Колокольчик в шапке',meta:['Назначения, упоминания, запросы и сроки ваших задач. Эти уведомления всегда включены.']}))});
     if(!status){root.innerHTML=inProduct;return;}
     const connectAction=status.connected?ui.btn('Отключить','ghost sm','','data-telegram-action="disconnect"')
       :ui.btn('Подключить Telegram','primary sm','send',`data-telegram-action="connect"${busy?' disabled aria-busy="true"':''}`);
-    const waitNote=!status.connected&&link?`<a href="${esc(link)}" target="_blank" rel="noopener noreferrer">Открыть Telegram ещё раз</a> · ждём «Запустить» в чате`:'';
+    const waitNote=!status.connected&&link?`Ждём «Запустить» в чате. <a href="${esc(link)}" target="_blank" rel="noopener noreferrer">Открыть Telegram ещё раз</a>`:'';
     const telegram=s.group({title:'Telegram',description:'Бот пишет вам лично. Ссылка для подключения действует 15 минут и только один раз.',
       body:s.panel(s.row({media:s.tile('send'),title:status.title,meta:[esc(status.meta),waitNote],actions:connectAction,attrs:'data-telegram-status'}))});
     // What goes to Telegram is chosen once there is a chat to send to; until then the kinds are listed below.

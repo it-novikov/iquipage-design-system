@@ -107,8 +107,9 @@ class TelegramAccounts(private val properties: SprintiqueProperties, private val
         val token = Tokens.random()
         val expiresAt = tx.row(
             """
-            INSERT INTO app.telegram_link_tokens(token_sha256, principal_id, expires_at)
-            VALUES ($1, $2, clock_timestamp() + interval '15 minutes') RETURNING expires_at AS "expiresAt"
+            WITH moment AS (SELECT clock_timestamp() AS at)
+            INSERT INTO app.telegram_link_tokens(token_sha256, principal_id, created_at, expires_at)
+            SELECT $1, $2, at, at + interval '15 minutes' FROM moment RETURNING expires_at AS "expiresAt"
             """.trimIndent(),
             Tokens.sha256Hex(token),
             actor.id,
