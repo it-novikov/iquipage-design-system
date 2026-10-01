@@ -1,212 +1,323 @@
-import {quickFieldDialog} from './quick-field.js';
-import {orderDialog} from './order-dialog.js';
-import {TableWindow} from '@iquipage/web/work-list';
-import {plural} from './markup.js';
+import {registerCore,notify,bindTreeDrag,escapeHTML as esc} from '@iquipage/web/core';
+import {PlanningOperation} from './operation.js';
+import {operationDialog} from './dialog.js';
+import {openMenu,closePopover} from '../../src/popover.js';
+import {estimateEditor,formatSum} from '../../src/estimate.js';
 import {loadingMarkup} from '../../src/loading.js';
-import {mountPlanningDrag} from './row-interactions.js';
-import {filterDialog} from './filter-dialog.js';
-import {mountTemporalView} from './temporal-view.js';
-import {groupHeader} from './group-header.js';
-import {closeReleaseDialog,editReleaseDialog,historyDialog,bulkDialog} from './release-dialogs.js';
-import {registerCore,ui,icon,escapeHTML as esc,notify} from '@iquipage/web/core';
-import {PlanningController} from './controller.js';
-import {groupBody,rowMarkup} from './markup.js';
-import {moveDialog,operationDialog} from './dialog.js';
-/** Reusable planning view. Production host supplies an approved SDK projection adapter. */
-function scrollParent(node){
-  for(let el=node.parentElement;el;el=el.parentElement){const y=getComputedStyle(el).overflowY;if(y==='auto'||y==='scroll')return el;}
-  return document.scrollingElement;
-}
-export async function mountPlanning(root,{adapter,project,onOpenTask,onCreateTask,onCreateRelease,onOpenBoard,viewState={}}) {
-  if(!(root instanceof HTMLElement))throw Error('Нужен контейнер Планирования.');registerCore();
-  root.classList.add('planning-root');
-  let deadlineMode=['timeline','dates'].includes(viewState.deadlineMode)?viewState.deadlineMode:(['timeline','dates'].includes(viewState.mode)?viewState.mode:'timeline');
-  let viewMode='list',temporal=null,switching=false,dragging=false,refreshAfterDrag=false;
-  let disposed=false,modal=null,opening=false,scroll,scrollRoot;
-  let refreshTimer=null,refreshing=false,refreshAgain=false;
-  const nodes=new Map(),abort=new AbortController(),signal=abort.signal;
-  const controller=new PlanningController({adapter,projectId:project.id,onChange:render});
-  if(viewState.filters)Object.assign(controller.filters,viewState.filters,{query:''});
-  if(Array.isArray(viewState.collapsed))controller.collapsed=new Set(viewState.collapsed);
-  root.innerHTML=`<section class="planning-view"><header class="sq-page-heading pn-head"><h1>Планирование</h1><div class="iq-segmented pn-view-switch" role="group" aria-label="Вид планирования"><button type="button" data-view="list" aria-pressed="true">${icon('list',16)}<span>Список</span></button><button type="button" data-view="timeline" aria-pressed="false">${icon('chart',16)}<span>Гант</span></button><button type="button" data-view="dates" aria-pressed="false">${icon('calendar',16)}<span>Календарь</span></button></div><div class="sq-page-tools">${ui.btn('Новый релиз','secondary','plus','data-new-release')}${ui.btn('Новая задача','primary','plus','data-new-task')}</div></header>
-    <div class="pn-toolbar"><div class="iq-segmented pn-readiness" role="group" aria-label="Готовность задач" data-readiness>${[['all','Все'],['draft','Черновики'],['ready','Готовы к работе']].map(([v,l])=>`<button type="button" data-preparation-value="${v}" aria-pressed="${controller.filters.preparation===v}">${l}</button>`).join('')}</div>
-    <span data-sort-menu></span>${ui.btn('Фильтры','ghost sm','filter','data-filter-conditions')}${ui.btn('Сбросить','ghost sm','x','data-clear-conditions hidden')}
-    <div class="pn-toolbar-end"><div class="iq-segmented pn-archive-switch" role="group" aria-label="Какие релизы показать" data-archive-switch><button type="button" data-history="current" aria-pressed="true">Текущие</button><button type="button" data-history="closed" aria-pressed="false">${icon('folder',16)}<span>Архив</span></button></div></div></div>
-    <div data-error role="alert" hidden></div><p class="sr-only" role="status" data-live></p>
-    <div class="pn-scroll" role="region" tabindex="-1" aria-label="Релизы и бэклог"><div data-groups></div><div data-tail></div>
-    <div class="pn-selection" data-bulk hidden><span data-selection-summary></span>${ui.btn('Выбрать все по условиям','ghost sm','','data-all-matching')}<div class="row">${ui.btn('В релиз…','secondary sm','box','data-move')}${ui.btn('Подготовить','secondary sm','check','data-prepare')}${ui.btn('Порядок…','ghost sm','list','data-order hidden')}${ui.menu(ui.btn('Ещё','ghost sm','down'),[{label:'Назначить исполнителя',action:'bulk-owner'},{label:'Изменить приоритет',action:'bulk-priority'},{label:'Изменить срок',action:'bulk-due'},{label:'Добавить тег',action:'bulk-tags'},{label:'Выбрать с подзадачами',action:'select-descendants'},{label:'Взять без релиза',action:'take'},{label:'Вернуть на уточнение',action:'unprepare'}])}${ui.btn('Снять выделение','ghost sm','','data-clear')}</div></div></div><div class="pn-temporal" data-temporal hidden></div></section>`;
-  const page=root.firstElementChild,groupsRoot=root.querySelector('[data-groups]'),tail=root.querySelector('[data-tail]');
-  scroll=root.querySelector('.pn-scroll');
-  // Phones scroll the page, not a nested list box; windowing and lazy loading follow whichever element scrolls.
-  const pageScroll=typeof matchMedia==='function'&&matchMedia('(max-width:640px)').matches;
-  root.querySelector('.planning-view').toggleAttribute('data-page-scroll',pageScroll);
-  scrollRoot=pageScroll?scrollParent(root)||scroll:scroll;
-  const observer=typeof IntersectionObserver==='function'?new IntersectionObserver(entries=>{for(const entry of entries)if(entry.isIntersecting&&!controller.loading&&!controller.error){const id=entry.target.dataset.group;void controller.rows(id);}},{root:scrollRoot===document.scrollingElement?null:scrollRoot,rootMargin:'240px'}):null;
-  const focusKey=()=>document.activeElement?.closest('[data-focus]')?.dataset.focus;
-  const restoreFocus=key=>{if(key&&!root.contains(document.activeElement))root.querySelector(`[data-focus="${CSS.escape(key)}"]`)?.focus({preventScroll:true});};
-  const SORTS={planned:'Вручную',priority:'По приоритету',date:'По сроку'};
-  /** Sorting is a ghost button with the current order, the same as on the board. */
-  function renderSort(locked){
-    const slot=root.querySelector('[data-sort-menu]'),current=controller.filters.sort in SORTS?controller.filters.sort:'planned',key=current+locked;
-    if(slot.dataset.key===key)return;slot.dataset.key=key;
-    slot.innerHTML=ui.menu(`<button type="button" class="iq-btn ghost sm" aria-label="Сортировка: ${SORTS[current]}" ${locked?'disabled':''}>${icon('sort',17)}<span>${SORTS[current]}</span></button>`,Object.entries(SORTS).map(([id,label])=>({label,...(id===current?{glyph:'check'}:{}),action:'planning-sort:'+id})));
-  }
-  function render() {
-    if(disposed)return;const oldFocus=focusKey(),top=scrollRoot?.scrollTop||0;
-    const error=root.querySelector('[data-error]');error.hidden=!controller.error;
-    error.innerHTML=controller.error?ui.alert('Не удалось обновить Планирование',esc(controller.error),'danger')+ui.btn('Повторить загрузку','secondary sm','refresh','data-refresh'):'';
-    const locked=controller.loading||!!controller.error||opening||!!modal;
-    root.querySelector('[data-new-release]').disabled=locked||!controller.capabilities.createRelease;
-    root.querySelector('[data-new-task]').disabled=locked||!controller.capabilities.createTask;
-    const conditions=Number(!!controller.filters.owner)+Number(!!controller.filters.releaseId)+(controller.filters.tagIds?.length||0);
-    root.querySelector('[data-filter-conditions]').disabled=locked||!adapter.options;
-    const filterButton=root.querySelector('[data-filter-conditions]');filterButton.setAttribute('aria-label','Фильтры'+(conditions?`, выбрано условий: ${conditions}`:''));
-    const filterLabel=filterButton.querySelector('span:last-of-type');if(filterLabel)filterLabel.textContent=conditions?`Фильтры (${conditions})`:'Фильтры';
-    root.querySelector('[data-clear-conditions]').hidden=!conditions;
-    const ids=new Set(controller.groups.map(g=>g.id));for(const [id,n] of nodes)if(!ids.has(id)){observer?.unobserve(n.element);n.window?.destroy();n.element.remove();nodes.delete(id);}
-    let previous=null;
-    for(const group of controller.groups){
-      let node=nodes.get(group.id);
-      if(!node){const element=document.createElement('section');element.className='pn-group iq-reveal';element.dataset.group=group.id;element.dataset.workGroup=group.id;element.setAttribute('aria-label',group.title);
-        element.innerHTML='<header class="pn-group-header" data-work-dropzone></header><div class="pn-group-body"></div>';node={element,head:element.firstElementChild,body:element.lastElementChild,headerKey:'',bodyKey:''};nodes.set(group.id,node);observer?.observe(element);}
-      node.element.dataset.state=group.state;
-      const before=previous?previous.nextElementSibling:groupsRoot.firstElementChild;
-      if(before!==node.element)groupsRoot.insertBefore(node.element,before);previous=node.element;
-      const canSelect=!!controller.capabilities.selection&&group.rows.some(r=>r.selectable&&!r.contextOnly)&&!group.folded;
-      const hk=JSON.stringify([group.title,group.total,group.matched,group.done,group.drafts,group.unassigned,group.folded,group.state,group.plannedStart,group.plannedEnd,group.format,controller.capabilities,locked,canSelect]);
-      if(hk!==node.headerKey){node.headerKey=hk;node.head.innerHTML=groupHeader(group,{capabilities:controller.capabilities,locked,onOpenBoard,canSelect});}
+import {pageMarkup,firstRunMarkup,footMarkup,cardMarkup,selectionMarkup,dragPreview} from './containers-view.js';
+import {blocksOf,blockDone,sumOf,plural,validContainers,dateRange,shortDate} from './containers-model.js';
+import {dueEditor,containerDialog,completionDialog,completedDialog,cancelDialog} from './containers-dialogs.js';
 
-      const bk=JSON.stringify([!!group.rows.length,group.busy,group.error,group.loaded,group.nextCursor,controller.filters,controller.capabilities.createTask]);
-      node.group=group;node.locked=locked;
-      if(bk!==node.bodyKey){
-        node.window?.destroy();node.window=null;node.rowRef=null;node.bodyKey=bk;node.body.innerHTML=groupBody(group,controller,true);
-        const body=node.body.querySelector('[data-window-body]');
-        if(body)node.window=new TableWindow({body,scrollRoot,columns:4,estimate:45,key:row=>row.id,
-          markup:row=>rowMarkup(row,group.id,controller.collapsed.has(row.taskId),!!(controller.capabilities.move||controller.capabilities.reorder),!!controller.capabilities.bulk),
-          decorate:(element,row)=>{
-            for(const control of element.querySelectorAll('[data-select],[data-disclose],[data-work-drag]'))control.disabled=node.locked||node.group.busy||control.matches('[data-select]')&&!!controller.selection.snapshot;
-            for(const control of element.querySelectorAll('[data-quick-edit]'))control.disabled=node.locked||node.group.busy||!controller.capabilities.bulk||row.contextOnly||!row.selectable||(control.dataset.quickEdit==='owner'?row.ownerId===undefined||!adapter.options:row.dueValue===undefined);
-            const check=element.querySelector('[data-select]');if(check)check.checked=controller.selection.ids.has(row.taskId);
-            element.dataset.selected=String(!!check?.checked);
-          }});
+/**
+ * «Планирование» (round 4.1): the running sprint, the next sprints, open releases and the backlog as cards of one page.
+ * Rows are a tree in the DS language; a held row moves between cards; dates and estimates change in place; the sprint
+ * ends in one dialog. The host supplies the planning adapter and opens tasks.
+ */
+export async function mountPlanning(root,{adapter,project,onOpenTask,onCreateTask,viewState={}}){
+  if(!(root instanceof HTMLElement))throw Error('Нужен контейнер Планирования.');
+  registerCore();
+  root.classList.add('planning-root');root.innerHTML=pageMarkup();
+  const page=root.querySelector('.pl-page'),stack=root.querySelector('[data-stack]'),foot=root.querySelector('[data-foot]');
+  const selbar=root.querySelector('[data-selbar]'),live=root.querySelector('[data-live]'),errorBox=root.querySelector('[data-error]');
+  stack.innerHTML=loadingMarkup('Загрузка планирования…',{rows:8,title:false,className:'pl-loading'});
+  let data=null,disposed=false,loading=null,again=false,dragging=false,busy=false,focusId=viewState.focusId||'';
+  const expandedState=new Map(Object.entries(viewState.expanded||{}));
+  const selection=new Set();
+  const say=text=>{live.textContent='';setTimeout(()=>{live.textContent=text;},30);};
+  const format=()=>data?.estimate?.format||'time';
+  const capabilities=()=>data?.capabilities||{plan:false,manageReleases:false,completeSprint:false};
+  const containers=()=>data?.containers||[];
+  const containerOf=id=>containers().find(c=>c.id===id);
+  const rowOf=id=>{for(const c of containers()){const row=c.rows.find(r=>r.id===id);if(row)return {row,container:c};}return null;};
+  /** Epics are open in the running sprint and closed elsewhere until the person toggles them. */
+  const expanded=id=>{if(expandedState.has(id))return expandedState.get(id);const found=rowOf(id);return found?.container.kind==='sprint'&&found.container.state==='active';};
+
+  async function load(){
+    if(loading){again=true;return loading;}
+    loading=(async()=>{
+      try{
+        const next=await adapter.containers();
+        if(disposed)return;if(!validContainers(next))throw Error('Не удалось прочитать планирование.');
+        data=next;errorBox.hidden=true;errorBox.innerHTML='';
+        const known=new Set(containers().flatMap(c=>c.rows.map(r=>r.id)));
+        for(const id of [...selection])if(!known.has(id))selection.delete(id);
+        render();
+      }catch(error){
+        if(disposed)return;
+        errorBox.hidden=false;errorBox.innerHTML=`<p class="pl-error">${esc(error.message||'Не удалось загрузить планирование.')}</p><button type="button" class="iq-btn secondary sm" data-retry>Повторить</button>`;
+        if(!data)stack.innerHTML='';
+      }finally{loading=null;if(again&&!disposed){again=false;void load();}}
+    })();
+    return loading;
+  }
+
+  function view(){
+    const all=containers(),firstPlanned=all.find(c=>c.kind==='sprint'&&c.state==='planned')?.id;
+    return {selection,expanded,capabilities:capabilities(),format:format(),today:data.today,focusId,firstPlanned,activeExists:all.some(c=>c.kind==='sprint'&&c.state==='active')};
+  }
+  function render(){
+    if(!data||disposed)return;
+    const all=containers(),firstRun=!all.some(c=>c.kind!=='backlog');
+    if(!focusId||!rowOf(focusId))focusId=all.flatMap(c=>c.rows)[0]?.id||'';
+    const v=view();
+    const hadFocus=root.contains(document.activeElement)&&document.activeElement.matches('[data-row]');
+    root.querySelector('[data-readonly]').hidden=v.capabilities.plan;
+    page.toggleAttribute('data-readonly',!v.capabilities.plan);
+    stack.innerHTML=(firstRun?firstRunMarkup(v.capabilities):'')+all.map(c=>cardMarkup(c,v)).join('');
+    foot.innerHTML=footMarkup({capabilities:v.capabilities,completed:data.completed,firstRun});foot.hidden=!foot.innerHTML;
+    renderSelection();
+    viewState.expanded=Object.fromEntries(expandedState);viewState.focusId=focusId;
+    if(hadFocus)focusRow(focusId);
+  }
+  function renderSelection(){
+    const plan=capabilities().plan&&selection.size>0;selbar.hidden=!plan;
+    if(!plan){selbar.innerHTML='';return;}
+    const rows=[...selection].map(id=>rowOf(id)?.row).filter(Boolean);
+    selbar.innerHTML=selectionMarkup(selection.size,formatSum(sumOf(rows,format()),format()));
+  }
+  const rowElement=id=>stack.querySelector(`[data-row="${CSS.escape(id)}"]`);
+  function focusRow(id){
+    focusId=id;for(const el of stack.querySelectorAll('[data-row][tabindex="0"]'))el.tabIndex=-1;
+    const el=rowElement(id);if(el){el.tabIndex=0;el.focus({preventScroll:false});}
+  }
+
+  /** A planning intent previewed and committed at once; a blocker asks the person first. */
+  async function apply(intent,{title='Проверить изменение'}={}){
+    const operation=new PlanningOperation(adapter,project.id);
+    try{
+      await operation.inspect(intent);
+      if(operation.state!=='ready')throw Error(operation.error||'Не удалось проверить изменение.');
+      if(operation.preview.blockers.length){
+        operation.destroy();
+        await new Promise((resolve,reject)=>{let done=false;operationDialog({adapter,projectId:project.id,intent,title,onCommitted:()=>{done=true;},onClose:()=>done?resolve():reject(Error('Изменение не подтверждено.'))});});
+      }else{
+        await operation.submit();
+        if(operation.state==='uncertain')await operation.recover();
+        if(operation.state!=='committed')throw Error(operation.error||'Изменение не сохранено.');
       }
-      node.body.hidden=group.folded;node.element.dataset.pending=String(group.busy);node.body.setAttribute('aria-busy',String(group.busy));
-      const windowed=group.rows.length>100||controller.groups.reduce((sum,g)=>sum+g.rows.length,0)>200;
-      if(node.window&&(node.rowRef!==group.rows||node.windowed!==windowed||node.collapsedRef!==String([...controller.collapsed]))){node.rowRef=group.rows;node.windowed=windowed;node.collapsedRef=String([...controller.collapsed]);node.window.setRows(group.rows,windowed);}
-      node.window?.refresh();
+    }finally{operation.destroy();}
+    await load();
+  }
+  const fail=error=>notify({tone:'danger',message:'Не удалось сохранить',description:error?.message||'Повторите попытку.'});
+
+  /** Moves ids into a container after a root row, then offers «Отменить» and speaks the warnings. */
+  async function move(ids,containerId,afterId,{withChildren=true,quiet=false}={}){
+    if(busy)return null;busy=true;
+    try{
+      const result=await adapter.move({ids,containerId,afterId,withChildren,expectedRevision:data.revision});
+      await load();
+      const target=containerOf(containerId),moved=result.moved.length;
+      const same=result.containers.length===1&&result.containers[0].id===containerId;
+      const message=same?'Порядок изменён':`Перенесено в ${target?(target.kind==='backlog'?'бэклог':target.name):'другой список'}`;
+      say(`${message}. ${moved} ${plural(moved,'задача','задачи','задач')}.`);
+      if(!quiet)notify({tone:result.warnings.length?'warning':'success',message,description:result.warnings.map(w=>w.message).join(' '),
+        action:{label:'Отменить',undo:true,run:()=>undo(result.undo)}});
+      return result;
+    }catch(error){
+      if(error?.code==='PROJECTION_STALE'){await load();notify({tone:'warning',message:'План изменился',description:'Мы обновили страницу. Повторите перенос.'});}
+      else fail(error);
+      return null;
+    }finally{busy=false;}
+  }
+  async function undo(restore){
+    try{await adapter.move({restore});await load();say('Перенос отменён.');}
+    catch(error){notify({tone:'danger',message:'Отменить не получилось',description:error?.code==='UNDO_STALE'?'После переноса план уже изменился.':error?.message||''});}
+  }
+  /** The root row a block lands after when it goes to the end of a container. */
+  function lastRoot(container,except=new Set()){
+    return container.rows.filter(row=>row.depth===0&&!except.has(row.id)).at(-1)?.id??null;
+  }
+
+  function moveMenu(anchor,ids,{withChildren=true,caption='Переместить в'}={}){
+    const from=new Set(ids.map(id=>rowOf(id)?.container.id));
+    const items=containers().filter(c=>!(from.size===1&&from.has(c.id))).map(c=>({value:c.id,label:c.name,
+      meta:c.kind==='sprint'&&c.state==='active'?'идёт':c.kind==='sprint'?dateRange(c.start,c.end,data.today):c.kind==='release'&&c.deadline?`к ${shortDate(c.deadline,data.today)}`:''}));
+    if(capabilities().manageReleases)items.push({separator:true},{value:'__sprint',label:'Новый спринт…'});
+    openMenu(anchor,{caption,items,align:'center',onPick:item=>{
+      if(item.value==='__sprint'){newContainer('sprint',ids);return;}
+      void move(ids,item.value,lastRoot(containerOf(item.value),new Set(ids)),{withChildren}).then(result=>{if(result)clearSelection();});
+    }});
+  }
+  const carry=id=>selection.has(id)?[...selection]:[id];
+  function rowMenu(anchor,id){
+    const found=rowOf(id);if(!found)return;
+    const epic=found.row.kind==='epic',items=[{value:'open',label:'Открыть'}];
+    if(capabilities().plan){items.push({value:'move',label:'Переместить в…'});if(epic)items.push({value:'alone',label:'Перенести только эпик…'});}
+    openMenu(anchor,{items,label:found.row.title,onPick:item=>{
+      if(item.value==='open')void openTask(id);
+      if(item.value==='move')moveMenu(anchor,carry(id));
+      if(item.value==='alone')moveMenu(anchor,[id],{withChildren:false,caption:'Только эпик — в'});
+    }});
+  }
+
+  function newContainer(kind,ids=[]){
+    if(!capabilities().manageReleases)return;
+    void adapter.settings().catch(()=>({days:14})).then(settings=>containerDialog({kind,containers:containers(),today:data.today,days:settings?.days||14,
+      onSubmit:async values=>{
+        const before=new Set(containers().map(c=>c.id));
+        await apply({kind:'createRelease',values});
+        const created=containers().find(c=>!before.has(c.id));
+        if(created&&ids.length)await move(ids,created.id,null);
+        if(created)say(`${created.name}: создан.`);
+      }}));
+  }
+  function editContainer(id){
+    const c=containerOf(id);if(!c||c.kind==='backlog')return;
+    containerDialog({kind:c.kind,containers:containers(),today:data.today,value:c,onSubmit:values=>apply({kind:'editRelease',groupId:c.id,values})});
+  }
+  function containerMenu(anchor,id){
+    const c=containerOf(id);if(!c)return;
+    const sprint=c.kind==='sprint',items=[{value:'edit',label:sprint?'Даты и цель…':'Срок и цель…',meta:sprint?dateRange(c.start,c.end,data.today):c.deadline?`к ${shortDate(c.deadline,data.today)}`:''}];
+    if(sprint&&c.state==='active'&&capabilities().completeSprint)items.push({separator:true},{value:'complete',label:'Завершить спринт'});
+    if(sprint&&c.state==='planned')items.push({separator:true},{value:'start',label:'Начать спринт'});
+    if(!sprint&&c.state==='active'&&capabilities().completeSprint)items.push({separator:true},{value:'complete',label:'Завершить релиз'});
+    if(!sprint&&c.state==='planned')items.push({separator:true},{value:'start',label:'Начать релиз'});
+    items.push({value:'cancel',label:sprint?'Отменить спринт':'Отменить релиз',danger:true});
+    openMenu(anchor,{items,label:c.name,align:'end',onPick:item=>{
+      if(item.value==='edit')editContainer(id);
+      if(item.value==='complete')complete(id);
+      if(item.value==='start')void start(id);
+      if(item.value==='cancel')cancelDialog({container:c,onSubmit:intent=>apply(intent,{title:'Отменить'})});
+    }});
+  }
+  function complete(id){
+    const c=containerOf(id);if(!c)return;
+    completionDialog({container:c,containers:containers(),format:format(),today:data.today,
+      onSubmit:async intent=>{await apply(intent,{title:'Завершить'});say(`${c.name}: завершён.`);notify({tone:'success',message:`${c.name}: завершён`,description:'Снимок состава сохранён в «Завершённые».'});}});
+  }
+  async function start(id){try{await apply({kind:'start',groupId:id});say(`${containerOf(id)?.name||'Спринт'}: начался.`);}catch(error){fail(error);}}
+
+  function editDue(button){
+    const found=rowOf(button.dataset.editDue);if(!found)return;
+    const {row,container}=found;
+    dueEditor(button,{value:row.due,today:data.today,sprintEnd:container.kind==='sprint'?container.end:null,
+      onPick:async day=>{await apply({kind:'bulk',field:'due',value:day,taskIds:[row.id],expectedProjectionRevision:data.revision});say(day?`Срок ${shortDate(day,data.today)}.`:'Срок снят.');}});
+  }
+  function editEstimate(button){
+    const found=rowOf(button.dataset.editEstimate);if(!found)return;
+    estimateEditor(button,{value:found.row.estimate,format:format(),hoursPerDay:data.estimate.hoursPerDay,hoursPerWeek:data.estimate.hoursPerWeek,
+      onSave:value=>apply({kind:'bulk',field:'estimate',value,taskIds:[found.row.id],expectedProjectionRevision:data.revision})});
+  }
+  function openTask(id){focusId=id;return onOpenTask?.(id,{onChanged:()=>load(),onClose:()=>focusRow(id)});}
+  function toggle(id){expandedState.set(id,!expanded(id));render();focusRow(id);}
+  function toggleSelection(id,{range=false}={}){
+    if(!capabilities().plan)return;
+    if(range&&focusId&&focusId!==id){
+      const order=[...stack.querySelectorAll('[data-row]')].map(el=>el.dataset.row),a=order.indexOf(focusId),b=order.indexOf(id);
+      if(a>=0&&b>=0)for(const rid of order.slice(Math.min(a,b),Math.max(a,b)+1))selection.add(rid);
+    }else if(selection.has(id))selection.delete(id);else selection.add(id);
+    focusId=id;render();focusRow(id);
+    say(selection.size?`Выбрано: ${selection.size}.`:'Выделение снято.');
+  }
+  function clearSelection(){if(!selection.size)return;selection.clear();render();say('Выделение снято.');}
+
+  /** Alt+↑/↓: a root row moves past its neighbour in the same part of the card (open work or done work). */
+  function reorder(id,direction){
+    const found=rowOf(id);if(!found||found.row.depth!==0||!capabilities().plan)return;
+    const {container}=found,blocks=blocksOf(container.rows);
+    const doneOf=new Map(blocks.map(block=>[block.root.id,blockDone(block)]));
+    const section=blocks.map(block=>block.root.id).filter(rid=>doneOf.get(rid)===doneOf.get(id));
+    const at=section.indexOf(id),neighbour=section[at+direction];if(!neighbour)return;
+    const ranked=blocks.map(block=>block.root.id).filter(rid=>rid!==id);
+    const afterId=direction>0?neighbour:ranked[ranked.indexOf(neighbour)-1]??null;
+    void move([id],container.id,afterId,{quiet:true}).then(()=>{focusRow(id);say(direction>0?'Ниже.':'Выше.');});
+  }
+
+  const visibleRows=()=>[...stack.querySelectorAll('[data-row]')];
+  function onKey(event){
+    const el=event.target.closest?.('[data-row]');if(!el||event.target!==el)return;
+    const id=el.dataset.row,rows=visibleRows(),at=rows.indexOf(el),found=rowOf(id);
+    if(event.altKey&&(event.key==='ArrowUp'||event.key==='ArrowDown')){event.preventDefault();reorder(id,event.key==='ArrowUp'?-1:1);return;}
+    switch(event.key){
+      case 'ArrowDown':case 'ArrowUp':{event.preventDefault();const next=rows[at+(event.key==='ArrowDown'?1:-1)];if(next){focusRow(next.dataset.row);if(event.shiftKey)toggleSelection(next.dataset.row);}break;}
+      case 'Home':case 'End':event.preventDefault();focusRow((event.key==='Home'?rows[0]:rows.at(-1)).dataset.row);break;
+      case 'ArrowRight':if(found?.row.kind==='epic'){event.preventDefault();if(!expanded(id))toggle(id);else{const next=rows[at+1];if(next&&rowOf(next.dataset.row)?.row.parentId===id)focusRow(next.dataset.row);}}break;
+      case 'ArrowLeft':event.preventDefault();if(found?.row.kind==='epic'&&expanded(id))toggle(id);else if(found?.row.depth>0&&rowElement(found.row.parentId))focusRow(found.row.parentId);break;
+      case ' ':event.preventDefault();toggleSelection(id);break;
+      case 'Enter':event.preventDefault();void openTask(id);break;
+      case 'Escape':if(selection.size){event.preventDefault();clearSelection();}break;
+      case 'm':case 'M':case 'ь':case 'Ь':if(capabilities().plan&&!event.metaKey&&!event.ctrlKey&&!event.altKey){event.preventDefault();moveMenu(el,carry(id));}break;
+      case 'ContextMenu':event.preventDefault();rowMenu(el,id);break;
+      case 'F10':if(event.shiftKey){event.preventDefault();rowMenu(el,id);}break;
+      default:break;
     }
-    const summary=controller.selection.summary(controller.visibleRows());
-    const bulk=root.querySelector('[data-bulk]');bulk.hidden=summary.total===0||viewMode!=='list';
-    root.querySelector('[data-selection-summary]').textContent=`Выбрано ${summary.total} ${plural(summary.total,'задача','задачи','задач')}${summary.snapshot?', включая все задачи по условиям':summary.hidden?`, из них скрыто фильтром: ${summary.hidden}`:''}`;
-    const visible=controller.visibleRows(),selected=visible.filter(r=>controller.selection.ids.has(r.taskId));
-    // Each group's header checkbox selects its shown tasks (checked / mixed / empty).
-    for(const box of root.querySelectorAll('[data-select-group]')){const rows=visible.filter(r=>controller.groups.find(g=>g.id===box.dataset.selectGroup)?.rows.includes(r)),picked=rows.filter(r=>controller.selection.ids.has(r.taskId)).length;box.checked=rows.length>0&&picked===rows.length;box.indeterminate=picked>0&&picked<rows.length;box.disabled=locked||!!summary.snapshot;}
-    for(const checkbox of root.querySelectorAll('[data-select]')){checkbox.checked=controller.selection.ids.has(checkbox.dataset.select);checkbox.closest('tr').dataset.selected=String(checkbox.checked);}
-    root.querySelector('[data-move]').disabled=locked||!controller.capabilities.move;
-    root.querySelector('[data-prepare]').disabled=locked||!controller.capabilities.prepare;
-    root.querySelector('[data-order]').hidden=summary.total!==1||!!summary.snapshot||controller.filters.sort!=='planned'||!controller.capabilities.reorder;
-    root.querySelector('[data-order]').disabled=locked;
-    // After a manual pick, the bar offers the whole result set, including groups and pages not loaded yet.
-    root.querySelector('[data-all-matching]').hidden=!controller.capabilities.selection||controller.filters.history==='closed'||!!summary.snapshot;
-    root.querySelector('[data-all-matching]').disabled=locked;
-    for(const b of root.querySelectorAll('[data-history]'))b.setAttribute('aria-pressed',String(b.dataset.history===(controller.filters.history==='closed'?'closed':'current')));
-    root.querySelector('[data-archive-switch]').hidden=viewMode!=='list';
-    for(const b of root.querySelectorAll('[data-preparation-value]')){b.setAttribute('aria-pressed',String(b.dataset.preparationValue===controller.filters.preparation));b.disabled=locked;}
-    renderSort(locked);
-    root.querySelector('[data-live]').textContent=controller.message;
-    tail.innerHTML=controller.loading?loadingMarkup('Загружаем релизы…',{rows:3}):controller.nextCursor?ui.btn('Показать ещё релизы','secondary sm','down','data-more-groups'):!controller.groups.length&&!controller.error?ui.empty('Начните с ближайшего результата','Создайте задачу или релиз. Обязательных дат и оценок нет.',''):'';
-    if(scrollRoot)scrollRoot.scrollTop=top;restoreFocus(oldFocus);
-    if(viewMode==='list'&&!controller.loading&&!controller.error)queueMicrotask(()=>{if(disposed)return;const bounds=scrollRoot.getBoundingClientRect();let budget=3;for(const group of controller.groups){const el=nodes.get(group.id)?.element;if(!el||group.folded||group.loaded||group.busy||group.error)continue;const rect=el.getBoundingClientRect();if(rect.bottom>=bounds.top-100&&rect.top<bounds.bottom+100&&budget-->0)void controller.rows(group.id);}});
-    viewState.filters={...controller.filters};viewState.collapsed=[...controller.collapsed];
   }
-  async function setView(next,force=false) {
-    if(disposed||dragging||switching||opening||modal||!['list','timeline','dates'].includes(next)||next===viewMode&&!force)return;
-    if(temporal&&!temporal.readyToLeave()){controller.message='Примените или отмените изменение плана перед переходом.';render();return;}
-    if(next!=='list'&&(!controller.capabilities.timeline||!adapter.timeline)){controller.message='Планирование по времени не подключено приложением.';render();return;}
-    switching=true;
-    try {
-      temporal?.destroy();temporal=null;viewMode=next;viewState.mode=next;
-      if(next!=='list'){deadlineMode=next;viewState.deadlineMode=next;}
-      const target=root.querySelector('[data-temporal]');scroll.hidden=next!=='list';target.hidden=next==='list';
-      for(const b of root.querySelectorAll('[data-view]'))b.setAttribute('aria-pressed',String(b.dataset.view===next));
-      if(next!=='list')temporal=await mountTemporalView(target,{adapter,projectId:project.id,mode:next,filters:{...controller.filters,history:'current'},capabilities:controller.capabilities,onOpenTask,onChanged:changed,viewState:viewState.temporal||(viewState.temporal={})});
-    }catch(error){controller.message=error.message;}finally{switching=false;render();}
+  /** «+ Задача» creates inside the epic that holds the focus in this card, otherwise at the card's top level. */
+  function epicAround(containerId){
+    const found=rowOf(focusId);if(!found||found.container.id!==containerId)return null;
+    if(found.row.kind==='epic')return found.row.id;
+    return found.row.parentId&&found.container.rows.some(r=>r.id===found.row.parentId)?found.row.parentId:null;
   }
-  async function changeFilters(values) {
-    if(temporal&&!temporal.readyToLeave()){controller.message='Сначала примените или отмените изменение плана.';render();return;}
-    await controller.filter(values);if(viewMode!=='list')await setView(viewMode,true);
+  function onClick(event){
+    const t=event.target;
+    if(t.closest('[data-retry]')){void load();return;}
+    const toggleButton=t.closest('[data-toggle]');if(toggleButton){toggle(toggleButton.dataset.toggle);return;}
+    const check=t.closest('[data-select]');if(check){toggleSelection(check.dataset.select,{range:event.shiftKey});return;}
+    const due=t.closest('[data-edit-due]');if(due){focusId=due.dataset.editDue;editDue(due);return;}
+    const estimate=t.closest('[data-edit-estimate]');if(estimate){focusId=estimate.dataset.editEstimate;editEstimate(estimate);return;}
+    const action=t.closest('[data-complete],[data-start],[data-more],[data-dates],[data-add],[data-new-sprint],[data-new-release],[data-completed],[data-move-selection],[data-clear-selection]');
+    if(action){
+      const d=action.dataset;
+      if(d.complete)complete(d.complete);
+      else if(d.start)void start(d.start);
+      else if(d.more)containerMenu(action,d.more);
+      else if(d.dates)editContainer(d.dates);
+      else if(d.add!==undefined)onCreateTask?.({groupId:d.add,parentId:epicAround(d.add),onChanged:()=>load()});
+      else if('newSprint' in d)newContainer('sprint');
+      else if('newRelease' in d)newContainer('release');
+      else if('completed' in d)void adapter.releases().then(result=>completedDialog({releases:result.items||[],today:data.today})).catch(fail);
+      else if('moveSelection' in d)moveMenu(action,[...selection]);
+      else if('clearSelection' in d)clearSelection();
+      return;
+    }
+    const row=t.closest('[data-row]');if(!row)return;
+    if(event.metaKey||event.ctrlKey||event.shiftKey){toggleSelection(row.dataset.row,{range:event.shiftKey});return;}
+    void openTask(row.dataset.row);
   }
-  // Success is a DS toast (itself a status region); the sr-only live line stays for load and error states.
-  async function changed(result){notify({tone:'success',message:result?.message||'Изменение сохранено.'});controller.clear();await controller.load();}
-  // Data stays current without a refresh button: events arriving during a dialog are applied when it closes.
-  let refreshAfterModal=false;
-  function released(){modal=null;opening=false;render();if(refreshAfterModal){refreshAfterModal=false;void refreshFromEvent();}}
-  async function action(fn){if(dragging||opening||modal||controller.loading||controller.error)return;opening=true;render();try{modal=await fn();if(disposed)modal?.close?.();}catch(error){controller.message=error.message;released();}finally{opening=false;render();}}
-  function operation(intent,title){return operationDialog({adapter,projectId:project.id,intent,title,onCommitted:changed,onClose:released});}
-  
-  root.addEventListener('click',event=>{
-    const b=event.target.closest('button,input');if(!b||b.disabled||dragging)return;
-    const group=b.closest('[data-group]')?.dataset.group;
-    if(b.matches('[data-view]'))return void setView(b.dataset.view);
-    if(b.matches('[data-filter-conditions]'))return void action(()=>filterDialog({adapter,projectId:project.id,filters:controller.filters,onApply:async values=>{await changeFilters(values);},onClose:()=>{released();if(viewMode!=='list')void setView(viewMode,true);}}));
-    if(b.matches('[data-clear-conditions]'))return void changeFilters({owner:'',releaseId:'',tagIds:[],tagMode:'any'});
-    if(b.matches('[data-reset-filters]'))return void changeFilters({query:'',preparation:'all',owner:'',releaseId:'',tagIds:[],tagMode:'any'});
-    if(b.matches('[data-history]'))return void action(()=>historyDialog({adapter,projectId:project.id,groupId:group,onCommitted:changed,onClose:released}));
-    if(b.matches('[data-select]')){controller.toggle(b.dataset.select,event.shiftKey);return;}
-    if(b.matches('[data-select-group]'))return controller.all(b.dataset.selectGroup);
-    if(b.matches('[data-clear]'))return controller.clear();
-    if(b.matches('[data-fold]'))return controller.fold(group);
-    if(b.matches('[data-disclose]'))return void controller.disclose(group,b.dataset.disclose);
-    if(b.matches('[data-load],[data-retry-rows]'))return void controller.rows(group,{force:true});
-    if(b.matches('[data-more-rows]'))return void controller.rows(group,{append:true});
-    if(b.matches('[data-more-groups]'))return void controller.load({append:true});
-    if(b.matches('[data-history]'))return void controller.filter({history:b.dataset.history});
-    if(b.matches('[data-preparation-value]'))return void changeFilters({preparation:b.dataset.preparationValue});
-    if(b.matches('[data-all-matching]'))return void controller.selectSnapshot();
-    if(b.matches('[data-close-release]'))return void action(()=>closeReleaseDialog({adapter,projectId:project.id,groupId:group,onCommitted:changed,onClose:released}));
-    if(b.matches('[data-quick-edit]')&&controller.capabilities.bulk){const row=controller.groups.flatMap(g=>g.rows).find(r=>r.taskId===b.dataset.fieldTask);if(row)return void action(()=>quickFieldDialog({adapter,projectId:project.id,row,field:b.dataset.quickEdit,revision:controller.revision,onChanged:changed,onClose:released}));}
-    if(b.matches('[data-open]'))return void action(()=>onOpenTask(b.dataset.open,{onChanged:changed,onClose:released}));
-    if(b.matches('[data-new-task],[data-add]'))return void action(()=>onCreateTask({groupId:group||'backlog',onChanged:changed,onClose:released}));
-    if(b.matches('[data-new-release]'))return void action(()=>onCreateRelease({onChanged:changed,onClose:released}));
-    if(b.matches('[data-board]'))return void onOpenBoard?.(group);
-    if(b.matches('[data-start]'))return void action(()=>operation({kind:'start',groupId:group},'Начать релиз'));
-    if(b.matches('[data-prepare]'))return void action(()=>operation({kind:'prepare',...controller.selectedIntent()},'Подготовить задачи'));
-    if(b.matches('[data-order]'))return void action(()=>orderDialog({adapter,projectId:project.id,taskId:[...controller.selection.ids][0],onCommitted:changed,onClose:released}));
-    if(b.matches('[data-move]'))return void action(()=>moveDialog({adapter,projectId:project.id,selection:controller.selectedIntent(),count:controller.selection.summary(controller.visibleRows()).total,taskIds:[...controller.selection.ids],onCommitted:changed,onClose:released}));
-  },{signal});
-  root.addEventListener('iq-action',event=>{
-    if(opening||modal||controller.loading||controller.error)return;
-    const name=event.detail.action,groupId=event.target.closest('[data-group]')?.dataset.group;
-    const base={adapter,projectId:project.id,groupId,onCommitted:changed,onClose:released};
-    if(name==='release-edit'&&controller.capabilities.editRelease)void action(()=>editReleaseDialog(base));
-    if(name==='release-close'&&controller.capabilities.close)void action(()=>closeReleaseDialog(base));
-    if(name==='release-cancel'&&controller.capabilities.cancel)void action(()=>closeReleaseDialog({...base,cancel:true}));
-    if(name==='release-history')void action(()=>historyDialog(base));
-    if(name==='release-add'&&controller.capabilities.createTask)void action(()=>onCreateTask({groupId:groupId||'backlog',onChanged:changed,onClose:released}));
-    if(name.startsWith('planning-sort:')){void changeFilters({sort:name.slice(14)});return;}
-    if(name.startsWith('bulk-')&&controller.capabilities.bulk)void action(()=>bulkDialog({...base,selection:controller.selectedIntent(),field:name.slice(5)}));
-    if(name==='select-descendants'&&controller.capabilities.selection&&!controller.selection.snapshot)void controller.selectSnapshot([...controller.selection.ids]);
-    if(['take','unprepare'].includes(name)&&controller.capabilities.prepare)void action(()=>operation({kind:name,...controller.selectedIntent()},name==='take'?'Взять без релиза':'Вернуть на уточнение'));
-  },{signal});
-  async function refreshFromEvent(){
-    refreshTimer=null;if(disposed)return;
-    if(dragging){refreshAfterDrag=true;return;}
-    if(modal||opening){refreshAfterModal=true;return;}
-    if(refreshing){refreshAgain=true;return;}refreshing=true;
-    try{do{refreshAgain=false;await Promise.all([controller.load(),temporal?.reload()]);}while(refreshAgain&&!disposed&&!modal&&!opening&&!dragging);}
-    finally{refreshing=false;}
-  }
-  const unsubscribe=adapter.subscribe?.(()=>{if(refreshTimer===null)refreshTimer=setTimeout(()=>void refreshFromEvent(),0);});
-  // A tab coming back to the foreground re-reads the plan in case the live stream was interrupted.
-  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&refreshTimer===null)refreshTimer=setTimeout(()=>void refreshFromEvent(),0);},{signal});
-  const stopDrag=mountPlanningDrag(root,scrollRoot,controller,{
-    locked:()=>disposed||viewMode!=='list'||opening||!!modal||controller.loading||!!controller.error,
-    onState:active=>{dragging=active;if(!active&&refreshAfterDrag){refreshAfterDrag=false;void refreshFromEvent();}},
-    onDrop:intent=>void action(()=>operation(intent,intent.kind==='reorder'?'Порядок задач':'Изменение состава'))
+  function onContext(event){const row=event.target.closest('[data-row]');if(!row)return;event.preventDefault();focusId=row.dataset.row;rowMenu(row,row.dataset.row);}
+  function onFocus(event){const row=event.target.closest?.('[data-row]');if(row&&event.target===row)focusId=row.dataset.row;}
+  root.addEventListener('click',onClick);root.addEventListener('keydown',onKey);root.addEventListener('contextmenu',onContext);root.addEventListener('focusin',onFocus);
+
+  const drag=bindTreeDrag({root:page,rowSelector:'[data-tree-drag]',containerSelector:'[data-tree-dropzone]',
+    ignore:'input,textarea,select,[contenteditable],button,[data-tree-nodrag],[data-select],[data-toggle]',
+    canDrag:()=>capabilities().plan&&!busy,
+    items:row=>dragIds(row.dataset.treeDrag),
+    preview:(row,ids)=>preview(row.dataset.treeDrag,ids),
+    onState:active=>{dragging=active;if(active)closePopover();},
+    label:ids=>ids.length===1?(rowOf(ids[0])?.row.title||'задача'):`${ids.length} ${plural(ids.length,'задача','задачи','задач')}`,
+    onDrop:async({ids,containerId,afterId})=>{const result=await move(ids,containerId,afterId);if(result)clearSelection();}
   });
-  await controller.load();
-  if(viewState.mode&&viewState.mode!=='list')await setView(viewState.mode);
-  if(viewState.scrollTop)scroll.scrollTop=viewState.scrollTop;
-  return {reload:()=>controller.load(),controller,readyToLeave:()=>!dragging&&!opening&&!modal&&!switching&&(!temporal||temporal.readyToLeave()),
-    destroy({force=false}={}){if(disposed)return;if(temporal&&!temporal.destroy({force}))return false;if(force)modal?.element?.close(true);viewState.scrollTop=scroll.scrollTop;disposed=true;clearTimeout(refreshTimer);observer?.disconnect();unsubscribe?.();stopDrag();for(const node of nodes.values())node.window?.destroy();abort.abort();controller.destroy();if(root.firstElementChild===page){root.classList.remove('planning-root');page.remove();}}};
+  /** What a drag carries: the selection, or the row; an epic takes the subtasks below it in this card along. */
+  function dragIds(id){
+    const ids=carry(id),found=rowOf(id);
+    if(ids.length!==1||found?.row.kind!=='epic')return ids;
+    const rows=found.container.rows,at=rows.indexOf(found.row),below=[];
+    for(const r of rows.slice(at+1)){if(r.depth<=found.row.depth)break;below.push(r.id);}
+    return [id,...below];
+  }
+  /** The ghost: several rows with «N задач · сумма», an epic with the subtasks that go along, or one row. */
+  function preview(id,ids){
+    const found=rowOf(id);if(!found)return null;
+    const {container,row}=found,v=view();
+    if(ids.length>1&&row.kind!=='epic'||ids.length>1&&ids[0]!==id){
+      const rows=ids.map(rid=>rowOf(rid)?.row).filter(Boolean),sum=formatSum(sumOf(rows,format()),format());
+      return dragPreview(rows.slice(0,5).map(r=>({...r,depth:0})),container,v,`${ids.length} ${plural(ids.length,'задача','задачи','задач')}${sum?` · ${sum}`:''}`);
+    }
+    if(row.kind==='epic'){
+      const block=blocksOf(container.rows).find(b=>b.rows.includes(row)),below=[];
+      for(const r of block.rows.slice(block.rows.indexOf(row)+1)){if(r.depth<=row.depth)break;below.push(r);}
+      const kids=below.filter(r=>r.kind!=='epic'),sum=formatSum(sumOf(kids,format()),format());
+      const badge=kids.length?`Эпик + ${kids.length} ${plural(kids.length,'подзадача','подзадачи','подзадач')}${sum?` · ${sum}`:''}`:'Эпик';
+      return dragPreview([row,...below.slice(0,5)].map(r=>({...r,depth:r.depth-row.depth})),container,{...v,expanded:()=>true},badge);
+    }
+    return dragPreview([{...row,depth:0}],container,v,'');
+  }
+
+  const unsubscribe=adapter.subscribe?.(()=>{if(!dragging&&!busy)void load();})||(()=>{});
+  await load();
+  return {
+    reload:()=>load(),
+    readyToLeave:()=>!busy,
+    destroy(){disposed=true;drag.destroy();closePopover();unsubscribe();root.removeEventListener('click',onClick);root.removeEventListener('keydown',onKey);root.removeEventListener('contextmenu',onContext);root.removeEventListener('focusin',onFocus);root.innerHTML='';}
+  };
 }
