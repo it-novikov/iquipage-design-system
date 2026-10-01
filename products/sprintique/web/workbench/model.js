@@ -88,6 +88,18 @@ export const VERBS={
   decision:{label:'Ответить',icon:'undo',inline:false,asks:'просит решение'},
 };
 export const verbOf=row=>VERBS[row.action?.kind]||VERBS.question;
+/**
+ * The drawer's «Наблюдаю» toggle (owner's decision 2026-10-01; API `participating`, docs/adr W5): an eye among the
+ * header's icon buttons, its state in `aria-pressed`, its meaning in the name and the tooltip. The author of a task
+ * watches it from creation; stopping is the same press.
+ */
+export function watchToggle(on){
+  return on
+    ?{pressed:'true',label:'Наблюдаю — нажмите, чтобы перестать',heading:'Наблюдаю',
+      text:'Задача на вашем Рабочем столе, изменения приходят в «Изменилось».\nАвтор задачи наблюдает с момента создания. Нажмите, чтобы перестать.'}
+    :{pressed:'false',label:'Наблюдать за задачей',heading:'Наблюдать за задачей',
+      text:'Задача будет на вашем Рабочем столе, изменения придут в «Изменилось».'};
+}
 /** What the row says after its verb: "проверено", "утверждено", "решено". */
 export const doneWord={review:'проверено',approve:'утверждено',do:'решено',question:'отвечено',decision:'отвечено'};
 

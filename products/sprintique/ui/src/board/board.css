@@ -203,8 +203,7 @@
 .task-edit-dialog .iq-section-head h3{margin:0}
 .task-dialog-identity .task-link-copy{font:500 var(--iq-type-interface-size)/1 var(--iq-mono)}
 /* Description preview: an 8px inset on both sides, so text never touches the hover fill and the fill spans the column. */
-/* Relations sit on an inset panel, a second visual stop after the description. */
-.task-relations iq-relation-map:not([data-empty]){padding:var(--iq-space-4);border-radius:var(--iq-radius-sm);background:var(--iq-surface)}
+/* Relations lie on the drawer surface itself (DS iq-relation-map «Ступица», vnext.26): no inset panel. */
 .task-relations [data-task-links]{margin-bottom:var(--iq-space-4)}
 /* Discussion is a full-bleed band: the conversation is visibly separate from the task itself. */
 /* Cover: always the true 12:5 frame, at most 240px high (280px in fullscreen), on a band with a blurred ambient copy. */

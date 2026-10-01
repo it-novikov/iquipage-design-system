@@ -1,5 +1,5 @@
 'use strict';
-/** Contracts for 0.6.0-vnext.18: people, sections, relation lanes, tag picker "+", colour circles. */
+/** Contracts for 0.6.0-vnext.18: people, sections, tag picker "+", colour circles. (Relation lanes were replaced in vnext.26, see vnext26.test.cjs.) */
 const test = require('node:test'), assert = require('node:assert/strict');
 const fs = require('node:fs'), path = require('node:path');
 const root = path.join(__dirname, '..'), read = f => fs.readFileSync(path.join(root, f), 'utf8');
@@ -16,14 +16,6 @@ test('sections, compact heading scale and property sizes', () => {
   for (const rule of ['.iq-section{', '.iq-section-head{', 'iq-markdown-editor[density=compact] .md-preview h1{', '.iq-properties{--iq-properties-label:136px}'])
     assert.ok(css.includes(rule), rule);
   assert.match(css, /\.iq-property-strip \.iq-select-trigger>\.iq-icon:last-child,\.iq-property-strip \.iq-combo-shell>\.iq-icon:last-child\{display:none\}/);
-});
-test('relation lanes name the role of their nodes towards the centre', () => {
-  const js = read('src/modules/relation-map.js');
-  for (const label of ['Блокируют эту задачу', 'Ждут эту задачу', 'Связанные', 'Родительская задача', 'Заблокирована', 'Эта задача'])
-    assert.ok(js.includes(label), label);
-  assert.doesNotMatch(js, /'Зависит от'|'Блокирует'/);
-  assert.match(js, /NODE_H=76/);
-  assert.match(read('src/styles/foundation.css'), /\.rm-edge\.rm-edge-blocker\{stroke:var\(--iq-warning\)\}/);
 });
 test('the tag picker creates tags from a trailing "+" and removes chips in two steps', () => {
   const js = read('src/modules/components.js'), css = read('src/styles/foundation.css');

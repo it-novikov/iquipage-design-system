@@ -18,6 +18,13 @@ example demonstrates the form, not just a provider redirect. The Keycloak login 
 shipped from vnext.9 to vnext.20 was removed in vnext.21: no product uses an external
 identity provider's form any more.
 
+## Relation map «Ступица» (0.6.0-vnext.26)
+
+- `iq-relation-map` keeps its API (`value` with `center`, `parent`, `dependsOn`, `blocks`, `related`, `children`, `childrenDone`, `labels`; `iq-open {id}`, `iq-remove {id, linkId}`; `readonly`) and is redrawn: blockers on the left, tasks that wait and related tasks on the right, the parent above the centre, subtasks as a tree on a rail below. An empty side collapses, so a single blocker gets the whole width.
+- The meaning sits on the edges: each side's edges bundle into one trunk carrying the words «блокирует» / «блокируют · 1 из 3 открыта», «ждёт» / «ждут», «связана», «входит в», «подзадачи · 2 из 4». A gap is as wide as its words; when both sides are present and the side nodes would fall under 220px, the trunks rise over the centre and the words sit above them instead.
+- Nodes lie on the host's surface (no lanes, no inset): the key never wraps, the title takes two lines, a state glyph (ring, half ring, filled check) and the status lead the node; an open blocker has a solid warning edge with an arrow and a lock by its key, a closed one a dashed `line-strong` edge, a check and a muted title. Remove («×») sits inside the node and takes the status's place on hover and focus.
+- The centre is two lines, «Эта задача» and the key, without the title. `labels` may rename the centre and the edge verbs (`dependsOn`, `blocks`, `related`, `parent`, `children`); `labels.blocked` is no longer used.
+
 ## Pasted links and toasts that leave (0.6.0-vnext.25)
 
 - **A pasted link becomes a link.** In `iq-markdown-editor` (every variant) and the map's inline text editor, pasting a single `http(s)://` or `mailto:` URL with nothing selected inserts the autolink `<url>`; pasting it over a selection wraps the selection as `[selection](url)` (brackets and parentheses escaped). Ordinary text, anything else and a paste inside code, a link destination, over a URL or across paragraphs stays a plain paste. The edit goes through the browser's `insertText`, so one undo (Ctrl/⌘ Z or the toolbar) reverts it. Pasting inside an existing link, a link destination, an autolink or code, and over a selection that spans lines or holds link or code syntax, stays a plain paste, so an existing link keeps its structure. The rules live in the internal helper `markdownPasteLink` (`src/modules/markdown.js`); it is not a public export.
@@ -103,7 +110,7 @@ tints keeps at least 4.5:1 in both themes. The Keycloak theme is gone from the p
 - `.iq-section` / `.iq-section-head` / `.iq-section-count` / `.iq-section-actions`: a zone of a long surface with a divider and a heading row (icon, 16px title, count, one action).
 - Compact editors cap content headings (h1 16px, h2 and h3 14px), so they never outgrow the surface's section headings.
 - `.iq-property-strip` chips are 32px without a chevron; `.iq-properties` uses one 136px label column (88px on phones) with 12px labels.
-- `iq-relation-map`: each group is a lane named by the role of its nodes towards the centre ("Блокируют эту задачу", "Ждут эту задачу", "Связанные", "Родительская задача", "Подзадачи N из M"); open blockers draw amber edges and mark the centre "Заблокирована"; nodes are 76px with two-line titles; nodes may carry `done`; `labels` overrides the texts.
+- `iq-relation-map` (lanes replaced by «Ступица» in vnext.26): each group is a lane named by the role of its nodes towards the centre ("Блокируют эту задачу", "Ждут эту задачу", "Связанные", "Родительская задача", "Подзадачи N из M"); open blockers draw amber edges and mark the centre "Заблокирована"; nodes are 76px with two-line titles; nodes may carry `done`; `labels` overrides the texts.
 - `iq-tag-picker creatable` shows a trailing "+" inside the field (it asks the host to create a tag through `iq-create`) instead of a "+ Новый тег" chip; Backspace in an empty field first marks the last tag, a second Backspace removes it.
 - `.iq-color-field`: `.iq-color-legend` with a live preview, `.iq-color-swatch` circles filled with each tone's text colour (radios, arrow keys), `.iq-color-swatch-custom` last, `.iq-color-custom` for the native picker and hex.
 

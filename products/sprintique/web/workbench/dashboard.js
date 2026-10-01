@@ -1,5 +1,5 @@
 // «Обзор» and «Список» of the Workbench (docs/workbench/design-v2.md §11.2): one snapshot of the envelope and the
-// seven days of the plan. Обзор: Нужно действие (8) + Сегодня (4), Текущая работа as lanes В работе · Жду · Участвую
+// seven days of the plan. Обзор: Нужно действие (8) + Сегодня (4), Текущая работа as lanes В работе · Жду · Наблюдаю
 // (or one list), Изменилось. Список: the same rows full width with columns and paging. Each section loads, fails and
 // empties on its own; a live change is offered as one «Обновить», never as a silent reorder.
 import {ui,icon,escapeHTML as esc} from '@iquipage/web/core';
@@ -11,8 +11,8 @@ import {createActions} from './actions.js';
 const POLL_MS=60000;
 const LANES=[
   {key:'active',title:'В работе',icon:'circle',hint:'назначено вам',list:'ol',empty:['Ничего не назначено','Назначенные вам задачи в активной стадии появятся здесь.']},
-  {key:'waiting',title:'Жду',icon:'clock',hint:'вы поручили',list:'ul',empty:['Ничего не поручено','«Жду» появляется само: вы участвуете и назначили задачу другому.']},
-  {key:'joined',title:'Участвую',icon:'users',hint:'ваш порядок',list:'ol',empty:['Вы пока ни в чём не участвуете','«Участвую» в задаче — и она здесь, в вашем порядке.']},
+  {key:'waiting',title:'Жду',icon:'clock',hint:'вы поручили',list:'ul',empty:['Ничего не поручено','«Жду» появляется само: вы наблюдаете за задачей и назначили её другому.']},
+  {key:'joined',title:'Наблюдаю',icon:'eye',hint:'ваш порядок',list:'ol',empty:['Вы пока ни за чем не наблюдаете','Нажмите «глаз» в шапке задачи — и она здесь, в вашем порядке.']},
 ];
 const section=(id,span,title,glyph,count,actions,body,{busy=false,note=''}={})=>`<section class="dsk-widget ${span}" id="${id}" aria-labelledby="${id}-h"${busy?' aria-busy="true"':''}>
   <div class="iq-section-head">${icon(glyph,18)}<h2 id="${id}-h" tabindex="-1">${esc(title)}${count?' '+count:''}</h2>${note}<div class="iq-section-actions">${actions}</div></div>${body}</section>`;
@@ -111,7 +111,7 @@ export function mountDashboard(host,{mode,api,repository,projects,filter,prefs,s
       const undated=plan.summary.undatedCount;
       body=`<div class="dsk-today-wrap"><ul class="dsk-today" data-list aria-label="Сегодня">${items.length?items.map(i=>todayRow(i,{today})).join('')
         :'<li class="dsk-today-empty"><b>На сегодня ничего не назначено</b>Сроки, план и «проверить» появятся здесь, просроченное — первым.</li>'}</ul>
-        <div class="dsk-today-side">${dayStrip(plan)}${undated?`<p class="dsk-undated">${icon('clock',14)}Без времени: <b>${undated}</b> ${plural(undated,'задача','задачи','задач')}, в которых вы участвуете <a class="iq-btn ghost sm" href="/workbench/plan?horizon=7d#undated" data-view="week">Показать</a></p>`:''}</div></div>`;
+        <div class="dsk-today-side">${dayStrip(plan)}${undated?`<p class="dsk-undated">${icon('clock',14)}Без времени: <b>${undated}</b> ${plural(undated,'задача','задачи','задач')} под наблюдением <a class="iq-btn ghost sm" href="/workbench/plan?horizon=7d#undated" data-view="week">Показать</a></p>`:''}</div></div>`;
     }
     return section('dsk-today','dsk-span-4','Сегодня','sun',countBadge(plan?plan.days[0].items.length:null),
       `<a class="iq-btn ghost sm" href="/workbench/plan?horizon=7d" data-view="week">Неделя${icon('arrow',16)}</a>`,body,{busy:!plan&&!planError,note});
@@ -134,7 +134,7 @@ export function mountDashboard(host,{mode,api,repository,projects,filter,prefs,s
     else if(envError&&!envelope)body=`<ul>${failedRow('«Текущая работа»')}</ul>`;
     else body=`${wide?'':`<div class="iq-segmented dsk-lanes-tabs" role="group" aria-label="Дорожка">${LANES.map(l=>`<button type="button" data-lane-tab="${l.key}" aria-pressed="${laneTab===l.key}">${esc(l.title)} ${groupOf(l.key)?.count??0}</button>`).join('')}</div>`}
       <div class="dsk-lanes${form==='list'?' as-list':''}">${LANES.map(lane).join('')}</div>
-      ${wide?'':'<p class="dsk-hint dsk-rule">Одна задача — одна строка: запрос → В работе → Изменилось → Участвую · Жду. Новость поднимает задачу в «Изменилось», после «Просмотрено» она возвращается. ○ — готово, «Проверить» — ваша личная дата, ↑↓ — ваш порядок.</p>'}`;
+      ${wide?'':'<p class="dsk-hint dsk-rule">Одна задача — одна строка: запрос → В работе → Изменилось → Наблюдаю · Жду. Новость поднимает задачу в «Изменилось», после «Просмотрено» она возвращается. ○ — готово, «Проверить» — ваша личная дата, ↑↓ — ваш порядок.</p>'}`;
     const backlog=current?.backlogCount?`<a class="iq-btn ghost sm" href="/workbench/list#dsk-backlog" data-view="list" data-backlog>${icon('list',16)}<span>Назначено мне: бэклог ${current.backlogCount}</span></a>`:'';
     const toggle=wide?'':`<div class="iq-segmented dsk-form" role="group" aria-label="Текущая работа как">${ui.ib('board','Дорожками','',`data-form="lanes" aria-pressed="${form==='lanes'}"`)}${ui.ib('list','Списком','',`data-form="list" aria-pressed="${form==='list'}"`)}</div>`;
     return section('dsk-current','dsk-span-12','Текущая работа','board',countBadge(current?.count),backlog+toggle,body,{busy:loading&&!envelope});
@@ -147,7 +147,7 @@ export function mountDashboard(host,{mode,api,repository,projects,filter,prefs,s
     else{
       const items=index(itemsOf('updates'));
       body=`${wide&&items.length?'<div class="dsk-cols dsk-cols-chg" aria-hidden="true"><span></span><span>Задача · что изменилось</span><span>Проект</span><span>Когда</span><span></span></div>':''}
-        <ul class="dsk-changes" data-list aria-label="Изменения">${items.length?items.map(r=>changeRow(r,{wide})).join(''):emptyRow('Нет непросмотренных изменений','Значимое изменение задачи, в которой вы участвуете или которую поручили, поднимет её сюда; после «Просмотрено» она вернётся на своё место.')}</ul>
+        <ul class="dsk-changes" data-list aria-label="Изменения">${items.length?items.map(r=>changeRow(r,{wide})).join(''):emptyRow('Нет непросмотренных изменений','Значимое изменение задачи, за которой вы наблюдаете или которую поручили, поднимет её сюда; после «Просмотрено» она вернётся на своё место.')}</ul>
         ${more('updates')}${items.length?`<p class="dsk-hint">Показано ${items.length} из ${esc(countLabel(s.count,s.countCapped))} · по задаче, новые сверху</p>`:''}`;
     }
     const all=s?.count&&(p.personal||p.requests)?`<button type="button" class="iq-btn ghost sm" data-seen-all>${icon('eye',16)}<span>Отметить всё просмотренным</span></button>`:'';

@@ -1,10 +1,10 @@
 import {z} from 'zod';
 import {DateOnly,Id,Revision,Timezone} from './index.js';
 
-// The Workbench (docs/adr W1–W6): private "Участвую" and its fields, directed requests and the plan time zone.
+// The Workbench (docs/adr W1–W6): private "Наблюдаю" (`participating`) and its fields, directed requests and the plan time zone.
 // Field for field the Kotlin request contracts in server/.../workbench/api/WorkbenchRequests.kt.
 
-// "Участвую": one private flag; the person tracks the task and keeps it on their Workbench (docs/adr W5).
+// "Наблюдаю" (earlier «Участвую»; wire name `participating`): one private flag; the person tracks the task and keeps it on their Workbench (docs/adr W5).
 export const PutParticipation=z.strictObject({baseRevision:Revision,participating:z.boolean()});
 export const RankMove=z.enum(['up','down']);
 // Up and down move within the list the person sees: the project filter of the Workbench (null: every project).
@@ -52,7 +52,7 @@ export interface WorkbenchChange {
   actor:WorkbenchPerson|null;actorName:string|null;at:string;sequence:number;
 }
 /**
- * One task, one row. Placement precedence: action > joined > active > waiting > updates. "Участвую" (joined) is open
+ * One task, one row. Placement precedence: action > joined > active > waiting > updates. "Наблюдаю" (joined) is open
  * work I participate in and neither own nor delegated; an assigned active task is "В работе" even when I participate.
  */
 export interface WorkbenchRow {
