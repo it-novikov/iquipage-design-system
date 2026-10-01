@@ -136,7 +136,7 @@ test('IB03 the inbox over MCP and REST: oldest first, pages, unread by default, 
   const upTo=await ok(f.app.inject({method:'POST',url:api+'/api/v1/inbox/read',headers:bearer(bot.write),payload:{upTo:page.items[9].id}}));
   assert.deepEqual(upTo,{marked:8,unread:15});
   const rest=await inbox(bot.read);
-  assert.equal(rest.items[0].id,page.items[10].id,'unread only, oldest first');
+  assert.equal(rest.items[0]?.id,page.items[10].id,'unread only, oldest first');
   assert.equal((await inbox(bot.read,'?unreadOnly=false&limit=50')).items.filter(i=>i.read).length>=10,true);
   assert.equal((await f.app.inject({url:api+'/api/v1/inbox?unreadOnly=maybe',headers:bearer(bot.read)})).statusCode,400);
   assert.equal((await tool(bot.write,'mark_inbox_read',{})).isError,true,'ids or upTo');
