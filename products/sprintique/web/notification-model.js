@@ -36,7 +36,7 @@ export function telegramStatus(telegram){
 /** The e-mail row: the account's address, read-only. Null when the server sends no notification letters or there is no address. */
 export function emailStatus(email){
   if(!email?.available||!email.address)return null;
-  return {address:email.address,meta:'Адрес вашего аккаунта. Всё, что набралось за несколько минут, приходит одним письмом.'};
+  return {address:email.address,meta:'Адрес вашего аккаунта.'};
 }
 
 /** Whether there is anywhere to send outside the product: then the kinds are chosen. */

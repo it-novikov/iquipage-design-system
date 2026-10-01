@@ -168,7 +168,9 @@ class NotificationDigestTest {
             ),
         )
         assertThat(many.subject).isEqualTo("2 задачи требуют внимания · Sprintique")
-        assertThat(many.preheader).startsWith("Анна К. назначает вас исполнителем — «Граф связей: подписи рёбер».")
+        assertThat(many.preheader).isEqualTo(
+            "«Граф связей: подписи рёбер»: Анна К. назначает вас исполнителем. «Онбординг»: Срок завтра, 2 октября.",
+        )
         assertThat(many.html.split("Открыть задачу").size - 1).isEqualTo(2)
         assertThat(many.html).contains(
             "Платформа", "Срок завтра, 2 октября", "Настроить уведомления", "Отключить письма",

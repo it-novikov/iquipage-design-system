@@ -33,22 +33,25 @@ class EmailDigest(private val links: DigestLinks, private val unsubscribe: Strin
         return oneLine(line)
     }
 
-    /** The line mail clients show after the subject: the first reasons in words. */
+    /** The line mail clients show after the subject: the first tasks and why, in words. */
     private fun preheader(digest: NotificationDigest): String {
-        val reasons = digest.tasks.flatMap { task -> task.reasons.map { it to task } }
+        val tasks = digest.tasks
         if (digest.isSingle) {
-            val reason = reasons[0].first
+            val reason = tasks[0].reasons[0]
             return oneLine(reason.quote?.let { "${reason.text}: “$it”" } ?: "${reason.text}.")
         }
-        val shown = reasons.take(2).joinToString(" ") { (reason, task) ->
-            "${reason.text} — «${DigestWords.cut(task.title, PREVIEW_TITLE)}»."
+        if (tasks.size == 1) return oneLine(tasks[0].reasons.joinToString(" ") { "${it.text}." })
+        val shown = tasks.take(2).joinToString(" ") { task ->
+            "«${DigestWords.cut(task.title, PREVIEW_TITLE)}»: ${task.reasons[0].text}."
         }
-        val more = reasons.size - 2
-        return oneLine(if (more > 0) "$shown И ещё ${DigestWords.newCount(more)}." else shown)
+        val more = tasks.size - 2
+        val rest = if (more > 0) " И ещё $more ${DigestWords.plural(more, "задача", "задачи", "задач")}." else ""
+        return oneLine(shown + rest)
     }
 
+    /** A batch of one says its reason as the headline, and the card under it shows the task. */
     private fun headline(digest: NotificationDigest): String = when {
-        digest.isSingle -> digest.tasks[0].reasons[0].headline
+        digest.isSingle -> digest.tasks[0].reasons[0].text
 
         digest.tasks.size == 1 -> DigestWords.newCount(digest.reasonCount).replaceFirstChar(Char::uppercase) +
             " по задаче"
@@ -91,7 +94,10 @@ class EmailDigest(private val links: DigestLinks, private val unsubscribe: Strin
                 appendLine()
                 appendLine("${task.title} (${task.key})")
                 for (reason in task.reasons) {
-                    appendLine(reason.quote?.let { "${reason.text}: “$it”" } ?: reason.text)
+                    val quote = reason.quote?.let { "“$it”" }
+                    // A batch of one already said its reason in the headline.
+                    val line = if (digest.isSingle) quote else quote?.let { "${reason.text}: $it" } ?: reason.text
+                    line?.let(::appendLine)
                 }
                 appendLine("Открыть задачу: ${links.task(task.projectSlug, task.key)}")
             }
@@ -173,7 +179,14 @@ $summary$body
                 <p class="sq-quote sq-muted" style="margin:6px 0 0;padding:0 0 0 12px;border-left:2px solid $QUOTE_LINE;font-size:14px;line-height:21px;color:$MUTED;">${e(it)}</p>
                 """.trimIndent()
             }.orEmpty()
-            """<p class="sq-ink" style="margin:8px 0 0;font-size:15px;line-height:22px;color:$INK;">${e(reason.text)}</p>$quote"""
+            val line = if (primary) {
+                ""
+            } else {
+                """
+                <p class="sq-ink" style="margin:8px 0 0;font-size:15px;line-height:22px;color:$INK;">${e(reason.text)}</p>
+                """.trimIndent()
+            }
+            line + quote
         }
         val button = if (primary) {
             """<a class="sq-btn" href="$link" style="display:inline-block;background:$INK;color:$CARD;font-size:14px;line-height:20px;font-weight:600;padding:10px 18px;border-radius:9px;text-decoration:none;">Открыть задачу</a>"""
