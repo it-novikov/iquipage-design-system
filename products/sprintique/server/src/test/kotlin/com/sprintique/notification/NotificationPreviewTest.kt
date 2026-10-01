@@ -26,7 +26,8 @@ class NotificationPreviewTest {
         ),
         DigestItem(
             "2", NotificationKind.MENTION, "Пётр Волков", "SPR-41", "Граф связей: подписи рёбер", "sprintique",
-            "Sprintique", message = "@Аня, глянь подписи на рёбрах: кажется, «блокирует» читается лучше, чем «зависит».",
+            "Sprintique",
+            message = "@Аня, глянь подписи на рёбрах: кажется, «блокирует» читается лучше, чем «зависит».",
         ),
         DigestItem(
             "3", NotificationKind.DEADLINE, null, "SPR-38", "Онбординг новых участников", "sprintique", "Sprintique",
@@ -51,9 +52,9 @@ class NotificationPreviewTest {
         val directory = System.getenv("SPRINTIQUE_PREVIEW_DIR")?.let(Path::of) ?: return
         Files.createDirectories(directory)
         Files.writeString(directory.resolve("email-batch.html"), many.html)
-        Files.writeString(directory.resolve("email-batch.txt"), "Subject: ${many.subject}\nPreheader: ${many.preheader}\n\n${many.text}")
+        Files.writeString(directory.resolve("email-batch.txt"), "${many.subject}\n${many.preheader}\n\n${many.text}")
         Files.writeString(directory.resolve("email-single.html"), one.html)
-        Files.writeString(directory.resolve("email-single.txt"), "Subject: ${one.subject}\nPreheader: ${one.preheader}\n\n${one.text}")
+        Files.writeString(directory.resolve("email-single.txt"), "${one.subject}\n${one.preheader}\n\n${one.text}")
         val parts = (telegram + single).joinToString("\n\u0000\n") { part ->
             part.html + "\n\u0001\n" + part.buttons.joinToString("\n") { "${it.text}\t${it.url}" }
         }
