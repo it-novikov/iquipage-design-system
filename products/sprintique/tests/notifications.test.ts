@@ -181,6 +181,7 @@ test('NT06 the webhook: secret, idempotency by update_id, /start with a fresh, u
   assert.equal((await webhook(message(7002,'/start nonsense'))).json<any>().text,'Ссылка недействительна. Откройте Sprintique → Настройки → Уведомления и подключите Telegram снова.');
   const stale=randomBytes(32).toString('base64url');
   await f.admin.query("INSERT INTO app.telegram_link_tokens(token_sha256,principal_id,created_at,expires_at) VALUES($1,$2,now()-interval '20 minutes',now()-interval '5 minutes')",[hash(stale),dan.id]);
+  await assert.rejects(f.db.authenticated({token:dan.token,kind:'session'},tx=>tx.query("INSERT INTO app.telegram_link_tokens(token_sha256,principal_id,created_at,expires_at) VALUES($1,$2,now()+interval '1 year',now()+interval '1 year 10 minutes')",[hash('future'),dan.id])),{code:'42501'});
   assert.equal((await webhook(message(7003,'/start '+stale))).json<any>().text,'Ссылка устарела. Откройте Sprintique → Настройки → Уведомления и подключите Telegram снова.');
   assert.equal((await webhook(message(7003,'/start'))).json<any>().text,'Это бот уведомлений Sprintique. Чтобы подключить его, откройте Sprintique → Настройки → Уведомления.');
   assert.equal((await webhook(message(7003,'привет'))).body,'');

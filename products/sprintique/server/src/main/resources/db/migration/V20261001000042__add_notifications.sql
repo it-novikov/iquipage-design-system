@@ -108,7 +108,9 @@ CREATE POLICY own_mark ON app.notifications FOR UPDATE
   WITH CHECK(recipient_id=auth.actor_id() AND auth.can_project(project_id));
 CREATE POLICY own_policy ON app.notification_preferences USING(principal_id=auth.actor_id()) WITH CHECK(principal_id=auth.actor_id());
 CREATE POLICY own_read ON app.telegram_link_tokens FOR SELECT USING(principal_id=auth.actor_id());
-CREATE POLICY own_insert ON app.telegram_link_tokens FOR INSERT WITH CHECK(principal_id=auth.actor_id() AND consumed_at IS NULL);
+-- A token starts now: a row dated ahead could not otherwise be held to its fifteen minutes.
+CREATE POLICY own_insert ON app.telegram_link_tokens FOR INSERT
+  WITH CHECK(principal_id=auth.actor_id() AND consumed_at IS NULL AND created_at<=clock_timestamp());
 CREATE POLICY own_read ON app.telegram_connections FOR SELECT USING(principal_id=auth.actor_id());
 CREATE POLICY own_unlink ON app.telegram_connections FOR DELETE USING(principal_id=auth.actor_id());
 -- Members see the switch; those who may configure the project change it.
