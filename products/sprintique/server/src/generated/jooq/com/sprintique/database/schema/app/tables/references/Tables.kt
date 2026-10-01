@@ -23,6 +23,8 @@ import com.sprintique.database.schema.app.tables.MapVotes
 import com.sprintique.database.schema.app.tables.Maps
 import com.sprintique.database.schema.app.tables.Messages
 import com.sprintique.database.schema.app.tables.Milestones
+import com.sprintique.database.schema.app.tables.NotificationPreferences
+import com.sprintique.database.schema.app.tables.Notifications
 import com.sprintique.database.schema.app.tables.Outbox
 import com.sprintique.database.schema.app.tables.PersonAvatars
 import com.sprintique.database.schema.app.tables.PersonPreferences
@@ -43,6 +45,11 @@ import com.sprintique.database.schema.app.tables.TaskSettings
 import com.sprintique.database.schema.app.tables.TaskSettingsVersions
 import com.sprintique.database.schema.app.tables.TaskTags
 import com.sprintique.database.schema.app.tables.Tasks
+import com.sprintique.database.schema.app.tables.TelegramConnections
+import com.sprintique.database.schema.app.tables.TelegramDeliveries
+import com.sprintique.database.schema.app.tables.TelegramLinkTokens
+import com.sprintique.database.schema.app.tables.TelegramProjectSettings
+import com.sprintique.database.schema.app.tables.TelegramUpdates
 import com.sprintique.database.schema.app.tables.TemporalConstraints
 import com.sprintique.database.schema.app.tables.ThreadReads
 import com.sprintique.database.schema.app.tables.Threads
@@ -89,6 +96,10 @@ val MESSAGES: Messages = Messages.MESSAGES
 
 val MILESTONES: Milestones = Milestones.MILESTONES
 
+val NOTIFICATION_PREFERENCES: NotificationPreferences = NotificationPreferences.NOTIFICATION_PREFERENCES
+
+val NOTIFICATIONS: Notifications = Notifications.NOTIFICATIONS
+
 val OUTBOX: Outbox = Outbox.OUTBOX
 
 val PERSON_AVATARS: PersonAvatars = PersonAvatars.PERSON_AVATARS
@@ -128,6 +139,16 @@ val TASK_SETTINGS_VERSIONS: TaskSettingsVersions = TaskSettingsVersions.TASK_SET
 val TASK_TAGS: TaskTags = TaskTags.TASK_TAGS
 
 val TASKS: Tasks = Tasks.TASKS
+
+val TELEGRAM_CONNECTIONS: TelegramConnections = TelegramConnections.TELEGRAM_CONNECTIONS
+
+val TELEGRAM_DELIVERIES: TelegramDeliveries = TelegramDeliveries.TELEGRAM_DELIVERIES
+
+val TELEGRAM_LINK_TOKENS: TelegramLinkTokens = TelegramLinkTokens.TELEGRAM_LINK_TOKENS
+
+val TELEGRAM_PROJECT_SETTINGS: TelegramProjectSettings = TelegramProjectSettings.TELEGRAM_PROJECT_SETTINGS
+
+val TELEGRAM_UPDATES: TelegramUpdates = TelegramUpdates.TELEGRAM_UPDATES
 
 val TEMPORAL_CONSTRAINTS: TemporalConstraints = TemporalConstraints.TEMPORAL_CONSTRAINTS
 

@@ -91,3 +91,25 @@
 @media(max-width:760px){.sq-invite-projects{grid-template-columns:minmax(0,1fr)}.sq-invite-search{flex:1 1 100%}.sq-access-summary>.iq-btn{margin-left:0}.sq-footer-note{flex-basis:100%}}
 .consent-new{display:grid;gap:var(--iq-space-4)}
 .consent-new[hidden]{display:none}
+/* Notifications (web/notifications.js): the bell among the personal tools and its DS menu. Quiet: the count is ink,
+   not an alarm colour; an unread row carries one small accent dot. */
+.pn-bell-slot{display:contents}
+.pn-bell-trigger{position:relative}
+.pn-bell-count{position:absolute;top:0;right:-2px;min-width:16px;height:16px;padding:0 var(--iq-space-1);border-radius:var(--iq-radius-pill);background:var(--iq-ink);color:var(--iq-raised);font:600 var(--iq-type-caption-size)/16px var(--iq-font);font-variant-numeric:tabular-nums;text-align:center;pointer-events:none}
+.pn-bell-count[hidden]{display:none}
+.pn-bell-popup{width:min(380px,calc(100vw - 24px));max-height:min(560px,calc(100vh - 96px));padding:0}
+.pn-bell-body{display:grid}
+.pn-bell-head{position:sticky;top:0;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:var(--iq-space-2);min-height:44px;padding:var(--iq-space-1) var(--iq-space-2) var(--iq-space-1) var(--iq-space-4);border-bottom:1px solid var(--iq-line);background:var(--iq-raised)}
+.pn-bell-title{font-weight:600;font-size:var(--iq-type-interface-size)}
+.pn-bell-list{display:grid;padding:var(--iq-space-1)}
+.pn-bell-popup .pn-bell-item{display:grid;grid-template-columns:auto minmax(0,1fr) 8px;align-items:start;gap:var(--iq-space-3);width:100%;min-height:56px;padding:var(--iq-space-2) var(--iq-space-3);white-space:normal;text-align:left}
+.pn-bell-media{display:grid;place-items:center;padding-top:2px}
+.pn-bell-glyph{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--iq-surface);color:var(--iq-muted)}
+.pn-bell-copy{display:grid;gap:2px;min-width:0}
+.pn-bell-text{color:var(--iq-muted);font-size:var(--iq-type-label-size);line-height:1.4;overflow-wrap:anywhere}
+.pn-bell-item[data-unread] .pn-bell-text{color:var(--iq-ink)}
+.pn-bell-meta{color:var(--iq-muted);font-size:var(--iq-type-meta-size);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pn-bell-dot{width:8px;height:8px;margin-top:6px;border-radius:50%;background:var(--iq-accent)}
+.pn-bell-empty{margin:0;padding:var(--iq-space-5) var(--iq-space-4);color:var(--iq-muted);font-size:var(--iq-type-label-size);text-align:center}
+.pn-bell-foot{display:flex;justify-content:space-between;gap:var(--iq-space-2);padding:var(--iq-space-1) var(--iq-space-2);border-top:1px solid var(--iq-line)}
+.pn-bell-foot>:last-child{margin-left:auto}

@@ -8,6 +8,7 @@ import com.sprintique.database.Transaction
 import com.sprintique.identity.application.ProjectAccess
 import com.sprintique.identity.domain.Actor
 import com.sprintique.identity.domain.Capability
+import com.sprintique.notification.application.Notifications
 import com.sprintique.problem.requireCondition
 import com.sprintique.problem.requirePresent
 import com.sprintique.task.application.Tasks
@@ -137,6 +138,7 @@ object Discussions {
                 actor.id,
             )
             AuditTrail.record(tx, actor, projectId, "thread.created", thread.id, 1)
+            Notifications.raiseMentions(tx, actor, projectId, thread.messageId, thread.body)
             visible(actor, read(tx, projectId, thread.id), thread.messageId)
         }
     }
@@ -181,6 +183,7 @@ object Discussions {
                 threadId,
             )
             AuditTrail.record(tx, actor, projectId, "thread.message-added", threadId, message.baseRevision + 1)
+            Notifications.raiseMentions(tx, actor, projectId, message.id, message.body)
             visible(actor, read(tx, projectId, threadId), message.id)
         }
     }
