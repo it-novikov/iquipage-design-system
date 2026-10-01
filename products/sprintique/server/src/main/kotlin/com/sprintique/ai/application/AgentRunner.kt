@@ -245,9 +245,8 @@ class AgentRunner(
         private fun fail(code: String, partial: String? = null) {
             if (credentialId != null && code != "ACCESS_LOST") {
                 val reason = RunErrors.message(code) ?: "Запуск не удался."
-                val tail = partial?.trim()?.takeIf(String::isNotEmpty)?.let {
-                    "\n\nПоследний ответ агента:\n\n" +
-                        it.take(PARTIAL)
+                val tail = partial?.let(::plain)?.takeIf(String::isNotEmpty)?.let {
+                    "\n\nПоследний ответ агента: " + it.take(PARTIAL)
                 }
                 comment("Не удалось выполнить задачу. $reason${tail.orEmpty()}", "failure")
             }
@@ -259,6 +258,12 @@ class AgentRunner(
             val call = ToolCall("$kind-${lease.runId}", "add_task_comment", json.writeValueAsString(arguments))
             return tools.execute(lease, credentialId!!, call, retryKey(kind))
         }
+
+        /** A model's text as one plain paragraph: Sprintique texts carry no bulleted or numbered lists. */
+        private fun plain(text: String): String = text.lines()
+            .map { it.trim().replace(LIST_MARKER, "") }
+            .filter(String::isNotEmpty)
+            .joinToString(" ")
 
         private fun lastText(): String? = turns.filterIsInstance<Turn.Assistant>().lastOrNull()?.text
 
@@ -328,5 +333,6 @@ class AgentRunner(
         const val NONCE = 16
         const val KEY_LENGTH = 40
         const val MODEL_SUMMARY = 200
+        val LIST_MARKER = Regex("^([-*•+]|\\d+[.)])\\s+")
     }
 }

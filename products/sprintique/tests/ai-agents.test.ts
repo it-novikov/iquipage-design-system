@@ -120,6 +120,7 @@ test('AI03 an assigned task starts the agent: it reads, changes the status throu
     if(n===1){
       assert.equal(request.headers['x-api-key'],ANTHROPIC_KEY);assert.ok(request.headers['anthropic-version']);
       assert.match(request.body.system,/untrusted/);assert.match(request.body.system,/Отвечай кратко\./);
+      assert.match(request.body.system,/never bulleted or numbered lists/);
       assert.match(firstUserText(request),/<untrusted-task-data id="[A-Za-z0-9_-]+">/);
       assert.deepEqual(request.body.tools.map((t:any)=>t.name).sort(),['add_task_comment','change_task_status','create_task','get_task','list_milestones','list_releases','search_tasks','update_task']);
       assert.ok(request.body.tools.every((t:any)=>!('projectId' in t.input_schema.properties)&&!('idempotencyKey' in t.input_schema.properties)));
@@ -232,12 +233,15 @@ test('AI07 a failing provider ends the run with a code and a plain comment, neve
 
 test('AI08 limits: a run stops at its step limit; an account stops at its runs per hour',async()=>{
   const robot=await agent('Болтливый','script-loop',{maxSteps:2,runsPerHour:1});
-  llm.script('script-loop',()=>anthropic.tool('get_task',{task:'ai-loop'}));
+  llm.script('script-loop',()=>anthropic.tool('get_task',{task:'ai-loop'},'План:\n- прочитать задачу\n2. ответить'));
   await task('ai-loop');
   await ok(call(f.alice,'POST',project('tasks/ai-loop/agent-runs'),{accountId:robot}));
   const run=await finished('ai-loop',robot);
   assert.equal(run.state,'failed');assert.equal(run.errorCode,'STEP_LIMIT');assert.equal(run.stepsUsed,2);
-  assert.match((await messages('ai-loop'))[0]!.body,/лимит шагов/);
+  const failure=(await messages('ai-loop'))[0]!.body;
+  // Its own words follow the rule of Sprintique texts: plain paragraphs, no lists.
+  assert.match(failure,/лимит шагов/);assert.match(failure,/Последний ответ агента: План: прочитать задачу ответить$/);
+  assert.doesNotMatch(failure,/^\s*([-*]|\d+[.)])\s/m);
   const limited=await call(f.alice,'POST',project('tasks/ai-loop/agent-runs'),{accountId:robot});
   assert.equal(limited.statusCode,429,limited.body);assert.equal(limited.json().code,'RUN_LIMIT');
 });
