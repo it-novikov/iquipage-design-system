@@ -2,6 +2,7 @@ package com.sprintique.ai.api
 
 import com.sprintique.ai.application.AgentProfiles
 import com.sprintique.ai.application.AiConnections
+import com.sprintique.ai.application.CheckGate
 import com.sprintique.ai.application.ModelPort
 import com.sprintique.ai.application.TaskAgents
 import com.sprintique.ai.domain.ProviderException
@@ -38,6 +39,7 @@ class AiController(
     private val agents: TaskAgents,
     private val models: ModelPort,
     private val flags: FeatureFlags,
+    private val checks: CheckGate,
 ) {
     @GetMapping("/api/v1/workspaces/{workspaceId}/ai-connections")
     fun list(@PathVariable workspaceId: String, request: HttpServletRequest) = requests.run(request) { tx, actor ->
@@ -97,7 +99,7 @@ class AiController(
 
     /**
      * «Проверить»: one minimal real call to the provider. The key is opened in one transaction, the call is made
-     * outside any, and its outcome is recorded in another.
+     * outside any (paced by CheckGate), and its outcome is recorded in another.
      */
     @PostMapping("/api/v1/workspaces/{workspaceId}/ai-connections/{id}/check")
     @Accepts(AiCommandRequest::class)
@@ -106,11 +108,13 @@ class AiController(
         val connection = uuid(id)
         val target = requests.run(request) { tx, actor -> connections.checkTarget(tx, actor, workspace, connection) }
         var failure: ProviderFailure? = null
-        val found = try {
-            models.check(target.endpoint, target.defaultModel)
-        } catch (error: ProviderException) {
-            failure = error.failure
-            emptyList()
+        val found = checks.check(workspace, connection) {
+            try {
+                models.check(target.endpoint, target.defaultModel)
+            } catch (error: ProviderException) {
+                failure = error.failure
+                emptyList()
+            }
         }
         return requests.run(request) { tx, actor ->
             connections.recordCheck(tx, actor, workspace, connection, target, failure, found)
@@ -138,6 +142,7 @@ class AiController(
                 AgentProfiles.Settings(
                     input.baseRevision, input.enabled, input.connectionId?.lowercase(), input.model, input.instructions,
                     input.onAssignment, input.maxSteps, input.maxOutputTokens, input.runsPerHour,
+                    input.maxRunTokens,
                 ),
             )
         }

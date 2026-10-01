@@ -145,6 +145,8 @@ open class AiAgentRuns(
 
     val FINISHED_AT: TableField<AiAgentRunsRecord, OffsetDateTime?> = createField(DSL.name("finished_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6), this, "")
 
+    val MAX_RUN_TOKENS: TableField<AiAgentRunsRecord, Int?> = createField(DSL.name("max_run_tokens"), SQLDataType.INTEGER.nullable(false).defaultValue(DSL.field(DSL.raw("500000"), SQLDataType.INTEGER)), this, "")
+
     private constructor(alias: Name, aliased: Table<AiAgentRunsRecord>?): this(alias, null, null, null, aliased, null, null)
     private constructor(alias: Name, aliased: Table<AiAgentRunsRecord>?, parameters: Array<Field<*>?>?): this(alias, null, null, null, aliased, parameters, null)
     private constructor(alias: Name, aliased: Table<AiAgentRunsRecord>?, where: Condition?): this(alias, null, null, null, aliased, null, where)
@@ -210,6 +212,7 @@ open class AiAgentRuns(
         Internal.createCheck(this, DSL.name("ai_agent_runs_error_code_check"), "(((error_code IS NULL) OR (error_code ~ '^[A-Z_]{2,40}\$'::text)))", true),
         Internal.createCheck(this, DSL.name("ai_agent_runs_input_tokens_check"), "((input_tokens >= 0))", true),
         Internal.createCheck(this, DSL.name("ai_agent_runs_max_output_tokens_check"), "(((max_output_tokens >= 256) AND (max_output_tokens <= 32000)))", true),
+        Internal.createCheck(this, DSL.name("ai_agent_runs_max_run_tokens_check"), "(((max_run_tokens >= 10000) AND (max_run_tokens <= 5000000)))", true),
         Internal.createCheck(this, DSL.name("ai_agent_runs_max_steps_check"), "(((max_steps >= 1) AND (max_steps <= 50)))", true),
         Internal.createCheck(this, DSL.name("ai_agent_runs_model_check"), "(((length(model) >= 1) AND (length(model) <= 200)))", true),
         Internal.createCheck(this, DSL.name("ai_agent_runs_output_tokens_check"), "((output_tokens >= 0))", true),

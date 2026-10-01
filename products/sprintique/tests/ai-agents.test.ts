@@ -10,6 +10,7 @@ import type {Recorded} from './support/fake-llm.js';
 let f:Awaited<ReturnType<typeof fixture>>,llm:Awaited<ReturnType<typeof fakeProvider>>;
 type User=Awaited<ReturnType<typeof fixture>>['alice'];
 const ANTHROPIC_KEY='sk-ant-test-'+randomBytes(12).toString('hex'),OPENAI_KEY='sk-or-test-'+randomBytes(12).toString('hex');
+const SECRETS_KEY=randomBytes(32).toString('base64');
 let anthropicConnection:string,compatibleConnection:string;
 
 const call=(user:User,method:'GET'|'POST'|'PUT'|'PATCH'|'DELETE',url:string,payload?:unknown)=>f.app.inject({method,url,
@@ -53,7 +54,7 @@ const firstUserText=(request:Recorded)=>{const content=request.body.messages[0].
 
 before(async()=>{
   llm=await fakeProvider();
-  f=await fixture({prefix:'AIG',settings:{SPRINTIQUE_SECRETS_KEY:randomBytes(32).toString('base64'),SPRINTIQUE_AI_ALLOWED_HOSTS:'127.0.0.1',
+  f=await fixture({prefix:'AIG',settings:{SPRINTIQUE_SECRETS_KEY:SECRETS_KEY,SPRINTIQUE_AI_ALLOWED_HOSTS:'127.0.0.1',
     SPRINTIQUE_AI_RETRY_BASE_MS:'50',SPRINTIQUE_AI_TIMEOUT_SECONDS:'2',SPRINTIQUE_AI_RUNNERS:'2'}});
 });
 after(async()=>{await f?.close();await llm?.close();});
@@ -107,7 +108,7 @@ test('AI02 addresses: public HTTPS only, except hosts the server lists; no redir
   const moved=await ok(call(f.alice,'POST',connections(),{name:'Редирект',provider:'openai_compatible',baseUrl:llm.url+'/moved',apiKey:'sk-test-12345678'}));
   llm.script('/moved/models',()=>({status:302,headers:{location:llm.url+'/v1/models'}}));
   assert.equal((await ok(call(f.alice,'POST',connections()+`/${moved.id}/check`))).lastTest.code,'PROVIDER_REDIRECT');
-  // A provider that does not answer in time: a timeout after the retries, not a hang.
+  // A provider that does not answer in time: a timeout, not a hang (a check is one attempt, no retries).
   const slow=await ok(call(f.alice,'POST',connections(),{name:'Медленный',provider:'openai_compatible',baseUrl:llm.url+'/slow',apiKey:'sk-test-12345678'}));
   llm.script('/slow/models',()=>({delayMs:3500,body:{data:[]}}));
   assert.equal((await ok(call(f.alice,'POST',connections()+`/${slow.id}/check`))).lastTest.code,'PROVIDER_TIMEOUT');
@@ -302,4 +303,48 @@ test('AI12 a run that waited in the queue for an hour expires instead of startin
   const run=await finished('ai-late',robot);
   assert.equal(run.id,id);assert.equal(run.state,'failed');assert.equal(run.errorCode,'RUN_EXPIRED');
   assert.equal(llm.for('script-late').length,0);assert.equal((await messages('ai-late')).length,0);
+});
+
+test('AI13 a run stops at its token budget; what the agent writes becomes plain paragraphs',async()=>{
+  const thrifty=await agent('Экономный','script-budget',{maxRunTokens:10000});
+  llm.script('script-budget',()=>({body:{id:'msg_budget',type:'message',role:'assistant',stop_reason:'tool_use',
+    content:[{type:'tool_use',id:'toolu_budget',name:'get_task',input:{task:'ai-budget'}}],usage:{input_tokens:9000,output_tokens:1500}}}));
+  await task('ai-budget');
+  await ok(call(f.alice,'POST',project('tasks/ai-budget/agent-runs'),{accountId:thrifty}));
+  const run=await finished('ai-budget',thrifty);
+  assert.equal(run.state,'failed');assert.equal(run.errorCode,'TOKEN_LIMIT');assert.equal(run.maxRunTokens,10000);
+  assert.equal(run.inputTokens+run.outputTokens,10500);
+  assert.equal(llm.for('script-budget').length,1,'no model call once the budget is spent');
+  assert.match((await messages('ai-budget'))[0]!.body,/бюджет токенов/);
+  // A final answer and a comment made with the tool lose their list markers; paragraphs and code stay.
+  const writer=await agent('Писатель','script-lists');
+  llm.script('script-lists',(request,n)=>n===1?anthropic.tool('add_task_comment',{task:'ai-lists',body:'План:\n1. прочитать\n2. ответить'})
+    :anthropic.text('Сделал так:\n- прочитал задачу;\n- ответил.\n\n```\n- a\n```\nГотово.'));
+  await task('ai-lists');
+  await ok(call(f.alice,'POST',project('tasks/ai-lists/agent-runs'),{accountId:writer}));
+  assert.equal((await finished('ai-lists',writer)).state,'completed');
+  assert.deepEqual((await messages('ai-lists')).map(m=>m.body).sort(),['План: прочитать ответить','Сделал так: прочитал задачу; ответил.\n\n```\n- a\n```\n\nГотово.']);
+});
+
+test('AI14 checks are paced; after a rotation of the server key a check seals the key again with the new one',async()=>{
+  const key='sk-ant-rotate-'+randomBytes(6).toString('hex');
+  const made=await ok(call(f.alice,'POST',connections(),{name:'Ротация',provider:'anthropic',baseUrl:llm.url+'/rotate',apiKey:key}));
+  llm.script('/rotate/v1/models?limit=100',request=>request.headers['x-api-key']===key?{delayMs:500,body:{data:[{id:'rotate-model'}]}}:{status:401,body:{}});
+  // One check of a connection at a time: a second click while the first waits is refused, not queued.
+  const both=await Promise.all([call(f.alice,'POST',connections()+`/${made.id}/check`),call(f.alice,'POST',connections()+`/${made.id}/check`)]);
+  assert.deepEqual(both.map(r=>r.statusCode).sort(),[200,429],both.map(r=>r.body).join(' '));
+  assert.equal(both.find(r=>r.statusCode===429)!.json().code,'AI_CHECK_BUSY');
+  // A new server key (version 2) with the old one kept as previous: the key still opens and is sealed again.
+  const rotated=await startApp({settings:{SPRINTIQUE_SECRETS_KEY:randomBytes(32).toString('base64'),SPRINTIQUE_SECRETS_KEY_VERSION:'2',
+    SPRINTIQUE_SECRETS_PREVIOUS_KEYS:'1:'+SECRETS_KEY,SPRINTIQUE_AI_ALLOWED_HOSTS:'127.0.0.1',SPRINTIQUE_AI_RUNNERS:'0'}});
+  try{
+    const checked=await rotated.inject({method:'POST',url:connections()+`/${made.id}/check`,headers:{...f.alice.headers,'idempotency-key':randomUUID()}});
+    assert.equal(checked.statusCode,200,checked.body);assert.equal(checked.json().lastTest.state,'connected');
+  }finally{await rotated.close();}
+  const stored=(await f.admin.query('SELECT key_version,sealed FROM app.ai_connection_secrets WHERE connection_id=$1',[made.id])).rows[0];
+  assert.equal(stored.key_version,2);assert.ok(!Buffer.from(stored.sealed).includes(Buffer.from(key.slice(4))));
+  // A server without the new key cannot open it: it says so in words, never with the key.
+  const lost=await call(f.alice,'POST',connections()+`/${made.id}/check`);
+  assert.equal(lost.statusCode,409,lost.body);assert.equal(lost.json().code,'AI_KEY_UNREADABLE');assert.ok(!lost.body.includes(key));
+  await ok(call(f.alice,'DELETE',connections()+'/'+made.id));
 });

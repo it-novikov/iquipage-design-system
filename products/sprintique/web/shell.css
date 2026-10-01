@@ -94,4 +94,4 @@
 /* The agent of a service account (docs/decisions/0005-ai-agents.md): its start rule and limits in the dialog. */
 .sq-agent-part{display:grid;gap:var(--iq-space-2)}
 .sq-agent-part>h3{margin:0;font-size:var(--iq-type-label-size);font-weight:600}
-.sq-agent-limits{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--iq-space-3)}
+.sq-agent-limits{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--iq-space-3)}

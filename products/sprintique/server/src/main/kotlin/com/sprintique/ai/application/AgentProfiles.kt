@@ -29,6 +29,7 @@ class AgentProfiles(private val box: SecretBox) {
         val maxSteps: Int,
         val maxOutputTokens: Int,
         val runsPerHour: Int,
+        val maxRunTokens: Int,
     )
 
     fun read(tx: Transaction, actor: Actor, accountId: String): Map<String, Any?> {
@@ -49,6 +50,7 @@ class AgentProfiles(private val box: SecretBox) {
                 "maxSteps" to DEFAULT_STEPS,
                 "maxOutputTokens" to DEFAULT_OUTPUT,
                 "runsPerHour" to DEFAULT_RUNS,
+                "maxRunTokens" to DEFAULT_RUN_TOKENS,
             ),
         )
     }
@@ -86,16 +88,16 @@ class AgentProfiles(private val box: SecretBox) {
         tx.update(
             """
             INSERT INTO app.ai_agent_profiles(principal_id, workspace_id, connection_id, enabled, model, instructions,
-              on_assignment, max_steps, max_output_tokens, runs_per_hour, updated_by)
-            VALUES ($1, $2::uuid, $3::uuid, $4, $5, $6, $7, $8, $9, $10, $11)
+              on_assignment, max_steps, max_output_tokens, runs_per_hour, max_run_tokens, updated_by)
+            VALUES ($1, $2::uuid, $3::uuid, $4, $5, $6, $7, $8, $9, $10, $12, $11)
             ON CONFLICT (principal_id) DO UPDATE SET connection_id = excluded.connection_id, enabled = excluded.enabled,
               model = excluded.model, instructions = excluded.instructions, on_assignment = excluded.on_assignment,
               max_steps = excluded.max_steps, max_output_tokens = excluded.max_output_tokens,
-              runs_per_hour = excluded.runs_per_hour, updated_by = excluded.updated_by, updated_at = clock_timestamp(),
+              runs_per_hour = excluded.runs_per_hour, max_run_tokens = excluded.max_run_tokens, updated_by = excluded.updated_by, updated_at = clock_timestamp(),
               revision = app.ai_agent_profiles.revision + 1
             """.trimIndent(),
             accountId, workspaceId, input.connectionId, input.enabled, input.model, input.instructions,
-            input.onAssignment, input.maxSteps, input.maxOutputTokens, input.runsPerHour, actor.id,
+            input.onAssignment, input.maxSteps, input.maxOutputTokens, input.runsPerHour, actor.id, input.maxRunTokens,
         )
         WorkspaceAccess.audit(
             tx,
@@ -113,6 +115,7 @@ class AgentProfiles(private val box: SecretBox) {
         """
         SELECT p.enabled, p.connection_id AS "connectionId", p.model, p.instructions, p.on_assignment AS "onAssignment",
                p.max_steps AS "maxSteps", p.max_output_tokens AS "maxOutputTokens", p.runs_per_hour AS "runsPerHour",
+               p.max_run_tokens AS "maxRunTokens",
                p.revision, p.updated_at AS "updatedAt",
                (SELECT count(*)::int FROM app.ai_agent_runs r WHERE r.account_id = p.principal_id
                   AND r.created_at > clock_timestamp() - interval '1 hour' AND r.error_code IS DISTINCT FROM 'RUN_LIMIT')
@@ -148,6 +151,7 @@ class AgentProfiles(private val box: SecretBox) {
         const val DEFAULT_STEPS = 12
         const val DEFAULT_OUTPUT = 2048
         const val DEFAULT_RUNS = 20
+        const val DEFAULT_RUN_TOKENS = 500_000
         const val INSTRUCTIONS_LIMIT = 8000
     }
 }

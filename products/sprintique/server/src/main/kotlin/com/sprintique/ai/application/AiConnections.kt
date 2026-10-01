@@ -38,7 +38,10 @@ class AiConnections(private val box: SecretBox, properties: SprintiqueProperties
         val baseUrl: String?,
         val apiKey: String,
         val defaultModel: String?,
-    )
+    ) {
+        /** The key is never part of what is printed (a log line, an exception message). */
+        override fun toString() = "NewConnection(name=$name, provider=${provider.wire})"
+    }
 
     data class ConnectionChange(
         val baseRevision: Long,
@@ -46,7 +49,9 @@ class AiConnections(private val box: SecretBox, properties: SprintiqueProperties
         val baseUrl: String?,
         val apiKey: String?,
         val defaultModel: String?,
-    )
+    ) {
+        override fun toString() = "ConnectionChange(name=$name, keyReplaced=${apiKey != null})"
+    }
 
     /** What a check needs, read and opened in one transaction so that no key waits in memory across requests. */
     class CheckTarget(val endpoint: Endpoint, val defaultModel: String?, val revision: Long)
@@ -217,15 +222,22 @@ class AiConnections(private val box: SecretBox, properties: SprintiqueProperties
         return read(tx, workspaceId, id) + ("message" to failure?.message)
     }
 
+    /**
+     * Opens the key of a connection. A key sealed with an earlier server key (before a rotation) is sealed again with
+     * the current one, so after a rotation «Проверить» on each connection is enough to retire the old server key.
+     */
     private fun openKey(tx: Transaction, id: String): String {
         val secret = tx.row("SELECT sealed, key_version AS \"keyVersion\" FROM app.ai_connection_secret($1::uuid)", id)
         val sealed = requirePresent(secret, 404, "NOT_FOUND", "Подключение недоступно.")
         if (!box.isConfigured) throw box.unavailable()
-        return box.open(sealed["sealed"] as ByteArray, sealed.int("keyVersion"), context(id)) ?: throw ProblemException(
+        val version = sealed.int("keyVersion")
+        val key = box.open(sealed["sealed"] as ByteArray, version, context(id)) ?: throw ProblemException(
             409,
             "AI_KEY_UNREADABLE",
             "Ключ этого подключения зашифрован другим ключом сервера. Введите ключ API заново.",
         )
+        if (version != box.version) store(tx, id, key)
+        return key
     }
 
     private fun store(tx: Transaction, id: String, apiKey: String) {

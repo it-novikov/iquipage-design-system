@@ -20,6 +20,7 @@ object RunErrors {
     private val messages = mapOf(
         "RUN_LIMIT" to "Агент исчерпал лимит запусков в час. Повторите позже.",
         "STEP_LIMIT" to "Агент остановился: достигнут лимит шагов запуска.",
+        "TOKEN_LIMIT" to "Агент остановился: запуск израсходовал свой бюджет токенов.",
         "RUN_TIMEOUT" to "Агент не уложился во время, отведённое на запуск.",
         "RUN_ABANDONED" to "Запуск прервался и не был продолжен.",
         "RUN_EXPIRED" to "Запуск слишком долго ждал очереди и не начался.",
@@ -191,7 +192,7 @@ class TaskAgents {
         const val PROJECTION = """r.id, r.task_id AS "taskId", r.account_id AS "accountId",
             coalesce(a.profile_name, a.name) AS "accountName", r.model, r.trigger, r.requested_by AS "requestedBy",
             coalesce(q.profile_name, q.name) AS "requestedByName", r.state, r.steps_used AS "stepsUsed",
-            r.max_steps AS "maxSteps", least(r.input_tokens, 2147483647)::int AS "inputTokens",
+            r.max_steps AS "maxSteps", r.max_run_tokens AS "maxRunTokens", least(r.input_tokens, 2147483647)::int AS "inputTokens",
             least(r.output_tokens, 2147483647)::int AS "outputTokens", (r.cost_micros / 1e6)::float8 AS "costUsd",
             r.error_code AS "errorCode", r.message_id AS "messageId",
             r.cancel_requested_at IS NOT NULL AS "stopRequested", r.created_at AS "createdAt", r.started_at AS "startedAt",

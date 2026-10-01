@@ -34,22 +34,26 @@ class HttpModelClient(private val json: JsonMapper, properties: SprintiqueProper
         Duration.ofSeconds(properties.ai.timeoutSeconds.toLong()),
     )
 
-    override fun reply(endpoint: Endpoint, request: ModelRequest): ModelReply = retrying {
-        when (endpoint.provider) {
-            AiProvider.ANTHROPIC -> anthropic(endpoint, request)
-            AiProvider.OPENAI, AiProvider.OPENAI_COMPATIBLE -> openAi(endpoint, request)
-        }
-    }
+    override fun reply(endpoint: Endpoint, request: ModelRequest): ModelReply = retrying { once(endpoint, request) }
 
+    /**
+     * A check is made while a person waits: one attempt per call and no pauses, so a busy provider answers «повторите
+     * позже» at once instead of holding the request for minutes.
+     */
     override fun check(endpoint: Endpoint, probeModel: String?): List<String> {
         try {
-            return retrying { models(endpoint) }
+            return models(endpoint)
         } catch (error: ProviderException) {
             // Some compatible servers have no list of models: one token of a known model proves the key instead.
             if (error.failure != ProviderFailure.PROVIDER_NOT_FOUND || probeModel == null) throw error
         }
-        reply(endpoint, ModelRequest(probeModel, "", listOf(Turn.User("ping")), emptyList(), 1))
+        once(endpoint, ModelRequest(probeModel, "", listOf(Turn.User("ping")), emptyList(), 1))
         return emptyList()
+    }
+
+    private fun once(endpoint: Endpoint, request: ModelRequest): ModelReply = when (endpoint.provider) {
+        AiProvider.ANTHROPIC -> anthropic(endpoint, request)
+        AiProvider.OPENAI, AiProvider.OPENAI_COMPATIBLE -> openAi(endpoint, request)
     }
 
     private fun models(endpoint: Endpoint): List<String> {

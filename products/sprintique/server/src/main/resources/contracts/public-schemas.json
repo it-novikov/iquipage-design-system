@@ -2906,6 +2906,12 @@
           "type": "integer",
           "minimum": 1,
           "maximum": 200
+        },
+        "maxRunTokens": {
+          "default": 500000,
+          "type": "integer",
+          "minimum": 10000,
+          "maximum": 5000000
         }
       },
       "required": [
@@ -2917,7 +2923,8 @@
         "onAssignment",
         "maxSteps",
         "maxOutputTokens",
-        "runsPerHour"
+        "runsPerHour",
+        "maxRunTokens"
       ],
       "additionalProperties": false
     },

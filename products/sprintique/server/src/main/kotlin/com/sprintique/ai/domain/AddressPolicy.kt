@@ -74,6 +74,9 @@ object AddressPolicy {
 
             a0 == 192 && a1 == 168 -> false
 
+            // The former 6to4 relay anycast 192.88.99.0/24.
+            a0 == 192 && a1 == 88 && a2 == 99 -> false
+
             // Benchmarking 198.18.0.0/15, documentation 198.51.100.0/24 and 203.0.113.0/24.
             a0 == 198 && (a1 == 18 || a1 == 19) -> false
 
@@ -88,13 +91,29 @@ object AddressPolicy {
         }
     }
 
-    @Suppress("MagicNumber", "ReturnCount", "ComplexCondition")
+    @Suppress("MagicNumber")
     private fun isPublicV6(b: ByteArray): Boolean {
+        embeddedV4(b)?.let { return isPublicV4(it) }
         val first = b[0].toInt() and 0xff
         val second = b[1].toInt() and 0xff
-        // Addresses that carry an IPv4 address are judged by it: mapped ::ffff:0:0/96, compatible ::/96, NAT64
-        // 64:ff9b::/96 and 6to4 2002::/16.
-        val embedded = when {
+        val third = b[2].toInt() and 0xff
+        val fourth = b[3].toInt() and 0xff
+        // Only global unicast 2000::/3 is public; within it, documentation 2001:db8::/32 is not, nor the IETF protocol
+        // assignments 2001::/23: Teredo 2001::/32 (an obfuscated IPv4 address inside), benchmarking and ORCHID.
+        val documentation = first == 0x20 && second == 0x01 && third == 0x0d && fourth == 0xb8
+        val protocol = first == 0x20 && second == 0x01 && (third and 0xfe) == 0
+        return first and 0xe0 == 0x20 && !documentation && !protocol
+    }
+
+    /**
+     * The IPv4 address an IPv6 address carries, judged in its place: mapped ::ffff:0:0/96, compatible ::/96, NAT64
+     * 64:ff9b::/96 and 6to4 2002::/16.
+     */
+    @Suppress("MagicNumber", "ComplexCondition")
+    private fun embeddedV4(b: ByteArray): ByteArray? {
+        val first = b[0].toInt() and 0xff
+        val second = b[1].toInt() and 0xff
+        return when {
             b.sliceArray(0 until 10).all { it.toInt() == 0 } && (b[10].toInt() and 0xff) == 0xff &&
                 (b[11].toInt() and 0xff) == 0xff -> b.sliceArray(12 until 16)
 
@@ -107,12 +126,5 @@ object AddressPolicy {
 
             else -> null
         }
-        if (embedded != null) return isPublicV4(embedded)
-        // Only global unicast 2000::/3 is public; within it, documentation 2001:db8::/32 is not.
-        if (first and 0xe0 != 0x20) return false
-        if (first == 0x20 && second == 0x01 && (b[2].toInt() and 0xff) == 0x0d && (b[3].toInt() and 0xff) == 0xb8) {
-            return false
-        }
-        return true
     }
 }

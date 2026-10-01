@@ -68,13 +68,17 @@ open class AiAgentProfilesRecord() : UpdatableRecordImpl<AiAgentProfilesRecord>(
         set(value): Unit = set(12, value)
         get(): OffsetDateTime? = get(12) as OffsetDateTime?
 
+    open var maxRunTokens: Int?
+        set(value): Unit = set(13, value)
+        get(): Int? = get(13) as Int?
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
 
     override fun key(): Record1<String?> = super.key() as Record1<String?>
 
-    constructor(principalId: String? = null, workspaceId: UUID? = null, connectionId: UUID? = null, enabled: Boolean? = null, model: String? = null, instructions: String? = null, onAssignment: Boolean? = null, maxSteps: Int? = null, maxOutputTokens: Int? = null, runsPerHour: Int? = null, revision: Int? = null, updatedBy: String? = null, updatedAt: OffsetDateTime? = null): this() {
+    constructor(principalId: String? = null, workspaceId: UUID? = null, connectionId: UUID? = null, enabled: Boolean? = null, model: String? = null, instructions: String? = null, onAssignment: Boolean? = null, maxSteps: Int? = null, maxOutputTokens: Int? = null, runsPerHour: Int? = null, revision: Int? = null, updatedBy: String? = null, updatedAt: OffsetDateTime? = null, maxRunTokens: Int? = null): this() {
         this.principalId = principalId
         this.workspaceId = workspaceId
         this.connectionId = connectionId
@@ -88,6 +92,7 @@ open class AiAgentProfilesRecord() : UpdatableRecordImpl<AiAgentProfilesRecord>(
         this.revision = revision
         this.updatedBy = updatedBy
         this.updatedAt = updatedAt
+        this.maxRunTokens = maxRunTokens
         resetTouchedOnNotNull()
     }
 }

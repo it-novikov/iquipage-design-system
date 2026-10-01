@@ -65,6 +65,10 @@ class AgentTools(
             )
         }
         arguments.put("projectId", lease.projectId)
+        // What the agent says in the discussion follows the rule of Sprintique texts: paragraphs, no lists.
+        if (tool.name == "add_task_comment" && arguments.path("body").isString) {
+            arguments.put("body", AgentPrompt.plain(arguments.path("body").asString()))
+        }
         arguments.remove("idempotencyKey")
         if (schemaHas(tool, "idempotencyKey")) arguments.put("idempotencyKey", key)
         return try {

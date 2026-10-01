@@ -89,6 +89,9 @@ data class AgentSettingsRequest(
     @field:Min(1)
     @field:Max(200)
     val runsPerHour: Int = 20,
+    @field:Min(10_000)
+    @field:Max(5_000_000)
+    val maxRunTokens: Int = 500_000,
 )
 
 @Schema(name = "StartTaskAgentRun")

@@ -93,6 +93,7 @@ class AgentRunner(
         private var credentialId: String? = null
         private val turns = mutableListOf<Turn>()
         private var steps = 0
+        private var tokens = 0L
 
         @Suppress("ReturnCount")
         fun go() {
@@ -112,6 +113,7 @@ class AgentRunner(
             val endpoint = Endpoint(AiProvider.fromWire(text("provider"))!!, text("baseUrl")!!, key)
             val (system, specs) = setup() ?: return finish(lease, "failed", "ACCESS_LOST", null)
             steps = run.path("stepsUsed").intValue()
+            tokens = run.path("tokensUsed").longValue()
             loop(endpoint, system, specs)
         }
 
@@ -161,6 +163,7 @@ class AgentRunner(
         @Suppress("ReturnCount", "LoopWithTooManyJumpStatements")
         private fun loop(endpoint: Endpoint, system: String, specs: List<ToolSpec>) {
             val maxSteps = run.path("maxSteps").intValue()
+            val maxTokens = run.path("maxRunTokens").longValue()
             while (true) {
                 if (Thread.currentThread().isInterrupted) return
                 when (heartbeat()) {
@@ -180,6 +183,8 @@ class AgentRunner(
                     continue
                 }
                 if (steps >= maxSteps) return fail("STEP_LIMIT", lastText())
+                // Each call sends the whole conversation again: the budget bounds what the run costs in total.
+                if (tokens >= maxTokens) return fail("TOKEN_LIMIT", lastText())
                 val request =
                     ModelRequest(text("model")!!, system, turns, specs, run.path("maxOutputTokens").intValue())
                 val reply = try {
@@ -191,6 +196,7 @@ class AgentRunner(
                 }
                 step(reply, null)
                 steps++
+                tokens += reply.usage.input.toLong() + reply.usage.output.toLong()
                 val calls = reply.calls.take(CALLS_PER_STEP)
                 turns += Turn.Assistant(reply.text, calls)
                 if (calls.isEmpty()) return complete(reply.text)
@@ -230,7 +236,7 @@ class AgentRunner(
 
         /** Posts the answer as the account's comment and ends the run. */
         private fun complete(answer: String) {
-            val body = answer.trim().ifEmpty { "Готово." }
+            val body = AgentPrompt.plain(answer).trim().ifEmpty { "Готово." }
             val posted = comment(body, "final")
             if (posted.error) {
                 val code = json.readTree(posted.content).path("error").takeIf { it.isString }?.asString()
@@ -245,7 +251,7 @@ class AgentRunner(
         private fun fail(code: String, partial: String? = null) {
             if (credentialId != null && code != "ACCESS_LOST") {
                 val reason = RunErrors.message(code) ?: "Запуск не удался."
-                val tail = partial?.let(::plain)?.takeIf(String::isNotEmpty)?.let {
+                val tail = partial?.let(AgentPrompt::plain)?.takeIf(String::isNotEmpty)?.let {
                     "\n\nПоследний ответ агента: " + it.take(PARTIAL)
                 }
                 comment("Не удалось выполнить задачу. $reason${tail.orEmpty()}", "failure")
@@ -258,12 +264,6 @@ class AgentRunner(
             val call = ToolCall("$kind-${lease.runId}", "add_task_comment", json.writeValueAsString(arguments))
             return tools.execute(lease, credentialId!!, call, retryKey(kind))
         }
-
-        /** A model's text as one plain paragraph: Sprintique texts carry no bulleted or numbered lists. */
-        private fun plain(text: String): String = text.lines()
-            .map { it.trim().replace(LIST_MARKER, "") }
-            .filter(String::isNotEmpty)
-            .joinToString(" ")
 
         private fun lastText(): String? = turns.filterIsInstance<Turn.Assistant>().lastOrNull()?.text
 
@@ -333,6 +333,5 @@ class AgentRunner(
         const val NONCE = 16
         const val KEY_LENGTH = 40
         const val MODEL_SUMMARY = 200
-        val LIST_MARKER = Regex("^([-*•+]|\\d+[.)])\\s+")
     }
 }
