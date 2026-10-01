@@ -57,6 +57,25 @@ object PlanningRows {
         else -> Resolution(null, task.id)
     }
 
+    /**
+     * The done tasks a sprint or release accepts when it closes: the selected ones, except an epic (or any parent)
+     * that still has open work in it which is not accepted: it carries over together with that work.
+     */
+    fun acceptable(selected: Set<String>, members: List<PlanningRow>): Set<String> {
+        val byId = members.associateBy(PlanningRow::id)
+        val blocked = HashSet<String>()
+        for (row in members) {
+            if (row.result != "open" || row.id in selected) continue
+            var parent = row.parentId
+            val seen = HashSet<String>()
+            while (parent != null && parent in byId && seen.add(parent)) {
+                blocked += parent
+                parent = byId.getValue(parent).parentId
+            }
+        }
+        return selected.filterTo(LinkedHashSet()) { it !in blocked }
+    }
+
     /** The ids a selection names, in row order for filters and in the given order for explicit lists. */
     fun selected(
         selection: Selection,
@@ -113,8 +132,9 @@ object PlanningRows {
         filter.q.isEmpty() || query in "${row.title} ${row.displayId}".lowercase(Locale.ROOT) ||
             (row.effectiveReleaseId != null && row.effectiveReleaseId in releases)
 
+    /** Under the r4 policy a done task is a candidate whatever its preparation. */
     private fun stateMatches(filter: SelectionFilter, row: PlanningRow): Boolean {
-        val candidate = row.preparation == "ready" && row.status == "ready_for_release" && row.result == "open"
+        val candidate = row.status == "ready_for_release" && row.result == "open"
         return (filter.preparation == "all" || row.preparation == filter.preparation) &&
             (filter.releaseId !is Maybe.Given || row.effectiveReleaseId == filter.releaseId.value) &&
             (!filter.candidates || candidate) &&

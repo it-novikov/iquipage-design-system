@@ -12,6 +12,7 @@ import kotlin.contracts.contract
  * Computes what a planning command changes. The input state is never modified: the command runs on a working copy,
  * the result lists the tasks, releases, milestones and constraints that differ, each with its next revision.
  */
+@Suppress("TooManyFunctions")
 class PlanChange private constructor(private val original: PlanningState) {
     private val tasks = original.tasks.associateByTo(LinkedHashMap(), TaskState::id)
     private val releases = original.releases.associateByTo(LinkedHashMap(), Release::id)
@@ -93,6 +94,10 @@ class PlanChange private constructor(private val original: PlanningState) {
             )
 
             is PlanningCommand.Cancel -> finish(command.releaseId, null, command.destination, command.overrides)
+
+            is PlanningCommand.Place -> place(command)
+
+            is PlanningCommand.Restore -> restore(command)
         }
     }
 
@@ -135,6 +140,7 @@ class PlanChange private constructor(private val original: PlanningState) {
             plannedEnd = null,
             due = fields.due,
             tagIds = fields.tagIds,
+            estimate = fields.estimate,
         )
         selection += command.taskId
     }
@@ -166,6 +172,7 @@ class PlanChange private constructor(private val original: PlanningState) {
             parentId = fields.parentId,
             releaseId = fields.releaseId,
             tagIds = fields.tagIds,
+            estimate = fields.estimate,
         )
         selection += task.id
     }
@@ -228,6 +235,7 @@ class PlanChange private constructor(private val original: PlanningState) {
         (fields.plannedStart as? Maybe.Given)?.let { changed = changed.copy(plannedStart = it.value) }
         (fields.plannedEnd as? Maybe.Given)?.let { changed = changed.copy(plannedEnd = it.value) }
         (fields.due as? Maybe.Given)?.let { changed = changed.copy(due = it.value) }
+        (fields.estimate as? Maybe.Given)?.let { changed = changed.copy(estimate = it.value) }
         fields.addTagIds?.let { added ->
             changed = changed.copy(tagIds = (changed.tagIds + added).distinct().sorted())
         }
@@ -249,6 +257,7 @@ class PlanChange private constructor(private val original: PlanningState) {
             plannedStart = value.plannedStart,
             plannedEnd = value.plannedEnd,
             deadline = value.deadline,
+            goal = if (value.goal is Maybe.Given) value.goal.value else release.goal,
         )
     }
 
@@ -378,20 +387,21 @@ class PlanChange private constructor(private val original: PlanningState) {
         )
         val members = before.filter { it.effectiveReleaseId == release.id }
         val memberIds = members.mapTo(HashSet(), PlanningRow::id)
-        val accepted = acceptedSelection?.let { PlanningRows.selected(it, before, releases.values) }.orEmpty()
+        val selected = acceptedSelection?.let { PlanningRows.selected(it, before, releases.values) }.orEmpty()
         requireCondition(
-            accepted.all { it in memberIds },
+            selected.all { it in memberIds },
             422,
             "ACCEPT_OUTSIDE_RELEASE",
             "Принять можно только задачи этого релиза.",
         )
+        val accepted = PlanningRows.acceptable(selected, members)
         for (id in accepted) {
             val task = tasks.getValue(id)
             requireCondition(
-                task.status == "ready_for_release" && task.preparation == "ready",
+                task.status == "ready_for_release",
                 422,
                 "RESULT_NOT_READY",
-                "Для принятия задача должна быть подготовлена и готова к релизу.",
+                "Принять можно только задачу, готовую к релизу.",
             )
             tasks[id] =
                 task.copy(result = "accepted", assignmentMode = "assigned", releaseId = release.id, admitted = false)
@@ -483,7 +493,7 @@ class PlanChange private constructor(private val original: PlanningState) {
                 )
             }
         }
-        TemporalRules.validate(state)
+        val conflicts = TemporalRules.validate(state) - TemporalRules.validate(original).toSet()
         val editedId = (command as? PlanningCommand.TaskEdit)?.taskId
         // Inherited membership and board admission are observable task changes too: each changed row gets a revision.
         val effects = after.filter { it.id == editedId || it != beforeById[it.id] }.map {
@@ -542,9 +552,94 @@ class PlanChange private constructor(private val original: PlanningState) {
                 removed,
                 changedDefaults,
                 effects,
-            ),
+            ) + PlanDetails.conflicts(conflicts, effects, releases),
             history = releaseHistory,
         )
+    }
+
+    /**
+     * The moved block lands after [PlanningCommand.Place.afterId] among the container's root rows, in the order of the
+     * ids; descendants that come along keep their own order under their parents.
+     */
+    private fun place(command: PlanningCommand.Place) {
+        val target = if (command.containerId == BACKLOG) null else requireMutable(releases[command.containerId]).id
+        val block = PlaceRules.block(command.ids, command.withChildren, before)
+        for (id in block) {
+            requireCondition(
+                beforeById.getValue(id).result == "open",
+                409,
+                "RESULT_PINNED",
+                "Принятый результат нельзя перенести.",
+            )
+        }
+        val blockSet = block.toSet()
+        // Each root of the block decides its container; a child that came along with its parent follows it.
+        for (id in block) {
+            val task = tasks.getValue(id)
+            val moves = beforeById.getValue(id).effectiveReleaseId != target
+            tasks[id] = if (task.parentId != null && task.parentId in blockSet) {
+                task.copy(assignmentMode = "inherit", releaseId = null, admitted = task.admitted && !moves)
+            } else {
+                task.copy(
+                    assignmentMode = if (target != null) "assigned" else "none",
+                    releaseId = target,
+                    admitted = task.admitted && !moves,
+                )
+            }
+            selection += id
+        }
+        // What stays behind stays where it was: a descendant left in its container is pinned there.
+        pinUnmoved(blockSet)
+        val roots = block.filter { tasks.getValue(it).parentId !in blockSet }
+        for ((id, rank) in PlaceRules.ranks(rootsOf(target, blockSet), roots, command.afterId)) {
+            tasks[id] = tasks.getValue(id).copy(rank = rank)
+            selection += id
+        }
+    }
+
+    /** The root rows of a container as it is now, without the moved block, in planned order. */
+    private fun rootsOf(target: String?, block: Set<String>): List<TaskState> {
+        val rows = PlanningRows.project(currentState().tasks, releases)
+        val inside = rows.filter { it.effectiveReleaseId == target && it.id !in block }
+        val ids = inside.mapTo(HashSet(), PlanningRow::id)
+        return inside.filter { it.parentId == null || it.parentId !in ids }
+            .sortedWith(compareBy<PlanningRow> { it.rank }.thenBy { it.displayId.length }.thenBy { it.displayId })
+            .map { tasks.getValue(it.id) }
+    }
+
+    private fun pinUnmoved(block: Set<String>) {
+        val after = PlanningRows.project(currentState().tasks, releases)
+        val left = after.filter { row ->
+            row.id !in block && beforeById[row.id]?.let { it.effectiveReleaseId != row.effectiveReleaseId } == true
+        }
+        for (row in left) {
+            val previous = beforeById.getValue(row.id)
+            val task = tasks.getValue(row.id)
+            tasks[row.id] = task.copy(
+                assignmentMode = if (previous.effectiveReleaseId != null) "assigned" else "none",
+                releaseId = previous.effectiveReleaseId,
+            )
+            selection += row.id
+        }
+    }
+
+    private fun restore(command: PlanningCommand.Restore) {
+        for (item in command.items) {
+            val task = openTask(item.id)
+            val target = if (item.containerId == BACKLOG) null else item.containerId
+            target?.let { requireMutable(releases[it]) }
+            tasks[item.id] = task.copy(
+                assignmentMode = when {
+                    item.inherit -> "inherit"
+                    target != null -> "assigned"
+                    else -> "none"
+                },
+                releaseId = if (item.inherit) null else target,
+                rank = item.rank,
+                admitted = item.admitted ?: task.admitted,
+            )
+            selection += item.id
+        }
     }
 
     private fun currentState() = original.copy(
@@ -563,6 +658,7 @@ class PlanChange private constructor(private val original: PlanningState) {
 
     companion object {
         private const val TAG_LIMIT = 30
+        private const val BACKLOG = "backlog"
 
         fun plan(state: PlanningState, command: PlanningCommand): PlanResult = PlanChange(state).run(command)
 
@@ -597,6 +693,7 @@ class PlanChange private constructor(private val original: PlanningState) {
             plannedEnd = value.plannedEnd,
             deadline = value.deadline,
             archivedAt = null,
+            goal = (value.goal as? Maybe.Given)?.value,
         )
 
         private fun outcome(kind: String, task: PlanningRow) = when {
@@ -628,8 +725,26 @@ object ReleaseRules {
         (start == null || end == null || start <= end) && (format != "timeboxed" || (start != null && end != null))
 }
 
-/** The preview lines for people: changed releases, milestones, constraints, settings and deadline risks. */
+/** The preview lines for people: changed releases, milestones, constraints, settings and date conflicts. */
 object PlanDetails {
+    /**
+     * Date conflicts are warnings under the r4 policy: constraints the change breaks, and moved or edited tasks whose
+     * due date falls after the end of their sprint.
+     */
+    fun conflicts(constraints: List<String>, effects: List<Effect>, releases: Map<String, Release>): List<Detail> =
+        constraints.map { Detail("Конфликт дат", it) } + effects.mapNotNull { effect ->
+            val row = effect.after
+            val sprint = row.effectiveReleaseId?.let(releases::get)?.takeIf { it.format == "timeboxed" }
+            val end = sprint?.plannedEnd.takeIf { row.result == "open" }
+            val late = end != null && row.due != null && row.due > end
+            val moved = effect.before?.let { it.due != row.due || it.effectiveReleaseId != row.effectiveReleaseId }
+            if (!late || moved == false) return@mapNotNull null
+            Detail(
+                "Конфликт дат: ${row.displayId}",
+                "Срок ${day(row.due)} позже конца спринта ${day(end)}. Сохраним, спринт не сдвигается.",
+            )
+        }
+
     private val LIFECYCLE = mapOf(
         "planned" to "Запланирован", "active" to "Начат", "closed" to "Завершён",
         "cancelled" to "Отменён",
@@ -671,7 +786,7 @@ object PlanDetails {
             if (end != null && due != null && end > due) {
                 add(
                     Detail(
-                        "Риск срока: ${effect.after.displayId}",
+                        "Конфликт дат: ${effect.after.displayId}",
                         "Плановое окончание ${day(end)} позже дедлайна ${day(due)}. " +
                             "Дедлайн не сдвигается автоматически.",
                     ),

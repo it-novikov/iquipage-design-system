@@ -5,6 +5,12 @@ import {TAG_NAME_LIMIT,tagNameLength} from './text.js';
 export const Id = z.string().min(1).max(100).regex(/^[A-Za-z0-9_-]+$/);
 export const Revision = z.number().int().min(0).max(Number.MAX_SAFE_INTEGER);
 export const DateOnly = z.iso.date();
+/** A task's estimate as entered: hours, days, weeks or story points; positive, at most 9999, two decimals. */
+export const TaskEstimate = z.strictObject({
+  value: z.number().positive().max(9999).refine(v => Math.abs(v * 100 - Math.round(v * 100)) < 1e-6, 'At most two decimals'),
+  unit: z.enum(['h','d','w','sp'])
+});
+export type TaskEstimate = z.infer<typeof TaskEstimate>;
 export const TaskInput = z.strictObject({
   ...TaskMedia,
   title: z.string().trim().min(1).max(240),
@@ -18,7 +24,8 @@ export const TaskInput = z.strictObject({
   rank: z.number().finite().default(1024),
   parentId: Id.nullable().default(null),
   releaseId: Id.nullable().default(null),
-  tagIds: z.array(Id).max(30).refine(v => new Set(v).size === v.length).default([])
+  tagIds: z.array(Id).max(30).refine(v => new Set(v).size === v.length).default([]),
+  estimate: TaskEstimate.nullable().default(null)
 });
 export const PutTask = z.strictObject({baseRevision: Revision, task: TaskInput,createInBoard:z.boolean().default(false)});
 export type TaskData = z.infer<typeof TaskInput>;

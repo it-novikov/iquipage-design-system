@@ -545,10 +545,12 @@ internal object PlanApplication {
                   admitted = n.admitted,
                   owner_label = CASE WHEN t.owner_id IS DISTINCT FROM n."ownerId" THEN '' ELSE t.owner_label END,
                   owner_id = n."ownerId", priority = n.priority, rank = n.rank, planned_start = n."plannedStart"::date,
-                  planned_end = n."plannedEnd"::date, due = n.due::date, updated_at = clock_timestamp()
+                  planned_end = n."plannedEnd"::date, due = n.due::date,
+                  estimate_value = (n.estimate->>'value')::numeric, estimate_unit = n.estimate->>'unit',
+                  updated_at = clock_timestamp()
                 FROM jsonb_to_recordset($2::jsonb) AS n(id text, revision integer, "parentId" text, "releaseId" text,
                   "assignmentMode" text, preparation text, result text, admitted boolean, "ownerId" text, priority text,
-                  rank double precision, "plannedStart" text, "plannedEnd" text, due text)
+                  rank double precision, "plannedStart" text, "plannedEnd" text, due text, estimate jsonb)
                 WHERE t.project_id = $1 AND t.id = n.id
                 """.trimIndent(),
                 projectId,
@@ -640,7 +642,13 @@ internal object PlanApplication {
                 WHERE id = $1
                 """.trimIndent(),
                 projectId,
-                linkedMapOf("format" to defaults.format, "days" to defaults.days),
+                linkedMapOf(
+                    "format" to defaults.format,
+                    "days" to defaults.days,
+                    "estimateFormat" to defaults.estimateFormat,
+                    "hoursPerDay" to defaults.hoursPerDay,
+                    "hoursPerWeek" to defaults.hoursPerWeek,
+                ),
                 if (defaults.timezoneInherited == true) null else defaults.timezone,
             )
             AuditTrail.recordOperation(tx, actor, projectId, operationId, "planning.settings.changed", projectId, 0)

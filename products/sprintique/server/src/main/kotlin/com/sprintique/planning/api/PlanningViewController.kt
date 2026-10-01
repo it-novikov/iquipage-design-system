@@ -2,11 +2,15 @@ package com.sprintique.planning.api
 
 import com.sprintique.contract.Accepts
 import com.sprintique.contract.Contracts
+import com.sprintique.contract.Idempotent
 import com.sprintique.identity.api.AuthenticatedRequests
 import com.sprintique.identity.api.RequestInputs
+import com.sprintique.planning.application.PlanningContainers
 import com.sprintique.planning.application.PlanningView
 import com.sprintique.planning.application.ViewIntents
+import com.sprintique.planning.contract.ViewContainersQuery
 import com.sprintique.planning.contract.ViewIntent
+import com.sprintique.planning.contract.ViewMoveRequest
 import com.sprintique.planning.contract.ViewOptionsQuery
 import com.sprintique.planning.contract.ViewQuery
 import com.sprintique.planning.contract.ViewReleaseQuery
@@ -31,7 +35,37 @@ class PlanningViewController(
     private val contracts: Contracts,
     private val view: PlanningView,
     private val intents: ViewIntents,
+    private val containers: PlanningContainers,
 ) {
+    /** The round-4 screen: every open container with its tree, sums and what the reader may do. */
+    @PostMapping("/containers")
+    @Accepts(ViewContainersQuery::class)
+    fun containers(
+        @PathVariable projectId: String,
+        @RequestBody(required = false) body: JsonNode?,
+        request: HttpServletRequest,
+    ) =
+        requests.run(request) { tx, actor ->
+            RequestInputs.id(projectId)
+            contracts.parse<ViewContainersQuery>(body)
+            containers.containers(tx, actor, projectId)
+        }
+
+    /** Moves tasks between containers or within one at once, or undoes such a move. */
+    @PostMapping("/move")
+    @Accepts(ViewMoveRequest::class)
+    @Idempotent
+    fun move(
+        @PathVariable projectId: String,
+        @RequestBody(required = false) body: JsonNode?,
+        request: HttpServletRequest,
+    ) =
+        requests.run(request) { tx, actor ->
+            RequestInputs.id(projectId)
+            val input = contracts.parse<ViewMoveRequest>(body)
+            containers.move(tx, actor, projectId, input, RequestInputs.idempotencyKey(request))
+        }
+
     @PostMapping("/groups")
     @Accepts(ViewQuery::class)
     fun groups(
