@@ -100,7 +100,11 @@ test('IB02 a service account receives every kind like a person: its owner notifi
   await tool(bot.write,'add_task_comment',{projectId:p,task:'ib2',body:token(bot.id,'Я')+' беру'});
   assert.equal((await rows(bot.id,p)).length,before+3);
   // No channel outside the product.
-  assert.equal((await f.admin.query('SELECT count(*)::int AS n FROM app.telegram_deliveries WHERE recipient_id=$1',[bot.id])).rows[0].n,0);
+  // Whichever outbox this database has (Telegram's of V…042, or the channel queue that replaces it) holds nothing for it.
+  for(const outbox of ['app.telegram_deliveries','app.notification_deliveries']){
+    if(!(await f.admin.query('SELECT to_regclass($1) AS t',[outbox])).rows[0].t)continue;
+    assert.equal((await f.admin.query(`SELECT count(*)::int AS n FROM ${outbox} WHERE recipient_id=$1`,[bot.id])).rows[0].n,0,outbox);
+  }
   const page=await inbox(bot.read);
   const request=page.items.find(i=>i.kind==='request')!;
   assert.equal(request.quote,'Проверь, пожалуйста, @Алиса');assert.equal(request.request?.kind,'review');
