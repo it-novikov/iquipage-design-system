@@ -20,3 +20,4 @@
 - 2026-10-01T09:52:34Z · claude · note · A5 · критерий приёмки выполнен
 - 2026-10-01T09:52:34Z · claude · checkpoint · - · дальше: владелец: ревью PR, затем деплой по operations.md (telegram.env, setWebhook)
 - 2026-10-01T09:52:34Z · claude · status · - · review: PR в main
+- 2026-10-01T10:07:52Z · claude · note · A6 · критерий приёмки выполнен
