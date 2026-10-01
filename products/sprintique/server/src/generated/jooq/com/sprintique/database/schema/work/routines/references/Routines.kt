@@ -5,10 +5,17 @@
 package com.sprintique.database.schema.work.routines.references
 
 
+import com.sprintique.database.schema.app.tables.records.NotificationsRecord
+import com.sprintique.database.schema.app.tables.records.TelegramDeliveriesRecord
+import com.sprintique.database.schema.work.routines.ActAs
+import com.sprintique.database.schema.work.routines.ClaimTelegramDelivery
 import com.sprintique.database.schema.work.routines.FinishAssetGc
 import com.sprintique.database.schema.work.routines.PrepareAssetGc
+import com.sprintique.database.schema.work.routines.RaiseDueNotifications
 import com.sprintique.database.schema.work.routines.RetryAssetJob
 import com.sprintique.database.schema.work.routines.Settle
+import com.sprintique.database.schema.work.routines.SettleTelegramDelivery
+import com.sprintique.database.schema.work.routines.TelegramSkipReason
 import com.sprintique.database.schema.work.tables.Claim
 import com.sprintique.database.schema.work.tables.records.JobsRecord
 
@@ -20,6 +27,31 @@ import org.jooq.JSONB
 import org.jooq.Result
 
 
+
+fun actAs(
+      configuration: Configuration
+    , person: String?
+): Unit {
+    val p = ActAs()
+    p.setPerson(person)
+
+    p.execute(configuration)
+}
+
+fun claimTelegramDelivery(
+      configuration: Configuration
+): JSONB? {
+    val f = ClaimTelegramDelivery()
+
+    f.execute(configuration)
+    return f.returnValue
+}
+
+fun claimTelegramDelivery(): Field<JSONB?> {
+    val f = ClaimTelegramDelivery()
+
+    return f.asField()
+}
 
 fun finishAssetGc(
       configuration: Configuration
@@ -87,6 +119,21 @@ fun prepareAssetGc(
     val f = PrepareAssetGc()
     f.setJobId(jobId)
     f.setToken(token)
+
+    return f.asField()
+}
+
+fun raiseDueNotifications(
+      configuration: Configuration
+): Int? {
+    val f = RaiseDueNotifications()
+
+    f.execute(configuration)
+    return f.returnValue
+}
+
+fun raiseDueNotifications(): Field<Int?> {
+    val f = RaiseDueNotifications()
 
     return f.asField()
 }
@@ -169,6 +216,94 @@ fun settle(
     f.setToken(token)
     f.setSucceeded(succeeded)
     f.setErrorCode(errorCode)
+
+    return f.asField()
+}
+
+fun settleTelegramDelivery(
+      configuration: Configuration
+    , deliveryId: UUID?
+    , token: UUID?
+    , outcome: String?
+    , errorCode: String?
+    , retryAfter: Int?
+): Boolean? {
+    val f = SettleTelegramDelivery()
+    f.setDeliveryId(deliveryId)
+    f.setToken(token)
+    f.setOutcome(outcome)
+    f.setErrorCode(errorCode)
+    f.setRetryAfter(retryAfter)
+
+    f.execute(configuration)
+    return f.returnValue
+}
+
+fun settleTelegramDelivery(
+      deliveryId: UUID?
+    , token: UUID?
+    , outcome: String?
+    , errorCode: String?
+    , retryAfter: Int?
+): Field<Boolean?> {
+    val f = SettleTelegramDelivery()
+    f.setDeliveryId(deliveryId)
+    f.setToken(token)
+    f.setOutcome(outcome)
+    f.setErrorCode(errorCode)
+    f.setRetryAfter(retryAfter)
+
+    return f.asField()
+}
+
+fun settleTelegramDelivery(
+      deliveryId: Field<UUID?>
+    , token: Field<UUID?>
+    , outcome: Field<String?>
+    , errorCode: Field<String?>
+    , retryAfter: Field<Int?>
+): Field<Boolean?> {
+    val f = SettleTelegramDelivery()
+    f.setDeliveryId(deliveryId)
+    f.setToken(token)
+    f.setOutcome(outcome)
+    f.setErrorCode(errorCode)
+    f.setRetryAfter(retryAfter)
+
+    return f.asField()
+}
+
+fun telegramSkipReason(
+      configuration: Configuration
+    , delivery: TelegramDeliveriesRecord?
+    , item: NotificationsRecord?
+): String? {
+    val f = TelegramSkipReason()
+    f.setDelivery(delivery)
+    f.setItem(item)
+
+    f.execute(configuration)
+    return f.returnValue
+}
+
+fun telegramSkipReason(
+      delivery: TelegramDeliveriesRecord?
+    , item: NotificationsRecord?
+): Field<String?> {
+    val f = TelegramSkipReason()
+    f.setDelivery(delivery)
+    f.setItem(item)
+
+    return f.asField()
+}
+
+fun telegramSkipReason(
+      delivery: Field<TelegramDeliveriesRecord?>
+    , item: Field<NotificationsRecord?>
+): Field<String?> {
+    val f = TelegramSkipReason()
+    f.setDelivery(delivery)
+    f.setItem(item)
 
     return f.asField()
 }

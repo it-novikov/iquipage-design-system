@@ -44,6 +44,12 @@ sprintique:
   features: ${SPRINTIQUE_FEATURES:}
   workbench:
     cursor-secret: ${SPRINTIQUE_WORKBENCH_CURSOR_SECRET:}
+  # Notifications in Telegram (optional; hidden without the token, the username and the webhook secret).
+  telegram:
+    bot-token: ${SPRINTIQUE_TELEGRAM_BOT_TOKEN:}
+    bot-username: ${SPRINTIQUE_TELEGRAM_BOT_USERNAME:}
+    webhook-secret: ${SPRINTIQUE_TELEGRAM_WEBHOOK_SECRET:}
+    api-base: ${SPRINTIQUE_TELEGRAM_API_BASE:https://api.telegram.org}
   database:
     url: ${SPRINTIQUE_DATABASE_URL:}
     worker-url: ${SPRINTIQUE_WORKER_DATABASE_URL:}

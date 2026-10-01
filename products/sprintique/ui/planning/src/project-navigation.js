@@ -7,7 +7,7 @@ const ROUTES=[['tasks','Доска задач'],['planning','Планирова�
  *  Sections stay visible as text at every width; the host marks the current one with setRoute. */
 /** The person's photo over their initials (DS personAvatar), in the one tone they keep everywhere. */
 const profileAvatar=profile=>ui.personAvatar({id:profile.id,name:profile.name||'Я',image:profile.image||undefined},{size:''});
-export function mountProjectNavigation(root,{current,profile,projects,catalog=()=>[],onSwitch,onAccount,onSignOut,onTeam,onTheme,onSearch,onCreateProject,onCreateWorkspace,workbench=false}){
+export function mountProjectNavigation(root,{current,profile,projects,catalog=()=>[],onSwitch,onAccount,onSignOut,onTeam,onTheme,onSearch,onCreateProject,onCreateWorkspace,workbench=false,notifications}){
   if(!(root instanceof HTMLElement))throw Error('Нужен контейнер навигации.');
   current=readProjectContext(current);
   registerCore();const events=new AbortController();let disposed=false,dialog=null,switching=false;
@@ -16,7 +16,7 @@ export function mountProjectNavigation(root,{current,profile,projects,catalog=()
   root.innerHTML=`<div class="pn-context" data-context></div>`
     // Sections are the DS work navigation (text tabs, the current one underlined at the header's edge), centred.
     +`<nav class="pn-sections iq-work-navigation" aria-label="Разделы проекта">${workbench?'<a href="/workbench" class="pn-global-link" data-workbench-link>Рабочий стол</a>':''}${ROUTES.map(([route,label])=>`<a href="#${route}" data-section-link="${route}">${label}</a>`).join('')}</nav>`
-    +`<div class="pn-personal-navigation">${onSearch?ui.ib('search','Поиск (⌘K)','ghost sm','data-search'):''}${ui.ib('settings','Настройки','ghost sm','data-section-link="settings"')}${ui.ib('moon','Тёмная тема','ghost sm','data-theme-toggle')}`
+    +`<div class="pn-personal-navigation">${onSearch?ui.ib('search','Поиск (⌘K)','ghost sm','data-search'):''}${notifications?'<span class="pn-bell-slot" data-notifications></span>':''}${ui.ib('settings','Настройки','ghost sm','data-section-link="settings"')}${ui.ib('moon','Тёмная тема','ghost sm','data-theme-toggle')}`
     +`${ui.menu(`<button type="button" class="iq-btn ghost icon sm" data-profile-avatar aria-label="Профиль: ${esc(profile.name)}">${profileAvatar(profile)}</button>`,[{label:esc(profile.name),action:'account'},{label:'Команда проекта',action:'team'},{label:'Выйти',action:'signout',danger:true}])}</div>`;
   function renderContext(){
     const all=catalog()||[],spaces=[...new Map(all.map(p=>[p.workspaceId,{id:p.workspaceId,name:p.workspaceName}])).values()];
@@ -51,6 +51,8 @@ export function mountProjectNavigation(root,{current,profile,projects,catalog=()
     button.innerHTML=icon(dark?'sun':'moon',18);button.setAttribute('aria-label',dark?'Светлая тема':'Тёмная тема');button.title=button.getAttribute('aria-label');
   }
   update(current);
+  // The host's notification bell lives in the personal tools; it is the host's to load and to tear down.
+  const bell=notifications?.(root.querySelector('[data-notifications]'))||null;
   async function switchProject(){
     if(disposed||dialog||switching)return;registerAdvanced();
     const create=(onCreateProject?ui.btn('Новый проект','ghost sm','plus','data-create-project'):'')+(onCreateWorkspace?ui.btn('Новое пространство','ghost sm','plus','data-create-workspace'):'');
@@ -78,5 +80,5 @@ export function mountProjectNavigation(root,{current,profile,projects,catalog=()
   /** A new photo or name reaches the header without rebuilding the navigation. */
   function setProfile(next){profile={...profile,...next};const button=root.querySelector('[data-profile-avatar]');if(!button)return;button.innerHTML=profileAvatar(profile);button.setAttribute('aria-label','Профиль: '+profile.name);}
   return {update,setRoute,setTheme,setProfile,openSwitcher:()=>void switchProject(),readyToLeave:()=>!switching&&!dialog,
-    destroy(){if(disposed)return true;if(switching||dialog&&dialog.close()===false)return false;disposed=true;events.abort();root.replaceChildren();return true;}};
+    destroy(){if(disposed)return true;if(switching||dialog&&dialog.close()===false)return false;disposed=true;events.abort();bell?.destroy();root.replaceChildren();return true;}};
 }

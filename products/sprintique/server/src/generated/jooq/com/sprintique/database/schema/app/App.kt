@@ -23,6 +23,8 @@ import com.sprintique.database.schema.app.tables.MapVotes
 import com.sprintique.database.schema.app.tables.Maps
 import com.sprintique.database.schema.app.tables.Messages
 import com.sprintique.database.schema.app.tables.Milestones
+import com.sprintique.database.schema.app.tables.NotificationPreferences
+import com.sprintique.database.schema.app.tables.Notifications
 import com.sprintique.database.schema.app.tables.Outbox
 import com.sprintique.database.schema.app.tables.PersonAvatars
 import com.sprintique.database.schema.app.tables.PersonPreferences
@@ -43,6 +45,11 @@ import com.sprintique.database.schema.app.tables.TaskSettings
 import com.sprintique.database.schema.app.tables.TaskSettingsVersions
 import com.sprintique.database.schema.app.tables.TaskTags
 import com.sprintique.database.schema.app.tables.Tasks
+import com.sprintique.database.schema.app.tables.TelegramConnections
+import com.sprintique.database.schema.app.tables.TelegramDeliveries
+import com.sprintique.database.schema.app.tables.TelegramLinkTokens
+import com.sprintique.database.schema.app.tables.TelegramProjectSettings
+import com.sprintique.database.schema.app.tables.TelegramUpdates
 import com.sprintique.database.schema.app.tables.TemporalConstraints
 import com.sprintique.database.schema.app.tables.ThreadReads
 import com.sprintique.database.schema.app.tables.Threads
@@ -102,6 +109,10 @@ open class App : SchemaImpl(DSL.name("app"), DefaultCatalog.DEFAULT_CATALOG, DSL
 
     val MILESTONES: Milestones get() = Milestones.MILESTONES
 
+    val NOTIFICATION_PREFERENCES: NotificationPreferences get() = NotificationPreferences.NOTIFICATION_PREFERENCES
+
+    val NOTIFICATIONS: Notifications get() = Notifications.NOTIFICATIONS
+
     val OUTBOX: Outbox get() = Outbox.OUTBOX
 
     val PERSON_AVATARS: PersonAvatars get() = PersonAvatars.PERSON_AVATARS
@@ -142,6 +153,16 @@ open class App : SchemaImpl(DSL.name("app"), DefaultCatalog.DEFAULT_CATALOG, DSL
 
     val TASKS: Tasks get() = Tasks.TASKS
 
+    val TELEGRAM_CONNECTIONS: TelegramConnections get() = TelegramConnections.TELEGRAM_CONNECTIONS
+
+    val TELEGRAM_DELIVERIES: TelegramDeliveries get() = TelegramDeliveries.TELEGRAM_DELIVERIES
+
+    val TELEGRAM_LINK_TOKENS: TelegramLinkTokens get() = TelegramLinkTokens.TELEGRAM_LINK_TOKENS
+
+    val TELEGRAM_PROJECT_SETTINGS: TelegramProjectSettings get() = TelegramProjectSettings.TELEGRAM_PROJECT_SETTINGS
+
+    val TELEGRAM_UPDATES: TelegramUpdates get() = TelegramUpdates.TELEGRAM_UPDATES
+
     val TEMPORAL_CONSTRAINTS: TemporalConstraints get() = TemporalConstraints.TEMPORAL_CONSTRAINTS
 
     val THREAD_READS: ThreadReads get() = ThreadReads.THREAD_READS
@@ -177,6 +198,8 @@ open class App : SchemaImpl(DSL.name("app"), DefaultCatalog.DEFAULT_CATALOG, DSL
         Maps.MAPS,
         Messages.MESSAGES,
         Milestones.MILESTONES,
+        NotificationPreferences.NOTIFICATION_PREFERENCES,
+        Notifications.NOTIFICATIONS,
         Outbox.OUTBOX,
         PersonAvatars.PERSON_AVATARS,
         PersonPreferences.PERSON_PREFERENCES,
@@ -197,6 +220,11 @@ open class App : SchemaImpl(DSL.name("app"), DefaultCatalog.DEFAULT_CATALOG, DSL
         TaskSettingsVersions.TASK_SETTINGS_VERSIONS,
         TaskTags.TASK_TAGS,
         Tasks.TASKS,
+        TelegramConnections.TELEGRAM_CONNECTIONS,
+        TelegramDeliveries.TELEGRAM_DELIVERIES,
+        TelegramLinkTokens.TELEGRAM_LINK_TOKENS,
+        TelegramProjectSettings.TELEGRAM_PROJECT_SETTINGS,
+        TelegramUpdates.TELEGRAM_UPDATES,
         TemporalConstraints.TEMPORAL_CONSTRAINTS,
         ThreadReads.THREAD_READS,
         Threads.THREADS,

@@ -24,6 +24,7 @@ import {keepAuthorization,resumeAuthorization,mountConsent} from './consent.js';
 import {loadingMarkup} from '../ui/src/loading.js';
 import {mountProjectNavigation} from '../ui/planning/src/project-navigation.js';
 import {mountWorkbench} from './workbench/host.js';
+import {mountNotificationBell} from './notifications.js';
 import '../ui/planning/src/navigation.css';
 import './workbench/workbench.css';
 registerCore();
@@ -64,11 +65,23 @@ function ensureShell(project,mode){
       onSignOut:()=>void(async()=>{if(board&&!await board.closeTask())return;await repository.client.request('/logout','POST');location.reload();})().catch(report),
       onTheme:()=>applyTheme(document.documentElement.dataset.theme==='dark'?'light':'dark'),
       onSearch:search,onCreateProject:creatable===null||creatable.length?()=>void onboard(currentProject?.workspaceId).catch(report):undefined,onCreateWorkspace:createWorkspace,
-      workbench:workbenchOn()&&featureOn('workbench_mvp')
+      workbench:workbenchOn()&&featureOn('workbench_mvp'),
+      notifications:slot=>mountNotificationBell(slot,{client:repository.client,onOpen:item=>openNotification(item).catch(report),onSettings:()=>{location.hash='#settings/notifications';}})
     });
     nav.setTheme(document.documentElement.dataset.theme);
   }else nav.update(context(project));
   nav.setRoute(mode);
+}
+/** A notification opens its task in its project: the board of that project, then the drawer. */
+async function openNotification(item){
+  const project=session.projects.find(p=>p.id===item.project.id);
+  if(!project){notify({tone:'warning',message:'Проект недоступен',description:'Доступ к проекту этой задачи закрыт.'});return;}
+  if(board&&!await board.closeTask())return;
+  if(project.id!==currentProject?.id||viewMode!=='tasks'||!board?.openTask){
+    history.replaceState(null,'','#tasks');
+    if(!await showProject(project.id,'tasks'))return;
+  }
+  await board?.openTask?.(item.task.id);
 }
 function createWorkspace(){
   dialog({title:'Создать пространство',body:input('name','Название','',{required:true,maxlength:100}),submitLabel:'Создать',onSubmit:async values=>{

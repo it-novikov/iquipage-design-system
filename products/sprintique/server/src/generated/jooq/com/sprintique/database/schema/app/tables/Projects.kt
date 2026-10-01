@@ -16,6 +16,7 @@ import com.sprintique.database.schema.app.keys.IDEMPOTENCY__IDEMPOTENCY_PROJECT_
 import com.sprintique.database.schema.app.keys.MAPS__MAPS_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.MAP_TEMPLATES__MAP_TEMPLATES_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.MILESTONES__MILESTONES_PROJECT_ID_FKEY
+import com.sprintique.database.schema.app.keys.NOTIFICATIONS__NOTIFICATIONS_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.OUTBOX__OUTBOX_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.PERSON_PROJECT_PREFERENCES__PERSON_PROJECT_PREFERENCES_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.PLANNING_PLANS__PLANNING_PLANS_PROJECT_ID_FKEY
@@ -37,6 +38,8 @@ import com.sprintique.database.schema.app.keys.TASK_ACTIVITY__TASK_ACTIVITY_PROJ
 import com.sprintique.database.schema.app.keys.TASK_LINKS__TASK_LINKS_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.TASK_SETTINGS_VERSIONS__TASK_SETTINGS_VERSIONS_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.TASK_SETTINGS__TASK_SETTINGS_PROJECT_ID_FKEY
+import com.sprintique.database.schema.app.keys.TELEGRAM_DELIVERIES__TELEGRAM_DELIVERIES_PROJECT_ID_FKEY
+import com.sprintique.database.schema.app.keys.TELEGRAM_PROJECT_SETTINGS__TELEGRAM_PROJECT_SETTINGS_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.TEMPORAL_CONSTRAINTS__TEMPORAL_CONSTRAINTS_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.tables.AccessPresets.AccessPresetsPath
 import com.sprintique.database.schema.app.tables.AgentRuns.AgentRunsPath
@@ -50,6 +53,7 @@ import com.sprintique.database.schema.app.tables.Idempotency.IdempotencyPath
 import com.sprintique.database.schema.app.tables.MapTemplates.MapTemplatesPath
 import com.sprintique.database.schema.app.tables.Maps.MapsPath
 import com.sprintique.database.schema.app.tables.Milestones.MilestonesPath
+import com.sprintique.database.schema.app.tables.Notifications.NotificationsPath
 import com.sprintique.database.schema.app.tables.Outbox.OutboxPath
 import com.sprintique.database.schema.app.tables.PersonProjectPreferences.PersonProjectPreferencesPath
 import com.sprintique.database.schema.app.tables.PlanningPlans.PlanningPlansPath
@@ -63,6 +67,8 @@ import com.sprintique.database.schema.app.tables.TaskLinks.TaskLinksPath
 import com.sprintique.database.schema.app.tables.TaskSettings.TaskSettingsPath
 import com.sprintique.database.schema.app.tables.TaskSettingsVersions.TaskSettingsVersionsPath
 import com.sprintique.database.schema.app.tables.Tasks.TasksPath
+import com.sprintique.database.schema.app.tables.TelegramDeliveries.TelegramDeliveriesPath
+import com.sprintique.database.schema.app.tables.TelegramProjectSettings.TelegramProjectSettingsPath
 import com.sprintique.database.schema.app.tables.TemporalConstraints.TemporalConstraintsPath
 import com.sprintique.database.schema.app.tables.Workspaces.WorkspacesPath
 import com.sprintique.database.schema.app.tables.records.ProjectsRecord
@@ -327,6 +333,18 @@ open class Projects(
     val milestones: MilestonesPath
         get(): MilestonesPath = milestones()
 
+    private lateinit var _notifications: NotificationsPath
+
+    fun notifications(): NotificationsPath {
+        if (!this::_notifications.isInitialized)
+            _notifications = NotificationsPath(this, null, NOTIFICATIONS__NOTIFICATIONS_PROJECT_ID_FKEY.inverseKey)
+
+        return _notifications;
+    }
+
+    val notifications: NotificationsPath
+        get(): NotificationsPath = notifications()
+
     private lateinit var _outbox: OutboxPath
 
     fun outbox(): OutboxPath {
@@ -494,6 +512,30 @@ open class Projects(
 
     val tasks: TasksPath
         get(): TasksPath = tasks()
+
+    private lateinit var _telegramDeliveries: TelegramDeliveriesPath
+
+    fun telegramDeliveries(): TelegramDeliveriesPath {
+        if (!this::_telegramDeliveries.isInitialized)
+            _telegramDeliveries = TelegramDeliveriesPath(this, null, TELEGRAM_DELIVERIES__TELEGRAM_DELIVERIES_PROJECT_ID_FKEY.inverseKey)
+
+        return _telegramDeliveries;
+    }
+
+    val telegramDeliveries: TelegramDeliveriesPath
+        get(): TelegramDeliveriesPath = telegramDeliveries()
+
+    private lateinit var _telegramProjectSettings: TelegramProjectSettingsPath
+
+    fun telegramProjectSettings(): TelegramProjectSettingsPath {
+        if (!this::_telegramProjectSettings.isInitialized)
+            _telegramProjectSettings = TelegramProjectSettingsPath(this, null, TELEGRAM_PROJECT_SETTINGS__TELEGRAM_PROJECT_SETTINGS_PROJECT_ID_FKEY.inverseKey)
+
+        return _telegramProjectSettings;
+    }
+
+    val telegramProjectSettings: TelegramProjectSettingsPath
+        get(): TelegramProjectSettingsPath = telegramProjectSettings()
 
     private lateinit var _temporalConstraints: TemporalConstraintsPath
 

@@ -14,6 +14,7 @@ import com.sprintique.database.schema.app.tables.FinanceEntry
 import com.sprintique.database.schema.app.tables.MapTemplates
 import com.sprintique.database.schema.app.tables.Maps
 import com.sprintique.database.schema.app.tables.Messages
+import com.sprintique.database.schema.app.tables.Notifications
 import com.sprintique.database.schema.app.tables.Outbox
 import com.sprintique.database.schema.app.tables.PlanningPlans
 import com.sprintique.database.schema.app.tables.ProjectMembers
@@ -21,6 +22,9 @@ import com.sprintique.database.schema.app.tables.TaskActivity
 import com.sprintique.database.schema.app.tables.TaskLinks
 import com.sprintique.database.schema.app.tables.TaskPersonalState
 import com.sprintique.database.schema.app.tables.Tasks
+import com.sprintique.database.schema.app.tables.TelegramDeliveries
+import com.sprintique.database.schema.app.tables.TelegramLinkTokens
+import com.sprintique.database.schema.app.tables.TelegramUpdates
 import com.sprintique.database.schema.app.tables.Threads
 import com.sprintique.database.schema.app.tables.WorkspaceMembers
 
@@ -47,6 +51,8 @@ val IX_FINANCE_ENTRY__ENTRY_DATE: Index = Internal.createIndex(DSL.name("ix_fina
 val MAP_TEMPLATE_WORKSPACE: Index = Internal.createIndex(DSL.name("map_template_workspace"), MapTemplates.MAP_TEMPLATES, arrayOf(MapTemplates.MAP_TEMPLATES.WORKSPACE_ID, MapTemplates.MAP_TEMPLATES.ID), false)
 val MAPS_PAGE: Index = Internal.createIndex(DSL.name("maps_page"), Maps.MAPS, arrayOf(Maps.MAPS.PROJECT_ID, Maps.MAPS.ID), false)
 val MESSAGE_THREAD_PAGE: Index = Internal.createIndex(DSL.name("message_thread_page"), Messages.MESSAGES, arrayOf(Messages.MESSAGES.PROJECT_ID, Messages.MESSAGES.THREAD_ID, Messages.MESSAGES.CREATED_AT, Messages.MESSAGES.ID), false)
+val NOTIFICATIONS_FEED: Index = Internal.createIndex(DSL.name("notifications_feed"), Notifications.NOTIFICATIONS, arrayOf(Notifications.NOTIFICATIONS.RECIPIENT_ID, Notifications.NOTIFICATIONS.CREATED_AT.desc(), Notifications.NOTIFICATIONS.ID.desc()), false)
+val NOTIFICATIONS_UNREAD: Index = Internal.createIndex(DSL.name("notifications_unread"), Notifications.NOTIFICATIONS, arrayOf(Notifications.NOTIFICATIONS.RECIPIENT_ID), false)
 val OUTBOX_PENDING: Index = Internal.createIndex(DSL.name("outbox_pending"), Outbox.OUTBOX, arrayOf(Outbox.OUTBOX.AVAILABLE_AT), false)
 val OUTBOX_PROJECT_SEQUENCE: Index = Internal.createIndex(DSL.name("outbox_project_sequence"), Outbox.OUTBOX, arrayOf(Outbox.OUTBOX.PROJECT_ID, Outbox.OUTBOX.PROJECT_SEQUENCE), true)
 val PERSONAL_STATE_PARTICIPATING: Index = Internal.createIndex(DSL.name("personal_state_participating"), TaskPersonalState.TASK_PERSONAL_STATE, arrayOf(TaskPersonalState.TASK_PERSONAL_STATE.PRINCIPAL_ID, TaskPersonalState.TASK_PERSONAL_STATE.RANK), false)
@@ -61,5 +67,8 @@ val TASK_LINK_TO: Index = Internal.createIndex(DSL.name("task_link_to"), TaskLin
 val TASK_OWNER: Index = Internal.createIndex(DSL.name("task_owner"), Tasks.TASKS, arrayOf(Tasks.TASKS.PROJECT_ID, Tasks.TASKS.OWNER_ID), false)
 val TASK_PARENT: Index = Internal.createIndex(DSL.name("task_parent"), Tasks.TASKS, arrayOf(Tasks.TASKS.PROJECT_ID, Tasks.TASKS.PARENT_ID), false)
 val TASK_RELEASE: Index = Internal.createIndex(DSL.name("task_release"), Tasks.TASKS, arrayOf(Tasks.TASKS.PROJECT_ID, Tasks.TASKS.RELEASE_ID), false)
+val TELEGRAM_DELIVERIES_DUE: Index = Internal.createIndex(DSL.name("telegram_deliveries_due"), TelegramDeliveries.TELEGRAM_DELIVERIES, arrayOf(TelegramDeliveries.TELEGRAM_DELIVERIES.NEXT_ATTEMPT_AT), false)
+val TELEGRAM_LINK_TOKENS_PERSON: Index = Internal.createIndex(DSL.name("telegram_link_tokens_person"), TelegramLinkTokens.TELEGRAM_LINK_TOKENS, arrayOf(TelegramLinkTokens.TELEGRAM_LINK_TOKENS.PRINCIPAL_ID, TelegramLinkTokens.TELEGRAM_LINK_TOKENS.CREATED_AT.desc()), false)
+val TELEGRAM_UPDATES_AGE: Index = Internal.createIndex(DSL.name("telegram_updates_age"), TelegramUpdates.TELEGRAM_UPDATES, arrayOf(TelegramUpdates.TELEGRAM_UPDATES.RECEIVED_AT), false)
 val THREAD_TASK_PAGE: Index = Internal.createIndex(DSL.name("thread_task_page"), Threads.THREADS, arrayOf(Threads.THREADS.PROJECT_ID, Threads.THREADS.TASK_ID, Threads.THREADS.LAST_ACTIVITY_AT.desc(), Threads.THREADS.ID), false)
 val WORKSPACE_ONE_OWNER: Index = Internal.createIndex(DSL.name("workspace_one_owner"), WorkspaceMembers.WORKSPACE_MEMBERS, arrayOf(WorkspaceMembers.WORKSPACE_MEMBERS.WORKSPACE_ID), true)

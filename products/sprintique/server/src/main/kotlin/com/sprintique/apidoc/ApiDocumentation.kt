@@ -230,6 +230,8 @@ internal object ApiQueries {
     private const val THREAD_PAGE = 50
     private const val THREAD_DEFAULT = 20
     private const val SEARCH_LIMIT = 200
+    private const val NOTIFICATION_PAGE = 50
+    private const val NOTIFICATION_DEFAULT = 20
     private const val OAUTH_REQUEST = 4000
 
     private fun query(name: String, schema: Any?, required: Boolean = false) =
@@ -269,6 +271,17 @@ internal object ApiQueries {
             listOf(query("q", mapOf("type" to "string", "minLength" to 1, "maxLength" to SEARCH_LIMIT), true), cursor)
 
         "$P/tasks" -> listOf(query("cursor", mapOf("type" to "integer", "minimum" to 0, "default" to 0)))
+
+        "/api/v1/notifications" -> listOf(
+            cursor,
+            query(
+                "limit",
+                mapOf(
+                    "type" to "integer", "minimum" to 1, "maximum" to NOTIFICATION_PAGE,
+                    "default" to NOTIFICATION_DEFAULT,
+                ),
+            ),
+        )
 
         "/api/v1/workbench" -> listOf(
             query("mode", mapOf("type" to "string", "enum" to listOf("now"))),

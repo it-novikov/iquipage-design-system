@@ -78,6 +78,6 @@ export async function startKotlinApp(options:AppOptions={}):Promise<TestApp>{
 }
 
 /** The `worker` command of the same artifact, on the worker role, with the test object storage. */
-export async function startKotlinWorker():Promise<{stop():Promise<void>;output():string}>{
-  return startWorker({SPRINTIQUE_WORKER_DATABASE_URL:process.env['WORKER_DATABASE_URL']!,...storageSettings()});
+export async function startKotlinWorker(settings:Record<string,string>={}):Promise<{stop():Promise<void>;output():string}>{
+  return startWorker({SPRINTIQUE_WORKER_DATABASE_URL:process.env['WORKER_DATABASE_URL']!,...storageSettings(),...settings});
 }

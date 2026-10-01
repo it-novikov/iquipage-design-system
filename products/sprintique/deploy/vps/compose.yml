@@ -43,7 +43,12 @@ services:
   api:
     <<: *server
     restart: unless-stopped
-    env_file: [secrets/storage.env, secrets/api.env]
+    # secrets/telegram.env (optional): SPRINTIQUE_TELEGRAM_* of docs/operations.md, «Notifications and Telegram».
+    env_file:
+      - secrets/storage.env
+      - secrets/api.env
+      - path: secrets/telegram.env
+        required: false
     mem_limit: 1536m
     cpus: 2
 
@@ -51,7 +56,11 @@ services:
     <<: *server
     restart: unless-stopped
     command: [worker]
-    env_file: [secrets/storage.env, secrets/worker.env]
+    env_file:
+      - secrets/storage.env
+      - secrets/worker.env
+      - path: secrets/telegram.env
+        required: false
     mem_limit: 1g
     cpus: 1
 
