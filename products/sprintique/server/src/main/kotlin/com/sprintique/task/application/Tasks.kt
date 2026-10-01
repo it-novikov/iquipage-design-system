@@ -12,6 +12,7 @@ import com.sprintique.planning.domain.TemporalRules
 import com.sprintique.problem.requireCondition
 import com.sprintique.problem.requirePresent
 import com.sprintique.task.domain.TaskContent
+import com.sprintique.task.domain.TaskEstimate
 import com.sprintique.task.domain.TaskRules
 import com.sprintique.workbench.application.PersonalState
 import com.sprintique.workspace.application.Assignees
@@ -19,6 +20,10 @@ import com.sprintique.workspace.application.Assignees
 /** Reading and saving tasks. Parent and release changes go through planning, which previews their effects. */
 object Tasks {
     private const val PAGE = 200
+
+    /** A task's estimate as `{value, unit}`, or null: the shape of `TaskInput.estimate`. */
+    const val ESTIMATE_SQL = "CASE WHEN t.estimate_value IS NULL THEN NULL ELSE " +
+        "jsonb_build_object('value', t.estimate_value::float8, 'unit', t.estimate_unit) END"
 
     // The owner's kind and state tell a service account from a person, and one that can no longer act (SPR-7).
     private val PROJECTION = """t.id, t.project_id AS "projectId", p.key || '-' || t.number AS "displayId", t.revision, t.title,
@@ -28,6 +33,7 @@ object Tasks {
         (SELECT o.kind FROM auth.principals o WHERE o.id = t.owner_id) AS "ownerKind",
         ${Assignees.stateSql("t.owner_id", "t.project_id")} AS "ownerState",
         t.owner_label AS "legacyOwner", to_char(t.due, 'YYYY-MM-DD') AS due, t.rank, t.parent_id AS "parentId",
+        ${ESTIMATE_SQL} AS estimate,
         t.release_id AS "releaseId", t.preparation, t.result, t.assignment_mode AS "assignmentMode", t.admitted,
         to_char(t.planned_start, 'YYYY-MM-DD') AS "plannedStart", to_char(t.planned_end, 'YYYY-MM-DD') AS "plannedEnd",
         to_char(t.created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS "createdAt",
@@ -84,7 +90,13 @@ object Tasks {
             parentId = task.stringOrNull("parentId"),
             releaseId = task.stringOrNull("releaseId"),
             tagIds = task.strings("tagIds"),
+            estimate = estimateOf(task),
         )
+    }
+
+    /** The estimate of a task row as entered, or null; the task projection writes it as `{value, unit}`. */
+    fun estimateOf(task: Row): TaskEstimate? = task.json("estimate")?.takeIf { it.isObject }?.let {
+        TaskEstimate(it.path("value").asDouble(), it.path("unit").asString())
     }
 
     /**
@@ -238,11 +250,14 @@ object Tasks {
             UPDATE app.tasks SET title = $3, description = $4, status = $5, type = $6, priority = $7,
                    owner_label = CASE WHEN owner_id IS DISTINCT FROM $8 THEN '' ELSE owner_label END, owner_id = $8,
                    due = $9, rank = $10, parent_id = $11, release_id = $12, revision = revision + 1,
+                   estimate_value = $13, estimate_unit = $14,
                    updated_at = clock_timestamp(),
                    status_entered_at = CASE WHEN status = $5 THEN status_entered_at ELSE clock_timestamp() END
             WHERE project_id = $1 AND id = $2
             """.trimIndent(),
             *fields(projectId, id, value),
+            value.estimate?.value,
+            value.estimate?.unit,
         )
     }
 
@@ -257,13 +272,15 @@ object Tasks {
         tx.update(
             """
             INSERT INTO app.tasks(project_id, id, title, description, status, type, priority, owner_id, due, rank,
-                                  parent_id, release_id, number, revision, preparation, admitted)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, 1, $14, $15)
+                                  parent_id, release_id, number, revision, preparation, admitted, estimate_value, estimate_unit)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, 1, $14, $15, $16, $17)
             """.trimIndent(),
             *fields(projectId, id, value),
             number,
             if (createInBoard) "ready" else "draft",
             createInBoard,
+            value.estimate?.value,
+            value.estimate?.unit,
         )
     }
 

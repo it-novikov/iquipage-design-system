@@ -18,4 +18,6 @@ data class TaskContent(
     val parentId: String?,
     val releaseId: String?,
     val tagIds: List<String>,
+    /** As entered: time or story points; null when the task has no estimate. */
+    val estimate: TaskEstimate? = null,
 )
