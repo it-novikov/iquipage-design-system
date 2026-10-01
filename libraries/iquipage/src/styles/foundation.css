@@ -2154,38 +2154,83 @@ textarea.iq-inline-title{min-height:0;max-height:none}
 .iq-properties .iq-tag-picker-field:focus-within{border-color:var(--iq-control);background:var(--iq-raised)}
 @media(hover:none){.iq-properties .iq-tag-picker-field{border-color:var(--iq-line)}}
 
-/* Relation map: one object's parent, children and links in the workflow graph's visual language, without an editor. */
+/* Relation map «Ступица» (vnext.26): nodes lie on the host's own surface (no inset, no lanes); each side's edges bundle into a
+   trunk that carries the words, blockers on the left, waiting and related tasks on the right, the parent above, subtasks below. */
 iq-relation-map{display:block;min-width:0}
 iq-relation-map[data-empty]{display:none}
-.rm-canvas{position:relative;height:var(--h)}
-.rm-edges{position:absolute;inset:0;overflow:visible;pointer-events:none}
-.rm-edge{fill:none;stroke:var(--iq-line-strong);stroke-width:1.5}
-.rm-edge.rm-related{stroke-dasharray:4 4}
-.rm-edges marker path{fill:var(--iq-line-strong)}
-.rm-caption{margin:0;font:500 var(--iq-type-meta-size)/16px var(--iq-font);letter-spacing:var(--iq-tracking-caps);text-transform:uppercase;color:var(--iq-muted)}
-.rm-canvas>.rm-caption{position:absolute;left:var(--x);top:var(--y)}
-.rm-caption span{letter-spacing:var(--iq-tracking-body);text-transform:none;font-variant-numeric:tabular-nums}
-.rm-node{position:relative}
-.rm-canvas>.rm-node{position:absolute;left:var(--x);top:var(--y);width:var(--w);height:64px}
-.rm-node-body{display:grid;gap:4px;align-content:center;width:100%;height:100%;min-height:64px;padding:var(--iq-space-2) var(--iq-space-3);border:1px solid var(--iq-line);border-radius:var(--iq-radius-sm);background:var(--iq-raised);color:var(--iq-ink);text-align:left;font:inherit;box-shadow:var(--iq-shadow-1)}
-button.rm-node-body{cursor:pointer;transition:border-color var(--iq-motion-fast) var(--iq-ease),transform var(--iq-motion-fast) var(--iq-ease)}
-button.rm-node-body:hover{border-color:var(--iq-line-strong);transform:translateY(-1px)}
-button.rm-node-body:focus-visible{outline:2px solid var(--iq-focus);outline-offset:2px}
-.rm-current .rm-node-body{border-color:var(--iq-ink);box-shadow:0 0 0 1px var(--iq-ink)}
-.rm-node-meta{display:flex;align-items:center;gap:6px;min-width:0;color:var(--iq-muted)}
-.rm-node-key{font:500 var(--iq-type-meta-size)/1 var(--iq-mono);color:var(--iq-muted)}
-.rm-node-status{display:inline-flex;align-items:center;gap:5px;margin-left:auto;flex:none;font:500 var(--iq-type-meta-size)/1 var(--iq-font);color:var(--iq-muted);white-space:nowrap}
-.rm-node-status::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--iq-line-strong)}
-.rm-node-status[data-tone=info]::before{background:var(--iq-info)}.rm-node-status[data-tone=warning]::before{background:var(--iq-warning)}.rm-node-status[data-tone=success]::before{background:var(--iq-success)}.rm-node-status[data-tone=planned]::before{background:var(--iq-planned)}.rm-node-status[data-tone=danger]::before{background:var(--iq-danger)}
-.rm-node-title{overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font:500 var(--iq-type-label-size)/1.35 var(--iq-font)}
-.rm-remove{position:absolute;top:-8px;right:-8px;display:grid;place-items:center;width:24px;height:24px;padding:0;border:1px solid var(--iq-line);border-radius:50%;background:var(--iq-raised);color:var(--iq-muted);opacity:0;cursor:pointer;transition:opacity var(--iq-motion-fast) var(--iq-ease)}
+.rm-graph{position:relative;display:grid;gap:var(--iq-space-5);min-width:0}
+.rm-edges{position:absolute;left:0;top:0;overflow:visible;pointer-events:none}
+.rm-edge{fill:none;stroke:var(--iq-graph-edge);stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.rm-edge[data-tone=open]{stroke:var(--iq-warning);stroke-width:2}
+.rm-edge[data-tone=done]{stroke:var(--iq-line-strong);stroke-dasharray:4 4}
+.rm-edge[data-tone=related]{stroke-dasharray:4 4}
+.rm-arrow{fill:var(--iq-graph-edge)}
+.rm-arrow[data-tone=open]{fill:var(--iq-warning)}
+.rm-arrow[data-tone=done]{fill:var(--iq-line-strong)}
+.rm-band{display:grid;align-items:center;min-width:0}
+.rm-band[data-sides=both]{grid-template-columns:minmax(0,1fr) var(--rm-gap-l,44px) auto var(--rm-gap-r,44px) minmax(0,1fr)}
+.rm-band[data-sides=left]{grid-template-columns:minmax(0,1fr) var(--rm-gap-l,44px) auto}
+.rm-band[data-sides=right]{grid-template-columns:auto var(--rm-gap-r,44px) minmax(0,1fr)}
+.rm-band[data-sides=none]{grid-template-columns:auto;justify-content:center}
+.rm-band:is([data-sides=both],[data-sides=left])>.rm-hub{grid-column:3}
+.rm-band[data-sides=both]>[data-side=right]{grid-column:5}
+.rm-band[data-sides=right]>[data-side=right]{grid-column:3}
+.rm-hub{display:grid;justify-items:center;padding:var(--rm-rise,0px) 0 var(--rm-fall,0px)}
+.rm-side{display:grid;gap:var(--iq-space-5);align-content:center;min-width:0}
+.rm-group{display:grid;gap:var(--iq-space-2);min-width:0}
+.rm-parent>.rm-node{width:min(100%,440px)}
+.rm-parent{display:flex;justify-content:center;min-width:0}
+.rm-parent[data-sides=left]{justify-content:flex-end}
+.rm-parent[data-sides=right]{justify-content:flex-start}
+/* The current task is the quietest node: two lines, no title (it heads the drawer), an accent frame. */
+.rm-current{display:grid;justify-items:center;gap:var(--iq-space-1);padding:10px var(--iq-space-4);border:1.5px solid var(--iq-accent);border-radius:var(--iq-radius-sm);background:var(--iq-accent-soft);color:var(--iq-ink);white-space:nowrap}
+.rm-current-caption{font:500 var(--iq-type-caption-size)/1.25 var(--iq-font);color:var(--iq-accent)}
+.rm-current-key{font:500 var(--iq-type-label-size)/1.25 var(--iq-mono);font-variant-numeric:tabular-nums}
+/* A node: the key never wraps, the title takes up to two lines; a closed task is quiet (muted title, no fill). */
+.rm-node{position:relative;min-width:0;container-type:inline-size}
+.rm-node-body{display:grid;gap:var(--iq-space-1);width:100%;padding:var(--iq-space-2) var(--iq-space-3);border:1px solid var(--iq-line);border-radius:var(--iq-radius-sm);background:var(--iq-raised);color:var(--iq-ink);text-align:left;font:inherit;cursor:pointer;box-shadow:var(--iq-shadow-1);transition:border-color var(--iq-motion-fast) var(--iq-ease)}
+.rm-node-body:hover{border-color:var(--iq-line-strong)}
+.rm-node-body:focus-visible{outline:2px solid var(--iq-focus);outline-offset:2px}
+.rm-node.is-done>.rm-node-body{background:transparent;box-shadow:none}
+.rm-node-meta{display:flex;align-items:center;gap:6px;min-width:0;min-height:16px}
+.rm-state{flex:none;color:var(--iq-control)}
+.rm-state circle{fill:none;stroke:currentColor;stroke-width:1.5}
+.rm-state[data-state=doing] path{fill:currentColor}
+.rm-state[data-state=done] circle{fill:currentColor;stroke:none}
+.rm-state[data-state=done] path{fill:none;stroke:var(--iq-raised);stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
+.rm-state[data-tone=info]{color:var(--iq-info)}.rm-state[data-tone=warning]{color:var(--iq-warning)}.rm-state[data-tone=planned]{color:var(--iq-planned)}.rm-state[data-tone=success]{color:var(--iq-success)}.rm-state[data-tone=danger]{color:var(--iq-danger)}
+.rm-node-kind,.rm-node-lock{display:grid;flex:none;color:var(--iq-muted)}
+.rm-node-lock{color:var(--iq-warning)}
+.rm-node-key{flex:none;font:500 var(--iq-type-meta-size)/1 var(--iq-mono);font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--iq-muted)}
+.rm-node[data-kind=epic] :is(.rm-node-kind,.rm-node-key){color:var(--iq-epic)}
+.rm-node-status{min-width:0;margin-left:auto;overflow:hidden;font:400 var(--iq-type-caption-size)/1.2 var(--iq-font);white-space:nowrap;text-overflow:ellipsis;color:var(--iq-muted);transition:opacity var(--iq-motion-fast) var(--iq-ease)}
+.rm-node-title{display:-webkit-box;overflow:hidden;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;overflow-wrap:anywhere;font:500 var(--iq-type-label-size)/1.35 var(--iq-font)}
+.rm-node.is-done .rm-node-title{font-weight:400;color:var(--iq-muted)}
+.rm-node[data-shape=row] .rm-node-meta{min-height:20px}
+.rm-node[data-shape=row] .rm-node-title{display:block;flex:1 1 auto;min-width:0;white-space:nowrap;text-overflow:ellipsis;font-weight:400}
+@container (max-width:180px){.rm-node-status{display:none}}
+/* Remove sits inside the node and takes the status's place on hover and focus. */
+.rm-remove{position:absolute;top:var(--iq-space-1);right:var(--iq-space-1);display:grid;place-items:center;width:24px;height:24px;padding:0;border:0;border-radius:var(--iq-radius-xs);background:transparent;color:var(--iq-muted);opacity:0;cursor:pointer;transition:opacity var(--iq-motion-fast) var(--iq-ease)}
 .rm-node:is(:hover,:focus-within) .rm-remove{opacity:1}
-.rm-remove:hover{color:var(--iq-danger);border-color:var(--iq-danger)}
-.rm-remove:focus-visible{opacity:1;outline:2px solid var(--iq-focus);outline-offset:1px}
-@media(hover:none){.rm-remove{opacity:1}}
-.rm-more{display:grid;place-items:center;border:1px dashed var(--iq-line);border-radius:var(--iq-radius-sm);font-size:var(--iq-type-caption-size);color:var(--iq-muted)}
-.rm-list{display:grid;gap:var(--iq-space-4);padding-left:var(--iq-space-3);border-left:1px solid var(--iq-line)}
-.rm-list-group{display:grid;gap:var(--iq-space-2)}
+.rm-node:has(.rm-remove):is(:hover,:focus-within) .rm-node-status{opacity:0}
+.rm-remove:hover{color:var(--iq-danger);background:var(--iq-danger-bg)}
+.rm-remove:focus-visible{outline:2px solid var(--iq-focus);outline-offset:1px}
+@media(hover:none){.rm-remove{opacity:1}.rm-node:has(.rm-remove) .rm-node-meta{padding-right:22px}.rm-node:has(.rm-remove) .rm-node-status{opacity:1}}
+/* Words on the edges: caption size; the blocker words take the tone of their state. */
+.rm-words{position:absolute;inset:0;pointer-events:none}
+.rm-word{position:absolute;left:0;top:0;font:500 var(--iq-type-caption-size)/1.25 var(--iq-font);white-space:nowrap;color:var(--iq-muted)}
+.rm-graph[data-raised] .rm-word{white-space:normal}
+.rm-word[data-for=dependsOn-state]{font-weight:400;font-variant-numeric:tabular-nums}
+.rm-word[data-tone=warning]{color:var(--iq-warning)}
+.rm-word[data-tone=success]{color:var(--iq-success)}
+/* Subtasks hang on a rail at the left edge, one row each. */
+.rm-tree{display:grid;gap:var(--iq-space-2);min-width:0;padding-left:28px}
+.rm-tree-head{display:flex;align-items:center;gap:var(--iq-space-2);margin:0;font:500 var(--iq-type-caption-size)/1.25 var(--iq-font);color:var(--iq-muted)}
+.rm-tree-head small{font:400 var(--iq-type-caption-size)/1.25 var(--iq-font);font-variant-numeric:tabular-nums}
+.rm-tree-head .iq-progress{width:48px}
+.rm-tree-nodes{display:grid;gap:6px;min-width:0}
+.rm-tree-more{margin:0;font:400 var(--iq-type-caption-size)/1.25 var(--iq-font);color:var(--iq-muted)}
+@media(forced-colors:active){.rm-edge{stroke:CanvasText}.rm-arrow{fill:CanvasText}.rm-current{border-color:Highlight}}
 
 /* Avatar sizes: xs 20, sm 24, md 28 (default in groups), lg 44. The overlap in a group is a quarter of the size. */
 .iq-avatar.xs{width:20px;height:20px;min-width:20px;font-size:var(--iq-type-meta-size);font-weight:600}
@@ -2222,35 +2267,6 @@ iq-markdown-editor[density=compact] .md-preview :is(h1,h2,h3,h4):first-child{mar
 .iq-properties{--iq-properties-label:136px}
 .iq-properties :is(iq-select,iq-combobox,iq-date-field,iq-tag-picker)>.iq-control-label{font-size:var(--iq-type-caption-size);font-weight:400}
 @media(max-width:640px){.iq-properties{--iq-properties-label:88px}}
-
-/* Relation map lanes (vnext.18): each group is a tinted lane with its label inside, naming the role of its nodes. */
-.iq-rel-lane{border-radius:var(--iq-radius-md);background:var(--iq-recessed);padding:0 var(--iq-space-2) var(--iq-space-2)}
-.rm-canvas>.iq-rel-lane{position:absolute;left:var(--x);top:var(--y);width:var(--w);height:var(--h);padding:0}
-.iq-rel-lane-head{display:flex;align-items:center;gap:6px;height:30px;margin:0;padding:0 var(--iq-space-2);font:500 var(--iq-type-caption-size)/1 var(--iq-font);color:var(--iq-ink)}
-.iq-rel-lane-head>.iq-icon{flex:none;color:var(--iq-muted)}
-.iq-rel-lane-head>span{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
-.iq-rel-lane-head small{margin-left:auto;font:500 var(--iq-type-caption-size)/1 var(--iq-font);font-variant-numeric:tabular-nums;color:var(--iq-muted)}
-.iq-rel-lane-head[data-tone=warning]>.iq-icon{color:var(--iq-warning)}
-.rm-canvas>.rm-slot{position:absolute;left:var(--x);top:var(--y);width:var(--w);height:76px}
-.rm-slot>.rm-node{height:100%}
-.rm-node-body{min-height:76px;gap:4px;align-content:center}
-.rm-node-title{display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;white-space:normal;overflow:hidden;line-height:1.3}
-.rm-current .rm-node-body{border:2px solid var(--iq-accent);background:var(--iq-accent-soft);box-shadow:none;padding:calc(var(--iq-space-2) - 1px) calc(var(--iq-space-3) - 1px)}
-.rm-node-caption{font:500 var(--iq-type-meta-size)/1 var(--iq-font);color:var(--iq-accent)}
-.rm-node-flag{margin-left:auto;font-size:var(--iq-type-meta-size)}
-.rm-done .rm-node-title{color:var(--iq-muted)}
-.rm-node-status>.iq-icon{color:var(--iq-success)}
-.rm-edge.rm-edge-blocker{stroke:var(--iq-warning)}
-.rm-edge.rm-edge-done{stroke:var(--iq-line)}
-.rm-edges .rm-marker-warn path{fill:var(--iq-warning)}
-.rm-slot.rm-more{display:grid;place-items:center;border:1px dashed var(--iq-line-strong);border-radius:var(--iq-radius-sm);font-size:var(--iq-type-caption-size);color:var(--iq-muted)}
-.rm-list{display:grid;gap:var(--iq-space-3);padding-left:0;border-left:0}
-.rm-list>.iq-rel-lane{display:grid;gap:var(--iq-space-2)}
-.rm-list>.rm-node .rm-node-body,.rm-list .rm-node-body{min-height:64px}
-.rm-edges{z-index:1}.rm-canvas>.rm-slot{z-index:2}
-.rm-current .rm-node-meta{flex-wrap:nowrap;white-space:nowrap}
-.rm-node-flag{min-height:0;padding:2px 6px;line-height:14px}
-.rm-current .rm-node-body{padding-block:5px;gap:3px}
 
 /* Tag picker: the "+" that creates a tag sits at the right edge of the field (like the managed tags input). */
 .iq-tag-picker-field input{flex:1 1 96px;min-width:96px}

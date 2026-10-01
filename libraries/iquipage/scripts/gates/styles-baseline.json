@@ -32,9 +32,9 @@
       "files": {}
     },
     "z-index-raw": {
-      "total": 81,
+      "total": 79,
       "files": {
-        "foundation.css": 45,
+        "foundation.css": 43,
         "settings.css": 1,
         "whiteboard-workshop.css": 11,
         "whiteboard.css": 22,

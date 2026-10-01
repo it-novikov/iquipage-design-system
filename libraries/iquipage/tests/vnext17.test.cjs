@@ -12,16 +12,11 @@ test('the relation map is a public core component', () => {
   assert.match(read('types/core.d.ts'), /export declare class IqRelationMap extends HTMLElement \{value:RelationMapValue\|null;\}/);
 });
 test('the relation map lays out parent, children, dependencies and links and emits open and remove', () => {
+  // vnext.26 replaced the lanes with the «Ступица» layout; its contract is in vnext26.test.cjs.
   const js = read('src/modules/relation-map.js');
-  for (const label of ['Родительская задача','Блокируют эту задачу']) assert.ok(js.includes(label), label);
-  assert.match(js, /function lanes\(v\)\{/);
   assert.match(js, /new CustomEvent\('iq-open'/);
   assert.match(js, /new CustomEvent\('iq-remove'/);
-  assert.match(js, /if\(width<560\)/);
-  assert.match(js, /MAX_CHILDREN=6/);
-  const css = read('src/styles/foundation.css');
-  for (const rule of ['iq-relation-map{', '.rm-edge.rm-related{stroke-dasharray', '.rm-current .rm-node-body{', '.rm-node-status[data-tone=warning]::before', '.rm-list{'])
-    assert.ok(css.includes(rule), rule);
+  assert.ok(read('src/styles/foundation.css').includes('iq-relation-map{'));
 });
 test('embedded boards get the title chip, the sync state and the rail at the top', () => {
   const css = read('src/styles/whiteboard.css'), workshop = read('src/styles/whiteboard-workshop.css');
