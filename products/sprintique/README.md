@@ -4,7 +4,7 @@ Clean-start, self-contained product: the approved board, Planning consumer from 
 
 ## Independence and architecture
 
-Copy this entire directory to another repository. No parent workspace, DS source checkout or root install is required. The explicit `vendor/iquipage-web-0.6.0-vnext.27.tgz` release can later be replaced by the same authorized registry package. Its SHA-256 is `1642bc8cfea1b57704d7277815fcf598167a691fe4e98fc7c17d057f72563810`. Product and library versions are independent.
+Copy this entire directory to another repository. No parent workspace, DS source checkout or root install is required. The explicit `vendor/iquipage-web-0.6.0-vnext.27.tgz` release can later be replaced by the same authorized registry package. Its SHA-256 is `2e440aad15a6d381979076cce31c132f4a8d7617dd34639670837780a6e270dd`. Product and library versions are independent.
 
 ```text
 server                  Kotlin/Spring Boot server: API, worker and migrate commands in one artifact

@@ -4,7 +4,7 @@ import {editCatalogItem,catalogLabel,tagTone} from './catalog-ui.js';
 // "до 06.10" in the current year, "до 06.10.2027" otherwise: the value column is narrow.
 const shortDate=value=>{const text=formatDate(value);return String(value).slice(0,4)===String(new Date().getFullYear())?text.slice(0,5):text;};
 /** The quiet second part of a release value: its target date or that it is out. */
-export const releaseMeta=item=>item.status==='released'?'выпущен':item.targetDate?`до ${shortDate(item.targetDate)}`:'';
+const releaseMeta=item=>item.status==='released'?'выпущен':item.targetDate?`до ${shortDate(item.targetDate)}`:'';
 export function mountTaskCatalogs(root,{tagsRoot=root,repository,project,task,tags,releases,readOnly=false,canManage=true,onChange=()=>{}}){
   let selected=new Set(task?.tagIds||[]),releaseId=task?.releaseId||'',allReleases=[...releases];
   const abort=new AbortController();
