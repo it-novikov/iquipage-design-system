@@ -6,6 +6,7 @@ exports.registerEditors = registerEditors;
 exports.safeMarkdown = safeMarkdown;
 exports.pasteLink = pasteLink;
 const time_js_1 = require("./time.js");
+const mentions_js_1 = require("./mentions.js");
 const time_js_2 = require("./time.js");
 const IqTime = time_js_2.IqTime;
 exports.IqTime = IqTime;
@@ -168,6 +169,28 @@ class IqMarkdownEditor extends components_js_1.IqElement {
         if (changed) this.emit('iq-preview-change', {preview: on});
     }
 
+    /**
+     * Who can be mentioned (vnext.29): {id, name, kind?: 'human'|'service', description?, image?}. With members, «@»
+     * in the text opens the mention list and the preview shows mention pills with current names; null turns it off.
+     */
+    get mentions() { return this._mentions ? this._mentions.map(member => ({...member})) : null; }
+    set mentions(value) {
+        if (value != null && (!Array.isArray(value) || value.length > 1000)) throw new TypeError('mentions: up to 1000 members or null');
+        this._mentions = value ? value.map(member => ({...member})) : null;
+        this.syncMentions();
+        if (this.input && this.previewMode) this.renderPreview(this.querySelector('.md-preview'), this.value);
+    }
+    syncMentions() {
+        if (!this.input) return;
+        if (!this._mentions) { this._mentionList?.destroy(); this._mentionList = null; return; }
+        if (this._mentionList && this._mentionList.input === this.input) this._mentionList.setMembers(this._mentions);
+        else {
+            this._mentionList?.destroy();
+            this._mentionList = mentions_js_1.attachMentionAutocomplete(this.input, {members: this._mentions});
+            const list = this._mentionList;
+            this.addCleanup(() => { list.destroy(); if (this._mentionList === list) this._mentionList = null; });
+        }
+    }
     get density() { return this.getAttribute('density') === 'compact' ? 'compact' : 'comfortable'; }
     set density(value) {
         if (!['compact','comfortable'].includes(value)) throw new TypeError('Unsupported editor density');
@@ -316,7 +339,7 @@ class IqMarkdownEditor extends components_js_1.IqElement {
             this.setAttribute('value', next);
     }
     mount() {
-        for (const name of ['density','footerActions','toolbarActions']) if (Object.prototype.hasOwnProperty.call(this,name)) { const value = this[name]; delete this[name]; this[name] = value; }
+        for (const name of ['density','footerActions','toolbarActions','mentions']) if (Object.prototype.hasOwnProperty.call(this,name)) { const value = this[name]; delete this[name]; this[name] = value; }
         const initial = this.getAttribute('value') || this.textContent?.trim() || '', variant = this.getAttribute('variant') || 'full';
         const chat = variant === 'chat';
         const tools = chat ? markdownTools.filter(tool => chatTools.includes(tool.id)) : markdownTools;
@@ -327,6 +350,7 @@ class IqMarkdownEditor extends components_js_1.IqElement {
         this.input = this.querySelector('textarea');
         this.mountFooterActions();
         this.syncToolbarActions();
+        this.syncMentions();
         this.history = [initial];
         this.cursor = 0;
         interaction_js_1.autosize(this.input);
@@ -548,7 +572,7 @@ class IqMarkdownEditor extends components_js_1.IqElement {
         value = this.value; // The textarea normalizes CRLF; task positions must use that same draft.
         try {
             const emptyAction=this.getAttribute('empty-action-label'),emptyId=this.getAttribute('empty-action')||'empty';
-            pane.innerHTML=safeMarkdown(value)||`<p class="md-empty">${components_js_1.escapeHTML(this.getAttribute('empty-text')||'Пока нет содержимого.')}</p>${emptyAction&&!this.readOnly&&!this.disabled?`<p class="md-empty-action"><button type="button" class="iq-btn ghost sm" data-empty-action="${components_js_1.escapeHTML(emptyId)}">${components_js_1.escapeHTML(emptyAction)}</button></p>`:''}`;
+            pane.innerHTML=safeMarkdown(value,{mentions:this._mentions||undefined})||`<p class="md-empty">${components_js_1.escapeHTML(this.getAttribute('empty-text')||'Пока нет содержимого.')}</p>${emptyAction&&!this.readOnly&&!this.disabled?`<p class="md-empty-action"><button type="button" class="iq-btn ghost sm" data-empty-action="${components_js_1.escapeHTML(emptyId)}">${components_js_1.escapeHTML(emptyAction)}</button></p>`:''}`;
             if (this.interactiveTasks && !this.disabled && !this.readOnly) require('./markdown-tasks.js').bindMarkdownTasks(pane, value, (detail, button) => {
                 if (this.disabled || this.readOnly || !this.interactiveTasks || this.value !== detail.source) return;
                 const restoreFocus = this.ownerDocument.activeElement === button;

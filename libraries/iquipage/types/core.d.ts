@@ -1,5 +1,5 @@
 /** Supported core browser entry. Does not register graph, roadmap, crop, or whiteboard. */
-export declare const version:'0.6.0-vnext.27';
+export declare const version:'0.6.0-vnext.29';
 export declare function registerCore():void;
 export declare function registerComponents():void;
 export declare function registerDateFields():void;
@@ -57,7 +57,7 @@ export declare class IqTime extends HTMLElement {value:string;hourCycle:12|24;}
 export interface MarkdownEditorAction {id:string;label:string;pressed:boolean;disabled?:boolean;tone?:'neutral'|'warning';hint?:string;/** 'chip' renders a compact pressed toggle (chat composers); 'check' a checkbox with a hint. */appearance?:'check'|'chip';icon?:string;}
 export interface MarkdownEditorActionIntent {id:string;pressed:boolean;previous:boolean;reason?:'reset';}
 export interface MarkdownEditorSubmit {value:string;/** true for Ctrl/⌘+Alt+Enter (for example: reply and resolve). */alternate:boolean;}
-export declare class IqMarkdownEditor extends HTMLElement {value:string;disabled:boolean;readOnly:boolean;previewOnBlur:boolean;previewMode:boolean;interactiveTasks:boolean;density:'compact'|'comfortable';footerActions:MarkdownEditorAction[];/** Host actions at the end of the toolbar, shown only while editing; a click emits iq-editor-action {id}. */toolbarActions:MarkdownToolbarAction[];preview():void;focusEditor():void;/** variant="chat" idle="line": false while the composer rests as one line. */readonly expanded:boolean;expand(options?:{focus?:boolean}):void;collapse():void;reset():void;}
+export declare class IqMarkdownEditor extends HTMLElement {value:string;disabled:boolean;readOnly:boolean;previewOnBlur:boolean;previewMode:boolean;interactiveTasks:boolean;density:'compact'|'comfortable';footerActions:MarkdownEditorAction[];/** Host actions at the end of the toolbar, shown only while editing; a click emits iq-editor-action {id}. */toolbarActions:MarkdownToolbarAction[];/** vnext.29: who «@» can mention; null turns the mention list off. The preview shows their current names. */mentions:MentionMember[]|null;preview():void;focusEditor():void;/** variant="chat" idle="line": false while the composer rests as one line. */readonly expanded:boolean;expand(options?:{focus?:boolean}):void;collapse():void;reset():void;}
 export interface MarkdownToolbarAction {id:string;label:string;icon?:string;}
 export declare class IqPagination extends HTMLElement {total:number;current:number;}
 export interface TreeNode {id:string;label:string;children?:TreeNode[];count?:number;disabled?:boolean;}
@@ -92,12 +92,34 @@ export declare const ui:Record<string,unknown>;
 declare global {interface HTMLElementTagNameMap {'iq-date-field':IqDateField;'iq-time':IqTime;'iq-markdown-editor':IqMarkdownEditor;'iq-pagination':IqPagination;'iq-tree':IqTree;'iq-plan':IqPlan;'iq-side-navigation':IqSideNavigation;'iq-work-header':IqWorkHeader;'iq-file-preview':IqFilePreview;}}
 
 /** Defaults are compatible with the existing editor preview: Markdown # becomes h2. */
-export interface MarkdownRenderOptions {headingLevel?:1|2|3|4|5|6;}
+export interface MarkdownRenderOptions {headingLevel?:1|2|3|4|5|6;/** vnext.29: members for mention tokens; without them a token shows its stored label. */mentions?:MentionMembers;}
+/** A member that can be mentioned. The id is 1–100 of A-Z a-z 0-9 _ - (the token alphabet). */
+export interface MentionMember {id:string;name:string;kind?:'human'|'service';/** A second line in the list, e.g. «Владелец — Анна К.». */description?:string;/** A photo URL (same-origin path, blob: or https:). */image?:string;}
+/** Members as a list, or a lookup id → member (or its name); null or undefined from the lookup: not a member. */
+export type MentionMembers=readonly MentionMember[]|((id:string)=>{name:string;kind?:'human'|'service'}|string|null|undefined);
+export interface MentionToken {id:string;label:string;start:number;end:number;}
+/** `@[Имя](user:<id>)`: a mention that survives renames. Throws on an id outside the token alphabet. */
+export declare function mentionToken(member:{id:string;name:string}):string;
+/** The label a token keeps: one line, no brackets, at most 80 characters. */
+export declare function mentionLabel(name:string):string;
+/** Every mention token outside code. */
+export declare function parseMentions(source:string|null|undefined):MentionToken[];
+/** Plain text with tokens as «@Имя» (current names when members are given). */
+export declare function mentionPlainText(source:string|null|undefined,members?:MentionMembers):string;
+/** Escaped text with tokens as .md-mention pills; no other Markdown. */
+export declare function mentionsHTML(source:string|null|undefined,members?:MentionMembers):string;
+/** What is typed after «@» at the caret, or null. */
+export declare function mentionQuery(value:string,caret:number):{start:number;query:string}|null;
+/** People first, then service accounts; name prefix, word prefix, then substring; case-insensitive, «ё» as «е». */
+export declare function filterMentionCandidates<T extends MentionMember>(members:readonly T[],query:string,limit?:number):T[];
+/** The @ list of a textarea: Enter/Tab inserts, Escape closes; fires `input` and `iq-mention` {id, name}. */
+export declare class MentionAutocomplete {constructor(input:HTMLTextAreaElement|HTMLInputElement,options?:{members?:MentionMember[];label?:string});readonly isOpen:boolean;setMembers(members:MentionMember[]):void;update():void;close():void;destroy():void;}
+export declare function attachMentionAutocomplete(input:HTMLTextAreaElement|HTMLInputElement,options?:{members?:MentionMember[];label?:string}):MentionAutocomplete;
 /** Safe subset, not raw HTML/CommonMark extension execution. HTTPS + local #links only. */
 export declare function safeMarkdown(source:string|null|undefined,options?:MarkdownRenderOptions):string;
 export declare function safeMarkdownURL(value:unknown):string|null;
 /** value is text, never HTML. No accepted/submitted state and no application events. */
-export declare class IqMarkdownViewer extends HTMLElement {value:string;headingLevel:1|2|3|4|5|6;interactiveTasks:boolean;}
+export declare class IqMarkdownViewer extends HTMLElement {value:string;headingLevel:1|2|3|4|5|6;interactiveTasks:boolean;/** vnext.29: members for mention pills; null shows stored labels. */mentions:MentionMembers|null;}
 export declare function registerMarkdownViewer():void;
 export type WorkDensity='compact'|'comfortable';
 /** Named slots: header/navigation/summary/toolbar/footer. Default slot: working data. */

@@ -7,8 +7,14 @@ class IqMarkdownViewer extends HTMLElement {
  set interactiveTasks(v){this.toggleAttribute('interactive-tasks',!!v)}
  #value;
  #article;
+ #mentions=null;
+ /** Members for mention tokens (vnext.29): an array of {id, name, kind?} or a function id → {name, kind?} | null. With
+  *  members a token shows the member's current name and a token naming anyone else is plain text; null shows the
+  *  stored label. */
+ get mentions(){return this.#mentions;}
+ set mentions(value){if(value!=null&&!Array.isArray(value)&&typeof value!=='function')throw new TypeError('mentions: an array, a function or null');this.#mentions=value??null;if(this.isConnected)this.render();}
  connectedCallback(){
-  if(Object.prototype.hasOwnProperty.call(this,'value')){const v=this.value;delete this.value;this.value=v;}
+  for(const name of ['value','mentions'])if(Object.prototype.hasOwnProperty.call(this,name)){const v=this[name];delete this[name];this[name]=v;}
   if(!this.#article){this.#article=document.createElement('article');this.#article.className='md-document iq-markdown-viewer-document';this.replaceChildren(this.#article);}
   this.render();
  }
@@ -37,7 +43,7 @@ class IqMarkdownViewer extends HTMLElement {
   if(!this.value.trim()){
    const empty=document.createElement('p');empty.className='md-empty';empty.textContent=this.getAttribute('empty-text')??'Пока нет содержимого.';this.#article.replaceChildren(empty);return;
   }
-  try{this.#article.innerHTML=safeMarkdown(this.value,{headingLevel:this.headingLevel});if(this.interactiveTasks)this.bindTasks();}
+  try{this.#article.innerHTML=safeMarkdown(this.value,{headingLevel:this.headingLevel,mentions:this.#mentions??undefined});if(this.interactiveTasks)this.bindTasks();}
   catch(error){const p=document.createElement('p');p.className='md-render-error';p.setAttribute('role','alert');p.textContent=error.message;this.#article.replaceChildren(p);}
  }
 }

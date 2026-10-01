@@ -2553,3 +2553,14 @@ iq-tag-picker[appearance=ghost] .iq-tag-picker-chevron{display:inline-flex;flex:
 iq-tag-picker[appearance=ghost] .iq-tag-picker-chevron>.iq-icon{width:12px}
 iq-tag-picker[appearance=ghost] .iq-tag-picker-field:is(:hover,:focus-within)>.iq-tag-picker-chevron{opacity:1}
 @media(hover:none){iq-tag-picker[appearance=ghost] .iq-tag-picker-chevron{opacity:1}}
+
+/* ---------- Mentions (0.6.0-vnext.29) ----------
+   A mention is a quiet pill: accent text on the accent's soft fill at the line's own size, weight 500, never broken
+   inside a name. The @ list is the calm select list of vnext.27 (34px rows, one hover fill, the active row in accent)
+   with a sentence-case label above the service accounts instead of a caption. */
+.md-mention{padding:0 2px;border-radius:var(--iq-radius-xs);background:var(--iq-accent-soft);color:var(--iq-accent);font-weight:500;white-space:nowrap}
+.iq-mention-popup{width:280px;max-height:320px}
+.iq-mention-popup .iq-option-label{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.iq-mention-popup .iq-option small{margin-top:1px}
+.iq-mention-heading{margin-top:var(--iq-space-1);padding:var(--iq-space-2) var(--iq-space-2) var(--iq-space-1);font-size:var(--iq-type-caption-size);line-height:16px;color:var(--iq-muted)}
+.iq-mention-heading:first-child{margin-top:0;padding-top:var(--iq-space-1)}
