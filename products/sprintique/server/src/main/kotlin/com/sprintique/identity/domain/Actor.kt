@@ -21,6 +21,12 @@ enum class CredentialKind(val wire: String, val prefix: String?) {
      * for the run and its project, never handed out as a bearer token and revoked when the run ends.
      */
     RUNTIME("runtime", null),
+
+    /**
+     * A person acting from the Telegram chat linked to them: a button under a notification or a reply to it
+     * (docs/decisions/0007-notification-channels.md). Never presented over HTTP; the link itself is the credential.
+     */
+    TELEGRAM("telegram", null),
     ;
 
     /** A service account's credential: narrowed by scopes, never trusted with access decisions. */

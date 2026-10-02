@@ -4,7 +4,7 @@
 package com.sprintique.database.schema.app.tables.records
 
 
-import com.sprintique.database.schema.app.tables.TelegramProjectSettings
+import com.sprintique.database.schema.app.tables.ProjectNotificationSettings
 
 import java.time.OffsetDateTime
 
@@ -13,7 +13,7 @@ import org.jooq.impl.UpdatableRecordImpl
 
 
 @Suppress("warnings")
-open class TelegramProjectSettingsRecord() : UpdatableRecordImpl<TelegramProjectSettingsRecord>(TelegramProjectSettings.TELEGRAM_PROJECT_SETTINGS) {
+open class ProjectNotificationSettingsRecord() : UpdatableRecordImpl<ProjectNotificationSettingsRecord>(ProjectNotificationSettings.PROJECT_NOTIFICATION_SETTINGS) {
 
     open var projectId: String?
         set(value): Unit = set(0, value)

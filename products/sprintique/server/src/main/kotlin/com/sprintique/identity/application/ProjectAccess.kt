@@ -5,6 +5,7 @@ import com.sprintique.database.Row
 import com.sprintique.database.Transaction
 import com.sprintique.identity.domain.Actor
 import com.sprintique.identity.domain.Capability
+import com.sprintique.identity.domain.CredentialKind
 import com.sprintique.problem.requireCondition
 import com.sprintique.problem.requirePresent
 
@@ -24,6 +25,9 @@ data class ProjectMembership(val workspaceId: String, val role: String, val perm
  * the person who issued it, a token's scopes).
  */
 object ProjectAccess {
+    /** The credential id of a person acting from their linked Telegram chat: `telegram:<chat id>`. */
+    const val TELEGRAM_PREFIX = "telegram:"
+
     /** Permissions that only read; any other one changes something and needs a token's write scope. */
     private val READS = setOf(Permission.TASKS_READ, Permission.MAPS_READ, Permission.FINANCE_READ)
 
@@ -132,6 +136,15 @@ object ProjectAccess {
     }
 
     fun requireActiveCredential(tx: Transaction, actor: Actor) {
+        if (actor.credentialKind == CredentialKind.TELEGRAM) {
+            // The chat must still be linked to this enabled person (credentialId is `telegram:<chat>`).
+            val chat = actor.credentialId.removePrefix(TELEGRAM_PREFIX).toLongOrNull()
+            val person = chat?.let {
+                tx.row("SELECT app.telegram_chat_person($1) AS person", it)?.stringOrNull("person")
+            }
+            requireCondition(person == actor.id, 401, "UNAUTHENTICATED", "Чат больше не подключён.")
+            return
+        }
         val found = tx.row(
             """
             SELECT 1 AS found FROM auth.credentials c JOIN auth.principals p ON p.id = c.principal_id

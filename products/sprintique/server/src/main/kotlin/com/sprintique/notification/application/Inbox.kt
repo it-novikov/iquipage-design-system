@@ -151,10 +151,10 @@ object Inbox {
         val facts = NotificationFacts(
             kind = kind,
             actorName = row.stringOrNull("actorName"),
-            taskTitle = row.string("title"),
+            taskKey = row.string("taskKey"),
             requestKind = detail.text("requestKind"),
             due = detail.text("due")?.let(::dateOrNull),
-            raisedOn = detail.text("on")?.let(::dateOrNull),
+            today = detail.text("on")?.let(::dateOrNull),
         )
         val threadId = when (kind) {
             NotificationKind.MENTION -> detail.text("threadId")
@@ -164,7 +164,7 @@ object Inbox {
         return linkedMapOf(
             "id" to row.string("id"),
             "kind" to kind.wire,
-            "text" to NotificationText.line(facts),
+            "text" to NotificationText.sentence(facts),
             "read" to row.boolean("read"),
             "createdAt" to row.instant("createdAt").toString(),
             "project" to linkedMapOf("id" to row.string("projectId"), "name" to row.string("projectName")),

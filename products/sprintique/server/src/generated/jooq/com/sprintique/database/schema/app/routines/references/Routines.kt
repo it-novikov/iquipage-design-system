@@ -16,12 +16,15 @@ import com.sprintique.database.schema.app.routines.AiRunLoad
 import com.sprintique.database.schema.app.routines.AiRunStep
 import com.sprintique.database.schema.app.routines.AiStoreConnectionSecret
 import com.sprintique.database.schema.app.routines.AppendTaskActivity
+import com.sprintique.database.schema.app.routines.NotificationActions
 import com.sprintique.database.schema.app.routines.NotificationRecipient
 import com.sprintique.database.schema.app.routines.NotifyMention
 import com.sprintique.database.schema.app.routines.RaiseNotification
 import com.sprintique.database.schema.app.routines.TelegramAcceptUpdate
+import com.sprintique.database.schema.app.routines.TelegramChatPerson
 import com.sprintique.database.schema.app.routines.TelegramLinkChat
 import com.sprintique.database.schema.app.routines.TelegramUnlinkChat
+import com.sprintique.database.schema.app.routines.TurnOffEmailNotifications
 import com.sprintique.database.schema.app.tables.AiConnectionSecret
 import com.sprintique.database.schema.app.tables.AiRunClaim
 import com.sprintique.database.schema.app.tables.AiRunEnqueue
@@ -32,6 +35,7 @@ import com.sprintique.database.schema.app.tables.records.AiRunClaimRecord
 import com.sprintique.database.schema.app.tables.records.AiRunEnqueueRecord
 import com.sprintique.database.schema.app.tables.records.AiRunMentionRecord
 import com.sprintique.database.schema.app.tables.records.AiRunQueueRecord
+import com.sprintique.database.schema.app.tables.records.NotificationsRecord
 
 import java.util.UUID
 
@@ -440,6 +444,35 @@ fun appendTaskActivity(
     p.execute(configuration)
 }
 
+fun notificationActions(
+      configuration: Configuration
+    , item: NotificationsRecord?
+): Array<String?>? {
+    val f = NotificationActions()
+    f.setItem(item)
+
+    f.execute(configuration)
+    return f.returnValue
+}
+
+fun notificationActions(
+      item: NotificationsRecord?
+): Field<Array<String?>?> {
+    val f = NotificationActions()
+    f.setItem(item)
+
+    return f.asField()
+}
+
+fun notificationActions(
+      item: Field<NotificationsRecord?>
+): Field<Array<String?>?> {
+    val f = NotificationActions()
+    f.setItem(item)
+
+    return f.asField()
+}
+
 fun notificationRecipient(
       configuration: Configuration
     , targetProject: String?
@@ -610,6 +643,35 @@ fun telegramAcceptUpdate(
     return f.asField()
 }
 
+fun telegramChatPerson(
+      configuration: Configuration
+    , chat: Long?
+): String? {
+    val f = TelegramChatPerson()
+    f.setChat(chat)
+
+    f.execute(configuration)
+    return f.returnValue
+}
+
+fun telegramChatPerson(
+      chat: Long?
+): Field<String?> {
+    val f = TelegramChatPerson()
+    f.setChat(chat)
+
+    return f.asField()
+}
+
+fun telegramChatPerson(
+      chat: Field<Long?>
+): Field<String?> {
+    val f = TelegramChatPerson()
+    f.setChat(chat)
+
+    return f.asField()
+}
+
 fun telegramLinkChat(
       configuration: Configuration
     , tokenHash: String?
@@ -676,6 +738,35 @@ fun telegramUnlinkChat(
 ): Field<Boolean?> {
     val f = TelegramUnlinkChat()
     f.setChat(chat)
+
+    return f.asField()
+}
+
+fun turnOffEmailNotifications(
+      configuration: Configuration
+    , person: String?
+): Boolean? {
+    val f = TurnOffEmailNotifications()
+    f.setPerson(person)
+
+    f.execute(configuration)
+    return f.returnValue
+}
+
+fun turnOffEmailNotifications(
+      person: String?
+): Field<Boolean?> {
+    val f = TurnOffEmailNotifications()
+    f.setPerson(person)
+
+    return f.asField()
+}
+
+fun turnOffEmailNotifications(
+      person: Field<String?>
+): Field<Boolean?> {
+    val f = TurnOffEmailNotifications()
+    f.setPerson(person)
 
     return f.asField()
 }

@@ -2,6 +2,7 @@ package com.sprintique.notification.domain
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 /** What a notification is about. The wire names are the database's and the preferences'. */
 enum class NotificationKind(val wire: String) {
@@ -16,33 +17,57 @@ enum class NotificationKind(val wire: String) {
     }
 }
 
-/** The facts a line is made of: who, which task, and the codes and dates of the notification's detail. */
+/** The facts a sentence is made of: the kind, the task's key, the codes and dates of the notification's detail. */
 data class NotificationFacts(
     val kind: NotificationKind,
     val actorName: String?,
-    val taskTitle: String,
+    val taskKey: String,
     val requestKind: String? = null,
     val due: LocalDate? = null,
-    val raisedOn: LocalDate? = null,
+    /** The day the sentence is read against: «сегодня», «завтра». */
+    val today: LocalDate? = null,
 )
 
 /**
- * The one line a person reads, in the product and in Telegram: «Анна К. назначил(а) вам «Граф связей»». It is made
- * from the task as it is now, so a renamed task reads with its new name; rows keep no text.
+ * The sentence a person reads, in the bell, in letters and in Telegram (docs/decisions/0007-notification-channels.md):
+ * written like a colleague would say it, in the past tense and without a gendered verb, with the task's key in it —
+ * «Вас назначили исполнителем задачи SPR-26». Who did it is shown apart, on a quieter line ([author]). Rows keep no
+ * text, so the sentence is made when it is shown.
  */
 object NotificationText {
-    private const val TITLE_LIMIT = 80
-    private val SHORT_DATE: DateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM")
+    private val RUSSIAN = Locale.forLanguageTag("ru")
+    private val DAY_MONTH: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMMM", RUSSIAN)
 
-    fun line(facts: NotificationFacts): String {
-        val who = shortName(facts.actorName)
-        val task = quoted(facts.taskTitle)
+    fun sentence(facts: NotificationFacts): String {
+        val key = facts.taskKey
         return when (facts.kind) {
-            NotificationKind.ASSIGNED -> "$who назначил(а) вам $task"
-            NotificationKind.MENTION -> "$who упомянул(а) вас в $task"
-            NotificationKind.REQUEST -> "$who просит ${requestVerb(facts.requestKind, task)}"
-            NotificationKind.DEADLINE -> "Срок $task — ${dueLabel(facts.due, facts.raisedOn)}"
+            NotificationKind.ASSIGNED -> "Вас назначили исполнителем задачи $key"
+            NotificationKind.MENTION -> "Вас упомянули в обсуждении задачи $key"
+            NotificationKind.REQUEST -> "Вас попросили ${request(facts.requestKind, key)}"
+            NotificationKind.DEADLINE -> deadline(key, facts.due, facts.today)
         }
+    }
+
+    /** Who caused it, short («Анна К.»); none for a deadline. */
+    fun author(facts: NotificationFacts): String? =
+        if (facts.kind == NotificationKind.DEADLINE) null else shortName(facts.actorName)
+
+    private fun request(kind: String?, key: String) = when (kind) {
+        "review" -> "проверить задачу $key"
+        "answer" -> "ответить в обсуждении задачи $key"
+        "decision" -> "принять решение по задаче $key"
+        "approval" -> "утвердить план задачи $key"
+        "do" -> "сделать задачу $key"
+        else -> "посмотреть задачу $key"
+    }
+
+    private fun deadline(key: String, due: LocalDate?, today: LocalDate?): String = when {
+        due == null -> "Срок задачи $key скоро"
+        today == null -> "Срок задачи $key — ${DAY_MONTH.format(due)}"
+        due == today -> "Срок задачи $key — сегодня, ${DAY_MONTH.format(due)}"
+        due == today.plusDays(1) -> "Срок задачи $key — завтра, ${DAY_MONTH.format(due)}"
+        due.isBefore(today) -> "Срок задачи $key прошёл ${DAY_MONTH.format(due)}"
+        else -> "Срок задачи $key — ${DAY_MONTH.format(due)}"
     }
 
     /** «Анна Кузнецова» reads «Анна К.»; one word stays as it is. */
@@ -55,25 +80,5 @@ object NotificationText {
         }
     }
 
-    fun quoted(title: String): String {
-        val clean = title.replace(Regex("\\s+"), " ").trim()
-        val cut = if (clean.length > TITLE_LIMIT) clean.take(TITLE_LIMIT - 1).trimEnd() + "…" else clean
-        return "«$cut»"
-    }
-
-    private fun requestVerb(kind: String?, task: String) = when (kind) {
-        "review" -> "проверить $task"
-        "answer" -> "ответить в $task"
-        "decision" -> "принять решение в $task"
-        "approval" -> "утвердить план в $task"
-        "do" -> "сделать $task"
-        else -> "посмотреть $task"
-    }
-
-    private fun dueLabel(due: LocalDate?, raisedOn: LocalDate?): String = when {
-        due == null -> "скоро"
-        raisedOn != null && due == raisedOn -> "сегодня"
-        raisedOn != null && due == raisedOn.plusDays(1) -> "завтра"
-        else -> due.format(SHORT_DATE)
-    }
+    fun dayMonth(date: LocalDate): String = DAY_MONTH.format(date)
 }

@@ -7,9 +7,12 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Profile
 
-/** SMTP exists only when a host is configured; without any transport, sign-in by e-mail is not offered. */
+/**
+ * SMTP exists only when a host is configured; without any transport, sign-in by e-mail is not offered. The worker
+ * sends notification letters through the same adapter (docs/decisions/0007-notification-channels.md).
+ */
 @Configuration(proxyBeanMethods = false)
-@Profile("api")
+@Profile("api", "worker")
 @ConditionalOnExpression("'\${sprintique.mail.smtp.host:}' != ''")
 class MailConfiguration {
     @Bean

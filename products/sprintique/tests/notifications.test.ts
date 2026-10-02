@@ -85,11 +85,12 @@ test('NT01 assignment by someone else notifies the assignee once; self-assignmen
   assert.equal((await rows(f.alice,p.id)).length,0,'nobody is told about their own action');
   const page=await bell(f.bob);
   const item=page.items.find(i=>i.project.id===p.id)!;
-  assert.equal(item.kind,'assigned');assert.equal(item.text,'Алиса назначил(а) вам «Задача a1»');
+  assert.equal(item.kind,'assigned');assert.equal(item.text,`Вас назначили исполнителем задачи ${p.key}-1`);
+  assert.equal(item.author,'Алиса');assert.deepEqual(item.actions,[{action:'take',label:'Взять в работу'}]);
   assert.equal(item.task.key,p.key+'-1');assert.equal(item.read,false);assert.equal(item.actor?.id,f.alice.id);
   // A renamed task reads with its new name: rows keep no text.
   await edit(p.id,'a1',{title:'Граф связей: подписи рёбер'});
-  assert.equal((await bell(f.bob)).items.find(i=>i.project.id===p.id)!.text,'Алиса назначил(а) вам «Граф связей: подписи рёбер»');
+  assert.equal((await bell(f.bob)).items.find(i=>i.project.id===p.id)!.task.title,'Граф связей: подписи рёбер');
   // Reassigning to someone else and back is a new assignment.
   await edit(p.id,'a1',{ownerId:f.alice.id});await edit(p.id,'a1',{ownerId:f.bob.id});
   assert.equal((await rows(f.bob,p.id)).length,2);
@@ -103,7 +104,7 @@ test('NT02 mentions: full or unique first name after @, case-insensitive, not th
   await say(p.id,'m1',first,f.alice,key); // the same command again: replayed, nothing new
   assert.equal((await rows(carol,p.id)).length,1);assert.equal((await rows(dan,p.id)).length,1,'a reader can be mentioned');
   assert.equal((await rows(f.alice,p.id)).length,0);
-  assert.equal((await bell(carol)).items[0]!.text,'Алиса упомянул(а) вас в «Задача m1»');
+  assert.equal((await bell(carol)).items[0]!.text,`Вас упомянули в обсуждении задачи ${p.key}-1`);
   await say(p.id,'m1','Пишите на mail@Денис или `@Борис`, а @Каринаа — опечатка.\n```\n@Борис\n```');
   assert.equal((await rows(dan,p.id)).length,1);assert.equal((await rows(f.bob,p.id)).length,0);assert.equal((await rows(carol,p.id)).length,1);
   // A reply in an existing thread mentions too; the full name works with any spacing.
@@ -117,7 +118,8 @@ test('NT03 a request notifies its recipient; the bell hides a project the person
   await task(p.id,'r1');
   await ok(call('POST',`${base(p.id)}/tasks/r1/requests`,{id:randomUUID(),recipientId:f.bob.id,kind:'review'}));
   const item=(await bell(f.bob)).items.find(i=>i.project.id===p.id)!;
-  assert.equal(item.kind,'request');assert.equal(item.text,'Алиса просит проверить «Задача r1»');
+  assert.equal(item.kind,'request');assert.equal(item.text,`Вас попросили проверить задачу ${p.key}-1`);
+  assert.deepEqual(item.actions.map(a=>a.action),['accept','return']);
   await f.admin.query('DELETE FROM app.project_members WHERE project_id=$1 AND principal_id=$2',[p.id,f.bob.id]);
   assert.equal((await bell(f.bob)).items.some(i=>i.project.id===p.id),false,'no access, no notification');
   assert.equal((await rows(f.bob,p.id)).length,1,'hidden, not deleted');
@@ -217,24 +219,28 @@ test('NT08 preferences and the project switch decide what is queued for Telegram
   const p=await project([[dan,'editor'],[f.reader,'reader']]);
   await link(dan,8001);
   await task(p.id,'q1',{ownerId:dan.id});
-  const queued=async()=>(await f.admin.query("SELECT d.state FROM app.telegram_deliveries d JOIN app.notifications n ON n.id=d.notification_id WHERE n.recipient_id=$1 AND n.project_id=$2",[dan.id,p.id])).rows.length;
+  const queued=async()=>(await f.admin.query("SELECT d.state FROM app.notification_deliveries d JOIN app.notifications n ON n.id=d.notification_id WHERE n.recipient_id=$1 AND n.project_id=$2 AND d.channel='telegram'",[dan.id,p.id])).rows.length;
   assert.equal(await queued(),1);
-  const muted=await ok<NotificationSettings>(call('PUT','/api/v1/profile/notifications',{telegram:{assigned:false,mention:true,request:true,deadline:true}},dan));
-  assert.deepEqual(muted.preferences.telegram,{assigned:false,mention:true,request:true,deadline:true});
+  const all={assigned:true,mention:true,request:true,deadline:true};
+  const muted=await ok<NotificationSettings>(call('PUT','/api/v1/profile/notifications',{channels:{email:false,telegram:true},kinds:{...all,assigned:false}},dan));
+  assert.deepEqual(muted.preferences,{channels:{email:false,telegram:true},kinds:{...all,assigned:false}});
   await task(p.id,'q2',{ownerId:dan.id});
   assert.equal(await queued(),1,'a muted kind stays in the product only');
   assert.equal((await rows(dan,p.id)).length,2);
-  await ok(call('PUT','/api/v1/profile/notifications',{telegram:{assigned:true,mention:true,request:true,deadline:true}},dan));
-  const shown=await ok<any>(f.app.inject({url:`${base(p.id)}/telegram`,headers:f.reader.headers}));
+  await ok(call('PUT','/api/v1/profile/notifications',{channels:{email:false,telegram:true},kinds:all},dan));
+  // The old shape of the request is refused rather than half applied.
+  assert.equal((await call('PUT','/api/v1/profile/notifications',{telegram:all},dan)).statusCode,400);
+  const shown=await ok<any>(f.app.inject({url:`${base(p.id)}/notifications`,headers:f.reader.headers}));
   assert.deepEqual(shown,{available:true,enabled:true,revision:0,canChange:false});
-  assert.equal((await call('PUT',`${base(p.id)}/telegram`,{enabled:false,baseRevision:0},f.reader)).statusCode,403);
-  const changed=await ok<any>(call('PUT',`${base(p.id)}/telegram`,{enabled:false,baseRevision:0}));
+  assert.equal((await call('PUT',`${base(p.id)}/notifications`,{enabled:false,baseRevision:0},f.reader)).statusCode,403);
+  const changed=await ok<any>(call('PUT',`${base(p.id)}/notifications`,{enabled:false,baseRevision:0}));
   assert.equal(changed.enabled,false);assert.equal(changed.revision,1);assert.equal(changed.canChange,true);
-  assert.equal((await call('PUT',`${base(p.id)}/telegram`,{enabled:true,baseRevision:0})).statusCode,409);
+  assert.equal((await call('PUT',`${base(p.id)}/notifications`,{enabled:true,baseRevision:0})).statusCode,409);
   await task(p.id,'q3',{ownerId:dan.id});
-  assert.equal(await queued(),1,'the project switched Telegram off');
-  await ok(call('PUT',`${base(p.id)}/telegram`,{enabled:true,baseRevision:1}));
-  await f.admin.query("UPDATE app.telegram_deliveries SET state='skipped' WHERE recipient_id=$1",[dan.id]);
+  assert.equal(await queued(),1,'the project switched external notifications off');
+  await ok(call('PUT',`${base(p.id)}/notifications`,{enabled:true,baseRevision:1}));
+  assert.equal((await f.app.inject({url:`${base(p.id)}/telegram`,headers:f.alice.headers})).statusCode,404,'the old route is gone');
+  await quiet();
 });
 
 test('NT09 deadlines: once per task and date, in the person\'s time zone, never for done work',async()=>{
@@ -250,7 +256,8 @@ test('NT09 deadlines: once per task and date, in the person\'s time zone, never 
   await worker.query('SELECT work.raise_due_notifications()');
   const raised=(await rows(carol,p.id)).filter(r=>r.kind==='deadline');
   assert.deepEqual(raised.map(r=>r.task_id),['d1']);assert.equal(raised[0].actor_id,null);
-  assert.equal((await bell(carol)).items.find(i=>i.task.id==='d1'&&i.kind==='deadline')!.text,'Срок «Задача d1» — сегодня');
+  const due=(await bell(carol)).items.find(i=>i.task.id==='d1'&&i.kind==='deadline')!;
+  assert.match(due.text,new RegExp(`^Срок задачи ${p.key}-1 — сегодня, \\d{1,2} [а-я]+$`));assert.equal(due.author,null);
   // Without the person's zone the project's applies, where that date has passed.
   await f.admin.query('DELETE FROM app.workbench_preferences WHERE principal_id=$1',[carol.id]);
   await task(p.id,'d4',{ownerId:carol.id,due:today});
@@ -258,7 +265,8 @@ test('NT09 deadlines: once per task and date, in the person\'s time zone, never 
   assert.equal((await rows(carol,p.id)).filter(r=>r.kind==='deadline').length,1);
   // The worker role still reads nothing directly.
   await assert.rejects(worker.query('SELECT * FROM app.notifications'),{code:'42501'});
-  await assert.rejects(worker.query('SELECT * FROM app.telegram_deliveries'),{code:'42501'});
+  await assert.rejects(worker.query('SELECT * FROM app.notification_deliveries'),{code:'42501'});
+  await assert.rejects(worker.query('SELECT * FROM app.notification_batches'),{code:'42501'});
 });
 
 /** A fake Bot API: answers by chat, records what it was sent. */
@@ -285,37 +293,49 @@ async function until(check:()=>Promise<boolean>,what:string,output:()=>string){
   assert.fail(what+'\n'+output());
 }
 
-test('NT10 the worker sends through the Bot API: success with a button, 429 retry_after, 403 unlinks, five attempts at most',async()=>{
-  await f.admin.query("UPDATE app.telegram_deliveries SET state='skipped' WHERE state IN ('pending','sending')");
+/** Settles whatever earlier tests left waiting, so a claim sees only this test's queue. */
+async function quiet(){
+  await f.admin.query("UPDATE app.notification_deliveries SET state='skipped',last_error_code='TEST' WHERE state IN ('queued','batched')");
+  await f.admin.query("UPDATE app.notification_batches SET state='skipped',lease_token=NULL,lease_until=NULL WHERE state IN ('pending','sending')");
+}
+
+test('NT10 the worker sends through the Bot API: success with buttons, 429 retry_after, 403 unlinks, five attempts at most',async()=>{
+  await quiet();
   const people=[await human('Ева Получатель'),await human('Жанна Лимит'),await human('Зоя Блок'),await human('Инна Сбой')];
   const p=await project(people.map(u=>[u,'editor'] as [User,'editor']));
   for(const [i,user] of people.entries())await link(user,9001+i);
   for(const [i,user] of people.entries())await task(p.id,'w'+(i+1),{title:i===0?'Подписи <рёбер> & связи':'Задача w'+(i+1),ownerId:user.id});
   const api=await fakeTelegram();
-  const delivery=async(user:User)=>(await f.admin.query('SELECT d.* FROM app.telegram_deliveries d WHERE d.recipient_id=$1',[user.id])).rows[0];
-  const work=await startKotlinWorker({...telegramSettings,SPRINTIQUE_TELEGRAM_API_BASE:api.url,SPRINTIQUE_PUBLIC_ORIGIN:'https://sprintique.example'});
+  const batch=async(user:User)=>(await f.admin.query("SELECT b.* FROM app.notification_batches b WHERE b.recipient_id=$1 AND b.channel='telegram'",[user.id])).rows[0];
+  const work=await startKotlinWorker({...telegramSettings,SPRINTIQUE_TELEGRAM_API_BASE:api.url,SPRINTIQUE_PUBLIC_ORIGIN:'https://sprintique.example',
+    SPRINTIQUE_NOTIFICATIONS_TELEGRAM_WINDOW_SECONDS:'0'});
   try{
-    await until(async()=>(await delivery(people[0]!)).state==='sent','the message is sent',work.output);
+    await until(async()=>(await batch(people[0]!))?.state==='sent','the message is sent',work.output);
     const first=api.sent.find(s=>s.chat===9001)!;
     assert.equal(first.path,`/bot${TOKEN}/sendMessage`);
-    assert.equal(first.text,`Алиса назначил(а) вам «Подписи &lt;рёбер&gt; &amp; связи»\n<i>Проект ${p.key} · ${p.key}-1</i>`);
-    assert.deepEqual(first.markup,{inline_keyboard:[[{text:'Открыть задачу',url:`https://sprintique.example/?project=${p.key.toLowerCase()}#/task/${p.key}-1`}]]});
-    await until(async()=>(await delivery(people[2]!)).state==='failed','blocked',work.output);
-    assert.equal((await delivery(people[2]!)).last_error_code,'BOT_BLOCKED');
+    const link=`https://sprintique.example/?project=${p.key.toLowerCase()}#/task/${p.key}-1`;
+    assert.equal(first.text,`<a href="${link}"><b>Подписи &lt;рёбер&gt; &amp; связи</b></a>\nВас назначили исполнителем задачи ${p.key}-1\n<i>Алиса · Проект ${p.key}</i>`);
+    // The quick action rides above the links, its data signed and short enough for Telegram.
+    assert.equal(first.markup.inline_keyboard[0][0].text,'Взять в работу');
+    assert.match(first.markup.inline_keyboard[0][0].callback_data,/^q1\.t\.[A-Za-z0-9_-]{22}\.[0-9a-z]+\.[A-Za-z0-9_-]{16}$/);
+    assert.deepEqual(first.markup.inline_keyboard[1],[{text:'Открыть задачу',url:link},{text:'Открыть Sprintique',url:'https://sprintique.example/'}]);
+    await until(async()=>(await batch(people[2]!))?.state==='failed','blocked',work.output);
+    assert.equal((await batch(people[2]!)).last_error_code,'BOT_BLOCKED');
     assert.equal((await f.admin.query('SELECT count(*)::int AS n FROM app.telegram_connections WHERE principal_id=$1',[people[2]!.id])).rows[0].n,0,'blocked: unlinked');
-    await until(async()=>(await delivery(people[1]!)).last_error_code==='RATE_LIMITED','rate limited',work.output);
-    const limited=await delivery(people[1]!);
+    await until(async()=>(await batch(people[1]!))?.last_error_code==='RATE_LIMITED','rate limited',work.output);
+    const limited=await batch(people[1]!);
     assert.equal(limited.state,'pending');assert.ok(new Date(limited.next_attempt_at).getTime()-Date.now()>=5000,'waits retry_after');
-    await f.admin.query('UPDATE app.telegram_deliveries SET next_attempt_at=now() WHERE id=$1',[limited.id]);
-    await until(async()=>(await delivery(people[1]!)).state==='sent','sent after the wait',work.output);
-    await until(async()=>(await delivery(people[3]!)).attempts>=1&&(await delivery(people[3]!)).state==='pending','a server error is retried',work.output);
+    await f.admin.query('UPDATE app.notification_batches SET next_attempt_at=now() WHERE id=$1',[limited.id]);
+    await until(async()=>(await batch(people[1]!)).state==='sent','sent after the wait',work.output);
+    await until(async()=>(await batch(people[3]!))?.attempts>=1&&(await batch(people[3]!)).state==='pending','a server error is retried',work.output);
     // Each due retry is made due at once; the worker settles the fifth failure as failed.
     await until(async()=>{
-      await f.admin.query("UPDATE app.telegram_deliveries SET next_attempt_at=now() WHERE recipient_id=$1 AND state='pending'",[people[3]!.id]);
-      return (await delivery(people[3]!)).state==='failed';
+      await f.admin.query("UPDATE app.notification_batches SET next_attempt_at=now() WHERE recipient_id=$1 AND state='pending'",[people[3]!.id]);
+      return (await batch(people[3]!)).state==='failed';
     },'five attempts',work.output);
-    const failed=await delivery(people[3]!);
+    const failed=await batch(people[3]!);
     assert.equal(failed.state,'failed');assert.equal(failed.attempts,5);assert.equal(failed.last_error_code,'TELEGRAM_502');
+    assert.equal((await f.admin.query("SELECT state FROM app.notification_deliveries WHERE batch_id=$1",[failed.id])).rows[0].state,'failed');
     assert.equal(api.sent.filter(s=>s.chat===9004).length,5);
     assert.ok(!work.output().includes(TOKEN),'the token never reaches the log');
   }finally{await work.stop();await api.close();}
@@ -328,9 +348,10 @@ test('NT11 a queued message is not sent when its cause no longer holds or the pe
   await task(p.id,'x1',{ownerId:people[0]!.id});await task(p.id,'x2',{ownerId:people[1]!.id});
   await f.admin.query('DELETE FROM app.project_members WHERE project_id=$1 AND principal_id=$2',[p.id,people[0]!.id]);
   await edit(p.id,'x2',{ownerId:f.alice.id});
-  await f.admin.query("UPDATE app.telegram_deliveries SET state='skipped' WHERE state IN ('pending','sending') AND project_id<>$1",[p.id]);
-  const claimed=await worker.query('SELECT work.claim_telegram_delivery() AS c');
+  await f.admin.query("UPDATE app.notification_deliveries SET state='skipped' WHERE state='queued' AND project_id<>$1",[p.id]);
+  const claimed=await worker.query("SELECT work.claim_notification_batch(ARRAY['telegram'],0,0) AS c");
   assert.equal(claimed.rows[0].c,null);
-  const states=(await f.admin.query('SELECT recipient_id,state,last_error_code FROM app.telegram_deliveries WHERE project_id=$1',[p.id])).rows;
+  const states=(await f.admin.query('SELECT recipient_id,state,last_error_code FROM app.notification_deliveries WHERE project_id=$1',[p.id])).rows;
   assert.deepEqual(Object.fromEntries(states.map(s=>[s.recipient_id,s.last_error_code])),{[people[0]!.id]:'NO_ACCESS',[people[1]!.id]:'STALE'});
+  assert.equal((await f.admin.query('SELECT count(*)::int AS n FROM app.notification_batches WHERE recipient_id=ANY($1)',[people.map(u=>u.id)])).rows[0].n,0,'nothing left, nothing sent');
 });

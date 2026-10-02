@@ -38,8 +38,11 @@ SPRINTIQUE_SMTP_SECURITY=none
 SPRINTIQUE_MAIL_FROM=$SPRINTIQUE_MAIL_FROM
 EOF
 [ -f secrets/providers.env ] && cat secrets/providers.env >> secrets/api.env
-# The worker's origin names the task in a Telegram message's «Открыть задачу» button.
+# The worker's origin names the task in notification links; it sends notification letters through the same relay.
 printf 'SPRINTIQUE_ENVIRONMENT=production\nSPRINTIQUE_PUBLIC_ORIGIN=%s\nSPRINTIQUE_WORKER_DATABASE_URL=%s\n' "$SPRINTIQUE_ORIGIN" "$(url sprintique_worker "$worker")" > secrets/worker.env
+grep -E '^SPRINTIQUE_(SMTP_[A-Z]+|MAIL_FROM)=' secrets/api.env >> secrets/worker.env
+# The key of one-click unsubscribe links, shared by the API and the worker; generated once, kept on re-runs.
+test -s secrets/notifications.env || printf 'SPRINTIQUE_NOTIFICATIONS_LINK_SECRET=%s\n' "$(openssl rand -hex 32)" > secrets/notifications.env
 
 docker compose up -d --wait postgres
 psql() { docker compose exec -T postgres psql -v ON_ERROR_STOP=1 -U postgres -d postgres -qtA "$@"; }
