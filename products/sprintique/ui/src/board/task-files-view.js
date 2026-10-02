@@ -13,6 +13,7 @@ const smallDocument=(mime,size)=>(mime==='application/pdf'||mime==='text/plain')
 /** A picked file the DS preview can draw without reading much of it: a bounded image, a video, a small document. */
 const localPreview=file=>{const type=fileTypeOf(file.name);return (type.previewable&&file.size<=IMAGE_BYTES)||type.mime.startsWith('video/')||smallDocument(type.mime,file.size);};
 import {editCoverImage,coverImageStyle,coverLetterboxed} from './cover-crop.js';
+import {uploadSpent} from './upload-retry.js';
 
 /** Draft changes are committed by the task form, never by a preview. */
 export function mountTaskFiles(root,{coverRoot,adapter,task,readOnly=false,onCoverState=()=>{}}){
@@ -139,7 +140,7 @@ export function mountTaskFiles(root,{coverRoot,adapter,task,readOnly=false,onCov
       staged.add(row.id);row.meta=meta;row.name=meta.name;row.size=meta.size;row.state='ready';row.file=null;
       if(!ids.includes(row.id))ids.push(row.id);drawRow(row);
       if(row.asCover&&meta.image&&row.coverIntent===coverIntent)setCover(row.id,{user:false,crop:row.crop});emit();
-    }catch(e){if(!closed&&rows.has(row.id)){row.state='failed';row.error=e.name==='AbortError'?'Загрузка отменена.':e.message;drawRow(row);}}
+    }catch(e){if(!closed&&rows.has(row.id)){row.state='failed';row.spent=uploadSpent(e);row.error=e.name==='AbortError'?'Загрузка отменена.':e.message;drawRow(row);}}
     finally{active--;requests.delete(request);row.controller=null;pump();}
   }
   function pump(){for(const row of rows.values()){if(active>=2||closed)break;if(row.state==='queued')void upload(row);}}
@@ -155,6 +156,12 @@ export function mountTaskFiles(root,{coverRoot,adapter,task,readOnly=false,onCov
     for(const file of selected){
       const row={id:uid('file'),file,name:file.name,size:file.size,state:'queued',asCover,coverIntent:intent,crop};rows.set(row.id,row);drawRow(row);
     }emit();pump();
+  }
+  // A spent reservation cannot take the file again: the row moves to a new asset id and the old one is let go.
+  function renew(row){
+    const old=row.id,element=rowFor(old);discard(old);rows.delete(old);
+    row.id=uid('file');row.spent=false;rows.set(row.id,row);
+    if(element)element.dataset.fileRow=row.id;
   }
   function remove(id){
     const row=rows.get(id);if(!row)return;row.controller?.abort();rows.delete(id);rowFor(id)?.remove();ids=ids.filter(value=>value!==id);
@@ -194,7 +201,7 @@ export function mountTaskFiles(root,{coverRoot,adapter,task,readOnly=false,onCov
     if(button.dataset.fileCover&&editable)void cropExisting(button.dataset.fileCover);
     if(button.dataset.fileDownload)void downloadFile(button.dataset.fileDownload);
     if(button.dataset.filePlay)playVideo(button.dataset.filePlay);
-    if(button.dataset.fileRetry){const row=rows.get(button.dataset.fileRetry);if(row?.file){row.state='queued';pump();}else if(row)void loadExisting(row.id);}
+    if(button.dataset.fileRetry){const row=rows.get(button.dataset.fileRetry);if(row?.file){if(row.spent)renew(row);row.state='queued';pump();}else if(row)void loadExisting(row.id);}
   },{signal});
   async function openPresetPicker(){
     if(presetLoading)return;presetLoading=true;
