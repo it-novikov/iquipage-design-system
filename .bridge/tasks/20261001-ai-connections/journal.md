@@ -41,3 +41,8 @@
 - 2026-10-01T23:20:37Z · claude · checkpoint · - · дальше: Решение владельца по WorkbenchCapacityIntegrationTest; ревью; мёрж владельцем
 - 2026-10-02T00:16:44Z · claude · decision · D7 · Запуск ограничен правами инициатора (решение владельца по #45): on_behalf_of в учётных данных runtime, app.on_behalf_of в auth.can_project и auth.can, пересечение в ProjectAccess.membership; потеря доступа инициатором останавливает запуск INITIATOR_ACCESS_LOST; запуск только от человека
 - 2026-10-02T00:16:44Z · claude · decision · D8 · Миграции перенумерованы в V20261001000064–067: 050 планирования в main деплоится раньше, Flyway строгий по порядку
+- 2026-10-02T00:44:17Z · claude · note · - · Гейты на efac2c9: verify-vnext целиком PASS (library 396/396, Kotlin unit 113/113, integration 43/43, Node 373/373, detached-product 373/373); права инициатора AI16–AI18
+- 2026-10-02T00:44:17Z · claude · step · S6 · done: PR #45; гейты зелёные на efac2c9
+- 2026-10-02T00:44:17Z · claude · note · A6 · критерий приёмки выполнен
+- 2026-10-02T00:44:17Z · claude · checkpoint · - · дальше: Ревью и мёрж владельцем
+- 2026-10-02T00:44:17Z · claude · status · - · review: PR #45 готов к ревью
