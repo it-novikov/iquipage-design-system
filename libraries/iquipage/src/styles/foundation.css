@@ -2611,3 +2611,26 @@ iq-tag-picker[appearance=ghost] .iq-tag-picker-field:is(:hover,:focus-within)>.i
 .iq-mention-popup .iq-option small{margin-top:1px}
 .iq-mention-heading{margin-top:var(--iq-space-1);padding:var(--iq-space-2) var(--iq-space-2) var(--iq-space-1);font-size:var(--iq-type-caption-size);line-height:16px;color:var(--iq-muted)}
 .iq-mention-heading:first-child{margin-top:0;padding-top:var(--iq-space-1)}
+
+/* Scale (0.6.0-vnext.30): done, pending, a target mark and an overrun past it, drawn by ui.scale(). The track ends at
+   the mark; only an overrun reaches beyond. lg sums up a period, md sits in an editor, sm is one row of a list. */
+.iq-scale{--iq-scale-height:14px;--iq-scale-radius:var(--iq-radius-xs);--iq-scale-reach:6px;position:relative;display:block;height:var(--iq-scale-height)}
+.iq-scale[data-size="lg"]{--iq-scale-height:26px;--iq-scale-radius:7px;--iq-scale-reach:7px}
+.iq-scale[data-size="sm"]{--iq-scale-height:6px;--iq-scale-radius:var(--iq-radius-pill);--iq-scale-reach:5px}
+.iq-scale>span{position:absolute;top:0;bottom:0;left:var(--iq-scale-from);width:calc(var(--iq-scale-to) - var(--iq-scale-from))}
+.iq-scale-track{background:var(--iq-surface);border-radius:var(--iq-scale-radius)}
+.iq-scale-done{background:var(--iq-ink)}
+.iq-scale-pending{background:color-mix(in srgb,var(--iq-ink) 30%,transparent)}
+.iq-scale[data-size="sm"] .iq-scale-done{background:color-mix(in srgb,var(--iq-ink) 62%,transparent)}
+.iq-scale[data-size="sm"] .iq-scale-pending{background:color-mix(in srgb,var(--iq-ink) 22%,transparent)}
+.iq-scale-over{background:var(--iq-danger)}
+.iq-scale[data-over="success"] .iq-scale-over{background:var(--iq-success)}
+.iq-scale>[data-start]{border-start-start-radius:var(--iq-scale-radius);border-end-start-radius:var(--iq-scale-radius)}
+.iq-scale>[data-end]{border-start-end-radius:var(--iq-scale-radius);border-end-end-radius:var(--iq-scale-radius)}
+.iq-scale>.iq-scale-mark{left:var(--iq-scale-at);width:2px;top:calc(-1 * var(--iq-scale-reach));bottom:calc(-1 * var(--iq-scale-reach));background:var(--iq-ink);transform:translateX(-1px)}
+@media (forced-colors: active){.iq-scale-track{border:1px solid CanvasText}.iq-scale-done,.iq-scale-mark{background:CanvasText}.iq-scale-pending{background:GrayText}.iq-scale-over{background:Highlight}}
+/* Amount with its unit (vnext.30): ui.amount(). */
+.iq-amount input{text-align:end;font-variant-numeric:tabular-nums}
+/* Tooltip figures (vnext.30): «label<TAB>value» lines of a rich tooltip. */
+.iq-tooltip-row{display:flex;justify-content:space-between;align-items:baseline;gap:16px;color:color-mix(in srgb,var(--iq-canvas) 80%,transparent)}
+.iq-tooltip-row strong{color:var(--iq-canvas);font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}

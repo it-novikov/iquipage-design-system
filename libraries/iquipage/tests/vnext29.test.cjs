@@ -93,8 +93,9 @@ test('the editor and the viewer take members; exports, types and the version fol
     assert.match(types, new RegExp(`export declare (function|class) ${name}`), name);
   }
   assert.match(types, /mentions:MentionMember\[\]\|null;preview\(\):void;/);
-  assert.match(core, /export const version='0\.6\.0-vnext\.29';/);
-  assert.equal(require('../package.json').version, '0.6.0-vnext.29');
+  // Later releases keep these exports; the version moves on (vnext.30 checks its own).
+  assert.match(core, /export const version='0\.6\.0-vnext\.(29|[3-9]\d)';/);
+  assert.match(require('../package.json').version, /^0\.6\.0-vnext\.(29|[3-9]\d)$/);
 });
 
 test('the pill and the list: accent on a soft fill, the calm 34px rows of vnext.27, a sentence-case group label', () => {

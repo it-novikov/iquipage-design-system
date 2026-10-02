@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.projectOptions = void 0;
 exports.alert = alert;
+exports.amount = amount;
 exports.avatar = avatar;
 exports.avatars = avatars;
 exports.avatarTone = avatarTone;
@@ -27,6 +28,9 @@ exports.tabs = tabs;
 exports.textarea = textarea;
 exports.toggle = toggle;
 const components_js_1 = require("./components.js");
+const scale_js_1 = require("./scale.js");
+/** vnext.30: the scale of progress against a target, also exported as scale() from the core entry. */
+exports.scale = options => scale_js_1.scale(options);
 let ids = 1000;
 const id = () => `field-${++ids}`;
 function btn(text, variant = 'primary', glyph = '', attrs = '') {
@@ -48,6 +52,11 @@ function field(label, value = '', opts = {}) {
     return `<div class="iq-field"><label for="${key}" class="iq-control-label">${label}</label><div class="iq-input-shell ${opts.state || ''}">${opts.icon ? components_js_1.icon(opts.icon, 17) : ''}<input id="${key}" type="${opts.type || 'text'}" ${opts.type === 'email' ? 'autocomplete="email"' : opts.name === 'name' ? 'autocomplete="name"' : ''} value="${components_js_1.escapeHTML(value)}" ${opts.placeholder ? `placeholder="${components_js_1.escapeHTML(opts.placeholder)}"` : ''} ${opts.readonly ? 'readonly' : ''} ${opts.disabled ? 'disabled' : ''} ${opts.name ? `name="${opts.name}"` : ''} ${opts.required ? 'required' : ''} ${opts.max ? `maxlength="${opts.max}"` : ''} ${opts.state === 'error' ? 'aria-invalid="true"' : ''} ${opts.help ? `aria-describedby="${key}-help"` : ''}>${opts.state === 'success' ? components_js_1.icon('checkCircle', 17) : ''}</div>${opts.help ? `<small class="iq-helper ${opts.state === 'error' ? 'error' : ''}" id="${key}-help">${opts.help}</small>` : ''}</div>`;
 }
 function textarea(label, value = '', opts = {}) { const key = id(); return `<div class="iq-field"><label class="iq-control-label" for="${key}">${label}</label><div class="iq-input-shell"><textarea id="${key}" ${opts.name ? `name="${opts.name}"` : ''} placeholder="${components_js_1.escapeHTML(opts.placeholder || '')}" ${opts.maxlength ? `maxlength="${opts.maxlength}" data-count="${key}-count"` : ''} ${opts.help ? `aria-describedby="${key}-help"` : ''}>${components_js_1.escapeHTML(value)}</textarea></div>${opts.help || opts.maxlength ? `<div class="iq-field-foot">${opts.help ? `<small class="iq-helper" id="${key}-help">${opts.help}</small>` : '<span></span>'}${opts.maxlength ? `<small class="iq-helper" id="${key}-count">${value.length} / ${opts.maxlength}</small>` : ''}</div>` : ''}</div>`; }
+/**
+ * An amount with its unit (0.6.0-vnext.30): a decimal text field that reads right-aligned in tabular figures, with the
+ * currency sign or unit as a suffix. `labelHidden` keeps the label for assistive technology only, for table rows.
+ */
+function amount(label, value = '', opts = {}) { const key = id(), e = components_js_1.escapeHTML; return `<div class="iq-field iq-amount">${opts.labelHidden ? '' : `<label class="iq-control-label" for="${key}">${label}</label>`}<div class="iq-input-shell"><input id="${key}" ${opts.name ? `name="${e(opts.name)}"` : ''} inputmode="decimal" autocomplete="off" value="${e(value)}" placeholder="${e(opts.placeholder || '')}" ${opts.labelHidden ? `aria-label="${e(label)}"` : ''} ${opts.required ? 'required' : ''} ${opts.attrs || ''}><span class="iq-input-suffix" data-amount-suffix>${e(opts.suffix || '')}</span></div></div>`; }
 function check(label, checked = false, attrs = '') { return `<label class="iq-check"><input type="checkbox" ${checked ? 'checked' : ''} ${attrs}><span class="iq-check-box">${components_js_1.icon('check', 14)}</span>${label ? `<span>${label}</span>` : ''}</label>`; }
 function radio(label, name, checked = false, value = '') { return `<label class="iq-radio"><input type="radio" name="${name}" value="${components_js_1.escapeHTML(value || label)}" ${checked ? 'checked' : ''}><span class="iq-radio-dot"></span><span>${label}</span></label>`; }
 function toggle(label, checked = true, attrs = '', showLabel = true) { return `<label class="iq-switch"><input type="checkbox" role="switch" ${checked ? 'checked' : ''} aria-label="${components_js_1.escapeHTML(label)}" ${attrs}><span class="iq-switch-track"></span>${label && showLabel ? `<span>${label}</span>` : ''}</label>`; }
