@@ -8,7 +8,7 @@ owner: it-novikov
 branch: feature/finance-plan
 base: main
 created: 2026-10-02
-updated: 2026-10-02T15:21:11Z
+updated: 2026-10-02T15:35:42Z
 links:
 ---
 
@@ -26,19 +26,19 @@ links:
 
 ## Приёмка
 
-- [ ] A1. Схема: миграции 072+ применяются с нуля; категории перенесены из текстов; триггер замораживает не-черновые версии и их строки даже прямым SQL под runtime-ролью; RLS FORCE через auth.can(finance.read/write)
-- [ ] A2. Расчёт: факт, ожидается, прогноз, знаковые отклонения доходов и расходов, «не было в плане», просроченные ожидания, валюты раздельно, аннулированные не учитываются, нулевой план без процента; EXPLAIN ANALYZE на 100 000 операций
-- [ ] A3. Команды: категории, план, черновик, approve (ровно одна утверждённая при гонке), revise, объяснение с задачей ровно один раз; Idempotency-Key, baseRevision, барьер записи, аудит и событие в одной транзакции; события и квитанции без сумм и текстов
-- [ ] A4. Безопасность: без finance.read нет данных и признаков существования плана; сервисный аккаунт без явного гранта получает отказ; релиз чужого проекта отклоняется
+- [x] A1. Схема: миграции 072+ применяются с нуля; категории перенесены из текстов; триггер замораживает не-черновые версии и их строки даже прямым SQL под runtime-ролью; RLS FORCE через auth.can(finance.read/write)
+- [x] A2. Расчёт: факт, ожидается, прогноз, знаковые отклонения доходов и расходов, «не было в плане», просроченные ожидания, валюты раздельно, аннулированные не учитываются, нулевой план без процента; EXPLAIN ANALYZE на 100 000 операций
+- [x] A3. Команды: категории, план, черновик, approve (ровно одна утверждённая при гонке), revise, объяснение с задачей ровно один раз; Idempotency-Key, baseRevision, барьер записи, аудит и событие в одной транзакции; события и квитанции без сумм и текстов
+- [x] A4. Безопасность: без finance.read нет данных и признаков существования плана; сервисный аккаунт без явного гранта получает отказ; релиз чужого проекта отклоняется
 - [ ] A5. Гейты: npm test с TEST_S3_CONFIG и LC_ALL=C node scripts/verify-vnext.mjs зелёные (кроме известного WorkbenchCapacityIntegrationTest); ADR 0009, docs/finance.md, контракты и jOOQ обновлены; PR открыт
 
 ## Передача
 
-- **Состояние:** Сервер, контракты, миграции 072–075, тесты FP01–FP10 и FinancePlanIntegrationTest написаны и зелёные; ADR 0009 и docs/finance.md написаны
-- **Сейчас:** S3 — полный прогон и EXPLAIN
-- **Дальше:** jOOQ после 075, EXPLAIN на итоговом jar, коммит, гейты, PR
-- **Незакоммичено:** всё: компилируется, тесты зелёные
-- **Рабочая копия:** 61 файл(ов): products/sprintique/contracts/finance.ts, products/sprintique/docs/access/access-and-invitations.md, products/sprintique/docs/finance.md, products/sprintique/server/src/generated/jooq/com/sprintique/database/schema/app/App.kt, products/sprintique/server/src/generated/jooq/com/sprintique/database/schema/app/indexes/Indexes.kt, products/sprintique/server/src/generated/jooq/com/sprintique/database/schema/app/keys/Keys.kt, products/sprintique/server/src/generated/jooq/com/sprintique/database/schema/app/routines/references/Routines.kt, products/sprintique/server/src/generated/jooq/com/sprintique/database/schema/app/tables/FinanceEntry.kt, products/sprintique/server/src/generated/jooq/com/sprintique/database/schema/app/tables/FinanceEntryVersion.kt, products/sprintique/server/src/generated/jooq/com/sprintique/database/schema/app/tables/Projects.kt, products/sprintique/server/src/generated/jooq/com/sprintique/database/schema/app/tables/Releases.kt, products/sprintique/server/src/generated/jooq/com/sprintique/database/schema/app/tables/Tasks.kt и ещё 49 (34 files changed, 3193 insertions(+), 212 deletions(-)) · HEAD 4756b27
+- **Состояние:** Коммиты a5228ac, 9567d47; гейты: npm test — только флейк WorkbenchCapacity; verify-vnext product-tests FAIL на нём же
+- **Сейчас:** S4 — PR
+- **Дальше:** Владелец: ревью и слияние PR
+- **Незакоммичено:** нет
+- **Рабочая копия:** нет · HEAD 9567d47
 - **Ловушки:**
   - verify-vnext запускает npm test целиком; WorkbenchCapacityIntegrationTest (известный флейк) обрывает прогон до Node-сьютов — их гонять отдельно: node scripts/test.mjs --skip-integration
 
@@ -63,16 +63,17 @@ links:
 - **Итог:** FinancePlanController: 10 маршрутов; ./gradlew check зелёный, ContractParityTest включает 8 новых контрактов
 - **Зависит от:** S1
 
-### S3. Тесты [active]
+### S3. Тесты [done]
 - **Что:** HTTP и интеграционные тесты раздела 5
 - **Как:** tests/finance-plan.test.ts, FinancePlanIntegrationTest
 - **Зачем:** Приёмка
 - **Приёмка:**
-  - [ ] тесты зелёные
+  - [x] тесты зелёные
 - **Покрывает:** A1,A2,A3,A4
+- **Итог:** FP01–FP10 зелёные; Node-сьюты 392/392; интеграционные 45/46 (падает только известный WorkbenchCapacityIntegrationTest)
 - **Зависит от:** S2
 
-### S4. UI диалога, документы, гейты, PR [todo]
+### S4. UI диалога, документы, гейты, PR [active]
 - **Что:** Категория в диалоге, переименования, ADR, docs, EXPLAIN, гейты
 - **Как:** npm test, verify-vnext
 - **Зачем:** Поставка

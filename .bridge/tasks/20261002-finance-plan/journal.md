@@ -21,3 +21,10 @@
 - 2026-10-02T15:21:11Z · claude · step · S1 · done: V20261001000072–075 применяются с нуля (--jooq), jOOQ перегенерирован; FinancePlanIntegrationTest 3/3 (перенос категорий с версии 067, заморозка для роли владельца, откат)
 - 2026-10-02T15:21:11Z · claude · step · S2 · done: FinancePlanController: 10 маршрутов; ./gradlew check зелёный, ContractParityTest включает 8 новых контрактов
 - 2026-10-02T15:21:11Z · claude · step · S3 · active
+- 2026-10-02T15:35:41Z · claude · step · S3 · done: FP01–FP10 зелёные; Node-сьюты 392/392; интеграционные 45/46 (падает только известный WorkbenchCapacityIntegrationTest)
+- 2026-10-02T15:35:41Z · claude · step · S4 · active
+- 2026-10-02T15:35:41Z · claude · note · A1 · критерий приёмки выполнен
+- 2026-10-02T15:35:41Z · claude · note · A2 · критерий приёмки выполнен
+- 2026-10-02T15:35:41Z · claude · note · A3 · критерий приёмки выполнен
+- 2026-10-02T15:35:41Z · claude · note · A4 · критерий приёмки выполнен
+- 2026-10-02T15:35:42Z · claude · checkpoint · S4 · дальше: Владелец: ревью и слияние PR
