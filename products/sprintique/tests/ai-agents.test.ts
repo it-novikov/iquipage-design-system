@@ -398,7 +398,10 @@ async function visibleTasks(account:string,projectId:string,onBehalf:string){
   const client=await f.db.pool.connect();
   try{
     await client.query('BEGIN');
-    await client.query("SELECT set_config('app.actor_id',$1,true),set_config('app.on_behalf_of',$2,true)",[account,onBehalf]);
+    // As a run's transaction does (RuntimeCredentials): the person's membership in the project, read once.
+    await client.query(`SELECT set_config('app.actor_id',$1,true),set_config('app.on_behalf_of',$2,true),
+      set_config('app.on_behalf_project',CASE WHEN $2<>'' AND app.ai_initiator_permissions($3,$2) IS NOT NULL THEN $3 ELSE '' END,true),
+      set_config('app.on_behalf_permissions',coalesce(array_to_string(app.ai_initiator_permissions($3,$2),','),''),true)`,[account,onBehalf,projectId]);
     return (await client.query('SELECT id FROM app.tasks WHERE project_id=$1',[projectId])).rows.map((r:any)=>r.id);
   }finally{await client.query('ROLLBACK');client.release();}
 }
