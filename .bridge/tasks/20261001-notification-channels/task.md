@@ -8,7 +8,7 @@ owner: nvkv71
 branch: feature/notification-channels
 base: main
 created: 2026-10-01
-updated: 2026-10-01T23:18:30Z
+updated: 2026-10-02T09:43:13Z
 links: https://github.com/it-novikov/iquipage-design-system/pull/44
 ---
 
@@ -35,11 +35,11 @@ links: https://github.com/it-novikov/iquipage-design-system/pull/44
 
 ## Передача
 
-- **Состояние:** PR #44 открыт; npm test: Kotlin check зелёный, интеграционные 42/43 (флейк WorkbenchCapacity), Node 365/365; verify-vnext до product-tests PASS, стоп на том же флейке
+- **Состояние:** Слит origin/main 459609f; PR #44 MERGEABLE; уведомления 100% зелёные; S3-тесты блокирует недоступное хранилище colima QA
 - **Сейчас:** —
-- **Дальше:** Владелец: ревью PR #44, перезапуск verify-vnext на свободной машине, деплой по operations.md (worker SMTP, notifications.env)
+- **Дальше:** Владелец: ревью #44, перезапуск гейтов при живом хранилище, деплой по operations.md
 - **Незакоммичено:** нет
-- **Рабочая копия:** нет · HEAD 0efe466
+- **Рабочая копия:** нет · HEAD 6d140e0
 
 ## План
 
@@ -49,6 +49,9 @@ links: https://github.com/it-novikov/iquipage-design-system/pull/44
 - **D2** (2026-10-01) Очередь ставит триггер на app.notifications, а не raise_notification — функцию подъёма меняет feature/mentions-inbox; сервисные аккаунты пропускаются
 - **D3** (2026-10-01) Причины в настоящем времени («назначает», «упоминает») — пол автора неизвестен; колокольчик не тронут
 - **D4** (2026-10-01) Токен отписки — HMAC под ключом SPRINTIQUE_NOTIFICATIONS_LINK_SECRET, 60 дней; GET показывает страницу, меняет только POST (RFC 8058); mailto не добавлен — входящей почты нет
+- **D5** (2026-10-02) Почта включена по умолчанию (решение владельца); после подключения Telegram — диалог и кнопка «Отключить почту»
+- **D6** (2026-10-02) Тексты в прошедшем времени с ключом задачи, автор отдельной строкой; ответы в один клик в колокольчике и Telegram через существующие записи, кнопки Telegram подписаны HMAC от токена бота
+- **D7** (2026-10-02) Миграции перенумерованы в 068–070: production после #46 на 060, 064–067 у #45
 
 ## Вопросы
 
