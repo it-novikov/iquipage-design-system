@@ -2,14 +2,15 @@
 bridge: 1
 id: 20261002-finance-plan
 title: "Финансы: план бюджета, версии, категории и сводка (сервер)"
-status: active
+status: review
 risk: high
 owner: it-novikov
 branch: feature/finance-plan
 base: main
 created: 2026-10-02
-updated: 2026-10-02T15:35:42Z
+updated: 2026-10-02T15:36:05Z
 links:
+  - https://github.com/it-novikov/iquipage-design-system/pull/47
 ---
 
 # Финансы: план бюджета, версии, категории и сводка (сервер)
@@ -30,7 +31,7 @@ links:
 - [x] A2. Расчёт: факт, ожидается, прогноз, знаковые отклонения доходов и расходов, «не было в плане», просроченные ожидания, валюты раздельно, аннулированные не учитываются, нулевой план без процента; EXPLAIN ANALYZE на 100 000 операций
 - [x] A3. Команды: категории, план, черновик, approve (ровно одна утверждённая при гонке), revise, объяснение с задачей ровно один раз; Idempotency-Key, baseRevision, барьер записи, аудит и событие в одной транзакции; события и квитанции без сумм и текстов
 - [x] A4. Безопасность: без finance.read нет данных и признаков существования плана; сервисный аккаунт без явного гранта получает отказ; релиз чужого проекта отклоняется
-- [ ] A5. Гейты: npm test с TEST_S3_CONFIG и LC_ALL=C node scripts/verify-vnext.mjs зелёные (кроме известного WorkbenchCapacityIntegrationTest); ADR 0009, docs/finance.md, контракты и jOOQ обновлены; PR открыт
+- [x] A5. Гейты: npm test с TEST_S3_CONFIG и LC_ALL=C node scripts/verify-vnext.mjs зелёные (кроме известного WorkbenchCapacityIntegrationTest); ADR 0009, docs/finance.md, контракты и jOOQ обновлены; PR открыт
 
 ## Передача
 
@@ -38,9 +39,10 @@ links:
 - **Сейчас:** S4 — PR
 - **Дальше:** Владелец: ревью и слияние PR
 - **Незакоммичено:** нет
-- **Рабочая копия:** нет · HEAD 9567d47
+- **Рабочая копия:** нет · HEAD cf730e5 · снято 2026-10-02T15:36:05Z
 - **Ловушки:**
   - verify-vnext запускает npm test целиком; WorkbenchCapacityIntegrationTest (известный флейк) обрывает прогон до Node-сьютов — их гонять отдельно: node scripts/test.mjs --skip-integration
+- **Причина:** planned — claude, 2026-10-02T15:36:05Z: PR #47; HEAD запушен; незакоммичено 0
 
 ## План
 
@@ -73,13 +75,14 @@ links:
 - **Итог:** FP01–FP10 зелёные; Node-сьюты 392/392; интеграционные 45/46 (падает только известный WorkbenchCapacityIntegrationTest)
 - **Зависит от:** S2
 
-### S4. UI диалога, документы, гейты, PR [active]
+### S4. UI диалога, документы, гейты, PR [done]
 - **Что:** Категория в диалоге, переименования, ADR, docs, EXPLAIN, гейты
 - **Как:** npm test, verify-vnext
 - **Зачем:** Поставка
 - **Приёмка:**
-  - [ ] гейты зелёные, PR открыт
+  - [x] гейты зелёные, PR открыт
 - **Покрывает:** A5
+- **Итог:** PR #47 открыт; гейты в описании PR
 - **Зависит от:** S3
 
 ## Решения
