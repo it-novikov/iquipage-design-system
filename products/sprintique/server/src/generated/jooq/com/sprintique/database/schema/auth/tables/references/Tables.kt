@@ -18,10 +18,12 @@ import com.sprintique.database.schema.auth.tables.OauthGrants
 import com.sprintique.database.schema.auth.tables.OauthRefreshTokens
 import com.sprintique.database.schema.auth.tables.Principals
 import com.sprintique.database.schema.auth.tables.ProjectTimezoneSource
+import com.sprintique.database.schema.auth.tables.ServiceAccountUnread
 import com.sprintique.database.schema.auth.tables.ServiceAccountWorkspace
 import com.sprintique.database.schema.auth.tables.ServiceAccounts
 import com.sprintique.database.schema.auth.tables.WorkspaceProjects
 import com.sprintique.database.schema.auth.tables.records.ProjectTimezoneSourceRecord
+import com.sprintique.database.schema.auth.tables.records.ServiceAccountUnreadRecord
 import com.sprintique.database.schema.auth.tables.records.ServiceAccountWorkspaceRecord
 import com.sprintique.database.schema.auth.tables.records.WorkspaceProjectsRecord
 
@@ -76,6 +78,27 @@ fun PROJECT_TIMEZONE_SOURCE(
       target: Field<String?>
 ): ProjectTimezoneSource = com.sprintique.database.schema.auth.tables.ProjectTimezoneSource.PROJECT_TIMEZONE_SOURCE.call(
     target
+)
+
+val SERVICE_ACCOUNT_UNREAD: ServiceAccountUnread = ServiceAccountUnread.SERVICE_ACCOUNT_UNREAD
+
+fun SERVICE_ACCOUNT_UNREAD(
+      configuration: Configuration
+    , accounts: Array<String?>?
+): Result<ServiceAccountUnreadRecord> = configuration.dsl().selectFrom(com.sprintique.database.schema.auth.tables.ServiceAccountUnread.SERVICE_ACCOUNT_UNREAD.call(
+      accounts
+)).fetch()
+
+fun SERVICE_ACCOUNT_UNREAD(
+      accounts: Array<String?>?
+): ServiceAccountUnread = com.sprintique.database.schema.auth.tables.ServiceAccountUnread.SERVICE_ACCOUNT_UNREAD.call(
+    accounts
+)
+
+fun SERVICE_ACCOUNT_UNREAD(
+      accounts: Field<Array<String?>?>
+): ServiceAccountUnread = com.sprintique.database.schema.auth.tables.ServiceAccountUnread.SERVICE_ACCOUNT_UNREAD.call(
+    accounts
 )
 
 val SERVICE_ACCOUNT_WORKSPACE: ServiceAccountWorkspace = ServiceAccountWorkspace.SERVICE_ACCOUNT_WORKSPACE

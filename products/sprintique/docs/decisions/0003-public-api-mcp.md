@@ -59,7 +59,7 @@
 
 `POST https://api.iqui.page/mcp` — Streamable HTTP спецификации **2025-11-25** (принимается 2025-06-18; 2025-03-26 — нет, он требует пакетов JSON-RPC) в режиме без сессий: каждый POST — одно JSON-RPC сообщение, ответ — `application/json`; `GET` и `DELETE` — 405. Методы: `initialize`, `ping`, `tools/list`, `tools/call`, уведомления (тоже только с живым токеном). Заголовок `Origin`, если есть, должен совпадать с API-origin. Инструменты типизированы (`inputSchema`, строгий разбор, `annotations`), каждый вызов заново проходит аутентификацию и права сервисного аккаунта (с потолком владельца) в своей транзакции. Инструменты записи видны и доступны только со скоупом `write`; без него вызов получает 403 `insufficient_scope`. Текст задач, комментариев и карт возвращается как недоверенные данные с пометкой; команд из текста нет. Ресурсы и промпты не объявлены.
 
-Инструменты: `list_projects`, `search_tasks`, `get_task` (с обсуждениями), `create_task`, `update_task` (CAS `baseRevision` + ключ идемпотентности), `change_task_status`, `add_task_comment` (с ключом идемпотентности), `list_releases`, `list_milestones`, `list_maps`.
+Инструменты: `list_inbox` и `mark_inbox_read` (входящие аккаунта, с 2026-10-02, [0008](0008-mentions-and-service-inbox.md)), `list_projects`, `search_tasks`, `get_task` (с обсуждениями), `create_task`, `update_task` (CAS `baseRevision` + ключ идемпотентности), `change_task_status`, `add_task_comment` (с ключом идемпотентности), `list_releases`, `list_milestones`, `list_maps`.
 
 ### Аудит, лимиты, метрики
 
