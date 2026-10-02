@@ -1,5 +1,6 @@
 package com.sprintique.discussion.application
 
+import com.sprintique.ai.application.AgentMentions
 import com.sprintique.command.AuditTrail
 import com.sprintique.command.CommandLedger
 import com.sprintique.command.Receipt
@@ -139,6 +140,7 @@ object Discussions {
             )
             AuditTrail.record(tx, actor, projectId, "thread.created", thread.id, 1)
             Notifications.raiseMentions(tx, actor, projectId, thread.messageId, thread.body)
+            AgentMentions.start(tx, actor, projectId, thread.messageId, thread.body)
             visible(actor, read(tx, projectId, thread.id), thread.messageId)
         }
     }
@@ -184,6 +186,7 @@ object Discussions {
             )
             AuditTrail.record(tx, actor, projectId, "thread.message-added", threadId, message.baseRevision + 1)
             Notifications.raiseMentions(tx, actor, projectId, message.id, message.body)
+            AgentMentions.start(tx, actor, projectId, message.id, message.body)
             visible(actor, read(tx, projectId, threadId), message.id)
         }
     }

@@ -40,10 +40,20 @@ sprintique:
   preview-sessions: ${SPRINTIQUE_PREVIEW_SESSIONS:}
   web-root: ${SPRINTIQUE_WEB_ROOT:}
   # Enabled features (workbench_read_internal, workbench_personal_state, workbench_requests, workbench_waiting,
-  # workbench_plan_horizon, workbench_mvp), `all` or `none`; empty is `all` outside production, `none` in it.
+  # workbench_plan_horizon, workbench_mvp, ai_agents), `all` or `none`; empty is `all` outside production, `none` in it.
   features: ${SPRINTIQUE_FEATURES:}
   workbench:
     cursor-secret: ${SPRINTIQUE_WORKBENCH_CURSOR_SECRET:}
+  # AI connections and agents of service accounts (docs/decisions/0005-ai-agents.md). The secrets key is base64 of 32
+  # random bytes; without it connections cannot be saved. Allowed hosts may be private or plain HTTP (local models).
+  ai:
+    secrets-key: ${SPRINTIQUE_SECRETS_KEY:}
+    secrets-key-version: ${SPRINTIQUE_SECRETS_KEY_VERSION:1}
+    previous-secrets-keys: ${SPRINTIQUE_SECRETS_PREVIOUS_KEYS:}
+    allowed-hosts: ${SPRINTIQUE_AI_ALLOWED_HOSTS:}
+    runners: ${SPRINTIQUE_AI_RUNNERS:2}
+    timeout-seconds: ${SPRINTIQUE_AI_TIMEOUT_SECONDS:60}
+    retry-base-millis: ${SPRINTIQUE_AI_RETRY_BASE_MS:1000}
   # Notifications in Telegram (optional; hidden without the token, the username and the webhook secret).
   telegram:
     bot-token: ${SPRINTIQUE_TELEGRAM_BOT_TOKEN:}

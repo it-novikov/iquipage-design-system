@@ -3066,6 +3066,94 @@
       ],
       "additionalProperties": false
     },
+    "AgentSettings": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "baseRevision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "connectionId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "model": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "instructions": {
+          "default": "",
+          "type": "string",
+          "maxLength": 8000
+        },
+        "onAssignment": {
+          "default": true,
+          "type": "boolean"
+        },
+        "onMention": {
+          "default": true,
+          "type": "boolean"
+        },
+        "maxSteps": {
+          "default": 12,
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 50
+        },
+        "maxOutputTokens": {
+          "default": 2048,
+          "type": "integer",
+          "minimum": 256,
+          "maximum": 32000
+        },
+        "runsPerHour": {
+          "default": 20,
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 200
+        },
+        "maxRunTokens": {
+          "default": 500000,
+          "type": "integer",
+          "minimum": 10000,
+          "maximum": 5000000
+        }
+      },
+      "required": [
+        "baseRevision",
+        "enabled",
+        "connectionId",
+        "model",
+        "instructions",
+        "onAssignment",
+        "onMention",
+        "maxSteps",
+        "maxOutputTokens",
+        "runsPerHour",
+        "maxRunTokens"
+      ],
+      "additionalProperties": false
+    },
+    "AiCommand": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    },
     "AppendMessage": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
@@ -7244,6 +7332,65 @@
         "y",
         "width",
         "height"
+      ],
+      "additionalProperties": false
+    },
+    "CreateAiConnection": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "provider": {
+          "type": "string",
+          "enum": [
+            "anthropic",
+            "openai",
+            "openai_compatible"
+          ]
+        },
+        "baseUrl": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 10,
+              "maxLength": 500
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "apiKey": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 4096,
+          "pattern": "^[\\x21-\\x7e]+$"
+        },
+        "defaultModel": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "name",
+        "provider",
+        "baseUrl",
+        "apiKey",
+        "defaultModel"
       ],
       "additionalProperties": false
     },
@@ -21645,6 +21792,22 @@
       ],
       "additionalProperties": false
     },
+    "StartTaskAgentRun": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "accountId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        }
+      },
+      "required": [
+        "accountId"
+      ],
+      "additionalProperties": false
+    },
     "StartTelegramLink": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
@@ -22418,6 +22581,61 @@
       },
       "required": [
         "toPrincipalId"
+      ],
+      "additionalProperties": false
+    },
+    "UpdateAiConnection": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "baseRevision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "baseUrl": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 10,
+              "maxLength": 500
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "apiKey": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 4096,
+          "pattern": "^[\\x21-\\x7e]+$"
+        },
+        "defaultModel": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "baseRevision",
+        "name",
+        "baseUrl",
+        "defaultModel"
       ],
       "additionalProperties": false
     },

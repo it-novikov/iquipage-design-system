@@ -80,13 +80,17 @@ open class CredentialsRecord() : UpdatableRecordImpl<CredentialsRecord>(Credenti
         set(value): Unit = set(15, value)
         get(): OffsetDateTime? = get(15) as OffsetDateTime?
 
+    open var onBehalfOf: String?
+        set(value): Unit = set(16, value)
+        get(): String? = get(16) as String?
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
 
     override fun key(): Record1<String?> = super.key() as Record1<String?>
 
-    constructor(id: String? = null, principalId: String? = null, tokenHash: String? = null, kind: String? = null, csrf: String? = null, projectId: String? = null, capabilities: Array<String?>? = null, initiatorId: String? = null, expiresAt: OffsetDateTime? = null, revokedAt: OffsetDateTime? = null, name: String? = null, scopes: Array<String?>? = null, audience: String? = null, grantId: UUID? = null, createdAt: OffsetDateTime? = null, lastUsedAt: OffsetDateTime? = null): this() {
+    constructor(id: String? = null, principalId: String? = null, tokenHash: String? = null, kind: String? = null, csrf: String? = null, projectId: String? = null, capabilities: Array<String?>? = null, initiatorId: String? = null, expiresAt: OffsetDateTime? = null, revokedAt: OffsetDateTime? = null, name: String? = null, scopes: Array<String?>? = null, audience: String? = null, grantId: UUID? = null, createdAt: OffsetDateTime? = null, lastUsedAt: OffsetDateTime? = null, onBehalfOf: String? = null): this() {
         this.id = id
         this.principalId = principalId
         this.tokenHash = tokenHash
@@ -103,6 +107,7 @@ open class CredentialsRecord() : UpdatableRecordImpl<CredentialsRecord>(Credenti
         this.grantId = grantId
         this.createdAt = createdAt
         this.lastUsedAt = lastUsedAt
+        this.onBehalfOf = onBehalfOf
         resetTouchedOnNotNull()
     }
 }

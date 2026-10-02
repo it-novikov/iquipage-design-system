@@ -16,6 +16,8 @@ const displayOwner=(task,people)=>({...task,...describeOwner(task,people)});
 export class ProductRepository {
   constructor(client=new SprintiqueClient()){this.client=client;this.listeners=new Set();this.context={};this.cache=new Map();this.cacheState={generation:0};this.createInBoard=true;this.capabilities={storage:'server',taskLinks:true,taskSettings:true,attachments:false,maps:true,templateImages:false};}
   async initialize(){const session=await this.client.session();this.context.actorId=session.principal.id;
+    // Agents of service accounts on tasks, when the server has them on (docs/decisions/0005-ai-agents.md).
+    this.capabilities.aiAgents=(session.features||[]).includes('ai_agents');
     const media=await this.client.request('/media/capabilities');this.capabilities.attachments=media.available;this.attachmentAdapter=media.available?new MediaAdapter(this):null;this.mapMedia=new MapMedia(this);return session;}
   subscribe(listener){this.listeners.add(listener);return ()=>this.listeners.delete(listener);}
   clearProjectCache(projectId){this.cacheState.generation++;for(const key of this.cache.keys())if(!projectId||key.startsWith(projectId+':'))this.cache.delete(key);}
@@ -111,6 +113,10 @@ export class ProductRepository {
     }catch(error){if(error.status===404)return null;throw error;}
   }
   pageThreads(projectId,taskId,options){return this.client.threads(projectId,taskId,options);}
+  /** Agents on a task: who can work on it, its latest runs and the steps of the last one. */
+  taskAgents(projectId,taskId,{signal}={}){return this.client.request(`/projects/${encodeURIComponent(projectId)}/tasks/${encodeURIComponent(taskId)}/agents`,'GET',undefined,undefined,signal);}
+  startAgent(projectId,taskId,accountId){return this.client.request(`/projects/${encodeURIComponent(projectId)}/tasks/${encodeURIComponent(taskId)}/agent-runs`,'POST',{accountId});}
+  stopAgent(projectId,taskId,runId){return this.client.request(`/projects/${encodeURIComponent(projectId)}/tasks/${encodeURIComponent(taskId)}/agent-runs/${encodeURIComponent(runId)}/stop`,'POST',{});}
   /** The caller's own read marker for a thread: "new" follows the person across devices. */
   markThreadRead(projectId,threadId,seenActivityAt){return this.client.request(`/projects/${encodeURIComponent(projectId)}/threads/${encodeURIComponent(threadId)}/read`,'POST',{seenActivityAt});}
   mapHistory(projectId,id,before,{signal}={}){

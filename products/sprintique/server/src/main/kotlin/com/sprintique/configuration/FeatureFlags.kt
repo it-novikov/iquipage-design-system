@@ -11,6 +11,9 @@ enum class Feature(val wire: String) {
     WORKBENCH_WAITING("workbench_waiting"),
     WORKBENCH_PLAN_HORIZON("workbench_plan_horizon"),
     WORKBENCH_MVP("workbench_mvp"),
+
+    /** AI connections of workspaces and agents of service accounts (docs/decisions/0005-ai-agents.md). */
+    AI_AGENTS("ai_agents"),
 }
 
 /**

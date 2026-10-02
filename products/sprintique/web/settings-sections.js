@@ -18,11 +18,13 @@ export const settingsGroups=[
   {id:'workspace',label:'О пространстве',icon:'grid',description:'Пространство объединяет проекты и людей.',keywords:'общие настройки название часовой пояс'},
   {id:'workspace-members',label:'Участники пространства',icon:'users',workspaceNeeds:'workspace.people',description:'Роль в пространстве не даёт доступа к задачам: он выдаётся в настройках проекта.',keywords:'пространство участники роли гости владелец'},
   {id:'presets',label:'Пресеты прав',icon:'sliders',description:'Наборы прав, с которых начинается доступ человека в проекте.',keywords:'пресет права роли редактор наблюдатель гость'},
-  {id:'invitations',label:'Приглашения',icon:'send',workspaceNeeds:'workspace.invite',description:'Кого позвали в пространство и что с письмами. Ссылки не хранятся: повторно показать их нельзя.',keywords:'приглашение письмо почта ссылка'}]}
+  {id:'invitations',label:'Приглашения',icon:'send',workspaceNeeds:'workspace.invite',description:'Кого позвали в пространство и что с письмами. Ссылки не хранятся: повторно показать их нельзя.',keywords:'приглашение письмо почта ссылка'},
+  {id:'ai-connections',label:'ИИ-подключения',icon:'spark',workspaceNeeds:'workspace.settings',feature:'ai_agents',description:'Ключи API языковых моделей, которыми думают агенты сервисных аккаунтов.',keywords:'ии ai llm claude chatgpt openai anthropic openrouter deepseek ключ api модель агент нейросеть'}]}
 ];
 /** Sections follow permissions: `needs` — in the project, `workspaceNeeds` — in the workspace. The API checks again. */
-export function visibleSettingsGroups(permissions=[],workspacePermissions=[]){const own=new Set(permissions),space=new Set(workspacePermissions);return settingsGroups.map(g=>({...g,items:g.items.filter(i=>(!i.needs||own.has(i.needs))&&(!i.workspaceNeeds||space.has(i.workspaceNeeds)))}));}
-export function settingsSection(hash,permissions=[],workspacePermissions=[]){const match=String(hash).match(/^#settings\/([a-z-]+)$/);return visibleSettingsGroups(permissions,workspacePermissions).flatMap(g=>g.items).some(i=>i.id===match?.[1])?match[1]:'appearance';}
+/** `feature` — a server feature switch the section needs; `features` null shows such sections (tests, previews). */
+export function visibleSettingsGroups(permissions=[],workspacePermissions=[],features=null){const own=new Set(permissions),space=new Set(workspacePermissions);return settingsGroups.map(g=>({...g,items:g.items.filter(i=>(!i.needs||own.has(i.needs))&&(!i.workspaceNeeds||space.has(i.workspaceNeeds))&&(!i.feature||!features||features.includes(i.feature)))}));}
+export function settingsSection(hash,permissions=[],workspacePermissions=[],features=null){const match=String(hash).match(/^#settings\/([a-z-]+)$/);return visibleSettingsGroups(permissions,workspacePermissions,features).flatMap(g=>g.items).some(i=>i.id===match?.[1])?match[1]:'appearance';}
 /** Search matches names, descriptions and keywords (including former names). */
 export function filterSettingsGroups(groups,query){const q=String(query).toLocaleLowerCase('ru').trim();if(!q)return groups;return groups.map(g=>({...g,items:g.items.filter(i=>[i.label,i.description,i.keywords||''].join(' ').toLocaleLowerCase('ru').includes(q))})).filter(g=>g.items.length);}
 /** A project role derived by the server from permissions, named as the preset it matches. */

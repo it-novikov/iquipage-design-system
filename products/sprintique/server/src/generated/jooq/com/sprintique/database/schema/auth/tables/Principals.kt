@@ -8,6 +8,12 @@ import com.sprintique.database.schema.app.keys.ACCESS_PRESETS__ACCESS_PRESETS_CR
 import com.sprintique.database.schema.app.keys.ACCESS_PRESETS__ACCESS_PRESETS_UPDATED_BY_FKEY
 import com.sprintique.database.schema.app.keys.AGENT_RUNS__AGENT_RUNS_AGENT_ID_FKEY
 import com.sprintique.database.schema.app.keys.AGENT_RUNS__AGENT_RUNS_INITIATOR_ID_FKEY
+import com.sprintique.database.schema.app.keys.AI_AGENT_PROFILES__AI_AGENT_PROFILES_UPDATED_BY_FKEY
+import com.sprintique.database.schema.app.keys.AI_AGENT_RUNS__AI_AGENT_RUNS_ACCOUNT_ID_FKEY
+import com.sprintique.database.schema.app.keys.AI_AGENT_RUNS__AI_AGENT_RUNS_CANCEL_REQUESTED_BY_FKEY
+import com.sprintique.database.schema.app.keys.AI_AGENT_RUNS__AI_AGENT_RUNS_REQUESTED_BY_FKEY
+import com.sprintique.database.schema.app.keys.AI_CONNECTIONS__AI_CONNECTIONS_CREATED_BY_FKEY
+import com.sprintique.database.schema.app.keys.AI_CONNECTIONS__AI_CONNECTIONS_UPDATED_BY_FKEY
 import com.sprintique.database.schema.app.keys.APPROVALS__APPROVALS_DECIDED_BY_FKEY
 import com.sprintique.database.schema.app.keys.APPROVALS__APPROVALS_INITIATOR_ID_FKEY
 import com.sprintique.database.schema.app.keys.APPROVALS__APPROVALS_REQUESTED_BY_FKEY
@@ -58,6 +64,9 @@ import com.sprintique.database.schema.app.keys.WORKSPACE_MEMBERS__WORKSPACE_MEMB
 import com.sprintique.database.schema.app.keys.WORKSPACE_MEMBERS__WORKSPACE_MEMBERS_PRINCIPAL_ID_FKEY
 import com.sprintique.database.schema.app.tables.AccessPresets.AccessPresetsPath
 import com.sprintique.database.schema.app.tables.AgentRuns.AgentRunsPath
+import com.sprintique.database.schema.app.tables.AiAgentProfiles.AiAgentProfilesPath
+import com.sprintique.database.schema.app.tables.AiAgentRuns.AiAgentRunsPath
+import com.sprintique.database.schema.app.tables.AiConnections.AiConnectionsPath
 import com.sprintique.database.schema.app.tables.Approvals.ApprovalsPath
 import com.sprintique.database.schema.app.tables.Assets.AssetsPath
 import com.sprintique.database.schema.app.tables.AttentionRequests.AttentionRequestsPath
@@ -101,6 +110,7 @@ import com.sprintique.database.schema.auth.Auth
 import com.sprintique.database.schema.auth.keys.ACCESS_EVENTS__ACCESS_EVENTS_ACTOR_ID_FKEY
 import com.sprintique.database.schema.auth.keys.ACCESS_EVENTS__ACCESS_EVENTS_PRINCIPAL_ID_FKEY
 import com.sprintique.database.schema.auth.keys.CREDENTIALS__CREDENTIALS_INITIATOR_ID_FKEY
+import com.sprintique.database.schema.auth.keys.CREDENTIALS__CREDENTIALS_ON_BEHALF_OF_FKEY
 import com.sprintique.database.schema.auth.keys.CREDENTIALS__CREDENTIALS_PRINCIPAL_ID_FKEY
 import com.sprintique.database.schema.auth.keys.IDENTITIES__IDENTITIES_PRINCIPAL_ID_FKEY
 import com.sprintique.database.schema.auth.keys.INVITATIONS__INVITATIONS_ACCEPTED_BY_FKEY
@@ -269,6 +279,78 @@ open class Principals(
 
     val agentRunsInitiatorIdFkey: AgentRunsPath
         get(): AgentRunsPath = agentRunsInitiatorIdFkey()
+
+    private lateinit var _aiAgentProfiles: AiAgentProfilesPath
+
+    fun aiAgentProfiles(): AiAgentProfilesPath {
+        if (!this::_aiAgentProfiles.isInitialized)
+            _aiAgentProfiles = AiAgentProfilesPath(this, null, AI_AGENT_PROFILES__AI_AGENT_PROFILES_UPDATED_BY_FKEY.inverseKey)
+
+        return _aiAgentProfiles;
+    }
+
+    val aiAgentProfiles: AiAgentProfilesPath
+        get(): AiAgentProfilesPath = aiAgentProfiles()
+
+    private lateinit var _aiAgentRunsAccountIdFkey: AiAgentRunsPath
+
+    fun aiAgentRunsAccountIdFkey(): AiAgentRunsPath {
+        if (!this::_aiAgentRunsAccountIdFkey.isInitialized)
+            _aiAgentRunsAccountIdFkey = AiAgentRunsPath(this, null, AI_AGENT_RUNS__AI_AGENT_RUNS_ACCOUNT_ID_FKEY.inverseKey)
+
+        return _aiAgentRunsAccountIdFkey;
+    }
+
+    val aiAgentRunsAccountIdFkey: AiAgentRunsPath
+        get(): AiAgentRunsPath = aiAgentRunsAccountIdFkey()
+
+    private lateinit var _aiAgentRunsCancelRequestedByFkey: AiAgentRunsPath
+
+    fun aiAgentRunsCancelRequestedByFkey(): AiAgentRunsPath {
+        if (!this::_aiAgentRunsCancelRequestedByFkey.isInitialized)
+            _aiAgentRunsCancelRequestedByFkey = AiAgentRunsPath(this, null, AI_AGENT_RUNS__AI_AGENT_RUNS_CANCEL_REQUESTED_BY_FKEY.inverseKey)
+
+        return _aiAgentRunsCancelRequestedByFkey;
+    }
+
+    val aiAgentRunsCancelRequestedByFkey: AiAgentRunsPath
+        get(): AiAgentRunsPath = aiAgentRunsCancelRequestedByFkey()
+
+    private lateinit var _aiAgentRunsRequestedByFkey: AiAgentRunsPath
+
+    fun aiAgentRunsRequestedByFkey(): AiAgentRunsPath {
+        if (!this::_aiAgentRunsRequestedByFkey.isInitialized)
+            _aiAgentRunsRequestedByFkey = AiAgentRunsPath(this, null, AI_AGENT_RUNS__AI_AGENT_RUNS_REQUESTED_BY_FKEY.inverseKey)
+
+        return _aiAgentRunsRequestedByFkey;
+    }
+
+    val aiAgentRunsRequestedByFkey: AiAgentRunsPath
+        get(): AiAgentRunsPath = aiAgentRunsRequestedByFkey()
+
+    private lateinit var _aiConnectionsCreatedByFkey: AiConnectionsPath
+
+    fun aiConnectionsCreatedByFkey(): AiConnectionsPath {
+        if (!this::_aiConnectionsCreatedByFkey.isInitialized)
+            _aiConnectionsCreatedByFkey = AiConnectionsPath(this, null, AI_CONNECTIONS__AI_CONNECTIONS_CREATED_BY_FKEY.inverseKey)
+
+        return _aiConnectionsCreatedByFkey;
+    }
+
+    val aiConnectionsCreatedByFkey: AiConnectionsPath
+        get(): AiConnectionsPath = aiConnectionsCreatedByFkey()
+
+    private lateinit var _aiConnectionsUpdatedByFkey: AiConnectionsPath
+
+    fun aiConnectionsUpdatedByFkey(): AiConnectionsPath {
+        if (!this::_aiConnectionsUpdatedByFkey.isInitialized)
+            _aiConnectionsUpdatedByFkey = AiConnectionsPath(this, null, AI_CONNECTIONS__AI_CONNECTIONS_UPDATED_BY_FKEY.inverseKey)
+
+        return _aiConnectionsUpdatedByFkey;
+    }
+
+    val aiConnectionsUpdatedByFkey: AiConnectionsPath
+        get(): AiConnectionsPath = aiConnectionsUpdatedByFkey()
 
     private lateinit var _approvalsDecidedByFkey: ApprovalsPath
 
@@ -881,6 +963,18 @@ open class Principals(
 
     val credentialsInitiatorIdFkey: CredentialsPath
         get(): CredentialsPath = credentialsInitiatorIdFkey()
+
+    private lateinit var _credentialsOnBehalfOfFkey: CredentialsPath
+
+    fun credentialsOnBehalfOfFkey(): CredentialsPath {
+        if (!this::_credentialsOnBehalfOfFkey.isInitialized)
+            _credentialsOnBehalfOfFkey = CredentialsPath(this, null, CREDENTIALS__CREDENTIALS_ON_BEHALF_OF_FKEY.inverseKey)
+
+        return _credentialsOnBehalfOfFkey;
+    }
+
+    val credentialsOnBehalfOfFkey: CredentialsPath
+        get(): CredentialsPath = credentialsOnBehalfOfFkey()
 
     private lateinit var _credentialsPrincipalIdFkey: CredentialsPath
 

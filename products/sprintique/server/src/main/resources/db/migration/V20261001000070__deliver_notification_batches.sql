@@ -233,5 +233,5 @@ DO $$ DECLARE found text; BEGIN
   WHERE conrelid='app.audit_events'::regclass AND contype='c' AND pg_get_constraintdef(oid) LIKE '%credential_kind%';
   EXECUTE format('ALTER TABLE app.audit_events DROP CONSTRAINT %I',found);
 END $$;
-ALTER TABLE app.audit_events ADD CONSTRAINT audit_events_credential_kind_check
-  CHECK(credential_kind IS NULL OR credential_kind IN ('session','agent','service','oauth','telegram'));
+ALTER TABLE app.audit_events ADD CONSTRAINT audit_credential_kind
+  CHECK(credential_kind IS NULL OR credential_kind IN ('session','agent','service','oauth','runtime','telegram'));

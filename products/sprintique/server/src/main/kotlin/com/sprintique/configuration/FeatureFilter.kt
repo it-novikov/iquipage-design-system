@@ -58,6 +58,10 @@ class FeatureFilter(private val flags: FeatureFlags) : OncePerRequestFilter() {
             Regex("^/api/v1/projects/[^/]+/requests/[^/]+(/(resolve|reopen|cancel))?$") to { f ->
                 f.isEnabled(Feature.WORKBENCH_REQUESTS)
             },
+            // AI connections, agents of service accounts and their runs on tasks (docs/decisions/0005-ai-agents.md).
+            Regex("^/api/v1/workspaces/[^/]+/ai-connections(/.*)?$") to { f -> f.isEnabled(Feature.AI_AGENTS) },
+            Regex("^/api/v1/service-accounts/[^/]+/agent$") to { f -> f.isEnabled(Feature.AI_AGENTS) },
+            Regex("$TASK/(agents|agent-runs(/.*)?)$") to { f -> f.isEnabled(Feature.AI_AGENTS) },
         )
 
         /** The switch a path needs, or null for a path that belongs to no switched feature. */

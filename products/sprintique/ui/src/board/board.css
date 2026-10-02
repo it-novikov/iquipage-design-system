@@ -314,3 +314,12 @@
     radial-gradient(circle at 0 0,transparent calc(var(--sq-column-radius) - 0.5px),var(--sq-board-backdrop) var(--sq-column-radius)) right bottom/var(--sq-column-radius) var(--sq-column-radius) no-repeat}
 /* SPR-13: the release the board shows, a compact DS select before the sort. */
 .host-board-release iq-select{min-width:0;max-width:260px}
+/* Agents of service accounts on a task: one quiet line above the discussion (docs/decisions/0005-ai-agents.md). */
+.task-agent-section{display:grid;gap:var(--iq-space-1);min-width:0}
+.task-agent-line{display:flex;align-items:center;flex-wrap:wrap;gap:var(--iq-space-2);margin:0;color:var(--iq-muted);font-size:var(--iq-type-meta-size)}
+.task-agent-line>svg{flex:none}
+.task-agent-line[data-tone=info]>svg{color:var(--iq-info)}
+.task-agent-line[data-tone=danger]{color:var(--iq-danger)}
+.task-agent-steps{margin:0;padding-left:var(--iq-space-6);color:var(--iq-muted);font-size:var(--iq-type-caption-size)}
+.task-agent-trigger{display:inline-flex}
+.task-agent-section[hidden]{display:none}

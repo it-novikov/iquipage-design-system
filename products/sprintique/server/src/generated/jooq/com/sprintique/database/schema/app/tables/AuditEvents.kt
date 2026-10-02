@@ -149,8 +149,8 @@ open class AuditEvents(
     val outbox: OutboxPath
         get(): OutboxPath = outbox()
     override fun getChecks(): List<Check<AuditEventsRecord>> = listOf(
-        Internal.createCheck(this, DSL.name("audit_events_client_id_check"), "(((client_id IS NULL) OR (length(client_id) <= 100)))", true),
-        Internal.createCheck(this, DSL.name("audit_events_credential_kind_check"), "(((credential_kind IS NULL) OR (credential_kind = ANY (ARRAY['session'::text, 'agent'::text, 'service'::text, 'oauth'::text, 'telegram'::text]))))", true)
+        Internal.createCheck(this, DSL.name("audit_credential_kind"), "(((credential_kind IS NULL) OR (credential_kind = ANY (ARRAY['session'::text, 'agent'::text, 'service'::text, 'oauth'::text, 'runtime'::text]))))", true),
+        Internal.createCheck(this, DSL.name("audit_events_client_id_check"), "(((client_id IS NULL) OR (length(client_id) <= 100)))", true)
     )
     override fun `as`(alias: String): AuditEvents = AuditEvents(DSL.name(alias), this)
     override fun `as`(alias: Name): AuditEvents = AuditEvents(alias, this)
