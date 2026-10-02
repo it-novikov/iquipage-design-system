@@ -65,7 +65,7 @@ class McpTools(
                 "away, oldest first: mentions in task discussions, tasks assigned to it, Workbench requests and due " +
                 "dates of its tasks. Each item names the task (key, title, url), who acted, a short quote of the " +
                 "message or request, and threadId to answer in with add_task_comment. Handle the items in order, " +
-                "then mark them with mark_inbox_read (ids, or upTo the last one handled). unreadOnly is true by " +
+                "then mark them with mark_inbox_read (their ids). unreadOnly is true by " +
                 "default; pass the nextCursor of a page to read the next.",
             ListInboxArguments::class,
             schema(
@@ -79,9 +79,9 @@ class McpTools(
         },
         tool(
             "mark_inbox_read", "Отметить входящие",
-            "Mark inbox items as handled, after you acted on them: ids of items, and/or upTo, the id of the last " +
-                "item handled, which marks it and every earlier unread item. Returns how many were marked and how " +
-                "many stay unread.",
+            "Mark inbox items as handled, after you acted on them. Prefer ids, the items you handled; upTo, the id " +
+                "of the last item handled, also marks every earlier unread item, including one that arrived late " +
+                "and you did not list. Returns how many were marked and how many stay unread.",
             MarkInboxReadArguments::class,
             schema(
                 "ids" to linkedMapOf(

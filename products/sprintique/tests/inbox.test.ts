@@ -108,6 +108,12 @@ test('IB02 a service account receives every kind like a person: its owner notifi
   assert.equal(request.quote,'Проверь, пожалуйста, @Алиса');assert.equal(request.request?.kind,'review');
   assert.equal(request.actor?.id,f.alice.id);assert.match(request.task.url,/#\/task\/IBSPR-\d+$/);
   assert.equal(page.items.find(i=>i.kind==='deadline')!.due,today);
+  // The account has no Workbench: its owner (here also the one who asked) marks the request resolved.
+  const open=(await f.admin.query("SELECT id::text AS id,revision FROM app.attention_requests WHERE recipient_id=$1 AND status='open'",[bot.id])).rows[0];
+  await ok(call('POST',`${base}${p}/requests/${open.id}/resolve`,{baseRevision:Number(open.revision)}));
+  // A reader who neither asked nor owns the account cannot.
+  const other=await ok<any>(call('POST',`${base}${p}/tasks/ib2/requests`,{id:randomUUID(),recipientId:bot.id,kind:'answer'}));
+  assert.equal((await call('POST',`${base}${p}/requests/${other.id}/resolve`,{baseRevision:other.revision},f.reader)).statusCode,403);
 });
 
 test('IB03 the inbox over MCP and REST: oldest first, pages, unread by default, untrusted content, marking by ids and upTo',async()=>{

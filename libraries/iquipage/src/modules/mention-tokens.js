@@ -17,9 +17,9 @@ const QUERY_LIMIT = 40;
 const LIST_LIMIT = 12;
 const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
 
-/** The label a token keeps: one line, no Markdown brackets, at most 80 characters. */
+/** The label a token keeps: one line, no Markdown brackets or delimiters (code, emphasis, tables), at most 80 characters. */
 function mentionLabel(name) {
-    const clean = String(name ?? '').replace(/[\[\]\\()\u0000-\u001f\u007f]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, LABEL_LIMIT).trim();
+    const clean = String(name ?? '').replace(/[\[\]\\()`*_~|\u0000-\u001f\u007f]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, LABEL_LIMIT).replace(/[\uD800-\uDBFF]$/, '').trim();
     return clean || 'участник';
 }
 /** The Markdown token for a member; throws on an id outside the token alphabet. */
@@ -74,19 +74,23 @@ function mentionResolver(members) {
         byId.set(String(member.id), {name: member.name.trim(), kind: member.kind === 'service' ? 'service' : 'human'});
     return id => byId.get(id) || null;
 }
-/** The pill of one token: the member's current name when known, the stored label without a resolver, else text. */
+/**
+ * One token as HTML. A pill always means a known member and shows its current name. A token naming anyone else is its
+ * label alone, plain text that never reads as a mention; without members nothing is known, so it is «@label» text.
+ */
 function mentionHTML(token, resolve) {
-    const member = resolve ? resolve(token.id) : {name: token.label, kind: 'human'};
-    if (!member) return esc('@' + token.label);
+    if (!resolve) return esc('@' + token.label);
+    const member = resolve(token.id);
+    if (!member) return esc(token.label);
     return `<span class="md-mention" data-mention="${esc(token.id)}"${member.kind === 'service' ? ' data-kind="service"' : ''}>@${esc(member.name)}</span>`;
 }
-/** Plain text with every token as «@Имя»: for one-line previews, titles and notifications. */
+/** Plain text with a member's token as «@Имя» and anyone else's as its label: for one-line previews and quotes. */
 function mentionPlainText(source, members) {
     const resolve = mentionResolver(members), text = String(source ?? ''), tokens = parseMentions(text);
     let out = '', from = 0;
     for (const token of tokens) {
         const member = resolve ? resolve(token.id) : null;
-        out += text.slice(from, token.start) + '@' + (member ? member.name : token.label);
+        out += text.slice(from, token.start) + (member ? '@' + member.name : resolve ? token.label : '@' + token.label);
         from = token.end;
     }
     return out + text.slice(from);

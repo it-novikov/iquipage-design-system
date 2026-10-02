@@ -187,7 +187,11 @@ object AttentionRequests {
         }
     }
 
-    /** The recipient marks the result as given. Reading a request never does this. */
+    /**
+     * The recipient marks the result as given. Reading a request never does this. A service account answers in the
+     * discussion and has no Workbench, so a request addressed to one is marked by the person who asked or by the
+     * account's owner (docs/decisions/0008-mentions-and-service-inbox.md).
+     */
     fun resolve(
         tx: Transaction,
         actor: Actor,
@@ -198,11 +202,12 @@ object AttentionRequests {
         ledger: CommandLedger,
     ): Any =
         close(tx, actor, projectId, id, baseRevision, key, ledger, "resolved") { current, _ ->
+            val recipient = current.string("recipient_id")
             requireCondition(
-                current.string("recipient_id") == actor.id,
+                recipient == actor.id || serviceAccountAnswered(tx, recipient, current.string("requested_by"), actor),
                 403,
                 "FORBIDDEN",
-                "Отметить запрос решённым может только адресат.",
+                "Отметить запрос решённым может адресат, а за сервисный аккаунт — автор запроса или его владелец.",
             )
         }
 
@@ -362,6 +367,13 @@ object AttentionRequests {
         return current
     }
 
+    /** Whether the actor may mark for a service account recipient: the requester, or the account's owner. */
+    private fun serviceAccountAnswered(tx: Transaction, recipient: String, requester: String, actor: Actor): Boolean {
+        val owner = tx.row("SELECT owner_id FROM auth.service_accounts WHERE principal_id = $1", recipient)
+            ?.string("owner_id") ?: return false
+        return actor.id == requester || actor.id == owner
+    }
+
     /**
      * A current member who can act on the task: changes tasks there («Менять задачи»), not disabled. A service account
      * that may act is one too (docs/decisions/0008-mentions-and-service-inbox.md): the request reaches its inbox, it
@@ -373,7 +385,10 @@ object AttentionRequests {
             SELECT 'tasks.write' = ANY(m.permissions) AS writes FROM app.project_members m
             JOIN auth.principals p ON p.id = m.principal_id
             WHERE m.project_id = $1 AND m.principal_id = $2 AND p.disabled_at IS NULL
-              AND (p.kind = 'human' OR (p.kind = 'service' AND auth.service_account_active(p.id)))
+              AND (p.kind = 'human' OR (p.kind = 'service' AND auth.service_account_active(p.id) AND EXISTS (
+                SELECT 1 FROM auth.service_accounts s JOIN app.project_members o
+                  ON o.project_id = m.project_id AND o.principal_id = s.owner_id
+                WHERE s.principal_id = p.id)))
             """.trimIndent(),
             projectId,
             recipientId,

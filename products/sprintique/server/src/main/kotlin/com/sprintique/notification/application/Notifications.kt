@@ -100,12 +100,12 @@ object Notifications {
         if ('@' !in body) return
         val people = tx.rows(
             """
-            SELECT p.id, coalesce(p.profile_name, p.name) AS name
+            SELECT p.id, coalesce(p.profile_name, p.name) AS name, p.kind = 'service' AS service
             FROM app.project_members m JOIN auth.principals p ON p.id = m.principal_id
             WHERE m.project_id = $1 AND p.kind IN ('human', 'service') AND p.disabled_at IS NULL
             """.trimIndent(),
             projectId,
-        ).map { MentionCandidate(it.string("id"), it.string("name")) }
+        ).map { MentionCandidate(it.string("id"), it.string("name"), it.boolean("service")) }
         for (person in Mentions.find(body, people) - actor.id) {
             tx.row("SELECT app.notify_mention($1, $2, $3) AS raised", projectId, messageId, person)
         }

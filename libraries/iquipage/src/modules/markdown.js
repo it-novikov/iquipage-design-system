@@ -191,8 +191,9 @@ function safeMarkdown(source,options={}) {
  const level=Number(options.headingLevel??2);
  if(!Number.isInteger(level)||level<1||level>6)throw new RangeError('headingLevel: целое число от 1 до 6');
  work=8*value.length+100000;
+ const previous=mentionResolve;
  mentionResolve=mentionResolver(options.mentions);
  try{return renderBlocks(value.replace(/\r\n?/g,'\n').replace(/\t/g,'    ').split('\n'),level);}
- finally{mentionResolve=undefined;}
+ finally{mentionResolve=previous;}
 }
 Object.assign(exports,{safeMarkdown,safeMarkdownURL,markdownPasteLink,MARKDOWN_MAX_LENGTH:LIMIT});

@@ -702,7 +702,7 @@ class ServiceAccounts(private val properties: SprintiqueProperties) {
             put("tokens", tokens)
             put("apps", ConnectedApps.of(tx, id))
             // The account's backlog: unread notifications it could read now (ADR 0008, mentions and service inbox).
-            val unread = tx.row("SELECT unread FROM auth.service_account_unread(ARRAY[$1])", id)?.int("unread")
+            val unread = tx.row("SELECT unread FROM auth.service_account_unread(ARRAY[$1::text])", id)?.int("unread")
             put("inboxUnread", unread ?: 0)
         }
     }

@@ -93,8 +93,11 @@ class MentionAutocomplete {
         const found = mentionQuery(input.value, input.selectionStart);
         if (!found) { this.close(); return; }
         const matches = filterMentionCandidates(this.members, found.query);
-        // A space typed after a name nobody has means ordinary text again.
-        if (!matches.length && /\s/.test(found.query)) { this.close(); return; }
+        // A space typed after a name nobody has means ordinary text again; so does a space after a whole name, where
+        // Enter and Tab belong to the text again.
+        const typed = found.query.toLocaleLowerCase('ru').replace(/ё/g, 'е');
+        if ((!matches.length && /\s/.test(found.query)) || (/\s$/.test(found.query) &&
+            !matches.some(m => m.name.toLocaleLowerCase('ru').replace(/ё/g, 'е').startsWith(typed)))) { this.close(); return; }
         const sameRange = this.range && this.range.start === found.start;
         this.range = {start: found.start, end: input.selectionStart};
         this.matches = matches;

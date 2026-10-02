@@ -35,7 +35,7 @@ test('previews read mentions with current names; a cut token and a non-member ar
   assert.deepEqual(names.find(m=>m.id==='robot'),{id:'robot',name:'Робот',kind:'service'});
   assert.equal(names.some(m=>m.id==='agent'),false);
   assert.match(mentionsHTML('@[Старое имя](user:alice), глянь',names),/^<span class="md-mention" data-mention="alice">@Алиса Ким<\/span>, глянь$/);
-  assert.equal(mentionsHTML('@[Чужой <b>](user:zz)',names),'@Чужой &lt;b&gt;');
+  assert.equal(mentionsHTML('@[Чужой <b>](user:zz)',names),'Чужой &lt;b&gt;','a non-member is its label, not a mention');
   const cut=('x'.repeat(140)+' @[Алиса Ким](user:ali').slice(0,160);
   assert.equal(closeCutMention(cut).endsWith('@Алиса Ким…'),true);
   assert.equal(closeCutMention('коротко @['),'коротко @[','a short message is never cut');

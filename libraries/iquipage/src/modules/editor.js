@@ -175,8 +175,9 @@ class IqMarkdownEditor extends components_js_1.IqElement {
      */
     get mentions() { return this._mentions ? this._mentions.map(member => ({...member})) : null; }
     set mentions(value) {
-        if (value != null && (!Array.isArray(value) || value.length > 1000)) throw new TypeError('mentions: up to 1000 members or null');
-        this._mentions = value ? value.map(member => ({...member})) : null;
+        if (value != null && !Array.isArray(value)) throw new TypeError('mentions: an array of members or null');
+        // The list shows a dozen at a time; a very large project offers its first 1000 members.
+        this._mentions = value ? value.slice(0, 1000).map(member => ({...member})) : null;
         this.syncMentions();
         if (this.input && this.previewMode) this.renderPreview(this.querySelector('.md-preview'), this.value);
     }
@@ -187,8 +188,10 @@ class IqMarkdownEditor extends components_js_1.IqElement {
         else {
             this._mentionList?.destroy();
             this._mentionList = mentions_js_1.attachMentionAutocomplete(this.input, {members: this._mentions});
-            const list = this._mentionList;
-            this.addCleanup(() => { list.destroy(); if (this._mentionList === list) this._mentionList = null; });
+            if (!this._mentionCleanup) {
+                this._mentionCleanup = true;
+                this.addCleanup(() => { this._mentionCleanup = false; this._mentionList?.destroy(); this._mentionList = null; });
+            }
         }
     }
     get density() { return this.getAttribute('density') === 'compact' ? 'compact' : 'comfortable'; }

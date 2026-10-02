@@ -52,7 +52,7 @@ class NotificationRulesTest {
 
     @Test
     fun `a token names a member by id, whatever its label, and counts once before typed names`() {
-        val robot = MentionCandidate("sa_1", "Робот релизов")
+        val robot = MentionCandidate("sa_1", "Робот релизов", service = true)
         val people = listOf(anna, boris, robot)
         // Renamed since the token was written: the id still finds Анна; a forged label names nobody else.
         assertThat(Mentions.find("@[Аня Старое](user:a), глянь", people)).containsExactly("a")
@@ -68,6 +68,14 @@ class NotificationRulesTest {
     }
 
     @Test
+    fun `a service account is named in full and never makes a person's first name ambiguous`() {
+        val helper = MentionCandidate("sa_2", "Анна Помощник", service = true)
+        assertThat(Mentions.find("@Анна, глянь", listOf(anna, helper))).containsExactly("a")
+        assertThat(Mentions.find("@анна помощник", listOf(anna, helper))).contains("sa_2")
+        assertThat(Mentions.find("@Робот", listOf(MentionCandidate("sa_1", "Робот релизов", service = true)))).isEmpty()
+    }
+
+    @Test
     fun `one message notifies at most twenty members, tokens first`() {
         val many = (1..30).map { MentionCandidate("p$it", "Участник$it Фамилия") }
         val body = many.joinToString(" ") { "@[${it.name}](user:${it.id})" }
@@ -78,7 +86,7 @@ class NotificationRulesTest {
     fun `a quote shows tokens as current names and leaves code alone`() {
         val names = mapOf("a" to "Анна Кузнецова")
         assertThat(Mentions.plainText("@[Аня](user:a), @[Бывший](user:x) и `@[Аня](user:a)`", names))
-            .isEqualTo("@Анна Кузнецова, @Бывший и `@[Аня](user:a)`")
+            .isEqualTo("@Анна Кузнецова, Бывший и `@[Аня](user:a)`")
     }
 
     @Test

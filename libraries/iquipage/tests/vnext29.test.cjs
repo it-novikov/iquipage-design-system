@@ -13,6 +13,8 @@ test('a token names the member by id and keeps a clean one-line label', () => {
   assert.equal(tokens.mentionToken({ id: 'sa_1f', name: 'Аня Карпова' }), '@[Аня Карпова](user:sa_1f)');
   assert.equal(tokens.mentionLabel(' Робот [v2] (бета)\n\\ '), 'Робот v2 бета');
   assert.equal(tokens.mentionLabel('[]()'), 'участник');
+  assert.equal(tokens.mentionLabel('a`b*c_d~e|f'), 'a b c d e f', 'no code, emphasis or table delimiters');
+  assert.equal(tokens.mentionLabel('я'.repeat(79) + '𝐀'), 'я'.repeat(79), 'a surrogate pair is never cut in half');
   assert.equal(tokens.mentionLabel('я'.repeat(200)).length, 80);
   for (const id of ['', 'a b', 'x)y', 'a'.repeat(101), '../x', 'u:1']) assert.throws(() => tokens.mentionToken({ id, name: 'X' }), TypeError, id);
 });
@@ -26,14 +28,14 @@ test('parseMentions finds tokens outside code, at a word start, not in addresses
   assert.deepEqual(tokens.parseMentions('@[a[b]](user:x) @[a](mailto:x) @[a](user:x y) @[a](user:x"y)'), []);
 });
 
-test('pills: escaped label without members, the current name with them, plain text for anyone else', () => {
+test('pills: the current name of a member; a label alone for anyone else; escaped «@label» text without members', () => {
   const html = safeMarkdown('Смотри @[<img src=x onerror=alert(1)>"](user:u-1) и @[Аня](user:u-2)');
-  assert.match(html, /<span class="md-mention" data-mention="u-1">@&lt;img src=x onerror=alert\(1\)&gt;&quot;<\/span>/);
+  assert.equal(html, '<p>Смотри @&lt;img src=x onerror=alert(1)&gt;&quot; и @Аня</p>', 'nothing known, so no pill claims a member');
   assert.doesNotMatch(html, /<img/);
   const members = [{ id: 'u-2', name: 'Анна Карпова' }, { id: 'sa_9', name: 'Робот <релизов>', kind: 'service' }];
   const resolved = safeMarkdown('@[Аня](user:u-2), @[Директор](user:u-7), @[Р](user:sa_9)', { mentions: members });
   assert.match(resolved, /<span class="md-mention" data-mention="u-2">@Анна Карпова<\/span>/, 'a renamed member reads with the new name');
-  assert.match(resolved, /, @Директор, /, 'a token of a non-member is plain text, never a pill');
+  assert.match(resolved, /, Директор, /, 'a token of a non-member is its label as plain text, never a pill or a mention');
   assert.match(resolved, /data-mention="sa_9" data-kind="service">@Робот &lt;релизов&gt;<\/span>/);
   assert.equal(safeMarkdown('`@[Аня](user:u-2)`'), '<p><code>@[Аня](user:u-2)</code></p>');
   assert.match(safeMarkdown('[@[Аня](user:u-2)](https://example.com)'), /<a [^>]*>@Аня<\/a>/, 'inside a link label it is the label');
@@ -43,9 +45,10 @@ test('pills: escaped label without members, the current name with them, plain te
 
 test('plain text and one-paragraph previews turn tokens into names', () => {
   const members = [{ id: 'u-2', name: 'Анна Карпова' }];
-  assert.equal(tokens.mentionPlainText('Ок, @[Аня](user:u-2) и @[X](user:u-9)', members), 'Ок, @Анна Карпова и @X');
+  assert.equal(tokens.mentionPlainText('Ок, @[Аня](user:u-2) и @[X](user:u-9)', members), 'Ок, @Анна Карпова и X');
   assert.equal(tokens.mentionsHTML('<b>@[Аня](user:u-2)</b>', members), '&lt;b&gt;<span class="md-mention" data-mention="u-2">@Анна Карпова</span>&lt;/b&gt;');
-  assert.equal(tokens.mentionsHTML('@[X](user:u-9)', members), '@X');
+  assert.equal(tokens.mentionsHTML('@[X](user:u-9)', members), 'X');
+  assert.equal(tokens.mentionPlainText('@[X](user:u-9)'), '@X', 'without members a token is the name as typed');
 });
 
 test('mentionQuery: «@» at a word start, one line, up to two spaces, never in code', () => {
