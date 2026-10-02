@@ -29,11 +29,12 @@ object TemporalRules {
     )
 
     /**
-     * Every constraint holds between the dates it links, and constraints together with task dependencies form no
-     * cycle. A dependency points opposite to its predecessor constraint, so both share one acyclic graph and neither
-     * API can close the other's cycle.
+     * Constraints together with task dependencies form no cycle: that alone is refused. A dependency points opposite
+     * to its predecessor constraint, so both share one acyclic graph and neither API can close the other's cycle.
+     * Under the r4 policy a constraint whose dates do not hold is a warning: the result lists each one for people.
      */
-    fun validate(state: PlanningState) {
+    fun validate(state: PlanningState): List<String> {
+        val conflicts = ArrayList<String>()
         requireWithinLimits(
             state.tasks.size,
             state.releases.size,
@@ -60,13 +61,11 @@ object TemporalRules {
             graph.edge(source, target)
             val left = if (constraint.relation[0] == 'F') before.end else before.start
             val right = if (constraint.relation[1] == 'F') after.end else after.start
-            if (left != null && right != null) {
-                requireCondition(
-                    ChronoUnit.DAYS.between(LocalDate.parse(left), LocalDate.parse(right)) >= constraint.lagDays,
-                    409,
-                    "TEMPORAL_CONFLICT",
-                    "Даты противоречат зависимости. Измените их явно.",
-                )
+            if (left != null && right != null &&
+                ChronoUnit.DAYS.between(LocalDate.parse(left), LocalDate.parse(right)) < constraint.lagDays
+            ) {
+                conflicts += "Даты противоречат зависимости ${constraint.source.id} → ${constraint.target.id} " +
+                    "(${constraint.relation}). Сохраним как есть."
             }
         }
         for (link in state.dependencies) {
@@ -81,6 +80,7 @@ object TemporalRules {
             graph.edge(source, target)
         }
         requireCondition(graph.isAcyclic(), 422, "TEMPORAL_CYCLE", "Зависимость создаёт цикл.")
+        return conflicts
     }
 
     private data class Span(val start: String?, val end: String?)

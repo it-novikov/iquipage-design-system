@@ -1,5 +1,5 @@
 {
-  "planningPolicy": "planning-r3.1",
+  "planningPolicy": "planning-r4.0",
   "schemas": {
     "AccessCommand": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -361,6 +361,38 @@
                         "maxLength": 100,
                         "pattern": "^[A-Za-z0-9_-]+$"
                       }
+                    },
+                    "estimate": {
+                      "default": null,
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "value": {
+                              "type": "number",
+                              "exclusiveMinimum": 0,
+                              "maximum": 9999
+                            },
+                            "unit": {
+                              "type": "string",
+                              "enum": [
+                                "h",
+                                "d",
+                                "w",
+                                "sp"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "value",
+                            "unit"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
                     }
                   },
                   "required": [
@@ -377,7 +409,8 @@
                     "rank",
                     "parentId",
                     "releaseId",
-                    "tagIds"
+                    "tagIds",
+                    "estimate"
                   ],
                   "additionalProperties": false
                 }
@@ -588,6 +621,38 @@
                         "maxLength": 100,
                         "pattern": "^[A-Za-z0-9_-]+$"
                       }
+                    },
+                    "estimate": {
+                      "default": null,
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "value": {
+                              "type": "number",
+                              "exclusiveMinimum": 0,
+                              "maximum": 9999
+                            },
+                            "unit": {
+                              "type": "string",
+                              "enum": [
+                                "h",
+                                "d",
+                                "w",
+                                "sp"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "value",
+                            "unit"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
                     }
                   },
                   "required": [
@@ -604,7 +669,8 @@
                     "rank",
                     "parentId",
                     "releaseId",
-                    "tagIds"
+                    "tagIds",
+                    "estimate"
                   ],
                   "additionalProperties": false
                 },
@@ -1583,6 +1649,37 @@
                         "maxLength": 100,
                         "pattern": "^[A-Za-z0-9_-]+$"
                       }
+                    },
+                    "estimate": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "value": {
+                              "type": "number",
+                              "exclusiveMinimum": 0,
+                              "maximum": 9999
+                            },
+                            "unit": {
+                              "type": "string",
+                              "enum": [
+                                "h",
+                                "d",
+                                "w",
+                                "sp"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "value",
+                            "unit"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
                     }
                   },
                   "additionalProperties": false
@@ -1682,6 +1779,17 @@
                           "type": "null"
                         }
                       ]
+                    },
+                    "goal": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "maxLength": 240
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
                     }
                   },
                   "required": [
@@ -1769,6 +1877,17 @@
                           "type": "string",
                           "format": "date",
                           "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "goal": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "maxLength": 240
                         },
                         {
                           "type": "null"
@@ -2073,6 +2192,17 @@
                                   "type": "null"
                                 }
                               ]
+                            },
+                            "goal": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "maxLength": 240
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
                             }
                           },
                           "required": [
@@ -2235,6 +2365,17 @@
                                   "type": "string",
                                   "format": "date",
                                   "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "goal": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "maxLength": 240
                                 },
                                 {
                                   "type": "null"
@@ -2586,12 +2727,35 @@
                     },
                     "timezoneInherited": {
                       "type": "boolean"
+                    },
+                    "estimateFormat": {
+                      "default": "time",
+                      "type": "string",
+                      "enum": [
+                        "time",
+                        "points"
+                      ]
+                    },
+                    "hoursPerDay": {
+                      "default": 8,
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 24
+                    },
+                    "hoursPerWeek": {
+                      "default": 40,
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 168
                     }
                   },
                   "required": [
                     "format",
                     "days",
-                    "timezone"
+                    "timezone",
+                    "estimateFormat",
+                    "hoursPerDay",
+                    "hoursPerWeek"
                   ],
                   "additionalProperties": false
                 }
@@ -2839,6 +3003,57 @@
               "required": [
                 "kind",
                 "actions"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "const": "place"
+                },
+                "ids": {
+                  "minItems": 1,
+                  "maxItems": 200,
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100,
+                    "pattern": "^[A-Za-z0-9_-]+$"
+                  }
+                },
+                "containerId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                },
+                "afterId": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 100,
+                      "pattern": "^[A-Za-z0-9_-]+$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "withChildren": {
+                  "default": true,
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "kind",
+                "ids",
+                "containerId",
+                "afterId",
+                "withChildren"
               ],
               "additionalProperties": false
             }
@@ -3165,6 +3380,38 @@
                         "maxLength": 100,
                         "pattern": "^[A-Za-z0-9_-]+$"
                       }
+                    },
+                    "estimate": {
+                      "default": null,
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "value": {
+                              "type": "number",
+                              "exclusiveMinimum": 0,
+                              "maximum": 9999
+                            },
+                            "unit": {
+                              "type": "string",
+                              "enum": [
+                                "h",
+                                "d",
+                                "w",
+                                "sp"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "value",
+                            "unit"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
                     }
                   },
                   "required": [
@@ -3181,7 +3428,8 @@
                     "rank",
                     "parentId",
                     "releaseId",
-                    "tagIds"
+                    "tagIds",
+                    "estimate"
                   ],
                   "additionalProperties": false
                 }
@@ -3392,6 +3640,38 @@
                         "maxLength": 100,
                         "pattern": "^[A-Za-z0-9_-]+$"
                       }
+                    },
+                    "estimate": {
+                      "default": null,
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "value": {
+                              "type": "number",
+                              "exclusiveMinimum": 0,
+                              "maximum": 9999
+                            },
+                            "unit": {
+                              "type": "string",
+                              "enum": [
+                                "h",
+                                "d",
+                                "w",
+                                "sp"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "value",
+                            "unit"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
                     }
                   },
                   "required": [
@@ -3408,7 +3688,8 @@
                     "rank",
                     "parentId",
                     "releaseId",
-                    "tagIds"
+                    "tagIds",
+                    "estimate"
                   ],
                   "additionalProperties": false
                 },
@@ -4387,6 +4668,37 @@
                         "maxLength": 100,
                         "pattern": "^[A-Za-z0-9_-]+$"
                       }
+                    },
+                    "estimate": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "value": {
+                              "type": "number",
+                              "exclusiveMinimum": 0,
+                              "maximum": 9999
+                            },
+                            "unit": {
+                              "type": "string",
+                              "enum": [
+                                "h",
+                                "d",
+                                "w",
+                                "sp"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "value",
+                            "unit"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
                     }
                   },
                   "additionalProperties": false
@@ -4486,6 +4798,17 @@
                           "type": "null"
                         }
                       ]
+                    },
+                    "goal": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "maxLength": 240
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
                     }
                   },
                   "required": [
@@ -4573,6 +4896,17 @@
                           "type": "string",
                           "format": "date",
                           "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "goal": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "maxLength": 240
                         },
                         {
                           "type": "null"
@@ -4877,6 +5211,17 @@
                                   "type": "null"
                                 }
                               ]
+                            },
+                            "goal": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "maxLength": 240
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
                             }
                           },
                           "required": [
@@ -5039,6 +5384,17 @@
                                   "type": "string",
                                   "format": "date",
                                   "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "goal": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "maxLength": 240
                                 },
                                 {
                                   "type": "null"
@@ -5390,12 +5746,35 @@
                     },
                     "timezoneInherited": {
                       "type": "boolean"
+                    },
+                    "estimateFormat": {
+                      "default": "time",
+                      "type": "string",
+                      "enum": [
+                        "time",
+                        "points"
+                      ]
+                    },
+                    "hoursPerDay": {
+                      "default": 8,
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 24
+                    },
+                    "hoursPerWeek": {
+                      "default": 40,
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 168
                     }
                   },
                   "required": [
                     "format",
                     "days",
-                    "timezone"
+                    "timezone",
+                    "estimateFormat",
+                    "hoursPerDay",
+                    "hoursPerWeek"
                   ],
                   "additionalProperties": false
                 }
@@ -5645,6 +6024,57 @@
                 "actions"
               ],
               "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "const": "place"
+                },
+                "ids": {
+                  "minItems": 1,
+                  "maxItems": 200,
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100,
+                    "pattern": "^[A-Za-z0-9_-]+$"
+                  }
+                },
+                "containerId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                },
+                "afterId": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 100,
+                      "pattern": "^[A-Za-z0-9_-]+$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "withChildren": {
+                  "default": true,
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "kind",
+                "ids",
+                "containerId",
+                "afterId",
+                "withChildren"
+              ],
+              "additionalProperties": false
             }
           ]
         },
@@ -5758,6 +6188,17 @@
                         "type": "string",
                         "format": "date",
                         "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "goal": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "maxLength": 240
                       },
                       {
                         "type": "null"
@@ -7634,6 +8075,37 @@
                   "type": "integer",
                   "minimum": 0,
                   "maximum": 9007199254740991
+                },
+                "estimate": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "value": {
+                          "type": "number",
+                          "exclusiveMinimum": 0,
+                          "maximum": 9999
+                        },
+                        "unit": {
+                          "type": "string",
+                          "enum": [
+                            "h",
+                            "d",
+                            "w",
+                            "sp"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "value",
+                        "unit"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
                 }
               },
               "required": [
@@ -7969,6 +8441,37 @@
               "type": "integer",
               "minimum": 0,
               "maximum": 9007199254740991
+            },
+            "estimate": {
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "number",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9999
+                    },
+                    "unit": {
+                      "type": "string",
+                      "enum": [
+                        "h",
+                        "d",
+                        "w",
+                        "sp"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "value",
+                    "unit"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "null"
+                }
+              ]
             }
           },
           "required": [
@@ -8324,6 +8827,37 @@
                         "type": "integer",
                         "minimum": 0,
                         "maximum": 9007199254740991
+                      },
+                      "estimate": {
+                        "anyOf": [
+                          {
+                            "type": "object",
+                            "properties": {
+                              "value": {
+                                "type": "number",
+                                "exclusiveMinimum": 0,
+                                "maximum": 9999
+                              },
+                              "unit": {
+                                "type": "string",
+                                "enum": [
+                                  "h",
+                                  "d",
+                                  "w",
+                                  "sp"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "value",
+                              "unit"
+                            ],
+                            "additionalProperties": false
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
                       }
                     },
                     "required": [
@@ -8659,6 +9193,37 @@
                     "type": "integer",
                     "minimum": 0,
                     "maximum": 9007199254740991
+                  },
+                  "estimate": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "value": {
+                            "type": "number",
+                            "exclusiveMinimum": 0,
+                            "maximum": 9999
+                          },
+                          "unit": {
+                            "type": "string",
+                            "enum": [
+                              "h",
+                              "d",
+                              "w",
+                              "sp"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "value",
+                          "unit"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
                   }
                 },
                 "required": [
@@ -10056,6 +10621,37 @@
                     "type": "integer",
                     "minimum": 0,
                     "maximum": 9007199254740991
+                  },
+                  "estimate": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "value": {
+                            "type": "number",
+                            "exclusiveMinimum": 0,
+                            "maximum": 9999
+                          },
+                          "unit": {
+                            "type": "string",
+                            "enum": [
+                              "h",
+                              "d",
+                              "w",
+                              "sp"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "value",
+                          "unit"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
                   }
                 },
                 "required": [
@@ -10386,6 +10982,37 @@
                     "type": "integer",
                     "minimum": 0,
                     "maximum": 9007199254740991
+                  },
+                  "estimate": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "value": {
+                            "type": "number",
+                            "exclusiveMinimum": 0,
+                            "maximum": 9999
+                          },
+                          "unit": {
+                            "type": "string",
+                            "enum": [
+                              "h",
+                              "d",
+                              "w",
+                              "sp"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "value",
+                          "unit"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
                   }
                 },
                 "required": [
@@ -12673,6 +13300,38 @@
                     "maxLength": 100,
                     "pattern": "^[A-Za-z0-9_-]+$"
                   }
+                },
+                "estimate": {
+                  "default": null,
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "value": {
+                          "type": "number",
+                          "exclusiveMinimum": 0,
+                          "maximum": 9999
+                        },
+                        "unit": {
+                          "type": "string",
+                          "enum": [
+                            "h",
+                            "d",
+                            "w",
+                            "sp"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "value",
+                        "unit"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
                 }
               },
               "required": [
@@ -12689,7 +13348,8 @@
                 "rank",
                 "parentId",
                 "releaseId",
-                "tagIds"
+                "tagIds",
+                "estimate"
               ],
               "additionalProperties": false
             }
@@ -12900,6 +13560,38 @@
                     "maxLength": 100,
                     "pattern": "^[A-Za-z0-9_-]+$"
                   }
+                },
+                "estimate": {
+                  "default": null,
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "value": {
+                          "type": "number",
+                          "exclusiveMinimum": 0,
+                          "maximum": 9999
+                        },
+                        "unit": {
+                          "type": "string",
+                          "enum": [
+                            "h",
+                            "d",
+                            "w",
+                            "sp"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "value",
+                        "unit"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
                 }
               },
               "required": [
@@ -12916,7 +13608,8 @@
                 "rank",
                 "parentId",
                 "releaseId",
-                "tagIds"
+                "tagIds",
+                "estimate"
               ],
               "additionalProperties": false
             },
@@ -13895,6 +14588,37 @@
                     "maxLength": 100,
                     "pattern": "^[A-Za-z0-9_-]+$"
                   }
+                },
+                "estimate": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "value": {
+                          "type": "number",
+                          "exclusiveMinimum": 0,
+                          "maximum": 9999
+                        },
+                        "unit": {
+                          "type": "string",
+                          "enum": [
+                            "h",
+                            "d",
+                            "w",
+                            "sp"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "value",
+                        "unit"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
                 }
               },
               "additionalProperties": false
@@ -13994,6 +14718,17 @@
                       "type": "null"
                     }
                   ]
+                },
+                "goal": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "maxLength": 240
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
                 }
               },
               "required": [
@@ -14081,6 +14816,17 @@
                       "type": "string",
                       "format": "date",
                       "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "goal": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "maxLength": 240
                     },
                     {
                       "type": "null"
@@ -14385,6 +15131,17 @@
                               "type": "null"
                             }
                           ]
+                        },
+                        "goal": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "maxLength": 240
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
                         }
                       },
                       "required": [
@@ -14547,6 +15304,17 @@
                               "type": "string",
                               "format": "date",
                               "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "goal": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "maxLength": 240
                             },
                             {
                               "type": "null"
@@ -14898,12 +15666,35 @@
                 },
                 "timezoneInherited": {
                   "type": "boolean"
+                },
+                "estimateFormat": {
+                  "default": "time",
+                  "type": "string",
+                  "enum": [
+                    "time",
+                    "points"
+                  ]
+                },
+                "hoursPerDay": {
+                  "default": 8,
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 24
+                },
+                "hoursPerWeek": {
+                  "default": 40,
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 168
                 }
               },
               "required": [
                 "format",
                 "days",
-                "timezone"
+                "timezone",
+                "estimateFormat",
+                "hoursPerDay",
+                "hoursPerWeek"
               ],
               "additionalProperties": false
             }
@@ -15153,6 +15944,57 @@
             "actions"
           ],
           "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "place"
+            },
+            "ids": {
+              "minItems": 1,
+              "maxItems": 200,
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100,
+                "pattern": "^[A-Za-z0-9_-]+$"
+              }
+            },
+            "containerId": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100,
+              "pattern": "^[A-Za-z0-9_-]+$"
+            },
+            "afterId": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "withChildren": {
+              "default": true,
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "kind",
+            "ids",
+            "containerId",
+            "afterId",
+            "withChildren"
+          ],
+          "additionalProperties": false
         }
       ]
     },
@@ -15179,12 +16021,35 @@
         },
         "timezoneInherited": {
           "type": "boolean"
+        },
+        "estimateFormat": {
+          "default": "time",
+          "type": "string",
+          "enum": [
+            "time",
+            "points"
+          ]
+        },
+        "hoursPerDay": {
+          "default": 8,
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 24
+        },
+        "hoursPerWeek": {
+          "default": 40,
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 168
         }
       },
       "required": [
         "format",
         "days",
-        "timezone"
+        "timezone",
+        "estimateFormat",
+        "hoursPerDay",
+        "hoursPerWeek"
       ],
       "additionalProperties": false
     },
@@ -15494,6 +16359,37 @@
                 "type": "integer",
                 "minimum": 0,
                 "maximum": 9007199254740991
+              },
+              "estimate": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "value": {
+                        "type": "number",
+                        "exclusiveMinimum": 0,
+                        "maximum": 9999
+                      },
+                      "unit": {
+                        "type": "string",
+                        "enum": [
+                          "h",
+                          "d",
+                          "w",
+                          "sp"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "value",
+                      "unit"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
               }
             },
             "required": [
@@ -15922,6 +16818,37 @@
           "type": "integer",
           "minimum": 0,
           "maximum": 9007199254740991
+        },
+        "estimate": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "type": "number",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9999
+                },
+                "unit": {
+                  "type": "string",
+                  "enum": [
+                    "h",
+                    "d",
+                    "w",
+                    "sp"
+                  ]
+                }
+              },
+              "required": [
+                "value",
+                "unit"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       },
       "required": [
@@ -16313,6 +17240,37 @@
                         "type": "integer",
                         "minimum": 0,
                         "maximum": 9007199254740991
+                      },
+                      "estimate": {
+                        "anyOf": [
+                          {
+                            "type": "object",
+                            "properties": {
+                              "value": {
+                                "type": "number",
+                                "exclusiveMinimum": 0,
+                                "maximum": 9999
+                              },
+                              "unit": {
+                                "type": "string",
+                                "enum": [
+                                  "h",
+                                  "d",
+                                  "w",
+                                  "sp"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "value",
+                              "unit"
+                            ],
+                            "additionalProperties": false
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
                       }
                     },
                     "required": [
@@ -16648,6 +17606,37 @@
                     "type": "integer",
                     "minimum": 0,
                     "maximum": 9007199254740991
+                  },
+                  "estimate": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "value": {
+                            "type": "number",
+                            "exclusiveMinimum": 0,
+                            "maximum": 9999
+                          },
+                          "unit": {
+                            "type": "string",
+                            "enum": [
+                              "h",
+                              "d",
+                              "w",
+                              "sp"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "value",
+                          "unit"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
                   }
                 },
                 "required": [
@@ -16759,6 +17748,17 @@
                     "type": "string",
                     "format": "date",
                     "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "goal": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "maxLength": 240
                   },
                   {
                     "type": "null"
@@ -18534,6 +19534,38 @@
                 "maxLength": 100,
                 "pattern": "^[A-Za-z0-9_-]+$"
               }
+            },
+            "estimate": {
+              "default": null,
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "number",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9999
+                    },
+                    "unit": {
+                      "type": "string",
+                      "enum": [
+                        "h",
+                        "d",
+                        "w",
+                        "sp"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "value",
+                    "unit"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "null"
+                }
+              ]
             }
           },
           "required": [
@@ -18550,7 +19582,8 @@
             "rank",
             "parentId",
             "releaseId",
-            "tagIds"
+            "tagIds",
+            "estimate"
           ],
           "additionalProperties": false
         },
@@ -19246,6 +20279,17 @@
                   }
                 ]
               },
+              "goal": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "maxLength": 240
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
               "id": {
                 "type": "string",
                 "minLength": 1,
@@ -19424,6 +20468,17 @@
             }
           ]
         },
+        "goal": {
+          "anyOf": [
+            {
+              "type": "string",
+              "maxLength": 240
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "id": {
           "type": "string",
           "minLength": 1,
@@ -19538,6 +20593,17 @@
               "type": "null"
             }
           ]
+        },
+        "goal": {
+          "anyOf": [
+            {
+              "type": "string",
+              "maxLength": 240
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       },
       "required": [
@@ -19607,6 +20673,17 @@
                   "type": "string",
                   "format": "date",
                   "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "goal": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 240
                 },
                 {
                   "type": "null"
@@ -19682,6 +20759,67 @@
       "required": [
         "resolved",
         "baseRevision"
+      ],
+      "additionalProperties": false
+    },
+    "RestoreValue": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "const": "restore"
+        },
+        "expectedRevision": {
+          "type": "string",
+          "pattern": "^\\d+$"
+        },
+        "items": {
+          "minItems": 1,
+          "maxItems": 2000,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100,
+                "pattern": "^[A-Za-z0-9_-]+$"
+              },
+              "containerId": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100,
+                "pattern": "^[A-Za-z0-9_-]+$"
+              },
+              "inherit": {
+                "type": "boolean"
+              },
+              "rank": {
+                "type": "number"
+              },
+              "admitted": {
+                "type": [
+                  "boolean",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "id",
+              "containerId",
+              "inherit",
+              "rank"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "kind",
+        "expectedRevision",
+        "items"
       ],
       "additionalProperties": false
     },
@@ -20439,6 +21577,31 @@
       ],
       "additionalProperties": false
     },
+    "TaskEstimate": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 9999
+        },
+        "unit": {
+          "type": "string",
+          "enum": [
+            "h",
+            "d",
+            "w",
+            "sp"
+          ]
+        }
+      },
+      "required": [
+        "value",
+        "unit"
+      ],
+      "additionalProperties": false
+    },
     "TaskInput": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
@@ -20625,6 +21788,38 @@
             "maxLength": 100,
             "pattern": "^[A-Za-z0-9_-]+$"
           }
+        },
+        "estimate": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "type": "number",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9999
+                },
+                "unit": {
+                  "type": "string",
+                  "enum": [
+                    "h",
+                    "d",
+                    "w",
+                    "sp"
+                  ]
+                }
+              },
+              "required": [
+                "value",
+                "unit"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       },
       "required": [
@@ -20641,7 +21836,8 @@
         "rank",
         "parentId",
         "releaseId",
-        "tagIds"
+        "tagIds",
+        "estimate"
       ],
       "additionalProperties": false
     },
@@ -21122,6 +22318,12 @@
       ],
       "additionalProperties": false
     },
+    "ViewContainersQuery": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    },
     "ViewFilters": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
@@ -21405,6 +22607,38 @@
                     "maxLength": 100,
                     "pattern": "^[A-Za-z0-9_-]+$"
                   }
+                },
+                "estimate": {
+                  "default": null,
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "value": {
+                          "type": "number",
+                          "exclusiveMinimum": 0,
+                          "maximum": 9999
+                        },
+                        "unit": {
+                          "type": "string",
+                          "enum": [
+                            "h",
+                            "d",
+                            "w",
+                            "sp"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "value",
+                        "unit"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
                 }
               },
               "required": [
@@ -21421,7 +22655,8 @@
                 "rank",
                 "parentId",
                 "releaseId",
-                "tagIds"
+                "tagIds",
+                "estimate"
               ],
               "additionalProperties": false
             }
@@ -21632,6 +22867,38 @@
                     "maxLength": 100,
                     "pattern": "^[A-Za-z0-9_-]+$"
                   }
+                },
+                "estimate": {
+                  "default": null,
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "value": {
+                          "type": "number",
+                          "exclusiveMinimum": 0,
+                          "maximum": 9999
+                        },
+                        "unit": {
+                          "type": "string",
+                          "enum": [
+                            "h",
+                            "d",
+                            "w",
+                            "sp"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "value",
+                        "unit"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
                 }
               },
               "required": [
@@ -21648,7 +22915,8 @@
                 "rank",
                 "parentId",
                 "releaseId",
-                "tagIds"
+                "tagIds",
+                "estimate"
               ],
               "additionalProperties": false
             },
@@ -21799,7 +23067,8 @@
                 "owner",
                 "priority",
                 "due",
-                "tags"
+                "tags",
+                "estimate"
               ]
             },
             "value": {
@@ -21817,6 +23086,30 @@
                     "maxLength": 100,
                     "pattern": "^[A-Za-z0-9_-]+$"
                   }
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "number",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9999
+                    },
+                    "unit": {
+                      "type": "string",
+                      "enum": [
+                        "h",
+                        "d",
+                        "w",
+                        "sp"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "value",
+                    "unit"
+                  ],
+                  "additionalProperties": false
                 },
                 {
                   "type": "null"
@@ -21933,6 +23226,17 @@
                       "type": "null"
                     }
                   ]
+                },
+                "goal": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "maxLength": 240
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
                 }
               },
               "required": [
@@ -22004,6 +23308,17 @@
                       "type": "string",
                       "format": "date",
                       "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "goal": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "maxLength": 240
                     },
                     {
                       "type": "null"
@@ -22098,6 +23413,17 @@
                       "type": "string",
                       "format": "date",
                       "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "goal": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "maxLength": 240
                     },
                     {
                       "type": "null"
@@ -22587,6 +23913,23 @@
                 },
                 "inheritTimeZone": {
                   "type": "boolean"
+                },
+                "estimateFormat": {
+                  "type": "string",
+                  "enum": [
+                    "time",
+                    "points"
+                  ]
+                },
+                "hoursPerDay": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 24
+                },
+                "hoursPerWeek": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 168
                 }
               },
               "required": [
@@ -22628,8 +23971,166 @@
             "days"
           ],
           "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "place"
+            },
+            "ids": {
+              "minItems": 1,
+              "maxItems": 200,
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100,
+                "pattern": "^[A-Za-z0-9_-]+$"
+              }
+            },
+            "containerId": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100,
+              "pattern": "^[A-Za-z0-9_-]+$"
+            },
+            "afterId": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "withChildren": {
+              "default": true,
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "kind",
+            "ids",
+            "containerId",
+            "withChildren"
+          ],
+          "additionalProperties": false
         }
       ]
+    },
+    "ViewMoveRequest": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "ids": {
+          "minItems": 1,
+          "maxItems": 200,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "pattern": "^[A-Za-z0-9_-]+$"
+          }
+        },
+        "containerId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "afterId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100,
+              "pattern": "^[A-Za-z0-9_-]+$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "withChildren": {
+          "default": true,
+          "type": "boolean"
+        },
+        "expectedRevision": {
+          "type": "string",
+          "pattern": "^\\d+$"
+        },
+        "restore": {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "restore"
+            },
+            "expectedRevision": {
+              "type": "string",
+              "pattern": "^\\d+$"
+            },
+            "items": {
+              "minItems": 1,
+              "maxItems": 2000,
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100,
+                    "pattern": "^[A-Za-z0-9_-]+$"
+                  },
+                  "containerId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100,
+                    "pattern": "^[A-Za-z0-9_-]+$"
+                  },
+                  "inherit": {
+                    "type": "boolean"
+                  },
+                  "rank": {
+                    "type": "number"
+                  },
+                  "admitted": {
+                    "type": [
+                      "boolean",
+                      "null"
+                    ]
+                  }
+                },
+                "required": [
+                  "id",
+                  "containerId",
+                  "inherit",
+                  "rank"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": [
+            "kind",
+            "expectedRevision",
+            "items"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "withChildren"
+      ],
+      "additionalProperties": false
     },
     "ViewOptionsQuery": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",

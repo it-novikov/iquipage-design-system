@@ -151,7 +151,9 @@ test('P09 date ranges, timeboxes, temporal conflict and cycle detection, without
   assert.equal((await request('PUT','planning/milestones/gate',{baseRevision:0,value:{title:'Gate',date:'2026-09-11'}})).statusCode,200);
   const constraint={source:{kind:'release',id:'dated'},target:{kind:'milestone',id:'gate'},relation:'FS',lagDays:1};
   assert.equal((await request('PUT','planning/constraints/dependency',{baseRevision:0,value:constraint})).statusCode,200);
-  assert.equal((await request('PUT','planning/milestones/gate',{baseRevision:1,value:{title:'Gate',date:'2026-09-09'}})).statusCode,409);
+  // planning-r4.0: a date that breaks a constraint is saved (the preview warns); only a cycle is refused.
+  assert.equal((await request('PUT','planning/milestones/gate',{baseRevision:1,value:{title:'Gate',date:'2026-09-09'}})).statusCode,200);
+  assert.equal((await request('PUT','planning/milestones/gate',{baseRevision:2,value:{title:'Gate',date:'2026-09-11'}})).statusCode,200);
   const cyc=await request('PUT','planning/constraints/cycle',{baseRevision:0,value:{source:constraint.target,target:constraint.source,relation:'SS',lagDays:-100}});assert.equal(cyc.statusCode,422,cyc.body);
   const roadmap=(await request('GET','planning/roadmap?from=2026-09-01&to=2026-09-30&undated=false')).json();assert.equal(roadmap.timezone,'UTC');assert.equal(roadmap.items.find((i:{id:string})=>i.id==='gate').start,'2026-09-11');
 });

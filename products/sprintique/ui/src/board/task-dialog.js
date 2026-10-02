@@ -15,6 +15,7 @@ import {mountTaskDescription} from './description-view.js';
 import {copyAtButton,motionReduced,ui,notify,formatDate} from '@iquipage/web/core';
 import {taskKey,taskURL} from './task-route.js';
 import {avatarName,ownerOptions,ownerWarning} from './assignees.js';
+import {formatEstimate,estimateEditor,estimateMismatch} from '../estimate.js';
 
 export async function openTaskDialog(task,{repository,project,tasks,canEdit=true,canManage=true,attachmentAdapter=null,status='ready',initialValues={},fullscreen=false,backTo=null,onBack=()=>{},onOpenTask,onReload=onOpenTask&&(()=>onOpenTask(task.id)),onSaved=()=>{},isActive=()=>true,signal,replace=null,supplement=null}){
   signal?.throwIfAborted();const initialTask=task;
@@ -88,6 +89,8 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
   })();
   // The plan is saved by the planning command (preview, then commit), so it needs the host's planning hook.
   const canPlan=canEdit&&typeof repository.applyPlanningChange==='function';
+  // The estimate (planning R4.1): a number with its unit, edited in place and saved with the other fields.
+  let estimate=initial.estimate||null,estimateSettings=null;
   // One entry per row, in reading order, in both the editable and the read-only list: a new fact (such as the
   // estimate, right after «Приоритет») is one more entry in each.
   const editableFacts=()=>`<div class="iq-properties" data-label="wide">${[
@@ -95,6 +98,7 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
     `<iq-select name="ownerId" label="Исполнитель" searchable search-placeholder="Найти участника" value="${esc(initial.ownerId||'')}" options="${opts(ownerChoices)}"></iq-select>`,
     `<iq-date-field name="due" label="Срок" placeholder="Без срока" ${finished(statusValue)?'':'deadline'} value="${esc(initial.due||'')}"></iq-date-field>`,
     `<iq-select name="priority" label="Приоритет" trigger-icon="none" value="${esc(initial.priority||'normal')}" options="${opts(priorityOptions)}"></iq-select>`,
+    '<div data-task-estimate></div>',
     `<iq-select name="type" label="Тип" trigger-icon="none" value="${esc(initial.type||'task')}" options="${opts(kindOptions)}"></iq-select>`,
     '<div class="task-property-slot" data-task-catalogs></div>',
     '<div data-task-plan></div>',
@@ -121,6 +125,7 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
         row('Исполнитель',ownerValue,{empty:!owner?.value&&!initial.legacyOwner}),
         row('Срок',initial.due?`<span class="iq-property-text">${esc(formatDate(initial.due)+(signal?' · '+signal.word:''))}</span>`:'Без срока',{empty:!initial.due,tone:signal?.tone}),
         row('Приоритет',esc(priority.label),{tone:priority.tone}),
+        row('Оценка',initial.estimate?`<span class="iq-property-text">${esc(formatEstimate(initial.estimate))}</span>`:'Без оценки',{empty:!initial.estimate}),
         row('Тип',esc(kind.label)),
         row('Релиз',release?`<span class="iq-property-text">${esc(catalogLabel(release))}</span>`:'Без релиза',{empty:!release}),
         '<div data-task-plan></div>',
@@ -149,9 +154,26 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
     ownerId:form.querySelector('iq-select[name=ownerId]').value||null,priority:values.get('priority')||'normal',
     ...markdownTaskChanges(initial,form.querySelector('iq-markdown-editor[name=description]').value),
     due:form.querySelector('iq-date-field[name=due]').value||null,
-    parentId:form.querySelector('iq-select[name=parent]').value||null,
+    parentId:form.querySelector('iq-select[name=parent]').value||null,estimate,
     ...catalogs.value(),...files.value(),templateVersion
   });
+  /** «Оценка» right after «Приоритет»: a ghost value; the editor opens in place and the change saves with the task. */
+  function mountEstimate(form){
+    const slot=form.querySelector('[data-task-estimate]');if(!slot)return;
+    slot.classList.add('iq-property');
+    const id=uid();
+    const paint=()=>{
+      const other=!!estimateSettings&&estimateMismatch(estimate,estimateSettings.estimateFormat);
+      slot.innerHTML=`<span class="iq-property-label" id="${id}-label">Оценка</span><button type="button" class="iq-date-trigger tdr-plan-trigger" aria-haspopup="dialog" aria-labelledby="${id}-label ${id}-value"><span id="${id}-value" data-date-caption${estimate?'':' data-empty="true"'}>${esc(estimate?formatEstimate(estimate)+(other?' · в другом формате':''):'Без оценки')}</span>${icon('down',16)}</button>`;
+    };
+    paint();
+    repository.client?.request?.(`/projects/${encodeURIComponent(project.id)}/planning/view/settings`).then(value=>{estimateSettings=value;paint();}).catch(()=>{});
+    slot.addEventListener('click',event=>{
+      const trigger=event.target.closest('button');if(!trigger)return;
+      estimateEditor(trigger,{value:estimate,format:estimateSettings?.estimateFormat||'time',hoursPerDay:estimateSettings?.hoursPerDay||8,hoursPerWeek:estimateSettings?.hoursPerWeek||40,
+        onSave:value=>{estimate=value;paint();form.dispatchEvent(new Event('change'));slot.querySelector('button')?.focus();}});
+    });
+  }
   const scheduleIntent=value=>({kind:'schedule',entityKind:'task',entityId:taskId,values:{start:value.start,end:value.end}});
   const el=dialog({title:task?taskKey(task):'Новая задача',body:content,wide:true,replace,submitLabel:canEdit&&!task?'Создать задачу':'',
     onSubmit:canEdit&&!task?async(values,form)=>{
@@ -208,6 +230,7 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
       const dueField=form.querySelector('iq-date-field[name=due]');
       // Finished work carries no deadline signal: «Готово к релизу» removes it, another status brings it back.
       if(dueField)form.addEventListener('iq-change',event=>{if(event.target.getAttribute?.('name')==='status')dueField.toggleAttribute('deadline',!finished(event.target.value));});
+      mountEstimate(form);
       description=mountTaskDescription(form.querySelector('[data-description]'),{value:taskMarkdown(initial),editing:false,readOnly:!canEdit});
       catalogs=canEdit?mountTaskCatalogs(form.querySelector('[data-task-catalogs]'),{tagsRoot:form.querySelector('[data-task-tags]'),repository,project,task:initial,tags:support.tags,releases:support.releases,canManage,onChange:()=>form.dispatchEvent(new Event('change'))})
         :{value:()=>({releaseId:initial.releaseId||null,tagIds:[...(initial.tagIds||[])]}),destroy(){}};

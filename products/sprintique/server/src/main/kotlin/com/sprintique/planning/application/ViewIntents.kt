@@ -39,7 +39,7 @@ class ViewIntents(
             )
         }
         val selection = (intent as? ViewIntent.Selecting)?.let { selectionOf(tx, actor, projectId, it, c.revision) }
-        val value = commandOf(intent, projectId, selection, c.rows)
+        val value = commandOf(intent, projectId, selection, c)
         if (intent is ViewIntent.Batch) {
             for (action in intent.actions) {
                 action.expectedProjectionRevision?.let {
@@ -79,7 +79,7 @@ class ViewIntents(
         intent: ViewIntent,
         projectId: String,
         selection: Any?,
-        rows: List<PlanningRow>,
+        c: ViewContext,
     ): Map<String, Any?> =
         when (intent) {
             is ViewIntent.TaskEdit -> linkedMapOf(
@@ -132,13 +132,15 @@ class ViewIntents(
 
                     ViewIntent.BulkField.TAGS -> mapOf("addTagIds" to intent.value)
 
+                    ViewIntent.BulkField.ESTIMATE -> mapOf("estimate" to intent.value)
+
                     else -> mapOf(intent.field.wire to intent.value)
                 },
             )
 
             is ViewIntent.Reorder -> linkedMapOf(
                 "kind" to "rank",
-                "ranks" to reorderRanks(rows, intent.taskIds.single(), intent.beforeId),
+                "ranks" to reorderRanks(c.rows, intent.taskIds.single(), intent.beforeId),
             )
 
             is ViewIntent.Start -> linkedMapOf("kind" to "start", "releaseId" to intent.groupId)
@@ -170,14 +172,28 @@ class ViewIntents(
                 "value" to intent.values,
             )
 
-            is ViewIntent.Settings -> linkedMapOf(
-                "kind" to "settings",
-                "value" to linkedMapOf(
-                    "format" to intent.values.format.wire,
-                    "days" to intent.values.days,
-                    "timezone" to intent.values.timeZone,
-                    "timezoneInherited" to (intent.values.inheritTimeZone == true),
-                ),
+            is ViewIntent.Settings -> {
+                val stored = c.state.defaults
+                linkedMapOf(
+                    "kind" to "settings",
+                    "value" to linkedMapOf(
+                        "format" to intent.values.format.wire,
+                        "days" to intent.values.days,
+                        "timezone" to intent.values.timeZone,
+                        "timezoneInherited" to (intent.values.inheritTimeZone == true),
+                        "estimateFormat" to (intent.values.estimateFormat?.wire ?: stored?.estimateFormat ?: "time"),
+                        "hoursPerDay" to (intent.values.hoursPerDay ?: stored?.hoursPerDay ?: DAY_HOURS),
+                        "hoursPerWeek" to (intent.values.hoursPerWeek ?: stored?.hoursPerWeek ?: WEEK_HOURS),
+                    ),
+                )
+            }
+
+            is ViewIntent.Place -> linkedMapOf(
+                "kind" to "place",
+                "ids" to intent.ids,
+                "containerId" to intent.containerId,
+                "afterId" to intent.afterId,
+                "withChildren" to intent.withChildren,
             )
 
             is ViewIntent.ShiftDates -> linkedMapOf(
@@ -315,5 +331,7 @@ class ViewIntents(
     private companion object {
         const val CHANGE_LIMIT = 200
         const val STEP = 1024.0
+        const val DAY_HOURS = 8
+        const val WEEK_HOURS = 40
     }
 }

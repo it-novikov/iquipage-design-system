@@ -9,6 +9,7 @@ import com.sprintique.contract.ResourceIds
 import com.sprintique.contract.TrimmedString
 import com.sprintique.contract.UniqueItems
 import com.sprintique.task.domain.TaskContent
+import com.sprintique.task.domain.TaskEstimate
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.Valid
 import jakarta.validation.constraints.AssertTrue
@@ -75,6 +76,19 @@ data class CoverCropRequest(
     }
 }
 
+enum class EstimateUnit(@get:JsonValue val wire: String) { HOURS("h"), DAYS("d"), WEEKS("w"), POINTS("sp") }
+
+/** A task's estimate as entered: a positive value up to 9999 with at most two decimals, and its unit. */
+@Schema(name = "TaskEstimate")
+data class TaskEstimateRequest(val value: Double, val unit: EstimateUnit) {
+    @get:JsonIgnore
+    @get:Schema(hidden = true)
+    @get:AssertTrue
+    val isValueValid: Boolean get() = TaskEstimate.valid(value, unit.wire)
+
+    fun toDomain() = TaskEstimate(value, unit.wire)
+}
+
 @Schema(name = "TaskInput")
 data class TaskInputRequest(
     @field:Size(max = 50) @field:UniqueItems @field:ResourceIds
@@ -103,6 +117,8 @@ data class TaskInputRequest(
     val releaseId: String? = null,
     @field:Size(max = 30) @field:UniqueItems @field:ResourceIds
     val tagIds: List<String> = emptyList(),
+    @field:Valid
+    val estimate: TaskEstimateRequest? = null,
 ) {
     @get:JsonIgnore
     @get:Schema(hidden = true)
@@ -125,6 +141,7 @@ data class TaskInputRequest(
         parentId = parentId,
         releaseId = releaseId,
         tagIds = tagIds,
+        estimate = estimate?.toDomain(),
     )
 
     companion object {
