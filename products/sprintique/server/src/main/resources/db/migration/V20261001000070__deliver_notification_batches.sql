@@ -226,3 +226,12 @@ LANGUAGE sql STABLE SECURITY DEFINER SET search_path=pg_catalog AS $$
   WHERE c.chat_id=chat AND p.kind='human' AND p.disabled_at IS NULL
 $$;
 REVOKE ALL ON FUNCTION app.telegram_chat_person(bigint) FROM PUBLIC;
+
+-- A write made from a Telegram button or reply is audited as such (credential kind `telegram`).
+DO $$ DECLARE found text; BEGIN
+  SELECT conname INTO STRICT found FROM pg_constraint
+  WHERE conrelid='app.audit_events'::regclass AND contype='c' AND pg_get_constraintdef(oid) LIKE '%credential_kind%';
+  EXECUTE format('ALTER TABLE app.audit_events DROP CONSTRAINT %I',found);
+END $$;
+ALTER TABLE app.audit_events ADD CONSTRAINT audit_events_credential_kind_check
+  CHECK(credential_kind IS NULL OR credential_kind IN ('session','agent','service','oauth','telegram'));

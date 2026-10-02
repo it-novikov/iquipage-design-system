@@ -41,5 +41,6 @@ object TelegramMessages {
     const val BUTTON_FOREIGN = "Эта кнопка не для аккаунта, подключённого к этому чату."
     const val REPLY_HINT = "Ответьте на это сообщение, и ответ появится в обсуждении задачи."
     const val REPLY_SENT = "Ответ отправлен в обсуждение."
+    const val FAILED = "Не получилось. Откройте задачу в Sprintique."
     const val REPLY_NOWHERE = "Ответить в обсуждение можно на сообщение об упоминании."
 }

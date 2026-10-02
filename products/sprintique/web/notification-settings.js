@@ -95,7 +95,7 @@ export async function mountNotificationSettings(root,{repository}){
  */
 export function askToKeepMail({address,turnOff}){
   return dialog({title:'Telegram подключён',
-    description:`Уведомления будут приходить и в Telegram, и на почту ${address}. Если Telegram достаточно, письма можно отключить.`,
+    body:`<p>Уведомления будут приходить и в Telegram, и на почту <b>${esc(address)}</b>. Если Telegram достаточно, письма можно отключить. Изменить это можно в любой момент в настройках уведомлений.</p>`,
     submitLabel:'Отключить почту',success:'Письма отключены',onSubmit:async()=>{await turnOff();},
     mount:el=>{const keep=el.querySelector('.iq-dialog-footer [data-close]');if(keep)keep.textContent='Оставить оба';}});
 }

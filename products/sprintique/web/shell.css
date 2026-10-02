@@ -121,6 +121,8 @@
 .pn-bell-task{color:var(--iq-ink);font-size:var(--iq-type-label-size);line-height:1.4;font-weight:500;overflow-wrap:anywhere}
 .pn-bell-actions{display:flex;flex-wrap:wrap;gap:var(--iq-space-2);padding:0 var(--iq-space-3) var(--iq-space-2) calc(var(--iq-space-3) + 24px + var(--iq-space-3))}
 .pn-bell-actions:empty{display:none}
+/* The menu stretches its own items; DS buttons inside a row keep their size. */
+.pn-bell-popup .pn-bell-actions .iq-btn,.pn-bell-popup .pn-bell-reply .iq-btn{width:auto;min-height:var(--iq-control-sm);padding:0 var(--iq-space-3);justify-content:center}
 .pn-bell-reply{display:flex;align-items:center;gap:var(--iq-space-2);padding:0 var(--iq-space-3) var(--iq-space-3) calc(var(--iq-space-3) + 24px + var(--iq-space-3))}
 .pn-bell-reply .iq-input-shell{flex:1;min-width:0;min-height:var(--iq-control-sm)}
 .pn-bell-reply .iq-input-shell input{padding:var(--iq-space-2) 0}

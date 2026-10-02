@@ -203,7 +203,8 @@ class NotificationController(
         }
         val reply = try {
             body?.takeIf { it.isObject }?.let(telegram::handle)
-        } catch (@Suppress("TooGenericExceptionCaught") error: RuntimeException) {
+        } catch (@Suppress("TooGenericExceptionCaught") error: Exception) {
+            // Telegram would repeat an update answered with an error: it is dropped, with the class in the log only.
             log.warn("Telegram update not handled: {}", error.javaClass.name)
             null
         }

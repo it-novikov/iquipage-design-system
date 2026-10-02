@@ -146,12 +146,20 @@ class TelegramQuickActions(
                 credentialKind = CredentialKind.TELEGRAM,
             )
 
-            @Suppress("UNCHECKED_CAST")
-            val result = actions.perform(tx, actor, notification.toString(), action, input, key) as Map<String, Any?>
-            (result["result"] as? String ?: "Готово") to true
+            // A first run returns a map; a repeated command returns what the ledger kept, as JSON.
+            val result = when (val done = actions.perform(tx, actor, notification.toString(), action, input, key)) {
+                is Map<*, *> -> done["result"] as? String
+                is JsonNode -> done.get("result")?.takeIf { it.isString }?.asString()
+                else -> null
+            }
+            (result ?: "Готово") to true
         }
     } catch (refused: ProblemException) {
         (refused.message ?: TelegramMessages.BUTTON_INVALID) to false
+    } catch (@Suppress("TooGenericExceptionCaught") failed: Exception) {
+        // A failure the person cannot fix from the chat: the class only, never the data.
+        log.warn("Telegram quick action failed: {}", failed.javaClass.name)
+        TelegramMessages.FAILED to false
     }
 
     private fun personOf(tx: Transaction, chat: Long): String? =
