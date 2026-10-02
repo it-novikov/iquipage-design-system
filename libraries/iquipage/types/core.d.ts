@@ -57,7 +57,7 @@ export declare class IqTime extends HTMLElement {value:string;hourCycle:12|24;}
 export interface MarkdownEditorAction {id:string;label:string;pressed:boolean;disabled?:boolean;tone?:'neutral'|'warning';hint?:string;/** 'chip' renders a compact pressed toggle (chat composers); 'check' a checkbox with a hint. */appearance?:'check'|'chip';icon?:string;}
 export interface MarkdownEditorActionIntent {id:string;pressed:boolean;previous:boolean;reason?:'reset';}
 export interface MarkdownEditorSubmit {value:string;/** true for Ctrl/⌘+Alt+Enter (for example: reply and resolve). */alternate:boolean;}
-export declare class IqMarkdownEditor extends HTMLElement {value:string;disabled:boolean;readOnly:boolean;previewOnBlur:boolean;previewMode:boolean;interactiveTasks:boolean;density:'compact'|'comfortable';footerActions:MarkdownEditorAction[];/** Host actions at the end of the toolbar, shown only while editing; a click emits iq-editor-action {id}. */toolbarActions:MarkdownToolbarAction[];/** vnext.29: who «@» can mention; null turns the mention list off. The preview shows their current names. */mentions:MentionMember[]|null;preview():void;focusEditor():void;/** variant="chat" idle="line": false while the composer rests as one line. */readonly expanded:boolean;expand(options?:{focus?:boolean}):void;collapse():void;reset():void;}
+export declare class IqMarkdownEditor extends HTMLElement {value:string;disabled:boolean;readOnly:boolean;previewOnBlur:boolean;previewMode:boolean;interactiveTasks:boolean;density:'compact'|'comfortable';footerActions:MarkdownEditorAction[];/** Host actions at the end of the toolbar, shown only while editing; a click emits iq-editor-action {id}. */toolbarActions:MarkdownToolbarAction[];/** vnext.29: who «@» can mention; null turns the mention list off. The field shows «@Имя», `value` has the tokens; the preview shows current names. */mentions:MentionMember[]|null;preview():void;focusEditor():void;/** variant="chat" idle="line": false while the composer rests as one line. */readonly expanded:boolean;expand(options?:{focus?:boolean}):void;collapse():void;reset():void;}
 export interface MarkdownToolbarAction {id:string;label:string;icon?:string;}
 export declare class IqPagination extends HTMLElement {total:number;current:number;}
 export interface TreeNode {id:string;label:string;children?:TreeNode[];count?:number;disabled?:boolean;}
@@ -112,8 +112,14 @@ export declare function mentionsHTML(source:string|null|undefined,members?:Menti
 export declare function mentionQuery(value:string,caret:number):{start:number;query:string}|null;
 /** People first, then service accounts; name prefix, word prefix, then substring; case-insensitive, «ё» as «е». */
 export declare function filterMentionCandidates<T extends MentionMember>(members:readonly T[],query:string,limit?:number):T[];
-/** The @ list of a textarea: Enter/Tab inserts, Escape closes; fires `input` and `iq-mention` {id, name}. */
-export declare class MentionAutocomplete {constructor(input:HTMLTextAreaElement|HTMLInputElement,options?:{members?:MentionMember[];label?:string});readonly isOpen:boolean;setMembers(members:MentionMember[]):void;update():void;close():void;destroy():void;}
+/** A picked mention in a composer's plain text: the range of «@Имя» and whom it names. */
+export interface MentionMark {start:number;end:number;id:string;name:string;}
+/** Composer text from Markdown: a member's token as «@Имя» with a mark, anyone else's as its label. */
+export declare function mentionsFromMarkdown(source:string|null|undefined,members?:MentionMembers):{text:string;marks:MentionMark[]};
+/** The message from composer text: every mark still in place becomes its token. */
+export declare function mentionsToMarkdown(text:string,marks:readonly MentionMark[]):string;
+/** The @ list of a textarea. The field shows «@Имя», never a token; Enter/Tab picks, Escape closes, Backspace after a mention removes it whole; fires `input` and `iq-mention` {id, name}. */
+export declare class MentionAutocomplete {constructor(input:HTMLTextAreaElement|HTMLInputElement,options?:{members?:MentionMember[];label?:string});readonly isOpen:boolean;/** Picked mentions now in the text. */readonly mentions:MentionMark[];/** The message with tokens. */toMarkdown():string;/** Shows Markdown with names; returns the field text. */load(markdown:string):string;setMembers(members:MentionMember[]):void;update():void;close():void;destroy():void;}
 export declare function attachMentionAutocomplete(input:HTMLTextAreaElement|HTMLInputElement,options?:{members?:MentionMember[];label?:string}):MentionAutocomplete;
 /** Safe subset, not raw HTML/CommonMark extension execution. HTTPS + local #links only. */
 export declare function safeMarkdown(source:string|null|undefined,options?:MarkdownRenderOptions):string;

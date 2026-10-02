@@ -141,4 +141,68 @@ function filterMentionCandidates(candidates, query, limit = LIST_LIMIT) {
         .sort((a, b) => a.service - b.service || a.rank - b.rank || a.index - b.index);
     return ranked.slice(0, Math.max(1, limit)).map(item => item.member);
 }
-Object.assign(exports, {MENTION_ID_PATTERN: MENTION_ID.source, MENTION_TOKEN_PATTERN: TOKEN_SOURCE, mentionLabel, mentionToken, tokenAt, parseMentions, mentionResolver, mentionHTML, mentionPlainText, mentionsHTML, mentionQuery, filterMentionCandidates});
+
+/*
+ * The composer never shows a token (vnext.29). It holds plain text, «@Имя», and a side map of marks {start, end, id,
+ * name}: the range of each picked mention. The map follows edits; an edit inside a name, or letters typed right
+ * against it, drops the mark and the text is then an ordinary typed mention. Tokens are written only for the message.
+ */
+const WORD = /[\p{L}\p{N}_-]/u;
+/** Plain composer text and its marks from Markdown: a member's token becomes «@Имя» with a mark, anyone else's its label. */
+function mentionsFromMarkdown(source, members) {
+    const resolve = mentionResolver(members), text = String(source ?? ''), marks = [];
+    let out = '', from = 0;
+    for (const token of parseMentions(text)) {
+        out += text.slice(from, token.start);
+        const member = resolve ? resolve(token.id) : {name: token.label};
+        if (member) {
+            marks.push({start: out.length, end: out.length + 1 + member.name.length, id: token.id, name: member.name});
+            out += '@' + member.name;
+        } else out += token.label;
+        from = token.end;
+    }
+    return {text: out + text.slice(from), marks};
+}
+/** Whether a mark still stands for its mention in this text: «@Имя» in place, at a word start. */
+function markHolds(text, mark) {
+    return text.slice(mark.start, mark.end) === '@' + mark.name && !(mark.start > 0 && /[\p{L}\p{N}_@.]/u.test(text[mark.start - 1]))
+        && !WORD.test(text[mark.end] || '');
+}
+/** The Markdown of the message: every mark that still holds becomes its token; the rest of the text is as typed. */
+function mentionsToMarkdown(text, marks) {
+    let out = String(text ?? '');
+    const valid = (Array.isArray(marks) ? marks : []).filter(mark => mark && MENTION_ID.test(String(mark.id ?? '')) && markHolds(out, mark))
+        .sort((a, b) => b.start - a.start);
+    let limit = Infinity;
+    for (const mark of valid) {
+        if (mark.end > limit) continue;
+        out = out.slice(0, mark.start) + mentionToken({id: mark.id, name: mark.name}) + out.slice(mark.end);
+        limit = mark.start;
+    }
+    return out;
+}
+/**
+ * The marks after the text changed from `before` to `after` (one edit: the common start and end are kept). A mark
+ * before the edit stays, one after it moves; one the edit touches inside, or that letters now touch, is dropped.
+ */
+function shiftMentionMarks(marks, before, after) {
+    const a = String(before ?? ''), b = String(after ?? '');
+    if (a === b) return (marks || []).filter(mark => markHolds(b, mark));
+    let head = 0;
+    while (head < a.length && head < b.length && a[head] === b[head]) head++;
+    let tail = 0;
+    while (tail < a.length - head && tail < b.length - head && a[a.length - 1 - tail] === b[b.length - 1 - tail]) tail++;
+    const oldEnd = a.length - tail, delta = b.length - a.length;
+    const next = [];
+    for (const mark of marks || []) {
+        if (mark.end <= head) next.push(mark);
+        else if (mark.start >= oldEnd) next.push({...mark, start: mark.start + delta, end: mark.end + delta});
+    }
+    // A change that only inserted text keeps a mark it borders; markHolds drops one that letters now touch.
+    return next.filter(mark => markHolds(b, mark));
+}
+/** The mark that ends exactly at the caret: Backspace there removes the whole mention. */
+function mentionMarkBefore(marks, caret) {
+    return (marks || []).find(mark => mark.end === caret) || null;
+}
+Object.assign(exports, {mentionsFromMarkdown, mentionsToMarkdown, shiftMentionMarks, mentionMarkBefore, MENTION_ID_PATTERN: MENTION_ID.source, MENTION_TOKEN_PATTERN: TOKEN_SOURCE, mentionLabel, mentionToken, tokenAt, parseMentions, mentionResolver, mentionHTML, mentionPlainText, mentionsHTML, mentionQuery, filterMentionCandidates});

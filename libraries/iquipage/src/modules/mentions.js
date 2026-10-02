@@ -7,7 +7,7 @@
 const components_js_1 = require("./components.js");
 const ui_js_1 = require("./ui.js");
 const tokens = require("./mention-tokens.js");
-const {mentionQuery, filterMentionCandidates, mentionToken} = tokens;
+const {mentionQuery, filterMentionCandidates, mentionsFromMarkdown, mentionsToMarkdown, shiftMentionMarks, mentionMarkBefore} = tokens;
 const MENTION_ID = new RegExp(tokens.MENTION_ID_PATTERN);
 const esc = components_js_1.escapeHTML;
 let sequence = 0;
@@ -29,9 +29,13 @@ function caretPoint(input, index) {
 }
 /**
  * The @ autocomplete of one textarea. `members` are {id, name, kind?: 'human'|'service', description?, image?};
- * people are listed first, service accounts under «Сервисные аккаунты». Picking inserts mentionToken(member) and a
- * space through the browser's own insertText (one undo step), fires `input` and then `iq-mention` {id, name} on the
- * textarea. The list lives next to the textarea (inside a dialog it stays reachable) and opens in the top layer.
+ * people are listed first, service accounts under «Сервисные аккаунты». Picking inserts «@Имя» and a space through
+ * the browser's own insertText (one undo step), fires `input` and then `iq-mention` {id, name} on the textarea. The
+ * list lives next to the textarea (inside a dialog it stays reachable) and opens in the top layer.
+ *
+ * The field never shows a token: it holds plain text and a map of the picked mentions, which follows every edit.
+ * Editing inside a name drops its mention (the text is then an ordinary typed one); Backspace right after a mention
+ * removes it whole. toMarkdown() gives the message with tokens; load(markdown) shows one with names.
  */
 class MentionAutocomplete {
     constructor(input, {members = [], label = 'Упомянуть участника'} = {}) {
@@ -41,6 +45,8 @@ class MentionAutocomplete {
         this.matches = [];
         this.active = 0;
         this.range = null;
+        this.marks = [];
+        this.seen = input.value;
         this.events = new AbortController();
         const doc = input.ownerDocument, id = 'iq-mention-' + (++sequence);
         this.popup = doc.createElement('div');
@@ -64,7 +70,7 @@ class MentionAutocomplete {
         input.setAttribute('aria-controls', id);
         this.setMembers(members);
         const signal = this.events.signal;
-        input.addEventListener('input', () => this.update(), {signal});
+        input.addEventListener('input', () => { this.track(); this.update(); }, {signal});
         input.addEventListener('click', () => this.update(), {signal});
         input.addEventListener('keyup', event => { if (['ArrowLeft', 'ArrowRight', 'Home', 'End', 'PageUp', 'PageDown'].includes(event.key)) this.update(); }, {signal});
         input.addEventListener('keydown', event => this.onKey(event), {signal});
@@ -80,6 +86,23 @@ class MentionAutocomplete {
         doc.defaultView.addEventListener('resize', () => { if (this.isOpen) this.position(); }, {signal});
     }
     get isOpen() { return this.opened; }
+    /** The picked mentions now in the text: {start, end, id, name}. */
+    get mentions() { this.track(); return this.marks.map(mark => ({...mark})); }
+    /** Follows the text to its current value: marks move with edits and drop when their name is edited. */
+    track() {
+        const value = this.input.value;
+        if (value !== this.seen) { this.marks = shiftMentionMarks(this.marks, this.seen, value); this.seen = value; }
+    }
+    /** The message as Markdown: every picked mention still in place becomes its token. */
+    toMarkdown() { this.track(); return mentionsToMarkdown(this.input.value, this.marks); }
+    /** Shows Markdown in the field: a member's token as «@Имя» (a picked mention again), anyone else's as its label. */
+    load(markdown) {
+        const {text, marks} = mentionsFromMarkdown(markdown, this.members.length ? this.members : undefined);
+        this.input.value = text;
+        this.marks = marks;
+        this.seen = text;
+        return text;
+    }
     setMembers(members) {
         if (!Array.isArray(members)) throw new TypeError('Mention members are an array');
         this.members = members.filter(m => m && MENTION_ID.test(String(m.id ?? '')) && typeof m.name === 'string' && m.name.trim())
@@ -91,7 +114,9 @@ class MentionAutocomplete {
         const input = this.input;
         if (input.disabled || input.readOnly || input.selectionStart !== input.selectionEnd || !this.members.length) { this.close(); return; }
         const found = mentionQuery(input.value, input.selectionStart);
-        if (!found) { this.close(); return; }
+        this.track();
+        // The «@» of a picked mention starts no new search.
+        if (!found || this.marks.some(mark => mark.start === found.start)) { this.close(); return; }
         const matches = filterMentionCandidates(this.members, found.query);
         // A space typed after a name nobody has means ordinary text again; so does a space after a whole name, where
         // Enter and Tab belong to the text again.
@@ -150,7 +175,12 @@ class MentionAutocomplete {
         this.list.querySelector('.is-active')?.scrollIntoView?.({block: 'nearest'});
     }
     onKey(event) {
-        if (!this.isOpen || event.isComposing) return;
+        if (event.isComposing) return;
+        if (event.key === 'Backspace' && !this.isOpen && !event.ctrlKey && !event.metaKey && !event.altKey && !event.shiftKey) {
+            this.removeBefore(event);
+            return;
+        }
+        if (!this.isOpen) return;
         if (event.key === 'ArrowDown' || event.key === 'ArrowUp') { event.preventDefault(); this.move(event.key === 'ArrowDown' ? 1 : -1); return; }
         if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); this.close(); return; }
         if ((event.key === 'Enter' || event.key === 'Tab') && !event.ctrlKey && !event.metaKey && !event.altKey && !event.shiftKey && this.matches.length) {
@@ -159,21 +189,40 @@ class MentionAutocomplete {
         }
         if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) this.close();
     }
-    /** Replaces «@query» with the member's token and a space. */
+    /** Backspace right after a picked mention removes the whole mention, in one undo step. */
+    removeBefore(event) {
+        const input = this.input;
+        if (input.disabled || input.readOnly || input.selectionStart !== input.selectionEnd) return;
+        this.track();
+        const mark = mentionMarkBefore(this.marks, input.selectionStart);
+        if (!mark) return;
+        event.preventDefault();
+        this.replace(mark.start, mark.end, '');
+    }
+    /** Replaces a range through the browser's insertText (one undo step), else setRangeText and an input event. */
+    replace(start, end, text) {
+        const input = this.input;
+        input.focus({preventScroll: true});
+        input.setSelectionRange(start, end);
+        let done = false;
+        try { done = input.ownerDocument.execCommand(text ? 'insertText' : 'delete', false, text); } catch { done = false; }
+        if (!done || input.value.slice(start, start + text.length) !== text || (!text && input.selectionStart !== start)) {
+            input.setRangeText(text, start, Math.max(start, input.selectionEnd), 'end');
+            input.dispatchEvent(new InputEvent('input', {bubbles: true, inputType: text ? 'insertText' : 'deleteContentBackward', data: text || null}));
+        }
+        this.track();
+    }
+    /** Replaces «@query» with «@Имя» and a space, and remembers whom the name stands for. */
     choose(index) {
         const member = this.matches[index], range = this.range, input = this.input;
         if (!member || !range) return;
-        const after = input.value.slice(range.end, range.end + 1), text = mentionToken(member) + (after && /\s/.test(after) ? '' : ' ');
+        const name = '@' + member.name, after = input.value.slice(range.end, range.end + 1), text = name + (after && /\s/.test(after) ? '' : ' ');
         this.close();
         if (input.maxLength >= 0 && input.value.length - (range.end - range.start) + text.length > input.maxLength) return;
-        input.focus({preventScroll: true});
-        input.setSelectionRange(range.start, range.end);
-        let inserted = false;
-        try { inserted = input.ownerDocument.execCommand('insertText', false, text); } catch { inserted = false; }
-        if (!inserted || input.value.slice(range.start, range.start + text.length) !== text) {
-            input.setRangeText(text, range.start, Math.max(range.start, input.selectionEnd), 'end');
-            input.dispatchEvent(new InputEvent('input', {bubbles: true, inputType: 'insertText', data: text}));
-        }
+        this.track();
+        this.replace(range.start, range.end, text);
+        this.marks = [...this.marks.filter(mark => mark.end <= range.start || mark.start >= range.start + text.length),
+            {start: range.start, end: range.start + name.length, id: member.id, name: member.name}].sort((a, b) => a.start - b.start);
         this.close();
         input.dispatchEvent(new CustomEvent('iq-mention', {bubbles: true, composed: true, detail: {id: member.id, name: member.name}}));
     }

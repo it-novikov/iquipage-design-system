@@ -183,11 +183,17 @@ class IqMarkdownEditor extends components_js_1.IqElement {
     }
     syncMentions() {
         if (!this.input) return;
-        if (!this._mentions) { this._mentionList?.destroy(); this._mentionList = null; return; }
+        if (!this._mentions) {
+            // Mentions off: the field keeps the message, now as Markdown with its tokens.
+            if (this._mentionList) { const markdown = this._mentionList.toMarkdown(); this._mentionList.destroy(); this._mentionList = null; this.input.value = markdown; }
+            return;
+        }
         if (this._mentionList && this._mentionList.input === this.input) this._mentionList.setMembers(this._mentions);
         else {
             this._mentionList?.destroy();
             this._mentionList = mentions_js_1.attachMentionAutocomplete(this.input, {members: this._mentions});
+            // A draft with tokens (a restored reply, a value set before mount) shows names, never tokens.
+            if (this.input.value.includes('@[')) { this._mentionList.load(this.input.value); this.history = [this.input.value]; this.cursor = 0; interaction_js_1.autosize(this.input); }
             if (!this._mentionCleanup) {
                 this._mentionCleanup = true;
                 this.addCleanup(() => { this._mentionCleanup = false; this._mentionList?.destroy(); this._mentionList = null; });
@@ -325,12 +331,14 @@ class IqMarkdownEditor extends components_js_1.IqElement {
     set disabled(value) { this.toggleAttribute('disabled', value); }
     get readOnly() { return this.hasAttribute('readonly'); }
     set readOnly(value) { this.toggleAttribute('readonly', value); }
-    get value() { return this.input ? this.input.value : this.getAttribute('value') || ''; }
+    /** The Markdown of the draft. With mentions on, the field shows names and this has their tokens (vnext.29). */
+    get value() { return this.input ? (this._mentionList ? this._mentionList.toMarkdown() : this.input.value) : this.getAttribute('value') || ''; }
     set value(value) {
         const next = String(value ?? '');
         if (this.input) {
-            this.input.value = next;
-            this.history = [next];
+            if (this._mentionList) this._mentionList.load(next);
+            else this.input.value = next;
+            this.history = [this.input.value];
             this.cursor = 0;
             this.sync();
             interaction_js_1.autosize(this.input);
@@ -354,7 +362,7 @@ class IqMarkdownEditor extends components_js_1.IqElement {
         this.mountFooterActions();
         this.syncToolbarActions();
         this.syncMentions();
-        this.history = [initial];
+        this.history = [this.input.value];
         this.cursor = 0;
         interaction_js_1.autosize(this.input);
         this.sync();
@@ -368,6 +376,8 @@ class IqMarkdownEditor extends components_js_1.IqElement {
                 interaction_js_1.autosize(this.input);
             }));
         this.listen(this.input, 'input', () => { this.record(); interaction_js_1.autosize(this.input); this.sync(); this.emit('iq-change', { value: this.value }); });
+        // A picked mention is known only after its text is in: the host hears the draft with its token.
+        this.listen(this.input, 'iq-mention', () => this.emit('iq-change', { value: this.value }));
         this.listen(this.input, 'paste', event => { if (!this.disabled && !this.readOnly) pasteLink(this.input, event); });
         this.listen(this, 'click', ev => {
             const t = ev.target.closest('[data-md]');
@@ -426,10 +436,10 @@ class IqMarkdownEditor extends components_js_1.IqElement {
         this.addCleanup(() => { ro.disconnect(); cancelAnimationFrame(frame); });
     }
     record() {
-        if (this.history[this.cursor] === this.value)
+        if (this.history[this.cursor] === this.input.value)
             return;
         this.history = this.history.slice(0, this.cursor + 1);
-        this.history.push(this.value);
+        this.history.push(this.input.value);
         if (this.history.length > 100)
             this.history.shift();
         this.cursor = this.history.length - 1;
@@ -447,7 +457,7 @@ class IqMarkdownEditor extends components_js_1.IqElement {
             this.input.setAttribute('aria-describedby', described);
         else
             this.input.removeAttribute('aria-describedby');
-        this.querySelector('.md-count').textContent = `${this.value.length} знаков`;
+        this.querySelector('.md-count').textContent = `${this.input.value.length} знаков`;
         this.querySelectorAll('[data-md]').forEach(button => { const name = button.dataset.md; button.disabled = locked || (name === 'undo' ? this.cursor === 0 : name === 'redo' ? this.cursor === this.history.length - 1 : false); });
         const preview = this.querySelector('[data-md-preview]');
         if (preview)
@@ -455,7 +465,7 @@ class IqMarkdownEditor extends components_js_1.IqElement {
         if (this.previewMode) this.renderPreview(this.querySelector(".md-preview"), this.value);
         const submit = this.querySelector('[data-md-submit]');
         if (submit)
-            submit.disabled = locked || !this.value.trim() || !this.input.validity.valid || (this.input.maxLength >= 0 && this.value.length > this.input.maxLength);
+            submit.disabled = locked || !this.input.value.trim() || !this.input.validity.valid || (this.input.maxLength >= 0 && this.input.value.length > this.input.maxLength);
     }
     command(id) {
         if (this.disabled || this.readOnly)
@@ -470,7 +480,7 @@ class IqMarkdownEditor extends components_js_1.IqElement {
                 return;
         }
         else {
-            const v = this.value, start = this.input.selectionStart, end = this.input.selectionEnd, selected = v.slice(start, end) || 'текст';
+            const v = this.input.value, start = this.input.selectionStart, end = this.input.selectionEnd, selected = v.slice(start, end) || 'текст';
             let insert = '', a = start, b = end;
             const pair = { bold: '**', italic: '*', strike: '~~', code: '`' };
             if (pair[id])
@@ -507,7 +517,7 @@ class IqMarkdownEditor extends components_js_1.IqElement {
             this.input?.focus({ preventScroll: true });
     }
     submit({alternate = false} = {}) {
-        if (this.disabled || this.readOnly || !this.value.trim() || !this.input.validity.valid || (this.input.maxLength >= 0 && this.value.length > this.input.maxLength))
+        if (this.disabled || this.readOnly || !this.input.value.trim() || !this.input.validity.valid || (this.input.maxLength >= 0 && this.input.value.length > this.input.maxLength))
             return;
         this.emit('iq-submit', { value: this.value, alternate: !!alternate });
     }
@@ -579,7 +589,7 @@ class IqMarkdownEditor extends components_js_1.IqElement {
             if (this.interactiveTasks && !this.disabled && !this.readOnly) require('./markdown-tasks.js').bindMarkdownTasks(pane, value, (detail, button) => {
                 if (this.disabled || this.readOnly || !this.interactiveTasks || this.value !== detail.source) return;
                 const restoreFocus = this.ownerDocument.activeElement === button;
-                this.input.value = detail.value;
+                if (this._mentionList) this._mentionList.load(detail.value); else this.input.value = detail.value;
                 this.record(); this.sync();
                 this.emit('iq-change', {value: this.value});
                 if (restoreFocus) pane.querySelector('[data-task-position="' + detail.position + '"]')?.focus({preventScroll: true});

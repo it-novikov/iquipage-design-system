@@ -74,7 +74,7 @@ test('filterMentionCandidates: people first, service accounts after; prefix, wor
 
 test('the autocomplete: keys, a list next to the field, an insert with one undo step, no focus taken', () => {
   for (const key of ["'ArrowDown'", "'ArrowUp'", "'Escape'", "event.key === 'Enter' || event.key === 'Tab'"]) assert.ok(mentions.includes(key), key);
-  assert.match(mentions, /execCommand\('insertText', false, text\)/);
+  assert.match(mentions, /execCommand\(text \? 'insertText' : 'delete', false, text\)/);
   assert.match(mentions, /this\.list\.addEventListener\('pointerdown', event => event\.preventDefault\(\)/);
   assert.match(mentions, /input\.after\(this\.popup, this\.status\)/, 'inside a modal dialog the list stays reachable');
   assert.match(mentions, /<div class="iq-mention-heading" aria-hidden="true">Сервисные аккаунты<\/div>/);
@@ -88,7 +88,7 @@ test('the editor and the viewer take members; exports, types and the version fol
   assert.match(editor, /attachMentionAutocomplete\(this\.input, \{members: this\._mentions\}\)/);
   assert.match(editor, /safeMarkdown\(value,\{mentions:this\._mentions\|\|undefined\}\)/);
   assert.match(read('src/modules/markdown-viewer.js'), /mentions:this\.#mentions\?\?undefined/);
-  for (const name of ['mentionToken', 'parseMentions', 'mentionPlainText', 'mentionsHTML', 'filterMentionCandidates', 'attachMentionAutocomplete']) {
+  for (const name of ['mentionToken', 'parseMentions', 'mentionPlainText', 'mentionsHTML', 'filterMentionCandidates', 'mentionsFromMarkdown', 'mentionsToMarkdown', 'attachMentionAutocomplete']) {
     assert.match(core, new RegExp(`export const ${name}=`), name);
     assert.match(types, new RegExp(`export declare (function|class) ${name}`), name);
   }
@@ -105,4 +105,90 @@ test('the pill and the list: accent on a soft fill, the calm 34px rows of vnext.
   assert.doesNotMatch(css, /\.iq-mention-heading\{[^}]*text-transform/);
   assert.ok(css.includes('.iq-option{display:flex;align-items:center;gap:var(--iq-space-2);min-height:34px;'));
   assert.ok(css.includes('.iq-option[aria-selected=true]{color:var(--iq-accent)}'), 'the active row is accent');
+});
+
+test('the composer shows names, never tokens: a side map of picked mentions follows edits', () => {
+  const members = [{ id: 'u-f', name: 'Фёдор Андреев' }, { id: 'sa_c', name: 'Claude', kind: 'service' }];
+  const shown = tokens.mentionsFromMarkdown('Посмотри, @[Федя](user:u-f) и @[Чужой](user:zz). `@[A](user:u-f)`', members);
+  assert.equal(shown.text, 'Посмотри, @Фёдор Андреев и Чужой. `@[A](user:u-f)`', 'members by current name, others as a label, code as is');
+  assert.deepEqual(shown.marks, [{ start: 10, end: 24, id: 'u-f', name: 'Фёдор Андреев' }]);
+  assert.equal(tokens.mentionsToMarkdown(shown.text, shown.marks), 'Посмотри, @[Фёдор Андреев](user:u-f) и Чужой. `@[A](user:u-f)`');
+  const shift = after => tokens.shiftMentionMarks(shown.marks, shown.text, after);
+  assert.deepEqual(shift('Да. ' + shown.text).map(m => m.start), [14], 'an edit before moves the mention');
+  assert.deepEqual(shift(shown.text + ' Спасибо!').map(m => m.start), [10], 'an edit after keeps it');
+  assert.deepEqual(shift(shown.text.replace('Фёдор', 'Фёдр')), [], 'an edit inside the name drops it');
+  assert.deepEqual(shift(shown.text.replace('Андреев', 'Андреевич')), [], 'letters typed against the name drop it');
+  assert.deepEqual(shift(shown.text.replace('@Фёдор Андреев', 'x@Фёдор Андреев')), [], 'a letter before the @ drops it');
+  assert.deepEqual(shift(shown.text.replace('Андреев и', 'Андреев, и')).length, 1, 'punctuation after the name keeps it');
+  // A dropped mention is ordinary text: the name typed after «@», which the server matches as before.
+  assert.equal(tokens.mentionsToMarkdown(shown.text.replace('Фёдор', 'Фёдр'), shift(shown.text.replace('Фёдор', 'Фёдр'))), shown.text.replace('Фёдор', 'Фёдр'));
+  // A stale or forged mark never writes a token over other text.
+  assert.equal(tokens.mentionsToMarkdown('@Фёдор', [{ start: 0, end: 14, id: 'u-f', name: 'Фёдор Андреев' }]), '@Фёдор');
+  assert.equal(tokens.mentionsToMarkdown('@X', [{ start: 0, end: 2, id: 'bad id', name: 'X' }]), '@X');
+  assert.deepEqual(tokens.mentionMarkBefore(shown.marks, 24), shown.marks[0]);
+  assert.equal(tokens.mentionMarkBefore(shown.marks, 23), null);
+  // Without members a draft keeps every token as a mention under its label.
+  assert.deepEqual(tokens.mentionsFromMarkdown('@[Аня](user:a1)').marks, [{ start: 0, end: 4, id: 'a1', name: 'Аня' }]);
+});
+
+/** A textarea and a document just big enough for MentionAutocomplete: no layout, execCommand unsupported. */
+function fakeField(value = '') {
+  class Node {
+    constructor() { this.children = []; this.attrs = {}; this.style = {}; this.dataset = {}; this.listeners = {}; this.innerHTML = ''; this.textContent = ''; this.className = ''; }
+    setAttribute(k, v) { this.attrs[k] = String(v); } getAttribute(k) { return this.attrs[k] ?? null; } removeAttribute(k) { delete this.attrs[k]; }
+    append(...nodes) { this.children.push(...nodes); } after(...nodes) { this.siblings = nodes; } remove() {} querySelector() { return null; }
+    addEventListener(type, fn) { (this.listeners[type] ||= []).push(fn); }
+    dispatchEvent(event) { for (const fn of this.listeners[event.type] || []) fn(event); return !event.defaultPrevented; }
+    showPopover() { this.open = true; } hidePopover() { this.open = false; } getBoundingClientRect() { return { left: 0, top: 0 }; }
+  }
+  const doc = new Node();
+  Object.assign(doc, { createElement: () => new Node(), execCommand: () => false, body: new Node(),
+    defaultView: Object.assign(new Node(), { innerWidth: 1200, innerHeight: 800, getComputedStyle: () => ({ lineHeight: '20px', fontSize: '14px' }) }) });
+  const input = Object.assign(new Node(), { tagName: 'TEXTAREA', ownerDocument: doc, value, selectionStart: value.length, selectionEnd: value.length, maxLength: -1, scrollLeft: 0, scrollTop: 0,
+    focus() {}, setSelectionRange(a, b) { this.selectionStart = a; this.selectionEnd = b; },
+    setRangeText(text, a, b) { this.value = this.value.slice(0, a) + text + this.value.slice(b); this.selectionStart = this.selectionEnd = a + text.length; } });
+  const type = text => { input.setRangeText(text, input.selectionStart, input.selectionEnd); input.dispatchEvent({ type: 'input' }); };
+  const key = (k, extra = {}) => { const event = { type: 'keydown', key: k, defaultPrevented: false, preventDefault() { this.defaultPrevented = true; }, stopPropagation() {}, ...extra }; input.dispatchEvent(event); return event; };
+  return { input, type, key };
+}
+
+test('picking shows «@Имя», sends the token; Backspace after it removes it whole; editing inside makes it typed text', () => {
+  globalThis.InputEvent ??= class { constructor(type, init = {}) { Object.assign(this, init, { type }); } };
+  globalThis.CustomEvent ??= class { constructor(type, init = {}) { Object.assign(this, init, { type }); } };
+  const { MentionAutocomplete } = require('../src/modules/mentions.js');
+  const { input, type, key } = fakeField();
+  const list = new MentionAutocomplete(input, { members: [{ id: 'u-f', name: 'Фёдор Андреев' }, { id: 'u-a', name: 'Анна Ким' }] });
+  type('Посмотри, @фё');
+  assert.equal(list.isOpen, true);
+  key('Enter');
+  assert.equal(input.value, 'Посмотри, @Фёдор Андреев ', 'the field shows the name, never the token');
+  assert.equal(list.isOpen, false);
+  type('и @ан');key('Tab');type('тоже.');
+  assert.equal(input.value, 'Посмотри, @Фёдор Андреев и @Анна Ким тоже.');
+  assert.equal(list.toMarkdown(), 'Посмотри, @[Фёдор Андреев](user:u-f) и @[Анна Ким](user:u-a) тоже.');
+  // Backspace right after «@Анна Ким» removes the whole mention, and only that one.
+  input.setSelectionRange(36, 36);
+  assert.equal(key('Backspace').defaultPrevented, true);
+  assert.equal(input.value, 'Посмотри, @Фёдор Андреев и  тоже.');
+  assert.equal(list.toMarkdown(), 'Посмотри, @[Фёдор Андреев](user:u-f) и  тоже.');
+  // Elsewhere Backspace is the browser's own.
+  input.setSelectionRange(5, 5);
+  assert.equal(key('Backspace').defaultPrevented, false);
+  // Editing inside the name drops the mention: the text is then a typed one.
+  input.value = input.value.replace('Андреев', 'Андреев-Петров');input.dispatchEvent({ type: 'input' });
+  assert.equal(list.toMarkdown(), 'Посмотри, @Фёдор Андреев-Петров и  тоже.');
+  assert.deepEqual(list.mentions, []);
+  // A draft with tokens shows names again, and its mentions stay picked.
+  list.load('Ответ для @[Федя](user:u-f)');
+  assert.equal(input.value, 'Ответ для @Фёдор Андреев');
+  assert.equal(list.toMarkdown(), 'Ответ для @[Фёдор Андреев](user:u-f)');
+  list.destroy();
+});
+
+test('the editor keeps the field plain and its value Markdown', () => {
+  assert.match(editor, /get value\(\) \{ return this\.input \? \(this\._mentionList \? this\._mentionList\.toMarkdown\(\) : this\.input\.value\)/);
+  assert.match(editor, /if \(this\._mentionList\) this\._mentionList\.load\(next\);/);
+  assert.match(editor, /if \(this\.input\.value\.includes\('@\['\)\) \{ this\._mentionList\.load\(this\.input\.value\);/);
+  assert.match(editor, /this\.history\.push\(this\.input\.value\);/, 'undo history is the field, never tokens');
+  assert.match(editor, /this\.listen\(this\.input, 'iq-mention', \(\) => this\.emit\('iq-change'/);
 });
