@@ -4,7 +4,7 @@ Consumer source: PR #3, commit `d87c65767ef471c81bf84c10b9b19e225a956064`. The u
 
 ## Boundary
 
-`ui/planning/src` renders the supplied DS. `web/planning-adapter.js` bridges its projection/intent protocol to `contracts/planning-view.ts` and the typed client. The server's planning view (`server/src/main/kotlin/com/sprintique/planning/application/PlanningView.kt` and `ViewIntents.kt`) creates projections and translates intents into the same canonical commands as other clients. Consumer-calculated eligibility, counts or effects are never authoritative.
+`ui/planning/src` renders the supplied DS (since round 4.1 the containers page: `index.js`, `containers-*.js`; the server side is `PlanningContainers.kt` with `POST planning/view/containers` and `POST planning/view/move`, see `.bridge/tasks/20261001-planning-containers/api.md`). `web/planning-adapter.js` bridges its projection/intent protocol to `contracts/planning-view.ts` and the typed client. The server's planning view (`server/src/main/kotlin/com/sprintique/planning/application/PlanningView.kt` and `ViewIntents.kt`) creates projections and translates intents into the same canonical commands as other clients. Consumer-calculated eligibility, counts or effects are never authoritative.
 
 `web/planning-host.js` supplies the same task editor on Planning and the board. Tasks created in Planning remain drafts; preparation and release admission are independent. Parent/release changes use nested preview/commit confirmation, not direct task writes or a PATCH loop. Cancelling confirmation retains the form draft. Markdown, covers, tags and files remain one task document.
 

@@ -142,6 +142,7 @@ class McpTools(
                 "priority" to enum("Priority.", "low", "normal", "high", "critical"),
                 "assigneeId" to id(ASSIGNEE),
                 "dueDate" to DATE,
+                "estimate" to ESTIMATE,
                 "parent" to TASK,
                 "idempotencyKey" to KEY,
                 required = listOf("projectId", "title"),
@@ -151,7 +152,8 @@ class McpTools(
         tool(
             "update_task", "Изменить задачу",
             "Change fields of a task. baseRevision is the revision you read; a stale one is refused with CONFLICT, " +
-                "then read the task again. Fields left out stay; assigneeId or dueDate set to null are cleared.",
+                "then read the task again. Fields left out stay; assigneeId, dueDate or estimate set to null are " +
+                "cleared.",
             UpdateTaskArguments::class,
             schema(
                 "projectId" to PROJECT,
@@ -163,6 +165,7 @@ class McpTools(
                 "priority" to enum("Priority.", "low", "normal", "high", "critical"),
                 "assigneeId" to nullable(id("$ASSIGNEE Null unassigns.")),
                 "dueDate" to nullable(DATE),
+                "estimate" to nullable(ESTIMATE),
                 "idempotencyKey" to KEY,
                 required = listOf("projectId", "task", "baseRevision"),
             ),
@@ -361,6 +364,17 @@ class McpTools(
             "type" to "string",
             "description" to "Date as YYYY-MM-DD.",
             "pattern" to "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+        )
+        private val ESTIMATE = linkedMapOf(
+            "type" to "object",
+            "description" to "Estimate as entered: hours (h), days (d), weeks (w) or story points (sp), " +
+                "as the project counts estimates. Value above 0, at most 9999, two decimals.",
+            "properties" to linkedMapOf(
+                "value" to linkedMapOf("type" to "number", "exclusiveMinimum" to 0, "maximum" to 9999),
+                "unit" to linkedMapOf("type" to "string", "enum" to listOf("h", "d", "w", "sp")),
+            ),
+            "required" to listOf("value", "unit"),
+            "additionalProperties" to false,
         )
         private val KEY = linkedMapOf(
             "type" to "string",

@@ -1,5 +1,6 @@
 package com.sprintique.planning.domain
 
+import com.sprintique.task.domain.TaskEstimate
 import java.time.Instant
 
 /** A task as planning sees it. Wire values (`draft`, `inherit`, …) are kept as the API writes them. */
@@ -30,6 +31,8 @@ data class TaskState(
     val plannedEnd: String?,
     val due: String?,
     val tagIds: List<String>,
+    /** As entered; null when the task has no estimate. */
+    val estimate: TaskEstimate? = null,
 ) {
     /** The planning projection of this task once its effective release, board admission and children are known. */
     fun toRow(effectiveReleaseId: String?, assignmentSourceId: String?, boardEligible: Boolean, childCount: Int) =
@@ -63,6 +66,7 @@ data class TaskState(
             assignmentSourceId = assignmentSourceId,
             boardEligible = boardEligible,
             childCount = childCount,
+            estimate = estimate,
         )
 }
 
@@ -101,6 +105,7 @@ data class PlanningRow(
     val assignmentSourceId: String?,
     val boardEligible: Boolean,
     val childCount: Int,
+    val estimate: TaskEstimate? = null,
 )
 
 data class Release(
@@ -115,6 +120,8 @@ data class Release(
     val plannedEnd: String?,
     val deadline: String?,
     val archivedAt: Instant?,
+    /** What the sprint or release is for, in one line; null when not set. */
+    val goal: String? = null,
 )
 
 data class Milestone(val id: String, val title: String, val date: String?, val revision: Int, val releaseId: String?)
@@ -135,8 +142,19 @@ data class TemporalConstraint(
 /** An active "depends on" link between tasks: [fromId] waits for [toId]. */
 data class Dependency(val id: String, val fromId: String, val toId: String)
 
-/** The project's release defaults and time zone; the zone is null where row security hides the workspace. */
-data class PlanningDefaults(val format: String, val days: Int, val timezone: String?, val timezoneInherited: Boolean?)
+/**
+ * The project's release defaults and time zone; the zone is null where row security hides the workspace. Estimates
+ * are kept in time (hours, days, weeks) or in story points; a day and a week are [hoursPerDay] and [hoursPerWeek].
+ */
+data class PlanningDefaults(
+    val format: String,
+    val days: Int,
+    val timezone: String?,
+    val timezoneInherited: Boolean?,
+    val estimateFormat: String = "time",
+    val hoursPerDay: Int = 8,
+    val hoursPerWeek: Int = 40,
+)
 
 /** What a task created by a planning command receives: the next number of the project and the creation time. */
 data class CreationContext(val projectId: String, val key: String, val number: Int, val createdAt: String)

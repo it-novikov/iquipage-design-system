@@ -23,5 +23,6 @@ object PlanningJson {
         "plannedEnd" to release.plannedEnd,
         "deadline" to release.deadline,
         "archivedAt" to release.archivedAt,
+        "goal" to release.goal,
     )
 }

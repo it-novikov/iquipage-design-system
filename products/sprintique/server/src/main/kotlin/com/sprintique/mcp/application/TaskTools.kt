@@ -134,6 +134,7 @@ class TaskTools(private val ledger: CommandLedger, private val properties: Sprin
                     parentId = parentId,
                     releaseId = null,
                     tagIds = emptyList(),
+                    estimate = input.estimate?.toDomain(),
                 ),
                 false,
             )
@@ -143,7 +144,8 @@ class TaskTools(private val ledger: CommandLedger, private val properties: Sprin
 
     /** Changes the named fields only, against the revision the caller last saw. */
     fun update(tx: Transaction, actor: Actor, input: UpdateTaskArguments, raw: JsonNode): Map<String, Any?> {
-        val changes = setOf("title", "description", "type", "priority", "assigneeId", "dueDate").filter(raw::has)
+        val changes = setOf("title", "description", "type", "priority", "assigneeId", "dueDate", "estimate")
+            .filter(raw::has)
         requireCondition(changes.isNotEmpty(), 422, "NOTHING_TO_CHANGE", "Укажите хотя бы одно поле для изменения.")
         return change(tx, actor, input.projectId, input.task, "update", input.idempotencyKey, input) { content ->
             content.copy(
@@ -153,6 +155,7 @@ class TaskTools(private val ledger: CommandLedger, private val properties: Sprin
                 priority = input.priority?.wire ?: content.priority,
                 ownerId = if (raw.has("assigneeId")) assignee(actor, input.assigneeId) else content.ownerId,
                 due = if (raw.has("dueDate")) input.dueDate else content.due,
+                estimate = if (raw.has("estimate")) input.estimate?.toDomain() else content.estimate,
             ) to input.baseRevision
         }
     }
@@ -255,6 +258,7 @@ class TaskTools(private val ledger: CommandLedger, private val properties: Sprin
             "assigneeKind" to task["ownerKind"],
             "assigneeState" to task["ownerState"],
             "dueDate" to task["due"],
+            "estimate" to Tasks.estimateOf(task)?.let { linkedMapOf("value" to it.value, "unit" to it.unit) },
             "releaseId" to task["releaseId"],
             "parentId" to task["parentId"],
             "tags" to tags,

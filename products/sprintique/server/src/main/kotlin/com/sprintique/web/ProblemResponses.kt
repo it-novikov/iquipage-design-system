@@ -15,6 +15,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.MissingRequestHeaderException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
+import org.springframework.web.context.request.async.AsyncRequestNotUsableException
 import org.springframework.web.method.annotation.HandlerMethodValidationException
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException
 import org.springframework.web.servlet.NoHandlerFoundException
@@ -45,7 +46,15 @@ class ProblemResponses {
                 "requestId" to RequestIds.of(request),
             )
         error.action?.let { body["action"] = it }
+        // A request that accepts only an event stream cannot take a JSON body; the status alone answers it.
+        if (eventStreamOnly(request)) return ResponseEntity.status(error.status).build()
         return ResponseEntity.status(error.status).body(body)
+    }
+
+    /** The client went away while an asynchronous response (a stream) was being written: nothing to answer. */
+    @ExceptionHandler(AsyncRequestNotUsableException::class)
+    fun clientGone() {
+        log.debug("Client disconnected during an asynchronous response")
     }
 
     @ExceptionHandler(
@@ -128,13 +137,22 @@ class ProblemResponses {
         code: String,
         message: String,
     ): ResponseEntity<Map<String, Any?>> =
-        ResponseEntity.status(status).body(
-            linkedMapOf(
-                "code" to code,
-                "message" to message,
-                "requestId" to RequestIds.of(request),
-            ),
-        )
+        if (eventStreamOnly(request)) {
+            ResponseEntity.status(status).build()
+        } else {
+            ResponseEntity.status(status).body(
+                linkedMapOf(
+                    "code" to code,
+                    "message" to message,
+                    "requestId" to RequestIds.of(request),
+                ),
+            )
+        }
+
+    private fun eventStreamOnly(request: HttpServletRequest): Boolean {
+        val accept = request.getHeader("Accept")?.lowercase() ?: return false
+        return "text/event-stream" in accept && "json" !in accept && "*/*" !in accept
+    }
 }
 
 /** Thrown by explicit request checks that bean validation cannot express. */

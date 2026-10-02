@@ -4,9 +4,11 @@ import com.sprintique.contract.IsoDate
 import com.sprintique.contract.MAX_SAFE_INTEGER
 import com.sprintique.contract.RESOURCE_ID
 import com.sprintique.contract.TrimmedString
+import com.sprintique.task.contract.TaskEstimateRequest
 import com.sprintique.task.contract.TaskPriority
 import com.sprintique.task.contract.TaskStatus
 import com.sprintique.task.contract.TaskType
+import jakarta.validation.Valid
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.Pattern
@@ -72,13 +74,15 @@ data class CreateTaskArguments(
     val assigneeId: String? = null,
     @field:IsoDate
     val dueDate: String? = null,
+    @field:Valid
+    val estimate: TaskEstimateRequest? = null,
     @field:Pattern(regexp = RESOURCE_ID)
     val parent: String? = null,
     @field:Pattern(regexp = IDEMPOTENCY_KEY)
     val idempotencyKey: String? = null,
 )
 
-/** Fields left out stay as they are; `assigneeId` and `dueDate` sent as null are cleared. */
+/** Fields left out stay as they are; `assigneeId`, `dueDate` and `estimate` sent as null are cleared. */
 data class UpdateTaskArguments(
     @field:Pattern(regexp = RESOURCE_ID)
     val projectId: String,
@@ -98,6 +102,8 @@ data class UpdateTaskArguments(
     val assigneeId: String? = null,
     @field:IsoDate
     val dueDate: String? = null,
+    @field:Valid
+    val estimate: TaskEstimateRequest? = null,
     @field:Pattern(regexp = IDEMPOTENCY_KEY)
     val idempotencyKey: String? = null,
 )

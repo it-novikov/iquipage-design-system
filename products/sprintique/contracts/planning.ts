@@ -1,7 +1,7 @@
 import {z} from 'zod';
-import {Id,Revision,DateOnly,Timezone,TaskInput} from './index.js';
+import {Id,Revision,DateOnly,Timezone,TaskInput,TaskEstimate} from './index.js';
 
-export const PLANNING_POLICY = 'planning-r3.1';
+export const PLANNING_POLICY = 'planning-r4.0';
 export const PAGE_SIZE = 100;
 export const MAX_EXPLICIT_SELECTION = 200;
 /** An uncommitted preview stores a project-sized graph. Outstanding previews are therefore budgeted
@@ -18,7 +18,9 @@ export const Selection = z.discriminatedUnion('kind',[
 ]);
 export const ReleaseValue = z.strictObject({
   name:z.string().trim().min(1).max(100),format:z.enum(['flexible','timeboxed']).default('flexible'),
-  plannedStart:DateOnly.nullable().default(null),plannedEnd:DateOnly.nullable().default(null),deadline:DateOnly.nullable().default(null)
+  plannedStart:DateOnly.nullable().default(null),plannedEnd:DateOnly.nullable().default(null),deadline:DateOnly.nullable().default(null),
+  // One line about what it is for: left out keeps the current goal, null clears it.
+  goal:z.string().max(240).nullable().optional()
 }).refine(v=>!v.plannedStart||!v.plannedEnd||v.plannedStart<=v.plannedEnd,'Invalid date range')
   .refine(v=>v.format!=='timeboxed'||Boolean(v.plannedStart&&v.plannedEnd),'Timeboxed dates required');
 export const ReleaseWrite = z.strictObject({baseRevision:Revision,value:ReleaseValue});
@@ -36,7 +38,8 @@ export const ScheduleAction=z.strictObject({kind:z.literal('schedule'),entity:En
 export const TemporalValue=z.strictObject({source:EntityRef,target:EntityRef,relation:z.enum(['FS','SS','FF','SF']),lagDays:z.number().int().min(-36500).max(36500)});
 const ConstraintAction=z.strictObject({kind:z.literal('constraint'),id:Id,value:TemporalValue});
 const RemoveConstraint=z.strictObject({kind:z.literal('constraint.remove'),id:Id});
-export const PlanningDefaults=z.strictObject({format:z.enum(['flexible','timeboxed']),days:z.number().int().min(1).max(366),timezone:Timezone,timezoneInherited:z.boolean().optional()});
+export const PlanningDefaults=z.strictObject({format:z.enum(['flexible','timeboxed']),days:z.number().int().min(1).max(366),timezone:Timezone,timezoneInherited:z.boolean().optional(),
+  estimateFormat:z.enum(['time','points']).default('time'),hoursPerDay:z.number().int().min(1).max(24).default(8),hoursPerWeek:z.number().int().min(1).max(168).default(40)});
 export const PlanningCommand = z.discriminatedUnion('kind',[
   z.strictObject({kind:z.literal('task.edit'),taskId:Id,baseRevision:Revision,task:TaskInput}),
   z.strictObject({kind:z.literal('task.create'),taskId:Id,task:TaskInput,createInBoard:z.boolean().default(false)}),
@@ -48,7 +51,8 @@ export const PlanningCommand = z.discriminatedUnion('kind',[
   z.strictObject({kind:z.literal('rank'),ranks:z.array(z.strictObject({taskId:Id,rank:z.number().finite()})).min(1).max(1000)}),
   z.strictObject({kind:z.literal('bulk'),selection:Selection,fields:z.strictObject({
     ownerId:Id.nullable().optional(),priority:z.enum(['low','normal','high','critical']).optional(),
-    plannedStart:DateOnly.nullable().optional(),plannedEnd:DateOnly.nullable().optional(),due:DateOnly.nullable().optional(),addTagIds:z.array(Id).max(30).optional()
+    plannedStart:DateOnly.nullable().optional(),plannedEnd:DateOnly.nullable().optional(),due:DateOnly.nullable().optional(),addTagIds:z.array(Id).max(30).optional(),
+    estimate:TaskEstimate.nullable().optional()
   }).refine(v=>Object.keys(v).length>0)}),
   z.strictObject({kind:z.literal('start'),releaseId:Id}),
   z.strictObject({kind:z.literal('release.edit'),releaseId:Id,value:ReleaseValue}),
@@ -59,7 +63,9 @@ export const PlanningCommand = z.discriminatedUnion('kind',[
   z.strictObject({kind:z.literal('milestone'),id:Id,value:z.strictObject({title:z.string().trim().min(1).max(240),date:DateOnly.nullable(),releaseId:Id.nullable()})}),
   z.strictObject({kind:z.literal('settings'),value:PlanningDefaults}),
   z.strictObject({kind:z.literal('shift'),releaseId:Id,days:z.number().int().min(-36500).max(36500)}),
-  z.strictObject({kind:z.literal('schedule.batch'),actions:z.array(z.discriminatedUnion('kind',[ScheduleAction,ConstraintAction,RemoveConstraint])).min(1).max(100)})
+  z.strictObject({kind:z.literal('schedule.batch'),actions:z.array(z.discriminatedUnion('kind',[ScheduleAction,ConstraintAction,RemoveConstraint])).min(1).max(100)}),
+  // Tasks put into a container (backlog or a release) after a root row; an epic takes its descendants from the same container.
+  z.strictObject({kind:z.literal('place'),ids:z.array(Id).min(1).max(200),containerId:Id,afterId:Id.nullable(),withChildren:z.boolean().default(true)})
 ]);
 export type PlanningCommand = z.infer<typeof PlanningCommand>;
 export type Selection = z.infer<typeof Selection>;

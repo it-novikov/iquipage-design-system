@@ -4,7 +4,6 @@ globalThis.HTMLElement ||= class {};
 const {MapsFeature}=await import('../ui/src/maps.js');
 const {ProductRepository}=await import('../web/repository.js');
 const {loadTaskSupport}=await import('../ui/src/board/catalog-picker.js');
-const {createTemporalRecovery}=await import('../ui/planning/src/temporal-recovery.js');
 const {renderTaskCard}=await import('../ui/src/board/card.js');
 const {sectionRouteHash}=await import('../web/section-route.js');
 const wait=()=>new Promise(resolve=>setTimeout(resolve,110));
@@ -115,19 +114,6 @@ test('task support no longer fetches unused all-project task links',async()=>{
   const calls=[];const support=await loadTaskSupport({list:async name=>{calls.push(name);return [];}},'p');
   assert.deepEqual(calls,['tags','releases','taskSettings']);assert.equal('links' in support,false);
 });
-test('committed timeline plus failed readback releases preview exactly once without replay',async()=>{
-  let rejects=0,accepts=0,resets=0,failures=0;
-  const recovery=createTemporalRecovery({detail:{reject:()=>rejects++,accept:()=>accepts++},load:async()=>false,canonical:()=>({}),reset:()=>resets++,onFailure:()=>failures++});
-  await assert.rejects(recovery.committed(),/сохранено/);recovery.close();recovery.close();
-  assert.deepEqual({rejects,accepts,resets,failures},{rejects:1,accepts:0,resets:1,failures:1});
-});
-test('timeline successful readback accepts canonical once; cancel only discards preview',async()=>{
-  const events=[],detail={accept:value=>events.push(['accept',value]),reject:()=>events.push(['reject'])};
-  const success=createTemporalRecovery({detail,load:async()=>true,canonical:()=>({revision:3}),reset:()=>events.push(['reset'])});
-  await success.committed();success.close();assert.deepEqual(events,[['accept',{revision:3}]]);
-  events.length=0;const cancelled=createTemporalRecovery({detail,load:async()=>true,canonical:()=>({}),reset:()=>events.push(['reset'])});
-  cancelled.close();cancelled.close();assert.deepEqual(events,[['reject'],['reset']]);
-});
 test('accepted result cards preserve open action but omit move affordance',()=>{
   const html=renderTaskCard({task:{id:'t',title:'Accepted',type:'task',priority:'normal',result:'accepted'},depth:0},{index:{children:new Map()},canEdit:true});
   assert.equal(html.includes('move-to:'),false);assert.ok(html.includes('open:t'));assert.match(html,/data-drag-handle[^>]*disabled/);
@@ -142,32 +128,6 @@ test('board cards show hierarchy without repeating task numbers',()=>{
   assert.match(collapsed,/data-toggle-children="p" aria-expanded="false"/);assert.match(collapsed,/task-subtasks-count">1\/2</);assert.match(collapsed,/class="task-subtask-list" id="subtasks-p" hidden/,'collapsed lists stay in the markup, hidden, so toggling never re-renders the board');
   const expanded=renderTaskCard({task:parent,parent:null,children:[done,open]},{index,canEdit:true,expanded:true});
   assert.match(expanded,/aria-expanded="true"/);assert.doesNotMatch(expanded,/id="subtasks-p" hidden/);assert.ok(expanded.includes('Готовая')&&expanded.includes('Открытая')&&expanded.includes('Ревью'));
-});
-test('calendar entries carry card facts, never raw entity ids or title suffixes',async()=>{
-  const {calendarProjection}=await import('../ui/planning/src/temporal-model.js');
-  const [entry]=calendarProjection([{id:'task:spq-login-bug',entityId:'spq-login-bug',entityKind:'task',title:'SPQ-4 · Ошибка',deadline:'2026-09-28',status:'review',card:{key:'SPQ-4',name:'Ошибка',type:'bug',priority:'high',owner:'Борис Петров'}}]);
-  assert.equal(entry.title,'Ошибка');assert.equal(entry.key,'SPQ-4');assert.equal(entry.kind,'deadline');assert.equal(entry.owner,'Борис Петров');assert.equal(entry.priority,'high');
-});
-test('planning due dates read red when late, amber today or tomorrow, plain when done',async()=>{
-  const {dueTone}=await import('../ui/planning/src/markup.js');
-  assert.equal(dueTone('2026-09-27',false,'2026-09-28'),'danger');assert.equal(dueTone('2026-09-28',false,'2026-09-28'),'warning');assert.equal(dueTone('2026-09-29',false,'2026-09-28'),'warning');
-  assert.equal(dueTone('2026-09-30',false,'2026-09-28'),'');assert.equal(dueTone('2026-09-01',true,'2026-09-28'),'');assert.equal(dueTone(null,false,'2026-09-28'),'');
-});
-test('planning parent rows name subtasks as done out of total, and only the total for older servers',async()=>{
-  const {subtaskSummary}=await import('../ui/planning/src/markup.js');
-  assert.equal(subtaskSummary({childrenCount:0}),'');
-  assert.match(subtaskSummary({childrenCount:3,doneChildrenCount:1}),/готово 1 из 3/);assert.match(subtaskSummary({childrenCount:3,doneChildrenCount:1}),/<b>1<\/b> из 3/);
-  assert.match(subtaskSummary({childrenCount:2}),/2 подзадачи/);
-});
-test('planning row shows the one signal, the tinted due date and names a parent from another release',async()=>{
-  const {rowMarkup}=await import('../ui/planning/src/markup.js');
-  const base={id:'g/t',taskId:'t',key:'SPQ-1',title:'Задача',type:'task',priority:'normal',preparation:'ready',statusLabel:'В работе',ownerId:'',ownerLabel:'',dueValue:null,depth:0,childrenCount:0,contextOnly:false,selectable:true};
-  const plain=rowMarkup(base,'g',false,true,true);
-  assert.doesNotMatch(plain,/pn-signal/);assert.match(plain,/data-work-drag="t"/);assert.match(plain,/data-empty="true"/);
-  const late=rowMarkup({...base,priority:'critical',dueValue:'2000-01-01',parentContext:'SPQ-9',parentTitle:'Эпик'},'g',false,false,false);
-  assert.match(late,/task-signal-copy/);assert.match(late,/data-tone="danger"/);assert.match(late,/Часть: Эпик/);assert.doesNotMatch(late,/data-work-drag/);
-  assert.match(rowMarkup({...base,done:true,dueValue:'2000-01-01'},'g',false,false,false),/pn-done/);
-  assert.doesNotMatch(rowMarkup({...base,done:true,dueValue:'2000-01-01'},'g',false,false,false),/data-tone/);
 });
 test('loading markup is one DS skeleton look that stays hidden while loads are fast',async()=>{
   const {loadingMarkup}=await import('../ui/src/loading.js');

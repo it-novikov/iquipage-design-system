@@ -2554,6 +2554,53 @@ iq-tag-picker[appearance=ghost] .iq-tag-picker-chevron>.iq-icon{width:12px}
 iq-tag-picker[appearance=ghost] .iq-tag-picker-field:is(:hover,:focus-within)>.iq-tag-picker-chevron{opacity:1}
 @media(hover:none){iq-tag-picker[appearance=ghost] .iq-tag-picker-chevron{opacity:1}}
 
+/* vnext.28 — tree rows with aligned columns (T1), status glyphs in board tones (T2), hold-to-drag (T3) and the
+   «Готово» divider with muted rows (T4). Opt-in modifiers: .tree-row keeps its look without them. */
+.tree-columns{--tree-columns:88px 116px 60px 64px;--tree-column-gap:16px}
+.tree-row.has-columns{display:grid;grid-template-columns:minmax(0,1fr) var(--tree-columns,88px 116px 60px 64px);column-gap:var(--tree-column-gap,16px);align-items:center;min-height:40px;padding:0 8px 0 0;border-block:1px solid transparent;background-clip:padding-box;color:var(--iq-ink)}
+.tree-row.has-columns:hover{background:var(--iq-hover)}
+.tree-row-main{display:flex;align-items:center;gap:10px;min-width:0;padding-inline-start:calc(16px + var(--tree-level,0)*21px)}
+.tree-row.has-columns .tree-node-icon{width:18px;height:18px;flex:0 0 18px}
+.tree-row.has-columns .tree-node-label{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;overflow-wrap:normal}
+.tree-row.is-branch .tree-node-label{font-weight:500}
+.tree-node-crumb,.tree-node-aside{color:var(--iq-faint);font-weight:400}
+.tree-node-aside{margin-inline-start:10px}
+.tree-row[data-tone=critical] .tree-node-label{color:var(--iq-task-critical-text);font-weight:500}
+.tree-row[data-tone=high] .tree-node-label{color:var(--iq-task-high-text);font-weight:500}
+.tree-cell{min-width:0;font-size:var(--iq-type-label-size);color:var(--iq-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
+.tree-cell.is-end{text-align:end}
+.tree-cell.is-strong{color:var(--iq-ink)}
+.tree-cell.is-warning{color:var(--iq-warning)}
+.tree-cell.is-faint{color:var(--iq-faint)}
+.tree-cell-button{max-width:100%;margin:0;padding:0;border:0;border-bottom:1px dotted transparent;background:none;font:inherit;color:inherit;text-align:inherit;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+.tree-row:hover .tree-cell-button.is-editable,.tree-cell-button.is-editable:focus-visible{border-bottom-color:var(--iq-control)}
+.tree-row.has-columns.is-selected{background:var(--iq-accent-soft);color:var(--iq-accent)}
+.tree-row.has-columns.is-selected :is(.tree-node-label,.tree-node-crumb,.tree-node-aside,.tree-cell){color:var(--iq-accent)}
+.iq-status-glyph{display:inline-grid;place-items:center;width:15px;height:15px;color:var(--iq-control)}
+.iq-status-glyph svg{display:block}
+.iq-status-glyph[data-tone=info]{color:var(--iq-info)}
+.iq-status-glyph[data-tone=warning]{color:var(--iq-warning)}
+.iq-status-glyph[data-tone=planned]{color:var(--iq-planned)}
+.iq-status-glyph[data-tone=success]{color:var(--iq-success)}
+.iq-status-check{stroke:var(--iq-surface)}
+.iq-status-word{font-size:var(--iq-type-meta-size);color:var(--iq-muted)}
+.tree-cell .iq-status-word{font-size:inherit}
+.tree-divider{display:flex;align-items:center;gap:12px;height:36px;margin-top:6px;padding-inline:16px 8px;font-size:var(--iq-type-caption-size);font-weight:500;color:var(--iq-faint)}
+.tree-divider::after{content:"";flex:1;height:1px;background:var(--iq-line)}
+.tree-row.is-muted .tree-node-label,.tree-row.is-muted[data-tone] .tree-node-label{color:var(--iq-muted);font-weight:400}
+.tree-row.is-muted .tree-cell{color:var(--iq-faint)}
+.tree-row[data-tree-dragging]{opacity:.35}
+:root[data-tree-drag-active],:root[data-tree-drag-active] *{cursor:grabbing;user-select:none}
+[data-tree-drop-target]{position:relative;box-shadow:inset 0 0 0 1.5px var(--iq-accent)}
+.iq-tree-drop-line{position:absolute;inset-inline:12px;height:2px;margin-top:-1px;background:var(--iq-accent);border-radius:var(--iq-radius-pill);pointer-events:none}
+.iq-tree-drop-line::before{content:"";position:absolute;inset-inline-start:-3px;top:-3px;width:8px;height:8px;border-radius:var(--iq-radius-pill);background:var(--iq-accent)}
+.iq-tree-drag-ghost{position:fixed;inset:0 auto auto 0;margin:0;padding:4px 8px;overflow:visible;border:1px solid var(--iq-raised-edge);border-radius:var(--iq-radius-sm);background:var(--iq-raised);color:var(--iq-ink);box-shadow:var(--iq-shadow-3);pointer-events:none;will-change:transform;animation:iq-tree-lift var(--iq-motion-fast) var(--iq-ease)}
+.iq-tree-drag-ghost .tree-row{background:transparent}
+.iq-tree-drag-ghost[data-fit]{width:max-content;max-width:min(420px,calc(100vw - 32px))}
+.iq-tree-drag-badge{position:absolute;inset-inline-end:-10px;top:-10px;padding:3px 9px;border-radius:var(--iq-radius-pill);background:var(--iq-primary);color:var(--iq-on-primary);font-size:var(--iq-type-meta-size);font-weight:600;white-space:nowrap}
+@keyframes iq-tree-lift{from{scale:.98}}
+@media(prefers-reduced-motion:reduce){.iq-tree-drag-ghost{animation:none}}
+
 /* ---------- Mentions (0.6.0-vnext.29) ----------
    A mention is a quiet pill: accent text on the accent's soft fill at the line's own size, weight 500, never broken
    inside a name. The @ list is the calm select list of vnext.27 (34px rows, one hover fill, the active row in accent)

@@ -12,6 +12,9 @@ test('R4-PERF-01 only hashed public assets are immutable; HTML/auth/errors stay 
   try{
     await mkdir(join(directory,'assets'));
     await writeFile(join(directory,'index.html'),'<!doctype html><title>Test</title>');
+    await writeFile(join(directory,'about.html'),'<!doctype html><title>About Sprintique</title>');
+    await writeFile(join(directory,'privacy.html'),'<!doctype html><title>Privacy Policy</title>');
+    await writeFile(join(directory,'terms.html'),'<!doctype html><title>Terms of Use</title>');
     await writeFile(join(directory,'assets/app-1234abcd.js'),'export const version=1;');
     await writeFile(join(directory,'assets/plain.js'),'export const unversioned=true;');
     app=await startApp({web:directory});
@@ -38,11 +41,17 @@ test('R4-PERF-01 only hashed public assets are immutable; HTML/auth/errors stay 
     assert.equal((await app.inject('/workbench/calendar')).statusCode,404);
     // The board is not part of the Workbench v1: its address leads to the overview.
     const board=await app.inject('/workbench/board');assert.equal(board.statusCode,302);assert.equal(board.headers.location,'/workbench');
-    for(const url of ['/','/assets/plain.js','/assets/missing-1234abcd.js','/api/v1/session','/api/v1/projects/no-access/assets/private/original']){
+    for(const url of ['/','/about','/privacy','/terms','/assets/plain.js','/assets/missing-1234abcd.js','/api/v1/session','/api/v1/projects/no-access/assets/private/original']){
       const response=await app.inject(url);
       assert.equal(response.headers['cache-control'],'no-store',url);
       assert.equal(response.headers.etag,undefined,url);
     }
+    const privacy=await app.inject('/privacy');
+    assert.equal(privacy.statusCode,200);assert.match(String(privacy.headers['content-type']),/^text\/html/);assert.match(privacy.body,/Privacy Policy/);
+    const terms=await app.inject('/terms');
+    assert.equal(terms.statusCode,200);assert.match(terms.body,/Terms of Use/);
+    const about=await app.inject('/about');
+    assert.equal(about.statusCode,200);assert.match(about.body,/About Sprintique/);
   }finally{
     await app?.close();await rm(directory,{recursive:true,force:true});
   }
