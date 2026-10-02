@@ -66,14 +66,16 @@ object FinanceSummary {
         val shown = months.map { it.string("month") }.distinct()
         val categories = tx.rows(
             """
-            SELECT category, direction, "currencyCode", posted, planned, rank FROM (
-              SELECT category, direction, currency_code AS "currencyCode",
+            SELECT ranked."categoryId", k.name AS category, ranked.direction, ranked."currencyCode", ranked.posted,
+                   ranked.planned, ranked.rank FROM (
+              SELECT category_id AS "categoryId", direction, currency_code AS "currencyCode",
                      coalesce(sum(amount_minor) FILTER (WHERE state = 'posted'), 0)::text AS posted,
                      coalesce(sum(amount_minor) FILTER (WHERE state = 'planned'), 0)::text AS planned,
-                     row_number() OVER (PARTITION BY currency_code ORDER BY sum(amount_minor) DESC, category, direction) AS rank
+                     row_number() OVER (PARTITION BY currency_code ORDER BY sum(amount_minor) DESC, category_id, direction) AS rank
               FROM app.finance_entry WHERE $PERIOD AND state <> 'voided'
-              GROUP BY category, direction, currency_code
-            ) ranked WHERE rank <= $4 ORDER BY "currencyCode", rank
+              GROUP BY category_id, direction, currency_code
+            ) ranked JOIN app.finance_category k ON k.project_id = $1 AND k.id = ranked."categoryId"
+            WHERE ranked.rank <= $4 ORDER BY ranked."currencyCode", ranked.rank
             """.trimIndent(),
             projectId,
             from,

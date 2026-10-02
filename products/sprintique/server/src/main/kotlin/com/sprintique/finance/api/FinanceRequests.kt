@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonValue
 import com.sprintique.contract.IsoDate
 import com.sprintique.contract.MAX_SAFE_INTEGER
+import com.sprintique.contract.RESOURCE_ID
 import com.sprintique.contract.TrimmedString
 import com.sprintique.finance.domain.FinanceEntryContent
 import com.sprintique.finance.domain.FinanceRules
@@ -39,9 +40,10 @@ data class FinanceEntryInputRequest(
     val dueDate: String? = null,
     @field:IsoDate
     val postedDate: String? = null,
-    @field:JsonDeserialize(using = TrimmedString::class)
-    @field:Size(min = 1, max = CATEGORY_LIMIT)
-    val category: String,
+    @field:Pattern(regexp = RESOURCE_ID)
+    val categoryId: String,
+    @field:Pattern(regexp = RESOURCE_ID)
+    val releaseId: String? = null,
     @field:JsonDeserialize(using = TrimmedString::class)
     @field:Size(min = 1, max = DESCRIPTION_LIMIT)
     val description: String,
@@ -69,7 +71,8 @@ data class FinanceEntryInputRequest(
         currencyCode = currencyCode,
         dueDate = dueDate,
         postedDate = postedDate,
-        category = category,
+        categoryId = categoryId,
+        releaseId = releaseId,
         description = description,
         counterparty = counterparty,
         reference = reference,
@@ -134,7 +137,6 @@ data class PutFinanceSettingsRequest(
     val value: FinanceSettingsInputRequest,
 )
 
-private const val CATEGORY_LIMIT = 80
 private const val DESCRIPTION_LIMIT = 500
 private const val NAME_LIMIT = 160
 private const val VOID_REASON_LIMIT = 300

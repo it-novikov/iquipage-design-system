@@ -35,10 +35,12 @@ object FinanceEntries {
         e.id, e.project_id AS "projectId", e.direction, e.state, e.amount_minor AS "amountMinor",
         e.currency_code AS "currencyCode", to_char(e.due_date, 'YYYY-MM-DD') AS "dueDate",
         to_char(e.posted_date, 'YYYY-MM-DD') AS "postedDate", to_char(e.entry_date, 'YYYY-MM-DD') AS "entryDate",
-        e.category, e.description, e.counterparty, e.reference, e.void_reason AS "voidReason", e.revision,
+        e.category, e.category_id AS "categoryId", e.release_id AS "releaseId", k.name AS "categoryName", e.description,
+        e.counterparty, e.reference, e.void_reason AS "voidReason", e.revision,
         e.created_at AS "createdAt", e.created_by AS "createdById", coalesce(c.profile_name, c.name) AS "createdByName",
         e.updated_at AS "updatedAt", e.updated_by AS "updatedById", coalesce(u.profile_name, u.name) AS "updatedByName"
         FROM app.finance_entry e
+        JOIN app.finance_category k ON k.project_id = e.project_id AND k.id = e.category_id
         JOIN auth.principals c ON c.id = e.created_by JOIN auth.principals u ON u.id = e.updated_by
     """.trimIndent()
 
@@ -111,6 +113,16 @@ object FinanceEntries {
         val current = lock(tx, projectId, id)
         requireRevision(current, baseRevision)
         FinanceRules.requireDates(content.dueDate, content.postedDate)
+        current?.let { FinanceRules.requireChangeable(it.string("state")) }
+        // An archived category or release stays on an entry that has it; a new one must be current.
+        val category = FinanceReferences.category(
+            tx,
+            projectId,
+            content.categoryId,
+            content.direction,
+            keep = current?.stringOrNull("category_id"),
+        )
+        FinanceReferences.requireRelease(tx, projectId, content.releaseId, keep = current?.stringOrNull("release_id"))
         if (current == null) {
             val count = tx.row(
                 "SELECT count(*)::int AS n FROM app.finance_entry WHERE project_id = $1",
@@ -125,8 +137,9 @@ object FinanceEntries {
             tx.update(
                 """
                 INSERT INTO app.finance_entry(project_id, id, direction, state, amount_minor, currency_code, due_date,
-                  posted_date, category, description, counterparty, reference, revision, created_by, updated_by)
-                VALUES ($1, $2, $3, $4, $5, $6, $7::date, $8::date, $9, $10, $11, $12, 1, $13, $13)
+                  posted_date, category, category_id, release_id, description, counterparty, reference, revision,
+                  created_by, updated_by)
+                VALUES ($1, $2, $3, $4, $5, $6, $7::date, $8::date, $9, $10, $11, $12, $13, $14, 1, $15, $15)
                 """.trimIndent(),
                 projectId,
                 id,
@@ -136,7 +149,9 @@ object FinanceEntries {
                 content.currencyCode,
                 content.dueDate,
                 content.postedDate,
-                content.category,
+                category,
+                content.categoryId,
+                content.releaseId,
                 content.description,
                 content.counterparty,
                 content.reference,
@@ -144,13 +159,13 @@ object FinanceEntries {
             )
             AuditTrail.record(tx, actor, projectId, "finance-entry.created", id, 1)
         } else {
-            FinanceRules.requireChangeable(current.string("state"))
             FinanceRules.requireSameState(current.string("state"), content.state)
             tx.update(
                 """
                 UPDATE app.finance_entry SET direction = $3, amount_minor = $4, currency_code = $5, due_date = $6::date,
-                  posted_date = $7::date, category = $8, description = $9, counterparty = $10, reference = $11,
-                  revision = revision + 1, updated_by = $12, updated_at = clock_timestamp()
+                  posted_date = $7::date, category = $8, category_id = $9, release_id = $10, description = $11,
+                  counterparty = $12, reference = $13, revision = revision + 1, updated_by = $14,
+                  updated_at = clock_timestamp()
                 WHERE project_id = $1 AND id = $2
                 """.trimIndent(),
                 projectId,
@@ -160,7 +175,9 @@ object FinanceEntries {
                 content.currencyCode,
                 content.dueDate,
                 content.postedDate,
-                content.category,
+                category,
+                content.categoryId,
+                content.releaseId,
                 content.description,
                 content.counterparty,
                 content.reference,
@@ -228,7 +245,8 @@ object FinanceEntries {
             """
             SELECT v.revision, v.change, v.direction, v.state, v.amount_minor AS "amountMinor",
                    v.currency_code AS "currencyCode", to_char(v.due_date, 'YYYY-MM-DD') AS "dueDate",
-                   to_char(v.posted_date, 'YYYY-MM-DD') AS "postedDate", v.category, v.description, v.counterparty,
+                   to_char(v.posted_date, 'YYYY-MM-DD') AS "postedDate", v.category, v.category_id AS "categoryId",
+                   v.release_id AS "releaseId", v.description, v.counterparty,
                    v.reference, v.void_reason AS "voidReason", v.actor_id AS "actorId",
                    coalesce(p.profile_name, p.name) AS "actorName", v.created_at AS "createdAt"
             FROM app.finance_entry_version v JOIN auth.principals p ON p.id = v.actor_id
@@ -269,11 +287,13 @@ object FinanceEntries {
                v.currency_code AS "currencyCode", to_char(v.due_date, 'YYYY-MM-DD') AS "dueDate",
                to_char(v.posted_date, 'YYYY-MM-DD') AS "postedDate",
                to_char(coalesce(v.posted_date, v.due_date), 'YYYY-MM-DD') AS "entryDate",
-               v.category, v.description, v.counterparty, v.reference, v.void_reason AS "voidReason", v.revision,
+               v.category, v.category_id AS "categoryId", v.release_id AS "releaseId", k.name AS "categoryName",
+               v.description, v.counterparty, v.reference, v.void_reason AS "voidReason", v.revision,
                e.created_at AS "createdAt", e.created_by AS "createdById", coalesce(c.profile_name, c.name) AS "createdByName",
                v.created_at AS "updatedAt", v.actor_id AS "updatedById", coalesce(u.profile_name, u.name) AS "updatedByName"
         FROM app.finance_entry_version v
         JOIN app.finance_entry e ON e.project_id = v.project_id AND e.id = v.entry_id
+        JOIN app.finance_category k ON k.project_id = v.project_id AND k.id = v.category_id
         JOIN auth.principals c ON c.id = e.created_by JOIN auth.principals u ON u.id = v.actor_id
         WHERE v.project_id = $1 AND v.entry_id = $2 AND v.revision = $3
         """.trimIndent(),
@@ -286,7 +306,10 @@ object FinanceEntries {
         tx.row("SELECT $PROJECTION WHERE e.project_id = $1 AND e.id = $2", projectId, id)?.let(::entryOf)
 
     private fun lock(tx: Transaction, projectId: String, id: String): Row? = tx.row(
-        "SELECT state, revision FROM app.finance_entry WHERE project_id = $1 AND id = $2 FOR UPDATE",
+        """
+        SELECT state, revision, category_id, release_id FROM app.finance_entry WHERE project_id = $1 AND id = $2
+        FOR UPDATE
+        """.trimIndent(),
         projectId,
         id,
     )

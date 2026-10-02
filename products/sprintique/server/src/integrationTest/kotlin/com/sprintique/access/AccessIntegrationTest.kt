@@ -228,9 +228,17 @@ class AccessIntegrationTest {
         IntegrationDatabase.admin.transaction { tx ->
             tx.update(
                 """
+                INSERT INTO app.finance_category(project_id, id, name, direction, revision, created_by, updated_by)
+                VALUES ($1, 'payment', 'Оплата', 'income', 1, $2, $2)
+                """.trimIndent(),
+                project,
+                owner,
+            )
+            tx.update(
+                """
                 INSERT INTO app.finance_entry(project_id, id, direction, state, amount_minor, currency_code, posted_date, category,
-                  description, revision, created_by, updated_by)
-                VALUES ($1, 'visible', 'income', 'posted', 100, 'RUB', '2026-09-30', 'Оплата', 'Счёт', 1, $2, $2)
+                  category_id, description, revision, created_by, updated_by)
+                VALUES ($1, 'visible', 'income', 'posted', 100, 'RUB', '2026-09-30', 'Оплата', 'payment', 'Счёт', 1, $2, $2)
                 """.trimIndent(),
                 project,
                 owner,

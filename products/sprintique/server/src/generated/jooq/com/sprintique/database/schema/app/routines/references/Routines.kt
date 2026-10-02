@@ -16,6 +16,7 @@ import com.sprintique.database.schema.app.routines.AiRunLoad
 import com.sprintique.database.schema.app.routines.AiRunStep
 import com.sprintique.database.schema.app.routines.AiStoreConnectionSecret
 import com.sprintique.database.schema.app.routines.AppendTaskActivity
+import com.sprintique.database.schema.app.routines.FinanceCategoryKey
 import com.sprintique.database.schema.app.routines.NotificationRecipient
 import com.sprintique.database.schema.app.routines.NotifyMention
 import com.sprintique.database.schema.app.routines.RaiseNotification
@@ -438,6 +439,35 @@ fun appendTaskActivity(
     p.setChange(change)
 
     p.execute(configuration)
+}
+
+fun financeCategoryKey(
+      configuration: Configuration
+    , name: String?
+): String? {
+    val f = FinanceCategoryKey()
+    f.setName_(name)
+
+    f.execute(configuration)
+    return f.returnValue
+}
+
+fun financeCategoryKey(
+      name: String?
+): Field<String?> {
+    val f = FinanceCategoryKey()
+    f.setName_(name)
+
+    return f.asField()
+}
+
+fun financeCategoryKey(
+      name: Field<String?>
+): Field<String?> {
+    val f = FinanceCategoryKey()
+    f.setName_(name)
+
+    return f.asField()
 }
 
 fun notificationRecipient(

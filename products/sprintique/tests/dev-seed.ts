@@ -124,9 +124,16 @@ export async function seedDevData(app:TestApp,admin:pg.Client,origin:string){
             obj('f2','frame','Что улучшить',600,0),obj('s3','sticky','Долгие сборки CI',630,60,{parentId:'f2',color:'rose'}),obj('k1','task','Ускорить CI',860,60,{parentId:'f2'})],
           connections:[{id:'c1',from:'s3',to:'k1',arrow:true}]}}});
       }
+      // Categories are the project's own list: one per name, of the direction its entries have.
+      const categoryIds=new Map<string,string>();
+      for(const entry of spec.finance||[]){
+        if(categoryIds.has(entry.category))continue;
+        const id='cat-'+(categoryIds.size+1);categoryIds.set(entry.category,id);
+        await call('PUT',P+'finance-categories/'+id,{baseRevision:0,value:{name:entry.category,direction:entry.direction}});
+      }
       for(const entry of spec.finance||[]){
         const date=day(entry.date),value={direction:entry.direction,state:entry.state,amountMinor:entry.amount,currencyCode:entry.currency||'RUB',
-          dueDate:entry.state==='planned'?date:null,postedDate:entry.state==='posted'?date:null,category:entry.category,description:entry.description,
+          dueDate:entry.state==='planned'?date:null,postedDate:entry.state==='posted'?date:null,categoryId:categoryIds.get(entry.category),description:entry.description,
           counterparty:entry.counterparty||null,reference:entry.reference||null};
         const saved=await call<{revision:number}>('PUT',P+'finance-entries/'+entry.id,{baseRevision:0,value});
         if(entry.voided)await call('PATCH',P+`finance-entries/${entry.id}/state`,{state:'voided',baseRevision:saved.revision,voidReason:entry.voided});

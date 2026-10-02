@@ -1,5 +1,6 @@
 package com.sprintique.event.application
 
+import com.sprintique.access.domain.Permission
 import com.sprintique.database.Transaction
 import com.sprintique.identity.application.ProjectAccess
 import com.sprintique.identity.domain.Actor
@@ -15,7 +16,7 @@ data class EventPage(val items: List<Map<String, Any?>>, val cursor: String?, va
 
 /**
  * The committed outbox of a project as a durable, commit-ordered feed. Each reader sees only the topics its rights
- * cover (agents never see finance); the feed carries identifiers and revisions, never content.
+ * cover (only people with finance.read see finance); the feed carries identifiers and revisions, never content.
  */
 object ProjectEvents {
     private const val PAGE = 100
@@ -30,6 +31,13 @@ object ProjectEvents {
         }
         ProjectAccess.authorize(tx, actor, projectId, capability)
     }
+
+    /**
+     * Finance events name plans, categories and entries without amounts, yet even that a plan exists is for people
+     * who may read finance: a person without finance.read, an agent and a service account do not see them.
+     */
+    private fun financeVisible(tx: Transaction, actor: Actor, projectId: String): Boolean =
+        actor.isHuman && ProjectAccess.membership(tx, actor, projectId)?.has(Permission.FINANCE_READ) == true
 
     /** The position to subscribe from, read before a snapshot so a commit during its loading is caught up. */
     fun head(tx: Transaction, actor: Actor, projectId: String): Map<String, String> {
@@ -51,7 +59,7 @@ object ProjectEvents {
             WHERE o.project_id = $1 AND o.project_sequence > $2
               AND ($3::boolean OR o.topic NOT LIKE 'thread.%')
               AND ($4::boolean OR o.topic NOT LIKE 'agent.%')
-              AND ($4::boolean OR o.topic NOT LIKE 'finance-%')
+              AND ($9::boolean OR o.topic NOT LIKE 'finance-%')
               AND ((o.topic LIKE 'thread.%' AND $3::boolean)
                 OR ((o.topic LIKE 'map.%' OR o.topic LIKE 'map-template.%') AND $7::boolean)
                 OR (o.topic LIKE 'asset.%' AND EXISTS (SELECT 1 FROM app.assets f WHERE f.project_id = $1 AND f.id = a.resource_id
@@ -70,6 +78,7 @@ object ProjectEvents {
             actor.mayRead(Capability.TASKS_READ),
             actor.mayRead(Capability.MAPS_READ),
             PAGE + 1,
+            financeVisible(tx, actor, projectId),
         )
         val items = rows.take(PAGE).map { row ->
             LinkedHashMap<String, Any?>(row.without("position")).apply {

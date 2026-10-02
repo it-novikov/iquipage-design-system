@@ -10,14 +10,22 @@ before(async()=>{
   f=await fixture({prefix:'FN'});
   // Борис edits tasks in the first project but does not administer it.
   await f.admin.query("INSERT INTO app.project_members(project_id,principal_id,role) VALUES($1,$2,'editor')",[f.first.id,f.bob.id]);
+  await categories(f.first.id);
 });
 after(async()=>{await f?.close();});
 type User=typeof f.alice;
 const path=(resource:string,project=f.first.id)=>`/api/v1/projects/${project}/${resource}`;
 const call=(method:'GET'|'POST'|'PUT'|'PATCH',resource:string,payload?:unknown,user:User=f.alice,key=randomUUID(),project=f.first.id)=>
   f.app.inject({method,url:path(resource,project),headers:{...user.headers,'idempotency-key':key},...(payload===undefined?{}:{payload:payload as Record<string,unknown>})});
-const posted={direction:'expense',state:'posted',amountMinor:1250050,currencyCode:'RUB',postedDate:'2026-09-10',category:'Хостинг',description:'Серверы за сентябрь',counterparty:'ООО «Облако»',reference:'Счёт 42'};
-const planned={direction:'income',state:'planned',amountMinor:30000000,currencyCode:'RUB',dueDate:'2026-10-05',category:'Оплата заказчика',description:'Второй этап'};
+const posted={direction:'expense',state:'posted',amountMinor:1250050,currencyCode:'RUB',postedDate:'2026-09-10',categoryId:'hosting',description:'Серверы за сентябрь',counterparty:'ООО «Облако»',reference:'Счёт 42'};
+const planned={direction:'income',state:'planned',amountMinor:30000000,currencyCode:'RUB',dueDate:'2026-10-05',categoryId:'client',description:'Второй этап'};
+/** The categories the fixtures name, created in a project through the category endpoint. */
+async function categories(project:string){
+  for(const [id,name,direction] of [['hosting','Хостинг','expense'],['client','Оплата заказчика','income'],['sales','Продажи','income']]){
+    const response=await call('PUT','finance-categories/'+id,{baseRevision:0,value:{name,direction}},f.alice,randomUUID(),project);
+    assert.equal(response.statusCode,200,response.body);
+  }
+}
 async function create(id:string,value:Record<string,unknown>,user:User=f.alice){
   const response=await call('PUT','finance-entries/'+id,{baseRevision:0,value},user);assert.equal(response.statusCode,200,response.body);
   return FinanceEntryResponse.parse(response.json());
@@ -39,8 +47,10 @@ test('FN01 an administrator records entries; CAS, retries and history follow eve
   // A retry whose answer was lost after the entry changed again returns what that command produced, not the entry now.
   assert.deepEqual((await call('PUT','finance-entries/fn01-hosting',body,f.alice,key)).json(),first.json());
   // Text is trimmed and optional text may be left out.
-  const trimmed=await create('fn01-trimmed',{...planned,category:'  Аванс ',description:' Предоплата  '});
-  assert.equal(trimmed.category,'Аванс');assert.equal(trimmed.description,'Предоплата');assert.equal(trimmed.counterparty,null);
+  const trimmed=await create('fn01-trimmed',{...planned,description:' Предоплата  '});
+  // The entry carries its category's name as a label, and the category itself by id.
+  assert.deepEqual([trimmed.category,trimmed.categoryId,trimmed.categoryName,trimmed.releaseId],['Оплата заказчика','client','Оплата заказчика',null]);
+  assert.equal(trimmed.description,'Предоплата');assert.equal(trimmed.counterparty,null);
   const history=FinanceEntryHistoryResponse.parse((await call('GET','finance-entries/fn01-hosting/history')).json());
   assert.deepEqual(history.items.map(v=>[v.revision,v.change,v.amountMinor]),[[2,'updated',1300000],[1,'created',1250050]]);
   assert.equal(history.items[1]!.reference,'Счёт 42');assert.equal(history.nextCursor,null);
@@ -141,17 +151,17 @@ test('FN04 the database refuses finance writes outside the policy, even for a pr
 
 test('FN05 the summary totals each currency without voided entries, keeps plan apart and splits by month and category',async()=>{
   const created=await f.app.inject({method:'POST',url:'/api/v1/projects',headers:f.alice.headers,payload:{workspaceId:f.first.workspaceId,name:'Финансы проекта',slug:'fn05-'+randomUUID().slice(0,8),key:'FNSUM'}});
-  assert.equal(created.statusCode,200,created.body);const project=created.json<{id:string}>();
+  assert.equal(created.statusCode,200,created.body);const project=created.json<{id:string}>();await categories(project.id);
   const at=(resource:string,payload?:unknown,method:'GET'|'PUT'|'PATCH'='GET')=>call(method,resource,payload,f.alice,randomUUID(),project.id);
   const put=async(id:string,value:Record<string,unknown>)=>{const r=await at('finance-entries/'+id,{baseRevision:0,value},'PUT');assert.equal(r.statusCode,200,r.body);return r.json<FinanceEntry>();};
   const max=999_999_999_999_999;
-  await put('a',{...posted,direction:'income',amountMinor:max,postedDate:'2026-08-15',category:'Продажи'});
-  await put('b',{...posted,direction:'income',amountMinor:max,postedDate:'2026-09-01',category:'Продажи'});
-  await put('c',{...posted,amountMinor:250,postedDate:'2026-09-02',category:'Хостинг'});
-  await put('d',{...planned,amountMinor:1000,dueDate:'2026-09-30',category:'Продажи'});
-  await put('e',{...planned,direction:'expense',amountMinor:400,dueDate:'2026-10-10',category:'Хостинг'});
-  await put('f',{...posted,direction:'income',amountMinor:7000,currencyCode:'USD',postedDate:'2026-09-03',category:'Продажи'});
-  const voided=await put('g',{...posted,amountMinor:99999,postedDate:'2026-09-04',category:'Хостинг'});
+  await put('a',{...posted,direction:'income',amountMinor:max,postedDate:'2026-08-15',categoryId:'sales'});
+  await put('b',{...posted,direction:'income',amountMinor:max,postedDate:'2026-09-01',categoryId:'sales'});
+  await put('c',{...posted,amountMinor:250,postedDate:'2026-09-02',categoryId:'hosting'});
+  await put('d',{...planned,amountMinor:1000,dueDate:'2026-09-30',categoryId:'sales'});
+  await put('e',{...planned,direction:'expense',amountMinor:400,dueDate:'2026-10-10',categoryId:'hosting'});
+  await put('f',{...posted,direction:'income',amountMinor:7000,currencyCode:'USD',postedDate:'2026-09-03',categoryId:'sales'});
+  const voided=await put('g',{...posted,amountMinor:99999,postedDate:'2026-09-04',categoryId:'hosting'});
   assert.equal((await at('finance-entries/g/state',{state:'voided',baseRevision:voided.revision,voidReason:'Ошибка'},'PATCH')).statusCode,200);
   const summary=FinanceSummaryResponse.parse((await at('finance-summary')).json());
   assert.equal(summary.truncated,false);
@@ -208,7 +218,7 @@ test('FN07 contracts refuse malformed entries before anything is written',async(
     {...posted,amountMinor:0},{...posted,amountMinor:1_000_000_000_000_000},{...posted,amountMinor:12.5},{...posted,amountMinor:'100'},
     {...posted,currencyCode:'rub'},{...posted,currencyCode:'RUBL'},{...posted,postedDate:null},{...posted,postedDate:'2026-02-30'},
     {...planned,dueDate:null},{...planned,postedDate:'2026-10-01'},{...posted,state:'voided'},{...posted,direction:'transfer'},
-    {...posted,category:''},{...posted,category:'x'.repeat(81)},{...posted,description:'x'.repeat(501)},{...posted,counterparty:'x'.repeat(161)},
+    {...posted,categoryId:''},{...posted,categoryId:'x'.repeat(101)},{...posted,category:'Хостинг'},{...posted,description:'x'.repeat(501)},{...posted,counterparty:'x'.repeat(161)},
     {...posted,reference:''},{...posted,unknown:true},(({description:_,...rest})=>rest)(posted)
   ];
   for(const value of invalid){
@@ -258,14 +268,14 @@ test('FN10 history pages by revision, the entry limit holds, and rights are chec
   assert.deepEqual(rest.items.map(v=>v.revision),[6,5,4,3,2,1]);assert.equal(rest.nextCursor,null);
   // A project of its own: the limit is prepared in SQL, and the administrator is demoted and removed there.
   const created=await f.app.inject({method:'POST',url:'/api/v1/projects',headers:f.alice.headers,payload:{workspaceId:f.first.workspaceId,name:'Лимит финансов',slug:'fn10-'+randomUUID().slice(0,8),key:'FNLIM'}});
-  assert.equal(created.statusCode,200,created.body);const project=created.json<{id:string}>().id;
+  assert.equal(created.statusCode,200,created.body);const project=created.json<{id:string}>().id;await categories(project);
   const at=(method:'GET'|'PUT',resource:string,payload?:unknown,user:User=f.alice)=>call(method,resource,payload,user,randomUUID(),project);
   assert.equal((await at('PUT','finance-entries/kept',{baseRevision:0,value:posted})).statusCode,200);
   await f.admin.query('BEGIN');
   try{
     await f.admin.query("SET LOCAL session_replication_role = replica");
-    await f.admin.query(`INSERT INTO app.finance_entry(project_id,id,direction,state,amount_minor,currency_code,posted_date,category,description,revision,created_by,updated_by)
-      SELECT $1,'bulk-'||n,'expense','posted',1,'RUB','2026-01-01','Массовая','Подготовка лимита',1,$2,$2 FROM generate_series(1,99999) n`,[project,f.alice.id]);
+    await f.admin.query(`INSERT INTO app.finance_entry(project_id,id,direction,state,amount_minor,currency_code,posted_date,category,category_id,description,revision,created_by,updated_by)
+      SELECT $1,'bulk-'||n,'expense','posted',1,'RUB','2026-01-01','Хостинг','hosting','Подготовка лимита',1,$2,$2 FROM generate_series(1,99999) n`,[project,f.alice.id]);
     await f.admin.query('COMMIT');
   }catch(error){await f.admin.query('ROLLBACK');throw error;}
   const full=await at('PUT','finance-entries/one-more',{baseRevision:0,value:posted});

@@ -516,7 +516,8 @@ test('P11 finance only when granted and never above the owner; project administr
   const token=(await call(f.alice,'POST',`/api/v1/service-accounts/${bookkeeper.id}/tokens`,{name:'Отчёт',scopes:['read','write'],expiresInDays:1})).json().token;
   const readOnly=(await call(f.alice,'POST',`/api/v1/service-accounts/${bookkeeper.id}/tokens`,{name:'Сводка',scopes:['read'],expiresInDays:1})).json().token;
   const summary=(t=token)=>f.app.inject({url:api+'/api/v1/projects/'+f.first.id+'/finance-summary',headers:bearer(t)});
-  const posted={direction:'expense',state:'posted',amountMinor:1250050,currencyCode:'RUB',postedDate:'2026-09-10',category:'Хостинг',description:'Серверы за сентябрь'};
+  const posted={direction:'expense',state:'posted',amountMinor:1250050,currencyCode:'RUB',postedDate:'2026-09-10',categoryId:'sa-hosting',description:'Серверы за сентябрь'};
+  assert.equal((await call(f.alice,'PUT','/api/v1/projects/'+f.first.id+'/finance-categories/sa-hosting',{baseRevision:0,value:{name:'Хостинг',direction:'expense'}})).statusCode,200);
   const entry=(id:string,t=token)=>f.app.inject({method:'PUT',url:api+'/api/v1/projects/'+f.first.id+'/finance-entries/'+id,headers:{...bearer(t),'idempotency-key':randomUUID()},payload:{baseRevision:0,value:posted}});
   // Off by default, though its owner administers the project.
   let r=await summary();assert.equal(r.statusCode,403);assert.equal(r.json().code,'FORBIDDEN');

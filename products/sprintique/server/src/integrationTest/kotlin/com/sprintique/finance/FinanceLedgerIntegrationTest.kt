@@ -49,6 +49,14 @@ class FinanceLedgerIntegrationTest {
                     role,
                 )
             }
+            tx.update(
+                """
+                INSERT INTO app.finance_category(project_id, id, name, direction, revision, created_by, updated_by)
+                VALUES ($1, 'hosting', 'Хостинг', 'both', 1, $2, $2)
+                """.trimIndent(),
+                project,
+                admin,
+            )
         }
     }
 
@@ -222,9 +230,9 @@ class FinanceLedgerIntegrationTest {
         tx.update(
             """
             INSERT INTO app.finance_entry(project_id, id, direction, state, amount_minor, currency_code, due_date,
-              posted_date, category, description, void_reason, revision, created_by, updated_by)
+              posted_date, category, category_id, description, void_reason, revision, created_by, updated_by)
             VALUES ($1, $2, 'expense', $3, 1000, 'RUB', '2026-09-10',
-              CASE WHEN $3 <> 'planned' THEN '2026-09-11'::date END, 'Хостинг', 'Серверы',
+              CASE WHEN $3 <> 'planned' THEN '2026-09-11'::date END, 'Хостинг', 'hosting', 'Серверы',
               CASE WHEN $3 = 'voided' THEN 'Причина' END, $4, $5, $5)
             """.trimIndent(),
             project,

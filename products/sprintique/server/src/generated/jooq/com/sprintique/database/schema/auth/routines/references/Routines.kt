@@ -29,6 +29,7 @@ import com.sprintique.database.schema.auth.routines.PermissionImplies
 import com.sprintique.database.schema.auth.routines.PermissionSort
 import com.sprintique.database.schema.auth.routines.ProjectPermissionCatalog
 import com.sprintique.database.schema.auth.routines.ProjectTimezone
+import com.sprintique.database.schema.auth.routines.ProjectsWith
 import com.sprintique.database.schema.auth.routines.ProvisionAccessPresets
 import com.sprintique.database.schema.auth.routines.ServiceAccountActive
 import com.sprintique.database.schema.auth.routines.WorkspacePermissionCatalog
@@ -720,6 +721,35 @@ fun projectTimezone(
 ): Field<String?> {
     val f = ProjectTimezone()
     f.setTarget(target)
+
+    return f.asField()
+}
+
+fun projectsWith(
+      configuration: Configuration
+    , permission: String?
+): Array<String?>? {
+    val f = ProjectsWith()
+    f.setPermission(permission)
+
+    f.execute(configuration)
+    return f.returnValue
+}
+
+fun projectsWith(
+      permission: String?
+): Field<Array<String?>?> {
+    val f = ProjectsWith()
+    f.setPermission(permission)
+
+    return f.asField()
+}
+
+fun projectsWith(
+      permission: Field<String?>
+): Field<Array<String?>?> {
+    val f = ProjectsWith()
+    f.setPermission(permission)
 
     return f.asField()
 }
