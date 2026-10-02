@@ -52,9 +52,31 @@ function bindCounters(form){
 /** Writes a command with a key stable for its exact body, so a retry after a lost answer is recognised. */
 async function command(api,method,path,body){return api.request(path,method,body,await api.key(path,body));}
 
+/** Two category names are one category when they differ only in case, «ё» or spaces, as the server compares them. */
+export const categoryKey=name=>String(name).trim().replace(/\s+/g,' ').toLowerCase().replaceAll('ё','е');
+/**
+ * The category an entry names: an existing one of the project, chosen by name, or a new one created through the
+ * category endpoint under an id fixed for the dialog, so a retry finds the same category. An archived category stays
+ * only on an entry that already has it; a category of the other direction is refused before anything is written.
+ */
+async function resolveCategory({api,form,categories,name,direction,currentId,pending}){
+  const found=categories.find(c=>categoryKey(c.name)===categoryKey(name));
+  if(found){
+    if(found.archived&&found.id!==currentId)invalid(form,'category',`Категория «${found.name}» в архиве. Выберите другую.`);
+    if(found.direction!=='both'&&found.direction!==direction)invalid(form,'category',`Категория «${found.name}» только для ${found.direction==='income'?'доходов':'расходов'}.`);
+    return found.id;
+  }
+  const id=pending.get(categoryKey(name))||crypto.randomUUID();pending.set(categoryKey(name),id);
+  const created=await command(api,'PUT',`/finance-categories/${encodeURIComponent(id)}`,{baseRevision:0,value:{name,direction,archived:false}});
+  categories.push(created);
+  return created.id;
+}
+
 /** Creating or editing an entry. An edit keeps the state: posting and voiding have their own dialogs. */
 export function entryDialog({api,entry=null,settings,today,categories=[],currencies=[],onSaved,replace}){
-  const creating=!entry,value=entry||{direction:'expense',state:'posted',currencyCode:settings.currencyCode,amountMinor:null,category:'',description:'',counterparty:null,reference:null};
+  const creating=!entry,value=entry||{direction:'expense',state:'posted',currencyCode:settings.currencyCode,amountMinor:null,categoryId:null,categoryName:'',description:'',counterparty:null,reference:null};
+  const pending=new Map();
+  const suggestions=categories.filter(c=>!c.archived||c.id===value.categoryId).map(c=>c.name).sort((a,b)=>a.localeCompare(b,'ru'));
   const dateOf=state=>state==='planned'?value.dueDate:value.postedDate;
   const dateLabel=state=>state==='planned'?'Ожидаемая дата':'Дата оплаты';
   const listId=nextId();
@@ -65,8 +87,8 @@ export function entryDialog({api,entry=null,settings,today,categories=[],currenc
     <div class="grid-2 fin-money-fields">${textField({name:'amount',label:'Сумма',value:value.amountMinor?amountInput(value.amountMinor,value.currencyCode):'',required:true,inputmode:'decimal',suffix:currencySymbol(value.currencyCode)})}
     ${currencySelect('currencyCode','Валюта',value.currencyCode,currencyOptions(value.currencyCode,settings.currencyCode,...currencies))}</div>
     <iq-date-field name="date" label="${dateLabel(value.state)}" value="${esc(dateOf(value.state)||today)}" required></iq-date-field>
-    ${textField({name:'category',label:'Категория',value:value.category,max:FINANCE_LIMITS.category,required:true,list:listId,hint:'Например, «Хостинг» или «Оплата заказчика»: по категориям строится сводка.'})}
-    <datalist id="${listId}">${categories.map(c=>`<option value="${esc(c)}"></option>`).join('')}</datalist>
+    ${textField({name:'category',label:'Категория',value:value.categoryName,max:FINANCE_LIMITS.category,required:true,list:listId,hint:'Выберите из списка или введите новую, например «Хостинг»: по категориям строятся сводка и план.'})}
+    <datalist id="${listId}">${suggestions.map(name=>`<option value="${esc(name)}"></option>`).join('')}</datalist>
     ${ui.textarea('Описание',value.description,{name:'description',maxlength:FINANCE_LIMITS.description})}
     <div class="grid-2">${textField({name:'counterparty',label:'Контрагент — необязательно',value:value.counterparty||'',max:FINANCE_LIMITS.counterparty})}
     ${textField({name:'reference',label:'Документ — необязательно',value:value.reference||'',max:FINANCE_LIMITS.reference,hint:'Номер счёта, договора или платёжки.'})}</div>`;
@@ -91,8 +113,10 @@ export function entryDialog({api,entry=null,settings,today,categories=[],currenc
       if(!date)invalid(form,'date',state==='planned'?'Укажите, когда ожидается оплата.':'Укажите дату оплаты.');
       if(!category)invalid(form,'category','Укажите категорию.');
       if(!description)invalid(form,'description','Опишите операцию.');
-      const next={direction:form.querySelector('[name=direction]:checked')?.value||value.direction,state,amountMinor,currencyCode,
-        dueDate:state==='planned'?date:value.dueDate??null,postedDate:state==='planned'?null:date,category,description,
+      const direction=form.querySelector('[name=direction]:checked')?.value||value.direction;
+      const categoryId=await resolveCategory({api,form,categories,name:category,direction,currentId:value.categoryId,pending});
+      const next={direction,state,amountMinor,currencyCode,
+        dueDate:state==='planned'?date:value.dueDate??null,postedDate:state==='planned'?null:date,categoryId,releaseId:value.releaseId??null,description,
         counterparty:optional(read(form,'counterparty')),reference:optional(read(form,'reference'))};
       const saved=await command(api,'PUT',`/finance-entries/${encodeURIComponent(id)}`,{baseRevision:entry?.revision??0,value:next});
       await onSaved?.(saved);
@@ -144,7 +168,7 @@ export function entryDetails({api,entry,today,canManage,onEdit,onPost,onVoid,onC
     fact('Статус',`<span class="iq-badge soft ${status.tone}">${esc(status.label)}</span>`),
     entry.postedDate?fact('Дата оплаты',esc(formatDate(entry.postedDate))):'',
     entry.dueDate?fact(entry.state==='planned'?'Ожидается':'Ожидалась',esc(formatDate(entry.dueDate))):'',
-    fact('Категория',esc(entry.category)),
+    fact('Категория',esc(entry.categoryName??entry.category)+(entry.categoryName&&entry.category!==entry.categoryName?`<small class="fin-row-meta">При записи — «${esc(entry.category)}»</small>`:'')),
     entry.counterparty?fact('Контрагент',esc(entry.counterparty)):'',
     entry.reference?fact('Документ',esc(entry.reference)):'',
     entry.voidReason?fact('Причина аннулирования',esc(entry.voidReason)):'',

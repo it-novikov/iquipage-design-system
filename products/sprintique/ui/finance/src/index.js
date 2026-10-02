@@ -49,12 +49,10 @@ export async function mountFinance(root,{repository,project,viewState={}}){
   }
   /** "Today" in the project's time zone, as planning reads it. */
   const today=()=>projectToday(settings?.timeZone);
-  /** Suggestions are every category the project used, whatever period is on screen. */
+  /** The project's categories, whatever period is on screen: the entry dialog picks one or creates a new one. */
   let allCategories=null;
-  const categoryNames=list=>[...new Set((list||[]).map(c=>c.category))].sort((a,b)=>a.localeCompare(b,'ru'));
   async function categories(){
-    if(view.period==='all')return categoryNames(summary?.categories);
-    allCategories??=api.request('/finance-summary','GET',undefined,undefined,abort.signal).then(all=>categoryNames(all.categories)).catch(()=>categoryNames(summary?.categories));
+    allCategories??=api.request('/finance-categories','GET',undefined,undefined,abort.signal).then(list=>list.items).catch(()=>[]);
     return allCategories;
   }
   const currencies=()=>(summary?.currencies||[]).map(c=>c.currencyCode);
@@ -109,8 +107,8 @@ export async function mountFinance(root,{repository,project,viewState={}}){
       return `<div class="fin-currency" data-currency="${esc(c.currencyCode)}">${list.length>1||c.currencyCode!==settings?.currencyCode?`<h2 class="fin-currency-title">${esc(currencyName(c.currencyCode))}, ${esc(currencySymbol(c.currencyCode))}</h2>`:''}
         <dl class="fin-facts"><div><dt>Поступило</dt><dd>${esc(formatMoney(c.postedIncome,c.currencyCode))}</dd></div>
         <div><dt>Потрачено</dt><dd>${esc(formatMoney(c.postedExpense,c.currencyCode))}</dd></div>
-        <div data-emphasis><dt>Баланс</dt><dd data-negative="${c.balance.startsWith('-')}">${esc(formatMoney(c.balance,c.currencyCode))}</dd></div>
-        <div><dt>С учётом ожидаемых</dt><dd data-negative="${c.forecast.startsWith('-')}">${esc(formatMoney(c.forecast,c.currencyCode))}</dd>${planned?`<small>${esc(planned[0].toUpperCase()+planned.slice(1))}</small>`:'<small>Ожидаемых операций нет</small>'}</div></dl></div>`;
+        <div data-emphasis><dt>Чистый результат</dt><dd data-negative="${c.balance.startsWith('-')}">${esc(formatMoney(c.balance,c.currencyCode))}</dd></div>
+        <div><dt>Ожидаемый результат</dt><dd data-negative="${c.forecast.startsWith('-')}">${esc(formatMoney(c.forecast,c.currencyCode))}</dd>${planned?`<small>${esc(planned[0].toUpperCase()+planned.slice(1))}</small>`:'<small>Ожидаемых операций нет</small>'}</div></dl></div>`;
     }).join('');
   }
   function row(entry){
