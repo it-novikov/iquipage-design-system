@@ -49,8 +49,11 @@ CREATE FUNCTION app.turn_off_email_notifications(person text) RETURNS boolean
 LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog AS $$
 BEGIN
   IF NOT EXISTS(SELECT 1 FROM auth.principals p WHERE p.id=person AND p.kind='human') THEN RETURN false; END IF;
-  UPDATE app.notification_preferences SET email_enabled=false,revision=revision+1,updated_at=clock_timestamp()
-  WHERE principal_id=person AND email_enabled;
+  -- A person who never changed a setting has no row yet: e-mail is on by default, so the row is made with it off.
+  INSERT INTO app.notification_preferences(principal_id,email_enabled) VALUES(person,false)
+  ON CONFLICT (principal_id) DO UPDATE SET email_enabled=false,revision=app.notification_preferences.revision+1,
+    updated_at=clock_timestamp()
+  WHERE app.notification_preferences.email_enabled;
   RETURN true;
 END $$;
 REVOKE ALL ON FUNCTION app.turn_off_email_notifications(text) FROM PUBLIC;

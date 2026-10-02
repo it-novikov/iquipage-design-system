@@ -75,7 +75,7 @@ open class NotificationPreferences(
 
     val UPDATED_AT: TableField<NotificationPreferencesRecord, OffsetDateTime?> = createField(DSL.name("updated_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6).nullable(false).defaultValue(DSL.field(DSL.raw("clock_timestamp()"), SQLDataType.TIMESTAMPWITHTIMEZONE)), this, "")
 
-    val EMAIL_ENABLED: TableField<NotificationPreferencesRecord, Boolean?> = createField(DSL.name("email_enabled"), SQLDataType.BOOLEAN.nullable(false).defaultValue(DSL.field(DSL.raw("false"), SQLDataType.BOOLEAN)), this, "")
+    val EMAIL_ENABLED: TableField<NotificationPreferencesRecord, Boolean?> = createField(DSL.name("email_enabled"), SQLDataType.BOOLEAN.nullable(false).defaultValue(DSL.field(DSL.raw("true"), SQLDataType.BOOLEAN)), this, "")
 
     val TELEGRAM_ENABLED: TableField<NotificationPreferencesRecord, Boolean?> = createField(DSL.name("telegram_enabled"), SQLDataType.BOOLEAN.nullable(false).defaultValue(DSL.field(DSL.raw("true"), SQLDataType.BOOLEAN)), this, "")
 

@@ -6,13 +6,16 @@ package com.sprintique.database.schema.app.routines.references
 
 
 import com.sprintique.database.schema.app.routines.AppendTaskActivity
+import com.sprintique.database.schema.app.routines.NotificationActions
 import com.sprintique.database.schema.app.routines.NotificationRecipient
 import com.sprintique.database.schema.app.routines.NotifyMention
 import com.sprintique.database.schema.app.routines.RaiseNotification
 import com.sprintique.database.schema.app.routines.TelegramAcceptUpdate
+import com.sprintique.database.schema.app.routines.TelegramChatPerson
 import com.sprintique.database.schema.app.routines.TelegramLinkChat
 import com.sprintique.database.schema.app.routines.TelegramUnlinkChat
 import com.sprintique.database.schema.app.routines.TurnOffEmailNotifications
+import com.sprintique.database.schema.app.tables.records.NotificationsRecord
 
 import java.util.UUID
 
@@ -36,6 +39,35 @@ fun appendTaskActivity(
     p.setChange(change)
 
     p.execute(configuration)
+}
+
+fun notificationActions(
+      configuration: Configuration
+    , item: NotificationsRecord?
+): Array<String?>? {
+    val f = NotificationActions()
+    f.setItem(item)
+
+    f.execute(configuration)
+    return f.returnValue
+}
+
+fun notificationActions(
+      item: NotificationsRecord?
+): Field<Array<String?>?> {
+    val f = NotificationActions()
+    f.setItem(item)
+
+    return f.asField()
+}
+
+fun notificationActions(
+      item: Field<NotificationsRecord?>
+): Field<Array<String?>?> {
+    val f = NotificationActions()
+    f.setItem(item)
+
+    return f.asField()
 }
 
 fun notificationRecipient(
@@ -204,6 +236,35 @@ fun telegramAcceptUpdate(
 ): Field<Boolean?> {
     val f = TelegramAcceptUpdate()
     f.setUpdate(update)
+
+    return f.asField()
+}
+
+fun telegramChatPerson(
+      configuration: Configuration
+    , chat: Long?
+): String? {
+    val f = TelegramChatPerson()
+    f.setChat(chat)
+
+    f.execute(configuration)
+    return f.returnValue
+}
+
+fun telegramChatPerson(
+      chat: Long?
+): Field<String?> {
+    val f = TelegramChatPerson()
+    f.setChat(chat)
+
+    return f.asField()
+}
+
+fun telegramChatPerson(
+      chat: Field<Long?>
+): Field<String?> {
+    val f = TelegramChatPerson()
+    f.setChat(chat)
 
     return f.asField()
 }

@@ -48,7 +48,7 @@ GRANT SELECT,INSERT ON auth.access_events TO "${runtime_role}";
 -- Service accounts are deleted by marking them; their principal and history stay.
 GRANT SELECT,INSERT,UPDATE ON auth.service_accounts TO "${runtime_role}";
 GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA auth TO "${runtime_role}";
--- Notifications (V20261001000042–044, 056–058): raised only through the functions below; a person changes only when
+-- Notifications (V20261001000042–044, 068–070): raised only through the functions below; a person changes only when
 -- they read one. A Telegram chat is unlinked by its person; the delivery queue and the webhook ledger belong to the
 -- functions alone; a signed unsubscribe link turns e-mail off through its own function.
 REVOKE INSERT,UPDATE ON app.notifications FROM "${runtime_role}";

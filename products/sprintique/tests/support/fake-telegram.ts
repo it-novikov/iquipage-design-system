@@ -20,5 +20,6 @@ export async function startFakeTelegram(answer:(chat:number,count:number)=>Answe
   });
   await new Promise<void>(resolve=>server.listen(0,'127.0.0.1',resolve));
   const port=(server.address() as {port:number}).port;
-  return {url:`http://127.0.0.1:${port}`,sent,close:()=>new Promise<void>(resolve=>server.close(()=>resolve()))};
+  // The API keeps its connections alive: they are dropped so that closing never waits on them.
+  return {url:`http://127.0.0.1:${port}`,sent,close:()=>new Promise<void>(resolve=>{server.close(()=>resolve());server.closeAllConnections();})};
 }

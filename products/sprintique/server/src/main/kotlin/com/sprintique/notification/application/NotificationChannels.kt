@@ -74,7 +74,7 @@ class NotificationChannels(
             ),
             "preferences" to linkedMapOf(
                 "channels" to linkedMapOf(
-                    "email" to (person?.get("emailEnabled") as? Boolean ?: false),
+                    "email" to (person?.get("emailEnabled") as? Boolean ?: true),
                     "telegram" to (person?.get("telegramEnabled") as? Boolean ?: true),
                 ),
                 "kinds" to NotificationKind.entries.associate { it.wire to (it.wire !in muted) },

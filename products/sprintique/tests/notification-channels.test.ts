@@ -15,16 +15,18 @@ import type {NotificationSettings} from '../contracts/notifications.js';
 type User=Awaited<ReturnType<typeof fixture>>['alice'];
 const TOKEN='123456789:'+'B'.repeat(35),SECRET='w'.repeat(40),BOT='sprintique_channels_bot',LINK_SECRET='L'.repeat(48);
 const FROM='Sprintique <no-reply@sprintique.test>',PUBLIC='https://sprintique.example';
-let f:Awaited<ReturnType<typeof fixture>>,worker:pg.Pool,smtp:FakeSmtp;
+let f:Awaited<ReturnType<typeof fixture>>,worker:pg.Pool,smtp:FakeSmtp,bot:Awaited<ReturnType<typeof startFakeTelegram>>;
 const mail=()=>({SPRINTIQUE_SMTP_HOST:'127.0.0.1',SPRINTIQUE_SMTP_PORT:String(smtp.port),SPRINTIQUE_SMTP_SECURITY:'none',SPRINTIQUE_MAIL_FROM:FROM,
   SPRINTIQUE_NOTIFICATIONS_LINK_SECRET:LINK_SECRET});
 const telegram={SPRINTIQUE_TELEGRAM_BOT_TOKEN:TOKEN,SPRINTIQUE_TELEGRAM_BOT_USERNAME:BOT,SPRINTIQUE_TELEGRAM_WEBHOOK_SECRET:SECRET};
 before(async()=>{
   smtp=await startFakeSmtp();
-  f=await fixture({prefix:'NC',settings:{...telegram,...mail()}});
+  // The API edits a message's buttons after a quick action: it talks to this fake, never to Telegram.
+  bot=await startFakeTelegram();
+  f=await fixture({prefix:'NC',settings:{...telegram,...mail(),SPRINTIQUE_TELEGRAM_API_BASE:bot.url}});
   worker=new pg.Pool({connectionString:process.env['WORKER_DATABASE_URL']!,max:2});
 });
-after(async()=>{await worker?.end();await f?.close();await smtp?.close();});
+after(async()=>{await worker?.end();await f?.close();await smtp?.close();await bot?.close();});
 
 const hash=(value:string)=>createHash('sha256').update(value).digest('hex');
 async function human(name:string,email:string|null=null):Promise<User>{
@@ -91,7 +93,7 @@ test('NC01 channel selection: e-mail off and Telegram on by default; each combin
   const p=await project([eve,plain]);
   await linkChat(eve,11001);
   const initial=await settings(eve);
-  assert.deepEqual(initial.preferences,{channels:{email:false,telegram:true},kinds:KINDS});
+  assert.deepEqual(initial.preferences,{channels:{email:true,telegram:true},kinds:KINDS},'e-mail is on by default');
   assert.deepEqual(initial.email,{available:true,address:'eve@example.org'});
   let n=0;
   for(const [email,tg] of [[false,false],[true,false],[false,true],[true,true]] as [boolean,boolean][]){
@@ -178,9 +180,9 @@ test('NC03 several updates about one task become one entry with all reasons; a r
     assert.equal(messages.length,1,'one message for the whole batch');
     const text=messages[0]!.text,link=(id:number)=>`${PUBLIC}/?project=${p.slug}#/task/${p.key}-${id}`;
     assert.equal(text,`<b>Sprintique · 3 новых</b>\n\n<i>Проект ${p.key}</i>\n`+
-      `<a href="${link(1)}"><b>Граф связей: подписи рёбер</b></a>\nАлиса назначает вас исполнителем\n`+
-      'Алиса упоминает вас: “@Ким посмотри, пожалуйста, подписи на рёбрах”\n\n'+
-      `<a href="${link(2)}"><b>Онбординг</b></a>\nАлиса назначает вас исполнителем`);
+      `<a href="${link(1)}"><b>Граф связей: подписи рёбер</b></a>\nВас назначили исполнителем задачи ${p.key}-1\n<i>Алиса</i>\n`+
+      `Вас упомянули в обсуждении задачи ${p.key}-1\n<blockquote>@Ким посмотри, пожалуйста, подписи на рёбрах</blockquote>\n<i>Алиса</i>\n\n`+
+      `<a href="${link(2)}"><b>Онбординг</b></a>\nВас назначили исполнителем задачи ${p.key}-2\n<i>Алиса</i>`);
     assert.deepEqual(messages[0]!.markup,{inline_keyboard:[[{text:'Открыть Sprintique',url:PUBLIC+'/'}]]});
     assert.deepEqual((await deliveries(kim)).map(d=>d.state),['sent','sent','sent','sent'],'four items, three reasons');
   }finally{await work.stop();await api.close();}
@@ -258,7 +260,7 @@ test('NC05 a letter: multipart/alternative with a text part, its headers, one-cl
     const [text,html]=parsed.parts.map(part=>part.text) as [string,string];
     assert.match(text,new RegExp(`Граф связей: подписи рёбер \\(${p.key}-1\\)`));
     assert.match(text,new RegExp(`Открыть задачу: https://sprintique\\.example/\\?project=${p.slug}#/task/${p.key}-2`));
-    assert.match(text,/Ева B\. назначает вас исполнителем/);
+    assert.match(text,new RegExp(`Вас назначили исполнителем задачи ${p.key}-1\\r?\\nЕва B\\.`));
     assert.ok(text.includes('Отключить письма: '+unsubscribe![1]));
     assert.ok(!text.split('\n').some(line=>/^\s*([-•*]|\d+\.)\s/.test(line)),'no lists in the text');
     assert.ok(html.includes(`href="https://sprintique.example/?project=${p.slug}#/task/${p.key}-1"`));
@@ -330,7 +332,7 @@ test('NC07 a long Telegram batch is split under 4096 characters at task boundari
     const titles=delivered.flatMap(m=>[...m.text.matchAll(/<b>(Задача \d+):/g)].map(x=>x[1]));
     assert.equal(titles.length,20,'each task once');assert.equal(new Set(titles).size,20);
     // Parts end on a whole task: a reason line, never a title.
-    assert.ok(delivered.every(m=>m.text.split('\n').at(-1)==='Алиса назначает вас исполнителем'),'parts end at a task');
+    assert.ok(delivered.every(m=>m.text.split('\n').at(-1)==='<i>Алиса</i>'),'parts end at a task');
     assert.ok(delivered[0]!.text.startsWith(`<b>Sprintique · 20 новых</b>\n\n<i>Проект ${p.key}</i>\n<a href=`));
     assert.ok(delivered.slice(0,-1).every(m=>!m.markup)&&delivered.at(-1)!.markup,'buttons on the last part');
     assert.ok((await deliveries(max)).every(d=>d.state==='sent'));
@@ -358,4 +360,173 @@ test('NC08 letters are retried after a temporary refusal and fail for good after
     assert.equal((await batches(temp,'email'))[0].attempts,2);
     assert.equal(smtp.letters.filter(l=>l.to.includes('temp@example.org')).length,1);
   }finally{await work.stop();}
+});
+
+/** A person's own notification of a kind, the newest. */
+const notificationOf=async(user:User,p:string,kind:string)=>(await f.admin.query(
+  'SELECT id::text AS id FROM app.notifications WHERE recipient_id=$1 AND project_id=$2 AND kind=$3 ORDER BY created_at DESC LIMIT 1',[user.id,p,kind])).rows[0].id as string;
+const act=(user:User,id:string,payload:Record<string,unknown>,key:string=randomUUID())=>f.app.inject({method:'POST',url:`/api/v1/notifications/${id}/actions`,
+  headers:{...user.headers,'idempotency-key':key},payload});
+const bellOf=async(user:User)=>(await ok<any>(f.app.inject({url:'/api/v1/notifications',headers:user.headers}))).items as any[];
+const taskOf=(p:string,id:string)=>ok<any>(call('GET',`${base(p)}/tasks/${id}`));
+async function request(p:string,taskId:string,recipient:User,kind='review'){
+  const id=randomUUID();await ok(call('POST',`${base(p)}/tasks/${taskId}/requests`,{id,recipientId:recipient.id,kind}));return {id};
+}
+
+test('NC09 the bell answers in one click: take, accept with undo, return, postpone, reply; each once, only when allowed',async()=>{
+  const uma=await human('Ума Быстрая');const rex=await human('Рекс Читатель');
+  const p=await project([uma]);
+  await f.admin.query("INSERT INTO app.workspace_members(workspace_id,principal_id,role) SELECT workspace_id,$2,'member' FROM app.projects WHERE id=$1 ON CONFLICT DO NOTHING",[p.id,rex.id]);
+  await f.admin.query("INSERT INTO app.project_members(project_id,principal_id,role) VALUES($1,$2,'reader')",[p.id,rex.id]);
+  // An assignment: «Взять в работу» moves the task to «В работе», once; the toast can take it back.
+  await task(p.id,'q1',{ownerId:uma.id});
+  const assigned=await notificationOf(uma,p.id,'assigned');
+  const shown=(await bellOf(uma)).find(i=>i.id===assigned);
+  assert.equal(shown.text,`Вас назначили исполнителем задачи ${p.key}-1`);assert.equal(shown.author,'Алиса');
+  assert.deepEqual(shown.actions,[{action:'take',label:'Взять в работу'}]);
+  const key=randomUUID();
+  const taken=await ok<any>(act(uma,assigned,{action:'take'},key));
+  assert.equal(taken.result,'Взято в работу');assert.equal(taken.undo.kind,'status');assert.equal(taken.undo.status,'ready');
+  const after=await taskOf(p.id,'q1');assert.equal(after.status,'in_progress');
+  assert.deepEqual(await ok<any>(act(uma,assigned,{action:'take'},key)),taken,'the same command again: the first result');
+  assert.equal((await taskOf(p.id,'q1')).revision,after.revision,'and nothing changed twice');
+  const again=await act(uma,assigned,{action:'take'});assert.equal(again.statusCode,409);assert.equal(again.json<any>().code,'ACTION_UNAVAILABLE');
+  assert.equal((await bellOf(uma)).find(i=>i.id===assigned).read,true,'answered means read');
+  await ok(f.app.inject({method:'PATCH',url:`${base(p.id)}/tasks/q1/position`,headers:{...uma.headers,'idempotency-key':randomUUID()},
+    payload:{baseRevision:taken.undo.revision,status:taken.undo.status,rank:taken.undo.rank}}));
+  assert.equal((await taskOf(p.id,'q1')).status,'ready','undone through the ordinary move');
+  // A review request: «Принять» resolves it, and the toast reopens it; «Вернуть» sends the task back and resolves.
+  await task(p.id,'q2',{status:'review'});
+  const review=await request(p.id,'q2',uma);
+  const asked=await notificationOf(uma,p.id,'request');
+  assert.deepEqual((await bellOf(uma)).find(i=>i.id===asked).actions.map((a:any)=>a.action),['accept','return']);
+  const accepted=await ok<any>(act(uma,asked,{action:'accept'}));
+  assert.equal(accepted.result,'Принято');assert.equal(accepted.undo.kind,'reopen');
+  assert.equal((await f.admin.query('SELECT status FROM app.attention_requests WHERE id=$1',[review.id])).rows[0].status,'resolved');
+  await ok(f.app.inject({method:'POST',url:`${base(p.id)}/requests/${accepted.undo.requestId}/reopen`,headers:{...uma.headers,'idempotency-key':randomUUID()},payload:{baseRevision:accepted.undo.revision}}));
+  assert.equal((await f.admin.query('SELECT status FROM app.attention_requests WHERE id=$1',[review.id])).rows[0].status,'open');
+  const returned=await ok<any>(act(uma,asked,{action:'return'}));
+  assert.equal(returned.result,'Возвращено в работу');assert.equal((await taskOf(p.id,'q2')).status,'in_progress');
+  assert.equal((await f.admin.query('SELECT status FROM app.attention_requests WHERE id=$1',[review.id])).rows[0].status,'resolved');
+  // A deadline: «Перенести на завтра» moves the due date; a chosen date works too.
+  const today=(await f.admin.query("SELECT to_char(now() AT TIME ZONE 'UTC','YYYY-MM-DD') AS d,to_char((now() AT TIME ZONE 'UTC')::date+1,'YYYY-MM-DD') AS t")).rows[0];
+  await f.admin.query("UPDATE app.projects SET timezone='UTC' WHERE id=$1",[p.id]);
+  await task(p.id,'q3',{ownerId:uma.id,due:today.d});
+  const due=(await f.admin.query("SELECT app.raise_notification($1,$2,'q3','deadline',NULL,$3,'nc9:due') AS id",[uma.id,p.id,JSON.stringify({due:today.d,on:today.d})])).rows[0].id;
+  assert.deepEqual((await bellOf(uma)).find(i=>i.id===due).actions,[{action:'postpone',label:'Перенести на завтра'}]);
+  const moved=await ok<any>(act(uma,due,{action:'postpone'}));
+  assert.match(moved.result,/^Срок перенесён на \d{1,2} [а-я]+$/);assert.equal((await taskOf(p.id,'q3')).due,today.t);
+  await ok(act(uma,due,{action:'postpone',due:'2099-12-31'}));assert.equal((await taskOf(p.id,'q3')).due,'2099-12-31');
+  // A mention: the reply goes into the same thread, from the person.
+  const thread=await say(p.id,'q3','@Ума посмотри, пожалуйста');
+  const mentioned=await notificationOf(uma,p.id,'mention');
+  assert.equal((await act(uma,mentioned,{action:'reply'})).statusCode,400,'a reply needs words');
+  assert.equal((await ok<any>(act(uma,mentioned,{action:'reply',text:'Смотрю, вечером отвечу'}))).result,'Ответ отправлен');
+  const last=(await f.admin.query('SELECT body,author_id FROM app.messages WHERE project_id=$1 AND thread_id=$2 ORDER BY created_at DESC LIMIT 1',[p.id,thread.id])).rows[0];
+  assert.deepEqual(last,{body:'Смотрю, вечером отвечу',author_id:uma.id});
+  // Rights decide: a reader is not offered «Взять в работу» and cannot take it; nobody acts on another person's row.
+  await f.admin.query("UPDATE app.tasks SET owner_id=$2 WHERE project_id=$1 AND id='q1'",[p.id,rex.id]);
+  const readerOwn=(await f.admin.query("SELECT app.raise_notification($1,$2,'q1','assigned',$3,'{}','nc9:reader') AS id",[rex.id,p.id,f.alice.id])).rows[0].id;
+  assert.deepEqual((await bellOf(rex)).find(i=>i.id===readerOwn).actions,[]);
+  assert.equal((await act(rex,readerOwn,{action:'take'})).statusCode,409);
+  assert.equal((await taskOf(p.id,'q1')).status,'ready');
+  assert.equal((await act(rex,assigned,{action:'take'})).statusCode,404,'someone else\'s notification');
+  assert.equal((await act(uma,'not-a-notification',{action:'take'})).statusCode,404);
+  assert.equal((await act(uma,assigned,{action:'delete'})).statusCode,400);
+});
+
+/** Signed button data as the worker makes it (TelegramCallbacks): forged here only where a test needs a bad one. */
+function callbackData(code:string,subject:string,expiryMinutes:number,token=TOKEN){
+  const id=Buffer.from(subject.replaceAll('-',''),'hex').toString('base64url');
+  const body=`q1.${code}.${id}.${expiryMinutes.toString(36)}`;
+  const key=createHmac('sha256',token).update('sprintique/telegram-callback/v1').digest();
+  return body+'.'+createHmac('sha256',key).update(body).digest().subarray(0,12).toString('base64url');
+}
+const soon=()=>Math.floor(Date.now()/60000)+60;
+const flip=(data:string)=>data.slice(0,-3)+(data.at(-3)==='A'?'B':'A')+data.slice(-2);
+let updates=50000;
+const hook=(update:Record<string,unknown>)=>f.app.inject({method:'POST',url:'/api/v1/telegram/webhook',
+  headers:{'content-type':'application/json','x-telegram-bot-api-secret-token':SECRET},payload:{update_id:++updates,...update}});
+const press=async(chat:number,data:string,messageId=7)=>{const r=await rawPress(chat,data,messageId);assert.equal(r.statusCode,200,r.body);assert.ok(r.body,'an answer for Telegram');return r;};
+const rawPress=(chat:number,data:string,messageId=7)=>hook({callback_query:{id:'cb'+updates,from:{id:chat,is_bot:false,first_name:'T'},data,
+  message:{message_id:messageId,date:0,chat:{id:chat,type:'private'},text:'…',reply_markup:{inline_keyboard:[[{text:'Действие',callback_data:data}],[{text:'Открыть задачу',url:PUBLIC+'/'}]]}}}});
+
+test('NC10 Telegram buttons: signed, fresh, for the linked person with their rights, once; the message then shows the result',async()=>{
+  const vic=await human('Вик Кнопка'),wes=await human('Вес Другой'),ray=await human('Рэй Читатель');
+  const p=await project([vic,wes]);
+  await f.admin.query("INSERT INTO app.workspace_members(workspace_id,principal_id,role) SELECT workspace_id,$2,'member' FROM app.projects WHERE id=$1 ON CONFLICT DO NOTHING",[p.id,ray.id]);
+  await f.admin.query("INSERT INTO app.project_members(project_id,principal_id,role) VALUES($1,$2,'reader')",[p.id,ray.id]);
+  await linkChat(vic,21001);await linkChat(wes,21002);await linkChat(ray,21003);
+  await task(p.id,'b1',{ownerId:vic.id});
+  const assigned=await notificationOf(vic,p.id,'assigned');
+  const data=callbackData('t',assigned,soon());
+  const before=bot.sent.length;
+  const answer=await press(21001,data,41);
+  assert.equal(answer.json<any>().method,'answerCallbackQuery');assert.match(answer.json<any>().callback_query_id,/^cb\d+$/);
+  assert.equal(answer.json<any>().text,'Взято в работу ✓');
+  assert.equal((await taskOf(p.id,'b1')).status,'in_progress');
+  const edit=bot.sent.slice(before).find(m=>m.path===`/bot${TOKEN}/editMessageReplyMarkup`)!;
+  assert.ok(edit,'the buttons are edited');assert.equal(edit.chat,21001);
+  assert.deepEqual(edit.markup,{inline_keyboard:[[{text:'Взято в работу ✓',callback_data:'q1.done'}],[{text:'Открыть задачу',url:PUBLIC+'/'}]]});
+  // The same button again (a double tap, a retried update): the first result, no second change.
+  const revision=(await taskOf(p.id,'b1')).revision;
+  assert.equal((await press(21001,data)).json<any>().text,'Взято в работу ✓');
+  assert.equal((await taskOf(p.id,'b1')).revision,revision);
+  // Forged, expired, another bot's, another chat's, an unlinked chat's: refused, nothing changes.
+  await task(p.id,'b2',{ownerId:vic.id});
+  const second=await notificationOf(vic,p.id,'assigned');
+  const good=callbackData('t',second,soon());
+  const flipped=flip(good);
+  assert.equal((await press(21001,flipped)).json<any>().text,'Кнопка недействительна.');
+  assert.equal((await press(21001,callbackData('a',second,soon()).slice(0,-16)+good.slice(-16))).json<any>().text,'Кнопка недействительна.');
+  assert.equal((await press(21001,callbackData('t',second,Math.floor(Date.now()/60000)-1))).json<any>().text,'Кнопка устарела. Откройте задачу в Sprintique.');
+  assert.equal((await press(21001,callbackData('t',second,soon(),'111111111:'+'C'.repeat(35)))).json<any>().text,'Кнопка недействительна.');
+  assert.equal((await press(21002,good)).json<any>().text,'Уведомление недоступно.','another person\'s chat');
+  assert.equal((await press(21099,good)).json<any>().text,'Этот чат не подключён к Sprintique.');
+  assert.equal((await taskOf(p.id,'b2')).status,'ready');
+  // Rights decide here too: a reader's own notification cannot take the task.
+  await f.admin.query("UPDATE app.tasks SET owner_id=$2 WHERE project_id=$1 AND id='b2'",[p.id,ray.id]);
+  const readerOwn=(await f.admin.query("SELECT app.raise_notification($1,$2,'b2','assigned',$3,'{}','nc10:reader') AS id",[ray.id,p.id,f.alice.id])).rows[0].id;
+  assert.equal((await press(21003,callbackData('t',readerOwn,soon()))).json<any>().text,'Это действие уже недоступно: откройте задачу.');
+  assert.equal((await taskOf(p.id,'b2')).status,'ready');
+  // A result button does nothing.
+  const nothing=(await press(21001,'q1.done')).json<any>();
+  assert.equal(nothing.method,'answerCallbackQuery');assert.equal(nothing.text,undefined);
+});
+
+test('NC11 replying to a bot message about a mention posts into its thread, from the linked person only',async()=>{
+  const yan=await human('Ян Ответ');
+  const p=await project([yan]);
+  await linkChat(yan,22001);
+  await task(p.id,'m1');
+  const thread=await say(p.id,'m1','@Ян, глянь, пожалуйста');
+  const mentioned=await notificationOf(yan,p.id,'mention');
+  const replyTo=(data:string)=>({message_id:90,date:0,chat:{id:22001,type:'private'},text:'…',reply_markup:{inline_keyboard:[[{text:'Ответить',callback_data:data}]]}});
+  const said=await hook({message:{message_id:91,date:0,text:'Посмотрел, всё верно',chat:{id:22001,type:'private'},from:{id:22001,is_bot:false,first_name:'Я'},
+    reply_to_message:replyTo(callbackData('r',mentioned,soon()))}});
+  assert.equal(said.json<any>().text,'Ответ отправлен в обсуждение.');
+  const last=(await f.admin.query('SELECT body,author_id FROM app.messages WHERE project_id=$1 AND thread_id=$2 ORDER BY created_at DESC LIMIT 1',[p.id,thread.id])).rows[0];
+  assert.deepEqual(last,{body:'Посмотрел, всё верно',author_id:yan.id});
+  // Pressing «Ответить» only explains; a reply to a message without it, or with a forged one, goes nowhere.
+  assert.equal((await press(22001,callbackData('r',mentioned,soon()))).json<any>().text,'Ответьте на это сообщение, и ответ появится в обсуждении задачи.');
+  const nowhere=await hook({message:{message_id:92,date:0,text:'Ещё',chat:{id:22001,type:'private'},from:{id:22001,is_bot:false,first_name:'Я'},
+    reply_to_message:replyTo(flip(callbackData('r',mentioned,soon())))}});
+  assert.equal(nowhere.json<any>().text,'Ответить в обсуждение можно на сообщение об упоминании.');
+  assert.equal((await f.admin.query('SELECT count(*)::int AS n FROM app.messages WHERE project_id=$1 AND thread_id=$2',[p.id,thread.id])).rows[0].n,2);
+});
+
+test('NC12 linking Telegram offers to turn e-mail off with one button, for that person only, and again changes nothing',async()=>{
+  const zia=await human('Зия Почта','zia@example.org'),other=await human('Ола Чужая','ola@example.org');
+  const started=await ok<{url:string}>(call('POST','/api/v1/profile/telegram/link',{},zia));
+  const linked=await hook({message:{message_id:1,date:0,text:'/start '+new URL(started.url).searchParams.get('start'),chat:{id:23001,type:'private'},from:{id:23001,is_bot:false,first_name:'З',username:'zia'}}});
+  const reply=linked.json<any>();
+  assert.equal(reply.text,'Готово: уведомления Sprintique будут приходить сюда. Письма на почту тоже продолжат приходить. Если Telegram достаточно, отключите их кнопкой ниже.');
+  const button=reply.reply_markup.inline_keyboard[0][0];
+  assert.equal(button.text,'Отключить почту');assert.match(button.callback_data,/^q1\.m\./);
+  assert.equal((await press(23001,callbackData('m',other.id,soon()))).json<any>().text,'Эта кнопка не для аккаунта, подключённого к этому чату.');
+  assert.equal((await settings(zia)).preferences.channels.email,true);
+  assert.equal((await press(23001,button.callback_data)).json<any>().text,'Письма отключены ✓');
+  assert.equal((await settings(zia)).preferences.channels.email,false);
+  assert.equal((await press(23001,button.callback_data)).json<any>().text,'Письма отключены ✓');
+  assert.equal((await settings(other)).preferences.channels.email,true,'only the linked account');
 });
