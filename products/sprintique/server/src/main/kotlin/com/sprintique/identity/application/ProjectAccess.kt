@@ -82,15 +82,25 @@ object ProjectAccess {
         return membership
     }
 
-    /** The caller's membership without requiring anything beyond it; null when the caller is not a member. */
-    fun membership(tx: Transaction, actor: Actor, projectId: String): ProjectMembership? = tx.row(
+    /**
+     * The caller's membership without requiring anything beyond it; null when the caller is not a member. An agent run
+     * acting for a person (docs/decisions/0005-ai-agents.md) holds only what both its account and that person hold.
+     */
+    fun membership(tx: Transaction, actor: Actor, projectId: String): ProjectMembership? {
+        val own = row(tx, actor.id, projectId)?.let(::membershipOf) ?: return null
+        val person = actor.onBehalfOf ?: return own
+        val theirs = row(tx, person, projectId)?.let(::membershipOf) ?: return null
+        return own.copy(permissions = own.permissions.intersect(theirs.permissions))
+    }
+
+    private fun row(tx: Transaction, principalId: String, projectId: String): Row? = tx.row(
         """
         SELECT p.workspace_id AS "workspaceId", m.role, m.permissions FROM app.projects p
         JOIN app.project_members m ON m.project_id = p.id AND m.principal_id = $2 WHERE p.id = $1
         """.trimIndent(),
         projectId,
-        actor.id,
-    )?.let(::membershipOf)
+        principalId,
+    )
 
     fun deniedMessage(permission: Permission): String = when (permission) {
         Permission.TASKS_WRITE, Permission.THREADS_WRITE, Permission.MAPS_WRITE -> "Недостаточно прав."
@@ -130,6 +140,7 @@ object ProjectAccess {
             WHERE c.id = $1 AND c.revoked_at IS NULL AND c.expires_at > clock_timestamp() AND p.disabled_at IS NULL
               AND (c.grant_id IS NULL OR g.revoked_at IS NULL)
               AND (p.kind <> 'service' OR (auth.service_account_active(p.id) AND c.initiator_id = s.owner_id))
+              AND (c.on_behalf_of IS NULL OR app.ai_initiator_active(c.project_id, c.on_behalf_of))
             """.trimIndent(),
             actor.credentialId,
         )

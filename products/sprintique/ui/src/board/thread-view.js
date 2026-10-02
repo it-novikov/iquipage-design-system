@@ -4,6 +4,7 @@ import {icon,esc} from '../ui.js';
 import {uid} from '../common.js';
 import {postMessage,resolveThread,changeThreadKind} from './thread-model.js';
 import {mentionCandidates,mentionNames,closeCutMention} from './mention-options.js';
+const SUMMARY_TEXT=160;
 
 /** Discussions read as a chat: open questions are pinned on top with one clear resolve action, comment threads and
  *  resolved questions follow in the order they happened, and the composer rests as one line. Space separates items;
@@ -137,7 +138,10 @@ export function mountThreads(root,{repository,task,readOnly=false,people=new Map
       cursor=node.nextElementSibling;
     }
   }
-  const needsDetails=thread=>thread.summary&&(thread.messageCount??1)>1&&(isOpen(thread)||expanded.has(thread.id));
+  // A summary carries the first message cut to 160 characters (Discussions.list): a longer one is read in full, or a
+  // long comment (an agent's answer) would end mid-word.
+  const clipped=thread=>[...(thread.messages?.[0]?.body||'')].length>=SUMMARY_TEXT;
+  const needsDetails=thread=>thread.summary&&((thread.messageCount??1)>1&&(isOpen(thread)||expanded.has(thread.id))||clipped(thread));
   function requestDetails(thread){
     const cached=fullThreads.get(thread.id);if(cached&&cached.revision===thread.revision)return;
     if(detailErrors.has(thread.id))return;

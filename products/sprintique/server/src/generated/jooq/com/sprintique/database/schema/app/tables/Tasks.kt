@@ -8,6 +8,7 @@ import com.sprintique.database.schema.app.App
 import com.sprintique.database.schema.app.indexes.TASK_OWNER
 import com.sprintique.database.schema.app.indexes.TASK_PARENT
 import com.sprintique.database.schema.app.indexes.TASK_RELEASE
+import com.sprintique.database.schema.app.keys.AI_AGENT_RUNS__AI_AGENT_RUNS_PROJECT_ID_TASK_ID_FKEY
 import com.sprintique.database.schema.app.keys.ATTENTION_REQUESTS__ATTENTION_REQUESTS_PROJECT_ID_TASK_ID_FKEY
 import com.sprintique.database.schema.app.keys.NOTIFICATIONS__NOTIFICATIONS_PROJECT_ID_TASK_ID_FKEY
 import com.sprintique.database.schema.app.keys.TASKS_PKEY
@@ -22,6 +23,7 @@ import com.sprintique.database.schema.app.keys.TASK_LINKS__TASK_LINKS_PROJECT_ID
 import com.sprintique.database.schema.app.keys.TASK_PERSONAL_STATE__TASK_PERSONAL_STATE_PROJECT_ID_TASK_ID_FKEY
 import com.sprintique.database.schema.app.keys.TASK_TAGS__TASK_TAGS_PROJECT_ID_TASK_ID_FKEY
 import com.sprintique.database.schema.app.keys.THREADS__THREADS_PROJECT_ID_TASK_ID_FKEY
+import com.sprintique.database.schema.app.tables.AiAgentRuns.AiAgentRunsPath
 import com.sprintique.database.schema.app.tables.AttentionRequests.AttentionRequestsPath
 import com.sprintique.database.schema.app.tables.Notifications.NotificationsPath
 import com.sprintique.database.schema.app.tables.Projects.ProjectsPath
@@ -189,6 +191,18 @@ open class Tasks(
 
     fun releases(): ReleasesPath = releases
     val releases: ReleasesPath by lazy { ReleasesPath(this, TASKS__TASKS_PROJECT_ID_RELEASE_ID_FKEY, null) }
+
+    private lateinit var _aiAgentRuns: AiAgentRunsPath
+
+    fun aiAgentRuns(): AiAgentRunsPath {
+        if (!this::_aiAgentRuns.isInitialized)
+            _aiAgentRuns = AiAgentRunsPath(this, null, AI_AGENT_RUNS__AI_AGENT_RUNS_PROJECT_ID_TASK_ID_FKEY.inverseKey)
+
+        return _aiAgentRuns;
+    }
+
+    val aiAgentRuns: AiAgentRunsPath
+        get(): AiAgentRunsPath = aiAgentRuns()
 
     private lateinit var _attentionRequests: AttentionRequestsPath
 

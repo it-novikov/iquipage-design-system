@@ -6,6 +6,8 @@ package com.sprintique.database.schema.app.tables
 
 import com.sprintique.database.schema.app.App
 import com.sprintique.database.schema.app.keys.ACCESS_PRESETS__ACCESS_PRESETS_WORKSPACE_ID_FKEY
+import com.sprintique.database.schema.app.keys.AI_AGENT_PROFILES__AI_AGENT_PROFILES_WORKSPACE_ID_FKEY
+import com.sprintique.database.schema.app.keys.AI_CONNECTIONS__AI_CONNECTIONS_WORKSPACE_ID_FKEY
 import com.sprintique.database.schema.app.keys.MAP_TEMPLATES__MAP_TEMPLATES_WORKSPACE_ID_FKEY
 import com.sprintique.database.schema.app.keys.PROJECTS__PROJECTS_WORKSPACE_ID_FKEY
 import com.sprintique.database.schema.app.keys.WORKSPACES_PKEY
@@ -15,6 +17,8 @@ import com.sprintique.database.schema.app.keys.WORKSPACES__WORKSPACES_DEFAULT_ME
 import com.sprintique.database.schema.app.keys.WORKSPACE_AUDIT__WORKSPACE_AUDIT_WORKSPACE_ID_FKEY
 import com.sprintique.database.schema.app.keys.WORKSPACE_MEMBERS__WORKSPACE_MEMBERS_WORKSPACE_ID_FKEY
 import com.sprintique.database.schema.app.tables.AccessPresets.AccessPresetsPath
+import com.sprintique.database.schema.app.tables.AiAgentProfiles.AiAgentProfilesPath
+import com.sprintique.database.schema.app.tables.AiConnections.AiConnectionsPath
 import com.sprintique.database.schema.app.tables.MapTemplates.MapTemplatesPath
 import com.sprintique.database.schema.app.tables.Projects.ProjectsPath
 import com.sprintique.database.schema.app.tables.WorkspaceAudit.WorkspaceAuditPath
@@ -144,6 +148,30 @@ open class Workspaces(
 
     val accessPresets: AccessPresetsPath
         get(): AccessPresetsPath = accessPresets()
+
+    private lateinit var _aiAgentProfiles: AiAgentProfilesPath
+
+    fun aiAgentProfiles(): AiAgentProfilesPath {
+        if (!this::_aiAgentProfiles.isInitialized)
+            _aiAgentProfiles = AiAgentProfilesPath(this, null, AI_AGENT_PROFILES__AI_AGENT_PROFILES_WORKSPACE_ID_FKEY.inverseKey)
+
+        return _aiAgentProfiles;
+    }
+
+    val aiAgentProfiles: AiAgentProfilesPath
+        get(): AiAgentProfilesPath = aiAgentProfiles()
+
+    private lateinit var _aiConnections: AiConnectionsPath
+
+    fun aiConnections(): AiConnectionsPath {
+        if (!this::_aiConnections.isInitialized)
+            _aiConnections = AiConnectionsPath(this, null, AI_CONNECTIONS__AI_CONNECTIONS_WORKSPACE_ID_FKEY.inverseKey)
+
+        return _aiConnections;
+    }
+
+    val aiConnections: AiConnectionsPath
+        get(): AiConnectionsPath = aiConnections()
 
     private lateinit var _mapTemplates: MapTemplatesPath
 

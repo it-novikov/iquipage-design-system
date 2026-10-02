@@ -10,6 +10,7 @@ import {mountInvitations} from './invitations.js';
 import {can,projectPermissions} from './permissions.js';
 import {mountServiceAccounts} from './service-accounts.js';
 import {mountOperations} from './operations.js';
+import {mountAiConnections} from './ai-connections.js';
 import {mountNotificationSettings,mountProjectTelegram} from './notification-settings.js';
 import {pickPersonalPhoto} from './personal-photo.js';
 import {dialog,input} from '../ui/src/ui.js';
@@ -25,7 +26,8 @@ export async function mountSettings(root,{repository,project,adapter,onChanged=(
  let workspace=null;
  try{workspace=await client.request('/workspaces/'+encodeURIComponent(project.workspaceId));}catch{/* "О пространстве" shows its own error; the other sections do not depend on it. */}
  const own=()=>projectPermissions(project),space=()=>workspace?.permissions||project.workspacePermissions||[];
- const groups=visibleSettingsGroups(own(),space()),counts={},lockNames=new Map();
+ const features=repository.capabilities?.aiAgents?['ai_agents']:[];
+ const groups=visibleSettingsGroups(own(),space(),features),counts={},lockNames=new Map();
  let mounted=null,closed=false,modal=null,busy=false,dirty=false,current='',resetForm=()=>{};
  root.innerHTML=`<iq-settings-layout view="section"><div slot="navigation"><p class="iq-settings-title">Настройки</p><label class="product-nav-search iq-settings-search">${icon('search',17)}<input type="search" placeholder="Найти настройку" aria-label="Найти раздел настроек" data-settings-search autocomplete="off"></label><div data-settings-navigation></div><p class="iq-settings-nav-empty" data-settings-empty role="status" hidden>Ничего не найдено. Попробуйте другое слово.</p></div><header slot="heading" class="iq-page-heading iq-settings-heading" data-settings-heading></header><div class="iq-settings-stack" data-settings-content></div><p class="sr-only" role="status" data-settings-announce></p></iq-settings-layout>`;
  const layout=root.querySelector('iq-settings-layout'),nav=root.querySelector('[data-settings-navigation]'),heading=root.querySelector('[data-settings-heading]'),content=root.querySelector('[data-settings-content]'),search=root.querySelector('[data-settings-search]');
@@ -159,7 +161,7 @@ export async function mountSettings(root,{repository,project,adapter,onChanged=(
  }
 
  async function select(section,{historyMode='push',force=false}={}){
-  section=settingsSection('#settings/'+section,own(),space());
+  section=settingsSection('#settings/'+section,own(),space(),features);
   if(section===current&&!force){view();return true;}
   if(!await canLeave())return false;busy=true;
   try{
@@ -183,6 +185,7 @@ export async function mountSettings(root,{repository,project,adapter,onChanged=(
     else if(section==='agents')mounted=await mountAgents(content,props);
     else if(section==='service-accounts')mounted=await mountServiceAccounts(content,props);
     else if(section==='operations')mounted=await mountOperations(content,props);
+    else if(section==='ai-connections')mounted=await mountAiConnections(content,props);
     else if(section==='workspace-members')mounted=await mountWorkspaceMembers(content,{...props,workspace});
     else mounted=await mountProjectTaskSettings(content,{...props,section,canManage:can(project,'project.settings')});
    }
@@ -217,10 +220,10 @@ export async function mountSettings(root,{repository,project,adapter,onChanged=(
  window.addEventListener('sprintique-appearance-change',()=>{if(current==='appearance'&&!content.contains(document.activeElement))syncAppearance();},{signal:abort.signal});
  phone.addEventListener('change',view,{signal:abort.signal});
  const unload=event=>{if(dirty){event.preventDefault();event.returnValue='';}};window.addEventListener('beforeunload',unload,{signal:abort.signal});
- await select(settingsSection(location.hash,own(),space()),{historyMode:phone.matches&&location.hash==='#settings'?'none':'replace'});
+ await select(settingsSection(location.hash,own(),space(),features),{historyMode:phone.matches&&location.hash==='#settings'?'none':'replace'});
  void loadCounts();
  return {get routeHash(){return phone.matches&&location.hash==='#settings'?'#settings':'#settings/'+current;},
-  navigateSettings:async()=>{if(location.hash==='#settings'&&phone.matches){if(!await canLeave())return false;showIndex();return true;}const ok=await select(settingsSection(location.hash,own(),space()),{historyMode:'none'});history.replaceState(null,'','#settings/'+current);return ok;},
+  navigateSettings:async()=>{if(location.hash==='#settings'&&phone.matches){if(!await canLeave())return false;showIndex();return true;}const ok=await select(settingsSection(location.hash,own(),space(),features),{historyMode:'none'});history.replaceState(null,'','#settings/'+current);return ok;},
   closeTask:canLeave,readyToLeave:()=>!busy&&!modal&&!dirty&&(!mounted||mounted.readyToLeave()),
   destroy(){closed=true;abort.abort();mounted?.destroy();modal?.close(true);document.title=documentTitle;root.replaceChildren();}};
 }

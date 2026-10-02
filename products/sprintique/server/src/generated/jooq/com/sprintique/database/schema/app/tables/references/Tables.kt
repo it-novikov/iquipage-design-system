@@ -8,6 +8,16 @@ package com.sprintique.database.schema.app.tables.references
 import com.sprintique.database.schema.app.tables.AccessPresets
 import com.sprintique.database.schema.app.tables.AgentRunPlans
 import com.sprintique.database.schema.app.tables.AgentRuns
+import com.sprintique.database.schema.app.tables.AiAgentProfiles
+import com.sprintique.database.schema.app.tables.AiAgentRunSteps
+import com.sprintique.database.schema.app.tables.AiAgentRuns
+import com.sprintique.database.schema.app.tables.AiConnectionSecret
+import com.sprintique.database.schema.app.tables.AiConnectionSecrets
+import com.sprintique.database.schema.app.tables.AiConnections
+import com.sprintique.database.schema.app.tables.AiRunClaim
+import com.sprintique.database.schema.app.tables.AiRunEnqueue
+import com.sprintique.database.schema.app.tables.AiRunMention
+import com.sprintique.database.schema.app.tables.AiRunQueue
 import com.sprintique.database.schema.app.tables.Approvals
 import com.sprintique.database.schema.app.tables.Assets
 import com.sprintique.database.schema.app.tables.AttentionRequests
@@ -57,6 +67,17 @@ import com.sprintique.database.schema.app.tables.WorkbenchPreferences
 import com.sprintique.database.schema.app.tables.WorkspaceAudit
 import com.sprintique.database.schema.app.tables.WorkspaceMembers
 import com.sprintique.database.schema.app.tables.Workspaces
+import com.sprintique.database.schema.app.tables.records.AiConnectionSecretRecord
+import com.sprintique.database.schema.app.tables.records.AiRunClaimRecord
+import com.sprintique.database.schema.app.tables.records.AiRunEnqueueRecord
+import com.sprintique.database.schema.app.tables.records.AiRunMentionRecord
+import com.sprintique.database.schema.app.tables.records.AiRunQueueRecord
+
+import java.util.UUID
+
+import org.jooq.Configuration
+import org.jooq.Field
+import org.jooq.Result
 
 
 
@@ -65,6 +86,181 @@ val ACCESS_PRESETS: AccessPresets = AccessPresets.ACCESS_PRESETS
 val AGENT_RUN_PLANS: AgentRunPlans = AgentRunPlans.AGENT_RUN_PLANS
 
 val AGENT_RUNS: AgentRuns = AgentRuns.AGENT_RUNS
+
+val AI_AGENT_PROFILES: AiAgentProfiles = AiAgentProfiles.AI_AGENT_PROFILES
+
+val AI_AGENT_RUN_STEPS: AiAgentRunSteps = AiAgentRunSteps.AI_AGENT_RUN_STEPS
+
+val AI_AGENT_RUNS: AiAgentRuns = AiAgentRuns.AI_AGENT_RUNS
+
+val AI_CONNECTION_SECRET: AiConnectionSecret = AiConnectionSecret.AI_CONNECTION_SECRET
+
+fun AI_CONNECTION_SECRET(
+      configuration: Configuration
+    , target: UUID?
+): Result<AiConnectionSecretRecord> = configuration.dsl().selectFrom(com.sprintique.database.schema.app.tables.AiConnectionSecret.AI_CONNECTION_SECRET.call(
+      target
+)).fetch()
+
+fun AI_CONNECTION_SECRET(
+      target: UUID?
+): AiConnectionSecret = com.sprintique.database.schema.app.tables.AiConnectionSecret.AI_CONNECTION_SECRET.call(
+    target
+)
+
+fun AI_CONNECTION_SECRET(
+      target: Field<UUID?>
+): AiConnectionSecret = com.sprintique.database.schema.app.tables.AiConnectionSecret.AI_CONNECTION_SECRET.call(
+    target
+)
+
+val AI_CONNECTION_SECRETS: AiConnectionSecrets = AiConnectionSecrets.AI_CONNECTION_SECRETS
+
+val AI_CONNECTIONS: AiConnections = AiConnections.AI_CONNECTIONS
+
+val AI_RUN_CLAIM: AiRunClaim = AiRunClaim.AI_RUN_CLAIM
+
+fun AI_RUN_CLAIM(
+      configuration: Configuration
+    , leaseSeconds: Int?
+): Result<AiRunClaimRecord> = configuration.dsl().selectFrom(com.sprintique.database.schema.app.tables.AiRunClaim.AI_RUN_CLAIM.call(
+      leaseSeconds
+)).fetch()
+
+fun AI_RUN_CLAIM(
+      leaseSeconds: Int?
+): AiRunClaim = com.sprintique.database.schema.app.tables.AiRunClaim.AI_RUN_CLAIM.call(
+    leaseSeconds
+)
+
+fun AI_RUN_CLAIM(
+      leaseSeconds: Field<Int?>
+): AiRunClaim = com.sprintique.database.schema.app.tables.AiRunClaim.AI_RUN_CLAIM.call(
+    leaseSeconds
+)
+
+val AI_RUN_ENQUEUE: AiRunEnqueue = AiRunEnqueue.AI_RUN_ENQUEUE
+
+fun AI_RUN_ENQUEUE(
+      configuration: Configuration
+    , targetProject: String?
+    , targetTask: String?
+    , account: String?
+    , runTrigger: String?
+): Result<AiRunEnqueueRecord> = configuration.dsl().selectFrom(com.sprintique.database.schema.app.tables.AiRunEnqueue.AI_RUN_ENQUEUE.call(
+      targetProject
+    , targetTask
+    , account
+    , runTrigger
+)).fetch()
+
+fun AI_RUN_ENQUEUE(
+      targetProject: String?
+    , targetTask: String?
+    , account: String?
+    , runTrigger: String?
+): AiRunEnqueue = com.sprintique.database.schema.app.tables.AiRunEnqueue.AI_RUN_ENQUEUE.call(
+    targetProject,
+    targetTask,
+    account,
+    runTrigger
+)
+
+fun AI_RUN_ENQUEUE(
+      targetProject: Field<String?>
+    , targetTask: Field<String?>
+    , account: Field<String?>
+    , runTrigger: Field<String?>
+): AiRunEnqueue = com.sprintique.database.schema.app.tables.AiRunEnqueue.AI_RUN_ENQUEUE.call(
+    targetProject,
+    targetTask,
+    account,
+    runTrigger
+)
+
+val AI_RUN_MENTION: AiRunMention = AiRunMention.AI_RUN_MENTION
+
+fun AI_RUN_MENTION(
+      configuration: Configuration
+    , targetProject: String?
+    , message: String?
+    , account: String?
+): Result<AiRunMentionRecord> = configuration.dsl().selectFrom(com.sprintique.database.schema.app.tables.AiRunMention.AI_RUN_MENTION.call(
+      targetProject
+    , message
+    , account
+)).fetch()
+
+fun AI_RUN_MENTION(
+      targetProject: String?
+    , message: String?
+    , account: String?
+): AiRunMention = com.sprintique.database.schema.app.tables.AiRunMention.AI_RUN_MENTION.call(
+    targetProject,
+    message,
+    account
+)
+
+fun AI_RUN_MENTION(
+      targetProject: Field<String?>
+    , message: Field<String?>
+    , account: Field<String?>
+): AiRunMention = com.sprintique.database.schema.app.tables.AiRunMention.AI_RUN_MENTION.call(
+    targetProject,
+    message,
+    account
+)
+
+val AI_RUN_QUEUE: AiRunQueue = AiRunQueue.AI_RUN_QUEUE
+
+fun AI_RUN_QUEUE(
+      configuration: Configuration
+    , targetProject: String?
+    , targetTask: String?
+    , account: String?
+    , runTrigger: String?
+    , sourceThread: String?
+    , sourceMessage: String?
+): Result<AiRunQueueRecord> = configuration.dsl().selectFrom(com.sprintique.database.schema.app.tables.AiRunQueue.AI_RUN_QUEUE.call(
+      targetProject
+    , targetTask
+    , account
+    , runTrigger
+    , sourceThread
+    , sourceMessage
+)).fetch()
+
+fun AI_RUN_QUEUE(
+      targetProject: String?
+    , targetTask: String?
+    , account: String?
+    , runTrigger: String?
+    , sourceThread: String?
+    , sourceMessage: String?
+): AiRunQueue = com.sprintique.database.schema.app.tables.AiRunQueue.AI_RUN_QUEUE.call(
+    targetProject,
+    targetTask,
+    account,
+    runTrigger,
+    sourceThread,
+    sourceMessage
+)
+
+fun AI_RUN_QUEUE(
+      targetProject: Field<String?>
+    , targetTask: Field<String?>
+    , account: Field<String?>
+    , runTrigger: Field<String?>
+    , sourceThread: Field<String?>
+    , sourceMessage: Field<String?>
+): AiRunQueue = com.sprintique.database.schema.app.tables.AiRunQueue.AI_RUN_QUEUE.call(
+    targetProject,
+    targetTask,
+    account,
+    runTrigger,
+    sourceThread,
+    sourceMessage
+)
 
 val APPROVALS: Approvals = Approvals.APPROVALS
 

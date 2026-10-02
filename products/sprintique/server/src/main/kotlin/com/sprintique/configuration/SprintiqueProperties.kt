@@ -36,6 +36,7 @@ data class SprintiqueProperties(
      */
     val features: String = "",
     val workbench: WorkbenchProperties = WorkbenchProperties(),
+    val ai: AiProperties = AiProperties(),
     val telegram: TelegramProperties = TelegramProperties(),
 ) {
     val isProduction: Boolean get() = environment == "production"
@@ -130,6 +131,37 @@ data class WorkbenchProperties(
      */
     val cursorSecret: String = "",
 )
+
+/**
+ * AI connections and service-account agents (docs/decisions/0005-ai-agents.md). Without [secretsKey] connections
+ * cannot be saved or used and the interface says so.
+ */
+data class AiProperties(
+    /** Base64 of 32 random bytes: the AES-256-GCM key that seals the API keys of AI connections. */
+    val secretsKey: String = "",
+    /** The version stored with every key sealed by [secretsKey]; raise it when the key is replaced. */
+    val secretsKeyVersion: Int = 1,
+    /** Earlier keys still needed to open keys sealed before a rotation: `version:base64,version:base64`. */
+    val previousSecretsKeys: String = "",
+    /**
+     * Hosts (`host` or `host:port`) a connection may reach over plain HTTP or at a private, loopback or link-local
+     * address: a local vLLM or Ollama. Everything else must be public HTTPS.
+     */
+    val allowedHosts: String = "",
+    /** Agent runs this API process works on at once; 0 runs none here (another process does). */
+    val runners: Int = 2,
+    /** The longest wait for one answer of a provider. */
+    val timeoutSeconds: Int = 60,
+    /** The first pause before a retry of a busy or failing provider; it doubles with each retry. */
+    val retryBaseMillis: Long = 1000,
+) {
+    val isConfigured: Boolean get() = secretsKey.isNotEmpty()
+
+    /** The keys in logs and errors: never their values. */
+    override fun toString(): String =
+        "AiProperties(configured=$isConfigured, secretsKeyVersion=$secretsKeyVersion, allowedHosts=$allowedHosts, " +
+            "runners=$runners, timeoutSeconds=$timeoutSeconds)"
+}
 
 /**
  * Notifications in Telegram (docs/decisions/0006-notifications-telegram.md). All optional: without the bot token,

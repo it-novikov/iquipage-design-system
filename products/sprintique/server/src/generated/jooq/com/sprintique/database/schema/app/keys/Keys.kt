@@ -8,6 +8,11 @@ package com.sprintique.database.schema.app.keys
 import com.sprintique.database.schema.app.tables.AccessPresets
 import com.sprintique.database.schema.app.tables.AgentRunPlans
 import com.sprintique.database.schema.app.tables.AgentRuns
+import com.sprintique.database.schema.app.tables.AiAgentProfiles
+import com.sprintique.database.schema.app.tables.AiAgentRunSteps
+import com.sprintique.database.schema.app.tables.AiAgentRuns
+import com.sprintique.database.schema.app.tables.AiConnectionSecrets
+import com.sprintique.database.schema.app.tables.AiConnections
 import com.sprintique.database.schema.app.tables.Approvals
 import com.sprintique.database.schema.app.tables.Assets
 import com.sprintique.database.schema.app.tables.AttentionRequests
@@ -60,6 +65,11 @@ import com.sprintique.database.schema.app.tables.Workspaces
 import com.sprintique.database.schema.app.tables.records.AccessPresetsRecord
 import com.sprintique.database.schema.app.tables.records.AgentRunPlansRecord
 import com.sprintique.database.schema.app.tables.records.AgentRunsRecord
+import com.sprintique.database.schema.app.tables.records.AiAgentProfilesRecord
+import com.sprintique.database.schema.app.tables.records.AiAgentRunStepsRecord
+import com.sprintique.database.schema.app.tables.records.AiAgentRunsRecord
+import com.sprintique.database.schema.app.tables.records.AiConnectionSecretsRecord
+import com.sprintique.database.schema.app.tables.records.AiConnectionsRecord
 import com.sprintique.database.schema.app.tables.records.ApprovalsRecord
 import com.sprintique.database.schema.app.tables.records.AssetsRecord
 import com.sprintique.database.schema.app.tables.records.AttentionRequestsRecord
@@ -111,10 +121,13 @@ import com.sprintique.database.schema.app.tables.records.WorkspaceMembersRecord
 import com.sprintique.database.schema.app.tables.records.WorkspacesRecord
 import com.sprintique.database.schema.auth.keys.CREDENTIALS_PKEY
 import com.sprintique.database.schema.auth.keys.PRINCIPALS_PKEY
+import com.sprintique.database.schema.auth.keys.SERVICE_ACCOUNTS_PKEY
 import com.sprintique.database.schema.auth.tables.Credentials
 import com.sprintique.database.schema.auth.tables.Principals
+import com.sprintique.database.schema.auth.tables.ServiceAccounts
 import com.sprintique.database.schema.auth.tables.records.CredentialsRecord
 import com.sprintique.database.schema.auth.tables.records.PrincipalsRecord
+import com.sprintique.database.schema.auth.tables.records.ServiceAccountsRecord
 
 import org.jooq.ForeignKey
 import org.jooq.UniqueKey
@@ -132,6 +145,13 @@ val ACCESS_PRESETS_PKEY: UniqueKey<AccessPresetsRecord> = Internal.createUniqueK
 val ACCESS_PRESETS_WORKSPACE_ID_KEY_KEY: UniqueKey<AccessPresetsRecord> = Internal.createUniqueKey(AccessPresets.ACCESS_PRESETS, DSL.name("access_presets_workspace_id_key_key"), arrayOf(AccessPresets.ACCESS_PRESETS.WORKSPACE_ID, AccessPresets.ACCESS_PRESETS.KEY), true)
 val AGENT_RUN_PLANS_PKEY: UniqueKey<AgentRunPlansRecord> = Internal.createUniqueKey(AgentRunPlans.AGENT_RUN_PLANS, DSL.name("agent_run_plans_pkey"), arrayOf(AgentRunPlans.AGENT_RUN_PLANS.PROJECT_ID, AgentRunPlans.AGENT_RUN_PLANS.PLAN_ID), true)
 val AGENT_RUNS_PKEY: UniqueKey<AgentRunsRecord> = Internal.createUniqueKey(AgentRuns.AGENT_RUNS, DSL.name("agent_runs_pkey"), arrayOf(AgentRuns.AGENT_RUNS.PROJECT_ID, AgentRuns.AGENT_RUNS.ID), true)
+val AI_AGENT_PROFILES_PKEY: UniqueKey<AiAgentProfilesRecord> = Internal.createUniqueKey(AiAgentProfiles.AI_AGENT_PROFILES, DSL.name("ai_agent_profiles_pkey"), arrayOf(AiAgentProfiles.AI_AGENT_PROFILES.PRINCIPAL_ID), true)
+val AI_AGENT_RUN_STEPS_PKEY: UniqueKey<AiAgentRunStepsRecord> = Internal.createUniqueKey(AiAgentRunSteps.AI_AGENT_RUN_STEPS, DSL.name("ai_agent_run_steps_pkey"), arrayOf(AiAgentRunSteps.AI_AGENT_RUN_STEPS.PROJECT_ID, AiAgentRunSteps.AI_AGENT_RUN_STEPS.RUN_ID, AiAgentRunSteps.AI_AGENT_RUN_STEPS.SEQUENCE), true)
+val AI_AGENT_RUNS_ID_KEY: UniqueKey<AiAgentRunsRecord> = Internal.createUniqueKey(AiAgentRuns.AI_AGENT_RUNS, DSL.name("ai_agent_runs_id_key"), arrayOf(AiAgentRuns.AI_AGENT_RUNS.ID), true)
+val AI_AGENT_RUNS_PKEY: UniqueKey<AiAgentRunsRecord> = Internal.createUniqueKey(AiAgentRuns.AI_AGENT_RUNS, DSL.name("ai_agent_runs_pkey"), arrayOf(AiAgentRuns.AI_AGENT_RUNS.PROJECT_ID, AiAgentRuns.AI_AGENT_RUNS.ID), true)
+val AI_CONNECTION_SECRETS_PKEY: UniqueKey<AiConnectionSecretsRecord> = Internal.createUniqueKey(AiConnectionSecrets.AI_CONNECTION_SECRETS, DSL.name("ai_connection_secrets_pkey"), arrayOf(AiConnectionSecrets.AI_CONNECTION_SECRETS.CONNECTION_ID), true)
+val AI_CONNECTIONS_PKEY: UniqueKey<AiConnectionsRecord> = Internal.createUniqueKey(AiConnections.AI_CONNECTIONS, DSL.name("ai_connections_pkey"), arrayOf(AiConnections.AI_CONNECTIONS.ID), true)
+val AI_CONNECTIONS_WORKSPACE_ID_ID_KEY: UniqueKey<AiConnectionsRecord> = Internal.createUniqueKey(AiConnections.AI_CONNECTIONS, DSL.name("ai_connections_workspace_id_id_key"), arrayOf(AiConnections.AI_CONNECTIONS.WORKSPACE_ID, AiConnections.AI_CONNECTIONS.ID), true)
 val APPROVALS_PKEY: UniqueKey<ApprovalsRecord> = Internal.createUniqueKey(Approvals.APPROVALS, DSL.name("approvals_pkey"), arrayOf(Approvals.APPROVALS.PROJECT_ID, Approvals.APPROVALS.ID), true)
 val APPROVALS_PROJECT_ID_SUBJECT_KIND_SUBJECT_ID_KEY: UniqueKey<ApprovalsRecord> = Internal.createUniqueKey(Approvals.APPROVALS, DSL.name("approvals_project_id_subject_kind_subject_id_key"), arrayOf(Approvals.APPROVALS.PROJECT_ID, Approvals.APPROVALS.SUBJECT_KIND, Approvals.APPROVALS.SUBJECT_ID), true)
 val ASSETS_PKEY: UniqueKey<AssetsRecord> = Internal.createUniqueKey(Assets.ASSETS, DSL.name("assets_pkey"), arrayOf(Assets.ASSETS.PROJECT_ID, Assets.ASSETS.ID), true)
@@ -205,6 +225,22 @@ val AGENT_RUNS__AGENT_RUNS_CREDENTIAL_ID_FKEY: ForeignKey<AgentRunsRecord, Crede
 val AGENT_RUNS__AGENT_RUNS_INITIATOR_ID_FKEY: ForeignKey<AgentRunsRecord, PrincipalsRecord> = Internal.createForeignKey(AgentRuns.AGENT_RUNS, DSL.name("agent_runs_initiator_id_fkey"), arrayOf(AgentRuns.AGENT_RUNS.INITIATOR_ID), PRINCIPALS_PKEY, arrayOf(Principals.PRINCIPALS.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
 val AGENT_RUNS__AGENT_RUNS_PROJECT_ID_FKEY: ForeignKey<AgentRunsRecord, ProjectsRecord> = Internal.createForeignKey(AgentRuns.AGENT_RUNS, DSL.name("agent_runs_project_id_fkey"), arrayOf(AgentRuns.AGENT_RUNS.PROJECT_ID), com.sprintique.database.schema.app.keys.PROJECTS_PKEY, arrayOf(Projects.PROJECTS.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
 val AGENT_RUNS__AGENT_RUNS_PROJECT_ID_PARENT_RUN_ID_FKEY: ForeignKey<AgentRunsRecord, AgentRunsRecord> = Internal.createForeignKey(AgentRuns.AGENT_RUNS, DSL.name("agent_runs_project_id_parent_run_id_fkey"), arrayOf(AgentRuns.AGENT_RUNS.PROJECT_ID, AgentRuns.AGENT_RUNS.PARENT_RUN_ID), com.sprintique.database.schema.app.keys.AGENT_RUNS_PKEY, arrayOf(AgentRuns.AGENT_RUNS.PROJECT_ID, AgentRuns.AGENT_RUNS.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
+val AI_AGENT_PROFILES__AI_AGENT_PROFILES_PRINCIPAL_ID_FKEY: ForeignKey<AiAgentProfilesRecord, ServiceAccountsRecord> = Internal.createForeignKey(AiAgentProfiles.AI_AGENT_PROFILES, DSL.name("ai_agent_profiles_principal_id_fkey"), arrayOf(AiAgentProfiles.AI_AGENT_PROFILES.PRINCIPAL_ID), SERVICE_ACCOUNTS_PKEY, arrayOf(ServiceAccounts.SERVICE_ACCOUNTS.PRINCIPAL_ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
+val AI_AGENT_PROFILES__AI_AGENT_PROFILES_UPDATED_BY_FKEY: ForeignKey<AiAgentProfilesRecord, PrincipalsRecord> = Internal.createForeignKey(AiAgentProfiles.AI_AGENT_PROFILES, DSL.name("ai_agent_profiles_updated_by_fkey"), arrayOf(AiAgentProfiles.AI_AGENT_PROFILES.UPDATED_BY), PRINCIPALS_PKEY, arrayOf(Principals.PRINCIPALS.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
+val AI_AGENT_PROFILES__AI_AGENT_PROFILES_WORKSPACE_ID_CONNECTION_ID_FKEY: ForeignKey<AiAgentProfilesRecord, AiConnectionsRecord> = Internal.createForeignKey(AiAgentProfiles.AI_AGENT_PROFILES, DSL.name("ai_agent_profiles_workspace_id_connection_id_fkey"), arrayOf(AiAgentProfiles.AI_AGENT_PROFILES.WORKSPACE_ID, AiAgentProfiles.AI_AGENT_PROFILES.CONNECTION_ID), com.sprintique.database.schema.app.keys.AI_CONNECTIONS_WORKSPACE_ID_ID_KEY, arrayOf(AiConnections.AI_CONNECTIONS.WORKSPACE_ID, AiConnections.AI_CONNECTIONS.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
+val AI_AGENT_PROFILES__AI_AGENT_PROFILES_WORKSPACE_ID_FKEY: ForeignKey<AiAgentProfilesRecord, WorkspacesRecord> = Internal.createForeignKey(AiAgentProfiles.AI_AGENT_PROFILES, DSL.name("ai_agent_profiles_workspace_id_fkey"), arrayOf(AiAgentProfiles.AI_AGENT_PROFILES.WORKSPACE_ID), com.sprintique.database.schema.app.keys.WORKSPACES_PKEY, arrayOf(Workspaces.WORKSPACES.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
+val AI_AGENT_RUN_STEPS__AI_AGENT_RUN_STEPS_PROJECT_ID_RUN_ID_FKEY: ForeignKey<AiAgentRunStepsRecord, AiAgentRunsRecord> = Internal.createForeignKey(AiAgentRunSteps.AI_AGENT_RUN_STEPS, DSL.name("ai_agent_run_steps_project_id_run_id_fkey"), arrayOf(AiAgentRunSteps.AI_AGENT_RUN_STEPS.PROJECT_ID, AiAgentRunSteps.AI_AGENT_RUN_STEPS.RUN_ID), com.sprintique.database.schema.app.keys.AI_AGENT_RUNS_PKEY, arrayOf(AiAgentRuns.AI_AGENT_RUNS.PROJECT_ID, AiAgentRuns.AI_AGENT_RUNS.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
+val AI_AGENT_RUNS__AI_AGENT_RUNS_ACCOUNT_ID_FKEY: ForeignKey<AiAgentRunsRecord, PrincipalsRecord> = Internal.createForeignKey(AiAgentRuns.AI_AGENT_RUNS, DSL.name("ai_agent_runs_account_id_fkey"), arrayOf(AiAgentRuns.AI_AGENT_RUNS.ACCOUNT_ID), PRINCIPALS_PKEY, arrayOf(Principals.PRINCIPALS.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
+val AI_AGENT_RUNS__AI_AGENT_RUNS_CANCEL_REQUESTED_BY_FKEY: ForeignKey<AiAgentRunsRecord, PrincipalsRecord> = Internal.createForeignKey(AiAgentRuns.AI_AGENT_RUNS, DSL.name("ai_agent_runs_cancel_requested_by_fkey"), arrayOf(AiAgentRuns.AI_AGENT_RUNS.CANCEL_REQUESTED_BY), PRINCIPALS_PKEY, arrayOf(Principals.PRINCIPALS.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
+val AI_AGENT_RUNS__AI_AGENT_RUNS_CONNECTION_ID_FKEY: ForeignKey<AiAgentRunsRecord, AiConnectionsRecord> = Internal.createForeignKey(AiAgentRuns.AI_AGENT_RUNS, DSL.name("ai_agent_runs_connection_id_fkey"), arrayOf(AiAgentRuns.AI_AGENT_RUNS.CONNECTION_ID), com.sprintique.database.schema.app.keys.AI_CONNECTIONS_PKEY, arrayOf(AiConnections.AI_CONNECTIONS.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
+val AI_AGENT_RUNS__AI_AGENT_RUNS_CREDENTIAL_ID_FKEY: ForeignKey<AiAgentRunsRecord, CredentialsRecord> = Internal.createForeignKey(AiAgentRuns.AI_AGENT_RUNS, DSL.name("ai_agent_runs_credential_id_fkey"), arrayOf(AiAgentRuns.AI_AGENT_RUNS.CREDENTIAL_ID), CREDENTIALS_PKEY, arrayOf(Credentials.CREDENTIALS.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
+val AI_AGENT_RUNS__AI_AGENT_RUNS_PROJECT_ID_FKEY: ForeignKey<AiAgentRunsRecord, ProjectsRecord> = Internal.createForeignKey(AiAgentRuns.AI_AGENT_RUNS, DSL.name("ai_agent_runs_project_id_fkey"), arrayOf(AiAgentRuns.AI_AGENT_RUNS.PROJECT_ID), com.sprintique.database.schema.app.keys.PROJECTS_PKEY, arrayOf(Projects.PROJECTS.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
+val AI_AGENT_RUNS__AI_AGENT_RUNS_PROJECT_ID_TASK_ID_FKEY: ForeignKey<AiAgentRunsRecord, TasksRecord> = Internal.createForeignKey(AiAgentRuns.AI_AGENT_RUNS, DSL.name("ai_agent_runs_project_id_task_id_fkey"), arrayOf(AiAgentRuns.AI_AGENT_RUNS.PROJECT_ID, AiAgentRuns.AI_AGENT_RUNS.TASK_ID), com.sprintique.database.schema.app.keys.TASKS_PKEY, arrayOf(Tasks.TASKS.PROJECT_ID, Tasks.TASKS.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
+val AI_AGENT_RUNS__AI_AGENT_RUNS_REQUESTED_BY_FKEY: ForeignKey<AiAgentRunsRecord, PrincipalsRecord> = Internal.createForeignKey(AiAgentRuns.AI_AGENT_RUNS, DSL.name("ai_agent_runs_requested_by_fkey"), arrayOf(AiAgentRuns.AI_AGENT_RUNS.REQUESTED_BY), PRINCIPALS_PKEY, arrayOf(Principals.PRINCIPALS.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
+val AI_CONNECTION_SECRETS__AI_CONNECTION_SECRETS_CONNECTION_ID_FKEY: ForeignKey<AiConnectionSecretsRecord, AiConnectionsRecord> = Internal.createForeignKey(AiConnectionSecrets.AI_CONNECTION_SECRETS, DSL.name("ai_connection_secrets_connection_id_fkey"), arrayOf(AiConnectionSecrets.AI_CONNECTION_SECRETS.CONNECTION_ID), com.sprintique.database.schema.app.keys.AI_CONNECTIONS_PKEY, arrayOf(AiConnections.AI_CONNECTIONS.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
+val AI_CONNECTIONS__AI_CONNECTIONS_CREATED_BY_FKEY: ForeignKey<AiConnectionsRecord, PrincipalsRecord> = Internal.createForeignKey(AiConnections.AI_CONNECTIONS, DSL.name("ai_connections_created_by_fkey"), arrayOf(AiConnections.AI_CONNECTIONS.CREATED_BY), PRINCIPALS_PKEY, arrayOf(Principals.PRINCIPALS.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
+val AI_CONNECTIONS__AI_CONNECTIONS_UPDATED_BY_FKEY: ForeignKey<AiConnectionsRecord, PrincipalsRecord> = Internal.createForeignKey(AiConnections.AI_CONNECTIONS, DSL.name("ai_connections_updated_by_fkey"), arrayOf(AiConnections.AI_CONNECTIONS.UPDATED_BY), PRINCIPALS_PKEY, arrayOf(Principals.PRINCIPALS.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
+val AI_CONNECTIONS__AI_CONNECTIONS_WORKSPACE_ID_FKEY: ForeignKey<AiConnectionsRecord, WorkspacesRecord> = Internal.createForeignKey(AiConnections.AI_CONNECTIONS, DSL.name("ai_connections_workspace_id_fkey"), arrayOf(AiConnections.AI_CONNECTIONS.WORKSPACE_ID), com.sprintique.database.schema.app.keys.WORKSPACES_PKEY, arrayOf(Workspaces.WORKSPACES.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
 val APPROVALS__APPROVALS_DECIDED_BY_FKEY: ForeignKey<ApprovalsRecord, PrincipalsRecord> = Internal.createForeignKey(Approvals.APPROVALS, DSL.name("approvals_decided_by_fkey"), arrayOf(Approvals.APPROVALS.DECIDED_BY), PRINCIPALS_PKEY, arrayOf(Principals.PRINCIPALS.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
 val APPROVALS__APPROVALS_INITIATOR_ID_FKEY: ForeignKey<ApprovalsRecord, PrincipalsRecord> = Internal.createForeignKey(Approvals.APPROVALS, DSL.name("approvals_initiator_id_fkey"), arrayOf(Approvals.APPROVALS.INITIATOR_ID), PRINCIPALS_PKEY, arrayOf(Principals.PRINCIPALS.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
 val APPROVALS__APPROVALS_PROJECT_ID_FKEY: ForeignKey<ApprovalsRecord, ProjectsRecord> = Internal.createForeignKey(Approvals.APPROVALS, DSL.name("approvals_project_id_fkey"), arrayOf(Approvals.APPROVALS.PROJECT_ID), com.sprintique.database.schema.app.keys.PROJECTS_PKEY, arrayOf(Projects.PROJECTS.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)

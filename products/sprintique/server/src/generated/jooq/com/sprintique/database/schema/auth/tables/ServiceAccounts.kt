@@ -4,6 +4,8 @@
 package com.sprintique.database.schema.auth.tables
 
 
+import com.sprintique.database.schema.app.keys.AI_AGENT_PROFILES__AI_AGENT_PROFILES_PRINCIPAL_ID_FKEY
+import com.sprintique.database.schema.app.tables.AiAgentProfiles.AiAgentProfilesPath
 import com.sprintique.database.schema.app.tables.Workspaces.WorkspacesPath
 import com.sprintique.database.schema.auth.Auth
 import com.sprintique.database.schema.auth.indexes.SERVICE_ACCOUNTS_OWNER
@@ -126,6 +128,18 @@ open class ServiceAccounts(
 
     fun workspaces(): WorkspacesPath = workspaces
     val workspaces: WorkspacesPath by lazy { WorkspacesPath(this, SERVICE_ACCOUNTS__SERVICE_ACCOUNTS_WORKSPACE_ID_FKEY, null) }
+
+    private lateinit var _aiAgentProfiles: AiAgentProfilesPath
+
+    fun aiAgentProfiles(): AiAgentProfilesPath {
+        if (!this::_aiAgentProfiles.isInitialized)
+            _aiAgentProfiles = AiAgentProfilesPath(this, null, AI_AGENT_PROFILES__AI_AGENT_PROFILES_PRINCIPAL_ID_FKEY.inverseKey)
+
+        return _aiAgentProfiles;
+    }
+
+    val aiAgentProfiles: AiAgentProfilesPath
+        get(): AiAgentProfilesPath = aiAgentProfiles()
     override fun getChecks(): List<Check<ServiceAccountsRecord>> = listOf(
         Internal.createCheck(this, DSL.name("service_accounts_check"), "((owner_id <> principal_id))", true),
         Internal.createCheck(this, DSL.name("service_accounts_revision_check"), "((revision > 0))", true)
