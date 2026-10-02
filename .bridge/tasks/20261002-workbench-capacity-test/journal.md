@@ -18,3 +18,8 @@
 - 2026-10-02T14:30:07Z · claude · checkpoint · - · дальше: npm test, verify-vnext, PR
 - 2026-10-02T14:30:20Z · claude · status · - · ready
 - 2026-10-02T14:30:20Z · claude · status · - · active
+- 2026-10-02T15:47:57Z · claude · step · S3 · done: npm test: Kotlin 43/43, Node 382/382; verify-vnext: все шаги PASS; PR #48
+- 2026-10-02T15:47:57Z · claude · note · A3 · критерий приёмки выполнен
+- 2026-10-02T15:47:57Z · claude · note · - · verify-vnext без TEST_S3_CONFIG зависает в tests/notifications.test.ts (NT10: воркер не стартует без хранилища, фейковый сервер Telegram не закрывается) — вне рамок, отмечено в PR
+- 2026-10-02T15:47:57Z · claude · checkpoint · - · дальше: Ревью и мёрж владельцем
+- 2026-10-02T15:47:57Z · claude · status · - · review

@@ -2,14 +2,15 @@
 bridge: 1
 id: 20261002-workbench-capacity-test
 title: Стабильный тест ёмкости Workbench
-status: active
+status: review
 risk: low
 owner: nvkv71
 branch: fix/workbench-capacity-test
 base: main
 created: 2026-10-02
-updated: 2026-10-02T14:30:20Z
+updated: 2026-10-02T15:47:57Z
 links:
+  - https://github.com/it-novikov/iquipage-design-system/pull/48
 ---
 
 # Стабильный тест ёмкости Workbench
@@ -28,14 +29,14 @@ WorkbenchCapacityIntegrationTest падал на загруженной маши
 
 - [x] A1. Причина медленного чтения найдена профилированием EXPLAIN (ANALYZE, BUFFERS) от роли приложения с RLS и устранена
 - [x] A2. Тест прогревается и сравнивает медиану пяти замеров с обоснованным бюджетом, а план проверяется без часов
-- [ ] A3. Гейты npm test и verify-vnext зелёные, PR открыт и не слит
+- [x] A3. Гейты npm test и verify-vnext зелёные, PR открыт и не слит
 
 ## Передача
 
-- **Состояние:** Исправление и тест готовы, идут гейты
-- **Дальше:** npm test, verify-vnext, PR
+- **Состояние:** Готово: исправление, тест и гейты зелёные, PR #48 открыт
+- **Дальше:** Ревью и мёрж владельцем
 - **Незакоммичено:** нет
-- **Рабочая копия:** 2 файл(ов): products/sprintique/server/src/integrationTest/kotlin/com/sprintique/workbench/WorkbenchCapacityIntegrationTest.kt, products/sprintique/server/src/main/kotlin/com/sprintique/workbench/application/Workbench.kt (2 files changed, 71 insertions(+), 26 deletions(-)) · HEAD 4756b27
+- **Рабочая копия:** нет · HEAD 0303ee0
 
 ## План
 
@@ -58,13 +59,14 @@ WorkbenchCapacityIntegrationTest падал на загруженной маши
 - **Итог:** медиана пяти прогонов 1910 мс на main → 141 мс на ветке
 - **Зависит от:** S1
 
-### S3. Гейты и PR [active]
+### S3. Гейты и PR [done]
 - **Что:** npm test, verify-vnext, PR
 - **Как:** Node 24, TEST_S3_CONFIG стенда, фоновые прогоны
 - **Зачем:** Правило репозитория
 - **Приёмка:**
-  - [ ] гейты зелёные, PR открыт
+  - [x] гейты зелёные, PR открыт
 - **Покрывает:** A3
+- **Итог:** npm test: Kotlin 43/43, Node 382/382; verify-vnext: все шаги PASS; PR #48
 - **Зависит от:** S2
 
 ## Решения
