@@ -9,7 +9,6 @@ import com.sprintique.identity.application.Authentication
 import com.sprintique.identity.application.RequestIntent
 import com.sprintique.identity.domain.Credential
 import com.sprintique.problem.ProblemException
-import com.sprintique.problem.requireCondition
 import com.sprintique.token.Tokens
 import com.sprintique.web.RequestValidationException
 import jakarta.annotation.PreDestroy
@@ -62,26 +61,17 @@ class EventController(
                 throw RequestValidationException()
             }
         }
-        var cursor = lastEvent?.takeIf { it.isNotEmpty() } ?: query.string("cursor", CURSOR_LIMIT)
-        val first = read(credential, projectId, cursor)
-        if (!stream) return first
+        val requested = lastEvent?.takeIf { it.isNotEmpty() } ?: query.string("cursor", CURSOR_LIMIT)
+        val start = start(credential, projectId, requested, stream)
+        if (!stream) return start.page
+        var cursor = start.cursor
+        val first = start.page
         val identity = Tokens.sha256Hex(credential.token)
         val emitter = ResponseBodyEmitter(0L)
-        // Counting and registering are one step: a burst of parallel requests cannot all pass the same count.
-        synchronized(streams) {
-            requireCondition(
-                streams.size < MAX_STREAMS,
-                429,
-                "STREAM_LIMIT",
-                "Лимит подключений сервера. Повторите позже.",
-            )
-            requireCondition(
-                streams.values.count { it == identity } < STREAMS_PER_CREDENTIAL,
-                429,
-                "STREAM_LIMIT",
-                "Слишком много подключений. Закройте лишние вкладки.",
-            )
-            streams[emitter] = identity
+        if (!admit(emitter, identity)) return busy(emitter)
+        if (start.resync) {
+            val data = json.writeValueAsString(linkedMapOf("clearCache" to true, "code" to "RECONNECT"))
+            emitter.send("id: $cursor\nevent: resync\ndata: $data\n\n", TEXT)
         }
         val close = { streams.remove(emitter) }
         emitter.onCompletion { close() }
@@ -112,12 +102,56 @@ class EventController(
                 finish(emitter, "resync", "RECONNECT")
             }
         }
-        return ResponseEntity.ok()
+        return eventStream(emitter)
+    }
+
+    private class Start(val page: EventPage, val cursor: String?, val resync: Boolean)
+
+    /**
+     * The first page after the cursor. A browser's EventSource never retries after an HTTP error status, so a stream
+     * that cannot continue from its cursor starts from the head and is told to resync; its `id` moves Last-Event-ID on.
+     */
+    private fun start(credential: Credential, projectId: String, cursor: String?, stream: Boolean): Start =
+        try {
+            Start(read(credential, projectId, cursor), cursor, false)
+        } catch (error: ProblemException) {
+            if (!stream || error.code != "CURSOR_INVALID") throw error
+            val head = headCursor(credential, projectId)
+            Start(read(credential, projectId, head), head, true)
+        }
+
+    /** Counting and registering are one step: a burst of parallel requests cannot all pass the same count. */
+    private fun admit(emitter: ResponseBodyEmitter, identity: String): Boolean = synchronized(streams) {
+        val free = streams.size < MAX_STREAMS && streams.values.count { it == identity } < STREAMS_PER_CREDENTIAL
+        if (free) streams[emitter] = identity
+        free
+    }
+
+    /**
+     * Over the limit the stream still opens, asks the browser to come back later and ends: an error status would stop
+     * EventSource for good, and connections stuck on a slow network can hold the per-credential slots for a while.
+     */
+    private fun busy(emitter: ResponseBodyEmitter): ResponseEntity<ResponseBodyEmitter> {
+        try {
+            emitter.send("retry: ${BUSY_RETRY.toMillis()}\n: busy\n\n", TEXT)
+        } catch (_: IOException) {
+            // The client already left.
+        }
+        emitter.complete()
+        return eventStream(emitter)
+    }
+
+    private fun eventStream(emitter: ResponseBodyEmitter): ResponseEntity<ResponseBodyEmitter> =
+        ResponseEntity.ok()
             .header("Cache-Control", "no-store")
             .header("X-Accel-Buffering", "no")
             .contentType(MediaType.TEXT_EVENT_STREAM)
             .body(emitter)
-    }
+
+    private fun headCursor(credential: Credential, projectId: String): String =
+        authentication.run(credential, RequestIntent(false, null, null)) { tx, actor ->
+            ProjectEvents.head(tx, actor, projectId).getValue("cursor")
+        }
 
     private fun read(credential: Credential, projectId: String, cursor: String?): EventPage =
         authentication.run(credential, RequestIntent(false, null, null)) { tx, actor ->
@@ -156,6 +190,7 @@ class EventController(
         const val MAX_STREAMS = 100
         const val STREAMS_PER_CREDENTIAL = 3
         val POLL: Duration = Duration.ofSeconds(1)
+        val BUSY_RETRY: Duration = Duration.ofSeconds(15)
         val DENIED = setOf(401, 403, 404)
         val TEXT: MediaType = MediaType("text", "event-stream", Charsets.UTF_8)
     }
