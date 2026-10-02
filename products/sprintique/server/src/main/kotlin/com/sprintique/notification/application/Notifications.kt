@@ -90,20 +90,22 @@ object Notifications {
     }
 
     /**
-     * Mentions in a message the actor just wrote, in the same transaction. The names are matched here (the database
-     * may run without a locale that folds Cyrillic case); the database checks the message, its author and that each
-     * person may read the task, and never notifies the author.
+     * Mentions in a message the actor just wrote, in the same transaction: tokens of the @ list by id, typed names by
+     * name (docs/decisions/0008-mentions-and-service-inbox.md). The names are matched here (the database may run
+     * without a locale that folds Cyrillic case); only current people and service accounts of the project are
+     * candidates, and the database checks the message, its author and that each member may read the task now, and
+     * never notifies the author.
      */
     fun raiseMentions(tx: Transaction, actor: Actor, projectId: String, messageId: String, body: String) {
         if ('@' !in body) return
         val people = tx.rows(
             """
-            SELECT p.id, coalesce(p.profile_name, p.name) AS name
+            SELECT p.id, coalesce(p.profile_name, p.name) AS name, p.kind = 'service' AS service
             FROM app.project_members m JOIN auth.principals p ON p.id = m.principal_id
-            WHERE m.project_id = $1 AND p.kind = 'human' AND p.disabled_at IS NULL
+            WHERE m.project_id = $1 AND p.kind IN ('human', 'service') AND p.disabled_at IS NULL
             """.trimIndent(),
             projectId,
-        ).map { MentionCandidate(it.string("id"), it.string("name")) }
+        ).map { MentionCandidate(it.string("id"), it.string("name"), it.boolean("service")) }
         for (person in Mentions.find(body, people) - actor.id) {
             tx.row("SELECT app.notify_mention($1, $2, $3) AS raised", projectId, messageId, person)
         }

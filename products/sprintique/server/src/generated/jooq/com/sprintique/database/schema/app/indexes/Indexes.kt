@@ -61,6 +61,7 @@ val MAP_TEMPLATE_WORKSPACE: Index = Internal.createIndex(DSL.name("map_template_
 val MAPS_PAGE: Index = Internal.createIndex(DSL.name("maps_page"), Maps.MAPS, arrayOf(Maps.MAPS.PROJECT_ID, Maps.MAPS.ID), false)
 val MESSAGE_THREAD_PAGE: Index = Internal.createIndex(DSL.name("message_thread_page"), Messages.MESSAGES, arrayOf(Messages.MESSAGES.PROJECT_ID, Messages.MESSAGES.THREAD_ID, Messages.MESSAGES.CREATED_AT, Messages.MESSAGES.ID), false)
 val NOTIFICATIONS_FEED: Index = Internal.createIndex(DSL.name("notifications_feed"), Notifications.NOTIFICATIONS, arrayOf(Notifications.NOTIFICATIONS.RECIPIENT_ID, Notifications.NOTIFICATIONS.CREATED_AT.desc(), Notifications.NOTIFICATIONS.ID.desc()), false)
+val NOTIFICATIONS_INBOX: Index = Internal.createIndex(DSL.name("notifications_inbox"), Notifications.NOTIFICATIONS, arrayOf(Notifications.NOTIFICATIONS.RECIPIENT_ID, Notifications.NOTIFICATIONS.CREATED_AT, Notifications.NOTIFICATIONS.ID), false)
 val NOTIFICATIONS_UNREAD: Index = Internal.createIndex(DSL.name("notifications_unread"), Notifications.NOTIFICATIONS, arrayOf(Notifications.NOTIFICATIONS.RECIPIENT_ID), false)
 val OUTBOX_PENDING: Index = Internal.createIndex(DSL.name("outbox_pending"), Outbox.OUTBOX, arrayOf(Outbox.OUTBOX.AVAILABLE_AT), false)
 val OUTBOX_PROJECT_SEQUENCE: Index = Internal.createIndex(DSL.name("outbox_project_sequence"), Outbox.OUTBOX, arrayOf(Outbox.OUTBOX.PROJECT_ID, Outbox.OUTBOX.PROJECT_SEQUENCE), true)

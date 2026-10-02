@@ -1,0 +1,32 @@
+# Журнал 20260930-sprintique-legal-pages
+
+- 2026-09-30T15:41:47Z · codex · create · - · Sprintique: privacy policy и terms of use для Google OAuth
+- 2026-09-30T15:41:47Z · codex · claim · - · взял задачу
+- 2026-09-30T15:49:29Z · codex · note · S1 · добавлен шаг: Public legal pages и маршруты
+- 2026-09-30T15:49:29Z · codex · note · S2 · добавлен шаг: Проверки и browser review
+- 2026-09-30T15:49:29Z · codex · note · S3 · добавлен шаг: Ревью, доставка и production smoke
+- 2026-09-30T15:49:29Z · codex · step · S1 · active
+- 2026-09-30T16:15:54Z · codex · checkpoint · S2 · дальше: Поднять production build на изолированном локальном web-root и проверить legal routes
+- 2026-09-30T16:31:10Z · codex · decision · D1 · Добавлена отдельная /about — Google требует публичную homepage, которая описывает продукт и не является только экраном входа
+- 2026-09-30T16:31:10Z · codex · step · S1 · done: Добавлены /about, /privacy, /terms, indexable HTML, DS-композиция и ссылки с auth screen
+- 2026-09-30T16:31:10Z · codex · step · S2 · done: Node 24 build/typecheck/boundaries/styles зелёные; Playwright 1280 light и 390 dark; npm test 208/223, 15 env-only без storage.json
+- 2026-09-30T16:31:10Z · codex · note · A1 · критерий приёмки выполнен
+- 2026-09-30T16:31:10Z · codex · note · A2 · критерий приёмки выполнен
+- 2026-09-30T16:31:10Z · codex · note · A3 · критерий приёмки выполнен
+- 2026-09-30T16:31:10Z · codex · note · A4 · критерий приёмки выполнен
+- 2026-09-30T16:31:10Z · codex · note · A5 · критерий приёмки выполнен
+- 2026-09-30T16:31:10Z · codex · step · S3 · active
+- 2026-09-30T16:43:00Z · codex · note · A6 · критерий приёмки выполнен
+- 2026-09-30T16:43:00Z · codex · step · S3 · done: Образ 314e66d развёрнут на production; API и worker running; /ready, /about, /privacy и /terms отвечают 200; HTTP headers и Playwright navigation проверены
+- 2026-09-30T16:43:00Z · codex · checkpoint · - · дальше: Внести URL в Google Cloud OAuth consent screen
+- 2026-09-30T16:43:00Z · codex · status · - · review: Implementation, push and production rollout complete; review package ready
+- 2026-09-30T16:43:44Z · codex · checkpoint · - · дальше: Внести URL в Google Cloud OAuth consent screen
+- 2026-09-30T16:49:22Z · codex · status · - · ready: Владелец запросил переработку дизайна и проверку правовых пробелов; подтвердил личный эксперимент
+- 2026-09-30T16:49:22Z · codex · claim · - · взял задачу
+- 2026-09-30T16:49:22Z · codex · note · S4 · добавлен шаг: Переработать публичные страницы и проверить правовые пробелы
+- 2026-09-30T20:58:40Z · codex · step · S4 · active
+- 2026-09-30T20:58:40Z · codex · checkpoint · - · дальше: Commit, build image, deploy and verify public pages
+- 2026-09-30T21:07:55Z · codex · step · S4 · done: Production 7fd9270 on main f25dff0; DS vnext.24; Gradle check and static HTTP test pass; 24 Chromium cases pass; /about /privacy /terms /workbench /ready 200; legal unknowns recorded in docs/legal-review-2026-09-30.md
+- 2026-09-30T21:07:55Z · codex · checkpoint · - · дальше: Owner supplies operator identity/private contact and processing geography before broader real-user access
+- 2026-09-30T21:07:56Z · codex · status · - · review: PR https://github.com/it-novikov/iquipage-design-system/pull/33; deployed and checked; not a worldwide compliance certification
+- 2026-09-30T21:07:56Z · codex · handoff · - · review; HEAD 7fd9270; незакоммичено 2; Implementation delivered; owner review of legal facts and PR merge remains

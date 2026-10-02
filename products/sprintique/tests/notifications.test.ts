@@ -123,7 +123,7 @@ test('NT03 a request notifies its recipient; the bell hides a project the person
   assert.equal((await rows(f.bob,p.id)).length,1,'hidden, not deleted');
 });
 
-test('NT04 only people receive: agents and service accounts never do',async()=>{
+test('NT04 agents and outsiders never receive (service accounts do: tests/inbox.test.ts)',async()=>{
   const p=await project();
   await task(p.id,'s1');
   const agent=randomUUID();

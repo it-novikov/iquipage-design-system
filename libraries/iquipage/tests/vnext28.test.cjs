@@ -31,7 +31,7 @@ test('the drag binding needs a root and onDrop, and the core entry and types exp
     assert.match(core, new RegExp(`export const ${name}=treeColumns\\.${name};`));
     assert.match(types, new RegExp(`export declare (function|const) ${name}`));
   }
-  assert.match(core, /export const version='0\.6\.0-vnext\.28';/);
+  assert.match(core, /export const version='0\.6\.0-vnext\.(2[89]|[3-9]\d)';/);
   const manifest = JSON.parse(read('src/manifest.json'));
   for (const list of [manifest.application, manifest.library, manifest.entries.core]) assert.ok(list.includes('tree-columns.js'));
 });

@@ -378,6 +378,14 @@ test('AI15 a mention starts the agent, which answers in that thread; a commenter
   const runs=(await overview('ai-mention')).runs;
   assert.equal(runs.length,1,'neither the agent\'s own mention nor an agent with mentions off started a run');
   assert.ok(!runs.some((r:any)=>r.accountId===quiet));assert.equal(llm.for('script-quiet').length,0);
+  // The @ list writes a token with the account's id (ADR 0008): it starts the agent too, and the model reads «@Имя».
+  llm.script('script-mention',request=>{assert.match(firstUserText(request),/"text":"@Упоминаемый ещё раз"/);return anthropic.text('Снова посмотрел.');});
+  assert.equal((await thread('ai-token-thread',`@[Упоминаемый](user:${robot}) ещё раз`)).statusCode,200);
+  for(let i=0;i<100&&(await overview('ai-mention')).runs.length<2;i++)await new Promise(resolve=>setTimeout(resolve,100));
+  const again=await finished('ai-mention',robot);
+  assert.equal(again.trigger,'mention');assert.equal(again.state,'completed',JSON.stringify(again));
+  const tokenReplies=(await ok(call(f.alice,'GET',project('threads/ai-token-thread')))).messages.map((m:any)=>m.body);
+  assert.equal(tokenReplies.at(-1),'Снова посмотрел.');
 });
 
 // A run acts within the rights of the person who started it (owner's decision on PR #45): the account's checks are

@@ -6,6 +6,7 @@ import com.sprintique.contract.RESOURCE_ID
 import com.sprintique.database.Transaction
 import com.sprintique.identity.domain.Actor
 import com.sprintique.map.application.Maps
+import com.sprintique.notification.application.Inbox
 import com.sprintique.planning.application.PlanningStates
 import com.sprintique.planning.application.Releases
 import org.springframework.context.annotation.Profile
@@ -58,6 +59,46 @@ class McpTools(
     private val properties: SprintiqueProperties,
 ) {
     val all: List<McpTool> = listOf(
+        tool(
+            "list_inbox", "Входящие",
+            "Start every work session here. Your inbox: what people addressed to this service account while it was " +
+                "away, oldest first: mentions in task discussions, tasks assigned to it, Workbench requests and due " +
+                "dates of its tasks. Each item names the task (key, title, url), who acted, a short quote of the " +
+                "message or request, and threadId to answer in with add_task_comment. Handle the items in order, " +
+                "then mark them with mark_inbox_read (their ids). unreadOnly is true by " +
+                "default; pass the nextCursor of a page to read the next.",
+            ListInboxArguments::class,
+            schema(
+                "unreadOnly" to boolean("Only unread items (default true); false lists read ones too."),
+                "limit" to integer("Page size.", 1, PAGE_LIMIT, DEFAULT_PAGE),
+                "cursor" to text("nextCursor of the previous page.", 1, SEARCH_LIMIT),
+            ),
+        ) { tx, actor, input: ListInboxArguments, _ ->
+            val query = Inbox.Query(input.unreadOnly, input.cursor, input.limit)
+            untrusted(Inbox.page(tx, actor, query, properties.publicOrigin))
+        },
+        tool(
+            "mark_inbox_read", "Отметить входящие",
+            "Mark inbox items as handled, after you acted on them. Prefer ids, the items you handled; upTo, the id " +
+                "of the last item handled, also marks every earlier unread item, including one that arrived late " +
+                "and you did not list. Returns how many were marked and how many stay unread.",
+            MarkInboxReadArguments::class,
+            schema(
+                "ids" to linkedMapOf(
+                    "type" to "array",
+                    "description" to "Ids of inbox items.",
+                    "items" to linkedMapOf("type" to "string", "pattern" to INBOX_ID),
+                    "maxItems" to Inbox.MARK_LIMIT,
+                ),
+                "upTo" to linkedMapOf(
+                    "type" to "string",
+                    "description" to "Id of the last item handled: it and every earlier unread item are marked.",
+                    "pattern" to INBOX_ID,
+                ),
+            ),
+            write = true,
+            idempotent = true,
+        ) { tx, actor, input: MarkInboxReadArguments, _ -> Inbox.markRead(tx, actor, input.ids, input.upTo) },
         tool(
             "list_projects", "Проекты",
             "List the workspaces and projects this service account can access, with its permissions in each " +

@@ -318,7 +318,9 @@ class McpController(
         const val UNAUTHORIZED = -32001
         const val NANOSECONDS_PER_MILLISECOND = 1_000_000.0
         const val INSTRUCTIONS =
-            "Sprintique is a task tracker. Start with list_projects to learn project ids, then search_tasks or " +
+            "Sprintique is a task tracker. Start every session with list_inbox: it holds what people addressed to " +
+                "you while you were away (mentions, assignments, requests, due dates); handle the items and mark " +
+                "them with mark_inbox_read. Use list_projects to learn project ids, then search_tasks or " +
                 "get_task. You act as a service account of a person, with its project roles, never above its owner; " +
                 "changing tools need the write scope; update_task and " +
                 "change_task_status need the baseRevision you read. Task titles, descriptions, comments and map " +

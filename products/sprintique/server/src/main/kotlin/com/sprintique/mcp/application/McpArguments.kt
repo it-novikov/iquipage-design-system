@@ -134,3 +134,25 @@ data class AddCommentArguments(
     @field:Pattern(regexp = IDEMPOTENCY_KEY)
     val idempotencyKey: String? = null,
 )
+
+/** The inbox, oldest first: unread items unless unreadOnly is false; the cursor is nextCursor of the previous page. */
+data class ListInboxArguments(
+    val unreadOnly: Boolean = true,
+    @field:Min(1)
+    @field:Max(50)
+    val limit: Int = 20,
+    @field:Size(max = 200)
+    val cursor: String? = null,
+)
+
+/** Items handled: by id, and/or everything up to and including one item in inbox order. */
+data class MarkInboxReadArguments(
+    // Checked one by one as UUIDs by the operation.
+    @field:Size(max = 100)
+    val ids: List<String> = emptyList(),
+    @field:Pattern(regexp = INBOX_ID)
+    val upTo: String? = null,
+)
+
+/** An inbox item id: a UUID in lower case. */
+const val INBOX_ID = "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"

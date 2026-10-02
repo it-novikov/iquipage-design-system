@@ -15,6 +15,7 @@ import com.sprintique.identity.application.ProjectAccess
 import com.sprintique.identity.application.RuntimeCredentials
 import com.sprintique.mcp.application.McpTools
 import com.sprintique.mcp.application.TaskArguments
+import com.sprintique.notification.domain.Mentions
 import com.sprintique.problem.ProblemException
 import com.sprintique.token.Tokens
 import org.slf4j.LoggerFactory
@@ -180,7 +181,9 @@ class AgentRunner(
                 threadId,
                 text("sourceMessageId").orEmpty(),
             ) ?: return null
-            return AgentPrompt.Mention(threadId, row.string("author"), row.string("body"))
+            // Mention tokens read as «@Имя», as everywhere a message is quoted.
+            val text = Mentions.plainText(row.string("body"), mapOf(lease.accountId to text("accountName").orEmpty()))
+            return AgentPrompt.Mention(threadId, row.string("author"), text)
         }
 
         @Suppress("ReturnCount", "LoopWithTooManyJumpStatements")

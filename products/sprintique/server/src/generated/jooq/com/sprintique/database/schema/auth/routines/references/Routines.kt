@@ -34,9 +34,11 @@ import com.sprintique.database.schema.auth.routines.ServiceAccountActive
 import com.sprintique.database.schema.auth.routines.WorkspacePermissionCatalog
 import com.sprintique.database.schema.auth.routines.WorkspaceRolePermissions
 import com.sprintique.database.schema.auth.tables.ProjectTimezoneSource
+import com.sprintique.database.schema.auth.tables.ServiceAccountUnread
 import com.sprintique.database.schema.auth.tables.ServiceAccountWorkspace
 import com.sprintique.database.schema.auth.tables.WorkspaceProjects
 import com.sprintique.database.schema.auth.tables.records.ProjectTimezoneSourceRecord
+import com.sprintique.database.schema.auth.tables.records.ServiceAccountUnreadRecord
 import com.sprintique.database.schema.auth.tables.records.ServiceAccountWorkspaceRecord
 import com.sprintique.database.schema.auth.tables.records.WorkspaceProjectsRecord
 
@@ -822,6 +824,25 @@ fun projectTimezoneSource(
       target: Field<String?>
 ): ProjectTimezoneSource = com.sprintique.database.schema.auth.tables.ProjectTimezoneSource.PROJECT_TIMEZONE_SOURCE.call(
     target
+)
+
+fun serviceAccountUnread(
+      configuration: Configuration
+    , accounts: Array<String?>?
+): Result<ServiceAccountUnreadRecord> = configuration.dsl().selectFrom(com.sprintique.database.schema.auth.tables.ServiceAccountUnread.SERVICE_ACCOUNT_UNREAD.call(
+      accounts
+)).fetch()
+
+fun serviceAccountUnread(
+      accounts: Array<String?>?
+): ServiceAccountUnread = com.sprintique.database.schema.auth.tables.ServiceAccountUnread.SERVICE_ACCOUNT_UNREAD.call(
+    accounts
+)
+
+fun serviceAccountUnread(
+      accounts: Field<Array<String?>?>
+): ServiceAccountUnread = com.sprintique.database.schema.auth.tables.ServiceAccountUnread.SERVICE_ACCOUNT_UNREAD.call(
+    accounts
 )
 
 fun serviceAccountWorkspace(

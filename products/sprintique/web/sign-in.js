@@ -46,7 +46,7 @@ export function mountSignIn(root,methods,invitation=null){
   const context=invited?{title:invitation.inviterName?`${invitation.inviterName} приглашает вас в «${invitation.workspaceName}»`:`Вас приглашают в «${invitation.workspaceName}»`,description:`${invitationSummary(invitation)}${invitation.presetHint?' '+invitation.presetHint:''}`}
     :{title:'Задачи, релизы и карты идей команды — в одном месте.',description:'При первом входе аккаунт создаётся сам. Почта, Google и Apple с одним адресом ведут в один аккаунт.'};
   if(!methods.email&&!methods.google&&!methods.apple&&!methods.devLogin){
-    root.innerHTML='<main class="iq-auth-stage"><section class="iq-auth-dialog"><h1>Вход не настроен</h1><p class="iq-auth-dialog-description">Администратору: настройте почту (SMTP) или вход через Google и Apple — см. раздел «Вход» в docs/operations.md.</p></section></main>';
+    root.innerHTML='<main class="iq-auth-stage"><section class="iq-auth-dialog"><h1>Вход не настроен</h1><p class="iq-auth-dialog-description">Администратору: настройте почту (SMTP) или вход через Google и Apple — см. раздел «Вход» в docs/operations.md.</p>'+legalLinks()+'</section></main>';
     return;
   }
   const providers=[
@@ -72,6 +72,7 @@ export function mountSignIn(root,methods,invitation=null){
       </form>`:''}
       ${providers?`${methods.email?'<p class="sign-in-divider"><span>или</span></p>':''}<div class="sign-in-providers">${providers}</div>`:''}
       ${methods.devLogin?'<button class="iq-btn ghost sign-in-dev" type="button" data-dev-login>Локальный стенд: войти как admin</button>':''}
+      ${legalLinks()}
     </div>
   </iq-auth-screen>`;
   const screen=root.querySelector('iq-auth-screen');
@@ -141,4 +142,8 @@ export function mountSignIn(root,methods,invitation=null){
   });
   codeForm.querySelector('[data-change]').addEventListener('click',()=>{clear();clearInterval(timer);timer=0;showStep('email');emailInput.select();});
   emailInput.focus();
+}
+
+function legalLinks(){
+  return '<p class="sign-in-legal"><a href="/about">О Sprintique</a> · <a href="/privacy">Конфиденциальность</a> · <a href="/terms">Условия</a><br>Входя, вы принимаете условия использования.</p>';
 }
