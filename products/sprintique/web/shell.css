@@ -114,18 +114,25 @@
 .pn-bell-meta{color:var(--iq-muted);font-size:var(--iq-type-meta-size);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pn-bell-dot{width:8px;height:8px;margin-top:6px;border-radius:50%;background:var(--iq-accent)}
 .pn-bell-empty{margin:0;padding:var(--iq-space-5) var(--iq-space-4);color:var(--iq-muted);font-size:var(--iq-type-label-size);text-align:center}
-/* Quick actions under a row (docs/decisions/0007-notification-channels.md): DS buttons in one quiet line, aligned
-   with the row's text; a reply field opens in place; after an action one line says what was done. */
+/* Quick actions under a row (docs/decisions/0007-notification-channels.md): one quiet main answer, the others as text
+   buttons, «Прочитано» only while the row is hovered or focused; a reply field takes the buttons' place; after an
+   action one line inside the row says what was done, in the muted success tone. */
 .pn-bell-entry{display:grid;border-radius:var(--iq-radius-sm)}
 .pn-bell-entry+.pn-bell-entry{margin-top:var(--iq-space-1)}
 .pn-bell-task{color:var(--iq-ink);font-size:var(--iq-type-label-size);line-height:1.4;font-weight:500;overflow-wrap:anywhere}
-.pn-bell-actions{display:flex;flex-wrap:wrap;gap:var(--iq-space-2);padding:0 var(--iq-space-3) var(--iq-space-2) calc(var(--iq-space-3) + 24px + var(--iq-space-3))}
+.pn-bell-actions{display:flex;flex-wrap:wrap;align-items:center;gap:var(--iq-space-1);padding:0 var(--iq-space-3) var(--iq-space-2) calc(var(--iq-space-3) + 24px + var(--iq-space-2))}
 .pn-bell-actions:empty{display:none}
 /* The menu stretches its own items; DS buttons inside a row keep their size. */
 .pn-bell-popup .pn-bell-actions .iq-btn,.pn-bell-popup .pn-bell-reply .iq-btn{width:auto;min-height:var(--iq-control-sm);padding:0 var(--iq-space-3);justify-content:center}
+.pn-bell-popup .pn-bell-actions .iq-btn:not(.pn-bell-main){color:var(--iq-muted)}
+.pn-bell-popup .pn-bell-actions .pn-bell-main{background:var(--iq-surface);color:var(--iq-ink)}
+.pn-bell-popup .pn-bell-actions .pn-bell-main:hover{background:var(--iq-hover)}
+.pn-bell-popup .pn-bell-read{opacity:0}
+.pn-bell-entry:is(:hover,:focus-within) .pn-bell-read{opacity:1}
 .pn-bell-reply{display:flex;align-items:center;gap:var(--iq-space-2);padding:0 var(--iq-space-3) var(--iq-space-3) calc(var(--iq-space-3) + 24px + var(--iq-space-3))}
 .pn-bell-reply .iq-input-shell{flex:1;min-width:0;min-height:var(--iq-control-sm)}
 .pn-bell-reply .iq-input-shell input{padding:var(--iq-space-2) 0}
-.pn-bell-result{display:flex;align-items:center;gap:var(--iq-space-1);margin:0;padding:0 var(--iq-space-3) var(--iq-space-2) calc(var(--iq-space-3) + 24px + var(--iq-space-3));color:var(--iq-muted);font-size:var(--iq-type-label-size)}
+.pn-bell-done{display:flex;align-items:center;gap:var(--iq-space-1);margin-top:var(--iq-space-1);color:var(--iq-success);font-size:var(--iq-type-label-size);font-weight:500}
+.pn-bell-popup .pn-bell-head .iq-btn{width:auto;margin-left:auto}
 .pn-bell-foot{display:flex;justify-content:space-between;gap:var(--iq-space-2);padding:var(--iq-space-1) var(--iq-space-2);border-top:1px solid var(--iq-line)}
 .pn-bell-foot>:last-child{margin-left:auto}

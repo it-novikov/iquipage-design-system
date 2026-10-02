@@ -26,24 +26,33 @@ export function mountNotificationBell(slot,{client,onOpen,onSettings}){
     trigger.setAttribute('aria-label',bellLabel(unread));trigger.title=bellLabel(unread);
   }
   const find=id=>items.find(i=>i.id===id);
-  /** What can be done under a row: the offered answers, then «Прочитано»; or what was just done. */
+  /**
+   * What can be done under a row. The main answer is a quiet button, the others are text buttons, and «Прочитано»
+   * shows only while the row is hovered or focused (opening the row reads it anyway). While a reply is being written,
+   * its field and send button take the place of the buttons; Escape brings them back.
+   */
   function controls(item){
-    if(item.pending)return `<p class="pn-bell-result" role="status">${esc(item.pending)}…</p>`;
-    if(item.result)return `<p class="pn-bell-result" role="status">${icon('check',16)}<span>${esc(item.result)}</span></p>`;
+    if(item.pending||item.result)return '';
     const id=esc(item.id);
-    const buttons=(item.actions||[]).map(a=>ui.btn(esc(a.label),'secondary sm','',`role="menuitem" tabindex="-1" data-quick="${esc(a.action)}" data-id="${id}"`)).join('')
-      +(item.read?'':ui.btn('Прочитано','ghost sm','',`role="menuitem" tabindex="-1" data-mark-read="${id}"`));
-    const reply=replying===item.id?`<form class="pn-bell-reply" data-reply-form="${id}"><label class="sr-only" for="pn-reply-${id}">Ответ в обсуждение</label>`
+    if(replying===item.id)return `<form class="pn-bell-reply" data-reply-form="${id}"><label class="sr-only" for="pn-reply-${id}">Ответ в обсуждение</label>`
       +`<span class="iq-input-shell"><input id="pn-reply-${id}" name="text" maxlength="20000" autocomplete="off" placeholder="Ответ в обсуждение" required></span>`
-      +`<button type="submit" class="iq-btn primary sm" role="menuitem" tabindex="-1">Отправить</button></form>`:'';
-    return buttons||reply?`<div class="pn-bell-actions" role="presentation">${buttons}</div>${reply}`:'';
+      +`<button type="submit" class="iq-btn primary sm" role="menuitem" tabindex="-1">Отправить</button></form>`;
+    const buttons=(item.actions||[]).map((a,index)=>ui.btn(esc(a.label),`ghost sm${index===0?' pn-bell-main':''}`,'',`role="menuitem" tabindex="-1" data-quick="${esc(a.action)}" data-id="${id}"`)).join('')
+      +(item.read?'':ui.btn('Прочитано','ghost sm pn-bell-read','',`role="menuitem" tabindex="-1" data-mark-read="${id}"`));
+    return buttons?`<div class="pn-bell-actions" role="presentation">${buttons}</div>`:'';
+  }
+  /** What was just done, inside the row in place of its buttons; the toast keeps «Отменить». */
+  function outcome(item){
+    if(item.pending)return `<span class="pn-bell-done" role="status">${esc(item.pending)}…</span>`;
+    if(item.result)return `<span class="pn-bell-done" role="status">${icon('check',14)}<span>${esc(item.result)}</span></span>`;
+    return '';
   }
   function render(){
     const head=`<div class="pn-bell-head" role="presentation"><span class="pn-bell-title">Уведомления</span>${items.some(i=>!i.read)?`<button type="button" role="menuitem" tabindex="-1" class="iq-btn ghost sm" data-bell-read-all>Прочитать все</button>`:''}</div>`;
     const rows=items.map(item=>`<div class="pn-bell-entry" role="presentation"${item.read?'':' data-unread'}>`
       +`<button type="button" role="menuitem" tabindex="-1" class="pn-bell-item" data-action="notification:${esc(item.id)}"${item.read?'':' data-unread'}>`
       +`<span class="pn-bell-media">${avatar(item)}</span><span class="pn-bell-copy"><span class="pn-bell-text">${esc(item.text)}</span>`
-      +`<span class="pn-bell-task">${esc(item.task?.title||'')}</span><span class="pn-bell-meta">${esc(rowMeta(item))}</span></span>`
+      +`<span class="pn-bell-task">${esc(item.task?.title||'')}</span><span class="pn-bell-meta">${esc(rowMeta(item))}</span>${outcome(item)}</span>`
       +(item.read?'':'<span class="pn-bell-dot"><span class="sr-only">Не прочитано</span></span>')+'</button>'
       +controls(item)+'</div>').join('');
     const empty=loading&&!items.length?'<p class="pn-bell-empty" role="status">Загружаем…</p>'
