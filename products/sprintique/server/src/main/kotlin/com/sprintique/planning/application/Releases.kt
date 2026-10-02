@@ -4,6 +4,7 @@ import com.sprintique.command.AuditTrail
 import com.sprintique.command.CommandLedger
 import com.sprintique.database.Transaction
 import com.sprintique.identity.domain.Actor
+import com.sprintique.planning.domain.Maybe
 import com.sprintique.planning.domain.PlanningRows
 import com.sprintique.planning.domain.Release
 import com.sprintique.planning.domain.ReleaseData
@@ -18,10 +19,11 @@ object Releases {
         tx.update(
             """
             INSERT INTO app.releases(project_id, id, name, status, target_date, revision, archived_at, lifecycle, format,
-                                     planned_start, planned_end, deadline, scope_revision)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $5, $12)
+                                     planned_start, planned_end, deadline, scope_revision, goal)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $5, $12, $13)
             ON CONFLICT(project_id, id) DO UPDATE SET name = $3, status = $4, target_date = $5, revision = $6, archived_at = $7,
-              lifecycle = $8, format = $9, planned_start = $10, planned_end = $11, deadline = $5, scope_revision = $12
+              lifecycle = $8, format = $9, planned_start = $10, planned_end = $11, deadline = $5, scope_revision = $12,
+              goal = $13
             """.trimIndent(),
             projectId,
             release.id,
@@ -35,6 +37,7 @@ object Releases {
             release.plannedStart,
             release.plannedEnd,
             release.scopeRevision,
+            release.goal,
         )
     }
 
@@ -74,6 +77,7 @@ object Releases {
                 plannedEnd = value.plannedEnd,
                 deadline = value.deadline,
                 archivedAt = null,
+                goal = if (value.goal is Maybe.Given) value.goal.value else previous?.goal,
             )
             TemporalRules.validate(state.copy(releases = state.releases.filter { it.id != id } + release))
             save(tx, projectId, release)

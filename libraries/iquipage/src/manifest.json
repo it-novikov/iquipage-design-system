@@ -54,7 +54,11 @@
     "work-list-drag.js",
     "auth-screen.js",
     "auth-dialog.js",
-    "settings.js", "relation-map.js"
+    "settings.js",
+    "relation-map.js",
+    "tree-columns.js",
+    "mention-tokens.js",
+    "mentions.js"
   ],
   "library": [
     "components.js",
@@ -98,7 +102,11 @@
     "work-list-drag.js",
     "auth-screen.js",
     "auth-dialog.js",
-    "settings.js", "relation-map.js"
+    "settings.js",
+    "relation-map.js",
+    "tree-columns.js",
+    "mention-tokens.js",
+    "mentions.js"
   ],
   "entries": {
     "core": [
@@ -122,7 +130,11 @@
       "work-layout.js",
       "auth-screen.js",
       "auth-dialog.js",
-      "settings.js", "relation-map.js"
+      "settings.js",
+      "relation-map.js",
+      "tree-columns.js",
+      "mention-tokens.js",
+      "mentions.js"
     ],
     "advanced": [
       "roadmap.js",

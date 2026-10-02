@@ -1,8 +1,9 @@
-import {formatDateTime,ui,plural as pluralForms} from '@iquipage/web/core';
+import {formatDateTime,ui,plural as pluralForms,mentionsHTML,mentionPlainText} from '@iquipage/web/core';
 import {createThreadPager} from './thread-pager.js';
 import {icon,esc} from '../ui.js';
 import {uid} from '../common.js';
 import {postMessage,resolveThread,changeThreadKind} from './thread-model.js';
+import {mentionCandidates,mentionNames,closeCutMention} from './mention-options.js';
 
 /** Discussions read as a chat: open questions are pinned on top with one clear resolve action, comment threads and
  *  resolved questions follow in the order they happened, and the composer rests as one line. Space separates items;
@@ -25,6 +26,8 @@ export function mountThreads(root,{repository,task,readOnly=false,people=new Map
   const photo=p=>repository.client?.avatarUrl?.(p.id,p.avatarRevision)||undefined;
   const person=id=>{const p=people.get(id)||(id&&id===actorId?{id,name:'Вы'}:{id,name:'Бывший участник'});return {...p,image:photo(p)};};
   const time=value=>value?formatDateTime(value):'';
+  // «@» offers the project's members (not the author); mentions read with each member's current name.
+  const candidates=mentionCandidates([...people.values()].filter(p=>p.id!==actorId),{image:photo}),names=mentionNames([...people.values()]);
   root.setAttribute('aria-labelledby',`threads-${section}-title`);
   root.innerHTML=`<div class="iq-section-head">${icon('message',16)}<h3 id="threads-${section}-title">Обсуждения</h3><span class="iq-section-count" data-thread-count></span><span class="iq-section-actions"><span class="iq-discussion-new-count" data-thread-new-count hidden></span><span class="iq-discussion-open-count" data-thread-open-count hidden></span></span></div>
     <p class="sr-only" role="status" aria-live="polite" data-thread-live></p>
@@ -40,6 +43,7 @@ export function mountThreads(root,{repository,task,readOnly=false,people=new Map
   const errorRow=root.querySelector('[data-thread-error]'),live=root.querySelector('[data-thread-live]'),composer=root.querySelector('[data-thread-composer] iq-markdown-editor');
   const syncComposer=()=>{if(composer)composer.footerActions=[{id:'question',label:'Вопрос',icon:'help',appearance:'chip',tone:'warning',pressed:asQuestion,hint:QUESTION_HINT}];};
   syncComposer();
+  if(composer)composer.mentions=candidates;
   const announce=text=>{live.textContent='';requestAnimationFrame(()=>{if(!closed)live.textContent=text;});};
 
   // "New" follows the person: the server keeps a read marker per thread and person. A repository without markers
@@ -66,7 +70,7 @@ export function mountThreads(root,{repository,task,readOnly=false,people=new Map
     const known=!!message.authorId,who=person(message.authorId),id=`threads-${section}-${esc(thread.id)}-m${index}`,fresh=full&&messageIsNew(thread,message);
     const avatar=known?ui.personAvatar(who,{size:reply?'xs':'sm'}):`<span class="iq-avatar ${reply?'xs':'sm'} iq-skeleton" aria-hidden="true"></span>`;
     const meta=known?`<b class="iq-message-author" id="${id}-author">${esc(who.name)}</b>${message.createdAt?`<time class="iq-message-time" datetime="${esc(message.createdAt)}">${esc(time(message.createdAt))}</time>`:''}${fresh?'<span class="sr-only">новое</span>':''}`:'<span class="iq-skeleton iq-skeleton-line" data-width="short"></span>';
-    const text=full?`<iq-markdown-viewer class="iq-message-text" data-viewer="${index}"></iq-markdown-viewer>`:`<p class="iq-message-text">${esc(message.body||'')}</p>`;
+    const text=full?`<iq-markdown-viewer class="iq-message-text" data-viewer="${index}"></iq-markdown-viewer>`:`<p class="iq-message-text">${mentionsHTML(closeCutMention(message.body),names)}</p>`;
     return `<article class="iq-message"${reply?' data-size="reply"':''}${fresh?' data-new':''}${justChanged.has(message.id)?' data-just-changed':''} data-message="${esc(message.id||'first')}">${avatar}<div class="iq-message-main"><p class="iq-message-meta">${meta}</p>${text}</div></article>`;
   }
   const skeletonReply='<div class="iq-message" data-size="reply" data-state="loading" aria-hidden="true"><span class="iq-avatar xs iq-skeleton"></span><div class="iq-message-main"><span class="iq-skeleton iq-skeleton-line" data-width="short"></span><span class="iq-skeleton iq-skeleton-line"></span></div></div>';
@@ -88,7 +92,7 @@ export function mountThreads(root,{repository,task,readOnly=false,people=new Map
     if(kind==='resolved'){
       const open=expanded.has(thread.id),who=thread.resolution?person(thread.resolution.actorId).name:'';
       const at=thread.resolution?.at||thread.lastActivityAt;
-      return `<button type="button" class="iq-thread-line" data-thread-toggle="${id}" aria-expanded="${open}" aria-controls="threads-${section}-${id}-body">${icon('checkCircle',16)}<span class="iq-thread-line-text">${esc(first.body.replace(/\s+/g,' ').slice(0,160))}</span><span class="iq-thread-line-meta">Решён ${esc(time(at))}, ${esc(messagesLabel(count))}</span>${icon('chevron',16)}</button>
+      return `<button type="button" class="iq-thread-line" data-thread-toggle="${id}" aria-expanded="${open}" aria-controls="threads-${section}-${id}-body">${icon('checkCircle',16)}<span class="iq-thread-line-text">${esc(mentionPlainText(closeCutMention(first.body),names).replace(/\s+/g,' ').slice(0,160))}</span><span class="iq-thread-line-meta">Решён ${esc(time(at))}, ${esc(messagesLabel(count))}</span>${icon('chevron',16)}</button>
         <div class="iq-thread-body" id="threads-${section}-${id}-body"${open?'':' hidden'}>${open?`${firstMessage}${count>1?`<div class="iq-thread-replies">${repliesMarkup(thread,full)}</div>`:''}<div class="iq-thread-actions"><span class="iq-thread-resolution">Отмечен решённым${who?`: ${esc(who)}`:''}, ${esc(time(at))}</span>${readOnly?'':`<button type="button" class="iq-btn ghost sm" data-resolve="${id}"${busy.has(thread.id)?' disabled aria-busy="true"':''}>Открыть снова</button>`}</div>`:''}</div>`;
     }
     const open=expanded.has(thread.id),fresh=isNew(thread)&&!open;
@@ -118,7 +122,7 @@ export function mountThreads(root,{repository,task,readOnly=false,people=new Map
       const active=document.activeElement,key=content.contains(active)?['data-thread-toggle','data-older-replies','data-reply','data-resolve','data-retry-thread'].find(name=>active.hasAttribute(name)):null;
       content.innerHTML=contentMarkup(thread);content.dataset.signature=next;
       const full=detailed(thread);
-      content.querySelectorAll('iq-markdown-viewer[data-viewer]').forEach(viewer=>{viewer.value=full?.messages[Number(viewer.dataset.viewer)]?.body||'';});
+      content.querySelectorAll('iq-markdown-viewer[data-viewer]').forEach(viewer=>{viewer.mentions=names;viewer.value=full?.messages[Number(viewer.dataset.viewer)]?.body||'';});
       if(key)content.querySelector(`[${key}="${CSS.escape(thread.id)}"]`)?.focus({preventScroll:true});
     }
     return node;
@@ -183,6 +187,7 @@ export function mountThreads(root,{repository,task,readOnly=false,people=new Map
     if(!editor){
       editor=document.createElement('iq-markdown-editor');editor.dataset.replyEditor=id;
       for(const [name,value] of [['variant','chat'],['name','reply-'+id],['label','Ответ в обсуждении'],['placeholder','Ответ'],['maxlength','20000'],['submit-label','Ответить'],['cancel-label','Отмена']])editor.setAttribute(name,value);
+      editor.mentions=candidates;
       slot.append(editor);
       if(drafts.has(id))editor.value=drafts.get(id);
     }

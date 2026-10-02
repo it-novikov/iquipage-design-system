@@ -33,7 +33,7 @@ export const kindGlyph=kind=>({deadline:'flag',request:'help',mention:'message',
 /** The kinds a person chooses for e-mail and Telegram, in the order the settings list them. */
 export const NOTIFICATION_KINDS=[
   {kind:'assigned',title:'Назначения',hint:'Кто-то другой назначил вас исполнителем задачи.'},
-  {kind:'mention',title:'Упоминания',hint:'Вас упомянули в обсуждении: @Имя или @Имя Фамилия.'},
+  {kind:'mention',title:'Упоминания',hint:'Вас упомянули в обсуждении: выбрали в списке после @ или написали @Имя.'},
   {kind:'request',title:'Запросы',hint:'Вас попросили проверить, ответить, решить или сделать.'},
   {kind:'deadline',title:'Сроки',hint:'Срок вашей задачи — завтра или сегодня. Приходит в 9:00 по вашему времени.'}
 ];

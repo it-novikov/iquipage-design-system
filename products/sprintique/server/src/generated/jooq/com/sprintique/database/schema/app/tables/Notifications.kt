@@ -6,6 +6,7 @@ package com.sprintique.database.schema.app.tables
 
 import com.sprintique.database.schema.app.App
 import com.sprintique.database.schema.app.indexes.NOTIFICATIONS_FEED
+import com.sprintique.database.schema.app.indexes.NOTIFICATIONS_INBOX
 import com.sprintique.database.schema.app.indexes.NOTIFICATIONS_UNREAD
 import com.sprintique.database.schema.app.keys.NOTIFICATIONS_PKEY
 import com.sprintique.database.schema.app.keys.NOTIFICATIONS_RECIPIENT_ID_DEDUPE_KEY_KEY
@@ -120,7 +121,7 @@ open class Notifications(
         override fun `as`(alias: Table<*>): NotificationsPath = NotificationsPath(alias.qualifiedName, this)
     }
     override fun getSchema(): Schema? = if (aliased()) null else App.APP
-    override fun getIndexes(): List<Index> = listOf(NOTIFICATIONS_FEED, NOTIFICATIONS_UNREAD)
+    override fun getIndexes(): List<Index> = listOf(NOTIFICATIONS_FEED, NOTIFICATIONS_INBOX, NOTIFICATIONS_UNREAD)
     override fun getPrimaryKey(): UniqueKey<NotificationsRecord> = NOTIFICATIONS_PKEY
     override fun getUniqueKeys(): List<UniqueKey<NotificationsRecord>> = listOf(NOTIFICATIONS_RECIPIENT_ID_DEDUPE_KEY_KEY)
     override fun getReferences(): List<ForeignKey<NotificationsRecord, *>> = listOf(NOTIFICATIONS__NOTIFICATIONS_ACTOR_ID_FKEY, NOTIFICATIONS__NOTIFICATIONS_PROJECT_ID_FKEY, NOTIFICATIONS__NOTIFICATIONS_PROJECT_ID_TASK_ID_FKEY, NOTIFICATIONS__NOTIFICATIONS_RECIPIENT_ID_FKEY)

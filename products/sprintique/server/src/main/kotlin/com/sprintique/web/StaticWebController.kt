@@ -38,11 +38,17 @@ class StaticWebController(properties: SprintiqueProperties) {
         "/workbench/plan",
         "/workbench/tasks/{projectId}/{taskId}",
     )
-    fun index(): ResponseEntity<ByteArray> {
-        val file = requireRoot().resolve("index.html")
-        if (!Files.isRegularFile(file)) throw notFound()
-        return ResponseEntity.ok().contentType(MediaType.TEXT_HTML).body(Files.readAllBytes(file))
-    }
+    fun index(): ResponseEntity<ByteArray> = html("index.html")
+
+    /** Public documents required before a person chooses a sign-in method. */
+    @GetMapping("/about")
+    fun about(): ResponseEntity<ByteArray> = html("about.html")
+
+    @GetMapping("/privacy")
+    fun privacy(): ResponseEntity<ByteArray> = html("privacy.html")
+
+    @GetMapping("/terms")
+    fun terms(): ResponseEntity<ByteArray> = html("terms.html")
 
     /** The board view is not part of the Workbench v1 (design-v2 §11.4): its address leads to the overview. */
     @GetMapping("/workbench/board")
@@ -82,6 +88,12 @@ class StaticWebController(properties: SprintiqueProperties) {
     }
 
     private fun requireRoot(): Path = root ?: throw notFound()
+
+    private fun html(name: String): ResponseEntity<ByteArray> {
+        val file = requireRoot().resolve(name)
+        if (!Files.isRegularFile(file)) throw notFound()
+        return ResponseEntity.ok().contentType(MediaType.TEXT_HTML).body(Files.readAllBytes(file))
+    }
 
     private fun notFound() = ProblemException(404, "NOT_FOUND", "Файл недоступен.")
 

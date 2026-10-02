@@ -65,6 +65,45 @@ class NotificationRulesTest {
     }
 
     @Test
+    fun `a token names a member by id, whatever its label, and counts once before typed names`() {
+        val robot = MentionCandidate("sa_1", "Робот релизов", service = true)
+        val people = listOf(anna, boris, robot)
+        // Renamed since the token was written: the id still finds Анна; a forged label names nobody else.
+        assertThat(Mentions.find("@[Аня Старое](user:a), глянь", people)).containsExactly("a")
+        assertThat(Mentions.find("@[Борис](user:a)", people)).containsExactly("a")
+        assertThat(Mentions.find("@[Робот](user:sa_1) и @борис", people)).containsExactly("sa_1", "b")
+        // Not a member, not a token, in code or inside a word: nobody.
+        assertThat(Mentions.find("@[Чужой](user:zz) @[x](mailto:a) `@[A](user:a)` mail@[A](user:a)", people)).isEmpty()
+        assertThat(Mentions.find("```\n@[A](user:a)\n```", people)).isEmpty()
+        assertThat(Mentions.find("``@[A](user:a)``", people)).isEmpty()
+        assertThat(Mentions.find("@[A](user:a) @[A](user:a) @Анна", people)).containsExactly("a")
+        // A label with brackets or a line break is not a token; an id outside [A-Za-z0-9_-] neither.
+        assertThat(Mentions.find("@[A]](user:a) @[A\nB](user:a) @[A](user:a\"b)", people)).isEmpty()
+    }
+
+    @Test
+    fun `a service account is named in full and never makes a person's first name ambiguous`() {
+        val helper = MentionCandidate("sa_2", "Анна Помощник", service = true)
+        assertThat(Mentions.find("@Анна, глянь", listOf(anna, helper))).containsExactly("a")
+        assertThat(Mentions.find("@анна помощник", listOf(anna, helper))).contains("sa_2")
+        assertThat(Mentions.find("@Робот", listOf(MentionCandidate("sa_1", "Робот релизов", service = true)))).isEmpty()
+    }
+
+    @Test
+    fun `one message notifies at most twenty members, tokens first`() {
+        val many = (1..30).map { MentionCandidate("p$it", "Участник$it Фамилия") }
+        val body = many.joinToString(" ") { "@[${it.name}](user:${it.id})" }
+        assertThat(Mentions.find(body, many)).hasSize(Mentions.LIMIT).startsWith("p1", "p2")
+    }
+
+    @Test
+    fun `a quote shows tokens as current names and leaves code alone`() {
+        val names = mapOf("a" to "Анна Кузнецова")
+        assertThat(Mentions.plainText("@[Аня](user:a), @[Бывший](user:x) и `@[Аня](user:a)`", names))
+            .isEqualTo("@Анна Кузнецова, Бывший и `@[Аня](user:a)`")
+    }
+
+    @Test
     fun `the bot reads start with a token, start alone, stop, and nothing else`() {
         assertThat(TelegramCommand.parse("/start abc_DEF-123")).isEqualTo(TelegramCommand.Start("abc_DEF-123"))
         assertThat(TelegramCommand.parse("/start@sprintique_bot abc")).isEqualTo(TelegramCommand.Start("abc"))

@@ -356,10 +356,15 @@ class PlanningView(private val json: JsonMapper, private val support: ViewSuppor
                 openChildren.merge(task.parentId, 1, Int::plus)
             }
         }
+        // Under the r4 policy done is the status alone; an epic with open work that carries over goes with it.
+        val acceptable = PlanningRows.acceptable(
+            members.filter { it.result == "open" && it.status == "ready_for_release" }.mapTo(LinkedHashSet()) { it.id },
+            members,
+        )
         val items = members.map { task ->
             val outcome = when {
                 task.result == "accepted" -> "accepted"
-                task.preparation == "ready" && task.status == "ready_for_release" -> "candidate"
+                task.id in acceptable -> "candidate"
                 else -> "unfinished"
             }
             linkedMapOf(
@@ -422,6 +427,9 @@ class PlanningView(private val json: JsonMapper, private val support: ViewSuppor
             "timeZone" to defaults.timezone,
             "timeZoneInherited" to (source?.get("inherited") == true),
             "workspaceTimeZone" to (source?.stringOrNull("workspace_timezone") ?: defaults.timezone),
+            "estimateFormat" to defaults.estimateFormat,
+            "hoursPerDay" to defaults.hoursPerDay,
+            "hoursPerWeek" to defaults.hoursPerWeek,
         )
     }
 

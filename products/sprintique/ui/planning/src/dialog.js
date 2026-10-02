@@ -44,16 +44,3 @@ export function operationDialog({adapter,projectId,intent,title,onCommitted=()=>
   void operation.inspect(intent);
   return {...modal,readyToLeave:()=>operation.canClose(),operation};
 }
-export async function moveDialog({adapter,projectId,taskIds=[],selection=null,count=taskIds.length,onCommitted,onClose}) {
-  const {registerAdvanced}=await import('@iquipage/web/advanced');registerAdvanced();
-  let next=null;
-  const modal=formDialog({title:'Перенести в релиз',body:`<p>Выбрано задач: ${count}. На следующем шаге покажем последствия для подзадач и активной работы.</p><iq-remote-combobox label="Релиз назначения" placeholder="Найти релиз или выбрать бэклог"></iq-remote-combobox>`,submitLabel:'Проверить перенос',
-    submit:async form=>{
-      const value=form.querySelector('iq-remote-combobox').value;if(!value)throw Error('Выберите релиз или бэклог.');
-      next={kind:'move',...(selection||{taskIds}),groupId:value};return true;
-    },onMount:form=>{
-      const picker=form.querySelector('iq-remote-combobox');
-      picker.provider=({query,cursor,signal})=>adapter.destinations({projectId,query,cursor,signal});
-    },onClose:()=>{if(next)operationDialog({adapter,projectId,intent:next,title:'Изменение состава',onCommitted,onClose});else onClose?.();}});
-  return modal;
-}

@@ -68,13 +68,17 @@ open class ReleasesRecord() : UpdatableRecordImpl<ReleasesRecord>(Releases.RELEA
         set(value): Unit = set(12, value)
         get(): Long? = get(12) as Long?
 
+    open var goal: String?
+        set(value): Unit = set(13, value)
+        get(): String? = get(13) as String?
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
 
     override fun key(): Record2<String?, String?> = super.key() as Record2<String?, String?>
 
-    constructor(id: String? = null, projectId: String? = null, name: String? = null, status: String? = null, targetDate: LocalDate? = null, revision: Int? = null, archivedAt: OffsetDateTime? = null, lifecycle: String? = null, format: String? = null, plannedStart: LocalDate? = null, plannedEnd: LocalDate? = null, deadline: LocalDate? = null, scopeRevision: Long? = null): this() {
+    constructor(id: String? = null, projectId: String? = null, name: String? = null, status: String? = null, targetDate: LocalDate? = null, revision: Int? = null, archivedAt: OffsetDateTime? = null, lifecycle: String? = null, format: String? = null, plannedStart: LocalDate? = null, plannedEnd: LocalDate? = null, deadline: LocalDate? = null, scopeRevision: Long? = null, goal: String? = null): this() {
         this.id = id
         this.projectId = projectId
         this.name = name
@@ -88,6 +92,7 @@ open class ReleasesRecord() : UpdatableRecordImpl<ReleasesRecord>(Releases.RELEA
         this.plannedEnd = plannedEnd
         this.deadline = deadline
         this.scopeRevision = scopeRevision
+        this.goal = goal
         resetTouchedOnNotNull()
     }
 }

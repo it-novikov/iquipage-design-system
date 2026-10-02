@@ -268,22 +268,29 @@ internal object ApiQueries {
         query("to", mapOf("type" to "string", "format" to "date")),
     )
 
-    fun of(route: String, contracts: PublicContracts): List<Map<String, Any?>> = when (route) {
+    /** The bell's page, and the inbox's: unread items oldest first unless unreadOnly=false. */
+    private val notificationPage = listOf(
+        cursor,
+        query(
+            "limit",
+            mapOf(
+                "type" to "integer", "minimum" to 1, "maximum" to NOTIFICATION_PAGE,
+                "default" to NOTIFICATION_DEFAULT,
+            ),
+        ),
+    )
+    private val fixed = mapOf(
+        "/api/v1/notifications" to notificationPage,
+        "/api/v1/inbox" to listOf(
+            query("unreadOnly", mapOf("type" to "string", "enum" to listOf("true", "false"), "default" to "true")),
+        ) + notificationPage,
+    )
+
+    fun of(route: String, contracts: PublicContracts): List<Map<String, Any?>> = fixed[route] ?: when (route) {
         "/api/v1/search" ->
             listOf(query("q", mapOf("type" to "string", "minLength" to 1, "maxLength" to SEARCH_LIMIT), true), cursor)
 
         "$P/tasks" -> listOf(query("cursor", mapOf("type" to "integer", "minimum" to 0, "default" to 0)))
-
-        "/api/v1/notifications" -> listOf(
-            cursor,
-            query(
-                "limit",
-                mapOf(
-                    "type" to "integer", "minimum" to 1, "maximum" to NOTIFICATION_PAGE,
-                    "default" to NOTIFICATION_DEFAULT,
-                ),
-            ),
-        )
 
         "/api/v1/workbench" -> listOf(
             query("mode", mapOf("type" to "string", "enum" to listOf("now"))),

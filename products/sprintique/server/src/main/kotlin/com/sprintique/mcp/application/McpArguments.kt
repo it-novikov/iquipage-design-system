@@ -4,9 +4,11 @@ import com.sprintique.contract.IsoDate
 import com.sprintique.contract.MAX_SAFE_INTEGER
 import com.sprintique.contract.RESOURCE_ID
 import com.sprintique.contract.TrimmedString
+import com.sprintique.task.contract.TaskEstimateRequest
 import com.sprintique.task.contract.TaskPriority
 import com.sprintique.task.contract.TaskStatus
 import com.sprintique.task.contract.TaskType
+import jakarta.validation.Valid
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.Pattern
@@ -72,13 +74,15 @@ data class CreateTaskArguments(
     val assigneeId: String? = null,
     @field:IsoDate
     val dueDate: String? = null,
+    @field:Valid
+    val estimate: TaskEstimateRequest? = null,
     @field:Pattern(regexp = RESOURCE_ID)
     val parent: String? = null,
     @field:Pattern(regexp = IDEMPOTENCY_KEY)
     val idempotencyKey: String? = null,
 )
 
-/** Fields left out stay as they are; `assigneeId` and `dueDate` sent as null are cleared. */
+/** Fields left out stay as they are; `assigneeId`, `dueDate` and `estimate` sent as null are cleared. */
 data class UpdateTaskArguments(
     @field:Pattern(regexp = RESOURCE_ID)
     val projectId: String,
@@ -98,6 +102,8 @@ data class UpdateTaskArguments(
     val assigneeId: String? = null,
     @field:IsoDate
     val dueDate: String? = null,
+    @field:Valid
+    val estimate: TaskEstimateRequest? = null,
     @field:Pattern(regexp = IDEMPOTENCY_KEY)
     val idempotencyKey: String? = null,
 )
@@ -128,3 +134,25 @@ data class AddCommentArguments(
     @field:Pattern(regexp = IDEMPOTENCY_KEY)
     val idempotencyKey: String? = null,
 )
+
+/** The inbox, oldest first: unread items unless unreadOnly is false; the cursor is nextCursor of the previous page. */
+data class ListInboxArguments(
+    val unreadOnly: Boolean = true,
+    @field:Min(1)
+    @field:Max(50)
+    val limit: Int = 20,
+    @field:Size(max = 200)
+    val cursor: String? = null,
+)
+
+/** Items handled: by id, and/or everything up to and including one item in inbox order. */
+data class MarkInboxReadArguments(
+    // Checked one by one as UUIDs by the operation.
+    @field:Size(max = 100)
+    val ids: List<String> = emptyList(),
+    @field:Pattern(regexp = INBOX_ID)
+    val upTo: String? = null,
+)
+
+/** An inbox item id: a UUID in lower case. */
+const val INBOX_ID = "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"

@@ -4,13 +4,16 @@
  * No DOM, fetch, images, CSS from input, plugins or executable code.
  * Output consists solely of renderer-owned tags and escaped source strings.
  */
+const {tokenAt,mentionHTML,mentionResolver}=require('./mention-tokens.js');
 const LIMIT = 1000000;
 const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 /** Explicit total-scan budget. Delimiter and bracket searches are the only super-linear steps here:
  * once the budget is spent the remaining source degrades to escaped text instead of rescanning suffixes. */
 let work = 0;
+/** The members of the render in progress (options.mentions), or undefined: then a token shows its stored label. */
+let mentionResolve;
 const spend = amount => {work -= amount > 1 ? amount : 1; return work > 0;};
-const SPECIAL = /[\\`*_[!<~\n]/g;
+const SPECIAL = /[\\`*_[!<~\n@]/g;
 function safeMarkdownURL(value) {
  const source=String(value??'').trim();
  // Do not allow whitespace, controls, a schemeless origin, credentials or backslashes.
@@ -75,6 +78,8 @@ function inline(text,depth=0,allowLinks=true){
    const delimiter=text.slice(i,run),end=text.indexOf(delimiter,run);
    if(end>=0&&spend(end-i)){out+='<code>'+esc(text.slice(run,end).replace(/\n/g,' '))+'</code>';i=end+delimiter.length;continue;}
   }
+  // A mention token (vnext.29) is a pill, or plain text when the host's members do not include its id.
+  if(text[i]==='@'){const token=tokenAt(text,i);if(token){out+=allowLinks?mentionHTML(token,mentionResolve):esc('@'+token.label);i=token.end;continue;}}
   const image=text.startsWith('![',i),link=text[i]==='[';
   if((image||link)&&allowLinks&&work>0){
    const start=i+(image?2:1),end=findEnd(text,start,'[',']');
@@ -186,6 +191,9 @@ function safeMarkdown(source,options={}) {
  const level=Number(options.headingLevel??2);
  if(!Number.isInteger(level)||level<1||level>6)throw new RangeError('headingLevel: целое число от 1 до 6');
  work=8*value.length+100000;
- return renderBlocks(value.replace(/\r\n?/g,'\n').replace(/\t/g,'    ').split('\n'),level);
+ const previous=mentionResolve;
+ mentionResolve=mentionResolver(options.mentions);
+ try{return renderBlocks(value.replace(/\r\n?/g,'\n').replace(/\t/g,'    ').split('\n'),level);}
+ finally{mentionResolve=previous;}
 }
 Object.assign(exports,{safeMarkdown,safeMarkdownURL,markdownPasteLink,MARKDOWN_MAX_LENGTH:LIMIT});

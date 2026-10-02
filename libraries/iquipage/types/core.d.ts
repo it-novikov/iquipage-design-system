@@ -1,5 +1,5 @@
 /** Supported core browser entry. Does not register graph, roadmap, crop, or whiteboard. */
-export declare const version:'0.6.0-vnext.27';
+export declare const version:'0.6.0-vnext.29';
 export declare function registerCore():void;
 export declare function registerComponents():void;
 export declare function registerDateFields():void;
@@ -57,7 +57,7 @@ export declare class IqTime extends HTMLElement {value:string;hourCycle:12|24;}
 export interface MarkdownEditorAction {id:string;label:string;pressed:boolean;disabled?:boolean;tone?:'neutral'|'warning';hint?:string;/** 'chip' renders a compact pressed toggle (chat composers); 'check' a checkbox with a hint. */appearance?:'check'|'chip';icon?:string;}
 export interface MarkdownEditorActionIntent {id:string;pressed:boolean;previous:boolean;reason?:'reset';}
 export interface MarkdownEditorSubmit {value:string;/** true for Ctrl/⌘+Alt+Enter (for example: reply and resolve). */alternate:boolean;}
-export declare class IqMarkdownEditor extends HTMLElement {value:string;disabled:boolean;readOnly:boolean;previewOnBlur:boolean;previewMode:boolean;interactiveTasks:boolean;density:'compact'|'comfortable';footerActions:MarkdownEditorAction[];/** Host actions at the end of the toolbar, shown only while editing; a click emits iq-editor-action {id}. */toolbarActions:MarkdownToolbarAction[];preview():void;focusEditor():void;/** variant="chat" idle="line": false while the composer rests as one line. */readonly expanded:boolean;expand(options?:{focus?:boolean}):void;collapse():void;reset():void;}
+export declare class IqMarkdownEditor extends HTMLElement {value:string;disabled:boolean;readOnly:boolean;previewOnBlur:boolean;previewMode:boolean;interactiveTasks:boolean;density:'compact'|'comfortable';footerActions:MarkdownEditorAction[];/** Host actions at the end of the toolbar, shown only while editing; a click emits iq-editor-action {id}. */toolbarActions:MarkdownToolbarAction[];/** vnext.29: who «@» can mention; null turns the mention list off. The field shows «@Имя», `value` has the tokens; the preview shows current names. */mentions:MentionMember[]|null;preview():void;focusEditor():void;/** variant="chat" idle="line": false while the composer rests as one line. */readonly expanded:boolean;expand(options?:{focus?:boolean}):void;collapse():void;reset():void;}
 export interface MarkdownToolbarAction {id:string;label:string;icon?:string;}
 export declare class IqPagination extends HTMLElement {total:number;current:number;}
 export interface TreeNode {id:string;label:string;children?:TreeNode[];count?:number;disabled?:boolean;}
@@ -92,12 +92,40 @@ export declare const ui:Record<string,unknown>;
 declare global {interface HTMLElementTagNameMap {'iq-date-field':IqDateField;'iq-time':IqTime;'iq-markdown-editor':IqMarkdownEditor;'iq-pagination':IqPagination;'iq-tree':IqTree;'iq-plan':IqPlan;'iq-side-navigation':IqSideNavigation;'iq-work-header':IqWorkHeader;'iq-file-preview':IqFilePreview;}}
 
 /** Defaults are compatible with the existing editor preview: Markdown # becomes h2. */
-export interface MarkdownRenderOptions {headingLevel?:1|2|3|4|5|6;}
+export interface MarkdownRenderOptions {headingLevel?:1|2|3|4|5|6;/** vnext.29: members for mention tokens; without them a token shows its stored label. */mentions?:MentionMembers;}
+/** A member that can be mentioned. The id is 1–100 of A-Z a-z 0-9 _ - (the token alphabet). */
+export interface MentionMember {id:string;name:string;kind?:'human'|'service';/** A second line in the list, e.g. «Владелец — Анна К.». */description?:string;/** A photo URL (same-origin path, blob: or https:). */image?:string;}
+/** Members as a list, or a lookup id → member (or its name); null or undefined from the lookup: not a member. */
+export type MentionMembers=readonly MentionMember[]|((id:string)=>{name:string;kind?:'human'|'service'}|string|null|undefined);
+export interface MentionToken {id:string;label:string;start:number;end:number;}
+/** `@[Имя](user:<id>)`: a mention that survives renames. Throws on an id outside the token alphabet. */
+export declare function mentionToken(member:{id:string;name:string}):string;
+/** The label a token keeps: one line, no brackets, at most 80 characters. */
+export declare function mentionLabel(name:string):string;
+/** Every mention token outside code. */
+export declare function parseMentions(source:string|null|undefined):MentionToken[];
+/** Plain text with tokens as «@Имя» (current names when members are given). */
+export declare function mentionPlainText(source:string|null|undefined,members?:MentionMembers):string;
+/** Escaped text with tokens as .md-mention pills; no other Markdown. */
+export declare function mentionsHTML(source:string|null|undefined,members?:MentionMembers):string;
+/** What is typed after «@» at the caret, or null. */
+export declare function mentionQuery(value:string,caret:number):{start:number;query:string}|null;
+/** People first, then service accounts; name prefix, word prefix, then substring; case-insensitive, «ё» as «е». */
+export declare function filterMentionCandidates<T extends MentionMember>(members:readonly T[],query:string,limit?:number):T[];
+/** A picked mention in a composer's plain text: the range of «@Имя» and whom it names. */
+export interface MentionMark {start:number;end:number;id:string;name:string;}
+/** Composer text from Markdown: a member's token as «@Имя» with a mark, anyone else's as its label. */
+export declare function mentionsFromMarkdown(source:string|null|undefined,members?:MentionMembers):{text:string;marks:MentionMark[]};
+/** The message from composer text: every mark still in place becomes its token. */
+export declare function mentionsToMarkdown(text:string,marks:readonly MentionMark[]):string;
+/** The @ list of a textarea. The field shows «@Имя», never a token; Enter/Tab picks, Escape closes, Backspace after a mention removes it whole; fires `input` and `iq-mention` {id, name}. */
+export declare class MentionAutocomplete {constructor(input:HTMLTextAreaElement|HTMLInputElement,options?:{members?:MentionMember[];label?:string});readonly isOpen:boolean;/** Picked mentions now in the text. */readonly mentions:MentionMark[];/** The message with tokens. */toMarkdown():string;/** Shows Markdown with names; returns the field text. */load(markdown:string):string;setMembers(members:MentionMember[]):void;update():void;close():void;destroy():void;}
+export declare function attachMentionAutocomplete(input:HTMLTextAreaElement|HTMLInputElement,options?:{members?:MentionMember[];label?:string}):MentionAutocomplete;
 /** Safe subset, not raw HTML/CommonMark extension execution. HTTPS + local #links only. */
 export declare function safeMarkdown(source:string|null|undefined,options?:MarkdownRenderOptions):string;
 export declare function safeMarkdownURL(value:unknown):string|null;
 /** value is text, never HTML. No accepted/submitted state and no application events. */
-export declare class IqMarkdownViewer extends HTMLElement {value:string;headingLevel:1|2|3|4|5|6;interactiveTasks:boolean;}
+export declare class IqMarkdownViewer extends HTMLElement {value:string;headingLevel:1|2|3|4|5|6;interactiveTasks:boolean;/** vnext.29: members for mention pills; null shows stored labels. */mentions:MentionMembers|null;}
 export declare function registerMarkdownViewer():void;
 export type WorkDensity='compact'|'comfortable';
 /** Named slots: header/navigation/summary/toolbar/footer. Default slot: working data. */
@@ -143,3 +171,25 @@ export interface RelationMapValue {center:RelationMapNode;parent?:RelationMapNod
 export declare class IqRelationMap extends HTMLElement {value:RelationMapValue|null;}
 export declare function registerRelationMap():void;
 declare global {interface HTMLElementTagNameMap {'iq-settings-layout':IqSettingsLayout;'iq-relation-map':IqRelationMap;'iq-visual-choice':IqVisualChoice;}}
+/** Board column of a task as a status glyph: a shape in a tone (vnext.28). */
+export type StatusGlyphShape='ring'|'half'|'ring-dot'|'check';
+export type StatusGlyphTone='neutral'|'info'|'warning'|'planned'|'success';
+export type BoardStatus='ready'|'in_progress'|'review'|'ready_for_testing'|'testing'|'ready_for_release';
+export interface StatusGlyphSpec {readonly shape:StatusGlyphShape;readonly tone:StatusGlyphTone;readonly label:string;readonly word:string;}
+/** The six board columns: shape, tone, default label and the grey word shown only for review and testing states. */
+export declare const STATUS_GLYPHS:Readonly<Record<BoardStatus,StatusGlyphSpec>>;
+/** `<span class="iq-status-glyph" role="img">` with a 15×15 glyph in the tone of the board column. */
+export declare function statusGlyph(status:BoardStatus|string|{shape:StatusGlyphShape;tone:StatusGlyphTone;label?:string},options?:{label?:string;size?:number}):string;
+export interface TreeDropIntent {ids:string[];containerId:string;afterId:string|null;}
+export interface TreeDragOptions {
+ root:HTMLElement;rowSelector?:string;containerSelector?:string;holdMs?:number;slop?:number;ignore?:string;
+ canDrag?:(row:HTMLElement)=>boolean;items?:(row:HTMLElement)=>string[];
+ preview?:(row:HTMLElement,ids:string[])=>{html?:string;badge?:string;fit?:boolean}|null;
+ canDrop?:(intent:TreeDropIntent)=>boolean;
+ onDrop:(intent:TreeDropIntent&{sourceContainerId:string})=>void|{undo?:()=>void|Promise<void>;message?:string}|Promise<void|{undo?:()=>void|Promise<void>;message?:string}>;
+ onState?:(active:boolean)=>void;label?:(ids:string[])=>string;
+}
+/** Hold-to-drag between drop zones of a tree: no handle, 200 ms or 6 px, Escape cancels; the host applies the move. */
+export declare function bindTreeDrag(options:TreeDragOptions):{destroy():void;cancel():void};
+/** The root row a block dropped at `y` lands after (null: first) and the drop line's offset in the container. */
+export declare function treeDropPosition(container:HTMLElement,y:number,options?:{rowSelector?:string;rowAttr?:string;skip?:Set<string>}):{afterId:string|null;top:number|null;empty:boolean};
