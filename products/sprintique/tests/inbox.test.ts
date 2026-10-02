@@ -127,7 +127,7 @@ test('IB03 the inbox over MCP and REST: oldest first, pages, unread by default, 
   assert.equal(first.structuredContent.trust,'untrusted-content');assert.match(first.structuredContent.notice,/untrusted/);
   const page=first.structuredContent.data;
   assert.equal(page.items.length,20);assert.equal(page.unread,25);assert.ok(page.nextCursor);
-  assert.ok(page.items.every((item:any,i:number)=>i===0||item.createdAt>=page.items[i-1].createdAt),'oldest first');
+  assert.ok(page.items.every((item:any,i:number)=>i===0||Date.parse(item.createdAt)>=Date.parse(page.items[i-1].createdAt)),'oldest first');
   assert.equal(page.items[0].task.key.startsWith('IBSPR-'),true);assert.equal(page.items[0].text,'Алиса назначил(а) вам «Задача ib3»');
   const second=(await tool(bot.read,'list_inbox',{cursor:page.nextCursor,limit:20})).structuredContent.data;
   assert.equal(second.items.length,5);assert.equal(second.nextCursor,null);
