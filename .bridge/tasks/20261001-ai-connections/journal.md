@@ -46,3 +46,4 @@
 - 2026-10-02T00:44:17Z · claude · note · A6 · критерий приёмки выполнен
 - 2026-10-02T00:44:17Z · claude · checkpoint · - · дальше: Ревью и мёрж владельцем
 - 2026-10-02T00:44:17Z · claude · status · - · review: PR #45 готов к ревью
+- 2026-10-02T14:03:28Z · claude · note · - · Гейты на c07a83f (после #46): verify-vnext PASS до product-build (library 408/408), product-tests — только WorkbenchCapacityIntegrationTest (main с #46 сам 2,7–2,8 с, ветка 2,9–3,0 с); Kotlin unit 113/113, integration 42/43; Node 382/382
