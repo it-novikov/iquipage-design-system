@@ -184,7 +184,9 @@ test('FP04 an approved version and its lines do not change even by direct SQL as
   await refused("UPDATE app.finance_plan_line SET amount_minor=1 WHERE project_id=$1 AND plan_id='frozen' AND $2::text IS NOT NULL",/cannot change/);
   await refused("DELETE FROM app.finance_plan_line WHERE project_id=$1 AND plan_id='frozen' AND $2::text IS NOT NULL",/cannot change/);
   await refused("INSERT INTO app.finance_plan_line(project_id,plan_id,version,position,direction,category_id,amount_minor,currency_code) SELECT $1,'frozen',1,2,'expense','hosting',1,'RUB' WHERE $2::text IS NOT NULL",/cannot change/);
-  await refused("DELETE FROM app.finance_plan_version WHERE project_id=$1 AND $2::text IS NOT NULL",/permission denied/);
+  // Only a draft is ever deleted (migration 076): row security leaves an approved version out of reach.
+  const removed=await f.db.authenticated(alice,tx=>tx.query("DELETE FROM app.finance_plan_version WHERE project_id=$1 AND plan_id='frozen'",[p]));
+  assert.equal(removed.rowCount,0);
   // A second approved version cannot be made by hand either, nor an approval in someone else's name.
   const revised=FinancePlanResponse.parse(await ok('POST',p,'finance-plans/frozen/revise',{baseRevision:approved.selected!.revision,version:1,note:null}));
   await refused("UPDATE app.finance_plan_version SET state='approved',approved_by=$2,approved_at=clock_timestamp(),revision=revision+1,updated_by=$2,updated_at=clock_timestamp() WHERE project_id=$1 AND plan_id='frozen' AND version=2",/ux_finance_plan_version__approved|duplicate key/);

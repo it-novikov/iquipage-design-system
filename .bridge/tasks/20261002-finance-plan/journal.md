@@ -39,3 +39,6 @@
 - 2026-10-02T16:05:56Z · claude · decision · D5 · «Удалить черновик» из дизайна: команда POST …/discard и миграция 076 — DELETE только черновика (и плана, у которого кроме черновика ничего нет)
 - 2026-10-02T16:05:57Z · claude · decision · D6 · DS vnext.30: scale()/ui.scale, ui.amount, строки «подпись<TAB>значение» в iq-tooltip и placement=bottom, iq-combobox creatable, label-hidden у combobox и date-field
 - 2026-10-02T16:05:57Z · claude · checkpoint · S5 · дальше: npm test, verify-vnext, push, описание PR
+- 2026-10-02T16:23:02Z · claude · step · S5 · done: 8ebd108 + исправление FP04; Node-сьюты 401/401; интеграционные 45/46 (только флейк WorkbenchCapacity); снимки scratchpad/finance-impl-shots
+- 2026-10-02T16:23:02Z · claude · status · - · review: PR #47: сервер и экран B2; ревью и слияние — владелец
+- 2026-10-02T16:23:02Z · claude · handoff · - · planned; HEAD 8ebd108; незакоммичено 1; PR #47 обновлён; незакоммичено 0

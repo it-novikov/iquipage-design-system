@@ -2,13 +2,13 @@
 bridge: 1
 id: 20261002-finance-plan
 title: "Финансы: план бюджета, версии, категории и сводка (сервер)"
-status: active
+status: review
 risk: high
 owner: it-novikov
 branch: feature/finance-plan
 base: main
 created: 2026-10-02
-updated: 2026-10-02T16:05:57Z
+updated: 2026-10-02T16:23:02Z
 links:
   - https://github.com/it-novikov/iquipage-design-system/pull/47
 ---
@@ -39,10 +39,10 @@ links:
 - **Сейчас:** S5 — гейты
 - **Дальше:** npm test, verify-vnext, push, описание PR
 - **Незакоммичено:** UI и DS — коммитится сейчас
-- **Рабочая копия:** 31 файл(ов): libraries/iquipage/README.md, libraries/iquipage/scripts/gates/size-baseline.json, libraries/iquipage/src/styles/foundation.css, libraries/iquipage/tests/vnext30.test.cjs, products/sprintique/contracts/finance.ts, products/sprintique/docs/decisions/0009-finance-plan.md, products/sprintique/docs/finance.md, products/sprintique/docs/ux-ds-alignment.md, products/sprintique/package-lock.json, products/sprintique/server/src/integrationTest/kotlin/com/sprintique/finance/FinancePlanIntegrationTest.kt, products/sprintique/server/src/main/kotlin/com/sprintique/apidoc/ApiDocumentation.kt, products/sprintique/server/src/main/kotlin/com/sprintique/finance/api/FinancePlanController.kt и ещё 19 (28 files changed, 902 insertions(+), 110 deletions(-)) · HEAD 35dcf28
+- **Рабочая копия:** 1 файл(ов): products/sprintique/tests/finance-plan.test.ts (3 files changed, 10 insertions(+), 5 deletions(-)) · HEAD 8ebd108 · снято 2026-10-02T16:23:02Z
 - **Ловушки:**
   - verify-vnext запускает npm test целиком; WorkbenchCapacityIntegrationTest (известный флейк) обрывает прогон до Node-сьютов — их гонять отдельно: node scripts/test.mjs --skip-integration
-- **Причина:** planned — claude, 2026-10-02T15:36:05Z: PR #47; HEAD запушен; незакоммичено 0
+- **Причина:** planned — claude, 2026-10-02T16:23:02Z: PR #47 обновлён; незакоммичено 0
 
 ## План
 
@@ -85,12 +85,13 @@ links:
 - **Итог:** PR #47 открыт; гейты в описании PR
 - **Зависит от:** S3
 
-### S5. Интерфейс B2 «Шкала, тише» [active]
+### S5. Интерфейс B2 «Шкала, тише» [done]
 - **Что:** Обзор, журнал, редактор плана, диалог объяснения, DS vnext.30
 - **Как:** ui/finance/src, libraries/iquipage scale/amount/tooltip/combobox, стенд и скриншоты
 - **Зачем:** Владелец утвердил дизайн
 - **Приёмка:**
-  - [ ] кадры совпадают с B2, гейты зелёные кроме известного флейка
+  - [x] кадры совпадают с B2, гейты зелёные кроме известного флейка
+- **Итог:** 8ebd108 + исправление FP04; Node-сьюты 401/401; интеграционные 45/46 (только флейк WorkbenchCapacity); снимки scratchpad/finance-impl-shots
 
 ## Решения
 
