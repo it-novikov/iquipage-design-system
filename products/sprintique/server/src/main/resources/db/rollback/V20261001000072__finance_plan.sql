@@ -1,5 +1,5 @@
--- Rollback of db/migration/V20261001000072–075 (finance categories, plans, variance notes and set-based finance
--- read policies), for returning to an
+-- Rollback of db/migration/V20261001000072–076 (finance categories, plans, variance notes, set-based finance
+-- read policies and discarded drafts), for returning to an
 -- artifact without the budget plan. It destroys every category, plan, version, line and explanation; entries keep
 -- their category name as the text they had before 072 and lose their release. Take a backup first. Run it on the
 -- migration role (the owner of the tables) in one transaction, with the API and worker stopped, then start the
@@ -82,5 +82,6 @@ ALTER TABLE app.outbox FORCE ROW LEVEL SECURITY;
 ALTER TABLE app.audit_events FORCE ROW LEVEL SECURITY;
 ALTER TABLE app.idempotency FORCE ROW LEVEL SECURITY;
 DELETE FROM public.flyway_schema_history
-  WHERE version IN ('20261001000072','20261001000073','20261001000074','20261001000075');
+  WHERE version IN ('20261001000072','20261001000073','20261001000074','20261001000075',
+    '20261001000076');
 COMMIT;

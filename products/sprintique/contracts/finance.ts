@@ -133,6 +133,8 @@ export const ApproveFinancePlan=z.strictObject({baseRevision:Revision,version:Pl
 /** Starts a new draft from a copy of the approved version, at that version's revision. */
 export const ReviseFinancePlan=z.strictObject({baseRevision:Revision,version:PlanVersionNumber,note:optionalText(FINANCE_LIMITS.planNote)});
 
+/** Discards the draft as seen, with its lines. A plan whose only version was this draft goes with it. */
+export const DiscardFinancePlanDraft=z.strictObject({baseRevision:Revision,version:PlanVersionNumber});
 export const FinancePlanVersionState=z.enum(['draft','approved','superseded']);
 const person={id:z.string(),name:z.string()};
 export const FinancePlanVersionSummary=z.strictObject({
@@ -158,6 +160,7 @@ export const FinancePlanResponse=z.strictObject({
   selected:FinancePlanVersionSummary.extend({lines:z.array(FinancePlanLineResponse)}).nullable()
 });
 export type FinancePlan=z.infer<typeof FinancePlanResponse>;
+export const FinanceDraftDiscardResponse=z.strictObject({planId:Id,planDeleted:z.boolean(),plan:FinancePlanResponse.nullable()});
 
 /** What the explanation is about: one variance of one plan version. Fixed once written. */
 export const FinanceVarianceNoteInput=z.strictObject({
@@ -229,6 +232,6 @@ export type FinanceOverview=z.infer<typeof FinanceOverviewResponse>;
 export const financeSchemas={FinanceEntryInput,PutFinanceEntry,ChangeFinanceEntryState,FinanceSettingsInput,PutFinanceSettings,
   FinanceEntryResponse,FinanceEntryPageResponse,FinanceEntryVersionResponse,FinanceEntryHistoryResponse,FinanceSettingsResponse,FinanceSummaryResponse,
   FinanceCategoryInput,PutFinanceCategory,FinanceCategoryResponse,FinanceCategoryListResponse,
-  FinancePlanInput,PutFinancePlan,FinancePlanLineInput,FinancePlanDraftInput,PutFinancePlanDraft,ApproveFinancePlan,ReviseFinancePlan,
+  FinancePlanInput,PutFinancePlan,FinancePlanLineInput,FinancePlanDraftInput,PutFinancePlanDraft,ApproveFinancePlan,ReviseFinancePlan,DiscardFinancePlanDraft,FinanceDraftDiscardResponse,
   FinancePlanListResponse,FinancePlanResponse,FinanceVarianceNoteInput,FinanceVarianceTaskInput,PutFinanceVarianceNote,
   FinanceVarianceNoteResponse,FinanceOverviewResponse};

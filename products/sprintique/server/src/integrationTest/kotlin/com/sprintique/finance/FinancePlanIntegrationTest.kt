@@ -206,9 +206,11 @@ class FinancePlanIntegrationTest {
         refused("adding lines to an approved version") { line(it, 1, 2) }
         refused("two approved versions") { approve(it, 2) }
         refused("a draft is never superseded") { change(it, 2, "state = 'superseded'") }
-        // No policy lets anyone delete a version: row security leaves nothing to delete; the trigger stands behind.
+        // Only a draft is discarded: row security leaves an approved version out of reach; the trigger stands behind.
         assertThat(
-            asOwner { it.update("DELETE FROM app.finance_plan_version WHERE project_id = $1", project) },
+            asOwner {
+                it.update("DELETE FROM app.finance_plan_version WHERE project_id = $1 AND version = 1", project)
+            },
         ).isZero()
         refused("a line of another project's release") {
             it.update(

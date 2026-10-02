@@ -1994,6 +1994,7 @@ iq-markdown-editor[density=compact][preview-on-blur]:not([submit-label]) .markdo
 /* Select density and a visually hidden label that stays in the accessibility tree. */
 iq-select[density=compact] .iq-select-trigger{min-height:36px;padding:6px 10px;font-size:var(--iq-type-label-size)}
 iq-select[label-hidden]>.iq-control-label{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+:is(iq-combobox,iq-date-field)[label-hidden]>.iq-control-label{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 /* Context switcher: a menu trigger that names the current workspace, project or sort. */
 .iq-switcher{gap:var(--iq-space-2);height:36px;min-width:0;max-width:100%;padding-inline:var(--iq-space-2);font-weight:var(--iq-type-interface-weight);white-space:nowrap;line-height:1.2}
 .iq-switcher>svg{flex:none}

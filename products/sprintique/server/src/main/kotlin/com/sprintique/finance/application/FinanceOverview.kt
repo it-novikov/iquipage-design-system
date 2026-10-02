@@ -270,7 +270,8 @@ object FinanceOverview {
 
     /**
      * $1 project, $2–$3 the period (null: every date), $4 today, $5 the plan's release (null: every entry), $6–$7
-     * the plan version (null: no plan), $8 the row limit. Sums of bigint are numeric and come back as exact text.
+     * the plan version (null: no plan), $8 the row limit. Sums of bigint are numeric and come back as exact text. Rows
+     * follow the plan's lines, then the categories the plan does not have, by name.
      */
     private const val FIGURES = """
         WITH facts AS (
@@ -285,11 +286,11 @@ object FinanceOverview {
             AND ($5::text IS NULL OR release_id = $5::text)
           GROUP BY currency_code, category_id, direction
         ), lines AS (
-          SELECT currency_code, category_id, direction, sum(amount_minor) AS plan
+          SELECT currency_code, category_id, direction, sum(amount_minor) AS plan, min(position) AS position
           FROM app.finance_plan_line WHERE project_id = $1 AND plan_id = $6::text AND version = $7::int
           GROUP BY currency_code, category_id, direction
         ), merged AS (
-          SELECT currency_code, category_id, direction, l.plan, coalesce(f.fact, 0) AS fact,
+          SELECT currency_code, category_id, direction, l.plan, l.position, coalesce(f.fact, 0) AS fact,
                  coalesce(f.expected, 0) AS expected, coalesce(f.overdue_count, 0) AS overdue_count,
                  coalesce(f.overdue, 0) AS overdue
           FROM facts f FULL JOIN lines l USING (currency_code, category_id, direction)
@@ -310,7 +311,7 @@ object FinanceOverview {
         LEFT JOIN app.tasks t ON t.project_id = $1 AND t.id = n.task_id
         LEFT JOIN app.projects tp ON tp.id = t.project_id
         LEFT JOIN auth.principals nu ON nu.id = n.updated_by
-        ORDER BY m.currency_code, k.name_key, m.direction
+        ORDER BY m.currency_code, m.position IS NULL, m.position, k.name_key, m.direction
         LIMIT $8
     """
 }

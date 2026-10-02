@@ -227,6 +227,7 @@ class ApiDocumentation(
             "PUT $P/finance-plans/:id/draft" to "FinancePlanResponse",
             "POST $P/finance-plans/:id/approve" to "FinancePlanResponse",
             "POST $P/finance-plans/:id/revise" to "FinancePlanResponse",
+            "POST $P/finance-plans/:id/discard" to "FinanceDraftDiscardResponse",
             "GET $P/finance-overview" to "FinanceOverviewResponse",
             "PUT $P/finance-variance-notes/:id" to "FinanceVarianceNoteResponse",
         )

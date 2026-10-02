@@ -359,6 +359,58 @@ object FinancePlans {
         return detail(tx, projectId, id, next)!!
     }
 
+    /**
+     * Discards the draft [version] at its revision, with its lines. A plan whose only version was this draft has
+     * nothing left to show and is removed too; a plan with an approval in its history keeps that history.
+     */
+    fun discard(
+        tx: Transaction,
+        actor: Actor,
+        projectId: String,
+        id: String,
+        version: Int,
+        baseRevision: Long,
+    ): Map<String, Any?> {
+        lockPlan(tx, projectId, id)
+        val current = lockVersion(tx, projectId, id, version)
+        requireCondition(current.long("revision") == baseRevision, 409, "CONFLICT", "Черновик уже изменён.")
+        requireDraft(current)
+        tx.update(
+            "DELETE FROM app.finance_plan_line WHERE project_id = $1 AND plan_id = $2 AND version = $3",
+            projectId,
+            id,
+            version,
+        )
+        tx.update(
+            "DELETE FROM app.finance_plan_version WHERE project_id = $1 AND plan_id = $2 AND version = $3",
+            projectId,
+            id,
+            version,
+        )
+        val remaining = tx.row(
+            "SELECT count(*)::int AS n FROM app.finance_plan_version WHERE project_id = $1 AND plan_id = $2",
+            projectId,
+            id,
+        )!!.int("n")
+        if (remaining == 0) tx.update("DELETE FROM app.finance_plan WHERE project_id = $1 AND id = $2", projectId, id)
+        AuditTrail.record(tx, actor, projectId, "finance-plan.draft-discarded", id, version.toLong())
+        return discarded(tx, projectId, id)
+    }
+
+    /** The answer to a discarded draft: the plan as it is now, or none when it went with its draft. */
+    fun discarded(tx: Transaction, projectId: String, id: String): Map<String, Any?> {
+        val plan = detail(tx, projectId, id, null)
+        return linkedMapOf("planId" to id, "planDeleted" to (plan == null), "plan" to plan)
+    }
+
+    /** The receipt of a discarded draft names the plan; a retry answers with the plan as it is now. */
+    fun discardReceipt(tx: Transaction, projectId: String): Receipt<Map<String, Any?>> =
+        object : Receipt<Map<String, Any?>> {
+            override fun store(value: Map<String, Any?>): Any = mapOf("id" to value["planId"])
+
+            override fun restore(record: JsonNode): Any = discarded(tx, projectId, record.path("id").asString())
+        }
+
     /** A plan's header, every version and the lines of one of them; null when the plan does not exist. */
     fun detail(tx: Transaction, projectId: String, id: String, version: Int?): Map<String, Any?>? {
         val header = tx.row("SELECT $HEADER WHERE p.project_id = $1 AND p.id = $2", projectId, id) ?: return null

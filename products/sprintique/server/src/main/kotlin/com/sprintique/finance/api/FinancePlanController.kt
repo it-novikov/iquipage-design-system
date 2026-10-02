@@ -163,6 +163,25 @@ class FinancePlanController(
         }
     }
 
+    @PostMapping("$P/finance-plans/{id}/discard")
+    @Accepts(DiscardFinancePlanDraftRequest::class)
+    @Idempotent
+    fun discard(
+        @PathVariable projectId: String,
+        @PathVariable id: String,
+        @RequestBody(required = false) body: JsonNode?,
+        request: HttpServletRequest,
+    ) = requests.run(request) { tx, actor ->
+        RequestInputs.id(id)
+        fence(tx, actor, projectId)
+        val input = contracts.parse<DiscardFinancePlanDraftRequest>(body)
+        val key = RequestInputs.idempotencyKey(request)
+        val receipt = FinancePlans.discardReceipt(tx, projectId)
+        ledger.idempotent(tx, actor, projectId, "finance-plan.discard:$id", key, input, receipt) {
+            FinancePlans.discard(tx, actor, projectId, id, input.version, input.baseRevision)
+        }
+    }
+
     @GetMapping("$P/finance-overview")
     fun overview(@PathVariable projectId: String, request: HttpServletRequest) = requests.run(request) { tx, actor ->
         val query = QueryParameters(request, setOf("plan", "version"))

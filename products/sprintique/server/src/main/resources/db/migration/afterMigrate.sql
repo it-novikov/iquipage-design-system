@@ -61,6 +61,8 @@ DROP POLICY IF EXISTS finance_variance_note_runtime_update ON app.finance_varian
 CREATE POLICY finance_variance_note_runtime_update ON app.finance_variance_note AS RESTRICTIVE FOR UPDATE TO "${runtime_role}"
   USING(true) WITH CHECK(updated_by=auth.actor_id() AND updated_at>=now());
 GRANT DELETE ON app.finance_plan_line TO "${runtime_role}";
+-- Discarding a draft (V20261001000076) removes the draft version and, when it was the plan's only one, the plan.
+GRANT DELETE ON app.finance_plan_version,app.finance_plan TO "${runtime_role}";
 -- Workbench: meaningful task events and private receipts are append-only (docs/adr W2, W3).
 REVOKE UPDATE ON app.task_activity,app.private_receipts FROM "${runtime_role}";
 -- AI connections and agent runs (V20261001000064–67, docs/decisions/0005-ai-agents.md): sealed keys are reached only

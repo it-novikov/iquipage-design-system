@@ -32,3 +32,10 @@
 - 2026-10-02T15:36:05Z · claude · note · A5 · критерий приёмки выполнен
 - 2026-10-02T15:36:05Z · claude · status · - · review: PR #47 открыт; ревью и слияние — владелец
 - 2026-10-02T15:36:05Z · claude · handoff · - · planned; HEAD cf730e5; незакоммичено 0; PR #47; HEAD запушен; незакоммичено 0
+- 2026-10-02T16:05:56Z · claude · status · - · active: Владелец утвердил дизайн B2; интерфейс в этой же ветке
+- 2026-10-02T16:05:56Z · claude · claim · - · взял задачу
+- 2026-10-02T16:05:56Z · claude · note · S5 · добавлен шаг: Интерфейс B2 «Шкала, тише»
+- 2026-10-02T16:05:56Z · claude · step · S5 · active
+- 2026-10-02T16:05:56Z · claude · decision · D5 · «Удалить черновик» из дизайна: команда POST …/discard и миграция 076 — DELETE только черновика (и плана, у которого кроме черновика ничего нет)
+- 2026-10-02T16:05:57Z · claude · decision · D6 · DS vnext.30: scale()/ui.scale, ui.amount, строки «подпись<TAB>значение» в iq-tooltip и placement=bottom, iq-combobox creatable, label-hidden у combobox и date-field
+- 2026-10-02T16:05:57Z · claude · checkpoint · S5 · дальше: npm test, verify-vnext, push, описание PR

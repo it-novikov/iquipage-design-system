@@ -58,6 +58,7 @@ test('tooltip figure rows, bottom placement and the creatable combobox', () => {
   assert.match(components, /getAttribute\('placement'\) === 'bottom'/);
   assert.match(components, /hasAttribute\('creatable'\)/); assert.match(components, /this\.emit\('iq-create', \{ label \}\)/);
   assert.ok(css.includes('.iq-tooltip-row{display:flex;justify-content:space-between'));
+  assert.ok(css.includes(':is(iq-combobox,iq-date-field)[label-hidden]>.iq-control-label{'), 'label-hidden for every form control');
 });
 
 test('the release is 0.6.0-vnext.30 everywhere it is named', () => {

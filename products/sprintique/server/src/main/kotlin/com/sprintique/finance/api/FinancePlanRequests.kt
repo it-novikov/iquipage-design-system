@@ -120,6 +120,14 @@ data class ApproveFinancePlanRequest(
     val version: Int,
 )
 
+@Schema(name = "DiscardFinancePlanDraft")
+data class DiscardFinancePlanDraftRequest(
+    @field:Min(0) @field:Max(MAX_SAFE_INTEGER)
+    val baseRevision: Long,
+    @field:Min(1) @field:Max(VERSION_LIMIT)
+    val version: Int,
+)
+
 @Schema(name = "ReviseFinancePlan")
 data class ReviseFinancePlanRequest(
     @field:Min(0) @field:Max(MAX_SAFE_INTEGER)

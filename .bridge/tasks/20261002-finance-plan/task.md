@@ -2,13 +2,13 @@
 bridge: 1
 id: 20261002-finance-plan
 title: "Финансы: план бюджета, версии, категории и сводка (сервер)"
-status: review
+status: active
 risk: high
 owner: it-novikov
 branch: feature/finance-plan
 base: main
 created: 2026-10-02
-updated: 2026-10-02T15:36:05Z
+updated: 2026-10-02T16:05:57Z
 links:
   - https://github.com/it-novikov/iquipage-design-system/pull/47
 ---
@@ -35,11 +35,11 @@ links:
 
 ## Передача
 
-- **Состояние:** Коммиты a5228ac, 9567d47; гейты: npm test — только флейк WorkbenchCapacity; verify-vnext product-tests FAIL на нём же
-- **Сейчас:** S4 — PR
-- **Дальше:** Владелец: ревью и слияние PR
-- **Незакоммичено:** нет
-- **Рабочая копия:** нет · HEAD cf730e5 · снято 2026-10-02T15:36:05Z
+- **Состояние:** UI B2 собран и проверен на стенде 4387, скриншоты в scratchpad/finance-impl-shots
+- **Сейчас:** S5 — гейты
+- **Дальше:** npm test, verify-vnext, push, описание PR
+- **Незакоммичено:** UI и DS — коммитится сейчас
+- **Рабочая копия:** 31 файл(ов): libraries/iquipage/README.md, libraries/iquipage/scripts/gates/size-baseline.json, libraries/iquipage/src/styles/foundation.css, libraries/iquipage/tests/vnext30.test.cjs, products/sprintique/contracts/finance.ts, products/sprintique/docs/decisions/0009-finance-plan.md, products/sprintique/docs/finance.md, products/sprintique/docs/ux-ds-alignment.md, products/sprintique/package-lock.json, products/sprintique/server/src/integrationTest/kotlin/com/sprintique/finance/FinancePlanIntegrationTest.kt, products/sprintique/server/src/main/kotlin/com/sprintique/apidoc/ApiDocumentation.kt, products/sprintique/server/src/main/kotlin/com/sprintique/finance/api/FinancePlanController.kt и ещё 19 (28 files changed, 902 insertions(+), 110 deletions(-)) · HEAD 35dcf28
 - **Ловушки:**
   - verify-vnext запускает npm test целиком; WorkbenchCapacityIntegrationTest (известный флейк) обрывает прогон до Node-сьютов — их гонять отдельно: node scripts/test.mjs --skip-integration
 - **Причина:** planned — claude, 2026-10-02T15:36:05Z: PR #47; HEAD запушен; незакоммичено 0
@@ -85,12 +85,21 @@ links:
 - **Итог:** PR #47 открыт; гейты в описании PR
 - **Зависит от:** S3
 
+### S5. Интерфейс B2 «Шкала, тише» [active]
+- **Что:** Обзор, журнал, редактор плана, диалог объяснения, DS vnext.30
+- **Как:** ui/finance/src, libraries/iquipage scale/amount/tooltip/combobox, стенд и скриншоты
+- **Зачем:** Владелец утвердил дизайн
+- **Приёмка:**
+  - [ ] кадры совпадают с B2, гейты зелёные кроме известного флейка
+
 ## Решения
 
 - **D1** (2026-10-02) Миграции 072–075: категории+release_id (072), план/версии/строки (073), объяснения (074), политики чтения финансов через auth.projects_with один раз на запрос (075) — сводка на 100 000 операций 600 → 23 мс
 - **D2** (2026-10-02) Строки черновика заменяются DELETE+INSERT: единственный DELETE runtime-роли в финансах, триггер разрешает его только для черновика — история правок черновика не нужна, утверждённое неизменно
 - **D3** (2026-10-02) У объяснения добавлено direction к ключу спецификации: у категории both два отклонения; порог суммы = 1 минимальная единица до решения владельца; недобор дохода >10% тоже требует объяснения
 - **D4** (2026-10-02) План на релиз сравнивается с операциями этого релиза; период и релиз плана после утверждения неизменны; finance-* события видят только люди с finance.read (раньше любой человек-участник)
+- **D5** (2026-10-02) «Удалить черновик» из дизайна: команда POST …/discard и миграция 076 — DELETE только черновика (и плана, у которого кроме черновика ничего нет)
+- **D6** (2026-10-02) DS vnext.30: scale()/ui.scale, ui.amount, строки «подпись<TAB>значение» в iq-tooltip и placement=bottom, iq-combobox creatable, label-hidden у combobox и date-field
 
 ## Вопросы
 

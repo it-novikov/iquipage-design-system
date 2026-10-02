@@ -380,3 +380,24 @@ test('FP10 the published contract names every plan route with its schemas',async
   assert.equal(route('finance-categories/{id}').put.responses['200'].content['application/json'].schema.$ref,'#/components/schemas/FinanceCategoryResponse');
   assert.ok(route('finance-plans/{id}/revise').post);assert.ok(route('finance-plans').get);
 });
+
+test('FP11 a draft is discarded with its lines; a plan that only had that draft goes with it; an approved version never',async()=>{
+  const p=await project('FPDROP');await category(p,'hosting','Хостинг','expense');
+  const only=await draft(p,await plan(p,'only'),[{direction:'expense',categoryId:'hosting',amountMinor:5000}]);
+  const key=randomUUID(),body={baseRevision:only.selected!.revision,version:1};
+  const gone=await ok('POST',p,'finance-plans/only/discard',body,f.alice,key);
+  assert.deepEqual(gone,{planId:'only',planDeleted:true,plan:null});
+  assert.deepEqual(await ok('POST',p,'finance-plans/only/discard',body,f.alice,key),gone,'a retry answers the same');
+  await code(call('GET',p,'finance-plans/only'),404);
+  const approved=await approve(p,await draft(p,await plan(p,'year'),[{direction:'expense',categoryId:'hosting',amountMinor:7000}]));
+  const revised=FinancePlanResponse.parse(await ok('POST',p,'finance-plans/year/revise',{baseRevision:approved.selected!.revision,version:1,note:null}));
+  await code(call('POST',p,'finance-plans/year/discard',{baseRevision:approved.selected!.revision,version:1}),409,'FINANCE_PLAN_VERSION_FROZEN');
+  const kept=await ok('POST',p,'finance-plans/year/discard',{baseRevision:revised.selected!.revision,version:2});
+  assert.equal(kept.planDeleted,false);
+  const plan1=FinancePlanResponse.parse(kept.plan);
+  assert.deepEqual([plan1.versions.map(v=>[v.version,v.state]),plan1.draftVersion,plan1.approvedVersion],[[[1,'approved']],null,1]);
+  assert.ok((await f.admin.query("SELECT 1 FROM app.outbox WHERE project_id=$1 AND topic='finance-plan.draft-discarded'",[p])).rowCount);
+  // The next revision takes the next free number again.
+  const again=FinancePlanResponse.parse(await ok('POST',p,'finance-plans/year/revise',{baseRevision:approved.selected!.revision,version:1,note:null}));
+  assert.equal(again.selected!.version,2);
+});

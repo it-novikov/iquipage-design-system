@@ -43,7 +43,7 @@ function amountOf(form,currency){try{return parseAmount(read(form,'amount'),curr
  * The DS text area declares its counter (`data-count`) but only the DS catalogue updates it (DS-GAP-FIN-2); the
  * dialog keeps it current for every text area it holds.
  */
-function bindCounters(form){
+export function bindCounters(form){
   form.addEventListener('input',event=>{
     const field=event.target,counter=field.dataset?.count&&form.querySelector('#'+CSS.escape(field.dataset.count));
     if(counter)counter.textContent=`${field.value.length} / ${field.maxLength}`;
