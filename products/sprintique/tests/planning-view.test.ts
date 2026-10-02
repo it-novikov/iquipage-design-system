@@ -60,7 +60,8 @@ test('V04 planned end is independent from deadline; roadmap batch is atomic and 
   const timeline=await view('timeline'),first=timeline.rows.find((r:{entityId:string})=>r.entityId==='date-first');
   assert.equal(first.end,'2026-10-03');assert.equal(first.deadline,'2026-10-30');assert.equal(timeline.dependencies.find((d:{id:string})=>d.id==='date-edge').type,'FS');
   const stale=await request('planning/view/preview',{kind:'schedule',expectedProjectionRevision:revision,entityId:'date-first',entityKind:'task',values:{start:null,end:null}});assert.equal(stale.json().code,'PROJECTION_STALE');
-  const conflict=await request('planning/view/preview',{kind:'schedule',entityId:'date-second',entityKind:'task',values:{start:'2026-10-02',end:'2026-10-03'}});assert.equal(conflict.statusCode,409);assert.equal(conflict.json().code,'TEMPORAL_CONFLICT');
+  // Under planning-r4.0 a broken constraint is a warning in the preview, never a refusal.
+  const conflict=await request('planning/view/preview',{kind:'schedule',entityId:'date-second',entityKind:'task',values:{start:'2026-10-02',end:'2026-10-03'}});assert.equal(conflict.statusCode,200,conflict.body);assert.ok(conflict.json().changes.some((c:{label:string})=>c.label==='Конфликт дат'));
   assert.equal((await view('timeline')).revision,timeline.revision);
   await apply({kind:'removeTemporal',entityId:'date-edge'});assert.equal((await view('timeline')).dependencies.some((d:{id:string})=>d.id==='date-edge'),false);
   await apply({kind:'schedule',entityId:'date-first',entityKind:'task',values:{start:'2026-11-01',end:'2026-11-03'}});

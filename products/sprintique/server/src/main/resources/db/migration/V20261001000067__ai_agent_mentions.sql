@@ -14,7 +14,7 @@ ALTER TABLE app.ai_agent_runs ADD CONSTRAINT ai_agent_runs_trigger CHECK(trigger
 ALTER TABLE app.ai_agent_runs ADD CONSTRAINT ai_agent_runs_mention
   CHECK((trigger='mention')=(thread_id IS NOT NULL AND source_message_id IS NOT NULL));
 
--- The decision of V20261001000048's ai_run_enqueue, with the thread and message a mention came from. Called only by
+-- The decision of V20261001000066's ai_run_enqueue, with the thread and message a mention came from. Called only by
 -- the SECURITY DEFINER functions below.
 CREATE FUNCTION app.ai_run_queue(target_project text, target_task text, account text, run_trigger text,
   source_thread text, source_message text)
@@ -24,6 +24,11 @@ DECLARE profile app.ai_agent_profiles; existing app.ai_agent_runs; recent intege
   created uuid := gen_random_uuid();
 BEGIN
   IF requester IS NULL OR run_trigger NOT IN ('assigned','manual','mention') OR NOT auth.can_project(target_project) THEN
+    RETURN;
+  END IF;
+  -- Only a person starts an agent: a service account's or an agent's change queues nothing (the run would have no one
+  -- whose rights limit it).
+  IF NOT EXISTS(SELECT 1 FROM auth.principals p WHERE p.id=requester AND p.kind='human' AND p.disabled_at IS NULL) THEN
     RETURN;
   END IF;
   SELECT p.* INTO profile FROM app.ai_agent_profiles p
@@ -86,7 +91,7 @@ BEGIN
     FROM app.ai_run_queue(target_project,source.task_id,account,'mention',source.thread_id,source.id) q;
 END $$;
 
--- As in V20261001000048, with the thread and the message of a mention.
+-- As in V20261001000066, with the thread and the message of a mention.
 CREATE OR REPLACE FUNCTION app.ai_run_load(run uuid, lease uuid) RETURNS jsonb
 LANGUAGE sql STABLE SECURITY DEFINER SET search_path=pg_catalog AS $$
   SELECT jsonb_build_object(
@@ -111,3 +116,95 @@ LANGUAGE sql STABLE SECURITY DEFINER SET search_path=pg_catalog AS $$
 $$;
 REVOKE ALL ON FUNCTION app.ai_run_queue(text,text,text,text,text,text),app.ai_run_mention(text,text,text),
   app.ai_run_enqueue(text,text,text,text),app.ai_run_load(uuid,uuid) FROM PUBLIC;
+
+-- A run acts within the rights of the person who started it (owner's decision on PR #45, docs/decisions/0005-ai-agents.md):
+-- the one who assigned the task, wrote the mention or pressed «Запустить агента». Every check of the run's account is
+-- also made for that person: a project shows only while both are members of it and the person is active, a permission
+-- holds only while both hold it. The account's own rights already carry its owner's ceiling, so the run is limited by
+-- all three. The person is on the run's runtime credential and in the transaction setting `app.on_behalf_of`.
+ALTER TABLE auth.credentials ADD COLUMN on_behalf_of text REFERENCES auth.principals;
+ALTER TABLE auth.credentials ADD CONSTRAINT credential_on_behalf CHECK((kind='runtime')=(on_behalf_of IS NOT NULL));
+
+-- A run without a person who started it cannot exist: agents and service accounts start none (their own changes run
+-- with `app.agent_run`, and the queue below answers nothing to a requester who is not a person).
+CREATE FUNCTION app.ai_run_requester_check() RETURNS trigger
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog AS $$
+BEGIN
+  IF NOT EXISTS(SELECT 1 FROM auth.principals p WHERE p.id=NEW.requested_by AND p.kind='human') THEN
+    RAISE EXCEPTION 'an agent run needs the person who started it' USING ERRCODE='23514';
+  END IF;
+  RETURN NEW;
+END $$;
+REVOKE ALL ON FUNCTION app.ai_run_requester_check() FROM PUBLIC;
+CREATE TRIGGER ai_agent_runs_requester BEFORE INSERT OR UPDATE OF requested_by ON app.ai_agent_runs
+  FOR EACH ROW EXECUTE FUNCTION app.ai_run_requester_check();
+
+-- Project visibility of V20260929000027 and the permission check of V20260930000040, each also for the person a
+-- runtime credential acts for. Without `app.on_behalf_of` (every other request) nothing changes.
+CREATE OR REPLACE FUNCTION auth.can_project(target text) RETURNS boolean
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path=pg_catalog AS $$
+ SELECT EXISTS(SELECT 1 FROM app.project_members WHERE project_id=target AND principal_id=auth.actor_id())
+ AND (coalesce(current_setting('app.project_limit',true),'')='' OR current_setting('app.project_limit',true)=target)
+ AND NOT EXISTS(
+   SELECT 1 FROM auth.service_accounts s WHERE s.principal_id=auth.actor_id()
+     AND (NOT auth.service_account_active(s.principal_id)
+       OR NOT EXISTS(SELECT 1 FROM app.project_members o WHERE o.project_id=target AND o.principal_id=s.owner_id)))
+ AND (coalesce(current_setting('app.on_behalf_of',true),'')='' OR EXISTS(
+   SELECT 1 FROM app.project_members d JOIN auth.principals p ON p.id=d.principal_id
+   WHERE d.project_id=target AND d.principal_id=current_setting('app.on_behalf_of',true)
+     AND p.kind='human' AND p.disabled_at IS NULL))
+$$;
+CREATE OR REPLACE FUNCTION auth.can(target text, permission text) RETURNS boolean
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path=pg_catalog AS $$
+  SELECT auth.can_project(target) AND EXISTS(SELECT 1 FROM app.project_members
+    WHERE project_id=target AND principal_id=auth.actor_id() AND permission = ANY(permissions))
+  AND (coalesce(current_setting('app.on_behalf_of',true),'')='' OR EXISTS(SELECT 1 FROM app.project_members
+    WHERE project_id=target AND principal_id=current_setting('app.on_behalf_of',true) AND permission = ANY(permissions)))
+$$;
+
+-- Whether the person a run acts for is still active and a member of its project: the runner asks before every step
+-- and every tool call, so a person who lost access stops the run with a reason of its own.
+CREATE FUNCTION app.ai_initiator_active(target_project text, person text) RETURNS boolean
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path=pg_catalog AS $$
+  SELECT EXISTS(SELECT 1 FROM app.project_members d JOIN auth.principals p ON p.id=d.principal_id
+    WHERE d.project_id=target_project AND d.principal_id=person AND p.kind='human' AND p.disabled_at IS NULL)
+$$;
+REVOKE ALL ON FUNCTION app.ai_initiator_active(text,text) FROM PUBLIC;
+
+-- The credential of a run acts for the person who started the run.
+CREATE OR REPLACE FUNCTION app.ai_run_attach(run uuid, lease uuid, credential text) RETURNS boolean
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog AS $$
+DECLARE updated integer;
+BEGIN
+  UPDATE app.ai_agent_runs r SET credential_id=credential,revision=r.revision+1
+  WHERE r.id=run AND r.lease_token=lease AND r.state='running' AND EXISTS(
+    SELECT 1 FROM auth.credentials c JOIN auth.service_accounts s ON s.principal_id=c.principal_id
+    WHERE c.id=credential AND c.kind='runtime' AND c.principal_id=r.account_id AND c.project_id=r.project_id
+      AND c.initiator_id=s.owner_id AND c.on_behalf_of=r.requested_by AND c.revoked_at IS NULL);
+  GET DIAGNOSTICS updated=ROW_COUNT;RETURN updated=1;
+END $$;
+
+-- As in V20261001000065, and `initiator` when the person who started the run is no longer active or no longer a
+-- member of the project: the run stops before its next step.
+CREATE OR REPLACE FUNCTION app.ai_run_heartbeat(run uuid, lease uuid, lease_seconds integer, conversation jsonb) RETURNS text
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog AS $$
+DECLARE target app.ai_agent_runs;
+BEGIN
+  UPDATE app.ai_agent_runs r SET lease_until=clock_timestamp()+make_interval(secs=>least(greatest(lease_seconds,30),900)),
+    transcript=coalesce(conversation,r.transcript)
+  WHERE r.id=run AND r.lease_token=lease AND r.state='running' AND r.lease_until>clock_timestamp()
+  RETURNING r.* INTO target;
+  IF target.id IS NULL THEN RETURN 'lost'; END IF;
+  IF target.cancel_requested_at IS NOT NULL THEN RETURN 'cancelled'; END IF;
+  IF NOT app.ai_initiator_active(target.project_id,target.requested_by) THEN
+    RETURN 'initiator';
+  END IF;
+  IF NOT auth.service_account_active(target.account_id) OR NOT EXISTS(
+      SELECT 1 FROM app.ai_agent_profiles p JOIN app.ai_connections c ON c.id=target.connection_id AND c.deleted_at IS NULL
+      WHERE p.principal_id=target.account_id AND p.enabled) THEN
+    RETURN 'disabled';
+  END IF;
+  IF target.deadline_at<clock_timestamp() THEN RETURN 'timeout'; END IF;
+  RETURN 'ok';
+END $$;
+REVOKE ALL ON FUNCTION app.ai_run_attach(uuid,uuid,text),app.ai_run_heartbeat(uuid,uuid,integer,jsonb) FROM PUBLIC;

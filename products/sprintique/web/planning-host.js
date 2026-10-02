@@ -1,6 +1,5 @@
 import {operationDialog,formDialog} from '../ui/planning/src/dialog.js';
 import {PlanningOperation,commitInPlace} from '../ui/planning/src/operation.js';
-import {intentDialog,releaseFields,readReleaseFields} from '../ui/planning/src/release-dialogs.js';
 import {openTaskDialog} from '../ui/src/board/task-dialog.js';
 import {taskKey} from '../ui/src/board/task-route.js';
 import {can} from './permissions.js';
@@ -41,13 +40,13 @@ export async function mountPlanningHost(root,{repository,adapter,project,onOpenB
   const {mountPlanning}=await import('../ui/planning/src/index.js');
   let closed=false,modal=null,mounted,opening=null;
   const scoped=Object.create(repository);scoped.createInBoard=false;
-  async function openTask(id,{onChanged=()=>mounted?.reload(),onClose=()=>{},groupId='backlog',fromRoute=false}={}){
+  async function openTask(id,{onChanged=()=>mounted?.reload(),onClose=()=>{},groupId='backlog',parentId=null,fromRoute=false}={}){
     if(closed||modal||opening)return false;
     const request=new AbortController();opening=request;
     try{
     const task=id?await repository.read('tasks',id,project.id,{signal:request.signal}):null;
     if(request.signal.aborted||closed)return false;if(id&&!task)throw Error('Задача недоступна.');
-    const created=await openTaskDialog(task,{repository:scoped,project,tasks:[],attachmentAdapter:repository.attachmentAdapter,canEdit:can(project,'tasks.write'),canManage:can(project,'project.settings'),initialValues:{releaseId:groupId==='backlog'?null:groupId},
+    const created=await openTaskDialog(task,{repository:scoped,project,tasks:[],attachmentAdapter:repository.attachmentAdapter,canEdit:can(project,'tasks.write'),canManage:can(project,'project.settings'),initialValues:{releaseId:groupId==='backlog'?null:groupId,...(parentId?{parentId}:{})},
       signal:request.signal,isActive:()=>!closed&&!request.signal.aborted,onSaved:onChanged,onOpenTask:async next=>{if(await closeTask())await openTask(next);}});
     if(closed||request.signal.aborted){created.close(true);return false;}modal=created;
     const opened=modal;if(task&&!fromRoute)history.pushState(null,'','#/task/'+encodeURIComponent(taskKey(task)));
@@ -58,7 +57,6 @@ export async function mountPlanningHost(root,{repository,adapter,project,onOpenB
   }
   async function closeTask(){if(opening){opening.abort();opening=null;return true;}if(modal){const opened=modal,accepted=await opened.taskController.close();if(accepted&&opened.isConnected)await new Promise(resolve=>opened.addEventListener('iq-close',resolve,{once:true}));return accepted;}return !mounted||mounted.readyToLeave();}
   mounted=await mountPlanning(root,{adapter,project,viewState,onOpenBoard,
-    onOpenTask:(id,callbacks)=>openTask(id,callbacks),onCreateTask:options=>openTask(null,options),
-    onCreateRelease:async({onChanged,onClose})=>{const defaults=await adapter.settings();return intentDialog({adapter,projectId:project.id,title:'Новый релиз',body:releaseFields(defaults),readIntent:form=>({kind:'createRelease',values:readReleaseFields(form)}),onCommitted:onChanged,onClose});}});
+    onOpenTask:(id,callbacks)=>openTask(id,callbacks),onCreateTask:options=>openTask(null,options)});
   return {openTask,closeTask,reload:()=>mounted.reload(),readyToLeave:()=>!opening&&!modal&&mounted.readyToLeave(),destroy(){closed=true;opening?.abort();modal?.close(true);modal=null;mounted.destroy({force:true});}};
 }

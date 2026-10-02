@@ -26,20 +26,11 @@ class PlanningChangeTest {
                 releases = listOf(release("a", "2026-09-01", "2026-09-10"), release("b", "2026-09-06", "2026-09-12")),
                 constraints = listOf(constraint(relation, boundary)),
             )
-            TemporalRules.validate(state)
-            assertThatThrownBy {
-                TemporalRules.validate(
-                    state.copy(
-                        constraints = listOf(
-                            constraint(
-                                relation,
-                                boundary + 1,
-                            ),
-                        ),
-                    ),
-                )
-            }
-                .extracting("code").isEqualTo("TEMPORAL_CONFLICT")
+            assertThat(TemporalRules.validate(state)).isEmpty()
+            // Under the r4 policy a broken constraint is a warning, never a refusal.
+            val broken = TemporalRules.validate(state.copy(constraints = listOf(constraint(relation, boundary + 1))))
+            assertThat(broken).hasSize(1)
+            assertThat(broken.single()).contains("Даты противоречат зависимости")
         }
     }
 

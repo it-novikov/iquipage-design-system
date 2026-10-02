@@ -6,6 +6,7 @@ package com.sprintique.database.schema.app.routines.references
 
 
 import com.sprintique.database.schema.app.routines.AiForgetConnectionSecret
+import com.sprintique.database.schema.app.routines.AiInitiatorActive
 import com.sprintique.database.schema.app.routines.AiIsOwner
 import com.sprintique.database.schema.app.routines.AiRunAttach
 import com.sprintique.database.schema.app.routines.AiRunFinish
@@ -48,6 +49,41 @@ fun aiForgetConnectionSecret(
     p.setTarget(target)
 
     p.execute(configuration)
+}
+
+fun aiInitiatorActive(
+      configuration: Configuration
+    , targetProject: String?
+    , person: String?
+): Boolean? {
+    val f = AiInitiatorActive()
+    f.setTargetProject(targetProject)
+    f.setPerson(person)
+
+    f.execute(configuration)
+    return f.returnValue
+}
+
+fun aiInitiatorActive(
+      targetProject: String?
+    , person: String?
+): Field<Boolean?> {
+    val f = AiInitiatorActive()
+    f.setTargetProject(targetProject)
+    f.setPerson(person)
+
+    return f.asField()
+}
+
+fun aiInitiatorActive(
+      targetProject: Field<String?>
+    , person: Field<String?>
+): Field<Boolean?> {
+    val f = AiInitiatorActive()
+    f.setTargetProject(targetProject)
+    f.setPerson(person)
+
+    return f.asField()
 }
 @Deprecated(message = "Unknown data type. Parameter type or return type is unknown. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun aiIsOwner(

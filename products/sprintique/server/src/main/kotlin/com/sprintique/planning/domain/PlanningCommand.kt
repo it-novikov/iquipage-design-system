@@ -1,6 +1,7 @@
 package com.sprintique.planning.domain
 
 import com.sprintique.task.domain.TaskContent
+import com.sprintique.task.domain.TaskEstimate
 
 /** A field a command may leave out: [Absent] keeps the current value, [Given] sets one (which may be null). */
 sealed interface Maybe<out T> {
@@ -55,13 +56,17 @@ sealed interface Assignment {
         }
 }
 
-/** The name, format and dates of a release. A timeboxed release (a sprint) has both dates. */
+/**
+ * The name, format and dates of a release. A timeboxed release (a sprint) has both dates. A [goal] left out keeps the
+ * current one (none for a new release).
+ */
 data class ReleaseData(
     val name: String,
     val format: String,
     val plannedStart: String?,
     val plannedEnd: String?,
     val deadline: String?,
+    val goal: Maybe<String?> = Maybe.Absent,
 )
 
 /** Where the unfinished rest of a closed or cancelled release goes. */
@@ -85,6 +90,7 @@ data class BulkFields(
     val plannedEnd: Maybe<String?> = Maybe.Absent,
     val due: Maybe<String?> = Maybe.Absent,
     val addTagIds: List<String>? = null,
+    val estimate: Maybe<TaskEstimate?> = Maybe.Absent,
 )
 
 data class RankChange(val taskId: String, val rank: Double)
@@ -147,4 +153,23 @@ sealed interface PlanningCommand {
     data class Shift(val releaseId: String, val days: Int) : PlanningCommand
 
     data class ScheduleBatch(val actions: List<ScheduleAction>) : PlanningCommand
+
+    /**
+     * Puts [ids] into a container (`backlog` or a release) right after the root row [afterId] (null: first). With
+     * [withChildren] an epic takes its descendants from the same container; without, they stay where they were.
+     */
+    data class Place(val ids: List<String>, val containerId: String, val afterId: String?, val withChildren: Boolean) :
+        PlanningCommand
+
+    /** Puts tasks back exactly as an undo of a [Place] recorded them. */
+    data class Restore(val items: List<RestoreItem>) : PlanningCommand
 }
+
+/** A task's own placement before a move: its container (or inheritance), rank and board admission. */
+data class RestoreItem(
+    val id: String,
+    val containerId: String,
+    val inherit: Boolean,
+    val rank: Double,
+    val admitted: Boolean? = null,
+)

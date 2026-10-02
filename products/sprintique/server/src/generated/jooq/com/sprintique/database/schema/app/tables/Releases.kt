@@ -100,6 +100,8 @@ open class Releases(
 
     val SCOPE_REVISION: TableField<ReleasesRecord, Long?> = createField(DSL.name("scope_revision"), SQLDataType.BIGINT.nullable(false).defaultValue(DSL.field(DSL.raw("0"), SQLDataType.BIGINT)), this, "")
 
+    val GOAL: TableField<ReleasesRecord, String?> = createField(DSL.name("goal"), SQLDataType.CLOB, this, "")
+
     private constructor(alias: Name, aliased: Table<ReleasesRecord>?): this(alias, null, null, null, aliased, null, null)
     private constructor(alias: Name, aliased: Table<ReleasesRecord>?, parameters: Array<Field<*>?>?): this(alias, null, null, null, aliased, parameters, null)
     private constructor(alias: Name, aliased: Table<ReleasesRecord>?, where: Condition?): this(alias, null, null, null, aliased, null, where)
@@ -162,6 +164,7 @@ open class Releases(
     val tasks: TasksPath
         get(): TasksPath = tasks()
     override fun getChecks(): List<Check<ReleasesRecord>> = listOf(
+        Internal.createCheck(this, DSL.name("release_goal"), "(((goal IS NULL) OR (char_length(goal) <= 240)))", true),
         Internal.createCheck(this, DSL.name("release_reserved_id"), "((id <> 'backlog'::text))", true),
         Internal.createCheck(this, DSL.name("releases_check"), "(((planned_start IS NULL) OR (planned_end IS NULL) OR (planned_start <= planned_end)))", true),
         Internal.createCheck(this, DSL.name("releases_check1"), "(((format <> 'timeboxed'::text) OR ((planned_start IS NOT NULL) AND (planned_end IS NOT NULL))))", true),

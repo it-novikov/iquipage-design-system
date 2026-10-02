@@ -1,5 +1,5 @@
 /** Supported core browser entry. Does not register graph, roadmap, crop, or whiteboard. */
-export declare const version:'0.6.0-vnext.27';
+export declare const version:'0.6.0-vnext.28';
 export declare function registerCore():void;
 export declare function registerComponents():void;
 export declare function registerDateFields():void;
@@ -143,3 +143,25 @@ export interface RelationMapValue {center:RelationMapNode;parent?:RelationMapNod
 export declare class IqRelationMap extends HTMLElement {value:RelationMapValue|null;}
 export declare function registerRelationMap():void;
 declare global {interface HTMLElementTagNameMap {'iq-settings-layout':IqSettingsLayout;'iq-relation-map':IqRelationMap;'iq-visual-choice':IqVisualChoice;}}
+/** Board column of a task as a status glyph: a shape in a tone (vnext.28). */
+export type StatusGlyphShape='ring'|'half'|'ring-dot'|'check';
+export type StatusGlyphTone='neutral'|'info'|'warning'|'planned'|'success';
+export type BoardStatus='ready'|'in_progress'|'review'|'ready_for_testing'|'testing'|'ready_for_release';
+export interface StatusGlyphSpec {readonly shape:StatusGlyphShape;readonly tone:StatusGlyphTone;readonly label:string;readonly word:string;}
+/** The six board columns: shape, tone, default label and the grey word shown only for review and testing states. */
+export declare const STATUS_GLYPHS:Readonly<Record<BoardStatus,StatusGlyphSpec>>;
+/** `<span class="iq-status-glyph" role="img">` with a 15×15 glyph in the tone of the board column. */
+export declare function statusGlyph(status:BoardStatus|string|{shape:StatusGlyphShape;tone:StatusGlyphTone;label?:string},options?:{label?:string;size?:number}):string;
+export interface TreeDropIntent {ids:string[];containerId:string;afterId:string|null;}
+export interface TreeDragOptions {
+ root:HTMLElement;rowSelector?:string;containerSelector?:string;holdMs?:number;slop?:number;ignore?:string;
+ canDrag?:(row:HTMLElement)=>boolean;items?:(row:HTMLElement)=>string[];
+ preview?:(row:HTMLElement,ids:string[])=>{html?:string;badge?:string;fit?:boolean}|null;
+ canDrop?:(intent:TreeDropIntent)=>boolean;
+ onDrop:(intent:TreeDropIntent&{sourceContainerId:string})=>void|{undo?:()=>void|Promise<void>;message?:string}|Promise<void|{undo?:()=>void|Promise<void>;message?:string}>;
+ onState?:(active:boolean)=>void;label?:(ids:string[])=>string;
+}
+/** Hold-to-drag between drop zones of a tree: no handle, 200 ms or 6 px, Escape cancels; the host applies the move. */
+export declare function bindTreeDrag(options:TreeDragOptions):{destroy():void;cancel():void};
+/** The root row a block dropped at `y` lands after (null: first) and the drop line's offset in the container. */
+export declare function treeDropPosition(container:HTMLElement,y:number,options?:{rowSelector?:string;rowAttr?:string;skip?:Set<string>}):{afterId:string|null;top:number|null;empty:boolean};

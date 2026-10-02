@@ -151,7 +151,9 @@ test('P09 date ranges, timeboxes, temporal conflict and cycle detection, without
   assert.equal((await request('PUT','planning/milestones/gate',{baseRevision:0,value:{title:'Gate',date:'2026-09-11'}})).statusCode,200);
   const constraint={source:{kind:'release',id:'dated'},target:{kind:'milestone',id:'gate'},relation:'FS',lagDays:1};
   assert.equal((await request('PUT','planning/constraints/dependency',{baseRevision:0,value:constraint})).statusCode,200);
-  assert.equal((await request('PUT','planning/milestones/gate',{baseRevision:1,value:{title:'Gate',date:'2026-09-09'}})).statusCode,409);
+  // planning-r4.0: a date that breaks a constraint is saved (the preview warns); only a cycle is refused.
+  assert.equal((await request('PUT','planning/milestones/gate',{baseRevision:1,value:{title:'Gate',date:'2026-09-09'}})).statusCode,200);
+  assert.equal((await request('PUT','planning/milestones/gate',{baseRevision:2,value:{title:'Gate',date:'2026-09-11'}})).statusCode,200);
   const cyc=await request('PUT','planning/constraints/cycle',{baseRevision:0,value:{source:constraint.target,target:constraint.source,relation:'SS',lagDays:-100}});assert.equal(cyc.statusCode,422,cyc.body);
   const roadmap=(await request('GET','planning/roadmap?from=2026-09-01&to=2026-09-30&undated=false')).json();assert.equal(roadmap.timezone,'UTC');assert.equal(roadmap.items.find((i:{id:string})=>i.id==='gate').start,'2026-09-11');
 });
@@ -283,6 +285,34 @@ test('P12 SSE transmits changes, then stops and requires cache eviction after cr
     await until('access-revoked');assert.ok(buffer.includes('"clearCache":true'));
     reader.releaseLock();
   }finally{controller.abort();await f.admin.query('UPDATE auth.credentials SET revoked_at=NULL WHERE id=$1',[f.alice.credential]);await app.close();}
+});
+test('P12 a stream never answers with an error status the browser would not retry',async()=>{
+  const app=await startApp();
+  const address=app.url,controllers:AbortController[]=[];
+  const open=async(query:string,headers:Record<string,string>=f.alice.headers as unknown as Record<string,string>)=>{
+    const controller=new AbortController();controllers.push(controller);
+    return fetch(address+path('events?stream=true'+query),{headers:{...headers,accept:'text/event-stream'},signal:controller.signal});
+  };
+  const firstFrame=async(response:Response)=>{
+    const reader=response.body!.getReader(),decoder=new TextDecoder();let buffer='';
+    const deadline=Date.now()+8000;
+    while(!buffer.includes('\n\n')&&Date.now()<deadline){const r=await reader.read();if(r.done)break;buffer+=decoder.decode(r.value);}
+    reader.releaseLock();return buffer;
+  };
+  try{
+    // A cursor the server cannot continue from: the stream opens, asks for a resync and moves Last-Event-ID to the head.
+    const stale=await open('&cursor=not-a-cursor');assert.equal(stale.status,200);
+    const frame=await firstFrame(stale);
+    assert.match(frame,/^id: .+\nevent: resync\ndata: \{"clearCache":true,"code":"RECONNECT"\}/,frame);
+    // The same cursor without a stream is still a plain 400.
+    const page=await request('GET','events?cursor=not-a-cursor');assert.equal(page.statusCode,400);assert.equal(page.json().code,'CURSOR_INVALID');
+    // A stream request for a project the person cannot read: the status alone, not a 500 from an unwritable JSON body.
+    assert.equal((await open('',f.bob.headers as unknown as Record<string,string>)).status,404);
+    // Over the per-credential limit the stream opens, asks the browser to come back later and ends.
+    for(let i=0;i<3;i++)assert.equal((await open('')).status,200);
+    const busy=await open('');assert.equal(busy.status,200);
+    assert.match(await busy.text(),/^retry: 15000\n: busy/);
+  }finally{for(const c of controllers)c.abort();await app.close();}
 });
 test('P12 event cursor cannot skip a transaction that commits late',async()=>{
   let beforeCursor:string|undefined;for(;;){const p=(await request('GET','events'+(beforeCursor?'?cursor='+beforeCursor:''))).json();beforeCursor=p.cursor;if(!p.hasMore)break;}

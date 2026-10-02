@@ -111,6 +111,11 @@ data class Actor(
     val credentialKind: CredentialKind,
     val scopes: Set<Scope> = emptySet(),
     val clientId: String? = null,
+    /**
+     * The person an agent run acts for (docs/decisions/0005-ai-agents.md): whoever assigned the task, mentioned the
+     * account or started the agent. Every check of the account is also made for this person.
+     */
+    val onBehalfOf: String? = null,
 ) {
     val isHuman: Boolean get() = kind == PrincipalKind.HUMAN
 

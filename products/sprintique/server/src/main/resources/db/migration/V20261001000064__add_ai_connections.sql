@@ -5,7 +5,7 @@
 -- only the sealed bytes, the key version and the last four characters to recognise it.
 
 -- The table owner sees every row through these policies, so the narrow SECURITY DEFINER functions below (and the
--- agent runner's queue functions of V20261001000047) work across tenants; the runtime role keeps tenant row security.
+-- agent runner's queue functions of V20261001000065) work across tenants; the runtime role keeps tenant row security.
 CREATE FUNCTION app.ai_is_owner(target regclass) RETURNS boolean
 LANGUAGE sql STABLE SET search_path=pg_catalog AS $$
   SELECT current_user=pg_get_userbyid((SELECT relowner FROM pg_class WHERE oid=target))

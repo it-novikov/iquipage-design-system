@@ -33,7 +33,7 @@ CREATE POLICY finance_settings_runtime_update ON app.finance_settings AS RESTRIC
   USING(true) WITH CHECK(updated_by=auth.actor_id() AND updated_at>=now());
 -- Workbench: meaningful task events and private receipts are append-only (docs/adr W2, W3).
 REVOKE UPDATE ON app.task_activity,app.private_receipts FROM "${runtime_role}";
--- AI connections and agent runs (V20261001000046–49, docs/decisions/0005-ai-agents.md): sealed keys are reached only
+-- AI connections and agent runs (V20261001000064–67, docs/decisions/0005-ai-agents.md): sealed keys are reached only
 -- through functions that check the caller; run steps are append-only; runs are created and advanced only by the queue
 -- functions of the runner, which the runtime role calls.
 REVOKE ALL ON app.ai_connection_secrets FROM "${runtime_role}";
@@ -42,7 +42,8 @@ GRANT EXECUTE ON FUNCTION app.ai_is_owner(regclass),app.ai_store_connection_secr
   app.ai_connection_secret(uuid),app.ai_forget_connection_secret(uuid),app.ai_run_enqueue(text,text,text,text),
   app.ai_run_claim(integer),app.ai_run_load(uuid,uuid),app.ai_run_attach(uuid,uuid,text),
   app.ai_run_step(uuid,uuid,text,text,text,text,text,integer,integer,bigint),app.ai_run_heartbeat(uuid,uuid,integer,jsonb),
-  app.ai_run_finish(uuid,uuid,text,text,text),app.ai_run_mention(text,text,text) TO "${runtime_role}";
+  app.ai_run_finish(uuid,uuid,text,text,text),app.ai_run_mention(text,text,text),
+  app.ai_initiator_active(text,text) TO "${runtime_role}";
 GRANT SELECT,INSERT,UPDATE ON auth.principals,auth.credentials TO "${runtime_role}";
 -- Invitations (V20260930000039) are revoked, replaced or accepted, never deleted: their history stays.
 GRANT SELECT,INSERT,UPDATE ON auth.invitations TO "${runtime_role}";

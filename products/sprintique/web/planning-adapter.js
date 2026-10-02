@@ -1,5 +1,5 @@
 import {PlanningClient} from '../client/planning.ts';
-import {ViewQuery,ViewRowsQuery,ViewSelectQuery,ViewOptionsQuery,ViewIntent} from '../contracts/planning-view.ts';
+import {ViewIntent,ViewMoveRequest} from '../contracts/planning-view.ts';
 
 /** UI protocol adapter. Canonical tasks and all derived membership stay on the server. */
 export class PlanningAdapter {
@@ -8,14 +8,13 @@ export class PlanningAdapter {
     this.journalKey=`sprintique:planning-attempt:${repository.context.actorId}:${projectId}`;
   }
   request(resource,body,signal){return this.api.request(`/projects/${encodeURIComponent(this.projectId)}/planning/view/${resource}`,body===undefined?'GET':'POST',body,undefined,signal);}
-  query(resource,schema,{projectId,signal,requestId,...body}){if(projectId!==this.projectId)throw Error('Проект изменился.');return this.request(resource,schema.parse(body),signal);}
-  listGroups(q){return this.query('groups',ViewQuery,q);}
-  listRows(q){return this.query('rows',ViewRowsQuery,q);}
-  timeline(q){return this.query('timeline',ViewQuery,q);}
-  selectMatching(q){return this.query('selection',ViewSelectQuery,q);}
-  destinations(q){return this.query('options',ViewOptionsQuery,{...q,kind:'destinations'});}
-  options(q){return this.query('options',ViewOptionsQuery,q);}
-  describeRelease({groupId,cursor,signal}){return this.request('release',{groupId,...(cursor?{cursor}:{})},signal);}
+  /** Every open container of the planning page with its tree and sums (planning R4.1). */
+  containers({signal}={}){return this.request('containers',{},signal);}
+  /** A move between containers or within one, or the undo of a move; applied at once with its own retry key. */
+  move(body){if(this.pending())throw Error('Сначала проверьте результат предыдущего изменения.');
+    return this.api.request(`/projects/${encodeURIComponent(this.projectId)}/planning/view/move`,'POST',ViewMoveRequest.parse(body),crypto.randomUUID());}
+  /** Sprints and releases with their counts, the finished ones included. */
+  releases(){return this.sdk.releases();}
   settings(){return this.request('settings');}
   preview({intent,signal}){if(this.pending())throw Error('Сначала проверьте результат предыдущего изменения.');return this.request('preview',ViewIntent.parse(intent),signal);}
   /** Finance changes never touch the plan, so they do not refresh it. */

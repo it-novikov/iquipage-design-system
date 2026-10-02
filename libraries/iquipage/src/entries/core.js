@@ -93,7 +93,12 @@ export const registerSettings=settings.registerSettings;
 import relationMap from './modules/relation-map.js';
 export const IqRelationMap=relationMap.IqRelationMap;
 export const registerRelationMap=relationMap.registerRelationMap;
-export const version='0.6.0-vnext.27';
+import treeColumns from './modules/tree-columns.js';
+export const statusGlyph=treeColumns.statusGlyph;
+export const STATUS_GLYPHS=treeColumns.STATUS_GLYPHS;
+export const bindTreeDrag=treeColumns.bindTreeDrag;
+export const treeDropPosition=treeColumns.treeDropPosition;
+export const version='0.6.0-vnext.28';
 export function registerCore(){
  registerAuthDialog();registerAuthScreen();registerSettings();registerRelationMap();registerComponents();registerDateFields();registerEditors();registerPagination();registerStructured();registerSideNavigation();registerWorkHeader();registerMarkdownViewer();registerWorkLayout();
  if(!customElements.get('iq-file-preview'))customElements.define('iq-file-preview',IqFilePreview);

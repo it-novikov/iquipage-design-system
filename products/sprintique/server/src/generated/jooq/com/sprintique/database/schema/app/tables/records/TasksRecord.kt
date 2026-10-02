@@ -6,6 +6,7 @@ package com.sprintique.database.schema.app.tables.records
 
 import com.sprintique.database.schema.app.tables.Tasks
 
+import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.OffsetDateTime
 
@@ -125,13 +126,21 @@ open class TasksRecord() : UpdatableRecordImpl<TasksRecord>(Tasks.TASKS) {
         set(value): Unit = set(26, value)
         get(): String? = get(26) as String?
 
+    open var estimateValue: BigDecimal?
+        set(value): Unit = set(27, value)
+        get(): BigDecimal? = get(27) as BigDecimal?
+
+    open var estimateUnit: String?
+        set(value): Unit = set(28, value)
+        get(): String? = get(28) as String?
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
 
     override fun key(): Record2<String?, String?> = super.key() as Record2<String?, String?>
 
-    constructor(id: String? = null, projectId: String? = null, number: Int? = null, title: String? = null, description: String? = null, status: String? = null, type: String? = null, priority: String? = null, ownerLabel: String? = null, due: LocalDate? = null, rank: Double? = null, parentId: String? = null, releaseId: String? = null, revision: Int? = null, createdAt: OffsetDateTime? = null, updatedAt: OffsetDateTime? = null, statusEnteredAt: OffsetDateTime? = null, preparation: String? = null, result: String? = null, assignmentMode: String? = null, admitted: Boolean? = null, plannedStart: LocalDate? = null, plannedEnd: LocalDate? = null, attachmentIds: Array<String?>? = null, coverAttachmentId: String? = null, coverCrop: JSONB? = null, ownerId: String? = null): this() {
+    constructor(id: String? = null, projectId: String? = null, number: Int? = null, title: String? = null, description: String? = null, status: String? = null, type: String? = null, priority: String? = null, ownerLabel: String? = null, due: LocalDate? = null, rank: Double? = null, parentId: String? = null, releaseId: String? = null, revision: Int? = null, createdAt: OffsetDateTime? = null, updatedAt: OffsetDateTime? = null, statusEnteredAt: OffsetDateTime? = null, preparation: String? = null, result: String? = null, assignmentMode: String? = null, admitted: Boolean? = null, plannedStart: LocalDate? = null, plannedEnd: LocalDate? = null, attachmentIds: Array<String?>? = null, coverAttachmentId: String? = null, coverCrop: JSONB? = null, ownerId: String? = null, estimateValue: BigDecimal? = null, estimateUnit: String? = null): this() {
         this.id = id
         this.projectId = projectId
         this.number = number
@@ -159,6 +168,8 @@ open class TasksRecord() : UpdatableRecordImpl<TasksRecord>(Tasks.TASKS) {
         this.coverAttachmentId = coverAttachmentId
         this.coverCrop = coverCrop
         this.ownerId = ownerId
+        this.estimateValue = estimateValue
+        this.estimateUnit = estimateUnit
         resetTouchedOnNotNull()
     }
 }

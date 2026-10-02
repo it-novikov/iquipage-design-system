@@ -11,6 +11,7 @@ import com.sprintique.contract.ResourceIds
 import com.sprintique.contract.TrimmedString
 import com.sprintique.contract.UUID
 import com.sprintique.task.contract.TaskInputRequest
+import com.sprintique.task.domain.TaskEstimate
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.Valid
 import jakarta.validation.constraints.AssertTrue
@@ -135,15 +136,71 @@ data class ViewReleaseValue(
     @field:IsoDate val start: String?,
     @field:IsoDate val end: String?,
     @field:IsoDate val deadline: String?,
+    /** One line about what it is for; left out keeps the current goal, null clears it. */
+    val goal: Optional<String>? = null,
 ) {
-    fun toCommandValue() = linkedMapOf(
+    @get:JsonIgnore
+    @get:Schema(hidden = true)
+    @get:AssertTrue
+    val isGoalValid: Boolean get() = goal == null || goal.map { it.trim().length <= GOAL_LIMIT }.orElse(true)
+
+    fun toCommandValue() = linkedMapOf<String, Any?>(
         "name" to name,
         "format" to format.wire,
         "plannedStart" to start,
         "plannedEnd" to end,
         "deadline" to deadline,
-    )
+    ).apply { if (goal != null) put("goal", goal.orElse(null)) }
 }
+
+/** The containers of the planning screen; the body is an empty object. */
+@Schema(name = "ViewContainersQuery")
+class ViewContainersQuery
+
+/** One undo item of a move: where a task was, as it decided that itself, and its rank. */
+data class RestoreItemValue(
+    @field:Pattern(regexp = RESOURCE_ID) val id: String,
+    @field:Pattern(regexp = RESOURCE_ID) val containerId: String,
+    val inherit: Boolean,
+    val rank: Double,
+    val admitted: Boolean? = null,
+) {
+    @get:JsonIgnore
+    @get:Schema(hidden = true)
+    @get:AssertTrue
+    val isRankFinite: Boolean get() = rank.isFinite()
+}
+
+/** The undo of a move, handed back exactly as the move returned it. */
+data class RestoreValue(
+    val kind: RestoreKind,
+    @field:Pattern(regexp = REVISION) val expectedRevision: String,
+    @field:Size(min = 1, max = RESTORE_LIMIT) val items: List<@Valid RestoreItemValue>,
+)
+
+enum class RestoreKind(@get:JsonValue val wire: String) { RESTORE("restore") }
+
+/**
+ * A move of tasks into a container after a root row, or the undo of an earlier one: exactly one of the two forms.
+ * People apply it directly; agents propose a `place` intent instead.
+ */
+@Schema(name = "ViewMoveRequest")
+data class ViewMoveRequest(
+    @field:Size(min = 1, max = SELECTION_LIMIT) @field:ResourceIds val ids: List<String>? = null,
+    @field:Pattern(regexp = RESOURCE_ID) val containerId: String? = null,
+    @field:Pattern(regexp = RESOURCE_ID) val afterId: String? = null,
+    val withChildren: Boolean = true,
+    @field:Pattern(regexp = REVISION) val expectedRevision: String? = null,
+    @field:Valid val restore: RestoreValue? = null,
+) {
+    @get:JsonIgnore
+    @get:Schema(hidden = true)
+    @get:AssertTrue
+    val isOneForm: Boolean get() = (restore == null) == (ids != null && containerId != null) &&
+        (restore == null || (afterId == null && expectedRevision == null))
+}
+
+private const val RESTORE_LIMIT = 2000
 
 /** Calendar intents: alone, or several in a batch. */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "kind")
@@ -179,6 +236,7 @@ sealed interface CalendarIntent : ViewIntent {
     JsonSubTypes.Type(value = ViewIntent.Milestone::class, name = "milestone"),
     JsonSubTypes.Type(value = ViewIntent.Settings::class, name = "settings"),
     JsonSubTypes.Type(value = ViewIntent.ShiftDates::class, name = "shiftDates"),
+    JsonSubTypes.Type(value = ViewIntent.Place::class, name = "place"),
 )
 @Schema(name = "ViewIntent")
 sealed interface ViewIntent {
@@ -250,7 +308,22 @@ sealed interface ViewIntent {
                 (
                     value.isArray && value.size() <= TAG_LIMIT &&
                         value.values().all { it.isString && ID.matches(it.asString()) }
-                    )
+                    ) || isEstimate(value)
+
+        /** An estimate `{value, unit}` goes only with the estimate field, and only there. */
+        @get:JsonIgnore
+        @get:Schema(hidden = true)
+        @get:AssertTrue
+        val isFieldValid: Boolean
+            get() = (this.field == BulkField.ESTIMATE) == (value != null && value.isObject) ||
+                (this.field == BulkField.ESTIMATE && (value == null || value.isNull))
+
+        private fun isEstimate(value: JsonNode): Boolean {
+            if (!value.isObject || value.size() != 2) return false
+            val number = value.path("value")
+            val unit = value.path("unit").asString("")
+            return number.isNumber && TaskEstimate.valid(number.asDouble(), unit)
+        }
     }
 
     enum class BulkField(@get:JsonValue val wire: String) {
@@ -258,6 +331,7 @@ sealed interface ViewIntent {
         PRIORITY("priority"),
         DUE("due"),
         TAGS("tags"),
+        ESTIMATE("estimate"),
     }
 
     data class Start(@field:Pattern(regexp = RESOURCE_ID) val groupId: String) : ViewIntent
@@ -350,11 +424,15 @@ sealed interface ViewIntent {
         @field:Valid val values: MilestoneValues,
     ) : ViewIntent
 
+    /** Estimate settings left out keep the stored ones; changing the format never rewrites estimates. */
     data class SettingsValues(
         val format: ReleaseFormat,
         val days: Int,
         @field:Size(max = 100) val timeZone: String,
         val inheritTimeZone: Boolean? = null,
+        val estimateFormat: EstimateFormat? = null,
+        @field:Min(1) @field:Max(24) val hoursPerDay: Int? = null,
+        @field:Min(1) @field:Max(168) val hoursPerWeek: Int? = null,
     )
 
     data class Settings(@field:Valid val values: SettingsValues) : ViewIntent
@@ -362,6 +440,14 @@ sealed interface ViewIntent {
     data class ShiftDates(
         @field:Pattern(regexp = RESOURCE_ID) val groupId: String,
         @field:Min(-DAY_RANGE) @field:Max(DAY_RANGE) val days: Int,
+    ) : ViewIntent
+
+    /** The proposal form of a move, for agents: previewed and approved by a person like any planning change. */
+    data class Place(
+        @field:Size(min = 1, max = SELECTION_LIMIT) @field:ResourceIds val ids: List<String>,
+        @field:Pattern(regexp = RESOURCE_ID) val containerId: String,
+        @field:Pattern(regexp = RESOURCE_ID) val afterId: String? = null,
+        val withChildren: Boolean = true,
     ) : ViewIntent
 
     companion object {

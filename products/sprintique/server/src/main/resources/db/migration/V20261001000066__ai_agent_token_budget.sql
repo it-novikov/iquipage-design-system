@@ -7,7 +7,7 @@ ALTER TABLE app.ai_agent_profiles ADD COLUMN max_run_tokens integer NOT NULL DEF
 ALTER TABLE app.ai_agent_runs ADD COLUMN max_run_tokens integer NOT NULL DEFAULT 500000
   CHECK(max_run_tokens BETWEEN 10000 AND 5000000);
 
--- As in V20261001000047, and the run takes the budget of its agent when it is queued.
+-- As in V20261001000065, and the run takes the budget of its agent when it is queued.
 CREATE OR REPLACE FUNCTION app.ai_run_enqueue(target_project text, target_task text, account text, run_trigger text)
 RETURNS TABLE(run_id uuid, run_state text, run_error text)
 LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog AS $$
@@ -44,7 +44,7 @@ BEGIN
   RETURN QUERY SELECT r.id, r.state, r.error_code FROM app.ai_agent_runs r WHERE r.project_id=target_project AND r.id=created;
 END $$;
 
--- As in V20261001000047, with the budget and the tokens the run has spent so far.
+-- As in V20261001000065, with the budget and the tokens the run has spent so far.
 CREATE OR REPLACE FUNCTION app.ai_run_load(run uuid, lease uuid) RETURNS jsonb
 LANGUAGE sql STABLE SECURITY DEFINER SET search_path=pg_catalog AS $$
   SELECT jsonb_build_object(

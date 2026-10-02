@@ -25,6 +25,7 @@ import com.sprintique.planning.domain.ReleaseData
 import com.sprintique.planning.domain.ReleaseRules
 import com.sprintique.planning.domain.ScheduleAction
 import com.sprintique.planning.domain.TemporalValue
+import com.sprintique.task.contract.TaskEstimateRequest
 import com.sprintique.task.contract.TaskInputRequest
 import com.sprintique.task.contract.TaskPriority
 import io.swagger.v3.oas.annotations.media.Schema
@@ -42,7 +43,7 @@ import java.util.Optional
  * stored command back through the same classes.
  */
 
-const val PLANNING_POLICY = "planning-r3.1"
+const val PLANNING_POLICY = "planning-r4.0"
 private const val DAY_RANGE = 36_500L
 private const val OVERRIDE_LIMIT = 200
 
@@ -66,14 +67,28 @@ data class ReleaseValueContract(
     val plannedEnd: String? = null,
     @field:IsoDate
     val deadline: String? = null,
+    /** One line about what it is for; left out keeps the current goal, null clears it. */
+    @field:JsonInclude(JsonInclude.Include.NON_NULL)
+    val goal: Optional<String>? = null,
 ) {
     @get:JsonIgnore
     @get:Schema(hidden = true)
     @get:AssertTrue
     val isScheduleValid: Boolean get() = ReleaseRules.valid(format.wire, plannedStart, plannedEnd)
 
-    fun toDomain() = ReleaseData(name, format.wire, plannedStart, plannedEnd, deadline)
+    @get:JsonIgnore
+    @get:Schema(hidden = true)
+    @get:AssertTrue
+    val isGoalValid: Boolean get() = goal == null || goal.map { it.trim().length <= GOAL_LIMIT }.orElse(true)
+
+    fun toDomain() = ReleaseData(name, format.wire, plannedStart, plannedEnd, deadline, goalOf(goal))
 }
+
+/** A goal as given: absent keeps the current one; blank or null clears it. */
+fun goalOf(goal: Optional<String>?): Maybe<String?> =
+    if (goal == null) Maybe.Absent else Maybe.Given(goal.map { it.trim() }.filter { it.isNotEmpty() }.orElse(null))
+
+const val GOAL_LIMIT = 240
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "mode")
 @JsonSubTypes(
@@ -161,9 +176,17 @@ data class PlanningDefaultsContract(
     val timezone: String,
     @field:JsonInclude(JsonInclude.Include.NON_NULL)
     val timezoneInherited: Boolean? = null,
+    val estimateFormat: EstimateFormat = EstimateFormat.TIME,
+    @field:Min(1) @field:Max(24)
+    val hoursPerDay: Int = 8,
+    @field:Min(1) @field:Max(168)
+    val hoursPerWeek: Int = 40,
 ) {
-    fun toDomain() = PlanningDefaults(format.wire, days, timezone, timezoneInherited)
+    fun toDomain() =
+        PlanningDefaults(format.wire, days, timezone, timezoneInherited, estimateFormat.wire, hoursPerDay, hoursPerWeek)
 }
+
+enum class EstimateFormat(@get:JsonValue val wire: String) { TIME("time"), POINTS("points") }
 
 @Schema(name = "MilestoneValue")
 data class MilestoneValueContract(
@@ -197,13 +220,16 @@ data class BulkFieldsContract(
     val due: Optional<String>? = null,
     @field:Size(max = 30) @field:ResourceIds
     val addTagIds: List<String>? = null,
+    @field:Valid
+    val estimate: Optional<TaskEstimateRequest>? = null,
 ) {
     @get:JsonIgnore
     @get:Schema(hidden = true)
     @get:AssertTrue
     val isValid: Boolean
-        get() = listOf(ownerId, priority, plannedStart, plannedEnd, due, addTagIds).any { it != null } &&
-            validId(ownerId) && listOf(plannedStart, plannedEnd, due).all(::validDay)
+        get() = listOf(ownerId, priority, plannedStart, plannedEnd, due, addTagIds, estimate).any { it != null } &&
+            validId(ownerId) && listOf(plannedStart, plannedEnd, due).all(::validDay) &&
+            (estimate == null || estimate.map { it.isValueValid }.orElse(true))
 
     fun toDomain() = BulkFields(
         ownerId = maybe(ownerId),
@@ -212,6 +238,7 @@ data class BulkFieldsContract(
         plannedEnd = maybe(plannedEnd),
         due = maybe(due),
         addTagIds = addTagIds,
+        estimate = if (estimate == null) Maybe.Absent else Maybe.Given(estimate.map { it.toDomain() }.orElse(null)),
     )
 }
 
@@ -252,6 +279,7 @@ sealed interface ScheduleActionContract : PlanningCommandContract {
     JsonSubTypes.Type(value = PlanningCommandContract.Settings::class, name = "settings"),
     JsonSubTypes.Type(value = PlanningCommandContract.Shift::class, name = "shift"),
     JsonSubTypes.Type(value = PlanningCommandContract.ScheduleBatch::class, name = "schedule.batch"),
+    JsonSubTypes.Type(value = PlanningCommandContract.Place::class, name = "place"),
 )
 @Schema(name = "PlanningCommand")
 sealed interface PlanningCommandContract {
@@ -405,7 +433,19 @@ sealed interface PlanningCommandContract {
         PlanningCommandContract {
         override fun toDomain() = PlanningCommand.ScheduleBatch(actions.map { it.toDomain() })
     }
+
+    /** Tasks put into a container after a root row, an epic with its descendants from the same container. */
+    data class Place(
+        @field:Size(min = 1, max = PLACE_LIMIT) @field:ResourceIds val ids: List<String>,
+        @field:Pattern(regexp = RESOURCE_ID) val containerId: String,
+        @field:Pattern(regexp = RESOURCE_ID) val afterId: String?,
+        val withChildren: Boolean = true,
+    ) : PlanningCommandContract {
+        override fun toDomain() = PlanningCommand.Place(ids.distinct(), containerId, afterId, withChildren)
+    }
 }
+
+const val PLACE_LIMIT = 200
 
 private fun validOverrides(overrides: Map<String, String?>?): Boolean {
     if (overrides == null) return true

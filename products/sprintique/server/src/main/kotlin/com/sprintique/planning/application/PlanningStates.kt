@@ -17,6 +17,7 @@ import com.sprintique.planning.domain.TaskState
 import com.sprintique.planning.domain.TemporalConstraint
 import com.sprintique.planning.domain.TemporalRules
 import com.sprintique.problem.requirePresent
+import com.sprintique.task.domain.TaskEstimate
 import com.sprintique.workspace.application.Assignees
 import tools.jackson.databind.JsonNode
 
@@ -28,7 +29,7 @@ object PlanningStates {
     const val RELEASE_PROJECTION = """id, project_id AS "projectId", name, revision, scope_revision::float8 AS "scopeRevision",
         lifecycle, format, to_char(planned_start, 'YYYY-MM-DD') AS "plannedStart",
         to_char(planned_end, 'YYYY-MM-DD') AS "plannedEnd", to_char(deadline, 'YYYY-MM-DD') AS deadline,
-        archived_at AS "archivedAt""""
+        archived_at AS "archivedAt", goal"""
 
     // Up to 500 members of a project, then service accounts that still own its tasks.
     private const val PEOPLE_LIMIT = 1000
@@ -41,7 +42,8 @@ object PlanningStates {
                to_char(t.created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS "createdAt",
                t.preparation, t.result, t.admitted, t.assignment_mode AS "assignmentMode", t.release_id AS "releaseId",
                to_char(t.planned_start, 'YYYY-MM-DD') AS "plannedStart", to_char(t.planned_end, 'YYYY-MM-DD') AS "plannedEnd",
-               to_char(t.due, 'YYYY-MM-DD') AS due,
+               to_char(t.due, 'YYYY-MM-DD') AS due, t.estimate_value::float8 AS "estimateValue",
+               t.estimate_unit AS "estimateUnit",
                ARRAY(SELECT tag_id FROM app.task_tags WHERE project_id = t.project_id AND task_id = t.id ORDER BY tag_id) AS "tagIds"
         FROM app.tasks t JOIN app.projects p ON p.id = t.project_id WHERE t.project_id = $1 ORDER BY t.number LIMIT 10001
     """.trimIndent()
@@ -105,6 +107,9 @@ object PlanningStates {
             """
             SELECT key, next_task_number AS number, planning_defaults->>'format' AS format,
                    (planning_defaults->>'days')::int AS days, auth.project_timezone(id) AS timezone,
+                   coalesce(planning_defaults->>'estimateFormat', 'time') AS "estimateFormat",
+                   coalesce((planning_defaults->>'hoursPerDay')::int, 8) AS "hoursPerDay",
+                   coalesce((planning_defaults->>'hoursPerWeek')::int, 40) AS "hoursPerWeek",
                    timezone IS NULL AS "timezoneInherited",
                    to_char(clock_timestamp() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS "createdAt"
             FROM app.projects WHERE id = $1
@@ -153,12 +158,7 @@ object PlanningStates {
             milestones = milestones,
             constraints = constraints,
             dependencies = dependencies,
-            defaults = PlanningDefaults(
-                project.string("format"),
-                project.int("days"),
-                project.stringOrNull("timezone"),
-                project.boolean("timezoneInherited"),
-            ),
+            defaults = defaultsOf(project),
             creation = CreationContext(
                 projectId,
                 project.string("key"),
@@ -168,6 +168,16 @@ object PlanningStates {
             members = members,
         )
     }
+
+    private fun defaultsOf(project: Row) = PlanningDefaults(
+        project.string("format"),
+        project.int("days"),
+        project.stringOrNull("timezone"),
+        project.boolean("timezoneInherited"),
+        project.string("estimateFormat"),
+        project.int("hoursPerDay"),
+        project.int("hoursPerWeek"),
+    )
 
     private fun taskOf(row: Row) = TaskState(
         id = row.string("id"),
@@ -195,6 +205,7 @@ object PlanningStates {
         plannedEnd = row.stringOrNull("plannedEnd"),
         due = row.stringOrNull("due"),
         tagIds = row.strings("tagIds"),
+        estimate = row.stringOrNull("estimateUnit")?.let { TaskEstimate(row.double("estimateValue"), it) },
     )
 
     fun releaseOf(row: Row) = Release(
@@ -209,6 +220,7 @@ object PlanningStates {
         plannedEnd = row.stringOrNull("plannedEnd"),
         deadline = row.stringOrNull("deadline"),
         archivedAt = row.instantOrNull("archivedAt"),
+        goal = row.stringOrNull("goal"),
     )
 
     private fun constraintOf(row: Row) = TemporalConstraint(

@@ -95,6 +95,7 @@ class AgentRunner(
         private val turns = mutableListOf<Turn>()
         private var steps = 0
         private var tokens = 0L
+        private var stopCode = "ACCESS_LOST"
 
         @Suppress("ReturnCount")
         fun go() {
@@ -103,7 +104,9 @@ class AgentRunner(
             }?.takeIf { it.isObject } ?: return finish(lease, "failed", "ACCESS_LOST", null)
             if (run.path("cancelRequested").booleanValue()) return finish(lease, "cancelled", null, null)
             if (!run.path("active").booleanValue()) return finish(lease, "failed", "AGENT_DISABLED", null)
-            credentialId = text("credentialId") ?: issue() ?: return
+            // A run always acts for the person who started it; the database refuses a run without one.
+            val requester = text("requestedBy") ?: return finish(lease, "failed", "NO_INITIATOR", null)
+            credentialId = text("credentialId") ?: issue(requester) ?: return
             if (!run.path("enabled").booleanValue() || !run.path("connectionLive").booleanValue()) {
                 return fail("AGENT_DISABLED")
             }
@@ -112,24 +115,26 @@ class AgentRunner(
                 box.open(Base64.getMimeDecoder().decode(sealed), run.path("keyVersion").intValue(), context)
             } ?: return fail("AI_KEY_UNREADABLE")
             val endpoint = Endpoint(AiProvider.fromWire(text("provider"))!!, text("baseUrl")!!, key)
-            val (system, specs) = setup() ?: return finish(lease, "failed", "ACCESS_LOST", null)
+            val (system, specs) = setup() ?: return finish(lease, "failed", stopCode, null)
             steps = run.path("stepsUsed").intValue()
             tokens = run.path("tokensUsed").longValue()
             loop(endpoint, system, specs)
         }
 
-        /** Issues and binds the run's credential; null when the lease was lost meanwhile. */
-        private fun issue(): String? = credentials.asAccount(lease.accountId, lease.projectId, lease.runId) { tx ->
-            val id = credentials.issue(tx, lease.accountId, text("ownerId")!!, lease.projectId, CREDENTIAL_SECONDS)
-            id.takeIf {
-                tx.row(
-                    "SELECT app.ai_run_attach($1::uuid, $2::uuid, $3) AS ok",
-                    lease.runId,
-                    lease.token,
-                    id,
-                )!!.boolean("ok")
+        /** Issues and binds the run's credential, for [requester]; null when the lease was lost meanwhile. */
+        private fun issue(requester: String): String? =
+            credentials.asAccount(lease.accountId, lease.projectId, lease.runId) { tx ->
+                val parties = RuntimeCredentials.RunParties(lease.accountId, text("ownerId")!!, requester)
+                val id = credentials.issue(tx, parties, lease.projectId, CREDENTIAL_SECONDS)
+                id.takeIf {
+                    tx.row(
+                        "SELECT app.ai_run_attach($1::uuid, $2::uuid, $3) AS ok",
+                        lease.runId,
+                        lease.token,
+                        id,
+                    )!!.boolean("ok")
+                }
             }
-        }
 
         /**
          * The system prompt and the tools, from the account's permissions now; on a new run also the task as the
@@ -157,7 +162,8 @@ class AgentRunner(
                 }
                 system to tools.specs(tx, actor, lease.projectId)
             }
-        } catch (_: ProblemException) {
+        } catch (error: ProblemException) {
+            stopCode = if (error.code == RuntimeCredentials.INITIATOR_LOST) error.code else "ACCESS_LOST"
             null
         }
 
@@ -188,6 +194,7 @@ class AgentRunner(
                     "cancelled" -> return finish(lease, "cancelled", null, null)
                     "disabled" -> return fail("AGENT_DISABLED")
                     "timeout" -> return fail("RUN_TIMEOUT")
+                    "initiator" -> return finish(lease, "failed", RuntimeCredentials.INITIATOR_LOST, null)
                     else -> return
                 }
                 val last = turns.lastOrNull()
@@ -197,6 +204,10 @@ class AgentRunner(
                         tools.execute(lease, credentialId!!, call, retryKey("$position:$index"))
                     }
                     turns += Turn.Tools(results)
+                    // The person the run acts for lost access: the call failed and nothing more is done.
+                    if (results.any { it.error && errorCode(it) == RuntimeCredentials.INITIATOR_LOST }) {
+                        return finish(lease, "failed", RuntimeCredentials.INITIATOR_LOST, null)
+                    }
                     continue
                 }
                 if (steps >= maxSteps) return fail("STEP_LIMIT", lastText())
@@ -286,6 +297,9 @@ class AgentRunner(
             val call = ToolCall("$kind-${lease.runId}", "add_task_comment", json.writeValueAsString(arguments))
             return tools.execute(lease, credentialId!!, call, retryKey(kind))
         }
+
+        private fun errorCode(result: ToolResult): String? =
+            runCatching { json.readTree(result.content).path("error") }.getOrNull()?.takeIf { it.isString }?.asString()
 
         private fun lastText(): String? = turns.filterIsInstance<Turn.Assistant>().lastOrNull()?.text
 

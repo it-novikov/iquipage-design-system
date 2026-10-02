@@ -108,6 +108,7 @@ import com.sprintique.database.schema.auth.Auth
 import com.sprintique.database.schema.auth.keys.ACCESS_EVENTS__ACCESS_EVENTS_ACTOR_ID_FKEY
 import com.sprintique.database.schema.auth.keys.ACCESS_EVENTS__ACCESS_EVENTS_PRINCIPAL_ID_FKEY
 import com.sprintique.database.schema.auth.keys.CREDENTIALS__CREDENTIALS_INITIATOR_ID_FKEY
+import com.sprintique.database.schema.auth.keys.CREDENTIALS__CREDENTIALS_ON_BEHALF_OF_FKEY
 import com.sprintique.database.schema.auth.keys.CREDENTIALS__CREDENTIALS_PRINCIPAL_ID_FKEY
 import com.sprintique.database.schema.auth.keys.IDENTITIES__IDENTITIES_PRINCIPAL_ID_FKEY
 import com.sprintique.database.schema.auth.keys.INVITATIONS__INVITATIONS_ACCEPTED_BY_FKEY
@@ -948,6 +949,18 @@ open class Principals(
 
     val credentialsInitiatorIdFkey: CredentialsPath
         get(): CredentialsPath = credentialsInitiatorIdFkey()
+
+    private lateinit var _credentialsOnBehalfOfFkey: CredentialsPath
+
+    fun credentialsOnBehalfOfFkey(): CredentialsPath {
+        if (!this::_credentialsOnBehalfOfFkey.isInitialized)
+            _credentialsOnBehalfOfFkey = CredentialsPath(this, null, CREDENTIALS__CREDENTIALS_ON_BEHALF_OF_FKEY.inverseKey)
+
+        return _credentialsOnBehalfOfFkey;
+    }
+
+    val credentialsOnBehalfOfFkey: CredentialsPath
+        get(): CredentialsPath = credentialsOnBehalfOfFkey()
 
     private lateinit var _credentialsPrincipalIdFkey: CredentialsPath
 

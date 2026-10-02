@@ -39,3 +39,5 @@
 - 2026-10-01T23:20:36Z · claude · note · A5 · критерий приёмки выполнен
 - 2026-10-01T23:20:36Z · claude · note · - · Гейты: Kotlin check 113/113; integration 42/43 — WorkbenchCapacityIntegrationTest по времени (так же на чистом origin/main); Node 370/371 → W10 исправлен (f0d94de); verify-vnext падает на product-tests тем же тестом
 - 2026-10-01T23:20:37Z · claude · checkpoint · - · дальше: Решение владельца по WorkbenchCapacityIntegrationTest; ревью; мёрж владельцем
+- 2026-10-02T00:16:44Z · claude · decision · D7 · Запуск ограничен правами инициатора (решение владельца по #45): on_behalf_of в учётных данных runtime, app.on_behalf_of в auth.can_project и auth.can, пересечение в ProjectAccess.membership; потеря доступа инициатором останавливает запуск INITIATOR_ACCESS_LOST; запуск только от человека
+- 2026-10-02T00:16:44Z · claude · decision · D8 · Миграции перенумерованы в V20261001000064–067: 050 планирования в main деплоится раньше, Flyway строгий по порядку
