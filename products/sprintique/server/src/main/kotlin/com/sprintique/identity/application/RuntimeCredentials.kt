@@ -77,13 +77,18 @@ class RuntimeCredentials(private val database: Database) {
         )
         // The run acts for the person who started it: when that person is no longer active or no longer a member of
         // the project, nothing of the run goes on.
-        val active = tx.row(
-            "SELECT app.ai_initiator_active($1, $2) AS active",
+        val person = tx.row(
+            "SELECT array_to_string(app.ai_initiator_permissions($1, $2), ',') AS permissions",
             actor.projectId!!,
             actor.onBehalfOf!!,
-        )!!.boolean("active")
-        requireCondition(active, 401, INITIATOR_LOST, "У того, кто запустил агента, больше нет доступа к проекту.")
-        context(tx, actor.id, actor.projectId, actor.initiatorId, runId, actor.onBehalfOf)
+        )?.stringOrNull("permissions")
+        requireCondition(
+            person != null,
+            401,
+            INITIATOR_LOST,
+            "У того, кто запустил агента, больше нет доступа к проекту.",
+        )
+        context(tx, actor.id, actor.projectId, actor.initiatorId, runId, Delegation(actor.onBehalfOf, person))
         block(tx, actor)
     }
 
@@ -93,7 +98,7 @@ class RuntimeCredentials(private val database: Database) {
      */
     fun <T> asAccount(accountId: String, projectId: String, runId: String, block: (Transaction) -> T): T =
         database.transaction { tx ->
-            context(tx, accountId, projectId, "", runId, "")
+            context(tx, accountId, projectId, "", runId, null)
             block(tx)
         }
 
@@ -104,21 +109,27 @@ class RuntimeCredentials(private val database: Database) {
         projectId: String,
         initiatorId: String,
         runId: String,
-        onBehalfOf: String,
+        delegation: Delegation?,
     ) {
         tx.row(
             """
             SELECT set_config('app.actor_id', $1, true), set_config('app.project_limit', $2, true),
                    set_config('app.initiator_id', $3, true), set_config('app.agent_run', $4, true),
-                   set_config('app.on_behalf_of', $5, true)
+                   set_config('app.on_behalf_of', $5, true), set_config('app.on_behalf_project', $6, true),
+                   set_config('app.on_behalf_permissions', $7, true)
             """.trimIndent(),
             actorId,
             projectId,
             initiatorId,
             runId,
-            onBehalfOf,
+            delegation?.person.orEmpty(),
+            if (delegation == null) "" else projectId,
+            delegation?.permissions.orEmpty(),
         )
     }
+
+    /** The person a run acts for and their permissions in its project, read once per transaction. */
+    private class Delegation(val person: String, val permissions: String)
 
     companion object {
         /** The person a run acts for lost access to its project or was deactivated: the run stops. */

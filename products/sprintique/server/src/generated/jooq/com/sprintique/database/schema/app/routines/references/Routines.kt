@@ -7,6 +7,7 @@ package com.sprintique.database.schema.app.routines.references
 
 import com.sprintique.database.schema.app.routines.AiForgetConnectionSecret
 import com.sprintique.database.schema.app.routines.AiInitiatorActive
+import com.sprintique.database.schema.app.routines.AiInitiatorPermissions
 import com.sprintique.database.schema.app.routines.AiIsOwner
 import com.sprintique.database.schema.app.routines.AiRunAttach
 import com.sprintique.database.schema.app.routines.AiRunFinish
@@ -80,6 +81,41 @@ fun aiInitiatorActive(
     , person: Field<String?>
 ): Field<Boolean?> {
     val f = AiInitiatorActive()
+    f.setTargetProject(targetProject)
+    f.setPerson(person)
+
+    return f.asField()
+}
+
+fun aiInitiatorPermissions(
+      configuration: Configuration
+    , targetProject: String?
+    , person: String?
+): Array<String?>? {
+    val f = AiInitiatorPermissions()
+    f.setTargetProject(targetProject)
+    f.setPerson(person)
+
+    f.execute(configuration)
+    return f.returnValue
+}
+
+fun aiInitiatorPermissions(
+      targetProject: String?
+    , person: String?
+): Field<Array<String?>?> {
+    val f = AiInitiatorPermissions()
+    f.setTargetProject(targetProject)
+    f.setPerson(person)
+
+    return f.asField()
+}
+
+fun aiInitiatorPermissions(
+      targetProject: Field<String?>
+    , person: Field<String?>
+): Field<Array<String?>?> {
+    val f = AiInitiatorPermissions()
     f.setTargetProject(targetProject)
     f.setPerson(person)
 

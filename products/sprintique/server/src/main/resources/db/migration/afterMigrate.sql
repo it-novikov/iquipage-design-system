@@ -43,7 +43,7 @@ GRANT EXECUTE ON FUNCTION app.ai_is_owner(regclass),app.ai_store_connection_secr
   app.ai_run_claim(integer),app.ai_run_load(uuid,uuid),app.ai_run_attach(uuid,uuid,text),
   app.ai_run_step(uuid,uuid,text,text,text,text,text,integer,integer,bigint),app.ai_run_heartbeat(uuid,uuid,integer,jsonb),
   app.ai_run_finish(uuid,uuid,text,text,text),app.ai_run_mention(text,text,text),
-  app.ai_initiator_active(text,text) TO "${runtime_role}";
+  app.ai_initiator_active(text,text),app.ai_initiator_permissions(text,text) TO "${runtime_role}";
 GRANT SELECT,INSERT,UPDATE ON auth.principals,auth.credentials TO "${runtime_role}";
 -- Invitations (V20260930000039) are revoked, replaced or accepted, never deleted: their history stays.
 GRANT SELECT,INSERT,UPDATE ON auth.invitations TO "${runtime_role}";

@@ -121,7 +121,10 @@ REVOKE ALL ON FUNCTION app.ai_run_queue(text,text,text,text,text,text),app.ai_ru
 -- the one who assigned the task, wrote the mention or pressed «Запустить агента». Every check of the run's account is
 -- also made for that person: a project shows only while both are members of it and the person is active, a permission
 -- holds only while both hold it. The account's own rights already carry its owner's ceiling, so the run is limited by
--- all three. The person is on the run's runtime credential and in the transaction setting `app.on_behalf_of`.
+-- all three. The person is on the run's runtime credential. Each transaction of the run reads that person's
+-- membership once (app.ai_initiator_permissions) and puts it in its settings: `app.on_behalf_of` (the person),
+-- `app.on_behalf_project` (the run's project while the person is an active member of it) and
+-- `app.on_behalf_permissions` (their permissions there), so the row checks below stay as cheap as before.
 ALTER TABLE auth.credentials ADD COLUMN on_behalf_of text REFERENCES auth.principals;
 ALTER TABLE auth.credentials ADD CONSTRAINT credential_on_behalf CHECK((kind='runtime')=(on_behalf_of IS NOT NULL));
 
@@ -140,7 +143,8 @@ CREATE TRIGGER ai_agent_runs_requester BEFORE INSERT OR UPDATE OF requested_by O
   FOR EACH ROW EXECUTE FUNCTION app.ai_run_requester_check();
 
 -- Project visibility of V20260929000027 and the permission check of V20260930000040, each also for the person a
--- runtime credential acts for. Without `app.on_behalf_of` (every other request) nothing changes.
+-- runtime credential acts for, from the settings of the transaction. Without `app.on_behalf_of` (every other request)
+-- nothing changes.
 CREATE OR REPLACE FUNCTION auth.can_project(target text) RETURNS boolean
 LANGUAGE sql STABLE SECURITY DEFINER SET search_path=pg_catalog AS $$
  SELECT EXISTS(SELECT 1 FROM app.project_members WHERE project_id=target AND principal_id=auth.actor_id())
@@ -149,17 +153,14 @@ LANGUAGE sql STABLE SECURITY DEFINER SET search_path=pg_catalog AS $$
    SELECT 1 FROM auth.service_accounts s WHERE s.principal_id=auth.actor_id()
      AND (NOT auth.service_account_active(s.principal_id)
        OR NOT EXISTS(SELECT 1 FROM app.project_members o WHERE o.project_id=target AND o.principal_id=s.owner_id)))
- AND (coalesce(current_setting('app.on_behalf_of',true),'')='' OR EXISTS(
-   SELECT 1 FROM app.project_members d JOIN auth.principals p ON p.id=d.principal_id
-   WHERE d.project_id=target AND d.principal_id=current_setting('app.on_behalf_of',true)
-     AND p.kind='human' AND p.disabled_at IS NULL))
+ AND (coalesce(current_setting('app.on_behalf_of',true),'')='' OR current_setting('app.on_behalf_project',true)=target)
 $$;
 CREATE OR REPLACE FUNCTION auth.can(target text, permission text) RETURNS boolean
 LANGUAGE sql STABLE SECURITY DEFINER SET search_path=pg_catalog AS $$
   SELECT auth.can_project(target) AND EXISTS(SELECT 1 FROM app.project_members
     WHERE project_id=target AND principal_id=auth.actor_id() AND permission = ANY(permissions))
-  AND (coalesce(current_setting('app.on_behalf_of',true),'')='' OR EXISTS(SELECT 1 FROM app.project_members
-    WHERE project_id=target AND principal_id=current_setting('app.on_behalf_of',true) AND permission = ANY(permissions)))
+  AND (coalesce(current_setting('app.on_behalf_of',true),'')='' OR (current_setting('app.on_behalf_project',true)=target
+    AND permission = ANY(string_to_array(current_setting('app.on_behalf_permissions',true),','))))
 $$;
 
 -- Whether the person a run acts for is still active and a member of its project: the runner asks before every step
@@ -170,6 +171,13 @@ LANGUAGE sql STABLE SECURITY DEFINER SET search_path=pg_catalog AS $$
     WHERE d.project_id=target_project AND d.principal_id=person AND p.kind='human' AND p.disabled_at IS NULL)
 $$;
 REVOKE ALL ON FUNCTION app.ai_initiator_active(text,text) FROM PUBLIC;
+-- The permissions of that person in the project, or null when they are not an active member of it.
+CREATE FUNCTION app.ai_initiator_permissions(target_project text, person text) RETURNS text[]
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path=pg_catalog AS $$
+  SELECT d.permissions FROM app.project_members d JOIN auth.principals p ON p.id=d.principal_id
+  WHERE d.project_id=target_project AND d.principal_id=person AND p.kind='human' AND p.disabled_at IS NULL
+$$;
+REVOKE ALL ON FUNCTION app.ai_initiator_permissions(text,text) FROM PUBLIC;
 
 -- The credential of a run acts for the person who started the run.
 CREATE OR REPLACE FUNCTION app.ai_run_attach(run uuid, lease uuid, credential text) RETURNS boolean
