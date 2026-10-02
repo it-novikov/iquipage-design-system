@@ -8,7 +8,7 @@ owner: nvkv71
 branch: feature/notification-channels
 base: main
 created: 2026-10-01
-updated: 2026-10-02T09:43:13Z
+updated: 2026-10-02T14:36:13Z
 links: https://github.com/it-novikov/iquipage-design-system/pull/44
 ---
 
@@ -35,11 +35,11 @@ links: https://github.com/it-novikov/iquipage-design-system/pull/44
 
 ## Передача
 
-- **Состояние:** Слит origin/main 459609f; PR #44 MERGEABLE; уведомления 100% зелёные; S3-тесты блокирует недоступное хранилище colima QA
+- **Состояние:** Слит main 4756b27 (#45); verify-vnext PASS целиком (library 408, Kotlin 130+43, Node 396, detached 396); bell: тихие кнопки, ответ на месте, результат в строке
 - **Сейчас:** —
-- **Дальше:** Владелец: ревью #44, перезапуск гейтов при живом хранилище, деплой по operations.md
+- **Дальше:** Владелец: ревью и слияние #44, деплой по operations.md
 - **Незакоммичено:** нет
-- **Рабочая копия:** нет · HEAD 6d140e0
+- **Рабочая копия:** нет · HEAD d5ddbc5
 
 ## План
 
