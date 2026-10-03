@@ -15,3 +15,10 @@
 - 2026-10-03T15:26:04Z · claude · note · A3 · критерий приёмки выполнен
 - 2026-10-03T15:26:04Z · claude · step · S3 · active
 - 2026-10-03T15:26:04Z · claude · checkpoint · - · дальше: PR
+- 2026-10-03T15:26:11Z · claude · step · S1 · done: Панель рабочего стола и доски совпадает попиксельно (кроме активной вкладки); под панелью отличаются только «N мин назад» и «Обновлено в»
+- 2026-10-03T15:26:11Z · claude · step · S2 · done: При 200 мс задержки Рабочий стол → Доска 423 → 218 мс, 2 волны → 1, новых потоков 1 → 0; Доска → Рабочий стол 222 → 220 мс
+- 2026-10-03T15:26:11Z · claude · step · S3 · active
+- 2026-10-03T15:43:09Z · claude · step · S3 · done: npm ci; npm test: Kotlin check и integrationTest, Node 427/427; check:boundaries PASS; verify-vnext: все шаги PASS, source-stability PASS
+- 2026-10-03T15:43:09Z · claude · note · A4 · критерий приёмки выполнен
+- 2026-10-03T15:43:09Z · claude · checkpoint · - · дальше: Мёрж и деплой владельцем
+- 2026-10-03T15:43:09Z · claude · status · - · review: PR открыт
