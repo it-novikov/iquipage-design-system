@@ -24,6 +24,9 @@ const formats={flexible:['Гибкие релизы','Релиз выходит,
 export async function mountSettings(root,{repository,project,adapter,onChanged=()=>{}}){
  const client=repository.client,abort=new AbortController(),preferences=appearance(),phone=matchMedia('(max-width:760px)'),documentTitle=document.title;
  let workspace=null;
+ // The counts of the navigation do not depend on the workspace: they are read alongside it.
+ const countsOf=()=>{const base='/projects/'+encodeURIComponent(project.id);return Promise.all([client.request(base+'/approvals').catch(()=>null),can(project,'project.access')?client.request(base+'/operations').catch(()=>null):null]);};
+ let firstCounts=countsOf();
  try{workspace=await client.request('/workspaces/'+encodeURIComponent(project.workspaceId));}catch{/* "О пространстве" shows its own error; the other sections do not depend on it. */}
  const own=()=>projectPermissions(project),space=()=>workspace?.permissions||project.workspacePermissions||[];
  const features=repository.capabilities?.aiAgents?['ai_agents']:[];
@@ -39,8 +42,9 @@ export async function mountSettings(root,{repository,project,adapter,onChanged=(
  }
  /** Things that need someone's decision are counted in the navigation; zero shows nothing. */
  async function loadCounts(){
-  const base='/projects/'+encodeURIComponent(project.id);
-  const [approvals,operations]=await Promise.all([client.request(base+'/approvals').catch(()=>null),can(project,'project.access')?client.request(base+'/operations').catch(()=>null):null]);
+  // The first counts are the ones read with the workspace; later calls (onCounts) read them again.
+  const reads=firstCounts||countsOf();firstCounts=null;
+  const [approvals,operations]=await reads;
   if(closed)return;
   const pending=Number.isFinite(approvals?.pendingCount)?approvals.pendingCount:(approvals?.items||[]).filter(a=>a.status==='proposed'&&new Date(a.expiresAt)>new Date()).length;
   const failed=operations?.counts?.find(c=>c.state==='failed')?.count||0;

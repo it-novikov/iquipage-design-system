@@ -20,6 +20,8 @@ import {formatEstimate,estimateEditor,estimateMismatch} from '../estimate.js';
 
 export async function openTaskDialog(task,{repository,project,tasks,canEdit=true,canManage=true,attachmentAdapter=null,status='ready',initialValues={},fullscreen=false,backTo=null,onBack=()=>{},onOpenTask,onReload=onOpenTask&&(()=>onOpenTask(task.id)),onSaved=()=>{},isActive=()=>true,signal,replace=null,supplement=null}){
   signal?.throwIfAborted();const initialTask=task;
+  // What the open drawer reads next starts now, alongside the task, rather than after it renders.
+  if(task?.id)repository.warmTask?.(project.id,task.id);
   const [detail,context,support,members]=await Promise.all([
     task?.summary?repository.read('tasks',task.id,project.id,{signal}):task,
     repository.taskContext?repository.taskContext(project.id,{signal}):tasks,
@@ -169,7 +171,7 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
       slot.innerHTML=`<span class="iq-property-label" id="${id}-label">Оценка</span><button type="button" class="iq-date-trigger tdr-plan-trigger" aria-haspopup="dialog" aria-labelledby="${id}-label ${id}-value"><span id="${id}-value" data-date-caption${estimate?'':' data-empty="true"'}>${esc(estimate?formatEstimate(estimate)+(other?' · в другом формате':''):'Без оценки')}</span>${icon('down',16)}</button>`;
     };
     paint();
-    repository.client?.request?.(`/projects/${encodeURIComponent(project.id)}/planning/view/settings`).then(value=>{estimateSettings=value;paint();}).catch(()=>{});
+    (repository.viewSettings?repository.viewSettings(project.id):repository.client?.request?.(`/projects/${encodeURIComponent(project.id)}/planning/view/settings`))?.then(value=>{estimateSettings=value;paint();}).catch(()=>{});
     slot.addEventListener('click',event=>{
       const trigger=event.target.closest('button');if(!trigger)return;
       estimateEditor(trigger,{value:estimate,format:estimateSettings?.estimateFormat||'time',hoursPerDay:estimateSettings?.hoursPerDay||8,hoursPerWeek:estimateSettings?.hoursPerWeek||40,

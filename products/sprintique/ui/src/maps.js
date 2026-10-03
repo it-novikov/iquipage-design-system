@@ -50,9 +50,15 @@ export class MapsFeature {
     });
     this.timer=setInterval(()=>this.updateTimer(),1000);
     if(!this.permissions.read){this.surface.innerHTML='<div class="map-empty"><h2>Карта недоступна</h2><p>У вашей роли нет разрешения на просмотр.</p></div>';this.renderChrome();return;}
-    await this.reloadList();
+    // The map the host expects to open is read alongside the list; it is used only when the list opens that map, and
+    // cancelled otherwise before the chosen one is read (its images must not mix with the open map's).
+    const likely=this.config.likelyMapId,guess=new AbortController();
+    this.abort.signal.addEventListener('abort',()=>guess.abort(),{once:true});
+    const early=likely?this.repository.read('maps',likely,this.project.id,{signal:guess.signal}).catch(()=>null):null;
+    try{await this.reloadList();}catch(error){guess.abort();throw error;}
     const initial=this.maps.find(m=>m.id===this.config.mapId)||this.maps.find(m=>m.status!=='archived');
-    if(initial)await this.openMap(initial.id);else this.empty();
+    if(initial?.id!==likely)guess.abort();
+    if(initial)await this.openMap(initial.id,{early:initial.id===likely?early:null});else this.empty();
   }
   async reloadList(){const maps=await this.repository.list('maps',this.project.id,{signal:this.abort.signal});if(this.alive)this.maps=maps.sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt));}
   empty(){this.current=null;this.surface.innerHTML=`<div class="map-empty"><span class="map-empty-symbol">${icon('board',32)}</span><h2>Место для идей и решений</h2><p>${this.uiCapabilities.sessions?'Создайте постоянную карту для схем или сессию для совместного обсуждения.':'Создайте карту и начните с одной мысли.'}</p><div class="row">${this.uiCapabilities.templates?button('templates','Выбрать основу','grid','primary'):''}${button('new','Чистая карта','plus',this.uiCapabilities.templates?'secondary':'primary')}</div></div>`;this.renderChrome();}
@@ -63,14 +69,14 @@ export class MapsFeature {
     if(this.board.dirty){this.message('Сначала сохраните изменение или экспортируйте свою копию. Исходная карта не закрыта.',true);return false;}
     return true;
   }
-  async openMap(id) {
+  async openMap(id,{early=null}={}) {
     requireValue(this.permissions.read,'READ_ONLY','Просмотр карт недоступен.');
     if(!this.alive)return false;const generation=++this.mapGeneration;
     for(const read of this.mapReads)read.abort();this.mapReads.clear();
     if(!(await this.readyToLeave())||!this.alive||generation!==this.mapGeneration)return false;
     const request=new AbortController();this.mapReads.add(request);
     try{
-      const map=await this.repository.read('maps',id,this.project.id,{signal:request.signal});
+      const map=(early&&await early)||await this.repository.read('maps',id,this.project.id,{signal:request.signal});
       if(!this.alive||request.signal.aborted||generation!==this.mapGeneration)return false;
       requireValue(map,'NOT_FOUND','Карта не найдена в этом проекте.');
       if(this.current&&this.board)this.positions.set(`${this.current.id}:${this.view}`,this.board.viewport);

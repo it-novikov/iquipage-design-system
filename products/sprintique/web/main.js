@@ -105,8 +105,9 @@ async function creatableWorkspaces(){
   const allowed=await Promise.all(all.map(async w=>mayCreateProjects(w,w.role==='member'?await client.request('/workspaces/'+encodeURIComponent(w.id)+'/access').catch(()=>null):null)));
   return all.filter((_,i)=>allowed[i]);
 }
-/** «Новый проект» appears in the navigation only where it can succeed (unknown: shown, the server decides); once per load. */
-let creatable=null;
+/** «Новый проект» appears in the navigation only where it can succeed (unknown: shown, the server decides); once per load.
+ *  It is read alongside the first project's data and awaited only where the navigation is built. */
+let creatable=null,creatableReady=Promise.resolve();
 async function onboard(selectedWorkspaceId){
   // Projects are created where the person may: projects.create, or a members' workspace whose rule lets members create.
   const workspaces=await creatableWorkspaces();
@@ -124,24 +125,62 @@ async function onboard(selectedWorkspaceId){
     location.hash='#tasks';await showProject(project.id);
   }});
 }
+/** The project whose live stream is open, and the rights it was opened with: switching sections keeps it open. */
+let watching=null;
+function stopWatching(){repository.stopWatch?.();watching=null;}
+/** Section code by route, fetched when its link is pointed at or focused, so a first visit after a release does not
+ *  wait for the download; the section's own import then finds it ready. */
+const SECTION_MODULES={planning:()=>import('../ui/planning/src/index.js'),maps:()=>import('./maps-host.js'),finance:()=>import('../ui/finance/src/index.js'),settings:()=>import('./settings.js')};
+const prefetchedSections=new Set();
+function prefetchSection(mode){
+  const load=SECTION_MODULES[mode];if(!load||prefetchedSections.has(mode))return;
+  prefetchedSections.add(mode);load().catch(()=>prefetchedSections.delete(mode));
+}
+const prefetchLink=event=>{const link=event.target.closest?.('[data-section-link]');if(link)prefetchSection(link.dataset.sectionLink);};
+root.addEventListener('pointerover',prefetchLink);root.addEventListener('focusin',prefetchLink);root.addEventListener('touchstart',prefetchLink,{passive:true});
+/** What the project's live stream reports: changed rights ask for a refresh, lost access closes the project. */
+function onStreamChange(change){
+  if(change?.roleChanged){
+    if(root.querySelector('[data-access-change]'))return;
+    const banner=document.createElement('section');banner.dataset.accessChange='';
+    banner.innerHTML=ui.alert('Права изменились','Несохранённый текст остаётся в открытой форме. Обновите доступ, чтобы применить новые права.','warning')+ui.btn('Обновить доступ','secondary sm');
+    root.querySelector('#host-view')?.before(banner);
+    banner.querySelector('button').onclick=()=>{void(async()=>{if(board&&!await board.closeTask())return;session=await repository.initialize();await showProject(currentProject.id,viewMode);})().catch(report);};
+    return;
+  }
+  watching=null;
+  board?.destroy();board=null;session=null;planningAdapter?.clear();
+  for(const modal of document.querySelectorAll('iq-dialog'))modal.close(true);
+  root.innerHTML='<main class="host-landing"><h1>Доступ изменился</h1><p>Обновите страницу, чтобы проверить доступные проекты.</p><a class="iq-btn primary" href="/">Обновить доступ</a></main>';
+}
 async function showProject(id,mode=location.hash.startsWith('#maps')?'maps':location.hash.startsWith('#settings')?'settings':location.hash.startsWith('#finance')?'finance':location.hash==='#planning'?'planning':'tasks'){
   if(navigating)return false;navigating=true;
+  let release=null;
   try{
   if(workbench){if(!await workbench.readyToLeave())return false;workbench.destroy();workbench=null;nav=null;}
   if(board&&!await board.closeTask())return false;
-  repository.stopWatch?.();const previous=board;board=null;const project=session.projects.find(p=>p.id===id)||session.projects[0];
+  const project=session.projects.find(p=>p.id===id)||session.projects[0];
+  // Sections of one project share its live stream; another project, or changed rights, open it anew.
+  const keep=!!project&&watching?.projectId===project.id&&watching.access===accessSignature(project);
+  if(!keep)stopWatching();
+  const previous=board;board=null;
   if(!project){await previous?.destroy();root.innerHTML='<main class="host-landing"><h1>Создадим первый проект</h1><p>Задачи, обсуждения и команда в одном месте.</p><button class="iq-btn primary" data-onboard>Создать проект</button></main>';root.querySelector('[data-onboard]').onclick=()=>onboard().catch(report);return;}
   currentProject=project;viewMode=mode;
   try{localStorage.setItem(LAST_PROJECT_KEY+session.principal.id,project.id);}catch{}
+  prefetchSection(mode);
   // Capture the durable watermark before loading any view snapshot. Writes during
   // mount are replayed afterwards, while older membership events are not mistaken for new changes.
-  const eventHead=await repository.client.request(`/projects/${encodeURIComponent(project.id)}/events/head`);
+  // A stream that stays open holds its events until the section has mounted instead: the same replay, without
+  // a round trip for the watermark and a new connection on every switch.
+  const eventHead=keep?null:await repository.client.request(`/projects/${encodeURIComponent(project.id)}/events/head`);
+  if(keep)release=repository.holdChanges();
   repository.clearProjectCache(project.id);
   planningAdapter=new PlanningAdapter(repository,project.id);
   repository.confirmPlanningChange=intent=>confirmPlanningChange(planningAdapter,intent);
   repository.applyPlanningChange=intent=>applyPlanningChange(planningAdapter,intent);
   repository.createInRelease=(intent,release,createInBacklog)=>createInRelease({adapter:planningAdapter,client:repository.client,intent,release,createInBacklog});
   const url=new URL(location.href);if(isWorkbenchPath()){url.pathname='/';url.search='';}url.searchParams.set('project',project.slug);history.replaceState(null,'',url);
+  await creatableReady;
   ensureShell(project,mode);
   await recoverPlanningAttempt(planningAdapter);
   const stateKey=project.id+':'+mode;if(!viewStates.has(stateKey))viewStates.set(stateKey,{});
@@ -154,7 +193,7 @@ async function showProject(id,mode=location.hash.startsWith('#maps')?'maps':loca
   else{await previous?.destroy();host.innerHTML=loadingMarkup('Загрузка раздела…',{rows:6,title:true,className:'host-loading'});}
   host.dataset.section=mode;
   try{
-  if(mode==='maps'){const {mountMapsHost}=await import('./maps-host.js');board=await mountMapsHost(host,{repository,project,onOpenTasks:async({focusTaskId})=>{await navigate('tasks');if(viewMode==='tasks')await board.openTask(focusTaskId);}});}
+  if(mode==='maps'){const {mountMapsHost}=await import('./maps-host.js');board=await mountMapsHost(host,{repository,project,viewState:viewStates.get(stateKey),onOpenTasks:async({focusTaskId})=>{await navigate('tasks');if(viewMode==='tasks')await board.openTask(focusTaskId);}});}
   else if(mode==='planning')board=await mountPlanningHost(host,{repository,adapter:planningAdapter,project,viewState:viewStates.get(stateKey),onOpenBoard:()=>navigate('tasks')});
   else if(mode==='finance'){const {mountFinance}=await import('../ui/finance/src/index.js');board=await mountFinance(host,{repository,project,viewState:viewStates.get(stateKey)});}
   else if(mode==='settings'){const {mountSettings}=await import('./settings.js');board=await mountSettings(host,{repository,adapter:planningAdapter,project,onChanged:refreshHeader});}
@@ -165,22 +204,11 @@ async function showProject(id,mode=location.hash.startsWith('#maps')?'maps':loca
   }
   // Content that replaces a visible outline fades in; a direct swap between sections does not animate.
   if(!swap||cover)host.firstElementChild?.classList.add('iq-reveal');
-  repository.watch(project.id,change=>{
-    if(change?.roleChanged){
-      if(root.querySelector('[data-access-change]'))return;
-      const banner=document.createElement('section');banner.dataset.accessChange='';
-      banner.innerHTML=ui.alert('Права изменились','Несохранённый текст остаётся в открытой форме. Обновите доступ, чтобы применить новые права.','warning')+ui.btn('Обновить доступ','secondary sm');
-      host.before(banner);
-      banner.querySelector('button').onclick=()=>{void(async()=>{if(board&&!await board.closeTask())return;session=await repository.initialize();await showProject(project.id,viewMode);})().catch(report);};
-      return;
-    }
-    board?.destroy();board=null;session=null;planningAdapter?.clear();
-    for(const modal of document.querySelectorAll('iq-dialog'))modal.close(true);
-    root.innerHTML='<main class="host-landing"><h1>Доступ изменился</h1><p>Обновите страницу, чтобы проверить доступные проекты.</p><a class="iq-btn primary" href="/">Обновить доступ</a></main>';
-  },{cursor:eventHead.cursor,access:accessSignature(project)});
+  if(keep){const held=release;release=null;held();if(!board)return true;}
+  else{const access=accessSignature(project);repository.watch(project.id,onStreamChange,{cursor:eventHead.cursor,access});watching={projectId:project.id,access};}
   const task=parseTaskRoute(location.hash);if(task&&board.openTask)await board.openTask(task,{fromRoute:true});
   return true;
-  }finally{navigating=false;}
+  }finally{release?.();navigating=false;}
 }
 async function navigate(mode){
   if(navigating||!currentProject)return;
@@ -198,7 +226,7 @@ async function openWorkbench({push=true}={}){
   if(board&&!await board.closeTask())return;
   navigating=true;
   try{
-    repository.stopWatch?.();await board?.destroy();board=null;nav?.destroy();nav=null;
+    stopWatching();await board?.destroy();board=null;nav?.destroy();nav=null;
     if(push&&!isWorkbenchPath())history.pushState({workbench:true},'','/workbench');
     // Planning changes from a Workbench drawer go through the drawer's own project, never the last one shown.
     const planning=projectId=>{const adapter=new PlanningAdapter(repository,projectId);
@@ -255,7 +283,7 @@ try{session=await repository.initialize();
   if(resumeAuthorization())throw STOP;
   invitationFlow().restore();
   if(await acceptPendingInvitation(repository.client))session=await repository.initialize();
-  creatable=await creatableWorkspaces().catch(()=>null);
+  creatableReady=creatableWorkspaces().then(value=>{creatable=value;},()=>{creatable=null;});
   if(isWorkbenchPath()&&workbenchOn())await openWorkbench({push:false});
   else{if(isWorkbenchPath())history.replaceState(null,'','/');
   const slug=new URL(location.href).searchParams.get('project');await showProject(session.projects.find(p=>p.slug===slug)?.id??lastProject());}}

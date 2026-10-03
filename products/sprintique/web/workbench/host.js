@@ -10,6 +10,9 @@ import {mountWeek} from './week.js';
 import {mountPersonalPanel} from './personal-panel.js';
 import {VIEWS,countLabel,parseRoute,readFilter,viewPath,writeFilter} from './model.js';
 
+/** The person's Workbench settings as last read or saved in this page: a return to the Workbench shows them at once and
+ *  reads them again alongside the snapshot. */
+let knownPreferences=null;
 export async function mountWorkbench(root,{repository,session:initialSession,planning,onOpenProject,onSearch,onTheme,onSignOut,onAccount}){
   let session=initialSession;
   const api=new WorkbenchApi(repository.client);
@@ -54,10 +57,10 @@ ${ui.btn('Новая задача','primary sm','plus','data-create-task aria-la
   const prefs=()=>preferences;
   /** Saves a setting; true when it is saved. A failure is said, never swallowed (review R4 F16). */
   async function savePrefs(fields){
-    try{preferences=await api.savePreferences(preferences.revision,fields);return true;}
+    try{preferences=knownPreferences=await api.savePreferences(preferences.revision,fields);return true;}
     catch(error){
       if(error.code==='CONFLICT'){
-        try{preferences=await api.preferences();preferences=await api.savePreferences(preferences.revision,fields);return true;}catch(again){error=again;}
+        try{preferences=await api.preferences();preferences=knownPreferences=await api.savePreferences(preferences.revision,fields);return true;}catch(again){error=again;}
       }
       notify({tone:'danger',message:'Настройку не удалось сохранить',description:error.message||'Сервер не ответил.'});return false;
     }
@@ -177,7 +180,15 @@ ${ui.btn('Новая задача','primary sm','plus','data-create-task aria-la
 
   // /workbench/board is not a view of v1: the address is corrected, the overview shown.
   if(/^\/workbench\/board\/?$/.test(location.pathname))history.replaceState({workbench:true},'',url('overview'));
-  try{preferences=await api.preferences();}catch{/* defaults: lanes, no zone */}
+  if(knownPreferences){
+    preferences=knownPreferences;
+    // A newer revision from elsewhere (another tab or device) replaces them; the views follow when they differ.
+    void api.preferences().then(fresh=>{
+      if(closed||!fresh||!(fresh.revision>preferences.revision))return;
+      const changed=fresh.timezone!==preferences.timezone||JSON.stringify(fresh.layout)!==JSON.stringify(preferences.layout);
+      preferences=knownPreferences=fresh;if(changed)mountContent();
+    }).catch(()=>{});
+  }else{try{preferences=knownPreferences=await api.preferences();}catch{/* defaults: lanes, no zone */}}
   renderChrome();setSummary(null);mountContent();
   if(route0.task)await openTask(route0.task,{fromRoute:true});
   return {
