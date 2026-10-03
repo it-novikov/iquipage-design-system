@@ -14,19 +14,42 @@ import {accessSignature} from './permissions.js';
  */
 const displayOwner=(task,people)=>({...task,...describeOwner(task,people)});
 export class ProductRepository {
-  constructor(client=new SprintiqueClient()){this.client=client;this.listeners=new Set();this.context={};this.cache=new Map();this.cacheState={generation:0};this.createInBoard=true;this.capabilities={storage:'server',taskLinks:true,taskSettings:true,attachments:false,maps:true,templateImages:false};}
-  async initialize(){const session=await this.client.session();this.context.actorId=session.principal.id;
+  constructor(client=new SprintiqueClient()){this.client=client;this.listeners=new Set();this.context={};this.cache=new Map();this.cacheState={generation:0};this.inflight=new Map();this.early=new Map();this.streamState={held:0,resume:null};this.createInBoard=true;this.capabilities={storage:'server',taskLinks:true,taskSettings:true,attachments:false,maps:true,templateImages:false};}
+  async initialize(){
+    // The session and the storage capabilities are independent reads: one round trip, not two.
+    const [session,media]=await Promise.all([this.client.session(),this.client.request('/media/capabilities')]);this.context.actorId=session.principal.id;
     // Agents of service accounts on tasks, when the server has them on (docs/decisions/0005-ai-agents.md).
     this.capabilities.aiAgents=(session.features||[]).includes('ai_agents');
-    const media=await this.client.request('/media/capabilities');this.capabilities.attachments=media.available;this.attachmentAdapter=media.available?new MediaAdapter(this):null;this.mapMedia=new MapMedia(this);return session;}
+    this.capabilities.attachments=media.available;this.attachmentAdapter=media.available?new MediaAdapter(this):null;this.mapMedia=new MapMedia(this);return session;}
   subscribe(listener){this.listeners.add(listener);return ()=>this.listeners.delete(listener);}
   clearProjectCache(projectId){this.cacheState.generation++;for(const key of this.cache.keys())if(!projectId||key.startsWith(projectId+':'))this.cache.delete(key);}
   async cached(projectId,name,load,{signal}={}){
     signal?.throwIfAborted();const key=projectId+':'+name,entry=this.cache.get(key);
     if(entry&&entry.until>Date.now())return structuredClone(entry.value);
-    const generation=this.cacheState.generation,value=await load();signal?.throwIfAborted();
-    if(generation===this.cacheState.generation){this.cache.set(key,{value:structuredClone(value),until:Date.now()+30000});while(this.cache.size>48)this.cache.delete(this.cache.keys().next().value);}
-    return value;
+    // A read of the same thing already under way (a prefetch on hover, a parallel section load) is shared rather than
+    // sent again; when its first caller cancels it, the next caller reads on its own.
+    const generation=this.cacheState.generation,running=this.inflight.get(key);
+    if(running&&running.generation===generation){
+      try{const shared=await running.promise;signal?.throwIfAborted();return structuredClone(shared);}
+      catch(error){signal?.throwIfAborted();if(error?.name!=='AbortError')throw error;}
+    }
+    const record={generation,promise:null};let snapshot;
+    record.promise=(async()=>{snapshot=structuredClone(await load());return snapshot;})();
+    this.inflight.set(key,record);record.promise.catch(()=>{});
+    try{
+      await record.promise;signal?.throwIfAborted();
+      if(generation===this.cacheState.generation){this.cache.set(key,{value:snapshot,until:Date.now()+30000});while(this.cache.size>48)this.cache.delete(this.cache.keys().next().value);}
+      return structuredClone(snapshot);
+    }finally{if(this.inflight.get(key)===record)this.inflight.delete(key);}
+  }
+  /**
+   * Holds the live stream of the watched project while a section mounts: its events wait and are handled, in order,
+   * when the last hold is released. A mount therefore sees every change after the data it read, exactly as when the
+   * stream was started after the mount from the watermark taken before it. Returns the release function.
+   */
+  holdChanges(){
+    const state=this.streamState;state.held++;let released=false;
+    return ()=>{if(released)return;released=true;state.held--;if(!state.held)state.resume?.();};
   }
   /** `access` is the person's permissions signature: a change of it (not only of the derived role) asks for a refresh. */
   watch(projectId,onAccessRevoked,{cursor,access,role}={}){
@@ -47,7 +70,9 @@ export class ProductRepository {
       const previous=changed.get(collection);
       changed.set(collection,{collection,projectId,id:event.resourceId,revision:event.revision,...(previous||event.topic==='resync'?{resync:true}:{})});
     };
-    const stop=watchProject(projectId,event=>{
+    // Events and the loss of access that arrive while a section mounts wait for it (holdChanges).
+    const state=this.streamState,waiting=[];let lostWhileHeld=false;
+    const handle=event=>{
       if(closed)return;
       if(event.topic==='member.updated'&&event.resourceId===this.context.actorId)void checkMembership();
       const names={'task':'tasks','thread':'threads','tags':'tags','release':'releases','releases':'releases','map':'maps','map-template':'templates','task-link':'taskLinks','task-settings':'taskSettings','finance-entry':'financeEntries','finance-settings':'financeSettings'};
@@ -56,8 +81,11 @@ export class ProductRepository {
       if(event.topic==='resync'||event.topic.startsWith('planning.')||event.topic.startsWith('member.')){collections.forEach(name=>queue(name,{...event,topic:'resync'}));if(event.topic==='resync')void checkMembership();}
       else if(collection)queue(collection,event);
       clearTimeout(timer);timer=setTimeout(()=>{for(const change of changed.values())this.listeners.forEach(fn=>fn(change));changed.clear();},80);
-    },lost,{cursor});
-    this.stopWatch=()=>{closed=true;clearTimeout(timer);changed.clear();controller.abort();stop();};return this.stopWatch;
+    };
+    const stop=watchProject(projectId,event=>{if(closed)return;if(state.held)waiting.push(event);else handle(event);},
+      ()=>{if(state.held)lostWhileHeld=true;else lost();},{cursor});
+    state.resume=()=>{while(waiting.length&&!closed&&!state.held)handle(waiting.shift());if(lostWhileHeld&&!state.held){lostWhileHeld=false;lost();}};
+    this.stopWatch=()=>{closed=true;clearTimeout(timer);changed.clear();waiting.length=0;lostWhileHeld=false;state.resume=null;controller.abort();stop();};return this.stopWatch;
   }
   async taskContext(projectId,{signal}={}){return this.cached(projectId,'task-context',async()=>{
     const planning=new PlanningClient(this.client,projectId);let cursor,result=[];
@@ -112,9 +140,30 @@ export class ProductRepository {
       return (await this.list(collection,projectId)).find(r=>r.id===id)||null;
     }catch(error){if(error.status===404)return null;throw error;}
   }
-  pageThreads(projectId,taskId,options){return this.client.threads(projectId,taskId,options);}
+  /**
+   * The reads an opened task drawer makes next (its first page of discussions, its agents, the project's links and
+   * estimate settings), started alongside the task itself instead of after the drawer has rendered. Each early answer
+   * is taken once, by the same read, within a few seconds and only while nothing has changed since (no event, no
+   * write: the cache generation is the same); anything else reads again.
+   */
+  warmTask(projectId,taskId){
+    const until=Date.now()+5000,generation=this.cacheState.generation;
+    const put=(key,load)=>{const promise=load();promise.catch(()=>{});this.early.set(key,{promise,until,generation});};
+    for(const [key,entry] of this.early)if(entry.until<Date.now())this.early.delete(key);
+    put(`threads:${projectId}:${taskId}`,()=>this.client.threads(projectId,taskId,{limit:20}));
+    if(this.capabilities.aiAgents)put(`agents:${projectId}:${taskId}`,()=>this.client.request(`/projects/${encodeURIComponent(projectId)}/tasks/${encodeURIComponent(taskId)}/agents`));
+    put(`view-settings:${projectId}`,()=>this.client.request(`/projects/${encodeURIComponent(projectId)}/planning/view/settings`));
+    if(this.capabilities.taskLinks!==false)this.list('taskLinks',projectId).catch(()=>{});
+  }
+  takeEarly(key){const entry=this.early.get(key);this.early.delete(key);return entry&&entry.until>=Date.now()&&entry.generation===this.cacheState.generation?entry.promise:null;}
+  pageThreads(projectId,taskId,options={}){
+    const early=!options.cursor&&options.limit===20?this.takeEarly(`threads:${projectId}:${taskId}`):null;
+    return early||this.client.threads(projectId,taskId,options);
+  }
+  /** The project's planning settings that the drawer's estimate reads (format, hours per day and week). */
+  viewSettings(projectId){return this.takeEarly(`view-settings:${projectId}`)||this.client.request(`/projects/${encodeURIComponent(projectId)}/planning/view/settings`);}
   /** Agents on a task: who can work on it, its latest runs and the steps of the last one. */
-  taskAgents(projectId,taskId,{signal}={}){return this.client.request(`/projects/${encodeURIComponent(projectId)}/tasks/${encodeURIComponent(taskId)}/agents`,'GET',undefined,undefined,signal);}
+  taskAgents(projectId,taskId,{signal}={}){return this.takeEarly(`agents:${projectId}:${taskId}`)||this.client.request(`/projects/${encodeURIComponent(projectId)}/tasks/${encodeURIComponent(taskId)}/agents`,'GET',undefined,undefined,signal);}
   startAgent(projectId,taskId,accountId){return this.client.request(`/projects/${encodeURIComponent(projectId)}/tasks/${encodeURIComponent(taskId)}/agent-runs`,'POST',{accountId});}
   stopAgent(projectId,taskId,runId){return this.client.request(`/projects/${encodeURIComponent(projectId)}/tasks/${encodeURIComponent(taskId)}/agent-runs/${encodeURIComponent(runId)}/stop`,'POST',{});}
   /** The caller's own read marker for a thread: "new" follows the person across devices. */
