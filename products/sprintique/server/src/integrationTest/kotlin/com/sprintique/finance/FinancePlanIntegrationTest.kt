@@ -365,8 +365,8 @@ class FinancePlanIntegrationTest {
         const val POOL = 3
         const val W = "00000000-0000-4000-8000-00000000f1a0"
 
-        /** The last migration before the plan; 068–071 belong to other branches. */
-        const val BEFORE_PLAN = "20261001000067"
+        /** The last migration before the plan (068–070 are the notifications of #44; 071 is unused). */
+        const val BEFORE_PLAN = "20261001000070"
         val OWNER: Database by lazy { Database.connect(IntegrationDatabase.migrationUrl, 2, "test-owner-plan") }
     }
 }

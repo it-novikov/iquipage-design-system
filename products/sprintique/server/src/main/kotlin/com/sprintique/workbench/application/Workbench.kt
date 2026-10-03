@@ -380,14 +380,20 @@ object Workbench {
             AND (r.status IN ('open', 'orphaned') OR r.updated_at > now() - interval '30 days')
         ), related AS (
           -- A person's own request makes only its own events news; participation makes every meaningful event news.
-          SELECT project_id, task_id, bool_and(request_only) AS request_only FROM (
+          -- The watermark is settled here, as a plain column, so the event scan below compares `sequence` with a
+          -- parameter. Row security on app.task_activity admits into its index condition, and ahead of the per-row
+          -- auth.can_project, only leakproof quals, and Postgres counts any COALESCE as leaky: with
+          -- `sequence > coalesce(...)` in the scan every event of every related task was fetched and checked.
+          SELECT relation.project_id, relation.task_id, bool_and(relation.request_only) AS request_only,
+                 coalesce(max(s.last_seen_sequence), 0) AS seen FROM (
             SELECT project_id, task_id, false AS request_only FROM participating
             UNION ALL SELECT project_id, task_id, true FROM outgoing
-          ) relation GROUP BY project_id, task_id
+          ) relation LEFT JOIN personal s ON s.project_id = relation.project_id AND s.task_id = relation.task_id
+          GROUP BY relation.project_id, relation.task_id
         ), unseen AS MATERIALIZED (
           SELECT x.project_id, x.task_id, agg.n, agg.latest, agg.latest_at, agg.latest_kind, agg.latest_actor,
                  agg.latest_detail, agg.kinds
-          FROM related x LEFT JOIN personal s ON s.project_id = x.project_id AND s.task_id = x.task_id
+          FROM related x
           CROSS JOIN LATERAL (
             SELECT count(*) AS n, max(v.sequence) AS latest, max(v.created_at) AS latest_at,
                    (array_agg(v.kind ORDER BY v.sequence DESC))[1] AS latest_kind,
@@ -395,7 +401,7 @@ object Workbench {
                    (array_agg(v.detail ORDER BY v.sequence DESC))[1] AS latest_detail,
                    array_agg(DISTINCT v.kind) AS kinds
             FROM (SELECT e.sequence, e.created_at, e.kind, e.actor_id, e.detail FROM app.task_activity e
-                  WHERE e.project_id = x.project_id AND e.task_id = x.task_id AND e.sequence > coalesce(s.last_seen_sequence, 0)
+                  WHERE e.project_id = x.project_id AND e.task_id = x.task_id AND e.sequence > x.seen
                     AND e.actor_id <> $1 AND e.initiator_id IS DISTINCT FROM $1
                     AND (NOT x.request_only OR (e.kind = 'request' AND e.detail->>'requestedBy' = $1))
                   ORDER BY e.sequence DESC LIMIT $UPDATES_CAP) v

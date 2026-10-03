@@ -1,7 +1,9 @@
 package com.sprintique.notification.infrastructure
 
 import com.sprintique.notification.application.SendResult
+import com.sprintique.notification.application.TelegramEditor
 import com.sprintique.notification.application.TelegramPort
+import com.sprintique.notification.domain.InlineButton
 import tools.jackson.core.JacksonException
 import tools.jackson.databind.json.JsonMapper
 import java.io.IOException
@@ -15,7 +17,7 @@ import java.time.Duration
  * `sendMessage` of the Telegram Bot API over HTTPS. The token is part of the request path, so neither the URL nor an
  * exception message ever leaves this class; results carry status codes only.
  */
-class TelegramBotApi(apiBase: String, private val token: String) : TelegramPort {
+class TelegramBotApi(apiBase: String, private val token: String) : TelegramPort, TelegramEditor {
     private val base = apiBase.removeSuffix("/")
     private val json = JsonMapper.builder().build()
     private val client = HttpClient.newBuilder()
@@ -23,18 +25,39 @@ class TelegramBotApi(apiBase: String, private val token: String) : TelegramPort 
         .followRedirects(HttpClient.Redirect.NEVER)
         .build()
 
-    override fun send(chatId: Long, html: String, button: Pair<String, String>?): SendResult {
+    override fun send(chatId: Long, html: String, buttons: List<List<InlineButton>>): SendResult {
         val body = linkedMapOf<String, Any>(
             "chat_id" to chatId,
             "text" to html,
             "parse_mode" to "HTML",
             "link_preview_options" to mapOf("is_disabled" to true),
         )
-        if (button != null) {
-            body["reply_markup"] =
-                mapOf("inline_keyboard" to listOf(listOf(mapOf("text" to button.first, "url" to button.second))))
-        }
-        val request = HttpRequest.newBuilder(URI("$base/bot$token/sendMessage"))
+        if (buttons.isNotEmpty()) body["reply_markup"] = keyboard(buttons)
+        return call("sendMessage", body)
+    }
+
+    /** Replaces the buttons under a sent message: after a quick action they show its result. */
+    override fun editButtons(chatId: Long, messageId: Long, buttons: List<List<InlineButton>>): SendResult =
+        call(
+            "editMessageReplyMarkup",
+            mapOf(
+                "chat_id" to chatId, "message_id" to messageId,
+                "reply_markup" to keyboard(buttons),
+            ),
+        )
+
+    private fun keyboard(rows: List<List<InlineButton>>) = mapOf(
+        "inline_keyboard" to rows.map { row ->
+            row.map { button ->
+                linkedMapOf<String, Any?>("text" to button.text).apply {
+                    if (button.url != null) put("url", button.url) else put("callback_data", button.data)
+                }
+            }
+        },
+    )
+
+    private fun call(method: String, body: Map<String, Any?>): SendResult {
+        val request = HttpRequest.newBuilder(URI("$base/bot$token/$method"))
             .timeout(TIMEOUT)
             .header("Content-Type", "application/json")
             .POST(HttpRequest.BodyPublishers.ofString(json.writeValueAsString(body)))

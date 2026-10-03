@@ -14,10 +14,10 @@ import com.sprintique.database.schema.app.keys.NOTIFICATIONS__NOTIFICATIONS_ACTO
 import com.sprintique.database.schema.app.keys.NOTIFICATIONS__NOTIFICATIONS_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.NOTIFICATIONS__NOTIFICATIONS_PROJECT_ID_TASK_ID_FKEY
 import com.sprintique.database.schema.app.keys.NOTIFICATIONS__NOTIFICATIONS_RECIPIENT_ID_FKEY
-import com.sprintique.database.schema.app.keys.TELEGRAM_DELIVERIES__TELEGRAM_DELIVERIES_NOTIFICATION_ID_FKEY
+import com.sprintique.database.schema.app.keys.NOTIFICATION_DELIVERIES__NOTIFICATION_DELIVERIES_NOTIFICATION_ID_FKEY
+import com.sprintique.database.schema.app.tables.NotificationDeliveries.NotificationDeliveriesPath
 import com.sprintique.database.schema.app.tables.Projects.ProjectsPath
 import com.sprintique.database.schema.app.tables.Tasks.TasksPath
-import com.sprintique.database.schema.app.tables.TelegramDeliveries.TelegramDeliveriesPath
 import com.sprintique.database.schema.app.tables.records.NotificationsRecord
 import com.sprintique.database.schema.auth.tables.Principals.PrincipalsPath
 
@@ -138,17 +138,17 @@ open class Notifications(
     fun notificationsRecipientIdFkey(): PrincipalsPath = notificationsRecipientIdFkey
     val notificationsRecipientIdFkey: PrincipalsPath by lazy { PrincipalsPath(this, NOTIFICATIONS__NOTIFICATIONS_RECIPIENT_ID_FKEY, null) }
 
-    private lateinit var _telegramDeliveries: TelegramDeliveriesPath
+    private lateinit var _notificationDeliveries: NotificationDeliveriesPath
 
-    fun telegramDeliveries(): TelegramDeliveriesPath {
-        if (!this::_telegramDeliveries.isInitialized)
-            _telegramDeliveries = TelegramDeliveriesPath(this, null, TELEGRAM_DELIVERIES__TELEGRAM_DELIVERIES_NOTIFICATION_ID_FKEY.inverseKey)
+    fun notificationDeliveries(): NotificationDeliveriesPath {
+        if (!this::_notificationDeliveries.isInitialized)
+            _notificationDeliveries = NotificationDeliveriesPath(this, null, NOTIFICATION_DELIVERIES__NOTIFICATION_DELIVERIES_NOTIFICATION_ID_FKEY.inverseKey)
 
-        return _telegramDeliveries;
+        return _notificationDeliveries;
     }
 
-    val telegramDeliveries: TelegramDeliveriesPath
-        get(): TelegramDeliveriesPath = telegramDeliveries()
+    val notificationDeliveries: NotificationDeliveriesPath
+        get(): NotificationDeliveriesPath = notificationDeliveries()
     override fun getChecks(): List<Check<NotificationsRecord>> = listOf(
         Internal.createCheck(this, DSL.name("notifications_check"), "((actor_id IS DISTINCT FROM recipient_id))", true),
         Internal.createCheck(this, DSL.name("notifications_check1"), "(((kind = 'deadline'::text) = (actor_id IS NULL)))", true),

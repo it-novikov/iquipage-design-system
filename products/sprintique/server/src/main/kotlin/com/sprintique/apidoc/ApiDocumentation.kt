@@ -83,7 +83,7 @@ class ApiDocumentation(
         val binary = MediaType.APPLICATION_OCTET_STREAM in info.consumesCondition.consumableMediaTypes
         val body = handler.getMethodAnnotation(Accepts::class.java)?.value?.let(::schemaName)
         val idempotent = handler.hasMethodAnnotation(Idempotent::class.java)
-        val needsBody = write && method != RequestMethod.DELETE && route != "/api/v1/logout" && !binary
+        val needsBody = write && method != RequestMethod.DELETE && route !in WITHOUT_BODY && !binary
         check(!needsBody || body != null) { "Missing request contract: $key" }
         check(body == null || contracts.schemas.has(body)) { "Request contract $body of $key is not a public schema" }
         val response = RESPONSES[key]
@@ -176,6 +176,8 @@ class ApiDocumentation(
     )
 
     private companion object {
+        /** Commands without a JSON body: logging out, and RFC 8058's form post to an unsubscribe link. */
+        val WITHOUT_BODY = setOf("/api/v1/logout", "/api/v1/notifications/unsubscribe")
         val PATH_VARIABLE = Regex("\\{([A-Za-z]+)}")
         val STRING = mapOf("type" to "string")
         const val KEY_MINIMUM = 8

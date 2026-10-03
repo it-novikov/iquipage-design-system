@@ -91,15 +91,19 @@ GRANT SELECT,INSERT ON auth.access_events TO "${runtime_role}";
 -- Service accounts are deleted by marking them; their principal and history stay.
 GRANT SELECT,INSERT,UPDATE ON auth.service_accounts TO "${runtime_role}";
 GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA auth TO "${runtime_role}";
--- Notifications (V20261001000042–044): raised only through the functions below; a person changes only when they read
--- one. A Telegram chat is unlinked by its person; the queue and the webhook ledger belong to the functions alone.
+-- Notifications (V20261001000042–044, 068–070): raised only through the functions below; a person changes only when
+-- they read one. A Telegram chat is unlinked by its person; the delivery queue and the webhook ledger belong to the
+-- functions alone; a signed unsubscribe link turns e-mail off through its own function.
 REVOKE INSERT,UPDATE ON app.notifications FROM "${runtime_role}";
 GRANT UPDATE(read_at) ON app.notifications TO "${runtime_role}";
 REVOKE UPDATE ON app.telegram_link_tokens FROM "${runtime_role}";
 GRANT DELETE ON app.telegram_connections TO "${runtime_role}";
-REVOKE INSERT,UPDATE ON app.telegram_connections,app.telegram_deliveries,app.telegram_updates FROM "${runtime_role}";
+REVOKE INSERT,UPDATE ON app.telegram_connections,app.telegram_updates FROM "${runtime_role}";
+REVOKE INSERT,UPDATE ON app.notification_deliveries,app.notification_batches FROM "${runtime_role}";
 GRANT EXECUTE ON FUNCTION app.notify_mention(text,text,text),app.telegram_accept_update(bigint),
   app.telegram_link_chat(text,bigint,text),app.telegram_unlink_chat(bigint) TO "${runtime_role}";
+GRANT EXECUTE ON FUNCTION app.turn_off_email_notifications(text),app.notification_actions(app.notifications),
+  app.telegram_chat_person(bigint) TO "${runtime_role}";
 GRANT USAGE ON SCHEMA work TO "${runtime_role}";
 GRANT SELECT,INSERT ON work.jobs TO "${runtime_role}";
 GRANT EXECUTE ON FUNCTION work.retry_asset_job(text,uuid) TO "${runtime_role}";
@@ -108,7 +112,7 @@ BEGIN
   IF '${worker_role}' <> '' THEN
     EXECUTE 'GRANT USAGE ON SCHEMA work,app TO "${worker_role}"';
     EXECUTE 'GRANT EXECUTE ON FUNCTION work.claim(text),work.settle(uuid,uuid,boolean,text),work.prepare_asset_gc(uuid,uuid),work.finish_asset_gc(uuid,uuid) TO "${worker_role}"';
-    EXECUTE 'GRANT EXECUTE ON FUNCTION work.raise_due_notifications(),work.claim_telegram_delivery(),work.settle_telegram_delivery(uuid,uuid,text,text,integer) TO "${worker_role}"';
+    EXECUTE 'GRANT EXECUTE ON FUNCTION work.raise_due_notifications(),work.claim_notification_batch(text[],integer,integer),work.settle_notification_batch(uuid,uuid,text,text,integer,uuid[]) TO "${worker_role}"';
   END IF;
 END
 $grants$;

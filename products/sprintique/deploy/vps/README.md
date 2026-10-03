@@ -15,6 +15,7 @@ Postfix that signs with DKIM, files in an external S3 bucket under a prefix. Run
 | Mail | Postfix `127.0.0.1:25` (`inet_interfaces = loopback-only`), OpenDKIM `127.0.0.1:8891`, selector `sprintique` |
 | Files | S3 bucket, `SPRINTIQUE_STORAGE_PREFIX=vnext/` |
 | Telegram (optional) | `secrets/telegram.env` read by `api` and `worker`; webhook `https://sprintique.iqui.page/api/v1/telegram/webhook`, registered with `setWebhook` as in [operations.md](../../docs/operations.md#notifications-and-telegram) |
+| E-mail notifications | `secrets/notifications.env` (`SPRINTIQUE_NOTIFICATIONS_LINK_SECRET`) read by `api` and `worker`; the worker sends through the loopback relay with the API's `SPRINTIQUE_SMTP_*` and `SPRINTIQUE_MAIL_FROM` (see [operations.md](../../docs/operations.md#notifications-and-telegram)) |
 
 ## First start
 

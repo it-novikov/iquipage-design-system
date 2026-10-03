@@ -3,8 +3,14 @@ package com.sprintique.notification.infrastructure
 import com.sprintique.configuration.SprintiqueProperties
 import com.sprintique.configuration.StartupChecks
 import com.sprintique.database.Database
-import com.sprintique.notification.application.TelegramDelivery
+import com.sprintique.identity.application.MailPort
+import com.sprintique.notification.application.BatchWindows
+import com.sprintique.notification.application.NotificationDelivery
+import com.sprintique.notification.domain.TelegramCallbacks
+import com.sprintique.notification.domain.UnsubscribeTokens
+import jakarta.mail.internet.InternetAddress
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.ObjectProvider
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.SmartLifecycle
 import org.springframework.context.annotation.Bean
@@ -13,29 +19,51 @@ import org.springframework.context.annotation.Profile
 import java.time.Duration
 import java.time.Instant
 
-/** The `worker` command's part of notifications: deadline reminders and the Telegram queue, on the worker role. */
+/**
+ * The `worker` command's part of notifications: deadline reminders and the batches for Telegram and e-mail, on the
+ * worker role. Telegram needs the bot token; e-mail needs a mail transport and the key of unsubscribe links.
+ */
 @Configuration(proxyBeanMethods = false)
 @Profile("worker")
 class NotificationWorkerConfiguration {
     @Bean
-    fun telegramDelivery(
+    fun notificationDelivery(
         @Qualifier("workerDatabase") workerDatabase: Database,
         properties: SprintiqueProperties,
-    ): TelegramDelivery {
+        mail: ObjectProvider<MailPort>,
+    ): NotificationDelivery {
         StartupChecks.requireTelegramValues(properties.telegram)
+        StartupChecks.requireSafeNotifications(properties.notifications)
         val telegram = properties.telegram.takeIf { it.canSend }?.let { TelegramBotApi(it.apiBase, it.botToken) }
-        return TelegramDelivery(workerDatabase, telegram, properties.publicOrigin)
+        val notifications = properties.notifications
+        val tokens = notifications.linkSecret.takeIf { notifications.canSignLinks }?.let(::UnsubscribeTokens)
+        val domain = runCatching { InternetAddress(properties.mail.from, true).address.substringAfter('@') }
+            .getOrNull()?.takeIf { MAIL_DOMAIN.matches(it) } ?: "sprintique.invalid"
+        return NotificationDelivery(
+            workerDatabase,
+            telegram,
+            mail.ifAvailable,
+            tokens,
+            properties.telegram.botToken.takeIf { it.isNotEmpty() }?.let(::TelegramCallbacks),
+            properties.publicOrigin,
+            BatchWindows(notifications.telegramWindowSeconds, notifications.emailWindowSeconds),
+            domain,
+        )
     }
 
     @Bean
-    fun notificationLoop(delivery: TelegramDelivery) = NotificationLoop(delivery)
+    fun notificationLoop(delivery: NotificationDelivery) = NotificationLoop(delivery)
+
+    private companion object {
+        val MAIL_DOMAIN = Regex("^[A-Za-z0-9.-]{1,253}$")
+    }
 }
 
 /**
- * Sends queued messages one after another while there are any, and every five minutes raises the deadline reminders
+ * Sends due batches one after another while there are any, and every five minutes raises the deadline reminders
  * that became due. Idle or failed rounds wait a second.
  */
-class NotificationLoop(private val delivery: TelegramDelivery) : SmartLifecycle {
+class NotificationLoop(private val delivery: NotificationDelivery) : SmartLifecycle {
     private val log = LoggerFactory.getLogger(NotificationLoop::class.java)
 
     @Volatile private var running = false

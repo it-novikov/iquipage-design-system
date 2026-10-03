@@ -12,6 +12,9 @@ import jakarta.mail.internet.InternetAddress
 import jakarta.mail.internet.MimeBodyPart
 import jakarta.mail.internet.MimeMessage
 import jakarta.mail.internet.MimeMultipart
+import jakarta.mail.internet.MimeUtility
+import org.eclipse.angus.mail.smtp.SMTPAddressFailedException
+import org.eclipse.angus.mail.smtp.SMTPSendFailedException
 import java.util.Date
 import java.util.Properties
 
@@ -47,13 +50,21 @@ class SmtpMailAdapter(private val smtp: SmtpProperties, from: String) : MailPort
 
     override fun send(message: MailMessage) {
         try {
-            val letter = MimeMessage(session).apply {
+            val letter = object : MimeMessage(session) {
+                // The sender's own Message-ID when it gave one: the same letter keeps it on every retry.
+                override fun updateMessageID() {
+                    val id = message.messageId
+                    if (id == null) super.updateMessageID() else setHeader("Message-ID", id)
+                }
+            }.apply {
                 // Not `sender`: inside this block that name is the message's own Sender header.
                 setFrom(fromAddress)
                 setRecipient(Message.RecipientType.TO, InternetAddress(message.to.value, true))
                 setSubject(message.subject, Charsets.UTF_8.name())
                 // Transactional mail, never a reply target for autoresponders (RFC 3834).
                 setHeader("Auto-Submitted", "auto-generated")
+                // Composed by the sender: printable ASCII on one line each, checked by MailMessage.
+                message.headers.forEach { (name, value) -> setHeader(name, MimeUtility.fold(name.length + 2, value)) }
                 val html = message.html
                 if (html == null) {
                     setText(message.text, Charsets.UTF_8.name())
@@ -73,11 +84,25 @@ class SmtpMailAdapter(private val smtp: SmtpProperties, from: String) : MailPort
                 Transport.send(letter, smtp.username, smtp.password)
             }
         } catch (error: MessagingException) {
-            throw MailUnavailableException(error)
+            throw MailUnavailableException(error, permanent = refusedForGood(error))
         }
+    }
+
+    /** A 5xx answer of the relay (a rejected recipient or letter); 4xx and network failures are worth a retry. */
+    private fun refusedForGood(error: MessagingException): Boolean =
+        generateSequence<Throwable>(error) { (it as? MessagingException)?.nextException ?: it.cause }
+            .take(DEPTH)
+            .any { replyCode(it) in PERMANENT }
+
+    private fun replyCode(error: Throwable): Int = when (error) {
+        is SMTPAddressFailedException -> error.returnCode
+        is SMTPSendFailedException -> error.returnCode
+        else -> 0
     }
 
     private companion object {
         const val TIMEOUT = "10000"
+        const val DEPTH = 8
+        val PERMANENT = 500..599
     }
 }

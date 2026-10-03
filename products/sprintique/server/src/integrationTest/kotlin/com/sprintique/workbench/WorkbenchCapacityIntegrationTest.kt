@@ -29,17 +29,18 @@ class WorkbenchCapacityIntegrationTest {
     @Test
     fun `a dense person gets one bounded, deduplicated snapshot in one statement`() {
         val seed = seed()
-        val started = System.nanoTime()
-        val envelope = measured.transaction { tx ->
-            tx.row("SELECT set_config('app.actor_id', $1, true)", seed.actor.id)
-            statements.set(0)
-            Workbench.envelope(tx, seed.actor, null, Workbench.DEFAULT_LIMIT, parts, WorkbenchCursors("")).also {
-                // The statement budget and the snapshot itself: nothing per project, nothing per row.
-                assertThat(statements.get()).isEqualTo(2)
+        val read = timed {
+            measured.transaction { tx ->
+                tx.row("SELECT set_config('app.actor_id', $1, true)", seed.actor.id)
+                statements.set(0)
+                Workbench.envelope(tx, seed.actor, null, Workbench.DEFAULT_LIMIT, parts, WorkbenchCursors("")).also {
+                    // The statement budget and the snapshot itself: nothing per project, nothing per row.
+                    assertThat(statements.get()).isEqualTo(2)
+                }
             }
         }
-        val elapsed = (System.nanoTime() - started) / 1_000_000
-        assertThat(elapsed).`as`("envelope time, ms").isLessThan(3000)
+        assertThat(read.median).`as`("envelope time, ms: ${read.timings}").isLessThan(DENSE_BUDGET_MS)
+        val envelope = read.result
 
         @Suppress("UNCHECKED_CAST")
         val sections = envelope["sections"] as List<Map<String, Any?>>
@@ -97,25 +98,28 @@ class WorkbenchCapacityIntegrationTest {
     @Test
     fun `a person at the participation limit with long histories reads waiting through the owner events only`() {
         val actor = limitSeed()
-        IntegrationDatabase.admin.transaction { tx -> tx.update("ANALYZE app.task_activity") }
-        val timings = (1..3).map {
-            val started = System.nanoTime()
-            val envelope = IntegrationDatabase.runtime.transaction { tx ->
+        // Statistics as autovacuum keeps them in production: the plan is made for these volumes, not for empty tables.
+        IntegrationDatabase.admin.transaction { tx ->
+            for (table in listOf("project_members", "tasks", "task_activity", "task_personal_state")) {
+                tx.update("ANALYZE app.$table")
+            }
+        }
+        val read = timed {
+            IntegrationDatabase.runtime.transaction { tx ->
                 tx.row("SELECT set_config('app.actor_id', $1, true)", actor.id)
                 Workbench.envelope(tx, actor, null, Workbench.DEFAULT_LIMIT, parts, WorkbenchCursors(""))
             }
-
-            @Suppress("UNCHECKED_CAST")
-            val current = (envelope["sections"] as List<Map<String, Any?>>)[1]
-
-            @Suppress("UNCHECKED_CAST")
-            val groups = (current["groups"] as List<Map<String, Any?>>).associate { it["key"] to it["count"] }
-            // Two tasks per project have their whole history unseen: they are in "Изменилось".
-            assertThat(groups).isEqualTo(mapOf("joined" to 1760L, "active" to 0L, "waiting" to 200L))
-            (System.nanoTime() - started) / 1_000_000
         }
+
+        @Suppress("UNCHECKED_CAST")
+        val current = (read.result["sections"] as List<Map<String, Any?>>)[1]
+
+        @Suppress("UNCHECKED_CAST")
+        val groups = (current["groups"] as List<Map<String, Any?>>).associate { it["key"] to it["count"] }
+        // Two tasks per project have their whole history unseen: they are in "Изменилось".
+        assertThat(groups).isEqualTo(mapOf("joined" to 1760L, "active" to 0L, "waiting" to 200L))
         // Well inside the 5 s statement budget (docs/adr W4 §6), warm.
-        assertThat(timings.min()).`as`("envelope time at the limit, ms: $timings").isLessThan(2000)
+        assertThat(read.median).`as`("envelope time at the limit, ms: ${read.timings}").isLessThan(LIMIT_BUDGET_MS)
         val plan = IntegrationDatabase.runtime.transaction { tx ->
             tx.row("SELECT set_config('app.actor_id', $1, true)", actor.id)
             tx.rows(
@@ -129,6 +133,29 @@ class WorkbenchCapacityIntegrationTest {
             ).first().values.first().toString()
         }
         assertThat(plan).`as`("the latest assignment is read from the owner events").contains("task_activity_owner")
+        // Unseen news is read from the watermark on: the index bounds the sequence, so row security checks only the
+        // events after it, never the whole history of 2 000 tasks (the cause of the slow reads before).
+        assertThat(Regex("\"Index Cond\"\\s*:\\s*\"[^\"]*\\(sequence > ").containsMatchIn(plan))
+            .`as`("the unseen events are bounded by the watermark in the index condition in\n$plan")
+            .isTrue()
+    }
+
+    private class Timed<T>(val result: T, val timings: List<Long>) {
+        val median: Long get() = timings.sorted()[timings.size / 2]
+    }
+
+    /**
+     * Wall time of [read]: [WARMUPS] untimed reads first (JIT, the connection pool, the plan cache), then the median
+     * of [RUNS], so one slow sample on a loaded machine neither fails nor passes the budget alone.
+     */
+    private fun <T> timed(read: () -> T): Timed<T> {
+        repeat(WARMUPS) { read() }
+        val results = (1..RUNS).map {
+            val started = System.nanoTime()
+            val result = read()
+            result to (System.nanoTime() - started) / 1_000_000
+        }
+        return Timed(results.last().first, results.map { it.second })
     }
 
     /**
@@ -217,6 +244,18 @@ class WorkbenchCapacityIntegrationTest {
     }
 
     private data class Seed(val actor: Actor, val accessible: Set<String>)
+
+    private companion object {
+        const val WARMUPS = 2
+        const val RUNS = 5
+
+        // Warm medians on a developer machine at load average 4–6 (2026-10-02): the dense person ~40 ms, the person
+        // at the participation limit ~140 ms (it was ~1 900 ms while the unseen scan checked every event under row
+        // security). The budgets leave room for a machine about twice as loaded and still fail when the read doubles
+        // there; the plan assertions above catch the known regression without depending on the clock.
+        const val DENSE_BUDGET_MS = 300L
+        const val LIMIT_BUDGET_MS = 600L
+    }
 
     /**
      * One person in 55 projects (and formerly in 5 more), a colleague who does the work, and 200 unrelated projects

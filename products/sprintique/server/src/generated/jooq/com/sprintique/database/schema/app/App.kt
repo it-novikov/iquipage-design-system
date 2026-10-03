@@ -38,6 +38,8 @@ import com.sprintique.database.schema.app.tables.MapVotes
 import com.sprintique.database.schema.app.tables.Maps
 import com.sprintique.database.schema.app.tables.Messages
 import com.sprintique.database.schema.app.tables.Milestones
+import com.sprintique.database.schema.app.tables.NotificationBatches
+import com.sprintique.database.schema.app.tables.NotificationDeliveries
 import com.sprintique.database.schema.app.tables.NotificationPreferences
 import com.sprintique.database.schema.app.tables.Notifications
 import com.sprintique.database.schema.app.tables.Outbox
@@ -49,6 +51,7 @@ import com.sprintique.database.schema.app.tables.PlanningPlans
 import com.sprintique.database.schema.app.tables.PlanningSelections
 import com.sprintique.database.schema.app.tables.PrivateReceipts
 import com.sprintique.database.schema.app.tables.ProjectMembers
+import com.sprintique.database.schema.app.tables.ProjectNotificationSettings
 import com.sprintique.database.schema.app.tables.Projects
 import com.sprintique.database.schema.app.tables.ReleaseSnapshots
 import com.sprintique.database.schema.app.tables.Releases
@@ -61,9 +64,7 @@ import com.sprintique.database.schema.app.tables.TaskSettingsVersions
 import com.sprintique.database.schema.app.tables.TaskTags
 import com.sprintique.database.schema.app.tables.Tasks
 import com.sprintique.database.schema.app.tables.TelegramConnections
-import com.sprintique.database.schema.app.tables.TelegramDeliveries
 import com.sprintique.database.schema.app.tables.TelegramLinkTokens
-import com.sprintique.database.schema.app.tables.TelegramProjectSettings
 import com.sprintique.database.schema.app.tables.TelegramUpdates
 import com.sprintique.database.schema.app.tables.TemporalConstraints
 import com.sprintique.database.schema.app.tables.ThreadReads
@@ -319,6 +320,10 @@ open class App : SchemaImpl(DSL.name("app"), DefaultCatalog.DEFAULT_CATALOG, DSL
 
     val MILESTONES: Milestones get() = Milestones.MILESTONES
 
+    val NOTIFICATION_BATCHES: NotificationBatches get() = NotificationBatches.NOTIFICATION_BATCHES
+
+    val NOTIFICATION_DELIVERIES: NotificationDeliveries get() = NotificationDeliveries.NOTIFICATION_DELIVERIES
+
     val NOTIFICATION_PREFERENCES: NotificationPreferences get() = NotificationPreferences.NOTIFICATION_PREFERENCES
 
     val NOTIFICATIONS: Notifications get() = Notifications.NOTIFICATIONS
@@ -340,6 +345,8 @@ open class App : SchemaImpl(DSL.name("app"), DefaultCatalog.DEFAULT_CATALOG, DSL
     val PRIVATE_RECEIPTS: PrivateReceipts get() = PrivateReceipts.PRIVATE_RECEIPTS
 
     val PROJECT_MEMBERS: ProjectMembers get() = ProjectMembers.PROJECT_MEMBERS
+
+    val PROJECT_NOTIFICATION_SETTINGS: ProjectNotificationSettings get() = ProjectNotificationSettings.PROJECT_NOTIFICATION_SETTINGS
 
     val PROJECTS: Projects get() = Projects.PROJECTS
 
@@ -365,11 +372,7 @@ open class App : SchemaImpl(DSL.name("app"), DefaultCatalog.DEFAULT_CATALOG, DSL
 
     val TELEGRAM_CONNECTIONS: TelegramConnections get() = TelegramConnections.TELEGRAM_CONNECTIONS
 
-    val TELEGRAM_DELIVERIES: TelegramDeliveries get() = TelegramDeliveries.TELEGRAM_DELIVERIES
-
     val TELEGRAM_LINK_TOKENS: TelegramLinkTokens get() = TelegramLinkTokens.TELEGRAM_LINK_TOKENS
-
-    val TELEGRAM_PROJECT_SETTINGS: TelegramProjectSettings get() = TelegramProjectSettings.TELEGRAM_PROJECT_SETTINGS
 
     val TELEGRAM_UPDATES: TelegramUpdates get() = TelegramUpdates.TELEGRAM_UPDATES
 
@@ -423,6 +426,8 @@ open class App : SchemaImpl(DSL.name("app"), DefaultCatalog.DEFAULT_CATALOG, DSL
         Maps.MAPS,
         Messages.MESSAGES,
         Milestones.MILESTONES,
+        NotificationBatches.NOTIFICATION_BATCHES,
+        NotificationDeliveries.NOTIFICATION_DELIVERIES,
         NotificationPreferences.NOTIFICATION_PREFERENCES,
         Notifications.NOTIFICATIONS,
         Outbox.OUTBOX,
@@ -434,6 +439,7 @@ open class App : SchemaImpl(DSL.name("app"), DefaultCatalog.DEFAULT_CATALOG, DSL
         PlanningSelections.PLANNING_SELECTIONS,
         PrivateReceipts.PRIVATE_RECEIPTS,
         ProjectMembers.PROJECT_MEMBERS,
+        ProjectNotificationSettings.PROJECT_NOTIFICATION_SETTINGS,
         Projects.PROJECTS,
         ReleaseSnapshots.RELEASE_SNAPSHOTS,
         Releases.RELEASES,
@@ -446,9 +452,7 @@ open class App : SchemaImpl(DSL.name("app"), DefaultCatalog.DEFAULT_CATALOG, DSL
         TaskTags.TASK_TAGS,
         Tasks.TASKS,
         TelegramConnections.TELEGRAM_CONNECTIONS,
-        TelegramDeliveries.TELEGRAM_DELIVERIES,
         TelegramLinkTokens.TELEGRAM_LINK_TOKENS,
-        TelegramProjectSettings.TELEGRAM_PROJECT_SETTINGS,
         TelegramUpdates.TELEGRAM_UPDATES,
         TemporalConstraints.TEMPORAL_CONSTRAINTS,
         ThreadReads.THREAD_READS,

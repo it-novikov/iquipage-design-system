@@ -38,6 +38,8 @@ import com.sprintique.database.schema.app.tables.MapVotes
 import com.sprintique.database.schema.app.tables.Maps
 import com.sprintique.database.schema.app.tables.Messages
 import com.sprintique.database.schema.app.tables.Milestones
+import com.sprintique.database.schema.app.tables.NotificationBatches
+import com.sprintique.database.schema.app.tables.NotificationDeliveries
 import com.sprintique.database.schema.app.tables.NotificationPreferences
 import com.sprintique.database.schema.app.tables.Notifications
 import com.sprintique.database.schema.app.tables.Outbox
@@ -49,6 +51,7 @@ import com.sprintique.database.schema.app.tables.PlanningPlans
 import com.sprintique.database.schema.app.tables.PlanningSelections
 import com.sprintique.database.schema.app.tables.PrivateReceipts
 import com.sprintique.database.schema.app.tables.ProjectMembers
+import com.sprintique.database.schema.app.tables.ProjectNotificationSettings
 import com.sprintique.database.schema.app.tables.Projects
 import com.sprintique.database.schema.app.tables.ReleaseSnapshots
 import com.sprintique.database.schema.app.tables.Releases
@@ -61,9 +64,7 @@ import com.sprintique.database.schema.app.tables.TaskSettingsVersions
 import com.sprintique.database.schema.app.tables.TaskTags
 import com.sprintique.database.schema.app.tables.Tasks
 import com.sprintique.database.schema.app.tables.TelegramConnections
-import com.sprintique.database.schema.app.tables.TelegramDeliveries
 import com.sprintique.database.schema.app.tables.TelegramLinkTokens
-import com.sprintique.database.schema.app.tables.TelegramProjectSettings
 import com.sprintique.database.schema.app.tables.TelegramUpdates
 import com.sprintique.database.schema.app.tables.TemporalConstraints
 import com.sprintique.database.schema.app.tables.ThreadReads
@@ -307,6 +308,10 @@ val MESSAGES: Messages = Messages.MESSAGES
 
 val MILESTONES: Milestones = Milestones.MILESTONES
 
+val NOTIFICATION_BATCHES: NotificationBatches = NotificationBatches.NOTIFICATION_BATCHES
+
+val NOTIFICATION_DELIVERIES: NotificationDeliveries = NotificationDeliveries.NOTIFICATION_DELIVERIES
+
 val NOTIFICATION_PREFERENCES: NotificationPreferences = NotificationPreferences.NOTIFICATION_PREFERENCES
 
 val NOTIFICATIONS: Notifications = Notifications.NOTIFICATIONS
@@ -328,6 +333,8 @@ val PLANNING_SELECTIONS: PlanningSelections = PlanningSelections.PLANNING_SELECT
 val PRIVATE_RECEIPTS: PrivateReceipts = PrivateReceipts.PRIVATE_RECEIPTS
 
 val PROJECT_MEMBERS: ProjectMembers = ProjectMembers.PROJECT_MEMBERS
+
+val PROJECT_NOTIFICATION_SETTINGS: ProjectNotificationSettings = ProjectNotificationSettings.PROJECT_NOTIFICATION_SETTINGS
 
 val PROJECTS: Projects = Projects.PROJECTS
 
@@ -353,11 +360,7 @@ val TASKS: Tasks = Tasks.TASKS
 
 val TELEGRAM_CONNECTIONS: TelegramConnections = TelegramConnections.TELEGRAM_CONNECTIONS
 
-val TELEGRAM_DELIVERIES: TelegramDeliveries = TelegramDeliveries.TELEGRAM_DELIVERIES
-
 val TELEGRAM_LINK_TOKENS: TelegramLinkTokens = TelegramLinkTokens.TELEGRAM_LINK_TOKENS
-
-val TELEGRAM_PROJECT_SETTINGS: TelegramProjectSettings = TelegramProjectSettings.TELEGRAM_PROJECT_SETTINGS
 
 val TELEGRAM_UPDATES: TelegramUpdates = TelegramUpdates.TELEGRAM_UPDATES
 

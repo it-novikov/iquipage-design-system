@@ -4,7 +4,7 @@
 package com.sprintique.database.schema.app.tables.records
 
 
-import com.sprintique.database.schema.app.tables.TelegramDeliveries
+import com.sprintique.database.schema.app.tables.NotificationBatches
 
 import java.time.OffsetDateTime
 import java.util.UUID
@@ -14,59 +14,55 @@ import org.jooq.impl.UpdatableRecordImpl
 
 
 @Suppress("warnings")
-open class TelegramDeliveriesRecord() : UpdatableRecordImpl<TelegramDeliveriesRecord>(TelegramDeliveries.TELEGRAM_DELIVERIES) {
+open class NotificationBatchesRecord() : UpdatableRecordImpl<NotificationBatchesRecord>(NotificationBatches.NOTIFICATION_BATCHES) {
 
     open var id: UUID?
         set(value): Unit = set(0, value)
         get(): UUID? = get(0) as UUID?
 
-    open var notificationId: UUID?
-        set(value): Unit = set(1, value)
-        get(): UUID? = get(1) as UUID?
-
     open var recipientId: String?
+        set(value): Unit = set(1, value)
+        get(): String? = get(1) as String?
+
+    open var channel: String?
         set(value): Unit = set(2, value)
         get(): String? = get(2) as String?
 
-    open var projectId: String?
+    open var state: String?
         set(value): Unit = set(3, value)
         get(): String? = get(3) as String?
 
-    open var state: String?
-        set(value): Unit = set(4, value)
-        get(): String? = get(4) as String?
-
     open var attempts: Int?
-        set(value): Unit = set(5, value)
-        get(): Int? = get(5) as Int?
+        set(value): Unit = set(4, value)
+        get(): Int? = get(4) as Int?
 
     open var nextAttemptAt: OffsetDateTime?
-        set(value): Unit = set(6, value)
-        get(): OffsetDateTime? = get(6) as OffsetDateTime?
+        set(value): Unit = set(5, value)
+        get(): OffsetDateTime? = get(5) as OffsetDateTime?
 
     open var leaseToken: UUID?
-        set(value): Unit = set(7, value)
-        get(): UUID? = get(7) as UUID?
+        set(value): Unit = set(6, value)
+        get(): UUID? = get(6) as UUID?
 
     open var leaseUntil: OffsetDateTime?
-        set(value): Unit = set(8, value)
-        get(): OffsetDateTime? = get(8) as OffsetDateTime?
+        set(value): Unit = set(7, value)
+        get(): OffsetDateTime? = get(7) as OffsetDateTime?
 
     open var chatId: Long?
-        set(value): Unit = set(9, value)
-        get(): Long? = get(9) as Long?
+        set(value): Unit = set(8, value)
+        get(): Long? = get(8) as Long?
 
     open var lastErrorCode: String?
-        set(value): Unit = set(10, value)
-        get(): String? = get(10) as String?
+        set(value): Unit = set(9, value)
+        get(): String? = get(9) as String?
 
     open var createdAt: OffsetDateTime?
-        set(value): Unit = set(11, value)
-        get(): OffsetDateTime? = get(11) as OffsetDateTime?
+        set(value): Unit = set(10, value)
+        get(): OffsetDateTime? = get(10) as OffsetDateTime?
 
     open var sentAt: OffsetDateTime?
-        set(value): Unit = set(12, value)
-        get(): OffsetDateTime? = get(12) as OffsetDateTime?
+        set(value): Unit = set(11, value)
+        get(): OffsetDateTime? = get(11) as OffsetDateTime?
 
     // -------------------------------------------------------------------------
     // Primary key information
@@ -74,11 +70,10 @@ open class TelegramDeliveriesRecord() : UpdatableRecordImpl<TelegramDeliveriesRe
 
     override fun key(): Record1<UUID?> = super.key() as Record1<UUID?>
 
-    constructor(id: UUID? = null, notificationId: UUID? = null, recipientId: String? = null, projectId: String? = null, state: String? = null, attempts: Int? = null, nextAttemptAt: OffsetDateTime? = null, leaseToken: UUID? = null, leaseUntil: OffsetDateTime? = null, chatId: Long? = null, lastErrorCode: String? = null, createdAt: OffsetDateTime? = null, sentAt: OffsetDateTime? = null): this() {
+    constructor(id: UUID? = null, recipientId: String? = null, channel: String? = null, state: String? = null, attempts: Int? = null, nextAttemptAt: OffsetDateTime? = null, leaseToken: UUID? = null, leaseUntil: OffsetDateTime? = null, chatId: Long? = null, lastErrorCode: String? = null, createdAt: OffsetDateTime? = null, sentAt: OffsetDateTime? = null): this() {
         this.id = id
-        this.notificationId = notificationId
         this.recipientId = recipientId
-        this.projectId = projectId
+        this.channel = channel
         this.state = state
         this.attempts = attempts
         this.nextAttemptAt = nextAttemptAt
