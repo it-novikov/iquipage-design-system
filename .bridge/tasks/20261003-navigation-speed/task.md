@@ -10,6 +10,7 @@ base: origin/main
 created: 2026-10-03
 updated: 2026-10-03T14:35:30Z
 links:
+  - https://github.com/it-novikov/iquipage-design-system/pull/53
 ---
 
 # Быстрая навигация между разделами
