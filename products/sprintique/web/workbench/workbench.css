@@ -11,8 +11,8 @@
 .dsk-global-nav a{white-space:nowrap}
 .dsk-personal{display:flex;align-items:center;gap:var(--iq-space-1);margin-left:auto;align-self:center}
 .pn-global-link{font-weight:500}
-.dsk-page{min-width:0}
-.dsk-heading{align-items:center;padding-bottom:0}
+/* The page heading is the board's (sq-page-heading): the same top inset, title and tools row. */
+.dsk-page.iq-workspace-page{min-width:0;padding-top:var(--iq-space-6)}
 .dsk-heading h1{outline:none}
 .dsk-views button{display:inline-flex;align-items:center;gap:6px}
 .dsk-hint{margin:0;font-size:var(--iq-type-caption-size);line-height:1.5;color:var(--iq-muted)}
@@ -333,7 +333,7 @@ button.dsk-when[data-tone] .dsk-chev{color:currentColor}
 .dsk-focused .dsk-today-wrap{display:grid;grid-template-columns:minmax(0,1fr)}
 .dsk-focused .dsk-today-side{margin-top:var(--iq-space-4)}
 .dsk-focused .dsk-meta{white-space:normal;overflow:visible}
-@media(max-width:700px){.dsk-focused .dsk-req{grid-template-columns:28px minmax(0,1fr)}.dsk-focused .dsk-req>.dsk-req-actions{grid-column:2;grid-row:auto;justify-self:start;width:auto}.dsk-focused .dsk-req-actions .dsk-verb{width:auto}.dsk-page .iq-workspace-tools>.dsk-views{flex:1 0 100%}.dsk-page .dsk-views button span{display:inline}.dsk-page .dsk-views button{padding-inline:var(--iq-space-2)}.dsk-focused .dsk-item{grid-template-columns:28px minmax(0,1fr) auto}.dsk-focused .dsk-item>iq-menu{grid-column:2;justify-self:start}.dsk-focused .dsk-item-tail{grid-column:3;grid-row:1 / 3}.dsk-strip-end [data-updated]{display:none}}
+@media(max-width:700px){.dsk-focused .dsk-req{grid-template-columns:28px minmax(0,1fr)}.dsk-focused .dsk-req>.dsk-req-actions{grid-column:2;grid-row:auto;justify-self:start;width:auto}.dsk-focused .dsk-req-actions .dsk-verb{width:auto}.dsk-page .sq-page-tools>.dsk-views{flex:1 0 100%}.dsk-page .dsk-views button span{display:inline}.dsk-page .dsk-views button{padding-inline:var(--iq-space-2)}.dsk-focused .dsk-item{grid-template-columns:28px minmax(0,1fr) auto}.dsk-focused .dsk-item>iq-menu{grid-column:2;justify-self:start}.dsk-focused .dsk-item-tail{grid-column:3;grid-row:1 / 3}.dsk-strip-end [data-updated]{display:none}}
 
 .dsk-complete{white-space:nowrap}
 .dsk-focused .dsk-item-tail{gap:var(--iq-space-2)}

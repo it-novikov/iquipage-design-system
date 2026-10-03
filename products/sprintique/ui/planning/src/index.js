@@ -1,4 +1,4 @@
-import {registerCore,notify,bindTreeDrag,escapeHTML as esc} from '@iquipage/web/core';
+import {registerCore,notify,bindTreeDrag,escapeHTML as esc,icon} from '@iquipage/web/core';
 import {filterPlan} from './workspace-model.js';
 import {PlanningOperation} from './operation.js';
 import {operationDialog} from './dialog.js';
@@ -69,7 +69,7 @@ export async function mountPlanning(root,{adapter,project,onOpenTask,onCreateTas
     root.querySelector('[data-readonly]').hidden=v.capabilities.plan;
     page.toggleAttribute('data-readonly',!v.capabilities.plan);
     root.querySelector('[data-plan-nav]').innerHTML=navigationMarkup(all,scope);
-    root.querySelector('[data-create-controls]').innerHTML=v.capabilities.manageReleases?`<button type="button" class="iq-btn secondary" data-new-release>Новый релиз</button><button type="button" class="iq-btn primary" data-new-sprint>Новый спринт</button>`:'';
+    root.querySelector('[data-create-controls]').innerHTML=v.capabilities.manageReleases?`<button type="button" class="iq-btn secondary" data-new-release>Новый релиз</button><button type="button" class="iq-btn primary" data-new-sprint>${icon('plus',18)}<span>Новый спринт</span></button>`:'';
     root.querySelector('[data-plan-count]').textContent=filtered.matches===null?'Выберите задачи для переноса или перетащите их между этапами':`Найдено: ${filtered.matches}. Суммы относятся ко всему этапу.`;
     stack.innerHTML=(firstRun&&!query?firstRunMarkup(v.capabilities):'')+filtered.containers.map(c=>cardMarkup(c,v)).join('');
     if(!filtered.containers.length)stack.innerHTML=`<div class="iq-workspace-empty"><h2>Задачи не найдены</h2><p>Попробуйте другое название или ключ задачи.</p><button type="button" class="iq-btn secondary sm" data-reset-search>Сбросить поиск</button></div>`;
