@@ -25,9 +25,9 @@ export async function mountWorkbench(root,{repository,session:initialSession,pla
 <div class="dsk-personal">${ui.ib('search','Поиск (⌘K)','ghost sm','data-search')}${ui.ib(dark()?'sun':'moon',dark()?'Светлая тема':'Тёмная тема','ghost sm','data-theme-toggle')}
 ${ui.menu(`<button type="button" class="iq-btn ghost icon sm" aria-label="Профиль: ${esc(profile.name)}">${ui.personAvatar(profile,{size:''})}</button>`,[{label:esc(profile.name),action:'account'},{label:'Сменить тему',action:'theme',glyph:'moon'},{label:'Выйти',action:'signout',danger:true}])}</div></header>
 <main class="dsk-main" id="dsk-main"><div class="dsk-page iq-workspace-page">
-<header class="iq-workspace-heading"><div><span class="iq-workspace-eyebrow">Моя работа</span><h1 tabindex="-1">Рабочий стол</h1><p>Что требует вашего решения и над чем двигаться дальше.</p></div>
-<div class="iq-workspace-tools"><div class="iq-segmented dsk-views" role="group" aria-label="Вид рабочего стола">${VIEWS.map(v=>`<button type="button" data-view="${v.key}" aria-label="${esc(v.label)}">${icon(v.icon,16)}<span>${esc(v.label)}</span></button>`).join('')}</div>
-${ui.btn('Новая задача','primary sm','plus','data-create-task aria-label="Создать задачу"')}</div></header>
+<header class="sq-page-heading dsk-heading"><h1 tabindex="-1">Рабочий стол</h1>
+<div class="sq-page-tools"><div class="iq-segmented dsk-views" role="group" aria-label="Вид рабочего стола">${VIEWS.map(v=>`<button type="button" data-view="${v.key}" aria-label="${esc(v.label)}">${icon(v.icon,16)}<span>${esc(v.label)}</span></button>`).join('')}</div>
+<button type="button" class="iq-btn primary" data-create-task aria-label="Создать задачу">${icon('plus',18)}<span>Новая задача</span></button></div></header>
 <div class="iq-workspace" data-workspace><nav class="iq-workspace-nav" aria-label="Очереди рабочего стола" data-summary></nav><div class="iq-workspace-body"><div class="dsk-strip iq-workspace-toolbar">
 <div class="dsk-strip-end"><button type="button" class="iq-btn ghost sm" data-filter aria-haspopup="dialog">${icon('folder',16)}<span data-filter-label>Проекты: все</span>${icon('down',14)}</button>
 <span data-updated></span>${ui.ib('refresh','Обновить рабочий стол','ghost sm','data-refresh')}</div></div>

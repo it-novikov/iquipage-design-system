@@ -1,6 +1,8 @@
 /* Product adapters; workspace composition and responsive tree geometry are public DS contracts. */
 .planning-root,.pl-page{min-height:100%}
 .pl-page{position:relative}
+/* The page heading is the board's (sq-page-heading): the same top inset, title and tools row. */
+.pl-page>.iq-workspace-page{padding-top:var(--iq-space-6)}
 .pl-stack{display:grid;gap:var(--iq-space-5)}
 .pl-rows [data-row]{cursor:pointer}
 .pl-loading{display:grid;gap:var(--iq-space-2)}
