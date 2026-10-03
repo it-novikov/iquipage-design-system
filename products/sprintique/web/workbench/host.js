@@ -1,6 +1,7 @@
-// The Workbench page (docs/adr W6, design-v2 §11): its global header, the views Обзор | Список | Неделя, the summary
-// line, the project filter in the URL, and the canonical task drawer `/workbench/tasks/:projectId/:taskId` with the
-// return of view, filter, scroll and focus.
+// The Workbench section (docs/adr W6, design-v2 §11): the views Обзор | Список | Неделя, the summary line, the project
+// filter in the URL, and the canonical task drawer `/workbench/tasks/:projectId/:taskId` with the return of view,
+// filter, scroll and focus. It mounts inside the app shell like any other section: the shell's navigation is its top
+// bar, so search, notifications, settings, theme and the profile are the shell's.
 import {ui,icon,escapeHTML as esc,notify} from '@iquipage/web/core';
 import {dialog} from '../../ui/src/ui.js';
 import {openTaskDialog} from '../../ui/src/board/task-dialog.js';
@@ -13,21 +14,20 @@ import {VIEWS,countLabel,parseRoute,readFilter,viewPath,writeFilter} from './mod
 /** The person's Workbench settings as last read or saved in this page: a return to the Workbench shows them at once and
  *  reads them again alongside the snapshot. */
 let knownPreferences=null;
-export async function mountWorkbench(root,{repository,session:initialSession,planning,onOpenProject,onSearch,onTheme,onSignOut,onAccount}){
+/** The element that scrolls the section: the shell's view, or the document when mounted on its own. */
+function scrollerOf(element){
+  for(let node=element;node&&node!==document.body;node=node.parentElement)if(/(auto|scroll)/.test(getComputedStyle(node).overflowY))return node;
+  return document.scrollingElement;
+}
+export async function mountWorkbench(root,{repository,session:initialSession,planning,onOpenProject}){
   let session=initialSession;
   const api=new WorkbenchApi(repository.client);
   const route0=parseRoute(location.pathname)||{view:'overview',task:null};
   let view=route0.view||'overview',filter=readFilter(location.search),content=null,drawer=null,opening=false,closed=false,origin=null;
   let preferences={timezone:null,layout:{currentForm:'lanes'},revision:0};
   const projects=new Map(session.projects.map(p=>[p.id,p]));
-  const profile={id:session.principal.id,name:session.principal.name,image:repository.client.avatarUrl?.(session.principal.id,session.principal.avatarRevision)||undefined};
-  const dark=()=>document.documentElement.dataset.theme==='dark';
-  root.innerHTML=`<div class="dsk-shell">
-<header class="dsk-header"><a class="dsk-brand" href="/workbench" data-home>SPRINTIQUE</a>
-<nav class="iq-work-navigation dsk-global-nav" aria-label="Глобальные разделы"><a href="/workbench" aria-current="page" data-home>Рабочий стол</a><a href="/" data-projects>Проекты</a></nav>
-<div class="dsk-personal">${ui.ib('search','Поиск (⌘K)','ghost sm','data-search')}${ui.ib(dark()?'sun':'moon',dark()?'Светлая тема':'Тёмная тема','ghost sm','data-theme-toggle')}
-${ui.menu(`<button type="button" class="iq-btn ghost icon sm" aria-label="Профиль: ${esc(profile.name)}">${ui.personAvatar(profile,{size:''})}</button>`,[{label:esc(profile.name),action:'account'},{label:'Сменить тему',action:'theme',glyph:'moon'},{label:'Выйти',action:'signout',danger:true}])}</div></header>
-<main class="dsk-main" id="dsk-main"><div class="dsk-page iq-workspace-page">
+  const scroller=()=>scrollerOf(root);
+  root.innerHTML=`<div class="dsk-shell"><div class="dsk-page iq-workspace-page">
 <header class="sq-page-heading dsk-heading"><h1 tabindex="-1">Рабочий стол</h1>
 <div class="sq-page-tools"><div class="iq-segmented dsk-views" role="group" aria-label="Вид рабочего стола">${VIEWS.map(v=>`<button type="button" data-view="${v.key}" aria-label="${esc(v.label)}">${icon(v.icon,16)}<span>${esc(v.label)}</span></button>`).join('')}</div>
 <button type="button" class="iq-btn primary" data-create-task aria-label="Создать задачу">${icon('plus',18)}<span>Новая задача</span></button></div></header>
@@ -35,7 +35,7 @@ ${ui.menu(`<button type="button" class="iq-btn ghost icon sm" aria-label="Про
 <div class="dsk-strip-end"><button type="button" class="iq-btn ghost sm" data-filter aria-haspopup="dialog">${icon('folder',16)}<span data-filter-label>Проекты: все</span>${icon('down',14)}</button>
 <span data-updated></span>${ui.ib('refresh','Обновить рабочий стол','ghost sm','data-refresh')}</div></div>
 <div class="dsk-banner" data-offline hidden>${icon('warning',16)}<p>Нет соединения. Показаны последние загруженные данные; изменения не сохраняются без ответа сервера.</p></div>
-<div data-content></div><p class="sr-only" role="status" aria-live="polite" data-live></p></div></div></div></main></div>`;
+<div data-content></div><p class="sr-only" role="status" aria-live="polite" data-live></p></div></div></div></div>`;
   const live=root.querySelector('[data-live]');
   const announce=text=>{live.textContent='';requestAnimationFrame(()=>{live.textContent=text;});};
 
@@ -68,7 +68,7 @@ ${ui.menu(`<button type="button" class="iq-btn ghost icon sm" aria-label="Про
   function mountContent(){
     content?.destroy();const host=root.querySelector('[data-content]');
     if(!session.projects.length){host.innerHTML=`<div class="dsk-first-run">${icon('users',20)}<div><h2>Рабочий стол собирается из ваших отношений к задачам</h2><p>Запросы к вам лично, задачи, которые вам назначены или за которыми вы наблюдаете, и их изменения. Проектов пока нет.</p>${ui.btn('Открыть проекты','secondary sm','folder','data-projects')}</div></div>`;content=null;setSummary([]);return;}
-    const common={api,repository,projects,filter:()=>filter,prefs,savePrefs,announce,setUpdated,
+    const common={api,repository,projects,filter:()=>filter,prefs,savePrefs,announce,setUpdated,scroller,
       openTask:(row,options={})=>void openTask({projectId:row.projectId,taskId:row.taskId},{key:row.key,...options}),
       openProject:(projectId,taskId)=>void leave(()=>onOpenProject(projectId,taskId)),onNavigate:(v,href)=>setView(v,href)};
     if(view==='week'){setSummary(null);content=mountWeek(host,{...common,horizon:new URLSearchParams(location.search).get('horizon')==='today'?'today':'7d'});}
@@ -96,7 +96,7 @@ ${ui.menu(`<button type="button" class="iq-btn ghost icon sm" aria-label="Про
     const rowKey=key||`${target.projectId}:${target.taskId}`;
     // Where focus returns: the row, else the row now at its place in the same list, else the list's heading.
     const from=document.activeElement?.closest?.('[data-row]'),list=from?.closest('[data-list]');
-    origin={key:rowKey,scroll:document.scrollingElement.scrollTop,focus:document.activeElement,
+    origin={key:rowKey,scroll:scroller().scrollTop,focus:document.activeElement,
       section:list?.closest('section[id]')?.id||null,index:list?[...list.querySelectorAll(':scope > [data-row]')].indexOf(from):-1};
     try{
       const task=await repository.read('tasks',target.taskId,project.id).catch(()=>null);
@@ -129,7 +129,7 @@ ${ui.menu(`<button type="button" class="iq-btn ghost icon sm" aria-label="Про
     drawer=null;const back=origin;origin=null;
     if(parseRoute(location.pathname)?.task){if(history.state?.drawer)history.back();else history.replaceState({workbench:true},'',url());}
     if(!back)return;
-    document.scrollingElement.scrollTop=back.scroll;
+    scroller().scrollTop=back.scroll;
     // Focus returns to the row it came from, or its successor when the row is gone.
     if(content?.focusRow?.(back.key))return;
     if(back.focus?.isConnected){back.focus.focus({preventScroll:true});return;}
@@ -159,8 +159,7 @@ ${ui.menu(`<button type="button" class="iq-btn ghost icon sm" aria-label="Про
 
   const events=new AbortController();
   root.addEventListener('click',event=>{
-    const link=event.target.closest('a[data-home],a[data-projects],button[data-projects]');
-    if(link){event.preventDefault();if(link.hasAttribute('data-projects'))void leave(()=>onOpenProject(null));else setView('overview');return;}
+    if(event.target.closest('button[data-projects]')){void leave(()=>onOpenProject(null));return;}
     const go=event.target.closest('a[data-go]');
     if(go){event.preventDefault();setView(go.dataset.go,go.getAttribute('href'));return;}
     const anchor=event.target.closest('a[data-anchor]');
@@ -170,11 +169,7 @@ ${ui.menu(`<button type="button" class="iq-btn ghost icon sm" aria-label="Про
     else if(button.hasAttribute('data-filter'))filterDialog();
     else if(button.hasAttribute('data-refresh'))void content?.reload?.().then(()=>announce('Рабочий стол обновлён'));
     else if(button.hasAttribute('data-create-task'))createTask();
-    else if(button.hasAttribute('data-search'))onSearch?.();
-    else if(button.hasAttribute('data-theme-toggle')){onTheme?.();button.innerHTML=icon(dark()?'sun':'moon',18);button.setAttribute('aria-label',dark()?'Светлая тема':'Тёмная тема');}
   },{signal:events.signal});
-  root.addEventListener('iq-action',event=>{if(event.detail.action==='theme'){onTheme?.();const t=root.querySelector('[data-theme-toggle]');if(t){t.innerHTML=icon(dark()?'sun':'moon',18);t.setAttribute('aria-label',dark()?'Светлая тема':'Тёмная тема');}}
-    if(event.detail.action==='account')void leave(()=>onAccount?.());if(event.detail.action==='signout')onSignOut?.();},{signal:events.signal});
   const online=()=>{root.querySelector('[data-offline]').hidden=navigator.onLine;};
   window.addEventListener('online',online,{signal:events.signal});window.addEventListener('offline',online,{signal:events.signal});online();
 
@@ -203,6 +198,8 @@ ${ui.menu(`<button type="button" class="iq-btn ghost icon sm" aria-label="Про
       return true;
     },
     async readyToLeave(){return closeDrawer();},
+    /** The shell asks before it leaves the section: an open drawer settles first, like a task on the board. */
+    closeTask:()=>closeDrawer(),
     destroy(){closed=true;events.abort();content?.destroy();drawer?.close?.(true);root.replaceChildren();},
   };
 }

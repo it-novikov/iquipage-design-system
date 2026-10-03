@@ -2,15 +2,14 @@
    Controls, avatars, segmented groups, menus, skeletons, toasts and dialogs come from the DS; this file places them.
    Prefix dsk-. DS gaps are named in design-v2 §8 and §11.6 (DS-GAP-1…14). */
 
-/* ---------- Global header and page ---------- */
-.dsk-shell{min-height:100vh;background:var(--iq-canvas);color:var(--iq-ink);font:400 var(--iq-type-interface-size)/1.5 var(--iq-font)}
+/* ---------- Page ---------- */
+/* The Workbench is a section of the app shell: the shell's navigation is its top bar and #host-view scrolls it,
+   as Planning. The page keeps its own insets, so nothing under the bar moves. */
+#host-view[data-section=workbench]{padding:0}
+.dsk-shell{background:var(--iq-canvas);color:var(--iq-ink);font:400 var(--iq-type-interface-size)/1.5 var(--iq-font)}
 .dsk-shell ol,.dsk-shell ul{list-style:none;margin:0;padding:0}
-.dsk-header{position:sticky;top:0;z-index:5;display:flex;align-items:stretch;gap:var(--iq-space-3);min-height:56px;padding:0 var(--iq-space-6);border-bottom:1px solid var(--iq-line);background:var(--iq-canvas)}
-.dsk-brand{align-self:center;margin-right:var(--iq-space-2);font-weight:600;font-size:var(--iq-type-label-size);letter-spacing:.04em;color:var(--iq-ink);text-decoration:none;white-space:nowrap}
-.dsk-global-nav{flex:1 1 auto;justify-content:flex-start;flex-wrap:nowrap;border-bottom:0;margin-bottom:-1px;min-width:0}
-.dsk-global-nav a{white-space:nowrap}
-.dsk-personal{display:flex;align-items:center;gap:var(--iq-space-1);margin-left:auto;align-self:center}
-.pn-global-link{font-weight:500}
+/* The rail stays where it stood under the old sticky bar: one page inset below the top of the scrolled view. */
+.dsk-shell .iq-workspace-nav{top:var(--iq-space-6)}
 /* The page heading is the board's (sq-page-heading): the same top inset, title and tools row. */
 .dsk-page.iq-workspace-page{min-width:0;padding-top:var(--iq-space-6)}
 .dsk-heading h1{outline:none}
@@ -27,7 +26,7 @@
 /* ---------- Grid of widgets ---------- */
 .dsk-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:var(--iq-space-8) var(--iq-space-6);align-items:start}
 .dsk-span-12{grid-column:span 12}.dsk-span-8{grid-column:span 8}.dsk-span-4{grid-column:span 4}
-.dsk-widget{display:flex;flex-direction:column;min-width:0;scroll-margin-top:72px}
+.dsk-widget{display:flex;flex-direction:column;min-width:0;scroll-margin-top:var(--iq-space-4)}
 .dsk-widget>.iq-section-head{min-height:32px;margin-bottom:var(--iq-space-1);gap:var(--iq-space-2);align-items:center}
 .dsk-widget>.iq-section-head h2 .iq-section-count{margin-left:4px;font-weight:400}
 .dsk-widget>.iq-section-head h2{margin:0;font-weight:600;font-size:var(--iq-type-body-size);line-height:24px;letter-spacing:-.01em;outline:none}
@@ -67,7 +66,7 @@ button.dsk-when .dsk-chev{color:var(--iq-muted)}
 button.dsk-when[data-tone] .dsk-chev{color:currentColor}
 
 /* Rows: one Tab stop per list; the focused row is outlined */
-.dsk-shell [data-row]{scroll-margin:96px 0 24px}
+.dsk-shell [data-row]{scroll-margin:40px 0 24px}
 .dsk-shell [data-row]:focus-visible{outline:2px solid var(--iq-focus);outline-offset:-2px;border-radius:var(--iq-radius-sm)}
 .dsk-shell [data-row][aria-busy=true]{opacity:.6}
 .dsk-shell [data-row][data-state=done]>:not(.dsk-row-done){display:none}
@@ -133,7 +132,7 @@ button.dsk-when[data-tone] .dsk-chev{color:currentColor}
 /* ---------- Текущая работа: lanes of rows (DS-GAP-3, DS-GAP-11) ---------- */
 .dsk-lanes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--iq-space-4);align-items:start}
 .dsk-lanes-tabs{display:none}
-.dsk-lane{display:flex;flex-direction:column;gap:var(--iq-space-1);min-width:0;padding:var(--iq-space-2);border-radius:var(--iq-radius-md);background:var(--iq-surface);scroll-margin-top:72px}
+.dsk-lane{display:flex;flex-direction:column;gap:var(--iq-space-1);min-width:0;padding:var(--iq-space-2);border-radius:var(--iq-radius-md);background:var(--iq-surface);scroll-margin-top:var(--iq-space-4)}
 .dsk-lane-head{display:flex;align-items:center;gap:var(--iq-space-2);min-height:32px;padding:0 var(--iq-space-1)}
 .dsk-lane-head h3{margin:0;font-weight:600;font-size:var(--iq-type-label-size);outline:none}
 .dsk-lane-head>.iq-icon{color:var(--iq-muted)}
@@ -198,7 +197,7 @@ button.dsk-when[data-tone] .dsk-chev{color:currentColor}
 .dsk-week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:var(--iq-space-2);margin:var(--iq-space-3) 0 var(--iq-space-8)}
 .dsk-week.dsk-week-one{grid-template-columns:minmax(0,560px)}
 .dsk-week-skeleton{height:420px;border-radius:var(--iq-radius-md)}
-.dsk-day{display:flex;flex-direction:column;gap:var(--iq-space-2);min-height:420px;padding:var(--iq-space-2);border:1px solid var(--iq-line);border-radius:var(--iq-radius-sm);min-width:0;scroll-margin-top:72px}
+.dsk-day{display:flex;flex-direction:column;gap:var(--iq-space-2);min-height:420px;padding:var(--iq-space-2);border:1px solid var(--iq-line);border-radius:var(--iq-radius-sm);min-width:0;scroll-margin-top:var(--iq-space-4)}
 .dsk-day[data-today=true]{background:var(--iq-accent-soft);border-color:transparent}
 .dsk-day h3{display:grid;margin:0;font-weight:600;font-size:var(--iq-type-label-size);outline:none}
 .dsk-day h3 small{font-weight:400;font-size:var(--iq-type-meta-size);color:var(--iq-muted)}
@@ -263,11 +262,6 @@ button.dsk-when[data-tone] .dsk-chev{color:currentColor}
 }
 /* ---------- Phone (≤ 700): one column, requests in three lines, lanes as segments ---------- */
 @media (max-width:700px){
-  .dsk-header{padding:0 var(--iq-space-4);gap:var(--iq-space-2)}
-  .dsk-brand{margin-right:0}
-  .dsk-global-nav{gap:var(--iq-space-3)}
-  /* Phone header: brand, the two places, search and the profile (design-v2 §11.2); the theme stays in the menu. */
-  .dsk-personal [data-theme-toggle]{display:none}
   .dsk-page{padding:var(--iq-space-3) var(--iq-space-4) var(--iq-space-8)}
   .dsk-views{width:100%}.dsk-views button{flex:1}
   .dsk-strip{flex-wrap:wrap;margin-bottom:var(--iq-space-4)}
@@ -338,4 +332,3 @@ button.dsk-when[data-tone] .dsk-chev{color:currentColor}
 .dsk-complete{white-space:nowrap}
 .dsk-focused .dsk-item-tail{gap:var(--iq-space-2)}
 @media(max-width:700px){.dsk-focused .dsk-item-tail{grid-column:2 / -1;grid-row:auto;justify-self:start}.dsk-focused .dsk-item>iq-menu{grid-column:2 / -1}.dsk-focused .dsk-item>.dsk-when{grid-column:2 / -1;justify-self:start}}
-@media(max-width:360px){.dsk-header{flex-wrap:wrap;row-gap:0}.dsk-personal{min-height:48px}.dsk-brand{padding-block:var(--iq-space-3)}.dsk-global-nav{order:3;flex-basis:100%;min-height:44px}}
