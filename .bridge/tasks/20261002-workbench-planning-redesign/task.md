@@ -2,13 +2,13 @@
 bridge: 1
 id: 20261002-workbench-planning-redesign
 title: Пересборка Рабочего стола и Планирования
-status: active
+status: review
 risk: high
 owner: nvkv71
 branch: feat/workbench-planning-redesign
 base: main
 created: 2026-10-02
-updated: 2026-10-03T13:15:08Z
+updated: 2026-10-03T13:18:44Z
 links:
 ---
 
@@ -37,9 +37,9 @@ links:
 - **Сейчас:** Публикация PR
 - **Дальше:** Просмотр и слияние владельцем
 - **Незакоммичено:** merge main and package .31
-- **Рабочая копия:** 103 файл(ов): libraries/iquipage/PROVENANCE.json, libraries/iquipage/README.md, libraries/iquipage/docs/workspace.md, libraries/iquipage/package-lock.json, libraries/iquipage/package.json, libraries/iquipage/scripts/gates/contrast-baseline.json, libraries/iquipage/scripts/gates/size-baseline.json, libraries/iquipage/src/entries/core.js, libraries/iquipage/src/manifest.json, libraries/iquipage/src/modules/components.js, libraries/iquipage/src/modules/scale.js, libraries/iquipage/src/modules/ui.js и ещё 91 (109 files changed, 10445 insertions(+), 902 deletions(-)) · HEAD 87a3241
+- **Рабочая копия:** нет · HEAD f0687a9 · снято 2026-10-03T13:18:44Z
 - **Проверка:** 414 DS +60 targeted product PASS; build/typecheck/boundaries PASS; diff clean
-- **Причина:** review — codex-design, 2026-10-03T12:07:23Z: Готово локально; push/deploy не разрешены и не выполнялись; полный интеграционный прогон не заявлен
+- **Причина:** review — codex-design, 2026-10-03T13:18:44Z: PR #51. Main 9a959a2 объединена, опубликован f0687a9. Merge/deploy не выполнялись. CI statusCheckRollup недоступен текущему токену.
 
 ## План
 

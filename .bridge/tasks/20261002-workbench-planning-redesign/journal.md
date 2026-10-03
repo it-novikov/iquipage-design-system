@@ -17,3 +17,5 @@
 - 2026-10-03T12:07:23Z · codex-design · handoff · - · review; HEAD 5fc20a8; незакоммичено 26; Готово локально; push/deploy не разрешены и не выполнялись; полный интеграционный прогон не заявлен
 - 2026-10-03T13:15:08Z · codex-design · claim · - · взял задачу
 - 2026-10-03T13:15:08Z · codex-design · checkpoint · - · дальше: Просмотр и слияние владельцем
+- 2026-10-03T13:18:44Z · codex-design · status · - · review: PR #51 открыт: https://github.com/it-novikov/iquipage-design-system/pull/51; DS .31; 414 DS +60 target tests PASS
+- 2026-10-03T13:18:44Z · codex-design · handoff · - · review; HEAD f0687a9; незакоммичено 0; PR #51. Main 9a959a2 объединена, опубликован f0687a9. Merge/deploy не выполнялись. CI statusCheckRollup недоступен текущему токену.
