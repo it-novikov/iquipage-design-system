@@ -24,15 +24,15 @@ export async function mountWorkbench(root,{repository,session:initialSession,pla
 <nav class="iq-work-navigation dsk-global-nav" aria-label="Глобальные разделы"><a href="/workbench" aria-current="page" data-home>Рабочий стол</a><a href="/" data-projects>Проекты</a></nav>
 <div class="dsk-personal">${ui.ib('search','Поиск (⌘K)','ghost sm','data-search')}${ui.ib(dark()?'sun':'moon',dark()?'Светлая тема':'Тёмная тема','ghost sm','data-theme-toggle')}
 ${ui.menu(`<button type="button" class="iq-btn ghost icon sm" aria-label="Профиль: ${esc(profile.name)}">${ui.personAvatar(profile,{size:''})}</button>`,[{label:esc(profile.name),action:'account'},{label:'Сменить тему',action:'theme',glyph:'moon'},{label:'Выйти',action:'signout',danger:true}])}</div></header>
-<main class="dsk-main" id="dsk-main"><div class="dsk-page">
-<header class="iq-page-heading dsk-heading"><div class="iq-page-heading-copy"><h1 tabindex="-1">Рабочий стол</h1></div>
-<div class="iq-page-heading-tools"><div class="iq-segmented dsk-views" role="group" aria-label="Вид рабочего стола">${VIEWS.map(v=>`<button type="button" data-view="${v.key}" aria-label="${esc(v.label)}">${icon(v.icon,16)}<span>${esc(v.label)}</span></button>`).join('')}</div>
-${ui.btn('Задача','primary sm','plus','data-create-task aria-label="Создать задачу"')}</div></header>
-<div class="dsk-strip"><nav class="dsk-summary" aria-label="Сводка по разделам" data-summary></nav>
+<main class="dsk-main" id="dsk-main"><div class="dsk-page iq-workspace-page">
+<header class="iq-workspace-heading"><div><span class="iq-workspace-eyebrow">Моя работа</span><h1 tabindex="-1">Рабочий стол</h1><p>Что требует вашего решения и над чем двигаться дальше.</p></div>
+<div class="iq-workspace-tools"><div class="iq-segmented dsk-views" role="group" aria-label="Вид рабочего стола">${VIEWS.map(v=>`<button type="button" data-view="${v.key}" aria-label="${esc(v.label)}">${icon(v.icon,16)}<span>${esc(v.label)}</span></button>`).join('')}</div>
+${ui.btn('Новая задача','primary sm','plus','data-create-task aria-label="Создать задачу"')}</div></header>
+<div class="iq-workspace" data-workspace><nav class="iq-workspace-nav" aria-label="Очереди рабочего стола" data-summary></nav><div class="iq-workspace-body"><div class="dsk-strip iq-workspace-toolbar">
 <div class="dsk-strip-end"><button type="button" class="iq-btn ghost sm" data-filter aria-haspopup="dialog">${icon('folder',16)}<span data-filter-label>Проекты: все</span>${icon('down',14)}</button>
 <span data-updated></span>${ui.ib('refresh','Обновить рабочий стол','ghost sm','data-refresh')}</div></div>
 <div class="dsk-banner" data-offline hidden>${icon('warning',16)}<p>Нет соединения. Показаны последние загруженные данные; изменения не сохраняются без ответа сервера.</p></div>
-<div data-content></div><p class="sr-only" role="status" aria-live="polite" data-live></p></div></main></div>`;
+<div data-content></div><p class="sr-only" role="status" aria-live="polite" data-live></p></div></div></div></main></div>`;
   const live=root.querySelector('[data-live]');
   const announce=text=>{live.textContent='';requestAnimationFrame(()=>{live.textContent=text;});};
 
@@ -42,13 +42,13 @@ ${ui.btn('Задача','primary sm','plus','data-create-task aria-label="Соз
     const chosen=(filter||[]).map(id=>projects.get(id)).filter(Boolean);
     root.querySelector('[data-filter-label]').textContent=chosen.length===1?`Проект: ${chosen[0].name}`:chosen.length?`Проекты: ${chosen.length}`:'Проекты: все';
     root.querySelector('[data-filter]').setAttribute('aria-label',`Проекты в выдаче: ${chosen.length?chosen.map(p=>p.name).join(', '):'все'}`);
-    root.querySelector('.dsk-summary').hidden=view==='week';
+    root.querySelector('[data-workspace]').dataset.navigation=view==='week'?'hidden':'visible';
   }
   function setSummary(items){
     const nav=root.querySelector('[data-summary]');
     if(!items){nav.innerHTML='<span class="iq-skeleton iq-skeleton-line dsk-summary-skeleton"></span>';return;}
-    nav.innerHTML=items.map(item=>item.sep?'<span class="dsk-sep" aria-hidden="true"></span>'
-      :`<a href="${item.href}" ${item.view?`data-go="${item.view}"`:'data-anchor'} data-empty="${item.count===0}">${esc(item.label)} <span class="iq-section-count">${item.count==null?'–':esc(countLabel(item.count,item.capped))}</span>${item.note?`<span class="dsk-summary-note">${esc(item.note)}</span>`:''}</a>`).join('');
+    nav.innerHTML=items.map(item=>item.sep?'<span class="iq-workspace-nav-separator" aria-hidden="true"></span>'
+      :`<a href="${item.href}" ${item.view?`data-go="${item.view}"`:'data-anchor'} ${item.current?'aria-current="true"':''}>${icon(item.glyph||'list',16)}<span class="iq-workspace-nav-label">${esc(item.label)}${item.note?`<span class="iq-workspace-nav-note">${esc(item.note)}</span>`:''}</span><span class="iq-workspace-nav-count">${item.count==null?'–':esc(countLabel(item.count,item.capped))}</span></a>`).join('');
   }
   const setUpdated=at=>{root.querySelector('[data-updated]').textContent=at?`Обновлено в ${at.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})}`:'';};
   const prefs=()=>preferences;
@@ -161,7 +161,7 @@ ${ui.btn('Задача','primary sm','plus','data-create-task aria-label="Соз
     const go=event.target.closest('a[data-go]');
     if(go){event.preventDefault();setView(go.dataset.go,go.getAttribute('href'));return;}
     const anchor=event.target.closest('a[data-anchor]');
-    if(anchor){event.preventDefault();const target=content?.reveal?.(anchor.getAttribute('href').slice(1))||root.querySelector(anchor.getAttribute('href'));if(target){target.scrollIntoView({block:'start'});const row=target.querySelector('[data-row]');(row||target.querySelector('h2,h3'))?.focus({preventScroll:true});}return;}
+    if(anchor){event.preventDefault();const target=content?.reveal?.(anchor.getAttribute('href').slice(1))||root.querySelector(anchor.getAttribute('href'));if(target){target.scrollIntoView({block:'start'});const row=[...target.querySelectorAll('[data-row]')].find(el=>!el.closest('[hidden]'));(row||target.querySelector('h2,h3'))?.focus({preventScroll:true});}return;}
     const button=event.target.closest('button');if(!button||button.disabled)return;
     if(button.dataset.view&&button.closest('.dsk-views'))setView(button.dataset.view);
     else if(button.hasAttribute('data-filter'))filterDialog();

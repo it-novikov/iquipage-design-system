@@ -26,10 +26,11 @@ export function mountDashboard(host,{mode,api,repository,projects,filter,prefs,s
   const day=()=>plan?.today||localDay();
   const browserZone=()=>{try{return Intl.DateTimeFormat().resolvedOptions().timeZone||undefined;}catch{return undefined;}};
   const wide=mode==='list';
+  let activeSection='dsk-action';
   const parts=()=>({personal:!!envelope?.features?.participation,requests:!!envelope?.features?.requests,waiting:!!envelope?.features?.waiting});
   const view={
     reload:options=>load(options),
-    rowElement:key=>host.querySelector(`[data-row][data-key="${CSS.escape(key)}"]`),
+    rowElement:key=>[...host.querySelectorAll(`[data-row][data-key="${CSS.escape(key)}"]`)].find(el=>!el.closest('[hidden]')),
     focusSection:li=>{const s=li.closest('section');s?.querySelector('h2')?.focus();},
   };
   const actions=createActions({api,repository,view,projects,filter,openTask:(row,options)=>openTask(row,options),openProject,announce});
@@ -50,7 +51,7 @@ export function mountDashboard(host,{mode,api,repository,projects,filter,prefs,s
     if(firstLoad&&location.hash){
       firstLoad=false;
       let id='';try{id=decodeURIComponent(location.hash.slice(1));}catch{/* a malformed address names nothing */}
-      const target=id&&document.getElementById(id);if(target&&host.contains(target)){target.scrollIntoView({block:'start'});return;}
+      const target=id&&reveal(id);if(target&&host.contains(target)){target.scrollIntoView({block:'start'});return;}
     }
     firstLoad=false;
     document.scrollingElement.scrollTop=scroll;
@@ -68,13 +69,13 @@ export function mountDashboard(host,{mode,api,repository,projects,filter,prefs,s
     if(!envelope){setSummary(null);return;}
     const [action,,updates]=envelope.sections,today=plan?plan.days[0].items.length:null;
     setSummary([
-      {href:'#dsk-action',label:'Нужно действие',count:action.count,note:action.overdueCount?`${action.overdueCount} ${plural(action.overdueCount,'просрочен','просрочено','просрочено')}`:''},
+      {href:'#dsk-action',current:!wide&&activeSection==='dsk-action',glyph:'bell',label:'Нужно действие',count:action.count,note:action.overdueCount?`${action.overdueCount} ${plural(action.overdueCount,'просрочен','просрочено','просрочено')}`:''},
       // «Сегодня» is a section of the overview; in the list it leads to the week.
-      wide?{href:'/workbench/plan?horizon=today',view:'week',label:'Сегодня',count:today}:{href:'#dsk-today',label:'Сегодня',count:today},
+      wide?{href:'/workbench/plan?horizon=today',view:'week',label:'Сегодня',count:today}:{href:'#dsk-today',glyph:'sun',label:'Сегодня',count:today},
       {sep:true},
-      ...LANES.map(l=>({href:`#dsk-lane-${l.key}`,label:l.title,count:groupOf(l.key)?.count??0})),
+      ...LANES.map(l=>({href:`#dsk-lane-${l.key}`,current:!wide&&activeSection===`dsk-lane-${l.key}`,glyph:l.icon,label:l.title,count:groupOf(l.key)?.count??0})),
       {sep:true},
-      {href:'#dsk-changes',label:'Изменилось',count:updates.count,capped:updates.countCapped},
+      {href:'#dsk-changes',current:!wide&&activeSection==='dsk-changes',glyph:'spark',label:'Изменилось',count:updates.count,capped:updates.countCapped},
     ]);
   }
 
@@ -89,7 +90,7 @@ export function mountDashboard(host,{mode,api,repository,projects,filter,prefs,s
       <ol class="dsk-reqs" data-list aria-label="Запросы к вам">${items.length?items.map(r=>requestRow(r,{wide,parts:p,today:day()})).join(''):emptyRow('Запросов к вам нет','Точные запросы и утверждения появятся здесь, с лицом того, кто просит, и сроком ответа.')}</ol>
       ${showSnoozed?snoozedList():''}
       ${more('action')}
-      ${wide?'':`<div class="dsk-widget-foot"><a class="iq-btn ghost sm" href="/workbench/list" data-view="list">Все запросы в списке${icon('arrow',16)}</a><p class="dsk-hint">Кнопка в строке закрывает запрос с отменой; «Ответить» открывает задачу с полем ответа.</p></div>`}`;
+      ${wide?'':`<div class="dsk-widget-foot"><a class="iq-btn ghost sm" href="/workbench/list" data-view="list">Все запросы в списке${icon('arrow',16)}</a></div>`}`;
     }
     const snoozeButton=s?.snoozedCount?`<button type="button" class="iq-btn ghost sm" data-snoozed-toggle aria-expanded="${showSnoozed}">${icon('clock',16)}<span>Отложенные: ${s.snoozedCount}</span></button>`:'';
     return section('dsk-action',wide?'dsk-span-12':'dsk-span-8','Нужно действие','bell',countBadge(s?.count),snoozeButton,body,{busy:loading&&!envelope});
@@ -107,7 +108,7 @@ export function mountDashboard(host,{mode,api,repository,projects,filter,prefs,s
     else if(!plan)body=`<ul class="dsk-today">${failedRow('«Сегодня»',loadedAt?loadedAt.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}):'')}</ul>`;
     else{
       const items=plan.days[0].items,today=plan.today;
-      note=`<span class="dsk-hint">${esc(weekday(today))} ${esc(shortDate(today))} · ${esc(plan.timezone)}</span>`;
+      note=`<span class="dsk-hint">${esc(weekday(today))}, ${esc(shortDate(today))}</span>`;
       const undated=plan.summary.undatedCount;
       body=`<div class="dsk-today-wrap"><ul class="dsk-today" data-list aria-label="Сегодня">${items.length?items.map(i=>todayRow(i,{today})).join('')
         :'<li class="dsk-today-empty"><b>На сегодня ничего не назначено</b>Сроки, план и «проверить» появятся здесь, просроченное — первым.</li>'}</ul>
@@ -134,10 +135,10 @@ export function mountDashboard(host,{mode,api,repository,projects,filter,prefs,s
     else if(envError&&!envelope)body=`<ul>${failedRow('«Текущая работа»')}</ul>`;
     else body=`${wide?'':`<div class="iq-segmented dsk-lanes-tabs" role="group" aria-label="Дорожка">${LANES.map(l=>`<button type="button" data-lane-tab="${l.key}" aria-pressed="${laneTab===l.key}">${esc(l.title)} ${groupOf(l.key)?.count??0}</button>`).join('')}</div>`}
       <div class="dsk-lanes${form==='list'?' as-list':''}">${LANES.map(lane).join('')}</div>
-      ${wide?'':'<p class="dsk-hint dsk-rule">Одна задача — одна строка: запрос → В работе → Изменилось → Наблюдаю · Жду. Новость поднимает задачу в «Изменилось», после «Просмотрено» она возвращается. ○ — готово, «Проверить» — ваша личная дата, ↑↓ — ваш порядок.</p>'}`;
+      `;
     const backlog=current?.backlogCount?`<a class="iq-btn ghost sm" href="/workbench/list#dsk-backlog" data-view="list" data-backlog>${icon('list',16)}<span>Назначено мне: бэклог ${current.backlogCount}</span></a>`:'';
-    const toggle=wide?'':`<div class="iq-segmented dsk-form" role="group" aria-label="Текущая работа как">${ui.ib('board','Дорожками','',`data-form="lanes" aria-pressed="${form==='lanes'}"`)}${ui.ib('list','Списком','',`data-form="list" aria-pressed="${form==='list'}"`)}</div>`;
-    return section('dsk-current','dsk-span-12','Текущая работа','board',countBadge(current?.count),backlog+toggle,body,{busy:loading&&!envelope});
+    const currentLane=LANES.find(l=>activeSection===`dsk-lane-${l.key}`);
+    return section('dsk-current','dsk-span-12',!wide&&currentLane?currentLane.title:'Текущая работа',currentLane?.icon||'board',countBadge(!wide&&currentLane?groupOf(currentLane.key)?.count:current?.count),backlog,body,{busy:loading&&!envelope});
   }
   function changesSection(){
     const s=envelope?.sections[2],p=parts();
@@ -169,7 +170,12 @@ export function mountDashboard(host,{mode,api,repository,projects,filter,prefs,s
   function render(){
     rows=new Map();
     const refresh=changed?`<div class="dsk-refresh" role="status">${ui.btn('Появились изменения. Обновить','secondary sm','refresh','data-refresh-plaque')}</div>`:'';
-    host.innerHTML=`${refresh}<div class="dsk-grid${wide?' dsk-list2':''}">${requestsSection()}${todaySection()}${currentSection()}${changesSection()}${backlogSection()}</div>`;
+    host.innerHTML=wide?`${refresh}<div class="dsk-grid dsk-list2">${requestsSection()}${currentSection()}${changesSection()}${backlogSection()}</div>`
+      :`${refresh}<div class="iq-workspace-split dsk-focused"><div class="iq-workspace-primary">${requestsSection()}${currentSection()}${changesSection()}</div><aside class="iq-workspace-aside" aria-label="Повестка дня">${todaySection()}</aside></div>`;
+    if(!wide){
+      for(const id of ['dsk-action','dsk-current','dsk-changes'])host.querySelector(`#${id}`).hidden=id!==(activeSection.startsWith('dsk-lane-')?'dsk-current':activeSection);
+      for(const l of LANES){const el=host.querySelector(`#dsk-lane-${l.key}`);if(!el)continue;el.hidden=activeSection!==`dsk-lane-${l.key}`;el.removeAttribute('data-phone-hidden');}
+    }
     arm(host);summary();actions.restore(host);
   }
 
@@ -236,9 +242,10 @@ export function mountDashboard(host,{mode,api,repository,projects,filter,prefs,s
   /** A lane hidden behind its phone segment is shown before anyone is taken to it (review R4 F7). */
   function reveal(id){
     const lane=/^dsk-lane-(active|waiting|joined)$/.exec(id)?.[1];
-    // Segments exist only on a phone: wider, every lane is on screen and nothing is re-rendered.
-    if(lane&&laneTab!==lane&&matchMedia('(max-width:700px)').matches){laneTab=lane;render();}
-    return host.querySelector(`#${CSS.escape(id)}`);
+    if(!wide&&id!=='dsk-today'&&(lane||id==='dsk-action'||id==='dsk-changes')){activeSection=id;if(lane)laneTab=lane;render();}
+    else if(lane&&laneTab!==lane&&matchMedia('(max-width:700px)').matches){laneTab=lane;render();}
+    const target=host.querySelector(`#${CSS.escape(id)}`);
+    return !wide&&lane&&!target?.querySelector('[data-row]')?host.querySelector('#dsk-current'):target;
   }
 
   // Live: the envelope is polled while the page is visible; a new snapshot is offered, never applied under the reader.
@@ -257,9 +264,9 @@ export function mountDashboard(host,{mode,api,repository,projects,filter,prefs,s
     /** The row now at `index` of a section's list, else the one before it, else the section's heading. */
     focusAt(sectionId,index){
       const section=sectionId&&host.querySelector(`#${CSS.escape(sectionId)}`);if(!section)return;
-      const rows=[...section.querySelectorAll('[data-list] > [data-row]')];
+      const rows=[...section.querySelectorAll('[data-list] > [data-row]')].filter(el=>!el.closest('[hidden]'));
       const row=rows[Math.max(0,index)]||rows.at(-1);
-      if(row)focusRow(row);else section.querySelector('h2,h3')?.focus();
+      if(row)focusRow(row);else (!wide&&sectionId.startsWith('dsk-lane-')?host.querySelector('#dsk-current-h'):section.querySelector('h2,h3'))?.focus();
     },
     destroy(){destroyed=true;clearInterval(poll);events.abort();actions.destroy();host.replaceChildren();},
   };

@@ -28,7 +28,7 @@ export function bindKeyboard(root,{onOpen,section=()=>null,signal}){
     if(event.metaKey||event.ctrlKey||event.altKey||!/^[1-6]$/.test(event.key))return;
     const target=section(Number(event.key));if(!target)return;
     event.preventDefault();target.scrollIntoView({block:'start'});
-    const first=target.querySelector('[data-list] > [data-row]');(first?focusRow(first):target.querySelector('h2,h3')?.focus());
+    const first=[...target.querySelectorAll('[data-list] > [data-row]')].find(el=>!el.closest('[hidden]'));(first?focusRow(first):target.querySelector('h2,h3')?.focus());
   },{signal});
   root.addEventListener('keydown',event=>{
     if(event.defaultPrevented||typing(event.target))return;

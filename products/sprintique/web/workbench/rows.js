@@ -1,7 +1,7 @@
 // Rows of the Workbench (docs/workbench/design-v2.md §11.2–§11.3): a request with its verb, a "Сегодня" item, the
 // three lanes of «Текущая работа» (В работе · Жду · Наблюдаю) and a change with its "было → стало". Every row is an
 // `li[data-row]` with the task title as its link and every action as its own labelled control; the views wire them.
-import {ui,icon,escapeHTML as esc} from '@iquipage/web/core';
+import {ui,icon,statusGlyph,escapeHTML as esc} from '@iquipage/web/core';
 import {ageLabel,changeLine,changeOf,checkWhen,countLabel,dueWhen,duePresets,moreReasons,neededWhen,planTone,planWhen,PLAN_KINDS,snoozePresets,
   statusLabel,verbOf,CHANGE_GLYPH,localDay} from './model.js';
 import {avatarName} from '../../ui/src/board/assignees.js';
@@ -34,9 +34,9 @@ export function requestRow(row,{wide=false,today=localDay(),parts}={}){
   return `<li ${rowAttrs(row,'req')}>
     ${ui.personAvatar(asker||{name:'?'},{size:''})}
     <div class="dsk-req-copy">
-      <p class="dsk-req-ask"><b>${esc(asker?.name||'Участник проекта')}</b> ${esc(verb.asks)}<span class="dsk-age">${esc(ageLabel(row.request?.createdAt))}</span></p>
-      <div class="dsk-req-task">${title(row)}<span class="dsk-key">${key(row)}</span>${wide?'':`<span class="dsk-project">${project(row)}</span>`}
-        ${more?`<button type="button" class="dsk-more" data-reasons aria-expanded="false">${esc(moreReasons(more))}${icon('down',12)}</button>`:''}</div>
+      <div class="dsk-req-task">${title(row)}</div>
+      <p class="dsk-req-ask">${esc(asker?.name||'Участник проекта')} ${esc(verb.asks)}<span class="dsk-age">${esc(ageLabel(row.request?.createdAt))}</span></p>
+      <div class="dsk-req-context"><span class="dsk-key">${key(row)}</span>${wide?'':`<span class="dsk-project">${project(row)}</span>`}${more?`<button type="button" class="dsk-more" data-reasons aria-expanded="false">${esc(moreReasons(more))}${icon('down',12)}</button>`:''}</div>
       ${more?`<ul class="dsk-reasons" hidden>${row.secondaryReasons.map(r=>`<li>${esc(r.text)}</li>`).join('')}</ul>`:''}
     </div>
     ${wide?`<span class="dsk-project">${project(row)}</span>`:''}
@@ -78,17 +78,17 @@ const newsNote=row=>row.updates?` · <span class="dsk-news">${esc(countLabel(row
 export function activeItem(row,{wide=false,today=localDay(),parts}={}){
   const move=row.active?.transition,cannot=row.active?.cannotComplete;
   const detail=cannot?.reason==='blocked'?cannot.text.replace(/^З/,'з'):statusLabel(row.status).toLowerCase();
-  const check=`<button type="button" class="dsk-check" data-complete ${cannot?`disabled title="${esc(cannot.text)}"`:''}
-    aria-label="${esc(move?.label||'Готово')}: ${key(row)}${cannot?`. ${esc(cannot.text)}`:''}" aria-keyshortcuts="D">${icon('check',14)}</button>`;
+  const check=`<button type="button" class="iq-btn secondary sm dsk-complete" data-complete ${cannot?`disabled title="${esc(cannot.text)}"`:''}
+    aria-label="${esc(move?.label||'Готово')}: ${key(row)}${cannot?`. ${esc(cannot.text)}`:''}" aria-keyshortcuts="D">${icon('check',14)}<span>${esc(move?.label||'Готово')}</span></button>`;
   const due=dueWhen(row,today),presets=duePresets(today);
   const dueControl=row.canEditDue?ui.menu(whenFact(due,{button:'data-due',label:`Срок ${row.displayId}: ${due.value}. Перенести`}),
     [...presets.map((p,i)=>({label:p.label,action:`due:${i}`,glyph:'calendar'})),{label:'Выбрать дату…',action:'due:pick',glyph:'calendar'},{label:'Без срока',action:'due:none',glyph:'x'}]):whenFact(due);
   return `<li ${rowAttrs(row,'item','data-group="active"')} data-transition="${esc(move?.label||'')}">
-    ${check}
+    <span class="dsk-item-lead">${statusGlyph(row.status)}</span>
     <div class="dsk-item-copy">${title(row)}<p class="dsk-meta"><span class="dsk-key">${key(row)}</span>${wide?'':` · ${project(row)}`} · ${esc(detail)}${newsNote(row)}</p></div>
     ${wide?`<span class="dsk-project">${project(row)}</span>`:''}
     ${dueControl}
-    <div class="dsk-item-tail">${rowMenu(row,parts)}</div>
+    <div class="dsk-item-tail">${check}${rowMenu(row,parts)}</div>
   </li>`;
 }
 

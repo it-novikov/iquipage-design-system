@@ -1,83 +1,25 @@
-/* Planning, round 4.1: cards with the head inside on one quiet surface, tree rows in the DS language (iq-tree columns,
-   status glyphs in board tones), done work below «Готово». A product composition on IQUIPAGE tokens and public
-   classes: no lines between rows, no column headers, no grips, colour only where it means something. */
-.planning-root{min-height:100%}
-.pl-page{position:relative;min-height:100%}
-.pl-inner{max-width:960px;margin:0 auto;padding:36px 0 72px}
-@media(max-width:1100px){.pl-inner{padding:28px 32px 56px}}
-
-.pl-head{display:flex;align-items:baseline;gap:14px;min-height:30px;margin:0 0 var(--iq-space-5)}
-.pl-head h1{margin:0;font-size:1.375rem;line-height:1.3;font-weight:600;letter-spacing:-.02em}
-.pl-readonly{margin-left:auto;padding:3px var(--iq-space-2);border:1px solid var(--iq-line);border-radius:var(--iq-radius-xs);font-size:var(--iq-type-meta-size);color:var(--iq-muted)}
-.pl-readonly[hidden]{display:none}
-.pl-error{margin:0 0 var(--iq-space-2);color:var(--iq-danger);font-size:var(--iq-type-label-size)}
-[data-error]:not([hidden]){margin-bottom:var(--iq-space-4)}
+/* Product adapters; workspace composition and responsive tree geometry are public DS contracts. */
+.planning-root,.pl-page{min-height:100%}
+.pl-page{position:relative}
 .pl-stack{display:grid;gap:var(--iq-space-5)}
+.pl-rows [data-row]{cursor:pointer}
 .pl-loading{display:grid;gap:var(--iq-space-2)}
-
-/* ---------- A container: one surface, its head inside ---------- */
-.pl-card{--tree-columns:104px 108px 60px 64px;--tree-column-gap:16px;background:var(--iq-surface);border-radius:var(--iq-radius-md);padding:10px 12px 8px}
-@media(max-width:1100px){.pl-card{--tree-columns:104px 96px 56px 60px}}
-.pl-card-head{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:var(--iq-space-4);align-items:start;padding:var(--iq-space-2) var(--iq-space-2) var(--iq-space-2) var(--iq-space-4)}
-.pl-card-title{display:flex;align-items:baseline;flex-wrap:wrap;gap:10px;min-width:0}
-.pl-card-name{margin:0;font-size:.9375rem;line-height:1.45;font-weight:600;letter-spacing:-.012em;white-space:nowrap}
-.pl-when{font-size:var(--iq-type-label-size);color:var(--iq-muted);white-space:nowrap}
-.pl-when-button{margin:0;padding:0;border:0;border-bottom:1px dotted transparent;background:none;font:inherit;color:inherit;cursor:pointer}
-.pl-card-head:hover .pl-when-button,.pl-when-button:focus-visible{border-bottom-color:var(--iq-control)}
-.pl-goal{grid-column:1;margin:2px 0 0;max-width:64ch;font-size:var(--iq-type-label-size);color:var(--iq-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pl-goal.is-empty{color:var(--iq-faint)}
-.pl-card-side{display:flex;align-items:center;gap:14px;height:24px;font-size:var(--iq-type-label-size);color:var(--iq-muted);white-space:nowrap}
-.pl-card-side b{font-weight:500;color:var(--iq-ink)}
-.pl-sum{display:inline-flex;align-items:center;gap:14px}
-.pl-sum:empty{display:none}
-.pl-card-side .iq-btn{--h:28px}
+.pl-sum{display:flex;gap:var(--iq-space-2);align-items:center;flex-wrap:wrap}
+.pl-sum b{color:var(--iq-ink);font-weight:600}
 .pl-sum-warning,.pl-warning{color:var(--iq-warning)}
-/* «···» takes no room at rest: it opens beside the sum when the head is hovered or holds focus. */
-.pl-card-head .pl-more{--h:28px;width:0;min-width:0;margin-left:-14px;overflow:hidden;opacity:0;transition:opacity var(--iq-motion-fast) var(--iq-ease)}
-.pl-card-head:is(:hover,:focus-within) .pl-more.pl-more{width:var(--h);min-width:var(--h);margin-left:-6px;opacity:1}
-.pl-page[data-readonly] .pl-more{display:none}
-
-/* ---------- Rows: the DS tree; epics breathe a little before the next top-level row ---------- */
-.pl-rows{margin-top:2px}
-.pl-rows>.tree-row{cursor:pointer}
-.pl-rows>.tree-row[aria-level="2"]+.tree-row[aria-level="1"],.pl-rows>.tree-row[aria-level="3"]+.tree-row[aria-level="1"]{margin-top:6px}
-.pl-rows>.tree-row[aria-level="1"]+.tree-row.is-branch[aria-level="1"]{margin-top:2px}
-.pl-title{cursor:pointer}
-.pl-slot{position:relative}
-.pl-slot .pl-check{display:none;cursor:pointer}
-.pl-slot.is-choosing .pl-glyph,.pl-slot:hover .pl-glyph{display:none}
-.pl-slot.is-choosing .pl-check,.pl-slot:hover .pl-check{display:grid}
-.pl-glyph{display:grid;place-items:center}
-/* Dates and estimates hug the right edge and may lean into the gap («без срока»), as values, not truncated labels. */
-.pl-card .tree-cell.is-end{overflow:visible}
-.pl-card .tree-cell.is-end>.tree-cell-button{max-width:none}
-.pl-empty-value{display:inline-block;min-width:24px;min-height:1em}
-.pl-mismatch{color:var(--iq-faint);text-decoration:line-through;text-decoration-color:var(--iq-faint)}
-.tree-row.is-selected .pl-warning{color:inherit}
-.pl-add{display:flex;align-items:center;gap:var(--iq-space-2);width:100%;height:36px;margin-top:2px;padding:0 0 0 var(--iq-space-4);border:0;border-radius:var(--iq-radius-xs);background:none;font:inherit;font-size:var(--iq-type-label-size);color:var(--iq-faint);text-align:left;cursor:pointer}
-.pl-add:hover,.pl-add:focus-visible{color:var(--iq-ink);background:var(--iq-hover)}
-.pl-empty{margin:0;padding:14px var(--iq-space-4) 18px;font-size:var(--iq-type-label-size);color:var(--iq-muted)}
-.pl-drop-empty{margin:4px 4px 2px;padding:var(--iq-space-5) var(--iq-space-4);border:1px dashed var(--iq-line-strong);border-radius:var(--iq-radius-sm);font-size:var(--iq-type-label-size);color:var(--iq-muted);text-align:center}
-
-/* ---------- First run ---------- */
-.pl-first{padding:36px var(--iq-space-6);border-radius:var(--iq-radius-md);background:var(--iq-surface);text-align:center}
-.pl-first h2{margin:0;font-size:1.0625rem;font-weight:600;letter-spacing:-.016em}
-.pl-first p{max-width:52ch;margin:var(--iq-space-2) auto 18px;font-size:var(--iq-type-label-size);color:var(--iq-muted)}
-.pl-first-actions{display:flex;justify-content:center;gap:var(--iq-space-2)}
-
-/* ---------- Under the stack: two quiet links and the finished sprints ---------- */
-.pl-foot{display:flex;align-items:center;gap:18px;margin-top:28px;padding:0 var(--iq-space-3)}
-.pl-foot[hidden]{display:none}
-.pl-foot-gap{flex:1}
-.pl-link{display:inline-flex;align-items:center;gap:6px;padding:6px 0;border:0;background:none;font:inherit;font-size:var(--iq-type-label-size);font-weight:500;color:var(--iq-faint);cursor:pointer}
-.pl-link:hover,.pl-link:focus-visible{color:var(--iq-ink)}
-
-/* ---------- One selection bar ---------- */
-.pl-selbar{position:fixed;left:50%;bottom:28px;translate:-50% 0;display:flex;align-items:center;gap:var(--iq-space-2);padding:var(--iq-space-2) var(--iq-space-2) var(--iq-space-2) var(--iq-space-4);border:1px solid var(--iq-raised-edge);border-radius:var(--iq-radius-sm);background:var(--iq-raised);box-shadow:var(--iq-shadow-3);font-size:var(--iq-type-label-size);white-space:nowrap}
+.pl-mismatch{color:var(--iq-muted);text-decoration:line-through}
+.pl-readonly{font-size:var(--iq-type-caption-size);color:var(--iq-muted)}
+.pl-readonly[hidden]{display:none}
+.pl-error{color:var(--iq-danger)}
+.pl-empty,.pl-drop-empty{padding:var(--iq-space-5);margin:0;font-size:var(--iq-type-label-size);color:var(--iq-muted)}
+.pl-first{padding:var(--iq-space-6);background:var(--iq-surface);border-radius:var(--iq-radius-md)}
+.pl-first h2{margin:0;font-size:var(--iq-type-heading3-size)}
+.pl-first p{font-size:var(--iq-type-label-size);color:var(--iq-muted)}
+.pl-first-actions{display:flex;gap:var(--iq-space-2);flex-wrap:wrap}
+.pl-foot{margin-top:var(--iq-space-4)}
+.pl-selbar{position:fixed;z-index:8;left:50%;bottom:var(--iq-space-4);transform:translateX(-50%);display:flex;align-items:center;gap:var(--iq-space-2);max-width:calc(100% - 24px);padding:var(--iq-space-3);background:var(--iq-raised);border:1px solid var(--iq-line-strong);border-radius:var(--iq-radius-md);box-shadow:var(--iq-shadow-3);font-size:var(--iq-type-label-size);flex-wrap:wrap}
 .pl-selbar[hidden]{display:none}
-.pl-selbar b{margin-right:var(--iq-space-2);font-weight:500}
-.pl-selbar .iq-btn{--h:32px}
-
+.pl-selbar b{font-weight:500}
 /* ---------- Ghost of a drag ---------- */
 /* Only the glyph and the title on the DS ghost (an opaque raised card); subtasks step in like in the tree. */
 .pl-ghost{display:grid;padding:2px 4px;cursor:grabbing}
