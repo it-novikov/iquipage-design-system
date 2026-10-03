@@ -173,8 +173,9 @@ test('NC03 several updates about one task become one entry with all reasons; a r
   await say(p.id,'d1','@Ким посмотри, пожалуйста, подписи на рёбрах');
   await task(p.id,'d2',{title:'Онбординг',ownerId:kim.id});
   const api=await startFakeTelegram();
-  const work=await startWorker({...telegram,SPRINTIQUE_TELEGRAM_API_BASE:api.url});
+  let work:Awaited<ReturnType<typeof startWorker>>|undefined;
   try{
+    work=await startWorker({...telegram,SPRINTIQUE_TELEGRAM_API_BASE:api.url});
     await until(async()=>(await batches(kim,'telegram'))[0]?.state==='sent','the batch is sent',work.output);
     const messages=api.sent.filter(s=>s.chat===13001);
     assert.equal(messages.length,1,'one message for the whole batch');
@@ -185,7 +186,7 @@ test('NC03 several updates about one task become one entry with all reasons; a r
       `<a href="${link(2)}"><b>Онбординг</b></a>\nВас назначили исполнителем задачи ${p.key}-2\n<i>Алиса</i>`);
     assert.deepEqual(messages[0]!.markup,{inline_keyboard:[[{text:'Открыть Sprintique',url:PUBLIC+'/'}]]});
     assert.deepEqual((await deliveries(kim)).map(d=>d.state),['sent','sent','sent','sent'],'four items, three reasons');
-  }finally{await work.stop();await api.close();}
+  }finally{await work?.stop();await api.close();}
 });
 
 test('NC04 every item is checked again before it leaves; dead items are dropped, and nothing is sent when none is left',async()=>{
