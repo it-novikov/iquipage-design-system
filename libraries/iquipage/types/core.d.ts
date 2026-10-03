@@ -1,5 +1,5 @@
 /** Supported core browser entry. Does not register graph, roadmap, crop, or whiteboard. */
-export declare const version:'0.6.0-vnext.30';
+export declare const version:'0.6.0-vnext.31';
 export declare function registerCore():void;
 export declare function registerComponents():void;
 export declare function registerDateFields():void;

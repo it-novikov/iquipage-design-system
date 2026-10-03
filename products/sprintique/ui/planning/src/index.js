@@ -1,10 +1,11 @@
 import {registerCore,notify,bindTreeDrag,escapeHTML as esc} from '@iquipage/web/core';
+import {filterPlan} from './workspace-model.js';
 import {PlanningOperation} from './operation.js';
 import {operationDialog} from './dialog.js';
 import {openMenu,closePopover} from '../../src/popover.js';
 import {estimateEditor,formatSum} from '../../src/estimate.js';
 import {loadingMarkup} from '../../src/loading.js';
-import {pageMarkup,firstRunMarkup,footMarkup,cardMarkup,selectionMarkup,dragPreview,sumMarkup} from './containers-view.js';
+import {pageMarkup,navigationMarkup,firstRunMarkup,footMarkup,cardMarkup,selectionMarkup,dragPreview,sumMarkup} from './containers-view.js';
 import {blocksOf,blockDone,sumOf,plural,validContainers,dateRange,shortDate} from './containers-model.js';
 import {dueEditor,containerDialog,completionDialog,completedDialog,cancelDialog} from './containers-dialogs.js';
 
@@ -21,6 +22,8 @@ export async function mountPlanning(root,{adapter,project,onOpenTask,onCreateTas
   const selbar=root.querySelector('[data-selbar]'),live=root.querySelector('[data-live]'),errorBox=root.querySelector('[data-error]');
   stack.innerHTML=loadingMarkup('Загрузка планирования…',{rows:8,title:false,className:'pl-loading'});
   let data=null,disposed=false,loading=null,again=false,dragging=false,busy=false,focusId=viewState.focusId||'';
+  let scope=viewState.scope||'all',query='';
+  const collapsed=new Set(viewState.collapsed||[]);
   const expandedState=new Map(Object.entries(viewState.expanded||{}));
   const selection=new Set();
   const say=text=>{live.textContent='';setTimeout(()=>{live.textContent=text;},30);};
@@ -53,18 +56,30 @@ export async function mountPlanning(root,{adapter,project,onOpenTask,onCreateTas
 
   function view(){
     const all=containers(),firstPlanned=all.find(c=>c.kind==='sprint'&&c.state==='planned')?.id;
-    return {selection,expanded,capabilities:capabilities(),format:format(),today:data.today,focusId,firstPlanned,activeExists:all.some(c=>c.kind==='sprint'&&c.state==='active')};
+    return {selection,expanded,collapsed,query,capabilities:capabilities(),format:format(),today:data.today,focusId,firstPlanned,activeExists:all.some(c=>c.kind==='sprint'&&c.state==='active')};
   }
   function render(){
     if(!data||disposed)return;
     const all=containers(),firstRun=!all.some(c=>c.kind!=='backlog');
     if(!focusId||!rowOf(focusId))focusId=all.flatMap(c=>c.rows)[0]?.id||'';
-    const v=view();
+    if(scope!=='all'&&!containerOf(scope))scope='all';
+    const filtered=filterPlan(all,{scope,query});
+    const v={...view(),expanded:id=>filtered.ancestorIds.has(id)||expanded(id)};
     const hadFocus=root.contains(document.activeElement)&&document.activeElement.matches('[data-row]');
     root.querySelector('[data-readonly]').hidden=v.capabilities.plan;
     page.toggleAttribute('data-readonly',!v.capabilities.plan);
-    stack.innerHTML=(firstRun?firstRunMarkup(v.capabilities):'')+all.map(c=>cardMarkup(c,v)).join('');
+    root.querySelector('[data-plan-nav]').innerHTML=navigationMarkup(all,scope);
+    root.querySelector('[data-create-controls]').innerHTML=v.capabilities.manageReleases?`<button type="button" class="iq-btn secondary" data-new-release>Новый релиз</button><button type="button" class="iq-btn primary" data-new-sprint>Новый спринт</button>`:'';
+    root.querySelector('[data-plan-count]').textContent=filtered.matches===null?'Выберите задачи для переноса или перетащите их между этапами':`Найдено: ${filtered.matches}. Суммы относятся ко всему этапу.`;
+    stack.innerHTML=(firstRun&&!query?firstRunMarkup(v.capabilities):'')+filtered.containers.map(c=>cardMarkup(c,v)).join('');
+    if(!filtered.containers.length)stack.innerHTML=`<div class="iq-workspace-empty"><h2>Задачи не найдены</h2><p>Попробуйте другое название или ключ задачи.</p><button type="button" class="iq-btn secondary sm" data-reset-search>Сбросить поиск</button></div>`;
     foot.innerHTML=footMarkup({capabilities:v.capabilities,completed:data.completed,firstRun});foot.hidden=!foot.innerHTML;
+    // Keep drag across complete containers only: reordering a filtered subset would hide neighbours.
+    if(query.trim())for(const el of stack.querySelectorAll('[data-tree-drag],[data-tree-dropzone]')){el.removeAttribute('data-tree-drag');el.removeAttribute('data-tree-dropzone');}
+    const visible=[...stack.querySelectorAll('[data-row]')].filter(el=>!el.closest('[hidden]'));
+    if(!visible.some(el=>el.dataset.row===focusId))focusId=visible[0]?.dataset.row||'';
+    for(const el of visible)el.tabIndex=el.dataset.row===focusId?0:-1;
+    viewState.scope=scope;viewState.collapsed=[...collapsed];
     renderSelection();
     viewState.expanded=Object.fromEntries(expandedState);viewState.focusId=focusId;
     if(hadFocus)focusRow(focusId);
@@ -203,7 +218,7 @@ export async function mountPlanning(root,{adapter,project,onOpenTask,onCreateTas
   function toggleSelection(id,{range=false}={}){
     if(!capabilities().plan)return;
     if(range&&focusId&&focusId!==id){
-      const order=[...stack.querySelectorAll('[data-row]')].map(el=>el.dataset.row),a=order.indexOf(focusId),b=order.indexOf(id);
+      const order=visibleRows().map(el=>el.dataset.row),a=order.indexOf(focusId),b=order.indexOf(id);
       if(a>=0&&b>=0)for(const rid of order.slice(Math.min(a,b),Math.max(a,b)+1))selection.add(rid);
     }else if(selection.has(id))selection.delete(id);else selection.add(id);
     focusId=id;render();focusRow(id);
@@ -223,10 +238,11 @@ export async function mountPlanning(root,{adapter,project,onOpenTask,onCreateTas
     void move([id],container.id,afterId,{quiet:true}).then(()=>{focusRow(id);say(direction>0?'Ниже.':'Выше.');});
   }
 
-  const visibleRows=()=>[...stack.querySelectorAll('[data-row]')];
+  const visibleRows=()=>[...stack.querySelectorAll('[data-row]')].filter(el=>!el.closest('[hidden]'));
   function onKey(event){
     const el=event.target.closest?.('[data-row]');if(!el||event.target!==el)return;
     const id=el.dataset.row,rows=visibleRows(),at=rows.indexOf(el),found=rowOf(id);
+    if(query.trim()&&event.altKey)return;
     if(event.altKey&&(event.key==='ArrowUp'||event.key==='ArrowDown')){event.preventDefault();reorder(id,event.key==='ArrowUp'?-1:1);return;}
     switch(event.key){
       case 'ArrowDown':case 'ArrowUp':{event.preventDefault();const next=rows[at+(event.key==='ArrowDown'?1:-1)];if(next){focusRow(next.dataset.row);if(event.shiftKey)toggleSelection(next.dataset.row);}break;}
@@ -250,6 +266,12 @@ export async function mountPlanning(root,{adapter,project,onOpenTask,onCreateTas
   }
   function onClick(event){
     const t=event.target;
+    const scopeButton=t.closest('[data-plan-scope]');
+    if(scopeButton){scope=scopeButton.dataset.planScope;render();root.querySelector(`[data-plan-scope="${CSS.escape(scope)}"]`)?.focus();return;}
+    if(t.closest('[data-reset-search]')){query='';root.querySelector('[data-plan-search]').value='';render();root.querySelector('[data-plan-search]').focus();return;}
+    const collapse=t.closest('[data-collapse]');
+    if(collapse){if(query.trim()){say('Очистите поиск, чтобы свернуть контейнер.');return;}const id=collapse.dataset.collapse;if(collapsed.has(id))collapsed.delete(id);else collapsed.add(id);render();root.querySelector(`[data-collapse="${CSS.escape(id)}"]`)?.focus();return;}
+    const rowMore=t.closest('[data-row-more]');if(rowMore){rowMenu(rowMore,rowMore.dataset.rowMore);return;}
     if(t.closest('[data-retry]')){void load();return;}
     const toggleButton=t.closest('[data-toggle]');if(toggleButton){toggle(toggleButton.dataset.toggle);return;}
     const check=t.closest('[data-select]');if(check){toggleSelection(check.dataset.select,{range:event.shiftKey});return;}
@@ -276,6 +298,9 @@ export async function mountPlanning(root,{adapter,project,onOpenTask,onCreateTas
   }
   function onContext(event){const row=event.target.closest('[data-row]');if(!row)return;event.preventDefault();focusId=row.dataset.row;rowMenu(row,row.dataset.row);}
   function onFocus(event){const row=event.target.closest?.('[data-row]');if(row&&event.target===row)focusId=row.dataset.row;}
+  const searchInput=root.querySelector('[data-plan-search]');
+  const onSearch=()=>{query=searchInput.value;render();};
+  searchInput.addEventListener('input',onSearch);
   root.addEventListener('click',onClick);root.addEventListener('keydown',onKey);root.addEventListener('contextmenu',onContext);root.addEventListener('focusin',onFocus);
 
   const drag=bindTreeDrag({root:page,rowSelector:'[data-tree-drag]',containerSelector:'[data-tree-dropzone]',
@@ -332,6 +357,6 @@ export async function mountPlanning(root,{adapter,project,onOpenTask,onCreateTas
   return {
     reload:()=>load(),
     readyToLeave:()=>!busy,
-    destroy(){disposed=true;drag.destroy();closePopover();unsubscribe();root.removeEventListener('click',onClick);root.removeEventListener('keydown',onKey);root.removeEventListener('contextmenu',onContext);root.removeEventListener('focusin',onFocus);root.innerHTML='';}
+    destroy(){disposed=true;searchInput.removeEventListener('input',onSearch);drag.destroy();closePopover();unsubscribe();root.removeEventListener('click',onClick);root.removeEventListener('keydown',onKey);root.removeEventListener('contextmenu',onContext);root.removeEventListener('focusin',onFocus);root.innerHTML='';}
   };
 }

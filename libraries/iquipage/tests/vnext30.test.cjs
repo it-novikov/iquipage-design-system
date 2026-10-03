@@ -61,10 +61,12 @@ test('tooltip figure rows, bottom placement and the creatable combobox', () => {
   assert.ok(css.includes(':is(iq-combobox,iq-date-field)[label-hidden]>.iq-control-label{'), 'label-hidden for every form control');
 });
 
-test('the release is 0.6.0-vnext.30 everywhere it is named', () => {
-  assert.match(core, /export const version='0\.6\.0-vnext\.30';/);
-  assert.equal(require('../package.json').version, '0.6.0-vnext.30');
-  assert.match(types, /export declare const version:'0\.6\.0-vnext\.30';/);
-  assert.equal(JSON.parse(read('tokens/semantic.json')).meta.version, '0.6.0-vnext.30');
-  assert.equal(JSON.parse(read('PROVENANCE.json')).release, '0.6.0-vnext.30');
+test('the current release preserves vnext.30 and agrees across exports and metadata', () => {
+  const version=require('../package.json').version;
+  assert.match(version, /^0\.6\.0-vnext\.(3[0-9]|[4-9]\d|\d{3,})$/);
+  assert.ok(core.includes(`export const version='${version}';`));
+
+  assert.ok(types.includes(`export declare const version:'${version}';`));
+  assert.equal(JSON.parse(read('tokens/semantic.json')).meta.version, version);
+  assert.equal(JSON.parse(read('PROVENANCE.json')).release, version);
 });

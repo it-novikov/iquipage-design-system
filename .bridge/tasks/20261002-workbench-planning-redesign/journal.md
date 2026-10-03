@@ -1,0 +1,21 @@
+# Журнал 20261002-workbench-planning-redesign
+
+- 2026-10-02T14:40:43Z · codex-design · create · - · Пересборка Рабочего стола и Планирования
+- 2026-10-02T14:41:27Z · codex-design · claim · - · взял задачу
+- 2026-10-02T14:47:23Z · codex-design · note · A1 · критерий приёмки: Оба экрана пересобраны с сохранением операций и прав; finding IDs и паритет задокументированы
+- 2026-10-02T14:47:23Z · codex-design · note · A2 · критерий приёмки: DS vnext.30 собрана, проверена и подключена точным tarball; build, boundary и затронутые тесты проходят
+- 2026-10-02T14:47:23Z · codex-design · note · A3 · критерий приёмки: Новая композиция просмотрена в обеих темах и адаптивных размерах; взаимодействия проверены и ограничения названы
+- 2026-10-02T14:47:23Z · codex-design · note · S1 · добавлен шаг: Ревью и реализация
+- 2026-10-02T14:47:23Z · codex-design · step · S1 · active
+- 2026-10-03T12:02:33Z · codex-design · claim · - · взял задачу
+- 2026-10-03T12:02:33Z · codex-design · checkpoint · S1 · дальше: Проверить diff, сохранить evidence и handoff
+- 2026-10-03T12:07:23Z · codex-design · step · S1 · done: DS .30; 408 DS, 22 UI, 30 HTTP PASS; build/boundaries PASS; R1/R2 fixed; browser search/move/undo/focus/themes/responsive verified. Details specs/general/UI-IMPROVEMENTS.md
+- 2026-10-03T12:07:23Z · codex-design · note · A1 · критерий приёмки выполнен
+- 2026-10-03T12:07:23Z · codex-design · note · A2 · критерий приёмки выполнен
+- 2026-10-03T12:07:23Z · codex-design · note · A3 · критерий приёмки выполнен
+- 2026-10-03T12:07:23Z · codex-design · checkpoint · - · дальше: Публикация/PR только по явному поручению
+- 2026-10-03T12:07:23Z · codex-design · handoff · - · review; HEAD 5fc20a8; незакоммичено 26; Готово локально; push/deploy не разрешены и не выполнялись; полный интеграционный прогон не заявлен
+- 2026-10-03T13:15:08Z · codex-design · claim · - · взял задачу
+- 2026-10-03T13:15:08Z · codex-design · checkpoint · - · дальше: Просмотр и слияние владельцем
+- 2026-10-03T13:18:44Z · codex-design · status · - · review: PR #51 открыт: https://github.com/it-novikov/iquipage-design-system/pull/51; DS .31; 414 DS +60 target tests PASS
+- 2026-10-03T13:18:44Z · codex-design · handoff · - · review; HEAD f0687a9; незакоммичено 0; PR #51. Main 9a959a2 объединена, опубликован f0687a9. Merge/deploy не выполнялись. CI statusCheckRollup недоступен текущему токену.
