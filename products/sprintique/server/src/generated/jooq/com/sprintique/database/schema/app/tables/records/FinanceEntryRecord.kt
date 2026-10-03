@@ -92,13 +92,21 @@ open class FinanceEntryRecord() : UpdatableRecordImpl<FinanceEntryRecord>(Financ
         set(value): Unit = set(18, value)
         get(): OffsetDateTime? = get(18) as OffsetDateTime?
 
+    open var categoryId: String?
+        set(value): Unit = set(19, value)
+        get(): String? = get(19) as String?
+
+    open var releaseId: String?
+        set(value): Unit = set(20, value)
+        get(): String? = get(20) as String?
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
 
     override fun key(): Record2<String?, String?> = super.key() as Record2<String?, String?>
 
-    constructor(projectId: String? = null, id: String? = null, direction: String? = null, state: String? = null, amountMinor: Long? = null, currencyCode: String? = null, dueDate: LocalDate? = null, postedDate: LocalDate? = null, entryDate: LocalDate? = null, category: String? = null, description: String? = null, counterparty: String? = null, reference: String? = null, voidReason: String? = null, revision: Int? = null, createdBy: String? = null, createdAt: OffsetDateTime? = null, updatedBy: String? = null, updatedAt: OffsetDateTime? = null): this() {
+    constructor(projectId: String? = null, id: String? = null, direction: String? = null, state: String? = null, amountMinor: Long? = null, currencyCode: String? = null, dueDate: LocalDate? = null, postedDate: LocalDate? = null, entryDate: LocalDate? = null, category: String? = null, description: String? = null, counterparty: String? = null, reference: String? = null, voidReason: String? = null, revision: Int? = null, createdBy: String? = null, createdAt: OffsetDateTime? = null, updatedBy: String? = null, updatedAt: OffsetDateTime? = null, categoryId: String? = null, releaseId: String? = null): this() {
         this.projectId = projectId
         this.id = id
         this.direction = direction
@@ -118,6 +126,8 @@ open class FinanceEntryRecord() : UpdatableRecordImpl<FinanceEntryRecord>(Financ
         this.createdAt = createdAt
         this.updatedBy = updatedBy
         this.updatedAt = updatedAt
+        this.categoryId = categoryId
+        this.releaseId = releaseId
         resetTouchedOnNotNull()
     }
 }

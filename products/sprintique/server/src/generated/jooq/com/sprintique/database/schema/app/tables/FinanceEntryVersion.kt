@@ -104,6 +104,10 @@ open class FinanceEntryVersion(
 
     val CREATED_AT: TableField<FinanceEntryVersionRecord, OffsetDateTime?> = createField(DSL.name("created_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6).nullable(false), this, "")
 
+    val CATEGORY_ID: TableField<FinanceEntryVersionRecord, String?> = createField(DSL.name("category_id"), SQLDataType.CLOB.nullable(false), this, "")
+
+    val RELEASE_ID: TableField<FinanceEntryVersionRecord, String?> = createField(DSL.name("release_id"), SQLDataType.CLOB, this, "")
+
     private constructor(alias: Name, aliased: Table<FinanceEntryVersionRecord>?): this(alias, null, null, null, aliased, null, null)
     private constructor(alias: Name, aliased: Table<FinanceEntryVersionRecord>?, parameters: Array<Field<*>?>?): this(alias, null, null, null, aliased, parameters, null)
     private constructor(alias: Name, aliased: Table<FinanceEntryVersionRecord>?, where: Condition?): this(alias, null, null, null, aliased, null, where)

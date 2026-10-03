@@ -43,14 +43,18 @@ export function entryStatus(entry,today){
 }
 export const directionLabel=direction=>direction==='income'?'Доход':'Расход';
 export const changeLabel={created:'Создана',updated:'Изменена',posted:'Проведена',voided:'Аннулирована'};
-/** The second line of a row: category and counterparty, joined by a comma. */
-export const entryContext=entry=>[entry.category,entry.counterparty].filter(Boolean).join(', ');
+/** The second line of a row: category (its current name) and counterparty, joined by a comma. */
+export const entryContext=entry=>[entry.categoryName??entry.category,entry.counterparty].filter(Boolean).join(', ');
 /** Russian plural: plural(3,['операция','операции','операций']). */
 export function plural(n,[one,few,many]){const a=Math.abs(n)%100,b=a%10;return a>10&&a<20?many:b===1?one:b>1&&b<5?few:many;}
 /** The query of the ledger for a filter and a period. */
-export function ledgerQuery({state='',direction='',period='all',cursor=null,limit=50},today){
-  const {from,to}=periodRange(period,today),query=new URLSearchParams({limit:String(limit)});
+export function ledgerQuery({state='',direction='',period='all',overdue=false,cursor=null,limit=50},today){
+  // Overdue: expected entries whose date has passed, whatever period is chosen (the overview links here).
+  const {from,to}=overdue?{from:null,to:dayBefore(today)}:periodRange(period,today),query=new URLSearchParams({limit:String(limit)});
+  if(overdue)state='planned';
   if(state)query.set('state',state);if(direction)query.set('direction',direction);
   if(from)query.set('from',from);if(to)query.set('to',to);if(cursor)query.set('cursor',cursor);
   return query.toString();
 }
+/** The calendar day before `YYYY-MM-DD`. */
+export function dayBefore(day){const [y,m,d]=day.split('-').map(Number);return isoDate(new Date(y,m-1,d-1));}

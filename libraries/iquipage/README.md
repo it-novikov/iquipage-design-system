@@ -18,6 +18,14 @@ example demonstrates the form, not just a provider redirect. The Keycloak login 
 shipped from vnext.9 to vnext.20 was removed in vnext.21: no product uses an external
 identity provider's form any more.
 
+## Scale, amount and figure tooltips (0.6.0-vnext.30)
+
+- `scale({target, done, pending, max, size, label, over})` (also `ui.scale`) draws `.iq-scale`: what is done (ink), what is pending (ink at 30%, 22% in the small size) and, with a target, a 2px mark at 84% of the width where the track ends; only an overrun goes past the mark, in danger (`over: 'success'` when going past is good). A zero target puts the mark at the start and draws any amount as an overrun. Without a target the parts are drawn against `max` (or their sum) on a full track. Sizes: `lg` 26px (a summary), `md` 14px (an editor), `sm` 6px (a row). The scale is `role="img"` with `label` as its text; write the figures there. `scaleParts()` returns the geometry for tests and custom drawings. Values may be exact decimal strings.
+- `ui.amount(label, value, {name, suffix, placeholder, labelHidden, required, attrs})`: a decimal text field (`inputmode=decimal`) right-aligned in tabular figures with the unit as `.iq-input-suffix`; `labelHidden` keeps the label as `aria-label` for rows of a table.
+- `iq-tooltip` with `heading`: a line written `label<TAB>value` becomes a figure row (`.iq-tooltip-row`, value right-aligned and tabular); `placement="bottom"` opens below the anchor when it fits.
+- `label-hidden` now also hides the visible label of `iq-combobox` and `iq-date-field` (kept for assistive technology), for rows of a form table.
+- `iq-combobox creatable [create-label="Создать «{query}»"]`: when what was typed names no option, the list ends with a «create» option; choosing it fires `iq-create` {label} and leaves the value to the host, which adds the option (`el.options = [...]`) and sets `el.value`.
+
 ## Mentions (0.6.0-vnext.29)
 
 - A mention is stored in Markdown as `@[Имя](user:<id>)`: the id names the member and survives renames, the label is what the author saw. `mentionToken({id, name})` writes it (one-line label up to 80 characters without brackets; an id of `A–Z a–z 0–9 _ -` up to 100, anything else throws), `parseMentions(source)` finds tokens outside code, `mentionPlainText(source, members)` and `mentionsHTML(source, members)` turn them into «@Имя» text or escaped pills for one-line previews. An older renderer shows a token as the plain name.

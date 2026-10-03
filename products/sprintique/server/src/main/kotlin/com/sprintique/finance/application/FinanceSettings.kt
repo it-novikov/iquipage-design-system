@@ -79,7 +79,7 @@ object FinanceSettings {
     }
 
     /** The project's time zone, its own or its workspace's: "today" and overdue entries are read in it. */
-    private fun timeZone(tx: Transaction, projectId: String): String = tx.row(
+    fun timeZone(tx: Transaction, projectId: String): String = tx.row(
         """
         SELECT coalesce(p.timezone, s.workspace_timezone, 'UTC') AS zone
         FROM app.projects p LEFT JOIN auth.project_timezone_source(p.id) s ON true WHERE p.id = $1

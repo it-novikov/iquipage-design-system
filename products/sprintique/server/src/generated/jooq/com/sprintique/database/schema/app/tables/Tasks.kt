@@ -10,6 +10,7 @@ import com.sprintique.database.schema.app.indexes.TASK_PARENT
 import com.sprintique.database.schema.app.indexes.TASK_RELEASE
 import com.sprintique.database.schema.app.keys.AI_AGENT_RUNS__AI_AGENT_RUNS_PROJECT_ID_TASK_ID_FKEY
 import com.sprintique.database.schema.app.keys.ATTENTION_REQUESTS__ATTENTION_REQUESTS_PROJECT_ID_TASK_ID_FKEY
+import com.sprintique.database.schema.app.keys.FINANCE_VARIANCE_NOTE__FK_FINANCE_VARIANCE_NOTE__TASKS
 import com.sprintique.database.schema.app.keys.NOTIFICATIONS__NOTIFICATIONS_PROJECT_ID_TASK_ID_FKEY
 import com.sprintique.database.schema.app.keys.TASKS_PKEY
 import com.sprintique.database.schema.app.keys.TASKS_PROJECT_ID_NUMBER_KEY
@@ -25,6 +26,7 @@ import com.sprintique.database.schema.app.keys.TASK_TAGS__TASK_TAGS_PROJECT_ID_T
 import com.sprintique.database.schema.app.keys.THREADS__THREADS_PROJECT_ID_TASK_ID_FKEY
 import com.sprintique.database.schema.app.tables.AiAgentRuns.AiAgentRunsPath
 import com.sprintique.database.schema.app.tables.AttentionRequests.AttentionRequestsPath
+import com.sprintique.database.schema.app.tables.FinanceVarianceNote.FinanceVarianceNotePath
 import com.sprintique.database.schema.app.tables.Notifications.NotificationsPath
 import com.sprintique.database.schema.app.tables.Projects.ProjectsPath
 import com.sprintique.database.schema.app.tables.Releases.ReleasesPath
@@ -215,6 +217,18 @@ open class Tasks(
 
     val attentionRequests: AttentionRequestsPath
         get(): AttentionRequestsPath = attentionRequests()
+
+    private lateinit var _financeVarianceNote: FinanceVarianceNotePath
+
+    fun financeVarianceNote(): FinanceVarianceNotePath {
+        if (!this::_financeVarianceNote.isInitialized)
+            _financeVarianceNote = FinanceVarianceNotePath(this, null, FINANCE_VARIANCE_NOTE__FK_FINANCE_VARIANCE_NOTE__TASKS.inverseKey)
+
+        return _financeVarianceNote;
+    }
+
+    val financeVarianceNote: FinanceVarianceNotePath
+        get(): FinanceVarianceNotePath = financeVarianceNote()
 
     private lateinit var _notifications: NotificationsPath
 

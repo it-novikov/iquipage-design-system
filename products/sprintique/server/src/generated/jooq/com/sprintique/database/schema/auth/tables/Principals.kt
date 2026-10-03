@@ -23,10 +23,19 @@ import com.sprintique.database.schema.app.keys.ATTENTION_REQUESTS__ATTENTION_REQ
 import com.sprintique.database.schema.app.keys.ATTENTION_REQUESTS__ATTENTION_REQUESTS_REQUESTED_BY_FKEY
 import com.sprintique.database.schema.app.keys.AUDIT_EVENTS__AUDIT_EVENTS_ACTOR_ID_FKEY
 import com.sprintique.database.schema.app.keys.AUDIT_EVENTS__AUDIT_EVENTS_INITIATOR_ID_FKEY
+import com.sprintique.database.schema.app.keys.FINANCE_CATEGORY__FK_FINANCE_CATEGORY__CREATED_BY
+import com.sprintique.database.schema.app.keys.FINANCE_CATEGORY__FK_FINANCE_CATEGORY__UPDATED_BY
 import com.sprintique.database.schema.app.keys.FINANCE_ENTRY_VERSION__FK_FINANCE_ENTRY_VERSION__PRINCIPALS
 import com.sprintique.database.schema.app.keys.FINANCE_ENTRY__FK_FINANCE_ENTRY__CREATED_BY
 import com.sprintique.database.schema.app.keys.FINANCE_ENTRY__FK_FINANCE_ENTRY__UPDATED_BY
+import com.sprintique.database.schema.app.keys.FINANCE_PLAN_VERSION__FK_FINANCE_PLAN_VERSION__APPROVED_BY
+import com.sprintique.database.schema.app.keys.FINANCE_PLAN_VERSION__FK_FINANCE_PLAN_VERSION__CREATED_BY
+import com.sprintique.database.schema.app.keys.FINANCE_PLAN_VERSION__FK_FINANCE_PLAN_VERSION__UPDATED_BY
+import com.sprintique.database.schema.app.keys.FINANCE_PLAN__FK_FINANCE_PLAN__CREATED_BY
+import com.sprintique.database.schema.app.keys.FINANCE_PLAN__FK_FINANCE_PLAN__UPDATED_BY
 import com.sprintique.database.schema.app.keys.FINANCE_SETTINGS__FK_FINANCE_SETTINGS__PRINCIPALS
+import com.sprintique.database.schema.app.keys.FINANCE_VARIANCE_NOTE__FK_FINANCE_VARIANCE_NOTE__CREATED_BY
+import com.sprintique.database.schema.app.keys.FINANCE_VARIANCE_NOTE__FK_FINANCE_VARIANCE_NOTE__UPDATED_BY
 import com.sprintique.database.schema.app.keys.IDEMPOTENCY__IDEMPOTENCY_ACTOR_ID_FKEY
 import com.sprintique.database.schema.app.keys.MAPS__MAPS_CREATED_BY_FKEY
 import com.sprintique.database.schema.app.keys.MAP_TEMPLATES__MAP_TEMPLATES_OWNER_ID_FKEY
@@ -71,9 +80,13 @@ import com.sprintique.database.schema.app.tables.Approvals.ApprovalsPath
 import com.sprintique.database.schema.app.tables.Assets.AssetsPath
 import com.sprintique.database.schema.app.tables.AttentionRequests.AttentionRequestsPath
 import com.sprintique.database.schema.app.tables.AuditEvents.AuditEventsPath
+import com.sprintique.database.schema.app.tables.FinanceCategory.FinanceCategoryPath
 import com.sprintique.database.schema.app.tables.FinanceEntry.FinanceEntryPath
 import com.sprintique.database.schema.app.tables.FinanceEntryVersion.FinanceEntryVersionPath
+import com.sprintique.database.schema.app.tables.FinancePlan.FinancePlanPath
+import com.sprintique.database.schema.app.tables.FinancePlanVersion.FinancePlanVersionPath
 import com.sprintique.database.schema.app.tables.FinanceSettings.FinanceSettingsPath
+import com.sprintique.database.schema.app.tables.FinanceVarianceNote.FinanceVarianceNotePath
 import com.sprintique.database.schema.app.tables.Idempotency.IdempotencyPath
 import com.sprintique.database.schema.app.tables.MapTemplateVersions.MapTemplateVersionsPath
 import com.sprintique.database.schema.app.tables.MapTemplates.MapTemplatesPath
@@ -460,6 +473,30 @@ open class Principals(
     val auditEventsInitiatorIdFkey: AuditEventsPath
         get(): AuditEventsPath = auditEventsInitiatorIdFkey()
 
+    private lateinit var _fkFinanceCategory_CreatedBy: FinanceCategoryPath
+
+    fun fkFinanceCategory_CreatedBy(): FinanceCategoryPath {
+        if (!this::_fkFinanceCategory_CreatedBy.isInitialized)
+            _fkFinanceCategory_CreatedBy = FinanceCategoryPath(this, null, FINANCE_CATEGORY__FK_FINANCE_CATEGORY__CREATED_BY.inverseKey)
+
+        return _fkFinanceCategory_CreatedBy;
+    }
+
+    val fkFinanceCategory_CreatedBy: FinanceCategoryPath
+        get(): FinanceCategoryPath = fkFinanceCategory_CreatedBy()
+
+    private lateinit var _fkFinanceCategory_UpdatedBy: FinanceCategoryPath
+
+    fun fkFinanceCategory_UpdatedBy(): FinanceCategoryPath {
+        if (!this::_fkFinanceCategory_UpdatedBy.isInitialized)
+            _fkFinanceCategory_UpdatedBy = FinanceCategoryPath(this, null, FINANCE_CATEGORY__FK_FINANCE_CATEGORY__UPDATED_BY.inverseKey)
+
+        return _fkFinanceCategory_UpdatedBy;
+    }
+
+    val fkFinanceCategory_UpdatedBy: FinanceCategoryPath
+        get(): FinanceCategoryPath = fkFinanceCategory_UpdatedBy()
+
     private lateinit var _fkFinanceEntry_CreatedBy: FinanceEntryPath
 
     fun fkFinanceEntry_CreatedBy(): FinanceEntryPath {
@@ -496,6 +533,66 @@ open class Principals(
     val financeEntryVersion: FinanceEntryVersionPath
         get(): FinanceEntryVersionPath = financeEntryVersion()
 
+    private lateinit var _fkFinancePlan_CreatedBy: FinancePlanPath
+
+    fun fkFinancePlan_CreatedBy(): FinancePlanPath {
+        if (!this::_fkFinancePlan_CreatedBy.isInitialized)
+            _fkFinancePlan_CreatedBy = FinancePlanPath(this, null, FINANCE_PLAN__FK_FINANCE_PLAN__CREATED_BY.inverseKey)
+
+        return _fkFinancePlan_CreatedBy;
+    }
+
+    val fkFinancePlan_CreatedBy: FinancePlanPath
+        get(): FinancePlanPath = fkFinancePlan_CreatedBy()
+
+    private lateinit var _fkFinancePlan_UpdatedBy: FinancePlanPath
+
+    fun fkFinancePlan_UpdatedBy(): FinancePlanPath {
+        if (!this::_fkFinancePlan_UpdatedBy.isInitialized)
+            _fkFinancePlan_UpdatedBy = FinancePlanPath(this, null, FINANCE_PLAN__FK_FINANCE_PLAN__UPDATED_BY.inverseKey)
+
+        return _fkFinancePlan_UpdatedBy;
+    }
+
+    val fkFinancePlan_UpdatedBy: FinancePlanPath
+        get(): FinancePlanPath = fkFinancePlan_UpdatedBy()
+
+    private lateinit var _fkFinancePlanVersion_ApprovedBy: FinancePlanVersionPath
+
+    fun fkFinancePlanVersion_ApprovedBy(): FinancePlanVersionPath {
+        if (!this::_fkFinancePlanVersion_ApprovedBy.isInitialized)
+            _fkFinancePlanVersion_ApprovedBy = FinancePlanVersionPath(this, null, FINANCE_PLAN_VERSION__FK_FINANCE_PLAN_VERSION__APPROVED_BY.inverseKey)
+
+        return _fkFinancePlanVersion_ApprovedBy;
+    }
+
+    val fkFinancePlanVersion_ApprovedBy: FinancePlanVersionPath
+        get(): FinancePlanVersionPath = fkFinancePlanVersion_ApprovedBy()
+
+    private lateinit var _fkFinancePlanVersion_CreatedBy: FinancePlanVersionPath
+
+    fun fkFinancePlanVersion_CreatedBy(): FinancePlanVersionPath {
+        if (!this::_fkFinancePlanVersion_CreatedBy.isInitialized)
+            _fkFinancePlanVersion_CreatedBy = FinancePlanVersionPath(this, null, FINANCE_PLAN_VERSION__FK_FINANCE_PLAN_VERSION__CREATED_BY.inverseKey)
+
+        return _fkFinancePlanVersion_CreatedBy;
+    }
+
+    val fkFinancePlanVersion_CreatedBy: FinancePlanVersionPath
+        get(): FinancePlanVersionPath = fkFinancePlanVersion_CreatedBy()
+
+    private lateinit var _fkFinancePlanVersion_UpdatedBy: FinancePlanVersionPath
+
+    fun fkFinancePlanVersion_UpdatedBy(): FinancePlanVersionPath {
+        if (!this::_fkFinancePlanVersion_UpdatedBy.isInitialized)
+            _fkFinancePlanVersion_UpdatedBy = FinancePlanVersionPath(this, null, FINANCE_PLAN_VERSION__FK_FINANCE_PLAN_VERSION__UPDATED_BY.inverseKey)
+
+        return _fkFinancePlanVersion_UpdatedBy;
+    }
+
+    val fkFinancePlanVersion_UpdatedBy: FinancePlanVersionPath
+        get(): FinancePlanVersionPath = fkFinancePlanVersion_UpdatedBy()
+
     private lateinit var _financeSettings: FinanceSettingsPath
 
     fun financeSettings(): FinanceSettingsPath {
@@ -507,6 +604,30 @@ open class Principals(
 
     val financeSettings: FinanceSettingsPath
         get(): FinanceSettingsPath = financeSettings()
+
+    private lateinit var _fkFinanceVarianceNote_CreatedBy: FinanceVarianceNotePath
+
+    fun fkFinanceVarianceNote_CreatedBy(): FinanceVarianceNotePath {
+        if (!this::_fkFinanceVarianceNote_CreatedBy.isInitialized)
+            _fkFinanceVarianceNote_CreatedBy = FinanceVarianceNotePath(this, null, FINANCE_VARIANCE_NOTE__FK_FINANCE_VARIANCE_NOTE__CREATED_BY.inverseKey)
+
+        return _fkFinanceVarianceNote_CreatedBy;
+    }
+
+    val fkFinanceVarianceNote_CreatedBy: FinanceVarianceNotePath
+        get(): FinanceVarianceNotePath = fkFinanceVarianceNote_CreatedBy()
+
+    private lateinit var _fkFinanceVarianceNote_UpdatedBy: FinanceVarianceNotePath
+
+    fun fkFinanceVarianceNote_UpdatedBy(): FinanceVarianceNotePath {
+        if (!this::_fkFinanceVarianceNote_UpdatedBy.isInitialized)
+            _fkFinanceVarianceNote_UpdatedBy = FinanceVarianceNotePath(this, null, FINANCE_VARIANCE_NOTE__FK_FINANCE_VARIANCE_NOTE__UPDATED_BY.inverseKey)
+
+        return _fkFinanceVarianceNote_UpdatedBy;
+    }
+
+    val fkFinanceVarianceNote_UpdatedBy: FinanceVarianceNotePath
+        get(): FinanceVarianceNotePath = fkFinanceVarianceNote_UpdatedBy()
 
     private lateinit var _idempotency: IdempotencyPath
 

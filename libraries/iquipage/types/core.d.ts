@@ -1,5 +1,5 @@
 /** Supported core browser entry. Does not register graph, roadmap, crop, or whiteboard. */
-export declare const version:'0.6.0-vnext.29';
+export declare const version:'0.6.0-vnext.30';
 export declare function registerCore():void;
 export declare function registerComponents():void;
 export declare function registerDateFields():void;
@@ -89,6 +89,15 @@ export declare function setFieldError(input:HTMLElement,message:string):void;
 export declare function fieldError(input:HTMLInputElement):string;
 /** Existing composition helpers; see source ui.js for optional slot markup. */
 export declare const ui:Record<string,unknown>;
+/** vnext.30: a scale of progress against a target. Values are numbers or exact decimal strings. */
+export interface ScaleOptions {target?:number|string|null;done?:number|string;pending?:number|string;/** Without a target: the value the full track stands for. */max?:number|string;size?:'lg'|'md'|'sm';/** Text equivalent for assistive technology. */label?:string;/** Tone of an overrun past the target. */over?:'danger'|'success';}
+export interface ScaleSpan {from:number;to:number;}
+/** Fractions of the width: where the track ends, the target mark (null without a target) and the three spans. */
+export interface ScaleGeometry {end:number;mark:number|null;done:ScaleSpan;pending:ScaleSpan;over:ScaleSpan;}
+export declare const SCALE_TARGET_AT:number;
+export declare function scaleParts(options?:Omit<ScaleOptions,'size'|'label'|'over'>):ScaleGeometry;
+/** Markup of .iq-scale (role=img, aria-label = label). */
+export declare function scale(options?:ScaleOptions):string;
 declare global {interface HTMLElementTagNameMap {'iq-date-field':IqDateField;'iq-time':IqTime;'iq-markdown-editor':IqMarkdownEditor;'iq-pagination':IqPagination;'iq-tree':IqTree;'iq-plan':IqPlan;'iq-side-navigation':IqSideNavigation;'iq-work-header':IqWorkHeader;'iq-file-preview':IqFilePreview;}}
 
 /** Defaults are compatible with the existing editor preview: Markdown # becomes h2. */

@@ -22,9 +22,14 @@ import com.sprintique.database.schema.app.tables.Approvals
 import com.sprintique.database.schema.app.tables.Assets
 import com.sprintique.database.schema.app.tables.AttentionRequests
 import com.sprintique.database.schema.app.tables.AuditEvents
+import com.sprintique.database.schema.app.tables.FinanceCategory
 import com.sprintique.database.schema.app.tables.FinanceEntry
 import com.sprintique.database.schema.app.tables.FinanceEntryVersion
+import com.sprintique.database.schema.app.tables.FinancePlan
+import com.sprintique.database.schema.app.tables.FinancePlanLine
+import com.sprintique.database.schema.app.tables.FinancePlanVersion
 import com.sprintique.database.schema.app.tables.FinanceSettings
+import com.sprintique.database.schema.app.tables.FinanceVarianceNote
 import com.sprintique.database.schema.app.tables.Idempotency
 import com.sprintique.database.schema.app.tables.MapTemplateVersions
 import com.sprintique.database.schema.app.tables.MapTemplates
@@ -283,11 +288,21 @@ open class App : SchemaImpl(DSL.name("app"), DefaultCatalog.DEFAULT_CATALOG, DSL
 
     val AUDIT_EVENTS: AuditEvents get() = AuditEvents.AUDIT_EVENTS
 
+    val FINANCE_CATEGORY: FinanceCategory get() = FinanceCategory.FINANCE_CATEGORY
+
     val FINANCE_ENTRY: FinanceEntry get() = FinanceEntry.FINANCE_ENTRY
 
     val FINANCE_ENTRY_VERSION: FinanceEntryVersion get() = FinanceEntryVersion.FINANCE_ENTRY_VERSION
 
+    val FINANCE_PLAN: FinancePlan get() = FinancePlan.FINANCE_PLAN
+
+    val FINANCE_PLAN_LINE: FinancePlanLine get() = FinancePlanLine.FINANCE_PLAN_LINE
+
+    val FINANCE_PLAN_VERSION: FinancePlanVersion get() = FinancePlanVersion.FINANCE_PLAN_VERSION
+
     val FINANCE_SETTINGS: FinanceSettings get() = FinanceSettings.FINANCE_SETTINGS
+
+    val FINANCE_VARIANCE_NOTE: FinanceVarianceNote get() = FinanceVarianceNote.FINANCE_VARIANCE_NOTE
 
     val IDEMPOTENCY: Idempotency get() = Idempotency.IDEMPOTENCY
 
@@ -395,9 +410,14 @@ open class App : SchemaImpl(DSL.name("app"), DefaultCatalog.DEFAULT_CATALOG, DSL
         Assets.ASSETS,
         AttentionRequests.ATTENTION_REQUESTS,
         AuditEvents.AUDIT_EVENTS,
+        FinanceCategory.FINANCE_CATEGORY,
         FinanceEntry.FINANCE_ENTRY,
         FinanceEntryVersion.FINANCE_ENTRY_VERSION,
+        FinancePlan.FINANCE_PLAN,
+        FinancePlanLine.FINANCE_PLAN_LINE,
+        FinancePlanVersion.FINANCE_PLAN_VERSION,
         FinanceSettings.FINANCE_SETTINGS,
+        FinanceVarianceNote.FINANCE_VARIANCE_NOTE,
         Idempotency.IDEMPOTENCY,
         MapTemplateVersions.MAP_TEMPLATE_VERSIONS,
         MapTemplates.MAP_TEMPLATES,

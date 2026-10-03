@@ -58,7 +58,8 @@
     "relation-map.js",
     "tree-columns.js",
     "mention-tokens.js",
-    "mentions.js"
+    "mentions.js",
+    "scale.js"
   ],
   "library": [
     "components.js",
@@ -106,7 +107,8 @@
     "relation-map.js",
     "tree-columns.js",
     "mention-tokens.js",
-    "mentions.js"
+    "mentions.js",
+    "scale.js"
   ],
   "entries": {
     "core": [
@@ -134,7 +136,8 @@
       "relation-map.js",
       "tree-columns.js",
       "mention-tokens.js",
-      "mentions.js"
+      "mentions.js",
+      "scale.js"
     ],
     "advanced": [
       "roadmap.js",

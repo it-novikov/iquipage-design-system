@@ -5,14 +5,20 @@ package com.sprintique.database.schema.app.tables
 
 
 import com.sprintique.database.schema.app.App
+import com.sprintique.database.schema.app.indexes.IX_FINANCE_ENTRY__CATEGORY
 import com.sprintique.database.schema.app.indexes.IX_FINANCE_ENTRY__ENTRY_DATE
+import com.sprintique.database.schema.app.indexes.IX_FINANCE_ENTRY__RELEASE
 import com.sprintique.database.schema.app.keys.FINANCE_ENTRY_VERSION__FK_FINANCE_ENTRY_VERSION__FINANCE_ENTRY
 import com.sprintique.database.schema.app.keys.FINANCE_ENTRY__FK_FINANCE_ENTRY__CREATED_BY
+import com.sprintique.database.schema.app.keys.FINANCE_ENTRY__FK_FINANCE_ENTRY__FINANCE_CATEGORY
 import com.sprintique.database.schema.app.keys.FINANCE_ENTRY__FK_FINANCE_ENTRY__PROJECTS
+import com.sprintique.database.schema.app.keys.FINANCE_ENTRY__FK_FINANCE_ENTRY__RELEASES
 import com.sprintique.database.schema.app.keys.FINANCE_ENTRY__FK_FINANCE_ENTRY__UPDATED_BY
 import com.sprintique.database.schema.app.keys.PK_FINANCE_ENTRY
+import com.sprintique.database.schema.app.tables.FinanceCategory.FinanceCategoryPath
 import com.sprintique.database.schema.app.tables.FinanceEntryVersion.FinanceEntryVersionPath
 import com.sprintique.database.schema.app.tables.Projects.ProjectsPath
+import com.sprintique.database.schema.app.tables.Releases.ReleasesPath
 import com.sprintique.database.schema.app.tables.records.FinanceEntryRecord
 import com.sprintique.database.schema.auth.tables.Principals.PrincipalsPath
 
@@ -113,6 +119,10 @@ open class FinanceEntry(
 
     val UPDATED_AT: TableField<FinanceEntryRecord, OffsetDateTime?> = createField(DSL.name("updated_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6).nullable(false).defaultValue(DSL.field(DSL.raw("clock_timestamp()"), SQLDataType.TIMESTAMPWITHTIMEZONE)), this, "")
 
+    val CATEGORY_ID: TableField<FinanceEntryRecord, String?> = createField(DSL.name("category_id"), SQLDataType.CLOB.nullable(false), this, "")
+
+    val RELEASE_ID: TableField<FinanceEntryRecord, String?> = createField(DSL.name("release_id"), SQLDataType.CLOB, this, "")
+
     private constructor(alias: Name, aliased: Table<FinanceEntryRecord>?): this(alias, null, null, null, aliased, null, null)
     private constructor(alias: Name, aliased: Table<FinanceEntryRecord>?, parameters: Array<Field<*>?>?): this(alias, null, null, null, aliased, parameters, null)
     private constructor(alias: Name, aliased: Table<FinanceEntryRecord>?, where: Condition?): this(alias, null, null, null, aliased, null, where)
@@ -133,15 +143,21 @@ open class FinanceEntry(
         override fun `as`(alias: Table<*>): FinanceEntryPath = FinanceEntryPath(alias.qualifiedName, this)
     }
     override fun getSchema(): Schema? = if (aliased()) null else App.APP
-    override fun getIndexes(): List<Index> = listOf(IX_FINANCE_ENTRY__ENTRY_DATE)
+    override fun getIndexes(): List<Index> = listOf(IX_FINANCE_ENTRY__CATEGORY, IX_FINANCE_ENTRY__ENTRY_DATE, IX_FINANCE_ENTRY__RELEASE)
     override fun getPrimaryKey(): UniqueKey<FinanceEntryRecord> = PK_FINANCE_ENTRY
-    override fun getReferences(): List<ForeignKey<FinanceEntryRecord, *>> = listOf(FINANCE_ENTRY__FK_FINANCE_ENTRY__CREATED_BY, FINANCE_ENTRY__FK_FINANCE_ENTRY__PROJECTS, FINANCE_ENTRY__FK_FINANCE_ENTRY__UPDATED_BY)
+    override fun getReferences(): List<ForeignKey<FinanceEntryRecord, *>> = listOf(FINANCE_ENTRY__FK_FINANCE_ENTRY__CREATED_BY, FINANCE_ENTRY__FK_FINANCE_ENTRY__FINANCE_CATEGORY, FINANCE_ENTRY__FK_FINANCE_ENTRY__PROJECTS, FINANCE_ENTRY__FK_FINANCE_ENTRY__RELEASES, FINANCE_ENTRY__FK_FINANCE_ENTRY__UPDATED_BY)
 
     fun fkFinanceEntry_CreatedBy(): PrincipalsPath = fkFinanceEntry_CreatedBy
     val fkFinanceEntry_CreatedBy: PrincipalsPath by lazy { PrincipalsPath(this, FINANCE_ENTRY__FK_FINANCE_ENTRY__CREATED_BY, null) }
 
+    fun financeCategory(): FinanceCategoryPath = financeCategory
+    val financeCategory: FinanceCategoryPath by lazy { FinanceCategoryPath(this, FINANCE_ENTRY__FK_FINANCE_ENTRY__FINANCE_CATEGORY, null) }
+
     fun projects(): ProjectsPath = projects
     val projects: ProjectsPath by lazy { ProjectsPath(this, FINANCE_ENTRY__FK_FINANCE_ENTRY__PROJECTS, null) }
+
+    fun releases(): ReleasesPath = releases
+    val releases: ReleasesPath by lazy { ReleasesPath(this, FINANCE_ENTRY__FK_FINANCE_ENTRY__RELEASES, null) }
 
     fun fkFinanceEntry_UpdatedBy(): PrincipalsPath = fkFinanceEntry_UpdatedBy
     val fkFinanceEntry_UpdatedBy: PrincipalsPath by lazy { PrincipalsPath(this, FINANCE_ENTRY__FK_FINANCE_ENTRY__UPDATED_BY, null) }

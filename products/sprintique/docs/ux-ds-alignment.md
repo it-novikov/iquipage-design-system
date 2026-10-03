@@ -142,9 +142,9 @@ Private DS **0.6.0-vnext.28**. It covers the component audit of the whole Sprint
 
 ## Known gaps
 
-- DS-GAP-FIN-1 (missing capability): no text field with suggestions that also accepts a new value. `iq-combobox` only picks from its options. The finance category is a DS text field with a native `datalist` of the categories already in use; the browser draws the suggestion list.
+- DS-GAP-FIN-1 (missing capability): no text field with suggestions that also accepts a new value. `iq-combobox` only picks from its options. The finance category is a DS text field with a native `datalist` of the categories already in use; the browser draws the suggestion list. *Closed in 0.6.0-vnext.30:* `iq-combobox creatable` offers to create what was typed and fires `iq-create`; the plan editor uses it. The entry dialog keeps its text field with suggestions.
 - DS-GAP-FIN-2 (DS defect): `ui.textarea` renders a character counter (`data-count`), but only the DS catalogue script updates it; `enhance()` does not. The finance dialogs update the counter themselves.
-- DS-GAP-FIN-3 (missing component): no compact figure tile for a row of totals. `.iq-metric` is a catalogue-scale card (36–64px figures, demo `metric-*` parts). Finance places `dl` facts on `--iq-surface` tiles with DS type and radius tokens. There is no currency-aware amount field either: the amount is a DS text field with `inputmode="decimal"` and the DS input suffix for the currency sign.
+- DS-GAP-FIN-3 (missing component): no compact figure tile for a row of totals. `.iq-metric` is a catalogue-scale card (36–64px figures, demo `metric-*` parts). Finance places `dl` facts on `--iq-surface` tiles with DS type and radius tokens. There is no currency-aware amount field either: the amount is a DS text field with `inputmode="decimal"` and the DS input suffix for the currency sign. *Partly closed in 0.6.0-vnext.30:* `ui.amount()` is the amount with its currency, `scale()` the plan scale of the overview; the figure row stays a product `dl` on tokens.
 
 - On the board, the drag handle inside a card is smaller than 44px on touch screens. The whole card surface is still a tap target.
 - In a hidden or background browser tab, DS dialogs finish closing only once their close animation runs, because Web Animations pause while the tab is hidden. Visible tabs are not affected.

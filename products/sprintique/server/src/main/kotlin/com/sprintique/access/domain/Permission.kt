@@ -45,11 +45,11 @@ enum class Permission(
     ),
     FINANCE_READ(
         "finance.read", PermissionScope.PROJECT, "Финансы", "Видеть финансы",
-        "Журнал операций и сводка. Сервисным аккаунтам — только явно.", listOf("tasks.read"), ServiceUse.EXPLICIT,
+        "Журнал операций, план и сводка. Сервисным аккаунтам — только явно.", listOf("tasks.read"), ServiceUse.EXPLICIT,
     ),
     FINANCE_WRITE(
         "finance.write", PermissionScope.PROJECT, "Финансы", "Вести журнал финансов",
-        "Проводить, править и аннулировать операции. Сервисным аккаунтам — только явно.", listOf("finance.read"),
+        "Вести операции, категории и план, утверждать план. Сервисным аккаунтам — только явно.", listOf("finance.read"),
         ServiceUse.EXPLICIT,
     ),
     APPROVALS_DECIDE(

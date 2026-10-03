@@ -5,7 +5,8 @@ import java.time.LocalDate
 
 /**
  * An entry of the project ledger as a writer sets it. [state] is `planned` or `posted`: voiding is its own command.
- * Dates are `YYYY-MM-DD`; amounts are integer minor units of [currencyCode].
+ * Dates are `YYYY-MM-DD`; amounts are integer minor units of [currencyCode]. [categoryId] names a category of the
+ * project; the entry keeps that category's name as its label. [releaseId] is a release or sprint of the project.
  */
 data class FinanceEntryContent(
     val direction: String,
@@ -14,7 +15,8 @@ data class FinanceEntryContent(
     val currencyCode: String,
     val dueDate: String?,
     val postedDate: String?,
-    val category: String,
+    val categoryId: String,
+    val releaseId: String?,
     val description: String,
     val counterparty: String?,
     val reference: String?,

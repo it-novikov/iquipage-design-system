@@ -13,7 +13,11 @@ import com.sprintique.database.schema.app.tables.AiConnections
 import com.sprintique.database.schema.app.tables.Assets
 import com.sprintique.database.schema.app.tables.AttentionRequests
 import com.sprintique.database.schema.app.tables.AuditEvents
+import com.sprintique.database.schema.app.tables.FinanceCategory
 import com.sprintique.database.schema.app.tables.FinanceEntry
+import com.sprintique.database.schema.app.tables.FinancePlanLine
+import com.sprintique.database.schema.app.tables.FinancePlanVersion
+import com.sprintique.database.schema.app.tables.FinanceVarianceNote
 import com.sprintique.database.schema.app.tables.MapTemplates
 import com.sprintique.database.schema.app.tables.Maps
 import com.sprintique.database.schema.app.tables.Messages
@@ -57,7 +61,10 @@ val ATTENTION_REQUEST_REQUESTER: Index = Internal.createIndex(DSL.name("attentio
 val ATTENTION_REQUEST_TASK: Index = Internal.createIndex(DSL.name("attention_request_task"), AttentionRequests.ATTENTION_REQUESTS, arrayOf(AttentionRequests.ATTENTION_REQUESTS.PROJECT_ID, AttentionRequests.ATTENTION_REQUESTS.TASK_ID, AttentionRequests.ATTENTION_REQUESTS.CREATED_AT), false)
 val ATTENTION_REQUEST_THREAD: Index = Internal.createIndex(DSL.name("attention_request_thread"), AttentionRequests.ATTENTION_REQUESTS, arrayOf(AttentionRequests.ATTENTION_REQUESTS.PROJECT_ID, AttentionRequests.ATTENTION_REQUESTS.THREAD_ID), false)
 val AUDIT_ACTOR_RECENT: Index = Internal.createIndex(DSL.name("audit_actor_recent"), AuditEvents.AUDIT_EVENTS, arrayOf(AuditEvents.AUDIT_EVENTS.PROJECT_ID, AuditEvents.AUDIT_EVENTS.ACTOR_ID, AuditEvents.AUDIT_EVENTS.CREATED_AT.desc()), false)
+val IX_FINANCE_ENTRY__CATEGORY: Index = Internal.createIndex(DSL.name("ix_finance_entry__category"), FinanceEntry.FINANCE_ENTRY, arrayOf(FinanceEntry.FINANCE_ENTRY.PROJECT_ID, FinanceEntry.FINANCE_ENTRY.CATEGORY_ID), false)
 val IX_FINANCE_ENTRY__ENTRY_DATE: Index = Internal.createIndex(DSL.name("ix_finance_entry__entry_date"), FinanceEntry.FINANCE_ENTRY, arrayOf(FinanceEntry.FINANCE_ENTRY.PROJECT_ID, FinanceEntry.FINANCE_ENTRY.ENTRY_DATE.desc(), FinanceEntry.FINANCE_ENTRY.ID.desc()), false)
+val IX_FINANCE_ENTRY__RELEASE: Index = Internal.createIndex(DSL.name("ix_finance_entry__release"), FinanceEntry.FINANCE_ENTRY, arrayOf(FinanceEntry.FINANCE_ENTRY.PROJECT_ID, FinanceEntry.FINANCE_ENTRY.RELEASE_ID), false)
+val IX_FINANCE_PLAN_LINE__CATEGORY: Index = Internal.createIndex(DSL.name("ix_finance_plan_line__category"), FinancePlanLine.FINANCE_PLAN_LINE, arrayOf(FinancePlanLine.FINANCE_PLAN_LINE.PROJECT_ID, FinancePlanLine.FINANCE_PLAN_LINE.CATEGORY_ID), false)
 val MAP_TEMPLATE_WORKSPACE: Index = Internal.createIndex(DSL.name("map_template_workspace"), MapTemplates.MAP_TEMPLATES, arrayOf(MapTemplates.MAP_TEMPLATES.WORKSPACE_ID, MapTemplates.MAP_TEMPLATES.ID), false)
 val MAPS_PAGE: Index = Internal.createIndex(DSL.name("maps_page"), Maps.MAPS, arrayOf(Maps.MAPS.PROJECT_ID, Maps.MAPS.ID), false)
 val MESSAGE_THREAD_PAGE: Index = Internal.createIndex(DSL.name("message_thread_page"), Messages.MESSAGES, arrayOf(Messages.MESSAGES.PROJECT_ID, Messages.MESSAGES.THREAD_ID, Messages.MESSAGES.CREATED_AT, Messages.MESSAGES.ID), false)
@@ -84,4 +91,8 @@ val TASK_RELEASE: Index = Internal.createIndex(DSL.name("task_release"), Tasks.T
 val TELEGRAM_LINK_TOKENS_PERSON: Index = Internal.createIndex(DSL.name("telegram_link_tokens_person"), TelegramLinkTokens.TELEGRAM_LINK_TOKENS, arrayOf(TelegramLinkTokens.TELEGRAM_LINK_TOKENS.PRINCIPAL_ID, TelegramLinkTokens.TELEGRAM_LINK_TOKENS.CREATED_AT.desc()), false)
 val TELEGRAM_UPDATES_AGE: Index = Internal.createIndex(DSL.name("telegram_updates_age"), TelegramUpdates.TELEGRAM_UPDATES, arrayOf(TelegramUpdates.TELEGRAM_UPDATES.RECEIVED_AT), false)
 val THREAD_TASK_PAGE: Index = Internal.createIndex(DSL.name("thread_task_page"), Threads.THREADS, arrayOf(Threads.THREADS.PROJECT_ID, Threads.THREADS.TASK_ID, Threads.THREADS.LAST_ACTIVITY_AT.desc(), Threads.THREADS.ID), false)
+val UX_FINANCE_CATEGORY__NAME_KEY: Index = Internal.createIndex(DSL.name("ux_finance_category__name_key"), FinanceCategory.FINANCE_CATEGORY, arrayOf(FinanceCategory.FINANCE_CATEGORY.PROJECT_ID, FinanceCategory.FINANCE_CATEGORY.NAME_KEY), true)
+val UX_FINANCE_PLAN_VERSION__APPROVED: Index = Internal.createIndex(DSL.name("ux_finance_plan_version__approved"), FinancePlanVersion.FINANCE_PLAN_VERSION, arrayOf(FinancePlanVersion.FINANCE_PLAN_VERSION.PROJECT_ID, FinancePlanVersion.FINANCE_PLAN_VERSION.PLAN_ID), true)
+val UX_FINANCE_PLAN_VERSION__DRAFT: Index = Internal.createIndex(DSL.name("ux_finance_plan_version__draft"), FinancePlanVersion.FINANCE_PLAN_VERSION, arrayOf(FinancePlanVersion.FINANCE_PLAN_VERSION.PROJECT_ID, FinancePlanVersion.FINANCE_PLAN_VERSION.PLAN_ID), true)
+val UX_FINANCE_VARIANCE_NOTE__VARIANCE: Index = Internal.createIndex(DSL.name("ux_finance_variance_note__variance"), FinanceVarianceNote.FINANCE_VARIANCE_NOTE, arrayOf(FinanceVarianceNote.FINANCE_VARIANCE_NOTE.PROJECT_ID, FinanceVarianceNote.FINANCE_VARIANCE_NOTE.PLAN_ID, FinanceVarianceNote.FINANCE_VARIANCE_NOTE.VERSION, FinanceVarianceNote.FINANCE_VARIANCE_NOTE.CATEGORY_ID, FinanceVarianceNote.FINANCE_VARIANCE_NOTE.DIRECTION, FinanceVarianceNote.FINANCE_VARIANCE_NOTE.CURRENCY_CODE), true)
 val WORKSPACE_ONE_OWNER: Index = Internal.createIndex(DSL.name("workspace_one_owner"), WorkspaceMembers.WORKSPACE_MEMBERS, arrayOf(WorkspaceMembers.WORKSPACE_MEMBERS.WORKSPACE_ID), true)
