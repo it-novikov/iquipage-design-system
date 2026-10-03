@@ -42,3 +42,4 @@
 - 2026-10-02T16:23:02Z · claude · step · S5 · done: 8ebd108 + исправление FP04; Node-сьюты 401/401; интеграционные 45/46 (только флейк WorkbenchCapacity); снимки scratchpad/finance-impl-shots
 - 2026-10-02T16:23:02Z · claude · status · - · review: PR #47: сервер и экран B2; ревью и слияние — владелец
 - 2026-10-02T16:23:02Z · claude · handoff · - · planned; HEAD 8ebd108; незакоммичено 1; PR #47 обновлён; незакоммичено 0
+- 2026-10-03T03:24:48Z · claude · note · - · Слияние origin/main (#44, #48): 939c4ee, jOOQ b821201; npm test зелёный (Kotlin 135/135, интеграционные 46/46, Node 415/415); verify-vnext все 7 шагов PASS, источники стабильны
