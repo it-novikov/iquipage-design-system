@@ -31,8 +31,9 @@ registerCore();
 /** Ends the boot sequence without an error: the page is already what it should be. */
 const STOP=Symbol('stop');
 const root=document.querySelector('#app'),repository=new ProductRepository();
-let board,session,currentProject,planningAdapter,viewMode='tasks',navigating=false,workbench=null;
+let board,session,currentProject,planningAdapter,viewMode='tasks',navigating=false;
 // The Workbench (docs/adr W6): served when the server enables it; its link shows for everyone with workbench_mvp.
+// It is a section of the shell like the board: the switchers keep the last project, which the other sections open.
 const featureOn=name=>!!session?.features?.includes(name);
 const workbenchOn=()=>featureOn('workbench_read_internal');
 const isWorkbenchPath=()=>location.pathname==='/workbench'||location.pathname.startsWith('/workbench/');
@@ -59,14 +60,16 @@ function ensureShell(project,mode){
       catalog:()=>session.projects.map(p=>({id:p.id,name:p.name,workspaceId:p.workspaceId,workspaceName:p.workspaceName})),
       projects:async({query='',signal})=>{signal?.throwIfAborted();const q=String(query).toLocaleLowerCase('ru');
         return {options:session.projects.filter(p=>(p.workspaceName+' '+p.name).toLocaleLowerCase('ru').includes(q)).map(p=>({value:p.id,label:p.name,description:p.workspaceName})),nextCursor:null};},
-      onSwitch:async id=>{const shown=await showProject(id,viewMode);return shown===false?false:context(currentProject);},
-      onAccount:()=>{location.hash='#settings/account';},
-      onTeam:()=>{location.hash='#settings/members';},
+      // The Workbench spans every project: choosing one there opens its board, as the old «Проекты» link did.
+      onSwitch:async id=>{const shown=await showProject(id,viewMode==='workbench'?'tasks':viewMode);return shown===false?false:context(currentProject);},
+      onAccount:()=>openSettings('#settings/account'),
+      onTeam:()=>openSettings('#settings/members'),
       onSignOut:()=>void(async()=>{if(board&&!await board.closeTask())return;await repository.client.request('/logout','POST');location.reload();})().catch(report),
       onTheme:()=>applyTheme(document.documentElement.dataset.theme==='dark'?'light':'dark'),
       onSearch:search,onCreateProject:creatable===null||creatable.length?()=>void onboard(currentProject?.workspaceId).catch(report):undefined,onCreateWorkspace:createWorkspace,
-      workbench:workbenchOn()&&featureOn('workbench_mvp'),
-      notifications:slot=>mountNotificationBell(slot,{client:repository.client,onOpen:item=>openNotification(item).catch(report),onSettings:()=>{location.hash='#settings/notifications';}})
+      // Its tab shows for everyone with workbench_mvp, and to whoever has the Workbench open by its address.
+      workbench:workbenchOn()&&(featureOn('workbench_mvp')||isWorkbenchPath()),
+      notifications:slot=>mountNotificationBell(slot,{client:repository.client,onOpen:item=>openNotification(item).catch(report),onSettings:()=>openSettings('#settings/notifications')})
     });
     nav.setTheme(document.documentElement.dataset.theme);
   }else nav.update(context(project));
@@ -122,7 +125,8 @@ async function onboard(selectedWorkspaceId){
     session=await repository.initialize();
     // A new workspace may let the person create projects where they could not: the navigation is built again.
     creatable=await creatableWorkspaces().catch(()=>null);nav?.destroy();nav=null;
-    location.hash='#tasks';await showProject(project.id);
+    if(isWorkbenchPath())history.replaceState(history.state,'','#tasks');else location.hash='#tasks';
+    await showProject(project.id,'tasks');
   }});
 }
 /** The project whose live stream is open, and the rights it was opened with: switching sections keeps it open. */
@@ -149,15 +153,23 @@ function onStreamChange(change){
     return;
   }
   watching=null;
+  // The Workbench spans every project: losing one only moves the switchers to a project still open to the person.
+  if(viewMode==='workbench'&&board){void(async()=>{session=await repository.initialize();
+    const next=session.projects.find(p=>p.id===lastProject())||session.projects[0];if(next){currentProject=next;nav?.update(context(next));}})().catch(report);return;}
   board?.destroy();board=null;session=null;planningAdapter?.clear();
   for(const modal of document.querySelectorAll('iq-dialog'))modal.close(true);
   root.innerHTML='<main class="host-landing"><h1>Доступ изменился</h1><p>Обновите страницу, чтобы проверить доступные проекты.</p><a class="iq-btn primary" href="/">Обновить доступ</a></main>';
 }
-async function showProject(id,mode=location.hash.startsWith('#maps')?'maps':location.hash.startsWith('#settings')?'settings':location.hash.startsWith('#finance')?'finance':location.hash==='#planning'?'planning':'tasks'){
+/** The section an address names: the Workbench by its path, the project sections by the hash. */
+function routeMode(){
+  if(isWorkbenchPath()&&workbenchOn())return 'workbench';
+  return location.hash.startsWith('#maps')?'maps':location.hash.startsWith('#settings')?'settings':location.hash.startsWith('#finance')?'finance':location.hash==='#planning'?'planning':'tasks';
+}
+async function showProject(id,mode=routeMode()){
+  if(mode==='workbench'&&!workbenchOn())mode='tasks';
   if(navigating)return false;navigating=true;
   let release=null;
   try{
-  if(workbench){if(!await workbench.readyToLeave())return false;workbench.destroy();workbench=null;nav=null;}
   if(board&&!await board.closeTask())return false;
   const project=session.projects.find(p=>p.id===id)||session.projects[0];
   // Sections of one project share its live stream; another project, or changed rights, open it anew.
@@ -172,14 +184,23 @@ async function showProject(id,mode=location.hash.startsWith('#maps')?'maps':loca
   // mount are replayed afterwards, while older membership events are not mistaken for new changes.
   // A stream that stays open holds its events until the section has mounted instead: the same replay, without
   // a round trip for the watermark and a new connection on every switch.
-  const eventHead=keep?null:await repository.client.request(`/projects/${encodeURIComponent(project.id)}/events/head`);
+  // The Workbench reads no project snapshot, so it needs no watermark first: the stream's head is read alongside it,
+  // and the board opened next finds the stream open.
+  const head=keep?null:repository.client.request(`/projects/${encodeURIComponent(project.id)}/events/head`);head?.catch(()=>{});
+  const eventHead=keep||mode==='workbench'?null:await head;
   if(keep)release=repository.holdChanges();
   repository.clearProjectCache(project.id);
   planningAdapter=new PlanningAdapter(repository,project.id);
   repository.confirmPlanningChange=intent=>confirmPlanningChange(planningAdapter,intent);
   repository.applyPlanningChange=intent=>applyPlanningChange(planningAdapter,intent);
   repository.createInRelease=(intent,release,createInBacklog)=>createInRelease({adapter:planningAdapter,client:repository.client,intent,release,createInBacklog});
-  const url=new URL(location.href);if(isWorkbenchPath()){url.pathname='/';url.search='';}url.searchParams.set('project',project.slug);history.replaceState(null,'',url);
+  if(mode==='workbench'){if(!isWorkbenchPath())history.pushState({workbench:true},'','/workbench');}
+  else if(isWorkbenchPath()){
+    // Leaving the Workbench is a step in the history, as it always was: Back returns to it.
+    const workbenchUrl=new URL(location.href),url=new URL(location.href);
+    url.pathname='/';url.search='';url.hash=location.hash||sectionRouteHash(mode,'');url.searchParams.set('project',project.slug);
+    workbenchUrl.hash='';history.replaceState(history.state,'',workbenchUrl);history.pushState(null,'',url);
+  }else{const url=new URL(location.href);url.searchParams.set('project',project.slug);history.replaceState(null,'',url);}
   await creatableReady;
   ensureShell(project,mode);
   await recoverPlanningAttempt(planningAdapter);
@@ -197,6 +218,7 @@ async function showProject(id,mode=location.hash.startsWith('#maps')?'maps':loca
   else if(mode==='planning')board=await mountPlanningHost(host,{repository,adapter:planningAdapter,project,viewState:viewStates.get(stateKey),onOpenBoard:()=>navigate('tasks')});
   else if(mode==='finance'){const {mountFinance}=await import('../ui/finance/src/index.js');board=await mountFinance(host,{repository,project,viewState:viewStates.get(stateKey)});}
   else if(mode==='settings'){const {mountSettings}=await import('./settings.js');board=await mountSettings(host,{repository,adapter:planningAdapter,project,onChanged:refreshHeader});}
+  else if(mode==='workbench')board=await mountWorkbenchSection(host);
   else board=await mountTaskBoard(host,{repository,project,attachmentAdapter:repository.attachmentAdapter,canEdit:can(project,'tasks.write'),canManageCatalogs:can(project,'project.settings'),viewState:viewStates.get(stateKey)});
   }finally{
     clearTimeout(timer);
@@ -205,49 +227,46 @@ async function showProject(id,mode=location.hash.startsWith('#maps')?'maps':loca
   // Content that replaces a visible outline fades in; a direct swap between sections does not animate.
   if(!swap||cover)host.firstElementChild?.classList.add('iq-reveal');
   if(keep){const held=release;release=null;held();if(!board)return true;}
-  else{const access=accessSignature(project);repository.watch(project.id,onStreamChange,{cursor:eventHead.cursor,access});watching={projectId:project.id,access};}
+  else{
+    // A stream the Workbench could not open is left to the next project section; it never fails the Workbench.
+    const start=eventHead||await (mode==='workbench'?head.catch(()=>null):head);
+    if(start){const access=accessSignature(project);repository.watch(project.id,onStreamChange,{cursor:start.cursor,access});watching={projectId:project.id,access};}
+  }
   const task=parseTaskRoute(location.hash);if(task&&board.openTask)await board.openTask(task,{fromRoute:true});
   return true;
   }finally{release?.();navigating=false;}
 }
 async function navigate(mode){
   if(navigating||!currentProject)return;
-  const restoreHash=board?.routeHash||sectionRouteHash(viewMode,location.hash);
-  if(await showProject(currentProject.id,mode))history.replaceState(null,'',sectionRouteHash(viewMode,location.hash));
-  else history.replaceState(null,'',restoreHash);
+  // The Workbench keeps its own address; a project section's hash is restored when the switch is refused.
+  const restoreHash=viewMode==='workbench'?null:board?.routeHash||sectionRouteHash(viewMode,location.hash);
+  if(await showProject(currentProject.id,mode)){if(viewMode!=='workbench')history.replaceState(null,'',sectionRouteHash(viewMode,location.hash));}
+  else if(restoreHash)history.replaceState(null,'',restoreHash);
+  else if(isWorkbenchPath()&&location.hash){const url=new URL(location.href);url.hash='';history.replaceState(history.state,'',url);}
 }
 root.addEventListener('click',event=>{
-  const home=event.target.closest('[data-workbench-link]');if(home){event.preventDefault();void openWorkbench().catch(report);return;}
   const link=event.target.closest('[data-section-link]');if(!link)return;event.preventDefault();void navigate(link.dataset.sectionLink).catch(report);});
-/** The Workbench replaces the project shell; the project's open drawer settles first, like a section switch. */
-async function openWorkbench({push=true}={}){
-  if(!workbenchOn()||navigating)return;
-  if(workbench){await workbench.navigate();return;}
-  if(board&&!await board.closeTask())return;
-  navigating=true;
-  try{
-    stopWatching();await board?.destroy();board=null;nav?.destroy();nav=null;
-    if(push&&!isWorkbenchPath())history.pushState({workbench:true},'','/workbench');
-    // Planning changes from a Workbench drawer go through the drawer's own project, never the last one shown.
-    const planning=projectId=>{const adapter=new PlanningAdapter(repository,projectId);
-      return {confirm:intent=>confirmPlanningChange(adapter,intent),apply:intent=>applyPlanningChange(adapter,intent)};};
-    workbench=await mountWorkbench(root,{repository,session,planning,onSearch:search,onTheme:()=>applyTheme(document.documentElement.dataset.theme==='dark'?'light':'dark'),
-      onSignOut:()=>void(async()=>{await repository.client.request('/logout','POST');location.href='/';})().catch(report),
-      onAccount:()=>void leaveWorkbench(null,null,'#settings/account').catch(report),
-      onOpenProject:(projectId,taskId)=>void leaveWorkbench(projectId,taskId).catch(report)});
-  }finally{navigating=false;}
+/** A settings page by its address; from the Workbench, whose hashes are its own anchors, through a section switch. */
+function openSettings(hash){
+  if(!isWorkbenchPath()){location.hash=hash;return;}
+  history.replaceState(history.state,'',hash);void navigate('settings').catch(report);
 }
-/** "Проекты" and "Открыть проект": the project context, with the task open when one is named. */
-async function leaveWorkbench(projectId,taskId,hash='#tasks'){
-  const project=session.projects.find(p=>p.id===projectId)||session.projects.find(p=>p.id===lastProject())||session.projects[0];
+/** The Workbench in the shell's view. Planning changes from its drawer go through the drawer's own project. */
+function mountWorkbenchSection(host){
+  const planning=projectId=>{const adapter=new PlanningAdapter(repository,projectId);
+    return {confirm:intent=>confirmPlanningChange(adapter,intent),apply:intent=>applyPlanningChange(adapter,intent)};};
+  return mountWorkbench(host,{repository,session,planning,onOpenProject:(projectId,taskId)=>void openFromWorkbench(projectId,taskId).catch(report)});
+}
+/** «Открыть проект» and the first-run link: the project's board, with the task open when one is named. */
+async function openFromWorkbench(projectId,taskId){
+  const project=session.projects.find(p=>p.id===projectId)||currentProject||session.projects[0];
   if(!project)return;
-  history.pushState(null,'',`/?project=${encodeURIComponent(project.slug)}${hash}`);
-  const shown=await showProject(project.id,hash.startsWith('#settings')?'settings':'tasks');
+  const shown=await showProject(project.id,'tasks');
   if(shown&&taskId&&board?.openTask)await board.openTask(taskId);
 }
 window.addEventListener('popstate',()=>{void(async()=>{
-  if(isWorkbenchPath()){if(workbenchOn())await openWorkbench({push:false});}
-  else if(workbench){const slug=new URL(location.href).searchParams.get('project');await showProject(session.projects.find(p=>p.slug===slug)?.id??lastProject());}
+  if(isWorkbenchPath()){if(!workbenchOn())return;if(viewMode==='workbench'&&board?.navigate)await board.navigate();else await showProject(currentProject?.id??lastProject(),'workbench');}
+  else if(viewMode==='workbench'){const slug=new URL(location.href).searchParams.get('project');await showProject(session.projects.find(p=>p.slug===slug)?.id??lastProject());}
 })().catch(report);});
 /** Command palette entries for the current project and role. */
 function paletteCommands(){
@@ -272,7 +291,7 @@ function search(){if(!session||document.querySelector('dialog[open]'))return;ope
   try{if(board&&!await board.closeTask())return;history.replaceState(null,'',item.kind==='map'?'#maps/'+encodeURIComponent(item.id):'#tasks');await showProject(item.projectId,item.kind==='map'?'maps':'tasks');if(item.kind==='task')await board.openTask(item.key);}catch(error){report(error);}
 }});}
 window.addEventListener('keydown',event=>{if((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='k'){event.preventDefault();search();}});
-window.addEventListener('hashchange',()=>{if(workbench||isWorkbenchPath())return;void(async()=>{const task=parseTaskRoute(location.hash);if(task){if(!board?.openTask)await showProject(currentProject.id,'tasks');await board?.openTask?.(task,{fromRoute:true});}else if(location.hash.startsWith('#maps'))await navigate('maps');
+window.addEventListener('hashchange',()=>{if(viewMode==='workbench'||isWorkbenchPath())return;void(async()=>{const task=parseTaskRoute(location.hash);if(task){if(!board?.openTask)await showProject(currentProject.id,'tasks');await board?.openTask?.(task,{fromRoute:true});}else if(location.hash.startsWith('#maps'))await navigate('maps');
     else if(location.hash.startsWith('#finance')){if(viewMode==='finance'&&board?.openRoute)await board.openRoute(location.hash);else await navigate('finance');}else if(location.hash.startsWith('#settings')){if(viewMode==='settings'&&board?.navigateSettings){await board.navigateSettings();}else await navigate('settings');}
     else if(['#tasks','#planning'].includes(location.hash)){const mode=location.hash.slice(1);
     // Closing the task drawer returns to the section already on screen: close the drawer, never remount the view
@@ -284,7 +303,7 @@ try{session=await repository.initialize();
   invitationFlow().restore();
   if(await acceptPendingInvitation(repository.client))session=await repository.initialize();
   creatableReady=creatableWorkspaces().then(value=>{creatable=value;},()=>{creatable=null;});
-  if(isWorkbenchPath()&&workbenchOn())await openWorkbench({push:false});
+  if(isWorkbenchPath()&&workbenchOn())await showProject(lastProject(),'workbench');
   else{if(isWorkbenchPath())history.replaceState(null,'','/');
   const slug=new URL(location.href).searchParams.get('project');await showProject(session.projects.find(p=>p.slug===slug)?.id??lastProject());}}
 catch(error){
