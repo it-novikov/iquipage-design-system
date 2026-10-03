@@ -2,6 +2,7 @@ package com.sprintique.apidoc
 
 import com.sprintique.contract.Accepts
 import com.sprintique.contract.Idempotent
+import com.sprintique.contract.RESOURCE_ID
 import com.sprintique.workbench.application.Workbench
 import io.swagger.v3.oas.annotations.media.Schema
 import org.springframework.beans.factory.SmartInitializingSingleton
@@ -220,6 +221,17 @@ class ApiDocumentation(
             "PUT $P/finance-entries/:id" to "FinanceEntryResponse",
             "PATCH $P/finance-entries/:id/state" to "FinanceEntryResponse",
             "GET $P/finance-entries/:id/history" to "FinanceEntryHistoryResponse",
+            "GET $P/finance-categories" to "FinanceCategoryListResponse",
+            "PUT $P/finance-categories/:id" to "FinanceCategoryResponse",
+            "GET $P/finance-plans" to "FinancePlanListResponse",
+            "GET $P/finance-plans/:id" to "FinancePlanResponse",
+            "PUT $P/finance-plans/:id" to "FinancePlanResponse",
+            "PUT $P/finance-plans/:id/draft" to "FinancePlanResponse",
+            "POST $P/finance-plans/:id/approve" to "FinancePlanResponse",
+            "POST $P/finance-plans/:id/revise" to "FinancePlanResponse",
+            "POST $P/finance-plans/:id/discard" to "FinanceDraftDiscardResponse",
+            "GET $P/finance-overview" to "FinanceOverviewResponse",
+            "PUT $P/finance-variance-notes/:id" to "FinanceVarianceNoteResponse",
         )
     }
 }
@@ -262,6 +274,10 @@ internal object ApiQueries {
         query("limit", mapOf("type" to "integer", "minimum" to 1, "maximum" to PAGE_SIZE, "default" to 50)),
     )
 
+    /** A version of a plan; absent means its draft, else its approved version. */
+    private val planVersion = query("version", mapOf("type" to "integer", "minimum" to 1, "maximum" to PLAN_VERSIONS))
+    private const val PLAN_VERSIONS = 100
+
     /** An inclusive range of entry dates. */
     private val period = listOf(
         query("from", mapOf("type" to "string", "format" to "date")),
@@ -280,6 +296,18 @@ internal object ApiQueries {
         ),
     )
     private val fixed = mapOf(
+        "$P/finance-plans/:id" to listOf(planVersion),
+        "$P/finance-overview" to listOf(
+            query(
+                "plan",
+                mapOf(
+                    "type" to "string",
+                    "pattern" to RESOURCE_ID,
+                    "description" to "Absent: the approved plan whose period holds today, else the latest one.",
+                ),
+            ),
+            planVersion,
+        ),
         "/api/v1/notifications" to notificationPage,
         "/api/v1/inbox" to listOf(
             query("unreadOnly", mapOf("type" to "string", "enum" to listOf("true", "false"), "default" to "true")),

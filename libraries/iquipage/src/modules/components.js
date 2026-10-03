@@ -92,6 +92,8 @@ function optionAvatar(o) {
     const photo = typeof o.avatar.image === 'string' && /^(\/(?!\/)|blob:|https:\/\/)/.test(o.avatar.image) ? `<img src="${escapeHTML(o.avatar.image)}" alt="" decoding="async">` : '';
     return `<span class="iq-avatar iq-select-avatar v${Number(o.avatar.tone) || 1}${photo ? ' has-image' : ''}" aria-hidden="true">${escapeHTML(o.avatar.text.slice(0, 2))}${photo}</span>`;
 }
+/** The value of the «create» option of a creatable combobox; never a real option value. */
+const CREATE_VALUE = '__iq_create__';
 class IqSelect extends IqElement {
     disconnectedCallback() { this.close(); super.disconnectedCallback(); }
     options = [];
@@ -221,6 +223,12 @@ class IqSelect extends IqElement {
         this.filtered = this.options.filter(o => !query || o.label.toLocaleLowerCase().includes(query) || (typeof o.key === 'string' && o.key.toLocaleLowerCase().includes(query)));
         if (this.active >= this.filtered.length)
             this.active = 0;
+        // creatable (vnext.30): a combobox offers to create what was typed when no option is called that.
+        const typed = this.query.trim();
+        if (this.editable && this.hasAttribute('creatable') && typed && !this.options.some(o => o.label.trim().toLocaleLowerCase() === typed.toLocaleLowerCase()))
+            this.filtered = [...this.filtered, { value: CREATE_VALUE, label: (this.getAttribute('create-label') || 'Создать «{query}»').replace('{query}', typed), icon: 'plus', create: typed }];
+        if (this.active >= this.filtered.length)
+            this.active = 0;
         this.list.innerHTML = this.filtered.length ? this.filtered.map((o, i) => `<div id="${this.list.id}-${i}" class="iq-option ${i === this.active ? 'is-active' : ''}${o.separator ? ' iq-option-separated' : ''}" role="option" aria-selected="${o.value === this.selected}" ${o.disabled ? 'aria-disabled="true"' : ''} data-value="${escapeHTML(o.value)}">${o.avatar ? `<span class="iq-option-icon">${optionAvatar(o)}</span>` : o.icon ? `<span class="iq-option-icon">${icons_js_1.icon(o.icon, 18)}</span>` : ''}<span class="iq-option-copy"><span class="iq-option-label">${o.key ? `<span class="iq-select-key">${escapeHTML(o.key)}</span> ` : ''}${escapeHTML(o.label)}</span>${o.description ? `<small>${escapeHTML(o.description)}</small>` : ''}</span>${o.meta ? `<span class="iq-option-meta">${escapeHTML(o.meta)}</span>` : ''}${o.value === this.selected ? icons_js_1.icon('check', 17) : ''}</div>`).join('') : '<div class="iq-no-results">Ничего не найдено</div>';
         for (const owner of [this.trigger, this.search].filter(Boolean)) {
             if (this.opened && this.filtered.length)
@@ -273,7 +281,17 @@ class IqSelect extends IqElement {
         if (this.search) this.search.value = '';
         this.sync();
     }
-    choose(v) { this.selected = v; this.close(); this.sync(); this.emit('iq-change', { value: v }); this.trigger.focus(); }
+    choose(v) {
+        if (v === CREATE_VALUE) {
+            // The host creates the option (a request may fail); it then adds it to options and sets the value.
+            const label = this.query.trim();
+            this.close();
+            this.emit('iq-create', { label });
+            this.trigger.focus();
+            return;
+        }
+        this.selected = v; this.close(); this.sync(); this.emit('iq-change', { value: v }); this.trigger.focus();
+    }
     onKey(e) {
         if (e.key === 'Tab') {
             this.close();
@@ -1127,7 +1145,13 @@ class IqTooltip extends IqElement {
         const heading = this.getAttribute('heading');
         if (heading) {
             const title = document.createElement('b'); title.className = 'iq-tooltip-heading'; title.textContent = heading; tip.append(title);
-            for (const line of (this.getAttribute('text') || '').split('\n').filter(Boolean)) { const row = document.createElement('span'); row.className = 'iq-tooltip-line'; row.textContent = line; tip.append(row); }
+            // A line «label<TAB>value» is a figure: the label on the left, the value on the right (vnext.30).
+            for (const line of (this.getAttribute('text') || '').split('\n').filter(Boolean)) {
+                const row = document.createElement('span'), [term, value] = line.split('\t');
+                if (value !== undefined) { row.className = 'iq-tooltip-row'; const t = document.createElement('span'), v = document.createElement('strong'); t.textContent = term; v.textContent = value; row.append(t, v); }
+                else { row.className = 'iq-tooltip-line'; row.textContent = line; }
+                tip.append(row);
+            }
             tip.classList.add('iq-tooltip-rich');
         }
         else tip.textContent = this.getAttribute('text') || '';
@@ -1151,7 +1175,9 @@ class IqTooltip extends IqElement {
             }
             const r = child.getBoundingClientRect(), w = tip.offsetWidth, h = tip.offsetHeight;
             tip.style.left = Math.max(8, Math.min(r.left + (r.width - w) / 2, innerWidth - w - 8)) + 'px';
-            tip.style.top = Math.max(8, r.top > h + 10 ? r.top - h - 8 : r.bottom + 8) + 'px';
+            // placement="bottom" (vnext.30) opens below the anchor when it fits, for rows whose heading stays readable.
+            const below = this.getAttribute('placement') === 'bottom' ? r.bottom + h + 8 <= innerHeight || r.top <= h + 10 : r.top <= h + 10;
+            tip.style.top = Math.max(8, below ? r.bottom + 8 : r.top - h - 8) + 'px';
         };
         this.listen(child, 'pointerenter', () => { dismissed = false; open(); });
         // Focus opens the tooltip only for keyboard navigation, never after a click or a programmatic focus.

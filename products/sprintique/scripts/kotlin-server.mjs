@@ -128,8 +128,11 @@ export async function startWorker(env, {timeoutMs = 60000} = {}) {
     child.stdout.on('data', keep);
     child.stderr.on('data', keep);
   });
-  const timer = new Promise(resolveTimer => setTimeout(() => resolveTimer('timeout'), timeoutMs));
+  // Cleared once the race is decided: a pending start timer would keep the test process alive for timeoutMs.
+  let startTimer;
+  const timer = new Promise(resolveTimer => { startTimer = setTimeout(() => resolveTimer('timeout'), timeoutMs); });
   const outcome = await Promise.race([started, exited.then(code => ({code})), timer]);
+  clearTimeout(startTimer);
   if (outcome !== true) {
     child.kill('SIGKILL');
     throw Error(`Kotlin worker did not start (${JSON.stringify(outcome)}):\n${output}`);

@@ -84,13 +84,21 @@ open class FinanceEntryVersionRecord() : UpdatableRecordImpl<FinanceEntryVersion
         set(value): Unit = set(16, value)
         get(): OffsetDateTime? = get(16) as OffsetDateTime?
 
+    open var categoryId: String?
+        set(value): Unit = set(17, value)
+        get(): String? = get(17) as String?
+
+    open var releaseId: String?
+        set(value): Unit = set(18, value)
+        get(): String? = get(18) as String?
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
 
     override fun key(): Record3<String?, String?, Int?> = super.key() as Record3<String?, String?, Int?>
 
-    constructor(projectId: String? = null, entryId: String? = null, revision: Int? = null, change: String? = null, direction: String? = null, state: String? = null, amountMinor: Long? = null, currencyCode: String? = null, dueDate: LocalDate? = null, postedDate: LocalDate? = null, category: String? = null, description: String? = null, counterparty: String? = null, reference: String? = null, voidReason: String? = null, actorId: String? = null, createdAt: OffsetDateTime? = null): this() {
+    constructor(projectId: String? = null, entryId: String? = null, revision: Int? = null, change: String? = null, direction: String? = null, state: String? = null, amountMinor: Long? = null, currencyCode: String? = null, dueDate: LocalDate? = null, postedDate: LocalDate? = null, category: String? = null, description: String? = null, counterparty: String? = null, reference: String? = null, voidReason: String? = null, actorId: String? = null, createdAt: OffsetDateTime? = null, categoryId: String? = null, releaseId: String? = null): this() {
         this.projectId = projectId
         this.entryId = entryId
         this.revision = revision
@@ -108,6 +116,8 @@ open class FinanceEntryVersionRecord() : UpdatableRecordImpl<FinanceEntryVersion
         this.voidReason = voidReason
         this.actorId = actorId
         this.createdAt = createdAt
+        this.categoryId = categoryId
+        this.releaseId = releaseId
         resetTouchedOnNotNull()
     }
 }

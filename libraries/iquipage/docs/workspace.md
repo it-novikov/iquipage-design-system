@@ -1,4 +1,4 @@
-# Workspace composition — vnext.30
+# Workspace composition — vnext.31
 
 Additive CSS API, imported through `@iquipage/web/styles.css`; no JS component or hidden DOM.
 

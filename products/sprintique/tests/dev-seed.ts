@@ -12,11 +12,33 @@ type Status='ready'|'in_progress'|'review'|'ready_for_testing'|'testing'|'ready_
 interface TaskSeed {id:string;title:string;status?:Status;priority?:'low'|'normal'|'high'|'critical';type?:'task'|'bug'|'epic';tags?:string[];owner?:string;due?:string;parent?:string;description?:string;release?:'active'|'planned'|'draft'}
 /** A ledger entry: amounts in kopecks (cents for USD); `voided` voids it after creation with that reason. */
 interface FinanceSeed {id:string;direction:'income'|'expense';state:'planned'|'posted';amount:number;date:number;category:string;description:string;counterparty?:string;reference?:string;currency?:string;voided?:string}
-interface ProjectSeed {name:string;key:string;members:[string,'editor'|'reader'][];tags:[string,string,Tone][];active?:string;planned?:string;tasks:TaskSeed[];map?:string;finance?:FinanceSeed[]}
+/** A whole-project budget: lines [category, kopecks, in the active release], the changed amounts of the open draft, notes. */
+interface BudgetSeed {lines:[string,number,boolean][];draft:Record<string,number>;notes:[string,string,string|null][]}
+interface ProjectSeed {name:string;key:string;members:[string,'editor'|'reader'][];tags:[string,string,Tone][];active?:string;planned?:string;tasks:TaskSeed[];map?:string;finance?:FinanceSeed[];budget?:BudgetSeed}
 
 const TEAM=['Алиса Смирнова','Борис Петров','Вера Козлова','Григорий Орлов'];
 const day=(offset:number)=>new Date(Date.now()+offset*86400000).toISOString().slice(0,10);
 
+/** The ledger behind the finance overview mockup (direction B2), in kopecks. */
+const BUDGET_FINANCE:FinanceSeed[]=[
+        {id:'fin-advance',direction:'income',state:'posted',amount:25000000,date:-25,category:'Оплата заказчика',description:'Аванс по договору',counterparty:'АО «Заказчик»',reference:'Договор 17/2026'},
+        {id:'fin-stage-two',direction:'income',state:'planned',amount:15000000,date:20,category:'Оплата заказчика',description:'Второй этап',counterparty:'АО «Заказчик»'},
+        {id:'fin-export-1',direction:'expense',state:'posted',amount:60000000,date:-28,category:'Подрядчики',description:'Экспорт карт, первый этап',counterparty:'ИП Соколова'},
+        {id:'fin-export-2',direction:'expense',state:'posted',amount:38000000,date:-6,category:'Подрядчики',description:'Экспорт карт, второй подрядчик',counterparty:'ООО «Картограф»'},
+        {id:'fin-export-3',direction:'expense',state:'planned',amount:30700000,date:25,category:'Подрядчики',description:'Экспорт карт, приёмка',counterparty:'ООО «Картограф»'},
+        {id:'fin-export-late',direction:'expense',state:'planned',amount:3300000,date:-2,category:'Подрядчики',description:'Доработка экспорта',counterparty:'ИП Соколова'},
+        {id:'fin-hosting',direction:'expense',state:'posted',amount:9000000,date:-20,category:'Инфраструктура',description:'Серверы за сентябрь',counterparty:'ООО «Облако»',reference:'Счёт 1042'},
+        {id:'fin-hosting-copy',direction:'expense',state:'posted',amount:1250000,date:-19,category:'Инфраструктура',description:'Серверы за сентябрь',counterparty:'ООО «Облако»',voided:'Платёж внесён дважды'},
+        {id:'fin-storage',direction:'expense',state:'posted',amount:5000000,date:-3,category:'Инфраструктура',description:'Хранилище файлов после пилота'},
+        {id:'fin-hosting-oct',direction:'expense',state:'planned',amount:3000000,date:30,category:'Инфраструктура',description:'Серверы за октябрь',counterparty:'ООО «Облако»'},
+        {id:'fin-backup-late',direction:'expense',state:'planned',amount:3500000,date:-7,category:'Инфраструктура',description:'Резервное копирование'},
+        {id:'fin-design',direction:'expense',state:'posted',amount:30000000,date:-15,category:'Дизайн',description:'Дизайн экранов онбординга',counterparty:'ИП Соколова'},
+        {id:'fin-ads',direction:'expense',state:'posted',amount:6000000,date:-10,category:'Маркетинг',description:'Тестовая рекламная кампания'},
+        {id:'fin-ads-nov',direction:'expense',state:'planned',amount:12000000,date:45,category:'Маркетинг',description:'Реклама после релиза'},
+        {id:'fin-licenses',direction:'expense',state:'posted',amount:7200000,date:-12,category:'Лицензии и сервисы',description:'Лицензии IDE на год'},
+        {id:'fin-licenses-late',direction:'expense',state:'planned',amount:1800000,date:-4,category:'Лицензии и сервисы',description:'Продление сервиса аналитики'},
+        {id:'fin-legal',direction:'expense',state:'planned',amount:6000000,date:50,category:'Юридические услуги',description:'Проверка договоров с подрядчиками'}
+];
 const WORKSPACES:{name:string;projects:ProjectSeed[]}[]=[
   {name:'Команда продукта',projects:[
     {name:'Sprintique',key:'SPQ',members:[['Алиса Смирнова','editor'],['Борис Петров','editor'],['Вера Козлова','reader']],
@@ -39,15 +61,13 @@ const WORKSPACES:{name:string;projects:ProjectSeed[]}[]=[
         {id:'spq-cleanup',title:'Удалить устаревшие миграции',release:'draft',tags:['debt'],priority:'low'},
         {id:'spq-perf',title:'Ускорить загрузку планирования',release:'draft',tags:['backend','research'],owner:'Борис Петров'}
       ],
-      finance:[
-        {id:'fin-advance',direction:'income',state:'posted',amount:45000000,date:-15,category:'Оплата заказчика',description:'Аванс по договору',counterparty:'АО «Заказчик»',reference:'Договор 17/2026'},
-        {id:'fin-hosting',direction:'expense',state:'posted',amount:1250000,date:-20,category:'Хостинг',description:'Серверы за месяц',counterparty:'ООО «Облако»',reference:'Счёт 1042'},
-        {id:'fin-hosting-copy',direction:'expense',state:'posted',amount:1250000,date:-19,category:'Хостинг',description:'Серверы за месяц',counterparty:'ООО «Облако»',voided:'Платёж внесён дважды'},
-        {id:'fin-design',direction:'expense',state:'posted',amount:9000000,date:-6,category:'Подрядчики',description:'Дизайн экранов онбординга',counterparty:'ИП Соколова'},
-        {id:'fin-conference',direction:'expense',state:'posted',amount:35000,currency:'USD',date:-10,category:'Конференции',description:'Билет на конференцию'},
-        {id:'fin-licenses',direction:'expense',state:'planned',amount:2400000,date:-2,category:'Лицензии',description:'Продление лицензий IDE'},
-        {id:'fin-stage-two',direction:'income',state:'planned',amount:60000000,date:12,category:'Оплата заказчика',description:'Второй этап',counterparty:'АО «Заказчик»'}
-      ]},
+      // The budget of the finance overview (direction B2): six expense categories against a plan for the whole project,
+      // one over and explained, one over and unexplained, one under; three expected entries are overdue.
+      finance:BUDGET_FINANCE,
+      budget:{lines:[['Подрядчики',120000000,true],['Инфраструктура',18000000,false],['Дизайн',30000000,true],['Маркетинг',25000000,false],['Лицензии и сервисы',9000000,false],['Юридические услуги',6000000,false]],
+        draft:{'Подрядчики':132000000,'Инфраструктура':20500000},
+        notes:[['Подрядчики','Экспорт карт отдали второму подрядчику, чтобы успеть к релизу. Договор от 14 сентября.','Пересмотреть договор с подрядчиком'],
+          ['Маркетинг','Рекламу запускаем после релиза, в ноябре. Остаток перенесём в следующий план.',null]]}},
     {name:'Мобильное приложение',key:'MOB',members:[['Григорий Орлов','editor'],['Алиса Смирнова','reader']],
       tags:[['ios','iOS','blue'],['android','Android','green'],['crash','Сбой','red']],
       tasks:[
@@ -58,7 +78,8 @@ const WORKSPACES:{name:string;projects:ProjectSeed[]}[]=[
       ]}
   ]},
   {name:'Маркетинг',projects:[
-    {name:'Сайт и запуск',key:'WEB',members:[['Вера Козлова','editor']],
+    // The same ledger without a plan: the overview's «Плана нет» state.
+    {name:'Сайт и запуск',key:'WEB',members:[['Вера Козлова','editor']],finance:BUDGET_FINANCE,
       tags:[['copy','Тексты','amber'],['visual','Визуал','purple']],map:'Структура лендинга',
       tasks:[
         {id:'web-hero',title:'Первый экран лендинга',status:'in_progress',priority:'high',tags:['copy','visual'],owner:'Вера Козлова',due:day(3)},
@@ -124,13 +145,21 @@ export async function seedDevData(app:TestApp,admin:pg.Client,origin:string){
             obj('f2','frame','Что улучшить',600,0),obj('s3','sticky','Долгие сборки CI',630,60,{parentId:'f2',color:'rose'}),obj('k1','task','Ускорить CI',860,60,{parentId:'f2'})],
           connections:[{id:'c1',from:'s3',to:'k1',arrow:true}]}}});
       }
+      // Categories are the project's own list: one per name, of the direction its entries have.
+      const categoryIds=new Map<string,string>();
+      for(const entry of spec.finance||[]){
+        if(categoryIds.has(entry.category))continue;
+        const id='cat-'+(categoryIds.size+1);categoryIds.set(entry.category,id);
+        await call('PUT',P+'finance-categories/'+id,{baseRevision:0,value:{name:entry.category,direction:entry.direction}});
+      }
       for(const entry of spec.finance||[]){
         const date=day(entry.date),value={direction:entry.direction,state:entry.state,amountMinor:entry.amount,currencyCode:entry.currency||'RUB',
-          dueDate:entry.state==='planned'?date:null,postedDate:entry.state==='posted'?date:null,category:entry.category,description:entry.description,
+          dueDate:entry.state==='planned'?date:null,postedDate:entry.state==='posted'?date:null,categoryId:categoryIds.get(entry.category),description:entry.description,
           counterparty:entry.counterparty||null,reference:entry.reference||null};
         const saved=await call<{revision:number}>('PUT',P+'finance-entries/'+entry.id,{baseRevision:0,value});
         if(entry.voided)await call('PATCH',P+`finance-entries/${entry.id}/state`,{state:'voided',baseRevision:saved.revision,voidReason:entry.voided});
       }
+      if(spec.budget)await seedBudget(spec.budget,{call,P,categoryIds,release:active});
       const first=spec.tasks.find(t=>!t.release);
       if(first)await call('POST',P+`tasks/${first.id}/threads`,{id:randomUUID(),messageId:randomUUID(),body:'Нужно решить до пятницы: делаем сейчас или переносим в следующий релиз?',requiresResolution:true});
       summary.push(`${space.name} / ${spec.name} (${spec.key}): задач — ${spec.tasks.length}`);
@@ -197,4 +226,35 @@ async function seedWorkbench(app:TestApp,admin:pg.Client,origin:string,{adminId,
   await edit(grigory,'MOB','mob-offline',{status:'in_progress'});
   await participate('SPQ','spq-notes');await edit(alice,'SPQ','spq-notes',{status:'testing'});await edit(alice,'SPQ','spq-notes',{status:'ready_for_release'});
   await admin.query("INSERT INTO app.milestones(project_id,id,title,date) VALUES($1,'beta','Бета для команд',$2) ON CONFLICT DO NOTHING",[projectIds.get('SPQ'),day(4)]);
+}
+
+/**
+ * The budget of a project as the overview mockup shows it: versions 1–3 approved in turn (3 is the plan), the
+ * explanations written against version 3, and an open draft of version 4. The period runs from the first day of last
+ * month to the end of the month after next, so «today» always falls inside it.
+ */
+async function seedBudget(budget:BudgetSeed,{call,P,categoryIds,release}:{call:<T=unknown>(method:'GET'|'POST'|'PUT'|'PATCH',url:string,payload?:unknown)=>Promise<T>;P:string;categoryIds:Map<string,string>;release:string|null}){
+  type Plan={selected:{version:number;revision:number}};
+  const now=new Date(),iso=(d:Date)=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  const periodStart=iso(new Date(now.getFullYear(),now.getMonth()-1,1)),periodEnd=iso(new Date(now.getFullYear(),now.getMonth()+3,0));
+  const lines=(amounts:Record<string,number>={},releases=false)=>budget.lines.map(([name,amount,inRelease])=>({direction:'expense',categoryId:categoryIds.get(name)!,
+    amountMinor:amounts[name]??amount,currencyCode:'RUB',releaseId:releases&&inRelease?release:null,note:null}));
+  let plan=await call<Plan>('PUT',P+'finance-plans/budget',{baseRevision:0,value:{name:'Весь проект',periodStart,periodEnd,releaseId:null}});
+  const approveWith=async(value:{note:string|null;lines:unknown[]})=>{
+    plan=await call<Plan>('PUT',P+'finance-plans/budget/draft',{baseRevision:plan.selected.revision,version:plan.selected.version,value});
+    plan=await call<Plan>('POST',P+'finance-plans/budget/approve',{baseRevision:plan.selected.revision,version:plan.selected.version});
+  };
+  const revise=async(note:string|null)=>{plan=await call<Plan>('POST',P+'finance-plans/budget/revise',{baseRevision:plan.selected.revision,version:plan.selected.version,note});};
+  await approveWith({note:null,lines:lines({'Подрядчики':100000000,'Маркетинг':30000000})});
+  await revise('Подрядчики дороже, чем в первой оценке');
+  await approveWith({note:'Подрядчики дороже, чем в первой оценке',lines:lines({'Маркетинг':30000000})});
+  await revise('Часть рекламы переносим на следующий год');
+  await approveWith({note:'Часть рекламы переносим на следующий год',lines:lines()});
+  for(const [name,text,task] of budget.notes){
+    await call('PUT',P+'finance-variance-notes/note-'+categoryIds.get(name),{baseRevision:0,value:{planId:'budget',version:3,categoryId:categoryIds.get(name),direction:'expense',currencyCode:'RUB',text},
+      createTask:task?{title:task,ownerId:null,due:null}:null});
+  }
+  await revise('Второй подрядчик на экспорт карт и рост хостинга после пилота.');
+  await call('PUT',P+'finance-plans/budget/draft',{baseRevision:plan.selected.revision,version:plan.selected.version,
+    value:{note:'Второй подрядчик на экспорт карт и рост хостинга после пилота.',lines:lines(budget.draft,true)}});
 }

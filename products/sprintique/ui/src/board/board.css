@@ -112,9 +112,9 @@
 /* A card is as tall as its content: rows start at the top instead of stretching over a fixed minimum height.
    The identity row pulls into the padding, so the key and the menu sit close to the corner and the title follows them. */
 .host-task-board{--task-card-min-height:72px}
-/* SPR-6: the bottom of a card breathes one DS step more than its sides; the top stays compact (the identity row pulls
-   into it). */
-.host-task-board .task-card{min-height:0;align-content:start;padding:var(--iq-space-3) var(--iq-space-3) var(--iq-space-4);gap:var(--iq-space-2);user-select:none;cursor:pointer}
+/* SPR-6: the bottom of a card breathes more than its sides, one DS step plus an eighth (16 → 18 px, asked for 10–15%
+   more); the top stays compact (the identity row pulls into it). */
+.host-task-board .task-card{min-height:0;align-content:start;padding:var(--iq-space-3) var(--iq-space-3) calc(var(--iq-space-4) * 1.125);gap:var(--iq-space-2);user-select:none;cursor:pointer}
 .host-task-board .board-empty-slot{min-height:var(--task-card-min-height)}
 [data-task-cover]{position:relative}
 [data-task-cover] .task-cover-actions{position:absolute;right:var(--iq-space-2);bottom:var(--iq-space-2);display:flex;gap:var(--iq-space-1);padding:var(--iq-space-1);background:var(--iq-raised);border-radius:var(--iq-radius-sm);box-shadow:var(--iq-shadow-1);z-index:1}

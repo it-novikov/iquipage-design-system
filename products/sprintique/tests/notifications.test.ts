@@ -305,11 +305,13 @@ test('NT10 the worker sends through the Bot API: success with buttons, 429 retry
   const p=await project(people.map(u=>[u,'editor'] as [User,'editor']));
   for(const [i,user] of people.entries())await link(user,9001+i);
   for(const [i,user] of people.entries())await task(p.id,'w'+(i+1),{title:i===0?'Подписи <рёбер> & связи':'Задача w'+(i+1),ownerId:user.id});
-  const api=await fakeTelegram();
   const batch=async(user:User)=>(await f.admin.query("SELECT b.* FROM app.notification_batches b WHERE b.recipient_id=$1 AND b.channel='telegram'",[user.id])).rows[0];
-  const work=await startKotlinWorker({...telegramSettings,SPRINTIQUE_TELEGRAM_API_BASE:api.url,SPRINTIQUE_PUBLIC_ORIGIN:'https://sprintique.example',
-    SPRINTIQUE_NOTIFICATIONS_TELEGRAM_WINDOW_SECONDS:'0'});
+  // The fake Bot API is closed even when the worker fails to start, or its open socket keeps the file from exiting.
+  const api=await fakeTelegram();
+  let work:Awaited<ReturnType<typeof startKotlinWorker>>|undefined;
   try{
+    work=await startKotlinWorker({...telegramSettings,SPRINTIQUE_TELEGRAM_API_BASE:api.url,SPRINTIQUE_PUBLIC_ORIGIN:'https://sprintique.example',
+      SPRINTIQUE_NOTIFICATIONS_TELEGRAM_WINDOW_SECONDS:'0'});
     await until(async()=>(await batch(people[0]!))?.state==='sent','the message is sent',work.output);
     const first=api.sent.find(s=>s.chat===9001)!;
     assert.equal(first.path,`/bot${TOKEN}/sendMessage`);
@@ -338,7 +340,7 @@ test('NT10 the worker sends through the Bot API: success with buttons, 429 retry
     assert.equal((await f.admin.query("SELECT state FROM app.notification_deliveries WHERE batch_id=$1",[failed.id])).rows[0].state,'failed');
     assert.equal(api.sent.filter(s=>s.chat===9004).length,5);
     assert.ok(!work.output().includes(TOKEN),'the token never reaches the log');
-  }finally{await work.stop();await api.close();}
+  }finally{await work?.stop();await api.close();}
 });
 
 test('NT11 a queued message is not sent when its cause no longer holds or the person lost access',async()=>{

@@ -1,4 +1,4 @@
-/* Public workspace compositions, vnext.30. Native landmarks and labelled controls belong to the host.
+/* Public workspace compositions, vnext.31. Native landmarks and labelled controls belong to the host.
    No product selectors. --iq-workspace-nav-width and --iq-workspace-aside-width are public sizing hooks. */
 .iq-workspace-page{max-width:1600px;margin-inline:auto;padding:var(--iq-space-8) var(--iq-space-6) var(--iq-space-8);color:var(--iq-ink)}
 .iq-workspace-heading{display:flex;align-items:center;justify-content:space-between;gap:var(--iq-space-5);margin-bottom:var(--iq-space-6)}

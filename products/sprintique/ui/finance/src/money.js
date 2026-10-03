@@ -57,12 +57,13 @@ export const amountInput=(minor,currency)=>toDecimal(minor,currency).replace('.'
  * Minor units as money in Russian: "1 250,50 ₽". `sign` adds an explicit plus for positive values; the minus of a
  * negative value is always shown. Exact beyond 2^53: the browser formats the decimal text itself.
  */
-export function formatMoney(minor,currency,{sign=false}={}){
+export function formatMoney(minor,currency,{sign=false,whole=false}={}){
   const decimal=toDecimal(minor,currency);
   try{
-    const digits=fractionDigits(currency);
+    // whole: an amount without a fractional part reads without «,00», as summaries show it.
+    const digits=whole&&/\.0+$|^-?\d+$/.test(decimal)?0:fractionDigits(currency);
     const format=new Intl.NumberFormat('ru-RU',{style:'currency',currency,currencyDisplay:'narrowSymbol',signDisplay:sign?'exceptZero':'auto',minimumFractionDigits:digits,maximumFractionDigits:digits});
-    return format.format(/** @type {any} */(decimal));
+    return format.format(/** @type {any} */(digits?decimal:decimal.replace(/\.0+$/,'')));
   }catch{return `${decimal.replace('.',',')} ${currency}`;}
 }
 /** Signed amount of an entry: income adds, expense subtracts. */

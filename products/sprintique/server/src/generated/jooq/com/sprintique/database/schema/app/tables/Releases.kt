@@ -5,11 +5,17 @@ package com.sprintique.database.schema.app.tables
 
 
 import com.sprintique.database.schema.app.App
+import com.sprintique.database.schema.app.keys.FINANCE_ENTRY__FK_FINANCE_ENTRY__RELEASES
+import com.sprintique.database.schema.app.keys.FINANCE_PLAN_LINE__FK_FINANCE_PLAN_LINE__RELEASES
+import com.sprintique.database.schema.app.keys.FINANCE_PLAN__FK_FINANCE_PLAN__RELEASES
 import com.sprintique.database.schema.app.keys.MILESTONES__MILESTONE_RELEASE
 import com.sprintique.database.schema.app.keys.RELEASES_PKEY
 import com.sprintique.database.schema.app.keys.RELEASES__RELEASES_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.RELEASE_SNAPSHOTS__RELEASE_SNAPSHOTS_PROJECT_ID_RELEASE_ID_FKEY
 import com.sprintique.database.schema.app.keys.TASKS__TASKS_PROJECT_ID_RELEASE_ID_FKEY
+import com.sprintique.database.schema.app.tables.FinanceEntry.FinanceEntryPath
+import com.sprintique.database.schema.app.tables.FinancePlan.FinancePlanPath
+import com.sprintique.database.schema.app.tables.FinancePlanLine.FinancePlanLinePath
 import com.sprintique.database.schema.app.tables.Milestones.MilestonesPath
 import com.sprintique.database.schema.app.tables.Projects.ProjectsPath
 import com.sprintique.database.schema.app.tables.ReleaseSnapshots.ReleaseSnapshotsPath
@@ -127,6 +133,42 @@ open class Releases(
 
     fun projects(): ProjectsPath = projects
     val projects: ProjectsPath by lazy { ProjectsPath(this, RELEASES__RELEASES_PROJECT_ID_FKEY, null) }
+
+    private lateinit var _financeEntry: FinanceEntryPath
+
+    fun financeEntry(): FinanceEntryPath {
+        if (!this::_financeEntry.isInitialized)
+            _financeEntry = FinanceEntryPath(this, null, FINANCE_ENTRY__FK_FINANCE_ENTRY__RELEASES.inverseKey)
+
+        return _financeEntry;
+    }
+
+    val financeEntry: FinanceEntryPath
+        get(): FinanceEntryPath = financeEntry()
+
+    private lateinit var _financePlan: FinancePlanPath
+
+    fun financePlan(): FinancePlanPath {
+        if (!this::_financePlan.isInitialized)
+            _financePlan = FinancePlanPath(this, null, FINANCE_PLAN__FK_FINANCE_PLAN__RELEASES.inverseKey)
+
+        return _financePlan;
+    }
+
+    val financePlan: FinancePlanPath
+        get(): FinancePlanPath = financePlan()
+
+    private lateinit var _financePlanLine: FinancePlanLinePath
+
+    fun financePlanLine(): FinancePlanLinePath {
+        if (!this::_financePlanLine.isInitialized)
+            _financePlanLine = FinancePlanLinePath(this, null, FINANCE_PLAN_LINE__FK_FINANCE_PLAN_LINE__RELEASES.inverseKey)
+
+        return _financePlanLine;
+    }
+
+    val financePlanLine: FinancePlanLinePath
+        get(): FinancePlanLinePath = financePlanLine()
 
     private lateinit var _milestones: MilestonesPath
 

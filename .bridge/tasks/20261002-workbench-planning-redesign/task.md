@@ -8,7 +8,7 @@ owner: nvkv71
 branch: feat/workbench-planning-redesign
 base: main
 created: 2026-10-02
-updated: 2026-10-03T12:07:23Z
+updated: 2026-10-03T13:15:08Z
 links:
 ---
 
@@ -28,17 +28,17 @@ links:
 ## Приёмка
 
 - [x] A1. Оба экрана пересобраны с сохранением операций и прав; finding IDs и паритет задокументированы
-- [x] A2. DS vnext.30 собрана, проверена и подключена точным tarball; build, boundary и затронутые тесты проходят
+- [x] A2. DS vnext.31 собрана, проверена и подключена точным tarball; build, boundary и затронутые тесты проходят
 - [x] A3. Новая композиция просмотрена в обеих темах и адаптивных размерах; взаимодействия проверены и ограничения названы
 
 ## Передача
 
-- **Состояние:** Локальная реализация и ревью завершены; доказательства в specs/general/UI-IMPROVEMENTS.md и outputs
-- **Сейчас:** Готово к просмотру владельцем
-- **Дальше:** Публикация/PR только по явному поручению
-- **Незакоммичено:** Финальная фиксация локального коммита
-- **Рабочая копия:** 26 файл(ов): libraries/iquipage/PROVENANCE.json, libraries/iquipage/README.md, libraries/iquipage/package-lock.json, libraries/iquipage/package.json, libraries/iquipage/scripts/build.mjs, libraries/iquipage/src/entries/core.js, libraries/iquipage/tests/vnext29.test.cjs, libraries/iquipage/tokens/semantic.json, libraries/iquipage/types/core.d.ts, products/sprintique/package-lock.json, products/sprintique/package.json, products/sprintique/tests/library-contract.ts и ещё 14 (20 files changed, 191 insertions(+), 177 deletions(-)) · HEAD 5fc20a8 · снято 2026-10-03T12:07:23Z
-- **Проверка:** 408 DS +22 UI +30 HTTP; build/boundaries; browser matrix with documented limits
+- **Состояние:** Объединено с origin/main 9a959a2; DS .31, исходный .30 сохранён; публикация разрешена
+- **Сейчас:** Публикация PR
+- **Дальше:** Просмотр и слияние владельцем
+- **Незакоммичено:** merge main and package .31
+- **Рабочая копия:** 103 файл(ов): libraries/iquipage/PROVENANCE.json, libraries/iquipage/README.md, libraries/iquipage/docs/workspace.md, libraries/iquipage/package-lock.json, libraries/iquipage/package.json, libraries/iquipage/scripts/gates/contrast-baseline.json, libraries/iquipage/scripts/gates/size-baseline.json, libraries/iquipage/src/entries/core.js, libraries/iquipage/src/manifest.json, libraries/iquipage/src/modules/components.js, libraries/iquipage/src/modules/scale.js, libraries/iquipage/src/modules/ui.js и ещё 91 (109 files changed, 10445 insertions(+), 902 deletions(-)) · HEAD 87a3241
+- **Проверка:** 414 DS +60 targeted product PASS; build/typecheck/boundaries PASS; diff clean
 - **Причина:** review — codex-design, 2026-10-03T12:07:23Z: Готово локально; push/deploy не разрешены и не выполнялись; полный интеграционный прогон не заявлен
 
 ## План

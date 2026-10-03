@@ -11,7 +11,9 @@ import com.sprintique.database.schema.app.keys.APPROVALS__APPROVALS_PROJECT_ID_F
 import com.sprintique.database.schema.app.keys.ASSETS__ASSETS_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.ATTENTION_REQUESTS__ATTENTION_REQUESTS_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.AUDIT_EVENTS__AUDIT_EVENTS_PROJECT_ID_FKEY
+import com.sprintique.database.schema.app.keys.FINANCE_CATEGORY__FK_FINANCE_CATEGORY__PROJECTS
 import com.sprintique.database.schema.app.keys.FINANCE_ENTRY__FK_FINANCE_ENTRY__PROJECTS
+import com.sprintique.database.schema.app.keys.FINANCE_PLAN__FK_FINANCE_PLAN__PROJECTS
 import com.sprintique.database.schema.app.keys.FINANCE_SETTINGS__FK_FINANCE_SETTINGS__PROJECTS
 import com.sprintique.database.schema.app.keys.IDEMPOTENCY__IDEMPOTENCY_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.MAPS__MAPS_PROJECT_ID_FKEY
@@ -49,7 +51,9 @@ import com.sprintique.database.schema.app.tables.Approvals.ApprovalsPath
 import com.sprintique.database.schema.app.tables.Assets.AssetsPath
 import com.sprintique.database.schema.app.tables.AttentionRequests.AttentionRequestsPath
 import com.sprintique.database.schema.app.tables.AuditEvents.AuditEventsPath
+import com.sprintique.database.schema.app.tables.FinanceCategory.FinanceCategoryPath
 import com.sprintique.database.schema.app.tables.FinanceEntry.FinanceEntryPath
+import com.sprintique.database.schema.app.tables.FinancePlan.FinancePlanPath
 import com.sprintique.database.schema.app.tables.FinanceSettings.FinanceSettingsPath
 import com.sprintique.database.schema.app.tables.Idempotency.IdempotencyPath
 import com.sprintique.database.schema.app.tables.MapTemplates.MapTemplatesPath
@@ -275,6 +279,18 @@ open class Projects(
     val auditEvents: AuditEventsPath
         get(): AuditEventsPath = auditEvents()
 
+    private lateinit var _financeCategory: FinanceCategoryPath
+
+    fun financeCategory(): FinanceCategoryPath {
+        if (!this::_financeCategory.isInitialized)
+            _financeCategory = FinanceCategoryPath(this, null, FINANCE_CATEGORY__FK_FINANCE_CATEGORY__PROJECTS.inverseKey)
+
+        return _financeCategory;
+    }
+
+    val financeCategory: FinanceCategoryPath
+        get(): FinanceCategoryPath = financeCategory()
+
     private lateinit var _financeEntry: FinanceEntryPath
 
     fun financeEntry(): FinanceEntryPath {
@@ -286,6 +302,18 @@ open class Projects(
 
     val financeEntry: FinanceEntryPath
         get(): FinanceEntryPath = financeEntry()
+
+    private lateinit var _financePlan: FinancePlanPath
+
+    fun financePlan(): FinancePlanPath {
+        if (!this::_financePlan.isInitialized)
+            _financePlan = FinancePlanPath(this, null, FINANCE_PLAN__FK_FINANCE_PLAN__PROJECTS.inverseKey)
+
+        return _financePlan;
+    }
+
+    val financePlan: FinancePlanPath
+        get(): FinancePlanPath = financePlan()
 
     private lateinit var _financeSettings: FinanceSettingsPath
 

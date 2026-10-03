@@ -31,6 +31,38 @@ CREATE POLICY finance_settings_runtime_insert ON app.finance_settings AS RESTRIC
 DROP POLICY IF EXISTS finance_settings_runtime_update ON app.finance_settings;
 CREATE POLICY finance_settings_runtime_update ON app.finance_settings AS RESTRICTIVE FOR UPDATE TO "${runtime_role}"
   USING(true) WITH CHECK(updated_by=auth.actor_id() AND updated_at>=now());
+-- Finance plan (V20261001000072–074, docs/decisions/0009-finance-plan.md): the same binding of authors and times for
+-- categories, plans, versions and variance notes. An approval names the person approving it, now; superseding an
+-- older approval keeps that approval's author. Lines of a draft are replaced when the draft is saved, so they are the
+-- one finance table the runtime role deletes from; their trigger refuses it for any version that is not a draft.
+DROP POLICY IF EXISTS finance_category_runtime_insert ON app.finance_category;
+CREATE POLICY finance_category_runtime_insert ON app.finance_category AS RESTRICTIVE FOR INSERT TO "${runtime_role}"
+  WITH CHECK(created_by=auth.actor_id() AND updated_by=auth.actor_id() AND created_at>=now() AND updated_at>=now());
+DROP POLICY IF EXISTS finance_category_runtime_update ON app.finance_category;
+CREATE POLICY finance_category_runtime_update ON app.finance_category AS RESTRICTIVE FOR UPDATE TO "${runtime_role}"
+  USING(true) WITH CHECK(updated_by=auth.actor_id() AND updated_at>=now());
+DROP POLICY IF EXISTS finance_plan_runtime_insert ON app.finance_plan;
+CREATE POLICY finance_plan_runtime_insert ON app.finance_plan AS RESTRICTIVE FOR INSERT TO "${runtime_role}"
+  WITH CHECK(created_by=auth.actor_id() AND updated_by=auth.actor_id() AND created_at>=now() AND updated_at>=now());
+DROP POLICY IF EXISTS finance_plan_runtime_update ON app.finance_plan;
+CREATE POLICY finance_plan_runtime_update ON app.finance_plan AS RESTRICTIVE FOR UPDATE TO "${runtime_role}"
+  USING(true) WITH CHECK(updated_by=auth.actor_id() AND updated_at>=now());
+DROP POLICY IF EXISTS finance_plan_version_runtime_insert ON app.finance_plan_version;
+CREATE POLICY finance_plan_version_runtime_insert ON app.finance_plan_version AS RESTRICTIVE FOR INSERT TO "${runtime_role}"
+  WITH CHECK(created_by=auth.actor_id() AND updated_by=auth.actor_id() AND created_at>=now() AND updated_at>=now());
+DROP POLICY IF EXISTS finance_plan_version_runtime_update ON app.finance_plan_version;
+CREATE POLICY finance_plan_version_runtime_update ON app.finance_plan_version AS RESTRICTIVE FOR UPDATE TO "${runtime_role}"
+  USING(true) WITH CHECK(updated_by=auth.actor_id() AND updated_at>=now()
+    AND (state<>'approved' OR (approved_by=auth.actor_id() AND approved_at>=now())));
+DROP POLICY IF EXISTS finance_variance_note_runtime_insert ON app.finance_variance_note;
+CREATE POLICY finance_variance_note_runtime_insert ON app.finance_variance_note AS RESTRICTIVE FOR INSERT TO "${runtime_role}"
+  WITH CHECK(created_by=auth.actor_id() AND updated_by=auth.actor_id() AND created_at>=now() AND updated_at>=now());
+DROP POLICY IF EXISTS finance_variance_note_runtime_update ON app.finance_variance_note;
+CREATE POLICY finance_variance_note_runtime_update ON app.finance_variance_note AS RESTRICTIVE FOR UPDATE TO "${runtime_role}"
+  USING(true) WITH CHECK(updated_by=auth.actor_id() AND updated_at>=now());
+GRANT DELETE ON app.finance_plan_line TO "${runtime_role}";
+-- Discarding a draft (V20261001000076) removes the draft version and, when it was the plan's only one, the plan.
+GRANT DELETE ON app.finance_plan_version,app.finance_plan TO "${runtime_role}";
 -- Workbench: meaningful task events and private receipts are append-only (docs/adr W2, W3).
 REVOKE UPDATE ON app.task_activity,app.private_receipts FROM "${runtime_role}";
 -- AI connections and agent runs (V20261001000064–67, docs/decisions/0005-ai-agents.md): sealed keys are reached only
