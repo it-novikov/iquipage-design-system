@@ -10,6 +10,7 @@ base: origin/main
 created: 2026-10-03
 updated: 2026-10-03T15:43:09Z
 links:
+  - https://github.com/it-novikov/iquipage-design-system/pull/54
 ---
 
 # Навигация рабочего стола как во всех разделах
