@@ -16,14 +16,17 @@ export async function mountTaskBoard(root,{repository,project,canEdit=true,canMa
   const covers=createCoverLoader(attachmentAdapter,project.id);
   let disposeTags=()=>{},pointerStart=null,suppressClick=false,switchingTask=false,trail=[];
   const pending=new Set(),abort=new AbortController(),signal=abort.signal;
-  let reloadPromise=null,reloadAgain=false,reloadTimer=null,openingController=null;
+  let reloadPromise=null,reloadAgain=false,reloadTimer=null,openingController=null,reloads=0;
+  // What a board load reads: one release (with its lifecycle, which decides the query) or the tasks without one.
+  const boardScope=scope=>!scope?null:scope.backlog?{backlog:true}:{releaseId:scope.releaseId,lifecycle:scope.lifecycle};
+  const sameScope=(a,b)=>!!a&&!!b&&a.backlog===b.backlog&&a.releaseId===b.releaseId&&a.lifecycle===b.lifecycle;
   const key=`sprintique-board:${project.id}:${repository.context?.actorId||'local-user'}`;
   // Scroll position lives only for this page session (switching sections); a reload starts at the first column.
-  try{const {x:_x,y:_y,...stored}=JSON.parse(localStorage.getItem(key)||'{}');Object.assign(viewState,stored,viewState);}catch{}
+  try{const {x:_x,y:_y,boardScope:_scope,...stored}=JSON.parse(localStorage.getItem(key)||'{}');Object.assign(viewState,stored,viewState);}catch{}
   // Subtask lists on parent cards are collapsed unless the person opened them.
   const expanded=new Set(Array.isArray(viewState.expanded)?viewState.expanded:[]);delete viewState.collapsed;
   let sort=Object.hasOwn(BOARD_SORTS,viewState.sort)?viewState.sort:'priority';
-  const persist=()=>{viewState.sort=sort;viewState.expanded=[...expanded];try{const {x:_x,y:_y,...stored}=viewState;localStorage.setItem(key,JSON.stringify(stored));}catch{}};
+  const persist=()=>{viewState.sort=sort;viewState.expanded=[...expanded];try{const {x:_x,y:_y,boardScope:_scope,...stored}=viewState;localStorage.setItem(key,JSON.stringify(stored));}catch{}};
   delete viewState.query;
   root.innerHTML=`<div class="host-task-page"><header class="host-task-heading sq-page-heading"><div class="host-task-heading-title"><h1 data-board-title>Доска задач</h1></div>
   <div class="host-task-tools sq-page-tools"><div class="host-board-release" data-board-release></div><div class="host-board-sort" data-board-sort></div><div class="board-filter-bar" data-board-filters></div>
@@ -98,11 +101,15 @@ export async function mountTaskBoard(root,{repository,project,canEdit=true,canMa
     reloadPromise=(async()=>{do{
       reloadAgain=false;const token=++loading;
       try{
+        // The tasks of the release shown last time load alongside the catalogs; they are used only when the catalogs
+        // show that same release again, otherwise the right release is read after them, as before.
+        const guess=boardScope(reloads++?shown:viewState.boardScope),early=guess?repository.list('tasks',project.id,{signal,board:guess}):null;
+        early?.catch(()=>{});
         const [tags,releases,members,picked]=await Promise.all([...['tags','releases'].map(name=>repository.list(name,project.id,{signal})),
           repository.capabilities?.members===false?[]:repository.list('members',project.id,{signal}).catch(()=>[]),preference]);
         if(preference){preference=null;chosenRelease??=picked??null;}
-        catalogs={...catalogs,releases};resolveShown();const scope=shown;
-        const all=await repository.list('tasks',project.id,{signal,board:scope});
+        catalogs={...catalogs,releases};resolveShown();const scope=shown;viewState.boardScope=boardScope(scope);
+        const all=early&&sameScope(guess,viewState.boardScope)?await early:await repository.list('tasks',project.id,{signal,board:scope});
         if(closed||token!==loading||scope!==shown)continue;items=all;
         const people=new Map(members.map(m=>[m.id,{id:m.id,name:m.name,image:repository.client?.avatarUrl?.(m.id,m.avatarRevision)||undefined}]));
         catalogs={tags,releases,people};filters.setData({tasks:items,...catalogs});renderTitle();render();
@@ -148,6 +155,14 @@ export async function mountTaskBoard(root,{repository,project,canEdit=true,canMa
     const opened=activeDialog;opened.addEventListener('iq-close',()=>{if(activeDialog===opened)activeDialog=null;if(!switchingTask)trail=[];if(!switchingTask&&task&&parseTaskRoute(location.hash)===taskKey(task)){if(history.state?.taskDrawer)history.back();else history.replaceState(null,'','#tasks');}},{once:true});
     }catch(cause){if(!closed&&cause.name!=='AbortError')fail(cause);}finally{if(openingController===controller){openingController=null;openingTask=false;}}
   }
+  // Pointing at a card or focusing it reads the project's task list the drawer needs (for parents and links) ahead of
+  // the click; the drawer then finds it in the repository's short cache. At most one read in 20 seconds.
+  let warmedAt=0;
+  const warmDrawer=e=>{
+    if(!repository.taskContext||Date.now()-warmedAt<20000||!e.target.closest?.('[data-task-surface], [data-open-task]'))return;
+    warmedAt=Date.now();repository.taskContext(project.id,{signal}).catch(()=>{warmedAt=0;});
+  };
+  root.addEventListener('pointerover',warmDrawer,{signal});root.addEventListener('focusin',warmDrawer,{signal});
   root.addEventListener('pointerdown',e=>{pointerStart={x:e.clientX,y:e.clientY};suppressClick=false;},{signal,capture:true});
   root.addEventListener('pointermove',e=>{if(pointerStart&&Math.hypot(e.clientX-pointerStart.x,e.clientY-pointerStart.y)>5)suppressClick=true;},{signal,capture:true});
   root.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.matches('[data-task-surface]')){e.preventDefault();edit(items.find(t=>t.id===e.target.dataset.taskSurface));}},{signal});

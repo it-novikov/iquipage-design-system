@@ -18,7 +18,7 @@ const section=(id,span,title,glyph,count,actions,body,{busy=false,note=''}={})=>
   <div class="iq-section-head">${icon(glyph,18)}<h2 id="${id}-h" tabindex="-1">${esc(title)}${count?' '+count:''}</h2>${note}<div class="iq-section-actions">${actions}</div></div>${body}</section>`;
 const countBadge=(n,capped=false)=>n==null?'':`<span class="iq-section-count">${esc(countLabel(n,capped))}</span>`;
 
-export function mountDashboard(host,{mode,api,repository,projects,filter,prefs,savePrefs,openTask,openProject,onNavigate,announce,setSummary,setUpdated}){
+export function mountDashboard(host,{mode,api,repository,projects,filter,prefs,savePrefs,openTask,openProject,onNavigate,announce,setSummary,setUpdated,scroller=()=>document.scrollingElement}){
   const events=new AbortController();
   let envelope=null,plan=null,envError=null,planError=null,loading=true,rows=new Map(),extra={},snoozed=null,showSnoozed=false,laneTab='active';
   let token=null,poll=null,changed=false,destroyed=false,loadedAt=null,request=0,firstLoad=true;
@@ -37,7 +37,7 @@ export function mountDashboard(host,{mode,api,repository,projects,filter,prefs,s
 
   async function load({focusKey=null,focusControl=null,silent=false}={}){
     const mine=++request;
-    const scroll=document.scrollingElement.scrollTop,active=document.activeElement;
+    const scroll=scroller().scrollTop,active=document.activeElement;
     const activeKey=focusKey||active?.closest?.('[data-row]')?.dataset.key||null;
     if(!silent&&!envelope){loading=true;render();}
     const [e,p]=await Promise.allSettled([api.envelope({projects:filter(),limit:10}),api.plan({horizon:'7d',projects:filter(),undated:'count',timezone:prefs().timezone||browserZone()})]);
@@ -54,7 +54,7 @@ export function mountDashboard(host,{mode,api,repository,projects,filter,prefs,s
       const target=id&&reveal(id);if(target&&host.contains(target)){target.scrollIntoView({block:'start'});return;}
     }
     firstLoad=false;
-    document.scrollingElement.scrollTop=scroll;
+    scroller().scrollTop=scroll;
     if(activeKey){const li=view.rowElement(activeKey);if(li){const control=focusControl&&li.querySelector(focusControl);(control&&!control.disabled?control.focus():focusRow(li));}}
   }
   function index(list){for(const row of list)rows.set(row.key,row);return list;}

@@ -72,3 +72,19 @@ test('WM04 «Наблюдаю» is an icon toggle among the drawer header\'s ico
   const lanes=readFileSync(new URL('../web/workbench/dashboard.js',import.meta.url),'utf8');
   assert.match(lanes,/\{key:'joined',title:'Наблюдаю',icon:'eye'/);
 });
+
+test('WM05 the Workbench is a section of the app shell: the shared navigation is its top bar',()=>{
+  const read=path=>readFileSync(new URL(path,import.meta.url),'utf8');
+  const host=read('../web/workbench/host.js'),shell=read('../ui/planning/src/project-navigation.js'),main=read('../web/main.js');
+  // No bar of its own: no brand, no «Проекты» link, no second banner or main landmark inside the shell's main.
+  assert.doesNotMatch(host,/SPRINTIQUE|dsk-header|<header class="dsk|<main|data-theme-toggle|data-search/);
+  // The shell offers it as one of its section tabs, marked current by setRoute like the others.
+  assert.match(shell,/<a href="\/workbench" data-section-link="workbench">Рабочий стол<\/a>/);
+  assert.match(shell,/link\.dataset\.sectionLink===route/);
+  // The host mounts it as a section in #host-view, keeping the open project stream (one wave back to the board).
+  assert.match(main,/else if\(mode==='workbench'\)board=await mountWorkbenchSection\(host\)/);
+  assert.doesNotMatch(main,/nav\?\.destroy\(\);nav=null;\s*if\(push/,'the shell is never torn down for the Workbench');
+  // Choosing a project there opens that project's board; the address of every Workbench view is unchanged.
+  assert.match(main,/showProject\(id,viewMode==='workbench'\?'tasks':viewMode\)/);
+  assert.match(main,/history\.pushState\(\{workbench:true\},'','\/workbench'\)/);
+});

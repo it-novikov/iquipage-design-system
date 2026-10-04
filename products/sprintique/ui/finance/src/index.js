@@ -66,22 +66,34 @@ export async function mountFinance(root,{repository,project,viewState={}}){
   async function load({announceResult=false}={}){
     const ticket=++generation;error='';allCategories=null;
     try{
-      // The settings carry the project's time zone, which periods and «overdue» are read in.
-      const nextSettings=await api.request('/finance-settings','GET',undefined,undefined,abort.signal);
-      if(disposed||ticket!==generation)return;settings=nextSettings;
-      if(view.mode==='overview')await loadOverview(ticket);else await loadLedger(ticket);
+      // The settings carry the project's time zone, which periods and «overdue» are read in. The overview is read
+      // by the server in that zone, so it loads alongside them; the ledger's period needs the zone first.
+      const settingsRead=api.request('/finance-settings','GET',undefined,undefined,abort.signal);
+      if(view.mode==='overview'){
+        const overviewRead=loadOverview(ticket,settingsRead);overviewRead.catch(()=>{});
+        const nextSettings=await settingsRead;
+        if(disposed||ticket!==generation)return;settings=nextSettings;
+        await overviewRead;
+      }else{
+        const nextSettings=await settingsRead;
+        if(disposed||ticket!==generation)return;settings=nextSettings;
+        await loadLedger(ticket);
+      }
     }catch(failure){if(disposed||abort.signal.aborted||ticket!==generation)return;error=failure.message||'Сервис недоступен.';}
     if(disposed||ticket!==generation)return;
     render();
     if(announceResult&&view.mode==='ledger')announce(error?'Не удалось загрузить операции':total?`Найдено ${total} ${plural(total,['операция','операции','операций'])}`:'Операций нет');
   }
-  async function loadOverview(ticket){
+  async function loadOverview(ticket,settingsRead=null){
     if(!overview)q('[data-overview]').innerHTML=loadingMarkup('Загружаем обзор…',{rows:4});
     const [list,next]=await Promise.all([
       api.request('/finance-plans','GET',undefined,undefined,abort.signal),
       api.request('/finance-overview'+(view.plan?'?plan='+encodeURIComponent(view.plan):''),'GET',undefined,undefined,abort.signal)
         .catch(failure=>{if(view.plan&&failure?.status===404){view.plan='';saveState();return api.request('/finance-overview','GET',undefined,undefined,abort.signal);}throw failure;})
     ]);
+    // Read together with the settings, the overview takes effect with them, never before (a failed settings read
+    // keeps the previous overview and shows the error, as when they were read one after the other).
+    if(settingsRead)await settingsRead;
     if(ticket!==generation)return;plans=list.items;overview=next;
   }
   async function loadLedger(ticket){
