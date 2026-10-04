@@ -44,7 +44,7 @@ export function mountSignIn(root,methods,invitation=null){
     :gone?{heading:gone[0],description:`${gone[1]} Войти в Sprintique можно как обычно.`}
     :{heading:'Вход в Sprintique',description:methods.email?'Введите почту — мы пришлём код для входа. Пароль не нужен.':'Выберите, как войти.'};
   const context=invited?{title:invitation.inviterName?`${invitation.inviterName} приглашает вас в «${invitation.workspaceName}»`:`Вас приглашают в «${invitation.workspaceName}»`,description:`${invitationSummary(invitation)}${invitation.presetHint?' '+invitation.presetHint:''}`}
-    :{title:'Задачи, релизы и карты идей команды — в одном месте.',description:'При первом входе аккаунт создаётся сам. Почта, Google и Apple с одним адресом ведут в один аккаунт.'};
+    :{title:'Работа команды. В одном пространстве.',description:'От первой идеи до готового релиза: задачи, планы и финансы проекта связаны между собой.'};
   if(!methods.email&&!methods.google&&!methods.apple&&!methods.devLogin){
     root.innerHTML='<main class="iq-auth-stage"><section class="iq-auth-dialog"><h1>Вход не настроен</h1><p class="iq-auth-dialog-description">Администратору: настройте почту (SMTP) или вход через Google и Apple — см. раздел «Вход» в docs/operations.md.</p>'+legalLinks()+'</section></main>';
     return;
@@ -53,8 +53,9 @@ export function mountSignIn(root,methods,invitation=null){
     methods.google?`<a class="iq-btn secondary lg sign-in-provider" href="/auth/login/google" data-provider>${GOOGLE_MARK}<span>Продолжить с Google</span></a>`:'',
     methods.apple?`<a class="iq-btn secondary lg sign-in-provider" href="/auth/login/apple" data-provider>${APPLE_MARK}<span>Продолжить с Apple</span></a>`:'',
   ].join('');
-  root.innerHTML=`<iq-auth-screen product="Sprintique" heading="${esc(intro.heading)}" description="${esc(intro.description)}"
+  root.innerHTML=`<iq-auth-screen layout="welcome" product="Sprintique" heading="${esc(intro.heading)}" description="${esc(intro.description)}"
       context-title="${esc(context.title)}" context-description="${esc(context.description)}">
+    ${!invited?`<ul slot="context" class="iq-feature-list" aria-label="Возможности Sprintique"><li>${icon('check',22)}<div><strong>Понятно, что делать дальше</strong><small>Личные задачи и запросы команды на рабочем столе.</small></div></li><li>${icon('calendar',22)}<div><strong>Видно, к чему идём</strong><small>Спринты и релизы с общим составом задач.</small></div></li><li>${icon('chart',22)}<div><strong>План и результат рядом</strong><small>Доходы, расходы и отклонения по проекту.</small></div></li></ul>`:''}
     ${invited?`<div slot="context" class="sign-in-invite"><span class="iq-badge soft info">Приглашение</span><p>${icon('clock',16)}<span>Действует до ${esc(formatDateTime(invitation.expiresAt))}</span></p>${invitation.email?`<p>${icon('user',16)}<span>Для ${esc(invitation.email)}</span></p>`:''}</div>`:''}
     <div slot="form" class="sign-in">
       ${methods.email?`<form class="sign-in-step" data-step="email" novalidate>
@@ -72,6 +73,7 @@ export function mountSignIn(root,methods,invitation=null){
       </form>`:''}
       ${providers?`${methods.email?'<p class="sign-in-divider"><span>или</span></p>':''}<div class="sign-in-providers">${providers}</div>`:''}
       ${methods.devLogin?'<button class="iq-btn ghost sign-in-dev" type="button" data-dev-login>Локальный стенд: войти как admin</button>':''}
+      <p class="iq-helper">Впервые здесь? Аккаунт создастся при входе.</p>
       ${legalLinks()}
     </div>
   </iq-auth-screen>`;

@@ -15,3 +15,10 @@ States: hover uses the theme hover role; active navigation uses accent-soft/acce
 Tree selection uses labelled button checkboxes and roving treeitem focus; Space selects, Enter opens, menu provides keyboard alternatives to drag. A filtered plan must retain ancestor context; it must not silently reorder hidden neighbours. Summary/progress always describes the full underlying stage, not only search matches.
 
 Compatibility: additive; old `.tree-columns` unchanged without the layout attribute. Roll back the consuming product and its exact tarball together. No backend migration.
+
+
+## vnext.34 summaries and comparisons
+
+`iq-summary-panel` groups a labelled summary; `iq-metric-grid` is a native dl with four columns, two below 900px. `iq-comparison-table` is a native table whose td[data-label] properties reflow below 700px. Use scope=col headers, a caption, and data-numeric for formatted amounts. Hosts own calculations, currency isolation and actions. `iq-feature-list` is a native ul of icon + strong/small content.
+
+`iq-auth-screen[layout=welcome]` opts into an editorial welcome layout with a framed entry region and retained 360px form width on desktop. It preserves slots, live attribute updates and all provider controls. Below 760px the entry comes before product context. Default auth/consent layout is unchanged.

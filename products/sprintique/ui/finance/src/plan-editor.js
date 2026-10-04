@@ -26,11 +26,11 @@ export function mountPlanEditor(root,{api,plan,settings,today,categories,release
   function blank(){return {categoryId:'',direction:'expense',amount:'',currencyCode:currency,releaseId:null,note:null};}
 
   const crumb=draft?`черновик версии ${version}`:'новый план';
-  root.innerHTML=`<section class="fin-view fin-editor-view"><header class="sq-page-heading fin-head"><h1>${esc(editorTitle(header.releaseId?{releaseName:releases.find(r=>r.id===header.releaseId)?.name}:null))}</h1>
-      <span class="fin-crumb"><button type="button" class="fin-crumb-link" data-back>Финансы</button> · ${esc(crumb)}</span>
-      <div class="sq-page-tools">${draft&&plan?`<button type="button" class="iq-btn ghost sm" data-discard>Удалить черновик</button>`:''}</div></header>
+  root.innerHTML=`<section class="fin-view fin-editor-view"><header class="iq-workspace-heading fin-head"><div><span class="iq-workspace-eyebrow">Финансовый план</span><h1>${esc(editorTitle(header.releaseId?{releaseName:releases.find(r=>r.id===header.releaseId)?.name}:null))}</h1>
+      <span class="fin-crumb"><button type="button" class="fin-crumb-link" data-back>Финансы</button> · ${esc(crumb)}</span></div>
+      <div class="iq-workspace-tools">${draft&&plan?`<button type="button" class="iq-btn ghost sm" data-discard>Удалить черновик</button>`:''}</div></header>
     <form class="fin-card fin-editor" novalidate aria-labelledby="fin-editor-title">
-      <header class="fin-card-head"><h2 id="fin-editor-title">Строки плана</h2></header>
+      <header class="fin-card-head"><h2 id="fin-editor-title">Состав и суммы</h2><span class="fin-card-hint">Черновик можно сохранить и продолжить позже</span></header>
       <div class="fin-editor-scale" data-editor-scale></div>
       <div class="fin-period"><span class="fin-period-label" id="fin-period-label">Период</span>
         ${fixedPeriod?`<span class="fin-period-fixed">${esc(dayText(header.periodStart))} — ${esc(dayText(header.periodEnd))}</span>`
@@ -51,9 +51,9 @@ export function mountPlanEditor(root,{api,plan,settings,today,categories,release
   function rowMarkup(row,index){
     const label=n=>`${n}, строка ${index+1}`;
     return `<div class="fin-prow" data-row="${index}">
-      <iq-combobox creatable create-label="Новая категория «{query}»" label="${esc(label('Категория'))}" label-hidden placeholder="Категория" value="${esc(row.categoryId)}" options="${esc(JSON.stringify(options))}" data-field="category"></iq-combobox>
-      ${ui.amount(label('Сумма'),row.amount,{labelHidden:true,suffix:currencySymbol(row.currencyCode||currency),placeholder:'Сумма',attrs:'data-field="amount"'})}
-      ${releasePlan?'':`<iq-select label="${esc(label('Релиз'))}" label-hidden value="${esc(row.releaseId||'')}" options="${esc(JSON.stringify(releaseOptions))}" data-field="release"></iq-select>`}</div>`;
+      <iq-combobox creatable create-label="Новая категория «{query}»" label="${esc(label('Категория'))}" placeholder="Категория" value="${esc(row.categoryId)}" options="${esc(JSON.stringify(options))}" data-field="category"></iq-combobox>
+      ${ui.amount(label('Сумма'),row.amount,{labelHidden:false,suffix:currencySymbol(row.currencyCode||currency),placeholder:'Сумма',attrs:'data-field="amount"'})}
+      ${releasePlan?'':`<iq-select label="${esc(label('Релиз'))}" value="${esc(row.releaseId||'')}" options="${esc(JSON.stringify(releaseOptions))}" data-field="release"></iq-select>`}</div>`;
   }
   function renderRows(){q('[data-rows]').innerHTML=rows.map(rowMarkup).join('');}
   function readRows(){

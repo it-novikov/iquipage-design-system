@@ -32,9 +32,9 @@ export async function mountFinance(root,{repository,project,viewState={}}){
   let overview=null,plans=[],editor=null;
   const abort=new AbortController();
 
-  root.innerHTML=`<div class="fin-root"><section class="fin-view" data-main><header class="sq-page-heading fin-head"><h1>Финансы</h1>
+  root.innerHTML=`<div class="fin-root iq-workspace-page"><section class="fin-view" data-main><header class="iq-workspace-heading fin-head"><div><span class="iq-workspace-eyebrow">Экономика проекта</span><h1>Финансы</h1><p>План, операции и отклонения — чтобы принимать решения вовремя.</p></div><div class="iq-workspace-tools">
     ${segmented('Вид раздела','data-view',[['overview','Обзор'],['ledger','Журнал']],view.mode)}
-    <div class="sq-page-tools" data-tools></div></header>
+    ${canManage?ui.btn('Новая операция','primary','plus','data-new-entry'):''}</div></header><div class="iq-workspace-toolbar fin-context" data-tools></div>
     <div data-notice></div><div data-error role="alert" hidden></div>
     <div class="fin-overview" data-overview></div>
     <div class="fin-ledger-view" data-ledger hidden><section class="fin-totals" data-totals aria-label="Итоги за период"></section>
@@ -119,9 +119,9 @@ export async function mountFinance(root,{repository,project,viewState={}}){
   }
   /** The plan of the overview and its draft: the plan picker, «Черновик» or «Пересмотреть», «Составить план». */
   function renderTools(){
-    const tools=q('[data-tools]'),newEntry=canManage?ui.btn('Новая операция','primary sm','plus','data-new-entry'):'';
+    const tools=q('[data-tools]');
     if(view.mode==='ledger'){
-      tools.innerHTML=`<span data-period>${select('period','Период',view.period,PERIODS,'density="compact" label-hidden')}</span>${canManage?ui.btn('Валюта','ghost sm','settings','data-currency'):''}${newEntry}`;
+      tools.innerHTML=`<span data-period>${select('period','Период',view.period,PERIODS,'density="compact" label-hidden')}</span>${canManage?ui.btn('Валюта','ghost sm','settings','data-currency'):''}`;
       return;
     }
     const current=overview?.plan?plans.find(p=>p.id===overview.plan.id):null;
@@ -129,10 +129,10 @@ export async function mountFinance(root,{repository,project,viewState={}}){
       ?`<iq-select class="fin-plan-picker" name="plan" label="План" label-hidden density="compact" value="${esc(current?.id||'')}" options="${esc(JSON.stringify(planOptions(plans)))}"></iq-select>`
       :`<iq-select class="fin-plan-picker" name="plan" label="План" label-hidden density="compact" value="" disabled options="${esc(JSON.stringify([{value:'',label:'План',meta:'не составлен'}]))}"></iq-select>`;
     let action='';
-    if(canManage&&current?.draftVersion)action='<button type="button" class="iq-link fin-quiet-link" data-edit-draft>Черновик</button>';
-    else if(canManage&&current?.approvedVersion)action='<button type="button" class="iq-link fin-quiet-link" data-revise>Пересмотреть</button>';
+    if(canManage&&current?.draftVersion)action='<button type="button" class="iq-btn secondary sm" data-edit-draft>Продолжить черновик</button>';
+    else if(canManage&&current?.approvedVersion)action='<button type="button" class="iq-btn secondary sm" data-revise>Пересмотреть план</button>';
     else if(canManage&&!plans.length)action=ui.btn('Составить план','secondary sm','','data-new-plan');
-    tools.innerHTML=picker+action+newEntry;
+    tools.innerHTML=`<div class="fin-context-plan"><span class="iq-workspace-caption">План для сравнения</span>${picker}</div><div class="iq-workspace-tools">${action}${canManage&&plans.length?ui.btn('Новый план','ghost sm','plus','data-new-plan'):''}</div>`;
   }
   function renderTotals(){
     const target=q('[data-totals]'),list=summary?.currencies||[];

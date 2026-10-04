@@ -116,7 +116,7 @@ import scaleModule from './modules/scale.js';
 export const scale=scaleModule.scale;
 export const scaleParts=scaleModule.scaleParts;
 export const SCALE_TARGET_AT=scaleModule.SCALE_TARGET_AT;
-export const version='0.6.0-vnext.31';
+export const version='0.6.0-vnext.34';
 export function registerCore(){
  registerAuthDialog();registerAuthScreen();registerSettings();registerRelationMap();registerComponents();registerDateFields();registerEditors();registerPagination();registerStructured();registerSideNavigation();registerWorkHeader();registerMarkdownViewer();registerWorkLayout();
  if(!customElements.get('iq-file-preview'))customElements.define('iq-file-preview',IqFilePreview);

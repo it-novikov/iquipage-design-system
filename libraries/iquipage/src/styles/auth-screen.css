@@ -18,3 +18,19 @@ iq-auth-screen{display:block;min-height:100%;color:var(--iq-ink);background:var(
 .iq-auth-form:not(:empty),.iq-auth-footer:not(:empty){margin-top:var(--iq-space-8)}
 .iq-auth-error{margin-top:var(--iq-space-6);padding:var(--iq-space-4);background:var(--iq-danger-bg);color:var(--iq-danger);border-radius:var(--iq-radius-sm)}
 @media(max-width:760px){.iq-auth-screen{padding-bottom:var(--iq-space-6)}.iq-auth-header{min-height:80px}.iq-auth-main{display:flex;flex-direction:column-reverse;min-height:0;flex:1;gap:var(--iq-space-8)}.iq-auth-entry{flex:1;padding:var(--iq-space-10) 0}.iq-auth-context{padding:var(--iq-space-6);gap:var(--iq-space-6)}.iq-auth-context h2{font-size:var(--iq-type-heading3-size);line-height:1.3;max-width:none}.iq-auth-context p{margin-top:var(--iq-space-3);max-width:none}.iq-auth-signature{position:static}.iq-auth-content{max-width:400px}}
+
+/* Opt-in welcome composition. Form width and provider controls keep their established dimensions. */
+iq-auth-screen[layout=welcome] .iq-auth-screen{max-width:1280px;margin-inline:auto;padding-inline:var(--iq-space-8)}
+iq-auth-screen[layout=welcome] .iq-auth-header{min-height:104px}
+iq-auth-screen[layout=welcome] .iq-auth-main{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--iq-space-12);min-height:0;padding-block:var(--iq-space-10)}
+iq-auth-screen[layout=welcome] .iq-auth-context{background:none;border-radius:0;padding:var(--iq-space-6) 0;justify-content:center;gap:var(--iq-space-10)}
+iq-auth-screen[layout=welcome] .iq-auth-context h2{margin:0;font-size:clamp(36px,4vw,56px);line-height:var(--iq-type-heading2-lineHeight);max-width:15ch;text-wrap:balance}
+iq-auth-screen[layout=welcome] .iq-auth-context p{margin-top:var(--iq-space-5);max-width:42ch;font-size:var(--iq-type-body-size)}
+iq-auth-screen[layout=welcome] .iq-auth-signature{position:static;font-size:var(--iq-type-meta-size)}
+iq-auth-screen[layout=welcome] .iq-auth-entry{padding:var(--iq-space-8);border:1px solid var(--iq-line);border-radius:var(--iq-radius-lg);background:var(--iq-canvas);align-self:center}
+iq-auth-screen[layout=welcome] .iq-auth-content{max-width:360px}
+iq-auth-screen[layout=welcome] .iq-auth-content h1{margin:0;font-size:var(--iq-type-heading3-size)}
+iq-auth-screen[layout=welcome] .iq-auth-description{font-size:var(--iq-type-label-size);margin-top:var(--iq-space-3)}
+iq-auth-screen[layout=welcome] .iq-auth-hint:empty{display:none}
+@media(max-width:900px){iq-auth-screen[layout=welcome] .iq-auth-main{gap:var(--iq-space-6)}iq-auth-screen[layout=welcome] .iq-auth-entry{padding:var(--iq-space-5)}}
+@media(max-width:760px){iq-auth-screen[layout=welcome] .iq-auth-screen{padding-inline:var(--iq-space-4)}iq-auth-screen[layout=welcome] .iq-auth-header{min-height:72px}iq-auth-screen[layout=welcome] .iq-auth-main{display:flex;flex-direction:column-reverse;padding-block:var(--iq-space-3);gap:var(--iq-space-8)}iq-auth-screen[layout=welcome] .iq-auth-entry{width:100%;box-sizing:border-box;flex:none;padding:var(--iq-space-5)}iq-auth-screen[layout=welcome] .iq-auth-context{padding:var(--iq-space-4);gap:var(--iq-space-6)}iq-auth-screen[layout=welcome] .iq-auth-context h2{font-size:var(--iq-type-heading2-size);max-width:18ch}}

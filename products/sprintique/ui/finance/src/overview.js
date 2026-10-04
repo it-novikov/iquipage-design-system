@@ -1,76 +1,48 @@
 import {ui,escapeHTML as esc,scale} from '@iquipage/web/core';
 import {dialog} from '../../src/ui.js';
 import {bindCounters} from './dialogs.js';
-import {currencyName,currencySymbol} from './money.js';
-import {money,periodHint,varianceWords,varianceTone,stateSentence,scaleLabel,tooltipText,overdueText,overdueOf,
-  containerTitle,categoryRows} from './overview-model.js';
+import {currencyName} from './money.js';
+import {money,periodHint,varianceWords,varianceTone,stateSentence,scaleLabel,overdueText,overdueOf,
+  containerTitle,categoryRows,shortDate,shortName} from './overview-model.js';
 import {FINANCE_LIMITS} from '../../../contracts/finance.ts';
 
-/**
- * The overview of the finance section, direction B2 «Шкала, тише»: one sentence of state, one container per
- * currency with the scale and four figures, the categories on thin scales against one plan mark with their variance
- * and explanation, and one line about overdue expectations. Writers see «Объяснить»; everyone sees the same figures.
- */
+/** Financial comparison: approved baseline, fact, expectations, forecast and explicit next actions. */
 export function overviewMarkup(overview,{canManage,timeZone}){
-  const several=overview.currencies.length>1;
   const blocks=overview.currencies.length?overview.currencies:[{currencyCode:'RUB',income:zero(),expense:zero(),net:{fact:'0',forecast:'0'},overdue:{count:0,income:'0',expense:'0'}}];
-  const parts=[`<p class="fin-state">${esc(stateSentence(overview))}</p>`];
+  const detail=overview.state.detail;
+  const attention=detail&&overview.categories.find(r=>r.categoryId===detail.categoryId&&r.direction===detail.direction&&r.currencyCode===detail.currencyCode);
+  const explain=canManage&&attention&&overview.version&&['needs_explanation','explanation_outdated'].includes(attention.status)
+    ?`<button class="iq-btn secondary sm" type="button" data-explain="${esc([attention.categoryId,attention.direction,attention.currencyCode].join('|'))}">Объяснить отклонение</button>`:'';
+  const parts=[`<div class="fin-attention"><div><span class="iq-workspace-eyebrow">${overview.state.attentionCount?'Требует внимания':'Состояние плана'}</span><p class="fin-state">${esc(stateSentence(overview))}</p></div>${explain}</div>`];
   for(const block of blocks){
-    const currency=block.currencyCode,suffix=several?` · ${currencyName(currency)}, ${currencySymbol(currency)}`:'';
+    const c=block.currencyCode,e=block.expense,planned=Boolean(overview.version)&&e.plan!==null;
     const hint=overview.period?periodHint(overview.period.from,overview.period.to):'за всё время';
-    const id=`fin-scope-${esc(currency)}`;
-    parts.push(`<section class="fin-card" aria-labelledby="${id}"><header class="fin-card-head"><h2 id="${id}">${esc(containerTitle(overview.plan))}</h2><span class="fin-card-hint">${esc(hint+suffix)}</span></header>
-      <div class="fin-scope">${summaryScale(overview,block)}${figures(overview,block)}</div></section>`);
-    const {rows,max}=categoryRows(overview,currency);
-    if(rows.length){
-      const cid=`fin-categories-${esc(currency)}`;
-      parts.push(`<section class="fin-card" aria-labelledby="${cid}"><header class="fin-card-head"><h2 id="${cid}">По категориям</h2>${several?`<span class="fin-card-hint">${esc(currencyName(currency))}</span>`:''}</header>
-        <div class="fin-crows" role="list">${rows.map(row=>categoryRow(overview,row,{max,canManage,timeZone,mixed:new Set(rows.map(r=>r.direction)).size>1})).join('')}</div></section>`);
-    }
+    parts.push(`<section class="iq-summary-panel" aria-label="Расходы, ${esc(currencyName(c))}"><header><h2>Расходы</h2><span class="iq-workspace-caption">${esc(containerTitle(overview.plan))} · ${esc(hint)} · ${esc(c)}</span></header>
+      <dl class="iq-metric-grid"><div><dt>Прогноз расходов</dt><dd>${esc(money(e.forecast,c))}<small class="fin-tone-${varianceTone(e.variance)||'muted'}">${planned?esc(varianceWords(e.variance,c)):'Факт + ожидаемые расходы'}</small></dd></div>
+      <div><dt>План${overview.version?` · версия ${overview.version.version}`:''}</dt><dd>${planned?esc(money(e.plan,c)):'—'}<small>${planned?'База для сравнения':'Ещё не утверждён'}</small></dd></div>
+      <div><dt>Уже потрачено</dt><dd>${esc(money(e.fact,c))}<small>Проведённые операции</small></dd></div>
+      <div><dt>Ещё ожидается</dt><dd>${esc(money(e.expected,c))}<small>Ожидаемые расходы</small></dd></div></dl>
+      <div class="fin-summary-scale">${scale({target:planned?e.plan:null,done:e.fact,pending:e.expected,size:'md',label:scaleLabel({...e,plan:planned?e.plan:null},c)})}<p class="iq-workspace-caption">Сплошная часть — факт · светлая — ожидания${planned?' · отметка — план':''}</p></div>
+      <div class="fin-results"><div><span>Доходы: факт / ожидается</span><strong>${esc(money(block.income.fact,c))} / ${esc(money(block.income.expected,c))}</strong></div><div><span>Чистый результат: факт / прогноз</span><strong>${esc(money(block.net.fact,c))} / ${esc(money(block.net.forecast,c))}</strong></div></div>
+      <p class="iq-workspace-caption fin-result-note">Результат — разница доходов и расходов, не остаток на счёте.</p></section>`);
+    const {rows}=categoryRows(overview,c);
+    if(rows.length)parts.push(`<div class="fin-comparison"><table class="iq-comparison-table"><caption>По категориям · ${esc(c)}</caption><thead><tr><th scope="col">Категория и решение</th><th scope="col" data-numeric>План</th><th scope="col" data-numeric>Факт</th><th scope="col" data-numeric>Прогноз</th><th scope="col" data-numeric>Отклонение</th></tr></thead><tbody>${rows.map(row=>categoryRow(overview,row,{canManage,timeZone})).join('')}</tbody></table></div>`);
     const late=overdueOf(block);
-    if(late.count)parts.push(`<p class="fin-overdue"><span class="fin-tone-warning">${esc(overdueText(late.count,late.amount,currency))}</span> <button type="button" class="iq-link fin-inline-link" data-overdue>В журнал</button></p>`);
+    if(late.count)parts.push(`<div class="fin-overdue"><span class="fin-tone-warning">${esc(overdueText(late.count,late.amount,c))}</span><button type="button" class="iq-btn secondary sm" data-overdue>Проверить операции</button></div>`);
   }
   return parts.join('');
 }
 const zero=()=>({plan:null,fact:'0',expected:'0',forecast:'0',variance:null});
 
-/** The large scale of a currency: expenses against the plan, or without a plan against their own sum. */
-function summaryScale(overview,block){
-  const e=block.expense,c=block.currencyCode;
-  return scale({target:overview.version?e.plan??'0':null,done:e.fact,pending:e.expected,size:'lg',label:scaleLabel({...e,plan:overview.version?e.plan:null},c)});
-}
-/** The four figures: plan, fact, still expected, and the forecast with its variance, or the expected result. */
-function figures(overview,block){
-  const e=block.expense,c=block.currencyCode,planned=Boolean(overview.version)&&e.plan!==null;
-  const plan=planned?`<dd>${esc(money(e.plan,c))}</dd>`:`<dd data-empty>${overview.plan&&!overview.version?'не утверждён':'нет'}</dd>`;
-  const last=planned
-    ?`<div><dt>Прогноз на конец периода</dt><dd>${esc(money(e.forecast,c))}</dd><small class="fin-tone-${varianceTone(e.variance)||'muted'}">${esc(varianceWords(e.variance,c))}</small></div>`
-    :`<div><dt>Ожидаемый результат</dt><dd>${esc(money(block.net.forecast,c))}</dd><small>с учётом доходов</small></div>`;
-  return `<dl class="fin-figures"><div><dt>План</dt>${plan}</div><div><dt>Факт</dt><dd>${esc(money(e.fact,c))}</dd></div><div><dt>Ещё ожидается</dt><dd>${esc(money(e.expected,c))}</dd></div>${last}</dl>`;
-}
-
-/** One category: its name, a thin scale, the variance when there is one, and its explanation or «Объяснить». */
-function categoryRow(overview,row,{max,canManage,timeZone,mixed}){
-  const c=row.currencyCode,compared=Boolean(overview.version);
-  const meta=[mixed&&row.direction==='income'?'доход':'',compared&&!row.planned?'не было в плане':'',row.categoryArchived?'в архиве':''].filter(Boolean).join(', ');
-  const bar=compared
-    ?scale({target:row.planned?row.plan:'0',done:row.fact,pending:row.expected,size:'sm',over:row.direction==='income'?'success':'danger',label:scaleLabel(row,c)})
-    :scale({done:row.fact,pending:row.expected,max,size:'sm',label:scaleLabel({...row,plan:null},c)});
-  const right=compared
-    ?(row.variance!==null&&BigInt(row.variance)!==0n?`<span class="fin-crow-value" data-tone="${varianceTone(row.variance)}">${esc(money(row.variance,c,{sign:true}))}</span>`
-      :!row.planned&&BigInt(row.forecast)!==0n?`<span class="fin-crow-value" data-tone="muted">${esc(money(row.forecast,c))}</span>`:'')
-    :`<span class="fin-crow-value" data-tone="muted">${esc(money(row.forecast,c))}</span>`;
-  const key=[row.categoryId,row.direction,c].join('|');
-  let below='';
-  if(row.note){
-    const again=canManage&&row.status==='explanation_outdated'?` <button type="button" class="iq-link fin-inline-link" data-explain="${esc(key)}">Объяснить заново</button>`:'';
-    below=`<p class="fin-crow-note">${esc(row.note.text)}${row.status==='explanation_outdated'?' <span class="fin-tone-warning">Прогноз изменился.</span>':''}${again}</p>`;
-  }else if(canManage&&row.status==='needs_explanation'){
-    below=`<p class="fin-crow-ask"><button type="button" class="iq-link fin-inline-link" data-explain="${esc(key)}">Объяснить</button></p>`;
-  }
-  const tip=tooltipText(row,timeZone);
-  return `<iq-tooltip heading="${esc(row.categoryName)}" text="${esc(tip)}" placement="bottom"><div class="fin-crow" role="listitem" tabindex="0" data-category="${esc(key)}">
-    <span class="fin-crow-name">${esc(row.categoryName)}${meta?`<span class="fin-crow-meta">${esc(meta)}</span>`:''}</span>${bar}<span class="fin-crow-end">${right}</span>${below}</div></iq-tooltip>`;
+function categoryRow(overview,row,{canManage,timeZone}){
+  const c=row.currencyCode,key=[row.categoryId,row.direction,c].join('|');
+  const meta=[row.direction==='income'?'Доход':'Расход',overview.version&&!row.planned?'Не было в плане':'',row.categoryArchived?'В архиве':''].filter(Boolean).join(' · ');
+  const explanation=row.note?`<p class="fin-category-note">${esc(row.note.text)}${row.status==='explanation_outdated'?' <span class="fin-tone-warning">Прогноз изменился.</span>':''}</p>`:'';
+  const action=canManage&&['needs_explanation','explanation_outdated'].includes(row.status)?`<button type="button" class="iq-btn secondary sm" data-explain="${esc(key)}">${row.note?'Обновить объяснение':'Объяснить'}</button>`:'';
+  return `<tr><td><strong>${esc(row.categoryName)}</strong><span class="fin-row-meta">${esc(meta)}</span>${explanation}${row.note?`<span class="fin-row-meta">${esc([shortName(row.note.updatedBy?.name),shortDate(row.note.updatedAt,timeZone),row.note.taskDisplayId].filter(Boolean).join(' · '))}</span>`:''}${action}</td>
+    <td data-numeric data-label="План">${row.plan===null?'—':esc(money(row.plan,c))}</td><td data-numeric data-label="Факт">${esc(money(row.fact,c))}</td>
+    <td data-numeric data-label="Прогноз"><strong>${esc(money(row.forecast,c))}</strong><span class="fin-row-meta">ожидается ${esc(money(row.expected,c))}</span></td>
+    <td data-numeric data-label="Отклонение" class="fin-variance"><span class="fin-tone-${varianceTone(row.variance)||'muted'}">${row.variance===null?'Без сравнения':esc(varianceWords(row.variance,c,row.direction))}</span></td></tr>`;
 }
 
 /**

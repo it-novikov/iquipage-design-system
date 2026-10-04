@@ -74,3 +74,7 @@ password and rememberMe values: never log, persist, put into URLs or analytics. 
 Native validation, autocomplete, password visibility and error associations are included.
 `recovery-href` and `registration-href` opt into real host routes; omit unavailable features.
 Configuration attributes are initial; error and pending are reactive without remounting.
+
+## Welcome composition (vnext.34)
+
+Set `layout="welcome"` on `iq-auth-screen` for a compact framed form and an unboxed product introduction. Default layout stays unchanged. The existing slots and provider controls are preserved; mobile places the form before the introduction. Use `.iq-feature-list` for a short list in the `context` slot. Metric grids and comparison tables are documented in `workspace.md`.
