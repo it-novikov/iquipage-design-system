@@ -54,3 +54,7 @@ Final package: 0.6.0-vnext.34. Caption fix verified at 390px; tested finance sta
 R2 finance_auth_r2 identified an extra closing dd in explainDialog introduced by the semantic repair; fixed. Review terminated at service usage limit before final verdict. R2 remains incomplete; release-ready is not claimed.
 
 Limitations: Google provider is disabled in local preview. Google SVG/markup/handler and shell.css compared byte-for-byte with HEAD; OAuth covered by HTTP fake-provider tests. No production Google UI check, screen-reader session, physical touch device, performance load test, or full browser role/network-error matrix. No publication or deployment.
+
+## Итоговая приёмка и разрешение на выпуск — 4 октября
+
+Владелец явно разрешил завершить приёмку, push и deploy. R2 возобновлено и завершено: approve47ca09f, открытых P0/P1/P2 нет. После объединения с origin/main ea5b0c6 дополнительное R2 approve87b372e. Объединённая версия: 61/61 целевых тестов (финансы, вход, приглашения, навигация, рабочий стол), build/boundaries PASS; Gradle check и Jib amd64 PASS. Изменений server/migrations относительно production ea5b0c6 нет. Предыдущий образ для отката: sprintique-server:ea5b0c6. Браузерные ограничения, указанные выше, сохраняются.
