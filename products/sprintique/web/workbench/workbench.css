@@ -142,7 +142,7 @@ button.dsk-when[data-tone] .dsk-chev{color:currentColor}
 .dsk-item{display:grid;grid-template-columns:28px minmax(0,1fr) auto auto;gap:var(--iq-space-2);align-items:center;min-height:56px;padding:6px 4px 6px 6px;border-radius:var(--iq-radius-sm);background:var(--iq-raised);box-shadow:var(--iq-shadow-1)}
 .dsk-item .dsk-title{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .dsk-item-lead{display:grid;place-items:center;width:28px;height:28px}
-.dsk-item-glyph{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--iq-surface);color:var(--iq-muted)}
+.dsk-item-glyph{display:grid;place-items:center;width:var(--iq-avatar-size-sm);height:var(--iq-avatar-size-sm);border-radius:50%;background:var(--iq-surface);color:var(--iq-muted)}
 .dsk-rankno{font-family:var(--iq-mono);font-size:var(--iq-type-caption-size);font-weight:500;color:var(--iq-muted);font-variant-numeric:tabular-nums}
 .dsk-item-tail{display:flex;align-items:center;justify-self:end}
 .dsk-item-tail .iq-btn.icon.sm{--h:28px;width:28px;padding:0}

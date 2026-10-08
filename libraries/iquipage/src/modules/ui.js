@@ -69,16 +69,21 @@ function avatar(text = 'АК', v = 0, cls = '') { return `<span class="iq-avatar
 function avatarTone(key) { let h = 0; for (const ch of String(key || '')) h = (h * 31 + ch.codePointAt(0)) >>> 0; return 1 + h % 4; }
 function initials(name) { return String(name || '').trim().split(/\s+/).slice(0, 2).map(part => part[0] || '').join('').toUpperCase() || '?'; }
 /** People as a DS avatar group: at most three discs (two and "+N" when there are more), one tooltip with every name,
-    and one accessible label. people: [{name, id?}]; size: 'xs' | 'sm' | 'md'. */
-/** One person as one decorative DS avatar disc: the name is always rendered as text beside it. */
+    and one accessible label. people: [{name, id?}]; size: 'xs' | 'sm' | 'md' (28px, also '') | 'lg' — a step of the
+    avatar scale (vnext.38): a disc in a group has the diameter and the initials of a single avatar of that step. */
+/** One person as one decorative DS avatar disc: the name is always rendered as text beside it.
+ *  size is a step of the avatar scale (vnext.38): 'xs' 20, 'sm' 24, 'md' 28, '' 32, 'lg' 40, 'xl' 48 px; the initials
+ *  are 0.38 of the diameter at every step (src/styles/avatar.css). */
 /** A person's photo over their initials: the initials stay underneath as the fallback while (or if) it loads.
  *  Only same-origin paths, blob: and https: URLs are accepted. */
+/** The avatar scale's size classes; '' is the 32px default. */
+const AVATAR_SIZES = ['xs', 'sm', 'md', '', 'lg', 'xl'];
 function avatarPhoto(person) {
     const src = typeof person?.image === 'string' ? person.image : '';
     return /^(\/(?!\/)|blob:|https:\/\/)/.test(src) ? `<img src="${components_js_1.escapeHTML(src)}" alt="" loading="lazy" decoding="async">` : '';
 }
 function personAvatar(person, { size = 'sm' } = {}) {
-    if (!['', 'xs', 'sm', 'lg'].includes(size)) throw new TypeError('Unsupported avatar size');
+    if (!AVATAR_SIZES.includes(size)) throw new TypeError('Unsupported avatar size');
     const sized = size ? ` ${size}` : '';
     if (!person || !String(person.name || '').trim()) return `<span class="iq-avatar${sized} more" aria-hidden="true">?</span>`;
     // A service account (vnext.27) is a square with the bot glyph, never initials: it is not a person.
@@ -87,6 +92,7 @@ function personAvatar(person, { size = 'sm' } = {}) {
     return `<span class="iq-avatar${sized} v${avatarTone(person.id || person.name)}${photo ? ' has-image' : ''}" aria-hidden="true">${components_js_1.escapeHTML(initials(person.name))}${photo}</span>`;
 }
 function avatarGroup(people, { size = 'sm', max = 3, label = 'Участники' } = {}) {
+    if (!['xs', 'sm', 'md', '', 'lg'].includes(size)) throw new TypeError('Unsupported avatar group size');
     const list = (Array.isArray(people) ? people : []).filter(p => p && typeof p.name === 'string' && p.name.trim());
     if (!list.length) return '';
     const shown = list.length > max ? list.slice(0, max - 1) : list, rest = list.length - shown.length;

@@ -22,7 +22,5 @@ export const secret=({label,value,note,copyLabel})=>`<div class="iq-secret"><div
 export const choiceList=(name,legend,options,value)=>`<fieldset class="iq-choice-list"><legend>${esc(legend)}</legend>${options.map(([id,label,hint])=>`<label><input type="radio" name="${esc(name)}" value="${esc(id)}" ${id===value?'checked':''}><b>${esc(label)}</b>${hint?`<small>${esc(hint)}</small>`:''}</label>`).join('')}</fieldset>`;
 export const badge=(text,tone='neutral')=>`<span class="iq-badge soft ${tone}">${esc(text)}</span>`;
 export const initials=name=>String(name||'').trim().split(/\s+/).slice(0,2).map(part=>part[0]||'').join('').toUpperCase()||'?';
-/** Stable avatar tone per person, so the same colleague keeps one colour everywhere. */
-export const avatar=(name,id='',image=null)=>{let h=0;for(const ch of String(id||name))h=(h*31+ch.charCodeAt(0))>>>0;
-  const photo=typeof image==='string'&&image.startsWith('/')?`<img src="${esc(image)}" alt="" loading="lazy" decoding="async">`:'';
-  return `<span class="iq-avatar v${1+h%4}${photo?' has-image':''}" aria-hidden="true">${esc(initials(name))}${photo}</span>`;};
+/** A settings row's person: the DS avatar (its 32px default step, the person's stable tone, the photo over the initials). */
+export const avatar=(name,id='',image=null)=>ui.personAvatar({id:id||undefined,name:String(name||''),image:typeof image==='string'?image:undefined},{size:''});

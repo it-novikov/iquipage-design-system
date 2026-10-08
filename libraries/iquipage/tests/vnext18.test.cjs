@@ -9,7 +9,8 @@ test('one person keeps one avatar tone and groups show at most three discs with 
   assert.match(ui, /function avatarTone\(key\)/);
   assert.match(ui, /list\.length > max \? list\.slice\(0, max - 1\) : list/);
   assert.match(ui, /<iq-tooltip heading=/);
-  assert.match(css, /\.iq-avatars:is\(\.xs,\.sm,\.lg\) \.iq-avatar\+\.iq-avatar\{margin-left:calc\(var\(--avatar-size\) \* -\.25\)\}/);
+  // vnext.38 moved the group geometry to avatar.css; discs still overlap by a quarter of the group's step.
+  assert.match(read('src/styles/avatar.css'), /\.iq-avatars \.iq-avatar\+\.iq-avatar\{margin-left:calc\(var\(--avatar-size\) \* -\.25\)\}/);
 });
 test('sections, compact heading scale and property sizes', () => {
   const css = read('src/styles/foundation.css');

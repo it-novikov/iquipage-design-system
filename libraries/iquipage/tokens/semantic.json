@@ -1,7 +1,7 @@
 {
   "meta": {
     "name": "IQUIPAGE Design System",
-    "version": "0.6.0-vnext.37",
+    "version": "0.6.0-vnext.38",
     "status": "source-owned-library",
     "basis": "Approved 05.6 foundation; repaired workshop, capture, tooltips, shapes and connections",
     "palette": {
@@ -50,6 +50,14 @@
     "space-20": "80px",
     "space-24": "96px",
     "space-32": "128px",
+    "avatar-size-xs": "var(--iq-space-5)",
+    "avatar-size-sm": "var(--iq-space-6)",
+    "avatar-size-md": "28px",
+    "avatar-size-base": "var(--iq-space-8)",
+    "avatar-size-lg": "var(--iq-space-10)",
+    "avatar-size-xl": "var(--iq-space-12)",
+    "avatar-initials": "0.37",
+    "avatar-initials-weight": "550",
     "work-compact-padding": "var(--iq-space-6)",
     "work-compact-gap": "var(--iq-space-3)",
     "work-compact-title": "24px",

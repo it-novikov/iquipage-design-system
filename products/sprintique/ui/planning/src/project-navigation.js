@@ -7,7 +7,8 @@ const ROUTES=[['tasks','Доска задач'],['planning','Планирова�
  *  Sections stay visible as text at every width; the host marks the current one with setRoute. The Workbench, when
  *  offered, is the first section: it spans every project, the switchers keep the project the other sections open. */
 /** The person's photo over their initials (DS personAvatar), in the one tone they keep everywhere. */
-const profileAvatar=profile=>ui.personAvatar({id:profile.id,name:profile.name||'Я',image:profile.image||undefined},{size:''});
+// The profile disc is the DS md step (28px), the size of the small icon button it sits in.
+const profileAvatar=profile=>ui.personAvatar({id:profile.id,name:profile.name||'Я',image:profile.image||undefined},{size:'md'});
 export function mountProjectNavigation(root,{current,profile,projects,catalog=()=>[],onSwitch,onAccount,onSignOut,onTeam,onTheme,onSearch,onCreateProject,onCreateWorkspace,workbench=false,notifications}){
   if(!(root instanceof HTMLElement))throw Error('Нужен контейнер навигации.');
   current=readProjectContext(current);

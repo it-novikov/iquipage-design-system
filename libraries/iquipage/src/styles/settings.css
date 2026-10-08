@@ -36,7 +36,7 @@
 .iq-settings-panel>*+*{border-top:1px solid var(--iq-line)}
 .iq-settings-row:not(:has(>.iq-settings-row-media)){grid-template-columns:minmax(0,1fr) auto auto}
 .iq-settings-row-media{display:grid;place-items:center;min-width:32px}
-.iq-settings-row-media .iq-avatar{width:32px;height:32px;margin:0;font-size:var(--iq-type-meta-size);border:0}
+.iq-settings-row-media .iq-avatar{margin:0;border:0}
 .iq-settings-row-tile{display:grid;place-items:center;width:36px;height:36px;border-radius:var(--iq-radius-sm);background:var(--iq-surface);color:var(--iq-ink)}
 .iq-settings-row-copy{display:grid;gap:2px;min-width:0}
 .iq-settings-row-title{display:flex;align-items:center;gap:var(--iq-space-2);flex-wrap:wrap;font:500 var(--iq-type-interface-size)/1.45 var(--iq-font);overflow-wrap:anywhere}

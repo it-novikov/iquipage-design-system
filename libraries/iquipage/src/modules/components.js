@@ -87,10 +87,10 @@ exports.IqElement = IqElement;
 /** An option's avatar (vnext.27: also in the open list, so people and service accounts read alike): initials over an
  *  optional photo, or {kind:'bot'} — a service account's square avatar with the bot glyph, its role spoken, not shown. */
 function optionAvatar(o) {
-    if (o?.avatar?.kind === 'bot') return `<span class="iq-avatar iq-select-avatar bot" aria-hidden="true">${icons_js_1.icon('bot', 12)}</span>`;
+    if (o?.avatar?.kind === 'bot') return `<span class="iq-avatar xs iq-select-avatar bot" aria-hidden="true">${icons_js_1.icon('bot', 12)}</span>`;
     if (!o?.avatar || typeof o.avatar.text !== 'string') return '';
     const photo = typeof o.avatar.image === 'string' && /^(\/(?!\/)|blob:|https:\/\/)/.test(o.avatar.image) ? `<img src="${escapeHTML(o.avatar.image)}" alt="" decoding="async">` : '';
-    return `<span class="iq-avatar iq-select-avatar v${Number(o.avatar.tone) || 1}${photo ? ' has-image' : ''}" aria-hidden="true">${escapeHTML(o.avatar.text.slice(0, 2))}${photo}</span>`;
+    return `<span class="iq-avatar xs iq-select-avatar v${Number(o.avatar.tone) || 1}${photo ? ' has-image' : ''}" aria-hidden="true">${escapeHTML(o.avatar.text.slice(0, 2))}${photo}</span>`;
 }
 /** The value of the «create» option of a creatable combobox; never a real option value. */
 const CREATE_VALUE = '__iq_create__';

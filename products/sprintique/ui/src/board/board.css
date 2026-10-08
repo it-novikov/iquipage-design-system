@@ -193,7 +193,6 @@
 .task-card-subtasks{grid-template-columns:minmax(0,1fr) auto;align-items:center;column-gap:var(--iq-space-2)}
 .task-card-subtasks>.task-subtask-list{grid-column:1 / -1}
 .task-subtasks-people{display:flex;justify-content:flex-end}
-.task-card{--iq-avatar-ring:var(--iq-raised)}
 /* Drawer zones (council 5): each zone opens with a divider and a heading row; the layout gap is carried by the sections. */
 .task-editor-layout{gap:0}
 .task-editor-title{margin-bottom:var(--iq-space-3)}
