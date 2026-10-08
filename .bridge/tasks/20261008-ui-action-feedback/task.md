@@ -2,13 +2,13 @@
 bridge: 1
 id: 20261008-ui-action-feedback
 title: Обратная связь на действия по всей платформе (DS vnext.35)
-status: active
+status: review
 risk: standard
 owner: nvkv71
 branch: feat/ui-action-feedback
 base: main
 created: 2026-10-08
-updated: 2026-10-08T07:51:41Z
+updated: 2026-10-08T08:38:02Z
 links:
 ---
 
@@ -26,20 +26,21 @@ links:
 
 ## Приёмка
 
-- [ ] A1. Кнопка, запускающая запрос, сразу перестаёт принимать нажатия, через 150 мс показывает спиннер той же ширины с aria-busy и возвращается как была; ошибка показывается рядом с кнопкой с «Повторить»
-- [ ] A2. Запросы дольше 1 с показывают тонкую линию под верхней панелью; дольше 8 с — спокойное уведомление о медленной связи; офлайн — постоянное уведомление и обновление данных после возврата связи
-- [ ] A3. Оптимистичные действия (доска, переключатели) откатываются с тостом; загрузки разделов и ящиков — скелеты после задержки; файлы — прогресс по каждому; автосохранение — тихий статус
-- [ ] A4. DS vnext.35 выпущен поверх vnext.34 и принят продуктом; тесты DS и продукта на тайминг, двойную отправку, восстановление после ошибки и уведомления; скриншоты 1440×1000 в двух темах
+- [x] A1. Кнопка, запускающая запрос, сразу перестаёт принимать нажатия, через 150 мс показывает спиннер той же ширины с aria-busy и возвращается как была; ошибка показывается рядом с кнопкой с «Повторить»
+- [x] A2. Запросы дольше 1 с показывают тонкую линию под верхней панелью; дольше 8 с — спокойное уведомление о медленной связи; офлайн — постоянное уведомление и обновление данных после возврата связи
+- [x] A3. Оптимистичные действия (доска, переключатели) откатываются с тостом; загрузки разделов и ящиков — скелеты после задержки; файлы — прогресс по каждому; автосохранение — тихий статус
+- [x] A4. DS vnext.35 выпущен поверх vnext.34 и принят продуктом; тесты DS и продукта на тайминг, двойную отправку, восстановление после ошибки и уведомления; скриншоты 1440×1000 в двух темах
 
 ## Передача
 
-- **Состояние:** DS vnext.35 (feedback.js/feedback.css) выпущен и принят продуктом; центральная проводка через trackedFetch, dialog(), formDialog, report и unhandledrejection; точечная — вход, ящик, комментарии, агенты, колокольчик, рабочий стол, финансы, планирование, настройки. Тесты DS 424/424, продукта action-feedback 6/6.
-- **Дальше:** Скриншоты 1440×1000 в двух темах, полный гейт (npm ci, npm test, check:boundaries, verify-vnext), PR.
+- **Состояние:** Готово к ревью: DS vnext.35 и проводка в продукте закоммичены; гейты зелёные (npm ci, check:boundaries, npm test 433/433 с Kotlin, verify-vnext PASS); скриншоты в scratchpad ui-feedback/.
+- **Дальше:** Владелец смотрит PR; после слияния — деплой и только потом статус review у SPR-задач.
 - **Незакоммичено:** нет
-- **Рабочая копия:** 37 файл(ов): products/sprintique/client/api.ts, products/sprintique/package-lock.json, products/sprintique/package.json, products/sprintique/tests/library-contract.ts, products/sprintique/ui/finance/src/finance.css, products/sprintique/ui/finance/src/index.js, products/sprintique/ui/finance/src/plan-editor.js, products/sprintique/ui/planning/src/dialog.js, products/sprintique/ui/planning/src/index.js, products/sprintique/ui/planning/src/planning.css, products/sprintique/ui/src/board/agent-runs-view.js, products/sprintique/ui/src/board/board.css и ещё 25 (33 files changed, 231 insertions(+), 114 deletions(-)) · HEAD cc56bb7
+- **Рабочая копия:** нет · HEAD 0ccd894
 - **Ловушки:**
   - Lock integrity: при перепаковке пересчитывать sha512 тарбола и заменять ключ integrity, иначе npm ci молча ставит старое содержимое из кэша.
   - task-dialog.js не трогать: параллельная ветка feat/create-task-links-files.
+- **Проверка:** npm test 433/433; LC_ALL=C node scripts/verify-vnext.mjs PASS; DS npm test 424/424
 
 ## План
 
