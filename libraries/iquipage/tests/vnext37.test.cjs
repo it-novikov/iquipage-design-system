@@ -337,9 +337,7 @@ test('the viewer density property and the sources', () => {
     for (const m of read('src/styles/' + f).matchAll(/([^{}]*\.md-input)\{([^}]*)\}/g))
       if (!/variant-chat|data-idle/.test(m[1])) assert.doesNotMatch(m[2], /(^|;)\s*(font-size|line-height|font)\s*:(?!var\(--iq-md-text)/, `${f}: ${m[1].trim()}`);
   assert.match(foundation, /\.markdown-editor\{[^}]*--iq-md-text-size:var\(--iq-type-interface-size\);--iq-md-text-leading:1\.75\}/);
-  assert.equal(require('../package.json').version, '0.6.0-vnext.37');
-  assert.ok(read('src/entries/core.js').includes("export const version='0.6.0-vnext.37';"));
-  assert.ok(types.includes("export declare const version:'0.6.0-vnext.37';"));
-  assert.equal(JSON.parse(read('tokens/semantic.json')).meta.version, '0.6.0-vnext.37');
-  assert.equal(JSON.parse(read('PROVENANCE.json')).release, '0.6.0-vnext.37');
+  // Shipped in vnext.37; later releases pin their own version (vnext38.test.cjs), this one only that it is not older.
+  const release = Number(/^0\.6\.0-vnext\.(\d+)$/.exec(require('../package.json').version)?.[1]);
+  assert.ok(release >= 37, 'Markdown text at one size ships from 0.6.0-vnext.37 on');
 });

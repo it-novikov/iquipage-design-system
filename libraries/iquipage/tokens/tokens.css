@@ -39,6 +39,14 @@
   --iq-space-20: 80px;
   --iq-space-24: 96px;
   --iq-space-32: 128px;
+  --iq-avatar-size-xs: var(--iq-space-5);
+  --iq-avatar-size-sm: var(--iq-space-6);
+  --iq-avatar-size-md: 28px;
+  --iq-avatar-size-base: var(--iq-space-8);
+  --iq-avatar-size-lg: var(--iq-space-10);
+  --iq-avatar-size-xl: var(--iq-space-12);
+  --iq-avatar-initials: 0.37;
+  --iq-avatar-initials-weight: 550;
   --iq-work-compact-padding: var(--iq-space-6);
   --iq-work-compact-gap: var(--iq-space-3);
   --iq-work-compact-title: 24px;

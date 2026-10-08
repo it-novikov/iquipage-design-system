@@ -29,7 +29,7 @@ test('the wide list: 36px rows, a 120px label column of 13/400 labels and the sh
 test('iq-select: trigger-icon="none" keeps the glyph in the list, a key leads the value, a bot avatar is square and spoken', () => {
   assert.match(components, /this\.getAttribute\('trigger-icon'\) !== 'none'/);
   assert.match(components, /<span class="iq-option-icon">\$\{icons_js_1\.icon\(o\.icon, 18\)\}<\/span>/, 'the open list still shows option glyphs');
-  assert.match(components, /<span class="iq-avatar iq-select-avatar bot" aria-hidden="true">\$\{icons_js_1\.icon\('bot', 12\)\}<\/span>/);
+  assert.match(components, /<span class="iq-avatar xs iq-select-avatar bot" aria-hidden="true">\$\{icons_js_1\.icon\('bot', 12\)\}<\/span>/);
   assert.match(components, /<span class="sr-only">, \$\{escapeHTML\(/);
   assert.match(components, /<span class="iq-select-key">\$\{escapeHTML\(match\.key\)\}<\/span>/);
   assert.match(components, /typeof o\.key === 'string' && o\.key\.toLocaleLowerCase\(\)\.includes\(query\)/, 'the search finds a task by its key');
@@ -40,10 +40,11 @@ test('a service account avatar is a square with the bot glyph; a person keeps in
   assert.match(personAvatar({ id: 'svc', name: 'Бот релизов', kind: 'service' }, { size: 'xs' }), /^<span class="iq-avatar xs bot" aria-hidden="true"><svg class="iq-icon" data-glyph="bot"/);
   assert.match(personAvatar({ id: 'p', name: 'Анна Соколова' }, { size: 'xs' }), />АС</);
   assert.ok(css.includes('.iq-avatar.bot{border-radius:var(--iq-radius-xs);background:var(--iq-recessed);color:var(--iq-muted);box-shadow:inset 0 0 0 1px var(--iq-line)}'));
-  // Initials at 20px are a calm 8/600 mark beside 14px names (owner's feedback), in every xs avatar and the list's select avatar.
-  assert.ok(css.includes('.iq-avatar.xs{width:20px;height:20px;min-width:20px;font-size:.5rem;font-weight:600;letter-spacing:var(--iq-tracking-caps);line-height:1}'));
-  assert.ok(css.includes('.iq-properties[data-label=wide] .iq-select-avatar{width:20px;height:20px;min-width:20px;font-size:.5rem;font-weight:600;letter-spacing:var(--iq-tracking-caps);line-height:1}'));
-  assert.ok(css.includes('.iq-avatar.bot>.iq-icon{width:11px;height:11px}'));
+  // Initials at 20px stay a calm small mark beside 14px names (owner's feedback). Since vnext.38 every avatar, the select
+  // avatar included (it is an xs avatar), takes its initials from the one avatar rule (vnext38.test.cjs pins the ratio).
+  const avatarCss = read('src/styles/avatar.css');
+  assert.ok(avatarCss.includes('.iq-avatar.xs{--iq-avatar-size:var(--iq-avatar-size-xs)}'));
+  assert.ok(avatarCss.includes('.iq-avatar.bot>.iq-icon{width:calc(var(--iq-avatar-size) * .55);height:calc(var(--iq-avatar-size) * .55)}'), 'the bot glyph is 11px at 20');
 });
 
 test('iq-date-field deadline: overdue, today and tomorrow are words and tones; finished work has none', () => {

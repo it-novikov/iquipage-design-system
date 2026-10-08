@@ -1,5 +1,5 @@
 /** Supported core browser entry. Does not register graph, roadmap, crop, or whiteboard. */
-export declare const version:'0.6.0-vnext.37';
+export declare const version:'0.6.0-vnext.38';
 export declare function registerCore():void;
 export declare function registerComponents():void;
 export declare function registerDateFields():void;
@@ -16,6 +16,9 @@ export declare function escapeHTML(value:unknown):string;
 export declare function tagToneAttributes(tone:string):string;
 /** kind 'service' (vnext.27) draws a service account's square avatar with the bot glyph instead of initials. */
 export interface AvatarPerson {name:string;id?:string;image?:string;kind?:'human'|'service';}
+/** vnext.38: the avatar scale for ui.personAvatar's size — 'xs' 20, 'sm' 24, 'md' 28, '' 32, 'lg' 40, 'xl' 48 px; initials are
+ *  0.37 of the diameter at every step. ui.avatarGroup takes 'xs' | 'sm' | 'md' (or '', 28 px) | 'lg'. */
+export type AvatarSize='xs'|'sm'|'md'|''|'lg'|'xl';
 /** Shows a toast. It leaves by itself after 5 s (info, success), 8 s (warning), 10 s (danger) or 10 s with a shortcut
  * action; an undo action (`action.undo`) stays until dismissed. `duration` overrides the time in ms, 0 keeps the toast,
  * a malformed value falls back to the default. Hover, focus and a hidden tab pause the countdown. Returns a function that dismisses the toast. */
