@@ -22,14 +22,15 @@ export function mountProjectNavigation(root,{current,profile,projects,catalog=()
   function renderContext(){
     const all=catalog()||[],spaces=[...new Map(all.map(p=>[p.workspaceId,{id:p.workspaceId,name:p.workspaceName}])).values()];
     const inSpace=all.filter(p=>p.workspaceId===current.workspaceId);
-    const spaceItems=[{section:'Пространства'},...spaces.map(w=>({label:esc(w.name),glyph:w.id===current.workspaceId?'check':'folder',action:'workspace:'+w.id})),
+    // Both are the DS switcher (the board title chooses its release with the same control): the current one checked.
+    const spaceItems=[{section:'Пространства'},...spaces.map(w=>({label:w.name,glyph:'folder',current:w.id===current.workspaceId,action:'workspace:'+w.id})),
       ...(onCreateWorkspace?[{label:'Новое пространство',glyph:'plus',action:'create-workspace'}]:[])];
-    const projectItems=[{section:current.workspaceName},...inSpace.map(p=>({label:esc(p.name),glyph:p.id===current.id?'check':'box',action:'project:'+p.id})),
+    const projectItems=[{section:current.workspaceName},...inSpace.map(p=>({label:p.name,glyph:'box',current:p.id===current.id,action:'project:'+p.id})),
       {label:'Найти проект…',glyph:'search',action:'find-project'},...(onCreateProject?[{label:'Новый проект',glyph:'plus',action:'create-project'}]:[])];
     root.querySelector('[data-context]').innerHTML=
-      ui.menu(`<button type="button" class="iq-btn ghost sm iq-switcher pn-space-trigger" data-tone="muted" aria-label="Пространство: ${esc(current.workspaceName)}" title="${esc(current.workspaceName)}"><span class="iq-switcher-label">${esc(current.workspaceName)}</span>${icon('down',14)}</button>`,spaceItems)
+      ui.switcher({label:current.workspaceName,name:'Пространство',tone:'muted',className:'pn-space-trigger',items:spaceItems})
       +'<span class="pn-context-separator" aria-hidden="true">/</span>'
-      +ui.menu(`<button type="button" class="iq-btn ghost sm iq-switcher pn-project-trigger" aria-label="Проект: ${esc(current.projectName)}" title="${esc(current.projectName)}"><strong class="iq-switcher-label">${esc(current.projectName)}</strong>${icon('down',14)}</button>`,projectItems);
+      +ui.switcher({label:current.projectName,name:'Проект',emphasis:'strong',className:'pn-project-trigger',items:projectItems});
   }
   function update(value){
     if(disposed)return;current=readProjectContext(value);renderContext();
