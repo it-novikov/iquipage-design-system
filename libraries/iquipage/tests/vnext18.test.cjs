@@ -13,7 +13,7 @@ test('one person keeps one avatar tone and groups show at most three discs with 
 });
 test('sections, compact heading scale and property sizes', () => {
   const css = read('src/styles/foundation.css');
-  for (const rule of ['.iq-section{', '.iq-section-head{', 'iq-markdown-editor[density=compact] .md-preview h1{', '.iq-properties{--iq-properties-label:136px}'])
+  for (const rule of ['.iq-section{', '.iq-section-head{', ':is(iq-markdown-editor[density=compact] .md-preview,iq-markdown-viewer[density=compact] .md-document) :is(h1,h2){', '.iq-properties{--iq-properties-label:136px}'])
     assert.ok(css.includes(rule), rule);
   assert.match(css, /\.iq-property-strip \.iq-select-trigger>\.iq-icon:last-child,\.iq-property-strip \.iq-combo-shell>\.iq-icon:last-child\{display:none\}/);
 });

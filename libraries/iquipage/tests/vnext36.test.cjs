@@ -165,9 +165,7 @@ test('public surface: core export, types, styles and the vnext.36 release', () =
   assert.match(types, /export interface SwitcherOptions \{/);
   assert.match(build, /src\/styles\/switcher\.css/);
   assert.equal(typeof ui.switcher, 'function');
-  assert.match(core, /export const version='0\.6\.0-vnext\.36';/);
-  assert.equal(require('../package.json').version, '0.6.0-vnext.36');
-  assert.match(types, /export declare const version:'0\.6\.0-vnext\.36';/);
-  assert.equal(JSON.parse(read('tokens/semantic.json')).meta.version, '0.6.0-vnext.36');
-  assert.equal(JSON.parse(read('PROVENANCE.json')).release, '0.6.0-vnext.36');
+  // Shipped in vnext.36; later releases pin their own version (vnext37.test.cjs), this one only that it is not older.
+  const release = Number(/^0\.6\.0-vnext\.(\d+)$/.exec(require('../package.json').version)?.[1]);
+  assert.ok(release >= 36, 'the switcher ships from 0.6.0-vnext.36 on');
 });

@@ -6,6 +6,11 @@ html{font-size:100%;-webkit-text-size-adjust:100%;text-size-adjust:100%}
 :lang(ru) .md-document,:lang(ru) .md-preview,:lang(ru) .iq-card p,:lang(ru) .comment-body,:lang(ru) p.iq-message-text,:lang(ru) h1,:lang(ru) h2,:lang(ru) h3{hyphens:auto;-webkit-hyphens:auto;hyphenate-limit-chars:6 3 3}
 /* Reading measure for documents: the body step, its line height and a 68-character line; the container decides the alignment. */
 .md-document{font-size:var(--iq-type-body-size);line-height:var(--iq-type-body-lineHeight);max-width:68ch}
+/* vnext.37: an editor's preview is its source rendered, so it keeps the source's size and line height (--iq-md-text-size and
+   --iq-md-text-leading on .markdown-editor, which .md-input reads too) and its full width: switching between editing and
+   viewing does not move the text. A compact viewer (iq-markdown-viewer density=compact) reads like a compact editor's preview. */
+iq-markdown-viewer[density=compact]{--iq-md-text-size:var(--iq-type-interface-size);--iq-md-text-leading:1.75}
+.markdown-editor .md-preview,iq-markdown-viewer[density=compact] .md-document{font-size:var(--iq-md-text-size);line-height:var(--iq-md-text-leading);max-width:none}
 /* Utilities: the four existing roles restated from their tokens, and the roles that had no class: every --iq-type-* token now has a consumer. */
 .type-body{font-size:var(--iq-type-body-size);font-weight:var(--iq-type-body-weight);line-height:var(--iq-type-body-lineHeight);letter-spacing:var(--iq-type-body-letterSpacing)}
 .type-interface{font-size:var(--iq-type-interface-size);font-weight:var(--iq-type-interface-weight);line-height:var(--iq-type-interface-lineHeight);letter-spacing:var(--iq-type-interface-letterSpacing)}
