@@ -2,13 +2,13 @@
 bridge: 1
 id: 20261008-board-release-title-switcher
 title: Заголовок доски выбирает релиз переключателем верхней панели (DS vnext.36)
-status: active
+status: review
 risk: standard
 owner: nvkv71
 branch: feat/board-release-title-switcher
 base: main
 created: 2026-10-08
-updated: 2026-10-08T09:03:54Z
+updated: 2026-10-08T09:31:17Z
 links:
 ---
 
@@ -33,9 +33,14 @@ links:
 
 ## Передача
 
-- **Состояние:** Задача заведена, работа не начата.
-- **Дальше:** Уточнить рамки с владельцем и составить план.
+- **Состояние:** Готово: DS vnext.36 (ui.switcher) и заголовок доски с выбором релиза закоммичены поверх main 963399b; гейты зелёные (npm ci, npm test 450/450 с Kotlin, check:boundaries, verify-vnext PASS, DS 431/431); скриншоты в scratchpad board-release-title/.
+- **Дальше:** Слияние PR владельцем разрешено; деплой делает владелец, SPR-13 в review только после деплоя.
 - **Незакоммичено:** нет
+- **Рабочая копия:** нет · HEAD b68bca6
+- **Ловушки:**
+  - Перепаковка под той же версией: пересчитать sha512 тарбола в lockfile, иначе npm ci поставит старое содержимое из кэша.
+  - У кнопки размера title нельзя отрицательное поле: max-width:100% обрезает название; сдвиг сделан относительным смещением.
+- **Проверка:** npm test 450/450; LC_ALL=C node scripts/verify-vnext.mjs PASS; DS npm test 431/431
 
 ## План
 
