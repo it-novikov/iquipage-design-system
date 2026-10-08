@@ -18,6 +18,14 @@ example demonstrates the form, not just a provider redirect. The Keycloak login 
 shipped from vnext.9 to vnext.20 was removed in vnext.21: no product uses an external
 identity provider's form any more.
 
+## Switcher (0.6.0-vnext.36)
+
+`switcher({label, name, items, size, tone, emphasis, className, attrs})` (also `ui.switcher`) is the workspace and project switcher of the top bar as one control: the current choice as a quiet `.iq-switcher` text label with a small chevron and no border, underlined on hover and while open, opening the DS menu (`iq-menu`, so `aria-haspopup`, `aria-expanded`, arrow keys, Home/End, typeahead and Escape come with it). The button reads «name: label».
+
+Items are `{section}` headings, `{separator: true}` rules, choices and commands. A choice is an item with a boolean `current`: it is a `menuitemradio` with `aria-checked`, its glyph turns into the check while it is current (rows without a glyph keep the same mark column), and the menu opens with focus on it. `meta` adds a quiet word at the end of the row, such as «идёт». A command has no `current`. All text is plain and escaped. The picked item's `action` arrives as `iq-action`.
+
+`size: 'title'` takes the font of the heading it sits in, so a page title such as a board's release keeps its 24px/600 and gains only the chevron and the menu; the default is the compact top-bar size. `tone: 'muted'` and `emphasis: 'strong'` are the top bar's quiet workspace and bold project.
+
 ## Action feedback (0.6.0-vnext.35)
 
 One time-keyed answer to «what happens after I press this», so a fast connection sees nothing new and a slow one is never silent.

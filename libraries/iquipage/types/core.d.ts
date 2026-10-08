@@ -1,5 +1,5 @@
 /** Supported core browser entry. Does not register graph, roadmap, crop, or whiteboard. */
-export declare const version:'0.6.0-vnext.35';
+export declare const version:'0.6.0-vnext.36';
 export declare function registerCore():void;
 export declare function registerComponents():void;
 export declare function registerDateFields():void;
@@ -87,6 +87,13 @@ export declare function taskEmphasis(task:Record<string,unknown>):'critical'|'hi
 export declare function validateFields(form:HTMLFormElement):boolean;
 export declare function setFieldError(input:HTMLElement,message:string):void;
 export declare function fieldError(input:HTMLInputElement):string;
+/** vnext.36: one row of a switcher menu. A choice has a boolean `current` (menuitemradio, checked while current);
+ *  a command has none. Text values are plain text. */
+export type SwitcherItem={section:string}|{separator:true}|{label:string;action:string;current?:boolean;glyph?:string;meta?:string;danger?:boolean};
+export interface SwitcherOptions {/** The current choice as plain text. */label:string;/** What is chosen: the button reads «name: label». */name?:string;items:SwitcherItem[];/** 'title' takes the heading's font. */size?:''|'title';tone?:''|'muted';emphasis?:''|'strong';/** Extra classes on the button. */className?:string;/** Extra trusted attribute markup on the button. */attrs?:string;}
+/** Markup of a switcher: an iq-menu whose trigger is the quiet .iq-switcher label with a chevron; the picked item's
+ *  action arrives as iq-action. Also available as ui.switcher. */
+export declare function switcher(options:SwitcherOptions):string;
 /** Existing composition helpers; see source ui.js for optional slot markup. */
 export declare const ui:Record<string,unknown>;
 /** vnext.30: a scale of progress against a target. Values are numbers or exact decimal strings. */

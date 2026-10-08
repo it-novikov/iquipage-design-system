@@ -214,9 +214,7 @@ test('public surface: core exports, types, styles and the vnext.35 release', () 
   assert.match(css, /prefers-reduced-motion: reduce\)\{\.iq-activity-line>span\{animation:none/);
   assert.match(build, /src\/styles\/feedback\.css/);
   assert.ok(JSON.parse(read('src/manifest.json')).entries.core.includes('feedback.js'));
-  assert.match(core, /export const version='0\.6\.0-vnext\.35';/);
-  assert.equal(require('../package.json').version, '0.6.0-vnext.35');
-  assert.match(types, /export declare const version:'0\.6\.0-vnext\.35';/);
-  assert.equal(JSON.parse(read('tokens/semantic.json')).meta.version, '0.6.0-vnext.35');
-  assert.equal(JSON.parse(read('PROVENANCE.json')).release, '0.6.0-vnext.35');
+  // Shipped in vnext.35; later releases pin their own version (vnext36.test.cjs), this one only that it is not older.
+  const release = Number(/^0\.6\.0-vnext\.(\d+)$/.exec(require('../package.json').version)?.[1]);
+  assert.ok(release >= 35, 'action feedback ships from 0.6.0-vnext.35 on');
 });

@@ -18,6 +18,7 @@ exports.empty = empty;
 exports.field = field;
 exports.ib = ib;
 exports.menu = menu;
+exports.switcher = switcher;
 exports.progress = progress;
 exports.radio = radio;
 exports.ring = ring;
@@ -100,6 +101,33 @@ function ring(value = 76) { return `<div class="iq-ring" role="img" aria-label="
 function sparkline(values=[]){const finite=values.filter(Number.isFinite);if(!finite.length)return '';const min=Math.min(...finite),span=Math.max(...finite)-min||1;const points=values.map((v,i)=>Number.isFinite(v)?`${i*328/Math.max(1,values.length-1)},${64-(v-min)*60/span}`:null).filter(Boolean);return `<svg class="iq-sparkline" viewBox="0 0 330 68" fill="none" role="img" aria-label="Динамика показателя"><polyline points="${points.join(' ')}" stroke="currentColor" stroke-width="2"/></svg>`;}
 function chart(data){if(!data?.values?.length)return '<p class="iq-helper">Нет данных для диаграммы.</p>';const values=data.values,labels=data.labels||[],max=Math.max(1,...values.filter(Number.isFinite));return `<figure class="iq-chart-demo"><svg class="iq-chart" viewBox="0 0 720 230" role="img" aria-label="${components_js_1.escapeHTML(data.title||'Данные')}">${values.map((v,i)=>Number.isFinite(v)?`<rect x="${36+i*680/values.length}" y="${210-v/max*190}" width="${Math.max(2,680/values.length-20)}" height="${Math.max(0,v/max*190)}" rx="5" fill="currentColor"/>`:'').join('')}</svg><figcaption class="iq-helper chart-caption">${components_js_1.escapeHTML(labels.join(' — '))}</figcaption></figure>`;}
 function menu(trigger, items) { return `<iq-menu>${trigger}<div data-menu>${items.map(x => x.section ? `<p class="iq-menu-section" role="presentation">${components_js_1.escapeHTML(x.section)}</p>` : `<button type="button" class="${x.danger ? 'danger' : ''}" data-action="${x.action || 'demo'}">${x.glyph ? components_js_1.icon(x.glyph, 17) : ''}<span>${x.label}</span>${x.shortcut ? `<kbd>${x.shortcut}</kbd>` : ''}</button>`).join('')}</div></iq-menu>`; }
+/**
+ * A switcher (0.6.0-vnext.36): the current choice as a quiet text label with a small chevron, no border, opening a DS
+ * menu of the choices with the current one checked. The workspace and project in the top bar and a page title that
+ * chooses what its page shows are the same control, so they look and behave alike.
+ *
+ * - `label`: the current choice as plain text; `name`: what is chosen («Проект»), so the button reads «Проект: label».
+ * - `items`: `{section}` headings, `{separator:true}` rules, choices `{label, action, current, glyph?, meta?}` and
+ *   commands `{label, action, glyph?, danger?}`. A choice is the item with a boolean `current`: it is a
+ *   menuitemradio with aria-checked, its glyph becomes the check while it is current, and the menu opens on it.
+ *   `meta` is a quiet word at the end of the row («идёт»). Labels, meta, sections and the name are plain text.
+ * - `size: 'title'` takes the font of its heading (a page title keeps its size and weight); the default is the
+ *   compact top-bar size. `tone: 'muted'` and `emphasis: 'strong'` (a <strong> label) are the top bar's quiet workspace
+ *   and bold project.
+ * - `className` and `attrs` go on the button; the menu reports the picked item's `action` as `iq-action`.
+ */
+function switcher({ label = '', name = '', items = [], size = '', tone = '', emphasis = '', className = '', attrs = '' } = {}) {
+    const e = components_js_1.escapeHTML, title = size === 'title';
+    if (!['', 'title'].includes(size)) throw new TypeError('Unsupported switcher size');
+    const text = String(label ?? ''), accessible = name ? `${name}: ${text}` : text, tag = emphasis === 'strong' ? 'strong' : 'span';
+    const slot = items.some(x => !x.section && !x.separator && (x.glyph || typeof x.current === 'boolean'));
+    const mark = x => { const glyph = x.current === true ? 'check' : x.glyph; return glyph ? components_js_1.icon(glyph, 17) : slot ? '<span class="iq-switcher-mark" aria-hidden="true"></span>' : ''; };
+    const row = x => x.section ? `<p class="iq-menu-section" role="presentation">${e(x.section)}</p>`
+        : x.separator ? '<hr class="iq-switcher-separator" role="separator">'
+        : `<button type="button"${typeof x.current === 'boolean' ? ` role="menuitemradio" aria-checked="${x.current}"` : ''}${x.danger ? ' class="danger"' : ''} data-action="${e(x.action ?? '')}">${mark(x)}<span>${e(x.label ?? '')}</span>${x.meta ? `<small class="iq-switcher-meta">${e(x.meta)}</small>` : ''}</button>`;
+    const trigger = `<button type="button" class="iq-btn ghost${title ? '' : ' sm'} iq-switcher${className ? ' ' + e(className) : ''}"${title ? ' data-size="title"' : ''}${tone ? ` data-tone="${e(tone)}"` : ''}${emphasis ? ` data-emphasis="${e(emphasis)}"` : ''} aria-label="${e(accessible)}" title="${e(text)}"${attrs ? ' ' + attrs : ''}><${tag} class="iq-switcher-label">${e(text)}</${tag}>${components_js_1.icon('down', title ? 18 : 14)}</button>`;
+    return `<iq-menu class="iq-switcher-menu">${trigger}<div data-menu class="iq-switcher-popup">${items.map(row).join('')}</div></iq-menu>`;
+}
 function tabs(items, attrs = '') { return `<iq-tabs ${attrs}><div class="iq-tabs-list" data-tablist>${items.map(x => `<button type="button" data-tab="${x.key}">${x.label}</button>`).join('')}</div>${items.map(x => `<div class="iq-tab-panel" data-panel="${x.key}">${x.body}</div>`).join('')}</iq-tabs>`; }
 function empty(title = 'Пока здесь пусто', body = 'Добавьте первый объект, чтобы начать работу.', action = btn('Создать', 'secondary sm', 'plus', 'data-create-task')) { return `<div class="iq-empty"><div class="empty-art" aria-hidden="true"><span class="empty-sheet back"></span><span class="empty-sheet">${components_js_1.icon('folderOpen', 38)}</span><span class="empty-art-plus">${components_js_1.icon('plus', 17)}</span></div><h3>${title}</h3><p>${body}</p>${action}</div>`; }
 const projectOptions = [];
