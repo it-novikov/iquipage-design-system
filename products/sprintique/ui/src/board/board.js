@@ -1,12 +1,13 @@
 import {createCoverLoader} from './cover-loader.js';
 import {mountBoardFilters} from './filter-view.js';
 import {normalizeBoardFilters,hasBoardFilters,taskMatchesFilters} from './filters.js';
-import {bindBoard,registerCore,ui,notify} from '@iquipage/web/core';
+import {bindBoard,registerCore,ui,notify,FEEDBACK_TIMING} from '@iquipage/web/core';
 import {TASK_COLUMNS,taskColumn,placeTask} from '../tasks.js';
 import {icon,esc,dialog,select} from '../ui.js';
 import {BOARD_SORTS,boardComparator,projectColumn,boardReleaseChoices,boardShown} from './model.js';
 import {renderTaskCard} from './card.js';
 import {openTaskDialog} from './task-dialog.js';
+import {background} from '../action-feedback.js';
 import {mountTagPacking} from './tag-packing.js';
 import {tagMarkup} from './catalog-ui.js';
 import {taskURL,taskKey,parseTaskRoute} from './task-route.js';
@@ -112,7 +113,7 @@ export async function mountTaskBoard(root,{repository,project,canEdit=true,canMa
         const all=early&&sameScope(guess,viewState.boardScope)?await early:await repository.list('tasks',project.id,{signal,board:scope});
         if(closed||token!==loading||scope!==shown)continue;items=all;
         const people=new Map(members.map(m=>[m.id,{id:m.id,name:m.name,image:repository.client?.avatarUrl?.(m.id,m.avatarRevision)||undefined}]));
-        catalogs={tags,releases,people};filters.setData({tasks:items,...catalogs});renderTitle();render();
+        catalogs={tags,releases,people};filters.setData({tasks:items,...catalogs});renderTitle();render();error.hidden=true;
       }catch(e){if(!closed&&e.name!=='AbortError')fail(e);}
       if(dragging||pending.size){queued=reloadAgain;break;}
     }while(reloadAgain&&!closed);})().finally(()=>{reloadPromise=null;});
@@ -136,12 +137,17 @@ export async function mountTaskBoard(root,{repository,project,canEdit=true,canMa
     }catch(e){
       if(closed)return;const current=await repository.read('tasks',id,project.id,{signal}).catch(()=>null);
       if(closed)return;
-      items=items.map(t=>t.id===id?(current||original):t);fail(e);
+      // Optimistic move, rolled back with a toast: the card is back where it was, the reason is said once.
+      items=items.map(t=>t.id===id?(current||original):t);notify({tone:'danger',message:'Задача не перемещена',description:e.message||'Повторите действие.',duration:10000});
     }finally{pending.delete(id);dragIntent=null;persist();render(id);if(queued)await reload();}
   }
   async function edit(task=null,status='ready',{fromRoute=false,fullscreen=false,replaceRoute=false,replace=null}={}){
     if(openingTask||(activeDialog&&activeDialog!==replace)||closed)return;
     openingTask=true;const controller=new AbortController();openingController=controller;
+    // The drawer opens once its task is read: on a slow connection the pressed card shows it is opening after 150 ms
+    // (the busy look of a card, as while it moves), and the line under the top bar follows after a second.
+    const surface=task?root.querySelector(`[data-task-surface="${CSS.escape(task.id)}"]`):null;
+    const opening=surface?setTimeout(()=>surface.setAttribute('aria-busy','true'),FEEDBACK_TIMING.pending):0;
     try{
     // A new task starts in the release the board shows; the form lets the person pick another or none.
     const initialValues=task?{}:{releaseId:shown.backlog?null:shown.releaseId};
@@ -153,14 +159,14 @@ export async function mountTaskBoard(root,{repository,project,canEdit=true,canMa
     else if(task&&!fromRoute)history.pushState({taskDrawer:true,returnHash:location.hash||'#tasks'},'',taskURL(task));
     if(closed){activeDialog.close(true);return;}
     const opened=activeDialog;opened.addEventListener('iq-close',()=>{if(activeDialog===opened)activeDialog=null;if(!switchingTask)trail=[];if(!switchingTask&&task&&parseTaskRoute(location.hash)===taskKey(task)){if(history.state?.taskDrawer)history.back();else history.replaceState(null,'','#tasks');}},{once:true});
-    }catch(cause){if(!closed&&cause.name!=='AbortError')fail(cause);}finally{if(openingController===controller){openingController=null;openingTask=false;}}
+    }catch(cause){if(!closed&&cause.name!=='AbortError')fail(cause);}finally{clearTimeout(opening);if(surface&&!pending.has(task.id))surface.removeAttribute('aria-busy');if(openingController===controller){openingController=null;openingTask=false;}}
   }
   // Pointing at a card or focusing it reads the project's task list the drawer needs (for parents and links) ahead of
   // the click; the drawer then finds it in the repository's short cache. At most one read in 20 seconds.
   let warmedAt=0;
   const warmDrawer=e=>{
     if(!repository.taskContext||Date.now()-warmedAt<20000||!e.target.closest?.('[data-task-surface], [data-open-task]'))return;
-    warmedAt=Date.now();repository.taskContext(project.id,{signal}).catch(()=>{warmedAt=0;});
+    warmedAt=Date.now();background(()=>repository.taskContext(project.id,{signal})).catch(()=>{warmedAt=0;});
   };
   root.addEventListener('pointerover',warmDrawer,{signal});root.addEventListener('focusin',warmDrawer,{signal});
   root.addEventListener('pointerdown',e=>{pointerStart={x:e.clientX,y:e.clientY};suppressClick=false;},{signal,capture:true});

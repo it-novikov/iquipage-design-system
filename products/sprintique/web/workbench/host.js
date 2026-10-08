@@ -2,7 +2,7 @@
 // filter in the URL, and the canonical task drawer `/workbench/tasks/:projectId/:taskId` with the return of view,
 // filter, scroll and focus. It mounts inside the app shell like any other section: the shell's navigation is its top
 // bar, so search, notifications, settings, theme and the profile are the shell's.
-import {ui,icon,escapeHTML as esc,notify} from '@iquipage/web/core';
+import {ui,icon,escapeHTML as esc,notify,FEEDBACK_TIMING} from '@iquipage/web/core';
 import {dialog} from '../../ui/src/ui.js';
 import {openTaskDialog} from '../../ui/src/board/task-dialog.js';
 import {WorkbenchApi} from './api.js';
@@ -34,7 +34,6 @@ export async function mountWorkbench(root,{repository,session:initialSession,pla
 <div class="iq-workspace" data-workspace><nav class="iq-workspace-nav" aria-label="Очереди рабочего стола" data-summary></nav><div class="iq-workspace-body"><div class="dsk-strip iq-workspace-toolbar">
 <div class="dsk-strip-end"><button type="button" class="iq-btn ghost sm" data-filter aria-haspopup="dialog">${icon('folder',16)}<span data-filter-label>Проекты: все</span>${icon('down',14)}</button>
 <span data-updated></span>${ui.ib('refresh','Обновить рабочий стол','ghost sm','data-refresh')}</div></div>
-<div class="dsk-banner" data-offline hidden>${icon('warning',16)}<p>Нет соединения. Показаны последние загруженные данные; изменения не сохраняются без ответа сервера.</p></div>
 <div data-content></div><p class="sr-only" role="status" aria-live="polite" data-live></p></div></div></div></div>`;
   const live=root.querySelector('[data-live]');
   const announce=text=>{live.textContent='';requestAnimationFrame(()=>{live.textContent=text;});};
@@ -98,6 +97,9 @@ export async function mountWorkbench(root,{repository,session:initialSession,pla
     const from=document.activeElement?.closest?.('[data-row]'),list=from?.closest('[data-list]');
     origin={key:rowKey,scroll:scroller().scrollTop,focus:document.activeElement,
       section:list?.closest('section[id]')?.id||null,index:list?[...list.querySelectorAll(':scope > [data-row]')].indexOf(from):-1};
+    // The pressed row says it is opening after 150 ms (action feedback); the drawer follows its reads.
+    const pressedRow=from&&!from.hasAttribute('aria-busy')?from:null;
+    const marking=pressedRow?setTimeout(()=>pressedRow.setAttribute('aria-busy','true'),FEEDBACK_TIMING.pending):0;
     try{
       const task=await repository.read('tasks',target.taskId,project.id).catch(()=>null);
       if(!task||task.projectId!==project.id)throw Object.assign(Error('Задача недоступна'),{status:404});
@@ -122,7 +124,7 @@ export async function mountWorkbench(root,{repository,session:initialSession,pla
       notify({tone:'warning',message:'Задача недоступна',description:'Её нет или у вас нет доступа.'});
       if(fromRoute)history.replaceState({workbench:true},'',url());
       if(cause.status!==404)console.warn(cause);
-    }finally{opening=false;}
+    }finally{opening=false;clearTimeout(marking);pressedRow?.removeAttribute('aria-busy');}
   }
   async function closeDrawer(){if(!drawer)return true;return drawer.taskController.close();}
   function onDrawerClosed(){
@@ -170,8 +172,9 @@ export async function mountWorkbench(root,{repository,session:initialSession,pla
     else if(button.hasAttribute('data-refresh'))void content?.reload?.().then(()=>announce('Рабочий стол обновлён'));
     else if(button.hasAttribute('data-create-task'))createTask();
   },{signal:events.signal});
-  const online=()=>{root.querySelector('[data-offline]').hidden=navigator.onLine;};
-  window.addEventListener('online',online,{signal:events.signal});window.addEventListener('offline',online,{signal:events.signal});online();
+  // Offline is the shell's one notice for the whole product (action feedback, DS vnext.35); back online, the Workbench
+  // reads again, as the project sections do.
+  window.addEventListener('online',()=>void content?.reload?.({silent:true}),{signal:events.signal});
 
   // /workbench/board is not a view of v1: the address is corrected, the overview shown.
   if(/^\/workbench\/board\/?$/.test(location.pathname))history.replaceState({workbench:true},'',url('overview'));

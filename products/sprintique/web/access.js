@@ -4,6 +4,7 @@ import {loadCatalog,loadPresets,presetChoices,choose,diffChips,changedBy,plural,
 import {can} from './permissions.js';
 import {openEffective} from './effective.js';
 import * as s from './settings-ui.js';
+import {failed} from '../ui/src/action-feedback.js';
 /**
  * Project «Доступ»: presets for new members and guests (or the workspace's), members whose permissions differ from
  * their preset, who of the workspace may enter as administrator, and a read-only matrix. Changes need
@@ -74,7 +75,7 @@ export async function mountAccess(root,{repository,project}){
     if(event.target.closest('[data-effective]'))return track(await openEffective({repository,project,member,self:member.id===self}));
     if(event.target.closest('[data-reset-difference]'))track(dialog({title:'Вернуть права к пресету?',description:`${member.name}: останется пресет «${member.presetName}» без личных добавлений и исключений. Изменение попадёт в историю проекта.`,submitLabel:'Сбросить',success:`${member.name}: права как в пресете`,
       onSubmit:async()=>{try{await client.request(`${base}/members/${encodeURIComponent(member.id)}/access`,'PUT',{baseRevision:member.revision,presetId:member.presetId,granted:[],revoked:[]});}catch(error){throw Error(explain(error));}await load();}}));
-  })().catch(error=>notify({tone:'danger',message:'Не удалось выполнить действие',description:explain(error),duration:10000}));},{signal:abort.signal});
+  })().catch(error=>failed(error,{description:explain(error)}));},{signal:abort.signal});
   await load();
   return {readyToLeave:()=>!modal,destroy(){closed=true;loading++;abort.abort();modal?.close(true);root.replaceChildren();}};
 }

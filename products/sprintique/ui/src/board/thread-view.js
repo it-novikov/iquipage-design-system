@@ -1,7 +1,8 @@
-import {formatDateTime,ui,plural as pluralForms,mentionsHTML,mentionPlainText} from '@iquipage/web/core';
+import {formatDateTime,ui,plural as pluralForms,mentionsHTML,mentionPlainText,FEEDBACK_TIMING} from '@iquipage/web/core';
 import {createThreadPager} from './thread-pager.js';
 import {icon,esc} from '../ui.js';
 import {uid} from '../common.js';
+import {background} from '../action-feedback.js';
 import {postMessage,resolveThread,changeThreadKind} from './thread-model.js';
 import {mentionCandidates,mentionNames,closeCutMention} from './mention-options.js';
 const SUMMARY_TEXT=160;
@@ -61,7 +62,7 @@ export function mountThreads(root,{repository,task,readOnly=false,people=new Map
     if(previous&&String(previous)>=String(at))return;
     if(!server){seen[thread.id]=at;storeSeen();return;}
     readAts.set(thread.id,at);
-    repository.markThreadRead(task.projectId,thread.id,at).catch(()=>{if(readAts.get(thread.id)===at)readAts.delete(thread.id);});
+    background(()=>repository.markThreadRead(task.projectId,thread.id,at)).catch(()=>{if(readAts.get(thread.id)===at)readAts.delete(thread.id);});
   };
   const isNew=thread=>{const at=seenAt(thread);return !thread.resolved&&thread.lastAuthorId!==actorId&&(!at||String(thread.lastActivityAt)>String(at));};
   const messageIsNew=(thread,message)=>{const at=seenAt(thread);return message.authorId!==actorId&&!!at&&String(message.createdAt)>String(at);};
@@ -255,7 +256,10 @@ export function mountThreads(root,{repository,task,readOnly=false,people=new Map
   root.addEventListener('iq-submit',async event=>{
     if(readOnly)return;event.stopPropagation();
     const editor=event.target,id=editor.dataset.replyEditor||'new';if(busy.has(id))return;
-    busy.add(id);clearError();editor.disabled=true;
+    // Sending: a second Enter is ignored at once; the editor locks only after 150 ms, so a fast send never flickers,
+    // and its send button shows the DS pending state meanwhile (action feedback, vnext.35).
+    busy.add(id);clearError();editor.setAttribute('aria-busy','true');
+    const lock=setTimeout(()=>{if(busy.has(id))editor.disabled=true;},FEEDBACK_TIMING.pending);
     try{
       const body=editor.value;
       if(id==='new'){
@@ -276,13 +280,17 @@ export function mountThreads(root,{repository,task,readOnly=false,people=new Map
         editor.expand?.();
       }
       await reload();
-    }catch{fail({message:'Не удалось отправить. Текст сохранён.'},null);}
-    finally{busy.delete(id);if(editor.isConnected)editor.disabled=false;}
+    }catch(cause){fail({message:`Не удалось отправить. Текст сохранён.${cause?.code==='NETWORK'?' Нет связи с сервером.':''}`},`data-retry-send="${esc(id)}"`);}
+    finally{clearTimeout(lock);busy.delete(id);editor.removeAttribute('aria-busy');if(editor.isConnected)editor.disabled=false;}
   },{signal:abort.signal});
   root.addEventListener('click',async event=>{
     const target=event.target;
     if(target.closest('[data-more-threads]')){clearError();await pager.more();return;}
     if(target.closest('[data-retry-threads]')){await reload();return;}
+    // «Повторить» after a failed send sends the kept text again, with the same message id (safe to repeat).
+    const resend=target.closest('[data-retry-send]');
+    if(resend){const id=resend.dataset.retrySend,editor=id==='new'?composer:root.querySelector(`[data-reply-editor="${CSS.escape(id)}"]`);
+      clearError();editor?.dispatchEvent(new CustomEvent('iq-submit',{bubbles:true,detail:{}}));return;}
     const retry=target.closest('[data-retry-thread]');if(retry){detailErrors.delete(retry.dataset.retryThread);fullThreads.delete(retry.dataset.retryThread);draw();return;}
     const toggle=target.closest('[data-thread-toggle]');
     if(toggle){const id=toggle.dataset.threadToggle;if(expanded.has(id))expanded.delete(id);else{expanded.add(id);markSeen(items.find(item=>item.id===id));}draw();return;}

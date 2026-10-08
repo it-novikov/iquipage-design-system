@@ -97,3 +97,5 @@
 .pn-dialog [data-preview]{display:flex;flex-direction:column;gap:var(--iq-space-3)}
 .pn-dialog [data-plan-config],.pn-dialog [data-plan-preview]{display:flex;flex-direction:column;gap:var(--iq-space-4)}
 .pn-dialog [data-plan-config][hidden],.pn-dialog [data-plan-preview][hidden],.pn-dialog [data-working-time][hidden]{display:none}
+/* Action feedback (DS vnext.35): rows being moved look busy after 150 ms until the plan is read again. */
+[data-row][aria-busy=true]{opacity:.6;cursor:progress}

@@ -5,6 +5,7 @@ import {openInviteDialog} from './invite-dialog.js';
 import {workspaceRoleNames} from './invitation-model.js';
 import {workspaceRowRights} from './permissions.js';
 import * as s from './settings-ui.js';
+import {failed} from '../ui/src/action-feedback.js';
 const hints={owner:'Единственный владелец: передаёт владение, удаляет пространство.',admin:'Управляет пространством, людьми и приглашениями.',member:'Видит пространство и свои проекты. В проекты его добавляют администраторы.',guest:'Видит только проекты, в которые его пригласили.'};
 const creators=[['admins','Только администраторы'],['members','Все участники']];
 /**
@@ -74,7 +75,7 @@ export async function mountWorkspaceMembers(root,{repository,project,workspace,t
       catch(error){control.value=member.role;notify({tone:'danger',message:'Роль не изменена',description:explain(error),duration:10000});}finally{row?.removeAttribute('aria-busy');}})();
   },{signal:abort.signal});
   const onClick=event=>{
-    if(event.target.closest('[data-invite]')){void openInviteDialog({repository,project,scope:'workspace',onDone:load}).then(track).catch(error=>notify({tone:'danger',message:'Не удалось открыть приглашение',description:explain(error)}));return;}
+    if(event.target.closest('[data-invite]')){void openInviteDialog({repository,project,scope:'workspace',onDone:load}).then(track).catch(error=>failed(error,{description:explain(error),message:'Не удалось открыть приглашение'}));return;}
     const action=event.target.closest('[data-action]')?.dataset.action,member=members.find(m=>m.id===event.target.closest('[data-member-id]')?.dataset.memberId);if(!member)return;
     if(action==='remove-workspace-member')remove(member);
     if(action==='transfer-owner')transfer(member);

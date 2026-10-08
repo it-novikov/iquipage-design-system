@@ -1,4 +1,5 @@
-import {ui,icon,escapeHTML as esc,notify} from '@iquipage/web/core';
+import {ui,icon,escapeHTML as esc,notify,actionError} from '@iquipage/web/core';
+import {background} from '../ui/src/action-feedback.js';
 import {badgeText,bellLabel,rowMeta,kindGlyph,undoRequest} from './notification-model.js';
 
 /** How often the count is refreshed while the page is visible. */
@@ -65,7 +66,8 @@ export function mountNotificationBell(slot,{client,onOpen,onSettings}){
   function renderAndFocus(selector){render();const target=selector&&body.querySelector(selector);if(target)target.focus({preventScroll:true});}
   async function refreshCount(){
     if(disposed||document.visibilityState!=='visible')return;
-    try{unread=(await client.request('/notifications/unread')).unread;showCount();}catch{/* The count waits for the next round. */}
+    // The count is background work: no line under the top bar and no slow notice for it (action feedback).
+    try{unread=(await background(()=>client.request('/notifications/unread'))).unread;showCount();}catch{/* The count waits for the next round. */}
   }
   async function load(more=false){
     if(loading)return;loading=true;if(!more)render();
@@ -73,7 +75,12 @@ export function mountNotificationBell(slot,{client,onOpen,onSettings}){
       const page=await client.request('/notifications'+(more&&next?'?cursor='+encodeURIComponent(next):''));
       if(disposed)return;
       items=more?[...items,...page.items]:page.items;next=page.nextCursor;unread=page.unread;showCount();
-    }catch(error){if(!more&&!items.length)body.innerHTML=`<p class="pn-bell-empty" role="alert">${esc(error.message||'Не удалось загрузить уведомления.')}</p>`;return;}
+    }catch(error){
+      loading=false;
+      if(!more&&!items.length)body.innerHTML=`<p class="pn-bell-empty" role="alert">${esc(error.message||'Не удалось загрузить уведомления.')}</p>`;
+      // More of a list already shown: the reason stays next to «Показать ещё», which tries again.
+      else if(more){render();const button=body.querySelector('[data-bell-more]');if(button)actionError(button,error.message||'Повторите попытку.',{title:'Не загрузилось',retry:()=>button.click()});}
+      return;}
     finally{loading=false;}
     render();
   }
@@ -95,7 +102,10 @@ export function mountNotificationBell(slot,{client,onOpen,onSettings}){
         .then(()=>load()).catch(error=>notify({tone:'danger',message:'Не удалось отменить',description:error.message}))}}:{})});
     }catch(error){
       Object.assign(item,before,{pending:null});renderAndFocus(row);
-      notify({tone:'danger',message:'Не получилось',description:error.message});
+      // The row comes back as it was; the reason and «Повторить» sit next to the same quick action.
+      const again=body.querySelector(`[data-quick="${CSS.escape(action)}"][data-id="${CSS.escape(item.id)}"]`);
+      if(again&&!extra.text)actionError(again,error.message||'Повторите попытку.',{title:'Не получилось',retry:()=>again.click()});
+      else notify({tone:'danger',message:'Не получилось',description:error.message});
       if(error.status===409)void load();
     }
   }

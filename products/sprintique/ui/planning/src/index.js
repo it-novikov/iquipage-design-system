@@ -1,4 +1,4 @@
-import {registerCore,notify,bindTreeDrag,escapeHTML as esc,icon} from '@iquipage/web/core';
+import {registerCore,notify,bindTreeDrag,escapeHTML as esc,icon,FEEDBACK_TIMING} from '@iquipage/web/core';
 import {filterPlan} from './workspace-model.js';
 import {PlanningOperation} from './operation.js';
 import {operationDialog} from './dialog.js';
@@ -118,6 +118,8 @@ export async function mountPlanning(root,{adapter,project,onOpenTask,onCreateTas
   /** Moves ids into a container after a root row, then offers «Отменить» and speaks the warnings. */
   async function move(ids,containerId,afterId,{withChildren=true,quiet=false}={}){
     if(busy)return null;busy=true;
+    // The moved rows look busy after 150 ms until the plan is read again (action feedback, DS vnext.35).
+    const marking=setTimeout(()=>{for(const id of ids)root.querySelector(`[data-row="${CSS.escape(id)}"]`)?.setAttribute('aria-busy','true');},FEEDBACK_TIMING.pending);
     try{
       const result=await adapter.move({ids,containerId,afterId,withChildren,expectedRevision:data.revision});
       await load();
@@ -132,7 +134,7 @@ export async function mountPlanning(root,{adapter,project,onOpenTask,onCreateTas
       if(error?.code==='PROJECTION_STALE'){await load();notify({tone:'warning',message:'План изменился',description:'Мы обновили страницу. Повторите перенос.'});}
       else fail(error);
       return null;
-    }finally{busy=false;}
+    }finally{busy=false;clearTimeout(marking);for(const id of ids)root.querySelector(`[data-row="${CSS.escape(id)}"]`)?.removeAttribute('aria-busy');}
   }
   async function undo(restore){
     try{await adapter.move({restore});await load();say('Перенос отменён.');}

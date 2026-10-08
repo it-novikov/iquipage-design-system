@@ -2,6 +2,7 @@ import {ui,escapeHTML as esc,notify} from '@iquipage/web/core';
 import {NOTIFICATION_KINDS,telegramStatus,emailStatus,hasChannels} from './notification-model.js';
 import * as s from './settings-ui.js';
 import {dialog} from '../ui/src/ui.js';
+import {failed} from '../ui/src/action-feedback.js';
 
 /** While a link waits for /start in the chat, the section looks again this often, for the link's fifteen minutes. */
 const WAIT_MS=3000,WAIT_LIMIT_MS=15*60*1000;
@@ -64,14 +65,14 @@ export async function mountNotificationSettings(root,{repository}){
         const started=await client.request('/profile/telegram/link','POST',{});link=started.url;
         if(opened){opened.opener=null;opened.location.href=started.url;}
         waitUntil=Date.now()+WAIT_LIMIT_MS;wait();
-      }catch(error){opened?.close();notify({tone:'danger',message:'Не удалось подключить Telegram',description:error.message});}
+      }catch(error){opened?.close();failed(error,{message:'Не удалось подключить Telegram'});}
       finally{busy=false;if(!closed)render();}
       return;
     }
     if(action==='disconnect'){
       busy=true;
       try{data=await client.request('/profile/telegram','DELETE');notify({message:'Telegram отключён'});}
-      catch(error){notify({tone:'danger',message:'Не удалось отключить Telegram',description:error.message});}
+      catch(error){failed(error,{message:'Не удалось отключить Telegram'});}
       finally{busy=false;if(!closed)render();}
     }
   },{signal:events.signal});
