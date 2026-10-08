@@ -56,7 +56,9 @@ class Authentication(
                    c.project_id AS "projectId", c.capabilities, coalesce(s.owner_id, c.initiator_id) AS "initiatorId",
                    c.scopes, c.audience,
                    g.client_id AS "clientId", coalesce(c.grant_id::text, c.id) AS "limitKey",
-                   (c.last_used_at IS NULL OR c.last_used_at < clock_timestamp() - interval '5 minutes') AS stale
+                   (c.last_used_at IS NULL OR c.last_used_at < clock_timestamp() - interval '5 minutes') AS stale,
+                   (c.kind = 'session' AND c.expires_at < least(c.created_at + interval '${Accounts.SESSION_LIMIT}',
+                     clock_timestamp() + interval '${Accounts.SESSION_IDLE}') - interval '1 hour') AS renew
             FROM auth.credentials c JOIN auth.principals p ON p.id = c.principal_id
             LEFT JOIN auth.oauth_grants g ON g.id = c.grant_id
             LEFT JOIN auth.service_accounts s ON s.principal_id = p.id
@@ -112,6 +114,19 @@ class Authentication(
             actor.projectId.orEmpty(),
             actor.initiatorId,
         )
+        // A session in use lives on: its end moves to a week from now, at most hourly, never past the limit from
+        // sign-in.
+        if (credential.kind == CredentialKind.SESSION && found.boolean("renew")) {
+            tx.update(
+                """
+                UPDATE auth.credentials SET last_used_at = clock_timestamp(),
+                       expires_at = least(created_at + interval '${Accounts.SESSION_LIMIT}',
+                         clock_timestamp() + interval '${Accounts.SESSION_IDLE}')
+                WHERE id = $1
+                """.trimIndent(),
+                actor.credentialId,
+            )
+        }
         if (intent.isMutation && actor.credentialKind == CredentialKind.SESSION) {
             requireCondition(
                 intent.origin == properties.publicOrigin && intent.csrfToken != null && intent.csrfToken == actor.csrf,
