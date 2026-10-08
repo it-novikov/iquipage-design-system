@@ -2,13 +2,13 @@
 bridge: 1
 id: 20261008-avatar-initials
 title: "Аватары по дизайн-системе: одна шкала и инициалы с полями (DS vnext.38)"
-status: active
+status: review
 risk: standard
 owner: nvkv71
 branch: fix/avatar-initials
 base: origin/main
 created: 2026-10-08
-updated: 2026-10-08T10:59:43Z
+updated: 2026-10-08T11:08:38Z
 links:
 ---
 

@@ -18,3 +18,4 @@
 - 2026-10-08T10:59:43Z · claude · note · - · Гейты на vnext.38: DS 453/453; npm ci, npm test 453/453 с Kotlin, check:boundaries, verify-vnext PASS; скриншоты в scratchpad avatars/
 - 2026-10-08T10:59:43Z · claude · checkpoint · - · дальше: PR слить (владелец разрешил), деплой делает владелец
 - 2026-10-08T11:00:17Z · claude · note · - · База карточки origin/main: локальная ветка main в worktree ux-ds-20260925 отстала (9aaa7b3), и check принимал чужие изменения Kotlin из влитых PR за изменения этой задачи
+- 2026-10-08T11:08:38Z · claude · status · - · review: PR #62 открыт
