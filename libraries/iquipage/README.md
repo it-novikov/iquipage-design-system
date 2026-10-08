@@ -18,6 +18,10 @@ example demonstrates the form, not just a provider redirect. The Keycloak login 
 shipped from vnext.9 to vnext.20 was removed in vnext.21: no product uses an external
 identity provider's form any more.
 
+## Markdown text in both modes (0.6.0-vnext.37)
+
+An editor's preview is the same text as its source, so it now reads at the source's size and line height and at the full width of the editor: switching between editing and viewing no longer moves the text (before, `.md-document` from `text.css` set the preview to the 16px reading measure while the source stayed at 14px). Both `.md-input` and `.md-preview` read `--iq-md-text-size` and `--iq-md-text-leading` from `.markdown-editor`; a context that changes the editor's text size sets those properties, never `.md-input` alone. The compact heading scale follows the levels the renderer emits (`#` is `h2` at the default heading level) and is sized in em of the text, so over 14px text: `#` 16px (`calc(1em*16/14)`), `##` 14px bold, `###` 14px bold muted, `####` and below 13px muted; the steps keep that relation at any text size. `iq-markdown-viewer density="compact"` (or `.density = 'compact'`) reads like a compact editor's preview, for a description shown outside its editor. Comments and messages (`.comment-body`, `.iq-message-text`) are unchanged.
+
 ## Switcher (0.6.0-vnext.36)
 
 `switcher({label, name, items, size, tone, emphasis, className, attrs})` (also `ui.switcher`) is the workspace and project switcher of the top bar as one control: the current choice as a quiet `.iq-switcher` text label with a small chevron and no border, underlined on hover and while open, opening the DS menu (`iq-menu`, so `aria-haspopup`, `aria-expanded`, arrow keys, Home/End, typeahead and Escape come with it). The button reads «name: label».

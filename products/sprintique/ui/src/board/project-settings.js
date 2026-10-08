@@ -51,7 +51,7 @@ export async function mountProjectTaskSettings(root,{repository,project,section,
   }
   function previewTemplate(type){
     const names={base:'Базовый шаблон',task:'Шаблон задачи',bug:'Шаблон бага',epic:'Шаблон эпика'};
-    track(dialog({title:names[type],description:'Так начинается описание новой задачи. Менять шаблоны может администратор проекта.',wide:true,body:'<iq-markdown-viewer></iq-markdown-viewer>',mount:element=>{element.querySelector('iq-markdown-viewer').value=taskMarkdown(compileTaskTemplate(settings,type==='base'?'task':type))||'Описание не задано.';}}));
+    track(dialog({title:names[type],description:'Так начинается описание новой задачи. Менять шаблоны может администратор проекта.',wide:true,body:'<iq-markdown-viewer density="compact"></iq-markdown-viewer>',mount:element=>{element.querySelector('iq-markdown-viewer').value=taskMarkdown(compileTaskTemplate(settings,type==='base'?'task':type))||'Описание не задано.';}}));
   }
   root.addEventListener('click',event=>{
     const template=event.target.closest('[data-edit-template]');if(template){canManage?editTemplate(template.dataset.editTemplate):previewTemplate(template.dataset.editTemplate);return;}
@@ -94,7 +94,7 @@ export async function mountProjectTaskSettings(root,{repository,project,section,
         const target=form.querySelector('[data-effective-template]');
         try{
           const effective=compileTaskTemplate(candidate(form),base?'task':type);
-          target.innerHTML='<iq-markdown-viewer></iq-markdown-viewer>';
+          target.innerHTML='<iq-markdown-viewer density="compact"></iq-markdown-viewer>';
           target.querySelector('iq-markdown-viewer').value=taskMarkdown(effective)||'Описание не задано.';
         }catch(cause){target.textContent=cause.message;}
       }

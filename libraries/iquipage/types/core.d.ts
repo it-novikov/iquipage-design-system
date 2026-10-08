@@ -1,5 +1,5 @@
 /** Supported core browser entry. Does not register graph, roadmap, crop, or whiteboard. */
-export declare const version:'0.6.0-vnext.36';
+export declare const version:'0.6.0-vnext.37';
 export declare function registerCore():void;
 export declare function registerComponents():void;
 export declare function registerDateFields():void;
@@ -169,7 +169,7 @@ export declare function attachMentionAutocomplete(input:HTMLTextAreaElement|HTML
 export declare function safeMarkdown(source:string|null|undefined,options?:MarkdownRenderOptions):string;
 export declare function safeMarkdownURL(value:unknown):string|null;
 /** value is text, never HTML. No accepted/submitted state and no application events. */
-export declare class IqMarkdownViewer extends HTMLElement {value:string;headingLevel:1|2|3|4|5|6;interactiveTasks:boolean;/** vnext.29: members for mention pills; null shows stored labels. */mentions:MentionMembers|null;}
+export declare class IqMarkdownViewer extends HTMLElement {value:string;headingLevel:1|2|3|4|5|6;interactiveTasks:boolean;/** vnext.37: compact reads like a compact editor's preview. */density:'compact'|'comfortable';/** vnext.29: members for mention pills; null shows stored labels. */mentions:MentionMembers|null;}
 export declare function registerMarkdownViewer():void;
 export type WorkDensity='compact'|'comfortable';
 /** Named slots: header/navigation/summary/toolbar/footer. Default slot: working data. */
