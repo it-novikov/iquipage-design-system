@@ -1,6 +1,7 @@
 import {mountTaskFiles} from './task-files-view.js';
 import {uid} from '../common.js';
-import {mountTaskLinks} from './link-view.js';
+import {mountTaskLinks,mountDraftLinks} from './link-view.js';
+import {createTaskOnce,linksFailedText} from './task-create.js';
 import {dialog,select,icon,esc} from '../ui.js';
 import {TASK_COLUMNS,taskColumn,createTask} from '../tasks.js';
 import {TASK_KINDS,reparentTask} from './model.js';
@@ -149,7 +150,7 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
       </div></section>
     <div class="task-editor-supplements">
     <section class="iq-section task-relations"><div class="iq-section-head">${icon('link',16)}<h3>Связи</h3><span class="iq-section-count" data-relations-count></span><span class="iq-section-actions" data-relations-actions></span></div>
-      ${task?'<div data-task-links></div>':'<p class="iq-helper">Подзадачи и связи с другими задачами можно добавить после создания.</p>'}</section>
+      ${task||canEdit?'<div data-task-links></div>':''}</section>
     <section class="iq-section task-files-section" data-task-files></section>
     <section class="task-agent-section" data-task-agents aria-label="Агенты" hidden></section>
     <section class="iq-section task-threads-section" data-task-threads></section></div></div><p role="status" class="iq-helper" data-task-save-state></p>`;
@@ -182,25 +183,47 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
   const el=dialog({title:task?taskKey(task):'Новая задача',body:content,wide:true,replace,submitLabel:canEdit&&!task?'Создать задачу':'',
     onSubmit:canEdit&&!task?async(values,form)=>{
       files.assertReady();
-      if(threads?.isBusy())throw Error('Дождитесь публикации обсуждения.');saving=true;files.setLocked(true);
+      if(threads?.isBusy())throw Error('Дождитесь публикации обсуждения.');
+      if(links?.isBusy?.())throw Error('Дождитесь сохранения связей.');
+      saving=true;files.setLocked(true);links?.setLocked?.(true);
+      const saveState=form.querySelector('[data-task-save-state]');
       try{
-        const changes=read(form,values);
+        const snapshot=JSON.stringify(read(form,values)),changes=read(form,values);
         // Untouched template text is guidance, not a description: the new task is saved without it (SPR-12).
         // Keyed on the dialog, not on `current`: a retry after a saved-but-failed first submit strips it too; the
         // template's legacy checklist copy goes with it.
         if(!task){const kept=withoutUntouchedTemplate(changes.description,lastTemplateContent);if(kept!==changes.description){changes.description=kept;delete changes.legacyChecklists;}}
-        const value=current?{...current,...changes}:{...createTask({projectId:project.id,...changes}),...changes,id:taskId};
-        const next=reparentTask(value,changes.parentId,tasks);
-        let saved=await repository.write('tasks',next,current?.revision||0);
-        current=saved;files.accepted(saved);baseline=JSON.stringify(read(form,values));
-        // A plan chosen before the task existed is scheduled right after it: the planning command needs the task.
-        if(pendingPlan){
-          try{await repository.applyPlanningChange(scheduleIntent(pendingPlan));pendingPlan=null;saved=await repository.read('tasks',taskId,project.id).catch(()=>null)||saved;current=saved;}
-          catch(error){notify({tone:'danger',message:'Задача создана, но план не сохранён: '+(error.message||'ошибка сети')});}
+        const edit=base=>reparentTask({...base,...changes},changes.parentId,tasks);
+        // The task is created once, with its staged files (task-create.js); a repeated «Создать» edits it instead.
+        let saved=current;
+        if(!current){
+          const value={...createTask({projectId:project.id,...changes}),...changes,id:taskId};
+          saved=await createTaskOnce(repository,reparentTask(value,changes.parentId,tasks),{projectId:project.id,edit});
+        }else if(snapshot!==baseline)saved=await repository.write('tasks',edit(current),current.revision);
+        if(saved!==current){
+          current=saved;files.accepted(saved);baseline=snapshot;
+          // A plan chosen before the task existed is scheduled right after it: the planning command needs the task.
+          if(pendingPlan){
+            try{await repository.applyPlanningChange(scheduleIntent(pendingPlan));pendingPlan=null;saved=await repository.read('tasks',taskId,project.id).catch(()=>null)||saved;current=saved;}
+            catch(error){notify({tone:'danger',message:'Задача создана, но план не сохранён: '+(error.message||'ошибка сети')});}
+          }
+          await onSaved(saved);
         }
-        await onSaved(saved);
-        if(threads?.dirty()){form.querySelector('[data-task-save-state]').textContent='Задача сохранена. Черновик сообщения ещё не опубликован.';return false;}
-      }finally{saving=false;files.setLocked(false);}
+        // Links follow the task, each its own repeatable command; a failed one keeps the form open with its reason.
+        if(links?.dirty?.()){
+          saveState.dataset.tone='muted';
+          const failed=await links.save(repository,{taskId,projectId:project.id,onProgress:({done,total})=>{saveState.textContent=`Сохраняются связи: ${Math.min(done+1,total)} из ${total}`;}});
+          if(failed){
+            saveState.dataset.tone='danger';saveState.textContent=linksFailedText(taskKey(current),failed);
+            form.querySelector('.iq-dialog-head h2').textContent=taskKey(current);
+            form.querySelector('.iq-dialog-footer button[type=submit]').textContent='Сохранить связи';
+            form.querySelector('.iq-dialog-footer [data-close]').textContent='Закрыть';
+            return false;
+          }
+          saveState.textContent='';
+        }
+        if(threads?.dirty()){saveState.textContent='Задача сохранена. Черновик сообщения ещё не опубликован.';return false;}
+      }finally{saving=false;files.setLocked(false);links?.setLocked?.(false);}
     }:undefined,
     mount:(el,form)=>{
       el.classList.add('task-edit-dialog');el.setAttribute('kind','drawer');el.setAttribute('persistent','');
@@ -240,7 +263,20 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
         :{value:()=>({releaseId:initial.releaseId||null,tagIds:[...(initial.tagIds||[])]}),destroy(){}};
       plan=mountPlanField(form.querySelector('[data-task-plan]'),{start:initial.plannedStart||null,end:initial.plannedEnd||null,readOnly:!canPlan,
         deadline:()=>dueField?(dueField.value||null):(initial.due||null),onApply:value=>applyPlan(value)});
-      if(task&&repository.capabilities?.taskLinks!==false)links=mountTaskLinks(form.querySelector('[data-task-links]'),{repository,project,task,tasks,readOnly:!canEdit,actionsRoot:form.querySelector('[data-relations-actions]'),countRoot:form.querySelector('[data-relations-count]'),onOpenTask:async id=>{
+      // «Родитель этой задачи» in the link picker fills the «Родитель» field, as if it were chosen there.
+      const parentField=form.querySelector('iq-select[name=parent]');
+      const linkParents={parents:parents.map(option=>option.value).filter(Boolean),onParent:parentField?id=>{parentField.value=id;parentField.dispatchEvent(new CustomEvent('iq-change',{bubbles:true,detail:{value:id}}));}:null};
+      const relations={actionsRoot:form.querySelector('[data-relations-actions]'),countRoot:form.querySelector('[data-relations-count]')};
+      // After a creation whose links did not all save, the footer follows the retries until every link is in.
+      const linksChanged=()=>{
+        if(!current||!links)return;
+        const state=form.querySelector('[data-task-save-state]'),left=links.drafts.failed().length;
+        state.dataset.tone=left?'danger':'muted';
+        state.textContent=left?linksFailedText(taskKey(current),left):links.dirty()?'':`Задача ${taskKey(current)} создана, связи сохранены.`;
+        form.querySelector('.iq-dialog-footer button[type=submit]').textContent=links.dirty()?'Сохранить связи':'Готово';
+      };
+      if(!task&&canEdit&&repository.capabilities?.taskLinks!==false)links=mountDraftLinks(form.querySelector('[data-task-links]'),{tasks,parentId:initial.parentId||null,...relations,...linkParents,onChange:linksChanged});
+      if(task&&repository.capabilities?.taskLinks!==false)links=mountTaskLinks(form.querySelector('[data-task-links]'),{repository,project,task,tasks,readOnly:!canEdit,...relations,...(canEdit?linkParents:{}),onOpenTask:async id=>{
         if(onOpenTask){await onOpenTask(id);return;}
         const target=await repository.read('tasks',id,project.id);if(!target)throw Error('Задача недоступна.');
         await openTaskDialog(target,{repository,project,tasks,canEdit,canManage,attachmentAdapter,onSaved});
@@ -279,7 +315,7 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
           submitLabel:untouched?'Применить':'Заменить описание',onSubmit:async values=>{apply(values.get('starter'));}});
       });
       let discarded=false;
-      const dirty=()=>!discarded&&(canEdit&&(JSON.stringify(read(form))!==baseline||files.dirty())||!!threads?.dirty()||!!personal?.dirty?.());
+      const dirty=()=>!discarded&&(canEdit&&(JSON.stringify(read(form))!==baseline||files.dirty()||!!links?.dirty?.())||!!threads?.dirty()||!!personal?.dirty?.());
       const saveState=form.querySelector('[data-task-save-state]');
       let timer=0,inflight=null,again=false,conflict=false;
       function showState(text,{error=false,action=''}={}){
@@ -353,6 +389,8 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
         try{await work;}finally{if(inflight===settled)inflight=null;}
         if(failure)throw failure;
       }
+      // A new task tells how its creation goes (links saving, one that failed) beside its buttons.
+      if(!task&&canEdit)form.querySelector('.iq-dialog-footer').prepend(saveState);
       if(autosave){
         // The footer becomes the save status; the header close button stays the single way out.
         const footer=form.querySelector('.iq-dialog-footer');footer.querySelector('[data-close]').hidden=true;footer.prepend(saveState);showState('Изменения сохраняются автоматически');
@@ -373,12 +411,13 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
         confirming=true;
         const confirm=dialog({
           title:'Закрыть без сохранения?',
-          description:autosave?'Последние правки не удалось сохранить, а неопубликованные сообщения будут потеряны. Уже сохранённое останется.':'Изменения задачи и неопубликованные сообщения будут потеряны. Уже опубликованные сообщения сохранятся.',
+          description:autosave?'Последние правки не удалось сохранить, а неопубликованные сообщения будут потеряны. Уже сохранённое останется.'
+            :current?'Задача уже создана. Несохранённые связи и правки в неё не попадут.':'Изменения задачи и неопубликованные сообщения будут потеряны. Уже опубликованные сообщения сохранятся.',
           submitLabel:'Не сохранять',onSubmit:async()=>{discarded=true;if(!keepOpen)el.close();}
         });
         return new Promise(resolve=>confirm.addEventListener('iq-close',()=>{confirming=false;resolve(discarded);},{once:true}));
       }
-      el.taskController={close,dirty:()=>dirty()||saving||files.isBusy()||threads?.isBusy(),taskId,taskKey:task?taskKey(task):null};
+      el.taskController={close,dirty:()=>dirty()||saving||files.isBusy()||threads?.isBusy()||!!links?.isBusy?.(),taskId,taskKey:task?taskKey(task):null};
       form.addEventListener('click',event=>{
         if(event.target.closest('[data-close]')){event.preventDefault();event.stopImmediatePropagation();close();}
       },{capture:true});
