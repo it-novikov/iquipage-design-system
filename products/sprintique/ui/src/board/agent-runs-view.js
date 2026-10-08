@@ -1,4 +1,5 @@
-import {ui,notify,formatDateTime} from '@iquipage/web/core';
+import {ui,notify,formatDateTime,pending,actionError} from '@iquipage/web/core';
+import {background} from '../action-feedback.js';
 import {icon,esc} from '../ui.js';
 
 // Agents of service accounts on a task (docs/decisions/0005-ai-agents.md). The drawer gets one quiet action in its
@@ -29,7 +30,7 @@ export function mountAgentRuns(root,{repository,project,task,actions}){
     clearTimeout(timer);
     try{state=await repository.taskAgents(project.id,task.id);}catch{state=null;}
     if(closed)return;render();
-    if(state?.runs?.some(r=>ACTIVE.has(r.state)))timer=setTimeout(load,POLL);
+    if(state?.runs?.some(r=>ACTIVE.has(r.state)))timer=setTimeout(()=>background(load),POLL);
   };
   function renderTrigger(){
     trigger?.remove();trigger=null;
@@ -52,19 +53,26 @@ export function mountAgentRuns(root,{repository,project,task,actions}){
       ${steps.length?ui.btn(showSteps?'Скрыть шаги':'Шаги','ghost sm','',`data-agent-steps aria-expanded="${showSteps}"`):''}</p>
       ${showSteps?`<ol class="task-agent-steps">${steps.map(s=>`<li>${esc((toolNames[s.tool]||s.tool)+(stepStatus[s.status]||''))}</li>`).join('')}</ol>`:''}`;
   }
+  // The menu closes on the choice, so its trigger (the spark button) carries the pending state and, on failure, the
+  // reason with «Повторить» next to it once the agents are read again (action feedback, DS vnext.35).
+  const triggerButton=()=>trigger?.querySelector('.iq-btn')||null;
+  const sayNextTo=(button,error,title,retry)=>{if(button?.isConnected)actionError(button,error.message||'Повторите попытку.',{title,retry});else notify({tone:'danger',message:title,description:error.message});};
   async function start(accountId){
-    if(busy)return;busy=true;
-    try{await repository.startAgent(project.id,task.id,accountId);notify({tone:'success',message:'Агент запущен',description:'Ответ появится в обсуждении задачи.'});}
-    catch(error){notify({tone:'danger',message:'Агент не запущен',description:error.message});}
+    if(busy)return;busy=true;let failure=null;
+    try{await pending(triggerButton(),()=>repository.startAgent(project.id,task.id,accountId));notify({tone:'success',message:'Агент запущен',description:'Ответ появится в обсуждении задачи.'});}
+    catch(error){failure=error;}
     finally{busy=false;}
     await load();
+    if(failure&&!closed)sayNextTo(triggerButton(),failure,'Агент не запущен',()=>void start(accountId));
   }
   async function stop(runId){
-    if(busy)return;busy=true;
-    try{await repository.stopAgent(project.id,task.id,runId);}
-    catch(error){notify({tone:'danger',message:'Не удалось остановить агента',description:error.message});}
+    if(busy)return;busy=true;let failure=null;
+    const button=root.querySelector(`[data-agent-stop="${CSS.escape(runId)}"]`);
+    try{await pending(button,()=>repository.stopAgent(project.id,task.id,runId));}
+    catch(error){failure=error;}
     finally{busy=false;}
     await load();
+    if(failure&&!closed)sayNextTo(root.querySelector(`[data-agent-stop="${CSS.escape(runId)}"]`),failure,'Агент не остановлен',()=>void stop(runId));
   }
   const onClick=event=>{
     const item=event.target.closest('[data-action^="agent-start:"]');

@@ -1,4 +1,4 @@
-import {ui,escapeHTML as esc,scale,notify} from '@iquipage/web/core';
+import {ui,escapeHTML as esc,scale,notify,pending,FEEDBACK_TIMING} from '@iquipage/web/core';
 import {dialog} from '../../src/ui.js';
 import {currencySymbol,currencyName} from './money.js';
 import {money,editorTitle,editorLines,editorTotal,amountText,longDate,scaleLabel,dayText,currencyWords} from './overview-model.js';
@@ -100,8 +100,10 @@ export function mountPlanEditor(root,{api,plan,settings,today,categories,release
     const scope=form.querySelector('iq-select[name=scope]')?.value||header.releaseId||null;
     const scopeRelease=releases.find(r=>r.id===scope);
     const value={name:scopeRelease?.name||header.name,periodStart:start,periodEnd:end,releaseId:scope||null};
-    const buttons=[...root.querySelectorAll('button')];buttons.forEach(b=>b.disabled=true);
-    try{
+    // The pressed button is the DS pending action (vnext.35); the other buttons wait, disabled only after 150 ms.
+    const pressed=root.querySelector(approve?'[data-approve]':'[data-save]');
+    let buttons=[];const lock=setTimeout(()=>{buttons=[...root.querySelectorAll('button')].filter(b=>b!==pressed&&!b.disabled);buttons.forEach(b=>b.disabled=true);},FEEDBACK_TIMING.pending);
+    try{await pending(pressed,async()=>{
       let current=plan;
       const changed=!current||value.periodStart!==current.periodStart||value.periodEnd!==current.periodEnd;
       if(changed&&!fixedPeriod){
@@ -118,8 +120,8 @@ export function mountPlanEditor(root,{api,plan,settings,today,categories,release
       }
       notify({tone:'success',message:approve?`Версия ${current.selected.version} утверждена`:'Черновик сохранён'});
       await onDone?.(current,{approved:approve});
-    }catch(failure){fail(failure.message||'Не удалось сохранить план.');}
-    finally{buttons.forEach(b=>{if(b.isConnected)b.disabled=false;});}
+    });}catch(failure){fail(failure.message||'Не удалось сохранить план.');}
+    finally{clearTimeout(lock);buttons.forEach(b=>{if(b.isConnected)b.disabled=false;});}
   }
   function fail(message,field){
     error.textContent=message;error.hidden=false;

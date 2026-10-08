@@ -2,6 +2,7 @@ import {ui,enhance,notify,escapeHTML as esc,formatDateTime} from '@iquipage/web/
 import {dialog,input} from '../ui/src/ui.js';
 import {choose,rowMenu,explain,plural} from './access-ui.js';
 import * as s from './settings-ui.js';
+import {failed} from '../ui/src/action-feedback.js';
 
 // «ИИ-подключения» (Пространство): keys of language model providers that agents of service accounts think with
 // (docs/decisions/0005-ai-agents.md). People with «Настраивать пространство» add, change, check and delete them; other
@@ -21,7 +22,7 @@ export async function mountAiConnections(root,{repository,project,tools}){
   if(tools)tools.innerHTML='';
   function track(element){modal=element;element.addEventListener('iq-close',()=>{if(modal===element)modal=null;void refresh().catch(fail);},{once:true});return element;}
   const show=options=>track(dialog(options));
-  function fail(error){if(!closed)notify({tone:'danger',message:'Не удалось выполнить действие',description:explain(error),duration:10000});}
+  function fail(error){if(!closed)failed(error,{description:explain(error)});}
   const state=c=>!c.lastTest?s.badge('Не проверено'):c.lastTest.state==='connected'?s.badge('Работает','success'):s.badge('Ошибка','danger');
   function row(c){
     const meta=[esc(c.defaultModel?`Модель по умолчанию: ${c.defaultModel}`:'Модель выбирается у агента'),

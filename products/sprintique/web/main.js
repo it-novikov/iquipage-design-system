@@ -12,6 +12,8 @@ import {mountTaskBoard} from '../ui/src/board/board.js';
 import {parseTaskRoute} from '../ui/src/board/task-route.js';
 import {dialog,input} from '../ui/src/ui.js';
 import {ProductRepository} from './repository.js';
+import {SprintiqueClient,ApiError} from '../client/api.ts';
+import {trackedFetch,installFeedback,placeActivityLine,failed,track} from './feedback.js';
 import {PlanningAdapter} from './planning-adapter.js';
 import {mountPlanningHost,confirmPlanningChange,applyPlanningChange,recoverPlanningAttempt} from './planning-host.js';
 import {createInRelease} from './release-scope.js';
@@ -30,7 +32,7 @@ import './workbench/workbench.css';
 registerCore();
 /** Ends the boot sequence without an error: the page is already what it should be. */
 const STOP=Symbol('stop');
-const root=document.querySelector('#app'),repository=new ProductRepository();
+const root=document.querySelector('#app'),repository=new ProductRepository(new SprintiqueClient(trackedFetch));
 let board,session,currentProject,planningAdapter,viewMode='tasks',navigating=false;
 // The Workbench (docs/adr W6): served when the server enables it; its link shows for everyone with workbench_mvp.
 // It is a section of the shell like the board: the switchers keep the last project, which the other sections open.
@@ -72,6 +74,8 @@ function ensureShell(project,mode){
       notifications:slot=>mountNotificationBell(slot,{client:repository.client,onOpen:item=>openNotification(item).catch(report),onSettings:()=>openSettings('#settings/notifications')})
     });
     nav.setTheme(document.documentElement.dataset.theme);
+    // Long requests show as a thin line under the top bar (action feedback, DS vnext.35).
+    placeActivityLine(root.querySelector('[data-product-nav]'));
   }else nav.update(context(project));
   nav.setRoute(mode);
 }
@@ -100,8 +104,13 @@ async function renderSignIn(){
 // The last opened project reopens after sign-in; a project link in the URL still wins.
 const LAST_PROJECT_KEY='sprintique.last-project:';
 function lastProject(){try{return localStorage.getItem(LAST_PROJECT_KEY+session.principal.id)||undefined;}catch{return undefined;}}
-// Failures are toasts, not modal walls: the message stays until read (hover or focus pauses it).
-function report(error){notify({tone:'danger',message:'Не удалось выполнить действие',description:error.message||'Повторите попытку.',duration:10000});}
+// Failures are said where the action was: next to the pressed button with «Повторить», otherwise a toast that stays
+// until read (hover or focus pauses it). Never a modal wall.
+function report(error){failed(error);}
+// The action system (DS vnext.35): pending buttons, the line under the top bar, slow and offline notices. Back online,
+// the open project reads again; a request that failed unseen is still reported where it was pressed.
+installFeedback({onOnline:()=>{if(currentProject)repository.refreshAll(currentProject.id);}});
+window.addEventListener('unhandledrejection',event=>{if(event.reason instanceof ApiError){event.preventDefault();failed(event.reason);}});
 /** Workspaces where the person may create a project now (mayCreateProjects); a member's answer needs their access. */
 async function creatableWorkspaces(){
   const client=repository.client,all=await client.request('/workspaces');
@@ -168,6 +177,8 @@ function routeMode(){
 async function showProject(id,mode=routeMode()){
   if(mode==='workbench'&&!workbenchOn())mode='tasks';
   if(navigating)return false;navigating=true;
+  // A section switch is one piece of work for the line under the top bar: its code, its reads and its mount.
+  let loaded;track(new Promise(done=>{loaded=done;}),'read');
   let release=null;
   try{
   if(board&&!await board.closeTask())return false;
@@ -234,7 +245,7 @@ async function showProject(id,mode=routeMode()){
   }
   const task=parseTaskRoute(location.hash);if(task&&board.openTask)await board.openTask(task,{fromRoute:true});
   return true;
-  }finally{release?.();navigating=false;}
+  }finally{release?.();navigating=false;loaded();}
 }
 async function navigate(mode){
   if(navigating||!currentProject)return;

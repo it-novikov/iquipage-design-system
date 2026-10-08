@@ -9,6 +9,7 @@ import {invitationRow,invitationAction,nextResend} from './invitations.js';
 import {isWaiting,invitationSummary,invitationState,goneState,invitationRights} from './invitation-model.js';
 import {invitationFlow} from './invitation-flow.js';
 import * as s from './settings-ui.js';
+import {failed} from '../ui/src/action-feedback.js';
 /**
  * Project members: the preset is chosen in the row and applies at once (personal changes stay); the row menu opens
  * «Что может», the permission editor and removal. Service accounts are a group of their own: their rights are changed
@@ -145,7 +146,7 @@ export async function mountMembers(root,{repository,project,tools,notice=''}){
     if(action==='member-edit')return edit(member);
     if(action==='remove-member')return show({title:`Удалить ${member.name} из проекта?`,description:'Доступ к задачам и картам пропадёт сразу. Позже человека можно пригласить снова.',submitLabel:'Удалить',success:`${member.name} больше не в проекте`,
       onSubmit:async()=>{const body={baseRevision:member.revision,role:null};try{await client.request(base+'/members/'+encodeURIComponent(member.id),'PATCH',body,await repository.key('member:'+member.id,body));}catch(error){throw Error(explain(error));}await load();}});
-  })().catch(error=>notify({tone:'danger',message:'Не удалось выполнить действие',description:explain(error),duration:10000}));};
+  })().catch(error=>failed(error,{description:explain(error)}));};
   root.addEventListener('click',onClick,{signal:abort.signal});tools?.addEventListener('click',onClick,{signal:abort.signal});
   await load();return {readyToLeave:()=>!modal,destroy(){closed=true;loading++;clearTimeout(timer);abort.abort();modal?.close(true);root.replaceChildren();}};
 }

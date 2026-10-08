@@ -1,7 +1,9 @@
 // Sign-in on the DS authentication screen: a code by e-mail first, then Google and Apple when the server has them.
 // Only the ways in the server reports are offered; a provider that sends the browser back with an error lands here
 // with ?sign-in-error=CODE, shown once and removed from the address. An invitation link shows what it invites to.
-import {icon,escapeHTML as esc,formatDateTime} from '@iquipage/web/core';
+import {icon,escapeHTML as esc,formatDateTime,pending} from '@iquipage/web/core';
+import {trackedFetch} from '../ui/src/action-feedback.js';
+import {NO_CONNECTION} from '../client/api.ts';
 import {invitationSummary,invitationState} from './invitation-model.js';
 import {invitationFlow} from './invitation-flow.js';
 const ERRORS={
@@ -29,7 +31,9 @@ export async function inspectInvitation(){
 }
 
 async function post(url,body){
-  const response=await fetch(url,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)});
+  let response;
+  try{response=await trackedFetch(url,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)});}
+  catch{throw Error(NO_CONNECTION);}
   const answer=await response.json().catch(()=>null);
   if(!response.ok)throw Object.assign(Error(answer?.message||'Не удалось выполнить запрос. Повторите попытку.'),{code:answer?.code});
   return answer;
@@ -86,17 +90,20 @@ export function mountSignIn(root,methods,invitation=null){
     history.replaceState(null,'',location.pathname+location.hash);
   }
   for(const link of root.querySelectorAll('[data-provider]'))link.addEventListener('click',keepInvitation);
-  root.querySelector('[data-dev-login]')?.addEventListener('click',async event=>{
-    const button=event.currentTarget;button.disabled=true;clear();
-    try{await post('/auth/dev-login',{username:'admin',password:'admin'});location.reload();}
-    catch(cause){button.disabled=false;fail(cause.message);}
+  // Signing in ends in a reload: the button stays pending until the page goes (action feedback, DS vnext.35).
+  const untilReload=()=>{location.reload();return new Promise(()=>{});};
+  root.querySelector('[data-dev-login]')?.addEventListener('click',event=>{
+    const button=event.currentTarget;clear();
+    void pending(button,async()=>{await post('/auth/dev-login',{username:'admin',password:'admin'});return untilReload();}).catch(cause=>fail(cause.message));
   });
   if(!methods.email)return;
 
   const emailForm=root.querySelector('[data-step=email]'),codeForm=root.querySelector('[data-step=code]');
   const emailInput=emailForm.elements.email,codeInput=codeForm.elements.code,resend=codeForm.querySelector('[data-resend]');
   let address='',timer=0;
-  const busy=(form,on)=>{for(const button of form.querySelectorAll('button'))button.disabled=on||(button===resend&&timer>0);form.setAttribute('aria-busy',String(on));};
+  // The submit button shows the DS pending state (no second press, a spinner after 150 ms); the others wait disabled.
+  const busy=(form,on)=>{for(const button of form.querySelectorAll('button:not(.sign-in-submit)'))button.disabled=on||(button===resend&&timer>0);form.setAttribute('aria-busy',String(on));};
+  const submitOf=form=>form.querySelector('.sign-in-submit');
   const invalid=(input,on)=>input.setAttribute('aria-invalid',String(on));
   function countdown(){
     let left=RESEND_SECONDS;clearInterval(timer);
@@ -118,7 +125,7 @@ export function mountSignIn(root,methods,invitation=null){
     event.preventDefault();clear();
     if(!emailInput.checkValidity()){invalid(emailInput,true);fail('Проверьте адрес почты.');emailInput.focus();return;}
     invalid(emailInput,false);address=emailInput.value.trim();busy(emailForm,true);
-    try{await send();}catch(cause){if(cause.code==='EMAIL_INVALID')invalid(emailInput,true);fail(cause.message);}
+    try{await pending(submitOf(emailForm),send);}catch(cause){if(cause.code==='EMAIL_INVALID')invalid(emailInput,true);fail(cause.message);}
     finally{busy(emailForm,false);}
   });
   codeForm.addEventListener('submit',async event=>{
@@ -126,7 +133,7 @@ export function mountSignIn(root,methods,invitation=null){
     const code=codeInput.value.replace(/\D/g,'');
     if(code.length!==6){invalid(codeInput,true);fail('Введите шесть цифр из письма.');codeInput.focus();return;}
     busy(codeForm,true);
-    try{await post('/auth/email/verify',{code});location.reload();}
+    try{await pending(submitOf(codeForm),async()=>{await post('/auth/email/verify',{code});return untilReload();});}
     catch(cause){
       invalid(codeInput,true);fail(cause.message);busy(codeForm,false);codeInput.select();
       // A spent code cannot be retried: only a new one helps, so the resend button is the next step.
@@ -139,8 +146,8 @@ export function mountSignIn(root,methods,invitation=null){
     if(codeInput.value.length===6)codeForm.requestSubmit();
   });
   resend.addEventListener('click',async()=>{
-    clear();busy(codeForm,true);
-    try{await send();}catch(cause){fail(cause.message);}finally{busy(codeForm,false);}
+    clear();codeForm.setAttribute('aria-busy','true');
+    try{await pending(resend,send);}catch(cause){fail(cause.message);}finally{busy(codeForm,false);}
   });
   codeForm.querySelector('[data-change]').addEventListener('click',()=>{clear();clearInterval(timer);timer=0;showStep('email');emailInput.select();});
   emailInput.focus();

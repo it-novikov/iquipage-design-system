@@ -1,4 +1,4 @@
-import {ui,icon,escapeHTML as esc,settingsNavigation,notify,enhance,count} from '@iquipage/web/core';
+import {ui,icon,escapeHTML as esc,settingsNavigation,notify,enhance,count,pending} from '@iquipage/web/core';
 import {mountProjectTaskSettings} from '../ui/src/board/project-settings.js';
 import {settingsDialog,timeZoneField} from '../ui/planning/src/release-dialogs.js';
 import {mountMembers} from './members.js';
@@ -77,10 +77,11 @@ export async function mountSettings(root,{repository,project,adapter,onChanged=(
   form.addEventListener('input',sync);form.addEventListener('iq-change',sync);
   resetForm=()=>{dirty=false;void after();};
   form.addEventListener('submit',async event=>{
-   event.preventDefault();if(busy||!dirty)return;busy=true;alert.hidden=true;submit.disabled=true;status.textContent='Сохраняем…';form.setAttribute('aria-busy','true');
-   try{await save(read());dirty=false;notify({message:'Изменения сохранены',tone:'success'});await onChanged();busy=false;await after();}
+   // The save button is the DS pending action (vnext.35): no second save, its spinner after 150 ms, the status says so.
+   event.preventDefault();if(busy||!dirty)return;busy=true;alert.hidden=true;status.textContent='Сохраняем…';form.setAttribute('aria-busy','true');
+   try{await pending(submit,()=>save(read()));dirty=false;notify({message:'Изменения сохранены',tone:'success'});await onChanged();busy=false;await after();}
    catch(error){if(!closed){alert.hidden=false;alert.textContent=error.message;status.textContent='Не удалось сохранить';}}
-   finally{busy=false;if(form.isConnected){submit.disabled=false;form.removeAttribute('aria-busy');}}
+   finally{busy=false;if(form.isConnected)form.removeAttribute('aria-busy');}
   });
  }
  const formShell=(body,label)=>`<form class="iq-settings-stack" data-settings-form novalidate>${body}<p class="iq-inline danger" role="alert" data-form-error hidden></p>${s.savebar(label)}</form>`;

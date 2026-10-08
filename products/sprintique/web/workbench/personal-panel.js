@@ -4,6 +4,7 @@
 import {ui,icon,escapeHTML as esc,notify} from '@iquipage/web/core';
 import {ageLabel,dayLabel,snoozePresets,VERBS,watchToggle} from './model.js';
 import {cancelPending,commitPending as pendingCommit,hold,isPending,release} from './pending.js';
+import {failed} from '../../ui/src/action-feedback.js';
 
 const ACTION_OF={review:'review',approval:'approve',do:'do',answer:'question',decision:'decision'};
 
@@ -63,7 +64,7 @@ export function mountPersonalPanel(section,{api,projectId,taskId,actorId,actions
       await api.participation(projectId,taskId,state.participationRevision,!state.participating);
       await load();onChanged?.();
       notify({tone:'info',message:state.participating?'Вы наблюдаете за задачей':'Вы больше не наблюдаете за задачей',duration:3000});
-    }catch(error){notify({tone:'danger',message:'Не получилось',description:error.message});}
+    }catch(error){failed(error,{message:'Не получилось'});}
     // Disabling drops the focus to the page: a keyboard press keeps it on the toggle.
     finally{join.disabled=false;if(had&&!destroyed&&(!document.activeElement||document.activeElement===document.body))join.focus({preventScroll:true});}
   })(),{signal:events.signal});
@@ -79,7 +80,7 @@ export function mountPersonalPanel(section,{api,projectId,taskId,actorId,actions
           notify({tone:'success',message:'Запрос закрыт',action:{label:'Отменить',run:()=>void api.reopenRequest(projectId,request.id,resolved.revision)
             .then(()=>load()).then(()=>onChanged?.()).catch(error=>notify({tone:'danger',message:'Не удалось отменить',description:error.message}))},duration:8000});
           await load();onChanged?.();
-        }catch(error){button.disabled=false;notify({tone:'danger',message:'Не получилось',description:error.message});}
+        }catch(error){button.disabled=false;failed(error,{message:'Не получилось'});}
       })();
     }
     else if(button.hasAttribute('data-approve-undo'))cancelPending(request.id);
@@ -106,7 +107,7 @@ export function mountPersonalPanel(section,{api,projectId,taskId,actorId,actions
       try{
         const revision=base??(await api.approval(projectId,request.approvalId)).revision;
         await api.decide(projectId,request.approvalId,revision,'approved');notify({tone:'success',message:'Утверждено'});
-      }catch(error){notify({tone:'danger',message:'Не удалось утвердить',description:error.message});}
+      }catch(error){failed(error,{message:'Не удалось утвердить'});}
       if(!destroyed)await load();onChanged?.();
     };
     const timer=setTimeout(()=>void decide(),8000);
@@ -131,7 +132,7 @@ export function mountPersonalPanel(section,{api,projectId,taskId,actorId,actions
         else await api.startThread(projectId,taskId,text);
         await api.resolveRequest(projectId,request.id,request.revision).catch(error=>{if(error.code!=='REQUEST_CLOSED')throw error;});
         notify({tone:'success',message:'Ответ отправлен, запрос закрыт'});await load();onChanged?.({discussion:true});
-      }catch(error){submit.disabled=false;notify({tone:'danger',message:'Не удалось отправить ответ',description:error.message});}
+      }catch(error){submit.disabled=false;failed(error,{message:'Не удалось отправить ответ'});}
       finally{sending=false;}
     })();
   }
@@ -153,7 +154,7 @@ export function mountPersonalPanel(section,{api,projectId,taskId,actorId,actions
     const preset=snoozePresets(request?.neededBy)[Number(action.slice(12))];if(!preset)return;
     void api.snooze(projectId,taskId,state.snoozeRevision,preset.until.toISOString())
       .then(()=>{notify({tone:'info',message:`Отложено: ${preset.label.toLowerCase()}`});return load();}).then(()=>onChanged?.())
-      .catch(error=>notify({tone:'danger',message:'Не удалось отложить',description:error.message}));
+      .catch(error=>failed(error,{message:'Не удалось отложить'}));
   },{signal:events.signal});
   renderJoin();void load();
   return {

@@ -18,6 +18,16 @@ example demonstrates the form, not just a provider redirect. The Keycloak login 
 shipped from vnext.9 to vnext.20 was removed in vnext.21: no product uses an external
 identity provider's form any more.
 
+## Action feedback (0.6.0-vnext.35)
+
+One time-keyed answer to «what happens after I press this», so a fast connection sees nothing new and a slow one is never silent.
+
+- `pending(button, work, {label})` runs `work` (a function or a promise) as the button's action. The button takes no second click at once (a capturing guard, so focus stays and nothing greys out), looks unchanged for `FEEDBACK_TIMING.pending` (150 ms), then shows `.iq-btn-spinner` at the same width with `aria-busy="true"`: in place of a leading icon, over the label otherwise, or with the present-continuous label (`PENDING_LABELS`, e.g. «Сохраняю…») when it fits. The button is back exactly as it was before the caller sees the result or the error. A second call while it runs returns the running work.
+- `actionError(button, error, {retry, at})` says what went wrong right next to the control: floating under it in the top layer (no layout shift, next in the tab order, closed by Escape or the next press), or written into a form's error line with `at`. `retry` adds «Повторить».
+- `trackActivity(promise, {kind})` reports a request in flight. `mountActivityLine(host)` draws a 2px indeterminate line under `host` (the top bar) while any tracked request is older than 1 s; static under reduced motion. `watchConnection({onOnline})` puts calm notices at the top of the toast stack: «Связь медленная» after 8 s, «Нет подключения к интернету» while offline (it stays), «Связь восстановлена» for a moment after, when `onOnline` lets the host refresh. `reportNetworkFailure()` marks offline when a request failed without an answer and the browser agrees.
+- `autoPending()` turns the above into zero-boilerplate feedback: a tracked request that starts within `FEEDBACK_TIMING.attribution` of a press on a `.iq-btn` (or `[data-pending-auto]`) holds that button pending; chained requests keep it; `data-no-pending` opts out. `recentFailure()` returns the button whose request just failed, for a generic error report to speak next to it.
+- `saveIndicator(el, {idle})` is the quiet autosave line («Сохраняю…» after 150 ms, «Сохранено», then the resting text; «Не сохранено» with «Повторить»), `uploadProgress(el, {name})` a file row's bar with «12 из 40 МБ». `configureFeedback()` changes the timings; `announce(text)` writes into the toast live regions.
+
 ## Scale, amount and figure tooltips (0.6.0-vnext.30)
 
 - `scale({target, done, pending, max, size, label, over})` (also `ui.scale`) draws `.iq-scale`: what is done (ink), what is pending (ink at 30%, 22% in the small size) and, with a target, a 2px mark at 84% of the width where the track ends; only an overrun goes past the mark, in danger (`over: 'success'` when going past is good). A zero target puts the mark at the start and draws any amount as an overrun. Without a target the parts are drawn against `max` (or their sum) on a full track. Sizes: `lg` 26px (a summary), `md` 14px (an editor), `sm` 6px (a row). The scale is `role="img"` with `label` as its text; write the figures there. `scaleParts()` returns the geometry for tests and custom drawings. Values may be exact decimal strings.

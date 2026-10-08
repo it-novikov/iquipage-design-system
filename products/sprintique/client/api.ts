@@ -3,6 +3,8 @@ import type {SessionInfo,Task,TaskData,Thread,ThreadPage} from '../contracts/ind
 export class ApiError extends Error {
   constructor(public readonly code:string,message:string,public readonly status:number,public readonly action:unknown=null){super(message);}
 }
+/** The message of a request that got no answer (offline, a dropped connection). */
+export const NO_CONNECTION='Нет связи с сервером. Проверьте подключение и повторите.';
 export class SprintiqueClient {
   csrf:string|null=null;
   constructor(private readonly fetcher:typeof fetch=(...args)=>fetch(...args),private readonly base='/api/v1'){}
@@ -11,7 +13,10 @@ export class SprintiqueClient {
     if(body!==undefined)headers['Content-Type']='application/json';
     if(this.csrf)headers['X-CSRF-Token']=this.csrf;
     if(key)headers['Idempotency-Key']=key;
-    const response=await this.fetcher(this.base+path,{method,credentials:'same-origin',headers,...(body===undefined?{}:{body:JSON.stringify(body)}),...(signal?{signal}:{})});
+    let response:Response;
+    // A request that got no answer at all (offline, a dropped connection) speaks the product's language, not the browser's.
+    try{response=await this.fetcher(this.base+path,{method,credentials:'same-origin',headers,...(body===undefined?{}:{body:JSON.stringify(body)}),...(signal?{signal}:{})});}
+    catch(error){if((error as Error)?.name==='AbortError')throw error;throw new ApiError('NETWORK',NO_CONNECTION,0);}
     if(!response.ok){
       const error=await response.json().catch(()=>({code:'NETWORK',message:'Сервис недоступен.'})) as {code:string;message:string;action?:unknown};
       throw new ApiError(error.code,error.message,response.status,error.action);
@@ -22,7 +27,9 @@ export class SprintiqueClient {
   /** Uploads the person's own photo; the server re-encodes it to a 256×256 WebP. */
   async setAvatar(image:Blob):Promise<{avatarRevision:number}>{
     const headers:Record<string,string>={Accept:'application/json','Content-Type':'application/octet-stream'};if(this.csrf)headers['X-CSRF-Token']=this.csrf;
-    const response=await this.fetcher(this.base+'/profile/avatar',{method:'PUT',credentials:'same-origin',headers,body:image});
+    let response:Response;
+    try{response=await this.fetcher(this.base+'/profile/avatar',{method:'PUT',credentials:'same-origin',headers,body:image});}
+    catch{throw new ApiError('NETWORK',NO_CONNECTION,0);}
     if(!response.ok){const error=await response.json().catch(()=>({code:'NETWORK',message:'Сервис недоступен.'})) as {code:string;message:string};throw new ApiError(error.code,error.message,response.status);}
     return response.json() as Promise<{avatarRevision:number}>;
   }

@@ -1,4 +1,4 @@
-import {icon,escapeHTML as esc,registerCore,notify,formatDateTime} from '@iquipage/web/core';
+import {icon,escapeHTML as esc,registerCore,notify,formatDateTime,pending,FEEDBACK_TIMING} from '@iquipage/web/core';
 export {icon,esc};
 export const button=(action,label,glyph,variant='ghost',extra='')=>`<button type="button" class="iq-btn ${variant} sm" data-map-action="${action}" ${extra.includes('aria-label=')?'':`aria-label="${esc(label)}"`} ${extra}>${glyph?icon(glyph,17):''}<span>${esc(label)}</span></button>`;
 let fieldSequence=0;
@@ -28,18 +28,28 @@ export function dialog({title,description='',body='',submitLabel='',wide=false,o
   if(wide)el.setAttribute('data-size','wide');document.body.append(el);
   const form=el.querySelector('form'),error=el.querySelector('.map-dialog-form > .map-form-error');
   let busy=false;
-  form.addEventListener('submit',async event=>{
+  // While a submit runs, the dialog cannot be closed and nothing is sent twice. For the first FEEDBACK_TIMING.pending ms
+  // nothing changes on screen (a fast answer never flickers); then the fields lock and the submit button shows the DS
+  // pending state at its width, with aria-busy (action feedback, DS vnext.35).
+  form.addEventListener('click',event=>{if(busy&&event.target.closest('[data-close]')){event.preventDefault();event.stopImmediatePropagation();}},true);
+  form.addEventListener('submit',event=>{
     event.preventDefault();if(busy||!onSubmit)return;error.hidden=true;let cancelled=false;
-    const wasPersistent=el.hasAttribute('persistent');
-    try{busy=true;el.setAttribute('persistent','');form.querySelectorAll('button[type=submit],[data-close]').forEach(b=>b.disabled=true);
-      const values=new FormData(form);
-      const fields=[...form.querySelectorAll('input,textarea,iq-select,button:not([type=submit]):not([data-close])')].filter(x=>!x.hasAttribute('disabled'));
+    const wasPersistent=el.hasAttribute('persistent'),submit=event.submitter?.type==='submit'?event.submitter:form.querySelector('button[type=submit]');
+    busy=true;el.setAttribute('persistent','');form.setAttribute('aria-busy','true');
+    const values=new FormData(form);
+    let fields=[];
+    const lock=setTimeout(()=>{
+      fields=[...form.querySelectorAll('input,textarea,iq-select,button:not([type=submit])')].filter(x=>!x.hasAttribute('disabled'));
       fields.forEach(x=>x.setAttribute('disabled',''));
-      let keep;try{keep=await onSubmit(values,form,el);}finally{fields.forEach(x=>x.removeAttribute('disabled'));}if(keep!==false){el.close(true);if(success)notify({tone:'success',message:success});}
+    },FEEDBACK_TIMING.pending);
+    void pending(submit,async()=>{
+      let keep;try{keep=await onSubmit(values,form,el);}finally{clearTimeout(lock);fields.forEach(x=>x.removeAttribute('disabled'));}
+      return keep;
+    }).then(keep=>{if(keep!==false){el.close(true);if(success)notify({tone:'success',message:success});}},e=>{
     // A cancelled confirmation inside the submit leaves the form as it was, without an error, and focus returns to
     // the submit button once it is enabled again (the confirmation remembered it while it was disabled).
-    }catch(e){if(e?.cancelled)cancelled=true;else{error.textContent=e.message||'Не удалось выполнить действие.';error.hidden=false;}}
-    finally{busy=false;if(!wasPersistent)el.removeAttribute('persistent');form.querySelectorAll('button[type=submit],[data-close]').forEach(b=>b.disabled=false);if(cancelled)form.querySelector('button[type=submit]')?.focus({preventScroll:true});}
+      if(e?.cancelled)cancelled=true;else{error.textContent=e.message||'Не удалось выполнить действие.';error.hidden=false;}
+    }).finally(()=>{busy=false;form.removeAttribute('aria-busy');if(!wasPersistent)el.removeAttribute('persistent');if(cancelled)submit?.focus({preventScroll:true});});
   });
   el.addEventListener('iq-close',()=>el.remove(),{once:true});mount?.(el,form);
   // A replacing surface takes over in one frame: the old one closes without motion and the new one appears without it.

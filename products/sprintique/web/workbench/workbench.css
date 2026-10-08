@@ -332,3 +332,6 @@ button.dsk-when[data-tone] .dsk-chev{color:currentColor}
 .dsk-complete{white-space:nowrap}
 .dsk-focused .dsk-item-tail{gap:var(--iq-space-2)}
 @media(max-width:700px){.dsk-focused .dsk-item-tail{grid-column:2 / -1;grid-row:auto;justify-self:start}.dsk-focused .dsk-item>iq-menu{grid-column:2 / -1}.dsk-focused .dsk-item>.dsk-when{grid-column:2 / -1;justify-self:start}}
+/* Action feedback (DS vnext.35): skeletons appear only after the DS loading delay, as everywhere else. */
+.dsk-skeleton-row{animation:iq-loading-appear var(--iq-motion-standard) var(--iq-ease) var(--iq-loading-delay) backwards}
+.dsk-week-skeleton,.dsk-summary-skeleton{animation:iq-loading-appear var(--iq-motion-standard) var(--iq-ease) var(--iq-loading-delay) backwards,iq-breathe calc(2 * var(--iq-motion-scene)) var(--iq-ease) 3 forwards}

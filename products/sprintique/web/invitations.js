@@ -5,6 +5,7 @@ import {rowMenu,explain} from './access-ui.js';
 import {invitationBadge,isWaiting,resendableAt,workspaceRoleNames,invitationRights} from './invitation-model.js';
 import {can} from './permissions.js';
 import * as s from './settings-ui.js';
+import {failed} from '../ui/src/action-feedback.js';
 const clock=date=>formatTime(`${String(date.getHours()).padStart(2,'0')}:${String(date.getMinutes()).padStart(2,'0')}`,24);
 /**
  * One invitation as a settings row: address or link, role, projects, who sent it, what happened to the letter. `rights`
@@ -39,7 +40,7 @@ export function invitationAction(event,{client,show,reload}){
       if(sent?.delivery==='failed')notify({tone:'warning',message:'Письмо снова не ушло',description:`${sent.email}: ${sent.deliveryError||'почтовый сервер не ответил'}`,duration:10000});
       else notify({tone:'success',message:'Письмо отправлено снова',description:sent?.email?`${sent.email}. Старая ссылка больше не работает.`:''});
       await reload();
-    }catch(error){resend.disabled=false;notify({tone:'danger',message:'Не удалось отправить',description:explain(error),duration:10000});}})();
+    }catch(error){resend.disabled=false;failed(error,{description:explain(error),message:'Не удалось отправить'});}})();
     return true;
   }
   if(revoke){
@@ -77,7 +78,7 @@ export async function mountInvitations(root,{repository,project,tools}){
     const next=nextResend(waiting);if(next)timer=setTimeout(render,Math.min(next-Date.now()+500,2**31-1));
   }
   async function load(){const sequence=++loading;const value=await client.request(base+'/invitations');if(closed||sequence!==loading)return;list=value;render();}
-  const invite=()=>openInviteDialog({repository,project,scope:'workspace',onDone:load}).then(el=>{modal=el;el.addEventListener('iq-close',()=>{if(modal===el)modal=null;},{once:true});}).catch(error=>notify({tone:'danger',message:'Не удалось открыть приглашение',description:explain(error)}));
+  const invite=()=>openInviteDialog({repository,project,scope:'workspace',onDone:load}).then(el=>{modal=el;el.addEventListener('iq-close',()=>{if(modal===el)modal=null;},{once:true});}).catch(error=>failed(error,{description:explain(error),message:'Не удалось открыть приглашение'}));
   const onClick=event=>{
     if(event.target.closest('[data-invite]'))return void invite();
     const chosen=event.target.closest('[data-invite-filter]');if(chosen){filter=chosen.dataset.inviteFilter;render();root.querySelector(`[data-invite-filter="${filter}"]`)?.focus();return;}

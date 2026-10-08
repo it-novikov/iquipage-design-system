@@ -6,6 +6,7 @@ import {inactiveGrants,ordered} from './permissions.js';
 import {workspaceRoleNames} from './invitation-model.js';
 import * as s from './settings-ui.js';
 import {mountAgentProfile} from './agent-profile.js';
+import {failed} from '../ui/src/action-feedback.js';
 
 // «Сервисные аккаунты» (Для меня): how apps (Claude and other MCP clients) and scripts reach Sprintique. An app never
 // acts as a person; it acts as a service account that a person made in a workspace and owns. Its rights are the
@@ -27,7 +28,7 @@ export async function mountServiceAccounts(root,{repository,tools}){
   /** A dialog or drawer on top: the list reloads once it closes (a change may have happened inside). */
   function track(element){modal=element;element.addEventListener('iq-close',()=>{if(modal===element)modal=null;void refresh().catch(fail);},{once:true});return element;}
   const show=options=>track(dialog(options));
-  function fail(error){if(!closed)notify({tone:'danger',message:'Не удалось выполнить действие',description:explain(error),duration:10000});}
+  function fail(error){if(!closed)failed(error,{description:explain(error)});}
   const servicePresets=workspaceId=>{
     if(!presetCache.has(workspaceId))presetCache.set(workspaceId,loadPresets(client,workspaceId,'service').catch(error=>{presetCache.delete(workspaceId);throw error;}));
     return presetCache.get(workspaceId);

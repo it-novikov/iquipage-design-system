@@ -1,5 +1,5 @@
 /** Supported core browser entry. Does not register graph, roadmap, crop, or whiteboard. */
-export declare const version:'0.6.0-vnext.34';
+export declare const version:'0.6.0-vnext.35';
 export declare function registerCore():void;
 export declare function registerComponents():void;
 export declare function registerDateFields():void;
@@ -98,6 +98,34 @@ export declare const SCALE_TARGET_AT:number;
 export declare function scaleParts(options?:Omit<ScaleOptions,'size'|'label'|'over'>):ScaleGeometry;
 /** Markup of .iq-scale (role=img, aria-label = label). */
 export declare function scale(options?:ScaleOptions):string;
+/** vnext.35 action feedback. Timings in ms: pending look of a button, activity line, slow notice, «Сохранено», click
+ *  attribution window, grace between chained requests, and how long a failure stays attributable to its button. */
+export interface FeedbackTiming {pending:number;activity:number;slow:number;saved:number;attribution:number;grace:number;failure:number;}
+export declare const FEEDBACK_TIMING:Readonly<FeedbackTiming>;
+export declare const PENDING_LABELS:Readonly<Record<string,string>>;
+export declare function configureFeedback(values?:Partial<FeedbackTiming>):FeedbackTiming;
+/** Runs work as the button's action: no second click, the pending look after FEEDBACK_TIMING.pending, the same width. */
+export declare function pending<T>(button:HTMLElement|null|undefined,work:Promise<T>|(()=>T|Promise<T>),options?:{label?:string}):Promise<T>;
+export declare function isPending(button:Element|null|undefined):boolean;
+export declare function pendingLabel(text:string):string;
+export interface ActionErrorOptions {retry?:()=>void;/** An element in the flow to write the message into instead of floating it. */at?:HTMLElement;title?:string;retryLabel?:string;}
+export declare function actionError(button:HTMLElement|null,error:unknown,options?:ActionErrorOptions):{node?:HTMLElement;remove():void};
+export declare function clearActionError(button:HTMLElement):void;
+export interface ActivityState {active:number;long:boolean;slow:boolean;slowWrite:boolean;}
+export declare function trackActivity<T>(promise:Promise<T>,options?:{kind?:'read'|'write';button?:HTMLElement}):Promise<T>;
+export declare function activityState():ActivityState;
+export declare function onActivity(listener:(state:ActivityState)=>void):()=>void;
+export declare function autoPending(options?:{selector?:string}):void;
+export declare function recentFailure():HTMLElement|null;
+export declare function announce(text:string,options?:{assertive?:boolean}):void;
+export declare function mountActivityLine(host?:HTMLElement|null):()=>void;
+export declare function watchConnection(options?:{onOnline?:()=>void}):()=>void;
+export declare function connectionState():{offline:boolean};
+export declare function reportNetworkFailure():void;
+export interface SaveIndicator {idle():void;saving():void;saved():void;failed(options?:{retry?:()=>void;message?:string}):void;track<T>(promise:Promise<T>,options?:{retry?:()=>void}):Promise<T>;}
+export declare function saveIndicator(el:HTMLElement,options?:{idle?:string}):SaveIndicator;
+export interface UploadProgress {node:HTMLElement;update(loaded:number,total:number):void;done():void;failed(message?:string,retry?:()=>void):void;}
+export declare function uploadProgress(el:HTMLElement,options?:{name?:string}):UploadProgress;
 declare global {interface HTMLElementTagNameMap {'iq-date-field':IqDateField;'iq-time':IqTime;'iq-markdown-editor':IqMarkdownEditor;'iq-pagination':IqPagination;'iq-tree':IqTree;'iq-plan':IqPlan;'iq-side-navigation':IqSideNavigation;'iq-work-header':IqWorkHeader;'iq-file-preview':IqFilePreview;}}
 
 /** Defaults are compatible with the existing editor preview: Markdown # becomes h2. */

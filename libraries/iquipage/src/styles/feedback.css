@@ -1,0 +1,44 @@
+/* Action feedback (0.6.0-vnext.35, feedback.js). Time decides what shows: nothing for the first 150 ms of an action, then a
+   spinner in the button at the same width; a line under the top bar after 1 s; a quiet notice after 8 s or offline. */
+.iq-btn[data-pending]{cursor:progress}
+.iq-btn[aria-busy=true]{position:relative}
+.iq-btn-pending-content{display:contents}
+.iq-btn[data-pending=icon] .iq-btn-pending-content>.iq-icon:first-child{display:none}
+.iq-btn[data-pending=overlay]>.iq-btn-pending-content{visibility:hidden}
+.iq-btn[data-pending=overlay]>.iq-btn-spinner{position:absolute;inset:0;margin:auto}
+.iq-btn[data-pending=label]>.iq-btn-pending-content{display:none}
+.iq-btn-spinner{flex:none;animation:iq-spin var(--iq-motion-scene) linear infinite,iq-loading-appear var(--iq-motion-fast) var(--iq-ease)}
+.iq-btn.sm>.iq-btn-spinner{width:14px;height:14px}
+.iq-btn-pending-label{white-space:nowrap}
+/* The line of long work: under its host (the top bar) or along the top of the window. */
+.iq-activity-host{position:relative}
+.iq-activity-line{position:absolute;left:0;right:0;bottom:-1px;height:2px;overflow:hidden;pointer-events:none;opacity:0;transition:opacity var(--iq-motion-standard) var(--iq-ease)}
+body>.iq-activity-line{position:fixed;top:0;bottom:auto}
+.iq-activity-line[data-active]{opacity:1}
+.iq-activity-line>span{position:absolute;top:0;bottom:0;left:0;width:32%;border-radius:var(--iq-radius-pill);background:var(--iq-accent);animation:iq-activity-slide calc(2 * var(--iq-motion-scene)) var(--iq-ease) infinite;animation-play-state:paused}
+.iq-activity-line[data-active]>span{animation-play-state:running}
+@keyframes iq-activity-slide{from{transform:translateX(-100%)}to{transform:translateX(320%)}}
+@media (prefers-reduced-motion: reduce){.iq-activity-line>span{animation:none;width:100%;opacity:.6}}
+:root[data-motion=reduced] .iq-activity-line>span{animation:none;width:100%;opacity:.6}
+/* Connection notices sit first in the toast stack and leave on their own. */
+.iq-connection-notice.tone-info .iq-toast-icon{background:var(--iq-recessed);color:var(--iq-muted)}
+/* What went wrong, next to the action: floating under the button, or written into a line of the form. */
+.iq-action-error{display:flex;align-items:center;gap:var(--iq-space-2);color:var(--iq-danger);font-size:var(--iq-type-caption-size);line-height:1.5}
+.iq-action-error>.iq-icon{flex:none}
+.iq-action-error p{flex:1;min-width:0;margin:0;color:var(--iq-ink)}
+.iq-action-error b{font-weight:500;color:var(--iq-danger)}
+.iq-action-error>.iq-btn.sm:not(.icon){--h:28px;padding:4px 8px;color:var(--iq-accent)}
+.iq-action-error>.iq-btn.icon.sm{--h:28px;color:var(--iq-muted)}
+.iq-action-error[data-placement=float]{position:fixed;inset:auto;margin:0;width:max-content;max-width:min(380px,calc(100vw - 16px));padding:var(--iq-space-1) var(--iq-space-1) var(--iq-space-1) var(--iq-space-3);border:1px solid var(--iq-line);border-radius:var(--iq-radius-sm);background:var(--iq-raised);box-shadow:var(--iq-shadow-2);overflow:visible;animation:iq-loading-appear var(--iq-motion-standard) var(--iq-ease)}
+.iq-action-error[data-placement=inline]{padding:var(--iq-space-1) 0}
+/* Autosave line of an inline field. */
+.iq-save-state{display:inline-flex;align-items:center;gap:6px;min-height:24px;font-size:var(--iq-type-caption-size);color:var(--iq-muted)}
+.iq-save-state .iq-spinner{width:12px;height:12px}
+.iq-save-state[data-state=saved]>.iq-icon{color:var(--iq-success)}
+.iq-save-state[data-state=error]{color:var(--iq-danger)}
+.iq-save-retry{padding:0;border:0;background:none;color:var(--iq-accent);font:inherit;text-decoration:underline;text-underline-offset:2px;cursor:pointer}
+/* Upload progress of one file. */
+.iq-upload-progress{display:grid;gap:4px;min-width:0}
+.iq-upload-progress .iq-progress{height:3px}
+.iq-upload-progress small{font-size:var(--iq-type-meta-size);color:var(--iq-muted);font-variant-numeric:tabular-nums}
+.iq-upload-progress[data-state=error] small{color:var(--iq-danger)}

@@ -1,7 +1,8 @@
 // What a row's controls do (design-v2 §11.3). Each command goes to the server with the revision the row carries; the
 // row then shows what happened with «Отменить» for 8 s (role=status), focus moves to the next row, and the view
 // reloads. A conflict or a refusal is said in words on the row; nothing is changed on screen before the server agrees.
-import {icon,escapeHTML as esc,notify} from '@iquipage/web/core';
+import {icon,escapeHTML as esc,notify,FEEDBACK_TIMING} from '@iquipage/web/core';
+import {failed} from '../../ui/src/action-feedback.js';
 import {dialog} from '../../ui/src/ui.js';
 import {duePresets,localDay,snoozePresets,verbOf,doneWord} from './model.js';
 import {focusRow} from './keyboard.js';
@@ -69,17 +70,21 @@ export function createActions({api,repository,view,projects,filter,openTask,open
   }
   function fail(li,error){
     const conflict=['CONFLICT','REQUEST_CHANGED','REQUEST_CLOSED'].includes(error?.code);
-    notify({tone:conflict?'warning':'danger',message:conflict?'Уже изменено в другом месте':'Не получилось',description:conflict?'Рабочий стол обновлён: посмотрите, что изменилось.':(error?.message||'Сервер не ответил.')});
+    // A plain failure is said next to the pressed control with «Повторить» (action feedback); a conflict stays a toast.
+    if(conflict)notify({tone:'warning',message:'Уже изменено в другом месте',description:'Рабочий стол обновлён: посмотрите, что изменилось.'});
+    else failed(error?.message?error:{message:'Сервер не ответил.'},{message:'Не получилось'});
     if(conflict)void view.reload({focusKey:li?.dataset.key});
   }
   async function run(li,body){
     // One command per row at a time: a second press (J twice, E and a click) waits for nothing and sends nothing.
-    if(li.getAttribute('aria-busy')==='true'||li.dataset.state==='done')return;
-    // Disabling the pressed control drops the focus: remember it, so the next row receives it afterwards.
-    li.dataset.hadFocus=String(li.contains(document.activeElement));
-    const controls=[...li.querySelectorAll('button')].filter(c=>!c.disabled);for(const c of controls)c.disabled=true;li.setAttribute('aria-busy','true');
+    if(li.dataset.running||li.dataset.state==='done')return;li.dataset.running='';
+    // The row looks busy only after 150 ms (action feedback): a fast answer never dims it. Disabling the pressed control
+    // drops the focus: remember it, so the next row receives it afterwards.
+    let controls=[];
+    const dim=setTimeout(()=>{li.dataset.hadFocus=String(li.contains(document.activeElement));
+      controls=[...li.querySelectorAll('button')].filter(c=>!c.disabled);for(const c of controls)c.disabled=true;li.setAttribute('aria-busy','true');},FEEDBACK_TIMING.pending);
     // On failure only the controls this command disabled come back; the ones disabled by their row stay so.
-    try{await body();}catch(error){for(const c of controls)c.disabled=false;if(li.dataset.hadFocus==='true')focusRow(li);fail(li,error);}finally{li.removeAttribute('aria-busy');delete li.dataset.hadFocus;}
+    try{await body();}catch(error){clearTimeout(dim);for(const c of controls)c.disabled=false;if(li.dataset.hadFocus==='true')focusRow(li);fail(li,error);}finally{clearTimeout(dim);li.removeAttribute('aria-busy');delete li.dataset.hadFocus;delete li.dataset.running;}
   }
   /** A date from a small form dialog; null when the person closes it. */
   const pickDate=(title,label)=>new Promise(resolve=>{

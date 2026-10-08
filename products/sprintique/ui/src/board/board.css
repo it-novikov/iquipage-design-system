@@ -327,3 +327,6 @@
 .task-agent-steps{margin:0;padding-left:var(--iq-space-6);color:var(--iq-muted);font-size:var(--iq-type-caption-size)}
 .task-agent-trigger{display:inline-flex}
 .task-agent-section[hidden]{display:none}
+/* Action feedback (DS vnext.35): a reply that is still loading shows its outline only after the DS loading delay, so a
+   fast answer never flashes a skeleton. */
+.iq-message[data-state=loading]{animation:iq-loading-appear var(--iq-motion-standard) var(--iq-ease) var(--iq-loading-delay) backwards}

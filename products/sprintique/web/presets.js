@@ -1,8 +1,9 @@
-import {ui,icon,escapeHTML as esc,notify} from '@iquipage/web/core';
+import {ui,icon,escapeHTML as esc,notify,pending} from '@iquipage/web/core';
 import {dialog,input} from '../ui/src/ui.js';
 import {loadCatalog,loadPresets,heldInWorkspace,rowMenu,presetPhrase,usagePhrase,plural,lowerFirst,title,explain} from './access-ui.js';
 import {compile,toggle,wouldEnable,wouldDisable,ordered,PROJECT_ACCESS,TASKS_READ} from './permissions.js';
 import * as s from './settings-ui.js';
+import {failed} from '../ui/src/action-feedback.js';
 const OWN_LIMIT=10;
 /**
  * Workspace «Пресеты прав»: the starting points of project access. Everyone in the workspace reads them; changing
@@ -89,11 +90,12 @@ export async function mountPresets(root,{repository,project,workspace}){
     const error=form.querySelector('[data-preset-error]'),bar=form.querySelector('.iq-settings-savebar'),status=bar.querySelector('.iq-settings-savebar-status'),submit=bar.querySelector('[type=submit]');
     const name=editing.name.trim(),hint=editing.hint.trim(),permissions=ordered(index,editing.permissions);
     error.hidden=true;if(!name){error.hidden=false;error.textContent='Введите название пресета.';form.querySelector('[name=name]')?.focus();return;}
-    busy=true;submit.disabled=true;status.textContent='Сохраняем…';form.setAttribute('aria-busy','true');
+    busy=true;status.textContent='Сохраняем…';form.setAttribute('aria-busy','true');
     try{
-      if(editing.id)await client.request(`${base}/${encodeURIComponent(editing.id)}`,'PUT',{baseRevision:editing.revision,name,hint,permissions});
-      // One id per new preset: a retry after a lost answer returns the preset already made.
-      else await client.request(base,'POST',{id:editing.requestId,name,hint,permissions});
+      // One id per new preset: a retry after a lost answer returns the preset already made. The save button is the DS
+      // pending action (vnext.35).
+      await pending(submit,()=>editing.id?client.request(`${base}/${encodeURIComponent(editing.id)}`,'PUT',{baseRevision:editing.revision,name,hint,permissions})
+        :client.request(base,'POST',{id:editing.requestId,name,hint,permissions}));
       const applied=editing.usage?.members;notify({tone:'success',message:`Пресет «${name}» сохранён`,description:applied?`Применён к ${plural(applied,['участнику','участникам','участникам'])}.`:''});
       editing=null;busy=false;await load();
     }catch(failure){if(!closed&&form.isConnected){error.hidden=false;error.textContent=explain(failure);status.textContent='Не удалось сохранить';}}
@@ -123,7 +125,7 @@ export async function mountPresets(root,{repository,project,workspace}){
       onSubmit:async()=>{try{await client.request(`${base}/${encodeURIComponent(preset.id)}/reset`,'POST',{baseRevision:preset.revision});}catch(error){throw Error(explain(error));}if(editing?.id===preset.id)editing=null;await load();}}));
     if(action==='preset-delete')track(dialog({title:`Удалить пресет «${preset.name}»?`,description:'Удалить можно только пресет, который никому не назначен.',submitLabel:'Удалить',success:`Пресет «${preset.name}» удалён`,
       onSubmit:async()=>{try{await client.request(`${base}/${encodeURIComponent(preset.id)}`,'DELETE');}catch(error){throw Error(explain(error));}if(editing?.id===preset.id)editing=null;await load();}}));
-  })().catch(error=>notify({tone:'danger',message:'Не удалось выполнить действие',description:explain(error),duration:10000}));},{signal:abort.signal});
+  })().catch(error=>failed(error,{description:explain(error)}));},{signal:abort.signal});
   window.addEventListener('beforeunload',event=>{if(dirty()){event.preventDefault();event.returnValue='';}},{signal:abort.signal});
   await load();
   return {readyToLeave:async()=>!modal&&await discard(),destroy(){closed=true;loading++;abort.abort();modal?.close(true);root.replaceChildren();}};

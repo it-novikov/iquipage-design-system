@@ -2,7 +2,8 @@
 // seven days of the plan. Обзор: Нужно действие (8) + Сегодня (4), Текущая работа as lanes В работе · Жду · Наблюдаю
 // (or one list), Изменилось. Список: the same rows full width with columns and paging. Each section loads, fails and
 // empties on its own; a live change is offered as one «Обновить», never as a silent reorder.
-import {ui,icon,escapeHTML as esc} from '@iquipage/web/core';
+import {ui,icon,escapeHTML as esc,actionError} from '@iquipage/web/core';
+import {background} from '../../ui/src/action-feedback.js';
 import {countLabel,localDay,plural,shortDate,weekday} from './model.js';
 import {activeItem,changeRow,dayStrip,emptyRow,failedRow,joinedItem,requestRow,skeletonRows,titleId,todayRow,waitingItem} from './rows.js';
 import {arm,bindKeyboard,focusRow} from './keyboard.js';
@@ -190,7 +191,7 @@ export function mountDashboard(host,{mode,api,repository,projects,filter,prefs,s
     }catch(error){
       button.disabled=false;
       if(error?.code==='CURSOR_STALE'||error?.code==='CURSOR_EXPIRED'){announce('Список изменился, обновляю');await load();}
-      else announce('Не удалось загрузить');
+      else{announce('Не удалось загрузить');if(button.isConnected)actionError(button,error?.message||'Повторите попытку.',{title:'Не загрузилось',retry:()=>button.click()});}
     }
   }
 
@@ -213,7 +214,7 @@ export function mountDashboard(host,{mode,api,repository,projects,filter,prefs,s
     else if(button.hasAttribute('data-reasons')){const list=li.querySelector('.dsk-reasons');const open=button.getAttribute('aria-expanded')!=='true';button.setAttribute('aria-expanded',String(open));list.hidden=!open;}
     else if(button.dataset.more)void loadMore(button.dataset.more,button);
     else if(button.hasAttribute('data-backlog-load'))void api.list('backlog',{projects:filter(),limit:20}).then(page=>{extra.backlog=page;render();
-      const first=host.querySelector('#dsk-backlog [data-row]');(first?focusRow(first):host.querySelector('#dsk-backlog-h')?.focus());}).catch(()=>announce('Не удалось загрузить'));
+      const first=host.querySelector('#dsk-backlog [data-row]');(first?focusRow(first):host.querySelector('#dsk-backlog-h')?.focus());}).catch(error=>{announce('Не удалось загрузить');if(button.isConnected)actionError(button,error?.message||'Повторите попытку.',{title:'Не загрузилось',retry:()=>button.click()});});
     else if(button.dataset.form){
       const form=button.dataset.form;if(form===prefs().layout.currentForm)return;
       void savePrefs({layout:{currentForm:form}}).then(saved=>{if(!saved)return;render();host.querySelector(`[data-form="${form}"]`)?.focus();announce(form==='list'?'Текущая работа списком':'Текущая работа дорожками');});
@@ -224,7 +225,7 @@ export function mountDashboard(host,{mode,api,repository,projects,filter,prefs,s
       void load().then(()=>{(heading&&host.querySelector(`#${CSS.escape(heading)}`)||host.querySelector('#dsk-action-h'))?.focus();});
     }
     else if(button.hasAttribute('data-snoozed-toggle')){showSnoozed=!showSnoozed;snoozed=null;render();if(showSnoozed)void api.list('snoozed',{projects:filter()}).then(page=>{snoozed=page;render();host.querySelector('[data-snoozed-toggle]')?.focus();});}
-    else if(button.hasAttribute('data-unsnooze')&&row)void api.snooze(row.projectId,row.taskId,row.personal.snoozeRevision,null).then(()=>{announce('Запрос вернулся в «Нужно действие»');return load();}).catch(()=>announce('Не удалось вернуть'));
+    else if(button.hasAttribute('data-unsnooze')&&row)void api.snooze(row.projectId,row.taskId,row.personal.snoozeRevision,null).then(()=>{announce('Запрос вернулся в «Нужно действие»');return load();}).catch(error=>{announce('Не удалось вернуть');if(button.isConnected)actionError(button,error?.message||'Повторите попытку.',{title:'Не вернулось',retry:()=>button.click()});});
   },{signal:events.signal});
   host.addEventListener('iq-action',event=>{
     const [li,row]=rowOf(event.target);if(!row)return;
@@ -251,7 +252,7 @@ export function mountDashboard(host,{mode,api,repository,projects,filter,prefs,s
   // Live: the envelope is polled while the page is visible; a new snapshot is offered, never applied under the reader.
   async function check(){
     if(document.hidden||!token||changed||actions.pendingKeys().length)return;
-    try{const next=await api.envelope({projects:filter(),limit:10});if(next.snapshotToken!==token){changed=true;const plaque=host.querySelector('.dsk-refresh');if(!plaque){const div=document.createElement('div');div.className='dsk-refresh';div.setAttribute('role','status');div.innerHTML=ui.btn('Появились изменения. Обновить','secondary sm','refresh','data-refresh-plaque');host.prepend(div);}}}
+    try{const next=await background(()=>api.envelope({projects:filter(),limit:10}));if(next.snapshotToken!==token){changed=true;const plaque=host.querySelector('.dsk-refresh');if(!plaque){const div=document.createElement('div');div.className='dsk-refresh';div.setAttribute('role','status');div.innerHTML=ui.btn('Появились изменения. Обновить','secondary sm','refresh','data-refresh-plaque');host.prepend(div);}}}
     catch{/* offline or a transient error: the next poll tries again */}
   }
   poll=setInterval(()=>void check(),POLL_MS);

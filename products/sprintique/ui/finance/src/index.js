@@ -1,4 +1,4 @@
-import {registerCore,ui,icon,escapeHTML as esc,notify} from '@iquipage/web/core';
+import {registerCore,ui,icon,escapeHTML as esc,notify,FEEDBACK_TIMING} from '@iquipage/web/core';
 import {loadingMarkup} from '../../src/loading.js';
 import {select} from '../../src/ui.js';
 import {entryDialog,postDialog,voidDialog,currencyDialog,entryDetails} from './dialogs.js';
@@ -7,6 +7,7 @@ import {PERIODS,STATE_FILTERS,DIRECTION_FILTERS,entryStatus,entryContext,formatD
 import {overviewMarkup,explainDialog} from './overview.js';
 import {mountPlanEditor} from './plan-editor.js';
 import {planOptions} from './overview-model.js';
+import {failed} from '../../src/action-feedback.js';
 
 const PAGE=50;
 const ENTRY_ROUTE=/^#finance\/([A-Za-z0-9_-]{1,100})$/;
@@ -210,10 +211,14 @@ export async function mountFinance(root,{repository,project,viewState={}}){
     track(entryDialog({api,settings,today:today(),categories:list,currencies:currencies(),onSaved:saved}));
   }
   async function openEntry(id){
-    if(modal||disposed)return false;const list=await categories();
-    let entry=entries.find(item=>item.id===id);
-    try{entry=await api.request('/finance-entries/'+encodeURIComponent(id),'GET',undefined,undefined,abort.signal);}
-    catch(failure){if(!disposed)notify({tone:'danger',message:'Операция недоступна',description:failure.message});history.replaceState(null,'','#finance');return false;}
+    if(modal||disposed)return false;
+    // The pressed row says it is opening after 150 ms (action feedback); the details dialog follows the read.
+    const row=root.querySelector(`tr[data-entry="${CSS.escape(id)}"]`),opening=row?setTimeout(()=>row.setAttribute('aria-busy','true'),FEEDBACK_TIMING.pending):0;
+    const done=()=>{clearTimeout(opening);row?.removeAttribute('aria-busy');};
+    let list,entry=entries.find(item=>item.id===id);
+    try{list=await categories();entry=await api.request('/finance-entries/'+encodeURIComponent(id),'GET',undefined,undefined,abort.signal);}
+    catch(failure){done();if(!disposed)failed(failure,{message:'Операция недоступна'});history.replaceState(null,'','#finance');return false;}
+    done();
     if(disposed||modal)return false;
     if(location.hash!=='#finance/'+id)history.pushState(null,'','#finance/'+encodeURIComponent(id));
     const leave=()=>{if(ENTRY_ROUTE.test(location.hash))history.replaceState(null,'','#finance');};
@@ -251,7 +256,7 @@ export async function mountFinance(root,{repository,project,viewState={}}){
         onDone:async next=>{closeEditor();if(next)view.plan=next.id;saveState();allCategories=null;await reload();},
         onCancel:()=>closeEditor()});
       host.querySelector('h1')?.setAttribute('tabindex','-1');host.querySelector('h1')?.focus({preventScroll:true});
-    }catch(failure){notify({tone:'danger',message:'Редактор плана не открылся',description:failure.message});}
+    }catch(failure){failed(failure,{message:'Редактор плана не открылся'});}
   }
   function closeEditor(){
     editor?.destroy();editor=null;const host=q('[data-editor]');host.hidden=true;q('[data-main]').hidden=false;
@@ -264,7 +269,7 @@ export async function mountFinance(root,{repository,project,viewState={}}){
       const path=`/finance-plans/${encodeURIComponent(current.id)}/revise`,body={baseRevision:detail.selected.revision,version:current.approvedVersion,note:null};
       await api.request(path,'POST',body,await api.key(path,body));
       await openEditor(current.id);
-    }catch(failure){notify({tone:'danger',message:'Пересмотр не начался',description:failure.message});}
+    }catch(failure){failed(failure,{message:'Пересмотр не начался'});}
   }
 
   root.addEventListener('click',event=>{
