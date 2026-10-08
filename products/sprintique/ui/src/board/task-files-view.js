@@ -227,7 +227,8 @@ export function mountTaskFiles(root,{coverRoot,adapter,task,readOnly=false,onCov
   renderCover();
   return {
     addCover(){if(editable&&!locked&&!closed)void openPresetPicker();},
-    value:()=>({attachmentIds:[...ids],coverAttachmentId:coverId,coverCrop}),
+    // In the order of the list, so a new task keeps its files as they were added, whichever upload finished first.
+    value:()=>({attachmentIds:[...rows.keys()].filter(id=>ids.includes(id)),coverAttachmentId:coverId,coverCrop}),
     dirty:()=>[...rows.values()].some(row=>!!row.file),
     isBusy:()=>active>0,
     setLocked(value){locked=!!value;root.inert=locked;coverRoot.inert=locked;},

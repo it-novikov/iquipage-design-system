@@ -205,6 +205,10 @@
 /* Description preview: an 8px inset on both sides, so text never touches the hover fill and the fill spans the column. */
 /* Relations lie on the drawer surface itself (DS iq-relation-map «Ступица», vnext.26): no inset panel. */
 .task-relations [data-task-links]{margin-bottom:var(--iq-space-4)}
+/* A new task's link that did not save: its reason and «Повторить», one quiet line under the map. */
+.task-link-failures{display:grid;gap:var(--iq-space-1)}
+.task-link-failures[hidden]{display:none}
+.task-link-failure{display:flex;align-items:center;justify-content:space-between;gap:var(--iq-space-3);margin:0;font-size:var(--iq-type-caption-size);line-height:1.5;color:var(--iq-danger)}
 /* Discussion is a full-bleed band: the conversation is visibly separate from the task itself. */
 /* Cover: always the true 12:5 frame, at most 240px high (280px in fullscreen), on a band with a blurred ambient copy. */
 
