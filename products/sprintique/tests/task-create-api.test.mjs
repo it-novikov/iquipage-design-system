@@ -80,7 +80,7 @@ test('TC2 a repeat after a lost answer creates no second task, link or file',asy
   // The creation and the first link are done by the server, but their answers never reach the browser.
   const {repository,sent}=await repositoryOf(f.alice,[['PUT','/tasks/'+taskId],['PUT','/task-links/']]);
   const value=record(taskId,{title:'Потерянный ответ',attachmentIds:['tc2-file']}),edit=base=>({...base,...value});
-  await assert.rejects(createTaskOnce(repository,value,{projectId:f.first.id,edit}),/fetch failed/);
+  await assert.rejects(createTaskOnce(repository,value,{projectId:f.first.id,edit}),/fetch failed|Нет связи с сервером/);
   const again=await createTaskOnce(repository,value,{projectId:f.first.id,edit});
   assert.equal(again.revision,1,'the same command is answered from the ledger, not done twice');
   assert.equal(await count('SELECT count(*) n FROM app.tasks WHERE project_id=$1 AND title=$2','Потерянный ответ'),1);
@@ -93,7 +93,7 @@ test('TC2 a repeat after a lost answer creates no second task, link or file',asy
   // A changed form after a lost answer meets the task it already made and edits it.
   const {repository:second}=await repositoryOf(f.alice,[['PUT','/tasks/tc2-edited']]);
   const first=record('tc2-edited',{title:'Первая версия'});
-  await assert.rejects(createTaskOnce(second,first,{projectId:f.first.id,edit:base=>({...base,title:'Вторая версия'})}),/fetch failed/);
+  await assert.rejects(createTaskOnce(second,first,{projectId:f.first.id,edit:base=>({...base,title:'Вторая версия'})}),/fetch failed|Нет связи с сервером/);
   const changed=record('tc2-edited',{title:'Вторая версия'});
   const edited=await createTaskOnce(second,changed,{projectId:f.first.id,edit:base=>({...base,title:'Вторая версия'})});
   assert.equal(edited.title,'Вторая версия');assert.equal(edited.revision,2);
