@@ -316,8 +316,9 @@
 .host-task-board>.kanban-column::after{content:"";display:block;flex:none;position:sticky;bottom:0;z-index:4;height:var(--sq-column-radius);margin-top:auto;pointer-events:none;
   background:radial-gradient(circle at 100% 0,transparent calc(var(--sq-column-radius) - 0.5px),var(--sq-board-backdrop) var(--sq-column-radius)) left bottom/var(--sq-column-radius) var(--sq-column-radius) no-repeat,
     radial-gradient(circle at 0 0,transparent calc(var(--sq-column-radius) - 0.5px),var(--sq-board-backdrop) var(--sq-column-radius)) right bottom/var(--sq-column-radius) var(--sq-column-radius) no-repeat}
-/* SPR-13: the release the board shows, a compact DS select before the sort. */
-.host-board-release iq-select{min-width:0;max-width:260px}
+/* SPR-13: the title is the release the board shows and its switcher (DS switcher at the title's size, as the
+   workspace and project in the top bar); a long name ends in an ellipsis instead of pushing the tools. */
+.host-board-title{min-width:0;max-width:100%}
 /* Agents of service accounts on a task: one quiet line above the discussion (docs/decisions/0005-ai-agents.md). */
 .task-agent-section{display:grid;gap:var(--iq-space-1);min-width:0}
 .task-agent-line{display:flex;align-items:center;flex-wrap:wrap;gap:var(--iq-space-2);margin:0;color:var(--iq-muted);font-size:var(--iq-type-meta-size)}

@@ -138,7 +138,9 @@ export const connectionState=feedbackModule.connectionState;
 export const reportNetworkFailure=feedbackModule.reportNetworkFailure;
 export const saveIndicator=feedbackModule.saveIndicator;
 export const uploadProgress=feedbackModule.uploadProgress;
-export const version='0.6.0-vnext.35';
+// The switcher: a quiet text label with a chevron that opens the choices, current one checked (vnext.36).
+export const switcher=m13.switcher;
+export const version='0.6.0-vnext.36';
 export function registerCore(){
  registerAuthDialog();registerAuthScreen();registerSettings();registerRelationMap();registerComponents();registerDateFields();registerEditors();registerPagination();registerStructured();registerSideNavigation();registerWorkHeader();registerMarkdownViewer();registerWorkLayout();
  if(!customElements.get('iq-file-preview'))customElements.define('iq-file-preview',IqFilePreview);

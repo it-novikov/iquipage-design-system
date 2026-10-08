@@ -1,0 +1,16 @@
+/* Switcher (0.6.0-vnext.36, ui.switcher). The current choice as a quiet text label with a small chevron, no border: the
+   workspace and project in the top bar and a page title that chooses what its page shows. The trigger keeps the
+   .iq-switcher look (underline on hover and while open); the menu is the DS menu with the current choice checked. */
+.iq-switcher-menu{display:inline-flex;min-width:0;max-width:100%}
+/* Title size: the font of the heading it sits in (a 24px/600 page title stays 24px/600). The ghost padding is shifted
+   into the gutter so the title's first letter keeps its place; a relative offset, because a negative margin would
+   make the button's max-width:100% cut the name by that much. */
+.iq-switcher.iq-btn[data-size=title]{--iq-switcher-max:min(560px,60vw);position:relative;inset-inline-start:calc(-1 * var(--iq-space-2));height:auto;min-height:0;min-width:0;padding:0 var(--iq-space-2);gap:var(--iq-space-1);font:inherit;letter-spacing:inherit;line-height:inherit;color:inherit}
+.iq-switcher[data-size=title] .iq-switcher-label{padding-block:0 2px;text-underline-offset:6px}
+/* The menu: rows keep one mark column, so a choice without a glyph lines up with the checked one. */
+.iq-switcher-popup>button>.iq-switcher-mark{flex:0 0 18px;width:18px;height:18px}
+.iq-switcher-popup>button>.iq-switcher-meta{flex:none;margin-inline-start:var(--iq-space-4);color:var(--iq-muted);font-size:var(--iq-type-meta-size);font-weight:var(--iq-type-interface-weight)}
+/* The check is the current choice's only mark, as in the top bar: no filled row, no bolder label. */
+.iq-switcher-popup>button[aria-checked=true]{font-weight:450}
+.iq-switcher-popup>button[aria-checked=true]:not(:hover){background:transparent}
+.iq-switcher-popup>.iq-switcher-separator{height:1px;margin:var(--iq-space-1) 6px;border:0;background:var(--iq-line)}

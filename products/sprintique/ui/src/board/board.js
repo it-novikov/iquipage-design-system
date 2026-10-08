@@ -4,7 +4,8 @@ import {normalizeBoardFilters,hasBoardFilters,taskMatchesFilters} from './filter
 import {bindBoard,registerCore,ui,notify,FEEDBACK_TIMING} from '@iquipage/web/core';
 import {TASK_COLUMNS,taskColumn,placeTask} from '../tasks.js';
 import {icon,esc,dialog,select} from '../ui.js';
-import {BOARD_SORTS,boardComparator,projectColumn,boardReleaseChoices,boardShown} from './model.js';
+import {BOARD_SORTS,boardComparator,projectColumn,boardShown} from './model.js';
+import {mountReleaseTitle} from './release-title.js';
 import {renderTaskCard} from './card.js';
 import {openTaskDialog} from './task-dialog.js';
 import {background} from '../action-feedback.js';
@@ -29,8 +30,8 @@ export async function mountTaskBoard(root,{repository,project,canEdit=true,canMa
   let sort=Object.hasOwn(BOARD_SORTS,viewState.sort)?viewState.sort:'priority';
   const persist=()=>{viewState.sort=sort;viewState.expanded=[...expanded];try{const {x:_x,y:_y,boardScope:_scope,...stored}=viewState;localStorage.setItem(key,JSON.stringify(stored));}catch{}};
   delete viewState.query;
-  root.innerHTML=`<div class="host-task-page"><header class="host-task-heading sq-page-heading"><div class="host-task-heading-title"><h1 data-board-title>Доска задач</h1></div>
-  <div class="host-task-tools sq-page-tools"><div class="host-board-release" data-board-release></div><div class="host-board-sort" data-board-sort></div><div class="board-filter-bar" data-board-filters></div>
+  root.innerHTML=`<div class="host-task-page"><header class="host-task-heading sq-page-heading"><div class="host-task-heading-title"><h1 class="host-board-title" data-board-title>Доска задач</h1></div>
+  <div class="host-task-tools sq-page-tools"><div class="host-board-sort" data-board-sort></div><div class="board-filter-bar" data-board-filters></div>
   <button type="button" class="iq-btn primary" data-create-task ${canEdit?'':'disabled'}>${icon('plus',18)}<span>Новая задача</span></button></div>
   </header><p class="host-task-error" role="alert" hidden></p><div class="host-board-mount"></div><p class="sr-only" id="board-drag-help">Enter или пробел — взять задачу. Стрелки — выбрать позицию, Enter — переместить, Escape — отменить. В меню задачи доступно перемещение без перетаскивания.</p><span class="sr-only" role="status" data-task-live></span></div>`;
   const ownedPage=root.firstElementChild;
@@ -50,26 +51,16 @@ export async function mountTaskBoard(root,{repository,project,canEdit=true,canMa
   let chosenRelease=null,shown={backlog:true},saving=Promise.resolve();
   // The person's choice loads alongside the first catalogs instead of before them.
   let preference=repository.boardRelease?repository.boardRelease(project.id,{signal}).catch(()=>null):null;
-  const boardReleases=()=>boardReleaseChoices(catalogs.releases);
   function resolveShown(){shown=boardShown(chosenRelease,catalogs.releases);}
-  function renderTitle(){
-    root.querySelector('[data-board-title]').textContent=shown.backlog?'Без релиза':shown.name;
-    const choices=boardReleases(),value=shown.backlog?'backlog':shown.releaseId;
-    const options=[...choices.map(r=>({value:r.id,label:r.name,icon:'flag',meta:r.lifecycle==='active'?'идёт':'запланирован'})),{value:'backlog',label:'Без релиза',icon:'stack',separator:choices.length>0}];
-    const slot=root.querySelector('[data-board-release]'),current=slot.querySelector('iq-select');
-    if(current&&current.dataset.options===JSON.stringify(options)){if(current.value!==value)current.value=value;return;}
-    slot.innerHTML=`<iq-select name="board-release" label="Релиз на доске" label-hidden value="${esc(value)}" options="${esc(JSON.stringify(options))}"></iq-select>`;
-    slot.querySelector('iq-select').dataset.options=JSON.stringify(options);
-  }
-  root.addEventListener('iq-change',event=>{
-    if(event.target.getAttribute?.('name')!=='board-release')return;
-    const value=String(event.target.value||'');if(!value||value===(shown.backlog?'backlog':shown.releaseId))return;
+  // The title is the release switcher (release-title.js): picking a release reloads the board under it.
+  const releaseTitle=mountReleaseTitle(root.querySelector('[data-board-title]'),{signal,onPick:value=>{
     // A load already under way for the previous release is discarded: its tasks never show under the new title.
     chosenRelease=value;resolveShown();renderTitle();loading++;void reload();
     // Remembered for the person in this project, on every device, one save after another so the last choice wins;
     // a failed save keeps the choice for this visit.
     saving=saving.then(()=>repository.setBoardRelease?.(project.id,value)).catch(()=>notify({tone:'warning',message:'Не удалось запомнить выбор релиза. Доска покажет его до перезагрузки.'}));
-  },{signal});
+  }});
+  const renderTitle=()=>releaseTitle.render(catalogs.releases,shown);
   function render(focusId){
     if(closed||dragging){queued=true;return;}
     const old=mount.querySelector('.iq-board');

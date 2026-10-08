@@ -60,6 +60,20 @@ export function boardReleaseChoices(releases=[]){
   const key=release=>[release.lifecycle==='active'?0:1,release.lifecycle==='active'?release.plannedEnd||'9999-12-31':release.plannedStart||'9999-12-31'];
   return open.sort((a,b)=>{const [x,y]=[key(a),key(b)];return x[0]-y[0]||x[1].localeCompare(y[1])||String(a.name).localeCompare(String(b.name),'ru');});
 }
+/** The board title is the release switcher (the DS switcher of the workspace and project in the top bar): the running
+ *  releases, then the planned ones, each with its state as a quiet word, then «Без релиза» after a rule; the release
+ *  the board shows is the checked one. The action of an item is `board-release:<id|backlog>`. */
+export const BOARD_RELEASE_ACTION='board-release';
+export function boardReleaseItems(releases=[],shown={backlog:true}){
+  const choices=boardReleaseChoices(releases),current=shown?.backlog?'backlog':shown?.releaseId;
+  return [...choices.map(release=>({label:release.name,action:`${BOARD_RELEASE_ACTION}:${release.id}`,current:release.id===current,meta:release.lifecycle==='active'?'идёт':'запланирован'})),
+    ...(choices.length?[{separator:true}]:[]),{label:'Без релиза',action:`${BOARD_RELEASE_ACTION}:backlog`,current:current==='backlog'}];
+}
+/** The release (or 'backlog') a picked switcher item stands for; null for any other menu action. */
+export function boardReleasePick(action){
+  const [kind,...rest]=String(action||'').split(':'),value=rest.join(':');
+  return kind===BOARD_RELEASE_ACTION&&value?value:null;
+}
 /** What the board shows for a person's choice: the chosen running or planned release, 'backlog', or — when nothing was
  *  chosen or the chosen release has finished — the running release, else the tasks without a release. The choice
  *  itself is left as it is, so the person's preference is never overwritten by a fallback. */
