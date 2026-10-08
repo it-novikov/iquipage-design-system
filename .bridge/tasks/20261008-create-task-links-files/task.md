@@ -8,7 +8,7 @@ owner: nvkv71
 branch: feat/create-task-links-files
 base: origin/main
 created: 2026-10-08
-updated: 2026-10-08T07:41:44Z
+updated: 2026-10-08T07:41:54Z
 links:
   - https://github.com/it-novikov/iquipage-design-system/pull/57
 ---
@@ -42,6 +42,25 @@ links:
 - **Проверка:** scratchpad create-links-files: light/dark-*.png, gate-*.log; npm test 437/437, check:boundaries, verify-vnext PASS
 
 ## План
+
+### S1. Связи и файлы в окне создания [done]
+- **Что:** Раздел «Связи» с картой и выбором в окне новой задачи, сохранение связей после задачи с повтором по пункту, порядок файлов
+- **Как:** mountDraftLinks в link-view.js, task-create.js (createTaskOnce, saveLinks), отправка в task-dialog.js
+- **Зачем:** Владелец: нет возможности добавить связь и файлы при создании задачи
+- **Приёмка:**
+  - [x] Связи и файлы выбранные в форме оказываются в задаче
+  - [x] Повтор ничего не дублирует, ошибки видны по пункту
+- **Покрывает:** A1,A2,A3
+- **Итог:** Работает на стенде в обеих темах
+
+### S2. Тесты, скриншоты, гейты, PR [done]
+- **Что:** API и UI тесты, скриншоты 1440×1000, гейты, PR #57
+- **Как:** tests/task-create-api.test.mjs, tests/task-create-flow.test.mjs, headless Chrome
+- **Зачем:** Проверка приёмки
+- **Приёмка:**
+  - [x] Гейты зелёные и PR открыт
+- **Покрывает:** A4
+- **Итог:** 437/437, check:boundaries и verify-vnext PASS, PR #57
 
 ## Решения
 
