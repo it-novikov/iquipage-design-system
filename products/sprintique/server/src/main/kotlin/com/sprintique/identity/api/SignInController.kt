@@ -124,7 +124,11 @@ class SignInController(
         }
         response.addHeader(
             "Set-Cookie",
-            AuthenticatedRequests.cookieValue(AuthenticatedRequests.SESSION_COOKIE, session.token, SESSION_SECONDS),
+            AuthenticatedRequests.cookieValue(
+                AuthenticatedRequests.SESSION_COOKIE,
+                session.token,
+                Accounts.SESSION_COOKIE_SECONDS,
+            ),
         )
         return ResponseEntity.status(HttpStatus.FOUND).location(URI("/")).build()
     }
@@ -152,7 +156,6 @@ class SignInController(
     private companion object {
         const val LOGIN_COOKIE = "__Host-sprintique-login"
         const val LOGIN_SECONDS = 600L
-        const val SESSION_SECONDS = 28_800L
         const val PENDING_LIMIT = 10_000
         const val REASON_LIMIT = 200
         const val TOO_MANY_PENDING = "Слишком много незавершённых входов. Повторите через несколько минут."

@@ -29,13 +29,16 @@ class Accounts {
         return open(tx, principal)
     }
 
-    /** An eight-hour session with its own CSRF token. */
+    /**
+     * A session with its own CSRF token. It lives [SESSION_IDLE] from its last use and is renewed while the person uses
+     * the site (Authentication), but never past [SESSION_LIMIT] from sign-in.
+     */
     fun open(tx: Transaction, principalId: String): OpenedSession {
         val token = Tokens.random()
         tx.update(
             """
             INSERT INTO auth.credentials(id, principal_id, token_hash, kind, csrf, initiator_id, expires_at)
-            VALUES ($1, $2, $3, 'session', $4, $2, clock_timestamp() + interval '8 hours')
+            VALUES ($1, $2, $3, 'session', $4, $2, clock_timestamp() + interval '$SESSION_IDLE')
             """.trimIndent(),
             UUID.randomUUID().toString(), principalId, Tokens.sha256Hex(token), Tokens.random(),
         )
@@ -95,8 +98,17 @@ class Accounts {
         )
     }
 
-    private companion object {
-        const val NAME_LIMIT = 100
-        const val FALLBACK_NAME = "Участник"
+    companion object {
+        /** How long a session lives after its last use (renewed at most hourly). */
+        const val SESSION_IDLE = "7 days"
+
+        /** The longest a session can live from sign-in, however often it is used. */
+        const val SESSION_LIMIT = "30 days"
+
+        /** The cookie outlives every session it can carry; the server decides when a session ends. */
+        const val SESSION_COOKIE_SECONDS = 30L * 86_400L
+
+        private const val NAME_LIMIT = 100
+        private const val FALLBACK_NAME = "Участник"
     }
 }

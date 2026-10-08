@@ -2,6 +2,7 @@ package com.sprintique.identity.api
 
 import com.sprintique.configuration.SprintiqueProperties
 import com.sprintique.contract.Contracts
+import com.sprintique.identity.application.Accounts
 import com.sprintique.identity.application.EmailSignIn
 import com.sprintique.identity.domain.EmailAddress
 import com.sprintique.problem.ProblemException
@@ -80,7 +81,11 @@ class EmailSignInController(
         )
         response.addHeader(
             "Set-Cookie",
-            AuthenticatedRequests.cookieValue(AuthenticatedRequests.SESSION_COOKIE, session.token, SESSION_SECONDS),
+            AuthenticatedRequests.cookieValue(
+                AuthenticatedRequests.SESSION_COOKIE,
+                session.token,
+                Accounts.SESSION_COOKIE_SECONDS,
+            ),
         )
         return mapOf("ok" to true)
     }
@@ -98,7 +103,6 @@ class EmailSignInController(
         const val DEVICE_COOKIE = "__Host-sprintique-device"
         private const val DAY_SECONDS = 86_400L
         private const val CHALLENGE_SECONDS = 600L
-        private const val SESSION_SECONDS = 28_800L
         val TOKEN = Regex("^[A-Za-z0-9_-]{43}$")
     }
 }

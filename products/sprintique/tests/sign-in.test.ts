@@ -268,3 +268,26 @@ test('SI10 a percent-encoded path counts against the same sign-in budget',async(
   const encoded=await app.inject({url:'/%61uth/login/google',headers:{'x-forwarded-for':ip}});
   assert.equal(encoded.statusCode,429,encoded.body);
 });
+
+test('SI11 a session lives a week from its last use, is renewed while used, and never outlives thirty days from sign-in',async()=>{
+  const email='week@example.org',challenge=await requestCode(email);
+  const opened=await json('/auth/email/verify',{code:await mailbox.code(email)},{cookie:challenge});assert.equal(opened.statusCode,200,opened.body);
+  assert.match(String(opened.headers['set-cookie']),/__Host-sprintique=[^;]+; Path=\/; HttpOnly; Secure; SameSite=Lax; Max-Age=2592000/,'the cookie outlives the session');
+  const session=cookieOf(opened,'__Host-sprintique')!,token=session.slice('__Host-sprintique='.length);
+  const row=async()=>(await f.admin.query("SELECT extract(epoch FROM expires_at-clock_timestamp())/86400 AS days,extract(epoch FROM expires_at-created_at)/86400 AS span FROM auth.credentials WHERE token_hash=$1",[createHash('sha256').update(token).digest('hex')])).rows[0];
+  const days=async()=>Number((await row()).days);
+  assert.ok(Math.abs(await days()-7)<0.01,'a new session lives seven days');
+  const set=(sql:string)=>f.admin.query(`UPDATE auth.credentials SET ${sql} WHERE token_hash=$1`,[createHash('sha256').update(token).digest('hex')]);
+  // Used again within the hour: nothing to renew.
+  await set("expires_at=clock_timestamp()+interval '7 days'-interval '30 minutes'");
+  await principalOf(session);assert.ok(Math.abs(await days()-(7-30/1440))<0.01,'renewed at most hourly');
+  // Used after two quiet days: the end moves to a week from now.
+  await set("created_at=clock_timestamp()-interval '2 days',expires_at=clock_timestamp()+interval '5 days'");
+  await principalOf(session);assert.ok(Math.abs(await days()-7)<0.01,'renewed by use');
+  // Near the limit: renewal stops at thirty days from sign-in.
+  await set("created_at=clock_timestamp()-interval '29 days',expires_at=clock_timestamp()+interval '2 hours'");
+  await principalOf(session);assert.ok(Math.abs(Number((await row()).span)-30)<0.01,'capped at thirty days from sign-in');
+  // An expired session stays expired.
+  await set("expires_at=clock_timestamp()-interval '1 second'");
+  assert.equal((await app.inject({url:'/api/v1/session',headers:{cookie:session}})).statusCode,401);
+});
