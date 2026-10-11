@@ -29,6 +29,7 @@ import com.sprintique.database.schema.app.tables.PlanningPlans
 import com.sprintique.database.schema.app.tables.ProjectMembers
 import com.sprintique.database.schema.app.tables.TaskActivity
 import com.sprintique.database.schema.app.tables.TaskLinks
+import com.sprintique.database.schema.app.tables.TaskMaterial
 import com.sprintique.database.schema.app.tables.TaskPersonalState
 import com.sprintique.database.schema.app.tables.TaskWorkEvent
 import com.sprintique.database.schema.app.tables.TaskWorkSession
@@ -87,6 +88,8 @@ val TASK_ACTIVITY_OWNER: Index = Internal.createIndex(DSL.name("task_activity_ow
 val TASK_ACTIVITY_TASK: Index = Internal.createIndex(DSL.name("task_activity_task"), TaskActivity.TASK_ACTIVITY, arrayOf(TaskActivity.TASK_ACTIVITY.PROJECT_ID, TaskActivity.TASK_ACTIVITY.TASK_ID, TaskActivity.TASK_ACTIVITY.SEQUENCE.desc()), false)
 val TASK_LINK_FROM: Index = Internal.createIndex(DSL.name("task_link_from"), TaskLinks.TASK_LINKS, arrayOf(TaskLinks.TASK_LINKS.PROJECT_ID, TaskLinks.TASK_LINKS.FROM_ID), false)
 val TASK_LINK_TO: Index = Internal.createIndex(DSL.name("task_link_to"), TaskLinks.TASK_LINKS, arrayOf(TaskLinks.TASK_LINKS.PROJECT_ID, TaskLinks.TASK_LINKS.TO_ID), false)
+val TASK_MATERIAL_ACTIVE: Index = Internal.createIndex(DSL.name("task_material_active"), TaskMaterial.TASK_MATERIAL, arrayOf(TaskMaterial.TASK_MATERIAL.PROJECT_ID, TaskMaterial.TASK_MATERIAL.TASK_ID, TaskMaterial.TASK_MATERIAL.CREATED_AT, TaskMaterial.TASK_MATERIAL.ID), false)
+val TASK_MATERIAL_UNIQUE_URL: Index = Internal.createIndex(DSL.name("task_material_unique_url"), TaskMaterial.TASK_MATERIAL, arrayOf(TaskMaterial.TASK_MATERIAL.PROJECT_ID, TaskMaterial.TASK_MATERIAL.TASK_ID, TaskMaterial.TASK_MATERIAL.CATEGORY, TaskMaterial.TASK_MATERIAL.URL), true)
 val TASK_OWNER: Index = Internal.createIndex(DSL.name("task_owner"), Tasks.TASKS, arrayOf(Tasks.TASKS.PROJECT_ID, Tasks.TASKS.OWNER_ID), false)
 val TASK_PARENT: Index = Internal.createIndex(DSL.name("task_parent"), Tasks.TASKS, arrayOf(Tasks.TASKS.PROJECT_ID, Tasks.TASKS.PARENT_ID), false)
 val TASK_RELEASE: Index = Internal.createIndex(DSL.name("task_release"), Tasks.TASKS, arrayOf(Tasks.TASKS.PROJECT_ID, Tasks.TASKS.RELEASE_ID), false)

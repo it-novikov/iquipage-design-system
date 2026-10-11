@@ -14,3 +14,8 @@
 - 2026-10-11T12:06:23Z · codex · step · S2 · done: DS45 gate8/8 PASS, product500/detached500/DS461, sourceStable b0750b06, exact tar c2c7227e. Linux officialNode core184784 under185291; R1 APPROVE; R2 final delta review pending before push.
 - 2026-10-11T12:06:51Z · codex · step · S2 · done: DS45 full gate8/8 PASS product500 detached500 DS461 sourceStable b0750b06 exact tar c2c7227e. R1/R2 APPROVE current freeze, no open findings. Linux official Node core184784 under185291; GitHub CI required next.
 - 2026-10-11T12:06:54Z · codex · step · S3 · active
+- 2026-10-11T12:39:49Z · codex · step · S3 · done: PR67 merged01bbdb29; CI38138053277 PASS; exact production image e51a87f7, readiness and five-minute observation PASS10 samples zero errors/restarts; backup retained; production links dialog verified.
+- 2026-10-11T12:39:50Z · codex · note · A5 · критерий приёмки выполнен
+- 2026-10-11T12:39:50Z · codex · status · - · review
+- 2026-10-11T12:54:30Z · codex · checkpoint · - · дальше: Owner checks published UI; continue SPR16/17.
+- 2026-10-11T12:54:30Z · codex · handoff · - · planned; HEAD 2bbd805; незакоммичено 1

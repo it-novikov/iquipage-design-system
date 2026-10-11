@@ -1,5 +1,6 @@
 import {SprintiqueClient,ApiError} from '../client/api.ts';
 import {TaskInput} from '../contracts/index.ts';
+import {PutTaskMaterial,TaskMaterial,TaskMaterialList,TaskMaterialWriteResponse} from '../contracts/task-materials.ts';
 import {PlanningClient,watchProject} from '../client/planning.ts';
 import {mapWriteBody,templateWriteBody} from './maps-adapter.js';
 import {MediaAdapter} from './media-adapter.js';
@@ -23,10 +24,25 @@ export class ProductRepository {
     this.capabilities.agentWork=(session.features||[]).includes('agent_work');
     this.capabilities.attachments=media.available;this.attachmentAdapter=media.available?new MediaAdapter(this):null;this.mapMedia=new MapMedia(this);return session;}
   subscribe(listener){this.listeners.add(listener);return ()=>this.listeners.delete(listener);}
+  async listTaskMaterials(taskId,projectId,{signal}={}){
+    const path=`/projects/${encodeURIComponent(projectId)}/tasks/${encodeURIComponent(taskId)}/materials`;
+    return TaskMaterialList.parse(await this.client.request(path,'GET',undefined,undefined,signal));
+  }
+  async readTaskMaterial(taskId,id,projectId,{signal}={}){
+    const path=`/projects/${encodeURIComponent(projectId)}/tasks/${encodeURIComponent(taskId)}/materials/${encodeURIComponent(id)}`;
+    return TaskMaterial.parse(await this.client.request(path,'GET',undefined,undefined,signal));
+  }
+  async putTaskMaterial(taskId,record,baseRevision,{projectId=record.projectId,signal}={}){
+    const path=`/projects/${encodeURIComponent(projectId)}/tasks/${encodeURIComponent(taskId)}/materials/${encodeURIComponent(record.id)}`;
+    const body=PutTaskMaterial.parse({baseRevision,value:{category:record.category,title:record.title,url:record.url,archived:!!record.archived}});
+    const saved=TaskMaterialWriteResponse.parse(await this.client.request(path,'PUT',body,await this.key(path,body),signal));
+    this.listeners.forEach(fn=>fn({collection:'taskMaterials',projectId,id:saved.id,taskId:saved.taskId,revision:saved.revision}));
+    return saved;
+  }
   /** Every collection of the project reads again (back online after the connection was lost). */
   refreshAll(projectId){
     this.clearProjectCache(projectId);
-    for(const collection of ['tasks','threads','tags','releases','maps','templates','taskLinks','taskSettings'])this.listeners.forEach(fn=>fn({collection,projectId,resync:true}));
+    for(const collection of ['tasks','threads','tags','releases','maps','templates','taskLinks','taskSettings','taskMaterials'])this.listeners.forEach(fn=>fn({collection,projectId,resync:true}));
   }
   clearProjectCache(projectId){this.cacheState.generation++;for(const key of this.cache.keys())if(!projectId||key.startsWith(projectId+':'))this.cache.delete(key);}
   async cached(projectId,name,load,{signal}={}){
@@ -71,7 +87,7 @@ export class ProductRepository {
         else if(role&&current.role!==role){role=current.role;this.clearProjectCache(projectId);onAccessRevoked({roleChanged:true,role});}
       }while(checkAgain&&!closed);}catch(error){if(!closed&&[401,403,404].includes(error.status))lost();}finally{checking=false;}
     };
-    const collections=['tasks','threads','tags','releases','maps','templates','taskLinks','taskSettings'];
+    const collections=['tasks','threads','tags','releases','maps','templates','taskLinks','taskSettings','taskMaterials'];
     const queue=(collection,event)=>{
       const previous=changed.get(collection);
       changed.set(collection,{collection,projectId,id:event.resourceId,revision:event.revision,...(previous||event.topic==='resync'?{resync:true}:{})});
@@ -81,7 +97,7 @@ export class ProductRepository {
     const handle=event=>{
       if(closed)return;
       if(event.topic==='member.updated'&&event.resourceId===this.context.actorId)void checkMembership();
-      const names={'task':'tasks','thread':'threads','tags':'tags','release':'releases','releases':'releases','map':'maps','map-template':'templates','task-link':'taskLinks','task-settings':'taskSettings','finance-entry':'financeEntries','finance-settings':'financeSettings'};
+      const names={'task':'tasks','thread':'threads','tags':'tags','release':'releases','releases':'releases','map':'maps','map-template':'templates','task-link':'taskLinks','task-settings':'taskSettings','task-material':'taskMaterials','finance-entry':'financeEntries','finance-settings':'financeSettings'};
       const collection=names[event.topic.split('.')[0]];
       this.clearProjectCache(projectId);
       if(event.topic==='resync'||event.topic.startsWith('planning.')||event.topic.startsWith('member.')){collections.forEach(name=>queue(name,{...event,topic:'resync'}));if(event.topic==='resync')void checkMembership();}
