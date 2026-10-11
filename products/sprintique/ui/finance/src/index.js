@@ -34,7 +34,7 @@ export async function mountFinance(root,{repository,project,viewState={}}){
   let overview=null,plans=[],editor=null;
   const abort=new AbortController();
 
-  root.innerHTML=`<div class="fin-root iq-workspace-page"><section class="fin-view" data-main>${pageHeader({title:'Финансы',actions:`<div class="sq-page-actions">
+  root.innerHTML=`<div class="fin-root iq-workspace-page iq-page-fluid"><section class="fin-view" data-main>${pageHeader({title:'Финансы',actions:`<div class="sq-page-actions">
     ${segmented('Вид раздела','data-view',[['overview','Обзор'],['ledger','Журнал']],view.mode)}
     ${canManage?ui.btn('Новая операция','primary','plus','data-new-entry'):''}</div>`})}<div class="iq-workspace-toolbar fin-context" data-tools></div>
     <div data-notice></div><div data-error role="alert" hidden></div>
