@@ -1,3 +1,4 @@
+import {loadingMarkup,sectionLoadingShape} from '../loading.js';
 import {dialog,icon,esc} from '../ui.js';
 import {ui,formatDate} from '@iquipage/web/core';
 import {editCatalogItem,tagMarkup} from './catalog-ui.js';
@@ -20,14 +21,15 @@ const empty=(title,body,action='',glyph='palette')=>`<div class="iq-empty compac
 /** Project tags and task templates on the DS settings compositions. Readers see the same content without actions. */
 export async function mountProjectTaskSettings(root,{repository,project,section,canManage=true,notice=''}){
   let closed=false,items=[],activeDialog=null,settings;
-  root.innerHTML=`${notice}<div class="iq-settings-stack" data-settings-content></div><p class="iq-inline danger" role="alert" hidden></p>`;
+  root.innerHTML=`${notice}<div class="iq-settings-stack" data-settings-content>${loadingMarkup('Загрузка настроек задачи…',{variant:sectionLoadingShape('settings',section)})}</div><p class="iq-inline danger" role="alert" hidden></p>`;
   const content=root.querySelector('[data-settings-content]'),error=root.querySelector('[role=alert]'),abort=new AbortController();
-  const fail=cause=>{if(!closed){error.hidden=false;error.textContent=cause.message;}};
+  const fail=cause=>{if(!closed){error.hidden=false;error.textContent=cause.message;if(content.querySelector('[data-loading-shape]')){content.innerHTML=ui.btn('Повторить загрузку','secondary sm','','data-retry-settings');content.querySelector('[data-retry-settings]').onclick=()=>{content.innerHTML=loadingMarkup('Загрузка настроек задачи…',{variant:sectionLoadingShape('settings',section)});void reload();};}}};
   const track=element=>{activeDialog=element;element.addEventListener('iq-close',()=>{if(activeDialog===element)activeDialog=null;},{once:true});};
   async function reload(){
+    if(closed)return;error.hidden=true;
     try{
-      if(section==='templates'){settings=(await repository.list('taskSettings',project.id))[0]||starterTaskSettings(project.id);renderTemplates();}
-      else {items=await repository.list(section,project.id);renderCatalog();}
+      if(section==='templates'){settings=(await repository.list('taskSettings',project.id,{signal:abort.signal}))[0]||starterTaskSettings(project.id);renderTemplates();}
+      else {items=await repository.list(section,project.id,{signal:abort.signal});renderCatalog();}
     }catch(cause){fail(cause);}
   }
   function tagRow(item){

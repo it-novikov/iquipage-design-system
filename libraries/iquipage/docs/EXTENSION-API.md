@@ -383,4 +383,4 @@ crop.addEventListener('iq-crop-request', async ({detail}) => {
 
 ### Компактный рабочий заголовок
 
-`iq-work-header` входит в core. Атрибуты: `title`, `description`, `eyebrow`, `density=compact|comfortable`. Дочерние элементы с `slot="actions"` и `slot="context"` переносятся в соответствующую область без клонирования. Настоящий h1 сохраняет семантику; toolbar roadmap/graph размещается ниже и не дублируется в заголовке. Смотрите INTEGRATION.md.
+`iq-work-header` входит в core. Атрибуты: `title`, `description`, `eyebrow`, `density=compact|comfortable`. Дочерние элементы с `slot="title"` (свой h1 и переключатель), `slot="back"` (возврат), `slot="actions"` и `slot="context"` переносятся в соответствующую область без клонирования. Настоящий h1 сохраняет семантику; toolbar roadmap/graph размещается ниже и не дублируется в заголовке. Смотрите INTEGRATION.md.

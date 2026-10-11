@@ -32,15 +32,11 @@
 #sign-in-code{letter-spacing:.3em;font-variant-numeric:tabular-nums}
 /* Product loading look (DS skeletons in .iq-loading): used by sections, Planning groups, map history and settings. */
 .product-loading{padding-block:var(--iq-space-2)}
-.product-loading-title{height:28px;width:min(220px,60%);margin-bottom:var(--iq-space-2)}
-.product-loading-row{height:40px}
 .host-loading{padding:var(--iq-space-6) var(--iq-space-4);max-width:960px}
 /* One page heading for every section: the title on the left, the section's tools on the right, same height and
    spacing, so switching between the board and planning never moves the content. */
-.sq-page-heading{display:flex;align-items:center;gap:var(--iq-space-5);flex:none;flex-wrap:wrap;min-height:48px;padding-bottom:var(--iq-space-5)}
-.sq-page-heading h1{font-size:var(--iq-work-compact-title);font-weight:600;margin:0;line-height:1.3}
 .sq-page-tools{display:flex;align-items:center;gap:var(--iq-space-2);flex:none;flex-wrap:wrap;margin-left:auto}
-@media(max-width:580px){.sq-page-heading{gap:var(--iq-space-3)}.sq-page-heading h1{flex:1}.sq-page-tools{width:100%;margin-left:0;justify-content:flex-end}}
+@media(max-width:580px){.sq-page-tools{width:100%;margin-left:0;justify-content:flex-end}}
 
 /* Public settings composition owns its spacing. */
 #host-view[data-section=settings]{padding:0;display:flex;flex-direction:column}
@@ -140,3 +136,24 @@
 .pn-bell-popup .pn-bell-head .iq-btn{width:auto;margin-left:auto}
 .pn-bell-foot{display:flex;justify-content:space-between;gap:var(--iq-space-2);padding:var(--iq-space-1) var(--iq-space-2);border-top:1px solid var(--iq-line)}
 .pn-bell-foot>:last-child{margin-left:auto}
+
+/* All authenticated page titles consume the same public header. */
+.sq-page-header{--iq-work-header-padding:0 0 var(--iq-space-5);--iq-work-header-border:0px;--iq-work-header-title:var(--iq-work-compact-title);flex:none}
+.sq-page-actions{display:flex;align-items:center;gap:var(--iq-space-2);flex-wrap:wrap;min-width:0}
+.map-page-header{padding:var(--iq-space-5) var(--iq-space-6) 0;flex:none}
+@media(max-width:760px){.map-page-header{padding-inline:var(--iq-space-4)}}
+/* Content geometry for public skeleton atoms. No animation or paint overrides. */
+.product-loading .load-line,.product-loading .load-short,.product-loading .load-meta,.product-loading .load-heading,.product-loading .load-title,.product-loading .load-number,.product-loading .load-control{display:block}
+.load-line{height:14px;width:85%}.load-short{height:12px;width:45%}.load-meta{height:12px;width:56px}.load-heading{height:20px;width:45%;margin-bottom:var(--iq-space-4)}.load-title{height:26px;width:180px;margin-bottom:var(--iq-space-6)}.load-number{height:32px;width:90px}.load-control{height:40px;width:100%}
+.load-row{display:flex;align-items:center;gap:var(--iq-space-3);min-height:68px;padding-block:var(--iq-space-3)}.load-copy{display:grid;gap:var(--iq-space-2);flex:1;min-width:0}.load-avatar{height:32px;width:32px;border-radius:50%;flex:none}.load-tool{height:28px;width:28px;flex:none}
+.load-board{display:grid;grid-template-columns:repeat(6,minmax(264px,1fr));gap:var(--iq-space-4);overflow:hidden}.load-column{min-width:0}.load-card{display:grid;gap:var(--iq-space-3);padding:var(--iq-space-4);margin-bottom:var(--iq-space-3);border:1px solid var(--iq-line);border-radius:var(--iq-radius-md)}
+.load-panel{padding-block:var(--iq-space-4);margin-bottom:var(--iq-space-5)}.load-form{display:grid;gap:var(--iq-space-6);max-width:600px;padding-block:var(--iq-space-4)}.load-field{display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:var(--iq-space-3)}.load-dashboard{display:grid;grid-template-columns:2fr 1fr;gap:var(--iq-space-6)}.load-wide{grid-column:1/-1}
+.load-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--iq-space-6);padding-block:var(--iq-space-5)}.load-metrics>div{display:grid;gap:var(--iq-space-3)}.load-ledger>div{display:grid;grid-template-columns:2fr 1fr 80px 1fr;gap:var(--iq-space-5);align-items:center;padding-block:var(--iq-space-5);border-bottom:1px solid var(--iq-line)}.load-filters{display:flex;gap:var(--iq-space-4);margin-bottom:var(--iq-space-5)}
+.load-week{display:grid;grid-template-columns:repeat(7,minmax(140px,1fr));gap:var(--iq-space-3);overflow:hidden;min-height:420px}.load-day{display:grid;align-content:start;gap:var(--iq-space-5)}.load-canvas{position:relative;min-height:55vh}.load-canvas-tools{display:flex;gap:var(--iq-space-3);width:180px}.load-canvas-dock{position:absolute;bottom:var(--iq-space-5);left:50%;transform:translateX(-50%);display:flex;gap:var(--iq-space-2)}
+@media(max-width:640px){.load-dashboard{grid-template-columns:1fr}.load-metrics{gap:var(--iq-space-3)}.load-ledger>div{grid-template-columns:2fr 1fr;gap:var(--iq-space-3)}.load-filters{flex-wrap:wrap}.load-week{grid-template-columns:1fr}.load-week .load-day:nth-child(n+3){display:none}}
+
+.load-facts>div{display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:var(--iq-space-5);padding-block:var(--iq-space-4)}.load-dot{width:12px;height:12px;border-radius:50%}.load-result{display:grid;justify-items:center;gap:var(--iq-space-4);padding:var(--iq-space-6)}.load-result .load-heading{margin:0}.load-result .load-line{width:60%}
+@media(max-width:640px){.load-field{grid-template-columns:1fr}}
+
+/* These pages already own their inset; the shell must not add it twice. */
+#host-view[data-section=finance],#host-view[data-section=agents]{padding:0}

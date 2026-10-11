@@ -1,3 +1,4 @@
+import {loadingMarkup} from '../loading.js';
 import {ui,escapeHTML as esc,formatDateTime,workEntry,workStep,workQuestion,pending,actionError,enhance} from '@iquipage/web/core';
 import {dialog,input,textarea,select,download} from '../ui.js';
 import {workText,sessionSentence,activeSession,stepStates,uniqueEntries,workStates,workFocus,workOverview,createWorkAnswers,createWorkActionGate} from './work-model.js';
@@ -9,7 +10,7 @@ export function mountTaskWork(root,{repository,project,task,summaryRoot,onOpenWo
  let closed=false,state=null,agents=[],timer=0,sequence=0,busy=false,modal=null,events=[],cursor=null,loadedEvents=false,newEvents=[],leaseToken=null,rendered='';
  const actionGate=createWorkActionGate(),answers=createWorkAnswers(),answerFocus=createThreadFocus(),answerErrors=new Map();let answering=null,composing=false;
  root.hidden=false;root.classList.add('iq-work-story');
- root.innerHTML='<div class="iq-work-story-head"><h2>Работа агента</h2></div><p class="iq-helper" role="status">Загружаем работу по задаче…</p>';
+ root.innerHTML=loadingMarkup('Загружаем работу по задаче…',{variant:'work'});
  const request=(path,method='GET',body)=>client.request(base+path,method,body,undefined,abort.signal);
  const command=async(path,method,body)=>client.request(base+'/work-plan'+path,method,body,await repository.key('work:'+task.id+path,body),abort.signal);
  const revision=()=>state?.workPlan?.revision||0;
@@ -82,7 +83,7 @@ export function mountTaskWork(root,{repository,project,task,summaryRoot,onOpenWo
    if(!loadedEvents){events=incoming;cursor=fresh.events?.nextCursor||null;loadedEvents=true;}
    else newEvents=uniqueEntries(incoming.filter(e=>!events.some(old=>old.id===e.id)),newEvents);
    render();
-  }catch(error){if(closed||error.name==='AbortError')return;status('Не удалось обновить работу по задаче. '+(error.message||'Проверьте соединение.'),true);if(!root.querySelector('[data-work-action="reload"]'))root.insertAdjacentHTML('beforeend',button('Повторить','reload'));}
+  }catch(error){if(closed||error.name==='AbortError')return;if(!state)root.querySelector('[data-loading-shape]')?.remove();status('Не удалось обновить работу по задаче. '+(error.message||'Проверьте соединение.'),true);if(!root.querySelector('[data-work-action="reload"]'))root.insertAdjacentHTML('beforeend',button('Повторить','reload'));}
   if(!closed)timer=setTimeout(()=>void load(),state?.sessions?.some(activeSession)?4000:15000);
  }
  async function run(action,node){if(busy)return;busy=true;try{await pending(node,action);await load();}catch(error){if(!closed){await load();const current=node?.isConnected?node:root.querySelector(`[data-work-action="${CSS.escape(node?.dataset.workAction||'')}"]`);if(current)actionError(current,error.message||'Изменение не сохранено.');else status(error.message||'Изменение не сохранено.',true);}}finally{busy=false;}}

@@ -1,3 +1,5 @@
+import {loadingMarkup,sectionLoadingShape} from '../ui/src/loading.js';
+import {pageHeader} from '../ui/src/page-header.js';
 import {ui,icon,escapeHTML as esc,settingsNavigation,notify,enhance,count,pending} from '@iquipage/web/core';
 import {mountProjectTaskSettings} from '../ui/src/board/project-settings.js';
 import {settingsDialog,timeZoneField} from '../ui/planning/src/release-dialogs.js';
@@ -32,7 +34,7 @@ export async function mountSettings(root,{repository,project,adapter,onChanged=(
  const features=repository.capabilities?.aiAgents?['ai_agents']:[];
  const groups=visibleSettingsGroups(own(),space(),features),counts={},lockNames=new Map();
  let mounted=null,closed=false,modal=null,busy=false,dirty=false,current='',resetForm=()=>{};
- root.innerHTML=`<iq-settings-layout view="section"><div slot="navigation"><p class="iq-settings-title">Настройки</p><label class="product-nav-search iq-settings-search">${icon('search',17)}<input type="search" placeholder="Найти настройку" aria-label="Найти раздел настроек" data-settings-search autocomplete="off"></label><div data-settings-navigation></div><p class="iq-settings-nav-empty" data-settings-empty role="status" hidden>Ничего не найдено. Попробуйте другое слово.</p></div><header slot="heading" class="iq-page-heading iq-settings-heading" data-settings-heading></header><div class="iq-settings-stack" data-settings-content></div><p class="sr-only" role="status" data-settings-announce></p></iq-settings-layout>`;
+ root.innerHTML=`<iq-settings-layout view="section"><div slot="navigation"><p class="iq-settings-title">Настройки</p><label class="product-nav-search iq-settings-search">${icon('search',17)}<input type="search" placeholder="Найти настройку" aria-label="Найти раздел настроек" data-settings-search autocomplete="off"></label><div data-settings-navigation></div><p class="iq-settings-nav-empty" data-settings-empty role="status" hidden>Ничего не найдено. Попробуйте другое слово.</p></div><div slot="heading" data-settings-heading></div><div class="iq-settings-stack" data-settings-content></div><p class="sr-only" role="status" data-settings-announce></p></iq-settings-layout>`;
  const layout=root.querySelector('iq-settings-layout'),nav=root.querySelector('[data-settings-navigation]'),heading=root.querySelector('[data-settings-heading]'),content=root.querySelector('[data-settings-content]'),search=root.querySelector('[data-settings-search]');
  const announce=text=>{const el=root.querySelector('[data-settings-announce]');el.textContent='';requestAnimationFrame(()=>{el.textContent=text;});};
  const meta=id=>groups.flatMap(g=>g.items).find(i=>i.id===id);
@@ -67,7 +69,7 @@ export async function mountSettings(root,{repository,project,adapter,onChanged=(
   return s.lock(names.length>1?`Вы можете только просматривать. Изменения вносят ${names.slice(0,2).join(' и ')}.`:names.length?`Вы можете только просматривать. Изменения вносит ${names[0]}.`:'Вы можете только просматривать. Изменения вносит администратор проекта.');
  }
  function renderHeading(item){
-  heading.innerHTML=`<a class="iq-btn ghost sm iq-page-heading-back" href="#settings" data-settings-index>${icon('left',17)}<span>Настройки</span></a><div class="iq-page-heading-copy"><h1 tabindex="-1" data-section-title>${esc(item.label)}</h1><p class="iq-page-heading-lead">${esc(item.description)}</p></div><div class="iq-page-heading-tools" data-heading-tools></div>`;
+  heading.innerHTML=pageHeader({titleHTML:`<h1 tabindex="-1" data-section-title>${esc(item.label)}</h1>`,description:item.description,back:`<a class="iq-btn ghost sm" href="#settings" data-settings-index>${icon('left',17)}<span>Настройки</span></a>`,actions:'<div class="sq-page-actions" data-heading-tools></div>'});
   return heading.querySelector('[data-heading-tools]');
  }
  /** Forms keep the save bar hidden until something differs from what is saved. */
@@ -173,7 +175,7 @@ export async function mountSettings(root,{repository,project,adapter,onChanged=(
    mounted?.destroy();mounted=null;dirty=false;resetForm=()=>{};current=section;const item=meta(section);navigation();
    if(historyMode!=='none')history[historyMode==='replace'?'replaceState':'pushState'](null,'','#settings/'+section);
    view();document.title=`${item.label} | Настройки | Sprintique`;
-   const tools=renderHeading(item);content.innerHTML=s.skeleton();
+   const tools=renderHeading(item);content.innerHTML=section==='appearance'?'':loadingMarkup('Загрузка раздела…',{variant:sectionLoadingShape('settings',section)});
    if(section==='appearance')renderAppearance(tools);
    else if(section==='account')await renderAccount();
    else if(section==='notifications')mounted=await mountNotificationSettings(content,{repository});

@@ -1,3 +1,4 @@
+import {loadingMarkup} from '../ui/src/loading.js';
 import {icon,escapeHTML as esc,registerCore} from '@iquipage/web/core';
 
 /** DS command dialog (iq-dialog kind="command"): focus stays in the field, arrows move the active row,
@@ -24,7 +25,7 @@ export function openSearch({client,onOpen,commands=[]}){
     list.innerHTML=found.map(row).join('')
       +(results.length?`<p class="iq-command-group" role="presentation">Задачи, карты и проекты</p>${results.map(row).join('')}`:'')
       +(cursor?row(all.at(-1)):'')
-      +(note?`<p class="iq-command-empty" role="presentation">${esc(note)}</p>`:'');
+      +(busy&&!items.length?loadingMarkup('Ищем…',{variant:'search',rows:3}):note?`<p class="iq-command-empty" role="presentation">${esc(note)}</p>`:'');
     list.setAttribute('aria-busy',String(busy));
     if(all.length)input.setAttribute('aria-activedescendant',`${listId}-${active}`);else input.removeAttribute('aria-activedescendant');
     list.querySelector('[aria-selected=true]')?.scrollIntoView({block:'nearest'});

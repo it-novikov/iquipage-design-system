@@ -20,7 +20,7 @@ export async function mountPlanning(root,{adapter,project,onOpenTask,onCreateTas
   root.classList.add('planning-root');root.innerHTML=pageMarkup();
   const page=root.querySelector('.pl-page'),stack=root.querySelector('[data-stack]'),foot=root.querySelector('[data-foot]');
   const selbar=root.querySelector('[data-selbar]'),live=root.querySelector('[data-live]'),errorBox=root.querySelector('[data-error]');
-  stack.innerHTML=loadingMarkup('Загрузка планирования…',{rows:8,title:false,className:'pl-loading'});
+  stack.innerHTML=loadingMarkup('Загрузка планирования…',{variant:'planning',className:'pl-loading'});
   let data=null,disposed=false,loading=null,again=false,dragging=false,busy=false,focusId=viewState.focusId||'';
   let scope=viewState.scope||'all',query='';
   const collapsed=new Set(viewState.collapsed||[]);

@@ -23,7 +23,7 @@ import {invitationFlow} from './invitation-flow.js';
 import {can,accessSignature,mayCreateProjects} from './permissions.js';
 import {sectionRouteHash} from './section-route.js';
 import {keepAuthorization,resumeAuthorization,mountConsent} from './consent.js';
-import {loadingMarkup} from '../ui/src/loading.js';
+import {loadingMarkup,sectionLoadingShape} from '../ui/src/loading.js';
 import {mountProjectNavigation} from '../ui/planning/src/project-navigation.js';
 import {mountWorkbench} from './workbench/host.js';
 import {mountNotificationBell} from './notifications.js';
@@ -221,8 +221,8 @@ async function showProject(id,mode=routeMode()){
   const current=root.querySelector('#host-view'),swap=!!previous&&current.childElementCount>0;
   let host=current,cover=null,timer=0;
   if(swap){host=document.createElement('section');host.id='host-view';host.className='host-view-incoming';current.inert=true;current.after(host);
-    timer=setTimeout(()=>{cover=document.createElement('div');cover.className='host-view-cover';cover.innerHTML=loadingMarkup('Загрузка раздела…',{rows:6,title:true,className:'host-loading'});host.before(cover);},400);}
-  else{await previous?.destroy();host.innerHTML=loadingMarkup('Загрузка раздела…',{rows:6,title:true,className:'host-loading'});}
+    timer=setTimeout(()=>{cover=document.createElement('div');cover.className='host-view-cover';cover.innerHTML=loadingMarkup('Загрузка раздела…',{variant:sectionLoadingShape(mode,location.hash.split('/')[1]),title:true,className:'host-loading'});host.before(cover);},400);}
+  else{await previous?.destroy();host.innerHTML=loadingMarkup('Загрузка раздела…',{variant:sectionLoadingShape(mode,location.hash.split('/')[1]),title:true,className:'host-loading'});}
   host.dataset.section=mode;
   try{
   if(mode==='maps'){const {mountMapsHost}=await import('./maps-host.js');board=await mountMapsHost(host,{repository,project,viewState:viewStates.get(stateKey),onOpenTasks:async({focusTaskId})=>{await navigate('tasks');if(viewMode==='tasks')await board.openTask(focusTaskId);}});}

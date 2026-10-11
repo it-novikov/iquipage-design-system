@@ -1,3 +1,5 @@
+import {loadingMarkup} from './loading.js';
+import {pageHeader} from './page-header.js';
 import {captureDialog} from './capture-ui.js'; import {showMapHistory} from './map-history.js';
 import {showCanvasInspector,leaveCanvasInspector} from './canvas-inspector.js';
 import {motionReduced,ui,notify} from '@iquipage/web/core';
@@ -31,9 +33,10 @@ export class MapsFeature {
     installWorkflowUI(this);installAutomationUI(this);
   }
   async mount() {
-    registerWhiteboard();this.root.innerHTML=`<section class="iq-maps" aria-label="Карты проекта"><header class="map-toolbar"></header><div class="map-subbar"></div><div class="map-notice" role="status" hidden></div><div class="map-content"><div class="map-title-chip iq-board-chip" data-map-title hidden><span class="map-title-chip-heading" data-chip-heading></span><span data-chip-sync></span><span class="sr-only" role="status" data-chip-live></span></div><div class="map-surface"></div><aside class="map-inspector" aria-label="Свойства и результаты" hidden></aside></div><span class="sr-only" role="status" data-map-live></span></section>`;
-    this.toolbar=this.root.querySelector('.map-toolbar');this.subbar=this.root.querySelector('.map-subbar');this.surface=this.root.querySelector('.map-surface');this.inspector=this.root.querySelector('.map-inspector');this.titleChip=this.root.querySelector('[data-map-title]');
+    registerWhiteboard();this.root.innerHTML=`<section class="iq-maps" aria-label="Карты проекта"><div class="map-page-header"></div><div class="map-subbar"></div><div class="map-notice" role="status" hidden></div><div class="map-content"><div class="map-surface"></div><aside class="map-inspector" aria-label="Свойства и результаты" hidden></aside></div><span class="sr-only" role="status" data-map-live></span></section>`;
+    this.toolbar=this.root.querySelector('.map-page-header');this.subbar=this.root.querySelector('.map-subbar');this.surface=this.root.querySelector('.map-surface');this.inspector=this.root.querySelector('.map-inspector');this.titleChip=this.root.querySelector('[data-map-title]');
     this.root.addEventListener('click',event=>{
+      if(event.target.closest('[data-map-initial-retry]')){void this.loadInitial();return;}
       if(event.target.closest('[data-map-sync]')){void this.syncNow();return;}
       const control=event.target.closest('[data-map-action]');if(!control||control.disabled)return;
       event.preventDefault();
@@ -50,15 +53,24 @@ export class MapsFeature {
     });
     this.timer=setInterval(()=>this.updateTimer(),1000);
     if(!this.permissions.read){this.surface.innerHTML='<div class="map-empty"><h2>Карта недоступна</h2><p>У вашей роли нет разрешения на просмотр.</p></div>';this.renderChrome();return;}
-    // The map the host expects to open is read alongside the list; it is used only when the list opens that map, and
-    // cancelled otherwise before the chosen one is read (its images must not mix with the open map's).
-    const likely=this.config.likelyMapId,guess=new AbortController();
-    this.abort.signal.addEventListener('abort',()=>guess.abort(),{once:true});
+    await this.loadInitial();
+  }
+  /** Initial retry reuses the mounted controller; it never installs listeners a second time. */
+  async loadInitial(){
+    if(!this.alive||this.initialLoading||this.current)return;
+    this.initialLoading=true;const generation=this.mapGeneration;
+    this.surface.innerHTML=loadingMarkup('Загружаем карту…',{variant:'maps'});this.renderChrome();
+    const likely=this.config.likelyMapId,guess=new AbortController(),cancel=()=>guess.abort();
+    this.abort.signal.addEventListener('abort',cancel,{once:true});
     const early=likely?this.repository.read('maps',likely,this.project.id,{signal:guess.signal}).catch(()=>null):null;
-    try{await this.reloadList();}catch(error){guess.abort();throw error;}
-    const initial=this.maps.find(m=>m.id===this.config.mapId)||this.maps.find(m=>m.status!=='archived');
-    if(initial?.id!==likely)guess.abort();
-    if(initial)await this.openMap(initial.id,{early:initial.id===likely?early:null});else this.empty();
+    try{
+      await this.reloadList();if(!this.alive||this.abort.signal.aborted||generation!==this.mapGeneration)return;
+      const initial=this.maps.find(m=>m.id===this.config.mapId)||this.maps.find(m=>m.status!=='archived');
+      if(initial?.id!==likely)guess.abort();
+      if(initial)await this.openMap(initial.id,{early:initial.id===likely?early:null});else this.empty();
+    }catch(error){
+      if(this.alive&&!this.abort.signal.aborted&&!this.current)this.surface.innerHTML=`<div class="map-empty"><h2>Не удалось загрузить карту</h2><p role="alert">${esc(error.message||'Проверьте соединение.')}</p><button type="button" class="iq-btn secondary" data-map-initial-retry>Повторить загрузку</button></div>`;
+    }finally{guess.abort();this.abort.signal.removeEventListener('abort',cancel);this.initialLoading=false;}
   }
   async reloadList(){const maps=await this.repository.list('maps',this.project.id,{signal:this.abort.signal});if(this.alive)this.maps=maps.sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt));}
   empty(){this.current=null;this.surface.innerHTML=`<div class="map-empty"><span class="map-empty-symbol">${icon('board',32)}</span><h2>Место для идей и решений</h2><p>${this.uiCapabilities.sessions?'Создайте постоянную карту для схем или сессию для совместного обсуждения.':'Создайте карту и начните с одной мысли.'}</p><div class="row">${this.uiCapabilities.templates?button('templates','Выбрать основу','grid','primary'):''}${button('new','Чистая карта','plus',this.uiCapabilities.templates?'secondary':'primary')}</div></div>`;this.renderChrome();}
@@ -91,8 +103,8 @@ export class MapsFeature {
     board.editorMode=this.view==='workflow'||!this.directEditing?'host':'inline';
     if(!this.directEditing){
       board.setAttribute('selection-bar','none');board.setAttribute('dock','side');board.setAttribute('dock-tools','select');
-      // Search, templates and the map menu live in the side dock under "+", instead of a toolbar row.
-      board.hostActions=[{id:'find',label:'Найти на карте',icon:'search'},...(this.uiCapabilities.templates?[{id:'templates',label:'Шаблоны',icon:'grid'}]:[]),{id:'more',label:'Меню карты',icon:'more'}];
+      // Page-level actions live in the common header; the canvas dock retains its drawing tools.
+      board.hostActions=[];
     }
     board.data=this.view==='workflow'?flowScene(this.current.flow,this.current.title,this.current.revision):this.current.document;
     board.readOnly=!this.permissions.edit||this.current.status==='archived';board.saveStatus=this.storageLabel;
@@ -187,18 +199,16 @@ export class MapsFeature {
   }
   renderChrome(override='') {
     if(!this.alive)return;
-    const active=document.activeElement,focusAction=this.toolbar.contains(active)||this.subbar.contains(active)?active?.dataset.mapAction:null;
+    const active=document.activeElement,focusSync=this.toolbar.contains(active)&&active?.hasAttribute('data-map-sync'),focusAction=this.toolbar.contains(active)||this.subbar.contains(active)?active?.dataset.mapAction:null;
     const m=this.current,disabled=!this.permissions.edit||m?.status==='archived';
     const title=m?.title||'Карты проекта';
     const save=override||(this.board?.saving?'Сохраняем…':this.board?.dirty?'Есть несохранённые изменения':m?this.storageLabel:'Выберите или создайте карту');
     const heading=this.uiCapabilities.mapSwitcher?`<button type="button" class="map-switch" data-map-action="maps" aria-label="Выбрать карту: ${esc(title)}" title="${esc(title)}"><span>${esc(title)}</span>${icon('down',16)}</button>`:`<span class="map-switch map-switch-static"><span>${esc(title)}</span></span>`;
     const canAdd=this.view==='workflow';
-    this.toolbar.innerHTML=`<div class="map-heading"><div class="map-title-wrap"><h1>${heading}</h1><span class="map-save-label" role="status">${m?`${m.kind==='session'?'Сессия':'Постоянная карта'}. `:''}${esc(save)}</span></div></div>${m&&this.uiCapabilities.workflow&&!this.directEditing?`<div class="iq-segmented map-view-tabs" aria-label="Рабочая поверхность"><button type="button" data-map-action="canvas" aria-pressed="${this.view==='canvas'}">${icon('board',16)}<span>Карта</span></button><button type="button" data-map-action="workflow" aria-pressed="${this.view==='workflow'}">${icon('link',16)}<span>Сценарий действий</span></button></div>`:''}<div class="map-toolbar-actions">${m&&this.view==='canvas'?button('find','Найти на карте','search'):m&&this.directEditing?button('canvas','К карте','left'):''}${this.uiCapabilities.templates&&!this.directEditing?button('templates','Шаблоны','grid'):''}${m&&!disabled&&canAdd?button(this.view==='workflow'?'add-step':'add',this.view==='workflow'?'Добавить шаг':'Добавить объекты','plus','primary'):!m&&this.permissions.edit?button('new','Создать карту','plus','primary'):''}${this.moreMenu()}</div>`;
-    // On the canvas the toolbar row goes away: the title floats as a chip in the top right corner, and the save
-    // state is a sync icon whose tooltip says what it means. The properties panel may cover the chip.
-    const chip=!!m&&this.view==='canvas'&&!this.directEditing;
-    this.toolbar.hidden=chip;this.titleChip.hidden=!chip;
-    if(chip)this.renderTitleChip(heading,m,save);
+    this.toolbar.innerHTML=pageHeader({titleHTML:`<h1 data-chip-heading>${heading}</h1>`,actions:`<span data-chip-sync></span>${m&&this.uiCapabilities.workflow&&!this.directEditing?`<div class="iq-segmented map-view-tabs" aria-label="Рабочая поверхность"><button type="button" data-map-action="canvas" aria-pressed="${this.view==='canvas'}">${icon('board',16)}<span>Карта</span></button><button type="button" data-map-action="workflow" aria-pressed="${this.view==='workflow'}">${icon('link',16)}<span>Сценарий действий</span></button></div>`:''}<div class="sq-page-actions">${m&&this.view==='canvas'?button('find','Найти на карте','search'):m&&this.directEditing?button('canvas','К карте','left'):''}${this.uiCapabilities.templates&&!this.directEditing?button('templates','Шаблоны','grid'):''}${m&&!disabled&&canAdd?button(this.view==='workflow'?'add-step':'add',this.view==='workflow'?'Добавить шаг':'Добавить объекты','plus','primary'):!m&&this.permissions.edit?button('new','Создать карту','plus','primary'):''}${this.moreMenu()}</div>`,attrs:'data-map-title'});
+    this.titleChip=this.toolbar.querySelector('[data-map-title]');
+    this.titleChip.insertAdjacentHTML('beforeend','<span class="sr-only" role="status" data-chip-live></span>');
+    if(m)this.renderTitleChip(heading,m,save);
     const session=this.uiCapabilities.sessions&&m?.kind==='session'&&m.status!=='archived';
     this.subbar.hidden=!m||(this.view==='canvas'&&m.status!=='archived');
     this.renderSessionCard();
@@ -206,6 +216,7 @@ export class MapsFeature {
     const state=statusNames[m.status]||m.status;
     this.subbar.innerHTML=`<div class="map-view-group"><span class="map-state">${esc(state)}</span>${session?'<button type="button" class="map-timer-label" data-map-action="session" aria-label="Этап и таймер сессии"></button>':''}</div><div class="map-context-actions">${this.view==='workflow'?button('properties','Свойства','sliders')+button('validate','Проверить','check')+button('runs','Запуски','clock')+(this.uiCapabilities.automation?button('automations','Автоматизация','bolt'):'')+(this.permissions.run&&m.status!=='archived'?button('run','Тест и запуск','play','secondary'):''):''}${session&&!disabled?button(m.status==='draft'?'start':m.status==='paused'?'resume':'finish',m.status==='draft'?'Начать сессию':m.status==='paused'?'Продолжить':'Завершить сессию',m.status==='active'?'check':'play','secondary'):''}${m.status==='archived'&&this.uiCapabilities.mapSwitcher?button('continue','Создать продолжение','plus','secondary'):''}</div>`;
     this.updateTimer();
+    if(focusSync&&!document.querySelector('dialog[open]'))this.root.querySelector('[data-map-sync]')?.focus({preventScroll:true});
     if(focusAction&&!document.querySelector('dialog[open]'))this.root.querySelector(`[data-map-action="${focusAction}"]`)?.focus({preventScroll:true});
   }
   message(text,error=false) {

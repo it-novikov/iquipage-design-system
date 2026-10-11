@@ -1,5 +1,5 @@
 /** Supported core browser entry. Does not register graph, roadmap, crop, or whiteboard. */
-export declare const version:'0.6.0-vnext.43';
+export declare const version:'0.6.0-vnext.44';
 /** Plain text only. The host owns timestamps, paging, state, permissions and persistence. */
 export interface WorkEntry {id:string;text:string;by?:string;time?:string;detail?:string;state?:''|'error'|'waiting'|'complete';}
 export declare function workEntry(entry:WorkEntry):string;
@@ -79,6 +79,9 @@ export declare class IqPlan extends HTMLElement {items:PlanItem[];}
 export interface NavigationItem {id:string;label:string;href?:string;icon?:string;count?:number;}
 export interface NavigationSection {label?:string;items:NavigationItem[];}
 export declare class IqSideNavigation extends HTMLElement {active:string;collapsed:boolean;items:NavigationSection[];}
+/** Page heading. Attributes: title, description, eyebrow, density.
+ * Slots: title (host-owned h1/selector), back, actions, context. Slotted nodes retain identity on attribute updates.
+ * Without title slot the component supplies its own escaped h1. */
 export declare class IqWorkHeader extends HTMLElement {}
 export declare class IqFilePreview extends HTMLElement {file:File|null;}
 export type PDFPreviewRenderer=(file:File,canvas:HTMLCanvasElement,signal:AbortSignal)=>Promise<void>;

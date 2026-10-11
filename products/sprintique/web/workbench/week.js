@@ -1,3 +1,4 @@
+import {loadingMarkup} from '../../ui/src/loading.js';
 // «Неделя» of the Workbench (docs/adr W5 §13, design-v2 §5.3): Сегодня | 7 дней in the person's time zone, read only.
 // Kinds of time stay distinct and named (Срок, План, Ответ, Проверить, Веха); what is overdue shows on today with its
 // original date; tasks the person participates in without any date are listed under «Без времени».
@@ -33,7 +34,7 @@ export function mountWeek(host,{api,filter,horizon:initial='7d',openTask,announc
       :`<li data-row data-key="${esc(item.key)}" tabindex="-1" class="dsk-plan-chip" data-kind="${item.kind}">${inner}</li>`;
   };
   function render(){
-    if(!plan&&!error){host.innerHTML='<div class="dsk-week" aria-busy="true"><div class="iq-skeleton dsk-week-skeleton"></div></div>';return;}
+    if(!plan&&!error){host.innerHTML=loadingMarkup('Загружаем неделю…',{variant:'week',rows:horizon==='today'?1:7});return;}
     if(!plan){host.innerHTML=`<div class="dsk-failed" role="alert">${icon('warning',18)}<div><b>«Неделя» не загрузилась</b><p>Сервер плана не ответил.</p></div>${ui.btn('Повторить','secondary sm','refresh','data-retry')}</div>`;return;}
     const today=plan.today,range=plan.days.length>1?`${dayLabel(plan.from,today).replace(/^сегодня$/,shortDate(plan.from))} – ${shortDate(plan.to)}`:`сегодня, ${shortDate(today)}`;
     host.innerHTML=`<div class="dsk-week-head">

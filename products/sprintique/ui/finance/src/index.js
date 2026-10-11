@@ -1,3 +1,4 @@
+import {pageHeader} from '../../src/page-header.js';
 import {registerCore,ui,icon,escapeHTML as esc,notify,FEEDBACK_TIMING} from '@iquipage/web/core';
 import {loadingMarkup} from '../../src/loading.js';
 import {select} from '../../src/ui.js';
@@ -33,9 +34,9 @@ export async function mountFinance(root,{repository,project,viewState={}}){
   let overview=null,plans=[],editor=null;
   const abort=new AbortController();
 
-  root.innerHTML=`<div class="fin-root iq-workspace-page"><section class="fin-view" data-main><header class="iq-workspace-heading fin-head"><div><span class="iq-workspace-eyebrow">Экономика проекта</span><h1>Финансы</h1><p>План, операции и отклонения — чтобы принимать решения вовремя.</p></div><div class="iq-workspace-tools">
+  root.innerHTML=`<div class="fin-root iq-workspace-page"><section class="fin-view" data-main>${pageHeader({title:'Финансы',actions:`<div class="sq-page-actions">
     ${segmented('Вид раздела','data-view',[['overview','Обзор'],['ledger','Журнал']],view.mode)}
-    ${canManage?ui.btn('Новая операция','primary','plus','data-new-entry'):''}</div></header><div class="iq-workspace-toolbar fin-context" data-tools></div>
+    ${canManage?ui.btn('Новая операция','primary','plus','data-new-entry'):''}</div>`})}<div class="iq-workspace-toolbar fin-context" data-tools></div>
     <div data-notice></div><div data-error role="alert" hidden></div>
     <div class="fin-overview" data-overview></div>
     <div class="fin-ledger-view" data-ledger hidden><section class="fin-totals" data-totals aria-label="Итоги за период"></section>
@@ -86,7 +87,7 @@ export async function mountFinance(root,{repository,project,viewState={}}){
     if(announceResult&&view.mode==='ledger')announce(error?'Не удалось загрузить операции':total?`Найдено ${total} ${plural(total,['операция','операции','операций'])}`:'Операций нет');
   }
   async function loadOverview(ticket,settingsRead=null){
-    if(!overview)q('[data-overview]').innerHTML=loadingMarkup('Загружаем обзор…',{rows:4});
+    if(!overview)q('[data-overview]').innerHTML=loadingMarkup('Загружаем обзор…',{variant:'overview'});
     const [list,next]=await Promise.all([
       api.request('/finance-plans','GET',undefined,undefined,abort.signal),
       api.request('/finance-overview'+(view.plan?'?plan='+encodeURIComponent(view.plan):''),'GET',undefined,undefined,abort.signal)
@@ -98,7 +99,7 @@ export async function mountFinance(root,{repository,project,viewState={}}){
     if(ticket!==generation)return;plans=list.items;overview=next;
   }
   async function loadLedger(ticket){
-    if(!entries.length)q('[data-list]').innerHTML=loadingMarkup('Загружаем операции…',{rows:5});
+    if(!entries.length)q('[data-list]').innerHTML=loadingMarkup('Загружаем операции…',{variant:'ledger',rows:5});
     const day=projectToday(settings.timeZone),{from,to}=periodRange(view.period,day),range=new URLSearchParams();
     if(from)range.set('from',from);if(to)range.set('to',to);
     const [nextSummary,page]=await Promise.all([
