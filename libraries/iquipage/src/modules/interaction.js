@@ -93,7 +93,7 @@ function autosize(input) {
     const before = input.scrollTop;
     input.style.height = 'auto';
     const style = getComputedStyle(input), border = parseFloat(style.borderTopWidth) + parseFloat(style.borderBottomWidth);
-    const min = parseFloat(style.minHeight) || 76, max = parseFloat(style.maxHeight) || 640;
+    const min = parseFloat(style.minHeight) || 76, max = style.maxHeight === 'none' ? Infinity : parseFloat(style.maxHeight) || 640;
     const height = Math.max(min, Math.min(max, input.scrollHeight + border));
     input.style.height = `${height}px`;
     input.style.overflowY = input.scrollHeight + border > max ? 'auto' : 'hidden';

@@ -7,6 +7,7 @@ import {MediaAdapter} from './media-adapter.js';
 import {MapMedia} from './map-media.js';
 import {describeOwner} from '../ui/src/board/assignees.js';
 import {accessSignature} from './permissions.js';
+import {wikiMethods} from './wiki-adapter.js';
 
 /** Anti-corruption adapter: existing UI record intents become explicit v1 resource commands. */
 /**
@@ -42,7 +43,7 @@ export class ProductRepository {
   /** Every collection of the project reads again (back online after the connection was lost). */
   refreshAll(projectId){
     this.clearProjectCache(projectId);
-    for(const collection of ['tasks','threads','tags','releases','maps','templates','taskLinks','taskSettings','taskMaterials'])this.listeners.forEach(fn=>fn({collection,projectId,resync:true}));
+    for(const collection of ['tasks','threads','tags','releases','maps','templates','taskLinks','taskSettings','taskMaterials','wikiPages','wikiTaskLinks'])this.listeners.forEach(fn=>fn({collection,projectId,resync:true}));
   }
   clearProjectCache(projectId){this.cacheState.generation++;for(const key of this.cache.keys())if(!projectId||key.startsWith(projectId+':'))this.cache.delete(key);}
   async cached(projectId,name,load,{signal}={}){
@@ -87,17 +88,17 @@ export class ProductRepository {
         else if(role&&current.role!==role){role=current.role;this.clearProjectCache(projectId);onAccessRevoked({roleChanged:true,role});}
       }while(checkAgain&&!closed);}catch(error){if(!closed&&[401,403,404].includes(error.status))lost();}finally{checking=false;}
     };
-    const collections=['tasks','threads','tags','releases','maps','templates','taskLinks','taskSettings','taskMaterials'];
+    const collections=['tasks','threads','tags','releases','maps','templates','taskLinks','taskSettings','taskMaterials','wikiPages','wikiTaskLinks'];
     const queue=(collection,event)=>{
       const previous=changed.get(collection);
-      changed.set(collection,{collection,projectId,id:event.resourceId,revision:event.revision,...(previous||event.topic==='resync'?{resync:true}:{})});
+      changed.set(collection,{collection,projectId,id:event.resourceId,revision:event.revision,...(collection==='wikiTaskLinks'?{taskId:event.resourceId}:{}),...(previous||event.topic==='resync'?{resync:true}:{})});
     };
     // Events and the loss of access that arrive while a section mounts wait for it (holdChanges).
     const state=this.streamState,waiting=[];let lostWhileHeld=false;
     const handle=event=>{
       if(closed)return;
-      if(event.topic==='member.updated'&&event.resourceId===this.context.actorId)void checkMembership();
-      const names={'task':'tasks','thread':'threads','tags':'tags','release':'releases','releases':'releases','map':'maps','map-template':'templates','task-link':'taskLinks','task-settings':'taskSettings','task-material':'taskMaterials','finance-entry':'financeEntries','finance-settings':'financeSettings'};
+      if(event.topic.startsWith('member.')&&event.resourceId===this.context.actorId)void checkMembership();
+      const names={'task':'tasks','thread':'threads','tags':'tags','release':'releases','releases':'releases','map':'maps','map-template':'templates','task-link':'taskLinks','task-settings':'taskSettings','task-material':'taskMaterials','wiki-page':'wikiPages','wiki-link':'wikiTaskLinks','wiki-task-link':'wikiTaskLinks','finance-entry':'financeEntries','finance-settings':'financeSettings'};
       const collection=names[event.topic.split('.')[0]];
       this.clearProjectCache(projectId);
       if(event.topic==='resync'||event.topic.startsWith('planning.')||event.topic.startsWith('member.')){collections.forEach(name=>queue(name,{...event,topic:'resync'}));if(event.topic==='resync')void checkMembership();}
@@ -266,3 +267,4 @@ export class ProductRepository {
     this.listeners.forEach(fn=>fn({collection,projectId:record.projectId,id:record.id,revision:saved.revision}));return collection==='maps'?this.mapMedia.hydrate(saved,{signal}):collection==='tasks'?displayOwner(saved):saved;
   }
 }
+Object.assign(ProductRepository.prototype,wikiMethods);

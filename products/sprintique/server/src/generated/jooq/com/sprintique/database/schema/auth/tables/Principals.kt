@@ -74,6 +74,8 @@ import com.sprintique.database.schema.app.keys.TELEGRAM_CONNECTIONS__TELEGRAM_CO
 import com.sprintique.database.schema.app.keys.TELEGRAM_LINK_TOKENS__TELEGRAM_LINK_TOKENS_PRINCIPAL_ID_FKEY
 import com.sprintique.database.schema.app.keys.THREADS__THREADS_RESOLVED_BY_FKEY
 import com.sprintique.database.schema.app.keys.THREAD_READS__THREAD_READS_PRINCIPAL_ID_FKEY
+import com.sprintique.database.schema.app.keys.WIKI_PAGE__WIKI_PAGE_UPDATED_BY_FKEY
+import com.sprintique.database.schema.app.keys.WIKI_VERSION__WIKI_VERSION_ACTOR_ID_FKEY
 import com.sprintique.database.schema.app.keys.WORKBENCH_PREFERENCES__WORKBENCH_PREFERENCES_PRINCIPAL_ID_FKEY
 import com.sprintique.database.schema.app.keys.WORKSPACES__WORKSPACES_CREATED_BY_FKEY
 import com.sprintique.database.schema.app.keys.WORKSPACE_AUDIT__WORKSPACE_AUDIT_ACTOR_ID_FKEY
@@ -129,6 +131,8 @@ import com.sprintique.database.schema.app.tables.TelegramConnections.TelegramCon
 import com.sprintique.database.schema.app.tables.TelegramLinkTokens.TelegramLinkTokensPath
 import com.sprintique.database.schema.app.tables.ThreadReads.ThreadReadsPath
 import com.sprintique.database.schema.app.tables.Threads.ThreadsPath
+import com.sprintique.database.schema.app.tables.WikiPage.WikiPagePath
+import com.sprintique.database.schema.app.tables.WikiVersion.WikiVersionPath
 import com.sprintique.database.schema.app.tables.WorkbenchPreferences.WorkbenchPreferencesPath
 import com.sprintique.database.schema.app.tables.WorkspaceAudit.WorkspaceAuditPath
 import com.sprintique.database.schema.app.tables.WorkspaceMembers.WorkspaceMembersPath
@@ -1098,6 +1102,30 @@ open class Principals(
 
     val threads: ThreadsPath
         get(): ThreadsPath = threads()
+
+    private lateinit var _wikiPage: WikiPagePath
+
+    fun wikiPage(): WikiPagePath {
+        if (!this::_wikiPage.isInitialized)
+            _wikiPage = WikiPagePath(this, null, WIKI_PAGE__WIKI_PAGE_UPDATED_BY_FKEY.inverseKey)
+
+        return _wikiPage;
+    }
+
+    val wikiPage: WikiPagePath
+        get(): WikiPagePath = wikiPage()
+
+    private lateinit var _wikiVersion: WikiVersionPath
+
+    fun wikiVersion(): WikiVersionPath {
+        if (!this::_wikiVersion.isInitialized)
+            _wikiVersion = WikiVersionPath(this, null, WIKI_VERSION__WIKI_VERSION_ACTOR_ID_FKEY.inverseKey)
+
+        return _wikiVersion;
+    }
+
+    val wikiVersion: WikiVersionPath
+        get(): WikiVersionPath = wikiVersion()
 
     private lateinit var _workbenchPreferences: WorkbenchPreferencesPath
 

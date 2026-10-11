@@ -5,9 +5,15 @@ const {MapsFeature}=await import('../ui/src/maps.js');
 const {ProductRepository}=await import('../web/repository.js');
 const {loadTaskSupport}=await import('../ui/src/board/catalog-picker.js');
 const {renderTaskCard}=await import('../ui/src/board/card.js');
-const {sectionRouteHash}=await import('../web/section-route.js');
+const {sectionRouteHash,retainedRouteHash}=await import('../web/section-route.js');
 const wait=()=>new Promise(resolve=>setTimeout(resolve,110));
 const deferred=()=>{let resolve;const promise=new Promise(done=>{resolve=done;});return {promise,resolve};};
+test('cancelled task to wiki navigation restores the retained task instead of the attempted target',()=>{
+  const attempted='#wiki/page/wiki-start';
+  for(const mode of ['tasks','planning'])assert.equal(retainedRouteHash(mode,{currentTask:()=> 'SPQ-2'},attempted),'#/task/SPQ-2');
+  assert.equal(retainedRouteHash('wiki',{routeHash:'#wiki/page/old/edit'},attempted),'#wiki/page/old/edit');
+  assert.equal(retainedRouteHash('tasks',{currentTask:()=>null},attempted),'#tasks');
+});
 test('empty Maps navigation commits the section route without replacing an opened map URL',()=>{
   for(const hash of ['#planning','#tasks','#settings','#maps',''])assert.equal(sectionRouteHash('maps',hash),'#maps');
   assert.equal(sectionRouteHash('maps','#maps/map_123-abc'),'#maps/map_123-abc');
@@ -77,9 +83,9 @@ test('watch starts at explicit watermark; historic unchanged membership does not
 test('live role change is distinct from access loss and checks current membership',async()=>{
   const {repository,state}=repositoryFor(),changes=[];
   repository.watch('p',event=>changes.push(event),{role:'admin'});const stream=FakeStream.instances.at(-1);
-  state.role='reader';stream.change({topic:'member.updated',resourceId:'actor',revision:2});await wait();
+  state.role='reader';stream.change({topic:'member.permissions.updated',resourceId:'actor',revision:2});await wait();
   assert.deepEqual(changes,[{roleChanged:true,role:'reader'}]);assert.equal(repository.context.actorId,'actor');
-  state.role=null;stream.change({topic:'member.updated',resourceId:'actor',revision:3});await wait();
+  state.role=null;stream.change({topic:'member.removed',resourceId:'actor',revision:3});await wait();
   assert.equal(changes.length,2);assert.equal(changes[1],undefined);assert.deepEqual(repository.context,{});assert.equal(stream.closed,true);
 });
 test('one hundred resource events coalesce to one collection invalidation',async()=>{
@@ -91,8 +97,19 @@ test('one hundred resource events coalesce to one collection invalidation',async
 test('resync reaches discussions and links; stop cancels queued invalidation',async()=>{
   const {repository}=repositoryFor(),changes=[];repository.subscribe(event=>changes.push(event));repository.watch('p',()=>{},{});
   const stream=FakeStream.instances.at(-1);stream.dispatchEvent(new Event('resync'));await wait();
-  assert.deepEqual(new Set(changes.map(event=>event.collection)),new Set(['tasks','threads','tags','releases','maps','templates','taskLinks','taskSettings','taskMaterials']));
+  assert.deepEqual(new Set(changes.map(event=>event.collection)),new Set(['tasks','threads','tags','releases','maps','templates','taskLinks','taskSettings','taskMaterials','wikiPages','wikiTaskLinks']));
   changes.length=0;stream.change({topic:'thread.created',resourceId:'t',revision:1});repository.stopWatch();await wait();assert.deepEqual(changes,[]);
+});
+test('wiki link events invalidate task links for the changed task and coalesce multiple tasks',async()=>{
+  const {repository}=repositoryFor(),changes=[];repository.subscribe(event=>changes.push(event));repository.watch('p',()=>{},{});
+  const stream=FakeStream.instances.at(-1);
+  stream.change({topic:'wiki-link.updated',resourceId:'task-one',revision:2});await wait();
+  assert.deepEqual(changes,[{collection:'wikiTaskLinks',projectId:'p',id:'task-one',taskId:'task-one',revision:2}]);
+  changes.length=0;
+  stream.change({topic:'wiki-link.updated',resourceId:'task-one',revision:3});
+  stream.change({topic:'wiki-link.updated',resourceId:'task-two',revision:1});await wait();
+  assert.equal(changes.length,1);assert.equal(changes[0].collection,'wikiTaskLinks');assert.equal(changes[0].resync,true);
+  repository.stopWatch();
 });
 test('task context uses 100-row pages, isolates cached copies, and invalidates across scoped adapters',async()=>{
   let calls=0;

@@ -58,6 +58,7 @@ class McpTools(
     private val maps: Maps,
     private val properties: SprintiqueProperties,
     private val workTools: WorkMcpTools? = null,
+    private val wikiTools: WikiMcpTools? = null,
 ) {
     val all: List<McpTool> = listOf(
         tool(
@@ -226,7 +227,7 @@ class McpTools(
                 required = listOf("projectId"),
             ),
         ) { tx, actor, input: MapListArguments, _ -> untrusted(maps.list(tx, actor, input.projectId, input.cursor)) },
-    ) + workTools?.all.orEmpty()
+    ) + workTools?.all.orEmpty() + wikiTools?.all.orEmpty()
 
     private val byName = all.associateBy(McpTool::name)
 

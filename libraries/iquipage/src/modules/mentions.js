@@ -27,16 +27,7 @@ function caretPoint(input, index) {
     mirror.remove();
     return point;
 }
-/**
- * The @ autocomplete of one textarea. `members` are {id, name, kind?: 'human'|'service', description?, image?};
- * people are listed first, service accounts under «Сервисные аккаунты». Picking inserts «@Имя» and a space through
- * the browser's own insertText (one undo step), fires `input` and then `iq-mention` {id, name} on the textarea. The
- * list lives next to the textarea (inside a dialog it stays reachable) and opens in the top layer.
- *
- * The field never shows a token: it holds plain text and a map of the picked mentions, which follows every edit.
- * Editing inside a name drops its mention (the text is then an ordinary typed one); Backspace right after a mention
- * removes it whole. toMarkdown() gives the message with tokens; load(markdown) shows one with names.
- */
+/* Public API: docs/control-contracts.md. */
 class MentionAutocomplete {
     constructor(input, {members = [], label = 'Упомянуть участника'} = {}) {
         if (!input || input.tagName !== 'TEXTAREA' && input.tagName !== 'INPUT') throw new TypeError('MentionAutocomplete needs a textarea');

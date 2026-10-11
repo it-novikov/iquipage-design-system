@@ -58,5 +58,5 @@ export async function mountPlanningHost(root,{repository,adapter,project,onOpenB
   async function closeTask(){if(opening){opening.abort();opening=null;return true;}if(modal){const opened=modal,accepted=await opened.taskController.close();if(accepted&&opened.isConnected)await new Promise(resolve=>opened.addEventListener('iq-close',resolve,{once:true}));return accepted;}return !mounted||mounted.readyToLeave();}
   mounted=await mountPlanning(root,{adapter,project,viewState,onOpenBoard,
     onOpenTask:(id,callbacks)=>openTask(id,callbacks),onCreateTask:options=>openTask(null,options)});
-  return {openTask,closeTask,reload:()=>mounted.reload(),readyToLeave:()=>!opening&&!modal&&mounted.readyToLeave(),destroy(){closed=true;opening?.abort();modal?.close(true);modal=null;mounted.destroy({force:true});}};
+  return {openTask,closeTask,currentTask:()=>modal?.taskController.taskKey||null,reload:()=>mounted.reload(),readyToLeave:()=>!opening&&!modal&&mounted.readyToLeave(),destroy(){closed=true;opening?.abort();modal?.close(true);modal=null;mounted.destroy({force:true});}};
 }

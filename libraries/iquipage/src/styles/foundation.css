@@ -2497,11 +2497,7 @@ iq-tag-picker[appearance=inline] .iq-tag-picker-add{width:24px;height:24px;min-w
 /* iq-file-picker drop-target (0.6.0-vnext.20): the whole region shows it takes the files while they are dragged over. */
 [data-file-drop]{outline:2px dashed var(--iq-accent);outline-offset:4px;border-radius:var(--iq-radius-sm);background:color-mix(in srgb,var(--iq-accent) 5%,transparent)}
 iq-file-picker[variant=button]{display:inline-flex}
-/* ---------- Property list (0.6.0-vnext.27): .iq-properties[data-label=wide] ----------
-   One calm list of an object's facts: 36px rows, a wide 13px label column (120px; a host may set
-   --iq-properties-label) and the ghost value grammar of the property grid — text at rest, a hover fill and a chevron,
-   one click opens the editor. Static rows (.iq-property with .iq-property-label and .iq-property-value, or dt/dd)
-   read as the same text without a hover; the status pill is 26px so it never stands taller than its neighbours. */
+/* Property list: docs/control-contracts.md. */
 .iq-properties[data-label=wide]{--iq-properties-label:120px;gap:0}
 .iq-properties[data-label=wide] :is(iq-select,iq-combobox,iq-date-field,iq-tag-picker),.iq-properties[data-label=wide] .iq-property{display:grid;grid-template-columns:var(--iq-properties-label) minmax(0,1fr);align-items:center;column-gap:var(--iq-space-3);min-height:36px;min-width:0;max-width:none;width:100%;margin:0}
 .iq-properties[data-label=wide] :is(iq-select,iq-combobox,iq-date-field,iq-tag-picker,.iq-property)>:is(.iq-control-label,.iq-property-label){grid-column:1;margin:0;font-size:var(--iq-type-label-size);font-weight:400;line-height:20px;color:var(--iq-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -2636,3 +2632,26 @@ iq-tag-picker[appearance=ghost] .iq-tag-picker-field:is(:hover,:focus-within)>.i
 /* Tooltip figures (vnext.30): «label<TAB>value» lines of a rich tooltip. */
 .iq-tooltip-row{display:flex;justify-content:space-between;align-items:baseline;gap:16px;color:color-mix(in srgb,var(--iq-canvas) 80%,transparent)}
 .iq-tooltip-row strong{color:var(--iq-canvas);font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+
+iq-tree[navigation] button.tree-disclosure{border:0;background:none;color:inherit;cursor:pointer;min-width:28px;height:36px;padding:0}iq-tree[navigation] button.tree-disclosure:focus-visible{outline:2px solid var(--iq-accent);outline-offset:2px;border-radius:var(--iq-radius-sm)}
+
+/* Document compositions: docs/document.md. */
+iq-tree[appearance=plain] .tree-panel{background:none;border:0;border-radius:0;padding:0}
+iq-tree[appearance=plain] .tree-node-icon,iq-tree[hide-counts] .tree-node-count{display:none}
+iq-tree[appearance=plain] .tree-row{padding-inline-start:calc(4px + min(var(--tree-level),5)*12px);gap:6px;align-items:flex-start}
+iq-tree[density=compact] .tree-row{min-height:36px;padding-block:0}
+iq-tree[density=compact] .tree-node-label{padding-block:8px;line-height:20px}
+.iq-document-layout{display:grid;grid-template-columns:248px minmax(0,1fr);min-height:100%;min-width:0}
+.iq-document-rail{min-width:0;padding:20px 16px;border-inline-end:1px solid var(--iq-line);background:var(--iq-surface)}
+.iq-document-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:64px;padding:12px 32px;min-width:0}
+.iq-document-content{width:100%;max-width:76ch;margin-inline:auto;padding:32px 40px 80px;box-sizing:border-box;min-width:0;overflow-wrap:anywhere}
+.iq-document-title{min-height:1.25em;max-height:none;display:block;width:100%;box-sizing:border-box;margin:0 0 16px;padding:0;border:0;background:none;color:var(--iq-ink);font:600 var(--iq-type-heading2-size)/1.25 var(--iq-font);letter-spacing:var(--iq-tracking-h1);overflow-wrap:anywhere;resize:none}
+iq-markdown-editor[variant=document] .markdown-editor{background:none;border:0;border-radius:0}
+iq-markdown-editor[variant=document] .md-editor-head{justify-content:flex-end;background:none;padding:0 0 8px;border:0}
+iq-markdown-editor[variant=document] .md-editor-head>span,iq-markdown-editor[variant=document] .md-hint{display:none}
+iq-markdown-editor[variant=document] .md-toolbar{padding:8px 0;background:none}
+iq-markdown-editor[variant=document] :is(.md-input,.md-preview){padding:20px 0;min-height:320px;max-height:none;background:none}
+iq-markdown-editor[variant=document] footer{background:none;padding:8px 0;border:0}
+iq-markdown-editor[variant=document] footer:not(:has(.md-footer-actions:not([hidden]),[data-md-submit],[data-md-cancel])){display:none}
+@media(max-width:720px){.iq-document-layout{grid-template-columns:minmax(0,1fr)}.iq-document-rail{display:none}.iq-document-bar{padding:12px 16px}.iq-document-content{padding:24px 20px 64px}.iq-document-title{font-size:1.75rem}}
+@media(pointer:coarse),(max-width:720px){iq-tree[density=compact] .tree-row{min-height:44px}.iq-menu-popup button,:is(.iq-document-bar,.iq-document-rail,.iq-dialog) .iq-btn{min-height:44px;min-width:44px}iq-tree[navigation] button.tree-disclosure{min-width:44px;height:44px}iq-tree[density=compact] .tree-node-label{padding-block:12px}iq-markdown-editor[variant=document] :is(.md-tool,.md-view-toggle){min-width:44px;min-height:44px}}

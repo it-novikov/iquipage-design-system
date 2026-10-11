@@ -1,5 +1,5 @@
 /** Supported core browser entry. Does not register graph, roadmap, crop, or whiteboard. */
-export declare const version:'0.6.0-vnext.45';
+export declare const version:'0.6.0-vnext.50';
 /** Plain text only. The host owns timestamps, paging, state, permissions and persistence. */
 export interface WorkEntry {id:string;text:string;by?:string;time?:string;detail?:string;state?:''|'error'|'waiting'|'complete';}
 export declare function workEntry(entry:WorkEntry):string;
@@ -73,7 +73,9 @@ export declare class IqMarkdownEditor extends HTMLElement {value:string;disabled
 export interface MarkdownToolbarAction {id:string;label:string;icon?:string;}
 export declare class IqPagination extends HTMLElement {total:number;current:number;}
 export interface TreeNode {id:string;label:string;children?:TreeNode[];count?:number;disabled?:boolean;}
-export declare class IqTree extends HTMLElement {items:TreeNode[];value:string[];readonly total:number;}
+export interface TreeNavigationIntent {id:string;previousId:string;}
+export interface TreeExpansionChange {expandedIds:string[];}
+export declare class IqTree extends HTMLElement {items:TreeNode[];value:string[];expandedIds:string[];readonly navigation:boolean;readonly total:number;}
 export interface PlanItem {id:string;title:string;due:string;status?:string;owner?:string;[key:string]:unknown;}
 export declare class IqPlan extends HTMLElement {items:PlanItem[];}
 export interface NavigationItem {id:string;label:string;href?:string;icon?:string;count?:number;}
@@ -185,7 +187,8 @@ export declare function attachMentionAutocomplete(input:HTMLTextAreaElement|HTML
 export declare function safeMarkdown(source:string|null|undefined,options?:MarkdownRenderOptions):string;
 export declare function safeMarkdownURL(value:unknown):string|null;
 /** value is text, never HTML. No accepted/submitted state and no application events. */
-export declare class IqMarkdownViewer extends HTMLElement {value:string;headingLevel:1|2|3|4|5|6;interactiveTasks:boolean;/** vnext.37: compact reads like a compact editor's preview. */density:'compact'|'comfortable';/** vnext.29: members for mention pills; null shows stored labels. */mentions:MentionMembers|null;}
+export interface MarkdownHeading {id:string;level:1|2|3|4|5|6;text:string;}
+export declare class IqMarkdownViewer extends HTMLElement {value:string;headingLevel:1|2|3|4|5|6;interactiveTasks:boolean;/** vnext.37: compact reads like a compact editor's preview. */density:'compact'|'comfortable';/** vnext.29: members for mention pills; null shows stored labels. */mentions:MentionMembers|null;readonly headings:MarkdownHeading[];focusHeading(id:string,options?:{scroll?:boolean}):boolean;}
 export declare function registerMarkdownViewer():void;
 export type WorkDensity='compact'|'comfortable';
 /** Named slots: header/navigation/summary/toolbar/footer. Default slot: working data. */

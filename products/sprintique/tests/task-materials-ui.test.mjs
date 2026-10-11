@@ -103,3 +103,7 @@ test('readonly material surface cannot dispatch archival commands',async()=>{
  try{await settle();fixture.handlers.get('iq-action')({target:{closest:()=>({dataset:{materialRow:'m'}})},detail:{action:'material-remove'}});await settle();assert.equal(s.calls.length,0);assert.doesNotMatch(fixture.root.innerHTML,/<button|<iq-menu/);}
  finally{fixture.controller.destroy();fixture.restore();}
 });
+test('project pages share one Documentation section with external documents, without a false external-only count',()=>{
+ const wikiOnly=materialsMarkup([],{wikiSlot:true,hasWiki:true,readOnly:true});assert.equal((wikiOnly.match(/<h3>Документация<\/h3>/g)||[]).length,1);assert.match(wikiOnly,/data-wiki-material-slot/);assert.doesNotMatch(wikiOnly,/iq-section-count/);
+ const mixed=materialsMarkup([{id:'m',...fields({category:'documentation'})}],{wikiSlot:true,hasWiki:true});assert.equal((mixed.match(/<h3>Документация<\/h3>/g)||[]).length,1);assert.equal((mixed.match(/data-wiki-material-slot/g)||[]).length,1);assert.match(mixed,/data-material-link="m"/);
+});

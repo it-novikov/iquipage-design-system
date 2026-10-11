@@ -24,6 +24,10 @@ if(process.env['PREVIEW_WORK']==='1'){
   const {seedWorkPreview}=await import('./work-preview-seed.js');
   console.log('Agent work preview: '+await seedWorkPreview(f.app,f.admin,seeded.adminId,origin));
 }
+if(process.env['PREVIEW_WIKI']==='1'){
+  const {seedWikiPreview}=await import('./wiki-preview-seed.js');
+  console.log('Wiki preview project: '+await seedWikiPreview(f.app,f.admin,seeded.adminId,origin));
+}
 const state=join(process.env['TEST_FIXTURE_DIR']!,'browser-state.json');
 await writeFile(state,JSON.stringify({cookies:[{name:'__Host-sprintique',value:f.alice.token,domain:new URL(origin).hostname,path:'/',expires:-1,httpOnly:true,secure:true,sameSite:'Lax'}],origins:[]}),{mode:0o600});
 console.log(`Sprintique local stand: ${origin} — вход admin / admin`+(storage?'':' (без файлового хранилища)'));

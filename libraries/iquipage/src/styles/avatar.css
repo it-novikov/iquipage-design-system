@@ -1,11 +1,4 @@
-/* Avatars (0.6.0-vnext.38): one scale, one rule for the initials, owned here and nowhere else.
-   The disc's diameter is --iq-avatar-size, one step of the avatar scale (tokens avatar-size-xs…xl: 20, 24, 28, 32, 40, 48 px;
-   32 without a size class). The initials are a fixed share of that diameter (--iq-avatar-initials, 0.37) at one weight
-   (--iq-avatar-initials-weight, 550), untracked: two wide Cyrillic capitals («ЖЛ», Inter at text optical size) keep about
-   19% of the diameter clear on each side at every size, a single letter about 35%. The line is trimmed to the cap height
-   and alphabetic baseline (text-box) and centred in the disc (align-content), so the capitals sit on the optical centre;
-   where text-box is unsupported the 1:1 line box is centred instead (Inter's capitals are within half a pixel of it).
-   A context chooses a size class (or sets --iq-avatar-size); it never sets a width or a font-size. */
+/* Public API: docs/control-contracts.md. */
 .iq-avatar{--iq-avatar-size:var(--iq-avatar-size-base);box-sizing:border-box;display:inline-block;vertical-align:middle;align-content:center;text-align:center;width:var(--iq-avatar-size);height:var(--iq-avatar-size);min-width:var(--iq-avatar-size);min-height:var(--iq-avatar-size);flex:0 0 var(--iq-avatar-size);padding:0;border-radius:50%;font-family:var(--iq-font);font-size:calc(var(--iq-avatar-size) * var(--iq-avatar-initials));font-weight:var(--iq-avatar-initials-weight);font-style:normal;letter-spacing:var(--iq-tracking-body);line-height:1;white-space:nowrap;text-box:trim-both cap alphabetic}
 .iq-avatar.xs{--iq-avatar-size:var(--iq-avatar-size-xs)}
 .iq-avatar.sm{--iq-avatar-size:var(--iq-avatar-size-sm)}

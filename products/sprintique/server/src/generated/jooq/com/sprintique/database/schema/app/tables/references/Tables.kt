@@ -76,6 +76,9 @@ import com.sprintique.database.schema.app.tables.TelegramUpdates
 import com.sprintique.database.schema.app.tables.TemporalConstraints
 import com.sprintique.database.schema.app.tables.ThreadReads
 import com.sprintique.database.schema.app.tables.Threads
+import com.sprintique.database.schema.app.tables.WikiPage
+import com.sprintique.database.schema.app.tables.WikiTaskLink
+import com.sprintique.database.schema.app.tables.WikiVersion
 import com.sprintique.database.schema.app.tables.WorkbenchPreferences
 import com.sprintique.database.schema.app.tables.WorkspaceAudit
 import com.sprintique.database.schema.app.tables.WorkspaceMembers
@@ -390,6 +393,12 @@ val TEMPORAL_CONSTRAINTS: TemporalConstraints = TemporalConstraints.TEMPORAL_CON
 val THREAD_READS: ThreadReads = ThreadReads.THREAD_READS
 
 val THREADS: Threads = Threads.THREADS
+
+val WIKI_PAGE: WikiPage = WikiPage.WIKI_PAGE
+
+val WIKI_TASK_LINK: WikiTaskLink = WikiTaskLink.WIKI_TASK_LINK
+
+val WIKI_VERSION: WikiVersion = WikiVersion.WIKI_VERSION
 
 val WORKBENCH_PREFERENCES: WorkbenchPreferences = WorkbenchPreferences.WORKBENCH_PREFERENCES
 
