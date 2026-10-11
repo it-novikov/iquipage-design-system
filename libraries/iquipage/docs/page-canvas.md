@@ -1,0 +1,9 @@
+# Page canvas and task signals (.52)
+
+`.iq-page-fluid` is an opt-in modifier for `.iq-workspace-page` and `.iq-agent-directory`: page max-width is removed while the existing responsive working insets remain (24px desktop, 16px mobile for these compositions). Vertical rhythm, internal cards, controls and document reading measure are unchanged. Existing callers retain their defaults.
+
+`.iq-task-signals` composes one compact horizontal row of the existing `taskSignal` and optional `.iq-task-blocker`. Priority and blocker share a 22px line box and centre, separated by 12px. A blocker is a compact neutral outline with ordinary ink and a danger-ink lock; it has no filled danger surface. Use a short, factual count label when the count is known, and a truthful nonnumeric fallback otherwise. Provide visible text and an accessible description of actual blockers. An optional public `iq-tooltip` may expose the full reason on focus and dismiss with Escape; it is not an actionable button and must not be given a false interaction. The host decides from authoritative dependency state; priority and blocking remain independent.
+
+The modifier does not affect settings internals. Public settings layout exposes `::part(content)` for content padding and `--iq-settings-measure` for its maximum measure. A fluid host may set the content part's inline padding to zero and the measure to `none`. Slots, internal control padding and the navigation rail remain intact.
+
+Workspace sizing remains composed from native labelled landmarks. Public hooks `--iq-workspace-nav-width` and `--iq-workspace-aside-width` size the navigation and context rails. Plan groups remain reusable for roadmaps, iterations and queues; summaries and responsive comparisons accept host-formatted amounts. These existing contract notes were relocated from runtime CSS comments without changing their rules.

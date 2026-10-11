@@ -10,7 +10,7 @@ import {loadCatalog,listPhrase,lowerFirst} from './access-ui.js';
 /** The directory joins only catalogs the signed-in person can read. Credentials never enter its model. */
 export async function mountAgentsDirectory(root,{repository,project,onOpenTask}){
  const client=repository.client,abort=new AbortController();let closed=false,items=[],projects=[],accounts=[],query='',filter='',mode='',stateFilter='',selected=null,profileProject=null,detail=null,manager=null,managerAbort=null,sequence=0,modal=null,partial=false,permissionIndex=new Map();
- root.innerHTML=`<div class="iq-agent-directory">${pageHeader({title:'Агенты',description:'Кому можно поручить работу и как она идёт.'})}${loadingMarkup('Загружаем агентов…',{variant:'agents'})}</div>`;
+ root.innerHTML=`<div class="iq-agent-directory iq-page-fluid">${pageHeader({title:'Агенты',description:'Кому можно поручить работу и как она идёт.'})}${loadingMarkup('Загружаем агентов…',{variant:'agents'})}</div>`;
  const req=path=>client.request(path,'GET',undefined,undefined,abort.signal);
  const find=id=>items.find(x=>x.id===id);
  const show=options=>{modal=dialog(options);modal.addEventListener('iq-close',()=>{modal=null;void open(selected);},{once:true});return modal;};
@@ -18,7 +18,7 @@ export async function mountAgentsDirectory(root,{repository,project,onOpenTask})
  function render(){
   if(closed||managerAbort)return;
   const agent=find(selected),active=root.contains(document.activeElement)?document.activeElement:null,focusName=active?.closest('[name]')?.getAttribute('name'),focusHeading=active?.tagName==='H1';
-  root.innerHTML=`<div class="iq-agent-directory">${pageHeader({title:agent?.name||'Агенты',description:agent?agent.description||`Работает в проектах ${agent.projects.map(p=>p.name).join(', ')}.`:'Кому можно поручить работу и как она идёт.',back:agent?ui.btn('Все агенты','ghost sm','left','data-agents-back'):'',actions:agent?'':ui.btn('Подключить агента','secondary sm','plus','data-agents-connect')})}<div data-agent-content></div></div>`;
+  root.innerHTML=`<div class="iq-agent-directory iq-page-fluid">${pageHeader({title:agent?.name||'Агенты',description:agent?agent.description||`Работает в проектах ${agent.projects.map(p=>p.name).join(', ')}.`:'Кому можно поручить работу и как она идёт.',back:agent?ui.btn('Все агенты','ghost sm','left','data-agents-back'):'',actions:agent?'':ui.btn('Подключить агента','secondary sm','plus','data-agents-connect')})}<div data-agent-content></div></div>`;
   if(agent)renderProfile(agent);else renderList();enhance(root);
   if(focusName)root.querySelector(`[name="${CSS.escape(focusName)}"]`)?.focus?.({preventScroll:true});else if(focusHeading)root.querySelector('h1')?.focus({preventScroll:true});
  }
@@ -54,7 +54,7 @@ export async function mountAgentsDirectory(root,{repository,project,onOpenTask})
  }
  async function manage(){const a=find(selected);if(!a)return;
   managerAbort?.abort();manager?.destroy();manager=null;const pending=managerAbort=new AbortController();++sequence;
-  root.innerHTML=`<div class="iq-agent-directory">${pageHeader({title:'Настройки аккаунта',description:a.name,back:ui.btn('К агенту','ghost sm','left','data-agent-return')})}<div data-agent-manager class="iq-settings-stack">${loadingMarkup('Загружаем настройки аккаунта…',{variant:'connections'})}</div></div>`;
+  root.innerHTML=`<div class="iq-agent-directory iq-page-fluid">${pageHeader({title:'Настройки аккаунта',description:a.name,back:ui.btn('К агенту','ghost sm','left','data-agent-return')})}<div data-agent-manager class="iq-settings-stack">${loadingMarkup('Загружаем настройки аккаунта…',{variant:'connections'})}</div></div>`;
   enhance(root);root.querySelector('h1')?.focus({preventScroll:true});
   const content=root.querySelector('[data-agent-manager]');
   try{const mounted=await mountServiceAccounts(content,{repository,selectedAccountId:a.id,signal:pending.signal});if(closed||pending!==managerAbort||pending.signal.aborted){mounted.destroy();return;}manager=mounted;}

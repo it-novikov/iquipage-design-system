@@ -211,3 +211,5 @@ Navigation trees: [public iq-tree navigation contract](docs/tree-navigation.md),
 Document reading/editing: [public compositions, editor variant and heading outline](docs/document.md) (vnext.49).
 
 Menu touch sizing: [public control contracts](docs/control-contracts.md) (vnext.50).
+
+Fluid page canvas and inline task signals: [public composition](docs/page-canvas.md) (vnext.52).

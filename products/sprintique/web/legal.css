@@ -1,7 +1,7 @@
 /* Public IQUIPAGE site header, buttons and navigation; product document layout. */
 .legal-shell{min-height:100svh;display:flex;flex-direction:column}
 .legal-header-tools{display:flex;align-items:center;gap:var(--iq-space-2);margin-left:auto}
-.legal-layout{width:min(calc(100% - 2 * var(--iq-grid-margin)),var(--iq-grid-max));margin-inline:auto;display:grid;grid-template-columns:15rem minmax(0,1fr);gap:var(--iq-space-16);flex:1;padding-block:var(--iq-space-12) var(--iq-space-20)}
+.legal-layout{width:100%;padding-inline:var(--iq-space-6);margin-inline:auto;display:grid;grid-template-columns:15rem minmax(0,1fr);gap:var(--iq-space-16);flex:1;padding-block:var(--iq-space-12) var(--iq-space-20)}
 .legal-sidebar{align-self:start;position:sticky;top:var(--iq-space-24);display:grid;gap:var(--iq-space-8);max-height:calc(100svh - var(--iq-space-24) - var(--iq-space-6));overflow-y:auto}
 .legal-sidebar nav{display:grid;gap:var(--iq-space-1)}
 .legal-sidebar-title{color:var(--iq-muted);font-size:var(--iq-type-caption-size);margin:0 0 var(--iq-space-3)}
@@ -29,10 +29,10 @@
 .about-card{display:grid;grid-template-columns:12rem minmax(0,1fr);gap:var(--iq-space-6);padding-bottom:var(--iq-space-8);border-bottom:1px solid var(--iq-line)}
 .about-card h2,.about-card p{margin:0}.about-card h2{font-size:var(--iq-type-title-size)}.about-card p{color:var(--iq-muted);font-size:var(--iq-type-body-size);line-height:var(--iq-type-body-lineHeight)}
 .legal-footer{border-top:1px solid var(--iq-line)}
-.legal-footer-inner{width:min(calc(100% - 2 * var(--iq-grid-margin)),var(--iq-grid-max));margin-inline:auto;display:flex;flex-wrap:wrap;justify-content:space-between;gap:var(--iq-space-4);padding-block:var(--iq-space-6);color:var(--iq-muted);font-size:var(--iq-type-caption-size)}
+.legal-footer-inner{width:100%;padding-inline:var(--iq-space-6);margin-inline:auto;display:flex;flex-wrap:wrap;justify-content:space-between;gap:var(--iq-space-4);padding-block:var(--iq-space-6);color:var(--iq-muted);font-size:var(--iq-type-caption-size)}
 .legal-footer-links{display:flex;flex-wrap:wrap;gap:var(--iq-space-4)}
 .legal-footer-links a{padding-block:var(--iq-space-1)}
 @media(max-width:60rem){.legal-layout{grid-template-columns:12rem minmax(0,1fr);gap:var(--iq-space-8)}.legal-hero h1{font-size:var(--iq-type-heading2-size)}.about-card{grid-template-columns:1fr;gap:var(--iq-space-3)}}
-@media(max-width:42rem){.legal-layout{grid-template-columns:1fr;gap:var(--iq-space-8);padding-block:var(--iq-space-6) var(--iq-space-12)}.legal-sidebar{position:static;gap:var(--iq-space-5)}.legal-sidebar nav{display:flex;flex-wrap:wrap;gap:var(--iq-space-1)}.legal-sidebar-title{display:none}.legal-toc{grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--iq-space-2) var(--iq-space-4)}.legal-toc a{min-height:var(--iq-control-sm)}.legal-toc-block{border-bottom:1px solid var(--iq-line);padding-bottom:var(--iq-space-5)}.legal-hero h1{font-size:var(--iq-type-heading2-size)}.legal-content{gap:var(--iq-space-8)}.legal-header-tools .iq-btn{padding-inline:var(--iq-space-3)}.legal-header-tools{gap:var(--iq-space-1)}}
+@media(max-width:42rem){.legal-layout{padding-inline:var(--iq-space-4);grid-template-columns:1fr;gap:var(--iq-space-8);padding-block:var(--iq-space-6) var(--iq-space-12)}.legal-sidebar{position:static;gap:var(--iq-space-5)}.legal-sidebar nav{display:flex;flex-wrap:wrap;gap:var(--iq-space-1)}.legal-sidebar-title{display:none}.legal-toc{grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--iq-space-2) var(--iq-space-4)}.legal-toc a{min-height:var(--iq-control-sm)}.legal-toc-block{border-bottom:1px solid var(--iq-line);padding-bottom:var(--iq-space-5)}.legal-hero h1{font-size:var(--iq-type-heading2-size)}.legal-content{gap:var(--iq-space-8)}.legal-header-tools .iq-btn{padding-inline:var(--iq-space-3)}.legal-header-tools{gap:var(--iq-space-1)}}
 @media print{.site-header,.legal-sidebar,.legal-footer,.skip-link{display:none}.legal-layout{display:block;width:100%;padding:0}.legal-page{max-width:none}.legal-section{break-inside:avoid}.legal-copy a{color:inherit}}
-@media(max-width:42rem){.legal-sidebar{max-height:none;overflow:visible}}
+@media(max-width:42rem){.legal-footer-inner{padding-inline:var(--iq-space-4)}.legal-sidebar{max-height:none;overflow:visible}}

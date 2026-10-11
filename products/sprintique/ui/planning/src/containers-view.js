@@ -9,7 +9,7 @@ import {arrange,dividerLabel,cells,asideOf,whenLabel,summaryParts,plural} from '
 const PRIORITY_TONES=new Set(['critical','high']);
 
 export function pageMarkup(){
-  return `<section class="pl-page" aria-labelledby="pl-title"><div class="iq-workspace-page">
+  return `<section class="pl-page" aria-labelledby="pl-title"><div class="iq-workspace-page iq-page-fluid">
     ${pageHeader({titleHTML:'<h1 id="pl-title">Планирование</h1>',actions:'<div class="sq-page-actions" data-create-controls></div>'})}
     <div data-error role="alert" hidden></div>
     <div class="iq-workspace"><nav class="iq-workspace-nav" aria-label="Разделы плана" data-plan-nav></nav><div class="iq-workspace-body">

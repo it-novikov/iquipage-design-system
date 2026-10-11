@@ -29,7 +29,7 @@ export async function mountWorkbench(root,{repository,session:initialSession,pla
   let preferences={timezone:null,layout:{currentForm:'lanes'},revision:0};
   const projects=new Map(session.projects.map(p=>[p.id,p]));
   const scroller=()=>scrollerOf(root);
-  root.innerHTML=`<div class="dsk-shell"><div class="dsk-page iq-workspace-page">
+  root.innerHTML=`<div class="dsk-shell"><div class="dsk-page iq-workspace-page iq-page-fluid">
 ${pageHeader({title:'Рабочий стол',actions:`
 <div class="sq-page-tools"><div class="iq-segmented dsk-views" role="group" aria-label="Вид рабочего стола">${VIEWS.map(v=>`<button type="button" data-view="${v.key}" aria-label="${esc(v.label)}">${icon(v.icon,16)}<span>${esc(v.label)}</span></button>`).join('')}</div>
 <button type="button" class="iq-btn primary" data-create-task aria-label="Создать задачу">${icon('plus',18)}<span>Новая задача</span></button></div>`})}

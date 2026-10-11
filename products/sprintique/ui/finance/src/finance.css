@@ -1,7 +1,7 @@
 /* Finance: a product composition on public IQUIPAGE classes and tokens. Controls, badges, tables, empty states,
    dialogs and skeletons come from the DS; this file only places them and gives money its tabular figures. */
 .fin-root{min-width:0}
-.fin-view{display:flex;flex-direction:column;gap:var(--iq-space-5);min-width:0;max-width:1280px;margin-inline:auto;width:100%}
+.fin-view{display:flex;flex-direction:column;gap:var(--iq-space-5);min-width:0;margin-inline:auto;width:100%}
 .fin-view[hidden],.fin-root>[hidden]{display:none}
 /* An empty notice slot takes no gap. */
 .fin-view>[data-notice]:empty{display:none}
@@ -126,7 +126,7 @@
 .fin-versions{margin-left:auto;font-size:var(--iq-type-label-size);color:var(--iq-muted)}
 
 /* Redesigned finance composition; public workspace and comparison primitives own structure. */
-.fin-root.iq-workspace-page{max-width:1440px}.fin-head{margin-bottom:0}.fin-context{margin:0}.fin-context-plan{display:flex;gap:var(--iq-space-3);align-items:center;flex-wrap:wrap}
+.fin-head{margin-bottom:0}.fin-context{margin:0}.fin-context-plan{display:flex;gap:var(--iq-space-3);align-items:center;flex-wrap:wrap}
 .fin-attention{display:flex;justify-content:space-between;align-items:center;gap:var(--iq-space-5);padding:var(--iq-space-4) 0}.fin-attention .fin-state{font-size:var(--iq-type-title-size);margin:0;max-width:70ch}.fin-attention>.iq-btn{flex:none}
 .fin-summary-scale{margin-top:var(--iq-space-5)}.fin-summary-scale p{margin-top:var(--iq-space-2)}
 .fin-results{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--iq-space-5);padding-top:var(--iq-space-5);margin-top:var(--iq-space-5);border-top:1px solid var(--iq-line)}.fin-results span{display:block;font-size:var(--iq-type-caption-size);color:var(--iq-muted)}.fin-results strong{display:block;margin-top:var(--iq-space-2);font-size:var(--iq-type-label-size);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}.fin-result-note{margin-top:var(--iq-space-3)}
