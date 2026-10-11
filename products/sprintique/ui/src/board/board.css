@@ -1,8 +1,6 @@
 /* Public Board composition. Load the matching IQUIPAGE CSS and shared Maps dialog styles. */
 .iq-task-board-root{width:100%;height:100%;min-height:0;min-width:0;overflow:hidden;display:flex}
 .host-task-page{display:flex;flex-direction:column;flex:1;min-height:0;min-width:0;padding:var(--iq-space-6)}
-.host-task-heading{display:flex;align-items:center;gap:var(--iq-space-5);flex:none;flex-wrap:wrap;padding-bottom:var(--iq-space-5)}
-.iq-task-board-root .host-task-heading h1{font-size:var(--iq-work-compact-title);margin:0;line-height:1.3}
 .host-task-tools{display:flex;align-items:center;gap:var(--iq-space-2);flex:none;flex-wrap:wrap;margin-left:auto}
 .host-task-tools .iq-search-small{width:min(320px,100%)}
 .host-board-mount{flex:1;min-width:0;min-height:0;display:flex;overflow:hidden}
@@ -33,7 +31,7 @@
 @media(max-width:760px){.host-task-page{padding:var(--iq-space-4)}.host-task-tools .iq-search-small{flex:1}.host-task-tools>[data-refresh-tasks]{width:36px;padding:0}.task-edit-properties{grid-template-columns:1fr}.host-task-tools .host-board-sort{min-width:155px}}
 
 /* The compact toolbar wraps deliberately, never into a one-word search field. */
-@media(max-width:580px){.host-task-heading{gap:var(--iq-space-3)}.host-task-heading h1{flex:1}.host-task-tools{width:100%;margin-left:0}.host-task-tools .host-board-sort{margin-left:auto;min-width:0}}
+@media(max-width:580px){.host-task-tools{width:100%;margin-left:0}.host-task-tools .host-board-sort{margin-left:auto;min-width:0}}
 
 
 

@@ -1,3 +1,4 @@
+import {loadingMarkup} from '../ui/src/loading.js';
 import {ui,icon,escapeHTML as esc,notify,actionError} from '@iquipage/web/core';
 import {background} from '../ui/src/action-feedback.js';
 import {badgeText,bellLabel,rowMeta,kindGlyph,undoRequest} from './notification-model.js';
@@ -56,7 +57,7 @@ export function mountNotificationBell(slot,{client,onOpen,onSettings}){
       +`<span class="pn-bell-task">${esc(item.task?.title||'')}</span><span class="pn-bell-meta">${esc(rowMeta(item))}</span>${outcome(item)}</span>`
       +(item.read?'':'<span class="pn-bell-dot"><span class="sr-only">Не прочитано</span></span>')+'</button>'
       +controls(item)+'</div>').join('');
-    const empty=loading&&!items.length?'<p class="pn-bell-empty" role="status">Загружаем…</p>'
+    const empty=loading&&!items.length?loadingMarkup('Загружаем уведомления…',{variant:'notifications',rows:3})
       :!items.length?'<p class="pn-bell-empty">Пока ничего нет. Здесь появятся назначения, упоминания, запросы и сроки ваших задач.</p>':'';
     const more=next?`<button type="button" role="menuitem" tabindex="-1" class="iq-btn ghost sm" data-bell-more${loading?' disabled aria-busy="true"':''}>Показать ещё</button>`:'';
     body.innerHTML=head+`<div class="pn-bell-list" role="presentation">${rows}${empty}</div>`

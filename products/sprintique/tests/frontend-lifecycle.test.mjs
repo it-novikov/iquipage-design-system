@@ -129,11 +129,11 @@ test('board cards show hierarchy without repeating task numbers',()=>{
   const expanded=renderTaskCard({task:parent,parent:null,children:[done,open]},{index,canEdit:true,expanded:true});
   assert.match(expanded,/aria-expanded="true"/);assert.doesNotMatch(expanded,/id="subtasks-p" hidden/);assert.ok(expanded.includes('Готовая')&&expanded.includes('Открытая')&&expanded.includes('Ревью'));
 });
-test('loading markup is one DS skeleton look that stays hidden while loads are fast',async()=>{
+test('content loading exposes one status and hides its decorative row geometry',async()=>{
   const {loadingMarkup}=await import('../ui/src/loading.js');
   const html=loadingMarkup('Загружаем <задачи>',{rows:2,title:true});
   assert.match(html,/class="iq-loading product-loading "/);assert.match(html,/aria-busy="true"/);assert.match(html,/Загружаем &lt;задачи&gt;/);
-  assert.equal((html.match(/iq-skeleton product-loading-row/g)||[]).length,2);
+  assert.equal((html.match(/class="load-row"/g)||[]).length,2);assert.match(html,/aria-hidden="true"/);assert.doesNotMatch(html,/<button|<input/);
 });
 test('template previews show structure: titled areas, lined notes, arrowed links, staggered hover order',async()=>{
   const {previewDocument}=await import('../ui/src/template-preview.js');

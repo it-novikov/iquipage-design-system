@@ -1,3 +1,4 @@
+import {loadingMarkup} from '../loading.js';
 import {createThreadFocus} from './thread-focus.js';
 import {formatDateTime,ui,workQuestion,plural as pluralForms,mentionsHTML,mentionPlainText,FEEDBACK_TIMING} from '@iquipage/web/core';
 import {createThreadPager} from './thread-pager.js';
@@ -176,6 +177,7 @@ export function mountThreads(root,{repository,task,readOnly=false,people=new Map
     const restoreFocus=threadFocus.capture(focusId,focusNode);
     const questions=items.filter(isOpen).sort(byCreated),timeline=items.filter(thread=>!isOpen(thread)).sort(byCreated);
     place(questionsRoot,questions);place(timelineRoot,timeline);
+    if(pageLoading&&!items.length)timelineRoot.innerHTML=loadingMarkup('Загружаем обсуждения…',{variant:'history',rows:2});
     if(restoreFocus){const node=root.querySelector(`.iq-thread[data-thread="${CSS.escape(focusId)}"]`);if(node)threadFocus.restore(focusId,node,restoreFocus);}
     root.querySelector('[data-thread-count]').textContent=total?String(total):'';
     const openCount=root.querySelector('[data-thread-open-count]');openCount.hidden=!unresolved;openCount.textContent=unresolved?`Открытые вопросы: ${unresolved}`:'';

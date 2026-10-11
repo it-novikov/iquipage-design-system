@@ -47,7 +47,7 @@ export function renderTaskCard(row,{index,canEdit,pending=false,expanded=false,c
 
     <button type="button" class="task-card-title" data-open-task="${id}" title="${esc(t.title)}" tabindex="-1">${esc(t.title)}</button>
     ${row.parent?`<button type="button" class="task-card-parent" data-open-task="${esc(row.parent.id)}" tabindex="-1" title="Родительская задача: ${esc(row.parent.title)}">${icon('stack',14)}<span>${esc(row.parent.title)}</span></button>`:''}
-    ${t.effectiveBlocked===true?`<p class="iq-helper" data-tone="warning" title="${esc((t.blockers||[]).map(b=>`${b.displayId||''} ${b.title}`).join('; '))}">${icon('lock',14)} Заблокирована${t.blockingTaskCount>1?` (${t.blockingTaskCount})`:''}</p>`:''}
+    ${t.effectiveBlocked===true?`<span class="iq-badge danger" title="${esc((t.blockers||[]).map(b=>`${b.displayId||''} ${b.title}`).join('; '))}">${icon('lock',14)} Заблокирована${t.blockingTaskCount>1?` (${t.blockingTaskCount})`:''}</span>`:''}
     ${metadata?`<div class="task-card-metadata">${metadata}</div>`:''}
     ${due||release||(people&&!parent)?`<div class="task-card-footer"><span class="task-due">${due?`<span class="task-due-date" ${dueTone?`data-tone="${dueTone}"`:''}>${icon('calendar',14)}<span>${esc(due)}</span>${dueTone==='danger'?'<span class="sr-only">просрочено</span>':''}</span>`:''}${release?`<span class="task-release" title="Релиз: ${esc(release.name)}">${icon('flag',14)}<span>${esc(release.name)}</span></span>`:''}</span>${parent?'':people}</div>`:''}
     ${subtasks(t,row.children,expanded,parent?people:'')}

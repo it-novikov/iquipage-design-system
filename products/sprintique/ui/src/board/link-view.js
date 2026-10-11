@@ -18,7 +18,7 @@ function openLinkPicker({tasks,excludeId,releaseId=null,parents=null,onParent=nu
   let selected='',query='';
   const picker=input('linkSearch','Найти задачу','',{placeholder:'Номер или название'})+'<p class="iq-helper" data-link-selected hidden></p><div class="iq-work-story" data-link-results></div>';
   const kinds=onParent?[...LINK_KINDS,PARENT_KIND]:LINK_KINDS;
-  dialog({title:'Связать задачи',body:picker+select('kind','Выбранная задача','depends',kinds),submitLabel:'Связать',onSubmit:async(values,form)=>{
+  dialog({title:'Связать задачи',body:select('kind','Тип связи','depends',kinds)+picker,submitLabel:'Связать',onSubmit:async(values,form)=>{
     const other=selected;if(!other)throw Error('Выберите задачу.');
     const kind=values.get('kind');
     if(kind==='parent'){

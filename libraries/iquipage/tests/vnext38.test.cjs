@@ -117,9 +117,9 @@ test('the build ships avatar.css after the foundation, and helpers speak the sca
 });
 
 test('public surface: the vnext.38 release', () => {
-  assert.match(read('src/entries/core.js'), /export const version='0\.6\.0-vnext\.43';/);
-  assert.equal(require('../package.json').version, '0.6.0-vnext.43');
-  assert.match(read('types/core.d.ts'), /export declare const version:'0\.6\.0-vnext\.43';/);
-  assert.equal(JSON.parse(read('tokens/semantic.json')).meta.version, '0.6.0-vnext.43');
-  assert.equal(JSON.parse(read('PROVENANCE.json')).release, '0.6.0-vnext.43');
+  assert.match(read('src/entries/core.js'), /export const version='0\.6\.0-vnext\.45';/);
+  assert.equal(require('../package.json').version, '0.6.0-vnext.45');
+  assert.match(read('types/core.d.ts'), /export declare const version:'0\.6\.0-vnext\.45';/);
+  assert.equal(JSON.parse(read('tokens/semantic.json')).meta.version, '0.6.0-vnext.45');
+  assert.equal(JSON.parse(read('PROVENANCE.json')).release, '0.6.0-vnext.45');
 });

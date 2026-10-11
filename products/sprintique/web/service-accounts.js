@@ -20,10 +20,12 @@ const scopeNames=scopes=>(scopes||[]).includes('write')?'Читать и изм�
 const when=value=>value?formatDateTime(value):'';
 const lifetimes=[['7','7 дней'],['30','30 дней'],['90','90 дней'],['180','180 дней'],['365','1 год']];
 
-export async function mountServiceAccounts(root,{repository,tools,selectedAccountId=null}){
+export async function mountServiceAccounts(root,{repository,tools,selectedAccountId=null,signal}){
   const client=repository.client,abort=new AbortController();
   let closed=false,modal=null,accounts=[],myProjects=[],myWorkspaces=[],selected=selectedAccountId,mcpUrl='',index=new Map(),loading=0;
   const presetCache=new Map();
+  const destroy=()=>{if(closed)return;closed=true;loading++;abort.abort();signal?.removeEventListener('abort',destroy);modal?.close(true);root.replaceChildren();};
+  if(signal?.aborted)destroy();else signal?.addEventListener('abort',destroy,{once:true});
   if(tools)tools.innerHTML='';
   /** A dialog or drawer on top: the list reloads once it closes (a change may have happened inside). */
   function track(element){modal=element;element.addEventListener('iq-close',()=>{if(modal===element)modal=null;void refresh().catch(fail);},{once:true});return element;}
@@ -108,8 +110,9 @@ export async function mountServiceAccounts(root,{repository,tools,selectedAccoun
   }
   async function refresh(){
     if(closed||modal)return;const sequence=++loading;
-    const [list,session,workspaces,resource,catalog]=await Promise.all([client.request('/service-accounts'),client.request('/session'),client.request('/workspaces'),
-      fetch('/.well-known/oauth-protected-resource/mcp').then(r=>r.ok?r.json():null).catch(()=>null),loadCatalog(client)]);
+    const read=path=>client.request(path,'GET',undefined,undefined,abort.signal);
+    const [list,session,workspaces,resource,catalog]=await Promise.all([read('/service-accounts'),read('/session'),read('/workspaces'),
+      fetch('/.well-known/oauth-protected-resource/mcp',{signal:abort.signal}).then(r=>r.ok?r.json():null).catch(()=>null),loadCatalog(client)]);
     if(closed||modal||sequence!==loading)return;
     accounts=list.items;myProjects=session.projects||[];myWorkspaces=workspaces||[];mcpUrl=resource?.resource||'';index=catalog.index;render();
   }
@@ -226,6 +229,6 @@ export async function mountServiceAccounts(root,{repository,tools,selectedAccoun
       onSubmit:async()=>{try{await client.request('/connected-apps/'+encodeURIComponent(target.dataset.appRevoke),'DELETE');}catch(error){throw Error(explain(error));}}});}
   })().catch(fail);};
   root.addEventListener('click',onClick,{signal:abort.signal});
-  await refresh();
-  return {readyToLeave:()=>!modal,destroy(){closed=true;loading++;abort.abort();modal?.close(true);root.replaceChildren();}};
+  try{await refresh();}catch(error){destroy();throw error;}
+  return {readyToLeave:()=>!modal,destroy};
 }

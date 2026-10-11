@@ -1,3 +1,4 @@
+import {pageHeader} from '../../src/page-header.js';
 import {ui,escapeHTML as esc,scale,notify,pending,FEEDBACK_TIMING} from '@iquipage/web/core';
 import {dialog} from '../../src/ui.js';
 import {currencySymbol,currencyName} from './money.js';
@@ -26,9 +27,7 @@ export function mountPlanEditor(root,{api,plan,settings,today,categories,release
   function blank(){return {categoryId:'',direction:'expense',amount:'',currencyCode:currency,releaseId:null,note:null};}
 
   const crumb=draft?`черновик версии ${version}`:'новый план';
-  root.innerHTML=`<section class="fin-view fin-editor-view"><header class="iq-workspace-heading fin-head"><div><span class="iq-workspace-eyebrow">Финансовый план</span><h1>${esc(editorTitle(header.releaseId?{releaseName:releases.find(r=>r.id===header.releaseId)?.name}:null))}</h1>
-      <span class="fin-crumb"><button type="button" class="fin-crumb-link" data-back>Финансы</button> · ${esc(crumb)}</span></div>
-      <div class="iq-workspace-tools">${draft&&plan?`<button type="button" class="iq-btn ghost sm" data-discard>Удалить черновик</button>`:''}</div></header>
+  root.innerHTML=`<section class="fin-view fin-editor-view">${pageHeader({title:editorTitle(header.releaseId?{releaseName:releases.find(r=>r.id===header.releaseId)?.name}:null),description:crumb,back:'<button type="button" class="iq-btn ghost sm" data-back>К финансам</button>',actions:`${draft&&plan?`<button type="button" class="iq-btn ghost sm" data-discard>Удалить черновик</button>`:''}`})}
     <form class="fin-card fin-editor" novalidate aria-labelledby="fin-editor-title">
       <header class="fin-card-head"><h2 id="fin-editor-title">Состав и суммы</h2><span class="fin-card-hint">Черновик можно сохранить и продолжить позже</span></header>
       <div class="fin-editor-scale" data-editor-scale></div>

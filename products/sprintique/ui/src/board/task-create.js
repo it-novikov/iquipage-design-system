@@ -12,7 +12,7 @@ import {uid} from '../common.js';
  */
 
 /** What the picked task is to the task being created, in the words of the relation map. */
-export const LINK_KINDS=[['depends','Блокирует эту задачу'],['blocks','Ждёт эту задачу'],['related','Связана с этой задачей']];
+export const LINK_KINDS=[['depends','Эта задача зависит от выбранной'],['blocks','Эта задача блокирует выбранную'],['related','Эта задача связана с выбранной']];
 /** The picker's extra choice: the picked task becomes the parent (the «Родитель» field, not a link). */
 export const PARENT_KIND=['parent','Родитель этой задачи'];
 

@@ -310,8 +310,11 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
         offer.hidden=untouched;
         if(untouched){applyTemplate(!current);form.dispatchEvent(new Event('change'));}
         else {
-          offer.innerHTML='<p class="iq-helper">Ваше описание сохранено. Для нового типа доступен другой шаблон.</p><button type="button" class="iq-btn ghost sm">Заменить описание шаблоном</button>';
-          offer.querySelector('button').onclick=()=>dialog({title:'Заменить описание?',description:'Текущий текст будет заменён шаблоном выбранного типа задачи.',submitLabel:'Заменить описание',onSubmit:async()=>{applyTemplate();offer.hidden=true;form.dispatchEvent(new Event('change'));}});
+          const type=form.querySelector('iq-select[name=type]').value;
+          const name={task:'задачи',bug:'бага',epic:'эпика'}[type]||'выбранного типа';
+          offer.innerHTML=`<div class="iq-banner" role="status"><p>Есть шаблон для ${name}.</p><div class="sq-page-actions">${ui.btn('Посмотреть шаблон','secondary sm','','data-preview-type-template')}${ui.btn('Оставить мой текст','ghost sm','','data-keep-description')}</div></div>`;
+          offer.querySelector('[data-keep-description]').onclick=event=>{event.stopPropagation();offer.hidden=true;editor.previewMode=false;editor.focusEditor();};
+          offer.querySelector('[data-preview-type-template]').onclick=()=>dialog({title:`Шаблон для ${name}`,description:'Замена удалит текущий текст описания. Остальные поля не изменятся.',body:'<iq-markdown-viewer data-template-preview></iq-markdown-viewer>',submitLabel:'Заменить описание',mount:element=>{element.querySelector('[data-template-preview]').value=taskMarkdown(instantiateTaskTemplate(settings,type));},onSubmit:async()=>{applyTemplate();offer.hidden=true;form.dispatchEvent(new Event('change'));}});
         }
       });
       // "Шаблон" lives inside the editor: a toolbar action while editing, and a quiet link in an empty preview.

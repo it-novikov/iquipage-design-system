@@ -1,3 +1,5 @@
+import {loadingMarkup} from '../../ui/src/loading.js';
+import {pageHeader} from '../../ui/src/page-header.js';
 // The Workbench section (docs/adr W6, design-v2 §11): the views Обзор | Список | Неделя, the summary line, the project
 // filter in the URL, and the canonical task drawer `/workbench/tasks/:projectId/:taskId` with the return of view,
 // filter, scroll and focus. It mounts inside the app shell like any other section: the shell's navigation is its top
@@ -28,9 +30,9 @@ export async function mountWorkbench(root,{repository,session:initialSession,pla
   const projects=new Map(session.projects.map(p=>[p.id,p]));
   const scroller=()=>scrollerOf(root);
   root.innerHTML=`<div class="dsk-shell"><div class="dsk-page iq-workspace-page">
-<header class="sq-page-heading dsk-heading"><h1 tabindex="-1">Рабочий стол</h1>
+${pageHeader({title:'Рабочий стол',actions:`
 <div class="sq-page-tools"><div class="iq-segmented dsk-views" role="group" aria-label="Вид рабочего стола">${VIEWS.map(v=>`<button type="button" data-view="${v.key}" aria-label="${esc(v.label)}">${icon(v.icon,16)}<span>${esc(v.label)}</span></button>`).join('')}</div>
-<button type="button" class="iq-btn primary" data-create-task aria-label="Создать задачу">${icon('plus',18)}<span>Новая задача</span></button></div></header>
+<button type="button" class="iq-btn primary" data-create-task aria-label="Создать задачу">${icon('plus',18)}<span>Новая задача</span></button></div>`})}
 <div class="iq-workspace" data-workspace><nav class="iq-workspace-nav" aria-label="Очереди рабочего стола" data-summary></nav><div class="iq-workspace-body"><div class="dsk-strip iq-workspace-toolbar">
 <div class="dsk-strip-end"><button type="button" class="iq-btn ghost sm" data-filter aria-haspopup="dialog">${icon('folder',16)}<span data-filter-label>Проекты: все</span>${icon('down',14)}</button>
 <span data-updated></span>${ui.ib('refresh','Обновить рабочий стол','ghost sm','data-refresh')}</div></div>
@@ -48,7 +50,7 @@ export async function mountWorkbench(root,{repository,session:initialSession,pla
   }
   function setSummary(items){
     const nav=root.querySelector('[data-summary]');
-    if(!items){nav.innerHTML='<span class="iq-skeleton iq-skeleton-line dsk-summary-skeleton"></span>';return;}
+    if(!items){nav.innerHTML=loadingMarkup('Загружаем очереди…',{variant:'navigation',rows:4});return;}
     nav.innerHTML=items.map(item=>item.sep?'<span class="iq-workspace-nav-separator" aria-hidden="true"></span>'
       :`<a href="${item.href}" ${item.view?`data-go="${item.view}"`:'data-anchor'} ${item.current?'aria-current="true"':''}>${icon(item.glyph||'list',16)}<span class="iq-workspace-nav-label">${esc(item.label)}${item.note?`<span class="iq-workspace-nav-note">${esc(item.note)}</span>`:''}</span><span class="iq-workspace-nav-count">${item.count==null?'–':esc(countLabel(item.count,item.capped))}</span></a>`).join('');
   }
