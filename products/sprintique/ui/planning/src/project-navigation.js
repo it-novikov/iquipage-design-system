@@ -2,7 +2,7 @@ import {registerCore,ui,icon,escapeHTML as esc,notify} from '@iquipage/web/core'
 import {registerAdvanced} from '@iquipage/web/advanced';
 import {formDialog} from './dialog.js';
 import {readProjectContext} from './navigation-model.js';
-const ROUTES=[['tasks','Доска задач'],['planning','Планирование'],['maps','Карты'],['finance','Финансы']];
+const ROUTES=[['tasks','Доска задач'],['planning','Планирование'],['maps','Карты'],['wiki','Документация'],['finance','Финансы']];
 /** Product-shell composition (UX R3). The host supplies identities, allowed destinations and routing.
  *  Sections stay visible as text at every width; the host marks the current one with setRoute. The Workbench, when
  *  offered, is the first section: it spans every project, the switchers keep the project the other sections open. */

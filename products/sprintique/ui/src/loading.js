@@ -33,6 +33,8 @@ const shapes={
  invitations:n=>`<div class="load-filters">${bar('control')}${bar('control')}</div>${repeat(n,()=>row())}${facts()}`,
  operations:()=>`<div class="load-result">${bar('tool')}${bar('heading')}${bar()}</div>${facts()}${panel(3)}`,
  work:()=>`${bar('short')}${bar('heading')}<div class="load-copy">${bar()}${bar()}</div><div class="load-filters">${bar('control')}</div>${bar('heading')}${bar('heading')}`,
+ 'wiki-document':()=>`${bar('heading')}<div class="load-copy">${repeat(5,()=>bar())}</div>${bar('heading')}<div class="load-copy">${repeat(3,()=>bar())}</div>`,
+ wiki:()=>`<div class="load-dashboard"><div>${panel(4)}</div><div>${bar('heading')}${repeat(6,()=>bar())}</div></div>`,
  none:()=>'',
  history:n=>repeat(n,()=>row(true)),
  search:n=>repeat(n,()=>row()),
@@ -47,5 +49,5 @@ export function loadingMarkup(label,{rows=null,title=false,className='',variant=
 /** Route/section projection, kept explicit so new pages cannot silently inherit a demo shimmer. */
 export function sectionLoadingShape(mode,section=''){
  if(mode==='settings')return settingsShapes[section]||'form';
- return {tasks:'board',planning:'planning',workbench:'workbench',finance:'overview',agents:'agents',maps:'maps'}[mode]||'list';
+ return {tasks:'board',planning:'planning',workbench:'workbench',finance:'overview',agents:'agents',maps:'maps',wiki:'wiki'}[mode]||'list';
 }

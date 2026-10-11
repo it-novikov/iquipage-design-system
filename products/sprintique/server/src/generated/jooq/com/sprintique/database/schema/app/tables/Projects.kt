@@ -46,6 +46,7 @@ import com.sprintique.database.schema.app.keys.TASK_LINKS__TASK_LINKS_PROJECT_ID
 import com.sprintique.database.schema.app.keys.TASK_SETTINGS_VERSIONS__TASK_SETTINGS_VERSIONS_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.TASK_SETTINGS__TASK_SETTINGS_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.TEMPORAL_CONSTRAINTS__TEMPORAL_CONSTRAINTS_PROJECT_ID_FKEY
+import com.sprintique.database.schema.app.keys.WIKI_PAGE__WIKI_PAGE_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.tables.AccessPresets.AccessPresetsPath
 import com.sprintique.database.schema.app.tables.AgentRuns.AgentRunsPath
 import com.sprintique.database.schema.app.tables.AgentSkillVersion.AgentSkillVersionPath
@@ -80,6 +81,7 @@ import com.sprintique.database.schema.app.tables.TaskSettings.TaskSettingsPath
 import com.sprintique.database.schema.app.tables.TaskSettingsVersions.TaskSettingsVersionsPath
 import com.sprintique.database.schema.app.tables.Tasks.TasksPath
 import com.sprintique.database.schema.app.tables.TemporalConstraints.TemporalConstraintsPath
+import com.sprintique.database.schema.app.tables.WikiPage.WikiPagePath
 import com.sprintique.database.schema.app.tables.Workspaces.WorkspacesPath
 import com.sprintique.database.schema.app.tables.records.ProjectsRecord
 import com.sprintique.database.schema.auth.keys.CREDENTIALS__CREDENTIALS_PROJECT_ID_FKEY
@@ -618,6 +620,18 @@ open class Projects(
 
     val temporalConstraints: TemporalConstraintsPath
         get(): TemporalConstraintsPath = temporalConstraints()
+
+    private lateinit var _wikiPage: WikiPagePath
+
+    fun wikiPage(): WikiPagePath {
+        if (!this::_wikiPage.isInitialized)
+            _wikiPage = WikiPagePath(this, null, WIKI_PAGE__WIKI_PAGE_PROJECT_ID_FKEY.inverseKey)
+
+        return _wikiPage;
+    }
+
+    val wikiPage: WikiPagePath
+        get(): WikiPagePath = wikiPage()
 
     private lateinit var _credentials: CredentialsPath
 

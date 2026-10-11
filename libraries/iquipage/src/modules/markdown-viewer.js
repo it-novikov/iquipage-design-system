@@ -1,5 +1,6 @@
 'use strict';
 const {safeMarkdown}=require('./markdown.js');
+let viewerSequence=0;
 /** Read-only text projection. Setting value never requests or confirms an application action. */
 class IqMarkdownViewer extends HTMLElement {
  static get observedAttributes(){return ['value','label','empty-text','heading-level','code-wrap','interactive-tasks'];}
@@ -11,6 +12,26 @@ class IqMarkdownViewer extends HTMLElement {
  #value;
  #article;
  #mentions=null;
+ #outline=[];
+ #anchors=new Map();
+ #namespace='iq-document-'+(++viewerSequence);
+ get headings(){return this.#outline.map(item=>({...item}));}
+ focusHeading(id,{scroll=true}={}){
+  const node=this.#anchors.get(id);
+  if(!this.isConnected||!node?.isConnected)return false;
+  node.tabIndex=-1;node.focus({preventScroll:true});
+  if(scroll)node.scrollIntoView({block:'start',behavior:'auto'});
+  return true;
+ }
+ updateOutline(){
+  const next=[];this.#anchors.clear();
+  for(const node of this.#article.querySelectorAll('h1,h2,h3,h4,h5,h6')){
+   const id='heading-'+(next.length+1);node.id=this.#namespace+'-'+id;
+   next.push({id,level:Number(node.tagName[1]),text:node.textContent});this.#anchors.set(id,node);
+  }
+  if(JSON.stringify(next)===JSON.stringify(this.#outline))return;
+  this.#outline=next;this.dispatchEvent(new CustomEvent('iq-outline-change',{bubbles:true,composed:true,detail:{headings:this.headings}}));
+ }
  /** Members for mention tokens (vnext.29): an array of {id, name, kind?} or a function id → {name, kind?} | null. With
   *  members a token shows the member's current name and a token naming anyone else is plain text; null shows the
   *  stored label. */
@@ -44,10 +65,11 @@ class IqMarkdownViewer extends HTMLElement {
   this.#article.setAttribute('aria-label',this.getAttribute('label')||'Содержимое документа');
   this.#article.classList.toggle('md-wrap-code',this.hasAttribute('code-wrap'));
   if(!this.value.trim()){
-   const empty=document.createElement('p');empty.className='md-empty';empty.textContent=this.getAttribute('empty-text')??'Пока нет содержимого.';this.#article.replaceChildren(empty);return;
+   const empty=document.createElement('p');empty.className='md-empty';empty.textContent=this.getAttribute('empty-text')??'Пока нет содержимого.';this.#article.replaceChildren(empty);this.updateOutline();return;
   }
   try{this.#article.innerHTML=safeMarkdown(this.value,{headingLevel:this.headingLevel,mentions:this.#mentions??undefined});if(this.interactiveTasks)this.bindTasks();}
   catch(error){const p=document.createElement('p');p.className='md-render-error';p.setAttribute('role','alert');p.textContent=error.message;this.#article.replaceChildren(p);}
+  this.updateOutline();
  }
 }
 function registerMarkdownViewer(){if(!customElements.get('iq-markdown-viewer'))customElements.define('iq-markdown-viewer',IqMarkdownViewer);}

@@ -1,0 +1,11 @@
+# SPR-17 DS navigation gate
+
+The public gap is closed by @iquipage/web 0.6.0-vnext.46 in this wiki checkout only. No wiki runtime page or API consumer has been implemented in this step. The existing selector/checkable modes remain, while navigation mode adds cancelable page selection, independent expansion, explicit expansion state and optional labelled chrome. Contract/ADR: libraries/iquipage/docs/tree-navigation.md.
+
+Exact archive: products/sprintique/vendor/iquipage-web-0.6.0-vnext.46.tgz. SHA256: be603bd7a00aedac50a4ed617139e2f7ae73962e0d4415cb120aad6f58fbf367. Product package/lock and library-contract.ts consume that version. All64 dist/types files match source build, archive and installed package byte for byte.
+
+Node24 library build and466/466 tests PASS, including5 new interaction/state regressions. Tests exercise canceled parent activation and dirty-guard focus, accepted parent selection without expansion, native disclosure keyboard/click, expansion events without navigation, silent controlled state, refresh/focus retention, external editor focus, escaped labels, optional chrome, legacy/checkable behavior and collapse focus fallback. Product typecheck/build, boundary/style checks and diff-check PASS. Logs: /tmp/wiki-ds46-build.log, /tmp/wiki-ds46-tests.log, /tmp/wiki-ds46-product-build.log, /tmp/wiki-ds46-boundaries.log.
+
+Homebrew Node24 gzip: core184557B (limit185291), CSS101252B (limit101612). Three existing API comment blocks (switcher, mentions, avatars) were moved verbatim to packaged docs/control-contracts.md, keeping runtime behavior unchanged. No budget increase, minifier dependency or runtime refactor was used. Independent root official Linux Node24.20.0 probe PASS: core184760B, CSS101036B; raw /tmp/release1-linux-node-gzip46.json. Root owns final acceptance.
+
+This is source, unit and package evidence. Browser acceptance of the real wiki/tree composition, keyboard traversal in the browser, both themes, mobile bounds and unsaved editor navigation is pending the typed API and product integration. Do not treat the separate materials browser evidence as wiki acceptance. No primary/materials source, production data, Git commit, push or deployment was changed by this DS step.

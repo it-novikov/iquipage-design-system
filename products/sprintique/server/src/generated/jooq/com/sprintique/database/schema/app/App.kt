@@ -75,6 +75,9 @@ import com.sprintique.database.schema.app.tables.TelegramUpdates
 import com.sprintique.database.schema.app.tables.TemporalConstraints
 import com.sprintique.database.schema.app.tables.ThreadReads
 import com.sprintique.database.schema.app.tables.Threads
+import com.sprintique.database.schema.app.tables.WikiPage
+import com.sprintique.database.schema.app.tables.WikiTaskLink
+import com.sprintique.database.schema.app.tables.WikiVersion
 import com.sprintique.database.schema.app.tables.WorkbenchPreferences
 import com.sprintique.database.schema.app.tables.WorkspaceAudit
 import com.sprintique.database.schema.app.tables.WorkspaceMembers
@@ -400,6 +403,12 @@ open class App : SchemaImpl(DSL.name("app"), DefaultCatalog.DEFAULT_CATALOG, DSL
 
     val THREADS: Threads get() = Threads.THREADS
 
+    val WIKI_PAGE: WikiPage get() = WikiPage.WIKI_PAGE
+
+    val WIKI_TASK_LINK: WikiTaskLink get() = WikiTaskLink.WIKI_TASK_LINK
+
+    val WIKI_VERSION: WikiVersion get() = WikiVersion.WIKI_VERSION
+
     val WORKBENCH_PREFERENCES: WorkbenchPreferences get() = WorkbenchPreferences.WORKBENCH_PREFERENCES
 
     val WORKSPACE_AUDIT: WorkspaceAudit get() = WorkspaceAudit.WORKSPACE_AUDIT
@@ -481,6 +490,9 @@ open class App : SchemaImpl(DSL.name("app"), DefaultCatalog.DEFAULT_CATALOG, DSL
         TemporalConstraints.TEMPORAL_CONSTRAINTS,
         ThreadReads.THREAD_READS,
         Threads.THREADS,
+        WikiPage.WIKI_PAGE,
+        WikiTaskLink.WIKI_TASK_LINK,
+        WikiVersion.WIKI_VERSION,
         WorkbenchPreferences.WORKBENCH_PREFERENCES,
         WorkspaceAudit.WORKSPACE_AUDIT,
         WorkspaceMembers.WORKSPACE_MEMBERS,

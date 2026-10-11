@@ -28,6 +28,7 @@ import com.sprintique.database.schema.app.keys.TASK_WORK_PLAN__TASK_WORK_PLAN_PR
 import com.sprintique.database.schema.app.keys.TASK_WORK_REQUEST__TASK_WORK_REQUEST_PROJECT_ID_TASK_ID_FKEY
 import com.sprintique.database.schema.app.keys.TASK_WORK_SESSION__TASK_WORK_SESSION_PROJECT_ID_TASK_ID_FKEY
 import com.sprintique.database.schema.app.keys.THREADS__THREADS_PROJECT_ID_TASK_ID_FKEY
+import com.sprintique.database.schema.app.keys.WIKI_TASK_LINK__WIKI_TASK_LINK_PROJECT_ID_TASK_ID_FKEY
 import com.sprintique.database.schema.app.tables.AiAgentRuns.AiAgentRunsPath
 import com.sprintique.database.schema.app.tables.AttentionRequests.AttentionRequestsPath
 import com.sprintique.database.schema.app.tables.FinanceVarianceNote.FinanceVarianceNotePath
@@ -43,6 +44,7 @@ import com.sprintique.database.schema.app.tables.TaskWorkPlan.TaskWorkPlanPath
 import com.sprintique.database.schema.app.tables.TaskWorkRequest.TaskWorkRequestPath
 import com.sprintique.database.schema.app.tables.TaskWorkSession.TaskWorkSessionPath
 import com.sprintique.database.schema.app.tables.Threads.ThreadsPath
+import com.sprintique.database.schema.app.tables.WikiTaskLink.WikiTaskLinkPath
 import com.sprintique.database.schema.app.tables.records.TasksRecord
 import com.sprintique.database.schema.auth.tables.Principals.PrincipalsPath
 
@@ -369,6 +371,18 @@ open class Tasks(
 
     val threads: ThreadsPath
         get(): ThreadsPath = threads()
+
+    private lateinit var _wikiTaskLink: WikiTaskLinkPath
+
+    fun wikiTaskLink(): WikiTaskLinkPath {
+        if (!this::_wikiTaskLink.isInitialized)
+            _wikiTaskLink = WikiTaskLinkPath(this, null, WIKI_TASK_LINK__WIKI_TASK_LINK_PROJECT_ID_TASK_ID_FKEY.inverseKey)
+
+        return _wikiTaskLink;
+    }
+
+    val wikiTaskLink: WikiTaskLinkPath
+        get(): WikiTaskLinkPath = wikiTaskLink()
     override fun getChecks(): List<Check<TasksRecord>> = listOf(
         Internal.createCheck(this, DSL.name("task_cover_attachment"), "(((cover_attachment_id IS NULL) OR (cover_attachment_id = ANY (attachment_ids))))", true),
         Internal.createCheck(this, DSL.name("task_estimate"), "((((estimate_value IS NULL) AND (estimate_unit IS NULL)) OR ((estimate_value IS NOT NULL) AND (estimate_value > (0)::numeric) AND (estimate_unit = ANY (ARRAY['h'::text, 'd'::text, 'w'::text, 'sp'::text])))))", true),

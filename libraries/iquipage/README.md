@@ -205,3 +205,7 @@ Optional root attributes `data-accent="blue|violet|green"`, `data-density="comfo
 ## Workspace compositions (0.6.0-vnext.30)
 
 Public CSS for navigation + primary work + context, responsive plan panels and discoverable tree actions: [contract](docs/workspace.md). Existing tree layouts are unchanged; opt in with `data-layout="workspace"`. Consumers own routing, data and persistence.
+
+Navigation trees: [public iq-tree navigation contract](docs/tree-navigation.md), including cancelable navigation and controlled expansion (vnext.46).
+
+Document reading/editing: [public compositions, editor variant and heading outline](docs/document.md) (vnext.48).

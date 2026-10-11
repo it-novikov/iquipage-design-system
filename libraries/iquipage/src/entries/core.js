@@ -140,7 +140,7 @@ export const saveIndicator=feedbackModule.saveIndicator;
 export const uploadProgress=feedbackModule.uploadProgress;
 // The switcher: a quiet text label with a chevron that opens the choices, current one checked (vnext.36).
 export const switcher=m13.switcher;
-export const version='0.6.0-vnext.45';
+export const version='0.6.0-vnext.48';
 export function registerCore(){
  registerAuthDialog();registerAuthScreen();registerSettings();registerRelationMap();registerComponents();registerDateFields();registerEditors();registerPagination();registerStructured();registerSideNavigation();registerWorkHeader();registerMarkdownViewer();registerWorkLayout();
  if(!customElements.get('iq-file-preview'))customElements.define('iq-file-preview',IqFilePreview);

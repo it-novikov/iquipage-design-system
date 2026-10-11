@@ -195,6 +195,31 @@ test('P01 discovery, registration and the full OAuth + MCP flow through a servic
   assert.ok(!stored.includes(issued.access_token)&&!stored.includes(issued.refresh_token),'only hashes are stored');
 });
 
+test('W01 named wiki MCP tools honor OAuth audience scopes owner rights and service authorship',async()=>{
+  const writer=await connect();
+  const args={projectId:f.first.id,id:'mcp-wiki',input:{baseRevision:0,value:{title:'Wiki MCP',body:'Untrusted document',parentId:null,archived:false}},idempotencyKey:'wiki-mcp-create-0001'};
+  const made=await tool(writer.access_token,'put_wiki_page',args);assert.equal(made.isError,false,JSON.stringify(made));
+  assert.equal(made.structuredContent.data.updatedBy,(await account()).id);
+  const replay=await tool(writer.access_token,'put_wiki_page',args);assert.deepEqual(replay.structuredContent,made.structuredContent);
+  const page=await tool(writer.access_token,'get_wiki_page',{projectId:f.first.id,id:'mcp-wiki'});
+  assert.equal(page.structuredContent.data.body,'Untrusted document');assert.match(page.structuredContent.notice,/untrusted/);
+  const rest=await f.app.inject({url:api+`/api/v1/projects/${f.first.id}/wiki/mcp-wiki`,headers:{authorization:'Bearer '+writer.access_token}});
+  assert.equal(rest.statusCode,401,'MCP audience does not open REST');
+  const history=await tool(writer.access_token,'list_wiki_history',{projectId:f.first.id,id:'mcp-wiki'});
+  assert.equal(history.structuredContent.data.items.length,1);
+  const member=(await f.admin.query('SELECT role FROM app.project_members WHERE project_id=$1 AND principal_id=$2',[f.first.id,f.alice.id])).rows[0];
+  try{
+    await f.admin.query("UPDATE app.project_members SET role='reader' WHERE project_id=$1 AND principal_id=$2",[f.first.id,f.alice.id]);
+    const lost=await tool(writer.access_token,'put_wiki_page',{...args,input:{...args.input,baseRevision:1},idempotencyKey:'wiki-mcp-revoked-0001'});
+    assert.equal(lost.isError,true);
+    assert.equal((await tool(writer.access_token,'get_wiki_page',{projectId:f.first.id,id:'mcp-wiki'})).isError,false);
+  }finally{await f.admin.query('UPDATE app.project_members SET role=$3 WHERE project_id=$1 AND principal_id=$2',[f.first.id,f.alice.id,member.role]);}
+  const reader=await connect({scopes:['read']});
+  const denied=await mcp(reader.access_token,'tools/call',{name:'put_wiki_page',arguments:{...args,id:'mcp-wiki-denied'}});
+  assert.equal(denied.statusCode,403);assert.match(String(denied.headers['www-authenticate']),/insufficient_scope/);
+  assert.equal((await tool(reader.access_token,'get_wiki_page',{projectId:f.first.id,id:'mcp-wiki'})).isError,false);
+});
+
 test('P02 authorization requests: exact redirect, S256 only, known scopes and resource, session with CSRF, no redirect for an unknown client',async()=>{
   const client=await register(),{challenge}=pkce();
   const describe=(query:string,headers:Record<string,string>=f.alice.headers,base=ui)=>f.app.inject({url:base+'/api/v1/oauth/authorization?request='+encodeURIComponent(query),headers});

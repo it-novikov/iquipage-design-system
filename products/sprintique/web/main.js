@@ -143,7 +143,7 @@ let watching=null;
 function stopWatching(){repository.stopWatch?.();watching=null;}
 /** Section code by route, fetched when its link is pointed at or focused, so a first visit after a release does not
  *  wait for the download; the section's own import then finds it ready. */
-const SECTION_MODULES={planning:()=>import('../ui/planning/src/index.js'),maps:()=>import('./maps-host.js'),finance:()=>import('../ui/finance/src/index.js'),settings:()=>import('./settings.js'),agents:()=>import('./agents-directory.js')};
+const SECTION_MODULES={planning:()=>import('../ui/planning/src/index.js'),maps:()=>import('./maps-host.js'),finance:()=>import('../ui/finance/src/index.js'),settings:()=>import('./settings.js'),agents:()=>import('./agents-directory.js'),wiki:()=>import('./wiki.js')};
 const prefetchedSections=new Set();
 function prefetchSection(mode){
   const load=SECTION_MODULES[mode];if(!load||prefetchedSections.has(mode))return;
@@ -172,7 +172,7 @@ function onStreamChange(change){
 /** The section an address names: the Workbench by its path, the project sections by the hash. */
 function routeMode(){
   if(isWorkbenchPath()&&workbenchOn())return 'workbench';
-  return location.hash==='#agents'?'agents':location.hash.startsWith('#maps')?'maps':location.hash.startsWith('#settings')?'settings':location.hash.startsWith('#finance')?'finance':location.hash==='#planning'?'planning':'tasks';
+  return location.hash.startsWith('#wiki')?'wiki':location.hash==='#agents'?'agents':location.hash.startsWith('#maps')?'maps':location.hash.startsWith('#settings')?'settings':location.hash.startsWith('#finance')?'finance':location.hash==='#planning'?'planning':'tasks';
 }
 async function showProject(id,mode=routeMode()){
   if(mode==='workbench'&&!workbenchOn())mode='tasks';
@@ -188,6 +188,7 @@ async function showProject(id,mode=routeMode()){
   if(!keep)stopWatching();
   const previous=board;board=null;
   if(!project){await previous?.destroy();root.innerHTML='<main class="host-landing"><h1>Создадим первый проект</h1><p>Задачи, обсуждения и команда в одном месте.</p><button class="iq-btn primary" data-onboard>Создать проект</button></main>';root.querySelector('[data-onboard]').onclick=()=>onboard().catch(report);return;}
+  if(mode==='wiki'&&currentProject&&currentProject.id!==project.id&&location.hash.startsWith('#wiki'))history.replaceState(null,'','#wiki');
   currentProject=project;viewMode=mode;
   try{localStorage.setItem(LAST_PROJECT_KEY+session.principal.id,project.id);}catch{}
   prefetchSection(mode);
@@ -229,6 +230,7 @@ async function showProject(id,mode=routeMode()){
   else if(mode==='planning')board=await mountPlanningHost(host,{repository,adapter:planningAdapter,project,viewState:viewStates.get(stateKey),onOpenBoard:()=>navigate('tasks')});
   else if(mode==='finance'){const {mountFinance}=await import('../ui/finance/src/index.js');board=await mountFinance(host,{repository,project,viewState:viewStates.get(stateKey)});}
   else if(mode==='agents'){const {mountAgentsDirectory}=await import('./agents-directory.js');board=await mountAgentsDirectory(host,{repository,project,onOpenTask:async(projectId,taskId)=>{history.replaceState(null,'','#tasks');await showProject(projectId,'tasks');await board?.openTask?.(taskId);}});}
+  else if(mode==='wiki'){const {mountWiki}=await import('./wiki.js');board=await mountWiki(host,{repository,project,viewState:viewStates.get(stateKey),onOpenTask:async id=>{history.replaceState(null,'','#tasks');await navigate('tasks');if(viewMode==='tasks')await board?.openTask?.(id);}});}
   else if(mode==='settings'){const {mountSettings}=await import('./settings.js');board=await mountSettings(host,{repository,adapter:planningAdapter,project,onChanged:refreshHeader});}
   else if(mode==='workbench')board=await mountWorkbenchSection(host);
   else board=await mountTaskBoard(host,{repository,project,attachmentAdapter:repository.attachmentAdapter,canEdit:can(project,'tasks.write'),canManageCatalogs:can(project,'project.settings'),viewState:viewStates.get(stateKey)});
@@ -287,6 +289,7 @@ function paletteCommands(){
     {id:'go-tasks',label:'Доска задач',hint:'Перейти',icon:'grid',keywords:'доска канбан board',run:go('tasks')},
     {id:'go-planning',label:'Планирование',hint:'Перейти',icon:'calendar',keywords:'релизы бэклог сроки planning',run:go('planning')},
     {id:'go-maps',label:'Карты',hint:'Перейти',icon:'grid',keywords:'карты доска идей maps',run:go('maps')},
+    {id:'go-wiki',label:'Документация',hint:'Перейти',icon:'file',keywords:'документация вики wiki страницы',run:go('wiki')},
     {id:'go-finance',label:'Финансы',hint:'Перейти',icon:'chart',keywords:'финансы деньги доходы расходы бюджет finance',run:go('finance')},
     {id:'go-members',label:'Участники проекта',hint:'Настройки',icon:'users',keywords:'команда приглашения роли members',run:go('settings','#settings/members')},
     {id:'go-tags',label:'Теги',hint:'Настройки',icon:'palette',keywords:'теги метки цвета tags',run:go('settings','#settings/tags')},
@@ -303,7 +306,8 @@ function search(){if(!session||document.querySelector('dialog[open]'))return;ope
   try{if(board&&!await board.closeTask())return;history.replaceState(null,'',item.kind==='map'?'#maps/'+encodeURIComponent(item.id):'#tasks');await showProject(item.projectId,item.kind==='map'?'maps':'tasks');if(item.kind==='task')await board.openTask(item.key);}catch(error){report(error);}
 }});}
 window.addEventListener('keydown',event=>{if((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='k'){event.preventDefault();search();}});
-window.addEventListener('hashchange',()=>{if(viewMode==='workbench'||isWorkbenchPath())return;void(async()=>{const task=parseTaskRoute(location.hash);if(task){if(!board?.openTask)await showProject(currentProject.id,'tasks');await board?.openTask?.(task,{fromRoute:true});}else if(location.hash.startsWith('#maps'))await navigate('maps');
+window.addEventListener('hashchange',()=>{if(viewMode==='workbench'||isWorkbenchPath())return;void(async()=>{const task=parseTaskRoute(location.hash);if(task){if(!board?.openTask){const restoreHash=board?.routeHash;if(await showProject(currentProject.id,'tasks')===false){if(restoreHash)history.replaceState(null,'',restoreHash);return;}}await board?.openTask?.(task,{fromRoute:true});}else if(location.hash.startsWith('#maps'))await navigate('maps');
+    else if(location.hash.startsWith('#wiki')){if(viewMode==='wiki'&&board?.openRoute)await board.openRoute(location.hash);else await navigate('wiki');}
     else if(location.hash.startsWith('#finance')){if(viewMode==='finance'&&board?.openRoute)await board.openRoute(location.hash);else await navigate('finance');}else if(location.hash.startsWith('#settings')){if(viewMode==='settings'&&board?.navigateSettings){await board.navigateSettings();}else await navigate('settings');}
     else if(['#tasks','#planning','#agents'].includes(location.hash)){const mode=location.hash.slice(1);
     // Closing the task drawer returns to the section already on screen: close the drawer, never remount the view

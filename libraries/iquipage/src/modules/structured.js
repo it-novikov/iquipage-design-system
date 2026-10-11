@@ -16,14 +16,18 @@ class IqTree extends HTMLElement {
     current = treeDefaults.current;
     query = '';
     flat = new Map();
-    static observedAttributes = ['items', 'checkable'];
+    static observedAttributes = ['items', 'checkable', 'navigation', 'heading', 'hide-search', 'search-label', 'aria-label'];
     attributeChangedCallback() {
         if (this.isConnected)
             this.connectedCallback();
     }
+    get navigation() { return this.hasAttribute('navigation') && !this.hasAttribute('checkable'); }
+    get expandedIds() { return [...this.expanded]; }
+    set expandedIds(ids) { this.expanded = new Set(ids); if(this.isConnected)this.render(); }
     get items() { return this.nodes; }
     set items(value) { this.setAttribute('items', JSON.stringify(value)); }
     connectedCallback() {
+        const restore=this.captureFocus();
         this.events?.abort();
         this.flat.clear();
         if (this.hasAttribute('items')) {
@@ -51,10 +55,15 @@ class IqTree extends HTMLElement {
         });
         visit(this.nodes);
         this.selected = new Set([...this.selected].filter(id => this.flat.has(id)));
+        this.expanded = new Set([...this.expanded].filter(id=>this.flat.has(id)));
         if (!this.flat.has(this.current))
-            this.current = this.nodes.flatMap(n => this.leaves(n))[0] || '';
-        this.innerHTML = `<div class="tree-panel"><div class="tree-top"><div><span class="sample-overline">Проект</span><h3>Рабочие разделы</h3></div><span class="tree-count">${time_js_1.count(this.total, { one: 'документ', few: 'документа', many: 'документов' })}</span></div><label class="tree-search">${components_js_1.icon('search', 17)}<input type="search" placeholder="Найти раздел" aria-label="Найти раздел в дереве"></label><div class="tree-content" role="tree" aria-label="Разделы проекта" ${this.hasAttribute('checkable') ? 'aria-multiselectable="true"' : ''}></div><p class="tree-status" role="status"></p></div>`;
+            this.current = (this.navigation?this.nodes[0]?.id:this.nodes.flatMap(n => this.leaves(n))[0]) || '';
+        if(!this.flat.has(this.focused))this.focused=this.current;
+        const esc=components_js_1.escapeHTML,heading=this.getAttribute('heading')??'Страницы',search=this.getAttribute('search-label')||'Найти страницу',label=this.getAttribute('aria-label')||'Страницы';
+        if(this.navigation)this.innerHTML=`<div class="tree-panel">${heading?`<div class="tree-top"><h3>${esc(heading)}</h3></div>`:''}${this.hasAttribute('hide-search')?'':`<label class="tree-search">${components_js_1.icon('search',17)}<input type="search" aria-label="${esc(search)}" placeholder="${esc(search)}" value="${esc(this.query)}"></label>`}<div class="tree-content" role="tree" aria-label="${esc(label)}"></div><p class="tree-status" hidden></p></div>`;
+        else this.innerHTML = `<div class="tree-panel"><div class="tree-top"><div><span class="sample-overline">Проект</span><h3>Рабочие разделы</h3></div><span class="tree-count">${time_js_1.count(this.total, { one: 'документ', few: 'документа', many: 'документов' })}</span></div><label class="tree-search">${components_js_1.icon('search', 17)}<input type="search" placeholder="Найти раздел" aria-label="Найти раздел в дереве"></label><div class="tree-content" role="tree" aria-label="Разделы проекта" ${this.hasAttribute('checkable') ? 'aria-multiselectable="true"' : ''}></div><p class="tree-status" role="status"></p></div>`;
         this.render();
+        this.restoreFocus(restore);
         const signal = this.events.signal;
         this.addEventListener('input', e => { this.query = e.target.value.trim().toLocaleLowerCase('ru'); this.render(); }, { signal });
         this.addEventListener('click', e => {
@@ -63,8 +72,11 @@ class IqTree extends HTMLElement {
                 return;
             const id = row.dataset.node, n = this.flat.get(id).node;
             this.focused = id;
-            if (e.target.closest('[data-disclosure]'))
+            if (e.target.closest('[data-disclosure]')) {
                 this.toggle(id);
+                if(this.navigation){this.querySelector(`[data-node="${CSS.escape(id)}"] button`)?.focus();return;}
+            }
+            else if (this.navigation) { if(!this.navigate(id))return; }
             else if (this.hasAttribute('checkable'))
                 this.check(id);
             else if (n.children)
@@ -94,7 +106,11 @@ class IqTree extends HTMLElement {
     leaves(n) { return n.children ? n.children.flatMap(x => this.leaves(x)) : [n.id]; }
     checked(n) { const leaves = this.leaves(n), nSelected = leaves.filter(x => this.selected.has(x)).length; return nSelected === 0 ? 'false' : nSelected === leaves.length ? 'true' : 'mixed'; }
     matchesNode(n) { return !this.query || n.label.toLocaleLowerCase('ru').includes(this.query) || !!n.children?.some(x => this.matchesNode(x)); }
+    captureFocus() { const active=document.activeElement;return this.contains(active)?{id:active.closest('[data-node]')?.dataset.node,disclosure:active.hasAttribute('data-disclosure'),search:active.matches('input[type=search]')}:null; }
+    restoreFocus(state) { if(!state)return;if(state.search)this.querySelector('input')?.focus();else if(state.id){const row=this.querySelector(`[data-node="${CSS.escape(state.id)}"]`)||this.querySelector('[data-node]');(state.disclosure?row?.querySelector('[data-disclosure]')||row:row)?.focus({preventScroll:true});} }
+    navigate(id) { if(!this.dispatchEvent(new CustomEvent('iq-navigate',{bubbles:true,cancelable:true,detail:{id,previousId:this.current}})))return false;this.current=id;this.render();this.emit();return true; }
     render() {
+        const restore=this.captureFocus();
         const checkable = this.hasAttribute('checkable');
         let html = '';
         const visit = (ns, level, force = false) => {
@@ -102,7 +118,7 @@ class IqTree extends HTMLElement {
                 if (!force && !this.matchesNode(n))
                     return;
                 const branch = !!n.children, state = this.checked(n), open = branch && (this.expanded.has(n.id) || !!this.query), count = this.leaves(n).length;
-                html += `<div class="tree-row ${!checkable && this.current === n.id ? 'is-selected' : ''}" role="treeitem" aria-label="${components_js_1.escapeHTML(n.label)}" aria-level="${level}" aria-posinset="${i + 1}" aria-setsize="${ns.length}" ${branch ? `aria-expanded="${open}"` : ''} ${checkable ? `aria-checked="${state}"` : `aria-selected="${this.current === n.id}"`} tabindex="${this.focused === n.id ? 0 : -1}" data-node="${components_js_1.escapeHTML(n.id)}" style="--tree-level:${level - 1}"><span class="tree-disclosure" ${branch ? 'data-disclosure' : ''}>${branch ? components_js_1.icon('chevron', 15) : ''}</span>${checkable ? `<span class="tree-checkbox ${state}" aria-hidden="true">${state === 'true' ? components_js_1.icon('check', 14) : state === 'mixed' ? components_js_1.icon('minus', 14) : ''}</span>` : `<span class="tree-node-icon">${components_js_1.icon(branch ? (open ? 'folderOpen' : 'folder') : 'file', 19)}</span>`}<span class="tree-node-label">${components_js_1.escapeHTML(n.label)}</span>${branch ? `<span class="tree-node-count">${count}</span>` : ''}</div>`;
+                html += `<div class="tree-row ${!checkable && this.current === n.id ? 'is-selected' : ''}" role="treeitem" aria-label="${components_js_1.escapeHTML(n.label)}" aria-level="${level}" aria-posinset="${i + 1}" aria-setsize="${ns.length}" ${branch ? `aria-expanded="${open}"` : ''} ${checkable ? `aria-checked="${state}"` : `aria-selected="${this.current === n.id}"`} tabindex="${this.focused === n.id ? 0 : -1}" data-node="${components_js_1.escapeHTML(n.id)}" style="--tree-level:${level - 1}">${branch&&this.navigation?`<button type="button" class="tree-disclosure" data-disclosure aria-label="${open?'Свернуть':'Раскрыть'}: ${components_js_1.escapeHTML(n.label)}" aria-expanded="${open}" tabindex="${this.focused===n.id?0:-1}">${components_js_1.icon('chevron',15)}</button>`:`<span class="tree-disclosure" ${branch ? 'data-disclosure' : ''}>${branch ? components_js_1.icon('chevron', 15) : ''}</span>`}${checkable ? `<span class="tree-checkbox ${state}" aria-hidden="true">${state === 'true' ? components_js_1.icon('check', 14) : state === 'mixed' ? components_js_1.icon('minus', 14) : ''}</span>` : `<span class="tree-node-icon">${components_js_1.icon(branch ? (open ? 'folderOpen' : 'folder') : 'file', 19)}</span>`}<span class="tree-node-label">${components_js_1.escapeHTML(n.label)}</span>${branch ? `<span class="tree-node-count">${count}</span>` : ''}</div>`;
                 if (open)
                     visit(n.children, level + 1, force || n.label.toLocaleLowerCase('ru').includes(this.query));
             });
@@ -112,13 +128,14 @@ class IqTree extends HTMLElement {
         content.innerHTML = html || '<p class="tree-no-results">Разделов с таким названием нет.</p>';
         if (!content.querySelector('[tabindex="0"]'))
             content.querySelector('[role=treeitem]')?.setAttribute('tabindex', '0');
+        this.restoreFocus(restore);
         this.querySelector('.tree-status').textContent = checkable ? `Выбрано документов: ${this.selected.size} из ${this.total}` : `Выбран раздел: ${this.flat.get(this.current)?.node.label || ''}`;
     }
     focusNode(id) {
         const row = this.querySelector(`[data-node="${CSS.escape(id)}"]`);
         if (!row)
             return;
-        this.querySelectorAll('[data-node]').forEach(x => x.tabIndex = x === row ? 0 : -1);
+        this.querySelectorAll('[data-node]').forEach(x => {x.tabIndex = x === row ? 0 : -1;const button=x.querySelector('button');if(button)button.tabIndex=x.tabIndex;});
         this.focused = id;
         row.focus({ preventScroll: true });
         row.scrollIntoView({ block: 'nearest' });
@@ -129,12 +146,14 @@ class IqTree extends HTMLElement {
         else
             this.expanded.add(id);
         this.render();
+        if(this.navigation)this.dispatchEvent(new CustomEvent('iq-expand',{bubbles:true,detail:{expandedIds:this.expandedIds}}));
     }
     check(id) { const n = this.flat.get(id).node, leaves = this.leaves(n), all = leaves.every(x => this.selected.has(x)); leaves.forEach(x => all ? this.selected.delete(x) : this.selected.add(x)); this.render(); this.emit(); }
     key(e) {
         const row = e.target.closest('[data-node]');
         if (!row)
             return;
+        if(e.target.closest('button[data-disclosure]')&&['Enter',' '].includes(e.key))return;
         const id = row.dataset.node, item = this.flat.get(id), visible = Array.from(this.querySelectorAll('[data-node]')), i = visible.indexOf(row);
         let next = '';
         switch (e.key) {
@@ -170,7 +189,8 @@ class IqTree extends HTMLElement {
                 break;
             case ' ':
             case 'Enter':
-                if (this.hasAttribute('checkable') && e.key === ' ')
+                if(this.navigation){e.preventDefault();if(!this.navigate(id))return;}
+                else if (this.hasAttribute('checkable') && e.key === ' ')
                     this.check(id);
                 else if (item.node.children)
                     this.toggle(id);

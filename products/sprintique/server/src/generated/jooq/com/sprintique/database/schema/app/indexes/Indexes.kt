@@ -36,6 +36,8 @@ import com.sprintique.database.schema.app.tables.Tasks
 import com.sprintique.database.schema.app.tables.TelegramLinkTokens
 import com.sprintique.database.schema.app.tables.TelegramUpdates
 import com.sprintique.database.schema.app.tables.Threads
+import com.sprintique.database.schema.app.tables.WikiPage
+import com.sprintique.database.schema.app.tables.WikiTaskLink
 import com.sprintique.database.schema.app.tables.WorkspaceMembers
 
 import org.jooq.Index
@@ -100,4 +102,6 @@ val UX_FINANCE_CATEGORY__NAME_KEY: Index = Internal.createIndex(DSL.name("ux_fin
 val UX_FINANCE_PLAN_VERSION__APPROVED: Index = Internal.createIndex(DSL.name("ux_finance_plan_version__approved"), FinancePlanVersion.FINANCE_PLAN_VERSION, arrayOf(FinancePlanVersion.FINANCE_PLAN_VERSION.PROJECT_ID, FinancePlanVersion.FINANCE_PLAN_VERSION.PLAN_ID), true)
 val UX_FINANCE_PLAN_VERSION__DRAFT: Index = Internal.createIndex(DSL.name("ux_finance_plan_version__draft"), FinancePlanVersion.FINANCE_PLAN_VERSION, arrayOf(FinancePlanVersion.FINANCE_PLAN_VERSION.PROJECT_ID, FinancePlanVersion.FINANCE_PLAN_VERSION.PLAN_ID), true)
 val UX_FINANCE_VARIANCE_NOTE__VARIANCE: Index = Internal.createIndex(DSL.name("ux_finance_variance_note__variance"), FinanceVarianceNote.FINANCE_VARIANCE_NOTE, arrayOf(FinanceVarianceNote.FINANCE_VARIANCE_NOTE.PROJECT_ID, FinanceVarianceNote.FINANCE_VARIANCE_NOTE.PLAN_ID, FinanceVarianceNote.FINANCE_VARIANCE_NOTE.VERSION, FinanceVarianceNote.FINANCE_VARIANCE_NOTE.CATEGORY_ID, FinanceVarianceNote.FINANCE_VARIANCE_NOTE.DIRECTION, FinanceVarianceNote.FINANCE_VARIANCE_NOTE.CURRENCY_CODE), true)
+val WIKI_PAGE_PARENT: Index = Internal.createIndex(DSL.name("wiki_page_parent"), WikiPage.WIKI_PAGE, arrayOf(WikiPage.WIKI_PAGE.PROJECT_ID, WikiPage.WIKI_PAGE.PARENT_ID, WikiPage.WIKI_PAGE.ID), false)
+val WIKI_TASK_LINK_PAGE: Index = Internal.createIndex(DSL.name("wiki_task_link_page"), WikiTaskLink.WIKI_TASK_LINK, arrayOf(WikiTaskLink.WIKI_TASK_LINK.PROJECT_ID, WikiTaskLink.WIKI_TASK_LINK.PAGE_ID, WikiTaskLink.WIKI_TASK_LINK.TASK_ID), false)
 val WORKSPACE_ONE_OWNER: Index = Internal.createIndex(DSL.name("workspace_one_owner"), WorkspaceMembers.WORKSPACE_MEMBERS, arrayOf(WorkspaceMembers.WORKSPACE_MEMBERS.WORKSPACE_ID), true)

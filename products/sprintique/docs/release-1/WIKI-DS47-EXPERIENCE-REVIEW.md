@@ -1,0 +1,21 @@
+# SPR-17 · Независимое DS47 experience review R1
+
+Текущий статус: **APPROVE source/public contract и experience исправленной DS48**. DS47 первоначально CHANGES REQUESTED; закрытие ниже. Scope: публичные document/tree/editor/outline контракты47, не финальная приёмка wiki runtime. Runtime/source не изменялись reviewer.
+
+**P2 DS47-R1-1 — CSS не совпадает с реальной разметкой дерева.** `libraries/iquipage/src/styles/foundation.css:2640` прячет `.tree-count`, тогда как descendant counts navigation режима создаются как `.tree-node-count` (`src/modules/structured.js:121`). `hide-counts` не выполняет публичное обещание и оставляет числа в тихом rail. Строки2643/2657 задают compact label padding несуществующему `.tree-label`; реальный `.tree-node-label` не получает вертикальных отступов при `align-items:flex-start`/нулевом row padding. Требуется public CSS fix и actual fixture/computed regression; product override недопустим. Отправлено Astra/root.
+
+Source positive checks: document variant меняет CSS, не remount textarea, что сохраняет selection/IME/history при attribute/resize; aria-name textarea остаётся label, preview теперь получает label. CSS скрывает informational hint, но footerActions/cancel/submit и caller hint вне footer сохраняются. Полный toolbar не урезан. Viewer outline создаётся из safe rendered headings, namespace отдельный на viewer, snapshot defensive; focusHeading ограничен своими connectednodes, no hash writes и value update не вызывает focus. Public types/docs отражают добавления. Публичный layout отделён от route/network/draft state. Defaults presentation сохраняются.
+
+Raw471 author tests и root Linux bytes пока считаются внешними свидетельствами; окончательный report дополнит собственное чтение raw и actual desktop/mobile/both-theme editor/tree/outline walkthrough. Нет утверждения, что IME или footer geometry уже проверены браузером.
+
+## Повторная проверка DS48 — APPROVE
+
+DS47-R1-1 закрыт public CSS исправлением: hide-counts обращается к real tree-node-count; compact padding к real tree-node-label в desktop и touch правилах. Consumer override не требуется.
+
+Собственный Chrome walkthrough actual fixture localhost:4320/ds-runtime.html,1280×720 и390×844, обе темы: документ и редактор без декоративной карточки/двойного label читаемы; все17 поддержанных formatter commands остаются, mobile computed44×44; toolbar action «Шаблон» доступен. Нет горизонтального document overflow (scrollWidth390). Подвал с пользовательским выбором, Отмена/Сохранить и hint остаётся видимым; пустой informational footer скрыт. Actual preview рендерит Markdown и имеет имя «Текст страницы — предпросмотр». После возврата к правке фокус снова на textarea. Deep12/fullnames tree представлен и сохраняет real aria-level при ограниченном отступе.
+
+Fixture «Проверить контракты»:10/10 PASS (hide-counts, actual label padding, deepARIA, caller actions, barefooter, preview name, variant samefield/selection, uniqueheadingIDs, outline focus/nohash, invalid no-op). Проверка намеренно использует fixture action, не production. Read-only independent DOM measurements дополнительно подтвердили размеры tools/footer visibility/preview name. Нет отдельного браузерного доказательства физического IME; source CSS-only variant не remount textarea, required composition regression остаётся wiki runtime gate. Reader rights/network state принадлежат product, DS presentation не предоставляет write permissions.
+
+Самостоятельно прочитан raw /tmp/wiki-ds48-tests.log:472/472 PASS, fail0/skipped0. Без повторного запуска сборок независимо сравнены64 dist/types entries archive ↔ builtlibrary ↔ installed, все совпали;58 fixture dist files совпали с archive. Tar SHA256 `5023b875c4a02b7c347b35970c172aa47836f79a911d8a682dc298ae2ed46eed`. Fixture imports exact ds48/dist/core.js и CSS.
+
+Одобрение ограничено публичным контрактом/source и actual component experience исправленной48. Root должен подтвердить fresh officialLinux48 budgets, final source freeze и package adoption в полном gate. Итоговый wiki runtime ещё не принимается: нужны draft/IME/lifecycle/CAS/rights/keyboard/dialog/performance/browser проверки, затем независимые final reviews. Reviewer изменил только этот report; viewport reset.
