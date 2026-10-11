@@ -8,7 +8,7 @@ owner: human:it-novikov
 branch: fix/release-1-feedback
 base: main
 created: 2026-10-11
-updated: 2026-10-11T11:38:18Z
+updated: 2026-10-11T12:06:54Z
 links:
 ---
 
@@ -62,7 +62,7 @@ links:
 - **Приёмка:**
   - [x] Проверки пройдены, открытых P0/P1/P2 нет.
 - **Покрывает:** A4
-- **Итог:** Final gate8/8 PASS, product500/detached500/DS461, exact source b977550c unchanged, R1 and R2 APPROVE; no open P0/P1/P2. Browser evidence and limitations in FEEDBACK-ACCEPTANCE.md.
+- **Итог:** DS45 full gate8/8 PASS product500 detached500 DS461 sourceStable b0750b06 exact tar c2c7227e. R1/R2 APPROVE current freeze, no open findings. Linux official Node core184784 under185291; GitHub CI required next.
 - **Зависит от:** S1
 
 ### S3. Поставка [active]
@@ -72,6 +72,7 @@ links:
 - **Приёмка:**
   - [ ] Слияние, production версия и ключевые сценарии подтверждены.
 - **Покрывает:** A5
+- **Итог:** Delivery held: Linux CI gzip exposed platform variance; DS .45 comment-only packaging repair, runtime unchanged.
 - **Зависит от:** S2
 
 ## Решения

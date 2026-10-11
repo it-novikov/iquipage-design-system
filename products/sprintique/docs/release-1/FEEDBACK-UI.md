@@ -102,3 +102,12 @@ DS0.6.0-vnext.44: build,461/461 tests, size gate PASS без увеличени�
 Две новые регрессии в page-surfaces.test.mjs: initial failure → cleanup → fresh mount recovery и leave → abort → late success без перерисовки. Targeted набор теперь 67/67 PASS; build, boundaries, diff-check повторены успешно. Публичная DS и exact tar .44 не менялись.
 
 Реальная проверка Chrome tab1476704816 на4317: один h1, busy исчезает после ответа, возврат Enter восстанавливает focus на h1 «Клод». Снимки agent-manager-desktop-light.png, agent-manager-desktop-dark.png (1512×784), agent-manager-mobile-light.png (390×844) сохранены и просмотрены; DOM theme соответствует пикселям. agent-manager-measurements.json содержит размеры, число h1/busy и результат возврата. В mobile внешнего overflow нет; внутренние строки владельца остались прежней композицией service accounts. HTTP failure/retry проверены тестом lifecycle, браузерная сетевая инъекция не выполнялась. Viewport сброшен. Повторная заморозка после этого исправления; новый полный gate выполняет root.
+
+
+## Исправление Linux CI size gate: .45
+
+Локальный PASS .44 выше не является успешной CI-приёмкой: официальный Linux Node24.20 использует zlib1.3.2.1-motley-42c2f19 и измерил core185375 при лимите185291. Homebrew Node24 с zlib1.2.12 дал185169. Размеры CSS соответственно101373 и101594 при лимите101612.
+
+В .45 три развёрнутых API-комментария feedback.js перенесены в поставляемый docs/action-feedback.md. Сравнение исходников после удаления JSDoc подтверждает неизменный исполняемый текст; header, CSS, DOM, фокус и таймеры не менялись. Бюджеты и метод gzip остаются прежними. Локальный core184579: экономия590, запас712байт. Linux-перепроверку точного архива выполняет root отдельно.
+
+Новая поставка0.6.0-vnext.45 подключена exact file dependency. SHA256: `c2c7227ed269529d09a3980629fa80cae1c9956e02ea611c7f2f4d21ac387a0b`. Node24: DS build,461/461 tests; product typecheck/build и check:boundaries PASS. Raw: /tmp/sprintique-ds45-tests.log, /tmp/sprintique-ds45-product-build.log, /tmp/sprintique-ds45-boundaries.log. Исправление упаковки не получает новых браузерных заявлений; полный gate и поставка остаются за root.
