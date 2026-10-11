@@ -10,16 +10,18 @@ function fixture(){
 }
 
 test('question buttons preserve their question ID, not the surrounding thread ID, through pending and retry',()=>{
- const f=fixture(),button=f.control({'data-answer-question':'question-7'}),node=f.frame([button]);
+ for(const action of ['data-answer-question','data-work-action']){
+ const f=fixture(),button=f.control({[action]:'question-7'}),node=f.frame([button]);
  f.focus(button);const captured=f.manager.capture('thread-2',node);
- assert.deepEqual(captured,{action:'data-answer-question',value:'question-7'});
- const busy=f.control({'data-answer-question':'question-7'});busy.disabled=true;
+ assert.deepEqual(captured,{action,value:'question-7'});
+ const busy=f.control({[action]:'question-7'});busy.disabled=true;
  const pending=f.frame([busy]);f.manager.restore('thread-2',pending,captured);assert.equal(f.active(),pending);
- const next=f.manager.capture('thread-2',pending),retry=f.control({'data-answer-question':'question-7'});
+ const next=f.manager.capture('thread-2',pending),retry=f.control({[action]:'question-7'});
  f.manager.restore('thread-2',f.frame([retry]),next);assert.equal(f.active(),retry);
+ }
 });
 test('resolution and draft removal move keyboard focus to the saved question heading',()=>{
- for(const key of ['data-answer-question','data-review-question','data-discard-answer']){
+ for(const key of ['data-answer-question','data-review-question','data-discard-answer','data-work-action']){
   const f=fixture(),button=f.control({[key]:'question-7'}),node=f.frame([button]);f.focus(button);
   const captured=f.manager.capture('thread-2',node),heading=f.control({},'H3');
   f.manager.restore('thread-2',f.frame([],heading),captured);
