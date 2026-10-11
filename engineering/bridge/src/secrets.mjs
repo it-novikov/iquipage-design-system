@@ -3,6 +3,7 @@ import {BridgeError} from './errors.mjs';
 // Patterns that look like credentials. A card is shared with every agent and lands in git, so a match is an error,
 // both when a command writes text and when `bridge check` reads a card edited by hand.
 const PATTERNS = [
+  ['токен Sprintique', /\b(?:spk|spr)_[A-Za-z0-9_-]{20,}/],
   ['приватный ключ', /-----BEGIN [A-Z ]*PRIVATE KEY-----/],
   ['ключ AWS', /\b(AKIA|ASIA)[0-9A-Z]{16}\b/],
   ['токен GitHub', /\b(gh[pousr]_[A-Za-z0-9]{36,}|github_pat_[A-Za-z0-9_]{40,})\b/],

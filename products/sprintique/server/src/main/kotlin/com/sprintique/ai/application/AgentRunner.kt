@@ -18,6 +18,7 @@ import com.sprintique.mcp.application.TaskArguments
 import com.sprintique.notification.domain.Mentions
 import com.sprintique.problem.ProblemException
 import com.sprintique.token.Tokens
+import com.sprintique.work.application.WorkSkillContext
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
@@ -45,6 +46,7 @@ class AgentRunner(
     private val tools: AgentTools,
     private val mcp: McpTools,
     private val json: JsonMapper,
+    private val workSkills: WorkSkillContext,
 ) {
     private val log = LoggerFactory.getLogger(AgentRunner::class.java)
 
@@ -159,12 +161,22 @@ class AgentRunner(
                     val task = TaskArguments(lease.projectId, text("taskId")!!)
                     val tool = mcp.find("get_task")!!
                     val data = json.valueToTree<JsonNode>(tool.run(tx, actor, task, json.valueToTree(task)))
-                    turns += Turn.User(AgentPrompt.task(json, data, Tokens.random().take(NONCE), mention(tx)))
+                    turns += Turn.User(
+                        AgentPrompt.task(
+                            json, data, Tokens.random().take(NONCE), mention(tx),
+                            workSkills.instruction(tx, lease.projectId, lease.runId),
+                        ),
+                    )
                 }
-                system to tools.specs(tx, actor, lease.projectId)
+                val specs = tools.specs(tx, actor, lease.projectId)
+                (system + workSkills.read(tx, lease.projectId, lease.runId, specs.map { it.name }.toSet())) to specs
             }
         } catch (error: ProblemException) {
-            stopCode = if (error.code == RuntimeCredentials.INITIATOR_LOST) error.code else "ACCESS_LOST"
+            stopCode = if (error.code in setOf(RuntimeCredentials.INITIATOR_LOST, "WORK_SKILL_TOOL")) {
+                error.code
+            } else {
+                "ACCESS_LOST"
+            }
             null
         }
 

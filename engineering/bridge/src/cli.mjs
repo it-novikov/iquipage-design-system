@@ -9,6 +9,7 @@ import * as operations from './operations.mjs';
 import {authorPrompt, briefFor, reviewerPrompt} from './prompt.mjs';
 import {runRelay} from './runner.mjs';
 import {collectStats} from './stats.mjs';
+import {pullCard, pushCard, remoteClient} from './remote.mjs';
 import {findRoot, listTaskIds, loadCard, paths, readCardText, readCards, requireInitialized, resolveTaskId} from './store.mjs';
 import {validateTask} from './validate.mjs';
 
@@ -23,6 +24,11 @@ const HELP = `bridge — передача работы между агентам
   list [--all]                          Задачи, держатели, прогресс
   brief [id] [--budget N]               Сжатая сводка для входящего агента
   show [id] [--json]                    Карточка целиком или её проекция в JSON
+  pull <id> --url U --project P --task T --token-env E [--transport mcp|rest]
+  push <id> --url U --project P --task T --token-env E [--transport mcp|rest]
+                                        Карточка сервера; CAS, MCP по умолчанию, REST только spk_ token
+                                        pull --accept-remote заменяет локальную карточку после сохранения копии
+                                        push --create импортирует карточку в отсутствующий план существующей задачи
   check [id]                            Проверить формат и правила (все задачи без id)
   stats [--since YYYY-MM-DD] [--json]   Время цикла, раунды ревью, передачи
 
@@ -78,6 +84,15 @@ export async function main(argv) {
   const root = findRoot();
 
   switch (command) {
+    case 'pull': case 'push': {
+      const {values, positionals} = parse(args, {url: {type: 'string'}, project: {type: 'string'}, task: {type: 'string'},
+        'token-env': {type: 'string'}, transport: {type: 'string'}, 'accept-remote': {type: 'boolean'}, create: {type: 'boolean'}});
+      if (positionals.length !== 1 || values.force || (command === 'push' && values['accept-remote']) || (command === 'pull' && values.create)) throw new BridgeError('USAGE', 'bridge pull|push <id> --url U --project P --task T --token-env E [--transport mcp|rest]');
+      const client = remoteClient({url: values.url, project: values.project, task: values.task, tokenEnv: values['token-env'], transport: values.transport});
+      const revision = command === 'pull' ? await pullCard(root, positionals[0], client, {acceptRemote: values['accept-remote']}) : await pushCard(root, positionals[0], client, {create: values.create});
+      say(`${positionals[0]}: ${command === 'pull' ? 'карточка получена' : 'карточка записана'}, ревизия ${revision}.`);
+      return;
+    }
     case 'init': {
       say(`Мост настроен: ${relative(process.cwd(), operations.init(root)) || '.bridge'}`);
       return;

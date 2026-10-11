@@ -76,6 +76,7 @@ enum class PrincipalKind(val wire: String) {
 enum class Capability(val wire: String, val permission: Permission) {
     TASKS_READ("tasks:read", Permission.TASKS_READ),
     TASKS_WRITE("tasks:write", Permission.TASKS_WRITE),
+    WORK_WRITE("work:write", Permission.WORK_WRITE),
     THREADS_READ("threads:read", Permission.TASKS_READ),
     THREADS_WRITE("threads:write", Permission.THREADS_WRITE),
     MAPS_READ("maps:read", Permission.MAPS_READ),
@@ -93,7 +94,7 @@ enum class Capability(val wire: String, val permission: Permission) {
 
     companion object {
         val GRANTABLE: List<Capability> =
-            listOf(TASKS_READ, TASKS_WRITE, THREADS_READ, THREADS_WRITE, MAPS_READ, MAPS_WRITE)
+            listOf(TASKS_READ, TASKS_WRITE, WORK_WRITE, THREADS_READ, THREADS_WRITE, MAPS_READ, MAPS_WRITE)
 
         fun fromWire(value: String): Capability? = entries.firstOrNull { it.wire == value }
     }

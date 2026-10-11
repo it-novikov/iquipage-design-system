@@ -14,6 +14,7 @@ enum class Feature(val wire: String) {
 
     /** AI connections of workspaces and agents of service accounts (docs/decisions/0005-ai-agents.md). */
     AI_AGENTS("ai_agents"),
+    AGENT_WORK("agent_work"),
 }
 
 /**

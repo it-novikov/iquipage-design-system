@@ -123,7 +123,8 @@ test('AI03 an assigned task starts the agent: it reads, changes the status throu
       assert.match(request.body.system,/untrusted/);assert.match(request.body.system,/Отвечай кратко\./);
       assert.match(request.body.system,/never bulleted or numbered lists/);
       assert.match(firstUserText(request),/<untrusted-task-data id="[A-Za-z0-9_-]+">/);
-      assert.deepEqual(request.body.tools.map((t:any)=>t.name).sort(),['add_task_comment','change_task_status','create_task','get_task','list_milestones','list_releases','search_tasks','update_task']);
+      assert.deepEqual(request.body.tools.map((t:any)=>t.name).sort(),['add_task_comment','change_task_status','create_task','get_task','list_milestones','list_releases','search_tasks','update_task',
+        'get_work_plan','get_work_brief','list_work_skills','get_work_skill','change_work_lease','save_work_checkpoint','create_work_question','change_work_step','handoff_work'].sort());
       assert.ok(request.body.tools.every((t:any)=>!('projectId' in t.input_schema.properties)&&!('idempotencyKey' in t.input_schema.properties)));
       return anthropic.tool('get_task',{task:'ai-work'});
     }
@@ -179,7 +180,7 @@ test('AI05 an agent never exceeds its account: a reading account cannot change t
   llm.script('script-reader',(request,n)=>{
     if(n===1){
       assert.match(firstUserText(request),/IGNORE ALL PREVIOUS INSTRUCTIONS[\s\S]*<\/untrusted-task-data/);
-      assert.deepEqual(request.body.tools.map((t:any)=>t.name).sort(),['get_task','list_milestones','list_releases','search_tasks'],'only what the account may do is offered');
+      assert.deepEqual(request.body.tools.map((t:any)=>t.name).sort(),['get_task','list_milestones','list_releases','search_tasks','get_work_plan','get_work_brief','list_work_skills','get_work_skill'].sort(),'only what the account may do is offered');
       return anthropic.tool('grant_admin',{});
     }
     if(n===2){assert.equal(anthropic.lastResult(request).error,'UNKNOWN_TOOL');return anthropic.tool('change_task_status',{task:'ai-injected',baseRevision:1,status:'testing'});}

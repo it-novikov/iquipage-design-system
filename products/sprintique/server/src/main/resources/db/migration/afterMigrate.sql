@@ -2,11 +2,13 @@
 -- validated identifiers supplied by the migrate command, never by a request.
 GRANT SELECT ON public.flyway_schema_history TO "${runtime_role}";
 GRANT USAGE ON SCHEMA app,auth TO "${runtime_role}";
+GRANT EXECUTE ON FUNCTION app.work_lifecycle(text,regclass) TO "${runtime_role}";
 GRANT SELECT,INSERT,UPDATE ON ALL TABLES IN SCHEMA app TO "${runtime_role}";
 GRANT DELETE ON app.task_tags,app.temporal_constraints,app.project_members,app.workspace_members,app.person_avatars TO "${runtime_role}";
 -- Previews are transient: the ten-minute plan record is still append-only (UPDATE stays revoked),
 -- but an expired plan that was never applied and belongs to no run is collected, not retained forever.
 GRANT DELETE ON app.planning_plans TO "${runtime_role}";
+REVOKE UPDATE ON app.task_work_event,app.agent_skill_version FROM "${runtime_role}";
 REVOKE UPDATE ON app.audit_events,app.messages,app.idempotency FROM "${runtime_role}";
 REVOKE UPDATE ON app.planning_plans,app.planning_applied,app.release_snapshots FROM "${runtime_role}";
 REVOKE UPDATE ON app.planning_selections FROM "${runtime_role}";

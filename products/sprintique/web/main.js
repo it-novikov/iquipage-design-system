@@ -70,6 +70,7 @@ function ensureShell(project,mode){
       onTheme:()=>applyTheme(document.documentElement.dataset.theme==='dark'?'light':'dark'),
       onSearch:search,onCreateProject:creatable===null||creatable.length?()=>void onboard(currentProject?.workspaceId).catch(report):undefined,onCreateWorkspace:createWorkspace,
       // Its tab shows for everyone with workbench_mvp, and to whoever has the Workbench open by its address.
+      agentWork:repository.capabilities.agentWork,
       workbench:workbenchOn()&&(featureOn('workbench_mvp')||isWorkbenchPath()),
       notifications:slot=>mountNotificationBell(slot,{client:repository.client,onOpen:item=>openNotification(item).catch(report),onSettings:()=>openSettings('#settings/notifications')})
     });
@@ -143,7 +144,7 @@ let watching=null;
 function stopWatching(){repository.stopWatch?.();watching=null;}
 /** Section code by route, fetched when its link is pointed at or focused, so a first visit after a release does not
  *  wait for the download; the section's own import then finds it ready. */
-const SECTION_MODULES={planning:()=>import('../ui/planning/src/index.js'),maps:()=>import('./maps-host.js'),finance:()=>import('../ui/finance/src/index.js'),settings:()=>import('./settings.js')};
+const SECTION_MODULES={planning:()=>import('../ui/planning/src/index.js'),maps:()=>import('./maps-host.js'),finance:()=>import('../ui/finance/src/index.js'),settings:()=>import('./settings.js'),agents:()=>import('./agents-directory.js')};
 const prefetchedSections=new Set();
 function prefetchSection(mode){
   const load=SECTION_MODULES[mode];if(!load||prefetchedSections.has(mode))return;
@@ -172,7 +173,7 @@ function onStreamChange(change){
 /** The section an address names: the Workbench by its path, the project sections by the hash. */
 function routeMode(){
   if(isWorkbenchPath()&&workbenchOn())return 'workbench';
-  return location.hash.startsWith('#maps')?'maps':location.hash.startsWith('#settings')?'settings':location.hash.startsWith('#finance')?'finance':location.hash==='#planning'?'planning':'tasks';
+  return location.hash==='#agents'?'agents':location.hash.startsWith('#maps')?'maps':location.hash.startsWith('#settings')?'settings':location.hash.startsWith('#finance')?'finance':location.hash==='#planning'?'planning':'tasks';
 }
 async function showProject(id,mode=routeMode()){
   if(mode==='workbench'&&!workbenchOn())mode='tasks';
@@ -228,6 +229,7 @@ async function showProject(id,mode=routeMode()){
   if(mode==='maps'){const {mountMapsHost}=await import('./maps-host.js');board=await mountMapsHost(host,{repository,project,viewState:viewStates.get(stateKey),onOpenTasks:async({focusTaskId})=>{await navigate('tasks');if(viewMode==='tasks')await board.openTask(focusTaskId);}});}
   else if(mode==='planning')board=await mountPlanningHost(host,{repository,adapter:planningAdapter,project,viewState:viewStates.get(stateKey),onOpenBoard:()=>navigate('tasks')});
   else if(mode==='finance'){const {mountFinance}=await import('../ui/finance/src/index.js');board=await mountFinance(host,{repository,project,viewState:viewStates.get(stateKey)});}
+  else if(mode==='agents'){const {mountAgentsDirectory}=await import('./agents-directory.js');board=await mountAgentsDirectory(host,{repository,project,onOpenTask:async(projectId,taskId)=>{history.replaceState(null,'','#tasks');await showProject(projectId,'tasks');await board?.openTask?.(taskId);}});}
   else if(mode==='settings'){const {mountSettings}=await import('./settings.js');board=await mountSettings(host,{repository,adapter:planningAdapter,project,onChanged:refreshHeader});}
   else if(mode==='workbench')board=await mountWorkbenchSection(host);
   else board=await mountTaskBoard(host,{repository,project,attachmentAdapter:repository.attachmentAdapter,canEdit:can(project,'tasks.write'),canManageCatalogs:can(project,'project.settings'),viewState:viewStates.get(stateKey)});
@@ -304,7 +306,7 @@ function search(){if(!session||document.querySelector('dialog[open]'))return;ope
 window.addEventListener('keydown',event=>{if((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='k'){event.preventDefault();search();}});
 window.addEventListener('hashchange',()=>{if(viewMode==='workbench'||isWorkbenchPath())return;void(async()=>{const task=parseTaskRoute(location.hash);if(task){if(!board?.openTask)await showProject(currentProject.id,'tasks');await board?.openTask?.(task,{fromRoute:true});}else if(location.hash.startsWith('#maps'))await navigate('maps');
     else if(location.hash.startsWith('#finance')){if(viewMode==='finance'&&board?.openRoute)await board.openRoute(location.hash);else await navigate('finance');}else if(location.hash.startsWith('#settings')){if(viewMode==='settings'&&board?.navigateSettings){await board.navigateSettings();}else await navigate('settings');}
-    else if(['#tasks','#planning'].includes(location.hash)){const mode=location.hash.slice(1);
+    else if(['#tasks','#planning','#agents'].includes(location.hash)){const mode=location.hash.slice(1);
     // Closing the task drawer returns to the section already on screen: close the drawer, never remount the view
     // (a remount reloads every card and its cover, which reads as a blink).
     if(viewMode===mode&&board)await board.closeTask?.();else await navigate(mode);}else await board?.closeTask();})().catch(report);});

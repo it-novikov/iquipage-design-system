@@ -8,6 +8,9 @@ import com.sprintique.database.schema.app.App
 import com.sprintique.database.schema.app.indexes.THREAD_TASK_PAGE
 import com.sprintique.database.schema.app.keys.ATTENTION_REQUESTS__ATTENTION_REQUESTS_PROJECT_ID_TASK_ID_THREAD_ID_FKEY
 import com.sprintique.database.schema.app.keys.MESSAGES__MESSAGES_PROJECT_ID_THREAD_ID_FKEY
+import com.sprintique.database.schema.app.keys.TASK_WORK_EVENT__TASK_WORK_EVENT_PROJECT_ID_THREAD_ID_FKEY
+import com.sprintique.database.schema.app.keys.TASK_WORK_REQUEST__TASK_WORK_REQUEST_PROJECT_ID_THREAD_ID_FKEY
+import com.sprintique.database.schema.app.keys.TASK_WORK_SESSION__TASK_WORK_SESSION_PROJECT_ID_THREAD_ID_FKEY
 import com.sprintique.database.schema.app.keys.THREADS_PKEY
 import com.sprintique.database.schema.app.keys.THREADS__THREADS_PROJECT_ID_TASK_ID_FKEY
 import com.sprintique.database.schema.app.keys.THREADS__THREADS_RESOLVED_BY_FKEY
@@ -15,6 +18,9 @@ import com.sprintique.database.schema.app.keys.THREAD_READS__THREAD_READS_PROJEC
 import com.sprintique.database.schema.app.keys.THREAD_TASK_IDENTITY
 import com.sprintique.database.schema.app.tables.AttentionRequests.AttentionRequestsPath
 import com.sprintique.database.schema.app.tables.Messages.MessagesPath
+import com.sprintique.database.schema.app.tables.TaskWorkEvent.TaskWorkEventPath
+import com.sprintique.database.schema.app.tables.TaskWorkRequest.TaskWorkRequestPath
+import com.sprintique.database.schema.app.tables.TaskWorkSession.TaskWorkSessionPath
 import com.sprintique.database.schema.app.tables.Tasks.TasksPath
 import com.sprintique.database.schema.app.tables.ThreadReads.ThreadReadsPath
 import com.sprintique.database.schema.app.tables.records.ThreadsRecord
@@ -152,6 +158,42 @@ open class Threads(
 
     val messages: MessagesPath
         get(): MessagesPath = messages()
+
+    private lateinit var _taskWorkEvent: TaskWorkEventPath
+
+    fun taskWorkEvent(): TaskWorkEventPath {
+        if (!this::_taskWorkEvent.isInitialized)
+            _taskWorkEvent = TaskWorkEventPath(this, null, TASK_WORK_EVENT__TASK_WORK_EVENT_PROJECT_ID_THREAD_ID_FKEY.inverseKey)
+
+        return _taskWorkEvent;
+    }
+
+    val taskWorkEvent: TaskWorkEventPath
+        get(): TaskWorkEventPath = taskWorkEvent()
+
+    private lateinit var _taskWorkRequest: TaskWorkRequestPath
+
+    fun taskWorkRequest(): TaskWorkRequestPath {
+        if (!this::_taskWorkRequest.isInitialized)
+            _taskWorkRequest = TaskWorkRequestPath(this, null, TASK_WORK_REQUEST__TASK_WORK_REQUEST_PROJECT_ID_THREAD_ID_FKEY.inverseKey)
+
+        return _taskWorkRequest;
+    }
+
+    val taskWorkRequest: TaskWorkRequestPath
+        get(): TaskWorkRequestPath = taskWorkRequest()
+
+    private lateinit var _taskWorkSession: TaskWorkSessionPath
+
+    fun taskWorkSession(): TaskWorkSessionPath {
+        if (!this::_taskWorkSession.isInitialized)
+            _taskWorkSession = TaskWorkSessionPath(this, null, TASK_WORK_SESSION__TASK_WORK_SESSION_PROJECT_ID_THREAD_ID_FKEY.inverseKey)
+
+        return _taskWorkSession;
+    }
+
+    val taskWorkSession: TaskWorkSessionPath
+        get(): TaskWorkSessionPath = taskWorkSession()
 
     private lateinit var _threadReads: ThreadReadsPath
 

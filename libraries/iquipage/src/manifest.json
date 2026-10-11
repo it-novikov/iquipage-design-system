@@ -60,7 +60,8 @@
     "mention-tokens.js",
     "mentions.js",
     "scale.js",
-    "feedback.js"
+    "feedback.js",
+    "work-story.js"
   ],
   "library": [
     "components.js",
@@ -110,7 +111,8 @@
     "mention-tokens.js",
     "mentions.js",
     "scale.js",
-    "feedback.js"
+    "feedback.js",
+    "work-story.js"
   ],
   "entries": {
     "core": [

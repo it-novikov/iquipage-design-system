@@ -14,9 +14,10 @@ import {today as todayValue,onlyPlanChanged} from './plan-range.js';
 import {starterTaskSettings,instantiateTaskTemplate,withoutUntouchedTemplate,STARTER_TASK_TEMPLATES} from './task-templates.js';
 import {mountTaskDescription} from './description-view.js';
 import {copyAtButton,motionReduced,ui,notify,formatDate} from '@iquipage/web/core';
-import {taskKey,taskURL} from './task-route.js';
+import {taskKey,taskURL,parseTaskSection} from './task-route.js';
 import {avatarName,ownerOptions,ownerWarning} from './assignees.js';
 import {mountAgentRuns} from './agent-runs-view.js';
+import {mountTaskWork} from './task-work-view.js';
 import {formatEstimate,estimateEditor,estimateMismatch} from '../estimate.js';
 
 export async function openTaskDialog(task,{repository,project,tasks,canEdit=true,canManage=true,attachmentAdapter=null,status='ready',initialValues={},fullscreen=false,backTo=null,onBack=()=>{},onOpenTask,onReload=onOpenTask&&(()=>onOpenTask(task.id)),onSaved=()=>{},isActive=()=>true,signal,replace=null,supplement=null}){
@@ -138,8 +139,9 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
         row('Автор',author.html,{empty:author.empty})
       ].join('')}</dl>`;
   };
-  const content=`<section class="task-editor-cover" data-task-cover hidden></section><div class="task-editor-layout">
-    <div class="task-editor-title"><label class="sr-only" for="${taskId}-title">Название</label><textarea class="iq-inline-title" id="${taskId}-title" name="title" rows="1" required maxlength="240" placeholder="Что нужно сделать?">${esc(initial.title)}</textarea></div>
+  const workTabs=!!(task&&repository.capabilities?.agentWork);
+  const titleContent=`<div class="task-editor-title"><label class="sr-only" for="${taskId}-title">Название</label><textarea class="iq-inline-title" id="${taskId}-title" name="title" rows="1" required maxlength="240" placeholder="Что нужно сделать?">${esc(initial.title)}</textarea></div>`;
+  const content=`<section class="task-editor-cover" data-task-cover hidden></section>${workTabs?`${titleContent}<iq-tabs label="Разделы задачи" value="${parseTaskSection(location.hash)}" data-task-tabs><div class="iq-tabs-list" data-tablist><button type="button" data-tab="task">Задача</button><button type="button" data-tab="work">Работа агента</button></div><section class="iq-tab-panel" data-panel="task"><div class="task-editor-layout"><section class="task-editor-title iq-work-story-head" data-task-work-summary hidden></section>`:`<div class="task-editor-layout">${titleContent}`}
     ${task&&supplement?'<section class="task-personal-section" data-task-personal aria-label="Запросы к вам" hidden></section>':''}
     <section class="task-editor-properties" aria-label="Свойства задачи">
       ${canEdit?editableFacts():staticFacts()}
@@ -152,8 +154,8 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
     <section class="iq-section task-relations"><div class="iq-section-head">${icon('link',16)}<h3>Связи</h3><span class="iq-section-count" data-relations-count></span><span class="iq-section-actions" data-relations-actions></span></div>
       ${task||canEdit?'<div data-task-links></div>':''}</section>
     <section class="iq-section task-files-section" data-task-files></section>
-    <section class="task-agent-section" data-task-agents aria-label="Агенты" hidden></section>
-    <section class="iq-section task-threads-section" data-task-threads></section></div></div><p role="status" class="iq-helper" data-task-save-state></p>`;
+    ${workTabs?'':'<section class="task-agent-section" data-task-agents aria-label="Агенты" hidden></section>'}
+    <section class="iq-section task-threads-section" data-task-threads></section></div></div>${workTabs?'</section><section class="iq-tab-panel" data-panel="work" hidden><div class="iq-work-story-copy"><section data-task-agents aria-label="Работа агента"></section></div></section></iq-tabs>':''}<p role="status" class="iq-helper" data-task-save-state></p>`;
   const read=(form,values=new FormData(form))=>({
     title:String(values.get('title')||'').trim(),type:values.get('type')||'task',status:values.get('status'),
     ownerId:form.querySelector('iq-select[name=ownerId]').value||null,priority:values.get('priority')||'normal',
@@ -236,7 +238,7 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
         title.querySelector('[data-task-back]')?.addEventListener('click',()=>onBack());
         // The key is the link: it reacts like the workspace and project switchers and copies the task URL.
         const keyButton=title.querySelector('[data-copy-task-link]');
-        keyButton.addEventListener('click',()=>copyAtButton(keyButton,taskURL(task)));
+        keyButton.addEventListener('click',()=>copyAtButton(keyButton,taskURL(task,form.querySelector('[data-task-tabs]')?.getAttribute('value'))));
         actions.querySelector('[data-task-fullscreen]').addEventListener('click',event=>{const native=el.querySelector('dialog'),before=native.getBoundingClientRect();fullscreen=!fullscreen;el.dataset.fullscreen=String(fullscreen);event.currentTarget.setAttribute('aria-label',fullscreen?'Свернуть в боковое меню':'Открыть на весь экран');if(!motionReduced())native.animate([{width:before.width+'px'},{width:native.getBoundingClientRect().width+'px'}],{duration:280,easing:'cubic-bezier(.2,.7,.2,1)'});});
       }
       el.querySelector('dialog').classList.add('iq-drawer');
@@ -286,7 +288,8 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
       if(task)threads=mountThreads(form.querySelector('[data-task-threads]'),{repository,task,readOnly:!canDiscuss,people:new Map(members.map(m=>[m.id,m])),actorId:repository.context?.actorId||'local-user'});
       else form.querySelector('[data-task-threads]').hidden=true;
       // Agents of service accounts: a quiet header action and one line above the discussion (docs/decisions/0005-ai-agents.md).
-      if(task&&repository.capabilities?.aiAgents)agents=mountAgentRuns(form.querySelector('[data-task-agents]'),{repository,project,task,actions:form.querySelector('.task-dialog-actions')});
+      if(workTabs)agents=mountTaskWork(form.querySelector('[data-task-agents]'),{repository,project,task,summaryRoot:form.querySelector('[data-task-work-summary]'),onOpenWork:()=>form.querySelector('[data-tab=work]')?.click(),onThread:(id,messageId)=>{form.querySelector('[data-tab=task]')?.click();return threads?.open(id,messageId);},onChange:()=>threads?.reload()});
+      else if(task&&repository.capabilities?.aiAgents)agents=mountAgentRuns(form.querySelector('[data-task-agents]'),{repository,project,task,actions:form.querySelector('.task-dialog-actions')});
       function applyTemplate(changePriority=false){
         const result=instantiateTaskTemplate(settings,form.querySelector('iq-select[name=type]').value);
         editor.value=taskMarkdown(result);
@@ -315,7 +318,7 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
           submitLabel:untouched?'Применить':'Заменить описание',onSubmit:async values=>{apply(values.get('starter'));}});
       });
       let discarded=false;
-      const dirty=()=>!discarded&&(canEdit&&(JSON.stringify(read(form))!==baseline||files.dirty()||!!links?.dirty?.())||!!threads?.dirty()||!!personal?.dirty?.());
+      const dirty=()=>!discarded&&(canEdit&&(JSON.stringify(read(form))!==baseline||files.dirty()||!!links?.dirty?.())||!!threads?.dirty()||!!personal?.dirty?.()||!!agents?.dirty?.());
       const saveState=form.querySelector('[data-task-save-state]');
       let timer=0,inflight=null,again=false,conflict=false;
       function showState(text,{error=false,action=''}={}){
@@ -394,7 +397,7 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
       if(autosave){
         // The footer becomes the save status; the header close button stays the single way out.
         const footer=form.querySelector('.iq-dialog-footer');footer.querySelector('[data-close]').hidden=true;footer.prepend(saveState);showState('Изменения сохраняются автоматически');
-        const own=event=>!event.target.closest('[data-task-threads],[data-task-links]');
+        const own=event=>!event.target.matches('iq-tabs')&&!event.target.closest('[data-task-threads],[data-task-links],[data-task-agents],[data-task-work-summary]');
         for(const type of ['input','change','iq-change','task-files-change'])form.addEventListener(type,event=>{if(own(event))schedule(type==='input'?900:300);});
         saveState.addEventListener('click',event=>{
           const action=event.target.closest('[data-save-action]')?.dataset.saveAction;
@@ -402,9 +405,14 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
           if(action==='reload'){discarded=true;if(onReload)void onReload();else el.close();}
         });
       }
+      if(workTabs){
+        const tabs=form.querySelector('[data-task-tabs]'),footer=form.querySelector('.iq-dialog-footer');
+        const syncTab=(route=false)=>{const value=tabs.getAttribute('value');footer.hidden=value==='work';if(route)history.replaceState(history.state,'',taskURL(task,value));};
+        tabs.addEventListener('iq-change',event=>{if(event.target===tabs)syncTab(true);});syncTab();
+      }
       // keepOpen: only settle (flush or confirm) and leave the drawer open, so the next task can replace it in one frame.
       async function close({keepOpen=false}={}){
-        if(confirming||threads?.isBusy())return false;
+        if(confirming||threads?.isBusy()||agents?.isBusy?.())return false;
         if(autosave&&!discarded)await flush();
         else if(saving)return false;
         if(!dirty()){if(!keepOpen)el.close();return true;}
@@ -427,7 +435,7 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
       native.addEventListener('pointerdown',event=>{outsideDown=outside(event);});
       native.addEventListener('click',event=>{if(outsideDown&&outside(event)){event.preventDefault();event.stopImmediatePropagation();close();}outsideDown=false;},{capture:true});
       form.addEventListener('keydown',event=>{
-        if(event.isComposing||!canEdit||event.target.closest('[data-task-threads]'))return;
+        if(event.isComposing||!canEdit||event.target.closest('[data-task-threads],[data-task-agents]'))return;
         if((event.ctrlKey||event.metaKey)&&event.key==='Enter'){event.preventDefault();event.stopPropagation();if(autosave)void flush();else form.requestSubmit();}
       });
       const unload=event=>{

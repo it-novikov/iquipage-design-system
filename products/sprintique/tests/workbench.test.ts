@@ -501,7 +501,7 @@ test('W09 plan: today and seven days keep due, planned, answer, check-back and m
 
 test('W10 flags: off means not found and the session names what is on',async()=>{
   const session=await ok<any>(call('GET','/api/v1/session'));
-  assert.deepEqual(session.features,['ai_agents','workbench_mvp','workbench_personal_state','workbench_plan_horizon','workbench_read_internal','workbench_requests','workbench_waiting']);
+  assert.deepEqual(session.features,['agent_work','ai_agents','workbench_mvp','workbench_personal_state','workbench_plan_horizon','workbench_read_internal','workbench_requests','workbench_waiting']);
   const off=await startApp({settings:{SPRINTIQUE_FEATURES:'workbench_read_internal'}});
   try{
     const env=await off.inject({url:'/api/v1/workbench',headers:f.alice.headers});assert.equal(env.statusCode,200,env.body);

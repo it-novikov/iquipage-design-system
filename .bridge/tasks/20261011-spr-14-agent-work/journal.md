@@ -1,0 +1,24 @@
+# Журнал 20261011-spr-14-agent-work
+
+- 2026-10-11T05:23:00Z · codex · create · - · SPR-14: агентский раздел, рабочий план и MCP
+- 2026-10-11T05:23:46Z · codex · claim · - · взял задачу
+- 2026-10-11T05:23:46Z · codex · checkpoint · S1 · дальше: Интегрировать backend+DS+UI и поднять реальный dev стенд
+- 2026-10-11T05:33:27Z · codex · checkpoint · S1 · дальше: Receive ready localJar, run independent HTTP acceptance and real browser workflow
+- 2026-10-11T06:14:28Z · codex · checkpoint · S1 · дальше: Freeze final API and new UI, rebuild isolated stand, repeat full browser acceptance and independent reviews
+- 2026-10-11T06:55:52Z · codex · checkpoint · S3 · дальше: Зелёные isolated/detached и CI, затем свежая резервная копия и деплой.
+- 2026-10-11T06:56:11Z · codex · step · S1 · done: Публичная DS .39, новый модуль work и права проверены реальным HTTP и браузером; отдельная вкладка, обе темы, телефон, клавиатура и сохранение черновика подтверждены UI-REVIEW.md.
+- 2026-10-11T06:56:11Z · codex · step · S2 · done: Типизированные инструменты, реестр и навыки готовы; bridge 49/49, portable skill и revoke/cancel/transfer проверены. Новые production MCP tools проверяются после выкладки.
+- 2026-10-11T06:57:00Z · codex · step · S3 · active: Оба независимых ревью завершены без открытых замечаний. Полный gate3 идёт на замороженном исходном дереве; изолированные main/fallback контейнеры прошли готовность, сессию, новую схему и feature boundary.
+- 2026-10-11T07:21:17Z · codex · checkpoint · S3 · дальше: После обоих PASS — свежая backup, migrate, own OAuth и production UI.
+- 2026-10-11T07:50:46Z · codex · step · S3 · done: Gate4: DS456, продукт473, detached473 без пропусков; sourceStable true. CI38121099469 success, два независимых ревью без P0/P1.
+- 2026-10-11T07:50:46Z · codex · step · S4 · active
+- 2026-10-11T07:50:46Z · codex · checkpoint · - · дальше: Закончить десятиминутное наблюдение, записать evidence и push документации
+- 2026-10-11T07:53:16Z · codex · note · A1 · критерий приёмки выполнен
+- 2026-10-11T07:53:16Z · codex · note · A2 · критерий приёмки выполнен
+- 2026-10-11T07:53:16Z · codex · note · A3 · критерий приёмки выполнен
+- 2026-10-11T07:53:16Z · codex · note · A4 · критерий приёмки выполнен
+- 2026-10-11T07:53:16Z · codex · note · - · Native OAuth Codex production work roundtrip, idempotent lease, checkpoint и brief PASS; API-agent lifecycle проверен реальным HTTP. Новый клиент Claude Code и бесшовный первоначальный login отдельно не приняты, CLIENTS.md. Production screenshot и прямой work-tab reload проверены; human approval оставлен владельцу.
+- 2026-10-11T07:58:55Z · codex · step · S4 · done: Выпуск eb4574b в 07:48:26 UTC; точный manifest559c870, backup074809, migrate77, own OAuth и production UI PASS. Наблюдение до07:58:26: ready, HTML, API/worker, рестарты0, ERROR0. Совместимый rollback фактически проверен.
+- 2026-10-11T07:58:55Z · codex · note · A5 · критерий приёмки выполнен
+- 2026-10-11T07:58:55Z · codex · checkpoint · - · дальше: Владелец проверяет новую вкладку и принимает результат
+- 2026-10-11T07:58:55Z · codex · handoff · - · review → human:it-novikov; HEAD eb4574b; незакоммичено 3; Новая вкладка и быстрые действия выложены; human approval оставлен владельцу. Claude Code и свежий бесшовный OAuth login имеют ограничения CLIENTS.md.

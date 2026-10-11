@@ -8,6 +8,8 @@ import com.sprintique.database.schema.app.keys.ACCESS_PRESETS__ACCESS_PRESETS_CR
 import com.sprintique.database.schema.app.keys.ACCESS_PRESETS__ACCESS_PRESETS_UPDATED_BY_FKEY
 import com.sprintique.database.schema.app.keys.AGENT_RUNS__AGENT_RUNS_AGENT_ID_FKEY
 import com.sprintique.database.schema.app.keys.AGENT_RUNS__AGENT_RUNS_INITIATOR_ID_FKEY
+import com.sprintique.database.schema.app.keys.AGENT_SKILL_VERSION__AGENT_SKILL_VERSION_AUTHOR_ID_FKEY
+import com.sprintique.database.schema.app.keys.AGENT_WORK_PROFILE__AGENT_WORK_PROFILE_AGENT_ID_FKEY
 import com.sprintique.database.schema.app.keys.AI_AGENT_PROFILES__AI_AGENT_PROFILES_UPDATED_BY_FKEY
 import com.sprintique.database.schema.app.keys.AI_AGENT_RUNS__AI_AGENT_RUNS_ACCOUNT_ID_FKEY
 import com.sprintique.database.schema.app.keys.AI_AGENT_RUNS__AI_AGENT_RUNS_CANCEL_REQUESTED_BY_FKEY
@@ -62,6 +64,12 @@ import com.sprintique.database.schema.app.keys.TASK_ACTIVITY__TASK_ACTIVITY_ACTO
 import com.sprintique.database.schema.app.keys.TASK_ACTIVITY__TASK_ACTIVITY_INITIATOR_ID_FKEY
 import com.sprintique.database.schema.app.keys.TASK_PERSONAL_STATE__TASK_PERSONAL_STATE_PRINCIPAL_ID_FKEY
 import com.sprintique.database.schema.app.keys.TASK_SETTINGS_VERSIONS__TASK_SETTINGS_VERSIONS_ACTOR_ID_FKEY
+import com.sprintique.database.schema.app.keys.TASK_WORK_EVENT__TASK_WORK_EVENT_ACTOR_ID_FKEY
+import com.sprintique.database.schema.app.keys.TASK_WORK_PLAN__TASK_WORK_PLAN_HOLDER_ID_FKEY
+import com.sprintique.database.schema.app.keys.TASK_WORK_REQUEST__TASK_WORK_REQUEST_AGENT_ID_FKEY
+import com.sprintique.database.schema.app.keys.TASK_WORK_REQUEST__TASK_WORK_REQUEST_AUTHOR_ID_FKEY
+import com.sprintique.database.schema.app.keys.TASK_WORK_SESSION__TASK_WORK_SESSION_AGENT_ID_FKEY
+import com.sprintique.database.schema.app.keys.TASK_WORK_SESSION__TASK_WORK_SESSION_REQUESTED_BY_FKEY
 import com.sprintique.database.schema.app.keys.TELEGRAM_CONNECTIONS__TELEGRAM_CONNECTIONS_PRINCIPAL_ID_FKEY
 import com.sprintique.database.schema.app.keys.TELEGRAM_LINK_TOKENS__TELEGRAM_LINK_TOKENS_PRINCIPAL_ID_FKEY
 import com.sprintique.database.schema.app.keys.THREADS__THREADS_RESOLVED_BY_FKEY
@@ -73,6 +81,8 @@ import com.sprintique.database.schema.app.keys.WORKSPACE_MEMBERS__WORKSPACE_MEMB
 import com.sprintique.database.schema.app.keys.WORKSPACE_MEMBERS__WORKSPACE_MEMBERS_PRINCIPAL_ID_FKEY
 import com.sprintique.database.schema.app.tables.AccessPresets.AccessPresetsPath
 import com.sprintique.database.schema.app.tables.AgentRuns.AgentRunsPath
+import com.sprintique.database.schema.app.tables.AgentSkillVersion.AgentSkillVersionPath
+import com.sprintique.database.schema.app.tables.AgentWorkProfile.AgentWorkProfilePath
 import com.sprintique.database.schema.app.tables.AiAgentProfiles.AiAgentProfilesPath
 import com.sprintique.database.schema.app.tables.AiAgentRuns.AiAgentRunsPath
 import com.sprintique.database.schema.app.tables.AiConnections.AiConnectionsPath
@@ -110,6 +120,10 @@ import com.sprintique.database.schema.app.tables.Projects.ProjectsPath
 import com.sprintique.database.schema.app.tables.TaskActivity.TaskActivityPath
 import com.sprintique.database.schema.app.tables.TaskPersonalState.TaskPersonalStatePath
 import com.sprintique.database.schema.app.tables.TaskSettingsVersions.TaskSettingsVersionsPath
+import com.sprintique.database.schema.app.tables.TaskWorkEvent.TaskWorkEventPath
+import com.sprintique.database.schema.app.tables.TaskWorkPlan.TaskWorkPlanPath
+import com.sprintique.database.schema.app.tables.TaskWorkRequest.TaskWorkRequestPath
+import com.sprintique.database.schema.app.tables.TaskWorkSession.TaskWorkSessionPath
 import com.sprintique.database.schema.app.tables.Tasks.TasksPath
 import com.sprintique.database.schema.app.tables.TelegramConnections.TelegramConnectionsPath
 import com.sprintique.database.schema.app.tables.TelegramLinkTokens.TelegramLinkTokensPath
@@ -292,6 +306,30 @@ open class Principals(
 
     val agentRunsInitiatorIdFkey: AgentRunsPath
         get(): AgentRunsPath = agentRunsInitiatorIdFkey()
+
+    private lateinit var _agentSkillVersion: AgentSkillVersionPath
+
+    fun agentSkillVersion(): AgentSkillVersionPath {
+        if (!this::_agentSkillVersion.isInitialized)
+            _agentSkillVersion = AgentSkillVersionPath(this, null, AGENT_SKILL_VERSION__AGENT_SKILL_VERSION_AUTHOR_ID_FKEY.inverseKey)
+
+        return _agentSkillVersion;
+    }
+
+    val agentSkillVersion: AgentSkillVersionPath
+        get(): AgentSkillVersionPath = agentSkillVersion()
+
+    private lateinit var _agentWorkProfile: AgentWorkProfilePath
+
+    fun agentWorkProfile(): AgentWorkProfilePath {
+        if (!this::_agentWorkProfile.isInitialized)
+            _agentWorkProfile = AgentWorkProfilePath(this, null, AGENT_WORK_PROFILE__AGENT_WORK_PROFILE_AGENT_ID_FKEY.inverseKey)
+
+        return _agentWorkProfile;
+    }
+
+    val agentWorkProfile: AgentWorkProfilePath
+        get(): AgentWorkProfilePath = agentWorkProfile()
 
     private lateinit var _aiAgentProfiles: AiAgentProfilesPath
 
@@ -929,6 +967,78 @@ open class Principals(
     val taskSettingsVersions: TaskSettingsVersionsPath
         get(): TaskSettingsVersionsPath = taskSettingsVersions()
 
+    private lateinit var _taskWorkEvent: TaskWorkEventPath
+
+    fun taskWorkEvent(): TaskWorkEventPath {
+        if (!this::_taskWorkEvent.isInitialized)
+            _taskWorkEvent = TaskWorkEventPath(this, null, TASK_WORK_EVENT__TASK_WORK_EVENT_ACTOR_ID_FKEY.inverseKey)
+
+        return _taskWorkEvent;
+    }
+
+    val taskWorkEvent: TaskWorkEventPath
+        get(): TaskWorkEventPath = taskWorkEvent()
+
+    private lateinit var _taskWorkPlan: TaskWorkPlanPath
+
+    fun taskWorkPlan(): TaskWorkPlanPath {
+        if (!this::_taskWorkPlan.isInitialized)
+            _taskWorkPlan = TaskWorkPlanPath(this, null, TASK_WORK_PLAN__TASK_WORK_PLAN_HOLDER_ID_FKEY.inverseKey)
+
+        return _taskWorkPlan;
+    }
+
+    val taskWorkPlan: TaskWorkPlanPath
+        get(): TaskWorkPlanPath = taskWorkPlan()
+
+    private lateinit var _taskWorkRequestAgentIdFkey: TaskWorkRequestPath
+
+    fun taskWorkRequestAgentIdFkey(): TaskWorkRequestPath {
+        if (!this::_taskWorkRequestAgentIdFkey.isInitialized)
+            _taskWorkRequestAgentIdFkey = TaskWorkRequestPath(this, null, TASK_WORK_REQUEST__TASK_WORK_REQUEST_AGENT_ID_FKEY.inverseKey)
+
+        return _taskWorkRequestAgentIdFkey;
+    }
+
+    val taskWorkRequestAgentIdFkey: TaskWorkRequestPath
+        get(): TaskWorkRequestPath = taskWorkRequestAgentIdFkey()
+
+    private lateinit var _taskWorkRequestAuthorIdFkey: TaskWorkRequestPath
+
+    fun taskWorkRequestAuthorIdFkey(): TaskWorkRequestPath {
+        if (!this::_taskWorkRequestAuthorIdFkey.isInitialized)
+            _taskWorkRequestAuthorIdFkey = TaskWorkRequestPath(this, null, TASK_WORK_REQUEST__TASK_WORK_REQUEST_AUTHOR_ID_FKEY.inverseKey)
+
+        return _taskWorkRequestAuthorIdFkey;
+    }
+
+    val taskWorkRequestAuthorIdFkey: TaskWorkRequestPath
+        get(): TaskWorkRequestPath = taskWorkRequestAuthorIdFkey()
+
+    private lateinit var _taskWorkSessionAgentIdFkey: TaskWorkSessionPath
+
+    fun taskWorkSessionAgentIdFkey(): TaskWorkSessionPath {
+        if (!this::_taskWorkSessionAgentIdFkey.isInitialized)
+            _taskWorkSessionAgentIdFkey = TaskWorkSessionPath(this, null, TASK_WORK_SESSION__TASK_WORK_SESSION_AGENT_ID_FKEY.inverseKey)
+
+        return _taskWorkSessionAgentIdFkey;
+    }
+
+    val taskWorkSessionAgentIdFkey: TaskWorkSessionPath
+        get(): TaskWorkSessionPath = taskWorkSessionAgentIdFkey()
+
+    private lateinit var _taskWorkSessionRequestedByFkey: TaskWorkSessionPath
+
+    fun taskWorkSessionRequestedByFkey(): TaskWorkSessionPath {
+        if (!this::_taskWorkSessionRequestedByFkey.isInitialized)
+            _taskWorkSessionRequestedByFkey = TaskWorkSessionPath(this, null, TASK_WORK_SESSION__TASK_WORK_SESSION_REQUESTED_BY_FKEY.inverseKey)
+
+        return _taskWorkSessionRequestedByFkey;
+    }
+
+    val taskWorkSessionRequestedByFkey: TaskWorkSessionPath
+        get(): TaskWorkSessionPath = taskWorkSessionRequestedByFkey()
+
     private lateinit var _tasks: TasksPath
 
     fun tasks(): TasksPath {
@@ -1240,6 +1350,9 @@ open class Principals(
 
     val serviceAccountsPrincipalIdFkey: ServiceAccountsPath
         get(): ServiceAccountsPath = serviceAccountsPrincipalIdFkey()
+
+    val agentWorkProfileProjectIdFkey: ProjectsPath
+        get(): ProjectsPath = agentWorkProfile().projects()
 
     val personProjectPreferencesProjectIdFkey: ProjectsPath
         get(): ProjectsPath = personProjectPreferences().projects()

@@ -8,13 +8,10 @@ import * as s from './settings-ui.js';
 // who may change a task starts it from the task. It acts with the account's rights and nothing more. Its owner and
 // people who manage the workspace's people configure it; nobody else sees this section.
 const providerNames={anthropic:'Anthropic',openai:'OpenAI',openai_compatible:'совместимый с OpenAI'};
-let lists=0;
-
-/** The model field: free text with the provider's models as suggestions (DS-GAP: no free-text combobox). */
+/** The public creatable combobox keeps provider suggestions and an explicit custom model choice. */
 function modelField(value,models){
-  const id=`agent-models-${++lists}`;
-  const html=input('model','Модель',value,{required:true,maxlength:200,placeholder:'Например, claude-sonnet-4-5 или openai/gpt-5'});
-  return html.replace('<input ',`<input list="${id}" autocomplete="off" spellcheck="false" `)+`<datalist id="${id}">${models.map(m=>`<option value="${esc(m)}"></option>`).join('')}</datalist>`;
+  const options=[...new Set([value,...models].filter(Boolean))].map(value=>({value,label:value}));
+  return `<iq-combobox name="model" label="Модель" value="${esc(value)}" options="${esc(JSON.stringify(options))}" creatable create-label="Использовать «{query}»" placeholder="Выберите или укажите модель"></iq-combobox>`;
 }
 /** When the agent starts, as one sentence: «Начинает работу, когда …, когда … и по кнопке в задаче». */
 function startsWhen(p,name){
@@ -55,7 +52,7 @@ export async function mountAgentProfile(root,{client,account,track}){
         <section class="sq-agent-part" aria-label="Когда начинать"><h3>Когда начинать</h3>${ui.check('Когда на аккаунт назначают задачу',p?p.onAssignment:true,'name="onAssignment"')}${ui.check(`Когда аккаунт упоминают в обсуждении: @${account.name}`,p?p.onMention!==false:true,'name="onMention"')}<p class="iq-helper">По кнопке «Запустить агента» в задаче — всегда, пока агент включён. Назначить, упомянуть или запустить агента может тот, кто меняет задачи. Изменения и сообщения самого агента других агентов не запускают.</p></section>
         <section class="sq-agent-part" aria-label="Ограничения"><h3>Ограничения</h3><div class="sq-agent-limits">${number('maxSteps','Шагов за запуск',p?.maxSteps??defaults.maxSteps,1,50)}${number('maxOutputTokens','Токенов ответа за шаг',p?.maxOutputTokens??defaults.maxOutputTokens,256,32000)}${number('runsPerHour','Запусков в час',p?.runsPerHour??defaults.runsPerHour,1,200)}${number('maxRunTokens','Токенов за запуск',p?.maxRunTokens??defaults.maxRunTokens,10000,5000000)}</div><p class="iq-helper">Токены за запуск считают и вопрос, и ответ каждого шага: на этом бюджете агент останавливается, сколько бы шагов ни осталось.</p></section>`,
       submitLabel:'Сохранить',success:'Настройки агента сохранены',
-      mount:el=>{el.addEventListener('iq-change',event=>{
+      mount:el=>{el.addEventListener('iq-create',event=>{if(!event.target.matches('iq-combobox[name=model]'))return;const model=event.detail.label.trim();if(!model||model.length>200)return;event.target.options=[...event.target.options,{value:model,label:model}];event.target.value=model;});el.addEventListener('iq-change',event=>{
         if(!event.target.closest('[data-agent-connection]'))return;const id=event.detail?.value??event.target.value,box=el.querySelector('[data-agent-model]');
         const typed=String(box.querySelector('[name=model]').value||'').trim();box.innerHTML=modelField(typed||connectionOf(id)?.defaultModel||'',models(id));enhance(box);
       });},

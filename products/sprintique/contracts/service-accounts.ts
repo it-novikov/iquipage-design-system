@@ -17,7 +17,7 @@ export const OAuthDecision=z.strictObject({request:z.string().min(1).max(4000),a
  * The grant of a service account in one project: a preset for service accounts (none: «Сервис: чтение») and personal
  * additions and removals from the permission catalog; finance only when added explicitly. Never above its owner there.
  */
-const Changes=z.array(ProjectPermission).max(14).refine(v=>new Set(v).size===v.length).default([]);
+const Changes=z.array(ProjectPermission).max(15).refine(v=>new Set(v).size===v.length).default([]);
 export const ServiceAccountProject=z.strictObject({projectId:Id,presetId:z.uuid().nullable().default(null),granted:Changes,revoked:Changes});
 export const CreateServiceAccount=z.strictObject({name:ServiceAccountName,workspaceId:z.uuid(),projects:z.array(ServiceAccountProject).max(100)});
 export const RenameServiceAccount=z.strictObject({baseRevision:Revision,name:ServiceAccountName});

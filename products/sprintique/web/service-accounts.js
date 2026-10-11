@@ -20,9 +20,9 @@ const scopeNames=scopes=>(scopes||[]).includes('write')?'Читать и изм�
 const when=value=>value?formatDateTime(value):'';
 const lifetimes=[['7','7 дней'],['30','30 дней'],['90','90 дней'],['180','180 дней'],['365','1 год']];
 
-export async function mountServiceAccounts(root,{repository,tools}){
+export async function mountServiceAccounts(root,{repository,tools,selectedAccountId=null}){
   const client=repository.client,abort=new AbortController();
-  let closed=false,modal=null,accounts=[],myProjects=[],myWorkspaces=[],selected=null,mcpUrl='',index=new Map(),loading=0;
+  let closed=false,modal=null,accounts=[],myProjects=[],myWorkspaces=[],selected=selectedAccountId,mcpUrl='',index=new Map(),loading=0;
   const presetCache=new Map();
   if(tools)tools.innerHTML='';
   /** A dialog or drawer on top: the list reloads once it closes (a change may have happened inside). */

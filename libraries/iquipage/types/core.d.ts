@@ -1,5 +1,15 @@
 /** Supported core browser entry. Does not register graph, roadmap, crop, or whiteboard. */
-export declare const version:'0.6.0-vnext.38';
+export declare const version:'0.6.0-vnext.39';
+/** Plain text only. The host owns timestamps, paging, state, permissions and persistence. */
+export interface WorkEntry {id:string;text:string;by?:string;time?:string;detail?:string;state?:''|'error'|'waiting'|'complete';}
+export declare function workEntry(entry:WorkEntry):string;
+export interface WorkStep {id:string;title:string;state?:string;stateLabel?:string;summary?:string;result?:string;evidence?:{href:string;label?:string}[];review?:string;expanded?:boolean;}
+export declare function workStep(step:WorkStep):string;
+export interface WorkQuestionOption {id:string;label:string;description?:string;recommended?:boolean;}
+export interface WorkQuestion {id:string;title:string;context?:string;options?:WorkQuestionOption[];name?:string;value?:string;answer?:string;state?:'open'|'answered'|'resolved'|'stale';decision?:string;disabled?:boolean;}
+/** Native choices are a draft. Read the form and confirm through the host's versioned command.
+ * Keep the section node while a draft is edited; replacing markup would lose that draft. */
+export declare function workQuestion(question:WorkQuestion):string;
 export declare function registerCore():void;
 export declare function registerComponents():void;
 export declare function registerDateFields():void;

@@ -28,7 +28,7 @@ const after=await sourceInputs(root),drift=changedInputs(before,after);
 await writeFile(join(out,'sources-after.json'),JSON.stringify(after,null,2)+'\n');
 await writeFile(join(out,'source-stability.log'),drift.length?'FAIL: source changed during verification\n'+drift.join('\n')+'\n':'PASS: all source/build inputs unchanged during verification\n');
 results.push({name:'source-stability',passed:drift.length===0,log:'source-stability.log'});
-if(drift.length){process.exitCode=1;console.error('FAIL: source changed during verification; results cannot certify the final working tree.');}
+if(drift.length){process.exitCode=1;console.error('FAIL: source changed during verification; results cannot certify the final working tree.');console.error(drift.join('\n'));}
 const pkg=JSON.parse(await readFile('products/sprintique/package.json','utf8')),release=pkg.dependencies['@iquipage/web'];
 if(typeof release!=='string'||!/^file:vendor\/[A-Za-z0-9._-]+\.tgz$/.test(release))throw Error('Expected an explicit product-local DS release');
 const record={schema:2,date:new Date().toISOString(),node:process.version,sourceFingerprint:fingerprint(before),finalSourceFingerprint:fingerprint(after),sourceStable:drift.length===0,

@@ -27,6 +27,10 @@ enum class Permission(
         "tasks.write", PermissionScope.PROJECT, "Задачи", "Создавать и менять задачи",
         "Название, описание, статус, исполнитель, связи, теги задач.", listOf("tasks.read"), ServiceUse.PRESET,
     ),
+    WORK_WRITE(
+        "work.write", PermissionScope.PROJECT, "Агенты", "Вести план работы",
+        "Шаги, контрольные точки и передача работы по задаче.", listOf("tasks.read"), ServiceUse.PRESET,
+    ),
     THREADS_WRITE(
         "threads.write", PermissionScope.PROJECT, "Обсуждения", "Писать в обсуждениях",
         "Вопросы, комментарии, ответы и решение вопросов.", listOf("tasks.read"), ServiceUse.PRESET,

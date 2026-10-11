@@ -28,13 +28,35 @@ async function person(name:string,email:string):Promise<User>{
 }
 const tokenOf=(text:string)=>text.match(/#invite\/(invite_[A-Za-z0-9_-]{43})/)![1]!;
 
-test('PR01 the catalog lists fourteen project and five workspace permissions with their dependencies',async()=>{
+test('PR01 the catalog lists fifteen project and five workspace permissions with their dependencies',async()=>{
   const catalog=await ok('GET','permissions/catalog');
   const flat=(groups:{permissions:{id:string;includes:string[]}[]}[])=>groups.flatMap(g=>g.permissions);
-  assert.equal(flat(catalog.project).length,14);assert.equal(flat(catalog.workspace).length,5);
+  assert.equal(flat(catalog.project).length,15);assert.equal(flat(catalog.workspace).length,5);
+  assert.deepEqual(flat(catalog.project).find(p=>p.id==='work.write')!.includes,['tasks.read']);
   assert.deepEqual(flat(catalog.project).find(p=>p.id==='project.access')!.includes,['members.manage','project.settings']);
   assert.deepEqual(catalog.presets.reader,['tasks.read','threads.write','maps.read','finance.read']);
   assert.ok(catalog.neverService.includes('approvals.decide')&&!catalog.neverService.includes('finance.read'));
+});
+
+test('project access round-trips all fifteen rights and explicitly grants work.write to a service account',async()=>{
+  const catalog=await ok('GET','permissions/catalog');
+  const permissions=catalog.project.flatMap((group:{permissions:{id:string}[]})=>group.permissions.map(p=>p.id));
+  assert.equal(permissions.length,15);
+  const created=await ok('POST',workspace()+'/presets',{id:randomUUID(),name:'Полный каталог',permissions});
+  try{
+    assert.deepEqual([...created.permissions].sort(),[...permissions].sort());
+    const saved=await ok('PUT',workspace()+'/presets/'+created.id,{baseRevision:created.revision,name:'Полный каталог',permissions:created.permissions});
+    assert.deepEqual(saved.permissions,created.permissions);
+    const agent=await ok('POST','service-accounts',{name:'Явное право работы',workspaceId:f.first.workspaceId,projects:[{projectId:f.first.id,presetId:await preset('service_read'),granted:['work.write'],revoked:[]}]});
+    const membership=await member(agent.id);
+    assert.ok(membership.permissions.includes('work.write'));
+    assert.deepEqual(membership.added,['work.write']);
+    const capabilities=['tasks:read','tasks:write','work:write','threads:read','threads:write','maps:read','maps:write'];
+    const grant=await ok('POST',project()+'/agents',{name:'Все разрешённые инструменты',capabilities,expiresInSeconds:60});
+    assert.deepEqual(grant.capabilities,capabilities);
+  }finally{
+    await ok('DELETE',workspace()+'/presets/'+created.id);
+  }
 });
 
 test('PR04 PR05 a preset change reaches every membership and keeps personal changes; the administrator preset is locked',async()=>{
@@ -94,6 +116,9 @@ test('PR02 PR03 PR10 personal changes: dependencies, the readable difference, no
   const beyond=await call('PUT',project()+'/members/'+f.reader.id+'/access',{baseRevision:r.revision,presetId:await preset('reader'),granted:['project.settings'],revoked:[]},f.bob);
   assert.equal(beyond.statusCode,403);assert.equal(beyond.json().code,'PERMISSION_EXCEEDS_ACTOR');
   const alice=await member(f.alice.id);
+  assert.equal(alice.permissions.length,15);
+  const fullCatalogDenied=await call('PUT',project()+'/members/'+f.reader.id+'/access',{baseRevision:r.revision,presetId:await preset('reader'),granted:alice.permissions,revoked:[]},f.bob);
+  assert.equal(fullCatalogDenied.statusCode,403);assert.equal(fullCatalogDenied.json().code,'PERMISSION_EXCEEDS_ACTOR');
   const above=await call('PUT',project()+'/members/'+f.alice.id+'/access',{baseRevision:alice.revision,presetId:await preset('reader'),granted:[],revoked:[]},f.bob);
   assert.equal(above.json().code,'PERMISSION_EXCEEDS_ACTOR');
   await ok('PUT',project()+'/members/'+f.reader.id+'/access',{baseRevision:r.revision,presetId:await preset('reader'),granted:['finance.write'],revoked:[]},f.bob);
@@ -138,7 +163,7 @@ test('PR07 finance follows finance.read and finance.write',async()=>{
 
 test('PR11 the matrix and project defaults need «Управлять доступом»; workspace administrators enter a project explicitly',async()=>{
   assert.equal((await call('GET',project()+'/access/matrix',undefined,f.reader)).statusCode,403);
-  const matrix=await ok('GET',project()+'/access/matrix');assert.equal(matrix.permissions.length,14);
+  const matrix=await ok('GET',project()+'/access/matrix');assert.equal(matrix.permissions.length,15);
   const access=await ok('GET',project()+'/access');assert.equal(access.canManage,true);
   const saved=await ok('PUT',project()+'/access',{baseRevision:access.revision,defaultMemberPresetId:await preset('reader'),defaultGuestPresetId:null});
   assert.equal(saved.memberPresetId,await preset('reader'));

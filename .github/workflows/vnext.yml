@@ -38,12 +38,17 @@ jobs:
           node --input-type=module -e 'import {readFile} from "node:fs/promises"; import {S3Client,HeadBucketCommand} from "@aws-sdk/client-s3"; const c=JSON.parse(await readFile("output/infra/storage.json")); const s=new S3Client({endpoint:c.endpoint,region:c.region,forcePathStyle:true,credentials:c}); for(let n=0;;n++){try{await s.send(new HeadBucketCommand({Bucket:c.bucket}));break;}catch(e){if(n===20)throw Error("Storage not ready");await new Promise(r=>setTimeout(r,1000));}}s.destroy();'
       - name: Library, product, real services and detached extraction
         run: node scripts/verify-vnext.mjs
+      - name: Verification certificate in job log
+        if: ${{ !cancelled() }}
+        run: |
+          node --input-type=module -e 'import {readdir,readFile} from "node:fs/promises";const root="products/sprintique/output/verification";for(const dir of (await readdir(root)).sort()){console.log(await readFile(`${root}/${dir}/verification.json`,"utf8"));console.log(await readFile(`${root}/${dir}/source-stability.log`,"utf8"));}'
       - name: Portable runtime image
         working-directory: products/sprintique
         run: |
           npm run build:image
           docker load --input server/build/jib-image.tar
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        continue-on-error: true # Certificate remains in the job log if account artifact quota is exhausted.
         if: ${{ !cancelled() }}
         with:
           name: vnext-verification

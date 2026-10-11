@@ -6,6 +6,8 @@ package com.sprintique.database.schema.app.tables
 
 import com.sprintique.database.schema.app.App
 import com.sprintique.database.schema.app.keys.AGENT_RUNS__AGENT_RUNS_PROJECT_ID_FKEY
+import com.sprintique.database.schema.app.keys.AGENT_SKILL_VERSION__AGENT_SKILL_VERSION_PROJECT_ID_FKEY
+import com.sprintique.database.schema.app.keys.AGENT_WORK_PROFILE__AGENT_WORK_PROFILE_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.AI_AGENT_RUNS__AI_AGENT_RUNS_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.APPROVALS__APPROVALS_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.keys.ASSETS__ASSETS_PROJECT_ID_FKEY
@@ -46,6 +48,8 @@ import com.sprintique.database.schema.app.keys.TASK_SETTINGS__TASK_SETTINGS_PROJ
 import com.sprintique.database.schema.app.keys.TEMPORAL_CONSTRAINTS__TEMPORAL_CONSTRAINTS_PROJECT_ID_FKEY
 import com.sprintique.database.schema.app.tables.AccessPresets.AccessPresetsPath
 import com.sprintique.database.schema.app.tables.AgentRuns.AgentRunsPath
+import com.sprintique.database.schema.app.tables.AgentSkillVersion.AgentSkillVersionPath
+import com.sprintique.database.schema.app.tables.AgentWorkProfile.AgentWorkProfilePath
 import com.sprintique.database.schema.app.tables.AiAgentRuns.AiAgentRunsPath
 import com.sprintique.database.schema.app.tables.Approvals.ApprovalsPath
 import com.sprintique.database.schema.app.tables.Assets.AssetsPath
@@ -218,6 +222,30 @@ open class Projects(
 
     val agentRuns: AgentRunsPath
         get(): AgentRunsPath = agentRuns()
+
+    private lateinit var _agentSkillVersion: AgentSkillVersionPath
+
+    fun agentSkillVersion(): AgentSkillVersionPath {
+        if (!this::_agentSkillVersion.isInitialized)
+            _agentSkillVersion = AgentSkillVersionPath(this, null, AGENT_SKILL_VERSION__AGENT_SKILL_VERSION_PROJECT_ID_FKEY.inverseKey)
+
+        return _agentSkillVersion;
+    }
+
+    val agentSkillVersion: AgentSkillVersionPath
+        get(): AgentSkillVersionPath = agentSkillVersion()
+
+    private lateinit var _agentWorkProfile: AgentWorkProfilePath
+
+    fun agentWorkProfile(): AgentWorkProfilePath {
+        if (!this::_agentWorkProfile.isInitialized)
+            _agentWorkProfile = AgentWorkProfilePath(this, null, AGENT_WORK_PROFILE__AGENT_WORK_PROFILE_PROJECT_ID_FKEY.inverseKey)
+
+        return _agentWorkProfile;
+    }
+
+    val agentWorkProfile: AgentWorkProfilePath
+        get(): AgentWorkProfilePath = agentWorkProfile()
 
     private lateinit var _aiAgentRuns: AiAgentRunsPath
 
@@ -626,6 +654,9 @@ open class Projects(
 
     val jobs: JobsPath
         get(): JobsPath = jobs()
+
+    val agentWorkProfileAgentIdFkey: PrincipalsPath
+        get(): PrincipalsPath = agentWorkProfile().principals()
 
     val personProjectPreferencesPrincipalIdFkey: PrincipalsPath
         get(): PrincipalsPath = personProjectPreferences().principals()

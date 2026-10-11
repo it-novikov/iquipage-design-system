@@ -28,7 +28,7 @@
     "build:image": "npm run build && cd server && ./gradlew jibBuildTar"
   },
   "dependencies": {
-    "@iquipage/web": "file:vendor/iquipage-web-0.6.0-vnext.38.tgz",
+    "@iquipage/web": "file:vendor/iquipage-web-0.6.0-vnext.39.tgz",
     "zod": "4.6.2"
   },
   "devDependencies": {
@@ -36,7 +36,7 @@
     "@types/node": "^24.0.0",
     "@types/pg": "^8.0.0",
     "pg": "8.23.0",
-    "sharp": "0.35.4",
+    "sharp": "0.35.5",
     "tsx": "^4.20.0",
     "typescript": "7.0.2",
     "vite": "8.3.0"

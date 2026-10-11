@@ -20,6 +20,7 @@ export class ProductRepository {
     const [session,media]=await Promise.all([this.client.session(),this.client.request('/media/capabilities')]);this.context.actorId=session.principal.id;
     // Agents of service accounts on tasks, when the server has them on (docs/decisions/0005-ai-agents.md).
     this.capabilities.aiAgents=(session.features||[]).includes('ai_agents');
+    this.capabilities.agentWork=(session.features||[]).includes('agent_work');
     this.capabilities.attachments=media.available;this.attachmentAdapter=media.available?new MediaAdapter(this):null;this.mapMedia=new MapMedia(this);return session;}
   subscribe(listener){this.listeners.add(listener);return ()=>this.listeners.delete(listener);}
   /** Every collection of the project reads again (back online after the connection was lost). */
