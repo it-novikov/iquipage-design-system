@@ -21,7 +21,7 @@ test('common page header preserves a caller-owned h1 and contextual controls',()
 });
 test('blocking is an independent confirmed signal and never promotes task priority',()=>{
  const make=t=>renderTaskCard({task:{id:'t',title:'Task',priority:'normal',type:'task',status:'ready',...t},children:[]},{index:{children:new Map()},canEdit:false});
- const blocked=make({effectiveBlocked:true,blockingTaskCount:2,blockers:[{displayId:'T-2',title:'First <blocker>'}]});assert.match(blocked,/iq-task-signals/);assert.match(blocked,/iq-task-blocker/);assert.doesNotMatch(blocked,/iq-badge danger/);assert.match(blocked,/Заблокирована \(2\)/);assert.match(blocked,/First &lt;blocker&gt;/);assert.match(blocked,/data-priority="normal"/);assert.doesNotMatch(blocked,/data-task-emphasis="critical"/);
+ const blocked=make({effectiveBlocked:true,blockingTaskCount:2,blockers:[{displayId:'T-2',title:'First <blocker>'}]});assert.match(blocked,/iq-task-signals/);assert.match(blocked,/iq-task-blocker/);assert.doesNotMatch(blocked,/iq-badge danger/);assert.match(blocked,/2 блокера/);assert.match(blocked,/First &lt;blocker&gt;/);assert.match(blocked,/data-priority="normal"/);assert.doesNotMatch(blocked,/data-task-emphasis="critical"/);
  assert.doesNotMatch(make({}),/Заблокирована/);assert.doesNotMatch(make({effectiveBlocked:false,blockingTaskCount:4}),/Заблокирована/);
  assert.match(make({priority:'critical',effectiveBlocked:true}),/data-task-emphasis="critical"/);
 });
@@ -97,4 +97,10 @@ test('priority and effective blocker share one compact row without altering task
  assert.ok(signals);assert.match(signals,/Критический/);assert.match(signals,/Заблокирована/);assert.match(signals,/aria-label="Заблокирована. Блокирующих задач: 2. T-2 Await &lt;review&gt;"/);
  assert.equal((html.match(/task-urgency-label/g)||[]).length,1);assert.match(html,/data-task-emphasis="critical"/);assert.match(html,/data-open-task="signals"/);
  assert.doesNotMatch(html.split('task-card-title')[0],/task-urgency-label/);
+});
+
+test('blocker counts are factual and Russian labels cover teens, larger counts and unknown data',()=>{
+ const make=count=>renderTaskCard({task:{id:'count',title:'Task',type:'task',priority:'critical',effectiveBlocked:true,blockingTaskCount:count},children:[]},{index:{children:new Map()},canEdit:false});
+ for(const [n,label] of [[1,'1 блокер'],[2,'2 блокера'],[5,'5 блокеров'],[11,'11 блокеров'],[21,'21 блокер'],[22,'22 блокера'],[114,'114 блокеров'],[999,'999 блокеров']]){const h=make(n);assert.ok(h.includes(`<span>${label}</span>`));assert.ok(h.includes(`Блокирующих задач: ${n}`));}
+ for(const count of [undefined,null,0,-1,1.5,'2',NaN]){const h=make(count);assert.match(h,/<span>Есть блокер<\/span>/);assert.doesNotMatch(h,/Блокирующих задач:/);assert.match(h,/aria-label="Заблокирована"/);}
 });

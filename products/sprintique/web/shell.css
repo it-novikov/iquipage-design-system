@@ -32,7 +32,8 @@
 #sign-in-code{letter-spacing:.3em;font-variant-numeric:tabular-nums}
 /* Product loading look (DS skeletons in .iq-loading): used by sections, Planning groups, map history and settings. */
 .product-loading{padding-block:var(--iq-space-2)}
-.host-loading{padding:var(--iq-space-6) 0;width:100%}
+.host-loading{padding:var(--iq-space-6);width:100%}
+@media(max-width:800px){.host-loading{padding-inline:var(--iq-space-4)}}
 /* One page heading for every section: the title on the left, the section's tools on the right, same height and
    spacing, so switching between the board and planning never moves the content. */
 .sq-page-tools{display:flex;align-items:center;gap:var(--iq-space-2);flex:none;flex-wrap:wrap;margin-left:auto}
