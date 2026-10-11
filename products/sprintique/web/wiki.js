@@ -2,7 +2,7 @@ import {registerCore,ui,escapeHTML as esc,enhance,formatDateTime,autosize,copyAt
 import {loadingMarkup} from '../ui/src/loading.js';
 import {dialog,input,select} from '../ui/src/ui.js';
 import {can} from './permissions.js';
-import {wikiRoute,wikiHash,wikiTree,wikiAncestors,wikiParents,wikiDraft,wikiReads,pageValue,wikiExcerpt,revealWikiVersion,wikiPathEntries,wikiRailScroll} from './wiki-model.js';
+import {wikiRoute,wikiHash,wikiTree,wikiAncestors,wikiParents,wikiDraft,wikiReads,pageValue,wikiExcerpt,revealWikiVersion,wikiPathEntries,wikiRailScroll,wikiCatalogState} from './wiki-model.js';
 import * as s from './settings-ui.js';
 import './wiki.css';
 const btn=(text,action,variant='ghost sm',extra='')=>ui.btn(text,variant,'',`data-wiki-action="${action}" ${extra}`);
@@ -13,7 +13,7 @@ export async function mountWiki(root,{repository,project,onOpenTask,viewState={}
  let closed=false,catalog=[],catalogError='',members=new Map(),page=null,draft=null,route={kind:'index'},routeHash='#wiki',modal=null,busy=false,query=viewState.query||'',expanded=viewState.expanded||[],searchItems=[],searchCursor=null,searchTimer=0,searchBusy=false,archiveShown=50,historyItems=[],historyCursor=null,version=null,backlinks=[],backCursor=null,searchOpen=false,searchError='',navDialog=null,outlineShown=50,rootShown=8,titleCleanup=null,locked=[];
  root.innerHTML=`<div class="wiki-page iq-document-layout"><aside class="wiki-sidebar iq-document-rail" aria-label="Страницы проекта"><div data-wiki-rail-head></div><div class="wiki-catalog" data-wiki-list>${loadingMarkup('Загружаем страницы…',{variant:'navigation'})}</div><div data-wiki-rail-foot></div></aside><main class="wiki-document" aria-label="Документ" data-wiki-document></main></div>`;
  const shell=root.querySelector('.wiki-page'),rail=root.querySelector('.wiki-sidebar'),list=root.querySelector('[data-wiki-list]'),documentBox=root.querySelector('[data-wiki-document]');
- const railScroll=wikiRailScroll();
+ const railScroll=wikiRailScroll(),catalogState=wikiCatalogState();
  list.addEventListener('scroll',()=>railScroll.capture(list),{signal:events.signal,passive:true});
  const isHistory=()=>['history','version'].includes(route.kind);
  const author=id=>members.get(id)?.name||'Участник';
@@ -27,6 +27,10 @@ export async function mountWiki(root,{repository,project,onOpenTask,viewState={}
  function catalogMarkup(rows,archive=false){return rows.length?`<div class="wiki-results">${rows.map(p=>`<div class="wiki-result">${btn(p.title,'','ghost wiki-result-title',`data-wiki-page="${esc(p.id)}"`)}<p>${esc(archive?'В архиве':parentPath(p.id))}${p.excerpt?`<span>${esc(wikiExcerpt(p.excerpt))}</span>`:''}</p></div>`).join('')}</div>`:s.empty({title:archive?'Архив пуст':searchOpen?'Страницы не найдены':'Пока нет страниц',body:searchOpen?'Попробуйте другие слова.':'',action:!archive&&!searchOpen&&writeAllowed?btn('Создать страницу','new','primary sm'):''});}
  function setMarkup(node,markup){if(node.__wikiMarkup!==markup){node.innerHTML=markup;node.__wikiMarkup=markup;}}
  function renderCatalog(){railScroll.render(list,isHistory()?'history:'+route.id:'catalog',isHistory()?!!page&&historyItems.length>0:catalog.length>0,paintCatalog);}
+ function catalogNotice(variant='wiki-document'){
+  if(catalogError)return `<p role="alert">${esc(catalogError)}</p>${btn('Повторить','catalog-retry','secondary sm')}`;
+  return catalogState.loaded?'':loadingMarkup('Загружаем страницы…',{variant});
+ }
  function paintCatalog(){
   if(closed)return;
   setMarkup(rail.querySelector('[data-wiki-rail-head]'),isHistory()?`<div class="wiki-rail-heading"><strong>История страницы</strong></div>${btn('К страницам','read')}<p class="iq-helper">${esc(page?.title||'')}</p>`:`<div class="wiki-rail-heading">${btn('Документация','index','ghost sm')}${writeAllowed?ui.ib('plus','Создать страницу','ghost sm','data-wiki-action="new"'):''}</div>${btn('Найти страницу','find','secondary wiki-search-launch')}`);
@@ -34,11 +38,15 @@ export async function mountWiki(root,{repository,project,onOpenTask,viewState={}
   if(isHistory()){
    list.innerHTML=page?`<div class="wiki-versions">${(version&&!historyItems.some(v=>v.revision===version.revision)?[...historyItems,version]:historyItems).map(v=>`<div class="wiki-version" ${Number(v.revision)===Number(version?.revision??page.revision)?'data-selected="true"':''}>${btn(`${Number(v.revision)===Number(page.revision)?'Текущая версия':'Версия '+v.revision}`,'','ghost',`data-wiki-version="${v.revision}"`)}<p>${esc(formatDateTime(v.createdAt))}<br>${esc(author(v.actorId))}</p></div>`).join('')}${historyCursor?btn('Ранние версии','history-more','secondary sm'):''}</div>`:loadingMarkup('Загружаем версии…',{variant:'navigation'});return;
   }
-  const active=catalog.filter(p=>!p.archivedAt);if(!active.length){list.innerHTML=catalogError?`<p role="alert">${esc(catalogError)}</p>${btn('Повторить','catalog-retry','secondary sm')}`:'<p class="iq-helper">Пока нет страниц.</p>';return;}
+  if(!catalogState.loaded){list.innerHTML=catalogNotice('navigation');return;}
+  const active=catalog.filter(p=>!p.archivedAt);if(!active.length){list.innerHTML=catalogNotice('navigation')+'<p class="iq-helper">Пока нет страниц.</p>';return;}
   let tree=list.querySelector('iq-tree');if(!tree){list.innerHTML='<iq-tree navigation appearance="plain" density="compact" hide-counts heading="" hide-search aria-label="Страницы проекта"></iq-tree><p class="iq-helper" data-catalog-error role="alert"></p>';tree=list.querySelector('iq-tree');}
   tree.items=wikiTree(active);tree.expandedIds=expanded;tree.value=route.id?[route.id]:[];list.querySelector('[data-catalog-error]').innerHTML=catalogError?esc(catalogError)+btn('Повторить','catalog-retry'):'';
  }
- async function loadCatalog(){const req=reads.start('catalog');try{const rows=await repository.listWikiPages(project.id,{includeArchive:true,signal:req.signal});if(!req.current())return;catalog=rows;catalogError='';refreshPath();expanded=[...new Set([...expanded,...wikiAncestors(catalog,route.id)])];renderCatalog();if(['index','archive'].includes(route.kind)&&!searchOpen)renderDocument();}catch(e){if(!req.current())return;catalogError=errorText(e);renderCatalog();if(route.kind==='index')renderDocument();}}
+ async function loadCatalog(){const req=reads.start('catalog');await catalogState.load(req,signal=>repository.listWikiPages(project.id,{includeArchive:true,signal}),()=>{
+  catalog=catalogState.rows||[];catalogError=catalogState.error;refreshPath();expanded=[...new Set([...expanded,...wikiAncestors(catalog,route.id)])];renderCatalog();if(['index','archive'].includes(route.kind)&&!searchOpen)renderDocument();
+ },errorText);}
+
  async function search(more=false){
   const term=query.trim();Object.assign(viewState,{query,expanded});searchError='';
   if(!term){reads.cancel('search');searchItems=[];searchCursor=null;searchBusy=false;renderSearchResults();return;}
@@ -58,9 +66,9 @@ export async function mountWiki(root,{repository,project,onOpenTask,viewState={}
   if(searchOpen){documentBox.innerHTML=`${toolbar()}<div class="iq-document-content"><h1 class="iq-document-title" tabindex="-1">Поиск</h1>${input('wikiSearch','Найти страницу',query,{type:'search',maxlength:200})}${btn('Вернуться к документу','close-search')}<div data-wiki-search-results></div></div>`;renderSearchResults();return;}
   if(route.kind==='index'){
    const active=catalog.filter(p=>!p.archivedAt),roots=active.filter(p=>!p.parentId).sort((a,b)=>a.title.localeCompare(b.title,'ru',{numeric:true})),recent=[...active].sort((a,b)=>String(b.updatedAt).localeCompare(String(a.updatedAt))).slice(0,5);
-   documentBox.innerHTML=`${toolbar()}<div class="iq-document-content"><h1 class="iq-document-title" tabindex="-1">Документация</h1>${catalogError?`<p role="alert">${esc(catalogError)}</p>${btn('Повторить','catalog-retry')}`:catalogMarkup(roots.slice(0,rootShown))}${roots.length>rootShown?btn('Все страницы','root-more','secondary sm'):''}${recent.length?`<section class="wiki-recent"><h2>Недавно изменены</h2>${recent.map(p=>`<div class="wiki-result">${btn(p.title,'','ghost wiki-result-title',`data-wiki-page="${esc(p.id)}"`)}<p>${esc(formatDateTime(p.updatedAt))} · ${esc(author(p.updatedBy))}</p></div>`).join('')}</section>`:''}</div>`;return;
+   documentBox.innerHTML=`${toolbar()}<div class="iq-document-content"><h1 class="iq-document-title" tabindex="-1">Документация</h1>${catalogNotice()}${catalogState.loaded?catalogMarkup(roots.slice(0,rootShown)):''}${roots.length>rootShown?btn('Все страницы','root-more','secondary sm'):''}${recent.length?`<section class="wiki-recent"><h2>Недавно изменены</h2>${recent.map(p=>`<div class="wiki-result">${btn(p.title,'','ghost wiki-result-title',`data-wiki-page="${esc(p.id)}"`)}<p>${esc(formatDateTime(p.updatedAt))} · ${esc(author(p.updatedBy))}</p></div>`).join('')}</section>`:''}</div>`;return;
   }
-  if(route.kind==='archive'){const rows=catalog.filter(p=>p.archivedAt);documentBox.innerHTML=`${toolbar()}<div class="iq-document-content"><h1 class="iq-document-title" tabindex="-1">Архив</h1>${catalogMarkup(rows.slice(0,archiveShown),true)}${rows.length>archiveShown?btn('Показать ещё','archive-more','secondary sm'):''}</div>`;return;}
+  if(route.kind==='archive'){const rows=catalog.filter(p=>p.archivedAt);documentBox.innerHTML=`${toolbar()}<div class="iq-document-content"><h1 class="iq-document-title" tabindex="-1">Архив</h1>${catalogNotice()}${catalogState.loaded?catalogMarkup(rows.slice(0,archiveShown),true):''}${rows.length>archiveShown?btn('Показать ещё','archive-more','secondary sm'):''}</div>`;return;}
   if(route.kind==='invalid'){documentBox.innerHTML=`${toolbar()}<div class="iq-document-content">${s.empty({title:'Страница не найдена',action:btn('К страницам','index')})}</div>`;return;}
   if(draft){
    documentBox.innerHTML=`${toolbar()}<form class="wiki-editor iq-document-content"><textarea class="iq-document-title" name="wikiTitle" aria-label="Название страницы" placeholder="Название страницы" rows="1" maxlength="200" required>${esc(draft.value.title)}</textarea><p class="iq-helper wiki-status" data-wiki-status role="status"></p><p class="iq-helper wiki-error" data-wiki-error role="alert"></p><section data-wiki-conflict class="wiki-conflict" hidden></section><iq-tabs label="Сравнение версий" value="mine" data-wiki-compare><div class="iq-tabs-list" data-tablist hidden><button type="button" data-tab="mine">Мой текст</button><button type="button" data-tab="current">Текущая версия</button></div><section class="iq-tab-panel" data-panel="mine"><iq-markdown-editor variant="document" label="Текст страницы" maxlength="100000" placeholder="Начните писать…"></iq-markdown-editor></section><section class="iq-tab-panel" data-panel="current" hidden><div data-wiki-current></div></section></iq-tabs></form>`;

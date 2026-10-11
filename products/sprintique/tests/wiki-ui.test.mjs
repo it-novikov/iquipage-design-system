@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {wikiRoute,wikiHash,wikiTree,wikiAncestors,wikiParents,wikiDraft,wikiReads,revealWikiVersion,wikiPathEntries,wikiRailScroll} from '../web/wiki-model.js';
+import {wikiRoute,wikiHash,wikiTree,wikiAncestors,wikiParents,wikiDraft,wikiReads,revealWikiVersion,wikiPathEntries,wikiRailScroll,wikiCatalogState} from '../web/wiki-model.js';
 import {sectionRouteHash} from '../web/section-route.js';
 const page=(id,changes={})=>({id,title:id,body:'Исходный текст',parentId:null,revision:2,archivedAt:null,...changes});
 test('wiki addresses distinguish reserved view names from stable page ids, and reject unsafe versions',()=>{
@@ -73,4 +73,41 @@ test('a hidden mobile rail and late placeholder scroll cannot erase the saved co
  scroll.render(list,'history:a',false,()=>{});scroll.capture(list);
  scroll.render(list,'catalog',true,()=>{});list.clientHeight=500;scroll.restore(list);
  assert.equal(list.scrollTop,420);
+});
+
+
+const deferred=()=>{let resolve,reject;const promise=new Promise((yes,no)=>{resolve=yes;reject=no;});return {promise,resolve,reject};};
+test('pending catalog is unknown until success, including a genuinely empty catalog',async()=>{
+ for(const rows of [[page('existing')],[]]){
+  const state=wikiCatalogState(),reads=wikiReads(),response=deferred(),paints=[];
+  const run=state.load(reads.start('catalog'),()=>response.promise,()=>paints.push({loaded:state.loaded,pending:state.pending,rows:state.rows,error:state.error}),e=>e.message);
+  assert.deepEqual(paints,[{loaded:false,pending:true,rows:null,error:''}]);response.resolve(rows);await run;
+  assert.deepEqual(paints.at(-1),{loaded:true,pending:false,rows,error:''});
+ }
+});
+test('catalog failure is not an empty success and retry awaits the real rows',async()=>{
+ const state=wikiCatalogState(),reads=wikiReads(),changed=()=>{};
+ await state.load(reads.start('catalog'),()=>Promise.reject(Error('Unavailable')),changed,e=>e.message);
+ assert.equal(state.loaded,false);assert.equal(state.error,'Unavailable');assert.equal(state.pending,false);
+ const response=deferred(),run=state.load(reads.start('catalog'),()=>response.promise,changed,e=>e.message);
+ assert.equal(state.loaded,false);assert.equal(state.pending,true);assert.equal(state.error,'');response.resolve([page('a')]);await run;assert.deepEqual(state.rows,[page('a')]);
+});
+test('refresh and failure retain the last successful catalog, even when empty',async()=>{
+ for(const rows of [[page('cached')],[]]){
+  const state=wikiCatalogState(),reads=wikiReads(),changed=()=>{};
+  await state.load(reads.start('catalog'),()=>Promise.resolve(rows),changed,e=>e.message);
+  const response=deferred(),run=state.load(reads.start('catalog'),()=>response.promise,changed,e=>e.message);
+  assert.equal(state.loaded,true);assert.equal(state.pending,true);assert.equal(state.rows,rows);
+  response.reject(Error('Offline'));await run;assert.equal(state.rows,rows);assert.equal(state.loaded,true);assert.equal(state.error,'Offline');
+ }
+});
+test('aborted and superseded catalog reads cannot paint errors or late results',async()=>{
+ const state=wikiCatalogState(),reads=wikiReads(),old=deferred(),next=deferred(),paints=[];
+ const changed=()=>paints.push({rows:state.rows,error:state.error,pending:state.pending});
+ const first=state.load(reads.start('catalog'),()=>old.promise,changed,e=>e.message);
+ const second=state.load(reads.start('catalog'),()=>next.promise,changed,e=>e.message);
+ next.resolve([page('new')]);await second;const count=paints.length;
+ old.resolve([page('stale')]);await first;assert.equal(paints.length,count);assert.deepEqual(state.rows,[page('new')]);
+ const last=deferred(),closed=state.load(reads.start('catalog'),()=>last.promise,changed,e=>e.message),beforeClose=paints.length;
+ reads.close();last.reject(Error('Aborted'));await closed;assert.equal(paints.length,beforeClose);assert.equal(state.error,'');
 });

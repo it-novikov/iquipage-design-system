@@ -8,7 +8,7 @@ owner: human:it-novikov
 branch: feat/project-wiki
 base: main
 created: 2026-10-11
-updated: 2026-10-11T15:27:23Z
+updated: 2026-10-11T16:13:07Z
 links:
 ---
 
@@ -36,14 +36,14 @@ links:
 ## Передача
 
 - **Состояние:** working
-- **Сейчас:** Новый полный прогон после исправления прокрутки прошёл: восемь проверок, 561 тест продукта и 561 тест отдельной сборки, исходники неизменны. Контейнер и совместимый откат прошли.
-- **Дальше:** Получить финальные заключения по новому сертификату, завершить CI PR69 и выложить.
+- **Сейчас:** PR69 выложен и проверен на production. При переходе из задачи обнаружено ложное пустое состояние до загрузки каталога; исправление Astra готово.
+- **Дальше:** Независимо проверить WFR1-3, получить новый CI-сертификат и выложить обновление без миграций.
 - **Незакоммичено:** Карточка и WIKI-RESEARCH.md, runtime не изменён.
-- **Рабочая копия:** 7 файл(ов): products/sprintique/docs/release-1/WIKI-FINAL-EXPERIENCE-REVIEW.md, products/sprintique/docs/release-1/WIKI-FINAL-TECHNICAL-REVIEW.md, products/sprintique/docs/release-1/WIKI-RELEASE-ACCEPTANCE.md, products/sprintique/tests/wiki-ui.test.mjs, products/sprintique/web/wiki-model.js, products/sprintique/web/wiki.js, products/sprintique/docs/release-1/WIKI-RAIL-CONTEXT-REPAIR.md (8 files changed, 70 insertions(+), 16 deletions(-)) · HEAD f7dacea
+- **Рабочая копия:** 5 файл(ов): products/sprintique/docs/release-1/WIKI-FINAL-EXPERIENCE-REVIEW.md, products/sprintique/tests/wiki-ui.test.mjs, products/sprintique/web/wiki-model.js, products/sprintique/web/wiki.js, products/sprintique/docs/release-1/WIKI-CATALOG-LOADING-REPAIR.md (4 files changed, 73 insertions(+), 7 deletions(-)) · HEAD 9249b30
 - **Ловушки:**
   - Прототип не является работающим API; старый UI отвергнут. При CAS сохранять актуальные parentId/archived, не откатывать чужой перенос текстовой правкой.
   - Не использовать старый source fingerprint и DS49 сертификат для новой поставки.
-- **Проверка:** output/verification/2026-10-11T15-12-22.174Z/verification.json; output/wiki-release/container-rollback.json
+- **Проверка:** Базовая поставка: output/wiki-release/history-9249; исправление: output/wiki-loading, 42 целевых UI-теста.
 
 ## План
 

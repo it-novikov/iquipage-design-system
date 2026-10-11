@@ -1,6 +1,12 @@
 # Wiki — независимое техническое ревью R2
 
-## Текущий R2 после WFR1-2: APPROVE
+## Текущий R2 WFR1-3: scoped technical APPROVE, full CI pending
+
+Frozen source fingerprint `d47439aacd32ceafda328bf62d4a1647895f2f7321a8d8648a8149254e4ddcb0` (`output/wiki-loading/sources.json`) получает **SCOPED TECHNICAL APPROVE** за reviewed product-only catalog-loading delta. Snapshot digest и hashes перечисленных текущих source files проверены read-only; mismatch0. Ownwiki19/19PASS, cancellation/cache/render review без actionable findings. Full CI и новые final artifacts/certificate ещё pending; это не утверждение whole-release readiness. Новый локальный полный backendgate не запускался: backend не менялся. Старый3e15 certificate не подтверждает d474 source. Review docs frozen для PR CI; дальнейшие receipts — отдельные `.md` изменения.
+
+2026-10-12. Catalog-loading product-only repair независимо проверен; actionable findings не найдено, ownwiki19/19PASS. Отчёт WIKI-CATALOG-LOADING-REPAIR.md содержит source scope/cancellation/cache/render/regression evidence. DS50/backend/API не изменены. **Whole-release verdict pending до нового CI/certificate/artifacts**. Предыдущий3e15c7 APPROVE ниже исторический и не подтверждает WFR1-3 source. Browser/newtask/production ограничения прежние.
+
+## Исторический R2 после WFR1-2: APPROVE
 
 2026-10-12. **APPROVE** exact frozen source `3e15c730a738f4ba9497051f99219c225cad82931a0bbfaa61bb98b6e4d54a0e`, неизменный DS50 tar `90380ecbfdeff2cca0e0ced052eefa7ec3e3f4bad320cf6891b866e8156d27a3`. Narrow source/regression review WFR1-2 ниже завершён без actionable findings; reviewed backend/API/права не изменились.
 

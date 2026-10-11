@@ -31,3 +31,16 @@ export function wikiRailScroll(){
  const restore=list=>{if(ready&&list.clientHeight>0)list.scrollTop=positions.get(key)||0;};
  return {capture,restore,render(list,nextKey,contentReady,paint){capture(list);key=nextKey;ready=false;paint();ready=contentReady;restore(list);}};
 }
+
+
+/** A successful empty response differs from a catalog that has not arrived yet. */
+export function wikiCatalogState(){
+ let rows=null,error='',pending=false;
+ return {get rows(){return rows;},get loaded(){return rows!==null;},get error(){return error;},get pending(){return pending;},
+  async load(request,fetchRows,changed,formatError){
+   pending=true;error='';changed();
+   try{const result=await fetchRows(request.signal);if(request.current())rows=result;}
+   catch(cause){if(request.current())error=formatError(cause);}
+   finally{if(request.current()){pending=false;changed();}}
+  }};
+}
