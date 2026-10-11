@@ -31,3 +31,7 @@ The real directory opened both agents and the Кодекс profile. A disposable
 One backend presentation defect was reported: identical answer and decision text appeared twice in the linked discussion. After the backend fix and isolated preview restart, the Q1 answer flow was repeated through the actual UI at 15:33. The resolved discussion contained two messages; the human reply contained exactly one “Передать Клоду” paragraph. The original question still correctly contained that option. The regression passed; linked-answer-regression-final.jpg captures the complete visible answer and resolution state.
 
 Production execution, external-client OAuth, real provider execution, and permission-boundary security tests are separate gates owned by the coordinator. This browser pass does not claim those outcomes.
+
+## Проверка production после выпуска
+
+11 октября 2026 после выпуска eb4574b проверены обе вкладки реальной SPR-14. План и результаты сохранены собственным OAuth-аккаунтом Codex. Прямая ссылка на рабочую вкладку и reload сохраняют выбранный таб; кнопка «Проверить результат» в основной задаче открывает его. Итог показан одним компактным блоком, план и история изначально закрыты. Действия «Принять результат» и «Вернуть на доработку» оставлены человеку. Подтверждения: `output/spr14-ui-real/production-work-final.png` и `production-main-final.png`; они относятся к production, прежние снимки — к синтетической приёмке.

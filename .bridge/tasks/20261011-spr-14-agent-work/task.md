@@ -8,7 +8,7 @@ owner: it-novikov
 branch: feat/spr-14-agent-work
 base: main
 created: 2026-10-11
-updated: 2026-10-11T07:21:17Z
+updated: 2026-10-11T07:58:55Z
 links:
 ---
 
@@ -26,24 +26,25 @@ links:
 
 ## Приёмка
 
-- [ ] A1. Рабочий план и история атомарны, защищены CAS/idempotency/RLS/fencing, роли и отмена проверены.
-- [ ] A2. UI задачи/агентов/вопросов эстетичен и функционален на точном DS-архиве, обе темы/телефон/клавиатура.
-- [ ] A3. MCP и скиллы, bridge roundtrip/conflict, реальные external/API сценарии проверены.
-- [ ] A4. Два независимых ревью high без P0/P1, полный isolated/detached гейт и CI.
-- [ ] A5. Push и выпуск: backup/rollback, migrate, exact image, ready/worker и ключевой сценарий.
+- [x] A1. Рабочий план и история атомарны, защищены CAS/idempotency/RLS/fencing, роли и отмена проверены.
+- [x] A2. UI задачи/агентов/вопросов эстетичен и функционален на точном DS-архиве, обе темы/телефон/клавиатура.
+- [x] A3. MCP и скиллы, bridge roundtrip/conflict, реальные external/API сценарии проверены.
+- [x] A4. Два независимых ревью high без P0/P1, полный isolated/detached гейт и CI.
+- [x] A5. Push и выпуск: backup/rollback, migrate, exact image, ready/worker и ключевой сценарий.
 
 ## Передача
 
-- **Состояние:** Gate3 полный PASS473+473. Первый CI тоже прошёл продукт и detached, но fingerprint ошибочно счёл новые Gradle cache-файлы изменением исходников; artifact upload исчерпал квоту. Узкое исправление проверено обоими ревьюерами; gate4 и повтор CI обязательны.
-- **Сейчас:** S3: повтор immutable гейта и CI после исправления инструмента проверки
-- **Дальше:** После обоих PASS — свежая backup, migrate, own OAuth и production UI.
-- **Незакоммичено:** Только CI/fingerprint tooling и release evidence; runtime и UI неизменны.
-- **Рабочая копия:** 7 файл(ов): .github/workflows/vnext.yml, products/sprintique/docs/agent-work/BACKEND-REVIEW.md, products/sprintique/docs/agent-work/FINAL-REVIEW.md, products/sprintique/docs/agent-work/RELEASE.md, scripts/verify-vnext.mjs, scripts/vnext/source-inputs.mjs, scripts/vnext/source-inputs.test.mjs (7 files changed, 43 insertions(+), 2 deletions(-)) · HEAD 844bff9
+- **Состояние:** Реализация, проверки, push и production выпуск завершены. SPR-14 и подзадачи на review.
+- **Сейчас:** Итоговая документация выпуска
+- **Дальше:** Владелец проверяет новую вкладку и принимает результат
+- **Незакоммичено:** Только итоговая документация и bridge evidence.
+- **Рабочая копия:** 3 файл(ов): products/sprintique/docs/agent-work/CLIENTS.md, products/sprintique/docs/agent-work/RELEASE.md, products/sprintique/docs/agent-work/UI-REVIEW.md (5 files changed, 53 insertions(+), 23 deletions(-)) · HEAD eb4574b · снято 2026-10-11T07:58:55Z
 - **Ловушки:**
   - Встроенный набор tools не hot-reload; штатный native app-server ephemeral без модели успешно подключает MCP OAuth
   - Migration77 makes image931 incompatible; feature-off must be tested, full image rollback requires compatible artifact or DB restoration
   - Old preview stopped; earlier screenshots and unverified first composition are not acceptance of revised UI
-- **Проверка:** BACKEND-REVIEW.md и FINAL-REVIEW.md: CI-only diff approve, cache regression1/1PASS, runtimechecks сохраняют строгий отказ.
+- **Проверка:** Gate4 и CI38121099469 PASS; native OAuth roundtrip; production tabs/reload; observation10min PASS
+- **Причина:** review — codex, 2026-10-11T07:58:55Z, передано human:it-novikov: Новая вкладка и быстрые действия выложены; human approval оставлен владельцу. Claude Code и свежий бесшовный OAuth login имеют ограничения CLIENTS.md.
 
 ## План
 
@@ -65,23 +66,24 @@ links:
 - **Покрывает:** A1, A2, A3
 - **Итог:** Типизированные инструменты, реестр и навыки готовы; bridge 49/49, portable skill и revoke/cancel/transfer проверены. Новые production MCP tools проверяются после выкладки.
 
-### S3. Независимое ревью и полная приёмка [active]
+### S3. Независимое ревью и полная приёмка [done]
 - **Что:** P11, полный гейт и два ревью исправленного результата.
 - **Как:** Изолированный PG18/S3, detached product, обе темы/телефон и реальные OAuth clients.
 - **Зачем:** Закрыть регрессии и риски прав/повторов/передачи.
 - **Приёмка:**
-  - [ ] Нет P0/P1; полная проверка и CI зелёные; evidence финальной сборки сохранены
+  - [x] Нет P0/P1; полная проверка и CI зелёные; evidence финальной сборки сохранены
 - **Покрывает:** A4
-- **Итог:** Оба независимых ревью завершены без открытых замечаний. Полный gate3 идёт на замороженном исходном дереве; изолированные main/fallback контейнеры прошли готовность, сессию, новую схему и feature boundary.
+- **Итог:** Gate4: DS456, продукт473, detached473 без пропусков; sourceStable true. CI38121099469 success, два независимых ревью без P0/P1.
 - **Зависит от:** S1, S2
 
-### S4. Выпуск и наблюдение [todo]
+### S4. Выпуск и наблюдение [done]
 - **Что:** P12, push/PR/release/backup/rollback.
 - **Как:** Проверить latest base; clean final build; backup; migrate; exact image; readiness и authenticated flow.
 - **Зачем:** Рабочий результат на production.
 - **Приёмка:**
-  - [ ] Верифицированный коммит/образ, backup и путь отката, ready/worker и основной сценарий
+  - [x] Верифицированный коммит/образ, backup и путь отката, ready/worker и основной сценарий
 - **Покрывает:** A5
+- **Итог:** Выпуск eb4574b в 07:48:26 UTC; точный manifest559c870, backup074809, migrate77, own OAuth и production UI PASS. Наблюдение до07:58:26: ready, HTML, API/worker, рестарты0, ERROR0. Совместимый rollback фактически проверен.
 - **Зависит от:** S3
 
 ## Решения

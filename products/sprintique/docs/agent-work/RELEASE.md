@@ -1,12 +1,12 @@
 # Выпуск SPR-14
 
-Владелец разрешил push и deploy в исходной постановке и подтвердил план P01–P12. Выпуск пока не выполнен. Эта запись отделяет проверенные условия от оставшихся действий.
+Владелец разрешил push и deploy в исходной постановке и подтвердил план P01–P12. Выпуск выполнен 11 октября 2026 в 07:48:26 UTC. Результат оставлен на проверку человека.
 
 ## Подготовка
 
-На 11 октября 2026 production работает на `sprintique-server:931e09d`. API и worker готовы, перезапусков нет. Коннектор Codex подключён через штатный OAuth к `https://api.iqui.page/mcp`; чтение SPR-14 и создание утверждённых подзадач проверены от сервисного аккаунта Codex.
+До выпуска 11 октября 2026 production работал на `sprintique-server:931e09d`. API и worker были готовы, перезапусков не было. Коннектор Codex подключён через штатный OAuth к `https://api.iqui.page/mcp`; чтение SPR-14 и создание утверждённых подзадач проверены от сервисного аккаунта Codex.
 
-Резервная копия до изменений сохранена на VPS в `/root/backups/sprintique-vnext/spr14-preparation-20261011/`. Custom-format `sprintique.dump`, настройки образа и запись текущих image digest доступны только root. Копия успешно восстановлена в отдельную базу `spr14_restore_drill_20261011` с `pg_restore --exit-on-error`; проверено наличие 187 задач. Временная база после проверки удалена. Действующая база и сервисы не менялись. Перед фактической выкладкой нужна свежая копия.
+Резервная копия до изменений сохранена на VPS в `/root/backups/sprintique-vnext/spr14-preparation-20261011/`. Custom-format `sprintique.dump`, настройки образа и запись текущих image digest доступны только root. Копия успешно восстановлена в отдельную базу `spr14_restore_drill_20261011` с `pg_restore --exit-on-error`; проверено наличие 187 задач. Временная база после проверки удалена. Действующая база и сервисы не менялись. Свежая копия непосредственно перед переключением указана в результатах.
 
 ## Условия выпуска
 
@@ -36,8 +36,22 @@
 
 Финальный immutable gate3 завершён: fingerprint `43ce480176fbfe4cc1c4d577d3e58d8311727bb492336ba8942fa316f55cdffb`, исходники stable. DS 456/456, продукт 473/473, отдельное извлечение продукта с clean install 473/473, skipped 0. Архив IQUIPAGE .39: `35c1246b5752ca8233bec2101b84be834dde2eb7ef8f662b812a2d30952462dc`. Gate2 не считается успешным: он обнаружил приватный импорт в одном тесте; финальный тест проверяет публичный HTTP roundtrip и включён в оба успешных прогона.
 
-Реализация запушена коммитом `844bff9b4d70124b8b322b62be3dfc74e44d8cd8`, PR [#64](https://github.com/it-novikov/iquipage-design-system/pull/64). CI [38119788205](https://github.com/it-novikov/iquipage-design-system/actions/runs/38119788205) выполнил все продуктовые проверки и detached успешно, но завершился отказом source-stability: чистый Gradle создал служебные `.gradle/*.properties`, ошибочно включённые в fingerprint. Такой прогон не считается зелёным. Генерируемые `.gradle`/`.kotlin` исключены с regression-тестом; Kotlin, build.gradle.kts, wrapper properties и gradlew остаются build inputs. Отдельно квота аккаунта заблокировала upload artifact; workflow сохраняет полный сертификат в job log, optional upload не заменяет строгий gate. После исправления требуется новый полный гейт и CI.
+Реализация запушена коммитом `844bff9b4d70124b8b322b62be3dfc74e44d8cd8`, PR [#64](https://github.com/it-novikov/iquipage-design-system/pull/64). CI [38119788205](https://github.com/it-novikov/iquipage-design-system/actions/runs/38119788205) выполнил все продуктовые проверки и detached успешно, но завершился отказом source-stability: чистый Gradle создал служебные `.gradle/*.properties`, ошибочно включённые в fingerprint. Такой прогон не считается зелёным. Генерируемые `.gradle`/`.kotlin` исключены с regression-тестом; Kotlin, build.gradle.kts, wrapper properties и gradlew остаются build inputs. Отдельно квота аккаунта заблокировала upload artifact; workflow сохраняет полный сертификат в job log, optional upload не заменяет строгий gate. Повторный полный гейт и CI после исправления приведены ниже.
+
+## Повторный гейт и CI
+
+Gate4 завершён успешно: DS 456/456, продукт 473/473, detached 473/473, skipped 0. Итоговый fingerprint `5785f3aaba74ace1eff5316f4ef3c44fc09314465fab4f8b618a5a3a90c6d77d`, sourceStable true. CI [38121099469](https://github.com/it-novikov/iquipage-design-system/actions/runs/38121099469) завершён success; его сертификат совпадает с локальным fingerprint и точным DS tarball. Отдельный шаг Portable runtime image завершён success. Исправление tooling независимо одобрено обоими ревьюерами.
+
+Runtime inputs основного контейнера совпадают с финальным source tree: `191044653ec51f73fb426c23c1218b5b66e3004f9cf46dc7dcebbe7ec565b326`. Пересборка для `amd64` на финальных исходниках дала прежний проверенный manifest digest. Выпуск использует коммит `eb4574b1bcc9b0aa90846aa63047a188fb14a181`; различия после `844bff9` касаются только CI/fingerprint и доказательств, код продукта неизменен.
 
 ## Результат
 
-Финальные SHA, digest, результаты проверок и наблюдения заполняются после реальной приёмки и выкладки. Наличие этой записи не означает, что выпуск готов или выполнен.
+В production запущен `sprintique-server:eb4574b1bcc9b0aa90846aa63047a188fb14a181` на API и worker. Manifest digest совпадает с проверенным `sha256:559c870e35a318d58c6f81590e063bfea0e26d95d9851a846840b35c4f5bee44`; рестарты 0. Миграция 077 применена, `agent_work` включён. HTML публичного адреса совпал с packaged hash `8aeae212f5fdf6266d76f3a42a29956ef38265ef78a8fa03dd5c68a670efa195`.
+
+Свежая резервная копия: `/root/backups/sprintique-vnext/spr14-release-20261011T074809Z/`. Dump проверен `pg_restore --list`; конфигурация и журнал доступны только root. Первая попытка получила ожидаемый 404 при проверке HTML по raw loopback Host: при раздельном API origin интерфейс закрыт для такого Host. Автоматический возврат на совместимый fallback прошёл с readiness и без потери базы. Повторная выкладка проверяет реальный `https://sprintique.iqui.page/` и допускает только точный ожидаемый fallback с committed ledger 077.
+
+Через штатный native app-server и существующий OAuth Codex в production проверены новые work tools: точный roundtrip карточки, повтор claim с тем же ключом и первоначальным ACK, сохранение трёх результатов, контрольная точка, release, повторное чтение и brief. Записи принадлежат Codex. Вкладка `#/task/SPR-14/work` сохраняется после reload; в основном табе только короткий статус и переход к работе. SPR-14 и SPR-25–SPR-36 переведены в review собственным аккаунтом. Агент не принимает свою работу от имени человека.
+
+Приёмка нового клиента Claude Code и бесшовного первоначального OAuth login остаётся ограничением CLIENTS.md. Действующий OAuth Codex и production work roundtrip подтверждены.
+
+Окно наблюдения 07:48:26–07:58:26 UTC завершено PASS. Повторные проверки внутренней готовности, публичного HTML и exact image API/worker успешны; рестарты 0, ERROR в обоих потоках контейнерных логов после cutover 0. Native OAuth и обе production-вкладки проверены в том же окне. Машинный receipt сохранён в private `observation.json` рядом с `deployment.json`; публичная запись не содержит credentials или содержимого логов.
