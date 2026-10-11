@@ -221,6 +221,10 @@
 .task-dialog-identity .task-link-copy .iq-switcher-label{max-width:none}
 /* Core facts: title, 16px, the grid of facts, 24px, then "Описание". */
 .task-editor-title{margin-bottom:var(--iq-space-4)}
+/* Balance title line-box spacing with the tabs' label inset; keep the native title padding and autosize. */
+.task-edit-dialog .map-dialog-body:has(>[data-task-tabs]):has(>.task-editor-cover[hidden]){padding-top:var(--iq-space-5)}
+.task-edit-dialog .map-dialog-body:has(>[data-task-tabs])>.task-editor-title{margin-bottom:calc(var(--iq-space-2) - var(--iq-space-5))}
+@media(max-width:760px){.task-edit-dialog .map-dialog-body:has(>[data-task-tabs]):has(>.task-editor-cover[hidden]){padding-top:var(--iq-space-4)}.task-edit-dialog .map-dialog-body:has(>[data-task-tabs])>.task-editor-title{margin-bottom:calc(var(--iq-space-1) - var(--iq-space-5))}}
 .task-editor-properties{display:grid;gap:var(--iq-space-4);padding-bottom:var(--iq-space-6)}
 /* Cover: the whole 12:5 frame across the drawer's content column (720px at most in fullscreen), never a letterbox band. A letterboxed ("Вписать") cover shows a blurred copy of itself inside the frame. */
 .task-editor-cover:not([hidden]){position:relative;width:100%;margin:0 0 var(--iq-space-5)}
