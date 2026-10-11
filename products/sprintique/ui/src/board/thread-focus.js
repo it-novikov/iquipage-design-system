@@ -1,4 +1,4 @@
-const actions=['data-thread-toggle','data-older-replies','data-reply','data-resolve','data-retry-thread','data-answer-question','data-review-question','data-discard-answer'];
+const actions=['data-thread-toggle','data-older-replies','data-reply','data-resolve','data-retry-thread','data-answer-question','data-review-question','data-discard-answer','data-work-action'];
 /** Keep keyboard focus through a synchronous thread redraw, including its temporarily disabled state. */
 export function createThreadFocus(active=()=>document.activeElement){
   const pending=new Map();

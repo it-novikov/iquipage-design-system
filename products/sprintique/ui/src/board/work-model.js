@@ -31,3 +31,28 @@ export function workFocus(state){
  if(plan?.checkpoint?.nextStep)return {kind:'next',text:workText(plan.checkpoint.nextStep)};
  return {kind:plan?'ready':'empty'};
 }
+
+/** Overview context is explicit even when a question takes precedence over the session status. */
+export function workOverview(state){
+ const focus=workFocus(state),session=state?.sessions?.find(activeSession)||state?.sessions?.[0],permissions=state?.permissions||{};
+ const context=['Работа агента',session?.agentName].filter(Boolean).join(' · ');
+ if(focus.kind==='question')return {context,status:'Нужно ваше решение',text:focus.item.title,action:'question:'+focus.item.id,label:permissions.canAnswer?'Ответить агенту':'Открыть вопрос',attention:true};
+ if(focus.kind==='review')return {context,status:'Результат на проверке',text:focus.item.title,action:'review:'+focus.item.id,label:'Проверить результат',attention:true};
+ if(!state?.workPlan)return {context,status:'',text:'Поручите агенту работу по этой задаче.',action:permissions.canAssign?'assign':'open',label:permissions.canAssign?'Поручить агенту':'Открыть работу',attention:false};
+ return {context,status:session?workStates[session.state]||'Работа прервалась':'План готов',text:focus.kind==='step'?focus.item.title:'',action:'open',label:'Открыть работу',attention:false};
+}
+
+/** A draft keeps the revision first read by its author; polling never silently rebases it. */
+export function createWorkAnswers(){
+ const drafts=new Map();
+ return {get:id=>drafts.get(id),entries:()=>[...drafts],
+  edit(id,fields,revision){const draft={...fields,revision:drafts.get(id)?.revision??revision};drafts.set(id,draft);return draft;},
+  review(id,question,revision){const draft=drafts.get(id);if(draft){draft.revision=revision;if(draft.selected!=='__other'&&!question?.options?.some(o=>o.id===draft.selected))draft.selected='';}},
+  delete:id=>drafts.delete(id),dirty:()=>[...drafts.values()].some(d=>d.selected||d.answer?.trim())};
+}
+
+/** All entry points share a gate so a slow chooser or command cannot be opened twice. */
+export function createWorkActionGate(){
+ let pending=false;
+ return {pending:()=>pending,async run(action){if(pending)return;pending=true;try{return await action();}finally{pending=false;}}};
+}
