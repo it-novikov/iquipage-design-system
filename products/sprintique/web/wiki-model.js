@@ -23,3 +23,11 @@ export function wikiExcerpt(value){return String(value||'').replace(/!\[([^\]]*)
 export function revealWikiVersion(list){const selected=list.querySelector('[data-selected=true]');if(!selected)return;const row=selected.getBoundingClientRect(),viewport=list.getBoundingClientRect();if(row.top<viewport.top)list.scrollTop-=viewport.top-row.top;else if(row.bottom>viewport.bottom)list.scrollTop+=row.bottom-viewport.bottom;}
 
 export function wikiPathEntries(catalog,page,parentId=null){const rows=page?[...catalog.filter(p=>p.id!==page.id),page]:catalog,ids=page?wikiAncestors(rows,page.id):parentId?[...wikiAncestors(rows,parentId),parentId]:[];return ids.map(id=>({id,title:rows.find(p=>p.id===id)?.title||'Страница'}));}
+
+/** Loading and hidden mobile rails must not overwrite a document context's position. */
+export function wikiRailScroll(){
+ const positions=new Map();let key=null,ready=false;
+ const capture=list=>{if(ready&&list.clientHeight>0)positions.set(key,list.scrollTop);};
+ const restore=list=>{if(ready&&list.clientHeight>0)list.scrollTop=positions.get(key)||0;};
+ return {capture,restore,render(list,nextKey,contentReady,paint){capture(list);key=nextKey;ready=false;paint();ready=contentReady;restore(list);}};
+}

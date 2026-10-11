@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {wikiRoute,wikiHash,wikiTree,wikiAncestors,wikiParents,wikiDraft,wikiReads,revealWikiVersion,wikiPathEntries} from '../web/wiki-model.js';
+import {wikiRoute,wikiHash,wikiTree,wikiAncestors,wikiParents,wikiDraft,wikiReads,revealWikiVersion,wikiPathEntries,wikiRailScroll} from '../web/wiki-model.js';
 import {sectionRouteHash} from '../web/section-route.js';
 const page=(id,changes={})=>({id,title:id,body:'Исходный текст',parentId:null,revision:2,archivedAt:null,...changes});
 test('wiki addresses distinguish reserved view names from stable page ids, and reject unsafe versions',()=>{
@@ -48,3 +48,29 @@ test('numbered document names follow natural order without losing distinct equal
 test('chosen history version is revealed within its rail without moving focus or the document',()=>{let row={top:900,bottom:980};const list={scrollTop:0,querySelector:()=>({getBoundingClientRect:()=>row}),getBoundingClientRect:()=>({top:100,bottom:700})};revealWikiVersion(list);assert.equal(list.scrollTop,280);row={top:50,bottom:130};revealWikiVersion(list);assert.equal(list.scrollTop,230);row={top:200,bottom:280};revealWikiVersion(list);assert.equal(list.scrollTop,230);});
 
 test('late catalog resolves breadcrumb names while current page location wins over stale catalog metadata',()=>{const current=page('child',{parentId:'new'});assert.deepEqual(wikiPathEntries([],current),[{id:'new',title:'Страница'}]);assert.deepEqual(wikiPathEntries([page('child',{parentId:'old'}),page('new',{parentId:'root',title:'Новое место'}),page('root',{title:'Раздел'})],current),[{id:'root',title:'Раздел'},{id:'new',title:'Новое место'}]);});
+
+
+test('distant history never carries its scroll into the catalog, including a deliberately scrolled catalog',()=>{
+ for(const catalogPosition of [0,612]){
+  const scroll=wikiRailScroll();let top=0,max=1560;
+  const list={clientHeight:464,get scrollTop(){return top;},set scrollTop(value){top=Math.max(0,Math.min(max,value));}};
+  const paint=(height)=>()=>{max=height;list.scrollTop=top;};
+  scroll.render(list,'catalog',true,paint(1560));list.scrollTop=catalogPosition;
+  scroll.render(list,'history:page',false,paint(0));
+  scroll.render(list,'history:page',true,paint(6000));list.scrollTop=5816;
+  scroll.render(list,'history:page',false,paint(0)); // Selecting version 1 loads a placeholder.
+  scroll.render(list,'history:page',true,paint(6000));assert.equal(list.scrollTop,5816);
+  scroll.render(list,'catalog',true,paint(1560));assert.equal(list.scrollTop,catalogPosition);
+  scroll.render(list,'history:other',true,paint(6000));assert.equal(list.scrollTop,0);
+  scroll.render(list,'history:page',true,paint(6000));assert.equal(list.scrollTop,5816);
+ }
+});
+
+test('a hidden mobile rail and late placeholder scroll cannot erase the saved context',()=>{
+ const scroll=wikiRailScroll(),list={clientHeight:500,scrollTop:0};
+ scroll.render(list,'catalog',true,()=>{});list.scrollTop=420;scroll.capture(list);
+ list.clientHeight=0;list.scrollTop=0;scroll.capture(list);
+ scroll.render(list,'history:a',false,()=>{});scroll.capture(list);
+ scroll.render(list,'catalog',true,()=>{});list.clientHeight=500;scroll.restore(list);
+ assert.equal(list.scrollTop,420);
+});

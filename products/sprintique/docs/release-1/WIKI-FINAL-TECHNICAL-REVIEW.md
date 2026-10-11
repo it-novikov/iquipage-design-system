@@ -1,6 +1,26 @@
 # Wiki — независимое техническое ревью R2
 
-## Текущий R2 DS50: APPROVE
+## Текущий R2 после WFR1-2: APPROVE
+
+2026-10-12. **APPROVE** exact frozen source `3e15c730a738f4ba9497051f99219c225cad82931a0bbfaa61bb98b6e4d54a0e`, неизменный DS50 tar `90380ecbfdeff2cca0e0ced052eefa7ec3e3f4bad320cf6891b866e8156d27a3`. Narrow source/regression review WFR1-2 ниже завершён без actionable findings; reviewed backend/API/права не изменились.
+
+Самостоятельно прочитаны actual `output/verification/2026-10-11T15-12-22.174Z/verification.json` и raw library/product/detached logs: **8/8 PASS**, sourceStable=true, before/after fingerprint совпадают; DS476/476, product561/561 и detached561/561, fail0/skipped0. После получения этих receipts новых tests/builds reviewer не запускал.
+
+`output/wiki-release/artifacts.json` содержит тот же fingerprint; main tar SHA `5f667927aff3a6c524d4e925ac9cf73601e719d26620fa3100dcfa020dd792c5`, config `sha256:fb3bb578f699fd0671245e2cbf716f758a757fbe55759b2f5ed4baef0b9dd7c8`, image `sha256:94f8d685102e7b629d184fe6648e20c0376cfb592f0a31fa9a35a7c4f9f3788a`, index `55d47d8b1c20d0009ee140fcb5f3041dd677108d8da990075a1170717e8a020f`. Main46 web files/fallback41 prior078 files, amd64/nonroot10001:10001, loadedManifestMatchesArchive=true. Compatible079 fallback остаётся `sha256:48ecb698ab2bdc9ebcc976be5f8a91cae11f217369057f4aaaa28e6e7eb79de2`; artifacts привязаны к новой поставке.
+
+Actual fresh `output/wiki-release/container-rollback.json` **PASS15:14:54.730Z**: main/fallbackReady079, isolatedNetwork/readOnly/capdrop/nonroot, retained task/material/wiki page/wiki link and previousWebMatches. Это root-run proof, не reviewer Docker/production test. Actual R1 WIKI-FINAL-EXPERIENCE-REVIEW.md закрывает WFR1-1 и WFR1-2 независимыми browser retests; его fresh final receipt в прочитанной версии ещё pending, новый certificate R2 проверен самостоятельно.
+
+Сохраняются explicit limitations: финальное создание новой задачи в author browser ранее отклонено automatic approval review и не выполнено; own browser proof этого последнего шага отсутствует. Existing-task/browser staging и model/API evidence не заменяют его. R2 не выполнял browser/physicalIME/touch/production. Исторические e9360a и DS49 proofs ниже не используются для утверждения новой поставки. PR CI/merge/deploy/production observation остаются отдельными этапами. Только `.md` изменён reviewer.
+
+## Историческое ожидание после WFR1-2
+
+2026-10-12. Product-only source изменён для отдельной прокрутки каталога и истории страниц. Прежний APPROVE fingerprint e9360a…59ee и его certificate/artifacts/container ниже исторические. DS50 exact package и проверенный backend не изменились; whole-candidate final APPROVE требует нового immutable fingerprint/fullgate/artifacts/container proof.
+
+Independent narrow source review `web/wiki-model.js:28`, `web/wiki.js:16/29/83/108`: positions map разделяет catalog/history:<pageId>; capture сохраняет только ready/visible rail до смены route/закрытия mobile dialog; paint placeholder временно отключает capture; restore не переносит позднюю историю в каталог. Passive scroll listener живёт в mount AbortController, не добавляет глобальные listeners/storage. Mobile dialog restore выполняется после show, существующий reveal выбранной версии остаётся. ExpandedIDs/query/routes/drafts/CAS/permissions/API не изменены.
+
+Собственный existing-tsx запуск `tests/wiki-ui.test.mjs` **15/15 PASS**, fail/skipped0. Новые regressions содержат clamped DOM-like scroll model: catalog0/612 → history5816 → placeholder → same history → catalog и independent other-page history; hidden mobile rail/placeholder не стирают сохранённую позицию. Tests meaningful для исходного leakage, но не own browser geometry/нативная scroll animation. Author WIKI-RAIL-CONTEXT-REPAIR.md/rail-context-measurements.json — атрибутированные real-browser evidence, не reviewer run. Actionable новых findings в узком diff не найдено; interim source review PASS, release receipt pending.
+
+## Исторический R2 DS50: APPROVE для e9360a freeze
 
 2026-10-11. **APPROVE** reviewed release candidate exact source fingerprint `e9360a887834e09d8304ceea60bf9cac09c2ca52ee917ae4d75612e7e05c59ee`, DS50 tar SHA256 `90380ecbfdeff2cca0e0ced052eefa7ec3e3f4bad320cf6891b866e8156d27a3`. Backend unchanged; independent DS50 corrective review15/15 и exact package verification представлены в WIKI-DS47-TECHNICAL-REVIEW.md. Открытых actionable P0/P1/P2 в проверенной технической области нет.
 

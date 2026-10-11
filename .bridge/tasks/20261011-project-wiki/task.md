@@ -8,7 +8,7 @@ owner: human:it-novikov
 branch: feat/project-wiki
 base: main
 created: 2026-10-11
-updated: 2026-10-11T14:46:47Z
+updated: 2026-10-11T15:27:23Z
 links:
 ---
 
@@ -35,15 +35,15 @@ links:
 
 ## Передача
 
-- **Состояние:** Новый интерфейс и сервер реализованы; независимое ревью выявило P2 мобильного меню.
-- **Сейчас:** Astra исправляет public DS menu touch target40→44; прошлый gate остаётся историческим.
-- **Дальше:** Повторно проверить DS50, заморозить source, выполнить gate и контейнерный откат, затем PR и деплой.
+- **Состояние:** working
+- **Сейчас:** Новый полный прогон после исправления прокрутки прошёл: восемь проверок, 561 тест продукта и 561 тест отдельной сборки, исходники неизменны. Контейнер и совместимый откат прошли.
+- **Дальше:** Получить финальные заключения по новому сертификату, завершить CI PR69 и выложить.
 - **Незакоммичено:** Карточка и WIKI-RESEARCH.md, runtime не изменён.
-- **Рабочая копия:** 43 файл(ов): libraries/iquipage/PROVENANCE.json, libraries/iquipage/README.md, libraries/iquipage/docs/document.md, libraries/iquipage/package-lock.json, libraries/iquipage/package.json, libraries/iquipage/src/entries/core.js, libraries/iquipage/src/modules/interaction.js, libraries/iquipage/src/styles/foundation.css, libraries/iquipage/tests/vnext38.test.cjs, libraries/iquipage/tokens/semantic.json, libraries/iquipage/types/core.d.ts, products/sprintique/docs/release-1/TASK-MATERIALS-ACCEPTANCE.md и ещё 31 (32 files changed, 152 insertions(+), 90 deletions(-)) · HEAD 7944c8b
+- **Рабочая копия:** 7 файл(ов): products/sprintique/docs/release-1/WIKI-FINAL-EXPERIENCE-REVIEW.md, products/sprintique/docs/release-1/WIKI-FINAL-TECHNICAL-REVIEW.md, products/sprintique/docs/release-1/WIKI-RELEASE-ACCEPTANCE.md, products/sprintique/tests/wiki-ui.test.mjs, products/sprintique/web/wiki-model.js, products/sprintique/web/wiki.js, products/sprintique/docs/release-1/WIKI-RAIL-CONTEXT-REPAIR.md (8 files changed, 70 insertions(+), 16 deletions(-)) · HEAD f7dacea
 - **Ловушки:**
   - Прототип не является работающим API; старый UI отвергнут. При CAS сохранять актуальные parentId/archived, не откатывать чужой перенос текстовой правкой.
   - Не использовать старый source fingerprint и DS49 сертификат для новой поставки.
-- **Проверка:** DS49: gate8/8, backend20/20, MCP15/15, container fallback PASS; R1 P2 требует новой приёмки.
+- **Проверка:** output/verification/2026-10-11T15-12-22.174Z/verification.json; output/wiki-release/container-rollback.json
 
 ## План
 

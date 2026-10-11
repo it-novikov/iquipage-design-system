@@ -1,6 +1,6 @@
 # Independent final wiki experience review — R1
 
-Decision: **APPROVE the immutable DS50 release candidate within the documented review scope** (2026-10-11, receipt14:50:57 UTC). WFR1-1 is CLOSED after independent actual DS50 retest; no open confirmed P0/P1/P2 in the exercised matrix. Product source was not edited. This is candidate approval, not a claim that production is deployed or that the explicitly limited browser scenario below was completed.
+Decision: **APPROVE immutable repaired candidate `3e15c730a738f4ba9497051f99219c225cad82931a0bbfaa61bb98b6e4d54a0e`** (receipt2026-10-11T15:26:20.392Z). WFR1-1 and WFR1-2 are CLOSED by independent actual retests; no open confirmed P0/P1/P2 in this review scope. Historical approvals are retained below. This does not claim production deployment or completion of the explicitly limited new-task final-create browser scenario.
 
 This is an independent expert walkthrough of the actual disposable authenticated SPQ stand at localhost:4318, not usability research with recruited users, and not acceptance of deployed production. Checkout: `wiki`, branch `feat/project-wiki`. Source/API correctness and permissions review by R2 remains a separate evidence source.
 
@@ -43,10 +43,26 @@ Final creation of a **new** test task was rejected by automatic approval review 
 
 No physical touch device, screen-reader session, real IME composition session, browser-engine comparison, recruited-user study, production deployment, production permissions or production data were tested by this reviewer. Reader/revocation/access-notice runtime results above are attributed. WFR1-1 closure, exact DS50 package/adoption proof and fresh full gate/source stability receipt are complete. Production verification remains after deployment.
 
-## Current immutable DS50 approval receipt
+## Historical immutable DS50 approval receipt (superseded by WFR1-2 repair)
 
 Independently read the actual `output/verification/2026-10-11T14-40-23.871Z/verification.json` and raw test/source-stability logs. Certificate dated `2026-10-11T14:50:57.978Z`: 8/8 PASS, sourceStable=true, before/after `e9360a887834e09d8304ceea60bf9cac09c2ca52ee917ae4d75612e7e05c59ee`, exact DS50 archive `90380ecbfdeff2cca0e0ced052eefa7ec3e3f4bad320cf6891b866e8156d27a3`. Raw DS476/product559/detached559, each fail0/skipped0. No repeated builds or tests were run by this reviewer.
 
 Read current root-owned `output/wiki-release/container-rollback.json` dated14:42:34.408Z and `artifacts.json`, attributed rather than independently executed: PASS main/fallback readiness on079, retained task/material/wiki page/wiki-task-link, previous web match, isolated network, uid10001/readOnly/capabilities dropped. Artifacts carry the same `e9360a...` fingerprint; main image `sha256:6b188325e8f97423568fce233403f67023fb1b5f3066471361006801ef5f945e`, fallback `sha256:48ecb698ab2bdc9ebcc976be5f8a91cae11f217369057f4aaaa28e6e7eb79de2`, main web index `dfd44d0a98ebfbc933b6416cd7f9fe2e34f2bf3df36c6376679e9e8a7e081d42`. Both loaded manifests match their archives.
 
 APPROVE applies to these immutable inputs and the expert walkthrough scope above. Historical DS49 receipt and WFR1-1 history are retained. New-task final-create browser gap remains explicit; CI and production cutover/post-deployment checks belong to the root release process.
+
+## WFR1-2 — P2 catalog context contaminated by history scroll — CLOSED
+
+Independently confirmed through actual buttons on the previous freeze: fresh catalog scroll0 → История → Ранние версии → Версия1 (history5816) → К странице produced catalog1560, visible Справочник41–53, selected История документа y−1376 outside rail184–648. Breadcrumb Документация → main catalogue Начало работы also left wrongscroll1560, selected y−1340. This was not retained user catalog scroll: the catalog had started at0 and was never scrolled by the user. Source `web/wiki.js:35` recreated the tree in the same scroll container without separating its position from history.
+
+Repair independently read: `wikiRailScroll()` in `web/wiki-model.js` keeps separate catalog/history:<page> positions; captures only visible ready content; loading placeholders and hidden mobile rails do not overwrite saved positions. Route captures before mobile dialog closure; mobile dialog opening restores current context; selected history version reveal remains. Controlled delta only wiki.js/wiki-model.js and regression tests; no public DS change. Regression cases include catalog0/612, loading placeholders, separate page histories and hidden mobile state. Author's38/38 targeted checks are attributed.
+
+Own fresh-build browser retest, Chrome1280×720: catalog0 → oldversion1 history5816 → К странице returns0, selected y184. Native deliberate catalog scrolling settled at720 → same history/version1 round trip returns720 (not forced0). At390×844 the catalog navigation dialog restores720; opening oldversion1 history reveals the selected row, then К страницам and reopening catalog restores720; document scrollWidth390. No page/task writes. Viewport reset. WFR1-2 source and expert experience CLOSED; no new substantial finding in this targeted delta. Fresh whole-candidate receipt for the repaired inputs is recorded below. Historical e9360a receipt is retained above, not silently reused.
+
+## Current final immutable approval after WFR1-2 repair
+
+Independently read `output/verification/2026-10-11T15-12-22.174Z/verification.json` dated15:26:20.392UTC:8/8PASS,sourceStable=true,before/after `3e15c730a738f4ba9497051f99219c225cad82931a0bbfaa61bb98b6e4d54a0e`, DS50archive `90380ecbfdeff2cca0e0ced052eefa7ec3e3f4bad320cf6891b866e8156d27a3`. Read raw counts:DS476/product561/detached561, each fail0/skipped0. No redundant runtime walkthrough or test/build rerun performed.
+
+Read current root-owned artifacts/container proof15:14:54.730UTC:PASS main/fallback on079, retained task/material/wiki page/wiki-task-link, prior web match, isolated network, uid10001/readOnly/capabilities dropped. Artifact fingerprint matches this certificate. Main image `sha256:94f8d685102e7b629d184fe6648e20c0376cfb592f0a31fa9a35a7c4f9f3788a`, web index `55d47d8b1c20d0009ee140fcb5f3041dd677108d8da990075a1170717e8a020f`; fallback `sha256:48ecb698ab2bdc9ebcc976be5f8a91cae11f217369057f4aaaa28e6e7eb79de2`. Loaded manifests match archives. Probe results are attributed to root, not claimed as independently executed by this reviewer.
+
+**APPROVE** this exact immutable candidate within the expert walkthrough scope and explicit limitations above. Both findings remain closed; previous receipts remain historical. CI/merge/cutover and post-deployment production verification are root release steps; the new-task browser final-create gap remains visible. Only this reviewer document changed in this finalization.
