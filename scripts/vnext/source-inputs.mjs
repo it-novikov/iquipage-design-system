@@ -2,7 +2,7 @@ import {readdir,readFile} from 'node:fs/promises';
 import {resolve,relative,join,extname,sep} from 'node:path';
 import {createHash} from 'node:crypto';
 
-const excluded=new Set(['node_modules','dist','build','output','.playwright-cli','.git','test-results','playwright-report']);
+const excluded=new Set(['node_modules','dist','build','output','.gradle','.kotlin','.playwright-cli','.git','test-results','playwright-report']);
 const extensions=new Set(['.ts','.js','.mjs','.cjs','.css','.html','.sql','.json','.tgz','.webp','.png','.svg','.jpg','.jpeg','.avif','.gif','.woff','.woff2','.ttf','.otf','.wasm','.yml','.yaml','.kt','.kts','.toml','.properties','.xml','.py']);
 // Exact outputs of libraries/iquipage/scripts/build.mjs, not build inputs.
 // The corresponding src templates/modules and semantic tokens remain fingerprinted.

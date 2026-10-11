@@ -30,6 +30,10 @@ test('R4-REL-02 fingerprints HTML and detects changed, added and removed inputs,
     for(const path of backendPaths)await put(path,'BACKEND BUILD INPUT');
     assert.deepEqual(changedInputs(backendBefore,await sourceInputs(root)),backendPaths.sort());
     const backendAfter=await sourceInputs(root);
+    for(const path of ['products/sprintique/server/.gradle/buildOutputCleanup/cache.properties','products/sprintique/server/.gradle/9.6.1/gc.properties','products/sprintique/server/.kotlin/session.xml'])await put(path,'GENERATED CACHE');
+    assert.deepEqual(changedInputs(backendAfter,await sourceInputs(root)),[]);
+    await put('products/sprintique/server/.gradle/buildOutputCleanup/cache.properties','CHANGED CACHE');
+    assert.deepEqual(changedInputs(backendAfter,await sourceInputs(root)),[]);
     await put(backendPaths.find(path=>path.endsWith('Work.kt')),'CHANGED BACKEND');
     assert.deepEqual(changedInputs(backendAfter,await sourceInputs(root)),['products/sprintique/server/src/main/kotlin/Work.kt']);
     await symlink(join(root,'products/sprintique/.env'),join(root,'products/sprintique/web/leak.json'));

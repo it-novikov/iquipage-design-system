@@ -25,6 +25,10 @@
 
 В `/tmp/spr14-fullgate2.log` основной продукт прошёл проверки, но detached product test обнаружил приватный dynamic import `../../../engineering/bridge/src/card.mjs` из `tests/work.test.ts`. Проверен итоговый тест после исправления: приватная зависимость удалена, grammar answered question/decision проверяется на реальном HTTP GET; PUT той же карточки и повторный GET сохраняют точный текст, увеличивают revision на один и сохраняют ответ, решение и исходный threadId. Проверка не пропущена, область extraction не расширена. Product application code этим исправлением не менялся. Прочитан свежий `/tmp/spr14-product-roundtrip.log`: **5/5 PASS**, включая действительный GET→PUT→GET и дальнейший второй вопрос. Code verdict сохраняется; fullgate2 не считается полным PASS, окончательный immutable gate3 остаётся release gate.
 
+## Follow-up после CI source stability
+
+Прочитан `/tmp/spr14-ci-final.log`: product-build, product-tests и detached-product PASS; source-stability FAIL и последующая загрузка artifacts отвергнута из-за квоты аккаунта. Этот запуск не считается CI PASS. Проверен узкий исправленный diff: source-inputs исключает только добавленные generated cache dirs `.gradle`/`.kotlin`; обычные `.kt`, `.kts`, `.toml`, `.properties` и wrapper scripts по-прежнему входят в fingerprint. Регрессия создаёт отсутствовавшие cache files и меняет их, затем отдельно подтверждает обнаружение изменения настоящего Work.kt. Drift теперь печатается точными путями; verification JSON и stability log выводятся в CI job log. `continue-on-error` добавлен исключительно к upload-artifact: тесты, сборка, source-stability и portable image остаются обязательными. Артефакты не удалялись. **Approve по этому исправлению, новых P0/P1 нет.** Свежие immutable gate4 и новый CI остаются release gates.
+
 ## Итог
 
 - **Вердикт: approve по исправленному коду; открытых P0/P1 нет.**

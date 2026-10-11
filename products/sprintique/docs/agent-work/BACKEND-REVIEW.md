@@ -29,3 +29,13 @@
 Первый runtime прогон обнаружил несовместимость lifecycle outbox с UUID/FK audit_events; итоговый diff содержит UUID cast и ограниченную lifecycle audit запись до outbox. Production и новые tools в реальных Codex/Claude этим прогоном не приняты. Последнее изменение root в `scripts/vnext/source-inputs` не входило в это backend ревью и проверяется отдельно.
 
 Клиентская часть отдельно: финальный full bridge 49/49 после исправления повторного `push --create`. Portable skill checks и manifest PASS. Исходный suite 1.1 manifest — 155 записей, без изменений. Upstream skill-creator validator не запускался успешно: локально отсутствует PyYAML; собственные проверки переносимости и целостности прошли.
+
+## Дополнительное ревью CI и fingerprint
+
+Reviewer1 проверил только исправления `scripts/vnext/source-inputs(.test).mjs`, `scripts/verify-vnext.mjs` и `.github/workflows/vnext.yml`. Изменения одобрены, незакрытых P0/P1/P2 в этом diff нет.
+
+Исключены только новые имена generated cache `.gradle`/`.kotlin`. Kotlin source, `build.gradle.kts`, version catalog, Gradle wrapper properties и `gradlew` остаются входами fingerprint. Независимый запуск `node --test scripts/vnext/source-inputs.test.mjs` — 1/1 PASS: создание и изменение кэшей не дают drift, изменение backend по-прежнему обнаруживается.
+
+Drift остаётся ошибкой с exit code 1 и теперь печатает изменившиеся пути. CI печатает certificate JSON и stability log даже после неуспешной проверки. `continue-on-error` добавлен только шагу upload-artifact; проверка продукта, detached extraction и runtime image не получили исключений. При ошибке обязательного gate job остаётся неуспешным. Архивы не удалялись.
+
+Сырой лог `/tmp/spr14-ci-final.log` подтверждает PASS library/build/boundaries/product-tests/detached-product, затем отдельные source-stability FAIL и artifact quota error. Новый Gate4 и повтор CI ещё требуются: этот узкий review не объявляет прежний CI успешным и не заменяет повторную проверку замороженного исходного дерева.

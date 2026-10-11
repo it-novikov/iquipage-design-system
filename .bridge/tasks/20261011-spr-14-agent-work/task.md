@@ -8,7 +8,7 @@ owner: it-novikov
 branch: feat/spr-14-agent-work
 base: main
 created: 2026-10-11
-updated: 2026-10-11T06:57:00Z
+updated: 2026-10-11T07:21:17Z
 links:
 ---
 
@@ -34,16 +34,16 @@ links:
 
 ## Передача
 
-- **Состояние:** Интерфейс пересобран GPT 6 Astra и проверен в браузере. Оба независимых ревью завершены без P0/P1. Повторяется полный гейт после устранения зависимости теста от корня.
-- **Сейчас:** S3: полный гейт и изолированные контейнеры
-- **Дальше:** Зелёные isolated/detached и CI, затем свежая резервная копия и деплой.
-- **Незакоммичено:** Финальная реализация, типы, DS .39, публичный MCP и документы выпуска.
-- **Рабочая копия:** 111 файл(ов): engineering/bridge/PROTOCOL.md, engineering/bridge/README.md, engineering/bridge/src/cli.mjs, engineering/bridge/src/secrets.mjs, libraries/iquipage/PROVENANCE.json, libraries/iquipage/package-lock.json, libraries/iquipage/package.json, libraries/iquipage/scripts/build.mjs, libraries/iquipage/src/entries/core.js, libraries/iquipage/src/manifest.json, libraries/iquipage/tests/vnext38.test.cjs, libraries/iquipage/tokens/semantic.json и ещё 99 (69 files changed, 2043 insertions(+), 274 deletions(-)) · HEAD 9543147
+- **Состояние:** Gate3 полный PASS473+473. Первый CI тоже прошёл продукт и detached, но fingerprint ошибочно счёл новые Gradle cache-файлы изменением исходников; artifact upload исчерпал квоту. Узкое исправление проверено обоими ревьюерами; gate4 и повтор CI обязательны.
+- **Сейчас:** S3: повтор immutable гейта и CI после исправления инструмента проверки
+- **Дальше:** После обоих PASS — свежая backup, migrate, own OAuth и production UI.
+- **Незакоммичено:** Только CI/fingerprint tooling и release evidence; runtime и UI неизменны.
+- **Рабочая копия:** 7 файл(ов): .github/workflows/vnext.yml, products/sprintique/docs/agent-work/BACKEND-REVIEW.md, products/sprintique/docs/agent-work/FINAL-REVIEW.md, products/sprintique/docs/agent-work/RELEASE.md, scripts/verify-vnext.mjs, scripts/vnext/source-inputs.mjs, scripts/vnext/source-inputs.test.mjs (7 files changed, 43 insertions(+), 2 deletions(-)) · HEAD 844bff9
 - **Ловушки:**
   - Встроенный набор tools не hot-reload; штатный native app-server ephemeral без модели успешно подключает MCP OAuth
   - Migration77 makes image931 incompatible; feature-off must be tested, full image rollback requires compatible artifact or DB restoration
   - Old preview stopped; earlier screenshots and unverified first composition are not acceptance of revised UI
-- **Проверка:** UI-REVIEW.md; BACKEND-REVIEW.md; FINAL-REVIEW.md; work API roundtrip 5/5; bridge 49/49.
+- **Проверка:** BACKEND-REVIEW.md и FINAL-REVIEW.md: CI-only diff approve, cache regression1/1PASS, runtimechecks сохраняют строгий отказ.
 
 ## План
 
