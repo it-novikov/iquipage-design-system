@@ -19,3 +19,8 @@
 - 2026-10-11T10:11:53Z · codex · note · A3 · критерий приёмки выполнен
 - 2026-10-11T10:11:53Z · codex · note · A4 · критерий приёмки выполнен
 - 2026-10-11T10:11:53Z · codex · step · S3 · active
+- 2026-10-11T10:23:43Z · codex · step · S3 · done: PR66 MERGEABLE; production e42a066 exact image, fresh backup, readiness/restarts/errors and readonly UI verified.
+- 2026-10-11T10:23:43Z · codex · note · A5 · критерий приёмки выполнен
+- 2026-10-11T10:23:43Z · codex · checkpoint · - · дальше: Владелец просматривает PR66 и решает слияние стека PR64/65/66
+- 2026-10-11T10:23:43Z · codex · status · - · review
+- 2026-10-11T10:23:43Z · codex · handoff · - · review → human:it-novikov; HEAD e42a066; незакоммичено 2; Поставка выполнена с явным разрешением; слияние не выполнялось. PR66, docs AGENT-ACTIONS.md; baseline runtime e42a066, compatible rollback dabb3de.

@@ -2,13 +2,13 @@
 bridge: 1
 id: 20261011-agent-work-actions
 title: Понятные действия и раскрывающиеся блоки работы агента
-status: active
+status: review
 risk: standard
 owner: it-novikov
 branch: fix/agent-work-actions
 base: feat/release-1-remaining
 created: 2026-10-11
-updated: 2026-10-11T10:11:53Z
+updated: 2026-10-11T10:23:43Z
 links:
 ---
 
@@ -30,16 +30,17 @@ links:
 - [x] A2. Ответ и принятие результата доступны рядом с содержимым; черновики, CAS и права сохранены.
 - [x] A3. Основная вкладка поясняет агента и причину одного заметного быстрого действия без лишнего шума.
 - [x] A4. Exact DS релиз и значимые проверки, browser matrix и независимое ревью пройдены.
-- [ ] A5. Изменения запушены в PR и выложены с backup, проверкой образа, readiness и ключевого интерфейса.
+- [x] A5. Изменения запушены в PR и выложены с backup, проверкой образа, readiness и ключевого интерфейса.
 
 ## Передача
 
-- **Состояние:** Реализация UI и DS .43 готова к браузерной проверке
-- **Сейчас:** Astra проверяет synthetic состояния; reviewer читает diff до freeze
-- **Дальше:** Фиксировать окончательный source и запускать npm test
-- **Незакоммичено:** DS, UI, тесты и карточка
-- **Рабочая копия:** 19 файл(ов): libraries/iquipage/PROVENANCE.json, libraries/iquipage/docs/work-story.md, libraries/iquipage/package-lock.json, libraries/iquipage/package.json, libraries/iquipage/src/entries/core.js, libraries/iquipage/src/styles/work-story.css, libraries/iquipage/tests/vnext38.test.cjs, libraries/iquipage/tokens/semantic.json, libraries/iquipage/types/core.d.ts, products/sprintique/package-lock.json, products/sprintique/package.json, products/sprintique/tests/library-contract.ts и ещё 7 (17 files changed, 141 insertions(+), 58 deletions(-)) · HEAD b9f25f3
-- **Проверка:** Промежуточно: DS459, build/boundaries и target18 PASS; финальный PASS ещё не заявлен
+- **Состояние:** Исправление запушено и выложено
+- **Сейчас:** A1–A5 и S1–S3 выполнены; проверен production desktop/mobile
+- **Дальше:** Владелец просматривает PR66 и решает слияние стека PR64/65/66
+- **Незакоммичено:** Только release evidence и handoff; source заморожен
+- **Рабочая копия:** 2 файл(ов): products/sprintique/docs/release-1/AGENT-ACTIONS-UI.md, products/sprintique/docs/release-1/AGENT-ACTIONS.md (4 files changed, 29 insertions(+), 14 deletions(-)) · HEAD e42a066 · снято 2026-10-11T10:23:43Z
+- **Проверка:** DS459 UI18 product489; независимое ревью; production image/backup/ready ERROR0 и screenshot.
+- **Причина:** review — codex, 2026-10-11T10:23:43Z, передано human:it-novikov: Поставка выполнена с явным разрешением; слияние не выполнялось. PR66, docs AGENT-ACTIONS.md; baseline runtime e42a066, compatible rollback dabb3de.
 
 ## План
 
@@ -62,13 +63,14 @@ links:
 - **Итог:** DS459, UI18, product489 PASS; independent review и P2 fix re-review APPROVE; browser CAS/answer/accept/reject/focus PASS.
 - **Зависит от:** S1
 
-### S3. Поставка [active]
+### S3. Поставка [done]
 - **Что:** Push и deploy
 - **Как:** PR, образ, backup и health после cutover
 - **Зачем:** Доставить исправление владельцу
 - **Приёмка:**
-  - [ ] Проверены production версия и интерфейс
+  - [x] Проверены production версия и интерфейс
 - **Покрывает:** A5
+- **Итог:** PR66 MERGEABLE; production e42a066 exact image, fresh backup, readiness/restarts/errors and readonly UI verified.
 - **Зависит от:** S2
 
 ## Решения
