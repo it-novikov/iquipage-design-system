@@ -55,6 +55,7 @@ import com.sprintique.database.schema.app.tables.Releases
 import com.sprintique.database.schema.app.tables.Tags
 import com.sprintique.database.schema.app.tables.TaskActivity
 import com.sprintique.database.schema.app.tables.TaskLinks
+import com.sprintique.database.schema.app.tables.TaskMaterial
 import com.sprintique.database.schema.app.tables.TaskPersonalState
 import com.sprintique.database.schema.app.tables.TaskSettings
 import com.sprintique.database.schema.app.tables.TaskSettingsVersions
@@ -124,6 +125,7 @@ import com.sprintique.database.schema.app.tables.records.ReleasesRecord
 import com.sprintique.database.schema.app.tables.records.TagsRecord
 import com.sprintique.database.schema.app.tables.records.TaskActivityRecord
 import com.sprintique.database.schema.app.tables.records.TaskLinksRecord
+import com.sprintique.database.schema.app.tables.records.TaskMaterialRecord
 import com.sprintique.database.schema.app.tables.records.TaskPersonalStateRecord
 import com.sprintique.database.schema.app.tables.records.TaskSettingsRecord
 import com.sprintique.database.schema.app.tables.records.TaskSettingsVersionsRecord
@@ -225,6 +227,7 @@ val RELEASES_PKEY: UniqueKey<ReleasesRecord> = Internal.createUniqueKey(Releases
 val TAGS_PKEY: UniqueKey<TagsRecord> = Internal.createUniqueKey(Tags.TAGS, DSL.name("tags_pkey"), arrayOf(Tags.TAGS.PROJECT_ID, Tags.TAGS.ID), true)
 val TASK_ACTIVITY_PKEY: UniqueKey<TaskActivityRecord> = Internal.createUniqueKey(TaskActivity.TASK_ACTIVITY, DSL.name("task_activity_pkey"), arrayOf(TaskActivity.TASK_ACTIVITY.PROJECT_ID, TaskActivity.TASK_ACTIVITY.SEQUENCE), true)
 val TASK_LINKS_PKEY: UniqueKey<TaskLinksRecord> = Internal.createUniqueKey(TaskLinks.TASK_LINKS, DSL.name("task_links_pkey"), arrayOf(TaskLinks.TASK_LINKS.PROJECT_ID, TaskLinks.TASK_LINKS.ID), true)
+val TASK_MATERIAL_PKEY: UniqueKey<TaskMaterialRecord> = Internal.createUniqueKey(TaskMaterial.TASK_MATERIAL, DSL.name("task_material_pkey"), arrayOf(TaskMaterial.TASK_MATERIAL.PROJECT_ID, TaskMaterial.TASK_MATERIAL.ID), true)
 val TASK_PERSONAL_STATE_PKEY: UniqueKey<TaskPersonalStateRecord> = Internal.createUniqueKey(TaskPersonalState.TASK_PERSONAL_STATE, DSL.name("task_personal_state_pkey"), arrayOf(TaskPersonalState.TASK_PERSONAL_STATE.PROJECT_ID, TaskPersonalState.TASK_PERSONAL_STATE.TASK_ID, TaskPersonalState.TASK_PERSONAL_STATE.PRINCIPAL_ID), true)
 val TASK_SETTINGS_PKEY: UniqueKey<TaskSettingsRecord> = Internal.createUniqueKey(TaskSettings.TASK_SETTINGS, DSL.name("task_settings_pkey"), arrayOf(TaskSettings.TASK_SETTINGS.PROJECT_ID), true)
 val TASK_SETTINGS_VERSIONS_PKEY: UniqueKey<TaskSettingsVersionsRecord> = Internal.createUniqueKey(TaskSettingsVersions.TASK_SETTINGS_VERSIONS, DSL.name("task_settings_versions_pkey"), arrayOf(TaskSettingsVersions.TASK_SETTINGS_VERSIONS.PROJECT_ID, TaskSettingsVersions.TASK_SETTINGS_VERSIONS.REVISION), true)
@@ -388,6 +391,7 @@ val TASK_ACTIVITY__TASK_ACTIVITY_PROJECT_ID_TASK_ID_FKEY: ForeignKey<TaskActivit
 val TASK_LINKS__TASK_LINKS_PROJECT_ID_FKEY: ForeignKey<TaskLinksRecord, ProjectsRecord> = Internal.createForeignKey(TaskLinks.TASK_LINKS, DSL.name("task_links_project_id_fkey"), arrayOf(TaskLinks.TASK_LINKS.PROJECT_ID), com.sprintique.database.schema.app.keys.PROJECTS_PKEY, arrayOf(Projects.PROJECTS.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
 val TASK_LINKS__TASK_LINKS_PROJECT_ID_FROM_ID_FKEY: ForeignKey<TaskLinksRecord, TasksRecord> = Internal.createForeignKey(TaskLinks.TASK_LINKS, DSL.name("task_links_project_id_from_id_fkey"), arrayOf(TaskLinks.TASK_LINKS.PROJECT_ID, TaskLinks.TASK_LINKS.FROM_ID), com.sprintique.database.schema.app.keys.TASKS_PKEY, arrayOf(Tasks.TASKS.PROJECT_ID, Tasks.TASKS.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
 val TASK_LINKS__TASK_LINKS_PROJECT_ID_TO_ID_FKEY: ForeignKey<TaskLinksRecord, TasksRecord> = Internal.createForeignKey(TaskLinks.TASK_LINKS, DSL.name("task_links_project_id_to_id_fkey"), arrayOf(TaskLinks.TASK_LINKS.PROJECT_ID, TaskLinks.TASK_LINKS.TO_ID), com.sprintique.database.schema.app.keys.TASKS_PKEY, arrayOf(Tasks.TASKS.PROJECT_ID, Tasks.TASKS.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
+val TASK_MATERIAL__TASK_MATERIAL_PROJECT_ID_TASK_ID_FKEY: ForeignKey<TaskMaterialRecord, TasksRecord> = Internal.createForeignKey(TaskMaterial.TASK_MATERIAL, DSL.name("task_material_project_id_task_id_fkey"), arrayOf(TaskMaterial.TASK_MATERIAL.PROJECT_ID, TaskMaterial.TASK_MATERIAL.TASK_ID), com.sprintique.database.schema.app.keys.TASKS_PKEY, arrayOf(Tasks.TASKS.PROJECT_ID, Tasks.TASKS.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
 val TASK_PERSONAL_STATE__TASK_PERSONAL_STATE_PRINCIPAL_ID_FKEY: ForeignKey<TaskPersonalStateRecord, PrincipalsRecord> = Internal.createForeignKey(TaskPersonalState.TASK_PERSONAL_STATE, DSL.name("task_personal_state_principal_id_fkey"), arrayOf(TaskPersonalState.TASK_PERSONAL_STATE.PRINCIPAL_ID), PRINCIPALS_PKEY, arrayOf(Principals.PRINCIPALS.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
 val TASK_PERSONAL_STATE__TASK_PERSONAL_STATE_PROJECT_ID_TASK_ID_FKEY: ForeignKey<TaskPersonalStateRecord, TasksRecord> = Internal.createForeignKey(TaskPersonalState.TASK_PERSONAL_STATE, DSL.name("task_personal_state_project_id_task_id_fkey"), arrayOf(TaskPersonalState.TASK_PERSONAL_STATE.PROJECT_ID, TaskPersonalState.TASK_PERSONAL_STATE.TASK_ID), com.sprintique.database.schema.app.keys.TASKS_PKEY, arrayOf(Tasks.TASKS.PROJECT_ID, Tasks.TASKS.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
 val TASK_SETTINGS__TASK_SETTINGS_PROJECT_ID_FKEY: ForeignKey<TaskSettingsRecord, ProjectsRecord> = Internal.createForeignKey(TaskSettings.TASK_SETTINGS, DSL.name("task_settings_project_id_fkey"), arrayOf(TaskSettings.TASK_SETTINGS.PROJECT_ID), com.sprintique.database.schema.app.keys.PROJECTS_PKEY, arrayOf(Projects.PROJECTS.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)

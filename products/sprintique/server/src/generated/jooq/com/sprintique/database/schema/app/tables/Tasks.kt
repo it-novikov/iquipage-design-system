@@ -21,6 +21,7 @@ import com.sprintique.database.schema.app.keys.TASKS__TASKS_PROJECT_ID_RELEASE_I
 import com.sprintique.database.schema.app.keys.TASK_ACTIVITY__TASK_ACTIVITY_PROJECT_ID_TASK_ID_FKEY
 import com.sprintique.database.schema.app.keys.TASK_LINKS__TASK_LINKS_PROJECT_ID_FROM_ID_FKEY
 import com.sprintique.database.schema.app.keys.TASK_LINKS__TASK_LINKS_PROJECT_ID_TO_ID_FKEY
+import com.sprintique.database.schema.app.keys.TASK_MATERIAL__TASK_MATERIAL_PROJECT_ID_TASK_ID_FKEY
 import com.sprintique.database.schema.app.keys.TASK_PERSONAL_STATE__TASK_PERSONAL_STATE_PROJECT_ID_TASK_ID_FKEY
 import com.sprintique.database.schema.app.keys.TASK_TAGS__TASK_TAGS_PROJECT_ID_TASK_ID_FKEY
 import com.sprintique.database.schema.app.keys.TASK_WORK_EVENT__TASK_WORK_EVENT_PROJECT_ID_TASK_ID_FKEY
@@ -36,6 +37,7 @@ import com.sprintique.database.schema.app.tables.Projects.ProjectsPath
 import com.sprintique.database.schema.app.tables.Releases.ReleasesPath
 import com.sprintique.database.schema.app.tables.TaskActivity.TaskActivityPath
 import com.sprintique.database.schema.app.tables.TaskLinks.TaskLinksPath
+import com.sprintique.database.schema.app.tables.TaskMaterial.TaskMaterialPath
 import com.sprintique.database.schema.app.tables.TaskPersonalState.TaskPersonalStatePath
 import com.sprintique.database.schema.app.tables.TaskTags.TaskTagsPath
 import com.sprintique.database.schema.app.tables.TaskWorkEvent.TaskWorkEventPath
@@ -285,6 +287,18 @@ open class Tasks(
 
     val taskLinksProjectIdToIdFkey: TaskLinksPath
         get(): TaskLinksPath = taskLinksProjectIdToIdFkey()
+
+    private lateinit var _taskMaterial: TaskMaterialPath
+
+    fun taskMaterial(): TaskMaterialPath {
+        if (!this::_taskMaterial.isInitialized)
+            _taskMaterial = TaskMaterialPath(this, null, TASK_MATERIAL__TASK_MATERIAL_PROJECT_ID_TASK_ID_FKEY.inverseKey)
+
+        return _taskMaterial;
+    }
+
+    val taskMaterial: TaskMaterialPath
+        get(): TaskMaterialPath = taskMaterial()
 
     private lateinit var _taskPersonalState: TaskPersonalStatePath
 

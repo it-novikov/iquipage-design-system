@@ -332,3 +332,14 @@
 /* Action feedback (DS vnext.35): a reply that is still loading shows its outline only after the DS loading delay, so a
    fast answer never flashes a skeleton. */
 .iq-message[data-state=loading]{animation:iq-loading-appear var(--iq-motion-standard) var(--iq-ease) var(--iq-loading-delay) backwards}
+
+/* Material links are task-owned content, composed from public section, menu and disclosure controls. */
+.task-materials-section{display:grid;gap:var(--iq-space-5);min-width:0}
+.task-materials-section[hidden]{display:none}
+.task-material-group{min-width:0}
+.task-material-row{display:flex;align-items:center;gap:var(--iq-space-3);padding-block:var(--iq-space-2);min-width:0}
+.task-material-copy{display:grid;gap:var(--iq-space-1);min-width:0;flex:1}
+.task-material-copy>a{display:block;overflow-wrap:anywhere}
+.task-material-copy .iq-helper{margin:0;overflow-wrap:anywhere}
+.task-material-empty{display:flex;flex-wrap:wrap;gap:var(--iq-space-2)}
+.task-editor-supplements>.task-materials-section:has(>.task-material-empty):not(:has(.task-material-group)){padding-block:var(--iq-space-3)}
