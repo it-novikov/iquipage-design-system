@@ -3,7 +3,9 @@
 -- artifact without the budget plan. It destroys every category, plan, version, line and explanation; entries keep
 -- their category name as the text they had before 072 and lose their release. Take a backup first. Run it on the
 -- migration role (the owner of the tables) in one transaction, with the API and worker stopped, then start the
--- previous artifact. Flyway never reads this directory; the file ships with the artifact so the step is always at
+-- compatible artifact. Later unrelated migrations (including agent work 077) stay applied: use an artifact
+-- that includes their exact ledger, or restore the full pre-release database backup for a full-image rollback.
+-- Flyway never reads this directory; the file ships with the artifact so the step is always at
 -- hand. Tasks created for explanations stay: they are ordinary tasks.
 BEGIN;
 -- The ledger's read policies of V20260929000025 come back first; then nothing needs auth.projects_with.

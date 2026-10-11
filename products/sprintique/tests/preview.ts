@@ -20,6 +20,10 @@ const f=await fixture({web:true,devLogin:true,storage,port,appOrigin:origin,...(
   SPRINTIQUE_SMTP_SECURITY:'none',SPRINTIQUE_MAIL_FROM:'Sprintique <no-reply@iqui.page>'}}:{mailDrop:mail,settings:api})});
 await f.app.inject({method:'PUT',url:`/api/v1/projects/${f.first.id}/tasks/demo-task`,headers:{...f.alice.headers,'idempotency-key':randomUUID()},payload:{baseRevision:0,createInBoard:true,task:{title:'Проверить новую платформу',description:'## Готовность\n\n- [ ] Создать задачу\n- [ ] Проверить обсуждения'}}});
 const seeded=await seedDevData(f.app,f.admin,origin);
+if(process.env['PREVIEW_WORK']==='1'){
+  const {seedWorkPreview}=await import('./work-preview-seed.js');
+  console.log('Agent work preview: '+await seedWorkPreview(f.app,f.admin,seeded.adminId,origin));
+}
 const state=join(process.env['TEST_FIXTURE_DIR']!,'browser-state.json');
 await writeFile(state,JSON.stringify({cookies:[{name:'__Host-sprintique',value:f.alice.token,domain:new URL(origin).hostname,path:'/',expires:-1,httpOnly:true,secure:true,sameSite:'Lax'}],origins:[]}),{mode:0o600});
 console.log(`Sprintique local stand: ${origin} — вход admin / admin`+(storage?'':' (без файлового хранилища)'));

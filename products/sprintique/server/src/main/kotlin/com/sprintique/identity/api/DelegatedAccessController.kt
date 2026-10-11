@@ -83,10 +83,10 @@ data class ServiceAccountProjectRequest(
     val projectId: String,
     @field:Pattern(regexp = UUID)
     val presetId: String? = null,
-    @field:Size(max = 14)
+    @field:Size(max = 15)
     @field:UniqueItems
     val granted: List<ProjectPermissionName> = emptyList(),
-    @field:Size(max = 14)
+    @field:Size(max = 15)
     @field:UniqueItems
     val revoked: List<ProjectPermissionName> = emptyList(),
 ) {
@@ -133,10 +133,10 @@ data class ReassignServiceAccountRequest(
 data class SetServiceAccountProjectRequest(
     @field:Pattern(regexp = UUID)
     val presetId: String? = null,
-    @field:Size(max = 14)
+    @field:Size(max = 15)
     @field:UniqueItems
     val granted: List<ProjectPermissionName> = emptyList(),
-    @field:Size(max = 14)
+    @field:Size(max = 15)
     @field:UniqueItems
     val revoked: List<ProjectPermissionName> = emptyList(),
 )

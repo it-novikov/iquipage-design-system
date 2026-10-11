@@ -44,7 +44,7 @@ export const CreateProject = z.strictObject({
   key: z.string().regex(/^[A-Z][A-Z0-9]{1,9}$/),
   timezone:Timezone.nullable().default(null)
 });
-export const Capability = z.enum(['tasks:read','tasks:write','threads:read','threads:write','maps:read','maps:write']);
+export const Capability = z.enum(['tasks:read','tasks:write','work:write','threads:read','threads:write','maps:read','maps:write']);
 export type Capability = z.infer<typeof Capability>;
 export const AgentGrant = z.strictObject({
   name: z.string().trim().min(1).max(100),

@@ -140,8 +140,14 @@ export const saveIndicator=feedbackModule.saveIndicator;
 export const uploadProgress=feedbackModule.uploadProgress;
 // The switcher: a quiet text label with a chevron that opens the choices, current one checked (vnext.36).
 export const switcher=m13.switcher;
-export const version='0.6.0-vnext.38';
+export const version='0.6.0-vnext.39';
 export function registerCore(){
  registerAuthDialog();registerAuthScreen();registerSettings();registerRelationMap();registerComponents();registerDateFields();registerEditors();registerPagination();registerStructured();registerSideNavigation();registerWorkHeader();registerMarkdownViewer();registerWorkLayout();
  if(!customElements.get('iq-file-preview'))customElements.define('iq-file-preview',IqFilePreview);
 }
+
+// Human-readable work and decisions (vnext.39), with host-owned persistence.
+import workStory from './modules/work-story.js';
+export const workEntry=workStory.workEntry;
+export const workStep=workStory.workStep;
+export const workQuestion=workStory.workQuestion;

@@ -6,6 +6,7 @@ import com.sprintique.identity.application.ProjectAccess
 import com.sprintique.identity.domain.Actor
 import com.sprintique.notification.domain.MentionCandidate
 import com.sprintique.notification.domain.Mentions
+import com.sprintique.work.application.WorkParticipation
 
 /**
  * A mention of a service account in a task discussion starts its agent (docs/decisions/0005-ai-agents.md): the
@@ -28,7 +29,11 @@ object AgentMentions {
             projectId,
         ).map { MentionCandidate(it.string("id"), it.string("name"), service = true) }
         for (account in Mentions.find(body, accounts) - actor.id) {
-            tx.rows("SELECT run_id FROM app.ai_run_mention($1, $2, $3)", projectId, messageId, account)
+            val queued = tx.rows("SELECT run_id FROM app.ai_run_mention($1, $2, $3)", projectId, messageId, account)
+            if (actor.isHuman && Permission.WORK_WRITE in permissions) {
+                val run = queued.firstOrNull()?.string("run_id")
+                WorkParticipation.mention(tx, actor, projectId, messageId, account, run)
+            }
         }
     }
 }

@@ -125,7 +125,9 @@ class ServiceAccountMigrationIntegrationTest {
         assertThat(reports.string("key")).isEqualTo("service_tasks")
         assertThat(reports.strings("granted")).containsExactly("maps.write", "finance.read")
         assertThat(reports.strings("permissions"))
-            .containsExactly("tasks.read", "tasks.write", "threads.write", "maps.read", "maps.write", "finance.read")
+            .containsExactly(
+                "tasks.read", "tasks.write", "work.write", "threads.write", "maps.read", "maps.write", "finance.read",
+            )
         val reader = rows.getValue("sa_reader")
         assertThat(reader.string("key")).isEqualTo("service_read")
         assertThat(reader.strings("permissions")).containsExactly("tasks.read", "maps.read")

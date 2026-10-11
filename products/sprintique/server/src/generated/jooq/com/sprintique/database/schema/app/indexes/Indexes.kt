@@ -30,6 +30,8 @@ import com.sprintique.database.schema.app.tables.ProjectMembers
 import com.sprintique.database.schema.app.tables.TaskActivity
 import com.sprintique.database.schema.app.tables.TaskLinks
 import com.sprintique.database.schema.app.tables.TaskPersonalState
+import com.sprintique.database.schema.app.tables.TaskWorkEvent
+import com.sprintique.database.schema.app.tables.TaskWorkSession
 import com.sprintique.database.schema.app.tables.Tasks
 import com.sprintique.database.schema.app.tables.TelegramLinkTokens
 import com.sprintique.database.schema.app.tables.TelegramUpdates
@@ -88,6 +90,9 @@ val TASK_LINK_TO: Index = Internal.createIndex(DSL.name("task_link_to"), TaskLin
 val TASK_OWNER: Index = Internal.createIndex(DSL.name("task_owner"), Tasks.TASKS, arrayOf(Tasks.TASKS.PROJECT_ID, Tasks.TASKS.OWNER_ID), false)
 val TASK_PARENT: Index = Internal.createIndex(DSL.name("task_parent"), Tasks.TASKS, arrayOf(Tasks.TASKS.PROJECT_ID, Tasks.TASKS.PARENT_ID), false)
 val TASK_RELEASE: Index = Internal.createIndex(DSL.name("task_release"), Tasks.TASKS, arrayOf(Tasks.TASKS.PROJECT_ID, Tasks.TASKS.RELEASE_ID), false)
+val TASK_WORK_EVENT_PAGE: Index = Internal.createIndex(DSL.name("task_work_event_page"), TaskWorkEvent.TASK_WORK_EVENT, arrayOf(TaskWorkEvent.TASK_WORK_EVENT.PROJECT_ID, TaskWorkEvent.TASK_WORK_EVENT.TASK_ID, TaskWorkEvent.TASK_WORK_EVENT.CREATED_AT.desc(), TaskWorkEvent.TASK_WORK_EVENT.ID.desc()), false)
+val TASK_WORK_SESSION_ACTIVE: Index = Internal.createIndex(DSL.name("task_work_session_active"), TaskWorkSession.TASK_WORK_SESSION, arrayOf(TaskWorkSession.TASK_WORK_SESSION.PROJECT_ID, TaskWorkSession.TASK_WORK_SESSION.TASK_ID, TaskWorkSession.TASK_WORK_SESSION.AGENT_ID, TaskWorkSession.TASK_WORK_SESSION.MODE), true)
+val TASK_WORK_SESSION_TASK: Index = Internal.createIndex(DSL.name("task_work_session_task"), TaskWorkSession.TASK_WORK_SESSION, arrayOf(TaskWorkSession.TASK_WORK_SESSION.PROJECT_ID, TaskWorkSession.TASK_WORK_SESSION.TASK_ID, TaskWorkSession.TASK_WORK_SESSION.STARTED_AT.desc(), TaskWorkSession.TASK_WORK_SESSION.ID), false)
 val TELEGRAM_LINK_TOKENS_PERSON: Index = Internal.createIndex(DSL.name("telegram_link_tokens_person"), TelegramLinkTokens.TELEGRAM_LINK_TOKENS, arrayOf(TelegramLinkTokens.TELEGRAM_LINK_TOKENS.PRINCIPAL_ID, TelegramLinkTokens.TELEGRAM_LINK_TOKENS.CREATED_AT.desc()), false)
 val TELEGRAM_UPDATES_AGE: Index = Internal.createIndex(DSL.name("telegram_updates_age"), TelegramUpdates.TELEGRAM_UPDATES, arrayOf(TelegramUpdates.TELEGRAM_UPDATES.RECEIVED_AT), false)
 val THREAD_TASK_PAGE: Index = Internal.createIndex(DSL.name("thread_task_page"), Threads.THREADS, arrayOf(Threads.THREADS.PROJECT_ID, Threads.THREADS.TASK_ID, Threads.THREADS.LAST_ACTIVITY_AT.desc(), Threads.THREADS.ID), false)

@@ -4,6 +4,8 @@ import com.sprintique.access.domain.Permission
 import com.sprintique.ai.domain.ToolCall
 import com.sprintique.ai.domain.ToolResult
 import com.sprintique.ai.domain.ToolSpec
+import com.sprintique.configuration.Feature
+import com.sprintique.configuration.FeatureFlags
 import com.sprintique.database.Database
 import com.sprintique.database.Transaction
 import com.sprintique.identity.application.ProjectAccess
@@ -37,13 +39,17 @@ class AgentTools(
     private val credentials: RuntimeCredentials,
     private val database: Database,
     private val json: JsonMapper,
+    private val flags: FeatureFlags,
 ) {
     private val log = LoggerFactory.getLogger(AgentTools::class.java)
 
     /** The tools the account may use in the project now; a refused call is still refused when it is made. */
     fun specs(tx: Transaction, actor: Actor, projectId: String): List<ToolSpec> {
         val has = ProjectAccess.membership(tx, actor, projectId)?.permissions.orEmpty()
-        return OFFERED.filter { (_, needs) -> needs in has }.mapNotNull { (name, _) -> mcp.find(name) }.map(::spec)
+        return OFFERED.filter { (name, needs) ->
+            needs in has &&
+                (name !in WORK_TOOLS || flags.isEnabled(Feature.AGENT_WORK))
+        }.mapNotNull { (name, _) -> mcp.find(name) }.map(::spec)
     }
 
     fun execute(lease: RunLease, credentialId: String, call: ToolCall, key: String): ToolResult {
@@ -158,6 +164,15 @@ class AgentTools(
     companion object {
         /** The tools an agent is offered and the permission each needs to be offered. */
         val OFFERED: Map<String, Permission> = linkedMapOf(
+            "get_work_plan" to Permission.TASKS_READ,
+            "get_work_brief" to Permission.TASKS_READ,
+            "list_work_skills" to Permission.TASKS_READ,
+            "get_work_skill" to Permission.TASKS_READ,
+            "change_work_lease" to Permission.WORK_WRITE,
+            "save_work_checkpoint" to Permission.WORK_WRITE,
+            "create_work_question" to Permission.WORK_WRITE,
+            "change_work_step" to Permission.WORK_WRITE,
+            "handoff_work" to Permission.WORK_WRITE,
             "get_task" to Permission.TASKS_READ,
             "search_tasks" to Permission.TASKS_READ,
             "list_releases" to Permission.TASKS_READ,
@@ -166,6 +181,10 @@ class AgentTools(
             "update_task" to Permission.TASKS_WRITE,
             "change_task_status" to Permission.TASKS_WRITE,
             "create_task" to Permission.TASKS_WRITE,
+        )
+        private val WORK_TOOLS = setOf(
+            "get_work_plan", "get_work_brief", "list_work_skills", "get_work_skill",
+            "change_work_lease", "save_work_checkpoint", "create_work_question", "change_work_step", "handoff_work",
         )
         private val INJECTED = setOf("projectId", "idempotencyKey")
         private val TEXTS = setOf("body", "description", "title", "query")

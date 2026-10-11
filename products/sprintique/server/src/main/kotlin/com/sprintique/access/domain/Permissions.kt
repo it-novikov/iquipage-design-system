@@ -142,6 +142,7 @@ enum class SystemPreset(val key: String, val human: Boolean, defaults: List<Perm
         true,
         listOf(
             Permission.TASKS_WRITE,
+            Permission.WORK_WRITE,
             Permission.THREADS_WRITE,
             Permission.RELEASES_MANAGE,
             Permission.MAPS_WRITE,
@@ -159,7 +160,7 @@ enum class SystemPreset(val key: String, val human: Boolean, defaults: List<Perm
     SERVICE_TASKS(
         "service_tasks",
         false,
-        listOf(Permission.TASKS_WRITE, Permission.THREADS_WRITE, Permission.MAPS_READ),
+        listOf(Permission.TASKS_WRITE, Permission.WORK_WRITE, Permission.THREADS_WRITE, Permission.MAPS_READ),
     ),
     ;
 

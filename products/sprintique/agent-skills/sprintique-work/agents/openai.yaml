@@ -1,0 +1,5 @@
+interface:
+  display_name: "Sprintique · Работа в задаче"
+  short_description: "План, контрольные точки и передача через MCP"
+policy:
+  allow_implicit_invocation: true

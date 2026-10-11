@@ -1,7 +1,7 @@
 import {z} from 'zod';
 import {Id,Revision} from './index.js';
 // Permissions, presets, workspace people and invitations (docs/access/access-and-invitations.md, part I).
-export const PROJECT_PERMISSIONS=['tasks.read','tasks.write','threads.write','releases.manage','maps.read','maps.write','finance.read','finance.write',
+export const PROJECT_PERMISSIONS=['tasks.read','tasks.write','work.write','threads.write','releases.manage','maps.read','maps.write','finance.read','finance.write',
   'approvals.decide','agents.manage','members.invite','members.manage','project.settings','project.access'] as const;
 export const WORKSPACE_PERMISSIONS=['workspace.invite','workspace.people','projects.create','projects.oversee','workspace.settings'] as const;
 export const ProjectPermission=z.enum(PROJECT_PERMISSIONS);
@@ -10,10 +10,10 @@ export type ProjectPermission=z.infer<typeof ProjectPermission>;
 const permissions=(max:number,item:z.ZodType)=>z.array(item).max(max).refine(v=>new Set(v).size===v.length);
 const AssignableWorkspaceRole=z.enum(['admin','member','guest']);
 const PresetName=z.string().trim().min(1).max(40),PresetHint=z.string().trim().max(140).default('');
-export const CreatePreset=z.strictObject({id:z.uuid(),name:PresetName,hint:PresetHint,permissions:permissions(14,ProjectPermission)});
-export const PutPreset=z.strictObject({baseRevision:Revision,name:PresetName,hint:PresetHint,permissions:permissions(14,ProjectPermission)});
+export const CreatePreset=z.strictObject({id:z.uuid(),name:PresetName,hint:PresetHint,permissions:permissions(15,ProjectPermission)});
+export const PutPreset=z.strictObject({baseRevision:Revision,name:PresetName,hint:PresetHint,permissions:permissions(15,ProjectPermission)});
 export const ResetPreset=z.strictObject({baseRevision:Revision});
-export const ChangeMemberAccess=z.strictObject({baseRevision:Revision,presetId:z.uuid(),granted:permissions(14,ProjectPermission).default([]),revoked:permissions(14,ProjectPermission).default([])});
+export const ChangeMemberAccess=z.strictObject({baseRevision:Revision,presetId:z.uuid(),granted:permissions(15,ProjectPermission).default([]),revoked:permissions(15,ProjectPermission).default([])});
 export const AddMember=z.strictObject({principalId:Id,presetId:z.uuid().nullable().default(null)});
 export const HandoverAccess=z.strictObject({baseRevision:Revision,presetId:z.uuid()});
 export const PutProjectAccess=z.strictObject({baseRevision:Revision,defaultMemberPresetId:z.uuid().nullable(),defaultGuestPresetId:z.uuid().nullable()});

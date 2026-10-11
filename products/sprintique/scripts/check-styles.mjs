@@ -2,8 +2,9 @@
 // public component variants, no reach into component internals, no ad-hoc inline styling.
 import {readFile,readdir} from 'node:fs/promises';
 import {join,relative} from 'node:path';
+import {fileURLToPath} from 'node:url';
 
-const root=new URL('..',import.meta.url).pathname;
+const root=fileURLToPath(new URL('..',import.meta.url));
 async function files(dir,pattern){
   const out=[];
   for(const entry of await readdir(join(root,dir),{withFileTypes:true})){

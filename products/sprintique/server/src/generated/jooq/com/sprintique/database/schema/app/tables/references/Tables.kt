@@ -8,6 +8,8 @@ package com.sprintique.database.schema.app.tables.references
 import com.sprintique.database.schema.app.tables.AccessPresets
 import com.sprintique.database.schema.app.tables.AgentRunPlans
 import com.sprintique.database.schema.app.tables.AgentRuns
+import com.sprintique.database.schema.app.tables.AgentSkillVersion
+import com.sprintique.database.schema.app.tables.AgentWorkProfile
 import com.sprintique.database.schema.app.tables.AiAgentProfiles
 import com.sprintique.database.schema.app.tables.AiAgentRunSteps
 import com.sprintique.database.schema.app.tables.AiAgentRuns
@@ -62,6 +64,10 @@ import com.sprintique.database.schema.app.tables.TaskPersonalState
 import com.sprintique.database.schema.app.tables.TaskSettings
 import com.sprintique.database.schema.app.tables.TaskSettingsVersions
 import com.sprintique.database.schema.app.tables.TaskTags
+import com.sprintique.database.schema.app.tables.TaskWorkEvent
+import com.sprintique.database.schema.app.tables.TaskWorkPlan
+import com.sprintique.database.schema.app.tables.TaskWorkRequest
+import com.sprintique.database.schema.app.tables.TaskWorkSession
 import com.sprintique.database.schema.app.tables.Tasks
 import com.sprintique.database.schema.app.tables.TelegramConnections
 import com.sprintique.database.schema.app.tables.TelegramLinkTokens
@@ -92,6 +98,10 @@ val ACCESS_PRESETS: AccessPresets = AccessPresets.ACCESS_PRESETS
 val AGENT_RUN_PLANS: AgentRunPlans = AgentRunPlans.AGENT_RUN_PLANS
 
 val AGENT_RUNS: AgentRuns = AgentRuns.AGENT_RUNS
+
+val AGENT_SKILL_VERSION: AgentSkillVersion = AgentSkillVersion.AGENT_SKILL_VERSION
+
+val AGENT_WORK_PROFILE: AgentWorkProfile = AgentWorkProfile.AGENT_WORK_PROFILE
 
 val AI_AGENT_PROFILES: AiAgentProfiles = AiAgentProfiles.AI_AGENT_PROFILES
 
@@ -355,6 +365,14 @@ val TASK_SETTINGS: TaskSettings = TaskSettings.TASK_SETTINGS
 val TASK_SETTINGS_VERSIONS: TaskSettingsVersions = TaskSettingsVersions.TASK_SETTINGS_VERSIONS
 
 val TASK_TAGS: TaskTags = TaskTags.TASK_TAGS
+
+val TASK_WORK_EVENT: TaskWorkEvent = TaskWorkEvent.TASK_WORK_EVENT
+
+val TASK_WORK_PLAN: TaskWorkPlan = TaskWorkPlan.TASK_WORK_PLAN
+
+val TASK_WORK_REQUEST: TaskWorkRequest = TaskWorkRequest.TASK_WORK_REQUEST
+
+val TASK_WORK_SESSION: TaskWorkSession = TaskWorkSession.TASK_WORK_SESSION
 
 val TASKS: Tasks = Tasks.TASKS
 

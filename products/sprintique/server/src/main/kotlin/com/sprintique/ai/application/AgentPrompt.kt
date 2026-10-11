@@ -71,7 +71,13 @@ object AgentPrompt {
     data class Mention(val threadId: String, val author: String, val text: String)
 
     /** The first user message: the task as it is now, trimmed, as data between markers with an id of [nonce]. */
-    fun task(json: JsonMapper, task: JsonNode, nonce: String, mention: Mention? = null): String {
+    fun task(
+        json: JsonMapper,
+        task: JsonNode,
+        nonce: String,
+        mention: Mention? = null,
+        instruction: Map<String, Any?>? = null,
+    ): String {
         val data = task.path("data").takeIf { it.isObject } ?: task
         val compact = linkedMapOf<String, Any?>(
             "key" to text(data, "key"),
@@ -103,6 +109,7 @@ object AgentPrompt {
                 )
             },
         )
+        if (instruction != null) compact["workInstruction"] = instruction
         if (mention != null) {
             compact["mention"] = mapOf(
                 "threadId" to mention.threadId,

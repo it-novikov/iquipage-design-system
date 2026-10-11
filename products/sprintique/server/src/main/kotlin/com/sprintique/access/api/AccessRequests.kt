@@ -16,10 +16,11 @@ import jakarta.validation.constraints.Pattern
 import jakarta.validation.constraints.Size
 import tools.jackson.databind.annotation.JsonDeserialize
 
-/** The fourteen project permissions by their names on the wire. */
+/** The project permissions by their names on the wire. */
 enum class ProjectPermissionName(@get:JsonValue val wire: String) {
     TASKS_READ("tasks.read"),
     TASKS_WRITE("tasks.write"),
+    WORK_WRITE("work.write"),
     THREADS_WRITE("threads.write"),
     RELEASES_MANAGE("releases.manage"),
     MAPS_READ("maps.read"),
@@ -71,7 +72,7 @@ data class CreatePresetRequest(
     @field:JsonDeserialize(using = TrimmedString::class)
     @field:Size(max = 140)
     val hint: String = "",
-    @field:Size(max = 14)
+    @field:Size(max = 15)
     @field:UniqueItems
     val permissions: List<ProjectPermissionName>,
 )
@@ -86,7 +87,7 @@ data class PutPresetRequest(
     @field:JsonDeserialize(using = TrimmedString::class)
     @field:Size(max = 140)
     val hint: String = "",
-    @field:Size(max = 14)
+    @field:Size(max = 15)
     @field:UniqueItems
     val permissions: List<ProjectPermissionName>,
 )
@@ -103,10 +104,10 @@ data class ChangeMemberAccessRequest(
     val baseRevision: Long,
     @field:Pattern(regexp = UUID)
     val presetId: String,
-    @field:Size(max = 14)
+    @field:Size(max = 15)
     @field:UniqueItems
     val granted: List<ProjectPermissionName> = emptyList(),
-    @field:Size(max = 14)
+    @field:Size(max = 15)
     @field:UniqueItems
     val revoked: List<ProjectPermissionName> = emptyList(),
 )

@@ -16,6 +16,7 @@ import com.sprintique.access.domain.Permission.TASKS_WRITE
 import com.sprintique.access.domain.Permission.THREADS_WRITE
 import com.sprintique.access.domain.Permission.WORKSPACE_INVITE
 import com.sprintique.access.domain.Permission.WORKSPACE_PEOPLE
+import com.sprintique.access.domain.Permission.WORK_WRITE
 import com.sprintique.access.domain.PermissionScope
 import com.sprintique.access.domain.Permissions
 import com.sprintique.access.domain.SystemPreset
@@ -27,8 +28,8 @@ import org.junit.jupiter.api.Test
 /** The permission rules of docs/access/access-and-invitations.md, sections 3.1–3.4 (PR01, PR10). */
 class PermissionsTest {
     @Test
-    fun `the catalog has fourteen project and five workspace permissions with acyclic dependencies in scope`() {
-        assertThat(Permission.PROJECT).hasSize(14)
+    fun `the catalog has fifteen project and five workspace permissions with acyclic dependencies in scope`() {
+        assertThat(Permission.PROJECT).hasSize(15)
         assertThat(Permission.WORKSPACE).hasSize(5)
         for (permission in Permission.entries) {
             assertThat(permission.includes).allMatch { it.scope == permission.scope && it != permission }
@@ -53,6 +54,7 @@ class PermissionsTest {
         assertThat(SystemPreset.EDITOR.defaults).containsExactly(
             TASKS_READ,
             TASKS_WRITE,
+            WORK_WRITE,
             THREADS_WRITE,
             RELEASES_MANAGE,
             MAPS_READ,
@@ -63,7 +65,7 @@ class PermissionsTest {
         assertThat(SystemPreset.READER.defaults).containsExactly(TASKS_READ, THREADS_WRITE, MAPS_READ, FINANCE_READ)
         assertThat(SystemPreset.GUEST.defaults).containsExactly(TASKS_READ, THREADS_WRITE, MAPS_READ)
         assertThat(SystemPreset.SERVICE_TASKS.defaults)
-            .containsExactly(TASKS_READ, TASKS_WRITE, THREADS_WRITE, MAPS_READ)
+            .containsExactly(TASKS_READ, TASKS_WRITE, WORK_WRITE, THREADS_WRITE, MAPS_READ)
         assertThat(SystemPreset.entries.filterNot { it.human }.flatMap { it.defaults })
             .noneMatch { it.service != Permission.ServiceUse.PRESET }
     }

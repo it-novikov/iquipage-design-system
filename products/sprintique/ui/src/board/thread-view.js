@@ -303,6 +303,12 @@ export function mountThreads(root,{repository,task,readOnly=false,people=new Map
   const unsubscribe=repository.subscribe?.(event=>{if(event.collection==='threads'&&event.projectId===task.projectId&&!closed)reload();});
   reload();
   return {reload,
+    async open(id,messageId){
+      let thread=items.find(item=>item.id===id);
+      if(!thread||messageId){thread=await repository.read('threads',id,task.projectId,{signal:abort.signal});if(closed||!thread||thread.taskId!==task.id)return;fullThreads.set(id,thread);expanded.add(id);pager.remember(thread);await reload();}
+      expanded.add(id);markSeen(thread);draw();
+      const node=root.querySelector(`[data-thread="${CSS.escape(id)}"]`),message=messageId?node?.querySelector(`[data-message="${CSS.escape(messageId)}"]`):null;(message||node)?.scrollIntoView({block:'center'});node?.querySelector('button')?.focus({preventScroll:true});
+    },
     dirty(){return asQuestion||!!composer?.value.trim()||[...drafts.values()].some(value=>value.trim());},
     isBusy:()=>busy.size>0,
     destroy(){closed=true;unsubscribe?.();abort.abort();pager.destroy();for(const value of detailRequests.values())value.controller.abort();detailRequests.clear();fullThreads.clear();}};

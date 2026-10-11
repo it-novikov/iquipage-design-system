@@ -25,6 +25,13 @@ test('R4-REL-02 fingerprints HTML and detects changed, added and removed inputs,
     assert.deepEqual(changedInputs(after,await sourceInputs(root)),[]);
     await put('libraries/iquipage/src/template.html','ACTUAL TEMPLATE INPUT');
     assert.deepEqual(changedInputs(after,await sourceInputs(root)),['libraries/iquipage/src/template.html']);
+    const backendBefore=await sourceInputs(root);
+    const backendPaths=['products/sprintique/server/src/main/kotlin/Work.kt','products/sprintique/server/build.gradle.kts','products/sprintique/server/gradle/libs.versions.toml','products/sprintique/server/gradle/wrapper/gradle-wrapper.properties','products/sprintique/server/gradlew'];
+    for(const path of backendPaths)await put(path,'BACKEND BUILD INPUT');
+    assert.deepEqual(changedInputs(backendBefore,await sourceInputs(root)),backendPaths.sort());
+    const backendAfter=await sourceInputs(root);
+    await put(backendPaths.find(path=>path.endsWith('Work.kt')),'CHANGED BACKEND');
+    assert.deepEqual(changedInputs(backendAfter,await sourceInputs(root)),['products/sprintique/server/src/main/kotlin/Work.kt']);
     await symlink(join(root,'products/sprintique/.env'),join(root,'products/sprintique/web/leak.json'));
     await assert.rejects(sourceInputs(root),/refuses symlinks/);
   }finally{await rm(root,{recursive:true,force:true});}

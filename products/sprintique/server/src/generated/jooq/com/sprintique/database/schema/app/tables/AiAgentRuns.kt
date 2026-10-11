@@ -19,9 +19,11 @@ import com.sprintique.database.schema.app.keys.AI_AGENT_RUNS__AI_AGENT_RUNS_PROJ
 import com.sprintique.database.schema.app.keys.AI_AGENT_RUNS__AI_AGENT_RUNS_PROJECT_ID_TASK_ID_FKEY
 import com.sprintique.database.schema.app.keys.AI_AGENT_RUNS__AI_AGENT_RUNS_REQUESTED_BY_FKEY
 import com.sprintique.database.schema.app.keys.AI_AGENT_RUN_STEPS__AI_AGENT_RUN_STEPS_PROJECT_ID_RUN_ID_FKEY
+import com.sprintique.database.schema.app.keys.TASK_WORK_SESSION__TASK_WORK_SESSION_PROJECT_ID_AI_RUN_ID_FKEY
 import com.sprintique.database.schema.app.tables.AiAgentRunSteps.AiAgentRunStepsPath
 import com.sprintique.database.schema.app.tables.AiConnections.AiConnectionsPath
 import com.sprintique.database.schema.app.tables.Projects.ProjectsPath
+import com.sprintique.database.schema.app.tables.TaskWorkSession.TaskWorkSessionPath
 import com.sprintique.database.schema.app.tables.Tasks.TasksPath
 import com.sprintique.database.schema.app.tables.records.AiAgentRunsRecord
 import com.sprintique.database.schema.auth.tables.Credentials.CredentialsPath
@@ -208,6 +210,18 @@ open class AiAgentRuns(
 
     val aiAgentRunSteps: AiAgentRunStepsPath
         get(): AiAgentRunStepsPath = aiAgentRunSteps()
+
+    private lateinit var _taskWorkSession: TaskWorkSessionPath
+
+    fun taskWorkSession(): TaskWorkSessionPath {
+        if (!this::_taskWorkSession.isInitialized)
+            _taskWorkSession = TaskWorkSessionPath(this, null, TASK_WORK_SESSION__TASK_WORK_SESSION_PROJECT_ID_AI_RUN_ID_FKEY.inverseKey)
+
+        return _taskWorkSession;
+    }
+
+    val taskWorkSession: TaskWorkSessionPath
+        get(): TaskWorkSessionPath = taskWorkSession()
     override fun getChecks(): List<Check<AiAgentRunsRecord>> = listOf(
         Internal.createCheck(this, DSL.name("ai_agent_runs_attempts_check"), "(((attempts >= 0) AND (attempts <= 10)))", true),
         Internal.createCheck(this, DSL.name("ai_agent_runs_check"), "(((state = ANY (ARRAY['completed'::text, 'failed'::text, 'cancelled'::text])) = (finished_at IS NOT NULL)))", true),

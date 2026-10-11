@@ -9,6 +9,8 @@ import com.sprintique.database.schema.app.indexes.MESSAGE_THREAD_PAGE
 import com.sprintique.database.schema.app.keys.MESSAGES_PKEY
 import com.sprintique.database.schema.app.keys.MESSAGES__MESSAGES_AUTHOR_ID_FKEY
 import com.sprintique.database.schema.app.keys.MESSAGES__MESSAGES_PROJECT_ID_THREAD_ID_FKEY
+import com.sprintique.database.schema.app.keys.TASK_WORK_REQUEST__TASK_WORK_REQUEST_PROJECT_ID_MESSAGE_ID_FKEY
+import com.sprintique.database.schema.app.tables.TaskWorkRequest.TaskWorkRequestPath
 import com.sprintique.database.schema.app.tables.Threads.ThreadsPath
 import com.sprintique.database.schema.app.tables.records.MessagesRecord
 import com.sprintique.database.schema.auth.tables.Principals.PrincipalsPath
@@ -112,6 +114,18 @@ open class Messages(
 
     fun threads(): ThreadsPath = threads
     val threads: ThreadsPath by lazy { ThreadsPath(this, MESSAGES__MESSAGES_PROJECT_ID_THREAD_ID_FKEY, null) }
+
+    private lateinit var _taskWorkRequest: TaskWorkRequestPath
+
+    fun taskWorkRequest(): TaskWorkRequestPath {
+        if (!this::_taskWorkRequest.isInitialized)
+            _taskWorkRequest = TaskWorkRequestPath(this, null, TASK_WORK_REQUEST__TASK_WORK_REQUEST_PROJECT_ID_MESSAGE_ID_FKEY.inverseKey)
+
+        return _taskWorkRequest;
+    }
+
+    val taskWorkRequest: TaskWorkRequestPath
+        get(): TaskWorkRequestPath = taskWorkRequest()
     override fun getChecks(): List<Check<MessagesRecord>> = listOf(
         Internal.createCheck(this, DSL.name("messages_body_check"), "(((length(body) >= 1) AND (length(body) <= 20000)))", true)
     )

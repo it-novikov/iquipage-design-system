@@ -27,6 +27,7 @@ import tools.jackson.databind.annotation.JsonDeserialize
 enum class GrantedCapability(@get:JsonValue val wire: String, val capability: Capability) {
     TASKS_READ("tasks:read", Capability.TASKS_READ),
     TASKS_WRITE("tasks:write", Capability.TASKS_WRITE),
+    WORK_WRITE("work:write", Capability.WORK_WRITE),
     THREADS_READ("threads:read", Capability.THREADS_READ),
     THREADS_WRITE("threads:write", Capability.THREADS_WRITE),
     MAPS_READ("maps:read", Capability.MAPS_READ),
@@ -38,7 +39,7 @@ data class AgentGrantRequest(
     @field:JsonDeserialize(using = TrimmedString::class)
     @field:Size(min = 1, max = 100)
     val name: String,
-    @field:Size(min = 1, max = 6)
+    @field:Size(min = 1, max = 7)
     @field:UniqueItems
     val capabilities: List<GrantedCapability>,
     @field:Min(60)

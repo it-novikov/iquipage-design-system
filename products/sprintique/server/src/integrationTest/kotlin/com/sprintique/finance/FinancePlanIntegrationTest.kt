@@ -278,7 +278,12 @@ class FinancePlanIntegrationTest {
                           AND NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'app'
                             AND table_name IN ('finance_entry', 'finance_entry_version')
                             AND column_name IN ('category_id', 'release_id'))
-                          AND NOT EXISTS (SELECT 1 FROM public.flyway_schema_history WHERE version >= '20261001000072')
+                          AND NOT EXISTS (SELECT 1 FROM public.flyway_schema_history
+                            WHERE version IN ('20261001000072','20261001000073','20261001000074',
+                              '20261001000075','20261001000076'))
+                          AND EXISTS (SELECT 1 FROM public.flyway_schema_history WHERE version='20261011000077')
+                          AND to_regclass('app.task_work_plan') IS NOT NULL
+                          AND 'work.write'=ANY(auth.project_permission_catalog())
                           AND (SELECT relforcerowsecurity FROM pg_class WHERE oid = 'app.outbox'::regclass)
                           AND NOT EXISTS (SELECT 1 FROM app.outbox WHERE project_id = '$project')
                           AND NOT EXISTS (SELECT 1 FROM app.idempotency WHERE project_id = '$project') AS removed
@@ -289,7 +294,7 @@ class FinancePlanIntegrationTest {
                     }
                 }
                 assertThat(removed).isTrue()
-                // The ledger of the previous artifact works again: an entry with a text category and its version.
+                // The finance ledger works with text categories again; unrelated work schema and ledger remain intact.
                 connection.createStatement().use {
                     it.execute(
                         """

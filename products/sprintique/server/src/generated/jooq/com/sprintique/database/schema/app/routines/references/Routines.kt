@@ -26,6 +26,7 @@ import com.sprintique.database.schema.app.routines.TelegramChatPerson
 import com.sprintique.database.schema.app.routines.TelegramLinkChat
 import com.sprintique.database.schema.app.routines.TelegramUnlinkChat
 import com.sprintique.database.schema.app.routines.TurnOffEmailNotifications
+import com.sprintique.database.schema.app.routines.WorkLifecycle
 import com.sprintique.database.schema.app.tables.AiConnectionSecret
 import com.sprintique.database.schema.app.tables.AiRunClaim
 import com.sprintique.database.schema.app.tables.AiRunEnqueue
@@ -797,6 +798,41 @@ fun turnOffEmailNotifications(
 ): Field<Boolean?> {
     val f = TurnOffEmailNotifications()
     f.setPerson(person)
+
+    return f.asField()
+}
+@Deprecated(message = "Unknown data type. Parameter type or return type is unknown. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
+fun workLifecycle(
+      configuration: Configuration
+    , project: String?
+    , target: Any?
+): Boolean? {
+    val f = WorkLifecycle()
+    f.setProject(project)
+    f.setTarget(target)
+
+    f.execute(configuration)
+    return f.returnValue
+}
+@Deprecated(message = "Unknown data type. Parameter type or return type is unknown. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
+fun workLifecycle(
+      project: String?
+    , target: Any?
+): Field<Boolean?> {
+    val f = WorkLifecycle()
+    f.setProject(project)
+    f.setTarget(target)
+
+    return f.asField()
+}
+@Deprecated(message = "Unknown data type. Parameter type or return type is unknown. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
+fun workLifecycle(
+      project: Field<String?>
+    , target: Field<Any?>
+): Field<Boolean?> {
+    val f = WorkLifecycle()
+    f.setProject(project)
+    f.setTarget(target)
 
     return f.asField()
 }

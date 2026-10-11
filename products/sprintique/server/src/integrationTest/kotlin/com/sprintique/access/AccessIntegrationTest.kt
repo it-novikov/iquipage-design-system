@@ -131,7 +131,7 @@ class AccessIntegrationTest {
         assertThat(rows.getValue(reader).strings("permissions"))
             .containsExactly("tasks.read", "threads.write", "maps.read", "finance.read")
         assertThat(rows.getValue(agent).strings("permissions"))
-            .containsExactly("tasks.read", "tasks.write", "threads.write", "maps.read")
+            .containsExactly("tasks.read", "tasks.write", "work.write", "threads.write", "maps.read")
         assertThat(rows.getValue(agent).string("role")).isEqualTo("editor")
         IntegrationDatabase.admin.transaction { tx ->
             val admin = presetId(tx, "admin")

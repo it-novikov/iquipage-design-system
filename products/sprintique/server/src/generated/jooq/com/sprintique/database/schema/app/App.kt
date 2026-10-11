@@ -8,6 +8,8 @@ import com.sprintique.database.schema.DefaultCatalog
 import com.sprintique.database.schema.app.tables.AccessPresets
 import com.sprintique.database.schema.app.tables.AgentRunPlans
 import com.sprintique.database.schema.app.tables.AgentRuns
+import com.sprintique.database.schema.app.tables.AgentSkillVersion
+import com.sprintique.database.schema.app.tables.AgentWorkProfile
 import com.sprintique.database.schema.app.tables.AiAgentProfiles
 import com.sprintique.database.schema.app.tables.AiAgentRunSteps
 import com.sprintique.database.schema.app.tables.AiAgentRuns
@@ -62,6 +64,10 @@ import com.sprintique.database.schema.app.tables.TaskPersonalState
 import com.sprintique.database.schema.app.tables.TaskSettings
 import com.sprintique.database.schema.app.tables.TaskSettingsVersions
 import com.sprintique.database.schema.app.tables.TaskTags
+import com.sprintique.database.schema.app.tables.TaskWorkEvent
+import com.sprintique.database.schema.app.tables.TaskWorkPlan
+import com.sprintique.database.schema.app.tables.TaskWorkRequest
+import com.sprintique.database.schema.app.tables.TaskWorkSession
 import com.sprintique.database.schema.app.tables.Tasks
 import com.sprintique.database.schema.app.tables.TelegramConnections
 import com.sprintique.database.schema.app.tables.TelegramLinkTokens
@@ -104,6 +110,10 @@ open class App : SchemaImpl(DSL.name("app"), DefaultCatalog.DEFAULT_CATALOG, DSL
     val AGENT_RUN_PLANS: AgentRunPlans get() = AgentRunPlans.AGENT_RUN_PLANS
 
     val AGENT_RUNS: AgentRuns get() = AgentRuns.AGENT_RUNS
+
+    val AGENT_SKILL_VERSION: AgentSkillVersion get() = AgentSkillVersion.AGENT_SKILL_VERSION
+
+    val AGENT_WORK_PROFILE: AgentWorkProfile get() = AgentWorkProfile.AGENT_WORK_PROFILE
 
     val AI_AGENT_PROFILES: AiAgentProfiles get() = AiAgentProfiles.AI_AGENT_PROFILES
 
@@ -368,6 +378,14 @@ open class App : SchemaImpl(DSL.name("app"), DefaultCatalog.DEFAULT_CATALOG, DSL
 
     val TASK_TAGS: TaskTags get() = TaskTags.TASK_TAGS
 
+    val TASK_WORK_EVENT: TaskWorkEvent get() = TaskWorkEvent.TASK_WORK_EVENT
+
+    val TASK_WORK_PLAN: TaskWorkPlan get() = TaskWorkPlan.TASK_WORK_PLAN
+
+    val TASK_WORK_REQUEST: TaskWorkRequest get() = TaskWorkRequest.TASK_WORK_REQUEST
+
+    val TASK_WORK_SESSION: TaskWorkSession get() = TaskWorkSession.TASK_WORK_SESSION
+
     val TASKS: Tasks get() = Tasks.TASKS
 
     val TELEGRAM_CONNECTIONS: TelegramConnections get() = TelegramConnections.TELEGRAM_CONNECTIONS
@@ -396,6 +414,8 @@ open class App : SchemaImpl(DSL.name("app"), DefaultCatalog.DEFAULT_CATALOG, DSL
         AccessPresets.ACCESS_PRESETS,
         AgentRunPlans.AGENT_RUN_PLANS,
         AgentRuns.AGENT_RUNS,
+        AgentSkillVersion.AGENT_SKILL_VERSION,
+        AgentWorkProfile.AGENT_WORK_PROFILE,
         AiAgentProfiles.AI_AGENT_PROFILES,
         AiAgentRunSteps.AI_AGENT_RUN_STEPS,
         AiAgentRuns.AI_AGENT_RUNS,
@@ -450,6 +470,10 @@ open class App : SchemaImpl(DSL.name("app"), DefaultCatalog.DEFAULT_CATALOG, DSL
         TaskSettings.TASK_SETTINGS,
         TaskSettingsVersions.TASK_SETTINGS_VERSIONS,
         TaskTags.TASK_TAGS,
+        TaskWorkEvent.TASK_WORK_EVENT,
+        TaskWorkPlan.TASK_WORK_PLAN,
+        TaskWorkRequest.TASK_WORK_REQUEST,
+        TaskWorkSession.TASK_WORK_SESSION,
         Tasks.TASKS,
         TelegramConnections.TELEGRAM_CONNECTIONS,
         TelegramLinkTokens.TELEGRAM_LINK_TOKENS,
