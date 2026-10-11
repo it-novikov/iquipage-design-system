@@ -344,3 +344,38 @@ test('P13 static response schemas are exposed and timezone input is validated',a
   const caps=await f.app.inject({url:`/api/v1/projects/${project.json().id}/planning/capabilities`,headers:f.alice.headers});assert.equal(caps.json().timezone,'Europe/Moscow');
 });
 // P09 (temporal relations use the correct ends and inclusive day boundaries) is Kotlin PlanningChangeTest.
+
+test('SPR24 board blockers use the complete authorized snapshot and update after completion or link removal',async()=>{
+  const waiting=await task('blocked-board-target');
+  const prerequisites:Array<{id:string;title:string}>=[];
+  for(let i=0;i<4;i++)prerequisites.push(await task('blocked-prerequisite-'+i));
+  await apply({kind:'prepare',selection:select(waiting.id),preparation:'ready'});
+  await apply({kind:'admission',selection:select(waiting.id),admitted:true});
+  async function link(id:string,fromId:string,toId:string,kind='depends',revision=0,archived=false){
+    const r=await request('PUT','task-links/'+id,{baseRevision:revision,value:{kind,fromId,toId,archived}});
+    assert.equal(r.statusCode,200,r.body);
+  }
+  for(let i=0;i<4;i++)await link('board-block-link-'+i,waiting.id,prerequisites[i]!.id);
+  const page=await request('GET','board/tasks?limit=1&q=blocked-board-target',undefined,f.reader.headers);
+  assert.equal(page.statusCode,200,page.body);
+  const projected=PlanningPageResponse.parse(page.json()).items.find(t=>t.id===waiting.id)!;
+  assert.ok(projected);assert.equal(projected.effectiveBlocked,true);assert.equal(projected.blockingTaskCount,4);
+  assert.equal(projected.blockers!.length,3);assert.ok(projected.blockers!.every(b=>prerequisites.some(t=>t.id===b.id)));
+  assert.equal((await request('GET','planning/tasks?q=blocked-prerequisite-0')).json().items[0].effectiveBlocked,false);
+  // A blocker outside the visible board page must still count, but a related link never blocks.
+  await link('board-related-only',prerequisites[0]!.id,waiting.id,'related');
+  const finished=await row(prerequisites[0]!.id);
+  const completed=await request('PUT','tasks/'+finished.id,{baseRevision:finished.revision,task:{...content(finished),status:'ready_for_release'}});
+  assert.equal(completed.statusCode,200,completed.body);
+  assert.equal((await rows('?q=blocked-board-target')).items[0]!.blockingTaskCount,3);
+  await link('board-block-link-1',waiting.id,prerequisites[1]!.id,'depends',1,true);
+  assert.equal((await rows('?q=blocked-board-target')).items[0]!.blockingTaskCount,2);
+  // A done task has no work alarm, even if it retains historical dependencies.
+  const target=await row(waiting.id);
+  const done=await request('PUT','tasks/'+target.id,{baseRevision:target.revision,task:{...content(target),status:'ready_for_release'}});
+  assert.equal(done.statusCode,200,done.body);
+  const clear=(await rows('?q=blocked-board-target')).items[0]!;
+  assert.equal(clear.effectiveBlocked,false);assert.equal(clear.blockingTaskCount,0);assert.deepEqual(clear.blockers,[]);
+  const outsider=await request('GET','board/tasks?limit=1&q=blocked-board-target',undefined,f.bob.headers);
+  assert.ok([403,404].includes(outsider.statusCode));assert.ok(!outsider.body.includes(prerequisites[0]!.title));
+});

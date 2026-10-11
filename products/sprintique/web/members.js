@@ -98,7 +98,7 @@ export async function mountMembers(root,{repository,project,tools,notice=''}){
       const row=control.closest('.iq-settings-row');row?.setAttribute('aria-busy','true');
       try{await client.request(`${base}/members/${encodeURIComponent(member.id)}/access`,'PUT',{baseRevision:member.revision,presetId,granted:member.granted||[],revoked:member.revoked||[]});
         notify({tone:'success',message:`${member.name}: пресет ${presetName(presetId)}`});await load();}
-      catch(error){revert();if(error.code==='LAST_ADMIN')handover(presetId);else notify({tone:'danger',message:'Пресет не изменён',description:explain(error),duration:10000});}
+      catch(error){revert();if(error.code==='LAST_ADMIN')handover(presetId);else notify({tone:'danger',message:'Пресет не изменён',description:explain(error),duration:3500});}
       finally{row?.removeAttribute('aria-busy');}
     };
     const losesAccess=member.id===self&&own.has(PROJECT_ACCESS)&&!closure(index,presets.find(p=>p.id===presetId)?.permissions||[]).has(PROJECT_ACCESS);
@@ -109,7 +109,7 @@ export async function mountMembers(root,{repository,project,tools,notice=''}){
   async function edit(member){track(await openPermissionEditor({repository,project,member,presets,held:[...own],
     onSaved:async()=>{notify({tone:'success',message:`Права: ${member.name}`,description:'Изменение записано в историю проекта.'});await load();},onLastAdmin:presetId=>{
       // A handover sets a preset without personal changes: when only personal changes removed access, it would keep it.
-      if((presets.find(p=>p.id===presetId)?.permissions||[]).includes('project.access'))notify({tone:'warning',duration:10000,message:'Вы последний администратор проекта',description:'Сначала сделайте администратором другого участника, затем уберите права у себя.'});
+      if((presets.find(p=>p.id===presetId)?.permissions||[]).includes('project.access'))notify({tone:'warning',duration:3500,message:'Вы последний администратор проекта',description:'Сначала сделайте администратором другого участника, затем уберите права у себя.'});
       else handover(presetId);}}));}
   /** The service-mode editor; the owner's current permissions here come from the owner's row (none: not a member). */
   async function editService(member){

@@ -105,8 +105,7 @@ async function renderSignIn(){
 // The last opened project reopens after sign-in; a project link in the URL still wins.
 const LAST_PROJECT_KEY='sprintique.last-project:';
 function lastProject(){try{return localStorage.getItem(LAST_PROJECT_KEY+session.principal.id)||undefined;}catch{return undefined;}}
-// Failures are said where the action was: next to the pressed button with «Повторить», otherwise a toast that stays
-// until read (hover or focus pauses it). Never a modal wall.
+// Failures appear next to the pressed button with retry, otherwise in a 3.5 s toast; hover or focus pauses it.
 function report(error){failed(error);}
 // The action system (DS vnext.35): pending buttons, the line under the top bar, slow and offline notices. Back online,
 // the open project reads again; a request that failed unseen is still reported where it was pressed.

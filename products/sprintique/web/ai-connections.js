@@ -101,7 +101,7 @@ export async function mountAiConnections(root,{repository,project,tools}){
     try{
       const result=await client.request(base+'/'+encodeURIComponent(c.id)+'/check','POST',{});
       if(result.lastTest?.state==='connected')notify({tone:'success',message:`«${c.name}» работает`,description:result.models?.length?`Провайдер назвал моделей: ${result.models.length}.`:''});
-      else notify({tone:'danger',message:`«${c.name}» не отвечает как нужно`,description:result.message||result.lastTest?.message||'',duration:10000});
+      else notify({tone:'danger',message:`«${c.name}» не отвечает как нужно`,description:result.message||result.lastTest?.message||'',duration:3500});
     }catch(error){fail(error);}
     finally{checking.delete(c.id);}
     await refresh();

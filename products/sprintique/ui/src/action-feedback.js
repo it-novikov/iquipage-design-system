@@ -27,7 +27,7 @@ export function failed(error,{message='Не удалось выполнить д
   if(!error||error.cancelled||error.name==='AbortError')return false;
   const button=recentFailure();
   if(button){actionError(button,description,{title:message,retry:retry?()=>button.click():undefined});return true;}
-  notify({tone:'danger',message,description,duration:10000});return false;
+  notify({tone:'danger',message,description,duration:3500});return false;
 }
 /** A press whose work is more than one request (or no request at all): the same pending look and the error next to it. */
 export async function act(button,work,{message='Не удалось выполнить действие',retry}={}){
@@ -35,7 +35,7 @@ export async function act(button,work,{message='Не удалось выполн
   catch(error){
     if(error?.cancelled||error?.name==='AbortError')return undefined;
     if(button?.isConnected)actionError(button,error?.message||'Повторите попытку.',{title:message,retry});
-    else notify({tone:'danger',message,description:error?.message||'Повторите попытку.',duration:10000});
+    else notify({tone:'danger',message,description:error?.message||'Повторите попытку.',duration:3500});
     return undefined;
   }
 }

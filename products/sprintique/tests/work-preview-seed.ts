@@ -42,5 +42,9 @@ export async function seedWorkPreview(app: TestApp, admin: pg.Client, adminId: s
     options: [{id: 'O1', label: 'Передать Клоду', description: 'Другой участник проверит продолжение по сохранённому состоянию.', recommended: true},
       {id: 'O2', label: 'Продолжить Кодексу', description: 'Текущий участник выполнит оставшуюся проверку.'}]}, agentHeaders);
   await call('POST', task + '/work-plan/lease', {baseRevision: state.revision, action: 'release', leaseToken}, agentHeaders);
+  if(process.env['PREVIEW_RELEASE1']==='1'){
+    const {seedRelease1Preview}=await import('./release1-preview-seed.js');
+    await seedRelease1Preview(app,project.id,headers);
+  }
   return origin + '/?project=agent-work#/task/work-preview';
 }

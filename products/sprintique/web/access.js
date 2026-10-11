@@ -51,7 +51,7 @@ export async function mountAccess(root,{repository,project}){
     const row=control?.closest('.iq-settings-row');row?.setAttribute('aria-busy','true');
     try{await client.request(base+'/access','PUT',{baseRevision:settings.revision,defaultMemberPresetId:settings.memberPresetId,defaultGuestPresetId:settings.guestPresetId,...change});
       notify({tone:'success',message:'Пресет для новых участников сохранён',description:'Права тех, кто уже в проекте, не изменились.'});await load();}
-    catch(error){if(control)control.value=control.dataset.defaultPreset==='guest'?settings.guestPresetId||'':settings.memberPresetId||'';notify({tone:'danger',message:'Не сохранено',description:explain(error),duration:10000});}
+    catch(error){if(control)control.value=control.dataset.defaultPreset==='guest'?settings.guestPresetId||'':settings.memberPresetId||'';notify({tone:'danger',message:'Не сохранено',description:explain(error),duration:3500});}
     finally{row?.removeAttribute('aria-busy');}
   }
   async function matrix(){

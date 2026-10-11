@@ -90,6 +90,8 @@ export interface PlanningRow {
   ownerName?:string;ownerKind?:'human'|'service';ownerState?:'active'|'suspended'|'deleted'|'former';
   plannedStart:string|null;plannedEnd?:string|null;due:string|null;assignmentMode:'inherit'|'assigned'|'none';releaseId:string|null;
   effectiveReleaseId:string|null;assignmentSourceId:string|null;boardEligible:boolean;childCount:number;
+  /** Current read projection only; old previews and immutable release history do not acquire live blockers. */
+  effectiveBlocked?:boolean;blockingTaskCount?:number;blockers?:{id:string;displayId:string;title:string}[];
 }
 export interface Page<T> {items:T[];total:number;nextCursor:string|null;projectRevision:number}
 export interface Effect {id:string;before:PlanningRow|null;after:PlanningRow}

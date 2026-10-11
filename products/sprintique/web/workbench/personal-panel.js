@@ -63,7 +63,7 @@ export function mountPersonalPanel(section,{api,projectId,taskId,actorId,actions
     try{
       await api.participation(projectId,taskId,state.participationRevision,!state.participating);
       await load();onChanged?.();
-      notify({tone:'info',message:state.participating?'Вы наблюдаете за задачей':'Вы больше не наблюдаете за задачей',duration:3000});
+      notify({tone:'info',message:state.participating?'Вы наблюдаете за задачей':'Вы больше не наблюдаете за задачей',duration:3500});
     }catch(error){failed(error,{message:'Не получилось'});}
     // Disabling drops the focus to the page: a keyboard press keeps it on the toggle.
     finally{join.disabled=false;if(had&&!destroyed&&(!document.activeElement||document.activeElement===document.body))join.focus({preventScroll:true});}
@@ -78,7 +78,7 @@ export function mountPersonalPanel(section,{api,projectId,taskId,actorId,actions
         try{
           const resolved=await api.resolveRequest(projectId,request.id,request.revision);
           notify({tone:'success',message:'Запрос закрыт',action:{label:'Отменить',run:()=>void api.reopenRequest(projectId,request.id,resolved.revision)
-            .then(()=>load()).then(()=>onChanged?.()).catch(error=>notify({tone:'danger',message:'Не удалось отменить',description:error.message}))},duration:8000});
+            .then(()=>load()).then(()=>onChanged?.()).catch(error=>notify({tone:'danger',message:'Не удалось отменить',description:error.message}))},duration:3500});
           await load();onChanged?.();
         }catch(error){button.disabled=false;failed(error,{message:'Не получилось'});}
       })();
@@ -94,7 +94,7 @@ export function mountPersonalPanel(section,{api,projectId,taskId,actorId,actions
    */
   // The decision waits in the shared registry (pending.js): a re-render keeps its line, the Workbench row of the same
   // request cannot decide it again, either place can take it back, and leaving the page asks first (review R5 N2, N3).
-  const announce=text=>notify({tone:'info',message:text,duration:2500});
+  const announce=text=>notify({tone:'info',message:text,duration:3500});
   const waitingLine=()=>`<p class="dsk-row-done" role="status">${icon('checkCircle',16)}<span><b>Утверждено</b> · решение уйдёт через 8 с</span><button type="button" class="iq-btn ghost sm" data-approve-undo>Отменить</button></p>`;
   const started=new Set();// decisions started here: closing the drawer sends them at once
   function approveLater(card,request){

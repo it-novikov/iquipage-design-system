@@ -37,7 +37,7 @@ export function invitationAction(event,{client,show,reload}){
   if(resend&&!resend.disabled){
     void(async()=>{resend.disabled=true;try{
       const result=await client.request('/invitations/'+encodeURIComponent(resend.dataset.resend)+'/resend','POST',{}),sent=result.invitations?.[0];
-      if(sent?.delivery==='failed')notify({tone:'warning',message:'Письмо снова не ушло',description:`${sent.email}: ${sent.deliveryError||'почтовый сервер не ответил'}`,duration:10000});
+      if(sent?.delivery==='failed')notify({tone:'warning',message:'Письмо снова не ушло',description:`${sent.email}: ${sent.deliveryError||'почтовый сервер не ответил'}`,duration:3500});
       else notify({tone:'success',message:'Письмо отправлено снова',description:sent?.email?`${sent.email}. Старая ссылка больше не работает.`:''});
       await reload();
     }catch(error){resend.disabled=false;failed(error,{description:explain(error),message:'Не удалось отправить'});}})();

@@ -170,26 +170,26 @@ function withToasts(run) {
 test('SPR-8: the timing policy by tone and action', () => {
   global.HTMLElement = global.HTMLElement || class {};
   const { toastDuration, TOAST_DURATION } = require('../src/modules/components.js');
-  assert.deepEqual({ ...TOAST_DURATION }, { info: 5000, success: 5000, warning: 8000, danger: 10000, action: 10000 });
-  assert.equal(toastDuration({ message: 'x' }), 5000);
-  assert.equal(toastDuration({ tone: 'success', message: 'Задача создана' }), 5000);
-  assert.equal(toastDuration({ tone: 'warning', message: 'x' }), 8000);
-  assert.equal(toastDuration({ tone: 'danger', message: 'x' }), 10000);
-  assert.equal(toastDuration({ tone: 'success', message: 'x', action: { label: 'Открыть', run() {} } }), 10000, 'a shortcut action still leaves');
-  assert.equal(toastDuration({ tone: 'success', message: 'x', action: { label: 'Отменить', undo: true, run() {} } }), 0, 'an undo window stays until dismissed');
+  assert.deepEqual({ ...TOAST_DURATION }, { info: 3500, success: 3500, warning: 3500, danger: 3500, action: 3500 });
+  assert.equal(toastDuration({ message: 'x' }), 3500);
+  assert.equal(toastDuration({ tone: 'success', message: 'Задача создана' }), 3500);
+  assert.equal(toastDuration({ tone: 'warning', message: 'x' }), 3500);
+  assert.equal(toastDuration({ tone: 'danger', message: 'x' }), 3500);
+  assert.equal(toastDuration({ tone: 'success', message: 'x', action: { label: 'Открыть', run() {} } }), 3500, 'a shortcut action still leaves');
+  assert.equal(toastDuration({ tone: 'success', message: 'x', action: { label: 'Отменить', undo: true, run() {} } }), 3500, 'undo is also transient');
   assert.equal(toastDuration({ message: 'x', duration: 2500 }), 2500);
   assert.equal(toastDuration({ message: 'x', duration: 0 }), 0);
-  for (const bad of [-1, NaN, 'soon', Infinity]) assert.equal(toastDuration({ tone: 'warning', message: 'x', duration: bad }), 8000, 'a malformed duration never pins a toast: ' + bad);
+  for (const bad of [-1, NaN, 'soon', Infinity]) assert.equal(toastDuration({ tone: 'warning', message: 'x', duration: bad }), 3500, 'a malformed duration never pins a toast: ' + bad);
   assert.equal(toastDuration({ message: 'x', duration: '2500' }), 2500);
 });
 
-test('SPR-8: a confirmation toast disappears by itself after 5 s', withToasts(({ notify, toasts, tick }) => {
+test('SPR-8: a confirmation toast disappears by itself after 3.5 s', withToasts(({ notify, toasts, tick }) => {
   notify({ tone: 'success', message: 'Задача SPR-1 создана', action: { label: 'Открыть', run() {} } });
   notify({ tone: 'success', message: 'Изменения сохранены' });
   assert.equal(toasts().length, 2);
-  tick(4999); assert.equal(toasts().length, 2);
-  tick(1); assert.equal(toasts().length, 1, 'the plain confirmation left at 5 s');
-  tick(5000); assert.equal(toasts().length, 0, 'the toast with «Открыть» left at 10 s');
+  tick(3499); assert.equal(toasts().length, 2);
+  tick(1); assert.equal(toasts().length, 0, 'all transient confirmations left at 3.5 s');
+  tick(5000); assert.equal(toasts().length, 0, 'shortcut toast stays dismissed');
 }));
 
 test('SPR-8: hover, focus and a hidden tab pause the countdown; leaving resumes it', withToasts(({ notify, toasts, document, tick }) => {
@@ -199,7 +199,7 @@ test('SPR-8: hover, focus and a hidden tab pause the countdown; leaving resumes 
   toast.hovered = true; toast.fire('pointermove', { clientX: 10, clientY: 10 }); toast.fire('pointermove', { clientX: 20, clientY: 12 });
   tick(60000); assert.equal(toasts().length, 1, 'held while hovered');
   toast.hovered = false; toast.fire('pointerleave');
-  tick(1999); assert.equal(toasts().length, 1, 'the remaining 2 s continue');
+  tick(1499); assert.equal(toasts().length, 1, 'leaving hover retains the accessible 1.5 s minimum');
   tick(1); assert.equal(toasts().length, 0);
 
   notify({ tone: 'info', message: 'Второе' });
@@ -234,9 +234,9 @@ test('SPR-8: a toast that appears under a resting pointer still leaves; moving o
 test('SPR-8: leaving a toast that was never paused keeps the elapsed time (review R1)', withToasts(({ notify, toasts, tick }) => {
   notify({ tone: 'info', message: 'Короткое' });
   const toast = toasts()[0];
-  tick(4900);
+  tick(3400);
   toast.hovered = true; toast.fire('pointerenter'); toast.hovered = false; toast.fire('pointerleave');
-  tick(100); assert.equal(toasts().length, 0, 'gone at 5 s, not restarted');
+  tick(100); assert.equal(toasts().length, 0, 'gone at 3.5 s, not restarted');
 }));
 
 test('SPR-8: focus that entered a toast returns where it came from when the toast closes (review R1)', withToasts(({ notify, toasts, document }) => {
@@ -249,10 +249,10 @@ test('SPR-8: focus that entered a toast returns where it came from when the toas
   assert.equal(document.activeElement, field);
 }));
 
-test('SPR-8: undo stays until dismissed; the close button and Escape dismiss; errors are alerts', withToasts(({ notify, toasts, document, tick }) => {
+test('SPR-8: undo can be used before expiry; the close button and Escape dismiss; errors are alerts', withToasts(({ notify, toasts, document, tick }) => {
   let undone = 0;
   notify({ tone: 'success', message: 'Задача удалена', action: { label: 'Отменить', undo: true, run: () => { undone++; } } });
-  tick(10 * 60000); assert.equal(toasts().length, 1, 'the undo window is open');
+  tick(3499); assert.equal(toasts().length, 1, 'the undo window is open before expiry');
   toasts()[0].querySelector('.iq-toast-action').fire('click');
   assert.equal(undone, 1); assert.equal(toasts().length, 0);
 
