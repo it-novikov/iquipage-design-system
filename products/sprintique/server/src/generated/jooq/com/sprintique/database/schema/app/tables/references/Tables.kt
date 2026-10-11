@@ -60,6 +60,7 @@ import com.sprintique.database.schema.app.tables.Releases
 import com.sprintique.database.schema.app.tables.Tags
 import com.sprintique.database.schema.app.tables.TaskActivity
 import com.sprintique.database.schema.app.tables.TaskLinks
+import com.sprintique.database.schema.app.tables.TaskMaterial
 import com.sprintique.database.schema.app.tables.TaskPersonalState
 import com.sprintique.database.schema.app.tables.TaskSettings
 import com.sprintique.database.schema.app.tables.TaskSettingsVersions
@@ -360,6 +361,8 @@ val TAGS: Tags = Tags.TAGS
 val TASK_ACTIVITY: TaskActivity = TaskActivity.TASK_ACTIVITY
 
 val TASK_LINKS: TaskLinks = TaskLinks.TASK_LINKS
+
+val TASK_MATERIAL: TaskMaterial = TaskMaterial.TASK_MATERIAL
 
 val TASK_PERSONAL_STATE: TaskPersonalState = TaskPersonalState.TASK_PERSONAL_STATE
 

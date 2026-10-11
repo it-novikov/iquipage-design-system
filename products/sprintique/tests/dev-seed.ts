@@ -129,6 +129,16 @@ export async function seedDevData(app:TestApp,admin:pg.Client,origin:string){
           ownerId:t.owner?(t.owner==='admin'?adminId:people.get(t.owner)!):null,due:t.due||null,parentId:t.parent||null};
         await call('PUT',P+'tasks/'+t.id,{baseRevision:0,createInBoard:!t.release,task});
       }
+      if(spec.key==='SPQ'&&process.env['PREVIEW_MATERIALS']==='1'){
+        for(let i=1;i<=4;i++)await call('PUT',P+`tasks/spq-onboarding/materials/preview-design-${i}`,{
+          baseRevision:0,value:{category:'design',title:i===4?'Мобильный сценарий первого входа и состояния ошибок при восстановлении доступа':'Первый вход — экран '+i,
+            url:`https://www.figma.com/design/preview-${i}/Onboarding?node-id=${i}#screen`,archived:false}
+        });
+        await call('PUT',P+'tasks/spq-onboarding/materials/preview-doc',{baseRevision:0,value:{category:'documentation',
+          title:'Требования к первому входу',url:'https://example.com/docs/onboarding#requirements',archived:false}});
+        await call('PUT',P+'tasks/spq-sync/materials/preview-sync',{baseRevision:0,value:{category:'documentation',
+          title:'Сценарии переподключения',url:'https://example.com/docs/reconnect?version=2#failure',archived:false}});
+      }
       const plan=async(command:unknown)=>{const preview=await call<{id:string;token:string}>('POST',P+'planning/previews',command);await call('POST',P+'planning/commands',{planId:preview.id,token:preview.token});};
       const ids=(kind:TaskSeed['release'])=>spec.tasks.filter(t=>t.release===kind).map(t=>t.id);
       for(const [kind,releaseId] of [['active',active],['planned',planned]] as const){

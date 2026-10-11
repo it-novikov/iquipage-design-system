@@ -60,6 +60,7 @@ import com.sprintique.database.schema.app.tables.Releases
 import com.sprintique.database.schema.app.tables.Tags
 import com.sprintique.database.schema.app.tables.TaskActivity
 import com.sprintique.database.schema.app.tables.TaskLinks
+import com.sprintique.database.schema.app.tables.TaskMaterial
 import com.sprintique.database.schema.app.tables.TaskPersonalState
 import com.sprintique.database.schema.app.tables.TaskSettings
 import com.sprintique.database.schema.app.tables.TaskSettingsVersions
@@ -373,6 +374,8 @@ open class App : SchemaImpl(DSL.name("app"), DefaultCatalog.DEFAULT_CATALOG, DSL
 
     val TASK_LINKS: TaskLinks get() = TaskLinks.TASK_LINKS
 
+    val TASK_MATERIAL: TaskMaterial get() = TaskMaterial.TASK_MATERIAL
+
     val TASK_PERSONAL_STATE: TaskPersonalState get() = TaskPersonalState.TASK_PERSONAL_STATE
 
     val TASK_SETTINGS: TaskSettings get() = TaskSettings.TASK_SETTINGS
@@ -475,6 +478,7 @@ open class App : SchemaImpl(DSL.name("app"), DefaultCatalog.DEFAULT_CATALOG, DSL
         Tags.TAGS,
         TaskActivity.TASK_ACTIVITY,
         TaskLinks.TASK_LINKS,
+        TaskMaterial.TASK_MATERIAL,
         TaskPersonalState.TASK_PERSONAL_STATE,
         TaskSettings.TASK_SETTINGS,
         TaskSettingsVersions.TASK_SETTINGS_VERSIONS,

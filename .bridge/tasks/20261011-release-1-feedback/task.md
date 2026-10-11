@@ -2,13 +2,13 @@
 bridge: 1
 id: 20261011-release-1-feedback
 title: "Релиз 1.0: замечания, общий заголовок и контентная загрузка"
-status: active
+status: review
 risk: high
 owner: human:it-novikov
 branch: fix/release-1-feedback
 base: main
 created: 2026-10-11
-updated: 2026-10-11T12:06:54Z
+updated: 2026-10-11T12:54:30Z
 links:
 ---
 
@@ -30,18 +30,19 @@ links:
 - [x] A2. SPR-37: единая композиция заголовков всех реальных страниц, действия и навигация доступны на узком экране.
 - [x] A3. SPR-38: skeletons соответствуют форме каждой страницы, не мигают при быстрых переходах, уважены reduced motion и ошибки.
 - [x] A4. Публичный exact DS, meaningful regressions, build и независимое ревью подтверждены.
-- [ ] A5. PR слит и версия выложена с резервной копией, проверены образ, readiness и ключевые сценарии.
+- [x] A5. PR слит и версия выложена с резервной копией, проверены образ, readiness и ключевые сценарии.
 
 ## Передача
 
-- **Состояние:** S1/S2 complete: implementation and two independent reviews on unchanged b977550c.
-- **Сейчас:** S3: publish, merge, deploy and observe.
-- **Дальше:** Verify PR CI, merge exact head, deploy verified image with fresh backup and five-minute observation.
+- **Состояние:** PR67 merged and deployed01bbdb29. CI and five-minute observation PASS; five native tasks handed to review as Codex.
+- **Сейчас:** First wave delivered; materials and wiki remain in own worktrees.
+- **Дальше:** Owner checks published UI; continue SPR16/17.
 - **Незакоммичено:** UI/DS .44, focused regressions, documentation and bridge records. No server migrations.
-- **Рабочая копия:** 51 файл(ов): libraries/iquipage/PROVENANCE.json, libraries/iquipage/docs/EXTENSION-API.md, libraries/iquipage/package-lock.json, libraries/iquipage/package.json, libraries/iquipage/src/entries/core.js, libraries/iquipage/src/modules/work-header.js, libraries/iquipage/src/styles/everyday.css, libraries/iquipage/src/styles/whiteboard.css, libraries/iquipage/tests/vnext38.test.cjs, libraries/iquipage/tokens/semantic.json, libraries/iquipage/types/core.d.ts, products/sprintique/package-lock.json и ещё 39 (42 files changed, 221 insertions(+), 118 deletions(-)) · HEAD 7279081
+- **Рабочая копия:** 1 файл(ов): products/sprintique/docs/release-1/FEEDBACK-ACCEPTANCE.md (3 files changed, 21 insertions(+), 10 deletions(-)) · HEAD 2bbd805 · снято 2026-10-11T12:54:30Z
 - **Ловушки:**
   - Локальный main был старым931e09d: branch-f обновил его до origin/main7279081; bridge risk false-positive исчез.
 - **Проверка:** 8/8 PASS; product500/detached500/DS461; R1/R2 APPROVE; portable41 web files verified.
+- **Причина:** planned — codex, 2026-10-11T12:54:30Z
 
 ## План
 
@@ -65,14 +66,14 @@ links:
 - **Итог:** DS45 full gate8/8 PASS product500 detached500 DS461 sourceStable b0750b06 exact tar c2c7227e. R1/R2 APPROVE current freeze, no open findings. Linux official Node core184784 under185291; GitHub CI required next.
 - **Зависит от:** S1
 
-### S3. Поставка [active]
+### S3. Поставка [done]
 - **Что:** Слить и выложить исправления.
 - **Как:** Exact образ, backup, совместимый откат и наблюдение.
 - **Зачем:** Доставить проверенный результат пользователю.
 - **Приёмка:**
-  - [ ] Слияние, production версия и ключевые сценарии подтверждены.
+  - [x] Слияние, production версия и ключевые сценарии подтверждены.
 - **Покрывает:** A5
-- **Итог:** Delivery held: Linux CI gzip exposed platform variance; DS .45 comment-only packaging repair, runtime unchanged.
+- **Итог:** PR67 merged01bbdb29; CI38138053277 PASS; exact production image e51a87f7, readiness and five-minute observation PASS10 samples zero errors/restarts; backup retained; production links dialog verified.
 - **Зависит от:** S2
 
 ## Решения

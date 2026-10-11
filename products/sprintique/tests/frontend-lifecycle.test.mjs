@@ -91,7 +91,7 @@ test('one hundred resource events coalesce to one collection invalidation',async
 test('resync reaches discussions and links; stop cancels queued invalidation',async()=>{
   const {repository}=repositoryFor(),changes=[];repository.subscribe(event=>changes.push(event));repository.watch('p',()=>{},{});
   const stream=FakeStream.instances.at(-1);stream.dispatchEvent(new Event('resync'));await wait();
-  assert.deepEqual(new Set(changes.map(event=>event.collection)),new Set(['tasks','threads','tags','releases','maps','templates','taskLinks','taskSettings','wikiPages','wikiTaskLinks']));
+  assert.deepEqual(new Set(changes.map(event=>event.collection)),new Set(['tasks','threads','tags','releases','maps','templates','taskLinks','taskSettings','taskMaterials','wikiPages','wikiTaskLinks']));
   changes.length=0;stream.change({topic:'thread.created',resourceId:'t',revision:1});repository.stopWatch();await wait();assert.deepEqual(changes,[]);
 });
 test('wiki link events invalidate task links for the changed task and coalesce multiple tasks',async()=>{
