@@ -11,3 +11,14 @@
 - 2026-10-11T17:19:36Z · codex · decision · D4 · Новое уточнение владельца: полное отсутствие горизонтальных отступов неприемлемо. Scope обновлён: снять ограничения ширины страниц, вернуть рабочие горизонтальные поля DS24px desktop/16px mobile, сохранить внутренние карточки/формы/ширину текста. Предыдущая приёмка zero-padding отменена, новая revision3 перед DS52 actual.
 - 2026-10-11T17:26:22Z · codex · decision · D5 · R1 независимо проверил прототип52: вариант A GO в320/390, обе темы, высота обоих сигналов22px и общий top/bottom, ширина183px. Приоритет словом, блокеры отдельной нейтральной контурной меткой; число не выдумывается, tooltip/ARIA сохраняют полный статус и причины. Astra внедряет новый versionedDS52; приёмка прежней51 остаётся отклонённой.
 - 2026-10-11T17:28:15Z · codex · decision · D6 · До actual52 root зафиксировал revision3 plan SHA df45f1119837523db547a3870c5b83722bc244ba0c6a428f5ae687f902c95298, DS52 SHA989fab4822db78e10bfeeb62ad2724d8bb389a08ddf012c196b469af33cde758. Новые критерии:22px и общий centerY, разные формы сигналов, рабочие поля24/16 без caps. Runtime52 подключён к тому же synthetic4318 стенду.
+- 2026-10-11T17:44:56Z · codex · step · S2 · done: DS52 exact989fab принят:478 DS/52 UI tests,176 byte-exact files, Linux185160/101396 без повышения лимитов. Astra и R1 actual320/390/1920 обе темы:22px общий centerY/gap12, отдельная контурная метка, поля24/16 без caps. UX-SIGNALS-1/UX-PAGE-INSETS-1 закрыты на frozenFP6d0ad689.
+- 2026-10-11T17:44:56Z · codex · step · S3 · active
+- 2026-10-11T18:02:23Z · codex · note · A1 · критерий приёмки выполнен
+- 2026-10-11T18:02:23Z · codex · note · A2 · критерий приёмки выполнен
+- 2026-10-11T18:02:23Z · codex · note · A3 · критерий приёмки выполнен
+- 2026-10-11T18:02:23Z · codex · checkpoint · - · дальше: Завершить пятиминутное наблюдение и передать SPR-24 на ревью.
+- 2026-10-11T18:05:55Z · codex · step · S3 · done: PR72 merged24e6ed4; CI38160034258 8/8, R1/R2 APPROVE exact6d0ad689. Production image01cd59, backup actual restore PASS, zero migrations, 300s11samples ERROR0/restarts0. Production24/16 and22px/gap12 PASS.
+- 2026-10-11T18:05:55Z · codex · note · A4 · критерий приёмки выполнен
+- 2026-10-11T18:06:10Z · codex · status · - · review: Выпуск завершён; SPR-24 передана владельцу на ревью от Codex.
+- 2026-10-11T18:06:10Z · codex · handoff · - · planned → human:it-novikov; HEAD 24e6ed4; незакоммичено 4; DS52 deployed; final CI, R1/R2, production UI and observation PASS. Требуется оценка владельца.
+- 2026-10-11T18:06:21Z · codex · checkpoint · - · дальше: Владелец оценивает результат в рабочей доске.
