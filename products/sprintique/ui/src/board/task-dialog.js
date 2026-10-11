@@ -11,7 +11,7 @@ import {loadTaskSupport,mountTaskCatalogs} from './catalog-picker.js';
 import {catalogLabel,tagMarkup} from './catalog-ui.js';
 import {mountPlanField} from './plan-field.js';
 import {today as todayValue,onlyPlanChanged} from './plan-range.js';
-import {starterTaskSettings,instantiateTaskTemplate,withoutUntouchedTemplate,STARTER_TASK_TEMPLATES} from './task-templates.js';
+import {starterTaskSettings,instantiateTaskTemplate,withoutUntouchedTemplate,canApplyTypeTemplate,STARTER_TASK_TEMPLATES} from './task-templates.js';
 import {mountTaskDescription} from './description-view.js';
 import {copyAtButton,motionReduced,ui,notify,formatDate} from '@iquipage/web/core';
 import {taskKey,taskURL,parseTaskSection} from './task-route.js';
@@ -50,7 +50,7 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
   const legacyOwner=!initial.ownerId&&initial.legacyOwner?`<p class="iq-helper" data-legacy-owner>Было указано: «${esc(initial.legacyOwner)}». Выберите участника проекта.</p>`
     :warning?`<p class="iq-helper" data-owner-warning>${esc(warning)}</p>`:'';
   // The exact template text in the editor (SPR-12). A description the caller passed in is the person's, not a template.
-  let templateVersion=initial.templateVersion,lastTemplateContent=(task||initialValues.description===undefined)?taskMarkdown(initial):null;
+  let templateVersion=initial.templateVersion,lastTemplateContent=task?taskMarkdown(instantiateTaskTemplate(settings,initial.type||'task')):initialValues.description===undefined?taskMarkdown(initial):null;
   const parents=[{value:'',label:'Нет'},...tasks.filter(item=>{
     if(item.archivedAt||item.projectId!==project.id)return false;
     try{reparentTask({...initial,id:taskId,projectId:project.id},item.id,tasks);return true;}catch{return false;}
@@ -148,7 +148,7 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
     </section>
     <section class="iq-section task-editor-description"><div class="iq-section-head"><h3>Описание</h3></div>
       <div class="task-description-surface" data-description>
-        <iq-markdown-editor label="Описание" name="description" variant="compact" density="compact" maxlength="10000" preview-on-blur preview empty-text="${canEdit?'Нажмите, чтобы добавить описание':'Описания нет'}" ${canEdit?'empty-action-label="Начать с шаблона" empty-action="template"':''}></iq-markdown-editor>
+        <iq-markdown-editor label="Описание" name="description" variant="compact" density="compact" maxlength="10000" preview-on-blur preview empty-text="${canEdit?'Нажмите, чтобы добавить описание':'Описания нет'}" ${canEdit?'empty-action-label="Начать с шаблона" empty-action="template"':''}></iq-markdown-editor><div data-type-template-offer hidden></div>
       </div></section>
     <div class="task-editor-supplements">
     <section class="iq-section task-relations"><div class="iq-section-head">${icon('link',16)}<h3>Связи</h3><span class="iq-section-count" data-relations-count></span><span class="iq-section-actions" data-relations-actions></span></div>
@@ -277,7 +277,7 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
         state.textContent=left?linksFailedText(taskKey(current),left):links.dirty()?'':`Задача ${taskKey(current)} создана, связи сохранены.`;
         form.querySelector('.iq-dialog-footer button[type=submit]').textContent=links.dirty()?'Сохранить связи':'Готово';
       };
-      if(!task&&canEdit&&repository.capabilities?.taskLinks!==false)links=mountDraftLinks(form.querySelector('[data-task-links]'),{tasks,parentId:initial.parentId||null,...relations,...linkParents,onChange:linksChanged});
+      if(!task&&canEdit&&repository.capabilities?.taskLinks!==false)links=mountDraftLinks(form.querySelector('[data-task-links]'),{tasks,parentId:initial.parentId||null,releaseContext:()=>catalogs.value().releaseId||tasks.find(t=>t.id===parentField?.value)?.effectiveReleaseId||null,...relations,...linkParents,onChange:linksChanged});
       if(task&&repository.capabilities?.taskLinks!==false)links=mountTaskLinks(form.querySelector('[data-task-links]'),{repository,project,task,tasks,readOnly:!canEdit,...relations,...(canEdit?linkParents:{}),onOpenTask:async id=>{
         if(onOpenTask){await onOpenTask(id);return;}
         const target=await repository.read('tasks',id,project.id);if(!target)throw Error('Задача недоступна.');
@@ -285,10 +285,10 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
       }});
       // A host may add its own section (the Workbench: personal relation, requests, waiting) and header actions.
       if(task&&supplement)personal=supplement({root:form.querySelector('[data-task-personal]'),actions:form.querySelector('.task-dialog-actions'),task,dialog:el});
-      if(task)threads=mountThreads(form.querySelector('[data-task-threads]'),{repository,task,readOnly:!canDiscuss,people:new Map(members.map(m=>[m.id,m])),actorId:repository.context?.actorId||'local-user'});
+      if(task)threads=mountThreads(form.querySelector('[data-task-threads]'),{repository,task,readOnly:!canDiscuss,people:new Map(members.map(m=>[m.id,m])),actorId:repository.context?.actorId||'local-user',onAnswerQuestion:(id,answer,revision)=>agents?.answerQuestion(id,answer,revision)});
       else form.querySelector('[data-task-threads]').hidden=true;
       // Agents of service accounts: a quiet header action and one line above the discussion (docs/decisions/0005-ai-agents.md).
-      if(workTabs)agents=mountTaskWork(form.querySelector('[data-task-agents]'),{repository,project,task,summaryRoot:form.querySelector('[data-task-work-summary]'),onOpenWork:()=>form.querySelector('[data-tab=work]')?.click(),onThread:(id,messageId)=>{form.querySelector('[data-tab=task]')?.click();return threads?.open(id,messageId);},onChange:()=>threads?.reload()});
+      if(workTabs)agents=mountTaskWork(form.querySelector('[data-task-agents]'),{repository,project,task,summaryRoot:form.querySelector('[data-task-work-summary]'),onOpenWork:()=>form.querySelector('[data-tab=work]')?.click(),onThread:(id,messageId)=>{form.querySelector('[data-tab=task]')?.click();return threads?.open(id,messageId);},onState:state=>threads?.setWorkState(state),onChange:()=>threads?.reload()});
       else if(task&&repository.capabilities?.aiAgents)agents=mountAgentRuns(form.querySelector('[data-task-agents]'),{repository,project,task,actions:form.querySelector('.task-dialog-actions')});
       function applyTemplate(changePriority=false){
         const result=instantiateTaskTemplate(settings,form.querySelector('iq-select[name=type]').value);
@@ -297,21 +297,28 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
         templateVersion=result.templateVersion;
         if(changePriority&&!priorityTouched)form.querySelector('iq-select[name=priority]').value=result.priority;
         lastTemplateContent=editor.value;
+        form.querySelector('[data-type-template-offer]').hidden=true;
       }
       form.addEventListener('iq-change',event=>{
         if(event.target.getAttribute('name')==='parent')links?.setParent(event.target.value);
         if(event.target.getAttribute('name')==='priority')priorityTouched=true;
         // The warning speaks of the owner the task had; another choice answers it.
         if(event.target.getAttribute('name')==='ownerId')form.querySelector('[data-owner-warning]')?.remove();
-        if(event.target.getAttribute('name')!=='type'||current)return;
-        const untouched=editor.value===lastTemplateContent;
-        if(untouched)applyTemplate(true);
+        if(event.target.getAttribute('name')!=='type'||!canEdit)return;
+        const offer=form.querySelector('[data-type-template-offer]');
+        const untouched=canApplyTypeTemplate(editor.value,lastTemplateContent);
+        offer.hidden=untouched;
+        if(untouched){applyTemplate(!current);form.dispatchEvent(new Event('change'));}
+        else {
+          offer.innerHTML='<p class="iq-helper">Ваше описание сохранено. Для нового типа доступен другой шаблон.</p><button type="button" class="iq-btn ghost sm">Заменить описание шаблоном</button>';
+          offer.querySelector('button').onclick=()=>dialog({title:'Заменить описание?',description:'Текущий текст будет заменён шаблоном выбранного типа задачи.',submitLabel:'Заменить описание',onSubmit:async()=>{applyTemplate();offer.hidden=true;form.dispatchEvent(new Event('change'));}});
+        }
       });
       // "Шаблон" lives inside the editor: a toolbar action while editing, and a quiet link in an empty preview.
       if(canEdit)editor.toolbarActions=[{id:'template',label:'Шаблон',icon:'file'}];
       editor.addEventListener('iq-editor-action',event=>{
         if(event.detail.id!=='template'||!canEdit)return;
-        const untouched=!editor.value.trim()||editor.value===lastTemplateContent;
+        const untouched=canApplyTypeTemplate(editor.value,lastTemplateContent);
         const apply=id=>{if(id==='project')applyTemplate();else{editor.value=STARTER_TASK_TEMPLATES.find(t=>t.id===id).description;description.refresh();lastTemplateContent=editor.value;}form.dispatchEvent(new Event('change'));};
         dialog({title:'Начать с шаблона',description:untouched?'Шаблон заполнит описание. Остальные поля не изменятся.':'Шаблон заменит текущее описание. Остальные поля не изменятся.',
           body:select('starter','Шаблон','project',[['project','Шаблон типа из настроек проекта'],...STARTER_TASK_TEMPLATES.map(t=>[t.id,t.name])]),

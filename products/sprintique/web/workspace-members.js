@@ -67,12 +67,12 @@ export async function mountWorkspaceMembers(root,{repository,project,workspace,t
   root.addEventListener('iq-change',event=>{
     const rule=event.target.closest('[data-projects-rule]');
     if(rule){if(event.detail.value===access.projectsCreatedBy)return;void(async()=>{try{await client.request(base+'/access','PUT',{baseRevision:access.revision,projectsCreatedBy:event.detail.value,defaultMemberPresetId:access.defaultMemberPresetId??null,defaultGuestPresetId:access.defaultGuestPresetId??null});
-      notify({tone:'success',message:event.detail.value==='members'?'Проекты создают все участники':'Проекты создают только администраторы'});await load();}catch(error){rule.value=access.projectsCreatedBy;notify({tone:'danger',message:'Правило не изменено',description:explain(error),duration:10000});}})();return;}
+      notify({tone:'success',message:event.detail.value==='members'?'Проекты создают все участники':'Проекты создают только администраторы'});await load();}catch(error){rule.value=access.projectsCreatedBy;notify({tone:'danger',message:'Правило не изменено',description:explain(error),duration:3500});}})();return;}
     const control=event.target.closest('[data-workspace-role]');if(!control)return;
     const member=members.find(m=>m.id===control.closest('[data-member-id]')?.dataset.memberId);if(!member||event.detail.value===member.role)return;
     void(async()=>{const row=control.closest('.iq-settings-row');row?.setAttribute('aria-busy','true');
       try{await patch(member,{role:event.detail.value});notify({tone:'success',message:`${member.name}: ${(workspaceRoleNames[event.detail.value]||'').toLocaleLowerCase('ru')} пространства`});await load();}
-      catch(error){control.value=member.role;notify({tone:'danger',message:'Роль не изменена',description:explain(error),duration:10000});}finally{row?.removeAttribute('aria-busy');}})();
+      catch(error){control.value=member.role;notify({tone:'danger',message:'Роль не изменена',description:explain(error),duration:3500});}finally{row?.removeAttribute('aria-busy');}})();
   },{signal:abort.signal});
   const onClick=event=>{
     if(event.target.closest('[data-invite]')){void openInviteDialog({repository,project,scope:'workspace',onDone:load}).then(track).catch(error=>failed(error,{description:explain(error),message:'Не удалось открыть приглашение'}));return;}

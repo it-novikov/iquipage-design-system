@@ -47,7 +47,7 @@
 #host-view[data-section=settings]>iq-settings-layout{flex:1 0 auto}
 /* Section switch: the next section mounts out of sight beside the open one and replaces it in one frame. */
 .platform-main{position:relative}
-.host-view-incoming{position:absolute;inset:0;visibility:hidden;pointer-events:none}
+.host-view-incoming{position:absolute;inset:0;visibility:hidden;opacity:0;pointer-events:none}
 .host-view-cover{position:absolute;inset:0;z-index:1;overflow:hidden;background:var(--iq-canvas)}
 /* Invitation context on the sign-in screen: when the link works, and for which address. */
 .sign-in-invite{display:grid;gap:var(--iq-space-2);justify-items:start;color:var(--iq-muted);font-size:var(--iq-type-caption-size)}

@@ -12,7 +12,9 @@ export const PlanningRowResponse=z.strictObject({
   ownerName:z.string().optional(),ownerKind:z.enum(['human','service']).optional(),ownerState:z.enum(['active','suspended','deleted','former']).optional(),priority:TaskInput.shape.priority,rank:z.number(),statusEnteredAt:z.iso.datetime(),createdAt:z.iso.datetime(),tagIds:z.array(Id),
   preparation:z.enum(['draft','ready']),result:z.enum(['open','accepted']),admitted:z.boolean(),plannedStart:DateOnly.nullable(),plannedEnd:DateOnly.nullable().optional(),due:DateOnly.nullable(),
   assignmentMode:z.enum(['inherit','assigned','none']),releaseId:Id.nullable(),effectiveReleaseId:Id.nullable(),assignmentSourceId:Id.nullable(),boardEligible:z.boolean(),childCount:z.number().int().nonnegative(),
-  estimate:TaskEstimate.nullable().optional()
+  estimate:TaskEstimate.nullable().optional(),
+  effectiveBlocked:z.boolean().optional(),blockingTaskCount:z.number().int().nonnegative().optional(),
+  blockers:z.array(z.strictObject({id:Id,displayId:z.string(),title:z.string()})).max(3).optional()
 });
 export const EffectResponse=z.strictObject({id:Id,before:PlanningRowResponse.nullable(),after:PlanningRowResponse});
 export const PreviewResponse=z.strictObject({

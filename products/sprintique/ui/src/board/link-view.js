@@ -1,4 +1,6 @@
-import {dialog,select,icon,esc} from '../ui.js';
+import {dialog,select,input,icon,esc} from '../ui.js';
+import {ui} from '@iquipage/web/core';
+import {linkCandidates,taskRelease} from './link-candidates.js';
 import {uid} from '../common.js';
 import {TASK_COLUMNS,taskColumn} from '../tasks.js';
 import {taskURL} from './task-route.js';
@@ -12,18 +14,26 @@ const EMPTY='Связей пока нет. Укажите родительску
  * «Связать задачи»: the task and how it relates, in the same words as the map. `parents` are the ids the task may take
  * as its parent; with `onParent` the picker also offers «Родитель этой задачи», which fills the «Родитель» field.
  */
-function openLinkPicker({tasks,excludeId,parents=null,onParent=null,onLink}){
-  const options=tasks.filter(item=>item.id!==excludeId&&!item.archivedAt).map(item=>({value:item.id,label:`${item.displayId?item.displayId+' ':''}${item.title}`}));
-  const picker=`<iq-combobox name="linkedTask" label="Задача" options="${esc(JSON.stringify(options))}" placeholder="Найти по номеру или названию"></iq-combobox>`;
+function openLinkPicker({tasks,excludeId,releaseId=null,parents=null,onParent=null,onLink}){
+  let selected='',query='';
+  const picker=input('linkSearch','Найти задачу','',{placeholder:'Номер или название'})+'<p class="iq-helper" data-link-selected hidden></p><div class="iq-work-story" data-link-results></div>';
   const kinds=onParent?[...LINK_KINDS,PARENT_KIND]:LINK_KINDS;
   dialog({title:'Связать задачи',body:picker+select('kind','Выбранная задача','depends',kinds),submitLabel:'Связать',onSubmit:async(values,form)=>{
-    const other=form.querySelector('iq-combobox').value;if(!other)throw Error('Выберите задачу.');
+    const other=selected;if(!other)throw Error('Выберите задачу.');
     const kind=values.get('kind');
     if(kind==='parent'){
       if(parents&&!parents.includes(other))throw Error('Эта задача не может быть родителем: получится цикл.');
       await onParent(other);return;
     }
     await onLink(other,kind);
+  },mount:(_el,form)=>{
+    const results=form.querySelector('[data-link-results]'),chosen=form.querySelector('[data-link-selected]');
+    const options=list=>list.map(t=>({value:t.id,label:`${t.displayId||''} ${t.title}`.trim(),description:TASK_COLUMNS.find(c=>c.id===taskColumn(t))?.label||''}));
+    const draw=()=>{const open=results.querySelector('details')?.open,{current,other,completed}=linkCandidates(tasks,{excludeId,releaseId,query});
+      results.innerHTML=ui.choiceGroups({name:'linkedTask',value:selected,groups:[{id:'current',label:releaseId?'В этом релизе / спринте':'Без релиза',options:options(current)},{id:'other',label:'В других релизах / спринтах',options:options(other)},{id:'done',label:'Завершённые задачи',options:options(completed),collapsible:true,expanded:!!open}]})+(!current.length&&!other.length&&!completed.length?'<p class="iq-helper">Задачи не найдены. Введите номер или название, чтобы искать в других релизах.</p>':'');};
+    form.querySelector('[name=linkSearch]').addEventListener('input',event=>{query=event.target.value;draw();});
+    results.addEventListener('change',event=>{if(event.target.name!=='linkedTask')return;selected=event.target.value;const task=tasks.find(t=>t.id===selected);chosen.hidden=false;chosen.textContent=`Выбрана ${task.displayId||''}: ${task.title}`;});
+    draw();
   }});
 }
 /** "Связи" as a relation map (DS iq-relation-map): parent above, subtasks below, dependencies left, blocked and related tasks right. */
@@ -62,7 +72,7 @@ export function mountTaskLinks(root,{repository,project,task,tasks,parentId=task
   },{signal:abort.signal});
   const onAdd=event=>{
     if(readOnly||!event.target.closest('[data-add-link]'))return;
-    openLinkPicker({tasks,excludeId:task.id,parents,onParent,onLink:async(other,kind)=>{
+    openLinkPicker({tasks,excludeId:task.id,releaseId:taskRelease(tasks.find(t=>t.id===task.id)||task),parents,onParent,onLink:async(other,kind)=>{
       // "Блокирует" is stored as the other task depending on this one.
       const blocks=kind==='blocks';
       const record={id:uid('task-link'),projectId:project.id,revision:0,kind:blocks?'depends':kind,fromId:blocks?other:task.id,toId:blocks?task.id:other};
@@ -79,7 +89,7 @@ export function mountTaskLinks(root,{repository,project,task,tasks,parentId=task
  * are saved right after the task (task-create.js); one that fails stays on the map, with its reason and «Повторить»
  * under it, and the saved ones are not sent again. A linked task opens in a new tab, so the draft stays.
  */
-export function mountDraftLinks(root,{tasks,parentId=null,actionsRoot=null,countRoot=null,parents=null,onParent=null,onChange=()=>{}}){
+export function mountDraftLinks(root,{tasks,parentId=null,releaseContext=()=>null,actionsRoot=null,countRoot=null,parents=null,onParent=null,onChange=()=>{}}){
   const drafts=createLinkDrafts(),abort=new AbortController();let parent=parentId,closed=false,locked=false,target=null;
   root.innerHTML=`<iq-relation-map></iq-relation-map><p class="iq-helper" data-links-empty>${EMPTY}</p><div class="task-link-failures" data-link-failures hidden></div><p class="map-form-error" role="alert" hidden></p>`;
   if(actionsRoot)actionsRoot.innerHTML=`<button type="button" class="iq-btn ghost sm" data-add-link>${icon('plus',16)}<span>Связать</span></button>`;
@@ -102,7 +112,7 @@ export function mountDraftLinks(root,{tasks,parentId=null,actionsRoot=null,count
   map.addEventListener('iq-remove',event=>{if(locked)return;if(drafts.remove(event.detail.linkId)){draw();onChange();}},{signal:abort.signal});
   const onAdd=event=>{
     if(locked||!event.target.closest('[data-add-link]'))return;error.hidden=true;
-    openLinkPicker({tasks,excludeId:null,parents,onParent,onLink:async(other,kind)=>{drafts.add(other,kind);draw();onChange();}});
+    openLinkPicker({tasks,excludeId:null,releaseId:releaseContext(),parents,onParent,onLink:async(other,kind)=>{drafts.add(other,kind);draw();onChange();}});
   };
   actionsRoot?.addEventListener('click',onAdd,{signal:abort.signal});
   failures.addEventListener('click',event=>{

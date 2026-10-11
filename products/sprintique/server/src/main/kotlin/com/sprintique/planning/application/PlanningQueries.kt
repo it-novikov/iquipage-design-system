@@ -3,8 +3,10 @@ package com.sprintique.planning.application
 import com.sprintique.command.CommandLedger
 import com.sprintique.database.Transaction
 import com.sprintique.identity.domain.Actor
+import com.sprintique.planning.domain.PlanningRow
 import com.sprintique.planning.domain.PlanningRows
 import com.sprintique.planning.domain.ProjectPerson
+import com.sprintique.planning.domain.TaskBlockers
 import com.sprintique.token.Tokens
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
@@ -55,16 +57,25 @@ class PlanningQueries(private val json: JsonMapper) {
         // The board names owners from here: a service account keeps its name, kind and state even after it left the
         // project or was deleted (SPR-7). A person who left stays unnamed, as before.
         val people = state.members.associateBy(ProjectPerson::id)
+        val blockers = TaskBlockers.project(state)
         val items = page.items.map { row ->
-            val owner = row.ownerId?.let(people::get) ?: return@map row
-            @Suppress("UNCHECKED_CAST")
-            (json.convertValue(row, LinkedHashMap::class.java) as LinkedHashMap<String, Any?>).apply {
+            taskItem(row, row.ownerId?.let(people::get), blockers[row.id] ?: TaskBlockers.clear)
+        }
+        return PlanningJson.page(Page(items, page.total, page.projectRevision, page.nextCursor))
+    }
+
+    private fun taskItem(row: PlanningRow, owner: ProjectPerson?, blocking: TaskBlockers.Summary): Map<String, Any?> {
+        @Suppress("UNCHECKED_CAST")
+        return (json.convertValue(row, LinkedHashMap::class.java) as LinkedHashMap<String, Any?>).apply {
+            if (owner != null) {
                 put("ownerName", owner.name)
                 put("ownerKind", owner.kind)
                 put("ownerState", owner.state)
             }
+            put("effectiveBlocked", blocking.effectiveBlocked)
+            put("blockingTaskCount", blocking.blockingTaskCount)
+            put("blockers", blocking.blockers)
         }
-        return PlanningJson.page(Page(items, page.total, page.projectRevision, page.nextCursor))
     }
 
     fun constraints(tx: Transaction, actor: Actor, projectId: String, limit: Int, cursor: String?): Map<String, Any?> {

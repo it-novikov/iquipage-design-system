@@ -2,6 +2,8 @@
 
 Import `workEntry`, `workStep`, `workQuestion` from `@iquipage/web/core`. These are text-only HTML compositions. They neither start work nor save answers. The application supplies confirmed server state and owns identity, revision, permissions, paging and cancellation.
 
+Inside a public `.iq-thread-content`, a work question shares the surrounding thread frame instead of drawing a second one (vnext.41).
+
 Place them in `.iq-work-story`. Use `.iq-work-story-head`, `.iq-work-story-copy`, `.iq-work-tools` and `.iq-work-history` for a heading, connected prose, contextual controls and entries. Narrative text uses paragraphs, not generated report bullets. `.iq-agent-directory` and `.iq-agent-directory-filters` provide a responsive full-page directory around the existing settings rows.
 
 `workEntry({id,text,by,time,detail,state})` gives an action a readable sentence and optional disclosure. `state` is empty, `error`, `waiting` or `complete`; never derive a made-up percentage. Append new entries by stable `data-entry` identity. Do not rebuild the reading surface or scroll to the bottom on each update. Keep one short live region for meaningful state changes, not the full log.

@@ -140,8 +140,17 @@ const projectOptions = [];
 exports.projectOptions = projectOptions;
 
 exports.radioGroup = radioGroup;
-function radioGroup(label, name, options, selected) {
+/** Grouped choices retain native radio keyboard behavior. A closed group is explicitly disclosed by its summary. */
+exports.choiceGroups = choiceGroups;
+function choiceGroups({name,groups=[],value=''}={}) {
+    const e=components_js_1.escapeHTML;
+    return `<div class="iq-work-story">${groups.filter(g=>g.options?.length).map(g=>{
+        const body=radioGroup(g.label,name,g.options,value,{legendHidden:!!g.collapsible});
+        return g.collapsible?`<details class="iq-work-details" data-choice-group="${e(g.id)}"${g.expanded?' open':''}><summary>${e(g.label)} (${g.options.length})</summary>${body}</details>`:body;
+    }).join('')}</div>`;
+}
+function radioGroup(label, name, options, selected, {legendHidden=false}={}) {
     const key = id();
-    return `<fieldset class="iq-choice-group"><legend>${components_js_1.escapeHTML(label)}</legend><div class="iq-choice-options">${options.map((option,i)=>`<label class="iq-choice"><input type="radio" name="${components_js_1.escapeHTML(name)}" value="${components_js_1.escapeHTML(option.value)}" ${option.value === selected ? 'checked' : ''} ${option.disabled ? 'disabled' : ''} aria-describedby="${key}-${i}"><span class="iq-choice-indicator" aria-hidden="true"></span><span class="iq-choice-copy"><b>${components_js_1.escapeHTML(option.label)}</b><small id="${key}-${i}">${components_js_1.escapeHTML(option.description || '')}</small></span></label>`).join('')}</div></fieldset>`;
+    return `<fieldset class="iq-choice-group"><legend${legendHidden?' class="sr-only"':''}>${components_js_1.escapeHTML(label)}</legend><div class="iq-choice-options">${options.map((option,i)=>`<label class="iq-choice"><input type="radio" name="${components_js_1.escapeHTML(name)}" value="${components_js_1.escapeHTML(option.value)}" ${option.value === selected ? 'checked' : ''} ${option.disabled ? 'disabled' : ''} aria-describedby="${key}-${i}"><span class="iq-choice-indicator" aria-hidden="true"></span><span class="iq-choice-copy"><b>${components_js_1.escapeHTML(option.label)}</b><small id="${key}-${i}">${components_js_1.escapeHTML(option.description || '')}</small></span></label>`).join('')}</div></fieldset>`;
 }
 

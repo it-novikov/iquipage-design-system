@@ -3,7 +3,7 @@ import {dialog,input,textarea,select,download} from '../ui.js';
 import {workText,sessionSentence,activeSession,stepStates,uniqueEntries,workStates,workFocus} from './work-model.js';
 
 /** One durable story shared by humans, external clients and provider-backed agents. */
-export function mountTaskWork(root,{repository,project,task,summaryRoot,onOpenWork,onThread,onChange}){
+export function mountTaskWork(root,{repository,project,task,summaryRoot,onOpenWork,onThread,onChange,onState}){
  const client=repository.client,abort=new AbortController(),base=`/projects/${encodeURIComponent(project.id)}/tasks/${encodeURIComponent(task.id)}`;
  let closed=false,state=null,agents=[],timer=0,sequence=0,busy=false,opening=false,modal=null,events=[],cursor=null,loadedEvents=false,newEvents=[],leaseToken=null,rendered='';
  root.hidden=false;root.classList.add('iq-work-story');
@@ -70,7 +70,7 @@ export function mountTaskWork(root,{repository,project,task,summaryRoot,onOpenWo
  async function load(){
   clearTimeout(timer);const own=++sequence;
   try{const fresh=await request('/work');if(closed||own!==sequence)return;
-   const previous=revision();state=fresh;if(previous!==revision())onChange?.();
+   const previous=revision();state=fresh;onState?.(state);if(previous!==revision())onChange?.();
    const incoming=fresh.events?.items||[];
    if(!loadedEvents){events=incoming;cursor=fresh.events?.nextCursor||null;loadedEvents=true;}
    else newEvents=uniqueEntries(incoming.filter(e=>!events.some(old=>old.id===e.id)),newEvents);
@@ -136,5 +136,10 @@ export function mountTaskWork(root,{repository,project,task,summaryRoot,onOpenWo
  summaryRoot?.addEventListener('click',event=>{const button=event.target.closest('[data-work-summary-action]');if(!button)return;event.preventDefault();onOpenWork?.();const action=button.dataset.workSummaryAction;if(action!=='open')void handle(action,button).catch(error=>status(error.message,true));},{signal:abort.signal});
  const unsubscribe=repository.subscribe(change=>{if(!change?.projectId||change.projectId===project.id)void load();});
  void load();
- return {refresh:load,dirty:()=>!!modal,isBusy:()=>busy||opening||!!modal,destroy(){closed=true;clearTimeout(timer);abort.abort();unsubscribe();modal?.close(true);root.replaceChildren();}};
+ return {refresh:load,async answerQuestion(id,{selected='',answer=''},baseRevision){
+  if(!state?.permissions?.canAnswer)throw Error('Нет права отвечать на этот вопрос.');
+  const q=state.workPlan?.questions.find(q=>q.id===id),option=q?.options?.find(o=>o.id===selected),text=answer.trim()||option?.label||'';
+  if(!text)throw Error('Выберите вариант или напишите свой ответ.');
+  try{await command('/questions/'+encodeURIComponent(id),'PATCH',{baseRevision,answer:text,selectedOptionId:option?.id||null,decision:text});}finally{await load();}
+ },dirty:()=>!!modal,isBusy:()=>busy||opening||!!modal,destroy(){closed=true;clearTimeout(timer);abort.abort();unsubscribe();modal?.close(true);root.replaceChildren();}};
 }

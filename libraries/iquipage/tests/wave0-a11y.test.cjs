@@ -13,14 +13,13 @@ const luminance = hex => { const n = parseInt(hex.slice(1, 7), 16); return 0.212
 const contrast = (a, b) => { const x = luminance(a), y = luminance(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
 const atLeast = (fg, bg, min, why) => assert.ok(contrast(fg, bg) >= min, `${why}: ${fg} on ${bg} = ${contrast(fg, bg).toFixed(2)} < ${min}`);
 
-test('A11Y-01: notify() announces through permanent live nodes and keeps undo toasts until dismissed', () => {
+test('A11Y-01: notify() announces through permanent live nodes and keeps explicit persistent notices until dismissed', () => {
   assert.ok(notify.includes(`node.setAttribute('role', role)`) && notify.includes(`liveNode('status', 'polite')`) && notify.includes(`liveNode('alert', 'assertive')`));
   assert.ok(notify.includes('sr-only iq-toast-live'), 'live nodes are visually hidden and reused');
   assert.ok(notify.includes('[options.message, options.description, options.action?.label]') && notify.includes('live.textContent = announcement'));
   assert.ok(notify.includes(`options.tone === 'danger' ? alert : polite`), 'errors are assertive');
   assert.ok(!notify.includes('class="iq-toast-copy" role="status"'), 'the visual toast no longer carries the live role');
-  // vnext.25 (SPR-8): only an undo action keeps the toast; the timing policy itself is tested in vnext25.test.cjs.
-  assert.ok(components.includes('if (options.action?.undo)\n        return 0;'), 'a toast with an undo action does not auto-dismiss');
+  assert.ok(components.includes('options.duration === 0'), 'explicit persistent notices do not auto-dismiss');
   assert.ok(notify.includes('!duration ||') && notify.includes("toast.matches(':hover')"), 'persistent toasts skip the timer; hover pause stays');
 });
 

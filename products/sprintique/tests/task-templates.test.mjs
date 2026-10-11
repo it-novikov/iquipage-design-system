@@ -41,7 +41,7 @@ test('SPR-12: any edit keeps the whole description, and nothing inserted means n
 test('SPR-12: the task dialog applies the rule to new tasks only and tracks every template it inserts',()=>{
   const source=readFileSync(new URL('../ui/src/board/task-dialog.js',import.meta.url),'utf8');
   assert.ok(source.includes('if(!task){const kept=withoutUntouchedTemplate(changes.description,lastTemplateContent);if(kept!==changes.description){changes.description=kept;delete changes.legacyChecklists;}}'));
-  assert.ok(source.includes('lastTemplateContent=(task||initialValues.description===undefined)?taskMarkdown(initial):null;'),'the first template inserted');
-  assert.ok(source.includes('lastTemplateContent=editor.value;\n      }'),'a project template applied from the menu or by a type change');
+  assert.ok(source.includes('initialValues.description===undefined?taskMarkdown(initial):null;'),'the first template inserted');
+  assert.ok(source.includes('lastTemplateContent=editor.value;'),'a project template applied from the menu or by a type change');
   assert.ok(source.includes('description.refresh();lastTemplateContent=editor.value;}'),'a starter template chosen from the menu');
 });

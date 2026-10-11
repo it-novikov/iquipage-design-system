@@ -1,5 +1,5 @@
 /** Supported core browser entry. Does not register graph, roadmap, crop, or whiteboard. */
-export declare const version:'0.6.0-vnext.39';
+export declare const version:'0.6.0-vnext.42';
 /** Plain text only. The host owns timestamps, paging, state, permissions and persistence. */
 export interface WorkEntry {id:string;text:string;by?:string;time?:string;detail?:string;state?:''|'error'|'waiting'|'complete';}
 export declare function workEntry(entry:WorkEntry):string;
@@ -29,8 +29,7 @@ export interface AvatarPerson {name:string;id?:string;image?:string;kind?:'human
 /** vnext.38: the avatar scale for ui.personAvatar's size — 'xs' 20, 'sm' 24, 'md' 28, '' 32, 'lg' 40, 'xl' 48 px; initials are
  *  0.37 of the diameter at every step. ui.avatarGroup takes 'xs' | 'sm' | 'md' (or '', 28 px) | 'lg'. */
 export type AvatarSize='xs'|'sm'|'md'|''|'lg'|'xl';
-/** Shows a toast. It leaves by itself after 5 s (info, success), 8 s (warning), 10 s (danger) or 10 s with a shortcut
- * action; an undo action (`action.undo`) stays until dismissed. `duration` overrides the time in ms, 0 keeps the toast,
+/** Shows a toast. All tones and actions leave after 3.5 seconds. `duration` overrides the time in ms, 0 keeps the toast,
  * a malformed value falls back to the default. Hover, focus and a hidden tab pause the countdown. Returns a function that dismisses the toast. */
 export declare function notify(options:{message:string;description?:string;tone?:'info'|'success'|'warning'|'danger';duration?:number;action?:{label:string;run:()=>void;undo?:boolean}}):()=>void;
 /** true when the OS asks for reduced motion or <html data-motion="reduced"> is set; CSS zeroes the motion tokens on the same two signals. */
@@ -108,7 +107,8 @@ export interface SwitcherOptions {/** The current choice as plain text. */label:
  *  action arrives as iq-action. Also available as ui.switcher. */
 export declare function switcher(options:SwitcherOptions):string;
 /** Existing composition helpers; see source ui.js for optional slot markup. */
-export declare const ui:Record<string,unknown>;
+export interface ChoiceGroup {id:string;label:string;options:{value:string;label:string;description?:string;disabled?:boolean}[];collapsible?:boolean;expanded?:boolean;}
+export declare const ui:Record<string,unknown>&{choiceGroups(options:{name:string;groups:ChoiceGroup[];value?:string}):string;radioGroup(label:string,name:string,options:ChoiceGroup['options'],selected:string,settings?:{legendHidden?:boolean}):string};
 /** vnext.30: a scale of progress against a target. Values are numbers or exact decimal strings. */
 export interface ScaleOptions {target?:number|string|null;done?:number|string;pending?:number|string;/** Without a target: the value the full track stands for. */max?:number|string;size?:'lg'|'md'|'sm';/** Text equivalent for assistive technology. */label?:string;/** Tone of an overrun past the target. */over?:'danger'|'success';}
 export interface ScaleSpan {from:number;to:number;}

@@ -84,7 +84,7 @@ export async function openInviteDialog({repository,project,scope='workspace',onD
     catch(error){throw Error(error.code==='MAIL_UNAVAILABLE'?`${error.message} Можно создать ссылку без письма — кнопка внизу окна.`:explain(error));}
     const list=result.invitations||[],failed=list.filter(i=>i.delivery==='failed');
     if(!failed.length)notify({tone:'success',message:`Отправили ${plural(list.length,['приглашение','приглашения','приглашений'])}`,description:list.map(i=>i.email).join(', ')});
-    else notify({tone:'warning',duration:12000,message:failed.length===list.length?'Письма не ушли':'Не все письма ушли',description:failed.map(i=>`${i.email}: ${i.deliveryError||'почтовый сервер не ответил'}`).join('; ')+'. Повторите из списка приглашений или создайте ссылку.'});
+    else notify({tone:'warning',duration:3500,message:failed.length===list.length?'Письма не ушли':'Не все письма ушли',description:failed.map(i=>`${i.email}: ${i.deliveryError||'почтовый сервер не ответил'}`).join('; ')+'. Повторите из списка приглашений или создайте ссылку.'});
     await onDone();
   }
   el=dialog({title:fromProject?`Пригласить в проект «${project.name}»`:'Пригласить в пространство',description:fromProject?'Каждому придёт письмо со ссылкой. Пресет — отправная точка прав; доступны пресеты не шире ваших прав.':'Каждому придёт письмо со ссылкой. Пресет — отправная точка прав; вы можете выбрать только пресет не шире своих прав.',

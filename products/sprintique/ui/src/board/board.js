@@ -129,7 +129,7 @@ export async function mountTaskBoard(root,{repository,project,canEdit=true,canMa
       if(closed)return;const current=await repository.read('tasks',id,project.id,{signal}).catch(()=>null);
       if(closed)return;
       // Optimistic move, rolled back with a toast: the card is back where it was, the reason is said once.
-      items=items.map(t=>t.id===id?(current||original):t);notify({tone:'danger',message:'Задача не перемещена',description:e.message||'Повторите действие.',duration:10000});
+      items=items.map(t=>t.id===id?(current||original):t);notify({tone:'danger',message:'Задача не перемещена',description:e.message||'Повторите действие.',duration:3500});
     }finally{pending.delete(id);dragIntent=null;persist();render(id);if(queued)await reload();}
   }
   async function edit(task=null,status='ready',{fromRoute=false,fullscreen=false,replaceRoute=false,replace=null}={}){
@@ -183,7 +183,7 @@ export async function mountTaskBoard(root,{repository,project,canEdit=true,canMa
     if(action==='open')edit(task);
     if(action==='move-to'&&canEdit&&TASK_COLUMNS.some(c=>c.id===parts[1]))void move(id,parts[1]).then(moved=>{if(moved)notify({tone:'success',message:`${taskKey(task)} → ${TASK_COLUMNS.find(c=>c.id===parts[1]).label}`});});
   },{signal});
-  const unsubscribe=repository.subscribe?.(e=>{if(['tasks','tags','releases'].includes(e.collection)&&e.projectId===project.id)scheduleReload();});
+  const unsubscribe=repository.subscribe?.(e=>{if(['tasks','taskLinks','tags','releases'].includes(e.collection)&&e.projectId===project.id)scheduleReload();});
   async function closeTask(){
     if(openingTask){openingController?.abort();openingController=null;openingTask=false;return true;}if(pending.size)return false;if(!activeDialog)return true;const opened=activeDialog;switchingTask=true;
     const accepted=await opened.taskController.close();

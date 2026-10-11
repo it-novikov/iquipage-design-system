@@ -1,0 +1,24 @@
+# Журнал 20261011-release-1-remaining
+
+- 2026-10-11T08:06:10Z · codex · create · - · Релиз 1.0: оставшиеся задачи и проверка паритета
+- 2026-10-11T08:09:09Z · codex · claim · - · взял задачу
+- 2026-10-11T08:09:09Z · codex · status · - · active
+- 2026-10-11T08:09:09Z · codex · step · S1 · done: Все14карточек прочитаны, семьreadyназначеныCodex/in_progress. UIAstra подтвердил reference и frontendroot causes; серверный additive blocker контракт согласован.
+- 2026-10-11T08:09:09Z · codex · step · S2 · active
+- 2026-10-11T08:14:18Z · codex · checkpoint · - · дальше: Собрать DS tar и текущий fixture, пройти семь сценариев и паритет, затем полный гейт/два ревью
+- 2026-10-11T08:31:16Z · codex · checkpoint · - · дальше: После PASS опубликовать PR, проверить CI и выложить с резервной копией
+- 2026-10-11T08:33:37Z · codex · step · S2 · done: Семь исправлений выполнены. Exact DS .42, HTTP25/25, UI72/72, DS459/459 и реальный браузерный сценарий с фокусом прошли; два независимых ревью без открытых замечаний.
+- 2026-10-11T08:33:37Z · codex · step · S3 · active
+- 2026-10-11T08:38:54Z · codex · note · A1 · критерий приёмки выполнен
+- 2026-10-11T08:38:54Z · codex · note · A2 · критерий приёмки выполнен
+- 2026-10-11T08:38:54Z · codex · note · A3 · критерий приёмки выполнен
+- 2026-10-11T08:43:06Z · codex · checkpoint · - · дальше: После CI PASS fresh backup, cutover, own OAuth/browser и 10 минут наблюдения
+- 2026-10-11T09:10:10Z · codex · note · A4 · критерий приёмки выполнен
+- 2026-10-11T09:11:15Z · codex · checkpoint · - · дальше: После PASS завершить собственные планы и передать семь задач на review
+- 2026-10-11T09:14:15Z · codex · handoff · - · planned; HEAD 0664373; незакоммичено 2
+- 2026-10-11T09:14:49Z · codex · claim · - · взял задачу
+- 2026-10-11T09:14:49Z · codex · checkpoint · - · дальше: После PASS собственные планы done и задачи review, затем финальная передача владельцу
+- 2026-10-11T09:20:23Z · codex · note · A5 · критерий приёмки выполнен
+- 2026-10-11T09:20:23Z · codex · step · S3 · done: CI SUCCESS, full isolated483/detached483 и DS459, main/fallback runtime PASS; SHA0664373 выложен с fresh backup, 10 минут /21 выборка PASS. Все семь задач review от Codex, принятие за владельцем.
+- 2026-10-11T09:20:23Z · codex · checkpoint · - · дальше: Человеческая проверка SPR4/8/20–24 и PR65 поверх PR64
+- 2026-10-11T09:20:23Z · codex · handoff · - · review → human:it-novikov; HEAD 0664373; незакоммичено 3; Все семь задач review, PR65 готов к проверке; production0664373 и десятиминутное наблюдение PASS. PR64/65 не сливались.

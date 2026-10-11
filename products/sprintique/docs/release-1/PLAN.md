@@ -1,0 +1,21 @@
+# Оставшиеся задачи релиза 1.0
+
+Поручение владельца от 11 октября 2026: выполнить оставшиеся задачи в прежнем формате, UI — GPT 6 Astra, реализация сервера, проверка и поставка — Codex. Работа ведётся поверх проверенного SPR-14, отдельная ветка `feat/release-1-remaining`. Push и deploy разрешены исходной постановкой и продолжением; человеческое принятие не подменяется агентом.
+
+Релиз `a0d025ba-d6c9-4b3f-860d-13c3f781e1dc` содержит 15 задач. SPR-14 уже выложен и на review. SPR-4, SPR-8, SPR-20–SPR-24 назначены на собственный аккаунт Codex и переведены в работу. Рабочий план каждой сохранён через native OAuth MCP. SPR-5/6/7/9/10/12/13 уже на review: проверяем паритет, не переписываем принятые решения.
+
+| Задача | Результат | Приёмка |
+| --- | --- | --- |
+| SPR-4 | Вопрос, варианты и сохранённое решение в обсуждении; источник — существующий linked WorkQuestion | Новый вопрос, ответ, связанный thread, повтор, reload, read-only и черновик; reference design.jarnee.ru/audit.html раздел планирования |
+| SPR-8 | Всплывающие уведомления скрываются через 3500 ms | Info/success/warning/error и действия; focus/hover/hidden page, закрытие и несколько уведомлений |
+| SPR-20 | Переход не показывает staging loader под старым контентом | Быстрый переход, медленная загрузка, race A→B→C, ошибка, reduced motion |
+| SPR-21 | Шаблон соответствует новому типу задачи | Новый/сохранённый объект, untouched template, собственный текст, предложение замены и отмена, сохранение после reload |
+| SPR-22 | Текущий effective release первым; другие только по запросу; завершённые закрыты | Пустой/непустой запрос, inherited release, backlog, accepted/final, исключение self/archive/parent cycle, клавиатура |
+| SPR-23 | Одна общая навигация и согласованная оболочка страниц | Workbench/board/planning/maps/finance/agents/settings, active route, project/workspace switch, mobile, contextual actions |
+| SPR-24 | Карточка показывает действующую блокировку | Полный authorized snapshot, outside board page, count>3, completion, archived link, direction/related, tenant denial, live UI refresh |
+
+UI использует public exact DS release. Новый grouped choice — общий компонент DS; локальный дубль combobox и патчи внутреннего DOM запрещены. Блокировка добавляется только в read projection planning/board: optional поля позволяют читать старую историю, снимки preview не меняются. Новый доступ или миграция не требуются.
+
+Проверки используют собственные синтетические PostgreSQL/S3. Перед выпуском обязательны два независимых ревью без P0/P1, полный isolated/detached гейт, CI и source stability. Сохраняются точный SHA/image digest и fresh backup; совместимый rollback — действующий проверенный образ SPR-14 на неизменном ledger 077. После переключения — десять минут наблюдения с готовностью, exact image API/worker, публичным HTML, собственным MCP и ключевыми UI-сценариями. Условия отката: повторная неготовность, restart, нарушение доступа/сохранности или подтверждённый отказ основного сценария.
+
+Состояние: реализация, браузерная приёмка и выпуск завершены. Exact DS .42; targeted HTTP25/25, UI72/72, DS459/459; два независимых ревью без открытых замечаний. Полный isolated483/483 и detached483/483, CI38125310722, main/fallback runtime и десятиминутное production-наблюдение PASS. Семь задач передаются на review владельца от Codex; прежние review задачи не изменены. Наблюдения и пределы browser-проверки записаны в BROWSER-ACCEPTANCE.md, SHA/digests/backup — в RELEASE-EVIDENCE.md.

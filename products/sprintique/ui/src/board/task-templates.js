@@ -48,6 +48,10 @@ export function instantiateTaskTemplate(settings,type='task') {
 }
 /** Whitespace-insensitive form of a template text: line breaks, indentation and trailing spaces are not edits. */
 export function normalizeTemplateText(text){return String(text??'').replace(/\s+/g,' ').trim();}
+/** A type switch may replace an empty description or the exact template the editor last inserted. */
+export function canApplyTypeTemplate(description,previousTemplate){
+  return !String(description??'').trim() || previousTemplate!=null&&normalizeTemplateText(description)===normalizeTemplateText(previousTemplate);
+}
 /** SPR-12: a new task keeps no description made only of the template text that was inserted and never touched.
  *  `template` is that exact inserted text (null when none was inserted); any edit keeps the whole description. */
 export function withoutUntouchedTemplate(description,template){

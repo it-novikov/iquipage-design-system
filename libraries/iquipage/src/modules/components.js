@@ -564,19 +564,14 @@ class IqDialog extends IqElement {
     }
 }
 exports.IqDialog = IqDialog;
-/** How long a toast stays, in ms (0: until dismissed). A short confirmation reads at a glance; a warning or an error
- * asks for a decision, so it stays longer. An undo action (action.undo) keeps its window open until the person
- * dismisses the toast (A11Y-01: reaching «Отменить» by keyboard or with a screen reader takes longer than any fixed
- * time). Any other action, such as «Открыть», is a shortcut: it leaves with the toast after a longer read. */
-const TOAST_DURATION = Object.freeze({ info: 5000, success: 5000, warning: 8000, danger: 10000, action: 10000 });
+/** Transient notices share a 3.5 second lifetime. Hover/focus/hidden-tab pause it; explicit duration:0 is persistent. */
+const TOAST_DURATION = Object.freeze({ info: 3500, success: 3500, warning: 3500, danger: 3500, action: 3500 });
 exports.TOAST_DURATION = TOAST_DURATION;
 function toastDuration(options = {}) {
     // Only an explicit 0 keeps a toast; a malformed duration falls back to the default instead of pinning it.
     const value = Number(options.duration);
     if (options.duration === 0 || (options.duration != null && Number.isFinite(value) && value > 0))
         return value;
-    if (options.action?.undo)
-        return 0;
     const base = TOAST_DURATION[options.tone] ?? TOAST_DURATION.info;
     return options.action ? Math.max(base, TOAST_DURATION.action) : base;
 }
