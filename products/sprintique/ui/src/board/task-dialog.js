@@ -1,3 +1,4 @@
+import {mountTaskWikiLinks} from './task-wiki-links.js';
 import {mountTaskMaterials} from './task-materials.js';
 import {mountTaskFiles} from './task-files-view.js';
 import {uid} from '../common.js';
@@ -43,7 +44,7 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
   let files,description;
   // Existing tasks save each field as it changes; a new task is created deliberately with one button.
   const autosave=!!task&&canEdit;
-  let current=task,baseline='',saving=false,confirming=false,priorityTouched=false,catalogs,threads,links,materials,plan,pendingPlan=null,personal=null,agents=null;
+  let current=task,baseline='',saving=false,confirming=false,priorityTouched=false,catalogs,threads,links,materials,wikiLinks,plan,pendingPlan=null,personal=null,agents=null;
   // Owners are the people of the project and, in a group of their own, the service accounts that may take tasks
   // (SPR-7). A former member, an account that can no longer act or pre-membership text stays visible until reassigned.
   const owners=ownerOptions(members,initial,{image:m=>repository.client?.avatarUrl?.(m.id,m.avatarRevision)||undefined});
@@ -152,7 +153,7 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
         <iq-markdown-editor label="Описание" name="description" variant="compact" density="compact" maxlength="10000" preview-on-blur preview empty-text="${canEdit?'Нажмите, чтобы добавить описание':'Описания нет'}" ${canEdit?'empty-action-label="Начать с шаблона" empty-action="template"':''}></iq-markdown-editor><div data-type-template-offer hidden></div>
       </div></section>
     <div class="task-editor-supplements">
-    <section class="iq-section task-materials-section" data-task-materials aria-label="Материалы задачи"></section>
+    <section class="iq-section task-materials-section" data-task-materials aria-label="Материалы задачи"></section><div data-task-wiki-links></div>
     <section class="iq-section task-relations"><div class="iq-section-head">${icon('link',16)}<h3>Связи</h3><span class="iq-section-count" data-relations-count></span><span class="iq-section-actions" data-relations-actions></span></div>
       ${task||canEdit?'<div data-task-links></div>':''}</section>
     <section class="iq-section task-files-section" data-task-files></section>
@@ -189,8 +190,8 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
       files.assertReady();
       if(threads?.isBusy())throw Error('Дождитесь публикации обсуждения.');
       if(links?.isBusy?.())throw Error('Дождитесь сохранения связей.');
-      if(materials?.isBusy())throw Error('Сначала завершите работу со ссылкой.');
-      saving=true;files.setLocked(true);links?.setLocked?.(true);materials?.setLocked(true);
+      if(materials?.isBusy()||wikiLinks?.isBusy())throw Error('Сначала завершите работу со ссылкой.');
+      saving=true;files.setLocked(true);links?.setLocked?.(true);materials?.setLocked(true);wikiLinks?.setLocked(true);
       const saveState=form.querySelector('[data-task-save-state]');
       try{
         const snapshot=JSON.stringify(read(form,values)),changes=read(form,values);
@@ -214,23 +215,23 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
           }
           await onSaved(saved);
         }
-        const failedMaterials=materials?.dirty()?await materials.save():0;
+        const failedMaterials=materials?.dirty()?await materials.save():0;const failedWiki=wikiLinks?.dirty()?await wikiLinks.save():0;
         // Links follow the task, each its own repeatable command; a failed one keeps the form open with its reason.
         if(links?.dirty?.()){
           saveState.dataset.tone='muted';
           const failed=await links.save(repository,{taskId,projectId:project.id,onProgress:({done,total})=>{saveState.textContent=`Сохраняются связи: ${Math.min(done+1,total)} из ${total}`;}});
           if(failed){
-            saveState.dataset.tone='danger';saveState.textContent=linksFailedText(taskKey(current),failed)+(failedMaterials?' Материалы тоже сохранены не все.':'');
+            saveState.dataset.tone='danger';saveState.textContent=linksFailedText(taskKey(current),failed)+(failedMaterials||failedWiki?' Материалы тоже сохранены не все.':'');
             form.querySelector('.iq-dialog-head h2').textContent=taskKey(current);
-            form.querySelector('.iq-dialog-footer button[type=submit]').textContent=failedMaterials?'Повторить сохранение':'Сохранить связи';
+            form.querySelector('.iq-dialog-footer button[type=submit]').textContent=failedMaterials||failedWiki?'Повторить сохранение':'Сохранить связи';
             form.querySelector('.iq-dialog-footer [data-close]').textContent='Закрыть';
             return false;
           }
           saveState.textContent='';
         }
-        if(failedMaterials){saveState.dataset.tone='danger';saveState.textContent=`Задача ${taskKey(current)} создана. Не все материалы сохранены — причина указана под ссылкой.`;form.querySelector('.iq-dialog-head h2').textContent=taskKey(current);form.querySelector('.iq-dialog-footer button[type=submit]').textContent='Сохранить материалы';form.querySelector('.iq-dialog-footer [data-close]').textContent='Закрыть';return false;}
+        if(failedMaterials||failedWiki){saveState.dataset.tone='danger';saveState.textContent=`Задача ${taskKey(current)} создана. Не все материалы сохранены — причина указана под ссылкой.`;form.querySelector('.iq-dialog-head h2').textContent=taskKey(current);form.querySelector('.iq-dialog-footer button[type=submit]').textContent='Сохранить материалы';form.querySelector('.iq-dialog-footer [data-close]').textContent='Закрыть';return false;}
         if(threads?.dirty()){saveState.textContent='Задача сохранена. Черновик сообщения ещё не опубликован.';return false;}
-      }finally{saving=false;files.setLocked(false);links?.setLocked?.(false);materials?.setLocked(false);}
+      }finally{saving=false;files.setLocked(false);links?.setLocked?.(false);materials?.setLocked(false);wikiLinks?.setLocked(false);}
     }:undefined,
     mount:(el,form)=>{
       el.classList.add('task-edit-dialog');el.setAttribute('kind','drawer');el.setAttribute('persistent','');
@@ -276,7 +277,7 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
       const relations={actionsRoot:form.querySelector('[data-relations-actions]'),countRoot:form.querySelector('[data-relations-count]')};
       // After a creation whose links did not all save, the footer follows the retries until every link is in.
       const linksChanged=()=>{
-        if(!current||!links||materials?.dirty())return;
+        if(!current||!links||materials?.dirty()||wikiLinks?.dirty())return;
         const state=form.querySelector('[data-task-save-state]'),left=links.drafts.failed().length;
         state.dataset.tone=left?'danger':'muted';
         state.textContent=left?linksFailedText(taskKey(current),left):links.dirty()?'':`Задача ${taskKey(current)} создана, связи сохранены.`;
@@ -322,12 +323,14 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
           offer.querySelector('[data-preview-type-template]').onclick=()=>dialog({title:`Шаблон для ${name}`,description:'Замена удалит текущий текст описания. Остальные поля не изменятся.',body:'<iq-markdown-viewer data-template-preview></iq-markdown-viewer>',submitLabel:'Заменить описание',mount:element=>{element.querySelector('[data-template-preview]').value=taskMarkdown(instantiateTaskTemplate(settings,type));},onSubmit:async()=>{applyTemplate();offer.hidden=true;form.dispatchEvent(new Event('change'));}});
         }
       });
-      if(repository.listTaskMaterials)materials=mountTaskMaterials(form.querySelector('[data-task-materials]'),{repository,taskId,projectId:project.id,isNew:!task,readOnly:!canEdit,onChange:()=>{
+      const wikiRoot=form.querySelector('[data-task-wiki-links]');
+      if(repository.listTaskMaterials)materials=mountTaskMaterials(form.querySelector('[data-task-materials]'),{repository,taskId,projectId:project.id,isNew:!task,readOnly:!canEdit,wikiRoot:repository.listTaskWikiLinks?wikiRoot:null,hasWiki:()=>!!wikiLinks?.hasRows(),onChange:()=>{
         if(task||!current||saving)return;
-        const button=form.querySelector('.iq-dialog-footer button[type=submit]');if(button)button.textContent=materials?.dirty()||links?.dirty?.()?'Повторить сохранение':'Готово';
-        if(!materials?.dirty()&&!links?.dirty?.())form.querySelector('[data-task-save-state]').textContent='Все материалы и связи сохранены.';
+        const button=form.querySelector('.iq-dialog-footer button[type=submit]');if(button)button.textContent=materials?.dirty()||wikiLinks?.dirty()||links?.dirty?.()?'Повторить сохранение':'Готово';
+        if(!materials?.dirty()&&!wikiLinks?.dirty()&&!links?.dirty?.())form.querySelector('[data-task-save-state]').textContent='Все материалы и связи сохранены.';
       }});
       else form.querySelector('[data-task-materials]').hidden=true;
+      if(repository.listTaskWikiLinks)wikiLinks=mountTaskWikiLinks(wikiRoot,{repository,projectId:project.id,projectSlug:project.slug,taskId,isNew:!task,readOnly:!canEdit,onChange:()=>{materials?.refreshLayout();if(!task&&current&&!saving){const button=form.querySelector('.iq-dialog-footer button[type=submit]');if(button)button.textContent=wikiLinks?.dirty()||materials?.dirty()||links?.dirty?.()?'Повторить сохранение':'Готово';}}});else wikiRoot.hidden=true;
       // "Шаблон" lives inside the editor: a toolbar action while editing, and a quiet link in an empty preview.
       if(canEdit)editor.toolbarActions=[{id:'template',label:'Шаблон',icon:'file'}];
       editor.addEventListener('iq-editor-action',event=>{
@@ -339,7 +342,7 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
           submitLabel:untouched?'Применить':'Заменить описание',onSubmit:async values=>{apply(values.get('starter'));}});
       });
       let discarded=false;
-      const dirty=()=>!discarded&&(canEdit&&(JSON.stringify(read(form))!==baseline||files.dirty()||!!links?.dirty?.()||!!materials?.dirty())||!!threads?.dirty()||!!personal?.dirty?.()||!!agents?.dirty?.());
+      const dirty=()=>!discarded&&(canEdit&&(JSON.stringify(read(form))!==baseline||files.dirty()||!!links?.dirty?.()||!!materials?.dirty()||!!wikiLinks?.dirty())||!!threads?.dirty()||!!personal?.dirty?.()||!!agents?.dirty?.());
       const saveState=form.querySelector('[data-task-save-state]');
       let timer=0,inflight=null,again=false,conflict=false;
       function showState(text,{error=false,action=''}={}){
@@ -418,7 +421,7 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
       if(autosave){
         // The footer becomes the save status; the header close button stays the single way out.
         const footer=form.querySelector('.iq-dialog-footer');footer.querySelector('[data-close]').hidden=true;footer.prepend(saveState);showState('Изменения сохраняются автоматически');
-        const own=event=>!event.target.matches('iq-tabs')&&!event.target.closest('[data-task-threads],[data-task-links],[data-task-materials],[data-task-agents],[data-task-work-summary]');
+        const own=event=>!event.target.matches('iq-tabs')&&!event.target.closest('[data-task-threads],[data-task-links],[data-task-materials],[data-task-wiki-links],[data-task-agents],[data-task-work-summary]');
         for(const type of ['input','change','iq-change','task-files-change'])form.addEventListener(type,event=>{if(own(event))schedule(type==='input'?900:300);});
         saveState.addEventListener('click',event=>{
           const action=event.target.closest('[data-save-action]')?.dataset.saveAction;
@@ -433,7 +436,7 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
       }
       // keepOpen: only settle (flush or confirm) and leave the drawer open, so the next task can replace it in one frame.
       async function close({keepOpen=false}={}){
-        if(confirming||threads?.isBusy()||agents?.isBusy?.()||materials?.isBusy())return false;
+        if(confirming||threads?.isBusy()||agents?.isBusy?.()||materials?.isBusy()||wikiLinks?.isBusy())return false;
         if(autosave&&!discarded)await flush();
         else if(saving)return false;
         if(!dirty()){if(!keepOpen)el.close();return true;}
@@ -446,7 +449,7 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
         });
         return new Promise(resolve=>confirm.addEventListener('iq-close',()=>{confirming=false;resolve(discarded);},{once:true}));
       }
-      el.taskController={close,dirty:()=>dirty()||saving||files.isBusy()||threads?.isBusy()||!!links?.isBusy?.()||!!materials?.isBusy(),taskId,taskKey:task?taskKey(task):null};
+      el.taskController={close,dirty:()=>dirty()||saving||files.isBusy()||threads?.isBusy()||!!links?.isBusy?.()||!!materials?.isBusy()||!!wikiLinks?.isBusy(),taskId,taskKey:task?taskKey(task):null};
       form.addEventListener('click',event=>{
         if(event.target.closest('[data-close]')){event.preventDefault();event.stopImmediatePropagation();close();}
       },{capture:true});
@@ -460,11 +463,11 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
         if((event.ctrlKey||event.metaKey)&&event.key==='Enter'){event.preventDefault();event.stopPropagation();if(autosave)void flush();else form.requestSubmit();}
       });
       const unload=event=>{
-        if(dirty()||saving||threads?.isBusy()||materials?.isBusy()){event.preventDefault();event.returnValue='';}
+        if(dirty()||saving||threads?.isBusy()||materials?.isBusy()||wikiLinks?.isBusy()){event.preventDefault();event.returnValue='';}
       };
       window.addEventListener('beforeunload',unload);
       el.addEventListener('iq-close',()=>{
-        clearTimeout(timer);window.removeEventListener('beforeunload',unload);description.destroy();files.destroy();catalogs.destroy();plan.destroy();threads?.destroy();agents?.destroy();links?.destroy();materials?.destroy();personal?.destroy?.();
+        clearTimeout(timer);window.removeEventListener('beforeunload',unload);description.destroy();files.destroy();catalogs.destroy();plan.destroy();threads?.destroy();agents?.destroy();links?.destroy();materials?.destroy();wikiLinks?.destroy();personal?.destroy?.();
       },{once:true});
       // Read-only facts are text, not controls: there is nothing to compare.
       baseline=canEdit?JSON.stringify(read(form)):'';

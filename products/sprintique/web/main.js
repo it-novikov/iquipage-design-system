@@ -1,3 +1,4 @@
+import {showAccessNotice} from './access-notice.js';
 import {mountSignIn,inspectInvitation} from './sign-in.js';
 import {appearance} from './appearance.js';
 import '@iquipage/web/styles.css';
@@ -21,7 +22,7 @@ import {openSearch} from './search.js';
 import {acceptPendingInvitation} from './members.js';
 import {invitationFlow} from './invitation-flow.js';
 import {can,accessSignature,mayCreateProjects} from './permissions.js';
-import {sectionRouteHash} from './section-route.js';
+import {sectionRouteHash,retainedRouteHash} from './section-route.js';
 import {keepAuthorization,resumeAuthorization,mountConsent} from './consent.js';
 import {loadingMarkup,sectionLoadingShape} from '../ui/src/loading.js';
 import {mountProjectNavigation} from '../ui/planning/src/project-navigation.js';
@@ -154,11 +155,7 @@ root.addEventListener('pointerover',prefetchLink);root.addEventListener('focusin
 /** What the project's live stream reports: changed rights ask for a refresh, lost access closes the project. */
 function onStreamChange(change){
   if(change?.roleChanged){
-    if(root.querySelector('[data-access-change]'))return;
-    const banner=document.createElement('section');banner.dataset.accessChange='';
-    banner.innerHTML=ui.alert('Права изменились','Несохранённый текст остаётся в открытой форме. Обновите доступ, чтобы применить новые права.','warning')+ui.btn('Обновить доступ','secondary sm');
-    root.querySelector('#host-view')?.before(banner);
-    banner.querySelector('button').onclick=()=>{void(async()=>{if(board&&!await board.closeTask())return;session=await repository.initialize();await showProject(currentProject.id,viewMode);})().catch(report);};
+    showAccessNotice(root,()=>{void(async()=>{if(board&&!await board.closeTask())return;session=await repository.initialize();await showProject(currentProject.id,viewMode);root.querySelector('[data-access-change]')?.remove();})().catch(report);});
     return;
   }
   watching=null;
@@ -253,7 +250,7 @@ async function showProject(id,mode=routeMode()){
 async function navigate(mode){
   if(navigating||!currentProject)return;
   // The Workbench keeps its own address; a project section's hash is restored when the switch is refused.
-  const restoreHash=viewMode==='workbench'?null:board?.routeHash||sectionRouteHash(viewMode,location.hash);
+  const restoreHash=viewMode==='workbench'?null:retainedRouteHash(viewMode,board,location.hash);
   if(await showProject(currentProject.id,mode)){if(viewMode!=='workbench')history.replaceState(null,'',sectionRouteHash(viewMode,location.hash));}
   else if(restoreHash)history.replaceState(null,'',restoreHash);
   else if(isWorkbenchPath()&&location.hash){const url=new URL(location.href);url.hash='';history.replaceState(history.state,'',url);}

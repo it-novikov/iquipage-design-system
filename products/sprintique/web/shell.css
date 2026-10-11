@@ -157,3 +157,6 @@
 
 /* These pages already own their inset; the shell must not add it twice. */
 #host-view[data-section=finance],#host-view[data-section=agents]{padding:0}
+
+.sq-access-notice{flex:none;padding:var(--iq-space-3) var(--iq-space-4)}
+.sq-access-notice-copy{display:block;margin-bottom:var(--iq-space-2)}

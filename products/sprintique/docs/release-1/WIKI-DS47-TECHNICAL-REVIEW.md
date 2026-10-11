@@ -1,6 +1,30 @@
-# DS47 → DS48 GAP01–04 — независимое техническое ревью
+# DS47 → DS48 → DS49 GAP01–04 — независимое техническое ревью
 
-## Актуальный итог DS48
+## Текущий технический итог DS50: APPROVE
+
+Exact tar SHA256 `90380ecbfdeff2cca0e0ced052eefa7ec3e3f4bad320cf6891b866e8156d27a3` независимо проверён. Delta49→50 package CSS содержит только дополнительный floor внутри `@media(pointer:coarse),(max-width:720px)`: `.iq-menu-popup button,:is(.iq-document-bar,.iq-document-rail,.iq-dialog) .iq-btn{min-height:44px;min-width:44px}`. Renderer создаёт фактическую iq-menu-popup; public composition scopes совпадают с document/menu/dialog контрактами. Правило намеренно действует на public dialog buttons также вне Wiki на narrow/coarse; desktop fine pointer шире720 не меняется. Оно не вводит частный product selector. Interaction/components modules byte-identical49→50; autosize finite/none исправление49 сохранено. Public types отличаются только version literal.
+
+Собственный targeted vnext46/47/49/50 **15/15 PASS**, fail/skipped0. Новые50 regression сверяют popup class с renderer, desktop menu base40 и presence/scope media floor, document/dialog правило отсутствует до media block. Это static/model tests, не computed browser sizing. Полные авторские476 PASS — внешнее evidence. Проверенные CSS/interaction/components/docs/document.md/types/core.d.ts/package.json byte-equal tar↔librarydist↔installed package.
+
+Actual `output/design-review/ds50-linux-gzip.json` прочитан: official Node24.20.0/zlib1.3.2.1-motley, exact archive SHA выше; **core185160≤185291, CSS101397≤101612**, запас131B/215B. Эти фактические значения отличаются от предварительной оценки184949/101603 в сообщении; в verdict использован JSON. Budgets не повышены. Новых actionable technical findings в narrow delta не найдено. **APPROVE только DS50 technical package**; actual390 closure R1 и whole-feature новый freeze/gate/container proof остаются отдельными gates.
+
+## Историческое ожидание DS50
+
+После actual mobile R1 найден P2 touch target: menu40px и document bar/dialog close36px вместо44px. DS50 public repair ещё ожидает независимого technical re-review и нового exact package/budget evidence. DS49 APPROVE ниже — исторический узкий verdict по autosize/title, не актуальная final acceptance.
+
+## Исторический итог DS49
+
+2026-10-11. **APPROVE для технической корректировки DS49**, exact tar SHA256 `c4ba43d6cf74313b7b43bb657bde818fc15a91e64e4764567fef51ebd7a48225`. Вердикт48 ниже исторический и касался исправления tree selectors; он не подтверждал отсутствия позднее найденной браузерной проблемы title/autosize. Новых actionable findings в узком delta48→49 не найдено. Текущая Wiki UI и task links ещё требуют отдельной приёмки.
+
+Самостоятельный read-only diff обоих tar подтверждает два изменения поведения: `src/modules/interaction.js:96` трактует computed `maxHeight === 'none'` как Infinity; `src/styles/foundation.css:2648` задаёт `.iq-document-title` min-height1.25em/max-height:none. Последнее перекрывает generic textarea min80/max640 только для document title. Default textarea640 и editor600 остаются конечными CSS лимитами; такие поля по-прежнему clamp и включают overflow auto. Пустое/нечисловое fallback значение сохраняет прежние76/640. Для явного none высота растёт по scrollHeight+border, overflow hidden; input node/value/selection не заменяются, scrollTop сохраняется. Resize observer/state/API новых нет. Остальные tar delta — version49 и сопутствующие manifest/provenance/docs/token metadata; public types меняют только version literal, остальные module bytes неизменны.
+
+Собственный Node24 targeted запуск vnext46/47/49: **13/13 PASS**, fail/skipped0. Новые49 tests покрывают одно-/многострочный title, body1700 при none, finite640 clamp/scroll, fallback и disconnected guard. Полные авторские474/474 — внешнее evidence. Это тесты autosize с model computed style, не собственная браузерная cascade/IME проверка.
+
+Независимо подтверждён SHA tar; CSS/interaction/docs/document.md/types/core.d.ts/package.json совпадают byte-for-byte между tar, library dist и установленным consumer. Прочитан fresh root `products/sprintique/output/design-review/ds49-linux-gzip.json`: Node24.20.0/zlib1.3.2.1-motley-42c2f19, core185161<185291, CSS101369<101612 (запас130B/243B). JSON содержит raw measurements; связь с exact49 основана также на root run attribution и проверенном tar, а не на отсутствующем SHA поле JSON. Budgets не повышены. Build/cache/source reviewer не менял.
+
+Пределы: actual document title geometry, mobile/IME/theme и целый product editing lifecycle reviewer в браузере не выполнял. Технический APPROVE49 не заменяет отдельный actual UI review, product fullgate или production readiness.
+
+## Исторический итог DS48
 
 2026-10-11. **APPROVE для узкой технической поставки DS48**, exact tar SHA256 `5023b875c4a02b7c347b35970c172aa47836f79a911d8a682dc298ae2ed46eed`. Исторический DS47 ниже остаётся отклонённым; его PASS не используется для подтверждения исправленного пакета. Новых actionable findings при corrective re-review не найдено. Это не окончательная приёмка Wiki UI.
 

@@ -8,7 +8,7 @@ owner: human:it-novikov
 branch: feat/project-wiki
 base: main
 created: 2026-10-11
-updated: 2026-10-11T13:28:20Z
+updated: 2026-10-11T14:46:47Z
 links:
 ---
 
@@ -22,7 +22,7 @@ links:
 
 - **Входит:** исследование и подробный план; после выбора прав — project wiki, история/восстановление, поиск/архив, внешние и внутренние материалы задачи, проверки и разрешённая поставка.
 - **Не входит:** публичные страницы, редактирование в реальном времени, отдельные ограничения каждой страницы, новая система файлов. Файлы остаются в существующих вложениях задач.
-- **Ограничения:** выбор общих либо отдельных wiki прав ожидает ответа пользователя; зависимая реализация не начинается до ответа. UI — GPT 6 Astra, сервер/контракты/миграция — root. Только versioned public DS; никакого runtime SQL в MCP.
+- **Ограничения:** пользователь подтвердил общие TASKS_READ/TASKS_WRITE, включая сервисные аккаунты. UI — GPT 6 Astra, сервер/контракты/миграция — root. Только versioned public DS; никакого runtime SQL в MCP.
 
 ## Приёмка
 
@@ -35,49 +35,55 @@ links:
 
 ## Передача
 
-- **Состояние:** Исследование и revision2 плана с концептом одобрены двумя независимыми ревью; root разрешил реализацию.
-- **Сейчас:** Astra пересобирает UI и public DS GAP01–04; сервер wiki уже отдельно проверен API/MCP24/24.
-- **Дальше:** Exact DS и новая композиция, интеграция task→wiki после078, реальные браузерные сценарии и отдельное финальное ревью.
+- **Состояние:** Новый интерфейс и сервер реализованы; независимое ревью выявило P2 мобильного меню.
+- **Сейчас:** Astra исправляет public DS menu touch target40→44; прошлый gate остаётся историческим.
+- **Дальше:** Повторно проверить DS50, заморозить source, выполнить gate и контейнерный откат, затем PR и деплой.
 - **Незакоммичено:** Карточка и WIKI-RESEARCH.md, runtime не изменён.
-- **Рабочая копия:** 67 файл(ов): libraries/iquipage/PROVENANCE.json, libraries/iquipage/README.md, libraries/iquipage/package-lock.json, libraries/iquipage/package.json, libraries/iquipage/src/entries/core.js, libraries/iquipage/src/modules/mentions.js, libraries/iquipage/src/modules/structured.js, libraries/iquipage/src/modules/ui.js, libraries/iquipage/src/styles/avatar.css, libraries/iquipage/src/styles/foundation.css, libraries/iquipage/tests/vnext38.test.cjs, libraries/iquipage/tokens/semantic.json и ещё 55 (34 files changed, 1316 insertions(+), 72 deletions(-)) · HEAD 01bbdb2
+- **Рабочая копия:** 43 файл(ов): libraries/iquipage/PROVENANCE.json, libraries/iquipage/README.md, libraries/iquipage/docs/document.md, libraries/iquipage/package-lock.json, libraries/iquipage/package.json, libraries/iquipage/src/entries/core.js, libraries/iquipage/src/modules/interaction.js, libraries/iquipage/src/styles/foundation.css, libraries/iquipage/tests/vnext38.test.cjs, libraries/iquipage/tokens/semantic.json, libraries/iquipage/types/core.d.ts, products/sprintique/docs/release-1/TASK-MATERIALS-ACCEPTANCE.md и ещё 31 (32 files changed, 152 insertions(+), 90 deletions(-)) · HEAD 7944c8b
 - **Ловушки:**
   - Прототип не является работающим API; старый UI отвергнут. При CAS сохранять актуальные parentId/archived, не откатывать чужой перенос текстовой правкой.
+  - Не использовать старый source fingerprint и DS49 сертификат для новой поставки.
+- **Проверка:** DS49: gate8/8, backend20/20, MCP15/15, container fallback PASS; R1 P2 требует новой приёмки.
 
 ## План
 
-### S1. Исследование и контракт [active]
+### S1. Исследование и контракт [done]
 - **Что:** Уточнить минимальный рабочий сценарий и права.
 - **Как:** Сопоставить фактические возможности Sprintique и официальные сценарии Confluence; записать ADR и acceptance.
 - **Зачем:** Не закодировать произвольную модель доступа и потери данных.
 - **Приёмка:**
-  - [ ] Выбор прав подтверждён; модель, ограничения и сценарии зафиксированы.
+  - [x] Выбор прав подтверждён; модель, ограничения и сценарии зафиксированы.
 - **Покрывает:** A1,A2,A3,A4
+- **Итог:** Общие права задач подтверждены владельцем. Исследование, план и потенциальная композиция прошли два независимых ревью до реализации.
 
-### S2. Сервер и миграция [todo]
+### S2. Сервер и миграция [done]
 - **Что:** Добавить project pages, versions и task resources.
 - **Как:** Typed DTO, FORCE RLS, CAS/ledger/audit/outbox в одной транзакции, индексы и paging.
 - **Зачем:** Сохранять данные, авторство и конкурентные изменения.
 - **Приёмка:**
-  - [ ] Backend сценарии, ограничения и отказ доступа проверены.
+  - [x] Backend сценарии, ограничения и отказ доступа проверены.
 - **Покрывает:** A1,A2,A3,A4
+- **Итог:** Typed REST и MCP, миграция079 и неизменяемая история реализованы. API, права, CAS, повтор команд и сохранность прежних материалов проверены на отдельной базе.
 - **Зависит от:** S1
 
-### S3. Интерфейс [todo]
+### S3. Интерфейс [done]
 - **Что:** Документация проекта и компактные материалы задачи.
 - **Как:** GPT 6 Astra использует публичные DS композиции; сохраняет черновики, ошибки и возврат к задаче.
 - **Зачем:** Дать человеку быстрый путь от задачи к знаниям проекта.
 - **Приёмка:**
-  - [ ] Реальный сценарий create/edit/search/history/task backlink пройден в обоих темах и на телефоне.
+  - [x] Сценарий create/edit/search/history/task backlink пройден на настоящем backend в обеих темах, Chromium390 и1280, как в revision2 плана. Физическое touch-устройство отдельно не заявлено проверенным.
 - **Покрывает:** A5
+- **Итог:** Astra полностью пересобрала документацию на public DS50. Автор и независимый reviewer прошли чтение, редактирование, историю, поиск, архив, CAS и связь существующей задачи; WFR1-1 закрыт реальными измерениями. Финальное создание новой задачи отклонено автоматической проверкой и не заявлено пройденным.
 - **Зависит от:** S2
 
-### S4. Приёмка и поставка [todo]
+### S4. Приёмка и поставка [active]
 - **Что:** Два независимых ревью, полный gate и выпуск.
 - **Как:** Fresh/existing ledger, backup/restore и совместимый fallback, exact image, readiness и runtime сценарии.
 - **Зачем:** Доставить новую функциональность без риска потерять существующие данные.
 - **Приёмка:**
   - [ ] Проверки, merge и безопасная выкладка подтверждены.
 - **Покрывает:** A6
+- **Итог:** DS50 source заморожен. Полный прогон завершается; контейнерный откат PASS. Merge и production cutover ожидаются.
 - **Зависит от:** S3
 
 ## Решения
@@ -87,7 +93,7 @@ Wiki — самостоятельный модуль существующего 
 
 ## Вопросы
 
-Кому доступны страницы wiki: тем же читателям и редакторам задач либо по отдельным wiki permissions? Вопрос отправлен владельцу; ответ ожидается, изменения доступа не выполнялись.
+Вопрос о правах закрыт владельцем: читатели задач читают документацию, редакторы задач её изменяют, включая сервисные аккаунты.
 
 ## Контекст
 

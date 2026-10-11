@@ -8,3 +8,8 @@ export function sectionRouteHash(mode,currentHash){
   if(mode==='finance'&&/^#finance\/[A-Za-z0-9_-]+$/.test(currentHash))return currentHash;
   return '#'+mode;
 }
+export function retainedRouteHash(mode,board,currentHash){
+  if(board?.routeHash)return board.routeHash;
+  const task=board?.currentTask?.();
+  return task?'#/task/'+encodeURIComponent(task):sectionRouteHash(mode,currentHash);
+}

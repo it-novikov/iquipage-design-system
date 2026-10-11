@@ -97,7 +97,7 @@ export class ProductRepository {
     const state=this.streamState,waiting=[];let lostWhileHeld=false;
     const handle=event=>{
       if(closed)return;
-      if(event.topic==='member.updated'&&event.resourceId===this.context.actorId)void checkMembership();
+      if(event.topic.startsWith('member.')&&event.resourceId===this.context.actorId)void checkMembership();
       const names={'task':'tasks','thread':'threads','tags':'tags','release':'releases','releases':'releases','map':'maps','map-template':'templates','task-link':'taskLinks','task-settings':'taskSettings','task-material':'taskMaterials','wiki-page':'wikiPages','wiki-link':'wikiTaskLinks','wiki-task-link':'wikiTaskLinks','finance-entry':'financeEntries','finance-settings':'financeSettings'};
       const collection=names[event.topic.split('.')[0]];
       this.clearProjectCache(projectId);

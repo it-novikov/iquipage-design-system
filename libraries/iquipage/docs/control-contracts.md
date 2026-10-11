@@ -51,3 +51,9 @@ API notes relocated from shipped runtime comments in vnext.46; executable behavi
    --iq-properties-label) and the ghost value grammar of the property grid — text at rest, a hover fill and a chevron,
    one click opens the editor. Static rows (.iq-property with .iq-property-label and .iq-property-value, or dt/dd)
    read as the same text without a hover; the status pill is 26px so it never stands taller than its neighbours.
+
+## Menu touch targets (vnext.50)
+
+`iq-menu` action items, including menus composed with `ui.menu()` or `ui.switcher()`, have a minimum height of 44px when the primary pointer is coarse or the viewport is at most 720px wide. Fine-pointer wider desktops retain the existing 40px minimum. This is an additive CSS sizing correction: roles, disabled items, keyboard navigation, focus restoration and action events are unchanged. Consumers use the public component; no product selector into its popup is needed.
+
+Public `.iq-document-bar`, `.iq-document-rail` and `.iq-dialog` compositions apply the same 44×44px minimum to `.iq-btn` controls in that touch/narrow media condition, including icon-only navigation and close buttons. Wider fine-pointer layouts retain their existing component sizes.

@@ -208,4 +208,6 @@ Public CSS for navigation + primary work + context, responsive plan panels and d
 
 Navigation trees: [public iq-tree navigation contract](docs/tree-navigation.md), including cancelable navigation and controlled expansion (vnext.46).
 
-Document reading/editing: [public compositions, editor variant and heading outline](docs/document.md) (vnext.48).
+Document reading/editing: [public compositions, editor variant and heading outline](docs/document.md) (vnext.49).
+
+Menu touch sizing: [public control contracts](docs/control-contracts.md) (vnext.50).

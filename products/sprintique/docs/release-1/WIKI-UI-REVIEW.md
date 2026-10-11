@@ -1,5 +1,7 @@
 # SPR-17 standalone UI: implementation and acceptance
 
+Historical author report for the first composition. The user rejected that UI; it has been replaced by the revision 2 redesign. Current implementation evidence is in WIKI-REDESIGN-AUTHOR-REVIEW.md, with independent final reviews in WIKI-FINAL-EXPERIENCE-REVIEW.md and WIKI-FINAL-TECHNICAL-REVIEW.md. This report does not certify the current UI.
+
 The wiki now uses the shared project navigation and page header, public iq-tree navigation from exact DS .46, Markdown editor/viewer, standard fields, menus, dialogs and settings rows. Application CSS owns only the sidebar/document geometry and responsive visibility. Canonical routes are #wiki, #wiki/archive, #wiki/new and #wiki/page/<id>[/edit|/history[/revision]]; reserved words remain legal page IDs. No second shell or private DS override was added.
 
 The sidebar retains expanded branches and query, opens parent pages independently of expansion, and searches active title/body through the typed API. Query requests are canceled and late responses ignored. Archive uses the bounded complete catalog and local title filtering, showing50 rows at a time. The document has one edit action, contextual history/move/archive commands, explicit save/cancel and quiet metadata. On narrow screens catalog and document occupy the same column; a back action returns to the retained catalog query.

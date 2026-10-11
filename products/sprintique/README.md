@@ -1,15 +1,15 @@
 # Sprintique vNext
 
-Clean-start, self-contained product: the approved board, Planning consumer from PR #3 and maps run against a new PostgreSQL backend. This is a locally verified `2.0.0-alpha.0`, **not a production deployment or a migration of the old platform**.
+Clean-start, self-contained product: the board, Planning consumer, maps and project documentation run against the Kotlin/PostgreSQL backend. Product version is `2.0.0-alpha.0`. Implemented source, local acceptance and production delivery are separate: per-release evidence and limitations live in [release-1 docs](docs/release-1/).
 
 ## Independence and architecture
 
-Copy this entire directory to another repository. No parent workspace, DS source checkout or root install is required. The explicit `vendor/iquipage-web-0.6.0-vnext.28.tgz` release can later be replaced by the same authorized registry package. Its SHA-256 is `499afa9c00fe4388cbf599e211b651cebbed1b09bb8778dc7576438a09fb212d`. Product and library versions are independent.
+Copy this entire directory to another repository. No parent workspace, DS source checkout or root install is required. The explicit `vendor/iquipage-web-0.6.0-vnext.50.tgz` release can later be replaced by the same authorized registry package. Its SHA-256 is `90380ecbfdeff2cca0e0ced052eefa7ec3e3f4bad320cf6891b866e8156d27a3`. Product and library versions are independent.
 
 ```text
 server                  Kotlin/Spring Boot server: API, worker and migrate commands in one artifact
   src/main/kotlin       Modules (identity, workspace, task, catalog, discussion, planning, map, media, agent,
-                        event, job, search, apidoc), each split into domain, application, api, infrastructure
+                        wiki, event, job, search, apidoc), each split into domain, application, api, infrastructure
   src/main/resources    Flyway migration ledger (db/migration) and the exported public contract schemas
   src/local             Local-stand-only code (admin/admin sign-in, settings preview); absent from production
 contracts               Static Zod contracts; the web client validates with them, the server publishes them
@@ -26,6 +26,8 @@ Kotlin 2.3 / Spring Boot 4 / PostgreSQL modular monolith on JDK 25 (see [the ser
 ## Implemented product surface
 
 - Tasks: canonical readable keys, Markdown/checklists, compact DS editor, tags, templates, files/covers, links, status movement, task URLs and discussions with resolution state.
+- Project documentation: nested Markdown pages, title/body search, immutable history, restoration as a new version, archive and task links/backlinks. Reading/editing use the task permissions, including service accounts. Explicit save, CAS and stable command receipts protect concurrent changes; restoring text preserves the current parent. See [ADR0013](docs/decisions/0013-project-wiki.md), [user guide](docs/release-1/WIKI-USER-GUIDE.md) and [acceptance scope](docs/release-1/WIKI-RELEASE-ACCEPTANCE.md). Public pages and simultaneous live editing are outside this release.
+- Task materials: independently versioned named design/documentation links, separate from the description, with removal/undo and retry of only unsaved attachments. Internal documentation links open the project page and preserve dirty-task navigation guards.
 - Planning: release-first list/hierarchy, preparation and board admission, the board shows one release at a time (the running one by default; the person may pick a planned one or «Без релиза», remembered on the server for them and the project), a task created on the board joins the release it shows after a confirmation the person can turn off (a personal preference kept on the server), temporal views, milestones/dependencies, atomic previews and commits, explicit remainder on closing, immutable history, exact selection snapshots and lost-response recovery across reload. The same task document is used everywhere. See [consumer provenance](ui/planning/PROVENANCE.md) and [integration contract](docs/planning-integration-r3.md).
 - Maps: versioned documents, CAS/draft recovery, private image references, task references, sessions/votes/timer, reusable templates and read-only version history. The existing DS canvas is retained. Executable workflow/automation capabilities are explicitly disabled.
 - Finance: a project ledger of income and expense entries in integer minor units of an ISO currency (RUB by default, per entry currency allowed): planned by a due date, posted on the day the money moved, voided with a reason and final; an immutable version of every revision written by the database; totals per currency, by month and by category computed on read. People of the project read it, project administrators change it, agents never see it. No accounts, transfers, budgets or exchange rates. See [finance](docs/finance.md) and [ADR 0003](docs/decisions/0003-project-finance.md).

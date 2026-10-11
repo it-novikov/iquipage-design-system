@@ -4,19 +4,19 @@ import {loadingMarkup} from '../loading.js';
 import {uid} from '../common.js';
 import {MATERIAL_CATEGORIES,materialValues,createMaterialDrafts,saveMaterialDrafts} from './task-materials-model.js';
 
-export function materialsMarkup(rows,{readOnly=false,expanded=new Set(),locked=false}={}){
+export function materialsMarkup(rows,{readOnly=false,expanded=new Set(),locked=false,wikiSlot=false,hasWiki=false}={}){
  const button=(category,label)=>ui.btn(label,'ghost sm','plus',`data-material-add="${category}" ${locked?'disabled':''}`);
  const row=x=>{let host='';try{host=new URL(x.url).hostname;}catch{}return `<div class="task-material-row" data-material-row="${esc(x.id)}"><div class="task-material-copy"><a href="${esc(x.url)}" target="_blank" rel="noopener noreferrer" data-material-link="${esc(x.id)}">${esc(x.title)}<span class="sr-only"> (откроется в новой вкладке)</span>${icon('upRight',14)}</a><span class="iq-helper">${esc(host)}</span>${x.state==='failed'?`<p class="map-form-error" role="alert">${esc(x.error)}</p>`:''}</div>${!readOnly?ui.menu(`<button type="button" class="iq-btn ghost icon sm" data-material-menu="${esc(x.id)}" aria-label="${esc('Действия материала: '+x.title)}" ${locked?'disabled':''}>${icon('more',16)}</button>`,[{label:'Изменить',action:'material-edit',glyph:'settings'},{label:'Убрать из задачи',action:'material-remove',glyph:'x'}]):''}</div>`;};
  const populated=[],empty=[];
  for(const [category,title] of Object.entries(MATERIAL_CATEGORIES)){
-  const list=rows.filter(x=>x.category===category&&!x.archivedAt);if(!list.length){if(!readOnly)empty.push(button(category,category==='design'?'Добавить макет':'Добавить документ'));continue;}
-  populated.push(`<section class="task-material-group"><div class="iq-section-head"><h3>${title}</h3><span class="iq-section-count">${list.length}</span>${readOnly?'':`<span class="iq-section-actions">${button(category,'Добавить')}</span>`}</div>${list.slice(0,3).map(row).join('')}${list.length>3?`<details class="iq-work-details" data-material-more="${category}" ${expanded.has(category)?'open':''}><summary>Ещё материалов: ${list.length-3}</summary>${list.slice(3).map(row).join('')}</details>`:''}</section>`);
+  const list=rows.filter(x=>x.category===category&&!x.archivedAt);if(!list.length&&!(category==='documentation'&&wikiSlot&&hasWiki)){if(!readOnly)empty.push(button(category,category==='design'?'Добавить макет':'Добавить документ'));continue;}
+  populated.push(`<section class="task-material-group"><div class="iq-section-head"><h3>${title}</h3>${category==='documentation'&&wikiSlot?'':`<span class="iq-section-count">${list.length}</span>`}${readOnly?'':`<span class="iq-section-actions">${button(category,'Добавить')}</span>`}</div>${list.slice(0,3).map(row).join('')}${list.length>3?`<details class="iq-work-details" data-material-more="${category}" ${expanded.has(category)?'open':''}><summary>Ещё материалов: ${list.length-3}</summary>${list.slice(3).map(row).join('')}</details>`:''}${category==='documentation'&&wikiSlot?'<div data-wiki-material-slot></div>':''}</section>`);
  }
- return populated.join('')+(empty.length?`<div class="task-material-empty">${empty.join('')}</div>`:'');
+ return populated.join('')+(wikiSlot&&!rows.some(x=>x.category==='documentation'&&!x.archivedAt)&&!hasWiki?'<div data-wiki-material-slot></div>':'')+(empty.length?`<div class="task-material-empty">${empty.join('')}</div>`:'');
 }
 
 /** Task materials have their own revision; saving them never rewrites the task description. */
-export function mountTaskMaterials(root,{repository,taskId,projectId,isNew=false,readOnly=false,onChange=()=>{}}){
+export function mountTaskMaterials(root,{repository,taskId,projectId,isNew=false,readOnly=false,onChange=()=>{},wikiRoot=null,hasWiki=()=>false}){
  const abort=new AbortController(),drafts=isNew?createMaterialDrafts():null,expanded=new Set();
  let rows=[],closed=false,loading=!isNew,loaded=isNew,loadError='',status='',busy=false,locked=false,modal=null,modalDirty=false,removed=null,generation=0,persisted=!isNew,needsReload=false,cleanupEnhance=null;
  const all=()=>drafts?drafts.items():rows;
@@ -26,12 +26,12 @@ export function mountTaskMaterials(root,{repository,taskId,projectId,isNew=false
  const unsubscribe=repository.subscribe?.(event=>{if(event.collection==='taskMaterials'&&event.projectId===projectId&&(!event.taskId||event.taskId===taskId))refresh();});
  function draw(){
   if(closed)return;
-  const active=root.contains(document.activeElement)?document.activeElement:null;
+  const active=root.contains(document.activeElement)?document.activeElement:null;const wikiFocus=wikiRoot?.contains(active)?active:null;
   const focus=active?.dataset.materialLink?`[data-material-link="${CSS.escape(active.dataset.materialLink)}"]`:active?.dataset.materialAdd?`[data-material-add="${active.dataset.materialAdd}"]`:active?.hasAttribute('data-material-restore')?'[data-material-restore]':active?.closest('[data-material-row]')?`[data-material-menu="${CSS.escape(active.closest('[data-material-row]').dataset.materialRow)}"]`:null;
-  root.hidden=readOnly&&loaded&&!all().length&&!loadError;
-  root.innerHTML=`${loading&&!loaded?loadingMarkup('Загружаем материалы…',{variant:'history',rows:2}):materialsMarkup(all(),{readOnly:readOnly||!loaded,expanded,locked:locked||busy})}${loadError?`<p class="map-form-error" role="alert">${esc(loadError)}</p>${ui.btn('Повторить','secondary sm','','data-material-reload')}`:''}${removed?`<p class="iq-helper">Ссылка убрана из задачи. ${ui.btn('Вернуть','ghost sm','','data-material-restore '+(busy?'disabled':''))}</p>`:''}${status?`<p class="iq-helper" role="status" data-material-status>${esc(status)}</p>`:''}`;
-  cleanupEnhance=enhance(root);
-  if(focus)root.querySelector(focus)?.focus({preventScroll:true});
+  root.hidden=readOnly&&loaded&&!all().length&&!hasWiki()&&!loadError;wikiRoot?.remove();
+  root.innerHTML=`${loading&&!loaded?loadingMarkup('Загружаем материалы…',{variant:'history',rows:2}):materialsMarkup(all(),{readOnly:readOnly||!loaded,expanded,locked:locked||busy,wikiSlot:!!wikiRoot,hasWiki:hasWiki()})}${loadError?`<p class="map-form-error" role="alert">${esc(loadError)}</p>${ui.btn('Повторить','secondary sm','','data-material-reload')}`:''}${removed?`<p class="iq-helper">Ссылка убрана из задачи. ${ui.btn('Вернуть','ghost sm','','data-material-restore '+(busy?'disabled':''))}</p>`:''}${status?`<p class="iq-helper" role="status" data-material-status>${esc(status)}</p>`:''}`;
+  if(wikiRoot)(root.querySelector('[data-wiki-material-slot]')||root).append(wikiRoot);cleanupEnhance=enhance(root);
+  if(wikiFocus?.isConnected)wikiFocus.focus({preventScroll:true});else if(focus)root.querySelector(focus)?.focus({preventScroll:true});
  }
  async function reload(){
   const own=++generation;loading=true;loadError='';draw();
@@ -112,7 +112,7 @@ export function mountTaskMaterials(root,{repository,taskId,projectId,isNew=false
   if(event.detail.action==='material-remove')void remove(row);
  },{signal:abort.signal});
  draw();if(!isNew)void reload();
- return {drafts,dirty:()=>!!drafts?.unsaved().length||modalDirty,isBusy:()=>busy||!!modal,
+ return {refreshLayout:draw,drafts,dirty:()=>!!drafts?.unsaved().length||modalDirty,isBusy:()=>busy||!!modal,
   setLocked(value){locked=!!value;draw();},
   async save(){if(!drafts)return 0;persisted=true;busy=true;try{return await saveMaterialDrafts(repository,drafts,{taskId,projectId,onChange:changed,signal:abort.signal});}finally{busy=false;changed();if(needsReload)refresh();}},
   destroy(){closed=true;++generation;abort.abort();unsubscribe?.();cleanupEnhance?.();modal?.close(true);root.replaceChildren();}

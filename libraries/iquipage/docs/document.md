@@ -1,4 +1,4 @@
-# Documents (vnext.48)
+# Documents (vnext.49)
 
 Additive, reviewed public contracts for documents with navigation. Existing defaults are unchanged.
 
@@ -25,3 +25,7 @@ Use `.iq-document-layout` around `.iq-document-rail` and a main region. Put `.iq
 Hosts should keep outline presentation bounded for large documents (for example, a filterable disclosure showing an initial 50 entries with an explicit continuation). The full snapshot contains every heading; do not imply that a truncated visible list is the whole document. A short document need not show an outline.
 
 The vnext.48 patch corrects the plain-tree count/label selectors to match its rendered DOM; all other vnext.47 behavior is preserved.
+
+The vnext.49 patch gives `.iq-document-title` a one-line minimum and no maximum. Public `autosize()` respects computed `max-height: none` as unbounded, while finite maxima still clamp and scroll. It retains the input node, selection and scroll position; it does not introduce a resize observer or alter editor state.
+
+In vnext.50 the public document bar/rail and dialog button compositions have a 44×44px minimum target for coarse pointers or viewports≤720px. Desktop sizing is unchanged. Menu action rows have the same 44px minimum height.

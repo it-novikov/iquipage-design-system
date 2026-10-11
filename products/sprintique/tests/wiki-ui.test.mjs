@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {wikiRoute,wikiHash,wikiTree,wikiAncestors,wikiParents,wikiDraft,wikiReads} from '../web/wiki-model.js';
+import {wikiRoute,wikiHash,wikiTree,wikiAncestors,wikiParents,wikiDraft,wikiReads,revealWikiVersion,wikiPathEntries} from '../web/wiki-model.js';
 import {sectionRouteHash} from '../web/section-route.js';
 const page=(id,changes={})=>({id,title:id,body:'Исходный текст',parentId:null,revision:2,archivedAt:null,...changes});
 test('wiki addresses distinguish reserved view names from stable page ids, and reject unsafe versions',()=>{
@@ -42,3 +42,9 @@ test('close cancels page/catalog/search/history without relying on transports ho
 
 test('content conflict review preserves a peer move and repeated conflict invalidates acknowledgement',()=>{const d=wikiDraft(page('a',{parentId:'old'}));d.value.body='Own text';d.setConflict(page('a',{revision:3,parentId:'new'}));d.review();assert.equal(d.payload().value.parentId,'new');assert.equal(d.payload().value.body,'Own text');d.setConflict(page('a',{revision:4,parentId:'newer'}));assert.throws(()=>d.payload(),/прочитайте/);d.review();assert.equal(d.payload().value.parentId,'newer');});
 test('a peer archive requires explicit restore and fresh location, never implicit unarchive',()=>{const d=wikiDraft(page('a'));d.value.body='Keep me';d.setConflict(page('a',{revision:3,parentId:'archived-parent',archivedAt:'now'}));assert.throws(()=>d.review(),/явно подтвердите/);assert.equal(d.checked,false);d.review({restore:true,parentId:null});assert.deepEqual(d.payload(),{baseRevision:3,value:{title:'a',body:'Keep me',parentId:null,archived:false}});d.setConflict(page('a',{revision:4,archivedAt:'again'}));assert.throws(()=>d.payload(),/прочитайте/);});
+
+test('numbered document names follow natural order without losing distinct equal titles',()=>{const rows=[page('ten',{title:'Инструкция 10'}),page('two',{title:'Инструкция 2'}),page('one',{title:'Инструкция 1'}),page('copy',{title:'Инструкция 2'})];assert.deepEqual(wikiTree(rows).map(x=>x.id),['one','two','copy','ten']);});
+
+test('chosen history version is revealed within its rail without moving focus or the document',()=>{let row={top:900,bottom:980};const list={scrollTop:0,querySelector:()=>({getBoundingClientRect:()=>row}),getBoundingClientRect:()=>({top:100,bottom:700})};revealWikiVersion(list);assert.equal(list.scrollTop,280);row={top:50,bottom:130};revealWikiVersion(list);assert.equal(list.scrollTop,230);row={top:200,bottom:280};revealWikiVersion(list);assert.equal(list.scrollTop,230);});
+
+test('late catalog resolves breadcrumb names while current page location wins over stale catalog metadata',()=>{const current=page('child',{parentId:'new'});assert.deepEqual(wikiPathEntries([],current),[{id:'new',title:'Страница'}]);assert.deepEqual(wikiPathEntries([page('child',{parentId:'old'}),page('new',{parentId:'root',title:'Новое место'}),page('root',{title:'Раздел'})],current),[{id:'root',title:'Раздел'},{id:'new',title:'Новое место'}]);});
