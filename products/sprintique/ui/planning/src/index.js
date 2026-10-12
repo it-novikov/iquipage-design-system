@@ -131,14 +131,16 @@ export async function mountPlanning(root,{adapter,project,onOpenTask,onCreateTas
         action:{label:'Отменить',undo:true,run:()=>undo(result.undo)}});
       return result;
     }catch(error){
-      if(error?.code==='PROJECTION_STALE'){await load();notify({tone:'warning',message:'План изменился',description:'Мы обновили страницу. Повторите перенос.'});}
+      if(error?.code==='MOVE_UNKNOWN'){await load().catch(()=>{});notify({tone:'warning',message:'Результат переноса неизвестен',description:'Связь прервалась. Мы перечитали план — проверьте, где сейчас задачи.'});}
+      else if(error?.code==='PROJECTION_STALE'){await load();notify({tone:'warning',message:'План изменился',description:'Мы обновили страницу. Повторите перенос.'});}
       else fail(error);
       return null;
     }finally{busy=false;clearTimeout(marking);for(const id of ids)root.querySelector(`[data-row="${CSS.escape(id)}"]`)?.removeAttribute('aria-busy');}
   }
   async function undo(restore){
     try{await adapter.move({restore});await load();say('Перенос отменён.');}
-    catch(error){notify({tone:'danger',message:'Отменить не получилось',description:error?.code==='UNDO_STALE'?'После переноса план уже изменился.':error?.message||''});}
+    catch(error){if(error?.code==='MOVE_UNKNOWN'){await load().catch(()=>{});notify({tone:'warning',message:'Результат отмены неизвестен',description:'Связь прервалась. Мы перечитали план — проверьте, где сейчас задачи.'});return;}
+      notify({tone:'danger',message:'Отменить не получилось',description:error?.code==='UNDO_STALE'?'После переноса план уже изменился.':error?.message||''});}
   }
   /** The root row a block lands after when it goes to the end of a container. */
   function lastRoot(container,except=new Set()){
