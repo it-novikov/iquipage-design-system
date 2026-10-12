@@ -22,7 +22,7 @@ import {mountAgentRuns} from './agent-runs-view.js';
 import {mountTaskWork} from './task-work-view.js';
 import {formatEstimate,estimateEditor,estimateMismatch} from '../estimate.js';
 
-export async function openTaskDialog(task,{repository,project,tasks,canEdit=true,canManage=true,attachmentAdapter=null,status='ready',initialValues={},fullscreen=false,backTo=null,onBack=()=>{},onOpenTask,onReload=onOpenTask&&(()=>onOpenTask(task.id)),onSaved=()=>{},isActive=()=>true,signal,replace=null,supplement=null}){
+export async function openTaskDialog(task,{repository,project,tasks,canEdit=true,canManage=true,attachmentAdapter=null,status='ready',initialValues={},fullscreen=false,backTo=null,onBack=()=>{},onOpenTask,onReload=onOpenTask&&(()=>onOpenTask(task.id)),onSaved=()=>{},isActive=()=>true,signal,replace=null,supplement=null,initialSection=parseTaskSection(location.hash),onSectionChange=null}){
   signal?.throwIfAborted();const initialTask=task;
   // What the open drawer reads next starts now, alongside the task, rather than after it renders.
   if(task?.id)repository.warmTask?.(project.id,task.id);
@@ -429,9 +429,12 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
           if(action==='reload'){discarded=true;if(onReload)void onReload();else el.close();}
         });
       }
+      let setSection=()=> 'task';
       if(workTabs){
         const tabs=form.querySelector('[data-task-tabs]'),footer=form.querySelector('.iq-dialog-footer');
-        const syncTab=(route=false)=>{const value=tabs.getAttribute('value');footer.hidden=value==='work';if(route)history.replaceState(history.state,'',taskURL(task,value));};
+        const syncTab=(route=false)=>{const value=tabs.getAttribute('value');footer.hidden=value==='work';if(route){if(onSectionChange)onSectionChange(value);else history.replaceState(history.state,'',taskURL(task,value));}};
+        setSection=value=>{const next=value==='work'?'work':'task';tabs.setAttribute('value',next);syncTab();return next;};
+        setSection(initialSection);
         tabs.addEventListener('iq-change',event=>{if(event.target===tabs)syncTab(true);});syncTab();
       }
       // keepOpen: only settle (flush or confirm) and leave the drawer open, so the next task can replace it in one frame.
@@ -449,7 +452,7 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
         });
         return new Promise(resolve=>confirm.addEventListener('iq-close',()=>{confirming=false;resolve(discarded);},{once:true}));
       }
-      el.taskController={close,dirty:()=>dirty()||saving||files.isBusy()||threads?.isBusy()||!!links?.isBusy?.()||!!materials?.isBusy()||!!wikiLinks?.isBusy(),taskId,taskKey:task?taskKey(task):null};
+      el.taskController={close,setSection,dirty:()=>dirty()||saving||files.isBusy()||threads?.isBusy()||!!links?.isBusy?.()||!!materials?.isBusy()||!!wikiLinks?.isBusy(),taskId,taskKey:task?taskKey(task):null};
       form.addEventListener('click',event=>{
         if(event.target.closest('[data-close]')){event.preventDefault();event.stopImmediatePropagation();close();}
       },{capture:true});

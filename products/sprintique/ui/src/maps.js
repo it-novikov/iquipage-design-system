@@ -65,7 +65,8 @@ export class MapsFeature {
     const early=likely?this.repository.read('maps',likely,this.project.id,{signal:guess.signal}).catch(()=>null):null;
     try{
       await this.reloadList();if(!this.alive||this.abort.signal.aborted||generation!==this.mapGeneration)return;
-      const initial=this.maps.find(m=>m.id===this.config.mapId)||this.maps.find(m=>m.status!=='archived');
+      const initial=this.config.mapId?this.maps.find(m=>m.id===this.config.mapId):this.maps.find(m=>m.status!=='archived');
+      if(this.config.mapId&&!initial)throw Error('Карта не найдена или больше недоступна в этом проекте. Выберите другую карту.');
       if(initial?.id!==likely)guess.abort();
       if(initial)await this.openMap(initial.id,{early:initial.id===likely?early:null});else this.empty();
     }catch(error){

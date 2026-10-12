@@ -223,7 +223,7 @@ async function showProject(id,mode=routeMode()){
   else{await previous?.destroy();host.innerHTML=loadingMarkup('Загрузка раздела…',{variant:sectionLoadingShape(mode,location.hash.split('/')[1]),title:true,className:'host-loading'});}
   host.dataset.section=mode;
   try{
-  if(mode==='maps'){const {mountMapsHost}=await import('./maps-host.js');board=await mountMapsHost(host,{repository,project,viewState:viewStates.get(stateKey),onOpenTasks:async({focusTaskId})=>{await navigate('tasks');if(viewMode==='tasks')await board.openTask(focusTaskId);}});}
+  if(mode==='maps'){const {mountMapsHost}=await import('./maps-host.js');board=await mountMapsHost(host,{repository,project,viewState:viewStates.get(stateKey)});}
   else if(mode==='planning')board=await mountPlanningHost(host,{repository,adapter:planningAdapter,project,viewState:viewStates.get(stateKey),onOpenBoard:()=>navigate('tasks')});
   else if(mode==='finance'){const {mountFinance}=await import('../ui/finance/src/index.js');board=await mountFinance(host,{repository,project,viewState:viewStates.get(stateKey)});}
   else if(mode==='agents'){const {mountAgentsDirectory}=await import('./agents-directory.js');board=await mountAgentsDirectory(host,{repository,project,onOpenTask:async(projectId,taskId)=>{history.replaceState(null,'','#tasks');await showProject(projectId,'tasks');await board?.openTask?.(taskId);}});}
@@ -303,7 +303,7 @@ function search(){if(!session||document.querySelector('dialog[open]'))return;ope
   try{if(board&&!await board.closeTask())return;history.replaceState(null,'',item.kind==='map'?'#maps/'+encodeURIComponent(item.id):'#tasks');await showProject(item.projectId,item.kind==='map'?'maps':'tasks');if(item.kind==='task')await board.openTask(item.key);}catch(error){report(error);}
 }});}
 window.addEventListener('keydown',event=>{if((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='k'){event.preventDefault();search();}});
-window.addEventListener('hashchange',()=>{if(viewMode==='workbench'||isWorkbenchPath())return;void(async()=>{const task=parseTaskRoute(location.hash);if(task){if(!board?.openTask){const restoreHash=board?.routeHash;if(await showProject(currentProject.id,'tasks')===false){if(restoreHash)history.replaceState(null,'',restoreHash);return;}}await board?.openTask?.(task,{fromRoute:true});}else if(location.hash.startsWith('#maps'))await navigate('maps');
+window.addEventListener('hashchange',()=>{if(viewMode==='workbench'||isWorkbenchPath())return;void(async()=>{const task=parseTaskRoute(location.hash);if(task){if(!board?.openTask||viewMode==='maps'){const restoreHash=board?.routeHash;if(await showProject(currentProject.id,'tasks')===false){if(restoreHash)history.replaceState(null,'',restoreHash);return;}}await board?.openTask?.(task,{fromRoute:true});}else if(location.hash.startsWith('#maps')){if(viewMode==='maps'&&board?.openRoute)await board.openRoute(location.hash);else await navigate('maps');}
     else if(location.hash.startsWith('#wiki')){if(viewMode==='wiki'&&board?.openRoute)await board.openRoute(location.hash);else await navigate('wiki');}
     else if(location.hash.startsWith('#finance')){if(viewMode==='finance'&&board?.openRoute)await board.openRoute(location.hash);else await navigate('finance');}else if(location.hash.startsWith('#settings')){if(viewMode==='settings'&&board?.navigateSettings){await board.navigateSettings();}else await navigate('settings');}
     else if(['#tasks','#planning','#agents'].includes(location.hash)){const mode=location.hash.slice(1);
