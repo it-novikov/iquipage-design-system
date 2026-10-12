@@ -17,7 +17,7 @@ const grantState=g=>g.revokedAt?['Отозван','neutral']:new Date(g.expiresA
 export async function mountAgents(root,{repository,project,tools,onCounts=()=>{}}){
   const client=repository.client,base='/projects/'+encodeURIComponent(project.id),abort=new AbortController(),admin=can(project,'agents.manage');
   let closed=false,modal=null,sequence=0,runs=[],approvals=[],grants=[],names=new Map(),runCursor=null,approvalCursor=null;
-  if(tools&&admin)tools.innerHTML=ui.btn('Подключить агента','primary sm','plus','data-agent-grant');
+  if(tools&&admin)tools.innerHTML=ui.btn('Выдать API-доступ','primary sm','plus','data-agent-grant');
   function show(options){
     modal=dialog(options);
     modal.addEventListener('iq-close',()=>{modal=null;void refresh().catch(fail);onCounts();},{once:true});
@@ -31,12 +31,12 @@ export async function mountAgents(root,{repository,project,tools,onCounts=()=>{}
     if(closed)return;
     const lock=can(project,'approvals.decide')?'':s.lock('Вы можете только просматривать. Решения по предложениям принимают те, у кого есть право «Решать по предложениям агентов».');
     if(!runs.length&&!approvals.length&&!grants.length){
-      root.innerHTML=lock+s.panel(s.empty({title:'Агенты ещё не подключены',body:'Агент работает по API только в этом проекте, с выбранными правами и ограниченным сроком. Его изменения применяются после решения человека.',glyph:'spark'}));return;
+      root.innerHTML=lock+s.panel(s.empty({title:'API-доступ ещё не выдан',body:'Агент работает по API только в этом проекте, с выбранными правами и ограниченным сроком. Его изменения применяются после решения человека.',glyph:'spark'}));return;
     }
     const waiting=approvals.filter(pending),decided=approvals.filter(a=>!pending(a));
     root.innerHTML=`${lock}
       ${s.group({title:'Ждут решения',count:waiting.length,description:'Агент предлагает изменения. Они применятся только после подтверждения.',body:s.panel(waiting.map(approvalRow).join('')||s.empty({title:'Решать нечего',body:'Новые предложения агентов появятся здесь.',glyph:'checkCircle',tone:'success'}))+(decided.length||approvalCursor?`<details class="iq-accordion iq-settings-past"><summary>Решённые предложения (${decided.length}${approvalCursor?'+':''}) ${icon('down',16)}</summary>${s.panel(decided.map(approvalRow).join('')+(approvalCursor?`<div class="iq-settings-panel-foot">${ui.btn('Показать ещё','ghost sm','','data-more-approvals')}</div>`:''))}</details>`:'')})}
-      ${admin?s.group({title:'Подключения',count:grants.filter(g=>grantState(g)[1]==='info').length,description:'Доступ ограничен проектом, правами и сроком. Отзыв действует сразу.',body:s.panel(grants.map(grantRow).join('')||s.empty({title:'Нет подключённых агентов',body:'Выдайте агенту доступ с нужными правами.',action:ui.btn('Подключить агента','secondary sm','plus','data-agent-grant'),glyph:'bolt'}))}):''}
+      ${admin?s.group({title:'API-доступ проекта',count:grants.filter(g=>grantState(g)[1]==='info').length,description:'Доступ ограничен проектом, правами и сроком. Отзыв действует сразу.',body:s.panel(grants.map(grantRow).join('')||s.empty({title:'Нет API-подключений',body:'Выдайте агенту доступ с нужными правами.',action:ui.btn('Выдать API-доступ','secondary sm','plus','data-agent-grant'),glyph:'bolt'}))}):''}
       ${s.group({title:'Запуски',description:'Что агенты делали в проекте.',body:s.panel(runs.map(runRow).join('')+(runCursor?`<div class="iq-settings-panel-foot">${ui.btn('Показать ещё','ghost sm','','data-more-runs')}</div>`:'')||s.empty({title:'Запусков пока не было',glyph:'play'}))})}`;
   }
   async function refresh(){

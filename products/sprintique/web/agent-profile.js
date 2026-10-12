@@ -27,15 +27,15 @@ export async function mountAgentProfile(root,{client,account,track}){
   catch{root.replaceChildren();return;}// Not a manager of this account, or the feature is off: no section.
   if(!root.isConnected)return;
   const p=data.profile,connection=p&&data.connections.find(c=>c.id===p.connectionId);
-  const summary=p?s.row({media:s.tile('spark'),title:p.enabled?'Агент включён':'Агент выключен',
+  const summary=p?s.row({media:s.tile('spark'),title:p.enabled?'Работа с ИИ включена':'Работа с ИИ выключена',
       meta:[esc(connection?`${connection.name} · ${p.model}`:'ИИ-подключение удалено'),
         esc(startsWhen(p,account.name)),
         esc(`До ${plural(p.maxSteps,['шага','шагов','шагов'])} за запуск, не больше ${plural(p.runsPerHour,['запуска','запусков','запусков'])} в час`),
         p.runsLastHour?esc(`За последний час: ${plural(p.runsLastHour,['запуск','запуска','запусков'])}`):''],
       aside:p.enabled?s.badge('Включён','success'):s.badge('Выключен'),state:p.enabled?'':'muted'})
-    :s.empty({title:'Агент не настроен',body:data.connections.length?'Выберите ИИ-подключение и модель: аккаунт сможет сам работать над задачами.':'Сначала добавьте ИИ-подключение в настройках пространства.',glyph:'spark'});
-  const action=data.connections.length||p?ui.btn(p?'Настроить':'Настроить агента','secondary sm','settings','data-agent-configure'):'';
-  root.innerHTML=s.group({title:'Агент',description:'Аккаунт сам работает над задачами с помощью языковой модели — только инструментами Sprintique и только в пределах своих прав в проекте. Ответ он пишет в обсуждение задачи.',
+    :s.empty({title:'Работа с ИИ не настроена',body:data.connections.length?'Выберите ИИ-подключение и модель: аккаунт сможет сам работать над задачами.':'Сначала добавьте ИИ-подключение в настройках пространства.',glyph:'spark'});
+  const action=data.connections.length||p?ui.btn(p?'Настроить':'Настроить работу с ИИ','secondary sm','settings','data-agent-configure'):'';
+  root.innerHTML=s.group({title:'Работа с ИИ в Sprintique',description:'Аккаунт сам работает над задачами с помощью языковой модели — только инструментами Sprintique и только в пределах своих прав в проекте. Ответ он пишет в обсуждение задачи.',
     actions:action,body:s.panel(summary)})+(data.available?'':s.lock('ИИ-подключения не настроены на сервере: агент не сможет работать.'));
   enhance(root);
   root.querySelector('[data-agent-configure]')?.addEventListener('click',()=>configure(data));
@@ -44,8 +44,8 @@ export async function mountAgentProfile(root,{client,account,track}){
     const p=current.profile,defaults=current.defaults,options=current.connections.map(c=>[c.id,`${c.name} · ${providerNames[c.provider]||c.provider}`]);
     const first=p?.connectionId||options[0]?.[0]||'',connectionOf=id=>current.connections.find(c=>c.id===id);
     const models=id=>{const c=connectionOf(id);return [...new Set([c?.defaultModel,...(c?.models||[])].filter(Boolean))];};
-    track(dialog({title:`Агент «${account.name}»`,description:'Агент читает задачу и действует инструментами Sprintique от имени этого аккаунта. Права — аккаунта в проекте, не шире; текст задачи для него только данные.',wide:true,
-      body:`${ui.toggle('Агент включён',p?p.enabled:true,'name="enabled"')}
+    track(dialog({title:`Работа с ИИ · ${account.name}`,description:'Агент читает задачу и действует инструментами Sprintique от имени этого аккаунта. Права — аккаунта в проекте, не шире; текст задачи для него только данные.',wide:true,
+      body:`${ui.toggle('Работа с ИИ включена',p?p.enabled:true,'name="enabled"')}
         ${options.length?choose('connectionId','ИИ-подключение',first,options,'data-agent-connection'):'<p class="iq-helper">В пространстве нет ИИ-подключений.</p>'}
         <div data-agent-model>${modelField(p?.model||connectionOf(first)?.defaultModel||'',models(first))}</div>
         ${ui.textarea('Инструкции',p?.instructions||'',{name:'instructions',maxlength:8000,help:'Как работать: роль, стиль, что делать с задачей. Они не расширяют права аккаунта.',placeholder:'Например: разбери задачу, уточни критерии приёмки и предложи план в обсуждении.'})}
