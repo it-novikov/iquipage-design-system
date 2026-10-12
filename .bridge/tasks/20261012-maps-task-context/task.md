@@ -8,7 +8,7 @@ owner: user
 branch: fix/maps-task-context
 base: main
 created: 2026-10-12
-updated: 2026-10-12T06:19:38Z
+updated: 2026-10-12T06:33:04Z
 links:
 ---
 
@@ -26,20 +26,21 @@ links:
 
 ## Приёмка
 
-- [ ] A1. A из двух карт остаётся mounted при Task, Close/Back/Forward и Task tabs/links; URL соответствует видимому контексту, direct Task URL сохраняет смысл.
-- [ ] A2. Dirty guards сохраняют ввод; отказ не уничтожает контекст; отменённый/поздний Task read не открывает drawer; missing target не выбирает случайную карту.
+- [x] A1. A из двух карт остаётся mounted при Task, Close/Back/Forward и Task tabs/links; URL соответствует видимому контексту, direct Task URL сохраняет смысл.
+- [x] A2. Dirty guards сохраняют ввод; отказ не уничтожает контекст; отменённый/поздний Task read не открывает drawer; missing target не выбирает случайную карту.
 - [ ] A3. Meaningful Node и реальный synthetic browser путь выполнены, ограничения названы, два независимых high-review завершены и промежуточный PR открыт.
 
 ## Передача
 
-- **Состояние:** 97 Node/boundaries/bundle PASS after tab correction. R3 queue fixed and independently verified in R4; actual native4profiles+5recovery ran, but inspected frames exposed mismatched visible Work tab despite attribute/URL PASS. Fix uses normalized initialSection and actual supplied tab action, with panel/ARIA assertions.
-- **Сейчас:** S2 — freeze visible tab correction
-- **Дальше:** Publish tab correction to PR75 and inspect strict native tab acceptance with an independent follow-up
-- **Незакоммичено:** R1 fixes/evidence, пять browser fixture/runner файлов, отдельный Maps workflow; product/vendor/lock boundary сохранён.
-- **Рабочая копия:** 5 файл(ов): products/sprintique/docs/decisions/0014-maps-task-context.md, products/sprintique/tests/fixtures/maps-task-context/README.md, products/sprintique/tests/fixtures/maps-task-context/main.js, products/sprintique/tests/maps-task-browser.mjs, products/sprintique/ui/src/board/task-dialog.js (5 files changed, 32 insertions(+), 9 deletions(-)) · HEAD 1fe0d7e2
+- **Состояние:** Scoped A1/A2 and S2 complete. R1/R2 high-review findings resolved through independent R3/R4/R5; R5 scoped approve. Native source d4c7fd5 and exact checked tree are recorded with immutable before/after JSON and selected PNG.
+- **Сейчас:** S3 — retain published evidence and await full vNext completion
+- **Дальше:** Verify final PR75 remote tree, then inspect full vNext build/backend/real-services/extraction/runtime-image on the relevant head; only close A3/readiness after required gates. Continue within the three existing PRs.
+- **Незакоммичено:** This checkpoint adds only bridge acceptance/reviews and byte-identical native evidence; runtime/tests/workflow unchanged from d4c7fd5.
+- **Рабочая копия:** Snapshot создания этого docs/evidence checkpoint; проверенный runtime d4c7fd597efaa60f5e646687c06338c98e90946d. Перед продолжением сверить git status и published PR head.
 - **Ловушки:**
   - CI 38208579979/114677451438: Task browser NOT_RUN after fixture context validation failure; not a product verdict. R2 67abc has 79 PASS and 5 independent FAIL.
-- **Проверка:** 79 Node PASS; boundaries/styles PASS; Vite323 + fixture build PASS; YAML/diff/bridge PASS. Browser NOT_RUN; full local build BLOCKED, remote full gate pending.
+- **Проверка:** Current runtime: 97/97 Node, boundaries/styles and Vite PASS; native Chromium run38212310305 PASS four profiles and five recovery cases; independent R5 exact-source PASS5/5 and personally inspected panels. Full vNext still pending; no production/full-shell browser claim.
+- **Причина:** planned — astra-root, 2026-10-12T06:33:04Z, передано root: Publish documentation/evidence checkpoint to the existing PR75; retain exact source provenance. Scoped frontend evidence passed, full vNext gate remains outstanding. PR74/75/76 use the agreed WIP capacity; merge/deploy are not performed.
 
 ## План
 
@@ -52,16 +53,17 @@ links:
 - **Покрывает:** A1,A2
 - **Итог:** Actual MapTask host/route и совместимые Task tab callbacks; canonical links/guards сохраняются. Node10+34 PASS, boundaries/styles и Vite bundle PASS; browser/independent review pending.
 
-### S2. Проверить контекст, историю, guards и поздние ответы [active]
+### S2. Проверить контекст, историю, guards и поздние ответы [done]
 - **Что:** Actual controller tests и synthetic rendered UI
 - **Как:** Две карты, связанная Task, реальные стили/.52, controllable reads
 - **Зачем:** Отделить доказательство поведения от source рассуждения
 - **Приёмка:**
-  - [ ] Предметные сценарии проходят; runtime ограничения записаны
+  - [x] Предметные сценарии проходят; runtime ограничения записаны
 - **Покрывает:** A1,A2,A3
+- **Итог:** 97 Node regressions and actual Chromium four profiles/five recovery cases PASS; visible tabs independently verified in R5. Native fixture limits recorded in evidence/native-tabs.
 - **Зависит от:** S1
 
-### S3. Независимая приёмка и опубликованный checkpoint [todo]
+### S3. Независимая приёмка и опубликованный checkpoint [active]
 - **Что:** Два high-review, исправления, PR
 - **Как:** Frozen diff и результаты; новая проверка исправленного результата
 - **Зачем:** Не потерять работу и поймать ошибки автора до merge

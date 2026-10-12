@@ -18,3 +18,9 @@
 - 2026-10-12T05:51:41Z · astra-root · checkpoint · S2 · дальше: Finish R2 runtime fixes/regressions, then native Chromium and independent verification in PR75
 - 2026-10-12T06:03:48Z · astra-root · checkpoint · S2 · дальше: Publish checkpoint to PR75; inspect expanded current Chromium evidence and independently verify queued-intent fix
 - 2026-10-12T06:19:38Z · astra-root · checkpoint · S2 · дальше: Publish tab correction to PR75 and inspect strict native tab acceptance with an independent follow-up
+- 2026-10-12T06:32:23Z · astra-root · step · S2 · done: 97 Node regressions and actual Chromium four profiles/five recovery cases PASS; visible tabs independently verified in R5. Native fixture limits recorded in evidence/native-tabs.
+- 2026-10-12T06:32:23Z · astra-root · note · A1 · критерий приёмки выполнен
+- 2026-10-12T06:32:23Z · astra-root · note · A2 · критерий приёмки выполнен
+- 2026-10-12T06:32:24Z · astra-root · step · S3 · active
+- 2026-10-12T06:33:04Z · astra-root · checkpoint · S3 · дальше: Verify final PR75 remote tree, then inspect full vNext build/backend/real-services/extraction/runtime-image on the relevant head; only close A3/readiness after required gates. Continue within the three existing PRs.
+- 2026-10-12T06:33:04Z · astra-root · handoff · - · planned → root; HEAD d4c7fd59; незакоммичено 0; Publish documentation/evidence checkpoint to the existing PR75; retain exact source provenance. Scoped frontend evidence passed, full vNext gate remains outstanding. PR74/75/76 use the agreed WIP capacity; merge/deploy are not performed.

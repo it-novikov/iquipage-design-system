@@ -1,0 +1,62 @@
+[
+  {
+    "path": "before-38210846541/results.json",
+    "bytes": 31856,
+    "sha256": "6642b799b12abc78f698a485f9a3174e8193891a73b946129499941bf9ff84c2"
+  },
+  {
+    "path": "before-38210846541/initial-task-new-task-recovery.png",
+    "bytes": 63028,
+    "sha256": "43e959fe41005e1f97dde8ad69862ff03f30009f042c80cbb9113bf6053ab3b4"
+  },
+  {
+    "path": "before-38210846541/initial-support-new-task-recovery.png",
+    "bytes": 63028,
+    "sha256": "43e959fe41005e1f97dde8ad69862ff03f30009f042c80cbb9113bf6053ab3b4"
+  },
+  {
+    "path": "after-38212310305/results.json",
+    "bytes": 32694,
+    "sha256": "1d5763976c56f423ed7b3ac1aaf73c861ef5398af677114043fc928d919c3a77"
+  },
+  {
+    "path": "after-38212310305/initial-task-new-task-recovery.png",
+    "bytes": 45047,
+    "sha256": "82cdd88472f854989e5c6f764770945eeae1f0d665ada3c1a764a6d2c27d79d3"
+  },
+  {
+    "path": "after-38212310305/initial-support-new-task-recovery.png",
+    "bytes": 45047,
+    "sha256": "82cdd88472f854989e5c6f764770945eeae1f0d665ada3c1a764a6d2c27d79d3"
+  },
+  {
+    "path": "after-38212310305/desktop-light-map.png",
+    "bytes": 68508,
+    "sha256": "02311e83ece568e55c76abad88f75c22f900f046ac4289bad4a99a83e4559026"
+  },
+  {
+    "path": "after-38212310305/desktop-light-work-tab.png",
+    "bytes": 55283,
+    "sha256": "2badbad7f43570d373e37c6dcb6f2503de7de75bdaefda029236107f7bb4f1a6"
+  },
+  {
+    "path": "after-38212310305/desktop-light-returned-map.png",
+    "bytes": 72403,
+    "sha256": "99ccbcd0143c5670a98f3e7c300e41eea3794c53eda7d51c76a61debd7d9c3ea"
+  },
+  {
+    "path": "after-38212310305/narrow-dark-work-tab.png",
+    "bytes": 16869,
+    "sha256": "8d4a3106501b8681de382369c354b53f1acac89d16761ae51f8d4aa1ac5b253c"
+  },
+  {
+    "path": "after-38212310305/desktop-light-reload-task-read-draft.png",
+    "bytes": 81187,
+    "sha256": "870064dd5f331afc5c8dbf402d57f4f93957a091ec7b5a5b0d30fe03a4c5a027"
+  },
+  {
+    "path": "after-38212310305/desktop-light-reload-support-read-draft.png",
+    "bytes": 81433,
+    "sha256": "c1cee900d17285f251cda1c0ff3216400de2a8787e54de7b4bf0a95d30c33c10"
+  }
+]

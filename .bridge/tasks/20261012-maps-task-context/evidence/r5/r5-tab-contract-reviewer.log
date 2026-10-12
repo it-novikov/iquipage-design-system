@@ -1,0 +1,16 @@
+{"revision":"ac68af1e1c4c213ba307d35ec8706998802db447","taskDialogSha256":"f1fa44a348c3f3c0b57612a588c45d9957ad4d86713ba7657952cdb1ec826a4b","archiveSha256":"989fab4822db78e10bfeeb62ad2724d8bb389a08ddf012c196b469af33cde758","componentsSha256":"5d1c0798227f4960ea495c2770cf099d3836a5782c8965af6a9ee5f88ad586a1","method":"actual pinned classes and product block; DOM/event-delivery doubles; no native browser, rendered visibility, or focus acceptance"}
+✔ actual initialSection expression whitelists task/work and pinned DS mounts the requested panel (3.112764ms)
+✔ programmatic Task ↔ Work synchronizes panels and ARIA with zero callback writes (2.353621ms)
+✔ manual supplied button action emits one callback route update synchronously (0.467313ms)
+✔ programmatic Task ↔ Work synchronizes panels and ARIA with zero replaceState writes (0.194653ms)
+✔ manual supplied button action emits one replaceState route update synchronously (0.466101ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 118.667712
+
+NODE_EXIT_CODE=0
