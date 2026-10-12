@@ -62,7 +62,7 @@ export function containerDialog({kind,containers,today,days=14,value=null,onSubm
   const dates=sprint?(value?{start:value.start,end:value.end}:nextSprintDates(containers,today,days)):null;
   const name=value?.name||(sprint?nextSprintName(containers):'');
   const body=`${ui.field(sprint?'Название спринта':'Название релиза',name,{name:'name',required:true,max:100})}
-    ${sprint?`<div class="grid-2"><iq-date-field name="start" label="Начало" value="${esc(dates.start)}"></iq-date-field><iq-date-field name="end" label="Окончание" value="${esc(dates.end)}"></iq-date-field></div>`
+    ${sprint?`<div class="grid-2"><iq-date-field name="start" label="Начало" required value="${esc(dates.start)}"></iq-date-field><iq-date-field name="end" label="Окончание" required value="${esc(dates.end)}"></iq-date-field></div>`
       :`<iq-date-field name="deadline" label="Срок релиза — необязательно" value="${esc(value?.deadline||'')}"></iq-date-field>`}
     ${goalField(value?.goal)}`;
   return formDialog({title:editing?(sprint?'Даты и цель спринта':'Срок и цель релиза'):sprint?'Новый спринт':'Новый релиз',body,submitLabel:editing?'Сохранить':sprint?'Создать спринт':'Создать релиз',
