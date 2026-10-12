@@ -36,7 +36,7 @@ for name in SKILLS:
         except ValueError:errors.append(f'{name}: invalid JSON {data}')
     if not (folder/'agents/openai.yaml').is_file():errors.append(f'{name}: missing optional Codex UI metadata')
     details.append({'name':name,'lines':len(text.splitlines()),'files':len([x for x in folder.rglob('*') if x.is_file()]),'status':'CHECKED'})
-for rel in ['references/execution-contract.md','references/design-review.md','references/constitution.md','references/release-map.md','references/gap-protocol.md','references/human-agent.md','references/quality-method.md','references/sources.md','references/capability-index.json','assets/ds-release-lock.json']:
+for rel in ['references/problem-first.md','references/execution-contract.md','references/design-review.md','references/constitution.md','references/release-map.md','references/gap-protocol.md','references/human-agent.md','references/quality-method.md','references/sources.md','references/capability-index.json','assets/ds-release-lock.json']:
     hashes={hashlib.sha256((ROOT/'skills'/n/rel).read_bytes()).hexdigest() for n in SKILLS}
     if len(hashes)!=1:errors.append(f'Shared content drift: {rel}')
 for file,names in [('fingerprint_inputs.py',['iquipage-review','iquipage-implement']),('verify_release.py',['iquipage-review','iquipage-implement']),('integration_scan.py',['iquipage-review','iquipage-implement']),('capture_surface.py',['iquipage-review','iquipage-experience-audit'])]:

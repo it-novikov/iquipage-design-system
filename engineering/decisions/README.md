@@ -23,4 +23,6 @@ ADR фиксирует важное техническое решение: ко�
 |---|---|---|
 | [0001](0001-engineering-system.md) | Единая инженерная система и базовый стек | accepted |
 | [0002](0002-bridge-task-format.md) | Мост: карточка задачи в Markdown как формат передачи работы | accepted |
-| [0003](0003-risk-tiered-workflow.md) | Процесс поставки по уровням риска | accepted |
+| [0003](0003-risk-tiered-workflow.md) | Процесс поставки по уровням риска | accepted; ограничение стека superseded by 0005 |
+| [0004](0004-problem-first-skill-workflow.md) | Problem-first разбор внутри существующего процесса | proposed |
+| [0005](0005-unrestricted-pr-flow.md) | Работа без количественного лимита PR | accepted |

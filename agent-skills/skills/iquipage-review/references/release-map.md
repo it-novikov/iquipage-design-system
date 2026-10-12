@@ -1,6 +1,8 @@
-# Карта принятой Web-поставки 05.7
+# Историческая карта Web-поставки 0.5.7
 
-Пакет **`@iquipage/web` 0.5.7**, private/local, не обещать установку из npm. Архив зафиксирован в `assets/ds-release-lock.json`. Текущую DS не изменять этим скиллом. Сначала проверять новую выдачу владельца; имя версии само по себе недостаточно.
+Эта карта, `capability-index.json`, `assets/ds-release-lock.json` и verifier описывают **`@iquipage/web` 0.5.7**, private/local. Это исторический baseline комплекта, не требование откатить продукт и не описание произвольного latest. Archive hash сохраняется; не обещать установку private package из npm.
+
+Перед работой определить текущую поставку из package/lock/archive потребителя и прочитать её public exports/types/docs. Если она отличается, записать exact version/hash, проверенное и неизвестное отдельно; пункты ниже не переносить автоматически. Наличие версии в manifest не равно runtime-приёмке. Права на изменение DS следуют из задачи, а не этой карты; обновление skills не изменяет DS и не подтверждает новую поставку.
 
 ## Перед планом внедрения прочитать в supplied root
 `README.md`, `docs/INTEGRATION.md`, `docs/HANDOFF-05.7.md`, `docs/DAILY-WORK-API.md`, `docs/EXTENSION-API.md`, `docs/WHITEBOARD-API.md`, `types/core.d.ts`, `types/extensions.d.ts`, `types/whiteboard.d.ts`, `dist/entry-manifest.json`, `tokens/semantic.json`. Визуальные примеры: `index.html`, `workbench.html`, `whiteboard.html`. Инвентарь в `references/capability-index.json` — указатель, не замена чтению точного API.

@@ -1,4 +1,15 @@
-# Инструменты 1.1
+# Инструменты 1.2
+
+## Поддержание комплекта
+Общие references редактировать в `skills/iquipage-discovery/references/`, шаблоны — в `templates/`, отдельные инструкции — в соответствующем skill. Сначала просмотреть dry-run/diff. Из каталога `agent-skills/`:
+
+```bash
+python3 scripts/sync_bundle.py --check --client-root ../.agents/skills
+python3 scripts/sync_bundle.py --write --client-root ../.agents/skills
+python3 scripts/sync_bundle.py --check --client-root ../.agents/skills
+```
+
+Для standalone комплекта опустить `--client-root`. Общие исполняемые helpers не генерируются: их существующие копии проверяет `validate_skills.py`. Sync касается четырёх имён из `suite.json`; отдельный `sprintique-work` не затрагивает. Неизвестные клиентские файлы требуют ручного просмотра, не удаления для PASS. Manifests подтверждают байты, не качество процесса или текущую DS; historical DS-lock writer не обновляет.
 
 Пути ниже относительны установленному скиллу. Скрипты используют Python 3.10+ standard library; capture отдельно требует Playwright и установленный движок. Ничего не устанавливается и не запускает модель автоматически.
 
