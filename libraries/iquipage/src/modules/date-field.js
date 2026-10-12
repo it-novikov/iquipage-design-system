@@ -19,8 +19,6 @@ class IqDateField extends components_js_1.IqElement {
     calendar;
     opened = false;
     frame = 0;
-    /** The clear command names what it clears: `clear-label` wins; a deadline field removes a due date («Убрать срок»);
-     *  any other date gets the neutral «Очистить дату» (a sprint start is not a due date). Required fields keep it disabled. */
     clearLabel() { return this.getAttribute('clear-label') || (this.hasAttribute('deadline') ? 'Убрать срок' : 'Очистить дату'); }
     static get observedAttributes() { return ['value', 'disabled', 'readonly', 'min', 'max', 'aria-invalid', 'aria-describedby', 'deadline']; }
     get value() { return this.chosen; }
