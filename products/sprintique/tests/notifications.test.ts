@@ -137,31 +137,51 @@ test('NT04 agents and outsiders never receive (service accounts do: tests/inbox.
   assert.equal(outsider.rows[0].id,null,'not a member of the project');
 });
 
-test('NT05 the bell: newest first, 20 a page with a cursor, unread count, read by id and «Прочитать все» up to a moment',async()=>{
-  const p=await project([[dan,'editor']]);
+test('NT05 the bell: newest first, 20 a page with a cursor, unread count, read by id and «Прочитать все» up to a moment',async(t)=>{
+  // NT02 already mentioned global dan. Own this recipient and every timestamp instead of relying on wall time.
+  const recipient=await human('Получатель точной пагинации');
+  const p=await project([[recipient,'editor']]);
   await task(p.id,'b1');
-  for(let i=0;i<25;i++)await f.admin.query("SELECT app.raise_notification($1,$2,'b1','assigned',$3,'{}',$4)",[dan.id,p.id,f.alice.id,'bell:'+i]);
-  const before=await unread(dan);
-  const first=await bell(dan);
+  const idPrefix=randomUUID().slice(0,24);
+  const notificationId=(ordinal:number)=>idPrefix+ordinal.toString(16).padStart(12,'0');
+  const seed=(ordinal:number,createdAt:string)=>f.admin.query(`
+    INSERT INTO app.notifications(id,recipient_id,project_id,task_id,kind,actor_id,dedupe_key,created_at)
+    VALUES($1,$2,$3,'b1','assigned',$4,$5,$6::timestamptz)`,
+  [notificationId(ordinal),recipient.id,p.id,f.alice.id,'bell:'+ordinal,createdAt]);
+  // These IDs oppose timestamp order: an id-only or millisecond-rounded order must fail.
+  const newest=['2000-01-01T00:00:00.600002Z','2000-01-01T00:00:00.600001Z','2000-01-01T00:00:00.600Z'];
+  for(let ordinal=1;ordinal<=25;ordinal++)await seed(ordinal,newest[ordinal-1]??'2000-01-01T00:00:00.500Z');
+  // The other 22 rows tie on timestamp. Their descending IDs straddle the 20/5 cursor boundary.
+  const expectedIds=[1,2,3,...Array.from({length:22},(_,i)=>25-i)].map(notificationId);
+  const before=await unread(recipient);assert.equal(before,25);
+  const first=await bell(recipient);
+  // One-time counterexample evidence remains diagnostic: a future valid timestamp format need not keep this false.
+  t.diagnostic('NT05 timestamp-order evidence '+JSON.stringify({
+    legacyStringOrder:first.items.every((item,i)=>i===0||item.createdAt<=first.items[i-1]!.createdAt),
+    firstTimes:first.items.slice(0,3).map(item=>item.createdAt)
+  }));
   assert.equal(first.items.length,20);assert.ok(first.nextCursor);assert.equal(first.unread,before);
-  const second=await bell(dan,'?cursor='+encodeURIComponent(first.nextCursor!));
-  assert.ok(second.items.length>=5);
+  assert.deepEqual(first.items.map(item=>item.id),expectedIds.slice(0,20),'newest first, including distinct microseconds and descending id ties');
+  const second=await bell(recipient,'?cursor='+encodeURIComponent(first.nextCursor!));
+  assert.equal(second.items.length,5);assert.equal(second.nextCursor,null);
+  assert.deepEqual(second.items.map(item=>item.id),expectedIds.slice(20),'the cursor retains the remaining equal-time rows in order');
+  assert.equal(first.items.at(-1)!.createdAt,second.items[0]!.createdAt,'a timestamp tie crosses the page boundary');
   assert.equal(new Set([...first.items,...second.items].map(i=>i.id)).size,first.items.length+second.items.length,'pages do not overlap');
-  assert.ok(first.items.every((item,i)=>i===0||item.createdAt<=first.items[i-1]!.createdAt));
-  assert.equal((await f.app.inject({url:'/api/v1/notifications?cursor=nope!',headers:dan.headers})).statusCode,400);
-  const marked=await ok<{unread:number}>(call('POST','/api/v1/notifications/read',{ids:[first.items[0]!.id]},dan));
+  assert.equal((await f.app.inject({url:'/api/v1/notifications?cursor=nope!',headers:recipient.headers})).statusCode,400);
+  const marked=await ok<{unread:number}>(call('POST','/api/v1/notifications/read',{ids:[first.items[0]!.id]},recipient));
   assert.equal(marked.unread,before-1);
-  assert.equal((await bell(dan)).items[0]!.read,true);
+  assert.equal((await bell(recipient)).items[0]!.read,true);
   // Someone else's id changes nothing.
   assert.equal((await ok<{unread:number}>(call('POST','/api/v1/notifications/read',{ids:[first.items[1]!.id]},f.bob))).unread,await unread(f.bob));
-  assert.equal((await bell(dan)).items[1]!.read,false);
-  await f.admin.query("SELECT app.raise_notification($1,$2,'b1','assigned',$3,'{}','bell:later')",[dan.id,p.id,f.alice.id]);
-  const all=await ok<{unread:number}>(call('POST','/api/v1/notifications/read',{before:first.items[0]!.createdAt},dan));
+  assert.equal((await bell(recipient)).items[1]!.read,false);
+  await seed(26,'2000-01-01T00:00:00.600003Z');
+  const all=await ok<{unread:number}>(call('POST','/api/v1/notifications/read',{before:first.items[0]!.createdAt},recipient));
   assert.equal(all.unread,1,'one that arrived after the person looked stays unread');
-  assert.equal((await call('POST','/api/v1/notifications/read',{},dan)).statusCode,400);
+  assert.deepEqual((await bell(recipient)).items.filter(item=>!item.read).map(item=>item.id),[notificationId(26)],'read-all keeps the notification one microsecond after its cutoff unread');
+  assert.equal((await call('POST','/api/v1/notifications/read',{},recipient)).statusCode,400);
   // The API role cannot write a notification or change anything but read_at.
-  await assert.rejects(f.db.authenticated({token:dan.token,kind:'session'},tx=>tx.query("INSERT INTO app.notifications(recipient_id,project_id,task_id,kind,actor_id,dedupe_key) VALUES($1,$2,'b1','assigned',$3,'x')",[dan.id,p.id,f.alice.id])),{code:'42501'});
-  await assert.rejects(f.db.authenticated({token:dan.token,kind:'session'},tx=>tx.query("UPDATE app.notifications SET kind='mention' WHERE recipient_id=$1",[dan.id])),{code:'42501'});
+  await assert.rejects(f.db.authenticated({token:recipient.token,kind:'session'},tx=>tx.query("INSERT INTO app.notifications(recipient_id,project_id,task_id,kind,actor_id,dedupe_key) VALUES($1,$2,'b1','assigned',$3,'x')",[recipient.id,p.id,f.alice.id])),{code:'42501'});
+  await assert.rejects(f.db.authenticated({token:recipient.token,kind:'session'},tx=>tx.query("UPDATE app.notifications SET kind='mention' WHERE recipient_id=$1",[recipient.id])),{code:'42501'});
 });
 
 test('NT06 the webhook: secret, idempotency by update_id, /start with a fresh, used, expired or bad token, /stop, private chats only',async()=>{

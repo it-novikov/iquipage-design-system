@@ -1,0 +1,17 @@
+# Журнал 20261012-notification-time-order
+
+- 2026-10-12T07:13:54Z · gpt-6-astra-notification-order · create · - · NT05: deterministic precise notification order verification
+- 2026-10-12T07:13:55Z · gpt-6-astra-notification-order · claim · - · взял задачу
+- 2026-10-12T07:14:54Z · gpt-6-astra-notification-order · note · A1 · критерий приёмки: Real ephemeral Kotlin/PostgreSQL API provides a deterministic counterexample: original string predicate false while expected timestamp/id order is correct; evidence records exact serialized values.
+- 2026-10-12T07:14:54Z · gpt-6-astra-notification-order · note · A2 · критерий приёмки: NT05 verifies 20/5 exact ID pages, microsecond order, equal-time id tie across cursor, unread/read-by-id/read-all-before, cross-user and database permission behavior without clock-dependent state.
+- 2026-10-12T07:14:55Z · gpt-6-astra-notification-order · note · A3 · критерий приёмки: Applicable build and full real-backend/extraction gates plus independent review pass on the published candidate; scope remains tests and bridge only.
+- 2026-10-12T07:14:55Z · gpt-6-astra-notification-order · note · S1 · добавлен шаг: Зафиксировать причину и контрмодель
+- 2026-10-12T07:14:56Z · gpt-6-astra-notification-order · note · S2 · добавлен шаг: Подготовить test-only кандидат
+- 2026-10-12T07:14:57Z · gpt-6-astra-notification-order · note · S3 · добавлен шаг: Подтвердить на CI и независимом ревью
+- 2026-10-12T07:14:57Z · gpt-6-astra-notification-order · step · S1 · active
+- 2026-10-12T07:14:58Z · gpt-6-astra-notification-order · decision · D1 · Fixture with expected IDs, not a general date comparator: SQL order can be verified without parsing away microseconds; an equal-timestamp group crosses the page boundary.
+- 2026-10-12T07:14:58Z · gpt-6-astra-notification-order · checkpoint · S1 · дальше: Implement NT05 with a fresh recipient and exact two-page expected IDs.
+- 2026-10-12T07:16:51Z · gpt-6-astra-notification-order · step · S1 · done: CI38212609809 failure and immutable SQL/serializer read; isolated 25-row countermodel with inverted microsecond/id order and equal-time 20/5 boundary specified. Runtime A1 remains pending.
+- 2026-10-12T07:16:51Z · gpt-6-astra-notification-order · step · S2 · active
+- 2026-10-12T07:20:44Z · gpt-6-astra-notification-order · checkpoint · S2 · дальше: Root publishes one immutable checkpoint; inspect real vNext NT05 diagnostic/certificate before marking A1/A2 or readiness.
+- 2026-10-12T07:20:44Z · gpt-6-astra-notification-order · handoff · - · planned → root; HEAD f5f941af; незакоммичено 1; Immutable candidate for remote publication. Full gate and independent review pending; no acceptance criteria closed yet.
