@@ -106,7 +106,7 @@ async function snapshot(page,firstParagraph){
       directControls:[...properties.querySelectorAll(':scope > .iq-properties > iq-select,:scope > .iq-properties > iq-date-field')].map(n=>n.getAttribute('name')),
       propertyText:[...properties.querySelectorAll('.iq-control-label,.iq-property-label,.iq-select-label,.iq-property-text,.iq-property-value,[data-date-caption]')].map(measure),
       planReadOnly:!el.querySelector('[data-task-plan] button'),formState,scrollOwners,
-      footer:measure(el.querySelector('.iq-dialog-footer')),selectedTab:el.querySelector('[data-task-tabs] [aria-selected=true]')?.dataset.tab};
+      footer:measure(el.querySelector('.iq-dialog-footer')),selectedTab:el.querySelector('[data-task-tabs] [role=tab][aria-selected=true]')?.dataset.tab};
   },firstParagraph);
 }
 
@@ -188,6 +188,57 @@ async function assertSameNodes(page){
     return [...before.controls,...before.inputs].every(n=>n.isConnected&&n.closest('form')===before.form);
   }),true,'Original controls and named inputs remain connected to the same form');
 }
+// Only the estimate access probe is instrumented. Observers do not repair scroll/focus or intercept product APIs.
+async function startEstimateTrace(page){
+  await task(page).locator('[data-task-estimate] > button').evaluate(anchor=>{
+    const events=[],start=performance.now();let popup=null,dropped=0;
+    const describe=node=>node?{tag:node.nodeName||'WINDOW',id:node.id||null,className:typeof node.className==='string'?node.className:null,
+      name:node.getAttribute?.('name')||null,role:node.getAttribute?.('role')||null,label:node.getAttribute?.('aria-label')||null}:null;
+    const rect=node=>{if(!node?.getBoundingClientRect)return null;const r=node.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height,top:r.top,bottom:r.bottom};};
+    const state=()=>{
+      const body=anchor.closest('.iq-dialog-body'),modal=document.querySelector('dialog[open]');
+      return {focused:describe(document.activeElement),focusInsidePopup:!!popup?.contains(document.activeElement),
+        windowScroll:{x:scrollX,y:scrollY},documentScrollTop:document.scrollingElement?.scrollTop,
+        body:{node:describe(body),scrollTop:body?.scrollTop,scrollLeft:body?.scrollLeft,rect:rect(body)},
+        anchor:{connected:anchor.isConnected,rect:rect(anchor),text:anchor.textContent.trim()},
+        modal:describe(modal),popup:popup?{node:describe(popup),connected:popup.isConnected,open:popup.matches(':popover-open'),
+          parent:describe(popup.parentElement),closestDialog:describe(popup.closest('dialog')),
+          containedByOpenDialog:!!modal?.contains(popup),rect:rect(popup),display:getComputedStyle(popup).display}:null};
+    };
+    const record=(kind,target=null,detail={})=>{
+      if(events.length>=200){dropped++;return;}
+      events.push({sequence:events.length,ms:performance.now()-start,kind,target:describe(target),
+        targetScrollTop:target?.scrollTop??null,targetScrollLeft:target?.scrollLeft??null,targetRect:rect(target),...detail,...state()});
+    };
+    const eventRecord=event=>{
+      if(['beforetoggle','toggle'].includes(event.type)){
+        if(!event.target.matches?.('.pl-est-pop'))return;popup=event.target;
+      }
+      record(event.type,event.target,{oldState:event.oldState||null,newState:event.newState||null});
+    };
+    const types=['pointerdown','pointerup','click','focusin','focusout','scroll','beforetoggle','toggle'];
+    for(const type of types)document.addEventListener(type,eventRecord,{capture:true,passive:true});
+    window.addEventListener('resize',eventRecord,{passive:true});
+    const observer=new MutationObserver(records=>{
+      for(const mutation of records)for(const [kind,nodes] of [['popup-added',mutation.addedNodes],['popup-removed',mutation.removedNodes]]){
+        for(const node of nodes)if(node.matches?.('.pl-est-pop')){popup=node;record(kind,node,{mutationParent:describe(mutation.target)});}
+      }
+    });
+    observer.observe(document.body,{childList:true,subtree:true});record('before-click');
+    window.taskFirstScreenEstimateTrace={record,stop(){
+      record('trace-stop');observer.disconnect();
+      for(const type of types)document.removeEventListener(type,eventRecord,true);
+      window.removeEventListener('resize',eventRecord);
+      return {events,dropped,finalState:state()};
+    }};
+  });
+}
+async function stopEstimateTrace(page){
+  return page.evaluate(()=>{
+    const trace=window.taskFirstScreenEstimateTrace;if(!trace)return null;
+    const value=trace.stop();delete window.taskFirstScreenEstimateTrace;return value;
+  });
+}
 async function accessProbe(variant){
   const frame=plan.frames.find(f=>f.id==='H01'),data=scenario(frame.case),entry={id:'property-access',variant,status:'NOT_RUN',tabTrace:[],controls:[]};
   result.nativeProbes.push(entry);let session;
@@ -213,10 +264,18 @@ async function accessProbe(variant){
       entry.controls.push({name,opened:true,cancelled:true});
     }
     for(const [name,selector] of [['due','iq-date-field[name=due] > button'],['estimate','[data-task-estimate] > button']]){
-      const trigger=task(page).locator(selector);await trigger.click();await page.waitForFunction(()=>!!document.querySelector('[popover]:popover-open'));
+      const trigger=task(page).locator(selector);
+      if(name==='estimate')await startEstimateTrace(page);
+      await trigger.click();
+      if(name==='estimate'){
+        await page.evaluate(()=>window.taskFirstScreenEstimateTrace.record('click-resolved'));
+        entry.estimateAfterClick=await screenshot(page,'H01-'+variant+'-estimate-after-click');
+      }
+      await page.waitForFunction(()=>!!document.querySelector('[popover]:popover-open'));
       await page.keyboard.press('Escape');await page.waitForFunction(()=>!document.querySelector('[popover]:popover-open'));
       assert.equal(await trigger.evaluate(n=>n===document.activeElement),true,name+' cancel restores trigger focus');
       entry.controls.push({name,opened:true,cancelled:true});
+      if(name==='estimate')entry.estimateTrace=await stopEstimateTrace(page);
     }
     await task(page).getByRole('tab',{name:'Работа агента',exact:true}).click();
     await page.setViewportSize({width:1100,height:720});await task(page).locator('[data-task-fullscreen]').click();
@@ -230,7 +289,16 @@ async function accessProbe(variant){
     await assertSameNodes(page);entry.probe=await fixtureProbe(page);assert.deepEqual(entry.probe.attempts,[]);assert.deepEqual(entry.probe.unsupported,[]);
     entry.plan='READ_ONLY_NO_CALLBACK';entry.tags='MOUNTED_VALUE_VERIFIED; picker interaction not probed';entry.status='ENGINEERING_CHECKS_PASSED';
   }catch(error){entry.status='FAILED';entry.error=error.stack||error.message;}
-  finally{await session?.context.close();}
+  finally{
+    if(session){
+      if(!entry.estimateTrace)entry.estimateTrace=await stopEstimateTrace(session.page).catch(error=>({diagnosticError:error.message}));
+      if(entry.status==='FAILED'){
+        entry.failureScreenshot=await screenshot(session.page,'H01-'+variant+'-property-access-failure').catch(error=>({diagnosticError:error.message}));
+        entry.probe=await fixtureProbe(session.page).catch(error=>({diagnosticError:error.message}));
+      }
+      await session.context.close();
+    }
+  }
 }
 async function actionProbe(variant,frameId){
   const frame=plan.frames.find(f=>f.id===frameId),entry={id:frameId+'-existing-CTA',variant,status:'NOT_RUN'};
@@ -238,7 +306,7 @@ async function actionProbe(variant,frameId){
   try{
     session=await openFrame(variant,frame);const {page}=session;await rememberNodes(page);
     await task(page).locator('[data-work-summary-action]').click();await settle(page);
-    assert.equal(await task(page).locator('[data-task-tabs] [aria-selected=true]').getAttribute('data-tab'),'work');
+    assert.equal(await task(page).locator('[data-task-tabs] [role=tab][aria-selected=true]').getAttribute('data-tab'),'work');
     if(frameId==='H02'){
       const selected=task(page).locator('[data-step="focus-S1"]');assert.equal(await selected.getAttribute('open'),'');
       assert.equal(await selected.locator('summary').evaluate(n=>n===document.activeElement),true);
