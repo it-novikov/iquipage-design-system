@@ -15,7 +15,7 @@ import {mountTagPacking} from './tag-packing.js';
 import {tagMarkup} from './catalog-ui.js';
 import {taskURL,taskKey,parseTaskRoute} from './task-route.js';
 /** Host adapter: canonical records stay in the repository; this module projects the board. */
-export async function mountTaskBoard(root,{repository,project,canEdit=true,canManageCatalogs=false,attachmentAdapter=null,viewState={}}){
+export async function mountTaskBoard(root,{repository,project,canEdit=true,canDiscuss=null,canManageCatalogs=false,attachmentAdapter=null,viewState={}}){
   registerCore();root.classList.add('iq-task-board-root');let catalogs={tags:[],releases:[]};let items=[],disposeBoard,closed=false,loading=0,dragging=false,queued=false,activeDialog=null,openingTask=false,dragIntent=null;
   const covers=createCoverLoader(attachmentAdapter,project.id);
   let disposeTags=()=>{},pointerStart=null,suppressClick=false,switchingTask=false,trail=[];
@@ -145,7 +145,7 @@ export async function mountTaskBoard(root,{repository,project,canEdit=true,canMa
     try{
     // A new task starts in the release the board shows; the form lets the person pick another or none.
     const initialValues=task?{}:{releaseId:shown.backlog?null:shown.releaseId};
-    const created=await openTaskDialog(task,{repository,project,tasks:items,canEdit,canManage:canManageCatalogs,attachmentAdapter,status,initialValues,fullscreen,replace,signal:controller.signal,isActive:()=>!closed&&!controller.signal.aborted,onOpenTask:id=>openTask(id,{via:'link',from:task}),backTo:task?trail.at(-1)||null:null,onBack:()=>{const previous=trail.at(-1);if(previous)void openTask(previous.id,{via:'back'});},onReload:async()=>{if(!(await closeTask()))return;const fresh=await repository.read('tasks',task.id,project.id);if(fresh)await edit(fresh,'ready',{fromRoute:true,fullscreen});},onSaved:async saved=>{if(!task&&!items.some(t=>t.id===saved.id))notify({tone:'success',message:`Задача ${taskKey(saved)} создана`,action:{label:'Открыть',run:()=>void openTask(saved.id)}});loading++;items=items.some(t=>t.id===saved.id)?items.map(t=>t.id===saved.id?saved:t):[...items,saved];render();await reload();}});
+    const created=await openTaskDialog(task,{repository,project,tasks:items,canEdit,canDiscuss,canManage:canManageCatalogs,attachmentAdapter,status,initialValues,fullscreen,replace,signal:controller.signal,isActive:()=>!closed&&!controller.signal.aborted,onOpenTask:id=>openTask(id,{via:'link',from:task}),backTo:task?trail.at(-1)||null:null,onBack:()=>{const previous=trail.at(-1);if(previous)void openTask(previous.id,{via:'back'});},onReload:async()=>{if(!(await closeTask()))return;const fresh=await repository.read('tasks',task.id,project.id);if(fresh)await edit(fresh,'ready',{fromRoute:true,fullscreen});},onSaved:async saved=>{if(!task&&!items.some(t=>t.id===saved.id))notify({tone:'success',message:`Задача ${taskKey(saved)} создана`,action:{label:'Открыть',run:()=>void openTask(saved.id)}});loading++;items=items.some(t=>t.id===saved.id)?items.map(t=>t.id===saved.id?saved:t):[...items,saved];render();await reload();}});
     if(closed||controller.signal.aborted){created.close(true);return;}activeDialog=created;
     // Following a link or going back inside the drawer replaces the drawer's history entry, so closing it
     // always returns to the board instead of walking back through every task that was visited.

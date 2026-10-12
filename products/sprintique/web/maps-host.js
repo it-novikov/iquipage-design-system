@@ -24,7 +24,7 @@ export async function mountMapsHost(root,{repository,project,viewState={}}){
       // A successful visible initial-load retry must finish the Task named by the original link.
       if(resume)void host.openRoute(location.hash).catch(error=>maps.message(error.message,true));},
     onOpenTasks:({focusTaskId})=>host?.openTask(focusTaskId).catch(error=>maps.message(error.message,true))});
-  host=createMapsTaskContext({root,maps,repository,project,canEdit:can(project,'tasks.write'),canManage:can(project,'project.settings'),
+  host=createMapsTaskContext({root,maps,repository,project,canEdit:can(project,'tasks.write'),canDiscuss:can(project,'threads.write'),canManage:can(project,'project.settings'),
     openDialog:async(...args)=>(await import('../ui/src/board/task-dialog.js')).openTaskDialog(...args)});
   while(true){
     const latestHash=location.hash,latest=parseMapRoute(latestHash);

@@ -46,7 +46,7 @@ export async function mountPlanningHost(root,{repository,adapter,project,onOpenB
     try{
     const task=id?await repository.read('tasks',id,project.id,{signal:request.signal}):null;
     if(request.signal.aborted||closed)return false;if(id&&!task)throw Error('Задача недоступна.');
-    const created=await openTaskDialog(task,{repository:scoped,project,tasks:[],attachmentAdapter:repository.attachmentAdapter,canEdit:can(project,'tasks.write'),canManage:can(project,'project.settings'),initialValues:{releaseId:groupId==='backlog'?null:groupId,...(parentId?{parentId}:{})},
+    const created=await openTaskDialog(task,{repository:scoped,project,tasks:[],attachmentAdapter:repository.attachmentAdapter,canEdit:can(project,'tasks.write'),canDiscuss:can(project,'threads.write'),canManage:can(project,'project.settings'),initialValues:{releaseId:groupId==='backlog'?null:groupId,...(parentId?{parentId}:{})},
       signal:request.signal,isActive:()=>!closed&&!request.signal.aborted,onSaved:onChanged,onOpenTask:async next=>{if(await closeTask())await openTask(next);}});
     if(closed||request.signal.aborted){created.close(true);return false;}modal=created;
     const opened=modal;if(task&&!fromRoute)history.pushState(null,'','#/task/'+encodeURIComponent(taskKey(task)));

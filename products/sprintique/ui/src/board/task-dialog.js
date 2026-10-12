@@ -22,7 +22,7 @@ import {mountAgentRuns} from './agent-runs-view.js';
 import {mountTaskWork} from './task-work-view.js';
 import {formatEstimate,estimateEditor,estimateMismatch} from '../estimate.js';
 
-export async function openTaskDialog(task,{repository,project,tasks,canEdit=true,canManage=true,attachmentAdapter=null,status='ready',initialValues={},fullscreen=false,backTo=null,onBack=()=>{},onOpenTask,onReload=onOpenTask&&(()=>onOpenTask(task.id)),onSaved=()=>{},isActive=()=>true,signal,replace=null,beforeOpen=null,supplement=null,initialSection=parseTaskSection(location.hash),onSectionChange=null}){
+export async function openTaskDialog(task,{repository,project,tasks,canEdit=true,canDiscuss=null,canManage=true,attachmentAdapter=null,status='ready',initialValues={},fullscreen=false,backTo=null,onBack=()=>{},onOpenTask,onReload=onOpenTask&&(()=>onOpenTask(task.id)),onSaved=()=>{},isActive=()=>true,signal,replace=null,beforeOpen=null,supplement=null,initialSection=parseTaskSection(location.hash),onSectionChange=null}){
   signal?.throwIfAborted();const initialTask=task;
   // What the open drawer reads next starts now, alongside the task, rather than after it renders.
   if(task?.id)repository.warmTask?.(project.id,task.id);
@@ -34,7 +34,9 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
   ]);
   signal?.throwIfAborted();task=detail;tasks=context;
   if(initialTask&&!task)throw Error('Задача недоступна.');
-  const canDiscuss=canEdit;
+  // Discussion is its own grant (threads.write): read-only fields never forbid a conversation. Older hosts
+  // that do not pass it keep the previous behaviour.
+  const mayDiscuss=canDiscuss??canEdit;
   // Accepted release results are immutable; discussions have independent writes.
   canEdit=canEdit&&task?.result!=='accepted';
   if(!isActive())throw Error('Открытие задачи отменено.');
@@ -299,11 +301,11 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
       if(task&&repository.capabilities?.taskLinks!==false)links=mountTaskLinks(form.querySelector('[data-task-links]'),{repository,project,task,tasks,readOnly:!canEdit,...relations,...(canEdit?linkParents:{}),onOpenTask:async id=>{
         if(onOpenTask){await onOpenTask(id);return;}
         const target=await repository.read('tasks',id,project.id);if(!target)throw Error('Задача недоступна.');
-        await openTaskDialog(target,{repository,project,tasks,canEdit,canManage,attachmentAdapter,onSaved});
+        await openTaskDialog(target,{repository,project,tasks,canEdit,canDiscuss,canManage,attachmentAdapter,onSaved});
       }});
       // A host may add its own section (the Workbench: personal relation, requests, waiting) and header actions.
       if(task&&supplement)personal=supplement({root:form.querySelector('[data-task-personal]'),actions:form.querySelector('.task-dialog-actions'),task,dialog:el});
-      if(task)threads=mountThreads(form.querySelector('[data-task-threads]'),{repository,task,readOnly:!canDiscuss,people:new Map(members.map(m=>[m.id,m])),actorId:repository.context?.actorId||'local-user',onAnswerQuestion:(id,answer,revision)=>agents?.answerQuestion(id,answer,revision)});
+      if(task)threads=mountThreads(form.querySelector('[data-task-threads]'),{repository,task,readOnly:!mayDiscuss,people:new Map(members.map(m=>[m.id,m])),actorId:repository.context?.actorId||'local-user',onAnswerQuestion:(id,answer,revision)=>agents?.answerQuestion(id,answer,revision)});
       else form.querySelector('[data-task-threads]').hidden=true;
       // Agents of service accounts: a quiet header action and one line above the discussion (docs/decisions/0005-ai-agents.md).
       if(workTabs)agents=mountTaskWork(form.querySelector('[data-task-agents]'),{repository,project,task,summaryRoot:form.querySelector('[data-task-work-summary]'),onOpenWork:()=>form.querySelector('[data-tab=work]')?.click(),onThread:(id,messageId)=>{form.querySelector('[data-tab=task]')?.click();return threads?.open(id,messageId);},onState:state=>threads?.setWorkState(state),onChange:()=>threads?.reload()});

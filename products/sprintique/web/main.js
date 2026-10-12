@@ -230,7 +230,7 @@ async function showProject(id,mode=routeMode()){
   else if(mode==='wiki'){const {mountWiki}=await import('./wiki.js');board=await mountWiki(host,{repository,project,viewState:viewStates.get(stateKey),onOpenTask:async id=>{history.replaceState(null,'','#tasks');await navigate('tasks');if(viewMode==='tasks')await board?.openTask?.(id);}});}
   else if(mode==='settings'){const {mountSettings}=await import('./settings.js');board=await mountSettings(host,{repository,adapter:planningAdapter,project,onChanged:refreshHeader});}
   else if(mode==='workbench')board=await mountWorkbenchSection(host);
-  else board=await mountTaskBoard(host,{repository,project,attachmentAdapter:repository.attachmentAdapter,canEdit:can(project,'tasks.write'),canManageCatalogs:can(project,'project.settings'),viewState:viewStates.get(stateKey)});
+  else board=await mountTaskBoard(host,{repository,project,attachmentAdapter:repository.attachmentAdapter,canEdit:can(project,'tasks.write'),canDiscuss:can(project,'threads.write'),canManageCatalogs:can(project,'project.settings'),viewState:viewStates.get(stateKey)});
   }finally{
     clearTimeout(timer);
     if(swap){await previous.destroy();current.remove();cover?.remove();host.classList.remove('host-view-incoming');}
