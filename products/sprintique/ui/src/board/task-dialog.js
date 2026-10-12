@@ -104,11 +104,15 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
   let estimate=initial.estimate||null,estimateSettings=null;
   // One entry per row, in reading order, in both the editable and the read-only list: a new fact (such as the
   // estimate, right after «Приоритет») is one more entry in each.
+  // PF04 / VT1: four stable facts first, then one native disclosure for the rest, then the description. All controls are
+  // mounted at once (closing never disables or re-creates them); the hint names what is inside so planners find it.
+  const moreOpen='<details class="iq-work-details task-more-properties" data-task-more><summary>Другие свойства <span class="task-more-hint">Оценка, тип, релиз, план…</span></summary>',moreClose='</details>';
   const editableFacts=()=>`<div class="iq-properties" data-label="wide">${[
     `<iq-select name="status" label="Статус" appearance="pill" value="${esc(statusValue)}" options="${opts(statusOptions)}"></iq-select>`,
     `<iq-select name="ownerId" label="Исполнитель" searchable search-placeholder="Найти участника" value="${esc(initial.ownerId||'')}" options="${opts(ownerChoices)}"></iq-select>`,
     `<iq-date-field name="due" label="Срок" placeholder="Без срока" ${finished(statusValue)?'':'deadline'} value="${esc(initial.due||'')}"></iq-date-field>`,
-    `<iq-select name="priority" label="Приоритет" trigger-icon="none" value="${esc(initial.priority||'normal')}" options="${opts(priorityOptions)}"></iq-select>`,
+    `<iq-select name="priority" label="Приоритет" trigger-icon="none" value="${esc(initial.priority||'normal')}" options="${opts(priorityOptions)}"></iq-select>`
+  ].join('')}</div>${moreOpen}<div class="iq-properties" data-label="wide">${[
     '<div data-task-estimate></div>',
     `<iq-select name="type" label="Тип" trigger-icon="none" value="${esc(initial.type||'task')}" options="${opts(kindOptions)}"></iq-select>`,
     '<div class="task-property-slot" data-task-catalogs></div>',
@@ -116,7 +120,7 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
     `<iq-select name="parent" label="Родитель" searchable search-placeholder="Найти задачу" value="${esc(initial.parentId||'')}" options="${opts(parents)}"></iq-select>`,
     '<div class="task-property-slot" data-task-tags></div>',
     row('Автор',author.html,{empty:author.empty,wrapper:'dl'})
-  ].join('')}</div>${legacyOwner}`;
+  ].join('')}</div>${moreClose}${legacyOwner}`;
   // Read-only facts are the same rows as plain text: no disabled controls (DS principle 12), one lock line says why.
   const staticFacts=()=>{
     const column=TASK_COLUMNS.find(c=>c.id===statusValue),owner=owners.find(o=>o.value===(initial.ownerId||''));
@@ -135,7 +139,8 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
         row('Статус',`<span class="tdr-pill" data-tone="${esc(statusTones[statusValue]||'')}"><span class="tdr-dot" aria-hidden="true"></span>${esc(column?.label||statusValue)}</span>`),
         row('Исполнитель',ownerValue,{empty:!owner?.value&&!initial.legacyOwner}),
         row('Срок',initial.due?`<span class="iq-property-text">${esc(formatDate(initial.due)+(signal?' · '+signal.word:''))}</span>`:'Без срока',{empty:!initial.due,tone:signal?.tone}),
-        row('Приоритет',esc(priority.label),{tone:priority.tone}),
+        row('Приоритет',esc(priority.label),{tone:priority.tone})
+      ].join('')}</dl>${moreOpen}<dl class="iq-properties" data-label="wide">${[
         row('Оценка',initial.estimate?`<span class="iq-property-text">${esc(formatEstimate(initial.estimate))}</span>`:'Без оценки',{empty:!initial.estimate}),
         row('Тип',esc(kind.label)),
         row('Релиз',release?`<span class="iq-property-text">${esc(catalogLabel(release))}</span>`:'Без релиза',{empty:!release}),
@@ -143,7 +148,7 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
         row('Родитель',parent?`<span class="iq-property-key">${esc(taskKey(parent))}</span><span class="iq-property-text">${esc(parent.title)}</span>`:'Нет',{empty:!parent}),
         row('Теги',chosenTags.length?chosenTags.map(tagMarkup).join(''):'Нет тегов',{empty:!chosenTags.length}),
         row('Автор',author.html,{empty:author.empty})
-      ].join('')}</dl>`;
+      ].join('')}</dl>${moreClose}`;
   };
   const workTabs=!!(task&&repository.capabilities?.agentWork);
   const titleContent=`<div class="task-editor-title"><label class="sr-only" for="${taskId}-title">Название</label><textarea class="iq-inline-title" id="${taskId}-title" name="title" rows="1" required maxlength="240" placeholder="Что нужно сделать?">${esc(initial.title)}</textarea></div>`;
@@ -269,6 +274,9 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
       const dueField=form.querySelector('iq-date-field[name=due]');
       // Finished work carries no deadline signal: «Готово к релизу» removes it, another status brings it back.
       if(dueField)form.addEventListener('iq-change',event=>{if(event.target.getAttribute?.('name')==='status')dueField.toggleAttribute('deadline',!finished(event.target.value));});
+      // An error or programmatic focus inside «Другие свойства» opens the group first, so the field is never hidden.
+      const more=form.querySelector('[data-task-more]');
+      if(more){const reveal=event=>{if(more.contains(event.target)&&!more.open)more.open=true;};form.addEventListener('invalid',reveal,true);form.addEventListener('focusin',reveal);}
       mountEstimate(form);
       description=mountTaskDescription(form.querySelector('[data-description]'),{value:taskMarkdown(initial),editing:false,readOnly:!canEdit});
       catalogs=canEdit?mountTaskCatalogs(form.querySelector('[data-task-catalogs]'),{tagsRoot:form.querySelector('[data-task-tags]'),repository,project,task:initial,tags:support.tags,releases:support.releases,canManage,onChange:()=>form.dispatchEvent(new Event('change'))})
