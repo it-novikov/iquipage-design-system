@@ -1,0 +1,53 @@
+name: Tabs geometry
+on:
+  pull_request:
+    paths: ['products/sprintique/**', 'libraries/iquipage/**', '.github/workflows/tabs-geometry.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: tabs-geometry-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '24.20.0'
+          package-manager-cache: false
+      - name: Install product and temporary browser tools
+        env:
+          PLAYWRIGHT_BROWSERS_PATH: ${{ runner.temp }}/sprintique-browsers
+        run: |
+          npm ci --ignore-scripts --no-fund --prefix products/sprintique
+          npm install --prefix "$RUNNER_TEMP/sprintique-browser-tools" --no-save --package-lock=false --ignore-scripts --no-fund playwright@1.62.1
+          node "$RUNNER_TEMP/sprintique-browser-tools/node_modules/playwright/cli.js" install --with-deps chromium
+      - name: Public product boundary and actual consumer build
+        working-directory: products/sprintique
+        env:
+          TABS_SOURCE_REVISION: ${{ github.sha }}
+          TABS_EVIDENCE_DIR: ${{ github.workspace }}/products/sprintique/output/tabs-geometry/build
+        run: |
+          npm run check:boundaries
+          node tests/tabs-geometry-browser.mjs --build-only
+      - name: Exact package minimal consumer and actual Task, Board and Wiki geometry
+        working-directory: products/sprintique
+        env:
+          PLAYWRIGHT_MODULE: ${{ runner.temp }}/sprintique-browser-tools/node_modules/playwright
+          PLAYWRIGHT_BROWSERS_PATH: ${{ runner.temp }}/sprintique-browsers
+          TABS_SOURCE_REVISION: ${{ github.sha }}
+          TABS_EVIDENCE_DIR: ${{ github.workspace }}/products/sprintique/output/tabs-geometry/browser
+        run: node tests/tabs-geometry-browser.mjs
+      - name: Synthetic geometry evidence
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: tabs-geometry
+          path: products/sprintique/output/tabs-geometry/
+          retention-days: 14
+          if-no-files-found: error

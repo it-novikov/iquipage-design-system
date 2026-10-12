@@ -1,5 +1,5 @@
 /** Supported core browser entry. Does not register graph, roadmap, crop, or whiteboard. */
-export declare const version:'0.6.0-vnext.52';
+export declare const version:'0.6.0-vnext.54';
 /** Plain text only. The host owns timestamps, paging, state, permissions and persistence. */
 export interface WorkEntry {id:string;text:string;by?:string;time?:string;detail?:string;state?:''|'error'|'waiting'|'complete';}
 export declare function workEntry(entry:WorkEntry):string;

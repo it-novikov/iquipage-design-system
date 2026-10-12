@@ -383,8 +383,11 @@ class IqTabs extends IqElement {
                 tab.setAttribute('aria-selected', String(active));
                 tab.tabIndex = active ? 0 : -1;
                 tab.classList.toggle('active', active);
-                if (active && focus)
+                if (active && focus) {
                     tab.focus();
+                    // Native focus may leave a horizontally partial label in place.
+                    tab.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+                }
             });
             this.querySelectorAll('[data-panel]').forEach(p => {
                 if (p.closest('iq-tabs') === this)
