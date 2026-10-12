@@ -122,6 +122,9 @@ async function taskCase(page,entry){
   await page.waitForFunction(()=>document.querySelector('iq-dialog.task-edit-dialog [data-task-estimate] > button')&&
     document.querySelector('iq-dialog.task-edit-dialog [data-task-agents] > .iq-work-story-head'));
   assert.equal(await task(page).count(),1,'Exactly one real Task opened from its own Board card');
+  // VT1 keeps the estimate inside the collapsed «Другие свойства» section; reveal it before addressing the trigger.
+  const more=page.locator('iq-dialog.task-edit-dialog [data-task-more]');
+  if(await more.count()&&!(await more.evaluate(node=>node.open)))await more.locator('summary').click();
   const trigger=page.locator(entry.anchorSelector),before=await trigger.innerText();
   await trigger.click();await settle(page);
   const opened=await capture(page,entry,'after-open');
