@@ -1,0 +1,58 @@
+{
+  "sourceBase": "4f181ff3589a32fd9ce152f99018d212d74624b6",
+  "native": "NOT_RUN: local Chromium is known blocked; no retry",
+  "checks": [
+    {
+      "kind": "syntax",
+      "result": {
+        "status": "fulfilled",
+        "value": {
+          "chunk_id": "eae26e",
+          "wall_time_seconds": 0.146871842,
+          "exit_code": 0,
+          "original_token_count": 0,
+          "output": ""
+        }
+      }
+    },
+    {
+      "kind": "existing-work-model-tests",
+      "result": {
+        "status": "fulfilled",
+        "value": {
+          "chunk_id": "797b84",
+          "wall_time_seconds": 0.16433627,
+          "exit_code": 0,
+          "original_token_count": 350,
+          "output": "✔ an external assignment never claims the agent has started (1.156687ms)\n✔ cancellation and completion retain distinct effects and acceptance wording (0.223526ms)\n✔ stored report markup reads as connected prose without changing the source (0.737287ms)\n✔ replayed events do not duplicate saved history (0.926381ms)\n✔ inline emphasis reads as prose while preserving its words (0.247101ms)\n✔ workspace focuses a decision before a review and keeps both out of the overview narrative (0.500091ms)\n✔ agent workspace links preserve the task identity and select only a supported tab (1.106301ms)\n✔ the overview names the agent and distinguishes answering from merely opening a question (0.476946ms)\n✔ the overview never implies that a completed step was accepted (0.477386ms)\n✔ editing after a poll keeps the original revision and the draft until explicit review (0.522715ms)\n✔ review of changed options drops an obsolete selection, never the authored answer (0.237868ms)\n✔ a slow action blocks duplicate entry points and a failure permits a deliberate retry (0.773611ms)\n✔ overview keeps useful context without a session or assignment permission (0.175734ms)\n✔ PF04: review overview shows the literal start of the selected result, never a summary (0.322444ms)\nℹ tests 14\nℹ suites 0\nℹ pass 14\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 131.851516\n"
+        }
+      }
+    },
+    {
+      "kind": "public-boundary-and-styles",
+      "result": {
+        "status": "fulfilled",
+        "value": {
+          "chunk_id": "7b1b24",
+          "wall_time_seconds": 0.531202371,
+          "exit_code": 0,
+          "original_token_count": 98,
+          "output": "npm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> @sprintique/product@2.0.0-alpha.0 check:boundaries\n> node scripts/check-boundaries.mjs && node scripts/check-styles.mjs\n\nPASS: product-contained imports, public DS entries, contracts independent of presentation.\nPASS: type, radius and colour tokens, public DS variants, no inline styling.\n"
+        }
+      }
+    },
+    {
+      "kind": "compiled-fixture-build-only",
+      "result": {
+        "status": "fulfilled",
+        "value": {
+          "chunk_id": "502f32",
+          "wall_time_seconds": 0.703272447,
+          "exit_code": 0,
+          "original_token_count": 67,
+          "output": "{\n  \"status\": \"BUILT_NOT_RENDERED\",\n  \"build\": \"PASS\",\n  \"nativeAcceptance\": \"NOT_RUN\",\n  \"compositionAssessment\": \"NOT_RUN\",\n  \"cases\": [],\n  \"evidence\": \"/workspace/scratch/b3dac59f68e2/repo-task-current/products/sprintique/output/task-overview-state/build-only\"\n}\n"
+        }
+      }
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {workText,sessionSentence,activeSession,uniqueEntries,workFocus,workOverview,createWorkAnswers,createWorkActionGate} from '../ui/src/board/work-model.js';
+import {workResultPreview,workText,sessionSentence,activeSession,uniqueEntries,workFocus,workOverview,createWorkAnswers,createWorkActionGate} from '../ui/src/board/work-model.js';
 test('an external assignment never claims the agent has started',()=>{
  const run={agentName:'Кодекс',state:'awaiting_agent'};
  assert.equal(activeSession(run),true);
@@ -32,8 +32,8 @@ test('agent workspace links preserve the task identity and select only a support
 
 test('the overview names the agent and distinguishes answering from merely opening a question',()=>{
  const state={sessions:[{agentName:'Кодекс',state:'waiting'}],workPlan:{questions:[{id:'q',state:'open',title:'Кому передать?'}]},permissions:{canDecide:true,canAnswer:false}};
- assert.deepEqual(workOverview(state),{context:'Работа агента · Кодекс',status:'Нужно ваше решение',text:'Кому передать?',action:'question:q',label:'Открыть вопрос',attention:true});
- state.permissions.canAnswer=true;assert.equal(workOverview(state).label,'Ответить агенту');
+ assert.deepEqual(workOverview(state),{context:'Работа агента · Кодекс',status:'Агент ждёт ответа',text:'Кому передать?',action:'question:q',label:'Открыть вопрос',attention:false});
+ state.permissions.canAnswer=true;assert.equal(workOverview(state).label,'Ответить агенту');assert.equal(workOverview(state).status,'Нужно ваше решение');assert.equal(workOverview(state).attention,true);
  state.workPlan.questions=[];assert.equal(workOverview(state).attention,false);assert.equal(workOverview(state).status,'Ждёт ответа');
 });
 test('the overview never implies that a completed step was accepted',()=>{
@@ -68,4 +68,13 @@ test('overview keeps useful context without a session or assignment permission',
  assert.deepEqual(workOverview({workPlan:null,permissions:{}}),{context:'Работа агента',status:'',text:'Поручите агенту работу по этой задаче.',action:'open',label:'Открыть работу',attention:false});
  assert.equal(workOverview({workPlan:{},sessions:[{agentName:'Клод',state:'failed'}]}).status,'Работа прервалась');
  assert.equal(workOverview({workPlan:null,permissions:{canAssign:true}}).action,'assign');
+});
+
+test('PF04: review overview shows the literal start of the selected result, never a summary',()=>{
+ assert.deepEqual(workResultPreview(''),{label:'Результат шага',text:'Описание результата не добавлено',empty:true,truncated:false});
+ assert.equal(workResultPreview('## Итог\n\n**Готово**: форма проверена').text,'Итог Готово: форма проверена');
+ const long=workResultPreview('слово '.repeat(60));assert.equal(long.label,'Начало результата');assert.ok(long.truncated);assert.ok([...long.text].length<=161);assert.ok(long.text.endsWith('…'));
+ assert.ok([...workResultPreview('я'.repeat(400)).text].length===161);
+ const state={sessions:[{agentName:'Кодекс',state:'completed'}],workPlan:{steps:[{id:'s',state:'done',title:'Проверить форму',result:'Форма проверена на 3 браузерах.'}]},permissions:{}};
+ const o=workOverview(state);assert.equal(o.text,'Проверить форму');assert.equal(o.result.text,'Форма проверена на 3 браузерах.');assert.equal(o.action,'review:s');
 });
