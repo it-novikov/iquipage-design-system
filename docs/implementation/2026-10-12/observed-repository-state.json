@@ -352,6 +352,56 @@
         "productVersion": "0.6.0-vnext.54"
       },
       "meaning": "Resources observed separately, not an atomic snapshot. Main merges performed by parallel work. Old Task88 native/full belongs to exact frozen tree; PR90 needs its own overview scenarios. PR91 actual merge contains restored Task; trial input verification does not imply whole-tree equality. Root performed no PR merge, deployment or npm publication."
+    },
+    {
+      "observedAt": "2026-10-12T13:45:53Z",
+      "main": "5d674ee06551b175fb5e9553c9866c11fb8fe4c0",
+      "mainTree": "6d4a4e4a66b7a46e6bda4f8378a0975def2aea7c",
+      "parallelPR90": {
+        "head": "5bd09d647f79f06c7a7c844f91a6914907ed8e8b",
+        "state": "closed",
+        "merged": true,
+        "mergedAt": "2026-10-12T13:22:41Z",
+        "wholeTreeEqualsObservedMain": true,
+        "rootPerformedMerge": false
+      },
+      "currentTaskRegression": {
+        "branch": "test/task-compact-state-regression",
+        "scope": "Test-only source frozen; 5 historical semantic states retained, question-can-answer added, 2 long captures; no product runtime changes",
+        "base": "5bd09d647f79f06c7a7c844f91a6914907ed8e8b",
+        "planSHA256": "acd56ea3aef4666275b5691482e6c82880e01a8cbd10f4d70d2bf8d53b093503",
+        "sourceReview": "IN_PROGRESS",
+        "native": "NOT_RUN",
+        "local": {
+          "workModelTests": 15,
+          "build": "BUILT_NOT_RENDERED",
+          "inputs": 197,
+          "outputs": 12,
+          "sourceHashes": 14,
+          "exactDS54Files": 176
+        }
+      },
+      "property56R2": {
+        "publishedHead": "945169fff6fd7e38b081a76a0e20d71b3956a365",
+        "actualCheckout": "c267edee80d49660e22fa03bc4442c19e3b4d2d1",
+        "actualTree": "f44996dd0b3f1bae8358e0b1ece17f8c038bb1d6",
+        "wholeTreeEqualsPublishedHead": false,
+        "verdict": "CHANGES_REQUESTED",
+        "originalReviewSHA256": "ecb66d5d4218fca7193ff7ccb7d7dd3bdc540d640e6568b3f6e793d3e46ed56f",
+        "durableEvidence": "property-list/private56/README.md",
+        "findings": [
+          "NR2-01 capture contamination/anchor needs clean diagnosis",
+          "NR2-02 unnecessary standalone label wrap",
+          "NR2-03 owner/author first text baseline",
+          "NR2-04 forced author metadata row"
+        ],
+        "planRevision3": "940aa92a1ef88941f8d3dfed46b81cd3a649351e56388eb84f6efc46445503d5",
+        "newCaptureScope": "Harness-only same54/56, viewport PNG, immediate and post-RAF window/visualViewport measurements",
+        "newCaptureNative": "NOT_RUN",
+        "layout57": "NOT_IMPLEMENTED",
+        "productAdopted": false
+      },
+      "meaning": "Sequential observations, not an atomic snapshot. External main90 merge preserves the whole PR90 tree; root did not merge PRs, deploy or publish npm. Native R2 bytes preserved; automatic original56 PASS does not override CHANGES_REQUESTED. Source/build of new diagnostics is not fresh browser evidence."
     }
   ]
 }

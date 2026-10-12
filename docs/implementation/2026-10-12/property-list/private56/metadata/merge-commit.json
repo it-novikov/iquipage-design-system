@@ -1,0 +1,40 @@
+{
+  "sha": "c267edee80d49660e22fa03bc4442c19e3b4d2d1",
+  "node_id": "C_kwDOURjrA9oAKGMyNjdlZGVlODBkNDk2NjBlMjJmYTAzYmM0NDQyYzE5ZTNiNGQyZDE",
+  "url": "https://api.github.com/repos/it-novikov/iquipage-design-system/git/commits/c267edee80d49660e22fa03bc4442c19e3b4d2d1",
+  "html_url": "https://github.com/it-novikov/iquipage-design-system/commit/c267edee80d49660e22fa03bc4442c19e3b4d2d1",
+  "author": {
+    "name": "Vadim Novikov",
+    "email": "nvkv71@gmail.com",
+    "date": "2026-10-12T13:04:57Z"
+  },
+  "committer": {
+    "name": "GitHub",
+    "email": "noreply@github.com",
+    "date": "2026-10-12T13:04:57Z"
+  },
+  "tree": {
+    "sha": "f44996dd0b3f1bae8358e0b1ece17f8c038bb1d6",
+    "url": "https://api.github.com/repos/it-novikov/iquipage-design-system/git/trees/f44996dd0b3f1bae8358e0b1ece17f8c038bb1d6"
+  },
+  "message": "Merge 945169fff6fd7e38b081a76a0e20d71b3956a365 into 41ebe4823471072ed6dbb405fbd5e755852eec3f",
+  "parents": [
+    {
+      "sha": "41ebe4823471072ed6dbb405fbd5e755852eec3f",
+      "url": "https://api.github.com/repos/it-novikov/iquipage-design-system/git/commits/41ebe4823471072ed6dbb405fbd5e755852eec3f",
+      "html_url": "https://github.com/it-novikov/iquipage-design-system/commit/41ebe4823471072ed6dbb405fbd5e755852eec3f"
+    },
+    {
+      "sha": "945169fff6fd7e38b081a76a0e20d71b3956a365",
+      "url": "https://api.github.com/repos/it-novikov/iquipage-design-system/git/commits/945169fff6fd7e38b081a76a0e20d71b3956a365",
+      "html_url": "https://github.com/it-novikov/iquipage-design-system/commit/945169fff6fd7e38b081a76a0e20d71b3956a365"
+    }
+  ],
+  "verification": {
+    "verified": true,
+    "reason": "valid",
+    "signature": "-----BEGIN PGP SIGNATURE-----\n\nwsFcBAABCAAQBQJqzNr5CRC1aQ7uu5UhlAAAea4QAFqLL0k4+nJhTSucac+/xGYJ\nDmh5ZvC0vmzMOYFkhYI3fjZLQc7Qk/Y1vpSkAJVtWzLwv4b4MCJ9FlANK8UpZnIZ\nXlD/+r3ZPufnUiYGCoifiE/0MpXr/sZw4Vcd5Q+0R3y8RkNzV7YqzmAcadj8chgv\nvMy406ulYpofotjD82LE6o4vAaF1Ovq9aNAifBQR1CkOdUibmKnuJGIXHRN641PV\nTo2qx62QZrHx0RWG2epBVs6+VdnNxlAZ8glKe5gBllNPJQ+r1UW5LHXAPF5E4Og+\ngroNhZtrwIx09yBNi0IJZXOh8COmw7y1UdWcDpHKXp28Iz7Aacp67h1q6jPoQhPW\n5SvQ2uoVgD7x4Oq3ARQtkjAkqDQspZODrrDkOBqcaZEN1vv/Wrr6l6JLUCaZnkSg\nT+dBVR9FjBDmZVjWmbUU4KZ0mqG1tBhe0gsOrqzBDrrgFcBVFJyV/8UT5PUqvn2f\nR2LPNUj1BC/+kGP/NjOGk7sKZhEQnkOD5cSXAZv2OWH4FzEYxRvdkjkOGZVqSGBI\nfPoOmq3saLQG/2z2bOUrh2V8onDTRN8IXyFjiATQpRvGG9Z7Y2A3t+SN1K9kgix/\nmzZTKZ+osYBIStLtuQViZ7GcPapNQUVYMNSpesGVPTNvfRtfg+OEGr9CzwWTcdiy\nneoUmgaTttI9P5YVtXg5\n=iAh9\n-----END PGP SIGNATURE-----\n",
+    "payload": "tree f44996dd0b3f1bae8358e0b1ece17f8c038bb1d6\nparent 41ebe4823471072ed6dbb405fbd5e755852eec3f\nparent 945169fff6fd7e38b081a76a0e20d71b3956a365\nauthor Vadim Novikov <nvkv71@gmail.com> 1791810297 +0900\ncommitter GitHub <noreply@github.com> 1791810297 +0900\n\nMerge 945169fff6fd7e38b081a76a0e20d71b3956a365 into 41ebe4823471072ed6dbb405fbd5e755852eec3f\n",
+    "verified_at": "2026-10-12T13:04:58Z"
+  }
+}
