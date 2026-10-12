@@ -8,7 +8,7 @@ owner: it-novikov
 branch: fix/planning-selection-space
 base: f5f941afa4e9be8a709e6de67a92bacf5a9397ca
 created: 2026-10-12
-updated: 2026-10-12T05:34:49Z
+updated: 2026-10-12T06:05:07Z
 links:
 ---
 
@@ -39,16 +39,18 @@ links:
 
 ## Передача
 
-- **Состояние:** Actual baseline red rendered on GitHub Chromium151 and six frames inspected; historical recognizer corrected to middle/all profiles plus narrow/last. Candidate assertions and CSS unchanged; green still pending.
-- **Сейчас:** S2 — candidate browser geometry/interactions pending the corrected CI step
-- **Дальше:** Root publishes narrow follow-up; inspect candidate results and early planning-browser-evidence artifact, then resolve any confirmed CSS/interaction failure.
-- **Незакоммичено:** Historical baseline recognizer, early browser artifact upload, README/evidence and bridge only; candidate driver/runtime CSS/package/lock/vendor unchanged.
-- **Рабочая копия:** 3 файл(ов): .github/workflows/vnext.yml, products/sprintique/tests/fixtures/planning-selection/README.md, products/sprintique/tests/planning-selection-baseline-proof.mjs (6 files changed, 44 insertions(+), 9 deletions(-)) · HEAD a4cef44
+- **Состояние:** Actual CI38209281679 historical proof PASS; candidate FAIL on three raw overlap checks. Independent R1/R2 preserved verbatim; F1 closed, F2 open. Test-only measured clipping correction prepared.
+- **Сейчас:** S2 — new actual baseline/candidate geometry and narrow menu-return evidence pending
+- **Дальше:** Root publishes this narrow correction; inspect strict visible-overlap results, computed clip chain, all hit guards and after-Escape frames, then independent follow-up.
+- **Незакоммичено:** Dedicated runner/recognizer, README/evidence, complete independent R1/R2 reports/indexes and checkpoint only; runtime CSS/JS, executable fixture, dependencies and workflow unchanged.
+- **Рабочая копия:** 3 файл(ов): products/sprintique/tests/fixtures/planning-selection/README.md, products/sprintique/tests/planning-selection-baseline-proof.mjs, products/sprintique/tests/planning-selection-space.browser.mjs (6 files changed, 67 insertions(+), 19 deletions(-)) · HEAD a52d285b · снято 2026-10-12T06:05:07Z
 - **Ловушки:**
   - Для Playwright installer нужен TMPDIR в scratch: /tmp отсутствует; браузеры устанавливаются вне repo.
   - Native Chromium exits SIGTRAP before about:blank; /proc/self is absent. Native TypeScript7 build also fails at readlink /proc/self/exe. No runtime PASS or build PASS claimed.
   - Local browser NOT_RUN; complete npm build blocked by native TypeScript7 /proc/self/exe. Existing workflow gates unchanged. Historical red requires original repair branch fix/planning-selection-space.
   - Baseline is a counterexample, not a requirement that every old position fail. Desktop/compact last overlap is zero because of end spacing; candidate must still pass every middle/last assertion.
+  - Raw BCR intersection is diagnostic, not painted overlap. Do not round away overlap or mark F2/A1/A2 accepted from offline arithmetic; narrow menuReturn was missing in old CI.
+- **Причина:** planned — GPT-6 Astra (AI agent), 2026-10-12T06:05:07Z, передано root: Test-only F2 correction is reviewable; runtime and workflow unchanged. Root publishes the local commit and runs actual baseline/candidate CI. F2 and A1/A2 remain open; narrow menu-return and measured clip/hit evidence still required.
 
 ## План
 

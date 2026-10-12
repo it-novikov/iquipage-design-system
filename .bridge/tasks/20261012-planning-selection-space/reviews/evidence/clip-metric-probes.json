@@ -1,0 +1,262 @@
+{
+  "kind": "OFFLINE arithmetic / guard probes, NOT a browser run or acceptance",
+  "limitations": "Uses prior recorded rectangular scroller bounds (known borderless overflow:auto); does not measure the new ancestor chain or hit points. Narrow menuReturn has no old snapshot and remains pending actual CI.",
+  "driverSHA256": "4d3cf2564b85a9e467f44c1772e6436f8cfc035856963da99ebe5c6331100b44",
+  "inputSHA256": {
+    "baseline": "25e787a945868a8fd006ab62a06ec9d0e32fdfdc717bb10fef639e86e0e78165",
+    "candidate": "79336cff1e11a354d188299b4428e3d8eb2656094c81b597988806e2365d03d7"
+  },
+  "arithmetic": [
+    {
+      "kind": "baseline",
+      "profile": "desktop",
+      "state": "selection",
+      "rawIntersection": 19592,
+      "visibleIntersection": 19592
+    },
+    {
+      "kind": "baseline",
+      "profile": "desktop",
+      "state": "lastRow",
+      "rawIntersection": 0,
+      "visibleIntersection": 0
+    },
+    {
+      "kind": "baseline",
+      "profile": "desktop",
+      "state": "return",
+      "rawIntersection": 0,
+      "visibleIntersection": 0
+    },
+    {
+      "kind": "baseline",
+      "profile": "compact",
+      "state": "selection",
+      "rawIntersection": 19592,
+      "visibleIntersection": 19592
+    },
+    {
+      "kind": "baseline",
+      "profile": "compact",
+      "state": "lastRow",
+      "rawIntersection": 0,
+      "visibleIntersection": 0
+    },
+    {
+      "kind": "baseline",
+      "profile": "compact",
+      "state": "return",
+      "rawIntersection": 0,
+      "visibleIntersection": 0
+    },
+    {
+      "kind": "baseline",
+      "profile": "narrow",
+      "state": "selection",
+      "rawIntersection": 23682.09375,
+      "visibleIntersection": 23682.09375
+    },
+    {
+      "kind": "baseline",
+      "profile": "narrow",
+      "state": "lastRow",
+      "rawIntersection": 15677.375,
+      "visibleIntersection": 15677.375
+    },
+    {
+      "kind": "baseline",
+      "profile": "narrow",
+      "state": "return",
+      "rawIntersection": 15677.375,
+      "visibleIntersection": 15677.375
+    },
+    {
+      "kind": "candidate",
+      "profile": "desktop",
+      "state": "selection",
+      "rawIntersection": 118.5,
+      "visibleIntersection": 0
+    },
+    {
+      "kind": "candidate",
+      "profile": "desktop",
+      "state": "lastRow",
+      "rawIntersection": 0,
+      "visibleIntersection": 0
+    },
+    {
+      "kind": "candidate",
+      "profile": "desktop",
+      "state": "return",
+      "rawIntersection": 0,
+      "visibleIntersection": 0
+    },
+    {
+      "kind": "candidate",
+      "profile": "compact",
+      "state": "selection",
+      "rawIntersection": 118.5,
+      "visibleIntersection": 0
+    },
+    {
+      "kind": "candidate",
+      "profile": "compact",
+      "state": "lastRow",
+      "rawIntersection": 0,
+      "visibleIntersection": 0
+    },
+    {
+      "kind": "candidate",
+      "profile": "compact",
+      "state": "return",
+      "rawIntersection": 0,
+      "visibleIntersection": 0
+    },
+    {
+      "kind": "candidate",
+      "profile": "narrow",
+      "state": "selection",
+      "rawIntersection": 0,
+      "visibleIntersection": 0
+    },
+    {
+      "kind": "candidate",
+      "profile": "narrow",
+      "state": "lastRow",
+      "rawIntersection": 0,
+      "visibleIntersection": 0
+    },
+    {
+      "kind": "candidate",
+      "profile": "narrow",
+      "state": "return",
+      "rawIntersection": 0,
+      "visibleIntersection": 0
+    }
+  ],
+  "negativeGuards": [
+    {
+      "name": "visible intrusion of 1/64 CSS px",
+      "expectedFailure": "overlap",
+      "actualFailures": [
+        "overlap"
+      ],
+      "visibleIntersection": 4.9375
+    },
+    {
+      "name": "raw overlap but missing visible metric",
+      "expectedFailure": "overlap",
+      "actualFailures": [
+        "overlap"
+      ],
+      "visibleIntersection": null
+    },
+    {
+      "name": "entire row below clip despite zero intersection",
+      "expectedFailure": "rowBottom",
+      "actualFailures": [
+        "rowBottom"
+      ],
+      "visibleIntersection": 0
+    },
+    {
+      "name": "row above scrollport",
+      "expectedFailure": "rowTop",
+      "actualFailures": [
+        "rowTop"
+      ],
+      "visibleIntersection": 0
+    },
+    {
+      "name": "failed original centre hit",
+      "expectedFailure": "rowHit",
+      "actualFailures": [
+        "rowHit"
+      ],
+      "visibleIntersection": 0
+    },
+    {
+      "name": "failed visible boundary hit",
+      "expectedFailure": "rowBoundaryHit",
+      "actualFailures": [
+        "rowBoundaryHit"
+      ],
+      "visibleIntersection": 0
+    },
+    {
+      "name": "two working scrollports",
+      "expectedFailure": "singleScrollport",
+      "actualFailures": [
+        "singleScrollport"
+      ],
+      "visibleIntersection": 0
+    },
+    {
+      "name": "document becomes a scrollport",
+      "expectedFailure": "singleScrollport",
+      "actualFailures": [
+        "singleScrollport"
+      ],
+      "visibleIntersection": 0
+    },
+    {
+      "name": "bar controls outside viewport",
+      "expectedFailure": "barInViewport",
+      "actualFailures": [
+        "barInViewport"
+      ],
+      "visibleIntersection": 0
+    },
+    {
+      "name": "horizontal page overflow",
+      "expectedFailure": "horizontalOverflow",
+      "actualFailures": [
+        "horizontalOverflow"
+      ],
+      "visibleIntersection": 0
+    }
+  ],
+  "historicalRecognizer": [
+    {
+      "name": "recorded baseline with offline clipped metrics",
+      "expectedExit": 0,
+      "actualExit": 0
+    },
+    {
+      "name": "desktop visible middle removed while raw remains positive",
+      "expectedExit": 1,
+      "actualExit": 1
+    },
+    {
+      "name": "compact visible middle removed while raw remains positive",
+      "expectedExit": 1,
+      "actualExit": 1
+    },
+    {
+      "name": "narrow visible middle removed while raw remains positive",
+      "expectedExit": 1,
+      "actualExit": 1
+    },
+    {
+      "name": "narrow visible last removed",
+      "expectedExit": 1,
+      "actualExit": 1
+    },
+    {
+      "name": "visible metric absent",
+      "expectedExit": 1,
+      "actualExit": 1
+    },
+    {
+      "name": "application error",
+      "expectedExit": 1,
+      "actualExit": 1
+    },
+    {
+      "name": "incomplete interaction",
+      "expectedExit": 1,
+      "actualExit": 1
+    }
+  ],
+  "status": "PASS_OFFLINE_PROBES_ONLY"
+}

@@ -18,6 +18,10 @@ node tests/planning-selection-space.browser.mjs
 
 The runner uses a local Vite server and blocks external requests. It verifies the expected `.52` vendor archive SHA256 and installed package version. It writes `output/planning-selection/results.json` and synthetic screenshots. The same no-overlap assertions must fail on the unchanged baseline and pass after the fix.
 
+Geometry records both `rawIntersection` (the complete row/bar bounding rectangles) and `visibleIntersection` (the row after its measured overflow clips, then intersected with the bar). The latter must be **exactly zero**, without an allowed overlap area or rounding. Each snapshot retains the clipping ancestors, their computed overflow, clip bounds/insets, visible row and hit-test points. Separate row-fit, hit, viewport and single-scrollport guards prevent an invisible/clipped-away row from passing just because its visible intersection is empty. The lower visible row edge is also hit-tested across the bar's horizontal span. The dedicated fixture uses the product's rectangular overflow composition; the trace keeps its applicable CSS visible to review.
+
+Keyboard menu return is retained as `menuReturn`, with a `*-menu-return.png` frame after Escape and settling, before the next action. A menu-open frame does not substitute for that state. Earlier result files used `intersection` for raw rectangle area; they remain historical evidence and are not relabelled as new clipped-geometry PASS results.
+
 Optional environment variables:
 
 | Variable | Purpose |
@@ -35,6 +39,6 @@ Use the default Playwright Chromium when available. The fixture needs no credent
 
 The existing `vnext.yml` workflow runs the ordinary green regression for the current source. For the original `fix/planning-selection-space` repair PR it also exports immutable baseline `f5f941afa4e9be8a709e6de67a92bacf5a9397ca` into a temporary directory and adds only this new test driver/fixture. Its product source and CSS remain the archived baseline. The baseline uses its own normal `npm ci` and must fail the same no-overlap assertions. `planning-selection-baseline-proof.mjs` rejects a launch failure, timeout, unexpected request or incomplete interaction run as evidence.
 
-The confirmed historical counterexample is the selected middle row in all three profiles and the selected last row with narrow wrapped actions. The desktop/compact baseline's footer and bottom inset happen to keep its last row above the bar; a defect need not occur at every scroll position to be reproduced. This does not change the candidate assertions: every selected middle and last row must remain uncovered in every profile.
+The confirmed historical counterexample is the selected middle row in all three profiles and the selected last row with narrow wrapped actions. The recognizer requires positive `visibleIntersection` after overflow clipping in those cases. The desktop/compact baseline's footer and bottom inset happen to keep its last row above the bar; a defect need not occur at every scroll position to be reproduced. This does not change the candidate requirements: every selected middle and last row and both return states must remain uncovered in every profile.
 
 That historical counterexample is a separate, repair-specific CI step. Later changes run the normal green regression; an already fixed PR base is not expected to fail. Baseline/candidate metrics and synthetic screenshots are uploaded immediately after the browser steps as `planning-browser-evidence`, including on failure, and also remain part of the existing final verification artifact. Backend and build gates are unchanged.

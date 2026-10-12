@@ -25,6 +25,7 @@ const result={
   package:expectedVersion,archiveSHA256:expectedArchive,
   sourceRevision:process.env.PLANNING_SOURCE_REVISION||'local worktree (see review packet)',
   planningCSS:hash(await readFile(join(product,'ui/planning/src/planning.css'))),
+  geometryMethod:'raw rectangles and visible row after measured overflow clips; strict zero visible overlap',
   node:process.version,profiles:[],geometryFailures:[],interactionFailures:[],pageErrors:[],externalRequests:[],status:'RUNNING',
 };
 let server,browser;
@@ -36,19 +37,42 @@ async function settle(page){
 async function layout(page,id){
   return page.evaluate(id=>{
     const row=document.querySelector(`[data-row="${id}"]`),bar=document.querySelector('[data-selbar]');
-    const scrollable=[];
-    for(let el=row.parentElement;el;el=el.parentElement)if(/auto|scroll/.test(getComputedStyle(el).overflowY)&&el.scrollHeight>el.clientHeight+1)scrollable.push(el);
-    const scroller=scrollable[0];
     const bounds=el=>{const r=el.getBoundingClientRect();return {left:r.left,top:r.top,right:r.right,bottom:r.bottom,width:r.width,height:r.height};};
+    const rectangle=(left,top,right,bottom)=>({left,top,right:Math.max(left,right),bottom:Math.max(top,bottom),width:Math.max(0,right-left),height:Math.max(0,bottom-top)});
+    const intersect=(a,b)=>rectangle(Math.max(a.left,b.left),Math.max(a.top,b.top),Math.min(a.right,b.right),Math.min(a.bottom,b.bottom));
+    const area=(a,b)=>{const r=intersect(a,b);return r.width*r.height;};
+    const scrollable=[],clippingAncestors=[];
+    let clipBounds=rectangle(0,0,innerWidth,innerHeight);
+    for(let el=row.parentElement;el;el=el.parentElement){
+      const style=getComputedStyle(el);
+      if(/auto|scroll/.test(style.overflowY)&&el.scrollHeight>el.clientHeight+1)scrollable.push(el);
+      const clipX=/^(auto|scroll|hidden|clip)$/.test(style.overflowX),clipY=/^(auto|scroll|hidden|clip)$/.test(style.overflowY);
+      if(!clipX&&!clipY)continue;
+      const borderBox=bounds(el);
+      // Keep fractional BCR edges. Client/offset deltas remove only border/scrollbar insets;
+      // using integer clientHeight as the clip height would introduce another rounding error.
+      const insets={left:el.clientLeft,top:el.clientTop,right:el.offsetWidth-el.clientWidth-el.clientLeft,bottom:el.offsetHeight-el.clientHeight-el.clientTop};
+      const clipRect=rectangle(borderBox.left+insets.left,borderBox.top+insets.top,borderBox.right-insets.right,borderBox.bottom-insets.bottom);
+      clippingAncestors.push({owner:el.id||el.className,overflowX:style.overflowX,overflowY:style.overflowY,overflowClipMargin:style.overflowClipMargin,borderBox,insets,clipRect});
+      clipBounds=rectangle(clipX?Math.max(clipBounds.left,clipRect.left):clipBounds.left,clipY?Math.max(clipBounds.top,clipRect.top):clipBounds.top,
+        clipX?Math.min(clipBounds.right,clipRect.right):clipBounds.right,clipY?Math.min(clipBounds.bottom,clipRect.bottom):clipBounds.bottom);
+    }
+    const scroller=scrollable[0];
     const r=bounds(row),b=bounds(bar),label=bounds(row.querySelector('.tree-node-label'));
+    const visibleRow=intersect(r,clipBounds);
     const point={x:Math.min(innerWidth-1,Math.max(1,label.left+Math.min(label.width/2,100))),y:r.top+r.height/2};
     const hit=document.elementFromPoint(point.x,point.y);
+    // Also hit-test the visible lower edge where the bar crosses the row's horizontal span.
+    const sharedLeft=Math.max(visibleRow.left,b.left),sharedRight=Math.min(visibleRow.right,b.right);
+    const boundaryPoint=visibleRow.width>0&&visibleRow.height>0?{x:sharedRight>sharedLeft?(sharedLeft+sharedRight)/2:visibleRow.left+visibleRow.width/2,y:visibleRow.bottom-Math.min(1,visibleRow.height/2)}:null;
+    const boundaryHit=boundaryPoint?document.elementFromPoint(boundaryPoint.x,boundaryPoint.y):null;
     const children=[...bar.children].map(bounds),contentHeight=Math.max(...children.map(r=>r.bottom))-Math.min(...children.map(r=>r.top));
     return {row:r,bar:b,scroller:bounds(scroller),scrollTop:scroller.scrollTop,scrollOwner:scroller.id||scroller.className,
-      scrollableAncestors:scrollable.length,rowHit:row.contains(hit),barWrapped:contentHeight>Math.max(...children.map(r=>r.height))+1,
+      clipBounds,clippingAncestors,visibleRow,rawIntersection:area(r,b),visibleIntersection:area(visibleRow,b),
+      scrollableAncestors:scrollable.length,rowHit:row.contains(hit),rowHitPoint:point,rowBoundaryHit:row.contains(boundaryHit),rowBoundaryPoint:boundaryPoint,
+      barWrapped:contentHeight>Math.max(...children.map(r=>r.height))+1,
       outerScrollTop:document.querySelector('#host-view').scrollTop,
       viewport:{width:innerWidth,height:innerHeight},activeRow:document.activeElement?.dataset.row||null,
-      intersection:Math.max(0,Math.min(r.right,b.right)-Math.max(r.left,b.left))*Math.max(0,Math.min(r.bottom,b.bottom)-Math.max(r.top,b.top)),
       horizontalOverflow:document.documentElement.scrollWidth>innerWidth+1,
       documentScrolls:document.documentElement.scrollHeight>innerHeight+1};
   },id);
@@ -67,11 +91,12 @@ async function focusNearBottom(page,id){
 function checkUncovered(value,label){
   // Collect geometry separately so a historical red run still exercises the last row and narrow wrap.
   const checks={
-    overlap:value.intersection===0,
+    overlap:value.visibleIntersection===0,
     viewportAboveBar:value.scroller.bottom<=value.bar.top+1,
     rowBottom:value.row.bottom<=value.scroller.bottom+1,
     rowTop:value.row.top>=value.scroller.top-1,
     rowHit:value.rowHit,
+    rowBoundaryHit:value.rowBoundaryHit,
     barInViewport:value.bar.top>=0&&value.bar.bottom<=value.viewport.height+1&&value.bar.left>=0&&value.bar.right<=value.viewport.width+1,
     singleScrollport:value.scrollableAncestors===1&&!value.documentScrolls,
     horizontalOverflow:!value.horizontalOverflow,
@@ -115,7 +140,10 @@ async function profile(options,baseURL){
     await page.keyboard.press('Escape');
     await page.locator('.pl-menu').waitFor({state:'detached'});
     assert.equal(await page.evaluate(()=>document.activeElement?.dataset.row),'task-19','menu Escape returns row anchor');
-    checkUncovered(await layout(page,'task-19'),`${options.name} keyboard menu return`);
+    await settle(page);
+    entry.menuReturn=await layout(page,'task-19');
+    await page.screenshot({path:join(evidence,`${options.name}-menu-return.png`)});
+    checkUncovered(entry.menuReturn,`${options.name} keyboard menu return`);
     entry.checks.push('Space, range selection, M, menu bounds and Escape return');
 
     await page.keyboard.press('End');
