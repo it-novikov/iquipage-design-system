@@ -36,7 +36,9 @@ probe.inspect=()=>({hash:location.hash,mapId:parseMapRoute(host?.routeHash)?.map
   sameInspector:root.querySelector('.canvas-property-form')===firstInspector,focusOnOpener:document.activeElement===opener,
   currentTask:host?.currentTask(),sameRememberedTask:!!rememberedTask&&taskDialog()===rememberedTask,
   taskIds:[...document.querySelectorAll('iq-dialog.task-edit-dialog')].filter(el=>el.querySelector('dialog[open]')).map(el=>el.taskController?.taskId),
-  workTab:taskDialog()?.querySelector('[data-task-tabs]')?.getAttribute('value')||null});
+  workTab:taskDialog()?.querySelector('[data-task-tabs]')?.getAttribute('value')||null,
+  selectedTab:taskDialog()?.querySelector('[data-tab][aria-selected="true"]')?.dataset.tab||null,
+  visiblePanels:[...(taskDialog()?.querySelectorAll('[data-task-tabs] > [data-panel]')||[])].filter(el=>!el.hidden&&el.getClientRects().length>0).map(el=>el.dataset.panel)});
 
 // Only the isolated Maps host's public route entry is connected to real native history events.
 // This is not a copy of, or evidence for, main.js section/auth/navigation behavior.

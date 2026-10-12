@@ -147,7 +147,7 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
   };
   const workTabs=!!(task&&repository.capabilities?.agentWork);
   const titleContent=`<div class="task-editor-title"><label class="sr-only" for="${taskId}-title">Название</label><textarea class="iq-inline-title" id="${taskId}-title" name="title" rows="1" required maxlength="240" placeholder="Что нужно сделать?">${esc(initial.title)}</textarea></div>`;
-  const content=`<section class="task-editor-cover" data-task-cover hidden></section>${workTabs?`${titleContent}<iq-tabs label="Разделы задачи" value="${parseTaskSection(location.hash)}" data-task-tabs><div class="iq-tabs-list" data-tablist><button type="button" data-tab="task">Задача</button><button type="button" data-tab="work">Работа агента</button></div><section class="iq-tab-panel" data-panel="task"><div class="task-editor-layout"><section class="task-editor-title iq-work-story iq-work-question" data-task-work-summary hidden></section>`:`<div class="task-editor-layout">${titleContent}`}
+  const content=`<section class="task-editor-cover" data-task-cover hidden></section>${workTabs?`${titleContent}<iq-tabs label="Разделы задачи" value="${initialSection==='work'?'work':'task'}" data-task-tabs><div class="iq-tabs-list" data-tablist><button type="button" data-tab="task">Задача</button><button type="button" data-tab="work">Работа агента</button></div><section class="iq-tab-panel" data-panel="task"><div class="task-editor-layout"><section class="task-editor-title iq-work-story iq-work-question" data-task-work-summary hidden></section>`:`<div class="task-editor-layout">${titleContent}`}
     ${task&&supplement?'<section class="task-personal-section" data-task-personal aria-label="Запросы к вам" hidden></section>':''}
     <section class="task-editor-properties" aria-label="Свойства задачи">
       ${canEdit?editableFacts():staticFacts()}
@@ -440,8 +440,15 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
       let setSection=()=> 'task';
       if(workTabs){
         const tabs=form.querySelector('[data-task-tabs]'),footer=form.querySelector('.iq-dialog-footer');
-        const syncTab=(route=false)=>{const value=tabs.getAttribute('value');footer.hidden=value==='work';if(route){if(onSectionChange)onSectionChange(value);else history.replaceState(history.state,'',taskURL(task,value));}};
-        setSection=value=>{const next=value==='work'?'work':'task';tabs.setAttribute('value',next);syncTab();return next;};
+        let settingSection=false;
+        const syncTab=(route=false)=>{const value=tabs.getAttribute('value');footer.hidden=value==='work';if(route&&!settingSection){if(onSectionChange)onSectionChange(value);else history.replaceState(history.state,'',taskURL(task,value));}};
+        setSection=value=>{
+          const next=value==='work'?'work':'task',button=tabs.querySelector(`[data-tab="${next}"]`);
+          // In .52 value is the initial selection. The supplied button action updates panels and ARIA together.
+          settingSection=true;
+          try{if(button?.getAttribute('aria-selected')!=='true')button?.click();}finally{settingSection=false;}
+          syncTab();return next;
+        };
         setSection(initialSection);
         tabs.addEventListener('iq-change',event=>{if(event.target===tabs)syncTab(true);});syncTab();
       }

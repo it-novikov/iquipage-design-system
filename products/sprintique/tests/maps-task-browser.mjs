@@ -38,6 +38,12 @@ async function waitTask(page,key){
   await page.waitForFunction(key=>window.mapsTaskProbe.inspect().currentTask===key,key);
   await task(page).locator('dialog[open]').waitFor({state:'visible'});await settle(page);
 }
+async function waitSection(page,section){
+  await task(page).getByRole('tab',{name:section==='work'?'Работа агента':'Задача',exact:true,selected:true}).waitFor({state:'visible'});
+  await task(page).locator(`[data-panel="${section}"]`).waitFor({state:'visible'});
+  await task(page).locator(`[data-panel="${section==='work'?'task':'work'}"]`).waitFor({state:'hidden'});
+  const value=await inspect(page);assert.equal(value.workTab,section);assert.equal(value.selectedTab,section);assert.deepEqual(value.visiblePanels,[section]);
+}
 async function waitMap(page){
   await page.waitForFunction(()=>window.mapsTaskProbe.inspect().currentTask===null&&location.hash==='#maps/map-a');
   await task(page).waitFor({state:'detached'});await settle(page);
@@ -115,7 +121,11 @@ async function mountRecoveryChecks(baseURL){
         await page.evaluate(support=>{const c=window.mapsTaskProbe.controls;support?c.releaseSupport():c.releaseTaskRead();},support);
         await page.waitForFunction(()=>window.mapsTaskProbe.ready||window.mapsTaskProbe.bootstrapError);
         assert.equal(await page.evaluate(()=>window.mapsTaskProbe.bootstrapError),null);
-        if(options.target.endsWith('/work'))await waitTask(page,'MFX-102');else await waitMap(page);
+        if(options.target.endsWith('/work')){
+          await waitTask(page,'MFX-102');await waitSection(page,'work');
+          await page.evaluate(()=>{location.hash='#maps/map-a/task/MFX-102';});await waitSection(page,'task');
+          await page.goBack();await waitSection(page,'work');
+        }else await waitMap(page);
       }
       entry.final=await inspect(page);assert.equal(entry.final.hash,options.target);assert.equal(entry.final.mapId,'map-a');
       assert.deepEqual(entry.final.taskIds,options.target.endsWith('/work')?['task-2']:options.fault==='initial-map'?['task-1']:[]);
@@ -204,7 +214,7 @@ async function profile(options,baseURL){
     entry.phase='open Task and Work tab';await openFromMap(page);sameMap(await inspect(page),baseline,entry.phase);
     await task(page).getByRole('tab',{name:'Работа агента',exact:true}).click();
     await page.waitForFunction(()=>location.hash==='#maps/map-a/task/MFX-101/work');
-    await task(page).locator('[data-panel="work"]').waitFor({state:'visible'});
+    await waitSection(page,'work');
     await task(page).locator('[data-panel="work"] [data-task-agents]').getByRole('heading',{name:'Поручите первый шаг',exact:true}).waitFor();
     assert.equal((await inspect(page)).workTab,'work');sameMap(await inspect(page),baseline,entry.phase);
     await page.screenshot({path:join(evidence,options.name+'-work-tab.png')});
@@ -212,16 +222,17 @@ async function profile(options,baseURL){
 
     entry.phase='header Close and native Forward';await closeButton(page).click();await waitMap(page);
     let value=await inspect(page);sameMap(value,baseline,entry.phase);assert.equal(value.focusOnOpener,true);
-    await page.goForward();await waitTask(page,'MFX-101');assert.equal((await inspect(page)).workTab,'work');
+    await page.goForward();await waitTask(page,'MFX-101');await waitSection(page,'work');
     entry.checks.push('header Close returns to the same map; native Forward reopens Work tab');
 
     entry.phase='Escape and native history';await page.keyboard.press('Escape');await waitMap(page);
     value=await inspect(page);sameMap(value,baseline,entry.phase);assert.equal(value.focusOnOpener,true);
-    await page.goForward();await waitTask(page,'MFX-101');
+    await page.goForward();await waitTask(page,'MFX-101');await waitSection(page,'work');
     await page.goBack();await waitMap(page);sameMap(await inspect(page),baseline,'native Back');
-    await page.goForward();await waitTask(page,'MFX-101');
+    await page.goForward();await waitTask(page,'MFX-101');await waitSection(page,'work');
     await task(page).getByRole('tab',{name:'Задача',exact:true}).click();
     await page.waitForFunction(()=>location.hash==='#maps/map-a/task/MFX-101');
+    await waitSection(page,'task');
     await closeButton(page).click();await waitMap(page);
     entry.checks.push('Escape, native Back/Forward and Task tab retain the contextual route');
     if(options.deep){await handoffAndDraftChecks(page,entry,baseline);await reloadDraftChecks(page,entry,baseline);}

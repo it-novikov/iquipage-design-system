@@ -1,0 +1,168 @@
+diff --git a/products/sprintique/ui/src/board/task-dialog.js b/products/sprintique/ui/src/board/task-dialog.js
+index d0a714db..5e35333d 100644
+--- a/products/sprintique/ui/src/board/task-dialog.js
++++ b/products/sprintique/ui/src/board/task-dialog.js
+@@ -430,7 +430,11 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
+         saveState.addEventListener('click',event=>{
+           const action=event.target.closest('[data-save-action]')?.dataset.saveAction;
+           if(action==='retry')void flush();
+-          if(action==='reload'){discarded=true;if(onReload)void onReload();else el.close();}
++          if(action==='reload'){
++            // Keep the live form guarded until its replacement succeeds. A failed read leaves it editable.
++            if(onReload)void Promise.resolve().then(()=>onReload()).catch(error=>showState('Не удалось обновить задачу: '+(error.message||'ошибка сети'),{error:true,action:'reload'}));
++            else{discarded=true;el.close();}
++          }
+         });
+       }
+       let setSection=()=> 'task';
+@@ -447,14 +451,14 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
+         if(autosave&&!discarded)await flush();
+         else if(saving)return false;
+         if(!dirty()){if(!keepOpen)el.close();return true;}
+-        confirming=true;
++        confirming=true;let accepted=false;
+         const confirm=dialog({
+           title:'Закрыть без сохранения?',
+           description:autosave?'Последние правки не удалось сохранить, а неопубликованные сообщения будут потеряны. Уже сохранённое останется.'
+             :current?'Задача уже создана. Несохранённые материалы, связи и правки в неё не попадут.':'Изменения задачи и неопубликованные сообщения будут потеряны. Уже опубликованные сообщения сохранятся.',
+-          submitLabel:'Не сохранять',onSubmit:async()=>{discarded=true;if(!keepOpen)el.close();}
++          submitLabel:'Не сохранять',onSubmit:async()=>{accepted=true;if(!keepOpen){discarded=true;el.close();}}
+         });
+-        return new Promise(resolve=>confirm.addEventListener('iq-close',()=>{confirming=false;resolve(discarded);},{once:true}));
++        return new Promise(resolve=>confirm.addEventListener('iq-close',()=>{confirming=false;resolve(accepted);},{once:true}));
+       }
+       el.taskController={close,setSection,dirty:()=>dirty()||saving||files.isBusy()||threads?.isBusy()||!!links?.isBusy?.()||!!materials?.isBusy()||!!wikiLinks?.isBusy(),taskId,taskKey:task?taskKey(task):null};
+       form.addEventListener('click',event=>{
+diff --git a/products/sprintique/web/main.js b/products/sprintique/web/main.js
+index 4a87a09c..546865fa 100644
+--- a/products/sprintique/web/main.js
++++ b/products/sprintique/web/main.js
+@@ -34,7 +34,7 @@ registerCore();
+ /** Ends the boot sequence without an error: the page is already what it should be. */
+ const STOP=Symbol('stop');
+ const root=document.querySelector('#app'),repository=new ProductRepository(new SprintiqueClient(trackedFetch));
+-let board,session,currentProject,planningAdapter,viewMode='tasks',navigating=false;
++let board,session,currentProject,planningAdapter,viewMode='tasks',navigating=false,routeVersion=0,pendingHashRoute=false;
+ // The Workbench (docs/adr W6): served when the server enables it; its link shows for everyone with workbench_mvp.
+ // It is a section of the shell like the board: the switchers keep the last project, which the other sections open.
+ const featureOn=name=>!!session?.features?.includes(name);
+@@ -243,15 +243,22 @@ async function showProject(id,mode=routeMode()){
+     const start=eventHead||await (mode==='workbench'?head.catch(()=>null):head);
+     if(start){const access=accessSignature(project);repository.watch(project.id,onStreamChange,{cursor:start.cursor,access});watching={projectId:project.id,access};}
+   }
+-  const task=parseTaskRoute(location.hash);if(task&&board.openTask)await board.openTask(task,{fromRoute:true});
++  const task=parseTaskRoute(location.hash);if(task&&board.openTask&&mode!=='maps'&&!pendingHashRoute)await board.openTask(task,{fromRoute:true});
+   return true;
+-  }finally{release?.();navigating=false;loaded();}
++  }finally{
++    release?.();navigating=false;loaded();
++    // A native route received while mounting still belongs to the person after the section becomes ready.
++    if(pendingHashRoute){pendingHashRoute=false;void applyHashRoute().catch(report);}
++  }
+ }
+ async function navigate(mode){
+   if(navigating||!currentProject)return;
++  const version=routeVersion;
+   // The Workbench keeps its own address; a project section's hash is restored when the switch is refused.
+   const restoreHash=viewMode==='workbench'?null:retainedRouteHash(viewMode,board,location.hash);
+-  if(await showProject(currentProject.id,mode)){if(viewMode!=='workbench')history.replaceState(null,'',sectionRouteHash(viewMode,location.hash));}
++  const changed=await showProject(currentProject.id,mode);
++  if(version!==routeVersion)return;
++  if(changed){if(viewMode!=='workbench')history.replaceState(null,'',sectionRouteHash(viewMode,location.hash));}
+   else if(restoreHash)history.replaceState(history.state,'',retainedRouteHash(viewMode,board,restoreHash));
+   else if(isWorkbenchPath()&&location.hash){const url=new URL(location.href);url.hash='';history.replaceState(history.state,'',url);}
+ }
+@@ -303,13 +310,19 @@ function search(){if(!session||document.querySelector('dialog[open]'))return;ope
+   try{if(board&&!await board.closeTask())return;history.replaceState(null,'',item.kind==='map'?'#maps/'+encodeURIComponent(item.id):'#tasks');await showProject(item.projectId,item.kind==='map'?'maps':'tasks');if(item.kind==='task')await board.openTask(item.key);}catch(error){report(error);}
+ }});}
+ window.addEventListener('keydown',event=>{if((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='k'){event.preventDefault();search();}});
+-window.addEventListener('hashchange',()=>{if(viewMode==='workbench'||isWorkbenchPath())return;void(async()=>{const task=parseTaskRoute(location.hash);if(task){if(!board?.openTask||viewMode==='maps'){const restoreHash=board?.routeHash;if(await showProject(currentProject.id,'tasks')===false){const retained=board?.routeHash||restoreHash;if(retained)history.replaceState(history.state,'',retained);return;}}await board?.openTask?.(task,{fromRoute:true});}else if(location.hash.startsWith('#maps')){if(viewMode==='maps'&&board?.openRoute)await board.openRoute(location.hash);else await navigate('maps');}
++window.addEventListener('hashchange',()=>{
++  if(viewMode==='workbench'||isWorkbenchPath())return;
++  routeVersion++;
++  if(navigating){pendingHashRoute=true;board?.cancelRoute?.();return;}
++  void applyHashRoute().catch(report);
++});
++async function applyHashRoute(){const version=routeVersion,task=parseTaskRoute(location.hash);if(task){if(!board?.openTask||viewMode==='maps'){const restoreHash=board?.routeHash,changed=await showProject(currentProject.id,'tasks');if(version!==routeVersion)return;if(changed===false){const retained=board?.routeHash||restoreHash;if(retained)history.replaceState(history.state,'',retained);return;}}await board?.openTask?.(task,{fromRoute:true});}else if(location.hash.startsWith('#maps')){if(viewMode==='maps'&&board?.openRoute)await board.openRoute(location.hash);else await navigate('maps');}
+     else if(location.hash.startsWith('#wiki')){if(viewMode==='wiki'&&board?.openRoute)await board.openRoute(location.hash);else await navigate('wiki');}
+     else if(location.hash.startsWith('#finance')){if(viewMode==='finance'&&board?.openRoute)await board.openRoute(location.hash);else await navigate('finance');}else if(location.hash.startsWith('#settings')){if(viewMode==='settings'&&board?.navigateSettings){await board.navigateSettings();}else await navigate('settings');}
+     else if(['#tasks','#planning','#agents'].includes(location.hash)){const mode=location.hash.slice(1);
+     // Closing the task drawer returns to the section already on screen: close the drawer, never remount the view
+     // (a remount reloads every card and its cover, which reads as a blink).
+-    if(viewMode===mode&&board)await board.closeTask?.();else await navigate(mode);}else await board?.closeTask();})().catch(report);});
++    if(viewMode===mode&&board)await board.closeTask?.();else await navigate(mode);}else await board?.closeTask();}
+ try{session=await repository.initialize();
+   if(location.pathname==='/oauth/authorize'){await mountConsent(root,{client:repository.client,session});throw STOP;}
+   if(resumeAuthorization())throw STOP;
+diff --git a/products/sprintique/web/maps-host.js b/products/sprintique/web/maps-host.js
+index cbd93040..1a6f4143 100644
+--- a/products/sprintique/web/maps-host.js
++++ b/products/sprintique/web/maps-host.js
+@@ -4,7 +4,11 @@ import {parseMapRoute,mapRouteHash} from './maps-route.js';
+ import {createMapsTaskContext} from './maps-task-context.js';
+ 
+ export async function mountMapsHost(root,{repository,project,viewState={}}){
+-  const initialHash=location.hash,route=parseMapRoute(initialHash);let host;
++  const initialHash=location.hash,route=parseMapRoute(initialHash);let host,pendingInitialRoute=null;
++  // The shell cannot forward routes until this async mount returns. Abort its pending Task read immediately.
++  const cancelInitialRoute=()=>host?.cancelRoute();
++  window.addEventListener('hashchange',cancelInitialRoute);
++  try{
+   // Objects are edited in the right-hand properties panel; the library stays open on the left. The map last open in
+   // this section is read alongside the list: it is usually the one the list opens again.
+   const maps=await mountMaps(root,{repository,project,mapId:route?.mapId,likelyMapId:route?.mapId||viewState.mapId,canvasEditing:'properties',
+@@ -14,11 +18,21 @@ export async function mountMapsHost(root,{repository,project,viewState={}}){
+     onOpenMap:({id})=>{viewState.mapId=id;
+       // During the initial await, hashchange can arrive before the shell has this host. Preserve that newer intent.
+       if(!host&&location.hash!==initialHash)return;
+-      const current=parseMapRoute(location.hash);history.replaceState(history.state,'',mapRouteHash(id,current?.mapId===id?current.taskKey:null,current?.section));},
++      const current=parseMapRoute(location.hash),resume=host&&pendingInitialRoute===location.hash&&current?.mapId===id;
++      if(host)pendingInitialRoute=null;
++      history.replaceState(history.state,'',mapRouteHash(id,current?.mapId===id?current.taskKey:null,current?.section));
++      // A successful visible initial-load retry must finish the Task named by the original link.
++      if(resume)void host.openRoute(location.hash).catch(error=>maps.message(error.message,true));},
+     onOpenTasks:({focusTaskId})=>host?.openTask(focusTaskId).catch(error=>maps.message(error.message,true))});
+   host=createMapsTaskContext({root,maps,repository,project,canEdit:can(project,'tasks.write'),canManage:can(project,'project.settings'),
+     openDialog:async(...args)=>(await import('../ui/src/board/task-dialog.js')).openTaskDialog(...args)});
+-  const latestHash=location.hash,latest=parseMapRoute(latestHash);
+-  if(latest&&(maps.current||latestHash!==initialHash))try{await host.openRoute(latestHash);}catch(error){maps.message(error.message,true);}
++  while(true){
++    const latestHash=location.hash,latest=parseMapRoute(latestHash);
++    if(!latest)break;
++    if(!maps.current&&latestHash===initialHash){pendingInitialRoute=latest.taskKey?latestHash:null;break;}
++    try{await host.openRoute(latestHash);}catch(error){maps.message(error.message,true);}
++    if(location.hash===latestHash||location.hash===host.routeHash)break;
++  }
+   return host;
++  }finally{window.removeEventListener('hashchange',cancelInitialRoute);}
+ }
+diff --git a/products/sprintique/web/maps-task-context.js b/products/sprintique/web/maps-task-context.js
+index b274c281..7cb27967 100644
+--- a/products/sprintique/web/maps-task-context.js
++++ b/products/sprintique/web/maps-task-context.js
+@@ -40,14 +40,14 @@ export function createMapsTaskContext({root,maps,repository,project,openDialog,c
+   }
+   async function openTask(id,{fromRoute=false,section:nextSection='task',reload=false}={}){
+     if(destroyed||!maps.current)return false;
+-    const hadTask=!!modal||!!parseMapRoute(location.hash)?.taskKey,origin=maps.current.id;
++    const requestedHash=location.hash,hadTask=!!modal||!!parseMapRoute(requestedHash)?.taskKey,origin=maps.current.id;
+     cancelOpening();const intent=generation;
+     if(!reload&&modal&&(modal.taskController.taskId===id||modal.taskController.taskKey===id)){
+       section=modal.taskController.setSection?.(nextSection)||nextSection;writeRoute(routeHash());return modal;
+     }
+     if(!hadTask)opener=document.activeElement;
+     const request=new AbortController();opening=request;
+-    const active=()=>!destroyed&&!request.signal.aborted&&generation===intent&&maps.current?.id===origin;
++    const active=()=>!destroyed&&!request.signal.aborted&&generation===intent&&maps.current?.id===origin&&(!fromRoute||location.hash===requestedHash);
+     try{
+       const task=await repository.read('tasks',id,project.id,{signal:request.signal});
+       if(!active())return false;if(!task||task.projectId!==project.id)throw Error('Задача недоступна в этом проекте. Текущий контекст остаётся открытым.');
+@@ -110,7 +110,7 @@ export function createMapsTaskContext({root,maps,repository,project,openDialog,c
+     finally{if(opening===request)opening=null;}
+   }
+   return {
+-    openTask,openRoute,get routeHash(){return routeHash();},currentTask:()=>modal?.taskController.taskKey||null,
++    openTask,openRoute,cancelRoute:cancelOpening,get routeHash(){return routeHash();},currentTask:()=>modal?.taskController.taskKey||null,
+     async closeTask(){
+       cancelOpening();
+       if(!await closeCurrent('leave')){writeRoute(routeHash());return false;}

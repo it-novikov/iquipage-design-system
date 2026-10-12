@@ -1,0 +1,30 @@
+R3_SOURCE {"web/maps-host.js":"f6d657fa8f799455f1d6c24e01b6a57107d0765ad16cbcd867b01f16d8f5eaea","web/maps-task-context.js":"fbbdede95642a8087720fff7ae62c4bde7181e78f638a0353cbd07fed815d28d","web/main.js":"aa8a75ca12ae58bc098b7e3bcc38df4f6e22ac29a10f51e91fcc5da620c708ed","ui/src/board/task-dialog.js":"7ee36bd4d07cd9c690ed89f2f097a9aa4a58aeca48a46d4ca879b09d73484bb7"}
+R3_F1_OBSERVED {"task":null,"hash":"#maps/A","reads":["T1"],"writes":["#maps/A/task/T1","#maps/A","#maps/A"],"shell":{"navigating":false,"routeVersion":2,"pendingHashRoute":false,"viewMode":"maps"},"errors":[]}
+✖ R3-F1: the queued newest Maps Task must survive an older section leave whose Map guard refuses (5.489376ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 91.218686
+
+✖ failing tests:
+
+test at maps-task-review-r3-repro.test.mjs:43:1
+✖ R3-F1: the queued newest Maps Task must survive an older section leave whose Map guard refuses (5.489376ms)
+  AssertionError [ERR_ASSERTION]: the latest route goes back inside the same Map and does not need its rejected leave
+  
+  null !== 'T1'
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/b3dac59f68e2/research/wp01/maps-task-review-r3-repro.test.mjs:55:12)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: 'T1',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
