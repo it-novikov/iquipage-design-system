@@ -107,6 +107,89 @@
         }
       ],
       "meaning": "Later observations append history; this task did not merge these PRs. GitHub resources were read separately, not as one atomic snapshot."
+    },
+    {
+      "observedAt": "2026-10-12T11:27:00Z",
+      "main": "4f181ff3589a32fd9ce152f99018d212d74624b6",
+      "mainTree": "a025d8054ffe5461ac628bb2c442a8dc3ae17690",
+      "mainParents": [
+        "2c757009d7bf3e3d0fc3648241d499d980ebdbb9",
+        "d6132831d6068533883523770cd88c63a8de6326"
+      ],
+      "pullRequests": [
+        {
+          "number": 83,
+          "url": "https://github.com/it-novikov/iquipage-design-system/pull/83",
+          "title": "fix: удержать редактор оценки в контексте задачи",
+          "head": "6423443d71a0817570281cf28822a3c14f7db684",
+          "base": "2c757009d7bf3e3d0fc3648241d499d980ebdbb9",
+          "state": "open",
+          "draft": true,
+          "merged": false,
+          "mergedAt": null,
+          "role": "Exact candidate on base 2c757009: native and full CI PASS; this does not certify the new main containing PR84.",
+          "testMergeCommit": "7dbb86d6130fef17cecb4810610cfae0976089c0"
+        },
+        {
+          "number": 84,
+          "url": "https://github.com/it-novikov/iquipage-design-system/pull/84",
+          "title": "feat(task): VT1 — первый экран задачи (PF04/WP04)",
+          "head": "d6132831d6068533883523770cd88c63a8de6326",
+          "base": "2c757009d7bf3e3d0fc3648241d499d980ebdbb9",
+          "state": "closed",
+          "draft": false,
+          "merged": true,
+          "mergedAt": "2026-10-12T11:12:48Z",
+          "role": "Parallel product VT1 implementation already merged; actual PR84 versus accepted Compact A review is the next Task scope.",
+          "mergeCommit": "4f181ff3589a32fd9ce152f99018d212d74624b6"
+        },
+        {
+          "number": 85,
+          "url": "https://github.com/it-novikov/iquipage-design-system/pull/85",
+          "title": "docs: сохранить сравнение Task, споры и native проверку оценки",
+          "head": "a8efe40cf9f4633f912a3473d80e2f7c9e0ed9f3",
+          "base": "4f181ff3589a32fd9ce152f99018d212d74624b6",
+          "state": "open",
+          "draft": true,
+          "merged": false,
+          "mergedAt": null,
+          "role": "Open documentation evidence and handoff checkpoint; runtime and human acceptance are not implied by publication.",
+          "testMergeCommit": "20a5abfa7fa322db9e8e2a853f2eb0d25c546e6c"
+        }
+      ],
+      "exactEstimateVerification": {
+        "head": "6423443d71a0817570281cf28822a3c14f7db684",
+        "base": "2c757009d7bf3e3d0fc3648241d499d980ebdbb9",
+        "actualCheckout": "7dbb86d6130fef17cecb4810610cfae0976089c0",
+        "headAndCheckoutTree": "81fa1c2800632324b09afd86d01b6fd671ccc6a5",
+        "nativeStatus": "PASS in frozen A1-A3 scope",
+        "fullRunId": 38238395702,
+        "fullJobId": 114774644637,
+        "fullJobConclusion": "success",
+        "certificatePassChecks": 8,
+        "libraryTestsPassed": 478,
+        "productTestsPassed": 609,
+        "detachedTestsPassed": 609,
+        "planningProfilesPassed": 3,
+        "portableImageBuild": "PASS",
+        "portableImageDockerLoad": "PASS",
+        "evidence": "ci/estimate/README.md",
+        "nativeEvidence": "native/estimate/README.md",
+        "newMainCompositionVerified": false,
+        "humanUsabilityClaim": false
+      },
+      "taskContinuation": {
+        "nextScope": "Review actual merged PR84 against accepted Compact A; determine only the needed delta and separately verify composition with Estimate.",
+        "productVT1AlreadyPresent": true,
+        "frozenPrototypePR": 82,
+        "frozenPrototypeHead": "ca99680799eee8c865038d537e1bef1def6478f0",
+        "frozenPrototypeRetargeted": false
+      },
+      "sourceMetadata": {
+        "sourceFile": "research/continuation/after-evidence-pr-observation.json",
+        "sha256": "c5924ee175010fa85c3db84af973bd3a20d147679c9f1b4a6c3c577ca7175d63"
+      },
+      "meaning": "Resources read separately, not an atomic repository snapshot; merges not performed by this task. This entry appends the later state without rewriting earlier observations. PR84 was merged by parallel work; the evidence task did not perform that merge. Exact native/full PASS on 6423443 does not certify composition with main 4f181ff."
     }
   ]
 }
