@@ -1,8 +1,10 @@
 /* Product adapters; workspace composition and responsive tree geometry are public DS contracts. */
-.planning-root,.pl-page{min-height:100%}
-.pl-page{position:relative}
+/* The action area owns its height; only the workspace above it scrolls. */
+#host-view[data-section=planning]{overflow:hidden}
+.planning-root{height:100%;min-height:0}
+.pl-page{position:relative;display:flex;flex-direction:column;height:100%;min-height:0}
 /* The page heading is the board's (sq-page-heading): the same top inset, title and tools row. */
-.pl-page>.iq-workspace-page{padding-top:var(--iq-space-6)}
+.pl-page>.iq-workspace-page{flex:1;min-height:0;width:100%;overflow:auto;padding-top:var(--iq-space-6)}
 .pl-stack{display:grid;gap:var(--iq-space-5)}
 .pl-rows [data-row]{cursor:pointer}
 .pl-loading{display:grid;gap:var(--iq-space-2)}
@@ -19,7 +21,7 @@
 .pl-first p{font-size:var(--iq-type-label-size);color:var(--iq-muted)}
 .pl-first-actions{display:flex;gap:var(--iq-space-2);flex-wrap:wrap}
 .pl-foot{margin-top:var(--iq-space-4)}
-.pl-selbar{position:fixed;z-index:8;left:50%;bottom:var(--iq-space-4);transform:translateX(-50%);display:flex;align-items:center;gap:var(--iq-space-2);max-width:calc(100% - 24px);padding:var(--iq-space-3);background:var(--iq-raised);border:1px solid var(--iq-line-strong);border-radius:var(--iq-radius-md);box-shadow:var(--iq-shadow-3);font-size:var(--iq-type-label-size);flex-wrap:wrap}
+.pl-selbar{flex:none;align-self:center;display:flex;align-items:center;gap:var(--iq-space-2);max-width:calc(100% - var(--iq-space-6));margin:0 var(--iq-space-3) var(--iq-space-4);padding:var(--iq-space-3);background:var(--iq-raised);border:1px solid var(--iq-line-strong);border-radius:var(--iq-radius-md);box-shadow:var(--iq-shadow-3);font-size:var(--iq-type-label-size);flex-wrap:wrap}
 .pl-selbar[hidden]{display:none}
 .pl-selbar b{font-weight:500}
 /* ---------- Ghost of a drag ---------- */

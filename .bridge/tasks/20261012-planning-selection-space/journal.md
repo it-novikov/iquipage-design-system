@@ -1,0 +1,34 @@
+# Журнал 20261012-planning-selection-space
+
+- 2026-10-12T04:52:22Z · GPT-6 Astra (AI agent) · create · - · WP02-A: выбранная строка Planning не перекрывается панелью
+- 2026-10-12T04:52:50Z · GPT-6 Astra (AI agent) · claim · - · взял задачу
+- 2026-10-12T04:54:32Z · GPT-6 Astra (AI agent) · note · A1 · критерий приёмки: Aктуальный exact-package render воспроизводит перекрытие до правки; после правки выбранная строка и панель доступны без пересечения в desktop/narrow и при изменении высоты панели.
+- 2026-10-12T04:54:32Z · GPT-6 Astra (AI agent) · note · A2 · критерий приёмки: Selection/Space/Escape/menu/клавиатурный фокус, return callback и drag-cancel сохраняются; один выбор команды даёт один intent, synthetic проверка не выдаётся за серверное сохранение.
+- 2026-10-12T04:54:32Z · GPT-6 Astra (AI agent) · note · A3 · критерий приёмки: Подготовлен воспроизводимый пакет независимого ревью: минимальный diff, точный package/build, red/green evidence, результаты scoped проверок и конкретные NOT_RUN ограничения.
+- 2026-10-12T04:54:33Z · GPT-6 Astra (AI agent) · note · S1 · добавлен шаг: Точная база и red render
+- 2026-10-12T04:54:33Z · GPT-6 Astra (AI agent) · note · S2 · добавлен шаг: Минимальная компоновка и green
+- 2026-10-12T04:54:33Z · GPT-6 Astra (AI agent) · note · S3 · добавлен шаг: Scoped gates и handoff
+- 2026-10-12T04:54:33Z · GPT-6 Astra (AI agent) · step · S1 · active
+- 2026-10-12T04:54:33Z · GPT-6 Astra (AI agent) · checkpoint · S1 · дальше: Установить продукт по существующему lock, запустить браузер, собрать одну dedicated fixture.
+- 2026-10-12T05:11:32Z · GPT-6 Astra (AI agent) · checkpoint · S1 · дальше: Run unchanged geometry assertion against base CSS, inspect RED, then apply and verify the minimal Planning composition.
+- 2026-10-12T05:22:58Z · GPT-6 Astra (AI agent) · checkpoint · S1 · дальше: Root publishes reviewable branch; inspect baseline/candidate results and synthetic frames, correct any confirmed failure, then close acceptance.
+- 2026-10-12T05:33:55Z · GPT-6 Astra (AI agent) · step · S1 · done: GitHub run38207967799 job114675580643: immutable f5f + exact .52, Chromium151, all3 profiles rendered and interactions completed with no page/interaction/external errors. Six selection/last-row frames inspected. Actual counterexample: middle all3 + narrow last; corrected historical recognizer passes on unchanged downloaded JSON. Candidate still pending.
+- 2026-10-12T05:33:56Z · GPT-6 Astra (AI agent) · step · S2 · active
+- 2026-10-12T05:34:49Z · GPT-6 Astra (AI agent) · checkpoint · S2 · дальше: Root publishes narrow follow-up; inspect candidate results and early planning-browser-evidence artifact, then resolve any confirmed CSS/interaction failure.
+- 2026-10-12T06:03:09Z · GPT-6 Astra (AI agent) · checkpoint · S2 · дальше: Root publishes this narrow correction; inspect strict visible-overlap results, computed clip chain, all hit guards and after-Escape frames, then independent follow-up.
+- 2026-10-12T06:05:07Z · GPT-6 Astra (AI agent) · handoff · - · planned → root; HEAD a52d285b; незакоммичено 3; Test-only F2 correction is reviewable; runtime and workflow unchanged. Root publishes the local commit and runs actual baseline/candidate CI. F2 and A1/A2 remain open; narrow menu-return and measured clip/hit evidence still required.
+- 2026-10-12T06:16:46Z · GPT-6 Astra (AI agent) · claim · - · взял задачу
+- 2026-10-12T06:22:38Z · GPT-6 Astra (AI agent) · step · S2 · done: Actual CI38211016913 job114684962493, reviewed tree9ac5da101814249754649b2d8591534f7685fb85: immutable baseline remains visibly red, candidate browser PASS. All3 profiles x4 checked states have strict zero visible overlap and centre/lower-edge hits; keyboard, Task-wrapper callback, scroll, drag/cancel and one recorded intent pass. Native JSON + six key frames preserved byte-for-byte. Independent R3 scoped approve closes F2, including narrow menuReturn. No persistence or full-workflow PASS claim.
+- 2026-10-12T06:22:38Z · GPT-6 Astra (AI agent) · note · A1 · критерий приёмки выполнен
+- 2026-10-12T06:22:38Z · GPT-6 Astra (AI agent) · note · A2 · критерий приёмки выполнен
+- 2026-10-12T06:22:38Z · GPT-6 Astra (AI agent) · step · S3 · active
+- 2026-10-12T06:23:36Z · GPT-6 Astra (AI agent) · decision · D1 · CI38211016913 + независимый R3 подтвердили scoped frontend A1/A2 и закрыли F2 на b6fb06461dd0b391ac24b4ea0772e92f67c0f1cc. Raw JSON и выбранные шесть before/after PNG сохранены без изменения bytes; это не расширяет приёмку на persistence/F03/полный Task route. S3/A3 и готовность остаются открытыми до завершения полного existing workflow.
+- 2026-10-12T06:23:37Z · GPT-6 Astra (AI agent) · checkpoint · S3 · дальше: Root publishes the docs/evidence-only commit with six binary PNG blobs, then assesses completed library/product/real-services/extraction/certificate/image gates on the exact relevant revision.
+- 2026-10-12T06:25:06Z · GPT-6 Astra (AI agent) · note · - · Native evidence preservation verified: 8 files byte-identical to CI38211016913, six original PNG dimensions valid, actual baseline FAIL/candidate PASS and all12 candidate checked-state visible/hit/scroll guards retained. Verbatim R1/R2/R3 digests and new index links verified. No runtime/tests/workflow changes.
+- 2026-10-12T06:25:06Z · GPT-6 Astra (AI agent) · handoff · - · planned → root; HEAD b6fb0646; незакоммичено 0; Publish documentation/evidence only, including six PNG blobs. R3 independently closed F2; scoped S2/A1/A2 done. S3/A3/readiness await completed full-workflow results; this packet is not merge/release approval.
+- 2026-10-12T07:39:25Z · astra-root · claim · - · взял задачу
+- 2026-10-12T07:39:25Z · astra-root · decision · D2 · Full CI38212609809 на dea34bf6 завершился FAIL только NT05 (566 PASS / 1 FAIL); source-stability true, browser geometry PASS. Для выполнения уже принятого S3 включить отдельное test-only исправление PR78 после независимого R2 approve, сохранить собственный runtime Planning неизменным и проверить новый составной head в полном CI. Это зависимость проверок, исходные визуальные критерии не меняются. Владелец поручил продолжать работы и пушить промежуточные PR; лимит PR снят 2026-10-12.
+- 2026-10-12T07:39:26Z · astra-root · checkpoint · S3 · дальше: Merge the frozen PR78 checkpoint into this feature branch; preserve Planning runtime and publish the combined head for full CI
+- 2026-10-12T07:50:29Z · astra-root · checkpoint · S3 · дальше: Publish the frozen two-parent integration and inspect its complete CI result
+- 2026-10-12T07:51:02Z · astra-root · checkpoint · S3 · дальше: Publish the exact merge tree and inspect the full combined-head CI result
+- 2026-10-12T07:51:03Z · astra-root · handoff · - · planned → root; HEAD dea34bf6; незакоммичено 1; Two-parent integration is ready for frozen review/publication. Existing Planning browser R3 remains scoped PASS; S3/A3 remain open until the combined full CI completes. No main merge or deployment.

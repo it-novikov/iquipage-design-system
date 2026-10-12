@@ -31,6 +31,51 @@ jobs:
         run: |
           npm ci --ignore-scripts --no-fund --prefix libraries/iquipage
           npm ci --ignore-scripts --no-fund --prefix products/sprintique
+      - name: Install temporary frontend browser tools
+        env:
+          PLAYWRIGHT_BROWSERS_PATH: ${{ runner.temp }}/sprintique-browsers
+        run: |
+          npm install --prefix "$RUNNER_TEMP/sprintique-browser-tools" --no-save --package-lock=false --ignore-scripts --no-fund playwright@1.62.1
+          node "$RUNNER_TEMP/sprintique-browser-tools/node_modules/playwright/cli.js" install --with-deps chromium
+      # Historical counterexample for this repair only. Future PR bases already contain the fix.
+      - name: Planning selected-row overlap on the immutable baseline
+        if: ${{ github.event_name == 'pull_request' && github.head_ref == 'fix/planning-selection-space' }}
+        env:
+          PLANNING_BASELINE_SHA: f5f941afa4e9be8a709e6de67a92bacf5a9397ca
+          PLAYWRIGHT_MODULE: ${{ runner.temp }}/sprintique-browser-tools/node_modules/playwright
+          PLAYWRIGHT_BROWSERS_PATH: ${{ runner.temp }}/sprintique-browsers
+          PLANNING_EVIDENCE_DIR: ${{ github.workspace }}/products/sprintique/output/planning-selection/baseline
+        run: |
+          git fetch --no-tags --depth=1 origin "$PLANNING_BASELINE_SHA"
+          planning_baseline_dir="$RUNNER_TEMP/planning-baseline"
+          mkdir -p "$planning_baseline_dir"
+          git archive "$PLANNING_BASELINE_SHA" products/sprintique | tar -x -C "$planning_baseline_dir"
+          mkdir -p "$planning_baseline_dir/products/sprintique/tests/fixtures"
+          cp -R products/sprintique/tests/fixtures/planning-selection "$planning_baseline_dir/products/sprintique/tests/fixtures/"
+          cp products/sprintique/tests/planning-selection-space.browser.mjs "$planning_baseline_dir/products/sprintique/tests/"
+          npm ci --ignore-scripts --no-fund --prefix "$planning_baseline_dir/products/sprintique"
+          if PLANNING_SOURCE_REVISION="$PLANNING_BASELINE_SHA" node "$planning_baseline_dir/products/sprintique/tests/planning-selection-space.browser.mjs"; then
+            echo "Expected the unchanged Planning source to reproduce PF02 overlap." >&2
+            exit 1
+          fi
+          node products/sprintique/tests/planning-selection-baseline-proof.mjs "$PLANNING_EVIDENCE_DIR/results.json"
+      - name: Planning selection geometry and affected interactions
+        working-directory: products/sprintique
+        env:
+          PLAYWRIGHT_MODULE: ${{ runner.temp }}/sprintique-browser-tools/node_modules/playwright
+          PLAYWRIGHT_BROWSERS_PATH: ${{ runner.temp }}/sprintique-browsers
+          PLANNING_SOURCE_REVISION: ${{ github.sha }}
+          PLANNING_EVIDENCE_DIR: ${{ github.workspace }}/products/sprintique/output/planning-selection/candidate
+        run: node tests/planning-selection-space.browser.mjs
+      - name: Publish Planning browser evidence before backend verification
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        continue-on-error: true # JSON also remains in the job log if artifact quota is exhausted.
+        if: ${{ !cancelled() }}
+        with:
+          name: planning-browser-evidence
+          path: products/sprintique/output/planning-selection/
+          retention-days: 14
+          if-no-files-found: error
       - name: Start private ephemeral storage
         working-directory: products/sprintique
         run: |
@@ -54,5 +99,6 @@ jobs:
           name: vnext-verification
           path: |
             products/sprintique/output/verification/
+            products/sprintique/output/planning-selection/
           retention-days: 14
           if-no-files-found: error
