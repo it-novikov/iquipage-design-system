@@ -91,7 +91,8 @@ export function measureBaseline(){
   const rows=[...document.querySelectorAll('#fixture-host [data-row]')].map(row=>{
     const id=row.dataset.row,definition=window.propertyListProbe?.rows.find(item=>item.id===id);
     const label=row.querySelector(':scope > .iq-control-label,:scope > .iq-property-label');
-    const value=row.querySelector(':scope > .iq-select-trigger,:scope > .iq-date-trigger,:scope > .iq-combo-shell,:scope > .iq-tag-picker-field,:scope > .iq-property-value');
+    // Public select/combobox surfaces are one level inside their existing select-wrap; date/static/tag surfaces are direct children.
+    const value=row.querySelector(':scope > .iq-select-wrap > :is(.iq-select-trigger,.iq-combo-shell),:scope > .iq-date-trigger,:scope > .iq-tag-picker-field,:scope > .iq-property-value');
     const registered=row.tagName.startsWith('IQ-')?row.constructor===customElements.get(row.tagName.toLowerCase()):null;
     return {id,kind:definition?.kind||null,group:row.closest('[data-property-list]')?'property-list':'ordinary-reference',node:describe(row),
       registeredPublicElement:registered,rect:box(row),style:styles(row),clientWidth:row.clientWidth,scrollWidth:row.scrollWidth,

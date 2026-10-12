@@ -47,3 +47,9 @@ DOM Range отражает размещение полного текста, в 
 **Target acceptance всегда `NOT_RUN`.** Нет assertion «дефект должен присутствовать», которое делало бы baseline зелёным за ожидаемую ошибку; нет assertion «ничего не должно обрезаться», выдающего текущую поставку за исправленный вариант. Human, backend, реальные permissions, настоящие browser zoom/Safari/Firefox/iOS/VoiceOver этим опытом не проверяются.
 
 Следующий шаг после native capture — сопоставить raw rows и PNG с неизменёнными правилами DS54, отделить подтверждённую причину от предположений, затем проектировать конкретный reflow. Новый DS release и adoption в Task относятся к следующему этапу.
+
+## Исправление измерителя после первого run
+
+[Run38243334999](https://github.com/it-novikov/iquipage-design-system/actions/runs/38243334999) на head `3f9e8992c057e0548245f7dca7c089e7e345d4be` завершился `FAILED`: пять профилей сохранили реальные кадры, но проверка `Actual value surface: status` остановила классификацию. Измеритель ошибочно искал select/combobox surface среди непосредственных детей элемента; в actual DS54 она находится внутри `.iq-select-wrap` (`src/modules/components.js:148`). Raw `value:null` у всех select/combobox и успешный доступ к direct-child date/tag/static rows согласуются с этим источником.
+
+Исправлен только точный read-only selector измерителя. Проверка наличия поверхности и literal data сохранена; fixture, DS, план, геометрия страницы и PNG не исправлялись. Повторный запуск нужен из-за конкретного дефекта capture, а не для получения случайного PASS. Первый raw остаётся отдельным исходным результатом; он не является полноценной геометрией значений.

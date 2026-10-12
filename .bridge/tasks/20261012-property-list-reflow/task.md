@@ -8,7 +8,7 @@ owner: it-novikov
 branch: fix/property-list-reflow
 base: 6423443d71a0817570281cf28822a3c14f7db684
 created: 2026-10-12
-updated: 2026-10-12T11:31:26Z
+updated: 2026-10-12T11:40:19Z
 links:
 ---
 
@@ -32,13 +32,15 @@ links:
 
 ## Передача
 
-- **Состояние:** Public DS54 baseline prepared; build-only PASS, native NOT_RUN; read-only proposal in independent debate.
-- **Сейчас:** S2 — publish and capture native baseline
-- **Дальше:** Inspect exact CI raw and PNGs, then resolve proposal.
+- **Состояние:** Attempt1 FAILED at value surface assertion: select/combobox wrapped one level deeper than measurement selector. Actual screenshots and raw were preserved.
+- **Сейчас:** S2 — corrected passive selector before new native capture
+- **Дальше:** Publish selector correction, inspect new complete capture; preserve failed first raw separately.
 - **Незакоммичено:** Harness, README, эта карточка и два workflow steps подготовлены; root сохраняет checkpoint. Product/DS/package/lock не изменены.
-- **Рабочая копия:** 2 файл(ов): .github/workflows/tabs-geometry.yml, experiments/ (1 file changed, 16 insertions(+)) · HEAD 6423443d7
-- **Ловушки:** Локальный Chromium без /proc уже установлен как неработающий; повторно не запускать. Build-only raw создан до двух сохранений provenance/profile JSON, поэтому его runner hash исторический; compiled inputs/outputs не изменены. Range boxes не являются маской нарисованных glyphs.
-- **Проверка:** Vite compiled 36 physical inputs / 4 outputs; 176 installed package files exact. Latest runner syntax PASS; product/library/package/lock unchanged.
+- **Рабочая копия:** 2 файл(ов): experiments/property-list-reflow/README.md, experiments/property-list-reflow/measure.mjs (2 files changed, 8 insertions(+), 1 deletion(-)) · HEAD 3f9e8992c
+- **Ловушки:**
+  - Локальный Chromium без /proc уже установлен как неработающий; повторно не запускать. Build-only raw создан до двух сохранений provenance/profile JSON, поэтому его runner hash исторический; compiled inputs/outputs не изменены. Range boxes не являются маской нарисованных glyphs.
+  - Attempt1 all5 raw value:null on select/combobox; date/tag/static values present. DS components.js148 confirms select-wrap parent. Do not weaken literal-value assertion.
+- **Проверка:** Corrected measure syntax PASS. Fixture/build inputs/DS/plan unchanged; no repeat build needed for measurement-only change.
 
 ## План
 
