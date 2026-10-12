@@ -2,7 +2,7 @@ import {taskKey} from '../ui/src/board/task-route.js';
 import {parseMapRoute,mapRouteHash} from './maps-route.js';
 
 /** Owns the existing task drawer while Maps remains mounted. Map saving is a guard for leaving the section. */
-export function createMapsTaskContext({root,maps,repository,project,openDialog,canEdit,canManage}){
+export function createMapsTaskContext({root,maps,repository,project,openDialog,canEdit,canDiscuss=null,canManage}){
   let destroyed=false,modal=null,opening=null,generation=0,closing=null,closeReason=null,opener=null,section='task',entry=null;
   const mapHash=()=>mapRouteHash(maps.current?.id);
   const routeHash=()=>modal?mapRouteHash(maps.current?.id,modal.taskController.taskKey,section):mapHash();
@@ -52,7 +52,7 @@ export function createMapsTaskContext({root,maps,repository,project,openDialog,c
       const task=await repository.read('tasks',id,project.id,{signal:request.signal});
       if(!active())return false;if(!task||task.projectId!==project.id)throw Error('Задача недоступна в этом проекте. Текущий контекст остаётся открытым.');
       const handoff=modal;
-      let created;created=await openDialog(task,{repository,project,tasks:[],attachmentAdapter:repository.attachmentAdapter,canEdit,canManage,
+      let created;created=await openDialog(task,{repository,project,tasks:[],attachmentAdapter:repository.attachmentAdapter,canEdit,canDiscuss,canManage,
         signal:request.signal,isActive:active,initialSection:nextSection,replace:handoff,fullscreen:handoff?.dataset?.fullscreen==='true',
         beforeOpen:handoff?async()=>{
           if(!active()||modal!==handoff)return false;

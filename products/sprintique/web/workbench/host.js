@@ -7,6 +7,7 @@ import {pageHeader} from '../../ui/src/page-header.js';
 import {ui,icon,escapeHTML as esc,notify,FEEDBACK_TIMING} from '@iquipage/web/core';
 import {dialog} from '../../ui/src/ui.js';
 import {openTaskDialog} from '../../ui/src/board/task-dialog.js';
+import {can} from '../permissions.js';
 import {WorkbenchApi} from './api.js';
 import {mountDashboard} from './dashboard.js';
 import {mountWeek} from './week.js';
@@ -25,7 +26,7 @@ export async function mountWorkbench(root,{repository,session:initialSession,pla
   let session=initialSession;
   const api=new WorkbenchApi(repository.client);
   const route0=parseRoute(location.pathname)||{view:'overview',task:null};
-  let view=route0.view||'overview',filter=readFilter(location.search),content=null,drawer=null,opening=false,closed=false,origin=null;
+  let generation=0,view=route0.view||'overview',filter=readFilter(location.search),content=null,drawer=null,opening=false,closed=false,origin=null;
   let preferences={timezone:null,layout:{currentForm:'lanes'},revision:0};
   const projects=new Map(session.projects.map(p=>[p.id,p]));
   const scroller=()=>scrollerOf(root);
@@ -90,6 +91,7 @@ ${pageHeader({title:'Рабочий стол',actions:`
   // ---- the drawer: one task in its own project's context, canonical by (projectId, taskId) ----
   async function openTask(target,{key=null,fromRoute=false,answer=false}={}){
     if(opening||closed)return;
+    const ticket=++generation;
     const project=projects.get(target.projectId);
     if(!project){notify({tone:'warning',message:'Задача недоступна'});if(fromRoute)history.replaceState({workbench:true},'',url());return;}
     if(drawer){const ok=await drawer.taskController.close();if(!ok)return;}
@@ -103,14 +105,17 @@ ${pageHeader({title:'Рабочий стол',actions:`
     const pressedRow=from&&!from.hasAttribute('aria-busy')?from:null;
     const marking=pressedRow?setTimeout(()=>pressedRow.setAttribute('aria-busy','true'),FEEDBACK_TIMING.pending):0;
     try{
-      const task=await repository.read('tasks',target.taskId,project.id).catch(()=>null);
+      // A failed read is not «missing»: denied, not found and a transient failure are told apart (F04).
+      const task=await repository.read('tasks',target.taskId,project.id);
+      // Late answer after leaving the page or after another open started: drop it (F05).
+      if(closed||ticket!==generation)return;
       if(!task||task.projectId!==project.id)throw Object.assign(Error('Задача недоступна'),{status:404});
       if(!fromRoute)history.pushState({workbench:true,drawer:true},'',url(view,target));
       // Parent, release and plan changes are planning commands of this task's project.
       const hooks=planning?.(project.id);repository.confirmPlanningChange=hooks?.confirm;repository.applyPlanningChange=hooks?.apply;
       const features=new Set(session.features||[]);
       const parts={personal:features.has('workbench_personal_state'),requests:features.has('workbench_requests'),waiting:features.has('workbench_waiting')&&features.has('workbench_personal_state')};
-      drawer=await openTaskDialog(task,{repository,project,tasks:[],canEdit:project.role!=='reader',canManage:project.role==='admin',attachmentAdapter:repository.attachmentAdapter,
+      drawer=await openTaskDialog(task,{repository,project,tasks:[],canEdit:can(project,'tasks.write'),canDiscuss:can(project,'threads.write'),canManage:can(project,'project.settings'),attachmentAdapter:repository.attachmentAdapter,
         onOpenTask:id=>void openTask({projectId:project.id,taskId:id},{key:origin?.key}),
         onSaved:()=>void content?.reload?.({silent:true}),
         supplement:({root:section,actions})=>{
@@ -123,9 +128,16 @@ ${pageHeader({title:'Рабочий стол',actions:`
         }});
       drawer.addEventListener('iq-close',onDrawerClosed,{once:true});
     }catch(cause){
-      notify({tone:'warning',message:'Задача недоступна',description:'Её нет или у вас нет доступа.'});
-      if(fromRoute)history.replaceState({workbench:true},'',url());
-      if(cause.status!==404)console.warn(cause);
+      if(closed||ticket!==generation)return;
+      const status=cause?.status;
+      if(status===404)notify({tone:'warning',message:'Задача не найдена',description:'Её удалили или перенесли в другой проект.'});
+      else if(status===403)notify({tone:'warning',message:'Нет доступа к задаче',description:'Попросите доступ у администратора проекта.'});
+      else{
+        // Transient: keep the target so «Повторить» opens the same task without searching again.
+        notify({tone:'danger',message:'Не удалось открыть задачу',description:'Проверьте соединение.',action:{label:'Повторить',run:()=>void openTask(target,{key,fromRoute,answer})}});
+        console.warn(cause);
+      }
+      if(fromRoute&&(status===404||status===403))history.replaceState({workbench:true},'',url());
     }finally{opening=false;clearTimeout(marking);pressedRow?.removeAttribute('aria-busy');}
   }
   async function closeDrawer(){if(!drawer)return true;return drawer.taskController.close();}
@@ -141,7 +153,7 @@ ${pageHeader({title:'Рабочий стол',actions:`
   }
 
   function createTask(){
-    const writable=session.projects.filter(p=>p.role!=='reader');
+    const writable=session.projects.filter(p=>can(p,'tasks.write'));
     if(!writable.length){notify({tone:'warning',message:'Нет проектов, где вы можете создавать задачи'});return;}
     const preset=filter?.length===1&&writable.some(p=>p.id===filter[0])?filter[0]:writable.length===1?writable[0].id:'';
     dialog({title:'Новая задача',description:'Задача создаётся в проекте. Выберите, в каком.',
@@ -149,7 +161,7 @@ ${pageHeader({title:'Рабочий стол',actions:`
       submitLabel:'Продолжить',onSubmit:async(_values,form)=>{
         const id=form.querySelector('iq-select[name=projectId]').value;if(!id)throw Error('Выберите проект, в котором будет задача.');
         const project=projects.get(id);
-        setTimeout(()=>void openTaskDialog(null,{repository,project,tasks:[],canEdit:true,canManage:project.role==='admin',attachmentAdapter:repository.attachmentAdapter,
+        setTimeout(()=>void openTaskDialog(null,{repository,project,tasks:[],canEdit:true,canDiscuss:can(project,'threads.write'),canManage:can(project,'project.settings'),attachmentAdapter:repository.attachmentAdapter,
           onSaved:saved=>{notify({tone:'success',message:`Задача ${saved.displayId} создана в проекте ${project.name}`});void content?.reload?.();}}),0);
       }});
   }
