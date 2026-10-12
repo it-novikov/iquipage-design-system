@@ -41,3 +41,15 @@
 - 2026-10-12T04:57:03Z · astra-architecture · checkpoint · - · дальше: Root проверяет и публикует добавленный metadata/archive commit в существующий PR 74; исходные reviews и report snapshot не переписывать.
 - 2026-10-12T04:57:04Z · astra-architecture · handoff · - · planned → root; HEAD be77902; незакоммичено 2; Старый approval blocker снят новой явной user authorization; PR74 опубликован root. Архив V3 и publication mapping подготовлены поверх равного remote tree be77902, A4/S4 завершены. SHA/report/original reviews/links/bridge/diff проверены, новый audit или runtime PASS не заявлен. Следующее действие root — публикация metadata/archive commit в тот же PR.
 - 2026-10-12T04:58:22Z · astra-architecture · status · - · review: PR74 опубликован после нового явного разрешения 2026-10-12; архив и mapping готовы. Исторический blocked более не текущий статус.
+- 2026-10-12T07:01:44Z · astra-root · note · A5 · критерий приёмки: A5: Явное поручение владельца отменить количественные лимиты PR отражено в workflow и новом ADR; старые решения отмечены как частично заменённые, требования к качеству и полномочиям сохранены.
+- 2026-10-12T07:01:44Z · astra-root · note · S5 · добавлен шаг: Отменить количественные ограничения PR по решению владельца
+- 2026-10-12T07:01:44Z · astra-root · step · S5 · active
+- 2026-10-12T07:01:44Z · astra-root · note · - · 2026-10-12 владелец явно поручил продолжать и убрать лимит PR. Эта авторизация заменяет прежнюю квоту; новые независимые WP разрешены до слияния PR74/75/76. Merge/deploy не поручены.
+- 2026-10-12T07:03:43Z · astra-root · status · - · ready: Возобновлено по явному поручению владельца от 2026-10-12: продолжать и убрать лимит PR.
+- 2026-10-12T07:03:44Z · astra-root · claim · - · взял задачу
+- 2026-10-12T07:04:56Z · astra-root · checkpoint · S5 · дальше: Проверить frozen policy delta независимым reviewer и опубликовать в существующий PR74; продолжать независимые WP без ожидания количества мест.
+- 2026-10-12T07:10:51Z · astra-root · step · S5 · done: По явному поручению владельца workflow больше не ограничивает open PR, stack depth или review count. ADR0005 accepted, ADR0003 частично superseded. Independent pr_policy_review approve на409e65cb; materialfindings0. Runtime/skills/V3 unchanged; links/hash/diff/bridgePASS.
+- 2026-10-12T07:10:51Z · astra-root · note · A5 · критерий приёмки выполнен
+- 2026-10-12T07:10:51Z · astra-root · checkpoint · - · дальше: Сверить published PR74 head/tree, затем продолжать разрешённые независимые задачи без квоты PR; source/runtime gates сохраняются по каждому изменению.
+- 2026-10-12T07:10:51Z · astra-root · status · - · review: Все шаги и критерии выполнены; policy delta independently approved, публикация checkpoint root.
+- 2026-10-12T07:10:51Z · astra-root · handoff · - · planned → root; HEAD 409e65cb; незакоммичено 0; Публикация отмены PR quota разрешена владельцем. После push продолжать WP02-B и NT05; количества PR больше не ограничивают новые задачи. Merge/deploy не поручены.

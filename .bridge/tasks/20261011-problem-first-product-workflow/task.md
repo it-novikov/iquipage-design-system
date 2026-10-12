@@ -8,7 +8,7 @@ owner: user
 branch: docs/problem-first-product-workflow
 base: main
 created: 2026-10-11
-updated: 2026-10-12T04:58:22Z
+updated: 2026-10-12T07:10:51Z
 links:
   - https://github.com/it-novikov/iquipage-design-system/pull/74
 ---
@@ -31,19 +31,20 @@ links:
 - [x] A2. Sprintique inventory содержит точные source-backed routes/entry/fixtures, meaningful сценарии, ограничения evidence и live read-only/local mutation границы без рабочих данных.
 - [x] A3. Canonical/client copies и manifests согласованы, проверки комплекта проходят, historical DS-lock неизменён; выполнено независимое ревью до коммита.
 - [x] A4. Текущая передача отражает опубликованный PR 74 и новое разрешение; неизменяемый отчёт V3 сохранён с точным SHA256 и portable ссылками, исторические reviews и журнал сохранены.
+- [x] A5. Явное поручение владельца отменить количественные лимиты PR отражено в workflow и новом ADR; старые решения отмечены как частично заменённые, требования к качеству и полномочиям сохранены.
 
 ## Передача
 
-- **Состояние:** Workflow опубликован в PR 74: remote be77902b24fc19a0e9cf81c3879207d4210f8ad9, tree равен local7296e898. Новая user authorization от 2026-10-12 зафиксирована. A1-A4/S1-S4 выполнены; архив исследования сохранён без изменения bytes.
-- **Сейчас:** Bookkeeping и архив готовы к отдельному local commit поверх remote base be77902
-- **Дальше:** Root проверяет и публикует добавленный metadata/archive commit в существующий PR 74; исходные reviews и report snapshot не переписывать.
-- **Незакоммичено:** Только 5 файлов: task/journal, reviews/PUBLICATION.md, research README и точный MD snapshot. Подготовлены для локального коммита; root владеет внешней публикацией.
-- **Рабочая копия:** 2 файл(ов): products/sprintique/docs/experience/research/README.md, products/sprintique/docs/experience/research/sprintique_problem_first_research_plan_v3.md (5 files changed, 1293 insertions(+), 10 deletions(-)) · HEAD be77902 · снято 2026-10-12T04:57:04Z
+- **Состояние:** A1–A5 и S1–S5 выполнены. Владелец снял количественный лимит PR; независимое policy review approve. Research V3 и оригинальные reviews сохранены. Новые самостоятельные WP уже продолжаются в отдельных worktree.
+- **Сейчас:** Опубликовать принятый workflow checkpoint в PR74
+- **Дальше:** Сверить published PR74 head/tree, затем продолжать разрешённые независимые задачи без квоты PR; source/runtime gates сохраняются по каждому изменению.
+- **Незакоммичено:** Только архив независимого R3 и metadata A5/S5 поверхreviewed409e65cb; публикация root в существующий PR74.
+- **Рабочая копия:** нет · HEAD 409e65cb · снято 2026-10-12T07:10:51Z
 - **Ловушки:**
   - Внешний skill-creator quick_validate отвергает existing compatibility одинаково на baseline и текущем; repo validator и YAML/contract tests поле поддерживают. Не удалять корректную metadata ради такого PASS.
   - Исторически 2026-10-11 auto-review отклонил git push из-за отсутствия явного user authorization на внешнюю публикацию; эта запись и журнал сохранены. 2026-10-12 пользователь дал новое явное разрешение, root подтвердил PR 74 через API. Последующий CLI auth failure — отдельное событие, не текущий approval blocker.
-- **Проверка:** SHA256 отчёта d8d43a7264f9af19b544e7a4edc340bf9c832572ddc5155c6ae61baa05f760a3; 15 links PASS; 4 original review files byte-equal; journal history unchanged; равенство tree подтверждено; bridge/diff PASS. Suite и runtime на этом этапе не запускались.
-- **Причина:** planned — astra-architecture, 2026-10-12T04:57:04Z, передано root: Старый approval blocker снят новой явной user authorization; PR74 опубликован root. Архив V3 и publication mapping подготовлены поверх равного remote tree be77902, A4/S4 завершены. SHA/report/original reviews/links/bridge/diff проверены, новый audit или runtime PASS не заявлен. Следующее действие root — публикация metadata/archive commit в тот же PR.
+- **Проверка:** Independent policy review approve; поиск active quotas, ADR links, bridge/diff и immutable V3 hash PASS. Изменений runtime/config/skills нет.
+- **Причина:** planned — astra-root, 2026-10-12T07:10:51Z, передано root: Публикация отмены PR quota разрешена владельцем. После push продолжать WP02-B и NT05; количества PR больше не ограничивают новые задачи. Merge/deploy не поручены.
 
 ## План
 
@@ -85,6 +86,16 @@ links:
 - **Покрывает:** A4
 - **Итог:** Архив V3 byte-exact: 302264 bytes, SHA256 d8d43a7264f9af19b544e7a4edc340bf9c832572ddc5155c6ae61baa05f760a3. README/PUBLICATION: 15 относительных ссылок PASS; R1/R2 и 2 evidence bytes прежние, journal append-only. Tree local7296e898 = remotebe77902. bridge check и staged diff --check PASS; runtime/skills не менялись, suite повторно не запускался.
 - **Зависит от:** S3
+
+### S5. Отменить количественные ограничения PR по решению владельца [done]
+- **Что:** Workflow и ADR отражают отсутствие квоты PR/стека/review
+- **Как:** Удалить активные лимиты, сохранить исторический ADR, проверить ссылки и независимый scoped review
+- **Зачем:** Продолжать независимые разрешённые задачи и сохранять промежуточные результаты без искусственной остановки
+- **Приёмка:**
+  - [x] Правила согласованы с новым поручением, проверены и опубликованы в PR74
+- **Покрывает:** A5
+- **Итог:** По явному поручению владельца workflow больше не ограничивает open PR, stack depth или review count. ADR0005 accepted, ADR0003 частично superseded. Independent pr_policy_review approve на409e65cb; materialfindings0. Runtime/skills/V3 unchanged; links/hash/diff/bridgePASS.
+- **Зависит от:** S4
 
 ## Решения
 
