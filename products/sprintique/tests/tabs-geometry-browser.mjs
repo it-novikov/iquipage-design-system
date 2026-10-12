@@ -36,7 +36,7 @@ for(const file of ['package.json','package-lock.json','ui/src/board/board.js','u
 let server,browser;
 const settle=page=>page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
 const task=page=>page.locator('iq-dialog.task-edit-dialog').last();
-const probe=page=>page.evaluate(()=>({version:window.tabsGeometryProbe.version,unsupported:window.tabsGeometryProbe.unsupported,attempts:window.tabsGeometryProbe.attempts}));
+const probe=page=>page.evaluate(()=>({version:window.tabsGeometryProbe.version,changes:window.tabsGeometryProbe.changes,unsupported:window.tabsGeometryProbe.unsupported,attempts:window.tabsGeometryProbe.attempts}));
 
 async function geometry(list){
   return list.evaluate(el=>{
@@ -52,7 +52,7 @@ async function geometry(list){
         const outset=Math.max(0,parseFloat(t.outlineWidth)+parseFloat(t.outlineOffset));
         return {key:tab.dataset.tab,label:tab.textContent,rect:b,textRect:text,disabled:tab.disabled,tabIndex:tab.tabIndex,
           selected:tab.getAttribute('aria-selected'),focused:document.activeElement===tab,focusVisible:tab.matches(':focus-visible'),
-          fontSize:t.fontSize,lineHeight:t.lineHeight,marginBottom:t.marginBottom,borderBottomWidth:t.borderBottomWidth,borderBottomColor:t.borderBottomColor,color:t.color,
+          fontSize:t.fontSize,lineHeight:t.lineHeight,marginBottom:t.marginBottom,borderBottomStyle:t.borderBottomStyle,borderBottomWidth:t.borderBottomWidth,borderBottomColor:t.borderBottomColor,color:t.color,
           outlineStyle:t.outlineStyle,outlineWidth:t.outlineWidth,outlineOffset:t.outlineOffset,outlineColor:t.outlineColor,boxShadow:t.boxShadow,
           focusPaint:{left:b.left-outset,right:b.right+outset,top:b.top-outset,bottom:b.bottom+outset},
           panel:{id:tab.getAttribute('aria-controls'),hidden:document.getElementById(tab.getAttribute('aria-controls'))?.hidden}};
@@ -64,6 +64,9 @@ function validState(value,key,label){
   const selected=value.tabs.filter(tab=>tab.selected==='true');assert.equal(selected.length,1,label+': exactly one selected tab');
   assert.equal(selected[0].key,key,label+': selected key');
   assert.equal(selected[0].tabIndex,0,label+': selected tab is in Tab order');
+  assert.equal(selected[0].borderBottomStyle,'solid',label+': selected underline is painted');
+  assert.equal(selected[0].borderBottomWidth,'2px',label+': selected underline retains its width');
+  assert.equal(selected[0].borderBottomColor,selected[0].color,label+': selected underline follows the label colour');
   for(const tab of value.tabs){
     assert.equal(tab.panel.hidden,tab.key!==key,label+': matching panel visibility');
     assert.ok(tab.rect.width+0.5>=tab.textRect.width,label+': label fits its button');
@@ -90,17 +93,27 @@ async function capture(page,list,entry,name,{focus=false}={}){
   await list.screenshot({path:join(evidence,`${entry.name}-${name}.png`)});
   validGeometry(value,entry.name+'/'+name,{focus});return value;
 }
+async function intent(page,list,entry,prefix,input,target,action){
+  const ownerId=await list.locator('[role="tab"]').first().getAttribute('id');assert.ok(ownerId,prefix+': stable tab owner identity');
+  const before=(await probe(page)).changes.filter(event=>event.ownerId===ownerId).length;
+  await action();await settle(page);
+  const events=(await probe(page)).changes.filter(event=>event.ownerId===ownerId).slice(before);
+  entry.intents.push({list:prefix,ownerId,input,target,eventDelta:events.length,events});
+  assert.deepEqual(events.map(event=>event.value),[target],prefix+'/'+input+': exactly one matching public change per intent');
+  return geometry(list);
+}
 async function keyboard(page,list,entry,prefix){
   const all=await list.locator('[role="tab"]:not(:disabled)').evaluateAll(tabs=>tabs.map(tab=>tab.dataset.tab));
-  const first=all[0],last=all.at(-1);await list.locator(`[data-tab="${first}"]`).click();
+  const first=all[0],last=all.at(-1);
+  validState(await intent(page,list,entry,prefix,'pointer',first,()=>list.locator(`[data-tab="${first}"]`).click()),first,prefix+'/pointer');
   for(const [key,target] of [['End',last],['Home',first],['ArrowLeft',last],['ArrowRight',first]]){
-    await page.keyboard.press(key);await settle(page);const value=await geometry(list);
+    const value=await intent(page,list,entry,prefix,key,target,()=>page.keyboard.press(key));
     validState(value,target,prefix+'/'+key);assert.ok(value.tabs.find(tab=>tab.key===target)?.focusVisible,prefix+': keyboard focus');
     validGeometry(value,prefix+'/'+key,{focus:true});entry.keyboard.push({list:prefix,key,selected:target,scrollLeft:value.scrollLeft});
     if(key==='End'||key==='Home')await capture(page,list,entry,prefix+'-'+key,{focus:true});
   }
   // A full forward traversal makes a disabled middle tab observable to this assertion.
-  for(const target of [...all.slice(1),first]){await page.keyboard.press('ArrowRight');await settle(page);const value=await geometry(list);validState(value,target,prefix+'/next');validGeometry(value,prefix+'/next',{focus:true});}
+  for(const target of [...all.slice(1),first]){const value=await intent(page,list,entry,prefix,'ArrowRight',target,()=>page.keyboard.press('ArrowRight'));validState(value,target,prefix+'/next');validGeometry(value,prefix+'/next',{focus:true});}
 }
 async function minimal(page,entry){
   const short=page.locator('#short-tabs [role="tablist"]'),long=page.locator('#long-tabs [role="tablist"]');
@@ -128,14 +141,15 @@ async function taskBoard(page,entry){
   await task(page).locator('dialog[open]').waitFor({state:'visible'});
   const list=task(page).locator('[data-task-tabs] > [role="tablist"]');
   const initial=await capture(page,list,entry,'task-initial');validState(initial,'task',entry.name);
+  await page.screenshot({path:join(evidence,entry.name+'-task-panel.png')});
   if(!candidate&&entry.profile==='desktop-light'){
     assert.equal(initial.maxScrollTop,plan.baseline.default_vertical_scroll_px,'actual Task baseline must reproduce exact 1px scroll range');
     assert.equal(initial.scrollHeight-initial.clientHeight,1);entry.baselineReproduced=true;
   }
   await keyboard(page,list,entry,'task');
-  await list.locator('[data-tab="work"]').click();await settle(page);validState(await geometry(list),'work','Task pointer switch');
+  validState(await intent(page,list,entry,'task','pointer','work',()=>list.locator('[data-tab="work"]').click()),'work','Task pointer switch');
   await page.screenshot({path:join(evidence,entry.name+'-work-panel.png')});
-  await list.locator('[data-tab="task"]').click();await settle(page);
+  validState(await intent(page,list,entry,'task','pointer','task',()=>list.locator('[data-tab="task"]').click()),'task','Task pointer return');
   await task(page).locator('.iq-dialog-head [data-close]').click();await task(page).waitFor({state:'detached'});
   await card.waitFor({state:'visible'});entry.boardCards=await page.locator('[data-open-task]').count();assert.ok(entry.boardCards>=2,'Board cards stay accessible');
   assert.deepEqual((await probe(page)).attempts,[],'tab switches must not attempt a write');
@@ -147,23 +161,30 @@ async function wiki(page,entry){
   await page.locator('[data-wiki-action="save"]').click();
   const list=page.locator('[data-wiki-compare] > [role="tablist"]');await list.waitFor({state:'visible'});
   await capture(page,list,entry,'wiki-initial');await keyboard(page,list,entry,'wiki');
-  await list.locator('[data-tab="current"]').click();await settle(page);validState(await geometry(list),'current','Wiki comparison');
-  await list.locator('[data-tab="mine"]').click();assert.equal(await title.inputValue(),'Описание решения — мой черновик');
+  validState(await intent(page,list,entry,'wiki','pointer','current',()=>list.locator('[data-tab="current"]').click()),'current','Wiki comparison');
+  validState(await intent(page,list,entry,'wiki','pointer','mine',()=>list.locator('[data-tab="mine"]').click()),'mine','Wiki draft return');
+  assert.equal(await title.inputValue(),'Описание решения — мой черновик');
   assert.equal((await probe(page)).attempts.length,1,'only the explicit synthetic rejected save is attempted');
   await page.screenshot({path:join(evidence,entry.name+'-draft-preserved.png')});
 }
 async function nested(page,entry){
   await task(page).locator('dialog[open]').waitFor({state:'visible'});
+  const parent=await task(page).elementHandle();
   await task(page).locator('iq-relation-map [data-rm-open="task-2"]').click();
   await page.waitForFunction(()=>document.querySelectorAll('iq-dialog.task-edit-dialog dialog[open]').length===2);
+  const child=await task(page).elementHandle();assert.equal(await child.evaluate(el=>el.taskController.taskId),'task-2');
   const list=task(page).locator('[data-task-tabs] > [role="tablist"]');await keyboard(page,list,entry,'nested');
   await page.screenshot({path:join(evidence,entry.name+'-nested-task.png')});
   await task(page).locator('.iq-dialog-head [data-close]').click();
-  await page.waitForFunction(()=>document.querySelectorAll('iq-dialog.task-edit-dialog dialog[open]').length===1);
-  entry.remainingTask=await task(page).evaluate(el=>el.taskController.taskId);assert.equal(entry.remainingTask,'task-1');
+  // Native close removes [open] before its queued close event makes the product remove the child element.
+  await page.waitForFunction(el=>!el.isConnected,child);
+  entry.remainingParent=await parent.evaluate(el=>({connected:el.isConnected,open:el.querySelector('dialog')?.open,taskId:el.taskController.taskId}));
+  assert.deepEqual(entry.remainingParent,{connected:true,open:true,taskId:'task-1'});
+  assert.equal(await page.locator('iq-dialog.task-edit-dialog dialog[open]').count(),1);
+  await child.dispose();await parent.dispose();
 }
 async function runProfile(profile,surface,baseURL){
-  const entry={name:profile.name+'-'+surface,profile:profile.name,surface,status:'RUNNING',measurements:{},keyboard:[]};result.profiles.push(entry);
+  const entry={name:profile.name+'-'+surface,profile:profile.name,surface,status:'RUNNING',measurements:{},keyboard:[],intents:[]};result.profiles.push(entry);
   const context=await browser.newContext({viewport:profile.viewport,deviceScaleFactor:1,locale:'ru-RU',timezoneId:'UTC',reducedMotion:'reduce'});
   const page=await context.newPage();page.setDefaultTimeout(15000);
   page.on('pageerror',error=>result.pageErrors.push({profile:entry.name,message:error.message}));
@@ -181,7 +202,7 @@ async function runProfile(profile,surface,baseURL){
     entry.status='FAIL';entry.error=error.stack;
     entry.failureContext=await page.evaluate(()=>({routeHash:location.hash,renderedText:document.querySelector('#host-view')?.innerText.slice(0,3000),
       ready:window.tabsGeometryProbe?.ready,bootstrapError:window.tabsGeometryProbe?.bootstrapError,
-      unsupported:window.tabsGeometryProbe?.unsupported,attempts:window.tabsGeometryProbe?.attempts})).catch(cause=>({error:cause.message}));
+      changes:window.tabsGeometryProbe?.changes,unsupported:window.tabsGeometryProbe?.unsupported,attempts:window.tabsGeometryProbe?.attempts})).catch(cause=>({error:cause.message}));
     await page.screenshot({path:join(evidence,entry.name+'-failure.png')}).catch(()=>{});throw error;
   }
   finally{await context.close();}

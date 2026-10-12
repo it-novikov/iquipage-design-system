@@ -18,6 +18,6 @@ document.querySelector('#long-tabs').innerHTML=ui.tabs([
 ],'label="Длинные вкладки" value="overview"');
 document.querySelector('[data-tab="unavailable"]').disabled=true;
 const changes=[];
-document.addEventListener('iq-change',event=>{if(event.target.matches('iq-tabs'))changes.push({label:event.target.getAttribute('label'),value:event.detail.value});});
+document.addEventListener('iq-change',event=>{if(event.target.matches('iq-tabs'))changes.push({ownerId:event.target.querySelector('[data-tab]')?.id,label:event.target.getAttribute('label'),value:event.detail.value});});
 await document.fonts.ready;
 window.tabsGeometryProbe={ready:true,version,changes,unsupported:[],attempts:[]};

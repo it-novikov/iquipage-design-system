@@ -21,7 +21,9 @@ Object.assign(document.documentElement.dataset,{theme:params.get('theme')||'ligh
 document.documentElement.style.fontSize=params.get('text')==='200'?'200%':'100%';
 registerCore();
 const fixture=syntheticRepository(),root=document.querySelector('#host-view');
-const probe={ready:false,bootstrapError:null,version,reads:fixture.reads,unsupported:fixture.unsupported,attempts:fixture.attempts};
+const changes=[];
+document.addEventListener('iq-change',event=>{if(event.target.matches('iq-tabs'))changes.push({ownerId:event.target.querySelector('[data-tab]')?.id,label:event.target.getAttribute('label'),value:event.detail.value});});
+const probe={ready:false,bootstrapError:null,version,changes,reads:fixture.reads,unsupported:fixture.unsupported,attempts:fixture.attempts};
 window.tabsGeometryProbe=probe;
 let host,nav;
 try{

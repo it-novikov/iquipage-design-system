@@ -5,3 +5,4 @@
 - 2026-10-12T07:13:10Z · tabs-impl · checkpoint · S1 · дальше: Root publishes diagnostic commit, runs Tabs geometry on native Chromium, returns actual baseline artifacts.
 - 2026-10-12T07:14:29Z · tabs-impl · checkpoint · S1 · дальше: Root publishes frozen diagnostic commit and returns native Chromium baseline artifacts.
 - 2026-10-12T07:24:12Z · tabs-impl · checkpoint · S1 · дальше: Root publishes this checkpoint and repeats the frozen native baseline before any common CSS change.
+- 2026-10-12T07:30:06Z · tabs-impl · checkpoint · S1 · дальше: Root publishes this diagnostic checkpoint and repeats the full native baseline including event deltas and correct nested close observation.

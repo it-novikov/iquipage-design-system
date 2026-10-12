@@ -8,7 +8,7 @@ owner: it-novikov
 branch: fix/tabs-scroll-geometry
 base: f5f941afa4e9be8a709e6de67a92bacf5a9397ca
 created: 2026-10-12
-updated: 2026-10-12T07:24:12Z
+updated: 2026-10-12T07:30:06Z
 links:
 ---
 
@@ -34,15 +34,16 @@ links:
 
 ## Передача
 
-- **Состояние:** Native Chromium 151 first baseline: minimal and actual Task/Board all 10 profiles recorded; both desktop-light recognizers reproduce clientHeight45/scrollHeight46/maxScrollTop1. Global focus extends 4px above and 4.5px below the viewport. Wiki first profile failed because fixture used an invalid hash; remaining Wiki and nested cases NOT_RUN. Fixture now uses wikiHash(pageId), checked by the actual parser. Local build-only, boundaries and syntax PASS.
-- **Сейчас:** S1 — fixture-only route correction ready; DS/product runtime unchanged.
-- **Дальше:** Root publishes this checkpoint and repeats the frozen native baseline before any common CSS change.
-- **Незакоммичено:** Fixture route, actual route assertion, failure diagnostics and bridge checkpoint only.
-- **Рабочая копия:** 3 файл(ов): products/sprintique/tests/fixtures/tabs-geometry/product.js, products/sprintique/tests/fixtures/tabs-geometry/repository.js, products/sprintique/tests/tabs-geometry-browser.mjs (3 files changed, 18 insertions(+), 7 deletions(-)) · HEAD cd064536
+- **Состояние:** Native baseline2 (38217591088) recorded all 15 minimal/Task/Board/Wiki profiles on exact .52; all show the shared 1px scroll defect. Nested tabs and keyboard ran, but runner read a closed child before the native close event removed it. Corrected the observer: retain parent/child handles, await child detachment, verify the same open parent. Added public iq-change event deltas per owner and per intent plus explicit existing 2px underline assertions; frozen acceptance unchanged. Build-only actual entries, boundaries, syntax and diff PASS.
+- **Сейчас:** S1 — second diagnostic correction and existing-criterion instrumentation ready, no DS or product runtime change.
+- **Дальше:** Root publishes this diagnostic checkpoint and repeats the full native baseline including event deltas and correct nested close observation.
+- **Незакоммичено:** Minimal/product fixture event collectors, diagnostic runner lifecycle/event/underline evidence, bridge only.
+- **Рабочая копия:** 3 файл(ов): products/sprintique/tests/fixtures/tabs-geometry/minimal.js, products/sprintique/tests/fixtures/tabs-geometry/product.js, products/sprintique/tests/tabs-geometry-browser.mjs (4 files changed, 40 insertions(+), 17 deletions(-)) · HEAD 86f626fd
 - **Ловушки:**
   - local Chromium падает до `about:blank` без `/proc`; TypeScript 7 nativecompiler требует `/proc/self/exe`; JDK25/PG18 отсутствуют. Эти unavailable tests повторно не запускаются. CI Ubuntu24.04/PW1.62.1 нужен для actual browser. Для local fixture используется временный symlink node_modules из repo-maps: product manifest SHA `5c1ec083a2ab611e83c112a3786ebd2de1aa894da49fbf4494b3045d3582942e`, lock SHA `3399e2333d8104f75e792cf100d3f149a62a9e361961bf4df1af4e46f7f09254` и archive SHA совпали; CI всегда делает isolated npm ci.
   - First Actions run 38216985723, artifact11732089788 SHA2563173d7563c148486948b203dafbd59fa2fadeba8118b777e5006e6fc7e24bf5e. Its merge snapshot fbe7a62e has the same tree as diagnostic cd064536. Permissions already correct: Wiki requires tasks.write, which the fixture has. Local Chromium/TS7/JDK25/PG18 remain unavailable; no repeated execution or PASS claim. Product node_modules is now a separate ignored copy, so package adoption cannot modify the shared Maps dependencies.
-- **Проверка:** Product: node tests/tabs-geometry-browser.mjs --build-only; npm run check:boundaries. Native: .github/workflows/tabs-geometry.yml. Acceptance plan remains SHA25679821edf821ead98f5666d9e87014e427394fbbbf906948cb464c53f6c19b0a9.
+  - Baseline2 artifact 11732715864 SHA25661f4fbd22fbd06163c5093e08623d6374014bcc0cb4dae3a4a1b4261f11c1ee4, source merge e3328dc8b38334993fcf038c4a733fb0b2052938. Reduced-motion native close removes open before its queued close event dispatches iq-close and product removal; do not substitute a fixed sleep or alter production lifecycle. Whole run remains FAIL until the repeat completes.
+- **Проверка:** Product: TABS_EVIDENCE_DIR=<scratch> node tests/tabs-geometry-browser.mjs --build-only; npm run check:boundaries. Native Actions tabs-geometry.yml. Plan SHA25679821edf821ead98f5666d9e87014e427394fbbbf906948cb464c53f6c19b0a9 unchanged.
 
 ## План
 
@@ -54,7 +55,7 @@ links:
 - **Покрывает:** A1
 - **Приёмка:**
   - [ ] Baseline recognizer воспроизвёл 1px scroll минимального consumer и Task с source/archive fingerprints.
-- **Итог:** не выполнен; runtime evidence ожидается.
+- **Итог:** Native baseline 1/2 воспроизвёл общий дефект: minimal/Task/Wiki дают 1px scroll, обычная геометрия clientHeight45/scrollHeight46/rect45.5 и clipped focus. Второй прогон записал 15 профилей; завершение S1 ожидает исправленного lifecycle wait вложенного Task и проверки event delta на `.52`.
 
 ### S2. Общая правка и точный выпуск [todo]
 
@@ -79,7 +80,7 @@ links:
 
 ## Решения
 
-1. **Причина E2:** список — flex с `border-bottom:1px; overflow:auto`; кнопка — `border-bottom:2px; margin-bottom:-1px`. Отрицательный margin уменьшает вклад кнопки в cross-size списка; её border box выходит в scrollable overflow. Предыдущее E1 наблюдение плана: clientHeight45, scrollHeight46, rect45.5. В этой задаче это ещё нужно воспроизвести на exact `.52`.
+1. **Причина E1 + source:** список — flex с `border-bottom:1px; overflow:auto`; кнопка — `border-bottom:2px; margin-bottom:-1px`. Отрицательный margin уменьшает вклад кнопки в cross-size списка; её border box выходит в scrollable overflow. Native Chromium 151 на exact `.52` воспроизвёл clientHeight45, scrollHeight46, rect45.5, maxScrollTop1 в minimal/Task/Wiki. При root text200: client64/scroll65/rect65/max1. Keyboard focus выходит из scrollport на 4px сверху и 4.5px снизу (5px снизу при text200); PNG подтверждают clipping. Источник: Actions 38216985723 / 38217591088, immutable plan SHA `79821edf…`; полные fingerprints в диагностическом output.
 2. **Связанный риск focus:** загружаемый последним `focus.css` задаёт внешний outline2px + offset2px и 4px halo. У tab button нет inline padding. Простое `overflow-y:hidden` скроет симптом, а простое включение tabs в inset-focus recipe приблизит ring/halo вплотную к первому/последнему glyph.
 3. **Варианты до кода:** A — убрать отрицательный margin и border списка, зарезервировать внутри scrollport 4px под существующий внешний focus, совместить baseline/2px underline фоновой линией внутри content box. B — убрать отрицательный margin и использовать существующий inset-focus DS pattern с необходимым местом для glyph. A предпочтён для узкого native spike: сохраняет внешний focus; может прибавить 8px к высоте strip. B требует изменения padding/ширины labels и рискует наложить ring на текст. Обе полные реализации не нужны: root принял source/layout сравнение и один native spike по различающему вопросу.
 4. **Impact map:** `ui.tabs` — supplied composition; Task использует exact markup в `ui/src/board/task-dialog.js`, Board открывает этот же Task; Wiki сравнивает конфликтующие версии в `web/wiki.js`. Board не имеет собственной `.iq-tabs-list`, но проверяется opening/close и реальный Task. Runtime/APIs этих callers менять не требуется.
