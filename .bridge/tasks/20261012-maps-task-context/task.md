@@ -8,7 +8,7 @@ owner: user
 branch: fix/maps-task-context
 base: main
 created: 2026-10-12
-updated: 2026-10-12T05:33:38Z
+updated: 2026-10-12T05:51:41Z
 links:
 ---
 
@@ -32,11 +32,13 @@ links:
 
 ## Передача
 
-- **Состояние:** PR75 сохранён; R1 findings исправлены автором. 79/79 scoped Node checks PASS, bundle/boundaries/fixture-build PASS. Dedicated browser fixture и CI готовы.
-- **Сейчас:** S2 — следующий immutable checkpoint готов к R2 и CI
-- **Дальше:** Опубликовать исправленный checkpoint, actual Chromium run, свежий независимый R2 и разбор кадров
+- **Состояние:** PR75 ac939 published. Fresh independent R2 changes-requested: 3 P1; verbatim report/probes preserved. Browser CI failed at fixture navigation bootstrap, before scenarios; fixture public contracts corrected and preflight/build pass.
+- **Сейчас:** S2 — checkpoint fixture correction and R2 findings
+- **Дальше:** Finish R2 runtime fixes/regressions, then native Chromium and independent verification in PR75
 - **Незакоммичено:** R1 fixes/evidence, пять browser fixture/runner файлов, отдельный Maps workflow; product/vendor/lock boundary сохранён.
-- **Рабочая копия:** 10 файл(ов): products/sprintique/docs/decisions/0014-maps-task-context.md, products/sprintique/tests/maps-task-origin.test.mjs, products/sprintique/ui/src/board/task-dialog.js, products/sprintique/ui/src/maps.js, products/sprintique/web/main.js, products/sprintique/web/maps-host.js, products/sprintique/web/maps-task-context.js, .github/workflows/maps-task-context.yml, products/sprintique/tests/fixtures/, products/sprintique/tests/maps-task-browser.mjs (9 files changed, 206 insertions(+), 47 deletions(-)) · HEAD 83f30e7
+- **Рабочая копия:** 8 файл(ов): products/sprintique/tests/fixtures/maps-task-context/README.md, products/sprintique/tests/fixtures/maps-task-context/main.js, products/sprintique/tests/fixtures/maps-task-context/repository.js, products/sprintique/tests/maps-task-browser.mjs, products/sprintique/ui/src/board/task-dialog.js, products/sprintique/web/main.js, products/sprintique/web/maps-host.js, products/sprintique/web/maps-task-context.js (9 files changed, 73 insertions(+), 24 deletions(-)) · HEAD ac9393cc
+- **Ловушки:**
+  - CI 38208579979/114677451438: Task browser NOT_RUN after fixture context validation failure; not a product verdict. R2 67abc has 79 PASS and 5 independent FAIL.
 - **Проверка:** 79 Node PASS; boundaries/styles PASS; Vite323 + fixture build PASS; YAML/diff/bridge PASS. Browser NOT_RUN; full local build BLOCKED, remote full gate pending.
 
 ## План

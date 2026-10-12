@@ -1,0 +1,114 @@
+R2_SOURCE {"web/maps-host.js":"b6ce131dece97601bf9c1169cf3c3be65beb751177691c609955fc1006cfad47","web/maps-task-context.js":"e0249fef5da75b5aa1970e6b667e30069f5a902bdd7957ba6f16dead0d6e2f02","web/main.js":"c1756c15cefa1acf65a89e04be7d19ae5313415421cc3294c67c9eaa65ad1880","ui/src/board/task-dialog.js":"d61ad085a1a46a2bbf1fbe36646b2430583d04457869fd2b240a0db294966b12"}
+R2_F1_OBSERVED {"attempted":"#maps/A","task":"T1","hash":"#maps/A/task/T1","opened":["T1"],"errors":[]}
+✖ R2-F1: initial Task read must not overrule the newer #maps/A (7.184096ms)
+R2_F1_OBSERVED {"attempted":"#maps/A/task/T2/work","task":"T1","hash":"#maps/A/task/T1","opened":["T1"],"errors":[]}
+✖ R2-F1: initial Task read must not overrule the newer #maps/A/task/T2/work (3.07832ms)
+R2_F1_OBSERVED {"attempted":"#/task/T2","task":"T1","hash":"#maps/A/task/T1","opened":["T1"],"errors":[]}
+✖ R2-F1: initial Task read must not overrule the newer #/task/T2 (2.472449ms)
+R2_F2_OBSERVED {"map":"A","hash":"#maps/A/task/T1","task":null,"taskReads":[],"opened":[]}
+R2_F3_OBSERVED {"dirty":false,"accepted":true,"connected":false,"confirmations":0,"hash":"#maps/A","currentTask":null}
+✖ R2-F2: a successful actual initial-map retry must complete the contextual Task route (163.918994ms)
+✖ R2-F3: a failed reload that retains the Task must preserve the guard for a newly typed comment (3.080634ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 0
+ℹ fail 5
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 281.232113
+
+✖ failing tests:
+
+test at maps-task-review-r2-repro.test.mjs:44:68
+✖ R2-F1: initial Task read must not overrule the newer #maps/A (7.184096ms)
+  AssertionError [ERR_ASSERTION]: a delayed initial Task must not overwrite the later native hash intent
+  + actual - expected
+  
+  + '#maps/A/task/T1'
+  - '#maps/A'
+            ^
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/b3dac59f68e2/research/wp01/maps-task-review-r2-repro.test.mjs:63:12)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: '#maps/A/task/T1',
+    expected: '#maps/A',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at maps-task-review-r2-repro.test.mjs:44:68
+✖ R2-F1: initial Task read must not overrule the newer #maps/A/task/T2/work (3.07832ms)
+  AssertionError [ERR_ASSERTION]: a delayed initial Task must not overwrite the later native hash intent
+  + actual - expected
+  
+  + '#maps/A/task/T1'
+  - '#maps/A/task/T2/work'
+                   ^
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/b3dac59f68e2/research/wp01/maps-task-review-r2-repro.test.mjs:63:12)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: '#maps/A/task/T1',
+    expected: '#maps/A/task/T2/work',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at maps-task-review-r2-repro.test.mjs:44:68
+✖ R2-F1: initial Task read must not overrule the newer #/task/T2 (2.472449ms)
+  AssertionError [ERR_ASSERTION]: a delayed initial Task must not overwrite the later native hash intent
+  + actual - expected
+  
+  + '#maps/A/task/T1'
+  - '#/task/T2'
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/b3dac59f68e2/research/wp01/maps-task-review-r2-repro.test.mjs:63:12)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: '#maps/A/task/T1',
+    expected: '#/task/T2',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at maps-task-review-r2-repro.test.mjs:68:1
+✖ R2-F2: a successful actual initial-map retry must complete the contextual Task route (163.918994ms)
+  AssertionError [ERR_ASSERTION]: retry should finish the contextual deep link, not leave its Task URL without its drawer
+  
+  null !== 'T1'
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/b3dac59f68e2/research/wp01/maps-task-review-r2-repro.test.mjs:96:12)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: 'T1',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at maps-task-review-r2-repro.test.mjs:100:1
+✖ R2-F3: a failed reload that retains the Task must preserve the guard for a newly typed comment (3.080634ms)
+  AssertionError [ERR_ASSERTION]: a newly typed comment must be protected after failed reload
+  
+  false !== true
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/b3dac59f68e2/research/wp01/maps-task-review-r2-repro.test.mjs:133:12)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

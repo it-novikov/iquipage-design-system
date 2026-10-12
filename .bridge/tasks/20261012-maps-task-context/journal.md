@@ -14,3 +14,5 @@
 - 2026-10-12T05:03:52Z · astra-root · step · S2 · active
 - 2026-10-12T05:23:54Z · astra-root · checkpoint · S2 · дальше: Завершить synthetic fixture, заморозить следующий commit, независимый R2 и обновить PR75
 - 2026-10-12T05:33:38Z · astra-root · checkpoint · S2 · дальше: Опубликовать исправленный checkpoint, actual Chromium run, свежий независимый R2 и разбор кадров
+- 2026-10-12T05:51:08Z · astra-root · claim · - · взял задачу
+- 2026-10-12T05:51:41Z · astra-root · checkpoint · S2 · дальше: Finish R2 runtime fixes/regressions, then native Chromium and independent verification in PR75

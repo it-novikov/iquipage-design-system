@@ -1,6 +1,8 @@
 // Deterministic read responses at the existing frontend adapter boundary. No HTTP server, auth or persistence.
 export const project={id:'fixture-project',slug:'fixture',name:'Проверка Maps',workspaceId:'fixture-workspace',workspaceName:'Синтетическая проверка',
   permissions:['tasks.read','tasks.write','threads.write','maps.read','maps.write']};
+// The navigation consumes the confirmed projection used by web/main.js, not the raw project catalog row.
+export const navigationContext={id:project.id,workspaceId:project.workspaceId,workspaceName:project.workspaceName,projectName:project.name};
 const person={id:'fixture-person',name:'Тестовый участник'};
 const task=(id,displayId,title)=>({id,displayId,title,projectId:project.id,revision:1,type:'task',status:'in_progress',priority:'normal',
   result:'open',preparation:'ready',description:'## Ожидаемый результат\n\nОбсудить решение и продолжить ту же карту.',
@@ -9,12 +11,12 @@ const task=(id,displayId,title)=>({id,displayId,title,projectId:project.id,revis
 export const tasks=[task('task-1','MFX-101','Проверить решение на карте A'),task('task-2','MFX-102','Уточнить связанное решение')];
 const object=(id,type,text,x,y,extra={})=>({id,type,text,x,y,width:240,height:150,color:'sand',...extra});
 export const maps=[
-  {id:'map-a',projectId:project.id,title:'Карта A — исходное обсуждение',kind:'permanent',status:'active',revision:1,
+  {schema:'iquipage.maps/1',id:'map-a',projectId:project.id,title:'Карта A — исходное обсуждение',kind:'permanent',status:'active',revision:1,
     createdAt:'2026-10-01T09:00:00Z',updatedAt:'2026-10-01T09:00:00Z',
     document:{schema:'iquipage.whiteboard/1',title:'Карта A — исходное обсуждение',revision:1,
       objects:[object('linked-a1','task','MFX-101 · Проверить решение',80,80,{externalTaskId:'task-1'}),
         object('context-a','sticky','Продолжить обсуждение с того же места',430,80,{color:'mint'})],connections:[]}},
-  {id:'map-b',projectId:project.id,title:'Карта B — более новая',kind:'permanent',status:'active',revision:1,
+  {schema:'iquipage.maps/1',id:'map-b',projectId:project.id,title:'Карта B — более новая',kind:'permanent',status:'active',revision:1,
     createdAt:'2026-10-02T09:00:00Z',updatedAt:'2026-10-02T09:00:00Z',
     document:{schema:'iquipage.whiteboard/1',title:'Карта B — более новая',revision:1,
       objects:[object('context-b','sticky','Эта карта не является местом возврата',80,80)],connections:[]}},
@@ -59,7 +61,10 @@ export function syntheticRepository(){
       return unexpected('list '+collection);
     },
     async taskContext(projectId,options={}){check(options);if(projectId!==project.id)return unexpected('taskContext project');return clone(tasks);},
-    async viewSettings(){return {};},
+    async viewSettings(projectId){
+      if(projectId!==project.id)return unexpected('viewSettings project');
+      return {estimateFormat:'time',hoursPerDay:8,hoursPerWeek:40};
+    },
     subscribe(){return ()=>{};},
     async write(collection){return unexpected('write '+collection);},
     client:{async request(path,method='GET',_body,_key,signal){

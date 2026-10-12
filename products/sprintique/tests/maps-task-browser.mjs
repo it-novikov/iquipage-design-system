@@ -8,6 +8,10 @@ import {createRequire} from 'node:module';
 import {fileURLToPath} from 'node:url';
 import {resolve,join} from 'node:path';
 import {build,createServer} from 'vite';
+import {readProjectContext} from '../ui/planning/src/navigation-model.js';
+import {validateMap} from '../ui/src/model.js';
+import {validateTask} from '../ui/src/tasks.js';
+import {project,navigationContext,maps,tasks} from './fixtures/maps-task-context/repository.js';
 
 const product=fileURLToPath(new URL('../',import.meta.url));
 const fixtureRoot=join(product,'tests/fixtures/maps-task-context');
@@ -160,6 +164,11 @@ async function profile(options,baseURL){
 }
 
 try{
+  result.fixtureContracts={status:'RUNNING',navigation:'readProjectContext',maps:maps.length,tasks:tasks.length};
+  const confirmed=readProjectContext(navigationContext);
+  assert.equal(confirmed.id,project.id,'navigation and Maps must identify the same synthetic project');
+  maps.forEach(validateMap);tasks.forEach(validateTask);
+  result.fixtureContracts.status='PASS';
   if(buildOnly){
     const bundles=await build({configFile:false,root:fixtureRoot,logLevel:'error',build:{write:false,minify:false,emptyOutDir:false}});
     const outputs=(Array.isArray(bundles)?bundles:[bundles]).flatMap(bundle=>bundle.output||[]);
@@ -184,7 +193,8 @@ try{
   }
 }catch(error){
   result.status=buildOnly||browser?'FAIL':'BLOCKED';result.error=error.stack;process.exitCode=1;
-  if(buildOnly){result.build={status:'FAIL'};result.browserChecks='NOT_RUN';}
+  if(result.fixtureContracts?.status!=='PASS'){result.fixtureContracts.status='FAIL';result.status='FAIL';result.browserChecks='NOT_RUN';}
+  if(buildOnly){result.build={status:result.fixtureContracts.status==='PASS'?'FAIL':'NOT_RUN'};result.browserChecks='NOT_RUN';}
 }
 finally{
   await browser?.close();await server?.close();

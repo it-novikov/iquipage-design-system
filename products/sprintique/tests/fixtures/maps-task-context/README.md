@@ -13,6 +13,8 @@ node tests/maps-task-browser.mjs --build-only
 PLAYWRIGHT_MODULE=/temporary/node_modules/playwright node tests/maps-task-browser.mjs
 ```
 
+Both modes first apply the product's existing `readProjectContext`, `validateMap` and `validateTask` to the synthetic data. Navigation receives the same explicit project projection as `web/main.js`; its catalog still contains project rows. This preflight validates those frontend data contracts, not backend/authentication behavior.
+
 `--build-only` bundles the real fixture into memory and leaves browser evidence `NOT_RUN`; it does not launch a browser. `PLAYWRIGHT_MODULE` (or `MAPS_PLAYWRIGHT_MODULE`) selects an already installed Playwright module outside the product manifest. The scoped `Maps task context` GitHub workflow provides Chromium and uploads evidence independently of the existing full product/backend gate. No browser installation or system changes occur inside this runner. `MAPS_EVIDENCE_DIR` changes the artifact directory; its default is ignored `output/maps-task-context/`. CI supplies `MAPS_SOURCE_REVISION` alongside the source digests and timestamp.
 
 ## What it checks
@@ -23,6 +25,6 @@ PLAYWRIGHT_MODULE=/temporary/node_modules/playwright node tests/maps-task-browse
 
 Initial selection and pan/zoom are deterministic fixture setup through the public whiteboard `select`/`viewport` APIs. The inspector, opening button, Task links, tabs, textarea, dialog controls and browser history are real interactions. A minimal `hashchange` listener calls the host's actual `openRoute`; success is evidence for that isolated boundary, not proof of `main.js` integration. The MutationObserver records the maximum observed number of native Task dialogs; it is not a frame-timing or no-flicker measurement.
 
-`results.json` records source digests, exact package, profile/check results, errors and evidence paths. Screenshots are created only by an actual successful browser launch. Parse/build success does not imply browser PASS. The local research environment could not launch Chromium because `/proc` is absent; browser results and screenshots remain `NOT_RUN` until the authorized CI run.
+`results.json` records source digests, exact package, profile/check results, errors and evidence paths. Screenshots are created only by an actual successful browser launch. Parse/build success does not imply browser PASS. The local research environment cannot launch Chromium because `/proc` is absent: use `--build-only` and retain browser `NOT_RUN` there. An authorized CI run records its own actual browser PASS/FAIL separately.
 
 Persistence, grants, replay, cross-project switching, hard reload state restoration, real Safari/Firefox/iOS touch and assistive technology are outside this fixture. Existing product gates remain separate and unchanged.

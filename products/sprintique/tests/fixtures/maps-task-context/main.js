@@ -12,7 +12,7 @@ import {registerCore} from '@iquipage/web/core';
 import {mountMapsHost} from '../../../web/maps-host.js';
 import {parseMapRoute} from '../../../web/maps-route.js';
 import {mountProjectNavigation} from '../../../ui/planning/src/project-navigation.js';
-import {project,syntheticRepository} from './repository.js';
+import {project,navigationContext,syntheticRepository} from './repository.js';
 
 const params=new URLSearchParams(location.search),theme=params.get('theme')==='dark'?'dark':'light';
 document.documentElement.dataset.theme=theme;
@@ -48,7 +48,7 @@ window.addEventListener('hashchange',onHash);
 let nav;
 try{
   nav=mountProjectNavigation(document.querySelector('[data-product-nav]'),{
-    current:project,profile:{id:'fixture-person',name:'Тестовый участник'},catalog:()=>[project],
+    current:navigationContext,profile:{id:'fixture-person',name:'Тестовый участник'},catalog:()=>[project],
     projects:async()=>({options:[{value:project.id,label:project.name}],nextCursor:null}),
     onSwitch:()=>{throw Error('Project switching is outside this fixture');},onAccount:()=>{},onTeam:()=>{},onSignOut:()=>{},
   });
