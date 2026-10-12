@@ -1,0 +1,67 @@
+{
+  "schema": 2,
+  "date": "2026-10-12T06:59:33.696Z",
+  "node": "v24.20.0",
+  "sourceFingerprint": "74950e2330bffba6d719ffad0950ba1d99b64e6259646b05a8a409bed366ba63",
+  "finalSourceFingerprint": "74950e2330bffba6d719ffad0950ba1d99b64e6259646b05a8a409bed366ba63",
+  "sourceStable": true,
+  "dsTarballSha256": "989fab4822db78e10bfeeb62ad2724d8bb389a08ddf012c196b469af33cde758",
+  "checks": [
+    {
+      "name": "verification-tools",
+      "exitCode": 0,
+      "signal": null,
+      "passed": true,
+      "log": "verification-tools.log"
+    },
+    {
+      "name": "library-build",
+      "exitCode": 0,
+      "signal": null,
+      "passed": true,
+      "log": "library-build.log"
+    },
+    {
+      "name": "library-tests",
+      "exitCode": 0,
+      "signal": null,
+      "passed": true,
+      "log": "library-tests.log"
+    },
+    {
+      "name": "product-boundaries",
+      "exitCode": 0,
+      "signal": null,
+      "passed": true,
+      "log": "product-boundaries.log"
+    },
+    {
+      "name": "product-build",
+      "exitCode": 0,
+      "signal": null,
+      "passed": true,
+      "log": "product-build.log"
+    },
+    {
+      "name": "product-tests",
+      "exitCode": 0,
+      "signal": null,
+      "passed": true,
+      "log": "product-tests.log"
+    },
+    {
+      "name": "detached-product",
+      "exitCode": 0,
+      "signal": null,
+      "passed": true,
+      "log": "detached-product.log"
+    },
+    {
+      "name": "source-stability",
+      "passed": true,
+      "log": "source-stability.log"
+    }
+  ],
+  "fullPlatformReady": false,
+  "productionTouched": false
+}

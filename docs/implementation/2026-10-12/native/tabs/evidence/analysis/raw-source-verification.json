@@ -1,0 +1,40 @@
+{
+  "before": {
+    "head": "56d2a2f23f3c39740a05b15821d4b46f26d572ed",
+    "rawSourceHashesMatch": {
+      "package.json": true,
+      "package-lock.json": true,
+      "ui/src/board/board.js": true,
+      "ui/src/board/task-dialog.js": true,
+      "ui/src/board/board.css": true,
+      "web/wiki.js": true,
+      "web/wiki-model.js": true,
+      "web/wiki.css": true,
+      "tests/fixtures/tabs-geometry/minimal.html": true,
+      "tests/fixtures/tabs-geometry/minimal.js": true,
+      "tests/fixtures/tabs-geometry/product.html": true,
+      "tests/fixtures/tabs-geometry/product.js": true,
+      "tests/fixtures/tabs-geometry/repository.js": true,
+      "tests/tabs-geometry-browser.mjs": true
+    }
+  },
+  "after": {
+    "head": "8f8d218168074bd4c7c9e1e29dfbe783a27998dd",
+    "rawSourceHashesMatch": {
+      "package.json": true,
+      "package-lock.json": true,
+      "ui/src/board/board.js": true,
+      "ui/src/board/task-dialog.js": true,
+      "ui/src/board/board.css": true,
+      "web/wiki.js": true,
+      "web/wiki-model.js": true,
+      "web/wiki.css": true,
+      "tests/fixtures/tabs-geometry/minimal.html": true,
+      "tests/fixtures/tabs-geometry/minimal.js": true,
+      "tests/fixtures/tabs-geometry/product.html": true,
+      "tests/fixtures/tabs-geometry/product.js": true,
+      "tests/fixtures/tabs-geometry/repository.js": true,
+      "tests/tabs-geometry-browser.mjs": true
+    }
+  }
+}

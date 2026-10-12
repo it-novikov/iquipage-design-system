@@ -1,0 +1,368 @@
+{
+  "scope": "PF03-WP02B",
+  "status": "AUTHOR_NATIVE_REVIEW_COMPLETE_FULL_AND_INDEPENDENT_REVIEW_PENDING",
+  "copiedBytes": "Original PNG files are copied without crop, resize or re-encoding. Raw JSON is losslessly gzip-compressed; decompression restores exact original bytes.",
+  "sources": {
+    "before": {
+      "artifactId": "11733391704",
+      "artifactSHA256": "3fd72f6feaf11426f37196d4448dd1fe4d5be1f4b77acd2fb414a4128ff6ac2d",
+      "runId": "38218161373",
+      "sourceRevision": "a49fac18565d3291b061eaa6c3c4c1c6f03ec328",
+      "sourceTree": "d8ec6dc65001674957566c773fdcf0adf427df2c",
+      "head": "56d2a2f23f3c39740a05b15821d4b46f26d572ed",
+      "package": "0.6.0-vnext.52"
+    },
+    "after": {
+      "artifactId": "11734645359",
+      "artifactSHA256": "8b969d7f15bef33032c5b51d630ef75b9ac4385d7b10ff20df0e1568e0d20954",
+      "runId": "38221220733",
+      "jobId": "114717673229",
+      "sourceRevision": "f53af728201b7a4ce2a128c6de7228143d2d50b4",
+      "sourceTreeVerification": "Pending root whole-tree verification; all 14 raw input hashes independently match published head.",
+      "head": "8f8d218168074bd4c7c9e1e29dfbe783a27998dd",
+      "headTree": "a7bf8ed72f07d975a6837e8f1428382785893833",
+      "package": "0.6.0-vnext.54"
+    },
+    "failed53": {
+      "artifactId": "11732888867",
+      "artifactSHA256": "a96600ae123e2640edbf22b0efbb415fb03734f8d093273b6db066600cb92d3e",
+      "runId": "38219197651",
+      "sourceRevision": "f870ef846df2115b1605ac45669780e3fe065a52",
+      "package": "0.6.0-vnext.53",
+      "status": "FAIL"
+    }
+  },
+  "pairs": [
+    {
+      "id": "V01",
+      "surface": "minimal",
+      "profile": "desktop-light",
+      "purpose": "Полная внешняя focus рамка, underline и высота короткой полосы без product CSS.",
+      "before": {
+        "originalPath": "/workspace/scratch/b3dac59f68e2/research/wp02b/baseline3-ci-11733391704/browser/desktop-light-minimal-short-Home.png",
+        "path": "visual/before/desktop-light-minimal-short-Home.png",
+        "bytes": 1976,
+        "sha256": "74b13af07ce60c5b77f56d7a4173881dfa6e12ae6fb79422f076652ef6a6599a"
+      },
+      "after": {
+        "originalPath": "/workspace/scratch/b3dac59f68e2/research/wp02b/candidate2-browser-11734645359/browser/desktop-light-minimal-short-Home.png",
+        "path": "visual/after/desktop-light-minimal-short-Home.png",
+        "bytes": 2056,
+        "sha256": "20d6ec73bfdc7b84e77e42e3b858ddd31a70de78838ab80791cce05f8df940dc"
+      }
+    },
+    {
+      "id": "V02",
+      "surface": "minimal",
+      "profile": "text200-light",
+      "purpose": "Длинное название при увеличенном тексте; горизонтальный доступ и focus.",
+      "before": {
+        "originalPath": "/workspace/scratch/b3dac59f68e2/research/wp02b/baseline3-ci-11733391704/browser/text200-light-minimal-long-End.png",
+        "path": "visual/before/text200-light-minimal-long-End.png",
+        "bytes": 4098,
+        "sha256": "fb4ddd479023ffe762d8b17c2d42520dd3e971ab51d9bfac58fed16f8b2db371"
+      },
+      "after": {
+        "originalPath": "/workspace/scratch/b3dac59f68e2/research/wp02b/candidate2-browser-11734645359/browser/text200-light-minimal-long-End.png",
+        "path": "visual/after/text200-light-minimal-long-End.png",
+        "bytes": 4193,
+        "sha256": "8dd56414a647beaa16db7aeea9f2163e87bdd13c69a57bcb1af6d7fd8eb69919"
+      }
+    },
+    {
+      "id": "V03",
+      "surface": "task-board",
+      "profile": "desktop-light",
+      "purpose": "Настоящий Task: заголовок, вкладки, свойства и сдвиг начала описания ниже первого экрана.",
+      "before": {
+        "originalPath": "/workspace/scratch/b3dac59f68e2/research/wp02b/baseline3-ci-11733391704/browser/desktop-light-board-task-panel.png",
+        "path": "visual/before/desktop-light-board-task-panel.png",
+        "bytes": 66830,
+        "sha256": "8f34062882efd96757e8d51a3b5d535f5781cc0c8a74af41638205dbae7fbf8f"
+      },
+      "after": {
+        "originalPath": "/workspace/scratch/b3dac59f68e2/research/wp02b/candidate2-browser-11734645359/browser/desktop-light-board-task-panel.png",
+        "path": "visual/after/desktop-light-board-task-panel.png",
+        "bytes": 66125,
+        "sha256": "c3e953732b8061847b01f3c8d0120c08a1e4499327d9c2058a3a2209ab1a9dd2"
+      },
+      "caveat": "Task description heading crosses the initial visible boundary after +8px. This is an explicit space cost; the existing auto-scroll Task body remains."
+    },
+    {
+      "id": "V04",
+      "surface": "task-board",
+      "profile": "desktop-dark",
+      "purpose": "Тёмный Task, переход к работе агента и соседний контент.",
+      "before": {
+        "originalPath": "/workspace/scratch/b3dac59f68e2/research/wp02b/baseline3-ci-11733391704/browser/desktop-dark-board-work-panel.png",
+        "path": "visual/before/desktop-dark-board-work-panel.png",
+        "bytes": 52823,
+        "sha256": "40ff4924be146e3c4b4475b17482d0933f29c909261df4974db84988ff8d32e8"
+      },
+      "after": {
+        "originalPath": "/workspace/scratch/b3dac59f68e2/research/wp02b/candidate2-browser-11734645359/browser/desktop-dark-board-work-panel.png",
+        "path": "visual/after/desktop-dark-board-work-panel.png",
+        "bytes": 53225,
+        "sha256": "c97be4f136da74198792cc1a7188d4ff5d126876ef650ef61a0216e29cb1acc2"
+      }
+    },
+    {
+      "id": "V05",
+      "surface": "task-board",
+      "profile": "narrow-light",
+      "purpose": "390px: полный заголовок, обе вкладки и work panel.",
+      "before": {
+        "originalPath": "/workspace/scratch/b3dac59f68e2/research/wp02b/baseline3-ci-11733391704/browser/narrow-light-board-work-panel.png",
+        "path": "visual/before/narrow-light-board-work-panel.png",
+        "bytes": 18161,
+        "sha256": "ee2f499630dc7285baefe05f9f8933986e6b146ea4e3bd5a80571598fb8ebc64"
+      },
+      "after": {
+        "originalPath": "/workspace/scratch/b3dac59f68e2/research/wp02b/candidate2-browser-11734645359/browser/narrow-light-board-work-panel.png",
+        "path": "visual/after/narrow-light-board-work-panel.png",
+        "bytes": 18166,
+        "sha256": "fed9a7f5fcf4a292646974b540413e999b994bae1b7de8e37cc06ff3ba3f9e7b"
+      }
+    },
+    {
+      "id": "V06",
+      "surface": "task-board",
+      "profile": "narrow-dark",
+      "purpose": "320px: вкладки, реальные поля Task и закреплённый footer.",
+      "before": {
+        "originalPath": "/workspace/scratch/b3dac59f68e2/research/wp02b/baseline3-ci-11733391704/browser/narrow-dark-board-task-panel.png",
+        "path": "visual/before/narrow-dark-board-task-panel.png",
+        "bytes": 31153,
+        "sha256": "cb434b10119135d95da55c87b777668a3a06e96b39915c51df799f1aa8ab386c"
+      },
+      "after": {
+        "originalPath": "/workspace/scratch/b3dac59f68e2/research/wp02b/candidate2-browser-11734645359/browser/narrow-dark-board-task-panel.png",
+        "path": "visual/after/narrow-dark-board-task-panel.png",
+        "bytes": 31161,
+        "sha256": "a055a6a55f51556f47e769f1b9046a028977983a2cbfcdc717261d5c65d45df8"
+      }
+    },
+    {
+      "id": "V07",
+      "surface": "task-board",
+      "profile": "text200-light",
+      "purpose": "Text200: реальная плотность свойств, нижняя граница видимого Task и цена +8px.",
+      "before": {
+        "originalPath": "/workspace/scratch/b3dac59f68e2/research/wp02b/baseline3-ci-11733391704/browser/text200-light-board-task-panel.png",
+        "path": "visual/before/text200-light-board-task-panel.png",
+        "bytes": 80585,
+        "sha256": "4e9c71fe186735bb3859c3acbe989ace499a0abefab41c50f28586ca1f13b39d"
+      },
+      "after": {
+        "originalPath": "/workspace/scratch/b3dac59f68e2/research/wp02b/candidate2-browser-11734645359/browser/text200-light-board-task-panel.png",
+        "path": "visual/after/text200-light-board-task-panel.png",
+        "bytes": 80316,
+        "sha256": "24fc9743b7ed140d8676c773a3995b941ac9611693b99e3ac0d26e6872ece756"
+      },
+      "caveat": "Some property labels were already shortened at text200. This patch does not claim to fix broader Task density."
+    },
+    {
+      "id": "V08",
+      "surface": "wiki",
+      "profile": "desktop-light",
+      "purpose": "Настоящий Wiki conflict: сохранённый draft, toolbar, вкладки и editor.",
+      "before": {
+        "originalPath": "/workspace/scratch/b3dac59f68e2/research/wp02b/baseline3-ci-11733391704/browser/desktop-light-wiki-draft-preserved.png",
+        "path": "visual/before/desktop-light-wiki-draft-preserved.png",
+        "bytes": 52291,
+        "sha256": "7d181e1ab8927ac78bd3481e9fe6911bfafb85233e820b5bec3961cdfdfe52a1"
+      },
+      "after": {
+        "originalPath": "/workspace/scratch/b3dac59f68e2/research/wp02b/candidate2-browser-11734645359/browser/desktop-light-wiki-draft-preserved.png",
+        "path": "visual/after/desktop-light-wiki-draft-preserved.png",
+        "bytes": 52321,
+        "sha256": "79e6715e6461846181c307d64f7b555c71860462e2b34ff8e94bdfa925bedffc"
+      }
+    },
+    {
+      "id": "V09",
+      "surface": "wiki",
+      "profile": "desktop-dark",
+      "purpose": "Тёмный Wiki: читаемые divider/underline, draft и соседний editor.",
+      "before": {
+        "originalPath": "/workspace/scratch/b3dac59f68e2/research/wp02b/baseline3-ci-11733391704/browser/desktop-dark-wiki-draft-preserved.png",
+        "path": "visual/before/desktop-dark-wiki-draft-preserved.png",
+        "bytes": 54662,
+        "sha256": "1903dbac434b467a812f93177d7b484319fcc8e7ff6649e96fe4ef6dcdc6171e"
+      },
+      "after": {
+        "originalPath": "/workspace/scratch/b3dac59f68e2/research/wp02b/candidate2-browser-11734645359/browser/desktop-dark-wiki-draft-preserved.png",
+        "path": "visual/after/desktop-dark-wiki-draft-preserved.png",
+        "bytes": 54636,
+        "sha256": "cc9728ac932019686efec3d44549d3489bd53461a2f3e2c27a29639a559078c7"
+      }
+    },
+    {
+      "id": "V10",
+      "surface": "wiki",
+      "profile": "narrow-dark",
+      "purpose": "320px Wiki: labels и переход к editor в ограниченной ширине.",
+      "before": {
+        "originalPath": "/workspace/scratch/b3dac59f68e2/research/wp02b/baseline3-ci-11733391704/browser/narrow-dark-wiki-draft-preserved.png",
+        "path": "visual/before/narrow-dark-wiki-draft-preserved.png",
+        "bytes": 34125,
+        "sha256": "d7ed023587e02b71a29eeb2a35e12042440ff9100ac8ffcd7f93c1550ecf866f"
+      },
+      "after": {
+        "originalPath": "/workspace/scratch/b3dac59f68e2/research/wp02b/candidate2-browser-11734645359/browser/narrow-dark-wiki-draft-preserved.png",
+        "path": "visual/after/narrow-dark-wiki-draft-preserved.png",
+        "bytes": 34108,
+        "sha256": "d7a16544c5bf50df30263870c89b49653c54076128cdd583490548fe854d5674"
+      }
+    },
+    {
+      "id": "V11",
+      "surface": "wiki",
+      "profile": "text200-light",
+      "purpose": "Text200 Wiki: окружение и ограничение первого экрана; screenshot setup смещает внешний scroll до intents.",
+      "before": {
+        "originalPath": "/workspace/scratch/b3dac59f68e2/research/wp02b/baseline3-ci-11733391704/browser/text200-light-wiki-draft-preserved.png",
+        "path": "visual/before/text200-light-wiki-draft-preserved.png",
+        "bytes": 82633,
+        "sha256": "2780fd577bb9e3a88bf2aa28c2690d2f96f48aa559757597dfa0fdbd9507f7a1"
+      },
+      "after": {
+        "originalPath": "/workspace/scratch/b3dac59f68e2/research/wp02b/candidate2-browser-11734645359/browser/text200-light-wiki-draft-preserved.png",
+        "path": "visual/after/text200-light-wiki-draft-preserved.png",
+        "bytes": 82570,
+        "sha256": "21a2677c6af0516bc5e69fd0a31dae433ecf0ef4daf85162f5d7742bd9933b4d"
+      },
+      "caveat": "Initial list screenshot scrolls Wiki MAIN before the first intent. Compare relative layout and raw dimensions; absolute full-page Y positions are not held constant."
+    },
+    {
+      "id": "V12",
+      "surface": "nested-task",
+      "profile": "desktop-light",
+      "purpose": "Реальный вложенный readonly Task с видимой focus рамкой и штатным закрытием к сохранённому родителю.",
+      "before": {
+        "originalPath": "/workspace/scratch/b3dac59f68e2/research/wp02b/baseline3-ci-11733391704/browser/desktop-light-nested-nested-task.png",
+        "path": "visual/before/desktop-light-nested-nested-task.png",
+        "bytes": 42875,
+        "sha256": "5276cc6a2e6b328c869966bcf490839a854733bef585464a7ed50e3b62e48950"
+      },
+      "after": {
+        "originalPath": "/workspace/scratch/b3dac59f68e2/research/wp02b/candidate2-browser-11734645359/browser/desktop-light-nested-nested-task.png",
+        "path": "visual/after/desktop-light-nested-nested-task.png",
+        "bytes": 42916,
+        "sha256": "18e877b017b465add18534a218f604d857740a54f5f6d6555db682f4b4b79e2f"
+      }
+    }
+  ],
+  "raw": [
+    {
+      "source": "before",
+      "originalPath": "/workspace/scratch/b3dac59f68e2/research/wp02b/baseline3-ci-11733391704/browser/results.json",
+      "path": "raw/baseline3-results.json.gz",
+      "compression": "gzip, level9, mtime0",
+      "compressedBytes": 14729,
+      "compressedSHA256": "ae719aeeaa723ac22e44d22479cb87844b8908badd89de1b7f09251a7b142d9f",
+      "originalBytes": 403077,
+      "originalSHA256": "b972e0abc7bb022c8da2b5a42c8afb46c947d77c8f5eefb8997abb55ffb8bc9b",
+      "losslessVerified": true
+    },
+    {
+      "source": "after",
+      "originalPath": "/workspace/scratch/b3dac59f68e2/research/wp02b/candidate2-browser-11734645359/browser/results.json",
+      "path": "raw/candidate2-results.json.gz",
+      "compression": "gzip, level9, mtime0",
+      "compressedBytes": 58533,
+      "compressedSHA256": "0decfdbc49dbd0f7e45d32c23a91e9b09c5792621e66c39b2ba3bfa674989453",
+      "originalBytes": 2393878,
+      "originalSHA256": "44bfdf6a50938f61ca114344d852ca259e4909464ba9c6d1deee2c2072de0cb7",
+      "losslessVerified": true
+    },
+    {
+      "source": "failed53",
+      "originalPath": "/workspace/scratch/b3dac59f68e2/research/wp02b/candidate1-browser-11732888867/browser/results.json",
+      "path": "raw/candidate1-failure-results.json.gz",
+      "compression": "gzip, level9, mtime0",
+      "compressedBytes": 4094,
+      "compressedSHA256": "5bcdc3ae731c1a915ed370050cbf446c14c3a01425e6c9862c3838813542b1bd",
+      "originalBytes": 44261,
+      "originalSHA256": "bc6421c7e71723f6725ea0e934e2bfb7c2b509c1ab1ea5406d5bb4c397a86970",
+      "losslessVerified": true
+    }
+  ],
+  "history": [
+    {
+      "originalPath": "/workspace/scratch/b3dac59f68e2/research/wp02b/candidate1-browser-11732888867/browser/desktop-light-minimal-failure.png",
+      "path": "history/candidate1-desktop-light-minimal-failure.png",
+      "bytes": 13270,
+      "sha256": "4e028b530aad71610c1dd93040cf4b216849320c96086691d1d0606b40361b6d"
+    },
+    {
+      "originalPath": "/workspace/scratch/b3dac59f68e2/research/wp02b/review-r1.md",
+      "path": "history/review-r1-v53.md",
+      "bytes": 23804,
+      "sha256": "32702335ce7ea4f30055a155a30fbc19973cea0ec981739d41d885965c00b77f"
+    }
+  ],
+  "supporting": [
+    {
+      "originalPath": "/workspace/scratch/b3dac59f68e2/research/wp02b/candidate2-native-comparison.json",
+      "path": "analysis/native-comparison.json",
+      "bytes": 25369,
+      "sha256": "bdb101fc53b1526980c9e68a5b034e803934150b563e988402eadffecf6b374f"
+    },
+    {
+      "originalPath": "/workspace/scratch/b3dac59f68e2/research/wp02b/candidate2-package-verification.json",
+      "path": "analysis/package-verification.json",
+      "bytes": 18149,
+      "sha256": "541a6e0229a9308824d1a5459e047d4adb0b2a8ed4f7a7b2681e105295073398"
+    },
+    {
+      "originalPath": "/workspace/scratch/b3dac59f68e2/research/wp02b/candidate2-publication-verification.json",
+      "path": "analysis/publication-verification.json",
+      "bytes": 1265,
+      "sha256": "0884a4b026c2de1224326d8bb5aea6827c70d5a5ae37ac8a3fdfdb4485f17beb"
+    },
+    {
+      "originalPath": "/workspace/scratch/b3dac59f68e2/research/wp02b/candidate2-plan-reason-correction.json",
+      "path": "analysis/plan-reason-correction.json",
+      "bytes": 422,
+      "sha256": "f21d3cee9b3d7036b4492e6833dd5c225f9367fc68f5b2a7efabd068e877f2d8"
+    },
+    {
+      "originalGitBlob": "56d2a2f23f3c39740a05b15821d4b46f26d572ed:products/sprintique/tests/fixtures/tabs-geometry/acceptance-plan.json",
+      "path": "plans/before-acceptance-plan.json",
+      "bytes": 5451,
+      "sha256": "79821edf821ead98f5666d9e87014e427394fbbbf906948cb464c53f6c19b0a9"
+    },
+    {
+      "originalGitBlob": "8f8d218168074bd4c7c9e1e29dfbe783a27998dd:products/sprintique/tests/fixtures/tabs-geometry/acceptance-plan.json",
+      "path": "plans/after-acceptance-plan.json",
+      "bytes": 5538,
+      "sha256": "a0165e153cb976c9da17332b1b79baaeb9b10da2e375c9aa290c620bb3889872"
+    },
+    {
+      "path": "analysis/raw-source-verification.json",
+      "bytes": 1414,
+      "sha256": "a352c7c70da8a1a9337821166312d8ce18c08a28734bcd5af89d467b105069cb",
+      "derived": true
+    },
+    {
+      "path": "author-note.md",
+      "bytes": 18195,
+      "sha256": "20fb48cb92c240dceb549d643ffda9ec4065261978e42a49f1261008d87a67b7",
+      "derived": true
+    }
+  ],
+  "sizes": {
+    "pairs": 12,
+    "pngCount": 25,
+    "originalPngBytes": 1057275,
+    "compressedRawBytes": 77356,
+    "restoredRawBytes": 2841216
+  },
+  "validation": {
+    "allCopiedHashesMatch": true,
+    "allCompressedRawLossless": true,
+    "markdownRelativeLinksExist": true,
+    "runtimeBranchUntouched": true
+  }
+}

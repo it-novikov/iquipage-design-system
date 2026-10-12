@@ -1,0 +1,117 @@
+{
+  "head": "8f8d218168074bd4c7c9e1e29dfbe783a27998dd",
+  "tree": "a7bf8ed72f07d975a6837e8f1428382785893833",
+  "ci_source": "f53af728201b7a4ce2a128c6de7228143d2d50b4",
+  "run_id": 38221220620,
+  "job_id": 114717672462,
+  "artifact_id": 11735517017,
+  "artifact_sha256": "acb0d423c6f6279f9f2be463b0fb6b970c877375073376382f59eb33b6b229c6",
+  "job_log_sha256": "3183521608912b7adfc4535a6898fe2ff4ac7a4b9037aaaa62d68e122fb59320",
+  "certificate_sha256": "8519e884ae0a7379ddcbd4b8e4d0b8c0019e4bd11a8185268a1d6f7995e80c2b",
+  "source_inputs_checked": 1224,
+  "source_input_set_matches_frozen_selector": true,
+  "source_fingerprint": "10346cfa9e7d6b6ed3836a404cdbaf6219b72cae79254df5c2bd3d8c9f57106d",
+  "all_zip_files_match_extraction": 11,
+  "checks": [
+    {
+      "name": "verification-tools",
+      "exitCode": 0,
+      "signal": null,
+      "passed": true,
+      "log": "verification-tools.log"
+    },
+    {
+      "name": "library-build",
+      "exitCode": 0,
+      "signal": null,
+      "passed": true,
+      "log": "library-build.log"
+    },
+    {
+      "name": "library-tests",
+      "exitCode": 0,
+      "signal": null,
+      "passed": true,
+      "log": "library-tests.log"
+    },
+    {
+      "name": "product-boundaries",
+      "exitCode": 0,
+      "signal": null,
+      "passed": true,
+      "log": "product-boundaries.log"
+    },
+    {
+      "name": "product-build",
+      "exitCode": 0,
+      "signal": null,
+      "passed": true,
+      "log": "product-build.log"
+    },
+    {
+      "name": "product-tests",
+      "exitCode": 0,
+      "signal": null,
+      "passed": true,
+      "log": "product-tests.log"
+    },
+    {
+      "name": "detached-product",
+      "exitCode": 0,
+      "signal": null,
+      "passed": true,
+      "log": "detached-product.log"
+    },
+    {
+      "name": "source-stability",
+      "passed": true,
+      "log": "source-stability.log"
+    }
+  ],
+  "test_counts": {
+    "library-tests": {
+      "tests": 478,
+      "pass": 478,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "product-tests": {
+      "tests": 567,
+      "pass": 567,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "detached-product": {
+      "tests": 567,
+      "pass": 567,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    }
+  },
+  "ds_archive_sha256": "a726a4536e532fc556f615d0b1a9cda1873dc111e6090710329b9ec1b8204457",
+  "portable_image_build_and_load_in_job_log": true,
+  "prior_reports_preserved": {
+    "review-r1.md": "32702335ce7ea4f30055a155a30fbc19973cea0ec981739d41d885965c00b77f",
+    "review-r1-followup-54.md": "17d16a336e4609e565198ec3e368df057046a0a914a79cade5198c0d75b70322"
+  },
+  "log_file_sha256": {
+    "2026-10-12T08-03-12.899Z/detached-product.log": "f2c22ab567375812ddc566d067411b6cadb555fe96854abbc645bb5222c0ba2c",
+    "2026-10-12T08-03-12.899Z/library-build.log": "d947d93afecad1eae735d5736b8a675f776cb1383196d75306d8f12755f1eca0",
+    "2026-10-12T08-03-12.899Z/library-tests.log": "199da431b5efbb658fdc4fc8e01e0c0e9385f2705b057d759c3c7cb2d787e974",
+    "2026-10-12T08-03-12.899Z/product-boundaries.log": "d6a1c681db26574e94256f60879ab77d34282add2ef2e2b9a930229d27e40132",
+    "2026-10-12T08-03-12.899Z/product-build.log": "251ffc336ebba737940a6e763dcaa2a5b24c93783e6f1d28bcf57adb00aca927",
+    "2026-10-12T08-03-12.899Z/product-tests.log": "81fbe543ab7d6afc507193a1be87d8a056a7bcbc7f52ff651a3769b70e2bb751",
+    "2026-10-12T08-03-12.899Z/source-stability.log": "8585a17108a61f415ff4ecf42f1b62cd8bce87e96c6068bb2d314a569cf77d94",
+    "2026-10-12T08-03-12.899Z/sources-after.json": "7c729af484eb907b85072975cdb3b1d438787e1e4bbc3b8acd0908f670e8f363",
+    "2026-10-12T08-03-12.899Z/sources.json": "7c729af484eb907b85072975cdb3b1d438787e1e4bbc3b8acd0908f670e8f363",
+    "2026-10-12T08-03-12.899Z/verification-tools.log": "649831ee4049634214c249e94d277d2ae9fc72612d49851e4ee1ec8f075210b6",
+    "2026-10-12T08-03-12.899Z/verification.json": "8519e884ae0a7379ddcbd4b8e4d0b8c0019e4bd11a8185268a1d6f7995e80c2b"
+  },
+  "errors": []
+}

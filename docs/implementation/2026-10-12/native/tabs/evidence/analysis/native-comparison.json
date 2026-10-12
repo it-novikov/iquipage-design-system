@@ -1,0 +1,1106 @@
+{
+  "baselineStatus": "BASELINE_REPRODUCED",
+  "candidateStatus": "PASS",
+  "baselineSource": "a49fac18565d3291b061eaa6c3c4c1c6f03ec328",
+  "candidateSource": "f53af728201b7a4ce2a128c6de7228143d2d50b4",
+  "profiles": [
+    {
+      "name": "desktop-light-minimal",
+      "status": "PASS",
+      "intents": 16,
+      "measurements": 5,
+      "metrics": [
+        {
+          "name": "short-initial",
+          "before": {
+            "client": 45,
+            "scroll": 46,
+            "maxScrollTop": 1,
+            "rectHeight": 45.5
+          },
+          "after": {
+            "client": 54,
+            "scroll": 54,
+            "maxScrollTop": 0,
+            "rectHeight": 53.5
+          },
+          "rectHeightDelta": 8.0
+        },
+        {
+          "name": "short-End",
+          "before": {
+            "client": 45,
+            "scroll": 46,
+            "maxScrollTop": 1,
+            "rectHeight": 45.5
+          },
+          "after": {
+            "client": 54,
+            "scroll": 54,
+            "maxScrollTop": 0,
+            "rectHeight": 53.5
+          },
+          "rectHeightDelta": 8.0
+        },
+        {
+          "name": "short-Home",
+          "before": {
+            "client": 45,
+            "scroll": 46,
+            "maxScrollTop": 1,
+            "rectHeight": 45.5
+          },
+          "after": {
+            "client": 54,
+            "scroll": 54,
+            "maxScrollTop": 0,
+            "rectHeight": 53.5
+          },
+          "rectHeightDelta": 8.0
+        },
+        {
+          "name": "long-End",
+          "before": {
+            "client": 45,
+            "scroll": 46,
+            "maxScrollTop": 1,
+            "rectHeight": 45.5
+          },
+          "after": {
+            "client": 54,
+            "scroll": 54,
+            "maxScrollTop": 0,
+            "rectHeight": 53.5
+          },
+          "rectHeightDelta": 8.0
+        },
+        {
+          "name": "long-Home",
+          "before": {
+            "client": 45,
+            "scroll": 46,
+            "maxScrollTop": 1,
+            "rectHeight": 45.5
+          },
+          "after": {
+            "client": 54,
+            "scroll": 54,
+            "maxScrollTop": 0,
+            "rectHeight": 53.5
+          },
+          "rectHeightDelta": 8.0
+        }
+      ]
+    },
+    {
+      "name": "desktop-dark-minimal",
+      "status": "PASS",
+      "intents": 16,
+      "measurements": 5,
+      "metrics": [
+        {
+          "name": "short-initial",
+          "before": {
+            "client": 45,
+            "scroll": 46,
+            "maxScrollTop": 1,
+            "rectHeight": 45.5
+          },
+          "after": {
+            "client": 54,
+            "scroll": 54,
+            "maxScrollTop": 0,
+            "rectHeight": 53.5
+          },
+          "rectHeightDelta": 8.0
+        },
+        {
+          "name": "short-End",
+          "before": {
+            "client": 45,
+            "scroll": 46,
+            "maxScrollTop": 1,
+            "rectHeight": 45.5
+          },
+          "after": {
+            "client": 54,
+            "scroll": 54,
+            "maxScrollTop": 0,
+            "rectHeight": 53.5
+          },
+          "rectHeightDelta": 8.0
+        },
+        {
+          "name": "short-Home",
+          "before": {
+            "client": 45,
+            "scroll": 46,
+            "maxScrollTop": 1,
+            "rectHeight": 45.5
+          },
+          "after": {
+            "client": 54,
+            "scroll": 54,
+            "maxScrollTop": 0,
+            "rectHeight": 53.5
+          },
+          "rectHeightDelta": 8.0
+        },
+        {
+          "name": "long-End",
+          "before": {
+            "client": 45,
+            "scroll": 46,
+            "maxScrollTop": 1,
+            "rectHeight": 45.5
+          },
+          "after": {
+            "client": 54,
+            "scroll": 54,
+            "maxScrollTop": 0,
+            "rectHeight": 53.5
+          },
+          "rectHeightDelta": 8.0
+        },
+        {
+          "name": "long-Home",
+          "before": {
+            "client": 45,
+            "scroll": 46,
+            "maxScrollTop": 1,
+            "rectHeight": 45.5
+          },
+          "after": {
+            "client": 54,
+            "scroll": 54,
+            "maxScrollTop": 0,
+            "rectHeight": 53.5
+          },
+          "rectHeightDelta": 8.0
+        }
+      ]
+    },
+    {
+      "name": "narrow-light-minimal",
+      "status": "PASS",
+      "intents": 16,
+      "measurements": 5,
+      "metrics": [
+        {
+          "name": "short-initial",
+          "before": {
+            "client": 45,
+            "scroll": 46,
+            "maxScrollTop": 1,
+            "rectHeight": 45.5
+          },
+          "after": {
+            "client": 54,
+            "scroll": 54,
+            "maxScrollTop": 0,
+            "rectHeight": 53.5
+          },
+          "rectHeightDelta": 8.0
+        },
+        {
+          "name": "short-End",
+          "before": {
+            "client": 45,
+            "scroll": 46,
+            "maxScrollTop": 1,
+            "rectHeight": 45.5
+          },
+          "after": {
+            "client": 54,
+            "scroll": 54,
+            "maxScrollTop": 0,
+            "rectHeight": 53.5
+          },
+          "rectHeightDelta": 8.0
+        },
+        {
+          "name": "short-Home",
+          "before": {
+            "client": 45,
+            "scroll": 46,
+            "maxScrollTop": 1,
+            "rectHeight": 45.5
+          },
+          "after": {
+            "client": 54,
+            "scroll": 54,
+            "maxScrollTop": 0,
+            "rectHeight": 53.5
+          },
+          "rectHeightDelta": 8.0
+        },
+        {
+          "name": "long-End",
+          "before": {
+            "client": 45,
+            "scroll": 46,
+            "maxScrollTop": 1,
+            "rectHeight": 45.5
+          },
+          "after": {
+            "client": 54,
+            "scroll": 54,
+            "maxScrollTop": 0,
+            "rectHeight": 53.5
+          },
+          "rectHeightDelta": 8.0
+        },
+        {
+          "name": "long-Home",
+          "before": {
+            "client": 45,
+            "scroll": 46,
+            "maxScrollTop": 1,
+            "rectHeight": 45.5
+          },
+          "after": {
+            "client": 54,
+            "scroll": 54,
+            "maxScrollTop": 0,
+            "rectHeight": 53.5
+          },
+          "rectHeightDelta": 8.0
+        }
+      ]
+    },
+    {
+      "name": "narrow-dark-minimal",
+      "status": "PASS",
+      "intents": 16,
+      "measurements": 5,
+      "metrics": [
+        {
+          "name": "short-initial",
+          "before": {
+            "client": 45,
+            "scroll": 46,
+            "maxScrollTop": 1,
+            "rectHeight": 45.5
+          },
+          "after": {
+            "client": 54,
+            "scroll": 54,
+            "maxScrollTop": 0,
+            "rectHeight": 53.5
+          },
+          "rectHeightDelta": 8.0
+        },
+        {
+          "name": "short-End",
+          "before": {
+            "client": 45,
+            "scroll": 46,
+            "maxScrollTop": 1,
+            "rectHeight": 45.5
+          },
+          "after": {
+            "client": 54,
+            "scroll": 54,
+            "maxScrollTop": 0,
+            "rectHeight": 53.5
+          },
+          "rectHeightDelta": 8.0
+        },
+        {
+          "name": "short-Home",
+          "before": {
+            "client": 45,
+            "scroll": 46,
+            "maxScrollTop": 1,
+            "rectHeight": 45.5
+          },
+          "after": {
+            "client": 54,
+            "scroll": 54,
+            "maxScrollTop": 0,
+            "rectHeight": 53.5
+          },
+          "rectHeightDelta": 8.0
+        },
+        {
+          "name": "long-End",
+          "before": {
+            "client": 45,
+            "scroll": 46,
+            "maxScrollTop": 1,
+            "rectHeight": 45.5
+          },
+          "after": {
+            "client": 54,
+            "scroll": 54,
+            "maxScrollTop": 0,
+            "rectHeight": 53.5
+          },
+          "rectHeightDelta": 8.0
+        },
+        {
+          "name": "long-Home",
+          "before": {
+            "client": 45,
+            "scroll": 46,
+            "maxScrollTop": 1,
+            "rectHeight": 45.5
+          },
+          "after": {
+            "client": 54,
+            "scroll": 54,
+            "maxScrollTop": 0,
+            "rectHeight": 53.5
+          },
+          "rectHeightDelta": 8.0
+        }
+      ]
+    },
+    {
+      "name": "text200-light-minimal",
+      "status": "PASS",
+      "intents": 16,
+      "measurements": 5,
+      "metrics": [
+        {
+          "name": "short-initial",
+          "before": {
+            "client": 64,
+            "scroll": 65,
+            "maxScrollTop": 1,
+            "rectHeight": 65
+          },
+          "after": {
+            "client": 73,
+            "scroll": 73,
+            "maxScrollTop": 0,
+            "rectHeight": 73
+          },
+          "rectHeightDelta": 8
+        },
+        {
+          "name": "short-End",
+          "before": {
+            "client": 64,
+            "scroll": 65,
+            "maxScrollTop": 1,
+            "rectHeight": 65
+          },
+          "after": {
+            "client": 73,
+            "scroll": 73,
+            "maxScrollTop": 0,
+            "rectHeight": 73
+          },
+          "rectHeightDelta": 8
+        },
+        {
+          "name": "short-Home",
+          "before": {
+            "client": 64,
+            "scroll": 65,
+            "maxScrollTop": 1,
+            "rectHeight": 65
+          },
+          "after": {
+            "client": 73,
+            "scroll": 73,
+            "maxScrollTop": 0,
+            "rectHeight": 73
+          },
+          "rectHeightDelta": 8
+        },
+        {
+          "name": "long-End",
+          "before": {
+            "client": 64,
+            "scroll": 65,
+            "maxScrollTop": 1,
+            "rectHeight": 65
+          },
+          "after": {
+            "client": 73,
+            "scroll": 73,
+            "maxScrollTop": 0,
+            "rectHeight": 73
+          },
+          "rectHeightDelta": 8
+        },
+        {
+          "name": "long-Home",
+          "before": {
+            "client": 64,
+            "scroll": 65,
+            "maxScrollTop": 1,
+            "rectHeight": 65
+          },
+          "after": {
+            "client": 73,
+            "scroll": 73,
+            "maxScrollTop": 0,
+            "rectHeight": 73
+          },
+          "rectHeightDelta": 8
+        }
+      ]
+    },
+    {
+      "name": "desktop-light-board",
+      "status": "PASS",
+      "intents": 9,
+      "measurements": 3,
+      "metrics": [
+        {
+          "name": "task-initial",
+          "before": {
+            "client": 45,
+            "scroll": 46,
+            "maxScrollTop": 1,
+            "rectHeight": 45.5
+          },
+          "after": {
+            "client": 54,
+            "scroll": 54,
+            "maxScrollTop": 0,
+            "rectHeight": 53.5
+          },
+          "rectHeightDelta": 8.0
+        },
+        {
+          "name": "task-End",
+          "before": {
+            "client": 45,
+            "scroll": 46,
+            "maxScrollTop": 1,
+            "rectHeight": 45.5
+          },
+          "after": {
+            "client": 54,
+            "scroll": 54,
+            "maxScrollTop": 0,
+            "rectHeight": 53.5
+          },
+          "rectHeightDelta": 8.0
+        },
+        {
+          "name": "task-Home",
+          "before": {
+            "client": 45,
+            "scroll": 46,
+            "maxScrollTop": 1,
+            "rectHeight": 45.5
+          },
+          "after": {
+            "client": 54,
+            "scroll": 54,
+            "maxScrollTop": 0,
+            "rectHeight": 53.5
+          },
+          "rectHeightDelta": 8.0
+        }
+      ]
+    },
+    {
+      "name": "desktop-dark-board",
+      "status": "PASS",
+      "intents": 9,
+      "measurements": 3,
+      "metrics": [
+        {
+          "name": "task-initial",
+          "before": {
+            "client": 45,
+            "scroll": 46,
+            "maxScrollTop": 1,
+            "rectHeight": 45.5
+          },
+          "after": {
+            "client": 54,
+            "scroll": 54,
+            "maxScrollTop": 0,
+            "rectHeight": 53.5
+          },
+          "rectHeightDelta": 8.0
+        },
+        {
+          "name": "task-End",
+          "before": {
+            "client": 45,
+            "scroll": 46,
+            "maxScrollTop": 1,
+            "rectHeight": 45.5
+          },
+          "after": {
+            "client": 54,
+            "scroll": 54,
+            "maxScrollTop": 0,
+            "rectHeight": 53.5
+          },
+          "rectHeightDelta": 8.0
+        },
+        {
+          "name": "task-Home",
+          "before": {
+            "client": 45,
+            "scroll": 46,
+            "maxScrollTop": 1,
+            "rectHeight": 45.5
+          },
+          "after": {
+            "client": 54,
+            "scroll": 54,
+            "maxScrollTop": 0,
+            "rectHeight": 53.5
+          },
+          "rectHeightDelta": 8.0
+        }
+      ]
+    },
+    {
+      "name": "narrow-light-board",
+      "status": "PASS",
+      "intents": 9,
+      "measurements": 3,
+      "metrics": [
+        {
+          "name": "task-initial",
+          "before": {
+            "client": 45,
+            "scroll": 46,
+            "maxScrollTop": 1,
+            "rectHeight": 45.5
+          },
+          "after": {
+            "client": 54,
+            "scroll": 54,
+            "maxScrollTop": 0,
+            "rectHeight": 53.5
+          },
+          "rectHeightDelta": 8.0
+        },
+        {
+          "name": "task-End",
+          "before": {
+            "client": 45,
+            "scroll": 46,
+            "maxScrollTop": 1,
+            "rectHeight": 45.5
+          },
+          "after": {
+            "client": 54,
+            "scroll": 54,
+            "maxScrollTop": 0,
+            "rectHeight": 53.5
+          },
+          "rectHeightDelta": 8.0
+        },
+        {
+          "name": "task-Home",
+          "before": {
+            "client": 45,
+            "scroll": 46,
+            "maxScrollTop": 1,
+            "rectHeight": 45.5
+          },
+          "after": {
+            "client": 54,
+            "scroll": 54,
+            "maxScrollTop": 0,
+            "rectHeight": 53.5
+          },
+          "rectHeightDelta": 8.0
+        }
+      ]
+    },
+    {
+      "name": "narrow-dark-board",
+      "status": "PASS",
+      "intents": 9,
+      "measurements": 3,
+      "metrics": [
+        {
+          "name": "task-initial",
+          "before": {
+            "client": 45,
+            "scroll": 46,
+            "maxScrollTop": 1,
+            "rectHeight": 45.5
+          },
+          "after": {
+            "client": 54,
+            "scroll": 54,
+            "maxScrollTop": 0,
+            "rectHeight": 53.5
+          },
+          "rectHeightDelta": 8.0
+        },
+        {
+          "name": "task-End",
+          "before": {
+            "client": 45,
+            "scroll": 46,
+            "maxScrollTop": 1,
+            "rectHeight": 45.5
+          },
+          "after": {
+            "client": 54,
+            "scroll": 54,
+            "maxScrollTop": 0,
+            "rectHeight": 53.5
+          },
+          "rectHeightDelta": 8.0
+        },
+        {
+          "name": "task-Home",
+          "before": {
+            "client": 45,
+            "scroll": 46,
+            "maxScrollTop": 1,
+            "rectHeight": 45.5
+          },
+          "after": {
+            "client": 54,
+            "scroll": 54,
+            "maxScrollTop": 0,
+            "rectHeight": 53.5
+          },
+          "rectHeightDelta": 8.0
+        }
+      ]
+    },
+    {
+      "name": "text200-light-board",
+      "status": "PASS",
+      "intents": 9,
+      "measurements": 3,
+      "metrics": [
+        {
+          "name": "task-initial",
+          "before": {
+            "client": 64,
+            "scroll": 65,
+            "maxScrollTop": 1,
+            "rectHeight": 65
+          },
+          "after": {
+            "client": 73,
+            "scroll": 73,
+            "maxScrollTop": 0,
+            "rectHeight": 73
+          },
+          "rectHeightDelta": 8
+        },
+        {
+          "name": "task-End",
+          "before": {
+            "client": 64,
+            "scroll": 65,
+            "maxScrollTop": 1,
+            "rectHeight": 65
+          },
+          "after": {
+            "client": 73,
+            "scroll": 73,
+            "maxScrollTop": 0,
+            "rectHeight": 73
+          },
+          "rectHeightDelta": 8
+        },
+        {
+          "name": "task-Home",
+          "before": {
+            "client": 64,
+            "scroll": 65,
+            "maxScrollTop": 1,
+            "rectHeight": 65
+          },
+          "after": {
+            "client": 73,
+            "scroll": 73,
+            "maxScrollTop": 0,
+            "rectHeight": 73
+          },
+          "rectHeightDelta": 8
+        }
+      ]
+    },
+    {
+      "name": "desktop-light-wiki",
+      "status": "PASS",
+      "intents": 9,
+      "measurements": 3,
+      "metrics": [
+        {
+          "name": "wiki-initial",
+          "before": {
+            "client": 45,
+            "scroll": 46,
+            "maxScrollTop": 1,
+            "rectHeight": 45.5
+          },
+          "after": {
+            "client": 54,
+            "scroll": 54,
+            "maxScrollTop": 0,
+            "rectHeight": 53.5
+          },
+          "rectHeightDelta": 8.0
+        },
+        {
+          "name": "wiki-End",
+          "before": {
+            "client": 45,
+            "scroll": 46,
+            "maxScrollTop": 1,
+            "rectHeight": 45.5
+          },
+          "after": {
+            "client": 54,
+            "scroll": 54,
+            "maxScrollTop": 0,
+            "rectHeight": 53.5
+          },
+          "rectHeightDelta": 8.0
+        },
+        {
+          "name": "wiki-Home",
+          "before": {
+            "client": 45,
+            "scroll": 46,
+            "maxScrollTop": 1,
+            "rectHeight": 45.5
+          },
+          "after": {
+            "client": 54,
+            "scroll": 54,
+            "maxScrollTop": 0,
+            "rectHeight": 53.5
+          },
+          "rectHeightDelta": 8.0
+        }
+      ]
+    },
+    {
+      "name": "desktop-dark-wiki",
+      "status": "PASS",
+      "intents": 9,
+      "measurements": 3,
+      "metrics": [
+        {
+          "name": "wiki-initial",
+          "before": {
+            "client": 45,
+            "scroll": 46,
+            "maxScrollTop": 1,
+            "rectHeight": 45.5
+          },
+          "after": {
+            "client": 54,
+            "scroll": 54,
+            "maxScrollTop": 0,
+            "rectHeight": 53.5
+          },
+          "rectHeightDelta": 8.0
+        },
+        {
+          "name": "wiki-End",
+          "before": {
+            "client": 45,
+            "scroll": 46,
+            "maxScrollTop": 1,
+            "rectHeight": 45.5
+          },
+          "after": {
+            "client": 54,
+            "scroll": 54,
+            "maxScrollTop": 0,
+            "rectHeight": 53.5
+          },
+          "rectHeightDelta": 8.0
+        },
+        {
+          "name": "wiki-Home",
+          "before": {
+            "client": 45,
+            "scroll": 46,
+            "maxScrollTop": 1,
+            "rectHeight": 45.5
+          },
+          "after": {
+            "client": 54,
+            "scroll": 54,
+            "maxScrollTop": 0,
+            "rectHeight": 53.5
+          },
+          "rectHeightDelta": 8.0
+        }
+      ]
+    },
+    {
+      "name": "narrow-light-wiki",
+      "status": "PASS",
+      "intents": 9,
+      "measurements": 3,
+      "metrics": [
+        {
+          "name": "wiki-initial",
+          "before": {
+            "client": 45,
+            "scroll": 46,
+            "maxScrollTop": 1,
+            "rectHeight": 45.5
+          },
+          "after": {
+            "client": 54,
+            "scroll": 54,
+            "maxScrollTop": 0,
+            "rectHeight": 53.5
+          },
+          "rectHeightDelta": 8.0
+        },
+        {
+          "name": "wiki-End",
+          "before": {
+            "client": 45,
+            "scroll": 46,
+            "maxScrollTop": 1,
+            "rectHeight": 45.5
+          },
+          "after": {
+            "client": 54,
+            "scroll": 54,
+            "maxScrollTop": 0,
+            "rectHeight": 53.5
+          },
+          "rectHeightDelta": 8.0
+        },
+        {
+          "name": "wiki-Home",
+          "before": {
+            "client": 45,
+            "scroll": 46,
+            "maxScrollTop": 1,
+            "rectHeight": 45.5
+          },
+          "after": {
+            "client": 54,
+            "scroll": 54,
+            "maxScrollTop": 0,
+            "rectHeight": 53.5
+          },
+          "rectHeightDelta": 8.0
+        }
+      ]
+    },
+    {
+      "name": "narrow-dark-wiki",
+      "status": "PASS",
+      "intents": 9,
+      "measurements": 3,
+      "metrics": [
+        {
+          "name": "wiki-initial",
+          "before": {
+            "client": 45,
+            "scroll": 46,
+            "maxScrollTop": 1,
+            "rectHeight": 45.5
+          },
+          "after": {
+            "client": 54,
+            "scroll": 54,
+            "maxScrollTop": 0,
+            "rectHeight": 53.5
+          },
+          "rectHeightDelta": 8.0
+        },
+        {
+          "name": "wiki-End",
+          "before": {
+            "client": 45,
+            "scroll": 46,
+            "maxScrollTop": 1,
+            "rectHeight": 45.5
+          },
+          "after": {
+            "client": 54,
+            "scroll": 54,
+            "maxScrollTop": 0,
+            "rectHeight": 53.5
+          },
+          "rectHeightDelta": 8.0
+        },
+        {
+          "name": "wiki-Home",
+          "before": {
+            "client": 45,
+            "scroll": 46,
+            "maxScrollTop": 1,
+            "rectHeight": 45.5
+          },
+          "after": {
+            "client": 54,
+            "scroll": 54,
+            "maxScrollTop": 0,
+            "rectHeight": 53.5
+          },
+          "rectHeightDelta": 8.0
+        }
+      ]
+    },
+    {
+      "name": "text200-light-wiki",
+      "status": "PASS",
+      "intents": 9,
+      "measurements": 3,
+      "metrics": [
+        {
+          "name": "wiki-initial",
+          "before": {
+            "client": 64,
+            "scroll": 65,
+            "maxScrollTop": 1,
+            "rectHeight": 65
+          },
+          "after": {
+            "client": 73,
+            "scroll": 73,
+            "maxScrollTop": 0,
+            "rectHeight": 73
+          },
+          "rectHeightDelta": 8
+        },
+        {
+          "name": "wiki-End",
+          "before": {
+            "client": 64,
+            "scroll": 65,
+            "maxScrollTop": 1,
+            "rectHeight": 65
+          },
+          "after": {
+            "client": 73,
+            "scroll": 73,
+            "maxScrollTop": 0,
+            "rectHeight": 73
+          },
+          "rectHeightDelta": 8
+        },
+        {
+          "name": "wiki-Home",
+          "before": {
+            "client": 64,
+            "scroll": 65,
+            "maxScrollTop": 1,
+            "rectHeight": 65
+          },
+          "after": {
+            "client": 73,
+            "scroll": 73,
+            "maxScrollTop": 0,
+            "rectHeight": 73
+          },
+          "rectHeightDelta": 8
+        }
+      ]
+    },
+    {
+      "name": "desktop-light-nested",
+      "status": "PASS",
+      "intents": 7,
+      "measurements": 2,
+      "metrics": [
+        {
+          "name": "nested-End",
+          "before": {
+            "client": 45,
+            "scroll": 46,
+            "maxScrollTop": 1,
+            "rectHeight": 45.5
+          },
+          "after": {
+            "client": 54,
+            "scroll": 54,
+            "maxScrollTop": 0,
+            "rectHeight": 53.5
+          },
+          "rectHeightDelta": 8.0
+        },
+        {
+          "name": "nested-Home",
+          "before": {
+            "client": 45,
+            "scroll": 46,
+            "maxScrollTop": 1,
+            "rectHeight": 45.5
+          },
+          "after": {
+            "client": 54,
+            "scroll": 54,
+            "maxScrollTop": 0,
+            "rectHeight": 53.5
+          },
+          "rectHeightDelta": 8.0
+        }
+      ]
+    }
+  ],
+  "contexts": {
+    "keyboardIntents": 136,
+    "pointerIntents": 41,
+    "ancestorSnapshots": 298,
+    "eligibleAxes": {
+      "x": 298,
+      "y": 268
+    },
+    "changedAncestors": [],
+    "windowChanges": []
+  },
+  "typographyDifferences": [],
+  "layoutOffsets": {
+    "x": [
+      4
+    ],
+    "y": [
+      4
+    ]
+  },
+  "counts": {
+    "cases": 16,
+    "intents": 177,
+    "captures": 57
+  },
+  "sequentialDiscussion": {
+    "scrollLeft": 475,
+    "clientWidth": 320,
+    "scrollWidth": 795,
+    "viewport": {
+      "left": 24,
+      "top": 178.5,
+      "right": 344,
+      "bottom": 232.5
+    },
+    "tab": {
+      "label": "Проверка и обсуждение",
+      "rect": {
+        "x": 179,
+        "y": 182.5,
+        "top": 182.5,
+        "right": 340,
+        "bottom": 228,
+        "left": 179,
+        "width": 161,
+        "height": 45.5
+      },
+      "focusPaint": {
+        "left": 175,
+        "right": 344,
+        "top": 178.5,
+        "bottom": 232
+      },
+      "selected": "true",
+      "focusVisible": true
+    },
+    "eventDelta": 1
+  }
+}

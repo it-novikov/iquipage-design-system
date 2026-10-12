@@ -1,0 +1,43 @@
+{
+  "schema_version": "2.0",
+  "id": "PF03-WP02B",
+  "revision": 1,
+  "scope_type": "targeted",
+  "approval": {"ref": "Owner-authorized WP02-B / PF03; root accepted scope on 2026-10-12", "owner": "it-novikov"},
+  "phase": "baseline",
+  "package_version": "0.6.0-vnext.52",
+  "ds_archive_sha256": "989fab4822db78e10bfeeb62ad2724d8bb389a08ddf012c196b469af33cde758",
+  "baseline": {"package_version": "0.6.0-vnext.52", "ds_archive_sha256": "989fab4822db78e10bfeeb62ad2724d8bb389a08ddf012c196b469af33cde758", "default_vertical_scroll_px": 1},
+  "surfaces": [
+    {"id": "minimal", "description": "ui.tabs public composition without product CSS", "source_ref": "libraries/iquipage/src/modules/ui.js"},
+    {"id": "task-board", "description": "Actual Board opening its actual Task drawer", "source_ref": "products/sprintique/ui/src/board/board.js"},
+    {"id": "wiki", "description": "Actual Wiki conflict comparison; one synthetic rejected save", "source_ref": "products/sprintique/web/wiki.js"},
+    {"id": "nested-task", "description": "Actual Task fallback relation opening a nested Task", "source_ref": "products/sprintique/ui/src/board/task-dialog.js"}
+  ],
+  "dimension_applicability": {
+    "visual": {"applicable": true, "reason": "Geometry, underline and focus require actual screenshots."},
+    "ux": {"applicable": true, "reason": "Switching and horizontal access; synthetic automation is not human validation."},
+    "code": {"applicable": true, "reason": "Exact public package and unchanged consumer boundary."},
+    "accessibility": {"applicable": true, "reason": "Native keyboard, focus, disabled state and text scaling."},
+    "human-agent": {"applicable": true, "reason": "Task/work-agent section selection is exercised; agent execution and outcome acceptance are outside the CSS change."},
+    "performance": {"applicable": true, "reason": "Existing DS size gates; no runtime performance claim from a CSS-only change."}
+  },
+  "profiles": [
+    {"name": "desktop-light", "viewport": {"width": 1280, "height": 720}, "theme": "light", "density": "comfortable", "text": 100},
+    {"name": "desktop-dark", "viewport": {"width": 1440, "height": 900}, "theme": "dark", "density": "compact", "text": 100},
+    {"name": "narrow-light", "viewport": {"width": 390, "height": 844}, "theme": "light", "density": "comfortable", "text": 100},
+    {"name": "narrow-dark", "viewport": {"width": 320, "height": 720}, "theme": "dark", "density": "compact", "text": 100},
+    {"name": "text200-light", "viewport": {"width": 768, "height": 900}, "theme": "light", "density": "comfortable", "text": 200}
+  ],
+  "environment": {"engine": "native Chromium from playwright@1.62.1", "target": "GitHub Actions Ubuntu 24.04", "locale": "ru-RU", "timezone": "UTC", "input": "pointer and native keyboard", "load_mode": "isolated actual frontend modules", "data_profile": "synthetic deterministic responses", "browser_zoom": "100%", "text_scaling": "HTML root font-size 100% or 200%, explicitly not browser zoom", "device_scale_factor": 1},
+  "checks": [
+    {"id": "PF03-MINIMAL", "surface_id": "minimal", "dimensions": ["visual", "ux", "accessibility"], "required": true, "method": "automated plus screenshot inspection", "evidence_kinds": ["measurement", "screenshot"], "acceptance": "Baseline short tabs reproduce 1px scroll. Candidate short and long tabs have no vertical scroll range; underline, text bounds and keyboard-visible focus are preserved; disabled tab is skipped; Home/End/Arrow keys and horizontal access work."},
+    {"id": "PF03-TASK-BOARD", "surface_id": "task-board", "dimensions": ["visual", "ux", "accessibility", "human-agent"], "required": true, "method": "automated plus screenshot inspection", "evidence_kinds": ["measurement", "screenshot", "log"], "acceptance": "Baseline actual Task reproduces the minimal defect. Candidate Task switches task/work panels once per intent without write attempts; focus/underline/labels remain visible; Board opens/closes Task and its cards remain available."},
+    {"id": "PF03-WIKI", "surface_id": "wiki", "dimensions": ["visual", "ux", "accessibility"], "required": true, "method": "automated plus screenshot inspection", "evidence_kinds": ["measurement", "screenshot", "log"], "acceptance": "Actual Wiki conflict exposes comparison tabs. Candidate geometry/focus works and switching preserves the draft. Only the explicit synthetic rejected save is attempted."},
+    {"id": "PF03-NESTED", "surface_id": "nested-task", "dimensions": ["visual", "accessibility"], "required": true, "method": "automated plus screenshot inspection", "evidence_kinds": ["measurement", "screenshot"], "acceptance": "Desktop light actual related Task nested in Task keeps tab geometry/focus and closes to the existing parent Task."},
+    {"id": "PF03-PACKAGE", "surface_id": "minimal", "dimensions": ["code", "performance"], "required": true, "method": "automated plus source review", "evidence_kinds": ["log", "source-review"], "acceptance": "Source/public entry/version/types/CSS/tarball/dependency/lock agree, library tests and existing gates run; no private product override or runtime/API rewrite."}
+  ],
+  "release_checks": ["Full existing vNext gate remains required by repository policy", "Real browser zoom 200%, Safari, Firefox, iOS touch and screen-reader combinations are NOT_RUN by this targeted Chromium fixture; WP09 release checks remain separate"],
+  "risk_acceptances": [],
+  "known_finding_ids": ["PF03"]
+}
