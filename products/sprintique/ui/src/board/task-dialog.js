@@ -22,7 +22,7 @@ import {mountAgentRuns} from './agent-runs-view.js';
 import {mountTaskWork} from './task-work-view.js';
 import {formatEstimate,estimateEditor,estimateMismatch} from '../estimate.js';
 
-export async function openTaskDialog(task,{repository,project,tasks,canEdit=true,canManage=true,attachmentAdapter=null,status='ready',initialValues={},fullscreen=false,backTo=null,onBack=()=>{},onOpenTask,onReload=onOpenTask&&(()=>onOpenTask(task.id)),onSaved=()=>{},isActive=()=>true,signal,replace=null,supplement=null,initialSection=parseTaskSection(location.hash),onSectionChange=null}){
+export async function openTaskDialog(task,{repository,project,tasks,canEdit=true,canManage=true,attachmentAdapter=null,status='ready',initialValues={},fullscreen=false,backTo=null,onBack=()=>{},onOpenTask,onReload=onOpenTask&&(()=>onOpenTask(task.id)),onSaved=()=>{},isActive=()=>true,signal,replace=null,beforeOpen=null,supplement=null,initialSection=parseTaskSection(location.hash),onSectionChange=null}){
   signal?.throwIfAborted();const initialTask=task;
   // What the open drawer reads next starts now, alongside the task, rather than after it renders.
   if(task?.id)repository.warmTask?.(project.id,task.id);
@@ -38,6 +38,10 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
   // Accepted release results are immutable; discussions have independent writes.
   canEdit=canEdit&&task?.result!=='accepted';
   if(!isActive())throw Error('Открытие задачи отменено.');
+  // A contextual host keeps the current task usable until its replacement's initial support reads have succeeded.
+  // Only then does it settle that task's draft. Refusing the handoff leaves the existing drawer in place.
+  if(beforeOpen&&!await beforeOpen())return null;
+  signal?.throwIfAborted();if(!isActive())throw Error('Открытие задачи отменено.');
   const settings=support.settings||starterTaskSettings(project.id);
   const initial=task||{...instantiateTaskTemplate(settings,'task'),type:'task',status,ownerId:null,title:'',...initialValues};
   const taskId=task?.id||uid('task');

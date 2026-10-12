@@ -82,13 +82,14 @@ export class MapsFeature {
     if(this.board.dirty){this.message('Сначала сохраните изменение или экспортируйте свою копию. Исходная карта не закрыта.',true);return false;}
     return true;
   }
-  async openMap(id,{early=null}={}) {
+  async openMap(id,{early=null,signal}={}) {
     requireValue(this.permissions.read,'READ_ONLY','Просмотр карт недоступен.');
-    if(!this.alive)return false;const generation=++this.mapGeneration;
+    if(!this.alive||signal?.aborted)return false;const generation=++this.mapGeneration;
     for(const read of this.mapReads)read.abort();this.mapReads.clear();
-    if(!(await this.readyToLeave())||!this.alive||generation!==this.mapGeneration)return false;
     const request=new AbortController();this.mapReads.add(request);
+    const cancel=()=>request.abort();signal?.addEventListener('abort',cancel,{once:true});
     try{
+      if(!(await this.readyToLeave())||!this.alive||request.signal.aborted||generation!==this.mapGeneration)return false;
       const map=(early&&await early)||await this.repository.read('maps',id,this.project.id,{signal:request.signal});
       if(!this.alive||request.signal.aborted||generation!==this.mapGeneration)return false;
       requireValue(map,'NOT_FOUND','Карта не найдена в этом проекте.');
@@ -96,7 +97,7 @@ export class MapsFeature {
       this.current=map;this.view='canvas';this.inspector.hidden=true;this.buildBoard();this.renderChrome();this.message('');
       this.config.onOpenMap?.({id:map.id,projectId:map.projectId});return true;
     }catch(error){if(request.signal.aborted||!this.alive||generation!==this.mapGeneration)return false;throw error;}
-    finally{this.mapReads.delete(request);}
+    finally{signal?.removeEventListener('abort',cancel);this.mapReads.delete(request);}
   }
   buildBoard() {
     if(this.board){this.board.cancelPending();this.board.remove();}

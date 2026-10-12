@@ -8,7 +8,7 @@ owner: user
 branch: fix/maps-task-context
 base: main
 created: 2026-10-12
-updated: 2026-10-12T05:03:52Z
+updated: 2026-10-12T05:33:38Z
 links:
 ---
 
@@ -32,12 +32,12 @@ links:
 
 ## Передача
 
-- **Состояние:** Host/route patch и ADR реализованы; 10 новых controller checks и 34 существующих regression PASS; browser pending.
-- **Сейчас:** S1: узкий код готов для первого checkpoint
-- **Дальше:** Реальный synthetic render и независимый R1 immutable diff
-- **Незакоммичено:** Компилируемый frontend patch, новые Node tests, ADR и bridge; browser harness ещё не добавлен.
-- **Рабочая копия:** 9 файл(ов): products/sprintique/ui/src/board/task-dialog.js, products/sprintique/ui/src/maps.js, products/sprintique/web/main.js, products/sprintique/web/maps-host.js, products/sprintique/web/section-route.js, products/sprintique/docs/decisions/0014-maps-task-context.md, products/sprintique/tests/maps-task-origin.test.mjs, products/sprintique/web/maps-route.js, products/sprintique/web/maps-task-context.js (5 files changed, 23 insertions(+), 12 deletions(-)) · HEAD f5f941a
-- **Проверка:** npm ci по lock PASS; check:boundaries/styles PASS; Node10+34 PASS с --import tsx для regression; Vite-only build PASS. Полный npm run build BLOCKED: TS7 native compiler /proc/self/exe unavailable; backend JDK25/PG18 unavailable.
+- **Состояние:** PR75 сохранён; R1 findings исправлены автором. 79/79 scoped Node checks PASS, bundle/boundaries/fixture-build PASS. Dedicated browser fixture и CI готовы.
+- **Сейчас:** S2 — следующий immutable checkpoint готов к R2 и CI
+- **Дальше:** Опубликовать исправленный checkpoint, actual Chromium run, свежий независимый R2 и разбор кадров
+- **Незакоммичено:** R1 fixes/evidence, пять browser fixture/runner файлов, отдельный Maps workflow; product/vendor/lock boundary сохранён.
+- **Рабочая копия:** 10 файл(ов): products/sprintique/docs/decisions/0014-maps-task-context.md, products/sprintique/tests/maps-task-origin.test.mjs, products/sprintique/ui/src/board/task-dialog.js, products/sprintique/ui/src/maps.js, products/sprintique/web/main.js, products/sprintique/web/maps-host.js, products/sprintique/web/maps-task-context.js, .github/workflows/maps-task-context.yml, products/sprintique/tests/fixtures/, products/sprintique/tests/maps-task-browser.mjs (9 files changed, 206 insertions(+), 47 deletions(-)) · HEAD 83f30e7
+- **Проверка:** 79 Node PASS; boundaries/styles PASS; Vite323 + fixture build PASS; YAML/diff/bridge PASS. Browser NOT_RUN; full local build BLOCKED, remote full gate pending.
 
 ## План
 

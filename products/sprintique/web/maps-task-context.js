@@ -23,13 +23,17 @@ export function createMapsTaskContext({root,maps,repository,project,openDialog,c
     if(entry&&attempted===mapHash()&&history.state?.sprintiqueMapOrigin===entry.origin)history.forward();
     else writeRoute(routeHash());
   }
-  async function closeCurrent(reason){
-    if(closing)return closing;
+  async function closeCurrent(reason,{keepOpen=false}={}){
+    if(closing){
+      if(!await closing)return false;
+      // A section leave can arrive while a replacement merely settles the draft. It must still close that drawer.
+      return keepOpen||!modal?true:closeCurrent(reason);
+    }
     if(!modal)return true;
-    const opened=modal;closeReason=reason;
+    const opened=modal;closeReason=keepOpen?null:reason;
     closing=(async()=>{
-      const accepted=await opened.taskController.close();
-      if(accepted&&opened.isConnected)await new Promise(resolve=>opened.addEventListener('iq-close',resolve,{once:true}));
+      const accepted=await opened.taskController.close({keepOpen});
+      if(accepted&&!keepOpen&&opened.isConnected)await new Promise(resolve=>opened.addEventListener('iq-close',resolve,{once:true}));
       return accepted;
     })();
     try{return await closing;}finally{closing=null;closeReason=null;}
@@ -41,19 +45,27 @@ export function createMapsTaskContext({root,maps,repository,project,openDialog,c
     if(!reload&&modal&&(modal.taskController.taskId===id||modal.taskController.taskKey===id)){
       section=modal.taskController.setSection?.(nextSection)||nextSection;writeRoute(routeHash());return modal;
     }
-    if(!await closeCurrent('switch-task')){restoreRefusedRoute(location.hash);return false;}
-    if(destroyed||generation!==intent)return false;
     if(!hadTask)opener=document.activeElement;
     const request=new AbortController();opening=request;
     const active=()=>!destroyed&&!request.signal.aborted&&generation===intent&&maps.current?.id===origin;
     try{
       const task=await repository.read('tasks',id,project.id,{signal:request.signal});
-      if(!active())return false;if(!task)throw Error('Задача недоступна. Карта остаётся открытой.');
+      if(!active())return false;if(!task||task.projectId!==project.id)throw Error('Задача недоступна в этом проекте. Текущий контекст остаётся открытым.');
+      const handoff=modal;
       let created;created=await openDialog(task,{repository,project,tasks:[],attachmentAdapter:repository.attachmentAdapter,canEdit,canManage,
-        signal:request.signal,isActive:active,initialSection:nextSection,
+        signal:request.signal,isActive:active,initialSection:nextSection,replace:handoff,fullscreen:handoff?.dataset?.fullscreen==='true',
+        beforeOpen:handoff?async()=>{
+          if(!active()||modal!==handoff)return false;
+          const accepted=await closeCurrent('switch-task',{keepOpen:true});
+          if(!active()||modal!==handoff)return false;
+          if(!accepted){restoreRefusedRoute(location.hash);return false;}
+          // No loading remains: the prepared drawer replaces the old one synchronously after this callback.
+          closeReason='switch-task';return true;
+        }:null,
         onSectionChange:value=>{if(!destroyed&&modal===created){section=value;writeRoute(routeHash());}},
         onOpenTask:next=>openTask(next),onReload:()=>openTask(task.id,{reload:true,section}),
       });
+      if(!created)return false;
       if(!active()){created.close(true);return false;}
       modal=created;section=created.taskController.setSection?.(nextSection)||nextSection;
       const hash=mapRouteHash(origin,taskKey(task),section);
@@ -74,22 +86,28 @@ export function createMapsTaskContext({root,maps,repository,project,openDialog,c
       return created;
     }catch(error){
       if(!active())return false;
-      writeRoute(mapHash());focusMap();throw error;
-    }finally{if(opening===request)opening=null;}
+      writeRoute(routeHash());if(!modal)focusMap();maps.message?.(error.message,true);throw error;
+    }finally{if(opening===request)opening=null;if(closeReason==='switch-task')closeReason=null;}
   }
   async function openRoute(hash){
     const route=parseMapRoute(hash);if(!route||destroyed)return false;
     const previous=routeHash();
-    if(route.mapId&&route.mapId!==maps.current?.id){
-      cancelOpening();
-      if(!await closeCurrent('route')){restoreRefusedRoute(hash);return false;}
-      try{if(!await maps.openMap(route.mapId)){writeRoute(routeHash());return false;}}
-      catch(error){writeRoute(routeHash());throw error;}
-    }
-    if(route.taskKey)return openTask(route.taskKey,{fromRoute:true,section:route.section});
-    cancelOpening();
-    if(!await closeCurrent('route')){restoreRefusedRoute(hash);return false;}
-    writeRoute(mapHash());if(previous!==mapHash())focusMap();return true;
+    // A route owns both reads. Returning to the already visible map also cancels a different map still loading.
+    cancelOpening();const intent=generation,request=new AbortController();opening=request;
+    const active=()=>!destroyed&&!request.signal.aborted&&generation===intent;
+    try{
+      if(route.mapId&&route.mapId!==maps.current?.id){
+        const accepted=await closeCurrent('route');if(!active())return false;
+        if(!accepted){restoreRefusedRoute(hash);return false;}
+        const opened=await maps.openMap(route.mapId,{signal:request.signal});if(!active())return false;
+        if(!opened){writeRoute(routeHash());return false;}
+      }
+      if(route.taskKey)return openTask(route.taskKey,{fromRoute:true,section:route.section});
+      const accepted=await closeCurrent('route');if(!active())return false;
+      if(!accepted){restoreRefusedRoute(hash);return false;}
+      writeRoute(mapHash());if(previous!==mapHash())focusMap();return true;
+    }catch(error){if(!active())return false;writeRoute(routeHash());throw error;}
+    finally{if(opening===request)opening=null;}
   }
   return {
     openTask,openRoute,get routeHash(){return routeHash();},currentTask:()=>modal?.taskController.taskKey||null,

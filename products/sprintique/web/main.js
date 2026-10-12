@@ -252,7 +252,7 @@ async function navigate(mode){
   // The Workbench keeps its own address; a project section's hash is restored when the switch is refused.
   const restoreHash=viewMode==='workbench'?null:retainedRouteHash(viewMode,board,location.hash);
   if(await showProject(currentProject.id,mode)){if(viewMode!=='workbench')history.replaceState(null,'',sectionRouteHash(viewMode,location.hash));}
-  else if(restoreHash)history.replaceState(null,'',restoreHash);
+  else if(restoreHash)history.replaceState(history.state,'',retainedRouteHash(viewMode,board,restoreHash));
   else if(isWorkbenchPath()&&location.hash){const url=new URL(location.href);url.hash='';history.replaceState(history.state,'',url);}
 }
 root.addEventListener('click',event=>{
@@ -303,7 +303,7 @@ function search(){if(!session||document.querySelector('dialog[open]'))return;ope
   try{if(board&&!await board.closeTask())return;history.replaceState(null,'',item.kind==='map'?'#maps/'+encodeURIComponent(item.id):'#tasks');await showProject(item.projectId,item.kind==='map'?'maps':'tasks');if(item.kind==='task')await board.openTask(item.key);}catch(error){report(error);}
 }});}
 window.addEventListener('keydown',event=>{if((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='k'){event.preventDefault();search();}});
-window.addEventListener('hashchange',()=>{if(viewMode==='workbench'||isWorkbenchPath())return;void(async()=>{const task=parseTaskRoute(location.hash);if(task){if(!board?.openTask||viewMode==='maps'){const restoreHash=board?.routeHash;if(await showProject(currentProject.id,'tasks')===false){if(restoreHash)history.replaceState(null,'',restoreHash);return;}}await board?.openTask?.(task,{fromRoute:true});}else if(location.hash.startsWith('#maps')){if(viewMode==='maps'&&board?.openRoute)await board.openRoute(location.hash);else await navigate('maps');}
+window.addEventListener('hashchange',()=>{if(viewMode==='workbench'||isWorkbenchPath())return;void(async()=>{const task=parseTaskRoute(location.hash);if(task){if(!board?.openTask||viewMode==='maps'){const restoreHash=board?.routeHash;if(await showProject(currentProject.id,'tasks')===false){const retained=board?.routeHash||restoreHash;if(retained)history.replaceState(history.state,'',retained);return;}}await board?.openTask?.(task,{fromRoute:true});}else if(location.hash.startsWith('#maps')){if(viewMode==='maps'&&board?.openRoute)await board.openRoute(location.hash);else await navigate('maps');}
     else if(location.hash.startsWith('#wiki')){if(viewMode==='wiki'&&board?.openRoute)await board.openRoute(location.hash);else await navigate('wiki');}
     else if(location.hash.startsWith('#finance')){if(viewMode==='finance'&&board?.openRoute)await board.openRoute(location.hash);else await navigate('finance');}else if(location.hash.startsWith('#settings')){if(viewMode==='settings'&&board?.navigateSettings){await board.navigateSettings();}else await navigate('settings');}
     else if(['#tasks','#planning','#agents'].includes(location.hash)){const mode=location.hash.slice(1);

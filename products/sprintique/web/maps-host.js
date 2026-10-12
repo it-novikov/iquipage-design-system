@@ -11,10 +11,14 @@ export async function mountMapsHost(root,{repository,project,viewState={}}){
     context:{actorId:repository.context.actorId,workspaceId:project.workspaceId},
     permissions:{read:true,edit:can(project,'maps.write')},
     uiCapabilities:{workflow:false,automation:false,agentProposals:false,allowedCreateTypes:['sticky','text','task','shape','frame',...(repository.capabilities.attachments?['image']:[])]},
-    onOpenMap:({id})=>{viewState.mapId=id;const current=parseMapRoute(location.hash);history.replaceState(history.state,'',mapRouteHash(id,current?.mapId===id?current.taskKey:null,current?.section));},
+    onOpenMap:({id})=>{viewState.mapId=id;
+      // During the initial await, hashchange can arrive before the shell has this host. Preserve that newer intent.
+      if(!host&&location.hash!==initialHash)return;
+      const current=parseMapRoute(location.hash);history.replaceState(history.state,'',mapRouteHash(id,current?.mapId===id?current.taskKey:null,current?.section));},
     onOpenTasks:({focusTaskId})=>host?.openTask(focusTaskId).catch(error=>maps.message(error.message,true))});
   host=createMapsTaskContext({root,maps,repository,project,canEdit:can(project,'tasks.write'),canManage:can(project,'project.settings'),
     openDialog:async(...args)=>(await import('../ui/src/board/task-dialog.js')).openTaskDialog(...args)});
-  if(route?.taskKey&&maps.current?.id===route.mapId)try{await host.openRoute(initialHash);}catch(error){maps.message(error.message,true);}
+  const latestHash=location.hash,latest=parseMapRoute(latestHash);
+  if(latest&&(maps.current||latestHash!==initialHash))try{await host.openRoute(latestHash);}catch(error){maps.message(error.message,true);}
   return host;
 }

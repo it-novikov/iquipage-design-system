@@ -1,0 +1,50 @@
+name: Maps task context
+on:
+  pull_request:
+    paths: ['products/sprintique/**', 'libraries/iquipage/**', '.github/workflows/maps-task-context.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: maps-task-context-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '24.20.0'
+          package-manager-cache: false
+      - name: Install product and temporary browser tools
+        env:
+          PLAYWRIGHT_BROWSERS_PATH: ${{ runner.temp }}/sprintique-browsers
+        run: |
+          npm ci --ignore-scripts --no-fund --prefix products/sprintique
+          npm install --prefix "$RUNNER_TEMP/sprintique-browser-tools" --no-save --package-lock=false --ignore-scripts --no-fund playwright@1.62.1
+          node "$RUNNER_TEMP/sprintique-browser-tools/node_modules/playwright/cli.js" install --with-deps chromium
+      - name: Context, guard and shell regressions
+        working-directory: products/sprintique
+        run: |
+          npm run check:boundaries
+          node --import tsx --test --test-concurrency=1 tests/maps-task-origin.test.mjs tests/frontend-lifecycle.test.mjs tests/navigation-speed.test.mjs tests/work-model.test.mjs tests/page-surfaces.test.mjs
+      - name: Actual Maps and Task with native browser history
+        working-directory: products/sprintique
+        env:
+          PLAYWRIGHT_MODULE: ${{ runner.temp }}/sprintique-browser-tools/node_modules/playwright
+          PLAYWRIGHT_BROWSERS_PATH: ${{ runner.temp }}/sprintique-browsers
+          MAPS_SOURCE_REVISION: ${{ github.sha }}
+          MAPS_EVIDENCE_DIR: ${{ github.workspace }}/products/sprintique/output/maps-task-context
+        run: node tests/maps-task-browser.mjs
+      - name: Synthetic browser evidence
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: maps-task-context
+          path: products/sprintique/output/maps-task-context/
+          retention-days: 14
+          if-no-files-found: error

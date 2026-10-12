@@ -12,3 +12,5 @@
 - 2026-10-12T05:03:52Z · astra-root · checkpoint · S1 · дальше: Реальный synthetic render и независимый R1 immutable diff
 - 2026-10-12T05:03:52Z · astra-root · step · S1 · done: Actual MapTask host/route и совместимые Task tab callbacks; canonical links/guards сохраняются. Node10+34 PASS, boundaries/styles и Vite bundle PASS; browser/independent review pending.
 - 2026-10-12T05:03:52Z · astra-root · step · S2 · active
+- 2026-10-12T05:23:54Z · astra-root · checkpoint · S2 · дальше: Завершить synthetic fixture, заморозить следующий commit, независимый R2 и обновить PR75
+- 2026-10-12T05:33:38Z · astra-root · checkpoint · S2 · дальше: Опубликовать исправленный checkpoint, actual Chromium run, свежий независимый R2 и разбор кадров
