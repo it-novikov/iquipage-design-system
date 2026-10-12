@@ -8,7 +8,7 @@ owner: it-novikov
 branch: fix/task-overview-recovery
 base: 220af664ef561d3f5ff1b873122281ef352e8f25
 created: 2026-10-12
-updated: 2026-10-12T12:10:49Z
+updated: 2026-10-12T12:19:51Z
 links:
 ---
 
@@ -34,11 +34,11 @@ links:
 
 ## Передача
 
-- **Состояние:** Source R1 found two P2 verification gaps; corrected module-input prefix and discriminating literal sample; one build-only PASS, prior local evidence retained
-- **Сейчас:** S1 waiting for corrected exact review
-- **Дальше:** Preserve original R1 and corrected addendum, publish candidate for native CI
+- **Состояние:** Source R1 corrected APPROVED_FOR_NATIVE; both originals and public equal-tree mapping preserved; source pushed; native NOT_RUN
+- **Сейчас:** S2 publish PR and run native CI
+- **Дальше:** Inspect actual five semantic cases and two long-review captures, then independent native review
 - **Незакоммичено:** Только названные source/tests/workflow и карточка с predecessor evidence.
-- **Рабочая копия:** 3 файл(ов): products/sprintique/tests/fixtures/task-overview-state/README.md, products/sprintique/tests/fixtures/task-overview-state/data.mjs, products/sprintique/tests/task-overview-state-browser.mjs (5 files changed, 90 insertions(+), 42 deletions(-)) · HEAD 3655be30b
+- **Рабочая копия:** нет · HEAD 5fe776c7e
 - **Ловушки:**
   - Native Chromium локально не работает из-за отсутствия /proc и не повторяется. Полный vNext CI требует нативную среду. Исторические predecessor checks относятся к4f181ff, не к220af.
   - The initial136 input hashes contained dependencies only because a trailing-slash URL produced a double-slash product prefix; corrected inventory explicitly asserts actual product+fixture. Initial literal with Cyrillic tag text could not detect loss of escaping; ASCII em/entity sample now distinguishes it.
@@ -46,16 +46,17 @@ links:
 
 ## План
 
-### S1. Восстановить полезную сводку [active]
+### S1. Восстановить полезную сводку [done]
 
 - **Что:** Restore PR84 overview/model/CSS and scoped status; five behavioral cases and two passive frames.
 - **Как:** Exact source comparison, existing public DS54 and actual openTaskDialog; immutable v1, explicit v2 before runtime.
 - **Зачем:** Человек сразу видит нужную информацию и доступное действие.
 - **Покрывает:** A1, A2, A3
 - **Приёмка:**
-  - [ ] Восстановление ограничено названным scope; local/build и source review сохранены.
+  - [x] Восстановление ограничено названным scope; local/build и source review сохранены.
+- **Итог:** независимый R1 corrected APPROVED_FOR_NATIVE; two P2 verification gaps corrected;197 input hashes/61 product and12 compiled outputs verified. Native awaits CI.
 
-### S2. Проверить native и сохранить [todo]
+### S2. Проверить native и сохранить [active]
 
 - **Что:** Native semantic regression, current long-review captures, existing CI, independent review.
 - **Как:** Compiled current product and clean committed checkout, exact source/package hashes; preserve failures and evidence.
