@@ -402,6 +402,50 @@
         "productAdopted": false
       },
       "meaning": "Sequential observations, not an atomic snapshot. External main90 merge preserves the whole PR90 tree; root did not merge PRs, deploy or publish npm. Native R2 bytes preserved; automatic original56 PASS does not override CHANGES_REQUESTED. Source/build of new diagnostics is not fresh browser evidence."
+    },
+    {
+      "observedAt": "2026-10-12T14:45:04Z",
+      "main": "5d674ee06551b175fb5e9553c9866c11fb8fe4c0",
+      "mainTree": "6d4a4e4a66b7a46e6bda4f8378a0975def2aea7c",
+      "checkpoint": "continuation/2026-10-12-1438/README.md",
+      "machineState": "continuation/2026-10-12-1438/resume-state.json",
+      "task93": {
+        "head": "1a72ce5f8bc7cb1d872ae2945dfb7169d5a3fb47",
+        "tree": "7dd35ca5cb6ab8de77e3cff33850b16271a633f7",
+        "actualCheckout": "810fe0d64b5c90308b3cfafb5cc6638c2d9989ac",
+        "native": "APPROVE_IN_SCOPE; reviewer MD save failed/freeze pending",
+        "full": "SUCCESS;8/8 certificate checks verified in raw log",
+        "fullRun": 38259669939,
+        "fullArtifact": 11753347250,
+        "archiveIndividualHashesAndCounts": "PENDING"
+      },
+      "propertyClean56": {
+        "head": "5431ca9e54cead8f0e9c663240aa8aef3cacb963",
+        "actualCheckout": "f137578ab1999b717d206c2f5ad841c47f3c0902",
+        "actualTree": "5424e9860ac0cefb920dc3f4b8ea6142ae60f022",
+        "wholeTreeEqualsHead": false,
+        "verdict": "CONFIRMED_PAINTED_DEFECT / CHANGES_REQUESTED",
+        "planRevision": 3,
+        "productAdopted": false
+      },
+      "private57": {
+        "state": "LOCAL_WORK_IN_PROGRESS; NOT_PUSHED; NOT_FROZEN",
+        "archiveSHA256": "a3b5f9f2dcb2d15694c2f92380e6c12a2f4e51061ebbe03af22afdb61e696e6e",
+        "planRevision": 4,
+        "reportedDSNodeTests": 478,
+        "consumerBuilds": "NOT_RUN",
+        "native": "NOT_RUN"
+      },
+      "parallelPR92": {
+        "pr": 92,
+        "head": "975d9eef094ee43984d7783e0bc7d792d0afabf1",
+        "state": "open",
+        "merged": false,
+        "reviewedByRoot": false,
+        "coordination": "Inspect overlapping Task/Work copy before new F2/F3 edits; do not duplicate WP05 work"
+      },
+      "localEnvironment": "409 Conflict environment_offline; docs checkpoint published via authorized GitHub API, local source57 unpushed",
+      "meaning": "Sequential reads, not an atomic snapshot. Native visual findings kept distinct from CI checks. Original new reviewer freeze and complete ZIP/PNG preservation remain pending. No merge, deployment or npm publication."
     }
   ]
 }

@@ -1070,6 +1070,111 @@
       "encoding": "identity"
     },
     {
+      "path": "continuation/2026-10-12-1438/README.md",
+      "encoding": "derived-markdown",
+      "source_file": "Root synthesis of independently completed Task93 and clean56 reviews, exact new CI logs, author57 handoff and explicit unfinished freeze",
+      "bytes": 30671,
+      "sha256": "488727a8407017ff53af289428d5cd37deff2b56b58649c2874115a76e558940"
+    },
+    {
+      "path": "continuation/2026-10-12-1438/api/property-clean56-artifacts.json",
+      "encoding": "derived-json",
+      "source_file": "GitHub normalized artifacts response for run38259375504",
+      "bytes": 2581,
+      "sha256": "330df7cc1ab2f751e0afcbdd5bdc39b781c4abff00972087f44cde6c94b8db64"
+    },
+    {
+      "path": "continuation/2026-10-12-1438/api/property-clean56-jobs.json",
+      "encoding": "derived-json",
+      "source_file": "GitHub normalized completed jobs response for run38259375504",
+      "bytes": 4713,
+      "sha256": "de62ae41964fca76fc252d41d05dee759a8bad36b972c26c9ac8f24090e5c753"
+    },
+    {
+      "path": "continuation/2026-10-12-1438/api/task-full-artifacts.json",
+      "encoding": "derived-json",
+      "source_file": "GitHub normalized artifacts response for run38259669939",
+      "bytes": 1738,
+      "sha256": "b425b1ea7a4474e7da69a498cd067fccbc412f357bcf151377bf6f0c2019256a"
+    },
+    {
+      "path": "continuation/2026-10-12-1438/api/task-full-jobs.json",
+      "encoding": "derived-json",
+      "source_file": "GitHub normalized completed jobs response for run38259669939",
+      "bytes": 3481,
+      "sha256": "7de244255f2ebebba0489c51eed26c4ff70dee9847c066d95ad474e8b99b5fd9"
+    },
+    {
+      "path": "continuation/2026-10-12-1438/api/task-native-artifacts.json",
+      "encoding": "derived-json",
+      "source_file": "GitHub normalized artifacts response for run38259669835",
+      "bytes": 2580,
+      "sha256": "e6623c79ce608f705b68c5f234679ff65bc1f7e3683287a5c5098f6c5e02ec80"
+    },
+    {
+      "path": "continuation/2026-10-12-1438/api/task-native-jobs.json",
+      "encoding": "derived-json",
+      "source_file": "GitHub normalized latest-attempt jobs response for run38259669835",
+      "bytes": 2728,
+      "sha256": "a3807c04f7be3aa5e6b2f03c6ecfbac0149ce3f724714b2467c3146d50189dc5"
+    },
+    {
+      "path": "continuation/2026-10-12-1438/full-certificate-from-job-log.json",
+      "encoding": "derived-json",
+      "source_file": "Certificate JSON extracted from complete job114846668712 log by stripping timestamps; not claimed as materialized artifact original",
+      "bytes": 1581,
+      "sha256": "3a40497989f1a8a32ff04b91da8f14675916c28999c4fcb635bc610f2be03f27"
+    },
+    {
+      "path": "continuation/2026-10-12-1438/git/property-clean56-ci-checkout.json",
+      "encoding": "identity",
+      "source_file": "Exact GitHub Git commit JSON content forf137578ab1999b717d206c2f5ad841c47f3c0902",
+      "bytes": 2712,
+      "sha256": "33a1d0f402f88493605d46333ee2d5bdf99cc3aa2f99c2e179a4560ed408106a"
+    },
+    {
+      "path": "continuation/2026-10-12-1438/git/task93-ci-checkout.json",
+      "encoding": "identity",
+      "source_file": "Exact GitHub Git commit JSON content for810fe0d64b5c90308b3cfafb5cc6638c2d9989ac",
+      "bytes": 2712,
+      "sha256": "a01936686d10f2a2acb9cbbea5ff5e1d3c4f71c9ac9259a6acea24f47e444d6c"
+    },
+    {
+      "path": "continuation/2026-10-12-1438/provenance.json",
+      "encoding": "derived-json",
+      "source_file": "Hashes and exact provenance for this API-only text checkpoint; self excluded to avoid circular digest",
+      "bytes": 5416,
+      "sha256": "804a091b1da1a102517786fa42eef4c6ac0e14e44dbc8465ad69db12e1b6bfbb"
+    },
+    {
+      "path": "continuation/2026-10-12-1438/raw/property-clean56-job.log",
+      "encoding": "identity",
+      "source_file": "GitHub job114845659621 decoded UTF-8 log; byte/SHA matched independent clean56 native reviewer",
+      "bytes": 121620,
+      "sha256": "104e3368dce6ce22054a8b4c13119159425c75b6b85841e52d994e782861950c"
+    },
+    {
+      "path": "continuation/2026-10-12-1438/raw/task-full-job.log",
+      "encoding": "identity",
+      "source_file": "GitHub job114846668712 decoded UTF-8 log retrieved by root after completion; exact ending preserved",
+      "bytes": 290408,
+      "sha256": "469006a038bfa1f1551f72f67ae075fc50a4378a60d12b9d3916a7dd444b7477"
+    },
+    {
+      "path": "continuation/2026-10-12-1438/raw/task-native-job.log",
+      "encoding": "identity",
+      "source_file": "GitHub job114846667017 decoded UTF-8 log; byte/SHA matched independently frozen local native log",
+      "bytes": 58646,
+      "sha256": "964676ccce8493870f75ee5b2ee0bd2d25a6b24fc8a560190dfd0a42777faade"
+    },
+    {
+      "path": "continuation/2026-10-12-1438/resume-state.json",
+      "encoding": "derived-json",
+      "source_file": "Machine-readable root continuation state from exact GitHub metadata and author/reviewer handoffs; 2026-10-12 14:45 UTC",
+      "bytes": 11220,
+      "sha256": "50ba2a1d64a18f21991b6bf967c0976a904eafaa661f10b8901c2a010cbdcb40"
+    },
+    {
       "path": "native/estimate/README.md",
       "source_file": "Trusted estimate-native metadata, exact estimate/tabs/maps raw results and job logs, frozen acceptance plan and verified PNG inventory",
       "bytes": 13454,
@@ -3087,9 +3192,9 @@
     {
       "path": "observed-repository-state.json",
       "encoding": "derived-json",
-      "bytes": 19040,
-      "sha256": "1245a0a970e48fbe9f4446026844179ec85559ea9faf11fe89050ff815279bc4",
-      "source_file": "GitHub API observations at 2026-10-12T09:50:59Z and subsequent snapshots; append-only PR83/84/85 + main snapshot from research/continuation/after-evidence-pr-observation.json at 2026-10-12T11:27:00Z; exact CI from ci/estimate"
+      "bytes": 21233,
+      "sha256": "422517c5aa54d2f3ee1b8d1c36be841bf9f5d91824aa6ec69e43a675a63c791a",
+      "source_file": "GitHub API observations at 2026-10-12T09:50:59Z and subsequent snapshots; append-only PR83/84/85 + main snapshot from research/continuation/after-evidence-pr-observation.json at 2026-10-12T11:27:00Z; exact CI from ci/estimate; append-only Task93/clean56/private57 observation at 2026-10-12T14:45:04Z with continuation/2026-10-12-1438/resume-state.json"
     },
     {
       "path": "property-list/README.md",
