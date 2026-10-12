@@ -8,7 +8,7 @@ owner: it-novikov
 branch: fix/planning-required-dates
 base: 2424d4724ec411c84b54b85634dbf54228b0ebd8
 created: 2026-10-12
-updated: 2026-10-12T08:31:40Z
+updated: 2026-10-12T08:44:08Z
 links:
 ---
 
@@ -32,14 +32,14 @@ links:
 
 ## Передача
 
-- **Состояние:** Implementation cdfd23f9 / tree 76d2702a; product code fixed and local evidence complete. Independent review and exact candidate CI remain pending.
-- **Сейчас:** S3 — root review/publication handoff
-- **Дальше:** Root independently reviews the final branch HEAD/tree, publishes a separate PR and checks exact CI.
-- **Незакоммичено:** Only this handoff metadata after cdfd23f9; no product/dependency changes. Final worktree cleanliness is verified after the handoff commit.
-- **Рабочая копия:** нет · HEAD cdfd23f9 · снято 2026-10-12T08:31:40Z
+- **Состояние:** Independent R1 scoped approve on frozen 0f95d415; immutable original preserved, caller unchanged
+- **Сейчас:** S3 — publish reviewed checkpoint and accept its full CI
+- **Дальше:** Create feature PR from exact reviewed runtime plus this documentation; inspect actual full CI
+- **Незакоммичено:** Review original/wrapper and handoff metadata only; no product delta after 0f95d415
+- **Рабочая копия:** нет · HEAD e6f072bf · снято 2026-10-12T08:44:08Z
 - **Ловушки:** На данной базе исследовательский план ещё не слит; его точный source указан в Контексте. Известные ограничения /proc для Chromium/TS7/JDK25/PG18 повторно не диагностировать; npm install и новый browser harness вне scope.
-- **Проверка:** Task Context records 7/7 model/date tests, syntax, boundaries/styles, exact .52 public binding and source-only semantics; browser/native/full gates NOT_RUN.
-- **Причина:** review — gpt-6-astra-required-dates, 2026-10-12T08:31:40Z, передано root: Implementation authored cdfd23f9fe857dfa4e9a22e4c541799b95926187; tree 76d2702a41628e8c5e431aee01f04e84b9ffadf0. Two required attrs, exact .52, actual local evidence preserved. Root owns independent review and every remote mutation; no UI/native/full PASS claimed.
+- **Проверка:** R1 source/package 176/176, 7/7 existing tests and syntax/boundary/style/diff/bridge PASS; browser/human/full candidate CI not yet run
+- **Причина:** planned — gpt-6-astra-root, 2026-10-12T08:44:08Z, передано gpt-6-astra-root: Documentation heading normalized inside Context; original review and product runtime unchanged. Publishing exact checkpoint now.
 
 ## План
 
@@ -104,3 +104,7 @@ links:
 | Source/parity/self-review diff | Только два `required` у start/end. Shared create/edit, optional deadline/dueEditor, empty/range guards и DS events/reset/form semantics прочитаны; handlers и package не изменены. |
 | `git diff --check`; `bridge check 20261012-planning-required-dates` | PASS. |
 | Typecheck/build, native/full tests, real browser (clear/selection/keyboard/reset/submit), HTTP/DB, human/production acceptance | NOT_RUN; известные ограничения /proc и недоступные native prerequisites не повторялись. Full CI выполняет root после публикации; source baseline CI не считается проверкой patch. |
+
+### Независимый review checkpoint перед публикацией
+
+R1: **scoped approve**, новых P0–P3 нет. Reviewed `0f95d415547f09520ca5be728c76342eb476dba2`, tree `ac08b693216d1c800756aca62b6c38a4fa32fc26`; [полный оригинал](reviews/evidence/independent-R1.md), SHA256 `61004a3968362f180c6edeb21463eecfba2811403f8e9c899c829d6040aca1d8`. Root сохраняет оригинал и wrapper, runtime/package/handlers после review не меняет. Reviewer отдельно проверил точный archive/installed contract, повторил 7 existing tests с указанной в отзыве provenance и сохранил границу source/model vs browser. A3/S3 остаются открыты до полного CI именно публикуемого checkpoint.
