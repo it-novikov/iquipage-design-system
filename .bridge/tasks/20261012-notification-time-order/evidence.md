@@ -43,17 +43,25 @@ Environment: Node `v24.19.0`, npm `11.9.0`.
 | `bridge check 20261012-notification-time-order` | PASS. |
 | `npm run build` | BLOCKED before typecheck completed: installed TypeScript-Go panics on `readlink /proc/self/exe: no such file or directory`. Vite build was not reached. No compiler/runtime/lock substitution was made. |
 | Kotlin/PostgreSQL API, detached extraction, portable image | NOT RUN locally; JDK25/PG18 unavailable in this environment. |
-| Independent review | R1 changes-requested on the original frozen tree; two targeted corrections implemented, R2 confirmation pending. |
+| Independent review | R1 changes-requested on the original tree; R2 independently approves scoped code/test review of `9943d62a` (published alias `fedf04cb`, same tree), closes F1/F2. Actual CI remains pending. |
 
 ## R1 corrections
 
-[Canonical R1 index](reviews/R1.md) links the complete independent report preserved verbatim. F1 identified the millisecond-aligned cursor-boundary gap; its fixture is now `.500001Z`. F2 identified that read-by-id had already consumed the inclusive cutoff row; it now reads ordinal 3 and explicitly leaves ordinal 1 unread. No production behavior changed. These are author corrections pending independent R2 and real CI, not an author-issued approve or a runtime PASS. The historical R1 findings/verdict remain unchanged.
+[Canonical R1 index](reviews/R1.md) links the complete independent report preserved verbatim. F1 identified the millisecond-aligned cursor-boundary gap; its fixture is now `.500001Z`. F2 identified that read-by-id had already consumed the inclusive cutoff row; it now reads ordinal 3 and explicitly leaves ordinal 1 unread. No production behavior changed. Independent [R2](reviews/R2.md) confirmed both corrections in frozen `9943d62a6036f5052a13dbedb0713204d9407e59`; this is scoped code/test approval, not runtime PASS. Canonical R1 resolutions now link that confirmation. The historical original R1 findings/verdict remain unchanged, and real CI remains pending.
 
 Post-R1 Node syntax, boundaries/styles, diff whitespace and bridge checks passed. A small integer predicate analysis of the corrected source's fixture also distinguishes both negative controls: exact cursor `(500001µs,9)` returns IDs `8..4`, while its millisecond truncation returns none; inclusive read-all leaves `[26]`, while strict read-all leaves `[1,26]`. This is a mathematical model, not PostgreSQL/API evidence. The known native `/proc` build blocker was not retried.
 
+## R2 evidence and publication checkpoint
+
+The [complete independent R2](reviews/evidence/independent-R2.md) is preserved verbatim (11,130 bytes), SHA256 `248d0841397f4818610a006017331c962aa81ec7ec4c2c8727ec30d5581ff23c`; [the canonical R2 index](reviews/R2.md) records scope, exact identities and the F1/F2 closure. Authored `9943d62a6036f5052a13dbedb0713204d9407e59` and published PR78 head `fedf04cb8e4c443b2e4567fb473a1f600868f2bc` have identical tree `4cea6e5c7bbbcf24b9284fa2516dcf8dca3ba709`. R1 bytes still match their original SHA256 `d39ac91a0e968607e3c95305ca1c6dcfb5389596846fa5cdc8b41b0392c62543`.
+
+This final pre-CI documentation checkpoint changes bridge files only. Code review is complete; PR78 is waiting for actual CI. Root reported the initial run [38218385123](https://github.com/it-novikov/iquipage-design-system/actions/runs/38218385123) had started on `fedf04cb`; its completed logs/certificate were not inspected in this checkpoint. Publication of this documentation commit may supersede that run, so the next handoff must verify the actual published head and matching run. Do not publish further documentation-only checkpoints until useful CI results arrive. A1–A3 and full readiness remain open.
+
+Only bridge format and diff checks are required for this documentation delta; no runtime/test source changed and the known local native build blocker was not retried.
+
 ## Reproduction and next gate
 
-The default existing vNext workflow runs NT05 against real ephemeral services and again in detached extraction. Root publishes the immutable candidate; then read the certificate, raw `product-tests.log` / `detached-product.log` and the NT05 diagnostic. Full readiness remains open until the applicable checks and independent review pass.
+The default existing vNext workflow runs NT05 against real ephemeral services and again in detached extraction. Root publishes this last pre-CI documentation checkpoint; then inspect the matching completed certificate, raw `product-tests.log` / `detached-product.log` and the NT05 diagnostic. Independent scoped code review has passed; full readiness remains open until the applicable real CI checks pass.
 
 For an environment with actual local JDK25/PostgreSQL18, the existing non-Docker runner can scope the Node file with `node scripts/test.mjs --only=notifications.test.ts` from the product. Docker mode currently does not honor `--only`; use its full existing gate rather than claiming a scoped Docker result. No workflow changes or reruns are part of this patch.
 

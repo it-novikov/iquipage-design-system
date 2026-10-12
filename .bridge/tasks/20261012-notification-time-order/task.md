@@ -8,7 +8,7 @@ owner: it-novikov
 branch: test/notification-time-order
 base: f5f941afa4e9be8a709e6de67a92bacf5a9397ca
 created: 2026-10-12
-updated: 2026-10-12T07:31:02Z
+updated: 2026-10-12T07:41:15Z
 links:
 ---
 
@@ -32,19 +32,20 @@ PR76 full CI 38212609809 завершился с 566 PASS / 1 FAIL: NT05 сра�
 
 ## Передача
 
-- **Состояние:** R1 changes-requested preserved verbatim and indexed. F1/F2 test-only corrections implemented; independent R2 and actual CI pending.
-- **Сейчас:** S2 — freeze corrected test candidate for R2 and root publication
-- **Дальше:** Independent reviewer checks new frozen diff; root opens PR and inspects real NT05/certificate evidence.
-- **Незакоммичено:** NT05 correction and bridge/evidence/review files only.
-- **Рабочая копия:** 1 файл(ов): products/sprintique/tests/notifications.test.ts (4 files changed, 28 insertions(+), 13 deletions(-)) · HEAD 44954a33 · снято 2026-10-12T07:31:02Z
+- **Состояние:** Code/test review complete: independent R2 approve, F1/F2 fixed in 9943d62a = published fedf04cb by tree. PR78 branch review waiting for real CI; A1-A3 and full PASS remain open.
+- **Сейчас:** S2 — candidate and independent code review complete; strict build/backend CI pending
+- **Дальше:** Root publishes this last documentation checkpoint, then inspects the matching completed NT05 diagnostic, certificate and full backend/extraction gate; no further docs-only publication before CI results.
+- **Незакоммичено:** Bridge review/evidence/card/journal only; products/sprintique/tests/notifications.test.ts unchanged from fedf04cb.
+- **Рабочая копия:** нет · HEAD fedf04cb · снято 2026-10-12T07:41:15Z
 - **Ловушки:**
   - Global dan already has NT02 notification; never assert a fixed total against that shared recipient.
   - Docker test runner does not honor --only; default local runner does. Do not advertise a focused Docker command that still silently runs all tests.
   - No local JDK25/PG18: real backend NOT RUN until GitHub CI.
   - Official typecheck cannot start locally: TypeScript-Go readlink /proc/self/exe missing. Node syntax PASS is not typecheck PASS.
-  - Original R1 decisions remain open historically; author implementation is not independent closure. R2 and real backend still required.
-- **Проверка:** Post-R1 Node syntax, boundaries/styles, diff whitespace and integer countermodel PASS; native /proc-blocked build deliberately not repeated; backend NOT RUN.
-- **Причина:** planned — gpt-6-astra-notification-order, 2026-10-12T07:31:02Z, передано root: R1 F1/F2 corrected in NT05; original review preserved and canonical index added. Publish frozen correction and request R2; actual CI/acceptance still pending.
+  - R1 original stays immutable; R2 independently closed F1/F2 for code/test only. Actual serializer evidence, A1–A3 and full readiness remain open.
+  - This is the final documentation checkpoint before CI results; do not publish additional docs-only changes that supersede the long run.
+- **Проверка:** Docs-only: bridge check and git diff --check PASS; R1/R2 archived bytes/digests and reviewed/published parent/tree aliases PASS; test/runtime source unchanged. Native build/backend not rerun; A1-A3 and real CI pending.
+- **Причина:** planned — gpt-6-astra-notification-order, 2026-10-12T07:41:15Z, передано root: Independent R2 original and canonical index preserved; F1/F2 resolutions link the separate scoped approve on 9943d62a = fedf04cb by tree. Publish this final docs checkpoint, then wait for matching real CI/NT05 evidence. Code review done; A1-A3/full readiness open. No further docs-only publication before CI results; writer released.
 
 ## План
 
@@ -82,6 +83,7 @@ PR76 full CI 38212609809 завершился с 566 PASS / 1 FAIL: NT05 сра�
 
 - **D1** (2026-10-12) Fixture with expected IDs, not a general date comparator: SQL order can be verified without parsing away microseconds; an equal-timestamp group crosses the page boundary.
 - **D2** (2026-10-12) R1 F1/F2 accepted: cursor tie carries 1us; read-by-id targets ordinal 3 so the inclusive cutoff remains unread until read-all. Exact ID expectations and old-predicate diagnostic remain unchanged.
+- **D3** (2026-10-12) Independent R2 approves scoped code/test on 9943d62a (published fedf04cb, identical tree); close F1/F2 in the canonical R1 only, preserve both original reports. A1-A3 and full readiness remain pending actual CI.
 
 ## Вопросы
 
@@ -92,5 +94,6 @@ PR76 full CI 38212609809 завершился с 566 PASS / 1 FAIL: NT05 сра�
 - Failure: https://github.com/it-novikov/iquipage-design-system/actions/runs/38212609809/job/114690036607 ; artifact 11730566938 SHA256 01f4e920548357ba713cd6d82e4c41d37d7684259078d14c0ba9fa27309d4ba9.
 - Tests: products/sprintique/tests/notifications.test.ts; immutable baseline f5f941afa4e9be8a709e6de67a92bacf5a9397ca.
 - Source contract: Notifications.kt page ORDER BY created_at DESC,id DESC and Instant.toString; read-all uses exact timestamptz cutoff.
+- PR78: https://github.com/it-novikov/iquipage-design-system/pull/78 ; reviewed local 9943d62a6036f5052a13dbedb0713204d9407e59 = published fedf04cb8e4c443b2e4567fb473a1f600868f2bc by tree 4cea6e5c7bbbcf24b9284fa2516dcf8dca3ba709. R2 code/test approve only; initial CI 38218385123 has no completed evidence recorded here.
 - Plan and validation evidence: evidence.md beside this card. Scratch investigation: research/continuation/nt05/.
 - User explicitly lifted PR quota; the separate rules change is root-owned. No local rules/cap edits are part of this test correction.
