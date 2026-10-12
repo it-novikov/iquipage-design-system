@@ -12,12 +12,12 @@ const require=createRequire(import.meta.url);
 const {chromium}=require(process.env.PLANNING_PLAYWRIGHT_MODULE||process.env.PLAYWRIGHT_MODULE||'playwright');
 const product=fileURLToPath(new URL('../',import.meta.url));
 const evidence=resolve(process.env.PLANNING_EVIDENCE_DIR||join(product,'output/planning-selection'));
-const expectedVersion='0.6.0-vnext.52';
-const expectedArchive='989fab4822db78e10bfeeb62ad2724d8bb389a08ddf012c196b469af33cde758';
+const expectedVersion='0.6.0-vnext.54';
+const expectedArchive='a726a4536e532fc556f615d0b1a9cda1873dc111e6090710329b9ec1b8204457';
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 const archive=join(product,'vendor',`iquipage-web-${expectedVersion}.tgz`);
 const installed=JSON.parse(await readFile(join(product,'node_modules/@iquipage/web/package.json'),'utf8'));
-assert.equal(installed.version,expectedVersion,'fixture must use the product .52 package');
+assert.equal(installed.version,expectedVersion,'fixture must use the product .54 package');
 assert.equal(hash(await readFile(archive)),expectedArchive,'unexpected vendor bytes');
 await mkdir(evidence,{recursive:true});
 const result={
