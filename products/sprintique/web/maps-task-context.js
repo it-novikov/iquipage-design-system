@@ -40,14 +40,14 @@ export function createMapsTaskContext({root,maps,repository,project,openDialog,c
   }
   async function openTask(id,{fromRoute=false,section:nextSection='task',reload=false}={}){
     if(destroyed||!maps.current)return false;
-    const hadTask=!!modal||!!parseMapRoute(location.hash)?.taskKey,origin=maps.current.id;
+    const requestedHash=location.hash,hadTask=!!modal||!!parseMapRoute(requestedHash)?.taskKey,origin=maps.current.id;
     cancelOpening();const intent=generation;
     if(!reload&&modal&&(modal.taskController.taskId===id||modal.taskController.taskKey===id)){
       section=modal.taskController.setSection?.(nextSection)||nextSection;writeRoute(routeHash());return modal;
     }
     if(!hadTask)opener=document.activeElement;
     const request=new AbortController();opening=request;
-    const active=()=>!destroyed&&!request.signal.aborted&&generation===intent&&maps.current?.id===origin;
+    const active=()=>!destroyed&&!request.signal.aborted&&generation===intent&&maps.current?.id===origin&&(!fromRoute||location.hash===requestedHash);
     try{
       const task=await repository.read('tasks',id,project.id,{signal:request.signal});
       if(!active())return false;if(!task||task.projectId!==project.id)throw Error('Задача недоступна в этом проекте. Текущий контекст остаётся открытым.');
@@ -110,7 +110,7 @@ export function createMapsTaskContext({root,maps,repository,project,openDialog,c
     finally{if(opening===request)opening=null;}
   }
   return {
-    openTask,openRoute,get routeHash(){return routeHash();},currentTask:()=>modal?.taskController.taskKey||null,
+    openTask,openRoute,cancelRoute:cancelOpening,get routeHash(){return routeHash();},currentTask:()=>modal?.taskController.taskKey||null,
     async closeTask(){
       cancelOpening();
       if(!await closeCurrent('leave')){writeRoute(routeHash());return false;}

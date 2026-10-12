@@ -16,3 +16,4 @@
 - 2026-10-12T05:33:38Z · astra-root · checkpoint · S2 · дальше: Опубликовать исправленный checkpoint, actual Chromium run, свежий независимый R2 и разбор кадров
 - 2026-10-12T05:51:08Z · astra-root · claim · - · взял задачу
 - 2026-10-12T05:51:41Z · astra-root · checkpoint · S2 · дальше: Finish R2 runtime fixes/regressions, then native Chromium and independent verification in PR75
+- 2026-10-12T06:03:48Z · astra-root · checkpoint · S2 · дальше: Publish checkpoint to PR75; inspect expanded current Chromium evidence and independently verify queued-intent fix

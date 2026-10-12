@@ -18,10 +18,10 @@ const params=new URLSearchParams(location.search),theme=params.get('theme')==='d
 document.documentElement.dataset.theme=theme;
 registerCore();
 if(!location.hash)history.replaceState(null,'','#maps/map-a');
-const fixture=syntheticRepository(),root=document.querySelector('#host-view');
+const fixture=syntheticRepository({initialFault:params.get('fault')}),root=document.querySelector('#host-view');
 let host,firstBoard,firstInspector,opener,rememberedTask;
 const probe={ready:false,bootstrapError:null,routeErrors:[],historyEvents:[],peakOpenTaskDialogs:0,
-  reads:fixture.reads,unsupported:fixture.unsupported,controls:fixture.controls};
+  reads:fixture.reads,unsupported:fixture.unsupported,attempts:fixture.attempts,controls:fixture.controls};
 window.mapsTaskProbe=probe;
 const board=()=>root.querySelector('iq-whiteboard');
 const taskDialog=()=>document.querySelector('iq-dialog.task-edit-dialog');

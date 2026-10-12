@@ -23,9 +23,11 @@ export const maps=[
 ];
 const links=[{id:'related-1-2',projectId:project.id,revision:1,kind:'related',fromId:'task-1',toId:'task-2',archivedAt:null}];
 
-export function syntheticRepository(){
-  const reads=[],unsupported=[],signalTasks=new WeakMap();
-  let nextNull=null,nextSupport=null,pendingSupport=null;
+export function syntheticRepository({initialFault=null}={}){
+  const reads=[],unsupported=[],attempts=[],signalTasks=new WeakMap();
+  let nextNull=null,nextSupport=initialFault==='initial-support'?{taskId:'task-1',kind:'delay'}:null,pendingSupport=null;
+  let nextTaskRead=initialFault==='initial-task'?{taskId:'task-1',kind:'delay'}:null,pendingTaskRead=null;
+  let failMapList=initialFault==='initial-map',conflictWrite=false;
   const clone=value=>structuredClone(value);
   const check=options=>options?.signal?.throwIfAborted();
   const unexpected=operation=>{unsupported.push(operation);throw Error('Unsupported synthetic operation: '+operation);};
@@ -41,6 +43,11 @@ export function syntheticRepository(){
         const found=tasks.find(row=>row.id===id||row.displayId===id);
         if(options.signal&&found)signalTasks.set(options.signal,found.id);
         if(nextNull===found?.id){nextNull=null;return null;}
+        if(nextTaskRead&&nextTaskRead.taskId===found?.id){
+          const fault=nextTaskRead;nextTaskRead=null;
+          if(fault.kind==='reject')throw Error('Synthetic Task read failed');
+          return new Promise(resolve=>{pendingTaskRead={signal:options.signal,resolve,value:clone(found)};});
+        }
         return clone(found||null);
       }
       return unexpected('read '+collection);
@@ -48,7 +55,10 @@ export function syntheticRepository(){
     async list(collection,projectId,options={}){
       check(options);if(projectId!==project.id)return unexpected('list from another project');
       reads.push({operation:'list',collection});
-      if(collection==='maps')return clone(maps);
+      if(collection==='maps'){
+        if(failMapList){failMapList=false;throw Error('Synthetic initial Maps list failed');}
+        return clone(maps);
+      }
       if(collection==='members')return [clone(person)];
       if(collection==='taskLinks')return clone(links);
       if(collection==='taskSettings'&&nextSupport&&signalTasks.get(options.signal)===nextSupport.taskId){
@@ -66,7 +76,13 @@ export function syntheticRepository(){
       return {estimateFormat:'time',hoursPerDay:8,hoursPerWeek:40};
     },
     subscribe(){return ()=>{};},
-    async write(collection){return unexpected('write '+collection);},
+    async write(collection,value){
+      if(collection==='tasks'&&conflictWrite){
+        conflictWrite=false;attempts.push({collection,id:value.id,outcome:'synthetic-conflict-no-write'});
+        throw Object.assign(Error('Synthetic task revision conflict'),{code:'CONFLICT'});
+      }
+      return unexpected('write '+collection);
+    },
     client:{async request(path,method='GET',_body,_key,signal){
       signal?.throwIfAborted();reads.push({operation:method,path});
       if(method==='GET'&&/^\/projects\/fixture-project\/tasks\/task-[12]\/work$/.test(path))
@@ -78,8 +94,12 @@ export function syntheticRepository(){
     nullNextTask(taskId='task-2'){nextNull=taskId;},
     rejectNextSupport(taskId='task-2'){nextSupport={taskId,kind:'reject'};},
     delayNextSupport(taskId='task-2'){nextSupport={taskId,kind:'delay'};},
+    rejectNextTaskRead(taskId='task-1'){nextTaskRead={taskId,kind:'reject'};},
+    conflictNextTaskWrite(){conflictWrite=true;},
+    taskReadState(){return pendingTaskRead?{pending:true,aborted:pendingTaskRead.signal.aborted}:{pending:false};},
+    releaseTaskRead(){if(!pendingTaskRead)throw Error('No delayed Task read');const gate=pendingTaskRead;pendingTaskRead=null;gate.resolve(gate.value);},
     supportState(){return pendingSupport?{pending:true,taskId:pendingSupport.taskId,aborted:pendingSupport.signal.aborted}:{pending:false};},
     releaseSupport(){if(!pendingSupport)throw Error('No delayed support read');const gate=pendingSupport;pendingSupport=null;gate.resolve([]);},
   };
-  return {repository,controls,reads,unsupported};
+  return {repository,controls,reads,unsupported,attempts};
 }

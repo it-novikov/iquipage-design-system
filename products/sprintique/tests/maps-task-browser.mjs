@@ -25,7 +25,7 @@ assert.equal(installed.version,version,'fixture requires the current product pac
 assert.equal(sha(await readFile(join(product,`vendor/iquipage-web-${version}.tgz`))),archiveSHA,'vendor archive changed');
 await mkdir(evidence,{recursive:true});
 const result={scope:'Isolated actual Maps host, whiteboard, Task and native history; synthetic reads; no main.js/bootstrap, backend, persistence or grants claim',
-  status:'NOT_RUN',buildOnly,sourceRevision:process.env.MAPS_SOURCE_REVISION||null,createdAt:new Date().toISOString(),package:version,archiveSHA256:archiveSHA,node:process.version,profiles:[],pageErrors:[],externalRequests:[],sourceSHA256:{}};
+  status:'NOT_RUN',buildOnly,sourceRevision:process.env.MAPS_SOURCE_REVISION||null,createdAt:new Date().toISOString(),package:version,archiveSHA256:archiveSHA,node:process.version,profiles:[],mountRecovery:[],pageErrors:[],externalRequests:[],sourceSHA256:{}};
 for(const file of ['web/maps-host.js','web/maps-task-context.js','web/maps-route.js','ui/src/maps.js','ui/src/board/task-dialog.js','ui/src/board/link-view.js',
   'ui/src/maps.css','ui/src/board/board.css','tests/fixtures/maps-task-context/main.js','tests/fixtures/maps-task-context/repository.js'])
   result.sourceSHA256[file]=sha(await readFile(join(product,file)));
@@ -53,6 +53,79 @@ function sameMap(value,baseline,label){
 }
 async function openFromMap(page){await page.locator('[data-open-linked-task]').click();await waitTask(page,'MFX-101');}
 async function linkTo(page,id){await task(page).locator(`iq-relation-map [data-rm-open="${id}"]`).click();}
+
+async function reloadDraftChecks(page,entry,baseline){
+  for(const failure of ['task-read','support-read']){
+    entry.phase='failed reload '+failure+' preserves a new comment';
+    await openFromMap(page);
+    const title=task(page).locator('textarea[name="title"]'),original=await title.inputValue();
+    await page.evaluate(()=>{window.mapsTaskProbe.rememberTask();window.mapsTaskProbe.controls.conflictNextTaskWrite();});
+    await title.fill(original+' — несохранённая правка');
+    const reload=task(page).locator('[data-save-action="reload"]');await reload.waitFor({state:'visible'});
+    await page.evaluate(failure=>{
+      const c=window.mapsTaskProbe.controls;
+      if(failure==='task-read')c.rejectNextTaskRead();else c.rejectNextSupport('task-1');
+    },failure);
+    await reload.click();
+    await page.waitForFunction(()=>document.querySelector('.task-edit-dialog [data-task-save-state]')?.textContent.includes('Не удалось обновить задачу'));
+    assert.equal((await inspect(page)).sameRememberedTask,true,'failed reload retains the original live Task');
+    // The old field edit is restored; the new comment alone must still trigger the guard.
+    await title.fill(original);
+    const composer=task(page).locator('iq-markdown-editor[name="new-discussion"] textarea');
+    const draft='Новый комментарий после ошибки '+failure;await composer.fill(draft);
+    assert.equal(await task(page).evaluate(el=>el.taskController.dirty()),true);
+    await page.goBack();
+    const confirmation=page.locator('iq-dialog:not(.task-edit-dialog)').filter({has:page.getByRole('heading',{name:'Закрыть без сохранения?',exact:true})});
+    await confirmation.waitFor({state:'visible'});await confirmation.getByRole('button',{name:'Отмена',exact:true}).click();
+    await confirmation.waitFor({state:'detached'});await waitTask(page,'MFX-101');
+    await page.waitForFunction(()=>location.hash==='#maps/map-a/task/MFX-101');
+    assert.equal(await composer.inputValue(),draft);sameMap(await inspect(page),baseline,entry.phase);
+    await page.screenshot({path:join(evidence,entry.name+'-reload-'+failure+'-draft.png')});
+    await composer.fill('');await closeButton(page).click();await waitMap(page);
+    entry.checks.push('actual conflict/reload '+failure+' failure, new comment, native Back refusal and preserved draft');
+  }
+  entry.rejectedWriteAttempts=await page.evaluate(()=>window.mapsTaskProbe.attempts);
+  assert.deepEqual(entry.rejectedWriteAttempts,[{collection:'tasks',id:'task-1',outcome:'synthetic-conflict-no-write'},{collection:'tasks',id:'task-1',outcome:'synthetic-conflict-no-write'}]);
+}
+
+async function mountRecoveryChecks(baseURL){
+  const cases=[{fault:'initial-map',target:'#maps/map-a/task/MFX-101'},
+    ...['initial-task','initial-support'].flatMap(fault=>['#maps/map-a','#maps/map-a/task/MFX-102/work'].map(target=>({fault,target})))];
+  for(const options of cases){
+    const entry={...options,name:options.fault+(options.target.endsWith('/work')?'-new-task':'-map'),status:'RUNNING'};result.mountRecovery.push(entry);
+    const context=await browser.newContext({viewport:{width:1280,height:720},reducedMotion:'reduce',locale:'ru-RU',timezoneId:'UTC'});
+    const page=await context.newPage();page.setDefaultTimeout(15000);
+    page.on('pageerror',error=>result.pageErrors.push({profile:entry.name,message:error.message}));
+    await context.route('**/*',route=>{
+      if(new URL(route.request().url()).origin!==new URL(baseURL).origin){result.externalRequests.push(route.request().url());return route.abort();}
+      return route.continue();
+    });
+    try{
+      await page.goto(`${baseURL}?theme=light&project=fixture&fault=${options.fault}#maps/map-a/task/MFX-101`,{waitUntil:'commit'});
+      if(options.fault==='initial-map'){
+        await page.waitForFunction(()=>window.mapsTaskProbe?.ready||window.mapsTaskProbe?.bootstrapError);
+        assert.equal(await page.evaluate(()=>window.mapsTaskProbe.bootstrapError),null);
+        assert.equal((await inspect(page)).currentTask,null);
+        await page.getByRole('button',{name:'Повторить загрузку',exact:true}).click();await waitTask(page,'MFX-101');
+      }else{
+        const support=options.fault==='initial-support';
+        await page.waitForFunction(support=>{const c=window.mapsTaskProbe?.controls;return c&&(support?c.supportState():c.taskReadState()).pending;},support);
+        await page.evaluate(target=>{location.hash=target;},options.target);
+        await page.waitForFunction(support=>{const c=window.mapsTaskProbe.controls;return (support?c.supportState():c.taskReadState()).aborted;},support);
+        await page.evaluate(support=>{const c=window.mapsTaskProbe.controls;support?c.releaseSupport():c.releaseTaskRead();},support);
+        await page.waitForFunction(()=>window.mapsTaskProbe.ready||window.mapsTaskProbe.bootstrapError);
+        assert.equal(await page.evaluate(()=>window.mapsTaskProbe.bootstrapError),null);
+        if(options.target.endsWith('/work'))await waitTask(page,'MFX-102');else await waitMap(page);
+      }
+      entry.final=await inspect(page);assert.equal(entry.final.hash,options.target);assert.equal(entry.final.mapId,'map-a');
+      assert.deepEqual(entry.final.taskIds,options.target.endsWith('/work')?['task-2']:options.fault==='initial-map'?['task-1']:[]);
+      assert.deepEqual(await page.evaluate(()=>window.mapsTaskProbe.unsupported),[]);
+      assert.deepEqual(await page.evaluate(()=>window.mapsTaskProbe.routeErrors),[]);
+      await page.screenshot({path:join(evidence,entry.name+'-recovery.png')});entry.status='PASS';
+    }catch(error){entry.status='FAIL';entry.error=error.stack;await page.screenshot({path:join(evidence,entry.name+'-failure.png')}).catch(()=>{});throw error;}
+    finally{await context.close();}
+  }
+}
 
 async function handoffAndDraftChecks(page,entry,baseline){
   entry.phase='related task null response';
@@ -151,7 +224,7 @@ async function profile(options,baseURL){
     await page.waitForFunction(()=>location.hash==='#maps/map-a/task/MFX-101');
     await closeButton(page).click();await waitMap(page);
     entry.checks.push('Escape, native Back/Forward and Task tab retain the contextual route');
-    if(options.deep)await handoffAndDraftChecks(page,entry,baseline);
+    if(options.deep){await handoffAndDraftChecks(page,entry,baseline);await reloadDraftChecks(page,entry,baseline);}
     entry.final=await inspect(page);sameMap(entry.final,baseline,'final return');
     entry.peakOpenTaskDialogs=await page.evaluate(()=>window.mapsTaskProbe.peakOpenTaskDialogs);
     assert.equal(entry.peakOpenTaskDialogs,1,'at most one native Task is observed open');
@@ -188,6 +261,7 @@ try{
       {name:'narrow-light',viewport:{width:390,height:844},theme:'light'},
       {name:'narrow-dark',viewport:{width:390,height:844},theme:'dark'},
     ])await profile(options,baseURL);
+    await mountRecoveryChecks(baseURL);
     assert.deepEqual(result.pageErrors,[],'no uncaught frontend error');assert.deepEqual(result.externalRequests,[],'only local fixture resources');
     result.status='PASS';result.browserChecks='PASS';
   }

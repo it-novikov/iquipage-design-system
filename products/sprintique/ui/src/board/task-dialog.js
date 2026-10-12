@@ -430,7 +430,11 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
         saveState.addEventListener('click',event=>{
           const action=event.target.closest('[data-save-action]')?.dataset.saveAction;
           if(action==='retry')void flush();
-          if(action==='reload'){discarded=true;if(onReload)void onReload();else el.close();}
+          if(action==='reload'){
+            // Keep the live form guarded until its replacement succeeds. A failed read leaves it editable.
+            if(onReload)void Promise.resolve().then(()=>onReload()).catch(error=>showState('Не удалось обновить задачу: '+(error.message||'ошибка сети'),{error:true,action:'reload'}));
+            else{discarded=true;el.close();}
+          }
         });
       }
       let setSection=()=> 'task';
@@ -447,14 +451,14 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
         if(autosave&&!discarded)await flush();
         else if(saving)return false;
         if(!dirty()){if(!keepOpen)el.close();return true;}
-        confirming=true;
+        confirming=true;let accepted=false;
         const confirm=dialog({
           title:'Закрыть без сохранения?',
           description:autosave?'Последние правки не удалось сохранить, а неопубликованные сообщения будут потеряны. Уже сохранённое останется.'
             :current?'Задача уже создана. Несохранённые материалы, связи и правки в неё не попадут.':'Изменения задачи и неопубликованные сообщения будут потеряны. Уже опубликованные сообщения сохранятся.',
-          submitLabel:'Не сохранять',onSubmit:async()=>{discarded=true;if(!keepOpen)el.close();}
+          submitLabel:'Не сохранять',onSubmit:async()=>{accepted=true;if(!keepOpen){discarded=true;el.close();}}
         });
-        return new Promise(resolve=>confirm.addEventListener('iq-close',()=>{confirming=false;resolve(discarded);},{once:true}));
+        return new Promise(resolve=>confirm.addEventListener('iq-close',()=>{confirming=false;resolve(accepted);},{once:true}));
       }
       el.taskController={close,setSection,dirty:()=>dirty()||saving||files.isBusy()||threads?.isBusy()||!!links?.isBusy?.()||!!materials?.isBusy()||!!wikiLinks?.isBusy(),taskId,taskKey:task?taskKey(task):null};
       form.addEventListener('click',event=>{
