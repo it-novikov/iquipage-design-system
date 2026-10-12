@@ -3,7 +3,7 @@ name: iquipage-implement
 description: "Внедряет IQUIPAGE как полную систему UI/UX: композиция, структура, поведение, состояния и публичные компоненты, а не только темы и токены. Использовать для миграции интерфейса, реализации утверждённого дизайна или исправления замечаний аудита. Сначала проверяет поставку и соответствие функций, сообщает о missing components/capabilities, не создаёт локальные замены DS. Не применять вместо discovery для неопределённой проблемы или вместо read-only ревью."
 compatibility: "Чтение проекта и принятой DS. Помощники: Python 3.10+; browser capture отдельно требует Playwright и установленный движок. Ограниченный аудит возможен без runtime, но без его приёмки."
 metadata:
-  suite-version: "1.1.0"
+  suite-version: "1.2.0"
   ds-baseline: "0.5.7"
   language: "ru"
 ---
@@ -15,8 +15,10 @@ metadata:
 
 Сначала прочитай [конституцию](references/constitution.md) и [рабочий контракт](references/execution-contract.md). Найди проект, принятый DS, scope и предыдущий run-state. Выбери точечную работу или полную миграцию. Не проводи discovery заново для ясных согласованных исправлений.
 
+Продолжи одну problem/finding card и её решение по [problem-first разбору](references/problem-first.md). Не превращай гипотезу красивой композиции в обязательное требование. Если выявилась другая причина, обнови причинную цепочку и затронутую приёмку; изменение домена не маскируй renderer-правкой.
+
 ## 1. База и паритет до кода
-Прочитай действующие инструкции проекта, команды и авторизацию. Сохрани чужие незакоммиченные изменения. Проверь реальную поставку через `scripts/verify_release.py`; [release map](references/release-map.md) и `assets/ds-release-lock.json` относятся к pinned 05.7, не к любому latest. Не меняй pin для зелёного результата. Для принятой новой DS нужен отдельный provenance review и новый lock.
+Прочитай действующие инструкции проекта, команды и авторизацию. Сохрани чужие незакоммиченные изменения. Определи фактическую поставку по package/lock/archive. `scripts/verify_release.py`, [release map](references/release-map.md) и `assets/ds-release-lock.json` проверяют историческую pinned 05.7. Для другой версии используй её exact provenance/exports/types и отдельную запись проверки; не менять historical pin ради PASS и не выдавать версию из package за проверенную интеграцию.
 
 Инвентаризация охватывает routes, auth, overlays, settings/admin, flags, mobile, empty/error/recovery и роли. Свяжи каждую существующую операцию с поверхностью, предметной сущностью, DS-контрактом и acceptance. Таблица вместо обязательного холста, дедлайн вместо duration, readonly вместо редактирования — потеря функции, пока пользователь явно не согласовал изменение.
 
@@ -41,6 +43,8 @@ metadata:
 По [методу качества](references/quality-method.md) пройди реальный продукт, не gallery. Если доступен `iquipage-review`, передай scope, план и fingerprints; иначе явно self-review. Отдельный агент не гарантируется названием скилла.
 
 Сначала воспроизвести finding, исправить общий root cause, добавить regression, повторить затронутые состояния на текущем build. Не менять assertions ради PASS. DS-дефект снова проходит GAP. Новый scope не появляется тайком в исправлении.
+
+Общее изменение DS проверяй в настоящем consumer: public types/caller и применимые text/form/state/focus/outcome контракты. Назови существующие затронутые consumers; их узкая проверка входит в принятие общего изменения, без полной повторной матрицы несвязанных экранов.
 
 ## Доставка
 Для полной миграции: inventory, capability-map, parity, gaps/adaptations, evidence, assessment schema 2.0 и handoff. Для точечной — компактная запись тех же решений без пустой бюрократии. Скрипты scanning/fingerprint помогают собрать данные, не принимают UI. Сохрани `assets/run-state.example.json` для продолжения.

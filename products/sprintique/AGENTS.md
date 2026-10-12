@@ -2,6 +2,8 @@
 
 This directory is an autonomous product; it may be extracted into another repository. Read README.md for current implemented vs pending scope. Do not assume a UI capability implies backend support.
 
+For product/UX work, use [the experience entry](docs/experience/README.md): source-backed surfaces, meaningful scenarios and preview limits. Start from the person's outcome and evidence, then test the cause before selecting a UI change. Reuse the current task/brief; do not repeat discovery for an already scoped fix.
+
 - Server: Kotlin/Spring Boot on JDK 25 in `server/` (rules of the engineering system in the repository's `engineering/`). Front end and contracts: Node 24, strict TypeScript. Run `npm ci --ignore-scripts`, `npm run check:boundaries`, `npm run build`, `npm test` (PostgreSQL 18 binaries; PG_BIN configurable; `npm test` includes `./gradlew check`). After a change to `contracts/`, run `npm run contracts`.
 - Only public versioned `@iquipage/web` imports. No relative imports outside this product; ui/web/DS talk to the server only over HTTP. Do not rewrite approved UI or use the old reference backend as production identity/persistence.
 - Actor and initiator come from validated credentials. All resource access checks project policy, agent grant and current initiator rights. Keep data, audit and outbox atomic. Preserve revision CAS and idempotency on retryable commands.

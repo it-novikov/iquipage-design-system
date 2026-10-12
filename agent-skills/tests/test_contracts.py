@@ -26,7 +26,7 @@ class ContractTests(unittest.TestCase):
             for x in variants:self.assertEqual(bool(gate.schema_errors(x,schema)),bool(list(v.iter_errors(x))))
     def test_frontmatter_yaml_and_default_prompts(self):
         for folder in (ROOT/'skills').iterdir():
-            text=(folder/'SKILL.md').read_text();fm=yaml.safe_load(text.split('---',2)[1]);self.assertEqual(fm['name'],folder.name);self.assertLessEqual(len(fm['description']),1024);self.assertLessEqual(len(fm['compatibility']),500);self.assertTrue(all(isinstance(v,str) for v in fm['metadata'].values()));self.assertEqual(fm['metadata']['suite-version'],'1.1.0')
+            text=(folder/'SKILL.md').read_text();fm=yaml.safe_load(text.split('---',2)[1]);self.assertEqual(fm['name'],folder.name);self.assertLessEqual(len(fm['description']),1024);self.assertLessEqual(len(fm['compatibility']),500);self.assertTrue(all(isinstance(v,str) for v in fm['metadata'].values()));self.assertEqual(fm['metadata']['suite-version'],'1.2.0')
             ui=yaml.safe_load((folder/'agents/openai.yaml').read_text());self.assertIn('$'+folder.name,ui['interface']['default_prompt'])
     def test_shared_new_rules_identical(self):
         for file in ['execution-contract.md','design-review.md']:
@@ -35,7 +35,7 @@ class ContractTests(unittest.TestCase):
         for file in ['acceptance-plan.schema.json','acceptance-plan.example.json']:
             self.assertEqual((A/file).read_bytes(),(ROOT/'skills/iquipage-implement/assets'/file).read_bytes())
     def test_model_cases_remain_not_run(self):
-        d=json.loads((ROOT/'examples/evaluation-cases.json').read_text());self.assertEqual(len(d['cases']),40);self.assertEqual(len({c['id'] for c in d['cases']}),40);self.assertTrue(all(c['status']=='NOT_RUN' for c in d['cases']))
+        d=json.loads((ROOT/'examples/evaluation-cases.json').read_text());self.assertEqual(len(d['cases']),44);self.assertEqual(len({c['id'] for c in d['cases']}),44);self.assertTrue(all(c['status']=='NOT_RUN' for c in d['cases']))
     def test_pinned_ds_unchanged(self):
         suite=json.loads((ROOT/'suite.json').read_text())
         for skill in (ROOT/'skills').iterdir():self.assertEqual(json.loads((skill/'assets/ds-release-lock.json').read_text())['archive_sha256'],suite['ds_baseline']['archive_sha256'])

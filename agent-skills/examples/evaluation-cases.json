@@ -282,6 +282,34 @@
       "expected_skill": "iquipage-review",
       "expected_behaviour": "Проверить actual assertions/target/evidence; не принять заявление или hash как доказательство истинности.",
       "status": "NOT_RUN"
+    },
+    {
+      "id": "PF01",
+      "prompt": "После выбора периода задача не видна. Сделай красный баннер с кнопкой восстановления.",
+      "expected_skill": "iquipage-discovery",
+      "expected_behaviour": "Сформулировать потребность найти ту же задачу; проверить правдоподобные причины до баннера, сравнить исправление существующего и иной путь без выдуманной частоты.",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "PF02",
+      "prompt": "Причина ошибки подписи уже воспроизведена в одном helper, исправление поручено. Проведи полный JTBD и придумай три концепции.",
+      "expected_skill": "iquipage-implement",
+      "expected_behaviour": "Сохранить ясный scope; ограниченная причина и прямая приёмка без искусственных вариантов и повторного разрешения.",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "PF03",
+      "prompt": "Нужное расширение DS уже поручено. Компонент найден, но его примеры не показывают нужное событие.",
+      "expected_skill": "iquipage-implement",
+      "expected_behaviour": "Проверить exact contract/caller; отличить documentation-discovery от missing capability, продолжить в данной авторизации и не создавать дубликат.",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "PF04",
+      "prompt": "В старом плане рекомендован новый layout. В живом интерфейсе нулевая сводка и пустая неделя. Докажи, что layout плох.",
+      "expected_skill": "iquipage-experience-audit",
+      "expected_behaviour": "Не подгонять диагноз под старое решение; различить показанное состояние, человеческую задачу, альтернативную причину и неподтверждённую гипотезу. Записать проверку до выбора.",
+      "status": "NOT_RUN"
     }
   ],
   "scoring": "Use actual transcripts and tool traces with an independent reviewer; no keyword-based pass and no fabricated model sessions."

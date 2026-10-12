@@ -1,0 +1,33 @@
+# Журнал 20261011-problem-first-product-workflow
+
+- 2026-10-11T18:43:45Z · astra-architecture · create · - · Problem-first skills и сценарии проверки Sprintique
+- 2026-10-11T18:43:51Z · astra-architecture · claim · - · взял задачу
+- 2026-10-11T18:45:04Z · astra-architecture · note · A1 · критерий приёмки: Четыре skills и переносимые шаблоны связывают потребность, проверяемые причины, варианты включая no-build, решение и приёмку; глубина соразмерна задаче.
+- 2026-10-11T18:45:05Z · astra-architecture · note · A2 · критерий приёмки: Sprintique inventory содержит точные source-backed routes/entry/fixtures, meaningful сценарии, ограничения evidence и live read-only/local mutation границы без рабочих данных.
+- 2026-10-11T18:45:05Z · astra-architecture · note · A3 · критерий приёмки: Canonical/client copies и manifests согласованы, проверки комплекта проходят, historical DS-lock неизменён; выполнено независимое ревью до коммита.
+- 2026-10-11T18:45:06Z · astra-architecture · note · S1 · добавлен шаг: Уточнить переносимую методику
+- 2026-10-11T18:45:07Z · astra-architecture · note · S2 · добавлен шаг: Описать поверхности и безопасные сценарии
+- 2026-10-11T18:45:07Z · astra-architecture · note · S3 · добавлен шаг: Синхронизировать и проверить
+- 2026-10-11T18:45:08Z · astra-architecture · step · S1 · active
+- 2026-10-11T19:01:10Z · astra-architecture · step · S1 · done: Четыре skills 47/47/52/56 строк; общий problem-first reference; brief/options/decision/acceptance; schema2.0 и historical locks неизменны. validate_skills PASS.
+- 2026-10-11T19:01:10Z · astra-architecture · note · A1 · критерий приёмки выполнен
+- 2026-10-11T19:01:11Z · astra-architecture · step · S2 · active
+- 2026-10-11T19:01:12Z · astra-architecture · step · S2 · done: docs/experience README, SCENARIOS и CSV16семейств: route/source/fixture/evidence limits; ссылки проверены; все authored scenarios NOT_RUN, mock runner не реализован.
+- 2026-10-11T19:01:12Z · astra-architecture · note · A2 · критерий приёмки выполнен
+- 2026-10-11T19:01:13Z · astra-architecture · step · S3 · active
+- 2026-10-11T19:01:14Z · astra-architecture · checkpoint · S3 · дальше: Fresh-agent задание на raw material, затем замечания ведущего/UX/DS.
+- 2026-10-11T19:03:09Z · astra-architecture · handoff · - · review → root; HEAD f5f941a; незакоммичено 111; Подготовленный diff готов для fresh-agent и двух независимых ревью. Последний полный suite: 184 PASS без skips; sync/manifest/links/CSV/diff/bridge checks PASS. S3 и A3 ждут review; commit/push не выполнялись. Единственный repo writer остаётся architecture_review после follow-up/claim.
+- 2026-10-11T19:52:01Z · astra-architecture · claim · - · взял задачу
+- 2026-10-11T19:53:49Z · astra-architecture · checkpoint · S3 · дальше: Выполнить sync_bundle, suite и handoff нового immutable patch для root/fresh targeted review.
+- 2026-10-11T19:55:17Z · astra-architecture · checkpoint · S3 · дальше: Root/fresh reviewer сверяет дельту canonical методики и три fixture-привязки; S3/A3 до этого остаются открыты.
+- 2026-10-11T19:55:17Z · astra-architecture · handoff · - · review → root; HEAD f5f941a; незакоммичено 111; R1 исправлен: diagnostic/comparative, информационный исход/return, density/zoom, scope DS acceptance; Wiki history target, SPQ budget/WEB no-plan, Maps missing linked-task fixture. Suite184 PASS без skips; sync/manifest/links/CSV/diff checks PASS. S3/A3 не закрыты, commit/push не выполнялись. Предыдущий forward test относится к прежнему frozen snapshot, не к этой дельте.
+- 2026-10-11T20:05:07Z · astra-architecture · claim · - · взял задачу
+- 2026-10-11T20:06:28Z · astra-architecture · decision · D1 · Root принял независимый targeted recheck /root/repo_patch_audit: approve, F1-F3 исправлены; frozen026a6a118b8daa75a23a4136119cb737f755900f9f2c6a30a794cf5c5e14b8f9. Разрешены commit и обычный push только docs/problem-first-product-workflow. Автор и root сохраняют чужое заключение, не выдают его за своё независимое ревью; merge/deploy не поручены.
+- 2026-10-11T20:07:12Z · astra-architecture · note · - · Получены неизменённые заключения /root/repo_patch_audit: исходное R1 changes-requested с 3P2 и targeted R2 approve с закрытием F1-F3. Их bytes сохраняет astra-architecture в reviews/evidence; авторство и факт выполнения независимого ревью не присваиваются. Code commit пока не создан: отсутствует Git author identity; имя/email запрошены у root без изменения конфигурации.
+- 2026-10-11T20:09:35Z · astra-architecture · step · S3 · done: Содержательный commit 0d3ebb4045438a419f4422db10e8a21d85c2fa96. Независимые reviews/R1.md и R2.md сохраняют заключения /root/repo_patch_audit: 3P2 исправлены, targeted recheck approve для frozen026a6a118b8daa75a23a4136119cb737f755900f9f2c6a30a794cf5c5e14b8f9. Suite184 PASS/0 skips и структурные checks ранее выполнены; metadata-only этап не требует повторного suite.
+- 2026-10-11T20:09:36Z · astra-architecture · note · A3 · критерий приёмки выполнен
+- 2026-10-11T20:09:37Z · astra-architecture · checkpoint · - · дальше: Root открывает draft PR ветки docs/problem-first-product-workflow после push; merge/deploy не поручены.
+- 2026-10-11T20:09:37Z · astra-architecture · handoff · - · planned → root; HEAD 0d3ebb4; незакоммичено 0; S3/A3 закрыты после независимого approve /root/repo_patch_audit; code0d3ebb4045438a419f4422db10e8a21d85c2fa96. Сохраняются только review/bridge records отдельным коммитом, затем обычный push. Следующее действие root: draft PR. Автор не присваивает независимое ревью; ограничения runtime/model сохранены.
+- 2026-10-11T20:09:38Z · astra-architecture · status · - · review: Критерии и шаги выполнены; независимый approve зафиксирован в R2. Root открывает draft PR после сохранения и обычного push ветки.
+- 2026-10-11T20:11:29Z · astra-architecture · checkpoint · - · дальше: Root сообщает пользователю точный отказ и получает явное разрешение на публикацию ветки в GitHub; до этого не повторять push через git или connector.
+- 2026-10-11T20:11:30Z · astra-architecture · handoff · - · blocked → root; HEAD 1fccc37; незакоммичено 0; Локальные коммиты готовы, критерии независимой приёмки выполнены. Обычный push отклонён auto-review из-за отсутствия явного разрешения пользователя на внешнюю публикацию; connector не использовать как обход. Следующий шаг — явно согласовать публикацию с пользователем. Merge/deploy не выполнялись.

@@ -1,9 +1,10 @@
 # DS-GAP-000 — краткое имя
-Статус: needs-owner-decision. Это запрос, не реализованный API.
+Статус и scope: …; существующая авторизация либо необходимое решение: …
+Это запись потребности, не реализованный API; отдельную систему статусов не вводить.
 
 | Поле | Содержание |
 |---|---|
-| Classification | missing-component / missing-capability / ds-defect / unclear-contract |
+| Classification | missing-component / missing-capability / ds-defect / unclear-contract / documentation-discovery / release-mismatch; product/composition cause исключена или указана отдельно |
 | Priority / owner | … |
 | Requirement / surfaces | … |
 | User problem | Конкретный результат, который нельзя сохранить |
@@ -12,9 +13,11 @@
 | Closest supplied pattern | … |
 | Actual missing contract | Данные/props/events/states, не название «красивый picker» |
 | Proposed minimal extension | Предложение владельцу; не выдумывать существующий API |
+| Alternatives / decision | Существующий путь, исправление, минимальное расширение, no-build; причина и оставшееся unknown |
 | Functional loss if substituted | … |
 | Safe temporary path | … / нет; полным внедрением не считается |
-| Acceptance | light/dark, role, keyboard/touch, error/pending/conflict, real save/reload |
+| Acceptance | Применимые проверки затронутого контракта: render/theme, semantic/keyboard/focus, роли/состояния и save/reload/conflict — только если этот контракт их затрагивает. Target environments и расширенная браузерная проверка — по существующей release policy; не назначать все состояния каждому primitive. |
+| Consumer impact | Exact package, реальный caller и применимые public/text/form/state/focus/outcome контракты; затронутые текущие consumers |
 | Owner decision | Не получено / явная ссылка на решение и scope |
 
 ## Изолированное воспроизведение для ds-defect
@@ -22,4 +25,4 @@
 
 ## После решения
 DS issue/release/hash → contract tests → интеграция → повторное review.
-Изменения vendor или локальная замена до решения отсутствуют.
+Ранее полученная авторизация учитывается; локальная подмена DS не считается поставкой.
