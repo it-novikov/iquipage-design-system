@@ -8,7 +8,7 @@ owner: it-novikov
 branch: fix/task-overview-recovery
 base: 220af664ef561d3f5ff1b873122281ef352e8f25
 created: 2026-10-12
-updated: 2026-10-12T12:02:43Z
+updated: 2026-10-12T12:10:49Z
 links:
 ---
 
@@ -34,12 +34,14 @@ links:
 
 ## Передача
 
-- **Состояние:** Bounded recovery prepared; local 14 model tests, boundary/styles, actual fixture build and 176 installed DS files PASS; native NOT_RUN
-- **Сейчас:** S1 source ready for independent exact review
-- **Дальше:** Freeze source, independent review, publish and native CI
+- **Состояние:** Source R1 found two P2 verification gaps; corrected module-input prefix and discriminating literal sample; one build-only PASS, prior local evidence retained
+- **Сейчас:** S1 waiting for corrected exact review
+- **Дальше:** Preserve original R1 and corrected addendum, publish candidate for native CI
 - **Незакоммичено:** Только названные source/tests/workflow и карточка с predecessor evidence.
-- **Рабочая копия:** 7 файл(ов): .github/workflows/tabs-geometry.yml, products/sprintique/tests/work-model.test.mjs, products/sprintique/ui/src/board/board.css, products/sprintique/ui/src/board/task-work-view.js, products/sprintique/ui/src/board/work-model.js, products/sprintique/tests/fixtures/task-overview-state/, products/sprintique/tests/task-overview-state-browser.mjs (5 files changed, 55 insertions(+), 6 deletions(-)) · HEAD 220af664e
-- **Ловушки:** Native Chromium локально не работает из-за отсутствия /proc и не повторяется. Полный vNext CI требует нативную среду. Исторические predecessor checks относятся к4f181ff, не к220af.
+- **Рабочая копия:** 3 файл(ов): products/sprintique/tests/fixtures/task-overview-state/README.md, products/sprintique/tests/fixtures/task-overview-state/data.mjs, products/sprintique/tests/task-overview-state-browser.mjs (5 files changed, 90 insertions(+), 42 deletions(-)) · HEAD 3655be30b
+- **Ловушки:**
+  - Native Chromium локально не работает из-за отсутствия /proc и не повторяется. Полный vNext CI требует нативную среду. Исторические predecessor checks относятся к4f181ff, не к220af.
+  - The initial136 input hashes contained dependencies only because a trailing-slash URL produced a double-slash product prefix; corrected inventory explicitly asserts actual product+fixture. Initial literal with Cyrillic tag text could not detect loss of escaping; ASCII em/entity sample now distinguishes it.
 - **Проверка:** Pending actual local/CI evidence. Target/human/backend acceptance пока NOT_RUN.
 
 ## План

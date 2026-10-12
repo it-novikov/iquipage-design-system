@@ -12,7 +12,7 @@ import {build,preview} from 'vite';
 import {validateTask} from '../ui/src/tasks.js';
 import {scenario,literalResult} from './fixtures/task-overview-state/data.mjs';
 
-const product=fileURLToPath(new URL('../',import.meta.url)),repo=resolve(product,'../..');
+const product=resolve(fileURLToPath(new URL('../',import.meta.url))),repo=resolve(product,'../..');
 const fixture=join(product,'tests/fixtures/task-overview-state'),buildOnly=process.argv.includes('--build-only');
 assert.ok(process.argv.slice(2).every(arg=>arg==='--build-only'),'Unknown runner argument');
 const evidence=resolve(process.env.TASK_OVERVIEW_EVIDENCE_DIR||join(product,'output/task-overview-state',buildOnly?'build-only':'browser'));
@@ -239,6 +239,8 @@ try{
     const label=id.startsWith(deps+'/')?'node_modules/'+relative(deps,id):relative(product,id);inputs[label]=await hashFile(id);
   }
   const outputs={};for(const path of await files(outDir))outputs[path]=await hashFile(join(outDir,path));
+  for(const path of ['ui/src/board/task-dialog.js','ui/src/board/task-work-view.js','ui/src/board/work-model.js','tests/fixtures/task-overview-state/consumer.js'])
+    assert.ok(inputs[path],'Actual product and fixture source is fingerprinted: '+path);
   assert.ok(outputs['index.html'],'Compiled fixture entry exists');
   result.build={status:'PASS',inputSHA256:inputs,inputGraphSHA256:sha(JSON.stringify(inputs)),filesSHA256:outputs,bundleSetSHA256:sha(JSON.stringify(outputs))};
   await saveJSON('provenance.json',result);

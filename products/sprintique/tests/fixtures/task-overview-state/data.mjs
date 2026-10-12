@@ -1,7 +1,7 @@
 // Explicit read scenarios, not an alternate work model or server state machine.
 import {tasks,project} from '../tabs-geometry/repository.js';
 
-export const literalResult='История «<готово> & проверено» сохранена после обновления.';
+export const literalResult='История «<em>готово</em> &amp; проверено» сохранена после обновления.';
 export const longResult='История остаётся доступной после обновления страницы. Запись «<готово> & проверено» и отметки критериев совпадают с исходным состоянием. Следующий участник видит принятые решения, автора каждого шага и ссылку на результат; передача работы остаётся отдельной проверкой.';
 
 export function scenario(id){

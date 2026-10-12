@@ -6,6 +6,8 @@ The original plan is preserved as `acceptance-plan.v1.json`, SHA256 `9f18f4a523f
 
 The two companion workflow steps use `!cancelled()` on every applicable run. The seven cases form a permanent targeted regression; the two long-review captures still do not approve geometry or aesthetics.
 
+Source R1 corrected two verification weaknesses before native execution: normalize the product root so the complete input inventory includes product/fixture files (the first136 entries were dependencies only), and use literal `<em>готово</em> &amp;` in the short review sample so the existing text/child-count assertions distinguish proper escaping. The long-review strings and v2 acceptance criteria remain unchanged. The superseded build inventory is retained in the Bridge card's `before-provenance-fix/` folder.
+
 ## What runs
 
 The fixture uses real `openTaskDialog`, `mountTaskWork`, the public DS54 package and the same product CSS imports as the existing tabs fixture. Its existing `tabs-geometry/repository.js` is imported unchanged; only the precise GET work response is overridden. Initial Task fields are explicit synthetic data passed to the real dialog. No product model helper is imported into the behavioral oracle.

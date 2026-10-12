@@ -5,13 +5,13 @@
     "products/sprintique/ui/src/board/work-model.js": "3b672ef6983017309ec2a1ad1ba6463b5208ae3a544ee264f73b9213a7ddfde1",
     "products/sprintique/ui/src/board/board.css": "4d201e7f54c098a48582fa564a8f6d2ca35298657dc64ea187714a96cfeb71cd",
     "products/sprintique/tests/work-model.test.mjs": "aa224349dbb414393e551420072ca2d11775229edb943aeddab8d1ee57a57055",
-    "products/sprintique/tests/task-overview-state-browser.mjs": "b59f2b4aef7997a4fec7eca193d84f77f88a8d9b415042b11d18ee9a315eaea4",
+    "products/sprintique/tests/task-overview-state-browser.mjs": "3d24a24d3dc6c3c174c94511d7d555f865d33ced6ebbf5db9f93010b449916de",
     ".github/workflows/tabs-geometry.yml": "59fa0c234f2b7b826f90b5046c568023f0b85b3e96b4483cb9aa212506b8b5ff",
     "products/sprintique/tests/fixtures/task-overview-state/acceptance-plan.json": "66780241ab4de4b154e77520440632e839bf9cb865ad4dfd93ba443eb2fc186d",
     "products/sprintique/tests/fixtures/task-overview-state/acceptance-plan.v1.json": "9f18f4a523f032847666a35b4d7394eb7fbac0ae1551ecc479d3811dfb2dd5a8",
     "products/sprintique/tests/fixtures/task-overview-state/consumer.js": "eeed8f571ed8fcc2d95d400dc07e6ad7516ee319e5501a4422fd228adf9ad2df",
-    "products/sprintique/tests/fixtures/task-overview-state/data.mjs": "a12faaee32f1861db2d8fadb2fa257fa3a0430de82659ecea122e5c5500a5d26",
+    "products/sprintique/tests/fixtures/task-overview-state/data.mjs": "f26d6d429db5aa9e13bdbd50b198e72ec1a4313b01198e4ed4d4c3518fe98fcc",
     "products/sprintique/tests/fixtures/task-overview-state/index.html": "9ae07b91b7e5e5fbc619fec0184c04f988b39cfb0730c7a015b5c54f859389ef",
-    "products/sprintique/tests/fixtures/task-overview-state/README.md": "61b1edeb93f255077e78f99bf5fbb44c89f07090721c17b1d5e074e442b03ca2"
+    "products/sprintique/tests/fixtures/task-overview-state/README.md": "79975be324bf5856db17aba2ae241606fd36335fe9d472bed6336915c3d36dc0"
   }
 }
