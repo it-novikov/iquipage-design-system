@@ -1,0 +1,110 @@
+{
+  "baseline": "8f8d218168074bd4c7c9e1e29dfbe783a27998dd",
+  "patchSha256": "5ef3ceaa010ea0ed726e0e6067c55822708c3ed4bcde16ecc63cc6b16c8d6c5f",
+  "files": [
+    {
+      "path": "products/sprintique/ui/src/board/task-dialog.js",
+      "baselineSha256": "bba396bdf8f1b03beb20358eebce3161913c668cbc3b6328fc0d675a63518549",
+      "patchedSha256": "18f74815aa106ffa939d9864e7a58bd93e20787bfe986c422785f804de3633fd"
+    },
+    {
+      "path": "products/sprintique/ui/src/board/task-work-view.js",
+      "baselineSha256": "5b9da8507f62fef702af3cc390849007a2da8693ec353a4b68ec1894291df309",
+      "patchedSha256": "de0ffd11876db3e7fb27b8f92613f1f4ba60fcefb525853edbb3fbfed87546af"
+    },
+    {
+      "path": "products/sprintique/ui/src/board/work-model.js",
+      "baselineSha256": "4628a01a00edf29cbecda7094d69d757c5f571280f2e5c8deead0b93db3783a8",
+      "patchedSha256": "03d2d7ba34da67ed06c4b9c66459da7b13a81469ed6a471c0ce6953ea90e00a9"
+    }
+  ],
+  "commands": [
+    {
+      "argv": [
+        "git",
+        "apply",
+        "--check",
+        "/workspace/scratch/b3dac59f68e2/research/continuation/task-first-screen-vt1-compact-source-overlay.patch"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "git",
+        "apply",
+        "/workspace/scratch/b3dac59f68e2/research/continuation/task-first-screen-vt1-compact-source-overlay.patch"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "node",
+        "--check",
+        "products/sprintique/ui/src/board/task-dialog.js"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "node",
+        "--check",
+        "products/sprintique/ui/src/board/task-work-view.js"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "node",
+        "--check",
+        "products/sprintique/ui/src/board/work-model.js"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "nodeVersion": "v24.19.0",
+  "dsArchiveSha256": "a726a4536e532fc556f615d0b1a9cda1873dc111e6090710329b9ec1b8204457",
+  "pureObservation": {
+    "command": "node research/continuation/task-compact-source-review-temp/observe.mjs",
+    "exitCode": 0,
+    "excerptCases": 15,
+    "projectionCases": 10,
+    "scope": "Exact source extraction; inert ui.btn marker; no DOM, button lifecycle, or native acceptance."
+  },
+  "evidence": [
+    {
+      "path": "research/continuation/task-prototype-source-review.md",
+      "sha256": "8063c59009c4ec8a1861999e370aeb1558e4ebf17b112e0856efe8bfdc31e28f",
+      "bytes": 28937
+    },
+    {
+      "path": "research/continuation/task-first-screen-native-review.md",
+      "sha256": "6671cabb9f40ce77b0dfff35d0c5b34cc8b7d8a38460c68a83e184f3a2622c4f",
+      "bytes": 29192
+    },
+    {
+      "path": "research/continuation/task-compact-source-review-temp/observe.mjs",
+      "sha256": "167703b4e9ee5f5a258954b64b379a59d29d1fb9b2030751b58026b53dda13cc",
+      "bytes": 8714
+    },
+    {
+      "path": "research/continuation/task-compact-source-review-temp/escape-source.txt",
+      "sha256": "0320b88d56df5ad078c4aeab703e26a8a27c4b4465c663f006e116735d624562",
+      "bytes": 154
+    },
+    {
+      "path": "research/continuation/task-compact-source-review-temp/source-observations.json",
+      "sha256": "546c97bc45259c628fa8ec2655e0587dcbf22c09edcc2cfc7b6c01524fa35cbf",
+      "bytes": 19266
+    }
+  ]
+}

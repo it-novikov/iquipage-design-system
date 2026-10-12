@@ -1,0 +1,275 @@
+{
+  "runId": 38232257749,
+  "jobId": 114754315509,
+  "head": "a82960df22cd93dfa8dcbdda618e3169cbcda068",
+  "headTree": "5ad867fffd02de99566c796cbfa17a7a21783f97",
+  "checkout": {
+    "sha": "97738178c8c72cc8d6288d1dd83f4ccdecfc644f",
+    "tree": "5ad867fffd02de99566c796cbfa17a7a21783f97",
+    "parents": [
+      "8f8d218168074bd4c7c9e1e29dfbe783a27998dd",
+      "a82960df22cd93dfa8dcbdda618e3169cbcda068"
+    ]
+  },
+  "artifact": {
+    "id": 11739177058,
+    "name": "task-first-screen-experiment",
+    "size_in_bytes": 3908490,
+    "url": "https://api.github.com/repos/it-novikov/iquipage-design-system/actions/artifacts/11739177058",
+    "archive_download_url": "https://api.github.com/repos/it-novikov/iquipage-design-system/actions/artifacts/11739177058/zip",
+    "expired": false,
+    "created_at": "2026-10-12T09:54:03Z",
+    "expires_at": "2026-10-26T09:54:02Z",
+    "updated_at": "2026-10-12T09:54:03Z",
+    "digest": "sha256:49286403f2552dbc9fc24ea466b3e42829ff74090ed35c31957a022f98d31904",
+    "workflow_run": {
+      "id": 38232257749,
+      "repository_id": 1360587523,
+      "head_repository_id": 1360587523,
+      "head_branch": "experiments/task-first-screen",
+      "head_sha": "a82960df22cd93dfa8dcbdda618e3169cbcda068"
+    }
+  },
+  "status": "FAILED",
+  "reason": "Harness initially selected a hidden Epic subtask link instead of the visible task-card title; not a Task composition verdict.",
+  "files": [
+    {
+      "path": "H01-baseline-open-failure.png",
+      "bytes": 66432,
+      "sha256": "05f41eadcbb2aee18698c34cabf4a310a357ce4473bfb4c4718461f7dc76aca9",
+      "preserved": true
+    },
+    {
+      "path": "H01-vt1-open-failure.png",
+      "bytes": 66432,
+      "sha256": "05f41eadcbb2aee18698c34cabf4a310a357ce4473bfb4c4718461f7dc76aca9",
+      "preserved": true
+    },
+    {
+      "path": "H02-baseline-open-failure.png",
+      "bytes": 69295,
+      "sha256": "506b9efd23c8196c6b46338d79fbd282bb21d481025a20b12afe3781cc35a33d",
+      "preserved": true
+    },
+    {
+      "path": "H02-vt1-open-failure.png",
+      "bytes": 69295,
+      "sha256": "506b9efd23c8196c6b46338d79fbd282bb21d481025a20b12afe3781cc35a33d",
+      "preserved": true
+    },
+    {
+      "path": "builds/baseline/assets/InterVariable-CXsUriRB.woff2",
+      "bytes": 109172,
+      "sha256": "c8126c77db9d9370281a3e473ecba9232f1b6582a69df77c9f9cd825253c1225",
+      "preserved": false
+    },
+    {
+      "path": "builds/baseline/assets/cover-presets-XxcZJEol.js",
+      "bytes": 2889,
+      "sha256": "2820ff5dddde87063f452ce07edea4033744bf0e560dbdae986fc6895c2fa163",
+      "preserved": false
+    },
+    {
+      "path": "builds/baseline/assets/design-DVxR5tT7.webp",
+      "bytes": 227722,
+      "sha256": "61331b6f549777c299b8ea15b6e056877c6f606b02a1232ca3f4e8cfdca6615f",
+      "preserved": false
+    },
+    {
+      "path": "builds/baseline/assets/development-C6OZhP3s.webp",
+      "bytes": 97770,
+      "sha256": "58aaf7e9d320fda04a8b089bb12e2a0ecfb98057b6195199c89b22027cbca99c",
+      "preserved": false
+    },
+    {
+      "path": "builds/baseline/assets/focus-CDWeceOe.webp",
+      "bytes": 193242,
+      "sha256": "842aecfe32b2b709dea407d60b407a15456f9976c0e6fde50429b569b23e6ae4",
+      "preserved": false
+    },
+    {
+      "path": "builds/baseline/assets/index-C9cZOrbU.js",
+      "bytes": 752177,
+      "sha256": "1f7a01f090e6e66607d3319d188011eb3df53f3cc1b08e7d364ea23b2d9d3fbf",
+      "preserved": false
+    },
+    {
+      "path": "builds/baseline/assets/index-cO8hYXC-.css",
+      "bytes": 697455,
+      "sha256": "f342814fec7ef82febf20fb828c515ff941ffa0165c7874ce4b44bc74bbcf8c7",
+      "preserved": false
+    },
+    {
+      "path": "builds/baseline/assets/launch-C2IV5fud.webp",
+      "bytes": 110030,
+      "sha256": "5c7debb537297c5b9c830d9835341d7e1e4ab8d42f234c07fda29fd5a9867bdc",
+      "preserved": false
+    },
+    {
+      "path": "builds/baseline/assets/planning-CRmxcOpI.webp",
+      "bytes": 122600,
+      "sha256": "1c2c16d65949942d1936a7aa1310e5ed047b88d4888bf233c6550e45876e2d7f",
+      "preserved": false
+    },
+    {
+      "path": "builds/baseline/assets/research-D7kSu2WW.webp",
+      "bytes": 143092,
+      "sha256": "abd80b076ed6daa8cf6c5092fab98e1eb1ab639ddea31e5adae5b70f18479c7a",
+      "preserved": false
+    },
+    {
+      "path": "builds/baseline/assets/ui-EpSLKknp.js",
+      "bytes": 551996,
+      "sha256": "a4d9cf9baee32884e0fe8ac672ac3d996a7eaab365949699824628706ee250b2",
+      "preserved": false
+    },
+    {
+      "path": "builds/baseline/index.html",
+      "bytes": 742,
+      "sha256": "d9ab38687b69325158e3a9a4dd4fc41dc2f35473e7f8466c3a8759565465324b",
+      "preserved": false
+    },
+    {
+      "path": "builds/vt1/assets/InterVariable-CXsUriRB.woff2",
+      "bytes": 109172,
+      "sha256": "c8126c77db9d9370281a3e473ecba9232f1b6582a69df77c9f9cd825253c1225",
+      "preserved": false
+    },
+    {
+      "path": "builds/vt1/assets/cover-presets-XxcZJEol.js",
+      "bytes": 2889,
+      "sha256": "2820ff5dddde87063f452ce07edea4033744bf0e560dbdae986fc6895c2fa163",
+      "preserved": false
+    },
+    {
+      "path": "builds/vt1/assets/design-DVxR5tT7.webp",
+      "bytes": 227722,
+      "sha256": "61331b6f549777c299b8ea15b6e056877c6f606b02a1232ca3f4e8cfdca6615f",
+      "preserved": false
+    },
+    {
+      "path": "builds/vt1/assets/development-C6OZhP3s.webp",
+      "bytes": 97770,
+      "sha256": "58aaf7e9d320fda04a8b089bb12e2a0ecfb98057b6195199c89b22027cbca99c",
+      "preserved": false
+    },
+    {
+      "path": "builds/vt1/assets/focus-CDWeceOe.webp",
+      "bytes": 193242,
+      "sha256": "842aecfe32b2b709dea407d60b407a15456f9976c0e6fde50429b569b23e6ae4",
+      "preserved": false
+    },
+    {
+      "path": "builds/vt1/assets/index-BFUx0Pxm.js",
+      "bytes": 753442,
+      "sha256": "b86b8f9d889632cf6bcd863d387bfaf01078e3aedbccf384dcb692bf028a02bb",
+      "preserved": false
+    },
+    {
+      "path": "builds/vt1/assets/index-cO8hYXC-.css",
+      "bytes": 697455,
+      "sha256": "f342814fec7ef82febf20fb828c515ff941ffa0165c7874ce4b44bc74bbcf8c7",
+      "preserved": false
+    },
+    {
+      "path": "builds/vt1/assets/launch-C2IV5fud.webp",
+      "bytes": 110030,
+      "sha256": "5c7debb537297c5b9c830d9835341d7e1e4ab8d42f234c07fda29fd5a9867bdc",
+      "preserved": false
+    },
+    {
+      "path": "builds/vt1/assets/planning-CRmxcOpI.webp",
+      "bytes": 122600,
+      "sha256": "1c2c16d65949942d1936a7aa1310e5ed047b88d4888bf233c6550e45876e2d7f",
+      "preserved": false
+    },
+    {
+      "path": "builds/vt1/assets/research-D7kSu2WW.webp",
+      "bytes": 143092,
+      "sha256": "abd80b076ed6daa8cf6c5092fab98e1eb1ab639ddea31e5adae5b70f18479c7a",
+      "preserved": false
+    },
+    {
+      "path": "builds/vt1/assets/ui-EpSLKknp.js",
+      "bytes": 551996,
+      "sha256": "a4d9cf9baee32884e0fe8ac672ac3d996a7eaab365949699824628706ee250b2",
+      "preserved": false
+    },
+    {
+      "path": "builds/vt1/index.html",
+      "bytes": 742,
+      "sha256": "10dde5ff4d19a2342f2cea7c174295a0e7ef478b52780b4b92ab90785ff86121",
+      "preserved": false
+    },
+    {
+      "path": "dark-baseline-open-failure.png",
+      "bytes": 52376,
+      "sha256": "016c922988e5f8a5defe6ba52b49ad8dd833a864150dcbb7613ebee83675d85e",
+      "preserved": true
+    },
+    {
+      "path": "dark-vt1-open-failure.png",
+      "bytes": 52376,
+      "sha256": "016c922988e5f8a5defe6ba52b49ad8dd833a864150dcbb7613ebee83675d85e",
+      "preserved": true
+    },
+    {
+      "path": "empty-baseline-open-failure.png",
+      "bytes": 69295,
+      "sha256": "506b9efd23c8196c6b46338d79fbd282bb21d481025a20b12afe3781cc35a33d",
+      "preserved": true
+    },
+    {
+      "path": "empty-vt1-open-failure.png",
+      "bytes": 69295,
+      "sha256": "506b9efd23c8196c6b46338d79fbd282bb21d481025a20b12afe3781cc35a33d",
+      "preserved": true
+    },
+    {
+      "path": "narrow-baseline-open-failure.png",
+      "bytes": 49312,
+      "sha256": "27a03ddd2def93a0841b8ca2524cee46bdc9b176a2dfd2345d651a7e2fdc0b48",
+      "preserved": true
+    },
+    {
+      "path": "narrow-vt1-open-failure.png",
+      "bytes": 49312,
+      "sha256": "27a03ddd2def93a0841b8ca2524cee46bdc9b176a2dfd2345d651a7e2fdc0b48",
+      "preserved": true
+    },
+    {
+      "path": "question-baseline-open-failure.png",
+      "bytes": 69295,
+      "sha256": "506b9efd23c8196c6b46338d79fbd282bb21d481025a20b12afe3781cc35a33d",
+      "preserved": true
+    },
+    {
+      "path": "question-vt1-open-failure.png",
+      "bytes": 69295,
+      "sha256": "506b9efd23c8196c6b46338d79fbd282bb21d481025a20b12afe3781cc35a33d",
+      "preserved": true
+    },
+    {
+      "path": "results.json",
+      "bytes": 85425,
+      "sha256": "9eac4327d6c0b625f897af0452c99c4f1aabf6bd5d0fc9954980257cb1b444c4",
+      "preserved": true
+    },
+    {
+      "path": "text200-baseline-open-failure.png",
+      "bytes": 100553,
+      "sha256": "b206c8f324f0bb551059ab20e14ab9f9be7d2f0a79f9286d1f8cd35020f07bfe",
+      "preserved": true
+    },
+    {
+      "path": "text200-vt1-open-failure.png",
+      "bytes": 100553,
+      "sha256": "b206c8f324f0bb551059ab20e14ab9f9be7d2f0a79f9286d1f8cd35020f07bfe",
+      "preserved": true
+    }
+  ],
+  "preservation_note": "All original PNGs and complete results JSON/job log preserved; emitted build assets are reproducible from published frozen code and recorded by exact hash, not copied into Git.",
+  "resultsSHA256": "9eac4327d6c0b625f897af0452c99c4f1aabf6bd5d0fc9954980257cb1b444c4",
+  "jobLogSHA256": "7a914035d44a7057eac3074df1cc36cc2082480b3ea4f0c082618b985eb46e5e",
+  "checkoutWholeTreeEqualsHead": true
+}

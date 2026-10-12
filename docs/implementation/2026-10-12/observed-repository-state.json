@@ -1,0 +1,112 @@
+{
+  "observedAt": "2026-10-12T09:50:59Z",
+  "main": "3f624637a572d2bc24e83b16d86d39ec30a167a2",
+  "meaning": "Repository state observed while frozen comparative prototype was running; merges were not performed by this task.",
+  "pullRequests": [
+    {
+      "number": 74,
+      "url": "https://github.com/it-novikov/iquipage-design-system/pull/74",
+      "head": "4654517bdb94a629c19d514a194495348f08e25e",
+      "state": "closed",
+      "merged": true,
+      "mergedAt": "2026-10-12T09:35:24Z",
+      "mergeCommit": "d46ce80d4e9a944d4178a89d603cdcd96f9ac4b2"
+    },
+    {
+      "number": 75,
+      "url": "https://github.com/it-novikov/iquipage-design-system/pull/75",
+      "head": "6bd396f01c8f1b53b20925deed41024018c23471",
+      "state": "closed",
+      "merged": true,
+      "mergedAt": "2026-10-12T09:35:41Z",
+      "mergeCommit": "4c2f9974da93d223bbccbeb6c195c688717bbc08"
+    },
+    {
+      "number": 76,
+      "url": "https://github.com/it-novikov/iquipage-design-system/pull/76",
+      "head": "549dde23302197124d42f3793733d226a41152ff",
+      "state": "closed",
+      "merged": true,
+      "mergedAt": "2026-10-12T09:35:49Z",
+      "mergeCommit": "1ec926548b2dbdc92c94e8b3ca14655a88257baa"
+    },
+    {
+      "number": 77,
+      "url": "https://github.com/it-novikov/iquipage-design-system/pull/77",
+      "head": "8f8d218168074bd4c7c9e1e29dfbe783a27998dd",
+      "state": "closed",
+      "merged": true,
+      "mergedAt": "2026-10-12T09:35:56Z",
+      "mergeCommit": "36cc5c8bb7391fb869d325948fffd3ea543d6758"
+    },
+    {
+      "number": 78,
+      "url": "https://github.com/it-novikov/iquipage-design-system/pull/78",
+      "head": "2424d4724ec411c84b54b85634dbf54228b0ebd8",
+      "state": "closed",
+      "merged": true,
+      "mergedAt": "2026-10-12T09:35:32Z",
+      "mergeCommit": "771838613a609d6c74a69afe978e3cb303f8fc8f"
+    },
+    {
+      "number": 79,
+      "url": "https://github.com/it-novikov/iquipage-design-system/pull/79",
+      "head": "00eeea7398868920ec75c71cb89494f2aa163cfa",
+      "state": "closed",
+      "merged": true,
+      "mergedAt": "2026-10-12T09:36:13Z",
+      "mergeCommit": "3f624637a572d2bc24e83b16d86d39ec30a167a2"
+    },
+    {
+      "number": 80,
+      "url": "https://github.com/it-novikov/iquipage-design-system/pull/80",
+      "head": "0a5f14de1436e01df5809edd11d4977d324f8067",
+      "state": "closed",
+      "merged": true,
+      "mergedAt": "2026-10-12T09:36:04Z",
+      "mergeCommit": "29a7aa0f994333492d6eb67107e0b9c69fea9a79"
+    }
+  ],
+  "parallelPR": {
+    "number": 81,
+    "url": "https://github.com/it-novikov/iquipage-design-system/pull/81",
+    "title": "test: привязать browser-fixtures Maps и Planning к поставленной DS .54",
+    "head": "047b55a31d4a2462d87d2c42c3ccaadb05623709",
+    "state": "open"
+  },
+  "subsequentObservations": [
+    {
+      "observedAt": "2026-10-12T11:10:30Z",
+      "main": "2c757009d7bf3e3d0fc3648241d499d980ebdbb9",
+      "referenceObservedAt": "2026-10-12T11:03:19Z",
+      "pullRequests": [
+        {
+          "number": 81,
+          "url": "https://github.com/it-novikov/iquipage-design-system/pull/81",
+          "head": "047b55a31d4a2462d87d2c42c3ccaadb05623709",
+          "state": "closed",
+          "merged": true,
+          "mergedAt": "2026-10-12T10:04:06Z",
+          "mergeCommit": "2c757009d7bf3e3d0fc3648241d499d980ebdbb9"
+        },
+        {
+          "number": 82,
+          "url": "https://github.com/it-novikov/iquipage-design-system/pull/82",
+          "head": "ca99680799eee8c865038d537e1bef1def6478f0",
+          "state": "open",
+          "draft": true,
+          "role": "Frozen Task comparative experiment"
+        },
+        {
+          "number": 83,
+          "url": "https://github.com/it-novikov/iquipage-design-system/pull/83",
+          "head": "6423443d71a0817570281cf28822a3c14f7db684",
+          "state": "open",
+          "draft": true,
+          "role": "Product estimate fix; native PASS; full vNext still pending"
+        }
+      ],
+      "meaning": "Later observations append history; this task did not merge these PRs. GitHub resources were read separately, not as one atomic snapshot."
+    }
+  ]
+}

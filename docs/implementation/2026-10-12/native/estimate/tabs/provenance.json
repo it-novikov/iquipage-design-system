@@ -1,0 +1,801 @@
+{
+  "head": "6423443d71a0817570281cf28822a3c14f7db684",
+  "headTree": "81fa1c2800632324b09afd86d01b6fd671ccc6a5",
+  "checkout": "7dbb86d6130fef17cecb4810610cfae0976089c0",
+  "checkoutWholeTreeEqualsHead": true,
+  "runId": 38238395802,
+  "jobId": 114774633940,
+  "artifact": {
+    "id": 11741850248,
+    "name": "tabs-geometry",
+    "size_in_bytes": 1156672,
+    "url": "https://api.github.com/repos/it-novikov/iquipage-design-system/actions/artifacts/11741850248",
+    "archive_download_url": "https://api.github.com/repos/it-novikov/iquipage-design-system/actions/artifacts/11741850248/zip",
+    "expired": false,
+    "created_at": "2026-10-12T10:47:43Z",
+    "expires_at": "2026-10-26T10:47:40Z",
+    "updated_at": "2026-10-12T10:47:43Z",
+    "digest": "sha256:2ffc8587ea170f84ec4cbe99aab5b085c75cd6c19951a0fbdb926e4e6aa40568",
+    "workflow_run": {
+      "id": 38238395802,
+      "repository_id": 1360587523,
+      "head_repository_id": 1360587523,
+      "head_branch": "fix/estimate-modal-scope",
+      "head_sha": "6423443d71a0817570281cf28822a3c14f7db684"
+    }
+  },
+  "sourceArchiveFileCount": 80,
+  "sourcePngCount": 78,
+  "newPngCopies": 64,
+  "existingGitPngLinks": 14,
+  "allPngBytesAvailableOffline": true,
+  "allArchiveFilesVerifiedByteForByteAgainstExtraction": true,
+  "files": [
+    {
+      "path": "browser/desktop-dark-board-board-return.png",
+      "bytes": 48218,
+      "sha256": "9be0a92e8f2f26700b724558adbedab8ada6db22d540425113c98f86fdea3932",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/tabs/browser/desktop-dark-board-board-return.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/desktop-dark-board-task-End.png",
+      "bytes": 1935,
+      "sha256": "dd3794fd18fa02a8650bf1cd1eb67e3dfd541fa2ddcb9c49252cd30d16f8e617",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/tabs/browser/desktop-dark-board-task-End.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/desktop-dark-board-task-Home.png",
+      "bytes": 1935,
+      "sha256": "06e6c3b542c9947d74372d1b9b3e87299babc764b23d8a2e0119cd1889cd429e",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/tabs/browser/desktop-dark-board-task-Home.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/desktop-dark-board-task-initial.png",
+      "bytes": 1860,
+      "sha256": "b68cbe66c348d2a4480b061a6ac2c27424cd56f935b2cb676e487ed91d572966",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/tabs/browser/desktop-dark-board-task-initial.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/desktop-dark-board-task-panel.png",
+      "bytes": 78779,
+      "sha256": "8acaca7ca50a98aa55165f6e20f61096ccfe8d4056b1ca4c6f667253a1c6bf50",
+      "preserved": true,
+      "storedInThisPackage": false,
+      "preservedAs": "task-first-screen/evidence/desktop-dark-board-task-panel.png",
+      "encoding": "identity",
+      "matchingExistingFiles": [
+        "task-first-screen/evidence/desktop-dark-board-task-panel.png"
+      ]
+    },
+    {
+      "path": "browser/desktop-dark-board-work-panel.png",
+      "bytes": 53225,
+      "sha256": "c97be4f136da74198792cc1a7188d4ff5d126876ef650ef61a0216e29cb1acc2",
+      "preserved": true,
+      "storedInThisPackage": false,
+      "preservedAs": "native/tabs/evidence/visual/after/desktop-dark-board-work-panel.png",
+      "encoding": "identity",
+      "matchingExistingFiles": [
+        "native/tabs/evidence/visual/after/desktop-dark-board-work-panel.png"
+      ]
+    },
+    {
+      "path": "browser/desktop-dark-minimal-long-End.png",
+      "bytes": 3375,
+      "sha256": "1e72267d06dccd3e9fdeba1d7fe4508a684468ced2746adddd05000ce90d470f",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/tabs/browser/desktop-dark-minimal-long-End.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/desktop-dark-minimal-long-Home.png",
+      "bytes": 3372,
+      "sha256": "49def1509921bbe38dac138c6f91482f73b2c6ac657f7f2e5fed88b90ca2570b",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/tabs/browser/desktop-dark-minimal-long-Home.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/desktop-dark-minimal-short-End.png",
+      "bytes": 2032,
+      "sha256": "77197ac6f7eb18c567773a93157856efaad695d6d3828a51e461c62bd378e561",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/tabs/browser/desktop-dark-minimal-short-End.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/desktop-dark-minimal-short-Home.png",
+      "bytes": 2074,
+      "sha256": "3c0a80c646cbad9ed52a3a4efd307122fef9274ca247942e4d411a95172986f7",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/tabs/browser/desktop-dark-minimal-short-Home.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/desktop-dark-minimal-short-initial.png",
+      "bytes": 2023,
+      "sha256": "53a800d5148bd92253fff784e549e8d10f18e7c6afda6df6df1996a7d3659202",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/tabs/browser/desktop-dark-minimal-short-initial.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/desktop-dark-wiki-draft-preserved.png",
+      "bytes": 54636,
+      "sha256": "cc9728ac932019686efec3d44549d3489bd53461a2f3e2c27a29639a559078c7",
+      "preserved": true,
+      "storedInThisPackage": false,
+      "preservedAs": "native/tabs/evidence/visual/after/desktop-dark-wiki-draft-preserved.png",
+      "encoding": "identity",
+      "matchingExistingFiles": [
+        "native/tabs/evidence/visual/after/desktop-dark-wiki-draft-preserved.png"
+      ]
+    },
+    {
+      "path": "browser/desktop-dark-wiki-wiki-End.png",
+      "bytes": 2635,
+      "sha256": "bafd5a8d53e45a188eab01ef6f9a8ead3e1d3a05c7a9afa00927345490bb717f",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/tabs/browser/desktop-dark-wiki-wiki-End.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/desktop-dark-wiki-wiki-Home.png",
+      "bytes": 2669,
+      "sha256": "4b3ea8a2b056291c0bed97f9657d9b46c73c1b174609ce1689774cd8cf637829",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/tabs/browser/desktop-dark-wiki-wiki-Home.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/desktop-dark-wiki-wiki-initial.png",
+      "bytes": 2626,
+      "sha256": "6687295c27ce662d5d0fa3148e1c3d8c9611b29d57e48c03c9312868974b8ab7",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/tabs/browser/desktop-dark-wiki-wiki-initial.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/desktop-light-board-board-return.png",
+      "bytes": 45403,
+      "sha256": "b65d20ce26e593d54d0e764b74b9cd842cfd4907b46f8b79349201624e8f3228",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/tabs/browser/desktop-light-board-board-return.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/desktop-light-board-task-End.png",
+      "bytes": 1900,
+      "sha256": "a8d907ab2c03be8a112de0cc391f01b8b28e8893f40d29e10d617d0f5f8da95c",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/tabs/browser/desktop-light-board-task-End.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/desktop-light-board-task-Home.png",
+      "bytes": 1920,
+      "sha256": "e906373da3907153b4996ca572356a42521a3bb1afd8b897a5b6f24367efa460",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/tabs/browser/desktop-light-board-task-Home.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/desktop-light-board-task-initial.png",
+      "bytes": 1869,
+      "sha256": "ad73421c54e0b4974f4f69a2ebb437def05dca8ffb6e3ed60806e8bcd996e68b",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/tabs/browser/desktop-light-board-task-initial.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/desktop-light-board-task-panel.png",
+      "bytes": 66125,
+      "sha256": "c3e953732b8061847b01f3c8d0120c08a1e4499327d9c2058a3a2209ab1a9dd2",
+      "preserved": true,
+      "storedInThisPackage": false,
+      "preservedAs": "native/tabs/evidence/visual/after/desktop-light-board-task-panel.png",
+      "encoding": "identity",
+      "matchingExistingFiles": [
+        "native/tabs/evidence/visual/after/desktop-light-board-task-panel.png",
+        "task-first-screen/evidence/desktop-light-board-task-panel.png"
+      ]
+    },
+    {
+      "path": "browser/desktop-light-board-work-panel.png",
+      "bytes": 49269,
+      "sha256": "70771d8befb010b24e3e01034d66cf35a538f5d2c5554706de85044d1311ae71",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/tabs/browser/desktop-light-board-work-panel.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/desktop-light-minimal-long-End.png",
+      "bytes": 3393,
+      "sha256": "c8a7aa0d8307f04467f2fb7625c8f484757b38a61b673cfd886a73186f85c096",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/tabs/browser/desktop-light-minimal-long-End.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/desktop-light-minimal-long-Home.png",
+      "bytes": 3438,
+      "sha256": "997749224054163872a424a67b862e0a8b0ce3b5da8d63173549197f8ec3f508",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/tabs/browser/desktop-light-minimal-long-Home.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/desktop-light-minimal-short-End.png",
+      "bytes": 2043,
+      "sha256": "7cc323688d16cefd7da17268ce65f07fefe1a7368f01e69da765b98194fb4c08",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/tabs/browser/desktop-light-minimal-short-End.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/desktop-light-minimal-short-Home.png",
+      "bytes": 2056,
+      "sha256": "20d6ec73bfdc7b84e77e42e3b858ddd31a70de78838ab80791cce05f8df940dc",
+      "preserved": true,
+      "storedInThisPackage": false,
+      "preservedAs": "native/tabs/evidence/visual/after/desktop-light-minimal-short-Home.png",
+      "encoding": "identity",
+      "matchingExistingFiles": [
+        "native/tabs/evidence/visual/after/desktop-light-minimal-short-Home.png"
+      ]
+    },
+    {
+      "path": "browser/desktop-light-minimal-short-initial.png",
+      "bytes": 2019,
+      "sha256": "8fcd8ab56604664a8bbb0009fc236c586f7257d73ec5df82df6a086f2e6272f9",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/tabs/browser/desktop-light-minimal-short-initial.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/desktop-light-nested-nested-End.png",
+      "bytes": 1900,
+      "sha256": "a8d907ab2c03be8a112de0cc391f01b8b28e8893f40d29e10d617d0f5f8da95c",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/tabs/browser/desktop-light-nested-nested-End.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/desktop-light-nested-nested-Home.png",
+      "bytes": 1920,
+      "sha256": "e906373da3907153b4996ca572356a42521a3bb1afd8b897a5b6f24367efa460",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/tabs/browser/desktop-light-nested-nested-Home.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/desktop-light-nested-nested-task.png",
+      "bytes": 42916,
+      "sha256": "18e877b017b465add18534a218f604d857740a54f5f6d6555db682f4b4b79e2f",
+      "preserved": true,
+      "storedInThisPackage": false,
+      "preservedAs": "native/tabs/evidence/visual/after/desktop-light-nested-nested-task.png",
+      "encoding": "identity",
+      "matchingExistingFiles": [
+        "native/tabs/evidence/visual/after/desktop-light-nested-nested-task.png"
+      ]
+    },
+    {
+      "path": "browser/desktop-light-wiki-draft-preserved.png",
+      "bytes": 52321,
+      "sha256": "79e6715e6461846181c307d64f7b555c71860462e2b34ff8e94bdfa925bedffc",
+      "preserved": true,
+      "storedInThisPackage": false,
+      "preservedAs": "native/tabs/evidence/visual/after/desktop-light-wiki-draft-preserved.png",
+      "encoding": "identity",
+      "matchingExistingFiles": [
+        "native/tabs/evidence/visual/after/desktop-light-wiki-draft-preserved.png"
+      ]
+    },
+    {
+      "path": "browser/desktop-light-wiki-wiki-End.png",
+      "bytes": 2663,
+      "sha256": "e0e515b53d5b5e239c890beec38df518b0d4d32aa2627914a82c4f151ecc7ea5",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/tabs/browser/desktop-light-wiki-wiki-End.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/desktop-light-wiki-wiki-Home.png",
+      "bytes": 2712,
+      "sha256": "0c9adc72fb947c97d9834caaf238acf5172dab7d2293b7c83d7cae952cc29e39",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/tabs/browser/desktop-light-wiki-wiki-Home.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/desktop-light-wiki-wiki-initial.png",
+      "bytes": 2674,
+      "sha256": "790d38956c7bd41606174908e8af9b6b63327fd9b0be0d1e223dceb555d1fbf2",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/tabs/browser/desktop-light-wiki-wiki-initial.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/narrow-dark-board-board-return.png",
+      "bytes": 27251,
+      "sha256": "c545f5cd1090064b72db860357824977cda967d9380588e6294dd244de00e532",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/tabs/browser/narrow-dark-board-board-return.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/narrow-dark-board-task-End.png",
+      "bytes": 1805,
+      "sha256": "e684f2c2f7ed4b81f71b44a964777d3813b43d2f5303f7ecc6fa6fb2d87cf2e9",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/tabs/browser/narrow-dark-board-task-End.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/narrow-dark-board-task-Home.png",
+      "bytes": 1803,
+      "sha256": "780c1b8619b7a36da53e016774a3afdd6c26445e3fc219a7e444003d10687e81",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/tabs/browser/narrow-dark-board-task-Home.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/narrow-dark-board-task-initial.png",
+      "bytes": 1735,
+      "sha256": "98e002ad17cf6d7ea20d7f829512646c483109a996072d3d6f52113edced2083",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/tabs/browser/narrow-dark-board-task-initial.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/narrow-dark-board-task-panel.png",
+      "bytes": 31161,
+      "sha256": "a055a6a55f51556f47e769f1b9046a028977983a2cbfcdc717261d5c65d45df8",
+      "preserved": true,
+      "storedInThisPackage": false,
+      "preservedAs": "native/tabs/evidence/visual/after/narrow-dark-board-task-panel.png",
+      "encoding": "identity",
+      "matchingExistingFiles": [
+        "native/tabs/evidence/visual/after/narrow-dark-board-task-panel.png",
+        "task-first-screen/evidence/narrow-dark-board-task-panel.png"
+      ]
+    },
+    {
+      "path": "browser/narrow-dark-board-work-panel.png",
+      "bytes": 16642,
+      "sha256": "0bafee73f7b717802cbb9f165368fc57bab4d7262cf6710d8c70244eb8256fcc",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/tabs/browser/narrow-dark-board-work-panel.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/narrow-dark-minimal-long-End.png",
+      "bytes": 3077,
+      "sha256": "53cca71005620ebc44f3f11973dd62b5a0a66e8419caa903e5d390b47fc58340",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/tabs/browser/narrow-dark-minimal-long-End.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/narrow-dark-minimal-long-Home.png",
+      "bytes": 3183,
+      "sha256": "150bb9992ec2e6d0eb323074c43438fe6fa7787322963695f1c5fa98a4e691af",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/tabs/browser/narrow-dark-minimal-long-Home.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/narrow-dark-minimal-short-End.png",
+      "bytes": 1906,
+      "sha256": "a987e22d200ff82a1fe2ce88a03b36da1a03bb92b90e1aed4b525838eabab96c",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/tabs/browser/narrow-dark-minimal-short-End.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/narrow-dark-minimal-short-Home.png",
+      "bytes": 1945,
+      "sha256": "9a9b53c28e821fa441128051c6e2a0572347dd195aa57c5686151c5d36be23de",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/tabs/browser/narrow-dark-minimal-short-Home.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/narrow-dark-minimal-short-initial.png",
+      "bytes": 1895,
+      "sha256": "8c087d1fb374a0da3ddd4937f68e9347127695f383c3b1a3a14d53cf2f6f2ace",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/tabs/browser/narrow-dark-minimal-short-initial.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/narrow-dark-wiki-draft-preserved.png",
+      "bytes": 34108,
+      "sha256": "d7a16544c5bf50df30263870c89b49653c54076128cdd583490548fe854d5674",
+      "preserved": true,
+      "storedInThisPackage": false,
+      "preservedAs": "native/tabs/evidence/visual/after/narrow-dark-wiki-draft-preserved.png",
+      "encoding": "identity",
+      "matchingExistingFiles": [
+        "native/tabs/evidence/visual/after/narrow-dark-wiki-draft-preserved.png"
+      ]
+    },
+    {
+      "path": "browser/narrow-dark-wiki-wiki-End.png",
+      "bytes": 2523,
+      "sha256": "22527eae8c6dc644d8b6535a004f33a46b7a2b58ea0c2130cae1c82f929d9b7f",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/tabs/browser/narrow-dark-wiki-wiki-End.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/narrow-dark-wiki-wiki-Home.png",
+      "bytes": 2559,
+      "sha256": "3043f70a3dcd01e72125f50b1b57cf3de44d734d951284740612931013d3a8b1",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/tabs/browser/narrow-dark-wiki-wiki-Home.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/narrow-dark-wiki-wiki-initial.png",
+      "bytes": 2525,
+      "sha256": "b2372c99714db0d9ea86209c68dbbc9f503244473cc816bd0a1aef6c4c068a5d",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/tabs/browser/narrow-dark-wiki-wiki-initial.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/narrow-light-board-board-return.png",
+      "bytes": 29751,
+      "sha256": "d16236a6ebb75263c10660bc24bd7c2fab3c34b86eb1c93ecd0c0381462694e7",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/tabs/browser/narrow-light-board-board-return.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/narrow-light-board-task-End.png",
+      "bytes": 1805,
+      "sha256": "12f6a29a9454819d46fb90382f8de9bbbba5901412e6a351708038ac40b209e6",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/tabs/browser/narrow-light-board-task-End.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/narrow-light-board-task-Home.png",
+      "bytes": 1822,
+      "sha256": "d31504980273e337a9c239316b147906e0c798254c3332b1a9e0910d4f30d865",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/tabs/browser/narrow-light-board-task-Home.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/narrow-light-board-task-initial.png",
+      "bytes": 1772,
+      "sha256": "a0caf9e877b3e5bb3466c9727fc625eb7e7d9ea51c629f897cf33d422b7b7b2f",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/tabs/browser/narrow-light-board-task-initial.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/narrow-light-board-task-panel.png",
+      "bytes": 39322,
+      "sha256": "62d59c3480e5a7767240ef757aeb9e5e842aa3b8b3a3a057ac4ff250dab984f9",
+      "preserved": true,
+      "storedInThisPackage": false,
+      "preservedAs": "task-first-screen/evidence/narrow-light-board-task-panel.png",
+      "encoding": "identity",
+      "matchingExistingFiles": [
+        "task-first-screen/evidence/narrow-light-board-task-panel.png"
+      ]
+    },
+    {
+      "path": "browser/narrow-light-board-work-panel.png",
+      "bytes": 18166,
+      "sha256": "fed9a7f5fcf4a292646974b540413e999b994bae1b7de8e37cc06ff3ba3f9e7b",
+      "preserved": true,
+      "storedInThisPackage": false,
+      "preservedAs": "native/tabs/evidence/visual/after/narrow-light-board-work-panel.png",
+      "encoding": "identity",
+      "matchingExistingFiles": [
+        "native/tabs/evidence/visual/after/narrow-light-board-work-panel.png"
+      ]
+    },
+    {
+      "path": "browser/narrow-light-minimal-long-End.png",
+      "bytes": 3393,
+      "sha256": "c8a7aa0d8307f04467f2fb7625c8f484757b38a61b673cfd886a73186f85c096",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/tabs/browser/narrow-light-minimal-long-End.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/narrow-light-minimal-long-Home.png",
+      "bytes": 3438,
+      "sha256": "997749224054163872a424a67b862e0a8b0ce3b5da8d63173549197f8ec3f508",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/tabs/browser/narrow-light-minimal-long-Home.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/narrow-light-minimal-short-End.png",
+      "bytes": 1940,
+      "sha256": "369c3708d971656a3306d5c13faf002b5c37f7ad26be23d73208ec086d8caed6",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/tabs/browser/narrow-light-minimal-short-End.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/narrow-light-minimal-short-Home.png",
+      "bytes": 1959,
+      "sha256": "bce883868c41dc969b7d2c96d074d1cc19be465b2048415e93430c78937658aa",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/tabs/browser/narrow-light-minimal-short-Home.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/narrow-light-minimal-short-initial.png",
+      "bytes": 1918,
+      "sha256": "9e063c972a7979171cdaa13a4895ed5ecc70068c0c59b4748d426f8454eb4868",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/tabs/browser/narrow-light-minimal-short-initial.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/narrow-light-wiki-draft-preserved.png",
+      "bytes": 41635,
+      "sha256": "4917e85ce16ab8751e51013064d93377e821c8f488625f642ebb679182d57a11",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/tabs/browser/narrow-light-wiki-draft-preserved.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/narrow-light-wiki-wiki-End.png",
+      "bytes": 2590,
+      "sha256": "755cf6a7322f912b58e2e6d3aa28ccd68cff12018d0d63b77dc822f63f07179f",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/tabs/browser/narrow-light-wiki-wiki-End.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/narrow-light-wiki-wiki-Home.png",
+      "bytes": 2626,
+      "sha256": "9255084a7fab520f2162cc59266bd99650bacfaf6256f8c30f15ee7edecabdd8",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/tabs/browser/narrow-light-wiki-wiki-Home.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/narrow-light-wiki-wiki-initial.png",
+      "bytes": 2593,
+      "sha256": "d49caf53e173205cac532e079ae75aa94d6f80eb72c39fbc824447011f60558a",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/tabs/browser/narrow-light-wiki-wiki-initial.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/results.json",
+      "bytes": 2393878,
+      "sha256": "89e0fcdb839100cf7e4052c466b87fcaabea4d9cfb2c4989760802b5d3717980",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/tabs/browser/results.json.gz",
+      "encoding": "gzip"
+    },
+    {
+      "path": "browser/text200-light-board-board-return.png",
+      "bytes": 66442,
+      "sha256": "e2777f8766b5e7239a4c9e5a59fc12bca9000ff76905ac014e72662a83fd7fdb",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/tabs/browser/text200-light-board-board-return.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/text200-light-board-task-End.png",
+      "bytes": 3872,
+      "sha256": "88cc89109dcdb482eb96a57a6127d2927b6b8df3bfb227ee080f55ba0b2b8965",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/tabs/browser/text200-light-board-task-End.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/text200-light-board-task-Home.png",
+      "bytes": 3854,
+      "sha256": "003aa3ee2e95d20020c1f54245cf3c0a1710f10ef5fc597a142585061e6a6378",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/tabs/browser/text200-light-board-task-Home.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/text200-light-board-task-initial.png",
+      "bytes": 3793,
+      "sha256": "fc5edce5ff7c9a731a653c9b525c8f73c7b66037ade894f785923ad4958bf8de",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/tabs/browser/text200-light-board-task-initial.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/text200-light-board-task-panel.png",
+      "bytes": 80316,
+      "sha256": "24fc9743b7ed140d8676c773a3995b941ac9611693b99e3ac0d26e6872ece756",
+      "preserved": true,
+      "storedInThisPackage": false,
+      "preservedAs": "native/tabs/evidence/visual/after/text200-light-board-task-panel.png",
+      "encoding": "identity",
+      "matchingExistingFiles": [
+        "native/tabs/evidence/visual/after/text200-light-board-task-panel.png",
+        "task-first-screen/evidence/text200-light-board-task-panel.png"
+      ]
+    },
+    {
+      "path": "browser/text200-light-board-work-panel.png",
+      "bytes": 39975,
+      "sha256": "cd5eeef1c35da52205d45a6a1d14b153cdac78293e02442c69c0122e6e9dacfb",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/tabs/browser/text200-light-board-work-panel.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/text200-light-minimal-long-End.png",
+      "bytes": 4193,
+      "sha256": "8dd56414a647beaa16db7aeea9f2163e87bdd13c69a57bcb1af6d7fd8eb69919",
+      "preserved": true,
+      "storedInThisPackage": false,
+      "preservedAs": "native/tabs/evidence/visual/after/text200-light-minimal-long-End.png",
+      "encoding": "identity",
+      "matchingExistingFiles": [
+        "native/tabs/evidence/visual/after/text200-light-minimal-long-End.png"
+      ]
+    },
+    {
+      "path": "browser/text200-light-minimal-long-Home.png",
+      "bytes": 5105,
+      "sha256": "905d430c78934a303643b11dc85b173ca7965bdea200477d129ebd7d74e64123",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/tabs/browser/text200-light-minimal-long-Home.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/text200-light-minimal-short-End.png",
+      "bytes": 4085,
+      "sha256": "8cbe9763cd62ebf9561bfbf0f7b53f9482ff4caae8aba387a694c34bd2de62fb",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/tabs/browser/text200-light-minimal-short-End.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/text200-light-minimal-short-Home.png",
+      "bytes": 4113,
+      "sha256": "df679106d3ef32ec12fd61335df4f408401f0006e0e351243a2719306d42a4cb",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/tabs/browser/text200-light-minimal-short-Home.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/text200-light-minimal-short-initial.png",
+      "bytes": 4072,
+      "sha256": "92db3a4fb263e0e02e5601c0d8e0b500ceebf5f8902a8d08779524023c51beb0",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/tabs/browser/text200-light-minimal-short-initial.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/text200-light-wiki-draft-preserved.png",
+      "bytes": 82570,
+      "sha256": "21a2677c6af0516bc5e69fd0a31dae433ecf0ef4daf85162f5d7742bd9933b4d",
+      "preserved": true,
+      "storedInThisPackage": false,
+      "preservedAs": "native/tabs/evidence/visual/after/text200-light-wiki-draft-preserved.png",
+      "encoding": "identity",
+      "matchingExistingFiles": [
+        "native/tabs/evidence/visual/after/text200-light-wiki-draft-preserved.png"
+      ]
+    },
+    {
+      "path": "browser/text200-light-wiki-wiki-End.png",
+      "bytes": 5383,
+      "sha256": "f39c45ec7355a59ea0592a959a3b0bf61440443ee754c2f3f65d038e389e7df2",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/tabs/browser/text200-light-wiki-wiki-End.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/text200-light-wiki-wiki-Home.png",
+      "bytes": 5412,
+      "sha256": "120aca19fd8a689463efafa9f504c29354d3d77e55ea3be634ee3677b88a7a98",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/tabs/browser/text200-light-wiki-wiki-Home.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/text200-light-wiki-wiki-initial.png",
+      "bytes": 5364,
+      "sha256": "c1c13c04edf6f60bfc1912d639fc36188219195022cc1d4a82ca75f7fff16cf9",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/tabs/browser/text200-light-wiki-wiki-initial.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "build/results.json",
+      "bytes": 4283,
+      "sha256": "1a0f7885c240b752b5c2a135a4cd1daae0315ea7a9d9af79e6e93d639eeab43d",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/tabs/build/results.json.gz",
+      "encoding": "gzip"
+    }
+  ],
+  "pathConvention": "path is relative to the downloaded artifact; preservedAs and matchingExistingFiles are relative to docs/implementation/2026-10-12 in the repository."
+}

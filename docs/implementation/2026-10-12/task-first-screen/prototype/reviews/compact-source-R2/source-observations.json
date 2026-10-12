@@ -1,0 +1,377 @@
+{
+  "kind": "exact-source pure observations; no DOM/browser/public button lifecycle",
+  "nodeVersion": "v24.19.0",
+  "excerptCases": [
+    {
+      "id": "empty",
+      "input": "",
+      "normalized": "",
+      "inputCodePoints": 0,
+      "label": "Описание результата не добавлено",
+      "text": "",
+      "outputCodePoints": 0
+    },
+    {
+      "id": "whitespace",
+      "input": " \n\t ",
+      "normalized": "",
+      "inputCodePoints": 0,
+      "label": "Описание результата не добавлено",
+      "text": "",
+      "outputCodePoints": 0
+    },
+    {
+      "id": "literal-html",
+      "input": "<готово> & проверено",
+      "normalized": "<готово> & проверено",
+      "inputCodePoints": 20,
+      "label": "Результат шага",
+      "text": "<готово> & проверено",
+      "outputCodePoints": 20
+    },
+    {
+      "id": "exact-64",
+      "input": "яяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяя",
+      "normalized": "яяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяя",
+      "inputCodePoints": 64,
+      "label": "Результат шага",
+      "text": "яяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяя",
+      "outputCodePoints": 64
+    },
+    {
+      "id": "over-65",
+      "input": "яяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяя",
+      "normalized": "яяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяя",
+      "inputCodePoints": 65,
+      "label": "Начало результата",
+      "text": "яяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяяя…",
+      "outputCodePoints": 64
+    },
+    {
+      "id": "word-boundary",
+      "input": "Сохранены изменения, история и доступы. Проверено повторное открытие после обновления страницы.",
+      "normalized": "Сохранены изменения, история и доступы. Проверено повторное открытие после обновления страницы.",
+      "inputCodePoints": 95,
+      "label": "Начало результата",
+      "text": "Сохранены изменения, история и доступы. Проверено повторное…",
+      "outputCodePoints": 60
+    },
+    {
+      "id": "boundary-astral",
+      "input": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀 проверка проверка проверка проверка проверка проверка проверка проверка проверка проверка ",
+      "normalized": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀 проверка проверка проверка проверка проверка проверка проверка проверка проверка проверка",
+      "inputCodePoints": 105,
+      "label": "Начало результата",
+      "text": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀 проверка проверка проверка проверка проверка…",
+      "outputCodePoints": 61
+    },
+    {
+      "id": "markdown",
+      "input": "# Результат\n\n**Готово**: `пример`\n- Повторное открытие сохраняет состояние.\n- Дальнейшая проверка доступна.",
+      "normalized": "Результат\n\nГотово: пример Повторное открытие сохраняет состояние. Дальнейшая проверка доступна.",
+      "inputCodePoints": 95,
+      "label": "Начало результата",
+      "text": "Результат\n\nГотово: пример Повторное открытие сохраняет…",
+      "outputCodePoints": 55
+    },
+    {
+      "id": "cjk",
+      "input": "完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了",
+      "normalized": "完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了",
+      "inputCodePoints": 100,
+      "label": "Начало результата",
+      "text": "完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完了完…",
+      "outputCodePoints": 64
+    },
+    {
+      "id": "long-url",
+      "input": "https://example.invalid/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "normalized": "https://example.invalid/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "inputCodePoints": 114,
+      "label": "Начало результата",
+      "text": "https://example.invalid/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa…",
+      "outputCodePoints": 64
+    },
+    {
+      "id": "combining-grapheme",
+      "input": "éééééééééééééééééééééééééééééééééééééééé",
+      "normalized": "éééééééééééééééééééééééééééééééééééééééé",
+      "inputCodePoints": 80,
+      "label": "Начало результата",
+      "text": "ééééééééééééééééééééééééééééééée…",
+      "outputCodePoints": 64
+    },
+    {
+      "id": "zwj-grapheme",
+      "input": "👩‍👩‍👧‍👦👩‍👩‍👧‍👦👩‍👩‍👧‍👦👩‍👩‍👧‍👦👩‍👩‍👧‍👦👩‍👩‍👧‍👦👩‍👩‍👧‍👦👩‍👩‍👧‍👦👩‍👩‍👧‍👦👩‍👩‍👧‍👦👩‍👩‍👧‍👦",
+      "normalized": "👩‍👩‍👧‍👦👩‍👩‍👧‍👦👩‍👩‍👧‍👦👩‍👩‍👧‍👦👩‍👩‍👧‍👦👩‍👩‍👧‍👦👩‍👩‍👧‍👦👩‍👩‍👧‍👦👩‍👩‍👧‍👦👩‍👩‍👧‍👦👩‍👩‍👧‍👦",
+      "inputCodePoints": 77,
+      "label": "Начало результата",
+      "text": "👩‍👩‍👧‍👦👩‍👩‍👧‍👦👩‍👩‍👧‍👦👩‍👩‍👧‍👦👩‍👩‍👧‍👦👩‍👩‍👧‍👦👩‍👩‍👧‍👦👩‍👩‍👧‍👦👩‍👩‍👧‍👦…",
+      "outputCodePoints": 64
+    },
+    {
+      "id": "astral-64",
+      "input": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+      "normalized": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+      "inputCodePoints": 64,
+      "label": "Результат шага",
+      "text": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+      "outputCodePoints": 64
+    },
+    {
+      "id": "astral-65",
+      "input": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+      "normalized": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+      "inputCodePoints": 65,
+      "label": "Начало результата",
+      "text": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀…",
+      "outputCodePoints": 64
+    },
+    {
+      "id": "literal-source-ellipsis",
+      "input": "Результат завершён…",
+      "normalized": "Результат завершён…",
+      "inputCodePoints": 19,
+      "label": "Результат шага",
+      "text": "Результат завершён…",
+      "outputCodePoints": 19
+    }
+  ],
+  "projectionCases": [
+    {
+      "id": "review-plan-order",
+      "overview": {
+        "context": "Работа агента · Кодекс <имя> & контекст",
+        "status": "Результат на проверке",
+        "text": "Полный предмет первого шага <контекст> & условия",
+        "action": "review:S1",
+        "label": "Проверить результат",
+        "attention": true
+      },
+      "focusKind": "review",
+      "focusId": "S1",
+      "hidden": false,
+      "innerHTML": "<div class=\"iq-work-story-head\"><div class=\"iq-work-story-copy\"><h3><span data-work-summary-state>Результат на проверке</span> · Кодекс &lt;имя&gt; &amp; контекст</h3><p>Полный предмет первого шага &lt;контекст&gt; &amp; условия</p></div><!-- existing-ui-btn --></div><div class=\"iq-work-story-copy\"><p><span class=\"iq-work-byline\">Результат шага:</span> <span data-work-summary-preview-text>&lt;готово&gt; &amp; проверено</span></p></div>",
+      "buttonCalls": [
+        [
+          "Проверить результат",
+          "primary",
+          "",
+          "data-work-summary-action=\"review:S1\""
+        ]
+      ],
+      "unrelatedMarkupByteIdentical": null
+    },
+    {
+      "id": "review-empty",
+      "overview": {
+        "context": "Работа агента",
+        "status": "Результат на проверке",
+        "text": "Полный предмет первого шага <контекст> & условия",
+        "action": "review:S1",
+        "label": "Проверить результат",
+        "attention": true
+      },
+      "focusKind": "review",
+      "focusId": "S1",
+      "hidden": false,
+      "innerHTML": "<div class=\"iq-work-story-head\"><div class=\"iq-work-story-copy\"><h3><span data-work-summary-state>Результат на проверке</span></h3><p>Полный предмет первого шага &lt;контекст&gt; &amp; условия</p></div><!-- existing-ui-btn --></div><div class=\"iq-work-story-copy\"><p class=\"iq-work-byline\">Описание результата не добавлено</p></div>",
+      "buttonCalls": [
+        [
+          "Проверить результат",
+          "primary",
+          "",
+          "data-work-summary-action=\"review:S1\""
+        ]
+      ],
+      "unrelatedMarkupByteIdentical": null
+    },
+    {
+      "id": "question-before-review",
+      "overview": {
+        "context": "Работа агента · Кодекс <имя> & контекст",
+        "status": "Вопрос ждёт ответа",
+        "text": "Вопрос <текст> & условия",
+        "action": "question:Q1",
+        "label": "Открыть вопрос",
+        "attention": true
+      },
+      "focusKind": "question",
+      "focusId": "Q1",
+      "hidden": false,
+      "innerHTML": "<div class=\"iq-work-story-head\"><div class=\"iq-work-story-copy\"><h3><span data-work-summary-state>Вопрос ждёт ответа</span> · Кодекс &lt;имя&gt; &amp; контекст</h3><p>Вопрос &lt;текст&gt; &amp; условия</p></div><!-- existing-ui-btn --></div>",
+      "buttonCalls": [
+        [
+          "Открыть вопрос",
+          "primary",
+          "",
+          "data-work-summary-action=\"question:Q1\""
+        ]
+      ],
+      "unrelatedMarkupByteIdentical": null
+    },
+    {
+      "id": "question-can-answer",
+      "overview": {
+        "context": "Работа агента · Кодекс <имя> & контекст",
+        "status": "Нужно ваше решение",
+        "text": "Вопрос к вам",
+        "action": "question:Q1",
+        "label": "Ответить агенту",
+        "attention": true
+      },
+      "focusKind": "question",
+      "focusId": "Q1",
+      "hidden": false,
+      "innerHTML": "<div class=\"iq-work-story-head\"><div class=\"iq-work-story-copy\"><h3><span data-work-summary-state>Нужно ваше решение</span> · Кодекс &lt;имя&gt; &amp; контекст</h3><p>Вопрос к вам</p></div><!-- existing-ui-btn --></div>",
+      "buttonCalls": [
+        [
+          "Ответить агенту",
+          "primary",
+          "",
+          "data-work-summary-action=\"question:Q1\""
+        ]
+      ],
+      "unrelatedMarkupByteIdentical": null
+    },
+    {
+      "id": "question-permission-absent",
+      "overview": {
+        "context": "Работа агента",
+        "status": "Вопрос ждёт ответа",
+        "text": "Вопрос к вам",
+        "action": "question:Q1",
+        "label": "Открыть вопрос",
+        "attention": true
+      },
+      "focusKind": "question",
+      "focusId": "Q1",
+      "hidden": false,
+      "innerHTML": "<div class=\"iq-work-story-head\"><div class=\"iq-work-story-copy\"><h3><span data-work-summary-state>Вопрос ждёт ответа</span></h3><p>Вопрос к вам</p></div><!-- existing-ui-btn --></div>",
+      "buttonCalls": [
+        [
+          "Открыть вопрос",
+          "primary",
+          "",
+          "data-work-summary-action=\"question:Q1\""
+        ]
+      ],
+      "unrelatedMarkupByteIdentical": null
+    },
+    {
+      "id": "rejected-step",
+      "overview": {
+        "context": "Работа агента · Кодекс <имя> & контекст",
+        "status": "В работе",
+        "text": "Полный предмет первого шага <контекст> & условия",
+        "action": "open",
+        "label": "Открыть работу",
+        "attention": false
+      },
+      "focusKind": "step",
+      "focusId": "S1",
+      "hidden": false,
+      "innerHTML": "<div class=\"iq-work-story-head\"><div class=\"iq-work-story-copy\"><h3>Работа агента · Кодекс &lt;имя&gt; &amp; контекст</h3><p>Полный предмет первого шага &lt;контекст&gt; &amp; условия</p></div><!-- existing-ui-btn --></div>",
+      "buttonCalls": [
+        [
+          "Открыть работу",
+          "secondary sm",
+          "",
+          "data-work-summary-action=\"open\""
+        ]
+      ],
+      "unrelatedMarkupByteIdentical": true
+    },
+    {
+      "id": "blocked-step",
+      "overview": {
+        "context": "Работа агента · Кодекс <имя> & контекст",
+        "status": "В работе",
+        "text": "Полный предмет первого шага <контекст> & условия",
+        "action": "open",
+        "label": "Открыть работу",
+        "attention": false
+      },
+      "focusKind": "step",
+      "focusId": "S1",
+      "hidden": false,
+      "innerHTML": "<div class=\"iq-work-story-head\"><div class=\"iq-work-story-copy\"><h3>Работа агента · Кодекс &lt;имя&gt; &amp; контекст</h3><p>Полный предмет первого шага &lt;контекст&gt; &amp; условия</p></div><!-- existing-ui-btn --></div>",
+      "buttonCalls": [
+        [
+          "Открыть работу",
+          "secondary sm",
+          "",
+          "data-work-summary-action=\"open\""
+        ]
+      ],
+      "unrelatedMarkupByteIdentical": true
+    },
+    {
+      "id": "completed-session",
+      "overview": {
+        "context": "Работа агента · Кодекс <имя> & контекст",
+        "status": "Работа завершена",
+        "text": "",
+        "action": "open",
+        "label": "Открыть работу",
+        "attention": false
+      },
+      "focusKind": "complete",
+      "focusId": null,
+      "hidden": false,
+      "innerHTML": "<div class=\"iq-work-story-head\"><div class=\"iq-work-story-copy\"><h3>Работа агента · Кодекс &lt;имя&gt; &amp; контекст</h3><p>Работа завершена</p></div><!-- existing-ui-btn --></div>",
+      "buttonCalls": [
+        [
+          "Открыть работу",
+          "secondary sm",
+          "",
+          "data-work-summary-action=\"open\""
+        ]
+      ],
+      "unrelatedMarkupByteIdentical": true
+    },
+    {
+      "id": "plan-ready-no-session",
+      "overview": {
+        "context": "Работа агента",
+        "status": "План готов",
+        "text": "",
+        "action": "open",
+        "label": "Открыть работу",
+        "attention": false
+      },
+      "focusKind": "ready",
+      "focusId": null,
+      "hidden": false,
+      "innerHTML": "<div class=\"iq-work-story-head\"><div class=\"iq-work-story-copy\"><h3>Работа агента</h3><p>План готов</p></div><!-- existing-ui-btn --></div>",
+      "buttonCalls": [
+        [
+          "Открыть работу",
+          "secondary sm",
+          "",
+          "data-work-summary-action=\"open\""
+        ]
+      ],
+      "unrelatedMarkupByteIdentical": true
+    },
+    {
+      "id": "no-plan",
+      "overview": {
+        "context": "Работа агента",
+        "status": "",
+        "text": "Поручите агенту работу по этой задаче.",
+        "action": "assign",
+        "label": "Поручить агенту",
+        "attention": false
+      },
+      "focusKind": "empty",
+      "focusId": null,
+      "hidden": true,
+      "innerHTML": "",
+      "buttonCalls": [],
+      "unrelatedMarkupByteIdentical": true
+    }
+  ],
+  "assertions": "All passed; see saved script for scope"
+}
