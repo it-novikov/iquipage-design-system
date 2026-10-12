@@ -68,3 +68,19 @@ jobs:
           path: products/sprintique/output/estimate-popover/
           retention-days: 14
           if-no-files-found: error
+      - name: Property-list DS54 baseline capture
+        if: ${{ !cancelled() && github.event_name == 'pull_request' && github.head_ref == 'fix/property-list-reflow' }}
+        env:
+          PLAYWRIGHT_MODULE: ${{ runner.temp }}/sprintique-browser-tools/node_modules/playwright
+          PLAYWRIGHT_BROWSERS_PATH: ${{ runner.temp }}/sprintique-browsers
+          PROPERTY_REFLOW_SOURCE_REVISION: ${{ github.sha }}
+          PROPERTY_REFLOW_EVIDENCE_DIR: ${{ github.workspace }}/experiments/property-list-reflow/output/browser
+        run: node experiments/property-list-reflow/run.mjs
+      - name: Property-list baseline evidence
+        if: ${{ !cancelled() && github.event_name == 'pull_request' && github.head_ref == 'fix/property-list-reflow' }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: property-list-reflow-baseline
+          path: experiments/property-list-reflow/output/
+          retention-days: 14
+          if-no-files-found: error
