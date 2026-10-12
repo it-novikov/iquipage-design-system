@@ -25,7 +25,7 @@ const menu=(label,items)=>ui.menu(ui.ib('more',label,'ghost sm','data-row-menu')
 /** A verb button with its glyph first ("✓ Проверено"), as the DS buttons put only trailing arrows last. */
 const verbButton=(label,glyph,attrs)=>`<button type="button" class="iq-btn secondary sm dsk-verb" ${attrs}>${icon(glyph,16)}<span>${esc(label)}</span></button>`;
 
-/** "Нужно действие": who asks what, the task, "Нужно до" and the verb; the menu opens, snoozes, leaves. */
+/** "Запросы к вам": who asks what, the task, "Нужно до" and the verb; the menu opens, snoozes, leaves. */
 export function requestRow(row,{wide=false,today=localDay(),parts}={}){
   const verb=verbOf(row),asker=person(row.request?.requestedBy),more=row.secondaryReasons.length;
   const presets=parts.personal?snoozePresets(row.request?.neededBy):[];
@@ -102,13 +102,13 @@ function waitingState(row){
   if(row.updates?.latest)return changeLine(row.updates.latest);
   return statusLabel(row.status).toLowerCase();
 }
-/** «Жду»: the face of whom I assigned it to, what happened, "Проверить ▾" or «Принять» when done. */
+/** «Жду»: a personal acknowledgment of completed delegated work, not team/result approval. */
 export function waitingItem(row,{wide=false,today=localDay(),parts}={}){
   const w=row.waiting,face=person(w.expectedAssignee)||person(w.ownerNow);
   // A service account's disc takes its own initials, not those of its remark (SPR-7).
   const lead=face?ui.personAvatar({...face,name:avatarName(face.name)},{size:'sm'}):`<span class="dsk-item-glyph">${icon('user',14)}</span>`;
   const check=checkWhen(row,today),presets=duePresets(today);
-  const tail=w.done&&parts.waiting?verbButton('Принять','check',`data-accept aria-label="Принять результат: ${key(row)}" aria-keyshortcuts="E"`)
+  const tail=w.done&&parts.waiting?verbButton('Больше не жду','check',`data-accept aria-label="Больше не жду: ${key(row)}" aria-keyshortcuts="E"`)
     :parts.waiting?ui.menu(whenFact(check,{button:'data-check-back',label:`Проверить ${row.displayId}: ${check.value}. Изменить дату`}),
       [{label:'Сегодня',action:'check:today',glyph:'calendar'},...presets.map((p,i)=>({label:p.label,action:`check:${i}`,glyph:'calendar'})),
         {label:'Выбрать дату…',action:'check:pick',glyph:'calendar'},{label:'Без даты проверки',action:'check:none',glyph:'x'}]):whenFact(check);

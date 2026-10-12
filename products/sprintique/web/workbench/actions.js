@@ -148,12 +148,12 @@ export function createActions({api,repository,view,projects,filter,openTask,open
         announce(date?'Дата проверки сохранена':'Дата проверки снята');void saved;await view.reload({focusKey:row.key});
       });
     },
-    /** «Принять»: the done result leaves «Жду»; its completion is taken as seen with it. */
+    /** «Больше не жду»: personal acknowledgment only; team/result approval is unchanged. */
     accept(li,row){
       return run(li,async()=>{
         const accepted=await api.accept(row.projectId,row.taskId,row.personal.acceptRevision,true);
         if(row.updates)await api.seen(row.projectId,row.taskId,row.personal.seenRevision,row.updates.latestSequence).catch(()=>null);
-        settle(li,{text:`<b>Результат принят</b> · ${esc(row.displayId)} · вы наблюдаете дальше`,undo:()=>api.accept(row.projectId,row.taskId,accepted.revision,false)});
+        settle(li,{text:`<b>Вы больше не ждёте</b> · ${esc(row.displayId)} · вы наблюдаете дальше`,undo:()=>api.accept(row.projectId,row.taskId,accepted.revision,false)});
       });
     },
     rank(li,row,move){

@@ -1,5 +1,5 @@
 // «Обзор» and «Список» of the Workbench (docs/workbench/design-v2.md §11.2): one snapshot of the envelope and the
-// seven days of the plan. Обзор: Нужно действие (8) + Сегодня (4), Текущая работа as lanes В работе · Жду · Наблюдаю
+// seven days of the plan. Обзор: Запросы к вам (8) + Сегодня (4), Текущая работа as lanes В работе · Жду · Наблюдаю
 // (or one list), Изменилось. Список: the same rows full width with columns and paging. Each section loads, fails and
 // empties on its own; a live change is offered as one «Обновить», never as a silent reorder.
 import {ui,icon,escapeHTML as esc,actionError} from '@iquipage/web/core';
@@ -70,7 +70,7 @@ export function mountDashboard(host,{mode,api,repository,projects,filter,prefs,s
     if(!envelope){setSummary(null);return;}
     const [action,,updates]=envelope.sections,today=plan?plan.days[0].items.length:null;
     setSummary([
-      {href:'#dsk-action',current:!wide&&activeSection==='dsk-action',glyph:'bell',label:'Нужно действие',count:action.count,note:action.overdueCount?`${action.overdueCount} ${plural(action.overdueCount,'просрочен','просрочено','просрочено')}`:''},
+      {href:'#dsk-action',current:!wide&&activeSection==='dsk-action',glyph:'bell',label:'Запросы к вам',count:action.count||null,note:action.overdueCount?`${action.overdueCount} ${plural(action.overdueCount,'просрочен','просрочено','просрочено')}`:''},
       // «Сегодня» is a section of the overview; in the list it leads to the week.
       wide?{href:'/workbench/plan?horizon=today',view:'week',label:'Сегодня',count:today}:{href:'#dsk-today',glyph:'sun',label:'Сегодня',count:today},
       {sep:true},
@@ -84,7 +84,7 @@ export function mountDashboard(host,{mode,api,repository,projects,filter,prefs,s
     const s=envelope?.sections[0],p=parts();
     let body;
     if(loading&&!envelope)body=`<ol class="dsk-reqs" data-list>${skeletonRows(3)}</ol>`;
-    else if(envError&&!envelope)body=`<ol class="dsk-reqs">${failedRow('«Нужно действие»')}</ol>`;
+    else if(envError&&!envelope)body=`<ol class="dsk-reqs">${failedRow('«Запросы к вам»')}</ol>`;
     else{
       const items=index(itemsOf('action'));
       body=`${wide?'<div class="dsk-cols dsk-cols-req" aria-hidden="true"><span></span><span>Кто просит · задача</span><span>Проект</span><span>Нужно до</span><span>Действие</span></div>':''}
@@ -94,13 +94,13 @@ export function mountDashboard(host,{mode,api,repository,projects,filter,prefs,s
       ${wide?'':`<div class="dsk-widget-foot"><a class="iq-btn ghost sm" href="/workbench/list" data-view="list">Все запросы в списке${icon('arrow',16)}</a></div>`}`;
     }
     const snoozeButton=s?.snoozedCount?`<button type="button" class="iq-btn ghost sm" data-snoozed-toggle aria-expanded="${showSnoozed}">${icon('clock',16)}<span>Отложенные: ${s.snoozedCount}</span></button>`:'';
-    return section('dsk-action',wide?'dsk-span-12':'dsk-span-8','Нужно действие','bell',countBadge(s?.count),snoozeButton,body,{busy:loading&&!envelope});
+    return section('dsk-action',wide?'dsk-span-12':'dsk-span-8','Запросы к вам','bell',s?.count?countBadge(s.count):'',snoozeButton,body,{busy:loading&&!envelope});
   }
   function snoozedList(){
     if(!snoozed)return `<ul class="dsk-snoozed">${skeletonRows(1)}</ul>`;
     return `<div class="dsk-snoozed"><h3 class="dsk-subhead">Отложенные</h3><ul data-list>${index(snoozed.items).map(r=>`<li class="dsk-snoozed-row" data-row data-key="${esc(r.key)}" tabindex="-1" aria-labelledby="${titleId(r.key)}">
       <div class="dsk-item-copy"><a class="dsk-title" id="${titleId(r.key)}" href="${esc(r.canonicalUrl)}" data-open>${esc(r.title)}</a><p class="dsk-meta"><span class="dsk-key">${esc(r.displayId)}</span> · вернётся ${esc(new Date(r.personal.snoozedUntil).toLocaleString('ru-RU',{weekday:'short',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}))}</p></div>
-      ${ui.btn('Вернуть','ghost sm','undo',`data-unsnooze aria-label="Вернуть в «Нужно действие»: ${esc(r.displayId)}"`)}</li>`).join('')||'<li class="dsk-empty-row">Отложенных нет</li>'}</ul></div>`;
+      ${ui.btn('Вернуть','ghost sm','undo',`data-unsnooze aria-label="Вернуть в «Запросы к вам»: ${esc(r.displayId)}"`)}</li>`).join('')||'<li class="dsk-empty-row">Отложенных нет</li>'}</ul></div>`;
   }
   function todaySection(){
     if(wide)return '';
@@ -225,7 +225,7 @@ export function mountDashboard(host,{mode,api,repository,projects,filter,prefs,s
       void load().then(()=>{(heading&&host.querySelector(`#${CSS.escape(heading)}`)||host.querySelector('#dsk-action-h'))?.focus();});
     }
     else if(button.hasAttribute('data-snoozed-toggle')){showSnoozed=!showSnoozed;snoozed=null;render();if(showSnoozed)void api.list('snoozed',{projects:filter()}).then(page=>{snoozed=page;render();host.querySelector('[data-snoozed-toggle]')?.focus();});}
-    else if(button.hasAttribute('data-unsnooze')&&row)void api.snooze(row.projectId,row.taskId,row.personal.snoozeRevision,null).then(()=>{announce('Запрос вернулся в «Нужно действие»');return load();}).catch(error=>{announce('Не удалось вернуть');if(button.isConnected)actionError(button,error?.message||'Повторите попытку.',{title:'Не вернулось',retry:()=>button.click()});});
+    else if(button.hasAttribute('data-unsnooze')&&row)void api.snooze(row.projectId,row.taskId,row.personal.snoozeRevision,null).then(()=>{announce('Запрос вернулся в «Запросы к вам»');return load();}).catch(error=>{announce('Не удалось вернуть');if(button.isConnected)actionError(button,error?.message||'Повторите попытку.',{title:'Не вернулось',retry:()=>button.click()});});
   },{signal:events.signal});
   host.addEventListener('iq-action',event=>{
     const [li,row]=rowOf(event.target);if(!row)return;

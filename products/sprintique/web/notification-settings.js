@@ -27,7 +27,7 @@ export async function mountNotificationSettings(root,{repository}){
     if(telegramState){
       const waitNote=!telegramState.connected&&link?`Ждём «Запустить» в чате. <a href="${esc(link)}" target="_blank" rel="noopener noreferrer">Открыть Telegram ещё раз</a>`:'';
       const actions=telegramState.connected
-        ?ui.btn('Отключить','ghost sm','','data-telegram-action="disconnect"')+ui.toggle('Уведомления в Telegram',choice.channels.telegram,'data-notification-channel="telegram"',false)
+        ?ui.btn('Отвязать Telegram','ghost sm','','data-telegram-action="disconnect"')+ui.toggle('Доставлять уведомления',choice.channels.telegram,'data-notification-channel="telegram"',false)
         :ui.btn('Подключить Telegram','primary sm','send',`data-telegram-action="connect"${busy?' disabled aria-busy="true"':''}`);
       rows.push(s.row({title:'Telegram',meta:[esc(telegramState.meta),waitNote],actions,attrs:'data-telegram-status'}));
     }
@@ -71,8 +71,8 @@ export async function mountNotificationSettings(root,{repository}){
     }
     if(action==='disconnect'){
       busy=true;
-      try{data=await client.request('/profile/telegram','DELETE');notify({message:'Telegram отключён'});}
-      catch(error){failed(error,{message:'Не удалось отключить Telegram'});}
+      try{data=await client.request('/profile/telegram','DELETE');notify({message:'Telegram отвязан'});}
+      catch(error){failed(error,{message:'Не удалось отвязать Telegram'});}
       finally{busy=false;if(!closed)render();}
     }
   },{signal:events.signal});
