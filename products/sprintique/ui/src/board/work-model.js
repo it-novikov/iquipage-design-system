@@ -41,12 +41,15 @@ export function workResultPreview(result,limit=160){
  return {label:'Начало результата',text:cut.replace(/[\s.,;:–—-]+$/,'')+'…',empty:false,truncated:true};
 }
 
+/** Task overview excerpt budget (vt1-compact, PR #82): keeps due date and priority on the 390px first screen; not a line-count guarantee. */
+export const OVERVIEW_RESULT_LIMIT=64;
+
 /** Overview context is explicit even when a question takes precedence over the session status. */
 export function workOverview(state){
  const focus=workFocus(state),session=state?.sessions?.find(activeSession)||state?.sessions?.[0],permissions=state?.permissions||{};
  const context=['Работа агента',session?.agentName].filter(Boolean).join(' · ');
- if(focus.kind==='question')return {context,status:permissions.canAnswer?'Нужно ваше решение':'Агент ждёт ответа',text:focus.item.title,action:'question:'+focus.item.id,label:permissions.canAnswer?'Ответить агенту':'Открыть вопрос',attention:!!permissions.canAnswer};
- if(focus.kind==='review')return {context,status:'Результат на проверке',text:focus.item.title,result:workResultPreview(focus.item.result),action:'review:'+focus.item.id,label:'Проверить результат',attention:true};
+ if(focus.kind==='question')return {context,headline:[permissions.canAnswer?'Нужно ваше решение':'Агент ждёт ответа',session?.agentName].filter(Boolean).join(' · '),status:permissions.canAnswer?'Нужно ваше решение':'Агент ждёт ответа',text:focus.item.title,action:'question:'+focus.item.id,label:permissions.canAnswer?'Ответить агенту':'Открыть вопрос',attention:!!permissions.canAnswer};
+ if(focus.kind==='review')return {context,headline:['Результат на проверке',session?.agentName].filter(Boolean).join(' · '),status:'Результат на проверке',text:focus.item.title,result:workResultPreview(focus.item.result,OVERVIEW_RESULT_LIMIT),action:'review:'+focus.item.id,label:'Проверить результат',attention:true};
  if(!state?.workPlan)return {context,status:'',text:'Поручите агенту работу по этой задаче.',action:permissions.canAssign?'assign':'open',label:permissions.canAssign?'Поручить агенту':'Открыть работу',attention:false};
  return {context,status:session?workStates[session.state]||'Работа прервалась':'План готов',text:focus.kind==='step'?focus.item.title:'',action:'open',label:'Открыть работу',attention:false};
 }

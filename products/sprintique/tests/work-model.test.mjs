@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {workResultPreview,workText,sessionSentence,activeSession,uniqueEntries,workFocus,workOverview,createWorkAnswers,createWorkActionGate} from '../ui/src/board/work-model.js';
+import {OVERVIEW_RESULT_LIMIT,workResultPreview,workText,sessionSentence,activeSession,uniqueEntries,workFocus,workOverview,createWorkAnswers,createWorkActionGate} from '../ui/src/board/work-model.js';
 test('an external assignment never claims the agent has started',()=>{
  const run={agentName:'Кодекс',state:'awaiting_agent'};
  assert.equal(activeSession(run),true);
@@ -32,7 +32,7 @@ test('agent workspace links preserve the task identity and select only a support
 
 test('the overview names the agent and distinguishes answering from merely opening a question',()=>{
  const state={sessions:[{agentName:'Кодекс',state:'waiting'}],workPlan:{questions:[{id:'q',state:'open',title:'Кому передать?'}]},permissions:{canDecide:true,canAnswer:false}};
- assert.deepEqual(workOverview(state),{context:'Работа агента · Кодекс',status:'Агент ждёт ответа',text:'Кому передать?',action:'question:q',label:'Открыть вопрос',attention:false});
+ assert.deepEqual(workOverview(state),{context:'Работа агента · Кодекс',headline:'Агент ждёт ответа · Кодекс',status:'Агент ждёт ответа',text:'Кому передать?',action:'question:q',label:'Открыть вопрос',attention:false});
  state.permissions.canAnswer=true;assert.equal(workOverview(state).label,'Ответить агенту');assert.equal(workOverview(state).status,'Нужно ваше решение');assert.equal(workOverview(state).attention,true);
  state.workPlan.questions=[];assert.equal(workOverview(state).attention,false);assert.equal(workOverview(state).status,'Ждёт ответа');
 });
@@ -77,4 +77,11 @@ test('PF04: review overview shows the literal start of the selected result, neve
  assert.ok([...workResultPreview('я'.repeat(400)).text].length===161);
  const state={sessions:[{agentName:'Кодекс',state:'completed'}],workPlan:{steps:[{id:'s',state:'done',title:'Проверить форму',result:'Форма проверена на 3 браузерах.'}]},permissions:{}};
  const o=workOverview(state);assert.equal(o.text,'Проверить форму');assert.equal(o.result.text,'Форма проверена на 3 браузерах.');assert.equal(o.action,'review:s');
+});
+
+test('Task overview uses the compact 64-code-point excerpt and one state line',()=>{
+ const state={workPlan:{steps:[{id:'s',title:'Проверить форму',state:'done',result:'слово '.repeat(30)}],questions:[]},sessions:[{agentName:'Кодекс',state:'waiting'}],permissions:{canDecide:true}};
+ const o=workOverview(state);assert.equal(OVERVIEW_RESULT_LIMIT,64);assert.equal(o.headline,'Результат на проверке · Кодекс');
+ assert.equal(o.result.label,'Начало результата');assert.ok([...o.result.text].length<=65);assert.ok(o.result.text.endsWith('…'));
+ assert.equal(o.text,'Проверить форму');
 });
