@@ -1,0 +1,508 @@
+{
+  "schema": 1,
+  "kind": "property-list-baseline-attempt-2-preservation",
+  "repository": "it-novikov/iquipage-design-system",
+  "pr": 86,
+  "runId": 38244219141,
+  "jobId": 114793983823,
+  "jobConclusion": "success",
+  "headSha": "f834a68aeb3ba5a145f56a5dbd0ea4d50be34e2b",
+  "actualCheckoutSha": "00d4a407b90fc85bb44d9ba5fe574d39c99a9d5d",
+  "headTreeSha": "46e42c2bdfe1b4140d87906ec6a48abf68bc31f7",
+  "checkoutTreeSha": "46e42c2bdfe1b4140d87906ec6a48abf68bc31f7",
+  "checkoutWholeTreeEqualsHead": true,
+  "artifact": {
+    "id": 11744456028,
+    "name": "property-list-reflow-baseline",
+    "zipBytes": 1407722,
+    "zipSha256": "b3fa9e86ac8a25e787e894f5639fef0e725921152a1e5420aac4cb02de0a1711",
+    "createdAt": "2026-10-12T11:42:28Z",
+    "expiresAt": "2026-10-26T11:42:26Z",
+    "archiveFileCount": 21,
+    "zipContainerCopiedToGit": false
+  },
+  "metadataPath": "property-list/baseline-attempt-2/metadata.json",
+  "metadataSha256": "457606d816ba5df391a87d28c7e20a9cf631fe591a14a9a83dc7ce6cbaa4b848",
+  "resultStatus": "CAPTURED_WITH_OBSERVED_CONSTRAINTS",
+  "buildStatus": "PASS",
+  "rawProvenanceStatus": "NOT_RUN",
+  "rawProvenanceNote": "The raw provenance is the source/build snapshot before capture; the complete results file supplies the terminal capture status.",
+  "package": {
+    "version": "0.6.0-vnext.54",
+    "archiveSHA256": "a726a4536e532fc556f615d0b1a9cda1873dc111e6090710329b9ec1b8204457",
+    "packageJSONSHA256": "684d8de1372a6c5629ad225888d9e56cc2a43715357dfdf9b935c6e12a47b761",
+    "lockSHA256": "1705c5e200e4e9abdb80c7705623656d79c07d4df8a8aacad38985f0de90551d",
+    "verifiedInstalledFiles": 176
+  },
+  "planId": "PF04-property-list-ds54-baseline",
+  "planRevision": 2,
+  "planSha256": "724f1e889dc621e178ee173cb4ef8fa1fbfd190b0249decc208e75cc89de5582",
+  "sourceSHA256": {
+    "run.mjs": "b53a9c4e8087da71b7c7a459a139ae76f61cbf2bafbb5edc7406118749d71190",
+    "measure.mjs": "fdbc64a86c56f98fb107b1f55ef3b4ff9009e2e470ccf4fc5c66dcc562e99fa2",
+    "baseline-plan.json": "724f1e889dc621e178ee173cb4ef8fa1fbfd190b0249decc208e75cc89de5582",
+    "baseline-plan.v1.json": "008998d380659f2b9993edc727260bc46ed95735d1842c1b209ba5eeb7cc4689",
+    "fixture/index.html": "65b8f45a900043ea34009baaed1c31acff1d189fcbaa78a0554df1bf6684773b",
+    "fixture/host.css": "fc09af585ecae81a13e40cd1537cb89c318b191562d9660058fd92b856015c20",
+    "fixture/consumer.js": "e2bc113fab93b6934bc676d6a5210e800505b8c02fdca8e99f2d7d5f160ba1ec",
+    "fixture/data.mjs": "ba3f681511372f3d6c3e2c6608e4721f16f3f20c4e8d1d0d41cf3aac023183c9",
+    ".github/workflows/tabs-geometry.yml": "82dcfc1202ffe8780dbc748d785f10398158a74a234e836c74599e41a8e6a90d",
+    "libraries/iquipage/docs/control-contracts.md": "c12a7bf94d0fbc5f3df4e1af0148b73ef8175d8c50103b1123766e357fe8c65d",
+    "libraries/iquipage/src/styles/foundation.css": "463b855baab92c2e5c45d2e1ffc67fc78c4894fe855b5dc8b4ec0f1b72186bfc"
+  },
+  "environment": {
+    "engine": "native Chromium",
+    "playwright": "1.62.1",
+    "target": "GitHub Actions Ubuntu 24.04 / Node 24.20.0",
+    "theme": "light",
+    "density": "comfortable",
+    "locale": "ru-RU",
+    "timezone": "UTC",
+    "device_scale_factor": 1,
+    "browser_zoom": "100%",
+    "text_scaling": "HTML root font-size exactly 16px or 32px, not browser zoom",
+    "fixed_browser_time": "2026-10-12T12:00:00.000Z",
+    "input": "none; passive baseline capture",
+    "load_mode": "Vite compiled static preview of exact public DS imports"
+  },
+  "nativeBrowser": "151.0.7922.34",
+  "profiles": [
+    {
+      "id": "narrow-normal",
+      "viewport": {
+        "width": 390,
+        "height": 1000
+      },
+      "containerWidth": 349,
+      "rootFontPx": 16,
+      "status": "CAPTURED_WITH_OBSERVED_CONSTRAINTS",
+      "observationCount": 13,
+      "screenshots": [
+        {
+          "kind": "viewport",
+          "file": "narrow-normal-viewport.png",
+          "sha256": "daf57f4e998de31c6ad373ee6dc99cf788857cbe41949da69f448d14b50bc086"
+        },
+        {
+          "kind": "document",
+          "file": "narrow-normal-document.png",
+          "sha256": "daf57f4e998de31c6ad373ee6dc99cf788857cbe41949da69f448d14b50bc086"
+        }
+      ],
+      "all12MeasuredValueSurfacesPresent": true
+    },
+    {
+      "id": "narrow-text200",
+      "viewport": {
+        "width": 320,
+        "height": 1000
+      },
+      "containerWidth": 270,
+      "rootFontPx": 32,
+      "status": "CAPTURED_WITH_OBSERVED_CONSTRAINTS",
+      "observationCount": 65,
+      "screenshots": [
+        {
+          "kind": "viewport",
+          "file": "narrow-text200-viewport.png",
+          "sha256": "40d19e4b42ebeba0f8d3d76b31286c8e9a100bce70fde9281a625778eb866ba0"
+        },
+        {
+          "kind": "document",
+          "file": "narrow-text200-document.png",
+          "sha256": "5eb46ed53d1b0bfbd9638be653bcc5418f5bd1fb93e1bafb82dec36f47c48b3f"
+        }
+      ],
+      "all12MeasuredValueSurfacesPresent": true
+    },
+    {
+      "id": "wide-normal",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "containerWidth": 615,
+      "rootFontPx": 16,
+      "status": "CAPTURED_WITH_OBSERVED_CONSTRAINTS",
+      "observationCount": 2,
+      "screenshots": [
+        {
+          "kind": "viewport",
+          "file": "wide-normal-viewport.png",
+          "sha256": "428a105ed1cee42c28c470098f722102b52417e5dcacad9dda856af74812efc3"
+        },
+        {
+          "kind": "document",
+          "file": "wide-normal-document.png",
+          "sha256": "428a105ed1cee42c28c470098f722102b52417e5dcacad9dda856af74812efc3"
+        }
+      ],
+      "all12MeasuredValueSurfacesPresent": true
+    },
+    {
+      "id": "wide-text200",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "containerWidth": 615,
+      "rootFontPx": 32,
+      "status": "CAPTURED_WITH_OBSERVED_CONSTRAINTS",
+      "observationCount": 38,
+      "screenshots": [
+        {
+          "kind": "viewport",
+          "file": "wide-text200-viewport.png",
+          "sha256": "2ab2791cf668fb4ac6c647abffb60c10e5b5cbe2a993e72ec13741c3a5c41b2f"
+        },
+        {
+          "kind": "document",
+          "file": "wide-text200-document.png",
+          "sha256": "2ab2791cf668fb4ac6c647abffb60c10e5b5cbe2a993e72ec13741c3a5c41b2f"
+        }
+      ],
+      "all12MeasuredValueSurfacesPresent": true
+    },
+    {
+      "id": "wide-tight-text200",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "containerWidth": 270,
+      "rootFontPx": 32,
+      "status": "CAPTURED_WITH_OBSERVED_CONSTRAINTS",
+      "observationCount": 65,
+      "screenshots": [
+        {
+          "kind": "viewport",
+          "file": "wide-tight-text200-viewport.png",
+          "sha256": "43e2ae90eb61227e08473dd1e18984b9775a622626045b9ddaca03e569ac9572"
+        },
+        {
+          "kind": "document",
+          "file": "wide-tight-text200-document.png",
+          "sha256": "79833c514478a96ff3ec0a4f9f40604a5007dae135ba6b1637e1171aacaf79c2"
+        }
+      ],
+      "all12MeasuredValueSurfacesPresent": true
+    }
+  ],
+  "comparedWithAttempt1": {
+    "changedRecordedSourceFiles": [
+      "measure.mjs"
+    ],
+    "runPlanFixtureDsPackageUnchanged": true,
+    "buildInputGraphUnchanged": true,
+    "compiledBundleSetUnchanged": true,
+    "all10PngBytesIdentical": true,
+    "priorIndexSha256": "ac119eb1950f9fad9f57388a307c8ea5f2df63e4b5d0dc49ff168f56768e3710",
+    "meaning": "Only passive observer selection changed. A completed capture is not a layout fix or a visual improvement."
+  },
+  "coverageLimits": {
+    "fixAcceptance": "NOT_RUN",
+    "humanAcceptance": "NOT_RUN",
+    "backendAcceptance": "NOT_RUN",
+    "ownerAvatar": {
+      "covered": false,
+      "rows": [
+        "owner",
+        "reference-owner"
+      ],
+      "fixtureSource": "experiments/property-list-reflow/fixture/consumer.js:14",
+      "dataSource": "experiments/property-list-reflow/fixture/data.mjs:2",
+      "publicSource": "libraries/iquipage/src/modules/components.js:89-93",
+      "reason": "The owner options pass avatar:data.person containing id/name. optionAvatar requires avatar.text (or kind bot), so the intended owner avatar+name composition is not covered. The static author personAvatar path is separate."
+    },
+    "outerValueCarrier": {
+      "separatelyMeasured": false,
+      "reason": "value measures the inner trigger/shell, not a separately recorded iq-select-wrap carrier. The style snapshot does not record margins, flex-basis, flex grow/shrink or hypothetical outer flex size. These records cannot validate a future outer-item formula.",
+      "source": "experiments/property-list-reflow/measure.mjs:6-8,91-99"
+    },
+    "observationsMeaning": "Diagnostic observations can overlap; counts are not unique bugs. Range/Canvas estimates are not painted-glyph masks or human readability findings."
+  },
+  "files": [
+    {
+      "artifact": "property-list-reflow-baseline",
+      "artifact_id": 11744456028,
+      "source_file": "research/continuation/property-baseline-attempt2-11744456028/browser/compiled/assets/InterVariable-CXsUriRB.woff2",
+      "archive_path": "browser/compiled/assets/InterVariable-CXsUriRB.woff2",
+      "bytes": 109172,
+      "sha256": "c8126c77db9d9370281a3e473ecba9232f1b6582a69df77c9f9cd825253c1225",
+      "preserved": false,
+      "stored_in_this_package": false,
+      "reason": "Compiled output: inventory SHA/bytes only. The frozen bundle is unchanged from attempt 1; not copied into Git."
+    },
+    {
+      "artifact": "property-list-reflow-baseline",
+      "artifact_id": 11744456028,
+      "source_file": "research/continuation/property-baseline-attempt2-11744456028/browser/compiled/assets/index-9Dv9WRKo.js",
+      "archive_path": "browser/compiled/assets/index-9Dv9WRKo.js",
+      "bytes": 552693,
+      "sha256": "68ec9ea63f503a93e7302607de523a050bb24af4c539a9bfdc63e51a3a36a12b",
+      "preserved": false,
+      "stored_in_this_package": false,
+      "reason": "Compiled output: inventory SHA/bytes only. The frozen bundle is unchanged from attempt 1; not copied into Git."
+    },
+    {
+      "artifact": "property-list-reflow-baseline",
+      "artifact_id": 11744456028,
+      "source_file": "research/continuation/property-baseline-attempt2-11744456028/browser/compiled/assets/index-BUKV8Dxf.css",
+      "archive_path": "browser/compiled/assets/index-BUKV8Dxf.css",
+      "bytes": 563975,
+      "sha256": "9099b56de7e535bd76fc306303084877973d177b839dc909724ed38d107659ac",
+      "preserved": false,
+      "stored_in_this_package": false,
+      "reason": "Compiled output: inventory SHA/bytes only. The frozen bundle is unchanged from attempt 1; not copied into Git."
+    },
+    {
+      "artifact": "property-list-reflow-baseline",
+      "artifact_id": 11744456028,
+      "source_file": "research/continuation/property-baseline-attempt2-11744456028/browser/compiled/index.html",
+      "archive_path": "browser/compiled/index.html",
+      "bytes": 648,
+      "sha256": "d212d4fdb59d8e245fe805e5eb531a77e8076435ce2200bbf6b331e258f1d034",
+      "preserved": false,
+      "stored_in_this_package": false,
+      "reason": "Compiled output: inventory SHA/bytes only. The frozen bundle is unchanged from attempt 1; not copied into Git."
+    },
+    {
+      "artifact": "property-list-reflow-baseline",
+      "artifact_id": 11744456028,
+      "source_file": "research/continuation/property-baseline-attempt2-11744456028/browser/narrow-normal-document.png",
+      "archive_path": "browser/narrow-normal-document.png",
+      "bytes": 44665,
+      "sha256": "daf57f4e998de31c6ad373ee6dc99cf788857cbe41949da69f448d14b50bc086",
+      "preserved": true,
+      "stored_in_this_package": false,
+      "preserved_path": "property-list/baseline-attempt-1/browser/narrow-normal-document.png",
+      "encoding": "identity",
+      "reused_from": "property-list/baseline-attempt-1",
+      "mapping_note": "Exact byte identity to the previously preserved PNG; use this path instead of the original screenshot filename."
+    },
+    {
+      "artifact": "property-list-reflow-baseline",
+      "artifact_id": 11744456028,
+      "source_file": "research/continuation/property-baseline-attempt2-11744456028/browser/narrow-normal-viewport.png",
+      "archive_path": "browser/narrow-normal-viewport.png",
+      "bytes": 44665,
+      "sha256": "daf57f4e998de31c6ad373ee6dc99cf788857cbe41949da69f448d14b50bc086",
+      "preserved": true,
+      "stored_in_this_package": false,
+      "preserved_path": "property-list/baseline-attempt-1/browser/narrow-normal-document.png",
+      "encoding": "identity",
+      "reused_from": "property-list/baseline-attempt-1",
+      "mapping_note": "Exact byte identity to the previously preserved PNG; use this path instead of the original screenshot filename."
+    },
+    {
+      "artifact": "property-list-reflow-baseline",
+      "artifact_id": 11744456028,
+      "source_file": "research/continuation/property-baseline-attempt2-11744456028/browser/narrow-normal.json",
+      "archive_path": "browser/narrow-normal.json",
+      "bytes": 763150,
+      "sha256": "2b763b57da262bc0c281813cea87ef459e41d05664f1b31987c63fe752734954",
+      "preserved": true,
+      "stored_in_this_package": true,
+      "preserved_path": "property-list/baseline-attempt-2/browser/narrow-normal.json.gz",
+      "encoding": "gzip"
+    },
+    {
+      "artifact": "property-list-reflow-baseline",
+      "artifact_id": 11744456028,
+      "source_file": "research/continuation/property-baseline-attempt2-11744456028/browser/narrow-text200-document.png",
+      "archive_path": "browser/narrow-text200-document.png",
+      "bytes": 73280,
+      "sha256": "5eb46ed53d1b0bfbd9638be653bcc5418f5bd1fb93e1bafb82dec36f47c48b3f",
+      "preserved": true,
+      "stored_in_this_package": false,
+      "preserved_path": "property-list/baseline-attempt-1/browser/narrow-text200-document.png",
+      "encoding": "identity",
+      "reused_from": "property-list/baseline-attempt-1",
+      "mapping_note": "Exact byte identity to the previously preserved PNG; use this path instead of the original screenshot filename."
+    },
+    {
+      "artifact": "property-list-reflow-baseline",
+      "artifact_id": 11744456028,
+      "source_file": "research/continuation/property-baseline-attempt2-11744456028/browser/narrow-text200-viewport.png",
+      "archive_path": "browser/narrow-text200-viewport.png",
+      "bytes": 66186,
+      "sha256": "40d19e4b42ebeba0f8d3d76b31286c8e9a100bce70fde9281a625778eb866ba0",
+      "preserved": true,
+      "stored_in_this_package": false,
+      "preserved_path": "property-list/baseline-attempt-1/browser/narrow-text200-viewport.png",
+      "encoding": "identity",
+      "reused_from": "property-list/baseline-attempt-1",
+      "mapping_note": "Exact byte identity to the previously preserved PNG; use this path instead of the original screenshot filename."
+    },
+    {
+      "artifact": "property-list-reflow-baseline",
+      "artifact_id": 11744456028,
+      "source_file": "research/continuation/property-baseline-attempt2-11744456028/browser/narrow-text200.json",
+      "archive_path": "browser/narrow-text200.json",
+      "bytes": 753018,
+      "sha256": "f643219716cf774b8df4924f682d4531dd3deae0a325014593eeb2f4da6f5cd3",
+      "preserved": true,
+      "stored_in_this_package": true,
+      "preserved_path": "property-list/baseline-attempt-2/browser/narrow-text200.json.gz",
+      "encoding": "gzip"
+    },
+    {
+      "artifact": "property-list-reflow-baseline",
+      "artifact_id": 11744456028,
+      "source_file": "research/continuation/property-baseline-attempt2-11744456028/browser/provenance.json",
+      "archive_path": "browser/provenance.json",
+      "bytes": 9163,
+      "sha256": "01f1a930eeac36bcb5395c4bcfa3e0dfb6dca4d59f0c3b0d497cd5df31a1c0c2",
+      "preserved": true,
+      "stored_in_this_package": true,
+      "preserved_path": "property-list/baseline-attempt-2/browser/provenance.json.gz",
+      "encoding": "gzip"
+    },
+    {
+      "artifact": "property-list-reflow-baseline",
+      "artifact_id": 11744456028,
+      "source_file": "research/continuation/property-baseline-attempt2-11744456028/browser/results.json",
+      "archive_path": "browser/results.json",
+      "bytes": 4285222,
+      "sha256": "c9514f45dd4260e5881671aa210bd641226f24f36bb01556e6ef694c191fb985",
+      "preserved": true,
+      "stored_in_this_package": true,
+      "preserved_path": "property-list/baseline-attempt-2/browser/results.json.gz",
+      "encoding": "gzip"
+    },
+    {
+      "artifact": "property-list-reflow-baseline",
+      "artifact_id": 11744456028,
+      "source_file": "research/continuation/property-baseline-attempt2-11744456028/browser/wide-normal-document.png",
+      "archive_path": "browser/wide-normal-document.png",
+      "bytes": 50125,
+      "sha256": "428a105ed1cee42c28c470098f722102b52417e5dcacad9dda856af74812efc3",
+      "preserved": true,
+      "stored_in_this_package": false,
+      "preserved_path": "property-list/baseline-attempt-1/browser/wide-normal-document.png",
+      "encoding": "identity",
+      "reused_from": "property-list/baseline-attempt-1",
+      "mapping_note": "Exact byte identity to the previously preserved PNG; use this path instead of the original screenshot filename."
+    },
+    {
+      "artifact": "property-list-reflow-baseline",
+      "artifact_id": 11744456028,
+      "source_file": "research/continuation/property-baseline-attempt2-11744456028/browser/wide-normal-viewport.png",
+      "archive_path": "browser/wide-normal-viewport.png",
+      "bytes": 50125,
+      "sha256": "428a105ed1cee42c28c470098f722102b52417e5dcacad9dda856af74812efc3",
+      "preserved": true,
+      "stored_in_this_package": false,
+      "preserved_path": "property-list/baseline-attempt-1/browser/wide-normal-document.png",
+      "encoding": "identity",
+      "reused_from": "property-list/baseline-attempt-1",
+      "mapping_note": "Exact byte identity to the previously preserved PNG; use this path instead of the original screenshot filename."
+    },
+    {
+      "artifact": "property-list-reflow-baseline",
+      "artifact_id": 11744456028,
+      "source_file": "research/continuation/property-baseline-attempt2-11744456028/browser/wide-normal.json",
+      "archive_path": "browser/wide-normal.json",
+      "bytes": 773712,
+      "sha256": "f68ee3f547938ff35382caaf617c8cb8aae8a72502c1892849ec94f11fa489db",
+      "preserved": true,
+      "stored_in_this_package": true,
+      "preserved_path": "property-list/baseline-attempt-2/browser/wide-normal.json.gz",
+      "encoding": "gzip"
+    },
+    {
+      "artifact": "property-list-reflow-baseline",
+      "artifact_id": 11744456028,
+      "source_file": "research/continuation/property-baseline-attempt2-11744456028/browser/wide-text200-document.png",
+      "archive_path": "browser/wide-text200-document.png",
+      "bytes": 93243,
+      "sha256": "2ab2791cf668fb4ac6c647abffb60c10e5b5cbe2a993e72ec13741c3a5c41b2f",
+      "preserved": true,
+      "stored_in_this_package": false,
+      "preserved_path": "property-list/baseline-attempt-1/browser/wide-text200-document.png",
+      "encoding": "identity",
+      "reused_from": "property-list/baseline-attempt-1",
+      "mapping_note": "Exact byte identity to the previously preserved PNG; use this path instead of the original screenshot filename."
+    },
+    {
+      "artifact": "property-list-reflow-baseline",
+      "artifact_id": 11744456028,
+      "source_file": "research/continuation/property-baseline-attempt2-11744456028/browser/wide-text200-viewport.png",
+      "archive_path": "browser/wide-text200-viewport.png",
+      "bytes": 93243,
+      "sha256": "2ab2791cf668fb4ac6c647abffb60c10e5b5cbe2a993e72ec13741c3a5c41b2f",
+      "preserved": true,
+      "stored_in_this_package": false,
+      "preserved_path": "property-list/baseline-attempt-1/browser/wide-text200-document.png",
+      "encoding": "identity",
+      "reused_from": "property-list/baseline-attempt-1",
+      "mapping_note": "Exact byte identity to the previously preserved PNG; use this path instead of the original screenshot filename."
+    },
+    {
+      "artifact": "property-list-reflow-baseline",
+      "artifact_id": 11744456028,
+      "source_file": "research/continuation/property-baseline-attempt2-11744456028/browser/wide-text200.json",
+      "archive_path": "browser/wide-text200.json",
+      "bytes": 779763,
+      "sha256": "7d3c03429241a81c42687a439b0cc46758ba3043380e02434b58ae269a7eb434",
+      "preserved": true,
+      "stored_in_this_package": true,
+      "preserved_path": "property-list/baseline-attempt-2/browser/wide-text200.json.gz",
+      "encoding": "gzip"
+    },
+    {
+      "artifact": "property-list-reflow-baseline",
+      "artifact_id": 11744456028,
+      "source_file": "research/continuation/property-baseline-attempt2-11744456028/browser/wide-tight-text200-document.png",
+      "archive_path": "browser/wide-tight-text200-document.png",
+      "bytes": 82679,
+      "sha256": "79833c514478a96ff3ec0a4f9f40604a5007dae135ba6b1637e1171aacaf79c2",
+      "preserved": true,
+      "stored_in_this_package": false,
+      "preserved_path": "property-list/baseline-attempt-1/browser/wide-tight-text200-document.png",
+      "encoding": "identity",
+      "reused_from": "property-list/baseline-attempt-1",
+      "mapping_note": "Exact byte identity to the previously preserved PNG; use this path instead of the original screenshot filename."
+    },
+    {
+      "artifact": "property-list-reflow-baseline",
+      "artifact_id": 11744456028,
+      "source_file": "research/continuation/property-baseline-attempt2-11744456028/browser/wide-tight-text200-viewport.png",
+      "archive_path": "browser/wide-tight-text200-viewport.png",
+      "bytes": 75999,
+      "sha256": "43e2ae90eb61227e08473dd1e18984b9775a622626045b9ddaca03e569ac9572",
+      "preserved": true,
+      "stored_in_this_package": false,
+      "preserved_path": "property-list/baseline-attempt-1/browser/wide-tight-text200-viewport.png",
+      "encoding": "identity",
+      "reused_from": "property-list/baseline-attempt-1",
+      "mapping_note": "Exact byte identity to the previously preserved PNG; use this path instead of the original screenshot filename."
+    },
+    {
+      "artifact": "property-list-reflow-baseline",
+      "artifact_id": 11744456028,
+      "source_file": "research/continuation/property-baseline-attempt2-11744456028/browser/wide-tight-text200.json",
+      "archive_path": "browser/wide-tight-text200.json",
+      "bytes": 753035,
+      "sha256": "404f57c88113e49b4d5733b548cbd790346feda1bc4a0371df6797ede78b6296",
+      "preserved": true,
+      "stored_in_this_package": true,
+      "preserved_path": "property-list/baseline-attempt-2/browser/wide-tight-text200.json.gz",
+      "encoding": "gzip"
+    }
+  ],
+  "preservation": {
+    "completeRawJsonCount": 7,
+    "exactJobLogGzipCount": 1,
+    "gzipMtime": 0,
+    "originalPngCount": 10,
+    "newPngCount": 0,
+    "reusedPriorUniquePngCount": 7,
+    "allOriginalPngBytesAvailableOfflineViaMapping": true,
+    "compiledInventoryOnlyCount": 4,
+    "jobDecodedUtf8Bytes": 57013,
+    "jobDecodedUtf8Sha256": "35f987f64a457e2098631435cc60457d5ac28f945126062028972efc7902791c",
+    "visualInspectionPerformedByPreservationAgent": false,
+    "signedDownloadReferencesCopied": false
+  }
+}

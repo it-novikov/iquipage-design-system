@@ -190,6 +190,42 @@
         "sha256": "c5924ee175010fa85c3db84af973bd3a20d147679c9f1b4a6c3c577ca7175d63"
       },
       "meaning": "Resources read separately, not an atomic repository snapshot; merges not performed by this task. This entry appends the later state without rewriting earlier observations. PR84 was merged by parallel work; the evidence task did not perform that merge. Exact native/full PASS on 6423443 does not certify composition with main 4f181ff."
+    },
+    {
+      "observedAt": "2026-10-12T11:56:59Z",
+      "main": "220af664ef561d3f5ff1b873122281ef352e8f25",
+      "mainTree": "150b100c88e876204556f9073d830a1b3d55e320",
+      "mainParents": [
+        "4f181ff3589a32fd9ce152f99018d212d74624b6"
+      ],
+      "parallelPR87": {
+        "mergedAt": "2026-10-12T11:53:57Z",
+        "head": "c4a5c75040c6a96221d0c30366c23adbf2ecb9d9",
+        "declaredScope": "Ignore summary focusin before native disclosure toggle",
+        "observedAdditionalChanges": [
+          "Removed overview literal result helper and renderer",
+          "Removed neutral question/attention distinction for canAnswer=false",
+          "Removed appended VT1 CSS",
+          "Removed the related model test and eight prior render PNGs"
+        ],
+        "rootPerformedMerge": false,
+        "causeOfAdditionalDeletions": "Not established; actual diff wider than PR body"
+      },
+      "parallelEstimateHead": "4ff05227cad0a9e1c1a35d59faffdddd20e5c354",
+      "estimateNativeAndFullPassPreviouslyPreservedFor": "6423443d71a0817570281cf28822a3c14f7db684",
+      "propertyBaseline": {
+        "pr": 86,
+        "head": "f834a68aeb3ba5a145f56a5dbd0ea4d50be34e2b",
+        "actualCheckout": "00d4a407b90fc85bb44d9ba5fe574d39c99a9d5d",
+        "wholeTree": "46e42c2bdfe1b4140d87906ec6a48abf68bc31f7",
+        "run": 38244219141,
+        "job": 114793983823,
+        "artifact": 11744456028,
+        "status": "CAPTURED_WITH_OBSERVED_CONSTRAINTS",
+        "profiles": 5,
+        "humanAcceptance": "NOT_RUN"
+      },
+      "meaning": "Separate resource reads, not an atomic snapshot; parallel heads not overwritten; historical verification not transferred to new trees."
     }
   ]
 }
