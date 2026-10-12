@@ -51,6 +51,23 @@ jobs:
           path: products/sprintique/output/tabs-geometry/
           retention-days: 14
           if-no-files-found: error
+      - name: Estimate modal focus and layout regression
+        if: ${{ !cancelled() }}
+        working-directory: products/sprintique
+        env:
+          PLAYWRIGHT_MODULE: ${{ runner.temp }}/sprintique-browser-tools/node_modules/playwright
+          PLAYWRIGHT_BROWSERS_PATH: ${{ runner.temp }}/sprintique-browsers
+          ESTIMATE_SOURCE_REVISION: ${{ github.sha }}
+          ESTIMATE_EVIDENCE_DIR: ${{ github.workspace }}/products/sprintique/output/estimate-popover/browser
+        run: node tests/estimate-popover-browser.mjs
+      - name: Estimate native regression evidence
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: estimate-popover
+          path: products/sprintique/output/estimate-popover/
+          retention-days: 14
+          if-no-files-found: error
       - name: Current Task overview status regression and long-review captures
         if: ${{ !cancelled() }}
         working-directory: products/sprintique

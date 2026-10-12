@@ -13,7 +13,9 @@ export function openPopover(anchor,{html,className='',label='',role='dialog',ali
   closePopover();
   const el=document.createElement('div');
   el.className=`iq-popup pl-pop ${className}`.trim();el.setAttribute('role',role);if(label)el.setAttribute('aria-label',label);
-  el.popover='manual';el.innerHTML=html;document.body.append(el);
+  // A top-layer popover still belongs to its modal focus scope. Keep its own form outside the anchor's form.
+  const owner=anchor.closest('dialog');
+  el.popover='manual';el.innerHTML=html;(owner||document.body).append(el);
   try{el.showPopover();}catch{/* without the Popover API it stays a fixed element */}
   const place=()=>{
     const r=anchor.getBoundingClientRect(),w=el.offsetWidth,h=el.offsetHeight,gap=6;
@@ -27,15 +29,20 @@ export function openPopover(anchor,{html,className='',label='',role='dialog',ali
   const outside=event=>{if(!el.contains(event.target)&&!anchor.contains(event.target))close();};
   const key=event=>{if(event.key==='Escape'){event.preventDefault();event.stopPropagation();close(true);}};
   const away=event=>{if(!el.contains(event.target))close();};
+  const ownerClosed=()=>close();
+  const detached=new MutationObserver(()=>{if(!anchor.isConnected||!el.isConnected)close();});
   function close(refocus=false){
     if(closed)return;closed=true;if(current?.el===el)current=null;
     document.removeEventListener('pointerdown',outside,true);el.removeEventListener('keydown',key);
     removeEventListener('resize',away);document.removeEventListener('scroll',away,true);
+    owner?.removeEventListener('close',ownerClosed);detached.disconnect();
     try{el.hidePopover();}catch{/* already hidden */}
     el.remove();onClose?.();if(refocus&&anchor.isConnected)anchor.focus({preventScroll:true});
   }
   setTimeout(()=>{if(closed)return;document.addEventListener('pointerdown',outside,true);addEventListener('resize',away);document.addEventListener('scroll',away,true);});
   el.addEventListener('keydown',key);
+  owner?.addEventListener('close',ownerClosed);
+  detached.observe(document.body,{childList:true,subtree:true});
   current={el,close};
   onMount?.(el,{close,place});
   return current;

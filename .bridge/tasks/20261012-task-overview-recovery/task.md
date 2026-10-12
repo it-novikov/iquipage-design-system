@@ -8,7 +8,7 @@ owner: it-novikov
 branch: fix/task-overview-recovery
 base: 220af664ef561d3f5ff1b873122281ef352e8f25
 created: 2026-10-12
-updated: 2026-10-12T12:19:51Z
+updated: 2026-10-12T12:29:41Z
 links:
 ---
 
@@ -34,15 +34,15 @@ links:
 
 ## Передача
 
-- **Состояние:** Source R1 corrected APPROVED_FOR_NATIVE; both originals and public equal-tree mapping preserved; source pushed; native NOT_RUN
-- **Сейчас:** S2 publish PR and run native CI
-- **Дальше:** Inspect actual five semantic cases and two long-review captures, then independent native review
-- **Незакоммичено:** Только названные source/tests/workflow и карточка с predecessor evidence.
-- **Рабочая копия:** нет · HEAD 5fe776c7e
+- **Состояние:** PR88 открыт; main4275 PR83 интегрирован с сохранением обоих regression; новый local build PASS, native NOT_RUN
+- **Сейчас:** S2 publish integration and run native CI
+- **Дальше:** Inspect actual five semantic cases and two long-review captures, preserve current CI and independent native review
+- **Незакоммичено:** Integration from main83, combined workflow and explicit integration evidence; root owns this feature branch
+- **Рабочая копия:** 10 файл(ов): .github/workflows/tabs-geometry.yml, libraries/iquipage/docs/INTEGRATION.md, libraries/iquipage/docs/anchored-editors.md, products/sprintique/tests/estimate-popover-browser.mjs, products/sprintique/tests/fixtures/estimate-popover/acceptance-plan.json, products/sprintique/tests/fixtures/estimate-popover/consumer.js, products/sprintique/tests/fixtures/estimate-popover/index.html, products/sprintique/ui/planning/src/planning.css, products/sprintique/ui/src/estimate.js, products/sprintique/ui/src/popover.js (15 files changed, 687 insertions(+), 8 deletions(-)) · HEAD 828ee87e9
 - **Ловушки:**
   - Native Chromium локально не работает из-за отсутствия /proc и не повторяется. Полный vNext CI требует нативную среду. Исторические predecessor checks относятся к4f181ff, не к220af.
   - The initial136 input hashes contained dependencies only because a trailing-slash URL produced a double-slash product prefix; corrected inventory explicitly asserts actual product+fixture. Initial literal with Cyrillic tag text could not detect loss of escaping; ASCII em/entity sample now distinguishes it.
-- **Проверка:** Pending actual local/CI evidence. Target/human/backend acceptance пока NOT_RUN.
+- **Проверка:** integration-main83.md and integration83-build.json; 197 physical inputs / 61 product / 12 outputs; native still pending
 
 ## План
 
