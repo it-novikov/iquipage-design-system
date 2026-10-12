@@ -1,0 +1,40 @@
+{
+  "schema_version": "2.0",
+  "id": "F-EST-01-native-regression",
+  "revision": 1,
+  "scope_type": "targeted",
+  "source_base": "2c757009d7bf3e3d0fc3648241d499d980ebdbb9",
+  "approval": {"ref": "Owner-authorized continuation; focused estimate/modal defect assigned by root on 2026-10-12", "owner": "it-novikov"},
+  "package_version": "0.6.0-vnext.54",
+  "ds_archive_sha256": "a726a4536e532fc556f615d0b1a9cda1873dc111e6090710329b9ec1b8204457",
+  "scope": "Actual Board-to-Task estimate editor and the existing public product estimate/menu helpers. Adapter responses and isolated callback counters are synthetic; no authentication, backend write, full Task save or human-usability acceptance.",
+  "surfaces": [
+    {"id": "task", "source_ref": "products/sprintique/tests/fixtures/tabs-geometry/product.html", "description": "Unmodified existing fixture mounts the actual Board and actual editable Task with the real product CSS/import order and a read-only synthetic repository."},
+    {"id": "isolated", "source_ref": "products/sprintique/tests/fixtures/estimate-popover/index.html", "description": "Existing product estimateEditor/openMenu, public packaged DS styles and native dialog lifecycle; only callbacks and the outer host are synthetic."}
+  ],
+  "profiles": {
+    "desktop-light": {"viewport": {"width": 1280, "height": 720}, "theme": "light", "density": "comfortable", "text": 100},
+    "narrow-light": {"viewport": {"width": 390, "height": 844}, "theme": "light", "density": "comfortable", "text": 100},
+    "narrow-dark": {"viewport": {"width": 390, "height": 844}, "theme": "dark", "density": "comfortable", "text": 100},
+    "narrow-text200": {"viewport": {"width": 320, "height": 900}, "theme": "light", "density": "comfortable", "text": 200}
+  },
+  "cases": [
+    {"id": "task-desktop-light", "kind": "task", "profile": "desktop-light", "checks": ["A1", "A3"]},
+    {"id": "task-narrow-light", "kind": "task", "profile": "narrow-light", "checks": ["A1", "A3"]},
+    {"id": "task-narrow-dark", "kind": "task", "profile": "narrow-dark", "checks": ["A1", "A3"]},
+    {"id": "task-narrow-text200", "kind": "task", "profile": "narrow-text200", "checks": ["A1", "A3"]},
+    {"id": "outside-time-save", "kind": "outside-time", "profile": "desktop-light", "checks": ["A2", "A3"]},
+    {"id": "outside-points-keyboard-cancel", "kind": "outside-points", "profile": "narrow-light", "checks": ["A2", "A3"]},
+    {"id": "outside-menu-keyboard", "kind": "menu", "profile": "desktop-light", "checks": ["A2"]},
+    {"id": "owner-close", "kind": "owner-close", "profile": "desktop-light", "checks": ["A2"]},
+    {"id": "owner-removal", "kind": "owner-removal", "profile": "desktop-light", "checks": ["A2"]},
+    {"id": "anchor-removal", "kind": "anchor-removal", "profile": "desktop-light", "checks": ["A2"]}
+  ],
+  "checks": [
+    {"id": "A1", "required": true, "acceptance": "A normal click in the actual Task opens a native :popover-open editor. The actual focused element is its editable input inside the owning open native dialog, and its form is not nested in the Task form. Native keyboard enters an unsaved value; Escape removes only the popup, leaves Task open, restores the original trigger focus, retains its value and makes no adapter write attempt."},
+    {"id": "A2", "required": true, "acceptance": "Closing or removing the native owner, or removing its anchor while the popup has focus, leaves no popup. Outside a modal, existing estimate time save/unit selection and points keyboard cancellation retain their callback/focus contracts. Menu keyboard skips disabled rows; Escape makes no selection; a subsequent Enter chooses exactly one item. Synthetic callback success is not backend persistence."},
+    {"id": "A3", "required": true, "acceptance": "After-click screenshots and read-only geometry precede typing. The entire input, unit group/buttons or SP unit, hint, action group/buttons and rendered text stay inside the popup horizontally. The popup remains inside the viewport horizontally; its form, row, hint and actions have no horizontal scroll range. The input's own editable-text scroll range is not treated as whole-form overflow. All four actual Task profiles must run; text200 is HTML root font-size only."}
+  ],
+  "environment": {"engine": "native Chromium", "playwright": "1.62.1", "target": "GitHub Actions Ubuntu 24.04 / Node 24.20.0", "locale": "ru-RU", "timezone": "UTC", "device_scale_factor": 1, "browser_zoom": "100%", "text_scaling": "HTML root font-size 100% or 200%; not browser zoom", "input": "normal Playwright click and native keyboard; no forced click, direct focus repair, scroll repair, DOM rearrangement or retries", "load_mode": "Vite compiled static preview of the actual source modules"},
+  "not_run": ["Full Task save, backend persistence and authentication", "User observation and final aesthetic acceptance", "Performance benchmarking", "Real browser zoom, Safari, Firefox, iOS touch and screen readers; targeted release checks remain separate"]
+}

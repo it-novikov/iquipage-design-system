@@ -1,0 +1,618 @@
+{
+  "schema": 1,
+  "kind": "newparallel-estimate-collection",
+  "repository": "it-novikov/iquipage-design-system",
+  "pr": 83,
+  "observed_at_utc": "2026-10-12T12:29:50Z",
+  "head_sha": "4ff05227cad0a9e1c1a35d59faffdddd20e5c354",
+  "head_tree_sha": "c7ad669f19eb5027d63994c9e4d1642b3b9f0bd6",
+  "head_git_api": {
+    "sha": "4ff05227cad0a9e1c1a35d59faffdddd20e5c354",
+    "node_id": "C_kwDOURjrA9oAKDRmZjA1MjI3Y2FkMGE5ZTFjMWEzNWQ1OWZhZmZkZGRkMjBlNWMzNTQ",
+    "url": "https://api.github.com/repos/it-novikov/iquipage-design-system/git/commits/4ff05227cad0a9e1c1a35d59faffdddd20e5c354",
+    "html_url": "https://github.com/it-novikov/iquipage-design-system/commit/4ff05227cad0a9e1c1a35d59faffdddd20e5c354",
+    "author": {
+      "name": "Vadim Novikov",
+      "email": "nvkv71@gmail.com",
+      "date": "2026-10-12T11:54:16Z"
+    },
+    "committer": {
+      "name": "Vadim Novikov",
+      "email": "nvkv71@gmail.com",
+      "date": "2026-10-12T11:54:16Z"
+    },
+    "tree": {
+      "sha": "c7ad669f19eb5027d63994c9e4d1642b3b9f0bd6",
+      "url": "https://api.github.com/repos/it-novikov/iquipage-design-system/git/trees/c7ad669f19eb5027d63994c9e4d1642b3b9f0bd6"
+    },
+    "message": "test: открывать «Другие свойства» перед обращением к оценке\n\nVT1 держит оценку в свёрнутом блоке; Task-случаи раскрывают его кликом по summary.",
+    "parents": [
+      {
+        "sha": "ff5fc1d41137376b3714bea1415e8c80fef13437",
+        "url": "https://api.github.com/repos/it-novikov/iquipage-design-system/git/commits/ff5fc1d41137376b3714bea1415e8c80fef13437",
+        "html_url": "https://github.com/it-novikov/iquipage-design-system/commit/ff5fc1d41137376b3714bea1415e8c80fef13437"
+      }
+    ],
+    "verification": {
+      "verified": false,
+      "reason": "unsigned",
+      "signature": null,
+      "payload": null,
+      "verified_at": null
+    }
+  },
+  "checkout_git_api": {
+    "sha": "ae1364b069f12c0e747f4e28e208ac45dbbfcfe6",
+    "node_id": "C_kwDOURjrA9oAKGFlMTM2NGIwNjlmMTJjMGU3NDdmNGUyOGUyMDhhYzQ1ZGJiZmNmZTY",
+    "url": "https://api.github.com/repos/it-novikov/iquipage-design-system/git/commits/ae1364b069f12c0e747f4e28e208ac45dbbfcfe6",
+    "html_url": "https://github.com/it-novikov/iquipage-design-system/commit/ae1364b069f12c0e747f4e28e208ac45dbbfcfe6",
+    "author": {
+      "name": "Vadim Novikov",
+      "email": "nvkv71@gmail.com",
+      "date": "2026-10-12T11:54:20Z"
+    },
+    "committer": {
+      "name": "GitHub",
+      "email": "noreply@github.com",
+      "date": "2026-10-12T11:54:20Z"
+    },
+    "tree": {
+      "sha": "c7ad669f19eb5027d63994c9e4d1642b3b9f0bd6",
+      "url": "https://api.github.com/repos/it-novikov/iquipage-design-system/git/trees/c7ad669f19eb5027d63994c9e4d1642b3b9f0bd6"
+    },
+    "message": "Merge 4ff05227cad0a9e1c1a35d59faffdddd20e5c354 into 220af664ef561d3f5ff1b873122281ef352e8f25",
+    "parents": [
+      {
+        "sha": "220af664ef561d3f5ff1b873122281ef352e8f25",
+        "url": "https://api.github.com/repos/it-novikov/iquipage-design-system/git/commits/220af664ef561d3f5ff1b873122281ef352e8f25",
+        "html_url": "https://github.com/it-novikov/iquipage-design-system/commit/220af664ef561d3f5ff1b873122281ef352e8f25"
+      },
+      {
+        "sha": "4ff05227cad0a9e1c1a35d59faffdddd20e5c354",
+        "url": "https://api.github.com/repos/it-novikov/iquipage-design-system/git/commits/4ff05227cad0a9e1c1a35d59faffdddd20e5c354",
+        "html_url": "https://github.com/it-novikov/iquipage-design-system/commit/4ff05227cad0a9e1c1a35d59faffdddd20e5c354"
+      }
+    ],
+    "verification": {
+      "verified": true,
+      "reason": "valid",
+      "signature": "-----BEGIN PGP SIGNATURE-----\n\nwsFcBAABCAAQBQJqzMpsCRC1aQ7uu5UhlAAAqnwQAFz/vHQ/hPHQ7FH2vW69Y0qp\nvRwC8ZOFHYY8WDroI1UaY2WvvctDpH+giSEy1Ie3b80W0CP+TuxsGzziEickIVI7\nr/ru052syJg5Wk9qflGxB7VKeJkBQsTgPMBdJhIzM+Syw/37pOHWf4TVZYriqylC\nxQYo/Z+RvAb+eCubTEUkC/yXPwJueMpbdwQYmGUe2kWk9VlGua2xP6F4Gbc80IaW\nbTYwPbmno0FAmoNUo4WwOsP1R8wmDXtguox/TIqDePNOoCKVZIvJoRqUBJvZlmL0\nxwoJ2Mk14hX+vN9m5lIf2obCxQasjl3WCmLpVCNAUi+CU46UgJ1tc4uiuwyESA1V\nvw5ivICFZrqqyw3SYFZG4ikWxJ5G/x8ENUagbiQhZJk7b1QsdHaWcyUcYLGEMPoj\nutmCoUYxdimGcoeGZ+3oYGs7pDyzS7lkbZ+ihD+zUobKAV+5wLS/XF9OxOwxTQdT\nYsywPun0T2Dx5A5YCUg+VBBd0i6gHsqEqjl1q3LSGcR8iAV+GVyASZcUn0Y0gyir\nk1T1ZqoG4inxBGdo+iewgL3sr8P3Ly0W2ubHxcn91/zXzRWfEIMkF07vwQj+VksO\nkCto1GHp2Y/8ivUYiZBx1zPYB7BAZOGBa0c+M0bA1IV3w+W7sMIomEwWmI/8O95+\nl4Buwaf9lJmfSwP+j2Z0\n=qJa6\n-----END PGP SIGNATURE-----\n",
+      "payload": "tree c7ad669f19eb5027d63994c9e4d1642b3b9f0bd6\nparent 220af664ef561d3f5ff1b873122281ef352e8f25\nparent 4ff05227cad0a9e1c1a35d59faffdddd20e5c354\nauthor Vadim Novikov <nvkv71@gmail.com> 1791806060 +0000\ncommitter GitHub <noreply@github.com> 1791806060 +0000\n\nMerge 4ff05227cad0a9e1c1a35d59faffdddd20e5c354 into 220af664ef561d3f5ff1b873122281ef352e8f25\n",
+      "verified_at": "2026-10-12T11:54:20Z"
+    }
+  },
+  "checkout_tree_equals_head": true,
+  "runs": {
+    "native": {
+      "run_id": 38245658802,
+      "job_id": 114798738334,
+      "head_sha": "4ff05227cad0a9e1c1a35d59faffdddd20e5c354",
+      "run_attempt": 1,
+      "conclusion": "success",
+      "status": "completed",
+      "created_at": "2026-10-12T11:54:22Z",
+      "updated_at": "2026-10-12T11:55:42Z",
+      "job_steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Install product and temporary browser tools",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Public product boundary and actual consumer build",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5
+        },
+        {
+          "name": "Exact package minimal consumer and actual Task, Board and Wiki geometry",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6
+        },
+        {
+          "name": "Synthetic geometry evidence",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7
+        },
+        {
+          "name": "Estimate modal focus and layout regression",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8
+        },
+        {
+          "name": "Estimate native regression evidence",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 9
+        },
+        {
+          "name": "Post Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 17
+        },
+        {
+          "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 18
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 19
+        }
+      ],
+      "log_file": "research/continuation/newparallel-estimate-native-job.log",
+      "log_bytes": 52249,
+      "log_sha256": "6f1fbd8cc48f28520cfa5e1d3840b32da09b335daa90f2f4f261a77427be5838",
+      "exact_log_json_file": "research/continuation/newparallel-estimate-native-job-exact.json",
+      "raw_run_api_file": "research/continuation/newparallel-estimate-run-native-api.json",
+      "artifact_ids": [
+        11746485133,
+        11745980346
+      ]
+    },
+    "maps": {
+      "run_id": 38245658711,
+      "job_id": 114798738057,
+      "head_sha": "4ff05227cad0a9e1c1a35d59faffdddd20e5c354",
+      "run_attempt": 1,
+      "conclusion": "success",
+      "status": "completed",
+      "created_at": "2026-10-12T11:54:21Z",
+      "updated_at": "2026-10-12T11:55:28Z",
+      "job_steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Install product and temporary browser tools",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Context, guard and shell regressions",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5
+        },
+        {
+          "name": "Actual Maps and Task with native browser history",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6
+        },
+        {
+          "name": "Synthetic browser evidence",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7
+        },
+        {
+          "name": "Post Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13
+        },
+        {
+          "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 14
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 15
+        }
+      ],
+      "log_file": "research/continuation/newparallel-estimate-maps-job.log",
+      "log_bytes": 59224,
+      "log_sha256": "4f7df3dad8d6e9388d4b9ec09a5ca81bcde5b7105932411e0937da7c236e23b6",
+      "exact_log_json_file": "research/continuation/newparallel-estimate-maps-job-exact.json",
+      "raw_run_api_file": "research/continuation/newparallel-estimate-run-maps-api.json",
+      "artifact_ids": [
+        11746510094
+      ]
+    },
+    "full": {
+      "run_id": 38245659125,
+      "job_id": 114798739719,
+      "head_sha": "4ff05227cad0a9e1c1a35d59faffdddd20e5c354",
+      "run_attempt": 1,
+      "conclusion": "success",
+      "status": "completed",
+      "created_at": "2026-10-12T11:54:22Z",
+      "updated_at": "2026-10-12T12:20:07Z",
+      "job_steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Run actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Install independent packages",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5
+        },
+        {
+          "name": "Install temporary frontend browser tools",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6
+        },
+        {
+          "name": "Planning selected-row overlap on the immutable baseline",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 7
+        },
+        {
+          "name": "Planning selection geometry and affected interactions",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8
+        },
+        {
+          "name": "Publish Planning browser evidence before backend verification",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 9
+        },
+        {
+          "name": "Start private ephemeral storage",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10
+        },
+        {
+          "name": "Library, product, real services and detached extraction",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11
+        },
+        {
+          "name": "Verification certificate in job log",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12
+        },
+        {
+          "name": "Portable runtime image",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13
+        },
+        {
+          "name": "Run actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 14
+        },
+        {
+          "name": "Post Run actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 26
+        },
+        {
+          "name": "Post Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 27
+        },
+        {
+          "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 28
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 29
+        }
+      ],
+      "log_file": "research/continuation/newparallel-estimate-full-job.log",
+      "log_bytes": 287988,
+      "log_sha256": "5050be0462dbf123fd08278b660624051abed7748176254502f7ca38adaaf350",
+      "exact_log_json_file": "research/continuation/newparallel-estimate-full-job-exact.json",
+      "raw_run_api_file": "research/continuation/newparallel-estimate-full-recheck-retry-api.json",
+      "artifact_ids": [
+        11746555040,
+        11746194910
+      ]
+    }
+  },
+  "artifacts": [
+    {
+      "id": 11746485133,
+      "name": "tabs-geometry",
+      "size_in_bytes": 1140456,
+      "url": "https://api.github.com/repos/it-novikov/iquipage-design-system/actions/artifacts/11746485133",
+      "archive_download_url": "https://api.github.com/repos/it-novikov/iquipage-design-system/actions/artifacts/11746485133/zip",
+      "expired": false,
+      "created_at": "2026-10-12T11:55:33Z",
+      "expires_at": "2026-10-26T11:55:32Z",
+      "updated_at": "2026-10-12T11:55:33Z",
+      "digest": "sha256:a1687e92a1c924e493c08a526d9f42933d75390253fdf354af9aa053a4b75563",
+      "workflow_run": {
+        "id": 38245658802,
+        "repository_id": 1360587523,
+        "head_repository_id": 1360587523,
+        "head_branch": "fix/estimate-modal-scope",
+        "head_sha": "4ff05227cad0a9e1c1a35d59faffdddd20e5c354"
+      }
+    },
+    {
+      "id": 11745980346,
+      "name": "estimate-popover",
+      "size_in_bytes": 2083554,
+      "url": "https://api.github.com/repos/it-novikov/iquipage-design-system/actions/artifacts/11745980346",
+      "archive_download_url": "https://api.github.com/repos/it-novikov/iquipage-design-system/actions/artifacts/11745980346/zip",
+      "expired": false,
+      "created_at": "2026-10-12T11:55:40Z",
+      "expires_at": "2026-10-26T11:55:39Z",
+      "updated_at": "2026-10-12T11:55:40Z",
+      "digest": "sha256:bcbac45aabf5dc618af5c1aece7258baf9bd69a6287458caed37f12267db0535",
+      "workflow_run": {
+        "id": 38245658802,
+        "repository_id": 1360587523,
+        "head_repository_id": 1360587523,
+        "head_branch": "fix/estimate-modal-scope",
+        "head_sha": "4ff05227cad0a9e1c1a35d59faffdddd20e5c354"
+      }
+    },
+    {
+      "id": 11746510094,
+      "name": "maps-task-context",
+      "size_in_bytes": 1063213,
+      "url": "https://api.github.com/repos/it-novikov/iquipage-design-system/actions/artifacts/11746510094",
+      "archive_download_url": "https://api.github.com/repos/it-novikov/iquipage-design-system/actions/artifacts/11746510094/zip",
+      "expired": false,
+      "created_at": "2026-10-12T11:55:24Z",
+      "expires_at": "2026-10-26T11:55:23Z",
+      "updated_at": "2026-10-12T11:55:24Z",
+      "digest": "sha256:9d3c08d445da7d2dde32f87a7f1eaecf45d498a7a8f77368ce004e17b0f6e3ad",
+      "workflow_run": {
+        "id": 38245658711,
+        "repository_id": 1360587523,
+        "head_repository_id": 1360587523,
+        "head_branch": "fix/estimate-modal-scope",
+        "head_sha": "4ff05227cad0a9e1c1a35d59faffdddd20e5c354"
+      }
+    },
+    {
+      "id": 11746555040,
+      "name": "planning-browser-evidence",
+      "size_in_bytes": 943604,
+      "url": "https://api.github.com/repos/it-novikov/iquipage-design-system/actions/artifacts/11746555040",
+      "archive_download_url": "https://api.github.com/repos/it-novikov/iquipage-design-system/actions/artifacts/11746555040/zip",
+      "expired": false,
+      "created_at": "2026-10-12T11:55:17Z",
+      "expires_at": "2026-10-26T11:55:16Z",
+      "updated_at": "2026-10-12T11:55:17Z",
+      "digest": "sha256:7262828d55fab2820539b91522a8c30dfae476c3ae25246c111e6013e30589ab",
+      "workflow_run": {
+        "id": 38245659125,
+        "repository_id": 1360587523,
+        "head_repository_id": 1360587523,
+        "head_branch": "fix/estimate-modal-scope",
+        "head_sha": "4ff05227cad0a9e1c1a35d59faffdddd20e5c354"
+      }
+    },
+    {
+      "id": 11746194910,
+      "name": "vnext-verification",
+      "size_in_bytes": 1137754,
+      "url": "https://api.github.com/repos/it-novikov/iquipage-design-system/actions/artifacts/11746194910",
+      "archive_download_url": "https://api.github.com/repos/it-novikov/iquipage-design-system/actions/artifacts/11746194910/zip",
+      "expired": false,
+      "created_at": "2026-10-12T12:20:04Z",
+      "expires_at": "2026-10-26T12:20:03Z",
+      "updated_at": "2026-10-12T12:20:04Z",
+      "digest": "sha256:29f5585a7c8fcec0d7231b5e6758956de46d898af4b6c8764d0efe51f78c7f65",
+      "workflow_run": {
+        "id": 38245659125,
+        "repository_id": 1360587523,
+        "head_repository_id": 1360587523,
+        "head_branch": "fix/estimate-modal-scope",
+        "head_sha": "4ff05227cad0a9e1c1a35d59faffdddd20e5c354"
+      }
+    }
+  ],
+  "integration_observation": {
+    "main_sha": "4275dde301b5068b3d6b1801ecb54c70a2d7e708",
+    "main_tree_sha": "c7ad669f19eb5027d63994c9e4d1642b3b9f0bd6",
+    "pr_merged_at": "2026-10-12T12:20:33Z",
+    "main_git_api": {
+      "sha": "4275dde301b5068b3d6b1801ecb54c70a2d7e708",
+      "node_id": "C_kwDOURjrA9oAKDQyNzVkZGUzMDFiNTA2OGIzZDZiMTgwMWVjYjU0YzcwYTJkN2U3MDg",
+      "url": "https://api.github.com/repos/it-novikov/iquipage-design-system/git/commits/4275dde301b5068b3d6b1801ecb54c70a2d7e708",
+      "html_url": "https://github.com/it-novikov/iquipage-design-system/commit/4275dde301b5068b3d6b1801ecb54c70a2d7e708",
+      "author": {
+        "name": "Vadim Novikov",
+        "email": "nvkv71@gmail.com",
+        "date": "2026-10-12T12:20:33Z"
+      },
+      "committer": {
+        "name": "GitHub",
+        "email": "noreply@github.com",
+        "date": "2026-10-12T12:20:33Z"
+      },
+      "tree": {
+        "sha": "c7ad669f19eb5027d63994c9e4d1642b3b9f0bd6",
+        "url": "https://api.github.com/repos/it-novikov/iquipage-design-system/git/trees/c7ad669f19eb5027d63994c9e4d1642b3b9f0bd6"
+      },
+      "message": "fix: удержать редактор оценки в контексте задачи (#83)\n\n* fix: keep estimate popovers in their native modal scope\n\nAuthored and independently source-reviewed by GPT-6 Astra AI agents. Preserves local AI-authored source checkpoint 47dcbf2c46496e7908b3c94cee91c9813eec81c5 with exact tree f43689d3a5553c07468ef40eccf5c7af8538892f. Native acceptance remains pending; regression follows in the next commit.\n\n* test: preserve source review and guard estimate modal behavior\n\nPrepared by GPT-6 Astra AI agents; frozen native plan 853bc181d9f4e4db33f5676b4efd515a49cb89210a2f5e79cb307e08aecba42e. Ten targeted Task, nonmodal estimate/menu and lifecycle cases. Preserve independent source R1 and its correction unchanged. Compiled local build passed; native CI is still pending. Continuous companion steps keep this regression active after merge.\n\n* test: открывать «Другие свойства» перед обращением к оценке\n\nVT1 держит оценку в свёрнутом блоке; Task-случаи раскрывают его кликом по summary.",
+      "parents": [
+        {
+          "sha": "220af664ef561d3f5ff1b873122281ef352e8f25",
+          "url": "https://api.github.com/repos/it-novikov/iquipage-design-system/git/commits/220af664ef561d3f5ff1b873122281ef352e8f25",
+          "html_url": "https://github.com/it-novikov/iquipage-design-system/commit/220af664ef561d3f5ff1b873122281ef352e8f25"
+        }
+      ],
+      "verification": {
+        "verified": true,
+        "reason": "valid",
+        "signature": "-----BEGIN PGP SIGNATURE-----\n\nwsFcBAABCAAQBQJqzNCRCRC1aQ7uu5UhlAAAMX4QAEINTxk3v3DkNoz4qujCRa/a\nJXim2zfS2YOGV5/8Q9s5HdMVTOLG9Uk54/ymlXGosHSH6Dwv+/q0tX36cZnr+SwG\nNyyDBopT9nUvleZ+NgbumHV5/sjPBB++lk/Yzh1dVh4xhrBrrDnENHuALScqG8Sl\nqeouepzYuXDyonyyM3BRCVc0eAaFPi0QQNtcVl2ABd8R+s2DXlrXxT2i5a3mQMa0\nWNuKmP2WXqxlETU9vU6A5Ad5Z5XGJqvWIxiYWCVQmcEC1ZtHtZWKjTPgCT2ULw18\nDiquXpjLkmSJJU/zdS38uVmxKySNhV2jPMGXgOeTXxWV9zORqZXCzzOdzDmKN2Nw\nCFTwoMoujMqim8rBddpvBzWDUYUwS1WlpgAmPIb0wCUEifrmIXbMvL9ZrJMC5ddl\nxWy+zu/tSTZr5eo4jbzVzuF/iWpZtLyLR7Du8+rAkDc3XISs2seSPODegZeinBZ3\nOupWlt84fwiI18/gkhOPMl4LthS5e69HVnhTv0R/FtS8LO1hexipiD8Gesbaq9T/\nUNiNPTUdKTejNDiLcAkle2rtnsVdTYmzxz6HIWQgJALdDkpZDqCMtZx0hMVe4UeC\nkpdWmioRnqGKd07OwSX1E1OkZaoXCAM1KoMmLVs3R5OUrISbNIrPgvJsZXocTHig\nnXGLveUEj8gnGAViwcJ2\n=MvzD\n-----END PGP SIGNATURE-----\n",
+        "payload": "tree c7ad669f19eb5027d63994c9e4d1642b3b9f0bd6\nparent 220af664ef561d3f5ff1b873122281ef352e8f25\nauthor Vadim Novikov <nvkv71@gmail.com> 1791807633 +0900\ncommitter GitHub <noreply@github.com> 1791807633 +0900\n\nfix: удержать редактор оценки в контексте задачи (#83)\n\n* fix: keep estimate popovers in their native modal scope\n\nAuthored and independently source-reviewed by GPT-6 Astra AI agents. Preserves local AI-authored source checkpoint 47dcbf2c46496e7908b3c94cee91c9813eec81c5 with exact tree f43689d3a5553c07468ef40eccf5c7af8538892f. Native acceptance remains pending; regression follows in the next commit.\n\n* test: preserve source review and guard estimate modal behavior\n\nPrepared by GPT-6 Astra AI agents; frozen native plan 853bc181d9f4e4db33f5676b4efd515a49cb89210a2f5e79cb307e08aecba42e. Ten targeted Task, nonmodal estimate/menu and lifecycle cases. Preserve independent source R1 and its correction unchanged. Compiled local build passed; native CI is still pending. Continuous companion steps keep this regression active after merge.\n\n* test: открывать «Другие свойства» перед обращением к оценке\n\nVT1 держит оценку в свёрнутом блоке; Task-случаи раскрывают его кликом по summary.",
+        "verified_at": "2026-10-12T12:20:34Z"
+      }
+    },
+    "whole_tree_equals_tested_head_and_checkout": true,
+    "meaning": "Git API integration observation; no additional run on main SHA is claimed"
+  },
+  "source_change_from_642": {
+    "compare_api_file": "research/continuation/newparallel-estimate-compare-api.json",
+    "changed_files": [
+      "products/sprintique/tests/estimate-popover-browser.mjs",
+      "products/sprintique/ui/src/board/task-dialog.js"
+    ],
+    "runtime_popover_estimate_and_planning_css_unchanged": true,
+    "native_plan_unchanged_sha256": "853bc181d9f4e4db33f5676b4efd515a49cb89210a2f5e79cb307e08aecba42e"
+  },
+  "verification_reports": [
+    "research/continuation/newparallel-estimate-native-verification.json",
+    "research/continuation/newparallel-estimate-full-verification.json"
+  ],
+  "personal_visual_review": {
+    "reviewer": "/root/task_capture_preservation",
+    "method": "Read saved PNG at original source path with view_image; no browser run or image transformation",
+    "png_count": 12,
+    "files": [
+      {
+        "source": "research/continuation/newparallel-estimate-native-11745980346/browser/task-desktop-light-after-open.png",
+        "sha256": "b9ff6013534f565f05d01e75e5906a0fa7c1d74c023287f17b85efaac2294479",
+        "role": "Task estimate after-open/final"
+      },
+      {
+        "source": "research/continuation/newparallel-estimate-native-11745980346/browser/task-desktop-light-final.png",
+        "sha256": "4b5f60f9b0d7bcdd6a9eb1612ad370316ce22a614ca3b63f78b332ea8fa8c0db",
+        "role": "Task estimate after-open/final"
+      },
+      {
+        "source": "research/continuation/newparallel-estimate-native-11745980346/browser/task-narrow-light-after-open.png",
+        "sha256": "f9a212780746829febb14c41aeceb8938e1345c183616390ff60fd107313fc1c",
+        "role": "Task estimate after-open/final"
+      },
+      {
+        "source": "research/continuation/newparallel-estimate-native-11745980346/browser/task-narrow-light-final.png",
+        "sha256": "e6cf03b923f936934cefda3b80502f7a01c7c2dba382f8f0c784140de3ca18b9",
+        "role": "Task estimate after-open/final"
+      },
+      {
+        "source": "research/continuation/newparallel-estimate-native-11745980346/browser/task-narrow-dark-after-open.png",
+        "sha256": "2a944ae8dd74fe300a0c8d50ea1a7ad10f8816b448a9099f0994c8cdadf8495a",
+        "role": "Task estimate after-open/final"
+      },
+      {
+        "source": "research/continuation/newparallel-estimate-native-11745980346/browser/task-narrow-dark-final.png",
+        "sha256": "849f16a8c6629a21e04f44a79258061ca6ef9f02c6c5bbbaa367caff5e0b1c6b",
+        "role": "Task estimate after-open/final"
+      },
+      {
+        "source": "research/continuation/newparallel-estimate-native-11745980346/browser/task-narrow-text200-after-open.png",
+        "sha256": "a9ae5a72e32eafb6dfbe4ba92c706c24d3c1148722f47844edf92844a0e26cee",
+        "role": "Task estimate after-open/final"
+      },
+      {
+        "source": "research/continuation/newparallel-estimate-native-11745980346/browser/task-narrow-text200-final.png",
+        "sha256": "200beedd029bfbd71d7fa7e61f0f9961f7490e968f902e9dfc4b4ab3ce4a8728",
+        "role": "Task estimate after-open/final"
+      },
+      {
+        "source": "research/continuation/newparallel-estimate-tabs-11746485133/browser/desktop-light-board-task-panel.png",
+        "sha256": "13f25d68c2936538aae29e03fd79d0bae478dfe284bd36785a3cbf32ddcf1b56",
+        "role": "Tabs run, Task with collapsed properties"
+      },
+      {
+        "source": "research/continuation/newparallel-estimate-tabs-11746485133/browser/narrow-light-board-task-panel.png",
+        "sha256": "9fadb2dfb00d69062eba9118f58b4f0f512f3e5513d52bf34f02eb2bbab85f9f",
+        "role": "Tabs run, Task with collapsed properties"
+      },
+      {
+        "source": "research/continuation/newparallel-estimate-tabs-11746485133/browser/text200-light-board-task-panel.png",
+        "sha256": "39193c81addc7b7c04b738665a23b5989256f6b16a125a285c16c08c22b22800",
+        "role": "Tabs run, Task with collapsed properties"
+      },
+      {
+        "source": "research/continuation/newparallel-estimate-maps-11746510094/desktop-light-related-task.png",
+        "sha256": "7bd5f41d16ba4ea137ff5fa91d121ccfdb5adb76147a246f4a795848d0e9cb35",
+        "role": "Maps run, related Task"
+      }
+    ],
+    "scope": "Eight changed Task estimate PNG and four companion Task PNG only; native raw visualInspection remains NOT_RUN; no human usability or whole-product aesthetic PASS"
+  },
+  "earlier_full_observation": {
+    "raw_api_file": "research/continuation/newparallel-estimate-run-full-api.json",
+    "status": "in_progress",
+    "subsequent_observation": "completed success; one transient ReadTimeout before successful repeat"
+  },
+  "signed_download_references": "Private scratch-only newparallel-estimate-download-*.json files, excluded from portable metadata/index contents and Git publication",
+  "repo_writes": false,
+  "git_mutations": false,
+  "ci_reruns": false
+}

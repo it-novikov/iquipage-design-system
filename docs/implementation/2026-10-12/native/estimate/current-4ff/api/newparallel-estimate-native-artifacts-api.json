@@ -1,0 +1,42 @@
+{
+  "artifacts": [
+    {
+      "id": 11746485133,
+      "name": "tabs-geometry",
+      "size_in_bytes": 1140456,
+      "url": "https://api.github.com/repos/it-novikov/iquipage-design-system/actions/artifacts/11746485133",
+      "archive_download_url": "https://api.github.com/repos/it-novikov/iquipage-design-system/actions/artifacts/11746485133/zip",
+      "expired": false,
+      "created_at": "2026-10-12T11:55:33Z",
+      "expires_at": "2026-10-26T11:55:32Z",
+      "updated_at": "2026-10-12T11:55:33Z",
+      "digest": "sha256:a1687e92a1c924e493c08a526d9f42933d75390253fdf354af9aa053a4b75563",
+      "workflow_run": {
+        "id": 38245658802,
+        "repository_id": 1360587523,
+        "head_repository_id": 1360587523,
+        "head_branch": "fix/estimate-modal-scope",
+        "head_sha": "4ff05227cad0a9e1c1a35d59faffdddd20e5c354"
+      }
+    },
+    {
+      "id": 11745980346,
+      "name": "estimate-popover",
+      "size_in_bytes": 2083554,
+      "url": "https://api.github.com/repos/it-novikov/iquipage-design-system/actions/artifacts/11745980346",
+      "archive_download_url": "https://api.github.com/repos/it-novikov/iquipage-design-system/actions/artifacts/11745980346/zip",
+      "expired": false,
+      "created_at": "2026-10-12T11:55:40Z",
+      "expires_at": "2026-10-26T11:55:39Z",
+      "updated_at": "2026-10-12T11:55:40Z",
+      "digest": "sha256:bcbac45aabf5dc618af5c1aece7258baf9bd69a6287458caed37f12267db0535",
+      "workflow_run": {
+        "id": 38245658802,
+        "repository_id": 1360587523,
+        "head_repository_id": 1360587523,
+        "head_branch": "fix/estimate-modal-scope",
+        "head_sha": "4ff05227cad0a9e1c1a35d59faffdddd20e5c354"
+      }
+    }
+  ]
+}

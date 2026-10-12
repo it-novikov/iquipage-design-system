@@ -226,6 +226,60 @@
         "humanAcceptance": "NOT_RUN"
       },
       "meaning": "Separate resource reads, not an atomic snapshot; parallel heads not overwritten; historical verification not transferred to new trees."
+    },
+    {
+      "observedAt": "2026-10-12T12:46:44Z",
+      "main": "4275dde301b5068b3d6b1801ecb54c70a2d7e708",
+      "mainTree": "c7ad669f19eb5027d63994c9e4d1642b3b9f0bd6",
+      "mergedPR83": {
+        "head": "4ff05227cad0a9e1c1a35d59faffdddd20e5c354",
+        "mergedAt": "2026-10-12T12:20:33Z",
+        "actualCheckout": "ae1364b069f12c0e747f4e28e208ac45dbbfcfe6",
+        "headCheckoutAndMainTree": "c7ad669f19eb5027d63994c9e4d1642b3b9f0bd6",
+        "nativeRun": 38245658802,
+        "mapsRun": 38245658711,
+        "fullRun": 38245659125,
+        "fullJob": 114798739719,
+        "certificateChecksPass": 8,
+        "libraryTestsPass": 478,
+        "productTestsPass": 609,
+        "detachedTestsPass": 609,
+        "sourceHashesMatched": 1240,
+        "nativeEvidence": "native/estimate/current-4ff/README.md",
+        "fullEvidence": "ci/estimate/current-4ff/README.md"
+      },
+      "taskRecoveryPR88": {
+        "head": "1fd928e12b43b26f29ebcb190a5595c1d2618444",
+        "base": "4275dde301b5068b3d6b1801ecb54c70a2d7e708",
+        "state": "open",
+        "merged": false,
+        "mergeable": true,
+        "actualCheckout": "72f862293b80dbbb89352b128eacd592db86ec49",
+        "wholeTree": "c039d65a75d1e4312b5931cc76a4d28fb7ef8e08",
+        "nativeRun": 38249543808,
+        "nativeJob": 114811955572,
+        "taskArtifact": 11746932185,
+        "semanticPass": 5,
+        "informationalCaptured": 2,
+        "nativeReview": "APPROVE_IN_SCOPE",
+        "nativeReviewSHA256": "72581a66c9586c788416da0d6041a7a317ffd8aa7bb4ad8873748ea009b83d4d",
+        "fullRun": 38249543772,
+        "fullAttempt1Job": 114811955287,
+        "fullAttempt1": "FAILED: Gradle9.6.1 distribution download HTTP504 before backend tests",
+        "failedJobRerunRequested": true,
+        "fullAcceptance": "PENDING",
+        "compositionAcceptance": "OPEN"
+      },
+      "propertyCandidate": {
+        "originalLocalCommit": "7f419045ee09aad58d1a9a36d08163df08e658af",
+        "originalTree": "0ae776e2798cef3a9e201e68ec22f808e647c9d3",
+        "originalArchive55SHA256": "71318ed08cd22878c3d6ab5649c229d6da103f2bef77d9bc4bb1f7b70cad5ade",
+        "sourceR1": "CHANGES_REQUESTED: conflicting current package README; permanent applicability of frozen comparison",
+        "correction": "Private56 docs/package and trial guard correction prepared; source addendum pending",
+        "nativeAcceptance": "NOT_RUN",
+        "productAdopted": false
+      },
+      "meaning": "Resources read separately, not atomic. PR83 merge was external to this task; equal main tree is integration observation, not a new native run. PR88 native acceptance is limited; its full CI retry and broader UX are open. No PR merge/deploy performed by root."
     }
   ]
 }
