@@ -5,9 +5,9 @@
     {
       "path": "ci/final-runs.json",
       "encoding": "derived-json",
-      "bytes": 26759,
-      "sha256": "ed56406ee0f7298ed82c6b67f5d0df3eed74c7639b679a02573216c293535306",
-      "source_file": "research/continuation/final-ci-metadata.json + actual logs/certificates"
+      "bytes": 36486,
+      "sha256": "dbf84858cff94533c4f5ba36c86bc2dbbc654471d5a09027f14c7dfe4c516580",
+      "source_file": "research/continuation/final-ci-metadata.json + required-dates-ci-metadata.json + actual logs/certificates"
     },
     {
       "path": "ci/maps-verification.json",
@@ -150,6 +150,103 @@
       "source_file": "research/continuation/policy-full-11732737522/2026-10-12T07-11-48.127Z/verification.json",
       "bytes": 1581,
       "sha256": "1ff6718b1d00bcfab42a7da2bfdcb206a6877161621e2198d723bfefaab7fe10",
+      "encoding": "identity"
+    },
+    {
+      "path": "ci/required-dates/detached-product.log.gz",
+      "source_file": "research/continuation/required-dates-full-11737275270/2026-10-12T08-46-17.966Z/detached-product.log",
+      "bytes": 27047,
+      "sha256": "e88f465f17154c488bfd7d3d5769170fa6268d1406d640e075451d455ef48324",
+      "encoding": "gzip",
+      "uncompressed_bytes": 77290,
+      "uncompressed_sha256": "fee4f0747680f3ca6c6b6942406fad60ef9da279c002a3f6e604fa323fb0e1fe"
+    },
+    {
+      "path": "ci/required-dates/library-build.log.gz",
+      "source_file": "research/continuation/required-dates-full-11737275270/2026-10-12T08-46-17.966Z/library-build.log",
+      "bytes": 146,
+      "sha256": "c240eff943968939c6f48a5a103a7da7371c5e5aeca5371fb63515877995eebc",
+      "encoding": "gzip",
+      "uncompressed_bytes": 144,
+      "uncompressed_sha256": "37b59316265ac45fa4a8f48f01f2109b3520500a3fabef38811a437365eecff6"
+    },
+    {
+      "path": "ci/required-dates/library-tests.log.gz",
+      "source_file": "research/continuation/required-dates-full-11737275270/2026-10-12T08-46-17.966Z/library-tests.log",
+      "bytes": 14257,
+      "sha256": "88421c8201b9b2a71c762373e8bad836805dc73cbf92e9018359f219edebafaa",
+      "encoding": "gzip",
+      "uncompressed_bytes": 38466,
+      "uncompressed_sha256": "7ce0a8134b2e5717fb2dcc0c0162c2c816ca1ed2f04785ba3aa1b8b0b2b23f0f"
+    },
+    {
+      "path": "ci/required-dates/product-boundaries.log.gz",
+      "source_file": "research/continuation/required-dates-full-11737275270/2026-10-12T08-46-17.966Z/product-boundaries.log",
+      "bytes": 211,
+      "sha256": "1372d1c9921d4a049ab72d59c911eef18429aa4ed4c853ff460e1f167526930d",
+      "encoding": "gzip",
+      "uncompressed_bytes": 292,
+      "uncompressed_sha256": "d6a1c681db26574e94256f60879ab77d34282add2ef2e2b9a930229d27e40132"
+    },
+    {
+      "path": "ci/required-dates/product-build.log.gz",
+      "source_file": "research/continuation/required-dates-full-11737275270/2026-10-12T08-46-17.966Z/product-build.log",
+      "bytes": 1286,
+      "sha256": "af33c4f6a038922fdf41f411cabd205b146c2fdc1412d0576edca673a4b04a7e",
+      "encoding": "gzip",
+      "uncompressed_bytes": 3581,
+      "uncompressed_sha256": "f5e02c79101111db84d5d15776141d2a2dbb124341da3b485e60c088b3da2798"
+    },
+    {
+      "path": "ci/required-dates/product-tests.log.gz",
+      "source_file": "research/continuation/required-dates-full-11737275270/2026-10-12T08-46-17.966Z/product-tests.log",
+      "bytes": 26072,
+      "sha256": "ece82992e9824af0688210c659f11494ab049d33a92b1c299b13ff0a183ae629",
+      "encoding": "gzip",
+      "uncompressed_bytes": 75989,
+      "uncompressed_sha256": "bacfb7081e25c2a9fa9350c514b079baec769c78e2da0e090675b54ae0e14115"
+    },
+    {
+      "path": "ci/required-dates/source-stability.log.gz",
+      "source_file": "research/continuation/required-dates-full-11737275270/2026-10-12T08-46-17.966Z/source-stability.log",
+      "bytes": 80,
+      "sha256": "93b3a82f456d5bf5a78cdd0356449484e2cbe180ef1e59491b32c27e86cf4c1a",
+      "encoding": "gzip",
+      "uncompressed_bytes": 60,
+      "uncompressed_sha256": "8585a17108a61f415ff4ecf42f1b62cd8bce87e96c6068bb2d314a569cf77d94"
+    },
+    {
+      "path": "ci/required-dates/sources-after.json.gz",
+      "source_file": "research/continuation/required-dates-full-11737275270/2026-10-12T08-46-17.966Z/sources-after.json",
+      "bytes": 60261,
+      "sha256": "d8d9cc5f8ecb5ecb5e4e8b460ec18a69b974b426a4c20f328d8086a8e27516e8",
+      "encoding": "gzip",
+      "uncompressed_bytes": 219637,
+      "uncompressed_sha256": "202905edab6f8908193e355d4fa7fd033dcf9b8d7c077b6eaffffd4d7e7981f7"
+    },
+    {
+      "path": "ci/required-dates/sources.json.gz",
+      "source_file": "research/continuation/required-dates-full-11737275270/2026-10-12T08-46-17.966Z/sources.json",
+      "bytes": 60261,
+      "sha256": "d8d9cc5f8ecb5ecb5e4e8b460ec18a69b974b426a4c20f328d8086a8e27516e8",
+      "encoding": "gzip",
+      "uncompressed_bytes": 219637,
+      "uncompressed_sha256": "202905edab6f8908193e355d4fa7fd033dcf9b8d7c077b6eaffffd4d7e7981f7"
+    },
+    {
+      "path": "ci/required-dates/verification-tools.log.gz",
+      "source_file": "research/continuation/required-dates-full-11737275270/2026-10-12T08-46-17.966Z/verification-tools.log",
+      "bytes": 199,
+      "sha256": "9c97c9b5281559ded8025347a54440b1fb7d860ad6bfe3d89e7907df71f7bb60",
+      "encoding": "gzip",
+      "uncompressed_bytes": 238,
+      "uncompressed_sha256": "a62eb16c79d4fef0df572ec34f23d35473f17ee82fafec55949edf031e56e7cc"
+    },
+    {
+      "path": "ci/required-dates/verification.json",
+      "source_file": "research/continuation/required-dates-full-11737275270/2026-10-12T08-46-17.966Z/verification.json",
+      "bytes": 1581,
+      "sha256": "c9e543d3e8ef1e7f1398188a1d02b68730c863768d28441c3cb1078d4bf445d8",
       "encoding": "identity"
     },
     {
@@ -574,6 +671,83 @@
       "source_file": "research/wp02b/review-r2.md",
       "bytes": 28153,
       "sha256": "a1e60adea2994eb5b28e6e334b149671bf2c558261dea8f086855d356f4a6bda",
+      "encoding": "identity"
+    },
+    {
+      "path": "task-first-screen/README.md",
+      "encoding": "authored-md",
+      "source_file": "root synthesis of immutable design proposal, independent review and author refinement",
+      "bytes": 28488,
+      "sha256": "c655a5466678d4c3f6a8e68a2e1666f9aac2ca4e57a905d97d770d0036475dc6"
+    },
+    {
+      "path": "task-first-screen/design-proposal.md",
+      "source_file": "research/continuation/task-first-screen-design.md",
+      "bytes": 59906,
+      "sha256": "4a8a1862ec3684e81fb54e86da03304bd851cd8dd93e70220987a820de883aa5",
+      "encoding": "identity"
+    },
+    {
+      "path": "task-first-screen/design-refinement.md",
+      "source_file": "research/continuation/task-first-screen-design-addendum.md",
+      "bytes": 39106,
+      "sha256": "8118b3fc868153c9e68cc6080b6f3058b914ac3fe01cdfa2a534de55ccb171c3",
+      "encoding": "identity"
+    },
+    {
+      "path": "task-first-screen/evidence/desktop-dark-board-task-panel.png",
+      "source_file": "research/wp02b/candidate2-browser-11734645359/browser/desktop-dark-board-task-panel.png",
+      "bytes": 78779,
+      "sha256": "8acaca7ca50a98aa55165f6e20f61096ccfe8d4056b1ca4c6f667253a1c6bf50",
+      "encoding": "identity"
+    },
+    {
+      "path": "task-first-screen/evidence/desktop-light-board-task-panel.png",
+      "source_file": "research/wp02b/candidate2-browser-11734645359/browser/desktop-light-board-task-panel.png",
+      "bytes": 66125,
+      "sha256": "c3e953732b8061847b01f3c8d0120c08a1e4499327d9c2058a3a2209ab1a9dd2",
+      "encoding": "identity"
+    },
+    {
+      "path": "task-first-screen/evidence/narrow-dark-board-task-panel.png",
+      "source_file": "research/wp02b/candidate2-browser-11734645359/browser/narrow-dark-board-task-panel.png",
+      "bytes": 31161,
+      "sha256": "a055a6a55f51556f47e769f1b9046a028977983a2cbfcdc717261d5c65d45df8",
+      "encoding": "identity"
+    },
+    {
+      "path": "task-first-screen/evidence/narrow-light-board-task-panel.png",
+      "source_file": "research/wp02b/candidate2-browser-11734645359/browser/narrow-light-board-task-panel.png",
+      "bytes": 39322,
+      "sha256": "62d59c3480e5a7767240ef757aeb9e5e842aa3b8b3a3a057ac4ff250dab984f9",
+      "encoding": "identity"
+    },
+    {
+      "path": "task-first-screen/evidence/text200-light-board-task-panel.png",
+      "source_file": "research/wp02b/candidate2-browser-11734645359/browser/text200-light-board-task-panel.png",
+      "bytes": 80316,
+      "sha256": "24fc9743b7ed140d8676c773a3995b941ac9611693b99e3ac0d26e6872ece756",
+      "encoding": "identity"
+    },
+    {
+      "path": "task-first-screen/independent-review.md",
+      "source_file": "research/continuation/task-first-screen-review.md",
+      "bytes": 32637,
+      "sha256": "a690c90b5a5af055510f4f243b224dd1c502b97060650814b7eb96294db73c5f",
+      "encoding": "identity"
+    },
+    {
+      "path": "task-first-screen/render-feasibility.md",
+      "source_file": "research/continuation/task-first-screen-render-feasibility.md",
+      "bytes": 44985,
+      "sha256": "e4810290b0a9ddd02e936468c5463d3be9a1f2d9f996b986846b944044e65f40",
+      "encoding": "identity"
+    },
+    {
+      "path": "task-first-screen/review-initial-position.md",
+      "source_file": "research/continuation/task-first-screen-review-checkpoint.md",
+      "bytes": 16172,
+      "sha256": "73b5d71043415cdd0c319e85a99fda41e1bdf117dbc2ee09e157f5d5413fe384",
       "encoding": "identity"
     }
   ]

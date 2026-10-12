@@ -808,6 +808,299 @@
       ],
       "status": "PASS",
       "jobEvidence": "GitHub API completed success; portable image and upload steps success, verified by root before archive download."
+    },
+    {
+      "name": "required-dates",
+      "pr": 80,
+      "run": 38225589288,
+      "job": 114732176645,
+      "artifact": 11737275270,
+      "artifactSha256": "2e3eec00d82f0c562fb7c54de568d8dd3bf0b02e60c20fa614ff2fc99e914d6f",
+      "head": "0a5f14de1436e01df5809edd11d4977d324f8067",
+      "tree": "19ab039e6a25681d5f1963f3158dcfe27c0e441a",
+      "jobResult": {
+        "jobs": [
+          {
+            "id": 114732176645,
+            "name": "verify",
+            "status": "completed",
+            "conclusion": "success",
+            "run_id": 38225589288,
+            "logs_url": null,
+            "steps": [
+              {
+                "name": "Set up job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 1
+              },
+              {
+                "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 2
+              },
+              {
+                "name": "Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 3
+              },
+              {
+                "name": "Run actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 4
+              },
+              {
+                "name": "Install independent packages",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 5
+              },
+              {
+                "name": "Start private ephemeral storage",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 6
+              },
+              {
+                "name": "Library, product, real services and detached extraction",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 7
+              },
+              {
+                "name": "Verification certificate in job log",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 8
+              },
+              {
+                "name": "Portable runtime image",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 9
+              },
+              {
+                "name": "Run actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 10
+              },
+              {
+                "name": "Post Run actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 18
+              },
+              {
+                "name": "Post Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 19
+              },
+              {
+                "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 20
+              },
+              {
+                "name": "Complete job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 21
+              }
+            ]
+          }
+        ]
+      },
+      "checkout": {
+        "sha": "75727f7be33a57212a84b5224acb9359471caee6",
+        "tree": "19ab039e6a25681d5f1963f3158dcfe27c0e441a",
+        "parents": [
+          "f5f941afa4e9be8a709e6de67a92bacf5a9397ca",
+          "0a5f14de1436e01df5809edd11d4977d324f8067"
+        ],
+        "wholeTreeEqualsHead": true
+      },
+      "certificate": "ci/required-dates/verification.json",
+      "sourceFingerprint": "a1d611747f1d061c373780f4950a970c2bc2dc001085e9dcc66b2f4df91d0d7d",
+      "logs": {
+        "product-tests.log": {
+          "path": "ci/required-dates/product-tests.log.gz",
+          "source_sha256": "bacfb7081e25c2a9fa9350c514b079baec769c78e2da0e090675b54ae0e14115",
+          "excerpts": [
+            {
+              "line": 347,
+              "text": "✔ NT05 the bell: newest first, 20 a page with a cursor, unread count, read by id and «Прочитать все» up to a moment (229.83105ms)"
+            },
+            {
+              "line": 348,
+              "text": "ℹ NT05 timestamp-order evidence {\"legacyStringOrder\":false,\"firstTimes\":[\"2000-01-01T00:00:00.600002Z\",\"2000-01-01T00:00:00.600001Z\",\"2000-01-01T00:00:00.600Z\"]}"
+            },
+            {
+              "line": 661,
+              "text": "ℹ tests 567"
+            },
+            {
+              "line": 662,
+              "text": "ℹ suites 0"
+            },
+            {
+              "line": 663,
+              "text": "ℹ pass 567"
+            },
+            {
+              "line": 664,
+              "text": "ℹ fail 0"
+            },
+            {
+              "line": 665,
+              "text": "ℹ cancelled 0"
+            },
+            {
+              "line": 666,
+              "text": "ℹ skipped 0"
+            },
+            {
+              "line": 667,
+              "text": "ℹ todo 0"
+            },
+            {
+              "line": 668,
+              "text": "ℹ duration_ms 501132.55701"
+            }
+          ]
+        },
+        "detached-product.log": {
+          "path": "ci/required-dates/detached-product.log.gz",
+          "source_sha256": "fee4f0747680f3ca6c6b6942406fad60ef9da279c002a3f6e604fa323fb0e1fe",
+          "excerpts": [
+            {
+              "line": 20,
+              "text": "> tsc --noEmit"
+            },
+            {
+              "line": 74,
+              "text": "\u001b[32m✓ built in 474ms\u001b[39m"
+            },
+            {
+              "line": 421,
+              "text": "✔ NT05 the bell: newest first, 20 a page with a cursor, unread count, read by id and «Прочитать все» up to a moment (198.466503ms)"
+            },
+            {
+              "line": 422,
+              "text": "ℹ NT05 timestamp-order evidence {\"legacyStringOrder\":false,\"firstTimes\":[\"2000-01-01T00:00:00.600002Z\",\"2000-01-01T00:00:00.600001Z\",\"2000-01-01T00:00:00.600Z\"]}"
+            },
+            {
+              "line": 735,
+              "text": "ℹ tests 567"
+            },
+            {
+              "line": 736,
+              "text": "ℹ suites 0"
+            },
+            {
+              "line": 737,
+              "text": "ℹ pass 567"
+            },
+            {
+              "line": 738,
+              "text": "ℹ fail 0"
+            },
+            {
+              "line": 739,
+              "text": "ℹ cancelled 0"
+            },
+            {
+              "line": 740,
+              "text": "ℹ skipped 0"
+            },
+            {
+              "line": 741,
+              "text": "ℹ todo 0"
+            },
+            {
+              "line": 742,
+              "text": "ℹ duration_ms 471845.584121"
+            }
+          ]
+        },
+        "library-tests.log": {
+          "path": "ci/required-dates/library-tests.log.gz",
+          "source_sha256": "7ce0a8134b2e5717fb2dcc0c0162c2c816ca1ed2f04785ba3aa1b8b0b2b23f0f",
+          "excerpts": [
+            {
+              "line": 483,
+              "text": "ℹ tests 478"
+            },
+            {
+              "line": 484,
+              "text": "ℹ suites 0"
+            },
+            {
+              "line": 485,
+              "text": "ℹ pass 478"
+            },
+            {
+              "line": 486,
+              "text": "ℹ fail 0"
+            },
+            {
+              "line": 487,
+              "text": "ℹ cancelled 0"
+            },
+            {
+              "line": 488,
+              "text": "ℹ skipped 0"
+            },
+            {
+              "line": 489,
+              "text": "ℹ todo 0"
+            },
+            {
+              "line": 490,
+              "text": "ℹ duration_ms 2836.971513"
+            }
+          ]
+        },
+        "product-build.log": {
+          "path": "ci/required-dates/product-build.log.gz",
+          "source_sha256": "f5e02c79101111db84d5d15776141d2a2dbb124341da3b485e60c088b3da2798",
+          "excerpts": [
+            {
+              "line": 7,
+              "text": "> tsc --noEmit"
+            },
+            {
+              "line": 61,
+              "text": "\u001b[32m✓ built in 478ms\u001b[39m"
+            }
+          ]
+        }
+      },
+      "status": "PASS",
+      "checkoutLog": [
+        {
+          "line": 106,
+          "text": "2026-10-12T08:46:03.7334439Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +75727f7be33a57212a84b5224acb9359471caee6:refs/remotes/pull/80/merge"
+        },
+        {
+          "line": 108,
+          "text": "2026-10-12T08:46:04.9840027Z  * [new ref]         75727f7be33a57212a84b5224acb9359471caee6 -> pull/80/merge"
+        },
+        {
+          "line": 133,
+          "text": "2026-10-12T08:46:05.1349967Z HEAD is now at 75727f7 Merge 0a5f14de1436e01df5809edd11d4977d324f8067 into f5f941afa4e9be8a709e6de67a92bacf5a9397ca"
+        },
+        {
+          "line": 136,
+          "text": "2026-10-12T08:46:05.1428687Z 75727f7be33a57212a84b5224acb9359471caee6"
+        }
+      ],
+      "rawJobLogSha256": "52a70d1dd6b8829f3a5a717ee0ab186ff6f99abac8a8cea120f8fa0c2faebcbf"
     }
   ]
 }
