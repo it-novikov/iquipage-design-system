@@ -1,0 +1,1270 @@
+{
+  "scope": "Isolated actual Maps host, whiteboard, Task and native history; synthetic reads; no main.js/bootstrap, backend, persistence or grants claim",
+  "status": "PASS",
+  "buildOnly": false,
+  "sourceRevision": "aac5f0927fa1c278668af1ff620c7d9c6f01720b",
+  "createdAt": "2026-10-12T06:05:54.844Z",
+  "package": "0.6.0-vnext.52",
+  "archiveSHA256": "989fab4822db78e10bfeeb62ad2724d8bb389a08ddf012c196b469af33cde758",
+  "node": "v24.20.0",
+  "profiles": [
+    {
+      "name": "desktop-light",
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "theme": "light",
+      "deep": true,
+      "density": "comfortable",
+      "zoom": "1x; browser UI zoom and iOS touch are not exercised",
+      "checks": [
+        "actual inspector button, full Task mount and contextual Work tab",
+        "header Close returns to the same map; native Forward reopens Work tab",
+        "Escape, native Back/Forward and Task tab retain the contextual route",
+        "actual relation link null response keeps the same Task and exposes its error",
+        "actual Task support-read rejection preserves the old Task",
+        "real relation link handoff reaches T2 with one native open Task",
+        "Close aborts delayed replacement; ignored cancellation cannot reopen it after release",
+        "native Back, actual draft confirmation refusal, restored contextual URL and retained text",
+        "actual conflict/reload task-read failure, new comment, native Back refusal and preserved draft",
+        "actual conflict/reload support-read failure, new comment, native Back refusal and preserved draft"
+      ],
+      "status": "PASS",
+      "phase": "failed reload support-read preserves a new comment",
+      "baseline": {
+        "hash": "#maps/map-a",
+        "mapId": "map-a",
+        "mapTitle": "Карта A — исходное обсуждение",
+        "sameBoard": true,
+        "viewport": {
+          "x": 56,
+          "y": 42,
+          "zoom": 0.85
+        },
+        "selection": [
+          "linked-a1"
+        ],
+        "inspectorOpen": true,
+        "sameInspector": true,
+        "focusOnOpener": false,
+        "currentTask": null,
+        "sameRememberedTask": false,
+        "taskIds": [],
+        "workTab": null
+      },
+      "rejectedWriteAttempts": [
+        {
+          "collection": "tasks",
+          "id": "task-1",
+          "outcome": "synthetic-conflict-no-write"
+        },
+        {
+          "collection": "tasks",
+          "id": "task-1",
+          "outcome": "synthetic-conflict-no-write"
+        }
+      ],
+      "final": {
+        "hash": "#maps/map-a",
+        "mapId": "map-a",
+        "mapTitle": "Карта A — исходное обсуждение",
+        "sameBoard": true,
+        "viewport": {
+          "x": 56,
+          "y": 42,
+          "zoom": 0.85
+        },
+        "selection": [
+          "linked-a1"
+        ],
+        "inspectorOpen": true,
+        "sameInspector": true,
+        "focusOnOpener": true,
+        "currentTask": null,
+        "sameRememberedTask": false,
+        "taskIds": [],
+        "workTab": null
+      },
+      "peakOpenTaskDialogs": 1,
+      "reads": [
+        {
+          "operation": "read",
+          "collection": "maps",
+          "id": "map-a"
+        },
+        {
+          "operation": "list",
+          "collection": "maps"
+        },
+        {
+          "operation": "read",
+          "collection": "tasks",
+          "id": "task-1"
+        },
+        {
+          "operation": "list",
+          "collection": "tags"
+        },
+        {
+          "operation": "list",
+          "collection": "releases"
+        },
+        {
+          "operation": "list",
+          "collection": "taskSettings"
+        },
+        {
+          "operation": "list",
+          "collection": "members"
+        },
+        {
+          "operation": "list",
+          "collection": "taskLinks"
+        },
+        {
+          "operation": "list",
+          "collection": "threads"
+        },
+        {
+          "operation": "GET",
+          "path": "/projects/fixture-project/tasks/task-1/work"
+        },
+        {
+          "operation": "read",
+          "collection": "tasks",
+          "id": "MFX-101"
+        },
+        {
+          "operation": "list",
+          "collection": "tags"
+        },
+        {
+          "operation": "list",
+          "collection": "releases"
+        },
+        {
+          "operation": "list",
+          "collection": "taskSettings"
+        },
+        {
+          "operation": "list",
+          "collection": "members"
+        },
+        {
+          "operation": "list",
+          "collection": "taskLinks"
+        },
+        {
+          "operation": "list",
+          "collection": "threads"
+        },
+        {
+          "operation": "GET",
+          "path": "/projects/fixture-project/tasks/task-1/work"
+        },
+        {
+          "operation": "read",
+          "collection": "tasks",
+          "id": "MFX-101"
+        },
+        {
+          "operation": "list",
+          "collection": "tags"
+        },
+        {
+          "operation": "list",
+          "collection": "releases"
+        },
+        {
+          "operation": "list",
+          "collection": "taskSettings"
+        },
+        {
+          "operation": "list",
+          "collection": "members"
+        },
+        {
+          "operation": "list",
+          "collection": "taskLinks"
+        },
+        {
+          "operation": "list",
+          "collection": "threads"
+        },
+        {
+          "operation": "GET",
+          "path": "/projects/fixture-project/tasks/task-1/work"
+        },
+        {
+          "operation": "read",
+          "collection": "tasks",
+          "id": "MFX-101"
+        },
+        {
+          "operation": "list",
+          "collection": "tags"
+        },
+        {
+          "operation": "list",
+          "collection": "releases"
+        },
+        {
+          "operation": "list",
+          "collection": "taskSettings"
+        },
+        {
+          "operation": "list",
+          "collection": "members"
+        },
+        {
+          "operation": "list",
+          "collection": "taskLinks"
+        },
+        {
+          "operation": "list",
+          "collection": "threads"
+        },
+        {
+          "operation": "GET",
+          "path": "/projects/fixture-project/tasks/task-1/work"
+        },
+        {
+          "operation": "read",
+          "collection": "tasks",
+          "id": "task-1"
+        },
+        {
+          "operation": "list",
+          "collection": "tags"
+        },
+        {
+          "operation": "list",
+          "collection": "releases"
+        },
+        {
+          "operation": "list",
+          "collection": "taskSettings"
+        },
+        {
+          "operation": "list",
+          "collection": "members"
+        },
+        {
+          "operation": "list",
+          "collection": "taskLinks"
+        },
+        {
+          "operation": "list",
+          "collection": "threads"
+        },
+        {
+          "operation": "GET",
+          "path": "/projects/fixture-project/tasks/task-1/work"
+        },
+        {
+          "operation": "read",
+          "collection": "tasks",
+          "id": "task-2"
+        },
+        {
+          "operation": "read",
+          "collection": "tasks",
+          "id": "task-2"
+        },
+        {
+          "operation": "list",
+          "collection": "tags"
+        },
+        {
+          "operation": "list",
+          "collection": "releases"
+        },
+        {
+          "operation": "list",
+          "collection": "taskSettings"
+        },
+        {
+          "operation": "list",
+          "collection": "members"
+        },
+        {
+          "operation": "read",
+          "collection": "tasks",
+          "id": "task-2"
+        },
+        {
+          "operation": "list",
+          "collection": "tags"
+        },
+        {
+          "operation": "list",
+          "collection": "releases"
+        },
+        {
+          "operation": "list",
+          "collection": "taskSettings"
+        },
+        {
+          "operation": "list",
+          "collection": "members"
+        },
+        {
+          "operation": "list",
+          "collection": "taskLinks"
+        },
+        {
+          "operation": "list",
+          "collection": "threads"
+        },
+        {
+          "operation": "GET",
+          "path": "/projects/fixture-project/tasks/task-2/work"
+        },
+        {
+          "operation": "read",
+          "collection": "tasks",
+          "id": "task-1"
+        },
+        {
+          "operation": "list",
+          "collection": "tags"
+        },
+        {
+          "operation": "list",
+          "collection": "releases"
+        },
+        {
+          "operation": "list",
+          "collection": "taskSettings"
+        },
+        {
+          "operation": "list",
+          "collection": "members"
+        },
+        {
+          "operation": "list",
+          "collection": "taskLinks"
+        },
+        {
+          "operation": "list",
+          "collection": "threads"
+        },
+        {
+          "operation": "GET",
+          "path": "/projects/fixture-project/tasks/task-1/work"
+        },
+        {
+          "operation": "read",
+          "collection": "tasks",
+          "id": "task-2"
+        },
+        {
+          "operation": "list",
+          "collection": "tags"
+        },
+        {
+          "operation": "list",
+          "collection": "releases"
+        },
+        {
+          "operation": "list",
+          "collection": "taskSettings"
+        },
+        {
+          "operation": "list",
+          "collection": "members"
+        },
+        {
+          "operation": "read",
+          "collection": "tasks",
+          "id": "task-1"
+        },
+        {
+          "operation": "list",
+          "collection": "tags"
+        },
+        {
+          "operation": "list",
+          "collection": "releases"
+        },
+        {
+          "operation": "list",
+          "collection": "taskSettings"
+        },
+        {
+          "operation": "list",
+          "collection": "members"
+        },
+        {
+          "operation": "list",
+          "collection": "taskLinks"
+        },
+        {
+          "operation": "list",
+          "collection": "threads"
+        },
+        {
+          "operation": "GET",
+          "path": "/projects/fixture-project/tasks/task-1/work"
+        },
+        {
+          "operation": "read",
+          "collection": "tasks",
+          "id": "task-1"
+        },
+        {
+          "operation": "list",
+          "collection": "tags"
+        },
+        {
+          "operation": "list",
+          "collection": "releases"
+        },
+        {
+          "operation": "list",
+          "collection": "taskSettings"
+        },
+        {
+          "operation": "list",
+          "collection": "members"
+        },
+        {
+          "operation": "list",
+          "collection": "taskLinks"
+        },
+        {
+          "operation": "list",
+          "collection": "threads"
+        },
+        {
+          "operation": "GET",
+          "path": "/projects/fixture-project/tasks/task-1/work"
+        },
+        {
+          "operation": "read",
+          "collection": "tasks",
+          "id": "task-1"
+        },
+        {
+          "operation": "read",
+          "collection": "tasks",
+          "id": "task-1"
+        },
+        {
+          "operation": "list",
+          "collection": "tags"
+        },
+        {
+          "operation": "list",
+          "collection": "releases"
+        },
+        {
+          "operation": "list",
+          "collection": "taskSettings"
+        },
+        {
+          "operation": "list",
+          "collection": "members"
+        },
+        {
+          "operation": "list",
+          "collection": "taskLinks"
+        },
+        {
+          "operation": "list",
+          "collection": "threads"
+        },
+        {
+          "operation": "GET",
+          "path": "/projects/fixture-project/tasks/task-1/work"
+        },
+        {
+          "operation": "read",
+          "collection": "tasks",
+          "id": "task-1"
+        },
+        {
+          "operation": "list",
+          "collection": "tags"
+        },
+        {
+          "operation": "list",
+          "collection": "releases"
+        },
+        {
+          "operation": "list",
+          "collection": "taskSettings"
+        },
+        {
+          "operation": "list",
+          "collection": "members"
+        }
+      ]
+    },
+    {
+      "name": "desktop-dark",
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "theme": "dark",
+      "density": "comfortable",
+      "zoom": "1x; browser UI zoom and iOS touch are not exercised",
+      "checks": [
+        "actual inspector button, full Task mount and contextual Work tab",
+        "header Close returns to the same map; native Forward reopens Work tab",
+        "Escape, native Back/Forward and Task tab retain the contextual route"
+      ],
+      "status": "PASS",
+      "phase": "Escape and native history",
+      "baseline": {
+        "hash": "#maps/map-a",
+        "mapId": "map-a",
+        "mapTitle": "Карта A — исходное обсуждение",
+        "sameBoard": true,
+        "viewport": {
+          "x": 56,
+          "y": 42,
+          "zoom": 0.85
+        },
+        "selection": [
+          "linked-a1"
+        ],
+        "inspectorOpen": true,
+        "sameInspector": true,
+        "focusOnOpener": false,
+        "currentTask": null,
+        "sameRememberedTask": false,
+        "taskIds": [],
+        "workTab": null
+      },
+      "final": {
+        "hash": "#maps/map-a",
+        "mapId": "map-a",
+        "mapTitle": "Карта A — исходное обсуждение",
+        "sameBoard": true,
+        "viewport": {
+          "x": 56,
+          "y": 42,
+          "zoom": 0.85
+        },
+        "selection": [
+          "linked-a1"
+        ],
+        "inspectorOpen": true,
+        "sameInspector": true,
+        "focusOnOpener": true,
+        "currentTask": null,
+        "sameRememberedTask": false,
+        "taskIds": [],
+        "workTab": null
+      },
+      "peakOpenTaskDialogs": 1,
+      "reads": [
+        {
+          "operation": "read",
+          "collection": "maps",
+          "id": "map-a"
+        },
+        {
+          "operation": "list",
+          "collection": "maps"
+        },
+        {
+          "operation": "read",
+          "collection": "tasks",
+          "id": "task-1"
+        },
+        {
+          "operation": "list",
+          "collection": "tags"
+        },
+        {
+          "operation": "list",
+          "collection": "releases"
+        },
+        {
+          "operation": "list",
+          "collection": "taskSettings"
+        },
+        {
+          "operation": "list",
+          "collection": "members"
+        },
+        {
+          "operation": "list",
+          "collection": "taskLinks"
+        },
+        {
+          "operation": "list",
+          "collection": "threads"
+        },
+        {
+          "operation": "GET",
+          "path": "/projects/fixture-project/tasks/task-1/work"
+        },
+        {
+          "operation": "read",
+          "collection": "tasks",
+          "id": "MFX-101"
+        },
+        {
+          "operation": "list",
+          "collection": "tags"
+        },
+        {
+          "operation": "list",
+          "collection": "releases"
+        },
+        {
+          "operation": "list",
+          "collection": "taskSettings"
+        },
+        {
+          "operation": "list",
+          "collection": "members"
+        },
+        {
+          "operation": "list",
+          "collection": "taskLinks"
+        },
+        {
+          "operation": "list",
+          "collection": "threads"
+        },
+        {
+          "operation": "GET",
+          "path": "/projects/fixture-project/tasks/task-1/work"
+        },
+        {
+          "operation": "read",
+          "collection": "tasks",
+          "id": "MFX-101"
+        },
+        {
+          "operation": "list",
+          "collection": "tags"
+        },
+        {
+          "operation": "list",
+          "collection": "releases"
+        },
+        {
+          "operation": "list",
+          "collection": "taskSettings"
+        },
+        {
+          "operation": "list",
+          "collection": "members"
+        },
+        {
+          "operation": "list",
+          "collection": "taskLinks"
+        },
+        {
+          "operation": "list",
+          "collection": "threads"
+        },
+        {
+          "operation": "GET",
+          "path": "/projects/fixture-project/tasks/task-1/work"
+        },
+        {
+          "operation": "read",
+          "collection": "tasks",
+          "id": "MFX-101"
+        },
+        {
+          "operation": "list",
+          "collection": "tags"
+        },
+        {
+          "operation": "list",
+          "collection": "releases"
+        },
+        {
+          "operation": "list",
+          "collection": "taskSettings"
+        },
+        {
+          "operation": "list",
+          "collection": "members"
+        },
+        {
+          "operation": "list",
+          "collection": "taskLinks"
+        },
+        {
+          "operation": "list",
+          "collection": "threads"
+        },
+        {
+          "operation": "GET",
+          "path": "/projects/fixture-project/tasks/task-1/work"
+        }
+      ]
+    },
+    {
+      "name": "narrow-light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "density": "comfortable",
+      "zoom": "1x; browser UI zoom and iOS touch are not exercised",
+      "checks": [
+        "actual inspector button, full Task mount and contextual Work tab",
+        "header Close returns to the same map; native Forward reopens Work tab",
+        "Escape, native Back/Forward and Task tab retain the contextual route"
+      ],
+      "status": "PASS",
+      "phase": "Escape and native history",
+      "baseline": {
+        "hash": "#maps/map-a",
+        "mapId": "map-a",
+        "mapTitle": "Карта A — исходное обсуждение",
+        "sameBoard": true,
+        "viewport": {
+          "x": 56,
+          "y": 42,
+          "zoom": 0.85
+        },
+        "selection": [
+          "linked-a1"
+        ],
+        "inspectorOpen": true,
+        "sameInspector": true,
+        "focusOnOpener": false,
+        "currentTask": null,
+        "sameRememberedTask": false,
+        "taskIds": [],
+        "workTab": null
+      },
+      "final": {
+        "hash": "#maps/map-a",
+        "mapId": "map-a",
+        "mapTitle": "Карта A — исходное обсуждение",
+        "sameBoard": true,
+        "viewport": {
+          "x": 56,
+          "y": 42,
+          "zoom": 0.85
+        },
+        "selection": [
+          "linked-a1"
+        ],
+        "inspectorOpen": true,
+        "sameInspector": true,
+        "focusOnOpener": true,
+        "currentTask": null,
+        "sameRememberedTask": false,
+        "taskIds": [],
+        "workTab": null
+      },
+      "peakOpenTaskDialogs": 1,
+      "reads": [
+        {
+          "operation": "read",
+          "collection": "maps",
+          "id": "map-a"
+        },
+        {
+          "operation": "list",
+          "collection": "maps"
+        },
+        {
+          "operation": "read",
+          "collection": "tasks",
+          "id": "task-1"
+        },
+        {
+          "operation": "list",
+          "collection": "tags"
+        },
+        {
+          "operation": "list",
+          "collection": "releases"
+        },
+        {
+          "operation": "list",
+          "collection": "taskSettings"
+        },
+        {
+          "operation": "list",
+          "collection": "members"
+        },
+        {
+          "operation": "list",
+          "collection": "taskLinks"
+        },
+        {
+          "operation": "list",
+          "collection": "threads"
+        },
+        {
+          "operation": "GET",
+          "path": "/projects/fixture-project/tasks/task-1/work"
+        },
+        {
+          "operation": "read",
+          "collection": "tasks",
+          "id": "MFX-101"
+        },
+        {
+          "operation": "list",
+          "collection": "tags"
+        },
+        {
+          "operation": "list",
+          "collection": "releases"
+        },
+        {
+          "operation": "list",
+          "collection": "taskSettings"
+        },
+        {
+          "operation": "list",
+          "collection": "members"
+        },
+        {
+          "operation": "list",
+          "collection": "taskLinks"
+        },
+        {
+          "operation": "list",
+          "collection": "threads"
+        },
+        {
+          "operation": "GET",
+          "path": "/projects/fixture-project/tasks/task-1/work"
+        },
+        {
+          "operation": "read",
+          "collection": "tasks",
+          "id": "MFX-101"
+        },
+        {
+          "operation": "list",
+          "collection": "tags"
+        },
+        {
+          "operation": "list",
+          "collection": "releases"
+        },
+        {
+          "operation": "list",
+          "collection": "taskSettings"
+        },
+        {
+          "operation": "list",
+          "collection": "members"
+        },
+        {
+          "operation": "list",
+          "collection": "taskLinks"
+        },
+        {
+          "operation": "list",
+          "collection": "threads"
+        },
+        {
+          "operation": "GET",
+          "path": "/projects/fixture-project/tasks/task-1/work"
+        },
+        {
+          "operation": "read",
+          "collection": "tasks",
+          "id": "MFX-101"
+        },
+        {
+          "operation": "list",
+          "collection": "tags"
+        },
+        {
+          "operation": "list",
+          "collection": "releases"
+        },
+        {
+          "operation": "list",
+          "collection": "taskSettings"
+        },
+        {
+          "operation": "list",
+          "collection": "members"
+        },
+        {
+          "operation": "list",
+          "collection": "taskLinks"
+        },
+        {
+          "operation": "list",
+          "collection": "threads"
+        },
+        {
+          "operation": "GET",
+          "path": "/projects/fixture-project/tasks/task-1/work"
+        }
+      ]
+    },
+    {
+      "name": "narrow-dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "dark",
+      "density": "comfortable",
+      "zoom": "1x; browser UI zoom and iOS touch are not exercised",
+      "checks": [
+        "actual inspector button, full Task mount and contextual Work tab",
+        "header Close returns to the same map; native Forward reopens Work tab",
+        "Escape, native Back/Forward and Task tab retain the contextual route"
+      ],
+      "status": "PASS",
+      "phase": "Escape and native history",
+      "baseline": {
+        "hash": "#maps/map-a",
+        "mapId": "map-a",
+        "mapTitle": "Карта A — исходное обсуждение",
+        "sameBoard": true,
+        "viewport": {
+          "x": 56,
+          "y": 42,
+          "zoom": 0.85
+        },
+        "selection": [
+          "linked-a1"
+        ],
+        "inspectorOpen": true,
+        "sameInspector": true,
+        "focusOnOpener": false,
+        "currentTask": null,
+        "sameRememberedTask": false,
+        "taskIds": [],
+        "workTab": null
+      },
+      "final": {
+        "hash": "#maps/map-a",
+        "mapId": "map-a",
+        "mapTitle": "Карта A — исходное обсуждение",
+        "sameBoard": true,
+        "viewport": {
+          "x": 56,
+          "y": 42,
+          "zoom": 0.85
+        },
+        "selection": [
+          "linked-a1"
+        ],
+        "inspectorOpen": true,
+        "sameInspector": true,
+        "focusOnOpener": true,
+        "currentTask": null,
+        "sameRememberedTask": false,
+        "taskIds": [],
+        "workTab": null
+      },
+      "peakOpenTaskDialogs": 1,
+      "reads": [
+        {
+          "operation": "read",
+          "collection": "maps",
+          "id": "map-a"
+        },
+        {
+          "operation": "list",
+          "collection": "maps"
+        },
+        {
+          "operation": "read",
+          "collection": "tasks",
+          "id": "task-1"
+        },
+        {
+          "operation": "list",
+          "collection": "tags"
+        },
+        {
+          "operation": "list",
+          "collection": "releases"
+        },
+        {
+          "operation": "list",
+          "collection": "taskSettings"
+        },
+        {
+          "operation": "list",
+          "collection": "members"
+        },
+        {
+          "operation": "list",
+          "collection": "taskLinks"
+        },
+        {
+          "operation": "list",
+          "collection": "threads"
+        },
+        {
+          "operation": "GET",
+          "path": "/projects/fixture-project/tasks/task-1/work"
+        },
+        {
+          "operation": "read",
+          "collection": "tasks",
+          "id": "MFX-101"
+        },
+        {
+          "operation": "list",
+          "collection": "tags"
+        },
+        {
+          "operation": "list",
+          "collection": "releases"
+        },
+        {
+          "operation": "list",
+          "collection": "taskSettings"
+        },
+        {
+          "operation": "list",
+          "collection": "members"
+        },
+        {
+          "operation": "list",
+          "collection": "taskLinks"
+        },
+        {
+          "operation": "list",
+          "collection": "threads"
+        },
+        {
+          "operation": "GET",
+          "path": "/projects/fixture-project/tasks/task-1/work"
+        },
+        {
+          "operation": "read",
+          "collection": "tasks",
+          "id": "MFX-101"
+        },
+        {
+          "operation": "list",
+          "collection": "tags"
+        },
+        {
+          "operation": "list",
+          "collection": "releases"
+        },
+        {
+          "operation": "list",
+          "collection": "taskSettings"
+        },
+        {
+          "operation": "list",
+          "collection": "members"
+        },
+        {
+          "operation": "list",
+          "collection": "taskLinks"
+        },
+        {
+          "operation": "list",
+          "collection": "threads"
+        },
+        {
+          "operation": "GET",
+          "path": "/projects/fixture-project/tasks/task-1/work"
+        },
+        {
+          "operation": "read",
+          "collection": "tasks",
+          "id": "MFX-101"
+        },
+        {
+          "operation": "list",
+          "collection": "tags"
+        },
+        {
+          "operation": "list",
+          "collection": "releases"
+        },
+        {
+          "operation": "list",
+          "collection": "taskSettings"
+        },
+        {
+          "operation": "list",
+          "collection": "members"
+        },
+        {
+          "operation": "list",
+          "collection": "taskLinks"
+        },
+        {
+          "operation": "list",
+          "collection": "threads"
+        },
+        {
+          "operation": "GET",
+          "path": "/projects/fixture-project/tasks/task-1/work"
+        }
+      ]
+    }
+  ],
+  "mountRecovery": [
+    {
+      "fault": "initial-map",
+      "target": "#maps/map-a/task/MFX-101",
+      "name": "initial-map-map",
+      "status": "PASS",
+      "final": {
+        "hash": "#maps/map-a/task/MFX-101",
+        "mapId": "map-a",
+        "mapTitle": "Карта A — исходное обсуждение",
+        "sameBoard": false,
+        "viewport": {
+          "x": 265,
+          "y": 139,
+          "zoom": 1
+        },
+        "selection": [],
+        "inspectorOpen": false,
+        "sameInspector": false,
+        "focusOnOpener": false,
+        "currentTask": "MFX-101",
+        "sameRememberedTask": false,
+        "taskIds": [
+          "task-1"
+        ],
+        "workTab": "task"
+      }
+    },
+    {
+      "fault": "initial-task",
+      "target": "#maps/map-a",
+      "name": "initial-task-map",
+      "status": "PASS",
+      "final": {
+        "hash": "#maps/map-a",
+        "mapId": "map-a",
+        "mapTitle": "Карта A — исходное обсуждение",
+        "sameBoard": true,
+        "viewport": {
+          "x": 265,
+          "y": 139,
+          "zoom": 1
+        },
+        "selection": [],
+        "inspectorOpen": false,
+        "sameInspector": false,
+        "focusOnOpener": false,
+        "currentTask": null,
+        "sameRememberedTask": false,
+        "taskIds": [],
+        "workTab": null
+      }
+    },
+    {
+      "fault": "initial-task",
+      "target": "#maps/map-a/task/MFX-102/work",
+      "name": "initial-task-new-task",
+      "status": "PASS",
+      "final": {
+        "hash": "#maps/map-a/task/MFX-102/work",
+        "mapId": "map-a",
+        "mapTitle": "Карта A — исходное обсуждение",
+        "sameBoard": true,
+        "viewport": {
+          "x": 265,
+          "y": 139,
+          "zoom": 1
+        },
+        "selection": [],
+        "inspectorOpen": false,
+        "sameInspector": false,
+        "focusOnOpener": false,
+        "currentTask": "MFX-102",
+        "sameRememberedTask": false,
+        "taskIds": [
+          "task-2"
+        ],
+        "workTab": "work"
+      }
+    },
+    {
+      "fault": "initial-support",
+      "target": "#maps/map-a",
+      "name": "initial-support-map",
+      "status": "PASS",
+      "final": {
+        "hash": "#maps/map-a",
+        "mapId": "map-a",
+        "mapTitle": "Карта A — исходное обсуждение",
+        "sameBoard": true,
+        "viewport": {
+          "x": 265,
+          "y": 139,
+          "zoom": 1
+        },
+        "selection": [],
+        "inspectorOpen": false,
+        "sameInspector": false,
+        "focusOnOpener": false,
+        "currentTask": null,
+        "sameRememberedTask": false,
+        "taskIds": [],
+        "workTab": null
+      }
+    },
+    {
+      "fault": "initial-support",
+      "target": "#maps/map-a/task/MFX-102/work",
+      "name": "initial-support-new-task",
+      "status": "PASS",
+      "final": {
+        "hash": "#maps/map-a/task/MFX-102/work",
+        "mapId": "map-a",
+        "mapTitle": "Карта A — исходное обсуждение",
+        "sameBoard": true,
+        "viewport": {
+          "x": 265,
+          "y": 139,
+          "zoom": 1
+        },
+        "selection": [],
+        "inspectorOpen": false,
+        "sameInspector": false,
+        "focusOnOpener": false,
+        "currentTask": "MFX-102",
+        "sameRememberedTask": false,
+        "taskIds": [
+          "task-2"
+        ],
+        "workTab": "work"
+      }
+    }
+  ],
+  "pageErrors": [],
+  "externalRequests": [],
+  "sourceSHA256": {
+    "web/maps-host.js": "f6d657fa8f799455f1d6c24e01b6a57107d0765ad16cbcd867b01f16d8f5eaea",
+    "web/maps-task-context.js": "fbbdede95642a8087720fff7ae62c4bde7181e78f638a0353cbd07fed815d28d",
+    "web/maps-route.js": "724311ca3f767741684240012b8f0cda9b074600752e747af6454d56cd00fa51",
+    "ui/src/maps.js": "40529666a1cf05446fb6d806892da2408fc3ccee4406d044d7c3ecd3d2b6576f",
+    "ui/src/board/task-dialog.js": "7ee36bd4d07cd9c690ed89f2f097a9aa4a58aeca48a46d4ca879b09d73484bb7",
+    "ui/src/board/link-view.js": "4518c22a864c4ea35dc8ddb3c859f1af4371dd851c9dd25a419c2cf6a97a079c",
+    "ui/src/maps.css": "18af12f3cc3b4baa7e3e5c5ff8813dfff42b88cd4768359f7b9fa17e5ecbf2fe",
+    "ui/src/board/board.css": "ab3a8535ce0d65d655116b3162ff53fab04c900ee8341fe4a0d4131ffeec3e5e",
+    "tests/fixtures/maps-task-context/main.js": "7deaf0c62c36b1f18a4ce19e005d8709fe30302d520f1c509249d066222ef7da",
+    "tests/fixtures/maps-task-context/repository.js": "9f7fe6fb87f0586add36273559d7946883a2eeb2e0228c5138381f2637cf6035"
+  },
+  "fixtureContracts": {
+    "status": "PASS",
+    "navigation": "readProjectContext",
+    "maps": 2,
+    "tasks": 2
+  },
+  "browser": "151.0.7922.34",
+  "browserChecks": "PASS"
+}

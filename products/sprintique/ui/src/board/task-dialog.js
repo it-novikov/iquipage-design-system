@@ -22,7 +22,7 @@ import {mountAgentRuns} from './agent-runs-view.js';
 import {mountTaskWork} from './task-work-view.js';
 import {formatEstimate,estimateEditor,estimateMismatch} from '../estimate.js';
 
-export async function openTaskDialog(task,{repository,project,tasks,canEdit=true,canManage=true,attachmentAdapter=null,status='ready',initialValues={},fullscreen=false,backTo=null,onBack=()=>{},onOpenTask,onReload=onOpenTask&&(()=>onOpenTask(task.id)),onSaved=()=>{},isActive=()=>true,signal,replace=null,supplement=null}){
+export async function openTaskDialog(task,{repository,project,tasks,canEdit=true,canManage=true,attachmentAdapter=null,status='ready',initialValues={},fullscreen=false,backTo=null,onBack=()=>{},onOpenTask,onReload=onOpenTask&&(()=>onOpenTask(task.id)),onSaved=()=>{},isActive=()=>true,signal,replace=null,beforeOpen=null,supplement=null,initialSection=parseTaskSection(location.hash),onSectionChange=null}){
   signal?.throwIfAborted();const initialTask=task;
   // What the open drawer reads next starts now, alongside the task, rather than after it renders.
   if(task?.id)repository.warmTask?.(project.id,task.id);
@@ -38,6 +38,10 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
   // Accepted release results are immutable; discussions have independent writes.
   canEdit=canEdit&&task?.result!=='accepted';
   if(!isActive())throw Error('Открытие задачи отменено.');
+  // A contextual host keeps the current task usable until its replacement's initial support reads have succeeded.
+  // Only then does it settle that task's draft. Refusing the handoff leaves the existing drawer in place.
+  if(beforeOpen&&!await beforeOpen())return null;
+  signal?.throwIfAborted();if(!isActive())throw Error('Открытие задачи отменено.');
   const settings=support.settings||starterTaskSettings(project.id);
   const initial=task||{...instantiateTaskTemplate(settings,'task'),type:'task',status,ownerId:null,title:'',...initialValues};
   const taskId=task?.id||uid('task');
@@ -143,7 +147,7 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
   };
   const workTabs=!!(task&&repository.capabilities?.agentWork);
   const titleContent=`<div class="task-editor-title"><label class="sr-only" for="${taskId}-title">Название</label><textarea class="iq-inline-title" id="${taskId}-title" name="title" rows="1" required maxlength="240" placeholder="Что нужно сделать?">${esc(initial.title)}</textarea></div>`;
-  const content=`<section class="task-editor-cover" data-task-cover hidden></section>${workTabs?`${titleContent}<iq-tabs label="Разделы задачи" value="${parseTaskSection(location.hash)}" data-task-tabs><div class="iq-tabs-list" data-tablist><button type="button" data-tab="task">Задача</button><button type="button" data-tab="work">Работа агента</button></div><section class="iq-tab-panel" data-panel="task"><div class="task-editor-layout"><section class="task-editor-title iq-work-story iq-work-question" data-task-work-summary hidden></section>`:`<div class="task-editor-layout">${titleContent}`}
+  const content=`<section class="task-editor-cover" data-task-cover hidden></section>${workTabs?`${titleContent}<iq-tabs label="Разделы задачи" value="${initialSection==='work'?'work':'task'}" data-task-tabs><div class="iq-tabs-list" data-tablist><button type="button" data-tab="task">Задача</button><button type="button" data-tab="work">Работа агента</button></div><section class="iq-tab-panel" data-panel="task"><div class="task-editor-layout"><section class="task-editor-title iq-work-story iq-work-question" data-task-work-summary hidden></section>`:`<div class="task-editor-layout">${titleContent}`}
     ${task&&supplement?'<section class="task-personal-section" data-task-personal aria-label="Запросы к вам" hidden></section>':''}
     <section class="task-editor-properties" aria-label="Свойства задачи">
       ${canEdit?editableFacts():staticFacts()}
@@ -426,12 +430,26 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
         saveState.addEventListener('click',event=>{
           const action=event.target.closest('[data-save-action]')?.dataset.saveAction;
           if(action==='retry')void flush();
-          if(action==='reload'){discarded=true;if(onReload)void onReload();else el.close();}
+          if(action==='reload'){
+            // Keep the live form guarded until its replacement succeeds. A failed read leaves it editable.
+            if(onReload)void Promise.resolve().then(()=>onReload()).catch(error=>showState('Не удалось обновить задачу: '+(error.message||'ошибка сети'),{error:true,action:'reload'}));
+            else{discarded=true;el.close();}
+          }
         });
       }
+      let setSection=()=> 'task';
       if(workTabs){
         const tabs=form.querySelector('[data-task-tabs]'),footer=form.querySelector('.iq-dialog-footer');
-        const syncTab=(route=false)=>{const value=tabs.getAttribute('value');footer.hidden=value==='work';if(route)history.replaceState(history.state,'',taskURL(task,value));};
+        let settingSection=false;
+        const syncTab=(route=false)=>{const value=tabs.getAttribute('value');footer.hidden=value==='work';if(route&&!settingSection){if(onSectionChange)onSectionChange(value);else history.replaceState(history.state,'',taskURL(task,value));}};
+        setSection=value=>{
+          const next=value==='work'?'work':'task',button=tabs.querySelector(`[data-tab="${next}"]`);
+          // In .52 value is the initial selection. The supplied button action updates panels and ARIA together.
+          settingSection=true;
+          try{if(button?.getAttribute('aria-selected')!=='true')button?.click();}finally{settingSection=false;}
+          syncTab();return next;
+        };
+        setSection(initialSection);
         tabs.addEventListener('iq-change',event=>{if(event.target===tabs)syncTab(true);});syncTab();
       }
       // keepOpen: only settle (flush or confirm) and leave the drawer open, so the next task can replace it in one frame.
@@ -440,16 +458,16 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
         if(autosave&&!discarded)await flush();
         else if(saving)return false;
         if(!dirty()){if(!keepOpen)el.close();return true;}
-        confirming=true;
+        confirming=true;let accepted=false;
         const confirm=dialog({
           title:'Закрыть без сохранения?',
           description:autosave?'Последние правки не удалось сохранить, а неопубликованные сообщения будут потеряны. Уже сохранённое останется.'
             :current?'Задача уже создана. Несохранённые материалы, связи и правки в неё не попадут.':'Изменения задачи и неопубликованные сообщения будут потеряны. Уже опубликованные сообщения сохранятся.',
-          submitLabel:'Не сохранять',onSubmit:async()=>{discarded=true;if(!keepOpen)el.close();}
+          submitLabel:'Не сохранять',onSubmit:async()=>{accepted=true;if(!keepOpen){discarded=true;el.close();}}
         });
-        return new Promise(resolve=>confirm.addEventListener('iq-close',()=>{confirming=false;resolve(discarded);},{once:true}));
+        return new Promise(resolve=>confirm.addEventListener('iq-close',()=>{confirming=false;resolve(accepted);},{once:true}));
       }
-      el.taskController={close,dirty:()=>dirty()||saving||files.isBusy()||threads?.isBusy()||!!links?.isBusy?.()||!!materials?.isBusy()||!!wikiLinks?.isBusy(),taskId,taskKey:task?taskKey(task):null};
+      el.taskController={close,setSection,dirty:()=>dirty()||saving||files.isBusy()||threads?.isBusy()||!!links?.isBusy?.()||!!materials?.isBusy()||!!wikiLinks?.isBusy(),taskId,taskKey:task?taskKey(task):null};
       form.addEventListener('click',event=>{
         if(event.target.closest('[data-close]')){event.preventDefault();event.stopImmediatePropagation();close();}
       },{capture:true});

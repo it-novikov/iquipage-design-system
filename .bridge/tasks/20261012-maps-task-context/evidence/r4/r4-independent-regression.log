@@ -1,0 +1,13 @@
+R4_SOURCE {"web/maps-host.js":"f6d657fa8f799455f1d6c24e01b6a57107d0765ad16cbcd867b01f16d8f5eaea","web/maps-task-context.js":"fbbdede95642a8087720fff7ae62c4bde7181e78f638a0353cbd07fed815d28d","web/main.js":"7f31cfb05b11b8b43c5edec144d5fc34c115889068ab9c426dfc4ad2ef37d2aa","ui/src/board/task-dialog.js":"7ee36bd4d07cd9c690ed89f2f097a9aa4a58aeca48a46d4ca879b09d73484bb7"}
+R4_R3_F1_OBSERVED {"task":"T1","hash":"#maps/A/task/T1","state":{"latestNativeRoute":"return-to-T1","nested":{"map":"A","task":"T1"}},"reads":["T1","T1"],"writes":["#maps/A/task/T1","#maps/A","#maps/A/task/T1","#maps/A/task/T1"],"shell":{"navigating":false,"routeVersion":2,"pendingHashRoute":null,"viewMode":"maps"},"errors":[]}
+✔ R3-F1: the queued newest Maps Task must survive an older section leave whose Map guard refuses (6.323998ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 103.274658
+
+NODE_EXIT_CODE=0

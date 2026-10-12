@@ -1,0 +1,186 @@
+{
+  "sourceRevision": "268e60293d36a391a7847a84f294a1bb568e5086",
+  "status": "PASS",
+  "browser": "151.0.7922.34",
+  "scope": "Isolated actual Maps host, whiteboard, Task and native history; synthetic reads; no main.js/bootstrap, backend, persistence or grants claim",
+  "profiles": [
+    {
+      "name": "desktop-light",
+      "status": "PASS",
+      "checks": [
+        "actual inspector button, full Task mount and contextual Work tab",
+        "header Close returns to the same map; native Forward reopens Work tab",
+        "Escape, native Back/Forward and Task tab retain the contextual route",
+        "actual relation link null response keeps the same Task and exposes its error",
+        "actual Task support-read rejection preserves the old Task",
+        "real relation link handoff reaches T2 with one native open Task",
+        "Close aborts delayed replacement; ignored cancellation cannot reopen it after release",
+        "native Back, actual draft confirmation refusal, restored contextual URL and retained text",
+        "actual conflict/reload task-read failure, new comment, native Back refusal and preserved draft",
+        "actual conflict/reload support-read failure, new comment, native Back refusal and preserved draft"
+      ],
+      "peakOpenTaskDialogs": 1,
+      "final": {
+        "hash": "#maps/map-a",
+        "mapId": "map-a",
+        "currentTask": null,
+        "selectedTab": null,
+        "workTab": null,
+        "visiblePanels": []
+      }
+    },
+    {
+      "name": "desktop-dark",
+      "status": "PASS",
+      "checks": [
+        "actual inspector button, full Task mount and contextual Work tab",
+        "header Close returns to the same map; native Forward reopens Work tab",
+        "Escape, native Back/Forward and Task tab retain the contextual route"
+      ],
+      "peakOpenTaskDialogs": 1,
+      "final": {
+        "hash": "#maps/map-a",
+        "mapId": "map-a",
+        "currentTask": null,
+        "selectedTab": null,
+        "workTab": null,
+        "visiblePanels": []
+      }
+    },
+    {
+      "name": "narrow-light",
+      "status": "PASS",
+      "checks": [
+        "actual inspector button, full Task mount and contextual Work tab",
+        "header Close returns to the same map; native Forward reopens Work tab",
+        "Escape, native Back/Forward and Task tab retain the contextual route"
+      ],
+      "peakOpenTaskDialogs": 1,
+      "final": {
+        "hash": "#maps/map-a",
+        "mapId": "map-a",
+        "currentTask": null,
+        "selectedTab": null,
+        "workTab": null,
+        "visiblePanels": []
+      }
+    },
+    {
+      "name": "narrow-dark",
+      "status": "PASS",
+      "checks": [
+        "actual inspector button, full Task mount and contextual Work tab",
+        "header Close returns to the same map; native Forward reopens Work tab",
+        "Escape, native Back/Forward and Task tab retain the contextual route"
+      ],
+      "peakOpenTaskDialogs": 1,
+      "final": {
+        "hash": "#maps/map-a",
+        "mapId": "map-a",
+        "currentTask": null,
+        "selectedTab": null,
+        "workTab": null,
+        "visiblePanels": []
+      }
+    }
+  ],
+  "mountRecovery": [
+    {
+      "fault": "initial-map",
+      "target": "#maps/map-a/task/MFX-101",
+      "name": "initial-map-map",
+      "status": "PASS",
+      "final": {
+        "hash": "#maps/map-a/task/MFX-101",
+        "mapId": "map-a",
+        "currentTask": "MFX-101",
+        "selectedTab": "task",
+        "workTab": "task",
+        "visiblePanels": [
+          "task"
+        ]
+      }
+    },
+    {
+      "fault": "initial-task",
+      "target": "#maps/map-a",
+      "name": "initial-task-map",
+      "status": "PASS",
+      "final": {
+        "hash": "#maps/map-a",
+        "mapId": "map-a",
+        "currentTask": null,
+        "selectedTab": null,
+        "workTab": null,
+        "visiblePanels": []
+      }
+    },
+    {
+      "fault": "initial-task",
+      "target": "#maps/map-a/task/MFX-102/work",
+      "name": "initial-task-new-task",
+      "status": "PASS",
+      "final": {
+        "hash": "#maps/map-a/task/MFX-102/work",
+        "mapId": "map-a",
+        "currentTask": "MFX-102",
+        "selectedTab": "work",
+        "workTab": "work",
+        "visiblePanels": [
+          "work"
+        ]
+      }
+    },
+    {
+      "fault": "initial-support",
+      "target": "#maps/map-a",
+      "name": "initial-support-map",
+      "status": "PASS",
+      "final": {
+        "hash": "#maps/map-a",
+        "mapId": "map-a",
+        "currentTask": null,
+        "selectedTab": null,
+        "workTab": null,
+        "visiblePanels": []
+      }
+    },
+    {
+      "fault": "initial-support",
+      "target": "#maps/map-a/task/MFX-102/work",
+      "name": "initial-support-new-task",
+      "status": "PASS",
+      "final": {
+        "hash": "#maps/map-a/task/MFX-102/work",
+        "mapId": "map-a",
+        "currentTask": "MFX-102",
+        "selectedTab": "work",
+        "workTab": "work",
+        "visiblePanels": [
+          "work"
+        ]
+      }
+    }
+  ],
+  "pageErrors": [],
+  "externalRequests": [],
+  "fixtureContracts": {
+    "status": "PASS",
+    "navigation": "readProjectContext",
+    "maps": 2,
+    "tasks": 2
+  },
+  "sourceDigestMatches": {
+    "web/maps-host.js": true,
+    "web/maps-task-context.js": true,
+    "web/maps-route.js": true,
+    "ui/src/maps.js": true,
+    "ui/src/board/task-dialog.js": true,
+    "ui/src/board/link-view.js": true,
+    "ui/src/maps.css": true,
+    "ui/src/board/board.css": true,
+    "tests/fixtures/maps-task-context/main.js": true,
+    "tests/fixtures/maps-task-context/repository.js": true
+  },
+  "resultsSHA256": "1d5763976c56f423ed7b3ac1aaf73c861ef5398af677114043fc928d919c3a77"
+}

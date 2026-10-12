@@ -1,0 +1,20 @@
+{
+  "commit": "ac68af1e1c4c213ba307d35ec8706998802db447",
+  "tree": "8ab90c4eb22be90b0a0a1e226a50bb598e0b87da",
+  "parent": "1fe0d7e2a6ccf1af289a19b5491c1aabbd45ff8e",
+  "scope": "R5 R4-F1 tab synchronization only, earlier R1-R4 immutable",
+  "sourceSHA256": {
+    "ui/src/board/task-dialog.js": "f1fa44a348c3f3c0b57612a588c45d9957ad4d86713ba7657952cdb1ec826a4b",
+    "web/main.js": "7f31cfb05b11b8b43c5edec144d5fc34c115889068ab9c426dfc4ad2ef37d2aa",
+    "web/maps-host.js": "f6d657fa8f799455f1d6c24e01b6a57107d0765ad16cbcd867b01f16d8f5eaea",
+    "web/maps-task-context.js": "fbbdede95642a8087720fff7ae62c4bde7181e78f638a0353cbd07fed815d28d",
+    "tests/maps-task-browser.mjs": "3bf1ff429545fcefcea1cacc30214bdfa0f0f963e3e8d62294ea9fe4283c72f4",
+    "tests/fixtures/maps-task-context/main.js": "b372896e6a5b50c3765e0353222c61d1e0f0a47406ca6c02448361ece97815c0"
+  },
+  "checks": [
+    "actual pinned .52 IqTabs activation contract and Task initialSection markup",
+    "programmatic selection suppresses callback/history writes; user selection retains one normal route update",
+    "native runner asserts selected tab, visible intended panel and hidden opposite panel on click/Forward/mount recovery/native Back",
+    "current native artifact source digest comparison and actual recovered Work frame inspection before final verdict"
+  ]
+}

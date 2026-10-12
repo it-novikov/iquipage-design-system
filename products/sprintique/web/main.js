@@ -34,7 +34,7 @@ registerCore();
 /** Ends the boot sequence without an error: the page is already what it should be. */
 const STOP=Symbol('stop');
 const root=document.querySelector('#app'),repository=new ProductRepository(new SprintiqueClient(trackedFetch));
-let board,session,currentProject,planningAdapter,viewMode='tasks',navigating=false;
+let board,session,currentProject,planningAdapter,viewMode='tasks',navigating=false,routeVersion=0,pendingHashRoute=null;
 // The Workbench (docs/adr W6): served when the server enables it; its link shows for everyone with workbench_mvp.
 // It is a section of the shell like the board: the switchers keep the last project, which the other sections open.
 const featureOn=name=>!!session?.features?.includes(name);
@@ -223,7 +223,7 @@ async function showProject(id,mode=routeMode()){
   else{await previous?.destroy();host.innerHTML=loadingMarkup('Загрузка раздела…',{variant:sectionLoadingShape(mode,location.hash.split('/')[1]),title:true,className:'host-loading'});}
   host.dataset.section=mode;
   try{
-  if(mode==='maps'){const {mountMapsHost}=await import('./maps-host.js');board=await mountMapsHost(host,{repository,project,viewState:viewStates.get(stateKey),onOpenTasks:async({focusTaskId})=>{await navigate('tasks');if(viewMode==='tasks')await board.openTask(focusTaskId);}});}
+  if(mode==='maps'){const {mountMapsHost}=await import('./maps-host.js');board=await mountMapsHost(host,{repository,project,viewState:viewStates.get(stateKey)});}
   else if(mode==='planning')board=await mountPlanningHost(host,{repository,adapter:planningAdapter,project,viewState:viewStates.get(stateKey),onOpenBoard:()=>navigate('tasks')});
   else if(mode==='finance'){const {mountFinance}=await import('../ui/finance/src/index.js');board=await mountFinance(host,{repository,project,viewState:viewStates.get(stateKey)});}
   else if(mode==='agents'){const {mountAgentsDirectory}=await import('./agents-directory.js');board=await mountAgentsDirectory(host,{repository,project,onOpenTask:async(projectId,taskId)=>{history.replaceState(null,'','#tasks');await showProject(projectId,'tasks');await board?.openTask?.(taskId);}});}
@@ -243,16 +243,26 @@ async function showProject(id,mode=routeMode()){
     const start=eventHead||await (mode==='workbench'?head.catch(()=>null):head);
     if(start){const access=accessSignature(project);repository.watch(project.id,onStreamChange,{cursor:start.cursor,access});watching={projectId:project.id,access};}
   }
-  const task=parseTaskRoute(location.hash);if(task&&board.openTask)await board.openTask(task,{fromRoute:true});
+  const task=parseTaskRoute(location.hash);if(task&&board.openTask&&mode!=='maps'&&!pendingHashRoute)await board.openTask(task,{fromRoute:true});
   return true;
-  }finally{release?.();navigating=false;loaded();}
+  }finally{
+    release?.();navigating=false;loaded();
+    // A native route received while mounting still belongs to the person after the section becomes ready.
+    if(pendingHashRoute){
+      const pending=pendingHashRoute;pendingHashRoute=null;
+      if(pending.version===routeVersion){history.replaceState(pending.state,'',pending.hash);void applyHashRoute().catch(report);}
+    }
+  }
 }
 async function navigate(mode){
   if(navigating||!currentProject)return;
+  const version=routeVersion;
   // The Workbench keeps its own address; a project section's hash is restored when the switch is refused.
   const restoreHash=viewMode==='workbench'?null:retainedRouteHash(viewMode,board,location.hash);
-  if(await showProject(currentProject.id,mode)){if(viewMode!=='workbench')history.replaceState(null,'',sectionRouteHash(viewMode,location.hash));}
-  else if(restoreHash)history.replaceState(null,'',restoreHash);
+  const changed=await showProject(currentProject.id,mode);
+  if(version!==routeVersion)return;
+  if(changed){if(viewMode!=='workbench')history.replaceState(null,'',sectionRouteHash(viewMode,location.hash));}
+  else if(restoreHash)history.replaceState(history.state,'',retainedRouteHash(viewMode,board,restoreHash));
   else if(isWorkbenchPath()&&location.hash){const url=new URL(location.href);url.hash='';history.replaceState(history.state,'',url);}
 }
 root.addEventListener('click',event=>{
@@ -303,13 +313,19 @@ function search(){if(!session||document.querySelector('dialog[open]'))return;ope
   try{if(board&&!await board.closeTask())return;history.replaceState(null,'',item.kind==='map'?'#maps/'+encodeURIComponent(item.id):'#tasks');await showProject(item.projectId,item.kind==='map'?'maps':'tasks');if(item.kind==='task')await board.openTask(item.key);}catch(error){report(error);}
 }});}
 window.addEventListener('keydown',event=>{if((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='k'){event.preventDefault();search();}});
-window.addEventListener('hashchange',()=>{if(viewMode==='workbench'||isWorkbenchPath())return;void(async()=>{const task=parseTaskRoute(location.hash);if(task){if(!board?.openTask){const restoreHash=board?.routeHash;if(await showProject(currentProject.id,'tasks')===false){if(restoreHash)history.replaceState(null,'',restoreHash);return;}}await board?.openTask?.(task,{fromRoute:true});}else if(location.hash.startsWith('#maps'))await navigate('maps');
+window.addEventListener('hashchange',()=>{
+  if(viewMode==='workbench'||isWorkbenchPath())return;
+  routeVersion++;
+  if(navigating){pendingHashRoute={hash:location.hash,state:history.state,version:routeVersion};board?.cancelRoute?.();return;}
+  void applyHashRoute().catch(report);
+});
+async function applyHashRoute(){const version=routeVersion,task=parseTaskRoute(location.hash);if(task){if(!board?.openTask||viewMode==='maps'){const restoreHash=board?.routeHash,changed=await showProject(currentProject.id,'tasks');if(version!==routeVersion)return;if(changed===false){const retained=board?.routeHash||restoreHash;if(retained)history.replaceState(history.state,'',retained);return;}}await board?.openTask?.(task,{fromRoute:true});}else if(location.hash.startsWith('#maps')){if(viewMode==='maps'&&board?.openRoute)await board.openRoute(location.hash);else await navigate('maps');}
     else if(location.hash.startsWith('#wiki')){if(viewMode==='wiki'&&board?.openRoute)await board.openRoute(location.hash);else await navigate('wiki');}
     else if(location.hash.startsWith('#finance')){if(viewMode==='finance'&&board?.openRoute)await board.openRoute(location.hash);else await navigate('finance');}else if(location.hash.startsWith('#settings')){if(viewMode==='settings'&&board?.navigateSettings){await board.navigateSettings();}else await navigate('settings');}
     else if(['#tasks','#planning','#agents'].includes(location.hash)){const mode=location.hash.slice(1);
     // Closing the task drawer returns to the section already on screen: close the drawer, never remount the view
     // (a remount reloads every card and its cover, which reads as a blink).
-    if(viewMode===mode&&board)await board.closeTask?.();else await navigate(mode);}else await board?.closeTask();})().catch(report);});
+    if(viewMode===mode&&board)await board.closeTask?.();else await navigate(mode);}else await board?.closeTask();}
 try{session=await repository.initialize();
   if(location.pathname==='/oauth/authorize'){await mountConsent(root,{client:repository.client,session});throw STOP;}
   if(resumeAuthorization())throw STOP;
