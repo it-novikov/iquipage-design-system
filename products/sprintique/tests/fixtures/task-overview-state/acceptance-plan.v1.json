@@ -1,0 +1,43 @@
+{
+  "schema_version": "2.0",
+  "id": "TASK-OVERVIEW-STATE",
+  "revision": 1,
+  "scope_type": "targeted",
+  "phase": "candidate",
+  "scope": "Actual current Task overview and its existing Work navigation, with synthetic read responses. No backend persistence, permission enforcement, human usability or global layout acceptance.",
+  "approval": {"owner": "it-novikov", "ref": "Owner-authorized implementation continuation; root scoped the renderer delta on 2026-10-12"},
+  "base_revision": "4f181ff3589a32fd9ce152f99018d212d74624b6",
+  "adoption_review_sha256": "542871074da7c7f69209325d3cc1d12c213ca1254b94f52c3cc304134229d9d5",
+  "package_version": "0.6.0-vnext.54",
+  "ds_archive_sha256": "a726a4536e532fc556f615d0b1a9cda1873dc111e6090710329b9ec1b8204457",
+  "surfaces": [{"id": "task", "source_ref": "products/sprintique/ui/src/board/task-dialog.js", "description": "Existing openTaskDialog mounting its real mountTaskWork, public DS and current production CSS"}],
+  "profiles": {
+    "desktop": {"viewport": {"width": 1280, "height": 900}, "theme": "light", "density": "comfortable", "root_font_px": 16},
+    "narrow": {"viewport": {"width": 390, "height": 844}, "theme": "light", "density": "comfortable", "root_font_px": 16}
+  },
+  "environment": {
+    "engine": "native Chromium", "playwright": "1.62.1", "target": "GitHub Actions Ubuntu 24.04",
+    "locale": "ru-RU", "timezone": "UTC", "input": "native pointer; no forced click or focus/scroll repair",
+    "device_scale_factor": 1, "browser_zoom": "100%", "reduced_motion": "reduce",
+    "date_now": "2026-10-12T12:00:00.000Z", "clock_method": "page.clock.setFixedTime; timers continue normally",
+    "data_profile": "Deterministic synthetic Task and work read responses; original tabs-geometry read adapter reused"
+  },
+  "cases": [
+    {"id": "completed-rejected", "kind": "semantic", "scenario": "completed-rejected", "profile": "desktop", "check_id": "OV-STEP"},
+    {"id": "completed-blocked", "kind": "semantic", "scenario": "completed-blocked", "profile": "desktop", "check_id": "OV-STEP"},
+    {"id": "review-literal", "kind": "semantic", "scenario": "review-literal", "profile": "desktop", "check_id": "OV-REVIEW"},
+    {"id": "question-no-answer", "kind": "semantic", "scenario": "question-no-answer", "profile": "desktop", "check_id": "OV-QUESTION"},
+    {"id": "genuine-complete", "kind": "semantic", "scenario": "genuine-complete", "profile": "desktop", "check_id": "OV-COMPLETE"},
+    {"id": "long-review-desktop", "kind": "capture", "scenario": "review-long", "profile": "desktop", "check_id": "OV-COMPOSITION"},
+    {"id": "long-review-narrow", "kind": "capture", "scenario": "review-long", "profile": "narrow", "check_id": "OV-COMPOSITION"}
+  ],
+  "checks": [
+    {"id": "OV-STEP", "surface_id": "task", "required": true, "method": "native actual Task rendering and CTA navigation", "evidence_kinds": ["screenshot", "measurement", "log"], "acceptance": "Completed sessions with selected rejected or blocked steps retain exact step title, agent context and Open work CTA. The overview has no unqualified completed-session status; the full Work heading keeps its existing session status and identifies the selected step as needing revision or an answer. No write attempt."},
+    {"id": "OV-REVIEW", "surface_id": "task", "required": true, "method": "native actual Task rendering and CTA navigation", "evidence_kinds": ["screenshot", "measurement", "log"], "acceptance": "Review retains separate review status, full selected-step title, predefined short literal result (including angle brackets and ampersand) and review CTA. CTA opens the matching full step/result in Work; it does not approve or reject anything. Overview has no decision buttons. No write attempt."},
+    {"id": "OV-QUESTION", "surface_id": "task", "required": true, "method": "native actual Task rendering and CTA navigation", "evidence_kinds": ["screenshot", "measurement", "log"], "acceptance": "Open question with canAnswer=false retains Agent waiting for answer status, exact question title and neutral secondary Open question CTA. It takes precedence over a pending review; CTA opens the matching question without offering confirmation or enabling answer fields. No write attempt."},
+    {"id": "OV-COMPLETE", "surface_id": "task", "required": true, "method": "native actual Task rendering and CTA navigation", "evidence_kinds": ["screenshot", "measurement", "log"], "acceptance": "Completed session with approved done step and no outstanding question/review/problem step retains Work completed as its main overview text and Open work CTA, without an extra status row. No write attempt."},
+    {"id": "OV-COMPOSITION", "surface_id": "task", "required": true, "method": "passive informational capture only", "evidence_kinds": ["screenshot", "measurement"], "acceptance": "Capture current long-review Task at desktop and 390 before any navigation: full viewport PNG plus raw summary/title/CTA/preview, first four properties, disclosure box and its text rectangles, description and scrollport geometry. No geometry PASS, perfect-fit threshold or Compact adoption verdict."},
+    {"id": "OV-PROVENANCE", "surface_id": "task", "required": true, "method": "exact package and compiled source fingerprints", "evidence_kinds": ["log", "source-review"], "acceptance": "Actual Git revision/tree, frozen plan hash, source and complete module-input hashes, compiled-output hashes and installed DS byte equality are recorded. Native uses a clean committed checkout and compiled preview with real production modules."}
+  ],
+  "not_run": ["Backend writes, grants enforcement and agent execution", "Human usability and aesthetic acceptance", "Compact redesign, result truncation change or perfect first-screen fit", "Estimate interaction or integration with PR83", "Create/type/template, disclosure changes, accepted Task result and other unrelated flows", "Real Safari, Firefox, iOS touch and screen readers: separate pre-release verification"]
+}

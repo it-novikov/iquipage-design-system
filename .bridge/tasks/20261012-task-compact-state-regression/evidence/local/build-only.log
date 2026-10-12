@@ -1,0 +1,8 @@
+{
+  "status": "BUILT_NOT_RENDERED",
+  "build": "PASS",
+  "nativeAcceptance": "NOT_RUN",
+  "compositionAssessment": "NOT_RUN",
+  "cases": [],
+  "evidence": "/workspace/scratch/b3dac59f68e2/repo-task-compact-state/products/sprintique/output/task-overview-state/build-only"
+}

@@ -1,0 +1,93 @@
+{
+  "status": "PASS",
+  "source_revision": "5bd09d647f79f06c7a7c844f91a6914907ed8e8b",
+  "source_tree": "6d4a4e4a66b7a46e6bda4f8378a0975def2aea7c",
+  "protected_paths_unchanged": [
+    "products/sprintique/ui",
+    "products/sprintique/web",
+    "products/sprintique/client",
+    "products/sprintique/contracts",
+    "products/sprintique/server",
+    "products/sprintique/vendor",
+    "products/sprintique/package.json",
+    "products/sprintique/package-lock.json",
+    "products/sprintique/tests/work-model.test.mjs",
+    "products/sprintique/tests/fixtures/tabs-geometry",
+    "libraries/iquipage"
+  ],
+  "git_index_untouched": true,
+  "head_unchanged": true,
+  "exact_historical_transfers": {
+    "products/sprintique/tests/fixtures/task-overview-state/acceptance-plan.v1.json": {
+      "historical_path": "acceptance-plan.v1.json",
+      "sha256": "9f18f4a523f032847666a35b4d7394eb7fbac0ae1551ecc479d3811dfb2dd5a8",
+      "exact_historical_bytes": true
+    },
+    "products/sprintique/tests/fixtures/task-overview-state/acceptance-plan.v2.json": {
+      "historical_path": "acceptance-plan.json",
+      "sha256": "66780241ab4de4b154e77520440632e839bf9cb865ad4dfd93ba443eb2fc186d",
+      "exact_historical_bytes": true
+    },
+    "products/sprintique/tests/fixtures/task-overview-state/consumer.js": {
+      "historical_path": "consumer.js",
+      "sha256": "eeed8f571ed8fcc2d95d400dc07e6ad7516ee319e5501a4422fd228adf9ad2df",
+      "exact_historical_bytes": true
+    },
+    "products/sprintique/tests/fixtures/task-overview-state/index.html": {
+      "historical_path": "index.html",
+      "sha256": "9ae07b91b7e5e5fbc619fec0184c04f988b39cfb0730c7a015b5c54f859389ef",
+      "exact_historical_bytes": true
+    }
+  },
+  "workflow": {
+    "original_prefix_sha256": "5879c4fdcf218636c0d9220385606e5333532b3062fee514c72def61d9dd017f",
+    "preserved_prefix_bytes": 3225,
+    "historical_two_step_suffix_sha256": "054d80f0d1e702823076e9d4ea88e3f942baa6cc8a109f2719b7e4ddd1cfc555",
+    "whole_sha256": "0135239b554bc5747e5a920d71189dac4a1281d73ebe521cf1fef49f4a4e719d",
+    "existing_tabs_estimate_bytes_unchanged": true
+  },
+  "syntax_checks": {
+    "products/sprintique/tests/task-overview-state-browser.mjs": {
+      "exit_code": 0,
+      "output": ""
+    },
+    "products/sprintique/tests/fixtures/task-overview-state/data.mjs": {
+      "exit_code": 0,
+      "output": ""
+    },
+    "products/sprintique/tests/fixtures/task-overview-state/consumer.js": {
+      "exit_code": 0,
+      "output": ""
+    }
+  },
+  "local_links_checked": [
+    {
+      "source": "products/sprintique/tests/fixtures/task-overview-state/README.md",
+      "target": "acceptance-plan.json"
+    },
+    {
+      "source": "products/sprintique/tests/fixtures/task-overview-state/README.md",
+      "target": "acceptance-plan.v1.json"
+    },
+    {
+      "source": "products/sprintique/tests/fixtures/task-overview-state/README.md",
+      "target": "acceptance-plan.v2.json"
+    },
+    {
+      "source": "products/sprintique/tests/fixtures/task-overview-state/README.md",
+      "target": "../../../../../.bridge/tasks/20261012-task-compact-state-regression/task.md"
+    },
+    {
+      "source": ".bridge/tasks/20261012-task-compact-state-regression/task.md",
+      "target": "evidence/reconciliation/README.md"
+    },
+    {
+      "source": ".bridge/tasks/20261012-task-compact-state-regression/evidence/reconciliation/README.md",
+      "target": "original.md"
+    },
+    {
+      "source": ".bridge/tasks/20261012-task-compact-state-regression/evidence/reconciliation/README.md",
+      "target": "../../task.md"
+    }
+  ]
+}

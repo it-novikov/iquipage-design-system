@@ -1,0 +1,84 @@
+{
+  "schema": "task-compact-source-review-preservation/1",
+  "files": [
+    {
+      "path": "/workspace/scratch/b3dac59f68e2/research/continuation/task-compact-state-source-r1.md",
+      "bytes": 31533,
+      "sha256": "f5cbc9d0d96f4c5da5a9816a6b95bfdce4416c000715ae9d8fdaf5fc6567f28e",
+      "storedFile": "original.md",
+      "encoding": "identity",
+      "storedBytes": 31533,
+      "storedSHA256": "f5cbc9d0d96f4c5da5a9816a6b95bfdce4416c000715ae9d8fdaf5fc6567f28e"
+    },
+    {
+      "path": "/workspace/scratch/b3dac59f68e2/research/continuation/task-compact-state-source-r1-independent-integrity.json",
+      "bytes": 126058,
+      "sha256": "5b19ad1b80bbe88aa848233eee488923b60b190bc467a08f3bb7cc701b343f70",
+      "storedFile": "task-compact-state-source-r1-independent-integrity.json.gz",
+      "encoding": "gzip",
+      "storedBytes": 25501,
+      "storedSHA256": "094b9f11adb65ee077be26318dcb2e6cb5ee539d1343902f0794a99e7e26ce62"
+    },
+    {
+      "path": "/workspace/scratch/b3dac59f68e2/research/continuation/task-compact-state-source-r1-independent-data.json",
+      "bytes": 3081,
+      "sha256": "03ac2af22eb2aca507238560de7125b3b6b68c5d9da28019e4e4371f8d6e4d39",
+      "storedFile": "task-compact-state-source-r1-independent-data.json",
+      "encoding": "identity",
+      "storedBytes": 3081,
+      "storedSHA256": "03ac2af22eb2aca507238560de7125b3b6b68c5d9da28019e4e4371f8d6e4d39"
+    },
+    {
+      "path": "/workspace/scratch/b3dac59f68e2/research/continuation/task-compact-state-source-r1-runner-delta.patch",
+      "bytes": 18724,
+      "sha256": "19a44d97fa50762b1f180bd3aeaf3f1c6421b2febf0550cda13499de0d312fe5",
+      "storedFile": "task-compact-state-source-r1-runner-delta.patch",
+      "encoding": "identity",
+      "storedBytes": 18724,
+      "storedSHA256": "19a44d97fa50762b1f180bd3aeaf3f1c6421b2febf0550cda13499de0d312fe5"
+    },
+    {
+      "path": "/workspace/scratch/b3dac59f68e2/research/continuation/task-compact-state-source-r1-checks.json",
+      "bytes": 1529,
+      "sha256": "e8e60ea0900a47f14489159243b3e7d8c6769c75afcdfb6e6e1665746c5050ed",
+      "storedFile": "task-compact-state-source-r1-checks.json",
+      "encoding": "identity",
+      "storedBytes": 1529,
+      "storedSHA256": "e8e60ea0900a47f14489159243b3e7d8c6769c75afcdfb6e6e1665746c5050ed"
+    },
+    {
+      "path": "/workspace/scratch/b3dac59f68e2/research/continuation/task-compact-state-author-checkpoint.json",
+      "bytes": 8358,
+      "sha256": "e1482f385b6f03bc2d4c22a259713428d2eeb9316dd39c4cca32b8d6824366d4",
+      "storedFile": "task-compact-state-author-checkpoint.json",
+      "encoding": "identity",
+      "storedBytes": 8358,
+      "storedSHA256": "e1482f385b6f03bc2d4c22a259713428d2eeb9316dd39c4cca32b8d6824366d4"
+    },
+    {
+      "path": "/workspace/scratch/b3dac59f68e2/research/continuation/task-compact-state-author.patch",
+      "bytes": 176208,
+      "sha256": "fe9262b7b4489e1f20c6768ccc4166070909d4fe85dc9a920a59d335b09fc56e",
+      "storedFile": "task-compact-state-author.patch.gz",
+      "encoding": "gzip",
+      "storedBytes": 52769,
+      "storedSHA256": "e23ac17e1ed2dc37ff6d1317bdf90ec3acc4c8a3fea71418d7ff9d8832d34126"
+    },
+    {
+      "path": "/workspace/scratch/b3dac59f68e2/research/continuation/task-compact-state-source-r1-manifest.json",
+      "bytes": 9735,
+      "sha256": "5a600d5d9a5aa4ce838126ee84ea3c178ef2a484bb2026aa58523bc070ba5c74",
+      "storedFile": "task-compact-state-source-r1-manifest.json",
+      "encoding": "identity",
+      "storedBytes": 9735,
+      "storedSHA256": "5a600d5d9a5aa4ce838126ee84ea3c178ef2a484bb2026aa58523bc070ba5c74"
+    }
+  ],
+  "review": "APPROVE_IN_SCOPE / SOURCE_R1",
+  "native": "NOT_RUN",
+  "reviewedBase": "5bd09d647f79f06c7a7c844f91a6914907ed8e8b",
+  "reviewedTree": "6d4a4e4a66b7a46e6bda4f8378a0975def2aea7c",
+  "currentMain": "5d674ee06551b175fb5e9553c9866c11fb8fe4c0",
+  "wholeMainTreeEqualsReviewBase": true,
+  "scratchPaths": "Original provenance labels; storedFile paths refer to this folder."
+}

@@ -1,0 +1,50 @@
+{
+  "schema": "task-compact-source-r1-checks/1",
+  "reviewer": "gpt-6-astra-task-overview-native-r2",
+  "created_at": "2026-10-12T13:48:55.697423+00:00",
+  "syntax": [
+    {
+      "command": [
+        "node",
+        "--check",
+        "products/sprintique/tests/task-overview-state-browser.mjs"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "node",
+        "--check",
+        "products/sprintique/tests/fixtures/task-overview-state/data.mjs"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "node",
+        "--check",
+        "products/sprintique/tests/fixtures/task-overview-state/consumer.js"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "known_main_commit_tree_comparison": {
+    "commit": "5d674ee06551b175fb5e9553c9866c11fb8fe4c0",
+    "tree": "6d4a4e4a66b7a46e6bda4f8378a0975def2aea7c",
+    "frozen_base": "5bd09d647f79f06c7a7c844f91a6914907ed8e8b",
+    "diff_paths": [],
+    "method": "Existing Git object reconstructed by root; read-only whole-tree equality. Does not independently refresh GitHub main ref and does not confer native acceptance."
+  },
+  "reran_author_model_suite": false,
+  "model_evidence": "Reviewed existing exact 15/15 Node runner log; actual model independently imported for the narrow literal/default160 probe only.",
+  "rebuilt_fixture": false,
+  "browser_started": false,
+  "native": "NOT_RUN",
+  "changed_repository_files": false
+}

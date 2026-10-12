@@ -1,0 +1,11 @@
+{
+  "command": [
+    "node",
+    "--test",
+    "products/sprintique/tests/work-model.test.mjs"
+  ],
+  "exit_code": 0,
+  "timestamp": "2026-10-12T13:34:02.325355+00:00",
+  "bytes": 1487,
+  "sha256": "7b960d177e72c55dca2b3104bc239d26b83ad8b9c34416db8803ac77dd667140"
+}

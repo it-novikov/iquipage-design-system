@@ -1,0 +1,81 @@
+{
+  "schema": "task-compact-source-r1-independent-data/1",
+  "reviewer": "gpt-6-astra-task-overview-native-r2",
+  "source_revision": "5bd09d647f79f06c7a7c844f91a6914907ed8e8b",
+  "source_tree": "6d4a4e4a66b7a46e6bda4f8378a0975def2aea7c",
+  "original_revision": "1fd928e12b43b26f29ebcb190a5595c1d2618444",
+  "original_module_sha256": "f26d6d429db5aa9e13bdbd50b198e72ec1a4313b01198e4ed4d4c3518fe98fcc",
+  "current_module_sha256": "c5273596f7d35204cf6624ec34a1f24977fa7fab983b51fe4b5cb3db1aac25c4",
+  "preserved_original_objects": [
+    {
+      "id": "completed-rejected",
+      "sha256": "d3c0969e1f43e5ebb91d60bd79b36efe358dbeaea439bdcb213cce4dea3e158d",
+      "whole_object_equal": true
+    },
+    {
+      "id": "completed-blocked",
+      "sha256": "7d77dec183f5ed941f6800dc838b6d493c32b7af8aa1b2dd230115641635ded9",
+      "whole_object_equal": true
+    },
+    {
+      "id": "review-literal",
+      "sha256": "4f2cb8d04f14bb60dac2c53f4a6f1fb224490da679ef54a238357c185ba8b1fa",
+      "whole_object_equal": true
+    },
+    {
+      "id": "question-no-answer",
+      "sha256": "9613b564262e6977d39e7c5cfc48b616afa048df95e4f5d0f338311c19cfd709",
+      "whole_object_equal": true
+    },
+    {
+      "id": "genuine-complete",
+      "sha256": "18e53c958118c105ed01348a12624674d159129adc6914a2703ce8e0eeb0d649",
+      "whole_object_equal": true
+    },
+    {
+      "id": "review-long",
+      "sha256": "0daa351a2f89e86362caa84ef4d3f194204dcfa9312c091dccd7be72f981a6c0",
+      "whole_object_equal": true
+    }
+  ],
+  "question_contrast": {
+    "only_differences": [
+      "id",
+      "work.permissions.canAnswer"
+    ],
+    "independently_deep_equal_after_those_two_adjustments": true,
+    "pending_review_preserved": true
+  },
+  "data_sha256": "dcf506dbd6e2d919e5f3c39317d26e6f5141d07a30cbb3fb56d7fdfa919ca30e",
+  "all_build_fixture_data_equal": true,
+  "literal": {
+    "source": "История «<em>готово</em> &amp; проверено» сохранена после обновления.",
+    "source_code_points": 69,
+    "expected_preview": "История «<em>готово</em> &amp; проверено» сохранена после…",
+    "expected_preview_code_points": 58,
+    "full_source_preserved": true
+  },
+  "long_source_code_points": 268,
+  "actual_model_probe": {
+    "literal": {
+      "label": "Начало результата",
+      "text": "История «<em>готово</em> &amp; проверено» сохранена после…",
+      "empty": false,
+      "truncated": true
+    },
+    "long": {
+      "label": "Начало результата",
+      "text": "История остаётся доступной после обновления страницы. Запись…",
+      "empty": false,
+      "truncated": true
+    },
+    "default160": {
+      "label": "Результат шага",
+      "text": "История «<em>готово</em> &amp; проверено» сохранена после обновления.",
+      "empty": false,
+      "truncated": false
+    }
+  },
+  "native": "NOT_RUN",
+  "status": "PASS"
+}
