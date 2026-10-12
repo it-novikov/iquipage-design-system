@@ -11,8 +11,23 @@ export class PlanningAdapter {
   /** Every open container of the planning page with its tree and sums (planning R4.1). */
   containers({signal}={}){return this.request('containers',{},signal);}
   /** A move between containers or within one, or the undo of a move; applied at once with its own retry key. */
-  move(body){if(this.pending())throw Error('Сначала проверьте результат предыдущего изменения.');
-    return this.api.request(`/projects/${encodeURIComponent(this.projectId)}/planning/view/move`,'POST',ViewMoveRequest.parse(body),crypto.randomUUID());}
+  /** One identity per command: a lost response is replayed with the same key and body (CommandLedger answers with the
+   *  stored result, never applying twice). A second lost response is reported as unknown, not as a refusal. Undo is a
+   *  separate command with its own identity. A replayed receipt confirms the command, not the freshness of the plan. */
+  async move(body){if(this.pending())throw Error('Сначала проверьте результат предыдущего изменения.');
+    const request=ViewMoveRequest.parse(body),signature=JSON.stringify(request);
+    if(this.moveAttempt?.signature!==signature)this.moveAttempt={signature,key:crypto.randomUUID()};
+    const {key}=this.moveAttempt,send=()=>this.api.request(`/projects/${encodeURIComponent(this.projectId)}/planning/view/move`,'POST',request,key);
+    try{
+      let result;
+      try{result=await send();}
+      catch(error){if(error?.code!=='NETWORK')throw error;result=await send();}
+      this.moveAttempt=null;return result;
+    }catch(error){
+      if(error?.code!=='NETWORK'){this.moveAttempt=null;throw error;}
+      throw Object.assign(Error('Связь прервалась. Изменение могло сохраниться.'),{code:'MOVE_UNKNOWN',cause:error});
+    }
+  }
   /** Sprints and releases with their counts, the finished ones included. */
   releases(){return this.sdk.releases();}
   settings(){return this.request('settings');}
