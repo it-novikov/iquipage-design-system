@@ -1,0 +1,18 @@
+✔ core closure is the entry plus the modules it imports transitively (6.031035ms)
+✔ gzip sizes stay within +2% of scripts/gates/size-baseline.json (44.565626ms)
+✔ the gate catches growth above 2% (37.707036ms)
+✔ the avatar scale: six steps on DS size tokens, 20 to 48 px (1.147837ms)
+✔ initials are a fixed share of the diameter at one medium weight (0.176786ms)
+✔ two wide Cyrillic letters keep at least 18% of the diameter clear on each side at every size (0.695897ms)
+✔ avatar.css owns the disc: size from the scale, initials from the ratio, cap-trimmed and centred (0.247212ms)
+✔ no other stylesheet sizes an avatar or its initials (33.119648ms)
+✔ the build ships avatar.css after the foundation, and helpers speak the scale (4.796046ms)
+✔ public surface: the vnext.38 release (0.972774ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 170.38518

@@ -1,0 +1,37 @@
+{
+  "scope": "R1 docs/version/applicability correction; no native or adoption acceptance",
+  "source_checkpoint": "7f419045ee09aad58d1a9a36d08163df08e658af",
+  "accepted_main": "4275dde301b5068b3d6b1801ecb54c70a2d7e708",
+  "protected_file_count": 100,
+  "protected_files_unchanged": true,
+  "root_workflow_guard_unchanged": true,
+  "product_diff_against_main_empty": true,
+  "archive55_sha256": "71318ed08cd22878c3d6ab5649c229d6da103f2bef77d9bc4bb1f7b70cad5ade",
+  "archive56_sha256": "a3307cf012d307ea476056e36bdee601f8eef9efad37c78dd96aaef6ccb00d5f",
+  "comparison_v1_sha256": "d99bd7d47df7a4df998db45036cc245f0651d67d03bd948f8cd5f1faaa4d588f",
+  "comparison_v2_sha256": "8d37900ee942cfbf03dd6fbccc46f9aa8fa390f3b8a00d12412aac1ffca5722f",
+  "source_proof_v55_sha256": "28f04a5a2cdcf93fa7fbd07f9e1d3df9c8dcbe399bc826b87842da23c7ee05bb",
+  "source_proof_v56_sha256": "5b8fbdb276f1c24e4bbd5a313fecc529965b109a1a9f29be6a0251ffaa752612",
+  "archive_css_bytes_equal": true,
+  "archive_runtime_modules_equal": true,
+  "archive55_files": 176,
+  "archive56_files": 178,
+  "added_archive_files": [
+    "docs/INTEGRATION.md",
+    "docs/anchored-editors.md"
+  ],
+  "changed_archive_files": [
+    "PROVENANCE.json",
+    "README.md",
+    "dist/build.json",
+    "dist/core.js",
+    "dist/entry-manifest.json",
+    "docs/control-contracts.md",
+    "package.json",
+    "tokens/semantic.json",
+    "types/core.d.ts"
+  ],
+  "profiles_criteria_fixture_interactions_unchanged": true,
+  "native": "NOT_RUN",
+  "product_adoption": "NOT_ADOPTED"
+}

@@ -51,7 +51,25 @@ jobs:
           path: products/sprintique/output/tabs-geometry/
           retention-days: 14
           if-no-files-found: error
+      - name: Estimate modal focus and layout regression
+        if: ${{ !cancelled() }}
+        working-directory: products/sprintique
+        env:
+          PLAYWRIGHT_MODULE: ${{ runner.temp }}/sprintique-browser-tools/node_modules/playwright
+          PLAYWRIGHT_BROWSERS_PATH: ${{ runner.temp }}/sprintique-browsers
+          ESTIMATE_SOURCE_REVISION: ${{ github.sha }}
+          ESTIMATE_EVIDENCE_DIR: ${{ github.workspace }}/products/sprintique/output/estimate-popover/browser
+        run: node tests/estimate-popover-browser.mjs
+      - name: Estimate native regression evidence
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: estimate-popover
+          path: products/sprintique/output/estimate-popover/
+          retention-days: 14
+          if-no-files-found: error
   property-list-trial:
+    if: ${{ (github.event_name == 'pull_request' && github.head_ref == 'fix/property-list-readable-layout') || (github.event_name == 'workflow_dispatch' && github.ref_name == 'fix/property-list-readable-layout') }}
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -69,7 +87,7 @@ jobs:
           npm ci --ignore-scripts --no-fund --prefix products/sprintique
           npm install --prefix "$RUNNER_TEMP/sprintique-browser-tools" --no-save --package-lock=false --ignore-scripts --no-fund playwright@1.62.1
           node "$RUNNER_TEMP/sprintique-browser-tools/node_modules/playwright/cli.js" install --with-deps chromium
-      - name: Private DS55 and same public fixture build
+      - name: Private DS56 and same public fixture build
         id: property-build
         run: |
           node libraries/iquipage/scripts/build.mjs
@@ -84,7 +102,7 @@ jobs:
           PLAYWRIGHT_BROWSERS_PATH: ${{ runner.temp }}/sprintique-browsers
           PROPERTY_REFLOW_SOURCE_REVISION: ${{ github.sha }}
         run: node experiments/property-list-reflow/compare.mjs --variant=control
-      - name: Exact private DS55 candidate capture
+      - name: Exact private DS56 candidate capture
         id: property-candidate
         if: ${{ !cancelled() && steps.property-build.outcome == 'success' }}
         env:
@@ -99,7 +117,7 @@ jobs:
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: property-list-private55
+          name: property-list-private56
           path: experiments/property-list-reflow/output/
           retention-days: 14
           if-no-files-found: error

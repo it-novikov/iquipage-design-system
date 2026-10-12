@@ -1,48 +1,51 @@
 ---
 bridge: 1
 id: 20261012-property-list-readable-layout
-title: "PF04: читаемый public property-list — private DS55 trial"
+title: "PF04: читаемый public property-list — private DS56 trial"
 status: active
 risk: high
 owner: user
 branch: fix/property-list-readable-layout
 base: main
 created: 2026-10-12
-updated: 2026-10-12T12:00:50Z
+updated: 2026-10-12T13:02:58Z
 links:
 ---
 
-# PF04: читаемый public property-list — private DS55 trial
+# PF04: читаемый public property-list — private DS56 trial
 
 ## Цель
 
-PF04: человек должен прочитать подпись и полное текущее свойство до открытия редактора, в том числе при увеличении текста. Native public DS54 уже подтвердил fixed120 label + nowrap, фиксированные26/32px control heights и static font28/line20. Подготовить небольшой intrinsic A и доказать его на точной private55 поставке; A, его числовые бюджеты и новый default ещё не приняты. Подключение в Task — следующий отдельный шаг после native/review.
+PF04: человек должен прочитать подпись и полное текущее свойство до открытия редактора, в том числе при увеличении текста. Native public DS54 уже подтвердил fixed120 label + nowrap, фиксированные26/32px control heights и static font28/line20. Подготовить небольшой intrinsic A и доказать его на точной current private56 поставке; A, его числовые бюджеты и новый default ещё не приняты. Подключение в Task — следующий отдельный шаг после native/review.
 
 ## Рамки
 
-- **Входит:** существующий public wide-list CSS, применимые label/value/static/chip/input paths; public docs/version/build/pack; одинаковый revised fixture для control54 и private55; реальные outer carriers, mounted avatar и targeted interactions.
+- **Входит:** существующий public wide-list CSS, применимые label/value/static/chip/input paths; public docs/version/build/pack; одинаковый revised fixture для control54 и current private56; реальные outer carriers, mounted avatar и targeted interactions.
 - **Не входит:** product vendor/lock/adoption, `.tdr-pill` продукта, backend/permissions/save, missing empty-readonly tag caption, JS/observers, новые зависимости/consumer knobs, redesign других property modes, merge/deploy.
 - **Ограничения:** root явно разрешил high DS scope и private-pack маршрут. Base main220af664ef561d3f5ff1b873122281ef352e8f25. Consumed54 не переписывается. Local Chromium/JDK/TS7 blocked by /proc; native только GitHub CI. Автор не делает commit/push/ref mutations; root публикует.
 
 ## Приёмка
 
-- [ ] A1. Exact private55 archive согласован с version/build/docs/types; control54 archive неизменен, product остаётся54 и ordinary reference controls сохраняют геометрию.
+- [ ] A1. Exact current private56 archive согласован с version/build/docs/types; control54 archive неизменен, product остаётся54 и ordinary reference controls сохраняют геометрию.
 - [ ] A2. На одном revised public fixture native сравнение показывает полные label/selected/static captions и естественную высоту без horizontal escape; пять существующих profiles сохраняются, выводы о density/симметрии/числе строк не выдумываются.
 - [ ] A3. Mounted avatar и настоящие carriers измерены; select/date container-only resize, keyboard select/cancel, focus identity и однострочный input проверены с честным разграничением baseline deficits и regression.
 - [ ] A4. Два независимых раунда scoped review и применимые gates завершены; pending actual Task adoption и реальные release/platform checks явно названы, общий product PASS не заявлен.
 
 ## Передача
 
-- **Состояние:** CSS-only private55 candidate A и тот же corrected control54 fixture подготовлены. Product NOT adopted. Build/static PASS, native/visual/reviews ещё NOT_RUN. Git commits/refs автор не менял.
-- **Сейчас:** S2 local preparation завершена; root может заморозить diff и опубликовать native comparison. A/default/числовые бюджеты ещё не приняты.
-- **Дальше:** Root публикует; native job property-list-trial проверяет same fixture54/55, затем независимые visual/source reviews. При проигрыше чтению пересмотреть A/B, не подменять приёмку математикой.
-- **Незакоммичено:** library scoped CSS/docs/version55, exact private archive71318ed…, experiment/CI и bridge. Product/runtime JS unchanged.
+- **Состояние:** Private56 source APPROVED_FOR_NATIVE: оба P2 R1 исправлены и проверены независимым reviewer; исходный review и addendum сохранены в reviews/source-R1. A/default/adoption не приняты.
+- **Сейчас:** Root принял штатный handoff, готовит immutable correction56 commit и отдельный draft PR на main4275. Source CSS, fixture и критерии native не изменены после review.
+- **Дальше:** Опубликовать private56 PR, собрать paired native54/56 PNG/geometry/interactions, провести независимое visual R2, исправить только подтверждённые дефекты.
+- **Незакоммичено:** Коррекция56 и исходные R1 документы; merge main4275 разрешён; source frozen. Этот checkpoint меняет только Bridge metadata.
+- **Рабочая копия:** 25 файл(ов): .github/workflows/tabs-geometry.yml, experiments/property-list-reflow/README.md, experiments/property-list-reflow/comparison-plan.json, experiments/property-list-reflow/packages/source-proof.json, libraries/iquipage/PROVENANCE.json, libraries/iquipage/README.md, libraries/iquipage/docs/INTEGRATION.md, libraries/iquipage/docs/anchored-editors.md, libraries/iquipage/docs/control-contracts.md, libraries/iquipage/package-lock.json, libraries/iquipage/package.json, libraries/iquipage/src/entries/core.js и ещё 13 (29 files changed, 773 insertions(+), 64 deletions(-)) · HEAD 7f419045e
 - **Ловушки:**
   - Old owner fixture avatar:{id,name} не монтирует avatar; revised payload использует public avatar.text, oracle подтверждает actual element.
   - Old measurement.value — inner surface, не outer carrier; flex margins/min/max/box-sizing необходимо измерить отдельно.
   - Fixed-height observation не доказывает glyph clipping; native input buffer не становится multiline.
   - DOM identity не гарантирует popup anchor; container-only resize не должен подменяться window.resize event.
   - Source/static/build checks не закрывают A2/A3 или Task adoption.
+- **Проверка:** Source R1 correction: 215 source hashes, 178 package files, обе fresh public builds36inputs/4outputs; local10 version/size PASS. Full478 относится к55; новый полный прогон56 pending CI.
+- **Причина:** planned — GPT-6 Astra (AI agent), 2026-10-12T12:57:02Z, передано gpt-6-astra-root: Source заморожен. Два P2 закрыты независимым addendum APPROVED_FOR_NATIVE (655b2b73…). Root публикует checkpoint и ведёт native-проверку; product adoption и visual acceptance остаются открытыми.
 
 ## План
 
@@ -56,7 +59,7 @@ PF04: человек должен прочитать подпись и полн�
 - **Итог:** decision.md; root authorised high/private-pack route; native baseline report SHA5b3078f1f5c5aa4d073a1382ce4efe719a50ca499006dee3f22410a337516ca6.
 - **Модель:** strong
 
-### S2. Подготовить private55 и одинаковый comparison fixture [done]
+### S2. Подготовить первоначальный private55 и одинаковый comparison fixture [done]
 - **Что:** Малый intrinsic A на реальных carriers, public docs/version, corrected avatar/measurement.
 - **Как:** Existing DS build/test/pack; reuse baseline runner/data/profiles; separate control54 and candidate55 archive fingerprints.
 - **Зачем:** Проверять поставку и композицию, а не исходник под видом consumed DS.
@@ -67,9 +70,9 @@ PF04: человек должен прочитать подпись и полн�
 - **Итог:** evidence/local/summary.json: 478/478 DS Node PASS, size/boundaries PASS, control54+candidate55 BUILT_NOT_RENDERED. Candidate SHA71318ed08cd22878c3d6ab5649c229d6da103f2bef77d9bc4bb1f7b70cad5ade; no product adoption.
 - **Модель:** strong
 
-### S3. Native сравнение и независимые ревью [todo]
+### S3. Native сравнение и независимые ревью [active]
 - **Что:** Проверить A, исправить подтверждённое либо выбрать B при проигрыше чтению.
-- **Как:** Root публикует frozen source; same fixture54/55, raw geometry/PNG/events; два independent review rounds.
+- **Как:** Root публикует frozen source; same fixture54/56, raw geometry/PNG/events; два independent review rounds.
 - **Зачем:** Build PASS не доказывает readable/focus/anchor UX.
 - **Приёмка:**
   - [ ] Приёмка A1–A3 и применимые gates подтверждены; передан следующий Task adoption scope, нет ложного release PASS.
@@ -81,6 +84,9 @@ PF04: человек должен прочитать подпись и полн�
 
 - **D1** (2026-10-12) Root accepted private55 trial. Product54 остаётся unchanged; новую поставку не объявлять adopted.
 - **D2** (2026-10-12) A — CSS wrapping с no-grow label/value remainder и одним ритмом; B остаётся полноценной альтернативой. Wrapper normalization только по конкретной структуре, no universal architecture.
+
+- **D3** (2026-10-12) R1 PF04-CAR1-01/02: current trial перенесён в новую private56 identity; old55 archive/source-proof и comparison revision1 неизменны. Текущее свидетельство — evidence/r1-correction-v56/README.md. Root guard ограничивает frozen job trial branch; independent addendum pending.
+- **D4** (2026-10-12) D4: исходный checkpoint55 сохранён отдельным Git-объектом b03422ab5289bb936b385489a5d017e18bd1bb98; main4275dde301b5068b3d6b1801ecb54c70a2d7e708 интегрирован с сохранением существующих CI steps. Коррекция56 одобрена независимым source addendum 655b2b73dbcb24b7851e4c1b6a1f8020b486eeccfad1fc5292d83294be25474c только для native-проверки. Source CSS и 49 dist/modules файлов byte-equal55; в core.js изменена строка версии. Product runtime/vendor/lock равны main4275 и потребляют54. Native, визуальное принятие A и adoption ещё не выполнены.
 
 ## Вопросы
 

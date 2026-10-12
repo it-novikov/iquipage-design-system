@@ -1,12 +1,12 @@
 {
   "schema_version": "2.0",
-  "id": "PF04-property-list-private55-comparison",
-  "revision": 1,
+  "id": "PF04-property-list-private56-comparison",
+  "revision": 2,
   "phase": "candidate-comparison",
   "predecessor_plan_sha256": "724f1e889dc621e178ee173cb4ef8fa1fbfd190b0249decc208e75cc89de5582",
   "discovery_sha256": "e6e222e503790852a43fd195fd75bab3d2854baf8b93cbfb3301c948448d4e7e",
-  "source_base": "220af664ef561d3f5ff1b873122281ef352e8f25",
-  "scope": "Same revised public fixture built separately from immutable DS54 and private DS55. Product remains54; no Task/adoption/human acceptance. Geometry and keyboard checks are scoped evidence; popup container-resize remains an explicit comparative diagnostic.",
+  "source_base": "4275dde301b5068b3d6b1801ecb54c70a2d7e708",
+  "scope": "Same revised public fixture built separately from immutable DS54 and private DS56. Product remains54; no Task/adoption/human acceptance. Geometry and keyboard checks are scoped evidence; popup container-resize remains an explicit comparative diagnostic.",
   "packages": {
     "control": {
       "version": "0.6.0-vnext.54",
@@ -14,9 +14,9 @@
       "sha256": "a726a4536e532fc556f615d0b1a9cda1873dc111e6090710329b9ec1b8204457"
     },
     "candidate": {
-      "version": "0.6.0-vnext.55",
-      "path": "experiments/property-list-reflow/packages/iquipage-web-0.6.0-vnext.55.tgz",
-      "sha256": "71318ed08cd22878c3d6ab5649c229d6da103f2bef77d9bc4bb1f7b70cad5ade"
+      "version": "0.6.0-vnext.56",
+      "path": "experiments/property-list-reflow/packages/iquipage-web-0.6.0-vnext.56.tgz",
+      "sha256": "a3307cf012d307ea476056e36bdee601f8eef9efad37c78dd96aaef6ccb00d5f"
     }
   },
   "profiles": [
@@ -104,5 +104,15 @@
     "Readonly empty tag caption defect",
     "Backend, auth, persistence or human acceptance",
     "True browser zoom and release Safari/Firefox/iOS/screen readers"
-  ]
+  ],
+  "previous_comparison_plan_sha256": "d99bd7d47df7a4df998db45036cc245f0651d67d03bd948f8cd5f1faaa4d588f",
+  "revision_reason": "Independent source R1 documentation/applicability correction on accepted main4275. Private56 has unchanged candidate A CSS/runtime; README and package docs are corrected,55 archive/proof and revision1 are retained. Profiles, criteria, fixture and interaction code are unchanged.",
+  "applicability": {
+    "trial_branch": "fix/property-list-readable-layout",
+    "events": [
+      "pull_request with matching head_ref",
+      "explicit workflow_dispatch with matching ref_name"
+    ],
+    "other_product_or_library_changes": "Frozen trial is not a permanent gate; existing general gates remain. Adoption requires its own applicable verification."
+  }
 }

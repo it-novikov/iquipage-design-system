@@ -46,7 +46,7 @@ API notes relocated from shipped runtime comments in vnext.46; executable behavi
 
 ## Property list
 
-## Property list — vnext.55 private reflow trial
+## Property list — vnext.56 private reflow trial
 
 `.iq-properties[data-label=wide]` presents an object's named facts. Editable values keep their existing ghost trigger, hover/focus feedback and editor; static `.iq-property` rows use `.iq-property-label` and `.iq-property-value` (including `dt`/`dd`). The label remains secondary and the complete current value can wrap before the person opens an editor.
 

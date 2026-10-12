@@ -55,7 +55,7 @@ export function estimateEditor(anchor,{value=null,format='time',hoursPerDay=8,ho
     <div class="pl-est-actions"><button type="button" class="iq-btn ghost sm" data-clear>Без оценки</button><button type="submit" class="iq-btn primary sm">Сохранить</button></div></form>`;
   return openPopover(anchor,{html,className:'pl-est-pop',label,onMount(el,{close}){
     const form=el.querySelector('form'),input=el.querySelector('input'),note=el.querySelector('[data-hint]');
-    input.focus();input.select();
+    input.focus({preventScroll:true});input.select();
     const fail=message=>{note.textContent=message;note.dataset.tone='danger';input.setAttribute('aria-invalid','true');};
     const save=async next=>{
       form.setAttribute('aria-busy','true');
@@ -64,7 +64,7 @@ export function estimateEditor(anchor,{value=null,format='time',hoursPerDay=8,ho
     };
     el.addEventListener('click',event=>{
       const button=event.target.closest('[data-unit]');
-      if(button){unit=button.dataset.unit;for(const b of el.querySelectorAll('[data-unit]'))b.setAttribute('aria-pressed',String(b===button));input.focus();}
+      if(button){unit=button.dataset.unit;for(const b of el.querySelectorAll('[data-unit]'))b.setAttribute('aria-pressed',String(b===button));input.focus({preventScroll:true});}
       if(event.target.closest('[data-clear]'))void save(null);
     });
     form.addEventListener('submit',event=>{event.preventDefault();try{void save(parseEstimate(input.value,{unit,format}));}catch(error){fail(error.message);}});

@@ -1,0 +1,30 @@
+{
+  "originalSource": {
+    "localCommit": "7f419045ee09aad58d1a9a36d08163df08e658af",
+    "publishedCommit": "b03422ab5289bb936b385489a5d017e18bd1bb98",
+    "wholeTree": "0ae776e2798cef3a9e201e68ec22f808e647c9d3",
+    "patchSHA256": "15d8f25e42cff24d16cf575277b453f73aaad3eb9b7bef670f3201a3f4aa7e8d"
+  },
+  "correctedSource": {
+    "patchSHA256": "2e2736716b04d1f99adb790687f72f7a294243d2afaa15f0cd80340e6e735c5c",
+    "integrationMain": "4275dde301b5068b3d6b1801ecb54c70a2d7e708",
+    "package56SHA256": "a3307cf012d307ea476056e36bdee601f8eef9efad37c78dd96aaef6ccb00d5f",
+    "reviewedBeforePublication": true
+  },
+  "reports": [
+    {
+      "path": "original.md",
+      "source": "property-list-candidate-a-source-review.md",
+      "bytes": 30160,
+      "sha256": "0a07165199fc25e56665bdd937289ff45eb1d55549c913a6bd35c1c305805dc9"
+    },
+    {
+      "path": "corrected-addendum.md",
+      "source": "property-list-candidate-a-source-review-corrected-addendum.md",
+      "bytes": 18173,
+      "sha256": "655b2b73dbcb24b7851e4c1b6a1f8020b486eeccfad1fc5292d83294be25474c"
+    }
+  ],
+  "nativeAcceptance": "NOT_RUN",
+  "productAdopted": false
+}

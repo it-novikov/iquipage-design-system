@@ -1,0 +1,27 @@
+{
+  "scope": "DS56 R1 docs/package/applicability correction",
+  "accepted_main": "4275dde301b5068b3d6b1801ecb54c70a2d7e708",
+  "source_checkpoint": "7f419045ee09aad58d1a9a36d08163df08e658af",
+  "checks": {
+    "build_pack": "PASS",
+    "scoped_version_size": "10/10 PASS",
+    "actual_archive_docs": "PASS",
+    "source_css_and_fixture_identity": "UNCHANGED",
+    "actual_archive_css": "BYTE_IDENTICAL_55_56",
+    "actual_archive_runtime_modules": "BYTE_IDENTICAL_55_56",
+    "fresh_control_build": "BUILT_NOT_RENDERED",
+    "fresh_candidate_build": "BUILT_NOT_RENDERED",
+    "product_diff_vs_main": "EMPTY",
+    "root_guard": "UNCHANGED",
+    "full_478_suite": "NOT_RERUN; prior log belongs to55",
+    "native": "NOT_RUN",
+    "independent_addendum": "PENDING",
+    "product_adoption": "NOT_ADOPTED"
+  },
+  "files_sha256": {
+    "candidate-build-v56.json": "5923abcd984f92417e6b294b09d91d45dc678eb9e3ebfa690ecbf3d36da8bd80",
+    "control-build-v56.json": "4aac4321cb32c70d0cab972d49b2a9d538cfb6e8d082dd19c7d80cf8bfcd3c12",
+    "package-docs-proof.json": "74335e672af05344b471464140c197bac37c4632bd46e974c31a9a643cb56cd0",
+    "scoped-version-size.log": "d3223e6be223cee71ddc61b7550fbcb927dfcb280c1ca2f6f2b63605a071cbfc"
+  }
+}

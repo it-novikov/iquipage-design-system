@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="ru" data-theme="light" data-accent="blue" data-density="comfortable" data-motion="reduced">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Estimate and menu — isolated lifecycle consumer</title>
+    <style>body{margin:0}main{padding:24px}main>p{display:flex;flex-wrap:wrap;gap:16px}#fixture-owner{max-width:calc(100vw - 32px)}</style>
+  </head>
+  <body>
+    <main>
+      <h1>Оценка и действия</h1>
+      <p><button id="outside-estimate" type="button" class="iq-btn">Изменить оценку</button><button id="outside-menu" type="button" class="iq-btn">Действия</button><button id="open-owner" type="button" class="iq-btn">Открыть контекст</button></p>
+    </main>
+    <dialog id="fixture-owner" aria-labelledby="owner-title">
+      <form method="dialog">
+        <h2 id="owner-title">Контекст задачи</h2>
+        <button id="owner-estimate" type="button" class="iq-btn">Оценка</button>
+        <button type="submit" class="iq-btn">Закрыть</button>
+      </form>
+    </dialog>
+    <script type="module" src="./consumer.js"></script>
+  </body>
+</html>

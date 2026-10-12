@@ -1,6 +1,6 @@
-# PF04 — private DS55 property-list trial
+# PF04 — private DS56 property-list trial
 
-This is a **private candidate**, not Sprintique adoption. The product manifest, lock and vendor archive remain DS54. The historical `baseline-plan.v1.json` and `baseline-plan.json` are retained byte-for-byte; `comparison-plan.json` names a new, corrected common fixture for control54 and candidate55. The earlier raw native baseline is not rewritten.
+This is a **private candidate**, not Sprintique adoption. The product manifest, lock and vendor archive remain DS54. The historical `baseline-plan.v1.json`, `baseline-plan.json` and first `comparison-plan.v1.json` are retained byte-for-byte. The DS55 archive and `packages/source-proof.v55.json` remain immutable. `comparison-plan.json` revision2 selects private DS56 on main4275 with the same corrected fixture, profiles and criteria as revision1. The earlier raw native baseline is not rewritten.
 
 ## Question and bounded change
 
@@ -24,7 +24,7 @@ node experiments/property-list-reflow/compare.mjs --variant=control --build-only
 node experiments/property-list-reflow/compare.mjs --variant=candidate --build-only
 ```
 
-Native capture requires the existing temporary Playwright 1.62.1 package through `PLAYWRIGHT_MODULE` and its Chromium install through `PLAYWRIGHT_BROWSERS_PATH`. The workflow appends a scoped job to `tabs-geometry.yml`; existing Tabs and full product gates stay intact.
+Native capture requires the existing temporary Playwright 1.62.1 package through `PLAYWRIGHT_MODULE` and its Chromium install through `PLAYWRIGHT_BROWSERS_PATH`. The workflow appends a scoped job to `tabs-geometry.yml`; existing Tabs, Estimate and full product gates stay intact. This frozen trial runs only on a pull request whose head branch is `fix/property-list-readable-layout`, or an explicit workflow dispatch on that branch. Later unrelated product/library changes do not run this experiment; subsequent adoption needs its own applicable consumer verification.
 
 ```sh
 node experiments/property-list-reflow/compare.mjs --variant=control

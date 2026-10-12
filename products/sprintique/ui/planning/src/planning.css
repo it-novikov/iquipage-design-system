@@ -63,14 +63,15 @@
 .pl-cal-note{margin:10px 0 0;font-size:var(--iq-type-meta-size);line-height:1.45;color:var(--iq-muted)}
 .pl-cal-note:empty{display:none}
 .pl-est-pop{width:280px;padding:var(--iq-space-3)}
-.pl-est{display:grid;gap:var(--iq-space-2)}
-.pl-est-row{display:flex;align-items:center;gap:var(--iq-space-2)}
-.pl-est-input{flex:1;min-width:0;height:36px;padding:0 10px;border:1px solid var(--iq-field-line);border-radius:var(--iq-radius-sm);background:var(--iq-field-bg);font:inherit;font-size:var(--iq-type-interface-size);color:var(--iq-ink);font-variant-numeric:tabular-nums}
+.pl-est{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--iq-space-2)}
+.pl-est-row{display:flex;flex-wrap:wrap;align-items:center;gap:var(--iq-space-2)}
+.pl-est-input{flex:1 1 12ch;min-width:0;height:36px;padding:0 10px;border:1px solid var(--iq-field-line);border-radius:var(--iq-radius-sm);background:var(--iq-field-bg);font:inherit;font-size:var(--iq-type-interface-size);color:var(--iq-ink);font-variant-numeric:tabular-nums}
+.pl-est-units{flex:none}
 .pl-est-input:focus{border-color:var(--iq-focus);outline:none}
 .pl-est-unit{font-size:var(--iq-type-label-size);color:var(--iq-muted)}
-.pl-est-hint{margin:0;font-size:var(--iq-type-meta-size);color:var(--iq-muted)}
+.pl-est-hint{margin:0;font-size:var(--iq-type-meta-size);color:var(--iq-muted);overflow-wrap:anywhere}
 .pl-est-hint[data-tone=danger]{color:var(--iq-danger)}
-.pl-est-actions{display:flex;justify-content:space-between;gap:var(--iq-space-2)}
+.pl-est-actions{display:flex;flex-wrap:wrap;justify-content:space-between;gap:var(--iq-space-2)}
 
 /* ---------- Sprint completion and finished sprints ---------- */
 .pl-complete-when{margin:0;font-size:var(--iq-type-label-size);color:var(--iq-muted)}
