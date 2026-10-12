@@ -8,7 +8,7 @@ owner: user
 branch: fix/property-list-readable-layout
 base: main
 created: 2026-10-12
-updated: 2026-10-12T13:02:58Z
+updated: 2026-10-12T13:54:41Z
 links:
 ---
 
@@ -26,26 +26,27 @@ PF04: человек должен прочитать подпись и полн�
 
 ## Приёмка
 
-- [ ] A1. Exact current private56 archive согласован с version/build/docs/types; control54 archive неизменен, product остаётся54 и ordinary reference controls сохраняют геометрию.
+- [x] A1. Exact current private56 archive согласован с version/build/docs/types; control54 archive неизменен, product остаётся54 и ordinary reference controls сохраняют геометрию. Подтверждено native R2 в scope56; будущая57 требует своей проверки.
 - [ ] A2. На одном revised public fixture native сравнение показывает полные label/selected/static captions и естественную высоту без horizontal escape; пять существующих profiles сохраняются, выводы о density/симметрии/числе строк не выдумываются.
 - [ ] A3. Mounted avatar и настоящие carriers измерены; select/date container-only resize, keyboard select/cancel, focus identity и однострочный input проверены с честным разграничением baseline deficits и regression.
 - [ ] A4. Два независимых раунда scoped review и применимые gates завершены; pending actual Task adoption и реальные release/platform checks явно названы, общий product PASS не заявлен.
 
 ## Передача
 
-- **Состояние:** Private56 source APPROVED_FOR_NATIVE: оба P2 R1 исправлены и проверены независимым reviewer; исходный review и addendum сохранены в reviews/source-R1. A/default/adoption не приняты.
-- **Сейчас:** Root принял штатный handoff, готовит immutable correction56 commit и отдельный draft PR на main4275. Source CSS, fixture и критерии native не изменены после review.
-- **Дальше:** Опубликовать private56 PR, собрать paired native54/56 PNG/geometry/interactions, провести независимое visual R2, исправить только подтверждённые дефекты.
-- **Незакоммичено:** Коррекция56 и исходные R1 документы; merge main4275 разрешён; source frozen. Этот checkpoint меняет только Bridge metadata.
-- **Рабочая копия:** 25 файл(ов): .github/workflows/tabs-geometry.yml, experiments/property-list-reflow/README.md, experiments/property-list-reflow/comparison-plan.json, experiments/property-list-reflow/packages/source-proof.json, libraries/iquipage/PROVENANCE.json, libraries/iquipage/README.md, libraries/iquipage/docs/INTEGRATION.md, libraries/iquipage/docs/anchored-editors.md, libraries/iquipage/docs/control-contracts.md, libraries/iquipage/package-lock.json, libraries/iquipage/package.json, libraries/iquipage/src/entries/core.js и ещё 13 (29 files changed, 773 insertions(+), 64 deletions(-)) · HEAD 7f419045e
+- **Состояние:** Same56 capture revision3 independently APPROVED_FOR_NATIVE; exact original R1 and author patch/manifest preserved. Earlier native R2 remains CHANGES_REQUESTED; A3 and visual acceptance open.
+- **Сейчас:** S3: root records pending main41ebe merge plus harness-only diagnostic; layout57 not changed.
+- **Дальше:** Publish immutable diagnostic checkpoint; inspect its actual native checkout and viewport/raw evidence, then continue bounded layout57.
+- **Незакоммичено:** Only reviewed harness/plan/docs and root review metadata, plus already staged main41ebe integration; no DS CSS/JS or product edits beyond that integration.
+- **Рабочая копия:** 18 файл(ов): docs/implementation/2026-10-12/task-first-screen/vt1-render/base-desktop-dark-task-panel.png, docs/implementation/2026-10-12/task-first-screen/vt1-render/base-desktop-light-task-panel.png, docs/implementation/2026-10-12/task-first-screen/vt1-render/base-narrow-light-task-panel.png, docs/implementation/2026-10-12/task-first-screen/vt1-render/base-text200-light-task-panel.png, docs/implementation/2026-10-12/task-first-screen/vt1-render/vt1-desktop-dark-task-panel.png, docs/implementation/2026-10-12/task-first-screen/vt1-render/vt1-desktop-light-task-panel.png, docs/implementation/2026-10-12/task-first-screen/vt1-render/vt1-narrow-light-task-panel.png, docs/implementation/2026-10-12/task-first-screen/vt1-render/vt1-text200-light-task-panel.png, experiments/property-list-reflow/README.md, experiments/property-list-reflow/compare.mjs, experiments/property-list-reflow/comparison-plan.json, experiments/property-list-reflow/interactions.mjs и ещё 6 (19 files changed, 131 insertions(+), 29 deletions(-)) · HEAD 945169fff
 - **Ловушки:**
   - Old owner fixture avatar:{id,name} не монтирует avatar; revised payload использует public avatar.text, oracle подтверждает actual element.
   - Old measurement.value — inner surface, не outer carrier; flex margins/min/max/box-sizing необходимо измерить отдельно.
   - Fixed-height observation не доказывает glyph clipping; native input buffer не становится multiline.
   - DOM identity не гарантирует popup anchor; container-only resize не должен подменяться window.resize event.
   - Source/static/build checks не закрывают A2/A3 или Task adoption.
-- **Проверка:** Source R1 correction: 215 source hashes, 178 package files, обе fresh public builds36inputs/4outputs; local10 version/size PASS. Full478 относится к55; новый полный прогон56 pending CI.
-- **Причина:** planned — GPT-6 Astra (AI agent), 2026-10-12T12:57:02Z, передано gpt-6-astra-root: Source заморожен. Два P2 закрыты независимым addendum APPROVED_FOR_NATIVE (655b2b73…). Root публикует checkpoint и ведёт native-проверку; product adoption и visual acceptance остаются открытыми.
+  - New remote main5d674ee contains external PR90; this checkpoint intentionally retains f449 diagnostic base. Future CI whole tree may differ; verify exact DS/fixture inputs and do not transfer source approval to unrelated product changes.
+- **Проверка:** Root verified all24 author manifest hashes accounting for exact root claim suffix; frozen R1 SHA4d7523ff. R1 independently verified source/package/build/control evidence. No fresh native claim.
+- **Причина:** planned — gpt-6-astra-ds, 2026-10-12T13:37:43Z, передано gpt-6-astra-root: Same56 harness-only diagnostic frozen for independent source review and native CI. Revision3 preserves archive/fixture/profiles/criteria; viewport PNG with immediate/post-RAF window and visualViewport evidence. Fresh public builds and scoped static checks PASS; A3/native clean capture NOT_RUN. Layout57 not yet changed. Root owns pending main41ebe integration and publication; author pauses all worktree writes until root resumes.
 
 ## План
 
@@ -87,6 +88,7 @@ PF04: человек должен прочитать подпись и полн�
 
 - **D3** (2026-10-12) R1 PF04-CAR1-01/02: current trial перенесён в новую private56 identity; old55 archive/source-proof и comparison revision1 неизменны. Текущее свидетельство — evidence/r1-correction-v56/README.md. Root guard ограничивает frozen job trial branch; independent addendum pending.
 - **D4** (2026-10-12) D4: исходный checkpoint55 сохранён отдельным Git-объектом b03422ab5289bb936b385489a5d017e18bd1bb98; main4275dde301b5068b3d6b1801ecb54c70a2d7e708 интегрирован с сохранением существующих CI steps. Коррекция56 одобрена независимым source addendum 655b2b73dbcb24b7851e4c1b6a1f8020b486eeccfad1fc5292d83294be25474c только для native-проверки. Source CSS и 49 dist/modules файлов byte-equal55; в core.js изменена строка версии. Product runtime/vendor/lock равны main4275 и потребляют54. Native, визуальное принятие A и adoption ещё не выполнены.
+- **D5** (2026-10-12) Native R2 original SHA ecb66d5d4218fca7193ff7ccb7d7dd3bdc540d640e6568b3f6e793d3e46ed56f сохранён в reviews/native-R2. decision-r2.md записан до коррекции: сначала чистая диагностика на тех же56 bytes, затем новая57 для подтверждённых проблем композиции. B остаётся конкурентом; A3 не закрывается screenshot side effect или geometric PASS.
 
 ## Вопросы
 

@@ -1,0 +1,119 @@
+{
+  "status": "SCOPED_STATIC_CHECKS_PASS",
+  "native": "NOT_RUN",
+  "checks": [
+    {
+      "check": "revision2 packages unchanged",
+      "status": "PASS"
+    },
+    {
+      "check": "revision2 profiles unchanged",
+      "status": "PASS"
+    },
+    {
+      "check": "revision2 interaction_profiles unchanged",
+      "status": "PASS"
+    },
+    {
+      "check": "revision2 fixture_revision unchanged",
+      "status": "PASS"
+    },
+    {
+      "check": "revision2 comparisons unchanged",
+      "status": "PASS"
+    },
+    {
+      "check": "revision2 acceptance unchanged",
+      "status": "PASS"
+    },
+    {
+      "check": "revision2 environment unchanged",
+      "status": "PASS"
+    },
+    {
+      "check": "revision2 not_run unchanged",
+      "status": "PASS"
+    },
+    {
+      "check": "revision2 applicability unchanged",
+      "status": "PASS"
+    },
+    {
+      "check": "fixture/consumer.js bytes unchanged",
+      "sha256": "e06e70aa5c8b9f244bbc48ec264cdb57c9b8e1c0a70bfd971a449b3e7a35e597",
+      "status": "PASS"
+    },
+    {
+      "check": "fixture/data.mjs bytes unchanged",
+      "sha256": "ba3f681511372f3d6c3e2c6608e4721f16f3f20c4e8d1d0d41cf3aac023183c9",
+      "status": "PASS"
+    },
+    {
+      "check": "fixture/host.css bytes unchanged",
+      "sha256": "fc09af585ecae81a13e40cd1537cb89c318b191562d9660058fd92b856015c20",
+      "status": "PASS"
+    },
+    {
+      "check": "fixture/index.html bytes unchanged",
+      "sha256": "61ed3fcc892d9ab804caa01f0d08827085edf026615281264129c4eb2ba572be",
+      "status": "PASS"
+    },
+    {
+      "check": "measure.mjs bytes unchanged",
+      "sha256": "9b887f9bac6c2bdb83a4f9b813c1bb7fdb8f95dc7156b487d32a1e62d80b5f6f",
+      "status": "PASS"
+    },
+    {
+      "check": "packages/source-proof.json bytes unchanged",
+      "sha256": "5b8fbdb276f1c24e4bbd5a313fecc529965b109a1a9f29be6a0251ffaa752612",
+      "status": "PASS"
+    },
+    {
+      "check": "node --check compare.mjs",
+      "status": "PASS"
+    },
+    {
+      "check": "node --check interactions.mjs",
+      "status": "PASS"
+    },
+    {
+      "check": "node --check verify-comparison.mjs",
+      "status": "PASS"
+    },
+    {
+      "check": "root-staged native56 index unchanged",
+      "status": "PASS"
+    },
+    {
+      "check": "library/workflows unchanged",
+      "status": "PASS"
+    },
+    {
+      "check": "product matches accepted main41ebe",
+      "status": "PASS"
+    },
+    {
+      "check": "reject-legacy-fullpage",
+      "status": "PASS_EXPECTED_REJECTION",
+      "exitCode": 1,
+      "expectedMessage": "Open-editor capture uses the viewport",
+      "note": "Metadata-only negative control on copied old JSON with deliberately forged post-capture data; no native execution or success is claimed."
+    },
+    {
+      "check": "reject-forged-clean-counter",
+      "status": "PASS_EXPECTED_REJECTION",
+      "exitCode": 1,
+      "expectedMessage": "afterPNG preserves resizeEvents",
+      "note": "Metadata-only negative control on copied old JSON with deliberately forged post-capture data; no native execution or success is claimed."
+    },
+    {
+      "check": "reject-forged-visualviewport-counter",
+      "status": "PASS_EXPECTED_REJECTION",
+      "exitCode": 1,
+      "expectedMessage": "afterPNG preserves visualViewportEvents",
+      "note": "Metadata-only negative control on copied old JSON with deliberately forged post-capture data; no native execution or success is claimed."
+    }
+  ],
+  "planRevision": 3,
+  "planSHA256": "940aa92a1ef88941f8d3dfed46b81cd3a649351e56388eb84f6efc46445503d5"
+}

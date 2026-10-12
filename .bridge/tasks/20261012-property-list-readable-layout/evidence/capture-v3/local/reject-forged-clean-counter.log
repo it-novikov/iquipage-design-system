@@ -1,0 +1,23 @@
+{
+  "status": "FAILED",
+  "control": "a726a4536e532fc556f615d0b1a9cda1873dc111e6090710329b9ec1b8204457",
+  "candidate": "a3307cf012d307ea476056e36bdee601f8eef9efad37c78dd96aaef6ccb00d5f",
+  "ordinaryReferences": [
+    {
+      "profile": "wide-normal",
+      "row": "reference-owner",
+      "status": "PASS"
+    },
+    {
+      "profile": "wide-normal",
+      "row": "reference-due",
+      "status": "PASS"
+    }
+  ],
+  "popupResize": [],
+  "limits": [
+    "Native range checks are not human or painted-ink acceptance.",
+    "Task and product adoption remain NOT_RUN."
+  ],
+  "error": "AssertionError [ERR_ASSERTION]: afterPNG preserves resizeEvents\n\n1 !== 0\n\n    at file:///workspace/scratch/b3dac59f68e2/repo-property-candidate/experiments/property-list-reflow/verify-comparison.mjs:39:18"
+}

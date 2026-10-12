@@ -31,7 +31,17 @@ try{
     assert.ok(current.interactions.tagSearch.height>=current.interactions.tagSearch.lineHeight,'Focused candidate tag input has room for its line');
     for(const after of current.interactions.popupResize){
       const before=original.interactions.popupResize.find(p=>p.id===after.id);
+      for(const observed of [before,after]){
+        assert.equal(observed.capture?.fullPage,false,'Open-editor capture uses the viewport');
+        assert.equal(observed.captureObservation?.status,'CAPTURE_ENVIRONMENT_UNCHANGED','Capture must remain observational');
+        assert.ok(Object.hasOwn(observed.resized,'visualViewport')&&Object.hasOwn(observed.resized,'visualViewportEvents'),'Visual viewport observation is explicit, including an absent API');
+        for(const checkpoint of ['afterPNG','afterCaptureFrames'])for(const key of ['viewport','hostWidth','windowScroll','resizeEvents','scrollEvents','visualViewport','visualViewportEvents'])
+          assert.deepEqual(observed[checkpoint]?.[key],observed.resized[key],checkpoint+' preserves '+key);
+      }
       result.popupResize.push({profile:current.id,row:after.id,control:before.resized.anchor,candidate:after.resized.anchor,
+        capture:{control:before.captureObservation,candidate:after.captureObservation},
+        afterPNG:{control:before.afterPNG.anchor,candidate:after.afterPNG.anchor},
+        afterCaptureFrames:{control:before.afterCaptureFrames.anchor,candidate:after.afterCaptureFrames.anchor},
         controlScrollEvents:before.resized.scrollEvents-before.before.scrollEvents,candidateScrollEvents:after.resized.scrollEvents-after.before.scrollEvents,
         status:after.resized.anchor.visiblyAdjacent?'CAPTURED_ADJACENT':before.resized.anchor.visiblyAdjacent?'NEW_DETACHMENT_REQUIRES_REVIEW':'EXISTING_DETACHMENT_REQUIRES_REVIEW'});
     }

@@ -1,11 +1,11 @@
 {
   "schema_version": "2.0",
-  "id": "PF04-property-list-private56-comparison",
-  "revision": 2,
+  "id": "PF04-property-list-private56-capture-diagnostic",
+  "revision": 3,
   "phase": "candidate-comparison",
   "predecessor_plan_sha256": "724f1e889dc621e178ee173cb4ef8fa1fbfd190b0249decc208e75cc89de5582",
   "discovery_sha256": "e6e222e503790852a43fd195fd75bab3d2854baf8b93cbfb3301c948448d4e7e",
-  "source_base": "4275dde301b5068b3d6b1801ecb54c70a2d7e708",
+  "source_base": "41ebe4823471072ed6dbb405fbd5e755852eec3f",
   "scope": "Same revised public fixture built separately from immutable DS54 and private DS56. Product remains54; no Task/adoption/human acceptance. Geometry and keyboard checks are scoped evidence; popup container-resize remains an explicit comparative diagnostic.",
   "packages": {
     "control": {
@@ -105,8 +105,8 @@
     "Backend, auth, persistence or human acceptance",
     "True browser zoom and release Safari/Firefox/iOS/screen readers"
   ],
-  "previous_comparison_plan_sha256": "d99bd7d47df7a4df998db45036cc245f0651d67d03bd948f8cd5f1faaa4d588f",
-  "revision_reason": "Independent source R1 documentation/applicability correction on accepted main4275. Private56 has unchanged candidate A CSS/runtime; README and package docs are corrected,55 archive/proof and revision1 are retained. Profiles, criteria, fixture and interaction code are unchanged.",
+  "previous_comparison_plan_sha256": "8d37900ee942cfbf03dd6fbccc46f9aa8fa390f3b8a00d12412aac1ffca5722f",
+  "revision_reason": "Native R2 NR2-01 diagnostic only: retain immutable54/56 package bytes and the same fixture, profiles, acceptance and semantic checks. Replace open-editor fullPage PNG with viewport PNG and record immediate post-PNG plus two-frame post-capture geometry/focus/event counters. Capture side effects are failures of observation, not popup repairs. Revision2 and its native packet remain unchanged; layout A is not accepted.",
   "applicability": {
     "trial_branch": "fix/property-list-readable-layout",
     "events": [
@@ -114,5 +114,34 @@
       "explicit workflow_dispatch with matching ref_name"
     ],
     "other_product_or_library_changes": "Frozen trial is not a permanent gate; existing general gates remain. Adoption requires its own applicable verification."
+  },
+  "capture_contract": {
+    "open_editor_png": "viewport only; fullPage:false",
+    "closed_editor_document_png": "retained for complete-list reading",
+    "checkpoints": [
+      "before container resize",
+      "resized after two animation frames",
+      "immediately after viewport PNG",
+      "after two further animation frames",
+      "after Escape"
+    ],
+    "recorded_state": [
+      "trigger and popup rectangles",
+      "expanded/value/focus",
+      "viewport and host width",
+      "window scroll and resize/scroll event counters",
+      "value change intents",
+      "visualViewport size/offsets/page offsets/scale and passive resize/scroll counters; explicit null when unavailable"
+    ],
+    "capture_invariants": [
+      "viewport",
+      "hostWidth",
+      "windowScroll",
+      "resizeEvents",
+      "scrollEvents",
+      "visualViewport",
+      "visualViewportEvents"
+    ],
+    "interpretation": "Reject capture contamination in window or visualViewport; geometry may evolve naturally without these events. Preserve raw pre/post anchor classification for review. No synthetic resize, forced scroll, reposition, reopen or DS JS change."
   }
 }

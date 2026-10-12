@@ -1,4 +1,4 @@
-// PF04: the same corrected public recipe, separately built from frozen control54 and private trial55 archives.
+// PF04: the same public recipe, separately built from the immutable archives named in the plan.
 import assert from 'node:assert/strict';
 import {readFile,writeFile,mkdir,mkdtemp,readdir,realpath,rm} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
@@ -99,7 +99,8 @@ function candidateGeometry(value){
 }
 async function screenshot(page,entry,name,options={}){
   const file=entry.id+'-'+name+'.png',bytes=await page.screenshot({path:join(evidence,file),...options});
-  entry.screenshots.push({kind:name,file,sha256:sha(bytes)});
+  const capture={kind:name,file,sha256:sha(bytes),fullPage:options.fullPage===true};
+  entry.screenshots.push(capture);return capture;
 }
 async function captureProfile(profile,baseURL){
   const entry={...profile,status:'NOT_RUN',screenshots:[],observations:[]};result.profiles.push(entry);
@@ -121,7 +122,7 @@ async function captureProfile(profile,baseURL){
     entry.afterCapture=await page.evaluate(()=>({viewport:{width:innerWidth,height:innerHeight},windowScroll:{x:scrollX,y:scrollY},rootFontSize:getComputedStyle(document.documentElement).fontSize}));
     verifyCapture(entry.measurement,profile);entry.observations=observations(entry.measurement);
     if(variant==='candidate')entry.geometry=candidateGeometry(entry.measurement);
-    if(plan.interaction_profiles.includes(profile.id))await exerciseControls(page,profile,async name=>screenshot(page,entry,name,{fullPage:true}),entry.interactions={});
+    if(plan.interaction_profiles.includes(profile.id))await exerciseControls(page,profile,async name=>screenshot(page,entry,name,{fullPage:false}),entry.interactions={});
     assert.deepEqual(result.pageErrors.filter(error=>error.profile===profile.id),[],'No page error');
     assert.deepEqual(result.consoleErrors.filter(error=>error.profile===profile.id),[],'No console error');
     assert.deepEqual(result.externalRequests.filter(error=>error.profile===profile.id),[],'No off-origin request');
@@ -129,7 +130,7 @@ async function captureProfile(profile,baseURL){
   }catch(error){
     entry.status='FAILED';entry.error=error.stack||error.message;
     if(entry.interactions)entry.interactions.status='FAILED';
-    try{entry.failureMeasurement=await page.evaluate(measureBaseline);await screenshot(page,entry,'failure',{fullPage:true});}
+    try{entry.failureMeasurement=await page.evaluate(measureBaseline);await screenshot(page,entry,'failure',{fullPage:false});}
     catch(cause){entry.captureError=cause.stack||cause.message;}
   }finally{
     await writeFile(join(evidence,entry.id+'.json'),JSON.stringify({kind:'profile-capture',provenance:'provenance.json',browser:result.browser,playwright:result.playwright,...entry},null,2)+'\n');

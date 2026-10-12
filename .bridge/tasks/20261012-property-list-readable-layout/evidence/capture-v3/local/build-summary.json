@@ -1,0 +1,26 @@
+{
+  "native": "NOT_RUN",
+  "builds": [
+    {
+      "variant": "control",
+      "status": "BUILT_NOT_RENDERED",
+      "archive": "a726a4536e532fc556f615d0b1a9cda1873dc111e6090710329b9ec1b8204457",
+      "packageFiles": 176,
+      "inputs": 36,
+      "outputs": 4,
+      "sourceProof": "5b8fbdb276f1c24e4bbd5a313fecc529965b109a1a9f29be6a0251ffaa752612",
+      "planSHA256": "940aa92a1ef88941f8d3dfed46b81cd3a649351e56388eb84f6efc46445503d5"
+    },
+    {
+      "variant": "candidate",
+      "status": "BUILT_NOT_RENDERED",
+      "archive": "a3307cf012d307ea476056e36bdee601f8eef9efad37c78dd96aaef6ccb00d5f",
+      "packageFiles": 178,
+      "inputs": 36,
+      "outputs": 4,
+      "sourceProof": "5b8fbdb276f1c24e4bbd5a313fecc529965b109a1a9f29be6a0251ffaa752612",
+      "planSHA256": "940aa92a1ef88941f8d3dfed46b81cd3a649351e56388eb84f6efc46445503d5"
+    }
+  ],
+  "compiledTemporaryLocation": "/workspace/scratch/b3dac59f68e2/research/continuation/property-list-capture-v3-local/compiled-940aa92a1ef8"
+}
