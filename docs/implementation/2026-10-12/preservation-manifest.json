@@ -702,6 +702,374 @@
       "encoding": "identity"
     },
     {
+      "path": "ci/task-overview-recovery/README.md",
+      "source_file": "First frozen full-CI checkpoint summary, preserving attempt1 failure separately from observed running retry",
+      "bytes": 1321,
+      "sha256": "09859047f94bd1c91a77190036b318f0cb57c777678ded2ad1c9e94006e7ca77",
+      "encoding": "derived-markdown"
+    },
+    {
+      "path": "ci/task-overview-recovery/attempt-1/README.md",
+      "source_file": "Immutable attempt1 failure wrapper with exact certificate/log/source evidence and separate pending retry observation",
+      "bytes": 3936,
+      "sha256": "a15d3618623afb5481f4769c0bcddb1705f48c9694e4b65d7bc4ee2be8ffbad5",
+      "encoding": "derived-markdown"
+    },
+    {
+      "path": "ci/task-overview-recovery/attempt-1/inventories/task88-full-attempt1-11748036814-inventory.json",
+      "source_file": "research/continuation/task88-full-attempt1-11748036814-inventory.json",
+      "bytes": 5306,
+      "sha256": "5dae20020bfc900b1c54f772aef5762d6b08f6697c342821f694be2b2355614f",
+      "encoding": "identity"
+    },
+    {
+      "path": "ci/task-overview-recovery/attempt-1/inventories/task88-planning-attempt1-11748001879-inventory.json",
+      "source_file": "research/continuation/task88-planning-attempt1-11748001879-inventory.json",
+      "bytes": 3159,
+      "sha256": "fbbc7b7a5c29be259fe2bec3fc7265fe962262d23ecee7a5f9c34f63b113a142",
+      "encoding": "identity"
+    },
+    {
+      "path": "ci/task-overview-recovery/attempt-1/jobs/verify.log.gz",
+      "source_file": "research/continuation/task88-full-attempt1-job.log",
+      "bytes": 37016,
+      "sha256": "0710c11304c28622f2e98b14568c74b8a275ffa33bf11779d1f32f59d6f9699b",
+      "encoding": "gzip",
+      "uncompressed_bytes": 246108,
+      "uncompressed_sha256": "f2f4dc622907bdda2bd097600daf288166b2aa175d6304ca4ad51fcc9565c855"
+    },
+    {
+      "path": "ci/task-overview-recovery/attempt-1/metadata/task88-full-attempt1-artifacts.json",
+      "source_file": "research/continuation/task88-full-attempt1-artifacts.json",
+      "bytes": 1722,
+      "sha256": "495369cd436566bd4e1b4bedfb1753f758527cbb6c865fed9ff0e126fe6fa2d1",
+      "encoding": "identity"
+    },
+    {
+      "path": "ci/task-overview-recovery/attempt-1/metadata/task88-full-attempt1-jobs-api.json",
+      "source_file": "research/continuation/task88-full-attempt1-jobs-api.json",
+      "bytes": 4397,
+      "sha256": "2ce7b0f305796518f92867f7c50b7a96e0e61f3ad819ee64e4caf7e574adf6ad",
+      "encoding": "identity"
+    },
+    {
+      "path": "ci/task-overview-recovery/attempt-1/metadata/task88-full-attempt1-run-api.json",
+      "source_file": "research/continuation/task88-full-attempt1-run-api.json",
+      "bytes": 14348,
+      "sha256": "3d3776c137dfb99b5ff29792d04bbc3497d64d843feb4ffd42662b1a5d25f2bc",
+      "encoding": "identity"
+    },
+    {
+      "path": "ci/task-overview-recovery/attempt-1/planning/candidate/results.json.gz",
+      "source_file": "research/continuation/task88-full-attempt1-11748036814/planning-selection/candidate/results.json",
+      "bytes": 3682,
+      "sha256": "fdd3e2e76d65b728b263f44e9526ef851a14a07a6a9ff2c7a92d066c19795019",
+      "encoding": "gzip",
+      "uncompressed_bytes": 85901,
+      "uncompressed_sha256": "be022b4adbd2e1a609874c6bdd2c79bcd467626f438e0cbbf547c102b6eef3c1"
+    },
+    {
+      "path": "ci/task-overview-recovery/attempt-1/provenance.json",
+      "source_file": "Immutable failed full attempt1 certificate, HTTP 504 evidence, exact Git inputs and Planning mapping; attempt2 is separate",
+      "bytes": 67438,
+      "sha256": "fd2e00930be303f5b47c8a2ea6a978c4d56fe3e065150bc44779c7724f75819d",
+      "encoding": "derived-json"
+    },
+    {
+      "path": "ci/task-overview-recovery/attempt-1/screenshots.md",
+      "source_file": "Exact global PNG dedup and archive-path relocation mapping; originals not transformed",
+      "bytes": 3708,
+      "sha256": "e79d3ecc2c021b4d54bb71816af2abf87b9f5dbca372df15ae4d6721f6b1a77c",
+      "encoding": "derived-markdown"
+    },
+    {
+      "path": "ci/task-overview-recovery/attempt-1/verification/library-build.log.gz",
+      "source_file": "research/continuation/task88-full-attempt1-11748036814/verification/2026-10-12T12-32-22.458Z/library-build.log",
+      "bytes": 147,
+      "sha256": "98954d8142298cb792be2c2f43aadd45103546d8e9f9f8d6d6c9585881f3f7a8",
+      "encoding": "gzip",
+      "uncompressed_bytes": 144,
+      "uncompressed_sha256": "d947d93afecad1eae735d5736b8a675f776cb1383196d75306d8f12755f1eca0"
+    },
+    {
+      "path": "ci/task-overview-recovery/attempt-1/verification/library-tests.log.gz",
+      "source_file": "research/continuation/task88-full-attempt1-11748036814/verification/2026-10-12T12-32-22.458Z/library-tests.log",
+      "bytes": 14284,
+      "sha256": "24ba353b6cfe2f54c83f2f0629e142d435c8746cf1c8a7224a1257c7d2e086eb",
+      "encoding": "gzip",
+      "uncompressed_bytes": 38482,
+      "uncompressed_sha256": "150eb1edeb5380a288e081560862d9e3b71b27c14b610688123bf3861e882f9f"
+    },
+    {
+      "path": "ci/task-overview-recovery/attempt-1/verification/product-boundaries.log.gz",
+      "source_file": "research/continuation/task88-full-attempt1-11748036814/verification/2026-10-12T12-32-22.458Z/product-boundaries.log",
+      "bytes": 211,
+      "sha256": "1372d1c9921d4a049ab72d59c911eef18429aa4ed4c853ff460e1f167526930d",
+      "encoding": "gzip",
+      "uncompressed_bytes": 292,
+      "uncompressed_sha256": "d6a1c681db26574e94256f60879ab77d34282add2ef2e2b9a930229d27e40132"
+    },
+    {
+      "path": "ci/task-overview-recovery/attempt-1/verification/product-build.log.gz",
+      "source_file": "research/continuation/task88-full-attempt1-11748036814/verification/2026-10-12T12-32-22.458Z/product-build.log",
+      "bytes": 1389,
+      "sha256": "d081bb67128d9418cf111148e6fd74f5de5fd0e1d19d324ef8d37b8f41086397",
+      "encoding": "gzip",
+      "uncompressed_bytes": 3877,
+      "uncompressed_sha256": "72663d9ec8912dbc9de10476a203e2d669c36ad312392c905fe37de0efac6bfe"
+    },
+    {
+      "path": "ci/task-overview-recovery/attempt-1/verification/product-tests.log.gz",
+      "source_file": "research/continuation/task88-full-attempt1-11748036814/verification/2026-10-12T12-32-22.458Z/product-tests.log",
+      "bytes": 560,
+      "sha256": "dab4ff6ed078fe70af2e0583ba86f542262e27cd0323ffe8c4e832ed6b546f31",
+      "encoding": "gzip",
+      "uncompressed_bytes": 1380,
+      "uncompressed_sha256": "0f8e14f4bb3712ce307ff218d32381291de567501bde4b6e2d3f8627800b1eb0"
+    },
+    {
+      "path": "ci/task-overview-recovery/attempt-1/verification/source-stability.log.gz",
+      "source_file": "research/continuation/task88-full-attempt1-11748036814/verification/2026-10-12T12-32-22.458Z/source-stability.log",
+      "bytes": 80,
+      "sha256": "93b3a82f456d5bf5a78cdd0356449484e2cbe180ef1e59491b32c27e86cf4c1a",
+      "encoding": "gzip",
+      "uncompressed_bytes": 60,
+      "uncompressed_sha256": "8585a17108a61f415ff4ecf42f1b62cd8bce87e96c6068bb2d314a569cf77d94"
+    },
+    {
+      "path": "ci/task-overview-recovery/attempt-1/verification/sources-after.json.gz",
+      "source_file": "research/continuation/task88-full-attempt1-11748036814/verification/2026-10-12T12-32-22.458Z/sources-after.json",
+      "bytes": 61802,
+      "sha256": "fcba7dd82a9179dd2c24fbb994edbe4cc963aee3e77833da2bd2a77e19c209e4",
+      "encoding": "gzip",
+      "uncompressed_bytes": 224795,
+      "uncompressed_sha256": "bc7341d4d82da37cc4e9716f32a65aa190e6fded0705f7d065e4c65f356a546a"
+    },
+    {
+      "path": "ci/task-overview-recovery/attempt-1/verification/sources.json.gz",
+      "source_file": "research/continuation/task88-full-attempt1-11748036814/verification/2026-10-12T12-32-22.458Z/sources.json",
+      "bytes": 61802,
+      "sha256": "fcba7dd82a9179dd2c24fbb994edbe4cc963aee3e77833da2bd2a77e19c209e4",
+      "encoding": "gzip",
+      "uncompressed_bytes": 224795,
+      "uncompressed_sha256": "bc7341d4d82da37cc4e9716f32a65aa190e6fded0705f7d065e4c65f356a546a"
+    },
+    {
+      "path": "ci/task-overview-recovery/attempt-1/verification/verification-tools.log.gz",
+      "source_file": "research/continuation/task88-full-attempt1-11748036814/verification/2026-10-12T12-32-22.458Z/verification-tools.log",
+      "bytes": 198,
+      "sha256": "49d092fc0d7266eede1c1919620ceaa371dbe0373e90feb421e399d707da0c52",
+      "encoding": "gzip",
+      "uncompressed_bytes": 239,
+      "uncompressed_sha256": "8569683e5985128cc9c252563a4c7eb14e4bb3cabd201b5184aca0fe15d2ec09"
+    },
+    {
+      "path": "ci/task-overview-recovery/attempt-1/verification/verification.json",
+      "source_file": "research/continuation/task88-full-attempt1-11748036814/verification/2026-10-12T12-32-22.458Z/verification.json",
+      "bytes": 1434,
+      "sha256": "5aaa50adebfa3859e98dab67b6d3509df5d485740d5566d145a33d8b78b77aa8",
+      "encoding": "identity"
+    },
+    {
+      "path": "ci/task-overview-recovery/attempt-2/README.md",
+      "source_file": "Portable Russian wrapper for completed exact Task88 full CI attempt 2, evidence boundaries and all raw links",
+      "bytes": 9179,
+      "sha256": "915f3a53c21acc03dd670c31f1abc1965ff919333cb56bc91066f6f7fbe5dcc3",
+      "encoding": "derived-markdown"
+    },
+    {
+      "path": "ci/task-overview-recovery/attempt-2/inventories/task88-full-attempt2-11748382713-inventory.json",
+      "source_file": "research/continuation/task88-full-attempt2-11748382713-inventory.json",
+      "bytes": 5553,
+      "sha256": "23a0987d7b823d7d08a1817de4f83eb0baa2e441af7d947aa8c91ba0e1845f98",
+      "encoding": "identity"
+    },
+    {
+      "path": "ci/task-overview-recovery/attempt-2/inventories/task88-planning-attempt2-11747929711-inventory.json",
+      "source_file": "research/continuation/task88-planning-attempt2-11747929711-inventory.json",
+      "bytes": 3215,
+      "sha256": "39fb413b4d8701dd004bdb0bb854ab6ca9b3d749acb28a2537ebc8993221bb67",
+      "encoding": "identity"
+    },
+    {
+      "path": "ci/task-overview-recovery/attempt-2/jobs/verify.log.gz",
+      "source_file": "research/continuation/task88-full-attempt2-job.log",
+      "bytes": 42866,
+      "sha256": "51ac013f7d72002ff8e2dbb80f7b8b20568374cc2ba357c5b0dc2ced98a15682",
+      "encoding": "gzip",
+      "uncompressed_bytes": 284150,
+      "uncompressed_sha256": "948aae441d1e5bcdc945c6c51ea50eacfced42d32e170745ba73908ca23236d8"
+    },
+    {
+      "path": "ci/task-overview-recovery/attempt-2/metadata/task88-full-attempt2-artifacts.json",
+      "source_file": "research/continuation/task88-full-attempt2-artifacts.json",
+      "bytes": 3420,
+      "sha256": "c29e696bc09729e76b922febb1f820fad1d046ffd25744d30d5da9f3be926b1e",
+      "encoding": "identity"
+    },
+    {
+      "path": "ci/task-overview-recovery/attempt-2/metadata/task88-full-attempt2-jobs-api.json",
+      "source_file": "research/continuation/task88-full-attempt2-jobs-api.json",
+      "bytes": 4397,
+      "sha256": "42c54425ec5b57ceff6ce3f7e758506f49d2a8265326db9ffd9f627145bb0e08",
+      "encoding": "identity"
+    },
+    {
+      "path": "ci/task-overview-recovery/attempt-2/metadata/task88-full-attempt2-metadata.json",
+      "source_file": "research/continuation/task88-full-attempt2-metadata.json",
+      "bytes": 3351,
+      "sha256": "231e280da0ff96f4eed836119792a8949eb929d83e6c91721cc13c15b54c33a1",
+      "encoding": "identity"
+    },
+    {
+      "path": "ci/task-overview-recovery/attempt-2/metadata/task88-full-attempt2-run-api.json",
+      "source_file": "research/continuation/task88-full-attempt2-run-api.json",
+      "bytes": 14444,
+      "sha256": "d903dff79469205d9af820c9cfd0bede0b5468ef6433c988f3519bd6b0f0012f",
+      "encoding": "identity"
+    },
+    {
+      "path": "ci/task-overview-recovery/attempt-2/metadata/task88-full-attempt2-verification.json",
+      "source_file": "research/continuation/task88-full-attempt2-verification.json",
+      "bytes": 15204,
+      "sha256": "3105b5b04926cc780776bd1eb17fa903ecf3740d7be69d56930e27c0140a1303",
+      "encoding": "identity"
+    },
+    {
+      "path": "ci/task-overview-recovery/attempt-2/planning/candidate/desktop-last-row.png",
+      "source_file": "research/continuation/task88-full-attempt2-11748382713/planning-selection/candidate/desktop-last-row.png",
+      "bytes": 109981,
+      "sha256": "c43c55408303840950c4748445af43ed2a5365c17263bde74c0177654a38e18e",
+      "encoding": "identity"
+    },
+    {
+      "path": "ci/task-overview-recovery/attempt-2/planning/candidate/results.json.gz",
+      "source_file": "research/continuation/task88-full-attempt2-11748382713/planning-selection/candidate/results.json",
+      "bytes": 3682,
+      "sha256": "fdd3e2e76d65b728b263f44e9526ef851a14a07a6a9ff2c7a92d066c19795019",
+      "encoding": "gzip",
+      "uncompressed_bytes": 85901,
+      "uncompressed_sha256": "be022b4adbd2e1a609874c6bdd2c79bcd467626f438e0cbbf547c102b6eef3c1"
+    },
+    {
+      "path": "ci/task-overview-recovery/attempt-2/provenance.json",
+      "source_file": "Completed own attempt-2 CI provenance, exact bytes, SHA, source fingerprints and portable archive/member mapping",
+      "bytes": 73031,
+      "sha256": "ed9123ea2a1f6a0b6d749ee7a36bcf2bbcbfbccd8e5600a41071a498022ba43e",
+      "encoding": "derived-json"
+    },
+    {
+      "path": "ci/task-overview-recovery/attempt-2/screenshots.md",
+      "source_file": "Portable mapping of all 12 own Planning PNG; exact dedup across existing evidence, no visual acceptance claim",
+      "bytes": 3742,
+      "sha256": "56e78df1344c03c32ace4cddf672e9b2fdbe916505b8c662106f82a19f381f08",
+      "encoding": "derived-markdown"
+    },
+    {
+      "path": "ci/task-overview-recovery/attempt-2/verification/detached-product.log.gz",
+      "source_file": "research/continuation/task88-full-attempt2-11748382713/verification/2026-10-12T12-47-02.610Z/detached-product.log",
+      "bytes": 28407,
+      "sha256": "e42620aad352738d80b63acc183e3cdf39dcacf942854419d53d4267005d3cec",
+      "encoding": "gzip",
+      "uncompressed_bytes": 81898,
+      "uncompressed_sha256": "2d4cd041875eaa34f99693ef071aff6e0f5926de5e0c8cbf246a425b25c66823"
+    },
+    {
+      "path": "ci/task-overview-recovery/attempt-2/verification/library-build.log.gz",
+      "source_file": "research/continuation/task88-full-attempt2-11748382713/verification/2026-10-12T12-47-02.610Z/library-build.log",
+      "bytes": 147,
+      "sha256": "98954d8142298cb792be2c2f43aadd45103546d8e9f9f8d6d6c9585881f3f7a8",
+      "encoding": "gzip",
+      "uncompressed_bytes": 144,
+      "uncompressed_sha256": "d947d93afecad1eae735d5736b8a675f776cb1383196d75306d8f12755f1eca0"
+    },
+    {
+      "path": "ci/task-overview-recovery/attempt-2/verification/library-tests.log.gz",
+      "source_file": "research/continuation/task88-full-attempt2-11748382713/verification/2026-10-12T12-47-02.610Z/library-tests.log",
+      "bytes": 14232,
+      "sha256": "7ef81a5f789bcc7bec4340fe40570688c39c5304c292f532d2cba2b733a2bea3",
+      "encoding": "gzip",
+      "uncompressed_bytes": 38467,
+      "uncompressed_sha256": "15fb9db0f7db7e0a9e6e6b1244cf3a5f8ab5930cbec9b64026c55d8d54d09281"
+    },
+    {
+      "path": "ci/task-overview-recovery/attempt-2/verification/product-boundaries.log.gz",
+      "source_file": "research/continuation/task88-full-attempt2-11748382713/verification/2026-10-12T12-47-02.610Z/product-boundaries.log",
+      "bytes": 211,
+      "sha256": "1372d1c9921d4a049ab72d59c911eef18429aa4ed4c853ff460e1f167526930d",
+      "encoding": "gzip",
+      "uncompressed_bytes": 292,
+      "uncompressed_sha256": "d6a1c681db26574e94256f60879ab77d34282add2ef2e2b9a930229d27e40132"
+    },
+    {
+      "path": "ci/task-overview-recovery/attempt-2/verification/product-build.log.gz",
+      "source_file": "research/continuation/task88-full-attempt2-11748382713/verification/2026-10-12T12-47-02.610Z/product-build.log",
+      "bytes": 1389,
+      "sha256": "ded0c1c3ed199f213a31fddafa524ffcf9d3a713e3f96ca6b46e9f02e62575f0",
+      "encoding": "gzip",
+      "uncompressed_bytes": 3877,
+      "uncompressed_sha256": "0b18846cbbd6179ba2ff685b6484533e998ebf840338a5e14fa5910b39610e3c"
+    },
+    {
+      "path": "ci/task-overview-recovery/attempt-2/verification/product-tests.log.gz",
+      "source_file": "research/continuation/task88-full-attempt2-11748382713/verification/2026-10-12T12-47-02.610Z/product-tests.log",
+      "bytes": 27244,
+      "sha256": "ba8b9645348c34f4008edafb689c9f9d803a2051c37895ab7e42ab176a1fbf7b",
+      "encoding": "gzip",
+      "uncompressed_bytes": 80234,
+      "uncompressed_sha256": "b9a4eeaee94c82d600bbd3c6b4a688956ac4549d46d9a502ec3ee8f11b6d91ec"
+    },
+    {
+      "path": "ci/task-overview-recovery/attempt-2/verification/source-stability.log.gz",
+      "source_file": "research/continuation/task88-full-attempt2-11748382713/verification/2026-10-12T12-47-02.610Z/source-stability.log",
+      "bytes": 80,
+      "sha256": "93b3a82f456d5bf5a78cdd0356449484e2cbe180ef1e59491b32c27e86cf4c1a",
+      "encoding": "gzip",
+      "uncompressed_bytes": 60,
+      "uncompressed_sha256": "8585a17108a61f415ff4ecf42f1b62cd8bce87e96c6068bb2d314a569cf77d94"
+    },
+    {
+      "path": "ci/task-overview-recovery/attempt-2/verification/sources-after.json.gz",
+      "source_file": "research/continuation/task88-full-attempt2-11748382713/verification/2026-10-12T12-47-02.610Z/sources-after.json",
+      "bytes": 61802,
+      "sha256": "fcba7dd82a9179dd2c24fbb994edbe4cc963aee3e77833da2bd2a77e19c209e4",
+      "encoding": "gzip",
+      "uncompressed_bytes": 224795,
+      "uncompressed_sha256": "bc7341d4d82da37cc4e9716f32a65aa190e6fded0705f7d065e4c65f356a546a"
+    },
+    {
+      "path": "ci/task-overview-recovery/attempt-2/verification/sources.json.gz",
+      "source_file": "research/continuation/task88-full-attempt2-11748382713/verification/2026-10-12T12-47-02.610Z/sources.json",
+      "bytes": 61802,
+      "sha256": "fcba7dd82a9179dd2c24fbb994edbe4cc963aee3e77833da2bd2a77e19c209e4",
+      "encoding": "gzip",
+      "uncompressed_bytes": 224795,
+      "uncompressed_sha256": "bc7341d4d82da37cc4e9716f32a65aa190e6fded0705f7d065e4c65f356a546a"
+    },
+    {
+      "path": "ci/task-overview-recovery/attempt-2/verification/verification-tools.log.gz",
+      "source_file": "research/continuation/task88-full-attempt2-11748382713/verification/2026-10-12T12-47-02.610Z/verification-tools.log",
+      "bytes": 199,
+      "sha256": "b356b3f76dd3b2e88e8e1ddd2ba71c8a0ced05b234f745b32972e8bff450e348",
+      "encoding": "gzip",
+      "uncompressed_bytes": 238,
+      "uncompressed_sha256": "951ca189ff71a35b0ae0c46f3faa8297e3686111dd1e9d21811fa8c8e7f87f40"
+    },
+    {
+      "path": "ci/task-overview-recovery/attempt-2/verification/verification.json",
+      "source_file": "research/continuation/task88-full-attempt2-11748382713/verification/2026-10-12T12-47-02.610Z/verification.json",
+      "bytes": 1581,
+      "sha256": "f4cb59320d9f5d2911771f23c032f3bceacd662e5f95b71d777079b6002f89f4",
+      "encoding": "identity"
+    },
+    {
+      "path": "ci/task-overview-recovery/observations/attempt-2-in-progress.json",
+      "source_file": "research/continuation/task88-full-attempt2-observation-api.json",
+      "bytes": 14419,
+      "sha256": "045284ada993f496e570379c2a0fcdae200a0b41f55af5acf6ab46900dbdee33",
+      "encoding": "identity"
+    },
+    {
       "path": "native/estimate/README.md",
       "source_file": "Trusted estimate-native metadata, exact estimate/tabs/maps raw results and job logs, frozen acceptance plan and verified PNG inventory",
       "bytes": 13454,
@@ -2209,10 +2577,518 @@
       "encoding": "identity"
     },
     {
+      "path": "native/task-overview-recovery/README.md",
+      "source_file": "Portable wrapper separating frozen Task R2 limited acceptance, open findings, companion native records and failed full attempt1",
+      "bytes": 8179,
+      "sha256": "2d995265b927ba72c2144f05ca2321cfa5467a51ec9d37709660a979ed203a22",
+      "encoding": "derived-markdown"
+    },
+    {
+      "path": "native/task-overview-recovery/estimate/browser/outside-points-keyboard-cancel-final.png",
+      "source_file": "research/continuation/task88-estimate-11746992082/browser/outside-points-keyboard-cancel-final.png",
+      "bytes": 11064,
+      "sha256": "e187fcdf5ddc129e35f766e8e373f21f1832f52f16cd6e7784c35ffc492854a9",
+      "encoding": "identity"
+    },
+    {
+      "path": "native/task-overview-recovery/estimate/browser/results.json.gz",
+      "source_file": "research/continuation/task88-estimate-11746992082/browser/results.json",
+      "bytes": 23657,
+      "sha256": "c43ce352e18cb2421528f56a88555a2ca4e5a5a7e1d4366feaf815343b1ca26d",
+      "encoding": "gzip",
+      "uncompressed_bytes": 287521,
+      "uncompressed_sha256": "6edb8f0fc5d799ee585766385dc05ec58e20316783139983fddcdf11b7693d72"
+    },
+    {
+      "path": "native/task-overview-recovery/estimate/browser/task-desktop-light-after-open.png",
+      "source_file": "research/continuation/task88-estimate-11746992082/browser/task-desktop-light-after-open.png",
+      "bytes": 74820,
+      "sha256": "e4b963ca28050d5471cc08f5e802fef34c6209d5d7c38831cd67d53d9165aa57",
+      "encoding": "identity"
+    },
+    {
+      "path": "native/task-overview-recovery/estimate/browser/task-desktop-light-final.png",
+      "source_file": "research/continuation/task88-estimate-11746992082/browser/task-desktop-light-final.png",
+      "bytes": 70274,
+      "sha256": "7f2c2b6c731b15f1f600252958e3f52fc91f7b7a3cd7a80050b2cdb1c27735b6",
+      "encoding": "identity"
+    },
+    {
+      "path": "native/task-overview-recovery/estimate/browser/task-narrow-dark-after-open.png",
+      "source_file": "research/continuation/task88-estimate-11746992082/browser/task-narrow-dark-after-open.png",
+      "bytes": 43358,
+      "sha256": "21fda01bbabb2149eebe22cec55977cf3d00f7f7c894795385ff59b55494895e",
+      "encoding": "identity"
+    },
+    {
+      "path": "native/task-overview-recovery/estimate/browser/task-narrow-dark-final.png",
+      "source_file": "research/continuation/task88-estimate-11746992082/browser/task-narrow-dark-final.png",
+      "bytes": 39031,
+      "sha256": "eb66e62c6057b48e93adc8eafb0a836937a19d15f39cfb796252f722452d42de",
+      "encoding": "identity"
+    },
+    {
+      "path": "native/task-overview-recovery/estimate/browser/task-narrow-light-after-open.png",
+      "source_file": "research/continuation/task88-estimate-11746992082/browser/task-narrow-light-after-open.png",
+      "bytes": 42239,
+      "sha256": "526d91019774db26537a49a3c72a7e5e763697b836825f8e8c48019d6fede937",
+      "encoding": "identity"
+    },
+    {
+      "path": "native/task-overview-recovery/estimate/browser/task-narrow-light-final.png",
+      "source_file": "research/continuation/task88-estimate-11746992082/browser/task-narrow-light-final.png",
+      "bytes": 38816,
+      "sha256": "51687d31f1f64a4e038d5d8d4250fa55d18b96c7fe02cdb632203d9a47d66413",
+      "encoding": "identity"
+    },
+    {
+      "path": "native/task-overview-recovery/estimate/browser/task-narrow-text200-after-open.png",
+      "source_file": "research/continuation/task88-estimate-11746992082/browser/task-narrow-text200-after-open.png",
+      "bytes": 48260,
+      "sha256": "a4beb1bb3c39887be464e0c0a333300aab52539465145b9c286b386732ef2104",
+      "encoding": "identity"
+    },
+    {
+      "path": "native/task-overview-recovery/estimate/browser/task-narrow-text200-final.png",
+      "source_file": "research/continuation/task88-estimate-11746992082/browser/task-narrow-text200-final.png",
+      "bytes": 51884,
+      "sha256": "dba994446666adff7c5229d5acdc0ecee72d0d8373e82ce20c979c89946c8bf1",
+      "encoding": "identity"
+    },
+    {
+      "path": "native/task-overview-recovery/inventories/task88-estimate-11746992082-inventory.json",
+      "source_file": "research/continuation/task88-estimate-11746992082-inventory.json",
+      "bytes": 7697,
+      "sha256": "b3792e32e2471b2fe7a5e79aaa2b9f63d15ae010c214c0fde23218208065c3ac",
+      "encoding": "identity"
+    },
+    {
+      "path": "native/task-overview-recovery/inventories/task88-maps-11748001878-inventory.json",
+      "source_file": "research/continuation/task88-maps-11748001878-inventory.json",
+      "bytes": 4592,
+      "sha256": "d19cd81072eae83e8d31419a1f9bb10fc69a3f70053ec566929f9f62c5bd3bba",
+      "encoding": "identity"
+    },
+    {
+      "path": "native/task-overview-recovery/inventories/task88-tabs-11747047119-inventory.json",
+      "source_file": "research/continuation/task88-tabs-11747047119-inventory.json",
+      "bytes": 15116,
+      "sha256": "21f799972ceda39f11a654443c5941c192fcb651ab4afab10d64b03701a60dc7",
+      "encoding": "identity"
+    },
+    {
+      "path": "native/task-overview-recovery/inventories/task88-task-11746932185-inventory.json",
+      "source_file": "research/continuation/task88-task-11746932185-inventory.json",
+      "bytes": 7144,
+      "sha256": "e5eea06d7ea869099fa6a50d3a4eb103e8f9c3e99178236e2feeb54f98e9195e",
+      "encoding": "identity"
+    },
+    {
+      "path": "native/task-overview-recovery/jobs/maps.log.gz",
+      "source_file": "research/continuation/task88-maps-job.log",
+      "bytes": 14459,
+      "sha256": "f81978327c1527899cb04eb8b4888858eb18a9f24237bc9d63074032490cbe87",
+      "encoding": "gzip",
+      "uncompressed_bytes": 59360,
+      "uncompressed_sha256": "1d16b0186cc6e117f806280175283bc7c1089d04747dca45b107f4e91eab1e1f"
+    },
+    {
+      "path": "native/task-overview-recovery/jobs/native.log.gz",
+      "source_file": "research/continuation/task-overview-recovery-native-job.log",
+      "bytes": 11547,
+      "sha256": "e327f8ef366f197379f6d317babda840e71f57e7d58e0e769df44399300dc2d6",
+      "encoding": "gzip",
+      "uncompressed_bytes": 56999,
+      "uncompressed_sha256": "03567c66af93a3eb1d81be103e5ab9f4d4ffe3c5e7cb39d5edf6e8939a3ff88a"
+    },
+    {
+      "path": "native/task-overview-recovery/maps/desktop-light-related-task.png",
+      "source_file": "research/continuation/task88-maps-11748001878/desktop-light-related-task.png",
+      "bytes": 74426,
+      "sha256": "5e8fa4cc273b3281cd9006afc57ed1718f0a8f1bc1354220af3d797a0064f05b",
+      "encoding": "identity"
+    },
+    {
+      "path": "native/task-overview-recovery/maps/initial-map-map-recovery.png",
+      "source_file": "research/continuation/task88-maps-11748001878/initial-map-map-recovery.png",
+      "bytes": 61064,
+      "sha256": "b9d8220ec0bb1c85efc54aa393446b0d65303c472be3c12476172ab75b3ae011",
+      "encoding": "identity"
+    },
+    {
+      "path": "native/task-overview-recovery/maps/results.json.gz",
+      "source_file": "research/continuation/task88-maps-11748001878/results.json",
+      "bytes": 2536,
+      "sha256": "166242213f00db92246d01804e04466ac7b36a11e435f667ffa0f4e3735a7aec",
+      "encoding": "gzip",
+      "uncompressed_bytes": 32694,
+      "uncompressed_sha256": "edaa1fd3087586412abf27ad5a209887883554ad35894f49bcaf05217702e241"
+    },
+    {
+      "path": "native/task-overview-recovery/metadata/task-overview-recovery-native-artifacts.json",
+      "source_file": "research/continuation/task-overview-recovery-native-artifacts.json",
+      "bytes": 2556,
+      "sha256": "f3cd0c59895eb751603ed312ae937125046bf09d5c1162698296dffb56f3ae3e",
+      "encoding": "identity"
+    },
+    {
+      "path": "native/task-overview-recovery/metadata/task-overview-recovery-native-git-1fd928e12b43b26f29ebcb190a5595c1d2618444.json",
+      "source_file": "research/continuation/task-overview-recovery-native-git-1fd928e12b43b26f29ebcb190a5595c1d2618444.json",
+      "bytes": 2110,
+      "sha256": "6f3e76b70f64f6748f22e4ee44f4788767a5f7019546f325f791d5b1a56b5185",
+      "encoding": "identity"
+    },
+    {
+      "path": "native/task-overview-recovery/metadata/task-overview-recovery-native-git-4275dde301b5068b3d6b1801ecb54c70a2d7e708.json",
+      "source_file": "research/continuation/task-overview-recovery-native-git-4275dde301b5068b3d6b1801ecb54c70a2d7e708.json",
+      "bytes": 4629,
+      "sha256": "f48642ed286d3e24f2cf2b80c4bcaeb21917793d4194ece66f0815008b983433",
+      "encoding": "identity"
+    },
+    {
+      "path": "native/task-overview-recovery/metadata/task-overview-recovery-native-git-72f862293b80dbbb89352b128eacd592db86ec49.json",
+      "source_file": "research/continuation/task-overview-recovery-native-git-72f862293b80dbbb89352b128eacd592db86ec49.json",
+      "bytes": 2915,
+      "sha256": "a31d10fd32d8b28f8813c1e9fecdf56ae69dfa6097260f7bc32c1e40dc01b9cc",
+      "encoding": "identity"
+    },
+    {
+      "path": "native/task-overview-recovery/metadata/task-overview-recovery-native-jobs.json",
+      "source_file": "research/continuation/task-overview-recovery-native-jobs.json",
+      "bytes": 2728,
+      "sha256": "9a0d1fcd6e07882b1621d2aa9c4ee0dc064d6df94b2a7136a30c1e191cec3c40",
+      "encoding": "identity"
+    },
+    {
+      "path": "native/task-overview-recovery/metadata/task-overview-recovery-native-run.json",
+      "source_file": "research/continuation/task-overview-recovery-native-run.json",
+      "bytes": 15876,
+      "sha256": "9ae23a6c5a88a39ca06b665c50c2419c1eb6fbbf66db2eb45286b22c00e8f8ad",
+      "encoding": "identity"
+    },
+    {
+      "path": "native/task-overview-recovery/metadata/task88-checkpoint1-metadata.json",
+      "source_file": "research/continuation/task88-checkpoint1-metadata.json",
+      "bytes": 4350,
+      "sha256": "f74b4bbf740f1b8fb309f74f87bf61c011d2574dc883fc7eeea3201898649a4b",
+      "encoding": "identity"
+    },
+    {
+      "path": "native/task-overview-recovery/metadata/task88-collection-integrity.json",
+      "source_file": "research/continuation/task88-collection-integrity.json",
+      "bytes": 7781,
+      "sha256": "2af986af48bfaacbedc004ed3341f5d417ab51b1b44bec0ceeeffa27123b073b",
+      "encoding": "identity"
+    },
+    {
+      "path": "native/task-overview-recovery/metadata/task88-maps-jobs-api.json",
+      "source_file": "research/continuation/task88-maps-jobs-api.json",
+      "bytes": 1986,
+      "sha256": "d054e52b08340a90fab9b2b073ce408ec87ba2c17a56de8351d8fd660b2dba70",
+      "encoding": "identity"
+    },
+    {
+      "path": "native/task-overview-recovery/metadata/task88-maps-run-api.json",
+      "source_file": "research/continuation/task88-maps-run-api.json",
+      "bytes": 14338,
+      "sha256": "cfe0fba6b00874562bb56de104436ea9ffa68f542f2f06567df0c95b27660648",
+      "encoding": "identity"
+    },
+    {
+      "path": "native/task-overview-recovery/provenance.json",
+      "source_file": "Frozen Task R2 and current native/companion raw with exact source/ZIP/PNG/log preservation mappings",
+      "bytes": 314832,
+      "sha256": "92986d13eda477d79153822c9a425364d023a227b0ade6bdc47d4a11acbf6dc6",
+      "encoding": "derived-json"
+    },
+    {
+      "path": "native/task-overview-recovery/reviews/originals/task-overview-recovery-native-collection-index.json",
+      "source_file": "research/continuation/task-overview-recovery-native-collection-index.json",
+      "bytes": 11913,
+      "sha256": "4b93bb358e4a1ac5df548d7610af5409869c9bb1e861f9f65ee5ca1582350743",
+      "encoding": "identity"
+    },
+    {
+      "path": "native/task-overview-recovery/reviews/originals/task-overview-recovery-native-independent-integrity.json",
+      "source_file": "research/continuation/task-overview-recovery-native-independent-integrity.json",
+      "bytes": 53256,
+      "sha256": "057d08da8cb82ac25eb9797966f9c98579481e3419f6e62f50d6a7e01889cc17",
+      "encoding": "identity"
+    },
+    {
+      "path": "native/task-overview-recovery/reviews/originals/task-overview-recovery-native-review.md",
+      "source_file": "research/continuation/task-overview-recovery-native-review.md",
+      "bytes": 41328,
+      "sha256": "72581a66c9586c788416da0d6041a7a317ffd8aa7bb4ad8873748ea009b83d4d",
+      "encoding": "identity"
+    },
+    {
+      "path": "native/task-overview-recovery/screenshots.md",
+      "source_file": "Exact global PNG dedup and archive-path relocation mapping; originals not transformed",
+      "bytes": 34578,
+      "sha256": "066e88ee1bdc78c32204f0aa00aa5be264ab9c8ffe5e6a31b2bcb0a9a7f98f85",
+      "encoding": "derived-markdown"
+    },
+    {
+      "path": "native/task-overview-recovery/source/acceptance-plan.json",
+      "source_file": "research/continuation/task88-task-acceptance-plan.json",
+      "bytes": 7519,
+      "sha256": "66780241ab4de4b154e77520440632e839bf9cb865ad4dfd93ba443eb2fc186d",
+      "encoding": "identity"
+    },
+    {
+      "path": "native/task-overview-recovery/tabs/browser/desktop-dark-board-task-panel.png",
+      "source_file": "research/continuation/task88-tabs-11747047119/browser/desktop-dark-board-task-panel.png",
+      "bytes": 82860,
+      "sha256": "030618095ca4ddfa88fbb34da2a0d4ee4dd5d0e7c94b435b2f0e915e329843bc",
+      "encoding": "identity"
+    },
+    {
+      "path": "native/task-overview-recovery/tabs/browser/desktop-dark-wiki-draft-preserved.png",
+      "source_file": "research/continuation/task88-tabs-11747047119/browser/desktop-dark-wiki-draft-preserved.png",
+      "bytes": 54634,
+      "sha256": "d12a04f4175ab0dc12e4bb221a99f5fedecf674bb77f523c069cf59b0ccfb67f",
+      "encoding": "identity"
+    },
+    {
+      "path": "native/task-overview-recovery/tabs/browser/desktop-light-board-task-panel.png",
+      "source_file": "research/continuation/task88-tabs-11747047119/browser/desktop-light-board-task-panel.png",
+      "bytes": 65209,
+      "sha256": "051b54d34735ec4c900644181dd9e066db1e61e121a617a6c5f6bc4400bf8da1",
+      "encoding": "identity"
+    },
+    {
+      "path": "native/task-overview-recovery/tabs/browser/desktop-light-nested-nested-task.png",
+      "source_file": "research/continuation/task88-tabs-11747047119/browser/desktop-light-nested-nested-task.png",
+      "bytes": 40898,
+      "sha256": "17f46ae83e82d5ef33e0feb9a5761b9b69c7c2982b655c41d47cf3c10068d0da",
+      "encoding": "identity"
+    },
+    {
+      "path": "native/task-overview-recovery/tabs/browser/desktop-light-wiki-draft-preserved.png",
+      "source_file": "research/continuation/task88-tabs-11747047119/browser/desktop-light-wiki-draft-preserved.png",
+      "bytes": 52321,
+      "sha256": "8be37e500ecd822be7963c911438dad57307aec2b20df38acfbda23c3c651482",
+      "encoding": "identity"
+    },
+    {
+      "path": "native/task-overview-recovery/tabs/browser/narrow-dark-board-task-panel.png",
+      "source_file": "research/continuation/task88-tabs-11747047119/browser/narrow-dark-board-task-panel.png",
+      "bytes": 30126,
+      "sha256": "96aedfc8ad5a1306a11a11fcf2551d33b86e6a5149b01e2dbbecb1b6b6ec9706",
+      "encoding": "identity"
+    },
+    {
+      "path": "native/task-overview-recovery/tabs/browser/narrow-light-board-task-panel.png",
+      "source_file": "research/continuation/task88-tabs-11747047119/browser/narrow-light-board-task-panel.png",
+      "bytes": 35936,
+      "sha256": "1a4c7cbe5f5497b105fbcfa54a11aee588e9b24f28e3be905127870313092069",
+      "encoding": "identity"
+    },
+    {
+      "path": "native/task-overview-recovery/tabs/browser/results.json.gz",
+      "source_file": "research/continuation/task88-tabs-11747047119/browser/results.json",
+      "bytes": 58529,
+      "sha256": "0b074190268b294ea67f08c57b5b7cc3362ef48f3e84aba468f759322410f8d1",
+      "encoding": "gzip",
+      "uncompressed_bytes": 2393878,
+      "uncompressed_sha256": "7f74bc0cdf343b829d9f2d80e4396f7fe44aa58aa3351ebda22f95f5c46fc373"
+    },
+    {
+      "path": "native/task-overview-recovery/tabs/browser/text200-light-board-task-panel.png",
+      "source_file": "research/continuation/task88-tabs-11747047119/browser/text200-light-board-task-panel.png",
+      "bytes": 69429,
+      "sha256": "b1af8725bb687c74696628c8e1522209627ac17ab69a5385306cba599a35747f",
+      "encoding": "identity"
+    },
+    {
+      "path": "native/task-overview-recovery/tabs/build/results.json.gz",
+      "source_file": "research/continuation/task88-tabs-11747047119/build/results.json",
+      "bytes": 1790,
+      "sha256": "d72bf1a51f8bc885b812766b776f68883e3ef2b8314cf969ed7ad347173caed7",
+      "encoding": "gzip",
+      "uncompressed_bytes": 4283,
+      "uncompressed_sha256": "8d16629daa4d8b9f82b7aa988c7dedccf1ece362ed3963d30f96d70272934cdc"
+    },
+    {
+      "path": "native/task-overview-recovery/task/browser/completed-blocked-after-cta.png",
+      "source_file": "research/continuation/task-overview-recovery-native-11746932185/browser/completed-blocked-after-cta.png",
+      "bytes": 35457,
+      "sha256": "1b2e7983e517452fbf31777f1da2312a66635887ddcf49b3de3e8f9913061de9",
+      "encoding": "identity"
+    },
+    {
+      "path": "native/task-overview-recovery/task/browser/completed-blocked-overview.png",
+      "source_file": "research/continuation/task-overview-recovery-native-11746932185/browser/completed-blocked-overview.png",
+      "bytes": 53247,
+      "sha256": "9c8f37e28cc16acbc8ab2a7a26efe5147cdde3cec01a82e638038057bfc6f4c2",
+      "encoding": "identity"
+    },
+    {
+      "path": "native/task-overview-recovery/task/browser/completed-blocked.json.gz",
+      "source_file": "research/continuation/task-overview-recovery-native-11746932185/browser/completed-blocked.json",
+      "bytes": 12514,
+      "sha256": "0181ff855c7d6092f929ed5180a69d3a3101404a853bb4457289b410789731b7",
+      "encoding": "gzip",
+      "uncompressed_bytes": 145926,
+      "uncompressed_sha256": "2df3efec627e2942bbb53b6301c25bd5a0711b1e80ec5659ec04aa6d60bb10e6"
+    },
+    {
+      "path": "native/task-overview-recovery/task/browser/completed-rejected-after-cta.png",
+      "source_file": "research/continuation/task-overview-recovery-native-11746932185/browser/completed-rejected-after-cta.png",
+      "bytes": 36199,
+      "sha256": "4d4040fdf066343d2a15d5616ce43287fbd27d6cd5fdfcef48c9a022663affcd",
+      "encoding": "identity"
+    },
+    {
+      "path": "native/task-overview-recovery/task/browser/completed-rejected-overview.png",
+      "source_file": "research/continuation/task-overview-recovery-native-11746932185/browser/completed-rejected-overview.png",
+      "bytes": 53627,
+      "sha256": "5f53f1f4c9dbcf9eae323794005a73f4e8caa5838730ab9e613cc8b9f6878e13",
+      "encoding": "identity"
+    },
+    {
+      "path": "native/task-overview-recovery/task/browser/completed-rejected.json.gz",
+      "source_file": "research/continuation/task-overview-recovery-native-11746932185/browser/completed-rejected.json",
+      "bytes": 12786,
+      "sha256": "54ab5eb543b6d4fb488ecfabb859b26455d2bf87290671ce3eb5aa00d0ad68d7",
+      "encoding": "gzip",
+      "uncompressed_bytes": 147746,
+      "uncompressed_sha256": "d3be00d759ff8b2647c54fa9207806d258bee234938e31824fe0ee81f0c82192"
+    },
+    {
+      "path": "native/task-overview-recovery/task/browser/fixture-data.json.gz",
+      "source_file": "research/continuation/task-overview-recovery-native-11746932185/browser/fixture-data.json",
+      "bytes": 1995,
+      "sha256": "d7558d09a3a18deacead0d85461699a3d008638c1d6e7b722348aeae468d40a1",
+      "encoding": "gzip",
+      "uncompressed_bytes": 22578,
+      "uncompressed_sha256": "93bf6b0331608abd2092b64865581324de0ece91e274aa7c231689a133d0fd15"
+    },
+    {
+      "path": "native/task-overview-recovery/task/browser/genuine-complete-after-cta.png",
+      "source_file": "research/continuation/task-overview-recovery-native-11746932185/browser/genuine-complete-after-cta.png",
+      "bytes": 32718,
+      "sha256": "e50cc6d43f8909d4b38c1cbcdfc71df18bb93ece83116da5ace3bf57136e969e",
+      "encoding": "identity"
+    },
+    {
+      "path": "native/task-overview-recovery/task/browser/genuine-complete-overview.png",
+      "source_file": "research/continuation/task-overview-recovery-native-11746932185/browser/genuine-complete-overview.png",
+      "bytes": 53063,
+      "sha256": "2037f102ea3c7c00fae007fc14e54f55e6ab63581f79a7d939474f67d81284e6",
+      "encoding": "identity"
+    },
+    {
+      "path": "native/task-overview-recovery/task/browser/genuine-complete.json.gz",
+      "source_file": "research/continuation/task-overview-recovery-native-11746932185/browser/genuine-complete.json",
+      "bytes": 12662,
+      "sha256": "37dcc680246d4ecfdad335b81ab3ef6567a594b067df41a689f213cfb87a97bd",
+      "encoding": "gzip",
+      "uncompressed_bytes": 146153,
+      "uncompressed_sha256": "8a313aa6743f47ebc3fc2b3f9f9dffa03336f0dcdfbdb6e0fe1f12567ee10634"
+    },
+    {
+      "path": "native/task-overview-recovery/task/browser/long-review-desktop-overview.png",
+      "source_file": "research/continuation/task-overview-recovery-native-11746932185/browser/long-review-desktop-overview.png",
+      "bytes": 67268,
+      "sha256": "4d5a6bb8677ea6dc836c24134208879ab8a48c972616bc9559ea1de7059c63f5",
+      "encoding": "identity"
+    },
+    {
+      "path": "native/task-overview-recovery/task/browser/long-review-desktop.json.gz",
+      "source_file": "research/continuation/task-overview-recovery-native-11746932185/browser/long-review-desktop.json",
+      "bytes": 8901,
+      "sha256": "87dd21cb8e6da8cfde4d65f33408a87cb792832d64803560ef1ccde3c0688a5f",
+      "encoding": "gzip",
+      "uncompressed_bytes": 94580,
+      "uncompressed_sha256": "a97f1e8375d1ed802b67e3d9d3902d35174299c3d187c434fd31c94a572c9ba3"
+    },
+    {
+      "path": "native/task-overview-recovery/task/browser/long-review-narrow-overview.png",
+      "source_file": "research/continuation/task-overview-recovery-native-11746932185/browser/long-review-narrow-overview.png",
+      "bytes": 47255,
+      "sha256": "46864e4b0f5de7e550f55bc67a5e43429ba010c62dec47dc7c768a6d19fadc66",
+      "encoding": "identity"
+    },
+    {
+      "path": "native/task-overview-recovery/task/browser/long-review-narrow.json.gz",
+      "source_file": "research/continuation/task-overview-recovery-native-11746932185/browser/long-review-narrow.json",
+      "bytes": 9193,
+      "sha256": "561f6dc78440c388d358b8c45824520f2166309edcd88ef1428427914b6e44c6",
+      "encoding": "gzip",
+      "uncompressed_bytes": 97626,
+      "uncompressed_sha256": "4e29d7555700081caba9292002891eac2598b47fafcb3dc80f07bfd9133acbe9"
+    },
+    {
+      "path": "native/task-overview-recovery/task/browser/provenance.json.gz",
+      "source_file": "research/continuation/task-overview-recovery-native-11746932185/browser/provenance.json",
+      "bytes": 11983,
+      "sha256": "fab229ab19f5ccb4d26e48c35814dffd2d32c4559f832789575c9c46849c101a",
+      "encoding": "gzip",
+      "uncompressed_bytes": 28189,
+      "uncompressed_sha256": "c904a76e98eaae5c4fe0f8bb9a8359b93f7ce97ee7d48ec70da81d8d4d56f894"
+    },
+    {
+      "path": "native/task-overview-recovery/task/browser/question-no-answer-after-cta.png",
+      "source_file": "research/continuation/task-overview-recovery-native-11746932185/browser/question-no-answer-after-cta.png",
+      "bytes": 47569,
+      "sha256": "65884e41c236cff66b483ad5c9edca00511f3522132f798c784405c83384a92f",
+      "encoding": "identity"
+    },
+    {
+      "path": "native/task-overview-recovery/task/browser/question-no-answer-overview.png",
+      "source_file": "research/continuation/task-overview-recovery-native-11746932185/browser/question-no-answer-overview.png",
+      "bytes": 55341,
+      "sha256": "a15529f43ec63eae1f01a546406f5d957ea29942aa9350b512686e1435e15a0d",
+      "encoding": "identity"
+    },
+    {
+      "path": "native/task-overview-recovery/task/browser/question-no-answer.json.gz",
+      "source_file": "research/continuation/task-overview-recovery-native-11746932185/browser/question-no-answer.json",
+      "bytes": 13698,
+      "sha256": "2a376f16cb19fa1e2983112f3126fde047b342ed6e9f49e65dfc9a39832c630d",
+      "encoding": "gzip",
+      "uncompressed_bytes": 152900,
+      "uncompressed_sha256": "a0604ad28f9d9c5f53e37df3a1650185c30226f3171b9ebdc739e0b78d5ac394"
+    },
+    {
+      "path": "native/task-overview-recovery/task/browser/results.json.gz",
+      "source_file": "research/continuation/task-overview-recovery-native-11746932185/browser/results.json",
+      "bytes": 96272,
+      "sha256": "d73b65518c7199d2ef9303d68be8ed0f303633946600934ebfb20ac7155f7686",
+      "encoding": "gzip",
+      "uncompressed_bytes": 1096863,
+      "uncompressed_sha256": "d90192b82604f4b00bf124633f58f9ca74a884db1c2b274780e320ed2f602164"
+    },
+    {
+      "path": "native/task-overview-recovery/task/browser/review-literal-after-cta.png",
+      "source_file": "research/continuation/task-overview-recovery-native-11746932185/browser/review-literal-after-cta.png",
+      "bytes": 40284,
+      "sha256": "c6e8695837ee82355e98dc0101dbb235fb3f3967e54fa9ab012c38da984e0866",
+      "encoding": "identity"
+    },
+    {
+      "path": "native/task-overview-recovery/task/browser/review-literal-overview.png",
+      "source_file": "research/continuation/task-overview-recovery-native-11746932185/browser/review-literal-overview.png",
+      "bytes": 58286,
+      "sha256": "8287cf4352e93263da4cdc94a061edf2aaa4c132d03049c7a4cdba7225ed8a60",
+      "encoding": "identity"
+    },
+    {
+      "path": "native/task-overview-recovery/task/browser/review-literal.json.gz",
+      "source_file": "research/continuation/task-overview-recovery-native-11746932185/browser/review-literal.json",
+      "bytes": 13616,
+      "sha256": "2cfff3856da26dc65b3a9d839b13f1588d2bee29e492034a1228897a31351371",
+      "encoding": "gzip",
+      "uncompressed_bytes": 159705,
+      "uncompressed_sha256": "83178a62f25da75ba9266c002907f5b91f457ee10c24d09b38237528891cef0a"
+    },
+    {
       "path": "observed-repository-state.json",
       "encoding": "derived-json",
-      "bytes": 12820,
-      "sha256": "f4f0118699a4fc2e50a91bc38d31f54a170349e5b36869ce26d5c98025e994e7",
+      "bytes": 16513,
+      "sha256": "0a203e31a930ad2db52b32b51c250791f2ce6aa32578ce361e77c177dfbcdc63",
       "source_file": "GitHub API observations at 2026-10-12T09:50:59Z and subsequent snapshots; append-only PR83/84/85 + main snapshot from research/continuation/after-evidence-pr-observation.json at 2026-10-12T11:27:00Z; exact CI from ci/estimate"
     },
     {

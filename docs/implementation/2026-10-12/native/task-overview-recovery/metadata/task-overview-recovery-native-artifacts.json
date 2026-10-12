@@ -1,0 +1,61 @@
+{
+  "artifacts": [
+    {
+      "id": 11747047119,
+      "name": "tabs-geometry",
+      "size_in_bytes": 1143619,
+      "url": "https://api.github.com/repos/it-novikov/iquipage-design-system/actions/artifacts/11747047119",
+      "archive_download_url": "https://api.github.com/repos/it-novikov/iquipage-design-system/actions/artifacts/11747047119/zip",
+      "expired": false,
+      "created_at": "2026-10-12T12:32:24Z",
+      "expires_at": "2026-10-26T12:32:23Z",
+      "updated_at": "2026-10-12T12:32:24Z",
+      "digest": "sha256:b86215ea373cce6ca91e0a5e858e62feb3048e14051b98e79d48acf7791b7df8",
+      "workflow_run": {
+        "id": 38249543808,
+        "repository_id": 1360587523,
+        "head_repository_id": 1360587523,
+        "head_branch": "fix/task-overview-recovery",
+        "head_sha": "1fd928e12b43b26f29ebcb190a5595c1d2618444"
+      }
+    },
+    {
+      "id": 11746992082,
+      "name": "estimate-popover",
+      "size_in_bytes": 2086655,
+      "url": "https://api.github.com/repos/it-novikov/iquipage-design-system/actions/artifacts/11746992082",
+      "archive_download_url": "https://api.github.com/repos/it-novikov/iquipage-design-system/actions/artifacts/11746992082/zip",
+      "expired": false,
+      "created_at": "2026-10-12T12:32:30Z",
+      "expires_at": "2026-10-26T12:32:29Z",
+      "updated_at": "2026-10-12T12:32:30Z",
+      "digest": "sha256:44f86e47ddec26346949694d94ecb39263350eb0fe9ba5949016a0897ae1894d",
+      "workflow_run": {
+        "id": 38249543808,
+        "repository_id": 1360587523,
+        "head_repository_id": 1360587523,
+        "head_branch": "fix/task-overview-recovery",
+        "head_sha": "1fd928e12b43b26f29ebcb190a5595c1d2618444"
+      }
+    },
+    {
+      "id": 11746932185,
+      "name": "task-overview-state",
+      "size_in_bytes": 2207510,
+      "url": "https://api.github.com/repos/it-novikov/iquipage-design-system/actions/artifacts/11746932185",
+      "archive_download_url": "https://api.github.com/repos/it-novikov/iquipage-design-system/actions/artifacts/11746932185/zip",
+      "expired": false,
+      "created_at": "2026-10-12T12:32:35Z",
+      "expires_at": "2026-10-26T12:32:34Z",
+      "updated_at": "2026-10-12T12:32:35Z",
+      "digest": "sha256:896fa56e4d28b8a7094b4a194d495426b06f00709487e6b8a8782425827e4065",
+      "workflow_run": {
+        "id": 38249543808,
+        "repository_id": 1360587523,
+        "head_repository_id": 1360587523,
+        "head_branch": "fix/task-overview-recovery",
+        "head_sha": "1fd928e12b43b26f29ebcb190a5595c1d2618444"
+      }
+    }
+  ]
+}

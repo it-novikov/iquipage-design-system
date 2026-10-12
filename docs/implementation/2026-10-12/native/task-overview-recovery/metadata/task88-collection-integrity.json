@@ -1,0 +1,168 @@
+{
+  "schema": 1,
+  "head": "1fd928e12b43b26f29ebcb190a5595c1d2618444",
+  "whole_tree": "c039d65a75d1e4312b5931cc76a4d28fb7ef8e08",
+  "actual_checkout": "72f862293b80dbbb89352b128eacd592db86ec49",
+  "verified_reviewer_collection_entries": 45,
+  "verified_zip_count": 6,
+  "verified_archive_members": 210,
+  "png_references": 155,
+  "png_existing_matches": 124,
+  "new_unique_png": 31,
+  "new_png_files": {
+    "e187fcdf5ddc129e35f766e8e373f21f1832f52f16cd6e7784c35ffc492854a9": [
+      "research/continuation/task88-estimate-11746992082/browser/outside-points-keyboard-cancel-final.png"
+    ],
+    "7f2c2b6c731b15f1f600252958e3f52fc91f7b7a3cd7a80050b2cdb1c27735b6": [
+      "research/continuation/task88-estimate-11746992082/browser/task-desktop-light-final.png"
+    ],
+    "e4b963ca28050d5471cc08f5e802fef34c6209d5d7c38831cd67d53d9165aa57": [
+      "research/continuation/task88-estimate-11746992082/browser/task-desktop-light-after-open.png"
+    ],
+    "21fda01bbabb2149eebe22cec55977cf3d00f7f7c894795385ff59b55494895e": [
+      "research/continuation/task88-estimate-11746992082/browser/task-narrow-dark-after-open.png"
+    ],
+    "eb66e62c6057b48e93adc8eafb0a836937a19d15f39cfb796252f722452d42de": [
+      "research/continuation/task88-estimate-11746992082/browser/task-narrow-dark-final.png"
+    ],
+    "526d91019774db26537a49a3c72a7e5e763697b836825f8e8c48019d6fede937": [
+      "research/continuation/task88-estimate-11746992082/browser/task-narrow-light-after-open.png"
+    ],
+    "51687d31f1f64a4e038d5d8d4250fa55d18b96c7fe02cdb632203d9a47d66413": [
+      "research/continuation/task88-estimate-11746992082/browser/task-narrow-light-final.png"
+    ],
+    "a4beb1bb3c39887be464e0c0a333300aab52539465145b9c286b386732ef2104": [
+      "research/continuation/task88-estimate-11746992082/browser/task-narrow-text200-after-open.png"
+    ],
+    "dba994446666adff7c5229d5acdc0ecee72d0d8373e82ce20c979c89946c8bf1": [
+      "research/continuation/task88-estimate-11746992082/browser/task-narrow-text200-final.png"
+    ],
+    "5e8fa4cc273b3281cd9006afc57ed1718f0a8f1bc1354220af3d797a0064f05b": [
+      "research/continuation/task88-maps-11748001878/desktop-light-related-task.png"
+    ],
+    "b9d8220ec0bb1c85efc54aa393446b0d65303c472be3c12476172ab75b3ae011": [
+      "research/continuation/task88-maps-11748001878/initial-map-map-recovery.png"
+    ],
+    "030618095ca4ddfa88fbb34da2a0d4ee4dd5d0e7c94b435b2f0e915e329843bc": [
+      "research/continuation/task88-tabs-11747047119/browser/desktop-dark-board-task-panel.png"
+    ],
+    "d12a04f4175ab0dc12e4bb221a99f5fedecf674bb77f523c069cf59b0ccfb67f": [
+      "research/continuation/task88-tabs-11747047119/browser/desktop-dark-wiki-draft-preserved.png"
+    ],
+    "051b54d34735ec4c900644181dd9e066db1e61e121a617a6c5f6bc4400bf8da1": [
+      "research/continuation/task88-tabs-11747047119/browser/desktop-light-board-task-panel.png"
+    ],
+    "17f46ae83e82d5ef33e0feb9a5761b9b69c7c2982b655c41d47cf3c10068d0da": [
+      "research/continuation/task88-tabs-11747047119/browser/desktop-light-nested-nested-task.png"
+    ],
+    "8be37e500ecd822be7963c911438dad57307aec2b20df38acfbda23c3c651482": [
+      "research/continuation/task88-tabs-11747047119/browser/desktop-light-wiki-draft-preserved.png"
+    ],
+    "96aedfc8ad5a1306a11a11fcf2551d33b86e6a5149b01e2dbbecb1b6b6ec9706": [
+      "research/continuation/task88-tabs-11747047119/browser/narrow-dark-board-task-panel.png"
+    ],
+    "1a4c7cbe5f5497b105fbcfa54a11aee588e9b24f28e3be905127870313092069": [
+      "research/continuation/task88-tabs-11747047119/browser/narrow-light-board-task-panel.png"
+    ],
+    "b1af8725bb687c74696628c8e1522209627ac17ab69a5385306cba599a35747f": [
+      "research/continuation/task88-tabs-11747047119/browser/text200-light-board-task-panel.png"
+    ],
+    "1b2e7983e517452fbf31777f1da2312a66635887ddcf49b3de3e8f9913061de9": [
+      "research/continuation/task-overview-recovery-native-11746932185/browser/completed-blocked-after-cta.png"
+    ],
+    "9c8f37e28cc16acbc8ab2a7a26efe5147cdde3cec01a82e638038057bfc6f4c2": [
+      "research/continuation/task-overview-recovery-native-11746932185/browser/completed-blocked-overview.png"
+    ],
+    "5f53f1f4c9dbcf9eae323794005a73f4e8caa5838730ab9e613cc8b9f6878e13": [
+      "research/continuation/task-overview-recovery-native-11746932185/browser/completed-rejected-overview.png"
+    ],
+    "4d4040fdf066343d2a15d5616ce43287fbd27d6cd5fdfcef48c9a022663affcd": [
+      "research/continuation/task-overview-recovery-native-11746932185/browser/completed-rejected-after-cta.png"
+    ],
+    "e50cc6d43f8909d4b38c1cbcdfc71df18bb93ece83116da5ace3bf57136e969e": [
+      "research/continuation/task-overview-recovery-native-11746932185/browser/genuine-complete-after-cta.png"
+    ],
+    "2037f102ea3c7c00fae007fc14e54f55e6ab63581f79a7d939474f67d81284e6": [
+      "research/continuation/task-overview-recovery-native-11746932185/browser/genuine-complete-overview.png"
+    ],
+    "4d5a6bb8677ea6dc836c24134208879ab8a48c972616bc9559ea1de7059c63f5": [
+      "research/continuation/task-overview-recovery-native-11746932185/browser/long-review-desktop-overview.png"
+    ],
+    "46864e4b0f5de7e550f55bc67a5e43429ba010c62dec47dc7c768a6d19fadc66": [
+      "research/continuation/task-overview-recovery-native-11746932185/browser/long-review-narrow-overview.png"
+    ],
+    "65884e41c236cff66b483ad5c9edca00511f3522132f798c784405c83384a92f": [
+      "research/continuation/task-overview-recovery-native-11746932185/browser/question-no-answer-after-cta.png"
+    ],
+    "a15529f43ec63eae1f01a546406f5d957ea29942aa9350b512686e1435e15a0d": [
+      "research/continuation/task-overview-recovery-native-11746932185/browser/question-no-answer-overview.png"
+    ],
+    "8287cf4352e93263da4cdc94a061edf2aaa4c132d03049c7a4cdba7225ed8a60": [
+      "research/continuation/task-overview-recovery-native-11746932185/browser/review-literal-overview.png"
+    ],
+    "c6e8695837ee82355e98dc0101dbb235fb3f3967e54fa9ab012c38da984e0866": [
+      "research/continuation/task-overview-recovery-native-11746932185/browser/review-literal-after-cta.png"
+    ]
+  },
+  "full_attempt1": {
+    "status": "FAILED",
+    "source_input_hashes_verified_against_exact_head": 1246,
+    "source_before_after_bytes_equal": true,
+    "source_fingerprint": "4fa6a94e01c56b8f843ababb27cf720fdf44f8bdbfe9c05984dd8813a3332729",
+    "certificate_sha256": "5aaa50adebfa3859e98dab67b6d3509df5d485740d5566d145a33d8b78b77aa8",
+    "checks": [
+      {
+        "name": "verification-tools",
+        "exitCode": 0,
+        "signal": null,
+        "passed": true,
+        "log": "verification-tools.log"
+      },
+      {
+        "name": "library-build",
+        "exitCode": 0,
+        "signal": null,
+        "passed": true,
+        "log": "library-build.log"
+      },
+      {
+        "name": "library-tests",
+        "exitCode": 0,
+        "signal": null,
+        "passed": true,
+        "log": "library-tests.log"
+      },
+      {
+        "name": "product-boundaries",
+        "exitCode": 0,
+        "signal": null,
+        "passed": true,
+        "log": "product-boundaries.log"
+      },
+      {
+        "name": "product-build",
+        "exitCode": 0,
+        "signal": null,
+        "passed": true,
+        "log": "product-build.log"
+      },
+      {
+        "name": "product-tests",
+        "exitCode": 1,
+        "signal": null,
+        "passed": false,
+        "log": "product-tests.log"
+      },
+      {
+        "name": "source-stability",
+        "passed": true,
+        "log": "source-stability.log"
+      }
+    ],
+    "only_failed_check": "product-tests",
+    "failure": "Gradle distribution 9.6.1 download HTTP 504 before backend test execution",
+    "detached_product_not_run": true,
+    "image_not_run": true
+  },
+  "no_personal_visual_review_claim_by_preserver": true
+}

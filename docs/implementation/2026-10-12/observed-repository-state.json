@@ -280,6 +280,78 @@
         "productAdopted": false
       },
       "meaning": "Resources read separately, not atomic. PR83 merge was external to this task; equal main tree is integration observation, not a new native run. PR88 native acceptance is limited; its full CI retry and broader UX are open. No PR merge/deploy performed by root."
+    },
+    {
+      "observedAt": "2026-10-12T13:19:31Z",
+      "main": "41ebe4823471072ed6dbb405fbd5e755852eec3f",
+      "mainTree": "e3aa1d9369b6e6e17a388fb394e7699471ff9ced",
+      "parallelPR89": {
+        "head": "9bdf7871717bb2e9e11758f9641811536878de2d",
+        "mergedAt": "2026-10-12T12:59:54Z",
+        "rootPerformedMerge": false,
+        "scope": "Restore VT1 overview/model/style/test and historical PNGs"
+      },
+      "parallelPR90": {
+        "head": "5bd09d647f79f06c7a7c844f91a6914907ed8e8b",
+        "branch": "feat/task-vt1-compact",
+        "state": "open",
+        "sourceScope": "3 files: overview model, renderer, model test",
+        "taskStateNative": "NOT_RUN in existing Tabs/Estimate job",
+        "nextScope": "Test-only current Compact state/long-content verification; do not overwrite runtime with PR88"
+      },
+      "taskRecoveryPR88": {
+        "head": "1fd928e12b43b26f29ebcb190a5595c1d2618444",
+        "actualCheckout": "72f862293b80dbbb89352b128eacd592db86ec49",
+        "wholeTree": "c039d65a75d1e4312b5931cc76a4d28fb7ef8e08",
+        "nativeReview": "APPROVE_IN_SCOPE",
+        "nativeEvidence": "native/task-overview-recovery/README.md",
+        "fullRun": 38249543772,
+        "fullAttempt2Job": 114816147202,
+        "fullAttempt2CompletedAt": "2026-10-12T13:03:54Z",
+        "fullAttempt2": "PASS",
+        "certificateChecksPassed": 8,
+        "nodeTestCounts": {
+          "verificationTools": 1,
+          "library": 478,
+          "product": 610,
+          "detached": 610
+        },
+        "nodeCountsAreStandaloneBackendCounts": false,
+        "sourceHashesMatched": 1246,
+        "sourceFingerprint": "4fa6a94e01c56b8f843ababb27cf720fdf44f8bdbfe9c05984dd8813a3332729",
+        "fullEvidence": "ci/task-overview-recovery/attempt-2/README.md",
+        "attempt1Preserved": "ci/task-overview-recovery/attempt-1/README.md",
+        "openUX": [
+          "F1 current composition needs new Compact rendering",
+          "F2 status language in full Work",
+          "F3 noAnswer form explanation",
+          "D1 actual keyboard diagnosis"
+        ],
+        "acceptanceTransferredToNewMainOrPR90": false
+      },
+      "propertyPR91": {
+        "head": "945169fff6fd7e38b081a76a0e20d71b3956a365",
+        "headTree": "b50846b2e9762b5f7782adced8fd5e1ff21256ed",
+        "actualCheckout": "c267edee80d49660e22fa03bc4442c19e3b4d2d1",
+        "actualCheckoutTree": "f44996dd0b3f1bae8358e0b1ece17f8c038bb1d6",
+        "wholeTreeEquality": false,
+        "actualMergeParents": [
+          "41ebe4823471072ed6dbb405fbd5e755852eec3f",
+          "945169fff6fd7e38b081a76a0e20d71b3956a365"
+        ],
+        "privateVersion": "0.6.0-vnext.56",
+        "archiveSHA256": "a3307cf012d307ea476056e36bdee601f8eef9efad37c78dd96aaef6ccb00d5f",
+        "sourceR1": "Both P2 corrected; APPROVED_FOR_NATIVE",
+        "run": 38253208875,
+        "job": 114824500556,
+        "artifact": 11749167457,
+        "artifactSHA256": "ebca49537ca8e49cddabb3fce486e9a5f22b7fe97e4dffe1d3fbabbb6c9e85d5",
+        "automaticPairedComparison": "PASS; not visual or anchor acceptance",
+        "nativeR2": "Review being finalized; unnecessary wrapping/baseline rhythm and A3 capture-side-effect require correction/diagnosis",
+        "productAdopted": false,
+        "productVersion": "0.6.0-vnext.54"
+      },
+      "meaning": "Resources observed separately, not an atomic snapshot. Main merges performed by parallel work. Old Task88 native/full belongs to exact frozen tree; PR90 needs its own overview scenarios. PR91 actual merge contains restored Task; trial input verification does not imply whole-tree equality. Root performed no PR merge, deployment or npm publication."
     }
   ]
 }
