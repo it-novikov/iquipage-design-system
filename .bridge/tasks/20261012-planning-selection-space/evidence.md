@@ -3,7 +3,17 @@
 Author: GPT-6 Astra (AI agent), `gpt-6-astra@localhost`.
 Baseline: `f5f941afa4e9be8a709e6de67a92bacf5a9397ca`.
 
-## Current scoped result: actual browser PASS, full workflow pending
+## Current integration checkpoint: Planning browser PASS; replacement full run required
+
+The completed full run [38212609809 / job 114690036607](https://github.com/it-novikov/iquipage-design-system/actions/runs/38212609809/job/114690036607) on published head `dea34bf64ddb469588899f929c5748ed840ff14f` failed NT05: 566 product tests passed and one failed. Library/build/boundary checks passed; detached verification did not run and the runtime image was skipped. `sourceStable:true` only establishes source stability. The successful certificate-print step is not a successful verification result. Artifact `11730566938` has SHA256 `01f4e920548357ba713cd6d82e4c41d37d7684259078d14c0ba9fa27309d4ba9`.
+
+This feature branch incorporates the exact independently reviewed test prerequisite from [PR78](https://github.com/it-novikov/iquipage-design-system/pull/78), frozen published commit `2424d4724ec411c84b54b85634dbf54228b0ebd8`, as a second merge parent. Its test/runtime checkpoint is `fedf04cb8e4c443b2e4567fb473a1f600868f2bc`; the later checkpoint preserves the independent R2 report only. The notification test is byte-identical to that prerequisite. The integration changes no Planning runtime, fixture, browser driver, workflow, package manifest, lock or vendor archive relative to `dea34bf6`.
+
+PR78 replaces an invalid lexicographic timestamp assertion with deterministic microsecond order and cursor/read-boundary assertions. Its [independent R2](../20261012-notification-time-order/reviews/R2.md) approves the code/test scope and closes the two R1 findings. Actual backend/full-gate evidence is still pending and is not inferred from that review. This dependency is integrated into the Planning feature branch only; neither PR is merged into `main`.
+
+S3, A3 and readiness remain open until the existing full workflow verifies the combined head. Prior Planning geometry evidence below remains valid within its unchanged frontend scope. No visual criterion or existing gate is relaxed.
+
+## Scoped browser result and historical R3 checkpoint
 
 Run `38211016913`, job `114684962493`, produced the intended historical red and an actual **candidate browser PASS** on reviewed tree `9ac5da101814249754649b2d8591534f7685fb85`. Independent [R3](reviews/R3.md) closed F2 and gave scoped approve, including the previously missing narrow menu-return geometry and frame. S2 and A1/A2 are satisfied within their agreed synthetic frontend boundary. This does not establish persistence, the complete Task route or release readiness.
 
