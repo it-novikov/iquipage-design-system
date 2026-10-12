@@ -1,0 +1,43 @@
+{
+  "schema_version": "1.1",
+  "run_id": "20261012-planning-required-dates",
+  "skill": "iquipage-implement",
+  "mode": "targeted",
+  "scope_ref": ".bridge/tasks/20261012-planning-required-dates/task.md",
+  "approval_ref": "Owner-accepted PF09 / early WP07 caller fix; root task 2026-10-12",
+  "ds_sha256": "989fab4822db78e10bfeeb62ad2724d8bb389a08ddf012c196b469af33cde758",
+  "app_fingerprint": {
+    "base_commit": "2424d4724ec411c84b54b85634dbf54228b0ebd8",
+    "caller": "products/sprintique/ui/planning/src/containers-dialogs.js",
+    "caller_sha256": "4417243af2058f08c8a522776362fd056f5deca76681acd802b7cb8f63c2cd81",
+    "served_build": "unknown",
+    "implementation_commit": "cdfd23f9fe857dfa4e9a22e4c541799b95926187",
+    "implementation_tree": "76d2702a41628e8c5e431aee01f04e84b9ffadf0"
+  },
+  "plan_sha256": null,
+  "completed": [
+    "S1: source cause, options and exact .52 date-field contract",
+    "S2: two static required attributes; existing Planning checks 7/7; syntax, boundary/style, public binding, diff/bridge PASS",
+    "R1: independent source/contract approve on 0f95d415; immutable original SHA256 61004a3968362f180c6edeb21463eecfba2811403f8e9c899c829d6040aca1d8"
+  ],
+  "open_findings": [
+    "PF09 shared clear label semantics remain separate WP07 work; no DS change",
+    "S3: exact published candidate full CI pending after root publication"
+  ],
+  "blockers": [
+    "Native build/typecheck/full gates and real browser/human/persistence acceptance NOT_RUN; known /proc/prerequisite limits were not retried"
+  ],
+  "evidence_paths": [
+    ".bridge/tasks/20261012-planning-required-dates/task.md",
+    ".bridge/tasks/20261012-planning-required-dates/reviews/R1.md",
+    ".bridge/tasks/20261012-planning-required-dates/reviews/evidence/independent-R1.md"
+  ],
+  "next_action": "Root publishes the reviewed runtime plus documentation-only review packet, opens the authorized draft PR, then accepts exact CI. No native/browser/full PASS inferred from the base.",
+  "do_not_repeat": [
+    "No new browser harness or attribute-mirroring test for this patch",
+    "Do not retry local Chromium/TS7/JDK25/PG18 setup",
+    "No npm install; temporary verified dependency symlink was removed"
+  ],
+  "external_side_effects_authorized": false,
+  "updated_at": "2026-10-12T08:43:27.607644+00:00"
+}
