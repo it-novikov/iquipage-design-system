@@ -214,4 +214,4 @@ Menu touch sizing: [public control contracts](docs/control-contracts.md) (vnext.
 
 Fluid page canvas and inline task signals: [public composition](docs/page-canvas.md) (vnext.52).
 
-Tabs scrolling, underline and focus geometry: [public control contracts](docs/control-contracts.md#tabs-geometry-vnext53) (vnext.53).
+Tabs scrolling, underline and focus geometry: [public control contracts](docs/control-contracts.md#tabs-geometry-vnext54) (vnext.54).

@@ -43,10 +43,21 @@ async function geometry(list){
     const rect=node=>{const r=node.getBoundingClientRect();return {x:r.x,y:r.y,top:r.top,right:r.right,bottom:r.bottom,left:r.left,width:r.width,height:r.height};};
     const r=rect(el),s=getComputedStyle(el),before=el.scrollTop;el.scrollTop=1e6;const maxScrollTop=el.scrollTop;el.scrollTop=before;
     const viewport={left:r.left+el.clientLeft,top:r.top+el.clientTop,right:r.left+el.clientLeft+el.clientWidth,bottom:r.top+el.clientTop+el.clientHeight};
+    const ancestors=[];
+    for(let parent=el.parentElement,level=0;parent;parent=parent.parentElement,level++){
+      const style=getComputedStyle(parent),documentScroller=parent===document.scrollingElement;
+      if(!documentScroller&&!/(auto|scroll|hidden)/.test(style.overflowX+' '+style.overflowY))continue;
+      const box=rect(parent),port=documentScroller?{left:0,top:0,right:innerWidth,bottom:innerHeight}
+        :{left:box.left+parent.clientLeft,top:box.top+parent.clientTop,right:box.left+parent.clientLeft+parent.clientWidth,bottom:box.top+parent.clientTop+parent.clientHeight};
+      ancestors.push({level,tag:parent.tagName,id:parent.id,className:parent.className,documentScroller,viewport:port,
+        scrollLeft:parent.scrollLeft,scrollTop:parent.scrollTop,maxScrollLeft:Math.max(0,parent.scrollWidth-parent.clientWidth),maxScrollTop:Math.max(0,parent.scrollHeight-parent.clientHeight),
+        overflowX:style.overflowX,overflowY:style.overflowY,scrollPadding:[style.scrollPaddingTop,style.scrollPaddingRight,style.scrollPaddingBottom,style.scrollPaddingLeft]});
+    }
     return {rect:r,viewport,clientWidth:el.clientWidth,clientHeight:el.clientHeight,scrollWidth:el.scrollWidth,scrollHeight:el.scrollHeight,
       scrollTop:el.scrollTop,scrollLeft:el.scrollLeft,maxScrollTop,overflowX:s.overflowX,overflowY:s.overflowY,
       borderBottom:s.borderBottomWidth,padding:[s.paddingTop,s.paddingRight,s.paddingBottom,s.paddingLeft],backgroundImage:s.backgroundImage,
       rootFontSize:getComputedStyle(document.documentElement).fontSize,devicePixelRatio,visualViewportScale:visualViewport?.scale||null,
+      context:{listRect:r,window:{scrollX,scrollY,width:innerWidth,height:innerHeight},ancestors},
       tabs:[...el.querySelectorAll('[role="tab"]')].map(tab=>{
         const b=rect(tab),t=getComputedStyle(tab),range=document.createRange();range.selectNodeContents(tab);const text=rect(range);
         const outset=Math.max(0,parseFloat(t.outlineWidth)+parseFloat(t.outlineOffset));
@@ -93,14 +104,31 @@ async function capture(page,list,entry,name,{focus=false}={}){
   await list.screenshot({path:join(evidence,`${entry.name}-${name}.png`)});
   validGeometry(value,entry.name+'/'+name,{focus});return value;
 }
+function validContext(before,after,label){
+  const box=before.listRect;
+  for(const ancestor of before.ancestors){
+    const current=after.ancestors.find(item=>item.level===ancestor.level&&item.tag===ancestor.tag&&item.id===ancestor.id);
+    assert.ok(current,label+': outer scroll container retained');
+    const port=ancestor.viewport,padding=ancestor.scrollPadding.map(value=>Number.parseFloat(value)||0);
+    // When the whole strip already fits in an ancestor's viewing area, revealing a tab must not move that ancestor.
+    // Panel changes may shorten content: allow only the resulting scroll-range clamp.
+    if(box.left>=port.left+padding[3]-0.51&&box.right<=port.right-padding[1]+0.51)
+      assert.ok(Math.abs(current.scrollLeft-Math.min(ancestor.scrollLeft,current.maxScrollLeft))<=0.51,label+': no outer horizontal jump');
+    if(box.top>=port.top+padding[0]-0.51&&box.bottom<=port.bottom-padding[2]+0.51)
+      assert.ok(Math.abs(current.scrollTop-Math.min(ancestor.scrollTop,current.maxScrollTop))<=0.51,label+': no outer vertical jump');
+  }
+}
 async function intent(page,list,entry,prefix,input,target,action){
   const ownerId=await list.locator('[role="tab"]').first().getAttribute('id');assert.ok(ownerId,prefix+': stable tab owner identity');
   const before=(await probe(page)).changes.filter(event=>event.ownerId===ownerId).length;
+  const contextBefore=(await geometry(list)).context;
   await action();await settle(page);
   const events=(await probe(page)).changes.filter(event=>event.ownerId===ownerId).slice(before);
-  entry.intents.push({list:prefix,ownerId,input,target,eventDelta:events.length,events});
+  const value=await geometry(list);
+  entry.intents.push({list:prefix,ownerId,input,target,eventDelta:events.length,events,contextBefore,geometry:value});
   assert.deepEqual(events.map(event=>event.value),[target],prefix+'/'+input+': exactly one matching public change per intent');
-  return geometry(list);
+  if(input!=='pointer')validContext(contextBefore,value.context,prefix+'/'+input);
+  return value;
 }
 async function keyboard(page,list,entry,prefix){
   const all=await list.locator('[role="tab"]:not(:disabled)').evaluateAll(tabs=>tabs.map(tab=>tab.dataset.tab));
