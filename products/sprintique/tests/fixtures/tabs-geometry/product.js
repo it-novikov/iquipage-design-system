@@ -12,8 +12,9 @@ import {registerCore,version} from '@iquipage/web/core';
 import {mountTaskBoard} from '../../../ui/src/board/board.js';
 import {openTaskDialog} from '../../../ui/src/board/task-dialog.js';
 import {mountWiki} from '../../../web/wiki.js';
+import {wikiHash} from '../../../web/wiki-model.js';
 import {mountProjectNavigation} from '../../../ui/planning/src/project-navigation.js';
-import {project,person,navigationContext,tasks,syntheticRepository} from './repository.js';
+import {project,person,navigationContext,tasks,wikiPageId,syntheticRepository} from './repository.js';
 
 const params=new URLSearchParams(location.search),surface=params.get('surface')||'board';
 Object.assign(document.documentElement.dataset,{theme:params.get('theme')||'light',density:params.get('density')||'comfortable'});
@@ -30,7 +31,7 @@ try{
   });
   nav.setRoute(surface==='wiki'?'wiki':'tasks');nav.setTheme(document.documentElement.dataset.theme);
   if(surface==='wiki'){
-    root.dataset.section='wiki';history.replaceState(null,'','#wiki/page-1');
+    root.dataset.section='wiki';history.replaceState(null,'',wikiHash(wikiPageId));
     host=await mountWiki(root,{repository:fixture.repository,project});
   }else if(surface==='nested'){
     history.replaceState(null,'','#task/TFX-101');

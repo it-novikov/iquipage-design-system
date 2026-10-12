@@ -8,7 +8,7 @@ owner: it-novikov
 branch: fix/tabs-scroll-geometry
 base: f5f941afa4e9be8a709e6de67a92bacf5a9397ca
 created: 2026-10-12
-updated: 2026-10-12T07:14:29Z
+updated: 2026-10-12T07:24:12Z
 links:
 ---
 
@@ -34,13 +34,15 @@ links:
 
 ## Передача
 
-- **Состояние:** Diagnostic .52 fixtures and immutable plan ready. Local actual-entry build, product boundaries, syntax, bridge/diff checks PASS. Library npm ci --offline and build PASS; npm test 478/478, skipped 0. Native browser remains NOT_RUN here.
-- **Сейчас:** S1 — diagnostic checkpoint ready for native Actions; no DS or product runtime change.
-- **Дальше:** Root publishes frozen diagnostic commit and returns native Chromium baseline artifacts.
-- **Незакоммичено:** Only bridge, fixture, runner and workflow. Temporary product node_modules symlink is deliberately untracked and will not be committed.
-- **Рабочая копия:** 9 файл(ов): .github/workflows/tabs-geometry.yml, products/sprintique/tests/fixtures/tabs-geometry/acceptance-plan.json, products/sprintique/tests/fixtures/tabs-geometry/minimal.html, products/sprintique/tests/fixtures/tabs-geometry/minimal.js, products/sprintique/tests/fixtures/tabs-geometry/product.html, products/sprintique/tests/fixtures/tabs-geometry/product.js, products/sprintique/tests/fixtures/tabs-geometry/repository.js, products/sprintique/tests/tabs-geometry-browser.mjs, products/sprintique/node_modules (10 files changed, 567 insertions(+)) · HEAD f5f941af
-- **Ловушки:** local Chromium падает до `about:blank` без `/proc`; TypeScript 7 nativecompiler требует `/proc/self/exe`; JDK25/PG18 отсутствуют. Эти unavailable tests повторно не запускаются. CI Ubuntu24.04/PW1.62.1 нужен для actual browser. Для local fixture используется временный symlink node_modules из repo-maps: product manifest SHA `5c1ec083a2ab611e83c112a3786ebd2de1aa894da49fbf4494b3045d3582942e`, lock SHA `3399e2333d8104f75e792cf100d3f149a62a9e361961bf4df1af4e46f7f09254` и archive SHA совпали; CI всегда делает isolated npm ci.
-- **Проверка:** From products/sprintique: node tests/tabs-geometry-browser.mjs --build-only; npm run check:boundaries. Native browser via .github/workflows/tabs-geometry.yml.
+- **Состояние:** Native Chromium 151 first baseline: minimal and actual Task/Board all 10 profiles recorded; both desktop-light recognizers reproduce clientHeight45/scrollHeight46/maxScrollTop1. Global focus extends 4px above and 4.5px below the viewport. Wiki first profile failed because fixture used an invalid hash; remaining Wiki and nested cases NOT_RUN. Fixture now uses wikiHash(pageId), checked by the actual parser. Local build-only, boundaries and syntax PASS.
+- **Сейчас:** S1 — fixture-only route correction ready; DS/product runtime unchanged.
+- **Дальше:** Root publishes this checkpoint and repeats the frozen native baseline before any common CSS change.
+- **Незакоммичено:** Fixture route, actual route assertion, failure diagnostics and bridge checkpoint only.
+- **Рабочая копия:** 3 файл(ов): products/sprintique/tests/fixtures/tabs-geometry/product.js, products/sprintique/tests/fixtures/tabs-geometry/repository.js, products/sprintique/tests/tabs-geometry-browser.mjs (3 files changed, 18 insertions(+), 7 deletions(-)) · HEAD cd064536
+- **Ловушки:**
+  - local Chromium падает до `about:blank` без `/proc`; TypeScript 7 nativecompiler требует `/proc/self/exe`; JDK25/PG18 отсутствуют. Эти unavailable tests повторно не запускаются. CI Ubuntu24.04/PW1.62.1 нужен для actual browser. Для local fixture используется временный symlink node_modules из repo-maps: product manifest SHA `5c1ec083a2ab611e83c112a3786ebd2de1aa894da49fbf4494b3045d3582942e`, lock SHA `3399e2333d8104f75e792cf100d3f149a62a9e361961bf4df1af4e46f7f09254` и archive SHA совпали; CI всегда делает isolated npm ci.
+  - First Actions run 38216985723, artifact11732089788 SHA2563173d7563c148486948b203dafbd59fa2fadeba8118b777e5006e6fc7e24bf5e. Its merge snapshot fbe7a62e has the same tree as diagnostic cd064536. Permissions already correct: Wiki requires tasks.write, which the fixture has. Local Chromium/TS7/JDK25/PG18 remain unavailable; no repeated execution or PASS claim. Product node_modules is now a separate ignored copy, so package adoption cannot modify the shared Maps dependencies.
+- **Проверка:** Product: node tests/tabs-geometry-browser.mjs --build-only; npm run check:boundaries. Native: .github/workflows/tabs-geometry.yml. Acceptance plan remains SHA25679821edf821ead98f5666d9e87014e427394fbbbf906948cb464c53f6c19b0a9.
 
 ## План
 

@@ -10,7 +10,8 @@ import {join,resolve} from 'node:path';
 import {build,createServer} from 'vite';
 import {validateTask} from '../ui/src/tasks.js';
 import {readProjectContext} from '../ui/planning/src/navigation-model.js';
-import {project,navigationContext,tasks} from './fixtures/tabs-geometry/repository.js';
+import {wikiRoute,wikiHash} from '../web/wiki-model.js';
+import {project,navigationContext,tasks,wikiPageId} from './fixtures/tabs-geometry/repository.js';
 
 const product=fileURLToPath(new URL('../',import.meta.url)),fixtureRoot=join(product,'tests/fixtures/tabs-geometry');
 const evidence=resolve(process.env.TABS_EVIDENCE_DIR||join(product,'output/tabs-geometry'));
@@ -29,7 +30,7 @@ const result={scope:'Exact public DS and actual Task/Board/Wiki frontend with sy
   status:'NOT_RUN',phase:plan.phase,buildOnly,sourceRevision:process.env.TABS_SOURCE_REVISION||null,createdAt:new Date().toISOString(),node:process.version,
   package:plan.package_version,archiveSHA256:plan.ds_archive_sha256,planSHA256:sha(planBytes),environment:plan.environment,
   profiles:[],pageErrors:[],externalRequests:[],sourceSHA256:{}};
-for(const file of ['package.json','package-lock.json','ui/src/board/board.js','ui/src/board/task-dialog.js','ui/src/board/board.css','web/wiki.js','web/wiki.css',
+for(const file of ['package.json','package-lock.json','ui/src/board/board.js','ui/src/board/task-dialog.js','ui/src/board/board.css','web/wiki.js','web/wiki-model.js','web/wiki.css',
   'tests/fixtures/tabs-geometry/minimal.html','tests/fixtures/tabs-geometry/minimal.js','tests/fixtures/tabs-geometry/product.html','tests/fixtures/tabs-geometry/product.js',
   'tests/fixtures/tabs-geometry/repository.js','tests/tabs-geometry-browser.mjs'])result.sourceSHA256[file]=sha(await readFile(join(product,file)));
 let server,browser;
@@ -176,12 +177,20 @@ async function runProfile(profile,surface,baseURL){
     if(surface==='minimal')await minimal(page,entry);else if(surface==='board')await taskBoard(page,entry);else if(surface==='wiki')await wiki(page,entry);else await nested(page,entry);
     entry.adapter=await probe(page);assert.deepEqual(entry.adapter.unsupported,[],'no unsupported synthetic operations');
     entry.status=candidate?'PASS':'BASELINE_RECORDED';
-  }catch(error){entry.status='FAIL';entry.error=error.stack;await page.screenshot({path:join(evidence,entry.name+'-failure.png')}).catch(()=>{});throw error;}
+  }catch(error){
+    entry.status='FAIL';entry.error=error.stack;
+    entry.failureContext=await page.evaluate(()=>({routeHash:location.hash,renderedText:document.querySelector('#host-view')?.innerText.slice(0,3000),
+      ready:window.tabsGeometryProbe?.ready,bootstrapError:window.tabsGeometryProbe?.bootstrapError,
+      unsupported:window.tabsGeometryProbe?.unsupported,attempts:window.tabsGeometryProbe?.attempts})).catch(cause=>({error:cause.message}));
+    await page.screenshot({path:join(evidence,entry.name+'-failure.png')}).catch(()=>{});throw error;
+  }
   finally{await context.close();}
 }
 
 try{
-  tasks.forEach(validateTask);assert.equal(readProjectContext(navigationContext).id,project.id);result.fixtureContracts='PASS';
+  tasks.forEach(validateTask);assert.equal(readProjectContext(navigationContext).id,project.id);
+  assert.deepEqual(wikiRoute(wikiHash(wikiPageId)),{kind:'page',id:wikiPageId},'fixture Wiki page uses the actual route contract');
+  result.fixtureContracts='PASS';
   if(buildOnly){
     const bundles=await build({configFile:false,root:fixtureRoot,logLevel:'error',build:{write:false,minify:false,emptyOutDir:false,
       rollupOptions:{input:{minimal:join(fixtureRoot,'minimal.html'),product:join(fixtureRoot,'product.html')}}}});

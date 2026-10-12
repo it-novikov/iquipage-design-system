@@ -9,7 +9,8 @@ const task=(id,displayId,title)=>({id,displayId,title,projectId:project.id,revis
   coverAttachmentId:null,coverCrop:null,createdAt:'2026-10-01T09:00:00Z',updatedAt:'2026-10-01T09:00:00Z',createdById:person.id,createdByName:person.name});
 export const tasks=[task('task-1','TFX-101','Проверить результат и обсуждение'),task('task-2','TFX-102','Уточнить связанное решение')];
 const links=[{id:'related-1-2',projectId:project.id,revision:1,kind:'related',fromId:'task-1',toId:'task-2',archivedAt:null}];
-const page={id:'page-1',projectId:project.id,title:'Описание решения',body:'## Результат\n\nИсходный текст страницы.',parentId:null,revision:1,
+export const wikiPageId='page-1';
+const page={id:wikiPageId,projectId:project.id,title:'Описание решения',body:'## Результат\n\nИсходный текст страницы.',parentId:null,revision:1,
   archivedAt:null,updatedAt:'2026-10-01T09:00:00Z',updatedBy:person.id};
 
 export function syntheticRepository(){
