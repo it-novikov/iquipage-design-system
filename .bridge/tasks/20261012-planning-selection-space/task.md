@@ -8,7 +8,7 @@ owner: it-novikov
 branch: fix/planning-selection-space
 base: f5f941afa4e9be8a709e6de67a92bacf5a9397ca
 created: 2026-10-12
-updated: 2026-10-12T05:22:58Z
+updated: 2026-10-12T05:34:49Z
 links:
 ---
 
@@ -39,27 +39,29 @@ links:
 
 ## Передача
 
-- **Состояние:** CSS candidate and dedicated exact-package regression prepared for root review; parent authorized GitHub Ubuntu red/green because local Chromium cannot render. No A1/A2 acceptance or ready gate.
-- **Сейчас:** S1 — immutable baseline proof and candidate render pending GitHub Actions
-- **Дальше:** Root publishes reviewable branch; inspect baseline/candidate results and synthetic frames, correct any confirmed failure, then close acceptance.
-- **Незакоммичено:** Minimal Planning CSS, dedicated synthetic fixture and browser/proof runners, existing workflow invocation, bridge evidence; package/lock/vendor/runtime JS unchanged.
-- **Рабочая копия:** 5 файл(ов): .github/workflows/vnext.yml, products/sprintique/ui/planning/src/planning.css, products/sprintique/tests/fixtures/, products/sprintique/tests/planning-selection-baseline-proof.mjs, products/sprintique/tests/planning-selection-space.browser.mjs (2 files changed, 43 insertions(+), 4 deletions(-)) · HEAD f5f941a
+- **Состояние:** Actual baseline red rendered on GitHub Chromium151 and six frames inspected; historical recognizer corrected to middle/all profiles plus narrow/last. Candidate assertions and CSS unchanged; green still pending.
+- **Сейчас:** S2 — candidate browser geometry/interactions pending the corrected CI step
+- **Дальше:** Root publishes narrow follow-up; inspect candidate results and early planning-browser-evidence artifact, then resolve any confirmed CSS/interaction failure.
+- **Незакоммичено:** Historical baseline recognizer, early browser artifact upload, README/evidence and bridge only; candidate driver/runtime CSS/package/lock/vendor unchanged.
+- **Рабочая копия:** 3 файл(ов): .github/workflows/vnext.yml, products/sprintique/tests/fixtures/planning-selection/README.md, products/sprintique/tests/planning-selection-baseline-proof.mjs (6 files changed, 44 insertions(+), 9 deletions(-)) · HEAD a4cef44
 - **Ловушки:**
   - Для Playwright installer нужен TMPDIR в scratch: /tmp отсутствует; браузеры устанавливаются вне repo.
   - Native Chromium exits SIGTRAP before about:blank; /proc/self is absent. Native TypeScript7 build also fails at readlink /proc/self/exe. No runtime PASS or build PASS claimed.
   - Local browser NOT_RUN; complete npm build blocked by native TypeScript7 /proc/self/exe. Existing workflow gates unchanged. Historical red requires original repair branch fix/planning-selection-space.
+  - Baseline is a counterexample, not a requirement that every old position fail. Desktop/compact last overlap is zero because of end spacing; candidate must still pass every middle/last assertion.
 
 ## План
 
-### S1. Точная база и red render [active]
+### S1. Точная база и red render [done]
 - **Что:** Одна synthetic Planning fixture с настоящим mountPlanning и .52
 - **Как:** Штатные shell/product styles, детерминированный ContainersView, реальный Chromium; зафиксировать исходное перекрытие
 - **Зачем:** Подтвердить локальную причину до изменения и сравнивать один и тот же сценарий
 - **Приёмка:**
-  - [ ] Версия и bytes .52 подтверждены; red overlap измерен и просмотрен; условия и границы сохранены
+  - [x] Версия и bytes .52 подтверждены; red overlap измерен и просмотрен; условия и границы сохранены
 - **Покрывает:** A1
+- **Итог:** GitHub run38207967799 job114675580643: immutable f5f + exact .52, Chromium151, all3 profiles rendered and interactions completed with no page/interaction/external errors. Six selection/last-row frames inspected. Actual counterexample: middle all3 + narrow last; corrected historical recognizer passes on unchanged downloaded JSON. Candidate still pending.
 
-### S2. Минимальная компоновка и green [todo]
+### S2. Минимальная компоновка и green [active]
 - **Что:** Отвести панели собственную auto-height область; проверить затронутое поведение
 - **Как:** Локальный Planning CSS, прежние события; тот же browser сценарий плюс keyboard/menu/return/drag-cancel
 - **Зачем:** Убрать root cause без переделки функций Planning
@@ -82,6 +84,7 @@ links:
 - Root разрешил подготовить CSS-кандидат и выполнить real-render на existing GitHub Ubuntu runner после подтверждённого отказа локального Chromium. Локально red/green не считается выполненным; A1/A2 остаются открытыми. Это изменение execution environment, а не ослабление критериев.
 - Baseline proof отделён от обычного green: immutable f5f product tree, в котором добавлен только новый driver/fixture; recognizer не принимает запуск с ошибкой или неполное взаимодействие за воспроизведение overlap. Historical red запускается только в исходном repair PR, subsequent bases не обязаны оставаться дефектными.
 - Product runtime JS/DOM, manifest, lock и DS archive не меняются. Дельта приложения ограничена Planning CSS; browser tooling устанавливается временно вне package.
+- Первый реальный CI run 38207967799 подтвердил middle overlap во всех трёх профилях и last overlap на narrow. Требование historical recognizer о last overlap на desktop/compact было неверным: место в конце списка защищает эти конкретные последние строки. Исправляется только распознавание подтверждённого counterexample; все candidate geometry/interaction/error assertions сохраняются. S1 подтверждён, S2 ждёт candidate run.
 
 ## Вопросы
 

@@ -12,3 +12,6 @@
 - 2026-10-12T04:54:33Z · GPT-6 Astra (AI agent) · checkpoint · S1 · дальше: Установить продукт по существующему lock, запустить браузер, собрать одну dedicated fixture.
 - 2026-10-12T05:11:32Z · GPT-6 Astra (AI agent) · checkpoint · S1 · дальше: Run unchanged geometry assertion against base CSS, inspect RED, then apply and verify the minimal Planning composition.
 - 2026-10-12T05:22:58Z · GPT-6 Astra (AI agent) · checkpoint · S1 · дальше: Root publishes reviewable branch; inspect baseline/candidate results and synthetic frames, correct any confirmed failure, then close acceptance.
+- 2026-10-12T05:33:55Z · GPT-6 Astra (AI agent) · step · S1 · done: GitHub run38207967799 job114675580643: immutable f5f + exact .52, Chromium151, all3 profiles rendered and interactions completed with no page/interaction/external errors. Six selection/last-row frames inspected. Actual counterexample: middle all3 + narrow last; corrected historical recognizer passes on unchanged downloaded JSON. Candidate still pending.
+- 2026-10-12T05:33:56Z · GPT-6 Astra (AI agent) · step · S2 · active
+- 2026-10-12T05:34:49Z · GPT-6 Astra (AI agent) · checkpoint · S2 · дальше: Root publishes narrow follow-up; inspect candidate results and early planning-browser-evidence artifact, then resolve any confirmed CSS/interaction failure.

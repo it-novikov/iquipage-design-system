@@ -30,7 +30,7 @@ DS is the product's `0.6.0-vnext.52` archive, SHA256 `989fab4822db78e10bfeeb62ad
 
 ## Required GitHub evidence before A1/A2 can close
 
-1. The repair-only historical step exports the complete product at the immutable baseline and adds only the new synthetic test driver/fixture. The normal no-overlap regression must remain red there. The recognizer requires actual intersections for selected middle and selected last rows in all three profiles; startup failures, timeouts, unexpected service requests or incomplete interactions do not count as reproduction.
+1. The repair-only historical step exports the complete product at the immutable baseline and adds only the new synthetic test driver/fixture. The normal no-overlap regression must remain red there. The recognizer requires the confirmed counterexample: selected middle-row intersections in all three profiles and a selected last-row intersection with narrow wrapped actions. Startup failures, timeouts, unexpected service requests or incomplete interactions do not count as reproduction. The candidate still requires zero intersection for every selected middle and last row.
 2. The current-source regression must pass: zero selected-row/bar intersection, hit testing of the visible row, one working scrollport, a contained wrapped bar, Space/range selection/M/Escape, last-row access, dialog close callback/scroll/focus return, drag edge scrolling/cancel without an operation, and exactly one recorded move intent from one command.
 3. Inspect synthetic candidate screenshots of selection, last row and menus, alongside their matching baseline frames. Numbers alone do not close visual acceptance. Profiles are light comfortable 1363×936, light compact 1280×720 and dark comfortable 320×568. The narrow profile asserts that actions really wrap. These are headless viewport sizes, not real browser UI zoom or touch/screen-reader validation.
 4. The workflow's pre-existing typecheck, library, real-services, extraction and runtime-image gates are still required. The new frontend step does not bypass or relax them.
@@ -38,6 +38,22 @@ DS is the product's `0.6.0-vnext.52` archive, SHA256 `989fab4822db78e10bfeeb62ad
 The fixture mounts actual `mountPlanning`, actual project navigation, exact public DS, and normal product CSS. Its adapter supplies invented deterministic data. A move records the intent and then rejects explicitly instead of inventing a successful commit. Task content is substituted inside the real product dialog wrapper: this proves only Planning's provided return callback, not the complete Task route or server state. The pre-existing focus result of removing the focused clear-selection button is recorded, not promoted to a desired accessibility contract.
 
 The existing workflow uploads the synthetic JSON/screens with its verification artifact. Real production names, task text and private screenshots are not included.
+
+## First actual GitHub browser result and narrow correction
+
+[Run 38207967799, job 114675580643](https://github.com/it-novikov/iquipage-design-system/actions/runs/38207967799/job/114675580643) rendered the immutable baseline in Chromium `151.0.7922.34` using exact DS `.52`. `sourceRevision` was `f5f941afa4e9be8a709e6de67a92bacf5a9397ca`; baseline CSS SHA256 was `abc64121cac705d4cb6a7a183cc79e2bb0e3e5992e01a0f3483eaff0ff0b7f1a`. All three profiles completed the interaction smoke. Page errors, interaction failures and external requests were empty. The normal no-overlap regression correctly returned FAIL.
+
+| Baseline profile | Selected middle-row intersection, CSS px² | Selected last-row intersection, CSS px² |
+| --- | ---: | ---: |
+| Desktop 1363×936 | 19,592 | 0 |
+| Compact 1280×720 | 19,592 | 0 |
+| Narrow 320×568 | 23,682.09375 | 15,677.375 |
+
+The author inspected all six selection/last-row frames. At the wide list end, the footer and bottom inset leave the last row just above the bar (`row.bottom = bar.top`, 858 px desktop and 642 px compact). This incidental space does not protect a middle row. The narrow bar wraps to 147.09375 px high and overlaps the last row too. These observations confirm a position-dependent overlay, not a requirement that the old UI fail at every position.
+
+The first CI job stopped because the historical recognizer incorrectly demanded wide last-row overlap; the candidate step was skipped. The correction changes only that historical expectation to the observed counterexample. The candidate's geometry, hit, single-scrollport, keyboard/drag/intent and error checks are unchanged. Replaying the downloaded, unmodified result through the corrected recognizer verifies this correction without claiming a new browser run. Candidate green and visual acceptance remain pending.
+
+Browser evidence is now uploaded immediately after the browser steps, even when they fail, under `planning-browser-evidence`. The final artifact and existing backend/build/extraction gates remain in place.
 
 ## Reproduction and next action
 

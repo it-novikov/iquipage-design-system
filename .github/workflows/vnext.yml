@@ -67,6 +67,15 @@ jobs:
           PLANNING_SOURCE_REVISION: ${{ github.sha }}
           PLANNING_EVIDENCE_DIR: ${{ github.workspace }}/products/sprintique/output/planning-selection/candidate
         run: node tests/planning-selection-space.browser.mjs
+      - name: Publish Planning browser evidence before backend verification
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        continue-on-error: true # JSON also remains in the job log if artifact quota is exhausted.
+        if: ${{ !cancelled() }}
+        with:
+          name: planning-browser-evidence
+          path: products/sprintique/output/planning-selection/
+          retention-days: 14
+          if-no-files-found: error
       - name: Start private ephemeral storage
         working-directory: products/sprintique
         run: |

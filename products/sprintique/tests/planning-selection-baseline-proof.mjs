@@ -10,8 +10,12 @@ assert.deepEqual(result.interactionFailures,[],'launch, timeout and interaction 
 assert.deepEqual(result.profiles.map(p=>p.name),['desktop','compact','narrow']);
 for(const profile of result.profiles){
   assert.ok(profile.selection.intersection>0,`${profile.name}: selected middle row must visibly intersect the bar`);
-  assert.ok(profile.lastRow.intersection>0,`${profile.name}: selected last row must visibly intersect the bar`);
   assert.equal(profile.moveIntent.length,1,`${profile.name}: complete the interaction checks`);
 }
-assert.equal(result.profiles.find(p=>p.name==='narrow').selection.barWrapped,true,'narrow actions must actually wrap');
-console.log(`PASS historical PF02 reproduction: selected middle/last rows overlap in ${result.profiles.length} profiles; normal regression remains red.`);
+const narrow=result.profiles.find(p=>p.name==='narrow');
+assert.equal(narrow.selection.barWrapped,true,'narrow actions must actually wrap');
+// The wide baseline's footer/end inset happens to keep its last row above the bar.
+// The counterexample is a middle row in every profile and the last row with wrapped actions.
+// The normal candidate regression still requires every middle/last row to remain uncovered.
+assert.ok(narrow.lastRow.intersection>0,'narrow: selected last row must visibly intersect the wrapped bar');
+console.log(`PASS historical PF02 reproduction: selected middle rows overlap in ${result.profiles.length} profiles and the narrow last row overlaps; normal regression remains red.`);
