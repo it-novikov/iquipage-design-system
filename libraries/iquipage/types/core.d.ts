@@ -113,7 +113,26 @@ export interface SwitcherOptions {/** The current choice as plain text. */label:
 export declare function switcher(options:SwitcherOptions):string;
 /** Existing composition helpers; see source ui.js for optional slot markup. */
 export interface ChoiceGroup {id:string;label:string;options:{value:string;label:string;description?:string;disabled?:boolean}[];collapsible?:boolean;expanded?:boolean;}
-export declare const ui:Record<string,unknown>&{choiceGroups(options:{name:string;groups:ChoiceGroup[];value?:string}):string;radioGroup(label:string,name:string,options:ChoiceGroup['options'],selected:string,settings?:{legendHidden?:boolean}):string};
+/** Variant classes of `.iq-btn`: a tone with optional modifiers (size `sm`, `icon`, …). */
+export type ButtonVariant='primary'|'secondary'|'ghost'|'danger'|'link'|`${'primary'|'secondary'|'ghost'|'danger'|'link'|'icon'} ${string}`;
+export type AlertTone='info'|'success'|'warning'|'danger';
+/** Markup helpers return HTML strings. `HtmlText` arguments are inserted as HTML: escape user text first (escapeHTML).
+ *  `PlainText` arguments are escaped by the helper. `attrs` is raw attribute markup the caller owns. */
+export type HtmlText=string;export type PlainText=string;
+export interface FieldOptions{name?:string;type?:'text'|'email'|'password'|'number'|'search'|'url'|'tel'|'date'|'datetime-local';placeholder?:PlainText;help?:HtmlText;icon?:string;state?:'error'|'success'|'';required?:boolean;readonly?:boolean;disabled?:boolean;max?:number}
+export interface TextareaOptions{name?:string;placeholder?:PlainText;maxlength?:number;help?:HtmlText}
+export type MenuItem={section:PlainText}|{label:HtmlText;action?:string;glyph?:string;shortcut?:string;danger?:boolean};
+export interface UiHelpers{
+  btn(text:HtmlText,variant?:ButtonVariant,glyph?:string,attrs?:string):string;
+  ib(glyph:string,label:PlainText,variant?:string,attrs?:string):string;
+  alert(title:HtmlText,body:HtmlText,tone?:AlertTone):string;
+  toggle(label:PlainText,checked?:boolean,attrs?:string,showLabel?:boolean):string;
+  check(label:HtmlText,checked?:boolean,attrs?:string):string;
+  field(label:HtmlText,value?:string,opts?:FieldOptions):string;
+  textarea(label:HtmlText,value?:string,opts?:TextareaOptions):string;
+  menu(trigger:HtmlText,items:readonly MenuItem[]):string;
+}
+export declare const ui:Record<string,unknown>&UiHelpers&{choiceGroups(options:{name:string;groups:ChoiceGroup[];value?:string}):string;radioGroup(label:string,name:string,options:ChoiceGroup['options'],selected:string,settings?:{legendHidden?:boolean}):string};
 /** vnext.30: a scale of progress against a target. Values are numbers or exact decimal strings. */
 export interface ScaleOptions {target?:number|string|null;done?:number|string;pending?:number|string;/** Without a target: the value the full track stands for. */max?:number|string;size?:'lg'|'md'|'sm';/** Text equivalent for assistive technology. */label?:string;/** Tone of an overrun past the target. */over?:'danger'|'success';}
 export interface ScaleSpan {from:number;to:number;}
