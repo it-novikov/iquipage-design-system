@@ -51,17 +51,17 @@ jobs:
           path: products/sprintique/output/tabs-geometry/
           retention-days: 14
           if-no-files-found: error
-      - name: Experimental Task first screen comparison
+      - name: Experimental Task compact first screen comparison
         if: ${{ github.event_name == 'pull_request' && github.head_ref == 'experiments/task-first-screen' }}
         env:
           PLAYWRIGHT_MODULE: ${{ runner.temp }}/sprintique-browser-tools/node_modules/playwright
           PLAYWRIGHT_BROWSERS_PATH: ${{ runner.temp }}/sprintique-browsers
-        run: node experiments/task-first-screen/run.mjs
-      - name: Experimental Task first screen evidence
+        run: node experiments/task-first-screen/run.mjs --plan compact
+      - name: Experimental Task compact first screen evidence
         if: ${{ !cancelled() && github.event_name == 'pull_request' && github.head_ref == 'experiments/task-first-screen' }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: task-first-screen-experiment
-          path: experiments/task-first-screen/output/browser/
+          name: task-first-screen-compact
+          path: experiments/task-first-screen/output/compact/browser/
           retention-days: 14
           if-no-files-found: error

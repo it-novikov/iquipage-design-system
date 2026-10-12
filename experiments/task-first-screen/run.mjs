@@ -6,20 +6,32 @@ import {createRequire} from 'node:module';
 import {execFileSync} from 'node:child_process';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 import {join,resolve,relative,dirname} from 'node:path';
+import {parseArgs} from 'node:util';
 import {scenario} from './fixture/repository.mjs';
 
 const here=dirname(fileURLToPath(import.meta.url)),repo=resolve(here,'../..'),product=join(repo,'products/sprintique');
 const deps=resolve(process.env.TASK_FIRST_SCREEN_NODE_MODULES||join(product,'node_modules'));
-const buildOnly=process.argv.includes('--build-only');
-assert.ok(process.argv.slice(2).every(arg=>arg==='--build-only'),'Only --build-only is supported');
-const evidence=join(here,'output',buildOnly?'build-only':'browser'),sha=value=>createHash('sha256').update(value).digest('hex');
+const {values}=parseArgs({options:{'build-only':{type:'boolean'},plan:{type:'string',default:'original'}}});
+assert.ok(['original','compact'].includes(values.plan),'--plan must be original or compact');
+const buildOnly=values['build-only']||false,compact=values.plan==='compact',candidate=compact?'vt1-compact':'vt1',variants=['baseline',candidate];
+const evidence=join(here,'output',...(compact?['compact']:[]),buildOnly?'build-only':'browser'),sha=value=>createHash('sha256').update(value).digest('hex');
 const git=(...args)=>execFileSync('git',args,{cwd:repo,encoding:'utf8'}).trim();
-const planBytes=await readFile(join(here,'comparison-plan.json')),plan=JSON.parse(planBytes);
+const planFile=compact?'comparison-plan-compact.json':'comparison-plan.json',planBytes=await readFile(join(here,planFile)),plan=JSON.parse(planBytes);
+const literalBudget=compact?plan.literal_budget_codepoints:160,patchFile=compact?plan.patch_file:'vt1.patch';
+if(compact){
+  assert.equal(plan.candidate,candidate);assert.equal(patchFile,'vt1-compact.patch');assert.equal(literalBudget,64);
+  const originalPlanBytes=await readFile(join(here,'comparison-plan.json'));
+  assert.equal(sha(originalPlanBytes),plan.predecessor_plan_sha256,'Original comparison plan stays frozen');
+  assert.deepEqual(plan.frames,JSON.parse(originalPlanBytes).frames,'Same seven scenarios and initial frame questions');
+  assert.equal(sha(await readFile(join(here,'design-decision-compact.md'))),plan.decision_addendum_sha256,'Frozen compact design decision');
+}
 await rm(evidence,{recursive:true,force:true});await mkdir(evidence,{recursive:true});
 const result={status:'NOT_RUN',scope:plan.scope,buildOnly,createdAt:new Date().toISOString(),node:process.version,
   sourceRevision:git('rev-parse','HEAD'),sourceTree:git('rev-parse','HEAD^{tree}'),frozenRevision:plan.frozen_revision,
-  reportedCIRevision:process.env.GITHUB_SHA||null,planSHA256:sha(planBytes),environment:plan.environment,
+  reportedCIRevision:process.env.GITHUB_SHA||null,planFile,planId:plan.plan_id||'task-first-screen-vt1-v1',planVersion:plan.plan_version||1,
+  planSHA256:sha(planBytes),predecessorPlanSHA256:plan.predecessor_plan_sha256||null,variants,patchFile,literalBudgetCodepoints:literalBudget,environment:plan.environment,
   designAddendumSHA256:plan.design_addendum_sha256,independentReviewSHA256:plan.independent_review_sha256,
+  decisionAddendumSHA256:plan.decision_addendum_sha256||null,predecessorActualReviewSHA256:plan.predecessor_actual_review_sha256||null,
   builds:[],frames:[],nativeProbes:[],engineeringChecks:[],pageErrors:[],externalRequests:[],consoleErrors:[],
   visualAcceptance:'NOT_RUN',humanAcceptance:'NOT_RUN',backendAcceptance:'NOT_RUN',
   limitations:plan.not_run_by_this_fixture,
@@ -93,12 +105,13 @@ async function snapshot(page,firstParagraph){
       title:measure(el.querySelector('textarea[name=title]')),descriptionHeading:measure(el.querySelector('.task-editor-description h3')),
       descriptionFirstParagraph:measure(first),descriptionText:description.value,
       summary:{hidden:summary.hidden,text:summary.textContent.trim(),rect:box(summary),
+        heading:measure(summary.querySelector('.iq-work-story-head h3')),
         headline:measure(summary.querySelector('.iq-work-story-head .iq-work-story-copy > p:last-child')),
-        status:summary.querySelector('.iq-work-story-head .iq-work-byline')?.textContent||null,
+        status:summary.querySelector('[data-work-summary-state]')?.textContent||summary.querySelector('.iq-work-story-head .iq-work-byline')?.textContent||null,
         action:summary.querySelector('[data-work-summary-action]')?.dataset.workSummaryAction||null,
         cta:measure(summary.querySelector('[data-work-summary-action]')),
         previewLabel:preview?.querySelector('.iq-work-byline')?.textContent||null,
-        previewText:preview?.querySelector('p:not(.iq-work-byline)')?.textContent||'',preview:measure(preview),
+        previewText:preview?.querySelector('[data-work-summary-preview-text]')?.textContent||preview?.querySelector('p:not(.iq-work-byline)')?.textContent||'',preview:measure(preview),
         ctaBeforePreview:!preview||!!(summary.querySelector('[data-work-summary-action]').compareDocumentPosition(preview)&Node.DOCUMENT_POSITION_FOLLOWING),
         duplicatedFullStep:summary.querySelectorAll('[data-step]').length},
       disclosure:other?{open:other.open,summary:measure(other.querySelector('summary')),mountedRows:other.querySelectorAll('.iq-properties > *').length}:null,
@@ -122,6 +135,8 @@ function assertInitial(entry,data){
   if(!ordinary){
     const question=data.id==='question-no-answer';assert.equal(value.summary.action,question?'question:Q1':'review:S1');
     assert.equal(entry.probe.focus.id,question?'Q1':'S1');assert.equal(value.summary.duplicatedFullStep,0);
+    const selected=question?data.work.workPlan.questions.find(q=>q.id==='Q1'):data.work.workPlan.steps.find(s=>s.id==='S1');
+    assert.equal(value.summary.headline.text,selected.title,'Full title of the same selected work subject');
   }
   if(entry.variant==='baseline'){
     assert.equal(value.disclosure,null);assert.equal(value.summary.preview,null);assert.equal(value.summary.status,null);
@@ -130,12 +145,13 @@ function assertInitial(entry,data){
     assert.deepEqual(value.directControls,['status','ownerId','due','priority']);
     if(!ordinary){
       assert.equal(value.summary.status,data.id==='question-no-answer'?'Вопрос ждёт ответа':'Результат на проверке');
+      if(compact)assert.equal(value.summary.heading.text,[value.summary.status,data.work.sessions[0]?.agentName].filter(Boolean).join(' · '));
       if(data.id!=='question-no-answer'){
-        const raw=data.work.workPlan.steps[0].result,preview=value.summary.previewText;
+        const raw=data.work.workPlan.steps[0].result,preview=value.summary.previewText,labelSuffix=compact?':':'';
         assert.equal(value.summary.ctaBeforePreview,true);
         if(!raw){assert.equal(value.summary.previewLabel,'Описание результата не добавлено');assert.equal(preview,'');}
-        else if(Array.from(raw).length<=160){assert.equal(value.summary.previewLabel,'Результат шага');assert.equal(preview,raw);}
-        else {assert.equal(value.summary.previewLabel,'Начало результата');assert.ok(preview.endsWith('…'));assert.ok(raw.startsWith(preview.slice(0,-1)));assert.ok(Array.from(preview).length<=160);}
+        else if(Array.from(raw).length<=literalBudget){assert.equal(value.summary.previewLabel,'Результат шага'+labelSuffix);assert.equal(preview,raw);}
+        else {assert.equal(value.summary.previewLabel,'Начало результата'+labelSuffix);assert.ok(preview.endsWith('…'));assert.ok(raw.startsWith(preview.slice(0,-1)));assert.ok(Array.from(preview).length<=literalBudget);}
       }
     }
   }
@@ -244,7 +260,7 @@ async function accessProbe(variant){
   result.nativeProbes.push(entry);let session;
   try{
     session=await openFrame(variant,frame);const {page}=session,before=await snapshot(page,data.firstParagraph);await rememberNodes(page);
-    if(variant==='vt1'){
+    if(variant===candidate){
       // Follow the real initial Tab order; do not programmatically focus the disclosure for this check.
       for(let i=0;i<40;i++){
         await page.keyboard.press('Tab');
@@ -254,7 +270,7 @@ async function accessProbe(variant){
       }
       assert.equal(entry.tabTrace.at(-1)?.disclosure,true,'Disclosure is reachable through native Tab order');
       await page.keyboard.press('Enter');await settle(page);assert.equal(await task(page).locator('[data-task-other-properties]').getAttribute('open'),'');
-      entry.opened=await snapshot(page,data.firstParagraph);entry.screenshot=await screenshot(page,'H01-vt1-keyboard-opened');
+      entry.opened=await snapshot(page,data.firstParagraph);entry.screenshot=await screenshot(page,'H01-'+variant+'-keyboard-opened');
     }
     for(const name of ['status','ownerId','priority','type','releaseId','parent']){
       const trigger=task(page).locator(`iq-select[name="${name}"]`).getByRole('combobox');
@@ -280,7 +296,7 @@ async function accessProbe(variant){
     await task(page).getByRole('tab',{name:'Работа агента',exact:true}).click();
     await page.setViewportSize({width:1100,height:720});await task(page).locator('[data-task-fullscreen]').click();
     await task(page).getByRole('tab',{name:'Задача',exact:true}).click();await settle(page);await assertSameNodes(page);
-    if(variant==='vt1'){
+    if(variant===candidate){
       assert.equal(await task(page).locator('[data-task-other-properties]').getAttribute('open'),'','Disclosure stays open across tabs/resize/fullscreen');
       const summary=task(page).locator('[data-task-other-properties] > summary');await summary.focus();await page.keyboard.press('Enter');
       assert.equal(await task(page).locator('[data-task-other-properties]').getAttribute('open'),null,'Native summary closes explicitly');
@@ -335,7 +351,7 @@ try{
   const packageFiles=await files(join(unpacked,'package'));assert.deepEqual(await files(join(deps,'@iquipage/web')),packageFiles);
   for(const file of packageFiles)assert.equal(await hashFile(join(deps,'@iquipage/web',file)),await hashFile(join(unpacked,'package',file)),'Installed DS bytes: '+file);
   result.package.verifiedInstalledFiles=packageFiles.length;passed('Installed DS54 equals frozen tar, including public CSS/fonts/modules');
-  const patchPath=join(here,'vt1.patch'),patch=await readFile(patchPath,'utf8'),paths=Object.keys(plan.modules).sort();
+  const patchPath=join(here,patchFile),patch=await readFile(patchPath,'utf8'),paths=Object.keys(plan.modules).sort();
   assert.equal(sha(patch),plan.patch_sha256);result.patchSHA256=sha(patch);
   assert.deepEqual([...patch.matchAll(/^--- a\/(.+)$/gm)].map(m=>m[1]).sort(),paths);
   assert.deepEqual([...patch.matchAll(/^\+\+\+ b\/(.+)$/gm)].map(m=>m[1]).sort(),paths);
@@ -345,7 +361,7 @@ try{
   // Ceiling keeps git apply outside the enclosing checkout. No --unsafe-paths, index or production mutation.
   execFileSync('git',['apply','--check','--whitespace=error-all',patchPath],{cwd:staging,env:patchEnv});
   execFileSync('git',['apply','--whitespace=error-all',patchPath],{cwd:staging,env:patchEnv});
-  for(const path of paths){const bytes=await readFile(join(staging,path),'utf8');assert.equal(sha(bytes),plan.modules[path].vt1_sha256);overlay.set(join(repo,path),bytes);}
+  for(const path of paths){const bytes=await readFile(join(staging,path),'utf8');assert.equal(sha(bytes),plan.modules[path][compact?'candidate_sha256':'vt1_sha256']);overlay.set(join(repo,path),bytes);}
   result.overlayModules=plan.modules;passed('Exact three-file source overlay applied only to temporary copies');
   result.fixtureSHA256={};
   for(const file of ['run.mjs','fixture/index.html','fixture/product.js','fixture/repository.mjs'])result.fixtureSHA256[file]=await hashFile(join(here,file));
@@ -359,20 +375,20 @@ try{
     replacement:join(deps,'@iquipage/web',typeof target==='string'?target:target.import),
   }));
   aliases.push({find:/^zod$/,replacement:join(deps,'zod/index.js')});
-  for(const variant of ['baseline','vt1']){
+  for(const variant of variants){
     const loads=new Set(),modules=new Set(),outDir=join(evidence,'builds',variant);
     const config={configFile:false,root:join(here,'fixture'),logLevel:'warn',resolve:{alias:aliases},
       plugins:[{name:'task-first-screen-exact-source',enforce:'pre',
-        load(id){if(variant==='vt1'&&overlay.has(id)){loads.add(id);return overlay.get(id);}return null;},
+        load(id){if(variant===candidate&&overlay.has(id)){loads.add(id);return overlay.get(id);}return null;},
         moduleParsed(info){modules.add(info.id);}}],
       build:{outDir,emptyOutDir:true,minify:false,cssMinify:false,assetsInlineLimit:0}};
     await build(config);
-    assert.deepEqual([...loads].sort(),variant==='vt1'?paths.map(p=>join(repo,p)):[],'Exact overlay load set');
+    assert.deepEqual([...loads].sort(),variant===candidate?paths.map(p=>join(repo,p)):[],'Exact overlay load set');
     for(const path of ['ui/src/board/board.js','ui/src/board/task-dialog.js','ui/src/board/task-work-view.js'])assert.ok(modules.has(join(product,path)),'Actual product mounted module '+path);
     const inputs={};for(const id of [...modules].sort()){
       if(id.startsWith(repo+'/')||id.startsWith(deps+'/')){
         const label=id.startsWith(deps+'/')?'node_modules/'+relative(deps,id):relative(repo,id);
-        inputs[label]=sha(variant==='vt1'&&overlay.has(id)?overlay.get(id):await readFile(id));
+        inputs[label]=sha(variant===candidate&&overlay.has(id)?overlay.get(id):await readFile(id));
       }
     }
     const bundles={};for(const file of await files(outDir))bundles[file]=await hashFile(join(outDir,file));
@@ -383,14 +399,14 @@ try{
       servers.push({variant,server,origin:'http://127.0.0.1:'+server.httpServer.address().port});
     }
   }
-  passed('Two static Vite builds: zero-overlay baseline and exact compiled VT1');
+  passed('Two static Vite builds: zero-overlay baseline and exact compiled '+candidate);
   if(buildOnly)result.status='BUILT_NOT_RENDERED';
   else{
     assert.ok(process.env.PLAYWRIGHT_MODULE,'PLAYWRIGHT_MODULE must point to the existing temporary Playwright package');
     const require=createRequire(import.meta.url),pw=resolve(process.env.PLAYWRIGHT_MODULE);
     result.playwright=require(join(pw,'package.json')).version;assert.equal(result.playwright,plan.environment.playwright);
     browser=await require(pw).chromium.launch({headless:true});result.browser=browser.version();
-    for(const frame of plan.frames)for(const variant of ['baseline','vt1']){
+    for(const frame of plan.frames)for(const variant of variants){
       const data=scenario(frame.case),entry={id:frame.id,stage:frame.stage,variant,case:frame.case,viewport:frame.viewport,theme:frame.theme,text:frame.text,
         question:frame.question,dataSHA256:sha(JSON.stringify(data)),status:'NOT_RUN',pointer:{x:0,y:0}};
       result.frames.push(entry);let session;
@@ -398,14 +414,14 @@ try{
         session=await openFrame(variant,frame);entry.initial=await snapshot(session.page,data.firstParagraph);entry.probe=await fixtureProbe(session.page);
         entry.screenshot=await screenshot(session.page,frame.id+'-'+variant+'-initial');entry.status='CAPTURED';
         assertInitial(entry,data);assert.deepEqual(entry.probe.attempts,[]);assert.deepEqual(entry.probe.unsupported,[]);
-        if(variant==='vt1'){
+        if(variant===candidate){
           const baseline=result.frames.find(x=>x.id===frame.id&&x.variant==='baseline');
           assert.equal(entry.dataSHA256,baseline.dataSHA256);assert.deepEqual(entry.initial.formState,baseline.initial.formState,'Same actual form values across compositions');
         }
       }catch(error){entry.status='FAILED';entry.error=error.stack||error.message;}
       finally{await session?.context.close();}
     }
-    for(const variant of ['baseline','vt1']){await accessProbe(variant);await actionProbe(variant,'H02');await actionProbe(variant,'question');}
+    for(const variant of variants){await accessProbe(variant);await actionProbe(variant,'H02');await actionProbe(variant,'question');}
     assert.deepEqual(result.externalRequests,[],'No off-origin requests');assert.deepEqual(result.pageErrors,[],'No page errors');
     assert.ok(result.frames.every(entry=>entry.status==='CAPTURED'),'One or more captures/engineering checks failed; inspect frames');
     assert.ok(result.nativeProbes.every(entry=>entry.status==='ENGINEERING_CHECKS_PASSED'),'Native probe failed; inspect nativeProbes');

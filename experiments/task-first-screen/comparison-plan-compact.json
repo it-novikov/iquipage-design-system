@@ -1,0 +1,146 @@
+{
+  "plan_id": "task-first-screen-vt1-compact-v1",
+  "plan_version": 1,
+  "candidate": "vt1-compact",
+  "patch_file": "vt1-compact.patch",
+  "literal_budget_codepoints": 64,
+  "predecessor_plan_sha256": "f19b4da9ff01e9ed87d17d69d85fb89af9b734b7dc5e4964e7d5d158af60b55a",
+  "scope": "Experimental compiled product; synthetic read adapter; same frozen baseline and compact VT1 only",
+  "frozen_revision": "8f8d218168074bd4c7c9e1e29dfbe783a27998dd",
+  "frozen_trees": {
+    "products/sprintique": "277e232729b1cca297f4091384e6488bfbd952ca",
+    "libraries/iquipage": "f623bc26da31a0abd282496f2bc943c27a88d2b1"
+  },
+  "design_addendum_sha256": "8118b3fc868153c9e68cc6080b6f3058b914ac3fe01cdfa2a534de55ccb171c3",
+  "independent_review_sha256": "a690c90b5a5af055510f4f243b224dd1c502b97060650814b7eb96294db73c5f",
+  "package_version": "0.6.0-vnext.54",
+  "archive_sha256": "a726a4536e532fc556f615d0b1a9cda1873dc111e6090710329b9ec1b8204457",
+  "package_json_sha256": "684d8de1372a6c5629ad225888d9e56cc2a43715357dfdf9b935c6e12a47b761",
+  "package_lock_sha256": "1705c5e200e4e9abdb80c7705623656d79c07d4df8a8aacad38985f0de90551d",
+  "patch_sha256": "5ef3ceaa010ea0ed726e0e6067c55822708c3ed4bcde16ecc63cc6b16c8d6c5f",
+  "modules": {
+    "products/sprintique/ui/src/board/task-dialog.js": {
+      "baseline_sha256": "bba396bdf8f1b03beb20358eebce3161913c668cbc3b6328fc0d675a63518549",
+      "candidate_sha256": "18f74815aa106ffa939d9864e7a58bd93e20787bfe986c422785f804de3633fd"
+    },
+    "products/sprintique/ui/src/board/task-work-view.js": {
+      "baseline_sha256": "5b9da8507f62fef702af3cc390849007a2da8693ec353a4b68ec1894291df309",
+      "candidate_sha256": "de0ffd11876db3e7fb27b8f92613f1f4ba60fcefb525853edbb3fbfed87546af"
+    },
+    "products/sprintique/ui/src/board/work-model.js": {
+      "baseline_sha256": "4628a01a00edf29cbecda7094d69d757c5f571280f2e5c8deead0b93db3783a8",
+      "candidate_sha256": "03d2d7ba34da67ed06c4b9c66459da7b13a81469ed6a471c0ce6953ea90e00a9"
+    }
+  },
+  "environment": {
+    "ci_os": "ubuntu-24.04",
+    "ci_node": "24.20.0",
+    "playwright": "1.62.1",
+    "browser": "bundled Chromium; exact version recorded at capture",
+    "locale": "ru-RU",
+    "timezone": "UTC",
+    "fixed_time": "2026-10-12T09:00:00Z",
+    "dpr": 1,
+    "motion": "reduce",
+    "density": "comfortable"
+  },
+  "frames": [
+    {
+      "id": "H01",
+      "stage": "core",
+      "case": "ordinary",
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "theme": "light",
+      "text": 100,
+      "question": "Is meaningful description content available on the ordinary first screen?"
+    },
+    {
+      "id": "H02",
+      "stage": "core",
+      "case": "review",
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "theme": "light",
+      "text": 100,
+      "question": "Does the same selected result, state and transition help explain what to review?"
+    },
+    {
+      "id": "narrow",
+      "stage": "targeted",
+      "case": "review-long",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "text": 100,
+      "question": "Do a long title and literal result prefix displace the main content or disclosure?"
+    },
+    {
+      "id": "dark",
+      "stage": "targeted",
+      "case": "review-long",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "dark",
+      "text": 100,
+      "question": "Does the same narrow hierarchy remain legible in dark theme?"
+    },
+    {
+      "id": "text200",
+      "stage": "targeted",
+      "case": "ordinary",
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "theme": "light",
+      "text": 200,
+      "question": "Record the existing property label/value reflow limitation; grouping is not a fix."
+    },
+    {
+      "id": "empty",
+      "stage": "targeted",
+      "case": "review-empty",
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "theme": "light",
+      "text": 100,
+      "question": "Is missing result text explicit, without borrowing the task title or session summary?"
+    },
+    {
+      "id": "question",
+      "stage": "targeted",
+      "case": "question-no-answer",
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "theme": "light",
+      "text": 100,
+      "question": "Does an open question retain priority while canAnswer=false stays neutral?"
+    }
+  ],
+  "native_probes": "After all initial pairs: H01 baseline/VT1-compact property access and cancellation; VT1-compact disclosure keyboard/identity across tabs and fullscreen; H02 same review CTA; permission-neutral question CTA.",
+  "decision": "Compare the same frozen cases with the compact summary: due and priority fully visible in the narrow frame; full selected step title/CTA and literal full/partial result semantics retained; measure disclosure separately. Engineering evidence is not visual or human PASS.",
+  "not_run_by_this_fixture": [
+    "human tasks",
+    "backend save/reopen/conflicts",
+    "Plan preview/commit",
+    "readonly/accepted/create/cover/personal acceptance",
+    "cross-browser/release gates",
+    "VT2",
+    "C"
+  ],
+  "decision_addendum_sha256": "4435d3dd58a2b9a1f7f0007e7b3f2f3f5ca8e8e86baf746c2393736e35147085",
+  "predecessor_actual_review_sha256": "6671cabb9f40ce77b0dfff35d0c5b34cc8b7d8a38460c68a83e184f3a2622c4f"
+}
