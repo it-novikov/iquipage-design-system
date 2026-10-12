@@ -346,7 +346,10 @@
 
 /* PF04 / VT1: «Другие свойства» — DS iq-work-details with a visible secondary hint; the inner list keeps the same rows. */
 .task-more-properties{min-width:0}
-.task-more-properties>summary{display:flex;flex-wrap:wrap;align-items:baseline;gap:var(--iq-space-2) var(--iq-space-3)}
+.task-more-properties>summary{display:flex;flex-wrap:wrap;align-items:baseline;gap:var(--iq-space-2) var(--iq-space-3);list-style:none}
+.task-more-properties>summary::-webkit-details-marker{display:none}
+.task-more-properties>summary::before{content:'';align-self:center;inline-size:.45em;block-size:.45em;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(-45deg);transition:transform .15s}
+.task-more-properties[open]>summary::before{transform:rotate(45deg)}
 .task-more-hint{font-weight:400;color:var(--iq-muted);overflow-wrap:anywhere}
 .task-more-properties[open]>summary{margin-bottom:var(--iq-space-2)}
 .task-work-status{color:var(--iq-muted)}
