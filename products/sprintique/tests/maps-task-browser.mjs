@@ -19,7 +19,7 @@ const evidence=resolve(process.env.MAPS_EVIDENCE_DIR||join(product,'output/maps-
 const buildOnly=process.argv.includes('--build-only');
 assert.ok(process.argv.slice(2).every(arg=>arg==='--build-only'),'unknown runner argument');
 const sha=value=>createHash('sha256').update(value).digest('hex');
-const version='0.6.0-vnext.52',archiveSHA='989fab4822db78e10bfeeb62ad2724d8bb389a08ddf012c196b469af33cde758';
+const version='0.6.0-vnext.54',archiveSHA='a726a4536e532fc556f615d0b1a9cda1873dc111e6090710329b9ec1b8204457';
 const installed=JSON.parse(await readFile(join(product,'node_modules/@iquipage/web/package.json'),'utf8'));
 assert.equal(installed.version,version,'fixture requires the current product package');
 assert.equal(sha(await readFile(join(product,`vendor/iquipage-web-${version}.tgz`))),archiveSHA,'vendor archive changed');
