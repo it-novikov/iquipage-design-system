@@ -276,7 +276,7 @@ export async function openTaskDialog(task,{repository,project,tasks,canEdit=true
       if(dueField)form.addEventListener('iq-change',event=>{if(event.target.getAttribute?.('name')==='status')dueField.toggleAttribute('deadline',!finished(event.target.value));});
       // An error or programmatic focus inside «Другие свойства» opens the group first, so the field is never hidden.
       const more=form.querySelector('[data-task-more]');
-      if(more){const reveal=event=>{if(more.contains(event.target)&&!more.open)more.open=true;};form.addEventListener('invalid',reveal,true);form.addEventListener('focusin',reveal);}
+      if(more){const reveal=event=>{if(event.type==='focusin'&&event.target.closest('summary'))return;if(more.contains(event.target)&&!more.open)more.open=true;};form.addEventListener('invalid',reveal,true);form.addEventListener('focusin',reveal);}
       mountEstimate(form);
       description=mountTaskDescription(form.querySelector('[data-description]'),{value:taskMarkdown(initial),editing:false,readOnly:!canEdit});
       catalogs=canEdit?mountTaskCatalogs(form.querySelector('[data-task-catalogs]'),{tagsRoot:form.querySelector('[data-task-tags]'),repository,project,task:initial,tags:support.tags,releases:support.releases,canManage,onChange:()=>form.dispatchEvent(new Event('change'))})
