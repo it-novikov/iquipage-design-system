@@ -1,0 +1,141 @@
+{
+  "stage": "independent full-CI reading before R1 reconciliation",
+  "runId": "38221220620",
+  "jobId": "114717672462",
+  "artifactId": "11735517017",
+  "archive": {
+    "sha256": "acb0d423c6f6279f9f2be463b0fb6b970c877375073376382f59eb33b6b229c6",
+    "count": 11,
+    "duplicateFiles": false,
+    "crcError": null,
+    "extractedByteMismatches": []
+  },
+  "source": {
+    "count": 1224,
+    "afterCount": 1224,
+    "duplicatePaths": false,
+    "beforeAfterEqual": true,
+    "recomputedBeforeFingerprint": "10346cfa9e7d6b6ed3836a404cdbaf6219b72cae79254df5c2bd3d8c9f57106d",
+    "recomputedAfterFingerprint": "10346cfa9e7d6b6ed3836a404cdbaf6219b72cae79254df5c2bd3d8c9f57106d",
+    "certificateBefore": "10346cfa9e7d6b6ed3836a404cdbaf6219b72cae79254df5c2bd3d8c9f57106d",
+    "certificateAfter": "10346cfa9e7d6b6ed3836a404cdbaf6219b72cae79254df5c2bd3d8c9f57106d",
+    "exactGitInventoryCount": 1224,
+    "missingFromEvidence": [],
+    "extraEvidence": [],
+    "mismatchedGitBytes": [],
+    "selectedSymlinks": []
+  },
+  "commit": "8f8d218168074bd4c7c9e1e29dfbe783a27998dd",
+  "tree": "a7bf8ed72f07d975a6837e8f1428382785893833",
+  "actualMerge": "f53af728201b7a4ce2a128c6de7228143d2d50b4",
+  "actualMergeTree": "a7bf8ed72f07d975a6837e8f1428382785893833",
+  "dsTarballSha256": "a726a4536e532fc556f615d0b1a9cda1873dc111e6090710329b9ec1b8204457",
+  "dsGitBlobSHA256": "a726a4536e532fc556f615d0b1a9cda1873dc111e6090710329b9ec1b8204457",
+  "checks": {
+    "verification-tools": {
+      "passed": true,
+      "exitCode": 0,
+      "signal": null,
+      "logSHA256": "649831ee4049634214c249e94d277d2ae9fc72612d49851e4ee1ec8f075210b6"
+    },
+    "library-build": {
+      "passed": true,
+      "exitCode": 0,
+      "signal": null,
+      "logSHA256": "d947d93afecad1eae735d5736b8a675f776cb1383196d75306d8f12755f1eca0"
+    },
+    "library-tests": {
+      "passed": true,
+      "exitCode": 0,
+      "signal": null,
+      "logSHA256": "199da431b5efbb658fdc4fc8e01e0c0e9385f2705b057d759c3c7cb2d787e974"
+    },
+    "product-boundaries": {
+      "passed": true,
+      "exitCode": 0,
+      "signal": null,
+      "logSHA256": "d6a1c681db26574e94256f60879ab77d34282add2ef2e2b9a930229d27e40132"
+    },
+    "product-build": {
+      "passed": true,
+      "exitCode": 0,
+      "signal": null,
+      "logSHA256": "251ffc336ebba737940a6e763dcaa2a5b24c93783e6f1d28bcf57adb00aca927"
+    },
+    "product-tests": {
+      "passed": true,
+      "exitCode": 0,
+      "signal": null,
+      "logSHA256": "81fbe543ab7d6afc507193a1be87d8a056a7bcbc7f52ff651a3769b70e2bb751"
+    },
+    "detached-product": {
+      "passed": true,
+      "exitCode": 0,
+      "signal": null,
+      "logSHA256": "f2c22ab567375812ddc566d067411b6cadb555fe96854abbc645bb5222c0ba2c"
+    },
+    "source-stability": {
+      "passed": true,
+      "exitCode": null,
+      "signal": null,
+      "logSHA256": "8585a17108a61f415ff4ecf42f1b62cd8bce87e96c6068bb2d314a569cf77d94"
+    }
+  },
+  "counts": {
+    "verification-tools": {
+      "tests": 1,
+      "suites": 0,
+      "pass": 1,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "library-tests": {
+      "tests": 478,
+      "suites": 0,
+      "pass": 478,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "product-tests": {
+      "tests": 567,
+      "suites": 0,
+      "pass": 567,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "detached-product": {
+      "tests": 567,
+      "suites": 0,
+      "pass": 567,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    }
+  },
+  "consumerContract": {
+    "source": "const release:'0.6.0-vnext.54'=version;",
+    "gitSHA256": "dec929814ef53770b83ee9780e2f7fbe06ee2b543d66db306e2ca0458ac2e389",
+    "evidenceSHA256": "dec929814ef53770b83ee9780e2f7fbe06ee2b543d66db306e2ca0458ac2e389",
+    "tsconfigInclude": [
+      "contracts/**/*.ts",
+      "client/**/*.ts",
+      "tests/**/*.ts",
+      "scripts/**/*.ts",
+      "vite.config.ts"
+    ],
+    "buildScript": "npm run typecheck && vite build",
+    "typecheckScript": "tsc --noEmit",
+    "typescript": "7.0.2"
+  },
+  "retainedScopeReportSHA256": "a1e60adea2994eb5b28e6e334b149671bf2c558261dea8f086855d356f4a6bda",
+  "fullPlatformReady": false,
+  "productionTouched": false,
+  "certificateDate": "2026-10-12T08:26:22.766Z"
+}

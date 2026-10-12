@@ -1,0 +1,24 @@
+{
+  "authoredHead": "a8b4a19a8ceaffd31335c6e0f2d2c3d01ae43b07",
+  "publishedIntegrationHead": "8f8d218168074bd4c7c9e1e29dfbe783a27998dd",
+  "publishedIntegrationTree": "a7bf8ed72f07d975a6837e8f1428382785893833",
+  "parents": [
+    "078faae97694b0631c8fbe90e3dc6cb6867bb8fb",
+    "2424d4724ec411c84b54b85634dbf54228b0ebd8"
+  ],
+  "changedPathsFromAuthoredDS": [
+    ".bridge/tasks/20261012-notification-time-order/evidence.md",
+    ".bridge/tasks/20261012-notification-time-order/journal.md",
+    ".bridge/tasks/20261012-notification-time-order/reviews/R1.md",
+    ".bridge/tasks/20261012-notification-time-order/reviews/R2.md",
+    ".bridge/tasks/20261012-notification-time-order/reviews/evidence/independent-R1.md",
+    ".bridge/tasks/20261012-notification-time-order/reviews/evidence/independent-R2.md",
+    ".bridge/tasks/20261012-notification-time-order/task.md",
+    ".bridge/tasks/20261012-tabs-scroll-geometry/journal.md",
+    ".bridge/tasks/20261012-tabs-scroll-geometry/task.md",
+    "products/sprintique/tests/notifications.test.ts"
+  ],
+  "runtimePackageRunnerPlanPreserved": true,
+  "planSHA256": "a0165e153cb976c9da17332b1b79baaeb9b10da2e375c9aa290c620bb3889872",
+  "archiveSHA256": "a726a4536e532fc556f615d0b1a9cda1873dc111e6090710329b9ec1b8204457"
+}

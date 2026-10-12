@@ -1,0 +1,10 @@
+{
+  "beforeCommit": "45a468ab2217ba410257a766e1adb6896edea14f",
+  "beforePlanSHA256": "1a4e4a6c361718d98d065a13af5fc3b6a86fe750aca1cba910eed5a3e8bd7a4f",
+  "afterPlanSHA256": "a0165e153cb976c9da17332b1b79baaeb9b10da2e375c9aa290c620bb3889872",
+  "onlyChangedPaths": [
+    "dimension_applicability.human-agent.reason",
+    "dimension_applicability.performance.reason"
+  ],
+  "criteriaProfilesScopeAndGatesUnchanged": true
+}
