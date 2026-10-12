@@ -1,0 +1,2982 @@
+{
+  "scope": "Planning selection frontend; adapter and Task content substituted; no persistence claim",
+  "package": "0.6.0-vnext.52",
+  "archiveSHA256": "989fab4822db78e10bfeeb62ad2724d8bb389a08ddf012c196b469af33cde758",
+  "sourceRevision": "f5f941afa4e9be8a709e6de67a92bacf5a9397ca",
+  "planningCSS": "abc64121cac705d4cb6a7a183cc79e2bb0e3e5992e01a0f3483eaff0ff0b7f1a",
+  "geometryMethod": "raw rectangles and visible row after measured overflow clips; strict zero visible overlap",
+  "node": "v24.20.0",
+  "profiles": [
+    {
+      "name": "desktop",
+      "viewport": {
+        "width": 1363,
+        "height": 936
+      },
+      "theme": "light",
+      "density": "comfortable",
+      "zoom": "1x headless viewport; browser UI zoom not exercised",
+      "checks": [
+        "selected row and separately sized action area",
+        "Space, range selection, M, menu bounds and Escape return",
+        "last row, real product dialog wrapper / substituted Task callback, selection cancel",
+        "DS drag edge scroll and cancellation without dispatch",
+        "one recorded move intent; explicit no-persistence boundary; clear button hides bar"
+      ],
+      "unselected": {
+        "row": {
+          "left": 241,
+          "top": 850.6875,
+          "right": 1338,
+          "bottom": 924.375,
+          "width": 1097,
+          "height": 73.6875
+        },
+        "bar": {
+          "left": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0
+        },
+        "scroller": {
+          "left": 0,
+          "top": 56,
+          "right": 1363,
+          "bottom": 936,
+          "width": 1363,
+          "height": 880
+        },
+        "scrollTop": 815,
+        "scrollOwner": "host-view",
+        "clipBounds": {
+          "left": 241,
+          "top": 56,
+          "right": 1338,
+          "bottom": 936,
+          "width": 1097,
+          "height": 880
+        },
+        "clippingAncestors": [
+          {
+            "owner": "iq-plan-panel tree-columns",
+            "overflowX": "clip",
+            "overflowY": "clip",
+            "overflowClipMargin": "0px",
+            "borderBox": {
+              "left": 240,
+              "top": -598,
+              "right": 1339,
+              "bottom": 2001,
+              "width": 1099,
+              "height": 2599
+            },
+            "insets": {
+              "left": 1,
+              "top": 1,
+              "right": 1,
+              "bottom": 1
+            },
+            "clipRect": {
+              "left": 241,
+              "top": -597,
+              "right": 1338,
+              "bottom": 2000,
+              "width": 1097,
+              "height": 2597
+            }
+          },
+          {
+            "owner": "host-view",
+            "overflowX": "auto",
+            "overflowY": "auto",
+            "overflowClipMargin": "0px",
+            "borderBox": {
+              "left": 0,
+              "top": 56,
+              "right": 1363,
+              "bottom": 936,
+              "width": 1363,
+              "height": 880
+            },
+            "insets": {
+              "left": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0
+            },
+            "clipRect": {
+              "left": 0,
+              "top": 56,
+              "right": 1363,
+              "bottom": 936,
+              "width": 1363,
+              "height": 880
+            }
+          },
+          {
+            "owner": "demo-shell",
+            "overflowX": "hidden",
+            "overflowY": "hidden",
+            "overflowClipMargin": "0px",
+            "borderBox": {
+              "left": 0,
+              "top": 0,
+              "right": 1363,
+              "bottom": 936,
+              "width": 1363,
+              "height": 936
+            },
+            "insets": {
+              "left": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0
+            },
+            "clipRect": {
+              "left": 0,
+              "top": 0,
+              "right": 1363,
+              "bottom": 936,
+              "width": 1363,
+              "height": 936
+            }
+          }
+        ],
+        "visibleRow": {
+          "left": 241,
+          "top": 850.6875,
+          "right": 1338,
+          "bottom": 924.375,
+          "width": 1097,
+          "height": 73.6875
+        },
+        "rawIntersection": 0,
+        "visibleIntersection": 0,
+        "scrollableAncestors": 1,
+        "rowHit": true,
+        "rowHitPoint": {
+          "x": 427,
+          "y": 887.53125
+        },
+        "rowBoundaryHit": true,
+        "rowBoundaryPoint": {
+          "x": 789.5,
+          "y": 923.375
+        },
+        "barWrapped": false,
+        "outerScrollTop": 815,
+        "viewport": {
+          "width": 1363,
+          "height": 936
+        },
+        "activeRow": "task-18",
+        "horizontalOverflow": false,
+        "documentScrolls": false
+      },
+      "selection": {
+        "row": {
+          "left": 241,
+          "top": 850.6875,
+          "right": 1338,
+          "bottom": 924.375,
+          "width": 1097,
+          "height": 73.6875
+        },
+        "bar": {
+          "left": 523.5,
+          "top": 858,
+          "right": 839.5,
+          "bottom": 920,
+          "width": 316,
+          "height": 62
+        },
+        "scroller": {
+          "left": 0,
+          "top": 56,
+          "right": 1363,
+          "bottom": 936,
+          "width": 1363,
+          "height": 880
+        },
+        "scrollTop": 815,
+        "scrollOwner": "host-view",
+        "clipBounds": {
+          "left": 241,
+          "top": 56,
+          "right": 1338,
+          "bottom": 936,
+          "width": 1097,
+          "height": 880
+        },
+        "clippingAncestors": [
+          {
+            "owner": "iq-plan-panel tree-columns",
+            "overflowX": "clip",
+            "overflowY": "clip",
+            "overflowClipMargin": "0px",
+            "borderBox": {
+              "left": 240,
+              "top": -598,
+              "right": 1339,
+              "bottom": 2001,
+              "width": 1099,
+              "height": 2599
+            },
+            "insets": {
+              "left": 1,
+              "top": 1,
+              "right": 1,
+              "bottom": 1
+            },
+            "clipRect": {
+              "left": 241,
+              "top": -597,
+              "right": 1338,
+              "bottom": 2000,
+              "width": 1097,
+              "height": 2597
+            }
+          },
+          {
+            "owner": "host-view",
+            "overflowX": "auto",
+            "overflowY": "auto",
+            "overflowClipMargin": "0px",
+            "borderBox": {
+              "left": 0,
+              "top": 56,
+              "right": 1363,
+              "bottom": 936,
+              "width": 1363,
+              "height": 880
+            },
+            "insets": {
+              "left": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0
+            },
+            "clipRect": {
+              "left": 0,
+              "top": 56,
+              "right": 1363,
+              "bottom": 936,
+              "width": 1363,
+              "height": 880
+            }
+          },
+          {
+            "owner": "demo-shell",
+            "overflowX": "hidden",
+            "overflowY": "hidden",
+            "overflowClipMargin": "0px",
+            "borderBox": {
+              "left": 0,
+              "top": 0,
+              "right": 1363,
+              "bottom": 936,
+              "width": 1363,
+              "height": 936
+            },
+            "insets": {
+              "left": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0
+            },
+            "clipRect": {
+              "left": 0,
+              "top": 0,
+              "right": 1363,
+              "bottom": 936,
+              "width": 1363,
+              "height": 936
+            }
+          }
+        ],
+        "visibleRow": {
+          "left": 241,
+          "top": 850.6875,
+          "right": 1338,
+          "bottom": 924.375,
+          "width": 1097,
+          "height": 73.6875
+        },
+        "rawIntersection": 19592,
+        "visibleIntersection": 19592,
+        "scrollableAncestors": 1,
+        "rowHit": true,
+        "rowHitPoint": {
+          "x": 427,
+          "y": 887.53125
+        },
+        "rowBoundaryHit": true,
+        "rowBoundaryPoint": {
+          "x": 681.5,
+          "y": 923.375
+        },
+        "barWrapped": false,
+        "outerScrollTop": 815,
+        "viewport": {
+          "width": 1363,
+          "height": 936
+        },
+        "activeRow": "task-18",
+        "horizontalOverflow": false,
+        "documentScrolls": false
+      },
+      "menu": {
+        "top": 696,
+        "bottom": 855.5,
+        "left": 527,
+        "right": 1053,
+        "width": 1363,
+        "height": 936
+      },
+      "menuReturn": {
+        "row": {
+          "left": 241,
+          "top": 862.375,
+          "right": 1338,
+          "bottom": 936.0625,
+          "width": 1097,
+          "height": 73.6875
+        },
+        "bar": {
+          "left": 521.5,
+          "top": 858,
+          "right": 841.5,
+          "bottom": 920,
+          "width": 320,
+          "height": 62
+        },
+        "scroller": {
+          "left": 0,
+          "top": 56,
+          "right": 1363,
+          "bottom": 936,
+          "width": 1363,
+          "height": 880
+        },
+        "scrollTop": 877,
+        "scrollOwner": "host-view",
+        "clipBounds": {
+          "left": 241,
+          "top": 56,
+          "right": 1338,
+          "bottom": 936,
+          "width": 1097,
+          "height": 880
+        },
+        "clippingAncestors": [
+          {
+            "owner": "iq-plan-panel tree-columns",
+            "overflowX": "clip",
+            "overflowY": "clip",
+            "overflowClipMargin": "0px",
+            "borderBox": {
+              "left": 240,
+              "top": -660,
+              "right": 1339,
+              "bottom": 1939,
+              "width": 1099,
+              "height": 2599
+            },
+            "insets": {
+              "left": 1,
+              "top": 1,
+              "right": 1,
+              "bottom": 1
+            },
+            "clipRect": {
+              "left": 241,
+              "top": -659,
+              "right": 1338,
+              "bottom": 1938,
+              "width": 1097,
+              "height": 2597
+            }
+          },
+          {
+            "owner": "host-view",
+            "overflowX": "auto",
+            "overflowY": "auto",
+            "overflowClipMargin": "0px",
+            "borderBox": {
+              "left": 0,
+              "top": 56,
+              "right": 1363,
+              "bottom": 936,
+              "width": 1363,
+              "height": 880
+            },
+            "insets": {
+              "left": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0
+            },
+            "clipRect": {
+              "left": 0,
+              "top": 56,
+              "right": 1363,
+              "bottom": 936,
+              "width": 1363,
+              "height": 880
+            }
+          },
+          {
+            "owner": "demo-shell",
+            "overflowX": "hidden",
+            "overflowY": "hidden",
+            "overflowClipMargin": "0px",
+            "borderBox": {
+              "left": 0,
+              "top": 0,
+              "right": 1363,
+              "bottom": 936,
+              "width": 1363,
+              "height": 936
+            },
+            "insets": {
+              "left": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0
+            },
+            "clipRect": {
+              "left": 0,
+              "top": 0,
+              "right": 1363,
+              "bottom": 936,
+              "width": 1363,
+              "height": 936
+            }
+          }
+        ],
+        "visibleRow": {
+          "left": 241,
+          "top": 862.375,
+          "right": 1338,
+          "bottom": 936,
+          "width": 1097,
+          "height": 73.625
+        },
+        "rawIntersection": 18440,
+        "visibleIntersection": 18440,
+        "scrollableAncestors": 1,
+        "rowHit": true,
+        "rowHitPoint": {
+          "x": 427,
+          "y": 899.21875
+        },
+        "rowBoundaryHit": true,
+        "rowBoundaryPoint": {
+          "x": 681.5,
+          "y": 935
+        },
+        "barWrapped": false,
+        "outerScrollTop": 877,
+        "viewport": {
+          "width": 1363,
+          "height": 936
+        },
+        "activeRow": "task-19",
+        "horizontalOverflow": false,
+        "documentScrolls": false
+      },
+      "lastRow": {
+        "row": {
+          "left": 241,
+          "top": 784.3125,
+          "right": 1338,
+          "bottom": 858,
+          "width": 1097,
+          "height": 73.6875
+        },
+        "bar": {
+          "left": 522,
+          "top": 858,
+          "right": 841,
+          "bottom": 920,
+          "width": 319,
+          "height": 62
+        },
+        "scroller": {
+          "left": 0,
+          "top": 56,
+          "right": 1363,
+          "bottom": 936,
+          "width": 1363,
+          "height": 880
+        },
+        "scrollTop": 3600,
+        "scrollOwner": "host-view",
+        "clipBounds": {
+          "left": 241,
+          "top": 87.5,
+          "right": 1338,
+          "bottom": 902,
+          "width": 1097,
+          "height": 814.5
+        },
+        "clippingAncestors": [
+          {
+            "owner": "iq-plan-panel tree-columns",
+            "overflowX": "clip",
+            "overflowY": "clip",
+            "overflowClipMargin": "0px",
+            "borderBox": {
+              "left": 240,
+              "top": 86.5,
+              "right": 1339,
+              "bottom": 903,
+              "width": 1099,
+              "height": 816.5
+            },
+            "insets": {
+              "left": 1,
+              "top": 1,
+              "right": 1,
+              "bottom": 1
+            },
+            "clipRect": {
+              "left": 241,
+              "top": 87.5,
+              "right": 1338,
+              "bottom": 902,
+              "width": 1097,
+              "height": 814.5
+            }
+          },
+          {
+            "owner": "host-view",
+            "overflowX": "auto",
+            "overflowY": "auto",
+            "overflowClipMargin": "0px",
+            "borderBox": {
+              "left": 0,
+              "top": 56,
+              "right": 1363,
+              "bottom": 936,
+              "width": 1363,
+              "height": 880
+            },
+            "insets": {
+              "left": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0
+            },
+            "clipRect": {
+              "left": 0,
+              "top": 56,
+              "right": 1363,
+              "bottom": 936,
+              "width": 1363,
+              "height": 880
+            }
+          },
+          {
+            "owner": "demo-shell",
+            "overflowX": "hidden",
+            "overflowY": "hidden",
+            "overflowClipMargin": "0px",
+            "borderBox": {
+              "left": 0,
+              "top": 0,
+              "right": 1363,
+              "bottom": 936,
+              "width": 1363,
+              "height": 936
+            },
+            "insets": {
+              "left": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0
+            },
+            "clipRect": {
+              "left": 0,
+              "top": 0,
+              "right": 1363,
+              "bottom": 936,
+              "width": 1363,
+              "height": 936
+            }
+          }
+        ],
+        "visibleRow": {
+          "left": 241,
+          "top": 784.3125,
+          "right": 1338,
+          "bottom": 858,
+          "width": 1097,
+          "height": 73.6875
+        },
+        "rawIntersection": 0,
+        "visibleIntersection": 0,
+        "scrollableAncestors": 1,
+        "rowHit": true,
+        "rowHitPoint": {
+          "x": 427,
+          "y": 821.15625
+        },
+        "rowBoundaryHit": true,
+        "rowBoundaryPoint": {
+          "x": 681.5,
+          "y": 857
+        },
+        "barWrapped": false,
+        "outerScrollTop": 3600,
+        "viewport": {
+          "width": 1363,
+          "height": 936
+        },
+        "activeRow": "task-48",
+        "horizontalOverflow": false,
+        "documentScrolls": false
+      },
+      "return": {
+        "row": {
+          "left": 241,
+          "top": 784.3125,
+          "right": 1338,
+          "bottom": 858,
+          "width": 1097,
+          "height": 73.6875
+        },
+        "bar": {
+          "left": 522,
+          "top": 858,
+          "right": 841,
+          "bottom": 920,
+          "width": 319,
+          "height": 62
+        },
+        "scroller": {
+          "left": 0,
+          "top": 56,
+          "right": 1363,
+          "bottom": 936,
+          "width": 1363,
+          "height": 880
+        },
+        "scrollTop": 3600,
+        "scrollOwner": "host-view",
+        "clipBounds": {
+          "left": 241,
+          "top": 87.5,
+          "right": 1338,
+          "bottom": 902,
+          "width": 1097,
+          "height": 814.5
+        },
+        "clippingAncestors": [
+          {
+            "owner": "iq-plan-panel tree-columns",
+            "overflowX": "clip",
+            "overflowY": "clip",
+            "overflowClipMargin": "0px",
+            "borderBox": {
+              "left": 240,
+              "top": 86.5,
+              "right": 1339,
+              "bottom": 903,
+              "width": 1099,
+              "height": 816.5
+            },
+            "insets": {
+              "left": 1,
+              "top": 1,
+              "right": 1,
+              "bottom": 1
+            },
+            "clipRect": {
+              "left": 241,
+              "top": 87.5,
+              "right": 1338,
+              "bottom": 902,
+              "width": 1097,
+              "height": 814.5
+            }
+          },
+          {
+            "owner": "host-view",
+            "overflowX": "auto",
+            "overflowY": "auto",
+            "overflowClipMargin": "0px",
+            "borderBox": {
+              "left": 0,
+              "top": 56,
+              "right": 1363,
+              "bottom": 936,
+              "width": 1363,
+              "height": 880
+            },
+            "insets": {
+              "left": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0
+            },
+            "clipRect": {
+              "left": 0,
+              "top": 56,
+              "right": 1363,
+              "bottom": 936,
+              "width": 1363,
+              "height": 880
+            }
+          },
+          {
+            "owner": "demo-shell",
+            "overflowX": "hidden",
+            "overflowY": "hidden",
+            "overflowClipMargin": "0px",
+            "borderBox": {
+              "left": 0,
+              "top": 0,
+              "right": 1363,
+              "bottom": 936,
+              "width": 1363,
+              "height": 936
+            },
+            "insets": {
+              "left": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0
+            },
+            "clipRect": {
+              "left": 0,
+              "top": 0,
+              "right": 1363,
+              "bottom": 936,
+              "width": 1363,
+              "height": 936
+            }
+          }
+        ],
+        "visibleRow": {
+          "left": 241,
+          "top": 784.3125,
+          "right": 1338,
+          "bottom": 858,
+          "width": 1097,
+          "height": 73.6875
+        },
+        "rawIntersection": 0,
+        "visibleIntersection": 0,
+        "scrollableAncestors": 1,
+        "rowHit": true,
+        "rowHitPoint": {
+          "x": 427,
+          "y": 821.15625
+        },
+        "rowBoundaryHit": true,
+        "rowBoundaryPoint": {
+          "x": 681.5,
+          "y": 857
+        },
+        "barWrapped": false,
+        "outerScrollTop": 3600,
+        "viewport": {
+          "width": 1363,
+          "height": 936
+        },
+        "activeRow": "task-48",
+        "horizontalOverflow": false,
+        "documentScrolls": false
+      },
+      "cleared": {
+        "row": {
+          "left": 241,
+          "top": 784.3125,
+          "right": 1338,
+          "bottom": 858,
+          "width": 1097,
+          "height": 73.6875
+        },
+        "bar": {
+          "left": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0
+        },
+        "scroller": {
+          "left": 0,
+          "top": 56,
+          "right": 1363,
+          "bottom": 936,
+          "width": 1363,
+          "height": 880
+        },
+        "scrollTop": 3600,
+        "scrollOwner": "host-view",
+        "clipBounds": {
+          "left": 241,
+          "top": 87.5,
+          "right": 1338,
+          "bottom": 902,
+          "width": 1097,
+          "height": 814.5
+        },
+        "clippingAncestors": [
+          {
+            "owner": "iq-plan-panel tree-columns",
+            "overflowX": "clip",
+            "overflowY": "clip",
+            "overflowClipMargin": "0px",
+            "borderBox": {
+              "left": 240,
+              "top": 86.5,
+              "right": 1339,
+              "bottom": 903,
+              "width": 1099,
+              "height": 816.5
+            },
+            "insets": {
+              "left": 1,
+              "top": 1,
+              "right": 1,
+              "bottom": 1
+            },
+            "clipRect": {
+              "left": 241,
+              "top": 87.5,
+              "right": 1338,
+              "bottom": 902,
+              "width": 1097,
+              "height": 814.5
+            }
+          },
+          {
+            "owner": "host-view",
+            "overflowX": "auto",
+            "overflowY": "auto",
+            "overflowClipMargin": "0px",
+            "borderBox": {
+              "left": 0,
+              "top": 56,
+              "right": 1363,
+              "bottom": 936,
+              "width": 1363,
+              "height": 880
+            },
+            "insets": {
+              "left": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0
+            },
+            "clipRect": {
+              "left": 0,
+              "top": 56,
+              "right": 1363,
+              "bottom": 936,
+              "width": 1363,
+              "height": 880
+            }
+          },
+          {
+            "owner": "demo-shell",
+            "overflowX": "hidden",
+            "overflowY": "hidden",
+            "overflowClipMargin": "0px",
+            "borderBox": {
+              "left": 0,
+              "top": 0,
+              "right": 1363,
+              "bottom": 936,
+              "width": 1363,
+              "height": 936
+            },
+            "insets": {
+              "left": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0
+            },
+            "clipRect": {
+              "left": 0,
+              "top": 0,
+              "right": 1363,
+              "bottom": 936,
+              "width": 1363,
+              "height": 936
+            }
+          }
+        ],
+        "visibleRow": {
+          "left": 241,
+          "top": 784.3125,
+          "right": 1338,
+          "bottom": 858,
+          "width": 1097,
+          "height": 73.6875
+        },
+        "rawIntersection": 0,
+        "visibleIntersection": 0,
+        "scrollableAncestors": 1,
+        "rowHit": true,
+        "rowHitPoint": {
+          "x": 427,
+          "y": 821.15625
+        },
+        "rowBoundaryHit": true,
+        "rowBoundaryPoint": {
+          "x": 789.5,
+          "y": 857
+        },
+        "barWrapped": false,
+        "outerScrollTop": 3600,
+        "viewport": {
+          "width": 1363,
+          "height": 936
+        },
+        "activeRow": "task-48",
+        "horizontalOverflow": false,
+        "documentScrolls": false
+      },
+      "drag": {
+        "before": 815,
+        "after": 1095
+      },
+      "moveIntent": [
+        {
+          "ids": [
+            "task-18"
+          ],
+          "containerId": "backlog",
+          "afterId": "task-48",
+          "withChildren": true,
+          "expectedRevision": "1"
+        }
+      ],
+      "clearButtonActiveElement": "BODY"
+    },
+    {
+      "name": "compact",
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "theme": "light",
+      "density": "compact",
+      "zoom": "1x headless viewport; browser UI zoom not exercised",
+      "checks": [
+        "selected row and separately sized action area",
+        "Space, range selection, M, menu bounds and Escape return",
+        "last row, real product dialog wrapper / substituted Task callback, selection cancel",
+        "DS drag edge scroll and cancellation without dispatch",
+        "one recorded move intent; explicit no-persistence boundary; clear button hides bar"
+      ],
+      "unselected": {
+        "row": {
+          "left": 241,
+          "top": 634.6875,
+          "right": 1255,
+          "bottom": 708.375,
+          "width": 1014,
+          "height": 73.6875
+        },
+        "bar": {
+          "left": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0
+        },
+        "scroller": {
+          "left": 0,
+          "top": 56,
+          "right": 1280,
+          "bottom": 720,
+          "width": 1280,
+          "height": 664
+        },
+        "scrollTop": 1031,
+        "scrollOwner": "host-view",
+        "clipBounds": {
+          "left": 241,
+          "top": 56,
+          "right": 1255,
+          "bottom": 720,
+          "width": 1014,
+          "height": 664
+        },
+        "clippingAncestors": [
+          {
+            "owner": "iq-plan-panel tree-columns",
+            "overflowX": "clip",
+            "overflowY": "clip",
+            "overflowClipMargin": "0px",
+            "borderBox": {
+              "left": 240,
+              "top": -814,
+              "right": 1256,
+              "bottom": 1785,
+              "width": 1016,
+              "height": 2599
+            },
+            "insets": {
+              "left": 1,
+              "top": 1,
+              "right": 1,
+              "bottom": 1
+            },
+            "clipRect": {
+              "left": 241,
+              "top": -813,
+              "right": 1255,
+              "bottom": 1784,
+              "width": 1014,
+              "height": 2597
+            }
+          },
+          {
+            "owner": "host-view",
+            "overflowX": "auto",
+            "overflowY": "auto",
+            "overflowClipMargin": "0px",
+            "borderBox": {
+              "left": 0,
+              "top": 56,
+              "right": 1280,
+              "bottom": 720,
+              "width": 1280,
+              "height": 664
+            },
+            "insets": {
+              "left": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0
+            },
+            "clipRect": {
+              "left": 0,
+              "top": 56,
+              "right": 1280,
+              "bottom": 720,
+              "width": 1280,
+              "height": 664
+            }
+          },
+          {
+            "owner": "demo-shell",
+            "overflowX": "hidden",
+            "overflowY": "hidden",
+            "overflowClipMargin": "0px",
+            "borderBox": {
+              "left": 0,
+              "top": 0,
+              "right": 1280,
+              "bottom": 720,
+              "width": 1280,
+              "height": 720
+            },
+            "insets": {
+              "left": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0
+            },
+            "clipRect": {
+              "left": 0,
+              "top": 0,
+              "right": 1280,
+              "bottom": 720,
+              "width": 1280,
+              "height": 720
+            }
+          }
+        ],
+        "visibleRow": {
+          "left": 241,
+          "top": 634.6875,
+          "right": 1255,
+          "bottom": 708.375,
+          "width": 1014,
+          "height": 73.6875
+        },
+        "rawIntersection": 0,
+        "visibleIntersection": 0,
+        "scrollableAncestors": 1,
+        "rowHit": true,
+        "rowHitPoint": {
+          "x": 427,
+          "y": 671.53125
+        },
+        "rowBoundaryHit": true,
+        "rowBoundaryPoint": {
+          "x": 748,
+          "y": 707.375
+        },
+        "barWrapped": false,
+        "outerScrollTop": 1031,
+        "viewport": {
+          "width": 1280,
+          "height": 720
+        },
+        "activeRow": "task-18",
+        "horizontalOverflow": false,
+        "documentScrolls": false
+      },
+      "selection": {
+        "row": {
+          "left": 241,
+          "top": 634.6875,
+          "right": 1255,
+          "bottom": 708.375,
+          "width": 1014,
+          "height": 73.6875
+        },
+        "bar": {
+          "left": 482,
+          "top": 642,
+          "right": 798,
+          "bottom": 704,
+          "width": 316,
+          "height": 62
+        },
+        "scroller": {
+          "left": 0,
+          "top": 56,
+          "right": 1280,
+          "bottom": 720,
+          "width": 1280,
+          "height": 664
+        },
+        "scrollTop": 1031,
+        "scrollOwner": "host-view",
+        "clipBounds": {
+          "left": 241,
+          "top": 56,
+          "right": 1255,
+          "bottom": 720,
+          "width": 1014,
+          "height": 664
+        },
+        "clippingAncestors": [
+          {
+            "owner": "iq-plan-panel tree-columns",
+            "overflowX": "clip",
+            "overflowY": "clip",
+            "overflowClipMargin": "0px",
+            "borderBox": {
+              "left": 240,
+              "top": -814,
+              "right": 1256,
+              "bottom": 1785,
+              "width": 1016,
+              "height": 2599
+            },
+            "insets": {
+              "left": 1,
+              "top": 1,
+              "right": 1,
+              "bottom": 1
+            },
+            "clipRect": {
+              "left": 241,
+              "top": -813,
+              "right": 1255,
+              "bottom": 1784,
+              "width": 1014,
+              "height": 2597
+            }
+          },
+          {
+            "owner": "host-view",
+            "overflowX": "auto",
+            "overflowY": "auto",
+            "overflowClipMargin": "0px",
+            "borderBox": {
+              "left": 0,
+              "top": 56,
+              "right": 1280,
+              "bottom": 720,
+              "width": 1280,
+              "height": 664
+            },
+            "insets": {
+              "left": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0
+            },
+            "clipRect": {
+              "left": 0,
+              "top": 56,
+              "right": 1280,
+              "bottom": 720,
+              "width": 1280,
+              "height": 664
+            }
+          },
+          {
+            "owner": "demo-shell",
+            "overflowX": "hidden",
+            "overflowY": "hidden",
+            "overflowClipMargin": "0px",
+            "borderBox": {
+              "left": 0,
+              "top": 0,
+              "right": 1280,
+              "bottom": 720,
+              "width": 1280,
+              "height": 720
+            },
+            "insets": {
+              "left": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0
+            },
+            "clipRect": {
+              "left": 0,
+              "top": 0,
+              "right": 1280,
+              "bottom": 720,
+              "width": 1280,
+              "height": 720
+            }
+          }
+        ],
+        "visibleRow": {
+          "left": 241,
+          "top": 634.6875,
+          "right": 1255,
+          "bottom": 708.375,
+          "width": 1014,
+          "height": 73.6875
+        },
+        "rawIntersection": 19592,
+        "visibleIntersection": 19592,
+        "scrollableAncestors": 1,
+        "rowHit": true,
+        "rowHitPoint": {
+          "x": 427,
+          "y": 671.53125
+        },
+        "rowBoundaryHit": true,
+        "rowBoundaryPoint": {
+          "x": 640,
+          "y": 707.375
+        },
+        "barWrapped": false,
+        "outerScrollTop": 1031,
+        "viewport": {
+          "width": 1280,
+          "height": 720
+        },
+        "activeRow": "task-18",
+        "horizontalOverflow": false,
+        "documentScrolls": false
+      },
+      "menu": {
+        "top": 480,
+        "bottom": 639.5,
+        "left": 485,
+        "right": 1011,
+        "width": 1280,
+        "height": 720
+      },
+      "menuReturn": {
+        "row": {
+          "left": 241,
+          "top": 646.375,
+          "right": 1255,
+          "bottom": 720.0625,
+          "width": 1014,
+          "height": 73.6875
+        },
+        "bar": {
+          "left": 480,
+          "top": 642,
+          "right": 800,
+          "bottom": 704,
+          "width": 320,
+          "height": 62
+        },
+        "scroller": {
+          "left": 0,
+          "top": 56,
+          "right": 1280,
+          "bottom": 720,
+          "width": 1280,
+          "height": 664
+        },
+        "scrollTop": 1093,
+        "scrollOwner": "host-view",
+        "clipBounds": {
+          "left": 241,
+          "top": 56,
+          "right": 1255,
+          "bottom": 720,
+          "width": 1014,
+          "height": 664
+        },
+        "clippingAncestors": [
+          {
+            "owner": "iq-plan-panel tree-columns",
+            "overflowX": "clip",
+            "overflowY": "clip",
+            "overflowClipMargin": "0px",
+            "borderBox": {
+              "left": 240,
+              "top": -876,
+              "right": 1256,
+              "bottom": 1723,
+              "width": 1016,
+              "height": 2599
+            },
+            "insets": {
+              "left": 1,
+              "top": 1,
+              "right": 1,
+              "bottom": 1
+            },
+            "clipRect": {
+              "left": 241,
+              "top": -875,
+              "right": 1255,
+              "bottom": 1722,
+              "width": 1014,
+              "height": 2597
+            }
+          },
+          {
+            "owner": "host-view",
+            "overflowX": "auto",
+            "overflowY": "auto",
+            "overflowClipMargin": "0px",
+            "borderBox": {
+              "left": 0,
+              "top": 56,
+              "right": 1280,
+              "bottom": 720,
+              "width": 1280,
+              "height": 664
+            },
+            "insets": {
+              "left": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0
+            },
+            "clipRect": {
+              "left": 0,
+              "top": 56,
+              "right": 1280,
+              "bottom": 720,
+              "width": 1280,
+              "height": 664
+            }
+          },
+          {
+            "owner": "demo-shell",
+            "overflowX": "hidden",
+            "overflowY": "hidden",
+            "overflowClipMargin": "0px",
+            "borderBox": {
+              "left": 0,
+              "top": 0,
+              "right": 1280,
+              "bottom": 720,
+              "width": 1280,
+              "height": 720
+            },
+            "insets": {
+              "left": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0
+            },
+            "clipRect": {
+              "left": 0,
+              "top": 0,
+              "right": 1280,
+              "bottom": 720,
+              "width": 1280,
+              "height": 720
+            }
+          }
+        ],
+        "visibleRow": {
+          "left": 241,
+          "top": 646.375,
+          "right": 1255,
+          "bottom": 720,
+          "width": 1014,
+          "height": 73.625
+        },
+        "rawIntersection": 18440,
+        "visibleIntersection": 18440,
+        "scrollableAncestors": 1,
+        "rowHit": true,
+        "rowHitPoint": {
+          "x": 427,
+          "y": 683.21875
+        },
+        "rowBoundaryHit": true,
+        "rowBoundaryPoint": {
+          "x": 640,
+          "y": 719
+        },
+        "barWrapped": false,
+        "outerScrollTop": 1093,
+        "viewport": {
+          "width": 1280,
+          "height": 720
+        },
+        "activeRow": "task-19",
+        "horizontalOverflow": false,
+        "documentScrolls": false
+      },
+      "lastRow": {
+        "row": {
+          "left": 241,
+          "top": 568.3125,
+          "right": 1255,
+          "bottom": 642,
+          "width": 1014,
+          "height": 73.6875
+        },
+        "bar": {
+          "left": 480.5,
+          "top": 642,
+          "right": 799.5,
+          "bottom": 704,
+          "width": 319,
+          "height": 62
+        },
+        "scroller": {
+          "left": 0,
+          "top": 56,
+          "right": 1280,
+          "bottom": 720,
+          "width": 1280,
+          "height": 664
+        },
+        "scrollTop": 3816,
+        "scrollOwner": "host-view",
+        "clipBounds": {
+          "left": 241,
+          "top": 56,
+          "right": 1255,
+          "bottom": 686,
+          "width": 1014,
+          "height": 630
+        },
+        "clippingAncestors": [
+          {
+            "owner": "iq-plan-panel tree-columns",
+            "overflowX": "clip",
+            "overflowY": "clip",
+            "overflowClipMargin": "0px",
+            "borderBox": {
+              "left": 240,
+              "top": -129.5,
+              "right": 1256,
+              "bottom": 687,
+              "width": 1016,
+              "height": 816.5
+            },
+            "insets": {
+              "left": 1,
+              "top": 1,
+              "right": 1,
+              "bottom": 1
+            },
+            "clipRect": {
+              "left": 241,
+              "top": -128.5,
+              "right": 1255,
+              "bottom": 686,
+              "width": 1014,
+              "height": 814.5
+            }
+          },
+          {
+            "owner": "host-view",
+            "overflowX": "auto",
+            "overflowY": "auto",
+            "overflowClipMargin": "0px",
+            "borderBox": {
+              "left": 0,
+              "top": 56,
+              "right": 1280,
+              "bottom": 720,
+              "width": 1280,
+              "height": 664
+            },
+            "insets": {
+              "left": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0
+            },
+            "clipRect": {
+              "left": 0,
+              "top": 56,
+              "right": 1280,
+              "bottom": 720,
+              "width": 1280,
+              "height": 664
+            }
+          },
+          {
+            "owner": "demo-shell",
+            "overflowX": "hidden",
+            "overflowY": "hidden",
+            "overflowClipMargin": "0px",
+            "borderBox": {
+              "left": 0,
+              "top": 0,
+              "right": 1280,
+              "bottom": 720,
+              "width": 1280,
+              "height": 720
+            },
+            "insets": {
+              "left": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0
+            },
+            "clipRect": {
+              "left": 0,
+              "top": 0,
+              "right": 1280,
+              "bottom": 720,
+              "width": 1280,
+              "height": 720
+            }
+          }
+        ],
+        "visibleRow": {
+          "left": 241,
+          "top": 568.3125,
+          "right": 1255,
+          "bottom": 642,
+          "width": 1014,
+          "height": 73.6875
+        },
+        "rawIntersection": 0,
+        "visibleIntersection": 0,
+        "scrollableAncestors": 1,
+        "rowHit": true,
+        "rowHitPoint": {
+          "x": 427,
+          "y": 605.15625
+        },
+        "rowBoundaryHit": true,
+        "rowBoundaryPoint": {
+          "x": 640,
+          "y": 641
+        },
+        "barWrapped": false,
+        "outerScrollTop": 3816,
+        "viewport": {
+          "width": 1280,
+          "height": 720
+        },
+        "activeRow": "task-48",
+        "horizontalOverflow": false,
+        "documentScrolls": false
+      },
+      "return": {
+        "row": {
+          "left": 241,
+          "top": 568.3125,
+          "right": 1255,
+          "bottom": 642,
+          "width": 1014,
+          "height": 73.6875
+        },
+        "bar": {
+          "left": 480.5,
+          "top": 642,
+          "right": 799.5,
+          "bottom": 704,
+          "width": 319,
+          "height": 62
+        },
+        "scroller": {
+          "left": 0,
+          "top": 56,
+          "right": 1280,
+          "bottom": 720,
+          "width": 1280,
+          "height": 664
+        },
+        "scrollTop": 3816,
+        "scrollOwner": "host-view",
+        "clipBounds": {
+          "left": 241,
+          "top": 56,
+          "right": 1255,
+          "bottom": 686,
+          "width": 1014,
+          "height": 630
+        },
+        "clippingAncestors": [
+          {
+            "owner": "iq-plan-panel tree-columns",
+            "overflowX": "clip",
+            "overflowY": "clip",
+            "overflowClipMargin": "0px",
+            "borderBox": {
+              "left": 240,
+              "top": -129.5,
+              "right": 1256,
+              "bottom": 687,
+              "width": 1016,
+              "height": 816.5
+            },
+            "insets": {
+              "left": 1,
+              "top": 1,
+              "right": 1,
+              "bottom": 1
+            },
+            "clipRect": {
+              "left": 241,
+              "top": -128.5,
+              "right": 1255,
+              "bottom": 686,
+              "width": 1014,
+              "height": 814.5
+            }
+          },
+          {
+            "owner": "host-view",
+            "overflowX": "auto",
+            "overflowY": "auto",
+            "overflowClipMargin": "0px",
+            "borderBox": {
+              "left": 0,
+              "top": 56,
+              "right": 1280,
+              "bottom": 720,
+              "width": 1280,
+              "height": 664
+            },
+            "insets": {
+              "left": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0
+            },
+            "clipRect": {
+              "left": 0,
+              "top": 56,
+              "right": 1280,
+              "bottom": 720,
+              "width": 1280,
+              "height": 664
+            }
+          },
+          {
+            "owner": "demo-shell",
+            "overflowX": "hidden",
+            "overflowY": "hidden",
+            "overflowClipMargin": "0px",
+            "borderBox": {
+              "left": 0,
+              "top": 0,
+              "right": 1280,
+              "bottom": 720,
+              "width": 1280,
+              "height": 720
+            },
+            "insets": {
+              "left": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0
+            },
+            "clipRect": {
+              "left": 0,
+              "top": 0,
+              "right": 1280,
+              "bottom": 720,
+              "width": 1280,
+              "height": 720
+            }
+          }
+        ],
+        "visibleRow": {
+          "left": 241,
+          "top": 568.3125,
+          "right": 1255,
+          "bottom": 642,
+          "width": 1014,
+          "height": 73.6875
+        },
+        "rawIntersection": 0,
+        "visibleIntersection": 0,
+        "scrollableAncestors": 1,
+        "rowHit": true,
+        "rowHitPoint": {
+          "x": 427,
+          "y": 605.15625
+        },
+        "rowBoundaryHit": true,
+        "rowBoundaryPoint": {
+          "x": 640,
+          "y": 641
+        },
+        "barWrapped": false,
+        "outerScrollTop": 3816,
+        "viewport": {
+          "width": 1280,
+          "height": 720
+        },
+        "activeRow": "task-48",
+        "horizontalOverflow": false,
+        "documentScrolls": false
+      },
+      "cleared": {
+        "row": {
+          "left": 241,
+          "top": 568.3125,
+          "right": 1255,
+          "bottom": 642,
+          "width": 1014,
+          "height": 73.6875
+        },
+        "bar": {
+          "left": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0
+        },
+        "scroller": {
+          "left": 0,
+          "top": 56,
+          "right": 1280,
+          "bottom": 720,
+          "width": 1280,
+          "height": 664
+        },
+        "scrollTop": 3816,
+        "scrollOwner": "host-view",
+        "clipBounds": {
+          "left": 241,
+          "top": 56,
+          "right": 1255,
+          "bottom": 686,
+          "width": 1014,
+          "height": 630
+        },
+        "clippingAncestors": [
+          {
+            "owner": "iq-plan-panel tree-columns",
+            "overflowX": "clip",
+            "overflowY": "clip",
+            "overflowClipMargin": "0px",
+            "borderBox": {
+              "left": 240,
+              "top": -129.5,
+              "right": 1256,
+              "bottom": 687,
+              "width": 1016,
+              "height": 816.5
+            },
+            "insets": {
+              "left": 1,
+              "top": 1,
+              "right": 1,
+              "bottom": 1
+            },
+            "clipRect": {
+              "left": 241,
+              "top": -128.5,
+              "right": 1255,
+              "bottom": 686,
+              "width": 1014,
+              "height": 814.5
+            }
+          },
+          {
+            "owner": "host-view",
+            "overflowX": "auto",
+            "overflowY": "auto",
+            "overflowClipMargin": "0px",
+            "borderBox": {
+              "left": 0,
+              "top": 56,
+              "right": 1280,
+              "bottom": 720,
+              "width": 1280,
+              "height": 664
+            },
+            "insets": {
+              "left": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0
+            },
+            "clipRect": {
+              "left": 0,
+              "top": 56,
+              "right": 1280,
+              "bottom": 720,
+              "width": 1280,
+              "height": 664
+            }
+          },
+          {
+            "owner": "demo-shell",
+            "overflowX": "hidden",
+            "overflowY": "hidden",
+            "overflowClipMargin": "0px",
+            "borderBox": {
+              "left": 0,
+              "top": 0,
+              "right": 1280,
+              "bottom": 720,
+              "width": 1280,
+              "height": 720
+            },
+            "insets": {
+              "left": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0
+            },
+            "clipRect": {
+              "left": 0,
+              "top": 0,
+              "right": 1280,
+              "bottom": 720,
+              "width": 1280,
+              "height": 720
+            }
+          }
+        ],
+        "visibleRow": {
+          "left": 241,
+          "top": 568.3125,
+          "right": 1255,
+          "bottom": 642,
+          "width": 1014,
+          "height": 73.6875
+        },
+        "rawIntersection": 0,
+        "visibleIntersection": 0,
+        "scrollableAncestors": 1,
+        "rowHit": true,
+        "rowHitPoint": {
+          "x": 427,
+          "y": 605.15625
+        },
+        "rowBoundaryHit": true,
+        "rowBoundaryPoint": {
+          "x": 748,
+          "y": 641
+        },
+        "barWrapped": false,
+        "outerScrollTop": 3816,
+        "viewport": {
+          "width": 1280,
+          "height": 720
+        },
+        "activeRow": "task-48",
+        "horizontalOverflow": false,
+        "documentScrolls": false
+      },
+      "drag": {
+        "before": 1031,
+        "after": 1311
+      },
+      "moveIntent": [
+        {
+          "ids": [
+            "task-18"
+          ],
+          "containerId": "backlog",
+          "afterId": "task-48",
+          "withChildren": true,
+          "expectedRevision": "1"
+        }
+      ],
+      "clearButtonActiveElement": "BODY"
+    },
+    {
+      "name": "narrow",
+      "viewport": {
+        "width": 320,
+        "height": 568
+      },
+      "theme": "dark",
+      "density": "comfortable",
+      "zoom": "1x headless viewport; browser UI zoom not exercised",
+      "checks": [
+        "selected row and separately sized action area",
+        "Space, range selection, M, menu bounds and Escape return",
+        "last row, real product dialog wrapper / substituted Task callback, selection cancel",
+        "DS drag edge scroll and cancellation without dispatch",
+        "one recorded move intent; explicit no-persistence boundary; clear button hides bar"
+      ],
+      "unselected": {
+        "row": {
+          "left": 17,
+          "top": 360.46875,
+          "right": 303,
+          "bottom": 555.84375,
+          "width": 286,
+          "height": 195.375
+        },
+        "bar": {
+          "left": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0
+        },
+        "scroller": {
+          "left": 0,
+          "top": 104,
+          "right": 320,
+          "bottom": 568,
+          "width": 320,
+          "height": 464
+        },
+        "scrollTop": 3820,
+        "scrollOwner": "host-view",
+        "clipBounds": {
+          "left": 17,
+          "top": 104,
+          "right": 303,
+          "bottom": 568,
+          "width": 286,
+          "height": 464
+        },
+        "clippingAncestors": [
+          {
+            "owner": "iq-plan-panel tree-columns",
+            "overflowX": "clip",
+            "overflowY": "clip",
+            "overflowClipMargin": "0px",
+            "borderBox": {
+              "left": 16,
+              "top": -3290.90625,
+              "right": 304,
+              "bottom": 3406.09375,
+              "width": 288,
+              "height": 6697
+            },
+            "insets": {
+              "left": 1,
+              "top": 1,
+              "right": 1,
+              "bottom": 1
+            },
+            "clipRect": {
+              "left": 17,
+              "top": -3289.90625,
+              "right": 303,
+              "bottom": 3405.09375,
+              "width": 286,
+              "height": 6695
+            }
+          },
+          {
+            "owner": "host-view",
+            "overflowX": "auto",
+            "overflowY": "auto",
+            "overflowClipMargin": "0px",
+            "borderBox": {
+              "left": 0,
+              "top": 104,
+              "right": 320,
+              "bottom": 568,
+              "width": 320,
+              "height": 464
+            },
+            "insets": {
+              "left": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0
+            },
+            "clipRect": {
+              "left": 0,
+              "top": 104,
+              "right": 320,
+              "bottom": 568,
+              "width": 320,
+              "height": 464
+            }
+          },
+          {
+            "owner": "demo-shell",
+            "overflowX": "hidden",
+            "overflowY": "hidden",
+            "overflowClipMargin": "0px",
+            "borderBox": {
+              "left": 0,
+              "top": 0,
+              "right": 320,
+              "bottom": 568,
+              "width": 320,
+              "height": 568
+            },
+            "insets": {
+              "left": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0
+            },
+            "clipRect": {
+              "left": 0,
+              "top": 0,
+              "right": 320,
+              "bottom": 568,
+              "width": 320,
+              "height": 568
+            }
+          }
+        ],
+        "visibleRow": {
+          "left": 17,
+          "top": 360.46875,
+          "right": 303,
+          "bottom": 555.84375,
+          "width": 286,
+          "height": 195.375
+        },
+        "rawIntersection": 0,
+        "visibleIntersection": 0,
+        "scrollableAncestors": 1,
+        "rowHit": true,
+        "rowHitPoint": {
+          "x": 196,
+          "y": 458.15625
+        },
+        "rowBoundaryHit": true,
+        "rowBoundaryPoint": {
+          "x": 160,
+          "y": 554.84375
+        },
+        "barWrapped": false,
+        "outerScrollTop": 3820,
+        "viewport": {
+          "width": 320,
+          "height": 568
+        },
+        "activeRow": "task-18",
+        "horizontalOverflow": false,
+        "documentScrolls": false
+      },
+      "selection": {
+        "row": {
+          "left": 17,
+          "top": 360.46875,
+          "right": 303,
+          "bottom": 555.84375,
+          "width": 286,
+          "height": 195.375
+        },
+        "bar": {
+          "left": 79.5,
+          "top": 404.90625,
+          "right": 240.5,
+          "bottom": 552,
+          "width": 161,
+          "height": 147.09375
+        },
+        "scroller": {
+          "left": 0,
+          "top": 104,
+          "right": 320,
+          "bottom": 568,
+          "width": 320,
+          "height": 464
+        },
+        "scrollTop": 3820,
+        "scrollOwner": "host-view",
+        "clipBounds": {
+          "left": 17,
+          "top": 104,
+          "right": 303,
+          "bottom": 568,
+          "width": 286,
+          "height": 464
+        },
+        "clippingAncestors": [
+          {
+            "owner": "iq-plan-panel tree-columns",
+            "overflowX": "clip",
+            "overflowY": "clip",
+            "overflowClipMargin": "0px",
+            "borderBox": {
+              "left": 16,
+              "top": -3290.90625,
+              "right": 304,
+              "bottom": 3406.09375,
+              "width": 288,
+              "height": 6697
+            },
+            "insets": {
+              "left": 1,
+              "top": 1,
+              "right": 1,
+              "bottom": 1
+            },
+            "clipRect": {
+              "left": 17,
+              "top": -3289.90625,
+              "right": 303,
+              "bottom": 3405.09375,
+              "width": 286,
+              "height": 6695
+            }
+          },
+          {
+            "owner": "host-view",
+            "overflowX": "auto",
+            "overflowY": "auto",
+            "overflowClipMargin": "0px",
+            "borderBox": {
+              "left": 0,
+              "top": 104,
+              "right": 320,
+              "bottom": 568,
+              "width": 320,
+              "height": 464
+            },
+            "insets": {
+              "left": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0
+            },
+            "clipRect": {
+              "left": 0,
+              "top": 104,
+              "right": 320,
+              "bottom": 568,
+              "width": 320,
+              "height": 464
+            }
+          },
+          {
+            "owner": "demo-shell",
+            "overflowX": "hidden",
+            "overflowY": "hidden",
+            "overflowClipMargin": "0px",
+            "borderBox": {
+              "left": 0,
+              "top": 0,
+              "right": 320,
+              "bottom": 568,
+              "width": 320,
+              "height": 568
+            },
+            "insets": {
+              "left": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0
+            },
+            "clipRect": {
+              "left": 0,
+              "top": 0,
+              "right": 320,
+              "bottom": 568,
+              "width": 320,
+              "height": 568
+            }
+          }
+        ],
+        "visibleRow": {
+          "left": 17,
+          "top": 360.46875,
+          "right": 303,
+          "bottom": 555.84375,
+          "width": 286,
+          "height": 195.375
+        },
+        "rawIntersection": 23682.09375,
+        "visibleIntersection": 23682.09375,
+        "scrollableAncestors": 1,
+        "rowHit": false,
+        "rowHitPoint": {
+          "x": 196,
+          "y": 458.15625
+        },
+        "rowBoundaryHit": true,
+        "rowBoundaryPoint": {
+          "x": 160,
+          "y": 554.84375
+        },
+        "barWrapped": true,
+        "outerScrollTop": 3820,
+        "viewport": {
+          "width": 320,
+          "height": 568
+        },
+        "activeRow": "task-18",
+        "horizontalOverflow": false,
+        "documentScrolls": false
+      },
+      "menu": {
+        "top": 161,
+        "bottom": 359.5,
+        "left": 8,
+        "right": 312,
+        "width": 320,
+        "height": 568
+      },
+      "menuReturn": {
+        "row": {
+          "left": 17,
+          "top": 365.84375,
+          "right": 303,
+          "bottom": 568.21875,
+          "width": 286,
+          "height": 202.375
+        },
+        "bar": {
+          "left": 79.5,
+          "top": 404.90625,
+          "right": 240.5,
+          "bottom": 552,
+          "width": 161,
+          "height": 147.09375
+        },
+        "scroller": {
+          "left": 0,
+          "top": 104,
+          "right": 320,
+          "bottom": 568,
+          "width": 320,
+          "height": 464
+        },
+        "scrollTop": 4010,
+        "scrollOwner": "host-view",
+        "clipBounds": {
+          "left": 17,
+          "top": 104,
+          "right": 303,
+          "bottom": 568,
+          "width": 286,
+          "height": 464
+        },
+        "clippingAncestors": [
+          {
+            "owner": "iq-plan-panel tree-columns",
+            "overflowX": "clip",
+            "overflowY": "clip",
+            "overflowClipMargin": "0px",
+            "borderBox": {
+              "left": 16,
+              "top": -3480.90625,
+              "right": 304,
+              "bottom": 3216.09375,
+              "width": 288,
+              "height": 6697
+            },
+            "insets": {
+              "left": 1,
+              "top": 1,
+              "right": 1,
+              "bottom": 1
+            },
+            "clipRect": {
+              "left": 17,
+              "top": -3479.90625,
+              "right": 303,
+              "bottom": 3215.09375,
+              "width": 286,
+              "height": 6695
+            }
+          },
+          {
+            "owner": "host-view",
+            "overflowX": "auto",
+            "overflowY": "auto",
+            "overflowClipMargin": "0px",
+            "borderBox": {
+              "left": 0,
+              "top": 104,
+              "right": 320,
+              "bottom": 568,
+              "width": 320,
+              "height": 464
+            },
+            "insets": {
+              "left": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0
+            },
+            "clipRect": {
+              "left": 0,
+              "top": 104,
+              "right": 320,
+              "bottom": 568,
+              "width": 320,
+              "height": 464
+            }
+          },
+          {
+            "owner": "demo-shell",
+            "overflowX": "hidden",
+            "overflowY": "hidden",
+            "overflowClipMargin": "0px",
+            "borderBox": {
+              "left": 0,
+              "top": 0,
+              "right": 320,
+              "bottom": 568,
+              "width": 320,
+              "height": 568
+            },
+            "insets": {
+              "left": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0
+            },
+            "clipRect": {
+              "left": 0,
+              "top": 0,
+              "right": 320,
+              "bottom": 568,
+              "width": 320,
+              "height": 568
+            }
+          }
+        ],
+        "visibleRow": {
+          "left": 17,
+          "top": 365.84375,
+          "right": 303,
+          "bottom": 568,
+          "width": 286,
+          "height": 202.15625
+        },
+        "rawIntersection": 23682.09375,
+        "visibleIntersection": 23682.09375,
+        "scrollableAncestors": 1,
+        "rowHit": false,
+        "rowHitPoint": {
+          "x": 196,
+          "y": 467.03125
+        },
+        "rowBoundaryHit": true,
+        "rowBoundaryPoint": {
+          "x": 160,
+          "y": 567
+        },
+        "barWrapped": true,
+        "outerScrollTop": 4010,
+        "viewport": {
+          "width": 320,
+          "height": 568
+        },
+        "activeRow": "task-19",
+        "horizontalOverflow": false,
+        "documentScrolls": false
+      },
+      "lastRow": {
+        "row": {
+          "left": 17,
+          "top": 306.90625,
+          "right": 303,
+          "bottom": 502.28125,
+          "width": 286,
+          "height": 195.375
+        },
+        "bar": {
+          "left": 79.5,
+          "top": 404.90625,
+          "right": 240.5,
+          "bottom": 552,
+          "width": 161,
+          "height": 147.09375
+        },
+        "scroller": {
+          "left": 0,
+          "top": 104,
+          "right": 320,
+          "bottom": 568,
+          "width": 320,
+          "height": 464
+        },
+        "scrollTop": 10520,
+        "scrollOwner": "host-view",
+        "clipBounds": {
+          "left": 17,
+          "top": 104,
+          "right": 303,
+          "bottom": 546.28125,
+          "width": 286,
+          "height": 442.28125
+        },
+        "clippingAncestors": [
+          {
+            "owner": "iq-plan-panel tree-columns",
+            "overflowX": "clip",
+            "overflowY": "clip",
+            "overflowClipMargin": "0px",
+            "borderBox": {
+              "left": 16,
+              "top": -1293.71875,
+              "right": 304,
+              "bottom": 547.28125,
+              "width": 288,
+              "height": 1841
+            },
+            "insets": {
+              "left": 1,
+              "top": 1,
+              "right": 1,
+              "bottom": 1
+            },
+            "clipRect": {
+              "left": 17,
+              "top": -1292.71875,
+              "right": 303,
+              "bottom": 546.28125,
+              "width": 286,
+              "height": 1839
+            }
+          },
+          {
+            "owner": "host-view",
+            "overflowX": "auto",
+            "overflowY": "auto",
+            "overflowClipMargin": "0px",
+            "borderBox": {
+              "left": 0,
+              "top": 104,
+              "right": 320,
+              "bottom": 568,
+              "width": 320,
+              "height": 464
+            },
+            "insets": {
+              "left": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0
+            },
+            "clipRect": {
+              "left": 0,
+              "top": 104,
+              "right": 320,
+              "bottom": 568,
+              "width": 320,
+              "height": 464
+            }
+          },
+          {
+            "owner": "demo-shell",
+            "overflowX": "hidden",
+            "overflowY": "hidden",
+            "overflowClipMargin": "0px",
+            "borderBox": {
+              "left": 0,
+              "top": 0,
+              "right": 320,
+              "bottom": 568,
+              "width": 320,
+              "height": 568
+            },
+            "insets": {
+              "left": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0
+            },
+            "clipRect": {
+              "left": 0,
+              "top": 0,
+              "right": 320,
+              "bottom": 568,
+              "width": 320,
+              "height": 568
+            }
+          }
+        ],
+        "visibleRow": {
+          "left": 17,
+          "top": 306.90625,
+          "right": 303,
+          "bottom": 502.28125,
+          "width": 286,
+          "height": 195.375
+        },
+        "rawIntersection": 15677.375,
+        "visibleIntersection": 15677.375,
+        "scrollableAncestors": 1,
+        "rowHit": false,
+        "rowHitPoint": {
+          "x": 196,
+          "y": 404.59375
+        },
+        "rowBoundaryHit": false,
+        "rowBoundaryPoint": {
+          "x": 160,
+          "y": 501.28125
+        },
+        "barWrapped": true,
+        "outerScrollTop": 10520,
+        "viewport": {
+          "width": 320,
+          "height": 568
+        },
+        "activeRow": "task-48",
+        "horizontalOverflow": false,
+        "documentScrolls": false
+      },
+      "return": {
+        "row": {
+          "left": 17,
+          "top": 306.90625,
+          "right": 303,
+          "bottom": 502.28125,
+          "width": 286,
+          "height": 195.375
+        },
+        "bar": {
+          "left": 79.5,
+          "top": 404.90625,
+          "right": 240.5,
+          "bottom": 552,
+          "width": 161,
+          "height": 147.09375
+        },
+        "scroller": {
+          "left": 0,
+          "top": 104,
+          "right": 320,
+          "bottom": 568,
+          "width": 320,
+          "height": 464
+        },
+        "scrollTop": 10520,
+        "scrollOwner": "host-view",
+        "clipBounds": {
+          "left": 17,
+          "top": 104,
+          "right": 303,
+          "bottom": 546.28125,
+          "width": 286,
+          "height": 442.28125
+        },
+        "clippingAncestors": [
+          {
+            "owner": "iq-plan-panel tree-columns",
+            "overflowX": "clip",
+            "overflowY": "clip",
+            "overflowClipMargin": "0px",
+            "borderBox": {
+              "left": 16,
+              "top": -1293.71875,
+              "right": 304,
+              "bottom": 547.28125,
+              "width": 288,
+              "height": 1841
+            },
+            "insets": {
+              "left": 1,
+              "top": 1,
+              "right": 1,
+              "bottom": 1
+            },
+            "clipRect": {
+              "left": 17,
+              "top": -1292.71875,
+              "right": 303,
+              "bottom": 546.28125,
+              "width": 286,
+              "height": 1839
+            }
+          },
+          {
+            "owner": "host-view",
+            "overflowX": "auto",
+            "overflowY": "auto",
+            "overflowClipMargin": "0px",
+            "borderBox": {
+              "left": 0,
+              "top": 104,
+              "right": 320,
+              "bottom": 568,
+              "width": 320,
+              "height": 464
+            },
+            "insets": {
+              "left": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0
+            },
+            "clipRect": {
+              "left": 0,
+              "top": 104,
+              "right": 320,
+              "bottom": 568,
+              "width": 320,
+              "height": 464
+            }
+          },
+          {
+            "owner": "demo-shell",
+            "overflowX": "hidden",
+            "overflowY": "hidden",
+            "overflowClipMargin": "0px",
+            "borderBox": {
+              "left": 0,
+              "top": 0,
+              "right": 320,
+              "bottom": 568,
+              "width": 320,
+              "height": 568
+            },
+            "insets": {
+              "left": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0
+            },
+            "clipRect": {
+              "left": 0,
+              "top": 0,
+              "right": 320,
+              "bottom": 568,
+              "width": 320,
+              "height": 568
+            }
+          }
+        ],
+        "visibleRow": {
+          "left": 17,
+          "top": 306.90625,
+          "right": 303,
+          "bottom": 502.28125,
+          "width": 286,
+          "height": 195.375
+        },
+        "rawIntersection": 15677.375,
+        "visibleIntersection": 15677.375,
+        "scrollableAncestors": 1,
+        "rowHit": false,
+        "rowHitPoint": {
+          "x": 196,
+          "y": 404.59375
+        },
+        "rowBoundaryHit": false,
+        "rowBoundaryPoint": {
+          "x": 160,
+          "y": 501.28125
+        },
+        "barWrapped": true,
+        "outerScrollTop": 10520,
+        "viewport": {
+          "width": 320,
+          "height": 568
+        },
+        "activeRow": "task-48",
+        "horizontalOverflow": false,
+        "documentScrolls": false
+      },
+      "cleared": {
+        "row": {
+          "left": 17,
+          "top": 306.90625,
+          "right": 303,
+          "bottom": 502.28125,
+          "width": 286,
+          "height": 195.375
+        },
+        "bar": {
+          "left": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0
+        },
+        "scroller": {
+          "left": 0,
+          "top": 104,
+          "right": 320,
+          "bottom": 568,
+          "width": 320,
+          "height": 464
+        },
+        "scrollTop": 10520,
+        "scrollOwner": "host-view",
+        "clipBounds": {
+          "left": 17,
+          "top": 104,
+          "right": 303,
+          "bottom": 546.28125,
+          "width": 286,
+          "height": 442.28125
+        },
+        "clippingAncestors": [
+          {
+            "owner": "iq-plan-panel tree-columns",
+            "overflowX": "clip",
+            "overflowY": "clip",
+            "overflowClipMargin": "0px",
+            "borderBox": {
+              "left": 16,
+              "top": -1293.71875,
+              "right": 304,
+              "bottom": 547.28125,
+              "width": 288,
+              "height": 1841
+            },
+            "insets": {
+              "left": 1,
+              "top": 1,
+              "right": 1,
+              "bottom": 1
+            },
+            "clipRect": {
+              "left": 17,
+              "top": -1292.71875,
+              "right": 303,
+              "bottom": 546.28125,
+              "width": 286,
+              "height": 1839
+            }
+          },
+          {
+            "owner": "host-view",
+            "overflowX": "auto",
+            "overflowY": "auto",
+            "overflowClipMargin": "0px",
+            "borderBox": {
+              "left": 0,
+              "top": 104,
+              "right": 320,
+              "bottom": 568,
+              "width": 320,
+              "height": 464
+            },
+            "insets": {
+              "left": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0
+            },
+            "clipRect": {
+              "left": 0,
+              "top": 104,
+              "right": 320,
+              "bottom": 568,
+              "width": 320,
+              "height": 464
+            }
+          },
+          {
+            "owner": "demo-shell",
+            "overflowX": "hidden",
+            "overflowY": "hidden",
+            "overflowClipMargin": "0px",
+            "borderBox": {
+              "left": 0,
+              "top": 0,
+              "right": 320,
+              "bottom": 568,
+              "width": 320,
+              "height": 568
+            },
+            "insets": {
+              "left": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0
+            },
+            "clipRect": {
+              "left": 0,
+              "top": 0,
+              "right": 320,
+              "bottom": 568,
+              "width": 320,
+              "height": 568
+            }
+          }
+        ],
+        "visibleRow": {
+          "left": 17,
+          "top": 306.90625,
+          "right": 303,
+          "bottom": 502.28125,
+          "width": 286,
+          "height": 195.375
+        },
+        "rawIntersection": 0,
+        "visibleIntersection": 0,
+        "scrollableAncestors": 1,
+        "rowHit": true,
+        "rowHitPoint": {
+          "x": 196,
+          "y": 404.59375
+        },
+        "rowBoundaryHit": true,
+        "rowBoundaryPoint": {
+          "x": 160,
+          "y": 501.28125
+        },
+        "barWrapped": false,
+        "outerScrollTop": 10520,
+        "viewport": {
+          "width": 320,
+          "height": 568
+        },
+        "activeRow": "task-48",
+        "horizontalOverflow": false,
+        "documentScrolls": false
+      },
+      "drag": {
+        "before": 3820,
+        "after": 4044
+      },
+      "moveIntent": [
+        {
+          "ids": [
+            "task-18"
+          ],
+          "containerId": "backlog",
+          "afterId": "task-48",
+          "withChildren": true,
+          "expectedRevision": "1"
+        }
+      ],
+      "clearButtonActiveElement": "BODY"
+    }
+  ],
+  "geometryFailures": [
+    {
+      "label": "desktop selected middle row",
+      "check": "overlap"
+    },
+    {
+      "label": "desktop selected middle row",
+      "check": "viewportAboveBar"
+    },
+    {
+      "label": "desktop keyboard menu return",
+      "check": "overlap"
+    },
+    {
+      "label": "desktop keyboard menu return",
+      "check": "viewportAboveBar"
+    },
+    {
+      "label": "desktop selected last row",
+      "check": "viewportAboveBar"
+    },
+    {
+      "label": "desktop dialog return",
+      "check": "viewportAboveBar"
+    },
+    {
+      "label": "compact selected middle row",
+      "check": "overlap"
+    },
+    {
+      "label": "compact selected middle row",
+      "check": "viewportAboveBar"
+    },
+    {
+      "label": "compact keyboard menu return",
+      "check": "overlap"
+    },
+    {
+      "label": "compact keyboard menu return",
+      "check": "viewportAboveBar"
+    },
+    {
+      "label": "compact selected last row",
+      "check": "viewportAboveBar"
+    },
+    {
+      "label": "compact dialog return",
+      "check": "viewportAboveBar"
+    },
+    {
+      "label": "narrow selected middle row",
+      "check": "overlap"
+    },
+    {
+      "label": "narrow selected middle row",
+      "check": "viewportAboveBar"
+    },
+    {
+      "label": "narrow selected middle row",
+      "check": "rowHit"
+    },
+    {
+      "label": "narrow keyboard menu return",
+      "check": "overlap"
+    },
+    {
+      "label": "narrow keyboard menu return",
+      "check": "viewportAboveBar"
+    },
+    {
+      "label": "narrow keyboard menu return",
+      "check": "rowHit"
+    },
+    {
+      "label": "narrow selected last row",
+      "check": "overlap"
+    },
+    {
+      "label": "narrow selected last row",
+      "check": "viewportAboveBar"
+    },
+    {
+      "label": "narrow selected last row",
+      "check": "rowHit"
+    },
+    {
+      "label": "narrow selected last row",
+      "check": "rowBoundaryHit"
+    },
+    {
+      "label": "narrow dialog return",
+      "check": "overlap"
+    },
+    {
+      "label": "narrow dialog return",
+      "check": "viewportAboveBar"
+    },
+    {
+      "label": "narrow dialog return",
+      "check": "rowHit"
+    },
+    {
+      "label": "narrow dialog return",
+      "check": "rowBoundaryHit"
+    }
+  ],
+  "interactionFailures": [],
+  "pageErrors": [],
+  "externalRequests": [],
+  "status": "FAIL",
+  "browser": "151.0.7922.34",
+  "error": "AssertionError [ERR_ASSERTION]: selection bar must not obscure selected rows or create a second scrollport\n+ actual - expected\n\n+ [\n+   {\n+     check: 'overlap',\n+     label: 'desktop selected middle row'\n+   },\n+   {\n+     check: 'viewportAboveBar',\n+     label: 'desktop selected middle row'\n+   },\n+   {\n+     check: 'overlap',\n+     label: 'desktop keyboard menu return'\n+   },\n+   {\n+     check: 'viewportAboveBar',\n+     label: 'desktop keyboard menu return'\n+   },\n+   {\n+     check: 'viewportAboveBar',\n+     label: 'desktop selected last row'\n+   },\n+   {\n+     check: 'viewportAboveBar',\n+     label: 'desktop dialog return'\n+   },\n+   {\n+     check: 'overlap',\n+     label: 'compact selected middle row'\n+   },\n+   {\n+     check: 'viewportAboveBar',\n+     label: 'compact selected middle row'\n+   },\n+   {\n+     check: 'overlap',\n+     label: 'compact keyboard menu return'\n+   },\n+   {\n+     check: 'viewportAboveBar',\n+     label: 'compact keyboard menu return'\n+   },\n+   {\n+     check: 'viewportAboveBar',\n+     label: 'compact selected last row'\n+   },\n+   {\n+     check: 'viewportAboveBar',\n+     label: 'compact dialog return'\n+   },\n+   {\n+     check: 'overlap',\n+     label: 'narrow selected middle row'\n+   },\n+   {\n+     check: 'viewportAboveBar',\n+     label: 'narrow selected middle row'\n+   },\n+   {\n+     check: 'rowHit',\n+     label: 'narrow selected middle row'\n+   },\n+   {\n+     check: 'overlap',\n+     label: 'narrow keyboard menu return'\n+   },\n+   {\n+     check: 'viewportAboveBar',\n+     label: 'narrow keyboard menu return'\n+   },\n+   {\n+     check: 'rowHit',\n+     label: 'narrow keyboard menu return'\n+   },\n+   {\n+     check: 'overlap',\n+     label: 'narrow selected last row'\n+   },\n+   {\n+     check: 'viewportAboveBar',\n+     label: 'narrow selected last row'\n+   },\n+   {\n+     check: 'rowHit',\n+     label: 'narrow selected last row'\n+   },\n+   {\n+     check: 'rowBoundaryHit',\n+     label: 'narrow selected last row'\n+   },\n+   {\n+     check: 'overlap',\n+     label: 'narrow dialog return'\n+   },\n+   {\n+     check: 'viewportAboveBar',\n+     label: 'narrow dialog return'\n+   },\n+   {\n+     check: 'rowHit',\n+     label: 'narrow dialog return'\n+   },\n+   {\n+     check: 'rowBoundaryHit',\n+     label: 'narrow dialog return'\n+   }\n+ ]\n- []\n\n    at file:///home/runner/work/_temp/planning-baseline/products/sprintique/tests/planning-selection-space.browser.mjs:237:10"
+}
