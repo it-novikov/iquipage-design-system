@@ -15,3 +15,7 @@
 - 2026-10-12T07:16:51Z · gpt-6-astra-notification-order · step · S2 · active
 - 2026-10-12T07:20:44Z · gpt-6-astra-notification-order · checkpoint · S2 · дальше: Root publishes one immutable checkpoint; inspect real vNext NT05 diagnostic/certificate before marking A1/A2 or readiness.
 - 2026-10-12T07:20:44Z · gpt-6-astra-notification-order · handoff · - · planned → root; HEAD f5f941af; незакоммичено 1; Immutable candidate for remote publication. Full gate and independent review pending; no acceptance criteria closed yet.
+- 2026-10-12T07:29:04Z · gpt-6-astra-notification-order · claim · - · взял задачу
+- 2026-10-12T07:30:07Z · gpt-6-astra-notification-order · decision · D2 · R1 F1/F2 accepted: cursor tie carries 1us; read-by-id targets ordinal 3 so the inclusive cutoff remains unread until read-all. Exact ID expectations and old-predicate diagnostic remain unchanged.
+- 2026-10-12T07:30:07Z · gpt-6-astra-notification-order · checkpoint · S2 · дальше: Independent reviewer checks new frozen diff; root opens PR and inspects real NT05/certificate evidence.
+- 2026-10-12T07:31:02Z · gpt-6-astra-notification-order · handoff · - · planned → root; HEAD 44954a33; незакоммичено 1; R1 F1/F2 corrected in NT05; original review preserved and canonical index added. Publish frozen correction and request R2; actual CI/acceptance still pending.

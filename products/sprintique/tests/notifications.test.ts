@@ -150,7 +150,7 @@ test('NT05 the bell: newest first, 20 a page with a cursor, unread count, read b
   [notificationId(ordinal),recipient.id,p.id,f.alice.id,'bell:'+ordinal,createdAt]);
   // These IDs oppose timestamp order: an id-only or millisecond-rounded order must fail.
   const newest=['2000-01-01T00:00:00.600002Z','2000-01-01T00:00:00.600001Z','2000-01-01T00:00:00.600Z'];
-  for(let ordinal=1;ordinal<=25;ordinal++)await seed(ordinal,newest[ordinal-1]??'2000-01-01T00:00:00.500Z');
+  for(let ordinal=1;ordinal<=25;ordinal++)await seed(ordinal,newest[ordinal-1]??'2000-01-01T00:00:00.500001Z');
   // The other 22 rows tie on timestamp. Their descending IDs straddle the 20/5 cursor boundary.
   const expectedIds=[1,2,3,...Array.from({length:22},(_,i)=>25-i)].map(notificationId);
   const before=await unread(recipient);assert.equal(before,25);
@@ -168,9 +168,11 @@ test('NT05 the bell: newest first, 20 a page with a cursor, unread count, read b
   assert.equal(first.items.at(-1)!.createdAt,second.items[0]!.createdAt,'a timestamp tie crosses the page boundary');
   assert.equal(new Set([...first.items,...second.items].map(i=>i.id)).size,first.items.length+second.items.length,'pages do not overlap');
   assert.equal((await f.app.inject({url:'/api/v1/notifications?cursor=nope!',headers:recipient.headers})).statusCode,400);
-  const marked=await ok<{unread:number}>(call('POST','/api/v1/notifications/read',{ids:[first.items[0]!.id]},recipient));
+  const marked=await ok<{unread:number}>(call('POST','/api/v1/notifications/read',{ids:[first.items[2]!.id]},recipient));
   assert.equal(marked.unread,before-1);
-  assert.equal((await bell(recipient)).items[0]!.read,true);
+  const afterOne=await bell(recipient);
+  assert.equal(afterOne.items[2]!.read,true);
+  assert.equal(afterOne.items[0]!.read,false,'the cutoff row stays unread until read-all checks its inclusive boundary');
   // Someone else's id changes nothing.
   assert.equal((await ok<{unread:number}>(call('POST','/api/v1/notifications/read',{ids:[first.items[1]!.id]},f.bob))).unread,await unread(f.bob));
   assert.equal((await bell(recipient)).items[1]!.read,false);

@@ -8,7 +8,7 @@ owner: it-novikov
 branch: test/notification-time-order
 base: f5f941afa4e9be8a709e6de67a92bacf5a9397ca
 created: 2026-10-12
-updated: 2026-10-12T07:20:44Z
+updated: 2026-10-12T07:31:02Z
 links:
 ---
 
@@ -32,18 +32,19 @@ PR76 full CI 38212609809 завершился с 566 PASS / 1 FAIL: NT05 сра�
 
 ## Передача
 
-- **Состояние:** Test-only NT05 candidate complete; npm ci, boundaries/styles, syntax, diff and bridge checks PASS. Native build blocked at TypeScript-Go startup, real backend pending CI.
-- **Сейчас:** S2 — freeze candidate for root publication and independent review
-- **Дальше:** Root publishes one immutable checkpoint; inspect real vNext NT05 diagnostic/certificate before marking A1/A2 or readiness.
-- **Незакоммичено:** Only products/sprintique/tests/notifications.test.ts and this bridge task.
-- **Рабочая копия:** 1 файл(ов): products/sprintique/tests/notifications.test.ts (1 file changed, 37 insertions(+), 17 deletions(-)) · HEAD f5f941af · снято 2026-10-12T07:20:44Z
+- **Состояние:** R1 changes-requested preserved verbatim and indexed. F1/F2 test-only corrections implemented; independent R2 and actual CI pending.
+- **Сейчас:** S2 — freeze corrected test candidate for R2 and root publication
+- **Дальше:** Independent reviewer checks new frozen diff; root opens PR and inspects real NT05/certificate evidence.
+- **Незакоммичено:** NT05 correction and bridge/evidence/review files only.
+- **Рабочая копия:** 1 файл(ов): products/sprintique/tests/notifications.test.ts (4 files changed, 28 insertions(+), 13 deletions(-)) · HEAD 44954a33 · снято 2026-10-12T07:31:02Z
 - **Ловушки:**
   - Global dan already has NT02 notification; never assert a fixed total against that shared recipient.
   - Docker test runner does not honor --only; default local runner does. Do not advertise a focused Docker command that still silently runs all tests.
   - No local JDK25/PG18: real backend NOT RUN until GitHub CI.
   - Official typecheck cannot start locally: TypeScript-Go readlink /proc/self/exe missing. Node syntax PASS is not typecheck PASS.
-- **Проверка:** npm ci PASS; check:boundaries PASS; node --check PASS; diff --check PASS; bridge check PASS; npm run build environment BLOCKED; backend NOT RUN.
-- **Причина:** planned — gpt-6-astra-notification-order, 2026-10-12T07:20:44Z, передано root: Immutable candidate for remote publication. Full gate and independent review pending; no acceptance criteria closed yet.
+  - Original R1 decisions remain open historically; author implementation is not independent closure. R2 and real backend still required.
+- **Проверка:** Post-R1 Node syntax, boundaries/styles, diff whitespace and integer countermodel PASS; native /proc-blocked build deliberately not repeated; backend NOT RUN.
+- **Причина:** planned — gpt-6-astra-notification-order, 2026-10-12T07:31:02Z, передано root: R1 F1/F2 corrected in NT05; original review preserved and canonical index added. Publish frozen correction and request R2; actual CI/acceptance still pending.
 
 ## План
 
@@ -80,6 +81,7 @@ PR76 full CI 38212609809 завершился с 566 PASS / 1 FAIL: NT05 сра�
 ## Решения
 
 - **D1** (2026-10-12) Fixture with expected IDs, not a general date comparator: SQL order can be verified without parsing away microseconds; an equal-timestamp group crosses the page boundary.
+- **D2** (2026-10-12) R1 F1/F2 accepted: cursor tie carries 1us; read-by-id targets ordinal 3 so the inclusive cutoff remains unread until read-all. Exact ID expectations and old-predicate diagnostic remain unchanged.
 
 ## Вопросы
 
