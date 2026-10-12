@@ -57,3 +57,9 @@ API notes relocated from shipped runtime comments in vnext.46; executable behavi
 `iq-menu` action items, including menus composed with `ui.menu()` or `ui.switcher()`, have a minimum height of 44px when the primary pointer is coarse or the viewport is at most 720px wide. Fine-pointer wider desktops retain the existing 40px minimum. This is an additive CSS sizing correction: roles, disabled items, keyboard navigation, focus restoration and action events are unchanged. Consumers use the public component; no product selector into its popup is needed.
 
 Public `.iq-document-bar`, `.iq-document-rail` and `.iq-dialog` compositions apply the same 44×44px minimum to `.iq-btn` controls in that touch/narrow media condition, including icon-only navigation and close buttons. Wider fine-pointer layouts retain their existing component sizes.
+
+## Tabs geometry (vnext.53)
+
+The public `iq-tabs` / `ui.tabs()` composition keeps a single horizontal strip of intrinsic-width, unwrapped labels. The selected label retains its 2px underline; the neutral 1px baseline is painted at the content-box bottom. The strip reserves 4px on each side for the existing global external focus outline and halo. Its height follows the text, with no negative button margin or fixed height; ordinary and enlarged text do not create a vertical scroll range. Horizontal overflow and keyboard navigation retain native scrolling, with inline scroll padding for focus.
+
+This adds 8px to the strip height compared with vnext.52 and moves its labels 4px inward. Hosts should allow the row to size to content and consume the public package styles. No product selector into the component is needed. Roles, selected/panel state, disabled-tab skipping, click/arrow/Home/End behaviour and `iq-change` events are unchanged.

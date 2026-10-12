@@ -213,3 +213,5 @@ Document reading/editing: [public compositions, editor variant and heading outli
 Menu touch sizing: [public control contracts](docs/control-contracts.md) (vnext.50).
 
 Fluid page canvas and inline task signals: [public composition](docs/page-canvas.md) (vnext.52).
+
+Tabs scrolling, underline and focus geometry: [public control contracts](docs/control-contracts.md#tabs-geometry-vnext53) (vnext.53).

@@ -1,12 +1,12 @@
 {
   "schema_version": "2.0",
   "id": "PF03-WP02B",
-  "revision": 1,
+  "revision": 2,
   "scope_type": "targeted",
   "approval": {"ref": "Owner-authorized WP02-B / PF03; root accepted scope on 2026-10-12", "owner": "it-novikov"},
-  "phase": "baseline",
-  "package_version": "0.6.0-vnext.52",
-  "ds_archive_sha256": "989fab4822db78e10bfeeb62ad2724d8bb389a08ddf012c196b469af33cde758",
+  "phase": "candidate",
+  "package_version": "0.6.0-vnext.53",
+  "ds_archive_sha256": "cac335e8e80b2dfe2f62cab24cd48a7e514bc400c07cedc59d23f18c4ae61d18",
   "baseline": {"package_version": "0.6.0-vnext.52", "ds_archive_sha256": "989fab4822db78e10bfeeb62ad2724d8bb389a08ddf012c196b469af33cde758", "default_vertical_scroll_px": 1},
   "surfaces": [
     {"id": "minimal", "description": "ui.tabs public composition without product CSS", "source_ref": "libraries/iquipage/src/modules/ui.js"},

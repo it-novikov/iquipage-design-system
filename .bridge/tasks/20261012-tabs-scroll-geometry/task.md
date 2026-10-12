@@ -8,7 +8,7 @@ owner: it-novikov
 branch: fix/tabs-scroll-geometry
 base: f5f941afa4e9be8a709e6de67a92bacf5a9397ca
 created: 2026-10-12
-updated: 2026-10-12T07:30:06Z
+updated: 2026-10-12T07:39:37Z
 links:
 ---
 
@@ -27,46 +27,47 @@ links:
 
 ## Приёмка
 
-- [ ] A1. На точном `.52` минимальном consumer и настоящем Task воспроизведён PF03: сохранены client/scroll/rect/focus и кадры; источник и границы synthetic evidence названы.
+- [x] A1. На точном `.52` минимальном consumer и настоящем Task воспроизведён PF03: сохранены client/scroll/rect/focus и кадры; источник и границы synthetic evidence названы.
 - [ ] A2. На новой DS-поставке у вкладок нет непреднамеренной вертикальной прокрутки; underline, labels, focus, selected/panel states и горизонтальный доступ сохранены в light/dark, narrow и увеличенном тексте; проверены Task/Board и Wiki по impact map.
-- [ ] A3. Версия, public exports/types, build/test/pack, tarball SHA, dependency/lock и consumer согласованы; старый `.52` неизменён; продукт не патчит приватный CSS библиотеки.
+- [x] A3. Версия, public exports/types, build/test/pack, tarball SHA, dependency/lock и consumer согласованы; старый `.52` неизменён; продукт не патчит приватный CSS библиотеки.
 - [ ] A4. Самопроверка diff и две независимые проверки R1/R2 выполнены на неизменяемых fingerprints; required NOT_RUN и release-only среды названы без ложного PASS; root получил reviewable checkpoint.
 
 ## Передача
 
-- **Состояние:** Native baseline2 (38217591088) recorded all 15 minimal/Task/Board/Wiki profiles on exact .52; all show the shared 1px scroll defect. Nested tabs and keyboard ran, but runner read a closed child before the native close event removed it. Corrected the observer: retain parent/child handles, await child detachment, verify the same open parent. Added public iq-change event deltas per owner and per intent plus explicit existing 2px underline assertions; frozen acceptance unchanged. Build-only actual entries, boundaries, syntax and diff PASS.
-- **Сейчас:** S1 — second diagnostic correction and existing-criterion instrumentation ready, no DS or product runtime change.
-- **Дальше:** Root publishes this diagnostic checkpoint and repeats the full native baseline including event deltas and correct nested close observation.
-- **Незакоммичено:** Minimal/product fixture event collectors, diagnostic runner lifecycle/event/underline evidence, bridge only.
-- **Рабочая копия:** 3 файл(ов): products/sprintique/tests/fixtures/tabs-geometry/minimal.js, products/sprintique/tests/fixtures/tabs-geometry/product.js, products/sprintique/tests/tabs-geometry-browser.mjs (4 files changed, 40 insertions(+), 17 deletions(-)) · HEAD 86f626fd
+- **Состояние:** Candidate A .53: only shared tabs CSS geometry plus release metadata/docs. Remove negative margin and parent border; keep overflow:auto, reserve current 4px external focus paint, intrinsic-width labels and content-box baseline/2px active underline. Library build and tests 478/478 PASS, pack and exact product dependency/lock adoption PASS. All 176 packaged files byte-match library source/built output, archive and installed consumer. Runtime JS modules unchanged; core export/types only version literal. Actual consumer build-only, boundaries/style guard, diff self-review PASS. Native candidate NOT_RUN; full vNext and R1/R2 pending.
+- **Сейчас:** S2 — immutable .53 candidate ready for native before/after and independent review.
+- **Дальше:** Root publishes frozen candidate; run native plan revision2 and the unchanged full vNext gate; inspect raw client/scroll/rect/focus and actual full frames before acceptance.
+- **Незакоммичено:** DS CSS/release metadata/docs and exact-version gate; .53 tarball/product manifest+lock; plan metadata revision2; bridge. No product presentation/runtime edit.
+- **Рабочая копия:** 14 файл(ов): libraries/iquipage/PROVENANCE.json, libraries/iquipage/README.md, libraries/iquipage/docs/control-contracts.md, libraries/iquipage/package-lock.json, libraries/iquipage/package.json, libraries/iquipage/src/entries/core.js, libraries/iquipage/src/styles/foundation.css, libraries/iquipage/tests/vnext38.test.cjs, libraries/iquipage/tokens/semantic.json, libraries/iquipage/types/core.d.ts, products/sprintique/package-lock.json, products/sprintique/package.json и ещё 2 (15 files changed, 50 insertions(+), 32 deletions(-)) · HEAD 56d2a2f2
 - **Ловушки:**
   - local Chromium падает до `about:blank` без `/proc`; TypeScript 7 nativecompiler требует `/proc/self/exe`; JDK25/PG18 отсутствуют. Эти unavailable tests повторно не запускаются. CI Ubuntu24.04/PW1.62.1 нужен для actual browser. Для local fixture используется временный symlink node_modules из repo-maps: product manifest SHA `5c1ec083a2ab611e83c112a3786ebd2de1aa894da49fbf4494b3045d3582942e`, lock SHA `3399e2333d8104f75e792cf100d3f149a62a9e361961bf4df1af4e46f7f09254` и archive SHA совпали; CI всегда делает isolated npm ci.
   - First Actions run 38216985723, artifact11732089788 SHA2563173d7563c148486948b203dafbd59fa2fadeba8118b777e5006e6fc7e24bf5e. Its merge snapshot fbe7a62e has the same tree as diagnostic cd064536. Permissions already correct: Wiki requires tasks.write, which the fixture has. Local Chromium/TS7/JDK25/PG18 remain unavailable; no repeated execution or PASS claim. Product node_modules is now a separate ignored copy, so package adoption cannot modify the shared Maps dependencies.
   - Baseline2 artifact 11732715864 SHA25661f4fbd22fbd06163c5093e08623d6374014bcc0cb4dae3a4a1b4261f11c1ee4, source merge e3328dc8b38334993fcf038c4a733fb0b2052938. Reduced-motion native close removes open before its queued close event dispatches iq-close and product removal; do not substitute a fixed sleep or alter production lifecycle. Whole run remains FAIL until the repeat completes.
-- **Проверка:** Product: TABS_EVIDENCE_DIR=<scratch> node tests/tabs-geometry-browser.mjs --build-only; npm run check:boundaries. Native Actions tabs-geometry.yml. Plan SHA25679821edf821ead98f5666d9e87014e427394fbbbf906948cb464c53f6c19b0a9 unchanged.
+  - Candidate archive SHA256cac335e8e80b2dfe2f62cab24cd48a7e514bc400c07cedc59d23f18c4ae61d18. Plan revision2 SHA256301e5e8d4cc3f09819db39be6241be50658c6fdad0127ee8ba99a5ab90438a85 changes only revision/phase/package_version/digest; root independently froze it before native. Previous .52 remains SHA989fab4822db78e10bfeeb62ad2724d8bb389a08ddf012c196b469af33cde758. Exact-version assertions in existing vnext38 test updated to .53, without weakening. Unrelated libc lock metadata normalized by local npm restored from baseline; only DS dependency/entry changed. NT05 is separate scope; no prerequisite or product runtime mixed here.
+- **Проверка:** Library npm run build, npm test, npm pack --offline; product exact tarball install, all-file archive comparison, node tests/tabs-geometry-browser.mjs --build-only, npm run check:boundaries. Native tabs-geometry.yml plus full vnext.yml. Local Chromium/TS7/JDK25/PG18 known unavailable and not repeated.
 
 ## План
 
-### S1. Воспроизведение и выбор общей геометрии [active]
+### S1. Воспроизведение и выбор общей геометрии [done]
 
 - **Что:** закрепить baseline и acceptance до CSS.
 - **Как:** exact `.52` public package; минимальный consumer без product CSS; реальные mountTaskBoard/openTaskDialog/mountWiki с synthetic adapter responses; измерения и screenshots native Chromium, затем сравнение минимальных вариантов.
 - **Зачем:** отличить дефект общей геометрии от product composition и не спрятать обрезанный focus.
 - **Покрывает:** A1
 - **Приёмка:**
-  - [ ] Baseline recognizer воспроизвёл 1px scroll минимального consumer и Task с source/archive fingerprints.
-- **Итог:** Native baseline 1/2 воспроизвёл общий дефект: minimal/Task/Wiki дают 1px scroll, обычная геометрия clientHeight45/scrollHeight46/rect45.5 и clipped focus. Второй прогон записал 15 профилей; завершение S1 ожидает исправленного lifecycle wait вложенного Task и проверки event delta на `.52`.
+  - [x] Baseline recognizer воспроизвёл 1px scroll минимального consumer и Task с source/archive fingerprints.
+- **Итог:** Authoritative baseline: Actions 38218161373, artifact 11733391704 SHA2563fd72f6feaf11426f37196d4448dd1fe4d5be1f4b77acd2fb414a4128ff6ac2d. Native Chromium 151.0.7922.34 BASELINE_REPRODUCED: 16 cases, 177 intents, every eventDelta1, correct retained nested parent, no page errors/external requests. Source merge a49fac18565d3291b061eaa6c3c4c1c6f03ec328 has tree d8ec6dc65001674957566c773fdcf0adf427df2c = diagnostic head56d2a2f2. Frozen plan79821edf… and exact .52 archive989fab… verified; ordinary minimal/Task/Wiki client45/scroll46/max1 and clipped focus visible in raw frames. A/B source-layout comparison favours A; root accepted one native candidate.
 
-### S2. Общая правка и точный выпуск [todo]
+### S2. Общая правка и точный выпуск [active]
 
 - **Что:** исправить выбранную общую геометрию и упаковать новую версию.
 - **Как:** только DS styles, необходимая public contract documentation/version metadata, build/test/pack; consumer adoption exact tarball и lock.
 - **Зачем:** каждый настоящий consumer получает одну проверяемую поставку.
 - **Покрывает:** A2, A3
 - **Приёмка:**
-  - [ ] Новая версия собрана/упакована; source/package JS/types/CSS и product vendor согласованы.
+  - [x] Новая версия собрана/упакована; source/package JS/types/CSS и product vendor согласованы.
   - [ ] Native candidate matrix без unintended vertical scroll и clipping; keyboard/panels и горизонтальный доступ сохранены.
-- **Итог:** не выполнен.
+- **Итог:** Candidate A built/tested/packed and exact private .53 adopted; native candidate geometry still NOT_RUN. First package criterion complete; remaining candidate matrix pending.
 
 ### S3. Независимая приёмка и handoff [todo]
 
