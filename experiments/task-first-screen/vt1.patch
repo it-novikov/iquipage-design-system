@@ -1,0 +1,98 @@
+--- a/products/sprintique/ui/src/board/task-dialog.js
++++ b/products/sprintique/ui/src/board/task-dialog.js
+@@ -57,10 +57,8 @@
+     if(item.archivedAt||item.projectId!==project.id)return false;
+     try{reparentTask({...initial,id:taskId,projectId:project.id},item.id,tasks);return true;}catch{return false;}
+   }).map(item=>({value:item.id,key:item.displayId||item.id.slice(-7).toUpperCase(),label:item.title,description:`${TASK_KINDS[item.type]||'Задача'}, ${TASK_COLUMNS.find(c=>c.id===taskColumn(item))?.label||item.status}`}))];
+-  // Core facts are one calm list (docs/task-drawer/fields-handoff.md §8, direction A «Список»): ten 36px rows, the
+-  // label on the left; "where, who, by when" first, then priority, type, release, plan, parent, tags and the author.
+-  // Every fact is always on its place, an empty one reads quietly, and each value opens its editor in one click
+-  // (DS .iq-properties[data-label=wide]). Glyphs, dates of releases and plan durations live in the open editors.
++  // Existing tasks keep four direct facts, with the other facts in one native disclosure before the description.
++  // Both lists use the same public property recipe; all controls exist in the form from its first mount.
+   const initials=name=>String(name||'').trim().split(/\s+/).slice(0,2).map(part=>part[0]||'').join('').toUpperCase()||'?';
+   // People carry an avatar; a service account its square bot avatar, its role spoken rather than written beside the
+   // name (a state such as «приостановлен» stays in the words); the group heading neither.
+@@ -100,7 +98,13 @@
+   let estimate=initial.estimate||null,estimateSettings=null;
+   // One entry per row, in reading order, in both the editable and the read-only list: a new fact (such as the
+   // estimate, right after «Приоритет») is one more entry in each.
+-  const editableFacts=()=>`<div class="iq-properties" data-label="wide">${[
++  const propertyFacts=(items,tag='div')=>{
++    const list=rows=>`<${tag} class="iq-properties" data-label="wide">${rows.join('')}</${tag}>`;
++    // Creation keeps its existing list and type/template/priority path for this composition experiment.
++    if(!task)return list(items);
++    return `${list(items.slice(0,4))}<details class="iq-work-details" data-task-other-properties><summary>Другие свойства <span class="iq-work-byline">Оценка, тип, релиз, план…</span></summary>${list(items.slice(4))}</details>`;
++  };
++  const editableFacts=()=>`${propertyFacts([
+     `<iq-select name="status" label="Статус" appearance="pill" value="${esc(statusValue)}" options="${opts(statusOptions)}"></iq-select>`,
+     `<iq-select name="ownerId" label="Исполнитель" searchable search-placeholder="Найти участника" value="${esc(initial.ownerId||'')}" options="${opts(ownerChoices)}"></iq-select>`,
+     `<iq-date-field name="due" label="Срок" placeholder="Без срока" ${finished(statusValue)?'':'deadline'} value="${esc(initial.due||'')}"></iq-date-field>`,
+@@ -112,7 +116,7 @@
+     `<iq-select name="parent" label="Родитель" searchable search-placeholder="Найти задачу" value="${esc(initial.parentId||'')}" options="${opts(parents)}"></iq-select>`,
+     '<div class="task-property-slot" data-task-tags></div>',
+     row('Автор',author.html,{empty:author.empty,wrapper:'dl'})
+-  ].join('')}</div>${legacyOwner}`;
++  ])}${legacyOwner}`;
+   // Read-only facts are the same rows as plain text: no disabled controls (DS principle 12), one lock line says why.
+   const staticFacts=()=>{
+     const column=TASK_COLUMNS.find(c=>c.id===statusValue),owner=owners.find(o=>o.value===(initial.ownerId||''));
+@@ -127,7 +131,7 @@
+     const ownerValue=!owner?.value&&initial.legacyOwner?`<span class="iq-property-text">${esc(initial.legacyOwner)}</span>`
+       :owner?.value?`${ui.personAvatar({id:owner.value,name:avatarName(owner.label),image:owner.image,kind:service?'service':'human'},{size:'xs'})}<span class="iq-property-text">${esc(service?serviceName(owner.label):owner.label)}</span>${service?'<span class="sr-only">, сервисный аккаунт</span>':''}`:'Не назначен';
+     return `<p class="tdr-lock">${icon('lock',14)}<span>${reason}</span></p>
+-      <dl class="iq-properties" data-label="wide">${[
++      ${propertyFacts([
+         row('Статус',`<span class="tdr-pill" data-tone="${esc(statusTones[statusValue]||'')}"><span class="tdr-dot" aria-hidden="true"></span>${esc(column?.label||statusValue)}</span>`),
+         row('Исполнитель',ownerValue,{empty:!owner?.value&&!initial.legacyOwner}),
+         row('Срок',initial.due?`<span class="iq-property-text">${esc(formatDate(initial.due)+(signal?' · '+signal.word:''))}</span>`:'Без срока',{empty:!initial.due,tone:signal?.tone}),
+@@ -139,7 +143,7 @@
+         row('Родитель',parent?`<span class="iq-property-key">${esc(taskKey(parent))}</span><span class="iq-property-text">${esc(parent.title)}</span>`:'Нет',{empty:!parent}),
+         row('Теги',chosenTags.length?chosenTags.map(tagMarkup).join(''):'Нет тегов',{empty:!chosenTags.length}),
+         row('Автор',author.html,{empty:author.empty})
+-      ].join('')}</dl>`;
++      ],'dl')}`;
+   };
+   const workTabs=!!(task&&repository.capabilities?.agentWork);
+   const titleContent=`<div class="task-editor-title"><label class="sr-only" for="${taskId}-title">Название</label><textarea class="iq-inline-title" id="${taskId}-title" name="title" rows="1" required maxlength="240" placeholder="Что нужно сделать?">${esc(initial.title)}</textarea></div>`;
+--- a/products/sprintique/ui/src/board/task-work-view.js
++++ b/products/sprintique/ui/src/board/task-work-view.js
+@@ -3,6 +3,16 @@
+ import {dialog,input,textarea,select,download} from '../ui.js';
+ import {workText,sessionSentence,activeSession,stepStates,uniqueEntries,workStates,workFocus,workOverview,createWorkAnswers,createWorkActionGate} from './work-model.js';
+ import {createThreadFocus} from './thread-focus.js';
++
++// A literal normalized prefix of the selected review result, never a generated summary or another step.
++// The 160-code-point budget (including the ellipsis) is a provisional composition choice.
++function resultPreview(value){
++ const text=workText(value).trim(),points=Array.from(text);
++ if(!text)return {label:'Описание результата не добавлено',text:''};
++ if(points.length<=160)return {label:'Результат шага',text};
++ const prefix=points.slice(0,159).join(''),boundary=prefix.search(/\s+\S*$/u);
++ return {label:'Начало результата',text:(boundary>0?prefix.slice(0,boundary):prefix).trimEnd()+'…'};
++}
+ 
+ /** One durable story shared by humans, external clients and provider-backed agents. */
+ export function mountTaskWork(root,{repository,project,task,summaryRoot,onOpenWork,onThread,onChange,onState}){
+@@ -50,8 +60,8 @@
+   for(const q of unresolved){const target=root.querySelector(`[data-work-answer="${CSS.escape(q.id)}"] [data-question-actions]`),draft=answers.get(q.id),stale=draft?.revision!=null&&draft.revision!==revision();if(target)target.innerHTML=`${permissions.canAnswer?button('Подтвердить ответ','answer:'+q.id,'primary',answering===q.id||stale):''}${q.threadId?button('Открыть обсуждение','thread:'+q.threadId):''}`;}
+   for(const q of unresolved){const node=root.querySelector(`[data-work-answer="${CSS.escape(q.id)}"] [data-question-status]`),text=answering===q.id?'Сохраняем ответ…':answerErrors.get(q.id);if(node&&text){node.hidden=false;node.textContent=text;node.setAttribute('role',answerErrors.has(q.id)?'alert':'status');}}
+   if(summaryRoot){
+-   const overview=workOverview(state);
+-   summaryRoot.hidden=!p;summaryRoot.innerHTML=p?`<div class="iq-work-story-head"><div class="iq-work-story-copy"><h3>${esc(overview.context)}</h3><p>${esc(overview.text||overview.status)}</p></div>${ui.btn(overview.label,overview.attention?'primary':'secondary sm','',`data-work-summary-action="${esc(overview.action)}"`)}</div>`:'';
++   const overview=workOverview(state),preview=review?resultPreview(review.result):null;
++   summaryRoot.hidden=!p;summaryRoot.innerHTML=p?`<div class="iq-work-story-head"><div class="iq-work-story-copy"><h3>${esc(overview.context)}</h3>${q||review?`<p class="iq-work-byline">${esc(overview.status)}</p>`:''}<p>${esc(overview.text||overview.status)}</p></div>${ui.btn(overview.label,overview.attention?'primary':'secondary sm','',`data-work-summary-action="${esc(overview.action)}"`)}</div>${preview?`<div class="iq-work-story-copy"><p class="iq-work-byline">${esc(preview.label)}</p>${preview.text?`<p>${esc(preview.text)}</p>`:''}</div>`:''}`:'';
+   }
+   if(previousHistory&&p)root.querySelector('[data-work-history]')?.replaceWith(previousHistory);
+   renderEvents();enhance(root);if(summaryFocus)summaryRoot.querySelector('[data-work-summary-action]')?.focus({preventScroll:true});
+--- a/products/sprintique/ui/src/board/work-model.js
++++ b/products/sprintique/ui/src/board/work-model.js
+@@ -36,7 +36,7 @@
+ export function workOverview(state){
+  const focus=workFocus(state),session=state?.sessions?.find(activeSession)||state?.sessions?.[0],permissions=state?.permissions||{};
+  const context=['Работа агента',session?.agentName].filter(Boolean).join(' · ');
+- if(focus.kind==='question')return {context,status:'Нужно ваше решение',text:focus.item.title,action:'question:'+focus.item.id,label:permissions.canAnswer?'Ответить агенту':'Открыть вопрос',attention:true};
++ if(focus.kind==='question')return {context,status:permissions.canAnswer?'Нужно ваше решение':'Вопрос ждёт ответа',text:focus.item.title,action:'question:'+focus.item.id,label:permissions.canAnswer?'Ответить агенту':'Открыть вопрос',attention:true};
+  if(focus.kind==='review')return {context,status:'Результат на проверке',text:focus.item.title,action:'review:'+focus.item.id,label:'Проверить результат',attention:true};
+  if(!state?.workPlan)return {context,status:'',text:'Поручите агенту работу по этой задаче.',action:permissions.canAssign?'assign':'open',label:permissions.canAssign?'Поручить агенту':'Открыть работу',attention:false};
+  return {context,status:session?workStates[session.state]||'Работа прервалась':'План готов',text:focus.kind==='step'?focus.item.title:'',action:'open',label:'Открыть работу',attention:false};

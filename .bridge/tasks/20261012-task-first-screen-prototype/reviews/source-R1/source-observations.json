@@ -1,0 +1,276 @@
+{
+  "scope": "Pure Node observations of exact patched functions. No DOM, form custom-element runtime, browser, API writes or human validation.",
+  "sourceSha256": "26c8545a0a85d73ff032f50605137597878f33a2ff3d1b01228e8b2d1de7d021",
+  "helperSha256": "c85bce82e93e253d6682b72a8c0262f1adc50ca838adb3ac0f044f061164a0ed",
+  "node": "v24.19.0",
+  "previews": [
+    {
+      "name": "empty",
+      "input": "",
+      "normalized": "",
+      "output": {
+        "label": "Описание результата не добавлено",
+        "text": ""
+      },
+      "outputCodePoints": 0,
+      "literalPrefixOfNormalized": true,
+      "wellFormedUtf16": true
+    },
+    {
+      "name": "whitespace-only",
+      "input": "  \n\t  ",
+      "normalized": "",
+      "output": {
+        "label": "Описание результата не добавлено",
+        "text": ""
+      },
+      "outputCodePoints": 0,
+      "literalPrefixOfNormalized": true,
+      "wellFormedUtf16": true
+    },
+    {
+      "name": "short-markdown",
+      "input": "# Проверка\n\n**История** сохранена после обновления страницы.",
+      "normalized": "Проверка\n\nИстория сохранена после обновления страницы.",
+      "output": {
+        "label": "Результат шага",
+        "text": "Проверка\n\nИстория сохранена после обновления страницы."
+      },
+      "outputCodePoints": 54,
+      "literalPrefixOfNormalized": true,
+      "wellFormedUtf16": true
+    },
+    {
+      "name": "html-like-input",
+      "input": "<img src=x onerror=\"alert(1)\"> & текст",
+      "normalized": "<img src=x onerror=\"alert(1)\"> & текст",
+      "output": {
+        "label": "Результат шага",
+        "text": "<img src=x onerror=\"alert(1)\"> & текст"
+      },
+      "outputCodePoints": 38,
+      "literalPrefixOfNormalized": true,
+      "wellFormedUtf16": true
+    },
+    {
+      "name": "exactly-160-code-points",
+      "input": "ЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯ",
+      "normalized": "ЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯ",
+      "output": {
+        "label": "Результат шага",
+        "text": "ЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯ"
+      },
+      "outputCodePoints": 160,
+      "literalPrefixOfNormalized": true,
+      "wellFormedUtf16": true
+    },
+    {
+      "name": "161-code-point-token",
+      "input": "ЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯ",
+      "normalized": "ЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯ",
+      "output": {
+        "label": "Начало результата",
+        "text": "ЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯ…"
+      },
+      "outputCodePoints": 160,
+      "literalPrefixOfNormalized": true,
+      "wellFormedUtf16": true
+    },
+    {
+      "name": "astral-unicode-token",
+      "input": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+      "normalized": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+      "output": {
+        "label": "Начало результата",
+        "text": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀…"
+      },
+      "outputCodePoints": 160,
+      "literalPrefixOfNormalized": true,
+      "wellFormedUtf16": true
+    },
+    {
+      "name": "long-with-word-boundaries",
+      "input": "История сохранена после обновления страницы. История сохранена после обновления страницы. История сохранена после обновления страницы. История сохранена после обновления страницы. История сохранена после обновления страницы. История сохранена после обновления страницы. История сохранена после обновления страницы. История сохранена после обновления страницы. История сохранена после обновления страницы. ",
+      "normalized": "История сохранена после обновления страницы. История сохранена после обновления страницы. История сохранена после обновления страницы. История сохранена после обновления страницы. История сохранена после обновления страницы. История сохранена после обновления страницы. История сохранена после обновления страницы. История сохранена после обновления страницы. История сохранена после обновления страницы.",
+      "output": {
+        "label": "Начало результата",
+        "text": "История сохранена после обновления страницы. История сохранена после обновления страницы. История сохранена после обновления страницы. История сохранена после…"
+      },
+      "outputCodePoints": 159,
+      "literalPrefixOfNormalized": true,
+      "wellFormedUtf16": true
+    },
+    {
+      "name": "long-grapheme-sequence",
+      "input": "👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦",
+      "normalized": "👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦",
+      "output": {
+        "label": "Начало результата",
+        "text": "👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧…"
+      },
+      "outputCodePoints": 160,
+      "literalPrefixOfNormalized": true,
+      "wellFormedUtf16": true
+    }
+  ],
+  "cases": [
+    {
+      "name": "question-can-answer",
+      "focus": {
+        "kind": "question",
+        "item": {
+          "id": "question-first",
+          "title": "Кому передать результат?",
+          "state": "open"
+        }
+      },
+      "overview": {
+        "context": "Работа агента",
+        "status": "Нужно ваше решение",
+        "text": "Кому передать результат?",
+        "action": "question:question-first",
+        "label": "Ответить агенту",
+        "attention": true
+      }
+    },
+    {
+      "name": "question-cannot-answer",
+      "focus": {
+        "kind": "question",
+        "item": {
+          "id": "question-first",
+          "title": "Кому передать результат?",
+          "state": "open"
+        }
+      },
+      "overview": {
+        "context": "Работа агента",
+        "status": "Вопрос ждёт ответа",
+        "text": "Кому передать результат?",
+        "action": "question:question-first",
+        "label": "Открыть вопрос",
+        "attention": true
+      }
+    },
+    {
+      "name": "question-no-permissions",
+      "focus": {
+        "kind": "question",
+        "item": {
+          "id": "question-first",
+          "title": "Кому передать результат?",
+          "state": "open"
+        }
+      },
+      "overview": {
+        "context": "Работа агента",
+        "status": "Вопрос ждёт ответа",
+        "text": "Кому передать результат?",
+        "action": "question:question-first",
+        "label": "Открыть вопрос",
+        "attention": true
+      }
+    },
+    {
+      "name": "review-first-in-existing-order",
+      "focus": {
+        "kind": "review",
+        "item": {
+          "id": "review-first",
+          "title": "Проверить сохранение истории",
+          "state": "done",
+          "approval": "pending",
+          "result": "История сохранена после обновления страницы."
+        }
+      },
+      "overview": {
+        "context": "Работа агента",
+        "status": "Результат на проверке",
+        "text": "Проверить сохранение истории",
+        "action": "review:review-first",
+        "label": "Проверить результат",
+        "attention": true
+      }
+    },
+    {
+      "name": "review-with-evidence-but-empty-result",
+      "focus": {
+        "kind": "review",
+        "item": {
+          "id": "review-first",
+          "title": "Проверить сохранение истории",
+          "state": "done",
+          "approval": "pending",
+          "result": "",
+          "evidence": [
+            "https://example.invalid/evidence"
+          ]
+        }
+      },
+      "overview": {
+        "context": "Работа агента",
+        "status": "Результат на проверке",
+        "text": "Проверить сохранение истории",
+        "action": "review:review-first",
+        "label": "Проверить результат",
+        "attention": true
+      }
+    },
+    {
+      "name": "rejected-step-completed-session",
+      "focus": {
+        "kind": "step",
+        "item": {
+          "id": "review-first",
+          "title": "Проверить сохранение истории",
+          "state": "done",
+          "approval": "rejected",
+          "result": "История сохранена после обновления страницы."
+        }
+      },
+      "overview": {
+        "context": "Работа агента · Агент",
+        "status": "Работа завершена",
+        "text": "Проверить сохранение истории",
+        "action": "open",
+        "label": "Открыть работу",
+        "attention": false
+      }
+    },
+    {
+      "name": "blocked-step-running-session",
+      "focus": {
+        "kind": "step",
+        "item": {
+          "id": "review-first",
+          "title": "Проверить сохранение истории",
+          "state": "blocked",
+          "approval": "pending",
+          "result": "История сохранена после обновления страницы."
+        }
+      },
+      "overview": {
+        "context": "Работа агента · Агент",
+        "status": "В работе",
+        "text": "Проверить сохранение истории",
+        "action": "open",
+        "label": "Открыть работу",
+        "attention": false
+      }
+    },
+    {
+      "name": "no-work-plan",
+      "focus": {
+        "kind": "empty"
+      },
+      "overview": {
+        "context": "Работа агента",
+        "status": "",
+        "text": "Поручите агенту работу по этой задаче.",
+        "action": "open",
+        "label": "Открыть работу",
+        "attention": false
+      }
+    }
+  ]
+}

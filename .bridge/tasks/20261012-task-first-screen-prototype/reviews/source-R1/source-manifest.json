@@ -1,0 +1,19 @@
+{
+  "baseRevision": "8f8d218168074bd4c7c9e1e29dfbe783a27998dd",
+  "patchSha256": "41f3852ff8d3abfc4777e3aea6ef4e229f1e15d4f46280b681b28196b2a922f5",
+  "files": {
+    "products/sprintique/ui/src/board/task-dialog.js": {
+      "baseSha256": "bba396bdf8f1b03beb20358eebce3161913c668cbc3b6328fc0d675a63518549",
+      "patchedSha256": "18f74815aa106ffa939d9864e7a58bd93e20787bfe986c422785f804de3633fd"
+    },
+    "products/sprintique/ui/src/board/task-work-view.js": {
+      "baseSha256": "5b9da8507f62fef702af3cc390849007a2da8693ec353a4b68ec1894291df309",
+      "patchedSha256": "26c8545a0a85d73ff032f50605137597878f33a2ff3d1b01228e8b2d1de7d021"
+    },
+    "products/sprintique/ui/src/board/work-model.js": {
+      "baseSha256": "4628a01a00edf29cbecda7094d69d757c5f571280f2e5c8deead0b93db3783a8",
+      "patchedSha256": "03d2d7ba34da67ed06c4b9c66459da7b13a81469ed6a471c0ce6953ea90e00a9"
+    }
+  },
+  "patchCheck": "PASS: exact three files extracted via git show; git apply --check and git apply exit 0"
+}

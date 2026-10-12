@@ -1,0 +1,130 @@
+TAP version 13
+# REVIEWED_MODULE file:///workspace/scratch/b3dac59f68e2/research/continuation/task-prototype-source-review-temp/products/sprintique/ui/src/board/work-model.js
+# Subtest: an external assignment never claims the agent has started
+ok 1 - an external assignment never claims the agent has started
+  ---
+  duration_ms: 1.052724
+  type: 'test'
+  ...
+# Subtest: cancellation and completion retain distinct effects and acceptance wording
+ok 2 - cancellation and completion retain distinct effects and acceptance wording
+  ---
+  duration_ms: 0.135033
+  type: 'test'
+  ...
+# Subtest: stored report markup reads as connected prose without changing the source
+ok 3 - stored report markup reads as connected prose without changing the source
+  ---
+  duration_ms: 0.526993
+  type: 'test'
+  ...
+# Subtest: replayed events do not duplicate saved history
+ok 4 - replayed events do not duplicate saved history
+  ---
+  duration_ms: 0.612843
+  type: 'test'
+  ...
+# Subtest: inline emphasis reads as prose while preserving its words
+ok 5 - inline emphasis reads as prose while preserving its words
+  ---
+  duration_ms: 0.147753
+  type: 'test'
+  ...
+# Subtest: workspace focuses a decision before a review and keeps both out of the overview narrative
+ok 6 - workspace focuses a decision before a review and keeps both out of the overview narrative
+  ---
+  duration_ms: 0.224748
+  type: 'test'
+  ...
+# Subtest: agent workspace links preserve the task identity and select only a supported tab
+ok 7 - agent workspace links preserve the task identity and select only a supported tab
+  ---
+  duration_ms: 0.885742
+  type: 'test'
+  ...
+# Subtest: the overview names the agent and distinguishes answering from merely opening a question
+not ok 8 - the overview names the agent and distinguishes answering from merely opening a question
+  ---
+  duration_ms: 1.269551
+  type: 'test'
+  location: '/workspace/scratch/b3dac59f68e2/repo-tabs/products/sprintique/tests/work-model.test.mjs:33:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      {
+        action: 'question:q',
+        attention: true,
+        context: 'Работа агента · Кодекс',
+        label: 'Открыть вопрос',
+    +   status: 'Вопрос ждёт ответа',
+    -   status: 'Нужно ваше решение',
+        text: 'Кому передать?'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    context: 'Работа агента · Кодекс'
+    status: 'Нужно ваше решение'
+    text: 'Кому передать?'
+    action: 'question:q'
+    label: 'Открыть вопрос'
+    attention: true
+  actual:
+    context: 'Работа агента · Кодекс'
+    status: 'Вопрос ждёт ответа'
+    text: 'Кому передать?'
+    action: 'question:q'
+    label: 'Открыть вопрос'
+    attention: true
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/b3dac59f68e2/repo-tabs/products/sprintique/tests/work-model.test.mjs:35:9)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1382:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+    Test.postRun (node:internal/test_runner/test:1522:19)
+    Test.run (node:internal/test_runner/test:1447:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+  ...
+# Subtest: the overview never implies that a completed step was accepted
+ok 9 - the overview never implies that a completed step was accepted
+  ---
+  duration_ms: 0.25228
+  type: 'test'
+  ...
+# Subtest: editing after a poll keeps the original revision and the draft until explicit review
+ok 10 - editing after a poll keeps the original revision and the draft until explicit review
+  ---
+  duration_ms: 0.550117
+  type: 'test'
+  ...
+# Subtest: review of changed options drops an obsolete selection, never the authored answer
+ok 11 - review of changed options drops an obsolete selection, never the authored answer
+  ---
+  duration_ms: 0.20637
+  type: 'test'
+  ...
+# Subtest: a slow action blocks duplicate entry points and a failure permits a deliberate retry
+ok 12 - a slow action blocks duplicate entry points and a failure permits a deliberate retry
+  ---
+  duration_ms: 0.531971
+  type: 'test'
+  ...
+# Subtest: overview keeps useful context without a session or assignment permission
+ok 13 - overview keeps useful context without a session or assignment permission
+  ---
+  duration_ms: 0.124357
+  type: 'test'
+  ...
+1..13
+# tests 13
+# suites 0
+# pass 12
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 120.077473

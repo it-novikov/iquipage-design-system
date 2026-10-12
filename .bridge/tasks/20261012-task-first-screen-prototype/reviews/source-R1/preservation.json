@@ -1,0 +1,32 @@
+[
+  {
+    "file": "independent-review.md",
+    "source": "research/continuation/task-prototype-source-review.md",
+    "bytes": 28937,
+    "sha256": "8063c59009c4ec8a1861999e370aeb1558e4ebf17b112e0856efe8bfdc31e28f"
+  },
+  {
+    "file": "source-manifest.json",
+    "source": "research/continuation/task-prototype-source-review-temp/source-manifest.json",
+    "bytes": 1001,
+    "sha256": "019ad1a46c2041ba1e8a33ce7972a2a35dc8ccb937ad241dcc0fe699d74345ba"
+  },
+  {
+    "file": "checks.json",
+    "source": "research/continuation/task-prototype-source-review-temp/checks.json",
+    "bytes": 2085,
+    "sha256": "d22368bfee83269f9a114615cafa70a19e5cc1189d89fa57a2f7cc9ca38c1103"
+  },
+  {
+    "file": "source-observations.json",
+    "source": "research/continuation/task-prototype-source-review-temp/source-observations.json",
+    "bytes": 16027,
+    "sha256": "c1fa5aa96a7dbede52ae2bd8b5a2cb9db1503debd40892f51268f3ca85e44e4d"
+  },
+  {
+    "file": "existing-work-model-tests.tap",
+    "source": "research/continuation/task-prototype-source-review-temp/existing-work-model-tests.tap",
+    "bytes": 4733,
+    "sha256": "db08aee68423a4bc9301cc7314ace958ee3565c9a654308d73a80b1606d30b3d"
+  }
+]

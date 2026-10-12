@@ -1,7 +1,7 @@
 name: Tabs geometry
 on:
   pull_request:
-    paths: ['products/sprintique/**', 'libraries/iquipage/**', '.github/workflows/tabs-geometry.yml']
+    paths: ['products/sprintique/**', 'libraries/iquipage/**', 'experiments/task-first-screen/**', '.github/workflows/tabs-geometry.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -49,5 +49,19 @@ jobs:
         with:
           name: tabs-geometry
           path: products/sprintique/output/tabs-geometry/
+          retention-days: 14
+          if-no-files-found: error
+      - name: Experimental Task first screen comparison
+        if: ${{ github.event_name == 'pull_request' && github.head_ref == 'experiments/task-first-screen' }}
+        env:
+          PLAYWRIGHT_MODULE: ${{ runner.temp }}/sprintique-browser-tools/node_modules/playwright
+          PLAYWRIGHT_BROWSERS_PATH: ${{ runner.temp }}/sprintique-browsers
+        run: node experiments/task-first-screen/run.mjs
+      - name: Experimental Task first screen evidence
+        if: ${{ !cancelled() && github.event_name == 'pull_request' && github.head_ref == 'experiments/task-first-screen' }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: task-first-screen-experiment
+          path: experiments/task-first-screen/output/browser/
           retention-days: 14
           if-no-files-found: error

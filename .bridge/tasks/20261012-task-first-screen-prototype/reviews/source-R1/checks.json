@@ -1,0 +1,57 @@
+{
+  "scope": "Independent targeted source review of frozen VT1 overlay; no browser/API/human acceptance",
+  "node": "v24.19.0",
+  "patchSha256": "41f3852ff8d3abfc4777e3aea6ef4e229f1e15d4f46280b681b28196b2a922f5",
+  "syntax": [
+    {
+      "command": "node --check products/sprintique/ui/src/board/task-dialog.js",
+      "exitCode": 0,
+      "stdout": ""
+    },
+    {
+      "command": "node --check products/sprintique/ui/src/board/task-work-view.js",
+      "exitCode": 0,
+      "stdout": ""
+    },
+    {
+      "command": "node --check products/sprintique/ui/src/board/work-model.js",
+      "exitCode": 0,
+      "stdout": ""
+    }
+  ],
+  "observations": {
+    "command": "node observe-source-branches.mjs",
+    "exitCode": 0,
+    "summary": {
+      "node": "v24.19.0",
+      "cases": 8,
+      "previews": 9,
+      "allLiteralPrefixes": true,
+      "allAtMost160CodePoints": true,
+      "allWellFormedUtf16": true,
+      "output": "/workspace/scratch/b3dac59f68e2/research/continuation/task-prototype-source-review-temp/source-observations.json"
+    },
+    "source": "observe-source-branches.mjs",
+    "raw": "source-observations.json"
+  },
+  "existingModelTests": {
+    "command": "node --test --test-reporter=tap run-existing-model-tests.mjs",
+    "childExitCode": 1,
+    "total": 13,
+    "pass": 12,
+    "fail": 1,
+    "failedName": "the overview names the agent and distinguishes answering from merely opening a question",
+    "reason": "Baseline test asserts previous canAnswer=false status; candidate intentionally uses approved neutral status",
+    "assertionsEdited": false,
+    "moduleRouting": "Node registerHooks redirects exact baseline work-model.js URL to exact patched temporary file; other baseline imports stay unchanged",
+    "raw": "existing-work-model-tests.tap"
+  },
+  "notRun": [
+    "Browser render and interaction",
+    "Production save/reload/conflicts and Plan busy/error interaction",
+    "TypeScript 7 native check requiring /proc/self/exe",
+    "Full Kotlin/JDK25/PostgreSQL18 tests",
+    "Human observation",
+    "Production build/release acceptance"
+  ]
+}
