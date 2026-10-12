@@ -1,0 +1,23 @@
+{
+  "scope": "private DS55 build/static evidence, native NOT_RUN, product remains54",
+  "base": "220af664ef561d3f5ff1b873122281ef352e8f25",
+  "candidate_archive_sha256": "71318ed08cd22878c3d6ab5649c229d6da103f2bef77d9bc4bb1f7b70cad5ade",
+  "control_archive_sha256": "a726a4536e532fc556f615d0b1a9cda1873dc111e6090710329b9ec1b8204457",
+  "checks": {
+    "ds_build": "PASS",
+    "ds_tests": "478/478 PASS (final complete standard npm test)",
+    "ds_size_gate": "101572 <= 101612 CSS gzip; other metrics PASS; baseline unchanged",
+    "product_boundaries": "PASS",
+    "comparison_control_build": "BUILT_NOT_RENDERED",
+    "comparison_candidate_build": "BUILT_NOT_RENDERED",
+    "native": "NOT_RUN",
+    "human": "NOT_RUN",
+    "product_adoption": "NOT_ADOPTED"
+  },
+  "initial_diagnostic": "First full run before comment reduction: CSS101947 >101612 (two gate failures); unrelated security057 absolute timing489ms. Changed no security test or budget. Isolated security timing then passed; final standard full npm test478/478 passed.",
+  "evidence_sha256": {
+    "candidate-build.json": "3c6ce17ed3924814589fa5156c96fea0344828280680afd4d25c9e76f332735f",
+    "control-build.json": "61fadbd59c722f657a793cc79b96b732b5de59f37f894717eb2c5d118206cb3e",
+    "ds-node-final.log": "a8dda5504af9220f7fef897aba612b10e89958fe340d28a80caff1694ce6d7fd"
+  }
+}

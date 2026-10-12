@@ -1,0 +1,50 @@
+{
+  "schema_version": "2.0",
+  "id": "PF04-property-list-ds54-baseline",
+  "revision": 2,
+  "predecessor_plan_sha256": "008998d380659f2b9993edc727260bc46ed95735d1842c1b209ba5eeb7cc4689",
+  "revision_reason": "Root requested the 615px container at root32 before any capture: it separates label clipping from shortage of value width and informs a future reflow threshold. The original v1 is preserved unchanged.",
+  "phase": "baseline",
+  "source_base": "6423443d71a0817570281cf28822a3c14f7db684",
+  "discovery_sha256": "e6e222e503790852a43fd195fd75bab3d2854baf8b93cbfb3301c948448d4e7e",
+  "scope": "Read-only native geometry capture of the exact public DS54 property-list recipe without Sprintique CSS or runtime. No DS/product fix, no persistence/permissions/human acceptance, no pass oracle for the known clipping defect.",
+  "package_version": "0.6.0-vnext.54",
+  "ds_archive_sha256": "a726a4536e532fc556f615d0b1a9cda1873dc111e6090710329b9ec1b8204457",
+  "profiles": [
+    {"id": "wide-normal", "viewport": {"width": 1280, "height": 1000}, "container_width": 615, "root_font_px": 16},
+    {"id": "narrow-normal", "viewport": {"width": 390, "height": 1000}, "container_width": 349, "root_font_px": 16},
+    {"id": "narrow-text200", "viewport": {"width": 320, "height": 1000}, "container_width": 270, "root_font_px": 32},
+    {"id": "wide-tight-text200", "viewport": {"width": 1280, "height": 1000}, "container_width": 270, "root_font_px": 32},
+    {"id": "wide-text200", "viewport": {"width": 1280, "height": 1000}, "container_width": 615, "root_font_px": 32}
+  ],
+  "comparisons": [
+    "narrow-text200 and wide-tight-text200 hold container width and font fixed while changing viewport width; they distinguish a viewport-only explanation.",
+    "wide-normal and wide-text200 hold the wide viewport and 615px container fixed while changing root font. wide-tight-text200 and wide-text200 hold root32 and viewport fixed while changing the container.",
+    "The 120px label track is measured in every profile alongside each actual font size and text extent; observations do not claim a full factorial ablation of container/font effects.",
+    "An ordinary select and date field outside .iq-properties use identical selected data and the same host width/font. They isolate the additional property-list contract without changing or overriding any DS rule."
+  ],
+  "fixture": {
+    "data": "Deterministic synthetic labels and values; authored static rows are not evidence of actual Task permissions.",
+    "editable": ["Status iq-select appearance=pill", "Owner searchable iq-select with avatar and long selected name", "Deadline iq-date-field", "Priority iq-select", "Native-input iq-combobox", "Ghost iq-tag-picker with selected tags"],
+    "static": ["Plan: Не запланирован", "Author: public avatar + .iq-property-text + .iq-property-meta", "Status: long plain .iq-property-value", "Parent: .iq-property-key + long unbroken .iq-property-text"],
+    "reference": ["Ordinary owner select outside property-list", "Ordinary deadline field outside property-list"],
+    "construction": "Only registered public custom elements, supported options/value attributes or properties, public ui.personAvatar and documented static property markup. No copied internal component HTML and no production imports."
+  },
+  "measurements": [
+    "Container and row rectangles, computed grid tracks, row gaps/heights, root/control font sizes, line heights, fixed/min/max heights, white-space, overflow and text-overflow.",
+    "Complete label/selected/static text and DOM Range boxes for every visible text node and grapheme, with the ancestors that can clip them; off-viewport content is distinguished from clipping inside a row.",
+    "Canvas actualBoundingBox metrics may estimate ink boxes when compatible with the DOM text font box; these are explicitly estimates and screenshots remain necessary to judge painted glyph clipping.",
+    "Native input full value and canvas text metrics, padding and scroll range; a native single-line edit buffer is not promised to become multiline.",
+    "Label/value and adjacent-row text range intersections, content extending outside its row/container, whole-element horizontal scroll ranges and ellipsis candidates; findings are observations, not acceptance passes.",
+    "Viewport PNG and full-document PNG captured without focus/scroll repair; the full-document image does not claim all content fits the initial viewport."
+  ],
+  "capture_contract": {
+    "required": "All five exact profiles mount the expected public component types and literal data, remain free of page/bootstrap errors and off-origin requests, and preserve raw geometry/images even on failure.",
+    "status_when_observed": "CAPTURED_WITH_OBSERVED_CONSTRAINTS",
+    "status_when_none_classified": "CAPTURED_WITHOUT_CLASSIFIED_CONSTRAINTS",
+    "build_only_status": "BUILT_NOT_RENDERED",
+    "target_acceptance": "NOT_RUN; this experiment has no target no-clipping oracle and does not approve a future fix."
+  },
+  "environment": {"engine": "native Chromium", "playwright": "1.62.1", "target": "GitHub Actions Ubuntu 24.04 / Node 24.20.0", "theme": "light", "density": "comfortable", "locale": "ru-RU", "timezone": "UTC", "device_scale_factor": 1, "browser_zoom": "100%", "text_scaling": "HTML root font-size exactly 16px or 32px, not browser zoom", "fixed_browser_time": "2026-10-12T12:00:00.000Z", "input": "none; passive baseline capture", "load_mode": "Vite compiled static preview of exact public DS imports"},
+  "not_run": ["New DS version or CSS candidate", "A new actual Task render; existing immutable actual Task evidence is supplied by the discovery", "Interactions, persistence, authentication and actual read-only permissions", "Human evaluation and pixel-exact glyph-mask analysis", "True browser zoom, Safari, Firefox, iOS touch and screen readers"]
+}

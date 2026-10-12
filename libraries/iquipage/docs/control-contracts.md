@@ -46,11 +46,19 @@ API notes relocated from shipped runtime comments in vnext.46; executable behavi
 
 ## Property list
 
----------- Property list (0.6.0-vnext.27): .iq-properties[data-label=wide] ----------
-   One calm list of an object's facts: 36px rows, a wide 13px label column (120px; a host may set
-   --iq-properties-label) and the ghost value grammar of the property grid — text at rest, a hover fill and a chevron,
-   one click opens the editor. Static rows (.iq-property with .iq-property-label and .iq-property-value, or dt/dd)
-   read as the same text without a hover; the status pill is 26px so it never stands taller than its neighbours.
+## Property list — vnext.55 private reflow trial
+
+`.iq-properties[data-label=wide]` presents an object's named facts. Editable values keep their existing ghost trigger, hover/focus feedback and editor; static `.iq-property` rows use `.iq-property-label` and `.iq-property-value` (including `dt`/`dd`). The label remains secondary and the complete current value can wrap before the person opens an editor.
+
+**Trial status:** this package is a private candidate. Sprintique still consumes vnext.54. Native comparison and independent review must decide whether this reflow is suitable before product adoption; the numeric budgets below are implementation details under evaluation, not a new consumer API.
+
+The list uses available row width and the interface text size, without a viewport breakpoint or a container observer. Each label keeps a no-grow budget of the greater of the existing `--iq-properties-label` hint (120px by default) and seven interface text units. Its value carrier starts with fourteen interface text units and takes the remaining row space. When both outer budgets do not fit, flex places the value below the label. The label can itself wrap within its budget; it does not automatically consume the whole stacked row. This may add label or value lines compared with a full-width stacked arrangement. The existing hint still permits a host to budget for its labels, but it is not a fixed rendered-width guarantee.
+
+Rows have a 36px minimum, a small common block inset and natural height. Labels, selected captions and static text wrap, including unbroken words. A select's existing `.iq-select-wrap`, a date's button, a tag field and the static value share zero outer margins and border-box sizing; popups and hidden form inputs are excluded. The visible text inset is shared by static values and ghost triggers. A filled status remains a content-width pill with a 26px minimum, growing with its caption. Neither text nor controls are reduced to make a row fit.
+
+Use the existing public value parts for composed static facts: `.iq-property-text`, `.iq-property-meta` and `.iq-property-key`. A direct avatar with `.iq-property-text` keeps the name beside the avatar and allows metadata beneath that name. Plain text values also wrap. Intentionally secondary select metadata remains hidden in this compact composition. Native combobox and tag search inputs retain their single-line editing contract; long input buffers scroll while editing rather than becoming multiline display text. Selected tag captions remain visible, and the empty unfocused search buffer does not reserve an extra row.
+
+This trial changes only the wide property list. The separate `[data-columns]` grid, property strip and ordinary controls retain their contracts. Consumers must not copy internal trigger styles into products. Product-owned controls (for example a bespoke Task pill), live popup positioning during a container-only resize, and a readonly empty tag picker require their own applicable verification; this CSS change does not claim to resolve those behaviors.
 
 ## Menu touch targets (vnext.50)
 

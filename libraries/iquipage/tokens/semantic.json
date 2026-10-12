@@ -1,7 +1,7 @@
 {
   "meta": {
     "name": "IQUIPAGE Design System",
-    "version": "0.6.0-vnext.54",
+    "version": "0.6.0-vnext.55",
     "status": "source-owned-library",
     "basis": "Approved 05.6 foundation; repaired workshop, capture, tooltips, shapes and connections",
     "palette": {

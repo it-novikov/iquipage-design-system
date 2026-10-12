@@ -1,0 +1,25 @@
+export const data={
+  person:{id:'person-1',name:'Анна Викторовна Александрова'},
+  status:{value:'review',label:'На проверке',tone:'warning'},
+  priority:{value:'critical',label:'Критический',tone:'critical'},
+  due:'2026-10-11',
+  tags:[{value:'handoff',label:'Передача',tone:'blue'},{value:'verification',label:'Проверка результата',tone:'purple'}],
+  plan:'Не запланирован',
+  author:{id:'author-1',name:'АлександраСверхдлиннаяФамилия',date:'· 12.10.2026'},
+  staticStatus:'Ожидает подтверждения результата',
+  parent:{key:'SPT-128',title:'СпецификацияСверхдлинногоНепрерывногоЗначения'},
+};
+export const rows=[
+  {id:'status',kind:'select-pill',label:'Статус',value:data.status.label},
+  {id:'owner',kind:'select',label:'Исполнитель',value:data.person.name},
+  {id:'due',kind:'date',label:'Срок',value:data.due},
+  {id:'priority',kind:'select',label:'Приоритет',value:data.priority.label},
+  {id:'participant',kind:'combobox',label:'Поиск участника',value:data.person.name},
+  {id:'tags',kind:'tags',label:'Теги',value:data.tags.map(tag=>tag.label)},
+  {id:'plan',kind:'static',label:'План',value:data.plan},
+  {id:'author',kind:'static',label:'Автор',value:[data.author.name,data.author.date]},
+  {id:'static-status',kind:'static',label:'Статус',value:data.staticStatus},
+  {id:'parent',kind:'static',label:'Родитель',value:[data.parent.key,data.parent.title]},
+  {id:'reference-owner',kind:'select',label:'Исполнитель',value:data.person.name},
+  {id:'reference-due',kind:'date',label:'Срок',value:data.due},
+];

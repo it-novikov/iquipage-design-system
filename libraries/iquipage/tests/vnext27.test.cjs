@@ -10,14 +10,14 @@ const { icon } = require('../src/modules/icons.js');
 const css = read('src/styles/foundation.css'), components = read('src/modules/components.js'), dateField = read('src/modules/date-field.js');
 const day = offset => { const d = new Date(); d.setDate(d.getDate() + offset); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
 
-test('the wide list: 36px rows, a 120px label column of 13/400 labels and the shared ghost value grammar', () => {
+test('the wide list keeps the public value grammar while the private reflow trial removes fixed text geometry', () => {
   for (const rule of ['.iq-properties[data-label=wide]{--iq-properties-label:120px;gap:0}',
-    'grid-template-columns:var(--iq-properties-label) minmax(0,1fr);align-items:center;column-gap:var(--iq-space-3);min-height:36px',
-    'font-size:var(--iq-type-label-size);font-weight:400;line-height:20px;color:var(--iq-muted)',
+    'display:flex;flex-wrap:wrap;align-items:baseline;column-gap:var(--iq-space-3);row-gap:0;min-height:36px',
+    'font-size:var(--iq-type-label-size);font-weight:400;line-height:var(--iq-type-label-lineHeight);color:var(--iq-muted)',
     '.iq-properties:is([data-columns],[data-label=wide]) :is(.iq-select-trigger,.iq-date-trigger,.iq-combo-shell):hover{border-color:transparent;background:var(--iq-hover)}',
     '.iq-properties[data-label=wide] .iq-select-value>.iq-select-meta{display:none}',
-    '.iq-properties[data-label=wide] iq-select[appearance=pill] .iq-select-trigger{height:26px;min-height:26px;',
-    '.iq-properties[data-label=wide] iq-select[appearance=pill] .iq-select-dot{width:7px;height:7px}',
+    '.iq-properties[data-label=wide] iq-select[appearance=pill] .iq-select-trigger{width:fit-content;height:auto;min-height:26px;',
+    '.iq-properties[data-label=wide] iq-select[appearance=pill] .iq-select-dot{width:7px;height:7px;align-self:center}',
     '.iq-properties[data-label=wide] .iq-date-trigger>.iq-icon[data-glyph=calendar]{display:none}',
     '.iq-property-value[data-empty=true]{color:var(--iq-muted)}'])
     assert.ok(css.includes(rule), rule);
@@ -69,7 +69,7 @@ test('iq-tag-picker appearance="ghost": chips at rest, no "+" button, «Нет �
   for (const rule of ['iq-tag-picker[appearance=ghost] .iq-tag-picker-field:hover{border-color:transparent;background:var(--iq-hover)}',
     'iq-tag-picker[appearance=ghost] .iq-tag-picker-values:not(:empty)+input:not(:focus){flex:0 0 0;width:0;min-width:0}',
     'iq-tag-picker:is([appearance=inline],[appearance=ghost]) .iq-tag .iq-tag-remove{width:0;opacity:0',
-    '.iq-properties[data-label=wide] iq-tag-picker .iq-tag-picker-field{justify-self:start;max-width:calc(100% + var(--iq-space-2));margin:2px 0 2px calc(-1 * var(--iq-space-2))}'])
+    '.iq-properties[data-label=wide] iq-tag-picker[appearance=ghost] .iq-tag-picker-values:not(:empty)+input:not(:focus){height:0;min-height:0}'])
     assert.ok(css.includes(rule), rule);
 });
 
