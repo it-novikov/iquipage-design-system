@@ -159,7 +159,8 @@ async function openFrame(variant,frame){
     await page.goto(origin+'/?'+new URLSearchParams({case:frame.case,theme:frame.theme,text:String(frame.text)}),{waitUntil:'networkidle'});
     await page.waitForFunction(()=>window.taskFirstScreenProbe?.ready||window.taskFirstScreenProbe?.bootstrapError);
     assert.equal((await fixtureProbe(page)).bootstrapError,null);
-    await page.locator('[data-open-task="task-1"]').first().click();
+    // The parent Epic also renders a subtask link; open this task's own visible Board-card title.
+    await page.locator('article[data-task-surface="task-1"] > button.task-card-title[data-open-task="task-1"]:visible').click();
     await page.mouse.move(0,0); // Same neutral corner before screenshots; no focus/scroll repair.
     await page.waitForFunction(()=>{
       const task=document.querySelector('iq-dialog.task-edit-dialog');

@@ -4,3 +4,5 @@
 - 2026-10-12T09:21:21Z · GPT-6 Astra (AI agent) · claim · - · взял задачу
 - 2026-10-12T09:45:28Z · GPT-6 Astra (AI agent) · checkpoint · - · дальше: Root публикует draft PR к fix/tabs-scroll-geometry (PR77), затем native CI и просмотр PNG/results
 - 2026-10-12T09:45:58Z · GPT-6 Astra (AI agent) · handoff · - · planned → astra-root; HEAD 8f8d2181; незакоммичено 2; Frozen buildable experiment для draft PR к PR77; native CI и review actual results остаются следующими действиями root. No push by author.
+
+- 2026-10-12T09:56:49Z · GPT-6 Astra (AI agent) · harness-fix · - · Native attempt1 PR82 / artifact11739177058 / head a82960df: 14 frames и 6 probes остановились на скрытом Epic subtask link; pageErrors, consoleErrors и externalRequests равны 0. Initial click уточнён до видимого собственного article[data-task-surface] > button.task-card-title, без first()/force. Fixture, oracles и исходная failure evidence сохранены; исправление ещё требует native CI.
