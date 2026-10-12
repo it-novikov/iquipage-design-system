@@ -8,7 +8,7 @@ owner: it-novikov
 branch: fix/estimate-modal-scope
 base: 2c757009d7bf3e3d0fc3648241d499d980ebdbb9
 created: 2026-10-12
-updated: 2026-10-12T10:30:00Z
+updated: 2026-10-12T10:44:00Z
 links:
 ---
 
@@ -33,10 +33,10 @@ links:
 
 ## Передача
 
-- **Состояние:** Причина и варианты определены по immutable native failure; реализация начата.
-- **Сейчас:** S2 — product fix и адресная regression.
-- **Дальше:** Frozen source review → draft PR → actual CI.
-- **Незакоммичено:** Карточка, реализация и новый native harness.
+- **Состояние:** Product fix и адресный harness готовы; независимое source R1 approve на exact tree; native acceptance ещё NOT_RUN.
+- **Сейчас:** S3 — публикация и actual native CI.
+- **Дальше:** Draft PR → actual native CI → независимое сопоставление результата.
+- **Незакоммичено:** Нет после checkpoint commit; последующие результаты отражаются отдельной записью.
 - **Ловушки:** Attempt2 stack217:54 — ожидание закрытия после Escape, не открытия216; ранняя интерпретация отозвана отдельным addendum. Не менять assertions/force/retry ради PASS.
 
 ## План
@@ -51,16 +51,17 @@ links:
 - **Покрывает:** A1, A2
 - **Итог:** Failure есть в baseline и VT1; popup/estimate байты равны текущему main. Независимый investigator подтвердил cause boundary; after-fix ещё NOT_RUN.
 
-### S2. Исправить владение и компоновку [active]
+### S2. Исправить владение и компоновку [done]
 
 - **Что:** Host под owning native dialog root с body fallback; cleanup владельца/anchor; форма сжимаемых колонок и переносимых рядов.
 - **Как:** Существующий helper и продуктовый CSS, public DS54. Popup form вне родительской Task form. Native tests вызывают actual Task и helpers с read adapter.
 - **Зачем:** Пользователь остаётся в контексте и видит весь редактор.
 - **Приёмка:**
-  - [ ] Syntax, boundary, existing estimate model checks и native regression готовы; исходные oracles сохранены.
+  - [x] Syntax, boundary, existing estimate model checks и native regression готовы; исходные oracles сохранены. Локальные syntax×2, boundary/styles и 7 существующих tests PASS; Vite compiled build двух entries PASS, 176 DS файлов равны tar. Native ещё NOT_RUN.
 - **Покрывает:** A1, A2, A3
+- **Итог:** Реализация и 10-case harness готовы. Source R1 approve; build-only, syntax, boundary/styles и прежние model tests PASS. Геометрия и взаимодействие кандидата ещё требуют actual native run.
 
-### S3. Независимая проверка и публикация [todo]
+### S3. Независимая проверка и публикация [active]
 
 - **Что:** Проверить и сохранить exact candidate.
 - **Как:** Read-only review, draft PR, Chromium и применимые общие gates; raw logs/PNGs/source hashes.
@@ -87,3 +88,5 @@ links:
 - Actual checkout `e7a4bb9eb1f9ed8878edd00d4128bdc332e6dd8e`, tree `a294b5e551154bc8f57103e5158a72b0e49682dc`, exact head `2f66973538605035bf354ed264ee0c95f2a34ec5`; estimates/popover source equal main.
 - Trace не содержит отдельного keydown/cancel; Escape ordering следует из exact runner/stack и конечного DOM. Не переносить старый CI на новый кандидат.
 - [HTML modal dialogs and inert subtrees](https://html.spec.whatwg.org/multipage/interaction.html#modal-dialogs-and-inert-subtrees).
+
+- [Source R1 и точная публикационная связь](reviews/source-R1/README.md).
