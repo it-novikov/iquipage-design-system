@@ -68,3 +68,20 @@ jobs:
           path: products/sprintique/output/estimate-popover/
           retention-days: 14
           if-no-files-found: error
+      - name: Current Task overview status regression and long-review captures
+        if: ${{ !cancelled() }}
+        working-directory: products/sprintique
+        env:
+          PLAYWRIGHT_MODULE: ${{ runner.temp }}/sprintique-browser-tools/node_modules/playwright
+          PLAYWRIGHT_BROWSERS_PATH: ${{ runner.temp }}/sprintique-browsers
+          TASK_OVERVIEW_SOURCE_REVISION: ${{ github.sha }}
+          TASK_OVERVIEW_EVIDENCE_DIR: ${{ github.workspace }}/products/sprintique/output/task-overview-state/browser
+        run: node tests/task-overview-state-browser.mjs
+      - name: Current Task overview evidence
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: task-overview-state
+          path: products/sprintique/output/task-overview-state/
+          retention-days: 14
+          if-no-files-found: error

@@ -1,0 +1,26 @@
+{
+  "schema": "task-compact-plan-freeze/1",
+  "frozen_before_runner_adaptation": true,
+  "created_at": "2026-10-12T13:29:45Z",
+  "base_revision": "5bd09d647f79f06c7a7c844f91a6914907ed8e8b",
+  "base_tree": "6d4a4e4a66b7a46e6bda4f8378a0975def2aea7c",
+  "active_plan": "products/sprintique/tests/fixtures/task-overview-state/acceptance-plan.json",
+  "active_revision": 3,
+  "active_sha256": "acd56ea3aef4666275b5691482e6c82880e01a8cbd10f4d70d2bf8d53b093503",
+  "preserved_plans": [
+    {
+      "revision": 1,
+      "file": "acceptance-plan.v1.json",
+      "sha256": "9f18f4a523f032847666a35b4d7394eb7fbac0ae1551ecc479d3811dfb2dd5a8"
+    },
+    {
+      "revision": 2,
+      "file": "acceptance-plan.v2.json",
+      "sha256": "66780241ab4de4b154e77520440632e839bf9cb865ad4dfd93ba443eb2fc186d"
+    }
+  ],
+  "semantic_cases": 6,
+  "capture_cases": 2,
+  "native": "NOT_RUN",
+  "runtime_changes": false
+}

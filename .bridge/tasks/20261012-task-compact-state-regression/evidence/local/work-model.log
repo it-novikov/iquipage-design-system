@@ -1,0 +1,23 @@
+✔ an external assignment never claims the agent has started (0.951571ms)
+✔ cancellation and completion retain distinct effects and acceptance wording (0.131658ms)
+✔ stored report markup reads as connected prose without changing the source (0.440052ms)
+✔ replayed events do not duplicate saved history (0.623338ms)
+✔ inline emphasis reads as prose while preserving its words (0.198149ms)
+✔ workspace focuses a decision before a review and keeps both out of the overview narrative (0.286812ms)
+✔ agent workspace links preserve the task identity and select only a supported tab (0.966675ms)
+✔ the overview names the agent and distinguishes answering from merely opening a question (0.386091ms)
+✔ the overview never implies that a completed step was accepted (0.393022ms)
+✔ editing after a poll keeps the original revision and the draft until explicit review (0.327483ms)
+✔ review of changed options drops an obsolete selection, never the authored answer (0.206751ms)
+✔ a slow action blocks duplicate entry points and a failure permits a deliberate retry (0.497248ms)
+✔ overview keeps useful context without a session or assignment permission (0.177337ms)
+✔ PF04: review overview shows the literal start of the selected result, never a summary (0.521404ms)
+✔ Task overview uses the compact 64-code-point excerpt and one state line (0.176766ms)
+ℹ tests 15
+ℹ suites 0
+ℹ pass 15
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 116.242647

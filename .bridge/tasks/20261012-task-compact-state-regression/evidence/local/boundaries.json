@@ -1,0 +1,12 @@
+{
+  "command": [
+    "npm",
+    "run",
+    "check:boundaries"
+  ],
+  "cwd": "products/sprintique",
+  "exit_code": 0,
+  "timestamp": "2026-10-12T13:34:02.714563+00:00",
+  "bytes": 391,
+  "sha256": "bde88c4d7553c459ebf6ef85cb6116e94dac3f204e228c43beb584b655bbfbf1"
+}

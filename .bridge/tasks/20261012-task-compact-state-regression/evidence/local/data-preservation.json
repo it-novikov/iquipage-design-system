@@ -1,0 +1,24 @@
+{
+  "status": "PASS",
+  "method": "Source/data equality, not rendering or backend acceptance",
+  "originalScenarios": [
+    "completed-rejected",
+    "completed-blocked",
+    "review-literal",
+    "question-no-answer",
+    "genuine-complete",
+    "review-long"
+  ],
+  "literalCodePoints": 69,
+  "previewCodePoints": 58,
+  "originalDataSHA256": {
+    "completed-rejected": "d3c0969e1f43e5ebb91d60bd79b36efe358dbeaea439bdcb213cce4dea3e158d",
+    "completed-blocked": "7d77dec183f5ed941f6800dc838b6d493c32b7af8aa1b2dd230115641635ded9",
+    "review-literal": "4f2cb8d04f14bb60dac2c53f4a6f1fb224490da679ef54a238357c185ba8b1fa",
+    "question-no-answer": "9613b564262e6977d39e7c5cfc48b616afa048df95e4f5d0f338311c19cfd709",
+    "genuine-complete": "18e53c958118c105ed01348a12624674d159129adc6914a2703ce8e0eeb0d649",
+    "review-long": "0daa351a2f89e86362caa84ef4d3f194204dcfa9312c091dccd7be72f981a6c0"
+  },
+  "questionContrast": "Only scenario id and canAnswer differ",
+  "planSHA256": "acd56ea3aef4666275b5691482e6c82880e01a8cbd10f4d70d2bf8d53b093503"
+}

@@ -1,0 +1,240 @@
+{
+  "schema_version": "2.0",
+  "id": "TASK-OVERVIEW-STATE",
+  "revision": 3,
+  "scope_type": "targeted",
+  "phase": "candidate",
+  "scope": "Test-only regression of actual Task Compact from PR90: one state/agent heading for review and questions, unchanged step identity and CTA semantics, literal overview prefix up to64 with full result in Work. Synthetic read responses. No runtime, CSS, DS, permission or persistence changes; no human, aesthetic or global layout acceptance.",
+  "approval": {
+    "owner": "it-novikov",
+    "ref": "Owner-authorized implementation continuation; root explicitly scoped test-only PR90 regression and the additional can-answer contrast on 2026-10-12 before implementation."
+  },
+  "base_revision": "5bd09d647f79f06c7a7c844f91a6914907ed8e8b",
+  "adoption_review_sha256": "542871074da7c7f69209325d3cc1d12c213ca1254b94f52c3cc304134229d9d5",
+  "package_version": "0.6.0-vnext.54",
+  "ds_archive_sha256": "a726a4536e532fc556f615d0b1a9cda1873dc111e6090710329b9ec1b8204457",
+  "surfaces": [
+    {
+      "id": "task",
+      "source_ref": "products/sprintique/ui/src/board/task-dialog.js",
+      "description": "Existing openTaskDialog mounting its real mountTaskWork, public DS and current production CSS"
+    }
+  ],
+  "profiles": {
+    "desktop": {
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "theme": "light",
+      "density": "comfortable",
+      "root_font_px": 16
+    },
+    "narrow": {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "density": "comfortable",
+      "root_font_px": 16
+    }
+  },
+  "environment": {
+    "engine": "native Chromium",
+    "playwright": "1.62.1",
+    "target": "GitHub Actions Ubuntu 24.04",
+    "locale": "ru-RU",
+    "timezone": "UTC",
+    "input": "native pointer; no forced click or focus/scroll repair",
+    "device_scale_factor": 1,
+    "browser_zoom": "100%",
+    "reduced_motion": "reduce",
+    "date_now": "2026-10-12T12:00:00.000Z",
+    "clock_method": "page.clock.setFixedTime; timers continue normally",
+    "data_profile": "Deterministic synthetic Task and work read responses; original tabs-geometry read adapter reused"
+  },
+  "cases": [
+    {
+      "id": "completed-rejected",
+      "kind": "semantic",
+      "scenario": "completed-rejected",
+      "profile": "desktop",
+      "check_id": "OV-STEP"
+    },
+    {
+      "id": "completed-blocked",
+      "kind": "semantic",
+      "scenario": "completed-blocked",
+      "profile": "desktop",
+      "check_id": "OV-STEP"
+    },
+    {
+      "id": "review-literal",
+      "kind": "semantic",
+      "scenario": "review-literal",
+      "profile": "desktop",
+      "check_id": "OV-REVIEW"
+    },
+    {
+      "id": "question-no-answer",
+      "kind": "semantic",
+      "scenario": "question-no-answer",
+      "profile": "desktop",
+      "check_id": "OV-QUESTION"
+    },
+    {
+      "id": "question-can-answer",
+      "kind": "semantic",
+      "scenario": "question-can-answer",
+      "profile": "desktop",
+      "check_id": "OV-QUESTION-ANSWER"
+    },
+    {
+      "id": "genuine-complete",
+      "kind": "semantic",
+      "scenario": "genuine-complete",
+      "profile": "desktop",
+      "check_id": "OV-COMPLETE"
+    },
+    {
+      "id": "long-review-desktop",
+      "kind": "capture",
+      "scenario": "review-long",
+      "profile": "desktop",
+      "check_id": "OV-COMPOSITION"
+    },
+    {
+      "id": "long-review-narrow",
+      "kind": "capture",
+      "scenario": "review-long",
+      "profile": "narrow",
+      "check_id": "OV-COMPOSITION"
+    }
+  ],
+  "checks": [
+    {
+      "id": "OV-STEP",
+      "surface_id": "task",
+      "required": true,
+      "method": "native actual Task rendering and CTA navigation",
+      "evidence_kinds": [
+        "screenshot",
+        "measurement",
+        "log"
+      ],
+      "acceptance": "Completed sessions with selected rejected or blocked steps retain exact full step title, heading Work by agent with its actual agent name and one secondary Open work CTA. The overview has no extra status p or Work completed claim. Actual Work panel identifies the selected step as needing revision or an answer. No write attempt. Full Work session wording remains a separately open UX finding."
+    },
+    {
+      "id": "OV-REVIEW",
+      "surface_id": "task",
+      "required": true,
+      "method": "native actual Task rendering and CTA navigation",
+      "evidence_kinds": [
+        "screenshot",
+        "measurement",
+        "log"
+      ],
+      "acceptance": "Review shows exact heading Result under review · agent with attention=true, full selected-step title, one primary review:S1 CTA and the independent58-code-point literal prefix with honest label Start of result. Exactly the label span and no interpreted em/entity markup in preview. CTA opens and focuses precisely S1, where the full69-code-point original is literal. Approve/reject controls exist only in full Work and are not clicked. No write attempt."
+    },
+    {
+      "id": "OV-QUESTION",
+      "surface_id": "task",
+      "required": true,
+      "method": "native actual Task rendering and CTA navigation",
+      "evidence_kinds": [
+        "screenshot",
+        "measurement",
+        "log"
+      ],
+      "acceptance": "Open question with canAnswer=false shows exact Agent waiting for answer · agent heading with attention=false, full question title and one secondary Open question CTA actionquestion:Q1. It takes precedence over pending review. CTA focuses Q1 heading; no enabled answer inputs or confirm-answer command. No false completion or new-question CTA. No write attempt."
+    },
+    {
+      "id": "OV-QUESTION-ANSWER",
+      "surface_id": "task",
+      "required": true,
+      "method": "native actual Task rendering and CTA navigation",
+      "evidence_kinds": [
+        "screenshot",
+        "measurement",
+        "log"
+      ],
+      "acceptance": "The same open Q1 with canAnswer=true shows exact Your decision is needed · agent heading with attention=true and one primary Answer agent CTA actionquestion:Q1. The pending review remains subordinate. CTA focuses the existing enabled O1 input inside precisely Q1; enabled answer choices and confirm-answer command exist only in full Work. No choice, answer or write command is submitted. No false completion or new-question CTA."
+    },
+    {
+      "id": "OV-COMPLETE",
+      "surface_id": "task",
+      "required": true,
+      "method": "native actual Task rendering and CTA navigation",
+      "evidence_kinds": [
+        "screenshot",
+        "measurement",
+        "log"
+      ],
+      "acceptance": "Completed session with approved done step and no outstanding question/review/problem retains heading Work by agent · agent and main text Work completed, with one secondary Open work CTA and no extra status p. Actual complete Work keeps its existing full session summary. No write attempt."
+    },
+    {
+      "id": "OV-COMPOSITION",
+      "surface_id": "task",
+      "required": true,
+      "method": "passive informational capture only",
+      "evidence_kinds": [
+        "screenshot",
+        "measurement"
+      ],
+      "acceptance": "Capture current Compact long-review Task at1280x900 and390x844 before navigation. Preserve original long title/result/Task properties, full viewport PNG and raw heading/title/summary/CTA/preview, first four properties, disclosure box/text rectangles, description and scrollport geometry. Status CAPTURED, never geometry PASS. No old PR82 or PR88 numeric gain or perfect-fit claim; native visual review separately assesses glance hierarchy, useful content, practical action visibility and clipping."
+    },
+    {
+      "id": "OV-PROVENANCE",
+      "surface_id": "task",
+      "required": true,
+      "method": "exact package and compiled source fingerprints",
+      "evidence_kinds": [
+        "log",
+        "source-review"
+      ],
+      "acceptance": "Record actual Git revision and whole tree, frozen plan hash and correct v2 predecessor, source and complete physical module-input hashes, compiled-output hashes and installed DS bytes equal the exact DS54 archive. Actual dialog/renderer/model/fixture consumer must be compiled and fingerprinted. Historical197 inputs are an observation, not a fixed count. Native uses a clean committed checkout."
+    }
+  ],
+  "not_run": [
+    "Backend writes, grants enforcement and agent execution",
+    "Human usability and aesthetic/Compact acceptance",
+    "Runtime redesign, truncation-budget changes or perfect first-screen fit",
+    "Independent Estimate/Tabs acceptance (their existing companion checks remain unchanged)",
+    "Create/type/template, disclosure interaction redesign, accepted Task result and unrelated flows",
+    "D1 generic Open work full keyboard traversal; no inferred failure from pointer focus metadata",
+    "Real Safari, Firefox, iOS touch and screen readers: separate pre-release verification"
+  ],
+  "predecessor_plan_sha256": "66780241ab4de4b154e77520440632e839bf9cb865ad4dfd93ba443eb2fc186d",
+  "revision_reason": "PR89 restores runtime previously lost; PR90 independently changes headline and overview preview64 while retaining unresolved-step guard semantics. Transfer corrected PR88 test layer only. Preserve original five semantic cases and add can-answer as the explicit permission/focus contrast; two long captures stay informational. Bind predecessor to preservedv2, not v1, and use exact new literal prefix plus unchanged full text. This plan is frozen before runner adaptation and native execution.",
+  "base_tree": "6d4a4e4a66b7a46e6bda4f8378a0975def2aea7c",
+  "historical_native_subject": "1fd928e12b43b26f29ebcb190a5595c1d2618444",
+  "reconciliation_sha256": "3d35da5b8b2e8b4b6070e8ebf84facdc665621b20d13fbc7d15bb81d9c5cfd4b",
+  "subject_binding": "Initial acceptance is a clean committed test-only descendant of base_revision. Root/CI records the published head and whole tree independently after publication; the runner records actual source/input/output hashes. Later runs belong to their own actual checkout and do not reuse historical acceptance.",
+  "predecessor_plan_file": "acceptance-plan.v2.json",
+  "preserved_plans": [
+    {
+      "revision": 1,
+      "file": "acceptance-plan.v1.json",
+      "sha256": "9f18f4a523f032847666a35b4d7394eb7fbac0ae1551ecc479d3811dfb2dd5a8"
+    },
+    {
+      "revision": 2,
+      "file": "acceptance-plan.v2.json",
+      "sha256": "66780241ab4de4b154e77520440632e839bf9cb865ad4dfd93ba443eb2fc186d"
+    }
+  ],
+  "literal_witness": {
+    "source": "История «<em>готово</em> &amp; проверено» сохранена после обновления.",
+    "source_code_points": 69,
+    "overview": "История «<em>готово</em> &amp; проверено» сохранена после…",
+    "overview_code_points": 58,
+    "label": "Начало результата",
+    "overview_child_tags": [
+      "SPAN"
+    ],
+    "overview_em_elements": 0,
+    "full_result_em_elements": 0,
+    "method": "Exact independent literal strings and real DOM structure, never workResultPreview in the oracle; full S1 text must retain the original."
+  }
+}

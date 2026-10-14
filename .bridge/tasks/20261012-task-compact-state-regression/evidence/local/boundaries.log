@@ -1,0 +1,7 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> @sprintique/product@2.0.0-alpha.0 check:boundaries
+> node scripts/check-boundaries.mjs && node scripts/check-styles.mjs
+
+PASS: product-contained imports, public DS entries, contracts independent of presentation.
+PASS: type, radius and colour tokens, public DS variants, no inline styling.

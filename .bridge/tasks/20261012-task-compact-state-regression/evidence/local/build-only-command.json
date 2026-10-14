@@ -1,0 +1,14 @@
+{
+  "command": [
+    "node",
+    "tests/task-overview-state-browser.mjs",
+    "--build-only"
+  ],
+  "cwd": "products/sprintique",
+  "exit_code": 0,
+  "timestamp": "2026-10-12T13:34:17.825610+00:00",
+  "bytes": 273,
+  "sha256": "4d284fcbff5fbac385ac55507c04f226dda68a41bb33ae06305a55d2e2578dcd",
+  "temporary_readonly_dependency_link_removed": true,
+  "install_performed": false
+}

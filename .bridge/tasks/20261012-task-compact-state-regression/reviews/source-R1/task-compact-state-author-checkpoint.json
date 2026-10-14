@@ -1,0 +1,198 @@
+{
+  "schema": "task-compact-working-checkpoint/1",
+  "frozen_at": "2026-10-12T13:37:10.345914+00:00",
+  "repository": "/workspace/scratch/b3dac59f68e2/repo-task-compact-state",
+  "branch": "test/task-compact-state-regression",
+  "base_revision": "5bd09d647f79f06c7a7c844f91a6914907ed8e8b",
+  "base_tree": "6d4a4e4a66b7a46e6bda4f8378a0975def2aea7c",
+  "patch_path": "/workspace/scratch/b3dac59f68e2/research/continuation/task-compact-state-author.patch",
+  "patch_bytes": 176208,
+  "patch_sha256": "fe9262b7b4489e1f20c6768ccc4166070909d4fe85dc9a920a59d335b09fc56e",
+  "files": [
+    {
+      "path": ".bridge/tasks/20261012-task-compact-state-regression/evidence/acceptance-plan-identity.json",
+      "bytes": 896,
+      "sha256": "b7b4638ee5125c8c4c8adfc85e8ba768055bc74faa719b85de5eb70e21364696",
+      "git_blob_sha": "fa3db67b5e20822508dffea39b315f706623e6f7",
+      "status": "added"
+    },
+    {
+      "path": ".bridge/tasks/20261012-task-compact-state-regression/evidence/local/README.md",
+      "bytes": 3888,
+      "sha256": "246e5707c1a86f16adcb46be1543b52f049526708e7579981cec7d4cf58a294e",
+      "git_blob_sha": "3b6c0a3d007394f93978be7a6e1b4fb6a8ee78d4",
+      "status": "added"
+    },
+    {
+      "path": ".bridge/tasks/20261012-task-compact-state-regression/evidence/local/boundaries.json",
+      "bytes": 265,
+      "sha256": "33fe07e50705704593a08cb0aab4432c15a6c76435ecc1dca595fe1da0980250",
+      "git_blob_sha": "a489f2e7075740f3a7ab93118b832fb746565596",
+      "status": "added"
+    },
+    {
+      "path": ".bridge/tasks/20261012-task-compact-state-regression/evidence/local/boundaries.log",
+      "bytes": 391,
+      "sha256": "bde88c4d7553c459ebf6ef85cb6116e94dac3f204e228c43beb584b655bbfbf1",
+      "git_blob_sha": "63038376ea7744acbf0a3a85a2d903211f4fbea3",
+      "status": "added"
+    },
+    {
+      "path": ".bridge/tasks/20261012-task-compact-state-regression/evidence/local/build-only-command.json",
+      "bytes": 380,
+      "sha256": "a0816f67be91396abe1a91c85283482b79359e90042fb343e65220b95dc58a11",
+      "git_blob_sha": "ba31a6d723d5c3b91e39a09d1d8f02555d8f261b",
+      "status": "added"
+    },
+    {
+      "path": ".bridge/tasks/20261012-task-compact-state-regression/evidence/local/build-only-results.json",
+      "bytes": 29107,
+      "sha256": "700dc4cb5237de4399cab4469557be8eebe1816ca2c9bf3386e1c0f08dd0c0e2",
+      "git_blob_sha": "ef39cb350dd741d86fdacb36b6f21e137c8378fe",
+      "status": "added"
+    },
+    {
+      "path": ".bridge/tasks/20261012-task-compact-state-regression/evidence/local/build-only.log",
+      "bytes": 273,
+      "sha256": "4d284fcbff5fbac385ac55507c04f226dda68a41bb33ae06305a55d2e2578dcd",
+      "git_blob_sha": "b9a38c48da0b9a28a6dedc9962c1011edc751870",
+      "status": "added"
+    },
+    {
+      "path": ".bridge/tasks/20261012-task-compact-state-regression/evidence/local/data-preservation.json",
+      "bytes": 1048,
+      "sha256": "52b01c716770108de8d593f77222e14a2673a12b3e3db07d92fefe4ed015c6a0",
+      "git_blob_sha": "b67fe99b64d3e8461526930aef256aae4ca81b24",
+      "status": "added"
+    },
+    {
+      "path": ".bridge/tasks/20261012-task-compact-state-regression/evidence/local/scope-integrity.json",
+      "bytes": 3589,
+      "sha256": "4283601ca5d42e8dabcc50d36c3e78c8e3fb70b0f0c41c3e9549cac48798f272",
+      "git_blob_sha": "c4d36ce00def1eeacc5913bd25caae05e90e824a",
+      "status": "added"
+    },
+    {
+      "path": ".bridge/tasks/20261012-task-compact-state-regression/evidence/local/work-model.json",
+      "bytes": 267,
+      "sha256": "9fd935a85bcbf765e4f7c7684cc7693dadcecdc111f8d114433663410ba35464",
+      "git_blob_sha": "1804c904b07805e3d0e4f9253e5c6740a5d26031",
+      "status": "added"
+    },
+    {
+      "path": ".bridge/tasks/20261012-task-compact-state-regression/evidence/local/work-model.log",
+      "bytes": 1487,
+      "sha256": "7b960d177e72c55dca2b3104bc239d26b83ad8b9c34416db8803ac77dd667140",
+      "git_blob_sha": "7ab2ed8a016a56c2adcfc55ad09c10edf6ea65d1",
+      "status": "added"
+    },
+    {
+      "path": ".bridge/tasks/20261012-task-compact-state-regression/evidence/reconciliation/README.md",
+      "bytes": 2140,
+      "sha256": "0adfbe86b6dcda606256f9bc61918c4b8c4d4ea935c825ee6d26e2b4b27beced",
+      "git_blob_sha": "c6169a7f0c81f308185b4952f81830037c24fe62",
+      "status": "added"
+    },
+    {
+      "path": ".bridge/tasks/20261012-task-compact-state-regression/evidence/reconciliation/original.md",
+      "bytes": 30240,
+      "sha256": "3d35da5b8b2e8b4b6070e8ebf84facdc665621b20d13fbc7d15bb81d9c5cfd4b",
+      "git_blob_sha": "d279ba5e551b02f8d9efb494b27f84f3ccb18e73",
+      "status": "added"
+    },
+    {
+      "path": ".bridge/tasks/20261012-task-compact-state-regression/journal.md",
+      "bytes": 2110,
+      "sha256": "e6e21364bed1af6d168191ed27372002b2f84c452903fc8af97138815b3d2df6",
+      "git_blob_sha": "2ed0c228a14508f28e1ea850268b97593cc71466",
+      "status": "added"
+    },
+    {
+      "path": ".bridge/tasks/20261012-task-compact-state-regression/task.md",
+      "bytes": 12463,
+      "sha256": "c2153a466267048f3fe1d2d84c8b07fa471c51d8ccfd425ac34f2c5383a8a934",
+      "git_blob_sha": "3a5112d9b2499bae4ceb879782efa671b25c1745",
+      "status": "added"
+    },
+    {
+      "path": ".github/workflows/tabs-geometry.yml",
+      "bytes": 4134,
+      "sha256": "0135239b554bc5747e5a920d71189dac4a1281d73ebe521cf1fef49f4a4e719d",
+      "git_blob_sha": "3c9b83cb115dbe5badbe121009da63549d16a760",
+      "status": "modified"
+    },
+    {
+      "path": "products/sprintique/tests/fixtures/task-overview-state/README.md",
+      "bytes": 13381,
+      "sha256": "a5a10478c2539970d8018c7ea377e983e7e481e98c984aa807d4ae9ea10f0eb2",
+      "git_blob_sha": "63c542d65c2d1aa22922956148944c7387213a45",
+      "status": "added"
+    },
+    {
+      "path": "products/sprintique/tests/fixtures/task-overview-state/acceptance-plan.json",
+      "bytes": 11127,
+      "sha256": "acd56ea3aef4666275b5691482e6c82880e01a8cbd10f4d70d2bf8d53b093503",
+      "git_blob_sha": "32204d76b21eed24218c9e8e567f3caa0558c246",
+      "status": "added"
+    },
+    {
+      "path": "products/sprintique/tests/fixtures/task-overview-state/acceptance-plan.v1.json",
+      "bytes": 5980,
+      "sha256": "9f18f4a523f032847666a35b4d7394eb7fbac0ae1551ecc479d3811dfb2dd5a8",
+      "git_blob_sha": "a3c7419795339ce302ed741ffe8e27e1cafa622b",
+      "status": "added"
+    },
+    {
+      "path": "products/sprintique/tests/fixtures/task-overview-state/acceptance-plan.v2.json",
+      "bytes": 7519,
+      "sha256": "66780241ab4de4b154e77520440632e839bf9cb865ad4dfd93ba443eb2fc186d",
+      "git_blob_sha": "663847e769e9818bdbe25295f8f46f07c876c626",
+      "status": "added"
+    },
+    {
+      "path": "products/sprintique/tests/fixtures/task-overview-state/consumer.js",
+      "bytes": 2633,
+      "sha256": "eeed8f571ed8fcc2d95d400dc07e6ad7516ee319e5501a4422fd228adf9ad2df",
+      "git_blob_sha": "239eda2309acd1da5281276129a7a1ade998700e",
+      "status": "added"
+    },
+    {
+      "path": "products/sprintique/tests/fixtures/task-overview-state/data.mjs",
+      "bytes": 5002,
+      "sha256": "c5273596f7d35204cf6624ec34a1f24977fa7fab983b51fe4b5cb3db1aac25c4",
+      "git_blob_sha": "173d2c875939bf402be9e22b96038c819368a6b5",
+      "status": "added"
+    },
+    {
+      "path": "products/sprintique/tests/fixtures/task-overview-state/index.html",
+      "bytes": 580,
+      "sha256": "9ae07b91b7e5e5fbc619fec0184c04f988b39cfb0730c7a015b5c54f859389ef",
+      "git_blob_sha": "69fb8c0275495b4430e77a2b0459b0e5540d2f97",
+      "status": "added"
+    },
+    {
+      "path": "products/sprintique/tests/task-overview-state-browser.mjs",
+      "bytes": 29116,
+      "sha256": "8a6baf9690d0e07fcfb9a90c9e283ad2cc4ebbd5c5192211bb8fb685a7a62229",
+      "git_blob_sha": "80ac2a2e9f4a6aed45b4d6290ac6e17a969b72a5",
+      "status": "added"
+    }
+  ],
+  "file_count": 24,
+  "plan_sha256": "acd56ea3aef4666275b5691482e6c82880e01a8cbd10f4d70d2bf8d53b093503",
+  "runtime_changes": false,
+  "index_changes": false,
+  "head_changes": false,
+  "native": "NOT_RUN",
+  "gates": {
+    "model": "15/15 PASS",
+    "syntax": "3/3 PASS",
+    "boundaries_styles": "PASS",
+    "build_only": "BUILT_NOT_RENDERED",
+    "inputs": 197,
+    "outputs": 12,
+    "source_hashes": 14,
+    "installed_exact_ds_files": 176
+  },
+  "lease_handoff": "review to gpt-6-astra-root; author stopped worktree writes"
+}
