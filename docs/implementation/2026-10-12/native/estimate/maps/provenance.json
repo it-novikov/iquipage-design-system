@@ -1,0 +1,234 @@
+{
+  "head": "6423443d71a0817570281cf28822a3c14f7db684",
+  "headTree": "81fa1c2800632324b09afd86d01b6fd671ccc6a5",
+  "checkout": "7dbb86d6130fef17cecb4810610cfae0976089c0",
+  "checkoutWholeTreeEqualsHead": true,
+  "runId": 38238395764,
+  "jobId": 114774634048,
+  "artifact": {
+    "id": 11741144568,
+    "name": "maps-task-context",
+    "size_in_bytes": 1064136,
+    "url": "https://api.github.com/repos/it-novikov/iquipage-design-system/actions/artifacts/11741144568",
+    "archive_download_url": "https://api.github.com/repos/it-novikov/iquipage-design-system/actions/artifacts/11741144568/zip",
+    "expired": false,
+    "created_at": "2026-10-12T10:47:13Z",
+    "expires_at": "2026-10-26T10:47:11Z",
+    "updated_at": "2026-10-12T10:47:13Z",
+    "digest": "sha256:20ad5bb2658b2d04b11e62a4184a72ca995acacfd5da9c870e4b61a1ba441a2b",
+    "workflow_run": {
+      "id": 38238395764,
+      "repository_id": 1360587523,
+      "head_repository_id": 1360587523,
+      "head_branch": "fix/estimate-modal-scope",
+      "head_sha": "6423443d71a0817570281cf28822a3c14f7db684"
+    }
+  },
+  "sourceArchiveFileCount": 22,
+  "sourcePngCount": 21,
+  "newPngCopies": 21,
+  "existingGitPngLinks": 0,
+  "allPngBytesAvailableOffline": true,
+  "allArchiveFilesVerifiedByteForByteAgainstExtraction": true,
+  "files": [
+    {
+      "path": "desktop-dark-map.png",
+      "bytes": 70565,
+      "sha256": "289424302bed297eb30d8b0e73d7847201a83ab21b64cfb80e66463f36487650",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/maps/desktop-dark-map.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "desktop-dark-returned-map.png",
+      "bytes": 70921,
+      "sha256": "cecc06514a4435f6fb1795b3f79435d449bf0147a2c529e609b0f393fd07deae",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/maps/desktop-dark-returned-map.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "desktop-dark-work-tab.png",
+      "bytes": 51684,
+      "sha256": "492d59242a1c827a65936047cd823921d8629cd0d561eb808c8389388e4b0397",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/maps/desktop-dark-work-tab.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "desktop-light-map.png",
+      "bytes": 68508,
+      "sha256": "02311e83ece568e55c76abad88f75c22f900f046ac4289bad4a99a83e4559026",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/maps/desktop-light-map.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "desktop-light-related-task.png",
+      "bytes": 74552,
+      "sha256": "9101a93228e21c59b5f6d0f88f882f49b023ad20dc2fa688c5fb42bcb08fcc2c",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/maps/desktop-light-related-task.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "desktop-light-reload-support-read-draft.png",
+      "bytes": 81437,
+      "sha256": "3d9b424f12a3d0828ffd0b990b75a4ccb30c270640ce5fc02f473d1c56b697e6",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/maps/desktop-light-reload-support-read-draft.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "desktop-light-reload-task-read-draft.png",
+      "bytes": 81182,
+      "sha256": "460f203190d62ffe68f05e1071af635033b400b192d57640490b8b9ca2d8560a",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/maps/desktop-light-reload-task-read-draft.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "desktop-light-retained-draft.png",
+      "bytes": 81723,
+      "sha256": "aaf183d0a897dc225a32997fdbd62b8b5b07fbbcc02d80a8da61bff62c484c86",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/maps/desktop-light-retained-draft.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "desktop-light-returned-map.png",
+      "bytes": 72403,
+      "sha256": "99ccbcd0143c5670a98f3e7c300e41eea3794c53eda7d51c76a61debd7d9c3ea",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/maps/desktop-light-returned-map.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "desktop-light-work-tab.png",
+      "bytes": 55039,
+      "sha256": "e4359072ec527f8f9b19a04f4fa8a3aa81430523c1270eb27c4c292d5ca6744f",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/maps/desktop-light-work-tab.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "initial-map-map-recovery.png",
+      "bytes": 61017,
+      "sha256": "6f8c8ea908a50ec2645a9e731cf302ea67c29500b5eac0dfe37068f0899b20f7",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/maps/initial-map-map-recovery.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "initial-support-map-recovery.png",
+      "bytes": 41463,
+      "sha256": "0c6ba30d4ab811e4a5de76d986d851b9badf4a9fc893ad5eb7266faeb779d359",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/maps/initial-support-map-recovery.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "initial-support-new-task-recovery.png",
+      "bytes": 45129,
+      "sha256": "f18dee590992b47a1d80f676c0f707a51b8048fe26d26ab26f4112f026214eed",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/maps/initial-support-new-task-recovery.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "initial-task-map-recovery.png",
+      "bytes": 41463,
+      "sha256": "0c6ba30d4ab811e4a5de76d986d851b9badf4a9fc893ad5eb7266faeb779d359",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/maps/initial-task-map-recovery.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "initial-task-new-task-recovery.png",
+      "bytes": 45129,
+      "sha256": "f18dee590992b47a1d80f676c0f707a51b8048fe26d26ab26f4112f026214eed",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/maps/initial-task-new-task-recovery.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "narrow-dark-map.png",
+      "bytes": 35952,
+      "sha256": "2d9b056db661306c4bb04bc056a0906d4190b93714fa61b64de05917dde71017",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/maps/narrow-dark-map.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "narrow-dark-returned-map.png",
+      "bytes": 36295,
+      "sha256": "f6ace2eb1799a0531903e1709ecbe9c4a2bd42f7b8b94f1af023a9c331f808ae",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/maps/narrow-dark-returned-map.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "narrow-dark-work-tab.png",
+      "bytes": 16874,
+      "sha256": "032cb8a3d99cb808d5e8dc8beafe8fe8b9af141ce5c3ebdf7f1ba7b04e991530",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/maps/narrow-dark-work-tab.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "narrow-light-map.png",
+      "bytes": 34736,
+      "sha256": "7a14d9be830446addc6be13a0a8a319e60589f82e49342264c07df542d59687c",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/maps/narrow-light-map.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "narrow-light-returned-map.png",
+      "bytes": 35001,
+      "sha256": "eb64c233ec572884f430455e8ece13352824fafbfafd5b63a30b25db1c0590ba",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/maps/narrow-light-returned-map.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "narrow-light-work-tab.png",
+      "bytes": 16798,
+      "sha256": "f8351e5344f8421d352ee6a778524990045a7c4fe40aff40afd2585fff68bc67",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/maps/narrow-light-work-tab.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "results.json",
+      "bytes": 32694,
+      "sha256": "f3085409132a7664dee67b9b575aa8b65791c3f9cb6582fa7185df948271bd07",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/maps/results.json.gz",
+      "encoding": "gzip"
+    }
+  ],
+  "pathConvention": "path is relative to the downloaded artifact; preservedAs and matchingExistingFiles are relative to docs/implementation/2026-10-12 in the repository."
+}

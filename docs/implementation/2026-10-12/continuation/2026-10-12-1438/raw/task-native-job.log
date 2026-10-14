@@ -1,0 +1,656 @@
+﻿2026-10-12T13:59:59.9969764Z Current runner version: '2.337.0'
+2026-10-12T13:59:59.9994897Z ##[group]Runner Image Provisioner
+2026-10-12T13:59:59.9995882Z Hosted Compute Agent
+2026-10-12T13:59:59.9996466Z Version: 20261002.596
+2026-10-12T13:59:59.9997188Z Commit: c3d12f3313a95f25162a1503be624f3b0617f8c0
+2026-10-12T13:59:59.9997921Z Build Date: 2026-10-02T22:28:27Z
+2026-10-12T13:59:59.9998647Z Worker ID: {8c687e89-46ec-4620-af7c-caeafae1b8b2}
+2026-10-12T13:59:59.9999471Z Region: westus2
+2026-10-12T14:00:00.0000068Z Cloud: Azure
+2026-10-12T14:00:00.0000692Z ##[endgroup]
+2026-10-12T14:00:00.0003379Z ##[group]Operating System
+2026-10-12T14:00:00.0004324Z Ubuntu
+2026-10-12T14:00:00.0005305Z 24.04.5
+2026-10-12T14:00:00.0006049Z LTS
+2026-10-12T14:00:00.0006872Z ##[endgroup]
+2026-10-12T14:00:00.0007700Z ##[group]Runner Image
+2026-10-12T14:00:00.0008570Z Image: ubuntu-24.04
+2026-10-12T14:00:00.0009527Z Version: 20261004.327.1
+2026-10-12T14:00:00.0011604Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261004.327/images/ubuntu/Ubuntu2404-Readme.md
+2026-10-12T14:00:00.0014252Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261004.327
+2026-10-12T14:00:00.0015774Z ##[endgroup]
+2026-10-12T14:00:00.0017562Z ##[group]GITHUB_TOKEN Permissions
+2026-10-12T14:00:00.0019988Z Contents: read
+2026-10-12T14:00:00.0021230Z Metadata: read
+2026-10-12T14:00:00.0022074Z ##[endgroup]
+2026-10-12T14:00:00.0024866Z Secret source: Actions
+2026-10-12T14:00:00.0026288Z Cache mode: write
+2026-10-12T14:00:00.0027297Z Prepare workflow directory
+2026-10-12T14:00:00.0762828Z Prepare all required actions
+2026-10-12T14:00:00.0811630Z Getting action download info
+2026-10-12T14:00:00.4610060Z Download action repository 'actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803' (SHA:d23441a48e516b6c34aea4fa41551a30e30af803)
+2026-10-12T14:00:00.7719916Z Download action repository 'actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38' (SHA:249970729cb0ef3589644e2896645e5dc5ba9c38)
+2026-10-12T14:00:00.8673142Z Download action repository 'actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02' (SHA:ea165f8d65b6e75b540449e92b4886f43607fa02)
+2026-10-12T14:00:01.0809073Z Complete job name: browser
+2026-10-12T14:00:01.1604212Z ##[group]Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+2026-10-12T14:00:01.1605304Z with:
+2026-10-12T14:00:01.1605758Z   persist-credentials: false
+2026-10-12T14:00:01.1606352Z   repository: it-novikov/iquipage-design-system
+2026-10-12T14:00:01.1610378Z   token: ***
+2026-10-12T14:00:01.1610810Z   ssh-strict: true
+2026-10-12T14:00:01.1611468Z   ssh-user: git
+2026-10-12T14:00:01.1611896Z   clean: true
+2026-10-12T14:00:01.1612334Z   sparse-checkout-cone-mode: true
+2026-10-12T14:00:01.1612852Z   fetch-depth: 1
+2026-10-12T14:00:01.1613272Z   fetch-tags: false
+2026-10-12T14:00:01.1613714Z   show-progress: true
+2026-10-12T14:00:01.1614149Z   lfs: false
+2026-10-12T14:00:01.1614555Z   submodules: false
+2026-10-12T14:00:01.1615007Z   set-safe-directory: true
+2026-10-12T14:00:01.1615520Z   allow-unsafe-pr-checkout: false
+2026-10-12T14:00:01.1616324Z ##[endgroup]
+2026-10-12T14:00:01.2602367Z Syncing repository: it-novikov/iquipage-design-system
+2026-10-12T14:00:01.2604293Z ##[group]Getting Git version info
+2026-10-12T14:00:01.2605195Z Working directory is '/home/runner/work/iquipage-design-system/iquipage-design-system'
+2026-10-12T14:00:01.2606369Z [command]/usr/bin/git version
+2026-10-12T14:00:01.2731962Z git version 2.55.0
+2026-10-12T14:00:01.2760753Z ##[endgroup]
+2026-10-12T14:00:01.2783993Z Temporarily overriding HOME='/home/runner/work/_temp/be4afa6d-08b1-4836-8bbc-f9e5bd9994b6' before making global git config changes
+2026-10-12T14:00:01.2790312Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-12T14:00:01.2792365Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/iquipage-design-system/iquipage-design-system
+2026-10-12T14:00:01.2847790Z Deleting the contents of '/home/runner/work/iquipage-design-system/iquipage-design-system'
+2026-10-12T14:00:01.2851801Z ##[group]Determining repository object format
+2026-10-12T14:00:01.2854592Z ##[endgroup]
+2026-10-12T14:00:01.2855363Z ##[group]Initializing the repository
+2026-10-12T14:00:01.2860522Z [command]/usr/bin/git init /home/runner/work/iquipage-design-system/iquipage-design-system
+2026-10-12T14:00:01.2978958Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-10-12T14:00:01.2980782Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-10-12T14:00:01.2982830Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-10-12T14:00:01.3076816Z hint: call:
+2026-10-12T14:00:01.3077538Z hint:
+2026-10-12T14:00:01.3078385Z hint: 	git config --global init.defaultBranch <name>
+2026-10-12T14:00:01.3079416Z hint:
+2026-10-12T14:00:01.3080751Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-10-12T14:00:01.3083626Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-10-12T14:00:01.3084959Z hint:
+2026-10-12T14:00:01.3085955Z hint: 	git branch -m <name>
+2026-10-12T14:00:01.3086780Z hint:
+2026-10-12T14:00:01.3087822Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-10-12T14:00:01.3089840Z Initialized empty Git repository in /home/runner/work/iquipage-design-system/iquipage-design-system/.git/
+2026-10-12T14:00:01.3093438Z [command]/usr/bin/git remote add origin https://github.com/it-novikov/iquipage-design-system
+2026-10-12T14:00:01.3096273Z ##[endgroup]
+2026-10-12T14:00:01.3097542Z ##[group]Disabling automatic garbage collection
+2026-10-12T14:00:01.3098647Z [command]/usr/bin/git config --local gc.auto 0
+2026-10-12T14:00:01.3102468Z ##[endgroup]
+2026-10-12T14:00:01.3103936Z ##[group]Setting up auth
+2026-10-12T14:00:01.3105040Z Removing SSH command configuration
+2026-10-12T14:00:01.3106849Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-12T14:00:01.3145361Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-12T14:00:01.3539226Z Removing HTTP extra header
+2026-10-12T14:00:01.3545926Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-12T14:00:01.3585180Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-12T14:00:01.3806925Z Removing includeIf entries pointing to credentials config files
+2026-10-12T14:00:01.3814210Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-12T14:00:01.3849344Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-12T14:00:01.4080055Z [command]/usr/bin/git config --file /home/runner/work/_temp/git-credentials-9ea56b7f-d800-435c-9a68-6a344f268643.config http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-10-12T14:00:01.4123647Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/iquipage-design-system/iquipage-design-system/.git.path /home/runner/work/_temp/git-credentials-9ea56b7f-d800-435c-9a68-6a344f268643.config
+2026-10-12T14:00:01.4160178Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/iquipage-design-system/iquipage-design-system/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-9ea56b7f-d800-435c-9a68-6a344f268643.config
+2026-10-12T14:00:01.4199753Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-9ea56b7f-d800-435c-9a68-6a344f268643.config
+2026-10-12T14:00:01.4234991Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-9ea56b7f-d800-435c-9a68-6a344f268643.config
+2026-10-12T14:00:01.4265235Z ##[endgroup]
+2026-10-12T14:00:01.4273092Z ##[group]Fetching the repository
+2026-10-12T14:00:01.4274506Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +810fe0d64b5c90308b3cfafb5cc6638c2d9989ac:refs/remotes/pull/93/merge
+2026-10-12T14:00:04.0822832Z From https://github.com/it-novikov/iquipage-design-system
+2026-10-12T14:00:04.0823599Z  * [new ref]         810fe0d64b5c90308b3cfafb5cc6638c2d9989ac -> pull/93/merge
+2026-10-12T14:00:04.0828873Z ##[endgroup]
+2026-10-12T14:00:04.0829401Z ##[group]Determining the checkout info
+2026-10-12T14:00:04.0830346Z ##[endgroup]
+2026-10-12T14:00:04.0837592Z [command]/usr/bin/git sparse-checkout disable
+2026-10-12T14:00:04.0915120Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-10-12T14:00:04.0953549Z ##[group]Checking out the ref
+2026-10-12T14:00:04.0959258Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/93/merge
+2026-10-12T14:00:04.2965930Z Note: switching to 'refs/remotes/pull/93/merge'.
+2026-10-12T14:00:04.2966664Z 
+2026-10-12T14:00:04.2967081Z You are in 'detached HEAD' state. You can look around, make experimental
+2026-10-12T14:00:04.2967797Z changes and commit them, and you can discard any commits you make in this
+2026-10-12T14:00:04.2968511Z state without impacting any branches by switching back to a branch.
+2026-10-12T14:00:04.2968940Z 
+2026-10-12T14:00:04.2969229Z If you want to create a new branch to retain commits you create, you may
+2026-10-12T14:00:04.2969867Z do so (now or later) by using -c with the switch command. Example:
+2026-10-12T14:00:04.2970220Z 
+2026-10-12T14:00:04.2970393Z   git switch -c <new-branch-name>
+2026-10-12T14:00:04.2970663Z 
+2026-10-12T14:00:04.2971129Z Or undo this operation with:
+2026-10-12T14:00:04.2971538Z 
+2026-10-12T14:00:04.2972825Z   git switch -
+2026-10-12T14:00:04.2973274Z 
+2026-10-12T14:00:04.2973847Z Turn off this advice by setting config variable advice.detachedHead to false
+2026-10-12T14:00:04.2974659Z 
+2026-10-12T14:00:04.2975558Z HEAD is now at 810fe0d Merge 1a72ce5f8bc7cb1d872ae2945dfb7169d5a3fb47 into 5d674ee06551b175fb5e9553c9866c11fb8fe4c0
+2026-10-12T14:00:04.2982952Z ##[endgroup]
+2026-10-12T14:00:04.3038868Z [command]/usr/bin/git log -1 --format=%H
+2026-10-12T14:00:04.3071776Z 810fe0d64b5c90308b3cfafb5cc6638c2d9989ac
+2026-10-12T14:00:04.3083302Z ##[group]Removing auth
+2026-10-12T14:00:04.3083878Z Removing SSH command configuration
+2026-10-12T14:00:04.3087839Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-12T14:00:04.3122896Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-12T14:00:04.3349263Z Removing HTTP extra header
+2026-10-12T14:00:04.3356016Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-12T14:00:04.3396091Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-12T14:00:04.3619982Z Removing includeIf entries pointing to credentials config files
+2026-10-12T14:00:04.3626212Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-12T14:00:04.3657210Z includeif.gitdir:/home/runner/work/iquipage-design-system/iquipage-design-system/.git.path
+2026-10-12T14:00:04.3658141Z includeif.gitdir:/home/runner/work/iquipage-design-system/iquipage-design-system/.git/worktrees/*.path
+2026-10-12T14:00:04.3658796Z includeif.gitdir:/github/workspace/.git.path
+2026-10-12T14:00:04.3660104Z includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-10-12T14:00:04.3666719Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/iquipage-design-system/iquipage-design-system/.git.path
+2026-10-12T14:00:04.3692199Z /home/runner/work/_temp/git-credentials-9ea56b7f-d800-435c-9a68-6a344f268643.config
+2026-10-12T14:00:04.3703466Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/iquipage-design-system/iquipage-design-system/.git.path /home/runner/work/_temp/git-credentials-9ea56b7f-d800-435c-9a68-6a344f268643.config
+2026-10-12T14:00:04.3739823Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/iquipage-design-system/iquipage-design-system/.git/worktrees/*.path
+2026-10-12T14:00:04.3764768Z /home/runner/work/_temp/git-credentials-9ea56b7f-d800-435c-9a68-6a344f268643.config
+2026-10-12T14:00:04.3774026Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/iquipage-design-system/iquipage-design-system/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-9ea56b7f-d800-435c-9a68-6a344f268643.config
+2026-10-12T14:00:04.3813026Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git.path
+2026-10-12T14:00:04.3838228Z /github/runner_temp/git-credentials-9ea56b7f-d800-435c-9a68-6a344f268643.config
+2026-10-12T14:00:04.3884546Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-9ea56b7f-d800-435c-9a68-6a344f268643.config
+2026-10-12T14:00:04.3925485Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-10-12T14:00:04.3950337Z /github/runner_temp/git-credentials-9ea56b7f-d800-435c-9a68-6a344f268643.config
+2026-10-12T14:00:04.3967119Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-9ea56b7f-d800-435c-9a68-6a344f268643.config
+2026-10-12T14:00:04.4001314Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-12T14:00:04.4224889Z Removing credentials config '/home/runner/work/_temp/git-credentials-9ea56b7f-d800-435c-9a68-6a344f268643.config'
+2026-10-12T14:00:04.4234115Z ##[endgroup]
+2026-10-12T14:00:04.4494143Z ##[group]Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+2026-10-12T14:00:04.4494612Z with:
+2026-10-12T14:00:04.4494856Z   node-version: 24.20.0
+2026-10-12T14:00:04.4495135Z   package-manager-cache: false
+2026-10-12T14:00:04.4495421Z   check-latest: false
+2026-10-12T14:00:04.4498187Z   token: ***
+2026-10-12T14:00:04.4498432Z ##[endgroup]
+2026-10-12T14:00:04.5829513Z Attempting to download 24.20.0...
+2026-10-12T14:00:05.1589442Z Acquiring 24.20.0 - x64 from https://github.com/actions/node-versions/releases/download/24.20.0-33034074684/node-24.20.0-linux-x64.tar.gz
+2026-10-12T14:00:05.6504553Z Extracting ...
+2026-10-12T14:00:05.6635054Z [command]/usr/bin/tar xz --strip 1 --warning=no-unknown-keyword --overwrite -C /home/runner/work/_temp/98d0e996-48a1-49c0-99a6-bb39c5b06e6e -f /home/runner/work/_temp/34bfeb97-fa57-4a1e-8b7a-1dd602b2411f
+2026-10-12T14:00:06.8960594Z Adding to the cache ...
+2026-10-12T14:00:08.9456984Z ##[group]Environment details
+2026-10-12T14:00:09.1678944Z node: v24.20.0
+2026-10-12T14:00:09.1679237Z npm: 11.19.0
+2026-10-12T14:00:09.1679439Z yarn: 1.22.22
+2026-10-12T14:00:09.1679886Z ##[endgroup]
+2026-10-12T14:00:09.1886812Z ##[group]Run npm ci --ignore-scripts --no-fund --prefix products/sprintique
+2026-10-12T14:00:09.1887472Z [36;1mnpm ci --ignore-scripts --no-fund --prefix products/sprintique[0m
+2026-10-12T14:00:09.1888262Z [36;1mnpm install --prefix "$RUNNER_TEMP/sprintique-browser-tools" --no-save --package-lock=false --ignore-scripts --no-fund playwright@1.62.1[0m
+2026-10-12T14:00:09.1889186Z [36;1mnode "$RUNNER_TEMP/sprintique-browser-tools/node_modules/playwright/cli.js" install --with-deps chromium[0m
+2026-10-12T14:00:09.2156641Z shell: /usr/bin/bash -e {0}
+2026-10-12T14:00:09.2156950Z env:
+2026-10-12T14:00:09.2157314Z   PLAYWRIGHT_BROWSERS_PATH: /home/runner/work/_temp/sprintique-browsers
+2026-10-12T14:00:09.2157730Z ##[endgroup]
+2026-10-12T14:00:12.4525381Z 
+2026-10-12T14:00:12.4535571Z added 70 packages, and audited 71 packages in 3s
+2026-10-12T14:00:12.4538806Z 
+2026-10-12T14:00:12.4539311Z found 0 vulnerabilities
+2026-10-12T14:00:14.1137289Z 
+2026-10-12T14:00:14.1138100Z added 2 packages in 2s
+2026-10-12T14:00:14.6145889Z Installing dependencies...
+2026-10-12T14:00:14.6228008Z Switching to root user to install dependencies...
+2026-10-12T14:00:14.7147166Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [144 B]
+2026-10-12T14:00:14.7466117Z Hit:2 http://azure.archive.ubuntu.com/ubuntu noble InRelease
+2026-10-12T14:00:14.7491570Z Get:3 http://azure.archive.ubuntu.com/ubuntu noble-updates InRelease [126 kB]
+2026-10-12T14:00:14.7505173Z Get:6 https://packages.microsoft.com/ubuntu/24.04/prod noble InRelease [3600 B]
+2026-10-12T14:00:14.7522248Z Get:4 http://azure.archive.ubuntu.com/ubuntu noble-backports InRelease [126 kB]
+2026-10-12T14:00:14.7562105Z Get:5 http://azure.archive.ubuntu.com/ubuntu noble-security InRelease [126 kB]
+2026-10-12T14:00:14.8783478Z Get:7 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 Packages [1375 kB]
+2026-10-12T14:00:14.8922637Z Get:8 http://azure.archive.ubuntu.com/ubuntu noble-updates/main Translation-en [306 kB]
+2026-10-12T14:00:14.8948829Z Get:9 http://azure.archive.ubuntu.com/ubuntu noble-updates/universe amd64 Packages [1702 kB]
+2026-10-12T14:00:14.9057310Z Get:10 http://azure.archive.ubuntu.com/ubuntu noble-updates/universe Translation-en [342 kB]
+2026-10-12T14:00:14.9067668Z Get:11 http://azure.archive.ubuntu.com/ubuntu noble-updates/restricted amd64 Packages [1765 kB]
+2026-10-12T14:00:14.9163977Z Get:12 http://azure.archive.ubuntu.com/ubuntu noble-updates/restricted Translation-en [402 kB]
+2026-10-12T14:00:14.9191489Z Get:13 http://azure.archive.ubuntu.com/ubuntu noble-updates/multiverse amd64 Packages [50.7 kB]
+2026-10-12T14:00:14.9203920Z Get:14 http://azure.archive.ubuntu.com/ubuntu noble-updates/multiverse Translation-en [14.0 kB]
+2026-10-12T14:00:14.9297015Z Get:15 https://packages.microsoft.com/ubuntu/24.04/prod noble/main arm64 Packages [492 kB]
+2026-10-12T14:00:14.9393535Z Get:16 https://packages.microsoft.com/ubuntu/24.04/prod noble/main all Packages [640 B]
+2026-10-12T14:00:14.9455050Z Get:17 https://packages.microsoft.com/ubuntu/24.04/prod noble/main armhf Packages [12.3 kB]
+2026-10-12T14:00:14.9552343Z Get:18 https://packages.microsoft.com/ubuntu/24.04/prod noble/main amd64 Packages [549 kB]
+2026-10-12T14:00:14.9854812Z Get:19 http://azure.archive.ubuntu.com/ubuntu noble-backports/multiverse amd64 Packages [748 B]
+2026-10-12T14:00:15.0365085Z Get:20 http://azure.archive.ubuntu.com/ubuntu noble-security/main amd64 Packages [1122 kB]
+2026-10-12T14:00:15.0895358Z Get:21 http://azure.archive.ubuntu.com/ubuntu noble-security/main Translation-en [228 kB]
+2026-10-12T14:00:15.0914208Z Get:22 http://azure.archive.ubuntu.com/ubuntu noble-security/universe amd64 Packages [1220 kB]
+2026-10-12T14:00:15.0973678Z Get:23 http://azure.archive.ubuntu.com/ubuntu noble-security/universe Translation-en [245 kB]
+2026-10-12T14:00:15.0989705Z Get:24 http://azure.archive.ubuntu.com/ubuntu noble-security/restricted amd64 Packages [1674 kB]
+2026-10-12T14:00:15.1067863Z Get:25 http://azure.archive.ubuntu.com/ubuntu noble-security/restricted Translation-en [383 kB]
+2026-10-12T14:00:15.1086851Z Get:26 http://azure.archive.ubuntu.com/ubuntu noble-security/multiverse amd64 Packages [45.4 kB]
+2026-10-12T14:00:15.1094952Z Get:27 http://azure.archive.ubuntu.com/ubuntu noble-security/multiverse Translation-en [12.1 kB]
+2026-10-12T14:00:18.7336744Z Fetched 12.3 MB in 1s (9992 kB/s)
+2026-10-12T14:00:19.5886634Z Reading package lists...
+2026-10-12T14:00:19.6120100Z Reading package lists...
+2026-10-12T14:00:19.7939683Z Building dependency tree...
+2026-10-12T14:00:19.7947159Z Reading state information...
+2026-10-12T14:00:19.9406439Z libasound2t64 is already the newest version (1.2.11-1ubuntu0.3).
+2026-10-12T14:00:19.9407460Z libasound2t64 set to manually installed.
+2026-10-12T14:00:19.9408503Z libatk-bridge2.0-0t64 is already the newest version (2.52.0-1build1).
+2026-10-12T14:00:19.9410504Z libatk-bridge2.0-0t64 set to manually installed.
+2026-10-12T14:00:19.9411876Z libatk1.0-0t64 is already the newest version (2.52.0-1build1).
+2026-10-12T14:00:19.9412829Z libatk1.0-0t64 set to manually installed.
+2026-10-12T14:00:19.9413812Z libatspi2.0-0t64 is already the newest version (2.52.0-1build1).
+2026-10-12T14:00:19.9414766Z libatspi2.0-0t64 set to manually installed.
+2026-10-12T14:00:19.9415670Z libcairo2 is already the newest version (1.18.0-3build1).
+2026-10-12T14:00:19.9416387Z libcairo2 set to manually installed.
+2026-10-12T14:00:19.9416937Z libcups2t64 is already the newest version (2.4.7-1.2ubuntu7.14).
+2026-10-12T14:00:19.9417466Z libcups2t64 set to manually installed.
+2026-10-12T14:00:19.9417988Z libdbus-1-3 is already the newest version (1.14.10-4ubuntu4.1).
+2026-10-12T14:00:19.9418610Z libdbus-1-3 set to manually installed.
+2026-10-12T14:00:19.9419147Z libdrm2 is already the newest version (2.4.125-1ubuntu0.1~24.04.2).
+2026-10-12T14:00:19.9419652Z libdrm2 set to manually installed.
+2026-10-12T14:00:19.9420169Z libgbm1 is already the newest version (25.2.8-0ubuntu0.24.04.4).
+2026-10-12T14:00:19.9420757Z libgbm1 set to manually installed.
+2026-10-12T14:00:19.9421593Z libglib2.0-0t64 is already the newest version (2.80.0-6ubuntu3.9).
+2026-10-12T14:00:19.9422339Z libglib2.0-0t64 set to manually installed.
+2026-10-12T14:00:19.9423175Z libnspr4 is already the newest version (2:4.35-1.1build1).
+2026-10-12T14:00:19.9423924Z libnspr4 set to manually installed.
+2026-10-12T14:00:19.9424668Z libnss3 is already the newest version (2:3.98-1ubuntu0.2).
+2026-10-12T14:00:19.9425429Z libnss3 set to manually installed.
+2026-10-12T14:00:19.9426311Z libpango-1.0-0 is already the newest version (1.52.1+ds-1build1).
+2026-10-12T14:00:19.9427153Z libpango-1.0-0 set to manually installed.
+2026-10-12T14:00:19.9427885Z libxcb1 is already the newest version (1.15-1ubuntu2).
+2026-10-12T14:00:19.9428619Z libxcb1 set to manually installed.
+2026-10-12T14:00:19.9429431Z libxcomposite1 is already the newest version (1:0.4.5-1build3).
+2026-10-12T14:00:19.9430238Z libxcomposite1 set to manually installed.
+2026-10-12T14:00:19.9431281Z libxdamage1 is already the newest version (1:1.1.6-1build1).
+2026-10-12T14:00:19.9432069Z libxdamage1 set to manually installed.
+2026-10-12T14:00:19.9432824Z libxext6 is already the newest version (2:1.3.4-1build2).
+2026-10-12T14:00:19.9433545Z libxext6 set to manually installed.
+2026-10-12T14:00:19.9434303Z libxfixes3 is already the newest version (1:6.0.0-2build1).
+2026-10-12T14:00:19.9435042Z libxfixes3 set to manually installed.
+2026-10-12T14:00:19.9435826Z libxkbcommon0 is already the newest version (1.6.0-1build1).
+2026-10-12T14:00:19.9436608Z libxkbcommon0 set to manually installed.
+2026-10-12T14:00:19.9437373Z libxrandr2 is already the newest version (2:1.5.2-2build1).
+2026-10-12T14:00:19.9438135Z libxrandr2 set to manually installed.
+2026-10-12T14:00:19.9438897Z xvfb is already the newest version (2:21.1.12-1ubuntu1.8).
+2026-10-12T14:00:19.9439967Z fonts-noto-color-emoji is already the newest version (2.047-0ubuntu0.24.04.1).
+2026-10-12T14:00:19.9441376Z libfontconfig1 is already the newest version (2.15.0-1.1ubuntu2).
+2026-10-12T14:00:19.9442554Z libfontconfig1 set to manually installed.
+2026-10-12T14:00:19.9443438Z fonts-liberation is already the newest version (1:2.1.5-3).
+2026-10-12T14:00:19.9444259Z fonts-liberation set to manually installed.
+2026-10-12T14:00:19.9445064Z The following additional packages will be installed:
+2026-10-12T14:00:19.9445901Z   libx11-data libx11-xcb1 xfonts-encodings xfonts-utils
+2026-10-12T14:00:19.9446592Z Recommended packages:
+2026-10-12T14:00:19.9447124Z   fonts-ipafont-mincho fonts-tlwg-loma
+2026-10-12T14:00:19.9626010Z The following NEW packages will be installed:
+2026-10-12T14:00:19.9626653Z   fonts-freefont-ttf fonts-ipafont-gothic fonts-tlwg-loma-otf fonts-unifont
+2026-10-12T14:00:19.9631192Z   fonts-wqy-zenhei xfonts-cyrillic xfonts-encodings xfonts-scalable
+2026-10-12T14:00:19.9632012Z   xfonts-utils
+2026-10-12T14:00:19.9635472Z The following packages will be upgraded:
+2026-10-12T14:00:19.9639734Z   libfreetype6 libx11-6 libx11-data libx11-xcb1
+2026-10-12T14:00:19.9801211Z 4 upgraded, 9 newly installed, 0 to remove and 22 not upgraded.
+2026-10-12T14:00:19.9801899Z Need to get 22.3 MB of archives.
+2026-10-12T14:00:19.9802356Z After this operation, 79.6 MB of additional disk space will be used.
+2026-10-12T14:00:19.9802857Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [144 B]
+2026-10-12T14:00:20.2645097Z Ign:2 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-ipafont-gothic all 00303-21ubuntu1
+2026-10-12T14:00:20.8269228Z Get:3 http://azure.archive.ubuntu.com/ubuntu noble-security/main amd64 libx11-6 amd64 2:1.8.7-1ubuntu0.1 [653 kB]
+2026-10-12T14:00:21.7715196Z Get:4 http://azure.archive.ubuntu.com/ubuntu noble-security/main amd64 libx11-xcb1 amd64 2:1.8.7-1ubuntu0.1 [7796 B]
+2026-10-12T14:00:21.9068837Z Get:5 http://azure.archive.ubuntu.com/ubuntu noble-security/main amd64 libx11-data all 2:1.8.7-1ubuntu0.1 [116 kB]
+2026-10-12T14:00:22.0604405Z Get:6 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 fonts-freefont-ttf all 20211204+svn4273-2 [5641 kB]
+2026-10-12T14:00:22.6750255Z Get:7 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-tlwg-loma-otf all 1:0.7.3-1 [107 kB]
+2026-10-12T14:00:22.8131810Z Get:8 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-unifont all 1:15.1.01-1build1 [2993 kB]
+2026-10-12T14:00:23.0003270Z Get:9 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-wqy-zenhei all 0.9.45-8 [7472 kB]
+2026-10-12T14:00:23.4546481Z Get:10 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 libfreetype6 amd64 2.13.2+dfsg-1ubuntu0.2 [403 kB]
+2026-10-12T14:00:23.5972135Z Get:11 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-encodings all 1:1.0.5-0ubuntu2 [578 kB]
+2026-10-12T14:00:23.7412678Z Get:12 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-utils amd64 1:7.7+6build3 [94.4 kB]
+2026-10-12T14:00:23.8780028Z Get:13 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 xfonts-cyrillic all 1:1.0.5+nmu1 [384 kB]
+2026-10-12T14:00:24.0188449Z Get:14 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3 [304 kB]
+2026-10-12T14:00:24.1597923Z Get:2 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-ipafont-gothic all 00303-21ubuntu1 [3513 kB]
+2026-10-12T14:00:24.5466343Z Fetched 22.3 MB in 4s (5141 kB/s)
+2026-10-12T14:00:24.5722008Z Selecting previously unselected package fonts-ipafont-gothic.
+2026-10-12T14:00:24.5995327Z (Reading database ... 
+2026-10-12T14:00:24.5996052Z (Reading database ... 5%
+2026-10-12T14:00:24.5996648Z (Reading database ... 10%
+2026-10-12T14:00:24.5997043Z (Reading database ... 15%
+2026-10-12T14:00:24.5997397Z (Reading database ... 20%
+2026-10-12T14:00:24.5997740Z (Reading database ... 25%
+2026-10-12T14:00:24.5998087Z (Reading database ... 30%
+2026-10-12T14:00:24.5998417Z (Reading database ... 35%
+2026-10-12T14:00:24.5998765Z (Reading database ... 40%
+2026-10-12T14:00:24.5999177Z (Reading database ... 45%
+2026-10-12T14:00:24.5999557Z (Reading database ... 50%
+2026-10-12T14:00:24.6045724Z (Reading database ... 55%
+2026-10-12T14:00:24.7097756Z (Reading database ... 60%
+2026-10-12T14:00:24.9167045Z (Reading database ... 65%
+2026-10-12T14:00:25.1052925Z (Reading database ... 70%
+2026-10-12T14:00:25.2680817Z (Reading database ... 75%
+2026-10-12T14:00:25.4528832Z (Reading database ... 80%
+2026-10-12T14:00:25.6562344Z (Reading database ... 85%
+2026-10-12T14:00:25.8620747Z (Reading database ... 90%
+2026-10-12T14:00:26.0142881Z (Reading database ... 95%
+2026-10-12T14:00:26.0143415Z (Reading database ... 100%
+2026-10-12T14:00:26.0144224Z (Reading database ... 203191 files and directories currently installed.)
+2026-10-12T14:00:26.0185222Z Preparing to unpack .../00-fonts-ipafont-gothic_00303-21ubuntu1_all.deb ...
+2026-10-12T14:00:26.0275146Z Unpacking fonts-ipafont-gothic (00303-21ubuntu1) ...
+2026-10-12T14:00:26.3505736Z Preparing to unpack .../01-libx11-6_2%3a1.8.7-1ubuntu0.1_amd64.deb ...
+2026-10-12T14:00:26.3630347Z Unpacking libx11-6:amd64 (2:1.8.7-1ubuntu0.1) over (2:1.8.7-1build1) ...
+2026-10-12T14:00:27.0702789Z Preparing to unpack .../02-libx11-xcb1_2%3a1.8.7-1ubuntu0.1_amd64.deb ...
+2026-10-12T14:00:27.0724838Z Unpacking libx11-xcb1:amd64 (2:1.8.7-1ubuntu0.1) over (2:1.8.7-1build1) ...
+2026-10-12T14:00:27.1071802Z Preparing to unpack .../03-libx11-data_2%3a1.8.7-1ubuntu0.1_all.deb ...
+2026-10-12T14:00:27.1092459Z Unpacking libx11-data (2:1.8.7-1ubuntu0.1) over (2:1.8.7-1build1) ...
+2026-10-12T14:00:27.2077416Z Selecting previously unselected package fonts-freefont-ttf.
+2026-10-12T14:00:27.2204053Z Preparing to unpack .../04-fonts-freefont-ttf_20211204+svn4273-2_all.deb ...
+2026-10-12T14:00:27.2210530Z Unpacking fonts-freefont-ttf (20211204+svn4273-2) ...
+2026-10-12T14:00:27.2968004Z Selecting previously unselected package fonts-tlwg-loma-otf.
+2026-10-12T14:00:27.3091166Z Preparing to unpack .../05-fonts-tlwg-loma-otf_1%3a0.7.3-1_all.deb ...
+2026-10-12T14:00:27.3096905Z Unpacking fonts-tlwg-loma-otf (1:0.7.3-1) ...
+2026-10-12T14:00:27.3290499Z Selecting previously unselected package fonts-unifont.
+2026-10-12T14:00:27.3414210Z Preparing to unpack .../06-fonts-unifont_1%3a15.1.01-1build1_all.deb ...
+2026-10-12T14:00:27.3420427Z Unpacking fonts-unifont (1:15.1.01-1build1) ...
+2026-10-12T14:00:27.4497853Z Selecting previously unselected package fonts-wqy-zenhei.
+2026-10-12T14:00:27.4621134Z Preparing to unpack .../07-fonts-wqy-zenhei_0.9.45-8_all.deb ...
+2026-10-12T14:00:27.4720749Z Unpacking fonts-wqy-zenhei (0.9.45-8) ...
+2026-10-12T14:00:27.9527295Z Preparing to unpack .../08-libfreetype6_2.13.2+dfsg-1ubuntu0.2_amd64.deb ...
+2026-10-12T14:00:27.9552041Z Unpacking libfreetype6:amd64 (2.13.2+dfsg-1ubuntu0.2) over (2.13.2+dfsg-1ubuntu0.1) ...
+2026-10-12T14:00:27.9788045Z Selecting previously unselected package xfonts-encodings.
+2026-10-12T14:00:27.9912349Z Preparing to unpack .../09-xfonts-encodings_1%3a1.0.5-0ubuntu2_all.deb ...
+2026-10-12T14:00:27.9920109Z Unpacking xfonts-encodings (1:1.0.5-0ubuntu2) ...
+2026-10-12T14:00:28.0194623Z Selecting previously unselected package xfonts-utils.
+2026-10-12T14:00:28.0318409Z Preparing to unpack .../10-xfonts-utils_1%3a7.7+6build3_amd64.deb ...
+2026-10-12T14:00:28.0327786Z Unpacking xfonts-utils (1:7.7+6build3) ...
+2026-10-12T14:00:28.0700022Z Selecting previously unselected package xfonts-cyrillic.
+2026-10-12T14:00:28.0825167Z Preparing to unpack .../11-xfonts-cyrillic_1%3a1.0.5+nmu1_all.deb ...
+2026-10-12T14:00:28.0833370Z Unpacking xfonts-cyrillic (1:1.0.5+nmu1) ...
+2026-10-12T14:00:28.1176793Z Selecting previously unselected package xfonts-scalable.
+2026-10-12T14:00:28.1302237Z Preparing to unpack .../12-xfonts-scalable_1%3a1.0.3-1.3_all.deb ...
+2026-10-12T14:00:28.1308895Z Unpacking xfonts-scalable (1:1.0.3-1.3) ...
+2026-10-12T14:00:28.1739699Z Setting up fonts-wqy-zenhei (0.9.45-8) ...
+2026-10-12T14:00:28.1856321Z Setting up fonts-freefont-ttf (20211204+svn4273-2) ...
+2026-10-12T14:00:28.1875315Z Setting up fonts-tlwg-loma-otf (1:0.7.3-1) ...
+2026-10-12T14:00:28.1895824Z Setting up libfreetype6:amd64 (2.13.2+dfsg-1ubuntu0.2) ...
+2026-10-12T14:00:28.1921385Z Setting up libx11-data (2:1.8.7-1ubuntu0.1) ...
+2026-10-12T14:00:28.1944217Z Setting up xfonts-encodings (1:1.0.5-0ubuntu2) ...
+2026-10-12T14:00:28.1962937Z Setting up fonts-ipafont-gothic (00303-21ubuntu1) ...
+2026-10-12T14:00:28.2027179Z update-alternatives: using /usr/share/fonts/opentype/ipafont-gothic/ipag.ttf to provide /usr/share/fonts/truetype/fonts-japanese-gothic.ttf (fonts-japanese-gothic.ttf) in auto mode
+2026-10-12T14:00:28.2042577Z Setting up libx11-6:amd64 (2:1.8.7-1ubuntu0.1) ...
+2026-10-12T14:00:28.2084303Z Setting up fonts-unifont (1:15.1.01-1build1) ...
+2026-10-12T14:00:28.2085450Z Setting up libx11-xcb1:amd64 (2:1.8.7-1ubuntu0.1) ...
+2026-10-12T14:00:28.2102985Z Setting up xfonts-utils (1:7.7+6build3) ...
+2026-10-12T14:00:28.2141414Z Setting up xfonts-cyrillic (1:1.0.5+nmu1) ...
+2026-10-12T14:00:28.2421142Z Setting up xfonts-scalable (1:1.0.3-1.3) ...
+2026-10-12T14:00:28.2690322Z Processing triggers for libc-bin (2.39-0ubuntu8.9) ...
+2026-10-12T14:00:28.3051551Z Processing triggers for man-db (2.12.0-4build2) ...
+2026-10-12T14:00:28.3072372Z Not building database; man-db/auto-update is not 'true'.
+2026-10-12T14:00:28.3083534Z Processing triggers for fontconfig (2.15.0-1.1ubuntu2) ...
+2026-10-12T14:00:29.0212274Z 
+2026-10-12T14:00:29.0212903Z Running kernel seems to be up-to-date.
+2026-10-12T14:00:29.0213232Z 
+2026-10-12T14:00:29.0213389Z Restarting services...
+2026-10-12T14:00:29.0291644Z  systemctl restart php8.3-fpm.service
+2026-10-12T14:00:29.1361252Z 
+2026-10-12T14:00:29.1382123Z No containers need to be restarted.
+2026-10-12T14:00:29.1401479Z 
+2026-10-12T14:00:29.1401854Z No user sessions are running outdated binaries.
+2026-10-12T14:00:29.1402260Z 
+2026-10-12T14:00:29.1402685Z No VM guests are running outdated hypervisor (qemu) binaries on this host.
+2026-10-12T14:00:30.0007741Z Downloading Chrome for Testing 151.0.7922.34 (playwright chromium v1234) from https://cdn.playwright.dev/builds/cft/151.0.7922.34/linux64/chrome-linux64.zip
+2026-10-12T14:00:31.0071147Z |                                                                                |   0% of 184.3 MiB
+2026-10-12T14:00:31.3138199Z |■■■■■■■■                                                                        |  10% of 184.3 MiB
+2026-10-12T14:00:31.5041226Z |■■■■■■■■■■■■■■■■                                                                |  20% of 184.3 MiB
+2026-10-12T14:00:31.6049865Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 184.3 MiB
+2026-10-12T14:00:31.7078229Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 184.3 MiB
+2026-10-12T14:00:31.9415327Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 184.3 MiB
+2026-10-12T14:00:32.0654865Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 184.3 MiB
+2026-10-12T14:00:32.3408858Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 184.3 MiB
+2026-10-12T14:00:32.4499221Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 184.3 MiB
+2026-10-12T14:00:32.5492750Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 184.3 MiB
+2026-10-12T14:00:32.6688197Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 184.3 MiB
+2026-10-12T14:00:35.8286644Z Chrome for Testing 151.0.7922.34 (playwright chromium v1234) downloaded to /home/runner/work/_temp/sprintique-browsers/chromium-1234
+2026-10-12T14:00:35.8290479Z Downloading FFmpeg (playwright ffmpeg v1011) from https://cdn.playwright.dev/dbazure/download/playwright/builds/ffmpeg/1011/ffmpeg-linux.zip
+2026-10-12T14:00:36.8172563Z |                                                                                |   0% of 2.3 MiB
+2026-10-12T14:00:36.8281231Z |■■■■■■■■                                                                        |  10% of 2.3 MiB
+2026-10-12T14:00:36.8354735Z |■■■■■■■■■■■■■■■■                                                                |  20% of 2.3 MiB
+2026-10-12T14:00:36.8391742Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 2.3 MiB
+2026-10-12T14:00:36.8426050Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 2.3 MiB
+2026-10-12T14:00:36.8464984Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 2.3 MiB
+2026-10-12T14:00:36.8483915Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 2.3 MiB
+2026-10-12T14:00:36.8497477Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 2.3 MiB
+2026-10-12T14:00:36.8531151Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 2.3 MiB
+2026-10-12T14:00:36.8542047Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 2.3 MiB
+2026-10-12T14:00:36.8554907Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 2.3 MiB
+2026-10-12T14:00:36.9191258Z FFmpeg (playwright ffmpeg v1011) downloaded to /home/runner/work/_temp/sprintique-browsers/ffmpeg-1011
+2026-10-12T14:00:36.9194196Z Downloading Chrome Headless Shell 151.0.7922.34 (playwright chromium-headless-shell v1234) from https://cdn.playwright.dev/builds/cft/151.0.7922.34/linux64/chrome-headless-shell-linux64.zip
+2026-10-12T14:00:37.9248885Z |                                                                                |   0% of 114.7 MiB
+2026-10-12T14:00:38.0357234Z |■■■■■■■■                                                                        |  10% of 114.7 MiB
+2026-10-12T14:00:38.1143925Z |■■■■■■■■■■■■■■■■                                                                |  20% of 114.7 MiB
+2026-10-12T14:00:38.1882240Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 114.7 MiB
+2026-10-12T14:00:38.3098056Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 114.7 MiB
+2026-10-12T14:00:38.3968162Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 114.7 MiB
+2026-10-12T14:00:38.4414757Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 114.7 MiB
+2026-10-12T14:00:38.5054377Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 114.7 MiB
+2026-10-12T14:00:38.6155788Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 114.7 MiB
+2026-10-12T14:00:38.6605668Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 114.7 MiB
+2026-10-12T14:00:38.7402988Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 114.7 MiB
+2026-10-12T14:00:40.9713955Z Chrome Headless Shell 151.0.7922.34 (playwright chromium-headless-shell v1234) downloaded to /home/runner/work/_temp/sprintique-browsers/chromium_headless_shell-1234
+2026-10-12T14:00:40.9932902Z ##[group]Run npm run check:boundaries
+2026-10-12T14:00:40.9933250Z [36;1mnpm run check:boundaries[0m
+2026-10-12T14:00:40.9933634Z [36;1mnode tests/tabs-geometry-browser.mjs --build-only[0m
+2026-10-12T14:00:40.9997483Z shell: /usr/bin/bash -e {0}
+2026-10-12T14:00:40.9997734Z env:
+2026-10-12T14:00:40.9998010Z   TABS_SOURCE_REVISION: 810fe0d64b5c90308b3cfafb5cc6638c2d9989ac
+2026-10-12T14:00:40.9998733Z   TABS_EVIDENCE_DIR: /home/runner/work/iquipage-design-system/iquipage-design-system/products/sprintique/output/tabs-geometry/build
+2026-10-12T14:00:40.9999338Z ##[endgroup]
+2026-10-12T14:00:41.1011600Z 
+2026-10-12T14:00:41.1012366Z > @sprintique/product@2.0.0-alpha.0 check:boundaries
+2026-10-12T14:00:41.1013211Z > node scripts/check-boundaries.mjs && node scripts/check-styles.mjs
+2026-10-12T14:00:41.1013579Z 
+2026-10-12T14:00:41.1789616Z PASS: product-contained imports, public DS entries, contracts independent of presentation.
+2026-10-12T14:00:41.2722465Z PASS: type, radius and colour tokens, public DS variants, no inline styling.
+2026-10-12T14:00:41.8608744Z {
+2026-10-12T14:00:41.8609171Z   "status": "NOT_RUN",
+2026-10-12T14:00:41.8609609Z   "build": "PASS",
+2026-10-12T14:00:41.8610016Z   "browserChecks": "NOT_RUN",
+2026-10-12T14:00:41.8611512Z   "evidence": "/home/runner/work/iquipage-design-system/iquipage-design-system/products/sprintique/output/tabs-geometry/build"
+2026-10-12T14:00:41.8612664Z }
+2026-10-12T14:00:41.8811553Z ##[group]Run node tests/tabs-geometry-browser.mjs
+2026-10-12T14:00:41.8811981Z [36;1mnode tests/tabs-geometry-browser.mjs[0m
+2026-10-12T14:00:41.8874981Z shell: /usr/bin/bash -e {0}
+2026-10-12T14:00:41.8875230Z env:
+2026-10-12T14:00:41.8875636Z   PLAYWRIGHT_MODULE: /home/runner/work/_temp/sprintique-browser-tools/node_modules/playwright
+2026-10-12T14:00:41.8876230Z   PLAYWRIGHT_BROWSERS_PATH: /home/runner/work/_temp/sprintique-browsers
+2026-10-12T14:00:41.8876694Z   TABS_SOURCE_REVISION: 810fe0d64b5c90308b3cfafb5cc6638c2d9989ac
+2026-10-12T14:00:41.8877407Z   TABS_EVIDENCE_DIR: /home/runner/work/iquipage-design-system/iquipage-design-system/products/sprintique/output/tabs-geometry/browser
+2026-10-12T14:00:41.8878029Z ##[endgroup]
+2026-10-12T14:01:06.3356246Z {
+2026-10-12T14:01:06.3356600Z   "status": "PASS",
+2026-10-12T14:01:06.3356941Z   "browserChecks": "PASS",
+2026-10-12T14:01:06.3357860Z   "evidence": "/home/runner/work/iquipage-design-system/iquipage-design-system/products/sprintique/output/tabs-geometry/browser"
+2026-10-12T14:01:06.3358570Z }
+2026-10-12T14:01:06.3797419Z ##[group]Run actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+2026-10-12T14:01:06.3797850Z with:
+2026-10-12T14:01:06.3798047Z   name: tabs-geometry
+2026-10-12T14:01:06.3798306Z   path: products/sprintique/output/tabs-geometry/
+2026-10-12T14:01:06.3798608Z   retention-days: 14
+2026-10-12T14:01:06.3798822Z   if-no-files-found: error
+2026-10-12T14:01:06.3799045Z   compression-level: 6
+2026-10-12T14:01:06.3799268Z   overwrite: false
+2026-10-12T14:01:06.3799484Z   include-hidden-files: false
+2026-10-12T14:01:06.3799715Z ##[endgroup]
+2026-10-12T14:01:06.5497930Z (node:3490) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-10-12T14:01:06.5499524Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-10-12T14:01:06.5689319Z With the provided path, there will be 80 files uploaded
+2026-10-12T14:01:06.5695631Z Artifact name is valid!
+2026-10-12T14:01:06.5696440Z Root directory input is valid!
+2026-10-12T14:01:06.9664591Z Beginning upload of artifact content to blob storage
+2026-10-12T14:01:07.1021372Z (node:3490) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-10-12T14:01:07.7958592Z Uploaded bytes 1143683
+2026-10-12T14:01:07.8756916Z Finished uploading artifact content to blob storage!
+2026-10-12T14:01:07.8758912Z SHA256 digest of uploaded artifact zip is 2fcf7f2fb037aaa3d1c8009cbfcf6650148c9775671c3f0ae1755d671c2fa64a
+2026-10-12T14:01:07.8760216Z Finalizing artifact upload
+2026-10-12T14:01:08.1665259Z Artifact tabs-geometry.zip successfully finalized. Artifact ID 11751882487
+2026-10-12T14:01:08.1666298Z Artifact tabs-geometry has been successfully uploaded! Final size is 1143683 bytes. Artifact ID is 11751882487
+2026-10-12T14:01:08.1672440Z Artifact download URL: https://github.com/it-novikov/iquipage-design-system/actions/runs/38259669835/artifacts/11751882487
+2026-10-12T14:01:08.1811201Z ##[group]Run node tests/estimate-popover-browser.mjs
+2026-10-12T14:01:08.1811836Z [36;1mnode tests/estimate-popover-browser.mjs[0m
+2026-10-12T14:01:08.1874744Z shell: /usr/bin/bash -e {0}
+2026-10-12T14:01:08.1874993Z env:
+2026-10-12T14:01:08.1875391Z   PLAYWRIGHT_MODULE: /home/runner/work/_temp/sprintique-browser-tools/node_modules/playwright
+2026-10-12T14:01:08.1875991Z   PLAYWRIGHT_BROWSERS_PATH: /home/runner/work/_temp/sprintique-browsers
+2026-10-12T14:01:08.1876486Z   ESTIMATE_SOURCE_REVISION: 810fe0d64b5c90308b3cfafb5cc6638c2d9989ac
+2026-10-12T14:01:08.1877226Z   ESTIMATE_EVIDENCE_DIR: /home/runner/work/iquipage-design-system/iquipage-design-system/products/sprintique/output/estimate-popover/browser
+2026-10-12T14:01:08.1877854Z ##[endgroup]
+2026-10-12T14:01:13.7696056Z {
+2026-10-12T14:01:13.7696355Z   "status": "PASS",
+2026-10-12T14:01:13.7696615Z   "build": "PASS",
+2026-10-12T14:01:13.7696864Z   "nativeAcceptance": "PASS",
+2026-10-12T14:01:13.7697119Z   "cases": [
+2026-10-12T14:01:13.7697384Z     {
+2026-10-12T14:01:13.7697620Z       "id": "task-desktop-light",
+2026-10-12T14:01:13.7697968Z       "status": "PASS"
+2026-10-12T14:01:13.7701143Z     },
+2026-10-12T14:01:13.7701640Z     {
+2026-10-12T14:01:13.7702004Z       "id": "task-narrow-light",
+2026-10-12T14:01:13.7702528Z       "status": "PASS"
+2026-10-12T14:01:13.7702835Z     },
+2026-10-12T14:01:13.7703120Z     {
+2026-10-12T14:01:13.7703447Z       "id": "task-narrow-dark",
+2026-10-12T14:01:13.7703806Z       "status": "PASS"
+2026-10-12T14:01:13.7704115Z     },
+2026-10-12T14:01:13.7704460Z     {
+2026-10-12T14:01:13.7704803Z       "id": "task-narrow-text200",
+2026-10-12T14:01:13.7705070Z       "status": "PASS"
+2026-10-12T14:01:13.7705277Z     },
+2026-10-12T14:01:13.7705451Z     {
+2026-10-12T14:01:13.7705672Z       "id": "outside-time-save",
+2026-10-12T14:01:13.7705919Z       "status": "PASS"
+2026-10-12T14:01:13.7706116Z     },
+2026-10-12T14:01:13.7706299Z     {
+2026-10-12T14:01:13.7706576Z       "id": "outside-points-keyboard-cancel",
+2026-10-12T14:01:13.7706874Z       "status": "PASS"
+2026-10-12T14:01:13.7707083Z     },
+2026-10-12T14:01:13.7707253Z     {
+2026-10-12T14:01:13.7707471Z       "id": "outside-menu-keyboard",
+2026-10-12T14:01:13.7707735Z       "status": "PASS"
+2026-10-12T14:01:13.7707942Z     },
+2026-10-12T14:01:13.7708109Z     {
+2026-10-12T14:01:13.7708291Z       "id": "owner-close",
+2026-10-12T14:01:13.7708566Z       "status": "PASS"
+2026-10-12T14:01:13.7708765Z     },
+2026-10-12T14:01:13.7708930Z     {
+2026-10-12T14:01:13.7709120Z       "id": "owner-removal",
+2026-10-12T14:01:13.7709353Z       "status": "PASS"
+2026-10-12T14:01:13.7709554Z     },
+2026-10-12T14:01:13.7709722Z     {
+2026-10-12T14:01:13.7709912Z       "id": "anchor-removal",
+2026-10-12T14:01:13.7710145Z       "status": "PASS"
+2026-10-12T14:01:13.7710347Z     }
+2026-10-12T14:01:13.7710552Z   ],
+2026-10-12T14:01:13.7711746Z   "evidence": "/home/runner/work/iquipage-design-system/iquipage-design-system/products/sprintique/output/estimate-popover/browser"
+2026-10-12T14:01:13.7712469Z }
+2026-10-12T14:01:13.8090681Z ##[group]Run actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+2026-10-12T14:01:13.8091472Z with:
+2026-10-12T14:01:13.8091698Z   name: estimate-popover
+2026-10-12T14:01:13.8092021Z   path: products/sprintique/output/estimate-popover/
+2026-10-12T14:01:13.8092361Z   retention-days: 14
+2026-10-12T14:01:13.8092601Z   if-no-files-found: error
+2026-10-12T14:01:13.8093039Z   compression-level: 6
+2026-10-12T14:01:13.8093280Z   overwrite: false
+2026-10-12T14:01:13.8093514Z   include-hidden-files: false
+2026-10-12T14:01:13.8093775Z ##[endgroup]
+2026-10-12T14:01:13.9813502Z (node:3694) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-10-12T14:01:13.9815283Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-10-12T14:01:13.9948332Z With the provided path, there will be 38 files uploaded
+2026-10-12T14:01:13.9954375Z Artifact name is valid!
+2026-10-12T14:01:13.9955134Z Root directory input is valid!
+2026-10-12T14:01:14.3965606Z Beginning upload of artifact content to blob storage
+2026-10-12T14:01:14.5555073Z (node:3694) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-10-12T14:01:15.3195235Z Uploaded bytes 2086893
+2026-10-12T14:01:15.3984735Z Finished uploading artifact content to blob storage!
+2026-10-12T14:01:15.3986316Z SHA256 digest of uploaded artifact zip is 9ccffa81eeb68d0060547511dc95e2b579304549c50167c859dbb5b0ba57eb40
+2026-10-12T14:01:15.3987787Z Finalizing artifact upload
+2026-10-12T14:01:15.6846204Z Artifact estimate-popover.zip successfully finalized. Artifact ID 11751323682
+2026-10-12T14:01:15.6847979Z Artifact estimate-popover has been successfully uploaded! Final size is 2086893 bytes. Artifact ID is 11751323682
+2026-10-12T14:01:15.6853639Z Artifact download URL: https://github.com/it-novikov/iquipage-design-system/actions/runs/38259669835/artifacts/11751323682
+2026-10-12T14:01:15.6993278Z ##[group]Run node tests/task-overview-state-browser.mjs
+2026-10-12T14:01:15.6993729Z [36;1mnode tests/task-overview-state-browser.mjs[0m
+2026-10-12T14:01:15.7055598Z shell: /usr/bin/bash -e {0}
+2026-10-12T14:01:15.7055874Z env:
+2026-10-12T14:01:15.7056301Z   PLAYWRIGHT_MODULE: /home/runner/work/_temp/sprintique-browser-tools/node_modules/playwright
+2026-10-12T14:01:15.7056960Z   PLAYWRIGHT_BROWSERS_PATH: /home/runner/work/_temp/sprintique-browsers
+2026-10-12T14:01:15.7057490Z   TASK_OVERVIEW_SOURCE_REVISION: 810fe0d64b5c90308b3cfafb5cc6638c2d9989ac
+2026-10-12T14:01:15.7058331Z   TASK_OVERVIEW_EVIDENCE_DIR: /home/runner/work/iquipage-design-system/iquipage-design-system/products/sprintique/output/task-overview-state/browser
+2026-10-12T14:01:15.7059059Z ##[endgroup]
+2026-10-12T14:01:21.1210810Z {
+2026-10-12T14:01:21.1211417Z   "status": "PASS",
+2026-10-12T14:01:21.1211782Z   "build": "PASS",
+2026-10-12T14:01:21.1212103Z   "nativeAcceptance": "PASS",
+2026-10-12T14:01:21.1212576Z   "compositionAssessment": "NOT_RUN",
+2026-10-12T14:01:21.1212945Z   "cases": [
+2026-10-12T14:01:21.1213200Z     {
+2026-10-12T14:01:21.1213501Z       "id": "completed-rejected",
+2026-10-12T14:01:21.1213859Z       "status": "PASS"
+2026-10-12T14:01:21.1214306Z     },
+2026-10-12T14:01:21.1214562Z     {
+2026-10-12T14:01:21.1214940Z       "id": "completed-blocked",
+2026-10-12T14:01:21.1215423Z       "status": "PASS"
+2026-10-12T14:01:21.1215836Z     },
+2026-10-12T14:01:21.1216105Z     {
+2026-10-12T14:01:21.1216374Z       "id": "review-literal",
+2026-10-12T14:01:21.1216715Z       "status": "PASS"
+2026-10-12T14:01:21.1216997Z     },
+2026-10-12T14:01:21.1217236Z     {
+2026-10-12T14:01:21.1217531Z       "id": "question-no-answer",
+2026-10-12T14:01:21.1217898Z       "status": "PASS"
+2026-10-12T14:01:21.1218186Z     },
+2026-10-12T14:01:21.1218436Z     {
+2026-10-12T14:01:21.1218777Z       "id": "question-can-answer",
+2026-10-12T14:01:21.1219318Z       "status": "PASS"
+2026-10-12T14:01:21.1219673Z     },
+2026-10-12T14:01:21.1219908Z     {
+2026-10-12T14:01:21.1220185Z       "id": "genuine-complete",
+2026-10-12T14:01:21.1220504Z       "status": "PASS"
+2026-10-12T14:01:21.1221054Z     },
+2026-10-12T14:01:21.1221409Z     {
+2026-10-12T14:01:21.1221694Z       "id": "long-review-desktop",
+2026-10-12T14:01:21.1222056Z       "status": "CAPTURED"
+2026-10-12T14:01:21.1224495Z     },
+2026-10-12T14:01:21.1224845Z     {
+2026-10-12T14:01:21.1225235Z       "id": "long-review-narrow",
+2026-10-12T14:01:21.1225696Z       "status": "CAPTURED"
+2026-10-12T14:01:21.1226174Z     }
+2026-10-12T14:01:21.1226476Z   ],
+2026-10-12T14:01:21.1227526Z   "evidence": "/home/runner/work/iquipage-design-system/iquipage-design-system/products/sprintique/output/task-overview-state/browser"
+2026-10-12T14:01:21.1228185Z }
+2026-10-12T14:01:21.1612330Z ##[group]Run actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+2026-10-12T14:01:21.1613099Z with:
+2026-10-12T14:01:21.1613470Z   name: task-overview-state
+2026-10-12T14:01:21.1614034Z   path: products/sprintique/output/task-overview-state/
+2026-10-12T14:01:21.1614648Z   retention-days: 14
+2026-10-12T14:01:21.1615074Z   if-no-files-found: error
+2026-10-12T14:01:21.1615513Z   compression-level: 6
+2026-10-12T14:01:21.1615984Z   overwrite: false
+2026-10-12T14:01:21.1616407Z   include-hidden-files: false
+2026-10-12T14:01:21.1616883Z ##[endgroup]
+2026-10-12T14:01:21.3284690Z (node:3872) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-10-12T14:01:21.3285585Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-10-12T14:01:21.3416750Z With the provided path, there will be 37 files uploaded
+2026-10-12T14:01:21.3423227Z Artifact name is valid!
+2026-10-12T14:01:21.3423933Z Root directory input is valid!
+2026-10-12T14:01:21.7379788Z Beginning upload of artifact content to blob storage
+2026-10-12T14:01:21.9240061Z (node:3872) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-10-12T14:01:22.7235623Z Uploaded bytes 2328537
+2026-10-12T14:01:22.8059496Z Finished uploading artifact content to blob storage!
+2026-10-12T14:01:22.8061333Z SHA256 digest of uploaded artifact zip is b0994db0ca72ec722b087cfe515682c3e4bf58092d95b9bd2088cafac5b4f4e3
+2026-10-12T14:01:22.8062496Z Finalizing artifact upload
+2026-10-12T14:01:23.0903214Z Artifact task-overview-state.zip successfully finalized. Artifact ID 11752411119
+2026-10-12T14:01:23.0904563Z Artifact task-overview-state has been successfully uploaded! Final size is 2328537 bytes. Artifact ID is 11752411119
+2026-10-12T14:01:23.0910485Z Artifact download URL: https://github.com/it-novikov/iquipage-design-system/actions/runs/38259669835/artifacts/11752411119
+2026-10-12T14:01:23.1097531Z Post job cleanup.
+2026-10-12T14:01:23.2452780Z Post job cleanup.
+2026-10-12T14:01:23.3338311Z [command]/usr/bin/git version
+2026-10-12T14:01:23.3378942Z git version 2.55.0
+2026-10-12T14:01:23.3419186Z Temporarily overriding HOME='/home/runner/work/_temp/ebff1902-0c2b-4a8e-997c-ebfa2e883082' before making global git config changes
+2026-10-12T14:01:23.3421558Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-12T14:01:23.3425411Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/iquipage-design-system/iquipage-design-system
+2026-10-12T14:01:23.3459191Z Removing SSH command configuration
+2026-10-12T14:01:23.3468183Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-12T14:01:23.3506944Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-12T14:01:23.3761725Z Removing HTTP extra header
+2026-10-12T14:01:23.3763454Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-12T14:01:23.3801958Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-12T14:01:23.4074081Z Removing includeIf entries pointing to credentials config files
+2026-10-12T14:01:23.4090240Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-12T14:01:23.4123157Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-12T14:01:23.4607551Z Cleaning up orphan processes
+2026-10-12T14:01:23.5036751Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

@@ -1,0 +1,135 @@
+{
+  "schema": 1,
+  "head": "6423443d71a0817570281cf28822a3c14f7db684",
+  "headTree": "81fa1c2800632324b09afd86d01b6fd671ccc6a5",
+  "checkout": {
+    "sha": "7dbb86d6130fef17cecb4810610cfae0976089c0",
+    "tree": "81fa1c2800632324b09afd86d01b6fd671ccc6a5",
+    "parents": [
+      "2c757009d7bf3e3d0fc3648241d499d980ebdbb9",
+      "6423443d71a0817570281cf28822a3c14f7db684"
+    ]
+  },
+  "checkoutWholeTreeEqualsHead": true,
+  "trustedMetadata": {
+    "source": "research/continuation/estimate-native-metadata.json",
+    "sha256": "27f2eb3c20cfd647c9cdab58ef06091ae88bf13834b305bc4e7946e95a3c05c3",
+    "observedAtUTC": "2026-10-12T10:51:00Z",
+    "note": "Independent root Git API checkout/tree/parents verification. Full vNext run38238395702 remains pending at this snapshot; no full-CI verdict inferred from browser jobs. Timestamp rounded to minute."
+  },
+  "workflowResults": {
+    "native": {
+      "runId": 38238395802,
+      "jobId": 114774633940,
+      "conclusion": "success",
+      "jobLogSHA256": "c7f77d1ad2e92a6cd55eee63adbcef5bf6b68c43681de7e60cc6f0db9490bf46",
+      "jobLogBytes": 52254
+    },
+    "maps": {
+      "runId": 38238395764,
+      "jobId": 114774634048,
+      "conclusion": "success",
+      "jobLogSHA256": "e3fb5437e97d95e39476ead0e6a4461110c3f50a3051de5289d3ac3923915b97",
+      "jobLogBytes": 59223
+    }
+  },
+  "estimate": {
+    "status": "PASS",
+    "nativeAcceptance": "PASS",
+    "caseCount": 10,
+    "passedCases": 10,
+    "scope": "Actual Board-to-Task estimate editor and the existing public product estimate/menu helpers. Adapter responses and isolated callback counters are synthetic; no authentication, backend write, full Task save or human-usability acceptance.",
+    "planId": "F-EST-01-native-regression",
+    "planSHA256": "853bc181d9f4e4db33f5676b4efd515a49cb89210a2f5e79cb307e08aecba42e",
+    "resultsSHA256": "ba5c1e84bbce367dbeb33e9a1ac1c20ffb8465d660b228e132cdb0b1ac244a38",
+    "buildStatus": "PASS",
+    "fixtureContracts": "PASS",
+    "package": {
+      "version": "0.6.0-vnext.54",
+      "archiveSHA256": "a726a4536e532fc556f615d0b1a9cda1873dc111e6090710329b9ec1b8204457",
+      "packageJSONSHA256": "684d8de1372a6c5629ad225888d9e56cc2a43715357dfdf9b935c6e12a47b761",
+      "lockSHA256": "1705c5e200e4e9abdb80c7705623656d79c07d4df8a8aacad38985f0de90551d",
+      "verifiedInstalledFiles": 176
+    },
+    "environment": {
+      "engine": "native Chromium",
+      "playwright": "1.62.1",
+      "target": "GitHub Actions Ubuntu 24.04 / Node 24.20.0",
+      "locale": "ru-RU",
+      "timezone": "UTC",
+      "device_scale_factor": 1,
+      "browser_zoom": "100%",
+      "text_scaling": "HTML root font-size 100% or 200%; not browser zoom",
+      "input": "normal Playwright click and native keyboard; no forced click, direct focus repair, scroll repair, DOM rearrangement or retries",
+      "load_mode": "Vite compiled static preview of the actual source modules"
+    },
+    "browser": "151.0.7922.34",
+    "node": "v24.20.0",
+    "vite": "8.3.0",
+    "visualInspection": "NOT_RUN",
+    "humanAcceptance": "NOT_RUN",
+    "backendAcceptance": "NOT_RUN",
+    "notRun": [
+      "Full Task save, backend persistence and authentication",
+      "User observation and final aesthetic acceptance",
+      "Performance benchmarking",
+      "Real browser zoom, Safari, Firefox, iOS touch and screen readers; targeted release checks remain separate"
+    ]
+  },
+  "tabs": {
+    "browserStatus": "PASS",
+    "profileCount": 16,
+    "passedProfiles": 16,
+    "resultsSHA256": "89e0fcdb839100cf7e4052c466b87fcaabea4d9cfb2c4989760802b5d3717980",
+    "buildResultsSHA256": "1a0f7885c240b752b5c2a135a4cd1daae0315ea7a9d9af79e6e93d639eeab43d",
+    "buildStatus": "PASS",
+    "buildOnlyDocumentTopStatus": "NOT_RUN",
+    "buildOnlyDocumentBrowserChecks": "NOT_RUN",
+    "scope": "Exact public DS and actual Task/Board/Wiki frontend with synthetic adapters; no main bootstrap, authentication, backend, persistence or human-validation claim"
+  },
+  "maps": {
+    "browserStatus": "PASS",
+    "profileCount": 4,
+    "passedProfiles": 4,
+    "mountRecoveryCount": 5,
+    "passedMountRecoveries": 5,
+    "resultsSHA256": "f3085409132a7664dee67b9b575aa8b65791c3f9cb6582fa7185df948271bd07",
+    "scope": "Isolated actual Maps host, whiteboard, Task and native history; synthetic reads; no main.js/bootstrap, backend, persistence or grants claim"
+  },
+  "archiveInventories": {
+    "estimate": "native/estimate/estimate/provenance.json",
+    "tabs": "native/estimate/tabs/provenance.json",
+    "maps": "native/estimate/maps/provenance.json"
+  },
+  "preservation": {
+    "sourceArchiveFileCount": 140,
+    "sourcePngCount": 119,
+    "newPngCopies": 105,
+    "existingGitPngLinks": 14,
+    "allPngBytesAvailableOffline": true,
+    "rawResultsGzipCount": 4,
+    "jobLogGzipCount": 2,
+    "gzipMtime": 0,
+    "compiledAssetsInventoryOnlyCount": 17,
+    "originalsRedrawnOrReencoded": false
+  },
+  "acceptanceBoundary": "Exact native and companion results plus immutable source R1/native R2 are preserved. Native R2 approves only frozen targeted A1-A3 at its exact head/tree. Full vNext CI, backend persistence, user acceptance, whole Task text200, actual Planning/date integration and production release are not established by this package. Historical compact and VT1 run results are unchanged.",
+  "reviews": {
+    "sourceR1": {
+      "path": "native/estimate/reviews/estimate-fix-source-review.md",
+      "sha256": "b8b30e10801c31cd9e8dd5f7141a4ceb579d3b015c808c9fa71e6d89d1f80186",
+      "localSourceCommit": "47dcbf2c46496e7908b3c94cee91c9813eec81c5",
+      "publishedSourceCommit": "189d07856342b8ec9daecb6d74741b00454cc744",
+      "sourceTree": "f43689d3a5553c07468ef40eccf5c7af8538892f",
+      "verdict": "APPROVE within the frozen source scope; native verification was separate."
+    },
+    "nativeR2": {
+      "path": "native/estimate/reviews/estimate-fix-native-review.md",
+      "sha256": "2e3d2f0111788fde83f175d49f0418ed4f17ef283e2e72919af07b16ecb84c14",
+      "head": "6423443d71a0817570281cf28822a3c14f7db684",
+      "tree": "81fa1c2800632324b09afd86d01b6fd671ccc6a5",
+      "verdict": "APPROVE for frozen targeted native A1-A3; F-EST-01 verified repaired for exercised Board-to-Task estimate path and F-EST-02 for estimate horizontal composition in four specified Task profiles.",
+      "scopeBoundary": "Whole Task text200, actual Planning/date integration, backend persistence, human and release acceptance remain outside."
+    }
+  }
+}

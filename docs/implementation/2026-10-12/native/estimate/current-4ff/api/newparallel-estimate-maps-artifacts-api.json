@@ -1,0 +1,23 @@
+{
+  "artifacts": [
+    {
+      "id": 11746510094,
+      "name": "maps-task-context",
+      "size_in_bytes": 1063213,
+      "url": "https://api.github.com/repos/it-novikov/iquipage-design-system/actions/artifacts/11746510094",
+      "archive_download_url": "https://api.github.com/repos/it-novikov/iquipage-design-system/actions/artifacts/11746510094/zip",
+      "expired": false,
+      "created_at": "2026-10-12T11:55:24Z",
+      "expires_at": "2026-10-26T11:55:23Z",
+      "updated_at": "2026-10-12T11:55:24Z",
+      "digest": "sha256:9d3c08d445da7d2dde32f87a7f1eaecf45d498a7a8f77368ce004e17b0f6e3ad",
+      "workflow_run": {
+        "id": 38245658711,
+        "repository_id": 1360587523,
+        "head_repository_id": 1360587523,
+        "head_branch": "fix/estimate-modal-scope",
+        "head_sha": "4ff05227cad0a9e1c1a35d59faffdddd20e5c354"
+      }
+    }
+  ]
+}

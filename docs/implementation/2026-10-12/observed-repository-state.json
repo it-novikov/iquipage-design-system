@@ -1,0 +1,451 @@
+{
+  "observedAt": "2026-10-12T09:50:59Z",
+  "main": "3f624637a572d2bc24e83b16d86d39ec30a167a2",
+  "meaning": "Repository state observed while frozen comparative prototype was running; merges were not performed by this task.",
+  "pullRequests": [
+    {
+      "number": 74,
+      "url": "https://github.com/it-novikov/iquipage-design-system/pull/74",
+      "head": "4654517bdb94a629c19d514a194495348f08e25e",
+      "state": "closed",
+      "merged": true,
+      "mergedAt": "2026-10-12T09:35:24Z",
+      "mergeCommit": "d46ce80d4e9a944d4178a89d603cdcd96f9ac4b2"
+    },
+    {
+      "number": 75,
+      "url": "https://github.com/it-novikov/iquipage-design-system/pull/75",
+      "head": "6bd396f01c8f1b53b20925deed41024018c23471",
+      "state": "closed",
+      "merged": true,
+      "mergedAt": "2026-10-12T09:35:41Z",
+      "mergeCommit": "4c2f9974da93d223bbccbeb6c195c688717bbc08"
+    },
+    {
+      "number": 76,
+      "url": "https://github.com/it-novikov/iquipage-design-system/pull/76",
+      "head": "549dde23302197124d42f3793733d226a41152ff",
+      "state": "closed",
+      "merged": true,
+      "mergedAt": "2026-10-12T09:35:49Z",
+      "mergeCommit": "1ec926548b2dbdc92c94e8b3ca14655a88257baa"
+    },
+    {
+      "number": 77,
+      "url": "https://github.com/it-novikov/iquipage-design-system/pull/77",
+      "head": "8f8d218168074bd4c7c9e1e29dfbe783a27998dd",
+      "state": "closed",
+      "merged": true,
+      "mergedAt": "2026-10-12T09:35:56Z",
+      "mergeCommit": "36cc5c8bb7391fb869d325948fffd3ea543d6758"
+    },
+    {
+      "number": 78,
+      "url": "https://github.com/it-novikov/iquipage-design-system/pull/78",
+      "head": "2424d4724ec411c84b54b85634dbf54228b0ebd8",
+      "state": "closed",
+      "merged": true,
+      "mergedAt": "2026-10-12T09:35:32Z",
+      "mergeCommit": "771838613a609d6c74a69afe978e3cb303f8fc8f"
+    },
+    {
+      "number": 79,
+      "url": "https://github.com/it-novikov/iquipage-design-system/pull/79",
+      "head": "00eeea7398868920ec75c71cb89494f2aa163cfa",
+      "state": "closed",
+      "merged": true,
+      "mergedAt": "2026-10-12T09:36:13Z",
+      "mergeCommit": "3f624637a572d2bc24e83b16d86d39ec30a167a2"
+    },
+    {
+      "number": 80,
+      "url": "https://github.com/it-novikov/iquipage-design-system/pull/80",
+      "head": "0a5f14de1436e01df5809edd11d4977d324f8067",
+      "state": "closed",
+      "merged": true,
+      "mergedAt": "2026-10-12T09:36:04Z",
+      "mergeCommit": "29a7aa0f994333492d6eb67107e0b9c69fea9a79"
+    }
+  ],
+  "parallelPR": {
+    "number": 81,
+    "url": "https://github.com/it-novikov/iquipage-design-system/pull/81",
+    "title": "test: привязать browser-fixtures Maps и Planning к поставленной DS .54",
+    "head": "047b55a31d4a2462d87d2c42c3ccaadb05623709",
+    "state": "open"
+  },
+  "subsequentObservations": [
+    {
+      "observedAt": "2026-10-12T11:10:30Z",
+      "main": "2c757009d7bf3e3d0fc3648241d499d980ebdbb9",
+      "referenceObservedAt": "2026-10-12T11:03:19Z",
+      "pullRequests": [
+        {
+          "number": 81,
+          "url": "https://github.com/it-novikov/iquipage-design-system/pull/81",
+          "head": "047b55a31d4a2462d87d2c42c3ccaadb05623709",
+          "state": "closed",
+          "merged": true,
+          "mergedAt": "2026-10-12T10:04:06Z",
+          "mergeCommit": "2c757009d7bf3e3d0fc3648241d499d980ebdbb9"
+        },
+        {
+          "number": 82,
+          "url": "https://github.com/it-novikov/iquipage-design-system/pull/82",
+          "head": "ca99680799eee8c865038d537e1bef1def6478f0",
+          "state": "open",
+          "draft": true,
+          "role": "Frozen Task comparative experiment"
+        },
+        {
+          "number": 83,
+          "url": "https://github.com/it-novikov/iquipage-design-system/pull/83",
+          "head": "6423443d71a0817570281cf28822a3c14f7db684",
+          "state": "open",
+          "draft": true,
+          "role": "Product estimate fix; native PASS; full vNext still pending"
+        }
+      ],
+      "meaning": "Later observations append history; this task did not merge these PRs. GitHub resources were read separately, not as one atomic snapshot."
+    },
+    {
+      "observedAt": "2026-10-12T11:27:00Z",
+      "main": "4f181ff3589a32fd9ce152f99018d212d74624b6",
+      "mainTree": "a025d8054ffe5461ac628bb2c442a8dc3ae17690",
+      "mainParents": [
+        "2c757009d7bf3e3d0fc3648241d499d980ebdbb9",
+        "d6132831d6068533883523770cd88c63a8de6326"
+      ],
+      "pullRequests": [
+        {
+          "number": 83,
+          "url": "https://github.com/it-novikov/iquipage-design-system/pull/83",
+          "title": "fix: удержать редактор оценки в контексте задачи",
+          "head": "6423443d71a0817570281cf28822a3c14f7db684",
+          "base": "2c757009d7bf3e3d0fc3648241d499d980ebdbb9",
+          "state": "open",
+          "draft": true,
+          "merged": false,
+          "mergedAt": null,
+          "role": "Exact candidate on base 2c757009: native and full CI PASS; this does not certify the new main containing PR84.",
+          "testMergeCommit": "7dbb86d6130fef17cecb4810610cfae0976089c0"
+        },
+        {
+          "number": 84,
+          "url": "https://github.com/it-novikov/iquipage-design-system/pull/84",
+          "title": "feat(task): VT1 — первый экран задачи (PF04/WP04)",
+          "head": "d6132831d6068533883523770cd88c63a8de6326",
+          "base": "2c757009d7bf3e3d0fc3648241d499d980ebdbb9",
+          "state": "closed",
+          "draft": false,
+          "merged": true,
+          "mergedAt": "2026-10-12T11:12:48Z",
+          "role": "Parallel product VT1 implementation already merged; actual PR84 versus accepted Compact A review is the next Task scope.",
+          "mergeCommit": "4f181ff3589a32fd9ce152f99018d212d74624b6"
+        },
+        {
+          "number": 85,
+          "url": "https://github.com/it-novikov/iquipage-design-system/pull/85",
+          "title": "docs: сохранить сравнение Task, споры и native проверку оценки",
+          "head": "a8efe40cf9f4633f912a3473d80e2f7c9e0ed9f3",
+          "base": "4f181ff3589a32fd9ce152f99018d212d74624b6",
+          "state": "open",
+          "draft": true,
+          "merged": false,
+          "mergedAt": null,
+          "role": "Open documentation evidence and handoff checkpoint; runtime and human acceptance are not implied by publication.",
+          "testMergeCommit": "20a5abfa7fa322db9e8e2a853f2eb0d25c546e6c"
+        }
+      ],
+      "exactEstimateVerification": {
+        "head": "6423443d71a0817570281cf28822a3c14f7db684",
+        "base": "2c757009d7bf3e3d0fc3648241d499d980ebdbb9",
+        "actualCheckout": "7dbb86d6130fef17cecb4810610cfae0976089c0",
+        "headAndCheckoutTree": "81fa1c2800632324b09afd86d01b6fd671ccc6a5",
+        "nativeStatus": "PASS in frozen A1-A3 scope",
+        "fullRunId": 38238395702,
+        "fullJobId": 114774644637,
+        "fullJobConclusion": "success",
+        "certificatePassChecks": 8,
+        "libraryTestsPassed": 478,
+        "productTestsPassed": 609,
+        "detachedTestsPassed": 609,
+        "planningProfilesPassed": 3,
+        "portableImageBuild": "PASS",
+        "portableImageDockerLoad": "PASS",
+        "evidence": "ci/estimate/README.md",
+        "nativeEvidence": "native/estimate/README.md",
+        "newMainCompositionVerified": false,
+        "humanUsabilityClaim": false
+      },
+      "taskContinuation": {
+        "nextScope": "Review actual merged PR84 against accepted Compact A; determine only the needed delta and separately verify composition with Estimate.",
+        "productVT1AlreadyPresent": true,
+        "frozenPrototypePR": 82,
+        "frozenPrototypeHead": "ca99680799eee8c865038d537e1bef1def6478f0",
+        "frozenPrototypeRetargeted": false
+      },
+      "sourceMetadata": {
+        "sourceFile": "research/continuation/after-evidence-pr-observation.json",
+        "sha256": "c5924ee175010fa85c3db84af973bd3a20d147679c9f1b4a6c3c577ca7175d63"
+      },
+      "meaning": "Resources read separately, not an atomic repository snapshot; merges not performed by this task. This entry appends the later state without rewriting earlier observations. PR84 was merged by parallel work; the evidence task did not perform that merge. Exact native/full PASS on 6423443 does not certify composition with main 4f181ff."
+    },
+    {
+      "observedAt": "2026-10-12T11:56:59Z",
+      "main": "220af664ef561d3f5ff1b873122281ef352e8f25",
+      "mainTree": "150b100c88e876204556f9073d830a1b3d55e320",
+      "mainParents": [
+        "4f181ff3589a32fd9ce152f99018d212d74624b6"
+      ],
+      "parallelPR87": {
+        "mergedAt": "2026-10-12T11:53:57Z",
+        "head": "c4a5c75040c6a96221d0c30366c23adbf2ecb9d9",
+        "declaredScope": "Ignore summary focusin before native disclosure toggle",
+        "observedAdditionalChanges": [
+          "Removed overview literal result helper and renderer",
+          "Removed neutral question/attention distinction for canAnswer=false",
+          "Removed appended VT1 CSS",
+          "Removed the related model test and eight prior render PNGs"
+        ],
+        "rootPerformedMerge": false,
+        "causeOfAdditionalDeletions": "Not established; actual diff wider than PR body"
+      },
+      "parallelEstimateHead": "4ff05227cad0a9e1c1a35d59faffdddd20e5c354",
+      "estimateNativeAndFullPassPreviouslyPreservedFor": "6423443d71a0817570281cf28822a3c14f7db684",
+      "propertyBaseline": {
+        "pr": 86,
+        "head": "f834a68aeb3ba5a145f56a5dbd0ea4d50be34e2b",
+        "actualCheckout": "00d4a407b90fc85bb44d9ba5fe574d39c99a9d5d",
+        "wholeTree": "46e42c2bdfe1b4140d87906ec6a48abf68bc31f7",
+        "run": 38244219141,
+        "job": 114793983823,
+        "artifact": 11744456028,
+        "status": "CAPTURED_WITH_OBSERVED_CONSTRAINTS",
+        "profiles": 5,
+        "humanAcceptance": "NOT_RUN"
+      },
+      "meaning": "Separate resource reads, not an atomic snapshot; parallel heads not overwritten; historical verification not transferred to new trees."
+    },
+    {
+      "observedAt": "2026-10-12T12:46:44Z",
+      "main": "4275dde301b5068b3d6b1801ecb54c70a2d7e708",
+      "mainTree": "c7ad669f19eb5027d63994c9e4d1642b3b9f0bd6",
+      "mergedPR83": {
+        "head": "4ff05227cad0a9e1c1a35d59faffdddd20e5c354",
+        "mergedAt": "2026-10-12T12:20:33Z",
+        "actualCheckout": "ae1364b069f12c0e747f4e28e208ac45dbbfcfe6",
+        "headCheckoutAndMainTree": "c7ad669f19eb5027d63994c9e4d1642b3b9f0bd6",
+        "nativeRun": 38245658802,
+        "mapsRun": 38245658711,
+        "fullRun": 38245659125,
+        "fullJob": 114798739719,
+        "certificateChecksPass": 8,
+        "libraryTestsPass": 478,
+        "productTestsPass": 609,
+        "detachedTestsPass": 609,
+        "sourceHashesMatched": 1240,
+        "nativeEvidence": "native/estimate/current-4ff/README.md",
+        "fullEvidence": "ci/estimate/current-4ff/README.md"
+      },
+      "taskRecoveryPR88": {
+        "head": "1fd928e12b43b26f29ebcb190a5595c1d2618444",
+        "base": "4275dde301b5068b3d6b1801ecb54c70a2d7e708",
+        "state": "open",
+        "merged": false,
+        "mergeable": true,
+        "actualCheckout": "72f862293b80dbbb89352b128eacd592db86ec49",
+        "wholeTree": "c039d65a75d1e4312b5931cc76a4d28fb7ef8e08",
+        "nativeRun": 38249543808,
+        "nativeJob": 114811955572,
+        "taskArtifact": 11746932185,
+        "semanticPass": 5,
+        "informationalCaptured": 2,
+        "nativeReview": "APPROVE_IN_SCOPE",
+        "nativeReviewSHA256": "72581a66c9586c788416da0d6041a7a317ffd8aa7bb4ad8873748ea009b83d4d",
+        "fullRun": 38249543772,
+        "fullAttempt1Job": 114811955287,
+        "fullAttempt1": "FAILED: Gradle9.6.1 distribution download HTTP504 before backend tests",
+        "failedJobRerunRequested": true,
+        "fullAcceptance": "PENDING",
+        "compositionAcceptance": "OPEN"
+      },
+      "propertyCandidate": {
+        "originalLocalCommit": "7f419045ee09aad58d1a9a36d08163df08e658af",
+        "originalTree": "0ae776e2798cef3a9e201e68ec22f808e647c9d3",
+        "originalArchive55SHA256": "71318ed08cd22878c3d6ab5649c229d6da103f2bef77d9bc4bb1f7b70cad5ade",
+        "sourceR1": "CHANGES_REQUESTED: conflicting current package README; permanent applicability of frozen comparison",
+        "correction": "Private56 docs/package and trial guard correction prepared; source addendum pending",
+        "nativeAcceptance": "NOT_RUN",
+        "productAdopted": false
+      },
+      "meaning": "Resources read separately, not atomic. PR83 merge was external to this task; equal main tree is integration observation, not a new native run. PR88 native acceptance is limited; its full CI retry and broader UX are open. No PR merge/deploy performed by root."
+    },
+    {
+      "observedAt": "2026-10-12T13:19:31Z",
+      "main": "41ebe4823471072ed6dbb405fbd5e755852eec3f",
+      "mainTree": "e3aa1d9369b6e6e17a388fb394e7699471ff9ced",
+      "parallelPR89": {
+        "head": "9bdf7871717bb2e9e11758f9641811536878de2d",
+        "mergedAt": "2026-10-12T12:59:54Z",
+        "rootPerformedMerge": false,
+        "scope": "Restore VT1 overview/model/style/test and historical PNGs"
+      },
+      "parallelPR90": {
+        "head": "5bd09d647f79f06c7a7c844f91a6914907ed8e8b",
+        "branch": "feat/task-vt1-compact",
+        "state": "open",
+        "sourceScope": "3 files: overview model, renderer, model test",
+        "taskStateNative": "NOT_RUN in existing Tabs/Estimate job",
+        "nextScope": "Test-only current Compact state/long-content verification; do not overwrite runtime with PR88"
+      },
+      "taskRecoveryPR88": {
+        "head": "1fd928e12b43b26f29ebcb190a5595c1d2618444",
+        "actualCheckout": "72f862293b80dbbb89352b128eacd592db86ec49",
+        "wholeTree": "c039d65a75d1e4312b5931cc76a4d28fb7ef8e08",
+        "nativeReview": "APPROVE_IN_SCOPE",
+        "nativeEvidence": "native/task-overview-recovery/README.md",
+        "fullRun": 38249543772,
+        "fullAttempt2Job": 114816147202,
+        "fullAttempt2CompletedAt": "2026-10-12T13:03:54Z",
+        "fullAttempt2": "PASS",
+        "certificateChecksPassed": 8,
+        "nodeTestCounts": {
+          "verificationTools": 1,
+          "library": 478,
+          "product": 610,
+          "detached": 610
+        },
+        "nodeCountsAreStandaloneBackendCounts": false,
+        "sourceHashesMatched": 1246,
+        "sourceFingerprint": "4fa6a94e01c56b8f843ababb27cf720fdf44f8bdbfe9c05984dd8813a3332729",
+        "fullEvidence": "ci/task-overview-recovery/attempt-2/README.md",
+        "attempt1Preserved": "ci/task-overview-recovery/attempt-1/README.md",
+        "openUX": [
+          "F1 current composition needs new Compact rendering",
+          "F2 status language in full Work",
+          "F3 noAnswer form explanation",
+          "D1 actual keyboard diagnosis"
+        ],
+        "acceptanceTransferredToNewMainOrPR90": false
+      },
+      "propertyPR91": {
+        "head": "945169fff6fd7e38b081a76a0e20d71b3956a365",
+        "headTree": "b50846b2e9762b5f7782adced8fd5e1ff21256ed",
+        "actualCheckout": "c267edee80d49660e22fa03bc4442c19e3b4d2d1",
+        "actualCheckoutTree": "f44996dd0b3f1bae8358e0b1ece17f8c038bb1d6",
+        "wholeTreeEquality": false,
+        "actualMergeParents": [
+          "41ebe4823471072ed6dbb405fbd5e755852eec3f",
+          "945169fff6fd7e38b081a76a0e20d71b3956a365"
+        ],
+        "privateVersion": "0.6.0-vnext.56",
+        "archiveSHA256": "a3307cf012d307ea476056e36bdee601f8eef9efad37c78dd96aaef6ccb00d5f",
+        "sourceR1": "Both P2 corrected; APPROVED_FOR_NATIVE",
+        "run": 38253208875,
+        "job": 114824500556,
+        "artifact": 11749167457,
+        "artifactSHA256": "ebca49537ca8e49cddabb3fce486e9a5f22b7fe97e4dffe1d3fbabbb6c9e85d5",
+        "automaticPairedComparison": "PASS; not visual or anchor acceptance",
+        "nativeR2": "Review being finalized; unnecessary wrapping/baseline rhythm and A3 capture-side-effect require correction/diagnosis",
+        "productAdopted": false,
+        "productVersion": "0.6.0-vnext.54"
+      },
+      "meaning": "Resources observed separately, not an atomic snapshot. Main merges performed by parallel work. Old Task88 native/full belongs to exact frozen tree; PR90 needs its own overview scenarios. PR91 actual merge contains restored Task; trial input verification does not imply whole-tree equality. Root performed no PR merge, deployment or npm publication."
+    },
+    {
+      "observedAt": "2026-10-12T13:45:53Z",
+      "main": "5d674ee06551b175fb5e9553c9866c11fb8fe4c0",
+      "mainTree": "6d4a4e4a66b7a46e6bda4f8378a0975def2aea7c",
+      "parallelPR90": {
+        "head": "5bd09d647f79f06c7a7c844f91a6914907ed8e8b",
+        "state": "closed",
+        "merged": true,
+        "mergedAt": "2026-10-12T13:22:41Z",
+        "wholeTreeEqualsObservedMain": true,
+        "rootPerformedMerge": false
+      },
+      "currentTaskRegression": {
+        "branch": "test/task-compact-state-regression",
+        "scope": "Test-only source frozen; 5 historical semantic states retained, question-can-answer added, 2 long captures; no product runtime changes",
+        "base": "5bd09d647f79f06c7a7c844f91a6914907ed8e8b",
+        "planSHA256": "acd56ea3aef4666275b5691482e6c82880e01a8cbd10f4d70d2bf8d53b093503",
+        "sourceReview": "IN_PROGRESS",
+        "native": "NOT_RUN",
+        "local": {
+          "workModelTests": 15,
+          "build": "BUILT_NOT_RENDERED",
+          "inputs": 197,
+          "outputs": 12,
+          "sourceHashes": 14,
+          "exactDS54Files": 176
+        }
+      },
+      "property56R2": {
+        "publishedHead": "945169fff6fd7e38b081a76a0e20d71b3956a365",
+        "actualCheckout": "c267edee80d49660e22fa03bc4442c19e3b4d2d1",
+        "actualTree": "f44996dd0b3f1bae8358e0b1ece17f8c038bb1d6",
+        "wholeTreeEqualsPublishedHead": false,
+        "verdict": "CHANGES_REQUESTED",
+        "originalReviewSHA256": "ecb66d5d4218fca7193ff7ccb7d7dd3bdc540d640e6568b3f6e793d3e46ed56f",
+        "durableEvidence": "property-list/private56/README.md",
+        "findings": [
+          "NR2-01 capture contamination/anchor needs clean diagnosis",
+          "NR2-02 unnecessary standalone label wrap",
+          "NR2-03 owner/author first text baseline",
+          "NR2-04 forced author metadata row"
+        ],
+        "planRevision3": "940aa92a1ef88941f8d3dfed46b81cd3a649351e56388eb84f6efc46445503d5",
+        "newCaptureScope": "Harness-only same54/56, viewport PNG, immediate and post-RAF window/visualViewport measurements",
+        "newCaptureNative": "NOT_RUN",
+        "layout57": "NOT_IMPLEMENTED",
+        "productAdopted": false
+      },
+      "meaning": "Sequential observations, not an atomic snapshot. External main90 merge preserves the whole PR90 tree; root did not merge PRs, deploy or publish npm. Native R2 bytes preserved; automatic original56 PASS does not override CHANGES_REQUESTED. Source/build of new diagnostics is not fresh browser evidence."
+    },
+    {
+      "observedAt": "2026-10-12T14:45:04Z",
+      "main": "5d674ee06551b175fb5e9553c9866c11fb8fe4c0",
+      "mainTree": "6d4a4e4a66b7a46e6bda4f8378a0975def2aea7c",
+      "checkpoint": "continuation/2026-10-12-1438/README.md",
+      "machineState": "continuation/2026-10-12-1438/resume-state.json",
+      "task93": {
+        "head": "1a72ce5f8bc7cb1d872ae2945dfb7169d5a3fb47",
+        "tree": "7dd35ca5cb6ab8de77e3cff33850b16271a633f7",
+        "actualCheckout": "810fe0d64b5c90308b3cfafb5cc6638c2d9989ac",
+        "native": "APPROVE_IN_SCOPE; reviewer MD save failed/freeze pending",
+        "full": "SUCCESS;8/8 certificate checks verified in raw log",
+        "fullRun": 38259669939,
+        "fullArtifact": 11753347250,
+        "archiveIndividualHashesAndCounts": "PENDING"
+      },
+      "propertyClean56": {
+        "head": "5431ca9e54cead8f0e9c663240aa8aef3cacb963",
+        "actualCheckout": "f137578ab1999b717d206c2f5ad841c47f3c0902",
+        "actualTree": "5424e9860ac0cefb920dc3f4b8ea6142ae60f022",
+        "wholeTreeEqualsHead": false,
+        "verdict": "CONFIRMED_PAINTED_DEFECT / CHANGES_REQUESTED",
+        "planRevision": 3,
+        "productAdopted": false
+      },
+      "private57": {
+        "state": "LOCAL_WORK_IN_PROGRESS; NOT_PUSHED; NOT_FROZEN",
+        "archiveSHA256": "a3b5f9f2dcb2d15694c2f92380e6c12a2f4e51061ebbe03af22afdb61e696e6e",
+        "planRevision": 4,
+        "reportedDSNodeTests": 478,
+        "consumerBuilds": "NOT_RUN",
+        "native": "NOT_RUN"
+      },
+      "parallelPR92": {
+        "pr": 92,
+        "head": "975d9eef094ee43984d7783e0bc7d792d0afabf1",
+        "state": "open",
+        "merged": false,
+        "reviewedByRoot": false,
+        "coordination": "Inspect overlapping Task/Work copy before new F2/F3 edits; do not duplicate WP05 work"
+      },
+      "localEnvironment": "409 Conflict environment_offline; docs checkpoint published via authorized GitHub API, local source57 unpushed",
+      "meaning": "Sequential reads, not an atomic snapshot. Native visual findings kept distinct from CI checks. Original new reviewer freeze and complete ZIP/PNG preservation remain pending. No merge, deployment or npm publication."
+    }
+  ]
+}

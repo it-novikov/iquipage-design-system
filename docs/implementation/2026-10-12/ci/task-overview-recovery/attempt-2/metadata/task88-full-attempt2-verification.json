@@ -1,0 +1,385 @@
+{
+  "schema": 1,
+  "scope": "Completed Task88 full CI attempt 2; independent verification of saved exact evidence, no rerun or Git mutation",
+  "run_id": 38249543772,
+  "run_attempt": 2,
+  "job_id": 114816147202,
+  "status": "completed",
+  "conclusion": "success",
+  "completed_at": "2026-10-12T13:03:54Z",
+  "head": "1fd928e12b43b26f29ebcb190a5595c1d2618444",
+  "actual_checkout": "72f862293b80dbbb89352b128eacd592db86ec49",
+  "whole_tree": "c039d65a75d1e4312b5931cc76a4d28fb7ef8e08",
+  "git_api_and_local_whole_tree_equal": true,
+  "actual_checkout_confirmed_by_own_job_log": true,
+  "checkout_parents": [
+    "4275dde301b5068b3d6b1801ecb54c70a2d7e708",
+    "1fd928e12b43b26f29ebcb190a5595c1d2618444"
+  ],
+  "certificate": {
+    "path": "research/continuation/task88-full-attempt2-11748382713/verification/2026-10-12T12-47-02.610Z/verification.json",
+    "bytes": 1581,
+    "sha256": "f4cb59320d9f5d2911771f23c032f3bceacd662e5f95b71d777079b6002f89f4",
+    "date": "2026-10-12T13:03:39.042Z",
+    "exact_json_present_in_own_job_log": true,
+    "checks": [
+      {
+        "name": "verification-tools",
+        "exitCode": 0,
+        "signal": null,
+        "passed": true,
+        "log": "verification-tools.log"
+      },
+      {
+        "name": "library-build",
+        "exitCode": 0,
+        "signal": null,
+        "passed": true,
+        "log": "library-build.log"
+      },
+      {
+        "name": "library-tests",
+        "exitCode": 0,
+        "signal": null,
+        "passed": true,
+        "log": "library-tests.log"
+      },
+      {
+        "name": "product-boundaries",
+        "exitCode": 0,
+        "signal": null,
+        "passed": true,
+        "log": "product-boundaries.log"
+      },
+      {
+        "name": "product-build",
+        "exitCode": 0,
+        "signal": null,
+        "passed": true,
+        "log": "product-build.log"
+      },
+      {
+        "name": "product-tests",
+        "exitCode": 0,
+        "signal": null,
+        "passed": true,
+        "log": "product-tests.log"
+      },
+      {
+        "name": "detached-product",
+        "exitCode": 0,
+        "signal": null,
+        "passed": true,
+        "log": "detached-product.log"
+      },
+      {
+        "name": "source-stability",
+        "passed": true,
+        "log": "source-stability.log"
+      }
+    ]
+  },
+  "test_counts": {
+    "verification-tools": {
+      "tests": 1,
+      "suites": 0,
+      "pass": 1,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "library-tests": {
+      "tests": 478,
+      "suites": 0,
+      "pass": 478,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "product-tests": {
+      "tests": 610,
+      "suites": 0,
+      "pass": 610,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "detached-product": {
+      "tests": 610,
+      "suites": 0,
+      "pass": 610,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    }
+  },
+  "test_count_scope": "Recorded JavaScript node test runner totals; 610 is not a standalone backend/JUnit test count. The complete product-tests and detached-product gates exited 0.",
+  "source": {
+    "count": 1246,
+    "all_recorded_hashes_match_exact_git_head": true,
+    "before_after_bytes_equal": true,
+    "bytes": 224795,
+    "sha256": "bc7341d4d82da37cc4e9716f32a65aa190e6fded0705f7d065e4c65f356a546a",
+    "fingerprint_recomputed": "4fa6a94e01c56b8f843ababb27cf720fdf44f8bdbfe9c05984dd8813a3332729",
+    "byte_equal_attempt1_sources_before_and_after": true,
+    "fingerprint_equal_attempt1": true,
+    "ds_archive_path": "products/sprintique/vendor/iquipage-web-0.6.0-vnext.54.tgz",
+    "ds_archive_sha256_verified_against_git": "a726a4536e532fc556f615d0b1a9cda1873dc111e6090710329b9ec1b8204457",
+    "ds_archive_equal_attempt1": true
+  },
+  "portable_image": {
+    "api_step_conclusion": "success",
+    "build_and_docker_load_logged": true,
+    "loaded_tags": [
+      "sprintique-server:latest",
+      "sprintique-server:2.0.0-alpha.0"
+    ],
+    "runtime_launch_not_proven": true,
+    "image_tar_not_in_downloaded_artifacts": true
+  },
+  "planning": {
+    "status": "PASS",
+    "scope": "Planning selection frontend; adapter and Task content substituted; no persistence claim",
+    "profiles": [
+      {
+        "name": "desktop",
+        "viewport": {
+          "width": 1363,
+          "height": 936
+        },
+        "theme": "light",
+        "density": "comfortable"
+      },
+      {
+        "name": "compact",
+        "viewport": {
+          "width": 1280,
+          "height": 720
+        },
+        "theme": "light",
+        "density": "compact"
+      },
+      {
+        "name": "narrow",
+        "viewport": {
+          "width": 320,
+          "height": 568
+        },
+        "theme": "dark",
+        "density": "comfortable"
+      }
+    ],
+    "errors_empty": true,
+    "all_13_files_equal_across_two_new_artifacts": true,
+    "png_byte_equal_attempt1_and_existing_preserved": 11,
+    "png_new_unique_required": 1,
+    "new_png": [
+      "research/continuation/task88-full-attempt2-11748382713/planning-selection/candidate/desktop-last-row.png"
+    ],
+    "planning_css_sha256_verified_against_git": "9c2cecd520739acc5ebc26f61f5f0d06d3edf632e26344023a974ebb5c2978b1",
+    "files": [
+      {
+        "path": "research/continuation/task88-full-attempt2-11748382713/planning-selection/candidate/compact-last-row.png",
+        "bytes": 95548,
+        "sha256": "d7c1e98b46a2dc047aebb78f9298741bfef40fa524a4cf05d1e75e9a0eb21d5f",
+        "duplicate_artifact_path": "research/continuation/task88-planning-attempt2-11747929711/candidate/compact-last-row.png",
+        "byte_equal_attempt1": true,
+        "existing_exact_png_matches": [
+          "ci/estimate/planning/candidate/compact-last-row.png"
+        ]
+      },
+      {
+        "path": "research/continuation/task88-full-attempt2-11748382713/planning-selection/candidate/compact-menu-return.png",
+        "bytes": 100900,
+        "sha256": "d38f2e9299e4ed72271df7bb43e910c10593a761b1473f0b758d31a1648caa81",
+        "duplicate_artifact_path": "research/continuation/task88-planning-attempt2-11747929711/candidate/compact-menu-return.png",
+        "byte_equal_attempt1": true,
+        "existing_exact_png_matches": [
+          "ci/estimate/planning/candidate/compact-menu-return.png"
+        ]
+      },
+      {
+        "path": "research/continuation/task88-full-attempt2-11748382713/planning-selection/candidate/compact-menu.png",
+        "bytes": 106810,
+        "sha256": "546e5210e6d1b7f8ae3df0d5385324f0b65d7a2bfdc3afd3d01310190715ffe1",
+        "duplicate_artifact_path": "research/continuation/task88-planning-attempt2-11747929711/candidate/compact-menu.png",
+        "byte_equal_attempt1": true,
+        "existing_exact_png_matches": [
+          "ci/estimate/planning/candidate/compact-menu.png"
+        ]
+      },
+      {
+        "path": "research/continuation/task88-full-attempt2-11748382713/planning-selection/candidate/compact-selection.png",
+        "bytes": 101328,
+        "sha256": "8d4f3531a018eada93b21d1a8088253c740ec3b4973a56fbf7a88a3ab0dc55e4",
+        "duplicate_artifact_path": "research/continuation/task88-planning-attempt2-11747929711/candidate/compact-selection.png",
+        "byte_equal_attempt1": true,
+        "existing_exact_png_matches": [
+          "ci/estimate/planning/candidate/compact-selection.png"
+        ]
+      },
+      {
+        "path": "research/continuation/task88-full-attempt2-11748382713/planning-selection/candidate/desktop-last-row.png",
+        "bytes": 109981,
+        "sha256": "c43c55408303840950c4748445af43ed2a5365c17263bde74c0177654a38e18e",
+        "duplicate_artifact_path": "research/continuation/task88-planning-attempt2-11747929711/candidate/desktop-last-row.png",
+        "byte_equal_attempt1": false,
+        "existing_exact_png_matches": []
+      },
+      {
+        "path": "research/continuation/task88-full-attempt2-11748382713/planning-selection/candidate/desktop-menu-return.png",
+        "bytes": 124809,
+        "sha256": "7aed6c464e5fcedd58663284d842cb27dcff00e0d7caf0f7955bcd0af5c5bb27",
+        "duplicate_artifact_path": "research/continuation/task88-planning-attempt2-11747929711/candidate/desktop-menu-return.png",
+        "byte_equal_attempt1": true,
+        "existing_exact_png_matches": [
+          "ci/estimate/planning/candidate/desktop-menu-return.png"
+        ]
+      },
+      {
+        "path": "research/continuation/task88-full-attempt2-11748382713/planning-selection/candidate/desktop-menu.png",
+        "bytes": 130876,
+        "sha256": "010fbb6fff58d6c36dbc23b267e1359cc8d1fb846512395d7e26111db546fb74",
+        "duplicate_artifact_path": "research/continuation/task88-planning-attempt2-11747929711/candidate/desktop-menu.png",
+        "byte_equal_attempt1": true,
+        "existing_exact_png_matches": [
+          "ci/estimate/planning/candidate/desktop-menu.png"
+        ]
+      },
+      {
+        "path": "research/continuation/task88-full-attempt2-11748382713/planning-selection/candidate/desktop-selection.png",
+        "bytes": 123525,
+        "sha256": "f30caa93a7b3233b230715c09338577238a0ae8a419783cc00bf091343cbc787",
+        "duplicate_artifact_path": "research/continuation/task88-planning-attempt2-11747929711/candidate/desktop-selection.png",
+        "byte_equal_attempt1": true,
+        "existing_exact_png_matches": [
+          "ci/estimate/planning/candidate/desktop-selection.png"
+        ]
+      },
+      {
+        "path": "research/continuation/task88-full-attempt2-11748382713/planning-selection/candidate/narrow-last-row.png",
+        "bytes": 27880,
+        "sha256": "8576403e4f1a4548ba2c624693c9ac29962e75f8e0b4feaeed2112371d748959",
+        "duplicate_artifact_path": "research/continuation/task88-planning-attempt2-11747929711/candidate/narrow-last-row.png",
+        "byte_equal_attempt1": true,
+        "existing_exact_png_matches": [
+          "ci/estimate/planning/candidate/narrow-last-row.png"
+        ]
+      },
+      {
+        "path": "research/continuation/task88-full-attempt2-11748382713/planning-selection/candidate/narrow-menu-return.png",
+        "bytes": 29989,
+        "sha256": "2342d51e1b96d6f9e88c136e0859f74a39b3de362ef71c7023854cfd1f7dcf20",
+        "duplicate_artifact_path": "research/continuation/task88-planning-attempt2-11747929711/candidate/narrow-menu-return.png",
+        "byte_equal_attempt1": true,
+        "existing_exact_png_matches": [
+          "ci/estimate/planning/candidate/narrow-menu-return.png"
+        ]
+      },
+      {
+        "path": "research/continuation/task88-full-attempt2-11748382713/planning-selection/candidate/narrow-menu.png",
+        "bytes": 29551,
+        "sha256": "3f74974c7ae24548bad6391e9d63c6aed46355b972bf6f3fa6e42d4bf0d11982",
+        "duplicate_artifact_path": "research/continuation/task88-planning-attempt2-11747929711/candidate/narrow-menu.png",
+        "byte_equal_attempt1": true,
+        "existing_exact_png_matches": [
+          "ci/estimate/planning/candidate/narrow-menu.png"
+        ]
+      },
+      {
+        "path": "research/continuation/task88-full-attempt2-11748382713/planning-selection/candidate/narrow-selection.png",
+        "bytes": 29748,
+        "sha256": "7e33161c13b42dc88bca846b8595b7fabc26a8e6315dcd950c562a8a57c06ef7",
+        "duplicate_artifact_path": "research/continuation/task88-planning-attempt2-11747929711/candidate/narrow-selection.png",
+        "byte_equal_attempt1": true,
+        "existing_exact_png_matches": [
+          "ci/estimate/planning/candidate/narrow-selection.png"
+        ]
+      },
+      {
+        "path": "research/continuation/task88-full-attempt2-11748382713/planning-selection/candidate/results.json",
+        "bytes": 85901,
+        "sha256": "be022b4adbd2e1a609874c6bdd2c79bcd467626f438e0cbbf547c102b6eef3c1",
+        "duplicate_artifact_path": "research/continuation/task88-planning-attempt2-11747929711/candidate/results.json",
+        "byte_equal_attempt1": true
+      }
+    ],
+    "preserver_visual_inspection": false
+  },
+  "archives": [
+    {
+      "artifact": {
+        "id": 11748382713,
+        "name": "vnext-verification",
+        "size_in_bytes": 1138139,
+        "url": "https://api.github.com/repos/it-novikov/iquipage-design-system/actions/artifacts/11748382713",
+        "archive_download_url": "https://api.github.com/repos/it-novikov/iquipage-design-system/actions/artifacts/11748382713/zip",
+        "expired": false,
+        "created_at": "2026-10-12T13:03:51Z",
+        "expires_at": "2026-10-26T13:03:50Z",
+        "updated_at": "2026-10-12T13:03:51Z",
+        "digest": "sha256:858517e8448999b532ac01494b74d05185d8ccf523be1958891c930cd39a7538",
+        "workflow_run": {
+          "id": 38249543772,
+          "repository_id": 1360587523,
+          "head_repository_id": 1360587523,
+          "head_branch": "fix/task-overview-recovery",
+          "head_sha": "1fd928e12b43b26f29ebcb190a5595c1d2618444"
+        }
+      },
+      "zip_sha256": "858517e8448999b532ac01494b74d05185d8ccf523be1958891c930cd39a7538",
+      "zip_bytes": 1138139,
+      "member_count": 24,
+      "inventory_path": "research/continuation/task88-full-attempt2-11748382713-inventory.json",
+      "upload_in_exact_job_log": true
+    },
+    {
+      "artifact": {
+        "id": 11747929711,
+        "name": "planning-browser-evidence",
+        "size_in_bytes": 943635,
+        "url": "https://api.github.com/repos/it-novikov/iquipage-design-system/actions/artifacts/11747929711",
+        "archive_download_url": "https://api.github.com/repos/it-novikov/iquipage-design-system/actions/artifacts/11747929711/zip",
+        "expired": false,
+        "created_at": "2026-10-12T12:46:55Z",
+        "expires_at": "2026-10-26T12:46:54Z",
+        "updated_at": "2026-10-12T12:46:55Z",
+        "digest": "sha256:f7c369ba7b5968677538c56e3a0e9ae551858cd7961aa73d749c0254c7b54c2c",
+        "workflow_run": {
+          "id": 38249543772,
+          "repository_id": 1360587523,
+          "head_repository_id": 1360587523,
+          "head_branch": "fix/task-overview-recovery",
+          "head_sha": "1fd928e12b43b26f29ebcb190a5595c1d2618444"
+        }
+      },
+      "zip_sha256": "f7c369ba7b5968677538c56e3a0e9ae551858cd7961aa73d749c0254c7b54c2c",
+      "zip_bytes": 943635,
+      "member_count": 13,
+      "inventory_path": "research/continuation/task88-planning-attempt2-11747929711-inventory.json",
+      "upload_in_exact_job_log": true
+    }
+  ],
+  "job_log": {
+    "path": "research/continuation/task88-full-attempt2-job.log",
+    "bytes": 284150,
+    "sha256": "948aae441d1e5bcdc945c6c51ea50eacfced42d32e170745ba73908ca23236d8",
+    "exact_json_decoded_no_added_newline": true
+  },
+  "nonfatal_raw_output_preserved": {
+    "jvm_warnings": true,
+    "detached_watcher_message": true
+  },
+  "fullPlatformReady": false,
+  "productionTouched": false,
+  "limits": [
+    "Task native R2 scope remains separate; full CI does not resolve its open UX findings.",
+    "Planning adapter and Task content are substituted; no persistence claim.",
+    "No human usability acceptance or Safari/Firefox/iOS/screen-reader release matrix.",
+    "Attempt 1 remains an immutable failure checkpoint; attempt 2 does not rewrite its certificate."
+  ]
+}

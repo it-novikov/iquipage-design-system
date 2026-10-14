@@ -1,0 +1,625 @@
+{
+  "runId": 38236799696,
+  "jobId": 114769351207,
+  "head": "ca99680799eee8c865038d537e1bef1def6478f0",
+  "headTree": "fa3b64c091ce0acec26c1eba6da73bc43a245d34",
+  "checkout": {
+    "sha": "e3f78e367e3caadf04f7a6d8494255b377e35b14",
+    "tree": "fa3b64c091ce0acec26c1eba6da73bc43a245d34",
+    "parents": [
+      "8f8d218168074bd4c7c9e1e29dfbe783a27998dd",
+      "ca99680799eee8c865038d537e1bef1def6478f0"
+    ]
+  },
+  "artifact": {
+    "id": 11741081977,
+    "name": "task-first-screen-compact",
+    "size_in_bytes": 4677636,
+    "digest": "sha256:a56f17a728c1ef3dbb4006a4a460c67a38fc1880a7eb081fc66b6d82bd92235b"
+  },
+  "status": "FAILED",
+  "reason": "First compact comparison: all 14 initial frames captured; four existing-CTA probes passed engineering assertions; both property-access probes failed after Escape while waiting for no open popover. The overall run remains FAILED.",
+  "failureLocalization": {
+    "frozenRunnerSHA256": "4e21b8ad86a9d96eb6a3317f3917b6cd6f3652da68db856622268bc93fced02b",
+    "runnerMatchesRecordedFixtureSHA256": true,
+    "failureLine": 291,
+    "failureColumn": 54,
+    "failureCondition": "!document.querySelector(\"[popover]:popover-open\") after Escape",
+    "precedingOpenWaitPassed": true,
+    "causeStatus": "Previously observed estimate popup/Task ownership failure is still present; no fix acceptance."
+  },
+  "estimateTraceSummary": [
+    {
+      "variant": "baseline",
+      "eventCount": 13,
+      "dropped": 0,
+      "recordedKinds": [
+        "before-click",
+        "pointerdown",
+        "focusout",
+        "focusin",
+        "pointerup",
+        "click",
+        "beforetoggle",
+        "popup-added",
+        "click-resolved",
+        "toggle",
+        "focusout",
+        "focusin",
+        "trace-stop"
+      ],
+      "popupMountedUnderBodyOutsideOpenDialog": true,
+      "anyRecordedFocusInsidePopup": false,
+      "scrollEventRecorded": false,
+      "popupRemovalEventRecorded": false,
+      "finalOpenModal": null,
+      "finalTriggerConnected": false,
+      "finalPopupConnectedAndOpen": true,
+      "finalFocusClass": "task-card-title"
+    },
+    {
+      "variant": "vt1-compact",
+      "eventCount": 13,
+      "dropped": 0,
+      "recordedKinds": [
+        "before-click",
+        "pointerdown",
+        "focusout",
+        "focusin",
+        "pointerup",
+        "click",
+        "beforetoggle",
+        "popup-added",
+        "click-resolved",
+        "toggle",
+        "focusout",
+        "focusin",
+        "trace-stop"
+      ],
+      "popupMountedUnderBodyOutsideOpenDialog": true,
+      "anyRecordedFocusInsidePopup": false,
+      "scrollEventRecorded": false,
+      "popupRemovalEventRecorded": false,
+      "finalOpenModal": null,
+      "finalTriggerConnected": false,
+      "finalPopupConnectedAndOpen": true,
+      "finalFocusClass": "task-card-title"
+    }
+  ],
+  "traceLimit": "The passive trace records pointer/focus/popover and popup mutation events. It does not record separate keydown/cancel/close events. The Escape sequence is established by the frozen runner, its error stack, and the final DOM state.",
+  "recordedOutcomes": {
+    "initialFrameCount": 14,
+    "initialFrameStatuses": {
+      "CAPTURED": 14
+    },
+    "initialBodyAndWindowScrollYZero": true,
+    "pngCount": 21,
+    "staticBuildCount": 2,
+    "engineeringChecks": [
+      {
+        "name": "Frozen production trees and working source",
+        "outcome": "PASS"
+      },
+      {
+        "name": "Installed DS54 equals frozen tar, including public CSS/fonts/modules",
+        "outcome": "PASS"
+      },
+      {
+        "name": "Exact three-file source overlay applied only to temporary copies",
+        "outcome": "PASS"
+      },
+      {
+        "name": "Meaningful fixture tasks satisfy the existing product task validator",
+        "outcome": "PASS"
+      },
+      {
+        "name": "Two static Vite builds: zero-overlay baseline and exact compiled vt1-compact",
+        "outcome": "PASS"
+      }
+    ],
+    "installedPackageFilesVerified": 176,
+    "nativeProbeCount": 6,
+    "nativeProbeStatuses": {
+      "ENGINEERING_CHECKS_PASSED": 4,
+      "FAILED": 2
+    },
+    "successfulOpenCancelAndFocusControlsPerVariant": [
+      "status",
+      "ownerId",
+      "priority",
+      "type",
+      "releaseId",
+      "parent",
+      "due"
+    ],
+    "pageErrorCount": 0,
+    "consoleErrorCount": 0,
+    "externalRequestCount": 0,
+    "visualAcceptance": "NOT_RUN",
+    "humanAcceptance": "NOT_RUN",
+    "backendAcceptance": "NOT_RUN"
+  },
+  "comparison": {
+    "planFile": "comparison-plan-compact.json",
+    "planId": "task-first-screen-vt1-compact-v1",
+    "planVersion": 1,
+    "planSHA256": "96ef6956176d44f21917a1133c44868290c2e5c3bc1b13d7bc366bc4b1761bd0",
+    "predecessorPlanSHA256": "f19b4da9ff01e9ed87d17d69d85fb89af9b734b7dc5e4964e7d5d158af60b55a",
+    "variants": [
+      "baseline",
+      "vt1-compact"
+    ],
+    "patchFile": "vt1-compact.patch",
+    "patchSHA256": "5ef3ceaa010ea0ed726e0e6067c55822708c3ed4bcde16ecc63cc6b16c8d6c5f",
+    "literalBudgetCodepoints": 64,
+    "decisionAddendumSHA256": "4435d3dd58a2b9a1f7f0007e7b3f2f3f5ca8e8e86baf746c2393736e35147085",
+    "predecessorActualReviewSHA256": "6671cabb9f40ce77b0dfff35d0c5b34cc8b7d8a38460c68a83e184f3a2622c4f"
+  },
+  "frozenSourceInputs": {
+    "experiments/task-first-screen/vt1.patch": {
+      "bytes": 10722,
+      "sha256": "41f3852ff8d3abfc4777e3aea6ef4e229f1e15d4f46280b681b28196b2a922f5"
+    },
+    "experiments/task-first-screen/comparison-plan.json": {
+      "bytes": 4135,
+      "sha256": "f19b4da9ff01e9ed87d17d69d85fb89af9b734b7dc5e4964e7d5d158af60b55a"
+    },
+    "experiments/task-first-screen/vt1-compact.patch": {
+      "bytes": 10962,
+      "sha256": "5ef3ceaa010ea0ed726e0e6067c55822708c3ed4bcde16ecc63cc6b16c8d6c5f"
+    },
+    "experiments/task-first-screen/comparison-plan-compact.json": {
+      "bytes": 5398,
+      "sha256": "96ef6956176d44f21917a1133c44868290c2e5c3bc1b13d7bc366bc4b1761bd0"
+    },
+    "experiments/task-first-screen/design-decision-compact.md": {
+      "bytes": 8271,
+      "sha256": "4435d3dd58a2b9a1f7f0007e7b3f2f3f5ca8e8e86baf746c2393736e35147085"
+    }
+  },
+  "predecessorComparison": {
+    "source": "attempt-2",
+    "resultsSHA256": "c7b4fc68a14669ed93f457bf16689454f03944106d1f037c39a9e1dcfafcd5ba",
+    "allSevenBaselineInitialPngsByteIdentical": true,
+    "H01AndText200CompactInitialPngsByteIdenticalToVT1": true,
+    "scope": "Exact file equality, not a new visual or human acceptance verdict.",
+    "frames": [
+      {
+        "frame": "H01",
+        "variant": "baseline",
+        "file": "H01-baseline-initial.png",
+        "sha256": "cb6ebb6e0243c749f027a5de042439deb4985076254cd1c286bc4747d4a207ce",
+        "comparedTo": "attempt-2/H01-baseline-initial.png",
+        "predecessorSHA256": "cb6ebb6e0243c749f027a5de042439deb4985076254cd1c286bc4747d4a207ce",
+        "byteIdentical": true
+      },
+      {
+        "frame": "H01",
+        "variant": "vt1-compact",
+        "file": "H01-vt1-compact-initial.png",
+        "sha256": "a249b1576c1bf706d80450f09713285f1fe85d87d4152b8a8d061b4819881123",
+        "comparedTo": "attempt-2/H01-vt1-initial.png",
+        "predecessorSHA256": "a249b1576c1bf706d80450f09713285f1fe85d87d4152b8a8d061b4819881123",
+        "byteIdentical": true
+      },
+      {
+        "frame": "H02",
+        "variant": "baseline",
+        "file": "H02-baseline-initial.png",
+        "sha256": "0371638e9fc8daeb5db3ee5c25a8553f1ceb0d867225a44410e53b6381074bf4",
+        "comparedTo": "attempt-2/H02-baseline-initial.png",
+        "predecessorSHA256": "0371638e9fc8daeb5db3ee5c25a8553f1ceb0d867225a44410e53b6381074bf4",
+        "byteIdentical": true
+      },
+      {
+        "frame": "H02",
+        "variant": "vt1-compact",
+        "file": "H02-vt1-compact-initial.png",
+        "sha256": "e05c5c69070b9ceef640fb74ff5ab708a6c99584db123433dbb4581c281985e1",
+        "comparedTo": "attempt-2/H02-vt1-initial.png",
+        "predecessorSHA256": "79992807df42f365bb0d90e00537260a1d82ace6c63a5dc8516abcf7ee10d7f6",
+        "byteIdentical": false
+      },
+      {
+        "frame": "narrow",
+        "variant": "baseline",
+        "file": "narrow-baseline-initial.png",
+        "sha256": "fa01d166045db472ff5b400be95fb70eee835c700b5fdd9e88f15ffe0292efdb",
+        "comparedTo": "attempt-2/narrow-baseline-initial.png",
+        "predecessorSHA256": "fa01d166045db472ff5b400be95fb70eee835c700b5fdd9e88f15ffe0292efdb",
+        "byteIdentical": true
+      },
+      {
+        "frame": "narrow",
+        "variant": "vt1-compact",
+        "file": "narrow-vt1-compact-initial.png",
+        "sha256": "6c0d9ec2b0f3e4c4daf960a5bea11c69c42cad29bdf9ecc7d19d148c0a93f93a",
+        "comparedTo": "attempt-2/narrow-vt1-initial.png",
+        "predecessorSHA256": "eb9524e532ccc811e52c9ef0f7c6060a9f82f8735e8dece1e1fa54ae60a3ac1f",
+        "byteIdentical": false
+      },
+      {
+        "frame": "dark",
+        "variant": "baseline",
+        "file": "dark-baseline-initial.png",
+        "sha256": "0cb412a87a14c825c96ff58340ec3b2fc2c844e6cf4bfec6d3a7a29f77fa4ce7",
+        "comparedTo": "attempt-2/dark-baseline-initial.png",
+        "predecessorSHA256": "0cb412a87a14c825c96ff58340ec3b2fc2c844e6cf4bfec6d3a7a29f77fa4ce7",
+        "byteIdentical": true
+      },
+      {
+        "frame": "dark",
+        "variant": "vt1-compact",
+        "file": "dark-vt1-compact-initial.png",
+        "sha256": "f7aa4dd061d8d1f7866c3199e8e7ec5248121392ce9295637a136d5cbb6f2865",
+        "comparedTo": "attempt-2/dark-vt1-initial.png",
+        "predecessorSHA256": "dd3f134456a644187f4e4801da582992bf68cd1c82985656f02451894329a6cc",
+        "byteIdentical": false
+      },
+      {
+        "frame": "text200",
+        "variant": "baseline",
+        "file": "text200-baseline-initial.png",
+        "sha256": "616e9f8b8f327c038e9078fca3a418e229fc94065b63a8e98e8429f7c26232e7",
+        "comparedTo": "attempt-2/text200-baseline-initial.png",
+        "predecessorSHA256": "616e9f8b8f327c038e9078fca3a418e229fc94065b63a8e98e8429f7c26232e7",
+        "byteIdentical": true
+      },
+      {
+        "frame": "text200",
+        "variant": "vt1-compact",
+        "file": "text200-vt1-compact-initial.png",
+        "sha256": "9de6be0570f890de78766a9f9d3fa9bd01188e2d11187e9cba949c4cdd387906",
+        "comparedTo": "attempt-2/text200-vt1-initial.png",
+        "predecessorSHA256": "9de6be0570f890de78766a9f9d3fa9bd01188e2d11187e9cba949c4cdd387906",
+        "byteIdentical": true
+      },
+      {
+        "frame": "empty",
+        "variant": "baseline",
+        "file": "empty-baseline-initial.png",
+        "sha256": "0371638e9fc8daeb5db3ee5c25a8553f1ceb0d867225a44410e53b6381074bf4",
+        "comparedTo": "attempt-2/empty-baseline-initial.png",
+        "predecessorSHA256": "0371638e9fc8daeb5db3ee5c25a8553f1ceb0d867225a44410e53b6381074bf4",
+        "byteIdentical": true
+      },
+      {
+        "frame": "empty",
+        "variant": "vt1-compact",
+        "file": "empty-vt1-compact-initial.png",
+        "sha256": "2043d94f7aa2eef5ae230c40c6fa0764f1934c2415b049a22f952bd9a98f5d3f",
+        "comparedTo": "attempt-2/empty-vt1-initial.png",
+        "predecessorSHA256": "7a01d7a32d5e12bc97553588db1c5142dc515c6d9a95eb446501f75f1cffb339",
+        "byteIdentical": false
+      },
+      {
+        "frame": "question",
+        "variant": "baseline",
+        "file": "question-baseline-initial.png",
+        "sha256": "da516f74ab6cd91c99db9f8b315e4dff23ee3f0fe3e3553124ed4529ba924fad",
+        "comparedTo": "attempt-2/question-baseline-initial.png",
+        "predecessorSHA256": "da516f74ab6cd91c99db9f8b315e4dff23ee3f0fe3e3553124ed4529ba924fad",
+        "byteIdentical": true
+      },
+      {
+        "frame": "question",
+        "variant": "vt1-compact",
+        "file": "question-vt1-compact-initial.png",
+        "sha256": "293ec3f0b47be4131a4079eba75fcff6e827eb408d0a7282ef7afd97fec28dc6",
+        "comparedTo": "attempt-2/question-vt1-initial.png",
+        "predecessorSHA256": "18e6e819db92ae2b0911c1e4dc0e67095e3d9bea10f478e4300f1a7255565aee",
+        "byteIdentical": false
+      }
+    ]
+  },
+  "environment": {
+    "ci_os": "ubuntu-24.04",
+    "ci_node": "24.20.0",
+    "playwright": "1.62.1",
+    "browser": "bundled Chromium; exact version recorded at capture",
+    "locale": "ru-RU",
+    "timezone": "UTC",
+    "fixed_time": "2026-10-12T09:00:00Z",
+    "dpr": 1,
+    "motion": "reduce",
+    "density": "comfortable",
+    "nodeRecorded": "v24.20.0",
+    "viteRecorded": "8.3.0",
+    "playwrightRecorded": "1.62.1",
+    "browserRecorded": "151.0.7922.34"
+  },
+  "package": {
+    "version": "0.6.0-vnext.54",
+    "archiveSHA256": "a726a4536e532fc556f615d0b1a9cda1873dc111e6090710329b9ec1b8204457",
+    "lockSHA256": "1705c5e200e4e9abdb80c7705623656d79c07d4df8a8aacad38985f0de90551d",
+    "verifiedInstalledFiles": 176
+  },
+  "frozenRevision": "8f8d218168074bd4c7c9e1e29dfbe783a27998dd",
+  "frozenTrees": {
+    "products/sprintique": "277e232729b1cca297f4091384e6488bfbd952ca",
+    "libraries/iquipage": "f623bc26da31a0abd282496f2bc943c27a88d2b1"
+  },
+  "files": [
+    {
+      "path": "H01-baseline-estimate-after-click.png",
+      "bytes": 83716,
+      "sha256": "9d319a0fb7cc4262dc0d18e9f9c4614acf50a6eadc9a20ccff8bffcb30d7b7a1",
+      "preserved": true
+    },
+    {
+      "path": "H01-baseline-initial.png",
+      "bytes": 79968,
+      "sha256": "cb6ebb6e0243c749f027a5de042439deb4985076254cd1c286bc4747d4a207ce",
+      "preserved": true
+    },
+    {
+      "path": "H01-baseline-property-access-failure.png",
+      "bytes": 75062,
+      "sha256": "02444e288406f38cfe09a63d5eca9a3c3cb708e7bf1a7f3726d12d57685f78eb",
+      "preserved": true
+    },
+    {
+      "path": "H01-vt1-compact-estimate-after-click.png",
+      "bytes": 84135,
+      "sha256": "cfd2ebc756c14c71e053378721b7b857f281298c7f691be6658545ee709bf49a",
+      "preserved": true
+    },
+    {
+      "path": "H01-vt1-compact-initial.png",
+      "bytes": 84927,
+      "sha256": "a249b1576c1bf706d80450f09713285f1fe85d87d4152b8a8d061b4819881123",
+      "preserved": true
+    },
+    {
+      "path": "H01-vt1-compact-keyboard-opened.png",
+      "bytes": 81673,
+      "sha256": "c8c91cb54fd38ba7e15eecdaf8bc22248d98473accde482414ec205fe96ab6fb",
+      "preserved": true
+    },
+    {
+      "path": "H01-vt1-compact-property-access-failure.png",
+      "bytes": 75143,
+      "sha256": "fd41192e72c109229a82d89cdab9fa02b98e9a171bd4ea3deb43717f3e1edf6a",
+      "preserved": true
+    },
+    {
+      "path": "H02-baseline-existing-review-CTA.png",
+      "bytes": 80210,
+      "sha256": "b40c6ee38cd0c9d623c7206afd5d8cc0e8ed2f23b8fcd323e244c28f5d813e76",
+      "preserved": true
+    },
+    {
+      "path": "H02-baseline-initial.png",
+      "bytes": 86184,
+      "sha256": "0371638e9fc8daeb5db3ee5c25a8553f1ceb0d867225a44410e53b6381074bf4",
+      "preserved": true
+    },
+    {
+      "path": "H02-vt1-compact-existing-review-CTA.png",
+      "bytes": 80210,
+      "sha256": "b40c6ee38cd0c9d623c7206afd5d8cc0e8ed2f23b8fcd323e244c28f5d813e76",
+      "preserved": true
+    },
+    {
+      "path": "H02-vt1-compact-initial.png",
+      "bytes": 85420,
+      "sha256": "e05c5c69070b9ceef640fb74ff5ab708a6c99584db123433dbb4581c281985e1",
+      "preserved": true
+    },
+    {
+      "path": "builds/baseline/assets/InterVariable-CXsUriRB.woff2",
+      "bytes": 109172,
+      "sha256": "c8126c77db9d9370281a3e473ecba9232f1b6582a69df77c9f9cd825253c1225",
+      "preserved": false
+    },
+    {
+      "path": "builds/baseline/assets/cover-presets-XxcZJEol.js",
+      "bytes": 2889,
+      "sha256": "2820ff5dddde87063f452ce07edea4033744bf0e560dbdae986fc6895c2fa163",
+      "preserved": false
+    },
+    {
+      "path": "builds/baseline/assets/design-DVxR5tT7.webp",
+      "bytes": 227722,
+      "sha256": "61331b6f549777c299b8ea15b6e056877c6f606b02a1232ca3f4e8cfdca6615f",
+      "preserved": false
+    },
+    {
+      "path": "builds/baseline/assets/development-C6OZhP3s.webp",
+      "bytes": 97770,
+      "sha256": "58aaf7e9d320fda04a8b089bb12e2a0ecfb98057b6195199c89b22027cbca99c",
+      "preserved": false
+    },
+    {
+      "path": "builds/baseline/assets/focus-CDWeceOe.webp",
+      "bytes": 193242,
+      "sha256": "842aecfe32b2b709dea407d60b407a15456f9976c0e6fde50429b569b23e6ae4",
+      "preserved": false
+    },
+    {
+      "path": "builds/baseline/assets/index-C9cZOrbU.js",
+      "bytes": 752177,
+      "sha256": "1f7a01f090e6e66607d3319d188011eb3df53f3cc1b08e7d364ea23b2d9d3fbf",
+      "preserved": false
+    },
+    {
+      "path": "builds/baseline/assets/index-cO8hYXC-.css",
+      "bytes": 697455,
+      "sha256": "f342814fec7ef82febf20fb828c515ff941ffa0165c7874ce4b44bc74bbcf8c7",
+      "preserved": false
+    },
+    {
+      "path": "builds/baseline/assets/launch-C2IV5fud.webp",
+      "bytes": 110030,
+      "sha256": "5c7debb537297c5b9c830d9835341d7e1e4ab8d42f234c07fda29fd5a9867bdc",
+      "preserved": false
+    },
+    {
+      "path": "builds/baseline/assets/planning-CRmxcOpI.webp",
+      "bytes": 122600,
+      "sha256": "1c2c16d65949942d1936a7aa1310e5ed047b88d4888bf233c6550e45876e2d7f",
+      "preserved": false
+    },
+    {
+      "path": "builds/baseline/assets/research-D7kSu2WW.webp",
+      "bytes": 143092,
+      "sha256": "abd80b076ed6daa8cf6c5092fab98e1eb1ab639ddea31e5adae5b70f18479c7a",
+      "preserved": false
+    },
+    {
+      "path": "builds/baseline/assets/ui-EpSLKknp.js",
+      "bytes": 551996,
+      "sha256": "a4d9cf9baee32884e0fe8ac672ac3d996a7eaab365949699824628706ee250b2",
+      "preserved": false
+    },
+    {
+      "path": "builds/baseline/index.html",
+      "bytes": 742,
+      "sha256": "d9ab38687b69325158e3a9a4dd4fc41dc2f35473e7f8466c3a8759565465324b",
+      "preserved": false
+    },
+    {
+      "path": "builds/vt1-compact/assets/InterVariable-CXsUriRB.woff2",
+      "bytes": 109172,
+      "sha256": "c8126c77db9d9370281a3e473ecba9232f1b6582a69df77c9f9cd825253c1225",
+      "preserved": false
+    },
+    {
+      "path": "builds/vt1-compact/assets/cover-presets-XxcZJEol.js",
+      "bytes": 2889,
+      "sha256": "2820ff5dddde87063f452ce07edea4033744bf0e560dbdae986fc6895c2fa163",
+      "preserved": false
+    },
+    {
+      "path": "builds/vt1-compact/assets/design-DVxR5tT7.webp",
+      "bytes": 227722,
+      "sha256": "61331b6f549777c299b8ea15b6e056877c6f606b02a1232ca3f4e8cfdca6615f",
+      "preserved": false
+    },
+    {
+      "path": "builds/vt1-compact/assets/development-C6OZhP3s.webp",
+      "bytes": 97770,
+      "sha256": "58aaf7e9d320fda04a8b089bb12e2a0ecfb98057b6195199c89b22027cbca99c",
+      "preserved": false
+    },
+    {
+      "path": "builds/vt1-compact/assets/focus-CDWeceOe.webp",
+      "bytes": 193242,
+      "sha256": "842aecfe32b2b709dea407d60b407a15456f9976c0e6fde50429b569b23e6ae4",
+      "preserved": false
+    },
+    {
+      "path": "builds/vt1-compact/assets/index-CdVuyj_A.js",
+      "bytes": 753690,
+      "sha256": "e0bf287fda5a8e77c8aacdb8baa804c5c20309b239d07849dea27c76915ab833",
+      "preserved": false
+    },
+    {
+      "path": "builds/vt1-compact/assets/index-cO8hYXC-.css",
+      "bytes": 697455,
+      "sha256": "f342814fec7ef82febf20fb828c515ff941ffa0165c7874ce4b44bc74bbcf8c7",
+      "preserved": false
+    },
+    {
+      "path": "builds/vt1-compact/assets/launch-C2IV5fud.webp",
+      "bytes": 110030,
+      "sha256": "5c7debb537297c5b9c830d9835341d7e1e4ab8d42f234c07fda29fd5a9867bdc",
+      "preserved": false
+    },
+    {
+      "path": "builds/vt1-compact/assets/planning-CRmxcOpI.webp",
+      "bytes": 122600,
+      "sha256": "1c2c16d65949942d1936a7aa1310e5ed047b88d4888bf233c6550e45876e2d7f",
+      "preserved": false
+    },
+    {
+      "path": "builds/vt1-compact/assets/research-D7kSu2WW.webp",
+      "bytes": 143092,
+      "sha256": "abd80b076ed6daa8cf6c5092fab98e1eb1ab639ddea31e5adae5b70f18479c7a",
+      "preserved": false
+    },
+    {
+      "path": "builds/vt1-compact/assets/ui-EpSLKknp.js",
+      "bytes": 551996,
+      "sha256": "a4d9cf9baee32884e0fe8ac672ac3d996a7eaab365949699824628706ee250b2",
+      "preserved": false
+    },
+    {
+      "path": "builds/vt1-compact/index.html",
+      "bytes": 742,
+      "sha256": "0aed71faabda78aeae7165f3f0432db151c597414b1e16c020a16e57856cb98b",
+      "preserved": false
+    },
+    {
+      "path": "dark-baseline-initial.png",
+      "bytes": 43175,
+      "sha256": "0cb412a87a14c825c96ff58340ec3b2fc2c844e6cf4bfec6d3a7a29f77fa4ce7",
+      "preserved": true
+    },
+    {
+      "path": "dark-vt1-compact-initial.png",
+      "bytes": 46791,
+      "sha256": "f7aa4dd061d8d1f7866c3199e8e7ec5248121392ce9295637a136d5cbb6f2865",
+      "preserved": true
+    },
+    {
+      "path": "empty-baseline-initial.png",
+      "bytes": 86184,
+      "sha256": "0371638e9fc8daeb5db3ee5c25a8553f1ceb0d867225a44410e53b6381074bf4",
+      "preserved": true
+    },
+    {
+      "path": "empty-vt1-compact-initial.png",
+      "bytes": 83956,
+      "sha256": "2043d94f7aa2eef5ae230c40c6fa0764f1934c2415b049a22f952bd9a98f5d3f",
+      "preserved": true
+    },
+    {
+      "path": "narrow-baseline-initial.png",
+      "bytes": 42818,
+      "sha256": "fa01d166045db472ff5b400be95fb70eee835c700b5fdd9e88f15ffe0292efdb",
+      "preserved": true
+    },
+    {
+      "path": "narrow-vt1-compact-initial.png",
+      "bytes": 46181,
+      "sha256": "6c0d9ec2b0f3e4c4daf960a5bea11c69c42cad29bdf9ecc7d19d148c0a93f93a",
+      "preserved": true
+    },
+    {
+      "path": "question-baseline-initial.png",
+      "bytes": 86641,
+      "sha256": "da516f74ab6cd91c99db9f8b315e4dff23ee3f0fe3e3553124ed4529ba924fad",
+      "preserved": true
+    },
+    {
+      "path": "question-vt1-compact-initial.png",
+      "bytes": 85550,
+      "sha256": "293ec3f0b47be4131a4079eba75fcff6e827eb408d0a7282ef7afd97fec28dc6",
+      "preserved": true
+    },
+    {
+      "path": "results.json",
+      "bytes": 867603,
+      "sha256": "0a37c5889f1cc88943044aa70c5249d70c7059dc828cfea166d1db0f2dd9ed12",
+      "preserved": true,
+      "preservedAs": "results.json.gz"
+    },
+    {
+      "path": "text200-baseline-initial.png",
+      "bytes": 128835,
+      "sha256": "616e9f8b8f327c038e9078fca3a418e229fc94065b63a8e98e8429f7c26232e7",
+      "preserved": true
+    },
+    {
+      "path": "text200-vt1-compact-initial.png",
+      "bytes": 117301,
+      "sha256": "9de6be0570f890de78766a9f9d3fa9bd01188e2d11187e9cba949c4cdd387906",
+      "preserved": true
+    }
+  ],
+  "preservation_note": "All 21 original PNGs and complete results JSON/job log preserved. Gzip mtime=0 and lossless round trips verified. All 46 extracted files compared byte for byte with the ZIP. Only an exact inventory of the 24 emitted build assets is copied into Git. Original VT1/attempts/reviews are not rewritten. No new visual, human or backend acceptance is asserted.",
+  "resultsSHA256": "0a37c5889f1cc88943044aa70c5249d70c7059dc828cfea166d1db0f2dd9ed12",
+  "jobLogSHA256": "405e6ef1f221de4c112c48177213bb106f478344c4acffb274a1e1fb66c9ba56",
+  "checkoutWholeTreeEqualsHead": true
+}

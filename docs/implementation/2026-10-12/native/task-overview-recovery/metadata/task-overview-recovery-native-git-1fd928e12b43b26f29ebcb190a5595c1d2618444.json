@@ -1,0 +1,40 @@
+{
+  "sha": "1fd928e12b43b26f29ebcb190a5595c1d2618444",
+  "node_id": "C_kwDOURjrA9oAKDFmZDkyOGUxMmI0M2IyNmYyOWViY2IxOTBhNTU5NWMxZDI2MTg0NDQ",
+  "url": "https://api.github.com/repos/it-novikov/iquipage-design-system/git/commits/1fd928e12b43b26f29ebcb190a5595c1d2618444",
+  "html_url": "https://github.com/it-novikov/iquipage-design-system/commit/1fd928e12b43b26f29ebcb190a5595c1d2618444",
+  "author": {
+    "name": "Vadim Novikov",
+    "email": "nvkv71@gmail.com",
+    "date": "2026-10-12T12:31:10Z"
+  },
+  "committer": {
+    "name": "Vadim Novikov",
+    "email": "nvkv71@gmail.com",
+    "date": "2026-10-12T12:31:10Z"
+  },
+  "tree": {
+    "sha": "c039d65a75d1e4312b5931cc76a4d28fb7ef8e08",
+    "url": "https://api.github.com/repos/it-novikov/iquipage-design-system/git/trees/c039d65a75d1e4312b5931cc76a4d28fb7ef8e08"
+  },
+  "message": "Merge current Estimate fix into Task overview recovery\n\nPrepared by GPT-6 Astra AI agent. Preserve both independently appended permanent browser regressions. Task runtime, plan and harness remain the corrected R1 bytes; Estimate matches accepted main4275. Whole tree equals local AI-authored integration 279303d6a1b661b5eac90ea537f756c385e97355. Precommit compiled build passed with all 197 inputs and 12 outputs verified; PR88 native acceptance remains pending.",
+  "parents": [
+    {
+      "sha": "828ee87e940335987cb67ed609af24fe54d6d548",
+      "url": "https://api.github.com/repos/it-novikov/iquipage-design-system/git/commits/828ee87e940335987cb67ed609af24fe54d6d548",
+      "html_url": "https://github.com/it-novikov/iquipage-design-system/commit/828ee87e940335987cb67ed609af24fe54d6d548"
+    },
+    {
+      "sha": "4275dde301b5068b3d6b1801ecb54c70a2d7e708",
+      "url": "https://api.github.com/repos/it-novikov/iquipage-design-system/git/commits/4275dde301b5068b3d6b1801ecb54c70a2d7e708",
+      "html_url": "https://github.com/it-novikov/iquipage-design-system/commit/4275dde301b5068b3d6b1801ecb54c70a2d7e708"
+    }
+  ],
+  "verification": {
+    "verified": false,
+    "reason": "unsigned",
+    "signature": null,
+    "payload": null,
+    "verified_at": null
+  }
+}

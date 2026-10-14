@@ -1,0 +1,204 @@
+{
+  "reviewer": "/root/ds_candidate_native_r2",
+  "method": "Personally inspected original tool-rendered native PNGs; no generated mockups or edited images.",
+  "png_references": 32,
+  "unique_images_viewed": 27,
+  "files": [
+    {
+      "path": "browser/candidate/narrow-normal-document.png",
+      "sha256": "9a3dbed9ca13a6d0018d06a93da103ee7a1585bc88d01b4b5ba28ab9a8aaeda5",
+      "inspection": "viewed_original",
+      "viewed_representative": "browser/candidate/narrow-normal-document.png"
+    },
+    {
+      "path": "browser/candidate/narrow-normal-viewport.png",
+      "sha256": "9a3dbed9ca13a6d0018d06a93da103ee7a1585bc88d01b4b5ba28ab9a8aaeda5",
+      "inspection": "byte_identical_to_viewed_original",
+      "viewed_representative": "browser/candidate/narrow-normal-document.png"
+    },
+    {
+      "path": "browser/candidate/narrow-text200-document.png",
+      "sha256": "a8b41ed14670ad9e16453fb8b78dbd4000a98dbef529c0b78d7757d7a0cc27ee",
+      "inspection": "viewed_original",
+      "viewed_representative": "browser/candidate/narrow-text200-document.png"
+    },
+    {
+      "path": "browser/candidate/narrow-text200-viewport.png",
+      "sha256": "99f9a610b7e259f319a12e6a3f91366b10733e3488d575642d946c1622968bb9",
+      "inspection": "viewed_original",
+      "viewed_representative": "browser/candidate/narrow-text200-viewport.png"
+    },
+    {
+      "path": "browser/candidate/wide-normal-document.png",
+      "sha256": "b725fe3dd5382d69f01232f6762abcba5a622c12781deb731e873e2fcda3d14c",
+      "inspection": "viewed_original",
+      "viewed_representative": "browser/candidate/wide-normal-document.png"
+    },
+    {
+      "path": "browser/candidate/wide-normal-due-container-resize.png",
+      "sha256": "d460d9e7c96e4bf5268e83bc306004106ca9c8e4b648ce9e099d2ad967e402cf",
+      "inspection": "viewed_original",
+      "viewed_representative": "browser/candidate/wide-normal-due-container-resize.png"
+    },
+    {
+      "path": "browser/candidate/wide-normal-owner-container-resize.png",
+      "sha256": "8fc292bd7821e7e161a40b1051f0686cece56f73c462bd037ee5de9bbf71d094",
+      "inspection": "viewed_original",
+      "viewed_representative": "browser/candidate/wide-normal-owner-container-resize.png"
+    },
+    {
+      "path": "browser/candidate/wide-normal-tag-search-focused.png",
+      "sha256": "bb38eef50efed265575c19e7a0709511d3cf8581f5af53d0a13d0a518bbdc161",
+      "inspection": "viewed_original",
+      "viewed_representative": "browser/candidate/wide-normal-tag-search-focused.png"
+    },
+    {
+      "path": "browser/candidate/wide-normal-viewport.png",
+      "sha256": "b725fe3dd5382d69f01232f6762abcba5a622c12781deb731e873e2fcda3d14c",
+      "inspection": "byte_identical_to_viewed_original",
+      "viewed_representative": "browser/candidate/wide-normal-document.png"
+    },
+    {
+      "path": "browser/candidate/wide-text200-document.png",
+      "sha256": "ecc120ec273d883675382171543855081287d1f935521e791934c2f9dcd4c32c",
+      "inspection": "viewed_original",
+      "viewed_representative": "browser/candidate/wide-text200-document.png"
+    },
+    {
+      "path": "browser/candidate/wide-text200-due-container-resize.png",
+      "sha256": "c8969be99fc199c6c004b0011f519764013ab9308afa446e489bdfa829dd683d",
+      "inspection": "viewed_original",
+      "viewed_representative": "browser/candidate/wide-text200-due-container-resize.png"
+    },
+    {
+      "path": "browser/candidate/wide-text200-tag-search-focused.png",
+      "sha256": "378f1fb8c0a7671f4f8d902d19f75395d1716bb303e7a2080f4772be8efec8ef",
+      "inspection": "viewed_original",
+      "viewed_representative": "browser/candidate/wide-text200-tag-search-focused.png"
+    },
+    {
+      "path": "browser/candidate/wide-text200-owner-container-resize.png",
+      "sha256": "a2f2ec980eda77472fa3da7136faa20b198e06fa4860a9a0e97963e82475961f",
+      "inspection": "viewed_original",
+      "viewed_representative": "browser/candidate/wide-text200-owner-container-resize.png"
+    },
+    {
+      "path": "browser/candidate/wide-text200-viewport.png",
+      "sha256": "013a92c2cbf97d56679b8b1a972014eed6cc6944b1d3b692059ed1649d65cff8",
+      "inspection": "viewed_original",
+      "viewed_representative": "browser/candidate/wide-text200-viewport.png"
+    },
+    {
+      "path": "browser/candidate/wide-tight-text200-document.png",
+      "sha256": "17bb48e977e55fb2c875c8adbeb8d2cc4b02c72250da83bdbd03410e9c9bffdb",
+      "inspection": "viewed_original",
+      "viewed_representative": "browser/candidate/wide-tight-text200-document.png"
+    },
+    {
+      "path": "browser/candidate/wide-tight-text200-viewport.png",
+      "sha256": "8ecdd10998067e0c0ada05c726233210e8eb7c49402835201e6128f597ff33cd",
+      "inspection": "viewed_original",
+      "viewed_representative": "browser/candidate/wide-tight-text200-viewport.png"
+    },
+    {
+      "path": "browser/control/narrow-normal-document.png",
+      "sha256": "97ec32cca71db1299d9e1c369ef490bb591659b52f5704a460fe99196c868f8d",
+      "inspection": "viewed_original",
+      "viewed_representative": "browser/control/narrow-normal-document.png"
+    },
+    {
+      "path": "browser/control/narrow-normal-viewport.png",
+      "sha256": "97ec32cca71db1299d9e1c369ef490bb591659b52f5704a460fe99196c868f8d",
+      "inspection": "byte_identical_to_viewed_original",
+      "viewed_representative": "browser/control/narrow-normal-document.png"
+    },
+    {
+      "path": "browser/control/narrow-text200-document.png",
+      "sha256": "4189ce5ed63dd39bb2998682262d2616737138d6cca1680c201578420717d8a3",
+      "inspection": "viewed_original",
+      "viewed_representative": "browser/control/narrow-text200-document.png"
+    },
+    {
+      "path": "browser/control/narrow-text200-viewport.png",
+      "sha256": "888b390dc2806fd38c34104ac95195234c0a98e6663e0cdeb511642a921a55a1",
+      "inspection": "viewed_original",
+      "viewed_representative": "browser/control/narrow-text200-viewport.png"
+    },
+    {
+      "path": "browser/control/wide-normal-document.png",
+      "sha256": "8f735bd81702eca7ab06c07dcf09a5aeb843a1b68fc4b609ae3a20bdb976749e",
+      "inspection": "viewed_original",
+      "viewed_representative": "browser/control/wide-normal-document.png"
+    },
+    {
+      "path": "browser/control/wide-normal-due-container-resize.png",
+      "sha256": "91dc3fb2830fde332f4007f11d28339db01476ba2f8a72d46bc49e39449da935",
+      "inspection": "viewed_original",
+      "viewed_representative": "browser/control/wide-normal-due-container-resize.png"
+    },
+    {
+      "path": "browser/control/wide-normal-owner-container-resize.png",
+      "sha256": "e52ebd63dd0c2c015b5bf48e1187cd5b2ae990654b1dc6a7993bc57fea2cae64",
+      "inspection": "viewed_original",
+      "viewed_representative": "browser/control/wide-normal-owner-container-resize.png"
+    },
+    {
+      "path": "browser/control/wide-normal-tag-search-focused.png",
+      "sha256": "15b681386367f339bdffb12a63384f989f765f761d44c78363d226ee6fdea748",
+      "inspection": "viewed_original",
+      "viewed_representative": "browser/control/wide-normal-tag-search-focused.png"
+    },
+    {
+      "path": "browser/control/wide-normal-viewport.png",
+      "sha256": "8f735bd81702eca7ab06c07dcf09a5aeb843a1b68fc4b609ae3a20bdb976749e",
+      "inspection": "byte_identical_to_viewed_original",
+      "viewed_representative": "browser/control/wide-normal-document.png"
+    },
+    {
+      "path": "browser/control/wide-text200-document.png",
+      "sha256": "605aa3e93a939b32596815dc2d85ff144cf1b203cfceb8164c5cfbbfa335dba6",
+      "inspection": "viewed_original",
+      "viewed_representative": "browser/control/wide-text200-document.png"
+    },
+    {
+      "path": "browser/control/wide-text200-due-container-resize.png",
+      "sha256": "85c27b1c43902a9aa1f276b8f6c8e809e3ccfa316b219c03f2a3a462dc3e095c",
+      "inspection": "viewed_original",
+      "viewed_representative": "browser/control/wide-text200-due-container-resize.png"
+    },
+    {
+      "path": "browser/control/wide-text200-owner-container-resize.png",
+      "sha256": "a744556c1720be7a58c3d35e683189dd2eae486ab6b5db4b4dea4588b032765d",
+      "inspection": "viewed_original",
+      "viewed_representative": "browser/control/wide-text200-owner-container-resize.png"
+    },
+    {
+      "path": "browser/control/wide-text200-tag-search-focused.png",
+      "sha256": "2234c40cb7107ee2c9a6ded537c2221f554039651e51b3f308a2facbed8e0cb1",
+      "inspection": "viewed_original",
+      "viewed_representative": "browser/control/wide-text200-tag-search-focused.png"
+    },
+    {
+      "path": "browser/control/wide-text200-viewport.png",
+      "sha256": "605aa3e93a939b32596815dc2d85ff144cf1b203cfceb8164c5cfbbfa335dba6",
+      "inspection": "byte_identical_to_viewed_original",
+      "viewed_representative": "browser/control/wide-text200-document.png"
+    },
+    {
+      "path": "browser/control/wide-tight-text200-document.png",
+      "sha256": "13e4aa7e8db842fbef6c230cab45e1289a83d2cd796b103e884c45b62798161a",
+      "inspection": "viewed_original",
+      "viewed_representative": "browser/control/wide-tight-text200-document.png"
+    },
+    {
+      "path": "browser/control/wide-tight-text200-viewport.png",
+      "sha256": "2444fe803bed8efe462251d433535e67f587adf9b36c7e04a511b1eef2250b0d",
+      "inspection": "viewed_original",
+      "viewed_representative": "browser/control/wide-tight-text200-viewport.png"
+    }
+  ],
+  "limitations": [
+    "Popup fullPage screenshot and earlier raw measure may refer to different geometry/event state; PF04-NR2-01 remains open.",
+    "Image inspection is expert analysis, not observed participant behavior."
+  ]
+}

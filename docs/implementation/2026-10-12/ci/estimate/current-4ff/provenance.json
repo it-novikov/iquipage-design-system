@@ -1,0 +1,1557 @@
+{
+  "schema": 1,
+  "kind": "newparallel-estimate-full-ci-preservation",
+  "repository": "it-novikov/iquipage-design-system",
+  "pr": 83,
+  "head_sha": "4ff05227cad0a9e1c1a35d59faffdddd20e5c354",
+  "head_tree_sha": "c7ad669f19eb5027d63994c9e4d1642b3b9f0bd6",
+  "actual_checkout_sha": "ae1364b069f12c0e747f4e28e208ac45dbbfcfe6",
+  "run_id": 38245659125,
+  "job_id": 114798739719,
+  "conclusion": "success",
+  "integration_observation": {
+    "main_sha": "4275dde301b5068b3d6b1801ecb54c70a2d7e708",
+    "main_tree_sha": "c7ad669f19eb5027d63994c9e4d1642b3b9f0bd6",
+    "pr_merged_at": "2026-10-12T12:20:33Z",
+    "main_git_api": {
+      "sha": "4275dde301b5068b3d6b1801ecb54c70a2d7e708",
+      "node_id": "C_kwDOURjrA9oAKDQyNzVkZGUzMDFiNTA2OGIzZDZiMTgwMWVjYjU0YzcwYTJkN2U3MDg",
+      "url": "https://api.github.com/repos/it-novikov/iquipage-design-system/git/commits/4275dde301b5068b3d6b1801ecb54c70a2d7e708",
+      "html_url": "https://github.com/it-novikov/iquipage-design-system/commit/4275dde301b5068b3d6b1801ecb54c70a2d7e708",
+      "author": {
+        "name": "Vadim Novikov",
+        "email": "nvkv71@gmail.com",
+        "date": "2026-10-12T12:20:33Z"
+      },
+      "committer": {
+        "name": "GitHub",
+        "email": "noreply@github.com",
+        "date": "2026-10-12T12:20:33Z"
+      },
+      "tree": {
+        "sha": "c7ad669f19eb5027d63994c9e4d1642b3b9f0bd6",
+        "url": "https://api.github.com/repos/it-novikov/iquipage-design-system/git/trees/c7ad669f19eb5027d63994c9e4d1642b3b9f0bd6"
+      },
+      "message": "fix: удержать редактор оценки в контексте задачи (#83)\n\n* fix: keep estimate popovers in their native modal scope\n\nAuthored and independently source-reviewed by GPT-6 Astra AI agents. Preserves local AI-authored source checkpoint 47dcbf2c46496e7908b3c94cee91c9813eec81c5 with exact tree f43689d3a5553c07468ef40eccf5c7af8538892f. Native acceptance remains pending; regression follows in the next commit.\n\n* test: preserve source review and guard estimate modal behavior\n\nPrepared by GPT-6 Astra AI agents; frozen native plan 853bc181d9f4e4db33f5676b4efd515a49cb89210a2f5e79cb307e08aecba42e. Ten targeted Task, nonmodal estimate/menu and lifecycle cases. Preserve independent source R1 and its correction unchanged. Compiled local build passed; native CI is still pending. Continuous companion steps keep this regression active after merge.\n\n* test: открывать «Другие свойства» перед обращением к оценке\n\nVT1 держит оценку в свёрнутом блоке; Task-случаи раскрывают его кликом по summary.",
+      "parents": [
+        {
+          "sha": "220af664ef561d3f5ff1b873122281ef352e8f25",
+          "url": "https://api.github.com/repos/it-novikov/iquipage-design-system/git/commits/220af664ef561d3f5ff1b873122281ef352e8f25",
+          "html_url": "https://github.com/it-novikov/iquipage-design-system/commit/220af664ef561d3f5ff1b873122281ef352e8f25"
+        }
+      ],
+      "verification": {
+        "verified": true,
+        "reason": "valid",
+        "signature": "-----BEGIN PGP SIGNATURE-----\n\nwsFcBAABCAAQBQJqzNCRCRC1aQ7uu5UhlAAAMX4QAEINTxk3v3DkNoz4qujCRa/a\nJXim2zfS2YOGV5/8Q9s5HdMVTOLG9Uk54/ymlXGosHSH6Dwv+/q0tX36cZnr+SwG\nNyyDBopT9nUvleZ+NgbumHV5/sjPBB++lk/Yzh1dVh4xhrBrrDnENHuALScqG8Sl\nqeouepzYuXDyonyyM3BRCVc0eAaFPi0QQNtcVl2ABd8R+s2DXlrXxT2i5a3mQMa0\nWNuKmP2WXqxlETU9vU6A5Ad5Z5XGJqvWIxiYWCVQmcEC1ZtHtZWKjTPgCT2ULw18\nDiquXpjLkmSJJU/zdS38uVmxKySNhV2jPMGXgOeTXxWV9zORqZXCzzOdzDmKN2Nw\nCFTwoMoujMqim8rBddpvBzWDUYUwS1WlpgAmPIb0wCUEifrmIXbMvL9ZrJMC5ddl\nxWy+zu/tSTZr5eo4jbzVzuF/iWpZtLyLR7Du8+rAkDc3XISs2seSPODegZeinBZ3\nOupWlt84fwiI18/gkhOPMl4LthS5e69HVnhTv0R/FtS8LO1hexipiD8Gesbaq9T/\nUNiNPTUdKTejNDiLcAkle2rtnsVdTYmzxz6HIWQgJALdDkpZDqCMtZx0hMVe4UeC\nkpdWmioRnqGKd07OwSX1E1OkZaoXCAM1KoMmLVs3R5OUrISbNIrPgvJsZXocTHig\nnXGLveUEj8gnGAViwcJ2\n=MvzD\n-----END PGP SIGNATURE-----\n",
+        "payload": "tree c7ad669f19eb5027d63994c9e4d1642b3b9f0bd6\nparent 220af664ef561d3f5ff1b873122281ef352e8f25\nauthor Vadim Novikov <nvkv71@gmail.com> 1791807633 +0900\ncommitter GitHub <noreply@github.com> 1791807633 +0900\n\nfix: удержать редактор оценки в контексте задачи (#83)\n\n* fix: keep estimate popovers in their native modal scope\n\nAuthored and independently source-reviewed by GPT-6 Astra AI agents. Preserves local AI-authored source checkpoint 47dcbf2c46496e7908b3c94cee91c9813eec81c5 with exact tree f43689d3a5553c07468ef40eccf5c7af8538892f. Native acceptance remains pending; regression follows in the next commit.\n\n* test: preserve source review and guard estimate modal behavior\n\nPrepared by GPT-6 Astra AI agents; frozen native plan 853bc181d9f4e4db33f5676b4efd515a49cb89210a2f5e79cb307e08aecba42e. Ten targeted Task, nonmodal estimate/menu and lifecycle cases. Preserve independent source R1 and its correction unchanged. Compiled local build passed; native CI is still pending. Continuous companion steps keep this regression active after merge.\n\n* test: открывать «Другие свойства» перед обращением к оценке\n\nVT1 держит оценку в свёрнутом блоке; Task-случаи раскрывают его кликом по summary.",
+        "verified_at": "2026-10-12T12:20:34Z"
+      }
+    },
+    "whole_tree_equals_tested_head_and_checkout": true,
+    "meaning": "Git API integration observation; no additional run on main SHA is claimed"
+  },
+  "original_metadata": "native/estimate/current-4ff/originals/newparallel-estimate-metadata.json",
+  "original_verification": "native/estimate/current-4ff/originals/newparallel-estimate-full-verification.json",
+  "api_proofs": {
+    "newparallel-estimate-full-artifacts-api.json": "ci/estimate/current-4ff/api/newparallel-estimate-full-artifacts-api.json",
+    "newparallel-estimate-full-jobs-api.json": "ci/estimate/current-4ff/api/newparallel-estimate-full-jobs-api.json",
+    "newparallel-estimate-full-recheck-retry-api.json": "ci/estimate/current-4ff/api/newparallel-estimate-full-recheck-retry-api.json",
+    "newparallel-estimate-run-full-api.json": "ci/estimate/current-4ff/api/newparallel-estimate-run-full-api.json"
+  },
+  "shared_git_api_proofs": {
+    "newparallel-estimate-head-api.json": "native/estimate/current-4ff/api/newparallel-estimate-head-api.json",
+    "newparallel-estimate-checkout-api.json": "native/estimate/current-4ff/api/newparallel-estimate-checkout-api.json",
+    "newparallel-estimate-main-integration-api.json": "native/estimate/current-4ff/api/newparallel-estimate-main-integration-api.json",
+    "newparallel-estimate-pr-merged-api.json": "native/estimate/current-4ff/api/newparallel-estimate-pr-merged-api.json"
+  },
+  "certificate": {
+    "path": "ci/estimate/current-4ff/verification/verification.json",
+    "sha256": "c4cdebfc1eb95876c2ffc1eec159240f90c0eedce5b30c2d76d06289d2c4a245",
+    "date": "2026-10-12T12:19:50.709Z",
+    "exact_in_job_log": true,
+    "checks": [
+      {
+        "name": "verification-tools",
+        "exitCode": 0,
+        "signal": null,
+        "passed": true,
+        "log": "verification-tools.log"
+      },
+      {
+        "name": "library-build",
+        "exitCode": 0,
+        "signal": null,
+        "passed": true,
+        "log": "library-build.log"
+      },
+      {
+        "name": "library-tests",
+        "exitCode": 0,
+        "signal": null,
+        "passed": true,
+        "log": "library-tests.log"
+      },
+      {
+        "name": "product-boundaries",
+        "exitCode": 0,
+        "signal": null,
+        "passed": true,
+        "log": "product-boundaries.log"
+      },
+      {
+        "name": "product-build",
+        "exitCode": 0,
+        "signal": null,
+        "passed": true,
+        "log": "product-build.log"
+      },
+      {
+        "name": "product-tests",
+        "exitCode": 0,
+        "signal": null,
+        "passed": true,
+        "log": "product-tests.log"
+      },
+      {
+        "name": "detached-product",
+        "exitCode": 0,
+        "signal": null,
+        "passed": true,
+        "log": "detached-product.log"
+      },
+      {
+        "name": "source-stability",
+        "passed": true,
+        "log": "source-stability.log"
+      }
+    ]
+  },
+  "source_integrity": {
+    "count": 1240,
+    "all_recorded_hashes_match_exact_git_head": true,
+    "before_after_bytes_equal": true,
+    "json_sha256": "7d164e0a6ecbb0f35d703717b8d7887c81fb3ad34f536ff849396f02e2201e5a",
+    "fingerprint_recomputed": "9bbb33d0a450fe6f21146b3a14af2d18d23cb9193f2a8dad9c0560ecdadcfba0"
+  },
+  "test_counts": {
+    "verification-tools": {
+      "tests": 1,
+      "suites": 0,
+      "pass": 1,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "library-tests": {
+      "tests": 478,
+      "suites": 0,
+      "pass": 478,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "product-tests": {
+      "tests": 609,
+      "suites": 0,
+      "pass": 609,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "detached-product": {
+      "tests": 609,
+      "suites": 0,
+      "pass": 609,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    }
+  },
+  "portable_image": {
+    "build_step_success": true,
+    "docker_load_logged": true,
+    "loaded_tags": [
+      "sprintique-server:latest",
+      "sprintique-server:2.0.0-alpha.0"
+    ],
+    "runtime_launch_not_proven": true,
+    "image_tar_not_in_downloaded_artifacts": true
+  },
+  "planning": {
+    "status": "PASS",
+    "profiles": [
+      {
+        "name": "desktop",
+        "viewport": {
+          "width": 1363,
+          "height": 936
+        },
+        "theme": "light",
+        "density": "comfortable"
+      },
+      {
+        "name": "compact",
+        "viewport": {
+          "width": 1280,
+          "height": 720
+        },
+        "theme": "light",
+        "density": "compact"
+      },
+      {
+        "name": "narrow",
+        "viewport": {
+          "width": 320,
+          "height": 568
+        },
+        "theme": "dark",
+        "density": "comfortable"
+      }
+    ],
+    "geometry_interaction_page_external_failures_empty": true,
+    "results_path": "ci/estimate/current-4ff/planning/candidate/results.json.gz",
+    "new_png_files": 0,
+    "existing_unique_png_files": 12
+  },
+  "archives": [
+    {
+      "artifact": {
+        "id": 11746194910,
+        "name": "vnext-verification",
+        "size_in_bytes": 1137754,
+        "url": "https://api.github.com/repos/it-novikov/iquipage-design-system/actions/artifacts/11746194910",
+        "archive_download_url": "https://api.github.com/repos/it-novikov/iquipage-design-system/actions/artifacts/11746194910/zip",
+        "expired": false,
+        "created_at": "2026-10-12T12:20:04Z",
+        "expires_at": "2026-10-26T12:20:03Z",
+        "updated_at": "2026-10-12T12:20:04Z",
+        "digest": "sha256:29f5585a7c8fcec0d7231b5e6758956de46d898af4b6c8764d0efe51f78c7f65",
+        "workflow_run": {
+          "id": 38245659125,
+          "repository_id": 1360587523,
+          "head_repository_id": 1360587523,
+          "head_branch": "fix/estimate-modal-scope",
+          "head_sha": "4ff05227cad0a9e1c1a35d59faffdddd20e5c354"
+        }
+      },
+      "zip_file_in_scratch": "research/continuation/newparallel-estimate-full-11746194910.zip",
+      "zip_bytes": 1137754,
+      "zip_sha256": "29f5585a7c8fcec0d7231b5e6758956de46d898af4b6c8764d0efe51f78c7f65",
+      "zip_preserved_in_git": false,
+      "original_inventory": {
+        "source_file": "research/continuation/newparallel-estimate-full-11746194910-inventory.json",
+        "bytes": 5685,
+        "sha256": "2b721c76600f8ea04f61f4040b73f0dfd5515e80ebb4c0f09b838695ab23400a"
+      },
+      "member_count": 24,
+      "members": [
+        {
+          "artifact": "vnext-verification",
+          "artifact_id": 11746194910,
+          "source_file": "research/continuation/newparallel-estimate-full-11746194910/planning-selection/candidate/compact-last-row.png",
+          "archive_path": "planning-selection/candidate/compact-last-row.png",
+          "bytes": 95548,
+          "sha256": "d7c1e98b46a2dc047aebb78f9298741bfef40fa524a4cf05d1e75e9a0eb21d5f",
+          "existing_exact_matches": [
+            "ci/estimate/planning/candidate/compact-last-row.png"
+          ],
+          "deduplicated_against_existing": true,
+          "preserved": true,
+          "stored_in_this_package": false,
+          "preserved_path": "ci/estimate/planning/candidate/compact-last-row.png",
+          "encoding": "identity",
+          "preserved_bytes": 95548,
+          "preserved_sha256": "d7c1e98b46a2dc047aebb78f9298741bfef40fa524a4cf05d1e75e9a0eb21d5f"
+        },
+        {
+          "artifact": "vnext-verification",
+          "artifact_id": 11746194910,
+          "source_file": "research/continuation/newparallel-estimate-full-11746194910/planning-selection/candidate/compact-menu-return.png",
+          "archive_path": "planning-selection/candidate/compact-menu-return.png",
+          "bytes": 100900,
+          "sha256": "d38f2e9299e4ed72271df7bb43e910c10593a761b1473f0b758d31a1648caa81",
+          "existing_exact_matches": [
+            "ci/estimate/planning/candidate/compact-menu-return.png"
+          ],
+          "deduplicated_against_existing": true,
+          "preserved": true,
+          "stored_in_this_package": false,
+          "preserved_path": "ci/estimate/planning/candidate/compact-menu-return.png",
+          "encoding": "identity",
+          "preserved_bytes": 100900,
+          "preserved_sha256": "d38f2e9299e4ed72271df7bb43e910c10593a761b1473f0b758d31a1648caa81"
+        },
+        {
+          "artifact": "vnext-verification",
+          "artifact_id": 11746194910,
+          "source_file": "research/continuation/newparallel-estimate-full-11746194910/planning-selection/candidate/compact-menu.png",
+          "archive_path": "planning-selection/candidate/compact-menu.png",
+          "bytes": 106810,
+          "sha256": "546e5210e6d1b7f8ae3df0d5385324f0b65d7a2bfdc3afd3d01310190715ffe1",
+          "existing_exact_matches": [
+            "ci/estimate/planning/candidate/compact-menu.png"
+          ],
+          "deduplicated_against_existing": true,
+          "preserved": true,
+          "stored_in_this_package": false,
+          "preserved_path": "ci/estimate/planning/candidate/compact-menu.png",
+          "encoding": "identity",
+          "preserved_bytes": 106810,
+          "preserved_sha256": "546e5210e6d1b7f8ae3df0d5385324f0b65d7a2bfdc3afd3d01310190715ffe1"
+        },
+        {
+          "artifact": "vnext-verification",
+          "artifact_id": 11746194910,
+          "source_file": "research/continuation/newparallel-estimate-full-11746194910/planning-selection/candidate/compact-selection.png",
+          "archive_path": "planning-selection/candidate/compact-selection.png",
+          "bytes": 101328,
+          "sha256": "8d4f3531a018eada93b21d1a8088253c740ec3b4973a56fbf7a88a3ab0dc55e4",
+          "existing_exact_matches": [
+            "ci/estimate/planning/candidate/compact-selection.png"
+          ],
+          "deduplicated_against_existing": true,
+          "preserved": true,
+          "stored_in_this_package": false,
+          "preserved_path": "ci/estimate/planning/candidate/compact-selection.png",
+          "encoding": "identity",
+          "preserved_bytes": 101328,
+          "preserved_sha256": "8d4f3531a018eada93b21d1a8088253c740ec3b4973a56fbf7a88a3ab0dc55e4"
+        },
+        {
+          "artifact": "vnext-verification",
+          "artifact_id": 11746194910,
+          "source_file": "research/continuation/newparallel-estimate-full-11746194910/planning-selection/candidate/desktop-last-row.png",
+          "archive_path": "planning-selection/candidate/desktop-last-row.png",
+          "bytes": 109977,
+          "sha256": "1ea04d20c9ec8ae20c13b22e0688e766eab572aa46fd6053ddf9e52c027a6f8b",
+          "existing_exact_matches": [
+            "ci/estimate/planning/candidate/desktop-last-row.png"
+          ],
+          "deduplicated_against_existing": true,
+          "preserved": true,
+          "stored_in_this_package": false,
+          "preserved_path": "ci/estimate/planning/candidate/desktop-last-row.png",
+          "encoding": "identity",
+          "preserved_bytes": 109977,
+          "preserved_sha256": "1ea04d20c9ec8ae20c13b22e0688e766eab572aa46fd6053ddf9e52c027a6f8b"
+        },
+        {
+          "artifact": "vnext-verification",
+          "artifact_id": 11746194910,
+          "source_file": "research/continuation/newparallel-estimate-full-11746194910/planning-selection/candidate/desktop-menu-return.png",
+          "archive_path": "planning-selection/candidate/desktop-menu-return.png",
+          "bytes": 124809,
+          "sha256": "7aed6c464e5fcedd58663284d842cb27dcff00e0d7caf0f7955bcd0af5c5bb27",
+          "existing_exact_matches": [
+            "ci/estimate/planning/candidate/desktop-menu-return.png"
+          ],
+          "deduplicated_against_existing": true,
+          "preserved": true,
+          "stored_in_this_package": false,
+          "preserved_path": "ci/estimate/planning/candidate/desktop-menu-return.png",
+          "encoding": "identity",
+          "preserved_bytes": 124809,
+          "preserved_sha256": "7aed6c464e5fcedd58663284d842cb27dcff00e0d7caf0f7955bcd0af5c5bb27"
+        },
+        {
+          "artifact": "vnext-verification",
+          "artifact_id": 11746194910,
+          "source_file": "research/continuation/newparallel-estimate-full-11746194910/planning-selection/candidate/desktop-menu.png",
+          "archive_path": "planning-selection/candidate/desktop-menu.png",
+          "bytes": 130876,
+          "sha256": "010fbb6fff58d6c36dbc23b267e1359cc8d1fb846512395d7e26111db546fb74",
+          "existing_exact_matches": [
+            "ci/estimate/planning/candidate/desktop-menu.png"
+          ],
+          "deduplicated_against_existing": true,
+          "preserved": true,
+          "stored_in_this_package": false,
+          "preserved_path": "ci/estimate/planning/candidate/desktop-menu.png",
+          "encoding": "identity",
+          "preserved_bytes": 130876,
+          "preserved_sha256": "010fbb6fff58d6c36dbc23b267e1359cc8d1fb846512395d7e26111db546fb74"
+        },
+        {
+          "artifact": "vnext-verification",
+          "artifact_id": 11746194910,
+          "source_file": "research/continuation/newparallel-estimate-full-11746194910/planning-selection/candidate/desktop-selection.png",
+          "archive_path": "planning-selection/candidate/desktop-selection.png",
+          "bytes": 123525,
+          "sha256": "f30caa93a7b3233b230715c09338577238a0ae8a419783cc00bf091343cbc787",
+          "existing_exact_matches": [
+            "ci/estimate/planning/candidate/desktop-selection.png"
+          ],
+          "deduplicated_against_existing": true,
+          "preserved": true,
+          "stored_in_this_package": false,
+          "preserved_path": "ci/estimate/planning/candidate/desktop-selection.png",
+          "encoding": "identity",
+          "preserved_bytes": 123525,
+          "preserved_sha256": "f30caa93a7b3233b230715c09338577238a0ae8a419783cc00bf091343cbc787"
+        },
+        {
+          "artifact": "vnext-verification",
+          "artifact_id": 11746194910,
+          "source_file": "research/continuation/newparallel-estimate-full-11746194910/planning-selection/candidate/narrow-last-row.png",
+          "archive_path": "planning-selection/candidate/narrow-last-row.png",
+          "bytes": 27880,
+          "sha256": "8576403e4f1a4548ba2c624693c9ac29962e75f8e0b4feaeed2112371d748959",
+          "existing_exact_matches": [
+            "ci/estimate/planning/candidate/narrow-last-row.png"
+          ],
+          "deduplicated_against_existing": true,
+          "preserved": true,
+          "stored_in_this_package": false,
+          "preserved_path": "ci/estimate/planning/candidate/narrow-last-row.png",
+          "encoding": "identity",
+          "preserved_bytes": 27880,
+          "preserved_sha256": "8576403e4f1a4548ba2c624693c9ac29962e75f8e0b4feaeed2112371d748959"
+        },
+        {
+          "artifact": "vnext-verification",
+          "artifact_id": 11746194910,
+          "source_file": "research/continuation/newparallel-estimate-full-11746194910/planning-selection/candidate/narrow-menu-return.png",
+          "archive_path": "planning-selection/candidate/narrow-menu-return.png",
+          "bytes": 29989,
+          "sha256": "2342d51e1b96d6f9e88c136e0859f74a39b3de362ef71c7023854cfd1f7dcf20",
+          "existing_exact_matches": [
+            "ci/estimate/planning/candidate/narrow-menu-return.png"
+          ],
+          "deduplicated_against_existing": true,
+          "preserved": true,
+          "stored_in_this_package": false,
+          "preserved_path": "ci/estimate/planning/candidate/narrow-menu-return.png",
+          "encoding": "identity",
+          "preserved_bytes": 29989,
+          "preserved_sha256": "2342d51e1b96d6f9e88c136e0859f74a39b3de362ef71c7023854cfd1f7dcf20"
+        },
+        {
+          "artifact": "vnext-verification",
+          "artifact_id": 11746194910,
+          "source_file": "research/continuation/newparallel-estimate-full-11746194910/planning-selection/candidate/narrow-menu.png",
+          "archive_path": "planning-selection/candidate/narrow-menu.png",
+          "bytes": 29551,
+          "sha256": "3f74974c7ae24548bad6391e9d63c6aed46355b972bf6f3fa6e42d4bf0d11982",
+          "existing_exact_matches": [
+            "ci/estimate/planning/candidate/narrow-menu.png"
+          ],
+          "deduplicated_against_existing": true,
+          "preserved": true,
+          "stored_in_this_package": false,
+          "preserved_path": "ci/estimate/planning/candidate/narrow-menu.png",
+          "encoding": "identity",
+          "preserved_bytes": 29551,
+          "preserved_sha256": "3f74974c7ae24548bad6391e9d63c6aed46355b972bf6f3fa6e42d4bf0d11982"
+        },
+        {
+          "artifact": "vnext-verification",
+          "artifact_id": 11746194910,
+          "source_file": "research/continuation/newparallel-estimate-full-11746194910/planning-selection/candidate/narrow-selection.png",
+          "archive_path": "planning-selection/candidate/narrow-selection.png",
+          "bytes": 29748,
+          "sha256": "7e33161c13b42dc88bca846b8595b7fabc26a8e6315dcd950c562a8a57c06ef7",
+          "existing_exact_matches": [
+            "ci/estimate/planning/candidate/narrow-selection.png"
+          ],
+          "deduplicated_against_existing": true,
+          "preserved": true,
+          "stored_in_this_package": false,
+          "preserved_path": "ci/estimate/planning/candidate/narrow-selection.png",
+          "encoding": "identity",
+          "preserved_bytes": 29748,
+          "preserved_sha256": "7e33161c13b42dc88bca846b8595b7fabc26a8e6315dcd950c562a8a57c06ef7"
+        },
+        {
+          "artifact": "vnext-verification",
+          "artifact_id": 11746194910,
+          "source_file": "research/continuation/newparallel-estimate-full-11746194910/planning-selection/candidate/results.json",
+          "archive_path": "planning-selection/candidate/results.json",
+          "bytes": 85901,
+          "sha256": "78fd00bc6cd31e0e0995d4429b818d87ed2a3d69502c00381da53c62fa8cc49e",
+          "preserved": true,
+          "stored_in_this_package": true,
+          "preserved_path": "ci/estimate/current-4ff/planning/candidate/results.json.gz",
+          "encoding": "gzip",
+          "preserved_bytes": 3682,
+          "preserved_sha256": "399286c591e5b8966c35e01428e3b04b40dd125ed6a6a2ffcec6d02721a926cc"
+        },
+        {
+          "artifact": "vnext-verification",
+          "artifact_id": 11746194910,
+          "source_file": "research/continuation/newparallel-estimate-full-11746194910/verification/2026-10-12T11-55-22.783Z/detached-product.log",
+          "archive_path": "verification/2026-10-12T11-55-22.783Z/detached-product.log",
+          "bytes": 81832,
+          "sha256": "f77995c08c0e65c1af8c84b0a75539538d3abcae164c3b4eab92aea21cff1e4d",
+          "preserved": true,
+          "stored_in_this_package": true,
+          "preserved_path": "ci/estimate/current-4ff/verification/detached-product.log.gz",
+          "encoding": "gzip",
+          "preserved_bytes": 28413,
+          "preserved_sha256": "6b0a4b852cab0ffbce4367da36088b0b06aefd57f3f0590c831a08be019c03fe"
+        },
+        {
+          "artifact": "vnext-verification",
+          "artifact_id": 11746194910,
+          "source_file": "research/continuation/newparallel-estimate-full-11746194910/verification/2026-10-12T11-55-22.783Z/library-build.log",
+          "archive_path": "verification/2026-10-12T11-55-22.783Z/library-build.log",
+          "bytes": 144,
+          "sha256": "d947d93afecad1eae735d5736b8a675f776cb1383196d75306d8f12755f1eca0",
+          "preserved": true,
+          "stored_in_this_package": true,
+          "preserved_path": "ci/estimate/current-4ff/verification/library-build.log.gz",
+          "encoding": "gzip",
+          "preserved_bytes": 147,
+          "preserved_sha256": "98954d8142298cb792be2c2f43aadd45103546d8e9f9f8d6d6c9585881f3f7a8"
+        },
+        {
+          "artifact": "vnext-verification",
+          "artifact_id": 11746194910,
+          "source_file": "research/continuation/newparallel-estimate-full-11746194910/verification/2026-10-12T11-55-22.783Z/library-tests.log",
+          "archive_path": "verification/2026-10-12T11-55-22.783Z/library-tests.log",
+          "bytes": 38483,
+          "sha256": "28ea84d38f04cc5f1b472b24eecb3a9d19d1db99b54b2588b4ae800fe263fa14",
+          "preserved": true,
+          "stored_in_this_package": true,
+          "preserved_path": "ci/estimate/current-4ff/verification/library-tests.log.gz",
+          "encoding": "gzip",
+          "preserved_bytes": 14312,
+          "preserved_sha256": "80b3b9d462b03a7657002883c5dd50d27e3e01742c3f6173e21d97c5d676aeb2"
+        },
+        {
+          "artifact": "vnext-verification",
+          "artifact_id": 11746194910,
+          "source_file": "research/continuation/newparallel-estimate-full-11746194910/verification/2026-10-12T11-55-22.783Z/product-boundaries.log",
+          "archive_path": "verification/2026-10-12T11-55-22.783Z/product-boundaries.log",
+          "bytes": 292,
+          "sha256": "d6a1c681db26574e94256f60879ab77d34282add2ef2e2b9a930229d27e40132",
+          "preserved": true,
+          "stored_in_this_package": true,
+          "preserved_path": "ci/estimate/current-4ff/verification/product-boundaries.log.gz",
+          "encoding": "gzip",
+          "preserved_bytes": 211,
+          "preserved_sha256": "1372d1c9921d4a049ab72d59c911eef18429aa4ed4c853ff460e1f167526930d"
+        },
+        {
+          "artifact": "vnext-verification",
+          "artifact_id": 11746194910,
+          "source_file": "research/continuation/newparallel-estimate-full-11746194910/verification/2026-10-12T11-55-22.783Z/product-build.log",
+          "archive_path": "verification/2026-10-12T11-55-22.783Z/product-build.log",
+          "bytes": 3877,
+          "sha256": "388564081ebda3ebdd9589969bd0bf69786fa62291ec349b5189ce298c46fb27",
+          "preserved": true,
+          "stored_in_this_package": true,
+          "preserved_path": "ci/estimate/current-4ff/verification/product-build.log.gz",
+          "encoding": "gzip",
+          "preserved_bytes": 1382,
+          "preserved_sha256": "5d70034084d2c35d6210fcce5c6f0eb93bb2518a30401efb6dc3c010f77fbd87"
+        },
+        {
+          "artifact": "vnext-verification",
+          "artifact_id": 11746194910,
+          "source_file": "research/continuation/newparallel-estimate-full-11746194910/verification/2026-10-12T11-55-22.783Z/product-tests.log",
+          "archive_path": "verification/2026-10-12T11-55-22.783Z/product-tests.log",
+          "bytes": 80205,
+          "sha256": "b11f7ec5fa59cefca2d6e8d32fcd03db5ceb7e4b898822c8fb5a287c9e3ee5d8",
+          "preserved": true,
+          "stored_in_this_package": true,
+          "preserved_path": "ci/estimate/current-4ff/verification/product-tests.log.gz",
+          "encoding": "gzip",
+          "preserved_bytes": 27308,
+          "preserved_sha256": "ae6c52b13e96587006eee7f111ffd467179ad188b1dcae447d3fde499667401a"
+        },
+        {
+          "artifact": "vnext-verification",
+          "artifact_id": 11746194910,
+          "source_file": "research/continuation/newparallel-estimate-full-11746194910/verification/2026-10-12T11-55-22.783Z/source-stability.log",
+          "archive_path": "verification/2026-10-12T11-55-22.783Z/source-stability.log",
+          "bytes": 60,
+          "sha256": "8585a17108a61f415ff4ecf42f1b62cd8bce87e96c6068bb2d314a569cf77d94",
+          "preserved": true,
+          "stored_in_this_package": true,
+          "preserved_path": "ci/estimate/current-4ff/verification/source-stability.log.gz",
+          "encoding": "gzip",
+          "preserved_bytes": 80,
+          "preserved_sha256": "93b3a82f456d5bf5a78cdd0356449484e2cbe180ef1e59491b32c27e86cf4c1a"
+        },
+        {
+          "artifact": "vnext-verification",
+          "artifact_id": 11746194910,
+          "source_file": "research/continuation/newparallel-estimate-full-11746194910/verification/2026-10-12T11-55-22.783Z/sources-after.json",
+          "archive_path": "verification/2026-10-12T11-55-22.783Z/sources-after.json",
+          "bytes": 223755,
+          "sha256": "7d164e0a6ecbb0f35d703717b8d7887c81fb3ad34f536ff849396f02e2201e5a",
+          "preserved": true,
+          "stored_in_this_package": true,
+          "preserved_path": "ci/estimate/current-4ff/verification/sources-after.json.gz",
+          "encoding": "gzip",
+          "preserved_bytes": 61509,
+          "preserved_sha256": "a2d9b7674d7457df9e46b46788ab6772702e6414843c43aaf8d02d575ffe0fc1"
+        },
+        {
+          "artifact": "vnext-verification",
+          "artifact_id": 11746194910,
+          "source_file": "research/continuation/newparallel-estimate-full-11746194910/verification/2026-10-12T11-55-22.783Z/sources.json",
+          "archive_path": "verification/2026-10-12T11-55-22.783Z/sources.json",
+          "bytes": 223755,
+          "sha256": "7d164e0a6ecbb0f35d703717b8d7887c81fb3ad34f536ff849396f02e2201e5a",
+          "preserved": true,
+          "stored_in_this_package": true,
+          "preserved_path": "ci/estimate/current-4ff/verification/sources.json.gz",
+          "encoding": "gzip",
+          "preserved_bytes": 61509,
+          "preserved_sha256": "a2d9b7674d7457df9e46b46788ab6772702e6414843c43aaf8d02d575ffe0fc1"
+        },
+        {
+          "artifact": "vnext-verification",
+          "artifact_id": 11746194910,
+          "source_file": "research/continuation/newparallel-estimate-full-11746194910/verification/2026-10-12T11-55-22.783Z/verification-tools.log",
+          "archive_path": "verification/2026-10-12T11-55-22.783Z/verification-tools.log",
+          "bytes": 239,
+          "sha256": "0ba6602e07dc67318409ddb142a03c12c21cfcfe4c3955398f02dd4de03f1854",
+          "preserved": true,
+          "stored_in_this_package": true,
+          "preserved_path": "ci/estimate/current-4ff/verification/verification-tools.log.gz",
+          "encoding": "gzip",
+          "preserved_bytes": 200,
+          "preserved_sha256": "dfd45e273ca70a8f86fe8eb9901c61fa3c9e5a00c54a39403e75f45f0eddf4c9"
+        },
+        {
+          "artifact": "vnext-verification",
+          "artifact_id": 11746194910,
+          "source_file": "research/continuation/newparallel-estimate-full-11746194910/verification/2026-10-12T11-55-22.783Z/verification.json",
+          "archive_path": "verification/2026-10-12T11-55-22.783Z/verification.json",
+          "bytes": 1581,
+          "sha256": "c4cdebfc1eb95876c2ffc1eec159240f90c0eedce5b30c2d76d06289d2c4a245",
+          "preserved": true,
+          "stored_in_this_package": true,
+          "preserved_path": "ci/estimate/current-4ff/verification/verification.json",
+          "encoding": "identity",
+          "preserved_bytes": 1581,
+          "preserved_sha256": "c4cdebfc1eb95876c2ffc1eec159240f90c0eedce5b30c2d76d06289d2c4a245"
+        }
+      ]
+    },
+    {
+      "artifact": {
+        "id": 11746555040,
+        "name": "planning-browser-evidence",
+        "size_in_bytes": 943604,
+        "url": "https://api.github.com/repos/it-novikov/iquipage-design-system/actions/artifacts/11746555040",
+        "archive_download_url": "https://api.github.com/repos/it-novikov/iquipage-design-system/actions/artifacts/11746555040/zip",
+        "expired": false,
+        "created_at": "2026-10-12T11:55:17Z",
+        "expires_at": "2026-10-26T11:55:16Z",
+        "updated_at": "2026-10-12T11:55:17Z",
+        "digest": "sha256:7262828d55fab2820539b91522a8c30dfae476c3ae25246c111e6013e30589ab",
+        "workflow_run": {
+          "id": 38245659125,
+          "repository_id": 1360587523,
+          "head_repository_id": 1360587523,
+          "head_branch": "fix/estimate-modal-scope",
+          "head_sha": "4ff05227cad0a9e1c1a35d59faffdddd20e5c354"
+        }
+      },
+      "zip_file_in_scratch": "research/continuation/newparallel-estimate-planning-11746555040.zip",
+      "zip_bytes": 943604,
+      "zip_sha256": "7262828d55fab2820539b91522a8c30dfae476c3ae25246c111e6013e30589ab",
+      "zip_preserved_in_git": false,
+      "original_inventory": {
+        "source_file": "research/continuation/newparallel-estimate-planning-11746555040-inventory.json",
+        "bytes": 3347,
+        "sha256": "58708650e37bb84d441e18eaee73c77d97501d0d85fd1ca7446fc6379fb005a3"
+      },
+      "member_count": 13,
+      "members": [
+        {
+          "artifact": "planning-browser-evidence",
+          "artifact_id": 11746555040,
+          "source_file": "research/continuation/newparallel-estimate-planning-11746555040/candidate/compact-last-row.png",
+          "archive_path": "candidate/compact-last-row.png",
+          "bytes": 95548,
+          "sha256": "d7c1e98b46a2dc047aebb78f9298741bfef40fa524a4cf05d1e75e9a0eb21d5f",
+          "existing_exact_matches": [
+            "ci/estimate/planning/candidate/compact-last-row.png"
+          ],
+          "deduplicated_against_existing": true,
+          "preserved": true,
+          "stored_in_this_package": false,
+          "preserved_path": "ci/estimate/planning/candidate/compact-last-row.png",
+          "encoding": "identity",
+          "preserved_bytes": 95548,
+          "preserved_sha256": "d7c1e98b46a2dc047aebb78f9298741bfef40fa524a4cf05d1e75e9a0eb21d5f"
+        },
+        {
+          "artifact": "planning-browser-evidence",
+          "artifact_id": 11746555040,
+          "source_file": "research/continuation/newparallel-estimate-planning-11746555040/candidate/compact-menu-return.png",
+          "archive_path": "candidate/compact-menu-return.png",
+          "bytes": 100900,
+          "sha256": "d38f2e9299e4ed72271df7bb43e910c10593a761b1473f0b758d31a1648caa81",
+          "existing_exact_matches": [
+            "ci/estimate/planning/candidate/compact-menu-return.png"
+          ],
+          "deduplicated_against_existing": true,
+          "preserved": true,
+          "stored_in_this_package": false,
+          "preserved_path": "ci/estimate/planning/candidate/compact-menu-return.png",
+          "encoding": "identity",
+          "preserved_bytes": 100900,
+          "preserved_sha256": "d38f2e9299e4ed72271df7bb43e910c10593a761b1473f0b758d31a1648caa81"
+        },
+        {
+          "artifact": "planning-browser-evidence",
+          "artifact_id": 11746555040,
+          "source_file": "research/continuation/newparallel-estimate-planning-11746555040/candidate/compact-menu.png",
+          "archive_path": "candidate/compact-menu.png",
+          "bytes": 106810,
+          "sha256": "546e5210e6d1b7f8ae3df0d5385324f0b65d7a2bfdc3afd3d01310190715ffe1",
+          "existing_exact_matches": [
+            "ci/estimate/planning/candidate/compact-menu.png"
+          ],
+          "deduplicated_against_existing": true,
+          "preserved": true,
+          "stored_in_this_package": false,
+          "preserved_path": "ci/estimate/planning/candidate/compact-menu.png",
+          "encoding": "identity",
+          "preserved_bytes": 106810,
+          "preserved_sha256": "546e5210e6d1b7f8ae3df0d5385324f0b65d7a2bfdc3afd3d01310190715ffe1"
+        },
+        {
+          "artifact": "planning-browser-evidence",
+          "artifact_id": 11746555040,
+          "source_file": "research/continuation/newparallel-estimate-planning-11746555040/candidate/compact-selection.png",
+          "archive_path": "candidate/compact-selection.png",
+          "bytes": 101328,
+          "sha256": "8d4f3531a018eada93b21d1a8088253c740ec3b4973a56fbf7a88a3ab0dc55e4",
+          "existing_exact_matches": [
+            "ci/estimate/planning/candidate/compact-selection.png"
+          ],
+          "deduplicated_against_existing": true,
+          "preserved": true,
+          "stored_in_this_package": false,
+          "preserved_path": "ci/estimate/planning/candidate/compact-selection.png",
+          "encoding": "identity",
+          "preserved_bytes": 101328,
+          "preserved_sha256": "8d4f3531a018eada93b21d1a8088253c740ec3b4973a56fbf7a88a3ab0dc55e4"
+        },
+        {
+          "artifact": "planning-browser-evidence",
+          "artifact_id": 11746555040,
+          "source_file": "research/continuation/newparallel-estimate-planning-11746555040/candidate/desktop-last-row.png",
+          "archive_path": "candidate/desktop-last-row.png",
+          "bytes": 109977,
+          "sha256": "1ea04d20c9ec8ae20c13b22e0688e766eab572aa46fd6053ddf9e52c027a6f8b",
+          "existing_exact_matches": [
+            "ci/estimate/planning/candidate/desktop-last-row.png"
+          ],
+          "deduplicated_against_existing": true,
+          "preserved": true,
+          "stored_in_this_package": false,
+          "preserved_path": "ci/estimate/planning/candidate/desktop-last-row.png",
+          "encoding": "identity",
+          "preserved_bytes": 109977,
+          "preserved_sha256": "1ea04d20c9ec8ae20c13b22e0688e766eab572aa46fd6053ddf9e52c027a6f8b"
+        },
+        {
+          "artifact": "planning-browser-evidence",
+          "artifact_id": 11746555040,
+          "source_file": "research/continuation/newparallel-estimate-planning-11746555040/candidate/desktop-menu-return.png",
+          "archive_path": "candidate/desktop-menu-return.png",
+          "bytes": 124809,
+          "sha256": "7aed6c464e5fcedd58663284d842cb27dcff00e0d7caf0f7955bcd0af5c5bb27",
+          "existing_exact_matches": [
+            "ci/estimate/planning/candidate/desktop-menu-return.png"
+          ],
+          "deduplicated_against_existing": true,
+          "preserved": true,
+          "stored_in_this_package": false,
+          "preserved_path": "ci/estimate/planning/candidate/desktop-menu-return.png",
+          "encoding": "identity",
+          "preserved_bytes": 124809,
+          "preserved_sha256": "7aed6c464e5fcedd58663284d842cb27dcff00e0d7caf0f7955bcd0af5c5bb27"
+        },
+        {
+          "artifact": "planning-browser-evidence",
+          "artifact_id": 11746555040,
+          "source_file": "research/continuation/newparallel-estimate-planning-11746555040/candidate/desktop-menu.png",
+          "archive_path": "candidate/desktop-menu.png",
+          "bytes": 130876,
+          "sha256": "010fbb6fff58d6c36dbc23b267e1359cc8d1fb846512395d7e26111db546fb74",
+          "existing_exact_matches": [
+            "ci/estimate/planning/candidate/desktop-menu.png"
+          ],
+          "deduplicated_against_existing": true,
+          "preserved": true,
+          "stored_in_this_package": false,
+          "preserved_path": "ci/estimate/planning/candidate/desktop-menu.png",
+          "encoding": "identity",
+          "preserved_bytes": 130876,
+          "preserved_sha256": "010fbb6fff58d6c36dbc23b267e1359cc8d1fb846512395d7e26111db546fb74"
+        },
+        {
+          "artifact": "planning-browser-evidence",
+          "artifact_id": 11746555040,
+          "source_file": "research/continuation/newparallel-estimate-planning-11746555040/candidate/desktop-selection.png",
+          "archive_path": "candidate/desktop-selection.png",
+          "bytes": 123525,
+          "sha256": "f30caa93a7b3233b230715c09338577238a0ae8a419783cc00bf091343cbc787",
+          "existing_exact_matches": [
+            "ci/estimate/planning/candidate/desktop-selection.png"
+          ],
+          "deduplicated_against_existing": true,
+          "preserved": true,
+          "stored_in_this_package": false,
+          "preserved_path": "ci/estimate/planning/candidate/desktop-selection.png",
+          "encoding": "identity",
+          "preserved_bytes": 123525,
+          "preserved_sha256": "f30caa93a7b3233b230715c09338577238a0ae8a419783cc00bf091343cbc787"
+        },
+        {
+          "artifact": "planning-browser-evidence",
+          "artifact_id": 11746555040,
+          "source_file": "research/continuation/newparallel-estimate-planning-11746555040/candidate/narrow-last-row.png",
+          "archive_path": "candidate/narrow-last-row.png",
+          "bytes": 27880,
+          "sha256": "8576403e4f1a4548ba2c624693c9ac29962e75f8e0b4feaeed2112371d748959",
+          "existing_exact_matches": [
+            "ci/estimate/planning/candidate/narrow-last-row.png"
+          ],
+          "deduplicated_against_existing": true,
+          "preserved": true,
+          "stored_in_this_package": false,
+          "preserved_path": "ci/estimate/planning/candidate/narrow-last-row.png",
+          "encoding": "identity",
+          "preserved_bytes": 27880,
+          "preserved_sha256": "8576403e4f1a4548ba2c624693c9ac29962e75f8e0b4feaeed2112371d748959"
+        },
+        {
+          "artifact": "planning-browser-evidence",
+          "artifact_id": 11746555040,
+          "source_file": "research/continuation/newparallel-estimate-planning-11746555040/candidate/narrow-menu-return.png",
+          "archive_path": "candidate/narrow-menu-return.png",
+          "bytes": 29989,
+          "sha256": "2342d51e1b96d6f9e88c136e0859f74a39b3de362ef71c7023854cfd1f7dcf20",
+          "existing_exact_matches": [
+            "ci/estimate/planning/candidate/narrow-menu-return.png"
+          ],
+          "deduplicated_against_existing": true,
+          "preserved": true,
+          "stored_in_this_package": false,
+          "preserved_path": "ci/estimate/planning/candidate/narrow-menu-return.png",
+          "encoding": "identity",
+          "preserved_bytes": 29989,
+          "preserved_sha256": "2342d51e1b96d6f9e88c136e0859f74a39b3de362ef71c7023854cfd1f7dcf20"
+        },
+        {
+          "artifact": "planning-browser-evidence",
+          "artifact_id": 11746555040,
+          "source_file": "research/continuation/newparallel-estimate-planning-11746555040/candidate/narrow-menu.png",
+          "archive_path": "candidate/narrow-menu.png",
+          "bytes": 29551,
+          "sha256": "3f74974c7ae24548bad6391e9d63c6aed46355b972bf6f3fa6e42d4bf0d11982",
+          "existing_exact_matches": [
+            "ci/estimate/planning/candidate/narrow-menu.png"
+          ],
+          "deduplicated_against_existing": true,
+          "preserved": true,
+          "stored_in_this_package": false,
+          "preserved_path": "ci/estimate/planning/candidate/narrow-menu.png",
+          "encoding": "identity",
+          "preserved_bytes": 29551,
+          "preserved_sha256": "3f74974c7ae24548bad6391e9d63c6aed46355b972bf6f3fa6e42d4bf0d11982"
+        },
+        {
+          "artifact": "planning-browser-evidence",
+          "artifact_id": 11746555040,
+          "source_file": "research/continuation/newparallel-estimate-planning-11746555040/candidate/narrow-selection.png",
+          "archive_path": "candidate/narrow-selection.png",
+          "bytes": 29748,
+          "sha256": "7e33161c13b42dc88bca846b8595b7fabc26a8e6315dcd950c562a8a57c06ef7",
+          "existing_exact_matches": [
+            "ci/estimate/planning/candidate/narrow-selection.png"
+          ],
+          "deduplicated_against_existing": true,
+          "preserved": true,
+          "stored_in_this_package": false,
+          "preserved_path": "ci/estimate/planning/candidate/narrow-selection.png",
+          "encoding": "identity",
+          "preserved_bytes": 29748,
+          "preserved_sha256": "7e33161c13b42dc88bca846b8595b7fabc26a8e6315dcd950c562a8a57c06ef7"
+        },
+        {
+          "artifact": "planning-browser-evidence",
+          "artifact_id": 11746555040,
+          "source_file": "research/continuation/newparallel-estimate-planning-11746555040/candidate/results.json",
+          "archive_path": "candidate/results.json",
+          "bytes": 85901,
+          "sha256": "78fd00bc6cd31e0e0995d4429b818d87ed2a3d69502c00381da53c62fa8cc49e",
+          "preserved": true,
+          "stored_in_this_package": true,
+          "preserved_path": "ci/estimate/current-4ff/planning/candidate/results.json.gz",
+          "encoding": "gzip",
+          "preserved_bytes": 3682,
+          "preserved_sha256": "399286c591e5b8966c35e01428e3b04b40dd125ed6a6a2ffcec6d02721a926cc"
+        }
+      ]
+    }
+  ],
+  "job_logs": [
+    {
+      "kind": "full",
+      "run_id": 38245659125,
+      "job_id": 114798739719,
+      "source_file": "research/continuation/newparallel-estimate-full-job.log",
+      "source_exact_json": {
+        "path": "research/continuation/newparallel-estimate-full-job-exact.json",
+        "bytes": 304919,
+        "sha256": "83621ab12b358fb5ed6ef7253ee63c65965ed1fa469bc1554ae0010bf2931930",
+        "representation_preserved_in_git": false
+      },
+      "bytes": 287988,
+      "sha256": "5050be0462dbf123fd08278b660624051abed7748176254502f7ca38adaaf350",
+      "preserved": true,
+      "stored_in_this_package": true,
+      "preserved_path": "ci/estimate/current-4ff/jobs/verify.log.gz",
+      "encoding": "gzip",
+      "preserved_bytes": 44047,
+      "preserved_sha256": "0cc300fdd7c0618a0750e49cbe919846c6c1951b9a4e0e2089a7d60ee1aafae1",
+      "decoding": "Exact JSON-decoded UTF-8 content, no added newline; lossless gzip with mtime 0"
+    }
+  ],
+  "source_path_map": [
+    {
+      "artifact": "vnext-verification",
+      "artifact_id": 11746194910,
+      "source_file": "research/continuation/newparallel-estimate-full-11746194910/planning-selection/candidate/compact-last-row.png",
+      "archive_path": "planning-selection/candidate/compact-last-row.png",
+      "bytes": 95548,
+      "sha256": "d7c1e98b46a2dc047aebb78f9298741bfef40fa524a4cf05d1e75e9a0eb21d5f",
+      "existing_exact_matches": [
+        "ci/estimate/planning/candidate/compact-last-row.png"
+      ],
+      "deduplicated_against_existing": true,
+      "preserved": true,
+      "stored_in_this_package": false,
+      "preserved_path": "ci/estimate/planning/candidate/compact-last-row.png",
+      "encoding": "identity",
+      "preserved_bytes": 95548,
+      "preserved_sha256": "d7c1e98b46a2dc047aebb78f9298741bfef40fa524a4cf05d1e75e9a0eb21d5f"
+    },
+    {
+      "artifact": "vnext-verification",
+      "artifact_id": 11746194910,
+      "source_file": "research/continuation/newparallel-estimate-full-11746194910/planning-selection/candidate/compact-menu-return.png",
+      "archive_path": "planning-selection/candidate/compact-menu-return.png",
+      "bytes": 100900,
+      "sha256": "d38f2e9299e4ed72271df7bb43e910c10593a761b1473f0b758d31a1648caa81",
+      "existing_exact_matches": [
+        "ci/estimate/planning/candidate/compact-menu-return.png"
+      ],
+      "deduplicated_against_existing": true,
+      "preserved": true,
+      "stored_in_this_package": false,
+      "preserved_path": "ci/estimate/planning/candidate/compact-menu-return.png",
+      "encoding": "identity",
+      "preserved_bytes": 100900,
+      "preserved_sha256": "d38f2e9299e4ed72271df7bb43e910c10593a761b1473f0b758d31a1648caa81"
+    },
+    {
+      "artifact": "vnext-verification",
+      "artifact_id": 11746194910,
+      "source_file": "research/continuation/newparallel-estimate-full-11746194910/planning-selection/candidate/compact-menu.png",
+      "archive_path": "planning-selection/candidate/compact-menu.png",
+      "bytes": 106810,
+      "sha256": "546e5210e6d1b7f8ae3df0d5385324f0b65d7a2bfdc3afd3d01310190715ffe1",
+      "existing_exact_matches": [
+        "ci/estimate/planning/candidate/compact-menu.png"
+      ],
+      "deduplicated_against_existing": true,
+      "preserved": true,
+      "stored_in_this_package": false,
+      "preserved_path": "ci/estimate/planning/candidate/compact-menu.png",
+      "encoding": "identity",
+      "preserved_bytes": 106810,
+      "preserved_sha256": "546e5210e6d1b7f8ae3df0d5385324f0b65d7a2bfdc3afd3d01310190715ffe1"
+    },
+    {
+      "artifact": "vnext-verification",
+      "artifact_id": 11746194910,
+      "source_file": "research/continuation/newparallel-estimate-full-11746194910/planning-selection/candidate/compact-selection.png",
+      "archive_path": "planning-selection/candidate/compact-selection.png",
+      "bytes": 101328,
+      "sha256": "8d4f3531a018eada93b21d1a8088253c740ec3b4973a56fbf7a88a3ab0dc55e4",
+      "existing_exact_matches": [
+        "ci/estimate/planning/candidate/compact-selection.png"
+      ],
+      "deduplicated_against_existing": true,
+      "preserved": true,
+      "stored_in_this_package": false,
+      "preserved_path": "ci/estimate/planning/candidate/compact-selection.png",
+      "encoding": "identity",
+      "preserved_bytes": 101328,
+      "preserved_sha256": "8d4f3531a018eada93b21d1a8088253c740ec3b4973a56fbf7a88a3ab0dc55e4"
+    },
+    {
+      "artifact": "vnext-verification",
+      "artifact_id": 11746194910,
+      "source_file": "research/continuation/newparallel-estimate-full-11746194910/planning-selection/candidate/desktop-last-row.png",
+      "archive_path": "planning-selection/candidate/desktop-last-row.png",
+      "bytes": 109977,
+      "sha256": "1ea04d20c9ec8ae20c13b22e0688e766eab572aa46fd6053ddf9e52c027a6f8b",
+      "existing_exact_matches": [
+        "ci/estimate/planning/candidate/desktop-last-row.png"
+      ],
+      "deduplicated_against_existing": true,
+      "preserved": true,
+      "stored_in_this_package": false,
+      "preserved_path": "ci/estimate/planning/candidate/desktop-last-row.png",
+      "encoding": "identity",
+      "preserved_bytes": 109977,
+      "preserved_sha256": "1ea04d20c9ec8ae20c13b22e0688e766eab572aa46fd6053ddf9e52c027a6f8b"
+    },
+    {
+      "artifact": "vnext-verification",
+      "artifact_id": 11746194910,
+      "source_file": "research/continuation/newparallel-estimate-full-11746194910/planning-selection/candidate/desktop-menu-return.png",
+      "archive_path": "planning-selection/candidate/desktop-menu-return.png",
+      "bytes": 124809,
+      "sha256": "7aed6c464e5fcedd58663284d842cb27dcff00e0d7caf0f7955bcd0af5c5bb27",
+      "existing_exact_matches": [
+        "ci/estimate/planning/candidate/desktop-menu-return.png"
+      ],
+      "deduplicated_against_existing": true,
+      "preserved": true,
+      "stored_in_this_package": false,
+      "preserved_path": "ci/estimate/planning/candidate/desktop-menu-return.png",
+      "encoding": "identity",
+      "preserved_bytes": 124809,
+      "preserved_sha256": "7aed6c464e5fcedd58663284d842cb27dcff00e0d7caf0f7955bcd0af5c5bb27"
+    },
+    {
+      "artifact": "vnext-verification",
+      "artifact_id": 11746194910,
+      "source_file": "research/continuation/newparallel-estimate-full-11746194910/planning-selection/candidate/desktop-menu.png",
+      "archive_path": "planning-selection/candidate/desktop-menu.png",
+      "bytes": 130876,
+      "sha256": "010fbb6fff58d6c36dbc23b267e1359cc8d1fb846512395d7e26111db546fb74",
+      "existing_exact_matches": [
+        "ci/estimate/planning/candidate/desktop-menu.png"
+      ],
+      "deduplicated_against_existing": true,
+      "preserved": true,
+      "stored_in_this_package": false,
+      "preserved_path": "ci/estimate/planning/candidate/desktop-menu.png",
+      "encoding": "identity",
+      "preserved_bytes": 130876,
+      "preserved_sha256": "010fbb6fff58d6c36dbc23b267e1359cc8d1fb846512395d7e26111db546fb74"
+    },
+    {
+      "artifact": "vnext-verification",
+      "artifact_id": 11746194910,
+      "source_file": "research/continuation/newparallel-estimate-full-11746194910/planning-selection/candidate/desktop-selection.png",
+      "archive_path": "planning-selection/candidate/desktop-selection.png",
+      "bytes": 123525,
+      "sha256": "f30caa93a7b3233b230715c09338577238a0ae8a419783cc00bf091343cbc787",
+      "existing_exact_matches": [
+        "ci/estimate/planning/candidate/desktop-selection.png"
+      ],
+      "deduplicated_against_existing": true,
+      "preserved": true,
+      "stored_in_this_package": false,
+      "preserved_path": "ci/estimate/planning/candidate/desktop-selection.png",
+      "encoding": "identity",
+      "preserved_bytes": 123525,
+      "preserved_sha256": "f30caa93a7b3233b230715c09338577238a0ae8a419783cc00bf091343cbc787"
+    },
+    {
+      "artifact": "vnext-verification",
+      "artifact_id": 11746194910,
+      "source_file": "research/continuation/newparallel-estimate-full-11746194910/planning-selection/candidate/narrow-last-row.png",
+      "archive_path": "planning-selection/candidate/narrow-last-row.png",
+      "bytes": 27880,
+      "sha256": "8576403e4f1a4548ba2c624693c9ac29962e75f8e0b4feaeed2112371d748959",
+      "existing_exact_matches": [
+        "ci/estimate/planning/candidate/narrow-last-row.png"
+      ],
+      "deduplicated_against_existing": true,
+      "preserved": true,
+      "stored_in_this_package": false,
+      "preserved_path": "ci/estimate/planning/candidate/narrow-last-row.png",
+      "encoding": "identity",
+      "preserved_bytes": 27880,
+      "preserved_sha256": "8576403e4f1a4548ba2c624693c9ac29962e75f8e0b4feaeed2112371d748959"
+    },
+    {
+      "artifact": "vnext-verification",
+      "artifact_id": 11746194910,
+      "source_file": "research/continuation/newparallel-estimate-full-11746194910/planning-selection/candidate/narrow-menu-return.png",
+      "archive_path": "planning-selection/candidate/narrow-menu-return.png",
+      "bytes": 29989,
+      "sha256": "2342d51e1b96d6f9e88c136e0859f74a39b3de362ef71c7023854cfd1f7dcf20",
+      "existing_exact_matches": [
+        "ci/estimate/planning/candidate/narrow-menu-return.png"
+      ],
+      "deduplicated_against_existing": true,
+      "preserved": true,
+      "stored_in_this_package": false,
+      "preserved_path": "ci/estimate/planning/candidate/narrow-menu-return.png",
+      "encoding": "identity",
+      "preserved_bytes": 29989,
+      "preserved_sha256": "2342d51e1b96d6f9e88c136e0859f74a39b3de362ef71c7023854cfd1f7dcf20"
+    },
+    {
+      "artifact": "vnext-verification",
+      "artifact_id": 11746194910,
+      "source_file": "research/continuation/newparallel-estimate-full-11746194910/planning-selection/candidate/narrow-menu.png",
+      "archive_path": "planning-selection/candidate/narrow-menu.png",
+      "bytes": 29551,
+      "sha256": "3f74974c7ae24548bad6391e9d63c6aed46355b972bf6f3fa6e42d4bf0d11982",
+      "existing_exact_matches": [
+        "ci/estimate/planning/candidate/narrow-menu.png"
+      ],
+      "deduplicated_against_existing": true,
+      "preserved": true,
+      "stored_in_this_package": false,
+      "preserved_path": "ci/estimate/planning/candidate/narrow-menu.png",
+      "encoding": "identity",
+      "preserved_bytes": 29551,
+      "preserved_sha256": "3f74974c7ae24548bad6391e9d63c6aed46355b972bf6f3fa6e42d4bf0d11982"
+    },
+    {
+      "artifact": "vnext-verification",
+      "artifact_id": 11746194910,
+      "source_file": "research/continuation/newparallel-estimate-full-11746194910/planning-selection/candidate/narrow-selection.png",
+      "archive_path": "planning-selection/candidate/narrow-selection.png",
+      "bytes": 29748,
+      "sha256": "7e33161c13b42dc88bca846b8595b7fabc26a8e6315dcd950c562a8a57c06ef7",
+      "existing_exact_matches": [
+        "ci/estimate/planning/candidate/narrow-selection.png"
+      ],
+      "deduplicated_against_existing": true,
+      "preserved": true,
+      "stored_in_this_package": false,
+      "preserved_path": "ci/estimate/planning/candidate/narrow-selection.png",
+      "encoding": "identity",
+      "preserved_bytes": 29748,
+      "preserved_sha256": "7e33161c13b42dc88bca846b8595b7fabc26a8e6315dcd950c562a8a57c06ef7"
+    },
+    {
+      "artifact": "vnext-verification",
+      "artifact_id": 11746194910,
+      "source_file": "research/continuation/newparallel-estimate-full-11746194910/planning-selection/candidate/results.json",
+      "archive_path": "planning-selection/candidate/results.json",
+      "bytes": 85901,
+      "sha256": "78fd00bc6cd31e0e0995d4429b818d87ed2a3d69502c00381da53c62fa8cc49e",
+      "preserved": true,
+      "stored_in_this_package": true,
+      "preserved_path": "ci/estimate/current-4ff/planning/candidate/results.json.gz",
+      "encoding": "gzip",
+      "preserved_bytes": 3682,
+      "preserved_sha256": "399286c591e5b8966c35e01428e3b04b40dd125ed6a6a2ffcec6d02721a926cc"
+    },
+    {
+      "artifact": "vnext-verification",
+      "artifact_id": 11746194910,
+      "source_file": "research/continuation/newparallel-estimate-full-11746194910/verification/2026-10-12T11-55-22.783Z/detached-product.log",
+      "archive_path": "verification/2026-10-12T11-55-22.783Z/detached-product.log",
+      "bytes": 81832,
+      "sha256": "f77995c08c0e65c1af8c84b0a75539538d3abcae164c3b4eab92aea21cff1e4d",
+      "preserved": true,
+      "stored_in_this_package": true,
+      "preserved_path": "ci/estimate/current-4ff/verification/detached-product.log.gz",
+      "encoding": "gzip",
+      "preserved_bytes": 28413,
+      "preserved_sha256": "6b0a4b852cab0ffbce4367da36088b0b06aefd57f3f0590c831a08be019c03fe"
+    },
+    {
+      "artifact": "vnext-verification",
+      "artifact_id": 11746194910,
+      "source_file": "research/continuation/newparallel-estimate-full-11746194910/verification/2026-10-12T11-55-22.783Z/library-build.log",
+      "archive_path": "verification/2026-10-12T11-55-22.783Z/library-build.log",
+      "bytes": 144,
+      "sha256": "d947d93afecad1eae735d5736b8a675f776cb1383196d75306d8f12755f1eca0",
+      "preserved": true,
+      "stored_in_this_package": true,
+      "preserved_path": "ci/estimate/current-4ff/verification/library-build.log.gz",
+      "encoding": "gzip",
+      "preserved_bytes": 147,
+      "preserved_sha256": "98954d8142298cb792be2c2f43aadd45103546d8e9f9f8d6d6c9585881f3f7a8"
+    },
+    {
+      "artifact": "vnext-verification",
+      "artifact_id": 11746194910,
+      "source_file": "research/continuation/newparallel-estimate-full-11746194910/verification/2026-10-12T11-55-22.783Z/library-tests.log",
+      "archive_path": "verification/2026-10-12T11-55-22.783Z/library-tests.log",
+      "bytes": 38483,
+      "sha256": "28ea84d38f04cc5f1b472b24eecb3a9d19d1db99b54b2588b4ae800fe263fa14",
+      "preserved": true,
+      "stored_in_this_package": true,
+      "preserved_path": "ci/estimate/current-4ff/verification/library-tests.log.gz",
+      "encoding": "gzip",
+      "preserved_bytes": 14312,
+      "preserved_sha256": "80b3b9d462b03a7657002883c5dd50d27e3e01742c3f6173e21d97c5d676aeb2"
+    },
+    {
+      "artifact": "vnext-verification",
+      "artifact_id": 11746194910,
+      "source_file": "research/continuation/newparallel-estimate-full-11746194910/verification/2026-10-12T11-55-22.783Z/product-boundaries.log",
+      "archive_path": "verification/2026-10-12T11-55-22.783Z/product-boundaries.log",
+      "bytes": 292,
+      "sha256": "d6a1c681db26574e94256f60879ab77d34282add2ef2e2b9a930229d27e40132",
+      "preserved": true,
+      "stored_in_this_package": true,
+      "preserved_path": "ci/estimate/current-4ff/verification/product-boundaries.log.gz",
+      "encoding": "gzip",
+      "preserved_bytes": 211,
+      "preserved_sha256": "1372d1c9921d4a049ab72d59c911eef18429aa4ed4c853ff460e1f167526930d"
+    },
+    {
+      "artifact": "vnext-verification",
+      "artifact_id": 11746194910,
+      "source_file": "research/continuation/newparallel-estimate-full-11746194910/verification/2026-10-12T11-55-22.783Z/product-build.log",
+      "archive_path": "verification/2026-10-12T11-55-22.783Z/product-build.log",
+      "bytes": 3877,
+      "sha256": "388564081ebda3ebdd9589969bd0bf69786fa62291ec349b5189ce298c46fb27",
+      "preserved": true,
+      "stored_in_this_package": true,
+      "preserved_path": "ci/estimate/current-4ff/verification/product-build.log.gz",
+      "encoding": "gzip",
+      "preserved_bytes": 1382,
+      "preserved_sha256": "5d70034084d2c35d6210fcce5c6f0eb93bb2518a30401efb6dc3c010f77fbd87"
+    },
+    {
+      "artifact": "vnext-verification",
+      "artifact_id": 11746194910,
+      "source_file": "research/continuation/newparallel-estimate-full-11746194910/verification/2026-10-12T11-55-22.783Z/product-tests.log",
+      "archive_path": "verification/2026-10-12T11-55-22.783Z/product-tests.log",
+      "bytes": 80205,
+      "sha256": "b11f7ec5fa59cefca2d6e8d32fcd03db5ceb7e4b898822c8fb5a287c9e3ee5d8",
+      "preserved": true,
+      "stored_in_this_package": true,
+      "preserved_path": "ci/estimate/current-4ff/verification/product-tests.log.gz",
+      "encoding": "gzip",
+      "preserved_bytes": 27308,
+      "preserved_sha256": "ae6c52b13e96587006eee7f111ffd467179ad188b1dcae447d3fde499667401a"
+    },
+    {
+      "artifact": "vnext-verification",
+      "artifact_id": 11746194910,
+      "source_file": "research/continuation/newparallel-estimate-full-11746194910/verification/2026-10-12T11-55-22.783Z/source-stability.log",
+      "archive_path": "verification/2026-10-12T11-55-22.783Z/source-stability.log",
+      "bytes": 60,
+      "sha256": "8585a17108a61f415ff4ecf42f1b62cd8bce87e96c6068bb2d314a569cf77d94",
+      "preserved": true,
+      "stored_in_this_package": true,
+      "preserved_path": "ci/estimate/current-4ff/verification/source-stability.log.gz",
+      "encoding": "gzip",
+      "preserved_bytes": 80,
+      "preserved_sha256": "93b3a82f456d5bf5a78cdd0356449484e2cbe180ef1e59491b32c27e86cf4c1a"
+    },
+    {
+      "artifact": "vnext-verification",
+      "artifact_id": 11746194910,
+      "source_file": "research/continuation/newparallel-estimate-full-11746194910/verification/2026-10-12T11-55-22.783Z/sources-after.json",
+      "archive_path": "verification/2026-10-12T11-55-22.783Z/sources-after.json",
+      "bytes": 223755,
+      "sha256": "7d164e0a6ecbb0f35d703717b8d7887c81fb3ad34f536ff849396f02e2201e5a",
+      "preserved": true,
+      "stored_in_this_package": true,
+      "preserved_path": "ci/estimate/current-4ff/verification/sources-after.json.gz",
+      "encoding": "gzip",
+      "preserved_bytes": 61509,
+      "preserved_sha256": "a2d9b7674d7457df9e46b46788ab6772702e6414843c43aaf8d02d575ffe0fc1"
+    },
+    {
+      "artifact": "vnext-verification",
+      "artifact_id": 11746194910,
+      "source_file": "research/continuation/newparallel-estimate-full-11746194910/verification/2026-10-12T11-55-22.783Z/sources.json",
+      "archive_path": "verification/2026-10-12T11-55-22.783Z/sources.json",
+      "bytes": 223755,
+      "sha256": "7d164e0a6ecbb0f35d703717b8d7887c81fb3ad34f536ff849396f02e2201e5a",
+      "preserved": true,
+      "stored_in_this_package": true,
+      "preserved_path": "ci/estimate/current-4ff/verification/sources.json.gz",
+      "encoding": "gzip",
+      "preserved_bytes": 61509,
+      "preserved_sha256": "a2d9b7674d7457df9e46b46788ab6772702e6414843c43aaf8d02d575ffe0fc1"
+    },
+    {
+      "artifact": "vnext-verification",
+      "artifact_id": 11746194910,
+      "source_file": "research/continuation/newparallel-estimate-full-11746194910/verification/2026-10-12T11-55-22.783Z/verification-tools.log",
+      "archive_path": "verification/2026-10-12T11-55-22.783Z/verification-tools.log",
+      "bytes": 239,
+      "sha256": "0ba6602e07dc67318409ddb142a03c12c21cfcfe4c3955398f02dd4de03f1854",
+      "preserved": true,
+      "stored_in_this_package": true,
+      "preserved_path": "ci/estimate/current-4ff/verification/verification-tools.log.gz",
+      "encoding": "gzip",
+      "preserved_bytes": 200,
+      "preserved_sha256": "dfd45e273ca70a8f86fe8eb9901c61fa3c9e5a00c54a39403e75f45f0eddf4c9"
+    },
+    {
+      "artifact": "vnext-verification",
+      "artifact_id": 11746194910,
+      "source_file": "research/continuation/newparallel-estimate-full-11746194910/verification/2026-10-12T11-55-22.783Z/verification.json",
+      "archive_path": "verification/2026-10-12T11-55-22.783Z/verification.json",
+      "bytes": 1581,
+      "sha256": "c4cdebfc1eb95876c2ffc1eec159240f90c0eedce5b30c2d76d06289d2c4a245",
+      "preserved": true,
+      "stored_in_this_package": true,
+      "preserved_path": "ci/estimate/current-4ff/verification/verification.json",
+      "encoding": "identity",
+      "preserved_bytes": 1581,
+      "preserved_sha256": "c4cdebfc1eb95876c2ffc1eec159240f90c0eedce5b30c2d76d06289d2c4a245"
+    },
+    {
+      "artifact": "planning-browser-evidence",
+      "artifact_id": 11746555040,
+      "source_file": "research/continuation/newparallel-estimate-planning-11746555040/candidate/compact-last-row.png",
+      "archive_path": "candidate/compact-last-row.png",
+      "bytes": 95548,
+      "sha256": "d7c1e98b46a2dc047aebb78f9298741bfef40fa524a4cf05d1e75e9a0eb21d5f",
+      "existing_exact_matches": [
+        "ci/estimate/planning/candidate/compact-last-row.png"
+      ],
+      "deduplicated_against_existing": true,
+      "preserved": true,
+      "stored_in_this_package": false,
+      "preserved_path": "ci/estimate/planning/candidate/compact-last-row.png",
+      "encoding": "identity",
+      "preserved_bytes": 95548,
+      "preserved_sha256": "d7c1e98b46a2dc047aebb78f9298741bfef40fa524a4cf05d1e75e9a0eb21d5f"
+    },
+    {
+      "artifact": "planning-browser-evidence",
+      "artifact_id": 11746555040,
+      "source_file": "research/continuation/newparallel-estimate-planning-11746555040/candidate/compact-menu-return.png",
+      "archive_path": "candidate/compact-menu-return.png",
+      "bytes": 100900,
+      "sha256": "d38f2e9299e4ed72271df7bb43e910c10593a761b1473f0b758d31a1648caa81",
+      "existing_exact_matches": [
+        "ci/estimate/planning/candidate/compact-menu-return.png"
+      ],
+      "deduplicated_against_existing": true,
+      "preserved": true,
+      "stored_in_this_package": false,
+      "preserved_path": "ci/estimate/planning/candidate/compact-menu-return.png",
+      "encoding": "identity",
+      "preserved_bytes": 100900,
+      "preserved_sha256": "d38f2e9299e4ed72271df7bb43e910c10593a761b1473f0b758d31a1648caa81"
+    },
+    {
+      "artifact": "planning-browser-evidence",
+      "artifact_id": 11746555040,
+      "source_file": "research/continuation/newparallel-estimate-planning-11746555040/candidate/compact-menu.png",
+      "archive_path": "candidate/compact-menu.png",
+      "bytes": 106810,
+      "sha256": "546e5210e6d1b7f8ae3df0d5385324f0b65d7a2bfdc3afd3d01310190715ffe1",
+      "existing_exact_matches": [
+        "ci/estimate/planning/candidate/compact-menu.png"
+      ],
+      "deduplicated_against_existing": true,
+      "preserved": true,
+      "stored_in_this_package": false,
+      "preserved_path": "ci/estimate/planning/candidate/compact-menu.png",
+      "encoding": "identity",
+      "preserved_bytes": 106810,
+      "preserved_sha256": "546e5210e6d1b7f8ae3df0d5385324f0b65d7a2bfdc3afd3d01310190715ffe1"
+    },
+    {
+      "artifact": "planning-browser-evidence",
+      "artifact_id": 11746555040,
+      "source_file": "research/continuation/newparallel-estimate-planning-11746555040/candidate/compact-selection.png",
+      "archive_path": "candidate/compact-selection.png",
+      "bytes": 101328,
+      "sha256": "8d4f3531a018eada93b21d1a8088253c740ec3b4973a56fbf7a88a3ab0dc55e4",
+      "existing_exact_matches": [
+        "ci/estimate/planning/candidate/compact-selection.png"
+      ],
+      "deduplicated_against_existing": true,
+      "preserved": true,
+      "stored_in_this_package": false,
+      "preserved_path": "ci/estimate/planning/candidate/compact-selection.png",
+      "encoding": "identity",
+      "preserved_bytes": 101328,
+      "preserved_sha256": "8d4f3531a018eada93b21d1a8088253c740ec3b4973a56fbf7a88a3ab0dc55e4"
+    },
+    {
+      "artifact": "planning-browser-evidence",
+      "artifact_id": 11746555040,
+      "source_file": "research/continuation/newparallel-estimate-planning-11746555040/candidate/desktop-last-row.png",
+      "archive_path": "candidate/desktop-last-row.png",
+      "bytes": 109977,
+      "sha256": "1ea04d20c9ec8ae20c13b22e0688e766eab572aa46fd6053ddf9e52c027a6f8b",
+      "existing_exact_matches": [
+        "ci/estimate/planning/candidate/desktop-last-row.png"
+      ],
+      "deduplicated_against_existing": true,
+      "preserved": true,
+      "stored_in_this_package": false,
+      "preserved_path": "ci/estimate/planning/candidate/desktop-last-row.png",
+      "encoding": "identity",
+      "preserved_bytes": 109977,
+      "preserved_sha256": "1ea04d20c9ec8ae20c13b22e0688e766eab572aa46fd6053ddf9e52c027a6f8b"
+    },
+    {
+      "artifact": "planning-browser-evidence",
+      "artifact_id": 11746555040,
+      "source_file": "research/continuation/newparallel-estimate-planning-11746555040/candidate/desktop-menu-return.png",
+      "archive_path": "candidate/desktop-menu-return.png",
+      "bytes": 124809,
+      "sha256": "7aed6c464e5fcedd58663284d842cb27dcff00e0d7caf0f7955bcd0af5c5bb27",
+      "existing_exact_matches": [
+        "ci/estimate/planning/candidate/desktop-menu-return.png"
+      ],
+      "deduplicated_against_existing": true,
+      "preserved": true,
+      "stored_in_this_package": false,
+      "preserved_path": "ci/estimate/planning/candidate/desktop-menu-return.png",
+      "encoding": "identity",
+      "preserved_bytes": 124809,
+      "preserved_sha256": "7aed6c464e5fcedd58663284d842cb27dcff00e0d7caf0f7955bcd0af5c5bb27"
+    },
+    {
+      "artifact": "planning-browser-evidence",
+      "artifact_id": 11746555040,
+      "source_file": "research/continuation/newparallel-estimate-planning-11746555040/candidate/desktop-menu.png",
+      "archive_path": "candidate/desktop-menu.png",
+      "bytes": 130876,
+      "sha256": "010fbb6fff58d6c36dbc23b267e1359cc8d1fb846512395d7e26111db546fb74",
+      "existing_exact_matches": [
+        "ci/estimate/planning/candidate/desktop-menu.png"
+      ],
+      "deduplicated_against_existing": true,
+      "preserved": true,
+      "stored_in_this_package": false,
+      "preserved_path": "ci/estimate/planning/candidate/desktop-menu.png",
+      "encoding": "identity",
+      "preserved_bytes": 130876,
+      "preserved_sha256": "010fbb6fff58d6c36dbc23b267e1359cc8d1fb846512395d7e26111db546fb74"
+    },
+    {
+      "artifact": "planning-browser-evidence",
+      "artifact_id": 11746555040,
+      "source_file": "research/continuation/newparallel-estimate-planning-11746555040/candidate/desktop-selection.png",
+      "archive_path": "candidate/desktop-selection.png",
+      "bytes": 123525,
+      "sha256": "f30caa93a7b3233b230715c09338577238a0ae8a419783cc00bf091343cbc787",
+      "existing_exact_matches": [
+        "ci/estimate/planning/candidate/desktop-selection.png"
+      ],
+      "deduplicated_against_existing": true,
+      "preserved": true,
+      "stored_in_this_package": false,
+      "preserved_path": "ci/estimate/planning/candidate/desktop-selection.png",
+      "encoding": "identity",
+      "preserved_bytes": 123525,
+      "preserved_sha256": "f30caa93a7b3233b230715c09338577238a0ae8a419783cc00bf091343cbc787"
+    },
+    {
+      "artifact": "planning-browser-evidence",
+      "artifact_id": 11746555040,
+      "source_file": "research/continuation/newparallel-estimate-planning-11746555040/candidate/narrow-last-row.png",
+      "archive_path": "candidate/narrow-last-row.png",
+      "bytes": 27880,
+      "sha256": "8576403e4f1a4548ba2c624693c9ac29962e75f8e0b4feaeed2112371d748959",
+      "existing_exact_matches": [
+        "ci/estimate/planning/candidate/narrow-last-row.png"
+      ],
+      "deduplicated_against_existing": true,
+      "preserved": true,
+      "stored_in_this_package": false,
+      "preserved_path": "ci/estimate/planning/candidate/narrow-last-row.png",
+      "encoding": "identity",
+      "preserved_bytes": 27880,
+      "preserved_sha256": "8576403e4f1a4548ba2c624693c9ac29962e75f8e0b4feaeed2112371d748959"
+    },
+    {
+      "artifact": "planning-browser-evidence",
+      "artifact_id": 11746555040,
+      "source_file": "research/continuation/newparallel-estimate-planning-11746555040/candidate/narrow-menu-return.png",
+      "archive_path": "candidate/narrow-menu-return.png",
+      "bytes": 29989,
+      "sha256": "2342d51e1b96d6f9e88c136e0859f74a39b3de362ef71c7023854cfd1f7dcf20",
+      "existing_exact_matches": [
+        "ci/estimate/planning/candidate/narrow-menu-return.png"
+      ],
+      "deduplicated_against_existing": true,
+      "preserved": true,
+      "stored_in_this_package": false,
+      "preserved_path": "ci/estimate/planning/candidate/narrow-menu-return.png",
+      "encoding": "identity",
+      "preserved_bytes": 29989,
+      "preserved_sha256": "2342d51e1b96d6f9e88c136e0859f74a39b3de362ef71c7023854cfd1f7dcf20"
+    },
+    {
+      "artifact": "planning-browser-evidence",
+      "artifact_id": 11746555040,
+      "source_file": "research/continuation/newparallel-estimate-planning-11746555040/candidate/narrow-menu.png",
+      "archive_path": "candidate/narrow-menu.png",
+      "bytes": 29551,
+      "sha256": "3f74974c7ae24548bad6391e9d63c6aed46355b972bf6f3fa6e42d4bf0d11982",
+      "existing_exact_matches": [
+        "ci/estimate/planning/candidate/narrow-menu.png"
+      ],
+      "deduplicated_against_existing": true,
+      "preserved": true,
+      "stored_in_this_package": false,
+      "preserved_path": "ci/estimate/planning/candidate/narrow-menu.png",
+      "encoding": "identity",
+      "preserved_bytes": 29551,
+      "preserved_sha256": "3f74974c7ae24548bad6391e9d63c6aed46355b972bf6f3fa6e42d4bf0d11982"
+    },
+    {
+      "artifact": "planning-browser-evidence",
+      "artifact_id": 11746555040,
+      "source_file": "research/continuation/newparallel-estimate-planning-11746555040/candidate/narrow-selection.png",
+      "archive_path": "candidate/narrow-selection.png",
+      "bytes": 29748,
+      "sha256": "7e33161c13b42dc88bca846b8595b7fabc26a8e6315dcd950c562a8a57c06ef7",
+      "existing_exact_matches": [
+        "ci/estimate/planning/candidate/narrow-selection.png"
+      ],
+      "deduplicated_against_existing": true,
+      "preserved": true,
+      "stored_in_this_package": false,
+      "preserved_path": "ci/estimate/planning/candidate/narrow-selection.png",
+      "encoding": "identity",
+      "preserved_bytes": 29748,
+      "preserved_sha256": "7e33161c13b42dc88bca846b8595b7fabc26a8e6315dcd950c562a8a57c06ef7"
+    },
+    {
+      "artifact": "planning-browser-evidence",
+      "artifact_id": 11746555040,
+      "source_file": "research/continuation/newparallel-estimate-planning-11746555040/candidate/results.json",
+      "archive_path": "candidate/results.json",
+      "bytes": 85901,
+      "sha256": "78fd00bc6cd31e0e0995d4429b818d87ed2a3d69502c00381da53c62fa8cc49e",
+      "preserved": true,
+      "stored_in_this_package": true,
+      "preserved_path": "ci/estimate/current-4ff/planning/candidate/results.json.gz",
+      "encoding": "gzip",
+      "preserved_bytes": 3682,
+      "preserved_sha256": "399286c591e5b8966c35e01428e3b04b40dd125ed6a6a2ffcec6d02721a926cc"
+    }
+  ],
+  "nonfatal_output_preserved": {
+    "detached_watcher_message": true,
+    "jvm_warnings": true
+  },
+  "fullPlatformReady": false,
+  "productionTouched": false,
+  "preservation": {
+    "gzip_mtime": 0,
+    "zip_archives_not_copied": true,
+    "all_37_archive_members_mapped": true,
+    "planning_duplicate_across_two_archives": true,
+    "original_scratch_paths_unchanged": true,
+    "signed_download_references_not_copied": true,
+    "path_base": "docs/implementation/2026-10-12"
+  }
+}

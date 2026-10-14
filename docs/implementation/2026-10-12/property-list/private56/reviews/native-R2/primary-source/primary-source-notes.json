@@ -1,0 +1,17 @@
+{
+  "sources": [
+    {
+      "path": "playwright-v1.62.1-screenshotter.ts",
+      "url": "https://github.com/microsoft/playwright/blob/v1.62.1/packages/playwright-core/src/server/screenshotter.ts",
+      "bytes": 15835,
+      "sha256": "9b3057ec6730f141d0e3168c16c1db28dd9d0c3ec77f3b53c3920a390f3c3339"
+    },
+    {
+      "path": "playwright-v1.62.1-crPage.ts",
+      "url": "https://github.com/microsoft/playwright/blob/v1.62.1/packages/playwright-core/src/server/chromium/crPage.ts",
+      "bytes": 53597,
+      "sha256": "274ba7eb2c9ba3f6a33a0f9165378d5da79c856ebcade78b2101d19f37d762a0"
+    }
+  ],
+  "observation": "FullPage larger than viewport sets fitsViewport=false in screenshotter; Chromium sends Page.captureScreenshot with captureBeyondViewport=true. Native counters associate screenshot interval with a resize event. Exact internal cause/duration requires an uncontaminated diagnostic."
+}

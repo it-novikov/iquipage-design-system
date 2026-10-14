@@ -1,0 +1,136 @@
+{
+  "artifact": {
+    "id": 11748001878,
+    "name": "maps-task-context",
+    "size_in_bytes": 1064097,
+    "url": "https://api.github.com/repos/it-novikov/iquipage-design-system/actions/artifacts/11748001878",
+    "archive_download_url": "https://api.github.com/repos/it-novikov/iquipage-design-system/actions/artifacts/11748001878/zip",
+    "expired": false,
+    "created_at": "2026-10-12T12:32:17Z",
+    "expires_at": "2026-10-26T12:32:15Z",
+    "updated_at": "2026-10-12T12:32:17Z",
+    "digest": "sha256:70f4b0a3bb22fea61d671ead7e85935c7999b4928ca48dab21bcebff2485328e",
+    "workflow_run": {
+      "id": 38249543770,
+      "repository_id": 1360587523,
+      "head_repository_id": 1360587523,
+      "head_branch": "fix/task-overview-recovery",
+      "head_sha": "1fd928e12b43b26f29ebcb190a5595c1d2618444"
+    }
+  },
+  "zip": "task88-maps-11748001878.zip",
+  "zip_bytes": 1064097,
+  "zip_sha256": "70f4b0a3bb22fea61d671ead7e85935c7999b4928ca48dab21bcebff2485328e",
+  "files": [
+    {
+      "path": "desktop-dark-map.png",
+      "bytes": 70565,
+      "sha256": "289424302bed297eb30d8b0e73d7847201a83ab21b64cfb80e66463f36487650"
+    },
+    {
+      "path": "desktop-dark-returned-map.png",
+      "bytes": 70921,
+      "sha256": "cecc06514a4435f6fb1795b3f79435d449bf0147a2c529e609b0f393fd07deae"
+    },
+    {
+      "path": "desktop-dark-work-tab.png",
+      "bytes": 51684,
+      "sha256": "492d59242a1c827a65936047cd823921d8629cd0d561eb808c8389388e4b0397"
+    },
+    {
+      "path": "desktop-light-map.png",
+      "bytes": 68508,
+      "sha256": "02311e83ece568e55c76abad88f75c22f900f046ac4289bad4a99a83e4559026"
+    },
+    {
+      "path": "desktop-light-related-task.png",
+      "bytes": 74426,
+      "sha256": "5e8fa4cc273b3281cd9006afc57ed1718f0a8f1bc1354220af3d797a0064f05b"
+    },
+    {
+      "path": "desktop-light-reload-support-read-draft.png",
+      "bytes": 81432,
+      "sha256": "5ec96c3f386dfb753c65031775afa02d77f1336dd818e837d5984a46b4c7b7b5"
+    },
+    {
+      "path": "desktop-light-reload-task-read-draft.png",
+      "bytes": 81184,
+      "sha256": "2d92ecdd847b1f551e8d1a9bb51cdbad624ae3687818ec2cc80c69395c72ab1d"
+    },
+    {
+      "path": "desktop-light-retained-draft.png",
+      "bytes": 81724,
+      "sha256": "9c1af128e79997e8322739a93a78da0fa1d239ac37f43c8f8a75d52e247637ae"
+    },
+    {
+      "path": "desktop-light-returned-map.png",
+      "bytes": 72403,
+      "sha256": "99ccbcd0143c5670a98f3e7c300e41eea3794c53eda7d51c76a61debd7d9c3ea"
+    },
+    {
+      "path": "desktop-light-work-tab.png",
+      "bytes": 55039,
+      "sha256": "e4359072ec527f8f9b19a04f4fa8a3aa81430523c1270eb27c4c292d5ca6744f"
+    },
+    {
+      "path": "initial-map-map-recovery.png",
+      "bytes": 61064,
+      "sha256": "b9d8220ec0bb1c85efc54aa393446b0d65303c472be3c12476172ab75b3ae011"
+    },
+    {
+      "path": "initial-support-map-recovery.png",
+      "bytes": 41463,
+      "sha256": "0c6ba30d4ab811e4a5de76d986d851b9badf4a9fc893ad5eb7266faeb779d359"
+    },
+    {
+      "path": "initial-support-new-task-recovery.png",
+      "bytes": 45129,
+      "sha256": "f18dee590992b47a1d80f676c0f707a51b8048fe26d26ab26f4112f026214eed"
+    },
+    {
+      "path": "initial-task-map-recovery.png",
+      "bytes": 41463,
+      "sha256": "0c6ba30d4ab811e4a5de76d986d851b9badf4a9fc893ad5eb7266faeb779d359"
+    },
+    {
+      "path": "initial-task-new-task-recovery.png",
+      "bytes": 45129,
+      "sha256": "f18dee590992b47a1d80f676c0f707a51b8048fe26d26ab26f4112f026214eed"
+    },
+    {
+      "path": "narrow-dark-map.png",
+      "bytes": 35952,
+      "sha256": "2d9b056db661306c4bb04bc056a0906d4190b93714fa61b64de05917dde71017"
+    },
+    {
+      "path": "narrow-dark-returned-map.png",
+      "bytes": 36295,
+      "sha256": "f6ace2eb1799a0531903e1709ecbe9c4a2bd42f7b8b94f1af023a9c331f808ae"
+    },
+    {
+      "path": "narrow-dark-work-tab.png",
+      "bytes": 16874,
+      "sha256": "032cb8a3d99cb808d5e8dc8beafe8fe8b9af141ce5c3ebdf7f1ba7b04e991530"
+    },
+    {
+      "path": "narrow-light-map.png",
+      "bytes": 34736,
+      "sha256": "7a14d9be830446addc6be13a0a8a319e60589f82e49342264c07df542d59687c"
+    },
+    {
+      "path": "narrow-light-returned-map.png",
+      "bytes": 35001,
+      "sha256": "eb64c233ec572884f430455e8ece13352824fafbfafd5b63a30b25db1c0590ba"
+    },
+    {
+      "path": "narrow-light-work-tab.png",
+      "bytes": 16798,
+      "sha256": "f8351e5344f8421d352ee6a778524990045a7c4fe40aff40afd2585fff68bc67"
+    },
+    {
+      "path": "results.json",
+      "bytes": 32694,
+      "sha256": "edaa1fd3087586412abf27ad5a209887883554ad35894f49bcaf05217702e241"
+    }
+  ]
+}

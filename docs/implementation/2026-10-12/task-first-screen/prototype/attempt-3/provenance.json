@@ -1,0 +1,467 @@
+{
+  "runId": 38234809826,
+  "jobId": 114762756388,
+  "head": "2f66973538605035bf354ed264ee0c95f2a34ec5",
+  "headTree": "a294b5e551154bc8f57103e5158a72b0e49682dc",
+  "checkout": {
+    "sha": "e7a4bb9eb1f9ed8878edd00d4128bdc332e6dd8e",
+    "tree": "a294b5e551154bc8f57103e5158a72b0e49682dc",
+    "parents": [
+      "8f8d218168074bd4c7c9e1e29dfbe783a27998dd",
+      "2f66973538605035bf354ed264ee0c95f2a34ec5"
+    ]
+  },
+  "artifact": {
+    "id": 11739838266,
+    "name": "task-first-screen-experiment",
+    "size_in_bytes": 4676133,
+    "url": "https://api.github.com/repos/it-novikov/iquipage-design-system/actions/artifacts/11739838266",
+    "archive_download_url": "https://api.github.com/repos/it-novikov/iquipage-design-system/actions/artifacts/11739838266/zip",
+    "expired": false,
+    "created_at": "2026-10-12T10:13:53Z",
+    "expires_at": "2026-10-26T10:13:52Z",
+    "updated_at": "2026-10-12T10:13:53Z",
+    "digest": "sha256:68c9f552716e8b9cc6255f78d93138892b69a6762f26ee8a9ca80ef47939cbef",
+    "workflow_run": {
+      "id": 38234809826,
+      "repository_id": 1360587523,
+      "head_repository_id": 1360587523,
+      "head_branch": "experiments/task-first-screen",
+      "head_sha": "2f66973538605035bf354ed264ee0c95f2a34ec5"
+    }
+  },
+  "status": "FAILED",
+  "reason": "All 14 initial frames were captured and all four existing-CTA probes passed their engineering assertions. Both property-access probes failed waiting for no open popover after Escape. The passive trace records the estimate popup outside the open Task modal, no recorded focus inside the popup, and a final state with Task gone and popup still open. The overall run remains FAILED.",
+  "correction_note": "Attempt2 stack217:54 was the close wait after Escape, not opening wait216. Earlier opening-timeout interpretation is withdrawn.",
+  "failureLocalization": {
+    "frozenRunnerSHA256": "dce1ae5f13e6a48753e3fcfedb4f0ea1fae0547d16d82d48b4aab8f07bb61f93",
+    "runnerMatchesRecordedFixtureSHA256": true,
+    "failureLine": 275,
+    "failureColumn": 54,
+    "failureCondition": "!document.querySelector(\"[popover]:popover-open\") after Escape",
+    "selectedTabLocator": "[data-task-tabs] [role=tab][aria-selected=true]",
+    "causeStatus": "Observed popup/modal ownership and focus failure; causal fix verification is pending."
+  },
+  "estimateTraceSummary": [
+    {
+      "variant": "baseline",
+      "eventCount": 13,
+      "dropped": 0,
+      "recordedKinds": [
+        "before-click",
+        "pointerdown",
+        "focusout",
+        "focusin",
+        "pointerup",
+        "click",
+        "beforetoggle",
+        "popup-added",
+        "click-resolved",
+        "toggle",
+        "focusout",
+        "focusin",
+        "trace-stop"
+      ],
+      "popupMountedUnderBodyOutsideOpenDialog": true,
+      "anyRecordedFocusInsidePopup": false,
+      "scrollEventRecorded": false,
+      "popupRemovalEventRecorded": false,
+      "finalOpenModal": null,
+      "finalTriggerConnected": false,
+      "finalPopupConnectedAndOpen": true,
+      "finalFocusClass": "task-card-title"
+    },
+    {
+      "variant": "vt1",
+      "eventCount": 13,
+      "dropped": 0,
+      "recordedKinds": [
+        "before-click",
+        "pointerdown",
+        "focusout",
+        "focusin",
+        "pointerup",
+        "click",
+        "beforetoggle",
+        "popup-added",
+        "click-resolved",
+        "toggle",
+        "focusout",
+        "focusin",
+        "trace-stop"
+      ],
+      "popupMountedUnderBodyOutsideOpenDialog": true,
+      "anyRecordedFocusInsidePopup": false,
+      "scrollEventRecorded": false,
+      "popupRemovalEventRecorded": false,
+      "finalOpenModal": null,
+      "finalTriggerConnected": false,
+      "finalPopupConnectedAndOpen": true,
+      "finalFocusClass": "task-card-title"
+    }
+  ],
+  "traceLimit": "The passive trace contains pointer, focus, popover toggle and popup mutation records. It does not contain separate keydown/cancel/close records; Escape sequencing is established by the frozen runner and its error stack, together with the final DOM state. No assertion of browser-wide absence of scrolling is made.",
+  "recordedOutcomes": {
+    "initialFrameCount": 14,
+    "initialFrameStatuses": {
+      "CAPTURED": 14
+    },
+    "initialBodyAndWindowScrollYZero": true,
+    "pngCount": 21,
+    "staticBuildCount": 2,
+    "engineeringChecks": [
+      {
+        "name": "Frozen production trees and working source",
+        "outcome": "PASS"
+      },
+      {
+        "name": "Installed DS54 equals frozen tar, including public CSS/fonts/modules",
+        "outcome": "PASS"
+      },
+      {
+        "name": "Exact three-file source overlay applied only to temporary copies",
+        "outcome": "PASS"
+      },
+      {
+        "name": "Meaningful fixture tasks satisfy the existing product task validator",
+        "outcome": "PASS"
+      },
+      {
+        "name": "Two static Vite builds: zero-overlay baseline and exact compiled VT1",
+        "outcome": "PASS"
+      }
+    ],
+    "installedPackageFilesVerified": 176,
+    "nativeProbeCount": 6,
+    "nativeProbeStatuses": {
+      "ENGINEERING_CHECKS_PASSED": 4,
+      "FAILED": 2
+    },
+    "successfulOpenCancelAndFocusControlsPerVariant": [
+      "status",
+      "ownerId",
+      "priority",
+      "type",
+      "releaseId",
+      "parent",
+      "due"
+    ],
+    "pageErrorCount": 0,
+    "consoleErrorCount": 0,
+    "externalRequestCount": 0,
+    "visualAcceptance": "NOT_RUN",
+    "humanAcceptance": "NOT_RUN",
+    "backendAcceptance": "NOT_RUN"
+  },
+  "environment": {
+    "ci_os": "ubuntu-24.04",
+    "ci_node": "24.20.0",
+    "playwright": "1.62.1",
+    "browser": "bundled Chromium; exact version recorded at capture",
+    "locale": "ru-RU",
+    "timezone": "UTC",
+    "fixed_time": "2026-10-12T09:00:00Z",
+    "dpr": 1,
+    "motion": "reduce",
+    "density": "comfortable",
+    "nodeRecorded": "v24.20.0",
+    "viteRecorded": "8.3.0",
+    "playwrightRecorded": "1.62.1",
+    "browserRecorded": "151.0.7922.34"
+  },
+  "package": {
+    "version": "0.6.0-vnext.54",
+    "archiveSHA256": "a726a4536e532fc556f615d0b1a9cda1873dc111e6090710329b9ec1b8204457",
+    "lockSHA256": "1705c5e200e4e9abdb80c7705623656d79c07d4df8a8aacad38985f0de90551d",
+    "verifiedInstalledFiles": 176
+  },
+  "frozenRevision": "8f8d218168074bd4c7c9e1e29dfbe783a27998dd",
+  "frozenTrees": {
+    "products/sprintique": "277e232729b1cca297f4091384e6488bfbd952ca",
+    "libraries/iquipage": "f623bc26da31a0abd282496f2bc943c27a88d2b1"
+  },
+  "patchSHA256": "41f3852ff8d3abfc4777e3aea6ef4e229f1e15d4f46280b681b28196b2a922f5",
+  "files": [
+    {
+      "path": "H01-baseline-estimate-after-click.png",
+      "bytes": 83716,
+      "sha256": "9d319a0fb7cc4262dc0d18e9f9c4614acf50a6eadc9a20ccff8bffcb30d7b7a1",
+      "preserved": true
+    },
+    {
+      "path": "H01-baseline-initial.png",
+      "bytes": 79968,
+      "sha256": "cb6ebb6e0243c749f027a5de042439deb4985076254cd1c286bc4747d4a207ce",
+      "preserved": true
+    },
+    {
+      "path": "H01-baseline-property-access-failure.png",
+      "bytes": 75062,
+      "sha256": "02444e288406f38cfe09a63d5eca9a3c3cb708e7bf1a7f3726d12d57685f78eb",
+      "preserved": true
+    },
+    {
+      "path": "H01-vt1-estimate-after-click.png",
+      "bytes": 84135,
+      "sha256": "cfd2ebc756c14c71e053378721b7b857f281298c7f691be6658545ee709bf49a",
+      "preserved": true
+    },
+    {
+      "path": "H01-vt1-initial.png",
+      "bytes": 84927,
+      "sha256": "a249b1576c1bf706d80450f09713285f1fe85d87d4152b8a8d061b4819881123",
+      "preserved": true
+    },
+    {
+      "path": "H01-vt1-keyboard-opened.png",
+      "bytes": 81673,
+      "sha256": "c8c91cb54fd38ba7e15eecdaf8bc22248d98473accde482414ec205fe96ab6fb",
+      "preserved": true
+    },
+    {
+      "path": "H01-vt1-property-access-failure.png",
+      "bytes": 75143,
+      "sha256": "fd41192e72c109229a82d89cdab9fa02b98e9a171bd4ea3deb43717f3e1edf6a",
+      "preserved": true
+    },
+    {
+      "path": "H02-baseline-existing-review-CTA.png",
+      "bytes": 80210,
+      "sha256": "b40c6ee38cd0c9d623c7206afd5d8cc0e8ed2f23b8fcd323e244c28f5d813e76",
+      "preserved": true
+    },
+    {
+      "path": "H02-baseline-initial.png",
+      "bytes": 86184,
+      "sha256": "0371638e9fc8daeb5db3ee5c25a8553f1ceb0d867225a44410e53b6381074bf4",
+      "preserved": true
+    },
+    {
+      "path": "H02-vt1-existing-review-CTA.png",
+      "bytes": 80210,
+      "sha256": "b40c6ee38cd0c9d623c7206afd5d8cc0e8ed2f23b8fcd323e244c28f5d813e76",
+      "preserved": true
+    },
+    {
+      "path": "H02-vt1-initial.png",
+      "bytes": 86433,
+      "sha256": "79992807df42f365bb0d90e00537260a1d82ace6c63a5dc8516abcf7ee10d7f6",
+      "preserved": true
+    },
+    {
+      "path": "builds/baseline/assets/InterVariable-CXsUriRB.woff2",
+      "bytes": 109172,
+      "sha256": "c8126c77db9d9370281a3e473ecba9232f1b6582a69df77c9f9cd825253c1225",
+      "preserved": false
+    },
+    {
+      "path": "builds/baseline/assets/cover-presets-XxcZJEol.js",
+      "bytes": 2889,
+      "sha256": "2820ff5dddde87063f452ce07edea4033744bf0e560dbdae986fc6895c2fa163",
+      "preserved": false
+    },
+    {
+      "path": "builds/baseline/assets/design-DVxR5tT7.webp",
+      "bytes": 227722,
+      "sha256": "61331b6f549777c299b8ea15b6e056877c6f606b02a1232ca3f4e8cfdca6615f",
+      "preserved": false
+    },
+    {
+      "path": "builds/baseline/assets/development-C6OZhP3s.webp",
+      "bytes": 97770,
+      "sha256": "58aaf7e9d320fda04a8b089bb12e2a0ecfb98057b6195199c89b22027cbca99c",
+      "preserved": false
+    },
+    {
+      "path": "builds/baseline/assets/focus-CDWeceOe.webp",
+      "bytes": 193242,
+      "sha256": "842aecfe32b2b709dea407d60b407a15456f9976c0e6fde50429b569b23e6ae4",
+      "preserved": false
+    },
+    {
+      "path": "builds/baseline/assets/index-C9cZOrbU.js",
+      "bytes": 752177,
+      "sha256": "1f7a01f090e6e66607d3319d188011eb3df53f3cc1b08e7d364ea23b2d9d3fbf",
+      "preserved": false
+    },
+    {
+      "path": "builds/baseline/assets/index-cO8hYXC-.css",
+      "bytes": 697455,
+      "sha256": "f342814fec7ef82febf20fb828c515ff941ffa0165c7874ce4b44bc74bbcf8c7",
+      "preserved": false
+    },
+    {
+      "path": "builds/baseline/assets/launch-C2IV5fud.webp",
+      "bytes": 110030,
+      "sha256": "5c7debb537297c5b9c830d9835341d7e1e4ab8d42f234c07fda29fd5a9867bdc",
+      "preserved": false
+    },
+    {
+      "path": "builds/baseline/assets/planning-CRmxcOpI.webp",
+      "bytes": 122600,
+      "sha256": "1c2c16d65949942d1936a7aa1310e5ed047b88d4888bf233c6550e45876e2d7f",
+      "preserved": false
+    },
+    {
+      "path": "builds/baseline/assets/research-D7kSu2WW.webp",
+      "bytes": 143092,
+      "sha256": "abd80b076ed6daa8cf6c5092fab98e1eb1ab639ddea31e5adae5b70f18479c7a",
+      "preserved": false
+    },
+    {
+      "path": "builds/baseline/assets/ui-EpSLKknp.js",
+      "bytes": 551996,
+      "sha256": "a4d9cf9baee32884e0fe8ac672ac3d996a7eaab365949699824628706ee250b2",
+      "preserved": false
+    },
+    {
+      "path": "builds/baseline/index.html",
+      "bytes": 742,
+      "sha256": "d9ab38687b69325158e3a9a4dd4fc41dc2f35473e7f8466c3a8759565465324b",
+      "preserved": false
+    },
+    {
+      "path": "builds/vt1/assets/InterVariable-CXsUriRB.woff2",
+      "bytes": 109172,
+      "sha256": "c8126c77db9d9370281a3e473ecba9232f1b6582a69df77c9f9cd825253c1225",
+      "preserved": false
+    },
+    {
+      "path": "builds/vt1/assets/cover-presets-XxcZJEol.js",
+      "bytes": 2889,
+      "sha256": "2820ff5dddde87063f452ce07edea4033744bf0e560dbdae986fc6895c2fa163",
+      "preserved": false
+    },
+    {
+      "path": "builds/vt1/assets/design-DVxR5tT7.webp",
+      "bytes": 227722,
+      "sha256": "61331b6f549777c299b8ea15b6e056877c6f606b02a1232ca3f4e8cfdca6615f",
+      "preserved": false
+    },
+    {
+      "path": "builds/vt1/assets/development-C6OZhP3s.webp",
+      "bytes": 97770,
+      "sha256": "58aaf7e9d320fda04a8b089bb12e2a0ecfb98057b6195199c89b22027cbca99c",
+      "preserved": false
+    },
+    {
+      "path": "builds/vt1/assets/focus-CDWeceOe.webp",
+      "bytes": 193242,
+      "sha256": "842aecfe32b2b709dea407d60b407a15456f9976c0e6fde50429b569b23e6ae4",
+      "preserved": false
+    },
+    {
+      "path": "builds/vt1/assets/index-BFUx0Pxm.js",
+      "bytes": 753442,
+      "sha256": "b86b8f9d889632cf6bcd863d387bfaf01078e3aedbccf384dcb692bf028a02bb",
+      "preserved": false
+    },
+    {
+      "path": "builds/vt1/assets/index-cO8hYXC-.css",
+      "bytes": 697455,
+      "sha256": "f342814fec7ef82febf20fb828c515ff941ffa0165c7874ce4b44bc74bbcf8c7",
+      "preserved": false
+    },
+    {
+      "path": "builds/vt1/assets/launch-C2IV5fud.webp",
+      "bytes": 110030,
+      "sha256": "5c7debb537297c5b9c830d9835341d7e1e4ab8d42f234c07fda29fd5a9867bdc",
+      "preserved": false
+    },
+    {
+      "path": "builds/vt1/assets/planning-CRmxcOpI.webp",
+      "bytes": 122600,
+      "sha256": "1c2c16d65949942d1936a7aa1310e5ed047b88d4888bf233c6550e45876e2d7f",
+      "preserved": false
+    },
+    {
+      "path": "builds/vt1/assets/research-D7kSu2WW.webp",
+      "bytes": 143092,
+      "sha256": "abd80b076ed6daa8cf6c5092fab98e1eb1ab639ddea31e5adae5b70f18479c7a",
+      "preserved": false
+    },
+    {
+      "path": "builds/vt1/assets/ui-EpSLKknp.js",
+      "bytes": 551996,
+      "sha256": "a4d9cf9baee32884e0fe8ac672ac3d996a7eaab365949699824628706ee250b2",
+      "preserved": false
+    },
+    {
+      "path": "builds/vt1/index.html",
+      "bytes": 742,
+      "sha256": "10dde5ff4d19a2342f2cea7c174295a0e7ef478b52780b4b92ab90785ff86121",
+      "preserved": false
+    },
+    {
+      "path": "dark-baseline-initial.png",
+      "bytes": 43175,
+      "sha256": "0cb412a87a14c825c96ff58340ec3b2fc2c844e6cf4bfec6d3a7a29f77fa4ce7",
+      "preserved": true
+    },
+    {
+      "path": "dark-vt1-initial.png",
+      "bytes": 47072,
+      "sha256": "dd3f134456a644187f4e4801da582992bf68cd1c82985656f02451894329a6cc",
+      "preserved": true
+    },
+    {
+      "path": "empty-baseline-initial.png",
+      "bytes": 86184,
+      "sha256": "0371638e9fc8daeb5db3ee5c25a8553f1ceb0d867225a44410e53b6381074bf4",
+      "preserved": true
+    },
+    {
+      "path": "empty-vt1-initial.png",
+      "bytes": 84735,
+      "sha256": "7a01d7a32d5e12bc97553588db1c5142dc515c6d9a95eb446501f75f1cffb339",
+      "preserved": true
+    },
+    {
+      "path": "narrow-baseline-initial.png",
+      "bytes": 42818,
+      "sha256": "fa01d166045db472ff5b400be95fb70eee835c700b5fdd9e88f15ffe0292efdb",
+      "preserved": true
+    },
+    {
+      "path": "narrow-vt1-initial.png",
+      "bytes": 46386,
+      "sha256": "eb9524e532ccc811e52c9ef0f7c6060a9f82f8735e8dece1e1fa54ae60a3ac1f",
+      "preserved": true
+    },
+    {
+      "path": "question-baseline-initial.png",
+      "bytes": 86641,
+      "sha256": "da516f74ab6cd91c99db9f8b315e4dff23ee3f0fe3e3553124ed4529ba924fad",
+      "preserved": true
+    },
+    {
+      "path": "question-vt1-initial.png",
+      "bytes": 83503,
+      "sha256": "18e6e819db92ae2b0911c1e4dc0e67095e3d9bea10f478e4300f1a7255565aee",
+      "preserved": true
+    },
+    {
+      "path": "results.json",
+      "bytes": 854614,
+      "sha256": "13b4d157cffdf3653b7fe3073b4bb25e7ee29bc1ae5f4a0f233b3a262512f610",
+      "preserved": true,
+      "preservedAs": "results.json.gz"
+    },
+    {
+      "path": "text200-baseline-initial.png",
+      "bytes": 128835,
+      "sha256": "616e9f8b8f327c038e9078fca3a418e229fc94065b63a8e98e8429f7c26232e7",
+      "preserved": true
+    },
+    {
+      "path": "text200-vt1-initial.png",
+      "bytes": 117301,
+      "sha256": "9de6be0570f890de78766a9f9d3fa9bd01188e2d11187e9cba949c4cdd387906",
+      "preserved": true
+    }
+  ],
+  "preservation_note": "All 21 original PNGs and complete results JSON/job log preserved. Gzip uses mtime=0 and is verified lossless. All 46 extracted files were checked byte for byte against the ZIP. The 24 emitted build assets are inventoried by exact bytes and SHA256; compiled outputs are not copied into Git. No original attempt is rewritten and no human acceptance is asserted.",
+  "resultsSHA256": "13b4d157cffdf3653b7fe3073b4bb25e7ee29bc1ae5f4a0f233b3a262512f610",
+  "jobLogSHA256": "89e22e55a118bfcfb3fdc2688218e8e09a30ddf2d3605079d13b06cbf47cef18",
+  "checkoutWholeTreeEqualsHead": true
+}

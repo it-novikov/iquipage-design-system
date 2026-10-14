@@ -1,0 +1,288 @@
+{
+  "schema": "native-review-collection/1",
+  "reviewer": "/root/task_overview_native_r2",
+  "collected_at_utc": "2026-10-12T12:44:09.018497+00:00",
+  "run_id": 38249543808,
+  "job_id": 114811955572,
+  "artifact_id": 11746932185,
+  "head": "1fd928e12b43b26f29ebcb190a5595c1d2618444",
+  "actual_checkout": "72f862293b80dbbb89352b128eacd592db86ec49",
+  "whole_tree": "c039d65a75d1e4312b5931cc76a4d28fb7ef8e08",
+  "verified_zip_size": 2207510,
+  "verified_zip_sha256": "896fa56e4d28b8a7094b4a194d495426b06f00709487e6b8a8782425827e4065",
+  "archive_entries": 34,
+  "personally_viewed_png": 12,
+  "entries": [
+    {
+      "path": "task-overview-recovery-native-11746932185/browser/compiled/assets/InterVariable-CXsUriRB.woff2",
+      "bytes": 109172,
+      "sha256": "c8126c77db9d9370281a3e473ecba9232f1b6582a69df77c9f9cd825253c1225",
+      "kind": "artifact-file"
+    },
+    {
+      "path": "task-overview-recovery-native-11746932185/browser/compiled/assets/cover-presets-4lf9CJDg.js",
+      "bytes": 2849,
+      "sha256": "4b7239ebed333c802824bd076ef108e2fc9931af84b18b6a8903f540c9530190",
+      "kind": "artifact-file"
+    },
+    {
+      "path": "task-overview-recovery-native-11746932185/browser/compiled/assets/design-DVxR5tT7.webp",
+      "bytes": 227722,
+      "sha256": "61331b6f549777c299b8ea15b6e056877c6f606b02a1232ca3f4e8cfdca6615f",
+      "kind": "artifact-file"
+    },
+    {
+      "path": "task-overview-recovery-native-11746932185/browser/compiled/assets/development-C6OZhP3s.webp",
+      "bytes": 97770,
+      "sha256": "58aaf7e9d320fda04a8b089bb12e2a0ecfb98057b6195199c89b22027cbca99c",
+      "kind": "artifact-file"
+    },
+    {
+      "path": "task-overview-recovery-native-11746932185/browser/compiled/assets/focus-CDWeceOe.webp",
+      "bytes": 193242,
+      "sha256": "842aecfe32b2b709dea407d60b407a15456f9976c0e6fde50429b569b23e6ae4",
+      "kind": "artifact-file"
+    },
+    {
+      "path": "task-overview-recovery-native-11746932185/browser/compiled/assets/index-D2YWi3PC.js",
+      "bytes": 698900,
+      "sha256": "3b4f7a86815bef2ea10f9901245129a0cf4ab16da46f26e331cc3824a81ffecf",
+      "kind": "artifact-file"
+    },
+    {
+      "path": "task-overview-recovery-native-11746932185/browser/compiled/assets/index-DCgxBlxz.css",
+      "bytes": 698924,
+      "sha256": "a1a741733b32aead36a2183fe8c87e178b859da896a26db3be4f94b1e199920e",
+      "kind": "artifact-file"
+    },
+    {
+      "path": "task-overview-recovery-native-11746932185/browser/compiled/assets/launch-C2IV5fud.webp",
+      "bytes": 110030,
+      "sha256": "5c7debb537297c5b9c830d9835341d7e1e4ab8d42f234c07fda29fd5a9867bdc",
+      "kind": "artifact-file"
+    },
+    {
+      "path": "task-overview-recovery-native-11746932185/browser/compiled/assets/planning-CRmxcOpI.webp",
+      "bytes": 122600,
+      "sha256": "1c2c16d65949942d1936a7aa1310e5ed047b88d4888bf233c6550e45876e2d7f",
+      "kind": "artifact-file"
+    },
+    {
+      "path": "task-overview-recovery-native-11746932185/browser/compiled/assets/research-D7kSu2WW.webp",
+      "bytes": 143092,
+      "sha256": "abd80b076ed6daa8cf6c5092fab98e1eb1ab639ddea31e5adae5b70f18479c7a",
+      "kind": "artifact-file"
+    },
+    {
+      "path": "task-overview-recovery-native-11746932185/browser/compiled/assets/ui-Bfs_jq_a.js",
+      "bytes": 551204,
+      "sha256": "5df1d4d745f47b5b8cbb14cb6d6f1033d4083e7b45cf3d15f4995ea3a8fec742",
+      "kind": "artifact-file"
+    },
+    {
+      "path": "task-overview-recovery-native-11746932185/browser/compiled/index.html",
+      "bytes": 751,
+      "sha256": "eb8636b1351a92b2c460d488c4c760cfc341fd5b83d53378aff5b88e0ce41c17",
+      "kind": "artifact-file"
+    },
+    {
+      "path": "task-overview-recovery-native-11746932185/browser/completed-blocked-after-cta.png",
+      "bytes": 35457,
+      "sha256": "1b2e7983e517452fbf31777f1da2312a66635887ddcf49b3de3e8f9913061de9",
+      "kind": "artifact-file"
+    },
+    {
+      "path": "task-overview-recovery-native-11746932185/browser/completed-blocked-overview.png",
+      "bytes": 53247,
+      "sha256": "9c8f37e28cc16acbc8ab2a7a26efe5147cdde3cec01a82e638038057bfc6f4c2",
+      "kind": "artifact-file"
+    },
+    {
+      "path": "task-overview-recovery-native-11746932185/browser/completed-blocked.json",
+      "bytes": 145926,
+      "sha256": "2df3efec627e2942bbb53b6301c25bd5a0711b1e80ec5659ec04aa6d60bb10e6",
+      "kind": "artifact-file"
+    },
+    {
+      "path": "task-overview-recovery-native-11746932185/browser/completed-rejected-after-cta.png",
+      "bytes": 36199,
+      "sha256": "4d4040fdf066343d2a15d5616ce43287fbd27d6cd5fdfcef48c9a022663affcd",
+      "kind": "artifact-file"
+    },
+    {
+      "path": "task-overview-recovery-native-11746932185/browser/completed-rejected-overview.png",
+      "bytes": 53627,
+      "sha256": "5f53f1f4c9dbcf9eae323794005a73f4e8caa5838730ab9e613cc8b9f6878e13",
+      "kind": "artifact-file"
+    },
+    {
+      "path": "task-overview-recovery-native-11746932185/browser/completed-rejected.json",
+      "bytes": 147746,
+      "sha256": "d3be00d759ff8b2647c54fa9207806d258bee234938e31824fe0ee81f0c82192",
+      "kind": "artifact-file"
+    },
+    {
+      "path": "task-overview-recovery-native-11746932185/browser/fixture-data.json",
+      "bytes": 22578,
+      "sha256": "93bf6b0331608abd2092b64865581324de0ece91e274aa7c231689a133d0fd15",
+      "kind": "artifact-file"
+    },
+    {
+      "path": "task-overview-recovery-native-11746932185/browser/genuine-complete-after-cta.png",
+      "bytes": 32718,
+      "sha256": "e50cc6d43f8909d4b38c1cbcdfc71df18bb93ece83116da5ace3bf57136e969e",
+      "kind": "artifact-file"
+    },
+    {
+      "path": "task-overview-recovery-native-11746932185/browser/genuine-complete-overview.png",
+      "bytes": 53063,
+      "sha256": "2037f102ea3c7c00fae007fc14e54f55e6ab63581f79a7d939474f67d81284e6",
+      "kind": "artifact-file"
+    },
+    {
+      "path": "task-overview-recovery-native-11746932185/browser/genuine-complete.json",
+      "bytes": 146153,
+      "sha256": "8a313aa6743f47ebc3fc2b3f9f9dffa03336f0dcdfbdb6e0fe1f12567ee10634",
+      "kind": "artifact-file"
+    },
+    {
+      "path": "task-overview-recovery-native-11746932185/browser/long-review-desktop-overview.png",
+      "bytes": 67268,
+      "sha256": "4d5a6bb8677ea6dc836c24134208879ab8a48c972616bc9559ea1de7059c63f5",
+      "kind": "artifact-file"
+    },
+    {
+      "path": "task-overview-recovery-native-11746932185/browser/long-review-desktop.json",
+      "bytes": 94580,
+      "sha256": "a97f1e8375d1ed802b67e3d9d3902d35174299c3d187c434fd31c94a572c9ba3",
+      "kind": "artifact-file"
+    },
+    {
+      "path": "task-overview-recovery-native-11746932185/browser/long-review-narrow-overview.png",
+      "bytes": 47255,
+      "sha256": "46864e4b0f5de7e550f55bc67a5e43429ba010c62dec47dc7c768a6d19fadc66",
+      "kind": "artifact-file"
+    },
+    {
+      "path": "task-overview-recovery-native-11746932185/browser/long-review-narrow.json",
+      "bytes": 97626,
+      "sha256": "4e29d7555700081caba9292002891eac2598b47fafcb3dc80f07bfd9133acbe9",
+      "kind": "artifact-file"
+    },
+    {
+      "path": "task-overview-recovery-native-11746932185/browser/provenance.json",
+      "bytes": 28189,
+      "sha256": "c904a76e98eaae5c4fe0f8bb9a8359b93f7ce97ee7d48ec70da81d8d4d56f894",
+      "kind": "artifact-file"
+    },
+    {
+      "path": "task-overview-recovery-native-11746932185/browser/question-no-answer-after-cta.png",
+      "bytes": 47569,
+      "sha256": "65884e41c236cff66b483ad5c9edca00511f3522132f798c784405c83384a92f",
+      "kind": "artifact-file"
+    },
+    {
+      "path": "task-overview-recovery-native-11746932185/browser/question-no-answer-overview.png",
+      "bytes": 55341,
+      "sha256": "a15529f43ec63eae1f01a546406f5d957ea29942aa9350b512686e1435e15a0d",
+      "kind": "artifact-file"
+    },
+    {
+      "path": "task-overview-recovery-native-11746932185/browser/question-no-answer.json",
+      "bytes": 152900,
+      "sha256": "a0604ad28f9d9c5f53e37df3a1650185c30226f3171b9ebdc739e0b78d5ac394",
+      "kind": "artifact-file"
+    },
+    {
+      "path": "task-overview-recovery-native-11746932185/browser/results.json",
+      "bytes": 1096863,
+      "sha256": "d90192b82604f4b00bf124633f58f9ca74a884db1c2b274780e320ed2f602164",
+      "kind": "artifact-file"
+    },
+    {
+      "path": "task-overview-recovery-native-11746932185/browser/review-literal-after-cta.png",
+      "bytes": 40284,
+      "sha256": "c6e8695837ee82355e98dc0101dbb235fb3f3967e54fa9ab012c38da984e0866",
+      "kind": "artifact-file"
+    },
+    {
+      "path": "task-overview-recovery-native-11746932185/browser/review-literal-overview.png",
+      "bytes": 58286,
+      "sha256": "8287cf4352e93263da4cdc94a061edf2aaa4c132d03049c7a4cdba7225ed8a60",
+      "kind": "artifact-file"
+    },
+    {
+      "path": "task-overview-recovery-native-11746932185/browser/review-literal.json",
+      "bytes": 159705,
+      "sha256": "83178a62f25da75ba9266c002907f5b91f457ee10c24d09b38237528891cef0a",
+      "kind": "artifact-file"
+    },
+    {
+      "path": "task-overview-recovery-native-11746932185.zip",
+      "bytes": 2207510,
+      "sha256": "896fa56e4d28b8a7094b4a194d495426b06f00709487e6b8a8782425827e4065",
+      "kind": "review-or-metadata"
+    },
+    {
+      "path": "task-overview-recovery-native-job-exact.json",
+      "bytes": 57999,
+      "sha256": "4eef95b53d2321cf389652cec97e2e2796044b9bd633437ab363248d991b4391",
+      "kind": "review-or-metadata"
+    },
+    {
+      "path": "task-overview-recovery-native-job.log",
+      "bytes": 56999,
+      "sha256": "03567c66af93a3eb1d81be103e5ab9f4d4ffe3c5e7cb39d5edf6e8939a3ff88a",
+      "kind": "review-or-metadata"
+    },
+    {
+      "path": "task-overview-recovery-native-jobs.json",
+      "bytes": 2728,
+      "sha256": "9a0d1fcd6e07882b1621d2aa9c4ee0dc064d6df94b2a7136a30c1e191cec3c40",
+      "kind": "review-or-metadata"
+    },
+    {
+      "path": "task-overview-recovery-native-artifacts.json",
+      "bytes": 2556,
+      "sha256": "f3cd0c59895eb751603ed312ae937125046bf09d5c1162698296dffb56f3ae3e",
+      "kind": "review-or-metadata"
+    },
+    {
+      "path": "task-overview-recovery-native-run.json",
+      "bytes": 15876,
+      "sha256": "9ae23a6c5a88a39ca06b665c50c2419c1eb6fbbf66db2eb45286b22c00e8f8ad",
+      "kind": "review-or-metadata"
+    },
+    {
+      "path": "task-overview-recovery-native-independent-integrity.json",
+      "bytes": 53256,
+      "sha256": "057d08da8cb82ac25eb9797966f9c98579481e3419f6e62f50d6a7e01889cc17",
+      "kind": "review-or-metadata"
+    },
+    {
+      "path": "task-overview-recovery-native-review.md",
+      "bytes": 41328,
+      "sha256": "72581a66c9586c788416da0d6041a7a317ffd8aa7bb4ad8873748ea009b83d4d",
+      "kind": "review-or-metadata"
+    },
+    {
+      "path": "task-overview-recovery-native-git-1fd928e12b43b26f29ebcb190a5595c1d2618444.json",
+      "bytes": 2110,
+      "sha256": "6f3e76b70f64f6748f22e4ee44f4788767a5f7019546f325f791d5b1a56b5185",
+      "kind": "review-or-metadata"
+    },
+    {
+      "path": "task-overview-recovery-native-git-4275dde301b5068b3d6b1801ecb54c70a2d7e708.json",
+      "bytes": 4629,
+      "sha256": "f48642ed286d3e24f2cf2b80c4bcaeb21917793d4194ece66f0815008b983433",
+      "kind": "review-or-metadata"
+    },
+    {
+      "path": "task-overview-recovery-native-git-72f862293b80dbbb89352b128eacd592db86ec49.json",
+      "bytes": 2915,
+      "sha256": "a31d10fd32d8b28f8813c1e9fecdf56ae69dfa6097260f7bc32c1e40dc01b9cc",
+      "kind": "review-or-metadata"
+    }
+  ],
+  "preservation_note": "Index describes scratch originals. Preserve exact raw records, PNGs and decoded job log by byte identity or lossless representation with relocation mapping. Compiled bundle and ZIP can be retained by immutable artifact identity/manifest according to repository evidence policy; do not silently claim they were committed. No signed download reference is included. Original review is immutable; subsequent changes require addendum."
+}

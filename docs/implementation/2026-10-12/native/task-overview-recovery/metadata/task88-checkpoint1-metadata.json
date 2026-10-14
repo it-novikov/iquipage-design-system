@@ -1,0 +1,111 @@
+{
+  "schema": 1,
+  "kind": "task88-preserver-collection",
+  "head": "1fd928e12b43b26f29ebcb190a5595c1d2618444",
+  "actual_checkout": "72f862293b80dbbb89352b128eacd592db86ec49",
+  "whole_tree": "c039d65a75d1e4312b5931cc76a4d28fb7ef8e08",
+  "task_review_original": "task-overview-recovery-native-review.md",
+  "task_review_sha256": "72581a66c9586c788416da0d6041a7a317ffd8aa7bb4ad8873748ea009b83d4d",
+  "task_review_verdict": "APPROVE_IN_SCOPE, only five semantic scenarios and capture completion",
+  "task_semantic_pass": 5,
+  "task_informational_captures": 2,
+  "task_png": 12,
+  "task_review_open_findings": [
+    "R2-F1 long narrow first-screen composition",
+    "R2-F2 conflicting completion language in existing full Work",
+    "R2-F3 missing contextual read-only question explanation",
+    "R2-D1 recorded BODY focus on generic Open work; keyboard defect not established"
+  ],
+  "companion_checks": [
+    {
+      "kind": "estimate",
+      "source_file": "task88-estimate-11746992082/browser/results.json",
+      "raw_bytes": 287521,
+      "raw_sha256": "6edb8f0fc5d799ee585766385dc05ec58e20316783139983fddcdf11b7693d72",
+      "status": "PASS",
+      "sourceRevision": "72f862293b80dbbb89352b128eacd592db86ec49",
+      "recorded_source_hashes_verified": 15,
+      "verification": "Compared against exact Git head directly or the independently Git-verified full source input manifest"
+    },
+    {
+      "kind": "tabs",
+      "source_file": "task88-tabs-11747047119/browser/results.json",
+      "raw_bytes": 2393878,
+      "raw_sha256": "7f74bc0cdf343b829d9f2d80e4396f7fe44aa58aa3351ebda22f95f5c46fc373",
+      "status": "PASS",
+      "sourceRevision": "72f862293b80dbbb89352b128eacd592db86ec49",
+      "recorded_source_hashes_verified": 14,
+      "verification": "Compared against exact Git head directly or the independently Git-verified full source input manifest"
+    },
+    {
+      "kind": "tabs-build",
+      "source_file": "task88-tabs-11747047119/build/results.json",
+      "raw_bytes": 4283,
+      "raw_sha256": "8d16629daa4d8b9f82b7aa988c7dedccf1ece362ed3963d30f96d70272934cdc",
+      "status": "NOT_RUN",
+      "sourceRevision": "72f862293b80dbbb89352b128eacd592db86ec49",
+      "recorded_source_hashes_verified": 14,
+      "verification": "Compared against exact Git head directly or the independently Git-verified full source input manifest"
+    },
+    {
+      "kind": "maps",
+      "source_file": "task88-maps-11748001878/results.json",
+      "raw_bytes": 32694,
+      "raw_sha256": "edaa1fd3087586412abf27ad5a209887883554ad35894f49bcaf05217702e241",
+      "status": "PASS",
+      "sourceRevision": "72f862293b80dbbb89352b128eacd592db86ec49",
+      "recorded_source_hashes_verified": 10,
+      "verification": "Compared against exact Git head directly or the independently Git-verified full source input manifest"
+    }
+  ],
+  "failed_full_attempt": {
+    "run": 38249543772,
+    "attempt": 1,
+    "job": 114811955287,
+    "conclusion": "failure",
+    "reason": "HTTP 504 Gradle 9.6.1 distribution download before backend test execution",
+    "certificate_checks": 7,
+    "passed_checks": 6,
+    "failed_checks": 1,
+    "test_counts_available": {
+      "verification-tools": {
+        "tests": 1,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "library-tests": {
+        "tests": 478,
+        "pass": 478,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    "backend_tests_not_run": true,
+    "detached_product_not_run": true,
+    "portable_image_not_run": true
+  },
+  "attempt2_observation_file": "task88-full-attempt2-observation-api.json",
+  "attempt2_status_at_collection": "in_progress",
+  "task_native_log": {
+    "file": "task-overview-recovery-native-job.log",
+    "bytes": 56999,
+    "sha256": "03567c66af93a3eb1d81be103e5ab9f4d4ffe3c5e7cb39d5edf6e8939a3ff88a"
+  },
+  "maps_log": {
+    "file": "task88-maps-job.log",
+    "bytes": 59360,
+    "sha256": "1d16b0186cc6e117f806280175283bc7c1089d04747dca45b107f4e91eab1e1f"
+  },
+  "full_attempt1_log": {
+    "file": "task88-full-attempt1-job.log",
+    "bytes": 246108,
+    "sha256": "f2f4dc622907bdda2bd097600daf288166b2aa175d6304ca4ad51fcc9565c855"
+  },
+  "no_personal_visual_claim_by_preserver": true,
+  "reviewer_personal_visual_record_is_separate": true
+}

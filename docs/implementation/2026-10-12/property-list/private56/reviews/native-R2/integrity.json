@@ -1,0 +1,39 @@
+{
+  "status": "PASS",
+  "meaning": "File identities, provenance and evidence completeness only; UX verdict remains CHANGES_REQUESTED.",
+  "report": {
+    "path": "/workspace/scratch/b3dac59f68e2/research/continuation/property-list-private56-native-r2.md",
+    "bytes": 51102,
+    "sha256": "ecb66d5d4218fca7193ff7ccb7d7dd3bdc540d640e6568b3f6e793d3e46ed56f"
+  },
+  "collection_index": {
+    "path": "/workspace/scratch/b3dac59f68e2/research/continuation/property-list-private56-native-r2.collection-index.json",
+    "bytes": 36426,
+    "sha256": "ebd1a8d53790f5ae83579916faef11db8bfd0ec6130692a9909edb153ee9bcdb"
+  },
+  "indexed_files": 84,
+  "indexed_bytes": 38168499,
+  "artifact_members": 67,
+  "native_png_references": 32,
+  "unique_images_personally_viewed": 27,
+  "source_proof_inputs_verified": 215,
+  "native_and_build_packets_verified": 4,
+  "compiled_inputs_per_packet": 36,
+  "compiled_outputs_per_packet": 4,
+  "source_hashes_per_packet": 14,
+  "control_package_files": 176,
+  "candidate_package_files": 178,
+  "whole_native_tree_equals_head": false,
+  "trial_input_and_library_tree_equality_verified": true,
+  "ordinary_reference_checks": 10,
+  "same_host_different_viewport_row_checks": 24,
+  "open_findings": [
+    "PF04-NR2-01",
+    "PF04-NR2-02",
+    "PF04-NR2-03",
+    "PF04-NR2-04"
+  ],
+  "repo_writes": false,
+  "git_ref_mutations": false,
+  "new_native_rerun_by_reviewer": false
+}

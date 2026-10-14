@@ -1,0 +1,589 @@
+{
+  "schema": 1,
+  "kind": "property-list-baseline-attempt-1-preservation",
+  "repository": "it-novikov/iquipage-design-system",
+  "pr": 86,
+  "runId": 38243334999,
+  "jobId": 114791052857,
+  "headSha": "3f9e8992c057e0548245f7dca7c089e7e345d4be",
+  "actualCheckoutSha": "5a718c668efadbe7450cb1169e8eefca14224781",
+  "headTreeSha": "629e80459d8f7f7c7d0e95c9c917cdfa3ec9b03f",
+  "checkoutTreeSha": "629e80459d8f7f7c7d0e95c9c917cdfa3ec9b03f",
+  "checkoutWholeTreeEqualsHead": true,
+  "metadataPath": "property-list/baseline-attempt-1/metadata.json",
+  "metadataSha256": "6bed3c3ce685d3932ec5314872f88dce65dbb9d43ac10674a3907e9146c8966d",
+  "artifact": {
+    "id": 11743199083,
+    "name": "property-list-reflow-baseline",
+    "zipBytes": 1928607,
+    "zipSha256": "a5c0d5b245f113f57f94ebfaf776daffff00dd2e644c2214adf81026d46c7a74",
+    "createdAt": "2026-10-12T11:36:46Z",
+    "expiresAt": "2026-10-26T11:36:45Z",
+    "archiveFileCount": 26,
+    "zipContainerCopiedToGit": false
+  },
+  "resultStatus": "FAILED",
+  "failedProfileCount": 5,
+  "buildStatus": "PASS",
+  "rawProvenanceStatus": "NOT_RUN",
+  "rawProvenanceNote": "The source/build snapshot precedes capture. The complete results file is the terminal FAILED record.",
+  "package": {
+    "version": "0.6.0-vnext.54",
+    "archiveSHA256": "a726a4536e532fc556f615d0b1a9cda1873dc111e6090710329b9ec1b8204457",
+    "packageJSONSHA256": "684d8de1372a6c5629ad225888d9e56cc2a43715357dfdf9b935c6e12a47b761",
+    "lockSHA256": "1705c5e200e4e9abdb80c7705623656d79c07d4df8a8aacad38985f0de90551d",
+    "verifiedInstalledFiles": 176
+  },
+  "planId": "PF04-property-list-ds54-baseline",
+  "planRevision": 2,
+  "planSha256": "724f1e889dc621e178ee173cb4ef8fa1fbfd190b0249decc208e75cc89de5582",
+  "sourceSHA256": {
+    "run.mjs": "b53a9c4e8087da71b7c7a459a139ae76f61cbf2bafbb5edc7406118749d71190",
+    "measure.mjs": "020d96242755153ed5f9fa4b216d20f17da60a3c868af6263e5040fed72a8542",
+    "baseline-plan.json": "724f1e889dc621e178ee173cb4ef8fa1fbfd190b0249decc208e75cc89de5582",
+    "baseline-plan.v1.json": "008998d380659f2b9993edc727260bc46ed95735d1842c1b209ba5eeb7cc4689",
+    "fixture/index.html": "65b8f45a900043ea34009baaed1c31acff1d189fcbaa78a0554df1bf6684773b",
+    "fixture/host.css": "fc09af585ecae81a13e40cd1537cb89c318b191562d9660058fd92b856015c20",
+    "fixture/consumer.js": "e2bc113fab93b6934bc676d6a5210e800505b8c02fdca8e99f2d7d5f160ba1ec",
+    "fixture/data.mjs": "ba3f681511372f3d6c3e2c6608e4721f16f3f20c4e8d1d0d41cf3aac023183c9",
+    ".github/workflows/tabs-geometry.yml": "82dcfc1202ffe8780dbc748d785f10398158a74a234e836c74599e41a8e6a90d",
+    "libraries/iquipage/docs/control-contracts.md": "c12a7bf94d0fbc5f3df4e1af0148b73ef8175d8c50103b1123766e357fe8c65d",
+    "libraries/iquipage/src/styles/foundation.css": "463b855baab92c2e5c45d2e1ffc67fc78c4894fe855b5dc8b4ec0f1b72186bfc"
+  },
+  "environment": {
+    "engine": "native Chromium",
+    "playwright": "1.62.1",
+    "target": "GitHub Actions Ubuntu 24.04 / Node 24.20.0",
+    "theme": "light",
+    "density": "comfortable",
+    "locale": "ru-RU",
+    "timezone": "UTC",
+    "device_scale_factor": 1,
+    "browser_zoom": "100%",
+    "text_scaling": "HTML root font-size exactly 16px or 32px, not browser zoom",
+    "fixed_browser_time": "2026-10-12T12:00:00.000Z",
+    "input": "none; passive baseline capture",
+    "load_mode": "Vite compiled static preview of exact public DS imports"
+  },
+  "nativeBrowser": "151.0.7922.34",
+  "profiles": [
+    {
+      "id": "narrow-normal",
+      "viewport": {
+        "width": 390,
+        "height": 1000
+      },
+      "containerWidth": 349,
+      "rootFontPx": 16,
+      "status": "FAILED",
+      "error": "AssertionError [ERR_ASSERTION]: Actual value surface: status\n    at verifyCapture (file:///home/runner/work/iquipage-design-system/iquipage-design-system/experiments/property-list-reflow/run.mjs:73:12)\n    at captureProfile (file:///home/runner/work/iquipage-design-system/iquipage-design-system/experiments/property-list-reflow/run.mjs:102:5)\n    at async file:///home/runner/work/iquipage-design-system/iquipage-design-system/experiments/property-list-reflow/run.mjs:158:40",
+      "missingMeasuredValueSurfaceRows": [
+        "status",
+        "owner",
+        "priority",
+        "participant",
+        "reference-owner"
+      ],
+      "dateTagAndStaticValueMeasurementsPresent": true,
+      "screenshots": [
+        {
+          "kind": "viewport",
+          "file": "narrow-normal-viewport.png",
+          "sha256": "daf57f4e998de31c6ad373ee6dc99cf788857cbe41949da69f448d14b50bc086"
+        },
+        {
+          "kind": "document",
+          "file": "narrow-normal-document.png",
+          "sha256": "daf57f4e998de31c6ad373ee6dc99cf788857cbe41949da69f448d14b50bc086"
+        },
+        {
+          "kind": "failure",
+          "file": "narrow-normal-failure.png",
+          "sha256": "daf57f4e998de31c6ad373ee6dc99cf788857cbe41949da69f448d14b50bc086"
+        }
+      ]
+    },
+    {
+      "id": "narrow-text200",
+      "viewport": {
+        "width": 320,
+        "height": 1000
+      },
+      "containerWidth": 270,
+      "rootFontPx": 32,
+      "status": "FAILED",
+      "error": "AssertionError [ERR_ASSERTION]: Actual value surface: status\n    at verifyCapture (file:///home/runner/work/iquipage-design-system/iquipage-design-system/experiments/property-list-reflow/run.mjs:73:12)\n    at captureProfile (file:///home/runner/work/iquipage-design-system/iquipage-design-system/experiments/property-list-reflow/run.mjs:102:5)\n    at async file:///home/runner/work/iquipage-design-system/iquipage-design-system/experiments/property-list-reflow/run.mjs:158:40",
+      "missingMeasuredValueSurfaceRows": [
+        "status",
+        "owner",
+        "priority",
+        "participant",
+        "reference-owner"
+      ],
+      "dateTagAndStaticValueMeasurementsPresent": true,
+      "screenshots": [
+        {
+          "kind": "viewport",
+          "file": "narrow-text200-viewport.png",
+          "sha256": "40d19e4b42ebeba0f8d3d76b31286c8e9a100bce70fde9281a625778eb866ba0"
+        },
+        {
+          "kind": "document",
+          "file": "narrow-text200-document.png",
+          "sha256": "5eb46ed53d1b0bfbd9638be653bcc5418f5bd1fb93e1bafb82dec36f47c48b3f"
+        },
+        {
+          "kind": "failure",
+          "file": "narrow-text200-failure.png",
+          "sha256": "5eb46ed53d1b0bfbd9638be653bcc5418f5bd1fb93e1bafb82dec36f47c48b3f"
+        }
+      ]
+    },
+    {
+      "id": "wide-normal",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "containerWidth": 615,
+      "rootFontPx": 16,
+      "status": "FAILED",
+      "error": "AssertionError [ERR_ASSERTION]: Actual value surface: status\n    at verifyCapture (file:///home/runner/work/iquipage-design-system/iquipage-design-system/experiments/property-list-reflow/run.mjs:73:12)\n    at captureProfile (file:///home/runner/work/iquipage-design-system/iquipage-design-system/experiments/property-list-reflow/run.mjs:102:5)\n    at async file:///home/runner/work/iquipage-design-system/iquipage-design-system/experiments/property-list-reflow/run.mjs:158:40",
+      "missingMeasuredValueSurfaceRows": [
+        "status",
+        "owner",
+        "priority",
+        "participant",
+        "reference-owner"
+      ],
+      "dateTagAndStaticValueMeasurementsPresent": true,
+      "screenshots": [
+        {
+          "kind": "viewport",
+          "file": "wide-normal-viewport.png",
+          "sha256": "428a105ed1cee42c28c470098f722102b52417e5dcacad9dda856af74812efc3"
+        },
+        {
+          "kind": "document",
+          "file": "wide-normal-document.png",
+          "sha256": "428a105ed1cee42c28c470098f722102b52417e5dcacad9dda856af74812efc3"
+        },
+        {
+          "kind": "failure",
+          "file": "wide-normal-failure.png",
+          "sha256": "428a105ed1cee42c28c470098f722102b52417e5dcacad9dda856af74812efc3"
+        }
+      ]
+    },
+    {
+      "id": "wide-text200",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "containerWidth": 615,
+      "rootFontPx": 32,
+      "status": "FAILED",
+      "error": "AssertionError [ERR_ASSERTION]: Actual value surface: status\n    at verifyCapture (file:///home/runner/work/iquipage-design-system/iquipage-design-system/experiments/property-list-reflow/run.mjs:73:12)\n    at captureProfile (file:///home/runner/work/iquipage-design-system/iquipage-design-system/experiments/property-list-reflow/run.mjs:102:5)\n    at async file:///home/runner/work/iquipage-design-system/iquipage-design-system/experiments/property-list-reflow/run.mjs:158:40",
+      "missingMeasuredValueSurfaceRows": [
+        "status",
+        "owner",
+        "priority",
+        "participant",
+        "reference-owner"
+      ],
+      "dateTagAndStaticValueMeasurementsPresent": true,
+      "screenshots": [
+        {
+          "kind": "viewport",
+          "file": "wide-text200-viewport.png",
+          "sha256": "2ab2791cf668fb4ac6c647abffb60c10e5b5cbe2a993e72ec13741c3a5c41b2f"
+        },
+        {
+          "kind": "document",
+          "file": "wide-text200-document.png",
+          "sha256": "2ab2791cf668fb4ac6c647abffb60c10e5b5cbe2a993e72ec13741c3a5c41b2f"
+        },
+        {
+          "kind": "failure",
+          "file": "wide-text200-failure.png",
+          "sha256": "2ab2791cf668fb4ac6c647abffb60c10e5b5cbe2a993e72ec13741c3a5c41b2f"
+        }
+      ]
+    },
+    {
+      "id": "wide-tight-text200",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "containerWidth": 270,
+      "rootFontPx": 32,
+      "status": "FAILED",
+      "error": "AssertionError [ERR_ASSERTION]: Actual value surface: status\n    at verifyCapture (file:///home/runner/work/iquipage-design-system/iquipage-design-system/experiments/property-list-reflow/run.mjs:73:12)\n    at captureProfile (file:///home/runner/work/iquipage-design-system/iquipage-design-system/experiments/property-list-reflow/run.mjs:102:5)\n    at async file:///home/runner/work/iquipage-design-system/iquipage-design-system/experiments/property-list-reflow/run.mjs:158:40",
+      "missingMeasuredValueSurfaceRows": [
+        "status",
+        "owner",
+        "priority",
+        "participant",
+        "reference-owner"
+      ],
+      "dateTagAndStaticValueMeasurementsPresent": true,
+      "screenshots": [
+        {
+          "kind": "viewport",
+          "file": "wide-tight-text200-viewport.png",
+          "sha256": "43e2ae90eb61227e08473dd1e18984b9775a622626045b9ddaca03e569ac9572"
+        },
+        {
+          "kind": "document",
+          "file": "wide-tight-text200-document.png",
+          "sha256": "79833c514478a96ff3ec0a4f9f40604a5007dae135ba6b1637e1171aacaf79c2"
+        },
+        {
+          "kind": "failure",
+          "file": "wide-tight-text200-failure.png",
+          "sha256": "79833c514478a96ff3ec0a4f9f40604a5007dae135ba6b1637e1171aacaf79c2"
+        }
+      ]
+    }
+  ],
+  "sourceDiagnosis": {
+    "observedWrongSelector": ":scope > .iq-select-trigger,:scope > .iq-date-trigger,:scope > .iq-combo-shell,:scope > .iq-tag-picker-field,:scope > .iq-property-value",
+    "measurePath": "experiments/property-list-reflow/measure.mjs",
+    "measureLine": 94,
+    "measureSha256": "020d96242755153ed5f9fa4b216d20f17da60a3c868af6263e5040fed72a8542",
+    "assertionPath": "experiments/property-list-reflow/run.mjs",
+    "assertionLine": 73,
+    "assertionSha256": "b53a9c4e8087da71b7c7a459a139ae76f61cbf2bafbb5edc7406118749d71190",
+    "publicSourcePath": "libraries/iquipage/src/modules/components.js",
+    "publicSourceLine": 148,
+    "publicSourceFact": "The existing iq-select-wrap contains iq-select-trigger or iq-combo-shell; they are not direct children of the property row.",
+    "limits": "This explains missing measured surfaces, not an absent rendered control. All source measurements and FAILED statuses are retained; no corrected capture is included."
+  },
+  "targetAcceptance": "NOT_RUN",
+  "humanAcceptance": "NOT_RUN",
+  "backendAcceptance": "NOT_RUN",
+  "files": [
+    {
+      "artifact": "property-list-reflow-baseline",
+      "artifact_id": 11743199083,
+      "source_file": "research/continuation/property-baseline-attempt1-11743199083/browser/compiled/assets/InterVariable-CXsUriRB.woff2",
+      "archive_path": "browser/compiled/assets/InterVariable-CXsUriRB.woff2",
+      "bytes": 109172,
+      "sha256": "c8126c77db9d9370281a3e473ecba9232f1b6582a69df77c9f9cd825253c1225",
+      "preserved": false,
+      "stored_in_this_package": false,
+      "reason": "Compiled runtime output: full SHA/byte inventory only; not copied into Git."
+    },
+    {
+      "artifact": "property-list-reflow-baseline",
+      "artifact_id": 11743199083,
+      "source_file": "research/continuation/property-baseline-attempt1-11743199083/browser/compiled/assets/index-9Dv9WRKo.js",
+      "archive_path": "browser/compiled/assets/index-9Dv9WRKo.js",
+      "bytes": 552693,
+      "sha256": "68ec9ea63f503a93e7302607de523a050bb24af4c539a9bfdc63e51a3a36a12b",
+      "preserved": false,
+      "stored_in_this_package": false,
+      "reason": "Compiled runtime output: full SHA/byte inventory only; not copied into Git."
+    },
+    {
+      "artifact": "property-list-reflow-baseline",
+      "artifact_id": 11743199083,
+      "source_file": "research/continuation/property-baseline-attempt1-11743199083/browser/compiled/assets/index-BUKV8Dxf.css",
+      "archive_path": "browser/compiled/assets/index-BUKV8Dxf.css",
+      "bytes": 563975,
+      "sha256": "9099b56de7e535bd76fc306303084877973d177b839dc909724ed38d107659ac",
+      "preserved": false,
+      "stored_in_this_package": false,
+      "reason": "Compiled runtime output: full SHA/byte inventory only; not copied into Git."
+    },
+    {
+      "artifact": "property-list-reflow-baseline",
+      "artifact_id": 11743199083,
+      "source_file": "research/continuation/property-baseline-attempt1-11743199083/browser/compiled/index.html",
+      "archive_path": "browser/compiled/index.html",
+      "bytes": 648,
+      "sha256": "d212d4fdb59d8e245fe805e5eb531a77e8076435ce2200bbf6b331e258f1d034",
+      "preserved": false,
+      "stored_in_this_package": false,
+      "reason": "Compiled runtime output: full SHA/byte inventory only; not copied into Git."
+    },
+    {
+      "artifact": "property-list-reflow-baseline",
+      "artifact_id": 11743199083,
+      "source_file": "research/continuation/property-baseline-attempt1-11743199083/browser/narrow-normal-document.png",
+      "archive_path": "browser/narrow-normal-document.png",
+      "bytes": 44665,
+      "sha256": "daf57f4e998de31c6ad373ee6dc99cf788857cbe41949da69f448d14b50bc086",
+      "preserved": true,
+      "stored_in_this_package": true,
+      "preserved_path": "property-list/baseline-attempt-1/browser/narrow-normal-document.png",
+      "encoding": "identity"
+    },
+    {
+      "artifact": "property-list-reflow-baseline",
+      "artifact_id": 11743199083,
+      "source_file": "research/continuation/property-baseline-attempt1-11743199083/browser/narrow-normal-failure.png",
+      "archive_path": "browser/narrow-normal-failure.png",
+      "bytes": 44665,
+      "sha256": "daf57f4e998de31c6ad373ee6dc99cf788857cbe41949da69f448d14b50bc086",
+      "preserved": true,
+      "stored_in_this_package": true,
+      "preserved_path": "property-list/baseline-attempt-1/browser/narrow-normal-document.png",
+      "encoding": "identity"
+    },
+    {
+      "artifact": "property-list-reflow-baseline",
+      "artifact_id": 11743199083,
+      "source_file": "research/continuation/property-baseline-attempt1-11743199083/browser/narrow-normal-viewport.png",
+      "archive_path": "browser/narrow-normal-viewport.png",
+      "bytes": 44665,
+      "sha256": "daf57f4e998de31c6ad373ee6dc99cf788857cbe41949da69f448d14b50bc086",
+      "preserved": true,
+      "stored_in_this_package": true,
+      "preserved_path": "property-list/baseline-attempt-1/browser/narrow-normal-document.png",
+      "encoding": "identity"
+    },
+    {
+      "artifact": "property-list-reflow-baseline",
+      "artifact_id": 11743199083,
+      "source_file": "research/continuation/property-baseline-attempt1-11743199083/browser/narrow-normal.json",
+      "archive_path": "browser/narrow-normal.json",
+      "bytes": 1218961,
+      "sha256": "eef3e47942d70673417db333ea4b407b5a18079e884d0cee3b84068b395e6681",
+      "preserved": true,
+      "stored_in_this_package": true,
+      "preserved_path": "property-list/baseline-attempt-1/browser/narrow-normal.json.gz",
+      "encoding": "gzip"
+    },
+    {
+      "artifact": "property-list-reflow-baseline",
+      "artifact_id": 11743199083,
+      "source_file": "research/continuation/property-baseline-attempt1-11743199083/browser/narrow-text200-document.png",
+      "archive_path": "browser/narrow-text200-document.png",
+      "bytes": 73280,
+      "sha256": "5eb46ed53d1b0bfbd9638be653bcc5418f5bd1fb93e1bafb82dec36f47c48b3f",
+      "preserved": true,
+      "stored_in_this_package": true,
+      "preserved_path": "property-list/baseline-attempt-1/browser/narrow-text200-document.png",
+      "encoding": "identity"
+    },
+    {
+      "artifact": "property-list-reflow-baseline",
+      "artifact_id": 11743199083,
+      "source_file": "research/continuation/property-baseline-attempt1-11743199083/browser/narrow-text200-failure.png",
+      "archive_path": "browser/narrow-text200-failure.png",
+      "bytes": 73280,
+      "sha256": "5eb46ed53d1b0bfbd9638be653bcc5418f5bd1fb93e1bafb82dec36f47c48b3f",
+      "preserved": true,
+      "stored_in_this_package": true,
+      "preserved_path": "property-list/baseline-attempt-1/browser/narrow-text200-document.png",
+      "encoding": "identity"
+    },
+    {
+      "artifact": "property-list-reflow-baseline",
+      "artifact_id": 11743199083,
+      "source_file": "research/continuation/property-baseline-attempt1-11743199083/browser/narrow-text200-viewport.png",
+      "archive_path": "browser/narrow-text200-viewport.png",
+      "bytes": 66186,
+      "sha256": "40d19e4b42ebeba0f8d3d76b31286c8e9a100bce70fde9281a625778eb866ba0",
+      "preserved": true,
+      "stored_in_this_package": true,
+      "preserved_path": "property-list/baseline-attempt-1/browser/narrow-text200-viewport.png",
+      "encoding": "identity"
+    },
+    {
+      "artifact": "property-list-reflow-baseline",
+      "artifact_id": 11743199083,
+      "source_file": "research/continuation/property-baseline-attempt1-11743199083/browser/narrow-text200.json",
+      "archive_path": "browser/narrow-text200.json",
+      "bytes": 1187310,
+      "sha256": "190af858d043d44f36b6bab82095536313d656a9fc006c40c296fafeb0dfaca8",
+      "preserved": true,
+      "stored_in_this_package": true,
+      "preserved_path": "property-list/baseline-attempt-1/browser/narrow-text200.json.gz",
+      "encoding": "gzip"
+    },
+    {
+      "artifact": "property-list-reflow-baseline",
+      "artifact_id": 11743199083,
+      "source_file": "research/continuation/property-baseline-attempt1-11743199083/browser/provenance.json",
+      "archive_path": "browser/provenance.json",
+      "bytes": 9163,
+      "sha256": "0e26d214c2636dde1de54596ed3ccce5314430265240c6071cfbb591a24f839d",
+      "preserved": true,
+      "stored_in_this_package": true,
+      "preserved_path": "property-list/baseline-attempt-1/browser/provenance.json.gz",
+      "encoding": "gzip"
+    },
+    {
+      "artifact": "property-list-reflow-baseline",
+      "artifact_id": 11743199083,
+      "source_file": "research/continuation/property-baseline-attempt1-11743199083/browser/results.json",
+      "archive_path": "browser/results.json",
+      "bytes": 6798665,
+      "sha256": "7093966873a97d48164d14a703a46da7994133b5737333ebad8a02003f5ec6db",
+      "preserved": true,
+      "stored_in_this_package": true,
+      "preserved_path": "property-list/baseline-attempt-1/browser/results.json.gz",
+      "encoding": "gzip"
+    },
+    {
+      "artifact": "property-list-reflow-baseline",
+      "artifact_id": 11743199083,
+      "source_file": "research/continuation/property-baseline-attempt1-11743199083/browser/wide-normal-document.png",
+      "archive_path": "browser/wide-normal-document.png",
+      "bytes": 50125,
+      "sha256": "428a105ed1cee42c28c470098f722102b52417e5dcacad9dda856af74812efc3",
+      "preserved": true,
+      "stored_in_this_package": true,
+      "preserved_path": "property-list/baseline-attempt-1/browser/wide-normal-document.png",
+      "encoding": "identity"
+    },
+    {
+      "artifact": "property-list-reflow-baseline",
+      "artifact_id": 11743199083,
+      "source_file": "research/continuation/property-baseline-attempt1-11743199083/browser/wide-normal-failure.png",
+      "archive_path": "browser/wide-normal-failure.png",
+      "bytes": 50125,
+      "sha256": "428a105ed1cee42c28c470098f722102b52417e5dcacad9dda856af74812efc3",
+      "preserved": true,
+      "stored_in_this_package": true,
+      "preserved_path": "property-list/baseline-attempt-1/browser/wide-normal-document.png",
+      "encoding": "identity"
+    },
+    {
+      "artifact": "property-list-reflow-baseline",
+      "artifact_id": 11743199083,
+      "source_file": "research/continuation/property-baseline-attempt1-11743199083/browser/wide-normal-viewport.png",
+      "archive_path": "browser/wide-normal-viewport.png",
+      "bytes": 50125,
+      "sha256": "428a105ed1cee42c28c470098f722102b52417e5dcacad9dda856af74812efc3",
+      "preserved": true,
+      "stored_in_this_package": true,
+      "preserved_path": "property-list/baseline-attempt-1/browser/wide-normal-document.png",
+      "encoding": "identity"
+    },
+    {
+      "artifact": "property-list-reflow-baseline",
+      "artifact_id": 11743199083,
+      "source_file": "research/continuation/property-baseline-attempt1-11743199083/browser/wide-normal.json",
+      "archive_path": "browser/wide-normal.json",
+      "bytes": 1243069,
+      "sha256": "a53bd1efbf343a34b9bfc7ab56581211c7833d4d9d32a129d945b3de2f6ea7e8",
+      "preserved": true,
+      "stored_in_this_package": true,
+      "preserved_path": "property-list/baseline-attempt-1/browser/wide-normal.json.gz",
+      "encoding": "gzip"
+    },
+    {
+      "artifact": "property-list-reflow-baseline",
+      "artifact_id": 11743199083,
+      "source_file": "research/continuation/property-baseline-attempt1-11743199083/browser/wide-text200-document.png",
+      "archive_path": "browser/wide-text200-document.png",
+      "bytes": 93243,
+      "sha256": "2ab2791cf668fb4ac6c647abffb60c10e5b5cbe2a993e72ec13741c3a5c41b2f",
+      "preserved": true,
+      "stored_in_this_package": true,
+      "preserved_path": "property-list/baseline-attempt-1/browser/wide-text200-document.png",
+      "encoding": "identity"
+    },
+    {
+      "artifact": "property-list-reflow-baseline",
+      "artifact_id": 11743199083,
+      "source_file": "research/continuation/property-baseline-attempt1-11743199083/browser/wide-text200-failure.png",
+      "archive_path": "browser/wide-text200-failure.png",
+      "bytes": 93243,
+      "sha256": "2ab2791cf668fb4ac6c647abffb60c10e5b5cbe2a993e72ec13741c3a5c41b2f",
+      "preserved": true,
+      "stored_in_this_package": true,
+      "preserved_path": "property-list/baseline-attempt-1/browser/wide-text200-document.png",
+      "encoding": "identity"
+    },
+    {
+      "artifact": "property-list-reflow-baseline",
+      "artifact_id": 11743199083,
+      "source_file": "research/continuation/property-baseline-attempt1-11743199083/browser/wide-text200-viewport.png",
+      "archive_path": "browser/wide-text200-viewport.png",
+      "bytes": 93243,
+      "sha256": "2ab2791cf668fb4ac6c647abffb60c10e5b5cbe2a993e72ec13741c3a5c41b2f",
+      "preserved": true,
+      "stored_in_this_package": true,
+      "preserved_path": "property-list/baseline-attempt-1/browser/wide-text200-document.png",
+      "encoding": "identity"
+    },
+    {
+      "artifact": "property-list-reflow-baseline",
+      "artifact_id": 11743199083,
+      "source_file": "research/continuation/property-baseline-attempt1-11743199083/browser/wide-text200.json",
+      "archive_path": "browser/wide-text200.json",
+      "bytes": 1231303,
+      "sha256": "6c31765b921e9d076f70f23d330da00d0bf7fec1697116a2ec027b38b1053123",
+      "preserved": true,
+      "stored_in_this_package": true,
+      "preserved_path": "property-list/baseline-attempt-1/browser/wide-text200.json.gz",
+      "encoding": "gzip"
+    },
+    {
+      "artifact": "property-list-reflow-baseline",
+      "artifact_id": 11743199083,
+      "source_file": "research/continuation/property-baseline-attempt1-11743199083/browser/wide-tight-text200-document.png",
+      "archive_path": "browser/wide-tight-text200-document.png",
+      "bytes": 82679,
+      "sha256": "79833c514478a96ff3ec0a4f9f40604a5007dae135ba6b1637e1171aacaf79c2",
+      "preserved": true,
+      "stored_in_this_package": true,
+      "preserved_path": "property-list/baseline-attempt-1/browser/wide-tight-text200-document.png",
+      "encoding": "identity"
+    },
+    {
+      "artifact": "property-list-reflow-baseline",
+      "artifact_id": 11743199083,
+      "source_file": "research/continuation/property-baseline-attempt1-11743199083/browser/wide-tight-text200-failure.png",
+      "archive_path": "browser/wide-tight-text200-failure.png",
+      "bytes": 82679,
+      "sha256": "79833c514478a96ff3ec0a4f9f40604a5007dae135ba6b1637e1171aacaf79c2",
+      "preserved": true,
+      "stored_in_this_package": true,
+      "preserved_path": "property-list/baseline-attempt-1/browser/wide-tight-text200-document.png",
+      "encoding": "identity"
+    },
+    {
+      "artifact": "property-list-reflow-baseline",
+      "artifact_id": 11743199083,
+      "source_file": "research/continuation/property-baseline-attempt1-11743199083/browser/wide-tight-text200-viewport.png",
+      "archive_path": "browser/wide-tight-text200-viewport.png",
+      "bytes": 75999,
+      "sha256": "43e2ae90eb61227e08473dd1e18984b9775a622626045b9ddaca03e569ac9572",
+      "preserved": true,
+      "stored_in_this_package": true,
+      "preserved_path": "property-list/baseline-attempt-1/browser/wide-tight-text200-viewport.png",
+      "encoding": "identity"
+    },
+    {
+      "artifact": "property-list-reflow-baseline",
+      "artifact_id": 11743199083,
+      "source_file": "research/continuation/property-baseline-attempt1-11743199083/browser/wide-tight-text200.json",
+      "archive_path": "browser/wide-tight-text200.json",
+      "bytes": 1187334,
+      "sha256": "9581f027caeb7b5085527404609cc7893594e59b55665b3db5cb4dcc3f6f9ab3",
+      "preserved": true,
+      "stored_in_this_package": true,
+      "preserved_path": "property-list/baseline-attempt-1/browser/wide-tight-text200.json.gz",
+      "encoding": "gzip"
+    }
+  ],
+  "preservation": {
+    "originalPngCount": 15,
+    "uniquePreservedPngCount": 7,
+    "allPngBytesAvailableOfflineViaMapping": true,
+    "completeOriginalJsonCount": 7,
+    "compiledInventoryOnlyFileCount": 4,
+    "allGzipMtime": 0,
+    "jobDecodedUtf8Bytes": 57140,
+    "jobDecodedUtf8Sha256": "6ba2dddba25eadbf19f9739515e4b4d93c3f1d315b367da6b39b6666e68bf40d",
+    "signedDownloadReferencesCopied": false,
+    "visualInspectionPerformedByPreservationAgent": false
+  }
+}

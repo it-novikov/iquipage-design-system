@@ -1,0 +1,361 @@
+{
+  "head": "6423443d71a0817570281cf28822a3c14f7db684",
+  "headTree": "81fa1c2800632324b09afd86d01b6fd671ccc6a5",
+  "checkout": "7dbb86d6130fef17cecb4810610cfae0976089c0",
+  "checkoutWholeTreeEqualsHead": true,
+  "runId": 38238395802,
+  "jobId": 114774633940,
+  "artifact": {
+    "id": 11740684903,
+    "name": "estimate-popover",
+    "size_in_bytes": 2088348,
+    "url": "https://api.github.com/repos/it-novikov/iquipage-design-system/actions/artifacts/11740684903",
+    "archive_download_url": "https://api.github.com/repos/it-novikov/iquipage-design-system/actions/artifacts/11740684903/zip",
+    "expired": false,
+    "created_at": "2026-10-12T10:47:51Z",
+    "expires_at": "2026-10-26T10:47:49Z",
+    "updated_at": "2026-10-12T10:47:51Z",
+    "digest": "sha256:a40d26f6293649b85a02a4b4781f96ddd8ab58956e46764519c660a4ad6d599f",
+    "workflow_run": {
+      "id": 38238395802,
+      "repository_id": 1360587523,
+      "head_repository_id": 1360587523,
+      "head_branch": "fix/estimate-modal-scope",
+      "head_sha": "6423443d71a0817570281cf28822a3c14f7db684"
+    }
+  },
+  "sourceArchiveFileCount": 38,
+  "sourcePngCount": 20,
+  "newPngCopies": 20,
+  "existingGitPngLinks": 0,
+  "allPngBytesAvailableOffline": true,
+  "allArchiveFilesVerifiedByteForByteAgainstExtraction": true,
+  "files": [
+    {
+      "path": "browser/anchor-removal-after-open.png",
+      "bytes": 25166,
+      "sha256": "bfbf362d7288780644f8cc69c4c231193ca78b8d51a39cffa35cc65f2dd062f2",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/estimate/browser/anchor-removal-after-open.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/anchor-removal-final.png",
+      "bytes": 15069,
+      "sha256": "bf76faa2bcf4217d2e0c4886bad45989ac329c2cd01512f0f56e5bc75f5b50c9",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/estimate/browser/anchor-removal-final.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/compiled/assets/InterVariable-CXsUriRB.woff2",
+      "bytes": 109172,
+      "sha256": "c8126c77db9d9370281a3e473ecba9232f1b6582a69df77c9f9cd825253c1225",
+      "preserved": false,
+      "storedInThisPackage": false,
+      "reason": "Reproducible emitted build asset; exact inventory retained, binary not copied into Git."
+    },
+    {
+      "path": "browser/compiled/assets/core-BtDopOMg.js",
+      "bytes": 546236,
+      "sha256": "e2a4187e05e0d7b72df01afbfd9407eefd76771ec8582c7bb318e0ed42086ba8",
+      "preserved": false,
+      "storedInThisPackage": false,
+      "reason": "Reproducible emitted build asset; exact inventory retained, binary not copied into Git."
+    },
+    {
+      "path": "browser/compiled/assets/cover-presets-CAMFFFVe.js",
+      "bytes": 2886,
+      "sha256": "fe8c9f05e5e9addd9e7f907a71cd100693a6526ab1c26fbeddd32b6e65b4f60e",
+      "preserved": false,
+      "storedInThisPackage": false,
+      "reason": "Reproducible emitted build asset; exact inventory retained, binary not copied into Git."
+    },
+    {
+      "path": "browser/compiled/assets/design-DVxR5tT7.webp",
+      "bytes": 227722,
+      "sha256": "61331b6f549777c299b8ea15b6e056877c6f606b02a1232ca3f4e8cfdca6615f",
+      "preserved": false,
+      "storedInThisPackage": false,
+      "reason": "Reproducible emitted build asset; exact inventory retained, binary not copied into Git."
+    },
+    {
+      "path": "browser/compiled/assets/development-C6OZhP3s.webp",
+      "bytes": 97770,
+      "sha256": "58aaf7e9d320fda04a8b089bb12e2a0ecfb98057b6195199c89b22027cbca99c",
+      "preserved": false,
+      "storedInThisPackage": false,
+      "reason": "Reproducible emitted build asset; exact inventory retained, binary not copied into Git."
+    },
+    {
+      "path": "browser/compiled/assets/estimate-DAS9ARV1.js",
+      "bytes": 10736,
+      "sha256": "f2f01cb2675ef2e694ca294466b1b38a521d50294edbfeeda14770e7ce3828ee",
+      "preserved": false,
+      "storedInThisPackage": false,
+      "reason": "Reproducible emitted build asset; exact inventory retained, binary not copied into Git."
+    },
+    {
+      "path": "browser/compiled/assets/estimate-Yz6O2DqG.css",
+      "bytes": 572634,
+      "sha256": "79abf5a368fd235bbe64a56cda58551f0a8ea1aca79359b094b1b9729d9ebc9b",
+      "preserved": false,
+      "storedInThisPackage": false,
+      "reason": "Reproducible emitted build asset; exact inventory retained, binary not copied into Git."
+    },
+    {
+      "path": "browser/compiled/assets/focus-CDWeceOe.webp",
+      "bytes": 193242,
+      "sha256": "842aecfe32b2b709dea407d60b407a15456f9976c0e6fde50429b569b23e6ae4",
+      "preserved": false,
+      "storedInThisPackage": false,
+      "reason": "Reproducible emitted build asset; exact inventory retained, binary not copied into Git."
+    },
+    {
+      "path": "browser/compiled/assets/isolated-CR19kUWq.js",
+      "bytes": 2083,
+      "sha256": "786aba1e0f68270cfab979b61992fee78d53fbaf6201bdffbb81fec3cf2c5a6d",
+      "preserved": false,
+      "storedInThisPackage": false,
+      "reason": "Reproducible emitted build asset; exact inventory retained, binary not copied into Git."
+    },
+    {
+      "path": "browser/compiled/assets/launch-C2IV5fud.webp",
+      "bytes": 110030,
+      "sha256": "5c7debb537297c5b9c830d9835341d7e1e4ab8d42f234c07fda29fd5a9867bdc",
+      "preserved": false,
+      "storedInThisPackage": false,
+      "reason": "Reproducible emitted build asset; exact inventory retained, binary not copied into Git."
+    },
+    {
+      "path": "browser/compiled/assets/planning-CRmxcOpI.webp",
+      "bytes": 122600,
+      "sha256": "1c2c16d65949942d1936a7aa1310e5ed047b88d4888bf233c6550e45876e2d7f",
+      "preserved": false,
+      "storedInThisPackage": false,
+      "reason": "Reproducible emitted build asset; exact inventory retained, binary not copied into Git."
+    },
+    {
+      "path": "browser/compiled/assets/research-D7kSu2WW.webp",
+      "bytes": 143092,
+      "sha256": "abd80b076ed6daa8cf6c5092fab98e1eb1ab639ddea31e5adae5b70f18479c7a",
+      "preserved": false,
+      "storedInThisPackage": false,
+      "reason": "Reproducible emitted build asset; exact inventory retained, binary not copied into Git."
+    },
+    {
+      "path": "browser/compiled/assets/task-BYgQ0cwI.js",
+      "bytes": 786427,
+      "sha256": "ab6244bda941e7175aa520ab7fe200c732ed436ce2ef6eb62a2e862e6d3443bd",
+      "preserved": false,
+      "storedInThisPackage": false,
+      "reason": "Reproducible emitted build asset; exact inventory retained, binary not copied into Git."
+    },
+    {
+      "path": "browser/compiled/assets/task-DUSd0BfW.css",
+      "bytes": 128410,
+      "sha256": "78406bb1eb145e54b1379c5fbdffcd2e333a86f2faddf5d4df6676fd2cb4f30c",
+      "preserved": false,
+      "storedInThisPackage": false,
+      "reason": "Reproducible emitted build asset; exact inventory retained, binary not copied into Git."
+    },
+    {
+      "path": "browser/compiled/assets/ui-Dd8Lx1M5.js",
+      "bytes": 5294,
+      "sha256": "d907f2c9a76668b4eb29ff5934c5fbb73155bb57d0d85805a5381ccebcbfb2ed",
+      "preserved": false,
+      "storedInThisPackage": false,
+      "reason": "Reproducible emitted build asset; exact inventory retained, binary not copied into Git."
+    },
+    {
+      "path": "browser/compiled/estimate-popover/index.html",
+      "bytes": 1483,
+      "sha256": "e1dcb6f67bcca74712ed82e0192b8cbd13c2444a566ed948cb2866afc0977c3b",
+      "preserved": false,
+      "storedInThisPackage": false,
+      "reason": "Reproducible emitted build asset; exact inventory retained, binary not copied into Git."
+    },
+    {
+      "path": "browser/compiled/tabs-geometry/product.html",
+      "bytes": 976,
+      "sha256": "c25885c970ff9eb74111b2639c2b8a7f6534a3fa087000431d223636c8189476",
+      "preserved": false,
+      "storedInThisPackage": false,
+      "reason": "Reproducible emitted build asset; exact inventory retained, binary not copied into Git."
+    },
+    {
+      "path": "browser/outside-menu-keyboard-after-open.png",
+      "bytes": 17080,
+      "sha256": "75ee3805ffd1f65a4ea1b202ac7687c79d68538c94e53b8d9da59fa74a187329",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/estimate/browser/outside-menu-keyboard-after-open.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/outside-menu-keyboard-final.png",
+      "bytes": 10996,
+      "sha256": "2a38710196cb62b3b240161d88757b5d529bee243b5f789d4a06b2e2c91b633e",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/estimate/browser/outside-menu-keyboard-final.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/outside-points-keyboard-cancel-after-open.png",
+      "bytes": 16145,
+      "sha256": "5d2e83765dbeca34a090ba831500d4aae2056233b2198cbf65cb20e4e126fe23",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/estimate/browser/outside-points-keyboard-cancel-after-open.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/outside-points-keyboard-cancel-final.png",
+      "bytes": 11062,
+      "sha256": "8c1be592d884545d90299420c095e23188b1a51479bc109b2876713a6429028b",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/estimate/browser/outside-points-keyboard-cancel-final.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/outside-time-save-after-open.png",
+      "bytes": 20635,
+      "sha256": "24fdade24ec7d3e3782776bd5277f0cec44f4d8908bee6a949b6808ff4c8604b",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/estimate/browser/outside-time-save-after-open.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/outside-time-save-final.png",
+      "bytes": 12139,
+      "sha256": "c1eb3ac875ad12e7d454b2f4b7d85845242ea21bb7b350013df94aa2b1c0ae28",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/estimate/browser/outside-time-save-final.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/owner-close-after-open.png",
+      "bytes": 25166,
+      "sha256": "bfbf362d7288780644f8cc69c4c231193ca78b8d51a39cffa35cc65f2dd062f2",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/estimate/browser/owner-close-after-open.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/owner-close-final.png",
+      "bytes": 10996,
+      "sha256": "2a38710196cb62b3b240161d88757b5d529bee243b5f789d4a06b2e2c91b633e",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/estimate/browser/owner-close-final.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/owner-removal-after-open.png",
+      "bytes": 25166,
+      "sha256": "bfbf362d7288780644f8cc69c4c231193ca78b8d51a39cffa35cc65f2dd062f2",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/estimate/browser/owner-removal-after-open.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/owner-removal-final.png",
+      "bytes": 10996,
+      "sha256": "2a38710196cb62b3b240161d88757b5d529bee243b5f789d4a06b2e2c91b633e",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/estimate/browser/owner-removal-final.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/results.json",
+      "bytes": 287521,
+      "sha256": "ba5c1e84bbce367dbeb33e9a1ac1c20ffb8465d660b228e132cdb0b1ac244a38",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/estimate/browser/results.json.gz",
+      "encoding": "gzip"
+    },
+    {
+      "path": "browser/task-desktop-light-after-open.png",
+      "bytes": 72157,
+      "sha256": "7b9bebefa2b93254cb463b36533a13ad77d3c2363722f63403c0a5914814bb51",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/estimate/browser/task-desktop-light-after-open.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/task-desktop-light-final.png",
+      "bytes": 67528,
+      "sha256": "b26fe92ceae661f30518a17ee98135ecc4565e0475824ebc1aa54c2d0c61ff38",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/estimate/browser/task-desktop-light-final.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/task-narrow-dark-after-open.png",
+      "bytes": 44756,
+      "sha256": "684955e919ee0c60fefe921e820db56f6fb9ae471fb5904d9dae2591c559c7cd",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/estimate/browser/task-narrow-dark-after-open.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/task-narrow-dark-final.png",
+      "bytes": 40435,
+      "sha256": "5b4f39dd1a67c8905b1c0dddaa439bd43fecc20fe67498a24d24e7272e78a098",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/estimate/browser/task-narrow-dark-final.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/task-narrow-light-after-open.png",
+      "bytes": 43513,
+      "sha256": "890bc4c689fd9729a8b0e8d68d715724ebe8cf86cebc3dbc36e672ba17c84943",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/estimate/browser/task-narrow-light-after-open.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/task-narrow-light-final.png",
+      "bytes": 40125,
+      "sha256": "b91fb02363b0c486a66a7e3e509dbbbaf5b749bfbf8cb6529ef4c85a09d913be",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/estimate/browser/task-narrow-light-final.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/task-narrow-text200-after-open.png",
+      "bytes": 50184,
+      "sha256": "cf49fe62e5dd37bd0066a4939cfc0588cb2bba4c990d7f8a5884a4e3ff0b5c85",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/estimate/browser/task-narrow-text200-after-open.png",
+      "encoding": "identity"
+    },
+    {
+      "path": "browser/task-narrow-text200-final.png",
+      "bytes": 51911,
+      "sha256": "10cfd20ad6d85d55f9e2e4e93a3cdeb9137c8724c3c5be539f98fa96018d8185",
+      "preserved": true,
+      "storedInThisPackage": true,
+      "preservedAs": "native/estimate/estimate/browser/task-narrow-text200-final.png",
+      "encoding": "identity"
+    }
+  ],
+  "pathConvention": "path is relative to the downloaded artifact; preservedAs and matchingExistingFiles are relative to docs/implementation/2026-10-12 in the repository."
+}

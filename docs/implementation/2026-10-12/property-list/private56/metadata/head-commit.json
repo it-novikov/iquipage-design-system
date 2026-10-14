@@ -1,0 +1,40 @@
+{
+  "sha": "945169fff6fd7e38b081a76a0e20d71b3956a365",
+  "node_id": "C_kwDOURjrA9oAKDk0NTE2OWZmZjZmZDdlMzhiMDgxYTc2YTBlMjBkNzFiMzk1NmEzNjU",
+  "url": "https://api.github.com/repos/it-novikov/iquipage-design-system/git/commits/945169fff6fd7e38b081a76a0e20d71b3956a365",
+  "html_url": "https://github.com/it-novikov/iquipage-design-system/commit/945169fff6fd7e38b081a76a0e20d71b3956a365",
+  "author": {
+    "name": "Vadim Novikov",
+    "email": "nvkv71@gmail.com",
+    "date": "2026-10-12T13:04:15Z"
+  },
+  "committer": {
+    "name": "Vadim Novikov",
+    "email": "nvkv71@gmail.com",
+    "date": "2026-10-12T13:04:15Z"
+  },
+  "tree": {
+    "sha": "b50846b2e9762b5f7782adced8fd5e1ff21256ed",
+    "url": "https://api.github.com/repos/it-novikov/iquipage-design-system/git/trees/b50846b2e9762b5f7782adced8fd5e1ff21256ed"
+  },
+  "message": "Correct private56 property-list trial documentation and CI applicability\n\nPrepared by GPT-6 Astra AI agents. Integrate accepted main4275; preserve original55 checkpoint, R1 CHANGES_REQUESTED and corrected APPROVED_FOR_NATIVE. CSS and49 dist/modules byte-equal55; core version changes; product stays54 and equals current main. Exact private56 archive a3307cf012d307ea476056e36bdee601f8eef9efad37c78dd96aaef6ccb00d5f. Source215 and package178 verified. Native, visual acceptance and product adoption pending. Equal whole tree to local AI-authored c3e4c202f8f6f5208aca9bc820af4339d92a419d.",
+  "parents": [
+    {
+      "sha": "b03422ab5289bb936b385489a5d017e18bd1bb98",
+      "url": "https://api.github.com/repos/it-novikov/iquipage-design-system/git/commits/b03422ab5289bb936b385489a5d017e18bd1bb98",
+      "html_url": "https://github.com/it-novikov/iquipage-design-system/commit/b03422ab5289bb936b385489a5d017e18bd1bb98"
+    },
+    {
+      "sha": "4275dde301b5068b3d6b1801ecb54c70a2d7e708",
+      "url": "https://api.github.com/repos/it-novikov/iquipage-design-system/git/commits/4275dde301b5068b3d6b1801ecb54c70a2d7e708",
+      "html_url": "https://github.com/it-novikov/iquipage-design-system/commit/4275dde301b5068b3d6b1801ecb54c70a2d7e708"
+    }
+  ],
+  "verification": {
+    "verified": false,
+    "reason": "unsigned",
+    "signature": null,
+    "payload": null,
+    "verified_at": null
+  }
+}

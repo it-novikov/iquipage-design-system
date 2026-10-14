@@ -1,0 +1,80 @@
+{
+  "ordinary_reference_checks": [
+    {
+      "profile": "wide-normal",
+      "row": "reference-owner",
+      "status": "EXACT_RELATIVE_SHAPE_EQUAL"
+    },
+    {
+      "profile": "wide-normal",
+      "row": "reference-due",
+      "status": "EXACT_RELATIVE_SHAPE_EQUAL"
+    },
+    {
+      "profile": "narrow-normal",
+      "row": "reference-owner",
+      "status": "EXACT_RELATIVE_SHAPE_EQUAL"
+    },
+    {
+      "profile": "narrow-normal",
+      "row": "reference-due",
+      "status": "EXACT_RELATIVE_SHAPE_EQUAL"
+    },
+    {
+      "profile": "narrow-text200",
+      "row": "reference-owner",
+      "status": "EXACT_RELATIVE_SHAPE_EQUAL"
+    },
+    {
+      "profile": "narrow-text200",
+      "row": "reference-due",
+      "status": "EXACT_RELATIVE_SHAPE_EQUAL"
+    },
+    {
+      "profile": "wide-tight-text200",
+      "row": "reference-owner",
+      "status": "EXACT_RELATIVE_SHAPE_EQUAL"
+    },
+    {
+      "profile": "wide-tight-text200",
+      "row": "reference-due",
+      "status": "EXACT_RELATIVE_SHAPE_EQUAL"
+    },
+    {
+      "profile": "wide-text200",
+      "row": "reference-owner",
+      "status": "EXACT_RELATIVE_SHAPE_EQUAL"
+    },
+    {
+      "profile": "wide-text200",
+      "row": "reference-due",
+      "status": "EXACT_RELATIVE_SHAPE_EQUAL"
+    }
+  ],
+  "fixed_container_different_viewport_checks": [
+    {
+      "variant": "control",
+      "profiles": [
+        "narrow-text200",
+        "wide-tight-text200"
+      ],
+      "status": "ALL_12_ROW_MEASUREMENTS_EXACTLY_EQUAL"
+    },
+    {
+      "variant": "candidate",
+      "profiles": [
+        "narrow-text200",
+        "wide-tight-text200"
+      ],
+      "status": "ALL_12_ROW_MEASUREMENTS_EXACTLY_EQUAL"
+    }
+  ],
+  "participant_label": {
+    "text": "Поиск участника",
+    "control_full_range_width": 213,
+    "fontSize": "26px",
+    "lineHeight": "20px",
+    "candidate_budget": 196,
+    "candidate_full_host_width": 270
+  }
+}

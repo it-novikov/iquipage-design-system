@@ -1,0 +1,216 @@
+{
+  "artifact": {
+    "id": 11746992082,
+    "name": "estimate-popover",
+    "size_in_bytes": 2086655,
+    "url": "https://api.github.com/repos/it-novikov/iquipage-design-system/actions/artifacts/11746992082",
+    "archive_download_url": "https://api.github.com/repos/it-novikov/iquipage-design-system/actions/artifacts/11746992082/zip",
+    "expired": false,
+    "created_at": "2026-10-12T12:32:30Z",
+    "expires_at": "2026-10-26T12:32:29Z",
+    "updated_at": "2026-10-12T12:32:30Z",
+    "digest": "sha256:44f86e47ddec26346949694d94ecb39263350eb0fe9ba5949016a0897ae1894d",
+    "workflow_run": {
+      "id": 38249543808,
+      "repository_id": 1360587523,
+      "head_repository_id": 1360587523,
+      "head_branch": "fix/task-overview-recovery",
+      "head_sha": "1fd928e12b43b26f29ebcb190a5595c1d2618444"
+    }
+  },
+  "zip": "task88-estimate-11746992082.zip",
+  "zip_bytes": 2086655,
+  "zip_sha256": "44f86e47ddec26346949694d94ecb39263350eb0fe9ba5949016a0897ae1894d",
+  "files": [
+    {
+      "path": "browser/anchor-removal-final.png",
+      "bytes": 15069,
+      "sha256": "bf76faa2bcf4217d2e0c4886bad45989ac329c2cd01512f0f56e5bc75f5b50c9"
+    },
+    {
+      "path": "browser/anchor-removal-after-open.png",
+      "bytes": 25166,
+      "sha256": "bfbf362d7288780644f8cc69c4c231193ca78b8d51a39cffa35cc65f2dd062f2"
+    },
+    {
+      "path": "browser/compiled/assets/core-BtDopOMg.js",
+      "bytes": 546236,
+      "sha256": "e2a4187e05e0d7b72df01afbfd9407eefd76771ec8582c7bb318e0ed42086ba8"
+    },
+    {
+      "path": "browser/compiled/assets/InterVariable-CXsUriRB.woff2",
+      "bytes": 109172,
+      "sha256": "c8126c77db9d9370281a3e473ecba9232f1b6582a69df77c9f9cd825253c1225"
+    },
+    {
+      "path": "browser/compiled/assets/cover-presets-CAMFFFVe.js",
+      "bytes": 2886,
+      "sha256": "fe8c9f05e5e9addd9e7f907a71cd100693a6526ab1c26fbeddd32b6e65b4f60e"
+    },
+    {
+      "path": "browser/compiled/assets/design-DVxR5tT7.webp",
+      "bytes": 227722,
+      "sha256": "61331b6f549777c299b8ea15b6e056877c6f606b02a1232ca3f4e8cfdca6615f"
+    },
+    {
+      "path": "browser/compiled/assets/development-C6OZhP3s.webp",
+      "bytes": 97770,
+      "sha256": "58aaf7e9d320fda04a8b089bb12e2a0ecfb98057b6195199c89b22027cbca99c"
+    },
+    {
+      "path": "browser/compiled/assets/estimate-DAS9ARV1.js",
+      "bytes": 10736,
+      "sha256": "f2f01cb2675ef2e694ca294466b1b38a521d50294edbfeeda14770e7ce3828ee"
+    },
+    {
+      "path": "browser/compiled/assets/estimate-Yz6O2DqG.css",
+      "bytes": 572634,
+      "sha256": "79abf5a368fd235bbe64a56cda58551f0a8ea1aca79359b094b1b9729d9ebc9b"
+    },
+    {
+      "path": "browser/compiled/assets/focus-CDWeceOe.webp",
+      "bytes": 193242,
+      "sha256": "842aecfe32b2b709dea407d60b407a15456f9976c0e6fde50429b569b23e6ae4"
+    },
+    {
+      "path": "browser/compiled/assets/isolated-CR19kUWq.js",
+      "bytes": 2083,
+      "sha256": "786aba1e0f68270cfab979b61992fee78d53fbaf6201bdffbb81fec3cf2c5a6d"
+    },
+    {
+      "path": "browser/compiled/assets/launch-C2IV5fud.webp",
+      "bytes": 110030,
+      "sha256": "5c7debb537297c5b9c830d9835341d7e1e4ab8d42f234c07fda29fd5a9867bdc"
+    },
+    {
+      "path": "browser/compiled/assets/planning-CRmxcOpI.webp",
+      "bytes": 122600,
+      "sha256": "1c2c16d65949942d1936a7aa1310e5ed047b88d4888bf233c6550e45876e2d7f"
+    },
+    {
+      "path": "browser/compiled/assets/research-D7kSu2WW.webp",
+      "bytes": 143092,
+      "sha256": "abd80b076ed6daa8cf6c5092fab98e1eb1ab639ddea31e5adae5b70f18479c7a"
+    },
+    {
+      "path": "browser/compiled/assets/task-DMdKszsb.js",
+      "bytes": 788574,
+      "sha256": "375411fa732331bd416128bf76f91b7da0437c6d578616905dd68fe1f42fbfcc"
+    },
+    {
+      "path": "browser/compiled/assets/task-SGerdmz2.css",
+      "bytes": 129526,
+      "sha256": "d425d17631a44617ccf4fac13766f484d5be9f589a38c46efe5632c266c66e19"
+    },
+    {
+      "path": "browser/compiled/assets/ui-Dd8Lx1M5.js",
+      "bytes": 5294,
+      "sha256": "d907f2c9a76668b4eb29ff5934c5fbb73155bb57d0d85805a5381ccebcbfb2ed"
+    },
+    {
+      "path": "browser/compiled/tabs-geometry/product.html",
+      "bytes": 976,
+      "sha256": "3b8881300649f24ba1e9c8fa89844cc0064691f1915ac3f78a45b20daee16c68"
+    },
+    {
+      "path": "browser/compiled/estimate-popover/index.html",
+      "bytes": 1483,
+      "sha256": "e1dcb6f67bcca74712ed82e0192b8cbd13c2444a566ed948cb2866afc0977c3b"
+    },
+    {
+      "path": "browser/outside-menu-keyboard-after-open.png",
+      "bytes": 17080,
+      "sha256": "75ee3805ffd1f65a4ea1b202ac7687c79d68538c94e53b8d9da59fa74a187329"
+    },
+    {
+      "path": "browser/outside-menu-keyboard-final.png",
+      "bytes": 10996,
+      "sha256": "2a38710196cb62b3b240161d88757b5d529bee243b5f789d4a06b2e2c91b633e"
+    },
+    {
+      "path": "browser/outside-points-keyboard-cancel-after-open.png",
+      "bytes": 16145,
+      "sha256": "5d2e83765dbeca34a090ba831500d4aae2056233b2198cbf65cb20e4e126fe23"
+    },
+    {
+      "path": "browser/outside-points-keyboard-cancel-final.png",
+      "bytes": 11064,
+      "sha256": "e187fcdf5ddc129e35f766e8e373f21f1832f52f16cd6e7784c35ffc492854a9"
+    },
+    {
+      "path": "browser/outside-time-save-after-open.png",
+      "bytes": 20635,
+      "sha256": "24fdade24ec7d3e3782776bd5277f0cec44f4d8908bee6a949b6808ff4c8604b"
+    },
+    {
+      "path": "browser/owner-close-after-open.png",
+      "bytes": 25166,
+      "sha256": "bfbf362d7288780644f8cc69c4c231193ca78b8d51a39cffa35cc65f2dd062f2"
+    },
+    {
+      "path": "browser/outside-time-save-final.png",
+      "bytes": 12139,
+      "sha256": "c1eb3ac875ad12e7d454b2f4b7d85845242ea21bb7b350013df94aa2b1c0ae28"
+    },
+    {
+      "path": "browser/owner-close-final.png",
+      "bytes": 10996,
+      "sha256": "2a38710196cb62b3b240161d88757b5d529bee243b5f789d4a06b2e2c91b633e"
+    },
+    {
+      "path": "browser/owner-removal-after-open.png",
+      "bytes": 25166,
+      "sha256": "bfbf362d7288780644f8cc69c4c231193ca78b8d51a39cffa35cc65f2dd062f2"
+    },
+    {
+      "path": "browser/owner-removal-final.png",
+      "bytes": 10996,
+      "sha256": "2a38710196cb62b3b240161d88757b5d529bee243b5f789d4a06b2e2c91b633e"
+    },
+    {
+      "path": "browser/results.json",
+      "bytes": 287521,
+      "sha256": "6edb8f0fc5d799ee585766385dc05ec58e20316783139983fddcdf11b7693d72"
+    },
+    {
+      "path": "browser/task-desktop-light-final.png",
+      "bytes": 70274,
+      "sha256": "7f2c2b6c731b15f1f600252958e3f52fc91f7b7a3cd7a80050b2cdb1c27735b6"
+    },
+    {
+      "path": "browser/task-desktop-light-after-open.png",
+      "bytes": 74820,
+      "sha256": "e4b963ca28050d5471cc08f5e802fef34c6209d5d7c38831cd67d53d9165aa57"
+    },
+    {
+      "path": "browser/task-narrow-dark-after-open.png",
+      "bytes": 43358,
+      "sha256": "21fda01bbabb2149eebe22cec55977cf3d00f7f7c894795385ff59b55494895e"
+    },
+    {
+      "path": "browser/task-narrow-dark-final.png",
+      "bytes": 39031,
+      "sha256": "eb66e62c6057b48e93adc8eafb0a836937a19d15f39cfb796252f722452d42de"
+    },
+    {
+      "path": "browser/task-narrow-light-after-open.png",
+      "bytes": 42239,
+      "sha256": "526d91019774db26537a49a3c72a7e5e763697b836825f8e8c48019d6fede937"
+    },
+    {
+      "path": "browser/task-narrow-light-final.png",
+      "bytes": 38816,
+      "sha256": "51687d31f1f64a4e038d5d8d4250fa55d18b96c7fe02cdb632203d9a47d66413"
+    },
+    {
+      "path": "browser/task-narrow-text200-after-open.png",
+      "bytes": 48260,
+      "sha256": "a4beb1bb3c39887be464e0c0a333300aab52539465145b9c286b386732ef2104"
+    },
+    {
+      "path": "browser/task-narrow-text200-final.png",
+      "bytes": 51884,
+      "sha256": "dba994446666adff7c5229d5acdc0ecee72d0d8373e82ce20c979c89946c8bf1"
+    }
+  ]
+}

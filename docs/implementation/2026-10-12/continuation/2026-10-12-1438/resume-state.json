@@ -1,0 +1,257 @@
+{
+  "schema": "sprintique-continuation/1",
+  "kind": "verified-checkpoint-and-resume",
+  "date": "2026-10-12",
+  "evidenceBase": "aef01191d2d59318dca68ef4099adff6033fde32",
+  "publicationMechanism": "GitHub Git Data API; executor environment_offline",
+  "authorization": {
+    "numericPRLimit": null,
+    "numericStackLimit": null,
+    "numericReviewLimit": null,
+    "commitPushPR": true,
+    "merge": false,
+    "deploy": false,
+    "npmPublish": false,
+    "onboarding": "requires separate explicit owner approval",
+    "realBrowserAndScreenReaderMatrix": "prerelease"
+  },
+  "task93": {
+    "pr": 93,
+    "branch": "test/task-compact-state-regression",
+    "head": "1a72ce5f8bc7cb1d872ae2945dfb7169d5a3fb47",
+    "tree": "7dd35ca5cb6ab8de77e3cff33850b16271a633f7",
+    "actualCheckout": "810fe0d64b5c90308b3cfafb5cc6638c2d9989ac",
+    "actualTreeEqualsHead": true,
+    "sourceR1": "APPROVE_IN_SCOPE; immutable original already in PR93 Bridge",
+    "native": {
+      "run": 38259669835,
+      "job": 114846667017,
+      "status": "SUCCESS",
+      "semanticScenarios": 6,
+      "semanticViewport": "desktop",
+      "longCaptures": [
+        {
+          "width": 1280,
+          "height": 900
+        },
+        {
+          "width": 390,
+          "height": 844
+        }
+      ],
+      "pngCount": 14,
+      "reviewVerdict": "APPROVE_IN_SCOPE for test-only coverage",
+      "reviewOriginalFreeze": "PENDING: original MD write returned Failed to write file; complete original and SHA not confirmed",
+      "artifact": 11752411119,
+      "zipBytes": 2328537,
+      "zipSHA256": "b0994db0ca72ec722b087cfe515682c3e4bf58092d95b9bd2088cafac5b4f4e3",
+      "sourceInputs": 197,
+      "sourceHashFiles": 14,
+      "outputs": 12,
+      "ds54Files": 176,
+      "productTree": "a2ad274d07664eb79315ad96b053a67d6dc8c4ff",
+      "libraryTree": "c78df917f00d4e8403bde8bf4c134eed917be336",
+      "reviewIndependence": "Source R1 and native R2 by the same reviewer, independent of patch author; role debate is analytical, not a human user study",
+      "fonts": "Inter and Inter Display loaded; Inter Fallback local Arial reports error; no all-fonts PASS claim"
+    },
+    "full": {
+      "run": 38259669939,
+      "job": 114846668712,
+      "status": "SUCCESS",
+      "certificateChecks": 8,
+      "certificatePassed": 8,
+      "sourceStable": true,
+      "sourceFingerprint": "c1e9523bbb9a69dd5af91dab180b4b627dcd910a60c94fe3693cf259740af2f1",
+      "fullPlatformReady": false,
+      "productNodeTestCount": "NOT_READ_FROM_ARCHIVE",
+      "individualSourceHashVerification": "PENDING for this new full artifact",
+      "artifact": 11753347250,
+      "zipBytes": 1138560,
+      "zipSHA256": "822f0f48d31d1e365a5a1404c44ba4904e9957944145c855506bd32b40369e55",
+      "certificateOrigin": "extracted from timestamped job log, not materialized artifact original",
+      "imageBuildAndLoad": true,
+      "imageRuntimeStarted": false
+    },
+    "measurements": {
+      "desktopSummaryOld": 271.9375,
+      "desktopSummaryCurrent": 219.15625,
+      "narrowSummaryOld": 339.109375,
+      "narrowSummaryCurrent": 263.9375,
+      "narrowPrimaryProperties": "all four fully visible in this fixed long fixture",
+      "narrowDisclosureTop": 764.375,
+      "narrowDisclosureBottom": 809.375,
+      "scrollportBottom": 793,
+      "visibleDisclosureHeight": 28.625,
+      "disclosureHeight": 45,
+      "benefitAuthor": "external accepted PR90 runtime; PR93 adds coverage"
+    },
+    "openFindings": [
+      "F1 full first-screen composition and clipped disclosure",
+      "F2 full Work completion language",
+      "F3 explanation of question without answer permission",
+      "D1 actual keyboard navigation scenario; BODY after pointer transition is not proof of keyboard defect"
+    ]
+  },
+  "propertyClean56": {
+    "pr": 91,
+    "branch": "fix/property-list-readable-layout",
+    "head": "5431ca9e54cead8f0e9c663240aa8aef3cacb963",
+    "headTree": "c1f02d0ced39a55bf57f012c4851e383270f9936",
+    "actualCheckout": "f137578ab1999b717d206c2f5ad841c47f3c0902",
+    "actualTree": "5424e9860ac0cefb920dc3f4b8ea6142ae60f022",
+    "wholeTreeEqualsHead": false,
+    "actualParents": [
+      "5d674ee06551b175fb5e9553c9866c11fb8fe4c0",
+      "5431ca9e54cead8f0e9c663240aa8aef3cacb963"
+    ],
+    "run": 38259375504,
+    "job": 114845659621,
+    "companionJob": 114845660337,
+    "status": "SUCCESS",
+    "artifact": 11751063571,
+    "zipBytes": 4990131,
+    "zipSHA256": "6b830de3172e17feb88a75681619c756714923038db240b2400c156becbbc9e7",
+    "planRevision": 3,
+    "planSHA256": "940aa92a1ef88941f8d3dfed46b81cd3a649351e56388eb84f6efc46445503d5",
+    "diagnosticVerdict": "VALID_WITHIN_OBSERVED_CONTRACT",
+    "anchorVerdict": "CONFIRMED_PAINTED_DEFECT / CHANGES_REQUESTED",
+    "candidateCases": 4,
+    "allOpenCases": 8,
+    "environmentComparisons": 112,
+    "candidateObservationMilliseconds": [
+      80,
+      79,
+      80,
+      93
+    ],
+    "observedConditions": "container width615→270; viewport PNG; raw resized→afterPNG→afterCaptureFrames unchanged; no synthetic resize/reopen/reposition",
+    "evidenceReview": {
+      "uniquePNGs": 27,
+      "pngReferences": 32,
+      "rootPersonallyViewedOpenPNGs": 8,
+      "closedPNGsEqualPrevious56": 20,
+      "closedRowMeasurementSetsEqual": 10,
+      "rowsPerSet": 12,
+      "frozenGitBlobsVerified": 238,
+      "sourceProofInputs": 215,
+      "reportFreeze": "PENDING due executor loss",
+      "original56R2Unchanged": true
+    },
+    "remainingFindings": [
+      "NR2-01 confirmed anchor defect requires runtime correction",
+      "NR2-02 unnecessary label wrap",
+      "NR2-03 first text baseline",
+      "NR2-04 forced metadata row"
+    ],
+    "productAdopted": false
+  },
+  "private57": {
+    "status": "LOCAL_WORK_IN_PROGRESS; NOT_PUSHED; NOT_FROZEN",
+    "author": "gpt-6-astra-ds",
+    "reportedChecks": [
+      "DS build PASS",
+      "478/478 DS Node tests PASS",
+      "npm pack rebuild dist byte-equal",
+      "archive/source supplied docs and dist comparison PASS"
+    ],
+    "notRun": [
+      "fresh public control consumer build",
+      "fresh public candidate consumer build",
+      "source R1 for57",
+      "native57",
+      "visual acceptance",
+      "product adoption"
+    ],
+    "packagePath": "experiments/property-list-reflow/packages/iquipage-web-0.6.0-vnext.57.tgz",
+    "packageBytes": 637258,
+    "packageFiles": 178,
+    "packageSHA256": "a3b5f9f2dcb2d15694c2f92380e6c12a2f4e51061ebbe03af22afdb61e696e6e",
+    "sourceProofSHA256": "be80f8b3be94583cf0a34bfa5a02dafb0b1b96f0f2f39a122324fc467e1c9af2",
+    "sourceProofInputs": 215,
+    "comparisonPlanRevision": 4,
+    "comparisonPlanSHA256": "f0dd547edd3c99d194c3389d19b13e363e837fb8ce2895620b40f4fae40515b4",
+    "changedDOM": "same author name+metadata nested inside existing .iq-property-text in both54 and57 consumers; revision4 frozen before consumer/native",
+    "compatibility": "old direct-meta recipe remains a readable second-row fallback; one new canonical recommended recipe",
+    "positioningJSChanged": false,
+    "productChanged": false,
+    "oldPackages54_55_56Changed": false,
+    "rootIndexOwned": true,
+    "head": "5431ca9e54cead8f0e9c663240aa8aef3cacb963",
+    "mergeHead": "5d674ee06551b175fb5e9553c9866c11fb8fe4c0",
+    "stagedTree": "5424e9860ac0cefb920dc3f4b8ea6142ae60f022",
+    "lease": "gpt-6-astra-ds remains held; no blind takeover"
+  },
+  "localPreservationPending": {
+    "original56FullAndCompanions": {
+      "subtree": "ci/property-list-private56/",
+      "files": 35,
+      "bytes": 1077108,
+      "gzip": 17,
+      "indexPath": "research/continuation/property91-ci-preservation-index.json",
+      "indexSHA256": "c6a3764e633b95ceb6ee5b41c4571f27029129ac30ecfc2e779cbf363bb5a686",
+      "status": "35 files individually rehashed before disconnect; not yet appended to global manifest or pushed"
+    },
+    "clean56Review": "research/continuation/property-list-clean56-native-r2.md exists by successful earlier write; final hash/index pending; role-exchange write outcome unknown",
+    "task93Review": "research/continuation/task-compact-state-native-r2.md write failed; inspect possible partial file; index not created and freeze not applied",
+    "evidenceLocalHeadBeforeAPIPublication": "aef01191d2d59318dca68ef4099adff6033fde32",
+    "instructions": [
+      "First reconcile remote documentation commit with local state; preserve untracked35 and all authors' work.",
+      "Do not repeat an indeterminate write before checking its target.",
+      "Append new preservation records to the actual current manifest; do not reuse historical file totals.",
+      "Resume owner57 to finish build-only consumers and freeze/handoff without changing root index.",
+      "Do not rerun successful native/full jobs solely because executor disconnected."
+    ],
+    "task93SavedReviewFiles": [
+      {
+        "path": "research/continuation/task-compact-state-native-r2-integrity.json",
+        "bytes": 127207,
+        "sha256": "6274fe290ee18a00fa496cc9a615a8ccf78e296b52ec62c804eb7ab652d3dc49"
+      },
+      {
+        "path": "research/continuation/task-compact-state-native-r2-geometry.json",
+        "bytes": 79394,
+        "sha256": "321b7849e2afe0944f73744bad39f2ebea2d2b09936cd0324efd454041331812"
+      },
+      {
+        "path": "research/continuation/task-compact-state-native-r2-source-continuity.json",
+        "bytes": 7125,
+        "sha256": "f384b618f859e57f977adae7cdfd98f8fe6f0f0f3faa2a297f11a4a0406ea05e"
+      }
+    ]
+  },
+  "nextScope": {
+    "order": [
+      "Preserve/freeze completed native reviews and full evidence",
+      "Finish57 consumers/docs/freeze",
+      "Independent source review57, publish immutable package checkpoint, native review",
+      "Bounded open-editor anchor runtime fix and verification",
+      "Separate DS adoption in actual Task and outstanding F1/F2/F3/D1"
+    ],
+    "proposedAnchorDirection": "observe trigger size while editor is open, coalesce through existing position calculation, preserve editing/focus, dispose/cancel on close/disconnect; exact implementation still subject to source review",
+    "notPromised": [
+      "ResizeObserver tracks all position-only movement or CSS transforms",
+      "automatic all-screen acceptance",
+      "zero defects without observation",
+      "new framework migration in this slice"
+    ],
+    "onboarding": "deferred until separate explicit approval"
+  },
+  "limits": [
+    "Sequential GitHub observations, not an atomic repository snapshot.",
+    "This checkpoint is a root synthesis, not a substitute for unfinished immutable reviewer originals.",
+    "New native ZIP/PNG collections are not included in this API-only checkpoint.",
+    "Full Task93 archive individual source hashes and per-suite Node counts remain unverified here.",
+    "No production, npm or merge action."
+  ],
+  "observedAt": "2026-10-12T14:45:04Z",
+  "observationsAreAtomic": false,
+  "observedMain": "5d674ee06551b175fb5e9553c9866c11fb8fe4c0",
+  "parallelPR92": {
+    "pr": 92,
+    "head": "975d9eef094ee43984d7783e0bc7d792d0afabf1",
+    "state": "open",
+    "merged": false,
+    "reviewedByRoot": false,
+    "coordination": "Inspect overlapping Task/Work copy before new F2/F3 edits; do not duplicate WP05 work"
+  }
+}
