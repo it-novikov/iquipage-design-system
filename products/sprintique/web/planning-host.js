@@ -39,14 +39,16 @@ export async function recoverPlanningAttempt(adapter){
 export async function mountPlanningHost(root,{repository,adapter,project,onOpenBoard,viewState={}}){
   const {mountPlanning}=await import('../ui/planning/src/index.js');
   let closed=false,modal=null,mounted,opening=null;
-  const scoped=Object.create(repository);scoped.createInBoard=false;
+  // A task created in a sprint or release goes straight onto that container's Board (F01: create and find the work).
+  // The backlog keeps the draft path: admission there is a separate decision.
+  const scopedFor=groupId=>{const scoped=Object.create(repository);scoped.createInBoard=!!groupId&&groupId!=='backlog';return scoped;};
   async function openTask(id,{onChanged=()=>mounted?.reload(),onClose=()=>{},groupId='backlog',parentId=null,fromRoute=false}={}){
     if(closed||modal||opening)return false;
     const request=new AbortController();opening=request;
     try{
     const task=id?await repository.read('tasks',id,project.id,{signal:request.signal}):null;
     if(request.signal.aborted||closed)return false;if(id&&!task)throw Error('Задача недоступна.');
-    const created=await openTaskDialog(task,{repository:scoped,project,tasks:[],attachmentAdapter:repository.attachmentAdapter,canEdit:can(project,'tasks.write'),canDiscuss:can(project,'threads.write'),canManage:can(project,'project.settings'),initialValues:{releaseId:groupId==='backlog'?null:groupId,...(parentId?{parentId}:{})},
+    const created=await openTaskDialog(task,{repository:scopedFor(task?null:groupId),project,tasks:[],attachmentAdapter:repository.attachmentAdapter,canEdit:can(project,'tasks.write'),canDiscuss:can(project,'threads.write'),canManage:can(project,'project.settings'),initialValues:{releaseId:groupId==='backlog'?null:groupId,...(parentId?{parentId}:{})},
       signal:request.signal,isActive:()=>!closed&&!request.signal.aborted,onSaved:onChanged,onOpenTask:async next=>{if(await closeTask())await openTask(next);}});
     if(closed||request.signal.aborted){created.close(true);return false;}modal=created;
     const opened=modal;if(task&&!fromRoute)history.pushState(null,'','#/task/'+encodeURIComponent(taskKey(task)));
