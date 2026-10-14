@@ -1,7 +1,7 @@
 name: Tabs geometry
 on:
   pull_request:
-    paths: ['products/sprintique/**', 'libraries/iquipage/**', '.github/workflows/tabs-geometry.yml']
+    paths: ['products/sprintique/**', 'libraries/iquipage/**', 'experiments/property-list-reflow/**', '.github/workflows/tabs-geometry.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -66,5 +66,58 @@ jobs:
         with:
           name: estimate-popover
           path: products/sprintique/output/estimate-popover/
+          retention-days: 14
+          if-no-files-found: error
+  property-list-trial:
+    if: ${{ (github.event_name == 'pull_request' && github.head_ref == 'fix/property-list-readable-layout') || (github.event_name == 'workflow_dispatch' && github.ref_name == 'fix/property-list-readable-layout') }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '24.20.0'
+          package-manager-cache: false
+      - name: Install pinned comparison and temporary browser tools
+        env:
+          PLAYWRIGHT_BROWSERS_PATH: ${{ runner.temp }}/sprintique-browsers
+        run: |
+          npm ci --ignore-scripts --no-fund --prefix products/sprintique
+          npm install --prefix "$RUNNER_TEMP/sprintique-browser-tools" --no-save --package-lock=false --ignore-scripts --no-fund playwright@1.62.1
+          node "$RUNNER_TEMP/sprintique-browser-tools/node_modules/playwright/cli.js" install --with-deps chromium
+      - name: Private DS56 and same public fixture build
+        id: property-build
+        run: |
+          node libraries/iquipage/scripts/build.mjs
+          npm test --prefix libraries/iquipage
+          node experiments/property-list-reflow/compare.mjs --variant=control --build-only
+          node experiments/property-list-reflow/compare.mjs --variant=candidate --build-only
+      - name: Corrected DS54 control capture
+        id: property-control
+        if: ${{ !cancelled() && steps.property-build.outcome == 'success' }}
+        env:
+          PLAYWRIGHT_MODULE: ${{ runner.temp }}/sprintique-browser-tools/node_modules/playwright
+          PLAYWRIGHT_BROWSERS_PATH: ${{ runner.temp }}/sprintique-browsers
+          PROPERTY_REFLOW_SOURCE_REVISION: ${{ github.sha }}
+        run: node experiments/property-list-reflow/compare.mjs --variant=control
+      - name: Exact private DS56 candidate capture
+        id: property-candidate
+        if: ${{ !cancelled() && steps.property-build.outcome == 'success' }}
+        env:
+          PLAYWRIGHT_MODULE: ${{ runner.temp }}/sprintique-browser-tools/node_modules/playwright
+          PLAYWRIGHT_BROWSERS_PATH: ${{ runner.temp }}/sprintique-browsers
+          PROPERTY_REFLOW_SOURCE_REVISION: ${{ github.sha }}
+        run: node experiments/property-list-reflow/compare.mjs --variant=candidate
+      - name: Compare ordinary references and targeted keyboard evidence
+        if: ${{ !cancelled() && steps.property-control.outcome == 'success' && steps.property-candidate.outcome == 'success' }}
+        run: node experiments/property-list-reflow/verify-comparison.mjs
+      - name: Property-list private trial evidence
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: property-list-private56
+          path: experiments/property-list-reflow/output/
           retention-days: 14
           if-no-files-found: error

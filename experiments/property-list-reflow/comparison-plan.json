@@ -1,0 +1,147 @@
+{
+  "schema_version": "2.0",
+  "id": "PF04-property-list-private56-capture-diagnostic",
+  "revision": 3,
+  "phase": "candidate-comparison",
+  "predecessor_plan_sha256": "724f1e889dc621e178ee173cb4ef8fa1fbfd190b0249decc208e75cc89de5582",
+  "discovery_sha256": "e6e222e503790852a43fd195fd75bab3d2854baf8b93cbfb3301c948448d4e7e",
+  "source_base": "41ebe4823471072ed6dbb405fbd5e755852eec3f",
+  "scope": "Same revised public fixture built separately from immutable DS54 and private DS56. Product remains54; no Task/adoption/human acceptance. Geometry and keyboard checks are scoped evidence; popup container-resize remains an explicit comparative diagnostic.",
+  "packages": {
+    "control": {
+      "version": "0.6.0-vnext.54",
+      "path": "products/sprintique/vendor/iquipage-web-0.6.0-vnext.54.tgz",
+      "sha256": "a726a4536e532fc556f615d0b1a9cda1873dc111e6090710329b9ec1b8204457"
+    },
+    "candidate": {
+      "version": "0.6.0-vnext.56",
+      "path": "experiments/property-list-reflow/packages/iquipage-web-0.6.0-vnext.56.tgz",
+      "sha256": "a3307cf012d307ea476056e36bdee601f8eef9efad37c78dd96aaef6ccb00d5f"
+    }
+  },
+  "profiles": [
+    {
+      "id": "wide-normal",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "container_width": 615,
+      "root_font_px": 16
+    },
+    {
+      "id": "narrow-normal",
+      "viewport": {
+        "width": 390,
+        "height": 1000
+      },
+      "container_width": 349,
+      "root_font_px": 16
+    },
+    {
+      "id": "narrow-text200",
+      "viewport": {
+        "width": 320,
+        "height": 1000
+      },
+      "container_width": 270,
+      "root_font_px": 32
+    },
+    {
+      "id": "wide-tight-text200",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "container_width": 270,
+      "root_font_px": 32
+    },
+    {
+      "id": "wide-text200",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "container_width": 615,
+      "root_font_px": 32
+    }
+  ],
+  "interaction_profiles": [
+    "wide-normal",
+    "wide-text200"
+  ],
+  "fixture_revision": "Supported avatar {text:АА,tone:blue} for owner and ordinary reference, with mounted-element oracle; original values and five host profiles unchanged. Existing outer wrappers/margins/bases/box sizing are measured.",
+  "comparisons": [
+    "narrow-text200 and wide-tight-text200 hold container width and font fixed while changing viewport width; they distinguish a viewport-only explanation.",
+    "wide-normal and wide-text200 hold the wide viewport and 615px container fixed while changing root font. wide-tight-text200 and wide-text200 hold root32 and viewport fixed while changing the container.",
+    "The 120px label track is measured in every profile alongside each actual font size and text extent; observations do not claim a full factorial ablation of container/font effects.",
+    "An ordinary select and date field outside .iq-properties use identical selected data and the same host width/font. They isolate the additional property-list contract without changing or overriding any DS rule.",
+    "Candidate A no-grow label versus full-width B remains a human reading question, especially the existing Поиск участника label. No B CSS is silently applied to the control."
+  ],
+  "acceptance": {
+    "candidate_geometry": "Complete property-list text ranges are not clipped or outside the host; no document horizontal overflow. Native input buffers and decorative initials are separate contracts; raw text/canvas/PNG evidence is preserved.",
+    "ordinary_reference": "Control and candidate preserve ordinary reference field shapes and styles relative to each row; absolute document y can change because list height changes.",
+    "interaction": "Keyboard open/cancel and selection intent count/focus identity; native one-line input. Container-only resize records old/new anchor geometry without fake window resize or layout repair.",
+    "visual": "Independent PNG review is required for full labels, value grouping, normal density, paired rhythm, pill/dot, long words and stacked no-grow label cost. A geometric pass is not human approval."
+  },
+  "environment": {
+    "engine": "native Chromium",
+    "playwright": "1.62.1",
+    "target": "GitHub Actions Ubuntu 24.04 / Node 24.20.0",
+    "theme": "light",
+    "density": "comfortable",
+    "locale": "ru-RU",
+    "timezone": "UTC",
+    "device_scale_factor": 1,
+    "browser_zoom": "100%",
+    "text_scaling": "HTML root font-size exactly 16px or 32px, not browser zoom",
+    "fixed_browser_time": "2026-10-12T12:00:00.000Z",
+    "input": "Targeted keyboard/select/date/tag checks in wide-normal and wide-text200; same five profiles, no new viewport matrix",
+    "load_mode": "Vite compiled static preview of exact public DS imports"
+  },
+  "not_run": [
+    "Actual Task or product-owned pill reflow/adoption",
+    "Readonly empty tag caption defect",
+    "Backend, auth, persistence or human acceptance",
+    "True browser zoom and release Safari/Firefox/iOS/screen readers"
+  ],
+  "previous_comparison_plan_sha256": "8d37900ee942cfbf03dd6fbccc46f9aa8fa390f3b8a00d12412aac1ffca5722f",
+  "revision_reason": "Native R2 NR2-01 diagnostic only: retain immutable54/56 package bytes and the same fixture, profiles, acceptance and semantic checks. Replace open-editor fullPage PNG with viewport PNG and record immediate post-PNG plus two-frame post-capture geometry/focus/event counters. Capture side effects are failures of observation, not popup repairs. Revision2 and its native packet remain unchanged; layout A is not accepted.",
+  "applicability": {
+    "trial_branch": "fix/property-list-readable-layout",
+    "events": [
+      "pull_request with matching head_ref",
+      "explicit workflow_dispatch with matching ref_name"
+    ],
+    "other_product_or_library_changes": "Frozen trial is not a permanent gate; existing general gates remain. Adoption requires its own applicable verification."
+  },
+  "capture_contract": {
+    "open_editor_png": "viewport only; fullPage:false",
+    "closed_editor_document_png": "retained for complete-list reading",
+    "checkpoints": [
+      "before container resize",
+      "resized after two animation frames",
+      "immediately after viewport PNG",
+      "after two further animation frames",
+      "after Escape"
+    ],
+    "recorded_state": [
+      "trigger and popup rectangles",
+      "expanded/value/focus",
+      "viewport and host width",
+      "window scroll and resize/scroll event counters",
+      "value change intents",
+      "visualViewport size/offsets/page offsets/scale and passive resize/scroll counters; explicit null when unavailable"
+    ],
+    "capture_invariants": [
+      "viewport",
+      "hostWidth",
+      "windowScroll",
+      "resizeEvents",
+      "scrollEvents",
+      "visualViewport",
+      "visualViewportEvents"
+    ],
+    "interpretation": "Reject capture contamination in window or visualViewport; geometry may evolve naturally without these events. Preserve raw pre/post anchor classification for review. No synthetic resize, forced scroll, reposition, reopen or DS JS change."
+  }
+}

@@ -1,0 +1,120 @@
+{
+  "scope": "Same immutable54/56 public fixture; diagnostic capture only, before layout57",
+  "head": "945169fff6fd7e38b081a76a0e20d71b3956a365",
+  "pending_merge_head": "41ebe4823471072ed6dbb405fbd5e755852eec3f",
+  "patch_base_tree": "f44996dd0b3f1bae8358e0b1ece17f8c038bb1d6",
+  "index_unchanged_from_native56": true,
+  "patch": "/workspace/scratch/b3dac59f68e2/research/continuation/property-list-private56-capture-r3.patch",
+  "patch_sha256": "d34985e5cd4fbb4be688db5b2c79536d5fc66c04265c7c2a5f7800cb9ac7e7b0",
+  "patch_bytes": 230127,
+  "plan_sha256": "940aa92a1ef88941f8d3dfed46b81cd3a649351e56388eb84f6efc46445503d5",
+  "source_scope": [
+    "experiments/property-list-reflow/compare.mjs",
+    "experiments/property-list-reflow/interactions.mjs",
+    "experiments/property-list-reflow/verify-comparison.mjs",
+    "experiments/property-list-reflow/comparison-plan.json",
+    "experiments/property-list-reflow/comparison-plan.v2.json",
+    "experiments/property-list-reflow/README.md"
+  ],
+  "files": {
+    ".bridge/tasks/20261012-property-list-readable-layout/decision-r2.md": {
+      "bytes": 6536,
+      "sha256": "b7060d633e30d04aed4b887d0f7c7c5f3867d3e4336e1d8c3c9fecc8ab8df500"
+    },
+    ".bridge/tasks/20261012-property-list-readable-layout/evidence/capture-v3/README.md": {
+      "bytes": 3457,
+      "sha256": "4bed869544a2109df36cdccd6eb4bcaf48fe827e721ccada5e3d60076de8a915"
+    },
+    ".bridge/tasks/20261012-property-list-readable-layout/evidence/capture-v3/build-only/candidate/provenance.json": {
+      "bytes": 27401,
+      "sha256": "61be24117dfda694a922d0a02bd540e57ad118160f4fc55a3f032cff71ea67b6"
+    },
+    ".bridge/tasks/20261012-property-list-readable-layout/evidence/capture-v3/build-only/candidate/results.json": {
+      "bytes": 27371,
+      "sha256": "db7d9cc6a19c1e7d0d95edb203ffbf42c6dc230f51c6840a48be7f86d0f25e93"
+    },
+    ".bridge/tasks/20261012-property-list-readable-layout/evidence/capture-v3/build-only/control/provenance.json": {
+      "bytes": 27200,
+      "sha256": "0a291ef9fee2a76f651484a0dcf02e7c08222bc13f5e215a8b57335ac1d4737e"
+    },
+    ".bridge/tasks/20261012-property-list-readable-layout/evidence/capture-v3/build-only/control/results.json": {
+      "bytes": 27170,
+      "sha256": "f147eec237449abe61c8fef4b2e22b5c1cc852881ade846745684c79998860ae"
+    },
+    ".bridge/tasks/20261012-property-list-readable-layout/evidence/capture-v3/local/bridge-check.log": {
+      "bytes": 43,
+      "sha256": "a3714650b8e76e783f94cdbc475ef7c60dbd9d48ace30bae0f3fce27f608acc3"
+    },
+    ".bridge/tasks/20261012-property-list-readable-layout/evidence/capture-v3/local/build-summary.json": {
+      "bytes": 1001,
+      "sha256": "d4da740d18d08a40c90e099127191c6a467f363d3346e77f5a88c3bee7b8814b"
+    },
+    ".bridge/tasks/20261012-property-list-readable-layout/evidence/capture-v3/local/candidate-build.log": {
+      "bytes": 274,
+      "sha256": "8025a799b5553c48541fbec2801df66af069bf38dd4fe863cdd18de0cddf0eca"
+    },
+    ".bridge/tasks/20261012-property-list-readable-layout/evidence/capture-v3/local/checks.json": {
+      "bytes": 3545,
+      "sha256": "a80e104b2271705335db4b9792043f5867d550fa66fc97a13e70583a5126ffe6"
+    },
+    ".bridge/tasks/20261012-property-list-readable-layout/evidence/capture-v3/local/control-build.log": {
+      "bytes": 272,
+      "sha256": "6c4c6f128d2eb3ebe90208eb427f025eb27200f5e8df52cb0172c0a8cabece5d"
+    },
+    ".bridge/tasks/20261012-property-list-readable-layout/evidence/capture-v3/local/reject-forged-clean-counter.log": {
+      "bytes": 796,
+      "sha256": "8c5e5a2074c7b18266f0613caa1cb5b7107337ab4e419620c9db624001dd4521"
+    },
+    ".bridge/tasks/20261012-property-list-readable-layout/evidence/capture-v3/local/reject-forged-visualviewport-counter.log": {
+      "bytes": 873,
+      "sha256": "062c7d3190b36e3f1c1b54e9df11402ae14e71a8e0c9c774e7428e4455da2bad"
+    },
+    ".bridge/tasks/20261012-property-list-readable-layout/evidence/capture-v3/local/reject-legacy-fullpage.log": {
+      "bytes": 836,
+      "sha256": "2a02adb00959a79a4972e40861b239d65bcc0a1f15b4d77b3cdfb688f0e365a6"
+    },
+    ".bridge/tasks/20261012-property-list-readable-layout/journal.md": {
+      "bytes": 4518,
+      "sha256": "455331361605c32180406a759559bc46f8881d897395606aec31ea1fc5d7e3c4"
+    },
+    ".bridge/tasks/20261012-property-list-readable-layout/reviews/native-R2/README.md": {
+      "bytes": 2609,
+      "sha256": "dd9e6482bc205db42180a6e775b0dc44d6e1eff26b4500d04ccee20211dd7cfd"
+    },
+    ".bridge/tasks/20261012-property-list-readable-layout/reviews/native-R2/original.md": {
+      "bytes": 51102,
+      "sha256": "ecb66d5d4218fca7193ff7ccb7d7dd3bdc540d640e6568b3f6e793d3e46ed56f"
+    },
+    ".bridge/tasks/20261012-property-list-readable-layout/task.md": {
+      "bytes": 12756,
+      "sha256": "6b912e65689acdfda26b88a23c4523ed3f23abe33b30117abcbf623868ea976c"
+    },
+    "experiments/property-list-reflow/README.md": {
+      "bytes": 7075,
+      "sha256": "d82bc4667b0d54907a59380244324a7bf5312590e6f2d5c011bf51558d1ecac7"
+    },
+    "experiments/property-list-reflow/compare.mjs": {
+      "bytes": 19510,
+      "sha256": "eb28bac56c37b5dc29cb1afe8e8af33d7896d87f0a5d59b5e616aaf0c0e23855"
+    },
+    "experiments/property-list-reflow/comparison-plan.json": {
+      "bytes": 7143,
+      "sha256": "940aa92a1ef88941f8d3dfed46b81cd3a649351e56388eb84f6efc46445503d5"
+    },
+    "experiments/property-list-reflow/comparison-plan.v2.json": {
+      "bytes": 5835,
+      "sha256": "8d37900ee942cfbf03dd6fbccc46f9aa8fa390f3b8a00d12412aac1ffca5722f"
+    },
+    "experiments/property-list-reflow/interactions.mjs": {
+      "bytes": 8992,
+      "sha256": "39bb207e5f19003498ef8d0e8f0e7e5847c80740c985e66f07aa9e07968658e5"
+    },
+    "experiments/property-list-reflow/verify-comparison.mjs": {
+      "bytes": 4880,
+      "sha256": "07b93bec52cf5355b26fdbb7a55a5e689fc6ce679b4eff9a9fcf227ce3978991"
+    }
+  },
+  "local_status": "24 scoped static checks incl3 metadata negative controls PASS; exact54/56 fresh public builds BUILT_NOT_RENDERED",
+  "native_status": "NOT_RUN for capture revision3; R2 remains CHANGES_REQUESTED",
+  "writes": "Paused after Bridge planned handoff to gpt-6-astra-root; no refs/index/commit/push changes by author"
+}

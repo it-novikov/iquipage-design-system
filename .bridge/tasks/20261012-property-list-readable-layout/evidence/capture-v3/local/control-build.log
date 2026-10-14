@@ -1,0 +1,7 @@
+{
+  "status": "BUILT_NOT_RENDERED",
+  "build": "PASS",
+  "targetAcceptance": "NOT_RUN",
+  "profiles": [],
+  "evidence": "/workspace/scratch/b3dac59f68e2/repo-property-candidate/.bridge/tasks/20261012-property-list-readable-layout/evidence/capture-v3/build-only/control"
+}

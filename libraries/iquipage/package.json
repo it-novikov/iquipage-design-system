@@ -1,6 +1,6 @@
 {
   "name": "@iquipage/web",
-  "version": "0.6.0-vnext.54",
+  "version": "0.6.0-vnext.56",
   "private": true,
   "type": "module",
   "description": "IQUIPAGE standalone Web Components library",
@@ -59,6 +59,8 @@
     "docs/tree-navigation.md",
     "docs/control-contracts.md",
     "docs/document.md",
-    "docs/page-canvas.md"
+    "docs/page-canvas.md",
+    "docs/INTEGRATION.md",
+    "docs/anchored-editors.md"
   ]
 }
